@@ -1,0 +1,2651 @@
+{
+  "documentary_requirements": [
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-4861-6348; scenarios PRE3-FIG-4861-6348-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-00a0fe9c695098f078c1d984",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "L’appui long Zone ne modifie pas la sélection ; Annuler garde la valeur ; suppression confirmée préserve les affectations existantes.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-16-parent-guard; scenarios PRE3-DOC-P3-16-parent-guard-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-0236cc7bab0de9af20e004a6",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Annuler retains full params/media/draft; confirm abandons; sheet cancel distinct from parent guard.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-15-long-phrase; scenarios PRE3-DOC-P3-15-long-phrase-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-03626af0a0094638bfb59c8c",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Full phrase flowing nested Text, intrinsic height, no ellipsis/max-lines/overflow; full unique VoiceOver phrase; card opens sheet.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-05-toggle-restoration; scenarios PRE3-DOC-P3-05-toggle-restoration-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-0660e28b740b08db0e1bdc76",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Uniform uses current first (60,30); variable restores (60,30),(30,10),(45,20).",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-20-sheet-specific; scenarios PRE3-DOC-P3-20-sheet-specific-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-06d67949ecd01647b731d3c9",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Overlay #1F2129 alpha.34; Bip first-level before applicable total else countdown; at402 x36/sep330 vs indented x52/sep314; adaptive relations at360/440; header fixed body scroll.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-22-scope-regression; scenarios PRE3-DOC-P3-22-scope-regression-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-0dd4ace68df07f4ae660be2d",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Existing Profile/reference withdrawal/duplicate rules/navigation preserved; no engine/timer/audio/execution media/Composition-PRE4/Catalogue-PRE5/calendar/tag rewrite; minimal adaptations traced.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-04-mode-targets; scenarios PRE3-DOC-P3-04-mode-targets-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-0df6c21eb87c3578fefed717",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "N, pauses and cadence conserved; incompatible targets null, failure has no numeric target; prior mode targets restored only during this opening.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-16-failure-doubletap; scenarios PRE3-DOC-P3-16-failure-doubletap-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-0e23418cff2d60d57118b91d",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "One in-flight operation; rollback complete; draft/media retained; retry produces one Exercise/occurrence without partial duplicate.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-19-exclusive-scroll; scenarios PRE3-DOC-P3-19-exclusive-scroll-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-0f77798651993abe63946c9b",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Only one inline control open, height unmounted when absent; header reachable; bottom values/check accessible; no draft mutation through fold.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-4332-7095; scenarios PRE3-FIG-4332-7095-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-11afeea84007ba06481d9c18",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Le sélecteur Catégorie ouvre une sélection simple et la création ; fermer annule cette ouverture et valider applique au parent.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-06-shrink-regrow; scenarios PRE3-DOC-P3-06-shrink-regrow-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-13af3d257fcb7de6d1fd540b",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "A/B stay active, C/D return in relative order, fifth clones last active D; no equality inference.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-19-non-accelerated; scenarios PRE3-DOC-P3-19-non-accelerated-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-160d96a8656ca6a5c9e9ac27",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Bip/CR/Fin stay step1; Profile keeps its existing policy; no propagation of PRE-3 acceleration by accident.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-23-file-preservation; scenarios PRE3-DOC-P3-23-file-preservation-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-1b17ad539ed0d149b2ce988f",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Referenced bytes never deleted; only confirmed unreferenced prepared files owned by this draft eligible for cleanup; no crash global purge.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-6665-27232; scenarios PRE3-FIG-6665-27232-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-1b9d902ab46d9e11e1db4046",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Une Série incomplète interdit ✓ même tableau replié ; le message identifie la Série et permet sa correction.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-4683-6336; scenarios PRE3-FIG-4683-6336-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-1beebac6f77da62e13102794",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Créer une Zone conserve le nom saisi ; nom vide désactive Ajouter sans erreur ; doublon/réactivation suivent PRE-2.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-6665-26185; scenarios PRE3-FIG-6665-26185-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-1f233784566b10f1075da3d3",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Un côté après l’autre exécute toutes les Séries du premier côté puis toutes celles du second ; N est par côté.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-15-no-storage; scenarios PRE3-DOC-P3-15-no-storage-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-21bef031be084e8e02e5642e",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "No phrase or segments columns/JSON stored; generation at display; history parameters/actual durations unmodified.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-6665-24844; scenarios PRE3-FIG-6665-24844-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-2265beb4a6aaaf5c2873f04b",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Répétitions variables12/10/8 avec bip0 omettent la durée intrinsèque ; pauses30/45/60 contribuent135s connus en Séance.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-6407-9458; scenarios PRE3-FIG-6407-9458-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-24dbf849725a379c24c07e5e",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "La carte Paramètres ouvre la feuille depuis toute sa zone ; aucune valeur de cible absente n’est inventée.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-09-directions; scenarios PRE3-DOC-P3-09-directions-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-2d9ef4c4ec65b091c41e714e",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Totals independent of starting side; phrase states correct direction/order; PC contributes once BY_SIDE, N times BY_SERIES.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-3943-6064; scenarios PRE3-FIG-3943-6064-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-2ea2a56239f1033cccdbf611",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Le formulaire initial présente nom, description, médias, Catégorie, Zones et Paramètres ; aucune persistance avec les champs requis incomplets.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-6423-9953; scenarios PRE3-FIG-6423-9953-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-30b44b8b8eded65d2e28f9a9",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Un total demandé irréalisable choisit le plus proche, égalité vers N supérieur ; message uniquement si le total réalisé diffère.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-13-R-terminal; scenarios PRE3-DOC-P3-13-R-terminal-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-335d9ca70d2a7405f846289b",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "A285, N1235; R0/absent leaves A195/N1220; replace only terminal physical pause once.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-12-omission; scenarios PRE3-DOC-P3-12-omission-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-360330540685103cd8744e65",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "No exercise duration line/value/0/dash/≥; known135 retained for Session; invalid targets cause validation error rather than omitted result.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-09-unilateral-controls; scenarios PRE3-DOC-P3-09-unilateral-controls-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-36c7c7983f87b5a43aa994ce",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Side order/PC have no effect on unilateral calculation; hidden/inactive controls cannot inject PC.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-06-commit-hidden; scenarios PRE3-DOC-P3-06-commit-hidden-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-394f00aae78a8e85f04839cb",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Temporary removed C/D not persisted; new rows are clones of effective last row B.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-6665-27458; scenarios PRE3-FIG-6665-27458-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-3dd1e56c7dd541640c2caf10",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Replier le tableau ne change ni lignes, ordre, validité ni total ; développer restitue toutes les lignes.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-6407-9966; scenarios PRE3-FIG-6407-9966-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-3fb09caea44a28a9f7c9ea38",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Nombre de Séries et Pauses utilisent les contrôles prescrits, leurs bornes et leur maintien ; aucun arrondi au chargement.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-12-normative-totals; scenarios PRE3-DOC-P3-12-normative-totals-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-42658704adaaefceca42eeab",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "A195 exact C405 exact D375 exact Rep cadence≈300 Duration cadence300 exact; no historical2s fallback.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-6411-9649; scenarios PRE3-FIG-6411-9649-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-47282d1851bc3e68d1884356",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "En bilatéral, l’ordre et la Pause entre côtés sont affichés ; PC contribue une fois par succession de côtés ou N fois par paire.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-13-no-auto-R; scenarios PRE3-DOC-P3-13-no-auto-R-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-4aaedf0fd0a2ed253c3469d4",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "New R0/absent, existing R30 unchanged; Profile default used only by explicit recovery insertion outside PRE-3.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-01-copy-isolation; scenarios PRE3-DOC-P3-01-copy-isolation-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-4afcac6ca21cf55c67976e3f",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Other occurrence and definition/occurrence snapshots keep their own complete values and ordered media.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-23-import-multiple; scenarios PRE3-DOC-P3-23-import-multiple-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-4b5ff122ecc65b4ab59d834d",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Three durable ordered associations to internal files; visible import state; no automatic camera/source expansion/conversion/product limit; custom order persists.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-6665-26822; scenarios PRE3-FIG-6665-26822-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-4b6244645bac808d76f9246b",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "N1 normalise immédiatement uniforme et succession des côtés ; options sans effet grisées ; 90/P15/PC10 bilatéral donne220s.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-6665-25277; scenarios PRE3-FIG-6665-25277-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-4f991a3080b6e0079fd43642",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Douze lignes variables sont accessibles par défilement ; phrase min/max intégrale, en-tête maintenu, validation disponible sans perte des lignes.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-16-fold-incomplete; scenarios PRE3-DOC-P3-16-fold-incomplete-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-514b489a9cf30114b782b094",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "No apply/write; message identifies Série2, visible/reachable correction; folding never clears rows/validation.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-6665-24616; scenarios PRE3-FIG-6665-24616-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-5893fa2b29b1dd40cf0eb808",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Durée variable30/45/60 avec pauses10/20/30 reste explicitement variable ; total exact195s ; phrase énumérée avec puis.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-17-persistence-reopening; scenarios PRE3-DOC-P3-17-persistence-reopening-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-5b34a61e1bba57ca4cc09932",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "L’enregistrement puis la réouverture conservent les paramètres et les médias dans leur ordre ; les données déjà présentes restent compatibles et l’historique n’est pas réécrit.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-4861-6259; scenarios PRE3-FIG-4861-6259-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-633430d3fc581041382d6255",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "L’appui long Catégorie ne modifie pas la sélection ; Annuler garde la valeur ; suppression confirmée préserve les affectations existantes.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-20-all-surfaces; scenarios PRE3-DOC-P3-20-all-surfaces-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-6de6b2934cac2f72a5d7fced",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Per-element geometry/style/text tokens/master variants checked; system décor separately classified; no global visual postponement; each residual deviation named with impact/status/decision.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-4474-7157; scenarios PRE3-FIG-4474-7157-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-7175c3316e66ca41f86ad2c6",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Créer une Catégorie conserve nom et couleur choisis ; nom vide désactive Ajouter sans erreur ; doublon/réactivation suivent PRE-2.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-13-unknown-known; scenarios PRE3-DOC-P3-13-unknown-known-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-742773db7e3644671c9c1dc6",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Known totals built from event ledger; unilateral225; BY_SIDE345 with R120; BY_SERIES240 with R120; unknown flag retained, no invented work.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-6665-25072; scenarios PRE3-FIG-6665-25072-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-7492af67b63727fc5d83832f",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "À l’échec variable conserve les pauses par ligne ; bip nul ou positif ne rend pas sa durée calculable.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-14-inverse-boundaries; scenarios PRE3-DOC-P3-14-inverse-boundaries-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-74d203d9c959b7ba2208f9f4",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Enumerate all N1..99 independently with normalized N1; nearest feasible selected, no0/100; inverse disabled in variable/repetition/failure.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-7069-13573; scenarios PRE3-FIG-7069-13573-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-78dac76be735853f808d186b",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "La variante copiée Répétitions conserve cible/bip et omission applicable ; elle ne crée pas une seconde règle métier.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-5088-6398; scenarios PRE3-FIG-5088-6398-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-7d6f0fbe60947abaf8cef325",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "La Catégorie choisie est affichée avec son identité ; elle est appliquée au brouillon et conservée à la sauvegarde/réouverture.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-7059-13302; scenarios PRE3-FIG-7059-13302-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-7e467f0483ddc28e3330de81",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Quatre Séries de15 répétitions avec bip4 et pause15 donnent≈300s ; Bip est au premier niveau et reste commun.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-03-zones-presentation; scenarios PRE3-DOC-P3-03-zones-presentation-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-7e501f13b5be0568ed26cbfd",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Text pills and header cross/title/check match reference; no silhouette repeated per option; selections survive parent round trip.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-18-copy-complete; scenarios PRE3-DOC-P3-18-copy-complete-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-8749cb64aacab3fb0714f950",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "New occurrence/link IDs; full params/category/media metadata/order conserved; same physical assets; mutation of one copy cannot mutate source/snapshot.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-19-hold; scenarios PRE3-DOC-P3-19-hold-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-93bf9d29adf8b6f89b7a4a30",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Tap1; no repeated change before500ms; repeat150ms; prescribed step1/5/10; directional multiples/clamping; immediate stop, no release tap.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-4714-6241; scenarios PRE3-FIG-4714-6241-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-986f9ebd32fb8064c798a617",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Annuler l’abandon conserve l’intégralité du brouillon ; confirmer l’abandon ne sauvegarde aucun Exercice partiel.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-6411-9546; scenarios PRE3-FIG-6411-9546-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-99bc3dfceb001f925437209f",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "En Durée uniforme seulement, la roulette du total recherche N1..99 réalisable ; le total n’est pas un champ concurrent persisté.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-18-historical-immutability; scenarios PRE3-DOC-P3-18-historical-immutability-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-a1828a86de25d6951ab73a9d",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Original serialized data/actual duration unchanged; derived phrase regenerates; no execution engine/history Repository invented.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-07-move-accessible; scenarios PRE3-DOC-P3-07-move-accessible-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-a1c3235c5f4b460d6fbfd4fb",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Moves target and pause together, renumbers, respects first/last boundaries and yields same draft as drag.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-16-sheet-boundary; scenarios PRE3-DOC-P3-16-sheet-boundary-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-a21693802324acf3f17b1be5",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Cancel leaves byte-equivalent parent; check atomically applies only valid effective params, no SQLite/service save; phrase updates.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-6407-9702; scenarios PRE3-FIG-6407-9702-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-a55910e5ec475c7f4ff50aa2",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Après ✓ valide, la phrase est régénérée depuis le parent et affichée intégralement ; ✓ ne persiste pas l’Exercice.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-6419-9847; scenarios PRE3-FIG-6419-9847-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-a677b64e9545005ad109ea9a",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "En Répétitions, cibles1..100 et bip0..10 restent réglables ; sans bip, toute durée d’Exercice est omise.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-05-equal-variable; scenarios PRE3-DOC-P3-05-equal-variable-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-a7798423c0cd9fc513582b3b",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Saved kind remains VARIABLE; equality never forces uniform; all three rows and their order survive.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-6665-28050; scenarios PRE3-FIG-6665-28050-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-b216b89bd2cb6d270937c135",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "La carte parent résume À l’échec variable sans durée, sans cible numérique et sans clause ajoutée de pauses variables.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-23-cancel-local-error; scenarios PRE3-DOC-P3-23-cancel-local-error-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-b21a196c714a22c5a7a681e6",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Cancellation no error; other accepted items retained; failed item visible with Réessayer and draft intact; retry does not duplicate successful items.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-03-empty-create-name; scenarios PRE3-DOC-P3-03-empty-create-name-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-b46b9f500ffd60197b579858",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Ajouter inactive, no error message for empty name; valid name follows PRE-2 uniqueness/reactivation rules.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-23-permissions; scenarios PRE3-DOC-P3-23-permissions-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-b5634c649f29da401380c7d7",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "No camera/microphone request; limited accepted; actionable refusal/settings; Android pending result consumed once; null name/assetId alone not fatal.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-6665-27008; scenarios PRE3-FIG-6665-27008-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-b7885d39b5a1037d823db03b",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Changer de mode rend les cibles incompatibles non renseignées ; ✓ interdit ; revenir avant ✓ restaure les cibles temporaires.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-15-grammar-edges; scenarios PRE3-DOC-P3-15-grammar-edges-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-b9d2adab09887ccbe45ca531",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "P0 omits only redundant total; P15 includes45; enumerate <=3 with puis, >3 true min/max; variable pause clause omitted without data loss; direction/order/cadence grammar correct.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-4478-7209; scenarios PRE3-FIG-4478-7209-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-be564aaa2f7c19c7e1d585bd",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Les Zones se choisissent en pastilles textuelles sans silhouette répétée ; en-tête ✕/titre/✓ ; la sélection multiple reste isolée jusqu’à validation.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-21-accessible-controls; scenarios PRE3-DOC-P3-21-accessible-controls-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-be6e7d796429be1c0f364017",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Complete labels, disabled states, current values, grouped phrase; focus enters modal and returns to launcher; equivalent non-drag ordering; touch44 minimum per targeted contracts.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-6407-10127; scenarios PRE3-FIG-6407-10127-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-c0653265fd8e6e6ed3b3f7e0",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "La roulette de cible Durée est ouverte inline ; une autre roulette ou un segmenté la remplace ; en-tête et bas restent accessibles.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-15-corpus-276; scenarios PRE3-DOC-P3-15-corpus-276-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-c1f64d5b502d4fa0a1f0df82",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Concat equals all276 expectedText; 140 no total/46 estimated/90 exact template distribution; sample amounts never read as oracle; numeric tokens/units bold, grammatical tokens normal.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-6407-9805; scenarios PRE3-FIG-6407-9805-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-c4fa2d106ec4af29be0dfc0e",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Le contrôle de mode sélectionne exactement Durée, Répétitions ou À l’échec ; changer de mode conserve N, pauses et bip.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-02-keyboard-scroll; scenarios PRE3-DOC-P3-02-keyboard-scroll-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-c71e67953322876214d58940",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Focused field and Terminer remain reachable; safe areas/header respected; no fixed height clips text.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-6407-9551; scenarios PRE3-FIG-6407-9551-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-c9b6f13e688fc0e6259904d3",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "La feuille avec cibles non renseignées interdit ✓ ; ✕/retour ferme sans mutation du parent ; les champs actifs requis restent identifiables.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-6665-27862; scenarios PRE3-FIG-6665-27862-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-ca6937cd18dd2f8d3a658ff8",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "La carte parent résume Durée variable bilatérale par Série après ✓, depuis les paramètres actuels ; phrase jamais tronquée.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-7069-13464; scenarios PRE3-FIG-7069-13464-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-cd1671aefa87e4c55589d6a5",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "La variante copiée conserve les règles du bilatéral, ordre et PC ; elle ne crée pas une seconde règle métier.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-6407-10481; scenarios PRE3-FIG-6407-10481-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-d52c65c3b0b5b8a6b4d79296",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Le contrôle de changement de côté sélectionne sans changement, droite puis gauche ou gauche puis droite ; ouverture exclusive des contrôles inline.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-01-Session:edit; scenarios PRE3-DOC-P3-01-Session:edit-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-d6ebd1f90959566548021436",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Séance — modification de copie : All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-6665-26575; scenarios PRE3-FIG-6665-26575-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-dbc1f5e9343a9a2f9b285311",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Durées30/45/60, pauses10/20/30, PC15 par paire donnent375s ; chaque ligne conserve sa cible et sa Pause.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-3542-4656; scenarios PRE3-FIG-3542-4656-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-dca8fcbffab81bce5b3ece33",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Le shell et les champs de création sont conservés ; cette référence antérieure ne retire ni la carte Paramètres ni les médias exigés dans PRE-3.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-7119-27855; scenarios PRE3-FIG-7119-27855-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-dffcbea4cdc23f986389b210",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "La phrase longue224 caractères reste intégrale, en texte imbriqué et hauteur intrinsèque ; un seul libellé accessible complet ouvre Paramètres.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-04-bounds; scenarios PRE3-DOC-P3-04-bounds-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-e088044aa96e4c6bd8245bd7",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "D1..5999, Rep1..100, N1..99, P/PC0..300, b0..10, CR/Fin0..60 accepted exactly; invalid values identify field and series; null numeric target is incomplete.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-08-restoration-N1; scenarios PRE3-DOC-P3-08-restoration-N1-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-e27f4bfa2c3a94e8ea005cc4",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "First path restores temporary rows/order; committed1 opens as uniform/BY_SIDE without stale reserve.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-4734-6342; scenarios PRE3-FIG-4734-6342-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-e364498ec10106655ef06f59",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Modifier charge tous les paramètres et médias ordonnés existants ; Terminer modifie uniquement le propriétaire ouvert.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-4217-6980; scenarios PRE3-FIG-4217-6980-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-e4b10065aa3f1026c872fd05",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Nom, description et médias renseignés restent dans le brouillon ; ouvrir un sélecteur puis revenir les conserve.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-10-profile-new-only; scenarios PRE3-DOC-P3-10-profile-new-only-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-e6e85ed715a71bb13e47b1ca",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "New creation snapshots defaults; PC initialized on activation; saved 7/3/2 unchanged after Profile changes; no retroactive migration.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-08-immediate-N1; scenarios PRE3-DOC-P3-08-immediate-N1-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-eb51b0a869e39accf16ca563",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Effective kind UNIFORM and BY_SIDE immediately; controls without effect disabled; intrinsic220; requested old order not used by calculation.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-01-Session:create; scenarios PRE3-DOC-P3-01-Session:create-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-ebbfb991e0db61abbfe6028a",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Séance — création de copie : All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-02-editor-fields; scenarios PRE3-DOC-P3-02-editor-fields-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-ed77f2c4feff23fe60841493",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Name, description, media and all required selectors accessible; finish disabled or validation prevents write until required values complete; completed save returns to its host.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-07-move-terminal; scenarios PRE3-DOC-P3-07-move-terminal-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-f42071c62338233ed7797395",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Rows C/A/B; intrinsic195 unchanged; occurrence195−20+120=295 because new final pause20; cancel restores prior occurrence285.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-01-Catalogue:edit; scenarios PRE3-DOC-P3-01-Catalogue:edit-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-f6bee7203790bb25a5a580c8",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Catalogue — modification : All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-6419-10028; scenarios PRE3-FIG-6419-10028-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-f7c5bb3ef511e9989e4f099e",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "À l’échec, aucune cible numérique ni durée d’Exercice ; pauses, bip, compte à rebours et fin restent disponibles.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-03-reference-retired; scenarios PRE3-DOC-P3-03-reference-retired-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-f8e28f157ecf85e42ea488ea",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Original withdrawn assignments retained under PRE-2 policy; no implicit replacement/removal.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-11-all-modes-bip; scenarios PRE3-DOC-P3-11-all-modes-bip-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-f9cb0657666acfdae7fc6770",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Bip present and common in all modes, same valid integer retained across save/copy; no execution sound introduced.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-14-inverse-enumeration; scenarios PRE3-DOC-P3-14-inverse-enumeration-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-fa7135f1ed4e134cd3352957",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "N2 gives80 and N3 gives120 equally close; choose N3, show adjustment120; exact request80 choosesN2 with no adjustment.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-FIG-6665-27608; scenarios PRE3-FIG-6665-27608-RENDER",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-fb496a9e3eb4e15571883cae",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Déplacer une Série transporte cible et Pause, renumérote, change PN selon la nouvelle dernière ligne ; ✕ annule le déplacement.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-13-tours-cycles-list; scenarios PRE3-DOC-P3-13-tours-cycles-list-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-fc1fb882be0b8158bf0502c9",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Existing structural repetition semantics preserved; applicable CR/Fin once per complete Exercise; list total equals full read calculated by one domain authority; symbols exact/≈/≥ correct.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    },
+    {
+      "conflict_ids": [],
+      "conflict_unit_ids": [],
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "priority": "MUST",
+      "rationale": "Documentary state PRE3-DOC-P3-01-Catalogue:create; scenarios PRE3-DOC-P3-01-Catalogue:create-CHECK",
+      "related_requirement_ids": [],
+      "related_unit_ids": [],
+      "requirement_id": "REQ-fe24039cf7c16a77ec518ce4",
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "source_id": "SRC-73db2f2f8fa401b7bc919b4f",
+      "statement": "Catalogue — création : All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+      "status": "ACTIVE",
+      "unit_id": "UNIT-d27f377c24336720e09fd06b"
+    }
+  ],
+  "files": [
+    {
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "candidate_id": "CAND-7855f2c44cfe7e316ffdecae",
+      "change_kind": "CREATE"
+    },
+    {
+      "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+      "candidate_id": "CAND-0b6b563dd127b9cd2a46fa38",
+      "change_kind": "CREATE"
+    },
+    {
+      "path": "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+      "candidate_id": "CAND-b88155b7cb6dd8666d567937",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/features/reference-data/BodyZonePickerModal.tsx",
+      "candidate_id": "CAND-974d955e2ee916b6549406f4",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/features/reference-data/CategoryPickerModal.tsx",
+      "candidate_id": "CAND-271b9ab9614b1937333bd393",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+      "candidate_id": "CAND-c765aa0a5d1284c0fcbf2f36",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+      "candidate_id": "CAND-0146d992b7b85a2d3529a000",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/features/activities/ActivityEditorForm.tsx",
+      "candidate_id": "CAND-e632795dcec0df1b967816d7",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "candidate_id": "CAND-285b7f83a0f1cadd1a958738",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/SessionDraftContext.tsx",
+      "candidate_id": "CAND-be6e4ddd0319b6ec106ad37f",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+      "candidate_id": "CAND-2ea6facb14430d7286568dd6",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+      "candidate_id": "CAND-a175c8ff4e59cd76a71cf61f",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+      "candidate_id": "CAND-5212fa991217515b0112ba23",
+      "change_kind": "CREATE"
+    },
+    {
+      "path": "src/domain/media/MediaDraftLeases.ts",
+      "candidate_id": "CAND-1ce888e7bff71a4a4eae78e8",
+      "change_kind": "CREATE"
+    },
+    {
+      "path": "src/features/sessions/SessionDraftProvider.tsx",
+      "candidate_id": "CAND-cdbe16f78dbfea3ba5fc1f7d",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/domain/activities/ExecutionParametersDraft.ts",
+      "candidate_id": "CAND-c602e20c16b6190faa51cf48",
+      "change_kind": "CREATE"
+    },
+    {
+      "path": "src/features/sessions/ExerciseScreen.tsx",
+      "candidate_id": "CAND-3407d77b7b47157b2cec571a",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/SessionDraft.ts",
+      "candidate_id": "CAND-2be5642ff46a0fe0b8461f4a",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "candidate_id": "CAND-4c670e09d50ba2eea77e1e96",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+      "candidate_id": "CAND-68374cac6eeb3237f594a05a",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/domain/activities/executionPhrase.ts",
+      "candidate_id": "CAND-3c9cbb56b01a592989bfd0ca",
+      "change_kind": "CREATE"
+    },
+    {
+      "path": "src/features/activities/ActivityCard.tsx",
+      "candidate_id": "CAND-8286291ab22c66a96947f24b",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+      "candidate_id": "CAND-b9ab15323341a793b6985ee5",
+      "change_kind": "CREATE"
+    },
+    {
+      "path": "src/domain/activities/exerciseSnapshot.ts",
+      "candidate_id": "CAND-5836e6098f853e6c7789a3f2",
+      "change_kind": "CREATE"
+    },
+    {
+      "path": "src/domain/activities/__tests__/exerciseSnapshot.test.ts",
+      "candidate_id": "CAND-82d06ac4a7abe75204495781",
+      "change_kind": "CREATE"
+    },
+    {
+      "path": "src/shared/i18n/index.ts",
+      "candidate_id": "CAND-e0c1b072930432cb3a6816c2",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/features/activities/ActivityMediaList.tsx",
+      "candidate_id": "CAND-5771091f46c6d2947438e316",
+      "change_kind": "CREATE"
+    },
+    {
+      "path": "src/shared/ui/tokens.ts",
+      "candidate_id": "CAND-d446bd89212b98ac97f9a8dd",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/__tests__/compositionPresentation.test.ts",
+      "candidate_id": "CAND-a999e87c37676ffc9921fc5d",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/shared/ui/__tests__/ProfileStepper.test.ts",
+      "candidate_id": "CAND-5b3bb218708529ce4cb9e110",
+      "change_kind": "CREATE"
+    },
+    {
+      "path": "src/features/sessions/compositionPresentation.ts",
+      "candidate_id": "CAND-e2abe931ba4f08e4faf70b0b",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/domain/activities/ExecutionParameters.ts",
+      "candidate_id": "CAND-6b3f63665b61bd0a9506ded3",
+      "change_kind": "CREATE"
+    },
+    {
+      "path": "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+      "candidate_id": "CAND-aee38456c5031cf7f9afc0e2",
+      "change_kind": "CREATE"
+    },
+    {
+      "path": "src/domain/sessions/validation.ts",
+      "candidate_id": "CAND-db5b55781d3693fb3adc18f7",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/domain/activities/ActivityDefinition.ts",
+      "candidate_id": "CAND-e0bda1b7f59cf9e8e315ac75",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/shared/ui/ProfileStepper.tsx",
+      "candidate_id": "CAND-b9fdec994d9ffc1c07592a61",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/domain/media/MediaAsset.ts",
+      "candidate_id": "CAND-0034e3b8012b9f25019089e2",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/features/activities/ActivityDefinitionService.ts",
+      "candidate_id": "CAND-0c68ebbdcb769cec43ff6c33",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+      "candidate_id": "CAND-27f5805fa8210452685ab6b1",
+      "change_kind": "CREATE"
+    },
+    {
+      "path": "src/features/sessions/SessionService.ts",
+      "candidate_id": "CAND-3058fdec7500e732b382f269",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/media/VideoPoster.ts",
+      "candidate_id": "CAND-86646cfe8d806c8f52ce29dd",
+      "change_kind": "CREATE"
+    },
+    {
+      "path": "src/infrastructure/database/types/DatabaseRows.ts",
+      "candidate_id": "CAND-1d3426d50a7ebf3819b7cb8e",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+      "candidate_id": "CAND-16f9e17c878f5096bef640a3",
+      "change_kind": "CREATE"
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteMediaRepository.ts",
+      "candidate_id": "CAND-d365b76abbf6f325a16a2443",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/media/LocalMediaStore.ts",
+      "candidate_id": "CAND-e70f05b5081ffc493eb69200",
+      "change_kind": "CREATE"
+    },
+    {
+      "path": "src/domain/media/MediaRepository.ts",
+      "candidate_id": "CAND-ac10b9cd1f8ca6832131e125",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/features/activities/ActivitySelectionScreen.tsx",
+      "candidate_id": "CAND-7d7af9f5a2865c4c7143c104",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/media/__tests__/VideoPoster.test.ts",
+      "candidate_id": "CAND-d62f80b37470b158f8261ab8",
+      "change_kind": "CREATE"
+    },
+    {
+      "path": "package-lock.json",
+      "candidate_id": "CAND-a5b8170dd3f6c1e1ec1f8e7d",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/domain/activities/ActivityDefinitionRepository.ts",
+      "candidate_id": "CAND-48929046dfd4c2f264318da5",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/SessionServiceProvider.tsx",
+      "candidate_id": "CAND-8ec646d2d9691e4c01eff975",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+      "candidate_id": "CAND-202fb63ef721916613697bd0",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/domain/media/ActivityMediaImportService.ts",
+      "candidate_id": "CAND-af65f766cdcb0d4d0ab7ae64",
+      "change_kind": "CREATE"
+    },
+    {
+      "path": "src/domain/media/ActivityMedia.ts",
+      "candidate_id": "CAND-d0361e0ce6892ca722865bd7",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/media/PhotoLibraryPicker.ts",
+      "candidate_id": "CAND-87ca7d1375df5060ec45ae7d",
+      "change_kind": "CREATE"
+    },
+    {
+      "path": "package.json",
+      "candidate_id": "CAND-4e914ee1eda72635e3d25619",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/Session.ts",
+      "candidate_id": "CAND-4eac38dbad391ead0e73d4e9",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+      "candidate_id": "CAND-e0af8ec640affd4d2f853805",
+      "change_kind": "CREATE"
+    },
+    {
+      "path": "src/domain/activities/executionCalculations.ts",
+      "candidate_id": "CAND-59cca3189e818d19b23c3f51",
+      "change_kind": "CREATE"
+    },
+    {
+      "path": "src/domain/sessions/calculations.ts",
+      "candidate_id": "CAND-9e6c743911d470fd0b6cdba0",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/formatSessionSummary.ts",
+      "candidate_id": "CAND-3c3e5e678fe01c76efc65572",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/__tests__/formatSessionSummary.test.ts",
+      "candidate_id": "CAND-5678639b27566894b98ebc3f",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/SessionCard.tsx",
+      "candidate_id": "CAND-f615c6971160d0d5a60209bf",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+      "candidate_id": "CAND-7a5fcedac3004c12cf08d7a0",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/__tests__/SessionDraft.test.ts",
+      "candidate_id": "CAND-e574f49aedb0c8f6bc01066c",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "candidate_id": "CAND-7f8c80aac1732842bb845bb3",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "candidate_id": "CAND-e1b801e66644daf0cb32fc61",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/migrateDatabase.ts",
+      "candidate_id": "CAND-3a6f8fb7173d4ed35fcd53d7",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionService.test.ts",
+      "candidate_id": "CAND-b742e7446ef79f7c05d95211",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivityDefinitionService.test.ts",
+      "candidate_id": "CAND-2daccc25e1768a68ea8682c2",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration009.ts",
+      "candidate_id": "CAND-0787e317e20ec0ae2b76f648",
+      "change_kind": "CREATE"
+    },
+    {
+      "path": "src/infrastructure/database/constants.ts",
+      "candidate_id": "CAND-053fab1f466f0141df15ae97",
+      "change_kind": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/composition.ts",
+      "candidate_id": "CAND-91870493755a8664cc3f75f8",
+      "change_kind": "MODIFY"
+    }
+  ]
+}
