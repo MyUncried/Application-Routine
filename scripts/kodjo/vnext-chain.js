@@ -8,10 +8,12 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const Chain = require('./lib/vnext-live-chain');
 const Approval = require('./lib/approval-handoff-contract');
-function read(file) { return JSON.parse(fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, '')); }
+const Bundle = require('./lib/vnext-file-bundle');
+function read(file) { return Bundle.read(file); }
 function write(file, value) {
   fs.mkdirSync(path.dirname(path.resolve(file)), { recursive: true });
-  fs.writeFileSync(file, typeof value === 'string' ? value : JSON.stringify(value, null, 2) + '\n', 'utf8');
+  if (typeof value === 'string') fs.writeFileSync(file, value, 'utf8');
+  else Bundle.write(file, value);
 }
 function reservationMessage(prepared) {
   return 'KODJO VNext — Réservation technique du gate\nprepared_chain_hash=' + prepared.contract_hash
@@ -132,7 +134,7 @@ function main(args = process.argv.slice(2)) {
     if (!config.gate_reservation_file) throw Error('VNEXT_CHAIN_RESERVED_GATE_REQUIRED');
     const head = Chain.command('git', ['rev-parse', 'HEAD'], cwd).trim();
     const bootstrap = JSON.parse(Chain.readGit(cwd, head, config.bootstrap_file));
-    const prepared = JSON.parse(Chain.readGit(cwd, head, bootstrap.vnext_chain_file));
+    const prepared = Chain.readGitObject(cwd, head, bootstrap.vnext_chain_file);
     const target = Chain.approvalTarget(prepared, { cwd, protocolHead: head });
     const issue = /^github_issue:([^#]+)#([1-9][0-9]*)$/.exec(prepared.produced.artifacts.planningEnvelope.issue_id);
     if (!issue || bootstrap.repository !== issue[1]) throw new Error('VNEXT_CHAIN_REPOSITORY_MISMATCH');
@@ -145,7 +147,7 @@ function main(args = process.argv.slice(2)) {
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(config.request_id || '')) throw Error('VNEXT_CHAIN_FINALIZED_REQUEST_ID_REQUIRED');
     const head = config.protocol_head;
     const bootstrap = JSON.parse(Chain.readGit(cwd, head, config.bootstrap_file));
-    const prepared = JSON.parse(Chain.readGit(cwd, head, bootstrap.vnext_chain_file));
+    const prepared = Chain.readGitObject(cwd, head, bootstrap.vnext_chain_file);
     const seed = { slice_id: bootstrap.slice_id, issue_number: bootstrap.issue_number, source_head: head,
       slice_bootstrap_file: config.bootstrap_file, slice_bootstrap_sha256: bootstrap.slice_bootstrap_sha256,
       authorized_plan: { plan_path: config.transport.plan_path }, independent_review: { review_path: config.transport.review_path },

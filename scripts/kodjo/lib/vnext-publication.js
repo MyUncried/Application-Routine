@@ -30,6 +30,13 @@ function renderGithubExpressionsForSyntax(block) {
   // static grammar, not the escaping or meaning of runtime input values.
   return block.replace(/\$\{\{[\s\S]*?\}\}/g, 'VNEXT_GITHUB_EXPRESSION');
 }
+function javascriptSyntaxArgs(file, absoluteFile) {
+  // The captured Figma script is a function body: async/return are legal there.
+  // The compiler parses all bytes but never executes Figma or imports a plugin.
+  if (file === 'docs/preparation/PRE-3/planification/controle-fraicheur-figma.js')
+    return ['-e', "const fs=require('node:fs');const AsyncFunction=Object.getPrototypeOf(async function(){}).constructor;new AsyncFunction(fs.readFileSync(process.argv[1],'utf8'));", absoluteFile];
+  return ['--check', absoluteFile];
+}
 function validateTree({ cwd, expectedParent, candidateTree, run = execFileSync }) {
   V.assertSha40(expectedParent, 'VNEXT_PUBLICATION_PARENT_REQUIRED');
   V.assertSha40(candidateTree, 'VNEXT_PUBLICATION_TREE_REQUIRED');
@@ -50,7 +57,7 @@ function validateTree({ cwd, expectedParent, candidateTree, run = execFileSync }
     // Parse each changed JavaScript producer, not a truncated tool rendering.
     const changed = git('diff', '--name-only', expectedParent, candidateTree).split('\n').filter(Boolean);
     for (const file of changed.filter(file => /\.(?:js|cjs|mjs)$/.test(file) && fs.existsSync(path.join(temporary, file)))) {
-      invoke(process.execPath, ['--check', path.join(temporary, file)]);
+      invoke(process.execPath, javascriptSyntaxArgs(file, path.join(temporary, file)));
     }
     // Reuse the inherited workflow control that caught the recovery-step ordering regression.
     const targetedTests = changed.includes('.github/workflows/kodjo-v2-pilot-tests.yml') ? ['tests/kodjo/incident-register.pilot.js'] : [];
@@ -98,4 +105,4 @@ function validateTree({ cwd, expectedParent, candidateTree, run = execFileSync }
       historical_subjects: inventory.incidents.length + inventory.tests.length + inventory.normative_paragraphs.length };
   } finally { fs.rmSync(temporary, { recursive: true, force: true }); }
 }
-module.exports = { CHECKPOINT, WORKFLOWS, verifyWindow, validateTree, renderGithubExpressionsForSyntax };
+module.exports = { CHECKPOINT, WORKFLOWS, verifyWindow, validateTree, javascriptSyntaxArgs, renderGithubExpressionsForSyntax };

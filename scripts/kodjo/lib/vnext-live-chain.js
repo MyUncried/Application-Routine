@@ -7,6 +7,7 @@ const path = require('node:path');
 const os = require('node:os');
 const { spawnSync } = require('node:child_process');
 const V = require('./vnext-contract');
+const Bundle = require('./vnext-file-bundle');
 const Perf = require('./vnext-performance');
 const Source = require('./source-manifest');
 const Envelope = require('./planning-envelope');
@@ -79,7 +80,8 @@ function observeSources(manifest, cwd, github = Auth.ghClient(), issueId = null)
       } else content = readGit(cwd, source.revision, source.locator);
     }
     if (V.sha256(content) !== source.fingerprint) V.fail('VNEXT_SOURCE_OBSERVATION_HASH_MISMATCH', source.locator);
-    for (const unit of source.units) if (V.sha256(figma ? require('./vnext-figma-source').unitText(figma,unit.locator) : unitText(content, unit.locator)) !== unit.fingerprint) V.fail('VNEXT_SOURCE_UNIT_OBSERVATION_MISMATCH', unit.unit_id);
+    const figmaLook=figma?require('./vnext-figma-source').lookup(figma):null;
+    for (const unit of source.units) if (V.sha256(figma ? require('./vnext-figma-source').unitText(figma,unit.locator,figmaLook) : unitText(content, unit.locator)) !== unit.fingerprint) V.fail('VNEXT_SOURCE_UNIT_OBSERVATION_MISMATCH', unit.unit_id);
     return { source_id: source.source_id, revision: source.revision, fingerprint: source.fingerprint, content };
   });
 }
@@ -107,11 +109,11 @@ function produceInternal(recipe, { cwd, github } = {}) {
   if(recipe.figmaScope&&!recipe.figmaLaunch)V.fail('VNEXT_FIGMA_LAUNCH_REQUIRED');
   if(recipe.figmaLaunch){
     require('./vnext-figma-launch').validate(recipe.figmaLaunch,recipe);
-    if(V.canonicalStringify(recipe.figmaScope)!==V.canonicalStringify(recipe.figmaLaunch.scope))V.fail('VNEXT_FIGMA_LAUNCH_SCOPE_MISMATCH');
+    if(V.canonicalHash(recipe.figmaScope)!==V.canonicalHash(recipe.figmaLaunch.scope))V.fail('VNEXT_FIGMA_LAUNCH_SCOPE_MISMATCH');
   }
   const sourceManifest = Source.build(recipe.sourceManifestInput);
   const sourceObservations = observeSources(sourceManifest, cwd, github, recipe.planningInput.issue_id);
-  const figmaReferences=sourceManifest.sources.filter(s=>s.source_kind==='FIGMA').map(s=>({source_id:s.source_id,packet:JSON.parse(sourceObservations.find(o=>o.source_id===s.source_id).content)}));
+  const figmaReferences=sourceManifest.sources.filter(s=>s.source_kind==='FIGMA').map(s=>({source_id:s.source_id,packet:require('./vnext-figma-source').snapshotPacket(sourceObservations.find(o=>o.source_id===s.source_id).content)}));
   if(figmaReferences.length&&!recipe.uiInput)V.fail('VNEXT_FIGMA_UI_MAPPING_REQUIRED');
   const planningEnvelope = Envelope.build({ ...recipe.planningInput, source_manifest: sourceManifest });
   if (recipe.deliveryCorrection && planningEnvelope.planning_mode !== 'REVISION') V.fail('VNEXT_DELIVERY_CORRECTION_REQUIRES_REVISION');
@@ -152,9 +154,9 @@ function verifyProduced(produced, cwd, github) {
   if(produced.figma_launch){
     const Launch=require('./vnext-figma-launch');Launch.validate(produced.figma_launch);
     const manifest=Source.build(produced.figma_launch.sourceManifestInput);
-    if(V.canonicalStringify(manifest)!==V.canonicalStringify(a.planningEnvelope.source_manifest))V.fail('VNEXT_FIGMA_LAUNCH_SOURCES_MISMATCH');
+    if(V.canonicalHash(manifest)!==V.canonicalHash(a.planningEnvelope.source_manifest))V.fail('VNEXT_FIGMA_LAUNCH_SOURCES_MISMATCH');
     const registry=Requirements.build({...produced.figma_launch.requirementInput,planning_envelope_hash:a.planningEnvelope.contract_hash,source_manifest:manifest});
-    if(V.canonicalStringify(registry)!==V.canonicalStringify(a.requirementRegistry))V.fail('VNEXT_FIGMA_LAUNCH_REQUIREMENTS_MISMATCH');
+    if(V.canonicalHash(registry)!==V.canonicalHash(a.requirementRegistry))V.fail('VNEXT_FIGMA_LAUNCH_REQUIREMENTS_MISMATCH');
   }
   Envelope.validate(a.planningEnvelope);
   Requirements.validate(a.requirementRegistry, a.planningEnvelope.source_manifest);
@@ -166,7 +168,7 @@ function verifyProduced(produced, cwd, github) {
   if (a.planContract.delivery_preservation) {
     const saved = a.planContract.delivery_preservation.baseline;
     const observed = require('./vnext-delivery-preservation').observe(saved.reference, {cwd, readGit, github: github || Auth.ghClient()});
-    if (V.canonicalStringify(saved) !== V.canonicalStringify(observed)) V.fail('VNEXT_DELIVERY_BASELINE_STALE');
+    if (V.canonicalHash(saved) !== V.canonicalHash(observed)) V.fail('VNEXT_DELIVERY_BASELINE_STALE');
     const state = require('./vnext-delivery-preservation').state(saved);
     if (state.slice_id !== a.planningEnvelope.slice_id || state.head !== a.planningEnvelope.application_head || a.planningEnvelope.issue_id !== 'github_issue:' + saved.reference.repository + '#' + saved.reference.issue_number) V.fail('VNEXT_DELIVERY_BASELINE_APPLICATION_MISMATCH');
   }
@@ -174,12 +176,12 @@ function verifyProduced(produced, cwd, github) {
   if (a.planningEnvelope.created_from.kind === 'ACCEPTANCE_GAPS') require('./vnext-post-acceptance').validateBindings(a.planContract.delivery_preservation?.baseline, a.acceptanceBindings, a);
   Review.verifyReviewContext(a.reviewContext, a);
   const packet = Review.buildReviewerPacket({ root: cwd, revision: produced.producer_revision, reviewContext: a.reviewContext });
-  if (V.canonicalStringify(packet) !== V.canonicalStringify(produced.reviewer_packet)) V.fail('VNEXT_REVIEW_PRODUCER_PACKET_STALE');
+  if (V.canonicalHash(packet) !== V.canonicalHash(produced.reviewer_packet)) V.fail('VNEXT_REVIEW_PRODUCER_PACKET_STALE');
   const observed = observeSources(a.planningEnvelope.source_manifest, cwd, github, a.planningEnvelope.issue_id);
-  const refs=observed.filter(o=>a.planningEnvelope.source_manifest.sources.find(s=>s.source_id===o.source_id)?.source_kind==='FIGMA').map(o=>({source_id:o.source_id,packet:JSON.parse(o.content)}));
-  if(refs.length&&V.canonicalStringify(refs)!==V.canonicalStringify(a.uiAtomicityContract?.figma_references))V.fail('VNEXT_FIGMA_PLAN_REFERENCE_MISMATCH');
-  if (V.canonicalStringify(observed) !== V.canonicalStringify(produced.source_observations)) V.fail('VNEXT_SOURCE_OBSERVATION_STALE');
-  if (V.canonicalStringify(observeCandidates(a, cwd)) !== V.canonicalStringify(produced.candidate_observations)) V.fail('VNEXT_CANDIDATE_OBSERVATION_STALE');
+  const refs=observed.filter(o=>a.planningEnvelope.source_manifest.sources.find(s=>s.source_id===o.source_id)?.source_kind==='FIGMA').map(o=>({source_id:o.source_id,packet:require('./vnext-figma-source').snapshotPacket(o.content)}));
+  if(refs.length&&V.canonicalHash(refs)!==V.canonicalHash(a.uiAtomicityContract?.figma_references))V.fail('VNEXT_FIGMA_PLAN_REFERENCE_MISMATCH');
+  if (V.canonicalHash(observed) !== V.canonicalHash(produced.source_observations)) V.fail('VNEXT_SOURCE_OBSERVATION_STALE');
+  if (V.canonicalHash(observeCandidates(a, cwd)) !== V.canonicalHash(produced.candidate_observations)) V.fail('VNEXT_CANDIDATE_OBSERVATION_STALE');
   return a;
 }
 
@@ -187,19 +189,23 @@ function verifyProduced(produced, cwd, github) {
 function reviewTargets(context) {
   return Review.TARGET_TYPES.flatMap(type => context.target_catalog[type]);
 }
+function readGitObject(cwd, revision, file) {
+  return Bundle.read(file, { readText: name => readGit(cwd, revision, name.replace(/\\/g, '/')) });
+}
+
 function compactReviewDossier(produced) {
   const a = produced.artifacts;
   const { candidates, ...manifest } = a.candidateManifest;
   // Columnar encoding retains every candidate field, including archive paths.
   const columns = Object.keys(candidates[0] || {});
-  const uniform = candidates.every(row => V.canonicalStringify(Object.keys(row).sort())
-    === V.canonicalStringify([...columns].sort()));
+  const uniform = candidates.every(row => V.canonicalHash(Object.keys(row).sort())
+    === V.canonicalHash([...columns].sort()));
   const { target_catalog, ...context } = a.reviewContext;
   return {
     schema_version: 'kodjo.vnext.review-transport.v1',
     produced_chain_hash: produced.contract_hash,
     producer_revision: produced.producer_revision,
-    artifacts: { ...a,...(a.uiAtomicityContract?.figma_references?.length ? {uiAtomicityContract:require('./vnext-figma-source').packUi(a.uiAtomicityContract)} : {}), candidateManifest: { ...manifest,
+    artifacts: { ...a,...(a.uiAtomicityContract?.figma_references?.length && Bundle.boundedJson(a.uiAtomicityContract) !== null ? {uiAtomicityContract:require('./vnext-figma-source').packUi(a.uiAtomicityContract)} : {}), candidateManifest: { ...manifest,
       ...(uniform ? { columns, rows: candidates.map(row => columns.map(key => row[key])) } : { candidates }) },
       reviewContext: context },
     // One catalog, one consumer closure; schemas/inputs are supplied separately.
@@ -272,7 +278,7 @@ function validateReviewResponse(produced, raw) {
 
   const report = Review.buildReviewReport({ reviewContext: artifacts.reviewContext, semanticReview: decodeReviewOutput(artifacts.reviewContext, result.structured_output.semantic_review) });
   const expectedResolutions = [...artifacts.planningEnvelope.causal_findings].sort();
-  if (V.canonicalStringify(report.finding_resolutions.map(row => row.finding_id).sort()) !== V.canonicalStringify(expectedResolutions)) V.fail('VNEXT_REVIEW_CAUSAL_RESOLUTION_COVERAGE');
+  if (V.canonicalHash(report.finding_resolutions.map(row => row.finding_id).sort()) !== V.canonicalHash(expectedResolutions)) V.fail('VNEXT_REVIEW_CAUSAL_RESOLUTION_COVERAGE');
 
   return V.sealContract({ schema_version: 'kodjo.vnext.live-review-receipt.v1', produced_chain_hash: produced.contract_hash,
     reviewer_packet_hash: produced.reviewer_packet.contract_hash, review_report: report,
@@ -316,20 +322,22 @@ function preserveFailure(error, record) {
 }
 
 function materializeReviewDossier(dossier, produced, directory, causalEvidence = null) {
-  const canonical = structuredClone(dossier.artifacts);
+  const large = Bundle.boundedJson(produced.artifacts) === null;
+  const canonical = large ? produced.artifacts : structuredClone(dossier.artifacts);
   const manifest = canonical.candidateManifest;
-  if (manifest.rows) {
+  if (!large && manifest.rows) {
     manifest.candidates = manifest.rows.map(row => Object.fromEntries(manifest.columns.map((key, i) => [key, row[i]])));
     delete manifest.columns; delete manifest.rows;
   }
-  canonical.reviewContext.target_catalog = dossier.target_catalog;
-  if (canonical.uiAtomicityContract?.figma_references?.length)
+  if (!large) canonical.reviewContext.target_catalog = dossier.target_catalog;
+  if (!large && canonical.uiAtomicityContract?.figma_references?.length)
     canonical.uiAtomicityContract = require('./vnext-figma-source').unpackUi(canonical.uiAtomicityContract);
-  if (V.canonicalStringify(canonical) !== V.canonicalStringify(produced.artifacts)) V.fail('VNEXT_REVIEW_CANONICAL_RECONSTRUCTION_MISMATCH');
+  if (V.canonicalHash(canonical) !== V.canonicalHash(produced.artifacts)) V.fail('VNEXT_REVIEW_CANONICAL_RECONSTRUCTION_MISMATCH');
   const file = path.join(directory, 'canonical-artifacts.json');
-  const content = JSON.stringify(canonical);
-  fs.writeFileSync(file, content, { flag: 'wx' });
+  if (large) Bundle.write(file, canonical, { exclusive: true, forceBundle: true, pretty: true });
+  else fs.writeFileSync(file, JSON.stringify(canonical), { flag: 'wx' });
   dossier.canonical_observation = { path: file, sha256: V.sha256(fs.readFileSync(file)),
+    ...(large ? { format: Bundle.SCHEMA, logical_sha256: V.canonicalHash(canonical) } : {}),
     reconstruction_verified: true, artifact_hashes: Object.fromEntries(Object.entries(canonical)
       .filter(([, value]) => value?.contract_hash).map(([key, value]) => [key, value.contract_hash])),
     semantic_use: 'NOT_ATTESTED_BY_BYTE_OBSERVATION' };
@@ -351,9 +359,20 @@ function materializeReviewDossier(dossier, produced, directory, causalEvidence =
       ['revision_patch', causalEvidence.revision_patch],
     ].map(([name, value]) => {
       const evidencePath = path.join(evidenceDirectory, name + '.json');
-      fs.writeFileSync(evidencePath, JSON.stringify(value, null, 2) + '\n', { flag: 'wx' });
+      Bundle.write(evidencePath, value, { exclusive: true });
       return [name, { path: evidencePath, contract_hash: value.contract_hash }];
     }));
+  }
+  if (large) {
+    // Claude gets a bounded navigation dossier; every complete field is stored
+    // and hash-bound, never omitted or treated as semantically reviewed.
+    for (const [key, value] of Object.entries(dossier)) {
+      if (Bundle.boundedJson(value,64*1024) !== null) continue;
+      const fieldFile = path.join(directory, key + '.json');
+      Bundle.write(fieldFile, value, { exclusive: true, forceBundle: true, pretty: true });
+      dossier[key] = { format: Bundle.SCHEMA, path: fieldFile, logical_sha256: V.canonicalHash(value) };
+    }
+    dossier.instructions += ' Les grands champs sont des references file-bundle : lire le manifeste puis ses fichiers JSON de 8 MiB maximum, et reconstruire logiquement les champs object/array/concat/string. Les empreintes verifient les octets, pas la revue semantique. Ne declarer aucune cible examinee sans consultation effective. Si la consultation complete est impossible, le signaler et ne pas approuver.';
   }
   return dossier;
 }
@@ -417,8 +436,7 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
   fs.writeFileSync(path.join(configDir, 'settings.json'), JSON.stringify({ disableAllHooks: true }));
   if(artifacts.uiAtomicityContract?.figma_references?.length){
     const directory=path.join(configDir,'figma');fs.mkdirSync(directory);
-    const plan='<KODJO_VNEXT_UI_ATOMICITY_JSON>'+JSON.stringify(artifacts.uiAtomicityContract)+'</KODJO_VNEXT_UI_ATOMICITY_JSON>\n<KODJO_VNEXT_REQUIREMENT_REGISTRY_JSON>'+JSON.stringify(artifacts.requirementRegistry)+'</KODJO_VNEXT_REQUIREMENT_REGISTRY_JSON>';
-    const observation=require('./vnext-figma-source').consume(plan,directory,'PLANNER'),manifest=path.join(directory,'observation.json');fs.writeFileSync(manifest,JSON.stringify(observation,null,2)+'\n');
+    const observation=require('./vnext-figma-source').consumeArtifacts(artifacts.uiAtomicityContract,artifacts.requirementRegistry,directory,'PLANNER'),manifest=path.join(directory,'observation.json');Bundle.write(manifest,observation);
     dossier.figma_consumer_observation={stage:'PLANNER',manifest,contract_hash:observation.contract_hash,references:observation.references.map(r=>({source_id:r.source_id,reference_hash:r.reference_hash,assets:r.assets}))};
     dossier.instructions+=' Les ressources Figma sont materialisees dans figma_consumer_observation.references[].assets ; ouvrir les captures PNG avec Read et lire le manifeste des proprietes et les SVG exacts. Le controleur a deja execute unpackUi et verifie la reconstruction canonique Figma ; aucun appel de fonction ne vous est demande. Un octet transporte n’est pas une preuve de consultation ni de conformite. Signaler toute ressource inaccessible comme finding ; ne pas approuver par simple reference au composant reutilise.';
   }
@@ -490,10 +508,10 @@ function verifyReceipt(produced, receipt) {
   const raw = JSON.parse(receipt.raw_result);
   if (raw.is_error || raw.type !== 'result' || raw.session_id !== receipt.session_id || !raw.structured_output) V.fail('VNEXT_REVIEW_RECEIPT_RESULT_INVALID');
   const report = Review.buildReviewReport({ reviewContext: produced.artifacts.reviewContext, semanticReview: decodeReviewOutput(produced.artifacts.reviewContext, raw.structured_output.semantic_review) });
-  if (V.canonicalStringify(report.finding_resolutions.map(row => row.finding_id).sort())
-      !== V.canonicalStringify([...produced.artifacts.planningEnvelope.causal_findings].sort())) V.fail('VNEXT_REVIEW_CAUSAL_RESOLUTION_COVERAGE');
-  if (V.canonicalStringify(report) !== V.canonicalStringify(receipt.review_report)
-      || V.canonicalStringify(raw.structured_output.native_assessment_observations) !== V.canonicalStringify(receipt.native_observations)) V.fail('VNEXT_REVIEW_RECEIPT_RESULT_MISMATCH');
+  if (V.canonicalHash(report.finding_resolutions.map(row => row.finding_id).sort())
+      !== V.canonicalHash([...produced.artifacts.planningEnvelope.causal_findings].sort())) V.fail('VNEXT_REVIEW_CAUSAL_RESOLUTION_COVERAGE');
+  if (V.canonicalHash(report) !== V.canonicalHash(receipt.review_report)
+      || V.canonicalHash(raw.structured_output.native_assessment_observations) !== V.canonicalHash(receipt.native_observations)) V.fail('VNEXT_REVIEW_RECEIPT_RESULT_MISMATCH');
   return report;
 }
 function validateReceipt(produced, receipt) {
@@ -515,10 +533,10 @@ function postAcceptanceEvidence(prepared, artifacts, cwd, github) {
   if(Adapter.gitBlobOid(priorPlan)!==baseline.plan_blob_oid) priorPlan=Adapter.renderCompatibilityPlan({application_head:base.planningEnvelope.application_head,plan_contract_hash:base.planContract.contract_hash},base.planContract,base.uiAtomicityContract,base.requirementRegistry,base.candidateManifest);
   if(Adapter.gitBlobOid(priorPlan)!==baseline.plan_blob_oid)V.fail('VNEXT_ACCEPTANCE_PRIOR_PLAN_BYTES_MISMATCH');
   const baseRegister=Register.buildRegister({...e.base_produced.register_input,candidateHead:e.base_produced.producer_revision,lot:base.planningEnvelope.slice_id,phase:'REVIEW'});
-  if(V.canonicalStringify(prepared.produced.register_input.previous)!==V.canonicalStringify(baseRegister))V.fail('VNEXT_ACCEPTANCE_PREVIOUS_REGISTER_MISMATCH');
+  if(V.canonicalHash(prepared.produced.register_input.previous)!==V.canonicalHash(baseRegister))V.fail('VNEXT_ACCEPTANCE_PREVIOUS_REGISTER_MISMATCH');
   const nextRegister=Register.buildRegister({...prepared.produced.register_input,candidateHead:prepared.produced.producer_revision,lot:artifacts.planningEnvelope.slice_id,phase:'REVISION'});
   const outcome=require('./vnext-post-acceptance').buildOutcome({baseline,bindings:artifacts.acceptanceBindings,artifacts,reviewReport:prepared.review_receipt.review_report,baseRegister,cumulativeRegister:nextRegister});
-  if(V.canonicalStringify(outcome)!==V.canonicalStringify(e.outcome))V.fail('VNEXT_ACCEPTANCE_OUTCOME_MISMATCH');
+  if(V.canonicalHash(outcome)!==V.canonicalHash(e.outcome))V.fail('VNEXT_ACCEPTANCE_OUTCOME_MISMATCH');
   return {...artifacts,revisionArtifacts:{origin:'POST_ACCEPTANCE',base_register:baseRegister,outcome}};
 }
 
@@ -540,7 +558,7 @@ function revisionEvidenceArtifacts(prepared, artifacts, cwd, github) {
   V.assertExactKeys(bundle, ['base_artifacts', 'allowed_change_set', 'revision_patch', 'revision_outcome', 'previous_review_report', 'finding_ledger'], [], 'VNEXT_LIVE_REVISION_ARTIFACT_KEYS_INVALID');
   const previous = Register.buildRegister({ ...evidence.base_produced.register_input,
     candidateHead: evidence.base_produced.producer_revision, lot: base.planningEnvelope.slice_id, phase: 'REVIEW' });
-  const exact = (x, y, code) => { if (V.canonicalStringify(x) !== V.canonicalStringify(y)) V.fail(code); };
+  const exact = (x, y, code) => { if (V.canonicalHash(x) !== V.canonicalHash(y)) V.fail(code); };
   exact(bundle.base_artifacts, { ...base, cumulativeRegister: previous }, 'VNEXT_LIVE_REVISION_BASE_ARTIFACTS_MISMATCH');
   exact(bundle.previous_review_report, previousReport, 'VNEXT_LIVE_REVISION_BASE_REVIEW_MISMATCH');
   exact(prepared.produced.register_input.previous, previous, 'VNEXT_LIVE_REVISION_PREVIOUS_REGISTER_MISMATCH');
@@ -616,7 +634,7 @@ function approvalTarget(prepared, { cwd, protocolHead, github } = {}) {
 function deriveQueue(queue, { cwd, github = Auth.ghClient() } = {}) {
   const bootstrap = JSON.parse(readGit(cwd, queue.source_head, queue.slice_bootstrap_file));
   if (bootstrap.protocol !== 'VNEXT' || !bootstrap.vnext_chain_file) V.fail('VNEXT_CHAIN_BOOTSTRAP_REQUIRED');
-  const prepared = JSON.parse(readGit(cwd, queue.source_head, bootstrap.vnext_chain_file));
+  const prepared = readGitObject(cwd, queue.source_head, bootstrap.vnext_chain_file);
   const a = preparedArtifacts(prepared, cwd, queue.source_head, github);
   if (a.planningEnvelope.slice_id !== bootstrap.slice_id) V.fail('VNEXT_CHAIN_SLICE_MISMATCH');
   const target = Approval.buildApprovalTarget(a);
@@ -682,9 +700,9 @@ function guardLocalRequest(raw, { cwd, queueFile, github } = {}) {
   if (!queueFile) V.fail('VNEXT_LOCAL_QUEUE_AUTHORITY_REQUIRED');
   const queue = JSON.parse(fs.readFileSync(queueFile, 'utf8').replace(/^\uFEFF/, ''));
   const projected = JSON.parse(JSON.stringify(require('./queue-request').projectQueueRequest(queue)));
-  if (V.canonicalStringify(projected) !== V.canonicalStringify(raw)) V.fail('VNEXT_LOCAL_QUEUE_PROJECTION_MISMATCH');
+  if (V.canonicalHash(projected) !== V.canonicalHash(raw)) V.fail('VNEXT_LOCAL_QUEUE_PROJECTION_MISMATCH');
   return admit(queueFile, { cwd, github, allowExternalQueueFile: true });
 }
 
-module.exports = { SCHEMA, CLAUDE_TIMEOUT_MS, command, relative, readGit, unitText, observeSources, launchAndProduce, produce, verifyProduced,
+module.exports = { readGitObject, SCHEMA, CLAUDE_TIMEOUT_MS, command, relative, readGit, unitText, observeSources, launchAndProduce, produce, verifyProduced,
   compactReviewDossier, materializeReviewDossier, decodeReviewOutput, boundedReviewOutput, validateReviewResponse, recoverReview, reviewOrRecover, preserveFailure, review, verifyReceipt, validateReceipt, nativeResolver, preparedArtifacts, prepare, approvalTarget, deriveQueue, admit, guard, guardLocalRequest };

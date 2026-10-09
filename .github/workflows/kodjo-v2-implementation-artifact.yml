@@ -192,6 +192,7 @@ jobs:
             scripts/kodjo/lib/device-proof-policy.js \
             scripts/kodjo/verify-source-comment.js \
             scripts/kodjo/lib/vnext-legacy-queue-adapter.js \
+            scripts/kodjo/lib/vnext-file-bundle.js \
             scripts/kodjo/lib/approval-handoff-contract.js \
             scripts/kodjo/lib/planning-envelope.js \
             scripts/kodjo/lib/source-manifest.js \
