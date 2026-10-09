@@ -1,3 +1,5 @@
+> État actualisé : #347 n'est pas fusionnée. Les contrôles VNext Linux et Windows passent, mais l'historique Windows de l'essai 1 a un échec réel dans audit-prompt-transport.pilot.js (1465 PASS, 3 ignorés, 1 échec sur 1469). Source du test et workflow identiques à main ; cause du processus natif non conservée par ce test. Diagnostic exact publié dans complement-portee-qualification-windows-incident.json. Une seule reprise des jobs en échec du même run est engagée : [37938431543, essai 2](https://github.com/MyUncried/Application-Routine/actions/runs/37938431543/attempts/2), job Windows 113853608600. Aucune fusion ni invocation Claude avant succès. Suite pilote 37938431465 encore active. Les statuts historiques ci-dessous sont ceux du premier contrôle.
+
 # PRE-3 — complément indépendant de portée, même opération #340
 
 ## État vérifié
