@@ -501,7 +501,7 @@
     {
       "assertionId": "P3-13/tours-cycles-list",
       "scopeId": "P3-13",
-      "given": "Session with exercises before/in/after Circuit and Tours1/99, explicit R and mixed known/estimated/unknown",
+      "given": "Session with exercises before/in/after Circuit and Tours 1/99, explicit R and mixed known/estimated/unknown",
       "when": "Create/read/list/duplicate and aggregate",
       "expected": "Existing structural repetition semantics preserved; applicable CR/Fin once per complete Exercise; list total equals full read calculated by one domain authority; symbols exact/≈/≥ correct.",
       "proposedTestPaths": [
@@ -698,8 +698,8 @@
       "assertionId": "P3-17/migration-real",
       "scopeId": "P3-17",
       "given": "Fresh DB and v8 populated incl old outside-new-bounds values/withdrawn references",
-      "when": "Migrate through009 then repeat",
-      "expected": "Real SQLite preserves IDs/dates/old values and links; no modification001..008; repeat idempotent; PRAGMA foreign_key_check empty.",
+      "when": "Migrate through 009 then repeat",
+      "expected": "Real SQLite preserves IDs/dates/old values and links; no modification 001..008; repeat idempotent; PRAGMA foreign_key_check empty.",
       "proposedTestPaths": [
         "src/infrastructure/database/__tests__/migrateDatabase.test.ts"
       ],
@@ -714,7 +714,7 @@
       "scopeId": "P3-17",
       "given": "All modes, variable equal rows, bounds, side order, CR/Fin/media",
       "when": "Save on real SQLite, close database, reopen",
-      "expected": "All canonical fields/order preserved and JSON authoritative over scalar projections; failure target null; reps100 accepted; count99.",
+      "expected": "All canonical fields/order preserved and JSON authoritative over scalar projections; failure target null; reps 100 accepted; count 99.",
       "proposedTestPaths": [
         "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
         "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
@@ -843,7 +843,7 @@
       "assertionId": "P3-20/all-surfaces",
       "scopeId": "P3-20",
       "given": "41 frozen frame states and applicable mapping-elements-ui.jsonl rows",
-      "when": "Compare delivered reference states at402 and adapt360/440",
+      "when": "Compare delivered reference states at 402 and adapt 360/440",
       "expected": "Per-element geometry/style/text tokens/master variants checked; system décor separately classified; no global visual postponement; each residual deviation named with impact/status/decision.",
       "proposedTestPaths": [
         "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
@@ -863,7 +863,7 @@
       "scopeId": "P3-20",
       "given": "Duration/repetition/failure with/without total and bilateral groups",
       "when": "Render",
-      "expected": "Overlay #1F2129 alpha.34; Bip first-level before applicable total else countdown; at402 x36/sep330 vs indented x52/sep314; adaptive relations at360/440; header fixed body scroll.",
+      "expected": "Overlay #1F2129 alpha 0.34; Bip first-level before applicable total else countdown; at 402 x 36 / separator 330 vs indented x 52 / separator 314; adaptive relations at 360/440; header fixed body scroll.",
       "proposedTestPaths": [
         "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
       ],
@@ -879,7 +879,7 @@
       "scopeId": "P3-21",
       "given": "Sheet/editor/sortable rows/media with disabled controls",
       "when": "Query roles/labels/states/actions then run VoiceOver",
-      "expected": "Complete labels, disabled states, current values, grouped phrase; focus enters modal and returns to launcher; equivalent non-drag ordering; touch44 minimum per targeted contracts.",
+      "expected": "Complete labels, disabled states, current values, grouped phrase; focus enters modal and returns to launcher; equivalent non-drag ordering; touch 44 minimum per targeted contracts.",
       "proposedTestPaths": [
         "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
         "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
