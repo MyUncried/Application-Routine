@@ -86,12 +86,15 @@ function observeSources(manifest, cwd, github = Auth.ghClient(), issueId = null)
   });
 }
 
-function observeCandidates(artifacts, cwd) {
-  const ids = new Set([...artifacts.planContract.boundaries.write_scope, ...artifacts.planContract.boundaries.preserve_scope].map(r => r.candidate_id));
-  return artifacts.candidateManifest.candidates.filter(c => ids.has(c.candidate_id)).map(c => ({
-    candidate_id: c.candidate_id, path: c.path, revision: artifacts.candidateManifest.revision,
-    content: c.origin === 'CREATE_SLOT_POLICY' ? null : readGit(cwd, artifacts.candidateManifest.revision, c.path),
-  }));
+function observeCandidates(artifacts, cwd, scope) {
+  if(scope!==undefined&&scope!=='REVIEW_CATALOG')V.fail('VNEXT_CANDIDATE_OBSERVATION_SCOPE_INVALID');
+  const ids = new Set(scope==='REVIEW_CATALOG'?Review.collectTargets(artifacts).CANDIDATE:
+    [...artifacts.planContract.boundaries.write_scope, ...artifacts.planContract.boundaries.preserve_scope].map(r => r.candidate_id));
+  return artifacts.candidateManifest.candidates.filter(c => ids.has(c.candidate_id)).map(c => {
+    const content=c.origin==='CREATE_SLOT_POLICY'?null:readGit(cwd,artifacts.candidateManifest.revision,c.path);
+    return {candidate_id:c.candidate_id,path:c.path,revision:artifacts.candidateManifest.revision,content,
+      ...(scope==='REVIEW_CATALOG'?{content_sha256:content===null?null:V.sha256(content)}:{})};
+  });
 }
 
 // Recipe fields are constructor inputs, not pre-approved serialized contracts.
@@ -142,7 +145,8 @@ function produceInternal(recipe, { cwd, github } = {}) {
   return V.sealContract({ schema_version: 'kodjo.vnext.produced-chain.v1', producer_revision: producerRevision,
     ...(recipe.figmaLaunch?{figma_launch:recipe.figmaLaunch}:{}),
     artifacts: { ...artifacts, reviewContext }, source_observations: sourceObservations,
-    candidate_observations: observeCandidates(artifacts, cwd),
+    candidate_observation_scope: 'REVIEW_CATALOG',
+    candidate_observations: observeCandidates(artifacts, cwd, 'REVIEW_CATALOG'),
     reviewer_packet: reviewerPacket, execution_context: recipe.executionContext,
     native_assessments: (recipe.nativeAssessments || []).map(row => ({ ...row, evidence_refs: [...row.evidence_refs].sort() })), register_input: recipe.registerInput });
 }
@@ -181,7 +185,7 @@ function verifyProduced(produced, cwd, github) {
   const refs=observed.filter(o=>a.planningEnvelope.source_manifest.sources.find(s=>s.source_id===o.source_id)?.source_kind==='FIGMA').map(o=>({source_id:o.source_id,packet:require('./vnext-figma-source').snapshotPacket(o.content)}));
   if(refs.length&&V.canonicalHash(refs)!==V.canonicalHash(a.uiAtomicityContract?.figma_references))V.fail('VNEXT_FIGMA_PLAN_REFERENCE_MISMATCH');
   if (V.canonicalHash(observed) !== V.canonicalHash(produced.source_observations)) V.fail('VNEXT_SOURCE_OBSERVATION_STALE');
-  if (V.canonicalHash(observeCandidates(a, cwd)) !== V.canonicalHash(produced.candidate_observations)) V.fail('VNEXT_CANDIDATE_OBSERVATION_STALE');
+  if (V.canonicalHash(observeCandidates(a, cwd, produced.candidate_observation_scope)) !== V.canonicalHash(produced.candidate_observations)) V.fail('VNEXT_CANDIDATE_OBSERVATION_STALE');
   return a;
 }
 
