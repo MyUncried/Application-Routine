@@ -1,0 +1,132 @@
+{
+  "schema": "kodjo.pre3.third-targeted-review-report.v1",
+  "operation": 340,
+  "reviewer": "Claude Code (Opus 5.5), troisième revue ciblée indépendante",
+  "reviewed_at": "2026-10-09",
+  "reviewed_git_revision": "43e7b344937a2d60b04b987f19636faebb5aee06",
+  "branch": "plan/pre3-vnext-20261008",
+  "branch_head_at_review_start": "43e7b344937a2d60b04b987f19636faebb5aee06",
+  "previous_review": {
+    "report": "reviews/2026-10-09_revue-passe2-claude.json",
+    "publication_commit": "bf6a8cbc0d770031d7940f1aafe209f427f5f627",
+    "reviewed_git_revision": "c0c900f50879ea955c7ca1b1a5f5961eb949c438"
+  },
+  "application_baseline": "1ddfb6d144552f578388257adc78db47ab5992c8",
+  "manifest_sha256": "16c155548ba161778f8780e664c65561b7c0d7e27666ca34481ec33a75cc08ff",
+  "integrity_check": {
+    "command": "node docs/preparation/PRE-3/planification/passe2/verifier-passe2.cjs",
+    "result": "PASS",
+    "checks": 2143,
+    "worktree": "nouveau worktree détaché créé avec git -c core.autocrlf=false worktree add --detach, puis core.autocrlf=false au niveau du worktree. La mission prévoyait aussi -c core.eol=lf ; il n'a pas été passé. Les fichiers ont été extraits en LF, et l'absence de toute dérive de hash (PASS) le démontre."
+  },
+  "verdict": "APPROVE",
+  "verdict_scope": "APPROVE porte uniquement sur FND-5b6a, FND-c3c9, REG-01 et REG-02 et sur l'absence de régression causale de leurs corrections. Il ne vaut ni validation propriétaire du plan final, ni autorisation de développement. Les tests restent des obligations futures (PLANNED_NOT_EXECUTED) ; aucun code applicatif n'est testé et aucune perception VoiceOver n'est prouvée.",
+  "finding_resolutions": [
+    {
+      "finding_id": "FND-5b6a6d10170c7a649a2c3861",
+      "status": "RESOLVED",
+      "evidence_refs": [
+        "passe2/ui-criteria.json#/accessibility : 10 entrées, 10 expected distincts, 10 device distincts",
+        "champs par surface : source_refs, semantic_cases (≥ 4), touch_target, automated, automated_expected, device",
+        "passe2/tests-and-preservation.json : obligations ACCESSIBILITY/* dont expected = ui-criteria expected et native_perception_proven=false",
+        "baseline src/shared/ui/tokens.ts l.329-338 (minTouchTarget: 48) : source de la valeur « 48 pt »",
+        "passe2/plan-technique-corrige.md §12"
+      ],
+      "justification": "Chaque surface a désormais ses propres données : wheel (valeur annoncée par SwiftUI.Picker.wheel, unité, retour au réglage), stepper (rôle ajustable, incrément/décrément, bornes, pas 1), variable-toggle (sélection effective, inactif à N=1), sortable-rows (rang, Monter/Descendre, bornes), sheet-check-cross (Série incomplète annoncée, focus sur la correction), parameter-card (une seule cible, phrase annoncée une fois), editor-finish (état en cours, erreur annoncée), media-list (Retirer/Monter/Descendre, Importation, erreur, Réessayer, conforme à D-335), category et zones (sélection simple ou multiple, Ajouter désactivé sans erreur). Chaque surface a aussi un scénario VoiceOver propre et une suite propriétaire dotée d'une obligation. La séparation « simulation ≠ perception VoiceOver » est explicite (automated_expected, native_perception_proven=false). La cible tactile reprend le minimum 44 pt du contrat et les 48 pt existants de la baseline, sans valeur inventée. Réserve non bloquante R-1 : ACCESSIBILITY/wheel liste aussi DurationWheelPicker.test.tsx, et ACCESSIBILITY/stepper liste ProfileStepper.test.ts, mais aucune obligation n'existe pour ces deux suites secondaires. La suite propriétaire de la surface (ExecutionParametersSheet.test.tsx) porte bien l'obligation."
+    },
+    {
+      "finding_id": "FND-c3c9529d7f622ac36707b163",
+      "status": "RESOLVED",
+      "evidence_refs": [
+        "Comparaison indépendante : ../assertions-recette.json#/assertions[*].proposedTestPaths ↔ chemins des obligations portant assertion_ref (59/59 identiques, 0 écart)",
+        "passe2/requirements.json#/assertions : 59 proposedTestPaths identiques à la source",
+        "passe2/requirements.json#/documentary_requirements : functional_test_paths = union des propriétaires des assertion_refs pour 95/95 ; 53 états DOC liés à leur seule assertion, plus PRE3-DOC-P3-17-persistence-reopening (état de synthèse lié aux 4 assertions P3-17)",
+        "passe2/tests-and-preservation.json : obligations src/infrastructure/database/* avec database=NodeSqliteDatabase REAL",
+        "Suites i18n/tokens : voir REG-02"
+      ],
+      "justification": "Chaque attente est maintenant portée par la frontière désignée par la source figée. Les frontières Domaine, SQLite réelle, fichiers et UI sont distinctes. Les obligations UI gardent le préfixe « Rendu/actions de cette surface uniquement ; délégation vérifiée… ». Les attentes i18n et tokens sont portées par les suites baseline existantes. Le principe demandé par le constat (« the boundary that actually owns each expectation ») est respecté, sans arbitrage propriétaire."
+    }
+  ],
+  "regression_resolutions": [
+    {
+      "regression_id": "REG-01",
+      "status": "RESOLVED",
+      "evidence_refs": [
+        "Diff par assertion source ↔ obligations : 0 écart sur 59 (contre 51/59 à c0c900f5)",
+        "Cas exigés par la mission, propriétaires constatés : P3-03/reference-retired → ExerciseScreen (UI), SqliteActivityDefinitionRepository et SqliteSessionRepository (REAL) ; P3-05/equal-variable → ExecutionParametersDraft et SqliteActivityDefinitionRepository (REAL) ; P3-06/commit-hidden → idem ; P3-08/restoration-N1 → idem ; P3-15/no-storage → exerciseSnapshot, SqliteActivityDefinitionRepository et SqliteSessionRepository (REAL) ; P3-16/failure-doubletap → ExerciseScreen (UI) et les deux repositories (REAL) ; P3-18/copy-complete → exerciseSnapshot, SessionDraft et SqliteSessionRepository (REAL) ; P3-23/file-preservation → SqliteMediaRepository et SqliteSessionRepository (REAL), LocalMediaStore",
+        "Exclusions UI : P3-15/long-phrase → ActivityEditorForm seul (plus de executionPhrase) ; P3-19/exclusive-scroll → ExecutionParametersSheet seul ; P3-20/sheet-specific → ExecutionParametersSheet seul ; P3-19/hold sans DurationWheelPicker ; P3-23/permissions sans repository SQLite",
+        "passe2/verifier-passe2.cjs (diff bf6a8cbc..43e7b344) : nouvelles gardes « REG-01 owner mismatch », « Lost real SQLite », « Rule ownership differs from assertion refs », « Documentary state tied to scope union »"
+      ],
+      "justification": "Le produit cartésien par scope est supprimé : les obligations et functional_test_paths dérivent des assertions, et non plus des scopes. Les preuves SQLite réelles retirées en passe 2 sont rétablies, et les attentes de rendu ne sont plus portées par des tests Domaine, de stepper ou de roulette. Les textes des assertions sont inchangés. Le vérificateur interdit désormais la réintroduction du défaut."
+    },
+    {
+      "regression_id": "REG-02",
+      "status": "RESOLVED",
+      "evidence_refs": [
+        "passe2/tests-and-preservation.json#/write_scope : retrait de CREATE src/shared/i18n/__tests__/index.test.ts et CREATE src/shared/ui/__tests__/tokens.test.ts ; ajout de ADAPT src/shared/i18n/index.test.ts et ADAPT src/shared/ui/__tests__/tokensSpecification.test.ts (avec preservation_expected)",
+        "modify_preservation : i18n/index.ts → i18n/index.test.ts ; tokens.ts → tokensSpecification.test.ts",
+        "no_change_direct_importers : les deux suites n'y figurent plus ; les deux chemins parallèles n'apparaissent nulle part dans le fichier",
+        "obligations P3-20/contract-i18n (index.test.ts) et P3-20/contract-tokens (tokensSpecification.test.ts : réutiliser les tokens existants dont color.overlayScrim ; chapitre 12 inchangé)",
+        "Baseline 1ddfb6d1 lue dans Git : src/shared/i18n/index.test.ts (toEqual exacts par groupe), src/shared/ui/__tests__/tokensSpecification.test.ts (contrat tokens.ts ↔ chapitre 12), src/shared/ui/tokens.ts (overlayScrim rgba(31, 33, 41, 0.34), l.155), chapitre 12 l.887 (color.overlayScrim documenté)"
+      ],
+      "justification": "Les vrais propriétaires baseline sont passés en ADAPT et sont inclus dans la préservation de leurs modules ; aucun fichier parallèle n'est créé. Le contrat déclare n'introduire aucune nouvelle couleur ni typographie canonique, et réutilise overlayScrim, déjà présent à la baseline et au chapitre 12. Le couplage tokensSpecification ↔ chapitre 12 ne requiert donc aucune écriture hors périmètre."
+    }
+  ],
+  "previous_resolutions_preserved": [
+    "FND-22dcb4343aeee5008ae82f42",
+    "FND-2aa59b7187ade34c38f136a7",
+    "FND-45a23a9dc1c196e22ec192fd",
+    "FND-50bc1bd53db4592408b49677",
+    "FND-50fdbd72bbdd504a27290581",
+    "FND-6bcfecf4fd3ab1c1e7461630",
+    "FND-8b2fcbd1b778ea06ee6cb2f0",
+    "FND-aa97db96722333411e8d8c28",
+    "FND-d9a6d1286f3e1a2ae2ca7bbf",
+    "FND-f5a1a0b6656cdff169dd0517",
+    "FND-f86f8d67160a71a69c7cfcd7"
+  ],
+  "preservation_checks": [
+    "Les 13 fixtures numériques, les 276 phrases (texte, segments, montant) et les 8 migrations sont identiques entre c0c900f5/bf6a8cbc et 43e7b344 (comparaison champ par champ)",
+    "95 exigences : tous les champs sont identiques hors assertion_refs et functional_test_paths ; 50 exigences voient leurs liens resserrés (par exemple P3-01/Catalogue:create, 5 → 1)",
+    "59 assertions : textes identiques hors proposedTestPaths, eux-mêmes égaux à la source",
+    "Exigences migration et DATA canonique identiques ; 41 visual_states et native_assessments identiques",
+    "Fichiers inchangés : baseline-blobs.json, baseline-observations.json, creation-observations.json, original-plan-index.json, ui-elements.json, reviews/2026-10-09_revue-passe2-claude.{json,md}",
+    "Aucun changement sous docs/preparation/PRE-3/figma, ni dans attendus-numeriques.json, attendus-phrases-276.json, assertions-recette.json, .github/, src/ ou app/",
+    "FND-22dc reste acquis : INTERACTION/wheel garde native_primitive=SwiftUI.Picker.wheel et le rattachement des native_assessments. Les 10 interactions restent FUNCTIONAL/FUNCTIONAL_TEST ; seuls leurs test_paths et source_assertions sont resserrés aux propriétaires de surface.",
+    "FND-f86f renforcé : l'oracle d'inversion fixe désormais T=30 s, P=10 s, CR=Fin=0 s, sans Récupération, soit T(N)=40N s"
+  ],
+  "correction_regressions": [],
+  "non_blocking_reserves": [
+    {
+      "id": "R-1",
+      "caused_by_correction_of": "FND-5b6a6d10170c7a649a2c3861",
+      "observation": "ui-criteria.json déclare des suites secondaires sans obligation correspondante. Il s'agit de INTERACTION/wheel et ACCESSIBILITY/wheel → src/features/sessions/__tests__/DurationWheelPicker.test.tsx, et de INTERACTION/stepper et ACCESSIBILITY/stepper → src/shared/ui/__tests__/ProfileStepper.test.ts. DurationWheelPicker.test.tsx reste ADAPT dans le write_scope, avec attente de conservation, mais sans aucune obligation PRE-3.",
+      "why_not_blocking": "Chaque surface a sa suite propriétaire (ExecutionParametersSheet.test.tsx) avec obligation. Aucune preuve existante n'a été retirée. Les obligations DurationWheelPicker de c0c900f5 étaient précisément les attributions erronées signalées par REG-01.",
+      "suggestion": "Ajouter une obligation explicite pour ces suites secondaires (par exemple, pour DurationWheelPicker.test.tsx, l'usage effectif de la primitive SwiftUI.Picker.wheel sans substitution, conformément à la règle « Priorité aux primitives natives » §6), ou les retirer de automated/test_paths."
+    },
+    {
+      "id": "R-2",
+      "caused_by_correction_of": "REG-01 (fidélité à la source)",
+      "observation": "Les assertions sources désignent src/shared/ui/__tests__/ProfileStepper.test.ts (CREATE) pour P3-19/hold, P3-19/non-accelerated et P3-22/scope-regression, alors que la suite baseline src/shared/ui/__tests__/ProfileStepper.test.tsx existe et reste RUN_EXISTING.",
+      "why_not_blocking": "Ce chemin vient de la source figée et du plan initial (déjà signalé en passe 2 comme observation hors régression). La mission interdit de rouvrir les propriétaires techniques définis par la source. La politique Profil reste prouvée par la suite baseline relancée sans modification.",
+      "suggestion": "Lors du développement, décider dans les règles existantes si les tests PRE-3 du stepper vont dans la suite .tsx existante (ADAPT) ou dans le nouveau fichier ; ne pas dupliquer d'assertions."
+    }
+  ],
+  "reads": [
+    "passe2/mission-claude.md, manifest.json, verifier-passe2.cjs (diff complet bf6a8cbc..43e7b344), verification.json, verification-corrections.json",
+    "passe2/plan-technique-corrige.md (diff complet et §12), ../plancontract-publie.md (diff)",
+    "passe2/finding-resolutions.json (via le contrôle du vérificateur), reviews/2026-10-09_revue-passe2-claude.json (référence)",
+    "passe2/requirements.json : 59 assertions, 95 exigences, migrations et DATA (comparaison avec bf6a8cbc)",
+    "passe2/tests-and-preservation.json : obligations par assertion, write_scope, modify_preservation, no_change_direct_importers (comparaison avec bf6a8cbc)",
+    "passe2/ui-criteria.json : 10 accessibility (intégral), 10 interactions (diff), visual_states et native_assessments (égalité)",
+    "passe2/traceability.json (extrait de comparaison)",
+    "../assertions-recette.json#/assertions[*].proposedTestPaths (source figée)",
+    "Baseline Git 1ddfb6d1 : src/shared/i18n/index.test.ts, src/shared/ui/__tests__/tokensSpecification.test.ts, src/shared/ui/tokens.ts, chapitre 12 « Architecture technique » (lus lors de la passe 2 et revérifiés pour tokens.ts l.328-338). baseline-blobs.json n'a pas été redécodé ; son égalité avec bf6a8cbc est vérifiée par git diff, et ses 156 blobs par verifier-passe2.cjs."
+  ],
+  "limits": [
+    "Revue ciblée : seuls les quatre objets et leurs effets directs ont été examinés ; aucun nouvel audit global.",
+    "Aucun code applicatif exécuté ; aucun appareil, navigateur ni contrôle de rendu ; aucune perception VoiceOver prouvée.",
+    "Les 156 blobs n'ont pas été relus individuellement dans cette passe : seuls les objets pertinents ont été consultés, et leur égalité est établie par git diff et par le vérificateur.",
+    "La source figée assertions-recette.json est tenue pour l'autorité des propriétaires, comme l'exige la mission ; ses éventuels défauts propres (voir R-2) ne sont pas rouverts."
+  ]
+}

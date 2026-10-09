@@ -1,0 +1,1165 @@
+{
+  "schema": "kodjo.pre3.baseline-tests.observation.v1",
+  "status": "BASELINE_TESTS_ONLY",
+  "applicationBaseline": "1ddfb6d144552f578388257adc78db47ab5992c8",
+  "documentationWorkHead": "fa62fc49d7ac73bab2716d6e6315d169b1438082",
+  "nodeVersion": "v24.19.0",
+  "command": "npm test -- --runInBand src/domain/sessions/__tests__/calculations.test.ts src/domain/sessions/__tests__/SessionDraft.test.ts src/infrastructure/database/__tests__/migrateDatabase.test.ts src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts --json --outputFile=/tmp/pre3-baseline-jest.json",
+  "rawResultSha256": "ac9fcefd05a6ee24987b075b0c0ea5ef9d6a9af43f5c84ef3321eef2418110d9",
+  "success": true,
+  "startTimeUnixMs": 1791492984763,
+  "passedSuites": 6,
+  "totalSuites": 6,
+  "passedTests": 219,
+  "totalTests": 219,
+  "suites": [
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+      "status": "passed",
+      "startTimeUnixMs": 1791492985068,
+      "endTimeUnixMs": 1791492990245,
+      "assertions": [
+        {
+          "fullName": "SqliteSessionRepository creates, reads and lists a single-Activity aggregate (T01-S01 baseline, still supported)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository persists the exact T01 structural literals via bound parameters after the FIXED_* refactor",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository creates the three structural zones with per-zone positions, a NULL tour_id outside the Tour and the real tour repeat count",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository keeps the draft identifier of an Activity when one is provided, and generates one otherwise",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository uses Crypto.randomUUID for all aggregate identifiers by default",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository rejects incomplete or out-of-contract input before persistence with a structured SessionValidationError",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository exposes the exact violations (code + field) on SessionValidationError, without any message text",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository validates any CreateSessionInput it receives directly, with no way to bypass validation",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository rolls the whole aggregate back when activity insertion fails",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository rejects an incoherent persisted row during mapping",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository rejects a row whose session status is ARCHIVED",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository multi-Activity persistence (T01-S09) persists ALL Activities of the collection, in order, without loss — zero loss of data validated in T01-S08",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository multi-Activity persistence (T01-S09) preserves collection order across a connection close and reopen (real SQLite file)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository multi-Activity persistence (T01-S09) rolls the whole aggregate back if a later Activity's insertion fails, keeping none of the earlier ones",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository body zones persistence (D-093, T01-S09) persists and rereads body zones for an Activity",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository body zones persistence (D-093, T01-S09) rejects an unknown body zone id at the database level (defense in depth)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository listActive excludes a session archived directly via SQL (no archiving feature exists in code)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository listActive restores the exact persisted colour via the Session's Label, including the yellow of the palette (#F7D154), never a default fallback",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository listActive falls back to the default colour with an empty categoryNames and an empty bodyZoneNames for a Session with no Label and no body zone",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository listActive propagates the exact persisted yellow colour, unbroken, from a Session inserted directly at the SQL layer through SqliteSessionRepository.listActive() to SessionCard's rendered colour bar (genuine historical/pre-existing row, not a repository.create() stand-in)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository listActive marks the estimated duration as approximate as soon as one Activity uses REPETITIONS mode (RM-072)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository listActive applies the canonical formula D = C × A + C × B in SQL when there is no Récupération, exactly like the Domain (T02-S02)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository listActive switches the pause count in SQL on the presence of a Récupération, exactly like computePauseOccurrences",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository listActive adds the attached Récupération once per Activity in the SQL projection (T02-S02)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository listActive still counts the pauses of a REPETITIONS Activity C − 1 times, plus its Récupération, without any conventional duration (RM-072/RM-132)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository listActive counts every Activity once but multiplies only the IN_TOUR duration by the tour repeat count",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository listActive sorts by updated_at DESC, and a later last_executed_at never changes the order (D-110)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository listActive exposes an empty categoryNames and an empty bodyZoneNames when the Session has neither (zero value)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository listActive exposes exactly one bodyZoneName (one value)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository listActive unions bodyZoneNames WITHOUT LOSS across ALL persisted Activities of the Session, deduplicated and ordered by the referential (never insertion order, many values)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository listActive scopes bodyZoneNames per Session — never leaks another Session's values (multiple Sessions in the same listActive() call)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository Points d'arrêt (V2-PRE-1, plan §3.3/§7, REQ-001108DC7F67664C) create(): persists stop points with a position stable per scope, and rereads them in scope then position order",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository Points d'arrêt (V2-PRE-1, plan §3.3/§7, REQ-001108DC7F67664C) create(): omits stopPoints entirely from the read aggregate when none was given — never an empty array",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository Points d'arrêt (V2-PRE-1, plan §3.3/§7, REQ-001108DC7F67664C) update(): replaces the previous stop points entirely, with the new array's own per-scope order",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository update — modification bout en bout par identité (T01-S10, plan §5.2) updates a kept Activity in place: same identifier, session/cycle/tour identifiers preserved",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository update — modification bout en bout par identité (T01-S10, plan §5.2) adds a new Activity, removes a dropped one, keeps the survivor's id",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository update — modification bout en bout par identité (T01-S10, plan §5.2) persists tour.repeatCount and rereads it (aggregate + catalogue summary)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository update — modification bout en bout par identité (T01-S10, plan §5.2) persists the attached Récupération through an update and rereads it",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository update — modification bout en bout par identité (T01-S10, plan §5.2) persists the attached Récupération of a brand-new Activity created during an update",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository update — modification bout en bout par identité (T01-S10, plan §5.2) persists a TO_FAILURE Activity (no target) and rereads it; the estimate becomes a lower bound",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository update — modification bout en bout par identité (T01-S10, plan §5.2) rehydrates Activities before / in / after the Tour, in reading order",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository update — modification bout en bout par identité (T01-S10, plan §5.2) preserves an Activity's body zones through an in-place update (replace, no loss)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository update — modification bout en bout par identité (T01-S10, plan §5.2) replaces the Session's Label atomically",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository update — modification bout en bout par identité (T01-S10, plan §5.2) returns NOT_FOUND and performs no write for an unknown id",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository update — modification bout en bout par identité (T01-S10, plan §5.2) returns ARCHIVED and performs no write for a session archived via direct SQL",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository update — modification bout en bout par identité (T01-S10, plan §5.2) rejects invalid input via SessionValidationError before any write (defense in depth)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository update — modification bout en bout par identité (T01-S10, plan §5.2) rolls back EVERY change when a mid-transaction step fails: session fields, updated_at, tour repeat, Activities + ids + positions and body zones",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository garde « valeur retirée » côté stockage — Étiquette et Zones (T16, D-210) rejects creating a Session with a retired Label",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository garde « valeur retirée » côté stockage — Étiquette et Zones (T16, D-210) rejects creating an Activity with a retired body zone",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository garde « valeur retirée » côté stockage — Étiquette et Zones (T16, D-210) rejects switching an update to a retired Label, but keeps an already-assigned Label even if it is retired afterwards",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository garde « valeur retirée » côté stockage — Étiquette et Zones (T16, D-210) keeps an already-assigned, now-retired Label unchanged when the update does not touch it",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository garde « valeur retirée » côté stockage — Étiquette et Zones (T16, D-210) rejects adding a NEW retired body zone on update, but keeps an already-assigned Zone even if it is retired afterwards",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository garde « valeur retirée » côté stockage — Étiquette et Zones (T16, D-210) keeps an already-assigned, now-retired body zone unchanged when the update resubmits it unchanged",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository findSessionStatus (T01-S10) returns ACTIVE for an active session, ARCHIVED for an archived one, null for an unknown id",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository V2-BILAT-01 / V2-PRE-1 — side mode persistence and SQL parity persists and round-trips an Activity's own side mode",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository V2-BILAT-01 / V2-PRE-1 — side mode persistence and SQL parity defaults a fresh Activity to UNILATERAL when no side mode is provided",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository V2-BILAT-01 / V2-PRE-1 — side mode persistence and SQL parity updates each Activity's own side mode through update()",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository V2-BILAT-01 / V2-PRE-1 — side mode persistence and SQL parity doubles the estimated duration for a bilateral Activity, never doubling the Récupération",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository V2-BILAT-01 / V2-PRE-1 — side mode persistence and SQL parity applies each Activity's own side mode independently of its structural position",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteSessionRepository V2-BILAT-01 / V2-PRE-1 — side mode persistence and SQL parity keeps the aggregate contract check satisfied for the persisted default UNILATERAL side mode (defense in depth)",
+          "status": "passed",
+          "failureMessages": []
+        }
+      ]
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "status": "passed",
+      "startTimeUnixMs": 1791492990418,
+      "endTimeUnixMs": 1791492991079,
+      "assertions": [
+        {
+          "fullName": "migrateDatabase creates version 1 and one stable local user idempotently",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase rejects a database newer than the application",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase enforces the NULL-safe duration rules",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase seeds exactly the 10 predefined categories once, idempotently, ordered by displayOrder (T01-S09, D-107)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase enforces canonical_key uniqueness on categories (T01-S09)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase persists and enforces activity_body_zones referential integrity (T01-S09, D-093)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase has no session_categories table, and clears a Session's label_id when the referenced Label is deleted",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase never modifies migration001's tables/constraints: the T01-S01 NULL-safe duration rule still holds after migration002",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase enforces that cycle, tour and activity belong to the same session",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration003 — mode TO_FAILURE (T01-S10, D-111) brings a version-2 database to version 3 and then accepts a TO_FAILURE Exercise (no target)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration003 — mode TO_FAILURE (T01-S10, D-111) preserves existing rows, ids, dependent activity_body_zones and the position uniqueness index through the rebuild",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration003 — mode TO_FAILURE (T01-S10, D-111) preserves the exact created_at and updated_at of pre-existing activity rows through the rebuild (before/after)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration003 — mode TO_FAILURE (T01-S10, D-111) a fresh database reaches the current version directly and accepts TO_FAILURE",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration004 — Récupération attachée (T02-S02) attaches each legacy RECOVERY to the Activity immediately preceding it in the same zone, deletes it, and renumbers positions",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration004 — Récupération attachée (T02-S02) never attaches a RECOVERY across zones: the preceding Activity must belong to the SAME structural zone",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration004 — Récupération attachée (T02-S02) attaches only the FIRST following RECOVERY, and only to the Activity directly before it (two consecutive RECOVERY rows)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration004 — Récupération attachée (T02-S02) drops the body zones of the deleted RECOVERY rows while preserving those of the kept Activities",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration004 — Récupération attachée (T02-S02) bounds post_activity_recovery_seconds in the database itself (0..5999) and keeps it at 0 for a RECOVERY-typed row",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration004 — Récupération attachée (T02-S02) defaults post_activity_recovery_seconds to 0 for a fresh row that does not mention it, and re-migrating is a no-op",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration004 — Récupération attachée (T02-S02) preserves the exact created_at / updated_at of the kept rows through the migration004 rebuild",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration005 — bilatéralité (V2-BILAT-01) brings a version-4 database (v0…v4 chain) through version 5, defaulting every pre-existing row to UNILATERAL",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration005 — bilatéralité (V2-BILAT-01) is a no-op on a second call — a database already at the current version is never replayed",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration005 — bilatéralité (V2-BILAT-01) still rejects a database newer than the application",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration005 — bilatéralité (V2-BILAT-01) bounds side_mode to the three canonical values, on both activities and tours",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration005 — bilatéralité (V2-BILAT-01) accepts each of the three canonical values on an Activity and on the Tour",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration005 — bilatéralité (V2-BILAT-01) rolls back the entire migration on failure, leaving user_version unchanged (shared transaction, non-regression)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration005 — bilatéralité (V2-BILAT-01) adds no Execution/Snapshot/Result table when going from v4 to v5 — strictly the two side_mode columns (no T03 data)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration006 — ActivityDefinition (V2-CAT-01) brings a version-5 database (v0…v5 chain) to the current version and creates the activity_definitions tables",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration006 — ActivityDefinition (V2-CAT-01) creates activity_definitions on a fresh database and accepts a valid row",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration006 — ActivityDefinition (V2-CAT-01) enforces the execution_mode and side_mode CHECK constraints",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration006 — ActivityDefinition (V2-CAT-01) cascades activity_definition_body_zones deletion when the definition is deleted",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration006 — ActivityDefinition (V2-CAT-01) does not convert or touch any historical SessionActivity row",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration007 — référentiels persistants additifs (V2-PRE-1) seeds body_zones from the historical BODY_ZONES referential, all active",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration007 — référentiels persistants additifs (V2-PRE-1) seeds a single Profile row with the four normative defaults (10s / 30s / 10s / 5s, plan §3.2, D-240)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration007 — référentiels persistants additifs (V2-PRE-1) creates empty labels/media_assets/activity_media tables, ready for future rows",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration007 — référentiels persistants additifs (V2-PRE-1) allows several distinct media assets for the same Exercise at distinct positions",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration007 — référentiels persistants additifs (V2-PRE-1) rejects a duplicate position for the same Exercise",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration007 — référentiels persistants additifs (V2-PRE-1) cascades activity_media deletion when the Exercise is deleted",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration007 — référentiels persistants additifs (V2-PRE-1) is idempotent — a second migrateDatabase call never reseeds body_zones or profiles",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration008 — Profil complété, clés normalisées, liaison des Zones d'occurrence ouverte (V2-PRE-2) backfills a canonical_key for every Zone already seeded by migration007, matching the Domain's normalization",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration008 — Profil complété, clés normalisées, liaison des Zones d'occurrence ouverte (V2-PRE-2) rejects inserting a Label or a Zone with a NULL canonical_key",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration008 — Profil complété, clés normalisées, liaison des Zones d'occurrence ouverte (V2-PRE-2) rejects a duplicate canonical_key among Labels/Zones, including against a retired entry",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration008 — Profil complété, clés normalisées, liaison des Zones d'occurrence ouverte (V2-PRE-2) lets a newly created Zone be linked to a Session occurrence — the historical CHECK on the 10 ids is gone",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration008 — Profil complété, clés normalisées, liaison des Zones d'occurrence ouverte (V2-PRE-2) still rejects an unknown body_zone_id on activity_body_zones (real foreign key, not just a historical CHECK)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration008 — Profil complété, clés normalisées, liaison des Zones d'occurrence ouverte (V2-PRE-2) cascades activity_body_zones deletion when the Activity is deleted (preserved through the rebuild)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration008 — Profil complété, clés normalisées, liaison des Zones d'occurrence ouverte (V2-PRE-2) never re-activates a retired Label or Zone on migration/startup — migrateDatabase is idempotent and leaves is_active untouched",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration008 — Profil complété, clés normalisées, liaison des Zones d'occurrence ouverte (V2-PRE-2) seeds the two new Session defaults (10 s / 5 s) and the four preferences on the singleton Profile row",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration008 — Profil complété, clés normalisées, liaison des Zones d'occurrence ouverte (V2-PRE-2) rejects a silhouette outside homme/femme",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration008 — Profil complété, clés normalisées, liaison des Zones d'occurrence ouverte (V2-PRE-2) a fresh installation (v0) reaches version 8 directly, with every canonical_key already populated",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "migrateDatabase migration008 — Profil complété, clés normalisées, liaison des Zones d'occurrence ouverte (V2-PRE-2) rolls back the entire v7→v8 migration on failure, leaving user_version unchanged",
+          "status": "passed",
+          "failureMessages": []
+        }
+      ]
+    },
+    {
+      "path": "src/domain/sessions/__tests__/calculations.test.ts",
+      "status": "passed",
+      "startTimeUnixMs": 1791492991116,
+      "endTimeUnixMs": 1791492991213,
+      "assertions": [
+        {
+          "fullName": "computeEstimatedDurationSeconds (Facts only, no SQL/infra type) counts the out-of-Tour zones once and multiplies only the Tour zone by the tour repeat count",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeEstimatedDurationSeconds (Facts only, no SQL/infra type) is unchanged by the tour repeat count when the Tour zone is empty",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeEstimatedDurationSeconds (Facts only, no SQL/infra type) reproduces the T01 total exactly for a single-Tour Session (non-regression)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computePauseOccurrences (règle conditionnelle T02-S02) counts ONE pause per series when there is no Récupération",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computePauseOccurrences (règle conditionnelle T02-S02) drops exactly the last pause when a Récupération exists — it replaces it",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computePauseOccurrences (règle conditionnelle T02-S02) returns zero for zero series or an absent series count, in both branches",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeActivityDurationSeconds (une seule Activité) applies D = C × A + C × B when there is no Récupération",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeActivityDurationSeconds (une seule Activité) applies D = C × A + (C − 1) × B + R as soon as a Récupération exists — it REPLACES the last pause",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeActivityDurationSeconds (une seule Activité) makes the last rest period always exist: a single series keeps its pause without Récupération, and its Récupération instead of that pause",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeActivityDurationSeconds (une seule Activité) gives no conventional duration to REPETITIONS nor TO_FAILURE, but still counts their pauses and Récupération (RM-072/RM-132/D-112)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeActivityDurationSeconds (une seule Activité) counts a legacy standalone RECOVERY's own duration once, without series multiplication nor pause (D-041)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeTotalDurationSeconds / computeSeriesCountForTotalDuration (formule canonique et son inverse) computes D = C × A + C × B without Récupération",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeTotalDurationSeconds / computeSeriesCountForTotalDuration (formule canonique et son inverse) computes D = C × A + (C − 1) × B + R with a Récupération, which replaces the last pause",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeTotalDurationSeconds / computeSeriesCountForTotalDuration (formule canonique et son inverse) inverts exactly, branch by branch: Cth = D / (A + B) without R, (D − R + B) / (A + B) with R",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeTotalDurationSeconds / computeSeriesCountForTotalDuration (formule canonique et son inverse) never applies the '+ B' numerator term when there is no Récupération — that term belongs to the Récupération branch only",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeTotalDurationSeconds / computeSeriesCountForTotalDuration (formule canonique et son inverse) rounds a .5 theoretical series count UP (D-092)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeTotalDurationSeconds / computeSeriesCountForTotalDuration (formule canonique et son inverse) clamps the inverted series count to [1, 99]",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeTotalDurationSeconds / computeSeriesCountForTotalDuration (formule canonique et son inverse) falls back to the minimum series count when A + B is zero — the target carries no information about C",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeTotalDurationSeconds / computeSeriesCountForTotalDuration (formule canonique et son inverse) is a true round trip in BOTH branches: inverting then recomputing returns the original series count",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "applyTargetTotalDuration (RM-130) — pilote Séries, jamais la durée elle-même reports no adjustment when the target is exactly reachable",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "applyTargetTotalDuration (RM-130) — pilote Séries, jamais la durée elle-même reports the adjusted duration when rounding changed the reachable total",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "applyTargetTotalDuration (RM-130) — pilote Séries, jamais la durée elle-même reports the adjusted duration when the bounds [1, 99] clamped the series count",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeZoneDurationFacts (collection d'Activités) sums the collection with the canonical formula and flags the lower bound",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeZoneDurationFacts (collection d'Activités) returns a neutral, exact result for an empty collection",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeActivityCount / computeTotalActivitiesToExecute (Facts only) returns the composition activity count as-is",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeActivityCount / computeTotalActivitiesToExecute (Facts only) sums the three zones for the composition count (T02-S01)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeActivityCount / computeTotalActivitiesToExecute (Facts only) NEVER multiplies the composition count by the tour repeat count — it is not a number of executions",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeActivityCount / computeTotalActivitiesToExecute (Facts only) multiplies only the Tour zone for the total to execute (RM-075)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toEstimatedDurationFacts / toActivityCountFacts (projection from a Session aggregate) projects a Session aggregate to EstimatedDurationFacts without any extra query",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toEstimatedDurationFacts / toActivityCountFacts (projection from a Session aggregate) projects a Session aggregate to ActivityCountFacts without any extra query",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toEstimatedDurationFacts / toActivityCountFacts (projection from a Session aggregate) chains the projection into the calculation and matches the aggregate's own figures",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toEstimatedDurationFacts / toActivityCountFacts (projection from a Session aggregate) sums the canonical formula across several DURATION Activities (T01-S09, corrigé RM-129)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toEstimatedDurationFacts / toActivityCountFacts (projection from a Session aggregate) propagates the attached Récupération of each Activity into the zone duration (T02-S02)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toEstimatedDurationFacts / toActivityCountFacts (projection from a Session aggregate) excludes the Exercise's own duration for a REPETITIONS Activity but still counts its pause, and flags the estimate as a lower bound (RM-072)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toEstimatedDurationFacts / toActivityCountFacts (projection from a Session aggregate) flags the estimate as a lower bound as soon as ANY Activity is in REPETITIONS mode, even alongside DURATION Activities",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toEstimatedDurationFacts / toActivityCountFacts (projection from a Session aggregate) treats a TO_FAILURE Activity like REPETITIONS: no nominal duration, still counts its pause, flags a lower bound (D-111/D-112)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toEstimatedDurationFacts / toActivityCountFacts (projection from a Session aggregate) counts a legacy standalone RECOVERY Activity's own duration once, without series multiplication nor pause (D-041)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toEstimatedDurationFacts / toActivityCountFacts (projection from a Session aggregate) projects the three structural zones separately, and only the Tour zone is repeated",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toEstimatedDurationFacts / toActivityCountFacts (projection from a Session aggregate) flags a lower bound raised by an out-of-Tour Activity too (D-112)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toEstimatedDurationFacts / toActivityCountFacts (projection from a Session aggregate) multiplies each zone strictly by each Activity's own direction — the Tour carries no direction of its own",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeZoneDurationFacts — side mode (V2-PRE-1) unilateral Activity: Li = 1, unchanged from T02-S02",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeZoneDurationFacts — side mode (V2-PRE-1) bilateral Activity: Li = 2 for this Activity, Ri counted only once after both sides",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeZoneDurationFacts — side mode (V2-PRE-1) treats a Facts item with no sideMode field as UNILATERAL — non-regression for every caller predating this tranche",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeTotalDurationSeconds / computeSeriesCountForTotalDuration / applyTargetTotalDuration — V2-BILAT-01 side mode multiplies the Series + Pauses part by L, without ever multiplying the Récupération (R = 0 branch)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeTotalDurationSeconds / computeSeriesCountForTotalDuration / applyTargetTotalDuration — V2-BILAT-01 side mode multiplies the Series + Pauses part by L, R staying outside (R > 0 branch)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeTotalDurationSeconds / computeSeriesCountForTotalDuration / applyTargetTotalDuration — V2-BILAT-01 side mode defaults L to 1 — non-regression for every caller predating this tranche",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeTotalDurationSeconds / computeSeriesCountForTotalDuration / applyTargetTotalDuration — V2-BILAT-01 side mode inverts exactly the bilateral formula, in both branches",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "computeTotalDurationSeconds / computeSeriesCountForTotalDuration / applyTargetTotalDuration — V2-BILAT-01 side mode applyTargetTotalDuration propagates the side multiplier to both the inverse and the recomputed duration",
+          "status": "passed",
+          "failureMessages": []
+        }
+      ]
+    },
+    {
+      "path": "src/domain/sessions/__tests__/SessionDraft.test.ts",
+      "status": "passed",
+      "startTimeUnixMs": 1791492991243,
+      "endTimeUnixMs": 1791492991365,
+      "assertions": [
+        {
+          "fullName": "createEmptyDraft initializes every field from the canonical defaults, with no Activity and no Category yet",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "createExerciseDraft initializes an empty name, Duration mode, the canonical default duration, one Series without pause nor Récupération, no instruction, no body zone",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "createExerciseDraft uses exactly the id provided by the caller, never a generated one",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "createExerciseDraft uses the Domain's neutral default (0) when no postActivityRecoverySeconds is provided (V2-PRE-2, T19)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "createExerciseDraft uses the explicit postActivityRecoverySeconds provided by the caller — the Profile's current value at creation time (V2-PRE-2, D-171/D-213)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "createEmptyDraft with Profile defaults (V2-PRE-2, D-213) uses the Domain's canonical constants when no defaults are provided (T19)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "createEmptyDraft with Profile defaults (V2-PRE-2, D-213) uses the Profile's current values when provided — a new Session receives Compte à rebours initial and Fin de séance from the Profile",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "createEmptyDraft with Profile defaults (V2-PRE-2, D-213) is not considered modified when compared to itself as a baseline (a fresh draft is never dirty)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toSessionDraft copies the editable fields exactly, keeping the source session id, tour repeat and each Activity's own id / type / structural position",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toSessionDraft carries the attached Récupération from the persisted Activity into the draft (T02-S02)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toSessionDraft maps every persisted Activity, in order, never only the first (T01-S09)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toSessionDraft preserves each Activity's real bodyZoneIds (no longer forced to [])",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toSessionDraft preserves a null instruction without turning it into an empty string",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toSessionDraft round-trips through toCreateSessionInput to reproduce the original editable fields",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "sessionDraftsEqual (T01-S10, CE-T01-S10-06 — garde de sortie en modification) is true for two functionally identical drafts, even with different sourceSessionId (identity field, never compared)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "sessionDraftsEqual (T01-S10, CE-T01-S10-06 — garde de sortie en modification) is false as soon as any functional field differs (name, tour repeat, an Activity field, the Étiquette)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "isSessionDraftDirty is false for a freshly created empty draft",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "isSessionDraftDirty compares against an explicit baseline (V2-PRE-2, T18) — a draft matching its own Profile-derived baseline is never dirty",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "isSessionDraftDirty is true as soon as one Activity is present (empty draft has exercises: [])",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "isSessionDraftDirty is order-sensitive between two otherwise-identical Activities",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "isSessionDraftDirty is true as soon as an Étiquette is selected (empty draft has labelId: null)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "isSessionDraftDirty is false again once labelId is explicitly reset to null, matching the empty draft exactly",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "exerciseEquals (exported for ExerciseScreen, T01-S08) is true for two null exercises",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "exerciseEquals (exported for ExerciseScreen, T01-S08) is false when only one side is null",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "exerciseEquals (exported for ExerciseScreen, T01-S08) is true for two structurally identical, distinct objects",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "exerciseEquals (exported for ExerciseScreen, T01-S08) compares bodyZoneIds as a set: order never matters, content does",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "exerciseEquals (exported for ExerciseScreen, T01-S08) detects a change of the attached Récupération — otherwise the exit guard would let it be lost silently (T02-S02)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toCreateSessionInput (T01-S09, multi-exercise) fails on an empty draft and reports every violation at once (session name + zero Activity)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toCreateSessionInput (T01-S09, multi-exercise) succeeds and converts a fully completed draft to a persistable CreateSessionInput",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toCreateSessionInput (T01-S09, multi-exercise) carries the three structural zones, the attached Récupération and the real tour repeat count through creation",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toCreateSessionInput (T01-S09, multi-exercise) refuses to create a standalone RECOVERY Activity — the Récupération is an attached parameter (T02-S02)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toCreateSessionInput (T01-S09, multi-exercise) persists ALL Activities of the collection, in order, without loss — supersedes the REWORK12-era 'first exercise only' limitation",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toCreateSessionInput (T01-S09, multi-exercise) never throws, even on an entirely invalid draft",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toSessionDraft — Récupération, positions structurelles et répétition du Tour (T01-S10) rehydrates a tour repeat count greater than 1, in reading order before / in / after the Tour",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toUpdateSessionInput (T01-S10, Q3-A — jamais toCreateSessionInput) fails with REQUIRED session.sourceSessionId when the draft is a creation draft",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toUpdateSessionInput (T01-S10, Q3-A — jamais toCreateSessionInput) keeps each Activity id, carries the tour repeat count and re-indexes positions per structural zone",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toUpdateSessionInput (T01-S10, Q3-A — jamais toCreateSessionInput) emits a TO_FAILURE Activity without any duration or repetition target",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toUpdateSessionInput (T01-S10, Q3-A — jamais toCreateSessionInput) carries the attached Récupération through the update path (T02-S02)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toUpdateSessionInput (T01-S10, Q3-A — jamais toCreateSessionInput) refuses to update towards a standalone RECOVERY Activity, like the creation path (T02-S02)",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "toUpdateSessionInput (T01-S10, Q3-A — jamais toCreateSessionInput) never throws on an invalid edit draft",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "side mode across the draft (V2-BILAT-01, portée exclusivement par l'Exercice depuis V2-PRE-1) toSessionDraft carries each Activity's own side mode — the Circuit has no direction of its own",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "side mode across the draft (V2-BILAT-01, portée exclusivement par l'Exercice depuis V2-PRE-1) exerciseEquals detects a change of side mode — otherwise the exit guard would let it be lost silently",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "side mode across the draft (V2-BILAT-01, portée exclusivement par l'Exercice depuis V2-PRE-1) toCreateSessionInput / toUpdateSessionInput carry each Activity's own side mode",
+          "status": "passed",
+          "failureMessages": []
+        }
+      ]
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+      "status": "passed",
+      "startTimeUnixMs": 1791492991395,
+      "endTimeUnixMs": 1791492991807,
+      "assertions": [
+        {
+          "fullName": "SqliteActivityDefinitionRepository creates a definition and reads it back with its body zones",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteActivityDefinitionRepository returns null when reading an unknown id",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteActivityDefinitionRepository lists definitions ordered by updatedAt DESC",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteActivityDefinitionRepository updates a definition in place, replacing its body zones and updatedAt",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteActivityDefinitionRepository returns null when updating an unknown id, without creating a row",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteActivityDefinitionRepository keeps the definition an independent root: it never writes to sessions/activities tables",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteActivityDefinitionRepository rollback de transaction (revue 5732014381, obligation 7) create(): a body-zone conflict rolls back the whole transaction — no orphan activity_definitions row survives",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteActivityDefinitionRepository rollback de transaction (revue 5732014381, obligation 7) update(): a body-zone conflict rolls back the whole transaction — the previous row and its zones are left untouched",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteActivityDefinitionRepository médias (V2-PRE-1, plan §3.3/§13, REQ-001108DC7F67664C) create(): persists each media with a position equal to its index in the given array, never re-sorted",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteActivityDefinitionRepository médias (V2-PRE-1, plan §3.3/§13, REQ-001108DC7F67664C) create(): persists no media row when the input omits media",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteActivityDefinitionRepository médias (V2-PRE-1, plan §3.3/§13, REQ-001108DC7F67664C) update(): replaces the previous media set entirely, with the new array's own order",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteActivityDefinitionRepository médias (V2-PRE-1, plan §3.3/§13, REQ-001108DC7F67664C) create(): an unknown assetId rolls back the whole transaction — no orphan activity_definitions row survives",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteActivityDefinitionRepository T16 — retired category guard (D-210) create(): rejects a reference to a retired category",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteActivityDefinitionRepository T16 — retired category guard (D-210) update(): keeps the already-assigned category even if it has since been retired",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteActivityDefinitionRepository T16 — retired category guard (D-210) update(): rejects switching to a DIFFERENT retired category",
+          "status": "passed",
+          "failureMessages": []
+        }
+      ]
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+      "status": "passed",
+      "startTimeUnixMs": 1791492991851,
+      "endTimeUnixMs": 1791492991945,
+      "assertions": [
+        {
+          "fullName": "SqliteMediaRepository returns an empty list for an Exercise without media",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteMediaRepository lists several distinct media assets for the same Exercise, ordered by position",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "SqliteMediaRepository never mixes media from a different Exercise",
+          "status": "passed",
+          "failureMessages": []
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Existing baseline behavior only; no PRE-3 implementation or new migration tested.",
+    "Database suites use NodeSqliteDatabase/real node:sqlite; native Expo/device tests not run.",
+    "This observation is not a VNext final test-evidence contract."
+  ]
+}

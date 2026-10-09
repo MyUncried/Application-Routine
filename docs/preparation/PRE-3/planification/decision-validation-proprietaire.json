@@ -1,0 +1,33 @@
+{
+  "schema": "kodjo.pre3.owner-plan-decision.v1",
+  "operation": 340,
+  "owner": "Hermann",
+  "decision": "APPROVED",
+  "authorized_at": "2026-10-09T19:14:18+02:00",
+  "transport": "CHATGPT_CONVERSATION",
+  "exact_reply": "oui",
+  "question": "Valides-tu ce plan et ces dispositions R-1/R-2 pour engager l’implémentation PRE-3 ?",
+  "plan_revision": "43e7b344937a2d60b04b987f19636faebb5aee06",
+  "manifest_sha256": "16c155548ba161778f8780e664c65561b7c0d7e27666ca34481ec33a75cc08ff",
+  "independent_review_revision": "d5d016674e09042bc49410100eec6f6c02197d8f",
+  "validation_dossier_revision": "0afdb31aade26be3945176a10e4932c1e10d5026",
+  "reserves": [
+    {
+      "id": "R-1",
+      "decision": "ACCEPTED_DELIVERY_OBLIGATION",
+      "executed": false
+    },
+    {
+      "id": "R-2",
+      "decision": "ACCEPTED_TECHNICAL_DISPOSITION",
+      "executed": false
+    }
+  ],
+  "scope": "Complete PRE-3 P3-01..P3-23 and the published plan. No protocol changes, no new global audit.",
+  "observed_main": "46b91bd279424899a02c099a68b2729f6d710809",
+  "application_baseline": "1ddfb6d144552f578388257adc78db47ab5992c8",
+  "application_sources_unchanged_on_current_main": true,
+  "canonical_vnext_execution_admission": false,
+  "implementation_started": false,
+  "note": "Records the actual owner decision. This is not a canonical VNext approvalRecord or review receipt; the execution gates are not forged or silently bypassed."
+}

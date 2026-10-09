@@ -1,0 +1,24 @@
+{
+  "stage": "SOURCE_PREPARATION",
+  "launch_id": "PRE3-EXTRACTION-333-REUSE",
+  "source_revision": "3019c5f8c4a38efb83865635e0a8d67d48a5b5ab",
+  "document_revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+  "contract_hash": "a7a20032c1b1e2bf4597c303f23f2aa60e4447cd900b168e0233fdac6aefe2f0",
+  "reference_hash": "5822f240c81b319c21d79751a36f3329f78681f121a9299eb5fad771b7f4d2f0",
+  "stages": [
+    "CAPTURE",
+    "RECONCILE",
+    "INVENTORY_AND_SCENARIOS_VALIDATED",
+    "GIT_FREEZE",
+    "ATOMIC_REQUIREMENTS"
+  ],
+  "requirements": 6384,
+  "states": 95,
+  "frames": 41,
+  "bytes": 121634636,
+  "result": "PASS",
+  "applicationConformance": false,
+  "planContractCompleted": false,
+  "independentReview": false,
+  "capture_semantics": "Reuses Git-frozen #333 extraction and bounded freshness proofs; no new global extraction or live capture claimed."
+}

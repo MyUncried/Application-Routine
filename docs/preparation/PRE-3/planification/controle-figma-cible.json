@@ -1,0 +1,371 @@
+{
+  "kind": "TARGETED_LIVE_READ_NOT_GLOBAL_REEXTRACTION",
+  "frames": [
+    {
+      "id": "4217:6980",
+      "name": "Ajouter un exercice — Nom Description Media",
+      "width": 402,
+      "height": 874,
+      "descendants": 90,
+      "texts": [
+        {
+          "id": "4953:5892",
+          "text": "Paramètres d’exécution",
+          "x": 0,
+          "y": 3.5,
+          "width": 215,
+          "height": 19
+        }
+      ]
+    },
+    {
+      "id": "4734:6342",
+      "name": "Modifier un exercice",
+      "width": 402,
+      "height": 874,
+      "descendants": 71,
+      "texts": [
+        {
+          "id": "4953:6165",
+          "text": "Paramètres d’exécution",
+          "x": 0,
+          "y": 3.5,
+          "width": 285,
+          "height": 19
+        },
+        {
+          "id": "7117:13571",
+          "text": "3 séries de 1 min 30 s, avec 15 s de pause après chaque série.\nDurée totale : 5 min 15 s.",
+          "x": 0,
+          "y": 0,
+          "width": 324,
+          "height": 60
+        }
+      ]
+    },
+    {
+      "id": "4478:7209",
+      "name": "Ajouter un exercice — Zones corporelles",
+      "width": 402,
+      "height": 874,
+      "descendants": 136,
+      "texts": [
+        {
+          "id": "4953:6676",
+          "text": "Paramètres d’exécution",
+          "x": 0,
+          "y": 3.5,
+          "width": 215,
+          "height": 19
+        }
+      ]
+    },
+    {
+      "id": "6665:24616",
+      "name": "Séries variables — 2 Durée variable (scénario A)",
+      "width": 402,
+      "height": 874,
+      "descendants": 227,
+      "texts": [
+        {
+          "id": "6665:24630",
+          "text": "Paramètres d’exécution",
+          "x": 0,
+          "y": 3.5,
+          "width": 285,
+          "height": 19
+        },
+        {
+          "id": "7117:13584",
+          "text": "3 séries de durée variable (30 s, 45 s puis 1 min).\nDurée totale : 3 min 15 s.",
+          "x": 0,
+          "y": 0,
+          "width": 324,
+          "height": 40
+        },
+        {
+          "id": "I6665:24702;5831:4119",
+          "text": "Paramètres d’exécution",
+          "x": 73,
+          "y": 19,
+          "width": 232,
+          "height": 22
+        },
+        {
+          "id": "6665:24709",
+          "text": "Séries",
+          "x": 36,
+          "y": 62.5,
+          "width": 42,
+          "height": 17
+        },
+        {
+          "id": "I6665:24710;5826:4103",
+          "text": "3 séries",
+          "x": 9.5,
+          "y": 0,
+          "width": 50,
+          "height": 16
+        },
+        {
+          "id": "I6680:11812;6679:26646",
+          "text": "Séries variables",
+          "x": 0,
+          "y": 12.5,
+          "width": 106,
+          "height": 17
+        },
+        {
+          "id": "6665:24716",
+          "text": "Pause",
+          "x": 288,
+          "y": 139,
+          "width": 36,
+          "height": 15
+        },
+        {
+          "id": "6665:24726",
+          "text": "Durée totale",
+          "x": 36,
+          "y": 388.5,
+          "width": 83,
+          "height": 17
+        },
+        {
+          "id": "7337:13672",
+          "text": "Bip de cadence",
+          "x": 36,
+          "y": 346.5,
+          "width": 104,
+          "height": 17
+        }
+      ]
+    },
+    {
+      "id": "6665:26822",
+      "name": "Une seule série — 10 Options sans effet",
+      "width": 402,
+      "height": 874,
+      "descendants": 177,
+      "texts": [
+        {
+          "id": "6665:26836",
+          "text": "Paramètres d’exécution",
+          "x": 0,
+          "y": 3.5,
+          "width": 285,
+          "height": 19
+        },
+        {
+          "id": "7117:13587",
+          "text": "1 série de 1 min 30 s, avec 15 s de pause après chaque série, en faisant le côté droit puis le gauche, avec 10 s de pause au changement de côté.\nDurée totale : 3 min 40 s.",
+          "x": 0,
+          "y": 0,
+          "width": 324,
+          "height": 80
+        },
+        {
+          "id": "I6665:26918;5831:4119",
+          "text": "Paramètres d’exécution",
+          "x": 73,
+          "y": 19,
+          "width": 232,
+          "height": 22
+        },
+        {
+          "id": "6665:26924",
+          "text": "Séries",
+          "x": 36,
+          "y": 62.5,
+          "width": 42,
+          "height": 17
+        },
+        {
+          "id": "I6680:11866;6679:26655",
+          "text": "Séries variables",
+          "x": 0,
+          "y": 12.5,
+          "width": 106,
+          "height": 17
+        },
+        {
+          "id": "6665:26932",
+          "text": "Pause après chaque série",
+          "x": 52,
+          "y": 188.5,
+          "width": 172,
+          "height": 17
+        },
+        {
+          "id": "6665:26941",
+          "text": "Pause entre les côtés",
+          "x": 52,
+          "y": 314.5,
+          "width": 144,
+          "height": 17
+        },
+        {
+          "id": "6665:26944",
+          "text": "Durée totale",
+          "x": 36,
+          "y": 398.5,
+          "width": 83,
+          "height": 17
+        },
+        {
+          "id": "7338:13771",
+          "text": "Bip de cadence",
+          "x": 36,
+          "y": 356.5,
+          "width": 104,
+          "height": 17
+        }
+      ]
+    },
+    {
+      "id": "7059:13302",
+      "name": "Création activité — Paramètres en modale — 13 Répétitions avec cadence",
+      "width": 402,
+      "height": 874,
+      "descendants": 167,
+      "texts": [
+        {
+          "id": "7059:13315",
+          "text": "Paramètres d’exécution",
+          "x": 0,
+          "y": 3.5,
+          "width": 248,
+          "height": 19
+        },
+        {
+          "id": "7117:13593",
+          "text": "4 séries de 15 répétitions cadencées toutes les 4 s, avec 15 s de pause après chaque série.\nDurée totale : ≈ 5 min.",
+          "x": 0,
+          "y": 0,
+          "width": 324,
+          "height": 60
+        },
+        {
+          "id": "I7059:13378;5831:4119",
+          "text": "Paramètres d’exécution",
+          "x": 73,
+          "y": 19,
+          "width": 232,
+          "height": 22
+        },
+        {
+          "id": "7059:13384",
+          "text": "Séries",
+          "x": 36,
+          "y": 126.5,
+          "width": 42,
+          "height": 17
+        },
+        {
+          "id": "I7059:13385;5847:4026",
+          "text": "4 séries",
+          "x": 12,
+          "y": 0,
+          "width": 51,
+          "height": 16
+        },
+        {
+          "id": "7059:13390",
+          "text": "Pause après chaque série",
+          "x": 52,
+          "y": 252.5,
+          "width": 172,
+          "height": 17
+        },
+        {
+          "id": "7059:13396",
+          "text": "Durée totale ≈",
+          "x": 36,
+          "y": 378.5,
+          "width": 96,
+          "height": 17
+        },
+        {
+          "id": "I7059:13405;6679:26611",
+          "text": "Séries variables",
+          "x": 0,
+          "y": 12.5,
+          "width": 106,
+          "height": 17
+        },
+        {
+          "id": "7059:13406",
+          "text": "Bip de cadence",
+          "x": 36,
+          "y": 336.5,
+          "width": 104,
+          "height": 17
+        }
+      ]
+    },
+    {
+      "id": "7119:27855",
+      "name": "Création activité — Phrase longue (224 caractères)",
+      "width": 402,
+      "height": 874,
+      "descendants": 82,
+      "texts": [
+        {
+          "id": "7119:27868",
+          "text": "Paramètres d’exécution",
+          "x": 0,
+          "y": 3.5,
+          "width": 248,
+          "height": 19
+        },
+        {
+          "id": "7119:27872",
+          "text": "6 séries de 12 répétitions cadencées toutes les 4 s, avec 15 s de pause après chaque série, en faisant d’abord toutes les séries à droite, puis à gauche, avec 5 s de pause au changement de côté.\nDurée totale : ≈ 12 min 41 s.",
+          "x": 0,
+          "y": 0,
+          "width": 324,
+          "height": 100
+        }
+      ]
+    }
+  ],
+  "scope": "Root identity, dimensions, descendant counts and selected texts/geometry only; no full property hash or component/token freshness claim",
+  "observationDate": "2026-10-08",
+  "comparisons": [
+    {
+      "frame": "4217:6980",
+      "nodeCountMatches": true,
+      "selectedPropertyDifferences": []
+    },
+    {
+      "frame": "4734:6342",
+      "nodeCountMatches": true,
+      "selectedPropertyDifferences": []
+    },
+    {
+      "frame": "4478:7209",
+      "nodeCountMatches": true,
+      "selectedPropertyDifferences": []
+    },
+    {
+      "frame": "6665:24616",
+      "nodeCountMatches": true,
+      "selectedPropertyDifferences": []
+    },
+    {
+      "frame": "6665:26822",
+      "nodeCountMatches": true,
+      "selectedPropertyDifferences": []
+    },
+    {
+      "frame": "7059:13302",
+      "nodeCountMatches": true,
+      "selectedPropertyDifferences": []
+    },
+    {
+      "frame": "7119:27855",
+      "nodeCountMatches": true,
+      "selectedPropertyDifferences": []
+    }
+  ]
+}

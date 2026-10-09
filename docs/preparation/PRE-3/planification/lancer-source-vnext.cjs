@@ -1,0 +1,11 @@
+'use strict';
+const fs=require('node:fs'),pathModule=require('node:path'),root=pathModule.resolve(__dirname,'../../../..'),C=require(root+'/scripts/kodjo/lib/vnext-live-chain'),F=require(root+'/scripts/kodjo/lib/vnext-figma-source'),L=require(root+'/scripts/kodjo/lib/vnext-figma-launch');
+const B=require(root+'/scripts/kodjo/lib/vnext-file-bundle');
+const output=process.argv[2];if(!output||!pathModule.isAbsolute(output))throw Error('Absolute output directory required');fs.mkdirSync(output,{recursive:true});
+const revision='3019c5f8c4a38efb83865635e0a8d67d48a5b5ab',path='docs/preparation/PRE-3/planification/figma-source-vnext.json',content=C.readGit(root,revision,path),p=F.snapshotPacket(content);
+const scope={slice_id:'PRE-3',launch_id:'PRE3-EXTRACTION-333-REUSE',file_key:p.file_key,frames:p.frames,documents:p.documents};
+(async()=>{
+ const cp=await L.launch(scope,{capture:s=>({launch_id:s.launch_id,file_key:p.file_key,captured_at:p.captured_at,frames:p.frames,inventories:[{end:true,count:p.nodes.length,rows:p.nodes.map(n=>[n.id,n.parent_id,n.type,n.name])}],batches:[{end:true,requested_ids:p.nodes.map(n=>n.id),rows:p.nodes.map(n=>({id:n.id,child_ids:n.child_ids,properties:n.properties}))}],variables:p.variables,collections:p.collections,resources:p.resources}),reconcile:(raw,documents)=>({...raw,documents,states:p.states,decisions:p.decisions,conflicts:p.conflicts}),persist:()=>({revision,path,content:C.readGit(root,revision,path)})});
+ B.write(pathModule.join(output,'launch.json'),cp);
+ const receipt={stage:'SOURCE_PREPARATION',launch_id:scope.launch_id,source_revision:revision,document_revision:p.documents[0].revision,contract_hash:cp.contract_hash,reference_hash:cp.reference_hash,stages:cp.stages,requirements:cp.requirementInput.requirements.length,states:p.states.length,frames:p.frames.length,transport:B.read(pathModule.join(output,'launch.json')).contract_hash===cp.contract_hash?'VERIFIED':'INVALID',result:'PASS',applicationConformance:false,planContractCompleted:false,independentReview:false,capture_semantics:'Reuses Git-frozen #333 extraction and bounded freshness proofs; no new global extraction or live capture claimed.'};fs.writeFileSync(pathModule.join(output,'launch-receipt.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify(receipt));
+})().catch(e=>{console.error(e.stack);process.exitCode=1;});

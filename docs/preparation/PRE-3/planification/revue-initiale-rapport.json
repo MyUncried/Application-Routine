@@ -1,0 +1,450 @@
+{
+  "schema": "kodjo.pre3.review-report-projection.v1",
+  "canonical_report": false,
+  "receipt_hash": "56568e7ae81d44c60cb5185d0b69f3099fb64650953804dbf322e478d3845ce9",
+  "produced_chain_hash": "603de045f94fec3f14aa2198edaaad0b91020b79adddb19041b06314cc725e16",
+  "reviewer_packet_hash": "49a4e5b35f516276acfbcc18c11f7e7226bdf76e6e2dd8837a69bd8f11d3f72e",
+  "session_id": "ebde720a-8c4a-4685-95b4-407b2116ff58",
+  "raw_result_sha256": "2542fe1ae995d0b323b9299d32991863cf9f32f0c291f8c27f4f83a2d2a436af",
+  "reviewed_target_count": 304638,
+  "reviewed_targets_json_sha256": "5112f6c1f09275688ebbf16f9642b02aebc21792bf6a06ba12093e5dc7a4c189",
+  "report": {
+    "schema_version": "kodjo.vnext.review-report.v2",
+    "review_context_hash": "929c60282a9227ba81e405f2de2680ac11a4db4cbd3b9a053f77a91e6c3e00ca",
+    "planning_mode": "INITIAL",
+    "plan_contract_hash": "5145cbd30860f9ddef041ed33b97a71697517a3ef248229112bb0f5f7b92006f",
+    "ui_atomicity_hash": "d4aa55ad8a0752ae4083a33a96d5d006491258ab1dee5bf2856610ec9399e4c9",
+    "finding_count": 15,
+    "blocking_finding_count": 13,
+    "verdict": "CLARIFICATION_REQUIRED",
+    "affected_target_ids": [
+      "5145cbd30860f9ddef041ed33b97a71697517a3ef248229112bb0f5f7b92006f",
+      "AST-0783cac256376fe41da5ccfc",
+      "CAND-2915d264e742171ae2260c95",
+      "CAND-d6b8ab7056e4aae59bce9fb2",
+      "CRT-2a3b884df55e9028860cbc93",
+      "IMP-aecfea642459679b73564da0",
+      "PLAN-3a545aa403b0a20b160a625a",
+      "PLAN-5c40029786e01ae64d0b6222",
+      "REQ-30b44b8b8eded65d2e28f9a9",
+      "REQ-5b34a61e1bba57ca4cc09932",
+      "REQ-be6e7d796429be1c0f364017",
+      "TEST-31c97ccdbec9fe8d8a0408dc",
+      "UNIT-d27f377c24336720e09fd06b"
+    ],
+    "reentry_stages": [
+      "IMPACT",
+      "PLAN",
+      "REQUIREMENTS",
+      "USER_DECISION"
+    ],
+    "findings": [
+      {
+        "blocking": false,
+        "category": "SUGGESTION",
+        "dependency_target_ids": [],
+        "evidence": [
+          "checkout docs/preparation/PRE-3/planification/plancontract-publie.md:72",
+          "checkout docs/preparation/PRE-3/planification/revue-independante.md:3, :7, :23, :35",
+          "git log: 15851973 'reconcile complete bundle transport', 00d20df0 and ad5b9086 — the serialisation bound described as unresolvable has since been addressed",
+          "reviewer_packet.contract_hash 49a4e5b35f516276acfbcc18c11f7e7226bdf76e6e2dd8837a69bd8f11d3f72e at source_revision 1d42479181586d926a9970867a41d35d44cc4661, with target_catalog, artifacts, canonical-artifacts, source/candidate observations and figma assets all materialised and read"
+        ],
+        "finding": "The published review documentation contradicts the state of this delivery. docs/preparation/PRE-3/planification/revue-independante.md, at the reviewed revision, states 'Statut : BLOCKED_BEFORE_REVIEW. Claude n'a pas été invoqué', that the complete sealed produced_file 'ne peut pas être produit dans ce format pour ce périmètre', and that no valid review launch exists; plancontract-publie.md:72 instructs the owner not to approve before that review. The present handoff nevertheless delivered the complete sealed objects by file bundle and this review has been performed on them. Leaving the blocking note in place will mislead the owner about whether the prescribed independent review has taken place.",
+        "finding_id": "FND-04a6153a7dcd4c8cbe679225",
+        "reentry_stage": "NONE",
+        "required_correction": "Update revue-independante.md to record that the bundle transport resolved the serialisation bound and that the independent review ran on the sealed objects at 1d42479181586d926a9970867a41d35d44cc4661, and replace the BLOCKED_BEFORE_REVIEW status by the actual review outcome before presenting the plan to the owner.",
+        "target_id": "5145cbd30860f9ddef041ed33b97a71697517a3ef248229112bb0f5f7b92006f",
+        "target_type": "PLAN_CONTRACT"
+      },
+      {
+        "blocking": true,
+        "category": "UI_ASSERTION_GAP",
+        "dependency_target_ids": [
+          "CAND-d6b8ab7056e4aae59bce9fb2",
+          "CRT-374665026518a1cdaf54c20d",
+          "CRT-47aaf348935a6e44e2ad42b1",
+          "CRT-e0aa6aa91a04eb49d91f47f7"
+        ],
+        "evidence": [
+          "consumers/15.js:144-156 — INTERACTION requires FUNCTIONAL_TEST or STATIC_ANALYSIS and a FUNCTIONAL/DECISION source authority, which no VISUAL-authority Figma criterion can carry",
+          "consumers/28.js:57 and :59-61 — NOT_APPLICABLE forbidden when an INTERACTION assertion exists; non-NOT_APPLICABLE requires a matching INTERACTION assertion",
+          "grep '\"availability\": \"NOT_APPLICABLE\"' = 6380; AVAILABLE/UNAVAILABLE = 4 (total 6384)",
+          "grep '\"property_type\": \"INTERACTION\"' over parts/ = 0; '\"assertion_id\": \"AST-' = 243974; GEOMETRY = 194948; STYLE = 47263; CONTENT = 1668; STATE = 95",
+          "parts/2adc456e4adbd4c7d06b9ef95961cc3cd50b56aa5b4b9f499fd65dc05a2ed136.json:4456-4471 — native assessment AVAILABLE / SwiftUI.Picker.wheel for CRT-2a3b884df55e9028860cbc93",
+          "parts/dbe19739373b9687133d17f3945c5db556c52c32080b6d3aadd2829dab487036.json:1964-3913 — criterion CRT-2a3b884df55e9028860cbc93: only GEOMETRY/STYLE property_type values; :3878 decision_justification; :3900 selected_component NONE"
+        ],
+        "finding": "The UI atomicity contract contains zero INTERACTION assertions, which makes the native-primitive assessment both vacuous and, for the four non-NOT_APPLICABLE rows, structurally unsatisfiable. An exhaustive census of the 243974 assertions returns 194948 GEOMETRY, 47263 STYLE, 1668 CONTENT, 95 STATE and 0 INTERACTION (and 0 VARIANT, 0 TEXT). This criterion is the 'roulette ouverte' state (6407:10127) whose decision_justification is 'reuse those primitives, without duplicating native iOS wheel', and its native assessment declares availability AVAILABLE with selected_primitive 'SwiftUI.Picker.wheel'. device-proof-policy.js:59-61 fails with VNEXT_NATIVE_BRANCH_ASSERTION_REQUIRED unless the criterion holds an INTERACTION assertion whose expected contains the selected primitive and whose proof_ids intersect the evidence refs; this criterion holds only GEOMETRY and STYLE assertions. The same applies to CRT-374665026518a1cdaf54c20d, CRT-47aaf348935a6e44e2ad42b1 and CRT-e0aa6aa91a04eb49d91f47f7. Conversely the other 6380 criteria pass the NOT_APPLICABLE gate only because no INTERACTION assertion exists anywhere, so no stepper, toggle, wheel, drag-reorder or sheet validation has an atomic interaction assertion.",
+        "finding_id": "FND-22dcb4343aeee5008ae82f42",
+        "reentry_stage": "PLAN",
+        "required_correction": "Add INTERACTION assertions, sourced from the FUNCTIONAL documentary requirements, for each new or reused interactive control (wheel, steppers, Séries variables toggle, row reordering and its non-drag alternative, sheet ✓/✕, media add/remove/retry), with proof_required including FUNCTIONAL_TEST, and make the four AVAILABLE native assessments reference the INTERACTION assertion that names SwiftUI.Picker.wheel.",
+        "target_id": "CRT-2a3b884df55e9028860cbc93",
+        "target_type": "CRITERION"
+      },
+      {
+        "blocking": true,
+        "category": "PRODUCT_AMBIGUITY",
+        "dependency_target_ids": [
+          "PROOF-a300f9318e6cf5d95719ac1d",
+          "TEST-31c97ccdbec9fe8d8a0408dc"
+        ],
+        "evidence": [
+          "checkout docs/DSF-CADENCE-2026-10-06.md:36 — '`color/overlay/scrim` #1F2129, alpha 34 %' written with separators",
+          "checkout docs/preparation/PRE-3/planification/assertions-recette.json:846 and :866 — 'at402 and adapt360/440', 'Overlay #1F2129 alpha.34; … at402 x36/sep330 vs indented x52/sep314'",
+          "checkout docs/preparation/PRE-3/planification/schema-et-ecritures.md:22, :24, :26, :62, :64, :66",
+          "parts/19326003f3a04bb8da47e8c70b92b9ade08f3c6aa749cd51b5c57d9daa6be8fd.json:12318 — 'Migrate through009 then repeat', 'no modification001..008', 'reps100 accepted; count99'",
+          "parts/fab760192e59c63510de8138803354241fcf572082b5420f4cdf31eec71f4699.json:12389 — 'touch44 minimum per targeted contracts'"
+        ],
+        "finding": "Frozen numeric expectations lost the space before their numerals, which makes pre-fixed oracles ambiguous. The P3-17 expected text reads 'Migrate through009 then repeat', 'no modification001..008', 'reps100 accepted; count99', and the same defect runs through the other scopes ('Compare delivered reference states at402 and adapt360/440', 'Overlay #1F2129 alpha.34', 'at402 x36/sep330 vs indented x52/sep314', 'touch44 minimum') and through the implementation_constraints text embedded in the plan items ('La validation Répétitions passe à100', 'limitées à300', 'peuvent atteindre5999', 'défauts Profil10/5', 'Tours1/99', 'limite système0'). These strings are the acceptance data that tests must assert before development, and the source documents write the same values with separators (for instance '#1F2129 à 34 %' in docs/DSF-CADENCE-2026-10-06.md). The defect originates upstream in assertions-recette.json and is propagated verbatim into the sealed requirements, criteria, tests and proofs.",
+        "finding_id": "FND-2aa59b7187ade34c38f136a7",
+        "reentry_stage": "USER_DECISION",
+        "required_correction": "Restore the separators in assertions-recette.json, inventaire-etats-scenarios.json and schema-et-ecritures.md, then rebuild the registry, plan, criteria and assertions so that every frozen numeric expectation reads unambiguously (migration 009, 001..008, 100 repetitions, 99 series, 402 px, alpha 0.34, x 36 / separator 330, 44 pt touch target).",
+        "target_id": "REQ-5b34a61e1bba57ca4cc09932",
+        "target_type": "REQUIREMENT"
+      },
+      {
+        "blocking": true,
+        "category": "MISSING_REQUIREMENT",
+        "dependency_target_ids": [
+          "5145cbd30860f9ddef041ed33b97a71697517a3ef248229112bb0f5f7b92006f",
+          "REQ-5b34a61e1bba57ca4cc09932",
+          "REQ-be6e7d796429be1c0f364017"
+        ],
+        "evidence": [
+          "consumers/11.js:7-15 REQUIREMENT_KINDS = FUNCTIONAL, UI, DATA, TECHNICAL, MIGRATION, PRESERVATION, NON_FUNCTIONAL; consumers/11.js:103 preservation derived solely from kind === 'PRESERVATION'",
+          "grep '^    \"kind\": \"UI\"' over parts/ = 6384 occurrences; grep '^    \"kind\": ' over parts/ = 6384 occurrences (no other kind exists)",
+          "grep '^    \"preservation\": \"NONE_DECLARED\"' over parts/ = 6384; grep '^    \"preservation\": ' = 6384",
+          "parts/0139f8eb1fa176d2d9b573b47225975cf6f46d4d1abeae93715bd19e876b1956.json:1058-1081 — REQ-30b44b8b8eded65d2e28f9a9: kind UI, source.authority FUNCTIONAL, statement 'Un total demandé irréalisable choisit le plus proche, égalité vers N supérieur ; message uniquement si le total réalisé diffère.'",
+          "parts/239a1a56bb2ab738dbc79f5359aa33248efd9470427f447851aaa5caef1069a5.json — source SRC-73db2f2f8fa401b7bc919b4f, authority FUNCTIONAL, single unit UNIT-d27f377c24336720e09fd06b, locator FULL_FILE",
+          "parts/ba77eb8bb13c182877c57ac1b9647da2393fbd18ab8fe4725eef224787f25381.json — REQUIREMENT catalog, 6384 ids"
+        ],
+        "finding": "The single FUNCTIONAL source unit yields no requirement of any non-UI kind. An exhaustive census of the sealed requirementRegistry shows `\"kind\": \"UI\"` on 6384/6384 requirements and `\"preservation\": \"NONE_DECLARED\"` on 6384/6384, with zero FUNCTIONAL, DATA, TECHNICAL, MIGRATION, PRESERVATION or NON_FUNCTIONAL requirements. requirement-registry.js enumerates all seven kinds and derives `preservation: row.kind === 'PRESERVATION' ? 'REQUIRED' : 'NONE_DECLARED'`, so registering everything as UI mechanically forces NONE_DECLARED everywhere. PRE-3's core obligations (additive migration 009, canonical JSON persistence, SQLite transactionality, media file lifecycle, PRE-1/PRE-2 preservation) therefore have no requirement carrying their own kind, and the 95 behavioural statements drawn from this unit are typed UI with rationale 'Documentary state PRE3-FIG-<frame>; scenarios PRE3-FIG-<frame>-RENDER'.",
+        "finding_id": "FND-45a23a9dc1c196e22ec192fd",
+        "reentry_stage": "REQUIREMENTS",
+        "required_correction": "Re-register the requirements derived from UNIT-d27f377c24336720e09fd06b with their actual kinds: MIGRATION for the 009 scenarios, DATA for the canonical ExecutionParameters representation and its scalar projections, FUNCTIONAL for the calculation/phrase/draft rules, and PRESERVATION for the PRE-1/PRE-2 and out-of-scope-consumer conservation statements, so that at least the PRESERVATION requirements carry preservation=REQUIRED. Keep kind UI only for requirements whose statement is a presentation property.",
+        "target_id": "UNIT-d27f377c24336720e09fd06b",
+        "target_type": "SOURCE_UNIT"
+      },
+      {
+        "blocking": true,
+        "category": "TEST_GAP",
+        "dependency_target_ids": [
+          "CAND-0b6b563dd127b9cd2a46fa38",
+          "CAND-7f8c80aac1732842bb845bb3",
+          "REQ-5b34a61e1bba57ca4cc09932"
+        ],
+        "evidence": [
+          "checkout docs/preparation/PRE-3/planification/schema-et-ecritures.md:62",
+          "grep '\"target_candidate_id\": \"CAND-7f8c80aac1732842bb845bb3\"' (migrateDatabase.test.ts) = 1",
+          "grep '\"target_candidate_id\": \"CAND-e0af8ec640affd4d2f853805\"' (executionCalculations.test.ts) = 14; '\"CAND-b9ab15323341a793b6985ee5\"' (executionPhrase.test.ts) = 6",
+          "grep '\"test_id\": \"TEST-' over parts/ = 6537; grep '\"target_candidate_id\": \"CAND-0b6b563dd127b9cd2a46fa38\"' = 4710",
+          "parts/19326003f3a04bb8da47e8c70b92b9ade08f3c6aa749cd51b5c57d9daa6be8fd.json:12318 and :12466-12470 — the single migrateDatabase obligation and its four concatenated P3-17 assertions"
+        ],
+        "finding": "The entire migration 009 verification programme is carried by one single test obligation. Of 6537 test obligations, exactly 1 targets src/infrastructure/database/__tests__/migrateDatabase.test.ts, and its expected field bundles four distinct P3-17 scenarios (migration-real, canonical-roundtrip, corrupt-version, transaction-FK) into one obligation. By contrast 4710 obligations (72%) target the single file src/features/activities/__tests__/ExecutionParametersSheet.test.tsx, 14 target executionCalculations.test.ts and 6 target executionPhrase.test.ts despite 276 frozen phrase cases and a separate numeric oracle being announced. schema-et-ecritures.md §Vérification enumerates at least ten separable migration/rollback situations (neuve→v9, v8 peuplée→v9, re-run idempotent, FK/positions, JSON corrompu/version inconnue, projections scalaires, modes/bornes, anciens champs absents, valeurs hors bornes, erreur à chaque étape asset/lien/occurrence).",
+        "finding_id": "FND-50bc1bd53db4592408b49677",
+        "reentry_stage": "PLAN",
+        "required_correction": "Split the P3-17 obligation into one test obligation per named migration scenario (fresh→v9, populated v8→v9, idempotent re-run, FK/position integrity, malformed/unknown JSON version, scalar projection, out-of-bounds legacy preservation, per-statement rollback) and raise executionCalculations.test.ts and executionPhrase.test.ts obligations to the granularity of attendus-numeriques.json and the 276 phrase cases.",
+        "target_id": "TEST-31c97ccdbec9fe8d8a0408dc",
+        "target_type": "TEST"
+      },
+      {
+        "blocking": true,
+        "category": "IMPACT_INCOMPLETE",
+        "dependency_target_ids": [
+          "CRT-2a3b884df55e9028860cbc93",
+          "CRT-374665026518a1cdaf54c20d",
+          "CRT-47aaf348935a6e44e2ad42b1",
+          "CRT-e0aa6aa91a04eb49d91f47f7"
+        ],
+        "evidence": [
+          "candidate_observations parts 1d14cd982fda4b7e7abcef19ff65dbec609dfe15cf0780cbdfe0abe0f2f41529.json and 9dbf166c9fdacbf1a133f47585f16eae505bde5e8cd774fd7d5664f615a6830d.json — 36 + 37 = 73 entries; DurationWheelPicker.tsx absent",
+          "parts/0595d77448a38df8cafac753e3e378f3a0e065a01cb84f8fed832e512231b9dc.json — CANDIDATE catalog holds 179 ids, 106 of which have no observation",
+          "parts/2adc456e4adbd4c7d06b9ef95961cc3cd50b56aa5b4b9f499fd65dc05a2ed136.json:4461 — evidence ref git:1ddfb6d1…:src/features/sessions/DurationWheelPicker.tsx",
+          "parts/a9efb31f5f3ce189c4e0c296acce45e405a61e62d4b4a3130ca0e41873db2998.json:27983-27986 — CAND-d6b8ab7056e4aae59bce9fb2 = src/features/sessions/DurationWheelPicker.tsx",
+          "parts/dbe19739373b9687133d17f3945c5db556c52c32080b6d3aadd2829dab487036.json:3878 and :3893 — reuse_search_candidate_ids includes CAND-d6b8ab7056e4aae59bce9fb2"
+        ],
+        "finding": "The candidate that anchors the native-reuse decision is referenced but never observed. src/features/sessions/DurationWheelPicker.tsx is a sealed catalog candidate, is cited in the implementation_constraints of all 6384 plan items ('Keep native iOS DurationWheelPicker'), in the decision_justification of the UI criteria, and in the evidence_refs of all 6384 native assessments as 'git:1ddfb6d144552f578388257adc78db47ab5992c8:src/features/sessions/DurationWheelPicker.tsx' — yet no content observation for it is transported. The candidate_observations bundle materialises content (or an explicit null for CREATE slots) for only 73 of the 179 catalog candidates, namely exactly the write_scope files; the other 106, which are precisely the NO_CHANGE preservation surface, carry no path, revision or content in this handoff. The reuse decision therefore cannot be checked against the baseline object.",
+        "finding_id": "FND-50fdbd72bbdd504a27290581",
+        "reentry_stage": "IMPACT",
+        "required_correction": "Materialise the exact blob at 1ddfb6d144552f578388257adc78db47ab5992c8 for src/features/sessions/DurationWheelPicker.tsx and for the remaining 105 unobserved catalog candidates, with their content hashes, so the NO_CHANGE classifications and the native-reuse decision can be verified against observed objects rather than references.",
+        "target_id": "CAND-d6b8ab7056e4aae59bce9fb2",
+        "target_type": "CANDIDATE"
+      },
+      {
+        "blocking": true,
+        "category": "PROOF_GAP",
+        "dependency_target_ids": [
+          "PLAN-2b1ee0d6f3a224aec9a6a30e",
+          "PROOF-c637a3a56f7cd91b949f17b3"
+        ],
+        "evidence": [
+          "checkout docs/preparation/PRE-3/planification/plancontract-publie.md:32",
+          "consumers/15.js:119-124 — ACCESSIBILITY risk requires ACCESSIBILITY_CHECK and DEVICE risk requires DEVICE_CHECK, so declaring neither removes the obligation",
+          "grep '\"ACCESSIBILITY\"' over parts/ = 3 (risk_types occurrences across 6384 criteria)",
+          "grep '\"proof_type\": \"VISUAL_COMPARE\"' = 6336; '\"proof_type\": \"FUNCTIONAL_TEST\"' = 6537; DEVICE_CHECK = 7; ACCESSIBILITY_CHECK = 3; STATIC_ANALYSIS = 0; total 12883 = '\"proof_id\": \"PROOF-' count",
+          "parts/fab760192e59c63510de8138803354241fcf572082b5420f4cdf31eec71f4699.json:12378, :12389, :12421-12423, :12436-12438 — PLAN-2b1ee0d6f3a224aec9a6a30e, P3-21 expected text, the single DEVICE_CHECK and the single ACCESSIBILITY_CHECK"
+        ],
+        "finding": "Accessibility and device evidence for the whole of PRE-3 is concentrated in a single plan item. Of 12883 proof obligations, 6336 are VISUAL_COMPARE, 6537 FUNCTIONAL_TEST and only 10 are anything else: 7 DEVICE_CHECK, 3 ACCESSIBILITY_CHECK, 0 STATIC_ANALYSIS. The sole ACCESSIBILITY_CHECK attached to this requirement (PROOF-c637a3a56f7cd91b949f17b3, plan item PLAN-2b1ee0d6f3a224aec9a6a30e) covers six impacts and is expected to carry labels, disabled states, current values, grouped phrase, focus entry/return, non-drag ordering alternative and minimum touch target for the sheet, the editor, the sortable rows and the media list at once. Only 3 of 6384 criteria declare an ACCESSIBILITY risk type, so the 6289 Figma element criteria that actually define each new control produce no accessibility obligation, although plancontract-publie.md promises device checks for photothèque, permissions, vidéo, VoiceOver, maintien and scroll.",
+        "finding_id": "FND-5b6a6d10170c7a649a2c3861",
+        "reentry_stage": "PLAN",
+        "required_correction": "Declare ACCESSIBILITY (and DEVICE where applicable) in risk_types on the criteria of each newly created or modified interactive surface, and split PROOF-c637a3a56f7cd91b949f17b3 into per-surface ACCESSIBILITY_CHECK obligations (sheet, editor, sortable rows, media list) with their own expected data, so that accessibility is not proven by one aggregate check.",
+        "target_id": "REQ-be6e7d796429be1c0f364017",
+        "target_type": "REQUIREMENT"
+      },
+      {
+        "blocking": true,
+        "category": "UI_ASSERTION_GAP",
+        "dependency_target_ids": [],
+        "evidence": [
+          "consumers/15.js:131-140 — visual property types require VISUAL_COMPARE, with no exemption for non-renderable source attributes",
+          "grep '\"subject\": \"[^\"]+\\.(strokeAlign|strokeMiterLimit|blendMode|strokeCap|strokeWeight|dashPattern)\"' over parts/ = 31437",
+          "grep '\"subject\": \"[^\"]+\\.strokeJoin\"' over parts/ = 6287",
+          "parts/1d45d85e4e7453202fce22ccb5ed81506ebc84d276dba4db2d9782749ad6c8cc.json:108-147 — AST-0783cac256376fe41da5ccfc, expected {\"kind\":\"EQUALS\",\"tolerance\":0,\"unit\":\"figma-source\",\"value\":\"MITER\",\"viewports\":[402]}, property_type GEOMETRY, proof_required FUNCTIONAL_TEST + VISUAL_COMPARE"
+        ],
+        "finding": "Figma vector node attributes are sealed as zero-tolerance acceptance assertions on a React Native surface. This assertion fixes subject 'I6680:12229;6679:26486;6679:13420.strokeJoin' to EQUALS 'MITER' with tolerance 0 at viewport 402, unit 'figma-source', and requires FUNCTIONAL_TEST plus VISUAL_COMPARE. strokeJoin is an internal Figma vector property with no observable counterpart in the delivered React Native view tree, so neither proof type can discharge it. The pattern is large: 6287 assertions target .strokeJoin and 31437 target .strokeAlign/.strokeMiterLimit/.blendMode/.strokeCap/.strokeWeight/.dashPattern, i.e. about 37724 of the 243879 visual assertions.",
+        "finding_id": "FND-6bcfecf4fd3ab1c1e7461630",
+        "reentry_stage": "PLAN",
+        "required_correction": "Filter the Figma property projection so that only attributes observable on the delivered surface become assertions, and either drop the vector/blend node attributes or reclassify them as non-asserted source context with an explicit note, so VISUAL_COMPARE has a dischargeable scope.",
+        "target_id": "AST-0783cac256376fe41da5ccfc",
+        "target_type": "ASSERTION"
+      },
+      {
+        "blocking": false,
+        "category": "SUGGESTION",
+        "dependency_target_ids": [
+          "UNIT-8ef2b9f9e29a2e17f194a6ff"
+        ],
+        "evidence": [
+          "Read of figma/docs/preparation/PRE-3/figma/captures/3542-4656.png and 6407-9458.png — visually identical renderings",
+          "checkout docs/preparation/PRE-3/planification/plancontract-publie.md:28 — '41 écrans de référence PRE-3'",
+          "figma/parts/a63ed73669c8d15b5a30ff6152281051491c0921f2468d12f59e1fbd611f6549.json — identical sha256 for resource_id PRE3-PNG-3542-4656 and PRE3-PNG-6407-9458",
+          "parts/c2bb6d88314ec5bf4ff00cf3e4e598e9e0434742586736996d8ece5e11785e72.json:9185-9186 — ELEMENT:6407:9458 maps to UNIT-8ad0910020901ed56b791a0e; :5-6 ELEMENT:3542:4656 maps to UNIT-8ef2b9f9e29a2e17f194a6ff"
+        ],
+        "finding": "Two of the 41 reference states share a byte-identical capture, so their visual oracles cannot be told apart. The asset manifest gives the same sha256 8b94e2d4b13be2865d93daee798aaf45f6fd7f575ff4ec3e5344592d72ce9614 to PRE3-PNG-6407-9458 (unit UNIT-8ad0910020901ed56b791a0e, ELEMENT:6407:9458) and to PRE3-PNG-3542-4656 (UNIT-8ef2b9f9e29a2e17f194a6ff, ELEMENT:3542:4656). Opening both files shows the same screen, 'Créer un exercice — Squats sautés' with an empty execution-parameters card. The VISUAL_COMPARE obligation on one of these two states therefore adds no discriminating evidence, and the announced count of 41 distinct reference screens corresponds to 40 distinct images.",
+        "finding_id": "FND-88c17669a80856157fadc6ea",
+        "reentry_stage": "NONE",
+        "required_correction": "Re-export the capture of the state that is actually distinct, or state explicitly that frames 3542:4656 and 6407:9458 designate the same rendering and merge their visual-comparison obligation into one.",
+        "target_id": "UNIT-8ad0910020901ed56b791a0e",
+        "target_type": "SOURCE_UNIT"
+      },
+      {
+        "blocking": true,
+        "category": "PLAN_GAP",
+        "dependency_target_ids": [
+          "CAND-2429d4b788b15402e680fd84",
+          "CAND-2915d264e742171ae2260c95",
+          "CAND-4379a2f6a92a8e1447ff71e8",
+          "CAND-92b0ddfd31668602a38dfea1",
+          "CAND-9e6c743911d470fd0b6cdba0",
+          "CAND-9f7f1080a6305d7aaa34676b"
+        ],
+        "evidence": [
+          "checkout docs/preparation/PRE-3/planification/schema-et-ecritures.md:40 'remplacer les SUM scalaires de durée par lecture groupée et calcul Domaine partagé' and :64 'Les tests de l'ancien calcul sont révisés aux sources courantes'",
+          "checkout src/domain/sessions/__tests__/ contains calculations.test.ts, composition.test.ts, validation.test.ts, sideMode.test.ts, StopPoint.test.ts",
+          "parts/3ae80c1b1035c7231afaff1fcf523c2270c1956aee1293717a7928f484a5cdd5.json — 73 write_scope entries; calculations.ts (CAND-9e6c743911d470fd0b6cdba0), composition.ts, validation.ts, ActivityCard.tsx, SessionCard.tsx, MediaRepository.ts are MODIFY; none of their __tests__ counterparts appear",
+          "parts/a9efb31f5f3ce189c4e0c296acce45e405a61e62d4b4a3130ca0e41873db2998.json:26646-26650, 26867-26871, 27722-27726, 26492-26496 — these test files exist as GIT_TREE candidates"
+        ],
+        "finding": "write_scope and forbidden_policy are mutually inconsistent with the plan's own verification programme. boundaries.write_scope contains calculations.ts, composition.ts, validation.ts, ActivityCard.tsx, SessionCard.tsx and MediaRepository.ts as MODIFY, but omits their existing baseline test files (src/domain/sessions/__tests__/calculations.test.ts, composition.test.ts, validation.test.ts, src/features/activities/__tests__/ActivityCard.test.tsx, src/features/sessions/__tests__/SessionCard.test.tsx, src/domain/media/__tests__/MediaRepository.test.ts). With forbidden_policy ALL_OUTSIDE_WRITE_SCOPE those files cannot be touched, yet schema-et-ecritures.md §Vérification states 'Les tests de l'ancien calcul sont révisés aux sources courantes' and the plan replaces the scalar SUM duration computation by a shared Domain calculation. The old assertions will therefore either fail with no authorised remedy, or be silently bypassed.",
+        "finding_id": "FND-8b2fcbd1b778ea06ee6cb2f0",
+        "reentry_stage": "PLAN",
+        "required_correction": "Either add the baseline test files of every MODIFY target to write_scope with an explicit ADAPT test obligation and a stated conservation expectation, or amend schema-et-ecritures.md to state that the old calculation tests are not revised and explain how the replaced duration contract stays proven.",
+        "target_id": "5145cbd30860f9ddef041ed33b97a71697517a3ef248229112bb0f5f7b92006f",
+        "target_type": "PLAN_CONTRACT"
+      },
+      {
+        "blocking": true,
+        "category": "PRESERVATION_RISK",
+        "dependency_target_ids": [
+          "CAND-2429d4b788b15402e680fd84",
+          "CAND-4379a2f6a92a8e1447ff71e8",
+          "CAND-92b0ddfd31668602a38dfea1",
+          "CAND-9e6c743911d470fd0b6cdba0",
+          "CAND-9f7f1080a6305d7aaa34676b"
+        ],
+        "evidence": [
+          "checkout src/domain/sessions/__tests__/calculations.test.ts:1-23 imports @/domain/sessions/calculations and asserts the duration Facts contract being replaced",
+          "consumers/5.js:313-358 buildBoundaries derives preserve_scope only from impact.preservation_candidate_ids; consumers/2.js:342-347 allows that list to be empty",
+          "grep '\"preservation_candidate_ids\": \\[\\]' over parts/ = 14542 occurrences (= total impact count)",
+          "parts/27d82bf78695dc0499f80550ffdc1c9874bbe6939c0f6d4275c5767c8c780a79.json:167-173 — direct importer calculations.test.ts triggered by CAND-4eac38dbad391ead0e73d4e9 and CAND-9e6c743911d470fd0b6cdba0",
+          "parts/34124788ab72518d5c8e6adf4e3a2b6a8474bb54f5c43b7703dd29b3d8752498.json:3559-3561 — CAND-2915d264e742171ae2260c95 classified NO_CHANGE",
+          "parts/3ae80c1b1035c7231afaff1fcf523c2270c1956aee1293717a7928f484a5cdd5.json:2-4 — \"forbidden_policy\": \"ALL_OUTSIDE_WRITE_SCOPE\", \"preserve_scope\": [], write_scope 73 entries"
+        ],
+        "finding": "src/domain/sessions/__tests__/calculations.test.ts is a sealed catalog candidate, is classified NO_CHANGE in the impact graph as a direct importer of two MODIFY targets (calculations.ts, Session.ts), carries `preservation_candidate_ids: []` and `tests_affected_candidate_ids: []`, is absent from boundaries.write_scope under `forbidden_policy: ALL_OUTSIDE_WRITE_SCOPE`, and no content observation for it is transported at baseline 1ddfb6d1. The same pattern holds for composition.test.ts, ActivityCard.test.tsx, SessionCard.test.tsx and MediaRepository.test.ts. An exhaustive census shows `preservation_candidate_ids: []` on 14542/14542 impacts, so boundaries.preserve_scope is literally `[]`: the contract declares no preserved file at all, while the impact_reason text on these very rows asserts 'This preservation decision must be checked in the independent review and regression'. The schema-et-ecritures.md conservation column (e.g. 'Update d'un ancien appelant n'efface pas les liens', 'ID et created_at des occurrences existantes stables', 'aucun asset supprimé parce qu'un seul lien disparaît', 'autres cartes/étiquettes/calendrier inchangés') has no counterpart anywhere in the canonical objects.",
+        "finding_id": "FND-aa97db96722333411e8d8c28",
+        "reentry_stage": "PLAN",
+        "required_correction": "Populate preservation_candidate_ids on the impacts of every MODIFY candidate whose public contract must be preserved, so that boundaries.preserve_scope lists the baseline suites and out-of-scope consumers, and attach an explicit regression test obligation (action RUN_EXISTING or ADAPT) to each NO_CHANGE direct importer instead of leaving tests_affected_candidate_ids empty.",
+        "target_id": "CAND-2915d264e742171ae2260c95",
+        "target_type": "CANDIDATE"
+      },
+      {
+        "blocking": true,
+        "category": "TECHNICAL_RISK",
+        "dependency_target_ids": [
+          "CAND-0b6b563dd127b9cd2a46fa38"
+        ],
+        "evidence": [
+          "candidate_observations part 1d14cd98…json:177-179 — content null for src/features/activities/__tests__/ExecutionParametersSheet.test.tsx at 1ddfb6d1",
+          "grep '\"target_candidate_id\": \"CAND-0b6b563dd127b9cd2a46fa38\"' over parts/ = 4710 of 6537 test obligations",
+          "parts/18b6f4d46a73ff966cdf6f3741df9b732063d3a2399ed5301c27132ffbb3a293.json:15260-15306 — plan item PLAN-5c40029786e01ae64d0b6222 aggregating a very large impact set around this test file",
+          "parts/3ae80c1b1035c7231afaff1fcf523c2270c1956aee1293717a7928f484a5cdd5.json:150-154 — CAND-0b6b563dd127b9cd2a46fa38 is a CREATE entry in write_scope"
+        ],
+        "finding": "The plan concentrates its proof capacity in one file that does not yet exist. src/features/activities/__tests__/ExecutionParametersSheet.test.tsx is a CREATE slot (CAND-0b6b563dd127b9cd2a46fa38, content null at baseline) and is the target of 4710 of the 6537 test obligations, i.e. 72% of PRE-3's test surface, including — through this plan item and the 37 documentary items bound to P3-20 — expectations that belong to i18n, tokens, the reference-data pickers and the domain calculations. A single new test file carrying the proof of most of the slice is a practical risk for maintainability, runtime and failure diagnosis, and it makes the per-element granularity of the 6384 plan items illusory at the test level.",
+        "finding_id": "FND-c3c9529d7f622ac36707b163",
+        "reentry_stage": "PLAN",
+        "required_correction": "Redistribute the test obligations to the boundary that actually owns each expectation (domain calculation and phrase tests, repository and migration tests, i18n and tokens tests, per-screen tests) and keep in ExecutionParametersSheet.test.tsx only the assertions about that sheet's own rendering and interactions.",
+        "target_id": "PLAN-5c40029786e01ae64d0b6222",
+        "target_type": "PLAN_ITEM"
+      },
+      {
+        "blocking": true,
+        "category": "SOURCE_CONTRADICTION",
+        "dependency_target_ids": [
+          "PLAN-3a545aa403b0a20b160a625a",
+          "PROOF-2f9bb8b9d85ea34ccaee5af3",
+          "PROOF-8c494ed0ff617f3a66bbb7a2"
+        ],
+        "evidence": [
+          "checkout docs/preparation/PRE-3/perimetre-et-couverture.md:239 and :245 — P3-14 is 'Inversion Durée uniforme', P3-20 is 'Surfaces visuelles bornées conformes'",
+          "grep '\"rationale\": \"Full documentary scenario and all expected assertions for P3-20\"' over parts/ = 37; same query for P3-17 = 1, for P3-14 = 2, for P3-23 = 4",
+          "parts/0139f8eb1fa176d2d9b573b47225975cf6f46d4d1abeae93715bd19e876b1956.json:1061-1080",
+          "parts/e684260c8071ec75aa0d593fe286570295af32a48e099c1e70492f5952f70750.json:3472-3487 — PROOF-2f9bb8b9d85ea34ccaee5af3 (FUNCTIONAL_TEST) and PROOF-8c494ed0ff617f3a66bbb7a2 (VISUAL_COMPARE) share an expected string whose only assertions are P3-20/all-surfaces and P3-20/sheet-specific"
+        ],
+        "finding": "The requirement contradicts its own source scope. Its statement is the P3-14 'inversion Durée uniforme' calculation rule taken from the FUNCTIONAL markdown source, but it is registered kind UI with rationale 'Documentary state PRE3-FIG-6423-9953; scenarios PRE3-FIG-6423-9953-RENDER', and the plan attaches only the P3-20 'Surfaces visuelles bornées conformes' assertions to it. Its two proof obligations (one FUNCTIONAL_TEST, one VISUAL_COMPARE) both carry the same expected string in which the functional sentence is merely prefixed to the two P3-20 visual assertions, so the FUNCTIONAL_TEST proof has no functional acceptance datum of its own. This is not isolated: of the 95 documentary plan items, 37 are bound to P3-20 while P3-17 is bound to 1 and P3-14 to 2.",
+        "finding_id": "FND-d9a6d1286f3e1a2ae2ca7bbf",
+        "reentry_stage": "REQUIREMENTS",
+        "required_correction": "Rebind this requirement to the P3-14/P3-12 assertions of assertions-recette.json (and to P3-20 only for the message's visual rendering), and review the scope mapping of all 95 documentary requirements so that a state whose expected value is a behavioural rule is not attached to the visual-conformity scope.",
+        "target_id": "REQ-30b44b8b8eded65d2e28f9a9",
+        "target_type": "REQUIREMENT"
+      },
+      {
+        "blocking": true,
+        "category": "WRONG_TARGET",
+        "dependency_target_ids": [
+          "PLAN-5c40029786e01ae64d0b6222",
+          "REQ-6de6b2934cac2f72a5d7fced"
+        ],
+        "evidence": [
+          "parts/18b6f4d46a73ff966cdf6f3741df9b732063d3a2399ed5301c27132ffbb3a293.json:15137-15143, :15169-15175, :15200-15207 — identical intent on BodyZonePickerModal.test.tsx, CategoryPickerModal.test.tsx and tokens.ts",
+          "parts/18b6f4d46a73ff966cdf6f3741df9b732063d3a2399ed5301c27132ffbb3a293.json:15160-15167 — CHG-3799d2af179d978595188a7c, impact IMP-aecfea642459679b73564da0, path src/shared/i18n/index.ts, full P3-20 sheet-specific intent",
+          "parts/18b6f4d46a73ff966cdf6f3741df9b732063d3a2399ed5301c27132ffbb3a293.json:15306 — containing plan item PLAN-5c40029786e01ae64d0b6222 (REQ-6de6b2934cac2f72a5d7fced)"
+        ],
+        "finding": "A sheet-specific visual intent is assigned to a module that cannot satisfy it. This impact targets src/shared/i18n/index.ts and its change_item intent reads 'Only actual PRE-3 labels/errors; no translation engine.. Per-element geometry/style/text tokens/master variants checked; ... Expected Overlay #1F2129 alpha.34; Bip first-level before applicable total else countdown; at402 x36/sep330 vs indented x52/sep314; adaptive relations at360/440; header fixed body scroll.' An i18n string table has no overlay colour, no indentation, no separator width and no scroll behaviour. The same P3-20 sheet-specific block is pasted verbatim into the intents of src/shared/ui/tokens.ts, src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx and CategoryPickerModal.test.tsx within the same plan item, so the intent text is propagated by requirement rather than derived per target.",
+        "finding_id": "FND-f5a1a0b6656cdff169dd0517",
+        "reentry_stage": "IMPACT",
+        "required_correction": "Rewrite the intent of change_id CHG-3799d2af179d978595188a7c (and of CHG-cdff2e38720ea4cf1a482d60, CHG-193f99990de37c39bb6ce28c, CHG-3f6220b7add2b580e293a90e in plan item PLAN-5c40029786e01ae64d0b6222) so that each states only what its own file must deliver, and keep the P3-20 sheet-specific expectations on the sheet change_item and its test obligation. The TEST obligations are correct and must not be weakened.",
+        "target_id": "IMP-aecfea642459679b73564da0",
+        "target_type": "IMPACT"
+      },
+      {
+        "blocking": true,
+        "category": "TEST_GAP",
+        "dependency_target_ids": [
+          "REQ-30b44b8b8eded65d2e28f9a9",
+          "TEST-c75ba26d6c7581782817883a"
+        ],
+        "evidence": [
+          "checkout docs/preparation/PRE-3/planification/inventaire-etats-scenarios.json:442-458 — state PRE3-FIG-6423-9953 requires FUNCTIONAL_TEST and VISUAL_COMPARE for this rule",
+          "figma capture 6423-9953.png read: Séries 3 / Durée 1 min 30 s / Pause 15 s / Durée totale 5 min 15 s with message 'Durée ajustée à 5 min 15 s pour respecter un nombre entier de séries' — a numeric rule, not a layout property",
+          "parts/0139f8eb1fa176d2d9b573b47225975cf6f46d4d1abeae93715bd19e876b1956.json:1064-1080 — registry statement and rationale for REQ-30b44b8b8eded65d2e28f9a9",
+          "parts/e684260c8071ec75aa0d593fe286570295af32a48e099c1e70492f5952f70750.json:3465, :3490-3492, :3496-3509 — plan_item_id, rationale 'Full documentary scenario and all expected assertions for P3-20', requirement_kind UI, single test obligation on ExecutionParametersSheet.test.tsx"
+        ],
+        "finding": "A purely functional calculation rule is discharged only by a UI component test. This plan item serves REQ-30b44b8b8eded65d2e28f9a9, whose registry statement is 'Un total demandé irréalisable choisit le plus proche, égalité vers N supérieur ; message uniquement si le total réalisé diffère.' — the P3-14/P3-12 nearest-achievable-total rule with its tie-breaking and conditional message. Its single test obligation (TEST-c75ba26d6c7581782817883a, action CREATE) targets src/features/activities/__tests__/ExecutionParametersSheet.test.tsx, and the expected field appends only the P3-20 visual assertions (all-surfaces and sheet-specific). No obligation touches src/domain/activities/executionCalculations.ts or its test, where the nearest-total selection and the tie-toward-higher-N rule actually live.",
+        "finding_id": "FND-f86f8d67160a71a69c7cfcd7",
+        "reentry_stage": "PLAN",
+        "required_correction": "Add a test obligation on src/domain/activities/__tests__/executionCalculations.test.ts for this requirement, with expected values taken from attendus-numeriques.json (nearest achievable total, tie resolved toward the higher N, message emitted only when the realised total differs), and keep the ExecutionParametersSheet obligation for the message rendering only.",
+        "target_id": "PLAN-3a545aa403b0a20b160a625a",
+        "target_type": "PLAN_ITEM"
+      }
+    ],
+    "coverage_status": "COMPLETE",
+    "pending_target_ids": [],
+    "finding_resolutions": [],
+    "contract_hash": "4f71752587436a8cc338e2cb74ee650752e9d736502a51b3668241ed0118119d"
+  },
+  "native_observations": [
+    {
+      "assessment_hash": "28674e6b9ff7f15cd111a652d24fa4771afd59b79a0acfc93afbe05981adf41e",
+      "criterion_id": "CRT-2a3b884df55e9028860cbc93",
+      "observed_git_evidence": [],
+      "reason": "Functional need (reuse the existing native iOS wheel rather than reimplementing it) is legitimate and matches the state 6407:10127 'roulette ouverte'. The native choice cannot be verified: (a) the evidence ref git:1ddfb6d144552f578388257adc78db47ab5992c8:src/features/sessions/DurationWheelPicker.tsx is a reference, not an observation — that blob is not materialised in this handoff (candidate_observations cover only the 73 write_scope files and publish no content hash), and the available worktree is at 1d424791, a different revision; (b) device-proof-policy.js:59-61 requires the criterion to hold an INTERACTION assertion whose expected contains 'SwiftUI.Picker.wheel', and CRT-2a3b884df55e9028860cbc93 holds only GEOMETRY and STYLE assertions (parts/dbe19739…json:1964-3913), the whole contract containing 0 INTERACTION assertions; (c) consumers/28.js:55-56 rejects any evidence_ref that is neither source:SRC#UNIT nor proof:, which both git: refs are.",
+      "verified": false
+    },
+    {
+      "assessment_hash": "2880ca415738bd1730292525496b46b9f4db662319567aa8964f8044a82f2738",
+      "criterion_id": "CRT-374665026518a1cdaf54c20d",
+      "observed_git_evidence": [],
+      "reason": "Same AVAILABLE / SwiftUI.Picker.wheel declaration with the identical justification and evidence refs (parts/2adc456e…json:9913-9928). The git blobs at 1ddfb6d1 are referenced but not materialised, no content hash is published for them, and no INTERACTION assertion naming the selected primitive exists in the UI atomicity contract, so the branch assertion required by device-proof-policy.js cannot be observed.",
+      "verified": false
+    },
+    {
+      "assessment_hash": "c1b30792e6f4645176b329617ef316cd70220db2b3a73f3086e642d8b1f10661",
+      "criterion_id": "CRT-e0aa6aa91a04eb49d91f47f7",
+      "observed_git_evidence": [],
+      "reason": "Same AVAILABLE / SwiftUI.Picker.wheel declaration (parts/85f72bc4…json:257-272). The reuse intent is plausible, but the supporting git objects at 1ddfb6d1 are not observable in this transport and the contract contains no INTERACTION assertion that the assessment could bind to.",
+      "verified": false
+    },
+    {
+      "assessment_hash": "4c6c5a4e8bd4bc1eef43c30891daf14cefcc7776e21458d11d57b8d3b207535d",
+      "criterion_id": "CRT-47aaf348935a6e44e2ad42b1",
+      "observed_git_evidence": [],
+      "reason": "Same AVAILABLE / SwiftUI.Picker.wheel declaration (parts/831f43ff…json:2858-2873). Unverifiable for the same three reasons: unobservable git evidence at 1ddfb6d1, absence of any INTERACTION assertion on the criterion, and evidence_refs that are not source or proof references.",
+      "verified": false
+    },
+    {
+      "assessment_hash": "b64cd5c6a2cb05a2299a7f053549a3d2122b2102899ed6ea3fb69e0b14b78024",
+      "criterion_id": "CRT-0014b6bd0e6a8236ae31e363",
+      "observed_git_evidence": [],
+      "reason": "NOT_APPLICABLE with the boilerplate justification 'This criterion presents a source element or verifies a compound documentary state; it does not authorize substituting a native control.' The gate at device-proof-policy.js:57 is satisfied only because the contract holds 0 INTERACTION assertions out of 243974, so NOT_APPLICABLE here is a consequence of a missing assertion class rather than an observed finding about this criterion. The two git: evidence refs at 1ddfb6d1 are not materialised and publish no content hash.",
+      "verified": false
+    },
+    {
+      "assessment_hash": "8a42e69b332f5b84a5a87a4fc06cd5374369b4d41f1bae60a9ec3efebb08ae7e",
+      "criterion_id": "CRT-00177c8c7656019a74721a25",
+      "observed_git_evidence": [],
+      "reason": "Identical NOT_APPLICABLE row with identical justification and evidence_refs. Unverifiable for the same reason: the NOT_APPLICABLE branch is only reachable because no INTERACTION assertion exists anywhere, and the referenced baseline blobs are not observable in this handoff.",
+      "verified": false
+    },
+    {
+      "assessment_hash": "46eea82ed60af51a0d5bdf7a92dc89f8b91696d92cf32cf13d6d8ca08c39ca90",
+      "criterion_id": "CRT-001c90e7069bc6186733923c",
+      "observed_git_evidence": [],
+      "reason": "Identical NOT_APPLICABLE row. No observed evidence: DurationWheelPicker.tsx and ProfileStepper.tsx at 1ddfb6d1 are referenced only, and the criterion carries no interaction assertion against which a native substitution could have been assessed.",
+      "verified": false
+    },
+    {
+      "assessment_hash": "57a7ccadd320caf27096f1deb8c6c5994facd77b7f2b24202bad0bfcbf5d9218",
+      "criterion_id": "CRT-001f94849fc5df9102734c9f",
+      "observed_git_evidence": [],
+      "reason": "Identical NOT_APPLICABLE row. Same unobservable git evidence and same structural absence of INTERACTION assertions.",
+      "verified": false
+    },
+    {
+      "assessment_hash": "7c0a893f25838318b4ca53cd79a1198ab056fcbb26eb71a05978e50d635ef739",
+      "criterion_id": "CRT-002b40fe2f9f6f166a4ff664",
+      "observed_git_evidence": [],
+      "reason": "Identical NOT_APPLICABLE row. Same unobservable git evidence and same structural absence of INTERACTION assertions.",
+      "verified": false
+    },
+    {
+      "assessment_hash": "6ea9397734c76109aa584e054ae7194e9340d3efb2847a80d49a81611783f69f",
+      "criterion_id": "CRT-003ef1399f5d6099e8e3eb15",
+      "observed_git_evidence": [],
+      "reason": "Identical NOT_APPLICABLE row. Same unobservable git evidence and same structural absence of INTERACTION assertions.",
+      "verified": false
+    },
+    {
+      "assessment_hash": "c923d06fbb39e3934d4fd19e7a05f1ad4bbabd55944112f7941a3b98bdb6998b",
+      "criterion_id": "CRT-003fffb44e8f2fde0108b159",
+      "observed_git_evidence": [],
+      "reason": "Identical NOT_APPLICABLE row. Same unobservable git evidence and same structural absence of INTERACTION assertions. The remaining 6373 NOT_APPLICABLE subjects not enumerated here carry byte-identical justification and evidence_refs and fail verification for exactly the same three reasons.",
+      "verified": false
+    }
+  ],
+  "verification": {
+    "canonical_verifyReceipt": "PASS",
+    "producer": "1d42479181586d926a9970867a41d35d44cc4661",
+    "application_conformance": false,
+    "owner_approval": false,
+    "implementation": false
+  },
+  "complete_receipt_reconstruction": "Use vnext-live-chain.validateReviewResponse with the exact produced bundle and revue-initiale-resultat-claude.json, then verifyReceipt; do not treat this projection as the canonical receipt."
+}

@@ -1,0 +1,1132 @@
+{
+  "schema_version": "kodjo.vnext.direct-import-scan.v1",
+  "revision": "1ddfb6d144552f578388257adc78db47ab5992c8",
+  "candidate_manifest_hash": "180f99336682309f06796a2174218cc3ceba559aeedb60eab5e225b16f155ef7",
+  "target_candidate_ids": [
+    "CAND-0034e3b8012b9f25019089e2",
+    "CAND-053fab1f466f0141df15ae97",
+    "CAND-0c68ebbdcb769cec43ff6c33",
+    "CAND-1d3426d50a7ebf3819b7cb8e",
+    "CAND-271b9ab9614b1937333bd393",
+    "CAND-2be5642ff46a0fe0b8461f4a",
+    "CAND-3058fdec7500e732b382f269",
+    "CAND-3407d77b7b47157b2cec571a",
+    "CAND-3a6f8fb7173d4ed35fcd53d7",
+    "CAND-3c3e5e678fe01c76efc65572",
+    "CAND-48929046dfd4c2f264318da5",
+    "CAND-4c670e09d50ba2eea77e1e96",
+    "CAND-4eac38dbad391ead0e73d4e9",
+    "CAND-7d7af9f5a2865c4c7143c104",
+    "CAND-8286291ab22c66a96947f24b",
+    "CAND-8ec646d2d9691e4c01eff975",
+    "CAND-91870493755a8664cc3f75f8",
+    "CAND-974d955e2ee916b6549406f4",
+    "CAND-9e6c743911d470fd0b6cdba0",
+    "CAND-a175c8ff4e59cd76a71cf61f",
+    "CAND-ac10b9cd1f8ca6832131e125",
+    "CAND-b9fdec994d9ffc1c07592a61",
+    "CAND-be6e4ddd0319b6ec106ad37f",
+    "CAND-cdbe16f78dbfea3ba5fc1f7d",
+    "CAND-d0361e0ce6892ca722865bd7",
+    "CAND-d365b76abbf6f325a16a2443",
+    "CAND-d446bd89212b98ac97f9a8dd",
+    "CAND-db5b55781d3693fb3adc18f7",
+    "CAND-e0bda1b7f59cf9e8e315ac75",
+    "CAND-e0c1b072930432cb3a6816c2",
+    "CAND-e2abe931ba4f08e4faf70b0b",
+    "CAND-e632795dcec0df1b967816d7",
+    "CAND-f615c6971160d0d5a60209bf"
+  ],
+  "importer_count": 121,
+  "importers": [
+    {
+      "candidate_id": "CAND-20dfb9563cbbfa681e002d56",
+      "path": "app/__tests__/creationLayout.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-cdbe16f78dbfea3ba5fc1f7d"
+      ]
+    },
+    {
+      "candidate_id": "CAND-4a85adbceb8ba71b53626462",
+      "path": "app/__tests__/rootLayoutGesture.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-8ec646d2d9691e4c01eff975"
+      ]
+    },
+    {
+      "candidate_id": "CAND-ffeb2f34404cec1e72db452a",
+      "path": "app/_layout.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-8ec646d2d9691e4c01eff975"
+      ]
+    },
+    {
+      "candidate_id": "CAND-bda51311735ad2b8ccd4bca9",
+      "path": "app/(creation)/_layout.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-cdbe16f78dbfea3ba5fc1f7d"
+      ]
+    },
+    {
+      "candidate_id": "CAND-8c0c69e521c3c6749d8d3a2c",
+      "path": "app/(creation)/activity-selection.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-7d7af9f5a2865c4c7143c104"
+      ]
+    },
+    {
+      "candidate_id": "CAND-4d20fdc15185c8027df0fa57",
+      "path": "app/(creation)/composition.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-be6e4ddd0319b6ec106ad37f"
+      ]
+    },
+    {
+      "candidate_id": "CAND-a06cc35d932521888fbf286c",
+      "path": "app/(creation)/exercise.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-3407d77b7b47157b2cec571a"
+      ]
+    },
+    {
+      "candidate_id": "CAND-016c77c8dd7d248995a74137",
+      "path": "app/(tabs)/_layout.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-02606ec2565cda22ee87d7f4",
+      "path": "app/(tabs)/calendar.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-c68d0fd63c4ff296a8eb94d1",
+      "path": "app/(tabs)/history.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-48b6807765a4992681bb4af9",
+      "path": "app/+not-found.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-2b4701146a17f685a51a2f0e",
+      "path": "src/domain/activities/__tests__/ActivityDefinition.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-e0bda1b7f59cf9e8e315ac75"
+      ]
+    },
+    {
+      "candidate_id": "CAND-4c3124eda2c540c2d314b21f",
+      "path": "src/domain/activities/index.ts",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-48929046dfd4c2f264318da5",
+        "CAND-e0bda1b7f59cf9e8e315ac75"
+      ]
+    },
+    {
+      "candidate_id": "CAND-eed568798eee4851089757c0",
+      "path": "src/domain/body-zones/BodyZone.ts",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-db5b55781d3693fb3adc18f7"
+      ]
+    },
+    {
+      "candidate_id": "CAND-c136c623c567166c2380338d",
+      "path": "src/domain/categories/Category.ts",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-4eac38dbad391ead0e73d4e9"
+      ]
+    },
+    {
+      "candidate_id": "CAND-2b62f2f5f5b9b4ac54d47fbd",
+      "path": "src/domain/categories/validation.ts",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-db5b55781d3693fb3adc18f7"
+      ]
+    },
+    {
+      "candidate_id": "CAND-d66d1d7cf1edf9f4cd95c815",
+      "path": "src/domain/labels/Label.ts",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-4eac38dbad391ead0e73d4e9",
+        "CAND-db5b55781d3693fb3adc18f7"
+      ]
+    },
+    {
+      "candidate_id": "CAND-4379a2f6a92a8e1447ff71e8",
+      "path": "src/domain/media/__tests__/MediaRepository.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-0034e3b8012b9f25019089e2",
+        "CAND-ac10b9cd1f8ca6832131e125",
+        "CAND-d0361e0ce6892ca722865bd7"
+      ]
+    },
+    {
+      "candidate_id": "CAND-b8b37224a7fe77454045a9d6",
+      "path": "src/domain/media/index.ts",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-0034e3b8012b9f25019089e2",
+        "CAND-ac10b9cd1f8ca6832131e125",
+        "CAND-d0361e0ce6892ca722865bd7"
+      ]
+    },
+    {
+      "candidate_id": "CAND-2915d264e742171ae2260c95",
+      "path": "src/domain/sessions/__tests__/calculations.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-4eac38dbad391ead0e73d4e9",
+        "CAND-9e6c743911d470fd0b6cdba0"
+      ]
+    },
+    {
+      "candidate_id": "CAND-2429d4b788b15402e680fd84",
+      "path": "src/domain/sessions/__tests__/composition.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-2be5642ff46a0fe0b8461f4a",
+        "CAND-4eac38dbad391ead0e73d4e9",
+        "CAND-91870493755a8664cc3f75f8"
+      ]
+    },
+    {
+      "candidate_id": "CAND-e574f49aedb0c8f6bc01066c",
+      "path": "src/domain/sessions/__tests__/SessionDraft.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-2be5642ff46a0fe0b8461f4a",
+        "CAND-4eac38dbad391ead0e73d4e9"
+      ]
+    },
+    {
+      "candidate_id": "CAND-768360c94ea8e4805f77bdcc",
+      "path": "src/domain/sessions/__tests__/validation.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-4eac38dbad391ead0e73d4e9",
+        "CAND-db5b55781d3693fb3adc18f7"
+      ]
+    },
+    {
+      "candidate_id": "CAND-79ba7c8a2da8e1aaef524662",
+      "path": "src/domain/sessions/index.ts",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-2be5642ff46a0fe0b8461f4a",
+        "CAND-4eac38dbad391ead0e73d4e9",
+        "CAND-91870493755a8664cc3f75f8",
+        "CAND-9e6c743911d470fd0b6cdba0",
+        "CAND-db5b55781d3693fb3adc18f7"
+      ]
+    },
+    {
+      "candidate_id": "CAND-4283ae9c2d2339b01bc5757b",
+      "path": "src/domain/sessions/SessionRepository.ts",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-4eac38dbad391ead0e73d4e9"
+      ]
+    },
+    {
+      "candidate_id": "CAND-8093397927b0787b2ff7e909",
+      "path": "src/domain/sessions/StopPoint.ts",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-4eac38dbad391ead0e73d4e9"
+      ]
+    },
+    {
+      "candidate_id": "CAND-9f7f1080a6305d7aaa34676b",
+      "path": "src/features/activities/__tests__/ActivityCard.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-0c68ebbdcb769cec43ff6c33",
+        "CAND-8286291ab22c66a96947f24b"
+      ]
+    },
+    {
+      "candidate_id": "CAND-2daccc25e1768a68ea8682c2",
+      "path": "src/features/activities/__tests__/ActivityDefinitionService.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-0c68ebbdcb769cec43ff6c33"
+      ]
+    },
+    {
+      "candidate_id": "CAND-0146d992b7b85a2d3529a000",
+      "path": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-2be5642ff46a0fe0b8461f4a",
+        "CAND-e632795dcec0df1b967816d7"
+      ]
+    },
+    {
+      "candidate_id": "CAND-7a5fcedac3004c12cf08d7a0",
+      "path": "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-0c68ebbdcb769cec43ff6c33",
+        "CAND-2be5642ff46a0fe0b8461f4a",
+        "CAND-7d7af9f5a2865c4c7143c104",
+        "CAND-be6e4ddd0319b6ec106ad37f",
+        "CAND-d446bd89212b98ac97f9a8dd"
+      ]
+    },
+    {
+      "candidate_id": "CAND-067a46d4b858d225954dbe7e",
+      "path": "src/features/activities/__tests__/CatalogueCreateOptions.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd"
+      ]
+    },
+    {
+      "candidate_id": "CAND-62411dbc648c73ce6061a3c9",
+      "path": "src/features/activities/__tests__/useActivityCatalogue.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-0c68ebbdcb769cec43ff6c33"
+      ]
+    },
+    {
+      "candidate_id": "CAND-fab31fa35305f42c4601f569",
+      "path": "src/features/activities/ActivityCatalogueList.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-8286291ab22c66a96947f24b",
+        "CAND-d446bd89212b98ac97f9a8dd",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-da38d15eea21936a98091586",
+      "path": "src/features/activities/ActivityDefinitionServiceContext.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-0c68ebbdcb769cec43ff6c33"
+      ]
+    },
+    {
+      "candidate_id": "CAND-18271f01922394880166bffd",
+      "path": "src/features/activities/ActivityDefinitionServiceProvider.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-0c68ebbdcb769cec43ff6c33"
+      ]
+    },
+    {
+      "candidate_id": "CAND-6b59546818be811c53627121",
+      "path": "src/features/activities/CatalogueCreateOptions.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-fcfbe908b95ba1aa59a2f7c4",
+      "path": "src/features/preferences/__tests__/ProfileEditScreen.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-1066cd0c11079b36fdc9e2c6",
+      "path": "src/features/preferences/__tests__/ProfileScreen.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-0bc02722b9394608b12f23dd",
+      "path": "src/features/preferences/ProfileEditScreen.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-af746a73d32d06b3ef12fb21",
+      "path": "src/features/preferences/ProfileScreen.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-b9fdec994d9ffc1c07592a61",
+        "CAND-d446bd89212b98ac97f9a8dd",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-b88155b7cb6dd8666d567937",
+      "path": "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-974d955e2ee916b6549406f4"
+      ]
+    },
+    {
+      "candidate_id": "CAND-c765aa0a5d1284c0fcbf2f36",
+      "path": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-271b9ab9614b1937333bd393"
+      ]
+    },
+    {
+      "candidate_id": "CAND-8aeb290a00b911b02e1dcf43",
+      "path": "src/features/reference-data/LabelPickerModal.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-4eac38dbad391ead0e73d4e9",
+        "CAND-d446bd89212b98ac97f9a8dd",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-fb582a92f73d7357ca418586",
+      "path": "src/features/reference-data/ReferenceValueDialog.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-8403d542da01701e4b2bb148",
+      "path": "src/features/sessions/__tests__/AbandonCreationModal.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-a753b43a47fcd2b5649e533d",
+      "path": "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-0c68ebbdcb769cec43ff6c33",
+        "CAND-3058fdec7500e732b382f269",
+        "CAND-4eac38dbad391ead0e73d4e9",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-3855f41684ed9cff3c4a1d36",
+      "path": "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-0c68ebbdcb769cec43ff6c33",
+        "CAND-3058fdec7500e732b382f269",
+        "CAND-4eac38dbad391ead0e73d4e9",
+        "CAND-d446bd89212b98ac97f9a8dd",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-fae31fdfb461316557d67b05",
+      "path": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-0c68ebbdcb769cec43ff6c33",
+        "CAND-3058fdec7500e732b382f269",
+        "CAND-3a6f8fb7173d4ed35fcd53d7",
+        "CAND-4c670e09d50ba2eea77e1e96",
+        "CAND-a175c8ff4e59cd76a71cf61f",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-22a16f8f513e82989d6d2bb3",
+      "path": "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-2be5642ff46a0fe0b8461f4a",
+        "CAND-3058fdec7500e732b382f269",
+        "CAND-be6e4ddd0319b6ec106ad37f",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-3a2135420403572864913b5d",
+      "path": "src/features/sessions/__tests__/ColorPalette.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-4eac38dbad391ead0e73d4e9",
+        "CAND-d446bd89212b98ac97f9a8dd",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-9d136a789560cb3e0187acbb",
+      "path": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-0c68ebbdcb769cec43ff6c33",
+        "CAND-3058fdec7500e732b382f269",
+        "CAND-4eac38dbad391ead0e73d4e9",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-a6e1c81a4112d876d7ea2db2",
+      "path": "src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-2be5642ff46a0fe0b8461f4a",
+        "CAND-be6e4ddd0319b6ec106ad37f",
+        "CAND-cdbe16f78dbfea3ba5fc1f7d",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-a999e87c37676ffc9921fc5d",
+      "path": "src/features/sessions/__tests__/compositionPresentation.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-2be5642ff46a0fe0b8461f4a",
+        "CAND-e2abe931ba4f08e4faf70b0b"
+      ]
+    },
+    {
+      "candidate_id": "CAND-833fff9f1478bcad72e4e912",
+      "path": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-0c68ebbdcb769cec43ff6c33",
+        "CAND-2be5642ff46a0fe0b8461f4a",
+        "CAND-be6e4ddd0319b6ec106ad37f",
+        "CAND-cdbe16f78dbfea3ba5fc1f7d",
+        "CAND-d446bd89212b98ac97f9a8dd",
+        "CAND-db5b55781d3693fb3adc18f7",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-b8656519ecb82a037efc4f04",
+      "path": "src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd"
+      ]
+    },
+    {
+      "candidate_id": "CAND-6ccd439ffc51c3aa1e383ce6",
+      "path": "src/features/sessions/__tests__/ExerciseExitConfirmModal.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-5ac847abfb5452f87f7ef5fd",
+      "path": "src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-2be5642ff46a0fe0b8461f4a",
+        "CAND-be6e4ddd0319b6ec106ad37f",
+        "CAND-cdbe16f78dbfea3ba5fc1f7d",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-285b7f83a0f1cadd1a958738",
+      "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-0c68ebbdcb769cec43ff6c33",
+        "CAND-2be5642ff46a0fe0b8461f4a",
+        "CAND-3407d77b7b47157b2cec571a",
+        "CAND-be6e4ddd0319b6ec106ad37f",
+        "CAND-d446bd89212b98ac97f9a8dd",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-5678639b27566894b98ebc3f",
+      "path": "src/features/sessions/__tests__/formatSessionSummary.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-3c3e5e678fe01c76efc65572"
+      ]
+    },
+    {
+      "candidate_id": "CAND-188e1568bac042f6b1cb6447",
+      "path": "src/features/sessions/__tests__/NumberWheelPicker.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd"
+      ]
+    },
+    {
+      "candidate_id": "CAND-92b0ddfd31668602a38dfea1",
+      "path": "src/features/sessions/__tests__/SessionCard.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-4eac38dbad391ead0e73d4e9",
+        "CAND-d446bd89212b98ac97f9a8dd",
+        "CAND-e0c1b072930432cb3a6816c2",
+        "CAND-f615c6971160d0d5a60209bf"
+      ]
+    },
+    {
+      "candidate_id": "CAND-f5e9d62b150c02b99e781c26",
+      "path": "src/features/sessions/__tests__/SessionDraftContext.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-2be5642ff46a0fe0b8461f4a",
+        "CAND-be6e4ddd0319b6ec106ad37f"
+      ]
+    },
+    {
+      "candidate_id": "CAND-bdf77cbfa8bf6570aecf0f71",
+      "path": "src/features/sessions/__tests__/SessionDraftProvider.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-2be5642ff46a0fe0b8461f4a",
+        "CAND-3058fdec7500e732b382f269",
+        "CAND-4eac38dbad391ead0e73d4e9",
+        "CAND-be6e4ddd0319b6ec106ad37f",
+        "CAND-cdbe16f78dbfea3ba5fc1f7d"
+      ]
+    },
+    {
+      "candidate_id": "CAND-b742e7446ef79f7c05d95211",
+      "path": "src/features/sessions/__tests__/SessionService.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-2be5642ff46a0fe0b8461f4a",
+        "CAND-3058fdec7500e732b382f269",
+        "CAND-4eac38dbad391ead0e73d4e9"
+      ]
+    },
+    {
+      "candidate_id": "CAND-b5cf47334f8d77af78bb6682",
+      "path": "src/features/sessions/__tests__/SessionServiceContext.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-3058fdec7500e732b382f269"
+      ]
+    },
+    {
+      "candidate_id": "CAND-e1b801e66644daf0cb32fc61",
+      "path": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-053fab1f466f0141df15ae97",
+        "CAND-0c68ebbdcb769cec43ff6c33",
+        "CAND-2be5642ff46a0fe0b8461f4a",
+        "CAND-3058fdec7500e732b382f269",
+        "CAND-4eac38dbad391ead0e73d4e9",
+        "CAND-8ec646d2d9691e4c01eff975"
+      ]
+    },
+    {
+      "candidate_id": "CAND-6af8890067926d9f842285dc",
+      "path": "src/features/sessions/__tests__/useSessionCatalogue.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-3058fdec7500e732b382f269",
+        "CAND-4eac38dbad391ead0e73d4e9"
+      ]
+    },
+    {
+      "candidate_id": "CAND-0c262a62b6b8084ae6db2728",
+      "path": "src/features/sessions/AbandonCreationModal.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-9d214d77654d25121dd2fc1e",
+      "path": "src/features/sessions/BodyZoneSelector.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd"
+      ]
+    },
+    {
+      "candidate_id": "CAND-4035cacffeda5c5c4b835844",
+      "path": "src/features/sessions/CatalogueScreen.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-4eac38dbad391ead0e73d4e9",
+        "CAND-d446bd89212b98ac97f9a8dd",
+        "CAND-e0c1b072930432cb3a6816c2",
+        "CAND-f615c6971160d0d5a60209bf"
+      ]
+    },
+    {
+      "candidate_id": "CAND-14aea103c39cb0ae316a5fab",
+      "path": "src/features/sessions/CategoriesScreen.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-be6e4ddd0319b6ec106ad37f",
+        "CAND-d446bd89212b98ac97f9a8dd",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-882c9427c6012296acac621c",
+      "path": "src/features/sessions/ColorPalette.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-4eac38dbad391ead0e73d4e9",
+        "CAND-d446bd89212b98ac97f9a8dd",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-0126258e3ad05da6c4bb85fb",
+      "path": "src/features/sessions/compositionGesture.ts",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-4eac38dbad391ead0e73d4e9"
+      ]
+    },
+    {
+      "candidate_id": "CAND-2b8a516852a920e04a96cc19",
+      "path": "src/features/sessions/CompositionScreen.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-0c68ebbdcb769cec43ff6c33",
+        "CAND-2be5642ff46a0fe0b8461f4a",
+        "CAND-4eac38dbad391ead0e73d4e9",
+        "CAND-91870493755a8664cc3f75f8",
+        "CAND-be6e4ddd0319b6ec106ad37f",
+        "CAND-d446bd89212b98ac97f9a8dd",
+        "CAND-db5b55781d3693fb3adc18f7",
+        "CAND-e0c1b072930432cb3a6816c2",
+        "CAND-e2abe931ba4f08e4faf70b0b"
+      ]
+    },
+    {
+      "candidate_id": "CAND-0b30b4f0397e33b9484ffde0",
+      "path": "src/features/sessions/DecisionDialog.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd"
+      ]
+    },
+    {
+      "candidate_id": "CAND-d6b8ab7056e4aae59bce9fb2",
+      "path": "src/features/sessions/DurationWheelPicker.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd"
+      ]
+    },
+    {
+      "candidate_id": "CAND-7b31e51070b10aa07441795f",
+      "path": "src/features/sessions/ExerciseExitConfirmModal.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-463b7bb530da1f4840c5806c",
+      "path": "src/features/sessions/NumberWheelPicker.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd"
+      ]
+    },
+    {
+      "candidate_id": "CAND-3362dd8298a529aa07086131",
+      "path": "src/features/sessions/SessionServiceContext.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-3058fdec7500e732b382f269"
+      ]
+    },
+    {
+      "candidate_id": "CAND-6c6a46fb3bb48eceeb067a66",
+      "path": "src/features/sessions/SideModeControl.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-f31952a44ecebcd0d8ffc44a",
+      "path": "src/features/sessions/useSessionCatalogue.ts",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-4eac38dbad391ead0e73d4e9"
+      ]
+    },
+    {
+      "candidate_id": "CAND-2a68b5b614c33f25a26d670e",
+      "path": "src/features/sessions/WheelPickerOverlay.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd"
+      ]
+    },
+    {
+      "candidate_id": "CAND-9be7c650f792f4155680fd25",
+      "path": "src/features/sessions/WheelSelectionOverlay.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd"
+      ]
+    },
+    {
+      "candidate_id": "CAND-230edba72ef4dd736992d418",
+      "path": "src/infrastructure/database/__tests__/initializeDatabase.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-053fab1f466f0141df15ae97"
+      ]
+    },
+    {
+      "candidate_id": "CAND-7f8c80aac1732842bb845bb3",
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-053fab1f466f0141df15ae97",
+        "CAND-3a6f8fb7173d4ed35fcd53d7"
+      ]
+    },
+    {
+      "candidate_id": "CAND-2ea6facb14430d7286568dd6",
+      "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-3a6f8fb7173d4ed35fcd53d7",
+        "CAND-a175c8ff4e59cd76a71cf61f"
+      ]
+    },
+    {
+      "candidate_id": "CAND-03231dc37ee7f01acf0d35bc",
+      "path": "src/infrastructure/database/__tests__/SqliteBodyZoneRepository.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-3a6f8fb7173d4ed35fcd53d7"
+      ]
+    },
+    {
+      "candidate_id": "CAND-8ebcb0a9461ca5079a9e85d7",
+      "path": "src/infrastructure/database/__tests__/SqliteCategoryRepository.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-3a6f8fb7173d4ed35fcd53d7"
+      ]
+    },
+    {
+      "candidate_id": "CAND-c9c4e006a42a498b2344d341",
+      "path": "src/infrastructure/database/__tests__/SqliteLabelRepository.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-3a6f8fb7173d4ed35fcd53d7"
+      ]
+    },
+    {
+      "candidate_id": "CAND-202fb63ef721916613697bd0",
+      "path": "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-3a6f8fb7173d4ed35fcd53d7",
+        "CAND-d365b76abbf6f325a16a2443"
+      ]
+    },
+    {
+      "candidate_id": "CAND-01cc36ee5b69ced7e3eff992",
+      "path": "src/infrastructure/database/__tests__/SqliteProfileRepository.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-3a6f8fb7173d4ed35fcd53d7"
+      ]
+    },
+    {
+      "candidate_id": "CAND-68374cac6eeb3237f594a05a",
+      "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-1d3426d50a7ebf3819b7cb8e",
+        "CAND-3a6f8fb7173d4ed35fcd53d7",
+        "CAND-4c670e09d50ba2eea77e1e96",
+        "CAND-4eac38dbad391ead0e73d4e9",
+        "CAND-f615c6971160d0d5a60209bf"
+      ]
+    },
+    {
+      "candidate_id": "CAND-a84871de294c01b0887a9101",
+      "path": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-053fab1f466f0141df15ae97",
+        "CAND-3a6f8fb7173d4ed35fcd53d7"
+      ]
+    },
+    {
+      "candidate_id": "CAND-cefab6877b4782664e237397",
+      "path": "src/infrastructure/database/ExpoDatabase.ts",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-053fab1f466f0141df15ae97"
+      ]
+    },
+    {
+      "candidate_id": "CAND-a26b308e56583da092228410",
+      "path": "src/infrastructure/database/initializeDatabase.ts",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-053fab1f466f0141df15ae97",
+        "CAND-3a6f8fb7173d4ed35fcd53d7"
+      ]
+    },
+    {
+      "candidate_id": "CAND-1842113aa1c6274cc6b68c67",
+      "path": "src/infrastructure/database/integration/runNativeDatabaseIntegrationCheck.ts",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-3a6f8fb7173d4ed35fcd53d7",
+        "CAND-4c670e09d50ba2eea77e1e96"
+      ]
+    },
+    {
+      "candidate_id": "CAND-c36f827bd767389f8c3eed25",
+      "path": "src/infrastructure/database/migrations/migration007.ts",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-053fab1f466f0141df15ae97"
+      ]
+    },
+    {
+      "candidate_id": "CAND-5a499b1cc887f5bea430b14f",
+      "path": "src/infrastructure/database/repositories/SqliteBodyZoneRepository.ts",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-1d3426d50a7ebf3819b7cb8e"
+      ]
+    },
+    {
+      "candidate_id": "CAND-523277fcec04baff38027604",
+      "path": "src/infrastructure/database/repositories/SqliteCategoryRepository.ts",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-1d3426d50a7ebf3819b7cb8e"
+      ]
+    },
+    {
+      "candidate_id": "CAND-bca32c968f71cb052ad552a0",
+      "path": "src/infrastructure/database/repositories/SqliteLabelRepository.ts",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-1d3426d50a7ebf3819b7cb8e"
+      ]
+    },
+    {
+      "candidate_id": "CAND-9329f2328ae275dbcfdf4ac9",
+      "path": "src/infrastructure/database/repositories/SqliteProfileRepository.ts",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-053fab1f466f0141df15ae97",
+        "CAND-1d3426d50a7ebf3819b7cb8e"
+      ]
+    },
+    {
+      "candidate_id": "CAND-0f5a050542b5a3b9d5172fda",
+      "path": "src/shared/i18n/index.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-6229302773319ac9393eecd1",
+      "path": "src/shared/ui/__tests__/DisclosureControl.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd"
+      ]
+    },
+    {
+      "candidate_id": "CAND-3f5b3eb29694ba4b2df90361",
+      "path": "src/shared/ui/__tests__/ProfileStepper.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-b9fdec994d9ffc1c07592a61"
+      ]
+    },
+    {
+      "candidate_id": "CAND-37aa0f433e5b33a4ec30d5aa",
+      "path": "src/shared/ui/__tests__/RootErrorFallback.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-033e4c9421f9f2fd5b1dcd8c",
+      "path": "src/shared/ui/__tests__/ScreenShell.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd"
+      ]
+    },
+    {
+      "candidate_id": "CAND-aed38ee395524be5a692ea43",
+      "path": "src/shared/ui/__tests__/SegmentedControl.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd"
+      ]
+    },
+    {
+      "candidate_id": "CAND-51774d245dc5195de095ca8e",
+      "path": "src/shared/ui/__tests__/TabsLayoutSearch.integration.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-1773d7625cc58009731b6bea",
+      "path": "src/shared/ui/__tests__/tokensSpecification.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd"
+      ]
+    },
+    {
+      "candidate_id": "CAND-15764fb12f7b3aa6c51f2293",
+      "path": "src/shared/ui/__tests__/TransientNotification.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd"
+      ]
+    },
+    {
+      "candidate_id": "CAND-57d58772d146a2068b210a91",
+      "path": "src/shared/ui/CardTitleLine.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd"
+      ]
+    },
+    {
+      "candidate_id": "CAND-03a7e30949ef4f1eab8386fe",
+      "path": "src/shared/ui/DisclosureControl.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd"
+      ]
+    },
+    {
+      "candidate_id": "CAND-94b2b2abfe66aba90c8c411d",
+      "path": "src/shared/ui/KodjoIcon.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd"
+      ]
+    },
+    {
+      "candidate_id": "CAND-e440b375696420b8b9f92cd6",
+      "path": "src/shared/ui/navigationLayout.ts",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd"
+      ]
+    },
+    {
+      "candidate_id": "CAND-e384b344fdb8854d967c2dda",
+      "path": "src/shared/ui/PlaceholderScreen.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd"
+      ]
+    },
+    {
+      "candidate_id": "CAND-e6e23a5b353c5fb81785d68a",
+      "path": "src/shared/ui/RootErrorFallback.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd",
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-7fbb9c2b0f9293fd6a29e4d0",
+      "path": "src/shared/ui/ScreenShell.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd"
+      ]
+    },
+    {
+      "candidate_id": "CAND-39345b045da70749603c615f",
+      "path": "src/shared/ui/SegmentedControl.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd"
+      ]
+    },
+    {
+      "candidate_id": "CAND-fc76464a89a754c028b49c7c",
+      "path": "src/shared/ui/TransientNotification.tsx",
+      "candidate_kind": "CODE",
+      "triggered_by_candidate_ids": [
+        "CAND-d446bd89212b98ac97f9a8dd"
+      ]
+    },
+    {
+      "candidate_id": "CAND-200ace5fa121b35e491b0c52",
+      "path": "tests/kodjo/audit-convergence.pilot.js",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-e0c1b072930432cb3a6816c2"
+      ]
+    },
+    {
+      "candidate_id": "CAND-1d47fa330872810e5d61d93f",
+      "path": "tests/kodjo/plan-impact.pilot.js",
+      "candidate_kind": "TEST",
+      "triggered_by_candidate_ids": [
+        "CAND-2be5642ff46a0fe0b8461f4a",
+        "CAND-4eac38dbad391ead0e73d4e9"
+      ]
+    }
+  ],
+  "contract_hash": "11cfcd026d525fef27e3b4c4e53e669b377ebb1ab027fb3ffc0b583eca0c0e8a"
+}

@@ -1,0 +1,20 @@
+'use strict';
+// Exact original contracts plus resolved owner decision; no model invocation.
+const fs=require('node:fs'),path=require('node:path');
+const root=path.resolve(__dirname,'../../../..'),lib=n=>require(path.join(root,'scripts/kodjo/lib',n));
+const B=lib('vnext-file-bundle'),V=lib('vnext-contract'),Revision=lib('revision-contract');
+const [producedFile,receiptFile,out]=process.argv.slice(2);
+if(!producedFile||!receiptFile||!out||![producedFile,receiptFile,out].every(path.isAbsolute))throw Error('Usage: absolute produced receipt output-directory');
+fs.mkdirSync(out,{recursive:true});
+const produced=B.read(producedFile),receipt=B.read(receiptFile);
+if(produced.contract_hash!=='603de045f94fec3f14aa2198edaaad0b91020b79adddb19041b06314cc725e16'||receipt.contract_hash!=='56568e7ae81d44c60cb5185d0b69f3099fb64650953804dbf322e478d3845ce9')throw Error('Exact initial PRE3 contracts required');
+V.verifyContractHash(receipt,'PRE3_RECEIPT_HASH_INVALID');
+if(receipt.produced_chain_hash!==produced.contract_hash)throw Error('PRE3_RECEIPT_CHAIN_MISMATCH');
+const report=receipt.review_report,decision=JSON.parse(fs.readFileSync(path.join(__dirname,'decision-revue-numeriques-resolue.json'),'utf8'));
+const allowed=Revision.buildAllowedChangeSet({...produced.artifacts,reviewReport:report,clarification:{slice_id:'PRE-3',authorized_actor:'MyUncried',decision_records:[decision]}});
+Revision.validateAllowedChangeSet(allowed);
+B.write(path.join(out,'allowed-change-set.json'),allowed,{exclusive:true});
+const rootFinding=report.findings.find(f=>f.finding_id==='FND-8b2fcbd1b778ea06ee6cb2f0');
+const result={stage:'CLARIFICATION_RESOLVED',result:'PASS',producer_revision:produced.producer_revision,base_plan_hash:produced.artifacts.planContract.contract_hash,base_review_hash:report.contract_hash,original_verdict:report.verdict,decision_hash:decision.contract_hash,allowed_change_set_hash:allowed.contract_hash,reentry_stage:allowed.reentry_stage,blocking_findings:allowed.blocking_finding_ids.length,authorized_targets:allowed.authorized_targets.length,derived_targets:allowed.derived_targets.length,preserved_targets:allowed.preserved_targets.length,plan_root_dependency_ids:rootFinding.dependency_target_ids,independent_review:false,owner_plan_approval:false,implementation_started:false};
+fs.writeFileSync(path.join(out,'reentry-result.json'),JSON.stringify(result,null,2)+'\n',{flag:'wx'});
+console.log(JSON.stringify(result));

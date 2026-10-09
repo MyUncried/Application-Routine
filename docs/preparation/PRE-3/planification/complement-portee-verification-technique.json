@@ -1,0 +1,20 @@
+{
+  "candidate": "bdfde87b9f034021dc30c6412071e895283d716c",
+  "local_tests": {
+    "tests": 482,
+    "pass": 482,
+    "fail": 0,
+    "skipped": 0,
+    "log_sha256": "ae5fb780083940574c8acb671393f0cfae0c3b7a899dce7b43936ffa354dc42d"
+  },
+  "published_protocol_files_match_tested_bytes": true,
+  "published_preparation_scripts_match_verified_bytes": true,
+  "published_scope_storage_roundtrip": "PASS",
+  "scope_request_hash": "f11d5172f9cfbca39bb162163da8d8c50ed2857d974f7bb31eb7d6c844edbb19",
+  "original_receipt_verification": "PASS",
+  "launcher_cold_guard": "PASS: missing original objects refused before Git or Claude invocation",
+  "reviewer_process_tests": "SIMULATED_ONLY",
+  "independent_scope_review": false,
+  "owner_plan_approval": false,
+  "implementation_started": false
+}
