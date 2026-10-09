@@ -20,6 +20,22 @@ Les constructeurs sont rejoués, pas modifiés. Le nouveau conteneur porte l'emp
 
 Le lanceur ne démarre ni développement, demande d'approbation, file d'implémentation, audit global ou qualification jetable. Une répétition refuse le dossier d'opération déjà présent. Aucun `--dangerously-skip-permissions` ni adaptateur de test.
 
+## Incident Windows du 09/10 et reprise bornée
+
+La première construction sur le poste a terminé, puis le lanceur a refusé les empreintes avant tout appel Claude. La conversion automatique LF → CRLF du seul `schema-et-ecritures.md`, intégré dans 95 contraintes documentaires, explique exactement le PlanContract Windows `87523768e4a917c0f92928feb65337762f1a8d8ec4395bb16779ab7ae43b579d` et le contrat UI `86d30bdeab4e93734d62631c090412004db21b0cffdec632063121ca71c08cb9`. Reproduction locale indépendante : 6270 fins de ligne converties ; les deux empreintes correspondent exactement au journal fourni par Hermann. Ce résultat ne constitue pas une observation Windows de la correction.
+
+Le lanceur corrigé impose `core.autocrlf=false` pour les nouveaux checkouts et rétablit les octets Git exacts de ce document avant construction. La reprise `--resume-preparation` est exclusivement autorisée pour les trois empreintes de l'incident connu, en l'absence de configuration/revue existante. Elle conserve `evidence`, réutilise son Launch déjà vérifié et reconstruit dans `evidence-lf`. Le checkout reste à `1d42479181586d926a9970867a41d35d44cc4661` ; aucun constructeur ou contrat publié n'est modifié. Les empreintes attendues restent strictement identiques. Un écart de contenu autre que CRLF est refusé.
+
+Après récupération du lanceur corrigé dans le checkout de lancement, exécuter une seule fois :
+
+```powershell
+node docs/preparation/PRE-3/planification/lancer-revue-poste.cjs --resume-preparation
+```
+
+Suivi de cette reprise : `%TEMP%\p3-1d424791\evidence-lf\construction-progress.json`, puis `evidence-lf\claude-review\initial-review-progress.json`. Résultat : `evidence-lf\review-receipt.json`. `--recover` retrouve ce dossier corrigé lorsqu'il existe. Ne pas supprimer le dossier de l'opération ni relancer la commande initiale.
+
+Validation du lanceur : syntaxe Node PASS ; trois scénarios avec processus simulés PASS (reprise CRLF, refus de doublon et refus d'un contenu réellement modifié), zéro invocation externe. La construction corrigée et l'appel réel Claude sur Windows restent à observer sur le poste.
+
 ## Action unique sur le poste de Hermann
 
 Après récupération de cette publication dans un checkout propre (la procédure exacte avec le SHA de publication figure dans #340), exécuter depuis ce checkout :
