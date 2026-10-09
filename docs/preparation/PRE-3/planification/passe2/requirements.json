@@ -1,0 +1,4333 @@
+{
+  "documentary_requirements": [
+    {
+      "requirement_id": "REQ-dca8fcbffab81bce5b3ece33",
+      "state_id": "PRE3-FIG-3542-4656",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-02"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Le shell et les champs de création sont conservés ; cette référence antérieure ne retire ni la carte Paramètres ni les médias exigés dans PRE-3.",
+      "functional_test_paths": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-02/editor-fields",
+        "P3-02/keyboard-scroll"
+      ],
+      "figma_frame": "3542:4656",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-2ea2a56239f1033cccdbf611",
+      "state_id": "PRE3-FIG-3943-6064",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-02",
+        "P3-16",
+        "P3-23"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Le formulaire initial présente nom, description, médias, Catégorie, Zones et Paramètres ; aucune persistance avec les champs requis incomplets.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ActivityMediaList.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "src/infrastructure/media/__tests__/VideoPoster.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-02/editor-fields",
+        "P3-02/keyboard-scroll",
+        "P3-16/sheet-boundary",
+        "P3-16/fold-incomplete",
+        "P3-16/parent-guard",
+        "P3-16/failure-doubletap",
+        "P3-23/import-multiple",
+        "P3-23/cancel-local-error",
+        "P3-23/permissions",
+        "P3-23/file-preservation",
+        "P3-23/video-thumbnail"
+      ],
+      "figma_frame": "3943:6064",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-e4b10065aa3f1026c872fd05",
+      "state_id": "PRE3-FIG-4217-6980",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-02",
+        "P3-16",
+        "P3-23"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Nom, description et médias renseignés restent dans le brouillon ; ouvrir un sélecteur puis revenir les conserve.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ActivityMediaList.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "src/infrastructure/media/__tests__/VideoPoster.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-02/editor-fields",
+        "P3-02/keyboard-scroll",
+        "P3-16/sheet-boundary",
+        "P3-16/fold-incomplete",
+        "P3-16/parent-guard",
+        "P3-16/failure-doubletap",
+        "P3-23/import-multiple",
+        "P3-23/cancel-local-error",
+        "P3-23/permissions",
+        "P3-23/file-preservation",
+        "P3-23/video-thumbnail"
+      ],
+      "figma_frame": "4217:6980",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-7d6f0fbe60947abaf8cef325",
+      "state_id": "PRE3-FIG-5088-6398",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-03",
+        "P3-17"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "La Catégorie choisie est affichée avec son identité ; elle est appliquée au brouillon et conservée à la sauvegarde/réouverture.",
+      "functional_test_paths": [
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "src/infrastructure/database/__tests__/migrateDatabase.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-03/reference-retired",
+        "P3-03/empty-create-name",
+        "P3-03/zones-presentation",
+        "P3-17/migration-real",
+        "P3-17/canonical-roundtrip",
+        "P3-17/corrupt-version",
+        "P3-17/transaction-FK"
+      ],
+      "figma_frame": "5088:6398",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-e364498ec10106655ef06f59",
+      "state_id": "PRE3-FIG-4734-6342",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-01",
+        "P3-17",
+        "P3-23"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Modifier charge tous les paramètres et médias ordonnés existants ; Terminer modifie uniquement le propriétaire ouvert.",
+      "functional_test_paths": [
+        "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+        "src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "src/features/activities/__tests__/ActivityMediaList.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+        "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "src/infrastructure/media/__tests__/VideoPoster.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-01/Catalogue:create",
+        "P3-01/Catalogue:edit",
+        "P3-01/Session:create",
+        "P3-01/Session:edit",
+        "P3-01/copy-isolation",
+        "P3-17/migration-real",
+        "P3-17/canonical-roundtrip",
+        "P3-17/corrupt-version",
+        "P3-17/transaction-FK",
+        "P3-23/import-multiple",
+        "P3-23/cancel-local-error",
+        "P3-23/permissions",
+        "P3-23/file-preservation",
+        "P3-23/video-thumbnail"
+      ],
+      "figma_frame": "4734:6342",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-11afeea84007ba06481d9c18",
+      "state_id": "PRE3-FIG-4332-7095",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-03",
+        "P3-16"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Le sélecteur Catégorie ouvre une sélection simple et la création ; fermer annule cette ouverture et valider applique au parent.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-03/reference-retired",
+        "P3-03/empty-create-name",
+        "P3-03/zones-presentation",
+        "P3-16/sheet-boundary",
+        "P3-16/fold-incomplete",
+        "P3-16/parent-guard",
+        "P3-16/failure-doubletap"
+      ],
+      "figma_frame": "4332:7095",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-7175c3316e66ca41f86ad2c6",
+      "state_id": "PRE3-FIG-4474-7157",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-03"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Créer une Catégorie conserve nom et couleur choisis ; nom vide désactive Ajouter sans erreur ; doublon/réactivation suivent PRE-2.",
+      "functional_test_paths": [
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-03/reference-retired",
+        "P3-03/empty-create-name",
+        "P3-03/zones-presentation"
+      ],
+      "figma_frame": "4474:7157",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-be564aaa2f7c19c7e1d585bd",
+      "state_id": "PRE3-FIG-4478-7209",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-03",
+        "P3-16"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Les Zones se choisissent en pastilles textuelles sans silhouette répétée ; en-tête ✕/titre/✓ ; la sélection multiple reste isolée jusqu’à validation.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-03/reference-retired",
+        "P3-03/empty-create-name",
+        "P3-03/zones-presentation",
+        "P3-16/sheet-boundary",
+        "P3-16/fold-incomplete",
+        "P3-16/parent-guard",
+        "P3-16/failure-doubletap"
+      ],
+      "figma_frame": "4478:7209",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-1beebac6f77da62e13102794",
+      "state_id": "PRE3-FIG-4683-6336",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-03"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Créer une Zone conserve le nom saisi ; nom vide désactive Ajouter sans erreur ; doublon/réactivation suivent PRE-2.",
+      "functional_test_paths": [
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-03/reference-retired",
+        "P3-03/empty-create-name",
+        "P3-03/zones-presentation"
+      ],
+      "figma_frame": "4683:6336",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-986f9ebd32fb8064c798a617",
+      "state_id": "PRE3-FIG-4714-6241",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-16"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Annuler l’abandon conserve l’intégralité du brouillon ; confirmer l’abandon ne sauvegarde aucun Exercice partiel.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-16/sheet-boundary",
+        "P3-16/fold-incomplete",
+        "P3-16/parent-guard",
+        "P3-16/failure-doubletap"
+      ],
+      "figma_frame": "4714:6241",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-633430d3fc581041382d6255",
+      "state_id": "PRE3-FIG-4861-6259",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-03",
+        "P3-22"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "L’appui long Catégorie ne modifie pas la sélection ; Annuler garde la valeur ; suppression confirmée préserve les affectations existantes.",
+      "functional_test_paths": [
+        "src/domain/sessions/__tests__/calculations.test.ts",
+        "src/domain/sessions/__tests__/composition.test.ts",
+        "src/domain/sessions/__tests__/validation.test.ts",
+        "src/features/activities/__tests__/ActivityCard.test.tsx",
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/features/sessions/__tests__/SessionCard.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-03/reference-retired",
+        "P3-03/empty-create-name",
+        "P3-03/zones-presentation",
+        "P3-22/scope-regression"
+      ],
+      "figma_frame": "4861:6259",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-00a0fe9c695098f078c1d984",
+      "state_id": "PRE3-FIG-4861-6348",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-03",
+        "P3-22"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "L’appui long Zone ne modifie pas la sélection ; Annuler garde la valeur ; suppression confirmée préserve les affectations existantes.",
+      "functional_test_paths": [
+        "src/domain/sessions/__tests__/calculations.test.ts",
+        "src/domain/sessions/__tests__/composition.test.ts",
+        "src/domain/sessions/__tests__/validation.test.ts",
+        "src/features/activities/__tests__/ActivityCard.test.tsx",
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/features/sessions/__tests__/SessionCard.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-03/reference-retired",
+        "P3-03/empty-create-name",
+        "P3-03/zones-presentation",
+        "P3-22/scope-regression"
+      ],
+      "figma_frame": "4861:6348",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-24dbf849725a379c24c07e5e",
+      "state_id": "PRE3-FIG-6407-9458",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-02",
+        "P3-16"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "La carte Paramètres ouvre la feuille depuis toute sa zone ; aucune valeur de cible absente n’est inventée.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-02/editor-fields",
+        "P3-02/keyboard-scroll",
+        "P3-16/sheet-boundary",
+        "P3-16/fold-incomplete",
+        "P3-16/parent-guard",
+        "P3-16/failure-doubletap"
+      ],
+      "figma_frame": "6407:9458",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-c9b6f13e688fc0e6259904d3",
+      "state_id": "PRE3-FIG-6407-9551",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-04",
+        "P3-16"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "La feuille avec cibles non renseignées interdit ✓ ; ✕/retour ferme sans mutation du parent ; les champs actifs requis restent identifiables.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-04/mode-targets",
+        "P3-04/bounds",
+        "P3-16/sheet-boundary",
+        "P3-16/fold-incomplete",
+        "P3-16/parent-guard",
+        "P3-16/failure-doubletap"
+      ],
+      "figma_frame": "6407:9551",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-a55910e5ec475c7f4ff50aa2",
+      "state_id": "PRE3-FIG-6407-9702",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-15",
+        "P3-16"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Après ✓ valide, la phrase est régénérée depuis le parent et affichée intégralement ; ✓ ne persiste pas l’Exercice.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/activities/__tests__/executionPhrase.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-15/corpus-276",
+        "P3-15/grammar-edges",
+        "P3-15/no-storage",
+        "P3-15/long-phrase",
+        "P3-16/sheet-boundary",
+        "P3-16/fold-incomplete",
+        "P3-16/parent-guard",
+        "P3-16/failure-doubletap"
+      ],
+      "figma_frame": "6407:9702",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-c4fa2d106ec4af29be0dfc0e",
+      "state_id": "PRE3-FIG-6407-9805",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-04",
+        "P3-11"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Le contrôle de mode sélectionne exactement Durée, Répétitions ou À l’échec ; changer de mode conserve N, pauses et bip.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-04/mode-targets",
+        "P3-04/bounds",
+        "P3-11/all-modes-bip"
+      ],
+      "figma_frame": "6407:9805",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-3fb09caea44a28a9f7c9ea38",
+      "state_id": "PRE3-FIG-6407-9966",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-06",
+        "P3-19"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Nombre de Séries et Pauses utilisent les contrôles prescrits, leurs bornes et leur maintien ; aucun arrondi au chargement.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
+        "src/shared/ui/__tests__/ProfileStepper.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-06/shrink-regrow",
+        "P3-06/commit-hidden",
+        "P3-19/hold",
+        "P3-19/non-accelerated",
+        "P3-19/exclusive-scroll"
+      ],
+      "figma_frame": "6407:9966",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-c0653265fd8e6e6ed3b3f7e0",
+      "state_id": "PRE3-FIG-6407-10127",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-19"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "La roulette de cible Durée est ouverte inline ; une autre roulette ou un segmenté la remplace ; en-tête et bas restent accessibles.",
+      "functional_test_paths": [
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
+        "src/shared/ui/__tests__/ProfileStepper.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-19/hold",
+        "P3-19/non-accelerated",
+        "P3-19/exclusive-scroll"
+      ],
+      "figma_frame": "6407:10127",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-d52c65c3b0b5b8a6b4d79296",
+      "state_id": "PRE3-FIG-6407-10481",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-09",
+        "P3-19"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Le contrôle de changement de côté sélectionne sans changement, droite puis gauche ou gauche puis droite ; ouverture exclusive des contrôles inline.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
+        "src/shared/ui/__tests__/ProfileStepper.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-09/directions",
+        "P3-09/unilateral-controls",
+        "P3-19/hold",
+        "P3-19/non-accelerated",
+        "P3-19/exclusive-scroll"
+      ],
+      "figma_frame": "6407:10481",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-99bc3dfceb001f925437209f",
+      "state_id": "PRE3-FIG-6411-9546",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-14",
+        "P3-12"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "En Durée uniforme seulement, la roulette du total recherche N=1..99 réalisable ; le total n’est pas un champ concurrent persisté.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-12/normative-totals",
+        "P3-12/omission",
+        "P3-14/inverse-enumeration",
+        "P3-14/inverse-boundaries"
+      ],
+      "figma_frame": "6411:9546",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-47282d1851bc3e68d1884356",
+      "state_id": "PRE3-FIG-6411-9649",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-09",
+        "P3-12"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "En bilatéral, l’ordre et la Pause entre côtés sont affichés ; PC contribue une fois par succession de côtés ou N fois par paire.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-09/directions",
+        "P3-09/unilateral-controls",
+        "P3-12/normative-totals",
+        "P3-12/omission"
+      ],
+      "figma_frame": "6411:9649",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-a677b64e9545005ad109ea9a",
+      "state_id": "PRE3-FIG-6419-9847",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-04",
+        "P3-11",
+        "P3-12"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "En Répétitions, cibles 1..100 et bip 0..10 s restent réglables ; sans bip, toute durée d’Exercice est omise.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-04/mode-targets",
+        "P3-04/bounds",
+        "P3-11/all-modes-bip",
+        "P3-12/normative-totals",
+        "P3-12/omission"
+      ],
+      "figma_frame": "6419:9847",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-f7c5bb3ef511e9989e4f099e",
+      "state_id": "PRE3-FIG-6419-10028",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-04",
+        "P3-11",
+        "P3-12"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "À l’échec, aucune cible numérique ni durée d’Exercice ; pauses, bip, compte à rebours et fin restent disponibles.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-04/mode-targets",
+        "P3-04/bounds",
+        "P3-11/all-modes-bip",
+        "P3-12/normative-totals",
+        "P3-12/omission"
+      ],
+      "figma_frame": "6419:10028",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-30b44b8b8eded65d2e28f9a9",
+      "state_id": "PRE3-FIG-6423-9953",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-14",
+        "P3-12"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Un total demandé irréalisable choisit le plus proche, égalité vers N supérieur ; message uniquement si le total réalisé diffère.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-12/normative-totals",
+        "P3-12/omission",
+        "P3-14/inverse-enumeration",
+        "P3-14/inverse-boundaries"
+      ],
+      "figma_frame": "6423:9953",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-5893fa2b29b1dd40cf0eb808",
+      "state_id": "PRE3-FIG-6665-24616",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-05",
+        "P3-12",
+        "P3-15"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Durée variable 30/45/60 s avec pauses 10/20/30 s reste explicitement variable ; total exact : 195 s ; phrase énumérée avec puis.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/domain/activities/__tests__/executionPhrase.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-05/equal-variable",
+        "P3-05/toggle-restoration",
+        "P3-12/normative-totals",
+        "P3-12/omission",
+        "P3-15/corpus-276",
+        "P3-15/grammar-edges",
+        "P3-15/no-storage",
+        "P3-15/long-phrase"
+      ],
+      "figma_frame": "6665:24616",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-2265beb4a6aaaf5c2873f04b",
+      "state_id": "PRE3-FIG-6665-24844",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-05",
+        "P3-12",
+        "P3-13"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Répétitions variables 12/10/8 avec bip0 omettent la durée intrinsèque ; pauses 30/45/60 s contribuent 135 s connus en Séance.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/features/sessions/__tests__/formatSessionSummary.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-05/equal-variable",
+        "P3-05/toggle-restoration",
+        "P3-12/normative-totals",
+        "P3-12/omission",
+        "P3-13/R-terminal",
+        "P3-13/unknown-known",
+        "P3-13/tours-cycles-list",
+        "P3-13/no-auto-R"
+      ],
+      "figma_frame": "6665:24844",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-7492af67b63727fc5d83832f",
+      "state_id": "PRE3-FIG-6665-25072",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-05",
+        "P3-11",
+        "P3-12"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "À l’échec variable conserve les pauses par ligne ; bip nul ou positif ne rend pas sa durée calculable.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-05/equal-variable",
+        "P3-05/toggle-restoration",
+        "P3-11/all-modes-bip",
+        "P3-12/normative-totals",
+        "P3-12/omission"
+      ],
+      "figma_frame": "6665:25072",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-4f991a3080b6e0079fd43642",
+      "state_id": "PRE3-FIG-6665-25277",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-06",
+        "P3-15",
+        "P3-19"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Douze lignes variables sont accessibles par défilement ; phrase min/max intégrale, en-tête maintenu, validation disponible sans perte des lignes.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/activities/__tests__/executionPhrase.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
+        "src/shared/ui/__tests__/ProfileStepper.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-06/shrink-regrow",
+        "P3-06/commit-hidden",
+        "P3-15/corpus-276",
+        "P3-15/grammar-edges",
+        "P3-15/no-storage",
+        "P3-15/long-phrase",
+        "P3-19/hold",
+        "P3-19/non-accelerated",
+        "P3-19/exclusive-scroll"
+      ],
+      "figma_frame": "6665:25277",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-1f233784566b10f1075da3d3",
+      "state_id": "PRE3-FIG-6665-26185",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-09"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Un côté après l’autre exécute toutes les Séries du premier côté puis toutes celles du second ; N est par côté.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-09/directions",
+        "P3-09/unilateral-controls"
+      ],
+      "figma_frame": "6665:26185",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-dbc1f5e9343a9a2f9b285311",
+      "state_id": "PRE3-FIG-6665-26575",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-09",
+        "P3-12"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Durées 30/45/60 s, pauses 10/20/30 s, PC = 15 s par paire donnent 375 s ; chaque ligne conserve sa cible et sa Pause.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-09/directions",
+        "P3-09/unilateral-controls",
+        "P3-12/normative-totals",
+        "P3-12/omission"
+      ],
+      "figma_frame": "6665:26575",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-4b6244645bac808d76f9246b",
+      "state_id": "PRE3-FIG-6665-26822",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-08",
+        "P3-12"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "N1 normalise immédiatement uniforme et succession des côtés ; options sans effet grisées ; 90/P = 15 s/PC10 bilatéral donne 220 s.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-08/immediate-N1",
+        "P3-08/restoration-N1",
+        "P3-12/normative-totals",
+        "P3-12/omission"
+      ],
+      "figma_frame": "6665:26822",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-b7885d39b5a1037d823db03b",
+      "state_id": "PRE3-FIG-6665-27008",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-04",
+        "P3-16"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Changer de mode rend les cibles incompatibles non renseignées ; ✓ interdit ; revenir avant ✓ restaure les cibles temporaires.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-04/mode-targets",
+        "P3-04/bounds",
+        "P3-16/sheet-boundary",
+        "P3-16/fold-incomplete",
+        "P3-16/parent-guard",
+        "P3-16/failure-doubletap"
+      ],
+      "figma_frame": "6665:27008",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-1b9d902ab46d9e11e1db4046",
+      "state_id": "PRE3-FIG-6665-27232",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-16"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Une Série incomplète interdit ✓ même tableau replié ; le message identifie la Série et permet sa correction.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-16/sheet-boundary",
+        "P3-16/fold-incomplete",
+        "P3-16/parent-guard",
+        "P3-16/failure-doubletap"
+      ],
+      "figma_frame": "6665:27232",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-3dd1e56c7dd541640c2caf10",
+      "state_id": "PRE3-FIG-6665-27458",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-16",
+        "P3-19"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Replier le tableau ne change ni lignes, ordre, validité ni total ; développer restitue toutes les lignes.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/shared/ui/__tests__/ProfileStepper.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-16/sheet-boundary",
+        "P3-16/fold-incomplete",
+        "P3-16/parent-guard",
+        "P3-16/failure-doubletap",
+        "P3-19/hold",
+        "P3-19/non-accelerated",
+        "P3-19/exclusive-scroll"
+      ],
+      "figma_frame": "6665:27458",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-fb496a9e3eb4e15571883cae",
+      "state_id": "PRE3-FIG-6665-27608",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-07",
+        "P3-13",
+        "P3-16"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Déplacer une Série transporte cible et Pause, renumérote, change PN selon la nouvelle dernière ligne ; ✕ annule le déplacement.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/features/sessions/__tests__/formatSessionSummary.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-07/move-terminal",
+        "P3-07/move-accessible",
+        "P3-13/R-terminal",
+        "P3-13/unknown-known",
+        "P3-13/tours-cycles-list",
+        "P3-13/no-auto-R",
+        "P3-16/sheet-boundary",
+        "P3-16/fold-incomplete",
+        "P3-16/parent-guard",
+        "P3-16/failure-doubletap"
+      ],
+      "figma_frame": "6665:27608",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-ca6937cd18dd2f8d3a658ff8",
+      "state_id": "PRE3-FIG-6665-27862",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-09",
+        "P3-15",
+        "P3-16"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "La carte parent résume Durée variable bilatérale par Série après ✓, depuis les paramètres actuels ; phrase jamais tronquée.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/domain/activities/__tests__/executionPhrase.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-09/directions",
+        "P3-09/unilateral-controls",
+        "P3-15/corpus-276",
+        "P3-15/grammar-edges",
+        "P3-15/no-storage",
+        "P3-15/long-phrase",
+        "P3-16/sheet-boundary",
+        "P3-16/fold-incomplete",
+        "P3-16/parent-guard",
+        "P3-16/failure-doubletap"
+      ],
+      "figma_frame": "6665:27862",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-b216b89bd2cb6d270937c135",
+      "state_id": "PRE3-FIG-6665-28050",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-12",
+        "P3-15"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "La carte parent résume À l’échec variable sans durée, sans cible numérique et sans clause ajoutée de pauses variables.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/domain/activities/__tests__/executionPhrase.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-12/normative-totals",
+        "P3-12/omission",
+        "P3-15/corpus-276",
+        "P3-15/grammar-edges",
+        "P3-15/no-storage",
+        "P3-15/long-phrase"
+      ],
+      "figma_frame": "6665:28050",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-7e467f0483ddc28e3330de81",
+      "state_id": "PRE3-FIG-7059-13302",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-11",
+        "P3-12"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Quatre Séries de 15 répétitions avec bip 4 s et pause 15 s donnent ≈ 300 s ; Bip est au premier niveau et reste commun.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-11/all-modes-bip",
+        "P3-12/normative-totals",
+        "P3-12/omission"
+      ],
+      "figma_frame": "7059:13302",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-cd1671aefa87e4c55589d6a5",
+      "state_id": "PRE3-FIG-7069-13464",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-09"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "La variante copiée conserve les règles du bilatéral, ordre et PC ; elle ne crée pas une seconde règle métier.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-09/directions",
+        "P3-09/unilateral-controls"
+      ],
+      "figma_frame": "7069:13464",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-78dac76be735853f808d186b",
+      "state_id": "PRE3-FIG-7069-13573",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-04",
+        "P3-11",
+        "P3-12"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "La variante copiée Répétitions conserve cible/bip et omission applicable ; elle ne crée pas une seconde règle métier.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-04/mode-targets",
+        "P3-04/bounds",
+        "P3-11/all-modes-bip",
+        "P3-12/normative-totals",
+        "P3-12/omission"
+      ],
+      "figma_frame": "7069:13573",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-dffcbea4cdc23f986389b210",
+      "state_id": "PRE3-FIG-7119-27855",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-15",
+        "P3-21"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "La phrase longue : 224 caractères reste intégrale, en texte imbriqué et hauteur intrinsèque ; un seul libellé accessible complet ouvre Paramètres.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/executionPhrase.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ActivityMediaList.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-15/corpus-276",
+        "P3-15/grammar-edges",
+        "P3-15/no-storage",
+        "P3-15/long-phrase",
+        "P3-21/accessible-controls"
+      ],
+      "figma_frame": "7119:27855",
+      "presentation_scope": "P3-20",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-fe24039cf7c16a77ec518ce4",
+      "state_id": "PRE3-DOC-P3-01-Catalogue:create",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-01"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Catalogue — création : All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+      "functional_test_paths": [
+        "src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-01/Catalogue:create",
+        "P3-01/Catalogue:edit",
+        "P3-01/Session:create",
+        "P3-01/Session:edit",
+        "P3-01/copy-isolation"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-f6bee7203790bb25a5a580c8",
+      "state_id": "PRE3-DOC-P3-01-Catalogue:edit",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-01"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Catalogue — modification : All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+      "functional_test_paths": [
+        "src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-01/Catalogue:create",
+        "P3-01/Catalogue:edit",
+        "P3-01/Session:create",
+        "P3-01/Session:edit",
+        "P3-01/copy-isolation"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-ebbfb991e0db61abbfe6028a",
+      "state_id": "PRE3-DOC-P3-01-Session:create",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-01"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Séance — création de copie : All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+      "functional_test_paths": [
+        "src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-01/Catalogue:create",
+        "P3-01/Catalogue:edit",
+        "P3-01/Session:create",
+        "P3-01/Session:edit",
+        "P3-01/copy-isolation"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-d6ebd1f90959566548021436",
+      "state_id": "PRE3-DOC-P3-01-Session:edit",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-01"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Séance — modification de copie : All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+      "functional_test_paths": [
+        "src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-01/Catalogue:create",
+        "P3-01/Catalogue:edit",
+        "P3-01/Session:create",
+        "P3-01/Session:edit",
+        "P3-01/copy-isolation"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-4afcac6ca21cf55c67976e3f",
+      "state_id": "PRE3-DOC-P3-01-copy-isolation",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-01"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Other occurrence and definition/occurrence snapshots keep their own complete values and ordered media.",
+      "functional_test_paths": [
+        "src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-01/Catalogue:create",
+        "P3-01/Catalogue:edit",
+        "P3-01/Session:create",
+        "P3-01/Session:edit",
+        "P3-01/copy-isolation"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-ed77f2c4feff23fe60841493",
+      "state_id": "PRE3-DOC-P3-02-editor-fields",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-02"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Name, description, media and all required selectors accessible; finish disabled or validation prevents write until required values complete; completed save returns to its host.",
+      "functional_test_paths": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-02/editor-fields",
+        "P3-02/keyboard-scroll"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-c71e67953322876214d58940",
+      "state_id": "PRE3-DOC-P3-02-keyboard-scroll",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-02"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Focused field and Terminer remain reachable; safe areas/header respected; no fixed height clips text.",
+      "functional_test_paths": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-02/editor-fields",
+        "P3-02/keyboard-scroll"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-f8e28f157ecf85e42ea488ea",
+      "state_id": "PRE3-DOC-P3-03-reference-retired",
+      "kind": "PRESERVATION",
+      "preservation": "REQUIRED",
+      "scope_ids": [
+        "P3-03"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Original withdrawn assignments retained under PRE-2 policy; no implicit replacement/removal.",
+      "functional_test_paths": [
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-03/reference-retired",
+        "P3-03/empty-create-name",
+        "P3-03/zones-presentation"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-b46b9f500ffd60197b579858",
+      "state_id": "PRE3-DOC-P3-03-empty-create-name",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-03"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Ajouter inactive, no error message for empty name; valid name follows PRE-2 uniqueness/reactivation rules.",
+      "functional_test_paths": [
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-03/reference-retired",
+        "P3-03/empty-create-name",
+        "P3-03/zones-presentation"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-7e501f13b5be0568ed26cbfd",
+      "state_id": "PRE3-DOC-P3-03-zones-presentation",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-03"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Text pills and header cross/title/check match reference; no silhouette repeated per option; selections survive parent round trip.",
+      "functional_test_paths": [
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-03/reference-retired",
+        "P3-03/empty-create-name",
+        "P3-03/zones-presentation"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-0df6c21eb87c3578fefed717",
+      "state_id": "PRE3-DOC-P3-04-mode-targets",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-04"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "N, pauses and cadence conserved; incompatible targets null, failure has no numeric target; prior mode targets restored only during this opening.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-04/mode-targets",
+        "P3-04/bounds"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-e088044aa96e4c6bd8245bd7",
+      "state_id": "PRE3-DOC-P3-04-bounds",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-04"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "D1..5999, Rep1..100, N=1..99, P/PC0..300, b0..10, CR/Fin0..60 accepted exactly; invalid values identify field and series; null numeric target is incomplete.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-04/mode-targets",
+        "P3-04/bounds"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-a7798423c0cd9fc513582b3b",
+      "state_id": "PRE3-DOC-P3-05-equal-variable",
+      "kind": "DATA",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-05"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Saved kind remains VARIABLE; equality never forces uniform; all three rows and their order survive.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-05/equal-variable",
+        "P3-05/toggle-restoration"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-0660e28b740b08db0e1bdc76",
+      "state_id": "PRE3-DOC-P3-05-toggle-restoration",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-05"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Uniform uses current first (60,30); variable restores (60,30),(30,10),(45,20).",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-05/equal-variable",
+        "P3-05/toggle-restoration"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-13af3d257fcb7de6d1fd540b",
+      "state_id": "PRE3-DOC-P3-06-shrink-regrow",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-06"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "A/B stay active, C/D return in relative order, fifth clones last active D; no equality inference.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-06/shrink-regrow",
+        "P3-06/commit-hidden"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-394f00aae78a8e85f04839cb",
+      "state_id": "PRE3-DOC-P3-06-commit-hidden",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-06"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Temporary removed C/D not persisted; new rows are clones of effective last row B.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-06/shrink-regrow",
+        "P3-06/commit-hidden"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-f42071c62338233ed7797395",
+      "state_id": "PRE3-DOC-P3-07-move-terminal",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-07"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Rows C/A/B; intrinsic = 195 s unchanged; occurrence = 195 s−20+120=295 because new final pause 20 s; cancel restores prior occurrence = 285 s.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-07/move-terminal",
+        "P3-07/move-accessible"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-a1c3235c5f4b460d6fbfd4fb",
+      "state_id": "PRE3-DOC-P3-07-move-accessible",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-07"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Moves target and pause together, renumbers, respects first/last boundaries and yields same draft as drag.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-07/move-terminal",
+        "P3-07/move-accessible"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-eb51b0a869e39accf16ca563",
+      "state_id": "PRE3-DOC-P3-08-immediate-N1",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-08"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Effective kind UNIFORM and BY_SIDE immediately; controls without effect disabled; intrinsic = 220 s; requested old order not used by calculation.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-08/immediate-N1",
+        "P3-08/restoration-N1"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-e27f4bfa2c3a94e8ea005cc4",
+      "state_id": "PRE3-DOC-P3-08-restoration-N1",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-08"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "First path restores temporary rows/order; committed N=1 opens as uniform/BY_SIDE without stale reserve.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-08/immediate-N1",
+        "P3-08/restoration-N1"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-2d9ef4c4ec65b091c41e714e",
+      "state_id": "PRE3-DOC-P3-09-directions",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-09"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Totals independent of starting side; phrase states correct direction/order; PC contributes once BY_SIDE, N times BY_SERIES.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-09/directions",
+        "P3-09/unilateral-controls"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-36c7c7983f87b5a43aa994ce",
+      "state_id": "PRE3-DOC-P3-09-unilateral-controls",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-09"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Side order/PC have no effect on unilateral calculation; hidden/inactive controls cannot inject PC.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-09/directions",
+        "P3-09/unilateral-controls"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-e6e85ed715a71bb13e47b1ca",
+      "state_id": "PRE3-DOC-P3-10-profile-new-only",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-10"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "New creation snapshots defaults; PC initialized on activation; saved 7/3/2 unchanged after Profile changes; no retroactive migration.",
+      "functional_test_paths": [
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-10/profile-new-only",
+        "P3-10/legacy-neutral-proposal"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-f9cb0657666acfdae7fc6770",
+      "state_id": "PRE3-DOC-P3-11-all-modes-bip",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-11"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Bip present and common in all modes, same valid integer retained across save/copy; no execution sound introduced.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-11/all-modes-bip"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-42658704adaaefceca42eeab",
+      "state_id": "PRE3-DOC-P3-12-normative-totals",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-12"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "A : 195 s exact C : 405 s exact D : 375 s exact Rep cadence ≈ 300 s Duration cadence : 300 s exact; no historical 2 s fallback.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-12/normative-totals",
+        "P3-12/omission"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-360330540685103cd8744e65",
+      "state_id": "PRE3-DOC-P3-12-omission",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-12"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "No exercise duration line/value/0/dash/≥; known = 135 s retained for Session; invalid targets cause validation error rather than omitted result.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-12/normative-totals",
+        "P3-12/omission"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-335d9ca70d2a7405f846289b",
+      "state_id": "PRE3-DOC-P3-13-R-terminal",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-13"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "A : 285 s, N=1 : 235 s; R = 0 s/absent leaves A : 195 s/N=1 : 220 s; replace only terminal physical pause once.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/features/sessions/__tests__/formatSessionSummary.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-13/R-terminal",
+        "P3-13/unknown-known",
+        "P3-13/tours-cycles-list",
+        "P3-13/no-auto-R"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-742773db7e3644671c9c1dc6",
+      "state_id": "PRE3-DOC-P3-13-unknown-known",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-13"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Known totals built from event ledger; unilateral = 225 s; BY_SIDE = 345 s with R = 120 s; BY_SERIES = 240 s with R = 120 s; unknown flag retained, no invented work.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/features/sessions/__tests__/formatSessionSummary.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-13/R-terminal",
+        "P3-13/unknown-known",
+        "P3-13/tours-cycles-list",
+        "P3-13/no-auto-R"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-fc1fb882be0b8158bf0502c9",
+      "state_id": "PRE3-DOC-P3-13-tours-cycles-list",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-13"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Existing structural repetition semantics preserved; applicable CR/Fin once per complete Exercise; list total equals full read calculated by one domain authority; symbols exact/≈/≥ correct.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/features/sessions/__tests__/formatSessionSummary.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-13/R-terminal",
+        "P3-13/unknown-known",
+        "P3-13/tours-cycles-list",
+        "P3-13/no-auto-R"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-4aaedf0fd0a2ed253c3469d4",
+      "state_id": "PRE3-DOC-P3-13-no-auto-R",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-13"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "New R = 0 s/absent, existing R = 30 s unchanged; Profile default used only by explicit recovery insertion outside PRE-3.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/features/sessions/__tests__/formatSessionSummary.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-13/R-terminal",
+        "P3-13/unknown-known",
+        "P3-13/tours-cycles-list",
+        "P3-13/no-auto-R"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-fa7135f1ed4e134cd3352957",
+      "state_id": "PRE3-DOC-P3-14-inverse-enumeration",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-14"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "N=2 gives 80 s and N=3 gives 120 s equally close; choose N=3, show adjustment = 120 s; exact request = 80 s chooses N=2 with no adjustment.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-14/inverse-enumeration",
+        "P3-14/inverse-boundaries"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-74d203d9c959b7ba2208f9f4",
+      "state_id": "PRE3-DOC-P3-14-inverse-boundaries",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-14"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Enumerate all N=1..99 independently with normalized N1; nearest feasible selected, no N=0/100; inverse disabled in variable/repetition/failure.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-14/inverse-enumeration",
+        "P3-14/inverse-boundaries"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-c1f64d5b502d4fa0a1f0df82",
+      "state_id": "PRE3-DOC-P3-15-corpus-276",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-15"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Concat equals all 276 expectedText; 140 no total/46 estimated/90 exact template distribution; sample amounts never read as oracle; numeric tokens/units bold, grammatical tokens normal.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/executionPhrase.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-15/corpus-276",
+        "P3-15/grammar-edges",
+        "P3-15/no-storage",
+        "P3-15/long-phrase"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-b9d2adab09887ccbe45ca531",
+      "state_id": "PRE3-DOC-P3-15-grammar-edges",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-15"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "P = 0 s omits only redundant total; P = 15 s includes 45 s; enumerate <=3 with puis, >3 true min/max; variable pause clause omitted without data loss; direction/order/cadence grammar correct.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/executionPhrase.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-15/corpus-276",
+        "P3-15/grammar-edges",
+        "P3-15/no-storage",
+        "P3-15/long-phrase"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-21bef031be084e8e02e5642e",
+      "state_id": "PRE3-DOC-P3-15-no-storage",
+      "kind": "PRESERVATION",
+      "preservation": "REQUIRED",
+      "scope_ids": [
+        "P3-15"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "No phrase or segments columns/JSON stored; generation at display; history parameters/actual durations unmodified.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/executionPhrase.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-15/corpus-276",
+        "P3-15/grammar-edges",
+        "P3-15/no-storage",
+        "P3-15/long-phrase"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-03626af0a0094638bfb59c8c",
+      "state_id": "PRE3-DOC-P3-15-long-phrase",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-15"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Full phrase flowing nested Text, intrinsic height, no ellipsis/max-lines/overflow; full unique VoiceOver phrase; card opens sheet.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/executionPhrase.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-15/corpus-276",
+        "P3-15/grammar-edges",
+        "P3-15/no-storage",
+        "P3-15/long-phrase"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-a21693802324acf3f17b1be5",
+      "state_id": "PRE3-DOC-P3-16-sheet-boundary",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-16"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Cancel leaves byte-equivalent parent; check atomically applies only valid effective params, no SQLite/service save; phrase updates.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-16/sheet-boundary",
+        "P3-16/fold-incomplete",
+        "P3-16/parent-guard",
+        "P3-16/failure-doubletap"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-514b489a9cf30114b782b094",
+      "state_id": "PRE3-DOC-P3-16-fold-incomplete",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-16"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "No apply/write; message identifies Série 2, visible/reachable correction; folding never clears rows/validation.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-16/sheet-boundary",
+        "P3-16/fold-incomplete",
+        "P3-16/parent-guard",
+        "P3-16/failure-doubletap"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-0236cc7bab0de9af20e004a6",
+      "state_id": "PRE3-DOC-P3-16-parent-guard",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-16"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Annuler retains full params/media/draft; confirm abandons; sheet cancel distinct from parent guard.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-16/sheet-boundary",
+        "P3-16/fold-incomplete",
+        "P3-16/parent-guard",
+        "P3-16/failure-doubletap"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-0e23418cff2d60d57118b91d",
+      "state_id": "PRE3-DOC-P3-16-failure-doubletap",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-16"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "One in-flight operation; rollback complete; draft/media retained; retry produces one Exercise/occurrence without partial duplicate.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-16/sheet-boundary",
+        "P3-16/fold-incomplete",
+        "P3-16/parent-guard",
+        "P3-16/failure-doubletap"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-8749cb64aacab3fb0714f950",
+      "state_id": "PRE3-DOC-P3-18-copy-complete",
+      "kind": "DATA",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-18"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "New occurrence/link IDs; full params/category/media metadata/order conserved; same physical assets; mutation of one copy cannot mutate source/snapshot.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/exerciseSnapshot.test.ts",
+        "src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "src/domain/sessions/__tests__/composition.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-18/copy-complete",
+        "P3-18/historical-immutability"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-a1828a86de25d6951ab73a9d",
+      "state_id": "PRE3-DOC-P3-18-historical-immutability",
+      "kind": "PRESERVATION",
+      "preservation": "REQUIRED",
+      "scope_ids": [
+        "P3-18"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Original serialized data/actual duration unchanged; derived phrase regenerates; no execution engine/history Repository invented.",
+      "functional_test_paths": [
+        "src/domain/activities/__tests__/exerciseSnapshot.test.ts",
+        "src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "src/domain/sessions/__tests__/composition.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-18/copy-complete",
+        "P3-18/historical-immutability"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-93bf9d29adf8b6f89b7a4a30",
+      "state_id": "PRE3-DOC-P3-19-hold",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-19"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Tap : 1; no repeated change before 500 ms; repeat 150 ms; prescribed step 1/5/10; directional multiples/clamping; immediate stop, no release tap.",
+      "functional_test_paths": [
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
+        "src/shared/ui/__tests__/ProfileStepper.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-19/hold",
+        "P3-19/non-accelerated",
+        "P3-19/exclusive-scroll"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-160d96a8656ca6a5c9e9ac27",
+      "state_id": "PRE3-DOC-P3-19-non-accelerated",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-19"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Bip/CR/Fin stay step 1; Profile keeps its existing policy; no propagation of PRE-3 acceleration by accident.",
+      "functional_test_paths": [
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
+        "src/shared/ui/__tests__/ProfileStepper.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-19/hold",
+        "P3-19/non-accelerated",
+        "P3-19/exclusive-scroll"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-0f77798651993abe63946c9b",
+      "state_id": "PRE3-DOC-P3-19-exclusive-scroll",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-19"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Only one inline control open, height unmounted when absent; header reachable; bottom values/check accessible; no draft mutation through fold.",
+      "functional_test_paths": [
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
+        "src/shared/ui/__tests__/ProfileStepper.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-19/hold",
+        "P3-19/non-accelerated",
+        "P3-19/exclusive-scroll"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-6de6b2934cac2f72a5d7fced",
+      "state_id": "PRE3-DOC-P3-20-all-surfaces",
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-20"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Per-element geometry/style/text tokens/master variants checked; system décor separately classified; no global visual postponement; each residual deviation named with impact/status/decision.",
+      "functional_test_paths": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/shared/i18n/__tests__/index.test.ts",
+        "src/shared/ui/__tests__/tokens.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-20/all-surfaces",
+        "P3-20/sheet-specific"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-06d67949ecd01647b731d3c9",
+      "state_id": "PRE3-DOC-P3-20-sheet-specific",
+      "kind": "UI",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-20"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Overlay #1F2129 alpha 0.34; Bip first-level before applicable total else countdown; at 402 x 36 / separator 330 vs indented x 52 / separator 314; adaptive relations at 360/440; header fixed body scroll.",
+      "functional_test_paths": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/shared/i18n/__tests__/index.test.ts",
+        "src/shared/ui/__tests__/tokens.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-20/all-surfaces",
+        "P3-20/sheet-specific"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-be6e7d796429be1c0f364017",
+      "state_id": "PRE3-DOC-P3-21-accessible-controls",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-21"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Complete labels, disabled states, current values, grouped phrase; focus enters modal and returns to launcher; equivalent non-drag ordering; touch 44 minimum per targeted contracts.",
+      "functional_test_paths": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ActivityMediaList.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "assertion_refs": [
+        "P3-21/accessible-controls"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-0dd4ace68df07f4ae660be2d",
+      "state_id": "PRE3-DOC-P3-22-scope-regression",
+      "kind": "PRESERVATION",
+      "preservation": "REQUIRED",
+      "scope_ids": [
+        "P3-22"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Existing Profile/reference withdrawal/duplicate rules/navigation preserved; no engine/timer/audio/execution media/Composition-PRE4/Catalogue-PRE5/calendar/tag rewrite; minimal adaptations traced.",
+      "functional_test_paths": [
+        "src/domain/sessions/__tests__/calculations.test.ts",
+        "src/domain/sessions/__tests__/composition.test.ts",
+        "src/domain/sessions/__tests__/validation.test.ts",
+        "src/features/activities/__tests__/ActivityCard.test.tsx",
+        "src/features/sessions/__tests__/SessionCard.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-22/scope-regression"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-4b5ff122ecc65b4ab59d834d",
+      "state_id": "PRE3-DOC-P3-23-import-multiple",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-23"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Three durable ordered associations to internal files; visible import state; no automatic camera/source expansion/conversion/product limit; custom order persists.",
+      "functional_test_paths": [
+        "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+        "src/features/activities/__tests__/ActivityMediaList.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "src/infrastructure/media/__tests__/VideoPoster.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-23/import-multiple",
+        "P3-23/cancel-local-error",
+        "P3-23/permissions",
+        "P3-23/file-preservation",
+        "P3-23/video-thumbnail"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-b21a196c714a22c5a7a681e6",
+      "state_id": "PRE3-DOC-P3-23-cancel-local-error",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-23"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Cancellation no error; other accepted items retained; failed item visible with Réessayer and draft intact; retry does not duplicate successful items.",
+      "functional_test_paths": [
+        "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+        "src/features/activities/__tests__/ActivityMediaList.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "src/infrastructure/media/__tests__/VideoPoster.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-23/import-multiple",
+        "P3-23/cancel-local-error",
+        "P3-23/permissions",
+        "P3-23/file-preservation",
+        "P3-23/video-thumbnail"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-b5634c649f29da401380c7d7",
+      "state_id": "PRE3-DOC-P3-23-permissions",
+      "kind": "FUNCTIONAL",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-23"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "No camera/microphone request; limited accepted; actionable refusal/settings; Android pending result consumed once; null name/assetId alone not fatal.",
+      "functional_test_paths": [
+        "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+        "src/features/activities/__tests__/ActivityMediaList.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "src/infrastructure/media/__tests__/VideoPoster.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-23/import-multiple",
+        "P3-23/cancel-local-error",
+        "P3-23/permissions",
+        "P3-23/file-preservation",
+        "P3-23/video-thumbnail"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-1b17ad539ed0d149b2ce988f",
+      "state_id": "PRE3-DOC-P3-23-file-preservation",
+      "kind": "PRESERVATION",
+      "preservation": "REQUIRED",
+      "scope_ids": [
+        "P3-23"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "Referenced bytes never deleted; only confirmed unreferenced prepared files owned by this draft eligible for cleanup; no crash global purge.",
+      "functional_test_paths": [
+        "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+        "src/features/activities/__tests__/ActivityMediaList.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "src/infrastructure/media/__tests__/VideoPoster.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-23/import-multiple",
+        "P3-23/cancel-local-error",
+        "P3-23/permissions",
+        "P3-23/file-preservation",
+        "P3-23/video-thumbnail"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "requirement_id": "REQ-5b34a61e1bba57ca4cc09932",
+      "state_id": "PRE3-DOC-P3-17-persistence-reopening",
+      "kind": "DATA",
+      "preservation": "NONE_DECLARED",
+      "scope_ids": [
+        "P3-17"
+      ],
+      "source": {
+        "authority": "FUNCTIONAL",
+        "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+        "revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+        "source_kind": "MARKDOWN",
+        "unit_disposition": "REQUIREMENT_SOURCE",
+        "unit_fingerprint": "5777ec8b8d75b40534f6b973ba6e04e5bf2dd0dca2b65e78954ffddb21e3c87f",
+        "unit_locator": "FULL_FILE"
+      },
+      "expected": "L’enregistrement puis la réouverture conservent les paramètres et les médias dans leur ordre ; les données déjà présentes restent compatibles et l’historique n’est pas réécrit.",
+      "functional_test_paths": [
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "src/infrastructure/database/__tests__/migrateDatabase.test.ts"
+      ],
+      "assertion_refs": [
+        "P3-17/migration-real",
+        "P3-17/canonical-roundtrip",
+        "P3-17/corrupt-version",
+        "P3-17/transaction-FK"
+      ],
+      "figma_frame": null,
+      "presentation_scope": null,
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    }
+  ],
+  "migration_requirements": [
+    {
+      "requirement_id": "PRE3-MIG-fresh-v9",
+      "kind": "MIGRATION",
+      "scope_ids": [
+        "P3-17"
+      ],
+      "expected": "Base vide : migrations 001..009 appliquées ; version 9, tables et contraintes disponibles."
+    },
+    {
+      "requirement_id": "PRE3-MIG-populated-v8-v9",
+      "kind": "MIGRATION",
+      "scope_ids": [
+        "P3-17"
+      ],
+      "expected": "Base v8 peuplée : IDs, liens, dates et valeurs scalaires conservés ; nouveaux paramètres versionnés disponibles sans backfill du Profil."
+    },
+    {
+      "requirement_id": "PRE3-MIG-idempotent",
+      "kind": "MIGRATION",
+      "scope_ids": [
+        "P3-17"
+      ],
+      "expected": "Deuxième appel de migration : version et données identiques, aucune association dupliquée."
+    },
+    {
+      "requirement_id": "PRE3-MIG-foreign-key-position",
+      "kind": "MIGRATION",
+      "scope_ids": [
+        "P3-17"
+      ],
+      "expected": "PRAGMA foreign_key_check vide ; insertion de lien orphelin ou position dupliquée échoue ; rollback intégral."
+    },
+    {
+      "requirement_id": "PRE3-MIG-malformed-unknown-json",
+      "kind": "MIGRATION",
+      "scope_ids": [
+        "P3-17"
+      ],
+      "expected": "JSON corrompu/version inconnue : erreur typée, aucune coercition silencieuse ni écriture destructive ; brouillon conservé."
+    },
+    {
+      "requirement_id": "PRE3-MIG-scalar-projection",
+      "kind": "MIGRATION",
+      "scope_ids": [
+        "P3-17"
+      ],
+      "expected": "JSON canonique et projections scalaires concordants ; aucun writer indépendant concurrent ; relecture Catalogue et Séance identique."
+    },
+    {
+      "requirement_id": "PRE3-MIG-legacy-out-of-bounds",
+      "kind": "MIGRATION",
+      "scope_ids": [
+        "P3-17"
+      ],
+      "expected": "Anciennes valeurs hors bornes nouvelles conservées à la lecture ; aucun clamp implicite ; nouvelle modification validée explicitement."
+    },
+    {
+      "requirement_id": "PRE3-MIG-per-statement-rollback",
+      "kind": "MIGRATION",
+      "scope_ids": [
+        "P3-17"
+      ],
+      "expected": "Échec injecté à chaque instruction asset/définition/occurrence/lien : toutes les données initiales inchangées, prêt média conservé pour réessai."
+    }
+  ],
+  "canonical_data_requirement": {
+    "requirement_id": "PRE3-DATA-ExecutionParameters",
+    "kind": "DATA",
+    "scope_ids": [
+      "P3-04",
+      "P3-08",
+      "P3-17",
+      "P3-18"
+    ],
+    "expected": "Version 1 ; mode et series UNIFORM/VARIABLE explicitement discriminés ; pas de phrase/total persistés ; projections dérivées, N=1 effectif normalisé ; R occurrence seulement."
+  },
+  "assertions": [
+    {
+      "assertionId": "P3-01/Catalogue:create",
+      "scopeId": "P3-01",
+      "given": "Parent persisted or new according to route Catalogue:create",
+      "when": "Open, change target/cadence/order/media, apply, finish, reopen",
+      "expected": "All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+      "proposedTestPaths": [
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-01/Catalogue:edit",
+      "scopeId": "P3-01",
+      "given": "Parent persisted or new according to route Catalogue:edit",
+      "when": "Open, change target/cadence/order/media, apply, finish, reopen",
+      "expected": "All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+      "proposedTestPaths": [
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-01/Session:create",
+      "scopeId": "P3-01",
+      "given": "Parent persisted or new according to route Session:create",
+      "when": "Open, change target/cadence/order/media, apply, finish, reopen",
+      "expected": "All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+      "proposedTestPaths": [
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-01/Session:edit",
+      "scopeId": "P3-01",
+      "given": "Parent persisted or new according to route Session:edit",
+      "when": "Open, change target/cadence/order/media, apply, finish, reopen",
+      "expected": "All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+      "proposedTestPaths": [
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-01/copy-isolation",
+      "scopeId": "P3-01",
+      "given": "A saved definition and two copied occurrences",
+      "when": "Change one occurrence then change the definition",
+      "expected": "Other occurrence and definition/occurrence snapshots keep their own complete values and ordered media.",
+      "proposedTestPaths": [
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/domain/sessions/__tests__/SessionDraft.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-02/editor-fields",
+      "scopeId": "P3-02",
+      "given": "New empty editor",
+      "when": "Enter name/description; choose category/zones; open parameters",
+      "expected": "Name, description, media and all required selectors accessible; finish disabled or validation prevents write until required values complete; completed save returns to its host.",
+      "proposedTestPaths": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-02/keyboard-scroll",
+      "scopeId": "P3-02",
+      "given": "Small viewport and keyboard visible",
+      "when": "Focus final field and scroll",
+      "expected": "Focused field and Terminer remain reachable; safe areas/header respected; no fixed height clips text.",
+      "proposedTestPaths": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE",
+        "DEVICE_CHECK"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-03/reference-retired",
+      "scopeId": "P3-03",
+      "given": "Existing Exercise references withdrawn category/zone",
+      "when": "Open, change description and save",
+      "expected": "Original withdrawn assignments retained under PRE-2 policy; no implicit replacement/removal.",
+      "proposedTestPaths": [
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-03/empty-create-name",
+      "scopeId": "P3-03",
+      "given": "Creation form for category then zone; empty/whitespace name",
+      "when": "Open form without typing, then clear typed name",
+      "expected": "Ajouter inactive, no error message for empty name; valid name follows PRE-2 uniqueness/reactivation rules.",
+      "proposedTestPaths": [
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-03/zones-presentation",
+      "scopeId": "P3-03",
+      "given": "Zones sheet with several values",
+      "when": "Select/remove/reopen",
+      "expected": "Text pills and header cross/title/check match reference; no silhouette repeated per option; selections survive parent round trip.",
+      "proposedTestPaths": [
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-04/mode-targets",
+      "scopeId": "P3-04",
+      "given": "Complete duration variable draft",
+      "when": "Switch to repetitions and failure, then return before check",
+      "expected": "N, pauses and cadence conserved; incompatible targets null, failure has no numeric target; prior mode targets restored only during this opening.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-04/bounds",
+      "scopeId": "P3-04",
+      "given": "Each field at lower/upper bound and immediately outside; integer/fraction/null cases",
+      "when": "Validate active parameters",
+      "expected": "D1..5999, Rep1..100, N=1..99, P/PC0..300, b0..10, CR/Fin0..60 accepted exactly; invalid values identify field and series; null numeric target is incomplete.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParameters.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-05/equal-variable",
+      "scopeId": "P3-05",
+      "given": "N3 uniform target30/P10",
+      "when": "Activate variable; leave all values equal; save/reopen",
+      "expected": "Saved kind remains VARIABLE; equality never forces uniform; all three rows and their order survive.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-05/toggle-restoration",
+      "scopeId": "P3-05",
+      "given": "Variable rows (30,10),(45,20),(60,30)",
+      "when": "Move last row first, go uniform, return variable before check",
+      "expected": "Uniform uses current first (60,30); variable restores (60,30),(30,10),(45,20).",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-06/shrink-regrow",
+      "scopeId": "P3-06",
+      "given": "Rows A/B/C/D with distinct target and pause",
+      "when": "N4→2→5 during one opening",
+      "expected": "A/B stay active, C/D return in relative order, fifth clones last active D; no equality inference.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-06/commit-hidden",
+      "scopeId": "P3-06",
+      "given": "Rows A/B/C/D reduced to N2",
+      "when": "Check, close, reopen, increase to N4",
+      "expected": "Temporary removed C/D not persisted; new rows are clones of effective last row B.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-07/move-terminal",
+      "scopeId": "P3-07",
+      "given": "A30/P10 B45/P20 C60/P30 and explicit R = 120 s",
+      "when": "Move C first",
+      "expected": "Rows C/A/B; intrinsic = 195 s unchanged; occurrence = 195 s−20+120=295 because new final pause 20 s; cancel restores prior occurrence = 285 s.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/activities/__tests__/executionCalculations.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-07/move-accessible",
+      "scopeId": "P3-07",
+      "given": "Variable three rows",
+      "when": "Use Monter/Descendre rather than drag",
+      "expected": "Moves target and pause together, renumbers, respects first/last boundaries and yields same draft as drag.",
+      "proposedTestPaths": [
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST",
+        "ACCESSIBILITY_CHECK",
+        "DEVICE_CHECK"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-08/immediate-N1",
+      "scopeId": "P3-08",
+      "given": "Variable N3, bilateral BY_SERIES, first90/P = 15 s, PC10",
+      "when": "Reduce to N1 without pressing check",
+      "expected": "Effective kind UNIFORM and BY_SIDE immediately; controls without effect disabled; intrinsic = 220 s; requested old order not used by calculation.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-08/restoration-N1",
+      "scopeId": "P3-08",
+      "given": "Previous N3 variable/BY_SERIES",
+      "when": "N3→1→3 before check then separately commit at1",
+      "expected": "First path restores temporary rows/order; committed N=1 opens as uniform/BY_SIDE without stale reserve.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-09/directions",
+      "scopeId": "P3-09",
+      "given": "Same targets/pauses for RIGHT_LEFT then LEFT_RIGHT",
+      "when": "Select each order BY_SIDE/BY_SERIES at N3",
+      "expected": "Totals independent of starting side; phrase states correct direction/order; PC contributes once BY_SIDE, N times BY_SERIES.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/domain/activities/__tests__/executionPhrase.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-09/unilateral-controls",
+      "scopeId": "P3-09",
+      "given": "Bilateral data with PC = 15 s",
+      "when": "Select no side change",
+      "expected": "Side order/PC have no effect on unilateral calculation; hidden/inactive controls cannot inject PC.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-10/profile-new-only",
+      "scopeId": "P3-10",
+      "given": "Profile PC10 CR10 Fin5; saved Exercise with PC7 CR3 Fin2",
+      "when": "Create new; activate side; change Profile; reopen saved",
+      "expected": "New creation snapshots defaults; PC initialized on activation; saved 7/3/2 unchanged after Profile changes; no retroactive migration.",
+      "proposedTestPaths": [
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-10/legacy-neutral-proposal",
+      "scopeId": "P3-10",
+      "given": "Old scalar Exercise without CR/Fin",
+      "when": "Read after migration",
+      "expected": "No current Profile read or backfill; proposed neutral0 must pass plan review/owner validation; legacy targets/pauses/direction conserved.",
+      "proposedTestPaths": [
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-11/all-modes-bip",
+      "scopeId": "P3-11",
+      "given": "Each of three modes",
+      "when": "Set cadence0/1/10; reject −1/11/fraction; switch modes; save/reopen/copy",
+      "expected": "Bip present and common in all modes, same valid integer retained across save/copy; no execution sound introduced.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-12/normative-totals",
+      "scopeId": "P3-12",
+      "given": "attendus-numeriques.json cases A/C/D/CADENCE/DURATION_BEEP",
+      "when": "Calculate independently and render editor",
+      "expected": "A : 195 s exact C : 405 s exact D : 375 s exact Rep cadence ≈ 300 s Duration cadence : 300 s exact; no historical 2 s fallback.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-12/omission",
+      "scopeId": "P3-12",
+      "given": "Reps b0 or Failure b0/4 with P30/45/60",
+      "when": "Render editor and summary",
+      "expected": "No exercise duration line/value/0/dash/≥; known = 135 s retained for Session; invalid targets cause validation error rather than omitted result.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-13/R-terminal",
+      "scopeId": "P3-13",
+      "given": "A : 195 s finalP30 and N1 bilateral220 finalP = 15 s",
+      "when": "Apply R = 120 s to A, R = 30 s to N1, then R = 0 s/absent",
+      "expected": "A : 285 s, N=1 : 235 s; R = 0 s/absent leaves A : 195 s/N=1 : 220 s; replace only terminal physical pause once.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-13/unknown-known",
+      "scopeId": "P3-13",
+      "given": "Unknown-work E/F P30/45/60",
+      "when": "Apply R = 120 s and bilateral BY_SIDE PC = 15 s, separately BY_SERIES",
+      "expected": "Known totals built from event ledger; unilateral = 225 s; BY_SIDE = 345 s with R = 120 s; BY_SERIES = 240 s with R = 120 s; unknown flag retained, no invented work.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-13/tours-cycles-list",
+      "scopeId": "P3-13",
+      "given": "Session with exercises before/in/after Circuit and Tours 1/99, explicit R and mixed known/estimated/unknown",
+      "when": "Create/read/list/duplicate and aggregate",
+      "expected": "Existing structural repetition semantics preserved; applicable CR/Fin once per complete Exercise; list total equals full read calculated by one domain authority; symbols exact/≈/≥ correct.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "src/features/sessions/__tests__/formatSessionSummary.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-13/no-auto-R",
+      "scopeId": "P3-13",
+      "given": "New occurrence; another existing R = 30 s occurrence",
+      "when": "Add definition/create local then save existing Session",
+      "expected": "New R = 0 s/absent, existing R = 30 s unchanged; Profile default used only by explicit recovery insertion outside PRE-3.",
+      "proposedTestPaths": [
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-14/inverse-enumeration",
+      "scopeId": "P3-14",
+      "given": "Duration uniform D30 P10 UNI; requested total100",
+      "when": "Invert total",
+      "expected": "N=2 gives 80 s and N=3 gives 120 s equally close; choose N=3, show adjustment = 120 s; exact request = 80 s chooses N=2 with no adjustment.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-14/inverse-boundaries",
+      "scopeId": "P3-14",
+      "given": "Duration uniform bilateral BY_SERIES with PC and N1 normalization",
+      "when": "Try totals below min, at min/max and above max",
+      "expected": "Enumerate all N=1..99 independently with normalized N1; nearest feasible selected, no N=0/100; inverse disabled in variable/repetition/failure.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-15/corpus-276",
+      "scopeId": "P3-15",
+      "given": "attendus-phrases-276.json representative parameter inputs",
+      "when": "Generate segments from application with independent oracle result",
+      "expected": "Concat equals all 276 expectedText; 140 no total/46 estimated/90 exact template distribution; sample amounts never read as oracle; numeric tokens/units bold, grammatical tokens normal.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionPhrase.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-15/grammar-edges",
+      "scopeId": "P3-15",
+      "given": "N1 UNI D30 P = 0 s thenP = 15 s; variable2/3/4 including equal rows and reordered targets",
+      "when": "Generate phrase and render",
+      "expected": "P = 0 s omits only redundant total; P = 15 s includes 45 s; enumerate <=3 with puis, >3 true min/max; variable pause clause omitted without data loss; direction/order/cadence grammar correct.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionPhrase.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-15/no-storage",
+      "scopeId": "P3-15",
+      "given": "Definition/occurrence/snapshot serializers with phrase-shaped extraneous values",
+      "when": "Save/read/regenerate under new grammar",
+      "expected": "No phrase or segments columns/JSON stored; generation at display; history parameters/actual durations unmodified.",
+      "proposedTestPaths": [
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "src/domain/activities/__tests__/exerciseSnapshot.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-15/long-phrase",
+      "scopeId": "P3-15",
+      "given": "Case144/224 characters and narrow/enlarged text",
+      "when": "Render parameters card",
+      "expected": "Full phrase flowing nested Text, intrinsic height, no ellipsis/max-lines/overflow; full unique VoiceOver phrase; card opens sheet.",
+      "proposedTestPaths": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE",
+        "ACCESSIBILITY_CHECK",
+        "DEVICE_CHECK"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-16/sheet-boundary",
+      "scopeId": "P3-16",
+      "given": "Parent draft with known values",
+      "when": "Open sheet, modify, cancel/system back; repeat then check",
+      "expected": "Cancel leaves byte-equivalent parent; check atomically applies only valid effective params, no SQLite/service save; phrase updates.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-16/fold-incomplete",
+      "scopeId": "P3-16",
+      "given": "Variable row2 target null, table collapsed",
+      "when": "Press check",
+      "expected": "No apply/write; message identifies Série 2, visible/reachable correction; folding never clears rows/validation.",
+      "proposedTestPaths": [
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-16/parent-guard",
+      "scopeId": "P3-16",
+      "given": "Changed parent with ordered media",
+      "when": "Request abandon; choose Annuler then confirm later",
+      "expected": "Annuler retains full params/media/draft; confirm abandons; sheet cancel distinct from parent guard.",
+      "proposedTestPaths": [
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-16/failure-doubletap",
+      "scopeId": "P3-16",
+      "given": "Valid draft; database deliberately fails midway",
+      "when": "Double tap Terminer; retry after error",
+      "expected": "One in-flight operation; rollback complete; draft/media retained; retry produces one Exercise/occurrence without partial duplicate.",
+      "proposedTestPaths": [
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-17/migration-real",
+      "scopeId": "P3-17",
+      "given": "Fresh DB and v8 populated incl old outside-new-bounds values/withdrawn references",
+      "when": "Migrate through 009 then repeat",
+      "expected": "Real SQLite preserves IDs/dates/old values and links; no modification 001..008; repeat idempotent; PRAGMA foreign_key_check empty.",
+      "proposedTestPaths": [
+        "src/infrastructure/database/__tests__/migrateDatabase.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-17/canonical-roundtrip",
+      "scopeId": "P3-17",
+      "given": "All modes, variable equal rows, bounds, side order, CR/Fin/media",
+      "when": "Save on real SQLite, close database, reopen",
+      "expected": "All canonical fields/order preserved and JSON authoritative over scalar projections; failure target null; reps 100 accepted; count 99.",
+      "proposedTestPaths": [
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-17/corrupt-version",
+      "scopeId": "P3-17",
+      "given": "Rows with malformed canonical JSON/unknown version; another null legacy JSON row",
+      "when": "Read",
+      "expected": "Malformed/unknown throws explicit data error, never scalar fallback; null legacy maps conservatively without Profil.",
+      "proposedTestPaths": [
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-17/transaction-FK",
+      "scopeId": "P3-17",
+      "given": "Create/update media assets+owner+links+positions with injected error at each statement",
+      "when": "Commit/rollback then query physical DB",
+      "expected": "No partial assets/owners/links/reordering; valid FK, unique positions; retry atomic; existing ID/created_at stable.",
+      "proposedTestPaths": [
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-18/copy-complete",
+      "scopeId": "P3-18",
+      "given": "Canonical definition with variable rows and photo/video in custom order",
+      "when": "Select, duplicate occurrence, serialize immutable snapshot",
+      "expected": "New occurrence/link IDs; full params/category/media metadata/order conserved; same physical assets; mutation of one copy cannot mutate source/snapshot.",
+      "proposedTestPaths": [
+        "src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "src/domain/activities/__tests__/exerciseSnapshot.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-18/historical-immutability",
+      "scopeId": "P3-18",
+      "given": "Serialized old object including actual duration",
+      "when": "Change Profile, grammar and catalogue definition",
+      "expected": "Original serialized data/actual duration unchanged; derived phrase regenerates; no execution engine/history Repository invented.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/exerciseSnapshot.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-19/hold",
+      "scopeId": "P3-19",
+      "given": "Stepper value37; prescribed accelerated field",
+      "when": "Press and hold across500ms/2s/4s; release/cancel",
+      "expected": "Tap : 1; no repeated change before 500 ms; repeat 150 ms; prescribed step 1/5/10; directional multiples/clamping; immediate stop, no release tap.",
+      "proposedTestPaths": [
+        "src/shared/ui/__tests__/ProfileStepper.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-19/non-accelerated",
+      "scopeId": "P3-19",
+      "given": "Bip/CR/Fin and existing Profile consumer",
+      "when": "Hold each for >4s",
+      "expected": "Bip/CR/Fin stay step 1; Profile keeps its existing policy; no propagation of PRE-3 acceleration by accident.",
+      "proposedTestPaths": [
+        "src/shared/ui/__tests__/ProfileStepper.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-19/exclusive-scroll",
+      "scopeId": "P3-19",
+      "given": "Sheet rows99, wheel then segmented control",
+      "when": "Open another control; collapse; scroll to bottom",
+      "expected": "Only one inline control open, height unmounted when absent; header reachable; bottom values/check accessible; no draft mutation through fold.",
+      "proposedTestPaths": [
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE",
+        "DEVICE_CHECK"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-20/all-surfaces",
+      "scopeId": "P3-20",
+      "given": "41 frozen frame states and applicable mapping-elements-ui.jsonl rows",
+      "when": "Compare delivered reference states at 402 and adapt 360/440",
+      "expected": "Per-element geometry/style/text tokens/master variants checked; system décor separately classified; no global visual postponement; each residual deviation named with impact/status/decision.",
+      "proposedTestPaths": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-20/sheet-specific",
+      "scopeId": "P3-20",
+      "given": "Duration/repetition/failure with/without total and bilateral groups",
+      "when": "Render",
+      "expected": "Overlay #1F2129 alpha 0.34; Bip first-level before applicable total else countdown; at 402 x 36 / separator 330 vs indented x 52 / separator 314; adaptive relations at 360/440; header fixed body scroll.",
+      "proposedTestPaths": [
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-21/accessible-controls",
+      "scopeId": "P3-21",
+      "given": "Sheet/editor/sortable rows/media with disabled controls",
+      "when": "Query roles/labels/states/actions then run VoiceOver",
+      "expected": "Complete labels, disabled states, current values, grouped phrase; focus enters modal and returns to launcher; equivalent non-drag ordering; touch 44 minimum per targeted contracts.",
+      "proposedTestPaths": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST",
+        "ACCESSIBILITY_CHECK",
+        "DEVICE_CHECK"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-22/scope-regression",
+      "scopeId": "P3-22",
+      "given": "PRE-1/PRE-2 baseline tests and actual consumer graph",
+      "when": "Run suites and inspect every changed shared consumer",
+      "expected": "Existing Profile/reference withdrawal/duplicate rules/navigation preserved; no engine/timer/audio/execution media/Composition-PRE4/Catalogue-PRE5/calendar/tag rewrite; minimal adaptations traced.",
+      "proposedTestPaths": [
+        "src/shared/ui/__tests__/ProfileStepper.test.ts",
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "src/features/sessions/__tests__/compositionPresentation.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-23/import-multiple",
+      "scopeId": "P3-23",
+      "given": "Photo+video+photo from photothèque; native representations returned",
+      "when": "Import, reorder, finish, restart and reopen",
+      "expected": "Three durable ordered associations to internal files; visible import state; no automatic camera/source expansion/conversion/product limit; custom order persists.",
+      "proposedTestPaths": [
+        "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+        "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST",
+        "DEVICE_CHECK"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-23/cancel-local-error",
+      "scopeId": "P3-23",
+      "given": "Multiple chosen media with second incompatible/copy failure/full storage",
+      "when": "Cancel picker separately; import then retry failed item",
+      "expected": "Cancellation no error; other accepted items retained; failed item visible with Réessayer and draft intact; retry does not duplicate successful items.",
+      "proposedTestPaths": [
+        "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+        "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-23/permissions",
+      "scopeId": "P3-23",
+      "given": "iOS access limited/refused/permanent denial; Android picker pending result",
+      "when": "Invoke import at user action",
+      "expected": "No camera/microphone request; limited accepted; actionable refusal/settings; Android pending result consumed once; null name/assetId alone not fatal.",
+      "proposedTestPaths": [
+        "src/domain/media/__tests__/ActivityMediaImportService.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST",
+        "DEVICE_CHECK"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-23/file-preservation",
+      "scopeId": "P3-23",
+      "given": "One media physically shared by definition, two occurrences and an active draft",
+      "when": "Remove one link, cancel/confirm parent, DB failure, duplicate",
+      "expected": "Referenced bytes never deleted; only confirmed unreferenced prepared files owned by this draft eligible for cleanup; no crash global purge.",
+      "proposedTestPaths": [
+        "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-23/video-thumbnail",
+      "scopeId": "P3-23",
+      "given": "Stable saved native video file",
+      "when": "Reopen editor and obtain poster; close screen",
+      "expected": "Poster regenerated with verified SDK API; no persisted native SharedRef/fake URI; native object released; no autoplay/audio/execution playback.",
+      "proposedTestPaths": [
+        "src/infrastructure/media/__tests__/VideoPoster.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST",
+        "DEVICE_CHECK"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    }
+  ]
+}
