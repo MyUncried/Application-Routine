@@ -320,7 +320,6 @@ function buildPrompt(request, taskText, configDir) {
     ...(request.authorized_plan ? [
       'Plan approuvé opposable (blob ' + request.authorized_plan.plan_blob_oid + ', lu au HEAD protocolaire, en lecture seule): ' +
         authorizedPlanPath() + ' (chemin relatif au répertoire de travail).',
-      '- Les références file-bundle .github/orchestration/vnext-contracts/ du plan sont relatives à .kodjo-authorized-plan/ ; lire leurs manifestes et parties dans ce dossier en lecture seule, jamais leurs copies applicatives.',
       '- Toute mention de `' + path.posix.basename(request.authorized_plan.plan_path) + '` dans la mission désigne ce fichier. La copie de ' +
         request.authorized_plan.plan_path + ' présente dans l’arbre de travail applicatif est celle de la livraison existante : elle n’est pas opposable et ne doit pas être lue comme plan.',
       '',

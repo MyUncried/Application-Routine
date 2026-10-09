@@ -260,3 +260,10 @@ Ces fichiers participent aux points d’entrée existants ou à leurs dépendanc
 - `scripts/kodjo/lib/vnext-test-evidence.js` — vérification partagée du run, du job, de l’artefact et de l’arbre testé avant finalisation/clôture.
 
 Dépendance VNext de clôture (IA-F07) : `scripts/kodjo/lib/vnext-review-coverage.js` → `review-contract.js`, `vnext-contract.js`, `machine-block.js` ; consommée par `finalize-vnext-delivery.js`. Le contexte/rapport passent par le plan approuvé ; les champs dérivés sont conservés par les consommateurs GitHub et locaux.
+
+## Dépendances partagées du transport VNext — correctif de volume #341
+
+| Fichier | Rôle |
+|---|---|
+| `scripts/kodjo/lib/vnext-file-bundle.js` | Transport intégral borné, restitution et contrôle des empreintes ; dépendance du gate partagé |
+| `scripts/kodjo/lib/vnext-plan-bundles.js` | Lecture des parties du plan autorisé à la révision protocolaire figée |

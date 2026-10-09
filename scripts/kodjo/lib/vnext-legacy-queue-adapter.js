@@ -117,6 +117,7 @@ function renderCompatibilityPlan(executionRequest, planContract, uiAtomicityCont
     ...tagged('KODJO_VNEXT_PLAN_CONTRACT_JSON',planContract)].join('\n') : Plan.renderMarkdown(planContract).trimEnd();
   return [
     '# KODJO VNext — Projection transport du plan',
+    'Les références .github/orchestration/vnext-contracts/ sont relatives au dossier de cette projection autorisée ; lire les manifestes et parties matérialisés en lecture seule, à la révision protocolaire figée.',
     '',
     'application_head=' + executionRequest.application_head,
     'plan_contract_hash=' + executionRequest.plan_contract_hash,

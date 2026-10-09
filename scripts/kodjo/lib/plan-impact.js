@@ -165,11 +165,7 @@ function extractTaggedJson(markdown, tag, missingCode = 'PLAN_SCOPE_UNCLASSIFIED
   const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const matches = [...String(markdown).matchAll(new RegExp('<' + escaped + '>\\s*([\\s\\S]*?)\\s*</' + escaped + '>', 'g'))];
   if (matches.length !== 1) fail(missingCode, tag + ' attendu exactement une fois, trouve ' + matches.length);
-  try {
-    const value = JSON.parse(matches[0][1]);
-    return value?.schema_version === 'kodjo.vnext.block-bundle.v1'
-      ? require('./machine-block').parse(markdown, tag, { code: missingCode }) : value;
-  } catch (error) { fail(missingCode, tag + ' JSON invalide: ' + error.message); }
+  try { return JSON.parse(matches[0][1]); } catch (error) { fail(missingCode, tag + ' JSON invalide: ' + error.message); }
 }
 
 function rowSignature(row) {
