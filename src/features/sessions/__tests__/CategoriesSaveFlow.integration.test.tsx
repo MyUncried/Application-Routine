@@ -1,4 +1,4 @@
-import { act, fireEvent, renderRouter, screen, waitFor } from "expo-router/testing-library";
+import { act, fireEvent, renderRouter, screen, waitFor, within } from "expo-router/testing-library";
 import { describe, expect, it, jest } from "@jest/globals";
 import type { ReactNode } from "react";
 
@@ -88,6 +88,37 @@ const categories = strings.screens.categories;
  * plus simple et plus robuste qu'une migration paresseuse déclenchée depuis
  * l'intérieur d'un composant React.
  */
+/**
+ * PRE-3 (#340, correction revue 1, REV-04 — extension technique bornée) :
+ * un NOUVEL Exercice exige Nom, une Catégorie, au moins une Zone et des
+ * paramètres valides (périmètre §5, chapitre 06). Saisie complète dans
+ * l'éditeur réel : Catégorie prédéfinie (sélection au toucher), Zone (✓),
+ * feuille Paramètres (mode, cible), puis ✓ de la feuille. Terminer est
+ * pressé par l'appelant. Contrats du parcours conservés : persistance
+ * complète, ordre, aucun doublon, échec technique atomique, retour Catalogue.
+ */
+async function fillNewExercise(name: string, mode: "Durée" | "Répétitions", zoneId: string) {
+  fireEvent.changeText(screen.getByLabelText(exercise.name), name);
+  fireEvent.press(screen.getByTestId("activity-editor-category-button"));
+  const [firstCategory] = await screen.findAllByTestId(/^category-picker-tag-(?!row$)/);
+  fireEvent.press(firstCategory!);
+  fireEvent.press(screen.getByTestId("exercise-body-zones-open"));
+  fireEvent.press(await screen.findByTestId(`body-zone-selector-tag-${zoneId}`));
+  await act(async () => {
+    fireEvent.press(screen.getByTestId("body-zone-picker-confirm"));
+  });
+  fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+  fireEvent.press(screen.getByTestId("execution-sheet-mode-value"));
+  fireEvent.press(within(screen.getByTestId("execution-sheet-mode-control")).getByText(mode));
+  if (mode === "Durée") {
+    fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
+    fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 30 } });
+    fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+  }
+  // Répétitions : première sélection uniforme → cible initiale 1 (v13 §6).
+  fireEvent.press(screen.getByTestId("execution-sheet-validate"));
+}
+
 async function renderCreationRouter() {
   const database = NodeSqliteDatabase.openInMemory();
   await migrateDatabase(database);
@@ -151,29 +182,15 @@ describe("Parcours Composition → Catégories → Enregistrer → Catalogue (T0
     fireEvent.changeText(screen.getByLabelText(composition.name), "Circuit complet");
     fireEvent.press(screen.getByLabelText(composition.addActivity));
     fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
-    fireEvent.changeText(screen.getByLabelText(exercise.name), "Gainage");
-    // T02-S02 (D-137) : plus d'étape `Valider` — la Zone corporelle est
-    // atteinte en déployant sa section, sur le même écran. L'en-tête est
-    // ciblé par son `testID` : son titre n'est délibérément pas un nom
-    // accessible unique (il est aussi celui du sélecteur qu'il contient).
-    //
-    // V2-PRE-2 (plan §6.5) : la sélection multiple s'ouvre désormais dans
-    // `BodyZonePickerModal` (confirmation explicite par `Confirmer`).
-    fireEvent.press(screen.getByTestId("exercise-section-body-zones-header"));
-    fireEvent.press(screen.getByTestId("exercise-body-zones-open"));
-    fireEvent.press(await screen.findByTestId("body-zone-selector-tag-dos"));
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("body-zone-picker-confirm"));
-    });
+    // T02-S02 (D-137) : aucune étape `Valider` ; PRE-3 : saisie complète
+    // (Catégorie, Zone via `BodyZonePickerModal`, feuille Paramètres).
+    await fillNewExercise("Gainage", "Durée", "dos");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
     // Activité 2 (Répétitions) — nouvel ajout, jamais un remplacement.
     fireEvent.press(screen.getByLabelText(composition.addActivity));
     fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
-    fireEvent.changeText(screen.getByLabelText(exercise.name), "Squats");
-    fireEvent.press(
-      screen.getByLabelText(exercise.executionMode.repetitions),
-    );
+    await fillNewExercise("Squats", "Répétitions", "cuisses");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
     // Continuer → Catégories (confirmation finale).
@@ -201,25 +218,36 @@ describe("Parcours Composition → Catégories → Enregistrer → Catalogue (T0
     expect(activityRows.map((row) => row.name)).toEqual(["Gainage", "Squats"]);
     expect(activityRows.map((row) => row.execution_mode)).toEqual(["DURATION", "REPETITIONS"]);
 
-    const bodyZoneRow = await database.getFirstAsync<{ count: number }>(
-      "SELECT COUNT(*) AS count FROM activity_body_zones",
+    // PRE-3 : chaque nouvel Exercice porte au moins une Zone (périmètre §5) —
+    // une Zone par Activité, chacune persistée sans perte.
+    const bodyZoneRows = await database.getAllAsync<{ body_zone_id: string }>(
+      "SELECT body_zone_id FROM activity_body_zones ORDER BY body_zone_id ASC",
     );
-    expect(bodyZoneRow?.count).toBe(1);
+    expect(bodyZoneRows.map((row) => row.body_zone_id)).toEqual(["cuisses", "dos"]);
+
+    // PRE-3 : paramètres canoniques et Catégorie persistés avec chaque occurrence.
+    const canonicalRows = await database.getAllAsync<{ execution_parameters: string | null; category_id: string | null }>(
+      "SELECT execution_parameters, category_id FROM activities ORDER BY position ASC",
+    );
+    expect(canonicalRows.every((row) => row.execution_parameters !== null && row.category_id !== null)).toBe(true);
 
     database.close();
   });
 
   it("shows the exact failure message, keeps the draft intact and re-enables the action on a technical save failure — no navigation, no partial data", async () => {
     const { router, database } = await renderCreationRouter();
-    // Force une erreur technique en fermant la connexion avant l'enregistrement.
-    database.close();
 
     fireEvent.changeText(screen.getByLabelText(composition.name), "Séance qui échoue");
     fireEvent.press(screen.getByLabelText(composition.addActivity));
     fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
-    fireEvent.changeText(screen.getByLabelText(exercise.name), "Gainage");
+    // PRE-3 : les référentiels (Catégories, Zones) sont lus pendant la saisie ;
+    // l'échec technique est donc provoqué juste AVANT l'enregistrement de la
+    // Séance — même contrat : échec atomique, brouillon intact, action réarmée.
+    await fillNewExercise("Gainage", "Durée", "dos");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
     fireEvent.press(screen.getByLabelText(composition.continueAction));
+    // Force une erreur technique en fermant la connexion avant l'enregistrement.
+    database.close();
 
     await act(async () => {
       fireEvent.press(screen.getByLabelText(categories.saveAction));

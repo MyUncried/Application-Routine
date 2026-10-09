@@ -1,4 +1,4 @@
-import { act, fireEvent, renderRouter, screen } from "expo-router/testing-library";
+import { act, fireEvent, renderRouter, screen, within } from "expo-router/testing-library";
 import { describe, expect, it, jest } from "@jest/globals";
 import type { ReactNode } from "react";
 
@@ -7,6 +7,7 @@ import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { BodyZoneRepository } from "@/domain/body-zones/BodyZoneRepository";
 import type { Category } from "@/domain/categories/Category";
 import type { CategoryRepository } from "@/domain/categories/CategoryRepository";
+import type { LabelRepository } from "@/domain/labels/LabelRepository";
 import { createDefaultProfile, type Profile } from "@/domain/preferences/Profile";
 import type { ProfileIdentityInput, ProfileRepository } from "@/domain/preferences/ProfileRepository";
 import type { Session, SessionSummary } from "@/domain/sessions/Session";
@@ -15,6 +16,8 @@ import { ActivityDefinitionService } from "@/features/activities/ActivityDefinit
 import { ActivityDefinitionServiceProvider } from "@/features/activities/ActivityDefinitionServiceProvider";
 import { ProfileService } from "@/features/preferences/ProfileService";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
+import { ReferentialService } from "@/features/reference-data/ReferentialService";
+import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
 import { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { strings } from "@/shared/i18n";
@@ -44,6 +47,15 @@ import { strings } from "@/shared/i18n";
  * Description et la Zone corporelle sont atteintes en DÉPLOYANT leur section
  * (par `testID` d'en-tête — leur titre n'est volontairement pas un nom
  * accessible unique, voir `ExerciseScreen.tsx`).
+ *
+ * **PRE-3 (#340, correction revue 1, REV-04 — extension technique bornée)** :
+ * l'éditeur est celui de PRE-3 (carte Paramètres + feuille). Un NOUVEL
+ * Exercice exige Nom, une Catégorie, au moins une Zone et des paramètres
+ * valides (périmètre §5, chapitre 06) ; le harnais fournit donc aussi
+ * `ReferentialServiceContext` (Catégories/Zones) et les gestes passent par
+ * la feuille. Les contrats de ce parcours sont CONSERVÉS : aucune étape
+ * intermédiaire, insertion entre Compte à rebours et Tour, résumé du Tour,
+ * retour sur Composition, absence de doublon au double appui, Continuer.
  */
 
 jest.mock("expo-haptics", () => ({
@@ -79,9 +91,22 @@ class NoopSessionRepository implements SessionRepository {
   }
 }
 
+const A_CATEGORY: Category = {
+  id: "renforcement",
+  name: "Renforcement",
+  canonicalKey: "renforcement",
+  color: "#3B82F6",
+  isPredefined: true,
+  displayOrder: 1,
+  isActive: true,
+  createdAt: "2026-01-01T00:00:00.000Z",
+};
+
+const A_ZONE: BodyZone = { id: "dos", name: "Dos", isActive: true, createdAt: "2026-01-01T00:00:00.000Z" };
+
 class NoopCategoryRepository implements CategoryRepository {
   listAll(): Promise<readonly Category[]> {
-    return Promise.resolve([]);
+    return Promise.resolve([A_CATEGORY]);
   }
   create(): Promise<never> {
     return Promise.reject(new Error("not used by this navigation test"));
@@ -147,7 +172,7 @@ class NoopProfileRepository implements ProfileRepository {
 
 class NoopBodyZoneRepository implements BodyZoneRepository {
   listAll(): Promise<readonly BodyZone[]> {
-    return Promise.resolve([]);
+    return Promise.resolve([A_ZONE]);
   }
   create(): Promise<never> {
     return Promise.reject(new Error("not used by this navigation test"));
@@ -160,6 +185,12 @@ class NoopBodyZoneRepository implements BodyZoneRepository {
   }
   isUsed(): Promise<never> {
     return Promise.reject(new Error("not used by this navigation test"));
+  }
+}
+
+class NoopLabelRepository {
+  listAll(): Promise<readonly never[]> {
+    return Promise.resolve([]);
   }
 }
 
@@ -178,11 +209,44 @@ function SessionServiceTestWrapper({ children }: { children: ReactNode }) {
         }
       >
         <ProfileServiceContext.Provider value={new ProfileService(new NoopProfileRepository())}>
-          {children}
+          <ReferentialServiceContext.Provider
+            value={
+              new ReferentialService(
+                new NoopCategoryRepository(),
+                new NoopBodyZoneRepository(),
+                new NoopLabelRepository() as unknown as LabelRepository,
+              )
+            }
+          >
+            {children}
+          </ReferentialServiceContext.Provider>
         </ProfileServiceContext.Provider>
       </ActivityDefinitionServiceProvider>
     </SessionServiceContext.Provider>
   );
+}
+
+/**
+ * PRE-3 : saisie complète d'un NOUVEL Exercice dans l'éditeur réel — Nom,
+ * Catégorie (sélection au toucher), Zone (✓), puis feuille Paramètres :
+ * mode Durée, 45 s, ✓. Terminer n'est encore jamais pressé ici.
+ */
+async function fillNewExercise(name: string) {
+  fireEvent.changeText(screen.getByLabelText(exercise.name), name);
+  fireEvent.press(screen.getByTestId("activity-editor-category-button"));
+  fireEvent.press(await screen.findByTestId("category-picker-tag-renforcement"));
+  fireEvent.press(screen.getByTestId("exercise-body-zones-open"));
+  fireEvent.press(await screen.findByTestId("body-zone-selector-tag-dos"));
+  await act(async () => {
+    fireEvent.press(screen.getByTestId("body-zone-picker-confirm"));
+  });
+  fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+  fireEvent.press(screen.getByTestId("execution-sheet-mode-value"));
+  fireEvent.press(within(screen.getByTestId("execution-sheet-mode-control")).getByText("Durée"));
+  fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
+  fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 45 } });
+  fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+  fireEvent.press(screen.getByTestId("execution-sheet-validate"));
 }
 
 function renderCreationRouter() {
@@ -206,7 +270,7 @@ function renderCreationRouter() {
 }
 
 describe("Parcours Composition → Activité (écran unifié), vrai navigateur, vrai SessionDraftProvider (UI-ACT-001)", () => {
-  it("1. l'écran Activité expose tout le formulaire d'un seul tenant : aucune étape intermédiaire, Terminer devient actif dès que le Nom est valide (T02-S02, D-137)", () => {
+  it("1. l'écran Activité expose tout le formulaire d'un seul tenant : aucune étape intermédiaire, Terminer devient actif dès que les champs requis PRE-3 sont valides (T02-S02, D-137 ; PRE-3 §5)", async () => {
     renderCreationRouter();
 
     fireEvent.press(screen.getByLabelText(composition.addActivity));
@@ -217,30 +281,32 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
       disabled: true,
     });
 
+    // PRE-3 : le Nom seul ne suffit plus (Catégorie, Zone, paramètres requis).
     fireEvent.changeText(screen.getByLabelText(exercise.name), "Pompes");
+    expect(screen.getByLabelText(exercise.finishAction).props.accessibilityState).toMatchObject({
+      disabled: true,
+    });
+    await fillNewExercise("Pompes");
     expect(screen.getByLabelText(exercise.finishAction).props.accessibilityState).toMatchObject({
       disabled: false,
     });
 
-    // La Description est atteinte en déployant SA section, sans quitter
-    // l'écran ni franchir d'étape — et l'unicité de son libellé accessible
-    // est alors garantie (un seul nœud nommé « Description de l'activité »).
-    expect(screen.queryByLabelText(exercise.instruction.label)).toBeNull();
-    fireEvent.press(screen.getByTestId("exercise-section-description-header"));
+    // La Description est sur le même écran, sans étape intermédiaire, avec un
+    // seul nœud accessible portant son libellé.
     expect(screen.getAllByLabelText(exercise.instruction.label)).toHaveLength(1);
 
-    // V2-PRE-1 (plan §3.1) : `ActivityEditorForm` ne porte plus le champ
-    // Récupération — seule la Durée totale dérivée reste visible
-    // immédiatement, dans la même rangée de paramètres.
-    expect(screen.getByLabelText(exercise.totalDuration.accessibilityLabel)).toBeTruthy();
+    // Les paramètres dérivés restent visibles immédiatement (phrase de la carte
+    // Paramètres, générée à l'affichage ; total redondant omis pour une Série
+    // unilatérale sans pause, phrase v1 §4) ; aucune Récupération ici.
+    expect(screen.getByTestId("exercise-parameters-card").props.accessibilityLabel).toContain("1 série de 45 s.");
   });
 
-  it("2-3-4-5. Terminer enregistre atomiquement l'Activité, revient sur Composition, l'insère entre Compte à rebours et Tour, sans changer le résumé du Tour (BEFORE_TOUR)", () => {
+  it("2-3-4-5. Terminer enregistre atomiquement l'Activité, revient sur Composition, l'insère entre Compte à rebours et Tour, sans changer le résumé du Tour (BEFORE_TOUR)", async () => {
     const router = renderCreationRouter();
 
     fireEvent.press(screen.getByLabelText(composition.addActivity));
     fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
-    fireEvent.changeText(screen.getByLabelText(exercise.name), "Pompes");
+    await fillNewExercise("Pompes");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
     // 4. Retour effectif sur Composition — l'écran Exercice est démonté.
@@ -279,12 +345,12 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
     expect(screen.getByText(composition.summary.empty)).toBeTruthy();
   });
 
-  it("6. un double-appui rapproché sur Terminer (avant tout rendu intermédiaire) n'enregistre l'Activité qu'une seule fois — pas de doublon", () => {
+  it("6. un double-appui rapproché sur Terminer (avant tout rendu intermédiaire) n'enregistre l'Activité qu'une seule fois — pas de doublon", async () => {
     const router = renderCreationRouter();
 
     fireEvent.press(screen.getByLabelText(composition.addActivity));
     fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
-    fireEvent.changeText(screen.getByLabelText(exercise.name), "Pompes");
+    await fillNewExercise("Pompes");
 
     act(() => {
       fireEvent.press(screen.getByLabelText(exercise.finishAction));
@@ -297,12 +363,12 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
     expect(screen.queryByText(/^2 activités ·/)).toBeNull();
   });
 
-  it("7. Continuer reste désactivé tant que le Nom de la séance est vide, même avec une Activité valide (T01-S09 : résolution de l'ARBITRAGE — Nom manquant, pas un blocage permanent)", () => {
+  it("7. Continuer reste désactivé tant que le Nom de la séance est vide, même avec une Activité valide (T01-S09 : résolution de l'ARBITRAGE — Nom manquant, pas un blocage permanent)", async () => {
     renderCreationRouter();
 
     fireEvent.press(screen.getByLabelText(composition.addActivity));
     fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
-    fireEvent.changeText(screen.getByLabelText(exercise.name), "Pompes");
+    await fillNewExercise("Pompes");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
     expect(screen.getByLabelText(composition.continueAction).props.accessibilityState).toMatchObject(
@@ -310,13 +376,13 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
     );
   });
 
-  it("8. Continuer s'active pour une Composition complète (Nom + Activité valide) et ouvre réellement Catégories de la séance (T01-S09, CE-T01-11)", () => {
+  it("8. Continuer s'active pour une Composition complète (Nom + Activité valide) et ouvre réellement Catégories de la séance (T01-S09, CE-T01-11)", async () => {
     const router = renderCreationRouter();
 
     fireEvent.changeText(screen.getByLabelText(composition.name), "Séance du soir");
     fireEvent.press(screen.getByLabelText(composition.addActivity));
     fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
-    fireEvent.changeText(screen.getByLabelText(exercise.name), "Pompes");
+    await fillNewExercise("Pompes");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
     const continueAction = screen.getByLabelText(composition.continueAction);

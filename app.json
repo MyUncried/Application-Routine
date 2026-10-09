@@ -41,7 +41,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Routine accède à vos photos uniquement pour choisir la photo de votre profil.",
+          "photosPermission": "Routine accède à vos photos et vidéos pour choisir la photo de votre profil et ajouter des médias à vos exercices.",
           "cameraPermission": false,
           "microphonePermission": false
         }
