@@ -1,3 +1,5 @@
+> État du 09/10 : cette projection scellée est le plan INITIAL historique. La version corrigée à soumettre à la seconde revue est [passe2/plan-technique-corrige.md](https://github.com/MyUncried/Application-Routine/blob/c0c900f50879ea955c7ca1b1a5f5961eb949c438/docs/preparation/PRE-3/planification/passe2/plan-technique-corrige.md), commit `c0c900f50879ea955c7ca1b1a5f5961eb949c438`. Contournement limité du verrou de portée VNext autorisé par le propriétaire et tracé dans son manifeste. Aucun développement ni plan approuvé.
+
 # PRE-3 — PlanContract publié, en attente de revue indépendante
 
 Opération unique : [#340](https://github.com/MyUncried/Application-Routine/issues/340). Baseline application : `1ddfb6d144552f578388257adc78db47ab5992c8`. Source VNext figée : `3019c5f8c4a38efb83865635e0a8d67d48a5b5ab`.
