@@ -91,7 +91,7 @@ test('supervisor binds the authorized plan to its blob before materializing it, 
   const read = src.indexOf('Source.readFileAtHead(request.authorized_plan.plan_path, request.protocol_source_head, repoRoot)');
   const bind = src.indexOf("writeFailure('AUTHORIZED_PLAN_BLOB_MISMATCH'");
   const clean = src.indexOf("writeFailure('WORKTREE_NOT_CLEAN'");
-  const place = src.indexOf('authorizedPlanFile = materializeAuthorizedPlan(repoRoot, authorizedPlanBuffer)');
+  const place = src.indexOf('authorizedPlanFile = materializeAuthorizedPlan(repoRoot, authorizedPlanBuffer, vnextAdmission ? request.protocol_source_head : null)');
   const visible = src.indexOf("writeFailure('AUTHORIZED_PLAN_NOT_EXCLUDED'");
   const run = src.indexOf('result = command(claudeBin, [...claudePrefix, ...args], repoRoot, claudeEnv');
   const remove = src.indexOf('fs.rmSync(path.dirname(authorizedPlanFile), { recursive: true, force: true })');

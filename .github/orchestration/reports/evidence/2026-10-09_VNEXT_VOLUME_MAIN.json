@@ -1,0 +1,33 @@
+{
+  "operation": "READ_EXISTING_HISTORICAL_BUNDLE_ONLY",
+  "status": "PASS",
+  "chain_hash": "0b9ab5f0a45b0fa86c061d181f4f275a77ed18e6a03ef3e9e985c4e26acbfd66",
+  "plan_hash": "5145cbd30860f9ddef041ed33b97a71697517a3ef248229112bb0f5f7b92006f",
+  "ui_hash": "d4aa55ad8a0752ae4083a33a96d5d006491258ab1dee5bf2856610ec9399e4c9",
+  "requirements": 6384,
+  "assertions": 243974,
+  "production": false,
+  "model_call": false,
+  "schema": "kodjo.volume.main-integration-evidence.v1",
+  "base_revision": "1ddfb6d144552f578388257adc78db47ab5992c8",
+  "source_protocol_revision": "00d20df08d9f7b537e7756815a4b9ff16f4f3f45",
+  "local_tests": {
+    "tests": 1458,
+    "pass": 1453,
+    "fail": 0,
+    "skipped": 5,
+    "exit_code": 0,
+    "log_sha256": "dbe847717e44d6b6cd658d7f5c6c9495ceed1ec950362bcb3ef2a86d36136432"
+  },
+  "excluded": [
+    "PRE-3 frozen capture packet and media",
+    "PRE-3 plan and contract files",
+    "PRE-3 construction/source launch scripts",
+    "application code"
+  ],
+  "included_figma_file": "syntax fixture only, compiled without execution",
+  "independent_model_review": false,
+  "pre3_execution": false,
+  "application_changes": false,
+  "remote_controls": "PENDING_MAIN_CANDIDATE"
+}

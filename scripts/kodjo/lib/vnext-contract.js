@@ -45,7 +45,69 @@ function sha256(value) {
 }
 
 function canonicalHash(value) {
-  return sha256(canonicalStringify(value));
+  const hash = crypto.createHash('sha256');
+  writeCanonical(value, chunk => hash.update(chunk, 'utf8'));
+  return hash.digest('hex');
+}
+
+// Emit the exact historical canonical JSON bytes with bounded temporary strings.
+// Keep canonicalStringify for callers that explicitly need a complete string.
+function writeCanonical(value, write) {
+  let pending = '';
+  const emit = chunk => {
+    pending += chunk;
+    if (pending.length >= 65536) { write(pending); pending = ''; }
+  };
+  const quoted = text => {
+    emit('"');
+    for (let start = 0; start < text.length;) {
+      let end = Math.min(start + 4096, text.length);
+      // JSON.stringify must see both halves of a valid surrogate pair.
+      if (end < text.length && /[\uD800-\uDBFF]/.test(text[end - 1])
+          && /[\uDC00-\uDFFF]/.test(text[end])) end -= 1;
+      emit(JSON.stringify(text.slice(start, end)).slice(1, -1));
+      start = end;
+    }
+    emit('"');
+  };
+  const visit = (item, path) => {
+    if (item === null) { emit('null'); return; }
+    if (typeof item === 'string') { quoted(item); return; }
+    if (typeof item === 'boolean') { emit(item ? 'true' : 'false'); return; }
+    if (typeof item === 'number') {
+      if (!Number.isFinite(item)) fail('VNEXT_CANONICAL_NUMBER_INVALID', path);
+      emit(JSON.stringify(item)); return;
+    }
+    if (Array.isArray(item)) {
+      emit('[');
+      for (let i = 0; i < item.length; i += 1) {
+        if (i) emit(',');
+        if (i in item) visit(item[i], `${path}[${i}]`);
+        else emit('null');
+      }
+      emit(']'); return;
+    }
+    if (!isPlainObject(item)) fail('VNEXT_CANONICAL_TYPE_INVALID', path);
+    // Assignment into canonicalize's ordinary object gives integer keys JSON's
+    // numeric order, followed by lexically sorted non-integer keys.
+    const order = {};
+    for (const key of Object.keys(item).sort()) {
+      if (item[key] === undefined) fail('VNEXT_CANONICAL_UNDEFINED', `${path}.${key}`);
+      if (key === '__proto__') {
+        canonicalize(item[key], `${path}.${key}`); // historical validation/drop
+      } else order[key] = true;
+    }
+    emit('{');
+    let first = true;
+    for (const key of Object.keys(order)) {
+      if (!first) emit(',');
+      first = false;
+      quoted(key); emit(':'); visit(item[key], `${path}.${key}`);
+    }
+    emit('}');
+  };
+  visit(value, '$');
+  if (pending) write(pending);
 }
 
 function stableId(prefix, parts) {
@@ -130,6 +192,7 @@ module.exports = {
   canonicalStringify,
   sha256,
   canonicalHash,
+  writeCanonical,
   stableId,
   assertExactKeys,
   assertNonEmptyString,

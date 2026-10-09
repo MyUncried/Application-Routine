@@ -75,9 +75,17 @@ function install(admitted, { cwd, runDir, missionBytes }) {
     if (existed) fs.chmodSync(target, mode | 0o200);
     fs.writeFileSync(target, checked.bytes);
     fs.chmodSync(target, 0o400);
-    if(checked.bytes.includes(Buffer.from('"figma_references"'))){
+    const body=checked.bytes.toString('utf8'),bundleView=path.join(directory,'vnext-contract-view');
+    if(body.includes('kodjo.vnext.block-bundle.v1')){
+      fs.mkdirSync(bundleView);
+      identity.bundle_files=require('./vnext-plan-bundles').materialize(body,bundleView,{cwd:root,revision:checked.executionRequest.protocol_head})
+        .map(file=>({path:file,sha256:digest(fs.readFileSync(file))}));
+    }
+    const ui=body.includes('<KODJO_VNEXT_UI_ATOMICITY_JSON>') ? require('./machine-block').parse(body,'KODJO_VNEXT_UI_ATOMICITY_JSON',{cwd:identity.bundle_files ? bundleView : root}) : null;
+    if(ui?.figma_references?.length){
       const resources=path.join(directory,'vnext-figma-resources');fs.mkdirSync(resources,{recursive:true});
-      const observation=require('./vnext-figma-source').consume(checked.bytes.toString('utf8'),resources,'IMPLEMENTER');
+      const registry=require('./machine-block').parse(body,'KODJO_VNEXT_REQUIREMENT_REGISTRY_JSON',{cwd:identity.bundle_files ? bundleView : root});
+      const F=require('./vnext-figma-source'),observation=F.consumeArtifacts(F.unpackUi(ui),registry,resources,'IMPLEMENTER',digest(checked.bytes));
       const observationFile=path.join(directory,'vnext-figma-observation.json');fs.writeFileSync(observationFile,JSON.stringify(observation,null,2)+'\n');
       identity.figma_observation={path:observationFile,sha256:digest(fs.readFileSync(observationFile)),resources:observation.references.flatMap(r=>r.assets)};
     }
@@ -97,6 +105,9 @@ function install(admitted, { cwd, runDir, missionBytes }) {
   }
 }
 function assertView(handle) {
+  for(const file of handle.identity.bundle_files||[]){
+    if(!fs.existsSync(file.path)||!fs.lstatSync(file.path).isFile()||fs.lstatSync(file.path).isSymbolicLink()||digest(fs.readFileSync(file.path))!==file.sha256)fail('BUNDLE_VIEW_CHANGED');
+  }
   for (const file of [handle.identity.snapshot, handle.target]) {
     if (!fs.existsSync(file) || !fs.lstatSync(file).isFile() || fs.lstatSync(file).isSymbolicLink()
         || digest(fs.readFileSync(file)) !== handle.identity.content_sha256) fail('VIEW_CHANGED');
