@@ -1,3 +1,15 @@
+# Reprise effective du 09/10/2026
+
+Cette section remplace les statuts provisoires du relevé historique ci-dessous. #341 est fusionnée dans la branche de planification à `1d42479181586d926a9970867a41d35d44cc4661` ; #342 est fusionnée dans main. Les quatre runs finaux sont SUCCESS et le registre de clôture du protocole est publié à `9c6ff9fa3fdae72cdc44e7dca49b753746394d2e`.
+
+Hermann a autorisé la reprise PRE-3. Le Launch et les constructeurs ont été rejoués sur `1d424791`, sans nouvelle extraction globale, modification de périmètre ou code applicatif. Le PlanContract/UI/registre gardent leurs empreintes ; le conteneur complet produit porte `603de045f94fec3f14aa2198edaaad0b91020b79adddb19041b06314cc725e16`. [Preuve](preuve-reprise-plan.json), [procédure exacte de revue](revue-independante.md), [lanceur local](lancer-revue-poste.cjs).
+
+Aucun reviewer n'a été invoqué dans cet environnement : probe réel Claude ENOENT. Le poste authentifié est le seul acteur requis pour l'appel modèle préparé. La validation propriétaire intervient ensuite sur le plan final revu ; aucun développement n'est autorisé avant elle. La capacité de la revue exhaustive reste à observer.
+
+---
+
+## Relevé historique avant intégration — ne pas utiliser ses statuts provisoires
+
 # PRE-3 — reprise après le correctif de volume
 
 Le correctif est isolé dans la PR #341, basée sur la branche de planification PRE-3. Il ne modifie pas l'application et ne constitue ni une revue indépendante ni une approbation du plan.
