@@ -30,6 +30,13 @@ test('small historical JSON remains directly readable and exclusive output is re
   assert.throws(() => B.write(file, {}, { exclusive: true }), { code: 'EEXIST' });
 });
 
+test('readable bundles retain long strings across Unicode chunk boundaries', t => {
+  const file=path.join(temp(t),'readable.json');
+  const value={text:('é😀\\\n').repeat(250000)};
+  B.write(file,value,{forceBundle:true,pretty:true});
+  assert.deepEqual(B.read(file),value);
+});
+
 test('transport refuses missing, changed and traversal parts', t => {
   const dir = temp(t), file = path.join(dir, 'produced.json');
   B.write(file, { a: 1 }, { forceBundle: true });
@@ -83,4 +90,32 @@ test('large review dossier exposes bounded files without removing canonical fiel
   assert.deepEqual(B.read(result.artifacts.path), artifacts);
   assert.ok(Buffer.byteLength(JSON.stringify(result)) < B.LIMIT);
   assert.ok(result.instructions.includes('Ne declarer aucune cible examinee'));
+});
+
+test('versioned Markdown block references preserve values and reject altered manifests', t => {
+  const dir=temp(t), tag='KODJO_VNEXT_PLAN_CONTRACT_JSON';
+  const file='.github/orchestration/vnext-contracts/'+('a'.repeat(64))+'/'+tag+'.json';
+  const value={rows:Array(10000).fill({expected:'é'.repeat(1000)})};
+  const reference={schema_version:'kodjo.vnext.block-bundle.v1',block_tag:tag,...B.describe(file,value,(name,text)=>{
+    const target=path.join(dir,name);fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,text);
+  })};
+  const body='<'+tag+'>'+JSON.stringify(reference)+'</'+tag+'>';
+  const M=require('../../scripts/kodjo/lib/machine-block');
+  assert.deepEqual(M.parse(body,tag,{cwd:dir}),value);
+  fs.appendFileSync(path.join(dir,file),' ');
+  assert.throws(()=>M.parse(body,tag,{cwd:dir}),/BUNDLE_MANIFEST_MISMATCH/);
+});
+
+test('large plan projection stores complete contracts and stays bounded', t => {
+  const F=require('./helpers/vnext-planning-fixture'), repo=F.fixtureRepo();
+  t.after(()=>fs.rmSync(repo.cwd,{recursive:true,force:true}));
+  const manifest=F.sourceManifest(repo),a=F.buildPlanningArtifacts({repo,manifest,envelope:F.makeEnvelope(manifest,repo,'INITIAL')});
+  const raw={...a.planContract};delete raw.contract_hash;
+  raw.plan_items=raw.plan_items.map((item,i)=>i?item:{...item,implementation_constraints:Array(10000).fill('x'.repeat(2000))});
+  const plan=V.sealContract(raw), files=new Map();
+  const A=require('../../scripts/kodjo/lib/vnext-legacy-queue-adapter');
+  const body=A.renderCompatibilityPlan({application_head:repo.revision,plan_contract_hash:plan.contract_hash},plan,null,a.requirementRegistry,a.candidateManifest,null,{forceBundle:true,onFile:(file,text)=>files.set(file,text)});
+  assert.ok(Buffer.byteLength(body)<B.LIMIT);
+  for(const [file,text]of files){const target=path.join(repo.cwd,file);fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,text);}
+  assert.deepEqual(require('../../scripts/kodjo/lib/machine-block').parse(body,'KODJO_VNEXT_PLAN_CONTRACT_JSON',{cwd:repo.cwd}),plan);
 });

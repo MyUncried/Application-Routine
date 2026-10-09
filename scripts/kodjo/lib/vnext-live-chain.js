@@ -334,7 +334,7 @@ function materializeReviewDossier(dossier, produced, directory, causalEvidence =
     canonical.uiAtomicityContract = require('./vnext-figma-source').unpackUi(canonical.uiAtomicityContract);
   if (V.canonicalHash(canonical) !== V.canonicalHash(produced.artifacts)) V.fail('VNEXT_REVIEW_CANONICAL_RECONSTRUCTION_MISMATCH');
   const file = path.join(directory, 'canonical-artifacts.json');
-  if (large) Bundle.write(file, canonical, { exclusive: true, forceBundle: true });
+  if (large) Bundle.write(file, canonical, { exclusive: true, forceBundle: true, pretty: true });
   else fs.writeFileSync(file, JSON.stringify(canonical), { flag: 'wx' });
   dossier.canonical_observation = { path: file, sha256: V.sha256(fs.readFileSync(file)),
     ...(large ? { format: Bundle.SCHEMA, logical_sha256: V.canonicalHash(canonical) } : {}),
@@ -367,9 +367,9 @@ function materializeReviewDossier(dossier, produced, directory, causalEvidence =
     // Claude gets a bounded navigation dossier; every complete field is stored
     // and hash-bound, never omitted or treated as semantically reviewed.
     for (const [key, value] of Object.entries(dossier)) {
-      if (Bundle.boundedJson(value) !== null) continue;
+      if (Bundle.boundedJson(value,64*1024) !== null) continue;
       const fieldFile = path.join(directory, key + '.json');
-      Bundle.write(fieldFile, value, { exclusive: true, forceBundle: true });
+      Bundle.write(fieldFile, value, { exclusive: true, forceBundle: true, pretty: true });
       dossier[key] = { format: Bundle.SCHEMA, path: fieldFile, logical_sha256: V.canonicalHash(value) };
     }
     dossier.instructions += ' Les grands champs sont des references file-bundle : lire le manifeste puis ses fichiers JSON de 8 MiB maximum, et reconstruire logiquement les champs object/array/concat/string. Les empreintes verifient les octets, pas la revue semantique. Ne declarer aucune cible examinee sans consultation effective. Si la consultation complete est impossible, le signaler et ne pas approuver.';

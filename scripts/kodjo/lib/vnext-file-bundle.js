@@ -22,7 +22,26 @@ function boundedJson(value, limit = LIMIT) {
   return chunks.join('');
 }
 
-function write(file, value, { exclusive = false, forceBundle = false } = {}) {
+function partition(item, leaf, pretty = false) {
+    const compact = boundedJson(item,pretty?LIMIT/8:LIMIT);
+    const text = compact !== null && pretty ? JSON.stringify(JSON.parse(compact),null,2) : compact;
+    if (text !== null && Buffer.byteLength(text) <= LIMIT) return leaf(text);
+    if (Array.isArray(item)) {
+      if (item.length === 1) return { kind: 'array', items: [partition(item[0], leaf, pretty)] };
+      const middle = Math.floor(item.length / 2);
+      return { kind: 'concat', parts: [partition(item.slice(0, middle), leaf, pretty), partition(item.slice(middle), leaf, pretty)] };
+    }
+    if (typeof item === 'string') {
+      const parts = [];
+      const length = Math.floor((pretty ? LIMIT / 8 : LIMIT) / 6);
+      for (let i = 0; i < item.length; i += length) parts.push(partition(item.slice(i, i + length), leaf, pretty));
+      return { kind: 'string', parts };
+    }
+    if (!V.isPlainObject(item)) V.fail('VNEXT_BUNDLE_VALUE_INVALID');
+    return { kind: 'object', fields: Object.keys(item).map(key => [key, partition(item[key], leaf, pretty)]) };
+}
+
+function write(file, value, { exclusive = false, forceBundle = false, pretty = false } = {}) {
   const absolute = path.resolve(file);
   fs.mkdirSync(path.dirname(absolute), { recursive: true });
   if (!forceBundle) {
@@ -45,28 +64,28 @@ function write(file, value, { exclusive = false, forceBundle = false } = {}) {
     } else fs.writeFileSync(target, text, { flag: 'wx' });
     return { kind: 'file', file: name, sha256: hash, bytes: Buffer.byteLength(text) };
   };
-  const encode = item => {
-    const text = boundedJson(item);
-    if (text !== null) return leaf(text);
-    if (Array.isArray(item)) {
-      if (item.length === 1) return { kind: 'array', items: [encode(item[0])] };
-      const middle = Math.floor(item.length / 2);
-      return { kind: 'concat', parts: [encode(item.slice(0, middle)), encode(item.slice(middle))] };
-    }
-    if (typeof item === 'string') {
-      const parts = [];
-      for (let i = 0; i < item.length; i += Math.floor(LIMIT / 6)) parts.push(encode(item.slice(i, i + Math.floor(LIMIT / 6))));
-      return { kind: 'string', parts };
-    }
-    if (!V.isPlainObject(item)) V.fail('VNEXT_BUNDLE_VALUE_INVALID');
-    return { kind: 'object', fields: Object.keys(item).map(key => [key, encode(item[key])]) };
-  };
-  const manifest = V.sealContract({ schema_version: SCHEMA, logical_sha256: logicalHash, folder, root: encode(value) });
+  const manifest = V.sealContract({ schema_version: SCHEMA, logical_sha256: logicalHash, folder, root: partition(value, leaf, pretty) });
   const text = boundedJson(manifest);
   if (text === null) V.fail('VNEXT_BUNDLE_MANIFEST_TOO_LARGE');
   // Publish the manifest only after every referenced part exists.
   fs.writeFileSync(absolute, text + '\n', { flag: exclusive ? 'wx' : 'w' });
   return { format: SCHEMA, file: absolute, logical_sha256: logicalHash };
+}
+
+function describe(file, value, onFile = () => {}) {
+  const logicalHash = V.canonicalHash(value);
+  const folder = path.basename(file) + '.parts-' + logicalHash;
+  const directory = path.join(path.dirname(file), folder);
+  const leaf = text => {
+    const hash = V.sha256(text), name = hash + '.json';
+    onFile(path.join(directory, name).replace(/\\/g, '/'), text);
+    return { kind: 'file', file: name, sha256: hash, bytes: Buffer.byteLength(text) };
+  };
+  const manifest = V.sealContract({ schema_version: SCHEMA, logical_sha256: logicalHash, folder, root: partition(value, leaf, true) });
+  const text = boundedJson(manifest);
+  if (text === null) V.fail('VNEXT_BUNDLE_MANIFEST_TOO_LARGE');
+  onFile(file, text + '\n');
+  return { file, manifest_sha256: V.sha256(text + '\n'), logical_sha256: logicalHash };
 }
 
 function read(file, { readText } = {}) {
@@ -125,4 +144,4 @@ function read(file, { readText } = {}) {
   return result;
 }
 
-module.exports = { SCHEMA, LIMIT, boundedJson, write, read };
+module.exports = { SCHEMA, LIMIT, boundedJson, describe, write, read };

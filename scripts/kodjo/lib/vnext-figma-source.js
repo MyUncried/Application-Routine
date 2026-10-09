@@ -3,7 +3,7 @@
 const fs=require('node:fs'),path=require('node:path');
 const V=require('./vnext-contract');
 const SCHEMA='kodjo.vnext.figma-source.v1';
-const eq=(a,b,code)=>{if(V.canonicalStringify(a)!==V.canonicalStringify(b))V.fail(code);};
+const eq=(a,b,code)=>{const compare=a?.schema_version===SCHEMA||b?.schema_version===SCHEMA?V.canonicalHash:V.canonicalStringify;if(compare(a)!==compare(b))V.fail(code);};
 const text=(s,code)=>V.assertUnicodeExactText(s,code);
 const id=(node,property)=>V.stableId('FIGPROP',[node,property]);
 function pngComplete(b){
@@ -230,13 +230,16 @@ function observe(source,{cwd,readGit}){
 }
 function required(packet){return packet.decisions.filter(d=>['REALIZE','PRESERVE'].includes(d.disposition));}
 function validateRegistry(references,registry){
+  const activeUnits=new Set(registry.requirements.filter(r=>r.status==='ACTIVE').map(r=>r.source_id+'\0'+r.source.unit_locator));
   for(const ref of references){
-    for(const d of required(ref.packet))if(!registry.requirements.some(r=>r.status==='ACTIVE'&&r.source_id===ref.source_id&&r.source.unit_locator==='ELEMENT:'+d.element_id))V.fail('VNEXT_FIGMA_REQUIREMENT_OMITTED',d.property_id);
+    for(const d of required(ref.packet))if(!activeUnits.has(ref.source_id+'\0ELEMENT:'+d.element_id))V.fail('VNEXT_FIGMA_REQUIREMENT_OMITTED',d.property_id);
     for(const s of ref.packet.states.filter(s=>s.disposition==='REQUIRED'))if(!registry.requirements.some(r=>r.status==='ACTIVE'&&r.source.authority==='FUNCTIONAL'&&r.statement===s.expected&&ref.packet.documents.some(d=>s.document_ids.includes(d.document_id)&&r.source.locator===d.path&&r.source.revision===d.revision)))V.fail('VNEXT_FIGMA_DOCUMENT_REQUIREMENT_OMITTED',s.state_id);
   }
 }
 function validateCoverage(references,criteria,registry){
   const requirementById=new Map(registry.requirements.map(r=>[r.requirement_id,r]));
+  const documentAssertions=new Map();
+  for(const c of criteria)for(const a of c.assertions){const b=a.figma_document_state;if(b){const key=b.source_id+'\0'+b.state_id;const rows=documentAssertions.get(key)||[];rows.push({c,a});documentAssertions.set(key,rows);}}
   const seen=new Set();for(const ref of references){
     validate(ref.packet,{ready:true});if(seen.has(ref.source_id))V.fail('VNEXT_FIGMA_REFERENCE_DUPLICATE');seen.add(ref.source_id);
     const look=lookup(ref.packet);
@@ -254,7 +257,7 @@ function validateCoverage(references,criteria,registry){
     }
     eq([...expected].sort(),[...covered].sort(),'VNEXT_FIGMA_REQUIRED_PROPERTY_UNCOVERED');
     for(const state of ref.packet.states.filter(s=>s.disposition==='REQUIRED')){
-      const assertions=criteria.flatMap(c=>c.assertions.map(a=>({c,a}))).filter(({a})=>a.figma_document_state?.source_id===ref.source_id&&a.figma_document_state.state_id===state.state_id);
+      const assertions=(documentAssertions.get(ref.source_id+'\0'+state.state_id)||[]);
       if(!assertions.length)V.fail('VNEXT_FIGMA_DOCUMENT_STATE_UNCOVERED',state.state_id);
       for(const {c,a}of assertions){
         V.assertExactKeys(a.figma_document_state,['source_id','reference_hash','state_id'],['scenario_ids'],'VNEXT_FIGMA_DOCUMENT_BINDING_INVALID');

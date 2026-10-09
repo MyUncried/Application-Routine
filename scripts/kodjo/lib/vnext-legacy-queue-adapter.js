@@ -3,6 +3,7 @@
 const crypto = require('node:crypto');
 const { execFileSync } = require('node:child_process');
 const V = require('./vnext-contract');
+const Bundle = require('./vnext-file-bundle');
 const Approval = require('./approval-handoff-contract');
 const Plan = require('./plan-contract');
 const { LEAN_REQUEST_SCHEMA, validateQueueRequest } = require('./queue-contract');
@@ -66,8 +67,9 @@ function projectUi(planContract, uiAtomicityContract = null, candidateManifest =
   legacy.validateMatrix(matrix, { scope: new Set(planContract.boundaries.write_scope.map(row => row.path)), uiPaths });
   return { matrix, uiPaths };
 }
-function renderCompatibilityPlan(executionRequest, planContract, uiAtomicityContract = null, requirementRegistry = null, candidateManifest = null, reviewEvidence = null) {
-  Plan.verifyMarkdownProjection(Plan.renderMarkdown(planContract), planContract);
+function renderCompatibilityPlan(executionRequest, planContract, uiAtomicityContract = null, requirementRegistry = null, candidateManifest = null, reviewEvidence = null, fileTransport = {}) {
+  const large = !fileTransport.legacy && (fileTransport.forceBundle || Bundle.boundedJson({planContract,uiAtomicityContract},64*1024*1024) === null);
+  if (!large) Plan.verifyMarkdownProjection(Plan.renderMarkdown(planContract), planContract);
   const { matrix, uiPaths } = projectUi(planContract, uiAtomicityContract, candidateManifest);
   if (reviewEvidence) {
     require('./review-contract').validateReviewReport(reviewEvidence.report, reviewEvidence.context);
@@ -101,17 +103,27 @@ function renderCompatibilityPlan(executionRequest, planContract, uiAtomicityCont
       proof_required: [...new Set(item.proof_obligations.map(row => row.proof_type))], status: 'DEFINED' };
   });
   const requirementContract = Requirements.buildRequirementContract(fullMatrix, nonUi, new Set(planContract.boundaries.write_scope.map(row => row.path)));
-  const json = value => JSON.stringify(value, null, 2).replace(/</g, '\\u003c');
-  const tagged = (tag, value) => ['<' + tag + '>', json(value), '</' + tag + '>'];
+  const json = (value, tag) => {
+    if (large && Bundle.boundedJson(value,1024*1024) === null) {
+      const file='.github/orchestration/vnext-contracts/'+planContract.contract_hash+'/'+tag+'.json';
+      const reference=Bundle.describe(file,value,fileTransport.onFile);
+      return JSON.stringify({schema_version:'kodjo.vnext.block-bundle.v1',block_tag:tag,...reference});
+    }
+    return JSON.stringify(value,null,2).replace(/</g,'\\u003c');
+  };
+  const tagged = (tag, value) => ['<' + tag + '>', json(value,tag), '</' + tag + '>'];
+  const planProjection=large ? ['## PlanContract complet dans le bloc versionné ci-dessous',
+    ...planContract.plan_items.map(item=>'- '+item.plan_item_id+' / '+item.requirement_id+' : '+item.disposition+' ; fichiers '+item.change_items.map(c=>c.path).join(', ')),
+    ...tagged('KODJO_VNEXT_PLAN_CONTRACT_JSON',planContract)].join('\n') : Plan.renderMarkdown(planContract).trimEnd();
   return [
     '# KODJO VNext — Projection transport du plan',
     '',
     'application_head=' + executionRequest.application_head,
     'plan_contract_hash=' + executionRequest.plan_contract_hash,
     '',
-    Plan.renderMarkdown(planContract).trimEnd(),
-    '<KODJO_UI_CRITERIA_MATRIX_JSON>', json(matrix), '</KODJO_UI_CRITERIA_MATRIX_JSON>',
-    '<KODJO_UI_PLAN_CONTRACT_JSON>', json(contract), '</KODJO_UI_PLAN_CONTRACT_JSON>',
+    planProjection,
+    ...tagged('KODJO_UI_CRITERIA_MATRIX_JSON',matrix),
+    ...tagged('KODJO_UI_PLAN_CONTRACT_JSON',contract),
     ...(uiAtomicityContract?.figma_references?.length ? ['Références Figma figées : lire KODJO_VNEXT_UI_ATOMICITY_JSON.figma_references, matérialiser les ressources avec scripts/kodjo/consume-vnext-figma.js avant toute comparaison. Examiner chaque propriété et chaque état documentaire ; aucune attestation de conformité ne résulte de la seule lecture des octets. Les noms et sélections de démonstration ne sont pas des règles métier. Une modification du Figma vivant exige une nouvelle extraction et une requalification explicites.'] : []),
     ...(preservation ? tagged('KODJO_VNEXT_DELIVERY_PRESERVATION_JSON', preservation) : []),
     ...(reviewEvidence ? tagged('KODJO_VNEXT_REVIEW_COVERAGE_JSON', reviewEvidence) : []),
@@ -121,7 +133,7 @@ function renderCompatibilityPlan(executionRequest, planContract, uiAtomicityCont
     ...tagged('KODJO_TEST_CONTRACT_JSON', Requirements.buildTestContract(requirementContract)),
     ...tagged('KODJO_BOUNDARY_CONTRACT_JSON', Requirements.buildBoundaryContract(matrix)),
     ...tagged('KODJO_VNEXT_REQUIREMENT_REGISTRY_JSON', requirementRegistry),
-    ...(uiAtomicityContract ? ['<KODJO_VNEXT_UI_ATOMICITY_JSON>', uiAtomicityContract.figma_references?.length ? JSON.stringify(require('./vnext-figma-source').packUi(uiAtomicityContract)).replace(/</g,'\\u003c') : json(uiAtomicityContract), '</KODJO_VNEXT_UI_ATOMICITY_JSON>'] : []),
+    ...(uiAtomicityContract ? (large ? tagged('KODJO_VNEXT_UI_ATOMICITY_JSON',uiAtomicityContract) : ['<KODJO_VNEXT_UI_ATOMICITY_JSON>', uiAtomicityContract.figma_references?.length ? JSON.stringify(require('./vnext-figma-source').packUi(uiAtomicityContract)).replace(/</g,'\\u003c') : json(uiAtomicityContract), '</KODJO_VNEXT_UI_ATOMICITY_JSON>']) : []),
     '',
   ].join('\n');
 }
@@ -175,7 +187,8 @@ function renderCompatibilityMission(executionRequest, planContract = null, planP
       '## Plan exact approuvé à exécuter', '',
       'Lire le plan opposable ' + planPath + ' avant toute modification. Sa projection exacte suit.',
       'Le plan impose les intentions, tests, preuves et préservations. Arrêter en CLARIFICATION_REQUIRED si une exigence est ambiguë.',
-      Plan.renderMarkdown(planContract).trimEnd(), '',
+      Bundle.boundedJson(planContract) !== null ? Plan.renderMarkdown(planContract).trimEnd()
+        : 'Le PlanContract complet est accessible dans KODJO_VNEXT_PLAN_CONTRACT_JSON du plan opposable ; lire ses fichiers liés et leurs preuves avant de modifier le code.', '',
     ] : []),
   ].join('\n');
 }
@@ -193,11 +206,14 @@ function prepareTransport(fields) {
 function prepareCompatibilityFiles(args) {
   const { planContract, reviewReport, transport } = args;
   const request = Approval.buildExecutionCore(args);
+  const extraFiles = new Map();
+  const onFile=(file,content)=>{safeRelativePath(file,'VNEXT_QUEUE_COMPATIBILITY_PATH_INVALID','bundle');extraFiles.set(file,content);};
   const bodies = {
-    plan: [transport.plan_path, renderCompatibilityPlan(request, planContract, args.uiAtomicityContract, args.requirementRegistry, args.candidateManifest, {context:args.reviewContext,report:reviewReport})],
+    plan: [transport.plan_path, renderCompatibilityPlan(request, planContract, args.uiAtomicityContract, args.requirementRegistry, args.candidateManifest, {context:args.reviewContext,report:reviewReport},{onFile})],
     review: [transport.review_path, renderCompatibilityReview(request, reviewReport, transport.plan_path)],
     mission: [transport.prompt_file, renderCompatibilityMission(request, planContract, transport.plan_path)],
   };
+  for(const [file,content]of extraFiles)bodies['bundle_'+Object.keys(bodies).length]=[file,content];
   return Object.fromEntries(Object.entries(bodies).map(([kind, [filePath, content]]) => {
     safeRelativePath(filePath, 'VNEXT_QUEUE_COMPATIBILITY_PATH_INVALID', kind);
     return [kind, { path: filePath, blob_oid: gitBlobOid(content), content_sha256: V.sha256(content), content }];

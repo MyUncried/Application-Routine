@@ -606,7 +606,7 @@ function validateUiAtomicityContract(contract, {
     figmaReferences: contract.figma_references || [],
   });
 
-  if (V.canonicalStringify(rebuilt) !== V.canonicalStringify(contract)) {
+  if (V.canonicalHash(rebuilt) !== V.canonicalHash(contract)) {
     V.fail('VNEXT_UI_CONTRACT_REBUILD_MISMATCH');
   }
   return true;
