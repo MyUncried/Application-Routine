@@ -1,12 +1,10 @@
-> État actualisé : #347 n'est pas fusionnée. Les contrôles VNext Linux et Windows passent, mais l'historique Windows de l'essai 1 a un échec réel dans audit-prompt-transport.pilot.js (1465 PASS, 3 ignorés, 1 échec sur 1469). Source du test et workflow identiques à main ; cause du processus natif non conservée par ce test. Diagnostic exact publié dans complement-portee-qualification-windows-incident.json. Une seule reprise des jobs en échec du même run est engagée : [37938431543, essai 2](https://github.com/MyUncried/Application-Routine/actions/runs/37938431543/attempts/2), job Windows 113853608600. Aucune fusion ni invocation Claude avant succès. Suite pilote 37938431465 encore active. Les statuts historiques ci-dessous sont ceux du premier contrôle.
-
 # PRE-3 — complément indépendant de portée, même opération #340
 
 ## État vérifié
 
 Correctif [#347](https://github.com/MyUncried/Application-Routine/pull/347), candidat exact `bdfde87b9f034021dc30c6412071e895283d716c`. Six fichiers publiés identiques aux octets testés localement. **482/482 tests VNext PASS**, zéro échec/ignoré ; quatre tests nouveaux de portée, admission Git et transport/récupération. Aucun appel Claude réel pendant ces tests.
 
-[Qualification VNext Linux/Windows 37938431543](https://github.com/MyUncried/Application-Routine/actions/runs/37938431543) : Linux PASS, Windows en cours au dernier contrôle. [Suite pilote 37938431465](https://github.com/MyUncried/Application-Routine/actions/runs/37938431465) en cours. Audit automatique V2 37938431494 SKIPPED. Pas de nouveau dispatch, audit global ni certification générale. La fusion du correctif reste conditionnée aux contrôles du candidat exact.
+[Qualification VNext Linux/Windows 37938431543, essai 2](https://github.com/MyUncried/Application-Routine/actions/runs/37938431543/attempts/2) : SUCCESS ; 482/482 contrôles VNext sur chaque OS. Historique Linux : 1467 PASS, 2 ignorés ; Windows : 1466 PASS, 3 ignorés ; 1469 tests chacun, zéro échec. Couverture des 453 cas mappés PASS sur au moins un OS ; pas de certification générale. [Suite pilote 37938431465](https://github.com/MyUncried/Application-Routine/actions/runs/37938431465) SUCCESS. Audit automatique V2 37938431494 SKIPPED. Pas de nouveau dispatch, audit global ni certification générale. #347 fusionnée le 9 octobre 2026 : `5ec810f26650546f6d3e4b497697c45884287361`. Arbre fusionné identique au candidat testé. [Registre de clôture ciblée](https://github.com/MyUncried/Application-Routine/blob/main/.github/orchestration/reports/2026-10-09_PRE3_REVIEW_SCOPE_CLOSURE.json). L'incident Windows de l'essai 1 reste conservé ; sa reprise passe sans changement du test, sa cause native précise reste inconnue.
 
 ## Préparation réelle terminée
 
@@ -21,7 +19,7 @@ Le reçu initial a été relu et vérifié par `Chain.verifyReceipt`. La proposi
 
 Le paquet complet est publié dans `complement-portee-proposition-publiee.json` (gzip/base64, longueur et SHA-256 des octets décompressés, hash canonique) ; restitution intégrale et hash contrôlés localement PASS. `complement-portee-preparation-resultat.json` donne les compteurs exacts. Les fichiers sources de préparation et le lanceur sont publiés sur la branche PRE-3 existante.
 
-## Procédure sur le poste — seulement après qualification et fusion de #347
+## Procédure sur le poste — qualification et fusion vérifiées
 
 Le lanceur contrôle lui-même cette condition et les quatre fichiers de protocole exacts. Il refuse un dossier de complément déjà existant, ne reconstruit pas INITIAL et ne modifie pas le checkout d'examen initial.
 
@@ -45,4 +43,4 @@ Retourner le reçu complet du complément pour vérification et publication Git.
 
 ## Responsabilités et jalon
 
-Actuellement : qualification distante du correctif, préparation PRE-3 terminée, aucun complément Claude lancé. GitHub Actions est l'acteur actif. Après qualification/fusion, le seul transport Claude disponible reste le poste authentifié de Hermann ; Claude est le reviewer indépendant. ChatGPT reprend ensuite la correction des artefacts, leur revue et la préparation de validation du plan exact. Développement uniquement après cette validation. Aucun mécanisme de surveillance d'arrière-plan revendiqué.
+Actuellement : correctif qualifié et fusionné, préparation PRE-3 terminée, aucun complément Claude lancé. Étape VNext : `review-scope`, opération #340 existante. L'action maintenant requise est l'exécution du lanceur ci-dessus sur le poste authentifié de Hermann ; Claude est le reviewer indépendant. Aucun binaire Claude disponible dans cet environnement (vérification renouvelée), ce qui empêche son invocation ici. ChatGPT reprend ensuite la correction des artefacts, leur revue et la préparation de validation du plan exact. Développement uniquement après cette validation. Aucun mécanisme de surveillance d'arrière-plan revendiqué.
