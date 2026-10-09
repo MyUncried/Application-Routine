@@ -1,8 +1,15 @@
 import * as Crypto from "expo-crypto";
 
 import {
+  parseExecutionParameters,
+  serializeExecutionParameters,
+  type ExecutionParameters,
+} from "@/domain/activities/ExecutionParameters";
+import type { MediaLinkInput } from "@/domain/media/ActivityMedia";
+import {
   computeActivityCount,
-  computeEstimatedDurationSeconds,
+  computeStructuredSessionDuration,
+  type ActivityDurationFacts,
 } from "@/domain/sessions/calculations";
 import { FIXED_CYCLE_REPEAT_COUNT } from "@/domain/sessions/defaults";
 import { SessionValidationError } from "@/domain/sessions/errors";
@@ -40,6 +47,8 @@ import type {
   SessionSummaryRow,
 } from "@/infrastructure/database/types/DatabaseRows";
 
+import { listSessionActivityMediaByIds, replaceSessionActivityMediaLinks } from "./SqliteMediaRepository";
+
 type LocalUserRow = { id: string };
 type UuidFactory = () => string;
 
@@ -55,6 +64,38 @@ export class RetiredLabelError extends Error {
   constructor() {
     super("The referenced label has been retired and cannot be newly assigned.");
     this.name = "RetiredLabelError";
+  }
+}
+
+/**
+ * PRE-3 : même garde (T16, D-210) pour la Catégorie transportée par une
+ * copie — la Catégorie déjà affectée reste permise même retirée ; une
+ * NOUVELLE affectation vers une Catégorie retirée est refusée.
+ */
+export class RetiredOccurrenceCategoryError extends Error {
+  constructor() {
+    super("The referenced category has been retired and cannot be newly assigned to an occurrence.");
+    this.name = "RetiredOccurrenceCategoryError";
+  }
+}
+
+async function assertOccurrenceCategoryAssignable(
+  transaction: Database,
+  categoryId: string | null | undefined,
+  currentCategoryId: string | null,
+): Promise<void> {
+  if (categoryId === undefined || categoryId === null || categoryId === currentCategoryId) {
+    return;
+  }
+  const row = await transaction.getFirstAsync<ReferentialIdRow>(
+    "SELECT id, is_active FROM categories WHERE id = ?",
+    [categoryId],
+  );
+  if (!row) {
+    throw new Error("Referenced category does not exist.");
+  }
+  if (row.is_active === 0) {
+    throw new RetiredOccurrenceCategoryError();
   }
 }
 
@@ -181,7 +222,9 @@ SELECT
   activities.pause_seconds,
   activities.post_activity_recovery_seconds,
   activities.instruction,
-  activities.side_mode AS activity_side_mode
+  activities.side_mode AS activity_side_mode,
+  activities.execution_parameters AS activity_execution_parameters,
+  activities.category_id AS activity_category_id
 FROM sessions
 LEFT JOIN labels ON labels.id = sessions.label_id
 JOIN cycles ON cycles.session_id = sessions.id
@@ -194,76 +237,17 @@ ORDER BY ${STRUCTURAL_ORDER_SQL} ASC, activities.position ASC
 `;
 
 /**
- * Durée estimée d'UNE Activité, en SQL — transcription EXACTE de
- * `computeActivityDurationSeconds` (`calculations.ts`), dont la parité est
- * testée (`SqliteSessionRepository.test.ts`).
+ * **PRE-3** : la projection SQL de durée (ancienne transcription scalaire,
+ * sans cadence, variable, ordre par paire ni Pause entre les côtés) est
+ * RETIRÉE. La liste lit les paramètres de chaque occurrence en UNE requête
+ * groupée et délègue le total à l'autorité unique du Domaine
+ * (`computeStructuredSessionDuration`), exactement comme la lecture
+ * complète — aucun second calcul divergent, aucun N+1. Seuls les comptes
+ * par zone restent agrégés en SQL.
  *
- * **T02-S02** : la formule canonique est CONDITIONNELLE — la Récupération
- * REMPLACE la dernière Pause lorsqu'elle existe :
- *
- * - `post_activity_recovery_seconds = 0` : `C × A + C × B` ;
- * - `post_activity_recovery_seconds > 0` : `C × A + (C − 1) × B + R`.
- *
- * Le nombre d'occurrences de Pause est donc lui-même un `CASE`, transcription
- * exacte de `computePauseOccurrences`. `MAX(X, Y)` à deux arguments est la
- * fonction SCALAIRE de SQLite, jamais l'agrégat `max(X)` à un argument.
- *
- * **V2-PRE-1 (plan §3.3)** : le Circuit (Tour) n'a plus aucune influence
- * fonctionnelle sur la direction — chaque Activité applique sa PROPRE
- * direction (`activities.side_mode`), jamais celle du Tour.
+ * `zone` est toujours l'une des trois constantes littérales du Domaine —
+ * jamais une valeur d'origine utilisateur.
  */
-const ACTIVITY_PAUSE_OCCURRENCES_SQL = `
-  CASE
-    WHEN activities.post_activity_recovery_seconds > 0
-      THEN MAX(COALESCE(activities.series_count, 0) - 1, 0)
-    ELSE MAX(COALESCE(activities.series_count, 0), 0)
-  END
-`;
-
-/** V2-BILAT-01, portée exclusivement par l'Exercice (V2-PRE-1) — transcription SQL EXACTE de `sideMultiplier(activity.sideMode)` : `1` pour `UNILATERAL`, `2` pour toute direction bilatérale. */
-const ACTIVITY_SIDE_MULTIPLIER_SQL = `
-  CASE WHEN activities.side_mode <> 'UNILATERAL' THEN 2 ELSE 1 END
-`;
-
-/**
- * Durée estimée d'UNE Activité, en SQL — transcription EXACTE de
- * `computeActivityDurationSeconds` (`calculations.ts`), dont la parité est
- * testée (`SqliteSessionRepository.test.ts`).
- *
- * La branche `RECOVERY` reste une défense en profondeur sur une donnée
- * ancienne : `migration004` a converti puis supprimé toutes ces lignes ;
- * une Récupération n'est jamais elle-même côtée (D-041), aucun
- * multiplicateur ne s'y applique. La récupération post-exercice n'est,
- * elle, jamais multipliée par côté (V2-PRE-1 : le Circuit n'a plus de
- * direction propre).
- */
-const ACTIVITY_DURATION_SQL = `
-  CASE
-    WHEN activities.type = 'RECOVERY'
-      THEN COALESCE(activities.duration_seconds, 0)
-    ELSE (
-      COALESCE(activities.series_count, 0) * COALESCE(activities.duration_seconds, 0)
-      + (${ACTIVITY_PAUSE_OCCURRENCES_SQL}) * activities.pause_seconds
-    ) * (${ACTIVITY_SIDE_MULTIPLIER_SQL})
-      + activities.post_activity_recovery_seconds
-  END
-`;
-
-/**
- * T02-S01 (clarification n° 5 du verdict de revue : « la projection SQL
- * `listActive` doit appliquer exactement ces règles PAR COLONNE ET PAR
- * ZONE ») — une colonne de durée et une colonne de compte par zone
- * structurelle, agrégées ensuite par le Domaine (`calculations.ts`), plutôt
- * qu'un total déjà mélangé que SQL ne pourrait plus pondérer par
- * `tourRepeatCount`.
- *
- * `zone` est toujours l'une des trois constantes littérales du Domaine
- * ci-dessous — jamais une valeur d'origine utilisateur.
- */
-function zoneDurationSql(zone: StructuralPosition): string {
-  return `SUM(CASE WHEN activities.structural_position = '${zone}' THEN ${ACTIVITY_DURATION_SQL} ELSE 0 END)`;
-}
-
 function zoneActivityCountSql(zone: StructuralPosition): string {
   return `SUM(CASE WHEN activities.structural_position = '${zone}' THEN 1 ELSE 0 END)`;
 }
@@ -431,6 +415,8 @@ export class SqliteSessionRepository implements SessionRepository {
         existingRows.map((row) => row.activity_id),
         normalized.activities,
         timestamp,
+        this.uuidFactory,
+        new Map(existingRows.map((row) => [row.activity_id, row.activity_category_id ?? null])),
       );
 
       // V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : les Points d'arrêt
@@ -477,16 +463,6 @@ export class SqliteSessionRepository implements SessionRepository {
         ${zoneActivityCountSql("BEFORE_TOUR")} AS before_tour_activity_count,
         ${zoneActivityCountSql("IN_TOUR")} AS in_tour_activity_count,
         ${zoneActivityCountSql("AFTER_TOUR")} AS after_tour_activity_count,
-        ${zoneDurationSql("BEFORE_TOUR")} AS before_tour_duration_seconds,
-        ${zoneDurationSql("IN_TOUR")} AS in_tour_duration_seconds,
-        ${zoneDurationSql("AFTER_TOUR")} AS after_tour_duration_seconds,
-        MAX(
-          CASE
-            WHEN activities.type = 'EXERCISE'
-              AND activities.execution_mode IN ('REPETITIONS', 'TO_FAILURE')
-            THEN 1 ELSE 0
-          END
-        ) AS has_repetition_activity,
         tours.repeat_count AS tour_repeat_count,
         sessions.updated_at
       FROM sessions
@@ -504,8 +480,15 @@ export class SqliteSessionRepository implements SessionRepository {
 
     const sessionIds = rows.map((row) => row.id);
     const bodyZoneNamesBySession = await getBodyZoneNamesBySession(this.database, sessionIds);
+    const durationFactsBySession = await getDurationFactsBySession(this.database, sessionIds);
 
-    return rows.map((row) => mapSummaryRow(row, bodyZoneNamesBySession.get(row.id) ?? []));
+    return rows.map((row) =>
+      mapSummaryRow(
+        row,
+        bodyZoneNamesBySession.get(row.id) ?? [],
+        durationFactsBySession.get(row.id) ?? EMPTY_ZONES,
+      ),
+    );
   }
 }
 
@@ -564,6 +547,7 @@ async function insertActivities(
     // T16 (D-210) : une Activité nouvellement créée n'a aucune affectation
     // existante à conserver — chaque Zone demandée doit être active.
     await assertBodyZonesAssignable(transaction, bodyZoneIds, new Set());
+    await assertOccurrenceCategoryAssignable(transaction, activity.categoryId, null);
 
     await transaction.runAsync(
       `INSERT INTO activities (${ACTIVITY_ROW_COLUMNS})
@@ -587,6 +571,8 @@ async function insertActivities(
         timestamp,
         timestamp,
         sideMode,
+        executionParametersJson(activity.executionParameters),
+        activity.categoryId ?? null,
       ],
     );
 
@@ -596,7 +582,29 @@ async function insertActivities(
         [activityId, bodyZoneId],
       );
     }
+    // PRE-3 : liens ordonnés propres à cette occurrence (mêmes fichiers).
+    await replaceOccurrenceMedia(transaction, activityId, activity.media, uuidFactory);
   }
+}
+
+/**
+ * PRE-3 : JSON canonique validé d'une occurrence (la validation de Séance a
+ * déjà normalisé et contrôlé les bornes) — `NULL` pour le chemin historique.
+ */
+function executionParametersJson(parameters: CreateSessionActivityInput["executionParameters"]): string | null {
+  return parameters ? serializeExecutionParameters(parameters as ExecutionParameters) : null;
+}
+
+async function replaceOccurrenceMedia(
+  transaction: Database,
+  activityId: string,
+  media: readonly MediaLinkInput[] | undefined,
+  uuidFactory: UuidFactory,
+): Promise<void> {
+  if (media === undefined) {
+    return;
+  }
+  await replaceSessionActivityMediaLinks(transaction, activityId, media, uuidFactory);
 }
 
 /**
@@ -631,7 +639,7 @@ const ACTIVITY_ROW_COLUMNS = `
   id, session_id, cycle_id, tour_id, type, structural_position,
   position, name, execution_mode, duration_seconds,
   repetition_count, series_count, pause_seconds, post_activity_recovery_seconds,
-  instruction, created_at, updated_at, side_mode
+  instruction, created_at, updated_at, side_mode, execution_parameters, category_id
 `;
 
 /**
@@ -706,6 +714,8 @@ async function mergeActivities(
   existingActivityIds: readonly string[],
   activities: readonly UpdateSessionActivityInput[],
   timestamp: string,
+  uuidFactory: UuidFactory,
+  currentCategoryByActivity: ReadonlyMap<string, string | null>,
 ): Promise<void> {
   const existing = new Set(existingActivityIds);
   const incoming = new Set(activities.map((activity) => activity.id));
@@ -755,14 +765,21 @@ async function mergeActivities(
       bodyZoneIds,
       currentBodyZoneIdsByActivity.get(activity.id) ?? new Set(),
     );
+    const currentCategoryId = currentCategoryByActivity.get(activity.id) ?? null;
+    await assertOccurrenceCategoryAssignable(transaction, activity.categoryId, currentCategoryId);
 
     if (existing.has(activity.id)) {
+      // PRE-3 : une occurrence existante rééditée reçoit son JSON canonique ;
+      // sans paramètres canoniques (ancienne occurrence non rééditée), ses
+      // colonnes restent sur le chemin historique et son JSON éventuel est
+      // conservé. Catégorie `undefined` = conservée.
       await transaction.runAsync(
         `UPDATE activities SET
            type = ?, structural_position = ?, position = ?, name = ?,
            execution_mode = ?, duration_seconds = ?, repetition_count = ?,
            series_count = ?, pause_seconds = ?, post_activity_recovery_seconds = ?, instruction = ?,
-           tour_id = ?, cycle_id = ?, updated_at = ?, side_mode = ?
+           tour_id = ?, cycle_id = ?, updated_at = ?, side_mode = ?,
+           execution_parameters = COALESCE(?, execution_parameters), category_id = ?
          WHERE id = ? AND session_id = ?`,
         [
           activity.type,
@@ -780,6 +797,8 @@ async function mergeActivities(
           cycleId,
           timestamp,
           sideMode,
+          executionParametersJson(activity.executionParameters),
+          activity.categoryId === undefined ? currentCategoryId : activity.categoryId,
           activity.id,
           sessionId,
         ],
@@ -810,6 +829,8 @@ async function mergeActivities(
           timestamp,
           timestamp,
           sideMode,
+          executionParametersJson(activity.executionParameters),
+          activity.categoryId ?? null,
         ],
       );
     }
@@ -820,6 +841,9 @@ async function mergeActivities(
         [activity.id, bodyZoneId],
       );
     }
+    // PRE-3 : `media` absent conserve les liens d'une occurrence existante ;
+    // une liste explicite les remplace (jamais les assets).
+    await replaceOccurrenceMedia(transaction, activity.id, activity.media, uuidFactory);
   }
 }
 
@@ -852,8 +876,9 @@ async function readSession(
   }
 
   const stopPoints = await getStopPoints(database, sessionId);
+  const mediaByActivity = await listSessionActivityMediaByIds(database, activityIds);
 
-  return assembleSession(rows, bodyZonesByActivity, stopPoints);
+  return assembleSession(rows, bodyZonesByActivity, stopPoints, mediaByActivity);
 }
 
 /**
@@ -952,9 +977,20 @@ async function getBodyZoneNamesBySession(
 function toActivity(
   row: SessionAggregateRow,
   bodyZonesByActivity: ReadonlyMap<string, readonly string[]>,
+  mediaByActivity: ReadonlyMap<string, NonNullable<Activity["media"]>> = new Map(),
 ): Activity {
   const isRecovery = row.activity_type === "RECOVERY";
+  // PRE-3 : JSON canonique de l'occurrence. Corrompu ou de version inconnue
+  // → erreur de données explicite (jamais un repli scalaire). Absent : la
+  // lecture historique reste inchangée (adaptée par le Domaine au calcul).
+  const executionParameters =
+    !isRecovery && row.activity_execution_parameters
+      ? parseExecutionParameters(row.activity_execution_parameters)
+      : undefined;
   return {
+    ...(executionParameters ? { executionParameters } : {}),
+    ...(row.activity_category_id !== undefined ? { categoryId: row.activity_category_id } : {}),
+    ...(isRecovery ? {} : { media: mediaByActivity.get(row.activity_id) ?? [] }),
     id: row.activity_id,
     type: row.activity_type,
     // Une Récupération stocke `execution_mode = 'DURATION'` en base
@@ -987,6 +1023,7 @@ export function assembleSession(
   rows: readonly SessionAggregateRow[],
   bodyZonesByActivity: ReadonlyMap<string, readonly string[]>,
   stopPoints: readonly StopPoint[] = [],
+  mediaByActivity: ReadonlyMap<string, NonNullable<Activity["media"]>> = new Map(),
 ): Session {
   for (const row of rows) {
     assertSessionAggregateRow(row);
@@ -997,7 +1034,7 @@ export function assembleSession(
   const inTour: Activity[] = [];
   const afterTour: Activity[] = [];
   for (const row of rows) {
-    const activity = toActivity(row, bodyZonesByActivity);
+    const activity = toActivity(row, bodyZonesByActivity, mediaByActivity);
     if (activity.structuralPosition === "BEFORE_TOUR") {
       beforeTour.push(activity);
     } else if (activity.structuralPosition === "AFTER_TOUR") {
@@ -1046,9 +1083,84 @@ export function mapSessionRow(row: SessionAggregateRow): Session {
   return assembleSession([row], new Map());
 }
 
+type DurationFactsRow = {
+  session_id: string;
+  type: ActivityType;
+  structural_position: StructuralPosition;
+  execution_mode: ExerciseExecutionMode;
+  duration_seconds: number | null;
+  repetition_count: number | null;
+  series_count: number | null;
+  pause_seconds: number;
+  post_activity_recovery_seconds: number;
+  side_mode: SideMode;
+  execution_parameters: string | null;
+};
+
+type SessionZones = {
+  readonly beforeTour: readonly ActivityDurationFacts[];
+  readonly inTour: readonly ActivityDurationFacts[];
+  readonly afterTour: readonly ActivityDurationFacts[];
+};
+
+const EMPTY_ZONES: SessionZones = { beforeTour: [], inTour: [], afterTour: [] };
+
+/**
+ * PRE-3 : paramètres de durée de TOUTES les occurrences des Séances listées,
+ * en UNE requête groupée — total ensuite calculé par l'autorité unique du
+ * Domaine, identique à la lecture complète (P3-13/tours-cycles-list).
+ */
+async function getDurationFactsBySession(
+  database: Database,
+  sessionIds: readonly string[],
+): Promise<ReadonlyMap<string, SessionZones>> {
+  if (sessionIds.length === 0) {
+    return new Map();
+  }
+  // `sessionIds` provient de lignes déjà relues depuis SQLite.
+  const placeholders = sessionIds.map(() => "?").join(", ");
+  const rows = await database.getAllAsync<DurationFactsRow>(
+    `SELECT session_id, type, structural_position, execution_mode, duration_seconds,
+            repetition_count, series_count, pause_seconds, post_activity_recovery_seconds,
+            side_mode, execution_parameters
+     FROM activities
+     WHERE session_id IN (${placeholders})
+     ORDER BY ${STRUCTURAL_ORDER_SQL} ASC, position ASC`,
+    sessionIds,
+  );
+  const bySession = new Map<string, { beforeTour: ActivityDurationFacts[]; inTour: ActivityDurationFacts[]; afterTour: ActivityDurationFacts[] }>();
+  for (const row of rows) {
+    const zones = bySession.get(row.session_id) ?? { beforeTour: [], inTour: [], afterTour: [] };
+    const isRecovery = row.type === "RECOVERY";
+    const facts: ActivityDurationFacts = {
+      type: row.type,
+      executionMode: isRecovery ? null : row.execution_mode,
+      durationSeconds: row.duration_seconds,
+      repetitionCount: row.repetition_count,
+      seriesCount: isRecovery ? null : row.series_count,
+      pauseSeconds: row.pause_seconds,
+      postActivityRecoverySeconds: isRecovery ? 0 : row.post_activity_recovery_seconds,
+      sideMode: isRecovery ? "UNILATERAL" : row.side_mode,
+      ...(!isRecovery && row.execution_parameters
+        ? { executionParameters: parseExecutionParameters(row.execution_parameters) }
+        : {}),
+    };
+    if (row.structural_position === "BEFORE_TOUR") {
+      zones.beforeTour.push(facts);
+    } else if (row.structural_position === "AFTER_TOUR") {
+      zones.afterTour.push(facts);
+    } else {
+      zones.inTour.push(facts);
+    }
+    bySession.set(row.session_id, zones);
+  }
+  return bySession;
+}
+
 function mapSummaryRow(
   row: SessionSummaryRow,
   bodyZoneNames: readonly string[],
+  zones: SessionZones,
 ): SessionSummary {
   // T02-S01 : le Catalogue affiche le nombre d'Activités RÉELLEMENT
   // COMPOSÉES — chacune une seule fois, jamais multipliée par
@@ -1061,13 +1173,7 @@ function mapSummaryRow(
     afterTourActivityCount: row.after_tour_activity_count,
     tourRepeatCount: row.tour_repeat_count,
   });
-  const estimatedDurationSeconds = computeEstimatedDurationSeconds({
-    beforeTourDurationSeconds: row.before_tour_duration_seconds,
-    inTourDurationSeconds: row.in_tour_duration_seconds,
-    afterTourDurationSeconds: row.after_tour_duration_seconds,
-    tourRepeatCount: row.tour_repeat_count,
-    isLowerBoundEstimate: row.has_repetition_activity === 1,
-  });
+  const duration = computeStructuredSessionDuration({ ...zones, tourRepeatCount: row.tour_repeat_count });
 
   return {
     id: row.id,
@@ -1075,8 +1181,11 @@ function mapSummaryRow(
     color: (row.label_color as SessionColor | null) ?? DEFAULT_SESSION_COLOR,
     labelId: row.label_id,
     activityCount,
-    estimatedDurationSeconds,
-    isEstimatedDurationApproximate: row.has_repetition_activity === 1,
+    estimatedDurationSeconds: duration.seconds,
+    // `isEstimatedDurationApproximate` reste le drapeau historique « ≥ » ;
+    // `durationKind` porte la nature complète (exact / ≈ / ≥).
+    isEstimatedDurationApproximate: duration.kind === "lowerBound",
+    durationKind: duration.kind,
     tourRepeatCount: row.tour_repeat_count,
     updatedAt: row.updated_at,
     categoryNames: [],

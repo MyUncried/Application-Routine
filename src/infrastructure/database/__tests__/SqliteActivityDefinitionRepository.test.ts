@@ -3,6 +3,19 @@ import { afterEach, beforeEach, describe, expect, it } from "@jest/globals";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
+import { rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+import {
+  activityDefinitionToDraftExercise,
+  activityDefinitionToInput,
+  validateActivityDefinitionInput,
+  type CreateActivityDefinitionInput,
+} from "@/domain/activities/ActivityDefinition";
+import { ExecutionParametersDataError, type ExecutionParameters } from "@/domain/activities/ExecutionParameters";
+import type { MediaAsset } from "@/domain/media/MediaAsset";
+import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 
 function makeUuidFactory(prefix: string) {
   let counter = 0;
@@ -336,5 +349,345 @@ describe("SqliteActivityDefinitionRepository", () => {
       );
       expect(row?.category_id).toBe("cardio");
     });
+  });
+});
+
+/**
+ * PRE-3 — obligations SQLite RÉELLES de la définition Catalogue
+ * (`tests-and-preservation.json`, propriétaire SqliteActivityDefinitionRepository).
+ * Paramètres canoniques, médias ordonnés et non-régressions PRE-1/PRE-2.
+ */
+describe("SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
+  let database: NodeSqliteDatabase;
+  let sequence = 0;
+  const ids = (prefix: string) => () => `${prefix}-${++sequence}`;
+
+  beforeEach(async () => {
+    database = NodeSqliteDatabase.openInMemory();
+    await migrateDatabase(database);
+  });
+
+  afterEach(() => {
+    database.close();
+  });
+
+  function canonical(overrides: Partial<ExecutionParameters> = {}): ExecutionParameters {
+    return {
+      version: 1,
+      mode: "DURATION",
+      series: {
+        kind: "VARIABLE",
+        rows: [
+          { target: 30, pauseSeconds: 10 },
+          { target: 45, pauseSeconds: 20 },
+          { target: 60, pauseSeconds: 30 },
+        ],
+      },
+      sideMode: "RIGHT_LEFT",
+      sideOrder: "BY_SERIES",
+      sideRecoverySeconds: 7,
+      cadenceBeepIntervalSeconds: 4,
+      countdownSeconds: 3,
+      endSeconds: 2,
+      ...overrides,
+    };
+  }
+
+  const photo = (id: string): MediaAsset => ({
+    id,
+    uri: `kodjo-media/${id}.jpg`,
+    createdAt: "2026-10-09T10:00:00.000Z",
+    kind: "PHOTO",
+    mimeType: "image/jpeg",
+    fileName: null,
+    sizeBytes: 1000,
+    durationMs: null,
+    width: 100,
+    height: 80,
+  });
+  const video = (id: string): MediaAsset => ({
+    ...photo(id),
+    uri: `kodjo-media/${id}.mov`,
+    kind: "VIDEO",
+    mimeType: "video/quicktime",
+    durationMs: 3000,
+  });
+
+  function input(parameters: ExecutionParameters, overrides: Partial<CreateActivityDefinitionInput> = {}): CreateActivityDefinitionInput {
+    return {
+      name: "Fentes",
+      description: null,
+      executionMode: parameters.mode,
+      durationSeconds: null,
+      repetitionCount: null,
+      seriesCount: 1,
+      pauseSeconds: 0,
+      category: { kind: "EXISTING", categoryId: "cardio" },
+      bodyZoneIds: ["cuisses"],
+      sideRecoverySeconds: 0,
+      executionParameters: parameters,
+      ...overrides,
+    };
+  }
+
+  /** Même chemin que l'application : validation canonique du Domaine, puis Repository. */
+  async function save(repository: SqliteActivityDefinitionRepository, value: CreateActivityDefinitionInput) {
+    const validated = validateActivityDefinitionInput(value);
+    if (!validated.ok) {
+      throw new Error(JSON.stringify(validated.violations));
+    }
+    return repository.create(validated.value);
+  }
+
+  it("P3-01/Catalogue:create et P3-01/Catalogue:edit — tous les champs se rouvrent ; Terminer Catalogue écrit la seule définition", async () => {
+    const repository = new SqliteActivityDefinitionRepository(database, ids("def"));
+    const media = [
+      { assetId: "p1", asset: photo("p1") },
+      { assetId: "v1", asset: video("v1") },
+    ];
+    const created = await save(repository, input(canonical(), { media }));
+    const reopened = await repository.findById(created.id);
+    expect(reopened?.executionParameters).toEqual(canonical());
+    expect(reopened?.media?.map((item) => [item.assetId, item.position, item.asset.kind])).toEqual([
+      ["p1", 0, "PHOTO"],
+      ["v1", 1, "VIDEO"],
+    ]);
+    // Modification : cible, cadence, ordre des côtés et ordre des médias.
+    const edited = canonical({ cadenceBeepIntervalSeconds: 9, sideOrder: "BY_SIDE" });
+    const editInput = activityDefinitionToInput(reopened!);
+    const validated = validateActivityDefinitionInput({
+      ...editInput,
+      executionParameters: edited,
+      media: [editInput.media![1]!, editInput.media![0]!],
+    });
+    expect(validated.ok).toBe(true);
+    const updated = await repository.update(created.id, validated.ok ? validated.value : editInput);
+    expect(updated?.executionParameters).toEqual(edited);
+    expect(updated?.media?.map((item) => item.assetId)).toEqual(["v1", "p1"]);
+    expect(updated?.createdAt).toBe(created.createdAt);
+    const counts = await database.getFirstAsync<{ sessions: number; occurrences: number }>(
+      "SELECT (SELECT COUNT(*) FROM sessions) AS sessions, (SELECT COUNT(*) FROM activities) AS occurrences",
+    );
+    expect(counts).toEqual({ sessions: 0, occurrences: 0 });
+  });
+
+  it("P3-01/Session:create et P3-01/Session:edit — une copie de Séance enregistrée ne réécrit jamais la définition source", async () => {
+    const definitions = new SqliteActivityDefinitionRepository(database, ids("def"));
+    const sessions = new SqliteSessionRepository(database, ids("ses"));
+    const definition = await save(definitions, input(canonical(), { media: [{ assetId: "p1", asset: photo("p1") }] }));
+    const before = await database.getFirstAsync("SELECT * FROM activity_definitions WHERE id = ?", [definition.id]);
+    const copy = activityDefinitionToDraftExercise(definition, "occ-1", 0);
+    await sessions.create({
+      name: "Copie",
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 1,
+      exercises: [
+        {
+          id: copy.id,
+          type: "EXERCISE",
+          structuralPosition: "IN_TOUR",
+          name: copy.name,
+          executionMode: copy.executionMode,
+          durationSeconds: copy.durationSeconds,
+          repetitionCount: copy.repetitionCount,
+          seriesCount: copy.seriesCount,
+          pauseSeconds: copy.pauseSeconds,
+          postActivityRecoverySeconds: 0,
+          bodyZoneIds: copy.bodyZoneIds,
+          executionParameters: canonical({ cadenceBeepIntervalSeconds: 1 }),
+          categoryId: copy.categoryId,
+          media: copy.media?.map((item) => ({ assetId: item.assetId })),
+        },
+      ],
+    });
+    expect(await database.getFirstAsync("SELECT * FROM activity_definitions WHERE id = ?", [definition.id])).toEqual(before);
+    expect((await definitions.findById(definition.id))?.executionParameters?.cadenceBeepIntervalSeconds).toBe(4);
+  });
+
+  it("P3-03/reference-retired — Catégorie retirée conservée sur l'Exercice existant modifié", async () => {
+    const repository = new SqliteActivityDefinitionRepository(database, ids("def"));
+    const created = await save(repository, input(canonical()));
+    await database.runAsync("UPDATE categories SET is_active = 0 WHERE id = 'cardio'");
+    const reopened = await repository.findById(created.id);
+    const validated = validateActivityDefinitionInput({ ...activityDefinitionToInput(reopened!), description: "Lent" });
+    const updated = await repository.update(created.id, validated.ok ? validated.value : activityDefinitionToInput(reopened!));
+    expect(updated?.categoryId).toBe("cardio");
+    expect(updated?.description).toBe("Lent");
+    expect(updated?.bodyZoneIds).toEqual(["cuisses"]);
+  });
+
+  it("P3-05/equal-variable, P3-06/commit-hidden, P3-08/restoration-N1 — l'état validé est exactement relu", async () => {
+    const repository = new SqliteActivityDefinitionRepository(database, ids("def"));
+    const equal = canonical({
+      series: { kind: "VARIABLE", rows: [1, 2, 3].map(() => ({ target: 30, pauseSeconds: 10 })) },
+    });
+    expect((await repository.findById((await save(repository, input(equal))).id))?.executionParameters?.series).toEqual(equal.series);
+
+    const shrunk = canonical({
+      series: { kind: "VARIABLE", rows: [{ target: 10, pauseSeconds: 1 }, { target: 20, pauseSeconds: 2 }] },
+    });
+    const reread = await repository.findById((await save(repository, input(shrunk))).id);
+    expect(reread?.executionParameters?.series).toEqual(shrunk.series);
+
+    const n1 = canonical({ series: { kind: "UNIFORM", count: 1, target: 90, pauseSeconds: 15 }, sideOrder: "BY_SIDE" });
+    const single = await repository.findById((await save(repository, input(n1))).id);
+    expect(single?.executionParameters?.series).toEqual({ kind: "UNIFORM", count: 1, target: 90, pauseSeconds: 15 });
+    expect(single?.executionParameters?.sideOrder).toBe("BY_SIDE");
+  });
+
+  it("P3-10/profile-new-only — PC/CR/Fin enregistrés 7/3/2 inchangés après une modification du Profil", async () => {
+    const repository = new SqliteActivityDefinitionRepository(database, ids("def"));
+    const created = await save(repository, input(canonical({ sideRecoverySeconds: 7, countdownSeconds: 3, endSeconds: 2 })));
+    await database.runAsync(
+      "UPDATE profiles SET side_change_recovery_seconds_default = 60, exercise_countdown_seconds_default = 60, exercise_end_seconds_default = 60",
+    );
+    const reopened = await repository.findById(created.id);
+    expect(reopened?.executionParameters).toEqual(
+      expect.objectContaining({ sideRecoverySeconds: 7, countdownSeconds: 3, endSeconds: 2 }),
+    );
+  });
+
+  it("P3-10/legacy-neutral-proposal et P3-17/corrupt-version — ancien objet sans JSON : neutre 0 sans Profil ; JSON corrompu : erreur explicite", async () => {
+    await database.runAsync(
+      "UPDATE profiles SET exercise_countdown_seconds_default = 60, exercise_end_seconds_default = 60",
+    );
+    await database.runAsync(
+      `INSERT INTO activity_definitions (id, name, description, execution_mode, duration_seconds, repetition_count,
+        series_count, pause_seconds, side_mode, created_at, updated_at, category_id, side_recovery_seconds)
+       VALUES ('legacy', 'Ancien', NULL, 'REPETITIONS', NULL, 12, 3, 45, 'LEFT_RIGHT', 'now', 'now', 'cardio', 9)`,
+    );
+    const repository = new SqliteActivityDefinitionRepository(database, ids("def"));
+    expect((await repository.findById("legacy"))?.executionParameters).toEqual({
+      version: 1,
+      mode: "REPETITIONS",
+      series: { kind: "UNIFORM", count: 3, target: 12, pauseSeconds: 45 },
+      sideMode: "LEFT_RIGHT",
+      sideOrder: "BY_SIDE",
+      sideRecoverySeconds: 9,
+      cadenceBeepIntervalSeconds: 0,
+      countdownSeconds: 0,
+      endSeconds: 0,
+    });
+    await database.runAsync("UPDATE activity_definitions SET execution_parameters = '{\"version\":7}' WHERE id = 'legacy'");
+    await expect(repository.findById("legacy")).rejects.toThrow(ExecutionParametersDataError);
+  });
+
+  it("P3-11/all-modes-bip — le même bip valide est relu dans les trois modes", async () => {
+    const repository = new SqliteActivityDefinitionRepository(database, ids("def"));
+    for (const [mode, target] of [
+      ["DURATION", 30],
+      ["REPETITIONS", 12],
+      ["TO_FAILURE", null],
+    ] as const) {
+      for (const beep of [0, 1, 10]) {
+        const parameters = canonical({
+          mode,
+          series: { kind: "UNIFORM", count: 2, target, pauseSeconds: 5 },
+          cadenceBeepIntervalSeconds: beep,
+        });
+        const created = await save(repository, input(parameters));
+        expect((await repository.findById(created.id))?.executionParameters?.cadenceBeepIntervalSeconds).toBe(beep);
+      }
+    }
+  });
+
+  it("P3-15/no-storage — aucune colonne ni clé de phrase/segment n'est persistée", async () => {
+    const repository = new SqliteActivityDefinitionRepository(database, ids("def"));
+    const created = await save(repository, input(canonical()));
+    const columns = (await database.getAllAsync<{ name: string }>("PRAGMA table_info(activity_definitions)")).map((c) => c.name);
+    expect(columns.some((name) => /phrase|segment|summary|total/i.test(name))).toBe(false);
+    const row = await database.getFirstAsync<{ execution_parameters: string }>(
+      "SELECT execution_parameters FROM activity_definitions WHERE id = ?",
+      [created.id],
+    );
+    expect(Object.keys(JSON.parse(row!.execution_parameters))).toEqual([
+      "version",
+      "mode",
+      "series",
+      "sideMode",
+      "sideOrder",
+      "sideRecoverySeconds",
+      "cadenceBeepIntervalSeconds",
+      "countdownSeconds",
+      "endSeconds",
+    ]);
+  });
+
+  it("P3-16/failure-doubletap et P3-17/transaction-FK — asset inconnu : rollback complet ; réessai : une seule définition", async () => {
+    const repository = new SqliteActivityDefinitionRepository(database, ids("def"));
+    const broken = input(canonical(), { media: [{ assetId: "p1", asset: photo("p1") }, { assetId: "unknown" }] });
+    await expect(save(repository, broken)).rejects.toThrow();
+    const counts = async () =>
+      database.getFirstAsync<Record<string, number>>(
+        "SELECT (SELECT COUNT(*) FROM activity_definitions) AS d, (SELECT COUNT(*) FROM media_assets) AS a, (SELECT COUNT(*) FROM activity_media) AS l",
+      );
+    expect(await counts()).toEqual({ d: 0, a: 0, l: 0 });
+    const retry = input(canonical(), { media: [{ assetId: "p1", asset: photo("p1") }, { assetId: "v1", asset: video("v1") }] });
+    await save(repository, retry);
+    expect(await counts()).toEqual({ d: 1, a: 2, l: 2 });
+    expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual([]);
+  });
+
+  it("P3-17/canonical-roundtrip et P3-23/import-multiple — base fichier fermée puis rouverte : paramètres, ordre et métadonnées intacts", async () => {
+    const path = join(tmpdir(), `kodjo-pre3-${Date.now()}-${Math.random().toString(16).slice(2)}.db`);
+    const fileDatabase = NodeSqliteDatabase.openFile(path);
+    try {
+      await migrateDatabase(fileDatabase);
+      const repository = new SqliteActivityDefinitionRepository(fileDatabase, ids("def"));
+      const extremes = [
+        canonical({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 99, target: 100, pauseSeconds: 300 } }),
+        canonical({ mode: "TO_FAILURE", series: { kind: "VARIABLE", rows: [{ target: null, pauseSeconds: 0 }, { target: null, pauseSeconds: 300 }] } }),
+        canonical({ mode: "DURATION", series: { kind: "UNIFORM", count: 1, target: 5999, pauseSeconds: 0 }, sideOrder: "BY_SIDE" }),
+      ];
+      const media = [
+        { assetId: "p1", asset: photo("p1") },
+        { assetId: "v1", asset: video("v1") },
+        { assetId: "p2", asset: photo("p2") },
+      ];
+      const createdIds: string[] = [];
+      for (const parameters of extremes) {
+        createdIds.push((await save(repository, input(parameters, { media }))).id);
+      }
+      fileDatabase.close();
+
+      const reopenedDatabase = NodeSqliteDatabase.openFile(path);
+      try {
+        const reopened = new SqliteActivityDefinitionRepository(reopenedDatabase, ids("def"));
+        for (const [index, id] of createdIds.entries()) {
+          const definition = await reopened.findById(id);
+          expect(definition?.executionParameters).toEqual(extremes[index]);
+          expect(definition?.media?.map((item) => item.asset)).toEqual([photo("p1"), video("v1"), photo("p2")]);
+        }
+      } finally {
+        reopenedDatabase.close();
+      }
+    } finally {
+      rmSync(path, { force: true });
+      rmSync(`${path}-wal`, { force: true });
+      rmSync(`${path}-shm`, { force: true });
+    }
+  });
+
+  it("un ancien appelant sans médias ni paramètres canoniques ne perd ni les liens ni le JSON existant", async () => {
+    const repository = new SqliteActivityDefinitionRepository(database, ids("def"));
+    const created = await save(repository, input(canonical(), { media: [{ assetId: "p1", asset: photo("p1") }] }));
+    const legacyCaller = {
+      name: "Renommé",
+      description: null,
+      executionMode: "DURATION" as const,
+      durationSeconds: 99,
+      repetitionCount: null,
+      seriesCount: 9,
+      pauseSeconds: 9,
+      category: { kind: "EXISTING" as const, categoryId: "cardio" },
+      bodyZoneIds: ["cuisses"],
+      sideRecoverySeconds: 0,
+    };
+    const updated = await repository.update(created.id, legacyCaller);
+    expect(updated?.name).toBe("Renommé");
+    expect(updated?.executionParameters).toEqual(canonical());
+    expect(updated?.seriesCount).toBe(3);
+    expect(updated?.media?.map((item) => item.assetId)).toEqual(["p1"]);
   });
 });

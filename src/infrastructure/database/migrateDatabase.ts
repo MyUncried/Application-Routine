@@ -10,6 +10,7 @@ import { MIGRATION_005 } from "./migrations/migration005";
 import { MIGRATION_006 } from "./migrations/migration006";
 import { MIGRATION_007 } from "./migrations/migration007";
 import { MIGRATION_008_COLUMNS, MIGRATION_008_FINALIZE } from "./migrations/migration008";
+import { MIGRATION_009 } from "./migrations/migration009";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -124,6 +125,13 @@ export async function migrateDatabase(database: Database): Promise<void> {
 
       await transaction.execAsync(MIGRATION_008_FINALIZE);
       version = 8;
+    }
+
+    // PRE-3 : colonnes et table additives uniquement — aucun backfill,
+    // aucune lecture du Profil, aucune réécriture des valeurs existantes.
+    if (version === 8) {
+      await transaction.execAsync(MIGRATION_009);
+      version = 9;
     }
 
     const userCount = await transaction.getFirstAsync<CountRow>(
