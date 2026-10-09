@@ -272,3 +272,7 @@ Dépendance VNext de clôture (IA-F07) : `scripts/kodjo/lib/vnext-review-coverag
 ## Extension préparatoire PRE-4 — pilote ChatGPT
 
 Relais de revue du plan : `.github/orchestration/KODJO_VNEXT_CHATGPT_PRE4_REVIEW_RELAY.md`, workflow `kodjo-vnext-chatgpt-plan-review.yml`, CLI `scripts/kodjo/chatgpt-plan-review.js` et tests `tests/kodjo/vnext-chatgpt-plan-review.pilot.js`. Cette extension indépendante de #344 ne s'active pas avant clôture PRE-3 et instruction PRE-4. Rapport : `.github/orchestration/reports/2026-10-09_VNEXT_CHATGPT_PRE4_REVIEW_RELAY.md`. Tests locaux de transport seuls ; parcours réel et réveil de conversation non qualifiés.
+
+## Relais commun VNext / ChatGPT PRE-4
+
+`scripts/kodjo/agent-relay.js` → `scripts/kodjo/lib/vnext-agent-relay.js` (cycle commun) → adaptateurs existants `vnext-live-chain`, `vnext-review-scope`, `vnext-figma-implementation-review`. L'ancien `chatgpt-plan-review.js` utilise aussi ce moteur. Le workflow de revue existant accepte les demandes de `.github/orchestration/requests/vnext-agent`. Procédure et inventaire : `.github/orchestration/KODJO_VNEXT_CHATGPT_AGENT_RELAY.md`. Tests : `tests/kodjo/vnext-agent-relay.pilot.js`, tests de compatibilité plan et validateurs existants. Activation toujours limitée à PRE-4 après clôture #340 et autorisation de démarrage.

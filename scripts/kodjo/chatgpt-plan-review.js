@@ -5,8 +5,6 @@ const fs = require('node:fs');
 const path = require('node:path');
 const V = require('./lib/vnext-contract');
 const Chain = require('./lib/vnext-live-chain');
-const Lock = require('./lib/execution-lock');
-const os = require('node:os');
 const Bundle = require('./lib/vnext-file-bundle');
 const SCHEMA = 'kodjo.vnext.chatgpt-plan-review-request.v1';
 function validate(request) {
@@ -63,62 +61,23 @@ function verifyResult(request, result, {cwd, chain = Chain} = {}) {
   if (result.verdict !== report.verdict) throw Error('CHATGPT_REVIEW_RESULT_VERDICT');
   return report;
 }
-function execute(request, {cwd, evidenceRoot, outputDirectory, chain = Chain, issueState, lock = Lock, priorAttempt = () => false} = {}) {
+function execute(request, options = {}) {
   validate(request);
-  if (!evidenceRoot || !outputDirectory) throw Error('CHATGPT_REVIEW_STORAGE_REQUIRED');
-  fs.mkdirSync(outputDirectory,{recursive:true});
-  const diagnostic = {request_hash:request.contract_hash,slice_id:request.slice_id,
-    state:'ORCHESTRATION_FAILURE',waiting_for:'TECHNICAL_RECOVERY',next_actor:'CHATGPT_WORK',
-    model_invoked:false,run_id:process.env.GITHUB_RUN_ID || null,run_attempt:process.env.GITHUB_RUN_ATTEMPT || null};
-  const record = () => fs.writeFileSync(path.join(outputDirectory,'checkpoint.json'),JSON.stringify(diagnostic,null,2)+'\n');
-  let directory, ownedLock;
-  try {
-    if (issueState(340) !== 'closed') throw Error('CHATGPT_REVIEW_PRE3_NOT_CLOSED');
-    if (issueState(request.issue_number) !== 'open') throw Error('CHATGPT_REVIEW_ISSUE_NOT_OPEN');
-    const {produced,causalEvidence} = load(request,cwd,chain);
-    const rel = path.relative(cwd,path.resolve(evidenceRoot));
-    if (!rel || (!rel.startsWith('..'+path.sep) && !path.isAbsolute(rel))) throw Error('CHATGPT_REVIEW_CACHE_OUTSIDE_CHECKOUT_REQUIRED');
-    // Deduplicate by the immutable dossier, even across different request commits.
-    directory = path.join(evidenceRoot,request.produced_chain_hash);
-    fs.mkdirSync(directory,{recursive:true});
-    const receiptFile = path.join(directory,'receipt.json'), intentFile = path.join(directory,'invocation-intent.json');
-    const responseFile = path.join(directory,produced.artifacts.planningEnvelope.planning_mode.toLowerCase()+'-review-response.json');
-    let receipt;
-    if (fs.existsSync(receiptFile)) {
-      receipt = Bundle.read(receiptFile); chain.verifyReceipt(produced,receipt);
-    } else if (fs.existsSync(responseFile)) {
-      receipt = chain.recoverReview(produced,{cwd,evidenceDirectory:directory});
-    } else {
-      if (fs.existsSync(intentFile) || priorAttempt()) throw Error('CHATGPT_REVIEW_PRIOR_INVOCATION_UNKNOWN_NO_RETRY');
-      // Exclusive creation also protects against concurrent dispatches/processes.
-      const active = lock.claudeProcessState();
-      if (active.state !== 'NONE' || active.external_claude_count > 0) throw Error('CHATGPT_REVIEW_CLAUDE_EXECUTION_UNAVAILABLE');
-      ownedLock = lock.acquire(path.join(process.env.KODJO_STATE_ROOT || path.join(os.homedir(),'.kodjo-v2'),'claude-local.lock'),
-        {run_id:diagnostic.run_id || request.contract_hash,request_id:request.contract_hash,
-          github_run_id:diagnostic.run_id,github_run_attempt:diagnostic.run_attempt});
-      fs.writeFileSync(intentFile,JSON.stringify({produced_chain_hash:produced.contract_hash,request_hash:request.contract_hash}),{flag:'wx'});
-      diagnostic.model_invoked = true; record();
-      receipt = chain.review(produced,{cwd,evidenceDirectory:directory,causalEvidence});
-    }
-    chain.verifyReceipt(produced,receipt);
-    if (!fs.existsSync(receiptFile)) Bundle.write(receiptFile,receipt,{exclusive:true});
-    const result = V.sealContract({schema_version:'kodjo.vnext.chatgpt-plan-review-result.v1',
-      request_hash:request.contract_hash,source_head:request.source_head,slice_id:request.slice_id,
-      produced_chain_hash:produced.contract_hash,verdict:receipt.review_report.verdict,review_receipt:receipt});
-    verifyResult(request,result,{cwd,chain});
-    Bundle.write(path.join(outputDirectory,'result.json'),result);
-    Bundle.write(path.join(outputDirectory,'review-receipt.json'),receipt);
-    Bundle.write(path.join(outputDirectory,'review-report.json'),receipt.review_report);
-    Object.assign(diagnostic,{state:'PLAN_REVIEW_COMPLETED',waiting_for:'CHATGPT_REVIEW_CONSUMPTION',
-      next_actor:'CHATGPT_WORK',verdict:result.verdict,resume_from:request.contract_hash});
-    record(); return result;
-  } catch (error) {
-    diagnostic.error = Chain.boundedReviewOutput(error.message).text; record(); throw error;
-  } finally {
-    // Copy raw process evidence as well, including a refusal or quota diagnostic.
-    try { if (directory && fs.existsSync(directory)) fs.cpSync(directory,path.join(outputDirectory,'process-evidence'),{recursive:true}); }
-    finally { if (ownedLock) lock.release(ownedLock); }
-  }
+  const {cwd,chain=Chain}=options;
+  let loaded;
+  const adapter={name:'plan-review',storageKey:request.produced_chain_hash,
+    preflight:()=>{loaded=load(request,cwd,chain);},
+    hasResponse:directory=>fs.existsSync(path.join(directory,loaded.produced.artifacts.planningEnvelope.planning_mode.toLowerCase()+'-review-response.json')),
+    invoke:directory=>chain.review(loaded.produced,{cwd,evidenceDirectory:directory,causalEvidence:loaded.causalEvidence}),
+    recover:directory=>chain.recoverReview(loaded.produced,{cwd,evidenceDirectory:directory}),
+    verify:receipt=>{chain.verifyReceipt(loaded.produced,receipt);return receipt;},
+    result:receipt=>{
+      const result=V.sealContract({schema_version:'kodjo.vnext.chatgpt-plan-review-result.v1',request_hash:request.contract_hash,
+        source_head:request.source_head,slice_id:request.slice_id,produced_chain_hash:loaded.produced.contract_hash,
+        verdict:receipt.review_report.verdict,review_receipt:receipt});
+      verifyResult(request,result,{cwd,chain});return result;
+    }};
+  return require('./lib/vnext-agent-relay').execute(request,{...options,adapter});
 }
 function main(args = process.argv.slice(2)) {
   const [stage,input,output] = args,cwd = process.cwd();
@@ -141,18 +100,9 @@ function main(args = process.argv.slice(2)) {
         || Chain.command('git',['status','--porcelain'],cwd).trim()) throw Error('CHATGPT_REVIEW_CHECKOUT_MISMATCH');
     if(process.env.GITHUB_REPOSITORY !== request.repository) throw Error('CHATGPT_REVIEW_REPOSITORY_MISMATCH');
     const issueState = number => JSON.parse(Chain.command('gh',['api','repos/'+request.repository+'/issues/'+number],cwd)).state;
-    const priorAttempt = () => {
-      if (Number(process.env.GITHUB_RUN_ATTEMPT) > 1) return true;
-      for (let page=1;page<=100;page++) {
-        const rows=JSON.parse(Chain.command('gh',['api','repos/'+request.repository+
-          '/actions/workflows/kodjo-vnext-chatgpt-plan-review.yml/runs?per_page=100&page='+page],cwd)).workflow_runs;
-        if (!Array.isArray(rows)) throw Error('CHATGPT_REVIEW_PRIOR_RUN_SCAN_INVALID');
-        if (rows.some(r=>String(r.id)!==process.env.GITHUB_RUN_ID && r.display_title===
-          'VNext PRE-4 plan review / '+input)) return true;
-        if (rows.length<100) return false;
-      }
-      throw Error('CHATGPT_REVIEW_PRIOR_RUN_SCAN_INCOMPLETE');
-    };
+    const priorAttempt = () => require('./agent-relay').priorInvocation(
+      {...request,operation:'plan-review',operation_hash:request.produced_chain_hash},input,cwd);
+
     return execute(request,{cwd,evidenceRoot:process.env.KODJO_REVIEW_CACHE,
       outputDirectory:process.env.KODJO_REVIEW_OUTPUT,issueState,priorAttempt});
   }

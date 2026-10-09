@@ -35,15 +35,15 @@ function functionalPreservation(row,cwd,root){
   actualFact(proof,root);return proof;
  });
 }
-function prepare(planBody,{cwd,approvedPlanSha256,deliveryHead,evidenceDirectory,measurements,scenarioResults}){
+function prepare(planBody,{cwd,approvedPlanSha256,deliveryHead,evidenceDirectory,measurements,scenarioResults,readText}){
  V.assertSha40(deliveryHead,'VNEXT_FIGMA_REVIEW_DELIVERY_HEAD_REQUIRED');
  V.assertSha64(approvedPlanSha256,'VNEXT_FIGMA_REVIEW_APPROVED_PLAN_REQUIRED');
  if(V.sha256(planBody)!==approvedPlanSha256)V.fail('VNEXT_FIGMA_REVIEW_PLAN_DRIFT');outside(cwd,evidenceDirectory);
  if(Chain.command('git',['rev-parse','HEAD'],cwd).trim()!==deliveryHead)V.fail('VNEXT_FIGMA_REVIEW_CHECKOUT_HEAD_MISMATCH');
  if(!Array.isArray(measurements)||!Array.isArray(scenarioResults))V.fail('VNEXT_FIGMA_REVIEW_OBSERVATIONS_REQUIRED');
  fs.mkdirSync(evidenceDirectory,{recursive:true});const assets=path.join(evidenceDirectory,'references');fs.mkdirSync(assets,{recursive:true});
- const observation=F.consume(planBody,assets,'IMPLEMENTATION_REVIEWER');
- const ui=F.unpackUi(require('./machine-block').parse(planBody,'KODJO_VNEXT_UI_ATOMICITY_JSON',{code:'VNEXT_FIGMA_TRANSPORT_REQUIRED'}));
+ const observation=F.consume(planBody,assets,'IMPLEMENTATION_REVIEWER',{cwd,readText});
+ const ui=F.unpackUi(require('./machine-block').parse(planBody,'KODJO_VNEXT_UI_ATOMICITY_JSON',{code:'VNEXT_FIGMA_TRANSPORT_REQUIRED',cwd,readText}));
  if(!ui.figma_references?.length)V.fail('VNEXT_FIGMA_REVIEW_REFERENCE_REQUIRED');
  const observedFiles=new Map();
  const preservationResults=new Map();
@@ -100,17 +100,42 @@ function verifyReceipt(planBody,options,receipt,raw){
  V.verifyContractHash(receipt,'VNEXT_FIGMA_REVIEW_RECEIPT_HASH_INVALID');
  const dossier=prepare(planBody,options),response=JSON.parse(raw);
  if(receipt.schema_version!=='kodjo.vnext.figma-implementation-review.v1'||response.type!=='result'||response.is_error||!response.session_id||!response.structured_output)V.fail('VNEXT_FIGMA_REVIEW_PROCESS_RESULT_INVALID');
- if(receipt.approved_plan_sha256!==dossier.approved_plan_sha256||receipt.delivery_head!==dossier.delivery_head||receipt.dossier_hash!==V.canonicalHash(dossier)||receipt.raw_response_sha256!==V.sha256(raw)||receipt.session_id!==response.session_id)V.fail('VNEXT_FIGMA_REVIEW_RECEIPT_BINDING_INVALID');
+ if(receipt.approved_plan_sha256!==dossier.approved_plan_sha256||receipt.delivery_head!==dossier.delivery_head||receipt.dossier_hash!==dossierHash(dossier,options)||receipt.raw_response_sha256!==V.sha256(raw)||receipt.session_id!==response.session_id)V.fail('VNEXT_FIGMA_REVIEW_RECEIPT_BINDING_INVALID');
  equal(receipt.assessment,response.structured_output,'VNEXT_FIGMA_REVIEW_RECEIPT_ASSESSMENT_CHANGED');
  equal(receipt.limits,dossier.limits,'VNEXT_FIGMA_REVIEW_RECEIPT_LIMITS_CHANGED');
  const integrity=resourceIntegrity(dossier);
  if(receipt.resource_integrity)equal(receipt.resource_integrity,integrity,'VNEXT_FIGMA_REVIEW_RECEIPT_BINDING_INVALID');
  validateAssessment(dossier,receipt.assessment);return receipt;
 }
+function dossierHash(dossier,options){
+ if(!options.portableReceipt)return V.canonicalHash(dossier);
+ const normalized=structuredClone(dossier);
+ const relative=file=>{const rel=path.relative(options.evidenceDirectory,file);if(!rel||rel.startsWith('..')||path.isAbsolute(rel))V.fail('VNEXT_FIGMA_REVIEW_PORTABLE_PATH');return rel.split(path.sep).join('/');};
+ for(const ref of normalized.observation.references)for(const asset of ref.assets)asset.path=relative(asset.path);
+ delete normalized.observation.contract_hash;normalized.observation=V.sealContract(normalized.observation);
+ for(const row of normalized.observed_files)row.file=relative(row.file);
+ return V.canonicalHash(normalized);
+}
+function receiptFromRaw(planBody,options,raw,preparedDossier){
+ const dossier=preparedDossier||prepare(planBody,options),response=JSON.parse(raw);
+ if(response.type!=='result'||response.is_error||!response.session_id||!response.structured_output)V.fail('VNEXT_FIGMA_REVIEW_PROCESS_RESULT_INVALID');
+ const assessment=validateAssessment(dossier,response.structured_output),resource_integrity=resourceIntegrity(dossier);
+ for(const a of dossier.observed_files)if(digest(fs.readFileSync(a.file))!==a.sha256)V.fail('VNEXT_FIGMA_REVIEW_ARTIFACT_CHANGED');
+ return V.sealContract({schema_version:'kodjo.vnext.figma-implementation-review.v1',approved_plan_sha256:dossier.approved_plan_sha256,delivery_head:dossier.delivery_head,dossier_hash:dossierHash(dossier,options),session_id:response.session_id,raw_response_sha256:V.sha256(raw),assessment,resource_integrity,limits:dossier.limits});
+}
+function recover(planBody,options){
+ const directory=options.evidenceDirectory,raw=fs.readFileSync(path.join(directory,'implementation-review-response.json'),'utf8');
+ const processFile=path.join(directory,'implementation-review-process.json');
+ if(!fs.existsSync(processFile))V.fail('VNEXT_FIGMA_REVIEW_PREVIOUS_RESULT_UNKNOWN');
+ const result=JSON.parse(fs.readFileSync(processFile,'utf8'));V.verifyContractHash(result);
+ if(result.status!==0||result.signal||result.error_code||result.stdout_sha256!==V.sha256(raw))V.fail('VNEXT_FIGMA_REVIEW_PROCESS_RESULT_INVALID');
+ return receiptFromRaw(planBody,options,raw);
+}
 function review(planBody,options){
  const receiptFile=path.join(options.evidenceDirectory,'implementation-review-receipt.json'),responseFile=path.join(options.evidenceDirectory,'implementation-review-response.json');
  if(fs.existsSync(receiptFile)&&fs.existsSync(responseFile))return verifyReceipt(planBody,options,JSON.parse(fs.readFileSync(receiptFile,'utf8')),fs.readFileSync(responseFile,'utf8'));
- if(fs.existsSync(receiptFile)||fs.existsSync(responseFile))V.fail('VNEXT_FIGMA_REVIEW_PREVIOUS_RESULT_UNKNOWN');
+ if(fs.existsSync(responseFile))return recover(planBody,options);
+ if(fs.existsSync(receiptFile)||fs.existsSync(path.join(options.evidenceDirectory,'implementation-review-process.json')))V.fail('VNEXT_FIGMA_REVIEW_PREVIOUS_RESULT_UNKNOWN');
  const dossier=prepare(planBody,options),directory=options.evidenceDirectory;
  resourceIntegrity(dossier);
  fs.writeFileSync(path.join(directory,'implementation-dossier.json'),JSON.stringify(dossier,null,2)+'\n');
@@ -120,15 +145,16 @@ const input={instructions:'Independent implementation review. Read the reference
  fs.writeFileSync(path.join(temp,'mcp.json'),JSON.stringify({mcpServers:{}}));fs.writeFileSync(path.join(temp,'settings.json'),JSON.stringify({disableAllHooks:true}));
  const env={...process.env};for(const k of ['GH_TOKEN','GITHUB_TOKEN','KODJO_LIVE_GH_TOKEN'])delete env[k];
  const before=Chain.command('git',['status','--porcelain','--untracked-files=all'],options.cwd)+Chain.command('git',['diff','--binary'],options.cwd);
- let raw;
+ let raw,archived=false;
+ const archive=result=>{
+  if(archived)V.fail('VNEXT_FIGMA_REVIEW_RESPONSE_DUPLICATE');
+  fs.writeFileSync(responseFile,result.stdout,{flag:'wx'});
+  fs.writeFileSync(path.join(directory,'implementation-review-process.json'),JSON.stringify(V.sealContract({status:result.status,signal:result.signal||null,error_code:result.error_code||null,stdout_sha256:V.sha256(result.stdout)}))+'\n',{flag:'wx'});archived=true;
+ };
  try{
-  raw=(options.invoke||Chain.command)(options.claude||require('./claude-local').resolveClaudeBinary(),['--add-dir',directory,'-p','--restricted','--permission-mode','dontAsk','--permission-prompts','none','--output-format','json','--tools','Read,Glob,Grep','--allowedTools','Read,Glob,Grep','--disallowedTools','mcp__*','--strict-mcp-config','--mcp-config',path.join(temp,'mcp.json'),'--settings',path.join(temp,'settings.json'),'--json-schema',JSON.stringify(schema)],options.cwd,JSON.stringify(input),env,Chain.CLAUDE_TIMEOUT_MS);
-  fs.writeFileSync(path.join(directory,'implementation-review-response.json'),raw);
-  const response=JSON.parse(raw);if(response.type!=='result'||response.is_error||!response.session_id||!response.structured_output)V.fail('VNEXT_FIGMA_REVIEW_PROCESS_RESULT_INVALID');
-  const assessment=validateAssessment(dossier,response.structured_output);
-  const resource_integrity=resourceIntegrity(dossier);
-  for(const a of dossier.observed_files)if(digest(fs.readFileSync(a.file))!==a.sha256)V.fail('VNEXT_FIGMA_REVIEW_ARTIFACT_CHANGED');
-  const receipt=V.sealContract({schema_version:'kodjo.vnext.figma-implementation-review.v1',approved_plan_sha256:dossier.approved_plan_sha256,delivery_head:dossier.delivery_head,dossier_hash:V.canonicalHash(dossier),session_id:response.session_id,raw_response_sha256:V.sha256(raw),assessment,resource_integrity,limits:dossier.limits});
+  raw=(options.invoke||Chain.command)(options.claude||require('./claude-local').resolveClaudeBinary(),['--add-dir',directory,'-p','--restricted','--permission-mode','dontAsk','--permission-prompts','none','--output-format','json','--tools','Read,Glob,Grep','--allowedTools','Read,Glob,Grep','--disallowedTools','mcp__*','--strict-mcp-config','--mcp-config',path.join(temp,'mcp.json'),'--settings',path.join(temp,'settings.json'),'--json-schema',JSON.stringify(schema)],options.cwd,JSON.stringify(input),env,Chain.CLAUDE_TIMEOUT_MS,{onResult:archive});
+  if(!archived)archive({stdout:raw,status:0});
+  const receipt=receiptFromRaw(planBody,options,raw,dossier);
   fs.writeFileSync(path.join(directory,'implementation-review-receipt.json'),JSON.stringify(receipt,null,2)+'\n');return receipt;
  }finally{
   fs.rmSync(temp,{recursive:true,force:true});
@@ -136,4 +162,4 @@ const input={instructions:'Independent implementation review. Read the reference
   if(before!==after)V.fail('VNEXT_FIGMA_REVIEW_CHECKOUT_CHANGED');
  }
 }
-module.exports={prepare,review,validateAssessment,actualFact,assessmentSchema,verifyReceipt};
+module.exports={prepare,review,validateAssessment,actualFact,assessmentSchema,verifyReceipt,recover,dossierHash};
