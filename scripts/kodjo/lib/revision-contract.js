@@ -208,13 +208,45 @@ function assertCatalogMatches(reviewContext, graph, artifacts) {
   return true;
 }
 
-function earliestStage(findings) {
+function validateClarification(clarification) {
+  V.assertExactKeys(clarification,['slice_id','authorized_actor','decision_records'],[],'VNEXT_REVISION_CLARIFICATION_KEYS_INVALID');
+  V.assertSliceId(clarification.slice_id);
+  V.assertUnicodeExactText(clarification.authorized_actor,'VNEXT_REVISION_CLARIFICATION_ACTOR_REQUIRED');
+  if(!Array.isArray(clarification.decision_records)||!clarification.decision_records.length)V.fail('VNEXT_REVISION_USER_DECISION_REQUIRED');
+  const ids=new Set();
+  for(const decision of clarification.decision_records){
+    require('./decision-record').validate(decision);
+    if(decision.status!=='RESOLVED')V.fail('VNEXT_REVISION_USER_DECISION_REQUIRED');
+    if(decision.slice_id!==clarification.slice_id||decision.response.responded_by!==clarification.authorized_actor)V.fail('VNEXT_REVISION_CLARIFICATION_AUTHORITY_MISMATCH');
+    if(ids.has(decision.decision_id))V.fail('VNEXT_REVISION_CLARIFICATION_DUPLICATE');
+    ids.add(decision.decision_id);
+  }
+}
+
+function bindClarification(clarification,report,registry) {
+  validateClarification(clarification);
+  const used=new Set();
+  for(const finding of report.findings.filter(f=>f.blocking&&f.reentry_stage==='USER_DECISION')){
+    const req=registry.requirements.find(r=>r.requirement_id===finding.target_id);
+    const unit=registry.coverage.find(u=>u.unit_id===finding.target_id);
+    const matched=clarification.decision_records.filter(d=>d.causal_evidence.includes('finding:'+finding.finding_id)
+      &&d.source_ids.includes(req?.source_id||unit?.source_id)
+      &&(!req||d.affected_requirement_ids.includes(req.requirement_id)));
+    if(matched.length!==1)V.fail('VNEXT_REVISION_CLARIFICATION_FINDING_UNBOUND',finding.finding_id);
+    used.add(matched[0].decision_id);
+  }
+  if(used.size!==clarification.decision_records.length)V.fail('VNEXT_REVISION_CLARIFICATION_UNUSED_DECISION');
+}
+
+function earliestStage(findings, clarification = null) {
   let selected = 'PLAN';
   let priority = STAGE_PRIORITY.PLAN;
   for (const finding of findings) {
     const stage = finding.reentry_stage;
     if (stage === 'USER_DECISION') {
-      V.fail('VNEXT_REVISION_USER_DECISION_REQUIRED', finding.finding_id);
+      if(!clarification)V.fail('VNEXT_REVISION_USER_DECISION_REQUIRED', finding.finding_id);
+      selected='REQUIREMENTS';priority=STAGE_PRIORITY.REQUIREMENTS;
+      continue;
     }
     if (stage === 'NONE') continue;
     if (!Object.hasOwn(STAGE_PRIORITY, stage)) {
@@ -250,10 +282,20 @@ function buildAllowedChangeSet({
   candidateManifest,
   planContract,
   uiAtomicityContract = null,
+  clarification = null,
+  planningEnvelope = null,
 }) {
   Review.validateReviewReport(reviewReport, reviewContext);
-  if (reviewReport.verdict !== 'REVISE') {
+  if (reviewReport.verdict !== 'REVISE' && !(reviewReport.verdict==='CLARIFICATION_REQUIRED'&&clarification)) {
     V.fail('VNEXT_REVISION_REVISE_REPORT_REQUIRED', reviewReport.verdict);
+  }
+  if(clarification){
+    if(reviewReport.verdict!=='CLARIFICATION_REQUIRED')V.fail('VNEXT_REVISION_CLARIFICATION_UNEXPECTED');
+    if(!planningEnvelope)V.fail('VNEXT_REVISION_CLARIFICATION_ENVELOPE_REQUIRED');
+    require('./planning-envelope').validate(planningEnvelope);
+    if(planningEnvelope.contract_hash!==reviewContext.planning_envelope_hash)V.fail('VNEXT_REVISION_CLARIFICATION_ENVELOPE_MISMATCH');
+    if(planningEnvelope.slice_id!==clarification.slice_id)V.fail('VNEXT_REVISION_CLARIFICATION_SLICE_MISMATCH');
+    bindClarification(clarification,reviewReport,requirementRegistry);
   }
 
   assertContextArtifactHashes(reviewContext, {
@@ -275,7 +317,7 @@ function buildAllowedChangeSet({
   const blocking = reviewReport.findings.filter((finding) => finding.blocking);
   if (blocking.length === 0) V.fail('VNEXT_REVISION_BLOCKING_FINDING_REQUIRED');
 
-  const reentryStage = earliestStage(blocking);
+  const reentryStage = earliestStage(blocking,clarification);
   const authorizedReasons = new Map();
 
   const authorize = (targetId, findingId) => {
@@ -339,6 +381,7 @@ function buildAllowedChangeSet({
     schema_version: ALLOWED_SCHEMA,
     review_context_hash: reviewContext.contract_hash,
     review_report_hash: reviewReport.contract_hash,
+    ...(clarification?{clarification}:{}),
     base_plan_contract_hash: planContract.contract_hash,
     base_ui_atomicity_hash: uiAtomicityContract ? uiAtomicityContract.contract_hash : null,
     base_target_graph_hash: graphFingerprint(graph),
@@ -371,7 +414,7 @@ function validateAllowedChangeSet(allowedChangeSet) {
       'preservation_hash',
       'contract_hash',
     ],
-    [],
+    ['clarification'],
     'VNEXT_ALLOWED_CHANGE_SET_KEYS_INVALID',
   );
   if (allowedChangeSet.schema_version !== ALLOWED_SCHEMA) {
@@ -382,6 +425,7 @@ function validateAllowedChangeSet(allowedChangeSet) {
   }
   V.assertSha64(allowedChangeSet.review_context_hash, 'VNEXT_ALLOWED_CHANGE_SET_REVIEW_CONTEXT_HASH_INVALID');
   V.assertSha64(allowedChangeSet.review_report_hash, 'VNEXT_ALLOWED_CHANGE_SET_REVIEW_REPORT_HASH_INVALID');
+  if(allowedChangeSet.clarification)validateClarification(allowedChangeSet.clarification);
   V.assertSha64(allowedChangeSet.base_plan_contract_hash, 'VNEXT_ALLOWED_CHANGE_SET_PLAN_HASH_INVALID');
   if (allowedChangeSet.base_ui_atomicity_hash !== null) {
     V.assertSha64(allowedChangeSet.base_ui_atomicity_hash, 'VNEXT_ALLOWED_CHANGE_SET_UI_HASH_INVALID');
