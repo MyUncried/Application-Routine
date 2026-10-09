@@ -1,5 +1,7 @@
 # VNext — Correctif de volume, étape 1 : scellement par flux
 
+> Compte rendu historique de l’étape 1. Le résultat final et la procédure de reprise figurent dans [reprise-apres-correctif-volume.md](reprise-apres-correctif-volume.md).
+
 Base de travail : `8e8006e34dac8aef0dddaef816828674f3b8756b`, branche de planification PRE-3. Périmètre applicatif inchangé. Ce document ne vaut ni revue indépendante ni approbation du plan.
 
 ## Résultat livré
