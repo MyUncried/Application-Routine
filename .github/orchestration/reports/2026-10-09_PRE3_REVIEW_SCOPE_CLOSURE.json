@@ -1,0 +1,89 @@
+{
+  "schema_version": "kodjo.pre3.review-scope-closure.v1",
+  "operation": 340,
+  "pr": 347,
+  "candidate_head": "bdfde87b9f034021dc30c6412071e895283d716c",
+  "merge_commit": "5ec810f26650546f6d3e4b497697c45884287361",
+  "merged_at": "2026-10-09T14:21:13Z",
+  "merged_tree_identical_to_candidate": true,
+  "qualification": {
+    "run_id": 37938431543,
+    "attempt": 2,
+    "conclusion": "success",
+    "url": "https://github.com/MyUncried/Application-Routine/actions/runs/37938431543/attempts/2",
+    "vnext": {
+      "Linux": {
+        "tests": 482,
+        "passed": 482,
+        "failed": 0,
+        "skipped": 0,
+        "artifact_id": 11619835956,
+        "archive_sha256": "43f2f56871df51eee0b354d078cc8ce7b750253a92830ea1a46e9353d9d34842"
+      },
+      "Windows": {
+        "tests": 482,
+        "passed": 482,
+        "failed": 0,
+        "skipped": 0,
+        "artifact_id": 11621216254,
+        "archive_sha256": "dd63bfb0dafa78394b6d2381dad3fd3ca93a7f6f350a0469180024d169b5e96f"
+      }
+    },
+    "historical": {
+      "Linux": {
+        "tests": 1469,
+        "passed": 1467,
+        "failed": 0,
+        "skipped": 2,
+        "artifact_id": 11619402703,
+        "archive_sha256": "a42abbf253bf6ef2baa8709b467fdbd8ce36a7e899b25a78f7a9218828743197"
+      },
+      "Windows": {
+        "tests": 1469,
+        "passed": 1466,
+        "failed": 0,
+        "skipped": 3,
+        "artifact_id": 11622595724,
+        "archive_sha256": "8921fb3b8506f7b2615d6723b7b188650b64471a265b4649cd2aeba641708f68"
+      }
+    },
+    "platform_coverage": {
+      "job_id": 113860349506,
+      "case_count": 453,
+      "status": "MAPPED_ASSERTIONS_PASS_ON_AT_LEAST_ONE_PLATFORM",
+      "individual_equivalence_proven": false,
+      "readiness": "NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT"
+    }
+  },
+  "pilot": {
+    "run_id": 37938431465,
+    "attempt": 1,
+    "conclusion": "success"
+  },
+  "incident": {
+    "first_attempt_failed_test": "actual audit transport through PowerShell 5.1 and npm-style shim preserves a large Unicode dossier",
+    "controlled_retry": "one failed-jobs retry of the same candidate and same run",
+    "retry_result": "PASS",
+    "native_failure_root_cause": "UNKNOWN: original test discarded the native probe stderr; no causal fix claimed",
+    "incident_record": "docs/preparation/PRE-3/planification/complement-portee-qualification-windows-incident.json"
+  },
+  "pre3": {
+    "initial_receipt_hash": "56568e7ae81d44c60cb5185d0b69f3099fb64650953804dbf322e478d3845ce9",
+    "scope_proposal_hash": "f11d5172f9cfbca39bb162163da8d8c50ed2857d974f7bb31eb7d6c844edbb19",
+    "blocking_findings_open": 13,
+    "proposal_requests": 13,
+    "unique_proposed_targets": 10859,
+    "scope_review_invoked": false,
+    "owner_plan_approved": false,
+    "implementation_started": false,
+    "next_stage": "review-scope",
+    "launcher_revision": "aefef2aa9b53350bbc76a896612c399dcfd13cb7",
+    "transport": "owner authenticated local Claude; Claude executable absent in this workspace"
+  },
+  "limits": [
+    "Targeted correction qualification; no new global certification or audit campaign.",
+    "No PRE-3 requirement reduction, source mutation, finding closure or automatic permission expansion.",
+    "Successful replay does not establish the native failure root cause.",
+    "Scope supplement receipt is still required before bounded plan revision."
+  ]
+}
