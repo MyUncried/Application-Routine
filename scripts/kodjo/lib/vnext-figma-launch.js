@@ -22,7 +22,8 @@ function documentStates(documents){
   V.assertExactKeys(inventory,['schema_version','states'],[],'VNEXT_FIGMA_DOCUMENT_INVENTORY_INVALID');
   if(inventory.schema_version!=='kodjo.screen-states.v1'||!Array.isArray(inventory.states)||!inventory.states.length)V.fail('VNEXT_FIGMA_DOCUMENT_INVENTORY_INVALID');
   for(const state of inventory.states){
-   V.assertExactKeys(state,['state_id','origin','disposition','expected','reason'],['scenarios'],'VNEXT_FIGMA_DOCUMENT_INVENTORY_INVALID');
+   V.assertExactKeys(state,['state_id','origin','disposition','expected','reason'],['scenarios','requirement_kind'],'VNEXT_FIGMA_DOCUMENT_INVENTORY_INVALID');
+   if(Object.hasOwn(state,'requirement_kind')&&!require('./requirement-registry').REQUIREMENT_KINDS.includes(state.requirement_kind))V.fail('VNEXT_FIGMA_DOCUMENT_REQUIREMENT_KIND_INVALID',state.state_id);
    if(ids.has(state.state_id))V.fail('VNEXT_FIGMA_DOCUMENT_INVENTORY_CONTRADICTION',state.state_id);
    ids.add(state.state_id);rows.push({...state,document_ids:[document.document_id]});
   }
@@ -57,7 +58,9 @@ function requirements(packet,revision,packetPath,content){
  for(const state of packet.states.filter(s=>s.disposition==='REQUIRED')){
   const doc=packet.documents.find(d=>state.document_ids.includes(d.document_id)&&d.content.includes(state.expected));
   const source=manifest.sources.find(s=>s.authority==='FUNCTIONAL'&&s.locator===doc.path&&s.revision===doc.revision&&s.fingerprint===doc.fingerprint);
-  rows.push({source_id:source.source_id,unit_id:source.units[0].unit_id,kind:'UI',statement:state.expected,priority:'MUST',status:'ACTIVE',rationale:'Documentary state '+state.state_id+'; scenarios '+state.scenarios.map(s=>s.scenario_id).join(', '),related_unit_ids:[],conflict_unit_ids:[]});
+  // Explicit typing is frozen in the authoritative documentary inventory.
+  // Keep legacy inventories byte-compatible; never infer kind from UI names.
+  rows.push({source_id:source.source_id,unit_id:source.units[0].unit_id,kind:state.requirement_kind||'UI',statement:state.expected,priority:'MUST',status:'ACTIVE',rationale:'Documentary state '+state.state_id+'; scenarios '+state.scenarios.map(s=>s.scenario_id).join(', '),related_unit_ids:[],conflict_unit_ids:[]});
  }
  return {sources:unique,requirementInput:{requirements:rows}};
 }
