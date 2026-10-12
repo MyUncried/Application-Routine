@@ -1,0 +1,54 @@
+{
+ "schema": "kodjo.pre3.recette2.test-results.v1",
+ "commands": [
+  {
+   "command": "npx tsc --noEmit -p .",
+   "result": "PASS"
+  },
+  {
+   "command": "npx eslint src app",
+   "result": "PASS"
+  },
+  {
+   "command": "npx jest --json",
+   "result": "PASS",
+   "suites": "97/97",
+   "tests": "1949/1949",
+   "failed": 0
+  },
+  {
+   "command": "verifier-passe2.cjs",
+   "result": "PASS (2143)"
+  },
+  {
+   "command": "obligations @43e7b344",
+   "result": "442/442 PASS"
+  },
+  {
+   "command": "contrôle étendu (controle-portee-recette2.json)",
+   "result": "PASS, code dans la write_scope d’origine"
+  }
+ ],
+ "mutation_checks": [
+  {
+   "test": "F-02 — appui en Durée puis Répétitions",
+   "on_original": "FAIL — « 30 rép. » au lieu de « 1 rép. »",
+   "after": "PASS"
+  },
+  {
+   "test": "T-15 — glisser entre les Séries 3 et 4",
+   "on_original": "FAIL — scrollEnabled non géré, aucun repère",
+   "after": "PASS"
+  },
+  {
+   "test": "N-05 — Terminer hors de la zone qui évite le clavier",
+   "on_original": "FAIL — Terminer dans le KeyboardAvoidingView",
+   "after": "PASS"
+  }
+ ],
+ "replaced_assertions": [
+  "D-5 : cadre blanc 1 → capsule T-58 (D-346)",
+  "N-01/N-02 : « Annuler conservé » → absence d’Annuler (D-347)",
+  "ExerciseScreen : intitulé « FixedHeader/HeaderSeparator » → « FixedHeader without separator » + absence vérifiée (D-348)"
+ ]
+}
