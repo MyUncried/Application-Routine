@@ -2,7 +2,7 @@
 
 Ce retest porte uniquement sur T-15. Il dure environ 3 minutes. Les autres lignes de `procedure-retest-recette2.md` restent ouvertes et ne sont pas concernées ici.
 
-Mise à jour à tester : OTA **`01a12fae-53ec-72ca-b260-4e89a5f74e96`**, canal `review`, build iOS 7, commit `a12bb92f`. Le constat du 12/10 a été fait sur `01a12f22`, qui ne contient pas le correctif (preuve : `t15-verification-ota-executee.json`).
+Mise à jour à tester : OTA **`01a12fae-53ec-72ca-b260-4e89a5f74e96`**, canal `review`, build iOS 7, commit `a12bb92f`. **Suspendu** : le 12/10 à 14:46, la mise à jour `01a12fae` n’était pas appliquée sur l’iPhone (« Annuler » présent). Ne pas reprendre ce retest avant la résolution du blocage `OTA-NON-APPLIQUEE` (rapport `2026-10-12_PRE3-340_OTA-NON-APPLIQUEE.md`). La version sur laquelle porte le constat T-15 précédent n’est pas vérifiée.
 
 ## 0. Charger la bonne mise à jour
 

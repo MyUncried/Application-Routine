@@ -1,0 +1,154 @@
+{
+  "mission": "PRE3-340_OTA-NON-APPLIQUEE",
+  "collectedAt": "2026-10-12T12:56:13.393Z",
+  "observationHermann": {
+    "heure": "2026-10-12 14:46 Europe/Paris (12:46 UTC)",
+    "ecran": "Modifier un exercice › Catégorie › Créer une catégorie",
+    "constat": "bouton Annuler présent",
+    "build": "e1deb07e, 1.0.0 (7), canal review, runtime 1.1.0 (capture expo.dev)"
+  },
+  "channel": {
+    "name": "review",
+    "isPaused": false,
+    "branchMapping": "branche review (01a0bc11-3610-…), logique true, sans rollout",
+    "derniereMiseAJour": "01a12fae-53ec-72ca-b260-4e89a5f74e96 2026-10-12T10:35:16Z"
+  },
+  "updateMeta": {
+    "01a12fae": {
+      "rollout": "aucun",
+      "codeSigning": false,
+      "runtime": "1.1.0",
+      "platform": "ios",
+      "commit": "a12bb92f"
+    },
+    "01a12f22": {
+      "rollout": "aucun",
+      "codeSigning": false,
+      "runtime": "1.1.0",
+      "platform": "ios",
+      "commit": "0f86cddb"
+    }
+  },
+  "assetsTelechargesCommeLeClient": {
+    "methode": "en-têtes assetRequestHeaders (authorization EAS-HMAC) de l’extension du manifeste, SHA-256 comparé",
+    "01a12f22": {
+      "createdAt": "2026-10-12T08:02:37.311Z",
+      "assets": 57,
+      "ok": 57,
+      "bad": [],
+      "launchAsset": {
+        "key": "2cccbe4fcedaa56ce9e0b3cff184fcd4",
+        "ext": "application/javascript",
+        "http": 200,
+        "bytes": 2788116,
+        "hashOk": true,
+        "launch": true
+      }
+    },
+    "01a12fae": {
+      "createdAt": "2026-10-12T10:35:16.332Z",
+      "assets": 57,
+      "ok": 57,
+      "bad": [],
+      "launchAsset": {
+        "key": "2193e0cf02b7ca5d4f220f6f5c446887",
+        "ext": "application/javascript",
+        "http": 200,
+        "bytes": 2793800,
+        "hashOk": true,
+        "launch": true
+      }
+    }
+  },
+  "contenuBundle": {
+    "01a12f22 : occurrences execution-sheet-table-insertion-guide-before-": 0,
+    "01a12fae : occurrences": 1
+  },
+  "channelInsights7j": {
+    "releve": "2026-10-12T12:53:45.267Z",
+    "embeddedUpdateTotalUniqueUsers": 1,
+    "otaTotalUniqueUsers": 5,
+    "mostPopularUpdates": [
+      {
+        "rank": 1,
+        "message": "KODJO review ALIGNEMENT-VOILE-SEGMENTES-TITRES PR#331 5b3fff072bac93356ee7d9ca73157f62523df302",
+        "users": 1
+      },
+      {
+        "rank": 2,
+        "message": "KODJO review PRE-3 recette 1 consolidation 647e30d8c29cfe33d3a3c2de9d3fea0a50ca42ce",
+        "users": 1
+      },
+      {
+        "rank": 3,
+        "message": "KODJO review V2-PRE-2 3780eb9287cf8bc60c79dc322c1662542469a389",
+        "users": 1
+      },
+      {
+        "rank": 4,
+        "message": "KODJO review ALIGNEMENT-CODE-DSF-FIGMA PR#326 6399a62d3c94054b564421fffc931606c125d111",
+        "users": 1
+      },
+      {
+        "rank": 5,
+        "message": "KODJO review PRE-3 recette finale 0f86cddb262364030d324a79ef96b8cde03a9351",
+        "users": 1
+      }
+    ],
+    "cumulatif": [
+      {
+        "label": "KODJO review ALIGNEMENT-VOILE-SEGMENTES-TITRES PR#331 5b3fff072bac93356ee7d9ca73157f62523df302",
+        "data": 1
+      },
+      {
+        "label": "KODJO review ALIGNEMENT-VOILE-SEGMENTES-TITRES PR#331 5b3fff072bac93356ee7d9ca73157f62523df302 failed installs",
+        "data": 0
+      },
+      {
+        "label": "KODJO review PRE-3 recette 1 consolidation 647e30d8c29cfe33d3a3c2de9d3fea0a50ca42ce",
+        "data": 1
+      },
+      {
+        "label": "KODJO review PRE-3 recette 1 consolidation 647e30d8c29cfe33d3a3c2de9d3fea0a50ca42ce failed installs",
+        "data": 0
+      },
+      {
+        "label": "KODJO review V2-PRE-2 3780eb9287cf8bc60c79dc322c1662542469a389",
+        "data": 1
+      },
+      {
+        "label": "KODJO review V2-PRE-2 3780eb9287cf8bc60c79dc322c1662542469a389 failed installs",
+        "data": 0
+      },
+      {
+        "label": "KODJO review ALIGNEMENT-CODE-DSF-FIGMA PR#326 6399a62d3c94054b564421fffc931606c125d111",
+        "data": 1
+      },
+      {
+        "label": "KODJO review ALIGNEMENT-CODE-DSF-FIGMA PR#326 6399a62d3c94054b564421fffc931606c125d111 failed installs",
+        "data": 0
+      },
+      {
+        "label": "KODJO review PRE-3 recette finale 0f86cddb262364030d324a79ef96b8cde03a9351",
+        "data": 1
+      },
+      {
+        "label": "KODJO review PRE-3 recette finale 0f86cddb262364030d324a79ef96b8cde03a9351 failed installs",
+        "data": 0
+      },
+      {
+        "label": "Embedded update",
+        "data": 1
+      },
+      {
+        "label": "Embedded update failed installs",
+        "data": 0
+      }
+    ]
+  },
+  "pollution": "Les téléchargements de contrôle de Claude (≈12:55 UTC, les deux bundles) peuvent être comptés comme installations par EAS après ce relevé : les compteurs postérieurs ne sont plus une preuve d’installation par l’iPhone.",
+  "outilsPC": {
+    "Apple Mobile Device Service": "absent",
+    "pymobiledevice3/idevicesyslog": "absents"
+  }
+}
