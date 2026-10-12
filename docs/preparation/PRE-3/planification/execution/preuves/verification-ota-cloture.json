@@ -1,0 +1,36 @@
+{
+  "schema": "kodjo.pre3.ota-verification.v1",
+  "update_id": "01a1324c-5bed-7dd7-b98a-77ebbd315429",
+  "checked_at": "2026-10-12T22:47:38.311Z",
+  "served_manifest": {
+    "request": "GET https://u.expo.dev/0ee44f86-bd22-4b92-8780-e265b72907d9 (expo-platform ios, expo-runtime-version 1.1.0, expo-channel-name review, expo-protocol-version 1, accept multipart/mixed)",
+    "http": 200,
+    "served_id": "01a1324c-5bed-7dd7-b98a-77ebbd315429"
+  },
+  "eas_update_view": {
+    "id": "01a1324c-5bed-7dd7-b98a-77ebbd315429",
+    "platform": "ios",
+    "runtimeVersion": "1.1.0",
+    "gitCommitHash": "626632c3bf5b888756f24dd7f34fce2c448f9eb8",
+    "rollout": "aucun"
+  },
+  "assets": {
+    "method": "téléchargés avec les en-têtes assetRequestHeaders (authorization EAS-HMAC) de l’extension du manifeste ; SHA-256 comparés",
+    "total": 57,
+    "ok": 57,
+    "bad": [],
+    "launch_asset": {
+      "key": "bb2ca2f198d99f599b4b63d0277ec771",
+      "ext": "application/javascript",
+      "http": 200,
+      "bytes": 2824296,
+      "hashOk": true,
+      "launch": true
+    }
+  },
+  "bundle_markers": {
+    "updates-diagnostic (écran de diagnostic présent)": 3
+  },
+  "verdict": "SERVED_AND_INTACT",
+  "execution_on_device": "NON OBSERVÉE — lisible par routine://diagnostic-updates (« Mise à jour exécutée »), non affirmée sans observation"
+}
