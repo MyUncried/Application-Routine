@@ -568,3 +568,45 @@ describe("CategoryPickerModal — recette 3 (N-01 : appui long avec clavier, Mod
     expect(screen.getByTestId("category-picker-new-name-input").props.value).toBe("Provisoire");
   });
 });
+
+describe("CategoryPickerModal — recette 3 (N-01, dernier écart : clavier sans interruption)", () => {
+  it("N-01 — clavier ouvert → appui long → Modifier → Annuler, puis → Modifier → Enregistrer : le champ focalisé n’est JAMAIS démonté (même instance), la saisie provisoire est conservée", async () => {
+    const service = fakeReferentialService();
+    renderModal(service);
+    fireEvent.press(await screen.findByTestId("category-picker-create-action"));
+    const field = screen.getByTestId("category-picker-new-name-input");
+    fireEvent.changeText(field, "Provisoire");
+    const same = (testID: string) => expect(screen.getByTestId(testID, { includeHiddenElements: true })).toBe(field);
+
+    // Appui long → menu → Modifier : le même champ passe en modification, prérempli.
+    await act(async () => {
+      fireEvent(screen.getByTestId("category-picker-tag-cardio"), "longPress");
+    });
+    same("category-picker-new-name-input");
+    fireEvent.press(screen.getByTestId("category-picker-long-press-modify"));
+    same("category-picker-edit-name-input");
+    expect(field.props.value).toBe("Cardio");
+    fireEvent.changeText(field, "Brouillon de modification");
+
+    // Annuler : le même champ revient à la création, saisie provisoire intacte, rien d’enregistré.
+    fireEvent.press(screen.getByTestId("category-picker-edit-cancel"));
+    same("category-picker-new-name-input");
+    expect(field.props.value).toBe("Provisoire");
+    expect(service.renameCategory).not.toHaveBeenCalled();
+
+    // Même parcours, puis Enregistrer : même champ, renommage de l’entrée ciblée, retour à la création.
+    await act(async () => {
+      fireEvent(screen.getByTestId("category-picker-tag-cardio"), "longPress");
+    });
+    fireEvent.press(screen.getByTestId("category-picker-long-press-modify"));
+    same("category-picker-edit-name-input");
+    fireEvent.changeText(field, "Cardio R3");
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("category-picker-edit-save"));
+    });
+    expect(service.renameCategory).toHaveBeenCalledWith(expect.any(String), "Cardio R3");
+    same("category-picker-new-name-input");
+    expect(field.props.value).toBe("Provisoire");
+  });
+});
+

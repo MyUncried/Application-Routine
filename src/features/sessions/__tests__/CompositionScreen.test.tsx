@@ -661,7 +661,9 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     expect(screen.getByTestId("label-picker-backdrop")).toBeTruthy();
     fireEvent.press(screen.getByTestId("label-picker-confirm"));
 
-    await waitFor(() => expect(screen.queryByTestId("label-picker-backdrop")).toBeNull(), { timeout: 3000 });
+    // Fermeture progressive (220 ms) : dans cette suite lourde, la fermeture se termine mais en plusieurs
+    // secondes réelles (mesure de la recette 3 sur ExerciseScreen) — attente portée à 20 s.
+    await waitFor(() => expect(screen.queryByTestId("label-picker-backdrop")).toBeNull(), { timeout: 20000 });
     await waitFor(() => {
       const swatch = screen.getByTestId("composition-session-color-swatch");
       expect(StyleSheet.flatten(swatch.props.style).backgroundColor).toBe("#2E9B62");

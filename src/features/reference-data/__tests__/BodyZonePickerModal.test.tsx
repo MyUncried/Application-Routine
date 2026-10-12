@@ -420,3 +420,45 @@ describe("BodyZonePickerModal — recette 3 (N-01 : appui long avec clavier, Mod
     expect(screen.getByTestId("body-zone-picker-new-name-input").props.value).toBe("Provisoire");
   });
 });
+
+describe("BodyZonePickerModal — recette 3 (N-01, dernier écart : clavier sans interruption)", () => {
+  it("N-01 — clavier ouvert → appui long → Modifier → Annuler, puis → Modifier → Enregistrer : le champ focalisé n’est JAMAIS démonté (même instance), la saisie provisoire est conservée", async () => {
+    const service = fakeReferentialService();
+    renderModal(service);
+    fireEvent.press(await screen.findByTestId("body-zone-picker-create-action"));
+    const field = screen.getByTestId("body-zone-picker-new-name-input");
+    fireEvent.changeText(field, "Provisoire");
+    const same = (testID: string) => expect(screen.getByTestId(testID, { includeHiddenElements: true })).toBe(field);
+
+    // Appui long → menu → Modifier : le même champ passe en modification, prérempli.
+    await act(async () => {
+      fireEvent(screen.getByTestId("body-zone-selector-tag-cou"), "longPress");
+    });
+    same("body-zone-picker-new-name-input");
+    fireEvent.press(screen.getByTestId("body-zone-picker-long-press-modify"));
+    same("body-zone-picker-edit-name-input");
+    expect(field.props.value).toBe("Cou");
+    fireEvent.changeText(field, "Brouillon de modification");
+
+    // Annuler : le même champ revient à la création, saisie provisoire intacte, rien d’enregistré.
+    fireEvent.press(screen.getByTestId("body-zone-picker-edit-cancel"));
+    same("body-zone-picker-new-name-input");
+    expect(field.props.value).toBe("Provisoire");
+    expect(service.renameBodyZone).not.toHaveBeenCalled();
+
+    // Même parcours, puis Enregistrer : même champ, renommage de l’entrée ciblée, retour à la création.
+    await act(async () => {
+      fireEvent(screen.getByTestId("body-zone-selector-tag-cou"), "longPress");
+    });
+    fireEvent.press(screen.getByTestId("body-zone-picker-long-press-modify"));
+    same("body-zone-picker-edit-name-input");
+    fireEvent.changeText(field, "Cou R3");
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("body-zone-picker-edit-save"));
+    });
+    expect(service.renameBodyZone).toHaveBeenCalledWith(expect.any(String), "Cou R3");
+    same("body-zone-picker-new-name-input");
+    expect(field.props.value).toBe("Provisoire");
+  });
+});
+

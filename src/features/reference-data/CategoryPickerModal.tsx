@@ -330,95 +330,85 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
             })}
           </View>
 
-          {/* Recette 3 (N-01) : l’édition (Modifier, après appui long) passe avant la création :
-              elle s’affiche même formulaire de création ouvert, dont le texte est conservé. */}
-          {editTarget ? (
-            <View style={styles.newEntryContainer} testID="category-picker-edit-row">
-              <TextInput
-                value={editName}
-                onChangeText={(text) => {
-                  setEditName(text);
-                  setDuplicateError(false);
-                }}
-                accessibilityLabel={strings.referenceData.renameDialog.nameLabel}
-                maxLength={CATEGORY_NAME_MAX_LENGTH}
-                autoFocus
-                style={styles.newEntryInput}
-                testID="category-picker-edit-name-input"
-              />
-              <CategoryColorBand value={editColor} onChange={setEditColor} testID="category-picker-edit-color-band" />
-              {duplicateError ? (
-                <Text style={styles.errorText} testID="category-picker-edit-error">
-                  {strings.referenceData.renameDialog.duplicateError}
-                </Text>
-              ) : null}
-              <View style={styles.newEntryActionsRow}>
-                <Pressable
-                  onPress={() => {
-                    setEditTarget(null);
-                    setDuplicateError(false);
-                    setWriteError(false);
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel={strings.referenceData.renameDialog.cancelAction}
-                  style={styles.neutralAction}
-                  testID="category-picker-edit-cancel"
-                >
-                  <Text style={styles.neutralActionLabel}>{strings.referenceData.renameDialog.cancelAction}</Text>
-                </Pressable>
-                <Pressable
-                  disabled={!canSaveEdit}
-                  onPress={handleSaveEdit}
-                  accessibilityRole="button"
-                  accessibilityState={{ disabled: !canSaveEdit }}
-                  accessibilityLabel={strings.referenceData.renameDialog.saveAction}
-                  style={[styles.primaryAction, !canSaveEdit ? styles.primaryActionDisabled : null]}
-                  testID="category-picker-edit-save"
-                >
-                  <Text style={styles.primaryActionLabel}>{strings.referenceData.renameDialog.saveAction}</Text>
-                </Pressable>
-              </View>
-            </View>
-          ) : isCreating ? (
-            <View style={styles.newEntryContainer} testID="category-picker-new-row">
-              {/* Recette 1 (T-34/T-59) — « Saisie inline » figée 4474:7157 : action
-                  « Envoyer » ↑ dans le champ (mêmes règles que l’ancien bouton Ajouter). */}
+          {/* Recette 3 (N-01) : UN SEUL champ pour la création et la modification. Passer de l’une
+              à l’autre (Modifier, Annuler, Enregistrer) ne démonte jamais le champ focalisé : le clavier
+              déjà affiché reste affiché, sans descendre ni remonter. La modification passe avant la
+              création, dont le texte est conservé et revient ensuite. « Saisie inline » 4474:7157 : ↑ dans
+              le champ en création ; en modification, Annuler / Enregistrer sous le champ. */}
+          {isEntryFormOpen ? (
+            <View style={styles.newEntryContainer} testID={editTarget ? "category-picker-edit-row" : "category-picker-new-row"}>
               <View style={styles.inlineField}>
                 <TextInput
-                  value={newName}
+                  value={editTarget ? editName : newName}
                   onChangeText={(text) => {
-                    setNewName(text);
+                    if (editTarget) {
+                      setEditName(text);
+                    } else {
+                      setNewName(text);
+                    }
                     setDuplicateError(false);
                   }}
-                  placeholder={t.newEntry.placeholder}
+                  placeholder={editTarget ? undefined : t.newEntry.placeholder}
                   placeholderTextColor={colors.textSecondary}
-                  accessibilityLabel={t.newEntry.placeholder}
+                  accessibilityLabel={editTarget ? strings.referenceData.renameDialog.nameLabel : t.newEntry.placeholder}
                   maxLength={CATEGORY_NAME_MAX_LENGTH}
                   autoFocus
-                  style={[styles.newEntryInput, styles.inlineFieldInput]}
-                  testID="category-picker-new-name-input"
+                  style={[styles.newEntryInput, editTarget ? null : styles.inlineFieldInput]}
+                  testID={editTarget ? "category-picker-edit-name-input" : "category-picker-new-name-input"}
                 />
-                <Pressable
-                  disabled={!canAddCategory}
-                  onPress={handleCreate}
-                  accessibilityRole="button"
-                  accessibilityState={{ disabled: !canAddCategory }}
-                  accessibilityLabel={t.newEntry.addAccessibilityLabel}
-                  hitSlop={(minTouchTarget - INLINE_SEND_SIZE) / 2}
-                  style={[styles.inlineSend, !canAddCategory ? styles.inlineSendDisabled : null]}
-                  testID="category-picker-new-add"
-                >
-                  <Text style={styles.inlineSendSymbol}>↑</Text>
-                </Pressable>
+                {editTarget ? null : (
+                  <Pressable
+                    disabled={!canAddCategory}
+                    onPress={handleCreate}
+                    accessibilityRole="button"
+                    accessibilityState={{ disabled: !canAddCategory }}
+                    accessibilityLabel={t.newEntry.addAccessibilityLabel}
+                    hitSlop={(minTouchTarget - INLINE_SEND_SIZE) / 2}
+                    style={[styles.inlineSend, !canAddCategory ? styles.inlineSendDisabled : null]}
+                    testID="category-picker-new-add"
+                  >
+                    <Text style={styles.inlineSendSymbol}>↑</Text>
+                  </Pressable>
+                )}
               </View>
-              <CategoryColorBand value={newColor} onChange={setNewColor} testID="category-picker-new-color-band" />
+              <CategoryColorBand
+                value={editTarget ? editColor : newColor}
+                onChange={editTarget ? setEditColor : setNewColor}
+                testID={editTarget ? "category-picker-edit-color-band" : "category-picker-new-color-band"}
+              />
               {duplicateError ? (
-                <Text style={styles.errorText} testID="category-picker-new-error">
+                <Text style={styles.errorText} testID={editTarget ? "category-picker-edit-error" : "category-picker-new-error"}>
                   {strings.referenceData.renameDialog.duplicateError}
                 </Text>
               ) : null}
-              {/* Recette 2 (N-01/N-02, décision du 12/10) : plus de bouton Annuler dans le
-                  formulaire de création ; ✕ de l’en-tête ferme la feuille. */}
+              {editTarget ? (
+                <View style={styles.newEntryActionsRow}>
+                  <Pressable
+                    onPress={() => {
+                      setEditTarget(null);
+                      setDuplicateError(false);
+                      setWriteError(false);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={strings.referenceData.renameDialog.cancelAction}
+                    style={styles.neutralAction}
+                    testID="category-picker-edit-cancel"
+                  >
+                    <Text style={styles.neutralActionLabel}>{strings.referenceData.renameDialog.cancelAction}</Text>
+                  </Pressable>
+                  <Pressable
+                    disabled={!canSaveEdit}
+                    onPress={handleSaveEdit}
+                    accessibilityRole="button"
+                    accessibilityState={{ disabled: !canSaveEdit }}
+                    accessibilityLabel={strings.referenceData.renameDialog.saveAction}
+                    style={[styles.primaryAction, !canSaveEdit ? styles.primaryActionDisabled : null]}
+                    testID="category-picker-edit-save"
+                  >
+                    <Text style={styles.primaryActionLabel}>{strings.referenceData.renameDialog.saveAction}</Text>
+                  </Pressable>
+                </View>
+              ) : null}
             </View>
           ) : (
             <Pressable

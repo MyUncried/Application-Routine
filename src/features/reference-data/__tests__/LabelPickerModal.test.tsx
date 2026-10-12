@@ -322,3 +322,45 @@ describe("LabelPickerModal — recette 3 (N-01 : appui long avec clavier, Modifi
     expect(screen.getByTestId("label-picker-new-name-input").props.value).toBe("Provisoire");
   });
 });
+
+describe("LabelPickerModal — recette 3 (N-01, dernier écart : clavier sans interruption)", () => {
+  it("N-01 — clavier ouvert → appui long → Modifier → Annuler, puis → Modifier → Enregistrer : le champ focalisé n’est JAMAIS démonté (même instance), la saisie provisoire est conservée", async () => {
+    const service = fakeReferentialService();
+    renderModal(service);
+    fireEvent.press(await screen.findByTestId("label-picker-create-action"));
+    const field = screen.getByTestId("label-picker-new-name-input");
+    fireEvent.changeText(field, "Provisoire");
+    const same = (testID: string) => expect(screen.getByTestId(testID, { includeHiddenElements: true })).toBe(field);
+
+    // Appui long → menu → Modifier : le même champ passe en modification, prérempli.
+    await act(async () => {
+      fireEvent(screen.getByTestId("label-picker-tag-focus"), "longPress");
+    });
+    same("label-picker-new-name-input");
+    fireEvent.press(screen.getByTestId("label-picker-long-press-modify"));
+    same("label-picker-edit-name-input");
+    expect(field.props.value).toBe("Focus");
+    fireEvent.changeText(field, "Brouillon de modification");
+
+    // Annuler : le même champ revient à la création, saisie provisoire intacte, rien d’enregistré.
+    fireEvent.press(screen.getByTestId("label-picker-edit-cancel"));
+    same("label-picker-new-name-input");
+    expect(field.props.value).toBe("Provisoire");
+    expect(service.renameLabel).not.toHaveBeenCalled();
+
+    // Même parcours, puis Enregistrer : même champ, renommage de l’entrée ciblée, retour à la création.
+    await act(async () => {
+      fireEvent(screen.getByTestId("label-picker-tag-focus"), "longPress");
+    });
+    fireEvent.press(screen.getByTestId("label-picker-long-press-modify"));
+    same("label-picker-edit-name-input");
+    fireEvent.changeText(field, "Focus R3");
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("label-picker-edit-save"));
+    });
+    expect(service.renameLabel).toHaveBeenCalledWith(expect.any(String), "Focus R3");
+    same("label-picker-new-name-input");
+    expect(field.props.value).toBe("Provisoire");
+  });
+});
+

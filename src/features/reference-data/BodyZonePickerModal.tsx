@@ -290,93 +290,80 @@ export function BodyZonePickerModal({
             />
           </View>
 
-          {/* Recette 3 (N-01) : l’édition (Modifier, après appui long) passe avant la création :
-              elle s’affiche même formulaire de création ouvert, dont le texte est conservé. */}
-          {editTarget ? (
-            <View style={styles.newEntryContainer} testID="body-zone-picker-edit-row">
-              <TextInput
-                value={editName}
-                onChangeText={(text) => {
-                  setEditName(text);
-                  setDuplicateError(false);
-                }}
-                accessibilityLabel={strings.referenceData.renameDialog.nameLabel}
-                maxLength={BODY_ZONE_NAME_MAX_LENGTH}
-                autoFocus
-                style={styles.newEntryInput}
-                testID="body-zone-picker-edit-name-input"
-              />
-              {duplicateError ? (
-                <Text style={styles.errorText} testID="body-zone-picker-edit-error">
-                  {strings.referenceData.renameDialog.duplicateError}
-                </Text>
-              ) : null}
-              <View style={styles.newEntryActionsRow}>
-                <Pressable
-                  onPress={() => {
-                    setEditTarget(null);
-                    setDuplicateError(false);
-                    setWriteError(false);
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel={strings.referenceData.renameDialog.cancelAction}
-                  style={styles.neutralAction}
-                  testID="body-zone-picker-edit-cancel"
-                >
-                  <Text style={styles.neutralActionLabel}>{strings.referenceData.renameDialog.cancelAction}</Text>
-                </Pressable>
-                <Pressable
-                  disabled={!canSaveEdit}
-                  onPress={handleSaveEdit}
-                  accessibilityRole="button"
-                  accessibilityState={{ disabled: !canSaveEdit }}
-                  accessibilityLabel={strings.referenceData.renameDialog.saveAction}
-                  style={[styles.primaryAction, !canSaveEdit ? styles.primaryActionDisabled : null]}
-                  testID="body-zone-picker-edit-save"
-                >
-                  <Text style={styles.primaryActionLabel}>{strings.referenceData.renameDialog.saveAction}</Text>
-                </Pressable>
-              </View>
-            </View>
-          ) : isCreating ? (
-            <View style={styles.newEntryContainer} testID="body-zone-picker-new-row">
-              {/* Recette 1 (T-34/T-59) — « Saisie inline » figée 4683:6336 : action
-                  « Envoyer » ↑ dans le champ (mêmes règles que l’ancien bouton Ajouter). */}
+          {/* Recette 3 (N-01) : UN SEUL champ pour la création et la modification. Passer de l’une
+              à l’autre (Modifier, Annuler, Enregistrer) ne démonte jamais le champ focalisé : le clavier
+              déjà affiché reste affiché, sans descendre ni remonter. La modification passe avant la
+              création, dont le texte est conservé et revient ensuite. « Saisie inline » 4683:6336 : ↑ dans
+              le champ en création ; en modification, Annuler / Enregistrer sous le champ. */}
+          {isEntryFormOpen ? (
+            <View style={styles.newEntryContainer} testID={editTarget ? "body-zone-picker-edit-row" : "body-zone-picker-new-row"}>
               <View style={styles.inlineField}>
                 <TextInput
-                  value={newName}
+                  value={editTarget ? editName : newName}
                   onChangeText={(text) => {
-                    setNewName(text);
+                    if (editTarget) {
+                      setEditName(text);
+                    } else {
+                      setNewName(text);
+                    }
                     setDuplicateError(false);
                   }}
-                  placeholder={t.newEntry.placeholder}
+                  placeholder={editTarget ? undefined : t.newEntry.placeholder}
                   placeholderTextColor={colors.textSecondary}
-                  accessibilityLabel={t.newEntry.placeholder}
+                  accessibilityLabel={editTarget ? strings.referenceData.renameDialog.nameLabel : t.newEntry.placeholder}
                   maxLength={BODY_ZONE_NAME_MAX_LENGTH}
                   autoFocus
-                  style={[styles.newEntryInput, styles.inlineFieldInput]}
-                  testID="body-zone-picker-new-name-input"
+                  style={[styles.newEntryInput, editTarget ? null : styles.inlineFieldInput]}
+                  testID={editTarget ? "body-zone-picker-edit-name-input" : "body-zone-picker-new-name-input"}
                 />
-                <Pressable
-                  disabled={!canAddZone}
-                  onPress={handleCreate}
-                  accessibilityRole="button"
-                  accessibilityState={{ disabled: !canAddZone }}
-                  accessibilityLabel={t.newEntry.addAccessibilityLabel}
-                  hitSlop={(minTouchTarget - INLINE_SEND_SIZE) / 2}
-                  style={[styles.inlineSend, !canAddZone ? styles.inlineSendDisabled : null]}
-                  testID="body-zone-picker-new-add"
-                >
-                  <Text style={styles.inlineSendSymbol}>↑</Text>
-                </Pressable>
+                {editTarget ? null : (
+                  <Pressable
+                    disabled={!canAddZone}
+                    onPress={handleCreate}
+                    accessibilityRole="button"
+                    accessibilityState={{ disabled: !canAddZone }}
+                    accessibilityLabel={t.newEntry.addAccessibilityLabel}
+                    hitSlop={(minTouchTarget - INLINE_SEND_SIZE) / 2}
+                    style={[styles.inlineSend, !canAddZone ? styles.inlineSendDisabled : null]}
+                    testID="body-zone-picker-new-add"
+                  >
+                    <Text style={styles.inlineSendSymbol}>↑</Text>
+                  </Pressable>
+                )}
               </View>
               {duplicateError ? (
-                <Text style={styles.errorText} testID="body-zone-picker-new-error">
+                <Text style={styles.errorText} testID={editTarget ? "body-zone-picker-edit-error" : "body-zone-picker-new-error"}>
                   {strings.referenceData.renameDialog.duplicateError}
                 </Text>
               ) : null}
-              {/* Recette 2 (N-01/N-02, décision du 12/10) : plus de bouton Annuler dans le
-                  formulaire de création ; ✕ de l’en-tête ferme la feuille. */}
+              {editTarget ? (
+                <View style={styles.newEntryActionsRow}>
+                  <Pressable
+                    onPress={() => {
+                      setEditTarget(null);
+                      setDuplicateError(false);
+                      setWriteError(false);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={strings.referenceData.renameDialog.cancelAction}
+                    style={styles.neutralAction}
+                    testID="body-zone-picker-edit-cancel"
+                  >
+                    <Text style={styles.neutralActionLabel}>{strings.referenceData.renameDialog.cancelAction}</Text>
+                  </Pressable>
+                  <Pressable
+                    disabled={!canSaveEdit}
+                    onPress={handleSaveEdit}
+                    accessibilityRole="button"
+                    accessibilityState={{ disabled: !canSaveEdit }}
+                    accessibilityLabel={strings.referenceData.renameDialog.saveAction}
+                    style={[styles.primaryAction, !canSaveEdit ? styles.primaryActionDisabled : null]}
+                    testID="body-zone-picker-edit-save"
+                  >
+                    <Text style={styles.primaryActionLabel}>{strings.referenceData.renameDialog.saveAction}</Text>
+                  </Pressable>
+                </View>
+              ) : null}
             </View>
           ) : (
             <Pressable
