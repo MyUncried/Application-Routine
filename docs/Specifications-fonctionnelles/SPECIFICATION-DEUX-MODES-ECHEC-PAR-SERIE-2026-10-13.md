@@ -223,8 +223,14 @@ Ces recettes sont des obligations de la future réalisation, pas des tests exéc
 
 Les arbitrages posés dans cette conversation sont clos. La définition des écrans de saisie/correction et de restitution, la charge et la sélection d’un indicateur étalon restent des chantiers explicitement séparés. Les dispositions de cette version définissent les données et comportements de base ; elles ne constituent pas un contrat d’écran de relevé prêt à développer. Le corpus exhaustif étendu et la migration physique sont des livrables de l’intégration/implémentation, pas réputés produits ici.
 
-## 11. Alignement visuel et sélecteur — prompt du13/10
+## 11. Sélecteur — §4.5 reçu dans le prompt complété
 
-Les règles explicites du prompt sont intégrées à CE-UI-10 et au DSF Deux modes : option en tête, libellé par mode, exclusivité cible chiffrée/échec, ouverture sur valeur courante, absence de coche, validation par la feuille, gris par opacité.00:00 n’est pas une cible valide (minimum1s déjà prescrit) ; il représente seulement la neutralisation numérique de l’état échec. Les pauses0 ne changent pas.
+La version complétée du prompt reproduit intégralement le §4.5 dans son §4.2. La réserve de source R01 est close.
 
-Le §4.5 annoncé n’est pas présent dans la proposition reçue ; le mécanisme détaillé de retour au numérique et la désactivation native restent à vérifier. Voir [matrice et réserves](../MATRICE-DEUX-MODES-ECHEC-2026-10-13.md). Les cinq captures de création et la variante de roulette sont intégrées ; aucune nouvelle maquette d’exécution/relevé n’est créée.
+À tout instant, exactement une cible est sélectionnée. À l’ouverture : cible numérique → roulette active sur la valeur courante et libellé échec à45% ; cible échec → libellé actif et bloc numérique grisé à45%, affiché à00:00. Faire tourner la roulette sélectionne la valeur numérique et grise le libellé. Toucher le libellé sélectionne l’échec et ramène la roulette grisée à00:00. Le grisé exprime la non-sélection, pas une interdiction de manipuler la roulette. Aucun geste supplémentaire de déverrouillage, aucune coche. Validation par le bouton de la feuille ; annulation selon le brouillon existant.00:00 n’est jamais une cible valide ; pause0 reste valide.
+
+**Bornes confirmées le13/10 :** cible Durée de00:05 à58:55 (5–3535s), sélecteur par pas de5s. Hermann corrige explicitement la borne maximale :58min55s ;5999s était une coquille. Répétitions : entiers1–100.00:00 reste réservé à la représentation neutre de l’échec, jamais une cible. Les valeurs historiques ne sont pas arrondies silencieusement à la lecture ; les contrôles de pauses et de Durée totale conservent leurs règles propres.
+
+Composition : libellé dépendant du mode, filet, roulette dans la même feuille ; aucune nouvelle frame uniforme. Les cinq captures du parcours et la variante DSF restent les preuves de layout du lot précédent ; cette réception précise leurs interactions sans annoncer de changement Figma. Voir le DSF et la matrice de traçabilité.
+
+Recette complémentaire : ouvrir30s → roulette30s/libellé grisé ; toucher échec → libellé actif/bloc00:00 grisé ; faire tourner vers30s → cible30s/libellé grisé ; rouvrir chaque état ; annuler restaure, valider applique. Refuser00:00 sans le convertir en échec. Vérifier le traitement45% du bloc et les annonces de sélection. Ces scénarios sont prescrits, pas déclarés exécutés.

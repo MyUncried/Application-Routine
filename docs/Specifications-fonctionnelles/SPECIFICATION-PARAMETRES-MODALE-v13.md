@@ -83,7 +83,7 @@ Création : mode/durée/côté non renseignés —, Série1, Pause0s ; cible Ré
 |---|---|---|
 | Séries | 1..99 | 1 |
 | Répétitions par Série | 1..100 | 1 |
-| Durée par Série | 1..5999s | 1s dans les steppers ; préserver cette précision à la saisie uniforme |
+| Durée par Série | 5..3535s | Roulette par pas de5s ;00:00 interdit comme cible |
 | Pause après chaque série / Pause entre les côtés | 0..300s | Tap1s ; maintien accéléré1/5/10 selon DSF Bip |
 | Bip de cadence | 0..10s | 1s, aucune accélération |
 | Compte à rebours / Fin d’exercice | 0..60s | 1s (D-256) |
@@ -146,3 +146,9 @@ Nombre hérité d’un circuit de séries : valeur réelle visible non modifiabl
 
 Suppression manuelle : immédiate sans confirmation, message Série supprimée — Annuler, restauration des paramètres et de la position. Pas de suppression locale qui romprait le nombre hérité ; nombre réglé dans l’en-tête. Préremplissage, réordonnancement, bascules et restauration existants conservés. La réserve d’une diminution au compteur de circuit appartient au brouillon de séance jusqu’à enregistrement ; celle de la feuille autonome garde sa frontière ✓.
 
+
+## Sélecteur de cible — complément §4.5 du13/10
+
+À tout instant, exactement une cible est sélectionnée. À l’ouverture : cible numérique → roulette active sur la valeur courante et libellé échec à45% ; cible échec → libellé actif et bloc numérique grisé à45%, affiché à00:00. Faire tourner la roulette sélectionne la valeur numérique et grise le libellé. Toucher le libellé sélectionne l’échec et ramène la roulette grisée à00:00. Le grisé exprime la non-sélection, pas une interdiction de manipuler la roulette. Aucun geste supplémentaire de déverrouillage, aucune coche. Validation par le bouton de la feuille ; annulation selon le brouillon existant.00:00 n’est jamais une cible valide ; pause0 reste valide.
+
+**Bornes confirmées le13/10 :** cible Durée de00:05 à58:55 (5–3535s), sélecteur par pas de5s. Hermann corrige explicitement la borne maximale :58min55s ;5999s était une coquille. Répétitions : entiers1–100.00:00 reste réservé à la représentation neutre de l’échec, jamais une cible. Les valeurs historiques ne sont pas arrondies silencieusement à la lecture ; les contrôles de pauses et de Durée totale conservent leurs règles propres.

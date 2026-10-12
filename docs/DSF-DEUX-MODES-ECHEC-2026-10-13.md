@@ -30,7 +30,11 @@ Toutes les lignes numériques ont le remplissage `#1a1a1f`. Le dégradé dépend
 | Distance3 | 10% | 12px |
 | Option échec sélectionnée / non sélectionnée | 100% / 45% | 20px |
 
-Lorsque l’échec est sélectionné, la roulette numérique grisée est en position neutre00:00 ; ce zéro n’est jamais une cible. Les pauses0 restent valides et utilisent leur contrôle propre. Le §4.5 annoncé manque à la source disponible : les gestes exacts de sortie de cet état restent à vérifier avant qualification. L’état désactivé du Picker natif est une exigence à qualifier, pas une propriété technique déjà démontrée par ces dessins.
+À tout instant, exactement une cible est sélectionnée. À l’ouverture : cible numérique → roulette active sur la valeur courante et libellé échec à45% ; cible échec → libellé actif et bloc numérique grisé à45%, affiché à00:00. Faire tourner la roulette sélectionne la valeur numérique et grise le libellé. Toucher le libellé sélectionne l’échec et ramène la roulette grisée à00:00. Le grisé exprime la non-sélection, pas une interdiction de manipuler la roulette. Aucun geste supplémentaire de déverrouillage, aucune coche. Validation par le bouton de la feuille ; annulation selon le brouillon existant.00:00 n’est jamais une cible valide ; pause0 reste valide.
+
+Le traitement45% porte sur tout le bloc numérique quand il est non sélectionné ; les niveaux de la roulette active restent ceux du tableau. Ne pas bloquer ses gestes avec une désactivation native : cela empêcherait la transition prescrite. La réalisation et l’accessibilité restent à qualifier sur appareil.
+
+**Bornes confirmées le13/10 :** cible Durée de00:05 à58:55 (5–3535s), sélecteur par pas de5s. Hermann corrige explicitement la borne maximale :58min55s ;5999s était une coquille. Répétitions : entiers1–100.00:00 reste réservé à la représentation neutre de l’échec, jamais une cible. Les valeurs historiques ne sont pas arrondies silencieusement à la lecture ; les contrôles de pauses et de Durée totale conservent leurs règles propres.
 
 ![Nouvelle variante de roulette](Specifications-fonctionnelles/images/echec-2026-10-13/8452-13297.png)
 

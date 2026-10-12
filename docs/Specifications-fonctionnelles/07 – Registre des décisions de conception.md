@@ -314,7 +314,7 @@ Les décisions historiques D-173, D-179, D-181 et D-184 s’appuyaient sur l’�
 | D-229 | Les roulettes utilisent le gabarit DSF `330 px` avec marges latérales `36 px`, cinq lignes visibles 14/16/20/16/14 px et capsule centrale `56 × 34 px`. La modale Heure affiche `heures` et non `:`. La présentation de Planifier est révisée le 08/10 : plein écran sous la barre d’état, surface blanche, blocs gris et récapitulatif protégé. Rappel par interrupteur puis cinq options de largeur égale, dont Autre ; Enregistrer ancré en bas. Voir D-327/D-330 et CE-UI-05. | Validée DSF — 28/09/2026 | Planification / roulettes. |
 | D-230 | Les listes défilantes rognent leur contenu (`clipsContent: true`). La carte média déployée du Catalogue des Exercices est un état réellement étendu avec carte/barre latérale étendues, chevron haut et aperçus média ; l’ancienne carte condensée ne doit plus être documentée sous ce nom. Les règles spécialisées Profil, Exécution, Ressenti et Point d’arrêt suivent les composants/tokens DSF V2 validés au 28/09/2026. | Révisée par D-260/D-261/D-262 le 03/10/2026 ; ancienne règle d’affichage ci-contre historique ; autres dispositions conservées | Recette UI / composants spécialisés. |
 | D-231 | La phrase de synthèse des paramètres d’exécution suit la spécification v9 du 28/09/2026. | **Supersédée par D-232 / v10.2**. | Historique de la conception du générateur. |
-| D-232 | **Amendée le06/10 : voir D-268 à D-298 (cadence, incertitude, phrase), autres dispositions conservées.** Bornes conservées : N1..99, répétitions1..100, durée1..5999s, pauses0..300s ; aucune estimation forfaitaire de répétition (Bip v2). Anciennes saisie inline, valeurs initiales, formules et granularités remplacées par D-246 puis D-247 à D-253/v12. | Supersédée sur ces points le 02/10/2026 | Historique conservé dans Git ; référence active v12 |
+| D-232 | **Amendée le06/10 : voir D-268 à D-298 (cadence, incertitude, phrase), autres dispositions conservées.** Bornes conservées : N1..99, répétitions1..100, durée5..3535s, pauses0..300s ; aucune estimation forfaitaire de répétition (Bip v2). Anciennes saisie inline, valeurs initiales, formules et granularités remplacées par D-246 puis D-247 à D-253/v12. | Supersédée sur ces points le 02/10/2026 | Historique conservé dans Git ; référence active v12 |
 
 
 ## Décisions du 30 septembre 2026 — cartes, icônes et appuis
@@ -577,3 +577,7 @@ Les décisions EC-01…EC-10 sont identifiées dans la [spécification consolid�
 
 Choix visuels : cinquième variante de roulette8452:13297, deux popovers de mode réduits, colonne de valeur rétablie et nouveau cas mixte. Aucune variante à une colonne ni écran uniforme dédié. Réserves de source/qualification : matrice Deux modes du13/10.
 
+
+### Réception du §4.5 — sélecteur de cible
+
+Source reçue dans le §4.2 du prompt complété. Roue manipulable même grisée ; tourner sélectionne le nombre, toucher le libellé sélectionne l’échec et neutralise la roue à00:00. Exactement une sélection, pas de coche ;45% sur le bloc numérique non sélectionné. R01 close. R06 close après correction explicite du propriétaire :58min55s=3535s maximum ;5999s était une coquille. Sélecteur dès5s, par pas5s. D-232, RM-234 et les contrats sont corrigés.

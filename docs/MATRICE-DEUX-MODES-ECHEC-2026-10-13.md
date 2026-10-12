@@ -23,7 +23,7 @@ Base documentaire : branche `docs/circuits-tours-series-20261012`, commit `84987
 | E15 | Périmètre à préserver | DSF et sources | Roulette du total inchangée ; cartes catalogue et filtres conservés ; pas de nouvelles captures d’exécution/relevés |
 | E16 | Interactions de prototype | Vérification directe MVP et source pour Hors MVP | Durée cellule3→mixte ; mixte cellules1/2→échec ; échec cellules1/2→durée. Démonstration entre états, pas spécification d’une mutation de plusieurs cibles par un seul appui |
 | E17 | Complétude des contrats | Chapitre13 |34 contrats conservent chacun21 rubriques ordonnées et renseignées ; contenu des contrats affectés révisé |
-| E18 | Sélecteur : §4.5 annoncé absent | CE-UI-10§§11/12/20, DSF | Règles explicites intégrées ; transitions détaillées non déclarées complètes, réserve R01 |
+| E18 | Sélecteur : §4.5 initialement absent, reçu ensuite au §4.2 du prompt complété | CE-UI-10§§11/12/14/20, DSF, Paramètres et spécification§11 | Deux transitions, exclusivité, ouverture et grisé du bloc intégrés ; R01 close ; bornes corrigées après confirmation utilisateur, R06 close |
 
 ## Écrans inspectés et captures courantes
 
@@ -44,8 +44,8 @@ Les roulettes de total ont été vérifiées sur les deux pages : maître5544:51
 
 | ID | Ce qui manque | Conséquence / suite |
 |---|---|---|
-| R01 | §4.5 ajouté après transmission, absent de la proposition disponible (elle passe de4.4 à5) | Obtenir la version complète ; vérifier surtout le retour d’échec vers un nombre lorsque les roues sont grisées. Aucune interaction inventée |
-| R02 | Qualification native du sélecteur grisé | Vérifier les modificateurs Expo57 et tester sur appareils ; aucune propriété Picker.disabled supposée acquise |
+| R01 — close | §4.5 reçu, reproduit intégralement au §4.2 du prompt complété | Faire tourner la roulette sélectionne la cible numérique ; toucher le libellé sélectionne l’échec. Documentation propagée |
+| R02 — exigence clarifiée | Roulette grisée mais manipulable | La désactivation bloquante serait contraire au §4.5. Qualification native des gestes et du rendu restant à réaliser ; aucun blocage documentaire sur une propriété disabled |
 | R03 | Texte de fond de8328:38848 et7413:35142 : « avec des pauses de30s,45s et1min » | Contradiction avec Phrase v1 qui omet les clauses de pauses variables. Documentation conserve la règle ; correction Figma à prévoir, sans modification automatique de ce lot |
 | R04 | Unité des volumes mixtes et tout échec dans les deux modes non illustrée | CE-CIR-03 impose de préserver l’information de mode ; libellé/placement à aligner dans une passe Figma distincte. Pas de troisième mode réintroduit |
 | R05 | Écrans de saisie/restitution des relevés | Données et comportements documentés ; conception détaillée de ces écrans reste hors de la passe demandée |
@@ -55,3 +55,11 @@ Les réserves Circuits du12/10 (état hérité, tiret et indicateurs de côté, 
 ## Vérification documentaire
 
 Contrôle des identifiants et liens des nouvelles captures, décodage des six PNG, revue visuelle de la planche, contrôle des34 contrats ×21 rubriques non vides, vérification des nouvelles références locales et recherche des prescriptions contradictoires dans les chapitres et spécifications actives. Les occurrences conservées dans les sources archivées et décisions supersédées sont historiques. La validation documentaire n’exécute pas les recettes applicatives R01–R16 de la spécification.
+
+## Complément reçu — clôture du manque de source
+
+Le prompt complété est archivé séparément, sans écraser la première transmission. Il ne modifie pas les références Figma : les six captures existantes restent applicables. Source R01 close ; état grisé documenté comme non sélectionné et manipulable. Les autres réserves ne sont pas déclarées résolues par la réception de cette section.
+
+| ID | Divergence nouvelle | Traitement |
+|---|---|---|
+| R06 — close | Maximum confirmé par Hermann :58min55s=3535s ;5999s était une coquille | Bornes propagées dans DSF, chapitres04/07–13, Paramètres v13 et spécification ; sélecteur5–3535s par pas5 ; aucune modification des bornes de pause ni du total dérivé |
