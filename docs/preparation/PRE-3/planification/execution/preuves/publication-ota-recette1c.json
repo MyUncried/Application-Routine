@@ -1,0 +1,14 @@
+[
+  {
+    "id": "01a12f01-4c7b-72f4-9a96-d4cf9d4830b3",
+    "createdAt": "2026-10-12T07:26:16.699Z",
+    "group": "db603662-6554-4027-842b-2717cbf0a5b0",
+    "branch": "review",
+    "message": "KODJO review PRE-3 decisions proprietaire 9707c42a64836eea0731062fd188dd8d42d3f8d4",
+    "runtimeVersion": "1.1.0",
+    "platform": "ios",
+    "manifestPermalink": "https://u.expo.dev/update/01a12f01-4c7b-72f4-9a96-d4cf9d4830b3",
+    "isRollBackToEmbedded": false,
+    "gitCommitHash": "9707c42a64836eea0731062fd188dd8d42d3f8d4"
+  }
+]

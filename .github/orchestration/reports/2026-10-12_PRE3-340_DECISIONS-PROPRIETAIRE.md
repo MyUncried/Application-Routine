@@ -92,3 +92,17 @@
 ## Commit final et état Git
 
 Commit de code `4f1feebe`. Le commit documentaire, la publication et la mise à jour OTA sont consignés dans la section « Publication » ajoutée après leur exécution.
+
+## Publication
+
+| Étape | Résultat |
+|---|---|
+| Publication Git | Sans force, `c8f81d9c..9707c42a` (`4f1feebe` code, `9707c42a` documentation). Relu par `ls-remote` : `9707c42a…`. |
+| Compatibilité | `OTA_COMPATIBLE` par rapport à `9f5cee0e` (build 7), aucun fichier natif (`compatibilite-ota-recette1c.json`) |
+| Mise à jour EAS iOS | `01a12f01-4c7b-72f4-9a96-d4cf9d4830b3`, groupe `db603662-6554-4027-842b-2717cbf0a5b0`, canal `review`, `runtimeVersion` 1.1.0, `gitCommitHash` **`9707c42a64836eea0731062fd188dd8d42d3f8d4`** ; https://u.expo.dev/update/01a12f01-4c7b-72f4-9a96-d4cf9d4830b3 (`publication-ota-recette1c.json`) |
+| Contrôle | `update:list --branch review` : c’est la mise à jour la plus récente du canal |
+| Correspondance | Build 7 (`e1deb07e…`) + OTA `01a12f01…` = code de `9707c42a` |
+
+Le commit qui ajoute cette section est documentaire seulement.
+
+**Prochaine action** : recette v3 par Hermann ; approbation ou refus de X-1 (avec les valeurs D-6), X-2, X-3 et X-4. Ensuite, une seconde revue indépendante (ChatGPT). Aucune opération en cours.
