@@ -3237,9 +3237,9 @@ Bip0..10, boutons ± révélés par appui sur sa valeur,0 libellé Aucun ; contr
 
 ### 9. Layout déterministe
 
-**Complément cible12/10 :** Placement exact de la mention/astérisque et géométrie des nouveaux états différés à Figma/DSF ; ne pas extrapoler de dimensions depuis les anciennes captures.
+**Alignement DSF du 12/10 :** ligne variable `8129:31593`, 334 × 36 ; cellules cible/Pause 76 × 24 ; pied commun `8129:31601`, 354 × 48, ± à droite. Une cellule active ; plus de steppers permanents dans chaque cellule. Les 18 états de la feuille sont illustrés au chapitre 06. Seul le placement de la mention/astérisque du nombre hérité reste sans référence visuelle identifiée.
 
-À402 : Bip au premier niveau x36, séparateur330 ; Séries variables/cible/Pause et Ordre/PC indentés x52, séparateur314. Bip juste au-dessus du total ou avant Compte à rebours si total absent. Retrait du total raccourcit la feuille de42px par le haut, bas ancré. Valeurs/steppers à droite ; marges adaptées, pas de coordonnées absolues sur toutes largeurs. Voile modal `overlayScrim` (`color/overlay/scrim`) #1F2129 à 34 %, distinct de `compositionDraggedCardShadow`, qui ne sert jamais de voile.
+À402 : groupe à x24, largeur354 ; Bip au premier niveau x36. Les anciennes indentations systématiques x52 des contrôles variables sont remplacées par la grille à cellules décrite dans le DSF du 12/10. Bip juste au-dessus du total ou avant Compte à rebours si total absent. Retrait du total raccourcit la feuille de42px par le haut, bas ancré. Valeurs/steppers à droite ; marges adaptées, pas de coordonnées absolues sur toutes largeurs. Voile modal `overlayScrim` (`color/overlay/scrim`) #1F2129 à 34 %, distinct de `compositionDraggedCardShadow`, qui ne sert jamais de voile.
 
 Référence longue7119:27855 :224caractères, cinq lignes/100px à largeur324, carte193px en AUTO. Contenu et contrôles suivants suivent la hauteur intrinsèque, sans plafond.
 
@@ -3571,7 +3571,7 @@ D-222/D-223 révisées, D-327 à D-332 ; [spécification](SPECIFICATION-PLANIFIC
 
 ### 1. Identification
 
-Popover de CE-T03-08, déclenché uniquement par la pastille tours/séries. Frame à rattacher lors de l’alignement Figma.
+Popover de CE-T03-08, déclenché uniquement par la pastille tours/séries. Référence Prototype MVP `8328:34662`, capture au chapitre 06 ; DSF Circuits du 12/10.
 
 ### 2. Finalité fonctionnelle
 
@@ -3603,7 +3603,7 @@ Deux options et état courant identifiable ; aucune troisième nature.
 
 ### 9. Layout déterministe
 
-Pastille limitée au mot ; chiffre hors pastille. Reprendre le composant popover existant ; dimensions/tokens à vérifier ensuite.
+Pastille limitée au mot ; chiffre hors pastille. Référence 402 : popover `8328:34805`, 252 × 117, deux options 250 × 49. Ancrage au déclencheur, largeur adaptée au shell ; voir DSF Circuits du 12/10. Les ± visibles dans la capture représentent l’édition numérique, pas un nouveau repos permanent.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -3651,7 +3651,7 @@ Tours→séries avec exercices<N,=N,>N ; séries→tours ; Annuler après perte 
 
 ### 21. Traçabilité
 
-Spécification Circuits §§1,9 ; C01/C02/C15. Captures/DSF différés.
+Spécification Circuits §§1,9 ; C01/C02/C15 ; frame `8328:34662`, DSF et matrice du 12/10. Pas de recette applicative revendiquée.
 
 
 ## CE-CIR-02 — Confirmation d’adaptation avec perte
@@ -3690,7 +3690,7 @@ Annuler et Confirmer ; indication explicite de suppression définitive des séri
 
 ### 9. Layout déterministe
 
-Réutiliser le dialogue de décision existant. Texte final, mesures et frame à aligner dans Figma ; aucune nouvelle valeur inventée.
+Réutiliser le dialogue générique : frame `8328:34813`, instance `8328:34964`, 354 × 215 à x24/y635 sur la référence 402 × 874. Annuler à gauche, Confirmer à droite. Titre « Passer en circuit de séries ? » ; message décrit N et les séries/valeurs supprimées. N=3 est un exemple dynamique. Fond et popover inertes. Hauteur adaptée au texte, sans figer les coordonnées sur tous les appareils.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -3777,7 +3777,7 @@ Grille et fermeture ; ni pauses ni récupérations ; présence de série distinc
 
 ### 9. Layout déterministe
 
-Colonnes Exercice et unité/mode fixes ; colonnes séries défilantes horizontalement ; liste défilante verticalement. Largeurs/tokens à aligner ensuite.
+Colonnes Exercice et unité/mode fixes ; colonnes séries défilantes horizontalement ; liste défilante verticalement. Références `8328:34965` et `8328:35135` : feuille 402 × 190 à y684 pour deux lignes, en-tête 378 × 60 et grille 378 × 130, marge12. Hauteur selon contenu. Les captures statiques ne qualifient pas les défilements ; voir DSF Circuits du 12/10.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -3825,4 +3825,4 @@ A2/B4 avec tirets ;45s/60s/90s→0:45/1:00/1:30 ; échec✓ ; variables égales 
 
 ### 21. Traçabilité
 
-Spécification §§3,9.5 ; C11/C12/C13. Visuels/DSF différés.
+Spécification §§3,9.5 ; C11/C12/C13 ; frames `8328:34965` / `8328:35135`, DSF et matrice du 12/10. Écarts Figma restants : tiret de série absente et direction non dessinés ; échec ✓, débordement et accessibilité non illustrés. Les exigences restent inchangées.

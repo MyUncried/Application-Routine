@@ -1,5 +1,8 @@
 # DSF — Bip de cadence et steppers — 07/10/2026
 
+**Actualisation du 12/10 :** [DSF Circuits et contrôles du 12/10](DSF-CIRCUITS-CONTROLES-2026-10-12.md) fait autorité sur les nouveaux contrôles de séries, la nature du circuit, les volumes et la lecture seule héritée. Les mesures datées ci-dessous ne décrivent pas les états remplacés. Les règles communes sans rapport avec ces éléments restent applicables.
+
+
 Complément courant à DSF Cadence et DSF Pauses/icônes ; remplace uniquement leurs dispositions incompatibles. Métier : [Bip v2](Specifications-fonctionnelles/SPECIFICATION-BIP-CADENCE-v2.md). Aucun redesign des shells.
 
 ## Ligne Bip de cadence

@@ -365,4 +365,4 @@ Les anciennes références de planification mono-source, de l’objet autonome P
 
 ## Circuits de tours et de séries —12/10/2026
 
-[Spécification normative](Specifications-fonctionnelles/SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md) : décisions consolidées, propagation fonctionnelle et contrats CE-CIR-01/02/03. Un circuit MVP ; nature, conversions, héritage, volumes, calcul et bilatéralité définis. Captures et DSF à aligner dans une étape ultérieure ; aucun développement applicatif livré.
+[Spécification normative](Specifications-fonctionnelles/SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md) : décisions consolidées, propagation fonctionnelle et contrats CE-CIR-01/02/03. Un circuit MVP ; nature, conversions, héritage, volumes, calcul et bilatéralité définis. Alignement du 12/10 : [DSF](DSF-CIRCUITS-CONTROLES-2026-10-12.md), [inventaire préalable](INVENTAIRE-DSF-CIRCUITS-2026-10-12.md), [54 captures et traçabilité](MATRICE-DSF-CIRCUITS-2026-10-12.md). Écarts Figma résiduels explicitement conservés ; aucun développement applicatif livré.

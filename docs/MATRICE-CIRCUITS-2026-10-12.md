@@ -1,6 +1,6 @@
 # Propagation des circuits —12/10/2026
 
-Source : spécification Circuits du12/10 et arbitrages du propriétaire jusqu’à09h39. Propagation autorisée09h44. Base : correction D-214 de PR349. Pas de modification PRE-3, de code, de capture ou de DSF.
+Source : spécification Circuits du12/10 et arbitrages du propriétaire jusqu’à09h39. Propagation autorisée09h44. Base : correction D-214 de PR349. Premier lot : aucune modification PRE-3, de code, de capture ou de DSF. Le second lot autorisé aligne DSF documentaire et captures : voir la [matrice du lot visuel](MATRICE-DSF-CIRCUITS-2026-10-12.md).
 
 | Exigence | Spécification | Propagation / preuve documentaire |
 |---|---|---|
@@ -17,6 +17,6 @@ Source : spécification Circuits du12/10 et arbitrages du propriétaire jusqu’
 | Absence booléen | §9.1 | PR349 conservée en dépendance |
 | Historique/copies | §§8,12 | Données09, API11, architecture12 |
 | Registre | §13 | CIR-01…12 au chapitre07 |
-| Captures/DSF | Différés explicitement | Aucun fichier image/DSF changé ; anciennes références non certifiantes pour nouveaux états |
+| Captures/DSF | Lot visuel du 12/10 | 54 exports directs, DSF et contrats rattachés ; limites et dettes visuelles dans la matrice dédiée |
 
 Vérifications : nouveaux contrats21rubriques chacun ; références locales de la nouvelle spécification présentes ; modifications uniquement Markdown documentaire ; vérification de séquences et formules sur exemples normatifs. Les tests sont prescrits, pas exécutés sur application. Les détails d’implémentation de reprise et migration restent à qualifier ; aucune clôture technique ni graphique revendiquée.
