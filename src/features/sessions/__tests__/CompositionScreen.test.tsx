@@ -655,9 +655,13 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     fireEvent.press(screen.getByLabelText(composition.label.accessibilityLabel));
 
     const tag = await screen.findByTestId("label-picker-tag-label-sport");
+    // Recette 3 (D-355) : le toucher MARQUE l’Étiquette ; ✓ l’applique au brouillon puis ferme
+    // (auparavant : le toucher appliquait et fermait aussitôt).
     fireEvent.press(tag);
+    expect(screen.getByTestId("label-picker-backdrop")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("label-picker-confirm"));
 
-    expect(screen.queryByTestId("label-picker-backdrop")).toBeNull();
+    await waitFor(() => expect(screen.queryByTestId("label-picker-backdrop")).toBeNull(), { timeout: 3000 });
     await waitFor(() => {
       const swatch = screen.getByTestId("composition-session-color-swatch");
       expect(StyleSheet.flatten(swatch.props.style).backgroundColor).toBe("#2E9B62");

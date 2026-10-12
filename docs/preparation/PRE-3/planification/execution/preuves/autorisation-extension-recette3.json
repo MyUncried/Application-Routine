@@ -20,24 +20,84 @@
     "refonte générale de l'application"
   ],
   "paths": [
-    { "path": "src/features/sessions/CatalogueScreen.tsx", "extension": "EXT-R3-1" },
-    { "path": "src/features/sessions/__tests__/CatalogueScreen.test.tsx", "extension": "EXT-R3-1" },
-    { "path": "src/features/sessions/CompositionScreen.tsx", "extension": "EXT-R3-2 / EXT-R3-3 (raccordement Étiquette)" },
-    { "path": "src/features/sessions/__tests__/CompositionScreen.test.tsx", "extension": "EXT-R3-2 / EXT-R3-3" },
-    { "path": "src/features/reference-data/LabelPickerModal.tsx", "extension": "EXT-R3-3 / N-01" },
-    { "path": "src/features/reference-data/__tests__/LabelPickerModal.test.tsx", "extension": "EXT-R3-3 / N-01" },
-    { "path": "src/features/reference-data/ReferenceValueDialog.tsx", "extension": "EXT-R3-4 / N-01" },
-    { "path": "src/features/reference-data/__tests__/ReferenceValueDialog.test.tsx", "extension": "EXT-R3-4 / N-01" },
-    { "path": "src/features/reference-data/CategoryPickerModal.tsx", "extension": "write_scope@43e7b344 (N-01 ; export du bandeau sans changer son rendu)" },
-    { "path": "src/features/reference-data/BodyZonePickerModal.tsx", "extension": "write_scope@43e7b344 (N-01, N-02)" },
-    { "path": "src/shared/i18n/index.ts", "extension": "write_scope@43e7b344 (libellés)" },
-    { "path": "src/shared/i18n/resources/fr.ts", "extension": "libellés associés, si nécessaires" },
-    { "path": "docs/**", "extension": "documentation associée" }
+    {
+      "path": "src/features/sessions/CatalogueScreen.tsx",
+      "extension": "EXT-R3-1"
+    },
+    {
+      "path": "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
+      "extension": "EXT-R3-1"
+    },
+    {
+      "path": "src/features/activities/CatalogueCreateOptions.tsx",
+      "extension": "EXT-R3-1, dépendance minimale démontrée pendant la réalisation : menuTop incluait la hauteur du séparateur retiré (seul consommateur : CatalogueScreen)"
+    },
+    {
+      "path": "src/features/activities/__tests__/CatalogueCreateOptions.test.tsx",
+      "extension": "EXT-R3-1, test de la dépendance ci-dessus"
+    },
+    {
+      "path": "src/features/sessions/CompositionScreen.tsx",
+      "extension": "EXT-R3-2 / EXT-R3-3 (raccordement Étiquette)"
+    },
+    {
+      "path": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+      "extension": "EXT-R3-2 / EXT-R3-3"
+    },
+    {
+      "path": "src/features/reference-data/LabelPickerModal.tsx",
+      "extension": "EXT-R3-3 / N-01"
+    },
+    {
+      "path": "src/features/reference-data/__tests__/LabelPickerModal.test.tsx",
+      "extension": "EXT-R3-3 / N-01"
+    },
+    {
+      "path": "src/features/reference-data/ReferenceValueDialog.tsx",
+      "extension": "EXT-R3-4 / N-01"
+    },
+    {
+      "path": "src/features/reference-data/__tests__/ReferenceValueDialog.test.tsx",
+      "extension": "EXT-R3-4 / N-01"
+    },
+    {
+      "path": "src/features/reference-data/CategoryPickerModal.tsx",
+      "extension": "write_scope@43e7b344 (N-01 ; export du bandeau sans changer son rendu)"
+    },
+    {
+      "path": "src/features/reference-data/BodyZonePickerModal.tsx",
+      "extension": "write_scope@43e7b344 (N-01, N-02)"
+    },
+    {
+      "path": "src/shared/i18n/index.ts",
+      "extension": "write_scope@43e7b344 (libellés)"
+    },
+    {
+      "path": "src/shared/i18n/resources/fr.ts",
+      "extension": "libellés associés, si nécessaires"
+    },
+    {
+      "path": "docs/**",
+      "extension": "documentation associée"
+    }
   ],
   "shared_consumers_to_protect": {
-    "ReferenceValueDialog.tsx": ["CategoryPickerModal (PRE-3)", "BodyZonePickerModal (PRE-3)", "LabelPickerModal (PRE-2, Composition)"],
-    "LabelPickerModal.tsx": ["CompositionScreen (Étiquette de séance)"],
-    "HeaderSeparator / ContextBand (ScreenShell.tsx, non modifié)": ["Profil", "Modifier le profil", "Sélection d'activités", "Catégories", "Catalogue (retrait local seulement)", "Composition (retrait local, D-353)"]
+    "ReferenceValueDialog.tsx": [
+      "CategoryPickerModal (PRE-3)",
+      "BodyZonePickerModal (PRE-3)",
+      "LabelPickerModal (PRE-2, Composition)"
+    ],
+    "LabelPickerModal.tsx": [
+      "CompositionScreen (Étiquette de séance)"
+    ],
+    "HeaderSeparator / ContextBand (ScreenShell.tsx, non modifié)": [
+      "Profil",
+      "Modifier le profil",
+      "Sélection d'activités",
+      "Catégories",
+      "Catalogue (retrait local seulement)",
+      "Composition (retrait local, D-353)"
+    ]
   },
   "notes": [
     "Le prompt indique que le trait sous l'en-tête de la Composition a été conservé dans 01a1314e. Après cette livraison, Hermann a demandé explicitement son retrait (« le trait gris au dessus de la zone de contexte colorée est toujours là. Ce point précis n'est pas corrigé ») : fait dans c649bffc (D-353, OTA 01a13191). Cette demande explicite plus récente est conservée ; le retrait n'est donc pas une extrapolation."

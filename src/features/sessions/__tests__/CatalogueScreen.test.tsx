@@ -194,10 +194,9 @@ describe("CatalogueScreen — cadre commun", () => {
     const header = screen.getByTestId("screen-header");
     expect(within(header).getByText(strings.screens.sessions.title)).toBeTruthy();
 
-    // Séparateur : présent, distinct du fond général (container est
-    // `colors.background`, blanc — le séparateur ne doit jamais l'être).
-    const separator = screen.getByTestId("screen-header-separator");
-    expect(StyleSheet.flatten(separator.props.style).backgroundColor).not.toBe(colors.background);
+    // Recette 3 (T-49, D-356) : plus de séparateur gris sous l'en-tête du Catalogue
+    // (auparavant : séparateur présent, de couleur distincte du fond).
+    expect(screen.queryByTestId("screen-header-separator")).toBeNull();
 
     // Bande Context : fond distinct du fond général, contient le sélecteur
     // de segments ET l'action Créer (pas seulement l'un des deux).
@@ -812,5 +811,38 @@ describe("CatalogueScreen — cycle focus/blur/focus/démontage", () => {
     });
 
     expect(() => unmount()).not.toThrow();
+  });
+});
+
+describe("CatalogueScreen — recette 3 (T-49, EXT-R3-1 : bords de la zone de contexte)", () => {
+  it("T-49 — vues Exercices et Séances : aucun trait au-dessus de la zone, fondu inférieur en couches superposées vers le blanc (aucun bord net), couleur et commandes conservées", async () => {
+    const { service, listActiveSessions } = makeFakeService();
+    listActiveSessions.mockResolvedValue([]);
+    renderScreen(service);
+    await act(async () => {});
+
+    for (const segment of ["activities", "sessions"] as const) {
+      fireEvent.press(screen.getByTestId(`catalogue-content-type-row-${segment}`));
+      expect(screen.queryByTestId("screen-header-separator")).toBeNull();
+      const band = screen.getByTestId("screen-context-band");
+      // Couleur propre du Catalogue conservée (pas la lavande de l’éditeur).
+      expect(StyleSheet.flatten(band.props.style).backgroundColor).toBe(colors.selectionSurface);
+      const fade = screen.getByTestId("catalogue-context-band-fade", { includeHiddenElements: true });
+      expect(fade.props.pointerEvents).toBe("none");
+      expect(StyleSheet.flatten(fade.props.style)).toMatchObject({ position: "absolute", bottom: 0, height: "20%" });
+      const layers = fade.props.children as { props: { style: unknown } }[];
+      expect(layers.length).toBeGreaterThanOrEqual(10);
+      const opacities = layers.map((layer) => (StyleSheet.flatten(layer.props.style as never) as { opacity: number }).opacity);
+      expect([...opacities].sort((a, b) => a - b)).toEqual(opacities);
+      expect(opacities[opacities.length - 1]).toBeGreaterThan(0.9);
+      for (const layer of layers) {
+        expect(StyleSheet.flatten(layer.props.style as never)).toMatchObject({ position: "absolute", bottom: 0, backgroundColor: colors.background });
+      }
+      // Fondu dessiné en premier, sous le sélecteur et les commandes, qui restent présents.
+      const order = (band.props.children as { props?: { testID?: string } }[]).flat().map((child) => child?.props?.testID).filter(Boolean);
+      expect(order[0]).toBe("catalogue-context-band-fade");
+      expect(screen.getByTestId("catalogue-content-type-row")).toBeTruthy();
+      expect(screen.getByTestId("catalogue-create-action")).toBeTruthy();
+    }
   });
 });

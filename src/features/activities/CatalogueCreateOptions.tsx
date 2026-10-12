@@ -4,12 +4,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { strings } from "@/shared/i18n";
 import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
 
-/**
- * Hauteur du séparateur sous l'en-tête (`ScreenShell.tsx`, `HeaderSeparator`,
- * `styles.separator.height`) — reprise ici en constante, jamais dupliquée
- * en dur, pour composer `menuTop` (voir plus bas).
- */
-const HEADER_SEPARATOR_HEIGHT = 1;
 
 export type CatalogueCreateOptionsProps = {
   visible: boolean;
@@ -58,11 +52,11 @@ export function CatalogueCreateOptions({
   // au lieu d'apparaître sous la rangée `Créer` — d'où le bouton perçu comme
   // non fonctionnel (l'arbre s'ouvrait bien, mais invisible/confondu avec
   // l'en-tête). `menuTop` inclut désormais la hauteur RÉELLE cumulée des
-  // trois éléments fixes qui précèdent toujours ce composant à l'écran.
+  // éléments fixes qui précèdent toujours ce composant à l'écran. Recette 3
+  // (D-356) : plus de séparateur entre l'en-tête et la bande du Catalogue.
   const menuTop =
     insets.top +
     dimensions.header.contentHeight +
-    HEADER_SEPARATOR_HEIGHT +
     dimensions.contextBand.height +
     spacing[8];
 

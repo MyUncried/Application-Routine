@@ -5,7 +5,7 @@ import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { BodyZonePickerModal } from "@/features/reference-data/BodyZonePickerModal";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
-import { StyleSheet } from "react-native";
+import { Modal, StyleSheet } from "react-native";
 
 function aZone(overrides: Partial<BodyZone> = {}): BodyZone {
   return {
@@ -383,5 +383,40 @@ describe("BodyZonePickerModal — recette 3 (N-02 : ↑ ne ferme pas le clavier)
     expect(screen.getByTestId("body-zone-picker-new-add").props.accessibilityState).toMatchObject({ disabled: true });
     expect(onConfirm).not.toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
+  });
+});
+
+describe("BodyZonePickerModal — recette 3 (N-01 : appui long avec clavier, Modifier effectif)", () => {
+  it("N-01 — formulaire de création ouvert : appui long en calque (aucun Modal imbriqué → clavier conservé), ✕ conserve le texte provisoire ; Modifier affiche l’édition de l’entrée ciblée, puis la création revient avec son texte", async () => {
+    const service = fakeReferentialService();
+    renderModal(service);
+    fireEvent.press(await screen.findByTestId("body-zone-picker-create-action"));
+    const createInput = screen.getByTestId("body-zone-picker-new-name-input");
+    fireEvent.changeText(createInput, "Provisoire");
+    const modalsBefore = screen.UNSAFE_getAllByType(Modal).length;
+    const target = screen.getByTestId("body-zone-selector-tag-cou");
+
+    await act(async () => {
+      fireEvent(target, "longPress");
+    });
+    expect(screen.getByTestId("body-zone-picker-long-press-card")).toBeTruthy();
+    expect(screen.UNSAFE_getAllByType(Modal)).toHaveLength(modalsBefore);
+    // Le champ reste monté et inchangé derrière le menu (masqué à VoiceOver, accessibilityViewIsModal).
+    expect(screen.getByTestId("body-zone-picker-new-name-input", { includeHiddenElements: true })).toBe(createInput);
+
+    fireEvent.press(screen.getByTestId("body-zone-picker-long-press-cancel"));
+    expect(screen.queryByTestId("body-zone-picker-long-press-card")).toBeNull();
+    expect(screen.getByTestId("body-zone-picker-new-name-input").props.value).toBe("Provisoire");
+
+    await act(async () => {
+      fireEvent(target, "longPress");
+    });
+    fireEvent.press(screen.getByTestId("body-zone-picker-long-press-modify"));
+    expect(screen.getByTestId("body-zone-picker-edit-name-input")).toBeTruthy();
+    expect(screen.getByTestId("body-zone-picker-edit-name-input").props.value).not.toBe("");
+    expect(screen.queryByTestId("body-zone-picker-new-row")).toBeNull();
+    fireEvent.press(screen.getByTestId("body-zone-picker-edit-cancel"));
+    expect(service.renameBodyZone).not.toHaveBeenCalled();
+    expect(screen.getByTestId("body-zone-picker-new-name-input").props.value).toBe("Provisoire");
   });
 });

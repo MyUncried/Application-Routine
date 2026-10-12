@@ -9,7 +9,7 @@ import { useActivityCatalogue } from "@/features/activities/useActivityCatalogue
 import { SessionCard } from "@/features/sessions/SessionCard";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { strings } from "@/shared/i18n";
-import { ContextBand, FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
+import { ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
@@ -103,9 +103,26 @@ export function CatalogueScreen() {
   return (
     <ScreenShell>
       <FixedHeader title={title} />
-      <HeaderSeparator />
+      {/* Recette 3 (T-49, EXT-R3-1, D-356) : plus de trait gris entre l’en-tête et la zone
+          de contexte. */}
 
       <ContextBand>
+        {/* Recette 3 (T-49, D-356) : le bord bas de la zone n’est dessiné par aucun élément —
+            c’est l’arête nette entre la bande et le fond blanc. Fondu vers le blanc sur les
+            20 % inférieurs (ch. 12 : « Zone de contexte → transparent sur les 20 % inférieurs
+            pour Catalogues »), en couches superposées (aucun interstice), sur la couleur
+            propre du Catalogue ; sous le contenu, sans interaction ni VoiceOver. */}
+        <View
+          pointerEvents="none"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={styles.contextBandFade}
+          testID="catalogue-context-band-fade"
+        >
+          {CONTEXT_BAND_FADE_LAYERS.map((layer) => (
+            <View key={layer.top} style={[styles.contextBandFadeLayer, { top: layer.top, opacity: layer.opacity }]} />
+          ))}
+        </View>
         <SegmentedControl
           options={[
             { value: "activities", label: t.contentTypes.activities },
@@ -421,7 +438,37 @@ function ReadyBody({
   );
 }
 
+/**
+ * Recette 3 (T-49, D-356) : fondu figé de la zone de contexte (20 % inférieurs), mêmes
+ * valeurs que l’éditeur et la Composition — couches superposées dont l’opacité cumulée
+ * suit la rampe 0 → 1.
+ */
+const CONTEXT_BAND_FADE_SHARE = "20%";
+const CONTEXT_BAND_FADE_LAYER_COUNT = 12;
+const CONTEXT_BAND_FADE_LAYERS = Array.from({ length: CONTEXT_BAND_FADE_LAYER_COUNT }, (_, index) => {
+  const before = index / CONTEXT_BAND_FADE_LAYER_COUNT;
+  const after = (index + 1) / CONTEXT_BAND_FADE_LAYER_COUNT;
+  return {
+    top: `${((index / CONTEXT_BAND_FADE_LAYER_COUNT) * 100).toFixed(4)}%` as `${number}%`,
+    opacity: Number((1 - (1 - after) / (1 - before)).toFixed(4)),
+  };
+});
+
 const styles = StyleSheet.create({
+  contextBandFade: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: CONTEXT_BAND_FADE_SHARE,
+  },
+  contextBandFadeLayer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: colors.background,
+  },
   // `container`/`header`/`title`/`headerSeparator`/`contextBand` sont
   // désormais portés par le Shell Foundation partagé (`CMP-01`,
   // `@/shared/ui/ScreenShell`) — aucune redéclaration locale équivalente

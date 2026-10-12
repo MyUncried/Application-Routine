@@ -290,47 +290,9 @@ export function BodyZonePickerModal({
             />
           </View>
 
-          {isCreating ? (
-            <View style={styles.newEntryContainer} testID="body-zone-picker-new-row">
-              {/* Recette 1 (T-34/T-59) — « Saisie inline » figée 4683:6336 : action
-                  « Envoyer » ↑ dans le champ (mêmes règles que l’ancien bouton Ajouter). */}
-              <View style={styles.inlineField}>
-                <TextInput
-                  value={newName}
-                  onChangeText={(text) => {
-                    setNewName(text);
-                    setDuplicateError(false);
-                  }}
-                  placeholder={t.newEntry.placeholder}
-                  placeholderTextColor={colors.textSecondary}
-                  accessibilityLabel={t.newEntry.placeholder}
-                  maxLength={BODY_ZONE_NAME_MAX_LENGTH}
-                  autoFocus
-                  style={[styles.newEntryInput, styles.inlineFieldInput]}
-                  testID="body-zone-picker-new-name-input"
-                />
-                <Pressable
-                  disabled={!canAddZone}
-                  onPress={handleCreate}
-                  accessibilityRole="button"
-                  accessibilityState={{ disabled: !canAddZone }}
-                  accessibilityLabel={t.newEntry.addAccessibilityLabel}
-                  hitSlop={(minTouchTarget - INLINE_SEND_SIZE) / 2}
-                  style={[styles.inlineSend, !canAddZone ? styles.inlineSendDisabled : null]}
-                  testID="body-zone-picker-new-add"
-                >
-                  <Text style={styles.inlineSendSymbol}>↑</Text>
-                </Pressable>
-              </View>
-              {duplicateError ? (
-                <Text style={styles.errorText} testID="body-zone-picker-new-error">
-                  {strings.referenceData.renameDialog.duplicateError}
-                </Text>
-              ) : null}
-              {/* Recette 2 (N-01/N-02, décision du 12/10) : plus de bouton Annuler dans le
-                  formulaire de création ; ✕ de l’en-tête ferme la feuille. */}
-            </View>
-          ) : editTarget ? (
+          {/* Recette 3 (N-01) : l’édition (Modifier, après appui long) passe avant la création :
+              elle s’affiche même formulaire de création ouvert, dont le texte est conservé. */}
+          {editTarget ? (
             <View style={styles.newEntryContainer} testID="body-zone-picker-edit-row">
               <TextInput
                 value={editName}
@@ -375,6 +337,46 @@ export function BodyZonePickerModal({
                   <Text style={styles.primaryActionLabel}>{strings.referenceData.renameDialog.saveAction}</Text>
                 </Pressable>
               </View>
+            </View>
+          ) : isCreating ? (
+            <View style={styles.newEntryContainer} testID="body-zone-picker-new-row">
+              {/* Recette 1 (T-34/T-59) — « Saisie inline » figée 4683:6336 : action
+                  « Envoyer » ↑ dans le champ (mêmes règles que l’ancien bouton Ajouter). */}
+              <View style={styles.inlineField}>
+                <TextInput
+                  value={newName}
+                  onChangeText={(text) => {
+                    setNewName(text);
+                    setDuplicateError(false);
+                  }}
+                  placeholder={t.newEntry.placeholder}
+                  placeholderTextColor={colors.textSecondary}
+                  accessibilityLabel={t.newEntry.placeholder}
+                  maxLength={BODY_ZONE_NAME_MAX_LENGTH}
+                  autoFocus
+                  style={[styles.newEntryInput, styles.inlineFieldInput]}
+                  testID="body-zone-picker-new-name-input"
+                />
+                <Pressable
+                  disabled={!canAddZone}
+                  onPress={handleCreate}
+                  accessibilityRole="button"
+                  accessibilityState={{ disabled: !canAddZone }}
+                  accessibilityLabel={t.newEntry.addAccessibilityLabel}
+                  hitSlop={(minTouchTarget - INLINE_SEND_SIZE) / 2}
+                  style={[styles.inlineSend, !canAddZone ? styles.inlineSendDisabled : null]}
+                  testID="body-zone-picker-new-add"
+                >
+                  <Text style={styles.inlineSendSymbol}>↑</Text>
+                </Pressable>
+              </View>
+              {duplicateError ? (
+                <Text style={styles.errorText} testID="body-zone-picker-new-error">
+                  {strings.referenceData.renameDialog.duplicateError}
+                </Text>
+              ) : null}
+              {/* Recette 2 (N-01/N-02, décision du 12/10) : plus de bouton Annuler dans le
+                  formulaire de création ; ✕ de l’en-tête ferme la feuille. */}
             </View>
           ) : (
             <Pressable

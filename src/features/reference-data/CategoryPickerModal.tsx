@@ -330,48 +330,9 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
             })}
           </View>
 
-          {isCreating ? (
-            <View style={styles.newEntryContainer} testID="category-picker-new-row">
-              {/* Recette 1 (T-34/T-59) — « Saisie inline » figée 4474:7157 : action
-                  « Envoyer » ↑ dans le champ (mêmes règles que l’ancien bouton Ajouter). */}
-              <View style={styles.inlineField}>
-                <TextInput
-                  value={newName}
-                  onChangeText={(text) => {
-                    setNewName(text);
-                    setDuplicateError(false);
-                  }}
-                  placeholder={t.newEntry.placeholder}
-                  placeholderTextColor={colors.textSecondary}
-                  accessibilityLabel={t.newEntry.placeholder}
-                  maxLength={CATEGORY_NAME_MAX_LENGTH}
-                  autoFocus
-                  style={[styles.newEntryInput, styles.inlineFieldInput]}
-                  testID="category-picker-new-name-input"
-                />
-                <Pressable
-                  disabled={!canAddCategory}
-                  onPress={handleCreate}
-                  accessibilityRole="button"
-                  accessibilityState={{ disabled: !canAddCategory }}
-                  accessibilityLabel={t.newEntry.addAccessibilityLabel}
-                  hitSlop={(minTouchTarget - INLINE_SEND_SIZE) / 2}
-                  style={[styles.inlineSend, !canAddCategory ? styles.inlineSendDisabled : null]}
-                  testID="category-picker-new-add"
-                >
-                  <Text style={styles.inlineSendSymbol}>↑</Text>
-                </Pressable>
-              </View>
-              <CategoryColorBand value={newColor} onChange={setNewColor} testID="category-picker-new-color-band" />
-              {duplicateError ? (
-                <Text style={styles.errorText} testID="category-picker-new-error">
-                  {strings.referenceData.renameDialog.duplicateError}
-                </Text>
-              ) : null}
-              {/* Recette 2 (N-01/N-02, décision du 12/10) : plus de bouton Annuler dans le
-                  formulaire de création ; ✕ de l’en-tête ferme la feuille. */}
-            </View>
-          ) : editTarget ? (
+          {/* Recette 3 (N-01) : l’édition (Modifier, après appui long) passe avant la création :
+              elle s’affiche même formulaire de création ouvert, dont le texte est conservé. */}
+          {editTarget ? (
             <View style={styles.newEntryContainer} testID="category-picker-edit-row">
               <TextInput
                 value={editName}
@@ -418,6 +379,47 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
                 </Pressable>
               </View>
             </View>
+          ) : isCreating ? (
+            <View style={styles.newEntryContainer} testID="category-picker-new-row">
+              {/* Recette 1 (T-34/T-59) — « Saisie inline » figée 4474:7157 : action
+                  « Envoyer » ↑ dans le champ (mêmes règles que l’ancien bouton Ajouter). */}
+              <View style={styles.inlineField}>
+                <TextInput
+                  value={newName}
+                  onChangeText={(text) => {
+                    setNewName(text);
+                    setDuplicateError(false);
+                  }}
+                  placeholder={t.newEntry.placeholder}
+                  placeholderTextColor={colors.textSecondary}
+                  accessibilityLabel={t.newEntry.placeholder}
+                  maxLength={CATEGORY_NAME_MAX_LENGTH}
+                  autoFocus
+                  style={[styles.newEntryInput, styles.inlineFieldInput]}
+                  testID="category-picker-new-name-input"
+                />
+                <Pressable
+                  disabled={!canAddCategory}
+                  onPress={handleCreate}
+                  accessibilityRole="button"
+                  accessibilityState={{ disabled: !canAddCategory }}
+                  accessibilityLabel={t.newEntry.addAccessibilityLabel}
+                  hitSlop={(minTouchTarget - INLINE_SEND_SIZE) / 2}
+                  style={[styles.inlineSend, !canAddCategory ? styles.inlineSendDisabled : null]}
+                  testID="category-picker-new-add"
+                >
+                  <Text style={styles.inlineSendSymbol}>↑</Text>
+                </Pressable>
+              </View>
+              <CategoryColorBand value={newColor} onChange={setNewColor} testID="category-picker-new-color-band" />
+              {duplicateError ? (
+                <Text style={styles.errorText} testID="category-picker-new-error">
+                  {strings.referenceData.renameDialog.duplicateError}
+                </Text>
+              ) : null}
+              {/* Recette 2 (N-01/N-02, décision du 12/10) : plus de bouton Annuler dans le
+                  formulaire de création ; ✕ de l’en-tête ferme la feuille. */}
+            </View>
           ) : (
             <Pressable
               onPress={() => setIsCreating(true)}
@@ -463,8 +465,9 @@ const INLINE_SEND_SIZE = 32;
  * contigus de 32, segment choisi agrandi (+8, rayon 3, contour blanc 2).
  * Les couleurs restent celles de la palette décidée (D-026, 12 couleurs) : les
  * teintes d’exemple de Figma ne deviennent pas des règles (PRE-3 l.26).
+ * Recette 3 (N-03) : exporté, rendu inchangé, pour la création d’Étiquette.
  */
-function CategoryColorBand({
+export function CategoryColorBand({
   value,
   onChange,
   testID,

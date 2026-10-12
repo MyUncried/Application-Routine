@@ -118,6 +118,8 @@ const executionParameters = {
     categoryTitle: "Catégorie de l’exercice",
     // Décision propriétaire D-8 (12/10) : confirmation explicite de la Catégorie.
     categoryConfirmAction: "Confirmer la catégorie",
+    // Recette 3 (N-03, D-355) : confirmation explicite de l’Étiquette de séance.
+    labelConfirmAction: "Confirmer l’étiquette",
     zoneCreateAction: "Créer une zone corporelle",
   },
 } as const;

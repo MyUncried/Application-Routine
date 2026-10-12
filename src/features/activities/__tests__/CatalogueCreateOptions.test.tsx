@@ -167,7 +167,8 @@ describe("CatalogueCreateOptions", () => {
     const menu = screen.getByTestId("catalogue-create-tree");
     const flattenedTop = StyleSheet.flatten(menu.props.style).top as number;
     // Insets de test (`TestSafeAreaProvider`) : `top: 47`.
-    const expectedTop = 47 + dimensions.header.contentHeight + 1 + dimensions.contextBand.height + spacing[8];
+    // Recette 3 (D-356) : plus de séparateur de 1 sous l'en-tête du Catalogue (auparavant « + 1 »).
+    const expectedTop = 47 + dimensions.header.contentHeight + dimensions.contextBand.height + spacing[8];
     expect(flattenedTop).toBe(expectedTop);
   });
 });
