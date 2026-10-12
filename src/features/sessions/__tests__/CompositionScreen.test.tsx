@@ -916,15 +916,15 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(within(contextBand).getByLabelText(composition.addActivity)).toBeTruthy();
   });
 
-  it("REWORK09 — supersedes CMP-02's opaque white field: the Name field is now transparent with a white 1pt border (Session/Name Field — Source exact, 2537:1480), letting the Context band colour show through", () => {
+  it("REWORK09, révisé recette 3 (T-49, D-352) — le champ Nom est transparent, SANS contour blanc (supprimé à la demande de Hermann), la couleur de la bande Context reste visible", () => {
     renderScreen();
 
     const field = screen.getByTestId("composition-name-color-field");
     const flattened = StyleSheet.flatten(field.props.style);
     expect(flattened.backgroundColor).toBe("transparent");
-    expect(flattened.borderWidth).toBe(1);
-    expect(flattened.borderColor).toBe(colors.sessionNameBorder);
-    expect(colors.sessionNameBorder).toBe("#FFFFFF");
+    // Avant D-352 : borderWidth 1, borderColor sessionNameBorder (#FFFFFF).
+    expect(flattened.borderWidth).toBeUndefined();
+    expect(flattened.borderColor).toBeUndefined();
     expect(within(field).getByLabelText(composition.name)).toBeTruthy();
   });
 
@@ -3226,5 +3226,52 @@ describe("CompositionScreen — indicateur de direction propre et clause de synt
     expect(screen.queryByText(/par côté/)).toBeNull();
     expect(screen.queryByText(/à droite, puis à gauche/)).toBeNull();
     expect(screen.queryByText(/à gauche, puis à droite/)).toBeNull();
+  });
+});
+
+describe("CompositionScreen — recette 3 (T-49, EXT-R3-2 : zone de contexte)", () => {
+  it("T-49 — courbe blanche sous Retour et fondu inférieur en couches superposées, sous le contenu, sur la couleur propre de la Composition ; contenu et séparateur d’en-tête conservés", () => {
+    renderScreen();
+
+    const band = screen.getByTestId("screen-context-band");
+    // Couleur propre de la Composition conservée (bande partagée inchangée, pas la lavande de l’éditeur).
+    expect(StyleSheet.flatten(band.props.style).backgroundColor).toBe(colors.selectionSurface);
+
+    const effects = screen.getByTestId("composition-context-band-effects", { includeHiddenElements: true });
+    expect(effects.props.pointerEvents).toBe("none");
+    expect(effects.props.importantForAccessibility).toBe("no-hide-descendants");
+    expect(StyleSheet.flatten(effects.props.style)).toMatchObject({ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflow: "hidden" });
+
+    // Fondu : 20 % inférieurs, couches absolues jusqu’au bas (aucune bande juxtaposée), opacités croissantes vers le blanc.
+    const fade = screen.getByTestId("composition-context-band-fade", { includeHiddenElements: true });
+    expect(StyleSheet.flatten(fade.props.style)).toMatchObject({ position: "absolute", bottom: 0, height: "20%" });
+    const layers = fade.props.children as { props: { style: unknown } }[];
+    expect(layers.length).toBeGreaterThanOrEqual(10);
+    const opacities = layers.map((layer) => (StyleSheet.flatten(layer.props.style as never) as { opacity: number }).opacity);
+    expect([...opacities].sort((a, b) => a - b)).toEqual(opacities);
+    expect(opacities[0]).toBeLessThan(0.1);
+    expect(opacities[opacities.length - 1]).toBeGreaterThan(0.9);
+    for (const layer of layers) {
+      expect(StyleSheet.flatten(layer.props.style as never)).toMatchObject({ position: "absolute", bottom: 0, backgroundColor: colors.background });
+    }
+
+    // Courbe : halo blanc Ø 59,28 concentrique au bouton Retour (marge 24, cercle 38, contenu 48, séparateur 1).
+    const halo = StyleSheet.flatten(screen.getByTestId("composition-context-band-halo", { includeHiddenElements: true }).props.style);
+    expect(halo).toMatchObject({ position: "absolute", width: 59.28, height: 59.28, borderRadius: 29.64, backgroundColor: colors.background });
+    expect(halo.left).toBeCloseTo(24 + 19 - 29.64, 5);
+    expect(halo.top).toBeCloseTo(-1 - 24 - 29.64, 5);
+
+    // Effets dessinés en premier : sous le champ Nom et sous Ajouter.
+    const order = (band.props.children as { props?: { testID?: string } }[])
+      .flat()
+      .map((child) => child?.props?.testID)
+      .filter(Boolean);
+    expect(order[0]).toBe("composition-context-band-effects");
+    expect(order.indexOf("composition-name-color-field")).toBeGreaterThan(0);
+    expect(within(band).getByLabelText(composition.name)).toBeTruthy();
+    expect(within(band).getByLabelText(composition.addActivity)).toBeTruthy();
+    expect(screen.getByTestId("composition-session-color-trigger")).toBeTruthy();
+    // Séparateur d’en-tête conservé (seuls les liserés inférieurs et le contour sont visés).
+    expect(screen.getByTestId("screen-header-separator")).toBeTruthy();
   });
 });
