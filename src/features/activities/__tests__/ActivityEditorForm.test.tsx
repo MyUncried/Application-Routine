@@ -452,3 +452,33 @@ describe("ActivityEditorForm — correction revue 1", () => {
     );
   });
 });
+
+describe("ActivityEditorForm — recette 1 (T-49)", () => {
+  it("T-49 — zone de contexte : halo blanc Ø 59,28 concentrique au bouton Retour, rogné à la zone, et fondu figé sur les 20 % inférieurs, tous deux sous le contenu", () => {
+    render(<Harness />);
+    const band = screen.getByTestId("exercise-context-band");
+    expect(StyleSheet.flatten(band.props.style).overflow).toBe("hidden");
+
+    const halo = StyleSheet.flatten(screen.getByTestId("exercise-context-band-halo").props.style);
+    expect(halo).toMatchObject({ position: "absolute", width: 59.28, height: 59.28, borderRadius: 29.64, backgroundColor: "#FFFFFF" });
+    // Centre : marge 24 + rayon du bouton 19 en x ; 24 au-dessus de la zone (moitié de l’en-tête 48) en y.
+    expect(halo.left! + 29.64).toBeCloseTo(43, 5);
+    expect(halo.top! + 29.64).toBeCloseTo(-24, 5);
+
+    const fade = screen.getByTestId("exercise-context-band-fade");
+    expect(StyleSheet.flatten(fade.props.style)).toMatchObject({ position: "absolute", bottom: 0, height: "20%" });
+    const opacities = (fade.props.children as { props: { style: unknown } }[]).map(
+      (step) => (StyleSheet.flatten(step.props.style as never) as { opacity: number }).opacity,
+    );
+    expect(opacities.length).toBeGreaterThanOrEqual(10);
+    expect([...opacities].sort((a, b) => a - b)).toEqual(opacities);
+    expect(opacities[0]).toBeLessThan(0.1);
+    expect(opacities[opacities.length - 1]).toBeGreaterThan(0.9);
+
+    // Sous le contenu : les effets précèdent le champ du nom dans l’ordre de dessin.
+    const children = band.props.children as { props: { testID?: string } }[];
+    const order = children.flat().map((child) => child?.props?.testID).filter(Boolean);
+    expect(order.indexOf("exercise-context-band-fade")).toBeLessThan(order.indexOf("exercise-name-input"));
+    expect(order.indexOf("exercise-context-band-halo")).toBeLessThan(order.indexOf("exercise-name-input"));
+  });
+});

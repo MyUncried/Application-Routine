@@ -313,3 +313,18 @@ describe("BodyZonePickerModal — recette 1 (T-61)", () => {
     expect(screen.getByRole("header").props.numberOfLines).toBeUndefined();
   });
 });
+
+describe("BodyZonePickerModal — recette 1 (T-34/T-59 : Envoyer ↑)", () => {
+  it("action « Envoyer » ↑ dans le champ : inactive à vide, active avec un nom ; Annuler conservé ; aucune palette", async () => {
+    renderModal(fakeReferentialService());
+    fireEvent.press(await screen.findByTestId("body-zone-picker-create-action"));
+    const send = () => screen.getByTestId("body-zone-picker-new-add");
+    expect(screen.getByText("↑")).toBeTruthy();
+    expect(StyleSheet.flatten(send().props.style)).toMatchObject({ position: "absolute", width: 32, height: 32, borderRadius: 16 });
+    expect(send().props.accessibilityState).toMatchObject({ disabled: true });
+    fireEvent.changeText(screen.getByTestId("body-zone-picker-new-name-input"), "Mollets");
+    expect(send().props.accessibilityState).toMatchObject({ disabled: false });
+    expect(screen.getByTestId("body-zone-picker-new-cancel")).toBeTruthy();
+    expect(screen.queryByRole("radiogroup")).toBeNull();
+  });
+});

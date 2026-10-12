@@ -19,12 +19,11 @@ import {
 } from "@/domain/categories/Category";
 import { CATEGORY_NAME_MAX_LENGTH, validateCategoryName } from "@/domain/categories/validation";
 import { SESSION_COLORS } from "@/domain/sessions/Session";
-import { ColorPalette } from "@/features/sessions/ColorPalette";
 import { ReferenceValueDialog } from "@/features/reference-data/ReferenceValueDialog";
 import { useReferentialService } from "@/features/reference-data/ReferentialServiceContext";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
-import { colors, dimensions, fixedRadii, spacing, type } from "@/shared/ui/tokens";
+import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 export type CategoryPickerModalProps = {
   /** Catégorie actuellement affectée — `null` si aucune (D-211 : toujours requise avant `Terminer`, mais l'ouverture de la modale ne présuppose rien). */
@@ -48,7 +47,6 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
   const [isCreating, setIsCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [newColor, setNewColor] = useState<CategoryColor>(SESSION_COLORS[0]!);
-  const [isNewPaletteOpen, setIsNewPaletteOpen] = useState(false);
   const [longPressTarget, setLongPressTarget] = useState<Category | null>(null);
   const [editTarget, setEditTarget] = useState<Category | null>(null);
   // Recette 1 (F-03) : le formulaire de création/modification est en bas de la
@@ -65,7 +63,6 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
   }, [isEntryFormOpen]);
   const [editName, setEditName] = useState("");
   const [editColor, setEditColor] = useState<CategoryColor>(SESSION_COLORS[0]!);
-  const [isEditPaletteOpen, setIsEditPaletteOpen] = useState(false);
   const [duplicateError, setDuplicateError] = useState(false);
   const [writeError, setWriteError] = useState(false);
   const [retiredNotice, setRetiredNotice] = useState(false);
@@ -252,27 +249,37 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
 
           {isCreating ? (
             <View style={styles.newEntryContainer} testID="category-picker-new-row">
-              <TextInput
-                value={newName}
-                onChangeText={(text) => {
-                  setNewName(text);
-                  setDuplicateError(false);
-                }}
-                placeholder={t.newEntry.placeholder}
-                placeholderTextColor={colors.textSecondary}
-                accessibilityLabel={t.newEntry.placeholder}
-                maxLength={CATEGORY_NAME_MAX_LENGTH}
-                autoFocus
-                style={styles.newEntryInput}
-                testID="category-picker-new-name-input"
-              />
-              <ColorPalette
-                value={newColor}
-                onChange={setNewColor}
-                isOpen={isNewPaletteOpen}
-                onToggle={() => setIsNewPaletteOpen((current) => !current)}
-                variant="inline"
-              />
+              {/* Recette 1 (T-34/T-59) — « Saisie inline » figée 4474:7157 : action
+                  « Envoyer » ↑ dans le champ (mêmes règles que l’ancien bouton Ajouter). */}
+              <View style={styles.inlineField}>
+                <TextInput
+                  value={newName}
+                  onChangeText={(text) => {
+                    setNewName(text);
+                    setDuplicateError(false);
+                  }}
+                  placeholder={t.newEntry.placeholder}
+                  placeholderTextColor={colors.textSecondary}
+                  accessibilityLabel={t.newEntry.placeholder}
+                  maxLength={CATEGORY_NAME_MAX_LENGTH}
+                  autoFocus
+                  style={[styles.newEntryInput, styles.inlineFieldInput]}
+                  testID="category-picker-new-name-input"
+                />
+                <Pressable
+                  disabled={!canAddCategory}
+                  onPress={handleCreate}
+                  accessibilityRole="button"
+                  accessibilityState={{ disabled: !canAddCategory }}
+                  accessibilityLabel={t.newEntry.addAccessibilityLabel}
+                  hitSlop={(minTouchTarget - INLINE_SEND_SIZE) / 2}
+                  style={[styles.inlineSend, !canAddCategory ? styles.inlineSendDisabled : null]}
+                  testID="category-picker-new-add"
+                >
+                  <Text style={styles.inlineSendSymbol}>↑</Text>
+                </Pressable>
+              </View>
+              <CategoryColorBand value={newColor} onChange={setNewColor} testID="category-picker-new-color-band" />
               {duplicateError ? (
                 <Text style={styles.errorText} testID="category-picker-new-error">
                   {strings.referenceData.renameDialog.duplicateError}
@@ -293,17 +300,6 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
                 >
                   <Text style={styles.neutralActionLabel}>{t.newEntry.cancelAccessibilityLabel}</Text>
                 </Pressable>
-                <Pressable
-                  disabled={!canAddCategory}
-                  onPress={handleCreate}
-                  accessibilityRole="button"
-                  accessibilityState={{ disabled: !canAddCategory }}
-                  accessibilityLabel={t.newEntry.addAccessibilityLabel}
-                  style={[styles.primaryAction, !canAddCategory ? styles.primaryActionDisabled : null]}
-                  testID="category-picker-new-add"
-                >
-                  <Text style={styles.primaryActionLabel}>{t.newEntry.addAccessibilityLabel}</Text>
-                </Pressable>
               </View>
             </View>
           ) : editTarget ? (
@@ -320,13 +316,7 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
                 style={styles.newEntryInput}
                 testID="category-picker-edit-name-input"
               />
-              <ColorPalette
-                value={editColor}
-                onChange={setEditColor}
-                isOpen={isEditPaletteOpen}
-                onToggle={() => setIsEditPaletteOpen((current) => !current)}
-                variant="inline"
-              />
+              <CategoryColorBand value={editColor} onChange={setEditColor} testID="category-picker-edit-color-band" />
               {duplicateError ? (
                 <Text style={styles.errorText} testID="category-picker-edit-error">
                   {strings.referenceData.renameDialog.duplicateError}
@@ -388,6 +378,46 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
         />
       ) : null}
     </Modal>
+  );
+}
+
+/** Action « Envoyer » figée (4474:7157) : cercle 32, marge interne droite 8. */
+const INLINE_SEND_SIZE = 32;
+
+/**
+ * Recette 1 (T-34/T-59) — « Nuancier — Bandeau couleurs de catégorie » figé
+ * (4474:7157, CE-UI-09 §9) : bandeau horizontal 40 de hauteur, segments
+ * contigus de 32, segment choisi agrandi (+8, rayon 3, contour blanc 2).
+ * Les couleurs restent celles de la palette décidée (D-026, 12 couleurs) : les
+ * teintes d’exemple de Figma ne deviennent pas des règles (PRE-3 l.26).
+ */
+function CategoryColorBand({
+  value,
+  onChange,
+  testID,
+}: {
+  value: CategoryColor;
+  onChange: (color: CategoryColor) => void;
+  testID: string;
+}) {
+  const t = strings.screens.composition.colorPicker;
+  return (
+    <View style={styles.colorBand} accessibilityRole="radiogroup" accessibilityLabel={t.paletteAccessibilityLabel} testID={testID}>
+      {SESSION_COLORS.map((color) => {
+        const selected = color === value;
+        return (
+          <Pressable
+            key={color}
+            onPress={() => onChange(color)}
+            accessibilityRole="radio"
+            accessibilityState={{ selected }}
+            accessibilityLabel={`${t.swatchAccessibilityLabel} ${color}`}
+            style={[styles.colorBandSegment, { backgroundColor: color }, selected ? styles.colorBandSegmentSelected : null]}
+            testID={`${testID}-${color}`}
+          />
+        );
+      })}
+    </View>
   );
 }
 
@@ -517,6 +547,46 @@ const styles = StyleSheet.create({
     borderRadius: dimensions.exerciseTextField.radius,
     paddingHorizontal: dimensions.exerciseTextField.paddingHorizontal,
     height: dimensions.exerciseTextField.height,
+  },
+  inlineField: {
+    justifyContent: "center",
+  },
+  inlineFieldInput: {
+    paddingRight: INLINE_SEND_SIZE + spacing[8] * 2,
+  },
+  inlineSend: {
+    position: "absolute",
+    right: spacing[8],
+    width: INLINE_SEND_SIZE,
+    height: INLINE_SEND_SIZE,
+    borderRadius: INLINE_SEND_SIZE / 2,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primary,
+  },
+  inlineSendDisabled: {
+    backgroundColor: colors.disabled,
+  },
+  inlineSendSymbol: {
+    ...type.button,
+    color: colors.background,
+  },
+  colorBand: {
+    flexDirection: "row",
+    alignItems: "center",
+    height: 40,
+  },
+  colorBandSegment: {
+    flex: 1,
+    height: 32,
+  },
+  colorBandSegmentSelected: {
+    height: 40,
+    marginHorizontal: -4,
+    zIndex: 1,
+    borderRadius: 3,
+    borderWidth: 2,
+    borderColor: colors.background,
   },
   newEntryActionsRow: {
     flexDirection: "row",

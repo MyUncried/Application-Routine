@@ -23,7 +23,7 @@ import {
 import { BodyZoneSelector } from "@/features/sessions/BodyZoneSelector";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
-import { colors, dimensions, fixedRadii, spacing, type } from "@/shared/ui/tokens";
+import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 export type BodyZonePickerModalProps = {
   selectedIds: readonly string[];
@@ -272,20 +272,36 @@ export function BodyZonePickerModal({
 
           {isCreating ? (
             <View style={styles.newEntryContainer} testID="body-zone-picker-new-row">
-              <TextInput
-                value={newName}
-                onChangeText={(text) => {
-                  setNewName(text);
-                  setDuplicateError(false);
-                }}
-                placeholder={t.newEntry.placeholder}
-                placeholderTextColor={colors.textSecondary}
-                accessibilityLabel={t.newEntry.placeholder}
-                maxLength={BODY_ZONE_NAME_MAX_LENGTH}
-                autoFocus
-                style={styles.newEntryInput}
-                testID="body-zone-picker-new-name-input"
-              />
+              {/* Recette 1 (T-34/T-59) — « Saisie inline » figée 4683:6336 : action
+                  « Envoyer » ↑ dans le champ (mêmes règles que l’ancien bouton Ajouter). */}
+              <View style={styles.inlineField}>
+                <TextInput
+                  value={newName}
+                  onChangeText={(text) => {
+                    setNewName(text);
+                    setDuplicateError(false);
+                  }}
+                  placeholder={t.newEntry.placeholder}
+                  placeholderTextColor={colors.textSecondary}
+                  accessibilityLabel={t.newEntry.placeholder}
+                  maxLength={BODY_ZONE_NAME_MAX_LENGTH}
+                  autoFocus
+                  style={[styles.newEntryInput, styles.inlineFieldInput]}
+                  testID="body-zone-picker-new-name-input"
+                />
+                <Pressable
+                  disabled={!canAddZone}
+                  onPress={handleCreate}
+                  accessibilityRole="button"
+                  accessibilityState={{ disabled: !canAddZone }}
+                  accessibilityLabel={t.newEntry.addAccessibilityLabel}
+                  hitSlop={(minTouchTarget - INLINE_SEND_SIZE) / 2}
+                  style={[styles.inlineSend, !canAddZone ? styles.inlineSendDisabled : null]}
+                  testID="body-zone-picker-new-add"
+                >
+                  <Text style={styles.inlineSendSymbol}>↑</Text>
+                </Pressable>
+              </View>
               {duplicateError ? (
                 <Text style={styles.errorText} testID="body-zone-picker-new-error">
                   {strings.referenceData.renameDialog.duplicateError}
@@ -305,17 +321,6 @@ export function BodyZonePickerModal({
                   testID="body-zone-picker-new-cancel"
                 >
                   <Text style={styles.neutralActionLabel}>{t.newEntry.cancelAccessibilityLabel}</Text>
-                </Pressable>
-                <Pressable
-                  disabled={!canAddZone}
-                  onPress={handleCreate}
-                  accessibilityRole="button"
-                  accessibilityState={{ disabled: !canAddZone }}
-                  accessibilityLabel={t.newEntry.addAccessibilityLabel}
-                  style={[styles.primaryAction, !canAddZone ? styles.primaryActionDisabled : null]}
-                  testID="body-zone-picker-new-add"
-                >
-                  <Text style={styles.primaryActionLabel}>{t.newEntry.addAccessibilityLabel}</Text>
                 </Pressable>
               </View>
             </View>
@@ -396,6 +401,9 @@ export function BodyZonePickerModal({
     </Modal>
   );
 }
+
+/** Action « Envoyer » figée (4683:6336) : cercle 32, marge interne droite 8. */
+const INLINE_SEND_SIZE = 32;
 
 const styles = StyleSheet.create({
   backdrop: {
@@ -496,6 +504,29 @@ const styles = StyleSheet.create({
     borderRadius: dimensions.exerciseTextField.radius,
     paddingHorizontal: dimensions.exerciseTextField.paddingHorizontal,
     height: dimensions.exerciseTextField.height,
+  },
+  inlineField: {
+    justifyContent: "center",
+  },
+  inlineFieldInput: {
+    paddingRight: INLINE_SEND_SIZE + spacing[8] * 2,
+  },
+  inlineSend: {
+    position: "absolute",
+    right: spacing[8],
+    width: INLINE_SEND_SIZE,
+    height: INLINE_SEND_SIZE,
+    borderRadius: INLINE_SEND_SIZE / 2,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primary,
+  },
+  inlineSendDisabled: {
+    backgroundColor: colors.disabled,
+  },
+  inlineSendSymbol: {
+    ...type.button,
+    color: colors.background,
   },
   newEntryActionsRow: {
     flexDirection: "row",

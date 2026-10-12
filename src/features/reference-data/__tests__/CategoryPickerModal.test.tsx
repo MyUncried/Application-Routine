@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import { describe, expect, it, jest } from "@jest/globals";
 
 import type { Category } from "@/domain/categories/Category";
@@ -215,10 +215,10 @@ describe("CategoryPickerModal — R4/R10 (palette en flux, défilement, en-tête
     renderModal(service);
 
     fireEvent.press(await screen.findByTestId("category-picker-create-action"));
-    fireEvent.press(screen.getByLabelText("Couleur"));
 
-    const palette = screen.getByTestId("color-palette-popover");
-    expect(palette.props.style.position).not.toBe("absolute");
+    // Recette 1 : la palette est le bandeau figé (4474:7157), toujours visible — plus de pastille à déplier.
+    const palette = screen.getByTestId("category-picker-new-color-band");
+    expect(StyleSheet.flatten(palette.props.style).position).not.toBe("absolute");
   });
 
   it("shows a write-error message and keeps the modal open and the draft intact when createCategory throws", async () => {
@@ -382,5 +382,41 @@ describe("CategoryPickerModal — recette 1 (T-61)", () => {
     expect(header.height).toBeUndefined();
     expect(header.minHeight).toBe(56);
     expect(screen.getByRole("header").props.numberOfLines).toBeUndefined();
+  });
+});
+
+describe("CategoryPickerModal — recette 1 (T-34/T-59 : Envoyer ↑ et bandeau de couleurs)", () => {
+  it("action « Envoyer » ↑ dans le champ : inactive à vide, active avec un nom, crée avec la couleur choisie dans le bandeau ; Annuler conservé", async () => {
+    const service = fakeReferentialService({
+      createCategory: jest.fn(async () => ({
+        status: "OK" as const,
+        value: aCategory({ id: "new-cat", name: "Danse", color: "#2E9B62", isPredefined: false, displayOrder: null }),
+      })),
+    });
+    renderModal(service);
+    fireEvent.press(await screen.findByTestId("category-picker-create-action"));
+
+    const send = () => screen.getByTestId("category-picker-new-add");
+    expect(within(screen.getByTestId("category-picker-new-row")).getByText("↑")).toBeTruthy();
+    expect(StyleSheet.flatten(send().props.style)).toMatchObject({ position: "absolute", width: 32, height: 32, borderRadius: 16 });
+    expect(send().props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.getByTestId("category-picker-new-cancel")).toBeTruthy();
+
+    const band = screen.getByTestId("category-picker-new-color-band");
+    expect(band.props.accessibilityRole).toBe("radiogroup");
+    expect(StyleSheet.flatten(band.props.style)).toMatchObject({ flexDirection: "row", height: 40 });
+    const segments = within(band).getAllByRole("radio");
+    expect(segments).toHaveLength(12);
+    fireEvent.press(screen.getByTestId("category-picker-new-color-band-#2E9B62"));
+    const selected = StyleSheet.flatten(screen.getByTestId("category-picker-new-color-band-#2E9B62").props.style);
+    expect(selected).toMatchObject({ height: 40, borderRadius: 3, borderWidth: 2, borderColor: "#FFFFFF", backgroundColor: "#2E9B62" });
+    expect(StyleSheet.flatten(screen.getByTestId("category-picker-new-color-band-#E5484D").props.style).height).toBe(32);
+
+    fireEvent.changeText(screen.getByTestId("category-picker-new-name-input"), "Danse");
+    expect(send().props.accessibilityState).toMatchObject({ disabled: false });
+    await act(async () => {
+      fireEvent.press(send());
+    });
+    expect(service.createCategory).toHaveBeenCalledWith({ name: "Danse", color: "#2E9B62" });
   });
 });

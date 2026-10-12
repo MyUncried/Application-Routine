@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
+  Animated,
+  Easing,
   Modal,
   Pressable,
   ScrollView,
@@ -93,6 +95,8 @@ type InlineControl = "mode" | "uniformDuration" | "sideMode" | "sideOrder" | "to
 
 const t = strings.executionParameters.sheet;
 
+/** Durée de montée de la feuille (prototype figé : ouverture 0,25 s, ease-out). */
+const SHEET_ENTRY_DURATION_MS = 250;
 /** Hauteur de ligne du tableau variable (DSF : 42 à 402). */
 export const TABLE_ROW_HEIGHT = 42;
 /** Largeurs DSF des steppers à 402 : premier niveau 137, tableau 128. */
@@ -126,6 +130,17 @@ export function ExecutionParametersSheet({
   const [openControl, setOpenControl] = useState<InlineControl>(null);
   const [isTableFolded, setIsTableFolded] = useState(false);
   const [adjustment, setAdjustment] = useState<{ message: string; previous: ExecutionSheetDraft } | null>(null);
+  // Recette 1 (A-04) : le voile apparaît en fondu, sur place (Modal `fade`, prototype
+  // figé : aucune translation du voile) ; seule la feuille garde sa montée depuis le bas.
+  const [sheetEntry] = useState(() => new Animated.Value(windowHeight));
+  useEffect(() => {
+    Animated.timing(sheetEntry, {
+      toValue: 0,
+      duration: SHEET_ENTRY_DURATION_MS,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [sheetEntry]);
 
   useEffect(() => {
     if (!adjustment) return;
@@ -202,10 +217,14 @@ export function ExecutionParametersSheet({
     : `${t.validateAccessibilityLabel}, ${t.validateUnavailableSuffix}`;
 
   return (
-    <Modal transparent visible animationType="slide" onRequestClose={onCancel} testID="execution-sheet-modal">
+    <Modal transparent visible animationType="fade" onRequestClose={onCancel} testID="execution-sheet-modal">
       <View style={styles.scrim} testID="execution-sheet-scrim">
-        <View
-          style={[styles.sheet, { maxHeight: windowHeight - insets.top - spacing[24], paddingBottom: insets.bottom }]}
+        <Animated.View
+          style={[
+            styles.sheet,
+            { maxHeight: windowHeight - insets.top - spacing[24], paddingBottom: insets.bottom },
+            { transform: [{ translateY: sheetEntry }] },
+          ]}
           accessibilityViewIsModal
           testID="execution-sheet"
         >
@@ -308,7 +327,12 @@ export function ExecutionParametersSheet({
                     <Switch
                       value={draft.variable && !single}
                       disabled={single}
-                      onValueChange={(next) => update(setVariable(draft, next))}
+                      onValueChange={(next) => {
+                        // Recette 1 (A-01) : une activation présente l’état figé « Séries variables —
+                        // 2 Durée variable » (6665:24616), tableau déployé ; les données restent celles du brouillon.
+                        if (next) setIsTableFolded(false);
+                        update(setVariable(draft, next));
+                      }}
                       trackColor={{ false: colors.disabled, true: colors.selection }}
                       accessibilityLabel={single ? `${t.variable}, ${t.disabledSuffix}` : t.variable}
                       testID="execution-sheet-variable-switch"
@@ -585,7 +609,7 @@ export function ExecutionParametersSheet({
               </Row>
             </View>
           </ScrollView>
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );

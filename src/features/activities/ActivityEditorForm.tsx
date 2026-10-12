@@ -183,6 +183,17 @@ export function ActivityEditorForm({
   return (
     <>
       <View style={styles.contextBand} testID="exercise-context-band">
+        {/* Recette 1 (T-49) — effets figés de la « Zone bleue » (3542:4656, ch. 12 l.1490) :
+            fondu vers le fond de l’écran sur les 20 % inférieurs, puis « Halo blanc —
+            bouton Annuler » (5752:4044, Ø 59,28) concentrique au bouton Retour de
+            l’en-tête, dont seule la partie qui déborde dans la zone est visible. Tous deux
+            sous le contenu, sans interaction. */}
+        <View pointerEvents="none" style={styles.contextBandFade} testID="exercise-context-band-fade">
+          {CONTEXT_BAND_FADE_STEPS.map((opacity) => (
+            <View key={opacity} style={[styles.contextBandFadeStep, { opacity }]} />
+          ))}
+        </View>
+        <View pointerEvents="none" style={styles.backHalo} testID="exercise-context-band-halo" />
         <TextInput
           value={value.name}
           onChangeText={(text) => onChange({ name: text })}
@@ -498,17 +509,47 @@ function useMediaImport(
   };
 }
 
+/** Halo figé sous le bouton Retour (« Halo blanc — bouton Annuler », 5752:4044). */
+const BACK_HALO_DIAMETER = 59.28;
+/** Fondu figé : opaque jusqu’à 80 %, transparent à 100 % (GRADIENT_LINEAR de la « Zone bleue »). */
+const CONTEXT_BAND_FADE_SHARE = "20%";
+const CONTEXT_BAND_FADE_STEPS = Array.from({ length: 12 }, (_, index) => Number(((index + 0.5) / 12).toFixed(3)));
+
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
   contextBand: {
+    // Le halo déborde au-dessus de la zone : seule la partie interne est dessinée.
+    overflow: "hidden",
     backgroundColor: colors.exerciseContextBandBackground,
     paddingHorizontal: spacing[24],
     minHeight: dimensions.contextBand.height,
     paddingTop: dimensions.contextBand.paddingTop,
     paddingBottom: dimensions.contextBand.paddingBottom,
     gap: spacing[12],
+  },
+  contextBandFade: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: CONTEXT_BAND_FADE_SHARE,
+  },
+  contextBandFadeStep: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  backHalo: {
+    position: "absolute",
+    width: BACK_HALO_DIAMETER,
+    height: BACK_HALO_DIAMETER,
+    borderRadius: BACK_HALO_DIAMETER / 2,
+    backgroundColor: colors.background,
+    // Centre = centre du bouton Retour de l’en-tête partagé (marge 24, cercle 38,
+    // centré dans la hauteur de contenu 48 juste au-dessus de la zone).
+    left: spacing[24] + dimensions.backAction.visualCircle / 2 - BACK_HALO_DIAMETER / 2,
+    top: -dimensions.header.contentHeight / 2 - BACK_HALO_DIAMETER / 2,
   },
   nameInput: {
     ...type.screenTitle,

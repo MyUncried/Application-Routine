@@ -612,3 +612,24 @@ describe("ExecutionParametersSheet — recette 1 (T-61)", () => {
     expect(screen.getByText("Paramètres d’exécution").props.numberOfLines).toBeUndefined();
   });
 });
+
+describe("ExecutionParametersSheet — recette 1 (A-01, A-04)", () => {
+  it("A-01 — variable replié, désactivé puis réactivé : tableau déployé (état figé 6665:24616), lignes du brouillon restaurées", () => {
+    renderSheet(params({ series: variableRows([[30, 5], [45, 10], [60, 15]]) }));
+    fireEvent.press(screen.getByTestId("execution-sheet-table-toggle-frame"));
+    expect(screen.queryByTestId("execution-sheet-table")).toBeNull();
+    fireEvent(screen.getByTestId("execution-sheet-variable-switch"), "valueChange", false);
+    fireEvent(screen.getByTestId("execution-sheet-variable-switch"), "valueChange", true);
+    expect(screen.getByTestId("execution-sheet-table")).toBeTruthy();
+    expect(valueOf("execution-sheet-table-row-3-target")).toBe("1 min");
+  });
+
+  it("A-04 — voile en fondu sur place (Modal fade, sans translation) ; seule la feuille monte depuis le bas", () => {
+    renderSheet(params());
+    expect(screen.getByTestId("execution-sheet-modal").props.animationType).toBe("fade");
+    expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-scrim").props.style).transform).toBeUndefined();
+    const transform = StyleSheet.flatten(screen.getByTestId("execution-sheet").props.style).transform as { translateY: unknown }[];
+    expect(transform).toHaveLength(1);
+    expect(transform[0]).toHaveProperty("translateY");
+  });
+});
