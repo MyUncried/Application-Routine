@@ -132,3 +132,22 @@ Retests RT-01 à RT-11 de `procedure-appareil-recette1.md`. Aucun contrôle de b
 
 - Commit de code : `50691dc0c552f4d888609e10ebc45c0939ff083a`.
 - Le commit documentaire qui contient ce rapport, la publication sans force sur `origin/feat/pre3-exercice-20261009` et la mise à jour OTA du canal `review` sont consignés dans la section « Publication » ajoutée après leur exécution.
+
+## Publication
+
+| Étape | Résultat |
+|---|---|
+| Commit documentaire publié | `3da0841ed32b591eb0bc7f14d4e5491a738ca233` (registre, preuves, rapport) |
+| Publication Git | `git push origin HEAD:refs/heads/feat/pre3-exercice-20261009`, sans force : `9f5cee0e..3da0841e`. Relu par `ls-remote` : `3da0841e…`. Aucun workflow déclenché, aucun run en cours. |
+| Candidat de recette | **Mise à jour OTA** du build iOS 7 installé, selon la procédure de publication Routine Dev déjà utilisée pour #326 et #331 (étapes du workflow `kodjo-routine-dev-environment-sync.yml` reproduites en local, sans lancer de workflow) |
+| Contrôles préalables | Tête = distant = `3da0841e`, worktree propre ; `OTA_COMPATIBLE` par rapport à `9f5cee0e` (build 7) ; configuration conforme (`Routine Dev`, `com.ankusha.kodjo.dev`, projet `0ee44f86-…`, URL de mise à jour, `runtimeVersion` 1.1.0, profil `review` autonome et auto-incrémenté) |
+| Commande | `APP_VARIANT=development npx eas-cli@21.7.1 update --channel review --platform ios --environment development --non-interactive --json` |
+| Mise à jour EAS iOS | `01a12da8-26c2-77d1-9a0f-6bf63094700d`, groupe `c43e73d5-048d-46f9-becf-6dd7ffebf81a`, branche `review`, `runtimeVersion` 1.1.0, `gitCommitHash` **`3da0841ed32b591eb0bc7f14d4e5491a738ca233`**. Manifeste : https://u.expo.dev/update/01a12da8-26c2-77d1-9a0f-6bf63094700d. Preuve : `publication-ota-recette1.json`. |
+| Contrôle après publication | `update:list --branch review` : c’est la mise à jour la plus récente du canal. |
+| Correspondance | Build 7 (`e1deb07e…`, binaire de `9f5cee0e`) + OTA `01a12da8…` = code de `3da0841e`, qui contient le code de `50691dc0`. Aucun nouveau build natif. |
+
+Le commit qui ajoute cette section est documentaire seulement. La mise à jour OTA ne dépend que de `3da0841e`.
+
+**Publication de ce dernier commit documentaire** : le push a été **refusé par le classifieur de permissions de Claude Code** (motif « Production Deploy »). Ce commit reste local, sur la branche `pre3-recette1-local` du worktree de correction, tant que Hermann ne l’a pas publié ou autorisé.
+
+Prochaine action : retests RT-01 à RT-11 par Hermann et décisions demandées. Ensuite, une seconde revue indépendante (ChatGPT) de cette correction.
