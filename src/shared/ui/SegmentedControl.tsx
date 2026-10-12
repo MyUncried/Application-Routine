@@ -1,7 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { Animated, Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
+import {
+  Animated,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  type LayoutChangeEvent,
+  type StyleProp,
+  type TextStyle,
+} from "react-native";
 
-import { colors, dimensions, type } from "@/shared/ui/tokens";
+import { colors, dimensions, fixedRadii, type } from "@/shared/ui/tokens";
 
 export type SegmentedControlOption<T extends string> = {
   readonly value: T;
@@ -9,7 +18,14 @@ export type SegmentedControlOption<T extends string> = {
   readonly disabled?: boolean;
   /** Nom accessible du segment — `label` par défaut. Utile pour annoncer explicitement un segment désactivé (D-108). */
   readonly accessibilityLabel?: string;
+  /** Sous-titre facultatif sous le libellé (variante « Paramètres », Ordre des côtés — D-341). */
+  readonly subtitle?: string;
 };
+
+/** Contour du cadre de la variante « Paramètres » (figés `6407-9805`, `6665-26185`). */
+const PARAMETERS_BORDER_WIDTH = 1;
+/** Hauteur minimale par défaut de la variante « Paramètres » (cadre figé 330×42). */
+const PARAMETERS_MIN_HEIGHT = 42;
 
 /** Épaisseur de la bordure de `styles.container` — extraite en constante pour que le centrage vertical du cadre (`indicatorTop`) la prenne en compte sans jamais dupliquer la valeur en dur (drift). */
 // Complément d'alignement du 07/10 (ajout C) : le cadre standard n'a plus de
@@ -19,10 +35,22 @@ const CONTAINER_BORDER_WIDTH = 0;
 
 export type SegmentedControlProps<T extends string> = {
   readonly options: readonly SegmentedControlOption<T>[];
-  readonly value: T;
+  /** `null` : aucune option choisie, aucun cadre de sélection (v13 : mode non renseigné « — »). */
+  readonly value: T | null;
   readonly onChange: (value: T) => void;
   readonly accessibilityLabel?: string;
   readonly testID?: string;
+  /**
+   * `standard` (défaut, Catalogue) : rendu DSF inchangé, hauteur fixe 42.
+   * `parameters` (feuille Paramètres, D-341 et X-1 du 12/10) : cadre blanc à
+   * contour, options figées, libellés centrés sans troncature, hauteur
+   * MINIMALE qui grandit avec le texte agrandi.
+   */
+  readonly variant?: "standard" | "parameters";
+  /** Typographie des libellés (variante « Paramètres ») ; couleurs gérées par le composant. */
+  readonly labelStyle?: StyleProp<TextStyle>;
+  /** Hauteur minimale de la variante « Paramètres » (42 par défaut ; 60 pour l’Ordre des côtés). */
+  readonly minHeight?: number;
 };
 
 /**
@@ -45,12 +73,18 @@ export function SegmentedControl<T extends string>({
   onChange,
   accessibilityLabel,
   testID,
+  variant = "standard",
+  labelStyle,
+  minHeight = PARAMETERS_MIN_HEIGHT,
 }: SegmentedControlProps<T>) {
-  const [containerWidth, setContainerWidth] = useState(0);
-  const selectedIndex = Math.max(
-    0,
-    options.findIndex((option) => option.value === value),
-  );
+  const parameters = variant === "parameters";
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const containerWidth = containerSize.width;
+  const foundIndex = value === null ? -1 : options.findIndex((option) => option.value === value);
+  // Standard : comportement historique conservé (valeur inconnue → premier segment).
+  // `null` : aucun cadre de sélection, dans les deux variantes.
+  const showIndicator = value !== null && (parameters ? foundIndex >= 0 : true);
+  const selectedIndex = Math.max(0, foundIndex);
   // `useState` (jamais `useRef(...).current`) : l'instance `Animated.Value`
   // reste stable entre rendus, mais n'est jamais lue via un ref pendant le
   // rendu (`react-hooks/refs`) — seul l'initialiseur s'exécute une fois.
@@ -75,11 +109,18 @@ export function SegmentedControl<T extends string>({
   }, [selectedIndex]);
 
   function handleContainerLayout(event: LayoutChangeEvent) {
-    setContainerWidth(event.nativeEvent.layout.width);
+    const { width, height } = event.nativeEvent.layout;
+    setContainerSize({ width, height });
   }
 
   const padding = dimensions.segmentedControl.padding;
   const gap = dimensions.segmentedControl.gap;
+  const borderWidth = parameters ? PARAMETERS_BORDER_WIDTH : CONTAINER_BORDER_WIDTH;
+  // Variante « Paramètres » : les cadres absolus suivent la hauteur RÉELLE du
+  // conteneur (texte agrandi), au lieu de la hauteur fixe standard.
+  const segmentHeight = parameters
+    ? Math.max(0, containerSize.height - borderWidth * 2 - padding * 2)
+    : dimensions.segmentedControl.segmentHeight;
   // VISUAL_CORRECTION (revue iPhone du HEAD `d6ce731`, obligation 2) : le
   // cadre coloré (positionné en absolu) se rapporte à la boîte de
   // remplissage du conteneur (bordure exclue) — `top: padding` seul
@@ -87,12 +128,13 @@ export function SegmentedControl<T extends string>({
   // point vers le haut (marge haute 4, marge basse 2). Centré ici sur la
   // hauteur RÉELLEMENT disponible (hauteur totale moins bordure haute et
   // basse), marges haute et basse désormais rigoureusement égales.
-  const indicatorTop =
-    (dimensions.segmentedControl.height -
-      CONTAINER_BORDER_WIDTH * 2 -
-      dimensions.segmentedControl.segmentHeight) /
-    2;
-  const innerWidth = Math.max(0, containerWidth - padding * 2);
+  const indicatorTop = parameters
+    ? padding
+    : (dimensions.segmentedControl.height -
+        CONTAINER_BORDER_WIDTH * 2 -
+        dimensions.segmentedControl.segmentHeight) /
+      2;
+  const innerWidth = Math.max(0, containerWidth - borderWidth * 2 - padding * 2);
   const segmentWidth =
     options.length > 0 ? Math.max(0, (innerWidth - gap * (options.length - 1)) / options.length) : 0;
   const step = segmentWidth + gap;
@@ -116,7 +158,8 @@ export function SegmentedControl<T extends string>({
             testID={testID ? `${testID}-tile-${option.value}` : undefined}
             style={[
               styles.tile,
-              { left: padding + index * step, top: indicatorTop, width: segmentWidth },
+              parameters ? styles.tileParameters : null,
+              { left: padding + index * step, top: indicatorTop, width: segmentWidth, height: segmentHeight },
             ]}
           />
         ))
@@ -124,14 +167,17 @@ export function SegmentedControl<T extends string>({
 
   return (
     <View
-      style={styles.container}
+      style={[
+        styles.container,
+        parameters ? [styles.containerParameters, { minHeight }] : styles.containerStandard,
+      ]}
       accessibilityRole="tablist"
       accessibilityLabel={accessibilityLabel}
       onLayout={handleContainerLayout}
       testID={testID}
     >
       {inactiveTiles}
-      {containerWidth > 0 ? (
+      {containerWidth > 0 && showIndicator ? (
         <Animated.View
           pointerEvents="none"
           testID={testID ? `${testID}-indicator` : undefined}
@@ -141,13 +187,14 @@ export function SegmentedControl<T extends string>({
               left: padding,
               top: indicatorTop,
               width: segmentWidth,
+              height: segmentHeight,
               transform: [{ translateX }],
             },
           ]}
         />
       ) : null}
       {options.map((option) => {
-        const selected = option.value === value;
+        const selected = value !== null && option.value === value;
         return (
           <Pressable
             key={option.value}
@@ -156,18 +203,27 @@ export function SegmentedControl<T extends string>({
             accessibilityRole="tab"
             accessibilityState={{ selected, disabled: Boolean(option.disabled) }}
             accessibilityLabel={option.accessibilityLabel ?? option.label}
-            style={styles.segment}
+            style={parameters ? [styles.segmentParameters, { minHeight: minHeight - borderWidth * 2 - padding * 2 }] : styles.segment}
             testID={testID ? `${testID}-${option.value}` : undefined}
           >
             <Text
               style={[
                 styles.label,
+                parameters ? [labelStyle, styles.labelCentered] : null,
                 selected ? styles.labelSelected : null,
                 option.disabled ? styles.labelDisabled : null,
               ]}
             >
               {option.label}
             </Text>
+            {option.subtitle ? (
+              <Text
+                style={[styles.subtitle, selected ? styles.subtitleSelected : null]}
+                testID={testID ? `${testID}-${option.value}-subtitle` : undefined}
+              >
+                {option.subtitle}
+              </Text>
+            ) : null}
           </Pressable>
         );
       })}
@@ -184,12 +240,49 @@ const styles = StyleSheet.create({
     // coloré positionné en absolu).
     alignItems: "center",
     width: "100%",
+    padding: dimensions.segmentedControl.padding,
+    gap: dimensions.segmentedControl.gap,
+  },
+  // Standard (Catalogue) : valeurs historiques inchangées.
+  containerStandard: {
     height: dimensions.segmentedControl.height,
     backgroundColor: colors.segmentedSurface,
     borderWidth: CONTAINER_BORDER_WIDTH,
     borderRadius: dimensions.segmentedControl.containerRadius,
-    padding: dimensions.segmentedControl.padding,
-    gap: dimensions.segmentedControl.gap,
+  },
+  // « Paramètres » (figés 6407-9805 / 6665-26185) : cadre blanc, contour #DBDEE3,
+  // rayon 12, hauteur minimale ; les options s’étirent sur la hauteur réelle.
+  containerParameters: {
+    alignItems: "stretch",
+    backgroundColor: colors.background,
+    borderWidth: PARAMETERS_BORDER_WIDTH,
+    borderColor: colors.parametersSegmentedBorder,
+    borderRadius: fixedRadii[12],
+  },
+  tileParameters: {
+    backgroundColor: colors.parametersSegmentedOption,
+    borderWidth: 1,
+    borderColor: colors.background,
+  },
+  segmentParameters: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingHorizontal: dimensions.segmentedControl.padding,
+    paddingVertical: 2,
+    borderRadius: dimensions.segmentedControl.segmentRadius,
+  },
+  labelCentered: {
+    textAlign: "center",
+  },
+  subtitle: {
+    ...type.caption,
+    color: colors.textSecondary,
+    textAlign: "center",
+  },
+  subtitleSelected: {
+    color: colors.selectionSubtitle,
   },
   tile: {
     position: "absolute",

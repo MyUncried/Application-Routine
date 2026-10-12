@@ -223,7 +223,7 @@ export function ActivityEditorForm({
                 <Text style={styles.referenceLabel}>{category.name}</Text>
               </>
             ) : (
-              <KodjoIcon name="icon-tour" testID="activity-editor-category-icon" />
+              <KodjoIcon name="icon-categorie" size={CATEGORY_ICON_SIZE} testID="activity-editor-category-icon" />
             )}
           </Pressable>
           <Pressable
@@ -509,6 +509,9 @@ function useMediaImport(
   };
 }
 
+/** Icône Catégorie figée « Icône catégorie — pleine » (7287:13722) : 20×20 dans l’action 34×34 (X-2). */
+const CATEGORY_ICON_SIZE = 20;
+
 /** Halo figé sous le bouton Retour (« Halo blanc — bouton Annuler », 5752:4044). */
 const BACK_HALO_DIAMETER = 59.28;
 /** Fondu figé : opaque jusqu’à 80 %, transparent à 100 % (GRADIENT_LINEAR de la « Zone bleue »). */
@@ -522,7 +525,8 @@ const styles = StyleSheet.create({
   contextBand: {
     // Le halo déborde au-dessus de la zone : seule la partie interne est dessinée.
     overflow: "hidden",
-    backgroundColor: colors.exerciseContextBandBackground,
+    // X-3 (12/10) : « Zone bleue » figée #EAEAFF ; le token partagé de la Composition est inchangé.
+    backgroundColor: colors.exerciseEditorContextBand,
     paddingHorizontal: spacing[24],
     minHeight: dimensions.contextBand.height,
     paddingTop: dimensions.contextBand.paddingTop,

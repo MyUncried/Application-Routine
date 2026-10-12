@@ -194,6 +194,9 @@ function ClosingSelector({
   );
 }
 
+/** D-341 : hauteur MINIMALE du segmenté Ordre des côtés (figé 330×60) ; grandit avec le texte. */
+const SIDE_ORDER_MIN_HEIGHT = 60;
+
 /** Durée de montée de la feuille (prototype figé : ouverture 0,25 s, ease-out). */
 const SHEET_ENTRY_DURATION_MS = 250;
 /** Hauteur de ligne du tableau variable (DSF : 42 à 402). */
@@ -394,12 +397,14 @@ export function ExecutionParametersSheet({
                   testID="execution-sheet-mode-selector"
                 >
                   <SegmentedControl<ExecutionMode>
+                    variant="parameters"
+                    labelStyle={type.body}
                     options={[
                       { value: "DURATION", label: t.modes.DURATION },
                       { value: "REPETITIONS", label: t.modes.REPETITIONS },
                       { value: "TO_FAILURE", label: t.modes.TO_FAILURE },
                     ]}
-                    value={(draft.mode ?? "DURATION") as ExecutionMode}
+                    value={draft.mode}
                     onChange={(mode) => {
                       update(setMode(draft, mode));
                       closeAfterChoice("mode");
@@ -566,11 +571,13 @@ export function ExecutionParametersSheet({
                   testID="execution-sheet-side-selector"
                 >
                   <SegmentedControl<SideMode>
-                    options={[
-                      { value: "UNILATERAL", label: t.sideModes.UNILATERAL },
-                      { value: "RIGHT_LEFT", label: t.sideModes.RIGHT_LEFT },
-                      { value: "LEFT_RIGHT", label: t.sideModes.LEFT_RIGHT },
-                    ]}
+                    variant="parameters"
+                    labelStyle={type.segmentedCompactLabel}
+                    options={(["UNILATERAL", "RIGHT_LEFT", "LEFT_RIGHT"] as const).map((side) => ({
+                      value: side,
+                      label: t.sideModeOptions[side],
+                      accessibilityLabel: t.sideModes[side],
+                    }))}
                     value={draft.sideMode ?? "UNILATERAL"}
                     onChange={(side) => {
                       update(setSideMode(draft, side, profileSideRecoverySecondsDefault));
@@ -608,10 +615,15 @@ export function ExecutionParametersSheet({
                       testID="execution-sheet-order-selector"
                     >
                       <SegmentedControl<SideOrder>
-                        options={[
-                          { value: "BY_SIDE", label: t.sideOrders.BY_SIDE },
-                          { value: "BY_SERIES", label: t.sideOrders.BY_SERIES },
-                        ]}
+                        variant="parameters"
+                        labelStyle={type.body}
+                        minHeight={SIDE_ORDER_MIN_HEIGHT}
+                        options={(["BY_SIDE", "BY_SERIES"] as const).map((order) => ({
+                          value: order,
+                          label: t.sideOrders[order],
+                          subtitle: t.sideOrderSubtitles[order],
+                          accessibilityLabel: `${t.sideOrders[order]} ${t.sideOrderSubtitles[order]}`,
+                        }))}
                         value={draft.sideOrder}
                         onChange={(order) => {
                           update(setSideOrder(draft, order));
@@ -1064,7 +1076,8 @@ const styles = StyleSheet.create({
     borderRadius: fixedRadii[12],
     borderWidth: 1.5,
     borderColor: colors.selection,
-    backgroundColor: colors.surface,
+    // X-3 (12/10) : fond figé du groupe (6665:24616).
+    backgroundColor: colors.variableSeriesGroupSurface,
   },
   row: {
     flexDirection: "row",

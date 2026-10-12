@@ -458,6 +458,8 @@ describe("ActivityEditorForm — recette 1 (T-49)", () => {
     render(<Harness />);
     const band = screen.getByTestId("exercise-context-band");
     expect(StyleSheet.flatten(band.props.style).overflow).toBe("hidden");
+    // X-3 : couleur figée de la « Zone bleue » ; le token partagé de la Composition ne change pas.
+    expect(StyleSheet.flatten(band.props.style).backgroundColor).toBe("#EAEAFF");
 
     const halo = StyleSheet.flatten(screen.getByTestId("exercise-context-band-halo").props.style);
     expect(halo).toMatchObject({ position: "absolute", width: 59.28, height: 59.28, borderRadius: 29.64, backgroundColor: "#FFFFFF" });

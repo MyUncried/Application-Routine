@@ -49,6 +49,13 @@ const executionParameters = {
     },
     sideOrder: "Ordre des côtés",
     sideOrders: { BY_SIDE: "Un côté après l’autre", BY_SERIES: "Les deux côtés à chaque série" },
+    // D-341 (12/10) : options sur deux lignes (figé 6407-10481) et sous-titres d’ordre (figé 6665-26185).
+    sideModeOptions: {
+      UNILATERAL: "Sans\nchangement",
+      RIGHT_LEFT: "Droite puis\ngauche",
+      LEFT_RIGHT: "Gauche puis\ndroite",
+    },
+    sideOrderSubtitles: { BY_SIDE: "(D1 → D2) → (G1 → G2)", BY_SERIES: "(D1 → G1) → (D2 → G2)" },
     sideRecovery: "Pause entre les côtés",
     beep: "Bip de cadence",
     beepNone: "Aucun",

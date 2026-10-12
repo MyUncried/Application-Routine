@@ -160,6 +160,18 @@ export const colors = {
   // (peinture locale du maître, sans variable Figma).
   segmentedSurface: "rgba(255, 255, 255, 0.5)",
   segmentedInactiveSurface: "#EAEAFF",
+  // Recette PRE-3 (X-1, D-341, 12/10) — variante « Paramètres » du segmenté,
+  // figés 6407-9805 et 6665-26185 : cadre blanc à contour #DBDEE3, options
+  // inactives #FCFCFE, sous-titre de l’option sélectionnée #E0E3FF.
+  parametersSegmentedBorder: "#DBDEE3",
+  parametersSegmentedOption: "#FCFCFE",
+  selectionSubtitle: "#E0E3FF",
+  // Recette PRE-3 (X-3, 12/10) — zone de contexte de Créer/Modifier un exercice
+  // (« Zone bleue » figée 3542:4656 ; ch. 12 « #EAEAFF→transparent ») et fond du
+  // groupe Séries variables (figé 6665:24616). Distincts de
+  // `exerciseContextBandBackground`, que la Composition continue d’utiliser.
+  exerciseEditorContextBand: "#EAEAFF",
+  variableSeriesGroupSurface: "#F3F3F6",
   // T01-S09, correction VISUAL (2e contre-recette suivante, commentaire de
   // revue post-`1f28a09`) — `Controls / Disclosure — Source exact`
   // (`12 – Architecture technique.md`, `2537:1033` `State=Collapsed` /
@@ -228,6 +240,8 @@ export const type = {
   // `DSF / Forms / Valeur modifiable` (`6944:26423`), variante `Texte=13` :
   // Inter Semi Bold 13, Auto — valeur d'un réglage, fermé ou en stepper.
   editableValue: { ...semiBold, fontSize: 13, lineHeight: 16 },
+  // Recette PRE-3 (D-341, 12/10) : options « Changement de côté », Regular 13/16, deux lignes.
+  segmentedCompactLabel: { ...regular, fontSize: 13, lineHeight: 16 },
   body: { ...regular, fontSize: 14, lineHeight: 17 },
   label: { ...medium, fontSize: 14, lineHeight: 17 },
   button: { ...semiBold, fontSize: 14, lineHeight: 17 },

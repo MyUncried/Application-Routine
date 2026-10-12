@@ -25,6 +25,10 @@ const sources = {
   "composition-reorder": require("../../../assets/icons/composition-reorder.svg"),
   "state-selected": require("../../../assets/icons/state-selected.svg"),
   "icon-tour": require("../../../assets/icons/icon-tour.svg"),
+  // Recette PRE-3 (X-2, 12/10) : master `icon/categorie` (`6296:10530`), identité
+  // vérifiée contre l’extraction figée du 08/10 ; preuve
+  // `docs/preparation/PRE-3/planification/execution/preuves/x2-icone-categorie/`.
+  "icon-categorie": require("../../../assets/icons/icon-categorie.svg"),
   "wheel-action-cancel": require("../../../assets/icons/wheel-action-cancel.svg"),
   "wheel-action-validate": require("../../../assets/icons/wheel-action-validate.svg"),
   "select-field-chevron": require("../../../assets/icons/select-field-chevron.svg"),
@@ -118,6 +122,7 @@ const sizes = {
   // manifeste Figma (`assets/icons/manifest.json`) ne porte plus aucune
   // entrée pour cette icône.
   "icon-tour": [18, 18],
+  "icon-categorie": [24, 24],
   // REWORK07B (`[ChatGPT] PLAN_APPROVED — REWORK07B — contrôles canoniques
   // + structure Tour`, 2026-09-04) : actifs SVG canoniques `wheel-action-
   // cancel.svg`/`wheel-action-validate.svg` (`3089:81`/`3089:83`),

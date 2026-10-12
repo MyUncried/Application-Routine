@@ -600,6 +600,7 @@ describe("ExecutionParametersSheet — recette 1 (A-05)", () => {
     const { onApply } = renderSheet(params({ series: variableRows([[30, 5], [45, 10], [60, 15]]) }));
     const group = () => StyleSheet.flatten(screen.getByTestId("execution-sheet-variable-group").props.style) ?? {};
     expect(group().borderWidth).toBe(1.5);
+    expect(group().backgroundColor).toBe("#F3F3F6");
     fireEvent.press(screen.getByTestId("execution-sheet-table-toggle-frame"));
     expect(screen.queryByTestId("execution-sheet-table")).toBeNull();
     expect(group().borderWidth).toBeUndefined();
@@ -731,5 +732,32 @@ describe("ExecutionParametersSheet — décisions du propriétaire (12/10)", () 
     expect(valueOf("execution-sheet-series")).toBe("3 séries");
     validate();
     expect(applied(onApply).series).toMatchObject({ count: 3 });
+  });
+});
+
+describe("ExecutionParametersSheet — D-341 / X-1 (12/10)", () => {
+  it("D-341 — Mode Regular 14/17 sans choix affiché tant que le mode est vide ; Côté Regular 13/16 sur deux lignes ; Ordre 14/17 + sous-titre 11/13 ; hauteurs minimales 42/42/60", () => {
+    renderSheet(params({ mode: null, sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE" }));
+    fireEvent.press(screen.getByTestId("execution-sheet-mode-value"));
+    const mode = screen.getByTestId("execution-sheet-mode-control");
+    fireEvent(mode, "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 330, height: 42 } } });
+    expect(screen.queryByTestId("execution-sheet-mode-control-indicator")).toBeNull();
+    expect(StyleSheet.flatten(mode.props.style)).toMatchObject({ minHeight: 42, borderColor: "#DBDEE3" });
+    expect(StyleSheet.flatten(within(mode).getByText("Durée").props.style)).toMatchObject({ fontSize: 14, lineHeight: 17, fontWeight: "400" });
+
+    fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
+    const side = screen.getByTestId("execution-sheet-side-control");
+    expect(within(side).getByText("Droite puis\ngauche")).toBeTruthy();
+    expect(StyleSheet.flatten(within(side).getByText("Sans\nchangement").props.style)).toMatchObject({ fontSize: 13, lineHeight: 16, fontWeight: "400", textAlign: "center" });
+    expect(screen.getByTestId("execution-sheet-side-control-RIGHT_LEFT").props.accessibilityLabel).toBe("Droite puis gauche");
+
+    fireEvent.press(screen.getByTestId("execution-sheet-order-value"));
+    const order = screen.getByTestId("execution-sheet-order-control");
+    expect(StyleSheet.flatten(order.props.style).minHeight).toBe(60);
+    expect(StyleSheet.flatten(order.props.style).height).toBeUndefined();
+    expect(within(order).getByText("(D1 → D2) → (G1 → G2)")).toBeTruthy();
+    expect(StyleSheet.flatten(within(order).getByText("Un côté après l’autre").props.style)).toMatchObject({ fontSize: 14, lineHeight: 17, fontWeight: "400" });
+    // Les titres des lignes ne changent pas (type.label, Medium 14).
+    expect(StyleSheet.flatten(screen.getByText("Ordre des côtés").props.style)).toMatchObject({ fontSize: 14, fontWeight: "500" });
   });
 });
