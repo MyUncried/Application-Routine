@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   AccessibilityInfo,
   Animated,
@@ -194,6 +194,28 @@ function ClosingSelector({
   );
 }
 
+/**
+ * Recette 2 (T-15) — repère d’insertion : trait bleu Kodjo de 2 entre deux lignes,
+ * à l’endroit où la Série sera déposée. Hauteur nulle dans le flux : les lignes
+ * ne bougent pas.
+ */
+function InsertionGuide({ before }: { before: number }) {
+  return (
+    <View
+      style={styles.insertionGuideSlot}
+      pointerEvents="none"
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      testID={`execution-sheet-table-insertion-guide-before-${before}`}
+    >
+      <View style={styles.insertionGuideLine} />
+    </View>
+  );
+}
+
+/** T-58 : marge égale entre la capsule Annuler et les bords droit, haut et bas du message. */
+const ADJUSTMENT_ACTION_INSET = 8;
+
 /** D-341 : hauteur MINIMALE du segmenté Ordre des côtés (figé 330×60) ; grandit avec le texte. */
 const SIDE_ORDER_MIN_HEIGHT = 60;
 
@@ -237,6 +259,10 @@ export function ExecutionParametersSheet({
   const reduceMotion = useReduceMotion();
   const [sheetEntry] = useState(() => new Animated.Value(windowHeight));
   const [closingControl, setClosingControl] = useState<InlineControl>(null);
+  // Recette 2 (T-15) : pendant le glisser d’une Série, le corps ne défile pas.
+  // Sinon le défilement natif d’iOS prend le geste, déplace la feuille et
+  // interrompt le responder : la ligne n’est jamais déposée.
+  const [isDraggingRow, setIsDraggingRow] = useState(false);
   useEffect(() => {
     // D-7 : « Réduire les animations » → feuille en place, sans montée.
     if (reduceMotion) {
@@ -376,6 +402,7 @@ export function ExecutionParametersSheet({
             style={styles.body}
             contentContainerStyle={styles.bodyContent}
             keyboardShouldPersistTaps="handled"
+            scrollEnabled={!isDraggingRow}
             testID="execution-sheet-body"
           >
             <View style={styles.group}>
@@ -472,6 +499,7 @@ export function ExecutionParametersSheet({
                     formatTarget={targetLabel}
                     invalidRows={invalidRows}
                     onDraft={update}
+                    onDraggingChange={setIsDraggingRow}
                   />
                 ) : null}
               </View>
@@ -779,6 +807,7 @@ function VariableTable({
   formatTarget,
   invalidRows,
   onDraft,
+  onDraggingChange,
 }: {
   draft: ExecutionSheetDraft;
   mode: ExecutionMode | null;
@@ -787,8 +816,16 @@ function VariableTable({
   formatTarget: (value: number | null) => string;
   invalidRows: ReadonlySet<number>;
   onDraft: (next: ExecutionSheetDraft) => void;
+  onDraggingChange: (dragging: boolean) => void;
 }) {
   const rows = draft.rows;
+  // Recette 2 (T-15, demande de Hermann) : repère d’insertion pendant le glisser.
+  const [drag, setDrag] = useState<{ readonly from: number; readonly to: number } | null>(null);
+  const guideBefore = drag === null || drag.to === drag.from ? null : drag.to < drag.from ? drag.to : drag.to + 1;
+  function handleDrag(next: { readonly from: number; readonly to: number } | null) {
+    setDrag(next);
+    onDraggingChange(next !== null);
+  }
   const hasTarget = mode === "DURATION" || mode === "REPETITIONS";
   return (
     <View style={styles.table} testID="execution-sheet-table">
@@ -798,11 +835,13 @@ function VariableTable({
         <Text style={styles.columnHeader}>{t.columns.pause}</Text>
       </View>
       {rows.map((row, index) => (
+        <Fragment key={draft.rowIds[index] ?? index}>
+        {guideBefore === index ? <InsertionGuide before={index + 1} /> : null}
         <DraggableRow
-          key={draft.rowIds[index] ?? index}
           index={index}
           count={rows.length}
           onMove={(to) => onDraft(moveRow(draft, index, to))}
+          onDrag={handleDrag}
         >
           {hasTarget ? (
             <InlineStepper
@@ -833,7 +872,9 @@ function VariableTable({
             testID={`execution-sheet-table-row-${index + 1}-pause`}
           />
         </DraggableRow>
+        </Fragment>
       ))}
+      {guideBefore === rows.length ? <InsertionGuide before={rows.length + 1} /> : null}
     </View>
   );
 }
@@ -847,11 +888,13 @@ function DraggableRow({
   index,
   count,
   onMove,
+  onDrag,
   children,
 }: {
   index: number;
   count: number;
   onMove: (to: number) => void;
+  onDrag: (state: { readonly from: number; readonly to: number } | null) => void;
   children: ReactNode;
 }) {
   const number = index + 1;
@@ -878,23 +921,28 @@ function DraggableRow({
           onResponderGrant={(event) => {
             startYRef.current = event.nativeEvent.pageY;
             setDragDy(0);
+            onDrag({ from: index, to: index });
           }}
           onResponderMove={(event) => {
             const startY = startYRef.current;
             if (startY === null) return;
-            setDragDy(event.nativeEvent.pageY - startY);
+            const dy = event.nativeEvent.pageY - startY;
+            setDragDy(dy);
+            onDrag({ from: index, to: dragDestination(index, dy, TABLE_ROW_HEIGHT, count) });
           }}
           onResponderRelease={(event) => {
             const startY = startYRef.current;
             const dy = startY === null ? 0 : event.nativeEvent.pageY - startY;
             startYRef.current = null;
             setDragDy(null);
+            onDrag(null);
             const to = dragDestination(index, dy, TABLE_ROW_HEIGHT, count);
             if (to !== index) onMove(to);
           }}
           onResponderTerminate={() => {
             startYRef.current = null;
             setDragDy(null);
+            onDrag(null);
           }}
           accessible
           accessibilityLabel={t.moveHandle.replace("{n}", String(number))}
@@ -1150,33 +1198,40 @@ const styles = StyleSheet.create({
   },
 
   // DSF : message temporaire sous la ligne concernée, à 4 pt ; fond snackbar, rayon 16.
+  // Recette 2 (T-58) : la capsule Annuler s’étire sur la hauteur intérieure, avec
+  // des marges droite, haute et basse égales (ADJUSTMENT_ACTION_INSET).
   adjustment: {
     marginTop: spacing[4],
     marginBottom: spacing[4],
     backgroundColor: colors.snackbar,
     borderRadius: fixedRadii[16],
-    paddingVertical: spacing[10],
-    paddingHorizontal: spacing[16],
+    paddingVertical: ADJUSTMENT_ACTION_INSET,
+    paddingRight: ADJUSTMENT_ACTION_INSET,
+    paddingLeft: spacing[16],
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "stretch",
     gap: spacing[12],
   },
   adjustmentText: {
     ...type.body,
     color: colors.background,
     flex: 1,
+    alignSelf: "center",
+    paddingVertical: spacing[2],
   },
   adjustmentAction: {
     ...type.button,
     color: colors.background,
   },
-  // D-5 : cadre plus clair que le fond sombre du message (présentation proposée, absente du figé).
+  // D-5 précisé par la recette 2 (T-58) : capsule sans contour, blanc transparent
+  // à 90 %, extrémités en demi-cercle, plus grande.
   adjustmentActionFrame: {
-    borderWidth: 1,
-    borderColor: colors.background,
-    borderRadius: fixedRadii[8],
-    paddingHorizontal: spacing[12],
-    paddingVertical: spacing[4],
+    minHeight: 36,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: spacing[16],
+    borderRadius: 999,
+    backgroundColor: colors.snackbarActionSurface,
   },
   table: {
     marginLeft: INDENT,
@@ -1195,6 +1250,19 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     flex: 1,
     textAlign: "center",
+  },
+  insertionGuideSlot: {
+    height: 0,
+    zIndex: 2,
+  },
+  insertionGuideLine: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: -1,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: colors.primary,
   },
   tableRow: {
     flexDirection: "row",

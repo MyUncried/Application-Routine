@@ -326,8 +326,10 @@ function lastGuardBlock(): boolean {
 }
 
 describe("ExerciseScreen — Shell partagé (header/séparateur fixes, zone bleue fixe, corps défilant, action finale fixe)", () => {
-  it("uses the shared FixedHeader/HeaderSeparator, showing the functional title — never the Session name (D-105)", () => {
+  it("uses the shared FixedHeader without separator (recette 2, T-49), showing the functional title — never the Session name (D-105)", () => {
     renderScreen();
+    // Recette 2 (T-49, décision du 12/10) : aucun liseré sous l’en-tête de Créer/Modifier un exercice.
+    expect(screen.queryByTestId("screen-header-separator")).toBeNull();
     expect(screen.getByText(t.titleAdd)).toBeTruthy();
     expect(screen.queryByText("Séance simple")).toBeNull();
   });

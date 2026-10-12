@@ -186,13 +186,21 @@ export function InlineStepper({
   const t = strings.screens.profile.stepper;
   const valueRef = useRef(value);
   const onChangeRef = useRef(onChange);
+  // Recette 2 (T-10 / F-02) : le répéteur est créé au PREMIER appui et garde la
+  // fonction de pas de ce rendu. Bornes et valeur de départ sont donc relues ici,
+  // à jour à chaque rendu : après un changement de mode, une ligne vide démarre
+  // à la valeur du NOUVEAU mode (1 rép.), jamais à celle de l'ancien (30 s).
+  const configRef = useRef({ min, max, emptyStart });
   useEffect(() => {
     valueRef.current = value;
     onChangeRef.current = onChange;
+    configRef.current = { min, max, emptyStart };
   });
   const repeaterRef = useRef<HoldRepeater | null>(null);
+  const repeaterPolicyRef = useRef(policy);
 
   function applyStep(direction: 1 | -1, stepSize: number) {
+    const { min, max, emptyStart } = configRef.current;
     const current = valueRef.current;
     const next =
       current === null
@@ -206,7 +214,12 @@ export function InlineStepper({
   }
 
   function repeater(): HoldRepeater {
-    repeaterRef.current ??= createHoldRepeater(policy, applyStep);
+    // Une politique de maintien différente (autre champ) recrée le répéteur.
+    if (!repeaterRef.current || repeaterPolicyRef.current !== policy) {
+      repeaterRef.current?.stop();
+      repeaterRef.current = createHoldRepeater(policy, applyStep);
+      repeaterPolicyRef.current = policy;
+    }
     return repeaterRef.current;
   }
 

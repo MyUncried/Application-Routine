@@ -717,10 +717,14 @@ describe("ExecutionParametersSheet — décisions du propriétaire (12/10)", () 
     // Annuler encadré : restaure les valeurs précédant l’ajustement (1 série).
     adjust();
     expect(valueOf("execution-sheet-series")).toBe("3 séries");
-    expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-adjusted-undo").props.style)).toMatchObject({
-      borderWidth: 1,
-      borderColor: "#FFFFFF",
-    });
+    // Recette 2 (T-58, 12/10) remplace le cadre blanc de D-5 : capsule sans contour,
+    // blanc transparent à 90 %, demi-cercles, marges droite/haut/bas égales.
+    const capsule = StyleSheet.flatten(screen.getByTestId("execution-sheet-adjusted-undo").props.style);
+    expect(capsule).toMatchObject({ borderRadius: 999, backgroundColor: "rgba(255, 255, 255, 0.1)", minHeight: 36 });
+    expect(capsule.borderWidth).toBeUndefined();
+    const message = StyleSheet.flatten(screen.getByTestId("execution-sheet-adjusted").props.style);
+    expect(message.paddingRight).toBe(message.paddingVertical);
+    expect(message.alignItems).toBe("stretch");
     expect(screen.getByTestId("execution-sheet-adjusted").props.accessible).toBe(false);
     fireEvent.press(screen.getByTestId("execution-sheet-adjusted-undo"));
     expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
@@ -759,5 +763,65 @@ describe("ExecutionParametersSheet — D-341 / X-1 (12/10)", () => {
     expect(StyleSheet.flatten(within(order).getByText("Un côté après l’autre").props.style)).toMatchObject({ fontSize: 14, lineHeight: 17, fontWeight: "400" });
     // Les titres des lignes ne changent pas (type.label, Medium 14).
     expect(StyleSheet.flatten(screen.getByText("Ordre des côtés").props.style)).toMatchObject({ fontSize: 14, fontWeight: "500" });
+  });
+});
+
+describe("ExecutionParametersSheet — recette 2 (T-10 / F-02)", () => {
+  /**
+   * Cause démontrée : le répéteur du stepper était créé au premier appui et
+   * gardait les bornes et la valeur de départ de ce mode. Après un appui en
+   * Durée, la ligne vide en Répétitions démarrait à « 30 rép. » (durée
+   * recyclée) ; désactiver puis réactiver les Séries variables recréait les
+   * steppers et masquait le défaut.
+   */
+  it("F-02 — appui en Durée, puis en Répétitions sur la même ligne : départ à 1 rép. (jamais 30), bornes Répétitions ; retour Durée = dernières durées", () => {
+    renderSheet(params({ series: variableRows([[30, 5], [45, 5], [60, 5]]) }));
+    const choose = (label: string) => {
+      if (!screen.queryByTestId("execution-sheet-mode-control")) fireEvent.press(screen.getByTestId("execution-sheet-mode-value"));
+      fireEvent.press(within(screen.getByTestId("execution-sheet-mode-control")).getByText(label));
+    };
+    tap("execution-sheet-table-row-1-target-increment");
+    expect(valueOf("execution-sheet-table-row-1-target")).toBe("31 s");
+    choose("Répétitions");
+    tap("execution-sheet-table-row-1-target-increment");
+    expect(valueOf("execution-sheet-table-row-1-target")).toBe("1 rép.");
+    tap("execution-sheet-table-row-1-target-increment");
+    expect(valueOf("execution-sheet-table-row-1-target")).toBe("2 rép.");
+    choose("Durée");
+    expect([1, 2, 3].map((n) => valueOf(`execution-sheet-table-row-${n}-target`))).toEqual(["31 s", "45 s", "1 min"]);
+    choose("Répétitions");
+    expect(valueOf("execution-sheet-table-row-1-target")).toBe("2 rép.");
+  });
+});
+
+describe("ExecutionParametersSheet — recette 2 (T-15)", () => {
+  it("T-15 — glisser la Série 1 entre les Séries 3 et 4 : corps de la feuille immobile pendant le geste, repère d’insertion au bon endroit, dépôt à la position visée", () => {
+    renderSheet(params({ series: variableRows([[30, 5], [45, 10], [60, 15], [75, 20]]) }));
+    const body = () => screen.getByTestId("execution-sheet-body");
+    const handle = () => screen.getByTestId("execution-sheet-table-row-1-handle");
+    expect(body().props.scrollEnabled).toBe(true);
+    act(() => handle().props.onResponderGrant({ nativeEvent: { pageY: 100 } }));
+    expect(body().props.scrollEnabled).toBe(false);
+    expect(screen.queryAllByTestId(/insertion-guide/, { includeHiddenElements: true })).toHaveLength(0);
+    // +2 lignes (84) : destination rang 3, repère avant l’actuelle Série 4 (un seul repère).
+    act(() => handle().props.onResponderMove({ nativeEvent: { pageY: 184 } }));
+    expect(screen.queryAllByTestId(/insertion-guide/, { includeHiddenElements: true })).toHaveLength(1);
+    expect(screen.getByTestId("execution-sheet-table-insertion-guide-before-4", { includeHiddenElements: true })).toBeTruthy();
+    act(() => handle().props.onResponderRelease({ nativeEvent: { pageY: 184 } }));
+    expect(body().props.scrollEnabled).toBe(true);
+    expect(screen.queryAllByTestId(/insertion-guide/, { includeHiddenElements: true })).toHaveLength(0);
+    expect([1, 2, 3, 4].map((n) => valueOf(`execution-sheet-table-row-${n}-target`))).toEqual(["45 s", "1 min", "30 s", "1 min 15 s"]);
+    expect(valueOf("execution-sheet-table-row-3-pause")).toBe("5 s");
+  });
+
+  it("T-15 — geste interrompu par le système : défilement rétabli, aucun repère, aucun déplacement", () => {
+    renderSheet(params({ series: variableRows([[30, 5], [45, 10], [60, 15]]) }));
+    const handle = screen.getByTestId("execution-sheet-table-row-1-handle");
+    act(() => handle.props.onResponderGrant({ nativeEvent: { pageY: 100 } }));
+    act(() => handle.props.onResponderMove({ nativeEvent: { pageY: 150 } }));
+    act(() => handle.props.onResponderTerminate({ nativeEvent: null }));
+    expect(screen.getByTestId("execution-sheet-body").props.scrollEnabled).toBe(true);
+    expect(screen.queryAllByTestId(/insertion-guide/, { includeHiddenElements: true })).toHaveLength(0);
+    expect(valueOf("execution-sheet-table-row-1-target")).toBe("30 s");
   });
 });

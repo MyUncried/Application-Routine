@@ -65,6 +65,16 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
   // liste ; il est ramené en vue à son ouverture et à l'apparition du clavier.
   const scrollRef = useRef<ScrollView>(null);
   const isEntryFormOpen = isCreating || editTarget !== null;
+  // Recette 2 (N-01/N-02) : clavier ouvert → espace réduit entre le formulaire et le clavier.
+  const [isKeyboardShown, setIsKeyboardShown] = useState(false);
+  useEffect(() => {
+    const shown = Keyboard.addListener("keyboardWillShow", () => setIsKeyboardShown(true));
+    const hidden = Keyboard.addListener("keyboardWillHide", () => setIsKeyboardShown(false));
+    return () => {
+      shown.remove();
+      hidden.remove();
+    };
+  }, []);
   function revealEntryForm() {
     if (isEntryFormOpen) scrollRef.current?.scrollToEnd({ animated: true });
   }
@@ -229,6 +239,7 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
         <Animated.View
           style={[
             styles.card,
+            isKeyboardShown ? styles.cardWithKeyboard : null,
             {
               opacity: closing,
               transform: [{ translateY: closing.interpolate({ inputRange: [0, 1], outputRange: [CONFIRM_CLOSE_OFFSET, 0] }) }],
@@ -268,7 +279,7 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
         <ScrollView
           ref={scrollRef}
           onContentSizeChange={revealEntryForm}
-          contentContainerStyle={styles.cardContent}
+          contentContainerStyle={[styles.cardContent, isKeyboardShown ? styles.cardContentWithKeyboard : null]}
           keyboardShouldPersistTaps="handled"
           testID="category-picker-card"
         >
@@ -347,22 +358,8 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
                   {strings.referenceData.renameDialog.duplicateError}
                 </Text>
               ) : null}
-              <View style={styles.newEntryActionsRow}>
-                <Pressable
-                  onPress={() => {
-                    setIsCreating(false);
-                    setNewName("");
-                    setDuplicateError(false);
-                    setWriteError(false);
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel={t.newEntry.cancelAccessibilityLabel}
-                  style={styles.neutralAction}
-                  testID="category-picker-new-cancel"
-                >
-                  <Text style={styles.neutralActionLabel}>{t.newEntry.cancelAccessibilityLabel}</Text>
-                </Pressable>
-              </View>
+              {/* Recette 2 (N-01/N-02, décision du 12/10) : plus de bouton Annuler dans le
+                  formulaire de création ; ✕ de l’en-tête ferme la feuille. */}
             </View>
           ) : editTarget ? (
             <View style={styles.newEntryContainer} testID="category-picker-edit-row">
@@ -550,6 +547,12 @@ const styles = StyleSheet.create({
     borderTopRightRadius: dimensions.standardCard.radius,
     backgroundColor: colors.background,
     paddingBottom: spacing[24],
+  },
+  cardContentWithKeyboard: {
+    paddingBottom: spacing[8],
+  },
+  cardWithKeyboard: {
+    paddingBottom: 0,
   },
   cardContent: {
     padding: spacing[24],

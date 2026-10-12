@@ -873,6 +873,7 @@ Les noms avec barre oblique, par exemple `color/primary`, sont les noms physique
 | `color.divider` | `#E0E3E8` | Séparateurs et démarcation d’en-tête |
 | `color.disabled` | `#BEC2CC` | Fond d’action désactivée |
 | `color.snackbar` | `#292B33` | Fond des messages temporaires |
+| `color.snackbarActionSurface` | `rgba(255, 255, 255, 0.1)` | Capsule de l’action « Annuler » du message d’ajustement : blanc transparent à 90 %, sans contour, rayon en demi-cercle, marges droite/haut/bas égales (recette 2, T-58, 12/10) |
 | `color.positive` | `#4F9F83` | Ressenti positif sélectionné |
 | `color.warning` | `#FF8D28` | Ressenti intermédiaire et avertissement non destructif |
 | `color.danger` | `#D92D20` | Action destructive et état négatif |

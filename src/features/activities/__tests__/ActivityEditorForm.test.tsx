@@ -476,11 +476,57 @@ describe("ActivityEditorForm — recette 1 (T-49)", () => {
     expect([...opacities].sort((a, b) => a - b)).toEqual(opacities);
     expect(opacities[0]).toBeLessThan(0.1);
     expect(opacities[opacities.length - 1]).toBeGreaterThan(0.9);
+    // Recette 2 (T-49) : couches superposées jusqu’au bas de la zone, aucune bande juxtaposée.
+    for (const layer of fade.props.children as { props: { style: unknown } }[]) {
+      expect(StyleSheet.flatten(layer.props.style as never)).toMatchObject({ position: "absolute", bottom: 0 });
+    }
+    // Recette 2 (T-49) : aucun liseré autour du champ Nom.
+    expect(StyleSheet.flatten(screen.getByTestId("exercise-name-input").props.style).borderWidth).toBeUndefined();
 
     // Sous le contenu : les effets précèdent le champ du nom dans l’ordre de dessin.
     const children = band.props.children as { props: { testID?: string } }[];
     const order = children.flat().map((child) => child?.props?.testID).filter(Boolean);
     expect(order.indexOf("exercise-context-band-fade")).toBeLessThan(order.indexOf("exercise-name-input"));
     expect(order.indexOf("exercise-context-band-halo")).toBeLessThan(order.indexOf("exercise-name-input"));
+  });
+});
+
+describe("ActivityEditorForm — recette 2 (N-05 : Description et clavier)", () => {
+  it("N-05 — Terminer hors de la zone qui évite le clavier ; Description recadrée juste au-dessus du clavier, hauteur bornée pendant la saisie puis rétablie", () => {
+    const { Keyboard, KeyboardAvoidingView, ScrollView } = jest.requireActual<typeof import("react-native")>("react-native");
+    const scrollTo = jest.spyOn(ScrollView.prototype, "scrollTo");
+    const listeners: Record<string, () => void> = {};
+    const addListener = jest.spyOn(Keyboard, "addListener").mockImplementation(((event: string, listener: () => void) => {
+      listeners[event] = listener;
+      return { remove: jest.fn() };
+    }) as unknown as typeof Keyboard.addListener);
+    render(<Harness />);
+
+    // Terminer n’est pas dans la zone qui évite le clavier : il ne remonte pas avec lui.
+    expect(within(screen.UNSAFE_getByType(KeyboardAvoidingView)).queryByTestId("test-finish-slot")).toBeNull();
+    expect(screen.getByTestId("test-finish-slot")).toBeTruthy();
+
+    const layout = (testID: string, y: number, height: number) =>
+      fireEvent(screen.getByTestId(testID), "layout", { nativeEvent: { layout: { x: 0, y, width: 354, height } } });
+    layout("exercise-body", 0, 300);
+    layout("exercise-section-description", 0, 0);
+    fireEvent(screen.getByTestId("exercise-section-description"), "layout", { nativeEvent: { layout: { x: 24, y: 400, width: 354, height: 160 } } });
+    layout("exercise-instruction-input", 25, 120);
+
+    scrollTo.mockClear();
+    fireEvent(screen.getByTestId("exercise-instruction-input"), "focus");
+    expect(StyleSheet.flatten(screen.getByTestId("exercise-instruction-input").props.style).maxHeight).toBe(276);
+    act(() => listeners.keyboardDidShow!());
+    // Bas du champ (400 + 25 + 120) + marge 12 − zone visible 300 = 257.
+    expect(scrollTo).toHaveBeenLastCalledWith({ y: 257, animated: true });
+
+    // Le champ grandit avec les retours à la ligne : nouveau recadrage.
+    layout("exercise-instruction-input", 25, 180);
+    expect(scrollTo).toHaveBeenLastCalledWith({ y: 317, animated: true });
+
+    fireEvent(screen.getByTestId("exercise-instruction-input"), "blur");
+    expect(StyleSheet.flatten(screen.getByTestId("exercise-instruction-input").props.style).maxHeight).toBeUndefined();
+    scrollTo.mockRestore();
+    addListener.mockRestore();
   });
 });

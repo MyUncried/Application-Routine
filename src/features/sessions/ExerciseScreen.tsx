@@ -39,7 +39,7 @@ import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { ExerciseExitConfirmModal } from "@/features/sessions/ExerciseExitConfirmModal";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
 import { strings } from "@/shared/i18n";
-import { FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
+import { FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
 import { colors, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -371,7 +371,6 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
         onBack={() => router.back()}
         backAccessibilityLabel={t.backAccessibilityLabel}
       />
-      <HeaderSeparator />
       {loadState === "error" ? (
         <View style={styles.loadErrorBody} testID="activity-editor-load-error">
           <Text style={styles.loadErrorMessage}>{loadErrorStrings.message}</Text>
@@ -585,7 +584,6 @@ function CompositionExerciseEditor() {
         onBack={() => router.back()}
         backAccessibilityLabel={t.backAccessibilityLabel}
       />
-      <HeaderSeparator />
 
       {value !== null ? (
         <ActivityEditorForm

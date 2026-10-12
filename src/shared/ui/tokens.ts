@@ -58,6 +58,9 @@ export const colors = {
   stepperSurface: "#F2F2FF",
   disabled: "#BEC2CC",
   snackbar: "#292B33",
+  // Recette 2 (T-58, 12/10) : fond de l’action d’un message temporaire —
+  // blanc « transparent à 90 % » (opacité 10 %) ; le texte blanc reste lisible.
+  snackbarActionSurface: "rgba(255, 255, 255, 0.1)",
   positive: "#4F9F83",
   warning: "#FF8D28",
   danger: canonical.danger,

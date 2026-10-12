@@ -315,7 +315,7 @@ describe("BodyZonePickerModal — recette 1 (T-61)", () => {
 });
 
 describe("BodyZonePickerModal — recette 1 (T-34/T-59 : Envoyer ↑)", () => {
-  it("action « Envoyer » ↑ dans le champ : inactive à vide, active avec un nom ; Annuler conservé ; aucune palette", async () => {
+  it("action « Envoyer » ↑ dans le champ : inactive à vide, active avec un nom ; Annuler retiré (recette 2) ; aucune palette", async () => {
     renderModal(fakeReferentialService());
     fireEvent.press(await screen.findByTestId("body-zone-picker-create-action"));
     const send = () => screen.getByTestId("body-zone-picker-new-add");
@@ -324,7 +324,30 @@ describe("BodyZonePickerModal — recette 1 (T-34/T-59 : Envoyer ↑)", () => {
     expect(send().props.accessibilityState).toMatchObject({ disabled: true });
     fireEvent.changeText(screen.getByTestId("body-zone-picker-new-name-input"), "Mollets");
     expect(send().props.accessibilityState).toMatchObject({ disabled: false });
-    expect(screen.getByTestId("body-zone-picker-new-cancel")).toBeTruthy();
+    // Recette 2 (N-01/N-02, décision du 12/10) : plus d’Annuler dans le formulaire de création ; ✕ ferme la feuille.
+    expect(screen.queryByTestId("body-zone-picker-new-cancel")).toBeNull();
     expect(screen.queryByRole("radiogroup")).toBeNull();
+  });
+});
+
+describe("body-zone-picker — recette 2 (N-01/N-02 : clavier)", () => {
+  it("clavier ouvert : espace réduit sous le formulaire de création ; refermé : espacement d’origine", async () => {
+    const { Keyboard } = jest.requireActual<typeof import("react-native")>("react-native");
+    const listeners: Record<string, () => void> = {};
+    const spy = jest.spyOn(Keyboard, "addListener").mockImplementation(((event: string, listener: () => void) => {
+      listeners[event] = listener;
+      return { remove: jest.fn() };
+    }) as unknown as typeof Keyboard.addListener);
+    renderModal(fakeReferentialService());
+    fireEvent.press(await screen.findByTestId("body-zone-picker-create-action"));
+    const content = () => StyleSheet.flatten(screen.getByTestId("body-zone-picker-card").props.contentContainerStyle);
+    const sheet = () => StyleSheet.flatten(screen.getByTestId("body-zone-picker-sheet").props.style);
+    expect(content().paddingBottom ?? content().padding).toBe(24);
+    act(() => listeners.keyboardWillShow!());
+    expect(content().paddingBottom).toBe(8);
+    expect(sheet().paddingBottom).toBe(0);
+    act(() => listeners.keyboardWillHide!());
+    expect(content().paddingBottom ?? content().padding).toBe(24);
+    spy.mockRestore();
   });
 });

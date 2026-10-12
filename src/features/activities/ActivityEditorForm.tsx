@@ -156,6 +156,27 @@ export function ActivityEditorForm({
   const t = strings.screens.exercise;
   const editor = strings.screens.activities.editor;
   const parameters = value.executionParameters;
+  // Recette 2 (N-05) : pendant la saisie de la Description, le champ reste juste
+  // au-dessus du clavier ; sa hauteur est bornée à la zone visible pour que la
+  // vue de texte iOS garde elle-même le curseur visible (retours à la ligne,
+  // édition au milieu). Terminer reste en bas, sous le clavier.
+  const bodyScrollRef = useRef<ScrollView>(null);
+  const [bodyHeight, setBodyHeight] = useState(0);
+  const [isDescriptionFocused, setIsDescriptionFocused] = useState(false);
+  const descriptionLayoutRef = useRef({ sectionY: 0, inputY: 0, inputHeight: 0 });
+  const bodyHeightRef = useRef(0);
+  function revealDescription() {
+    const { sectionY, inputY, inputHeight } = descriptionLayoutRef.current;
+    const viewport = bodyHeightRef.current;
+    if (viewport <= 0) return;
+    const bottom = sectionY + inputY + inputHeight + DESCRIPTION_KEYBOARD_GAP;
+    bodyScrollRef.current?.scrollTo({ y: Math.max(0, bottom - viewport), animated: true });
+  }
+  useEffect(() => {
+    if (!isDescriptionFocused) return;
+    const subscription = Keyboard.addListener("keyboardDidShow", () => revealDescription());
+    return () => subscription.remove();
+  }, [isDescriptionFocused]);
   const segments = parameters.mode === null ? null : generateExecutionPhrase(parameters);
   const phrase = segments ? phraseText(segments) : parameters.mode === null ? "" : card.incomplete;
   const zoneNames = bodyZones.filter((zone) => value.bodyZoneIds.includes(zone.id)).map((zone) => zone.name);
@@ -189,8 +210,8 @@ export function ActivityEditorForm({
             l’en-tête, dont seule la partie qui déborde dans la zone est visible. Tous deux
             sous le contenu, sans interaction. */}
         <View pointerEvents="none" style={styles.contextBandFade} testID="exercise-context-band-fade">
-          {CONTEXT_BAND_FADE_STEPS.map((opacity) => (
-            <View key={opacity} style={[styles.contextBandFadeStep, { opacity }]} />
+          {CONTEXT_BAND_FADE_LAYERS.map((layer) => (
+            <View key={layer.top} style={[styles.contextBandFadeLayer, { top: layer.top, opacity: layer.opacity }]} />
           ))}
         </View>
         <View pointerEvents="none" style={styles.backHalo} testID="exercise-context-band-halo" />
@@ -254,9 +275,15 @@ export function ActivityEditorForm({
 
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView
+          ref={bodyScrollRef}
           style={styles.body}
           contentContainerStyle={styles.bodyContent}
           keyboardShouldPersistTaps="handled"
+          onLayout={(event) => {
+            bodyHeightRef.current = event.nativeEvent.layout.height;
+            setBodyHeight(event.nativeEvent.layout.height);
+            if (isDescriptionFocused) revealDescription();
+          }}
           testID="exercise-body"
         >
           <View style={styles.parametersBlock}>
@@ -316,7 +343,13 @@ export function ActivityEditorForm({
             </Pressable>
           </View>
 
-          <View style={styles.section} testID="exercise-section-description">
+          <View
+            style={styles.section}
+            onLayout={(event) => {
+              descriptionLayoutRef.current.sectionY = event.nativeEvent.layout.y;
+            }}
+            testID="exercise-section-description"
+          >
             <Text style={styles.sectionTitle} accessibilityRole="header">
               {t.instruction.label}
             </Text>
@@ -328,7 +361,22 @@ export function ActivityEditorForm({
               accessibilityLabel={t.instruction.label}
               maxLength={INSTRUCTION_MAX_LENGTH}
               multiline
-              style={styles.instructionInput}
+              onFocus={() => setIsDescriptionFocused(true)}
+              onBlur={() => setIsDescriptionFocused(false)}
+              onLayout={(event) => {
+                descriptionLayoutRef.current.inputY = event.nativeEvent.layout.y;
+                descriptionLayoutRef.current.inputHeight = event.nativeEvent.layout.height;
+                if (isDescriptionFocused) revealDescription();
+              }}
+              onContentSizeChange={() => {
+                if (isDescriptionFocused) revealDescription();
+              }}
+              style={[
+                styles.instructionInput,
+                isDescriptionFocused && bodyHeight > 0
+                  ? { maxHeight: Math.max(DESCRIPTION_MIN_FOCUSED_HEIGHT, bodyHeight - DESCRIPTION_KEYBOARD_GAP * 2) }
+                  : null,
+              ]}
               testID="exercise-instruction-input"
             />
           </View>
@@ -350,8 +398,11 @@ export function ActivityEditorForm({
             />
           </View>
         </ScrollView>
+      </KeyboardAvoidingView>
 
-        <View style={[styles.finishActionSlot, { marginBottom: insets.bottom + spacing[16] }]} testID={finishSlotTestID}>
+      {/* Recette 2 (N-05) : hors de la zone qui évite le clavier — Terminer ne remonte
+          jamais avec le clavier ; il redevient accessible dès sa fermeture. */}
+      <View style={[styles.finishActionSlot, { marginBottom: insets.bottom + spacing[16] }]} testID={finishSlotTestID}>
           {errorMessage ? (
             <Text style={styles.saveErrorText} accessibilityLiveRegion="polite" testID={errorTestID}>
               {errorMessage}
@@ -368,8 +419,7 @@ export function ActivityEditorForm({
           >
             <Text style={styles.primaryActionLabel}>{finishLabel}</Text>
           </Pressable>
-        </View>
-      </KeyboardAvoidingView>
+      </View>
 
       {isSheetOpen ? (
         <ExecutionParametersSheet
@@ -509,6 +559,11 @@ function useMediaImport(
   };
 }
 
+/** N-05 : marge entre le bas de la Description et le clavier pendant la saisie. */
+const DESCRIPTION_KEYBOARD_GAP = 12;
+/** N-05 : hauteur minimale conservée au champ borné pendant la saisie. */
+const DESCRIPTION_MIN_FOCUSED_HEIGHT = 88;
+
 /** Icône Catégorie figée « Icône catégorie — pleine » (7287:13722) : 20×20 dans l’action 34×34 (X-2). */
 const CATEGORY_ICON_SIZE = 20;
 
@@ -516,7 +571,20 @@ const CATEGORY_ICON_SIZE = 20;
 const BACK_HALO_DIAMETER = 59.28;
 /** Fondu figé : opaque jusqu’à 80 %, transparent à 100 % (GRADIENT_LINEAR de la « Zone bleue »). */
 const CONTEXT_BAND_FADE_SHARE = "20%";
-const CONTEXT_BAND_FADE_STEPS = Array.from({ length: 12 }, (_, index) => Number(((index + 0.5) / 12).toFixed(3)));
+/**
+ * Recette 2 (T-49) : couches SUPERPOSÉES, chacune de son seuil jusqu’au bas de la
+ * zone — aucun interstice entre bandes, donc aucun trait parasite. L’opacité de
+ * chaque couche est calculée pour que l’opacité cumulée suive la rampe 0 → 1.
+ */
+const CONTEXT_BAND_FADE_LAYER_COUNT = 12;
+const CONTEXT_BAND_FADE_LAYERS = Array.from({ length: CONTEXT_BAND_FADE_LAYER_COUNT }, (_, index) => {
+  const before = index / CONTEXT_BAND_FADE_LAYER_COUNT;
+  const after = (index + 1) / CONTEXT_BAND_FADE_LAYER_COUNT;
+  return {
+    top: `${((index / CONTEXT_BAND_FADE_LAYER_COUNT) * 100).toFixed(4)}%` as `${number}%`,
+    opacity: Number((1 - (1 - after) / (1 - before)).toFixed(4)),
+  };
+});
 
 const styles = StyleSheet.create({
   flex: {
@@ -540,8 +608,11 @@ const styles = StyleSheet.create({
     bottom: 0,
     height: CONTEXT_BAND_FADE_SHARE,
   },
-  contextBandFadeStep: {
-    flex: 1,
+  contextBandFadeLayer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: colors.background,
   },
   backHalo: {
@@ -555,12 +626,11 @@ const styles = StyleSheet.create({
     left: spacing[24] + dimensions.backAction.visualCircle / 2 - BACK_HALO_DIAMETER / 2,
     top: -dimensions.header.contentHeight / 2 - BACK_HALO_DIAMETER / 2,
   },
+  // Recette 2 (T-49, décision du 12/10) : aucun liseré autour du champ Nom.
   nameInput: {
     ...type.screenTitle,
     color: colors.textPrimary,
     backgroundColor: "transparent",
-    borderWidth: 1,
-    borderColor: colors.sessionNameBorder,
     borderRadius: fixedRadii[10],
     minHeight: 42,
     paddingHorizontal: dimensions.exerciseTextField.paddingHorizontal,

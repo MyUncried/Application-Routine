@@ -425,7 +425,7 @@ describe("CategoryPickerModal — recette 1 (T-61)", () => {
 });
 
 describe("CategoryPickerModal — recette 1 (T-34/T-59 : Envoyer ↑ et bandeau de couleurs)", () => {
-  it("action « Envoyer » ↑ dans le champ : inactive à vide, active avec un nom, crée avec la couleur choisie dans le bandeau ; Annuler conservé", async () => {
+  it("action « Envoyer » ↑ dans le champ : inactive à vide, active avec un nom, crée avec la couleur choisie dans le bandeau ; Annuler retiré (recette 2)", async () => {
     const service = fakeReferentialService({
       createCategory: jest.fn(async () => ({
         status: "OK" as const,
@@ -439,7 +439,8 @@ describe("CategoryPickerModal — recette 1 (T-34/T-59 : Envoyer ↑ et bandeau 
     expect(within(screen.getByTestId("category-picker-new-row")).getByText("↑")).toBeTruthy();
     expect(StyleSheet.flatten(send().props.style)).toMatchObject({ position: "absolute", width: 32, height: 32, borderRadius: 16 });
     expect(send().props.accessibilityState).toMatchObject({ disabled: true });
-    expect(screen.getByTestId("category-picker-new-cancel")).toBeTruthy();
+    // Recette 2 (N-01/N-02, décision du 12/10) : plus d’Annuler dans le formulaire de création ; ✕ ferme la feuille.
+    expect(screen.queryByTestId("category-picker-new-cancel")).toBeNull();
 
     const band = screen.getByTestId("category-picker-new-color-band");
     expect(band.props.accessibilityRole).toBe("radiogroup");
@@ -471,5 +472,27 @@ describe("CategoryPickerModal — D-8 et « Réduire les animations »", () => {
     fireEvent.press(screen.getByTestId("category-picker-confirm"));
     expect(onSelect).toHaveBeenCalledWith("cardio");
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("category-picker — recette 2 (N-01/N-02 : clavier)", () => {
+  it("clavier ouvert : espace réduit sous le formulaire de création ; refermé : espacement d’origine", async () => {
+    const { Keyboard } = jest.requireActual<typeof import("react-native")>("react-native");
+    const listeners: Record<string, () => void> = {};
+    const spy = jest.spyOn(Keyboard, "addListener").mockImplementation(((event: string, listener: () => void) => {
+      listeners[event] = listener;
+      return { remove: jest.fn() };
+    }) as unknown as typeof Keyboard.addListener);
+    renderModal(fakeReferentialService());
+    fireEvent.press(await screen.findByTestId("category-picker-create-action"));
+    const content = () => StyleSheet.flatten(screen.getByTestId("category-picker-card").props.contentContainerStyle);
+    const sheet = () => StyleSheet.flatten(screen.getByTestId("category-picker-sheet").props.style);
+    expect(content().paddingBottom ?? content().padding).toBe(24);
+    act(() => listeners.keyboardWillShow!());
+    expect(content().paddingBottom).toBe(8);
+    expect(sheet().paddingBottom).toBe(0);
+    act(() => listeners.keyboardWillHide!());
+    expect(content().paddingBottom ?? content().padding).toBe(24);
+    spy.mockRestore();
   });
 });
