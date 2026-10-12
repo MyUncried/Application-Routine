@@ -1,0 +1,42 @@
+{
+  "commits": {
+    "correctif": "e4500bce7428e6abf0df675b93c2a4792797ff50",
+    "journal": "29d149bdcdc998e90eeff6d66834312f90e72d72"
+  },
+  "compatibility": {
+    "build8_58bbc3bc": "OTA_COMPATIBLE",
+    "build7_9f5cee0e": "OTA_COMPATIBLE"
+  },
+  "servedManifest": {
+    "http": 200,
+    "servedId": "01a131f9-1cf0-705c-8531-3919ff3b2aa6",
+    "createdAt": "2026-10-12T21:16:11.888Z"
+  },
+  "assets": {
+    "total": 57,
+    "ok": 57,
+    "bad": [],
+    "launchAsset": {
+      "key": "32c7bbb569acac5fd1bc3e067a6da7a7",
+      "ext": "application/javascript",
+      "http": 200,
+      "bytes": 2824168,
+      "hashOk": true,
+      "launch": true
+    }
+  },
+  "bundleMarkers": {
+    "updates-diagnostic-keyboard": 1,
+    "label-picker-edit-name-input": 1,
+    "category-picker-new-name-input": 1
+  },
+  "tests": {
+    "tsc": "PASS",
+    "eslint": "PASS",
+    "suites": "98/98",
+    "tests": "1970/1970",
+    "obligations43e7b344": "442/442",
+    "mutation": "3 tests du parcours complet rouges sur 8d7a2e3c"
+  },
+  "checkedAt": "2026-10-12T21:16:38.018Z"
+}

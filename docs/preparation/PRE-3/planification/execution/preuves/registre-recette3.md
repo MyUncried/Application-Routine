@@ -97,3 +97,14 @@ Résultats déclarés : 66 Conforme, 5 Écart (T-49, N-01, N-02, N-03, N-04), 2 
 
 **Statuts conservés.** T-04, T-17 : Clarifier (parcours distincts dans la procédure) ; T-42 : Non provoqué ; T-62 à T-65 : Non testé. Aucun constat supplémentaire démontré pendant le travail.
 
+## 7. N-01, dernier écart : clavier pendant l’appui long et la modification
+
+Constat de Hermann (version `01a131d0` : la modification n’y était visible qu’avec le formulaire de création ouvert) : clavier affiché, l’**appui long** le fait descendre puis remonter aussitôt ; idem à l’**annulation** et à l’**enregistrement** d’une modification.
+
+| Transition | Cause | Qualif. | Correction | Preuve | Statut |
+|---|---|---|---|---|---|
+| Modifier, Annuler, Enregistrer | **Démontrée** : deux `TextInput` distincts (création et modification), chacun avec `autoFocus`, à des emplacements différents de l’arbre. Changer de rôle démontait le champ focalisé (iOS rend le premier répondeur : le clavier descend) puis montait l’autre (`autoFocus` : il remonte). | DD | Un **seul** champ persistant change de rôle (valeur, libellé, ↑ ou Annuler / Enregistrer) sans être démonté. Saisie de création conservée. Catégorie, Zones, Étiquette. Commit `e4500bce`. | 3 tests du parcours complet (même instance de champ à chaque étape), **rouges sur `8d7a2e3c`** | Publié, à retester (contrôles B, C) |
+| **Appui long seul** (constat propre de Hermann) | **Non démontrée.** Depuis `ce8e35a2`, aucun chemin identifié dans le code : aucun `Modal` imbriqué ; l’appui long ne monte ni ne démonte aucun champ ; aucun `Keyboard.dismiss`, `blur` ni changement de clé ; fermeture par le `ScrollView` impossible (`keyboardShouldPersistTaps="handled"`, pilule détentrice du toucher ; prise de main du `ScrollView` seulement sur défilement, qui désactive cette fermeture). Une descente **suivie d’une remontée immédiate** suppose une perte puis une reprise du premier répondeur, observable uniquement sur l’appareil. Le constat n’est pas réattribué à Modifier. | AR | **Aucune correction à l’aveugle.** Journal observateur horodaté (clavier iOS, focus et blur du champ, appui long, menu ouvert ou fermé, Modifier, Annuler, Enregistrer), lisible dans `routine://diagnostic-updates`. Commit `29d149bd`. | Test du journal ; journal inclus dans le bundle `01a131f9` | **Bloqué en attente du journal du contrôle A** sur iPhone |
+
+Publication : OTA `01a131f9-1cf0-705c-8531-3919ff3b2aa6` (`29d149bd`, contient `e4500bce`). Procédure : `procedure-retest-n01-clavier.md`. N-01 n’est pas validé.
+
