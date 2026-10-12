@@ -1,6 +1,7 @@
 import { useEffect, useState, type RefObject } from "react";
 import { AccessibilityInfo, findNodeHandle, Keyboard, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { recordKeyboardJournal } from "@/features/diagnostics/keyboardJournal";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
@@ -57,6 +58,12 @@ export function ReferenceValueDialog({
 }: ReferenceValueDialogProps) {
   const [step, setStep] = useState<"actions" | "delete">("actions");
   const keyboardHeight = useKeyboardHeight();
+  // Recette 3 (N-01) : journal observateur (routine://diagnostic-updates).
+  useEffect(() => {
+    recordKeyboardJournal(`menu d’appui long ouvert « ${name} »`);
+    return () => recordKeyboardJournal("menu d’appui long fermé");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const t = strings.referenceData;
 
   function returnFocusToList() {

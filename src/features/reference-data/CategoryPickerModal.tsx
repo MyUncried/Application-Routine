@@ -21,6 +21,7 @@ import {
 } from "@/domain/categories/Category";
 import { CATEGORY_NAME_MAX_LENGTH, validateCategoryName } from "@/domain/categories/validation";
 import { SESSION_COLORS } from "@/domain/sessions/Session";
+import { recordKeyboardJournal, startKeyboardJournal } from "@/features/diagnostics/keyboardJournal";
 import { ReferenceValueDialog } from "@/features/reference-data/ReferenceValueDialog";
 import { useReduceMotion } from "@/features/activities/ExecutionParametersSheet";
 import { useReferentialService } from "@/features/reference-data/ReferentialServiceContext";
@@ -71,6 +72,9 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
   // Recette 2 (N-01/N-02) : clavier ouvert → espace réduit entre le formulaire et le clavier.
   const [isKeyboardShown, setIsKeyboardShown] = useState(false);
   useEffect(() => {
+    // Recette 3 (N-01) : journal observateur clavier / focus, lu par routine://diagnostic-updates.
+    startKeyboardJournal();
+    recordKeyboardJournal("Catégorie : feuille ouverte");
     const shown = Keyboard.addListener("keyboardWillShow", () => setIsKeyboardShown(true));
     const hidden = Keyboard.addListener("keyboardWillHide", () => setIsKeyboardShown(false));
     return () => {
@@ -173,6 +177,7 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
   }
 
   function openEdit(category: Category) {
+    recordKeyboardJournal("Catégorie : Modifier");
     setEditTarget(category);
     setEditName(category.name);
     setEditColor(category.color);
@@ -182,6 +187,7 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
   }
 
   async function handleSaveEdit() {
+    recordKeyboardJournal("Catégorie : Enregistrer");
     if (!editTarget) {
       return;
     }
@@ -314,6 +320,7 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
                   key={category.id}
                   onPress={() => handleSelect(category)}
                   onLongPress={() => {
+                    recordKeyboardJournal(`Catégorie : appui long « ${category.name} »`);
                     setLongPressTarget(category);
                     void openDeleteConfirm(category);
                   }}
@@ -353,6 +360,8 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
                   accessibilityLabel={editTarget ? strings.referenceData.renameDialog.nameLabel : t.newEntry.placeholder}
                   maxLength={CATEGORY_NAME_MAX_LENGTH}
                   autoFocus
+                  onFocus={() => recordKeyboardJournal("Catégorie : champ focus")}
+                  onBlur={() => recordKeyboardJournal("Catégorie : champ blur")}
                   style={[styles.newEntryInput, editTarget ? null : styles.inlineFieldInput]}
                   testID={editTarget ? "category-picker-edit-name-input" : "category-picker-new-name-input"}
                 />
@@ -385,6 +394,7 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
                 <View style={styles.newEntryActionsRow}>
                   <Pressable
                     onPress={() => {
+                      recordKeyboardJournal("Catégorie : Annuler la modification");
                       setEditTarget(null);
                       setDuplicateError(false);
                       setWriteError(false);

@@ -77,3 +77,18 @@ describe("UpdatesDiagnosticScreen (blocage OTA-NON-APPLIQUEE)", () => {
     expect(screen.getByTestId("updates-diagnostic-check-result")).toHaveTextContent("Erreur : timeout");
   });
 });
+
+describe("UpdatesDiagnosticScreen — journal clavier et focus (recette 3, N-01)", () => {
+  it("affiche dans l’ordre les événements enregistrés par les feuilles (heure à la milliseconde)", async () => {
+    const journal = jest.requireActual<typeof import("../keyboardJournal")>("../keyboardJournal");
+    journal.recordKeyboardJournal("Catégorie : appui long « Cardio »");
+    journal.recordKeyboardJournal("clavier keyboardWillHide h=336");
+    mockReadLogs.mockResolvedValue([]);
+    render(<UpdatesDiagnosticScreen />);
+    await act(async () => {});
+    const lines = screen.getAllByTestId("updates-diagnostic-keyboard").map((node) => String(node.props.children));
+    expect(lines).toHaveLength(2);
+    expect(lines[0]).toMatch(/^\d{2}:\d{2}:\d{2}\.\d{3} Catégorie : appui long « Cardio »$/);
+    expect(lines[1]).toMatch(/clavier keyboardWillHide h=336$/);
+  });
+});

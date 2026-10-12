@@ -15,6 +15,7 @@ import {
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { isBodyZoneAssignable, BODY_ZONE_NAME_MAX_LENGTH, validateBodyZoneName } from "@/domain/body-zones/BodyZone";
 import type { Silhouette } from "@/domain/preferences/Profile";
+import { recordKeyboardJournal, startKeyboardJournal } from "@/features/diagnostics/keyboardJournal";
 import { ReferenceValueDialog } from "@/features/reference-data/ReferenceValueDialog";
 import {
   notifyBodyZonesReferentialChanged,
@@ -67,6 +68,9 @@ export function BodyZonePickerModal({
   // Recette 2 (N-01/N-02) : clavier ouvert → espace réduit entre le formulaire et le clavier.
   const [isKeyboardShown, setIsKeyboardShown] = useState(false);
   useEffect(() => {
+    // Recette 3 (N-01) : journal observateur clavier / focus, lu par routine://diagnostic-updates.
+    startKeyboardJournal();
+    recordKeyboardJournal("Zones : feuille ouverte");
     const shown = Keyboard.addListener("keyboardWillShow", () => setIsKeyboardShown(true));
     const hidden = Keyboard.addListener("keyboardWillHide", () => setIsKeyboardShown(false));
     return () => {
@@ -168,6 +172,7 @@ export function BodyZonePickerModal({
   }
 
   function openEdit(zone: BodyZone) {
+    recordKeyboardJournal("Zones : Modifier");
     setEditTarget(zone);
     setEditName(zone.name);
     setDuplicateError(false);
@@ -176,6 +181,7 @@ export function BodyZonePickerModal({
   }
 
   async function handleSaveEdit() {
+    recordKeyboardJournal("Zones : Enregistrer");
     if (!editTarget) {
       return;
     }
@@ -284,7 +290,8 @@ export function BodyZonePickerModal({
               onToggle={handleToggle}
               accessibilityLabel={t.title}
               onLongPressZone={(zone) => {
-                setLongPressTarget(zone);
+                recordKeyboardJournal(`Zones : appui long « ${zone.name} »`);
+                    setLongPressTarget(zone);
                 void openDeleteConfirm(zone);
               }}
             />
@@ -313,6 +320,8 @@ export function BodyZonePickerModal({
                   accessibilityLabel={editTarget ? strings.referenceData.renameDialog.nameLabel : t.newEntry.placeholder}
                   maxLength={BODY_ZONE_NAME_MAX_LENGTH}
                   autoFocus
+                  onFocus={() => recordKeyboardJournal("Zones : champ focus")}
+                  onBlur={() => recordKeyboardJournal("Zones : champ blur")}
                   style={[styles.newEntryInput, editTarget ? null : styles.inlineFieldInput]}
                   testID={editTarget ? "body-zone-picker-edit-name-input" : "body-zone-picker-new-name-input"}
                 />
@@ -340,6 +349,7 @@ export function BodyZonePickerModal({
                 <View style={styles.newEntryActionsRow}>
                   <Pressable
                     onPress={() => {
+                      recordKeyboardJournal("Zones : Annuler la modification");
                       setEditTarget(null);
                       setDuplicateError(false);
                       setWriteError(false);

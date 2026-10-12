@@ -18,6 +18,7 @@ import { isLabelAssignable, LABEL_NAME_MAX_LENGTH, validateLabelName, type Label
 import { SESSION_COLORS } from "@/domain/sessions/Session";
 import { useReduceMotion } from "@/features/activities/ExecutionParametersSheet";
 import { CategoryColorBand } from "@/features/reference-data/CategoryPickerModal";
+import { recordKeyboardJournal, startKeyboardJournal } from "@/features/diagnostics/keyboardJournal";
 import { ReferenceValueDialog } from "@/features/reference-data/ReferenceValueDialog";
 import { useReferentialService } from "@/features/reference-data/ReferentialServiceContext";
 import { strings } from "@/shared/i18n";
@@ -77,6 +78,9 @@ export function LabelPickerModal({ selectedId, onSelect, onClose }: LabelPickerM
   const sheet = strings.executionParameters.referenceSheets;
 
   useEffect(() => {
+    // Recette 3 (N-01) : journal observateur clavier / focus, lu par routine://diagnostic-updates.
+    startKeyboardJournal();
+    recordKeyboardJournal("Étiquette : feuille ouverte");
     const shown = Keyboard.addListener("keyboardWillShow", () => setIsKeyboardShown(true));
     const hidden = Keyboard.addListener("keyboardWillHide", () => setIsKeyboardShown(false));
     return () => {
@@ -167,6 +171,7 @@ export function LabelPickerModal({ selectedId, onSelect, onClose }: LabelPickerM
   }
 
   function openEdit(label: Label) {
+    recordKeyboardJournal("Étiquette : Modifier");
     setEditTarget(label);
     setEditName(label.name);
     setEditColor(label.color);
@@ -176,6 +181,7 @@ export function LabelPickerModal({ selectedId, onSelect, onClose }: LabelPickerM
   }
 
   async function handleSaveEdit() {
+    recordKeyboardJournal("Étiquette : Enregistrer");
     if (!editTarget) {
       return;
     }
@@ -292,7 +298,8 @@ export function LabelPickerModal({ selectedId, onSelect, onClose }: LabelPickerM
                     key={label.id}
                     onPress={() => handlePress(label)}
                     onLongPress={() => {
-                      setLongPressTarget(label);
+                      recordKeyboardJournal(`Étiquette : appui long « ${label.name} »`);
+                    setLongPressTarget(label);
                       void openDeleteConfirm(label);
                     }}
                     accessibilityRole="button"
@@ -332,6 +339,8 @@ export function LabelPickerModal({ selectedId, onSelect, onClose }: LabelPickerM
                     accessibilityLabel={editTarget ? strings.referenceData.renameDialog.nameLabel : t.newEntry.placeholder}
                     maxLength={LABEL_NAME_MAX_LENGTH}
                     autoFocus
+                    onFocus={() => recordKeyboardJournal("Étiquette : champ focus")}
+                    onBlur={() => recordKeyboardJournal("Étiquette : champ blur")}
                     style={[styles.newEntryInput, editTarget ? null : styles.inlineFieldInput]}
                     testID={editTarget ? "label-picker-edit-name-input" : "label-picker-new-name-input"}
                   />
@@ -364,6 +373,7 @@ export function LabelPickerModal({ selectedId, onSelect, onClose }: LabelPickerM
                   <View style={styles.newEntryActionsRow}>
                     <Pressable
                       onPress={() => {
+                        recordKeyboardJournal("Étiquette : Annuler la modification");
                         setEditTarget(null);
                         setDuplicateError(false);
                         setWriteError(false);

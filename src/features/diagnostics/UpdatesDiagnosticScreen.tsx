@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { readKeyboardJournal } from "@/features/diagnostics/keyboardJournal";
 import { colors, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -25,6 +26,8 @@ export function UpdatesDiagnosticScreen() {
   const [logs, setLogs] = useState<readonly Updates.UpdatesLogEntry[] | null>(null);
   const [logsError, setLogsError] = useState<string | null>(null);
   const [check, setCheck] = useState<string | null>(null);
+  // Recette 3 (N-01) : journal clavier / focus des feuilles de référentiels (session en cours).
+  const [keyboardJournal] = useState(() => readKeyboardJournal());
 
   useEffect(() => {
     let active = true;
@@ -113,6 +116,13 @@ export function UpdatesDiagnosticScreen() {
             {check}
           </Text>
         ) : null}
+        <Text style={styles.section}>Journal clavier et focus (session en cours, chronologique)</Text>
+        {keyboardJournal.length === 0 ? <Text style={styles.value}>Journal vide</Text> : null}
+        {keyboardJournal.map((entry, index) => (
+          <Text key={`k${index}`} selectable style={styles.log} testID="updates-diagnostic-keyboard">
+            {`${new Date(entry.at).toISOString().slice(11, 23)} ${entry.event}`}
+          </Text>
+        ))}
         <Text style={styles.section}>Journal expo-updates (7 jours, plus récent d’abord)</Text>
         {logsError ? <Text style={styles.value}>Erreur : {logsError}</Text> : null}
         {logs === null && !logsError ? <Text style={styles.value}>Lecture…</Text> : null}
