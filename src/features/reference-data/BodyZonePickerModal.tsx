@@ -1,5 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { isBodyZoneAssignable, BODY_ZONE_NAME_MAX_LENGTH, validateBodyZoneName } from "@/domain/body-zones/BodyZone";
@@ -46,6 +57,18 @@ export function BodyZonePickerModal({
   const [newName, setNewName] = useState("");
   const [longPressTarget, setLongPressTarget] = useState<BodyZone | null>(null);
   const [editTarget, setEditTarget] = useState<BodyZone | null>(null);
+  // Recette 1 (F-03) : le formulaire de création/modification est en bas de la
+  // liste ; il est ramené en vue à son ouverture et à l'apparition du clavier.
+  const scrollRef = useRef<ScrollView>(null);
+  const isEntryFormOpen = isCreating || editTarget !== null;
+  function revealEntryForm() {
+    if (isEntryFormOpen) scrollRef.current?.scrollToEnd({ animated: true });
+  }
+  useEffect(() => {
+    if (!isEntryFormOpen) return;
+    const subscription = Keyboard.addListener("keyboardDidShow", () => scrollRef.current?.scrollToEnd({ animated: true }));
+    return () => subscription.remove();
+  }, [isEntryFormOpen]);
   const [editName, setEditName] = useState("");
   const [duplicateError, setDuplicateError] = useState(false);
   const [writeError, setWriteError] = useState(false);
@@ -179,7 +202,14 @@ export function BodyZonePickerModal({
 
   return (
     <Modal transparent visible animationType="fade" onRequestClose={onClose}>
-      <View style={styles.backdrop} testID="body-zone-picker-backdrop">
+      {/* Recette 1 (F-03) : le clavier ne recouvre jamais la feuille ; le champ actif
+          et ses actions restent visibles (spéc. 06 : « le champ actif et l'action finale
+          restent accessibles »). */}
+      <KeyboardAvoidingView
+        style={styles.backdrop}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        testID="body-zone-picker-backdrop"
+      >
         <View style={styles.card} accessibilityViewIsModal testID="body-zone-picker-sheet">
           <View style={styles.sheetHandle} />
           <View style={styles.sheetHeader} testID="body-zone-picker-header">
@@ -193,7 +223,7 @@ export function BodyZonePickerModal({
             >
               <KodjoIcon name="wheel-action-cancel" />
             </Pressable>
-            <Text style={styles.sheetTitle} accessibilityRole="header" numberOfLines={1}>
+            <Text style={styles.sheetTitle} accessibilityRole="header">
               {t.title}
             </Text>
             <Pressable
@@ -208,6 +238,8 @@ export function BodyZonePickerModal({
             </Pressable>
           </View>
         <ScrollView
+          ref={scrollRef}
+          onContentSizeChange={revealEntryForm}
           contentContainerStyle={styles.cardContent}
           keyboardShouldPersistTaps="handled"
           testID="body-zone-picker-card"
@@ -348,7 +380,7 @@ export function BodyZonePickerModal({
 
         </ScrollView>
         </View>
-      </View>
+      </KeyboardAvoidingView>
 
       {longPressTarget ? (
         <ReferenceValueDialog
@@ -385,7 +417,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    height: 56,
+    // Recette 1 (T-61) : hauteur minimale, jamais fixe — le titre agrandi n’est pas rogné.
+    minHeight: 56,
     marginHorizontal: spacing[12],
     paddingHorizontal: 5,
     borderBottomWidth: 1,

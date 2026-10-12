@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Modal,
   Pressable,
@@ -138,6 +138,7 @@ export function ExecutionParametersSheet({
   const single = isSingleSeries(draft);
   const bilateral = isBilateral(draft.sideMode);
   const showVariableTable = draft.variable && !single;
+  const variableGroupFramed = showVariableTable && !isTableFolded;
   const totalEditable = isRequestedTotalEditable(draft);
 
   const validation = commitSheetDraft(draft);
@@ -220,7 +221,7 @@ export function ExecutionParametersSheet({
             >
               <KodjoIcon name="wheel-action-cancel" />
             </Pressable>
-            <Text style={styles.title} accessibilityRole="header" numberOfLines={1}>
+            <Text style={styles.title} accessibilityRole="header">
               {t.title}
             </Text>
             <Pressable
@@ -287,9 +288,11 @@ export function ExecutionParametersSheet({
                 />
               </Row>
 
-              {/* Groupe Séries variables : interrupteur + tableau rattaché (DSF). */}
-              <View style={showVariableTable ? styles.variableGroup : null} testID="execution-sheet-variable-group">
-                {showVariableTable ? null : <Separator indented />}
+              {/* Groupe Séries variables : interrupteur + tableau rattaché (DSF). Le cadre
+                  rattache l’interrupteur au tableau AFFICHÉ : replié, variante figée
+                  « État=Replié, Cadre=Non » (6665:27458) — recette 1, A-05. */}
+              <View style={variableGroupFramed ? styles.variableGroup : null} testID="execution-sheet-variable-group">
+                {variableGroupFramed ? null : <Separator indented />}
                 <View style={[styles.indented, single ? styles.withoutEffect : null]}>
                   <View style={styles.row} testID="execution-sheet-row-variable">
                     <Text style={styles.label}>{t.variable}</Text>
@@ -673,14 +676,18 @@ function DraggableRow({
 }) {
   const number = index + 1;
   // Même mécanique que la Composition : responder natif + état de translation, sans bibliothèque.
-  const [drag, setDrag] = useState<{ readonly startY: number; readonly dy: number } | null>(null);
+  // Le renderer recycle l'événement du responder (`nativeEvent` remis à null
+  // après le gestionnaire) : la position est lue de façon synchrone, jamais
+  // dans une mise à jour d'état différée (recette 1, F-01).
+  const [dragDy, setDragDy] = useState<number | null>(null);
+  const startYRef = useRef<number | null>(null);
   const actions = [
     ...(index > 0 ? [{ name: "moveUp", label: t.moveUp.replace("{n}", String(number)) }] : []),
     ...(index < count - 1 ? [{ name: "moveDown", label: t.moveDown.replace("{n}", String(number)) }] : []),
   ];
   return (
     <View
-      style={[styles.tableRow, drag ? { transform: [{ translateY: drag.dy }] } : null]}
+      style={[styles.tableRow, dragDy !== null ? { transform: [{ translateY: dragDy }] } : null]}
       testID={`execution-sheet-table-row-${number}`}
     >
       <View style={styles.rowNumberColumn}>
@@ -688,17 +695,27 @@ function DraggableRow({
           onStartShouldSetResponder={() => true}
           onMoveShouldSetResponder={() => true}
           onResponderTerminationRequest={() => false}
-          onResponderGrant={(event) => setDrag({ startY: event.nativeEvent.pageY, dy: 0 })}
-          onResponderMove={(event) =>
-            setDrag((current) => (current ? { ...current, dy: event.nativeEvent.pageY - current.startY } : current))
-          }
+          onResponderGrant={(event) => {
+            startYRef.current = event.nativeEvent.pageY;
+            setDragDy(0);
+          }}
+          onResponderMove={(event) => {
+            const startY = startYRef.current;
+            if (startY === null) return;
+            setDragDy(event.nativeEvent.pageY - startY);
+          }}
           onResponderRelease={(event) => {
-            const dy = drag ? event.nativeEvent.pageY - drag.startY : 0;
-            setDrag(null);
+            const startY = startYRef.current;
+            const dy = startY === null ? 0 : event.nativeEvent.pageY - startY;
+            startYRef.current = null;
+            setDragDy(null);
             const to = dragDestination(index, dy, TABLE_ROW_HEIGHT, count);
             if (to !== index) onMove(to);
           }}
-          onResponderTerminate={() => setDrag(null)}
+          onResponderTerminate={() => {
+            startYRef.current = null;
+            setDragDy(null);
+          }}
           accessible
           accessibilityLabel={t.moveHandle.replace("{n}", String(number))}
           accessibilityActions={actions}
@@ -830,7 +847,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    height: 56,
+    // Recette 1 (T-61) : hauteur minimale, jamais fixe — le titre agrandi n’est pas rogné.
+    minHeight: 56,
     paddingHorizontal: spacing[12] + 5,
   },
   title: {

@@ -495,9 +495,11 @@ const styles = StyleSheet.create({
   controlsDisabled: {
     opacity: 0.45,
   },
+  // Cellule à renseigner : contour d’avertissement figé (6665:27232, « Stepper — Cible »
+  // #FF8D28, 1,5) — recette 1, A-02/A-07 ; jamais le rouge danger.
   controlsInvalid: {
-    borderWidth: 1,
-    borderColor: colors.danger,
+    borderWidth: 1.5,
+    borderColor: colors.warning,
   },
   controls: {
     flexDirection: "row",

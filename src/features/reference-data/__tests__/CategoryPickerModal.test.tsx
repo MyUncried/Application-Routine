@@ -336,3 +336,51 @@ describe("CategoryPickerModal — PRE-3", () => {
     expect(screen.getByTestId("category-picker-new-add").props.accessibilityState).toMatchObject({ disabled: true });
   });
 });
+
+describe("CategoryPickerModal — recette 1 F-03 (clavier)", () => {
+  it("la feuille évite le clavier iOS et ramène le formulaire en vue à son ouverture et à l'apparition du clavier", async () => {
+    const { Keyboard, KeyboardAvoidingView, Platform, ScrollView } = jest.requireActual<typeof import("react-native")>("react-native");
+    const scrollToEnd = jest.spyOn(ScrollView.prototype, "scrollToEnd");
+    const listeners: Record<string, () => void> = {};
+    const addListener = jest.spyOn(Keyboard, "addListener").mockImplementation(((event: string, listener: () => void) => {
+      listeners[event] = listener;
+      return { remove: jest.fn() };
+    }) as unknown as typeof Keyboard.addListener);
+    renderModal(fakeReferentialService());
+
+    await screen.findByTestId("category-picker-backdrop");
+    expect(screen.UNSAFE_getByType(KeyboardAvoidingView).props.testID).toBe("category-picker-backdrop");
+    expect(screen.UNSAFE_getByType(KeyboardAvoidingView).props.behavior).toBe(Platform.OS === "ios" ? "padding" : undefined);
+
+    scrollToEnd.mockClear();
+    fireEvent.press(screen.getByTestId("category-picker-create-action"));
+    fireEvent(screen.getByTestId("category-picker-card"), "contentSizeChange", 360, 900);
+    expect(scrollToEnd).toHaveBeenCalled();
+
+    scrollToEnd.mockClear();
+    expect(listeners.keyboardDidShow).toBeDefined();
+    act(() => listeners.keyboardDidShow!());
+    expect(scrollToEnd).toHaveBeenCalled();
+    scrollToEnd.mockRestore();
+    addListener.mockRestore();
+  });
+
+  it("formulaire fermé : aucun défilement forcé de la liste", async () => {
+    const { ScrollView } = jest.requireActual<typeof import("react-native")>("react-native");
+    const scrollToEnd = jest.spyOn(ScrollView.prototype, "scrollToEnd");
+    renderModal(fakeReferentialService());
+    fireEvent(await screen.findByTestId("category-picker-card"), "contentSizeChange", 360, 900);
+    expect(scrollToEnd).not.toHaveBeenCalled();
+    scrollToEnd.mockRestore();
+  });
+});
+
+describe("CategoryPickerModal — recette 1 (T-61)", () => {
+  it("T-61 — texte agrandi : en-tête à hauteur minimale (jamais fixe), titre non limité à une ligne", async () => {
+    renderModal(fakeReferentialService());
+    const header = StyleSheet.flatten((await screen.findByTestId("category-picker-header")).props.style);
+    expect(header.height).toBeUndefined();
+    expect(header.minHeight).toBe(56);
+    expect(screen.getByRole("header").props.numberOfLines).toBeUndefined();
+  });
+});

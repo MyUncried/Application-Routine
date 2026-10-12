@@ -187,7 +187,10 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     const { onApply } = renderSheet(params({ series: variableRows([[30, 10], [null, 20], [60, 30]]) }));
     expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
     expect(screen.getByTestId("execution-sheet-message").props.children).toBe("Série 2 : renseignez la durée.");
-    expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-table-row-2-target").props.style).borderColor).toBe("#D92D20");
+    // Recette 1 (A-02/A-07) : contour figé 6665:27232 (#FF8D28, 1,5) — remplace l’ancien rouge danger (E19, non sourcé v13).
+    const invalidCell = StyleSheet.flatten(screen.getByTestId("execution-sheet-table-row-2-target").props.style);
+    expect(invalidCell.borderColor).toBe("#FF8D28");
+    expect(invalidCell.borderWidth).toBe(1.5);
     expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-table-row-1-target").props.style).borderColor).toBeUndefined();
     expect(text("execution-sheet-total")).toBe("—");
     // Replier ne modifie ni les données ni la validation.
@@ -511,5 +514,101 @@ describe("ExecutionParametersSheet — correction revue 1", () => {
     // (12 + 10) × 2 s + 30 s + 45 s = 119 s.
     expect(text("execution-sheet-total")).toBe("1 min 59 s");
     expect(screen.queryByTestId("execution-sheet-total")).toBeNull();
+  });
+});
+
+describe("ExecutionParametersSheet — recette 1", () => {
+  /**
+   * F-01 : sur iPhone, le renderer recycle l'événement du responder et remet
+   * `nativeEvent` à null dès la fin du gestionnaire. Toute lecture différée
+   * de la position (mise à jour d'état fonctionnelle) levait
+   * « Cannot read properties of null (reading 'pageY') » pendant le rendu et
+   * affichait l'écran « Impossible d'afficher KODJO ». Ce test reproduit ce
+   * recyclage au lieu des objets d'événement durables de fireEvent.
+   */
+  it("F-01 — glisser avec événements recyclés : aucune erreur, la ligne suit le doigt puis cible et Pause se déplacent ensemble", () => {
+    const { onApply } = renderSheet(params({ series: variableRows([[30, 5], [45, 10], [60, 15]]) }));
+    const handle = () => screen.getByTestId("execution-sheet-table-row-1-handle");
+    const recycled = (pageY: number) => ({ nativeEvent: { pageY } as { pageY: number } | null });
+    const dispatch = (name: "onResponderGrant" | "onResponderMove" | "onResponderRelease", pageY: number) =>
+      act(() => {
+        const event = recycled(pageY);
+        handle().props[name](event);
+        event.nativeEvent = null;
+      });
+
+    dispatch("onResponderGrant", 100);
+    dispatch("onResponderMove", 150);
+    expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-table-row-1").props.style).transform).toEqual([
+      { translateY: 50 },
+    ]);
+    dispatch("onResponderMove", 184);
+    dispatch("onResponderRelease", 184);
+
+    expect(valueOf("execution-sheet-table-row-1-target")).toBe("45 s");
+    expect(valueOf("execution-sheet-table-row-3-target")).toBe("30 s");
+    expect(valueOf("execution-sheet-table-row-3-pause")).toBe("5 s");
+    expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-table-row-1").props.style).transform).toBeUndefined();
+    validate();
+    expect(applied(onApply).series).toEqual(variableRows([[45, 10], [60, 15], [30, 5]]));
+  });
+
+  it("F-01 — glisser interrompu par le système : ligne remise en place, aucun déplacement", () => {
+    renderSheet(params({ series: variableRows([[30, 5], [45, 10], [60, 15]]) }));
+    const handle = screen.getByTestId("execution-sheet-table-row-1-handle");
+    act(() => handle.props.onResponderGrant({ nativeEvent: { pageY: 100 } }));
+    act(() => handle.props.onResponderMove({ nativeEvent: { pageY: 190 } }));
+    act(() => handle.props.onResponderTerminate({ nativeEvent: null }));
+    expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-table-row-1").props.style).transform).toBeUndefined();
+    expect(valueOf("execution-sheet-table-row-1-target")).toBe("30 s");
+  });
+
+  it("F-02 — séries variables modifiées puis Durée → Répétitions → Durée (et inverse) avant ✓ : dernières valeurs restaurées, ✓ conserve l'effectif", () => {
+    const { onApply } = renderSheet(params({ series: variableRows([[30, 5], [45, 10], [60, 15]]) }));
+    const rows = () => [1, 2, 3].map((n) => valueOf(`execution-sheet-table-row-${n}-target`));
+    const choose = (label: string) => {
+      if (!screen.queryByTestId("execution-sheet-mode-control")) fireEvent.press(screen.getByTestId("execution-sheet-mode-value"));
+      fireEvent.press(screen.getByText(label));
+    };
+    tap("execution-sheet-table-row-1-target-increment");
+    tap("execution-sheet-table-row-3-target-decrement");
+    const durations = rows();
+    choose("Répétitions");
+    expect(rows()).toEqual(["—", "—", "—"]);
+    tap("execution-sheet-table-row-2-target-increment");
+    const repetitions = rows();
+    choose("Durée");
+    expect(rows()).toEqual(durations);
+    choose("Répétitions");
+    expect(rows()).toEqual(repetitions);
+    choose("Durée");
+    validate();
+    expect(applied(onApply).mode).toBe("DURATION");
+  });
+});
+
+describe("ExecutionParametersSheet — recette 1 (A-05)", () => {
+  it("A-05 — Séries variables actives : cadre du groupe seulement tableau déployé ; replié = variante « Cadre=Non », état variable et lignes conservés", () => {
+    const { onApply } = renderSheet(params({ series: variableRows([[30, 5], [45, 10], [60, 15]]) }));
+    const group = () => StyleSheet.flatten(screen.getByTestId("execution-sheet-variable-group").props.style) ?? {};
+    expect(group().borderWidth).toBe(1.5);
+    fireEvent.press(screen.getByTestId("execution-sheet-table-toggle-frame"));
+    expect(screen.queryByTestId("execution-sheet-table")).toBeNull();
+    expect(group().borderWidth).toBeUndefined();
+    expect(screen.getByTestId("execution-sheet-variable-switch").props.value).toBe(true);
+    fireEvent.press(screen.getByTestId("execution-sheet-table-toggle-frame"));
+    expect(group().borderWidth).toBe(1.5);
+    validate();
+    expect(applied(onApply).series).toEqual(variableRows([[30, 5], [45, 10], [60, 15]]));
+  });
+});
+
+describe("ExecutionParametersSheet — recette 1 (T-61)", () => {
+  it("T-61 — texte agrandi : en-tête à hauteur minimale (jamais fixe) et titre non limité à une ligne", () => {
+    renderSheet(params());
+    const header = StyleSheet.flatten(screen.getByTestId("execution-sheet-header").props.style);
+    expect(header.height).toBeUndefined();
+    expect(header.minHeight).toBe(56);
+    expect(screen.getByText("Paramètres d’exécution").props.numberOfLines).toBeUndefined();
   });
 });

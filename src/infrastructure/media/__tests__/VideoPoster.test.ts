@@ -16,6 +16,8 @@ describe("VideoPoster — PRE-3", () => {
     const play = jest.fn();
     const player = {
       muted: false,
+      status: "readyToPlay" as const,
+      addListener: jest.fn(() => ({ remove: jest.fn() })),
       play,
       generateThumbnailsAsync: jest.fn(async () => [image]),
       release: jest.fn(),
@@ -39,6 +41,8 @@ describe("VideoPoster — PRE-3", () => {
     // Réouverture : nouvelle génération (aucun cache persisté) ; vidéo illisible → null, lecteur libéré.
     const failing: PosterPlayer = {
       muted: false,
+      status: "readyToPlay",
+      addListener: () => ({ remove: () => undefined }),
       generateThumbnailsAsync: async () => {
         throw new Error("unreadable");
       },
@@ -46,5 +50,77 @@ describe("VideoPoster — PRE-3", () => {
     };
     expect(await generateVideoPoster("kodjo-media/broken.mov", () => failing)).toBeNull();
     expect(failing.release).toHaveBeenCalledTimes(1);
+  });
+});
+
+/**
+ * Recette 1 (M-01) — vignette grise permanente : sur iOS, la source d'un
+ * lecteur créé par `createVideoPlayer` est chargée de façon asynchrone et
+ * `generateThumbnailsAsync` renvoie `[]` SANS ERREUR tant que l'élément
+ * courant n'est pas installé (expo-video 57.0.5, VideoModule.swift). Le faux
+ * lecteur ci-dessous reproduit ce contrat natif.
+ */
+describe("VideoPoster — recette 1 (M-01)", () => {
+  type Status = PosterPlayer["status"];
+  function nativeLikePlayer(initial: Status) {
+    let status: Status = initial;
+    let listener: ((payload: { status: Status }) => void) | null = null;
+    const remove = jest.fn(() => {
+      listener = null;
+    });
+    const image = { width: 256, height: 144, release: jest.fn() };
+    const player = {
+      muted: false,
+      get status() {
+        return status;
+      },
+      addListener: jest.fn((_event: "statusChange", next: (payload: { status: Status }) => void) => {
+        listener = next;
+        return { remove };
+      }),
+      generateThumbnailsAsync: jest.fn(async () => (status === "readyToPlay" ? [image] : [])),
+      release: jest.fn(),
+    };
+    const emit = (next: Status) => {
+      status = next;
+      listener?.({ status: next });
+    };
+    return { player, emit, image, remove };
+  }
+
+  it("M-01 — source encore en chargement : l'affiche est générée après readyToPlay (jamais sur un élément absent), abonnement retiré, lecteur libéré", async () => {
+    const { player, emit, image, remove } = nativeLikePlayer("loading");
+    const pending = generateVideoPoster("file:///documents/kodjo-media/v2.mov", () => player);
+    await Promise.resolve();
+    expect(player.generateThumbnailsAsync).not.toHaveBeenCalled();
+    emit("readyToPlay");
+    const handle = await pending;
+    expect(handle?.image).toBe(image);
+    expect(player.generateThumbnailsAsync).toHaveBeenCalledTimes(1);
+    expect(remove).toHaveBeenCalledTimes(1);
+    expect(player.release).toHaveBeenCalledTimes(1);
+  });
+
+  it("M-01 — vidéo illisible (error) ou délai dépassé : aucune affiche, aucune génération, lecteur libéré", async () => {
+    const failing = nativeLikePlayer("loading");
+    const pending = generateVideoPoster("kodjo-media/broken.mov", () => failing.player);
+    await Promise.resolve();
+    failing.emit("error");
+    expect(await pending).toBeNull();
+    expect(failing.player.generateThumbnailsAsync).not.toHaveBeenCalled();
+    expect(failing.player.release).toHaveBeenCalledTimes(1);
+
+    jest.useFakeTimers();
+    try {
+      const stuck = nativeLikePlayer("loading");
+      const waiting = generateVideoPoster("kodjo-media/slow.mov", () => stuck.player, 50);
+      await Promise.resolve();
+      jest.advanceTimersByTime(50);
+      expect(await waiting).toBeNull();
+      expect(stuck.remove).toHaveBeenCalledTimes(1);
+      expect(stuck.player.release).toHaveBeenCalledTimes(1);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });

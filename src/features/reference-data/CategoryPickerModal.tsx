@@ -1,5 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 import {
   isCategoryAssignable,
@@ -40,6 +51,18 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
   const [isNewPaletteOpen, setIsNewPaletteOpen] = useState(false);
   const [longPressTarget, setLongPressTarget] = useState<Category | null>(null);
   const [editTarget, setEditTarget] = useState<Category | null>(null);
+  // Recette 1 (F-03) : le formulaire de création/modification est en bas de la
+  // liste ; il est ramené en vue à son ouverture et à l'apparition du clavier.
+  const scrollRef = useRef<ScrollView>(null);
+  const isEntryFormOpen = isCreating || editTarget !== null;
+  function revealEntryForm() {
+    if (isEntryFormOpen) scrollRef.current?.scrollToEnd({ animated: true });
+  }
+  useEffect(() => {
+    if (!isEntryFormOpen) return;
+    const subscription = Keyboard.addListener("keyboardDidShow", () => scrollRef.current?.scrollToEnd({ animated: true }));
+    return () => subscription.remove();
+  }, [isEntryFormOpen]);
   const [editName, setEditName] = useState("");
   const [editColor, setEditColor] = useState<CategoryColor>(SESSION_COLORS[0]!);
   const [isEditPaletteOpen, setIsEditPaletteOpen] = useState(false);
@@ -157,7 +180,14 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
 
   return (
     <Modal transparent visible animationType="fade" onRequestClose={onClose}>
-      <View style={styles.backdrop} testID="category-picker-backdrop">
+      {/* Recette 1 (F-03) : le clavier ne recouvre jamais la feuille ; le champ actif
+          et ses actions restent visibles (spéc. 06 : « le champ actif et l'action finale
+          restent accessibles »). */}
+      <KeyboardAvoidingView
+        style={styles.backdrop}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        testID="category-picker-backdrop"
+      >
         <View style={styles.card} accessibilityViewIsModal testID="category-picker-sheet">
           <View style={styles.sheetHandle} />
           <View style={styles.sheetHeader} testID="category-picker-header">
@@ -171,12 +201,14 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
             >
               <KodjoIcon name="wheel-action-cancel" />
             </Pressable>
-            <Text style={styles.sheetTitle} accessibilityRole="header" numberOfLines={1}>
+            <Text style={styles.sheetTitle} accessibilityRole="header">
               {strings.executionParameters.referenceSheets.categoryTitle}
             </Text>
             <View style={styles.sheetHeaderSpacer} />
           </View>
         <ScrollView
+          ref={scrollRef}
+          onContentSizeChange={revealEntryForm}
           contentContainerStyle={styles.cardContent}
           keyboardShouldPersistTaps="handled"
           testID="category-picker-card"
@@ -342,7 +374,7 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
 
         </ScrollView>
         </View>
-      </View>
+      </KeyboardAvoidingView>
 
       {longPressTarget ? (
         <ReferenceValueDialog
@@ -379,7 +411,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    height: 56,
+    // Recette 1 (T-61) : hauteur minimale, jamais fixe — le titre agrandi n’est pas rogné.
+    minHeight: 56,
     marginHorizontal: spacing[12],
     paddingHorizontal: 5,
     borderBottomWidth: 1,
