@@ -1335,7 +1335,7 @@ Les21frames suivantes décrivent CE-UI-10 ; elles ne constituent pas21écrans in
 
 ### Sélections, créations de référentiels et confirmations
 
-Sélection simple Catégorie validée au toucher selon D-222 ; Zones multiples avec✓. Une coche de validation encore visible dans la maquette Catégorie est un écart de rendu, pas une nouvelle règle. Création avec clavier et suppression avec confirmation préservent le brouillon d’Exercice. Abandon Annuler conserve le formulaire ; Confirmer le quitte sans sauvegarder.
+Catégorie marquée au toucher puis confirmée par ✓ ; ✕ conserve la Catégorie précédente (D-343, 12/10, remplace pour la Catégorie la validation au toucher de D-222) ; Zones multiples avec✓. Création avec clavier et suppression avec confirmation préservent le brouillon d’Exercice. Abandon Annuler conserve le formulaire ; Confirmer le quitte sans sauvegarder.
 
 #### Ajouter un exercice — Catégories
 

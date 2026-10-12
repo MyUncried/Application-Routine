@@ -148,7 +148,7 @@ Avancement vers l’écran suivant : cible entre depuis la droite, écran couran
 
 Les modales `Étiquettes`, `Catégorie` et `Zones corporelles` partagent le même contrat :
 
-- appui court : choix simple Catégorie/Étiquette validé au toucher et fermeture ; choix multiple Zones sélectionné/désélectionné puis confirmé ;
+- appui court : choix simple Étiquette validé au toucher et fermeture ; Catégorie d’Exercice marquée au toucher puis confirmée par ✓ (D-343) ; choix multiple Zones sélectionné/désélectionné puis confirmé ;
 - appui long : aucun changement de sélection ni désaffectation ; ouverture d’un `Overlay / Decision Dialog` proposant `Modifier` (renommer ; couleur pour Catégorie et Étiquette) et `Supprimer` (D-259) ;
 - titre dynamique : `Supprimer « {nom} » ?` ;
 - message dynamique : si la valeur est utilisée, préciser qu’elle disparaît des nouveaux choix mais reste attachée aux objets existants, avec son nom et sa dernière couleur ; l’historique reste inchangé ;
@@ -3090,7 +3090,7 @@ Accès Catégorie ou Zones depuis éditeur persistant/local, avec brouillon cons
 
 ### 4. Contexte de sortie / destinations
 
-Catégorie choisie au toucher → éditeur ; Zones sélection multiple puis validation de la modale → éditeur ; fermer sans validation restaure sélection antérieure. Création/suppression restent dans la famille de sélection.
+Catégorie marquée au toucher (ou créée par ↑ et marquée), confirmée par ✓ → éditeur ; ✕ conserve la Catégorie précédente, une Catégorie créée reste dans le référentiel (D-343) ; Zones sélection multiple puis validation de la modale → éditeur ; fermer sans validation restaure sélection antérieure. Création/suppression restent dans la famille de sélection.
 
 ### 5. Données affichées et source de vérité
 
@@ -3104,7 +3104,7 @@ Noms et couleurs dynamiques ; dix zones initiales sont un jeu de départ, pas un
 
 ### 7. Structure de l’écran
 
-Modale de choix, création inline avec clavier, palette seulement Catégorie, dialogue destructif centré sur appui long.
+Modale de choix, création inline avec clavier (action ↑ dans le champ), palette seulement Catégorie, dialogue destructif centré sur appui long.
 
 ### 8. Éléments obligatoires
 
@@ -3112,7 +3112,7 @@ Catégorie 1 et Zones≥1 pour nouvel Exercice ; nouvelle valeur nommée ; annul
 
 ### 9. Layout déterministe
 
-Modales D-228 ; pastille Catégorie colorée et nom ; Zones icône silhouette depuis Profil ; palette de 4474:7157. Les Zones n’ont pas de palette.
+Modales D-228 ; pastille Catégorie colorée et nom ; Zones icône silhouette depuis Profil ; palette de 4474:7157 : barre de couleurs sous le champ, sans pastille séparée, 12 couleurs D-026 (D-344). Les Zones n’ont pas de palette.
 
 Actions destructives : token danger#D92D20 ; séparateurs#E0E3E8 et labels par rôle DSF. Aucune reprise des anciens rouges locaux.
 
@@ -3166,7 +3166,7 @@ Vérifier les deux silhouettes et le retour au repos après validation/annulatio
 
 ### 21. Traçabilité
 
-Les6frames de référentiels ont été réexportées et contrôlées le03/10 : rendu identique aux PNG publiés. ✓ sur Catégorie reste un écart à D-222 ; validation simple au toucher conservée. Les paramètres variables du parent sont conservés durant ces opérations.
+Les6frames de référentiels ont été réexportées et contrôlées le03/10 : rendu identique aux PNG publiés. ✓ sur Catégorie : règle depuis D-343 (12/10), qui remplace pour la Catégorie de l’Exercice la validation simple au toucher de D-222. Les paramètres variables du parent sont conservés durant ces opérations.
 
 D-199/D-200/D-210–212/D-222/D-238 ; CE-T03-04 ; frames§1. Renommage et couleur via Modifier du dialogue d’appui long (D-259), composants existants ; rendu prouvé en recette.
 

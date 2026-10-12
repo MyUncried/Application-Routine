@@ -141,3 +141,45 @@ Détail et sources : `consolidation-recette1.md`. Retest : `procedure-retest-rec
 | R-16 | D-256 (décision validée) ; changement de besoin D-1 |
 | R-17 | C-8 : **voile en fondu, corrigé** ; trajectoire de la feuille = D-7 |
 | R-19 | Changement de besoin D-3 |
+
+## 7. Décisions explicites du propriétaire — 12/10/2026
+
+Consignées au registre du projet (`07 – Registre des décisions de conception.md`, section « Recette PRE-3 — décisions du propriétaire — 12/10/2026 »). Ces décisions ne valent pas accord global sur les extensions X-1 à X-4.
+
+| Arbitrage | Décision | N° registre | Réalisation |
+|---|---|---|---|
+| D-1 Pas CR/Fin | A : pas constant de 1 | D-336 | Aucun changement nécessaire (déjà conforme) |
+| D-2 Saisie incomplète | B : messages « Renseignez … » supprimés ; contour orange et ✓ bloqué conservés ; fond rouge reporté (Figma à définir) | D-337 | `4f1feebe`. La valeur à renseigner reste annoncée à VoiceOver sur le réglage (« Valeur à renseigner ») et ✓ « indisponible ». |
+| D-3 Phrase | A : corpus conservé ; pauses variables = évolution ultérieure | D-338 | Aucun changement ; évolution consignée |
+| D-4 Sélecteurs | A : application immédiate, valeur visible, fermeture progressive, « Réduire les animations » | D-339 | `4f1feebe` : cadre 220 ms (convention `SegmentedControl`), puis repli 200 ms |
+| D-5 Ajustement | A : Annuler encadré clair ; Annuler restaure ; toucher le message ferme sans annuler | D-340 | `4f1feebe` : cadre blanc 1, rayon 8 (présentation proposée, absente du figé) |
+| D-6 Options | B : plus petites, Regular, centrées, sans débordement (options seulement) | D-341 | **Bloquée par X-1** (`SegmentedControl.tsx` hors périmètre). Valeurs proposées ci-dessous, non validées. |
+| D-7 Feuille | Voile en fondu sur place, feuille montante ; « Réduire les animations » | D-342 | `f372cc5d` et `4f1feebe` |
+| D-8 Catégorie | B : toucher et ↑ marquent sans fermer ; ✓ confirme et ferme progressivement ; ✕ conserve la précédente | D-343 | `4f1feebe` |
+| D-9 Palette | Barre sous le champ, sans pastille séparée, 12 couleurs | D-344 | Déjà réalisé (`f372cc5d`) |
+
+**D-8, Catégorie créée puis ✕ — vérification du contrat.**
+- CE-UI-09 §4 : « Création/suppression restent dans la famille de sélection » ; la création est une écriture du référentiel faite par ↑ (comportement existant : `createCategory` est immédiat).
+- §5 : les affectations retirées restent conservables.
+- **Conclusion** : ✕ n’annule que l’affectation. La Catégorie créée reste dans le référentiel, sans suppression silencieuse (test « D-8 — ✕ abandons the choice »). Aucune ambiguïté restante.
+- Si un choix non confirmé est supprimé par appui long, le choix revient à la Catégorie actuelle de l’Exercice.
+
+**D-6 — valeurs proposées (non validées), avec leurs références disponibles**
+
+| Sélecteur | Proposition | Référence |
+|---|---|---|
+| Mode d’exécution (Durée, Répétitions, À l’échec) | Inter Regular 14, interligne 17, une ligne, centré | Taille des titres de ligne de la feuille (`type.label` : 14/17, en Medium) ; DSF actuel : Semi Bold 16 (abandonné par D-341) |
+| Changement de côté (Sans changement, Droite puis gauche, Gauche puis droite) | Inter Regular 13, interligne 16, deux lignes, centré ; option de 34 dans un cadre de 42 | Figé 6407-10481 et DSF l.30 (13 px, deux lignes) ; la sélection passe de Medium à Regular (D-341) |
+| Ordre des côtés (deux options) | Titre Inter Regular 14 / interligne 17, sous-titre Inter Regular 11 / interligne 13 (`type.caption`), centrés ; cadre 330×60 | Figé 6665-26185 et DSF l.31 (14/11) ; la sélection passe de Medium à Regular |
+| Tous | Aucune ellipse ; hauteur minimale au lieu d’une hauteur fixe (texte agrandi) | Périmètre l.162, T-61 |
+
+## 8. Extensions techniques encore nécessaires (mise à jour du 12/10)
+
+| # | Objet | Dépend de | Fichiers |
+|---|---|---|---|
+| X-1 | D-341 (valeurs ci-dessus), libellés Côté et Ordre sur deux lignes, Mode affiché vide tant qu’il n’est pas choisi, hauteur minimale, cadre de la variante Paramètres | Approbation de l’extension et des valeurs D-341 | `src/shared/ui/SegmentedControl.tsx`, son test ; standard Catalogue inchangé |
+| X-2 | Icône Catégorie | Approbation, et export du master `icon/categorie` vérifié | asset, `manifest.json`, `KodjoIcon.tsx` |
+| X-3 | Zone de contexte #EAEAFF, fond de groupe #F3F3F6 | Approbation | 2 lignes du chapitre 12 (tokens dans `tokens.ts`, déjà dans le périmètre) |
+| X-4 | Titre d’écran non rogné au texte agrandi | Approbation | `ScreenShell.tsx` (`minHeight`), son test |
+
+**Extension bornée réutilisée** : `CategoriesSaveFlow.integration.test.tsx` et `CompositionExerciseFlow.integration.test.tsx`, déjà ouvertes en revue 1 pour leur harnais et leurs gestes. Seul le geste de confirmation D-8 a été ajouté (✓ après le toucher) ; aucune assertion n’a été modifiée.

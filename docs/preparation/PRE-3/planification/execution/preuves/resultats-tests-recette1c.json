@@ -1,0 +1,293 @@
+{
+ "schema": "kodjo.pre3.recette1.test-results.v1",
+ "step": "decisions-proprietaire-12-10",
+ "code_commit": "4f1feebef8024fb2a8021d8df66594388af312d9",
+ "commands": [
+  {
+   "command": "npx tsc --noEmit -p .",
+   "result": "PASS"
+  },
+  {
+   "command": "npx eslint src app",
+   "result": "PASS"
+  },
+  {
+   "command": "npx jest --json (après mise à jour documentaire)",
+   "result": "PASS",
+   "suites": "97/97",
+   "tests": "1936/1936",
+   "failed": 0
+  },
+  {
+   "command": "verifier-passe2.cjs",
+   "result": "PASS (2143)"
+  },
+  {
+   "command": "obligations tests-and-preservation.json@43e7b344",
+   "result": "442/442 PASS, dont 5 amendées par décision (D-2 : 2 ; D-8 : 3), titres précédents tracés dans couverture-obligations-recette1c.json"
+  },
+  {
+   "command": "controle-portee.cjs --start 9f5cee0e…",
+   "result": "OUTSIDE_APPROVED_SCOPE attendu : 2 suites d’intégration (extension revue 1)"
+  },
+  {
+   "command": "contrôle étendu (controle-portee-recette1c.json)",
+   "result": "PASS, aucun chemin hors périmètre"
+  }
+ ],
+ "amended_obligation_tests": [
+  "P3-16/fold-incomplete (D-2)",
+  "ACCESSIBILITY/sheet-check-cross (D-2)",
+  "P3-20/all-surfaces Catégorie (D-8)",
+  "INTERACTION/category (D-8)",
+  "ACCESSIBILITY/category (D-8)"
+ ],
+ "other_replaced": [
+  "CategoryPickerModal « a tap … selects it and closes » → « D-8 — a tap MARKS … ✓ confirms »",
+  "CategoryPickerModal « creates a new Category … selects it and closes » → « D-8 — ↑ creates … ✓ then assigns »",
+  "P3-11/all-modes-bip et REV-01 : réouverture du sélecteur entre deux choix (D-4), assertions inchangées"
+ ],
+ "tests_mentionnant_les_decisions": [
+  {
+   "file": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+   "test": "ExecutionParametersSheet — PRE-3 P3-16/fold-incomplete — Série 2 incomplète : ✓ grisé, cellule « Série 2 » signalée (aucun message, décision D-2), même tableau replié, données intactes, total —",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+   "test": "ExecutionParametersSheet — PRE-3 ACCESSIBILITY/sheet-check-cross — mode absent ou cible incomplète : Valider annoncé indisponible ; valeur à renseigner annoncée sur le réglage (aucun message, D-2) ; Annuler reste actif",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+   "test": "ExecutionParametersSheet — décisions du propriétaire (12/10) D-4 — Mode, Côté, Ordre : la valeur choisie est appliquée tout de suite, reste visible, puis le sélecteur se replie progressivement (cadre 220 ms puis repli 200 ms)",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+   "test": "ExecutionParametersSheet — décisions du propriétaire (12/10) D-4 / D-7 — « Réduire les animations » : sélecteur refermé sans animation, feuille en place sans montée",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+   "test": "ExecutionParametersSheet — décisions du propriétaire (12/10) D-5 — message d’ajustement : Annuler encadré (cadre clair) restaure ; toucher le reste du message le ferme sans annuler",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+   "test": "CategoryPickerModal — selection (AC873C19CD5A9) D-8 — a tap MARKS the Category without closing; ✓ confirms the assignment then closes",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+   "test": "CategoryPickerModal — create (D2 reactivation) D-8 — ↑ creates the Category and MARKS it as chosen without closing; ✓ then assigns it",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+   "test": "CategoryPickerModal — create (D2 reactivation) D-8 — ✕ abandons the choice: previous Category kept, a Category created in the sheet stays in the referential (never deleted silently)",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+   "test": "CategoryPickerModal — PRE-3 P3-20/all-surfaces — feuille ancrée en bas, voile #1F2129 à 34 %, en-tête ✕ / titre / ✓ (D-8), pastilles 30 rayon 16, action Créer 32",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+   "test": "CategoryPickerModal — PRE-3 INTERACTION/category — sélection marquée au toucher puis confirmée par ✓ (D-8) ; ✕ ferme sans sélectionner",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+   "test": "CategoryPickerModal — PRE-3 ACCESSIBILITY/category — nom et état sélectionné, ✕ et ✓ nommés (D-8), titre en-tête, Ajouter annoncé désactivé sans erreur",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+   "test": "CategoryPickerModal — D-8 et « Réduire les animations » ✓ affecte puis ferme immédiatement, sans animation, quand « Réduire les animations » est actif",
+   "status": "passed"
+  },
+  {
+   "file": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+   "test": "SqliteSessionRepository garde « valeur retirée » côté stockage — Étiquette et Zones (T16, D-210) rejects creating a Session with a retired Label",
+   "status": "passed"
+  },
+  {
+   "file": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+   "test": "SqliteSessionRepository garde « valeur retirée » côté stockage — Étiquette et Zones (T16, D-210) rejects creating an Activity with a retired body zone",
+   "status": "passed"
+  },
+  {
+   "file": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+   "test": "SqliteSessionRepository garde « valeur retirée » côté stockage — Étiquette et Zones (T16, D-210) rejects switching an update to a retired Label, but keeps an already-assigned Label even if it is retired afterwards",
+   "status": "passed"
+  },
+  {
+   "file": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+   "test": "SqliteSessionRepository garde « valeur retirée » côté stockage — Étiquette et Zones (T16, D-210) keeps an already-assigned, now-retired Label unchanged when the update does not touch it",
+   "status": "passed"
+  },
+  {
+   "file": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+   "test": "SqliteSessionRepository garde « valeur retirée » côté stockage — Étiquette et Zones (T16, D-210) rejects adding a NEW retired body zone on update, but keeps an already-assigned Zone even if it is retired afterwards",
+   "status": "passed"
+  },
+  {
+   "file": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+   "test": "SqliteSessionRepository garde « valeur retirée » côté stockage — Étiquette et Zones (T16, D-210) keeps an already-assigned, now-retired body zone unchanged when the update resubmits it unchanged",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/preferences/__tests__/ProfileEditScreen.test.tsx",
+   "test": "ProfileEditScreen opens only the gallery to add a photo; a cancellation never modifies the draft (D-258)",
+   "status": "passed"
+  },
+  {
+   "file": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+   "test": "migrateDatabase migration007 — référentiels persistants additifs (V2-PRE-1) seeds a single Profile row with the four normative defaults (10s / 30s / 10s / 5s, plan §3.2, D-240)",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/preferences/__tests__/ProfileScreen.test.tsx",
+   "test": "ProfileScreen displays a stored Session default above 60 s exactly, disables +, and steps − down to 60 first (D-265)",
+   "status": "passed"
+  },
+  {
+   "file": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+   "test": "SqliteActivityDefinitionRepository T16 — retired category guard (D-210) create(): rejects a reference to a retired category",
+   "status": "passed"
+  },
+  {
+   "file": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+   "test": "SqliteActivityDefinitionRepository T16 — retired category guard (D-210) update(): keeps the already-assigned category even if it has since been retired",
+   "status": "passed"
+  },
+  {
+   "file": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+   "test": "SqliteActivityDefinitionRepository T16 — retired category guard (D-210) update(): rejects switching to a DIFFERENT retired category",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/sessions/__tests__/SessionDraftProvider.test.tsx",
+   "test": "SessionDraftProvider — initialisation depuis le Profil (V2-PRE-2, D-213) initializes a fresh creation draft's Compte à rebours initial / Fin de séance from the Profile's current values, and exposes them via creationBaseline",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/sessions/__tests__/SessionDraftProvider.test.tsx",
+   "test": "SessionDraftProvider — initialisation depuis le Profil (V2-PRE-2, D-213) never re-applies the Profile's values to a draft already modified by the user (no retroactivity)",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/sessions/__tests__/SessionDraftProvider.test.tsx",
+   "test": "SessionDraftProvider — initialisation depuis le Profil (V2-PRE-2, D-213) falls back to the Domain's canonical constants when no ProfileService is available (T19)",
+   "status": "passed"
+  },
+  {
+   "file": "src/shared/ui/__tests__/ProfileStepper.test.tsx",
+   "test": "ProfileStepper — closed state (D-227) shows the label and the confirmed value, replacing nothing until opened",
+   "status": "passed"
+  },
+  {
+   "file": "src/shared/ui/__tests__/ProfileStepper.test.tsx",
+   "test": "ProfileStepper — closed state (D-227) opens on press (only one stepper open at a time, controlled by the caller)",
+   "status": "passed"
+  },
+  {
+   "file": "src/domain/activities/__tests__/ActivityDefinition.test.ts",
+   "test": "sideRecoveryOnSideModeChange (V2-PRE-2, T21, D-213) copies the Profile's current value when activating bilaterality from Sans changement (UNILATERAL) to D→G",
+   "status": "passed"
+  },
+  {
+   "file": "src/domain/activities/__tests__/ActivityDefinition.test.ts",
+   "test": "sideRecoveryOnSideModeChange (V2-PRE-2, T21, D-213) copies the Profile's current value when activating bilaterality from Sans changement (UNILATERAL) to G→D",
+   "status": "passed"
+  },
+  {
+   "file": "src/domain/activities/__tests__/ActivityDefinition.test.ts",
+   "test": "sideRecoveryOnSideModeChange (V2-PRE-2, T21, D-213) never copies the Profile's value for a unilateral creation (no transition — previous equals next)",
+   "status": "passed"
+  },
+  {
+   "file": "src/domain/activities/__tests__/ActivityDefinition.test.ts",
+   "test": "sideRecoveryOnSideModeChange (V2-PRE-2, T21, D-213) keeps the current value unchanged when switching between the two bilateral directions (D→G ↔ G→D)",
+   "status": "passed"
+  },
+  {
+   "file": "src/domain/activities/__tests__/ActivityDefinition.test.ts",
+   "test": "sideRecoveryOnSideModeChange (V2-PRE-2, T21, D-213) keeps the current value unchanged when returning to Sans changement — the value becomes irrelevant but is never reset",
+   "status": "passed"
+  },
+  {
+   "file": "src/domain/activities/__tests__/ActivityDefinition.test.ts",
+   "test": "sideRecoveryOnSideModeChange (V2-PRE-2, T21, D-213) keeps an already-bilateral Exercise's stored value unchanged (no-op transition)",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/reference-data/__tests__/ReferenceValueDialog.test.tsx",
+   "test": "ReferenceValueDialog — long-press menu (D4, D-259) offers exactly Annuler, Modifier, Supprimer, without selecting or deselecting the value",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/reference-data/__tests__/ReferenceValueDialog.test.tsx",
+   "test": "ReferenceValueDialog — long-press menu (D4, D-259) Annuler calls onCancel without touching Modifier/Supprimer",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/reference-data/__tests__/ReferenceValueDialog.test.tsx",
+   "test": "ReferenceValueDialog — long-press menu (D4, D-259) Modifier delegates editing to the caller and never opens the delete confirmation",
+   "status": "passed"
+  },
+  {
+   "file": "src/infrastructure/database/__tests__/SqliteProfileRepository.test.ts",
+   "test": "SqliteProfileRepository returns the singleton Profile with the four normative defaults (plan §3.2, decision D-240)",
+   "status": "passed"
+  },
+  {
+   "file": "src/shared/i18n/index.test.ts",
+   "test": "strings exposes the shared long-press dialog labels Annuler/Modifier/Supprimer (D4, D-259)",
+   "status": "passed"
+  },
+  {
+   "file": "src/domain/sessions/__tests__/SessionDraft.test.ts",
+   "test": "createExerciseDraft uses the explicit postActivityRecoverySeconds provided by the caller — the Profile's current value at creation time (V2-PRE-2, D-171/D-213)",
+   "status": "passed"
+  },
+  {
+   "file": "src/domain/sessions/__tests__/SessionDraft.test.ts",
+   "test": "createEmptyDraft with Profile defaults (V2-PRE-2, D-213) uses the Domain's canonical constants when no defaults are provided (T19)",
+   "status": "passed"
+  },
+  {
+   "file": "src/domain/sessions/__tests__/SessionDraft.test.ts",
+   "test": "createEmptyDraft with Profile defaults (V2-PRE-2, D-213) uses the Profile's current values when provided — a new Session receives Compte à rebours initial and Fin de séance from the Profile",
+   "status": "passed"
+  },
+  {
+   "file": "src/domain/sessions/__tests__/SessionDraft.test.ts",
+   "test": "createEmptyDraft with Profile defaults (V2-PRE-2, D-213) is not considered modified when compared to itself as a baseline (a fresh draft is never dirty)",
+   "status": "passed"
+  },
+  {
+   "file": "src/domain/preferences/__tests__/Profile.test.ts",
+   "test": "createDefaultProfile uses the D-240 normative default Exercise countdown of 10 seconds",
+   "status": "passed"
+  },
+  {
+   "file": "src/domain/preferences/__tests__/Profile.test.ts",
+   "test": "createDefaultProfile uses the D-240 normative default Exercise end of 5 seconds",
+   "status": "passed"
+  },
+  {
+   "file": "src/domain/preferences/__tests__/Profile.test.ts",
+   "test": "profileDurationBounds bounds Session defaults (Compte à rebours initial, Fin de séance) to 0..60 s (D-265)",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/preferences/__tests__/ProfileService.test.ts",
+   "test": "ProfileService.setDefault (bounds enforcement, T1/T2/D1/D-089) clamps a value above the upper bound (Session defaults, 0..60 s, D-265)",
+   "status": "passed"
+  }
+ ],
+ "note": "tests_mentionnant_les_decisions : tous les tests dont le nom cite une décision D-2/D-4/D-5/D-8 ou « Réduire les animations » (ajoutés ou amendés), relevés automatiquement"
+}
