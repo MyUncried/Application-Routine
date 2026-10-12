@@ -485,6 +485,11 @@ export function ExecutionParametersSheet({
                         update(setVariable(draft, next));
                       }}
                       trackColor={{ false: colors.disabled, true: colors.selection }}
+                      // Recette 3 (T-53) : le Switch iOS de React Native impose
+                      // `alignSelf: "flex-start"` (Libraries/Components/Switch/Switch.js), qui
+                      // l’emporte sur `alignItems: "center"` de la ligne et le colle en haut.
+                      // Recentré verticalement sur la ligne (libellé et séparateurs).
+                      style={styles.variableSwitch}
                       accessibilityLabel={single ? `${t.variable}, ${t.disabledSuffix}` : t.variable}
                       testID="execution-sheet-variable-switch"
                     />
@@ -1145,6 +1150,9 @@ const styles = StyleSheet.create({
   },
   indented: {
     marginLeft: INDENT,
+  },
+  variableSwitch: {
+    alignSelf: "center",
   },
   withoutEffect: {
     opacity: 0.45,

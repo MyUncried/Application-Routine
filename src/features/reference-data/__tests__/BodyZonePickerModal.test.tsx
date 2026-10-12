@@ -351,3 +351,37 @@ describe("body-zone-picker — recette 2 (N-01/N-02 : clavier)", () => {
     spy.mockRestore();
   });
 });
+
+describe("BodyZonePickerModal — recette 3 (N-02 : ↑ ne ferme pas le clavier)", () => {
+  it("N-02 — ↑ crée la Zone sans démonter le formulaire (même champ, clavier conservé), l’ajoute à la sélection, vide le nom ; une seule création", async () => {
+    let resolveCreate: (value: unknown) => void = () => {};
+    const service = fakeReferentialService({
+      createBodyZone: jest.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveCreate = resolve;
+          }),
+      ) as unknown as ReferentialService["createBodyZone"],
+    });
+    const onConfirm = jest.fn();
+    const onClose = jest.fn();
+    renderModal(service, { selectedIds: [], onConfirm, onClose });
+    fireEvent.press(await screen.findByTestId("body-zone-picker-create-action"));
+    const input = screen.getByTestId("body-zone-picker-new-name-input");
+    fireEvent.changeText(input, "Avant-bras");
+
+    fireEvent.press(screen.getByTestId("body-zone-picker-new-add"));
+    fireEvent.press(screen.getByTestId("body-zone-picker-new-add"));
+    await act(async () => {
+      resolveCreate({ status: "OK", value: aZone({ id: "new-zone", name: "Avant-bras", canonicalKey: "avant-bras" }) });
+    });
+    expect(service.createBodyZone).toHaveBeenCalledTimes(1);
+
+    expect(screen.getByTestId("body-zone-picker-new-row")).toBeTruthy();
+    expect(screen.getByTestId("body-zone-picker-new-name-input")).toBe(input);
+    expect(screen.getByTestId("body-zone-picker-new-name-input").props.value).toBe("");
+    expect(screen.getByTestId("body-zone-picker-new-add").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(onConfirm).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+});

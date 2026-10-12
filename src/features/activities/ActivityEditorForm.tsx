@@ -373,12 +373,28 @@ export function ActivityEditorForm({
               }}
               style={[
                 styles.instructionInput,
+                styles.instructionInputWithSend,
                 isDescriptionFocused && bodyHeight > 0
                   ? { maxHeight: Math.max(DESCRIPTION_MIN_FOCUSED_HEIGHT, bodyHeight - DESCRIPTION_KEYBOARD_GAP * 2) }
                   : null,
               ]}
               testID="exercise-instruction-input"
             />
+            {/* Recette 3 (N-05) : ↑ dans le champ pendant la saisie — le texte est déjà
+                dans le brouillon ; ↑ ferme seulement le clavier (aucun enregistrement,
+                Terminer inchangé). Retour à la ligne : reste un retour à la ligne. */}
+            {isDescriptionFocused ? (
+              <Pressable
+                onPress={() => Keyboard.dismiss()}
+                accessibilityRole="button"
+                accessibilityLabel={card.descriptionSubmitAccessibilityLabel}
+                hitSlop={(minTouchTarget - DESCRIPTION_SEND_SIZE) / 2}
+                style={styles.descriptionSend}
+                testID="exercise-instruction-submit"
+              >
+                <Text style={styles.descriptionSendSymbol}>↑</Text>
+              </Pressable>
+            ) : null}
           </View>
 
           <View style={styles.section} testID="activity-editor-section-media">
@@ -561,6 +577,8 @@ function useMediaImport(
 
 /** N-05 : marge entre le bas de la Description et le clavier pendant la saisie. */
 const DESCRIPTION_KEYBOARD_GAP = 12;
+/** Recette 3 (N-05) : bouton d’envoi standard des champs (32, comme « Saisie inline »). */
+const DESCRIPTION_SEND_SIZE = 32;
 /** N-05 : hauteur minimale conservée au champ borné pendant la saisie. */
 const DESCRIPTION_MIN_FOCUSED_HEIGHT = 88;
 
@@ -758,6 +776,26 @@ const styles = StyleSheet.create({
   },
   section: {
     gap: spacing[8],
+  },
+  // Recette 3 (N-05) : place réservée à ↑ (le texte ne passe jamais dessous).
+  instructionInputWithSend: {
+    paddingRight: DESCRIPTION_SEND_SIZE + spacing[8] * 2,
+  },
+  // Le champ est le dernier enfant de sa section : ↑ s’ancre dans son coin bas droit.
+  descriptionSend: {
+    position: "absolute",
+    right: spacing[8],
+    bottom: spacing[8],
+    width: DESCRIPTION_SEND_SIZE,
+    height: DESCRIPTION_SEND_SIZE,
+    borderRadius: DESCRIPTION_SEND_SIZE / 2,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primary,
+  },
+  descriptionSendSymbol: {
+    ...type.button,
+    color: colors.background,
   },
   instructionInput: {
     ...type.exerciseFieldValue,

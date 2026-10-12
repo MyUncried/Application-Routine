@@ -496,3 +496,40 @@ describe("category-picker — recette 2 (N-01/N-02 : clavier)", () => {
     spy.mockRestore();
   });
 });
+
+describe("CategoryPickerModal — recette 3 (N-01 : ↑ ne ferme pas le clavier)", () => {
+  it("N-01 — ↑ crée la Catégorie sans démonter le formulaire (même champ, clavier conservé), vide le nom, une seule création, ni affectation ni fermeture", async () => {
+    let resolveCreate: (value: unknown) => void = () => {};
+    const service = fakeReferentialService({
+      createCategory: jest.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveCreate = resolve;
+          }),
+      ) as unknown as ReferentialService["createCategory"],
+    });
+    const onSelect = jest.fn();
+    const onClose = jest.fn();
+    renderModal(service, { onSelect, onClose });
+    fireEvent.press(await screen.findByTestId("category-picker-create-action"));
+    const input = screen.getByTestId("category-picker-new-name-input");
+    fireEvent.changeText(input, "Danse");
+
+    // Appuis répétés pendant l’écriture : une seule création.
+    fireEvent.press(screen.getByTestId("category-picker-new-add"));
+    fireEvent.press(screen.getByTestId("category-picker-new-add"));
+    await act(async () => {
+      resolveCreate({ status: "OK", value: aCategory({ id: "new-cat", name: "Danse", isPredefined: false, displayOrder: null }) });
+    });
+    expect(service.createCategory).toHaveBeenCalledTimes(1);
+
+    // Le formulaire reste ouvert, avec le MÊME champ (jamais démonté → le focus et le clavier restent).
+    expect(screen.getByTestId("category-picker-new-row")).toBeTruthy();
+    expect(screen.getByTestId("category-picker-new-name-input")).toBe(input);
+    expect(screen.getByTestId("category-picker-new-name-input").props.value).toBe("");
+    // Nom vidé : ↑ inactif, un nouvel appui ne crée rien.
+    expect(screen.getByTestId("category-picker-new-add").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+});

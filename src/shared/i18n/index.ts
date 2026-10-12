@@ -12,6 +12,8 @@ const executionParameters = {
     title: "Paramètres d’exécution",
     chooseMode: "Choisir un mode",
     descriptionPlaceholder: "Décrivez ce qu’il faut faire, comment, et avec quoi",
+    // Recette 3 (N-05) : action ↑ du champ Description.
+    descriptionSubmitAccessibilityLabel: "Valider la description",
     openAccessibilityLabel: "Modifier les paramètres d’exécution",
     incomplete: "Paramètres à compléter.",
     countdown: "Compte à rebours",

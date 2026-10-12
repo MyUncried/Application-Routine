@@ -825,3 +825,22 @@ describe("ExecutionParametersSheet — recette 2 (T-15)", () => {
     expect(valueOf("execution-sheet-table-row-1-target")).toBe("30 s");
   });
 });
+
+describe("ExecutionParametersSheet — recette 3 (T-53 : interrupteur Séries variables)", () => {
+  it("T-53 — l’interrupteur iOS est centré sur la ligne (le Switch RN impose alignSelf flex-start) : désactivé, activé déployé, activé replié", () => {
+    renderSheet(params({ series: { kind: "UNIFORM", count: 2, target: 30, pauseSeconds: 10 } }));
+    const check = () => {
+      const row = StyleSheet.flatten(screen.getByTestId("execution-sheet-row-variable").props.style);
+      expect(row).toMatchObject({ flexDirection: "row", alignItems: "center", minHeight: 42 });
+      // Style réellement transmis au composant natif iOS (après composition par Switch.js).
+      expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-variable-switch").props.style).alignSelf).toBe("center");
+    };
+    check();
+    fireEvent(screen.getByTestId("execution-sheet-variable-switch"), "valueChange", true);
+    expect(screen.getByTestId("execution-sheet-table")).toBeTruthy();
+    check();
+    fireEvent.press(screen.getByTestId("execution-sheet-table-toggle-frame"));
+    expect(screen.queryByTestId("execution-sheet-table")).toBeNull();
+    check();
+  });
+});

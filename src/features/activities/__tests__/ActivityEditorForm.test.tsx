@@ -530,3 +530,38 @@ describe("ActivityEditorForm — recette 2 (N-05 : Description et clavier)", () 
     addListener.mockRestore();
   });
 });
+
+describe("ActivityEditorForm — recette 3 (N-05 : ↑ dans la Description)", () => {
+  it("N-05 — ↑ visible dans le champ pendant la saisie, nommé ; il ferme le clavier sans enregistrer ; texte multiligne conservé ; retour à la ligne inchangé", () => {
+    const { Keyboard } = jest.requireActual<typeof import("react-native")>("react-native");
+    const dismiss = jest.spyOn(Keyboard, "dismiss").mockImplementation(() => {});
+    const onFinish = jest.fn();
+    render(<Harness onFinish={onFinish} />);
+    const input = () => screen.getByTestId("exercise-instruction-input");
+
+    // Hors saisie : pas de ↑ ; la place du bouton est réservée (le texte ne change pas de largeur au focus).
+    expect(screen.queryByTestId("exercise-instruction-submit")).toBeNull();
+    const reserved = StyleSheet.flatten(input().props.style).paddingRight as number;
+    expect(reserved).toBeGreaterThanOrEqual(32 + 16);
+
+    fireEvent(input(), "focus");
+    fireEvent.changeText(input(), "Ligne 1\nLigne 2");
+    const send = screen.getByTestId("exercise-instruction-submit");
+    expect(send.props.accessibilityLabel).toBe("Valider la description");
+    expect(within(screen.getByTestId("exercise-section-description")).getByTestId("exercise-instruction-submit")).toBe(send);
+    expect(StyleSheet.flatten(send.props.style)).toMatchObject({ position: "absolute", width: 32, height: 32, borderRadius: 16 });
+    expect(StyleSheet.flatten(input().props.style).paddingRight).toBe(reserved);
+    // Description reste multiligne : la touche Retour n’est jamais une validation.
+    expect(input().props.multiline).toBe(true);
+    expect(input().props.onSubmitEditing).toBeUndefined();
+
+    fireEvent.press(send);
+    expect(dismiss).toHaveBeenCalledTimes(1);
+    expect(onFinish).not.toHaveBeenCalled();
+    fireEvent(input(), "blur");
+    expect(screen.queryByTestId("exercise-instruction-submit")).toBeNull();
+    expect(input().props.value).toBe("Ligne 1\nLigne 2");
+    expect(screen.getByTestId("test-finish-slot")).toBeTruthy();
+    dismiss.mockRestore();
+  });
+});

@@ -57,6 +57,9 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
   const [closing] = useState(() => new Animated.Value(1));
   const [isConfirming, setIsConfirming] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  // Recette 3 (N-01/N-02) : une seule création en vol ; des appuis répétés sur ↑
+  // pendant l’écriture ne créent jamais de doublon.
+  const isCreateInFlightRef = useRef(false);
   const [newName, setNewName] = useState("");
   const [newColor, setNewColor] = useState<CategoryColor>(SESSION_COLORS[0]!);
   const [longPressTarget, setLongPressTarget] = useState<Category | null>(null);
@@ -136,11 +139,15 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
   }
 
   async function handleCreate() {
+    if (isCreateInFlightRef.current) {
+      return;
+    }
     const validated = validateCategoryName(newName);
     if (!validated.ok) {
       return;
     }
     setWriteError(false);
+    isCreateInFlightRef.current = true;
     try {
       const result = await referentialService.createCategory({ name: validated.value, color: newColor });
       if (result.status === "DUPLICATE") {
@@ -148,7 +155,8 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
         return;
       }
       reload();
-      setIsCreating(false);
+      // Recette 3 (N-01/N-02) : le formulaire reste ouvert après ↑ — son champ garde
+      // le focus, donc le clavier reste affiché ; le nom est vidé comme avant.
       setNewName("");
       setDuplicateError(false);
       if (result.status === "OK") {
@@ -159,6 +167,8 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
     } catch (error) {
       console.error("La Catégorie n'a pas pu être créée.", error);
       setWriteError(true);
+    } finally {
+      isCreateInFlightRef.current = false;
     }
   }
 

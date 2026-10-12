@@ -54,6 +54,9 @@ export function BodyZonePickerModal({
   const [zones, setZones] = useState<readonly BodyZone[] | null>(null);
   const [working, setWorking] = useState<readonly string[]>(selectedIds);
   const [isCreating, setIsCreating] = useState(false);
+  // Recette 3 (N-01/N-02) : une seule création en vol ; des appuis répétés sur ↑
+  // pendant l’écriture ne créent jamais de doublon.
+  const isCreateInFlightRef = useRef(false);
   const [newName, setNewName] = useState("");
   const [longPressTarget, setLongPressTarget] = useState<BodyZone | null>(null);
   const [editTarget, setEditTarget] = useState<BodyZone | null>(null);
@@ -131,11 +134,15 @@ export function BodyZonePickerModal({
   }
 
   async function handleCreate() {
+    if (isCreateInFlightRef.current) {
+      return;
+    }
     const validated = validateBodyZoneName(newName);
     if (!validated.ok) {
       return;
     }
     setWriteError(false);
+    isCreateInFlightRef.current = true;
     try {
       const result = await referentialService.createBodyZone({ name: validated.value });
       if (result.status === "DUPLICATE") {
@@ -143,7 +150,8 @@ export function BodyZonePickerModal({
         return;
       }
       reloadAndNotify();
-      setIsCreating(false);
+      // Recette 3 (N-01/N-02) : le formulaire reste ouvert après ↑ — son champ garde
+      // le focus, donc le clavier reste affiché ; le nom est vidé comme avant.
       setNewName("");
       setDuplicateError(false);
       if (result.status === "OK") {
@@ -154,6 +162,8 @@ export function BodyZonePickerModal({
     } catch (error) {
       console.error("La Zone n'a pas pu être créée.", error);
       setWriteError(true);
+    } finally {
+      isCreateInFlightRef.current = false;
     }
   }
 
