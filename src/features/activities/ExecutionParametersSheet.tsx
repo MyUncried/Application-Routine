@@ -270,12 +270,14 @@ export function ExecutionParametersSheet({
       sheetEntry.setValue(0);
       return;
     }
-    Animated.timing(sheetEntry, {
+    const animation = Animated.timing(sheetEntry, {
       toValue: 0,
       duration: SHEET_ENTRY_DURATION_MS,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
-    }).start();
+    });
+    animation.start();
+    return () => animation.stop();
   }, [sheetEntry, reduceMotion]);
 
   useEffect(() => {

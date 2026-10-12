@@ -100,11 +100,13 @@ export function SegmentedControl<T extends string>({
       hasMeasuredRef.current = true;
       return;
     }
-    Animated.timing(indicatorPosition, {
+    const animation = Animated.timing(indicatorPosition, {
       toValue: selectedIndex,
       duration: 220,
       useNativeDriver: false,
-    }).start();
+    });
+    animation.start();
+    return () => animation.stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedIndex]);
 
