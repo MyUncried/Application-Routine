@@ -1,0 +1,47 @@
+{
+  "commit": "ee32191a2ae441b230062dd0572ec40835265a05",
+  "compatibility": {
+    "build8_58bbc3bc": "OTA_COMPATIBLE",
+    "build7_9f5cee0e": "OTA_COMPATIBLE",
+    "native_sensitive_files": []
+  },
+  "servedManifest": {
+    "http": 200,
+    "servedId": "01a1314e-800e-709a-b3ed-90bc15fdefe9"
+  },
+  "assets": {
+    "total": 57,
+    "ok": 57,
+    "bad": [],
+    "launchAsset": {
+      "key": "805feaf04361a035f284c531c9e3d3c6",
+      "ext": "application/javascript",
+      "http": 200,
+      "bytes": 2819860,
+      "hashOk": true,
+      "launch": true
+    }
+  },
+  "bundleMarkers": {
+    "composition-context-band-halo": 1,
+    "composition-context-band-fade": 1,
+    "exercise-instruction-submit": 1,
+    "updates-diagnostic": 3
+  },
+  "tests": {
+    "suites": "98/98",
+    "tests": "1956/1956",
+    "obligations43e7b344": "442/442",
+    "tsc": "PASS",
+    "eslint": "PASS",
+    "mutation": "T-49 Composition et REWORK09 révisé rouges sur l’original"
+  },
+  "scope": {
+    "authorization": "EXT-R3-2, Hermann 12/10",
+    "paths": [
+      "src/features/sessions/CompositionScreen.tsx",
+      "src/features/sessions/__tests__/CompositionScreen.test.tsx"
+    ]
+  },
+  "checkedAt": "2026-10-12T18:10:12.740Z"
+}

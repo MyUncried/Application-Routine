@@ -820,7 +820,7 @@ Les contraintes de contexte déjà validées restent applicables ; les noms ci-d
 | Action basse de modale | Référence conservée par contrat ; ancien nom de provenance : `Modal / Bottom Action` | `378 × 70`, bouton `354 × 48`, libellé d’instance |
 | Sélection | Référence conservée par contrat ; ancien nom de provenance : `Forms / Select Field — Source exact` | `Size=Full/Compact/Compact narrow`, hauteur `42` |
 | Pickers | Référence conservée par contrat ; ancien nom de provenance : `Picker / Popover — Source exact` (`2537:1174`) | `Type=Duration` (`2537:1110`), `Type=Numeric wheel` (`3210:49`), `Type=Time` (`2884:4415`) ou Date selon contrat ; les variantes numériques ouvertes sont rendues dans un overlay d’écran centré, jamais dans le flux ou le `ScrollView` hôte |
-| Nom de séance | Référence conservée par contrat ; ancien nom de provenance : `Session / Name Field — Source exact` (`2537:1480`) | `354 × 42`, fond transparent, liseré blanc intérieur `1` |
+| Nom de séance | Référence conservée par contrat ; ancien nom de provenance : `Session / Name Field — Source exact` (`2537:1480`) | `354 × 42`, fond transparent, sans liseré (D-352 ; liseré blanc `1` historique) |
 | Catalogue | Famille Cartes courante (voir ci-dessus) ; Ressenti selon contrat | Contexte=Catalogue ; Séance Replié/Archivé/Déployé, Exercice Replié/Archivé ; variante Exercice Déployé historique hors MVP ; classement en pastilles, valeurs nues ; gouttière Exercice permanente (D-260/D-261) |
 | Calendrier | Famille Cartes courante (voir ci-dessus) ; Ressenti selon contrat | Contexte=Calendrier Semaine ; états réellement présents selon inventaire du complément |
 | Suivi | Famille Cartes courante (voir ci-dessus) ; Ressenti selon contrat | Contexte=Suivi ; carte 67 px à deux lignes, statut en haut à droite, Ressenti indicateur 20 × 20 en bas à droite ; aucun déploiement (D-262) |
@@ -882,7 +882,7 @@ Les noms avec barre oblique, par exemple `color/primary`, sont les noms physique
 | `color.wheelActionConfirmBackground` | `#0508E5` | Cercle de confirmation d’une roulette ; alias de `color.primary` |
 | `color.wheelActionCancelIcon` | `#141414` | Croix d’annulation ; alias de `color.textPrimary` |
 | `color.wheelActionConfirmIcon` | `#FFFFFF` | Coche de confirmation sur fond primaire |
-| `color.sessionNameBorder` | `#FFFFFF` | Liseré du champ `Nom de la séance` sur la surface colorée de Composition ; variable Figma `color/session-name-border` |
+| `color.sessionNameBorder` | `#FFFFFF` | Liseré du champ `Nom de la séance` sur la surface colorée de Composition ; variable Figma `color/session-name-border`. **Sans consommateur depuis D-352** (liseré retiré) ; conservé déclaré |
 | `color.mediaSurface` | `#F5F7FA` | Alias conservé de surface ; anciennes valeurs F6F6FF historiques |
 | `color.mediaBorder` | `#CDCEFA` | Bordure des aperçus Média ; variable sémantique Figma `color/media/border`, alias exact de la primitive `color/media/border-CDCEFA` |
 | `color.overlayScrim` | `rgba(31, 33, 41, 0.34)` | Voile unique de tous les dialogues, feuilles, roues et modales, y compris CE-UI-10 ; variable sémantique Figma `color/overlay/scrim`, alias exact de la primitive `color/overlay/scrim-1F2129-34`. Appliqué dans le code à tous les voiles existants par le complément d’alignement du 07/10 (ajout A) ; l’ancienne valeur de code `rgba(20, 20, 20, 0.5)` est historique |
@@ -1105,9 +1105,9 @@ Les valeurs historiques `9`, `9,4` et `18,8` utilisées comme rayons fixes ont �
 | Action de roulette | Cible tactile `48 × 48` ; cercle visuel `38 × 38` ; icône `24 × 24` ; Annuler à gauche et Confirmer à droite dans la barre supérieure ; cadre de mise en page `48 × 53` autorisé pour les marges, sans modification de la cible tactile |
 | Sélection de roulette à deux colonnes | Deux cadres gris séparés de `56 × 34`, rayon `17`, couvrant uniquement les chiffres ; unités hors cadres |
 | Dialogue de décision | Largeur `354`, rayon `18`, centré ; actions `147 × 48` avec écart horizontal `12`; variante trois choix avec `Annuler` `306 × 48` sur une seconde ligne, écart vertical `12` |
-| Champ Nom de la séance | `354 × 42`, fond transparent, liseré blanc intérieur `1`; token `color.sessionNameBorder` |
+| Champ Nom de la séance | `354 × 42`, fond transparent, sans liseré (D-352) ; zone de contexte avec courbe sous Retour et fondu inférieur (D-352) |
 | Bandeau contextuel Exercice | `402 × 115`, accolé à la ligne basse de l’en-tête ; contexte Inter Regular `14/17` ; padding supérieur `spacing/12`, espacement contexte/champ `spacing/24`, padding inférieur `spacing/16` explicitement porté par le shell |
-| Champ Nom de l’Exercice | Largeur utile `354`, hauteur visuelle `46`, fond transparent, liseré blanc intérieur `1`; valeur en token canonique `KODJO / Screen title` (`20/24`, Semi Bold), identique au champ `Nom de la séance` |
+| Champ Nom de l’Exercice | Largeur utile `354`, hauteur visuelle `46`, fond transparent, sans liseré (D-348) ; valeur en token canonique `KODJO / Screen title` (`20/24`, Semi Bold), identique au champ `Nom de la séance` |
 | Synthèse de l’Exercice | Largeur utile `354`, texte `KODJO / Body` (`14/20`), cadre extensible ; espacement vertical `spacing/24` avant l’action finale |
 | Tag de Catégorie | Composant DSF `DSF / Status & Tags / Catégorie sélectionnable` (`5548:10518`) (`3302:4166`) ; `State=Unselected/Selected` ; cible tactile de hauteur `48`, pilule visuelle de hauteur `30` centrée dans la cible, rayon `15`, libellé Inter Regular `12/15`; rangées espacées sur un pas minimal de `48` afin que les cibles ne se chevauchent pas ; largeur adaptée au libellé dans la largeur utile |
 | Conteneur Circuit | Largeur `374` ; hauteur `54` fermé ou `175` déployé ; en-tête intérieur `354 × 34` avec marges externes de `10` |
