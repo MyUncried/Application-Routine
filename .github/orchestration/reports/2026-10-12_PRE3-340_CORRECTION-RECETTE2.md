@@ -95,3 +95,18 @@
 ## Commit final et état Git
 
 Commit de code `2f7ab292`. La publication, la vérification distante et la mise à jour OTA sont consignées dans la section « Publication » ajoutée après leur exécution.
+
+## Publication
+
+| Étape | Résultat |
+|---|---|
+| Publication Git | Sans force : `b1399804..a12bb92f` (`2f7ab292` code, `a12bb92f` documentation) |
+| Vérification GitHub (API) | `branches/feat/pre3-exercice-20261009` → `a12bb92f2cfa179f3aea09dc9f2b3aac74985aee` ; `compare 2f7ab292...branche` : ahead 1, behind 0 |
+| Compatibilité | Build iOS **7** (`e1deb07e-3f67-43d3-9d34-9b15147af94b`, `9f5cee0e`, runtime 1.1.0) : `OTA_COMPATIBLE`, aucun fichier natif ; **aucun nouveau build** |
+| Mise à jour publiée | **`01a12fae-53ec-72ca-b260-4e89a5f74e96`**, groupe `4d709de1-d9f2-44b3-9c4f-f035a102ca48`, canal `review`, runtime 1.1.0, `gitCommitHash` **`a12bb92f2cfa179f3aea09dc9f2b3aac74985aee`**, https://u.expo.dev/update/01a12fae-53ec-72ca-b260-4e89a5f74e96 |
+| Vérification effective | Manifeste demandé comme l’iPhone (`ios`, `1.1.0`, `review`) : HTTP 200, id `01a12fae-…` ; `update:list --branch review` : c’est la plus récente. Preuves : `publication-ota-recette2.json`, `compatibilite-ota-recette2.json`, `verification-manifeste-ota-recette2.json`. |
+| Correspondance | Build 7 + OTA `01a12fae…` = code de `a12bb92f` (code identique à `2f7ab292`) |
+
+Le commit qui ajoute cette section est documentaire seulement.
+
+**Prochaine action** : retest R2-01 à R2-11 par Hermann ; ses réponses sur T-53, T-58 (opacité) et EXT-R2-A/B/C ; ensuite, une seconde revue indépendante (ChatGPT). Aucune opération en cours.
