@@ -162,14 +162,6 @@ function useLabelsReferential(
   return labels;
 }
 
-/**
- * Hauteur du séparateur sous l'en-tête (`ScreenShell.tsx`, `HeaderSeparator`,
- * `styles.separator.height`) — reprise ici en constante, même disclosure que
- * `CatalogueCreateOptions.tsx` (valeur non exportée par `ScreenShell.tsx`),
- * pour composer `addActivityTreeTop` (VISUAL_CORRECTION, revue indépendante
- * 5753653735, point 7).
- */
-const HEADER_SEPARATOR_HEIGHT = 1;
 
 /**
  * Recette 3 (T-49, EXT-R3-2) : valeurs reprises de la zone de contexte de l’éditeur
@@ -307,13 +299,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const [isAddActivityTreeOpen, setIsAddActivityTreeOpen] = useState(false);
   // VISUAL_CORRECTION (revue indépendante 5753653735, point 7) : même
   // calcul que `CatalogueCreateOptions.menuTop` — la hauteur RÉELLE cumulée
-  // de l'en-tête fixe, de son séparateur et de la bande Context, jamais
-  // seulement `contextBand.height` (qui plaçait l'arbre ~100 pt trop haut,
-  // chevauchant l'en-tête).
+  // de l'en-tête fixe et de la bande Context, jamais seulement
+  // `contextBand.height` (qui plaçait l'arbre ~100 pt trop haut, chevauchant
+  // l'en-tête). Recette 3 (D-353) : plus de séparateur entre les deux.
   const addActivityTreeTop =
     insets.top +
     dimensions.header.contentHeight +
-    HEADER_SEPARATOR_HEIGHT +
     dimensions.contextBand.height +
     spacing[8];
   // T02-S01 : une seule carte à la fois révèle ses actions glissées, et une
@@ -543,7 +534,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         onBack={() => router.back()}
         backAccessibilityLabel={composition.backAccessibilityLabel}
       />
-      <HeaderSeparator />
+      {/* Recette 3 (T-49, EXT-R3-2, D-353) : plus de trait gris entre l’en-tête et la
+          zone de contexte — la courbe blanche sous Retour s’y raccorde directement. */}
 
       <ContextBand>
         {/* Recette 3 (T-49, EXT-R3-2 autorisée par Hermann le 12/10) : mêmes effets que
@@ -2334,9 +2326,9 @@ const styles = StyleSheet.create({
     borderRadius: BACK_HALO_DIAMETER / 2,
     backgroundColor: colors.background,
     // Centre = centre du bouton Retour de l’en-tête partagé (marge 24, cercle 38, centré
-    // dans la hauteur de contenu 48), au-dessus du séparateur d’en-tête conservé (1).
+    // dans la hauteur de contenu 48 juste au-dessus de la zone, sans séparateur — D-353).
     left: spacing[24] + dimensions.backAction.visualCircle / 2 - BACK_HALO_DIAMETER / 2,
-    top: -HEADER_SEPARATOR_HEIGHT - dimensions.header.contentHeight / 2 - BACK_HALO_DIAMETER / 2,
+    top: -dimensions.header.contentHeight / 2 - BACK_HALO_DIAMETER / 2,
   },
   nameInput: {
     ...type.screenTitle,

@@ -413,7 +413,8 @@ describe("CompositionScreen — état initial", () => {
     const tree = screen.getByTestId("composition-add-activity-tree");
     const flattenedTop = StyleSheet.flatten(tree.props.style).top as number;
     // Insets de test (`TestSafeAreaProvider`) : `top: 47`.
-    const expectedTop = 47 + dimensions.header.contentHeight + 1 + dimensions.contextBand.height + spacing[8];
+    // Recette 3 (D-353) : plus de séparateur de 1 entre l’en-tête et la bande (auparavant « + 1 »).
+    const expectedTop = 47 + dimensions.header.contentHeight + dimensions.contextBand.height + spacing[8];
     expect(flattenedTop).toBe(expectedTop);
 
     const scrim = screen.getByTestId("composition-add-activity-tree-backdrop");
@@ -890,7 +891,7 @@ function walk(node: any, visit: (node: any) => void): void {
 }
 
 describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06, correction consolidée 2026-09-03)", () => {
-  it("CMP-01 — Header (Shell Foundation partagé) shows the static title with a Retour circle, never replaced by the typed name; separator and Context band are distinct from the general background", () => {
+  it("CMP-01 — Header (Shell Foundation partagé) shows the static title with a Retour circle, never replaced by the typed name; no header separator since D-353 (recette 3), Context band distinct from the general background", () => {
     renderScreen();
 
     const header = screen.getByTestId("screen-header");
@@ -906,8 +907,9 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(within(header).getByText(composition.title)).toBeTruthy();
     expect(within(header).queryByText("Séance du soir")).toBeNull();
 
-    const separator = screen.getByTestId("screen-header-separator");
-    expect(StyleSheet.flatten(separator.props.style).backgroundColor).not.toBe(colors.background);
+    // Recette 3 (D-353) : plus de séparateur gris entre l’en-tête et la bande Context
+    // (auparavant : séparateur présent, de couleur distincte du fond).
+    expect(screen.queryByTestId("screen-header-separator")).toBeNull();
 
     const contextBand = screen.getByTestId("screen-context-band");
     expect(StyleSheet.flatten(contextBand.props.style).backgroundColor).not.toBe(colors.background);
@@ -3230,7 +3232,7 @@ describe("CompositionScreen — indicateur de direction propre et clause de synt
 });
 
 describe("CompositionScreen — recette 3 (T-49, EXT-R3-2 : zone de contexte)", () => {
-  it("T-49 — courbe blanche sous Retour et fondu inférieur en couches superposées, sous le contenu, sur la couleur propre de la Composition ; contenu et séparateur d’en-tête conservés", () => {
+  it("T-49 — courbe blanche sous Retour et fondu inférieur en couches superposées, sous le contenu, sur la couleur propre de la Composition ; contenu conservé ; aucun trait gris au-dessus de la zone (D-353)", () => {
     renderScreen();
 
     const band = screen.getByTestId("screen-context-band");
@@ -3259,7 +3261,7 @@ describe("CompositionScreen — recette 3 (T-49, EXT-R3-2 : zone de contexte)", 
     const halo = StyleSheet.flatten(screen.getByTestId("composition-context-band-halo", { includeHiddenElements: true }).props.style);
     expect(halo).toMatchObject({ position: "absolute", width: 59.28, height: 59.28, borderRadius: 29.64, backgroundColor: colors.background });
     expect(halo.left).toBeCloseTo(24 + 19 - 29.64, 5);
-    expect(halo.top).toBeCloseTo(-1 - 24 - 29.64, 5);
+    expect(halo.top).toBeCloseTo(-24 - 29.64, 5);
 
     // Effets dessinés en premier : sous le champ Nom et sous Ajouter.
     const order = (band.props.children as { props?: { testID?: string } }[])
@@ -3271,7 +3273,7 @@ describe("CompositionScreen — recette 3 (T-49, EXT-R3-2 : zone de contexte)", 
     expect(within(band).getByLabelText(composition.name)).toBeTruthy();
     expect(within(band).getByLabelText(composition.addActivity)).toBeTruthy();
     expect(screen.getByTestId("composition-session-color-trigger")).toBeTruthy();
-    // Séparateur d’en-tête conservé (seuls les liserés inférieurs et le contour sont visés).
-    expect(screen.getByTestId("screen-header-separator")).toBeTruthy();
+    // D-353 (retour de Hermann) : aucun trait gris au-dessus de la zone de contexte.
+    expect(screen.queryByTestId("screen-header-separator")).toBeNull();
   });
 });
