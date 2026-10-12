@@ -1,0 +1,152 @@
+{
+ "schema": "kodjo.pre3.recette1.test-results.v1",
+ "candidate_start": "9f5cee0e7049494033908fcec586b0c37587e168",
+ "code_commit": "50691dc0c552f4d888609e10ebc45c0939ff083a",
+ "environment": {
+  "os": "Windows 11 ARM64 (poste local)",
+  "node": "v24.19.0",
+  "jest_preset": "jest-expo",
+  "real_device": false,
+  "simulator": false
+ },
+ "commands": [
+  {
+   "command": "npx tsc --noEmit -p .",
+   "result": "PASS"
+  },
+  {
+   "command": "npx eslint src app",
+   "result": "PASS (0 erreur, 0 avertissement)"
+  },
+  {
+   "command": "npx jest --json",
+   "result": "PASS",
+   "suites": "97/97",
+   "tests": "1926/1926",
+   "failed": 0,
+   "pending": 0,
+   "before_correction": "97/97 suites, 1914/1914 tests (revue 1)"
+  },
+  {
+   "command": "node docs/preparation/PRE-3/planification/passe2/verifier-passe2.cjs",
+   "result": "PASS (2143 contrôles)"
+  },
+  {
+   "command": "node docs/preparation/PRE-3/planification/execution/controle-portee.cjs --start 9f5cee0e…",
+   "result": "PASS (write_scope@43e7b344, aucune extension)"
+  },
+  {
+   "command": "obligations tests-and-preservation.json@43e7b344 — mêmes tests propriétaires que couverture-obligations-revue1.json, relus dans ce jest --json",
+   "result": "442/442 PASS"
+  },
+  {
+   "command": "node scripts/kodjo/classify-environment-update.js 9f5cee0e… 50691dc0…",
+   "result": "OTA_COMPATIBLE (aucun fichier natif)"
+  }
+ ],
+ "mutation_checks": [
+  {
+   "test": "ExecutionParametersSheet.test.tsx « F-01 — glisser avec événements recyclés »",
+   "on_original": "FAIL — TypeError: Cannot read properties of null (reading 'pageY')",
+   "after": "PASS"
+  },
+  {
+   "test": "CategoryPickerModal.test.tsx « recette 1 F-03 »",
+   "on_original": "FAIL",
+   "after": "PASS"
+  },
+  {
+   "test": "VideoPoster.test.ts « M-01 » (2 tests)",
+   "on_original": "FAIL — génération appelée avant readyToPlay",
+   "after": "PASS"
+  }
+ ],
+ "replaced_assertions": [
+  {
+   "test": "P3-16/fold-incomplete (ExecutionParametersSheet.test.tsx)",
+   "before": "borderColor #D92D20 (E19, revue 1)",
+   "after": "borderColor #FF8D28 et borderWidth 1,5 (figé 6665:27232)",
+   "reason": "Recette 1 A-02/A-07 ; l’obligation n’impose aucune couleur"
+  }
+ ],
+ "added_tests": [
+  {
+   "file": "src/features/sessions/__tests__/compositionPresentation.test.ts",
+   "test": "formatExerciseDurationLine (T02-S02) recomputes from the facts, never from a persisted total (DM-015/DM-016)",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+   "test": "ExecutionParametersSheet — recette 1 F-01 — glisser avec événements recyclés : aucune erreur, la ligne suit le doigt puis cible et Pause se déplacent ensemble",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+   "test": "ExecutionParametersSheet — recette 1 F-01 — glisser interrompu par le système : ligne remise en place, aucun déplacement",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+   "test": "ExecutionParametersSheet — recette 1 F-02 — séries variables modifiées puis Durée → Répétitions → Durée (et inverse) avant ✓ : dernières valeurs restaurées, ✓ conserve l'effectif",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+   "test": "ExecutionParametersSheet — recette 1 (A-05) A-05 — Séries variables actives : cadre du groupe seulement tableau déployé ; replié = variante « Cadre=Non », état variable et lignes conservés",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+   "test": "ExecutionParametersSheet — recette 1 (T-61) T-61 — texte agrandi : en-tête à hauteur minimale (jamais fixe) et titre non limité à une ligne",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+   "test": "BodyZonePickerModal — recette 1 F-03 (clavier) la feuille évite le clavier iOS et ramène le formulaire en vue à son ouverture et à l'apparition du clavier",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+   "test": "BodyZonePickerModal — recette 1 (T-61) T-61 — texte agrandi : en-tête à hauteur minimale (jamais fixe), titre non limité à une ligne",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+   "test": "CategoryPickerModal — recette 1 F-03 (clavier) la feuille évite le clavier iOS et ramène le formulaire en vue à son ouverture et à l'apparition du clavier",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+   "test": "CategoryPickerModal — recette 1 F-03 (clavier) formulaire fermé : aucun défilement forcé de la liste",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+   "test": "CategoryPickerModal — recette 1 (T-61) T-61 — texte agrandi : en-tête à hauteur minimale (jamais fixe), titre non limité à une ligne",
+   "status": "passed"
+  },
+  {
+   "file": "src/infrastructure/media/__tests__/VideoPoster.test.ts",
+   "test": "VideoPoster — recette 1 (M-01) M-01 — source encore en chargement : l'affiche est générée après readyToPlay (jamais sur un élément absent), abonnement retiré, lecteur libéré",
+   "status": "passed"
+  },
+  {
+   "file": "src/infrastructure/media/__tests__/VideoPoster.test.ts",
+   "test": "VideoPoster — recette 1 (M-01) M-01 — vidéo illisible (error) ou délai dépassé : aucune affiche, aucune génération, lecteur libéré",
+   "status": "passed"
+  }
+ ],
+ "f02_reproduction": {
+  "result": "NON_REPRODUIT sur 9f5cee0e",
+  "paths": [
+   "tap puis Durée→Répétitions→Durée",
+   "uniforme→variable, édition, aller-retour",
+   "édition dans les deux modes, double aller-retour",
+   "maintien accéléré",
+   "sélecteur refermé entre deux choix"
+  ]
+ },
+ "not_run": [
+  "Rendu natif, géométrie, VoiceOver, clavier iOS réel, génération réelle d’affiche vidéo : aucun appareil ni simulateur sur ce poste (procedure-appareil-recette1.md)"
+ ]
+}
