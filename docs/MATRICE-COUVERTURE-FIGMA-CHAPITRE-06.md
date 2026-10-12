@@ -1,5 +1,8 @@
 # Matrice de couverture Figma ↔ documentation
 
+**Actualisation ciblée du 12/10 :** pour Composition et création/Modalités d’exécution, la [matrice du 12/10](MATRICE-DSF-CIRCUITS-2026-10-12.md) remplace les références de ces parcours ci-dessous. Les autres familles ne sont pas réauditées par ce lot.
+
+
 **État antérieur au lot Bip de cadence.** La [matrice Bip du07/10](MATRICE-BIP-FIGMA-2026-10-07.md) porte les références courantes et remplace les états de captures en attente.
 
 **Inventaire historique.** La [matrice du 07/10](MATRICE-FIGMA-2026-10-07.md) porte les références actives, notamment le remplacement de 4893:6675.

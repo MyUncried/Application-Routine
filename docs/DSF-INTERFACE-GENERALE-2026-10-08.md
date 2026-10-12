@@ -1,5 +1,8 @@
 # DSF — règles générales d’interface — 08/10/2026
 
+**Actualisation du 12/10 :** [DSF Circuits et contrôles du 12/10](DSF-CIRCUITS-CONTROLES-2026-10-12.md) fait autorité sur les nouveaux contrôles de séries, la nature du circuit, les volumes et la lecture seule héritée. Les mesures datées ci-dessous ne décrivent pas les états remplacés. Les règles communes sans rapport avec ces éléments restent applicables.
+
+
 Source : [brief propriétaire](archives/planification-2026-10-08/demande-source.md). Décision D-327. Ces règles sont générales et ne sont pas limitées à la planification. Elles modifient le rendu ; les règles métier restent portées par les spécifications.
 
 Les coordonnées x 24/y 802 et largeurs 354 décrivent la référence Figma 402×874. En développement, conserver les shells, Safe Areas et adaptations 360/402/440 : ancrage du pied, contenu défilant et cible tactile indépendante du dessin. La grille 18/20/13/12 concerne exactement les quatre relations ci-dessous, pas tous les espaces internes des composants. Elle n’interdit ni padding 4/8 ni marges de carte 16. Le fond blanc des modales est leur surface, distincte du voile #1F2129 à 34 % qui reste inchangé.

@@ -1,4 +1,6 @@
 
+
+> **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
 Ce document devient le registre permanent des décisions de conception du produit.
 
 # Format
@@ -26,7 +28,7 @@ Les identifiants suivants ne correspondent à aucune décision active et ne doiv
 | D-002 | La planification, initialement reportée en V2, est intégrée au MVP. Elle repose sur des Routines de planification associées aux Séances. | Révisée | Oui |
 | D-004 | Valeurs par défaut : compte à rebours initial 10 s, fin de séance 5 s. Une valeur de 0 s reste sélectionnable et rend la phase instantanée. | Révisée post-Figma | Oui |
 | D-005 | Les préférences du profil servent de valeurs par défaut des nouvelles Séances | Validée | Oui |
-| D-006 | Le mode autonome « Manuel » est supprimé. Un Exercice utilise Durée, Répétitions ou À l’échec ; Répétitions et À l’échec se terminent normalement par `Suivant`. | Supersédée par D-111 | Oui |
+| D-006 | Le mode autonome « Manuel » est supprimé. Un Exercice utilise Durée ou Répétitions, avec cible chiffrée ou À l’échec par série ; Répétitions et À l’échec se terminent normalement par `Suivant`. | Supersédée par D-111 | Oui |
 | D-007 | Pour un Exercice en mode Répétitions ou À l’échec, la durée réelle est enregistrée pendant l’Exécution même si aucune durée cible n’est imposée. | Révisée par D-111 | Oui |
 | D-008 | Toute métrique estimée est affichée comme borne minimale précédée du symbole `≥` lorsqu’elle contient au moins un Exercice en mode Répétitions ou À l’échec, dont le temps n’est pas déterminable ; son périmètre reste celui défini par D-131. | Révisée par D-112/D-131 | Oui |
 | D-011 | La synthèse n'affiche plus les compteurs de Tour du Circuit et du Cycle. | Validée | Oui |
@@ -141,7 +143,7 @@ Les identifiants suivants ne correspondent à aucune décision active et ne doiv
 | D-108 | Le Catalogue sélectionne le type de contenu par `Exercices / Séances / Parcours`. Dans le MVP, `Séances` est sélectionné et seul actif ; les deux autres segments sont visibles mais désactivés. | Supersédée par D-167 | Oui |
 | D-109 | Ancienne définition des filtres de Séance. | Supersédée par D-192 et les filtres contextuels Figma du 24/09/2026 | Oui |
 | D-110 | Le tri par défaut est la date de dernière modification décroissante. Les seuls tris initiaux sont dernière modification croissante/décroissante et nom A–Z/Z–A ; une exécution ne modifie pas la date de modification. | Précisée par D-184 pour T03 | Oui |
-| D-111 | **Amendée le06/10 : voir D-268 à D-298 (cadence, incertitude, phrase), autres dispositions conservées.** Le MVP ajoute le mode `À l’échec`, sans durée ni répétitions cibles. Il partage l’exécution et le résultat du mode Répétitions : `Suivant` termine chaque Série. | Validée post-Figma | Oui |
+| D-111 | **Amendée le06/10 : voir D-268 à D-298 (cadence, incertitude, phrase), autres dispositions conservées.** Disposition historique supersédée le13/10 par EC-01/02 : le MVP ajoutait le mode `À l’échec`, désormais cible de Série dans les deux modes. Il partage l’exécution et le résultat du mode Répétitions : `Suivant` termine chaque Série. | Validée post-Figma | Oui |
 | D-112 | **Amendée le06/10 : voir D-268 à D-298 (cadence, incertitude, phrase), autres dispositions conservées.** La durée estimée d’exécution et la durée synthétique des Exercices deviennent chacune une borne minimale `≥` lorsqu’elles comprennent un Exercice en Répétitions ou À l’échec ; chaque métrique additionne uniquement les temps connus de son propre périmètre. | Révisée par D-131 | Oui |
 | D-113 | En V2, un Exercice de référence persistante est ajoutée à une Séance par copie indépendante. Les copies ne figurent pas dans le catalogue et aucune propagation ultérieure n’existe. | Validée | Oui |
 | D-114 | La première version de la bibliothèque ne propose pas `Enregistrer dans mes exercices`; un Exercice créé dans une Séance reste uniquement dans cette Séance. | Validée | Oui |
@@ -164,7 +166,7 @@ Les identifiants suivants ne correspondent à aucune décision active et ne doiv
 | D-131 | **Amendée le06/10 : voir D-268 à D-298 (cadence, incertitude, phrase), autres dispositions conservées.** Deux métriques temporelles estimées sont distinctes. La `Durée estimée d’exécution`, affichée pendant l’Exécution, couvre le Plan complet et inclut le Compte à rebours initial et la Fin de séance. La `Durée synthétique des Exercices`, affichée dans le Catalogue et sous `Nombre de tours` dans la Composition, couvre exclusivement les Exercices et exclut ces deux phases structurelles. Le temps total écoulé et la Durée réelle incluent toutes les phases effectivement exécutées, y compris ces deux phases, mais excluent les Pauses manuelles conformément à D-071. | Validée | Oui |
 | D-132 | La fin de le dernier Exercice déclenche l’étape structurelle `SESSION_END`. L’Exécution n’est clôturée et enregistrée qu’après l’achèvement de cette étape ; une durée de `0 s` produit un achèvement immédiat. Elle ouvre ensuite l’écran de sortie livré par la tranche : fin minimale dans T04, Synthèse lorsqu’elle est disponible. Un arrêt avant cet achèvement, y compris pendant `SESSION_END`, produit le statut `Interrompue`. | Validée | Oui |
 | D-133 | **Amendée le06/10 : voir D-268 à D-298 (cadence, incertitude, phrase), autres dispositions conservées.** La barre de progression globale représente l’avancement du Plan d’Exécution complet, Compte à rebours initial et `SESSION_END` compris. Elle ne peut atteindre `100 %` qu’à l’achèvement de `SESSION_END`. Dans T04, les étapes chronométrées sont pondérées proportionnellement à leur durée planifiée ; les occurrences en Répétitions ou À l’échec suivent la pondération hybride de D-072/RM-077 et leur part est acquise avec `Suivant`. | Validée | Oui |
-| D-134 | T04 exécute les modes Durée, Répétitions et À l’échec ainsi que les phases de récupération applicables. Sons et Annonces vocales sont activés par défaut dans T04, sans réglage utilisateur ni persistance de préférence ; leur configuration depuis le Profil est ultérieure. | **Révisée par D-208** sur les phases de récupération | Oui |
+| D-134 | T04 exécute les modes Durée ou Répétitions, avec cible chiffrée ou À l’échec par série ainsi que les phases de récupération applicables. Sons et Annonces vocales sont activés par défaut dans T04, sans réglage utilisateur ni persistance de préférence ; leur configuration depuis le Profil est ultérieure. | **Révisée par D-208** sur les phases de récupération | Oui |
 | D-135 | Ancienne règle d’une récupération générique attachée à l’Exercice, canonique à `0 s`. | **Supersédée par D-208** | Oui |
 | D-136 | Ancienne formule de Durée totale intégrant une récupération générique `R`. | **Supersédée par D-208** sur le calcul de durée ; l’arrondi du pilote reste applicable | Oui |
 | D-137 | Ancienne organisation de l’éditeur Exercice. | Supersédée par D-198 | Oui |
@@ -312,7 +314,7 @@ Les décisions historiques D-173, D-179, D-181 et D-184 s’appuyaient sur l’�
 | D-229 | Les roulettes utilisent le gabarit DSF `330 px` avec marges latérales `36 px`, cinq lignes visibles 14/16/20/16/14 px et capsule centrale `56 × 34 px`. La modale Heure affiche `heures` et non `:`. La présentation de Planifier est révisée le 08/10 : plein écran sous la barre d’état, surface blanche, blocs gris et récapitulatif protégé. Rappel par interrupteur puis cinq options de largeur égale, dont Autre ; Enregistrer ancré en bas. Voir D-327/D-330 et CE-UI-05. | Validée DSF — 28/09/2026 | Planification / roulettes. |
 | D-230 | Les listes défilantes rognent leur contenu (`clipsContent: true`). La carte média déployée du Catalogue des Exercices est un état réellement étendu avec carte/barre latérale étendues, chevron haut et aperçus média ; l’ancienne carte condensée ne doit plus être documentée sous ce nom. Les règles spécialisées Profil, Exécution, Ressenti et Point d’arrêt suivent les composants/tokens DSF V2 validés au 28/09/2026. | Révisée par D-260/D-261/D-262 le 03/10/2026 ; ancienne règle d’affichage ci-contre historique ; autres dispositions conservées | Recette UI / composants spécialisés. |
 | D-231 | La phrase de synthèse des paramètres d’exécution suit la spécification v9 du 28/09/2026. | **Supersédée par D-232 / v10.2**. | Historique de la conception du générateur. |
-| D-232 | **Amendée le06/10 : voir D-268 à D-298 (cadence, incertitude, phrase), autres dispositions conservées.** Bornes conservées : N1..99, répétitions1..100, durée1..5999s, pauses0..300s ; aucune estimation forfaitaire de répétition (Bip v2). Anciennes saisie inline, valeurs initiales, formules et granularités remplacées par D-246 puis D-247 à D-253/v12. | Supersédée sur ces points le 02/10/2026 | Historique conservé dans Git ; référence active v12 |
+| D-232 | **Amendée le06/10 : voir D-268 à D-298 (cadence, incertitude, phrase), autres dispositions conservées.** Bornes conservées : N1..99, répétitions1..100, durée5..3535s, pauses0..300s ; aucune estimation forfaitaire de répétition (Bip v2). Anciennes saisie inline, valeurs initiales, formules et granularités remplacées par D-246 puis D-247 à D-253/v12. | Supersédée sur ces points le 02/10/2026 | Historique conservé dans Git ; référence active v12 |
 
 
 ## Décisions du 30 septembre 2026 — cartes, icônes et appuis
@@ -378,7 +380,7 @@ Dernier identifiant publié vérifié sur main 8fc58a4 : D-246.
 | D-248 | Pause après chaque série, dernière comprise ; PN puis PC à la frontière des côtés successifs. Seule la dernière Pause est remplacée par R positive dans une occurrence ; aucune récupération contextuelle en direct. Formules et inversion : Paramètres v13. | Confirmée par D-314 le07/10 | Remplace l’interprétation contraire de D-311 ; conserve ordre par paire et normalisation N1 |
 | D-249 | Brouillon transactionnel, bascules uniforme/variable, restauration des cibles par mode et lignes retirées ; déplacement conjoint cible/Pause, nouvelle dernière Pause stockée et exécutée, sauf substitution par récupération positive et nouvelle première ligne reprise à désactivation. Ordre relatif des lignes retirées conservé à restauration. | Validée | C2/C7/C9 et arbitrage déplacement02/10 |
 | D-250 | À N=1 : uniforme et Un côté après l’autre effectifs dès le brouillon/calcul ; options grisées, interrupteur visuellement désactivé. Ancien état conservé seulement pour retour N≥2 avant ✓ ; normalisation persistée à ✓. | Validée | C17/C18 corrigées, réponses explicites02/10 |
-| D-251 | Feuille scrollable, en-tête fixe, tableau rattaché à l’interrupteur, steppers directs et chevron de repli sans effet métier. Cible incomplète : total—, ✓ grisé, cellule et message en ligne. Durée totale variable non éditable. | Validée | C10/C13/C15/C22, prompt§4.3–4.4 |
+| D-251 | Feuille scrollable, en-tête fixe, tableau rattaché au champ de régime, steppers directs et chevron de repli sans effet métier. Cible incomplète : total—, ✓ grisé, cellule et message en ligne. Durée totale variable non éditable. | Validée | C10/C13/C15/C22, prompt§4.3–4.4 |
 | D-252 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
 | D-253 | **Amendée le06/10 : voir D-268 à D-298 (cadence, incertitude, phrase), autres dispositions conservées.** Libellé Pause entre les côtés dans tout le produit, Profil compris ; défaut10s inchangé. Ancien résumé paramètres à trois premières valeurs variables remplacé par D-298/Phrase v1 (énumération jusqu’à trois puis min/max) ; lignes séance : N séries variables seul. Compteur Série n/N et côté séparé ; aucune barre par Série. | Validée | Prompt§4 et confirmation vocabulaire02/10 |
 | D-254 | Nouvelle politique des pauses appliquée aussi aux Exercices existants ; quantité de travail et ordre par défaut conservés, augmentation de durée assumée ; aucun recalcul des résultats historiques. R>0 ne garantit pas une durée identique à l’ancienne règle en bilatéral. | Validée | C21 amendée et confirmation02/10/2026 |
@@ -450,7 +452,7 @@ D-268 à D-297 transcrivent CAD-01 à CAD-30 sans nouvel arbitrage. Ce paragraph
 | D-295 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
 | D-296 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
 | D-297 | Aucun nouvel objet Répétition ni nouveau type de phase de Plan. | Validée — CAD-30 | Conception Cadence, intégration06/10/2026 |
-| D-298 | Phrase unique, valeurs en gras, zone entièrement cliquable ; cibles variables énumérées jusqu’à3 puis min/max ; pas de clause sans changement ; omission Répétitions sans bip/À l’échec ou redondance Durée ; phrases de pauses fixées par les276 cas v14. Excel exclusivement rédactionnel. | Validée, consolidation | Spécification de phrase v1 et clarification propriétaire06/10 |
+| D-298 | Phrase unique, valeurs en gras, zone entièrement cliquable ; cibles variables énumérées jusqu’à3 puis min/max, ou minimum numérique à l’échec en mélange (EC-05) ; ≥ pour mélange calculable ; pas de clause sans changement ; omission Répétitions sans bip/toutes cibles À l’échec ou redondance Durée ; phrases de pauses fixées par les276 cas v14. Excel exclusivement rédactionnel. | Validée, consolidation | Spécification de phrase v1 et clarification propriétaire06/10 |
 | D-299 | DSF : neutres rationalisés, danger#D92D20, voile unique `overlayScrim` (`color/overlay/scrim`, #1F2129 à 34 %) pour tous les dialogues, feuilles, roues et modales ; `compositionDraggedCardShadow` (`color/overlay-scrim`, #14171F) réservé à l’ombre de la carte déplacée, distinct de `overlayScrim` et jamais employé comme voile, Roboto Condensed pour chrono/compteurs, compactCardTitle15/18 ; cardTitle16 conservé pour son rôle historique. Barre d’état rendue par le système. | Décisions consignées ; mesures datées séparées | DSF-CADENCE-2026-10-06 |
 | D-300 | Figma définit layout/rendu uniquement ; nombres et câblages ne définissent ni calculs ni comportement. Excel ne définit pas les pauses/durées. Circuit/Tour/Parcours et cartes média restent inchangés. | Confirmation de D-255 | Clarifications propriétaire et plan révisé06/10 |
 
@@ -486,12 +488,12 @@ Répétitions sans bip : total d’Exercice omis. ≥ uniquement en Séance, sel
 
 | ID | Décision | Statut | Source |
 |---|---|---|---|
-| D-308 | Bip de cadence transverse aux trois modes, stepper0..10,0=Aucun, aucun effacement à bascule de mode. | Explicite | Prompt Bip§§1–2,6 |
+| D-308 | Bip de cadence transverse aux deux modes, stepper0..10,0=Aucun, aucun effacement à bascule de mode. | Explicite | Prompt Bip§§1–2,6 |
 | D-309 | Exercice : exact Durée, ≈ Répétitions avec bip, omitted sans bip/À l’échec ; ≥ seulement Séance. | Explicite | Prompt§3 |
 | D-310 | Bip périodique durant Série, aucune fin/transition/compteur automatique ; Durée garde sa fin au minuteur. | Explicite et articulation dérivée | Prompt§2 et règles de modes conservées |
 | D-311 | Ancienne suppression de la Pause terminale. | Supersédée par D-314 le07/10/2026 | Ne plus appliquer ; historique conservé dans Git |
 | D-312 | Stepper : tap1,maintien≈500ms,paliers5 après2s/10 après4s avec multiples directionnels ; Bip/CR/Fin sans accélération. | Explicite ; fréquence150ms conservée | Prompt§4,DSF Bip |
-| D-313 | Champ cadenceBeepIntervalSeconds0..10 dans trois modes ; collection et snapshot communs ; modèle scalaire à migrer avant intégration. | Nom logique dérivé et portée explicite | Prompt§6 |
+| D-313 | Champ cadenceBeepIntervalSeconds0..10 dans deux modes ; collection et snapshot communs ; modèle scalaire à migrer avant intégration. | Nom logique dérivé et portée explicite | Prompt§6 |
 
 Q-08 clos par instruction explicite du propriétaire : pause après chaque série, dernière comprise ; les276 formulations v14 remplacent les propositions antérieures.
 
@@ -546,3 +548,36 @@ Les règles historiques D-023/D-024/D-206 d’archivage et de repère visuel mon
 | ID | Décision | Statut | Portée |
 |---|---|---|---|
 | D-333 | L’ajout/import de médias associés à un Exercice est inclus au MVP et livré dans PRE-3, avant le moteur d’exécution qui utilise ces médias. Les règles documentées de fichiers locaux, associations ordonnées, copies indépendantes et conservation tant qu’une référence existe restent applicables. | Validée explicitement par Hermann le08/10/2026 dans la préparation PRE-3 | Remplace le report post-MVP de D-066/D-068 et l’exclusion d’import de CE-T03-04 ; complète D-203 sans changer ses règles de consultation. Le détail du parcours d’import et ses preuves sont à établir dans le plan PRE-3, sans inventer de caméra ou de limites fonctionnelles. |
+
+
+
+## Décisions CIR-20261012 — conception des circuits
+
+Ces identifiants dédiés complètent D-209/D-247/D-249/D-250 dans le contexte décrit, sans renuméroter les décisions historiques. Source : arbitrages du propriétaire du12/10, spécification Circuits ; toutes les lignes ci-dessous sont validées.
+
+| ID | Décision |
+|---|---|
+| CIR-01 | Circuit de tours/séries, un circuit par composition MVP ; régime propre conservé |
+| CIR-02 | Conversion au compte constant ; confirmation seulement si perte ; annulation atomique |
+| CIR-03 | Diminution sans message, réserve de séance jusqu’à enregistrement ; restauration puis préremplissage |
+| CIR-04 | Nombre hérité et total affichable en lecture seule ; aucune inversion sous héritage |
+| CIR-05 | Ajout catalogue adapte copie locale, confirmation si perte ; sortie conserve état actif |
+| CIR-06 | Bilatéral en séries : premier côté→PC→second côté→Pi, un seul cas ; direction conservée |
+| CIR-07 | Récupération/point internes à chaque passage ; R positive remplace Pi terminale ; préparation/fin selon D-214 révisée |
+| CIR-08 | Grille en lecture seule, tirets pour absence, ✓ pour échec, min:ss, volume par côté |
+| CIR-09 | Cartes variables avec volumes et ellipse ; régime explicite même valeurs égales ; aucun marqueur d’incomplétude |
+| CIR-10 | Chiffre→± ; pastille unité→nature ; œil permanent ; un champ numérique actif |
+| CIR-11 | Suppression manuelle immédiate avec Annuler ; restauration position et paramètres |
+| CIR-12 | Captures/DSF différés ; multi-circuit, progression automatique et tours ouverts hors périmètre |
+
+
+## Décisions Deux modes —13/10/2026
+
+Les décisions EC-01…EC-10 sont identifiées dans la [spécification consolidée](SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md). Elles remplacent la création d’un troisième mode de D-111 et l’interdiction d’un total partiel à l’Exercice. D-298 est étendue aux cibles mixtes (≥ calculable, compaction au-delà de3), tout en conservant segments, non-persistance et grammaire des pauses. D-308/D-313 portent désormais sur deux modes ; le bip peut proposer un relevé estimé à l’échec, sans détecter le mouvement. RM-077/RM-126 conservent leurs formules mais leurs prédicats doivent distinguer les cibles, contrairement à la mention « inchangées » du prompt.
+
+Choix visuels : cinquième variante de roulette8452:13297, deux popovers de mode réduits, colonne de valeur rétablie et nouveau cas mixte. Aucune variante à une colonne ni écran uniforme dédié. Réserves de source/qualification : matrice Deux modes du13/10.
+
+
+### Réception du §4.5 — sélecteur de cible
+
+Source reçue dans le §4.2 du prompt complété. Roue manipulable même grisée ; tourner sélectionne le nombre, toucher le libellé sélectionne l’échec et neutralise la roue à00:00. Exactement une sélection, pas de coche ;45% sur le bloc numérique non sélectionné. R01 close. R06 close après correction explicite du propriétaire :58min55s=3535s maximum ;5999s était une coquille. Sélecteur dès5s, par pas5s. D-232, RM-234 et les contrats sont corrigés.

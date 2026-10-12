@@ -1,5 +1,7 @@
 # INDEX — Documentation du projet Routine
 
+**Actualisation13/10 — Deux modes et cible À l’échec :** [spécification](Specifications-fonctionnelles/SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md), [DSF](DSF-DEUX-MODES-ECHEC-2026-10-13.md), [inventaire, vérifications et réserves](MATRICE-DEUX-MODES-ECHEC-2026-10-13.md). Quatre captures remplacées, cas mixte ajouté et nouveau composant illustré ; contrats actualisés.
+
 **Compléments du07/10 — segmentés et titres :** [analyse, plan et traçabilité](MATRICE-COMPLEMENTS-2026-10-07.md), [DSF](DSF-SEGMENTES-TITRES-2026-10-07.md), [backlog fonctionnel](BACKLOG-SEGMENTS-CATALOGUE-2026-10-07.md). Catalogues à deux choix ; titres Composer/Modifier une séance et Créer un exercice ; noms de frames et IDs conservés.
 
 **Référence courante — évolutions v15 :** [inventaire, plan et preuves](MATRICE-EVOLUTIONS-V15-2026-10-07.md), [consolidation fonctionnelle](Specifications-fonctionnelles/CONSOLIDATION-EVOLUTIONS-V15-2026-10-07.md), [DSF phrases](DSF-PHRASES-V15-2026-10-07.md). Corpus276 actualisé ; calculs conservés ; captures et contrats repris.
@@ -10,7 +12,7 @@
 
 [Spécification Bip v2](Specifications-fonctionnelles/SPECIFICATION-BIP-CADENCE-v2.md) · [DSF Bip/steppers](DSF-BIP-CADENCE-2026-10-07.md) · [Inventaire et captures](MATRICE-BIP-FIGMA-2026-10-07.md) · [Rapport de cohérence](REPORT-BIP-2026-10-07.md).
 
-Bip0..10 transverse aux trois modes ; omission des durées non calculables d’Exercice ; ≥ réservé aux Séances ; pause après chaque série, dernière comprise, remplacée seulement par la récupération positive qui suit. Q-07 et Q-08 clos ; les276 formulations v15 font référence. Cette clarification remplace les règles incompatibles du premier lot du07/10.
+Bip0..10 transverse aux deux modes ; ≥ autorisé à l’Exercice mixte calculable depuis le13/10 ; tout échec ou Répétitions sans bip sans total propre ; pause après chaque série, dernière comprise, remplacée seulement par la récupération positive qui suit. Q-07 et Q-08 clos ; les276 formulations v15 font référence. Cette clarification remplace les règles incompatibles du premier lot du07/10.
 
 ## Consolidation du 07/10/2026
 
@@ -249,7 +251,7 @@ La consultation média pendant l’Exécution décrite ici est **incluse au MVP*
 
 > Décision du 25 septembre 2026 — D-207 : la notion de contenu planifiable est commune aux **Séances, Exercices persistants et Parcours**. Le MVP planifie `SESSION` et `ACTIVITY`; la planification d’un Parcours reste dans sa version prévue (actuellement V3) et réutilisera la même entité Routine avec la source technique `CIRCUIT`, sans second moteur de planification.
 
-Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
+Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé aux agrégats Séance/Circuit contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 
 ## Consolidation fonctionnelle — 26 septembre 2026
 
@@ -360,3 +362,9 @@ Les anciennes références de planification mono-source, de l’objet autonome P
 ## Préparation PRE-3 — 08/10/2026
 
 [Périmètre et couverture](preparation/PRE-3/perimetre-et-couverture.md), [analyse de l’existant](preparation/PRE-3/analyse-existant.md), [rapprochement des sources](preparation/PRE-3/rapprochement-main-figma.md) et [extraction détaillée Figma](preparation/PRE-3/extraction-figma.md). D-333 inclut l’import/ajout de médias au MVP avant le moteur d’exécution. Ce dossier prépare la planification ; il ne constitue ni une autorisation d’implémentation ni une livraison applicative.
+
+
+
+## Circuits de tours et de séries —12/10/2026
+
+[Spécification normative](Specifications-fonctionnelles/SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md) : décisions consolidées, propagation fonctionnelle et contrats CE-CIR-01/02/03. Un circuit MVP ; nature, conversions, héritage, volumes, calcul et bilatéralité définis. Alignement du 12/10 : [DSF](DSF-CIRCUITS-CONTROLES-2026-10-12.md), [inventaire préalable](INVENTAIRE-DSF-CIRCUITS-2026-10-12.md), [54 captures et traçabilité](MATRICE-DSF-CIRCUITS-2026-10-12.md). Écarts Figma résiduels explicitement conservés ; aucun développement applicatif livré.
