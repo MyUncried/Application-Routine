@@ -183,7 +183,7 @@ Le moteur possède la source de vérité temporelle. En exécution autonome uniq
 | SESSION | Compte à rebours initial → plan avant Circuit → Circuit répété par Tours → plan après Circuit → Fin de séance → Synthèse |
 | Occurrence SESSION | Exercice intrinsèque (Séries/côtés/pauses) → POST_ACTIVITY_RECOVERY positive éventuelle → point d’arrêt éventuel → suite ; aucun Compte à rebours/Fin propre |
 
-Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé aux agrégats Séance/Circuit contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
+Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 
 | Action/phase | Effet déterminé | Conservation |
 |---|---|---|
@@ -208,7 +208,7 @@ Les références actives sont [paramètres v13](SPECIFICATION-PARAMETRES-MODALE-
 
 Les durées des contrats Catalogue/Composition/Calendrier utilisent leur périmètre défini : intrinsèque pour ACTIVITY, occurrences avec substitution de PN pour SESSION. Incertitude sans symbole/≈/≥ issue du calcul ; aucune formule locale ni nombre Figma recopié. Suivi/Synthèse affichent le réalisé issu de l’instantané et des accumulateurs, pas une estimation.
 
-Bip de cadence : shell et préférences Profil conservés ; stepper0..10 dans les trois modes,0=Aucun. États d’exécution sans nouveau layout ; Bip v2 gouverne les signaux périodiques, nominal, Pause/Reprise et sécurité. L’ancien écran7061:13383 de roulette est supprimé.
+Bip de cadence : shell et préférences Profil conservés ; stepper0..10 dans les deux modes,0=Aucun. États d’exécution sans nouveau layout ; Bip v2 gouverne les signaux périodiques, nominal, Pause/Reprise et sécurité. L’ancien écran7061:13383 de roulette est supprimé.
 
 ### 4.15 Interface générale du 08/10/2026
 
@@ -457,9 +457,9 @@ Lecture indépendante ; aucune poignée ; carte à gouttière permanente sans D�
 
 Vérifier présence/absence puis retour de durée sans perdre titre/catégorie/zones ; aucun badge vide, aucun libellé « à l’échec » dans l’emplacement temporel. Texte long et agrandi : durée alignée à droite, titre sans collision. Durée exacte / Répétitions avec bip≈ / autres modes sans total ; ne pas tester les calculs sur les montants dessinés.
 
-Tester zéro/N cartes, active/archivée, avec/sans photo/vidéo, chargement/erreur, texte alternatif, troncature, sélection indépendante et absence de zone Déployer avec ou sans média. Vérifier formats des trois modes, miroir pour bilatéral et absence des textes retirés. Puis filtres, actions glissées, retour d’état et responsive. Critères CAR/MED/ICO/CTX/ANI du complément.
+Tester zéro/N cartes, active/archivée, avec/sans photo/vidéo, chargement/erreur, texte alternatif, troncature, sélection indépendante et absence de zone Déployer avec ou sans média. Vérifier formats des deux modes, miroir pour bilatéral et absence des textes retirés. Puis filtres, actions glissées, retour d’état et responsive. Critères CAR/MED/ICO/CTX/ANI du complément.
 
-Vérifier aussi les cartes variables dans les trois modes et la durée intrinsèque sans récupération contextuelle.
+Vérifier aussi les cartes variables dans les deux modes et la durée intrinsèque sans récupération contextuelle.
 
 Comparer sources Durée, Répétitions avec/sans cadence et À l’échec dans les emplacements de durée existants ; conserver masquages des cartes de choix, aucune formule locale et aucune photo de Séance/liste mixte.
 
@@ -591,6 +591,8 @@ Terminer valide et persiste puis retourne au contexte appelant. Carte Paramètre
 
 ### 5. Données affichées et source de vérité
 
+Deux modes communs, cible typée par Série et régime conservé. Phrase régénérée depuis les cibles mixtes, total issu du moteur (≥ si mélange calculable). Les huit cartes catalogue tout échec conservent leur formulation.
+
 Phrase selon les276 cas v15, total fourni par le calcul métier. Générateur → segments ordonnés `{texte, gras}`, valeurs et unités en gras, aucun redécoupage de chaîne. Terme « pause après chaque série », y compris N=1 ; clause de pauses variables omise conformément au corpus.
 
 Brouillon parent : nom, référentiels, description, paramètres validés par la feuille et associations médias ordonnées, existantes ou ajoutées dans PRE-3 (D-333). Aucun texte de démonstration codé en dur.
@@ -673,9 +675,11 @@ Aucune édition inline de la phrase. Mode/nom exclus de la phrase intrinsèque ;
 
 ### 20. Recette déterministe
 
+Après✓ tester mélange chiffré/échec et ≥, puis annulation et édition d’une copie ; tout échec reste sans total. La formulation de fond divergente de8328:38848 est une réserve Figma, pas une autorité métier.
+
 Recette rédactionnelle :276 gabarits v15 avec total métier injecté, gras sur occurrences répétées d’une valeur, N1 avec pause mentionnée et total non redondant ; absence de troncature. Français au MVP ; i18n nécessite des gabarits et accords par locale, pas une traduction de fragments isolés.
 
-Tester vide→feuille→annuler sans changement ; feuille valide→résumé→Terminer ; zone de phrase entière ; modification annulée ; trois modes, deux ordres bilatéraux et PC=0 sans repli ; source disparue/erreurDB ; champs/référentiels requis ; lecture seule Total Répétitions. Vérifier différences entre exemple Figma et données recalculées.
+Tester vide→feuille→annuler sans changement ; feuille valide→résumé→Terminer ; zone de phrase entière ; modification annulée ; deux modes, deux ordres bilatéraux et PC=0 sans repli ; source disparue/erreurDB ; champs/référentiels requis ; lecture seule Total Répétitions. Vérifier différences entre exemple Figma et données recalculées.
 
 Sauvegarder/réouvrir après bascules, déplacement et N1 ; vérifier indépendance copie Catalogue/Séance et résumé v13.
 
@@ -1119,7 +1123,7 @@ Snapshot ActivityDefinition, nom, préparation 5. `preparation=5` est règle sys
 
 Paramètres de la Série courante issus de l’instantané variable/uniforme ; ordres v13. En direct : total intrinsèque, Pause terminale normale, aucune récupération contextuelle.
 
-Cadence éventuelle issue de la Série de l’instantané, jamais du Profil ou des chiffres Figma. Temps réellement dépensé cumulatif distinct du chrono de tentative ; bip applicable aux trois modes, sans modifier leur terminaison propre.
+Cadence éventuelle issue de la Série de l’instantané, jamais du Profil ou des chiffres Figma. Temps réellement dépensé cumulatif distinct du chrono de tentative ; bip applicable aux deux modes, sans modifier leur terminaison propre.
 
 ### 6. Classification des valeurs Figma
 
@@ -1189,7 +1193,7 @@ Tester Catalogue et Calendrier, source invalide/disparue, préparation exactemen
 
 Vérifier les deux ordres et directions, valeurs variables, PC0 sans repli, Pause terminale et N1 normalisé. Ne pas déduire les transitions du câblage Figma.
 
-Vérifier passage entre préparation, Série cadencée, pauses programmées et fin ; deux côtés/deux ordres si applicables ; reset préservant autre côté et temps cumulé ; absence de double signal/transition. Bip valide dans les trois modes ; aucun signal hors phase Série.
+Vérifier passage entre préparation, Série cadencée, pauses programmées et fin ; deux côtés/deux ordres si applicables ; reset préservant autre côté et temps cumulé ; absence de double signal/transition. Bip valide dans les deux modes ; aucun signal hors phase Série.
 
 ### 21. Traçabilité
 
@@ -1201,7 +1205,7 @@ D-172/D-191/D-208/D-209/D-214/D-220 ; règles communes §4.12 ; médias CE-MEDIA
 
 Relecture documentaire06/10 : règles transverses§4.14 et matrice courante Figma ; maintien des rubriques sans changement fonctionnel lorsque non concernées. Les captures sont centralisées au chapitre06, aucun test applicatif présumé.
 
-## CE-T03-10 — Exécution directe — Durée unilatérale
+## CE-T03-10 — Exécution directe — Durée chiffrée unilatérale
 
 ### 1. Identification
 
@@ -1221,11 +1225,13 @@ Fin Série → Pause si positive, y compris la Pause terminale après la derniè
 
 ### 5. Données affichées et source de vérité
 
+**Cible par Série (13/10) :** fin automatique seulement en Durée chiffrée ; Suivant pour Répétitions ou toute cible À l’échec. Pas de nominal pour l’échec, même avec bip. Relevé par occurrence/côté : durée de dernière tentative ou répétitions estimées/déclarées ; non bloquant. Voir spécification Deux modes §§3–5. Aucun nouveau layout de saisie/restitution n’est livré dans cette passe.
+
 Snapshot uniquement ; série courante, cible temps, temps restant, progression locale.
 
 Paramètres de la Série courante issus de l’instantané variable/uniforme ; ordres v13. En direct : total intrinsèque, Pause terminale normale, aucune récupération contextuelle.
 
-Cadence éventuelle issue de la Série de l’instantané, jamais du Profil ou des chiffres Figma. Temps réellement dépensé cumulatif distinct du chrono de tentative ; bip applicable aux trois modes, sans modifier leur terminaison propre.
+Cadence éventuelle issue de la Série de l’instantané, jamais du Profil ou des chiffres Figma. Temps réellement dépensé cumulatif distinct du chrono de tentative ; bip applicable aux deux modes, sans modifier leur terminaison propre.
 
 ### 6. Classification des valeurs Figma
 
@@ -1291,11 +1297,13 @@ Aucun Tour/Cycle/SESSION_END ; calculs existants inchangés.
 
 ### 20. Recette déterministe
 
+Vérifier alternance chiffré/échec, sécurité2h sans nominal, progression des cibles inconnues à Suivant ; reset20s puis35s donne55s cumulé et35s relevé. Suivant ne confirme pas implicitement un nombre de bips estimé.
+
 Durée 1 s et plusieurs Séries avec pause 0/>0 ; fin naturelle, saut anticipé confirmé/annulé, reset, pause/reprise/arrêt, Fin propre 0/>0 ; aucun Tour/Cycle/récupération post-occurrence. Vérifier Catégorie, chrono et conservation du temps global après reset.
 
 Vérifier les deux ordres et directions, valeurs variables, PC0 sans repli, Pause terminale et N1 normalisé. Ne pas déduire les transitions du câblage Figma.
 
-Vérifier passage entre préparation, Série cadencée, pauses programmées et fin ; deux côtés/deux ordres si applicables ; reset préservant autre côté et temps cumulé ; absence de double signal/transition. Bip valide dans les trois modes ; aucun signal hors phase Série.
+Vérifier passage entre préparation, Série cadencée, pauses programmées et fin ; deux côtés/deux ordres si applicables ; reset préservant autre côté et temps cumulé ; absence de double signal/transition. Bip valide dans les deux modes ; aucun signal hors phase Série.
 
 ### 21. Traçabilité
 
@@ -1315,11 +1323,11 @@ Bloc B5 ; états S57/S58 ; T03-E E40/E43 ; Shell Execution partagé.
 
 ### 2. Finalité fonctionnelle
 
-Exécuter REPETITIONS avec/sans cadence ou TO_FAILURE ; chronomètre croissant, Suivant fin normale. Avec cadence la durée prescrite Ri×Ci est estimée et ne termine pas la Série.
+Exécuter REPETITIONS avec/sans cadence ou toute Série à cible À l’échec, y compris DURATION ; chronomètre croissant, Suivant fin normale. Avec cible chiffrée et cadence la durée prescrite Ri×Ci est estimée et ne termine pas la Série.
 
 ### 3. Contexte d’entrée
 
-Fin préparation CE-T03-09 avec mode REPETITIONS ou TO_FAILURE.
+Fin préparation CE-T03-09 avec mode REPETITIONS ou première cible À l’échec ; transition depuis une Série chiffrée lorsque la Série suivante est À l’échec.
 
 ### 4. Contexte de sortie / destinations
 
@@ -1327,7 +1335,9 @@ Suivant → fin Série → Pause / Série suivante / `SIDE_RECOVERY` éventuelle
 
 ### 5. Données affichées et source de vérité
 
-REPETITIONS : cible répétitions du snapshot. TO_FAILURE : aucune cible chiffrée. Pauses/Récupérations : durées connues snapshot.
+**Cible par Série (13/10) :** fin automatique seulement en Durée chiffrée ; Suivant pour Répétitions ou toute cible À l’échec. Pas de nominal pour l’échec, même avec bip. Relevé par occurrence/côté : durée de dernière tentative ou répétitions estimées/déclarées ; non bloquant. Voir spécification Deux modes §§3–5. Aucun nouveau layout de saisie/restitution n’est livré dans cette passe.
+
+REPETITIONS chiffrées : cible du snapshot. Toute cible À l’échec : aucun nombre prescrit ; mode conservé pour l’unité du relevé. Pauses/Récupérations : durées connues snapshot.
 
 Paramètres de la Série courante issus de l’instantané variable/uniforme ; ordres v13. En direct : total intrinsèque, Pause terminale normale, aucune récupération contextuelle.
 
@@ -1379,7 +1389,7 @@ Tap commandes uniquement.
 
 ### 14. Validation
 
-REPETITIONS exige une cible ; TO_FAILURE aucune cible. Bip0..10 valide dans les trois modes, entier obligatoire,0=Aucun. Aucune estimation forfaitaire ni transition déclenchée par le bip.
+Chaque Série exige une cible typée : nombre valide ou À l’échec. Absence/invalide n’équivaut pas à l’échec. Bip0..10 valide dans les deux modes, entier obligatoire,0=Aucun. Aucune estimation forfaitaire ni transition déclenchée par le bip.
 
 ### 15. Brouillon et persistance
 
@@ -1410,6 +1420,8 @@ Failure sans cible ; Suivant normal ; aucune confirmation chronométrée ; pas S
 D-302 confirme tous les signaux et comportements de cadence ; ≈ ne signifie pas absence de guidage.
 
 ### 20. Recette déterministe
+
+Vérifier alternance chiffré/échec, sécurité2h sans nominal, progression des cibles inconnues à Suivant ; reset20s puis35s donne55s cumulé et35s relevé. Suivant ne confirme pas implicitement un nombre de bips estimé.
 
 Deux modes, N=1/N>1, cible 1/100, reset après temps écoulé, Suivant sans dialogue, pauses 0/>0, changement de côté et Fin propre. Aucun total cible inventé pour À l’échec ; aucun Tour/Cycle ni récupération post-occurrence.
 
@@ -1451,7 +1463,7 @@ sideMode snapshot ; executionSide RIGHT/LEFT ; résultats séparés par côté.
 
 Paramètres de la Série courante issus de l’instantané variable/uniforme ; ordres v13. En direct : total intrinsèque, Pause terminale normale, aucune récupération contextuelle.
 
-Cadence éventuelle issue de la Série de l’instantané, jamais du Profil ou des chiffres Figma. Temps réellement dépensé cumulatif distinct du chrono de tentative ; bip applicable aux trois modes, sans modifier leur terminaison propre.
+Cadence éventuelle issue de la Série de l’instantané, jamais du Profil ou des chiffres Figma. Temps réellement dépensé cumulatif distinct du chrono de tentative ; bip applicable aux deux modes, sans modifier leur terminaison propre.
 
 ### 6. Classification des valeurs Figma
 
@@ -1523,7 +1535,7 @@ D→G/G→D, C=1/2/99, pause inter-Séries 0/>0, SIDE_RECOVERY0/>0, reset second
 
 Vérifier les deux ordres et directions, valeurs variables, PC0 sans repli, Pause terminale et N1 normalisé. Ne pas déduire les transitions du câblage Figma.
 
-Vérifier passage entre préparation, Série cadencée, pauses programmées et fin ; deux côtés/deux ordres si applicables ; reset préservant autre côté et temps cumulé ; absence de double signal/transition. Bip valide dans les trois modes ; aucun signal hors phase Série.
+Vérifier passage entre préparation, Série cadencée, pauses programmées et fin ; deux côtés/deux ordres si applicables ; reset préservant autre côté et temps cumulé ; absence de double signal/transition. Bip valide dans les deux modes ; aucun signal hors phase Série.
 
 ### 21. Traçabilité
 
@@ -1559,7 +1571,7 @@ Fin de la dernière Série/côté puis Fin propre applicable → signal de fin �
 
 Paramètres de la Série courante issus de l’instantané variable/uniforme ; ordres v13. En direct : total intrinsèque, Pause terminale normale, aucune récupération contextuelle.
 
-Cadence éventuelle issue de la Série de l’instantané, jamais du Profil ou des chiffres Figma. Temps réellement dépensé cumulatif distinct du chrono de tentative ; bip applicable aux trois modes, sans modifier leur terminaison propre.
+Cadence éventuelle issue de la Série de l’instantané, jamais du Profil ou des chiffres Figma. Temps réellement dépensé cumulatif distinct du chrono de tentative ; bip applicable aux deux modes, sans modifier leur terminaison propre.
 
 ### 6. Classification des valeurs Figma
 
@@ -1629,7 +1641,7 @@ Fin 0/>0 ; plan terminé/partiel ; arrêt depuis Pause confirmé/annulé ; inter
 
 Vérifier les deux ordres et directions, valeurs variables, PC0 sans repli, Pause terminale et N1 normalisé. Ne pas déduire les transitions du câblage Figma.
 
-Vérifier passage entre préparation, Série cadencée, pauses programmées et fin ; deux côtés/deux ordres si applicables ; reset préservant autre côté et temps cumulé ; absence de double signal/transition. Bip valide dans les trois modes ; aucun signal hors phase Série.
+Vérifier passage entre préparation, Série cadencée, pauses programmées et fin ; deux côtés/deux ordres si applicables ; reset préservant autre côté et temps cumulé ; absence de double signal/transition. Bip valide dans les deux modes ; aucun signal hors phase Série.
 
 ### 21. Traçabilité
 
@@ -1660,6 +1672,8 @@ Fin normale ou arrêt volontaire donnant lieu à Synthèse.
 Enregistrer avec Ressenti valide sauvegarde puis restaure le Catalogue ou le Calendrier appelant selon§16.
 
 ### 5. Données affichées et source de vérité
+
+Le futur relevé À l’échec distingue chronométré, estimé, déclaré et non renseigné, par occurrence/côté ; il ne remplace pas le temps actif cumulé. Exigence de données validée ; implantation des champs de saisie et de restitution hors périmètre de cette passe, aucun emplacement nouveau supposé.
 
 Instantané Exercice, statut et durée réelle issus de l’Exécution ACTIVITY ; Ressenti et Commentaire issus du brouillon de finalisation. Les statistiques ne comptent pas de Séance. Les résultats partiels sont conservés sans inventer un compteur de Tours.
 
@@ -1754,6 +1768,8 @@ Navigation Suivi ; retour d’autres écrans Suivi.
 Navigation globale ; aucun déploiement de carte. Pas de dépendance à l’ActivityDefinition source pour lire l’historique.
 
 ### 5. Données affichées et source de vérité
+
+Le futur relevé À l’échec distingue chronométré, estimé, déclaré et non renseigné, par occurrence/côté ; il ne remplace pas le temps actif cumulé. Exigence de données validée ; implantation des champs de saisie et de restitution hors périmètre de cette passe, aucun emplacement nouveau supposé.
 
 Exécutions SESSION et ACTIVITY clôturées, ordre chronologique décroissant ; type depuis origine, titre/paramètres depuis instantané et résultats, pas source courante. Groupes de dates ; nature, titre, statut, durée réelle, catégorie et Ressenti lorsqu’il existe. Heure, zones et étiquettes restent enregistrées mais ne sont pas affichées dans la carte. ACTIVITY ne compte pas comme Séance.
 
@@ -2050,7 +2066,7 @@ Bascule → autre face ; tap média → CE-MEDIA-EXEC-02 ; changement d’Exerci
 
 Collection ordonnée de médias de l’Exercice de l’instantané ; index courant, face et état du lecteur transitoires. Chrono/Série/côté/Tour proviennent exclusivement du moteur ; Tour seulement pour SESSION.
 
-Cadence éventuelle issue de la Série de l’instantané, jamais du Profil ou des chiffres Figma. Temps réellement dépensé cumulatif distinct du chrono de tentative ; bip applicable aux trois modes, sans modifier leur terminaison propre.
+Cadence éventuelle issue de la Série de l’instantané, jamais du Profil ou des chiffres Figma. Temps réellement dépensé cumulatif distinct du chrono de tentative ; bip applicable aux deux modes, sans modifier leur terminaison propre.
 
 ### 6. Classification des valeurs Figma
 
@@ -2116,7 +2132,7 @@ Cadence sonore et progression continuent lors du changement de face ; symbole pr
 
 Tester 0/1/N médias, mélange image/vidéo, premier/dernier, un swipe=un média, retour Information pendant lecture, retour même Exercice et autre Tour, nouveau run, erreur média, ducking, plein écran, fin naturelle et saut d’Exercice. Vérifier réduction des animations et contrôles accessibles ; essais interactifs nécessaires.
 
-Vérifier passage entre préparation, Série cadencée, pauses programmées et fin ; deux côtés/deux ordres si applicables ; reset préservant autre côté et temps cumulé ; absence de double signal/transition. Bip valide dans les trois modes ; aucun signal hors phase Série.
+Vérifier passage entre préparation, Série cadencée, pauses programmées et fin ; deux côtés/deux ordres si applicables ; reset préservant autre côté et temps cumulé ; absence de double signal/transition. Bip valide dans les deux modes ; aucun signal hors phase Série.
 
 ### 21. Traçabilité
 
@@ -2150,7 +2166,7 @@ Fermer revient à face Média au même index ; changement d’Exercice ferme aut
 
 Même média et même moteur que la face compacte ; couche flottante alimentée par nom, côté, chrono, Série et Tour conditionnel ; aucune copie autonome du temps.
 
-Cadence éventuelle issue de la Série de l’instantané, jamais du Profil ou des chiffres Figma. Temps réellement dépensé cumulatif distinct du chrono de tentative ; bip applicable aux trois modes, sans modifier leur terminaison propre.
+Cadence éventuelle issue de la Série de l’instantané, jamais du Profil ou des chiffres Figma. Temps réellement dépensé cumulatif distinct du chrono de tentative ; bip applicable aux deux modes, sans modifier leur terminaison propre.
 
 ### 6. Classification des valeurs Figma
 
@@ -2216,7 +2232,7 @@ Consulter le média ne crée ni Pause utilisateur ni cadence implicite ; comport
 
 Image/vidéo, portrait/paysage, fermer/revenir, pause vidéo sans pause moteur, pause moteur distincte, ducking, erreur, fin de Série puis changement d’Exercice, arrêt confirmé ; vérifier focus/texte agrandi et absence de Tour ACTIVITY.
 
-Vérifier passage entre préparation, Série cadencée, pauses programmées et fin ; deux côtés/deux ordres si applicables ; reset préservant autre côté et temps cumulé ; absence de double signal/transition. Bip valide dans les trois modes ; aucun signal hors phase Série.
+Vérifier passage entre préparation, Série cadencée, pauses programmées et fin ; deux côtés/deux ordres si applicables ; reset préservant autre côté et temps cumulé ; absence de double signal/transition. Bip valide dans les deux modes ; aucun signal hors phase Série.
 
 ### 21. Traçabilité
 
@@ -2904,11 +2920,13 @@ Plan achevé → CE-UI-08 ; arrêt depuis Pause confirmé → CE-UI-08 Interromp
 
 ### 5. Données affichées et source de vérité
 
+**Cible par Série (13/10) :** fin automatique seulement en Durée chiffrée ; Suivant pour Répétitions ou toute cible À l’échec. Pas de nominal pour l’échec, même avec bip. Relevé par occurrence/côté : durée de dernière tentative ou répétitions estimées/déclarées ; non bloquant. Voir spécification Deux modes §§3–5. Aucun nouveau layout de saisie/restitution n’est livré dans cette passe.
+
 Instantané Session au démarrage, occurrences développées, Série/côté/Tour courants, paramètres intrinsèques, exclusion inconditionnelle des Compte à rebours/Fin propres selon D-214 révisée, résultats et temps moteur ; aucune lecture réactive de la source modifiée.
 
 Plan depuis les cibles/Pauses de chaque Série et l’Ordre des côtés de l’instantané ; R positive remplace seulement la dernière Pause de l’occurrence.
 
-Cadence éventuelle issue de la Série de l’instantané, jamais du Profil ou des chiffres Figma. Temps réellement dépensé cumulatif distinct du chrono de tentative ; bip applicable aux trois modes, sans modifier leur terminaison propre.
+Cadence éventuelle issue de la Série de l’instantané, jamais du Profil ou des chiffres Figma. Temps réellement dépensé cumulatif distinct du chrono de tentative ; bip applicable aux deux modes, sans modifier leur terminaison propre.
 
 Snapshot : récupérations explicitement ajoutées uniquement ; projection R0 si absente. Ordre Exercice→Rpositive→point→suite ; D-248 conservée.
 
@@ -2978,11 +2996,13 @@ Bip v2 remplace D-302/D-305 sur portée, signaux et symboles ; durées réelles 
 
 ### 20. Recette déterministe
 
-Séance avec avant/dans/après Circuit, Tours 1/2, unilatéral/bilatéral, trois modes ; D-214 révisée : absence des phases propres quelle que soit la valeur d’un éventuel ancien champ ; toutes phases 0/>0 ; dernière récupération avant Fin ; points frontières/intérieur ; pause/reset/saut/arrêt confirmés/annulés ; source modifiée pendant run ; reprise ; médias ; vérifier poids §6 R-01 et transitions §6 R-03 ; aucun résultat de test applicatif n’est revendiqué ici.
+Vérifier alternance chiffré/échec, sécurité2h sans nominal, progression des cibles inconnues à Suivant ; reset20s puis35s donne55s cumulé et35s relevé. Suivant ne confirme pas implicitement un nombre de bips estimé.
+
+Séance avec avant/dans/après Circuit, Tours 1/2, unilatéral/bilatéral, deux modes ; D-214 révisée : absence des phases propres quelle que soit la valeur d’un éventuel ancien champ ; toutes phases 0/>0 ; dernière récupération avant Fin ; points frontières/intérieur ; pause/reset/saut/arrêt confirmés/annulés ; source modifiée pendant run ; reprise ; médias ; vérifier poids §6 R-01 et transitions §6 R-03 ; aucun résultat de test applicatif n’est revendiqué ici.
 
 Ordres D→G/G→D, A–F, N1, R0/positif et dernière occurrence/chaque Tour ; jamais cumul PN+R ni récupération ajoutée deux fois.
 
-Vérifier passage entre préparation, Série cadencée, pauses programmées et fin ; deux côtés/deux ordres si applicables ; reset préservant autre côté et temps cumulé ; absence de double signal/transition. Bip valide dans les trois modes ; aucun signal hors phase Série.
+Vérifier passage entre préparation, Série cadencée, pauses programmées et fin ; deux côtés/deux ordres si applicables ; reset préservant autre côté et temps cumulé ; absence de double signal/transition. Bip valide dans les deux modes ; aucun signal hors phase Série.
 
 ### 21. Traçabilité
 
@@ -3015,6 +3035,8 @@ Fin normale du plan SESSION ou arrêt volontaire confirmé ; pas obligatoire à 
 Enregistrer réussi → Suivi ; erreur reste sur Synthèse. Aucun Relancer ni sortie normale sans Ressenti.
 
 ### 5. Données affichées et source de vérité
+
+Le futur relevé À l’échec distingue chronométré, estimé, déclaré et non renseigné, par occurrence/côté ; il ne remplace pas le temps actif cumulé. Exigence de données validée ; implantation des champs de saisie et de restitution hors périmètre de cette passe, aucun emplacement nouveau supposé.
 
 Instantané de Séance, statut, durée réelle et résultats atteints ; nombre exécuté inclut les partiels, nombre terminé les exclut. Ne pas étiqueter le premier comme Exercices terminés. Partiels affichés séparément si>0 ; aucun double comptage Série/côté.
 
@@ -3197,7 +3219,7 @@ Vérification complémentairev15 : règle de durée omise sans libellé de rempl
 
 ### 1. Identification
 
-Feuille Paramètres d’exécution de CE-T03-04. Références actualisées6419:9847,6665:24844,6665:27008,7059:13302,7069:13573 ; ancien7061:13383 supprimé. Captures au chapitre06, inventaire Bip du07/10. Les24modales relues portent désormais le champ transverse dans les trois modes.
+Feuille Paramètres d’exécution de CE-T03-04. Références courantes :8328:37092,8328:37862,8328:38513,8328:38848 et nouveau8470:13303 ; les autres états du12/10 restent applicables. Captures au chapitre06 ; matrice Deux modes du13/10. Les références6419/6665/7059/7069 du07/10 sont historiques.
 
 ### 2. Finalité fonctionnelle
 
@@ -3217,27 +3239,29 @@ Ouverture depuis la zone Paramètres d’exécution. Copie du parent ; Bip initi
 
 Phrase selon les276 cas v15, total fourni par le calcul métier. Générateur → segments ordonnés `{texte, gras}`, valeurs et unités en gras, aucun redécoupage de chaîne. Terme « pause après chaque série », y compris N=1 ; clause de pauses variables omise conformément au corpus.
 
-Collection effective des Séries, cible/Pause/bip, mode, direction, ordre,PC,Compte à rebours/Fin. Bip commun à toutes les lignes,0..10 dans trois modes ; aucune surcharge persistée. Calcul typé fourni par Bip v2 ; phrase et montants Figma ne pilotent aucune donnée.
+Collection effective des Séries, cible/Pause/bip, mode, direction, ordre,PC,Compte à rebours/Fin. Bip commun à toutes les lignes,0..10 dans deux modes ; aucune surcharge persistée. Calcul typé fourni par Bip v2 ; phrase et montants Figma ne pilotent aucune donnée.
 
 ### 6. Classification des valeurs Figma
 
-Titres/règles statiques ; valeurs de champs dynamiques ; exemples Figma démonstratifs. exact/estimated/omitted à l’Exercice ; jamais lowerBound à ce niveau. Une erreur de cible n’est pas une durée omitted et bloque ✓ sans inventer un montant.
+Titres/règles statiques ; valeurs de champs dynamiques ; exemples Figma démonstratifs. exact/estimated/lowerBound/omitted à l’Exercice ; lowerBound réservé au mélange calculable. Une erreur de cible n’est pas une durée omitted et bloque ✓ sans inventer un montant.
 
 ### 7. Structure de l’écran
 
 **Complément cible12/10 :** Champ régime identiques/variables et chevron distinct ; identiques sans chevron. Tableau variable visible ou replié.
 
-En-tête fixe ✕/titre/✓ ; corps défilant Mode → Séries → régime identiques/variables avec chevron indépendant → cible/Pause uniformes ou tableau → Changement de côté → Ordre/PC si bilatéral → Bip de cadence → Total applicable → Compte à rebours → Fin. Bip commun hors tableau, présent dans les trois modes. N1 normalisé uniforme et ordre par côté.
+En-tête fixe ✕/titre/✓ ; corps défilant Mode → Séries → régime identiques/variables avec chevron indépendant → cible/Pause uniformes ou tableau → Changement de côté → Ordre/PC si bilatéral → Bip de cadence → Total applicable → Compte à rebours → Fin. Bip commun hors tableau, présent dans les deux modes. N1 normalisé uniforme et ordre par côté.
 
 ### 8. Éléments obligatoires
 
 **Complément cible12/10 :** Valeur numérique au repos, ± au toucher ; N hérité visible et non modifiable, origine discrète. Total affichable en lecture seule sous héritage.
 
-Bip0..10, boutons ± révélés par appui sur sa valeur,0 libellé Aucun ; contrôle actif même à0. Aucun interrupteur ou roulette Bip. Total absent en Répétitions sans bip et À l’échec ; exact en Durée, ≈ en Répétitions avec bip. Pause entre les côtés seulement en bilatéral. Compte à rebours/Fin conservés.
+Bip0..10, boutons ± révélés par appui sur sa valeur,0 libellé Aucun ; contrôle actif même à0. Aucun interrupteur ou roulette Bip. Total absent en Répétitions sans bip et toutes cibles À l’échec ; exact en Durée toute chiffrée, ≈ en Répétitions toute chiffrée avec bip, ≥ en mélange calculable. Pause entre les côtés seulement en bilatéral. Compte à rebours/Fin conservés.
 
 ### 9. Layout déterministe
 
-**Alignement DSF du 12/10 :** ligne variable `8129:31593`, 334 × 36 ; cellules cible/Pause 76 × 24 ; pied commun `8129:31601`, 354 × 48, ± à droite. Une cellule active ; plus de steppers permanents dans chaque cellule. Les 18 états de la feuille sont illustrés au chapitre 06. Seul le placement de la mention/astérisque du nombre hérité reste sans référence visuelle identifiée.
+**Révision13/10 :** popover Mode184×99, hauteur automatique, deux options. Roulette cible : popover354×249 avec maître8452:13297 (330×181), option en tête330×30, séparateur1px, roulette numérique150px. Le total conserve le maître5544:5118 (330×150) et son popover354×216. Ligne de série à deux colonnes maintenue, même tout échec ; aucune variante à une colonne. Voir DSF Deux modes pour tailles et opacités.
+
+**Alignement DSF du 12/10 :** ligne variable `8129:31593`, 334 × 36 ; cellules cible/Pause 76 × 24 ; pied commun `8129:31601`, 354 × 48, ± à droite. Une cellule active ; plus de steppers permanents dans chaque cellule. Les 19 états de la feuille sont illustrés au chapitre 06. Seul le placement de la mention/astérisque du nombre hérité reste sans référence visuelle identifiée.
 
 À402 : groupe à x24, largeur354 ; Bip au premier niveau x36. Les anciennes indentations systématiques x52 des contrôles variables sont remplacées par la grille à cellules décrite dans le DSF du 12/10. Bip juste au-dessus du total ou avant Compte à rebours si total absent. Retrait du total raccourcit la feuille de42px par le haut, bas ancré. Valeurs/steppers à droite ; marges adaptées, pas de coordonnées absolues sur toutes largeurs. Voile modal `overlayScrim` (`color/overlay/scrim`) #1F2129 à 34 %, distinct de `compositionDraggedCardShadow`, qui ne sert jamais de voile.
 
@@ -3249,13 +3273,17 @@ Référence longue7119:27855 :224caractères, cinq lignes/100px à largeur324, c
 
 ### 11. États de l’écran
 
-Bip0/positif dans chacun des trois modes ; cible valide/incomplète ; uniforme/variable ;N1 ; deux ordres/directions ; tableau ouvert/replié ; steppers au minimum/maximum et maintenus ; validation/annulation. Plus aucun état roulette de cadence.
+Cible chiffrée / À l’échec / mélange ; ouverture sur la cible courante. Option sélectionnée100%, sinon45% du remplissage #1a1a1f. À l’échec sélectionné : partie numérique neutre00:00 et grisée ; ce zéro n’est pas une cible valide. Aucun écran uniforme supplémentaire : un changement de valeur seul ne crée pas un nouveau contrat.
+
+Bip0/positif dans chacun des deux modes ; cible valide/incomplète ; uniforme/variable ;N1 ; deux ordres/directions ; tableau ouvert/replié ; steppers au minimum/maximum et maintenus ; validation/annulation. Plus aucun état roulette de cadence.
 
 ### 12. Contrôles et interactions
 
+Deux modes seulement. Cible chiffrée et À l’échec mutuellement exclusives ; libellé « Aucune durée, à l’échec » ou « Aucune répétition, à l’échec ». Aucune coche dans la liste ; ✓ de la feuille applique. Conserver le type À l’échec lors d’une bascule de mode. Le geste exact de retour depuis la roulette numérique grisée vers une valeur n’est pas vérifiable sans le §4.5 annoncé mais absent de la source disponible ; ne pas inventer de transition ni déclarer le contrôle natif qualifié.
+
 **Complément cible12/10 :** Un seul champ actif. Changer de champ ferme/ouvre en un geste. Pi et cible copiées depuis dernière ligne. Suppression immédiate + Annuler avec position et paramètres ; sous N hérité, suppression locale indisponible.
 
-± modifie Bip par1, bornes0..10, sans accélération. Autres steppers : DSF Bip (maintien≈500ms, paliers1/5/10 selon durée du maintien et champ). Bascule de mode conserve Bip même à✓ ; cibles incompatibles remplacées par— et restaurées dans le brouillon selon v13. Variable copie les valeurs uniformes ; retour uniforme reprend première ligne ; réduction/augmentation/restauration et déplacement selon v13. Une seule roulette/segmenté ouvert pour les autres champs. Le total Durée uniforme garde son inversion seulement si N est libre ; sous N imposé par un circuit de séries, tout total affichable est en lecture seule. omitted reste absent.
+± modifie Bip par1, bornes0..10, sans accélération. Autres steppers : DSF Bip (maintien≈500ms, paliers1/5/10 selon durée du maintien et champ). Bascule de mode conserve Bip même à✓ ; cibles numériques incompatibles remplacées par— et restaurées dans le brouillon selon v13. Variable copie les valeurs uniformes ; retour uniforme reprend première ligne ; réduction/augmentation/restauration et déplacement selon v13. Une seule roulette/segmenté ouvert pour les autres champs. Le total Durée uniforme entièrement chiffré garde son inversion seulement si N est libre ; sous N imposé par un circuit de séries, tout total affichable est en lecture seule. omitted reste absent.
 
 ### 13. Gestes
 
@@ -3263,7 +3291,7 @@ Tap et maintien sur steppers, arrêt au relâchement/sortie de cible, pas suppl�
 
 ### 14. Validation
 
-Mode et cibles actives requis ; N1..99,Ri1..100,Ti1..5999s,Pauses0..300s,Bip entier0..10 dans trois modes. −1,11,fraction invalides, aucune correction silencieuse. Repli ne contourne pas validation ; erreur nommant la Série.0=Aucun reste valide. Nom/Catégorie/Zones contrôlés au parent.
+Mode et cibles typées actives requis ; une cible À l’échec est valide sans nombre. Cibles chiffrées : N1..99,Ri1..100,Ti1..5999s,Pauses0..300s,Bip entier0..10 dans deux modes. −1,11,fraction invalides, aucune correction silencieuse. Repli ne contourne pas validation ; erreur nommant la Série.0=Aucun reste valide. Nom/Catégorie/Zones contrôlés au parent.
 
 ### 15. Brouillon et persistance
 
@@ -3283,23 +3311,27 @@ Cible manquante, valeur hors borne, double validation, interruption ou erreur de
 
 **Complément cible12/10 :** Lecture seule annoncée avec valeur et origine ; ne pas remplacer par un tiret. Cellule active identifiée par ligne/colonne et texte Série i · Durée (ou autre champ), sans dépendre seulement de la couleur.
 
-Nom accessible Bip de cadence ; valeur Aucun ou intervalle en secondes ; boutons augmenter/diminuer et limites annoncées. Total ≈ annoncé estimation ; aucun minimum d’Exercice. Focus modal contenu, retour à la zone Paramètres. Texte agrandi, cibles44 minimum, alternatives au maintien/glisser.
+Nom accessible Bip de cadence ; valeur Aucun ou intervalle en secondes ; boutons augmenter/diminuer et limites annoncées. Total ≈ annoncé estimation ; ≥ annoncé total prévisionnel partiel. Option À l’échec annoncée sélectionnée/non sélectionnée ; le grisé n’est pas le seul indicateur accessible. Focus modal contenu, retour à la zone Paramètres. Texte agrandi, cibles44 minimum, alternatives au maintien/glisser.
 
 ### 19. Invariants
 
-Bip sonore uniquement pendant Série, aucune transition/compteur automatique. Son ne transforme pas À l’échec en durée connue. Aucune estimation forfaitaire, aucun≥ à l’Exercice. Pause après chaque série, y compris la dernière ; récupération contextuelle positive remplaçant seulement la dernière Pause. Les images ne gouvernent ni calculs ni persistance.
+Bip sonore uniquement pendant Série, aucune transition automatique. Les intervalles logiques peuvent proposer un relevé estimé en Répétitions à l’échec. Son ne transforme pas À l’échec en durée connue. Aucune estimation forfaitaire ; ≥ seulement pour mélange calculable à l’Exercice. Pause après chaque série, y compris la dernière ; récupération contextuelle positive remplaçant seulement la dernière Pause. Les images ne gouvernent ni calculs ni persistance.
 
 ### 20. Recette déterministe
+
+Recette complémentaire : deux options, ouverture valeur/échec courant, exclusion mutuelle,00:00 cible refusée (pause0 valide), tout échec sans total, mixte30/45/échec avec pauses10/20/30 →≥2min15 en lecture seule, Répétitions sans bip sans total ; annuler/appliquer sans persistance anticipée. Tester le passage retour au numérique après réception du §4.5 et la désactivation native sur appareils.
 
 **Complément cible12/10 :** Vérifier N libre/hérité, total éditable/lecture seule/omitted, identiques/variables égales, repli, croix/Annuler, cible destructive pendant stepper actif ; conserver tests des modes et pauses.
 
 Recette rédactionnelle :276 gabarits v15 avec total métier injecté, gras sur occurrences répétées d’une valeur, N1 avec pause mentionnée et total non redondant ; absence de troncature. Français au MVP ; i18n nécessite des gabarits et accords par locale, pas une traduction de fragments isolés.
 
-Six combinaisons mode×bip ;0/1/10 et rejets−1/11/fraction ; conservation lors des bascules, annulation et duplication.4×15×4+4×15=300s≈ ; sans bip ligne absente. Tester N1,variable,repli,réordre de dernière Série,inversion Durée,deux côtés/R ; géométrie42px, texte agrandi et accessibilité. Phrase de pauses conforme aux276 formulations v15 ; Q-08 clos.
+Deux modes × deux types de cible × bip nul/positif ;0/1/10 et rejets−1/11/fraction ; conservation lors des bascules, annulation et duplication.4×15×4+4×15=300s≈ ; sans bip ligne absente. Tester N1,variable,repli,réordre de dernière Série,inversion Durée,deux côtés/R ; géométrie42px, texte agrandi et accessibilité. Phrase de pauses conforme aux276 formulations v15 ; Q-08 clos.
 
 Corpusv15 :276gabarits, total métier injecté ; aucun changement grammatical vs v14. Tester virgule jamais isolée en début de ligne, cas144 long et ordre des cibles après déplacement. Les cas de brouillon incomplet restent hors des276sorties validées.
 
 ### 21. Traçabilité
+
+[Spécification Deux modes](SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md), [DSF](../DSF-DEUX-MODES-ECHEC-2026-10-13.md), [matrice et réserves](../MATRICE-DEUX-MODES-ECHEC-2026-10-13.md). Les cinq frames modifiées/nouvelles et leurs homologues Hors MVP ont été inspectées ; aucune modification du fichier Figma par ce lot.
 
 Clarification du07/10 : D-314 à D-320 ; [matrice de traçabilité et captures](../MATRICE-CARTES-PHRASES-2026-10-07.md).
 
@@ -3336,7 +3368,7 @@ Les arbitrages des 30 septembre et 1er octobre 2026 ferment les points fonctionn
 
 Le calcul porte sur le plan développé et conserve la piste existante. M compte les étapes contributives ; R compte les Séries Répétitions sans cadence et À l’échec ; T somme les durées des phases chronométrées positives et les Ri×Ci des Séries cadencées. Chaque Série sans durée déterminable pèse1/M ; chaque étape temporelle de durée d pèse(1−R/M)×d/T. Sans R, poids d/T ; sans T, poids1/M. Phases0s, Pause manuelle et attente de point n’ont aucun poids. Les non-cadencées/À l’échec acquièrent leur part à Suivant ; les Répétitions avec bip progressent continûment, Suivant acquiert leur reste. À fin nominale, part de Série100% mais Série active. Pause abandonne la fraction d’intervalle pour la progression, conserve le temps réel ; reprise sur intervalle complet. Aucun100% global publié avant finalisation du plan. Poids figés au départ ; reset remet à zéro son périmètre seulement. Aucun nouveau composant de progression par Série.
 
-Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé aux agrégats Séance/Circuit contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
+Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 
 ### R-02 — Validation des contrôles existants
 
@@ -3349,7 +3381,7 @@ Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip
 
 L’ordre d’exécution vient du paramètre Ordre des côtés : Un côté après l’autre (défaut) ou Les deux côtés à chaque série. En bilatéral N est toujours par côté, paramètres communs aux deux côtés. Les successions et pauses sont celles de v13 §4 ; aucun repli de PC vers la Pause. Les cibles et Pauses variables proviennent de la ligne courante.
 
-Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé aux agrégats Séance/Circuit contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
+Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 
 La source active est v13 §§3–5 ; D-242 est supersédée. Les tests PRE-1 restent figés sur leur source historique.
 
@@ -3415,7 +3447,7 @@ Le comportement utilisateur est déjà fixé. L’exclusion d’une occurrence i
 | E48 | Stats compatibles sans compter Séance |
 | E49 | Retour au contexte appelant ACTIVITY avec état restauré |
 | E50 | Résumé des paramètres sans nom ; valeurs dynamiques, saisie exclusivement CE-UI-10 |
-| E51 | Six combinaisons mode×Bip : exact Durée, ≈ Répétitions avec bip, omitted Répétitions sans bip et À l’échec ; jamais ≥ à l’Exercice |
+| E51 | Deux modes × deux types de cible × Bip nul/positif : exact Durée, ≈ Répétitions avec bip, omitted Répétitions sans bip et À l’échec ; ≥ pour mélange calculable à l’Exercice |
 | E52 | À l’échec : aucune Durée totale dans le texte éditable |
 | E53 | Pas texte direction développé cartes Composition |
 | E54 | Feuille de paramètres bloque arrière-plan ; roulette déployée sous sa ligne |
@@ -3761,6 +3793,8 @@ Fermer restitue la composition sans modification.
 
 ### 5. Données affichées et source de vérité
 
+Le mode Durée/Répétitions reste identifiable dans les volumes mixtes ; ✓ désigne la cible À l’échec, jamais un accomplissement. Le libellé d’unité ancien « À l’échec » pour une ligne tout échec ne suffit plus à distinguer les deux modes. L’alignement visuel précis de cette unité est à fournir : aucune capture de grille mixte n’est livrée dans cette passe.
+
 Exercices et séries actives du brouillon, régime, mode et direction ; aucune réserve de lignes retirées affichée.
 
 ### 6. Classification des valeurs Figma
@@ -3785,7 +3819,7 @@ Contenu accessible au-delà de hauteur/largeur disponibles ; support texte agran
 
 ### 11. États de l’écran
 
-Comptes identiques/hétérogènes ; deux régimes ; trois modes ; bilatéral ; longues listes ; circuit vide sans valeurs fictives.
+Comptes identiques/hétérogènes ; deux régimes ; deux modes ; bilatéral ; longues listes ; circuit vide sans valeurs fictives.
 
 ### 12. Contrôles et interactions
 

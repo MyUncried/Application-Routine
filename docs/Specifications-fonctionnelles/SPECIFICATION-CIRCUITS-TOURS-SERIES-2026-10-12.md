@@ -1,5 +1,7 @@
 # KODJO — Règles et concepts nouveaux
 
+**Actualisation13/10 :** [Deux modes et cible À l’échec](SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md). Mode commun Durée/Répétitions, cible typée par Série ; ≥ pour mélange calculable. Contrat CE-UI-10 et DSF Deux modes pour le sélecteur actuel.
+
 **Spécification fonctionnelle cible — arbitrages clos le12/10/2026 à09h39. Propagation documentaire autorisée à09h44. Captures et DSF à aligner ultérieurement.**
 
 *12 octobre 2026 · Fichier Figma `G6RY5Ebhgwb4AHIOYDwwvg` · pages `Conception — Hors MVP` et `Prototype MVP`*

@@ -1,5 +1,7 @@
 # DSF — Bip de cadence et steppers — 07/10/2026
 
+**Actualisation13/10 :** [DSF Deux modes et cible À l’échec](DSF-DEUX-MODES-ECHEC-2026-10-13.md) remplace les références à deux modes et complète les roulettes, cibles et totaux. Les dispositions non concernées restent applicables.
+
 **Actualisation du 12/10 :** [DSF Circuits et contrôles du 12/10](DSF-CIRCUITS-CONTROLES-2026-10-12.md) fait autorité sur les nouveaux contrôles de séries, la nature du circuit, les volumes et la lecture seule héritée. Les mesures datées ci-dessous ne décrivent pas les états remplacés. Les règles communes sans rapport avec ces éléments restent applicables.
 
 
@@ -7,7 +9,7 @@ Complément courant à DSF Cadence et DSF Pauses/icônes ; remplace uniquement l
 
 ## Ligne Bip de cadence
 
-Stepper0..10,0 affiché Aucun, intervalle en secondes ; actif dans les trois modes. Premier niveau x36 à largeur402, séparateur330. Position immédiatement avant Durée totale ; lorsque total omis, avant Compte à rebours/Fin. La structure commune au tableau variable reste hors tableau. Supprimer l’ancienne indentation sous Répétitions et la roulette spécifique.
+Stepper0..10,0 affiché Aucun, intervalle en secondes ; actif dans les deux modes. Premier niveau x36 à largeur402, séparateur330. Position immédiatement avant Durée totale ; lorsque total omis, avant Compte à rebours/Fin. La structure commune au tableau variable reste hors tableau. Supprimer l’ancienne indentation sous Répétitions et la roulette spécifique.
 
 Séries variables/cible/Pause sous Séries et Ordre/PC sous Changement de côté conservent x52 et séparateurs314. La suppression de Durée totale retire42px par le haut, feuille ancrée en bas ; corps défilant si taille de police/espace utile l’exige. En-tête ✕/titre/✓ et marges du shell conservés. Aucun nouveau contrôle d’exécution requis.
 

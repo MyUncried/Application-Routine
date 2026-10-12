@@ -1354,7 +1354,7 @@ SQLite porte les définitions d’Exercices, les copies de Séance, les associat
 
 Le domaine sépare `ActivityDefinitionRepository`, `SessionActivityRepository`, `MediaAssetRepository`. `CompositionService` orchestre la copie complète d’une définition dans une Séance. L’ancien service d’Exécution de Parcours n’est plus une cible à introduire (D-328).
 
-Le schéma d’`ActivityDefinition` utilise `executionMode ∈ {DURATION, REPETITIONS, TO_FAILURE}` et persiste le nombre de Séries canonique, la Pause après chaque série, `sideRecoverySeconds` et `sideMode`. `SessionActivity` ajoute `postActivityRecoverySeconds`. La Durée totale et le pilote Séries/Durée totale restent dérivés. Les Résultats distinguent les métriques des phases `SIDE_RECOVERY` et `POST_ACTIVITY_RECOVERY`. Les migrations conservent les Exercices MVP comme `SessionActivity`; elles ne créent pas silencieusement de références de catalogue. Les médias de la cible post-T05 utilisent capture ou photothèque, copie locale, miniature vidéo et lecture manuelle. La synchronisation distante reste séparée.
+Le schéma d’`ActivityDefinition` utilise `executionMode ∈ {DURATION, REPETITIONS}` avec cible typée chiffrée/À l’échec par Série ; TO_FAILURE est un format historique à migrer. Il persiste le nombre de Séries canonique, la Pause après chaque série, `sideRecoverySeconds` et `sideMode`. `SessionActivity` ajoute `postActivityRecoverySeconds`. La Durée totale et le pilote Séries/Durée totale restent dérivés. Les Résultats distinguent les métriques des phases `SIDE_RECOVERY` et `POST_ACTIVITY_RECOVERY`. Les migrations conservent les Exercices MVP comme `SessionActivity`; elles ne créent pas silencieusement de références de catalogue. Les médias de la cible post-T05 utilisent capture ou photothèque, copie locale, miniature vidéo et lecture manuelle. La synchronisation distante reste séparée.
 
 ### Sources de données du Catalogue
 
@@ -1386,7 +1386,7 @@ Le domaine expose `sideMode` avec les valeurs exactes `UNILATERAL`, `RIGHT_LEFT`
 
 Le générateur de Plan est l’unique composant autorisé à développer les passages. Dans la version actuelle, il ne développe aucune bilatéralité portée par le Tour : le Tour est traité fonctionnellement `UNILATERAL`. La capacité technique historique est conservée sans être exposée ni modifiée par l’utilisateur. Il applique la priorité du Tour, empêche tout double multiplicateur et produit des identifiants stables incluant répétition de Tour, Exercice, Série et côté. La commande d’activation recherche d’abord les enfants propres `RIGHT_LEFT` ou `LEFT_RIGHT`. Sans enfant concerné, elle met directement le Tour à jour. Avec enfant concerné et confirmation, une transaction met à jour le parent et remet uniquement ces enfants à `UNILATERAL`; une annulation n’écrit rien. La migration affecte `UNILATERAL` et `NONE` aux données historiques sans créer de duplicata.
 
-Les services de calcul utilisent des fonctions pures couvrant les deux valeurs de `L`, l’arrondi `.5` vers le haut, les bornes et le recalcul. Les tests combinent trois modes × trois réglages × Exercice/Tour × Séries × Pauses/Récupérations × interruptions. Les tests d’intégration vérifient l’ordre `D→G` et `G→D`, l’idempotence des résultats, la reprise, la progression monotone, les annonces uniques et la préservation du premier côté lors d’une réinitialisation du second.
+Les services de calcul utilisent des fonctions pures couvrant les deux valeurs de `L`, l’arrondi `.5` vers le haut, les bornes et le recalcul. Les tests combinent deux modes × trois réglages × Exercice/Tour × Séries × Pauses/Récupérations × interruptions. Les tests d’intégration vérifient l’ordre `D→G` et `G→D`, l’idempotence des résultats, la reprise, la progression monotone, les annonces uniques et la préservation du premier côté lors d’une réinitialisation du second.
 
 Le DSF normalise `Controls / Sides — Source exact` (`3704:5021`) à `74 × 42 pt` pour toutes ses variantes ; il est déjà placé ligne 2, colonne 1 sous `Séries`. `Controls / Tour Sides — Source exact` (`3705:5021`) reste `42 × 34 pt`, avec `8 pt` après le cadre numérique `66 × 34 pt` dans `2028:11743`. `DSF / Status & Tags / Indicateur de côté` (`5544:6944`) remplace l’ancienne référence `3706:5020`, historiquement `42 × 20 pt` dans les informations secondaires de carte. Les descriptions DSF portent les libellés accessibles, les conditions de désactivation et de confirmation. Cette rectification ne crée aucun token, champ, enum ou calcul.
 
@@ -1404,7 +1404,7 @@ Le moteur d’Exécution reçoit un `ExecutionSource` discriminé : `SessionSnap
 
 L’adaptateur `ACTIVITY` ajoute `DIRECT_PREPARE(5 s)`, développe l’Exercice, puis clôt sans `SESSION_END`. La persistance stocke l’origine et l’instantané autonome. Les agrégateurs sélectionnent uniquement les métriques compatibles et n’incrémentent pas le compteur de Séances.
 
-La navigation conserve un état de retour sérialisable du Catalogue. Les tests couvrent au minimum : les trois modes, Séries multiples, Pause nulle/non nulle, Récupération, trois directions, interruption/reprise, suppression de la source, Synthèse obligatoire, Suivi et non-comptage d’une Séance.
+La navigation conserve un état de retour sérialisable du Catalogue. Les tests couvrent au minimum : les deux modes, Séries multiples, Pause nulle/non nulle, Récupération, trois directions, interruption/reprise, suppression de la source, Synthèse obligatoire, Suivi et non-comptage d’une Séance.
 
 
 ### Icônes vectorielles de sélection multiple
@@ -1601,4 +1601,11 @@ La planification applique [sa spécification](SPECIFICATION-PLANIFICATION-2026-1
 Séparer paramètres persistés, brouillon avec réserves temporaires, développement du plan, agrégation typée et formatage visuel. Le plan est développé une fois selon la nature ; calcul et progression consomment les occurrences effectives sans multiplication supplémentaire. Le retour arrière/réinitialisation conserve sa portée existante et les résultats acquis ; le raccordement doit utiliser les identifiants d’occurrence, sans rejouer implicitement un exercice intermédiaire déjà terminé.
 
 Prévoir transactions de conversion et adaptation, compatibilité tours par défaut, invariants aux frontières API/persistance et instantanés immuables. La formalisation technique des reprises sera vérifiée avant qualification ; aucune livraison du moteur ni migration n’est revendiquée ici. Les nouveaux états visuels réutilisent les shells existants ; mesures DSF et captures différées par demande utilisateur.
+
+
+## Adaptation moteur et persistance —13/10
+
+Classifier chaque phase par mode ET nature de cible ; DURATION seul ne garantit plus une fin automatique. Les formules de poids sont conservées, les prédicats changent : cible échec inconnue et fin Suivant, même avec bip. Reprendre les intervalles logiques pour la proposition de répétitions, indépendamment de l’audibilité ; ne pas diviser le temps global cumulé par l’intervalle après des pauses/reset. Persister séparément cumul et dernière tentative, identité par occurrence/côté, et qualification du relevé. Confirmer/corriger ne commande pas l’avancement.
+
+Migration versionnée et atomique de l’ancien mode, copies/snapshots compris ; compatibilité/reprise à qualifier sur le schéma réel. La mise en œuvre native du sélecteur grisé est à vérifier ; le prompt ne prouve pas que Picker expose disabled ni que la composition à deux colonnes est qualifiée sur chaque plateforme. Aucun coût nul ni capacité déjà livrée n’est revendiqué.
 

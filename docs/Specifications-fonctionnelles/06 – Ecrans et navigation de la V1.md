@@ -228,7 +228,7 @@ Les modales `Étiquettes`, `Catégorie` et `Zones corporelles` utilisent la mêm
 | Splash | Logo et textes sont centrés dans la zone sûre ; le logo conserve ses proportions et ne doit jamais être étiré. Aucun défilement n’est prévu. |
 | Catalogue, Calendrier, Suivi, Profil | En-tête et navigation basse fixes ; seule la zone centrale défile. Les listes conservent un espace final d’au moins `16` points avant la séparation ou la navigation, en plus de l’inset inférieur applicable. |
 | Composition, Exercice, Planification | En-tête et action finale fixes ; le formulaire central défile. Avec le clavier ouvert, l’action reste atteignable sans recouvrir le champ actif. |
-| Exercice | Aucun contrôle de type n’est affiché. Les accès `Catégorie` et `Zones corporelles`, le `Mode d’exécution` et la zone Média suivent le Figma courant. L’import/ajout de médias est actif au MVP dans PRE-3 (D-333) ; les états système et règles d’import non représentés restent à clarifier. Le segment `Durée / Répétitions / À l’échec` utilise trois zones égales. Le résumé et la feuille de paramètres suivent D-247 à D-255/v13 et CE-T03-04/CE-UI-10 ; aucune ancienne double rangée fixe de synthèse. L’action `Terminer` reste accessible avec le clavier et le texte agrandi. |
+| Exercice | Aucun contrôle de type n’est affiché. Les accès `Catégorie` et `Zones corporelles`, le `Mode d’exécution` et la zone Média suivent le Figma courant. L’import/ajout de médias est actif au MVP dans PRE-3 (D-333) ; les états système et règles d’import non représentés restent à clarifier. Le popover de mode propose Durée et Répétitions ; À l’échec se sélectionne dans la cible de chaque Série. Le résumé et la feuille de paramètres suivent D-247 à D-255/v13 et CE-T03-04/CE-UI-10 ; aucune ancienne double rangée fixe de synthèse. L’action `Terminer` reste accessible avec le clavier et le texte agrandi. |
 | Planification | Rappel par interrupteur, options égales ; récapitulatif protégé et pied fixe. Voir CE-UI-05 et spécification 08/10. |
 | Calendrier Semaine | La barre des jours reste lisible sur la largeur compacte ; les sept jours se répartissent la largeur disponible sans défilement horizontal. La liste journalière défile verticalement, utilise `8` points entre ses cartes et s’arrête `16` points avant la séparation de navigation. |
 | Calendrier Mois | Les sept colonnes se répartissent la largeur disponible ; une cellule peut grandir verticalement mais ne défile pas horizontalement. |
@@ -358,7 +358,7 @@ Les mêmes termes sont utilisés dans toute l’application :
 
 - `Séance` : contenu complet d’un entraînement ;
 - `Routine` : créneau portant une liste ordonnée de Séances et/ou Exercices persistants ;
-- `Exercice` : action élémentaire exécutée en mode Durée, Répétitions ou À l’échec, avec Pause après chaque série et, en bilatéral, Pause entre les côtés éventuelle ;
+- `Exercice` : action élémentaire exécutée en mode Durée ou Répétitions, avec cible chiffrée ou À l’échec par série, avec Pause après chaque série et, en bilatéral, Pause entre les côtés éventuelle ;
 - `Pause entre les côtés` : durée intrinsèque facultative d’un Exercice bilatéral, exécutée selon l’Ordre des côtés ;
 - `Récupération après exercice` : durée contextuelle portée par chaque occurrence d’Exercice dans une Séance, non affichée sur les cartes (D-238) et exécutée après l’occurrence lorsqu’elle est positive ;
 - `Série` : répétition propre à un Exercice ;
@@ -858,7 +858,7 @@ La ligne présente le nom, la Catégorie puis les Zones corporelles sur une lign
 
 - Séries identiques : `N × cible` avec unité ; le préfixe N × est conservé sous circuit de séries ;
 - Séries variables : cibles séparées par un point médian, unité à la fin ; au plus trois valeurs qui tiennent, puis ellipse ;
-- À l’échec : libellé métier conservé sur la carte ; la grille Volumes utilise ✓ dans les cellules et « À l’échec » dans la colonne Unité.
+- À l’échec : libellé métier conservé sur la carte ; la grille Volumes utilise ✓ pour les cibles À l’échec. Le mode reste identifiable ; le rendu d’unité des lignes mixtes reste à aligner (matrice du13/10).
 
 Le nom n’est pas répété, le mode n’est pas nommé. Aucun texte de pause/récupération dans le corps de la carte. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). Les valeurs et phases D-208 restent conservées, solidaires de l’occurrence lors des opérations et utilisées dans les calculs. Le réglage de récupération existant sur cette ligne est conservé.
 
@@ -1129,7 +1129,7 @@ CE-CIR-01/02/03. La confirmation est conditionnée à la perte de valeurs, pas �
 
 ## Créer ou modifier un exercice
 
-Références courantes du 12/10 : 31 captures du parcours de création et de ses états de Modalités d’exécution, issues de Prototype MVP. Contrats CE-T03-04, CE-UI-09 et CE-UI-10. Les anciens relevés du 03/10 et du 06/10 restent historiques pour les états remplacés ; [matrice actuelle](../MATRICE-DSF-CIRCUITS-2026-10-12.md).
+Références courantes du12/10, complétées le13/10 :32 captures du parcours de création et de ses états de Modalités d’exécution, issues de Prototype MVP. Contrats CE-T03-04, CE-UI-09 et CE-UI-10. Les anciens relevés du 03/10 et du 06/10 restent historiques pour les états remplacés ; [matrice actuelle](../MATRICE-DSF-CIRCUITS-2026-10-12.md).
 
 ### Parcours, données et validation
 
@@ -1183,7 +1183,7 @@ Le tableau variable comporte poignée, numéro, cellules cible/Pause et retrait 
 
 ### Feuille Modalités d’exécution — états intégrés
 
-Ces 18 frames sont des états de CE-UI-10, pas 18 pages applicatives.
+Ces 19 frames sont des états de CE-UI-10, pas 19 pages applicatives. Quatre références ont été recapturées et le cas mixte ajouté selon la matrice du13/10.
 
 #### Création exercice — Paramètres (modale) — Champs vides
 
@@ -1195,7 +1195,7 @@ Ces 18 frames sont des états de CE-UI-10, pas 18 pages applicatives.
 
 [Source Figma — `8328:37092`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-37092)
 
-![Création exercice — Paramètres (modale) — Mode d’exécution (popover)](images/circuits-2026-10-12/8328-37092.png)
+![Création exercice — Paramètres (modale) — Mode d’exécution (popover)](images/echec-2026-10-13/8328-37092.png)
 
 #### Création exercice — Paramètres (modale) — Série en durée
 
@@ -1207,7 +1207,7 @@ Ces 18 frames sont des états de CE-UI-10, pas 18 pages applicatives.
 
 [Source Figma — `8328:37862`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-37862)
 
-![Création exercice — Paramètres (modale) — Durée d’une série (roulette)](images/circuits-2026-10-12/8328-37862.png)
+![Création exercice — Paramètres (modale) — Durée d’une série (roulette)](images/echec-2026-10-13/8328-37862.png)
 
 #### Création exercice — Paramètres (modale) — Changement de côté (popover)
 
@@ -1243,7 +1243,7 @@ Ces 18 frames sont des états de CE-UI-10, pas 18 pages applicatives.
 
 [Source Figma — `8328:38513`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38513)
 
-![Création exercice — Paramètres (modale) — Mode d’exécution (popover) — séries variables](images/circuits-2026-10-12/8328-38513.png)
+![Création exercice — Paramètres (modale) — Mode d’exécution (popover) — séries variables](images/echec-2026-10-13/8328-38513.png)
 
 #### Création exercice — Paramètres (modale) — Séries variables en durée
 
@@ -1261,7 +1261,18 @@ Ces 18 frames sont des états de CE-UI-10, pas 18 pages applicatives.
 
 [Source Figma — `8328:38848`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38848)
 
-![Création exercice — Paramètres (modale) — Séries variables à l’échec](images/circuits-2026-10-12/8328-38848.png)
+![Création exercice — Paramètres (modale) — Séries variables à l’échec](images/echec-2026-10-13/8328-38848.png)
+
+Cette capture reflète le layout actuel. Le texte de fond énumérant les pauses variables reste un écart rédactionnel avec Phrase v1 ; voir la matrice Deux modes.
+
+#### Modalités d’exécution — Séries variables, cas mixte
+
+[Source Figma — `8470:13303`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8470-13303)
+
+![Modalités d’exécution — Séries variables, cas mixte](images/echec-2026-10-13/8470-13303.png)
+
+État de CE-UI-10 : mode Durée, cibles30s/45s/échec, pauses10s/20s/30s et total partiel ≥2min15, non modifiable. La cible échec conserve sa colonne ; le mode n’est pas « À l’échec ». [DSF et anatomie du sélecteur](../DSF-DEUX-MODES-ECHEC-2026-10-13.md) ; [matrice de traçabilité](../MATRICE-DEUX-MODES-ECHEC-2026-10-13.md).
+
 
 #### Création exercice — Paramètres (modale) — Ordre des côtés (popover)
 
@@ -1660,7 +1671,7 @@ Sans cadence, le cercle du minuteur effectue une rotation complète par minute :
 - à `01:00`, il recommence une nouvelle rotation ;
 - le chronomètre continue à croître (`01:01`, `01:02`, etc.).
 
-Bip positif : signal périodique dans les trois modes pendant Série, y compris après le nominal Répétitions ; aucun dernier signal nominal distinct ni bip minute superposé. Bip0 : règles antérieures de signal minute conservées pour les modes concernés. Fin Durée au minuteur ; Répétitions/À l’échec manuelles. Même shell, pas de nouvel écran.
+Bip positif : signal périodique dans les deux modes pendant Série, y compris après le nominal Répétitions ; aucun dernier signal nominal distinct ni bip minute superposé. Bip0 : règles antérieures de signal minute conservées pour les modes concernés. Fin Durée chiffrée au minuteur ; Répétitions et toute cible À l’échec manuelles. Même shell, pas de nouvel écran.
 
 `Pause` suspend le chronomètre et la rotation du cercle. `Reprendre` les relance depuis l’état exact où ils ont été suspendus.
 
@@ -1844,7 +1855,7 @@ Confirmer l’interruption anticipée d’un Exercice chronométré.
 
 Cette modale s’affiche lorsque l’utilisateur appuie sur `Exercice suivant` avant la fin d’un Exercice chronométré.
 
-Elle ne s’affiche pas pour un Exercice en mode Répétitions ou À l’échec : dans ce cas, `Suivant` constitue la validation normale de la Série courante.
+Elle ne s’affiche pas pour une Série en mode Répétitions ou à cible À l’échec : dans ce cas, `Suivant` constitue la validation normale de la Série courante.
 
 #### Contenu
 

@@ -68,7 +68,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | ID     | Décision                                                                                                                                                                                                     | Version        |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------- |
 | DM-001 | Le modèle cible ne possède aucun type d’Exercice `Exercice` ou `Récupération`. Une `ActivityDefinition` porte éventuellement `sideRecoverySeconds`; la récupération post-exercice est contextuelle à l’occurrence. | D-208 |
-| DM-002 | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé aux agrégats Séance/Circuit contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. | D-247/D-248/v13 |
+| DM-002 | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. | D-247/D-248/v13 |
 | DM-003 | Une séance contient un cycle unique.                                                                                                                                                                         | V1             |
 | DM-004 | Un cycle contient un Circuit unique.                                                                                                                                                                            | V1             |
 | DM-005 | Le cycle et le Tour sont répétés par leurs paramètres de répétition.                                                                                                                                         | V1             |
@@ -81,7 +81,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | DM-012 | Un Cycle, un Tour et une `SessionActivity` appartiennent à une seule Séance. Une `ActivityDefinition` du MVP T03 est autonome et peut être copiée dans plusieurs Séances ; ses copies ne restent pas liées. | MVP T03 |
 | DM-013 | Un Exercice possède un nombre de Séries propre, entier de 1 à 99 (D-092). Une Série n'est pas une entité autonome. | V1 |
 | DM-014 | Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : Bip v2§3 et paramètres v13§§4–5. | D-247/D-248/v13 |
-| DM-015 | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé aux agrégats Séance/Circuit contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. | D-247/D-248/v13 |
+| DM-015 | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. | D-247/D-248/v13 |
 | DM-017 | Dans la version actuelle, le Tour ne porte aucun changement de côté exposé. Tout champ technique historique de direction Tour est conservé pour compatibilité mais contraint à `UNILATERAL`. | 24/09/2026 |
 | DM-018 | Un Exercice peut porter un Compte à rebours propre et une Fin d’exercice propre. | 24/09/2026 |
 | DM-019 | Un Point d’arrêt est un élément ordonné de Composition ; son attente n’est pas comptée dans la durée. | 24/09/2026 |
@@ -407,7 +407,7 @@ Un exercice possède directement :
 - sa description ;
 - sa Catégorie et ses Zones corporelles ;
 - son mode d'exécution ;
-- sa durée cible, son nombre de répétitions cible ou l’absence de cible chiffrée en mode À l’échec ;
+- sa durée cible, son nombre de répétitions cible ou l’absence de cible chiffrée pour une cible À l’échec ;
 - son nombre de Séries ;
 - sa Pause après chaque série ;
 - sa durée de Récupération, positionnée dans le Plan selon la direction effective ;
@@ -438,7 +438,7 @@ Elle ne contient pas directement :
 | Changement de côté        | `UNILATERAL`, `RIGHT_LEFT`, `LEFT_RIGHT`        |        Obligatoire        | Affiché `Aucun`, `D→G`, `G→D`; défaut `UNILATERAL`                             |
 | Compte à rebours d’Exercice | Durée propre précédant le travail              |        Facultatif         | Distinct du Compte à rebours initial de Séance                                 |
 | Fin d’exercice            | Durée propre suivant les phases de l’Exercice   |        Facultatif         | Distincte de la Fin de séance                                                   |
-| Mode d'exécution           | Durée, Répétitions ou À l’échec                 |        Obligatoire        | À l’échec n’a ni durée ni répétitions cibles                                  |
+| Mode d'exécution           | Durée ou Répétitions, avec cible chiffrée ou À l’échec par série                 |        Obligatoire        | À l’échec n’a ni durée ni répétitions cibles                                  |
 | Durée                      | Durée                                           |       Conditionnel        | Exercice chronométré                                                         |
 | Nombre de répétitions      | Répétitions                                     |       Conditionnel        | Mode Répétitions                                                              |
 | Nombre de Séries           | Entier canonique persisté                       |        Obligatoire        | Valeur de 1 à 99 ; valeur par défaut 1                                        |
@@ -460,7 +460,7 @@ Elle ne contient pas directement :
 - Une `ActivityDefinition` bilatérale peut porter `sideRecoverySeconds`, exécuté une fois par Exercice en Un côté après l’autre, ou une fois par paire en Les deux côtés à chaque série.
 - Toute `SessionActivity` porte `postActivityRecoverySeconds`, y compris avec la valeur `0`; une valeur positive crée une phase après l’occurrence et avant `SESSION_END` si elle est la dernière.
 - Ni la Pause ni les récupérations ne créent une entité Exercice associé.
-- Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé aux agrégats Séance/Circuit contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
+- Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 - En Durée uniforme seulement, si l’utilisateur pilote par une Durée totale cible, le calcul inverse porte sur cette durée intrinsèque puis applique l’arrondi validé à `C`. Seul `C` est persisté comme valeur canonique de Séries.
 - Toutes les Exercices peuvent être associées à des zones corporelles.
 - Les exercices peuvent être ajoutées, déplacées, dupliquées et supprimées.
@@ -605,7 +605,7 @@ Contient notamment :
 
 ## Contraintes d’Exercice
 
-`executionMode ∈ {DURATION, REPETITIONS, TO_FAILURE}`. `DURATION` exige une durée cible et interdit les répétitions cibles ; `REPETITIONS` exige des répétitions cibles et interdit la durée cible ; `TO_FAILURE` interdit les deux. Pause, nombre de Séries et Récupération restent disponibles dans les trois modes. La Durée totale est dérivée : DURATION sans symbole, omise seulement si redondante (N1 unilatéral sans pause) ; REPETITIONS avec cadence Ri×Ci et ≈, sans bip omitted ; TO_FAILURE sans total d’Exercice. Bip entier0..10 par Série, réglage commun valide dans les trois modes. La phrase elle-même n’est pas persistée comme source de vérité (D-232).
+`executionMode ∈ {DURATION, REPETITIONS}`. Chaque série possède un type de cible explicite : chiffrée (durée ou répétitions selon le mode) ou À l’échec (aucun nombre prescrit). Valeur invalide/absente distincte de l’échec. L’ancien TO_FAILURE est lu/migré vers REPETITIONS avec toutes les cibles À l’échec, sans inventer de relevé historique. Pause, nombre de Séries et Récupération restent disponibles dans les deux modes. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Bip entier0..10 par Série, réglage commun valide dans les deux modes. La phrase elle-même n’est pas persistée comme source de vérité (D-232).
 
 L’ajout d’une définition copie nom, description, zones corporelles, mode, durée ou répétitions, Séries, Pause, Récupération et associations média. La copie n’a plus de lien fonctionnel avec la définition. La position `BEFORE_TOUR`, `IN_TOUR` ou `AFTER_TOUR` n’existe que sur `SessionActivity`.
 
@@ -629,7 +629,7 @@ Chaque occurrence d’Exercice parcourue pendant une Exécution produit un **Ré
 | Position d’exécution | Rang dans le plan d’exécution | Obligatoire | Permet de distinguer les occurrences |
 | Série / Tour / Cycle | Indices de répétition applicables | Calculé | Conservés pour restitution |
 | Statut | Résultat de l’occurrence | Obligatoire | `Terminée` ou `Partielle` selon le type et le déroulement |
-| Durée réelle | Temps réellement passé sur l’Exercice | Obligatoire | Chronométré pour les modes Durée, Répétitions et À l’échec |
+| Durée réelle | Temps réellement passé sur l’Exercice | Obligatoire | Chronométré pour les modes Durée ou Répétitions, avec cible chiffrée ou À l’échec par série |
 | Pause entre les côtés prévue/écoulée | Durées de la phase intrinsèque éventuelle | Conditionnel | Champs distincts rattachés à `SIDE_RECOVERY` lorsqu’elle existe |
 | Récupération après exercice prévue/écoulée | Durées de la phase contextuelle | Obligatoire / calculé | Planifiée depuis `postActivityRecoverySeconds`; `0` reste une valeur de donnée, temps écoulé nul si aucune phase positive |
 
@@ -1150,7 +1150,7 @@ Copie Catalogue→Séance, duplication et nouvel instantané conservent tout cet
 
 | Support | Donnée / contrainte |
 |---|---|
-| Série effective | `cadenceBeepIntervalSeconds` entier0..10, trois modes,0=Aucun ; cible répétitions et pause restent indépendantes |
+| Série effective | `cadenceBeepIntervalSeconds` entier0..10, deux modes,0=Aucun ; cible répétitions et pause restent indépendantes |
 | Brouillon uniforme/variable | Cadence commune facultative ; propagée aux lignes. Alternatives de mode mémorisées jusqu’à✓ seulement ; aucune surcharge commune persistée |
 | ActivityDefinition / SessionActivity | Transport de la collection ordonnée complète ; occurrence ajoute R contextuelle ; copie indépendante et duplication conservent les cadences |
 | Instantané versionné | Prescription cible/cadence de chaque Série et côté, immuable après démarrage ; absent dans ancien snapshot=non cadencé |
@@ -1158,7 +1158,7 @@ Copie Catalogue→Séance, duplication et nouvel instantané conservent tout cet
 | Résultat par Série/côté | Temps actif cumulé, incluant fractions abandonnées et tentatives reset ; aucun nombre réel de répétitions déduit |
 | Calcul dérivé | Secondes prévisionnelles et niveau d’incertitude ; phrase et total non persistés comme vérité indépendante |
 
-Migration : ancien objet sans champ initialisé à0 ; conserver valeurs et historique. Bip valide et conservé dans les trois modes après validation. Écriture atomique des paramètres et de la collection ; transitions moteur idempotentes. Le schéma physique et sa migration sont à implémenter, pas réputés présents du fait de cette cible.
+Migration : ancien objet sans champ initialisé à0 ; conserver valeurs et historique. Bip valide et conservé dans les deux modes après validation. Écriture atomique des paramètres et de la collection ; transitions moteur idempotentes. Le schéma physique et sa migration sont à implémenter, pas réputés présents du fait de cette cible.
 
 
 
@@ -1168,7 +1168,7 @@ Modèle logique : pause explicite avec identifiant stable, type recovery ou brea
 
 ## Bip de cadence — seconde clarification du07/10
 
-cadenceBeepIntervalSeconds entier0..10 dans les trois modes ;0=Aucun, défaut0. Même champ sur les Séries effectives et snapshots, réglage commun sans surcharge. Aucune suppression lors d’une bascule de mode. Résultat temporel exact/estimated/lowerBound/omitted ; omitted sans montant, validation erronée séparée. LowerBound réservé à SESSION. SeriesParameters et pauses explicites doivent être intégrés au schéma avant ce champ ; numérotation de migration à planifier.
+cadenceBeepIntervalSeconds entier0..10 dans les deux modes ;0=Aucun, défaut0. Même champ sur les Séries effectives et snapshots, réglage commun sans surcharge. Aucune suppression lors d’une bascule de mode. Résultat temporel exact/estimated/lowerBound/omitted ; omitted sans montant, validation erronée séparée. LowerBound autorisé à l’Exercice mixte calculable, ainsi qu’aux agrégats Circuit/Séance. SeriesParameters et pauses explicites doivent être intégrés au schéma avant ce champ ; numérotation de migration à planifier.
 
 ## Contrat technique de phrase — clarification du07/10
 
@@ -1201,4 +1201,11 @@ Une récupération explicite de0s est un objet conservé, distinct de l’absenc
 | Occurrence exécutée | Rattachement stable au circuit, passage, exercice, indice de série et côté pour reprise/progression |
 
 Les noms physiques, éventuel renommage de tourRepeatCount et migration sont à déterminer par inventaire du schéma réel ; aucune migration SQL n’est prescrite par Figma. Aucune persistance des phrases, totaux ou états visuels actifs/repliés comme sources métier concurrentes. Les séries définitivement tronquées par conversion confirmée ne sont pas récupérables par un retour de nature.
+
+
+## Cibles et relevés — complément normatif13/10
+
+La cible typée appartient à chaque Série effective et à chaque copie/snapshot ; le mode appartient à l’Exercice. Interdire simultanéité cible numérique/échec et interdire zéro comme cible. La valeur relevée est facultative, distincte de la prescription, rattachée à exécution/occurrence/série/côté/passage/tentative. Unité, origine et qualification (chronométrée, estimée, déclarée, absente) sont conservées. Garder la proposition source en cas de correction. Aucun relevé absent transformé en zéro. Les paramètres et résultats historiques ne sont pas réécrits par la régénération d’une phrase.
+
+Migration de l’ancien TO_FAILURE : REPETITIONS + cibles échec, valeurs et comportement conservés ; lecture versionnée des snapshots historiques, aucune répétition rétrocalculée. La donnée dernière tentative doit être distinguée du cumul :20s reset35s →55s cumulé,35s relevé. Voir spécification Deux modes §§5/7 ; schéma physique à réaliser, non livré par la documentation.
 

@@ -1,5 +1,7 @@
 # INDEX — Documentation du projet Routine
 
+**Actualisation13/10 — Deux modes et cible À l’échec :** [spécification](Specifications-fonctionnelles/SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md), [DSF](DSF-DEUX-MODES-ECHEC-2026-10-13.md), [inventaire, vérifications et réserves](MATRICE-DEUX-MODES-ECHEC-2026-10-13.md). Quatre captures remplacées, cas mixte ajouté et nouveau composant illustré ; contrats actualisés.
+
 **Compléments du07/10 — segmentés et titres :** [analyse, plan et traçabilité](MATRICE-COMPLEMENTS-2026-10-07.md), [DSF](DSF-SEGMENTES-TITRES-2026-10-07.md), [backlog fonctionnel](BACKLOG-SEGMENTS-CATALOGUE-2026-10-07.md). Catalogues à deux choix ; titres Composer/Modifier une séance et Créer un exercice ; noms de frames et IDs conservés.
 
 **Référence courante — évolutions v15 :** [inventaire, plan et preuves](MATRICE-EVOLUTIONS-V15-2026-10-07.md), [consolidation fonctionnelle](Specifications-fonctionnelles/CONSOLIDATION-EVOLUTIONS-V15-2026-10-07.md), [DSF phrases](DSF-PHRASES-V15-2026-10-07.md). Corpus276 actualisé ; calculs conservés ; captures et contrats repris.
@@ -10,7 +12,7 @@
 
 [Spécification Bip v2](Specifications-fonctionnelles/SPECIFICATION-BIP-CADENCE-v2.md) · [DSF Bip/steppers](DSF-BIP-CADENCE-2026-10-07.md) · [Inventaire et captures](MATRICE-BIP-FIGMA-2026-10-07.md) · [Rapport de cohérence](REPORT-BIP-2026-10-07.md).
 
-Bip0..10 transverse aux trois modes ; omission des durées non calculables d’Exercice ; ≥ réservé aux Séances ; pause après chaque série, dernière comprise, remplacée seulement par la récupération positive qui suit. Q-07 et Q-08 clos ; les276 formulations v15 font référence. Cette clarification remplace les règles incompatibles du premier lot du07/10.
+Bip0..10 transverse aux deux modes ; ≥ autorisé à l’Exercice mixte calculable depuis le13/10 ; tout échec ou Répétitions sans bip sans total propre ; pause après chaque série, dernière comprise, remplacée seulement par la récupération positive qui suit. Q-07 et Q-08 clos ; les276 formulations v15 font référence. Cette clarification remplace les règles incompatibles du premier lot du07/10.
 
 ## Consolidation du 07/10/2026
 

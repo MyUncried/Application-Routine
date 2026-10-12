@@ -1,0 +1,1 @@
+Sources reçues, conservées sans altération. La proposition disponible ne contient pas le §4.5 annoncé par le prompt. Les arbitrages utilisateur ultérieurs (absence de calcul sans bip, relevé estimé tant que non confirmé, dernière tentative) priment sur les formulations abrégées des sources. Référence normative : spécification Deux modes, chapitres09/10/13.

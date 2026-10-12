@@ -1,5 +1,7 @@
 # DSF — Circuits, volumes et contrôles de séries — 12/10/2026
 
+**Actualisation13/10 :** [DSF Deux modes et cible À l’échec](DSF-DEUX-MODES-ECHEC-2026-10-13.md) remplace les références à trois modes et complète les roulettes, cibles et totaux. Les dispositions non concernées restent applicables.
+
 Référence courante pour les éléments ci-dessous. Complète le [DSF général](DSF-INTERFACE-GENERALE-2026-10-08.md) et remplace les anciennes descriptions d’interrupteur de régime, de steppers permanents par cellule et de compteur Circuit indivisible. Ne change ni shells ni règles métier. Sources : inspection directe des pages Prototype MVP et Fondations le 12/10 ; [inventaire préalable](INVENTAIRE-DSF-CIRCUITS-2026-10-12.md), [matrice des exports](MATRICE-DSF-CIRCUITS-2026-10-12.md).
 
 Figma définit le layout. [Circuits](Specifications-fonctionnelles/SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md), Paramètres v13 et CE-T03-08 / CE-UI-10 / CE-CIR-01…03 déterminent les données, interactions, bornes et calculs. Toutes les mesures sont des références à 402 × 874, pas des coordonnées absolues à reproduire sur tous les appareils. Safe Areas, texte agrandi, en-tête accessible et contenu défilant restent requis.

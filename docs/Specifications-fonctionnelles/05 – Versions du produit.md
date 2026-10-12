@@ -15,7 +15,7 @@ Permettre à un utilisateur de créer des Séances structurées et des Exercices
 - définir pour chaque exercice :
   - un nom ;
   - une consigne ;
-  - une durée, un nombre de répétitions ou le mode À l’échec ;
+  - une durée, un nombre de répétitions ou une cible À l’échec ;
   - un nombre de Séries propre à l'Exercice ;
 - Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : Bip v2§3 et paramètres v13§§4–5.
   - une Pause entre les côtés éventuelle, uniquement pour un Exercice bilatéral ;
@@ -191,7 +191,7 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 
 ### MVP
 
-- troisième mode d’Exercice `À l’échec`, exécuté comme le mode Répétitions avec `Suivant` ;
+- cible À l’échec par Série dans les deux modes, terminée par Suivant ;
 - Catalogue affichant `Exercices / Séances` ; `Séances` est actif dès T01 et `Exercices` devient actif dans le MVP avec T03 ; `Parcours` est absent du sélecteur ;
 - carte d’Exercice à gouttière permanente au MVP, photo ou icône de nature, sans Déployer quel que soit le média (D-260/D-261) ; l’activation de cet affichage n’implique pas de nouveau mécanisme d’import ou de capture.
 - nouvelle structure d’édition d’un Exercice : suppression du type, accès `Catégorie` et `Zones corporelles`, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Changement de côté / Pause entre les côtés / Durée totale`, la Pause entre les côtés étant conditionnelle à `D→G/G→D` ;
@@ -277,7 +277,7 @@ Le parcours existant permet maintenant des Séries variables dans la même feuil
 
 ## Évolution Cadence — statut au06/10/2026
 
-Cible documentée, non déclarée livrée : Bip de cadence0..10 dans trois modes, steppers et calculs Bip v2. Dépendances : SeriesParameters, pauses explicites, migration, ordonnanceur audio périodique, snapshots et qualification mobile. L’écran de roulette est supprimé ; les cinq modales modifiées sont reprises ; les autres modes restent à compléter visuellement. Le layout d’exécution est conservé.
+Cible documentée, non déclarée livrée : Bip de cadence0..10 dans deux modes, steppers et calculs Bip v2. Dépendances : SeriesParameters, pauses explicites, migration, ordonnanceur audio périodique, snapshots et qualification mobile. L’écran de roulette est supprimé ; les cinq modales modifiées sont reprises ; les autres modes restent à compléter visuellement. Le layout d’exécution est conservé.
 
 
 

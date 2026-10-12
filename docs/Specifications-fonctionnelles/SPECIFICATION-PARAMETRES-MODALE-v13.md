@@ -1,5 +1,7 @@
 # Paramètres d’exécution — Séries variables, Bip de cadence et phrase — v13
 
+**Actualisation13/10 :** [Deux modes et cible À l’échec](SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md). Mode commun Durée/Répétitions, cible typée par Série ; ≥ pour mélange calculable. Contrat CE-UI-10 et DSF Deux modes pour le sélecteur actuel.
+
 > **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
 
 Référence actualisée le07/10/2026. Bip v2 actualise cadence et durée ; D-314 confirme les pauses de D-248 et remplace D-311. Les autres paramètres et comportements du brouillon sont conservés. Cible documentaire, pas preuve d’implémentation ; version indépendante du classeur.
@@ -12,7 +14,7 @@ Sources originales immuables : [conception C1–C27](../archives/series-variable
 
 ## 2. Modèle et terminologie
 
-Un Exercice possède un mode unique : Durée, Répétitions ou À l’échec. Une Série est une définition subordonnée à l’Exercice, numérotée 1..N : une cible éventuelle et une Pause. Elle n’est pas une entité autonome, ni un groupe d’exercices. En bilatéral, N signifie N Séries **par côté**, avec les mêmes paramètres pour les deux côtés.
+Un Exercice possède un mode unique : Durée ou Répétitions, avec cible chiffrée ou À l’échec par série. Une Série est une définition subordonnée à l’Exercice, numérotée 1..N : une cible éventuelle et une Pause. Elle n’est pas une entité autonome, ni un groupe d’exercices. En bilatéral, N signifie N Séries **par côté**, avec les mêmes paramètres pour les deux côtés.
 
 - **Séries variables** : état explicite, indépendant de l’égalité éventuelle des valeurs.
 - **Pause après chaque série** : libellé d’interface ; Pi est la Pause configurée de la Série i. Elle est exécutée après chaque Série, dernière comprise ; seule PN est remplacée par une récupération positive qui suit l’Exercice. Zéro signifie absence de phase positive.
@@ -21,7 +23,7 @@ Un Exercice possède un mode unique : Durée, Répétitions ou À l’échec. Un
 - **Pause entre les côtés** : PC, libellé unique y compris dans le Profil ; initialisée depuis le Profil (défaut 10 s). Le nom technique existant `sideRecoverySeconds` peut être conservé.
 - **Récupération après exercice** : R, ajoutée explicitement et portée uniquement par l’occurrence de Séance (`postActivityRecoverySeconds`), jamais par ActivityDefinition.
 
-En uniforme, une cible et une Pause communes sont effectives. En variable, la collection ordonnée des N cibles/Pauses est l’unique source de vérité : aucune combinaison valeur commune + surcharge. Durée : cible Ti ; Répétitions : cible Ri ; À l’échec : aucune cible numérique, seules les Pauses varient. Cibles d’intensité (charge, RPE, etc.) hors périmètre.
+En uniforme, une cible et une Pause communes sont effectives. En variable, la collection ordonnée des N cibles/Pauses est l’unique source de vérité : aucune combinaison valeur commune + surcharge. Dans les deux modes, chaque cible peut être chiffrée (Ti ou Ri) ou À l’échec ; une collection variable peut mélanger les deux. Cibles d’intensité (charge, RPE, etc.) hors périmètre.
 
 ## 3. Brouillon, bascules et normalisation
 
@@ -55,7 +57,7 @@ N=Séries par côté ; Ti=travail calculable de la Série ; Pi=Pause configurée
 
 Occurrence calculable To=T−PN+R si R>0 ; sinon To=T. R remplace uniquement la toute dernière Pause et n’est pas ajouté deux fois. Les totaux de Séance développent les Tours et les phases réellement prévues. Même si le total d’Exercice est omitted, ses pauses connues contribuent au total partiel de Séance selon Bip v2§3. Périmètres Catalogue/Composition/plan complet inchangés ; Compte à rebours et Fin propres restent exclus du total intrinsèque ; ils sont inclus une fois dans le plan autonome de l’Exercice, jamais dans le plan de Séance. Seuls le Compte à rebours initial et la Fin de séance appartiennent au plan complet SESSION. Temps réalisé jamais réécrit.
 
-Rendu à l’Exercice : Durée exact sans symbole ; Répétitions avec bip ≈ ; Répétitions sans bip et À l’échec aucune ligne, jamais ≥ ou —. Les pauses n’altèrent pas cette nature. Séance : exact si tout exact, ≈ si au moins une estimation et aucun inconnu, ≥ si au moins un inconnu. Erreur de cible : validation distincte, aucune fausse valeur.
+Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Séance : exact si tout exact, ≈ si au moins une estimation et aucun inconnu, ≥ si au moins un inconnu. Erreur de cible : validation distincte, aucune fausse valeur.
 
 **Inversion réservée à Durée uniforme avec nombre de séries libre.** Sous compte hérité d’un circuit de séries, le total calculé est en lecture seule : aucune inversion ni ajustement implicite de la cible. N dans1..99 au plus proche, égalité vers le haut. Candidats : unilatéral arrondi(Tv/(d+p)) ; succession des côtés arrondi((Tv−PC)/(2(d+p))) ; par paire arrondi(Tv/(2d+p+PC)). Comparer les candidats réalisables et N=1 calculé avec l’ordre normalisé par côté ; retenir le total le plus proche, égalité N le plus grand. Les bornes du sélecteur suivent les extrêmes réalisables. Si T(N)≠Tv : « Durée ajustée à {T(N)} pour respecter un nombre entier de séries. » Sinon aucun message. Total variable et Répétitions non éditable.
 
@@ -63,15 +65,15 @@ Rendu à l’Exercice : Durée exact sans symbole ; Répétitions avec bip ≈ ;
 
 | Ordre | Ligne | Contrôle / visibilité |
 |---|---|---|
-| 1 | Mode d’exécution | Valeur puis segmenté Durée/Répétitions/À l’échec sous la ligne active |
+| 1 | Mode d’exécution | Valeur puis popover Durée/Répétitions, deux options |
 | 2 | Séries | Valeur numérique, défaut1 ; appui révèle ± si N libre ; valeur réelle en lecture seule avec origine si N hérité du circuit |
 | 3 | Régime des séries | Valeur identiques/variables et popover ; chevron indépendant uniquement si variable ; normalisation N1 existante conservée |
-| 4 | Cible et Pause | Uniforme : lignes Durée/Répétitions et Pause après chaque série ; variable : tableau rattaché au champ de régime, ligne numérotée, poignée, cible et Pause par steppers ; À l’échec : cible textuelle non modifiable |
+| 4 | Cible et Pause | Uniforme : lignes Durée/Répétitions et Pause après chaque série ; variable : tableau rattaché au champ de régime, ligne numérotée, poignée, cible et Pause par steppers ; À l’échec : cible textuelle sélectionnable, sans nombre prescrit |
 | 5 | Changement de côté | Segmenté, sans changement / D→G / G→D |
 | 6 | Ordre des côtés | Bilatéral uniquement, deux options ; grisé à1 |
 | 7 | Pause entre les côtés | Bilatéral uniquement, stepper ; copie du Profil à activation |
 | 7b | Bip de cadence | Trois modes ; stepper0..10,0=Aucun ; premier niveau, juste avant le total applicable ; commun hors tableau variable. |
-| 8 | Durée totale | Durée uniforme avec N libre : roulette ; N hérité du circuit, variable/Répétitions avec bip : lecture seule ; Répétitions sans bip et À l’échec : absente |
+| 8 | Durée totale | Durée uniforme chiffrée avec N libre : roulette ; N hérité du circuit, variable/Répétitions avec bip : lecture seule ; Répétitions sans bip et toutes cibles À l’échec : absente ; mélange calculable : ≥ en lecture seule |
 | 9 | Compte à rebours | Stepper ; défaut Profil10s |
 | 10 | Fin d’exercice | Stepper ; défaut Profil5s |
 
@@ -132,7 +134,7 @@ Tester les deux directions/ordres, p0/PC0 sans repli, R0/positive, N1/99, bascul
 
 ## 10. Bip de cadence, validation et compatibilité
 
-[Bip v2](SPECIFICATION-BIP-CADENCE-v2.md) : cadenceBeepIntervalSeconds entier0..10 dans les trois modes. Commun à toutes les Séries ; aucune surcharge par ligne. Bascule de mode conserve le bip, même après✓. ✕ annule toute l’ouverture ; ✓ applique ; Terminer persiste. Mise à0 supprime le bip et affiche Aucun. Ancien objet sans champ :0 ; aucun tempo implicite. Négatif,11,fraction refusés. Pas de nouvelle préférence Profil.
+[Bip v2](SPECIFICATION-BIP-CADENCE-v2.md) : cadenceBeepIntervalSeconds entier0..10 dans les deux modes. Commun à toutes les Séries ; aucune surcharge par ligne. Bascule de mode conserve le bip, même après✓. ✕ annule toute l’ouverture ; ✓ applique ; Terminer persiste. Mise à0 supprime le bip et affiche Aucun. Ancien objet sans champ :0 ; aucun tempo implicite. Négatif,11,fraction refusés. Pas de nouvelle préférence Profil.
 
 
 

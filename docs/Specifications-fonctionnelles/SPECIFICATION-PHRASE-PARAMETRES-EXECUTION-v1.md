@@ -6,9 +6,9 @@ Actualisée le07/10/2026 selon la clarification explicite du propriétaire et le
 
 Les [276 cas v15](../archives/evolutions-v15-2026-10-07/phrases-276.json), extraits des cellules I4:I279 du [classeur original](../archives/evolutions-v15-2026-10-07/generateur-phrase-activite_v15.xlsx), fixent les formulations. Leur total numérique est un exemple injecté, jamais un oracle métier. Le générateur reçoit le résultat calculé par [Bip v2](SPECIFICATION-BIP-CADENCE-v2.md) et [Paramètres v13](SPECIFICATION-PARAMETRES-MODALE-v13.md). Ne pas exécuter les formules Excel pour calculer l’application. Figma définit le layout ; ses chiffres n’amendent aucune règle.
 
-Entrées : mode, N, uniforme/variable, cibles et pauses ordonnées, bip commun, direction et ordre des côtés, PC ; résultat intrinsèque exact/estimated/omitted. Le contexte de récupération de Séance ne réécrit pas cette description intrinsèque.
+Entrées : mode, N, uniforme/variable, cibles et pauses ordonnées, bip commun, direction et ordre des côtés, PC ; résultat intrinsèque exact/estimated/lowerBound/omitted. Le contexte de récupération de Séance ne réécrit pas cette description intrinsèque.
 
-La comparaison v14→v15 ne change aucun gabarit : seuls36montants d’exemple diffèrent. Le corpus courant contient140phrases sans total,46avec≈ et90avec total exact ; aucun≥. Les tests métier de durée restent indépendants de la colonneJ et de la feuille Calcul des durées. [Preuve de comparaison](../archives/evolutions-v15-2026-10-07/comparaison-v14-v15.json).
+La comparaison v14→v15 ne change aucun gabarit : seuls36montants d’exemple diffèrent. Le corpus de référence antérieur aux cibles mixtes contient140phrases sans total,46avec≈ et90avec total exact ; aucun≥. Les tests métier de durée restent indépendants de la colonneJ et de la feuille Calcul des durées. [Preuve de comparaison](../archives/evolutions-v15-2026-10-07/comparaison-v14-v15.json).
 
 ## 2. Contrat de génération et persistance
 
@@ -65,6 +65,21 @@ Le générateur livré pour le MVP est **francophone uniquement**. Les segments 
 
 ## 7. Recette de développement
 
-276 cas de référence conservés sans altération ; injecter le total métier de test à la place du montant d’exemple avant comparaison. Vérifier texte/ponctuation exacts et absence de clause ajoutée aux cas variables. Vérifier singulier, côtés inversés, deux/trois/plus de trois cibles, min=max, bip0/positif dans trois modes, pause0/positive, N1 avec/sans pause et PC0/positive. Les cas complémentaires ne remplacent pas le corpus.
+276 cas historiques conservés sans altération, complétés par les cibles mixtes du13/10 ; injecter le total métier de test à la place du montant d’exemple avant comparaison. Vérifier texte/ponctuation exacts et absence de clause ajoutée aux cas variables. Vérifier singulier, côtés inversés, deux/trois/plus de trois cibles, min=max, bip0/positif dans deux modes, pause0/positive, N1 avec/sans pause et PC0/positive. Les cas complémentaires ne remplacent pas le corpus.
 
 Contrôler les segments et le gras, notamment deux valeurs identiques à des positions différentes ; concaténation égale au texte attendu. Relire un objet ancien après modification de grammaire : nouvelle phrase, aucune migration de chaîne. Vérifier absence de champ persistant phrase/segments et génération au rendu, annulation/validation, accès clavier/lecteur d’écran et absence de troncature à360/402/440 avec texte agrandi. Il s’agit de recette prescrite, pas d’une implémentation ou de tests applicatifs exécutés dans ce lot documentaire.
+
+## Extension normative — deux modes et cibles mixtes (13/10)
+
+Le mode ne sélectionne plus une branche « À l’échec » : le générateur examine les cibles ordonnées. Tout échec conserve le gabarit existant et les cartes du catalogue. Jusqu’à trois cibles, énumérer dans l’ordre, en insérant « jusqu’à l’échec » à la place de la valeur concernée. Au-delà, compacter le mélange en « de {minimum numérique} rép. à l’échec » ou « de {minimum numérique formaté} à l’échec ». Les clauses de pauses/côtés restent celles du corpus : aucune liste de pauses variables.
+
+Le total est celui du moteur : ≥ pour mélange calculable, prioritaire sur ≈ ; aucun total pour Répétitions sans bip ni toutes cibles À l’échec. Le corpus v15 ne couvre pas ces nouveaux cas ; ses 276 sorties ne doivent pas être présentées comme recette exhaustive du nouveau modèle. Ne pas modifier rétroactivement le fichier source Excel.
+
+| Cas complémentaire | Fragment cible attendu | Total métier |
+|---|---|---|
+| Durée 30s,45s,échec | 3 séries de durée variable (30 s, 45 s puis jusqu’à l’échec) | ≥ si calculable |
+| Durée 30s,45s,60s,échec | 4 séries variables, de 30 s à l’échec | ≥ |
+| Répétitions 10,12,15,échec | 4 séries variables, de 10 rép. à l’échec | ≥ avec bip ; absent sans bip |
+| Trois cibles échec, pauses variables | 3 séries menées jusqu’à l’échec | Absent ; aucune clause énumérant les pauses |
+
+Ces fragments étendent les gabarits ; les autres clauses, segments gras et ponctuation suivent les sections précédentes. Couvrir aussi échec en première/deuxième position, bip0/positif et les deux côtés. La capture8328:38848 contient encore une énumération des pauses : écart rédactionnel visuel, pas une nouvelle règle.
