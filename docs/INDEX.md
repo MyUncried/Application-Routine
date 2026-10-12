@@ -249,7 +249,7 @@ La consultation média pendant l’Exécution décrite ici est **incluse au MVP*
 
 > Décision du 25 septembre 2026 — D-207 : la notion de contenu planifiable est commune aux **Séances, Exercices persistants et Parcours**. Le MVP planifie `SESSION` et `ACTIVITY`; la planification d’un Parcours reste dans sa version prévue (actuellement V3) et réutilisera la même entité Routine avec la source technique `CIRCUIT`, sans second moteur de planification.
 
-Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
+Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé aux agrégats Séance/Circuit contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 
 ## Consolidation fonctionnelle — 26 septembre 2026
 
@@ -360,3 +360,9 @@ Les anciennes références de planification mono-source, de l’objet autonome P
 ## Préparation PRE-3 — 08/10/2026
 
 [Périmètre et couverture](preparation/PRE-3/perimetre-et-couverture.md), [analyse de l’existant](preparation/PRE-3/analyse-existant.md), [rapprochement des sources](preparation/PRE-3/rapprochement-main-figma.md) et [extraction détaillée Figma](preparation/PRE-3/extraction-figma.md). D-333 inclut l’import/ajout de médias au MVP avant le moteur d’exécution. Ce dossier prépare la planification ; il ne constitue ni une autorisation d’implémentation ni une livraison applicative.
+
+
+
+## Circuits de tours et de séries —12/10/2026
+
+[Spécification normative](Specifications-fonctionnelles/SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md) : décisions consolidées, propagation fonctionnelle et contrats CE-CIR-01/02/03. Un circuit MVP ; nature, conversions, héritage, volumes, calcul et bilatéralité définis. Captures et DSF à aligner dans une étape ultérieure ; aucun développement applicatif livré.

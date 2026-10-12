@@ -1,5 +1,7 @@
 # 13 — Contrats d’écran
 
+> **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
+
 > Planification à plusieurs contenus (08/10) : les règles antérieures d’archivage supprimant les Routines associées restent décrites pour le cas à contenu unique. Leur extension à une Routine contenant d’autres contenus est **non définie** ; ne pas supprimer ces autres planifications par généralisation. Voir la spécification du 08/10 et son registre de points ouverts.
 
 
@@ -31,7 +33,7 @@ Figma ne transforme jamais une valeur de démonstration en règle métier. Inver
 
 ### Portée transverse des paramètres v13
 
-Catalogue et exécution ACTIVITY : durée intrinsèque. Composition, détails de Séance, calendrier SESSION et exécution SESSION : durée d’occurrence avec récupération explicite, sans ajouter R deux fois. Les résumés compacts variables affichent N séries variables ; le tableau détaillé appartient seulement à CE-UI-10. Copie/duplication et instantané conservent l’état variable explicite, les cibles/Pauses ordonnées et l’Ordre des côtés. Ces règles s’appliquent aux contrats hôtes, y compris CE-UI-01/02/03/05 et CE-T03-01/06/07/08. Les règles propres aux cartes et médias sont conservées.
+Catalogue et exécution ACTIVITY : durée intrinsèque. Composition, détails de Séance, calendrier SESSION et exécution SESSION : durée d’occurrence avec récupération explicite, sans ajouter R deux fois. Les cartes de composition affichent les volumes variables selon la spécification Circuits du12/10 §4 ; le détail complet est accessible dans la grille de volumes du circuit, en lecture seule, et dans CE-UI-10 pour édition. Copie/duplication et instantané conservent l’état variable explicite, les cibles/Pauses ordonnées et l’Ordre des côtés. Ces règles s’appliquent aux contrats hôtes, y compris CE-UI-01/02/03/05 et CE-T03-01/06/07/08. Les règles propres aux cartes et médias sont conservées.
 
 Réinitialiser conserve D-029/D-150 et RM-062 : recommencer la Série courante en unilatéral ; en bilatéral, recommencer le côté courant depuis sa première Série, préserver les résultats de l’autre côté et le temps total écoulé. Cette portée s’applique aussi à Les deux côtés à chaque série ; un passage déjà acquis de l’autre côté n’est pas rejoué. Exemple : gauche2/3 → reprise gauche1/3, résultats droits conservés. Pendant une récupération, RM-062 réinitialise seulement cette phase. Le saut confirmé d’un bloc chronométré conserve D-150 : côté courant partiel, poursuite des passages restant à exécuter de l’autre côté ; les résultats acquis ne sont pas effacés. Ces conséquences du périmètre existant ne constituent pas un nouvel arbitrage.
 
@@ -181,7 +183,7 @@ Le moteur possède la source de vérité temporelle. En exécution autonome uniq
 | SESSION | Compte à rebours initial → plan avant Circuit → Circuit répété par Tours → plan après Circuit → Fin de séance → Synthèse |
 | Occurrence SESSION | Exercice intrinsèque (Séries/côtés/pauses) → POST_ACTIVITY_RECOVERY positive éventuelle → point d’arrêt éventuel → suite ; aucun Compte à rebours/Fin propre |
 
-Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
+Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé aux agrégats Séance/Circuit contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 
 | Action/phase | Effet déterminé | Conservation |
 |---|---|---|
@@ -1003,7 +1005,9 @@ Exercice → éditeur de copie locale ; Ajouter un exercice → CE-T03-07 ; Éti
 
 ### 5. Données affichées et source de vérité
 
-Brouillon Session indépendant, nom, Étiquette0..1, compte à rebours/Fin, Circuit unique/Tours 1..99, exclusion systématique des Compte à rebours/Fin propres selon D-214 révisée, sans booléen et sans effacer leurs valeurs. Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). Chaque occurrence conserve ses séries/cadences ; To=T−PN+R si R>0, sinon To=T pour un travail calculable. Total développé par Tours, symboles D-305. Point d’arrêt sans durée prévue.
+**Complément cible12/10 :** Nature, compte et régime explicites. N imposé en circuit de séries ; durées agrégées exact/≈/≥, sans lire les chiffres Figma.
+
+Brouillon Session indépendant, nom, Étiquette0..1, compte à rebours/Fin, Circuit unique, nature tours/séries, compte1..99, exclusion systématique des Compte à rebours/Fin propres selon D-214 révisée, sans booléen et sans effacer leurs valeurs. Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). Chaque occurrence conserve ses séries/cadences ; To=T−PN+R si R>0, sinon To=T pour un travail calculable. Total développé selon la nature du Circuit ; exact/estimated/lowerBound selon Bip v2 et spécification Circuits du12/10. Point d’arrêt sans durée prévue.
 
 ### 6. Classification des valeurs Figma
 
@@ -1011,11 +1015,13 @@ Titres statiques : `Composer une séance` en création, `Modifier une séance` e
 
 ### 7. Structure de l’écran
 
-Nom/contexte de Séance, Étiquette et actions → compte à rebours initial → occurrences/points avant Circuit → Circuit répété en Tours avec occurrences/points internes → occurrences/points après Circuit → Fin de séance → Continuer. Aucun Cycle visible ni étape finale Catégories.
+Nom/contexte de Séance, Étiquette et actions → compte à rebours initial → occurrences/points avant Circuit → Circuit de tours ou de séries avec occurrences/points internes développés selon sa nature → occurrences/points après Circuit → Fin de séance → Continuer. Aucun Cycle visible ni étape finale Catégories.
 
 ### 8. Éléments obligatoires
 
-Compte à rebours/Fin non déplaçables ; Tours par stepper ; aucun côté au Circuit. Carte sans texte de pause/récupération dans son corps. Ligne variable : N séries variables uniquement, sans liste de cibles. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). V-04 est clos par clarification du12/10 : aucun réglage global D-214 n’est requis ; aucune modification Figma nécessaire sur ce point, selon confirmation du propriétaire.
+**Complément cible12/10 :** Chiffre distinct de la pastille d’unité ; œil permanent ; volumes sur cartes. N× conservé même sous héritage.
+
+Compte à rebours/Fin non déplaçables ; Appui sur le chiffre pour révéler ± ; pastille tours/séries pour choisir la nature ; œil permanent sur la ligne du titre ; aucun côté au Circuit. Carte sans texte de pause/récupération dans son corps. Ligne variable : volumes séparés par un point médian, unité finale ; trois valeurs au maximum selon place puis ellipse. Régime explicite, notation stable ; voir spécification Circuits du12/10 §4. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). V-04 est clos par clarification du12/10 : aucun réglage global D-214 n’est requis ; aucune modification Figma nécessaire sur ce point, selon confirmation du propriétaire.
 
 ### 9. Layout déterministe
 
@@ -1027,9 +1033,13 @@ Shell de Composition conservé. Commandes contextuelles34/dessin20/gap10/cibles4
 
 ### 11. États de l’écran
 
+**Complément cible12/10 :** Tours/séries ; compteur actif/repos ; conversion avec/sans perte ; confirmation annulée/confirmée ; réserve après diminution ; grille ouverte ; N minimal/maximal.
+
 Création vide ; nom saisi ; composition valide/invalide ; édition ; Étiquette sélectionnée/absente ; réglages initial/fin ; glissé/déplacement ; placement multiple sans/avec sélection ; roulette récupération ; confirmation décomptée ; retour/annulation ; bulle retrait récupération/point ; abandon/sauvegarde/erreur. Rabsente/R0/Rpositive croisés avec point absent/présent et trait hors/en placement.
 
 ### 12. Contrôles et interactions
+
+**Complément cible12/10 :** Choix de nature → CE-CIR-01 ; perte → CE-CIR-02 ; œil → CE-CIR-03. Diminution sans message ; restauration avant préremplissage. Ajout catalogue avec perte exige confirmation, Annuler abandonne ajout.
 
 Pause ouvre le sous-brouillon de placement. Sélection Point d’arrêt bascule l’ajout ; sélectionner Récupération ouvre immédiatement la durée proposée du Profil, initialement30s. Valider la roulette confirme au sous-brouillon, Annuler restitue l’état de cet emplacement. Confirmer N pauses ajoutées applique au parent ; Annuler le placement restitue tout l’état d’entrée. Décompte par objet nouvellement ajouté, récupération+point=2 ; désélection retranche, N0 sans confirmation active. Tap sur récupération positive ouvre son réglage ; appui long ouvre Retirer. L’avertissement D-301 reste « Attention, les exercices vont s’enchaîner sans pause. » si aucune Pause terminale ni Rpositive entre deux Exercices ; informatif, aucune mutation ni blocage.
 
@@ -1042,6 +1052,8 @@ Swipe occurrence : Dupliquer/Supprimer ; appui long puis glisser : déplacer. Ap
 Continuer exige nom et au moins un Exercice valide. Récupération0..300s, grille1s jusqu’à5,5s jusqu’à120,30s jusqu’à300 ; aucune durée requise pour point. Récupération après occurrence, dernière comprise ; pas avant première. Point interdit immédiatement après compte à rebours initial et avant Fin ; autorisé avant/après Circuit et entre ses Exercices. Un élément de chaque type au même emplacement ; pas de doublon du même type. Drop invalide restitue la position. Les affectations de référentiels retirées restent valides selon D-210.
 
 ### 15. Brouillon et persistance
+
+**Complément cible12/10 :** Diminution du compte : réserve dans le brouillon de séance jusqu’à Continuer/enregistrement ; conversion confirmée : troncature définitive. Annuler conversion restitue nature et toutes données.
 
 Brouillon de placement isolé du brouillon Composition ; roulette incluse dans cette transaction. Confirmer applique atomiquement au parent, Continuer seul persiste Session+Composition. Annuler la roulette ne confirme pas un ajout ; Annuler placement restaure son état d’entrée ; abandon Séance restaure la version persistée.
 
@@ -1061,13 +1073,17 @@ Annoncer type, position, durée, sélection et nombre d’ajouts ; ordre de focu
 
 ### 19. Invariants
 
-Pause après chaque série, dernière comprise, même N1. PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon Paramètres v13. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.
+**Complément cible12/10 :** Un circuit MVP. Nature séries : tous exercices à N ; régime indépendant. Passage bilatéral unique PC puis Pi terminale. Aucun compte à rebours/fin propre en SESSION.
+
+Pause après chaque série, dernière comprise, même N1. Hors circuit de séries, PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon Paramètres v13. Dans un circuit de séries : premier côté → PC → second côté → Pi, déroulement unique ; R positive remplace Pi terminale. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.
 
 Circuit=groupe, Tour=répétition ; récupération positive avant point, attente exclue du prévu ; éléments internes répétés à chaque Tour. Aucune récupération automatique ni récupération directe ACTIVITY. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). D-248 confirmée sur pause terminale et substitution par R ; D-301 maintenu pour l’absence de pause effective entre Exercices ; aucune persistance avant Continuer.
 
 CF3 déjà tranché par RM-151/RM-152 : indicateur compact D→G/G→D conservé, sans nouvelle ligne de pause ni phrase longue injectée dans les cartes.
 
 ### 20. Recette déterministe
+
+**Complément cible12/10 :** Tester A/B avec comptes différents ; conversion destructive/non destructive, annulation,4→3→4, enregistrement3 puis augmentation ; sortie/ajout sans mutation du catalogue ; récupération/point chaque passage.
 
 Tester annulation roulette/placement/Séance, sélection multiple/désélection/décompte, Rabsente/0/positive et point absent/présent, dans/hors placement. Tester frontières des deux types, dernière récupération, répétition par Tour, retrait/extérieur bulle, duplication/déplacement/suppression et sauvegarde atomique. Tester erreur/double tap ; D-214 révisée : vérifier l’absence du contrôle et des phases propres en SESSION ; V-04 clos. D-301 présent uniquement sans pause effective de transition ni Rpositive, sans blocage. Vérifier symbole ≈ avec bip/omission sans bip à l’Exercice et montants issus de la spécification, aucune formule de capture.
 
@@ -1163,7 +1179,7 @@ Décompte annoncé selon guidage ; aucun label Tour/Séance ; nom accessible.
 
 ### 19. Invariants
 
-Pause après chaque série, dernière comprise, même N1. PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon Paramètres v13. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.
+Pause après chaque série, dernière comprise, même N1. Hors circuit de séries, PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon Paramètres v13. Dans un circuit de séries : premier côté → PC → second côté → Pi, déroulement unique ; R positive remplace Pi terminale. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.
 
 5 s fixes ; origin ACTIVITY ; pas de Session artificielle ; pas SESSION_END.
 
@@ -1269,7 +1285,7 @@ Timer/commandes nommés ; aucun côté annoncé en UNILATERAL ; état pause anno
 
 ### 19. Invariants
 
-Pause après chaque série, dernière comprise, même N1. PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon Paramètres v13. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.
+Pause après chaque série, dernière comprise, même N1. Hors circuit de séries, PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon Paramètres v13. Dans un circuit de séries : premier côté → PC → second côté → Pi, déroulement unique ; R positive remplace Pi terminale. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.
 
 Aucun Tour/Cycle/SESSION_END ; calculs existants inchangés.
 
@@ -1387,7 +1403,7 @@ Cadence et état utiles annoncés sans dépendre du son ; ne pas annoncer chaque
 
 ### 19. Invariants
 
-Pause après chaque série, dernière comprise, même N1. PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon Paramètres v13. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.
+Pause après chaque série, dernière comprise, même N1. Hors circuit de séries, PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon Paramètres v13. Dans un circuit de séries : premier côté → PC → second côté → Pi, déroulement unique ; R positive remplace Pi terminale. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.
 
 Failure sans cible ; Suivant normal ; aucune confirmation chronométrée ; pas SESSION_END.
 
@@ -1495,7 +1511,7 @@ Annonce vocale côté au début et au changement selon règles ; label accessibl
 
 ### 19. Invariants
 
-Pause après chaque série, dernière comprise, même N1. PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon Paramètres v13. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.
+Pause après chaque série, dernière comprise, même N1. Hors circuit de séries, PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon Paramètres v13. Dans un circuit de séries : premier côté → PC → second côté → Pi, déroulement unique ; R positive remplace Pi terminale. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.
 
 Respecter l’ordre effectif : successif, PC une fois ; par paire, PC à chaque Série. Pi et PC selon v13§4 ; aucune Récupération contextuelle en ACTIVITY ; résultats séparés par côté ; rang logique Exercice inchangé.
 
@@ -1603,7 +1619,7 @@ Signal de fin non uniquement sonore ; dialogues lisibles ; focus sur décision.
 
 ### 19. Invariants
 
-Pause après chaque série, dernière comprise, même N1. PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon Paramètres v13. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.
+Pause après chaque série, dernière comprise, même N1. Hors circuit de séries, PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon Paramètres v13. Dans un circuit de séries : premier côté → PC → second côté → Pi, déroulement unique ; R positive remplace Pi terminale. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.
 
 Aucun SESSION_END ; aucun Session count ; origin ACTIVITY intact.
 
@@ -2954,7 +2970,7 @@ Annoncer phase, nom et côté au démarrage/changement ; commandes nommées selo
 
 ### 19. Invariants
 
-Pause après chaque série, dernière comprise, même N1. PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon Paramètres v13. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.
+Pause après chaque série, dernière comprise, même N1. Hors circuit de séries, PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon Paramètres v13. Dans un circuit de séries : premier côté → PC → second côté → Pi, déroulement unique ; R positive remplace Pi terminale. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.
 
 Circuit unilatéral, Tours 1..99 ; récupération après chaque occurrence y compris dernière et chaque Tour ; point interne répété chaque Tour ; attente hors durée ; pas de mutation de la source ; média indépendant du moteur.
 
@@ -3197,6 +3213,8 @@ Ouverture depuis la zone Paramètres d’exécution. Copie du parent ; Bip initi
 
 ### 5. Données affichées et source de vérité
 
+**Complément cible12/10 :** Contexte de l’occurrence et compte hérité ; total dérivé, jamais source de N dans ce contexte.
+
 Phrase selon les276 cas v15, total fourni par le calcul métier. Générateur → segments ordonnés `{texte, gras}`, valeurs et unités en gras, aucun redécoupage de chaîne. Terme « pause après chaque série », y compris N=1 ; clause de pauses variables omise conformément au corpus.
 
 Collection effective des Séries, cible/Pause/bip, mode, direction, ordre,PC,Compte à rebours/Fin. Bip commun à toutes les lignes,0..10 dans trois modes ; aucune surcharge persistée. Calcul typé fourni par Bip v2 ; phrase et montants Figma ne pilotent aucune donnée.
@@ -3207,13 +3225,19 @@ Titres/règles statiques ; valeurs de champs dynamiques ; exemples Figma démons
 
 ### 7. Structure de l’écran
 
-En-tête fixe ✕/titre/✓ ; corps défilant Mode → Séries → Séries variables → cible/Pause uniformes ou tableau → Changement de côté → Ordre/PC si bilatéral → Bip de cadence → Total applicable → Compte à rebours → Fin. Bip commun hors tableau, présent dans les trois modes. N1 normalisé uniforme et ordre par côté.
+**Complément cible12/10 :** Champ régime identiques/variables et chevron distinct ; identiques sans chevron. Tableau variable visible ou replié.
+
+En-tête fixe ✕/titre/✓ ; corps défilant Mode → Séries → régime identiques/variables avec chevron indépendant → cible/Pause uniformes ou tableau → Changement de côté → Ordre/PC si bilatéral → Bip de cadence → Total applicable → Compte à rebours → Fin. Bip commun hors tableau, présent dans les trois modes. N1 normalisé uniforme et ordre par côté.
 
 ### 8. Éléments obligatoires
 
-Stepper Bip permanent0..10,0 libellé Aucun ; contrôle actif même à0. Aucun interrupteur ou roulette Bip. Total absent en Répétitions sans bip et À l’échec ; exact en Durée, ≈ en Répétitions avec bip. Pause entre les côtés seulement en bilatéral. Compte à rebours/Fin conservés.
+**Complément cible12/10 :** Valeur numérique au repos, ± au toucher ; N hérité visible et non modifiable, origine discrète. Total affichable en lecture seule sous héritage.
+
+Bip0..10, boutons ± révélés par appui sur sa valeur,0 libellé Aucun ; contrôle actif même à0. Aucun interrupteur ou roulette Bip. Total absent en Répétitions sans bip et À l’échec ; exact en Durée, ≈ en Répétitions avec bip. Pause entre les côtés seulement en bilatéral. Compte à rebours/Fin conservés.
 
 ### 9. Layout déterministe
+
+**Complément cible12/10 :** Placement exact de la mention/astérisque et géométrie des nouveaux états différés à Figma/DSF ; ne pas extrapoler de dimensions depuis les anciennes captures.
 
 À402 : Bip au premier niveau x36, séparateur330 ; Séries variables/cible/Pause et Ordre/PC indentés x52, séparateur314. Bip juste au-dessus du total ou avant Compte à rebours si total absent. Retrait du total raccourcit la feuille de42px par le haut, bas ancré. Valeurs/steppers à droite ; marges adaptées, pas de coordonnées absolues sur toutes largeurs. Voile modal `overlayScrim` (`color/overlay/scrim`) #1F2129 à 34 %, distinct de `compositionDraggedCardShadow`, qui ne sert jamais de voile.
 
@@ -3229,7 +3253,9 @@ Bip0/positif dans chacun des trois modes ; cible valide/incomplète ; uniforme/v
 
 ### 12. Contrôles et interactions
 
-± modifie Bip par1, bornes0..10, sans accélération. Autres steppers : DSF Bip (maintien≈500ms, paliers1/5/10 selon durée du maintien et champ). Bascule de mode conserve Bip même à✓ ; cibles incompatibles remplacées par— et restaurées dans le brouillon selon v13. Variable copie les valeurs uniformes ; retour uniforme reprend première ligne ; réduction/augmentation/restauration et déplacement selon v13. Une seule roulette/segmenté ouvert pour les autres champs. Le total Durée uniforme garde son inversion, autres totaux en lecture seule.
+**Complément cible12/10 :** Un seul champ actif. Changer de champ ferme/ouvre en un geste. Pi et cible copiées depuis dernière ligne. Suppression immédiate + Annuler avec position et paramètres ; sous N hérité, suppression locale indisponible.
+
+± modifie Bip par1, bornes0..10, sans accélération. Autres steppers : DSF Bip (maintien≈500ms, paliers1/5/10 selon durée du maintien et champ). Bascule de mode conserve Bip même à✓ ; cibles incompatibles remplacées par— et restaurées dans le brouillon selon v13. Variable copie les valeurs uniformes ; retour uniforme reprend première ligne ; réduction/augmentation/restauration et déplacement selon v13. Une seule roulette/segmenté ouvert pour les autres champs. Le total Durée uniforme garde son inversion seulement si N est libre ; sous N imposé par un circuit de séries, tout total affichable est en lecture seule. omitted reste absent.
 
 ### 13. Gestes
 
@@ -3255,6 +3281,8 @@ Cible manquante, valeur hors borne, double validation, interruption ou erreur de
 
 ### 18. Accessibilité
 
+**Complément cible12/10 :** Lecture seule annoncée avec valeur et origine ; ne pas remplacer par un tiret. Cellule active identifiée par ligne/colonne et texte Série i · Durée (ou autre champ), sans dépendre seulement de la couleur.
+
 Nom accessible Bip de cadence ; valeur Aucun ou intervalle en secondes ; boutons augmenter/diminuer et limites annoncées. Total ≈ annoncé estimation ; aucun minimum d’Exercice. Focus modal contenu, retour à la zone Paramètres. Texte agrandi, cibles44 minimum, alternatives au maintien/glisser.
 
 ### 19. Invariants
@@ -3262,6 +3290,8 @@ Nom accessible Bip de cadence ; valeur Aucun ou intervalle en secondes ; boutons
 Bip sonore uniquement pendant Série, aucune transition/compteur automatique. Son ne transforme pas À l’échec en durée connue. Aucune estimation forfaitaire, aucun≥ à l’Exercice. Pause après chaque série, y compris la dernière ; récupération contextuelle positive remplaçant seulement la dernière Pause. Les images ne gouvernent ni calculs ni persistance.
 
 ### 20. Recette déterministe
+
+**Complément cible12/10 :** Vérifier N libre/hérité, total éditable/lecture seule/omitted, identiques/variables égales, repli, croix/Annuler, cible destructive pendant stepper actif ; conserver tests des modes et pauses.
 
 Recette rédactionnelle :276 gabarits v15 avec total métier injecté, gras sur occurrences répétées d’une valeur, N1 avec pause mentionnée et total non redondant ; absence de troncature. Français au MVP ; i18n nécessite des gabarits et accords par locale, pas une traduction de fragments isolés.
 
@@ -3306,7 +3336,7 @@ Les arbitrages des 30 septembre et 1er octobre 2026 ferment les points fonctionn
 
 Le calcul porte sur le plan développé et conserve la piste existante. M compte les étapes contributives ; R compte les Séries Répétitions sans cadence et À l’échec ; T somme les durées des phases chronométrées positives et les Ri×Ci des Séries cadencées. Chaque Série sans durée déterminable pèse1/M ; chaque étape temporelle de durée d pèse(1−R/M)×d/T. Sans R, poids d/T ; sans T, poids1/M. Phases0s, Pause manuelle et attente de point n’ont aucun poids. Les non-cadencées/À l’échec acquièrent leur part à Suivant ; les Répétitions avec bip progressent continûment, Suivant acquiert leur reste. À fin nominale, part de Série100% mais Série active. Pause abandonne la fraction d’intervalle pour la progression, conserve le temps réel ; reprise sur intervalle complet. Aucun100% global publié avant finalisation du plan. Poids figés au départ ; reset remet à zéro son périmètre seulement. Aucun nouveau composant de progression par Série.
 
-Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
+Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé aux agrégats Séance/Circuit contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 
 ### R-02 — Validation des contrôles existants
 
@@ -3319,7 +3349,7 @@ Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip
 
 L’ordre d’exécution vient du paramètre Ordre des côtés : Un côté après l’autre (défaut) ou Les deux côtés à chaque série. En bilatéral N est toujours par côté, paramètres communs aux deux côtés. Les successions et pauses sont celles de v13 §4 ; aucun repli de PC vers la Pause. Les cibles et Pauses variables proviennent de la ligne courante.
 
-Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
+Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé aux agrégats Séance/Circuit contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 
 La source active est v13 §§3–5 ; D-242 est supersédée. Les tests PRE-1 restent figés sur leur source historique.
 
@@ -3534,3 +3564,265 @@ D-222/D-223 révisées, D-327 à D-332 ; [spécification](SPECIFICATION-PLANIFIC
 
 ---
 
+
+
+
+## CE-CIR-01 — Choix de nature du circuit
+
+### 1. Identification
+
+Popover de CE-T03-08, déclenché uniquement par la pastille tours/séries. Frame à rattacher lors de l’alignement Figma.
+
+### 2. Finalité fonctionnelle
+
+Choisir comment le circuit développe les séries, sans changer le nombre affiché.
+
+### 3. Contexte d’entrée
+
+Brouillon de composition avec circuit unique ; appui sur unité, pas sur chiffre.
+
+### 4. Contexte de sortie / destinations
+
+Retour composition après choix sans perte ; CE-CIR-02 si perte ; abandon conserve état courant.
+
+### 5. Données affichées et source de vérité
+
+Nature actuelle, compte N, nombres et paramètres des exercices dans le brouillon.
+
+### 6. Classification des valeurs Figma
+
+Libellés tours/séries statiques ; nombre et sélection dynamiques ; aucune règle tirée d’un exemple.
+
+### 7. Structure de l’écran
+
+Popover ancré au déclencheur, deux options.
+
+### 8. Éléments obligatoires
+
+Deux options et état courant identifiable ; aucune troisième nature.
+
+### 9. Layout déterministe
+
+Pastille limitée au mot ; chiffre hors pastille. Reprendre le composant popover existant ; dimensions/tokens à vérifier ensuite.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+Conserver options accessibles avec texte agrandi, safe areas et petit écran ; aucun clavier.
+
+### 11. États de l’écran
+
+Tours actif ; séries actif ; choix inchangé ; choix avec extension ; choix avec troncature.
+
+### 12. Contrôles et interactions
+
+Séries→tours conserve compte et valeurs. Tours→séries adapte à N ; prédicat de perte avant mutation.
+
+### 13. Gestes
+
+Toucher une option ; fermeture sans choix selon convention existante, aucune mutation.
+
+### 14. Validation
+
+Nature dans les deux valeurs ; N valide ; confirmation requise uniquement si perte.
+
+### 15. Brouillon et persistance
+
+Appliquer au brouillon atomiquement ; aucune persistance avant enregistrement de séance.
+
+### 16. Navigation et conservation d’état
+
+Retour au même circuit et scroll ; restitution du focus au déclencheur.
+
+### 17. Erreurs et cas limites
+
+Choix identique sans modification ; double action sans double conversion ; erreur conserve état initial.
+
+### 18. Accessibilité
+
+Annoncer choix, état sélectionné et fonction ; pastille et chiffre ont des noms accessibles distincts.
+
+### 19. Invariants
+
+Régime de chaque exercice conservé ; nombre affiché inchangé lors du choix ; catalogue intact.
+
+### 20. Recette déterministe
+
+Tours→séries avec exercices<N,=N,>N ; séries→tours ; Annuler après perte ; absence de confirmation sans perte.
+
+### 21. Traçabilité
+
+Spécification Circuits §§1,9 ; C01/C02/C15. Captures/DSF différés.
+
+
+## CE-CIR-02 — Confirmation d’adaptation avec perte
+
+### 1. Identification
+
+Dialogue décision existant appelé par conversion ou ajout catalogue dans un circuit de séries ; frame à rattacher ensuite.
+
+### 2. Finalité fonctionnelle
+
+Confirmer une suppression de séries liée à une adaptation structurelle.
+
+### 3. Contexte d’entrée
+
+Au moins un exercice concerné a plus de N séries. Pas de dialogue pour diminution simple du compteur.
+
+### 4. Contexte de sortie / destinations
+
+Annuler retourne à l’état d’origine ; Confirmer applique l’opération et revient en composition.
+
+### 5. Données affichées et source de vérité
+
+Opération demandée et séries au-delà de N depuis le brouillon, sans appliquer la perte avant confirmation.
+
+### 6. Classification des valeurs Figma
+
+Actions Annuler/Confirmer fixes ; exercices/comptes affectés dynamiques.
+
+### 7. Structure de l’écran
+
+Dialogue au-dessus de composition avec texte expliquant la perte et les deux actions.
+
+### 8. Éléments obligatoires
+
+Annuler et Confirmer ; indication explicite de suppression définitive des séries excédentaires.
+
+### 9. Layout déterministe
+
+Réutiliser le dialogue de décision existant. Texte final, mesures et frame à aligner dans Figma ; aucune nouvelle valeur inventée.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+Texte intégral et actions accessibles avec agrandissement ; aucune saisie clavier.
+
+### 11. États de l’écran
+
+Conversion en attente ; ajout en attente ; confirmé ; annulé ; échec atomique.
+
+### 12. Contrôles et interactions
+
+Annuler conversion conserve nature/compte/valeurs. Annuler ajout abandonne ajout. Confirmer applique toutes les modifications ensemble.
+
+### 13. Gestes
+
+Pas de confirmation par simple appui sur le voile ; fermeture sans confirmation ne valide jamais la perte.
+
+### 14. Validation
+
+Pertes recalculées sur état effectif avant application ; pas de confirmation sur état obsolète.
+
+### 15. Brouillon et persistance
+
+Après confirmation, lignes tronquées non mémorisées pour retour de nature ; transaction de séance toujours annulable dans son ensemble.
+
+### 16. Navigation et conservation d’état
+
+Conserver position et contexte ; ne pas créer un exercice catalogue lors de l’adaptation.
+
+### 17. Erreurs et cas limites
+
+Erreur/double appui : pas de mutation partielle ni doublon ; si état changé, recalculer avant toute suppression.
+
+### 18. Accessibilité
+
+Annonce du dialogue, de la conséquence et des actions ; focus contenu puis rendu à l’origine.
+
+### 19. Invariants
+
+Confirmation si et seulement si perte lors des opérations visées ; diminution simple exclue.
+
+### 20. Recette déterministe
+
+Confirmer/Annuler conversions et ajouts ; comparaison complète avant/après ; test catalogue inchangé.
+
+### 21. Traçabilité
+
+Spécification §§1.3–1.4,9.2–9.3 ; C02/C06/C08. Aucune image déclarée actualisée.
+
+
+## CE-CIR-03 — Volumes du circuit
+
+### 1. Identification
+
+Fenêtre de lecture seule ouverte par œil sur la ligne du titre de circuit ; frame à rattacher ensuite.
+
+### 2. Finalité fonctionnelle
+
+Lire toutes les cibles série par série sans ouvrir chaque exercice.
+
+### 3. Contexte d’entrée
+
+Composition avec circuit de tours ou de séries ; œil présent et actif dans les deux natures.
+
+### 4. Contexte de sortie / destinations
+
+Fermer restitue la composition sans modification.
+
+### 5. Données affichées et source de vérité
+
+Exercices et séries actives du brouillon, régime, mode et direction ; aucune réserve de lignes retirées affichée.
+
+### 6. Classification des valeurs Figma
+
+Exercice, S1…Sn et unité/mode : en-têtes ; cellules dynamiques ; pas de calcul à partir des captures.
+
+### 7. Structure de l’écran
+
+Colonne Exercice, colonnes séries, colonne finale unité/mode.
+
+### 8. Éléments obligatoires
+
+Grille et fermeture ; ni pauses ni récupérations ; présence de série distincte de son absence.
+
+### 9. Layout déterministe
+
+Colonnes Exercice et unité/mode fixes ; colonnes séries défilantes horizontalement ; liste défilante verticalement. Largeurs/tokens à aligner ensuite.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+Contenu accessible au-delà de hauteur/largeur disponibles ; support texte agrandi, pas de clavier.
+
+### 11. États de l’écran
+
+Comptes identiques/hétérogènes ; deux régimes ; trois modes ; bilatéral ; longues listes ; circuit vide sans valeurs fictives.
+
+### 12. Contrôles et interactions
+
+Lecture seule ; fermeture selon composant existant ; aucune cellule n’édite les séries.
+
+### 13. Gestes
+
+Défilement horizontal/vertical ; aucune suppression, tri ou déplacement de données dans cette vue.
+
+### 14. Validation
+
+Nombre de colonnes = maximum des comptes actifs ; case absente = tiret, pas zéro.
+
+### 15. Brouillon et persistance
+
+Projection sans écriture. Les scrolls sont état d’interface ; pas une source métier persistée.
+
+### 16. Navigation et conservation d’état
+
+Focus retourne à œil ; état du brouillon et position de composition conservés.
+
+### 17. Erreurs et cas limites
+
+Nom long/12+ séries : défilement sans rognage des cibles. Aucun travail inconnu remplacé par durée arbitraire.
+
+### 18. Accessibilité
+
+Annoncer exercice, numéro de série, cible/unité ; ✓ annoncé Série N à l’échec ; tiret annoncé absence de série ; pastille côté explicitée.
+
+### 19. Invariants
+
+Répétitions numériques + rép. ; durée min:ss ; échec ✓ + À l’échec en dernière colonne. Cibles bilatérales par côté, non doublées, direction près du nom.
+
+### 20. Recette déterministe
+
+A2/B4 avec tirets ;45s/60s/90s→0:45/1:00/1:30 ; échec✓ ; variables égales ; bilatéral10 affiché10 ; défilements ; aucune écriture.
+
+### 21. Traçabilité
+
+Spécification §§3,9.5 ; C11/C12/C13. Visuels/DSF différés.

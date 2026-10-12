@@ -1,4 +1,6 @@
 
+
+> **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
 Ce document devient le registre permanent des décisions de conception du produit.
 
 # Format
@@ -378,7 +380,7 @@ Dernier identifiant publié vérifié sur main 8fc58a4 : D-246.
 | D-248 | Pause après chaque série, dernière comprise ; PN puis PC à la frontière des côtés successifs. Seule la dernière Pause est remplacée par R positive dans une occurrence ; aucune récupération contextuelle en direct. Formules et inversion : Paramètres v13. | Confirmée par D-314 le07/10 | Remplace l’interprétation contraire de D-311 ; conserve ordre par paire et normalisation N1 |
 | D-249 | Brouillon transactionnel, bascules uniforme/variable, restauration des cibles par mode et lignes retirées ; déplacement conjoint cible/Pause, nouvelle dernière Pause stockée et exécutée, sauf substitution par récupération positive et nouvelle première ligne reprise à désactivation. Ordre relatif des lignes retirées conservé à restauration. | Validée | C2/C7/C9 et arbitrage déplacement02/10 |
 | D-250 | À N=1 : uniforme et Un côté après l’autre effectifs dès le brouillon/calcul ; options grisées, interrupteur visuellement désactivé. Ancien état conservé seulement pour retour N≥2 avant ✓ ; normalisation persistée à ✓. | Validée | C17/C18 corrigées, réponses explicites02/10 |
-| D-251 | Feuille scrollable, en-tête fixe, tableau rattaché à l’interrupteur, steppers directs et chevron de repli sans effet métier. Cible incomplète : total—, ✓ grisé, cellule et message en ligne. Durée totale variable non éditable. | Validée | C10/C13/C15/C22, prompt§4.3–4.4 |
+| D-251 | Feuille scrollable, en-tête fixe, tableau rattaché au champ de régime, steppers directs et chevron de repli sans effet métier. Cible incomplète : total—, ✓ grisé, cellule et message en ligne. Durée totale variable non éditable. | Validée | C10/C13/C15/C22, prompt§4.3–4.4 |
 | D-252 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
 | D-253 | **Amendée le06/10 : voir D-268 à D-298 (cadence, incertitude, phrase), autres dispositions conservées.** Libellé Pause entre les côtés dans tout le produit, Profil compris ; défaut10s inchangé. Ancien résumé paramètres à trois premières valeurs variables remplacé par D-298/Phrase v1 (énumération jusqu’à trois puis min/max) ; lignes séance : N séries variables seul. Compteur Série n/N et côté séparé ; aucune barre par Série. | Validée | Prompt§4 et confirmation vocabulaire02/10 |
 | D-254 | Nouvelle politique des pauses appliquée aussi aux Exercices existants ; quantité de travail et ordre par défaut conservés, augmentation de durée assumée ; aucun recalcul des résultats historiques. R>0 ne garantit pas une durée identique à l’ancienne règle en bilatéral. | Validée | C21 amendée et confirmation02/10/2026 |
@@ -546,3 +548,25 @@ Les règles historiques D-023/D-024/D-206 d’archivage et de repère visuel mon
 | ID | Décision | Statut | Portée |
 |---|---|---|---|
 | D-333 | L’ajout/import de médias associés à un Exercice est inclus au MVP et livré dans PRE-3, avant le moteur d’exécution qui utilise ces médias. Les règles documentées de fichiers locaux, associations ordonnées, copies indépendantes et conservation tant qu’une référence existe restent applicables. | Validée explicitement par Hermann le08/10/2026 dans la préparation PRE-3 | Remplace le report post-MVP de D-066/D-068 et l’exclusion d’import de CE-T03-04 ; complète D-203 sans changer ses règles de consultation. Le détail du parcours d’import et ses preuves sont à établir dans le plan PRE-3, sans inventer de caméra ou de limites fonctionnelles. |
+
+
+
+## Décisions CIR-20261012 — conception des circuits
+
+Ces identifiants dédiés complètent D-209/D-247/D-249/D-250 dans le contexte décrit, sans renuméroter les décisions historiques. Source : arbitrages du propriétaire du12/10, spécification Circuits ; toutes les lignes ci-dessous sont validées.
+
+| ID | Décision |
+|---|---|
+| CIR-01 | Circuit de tours/séries, un circuit par composition MVP ; régime propre conservé |
+| CIR-02 | Conversion au compte constant ; confirmation seulement si perte ; annulation atomique |
+| CIR-03 | Diminution sans message, réserve de séance jusqu’à enregistrement ; restauration puis préremplissage |
+| CIR-04 | Nombre hérité et total affichable en lecture seule ; aucune inversion sous héritage |
+| CIR-05 | Ajout catalogue adapte copie locale, confirmation si perte ; sortie conserve état actif |
+| CIR-06 | Bilatéral en séries : premier côté→PC→second côté→Pi, un seul cas ; direction conservée |
+| CIR-07 | Récupération/point internes à chaque passage ; R positive remplace Pi terminale ; préparation/fin selon D-214 révisée |
+| CIR-08 | Grille en lecture seule, tirets pour absence, ✓ pour échec, min:ss, volume par côté |
+| CIR-09 | Cartes variables avec volumes et ellipse ; régime explicite même valeurs égales ; aucun marqueur d’incomplétude |
+| CIR-10 | Chiffre→± ; pastille unité→nature ; œil permanent ; un champ numérique actif |
+| CIR-11 | Suppression manuelle immédiate avec Annuler ; restauration position et paramètres |
+| CIR-12 | Captures/DSF différés ; multi-circuit, progression automatique et tours ouverts hors périmètre |
+

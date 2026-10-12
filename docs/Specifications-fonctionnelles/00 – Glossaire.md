@@ -1,5 +1,7 @@
 # Glossaire
 
+> **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
+
 Le glossaire définit le vocabulaire officiel du projet KODJO. Les écrans, la documentation, les tests et le code doivent rester rattachables à ces termes et ne doivent pas introduire de concept concurrent.
 
 Une **entité métier** possède une identité propre et peut être représentée dans le modèle de données. Un **concept métier** décrit une règle, un état ou une structure sans correspondre nécessairement à un objet persistant.
@@ -235,3 +237,16 @@ Les noms de frames Figma et annotations restent des références techniques : il
 | **Borne de fin** | Paramètre jusqu’au (date) ou pendant (nombre d’unités) ; conversion encore ouverte. |
 
 Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
+
+
+
+## Circuits — vocabulaire cible du12/10/2026
+
+| Terme | Définition |
+|---|---|
+| Circuit de tours | Groupe ordonné ; chaque tour exécute toutes les séries de chaque exercice. Nature par défaut et reprise des anciens objets. |
+| Circuit de séries | Groupe ordonné ; au passage i, chaque exercice exécute sa série i. N est commun, imposé par le circuit. |
+| Passage | Position dans le développement du circuit ; ne constitue pas une nouvelle entité persistante autonome. |
+| Régime | Identiques ou variables, explicite et propre à l’exercice ; non déduit de l’égalité des valeurs. |
+| Valeur héritée en lecture seule | Valeur réelle déterminée par le contexte, visible sans possibilité d’édition ; différente d’un champ sans effet affichant un tiret. |
+

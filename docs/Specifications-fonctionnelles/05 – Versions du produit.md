@@ -1,5 +1,7 @@
 ## V1 – KODJO MVP : séance structurée et exécution locale
 
+> **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
+
 > Mise à jour du 24 septembre 2026 : Étiquette = classification/couleur de Séance ; Catégorie = classification/couleur d’Exercice ; Point d’arrêt ; Compte à rebours et Fin propres à l’Exercice ; changement de côté non exposé au niveau Tour ; roulettes en modale basse ; média en gouttière permanente dans le Catalogue des Exercices depuis D-260/D-261 du03/10/2026.
 
 ### Objectif
@@ -282,3 +284,4 @@ Cible documentée, non déclarée livrée : Bip de cadence0..10 dans trois modes
 ## Conception de planification du 08/10/2026
 
 Choisir une ou plusieurs Séances/Exercices par cases → Ajouter n éléments → Programme facultatif, Début, Répétition, contenus ordonnés si plusieurs, Rappel → Enregistrer. Chaque contenu filtre les occurrences du créneau par son motif x fois sur n. Les modalités ouvertes ne sont pas considérées livrées. Voir la [spécification](SPECIFICATION-PLANIFICATION-2026-10-08.md), les contrats CE-UI-04/05/11 et le [DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md).
+

@@ -1,5 +1,7 @@
 # Objectif de cette note
 
+> **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
+
 > Planification à plusieurs contenus (08/10) : les règles antérieures d’archivage supprimant les Routines associées restent décrites pour le cas à contenu unique. Leur extension à une Routine contenant d’autres contenus est **non définie** ; ne pas supprimer ces autres planifications par généralisation. Voir la spécification du 08/10 et son registre de points ouverts.
 
 
@@ -556,3 +558,4 @@ Choisir une ou plusieurs Séances/Exercices par cases → Ajouter n éléments �
 ## Ajouter des médias à un Exercice — MVP PRE-3
 
 D-333 inclut l’import/ajout de photos ou vidéos locales depuis l’éditeur, dans le Catalogue comme dans une copie de Séance. L’utilisateur associe le média au brouillon de l’Exercice puis enregistre avec Terminer ; il retrouve ses associations après réouverture. Les associations sont ordonnées, indépendantes dans les copies et peuvent partager un fichier physique immuable. Retirer une association ne supprime jamais un fichier encore référencé. Les sources système, formats et états du sélecteur d’import restent à clarifier ; aucune caméra ni limite n’est déduite des maquettes. La consultation pendant l’Exécution conserve D-203 et relève du moteur ultérieur.
+

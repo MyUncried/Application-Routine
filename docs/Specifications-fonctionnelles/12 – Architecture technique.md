@@ -1,5 +1,7 @@
 ## 12.0 Objet et périmètre
 
+> **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
+
 **Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Placement explicite et distinction contenu/trait conservés. **Bip de cadence et durées : la spécification Bip v2 du07/10 remplace les dispositions antérieures.**
 
 Ce chapitre définit l’architecture technique du MVP.
@@ -1591,3 +1593,12 @@ La planification applique [sa spécification](SPECIFICATION-PLANIFICATION-2026-1
 
 
 **Compatibilité D-214 — 12/10/2026.** Si un ancien champ d’activation est déjà persisté, il est obsolète et ne peut réactiver les phases propres lors de la construction d’un nouveau plan SESSION, quelle que soit sa valeur. L’inventaire du schéma réel détermine sa migration physique ; aucune suppression SQL n’est livrée par cette correction documentaire. Conserver les paramètres propres des Exercices et les instantanés/résultats historiques, sans réécriture des temps réalisés.
+
+
+
+## Architecture — circuits du12/10/2026
+
+Séparer paramètres persistés, brouillon avec réserves temporaires, développement du plan, agrégation typée et formatage visuel. Le plan est développé une fois selon la nature ; calcul et progression consomment les occurrences effectives sans multiplication supplémentaire. Le retour arrière/réinitialisation conserve sa portée existante et les résultats acquis ; le raccordement doit utiliser les identifiants d’occurrence, sans rejouer implicitement un exercice intermédiaire déjà terminé.
+
+Prévoir transactions de conversion et adaptation, compatibilité tours par défaut, invariants aux frontières API/persistance et instantanés immuables. La formalisation technique des reprises sera vérifiée avant qualification ; aucune livraison du moteur ni migration n’est revendiquée ici. Les nouveaux états visuels réutilisent les shells existants ; mesures DSF et captures différées par demande utilisateur.
+

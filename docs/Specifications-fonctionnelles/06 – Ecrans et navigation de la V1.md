@@ -1,5 +1,7 @@
 # Écrans et navigation
 
+> **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
+
 **Évolutions v15 du07/10 :**36captations vérifiées, dont15PNG changés depuis main72d1bf4. [Inventaire et preuves](../MATRICE-EVOLUTIONS-V15-2026-10-07.md), [DSF phrases](../DSF-PHRASES-V15-2026-10-07.md). Vue longue renommée224caractères ; les calculs déjà décidés sont conservés.
 
 **Mise à jour du07/10 — cartes, pauses et phrases :** [matrice de traçabilité](../MATRICE-CARTES-PHRASES-2026-10-07.md), [DSF des cartes](../DSF-CARTES-DUREE-2026-10-07.md), [phrase v15](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md). Captures reprises pour les cartes, modales Bip et résumés ; chiffres Figma illustratifs.
@@ -818,13 +820,13 @@ L’ouverture de la modale Étiquettes conserve la Composition en arrière-plan 
 
 L’icône affichée à gauche de `Nombre de tours` est exclusivement une instance de `Icon / Tour` (`3066:4685`). Son dessin canonique est celui validé dans `Composition séance — Nom saisi` (`2028:12003`) ; l’ancienne sous-référence graphique supprimée n’est plus utilisée comme preuve active : cadre visuel `18 × 18`, quatre tracés, trait `1,35`, couleur `color.textPrimary` (`#141414`). Les copies vectorielles locales et l’ancien pictogramme Tour ne sont pas autorisés. L’actif exportable correspondant est uniquement `assets/icons/icon-tour.svg`, clé de registre `icon.tour`.
 
-Le Circuit possède un nombre de Tours compris entre **1 et 99**, avec **1** comme valeur par défaut.
+Le Circuit porte une nature tours (défaut) ou séries et un compte de1 à99, initialisé à1.
 
-Dans l’interface courante, le nombre apparaît dans un stepper permanent à droite de l’en-tête du Circuit. Le libellé de Composition a été corrigé en « Circuit » le 05/10/2026 (journal des modifications, §8 ; D-209) ; aucune nouvelle correction Figma n’est requise sur ce point. La référence `2028:11700` montre `− / 3 tours / +`, sur 137 × 36 px. La valeur provient du brouillon, jamais de l’exemple Figma. La synthèse des exercices et de leur durée reste associée au conteneur ; Compte à rebours et Fin en sont exclus. Les anciennes dimensions 66 × 34 et l’ancien déclencheur violet de roulette ne sont plus une prescription visuelle active.
+Le chiffre du compteur ouvre les boutons −/+ ; la pastille portant uniquement tours/séries ouvre le choix de nature. Le bouton œil permanent, sur la ligne du titre, ouvre les volumes. Les anciennes captures de compteur permanent restent des références antérieures ; leur remplacement et les mesures DSF sont différés.
 
 La synthèse n’est plus affichée isolément au bas de l’écran. Elle est recalculée uniquement après une modification validée qui affecte les Exercices ou le nombre de Tours. La confirmation du `Compte à rebours initial` ou de la `Fin de séance` actualise seulement le jalon structurel concerné et ne modifie jamais cette synthèse. Celle-ci reste attachée au conteneur Circuit dans ses états applicables.
 
-Le nombre de tours se règle directement avec le stepper permanent `− / valeur / +` (`4913:7432`, dans `2028:11700`). Aucune ouverture de roulette ni confirmation modale distincte n’est requise. Les modifications appartiennent au brouillon de Composition jusqu’à son enregistrement ; bornes 1–99 et valeur initiale 1 inchangées.
+Le nombre se règle via ± révélés par appui sur le chiffre. La diminution est sans message ; une conversion de nature entraînant une perte exige une confirmation atomique. Les modifications appartiennent au brouillon de Composition jusqu’à son enregistrement ; bornes 1–99 et valeur initiale 1 inchangées.
 
 ### Retour haptique des roulettes
 
@@ -1135,7 +1137,7 @@ Spécification [v13](SPECIFICATION-PARAMETRES-MODALE-v13.md) : mode unique, N s�
 
 Formulaire : en-tête → nom/référentiels → carte Paramètres → Description → Média → Terminer. Feuille : en-tête fixe ✕/titre/✓ ; corps défilant Mode → Séries → Séries variables → cible commune → Cadence si Répétitions → Pause commune (ou tableau puis Cadence commune en variable) → Changement de côté → Ordre des côtés/PC si bilatéral → Total applicable → Compte à rebours → Fin.
 
-Tableau rattaché à l’interrupteur : poignée, numéro aligné à droite, cible et Pause par steppers ; À l’échec cible textuelle. Chevron replie seulement le tableau. Les modes/directions/ordre utilisent les segmentés ; Durée/Total uniformes utilisent les roulettes ; aucune sous-modale variable. Détails géométriques : [DSF](../DSF-SERIES-VARIABLES-2026-10-02.md). Le contrôle devient accessible par défilement, sans tableau à scroll indépendant.
+Tableau rattaché au champ de régime : poignée, numéro aligné à droite, cible et Pause par steppers ; À l’échec cible textuelle. Chevron replie seulement le tableau. Les modes/directions/ordre utilisent les segmentés ; Durée/Total uniformes utilisent les roulettes ; aucune sous-modale variable. Détails géométriques : [DSF](../DSF-SERIES-VARIABLES-2026-10-02.md). Le contrôle devient accessible par défilement, sans tableau à scroll indépendant.
 
 Figma définit le layout. Les valeurs, calculs, validations et comportements restent ceux des spécifications. La présence d’un ✓ bleu dans un exemple incomplet ne le rend pas validable.
 
@@ -2549,3 +2551,12 @@ Les espaces de contexte et de section, les pieds d’action et les surfaces de m
 ### Clarification du12/10/2026 — Préparation et fin dans une Séance
 
 Dans une Séance, les Compte à rebours d’exercice et Fin d’exercice ne sont jamais exécutés ; seuls le Compte à rebours initial et la Fin de séance s’appliquent, une fois, par substitution. Aucun booléen ni contrôle d’activation n’existe à cet effet. Les valeurs propres restent conservées pour l’exécution de l’Exercice seul. Aucun contrôle correspondant n’est à ajouter à la Composition ou à l’Exécution. Figma est confirmé aligné par le propriétaire ; cette correction documentaire ne demande aucune nouvelle maquette.
+
+
+
+## Évolution des vues de composition —12/10/2026
+
+Les contrats CE-CIR-01 (choix de nature), CE-CIR-02 (confirmation de perte) et CE-CIR-03 (volumes), ajoutés au chapitre13, complètent CE-T03-08 et CE-UI-10. En-tête : chiffre pour ±, pastille d’unité pour nature, œil permanent sur la ligne du titre pour la grille. Les cartes affichent les volumes, pas seulement N séries variables.
+
+**Captures et DSF différés à la demande du propriétaire.** Les anciennes images ne prouvent pas les nouveaux états ; leurs identifiants restent des repères historiques. Aucun export, mesure ou nouveau composant Figma n’est déclaré vérifié. Page des modèles (couleurs, images, grille2×3) : pistes d’exploration distinctes, non intégrées à cette spécification validée.
+

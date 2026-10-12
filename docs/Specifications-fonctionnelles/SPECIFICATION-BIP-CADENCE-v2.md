@@ -1,5 +1,7 @@
 # Bip de cadence — spécification normative v2
 
+> **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
+
 07/10/2026, clarification finale pauses et v15. Source : [prompt transmis par le propriétaire](../archives/bip-cadence-2026-10-07/prompt-source.md). Remplace Cadence v1 et les dispositions incompatibles de D-268–297/D-305 ; D-248 confirmée pour les pauses, D-311 remplacée par D-314. Figma détermine le layout ; les règles ci-dessous proviennent du document expressément transmis, pas d’une déduction de ses chiffres. Excel reste une référence de phrases, jamais le calculateur métier.
 
 ## 1. Paramètre commun aux trois modes
@@ -93,3 +95,12 @@ Les276 formulations du [classeur v15](../archives/evolutions-v15-2026-10-07/gene
 Six combinaisons mode×bip ; bornes0/1/10 et rejets−1/11/fraction ; bascule des trois modes sans perdre le bip ; annulation et application atomique ; duplication/snapshot. Exercice sans bip en Répétitions : aucune durée même avec pauses ; Séance mixte : retour partiel. Unilatéral N1 avec sa pause terminale, N4×15rep×4s+4×15s=300s. Bilatéral deux ordres, PC0/positive, R0/positive, inversion Durée et déplacement de dernière Série.
 
 Bip périodique dans les trois modes, arrêt hors Série, maintien après nominal Répétitions, fin Durée prioritaire, Pause/Reprise, reset et temps réel, arrière-plan sans rafale, seuils de sécurité. Steppers : tap, maintien500ms/2s/4s, arrondi directionnel, petites plages et saturation, annulation tactile et lecteur d’écran. Ces cas sont prescrits, pas annoncés exécutés dans l’application.
+
+
+
+## Extension normative du12/10 — niveau Circuit
+
+Le Circuit produit exact si tout le travail est exact ; estimated si au moins une estimation et aucun travail inconnu ; lowerBound si au moins un travail inconnu. Répétitions avec Bip>0 : estimées ; Bip0 ou À l’échec : travail inconnu. Les pauses et travaux estimables contribuent même si le total propre de l’exercice est omitted. Symbole préfixé au montant de l’en-tête : ≈ ou ≥, aucun symbole en exact.
+
+Développer d’abord la nature du circuit. En circuit de séries, un passage bilatéral calculable vaut 2Ti+PC+Pi, ou 2Ti+PC+R si R>0 le suit. Pas de Pi avant PC. Cette règle contextuelle unique s’applique aussi à un circuit de compte1 ; elle ne réécrit pas le réglage propre ni les formules de l’exercice autonome/circuit de tours. Unilatéral : Ti+Pi, ou Ti+R si R>0. Sommer les passages une seule fois. Attentes de points exclues du prévu. Tests normatifs : Ti30,Pi10,PC5 → passage bilatéral75s ; R20 →85s. Trois passages identiques →225s, ou255s avec R20 à chaque passage. PC0 ne supprime pas Pi.
+

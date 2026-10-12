@@ -1,5 +1,7 @@
 # Paramètres d’exécution — Séries variables, Bip de cadence et phrase — v13
 
+> **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
+
 Référence actualisée le07/10/2026. Bip v2 actualise cadence et durée ; D-314 confirme les pauses de D-248 et remplace D-311. Les autres paramètres et comportements du brouillon sont conservés. Cible documentaire, pas preuve d’implémentation ; version indépendante du classeur.
 
 ## 1. Autorité, portée et sources
@@ -33,7 +35,7 @@ Augmentation de N : rétablir d’abord les lignes temporairement retirées ; au
 
 Changement de mode : conserver N et les Pauses ; remplacer les cibles incompatibles par —, sans conversion Durée/Répétitions. Revenir au mode précédent avant ✓ restaure ses dernières cibles. Une valeur — n’est jamais zéro.
 
-**N=1 — arbitrage explicite** : état effectif uniforme et Ordre des côtés effectif Un côté après l’autre **dès le brouillon et son calcul**, pas seulement à la sauvegarde. Interrupteur Séries variables désactivé et grisé ; Ordre des côtés grisé lorsqu’il est visible en bilatéral ; aucun texte explicatif. Conserver temporairement l’ancien état variable, ses lignes et l’ancien ordre des côtés pour les restaurer si N remonte à2+ avant ✓. Valider à1 ne conserve qu’une série uniforme et l’ordre par défaut. Les deux formules bilatérales ne sont pas déclarées équivalentes à N=1 : la normalisation choisit explicitement la première.
+**N=1 — arbitrage explicite** : état effectif uniforme et Ordre des côtés effectif Un côté après l’autre **dès le brouillon et son calcul**, pas seulement à la sauvegarde. Champ de régime non modifiable, selon la normalisation N1 existante ; Ordre des côtés grisé lorsqu’il est visible en bilatéral ; aucun texte explicatif. Conserver temporairement l’ancien état variable, ses lignes et l’ancien ordre des côtés pour les restaurer si N remonte à2+ avant ✓. Valider à1 ne conserve qu’une série uniforme et l’ordre par défaut. Hors circuit de séries, les deux formules bilatérales ne sont pas déclarées équivalentes à N=1 : la normalisation choisit explicitement la première. Dans un circuit de séries, le passage suit toujours premier côté → PC → second côté → Pi, y compris pour compte1 ; aucun Pi supplémentaire avant PC.
 
 ## 4. Ordres d’exécution et pauses
 
@@ -55,25 +57,25 @@ Occurrence calculable To=T−PN+R si R>0 ; sinon To=T. R remplace uniquement la 
 
 Rendu à l’Exercice : Durée exact sans symbole ; Répétitions avec bip ≈ ; Répétitions sans bip et À l’échec aucune ligne, jamais ≥ ou —. Les pauses n’altèrent pas cette nature. Séance : exact si tout exact, ≈ si au moins une estimation et aucun inconnu, ≥ si au moins un inconnu. Erreur de cible : validation distincte, aucune fausse valeur.
 
-**Inversion réservée à Durée uniforme.** N dans1..99 au plus proche, égalité vers le haut. Candidats : unilatéral arrondi(Tv/(d+p)) ; succession des côtés arrondi((Tv−PC)/(2(d+p))) ; par paire arrondi(Tv/(2d+p+PC)). Comparer les candidats réalisables et N=1 calculé avec l’ordre normalisé par côté ; retenir le total le plus proche, égalité N le plus grand. Les bornes du sélecteur suivent les extrêmes réalisables. Si T(N)≠Tv : « Durée ajustée à {T(N)} pour respecter un nombre entier de séries. » Sinon aucun message. Total variable et Répétitions non éditable.
+**Inversion réservée à Durée uniforme avec nombre de séries libre.** Sous compte hérité d’un circuit de séries, le total calculé est en lecture seule : aucune inversion ni ajustement implicite de la cible. N dans1..99 au plus proche, égalité vers le haut. Candidats : unilatéral arrondi(Tv/(d+p)) ; succession des côtés arrondi((Tv−PC)/(2(d+p))) ; par paire arrondi(Tv/(2d+p+PC)). Comparer les candidats réalisables et N=1 calculé avec l’ordre normalisé par côté ; retenir le total le plus proche, égalité N le plus grand. Les bornes du sélecteur suivent les extrêmes réalisables. Si T(N)≠Tv : « Durée ajustée à {T(N)} pour respecter un nombre entier de séries. » Sinon aucun message. Total variable et Répétitions non éditable.
 
 ## 6. Feuille et contrôles
 
 | Ordre | Ligne | Contrôle / visibilité |
 |---|---|---|
 | 1 | Mode d’exécution | Valeur puis segmenté Durée/Répétitions/À l’échec sous la ligne active |
-| 2 | Séries | Stepper permanent, défaut1 |
-| 3 | Séries variables | Interrupteur ; chevron de repli si variable ; visible mais inactif à1 |
-| 4 | Cible et Pause | Uniforme : lignes Durée/Répétitions et Pause après chaque série ; variable : tableau rattaché à l’interrupteur, ligne numérotée, poignée, cible et Pause par steppers ; À l’échec : cible textuelle non modifiable |
+| 2 | Séries | Valeur numérique, défaut1 ; appui révèle ± si N libre ; valeur réelle en lecture seule avec origine si N hérité du circuit |
+| 3 | Régime des séries | Valeur identiques/variables et popover ; chevron indépendant uniquement si variable ; normalisation N1 existante conservée |
+| 4 | Cible et Pause | Uniforme : lignes Durée/Répétitions et Pause après chaque série ; variable : tableau rattaché au champ de régime, ligne numérotée, poignée, cible et Pause par steppers ; À l’échec : cible textuelle non modifiable |
 | 5 | Changement de côté | Segmenté, sans changement / D→G / G→D |
 | 6 | Ordre des côtés | Bilatéral uniquement, deux options ; grisé à1 |
 | 7 | Pause entre les côtés | Bilatéral uniquement, stepper ; copie du Profil à activation |
 | 7b | Bip de cadence | Trois modes ; stepper0..10,0=Aucun ; premier niveau, juste avant le total applicable ; commun hors tableau variable. |
-| 8 | Durée totale | Durée uniforme : roulette ; variable/Répétitions avec bip : lecture seule ; Répétitions sans bip et À l’échec : absente |
+| 8 | Durée totale | Durée uniforme avec N libre : roulette ; N hérité du circuit, variable/Répétitions avec bip : lecture seule ; Répétitions sans bip et À l’échec : absente |
 | 9 | Compte à rebours | Stepper ; défaut Profil10s |
 | 10 | Fin d’exercice | Stepper ; défaut Profil5s |
 
-Création : mode/durée/côté non renseignés —, Série1, Pause0s ; cible Répétitions uniforme initiale1 ; aucune cible implicite lors d’un changement de mode variable. Côté vide normalisé Sans changement à validation. La feuille entière défile sous un en-tête ✕/titre/✓ fixe. Un seul segmenté/roulette ouvert ; les steppers restent visibles sans modale supplémentaire. Le chevron masque le tableau sans modifier les données ni désactiver le mode variable.
+Création : mode/durée/côté non renseignés —, Série1, Pause0s ; cible Répétitions uniforme initiale1 ; aucune cible implicite lors d’un changement de mode variable. Côté vide normalisé Sans changement à validation. La feuille entière défile sous un en-tête ✕/titre/✓ fixe. Un seul segmenté/roulette ouvert ; les boutons ± apparaissent à l’appui sur une valeur numérique ; un seul champ est actif, sans modale supplémentaire. Le chevron masque le tableau sans modifier les données ni désactiver le mode variable.
 
 | Paramètre | Bornes | Granularité validée le02/10 |
 |---|---|---|
@@ -92,7 +94,7 @@ Steppers : tap1 ; maintien≈500ms, puis paliers5 après≈2s et10 après≈4s, 
 
 Carte Paramètres : phrase unique régénérée à chaque affichage, notamment après ✓ selon la [spécification de phrase v1](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md). Énumérer les cibles variables jusqu’à trois Séries, puis min/max ; aucune ellipse des trois premières valeurs. Valeurs en gras dans le texte courant, pas de segments interactifs. Total fourni par le calcul, omis en Répétitions sans bip et À l’échec, ou par redondance en Durée unilatérale N=1 sans pause. La zone entière ouvre la feuille.
 
-Ligne d’Exercice en Composition ou dans une Séance déployée : **N séries variables** sans détail des valeurs. Catalogue variable : même indicateur compact, total intrinsèque applicable. Les règles de cartes avec/sans média restent inchangées.
+Carte de composition : volumes variables explicites selon la spécification Circuits du12/10 §4, régime indépendant de l’égalité des valeurs, unité finale et ellipse selon place (trois valeurs maximum). La notation est indépendante de l’appartenance au circuit. Les autres contextes non amendés conservent leur contrat propre. Les règles de cartes avec/sans média restent inchangées.
 
 Pendant l’exécution : `Série n/N`, côté courant séparé, aucune numérotation globale1/(2N), aucune barre de progression par Série. La barre Tour reste celle des séances ; les mentions Tour résiduelles des maquettes d’exécution directe ne créent pas de Circuit en ACTIVITY. Les cibles et pauses viennent de la Série courante de l’instantané. À suivre : **Pause**, **Pause entre les côtés**, **Récupération** selon la phase effective ; jamais Récupération en direct. Le total de l’occurrence utilise To. La progression globale pondère le plan réellement généré suivant D-241 ; elle n’introduit aucune barre par Série.
 
@@ -131,3 +133,14 @@ Tester les deux directions/ordres, p0/PC0 sans repli, R0/positive, N1/99, bascul
 ## 10. Bip de cadence, validation et compatibilité
 
 [Bip v2](SPECIFICATION-BIP-CADENCE-v2.md) : cadenceBeepIntervalSeconds entier0..10 dans les trois modes. Commun à toutes les Séries ; aucune surcharge par ligne. Bascule de mode conserve le bip, même après✓. ✕ annule toute l’ouverture ; ✓ applique ; Terminer persiste. Mise à0 supprime le bip et affiche Aucun. Ancien objet sans champ :0 ; aucun tempo implicite. Négatif,11,fraction refusés. Pas de nouvelle préférence Profil.
+
+
+
+## Amendement du12/10 — interaction et contexte circuit
+
+Le champ identiques/variables ouvre un popover ; le chevron replie la liste sans changer le régime. Identiques : pas de chevron ; variables : états déployé/replié. Les valeurs numériques révèlent ± à l’appui, un seul champ actif, commandes à droite de la valeur. Appui extérieur range l’outil ; il n’active pas simultanément une cible destructive. Les roulettes gardent leur validation. Les modifications immédiates de ± restent dans le brouillon annulable par ✕.
+
+Nombre hérité d’un circuit de séries : valeur réelle visible non modifiable, origine discrète (placement/astérisque à aligner dans Figma). Total affichable en lecture seule, aucun ajustement indirect de N ; omitted reste absent. L’Ordre des côtés n’est pas un paramètre imposé ou réécrit par le circuit ; dans le plan de circuit de séries, son passage bilatéral a le déroulement contextuel unique prescrit par la spécification du12/10.
+
+Suppression manuelle : immédiate sans confirmation, message Série supprimée — Annuler, restauration des paramètres et de la position. Pas de suppression locale qui romprait le nombre hérité ; nombre réglé dans l’en-tête. Préremplissage, réordonnancement, bascules et restauration existants conservés. La réserve d’une diminution au compteur de circuit appartient au brouillon de séance jusqu’à enregistrement ; celle de la feuille autonome garde sa frontière ✓.
+
