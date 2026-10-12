@@ -1,5 +1,7 @@
 # PRE-3 (#340) — retest ciblé après la recette 3
 
+> **Remplacée** par `procedure-retest-recette3-ecarts-restants.md` (OTA `01a131d0`, commit `ce8e35a2`). T-53 et N-05 y sont devenus Conforme. Conservée pour l’historique.
+
 Ce retest couvre une ligne par sous-point corrigé : T-53, N-01, N-02, N-05 et T-49 (Composition). Durée : environ 12 minutes. Aucune suppression ni réinstallation de l’app ; les données sont conservées. Le commit exact et l’identifiant de mise à jour figurent dans le rapports `2026-10-12_PRE3-340_CORRECTION-RECETTE3.md` `2026-10-12_PRE3-340_EXT-R3-2-COMPOSITION.md` et `2026-10-12_PRE3-340_EXT-R3-2-SEPARATEUR.md`.
 
 Candidat : commit `c649bffc` (contient `1645b52f`, EXT-R3-2 et D-353), OTA **`01a13191-b515-7e40-b5fa-f4ff579d8cb1`** (canal `review`, runtime 1.1.0), compatible avec les builds 7 et 8.
