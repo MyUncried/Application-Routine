@@ -228,7 +228,7 @@ Le besoin détaillé est consolidé dans `../CONCEPTION-EXECUTION-MEDIA.md`.
 
 ## Besoins consolidés — 26 septembre 2026
 
-L’utilisateur doit pouvoir classer chaque nouvel Exercice avec exactement une Catégorie et une ou plusieurs Zones corporelles, sans que ces métadonnées conditionnent son exécution. Il peut retirer des valeurs des référentiels sans casser les objets existants. Dans une Séance, il peut décider globalement d’appliquer ou non les Compte à rebours et Fins propres aux Exercices, sans gérer ces paramètres occurrence par occurrence. Les Points d’arrêt restent positionnables dans la séquence selon D-217 et sont rejoués à chaque Tour lorsqu’ils appartiennent au Circuit.
+L’utilisateur doit pouvoir classer chaque nouvel Exercice avec exactement une Catégorie et une ou plusieurs Zones corporelles, sans que ces métadonnées conditionnent son exécution. Il peut retirer des valeurs des référentiels sans casser les objets existants. Dans une Séance, les Compte à rebours d’exercice et Fin d’exercice ne sont jamais exécutés ; seuls le Compte à rebours initial et la Fin de séance s’appliquent, une fois, par substitution. Aucun booléen ni contrôle d’activation n’existe à cet effet. Les valeurs propres restent conservées pour l’exécution de l’Exercice seul. Les Points d’arrêt restent positionnables dans la séquence selon D-217 et sont rejoués à chaque Tour lorsqu’ils appartiennent au Circuit.
 
 
 ## Paramètres d’exécution — complément du02/10/2026

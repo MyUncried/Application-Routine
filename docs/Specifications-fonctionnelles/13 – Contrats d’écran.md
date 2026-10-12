@@ -173,13 +173,13 @@ Commandes contextuelles 34/dessin 20/cible 44, gaps 12 ou 10 en Composition ; di
 
 ### 4.12 Exécution — phases, commandes et finalisation partagées
 
-Le moteur possède la source de vérité temporelle. Le Compte à rebours propre et la Fin propre entourent l’ensemble intrinsèque d’une occurrence d’Exercice ; ils ne sont pas ajoutés entre chaque Série/côté. Dans une Séance, le réglage global D-214 les applique/ignore ensemble sans effacer leurs valeurs. Cette lecture est dérivée du porteur Exercice de D-191/D-214 ; elle ne crée aucun paramètre par occurrence.
+Le moteur possède la source de vérité temporelle. En exécution autonome uniquement, le Compte à rebours propre et la Fin propre entourent l’Exercice complet, une fois. Dans une Séance, les Compte à rebours d’exercice et Fin d’exercice ne sont jamais exécutés ; seuls le Compte à rebours initial et la Fin de séance s’appliquent, une fois, par substitution. Aucun booléen ni contrôle d’activation n’existe à cet effet. Les valeurs propres restent conservées pour l’exécution de l’Exercice seul. Référence : D-214 révisée le12/10/2026.
 
 | Origine | Séquence normale |
 |---|---|
 | ACTIVITY | Préparation système 5 s → compte à rebours propre applicable → toutes Séries/pauses du premier côté → transition SIDE_RECOVERY de durée q si bilatéral (§6 R-03) → toutes Séries/pauses du second côté → Fin propre applicable → signal de fin → Synthèse |
 | SESSION | Compte à rebours initial → plan avant Circuit → Circuit répété par Tours → plan après Circuit → Fin de séance → Synthèse |
-| Occurrence SESSION | Compte à rebours propre si activé → Exercice intrinsèque (Séries/côtés/pauses) → Fin propre si activée → POST_ACTIVITY_RECOVERY → point d’arrêt éventuel → suite |
+| Occurrence SESSION | Exercice intrinsèque (Séries/côtés/pauses) → POST_ACTIVITY_RECOVERY positive éventuelle → point d’arrêt éventuel → suite ; aucun Compte à rebours/Fin propre |
 
 Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 
@@ -1003,7 +1003,7 @@ Exercice → éditeur de copie locale ; Ajouter un exercice → CE-T03-07 ; Éti
 
 ### 5. Données affichées et source de vérité
 
-Brouillon Session indépendant, nom, Étiquette0..1, compte à rebours/Fin, Circuit unique/Tours 1..99, activation globale des phases propres D-214 (true par défaut, sans modifier les valeurs propres enregistrées). Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). Chaque occurrence conserve ses séries/cadences ; To=T−PN+R si R>0, sinon To=T pour un travail calculable. Total développé par Tours, symboles D-305. Point d’arrêt sans durée prévue.
+Brouillon Session indépendant, nom, Étiquette0..1, compte à rebours/Fin, Circuit unique/Tours 1..99, exclusion systématique des Compte à rebours/Fin propres selon D-214 révisée, sans booléen et sans effacer leurs valeurs. Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). Chaque occurrence conserve ses séries/cadences ; To=T−PN+R si R>0, sinon To=T pour un travail calculable. Total développé par Tours, symboles D-305. Point d’arrêt sans durée prévue.
 
 ### 6. Classification des valeurs Figma
 
@@ -1015,7 +1015,7 @@ Nom/contexte de Séance, Étiquette et actions → compte à rebours initial →
 
 ### 8. Éléments obligatoires
 
-Compte à rebours/Fin non déplaçables ; Tours par stepper ; aucun côté au Circuit. Carte sans texte de pause/récupération dans son corps. Ligne variable : N séries variables uniquement, sans liste de cibles. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). V-04 reste : emplacement du réglage global D-214 non représenté, aucun composant inventé.
+Compte à rebours/Fin non déplaçables ; Tours par stepper ; aucun côté au Circuit. Carte sans texte de pause/récupération dans son corps. Ligne variable : N séries variables uniquement, sans liste de cibles. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). V-04 est clos par clarification du12/10 : aucun réglage global D-214 n’est requis ; aucune modification Figma nécessaire sur ce point, selon confirmation du propriétaire.
 
 ### 9. Layout déterministe
 
@@ -1069,7 +1069,7 @@ CF3 déjà tranché par RM-151/RM-152 : indicateur compact D→G/G→D conservé
 
 ### 20. Recette déterministe
 
-Tester annulation roulette/placement/Séance, sélection multiple/désélection/décompte, Rabsente/0/positive et point absent/présent, dans/hors placement. Tester frontières des deux types, dernière récupération, répétition par Tour, retrait/extérieur bulle, duplication/déplacement/suppression et sauvegarde atomique. Tester erreur/double tap ; D-214/V-04 conservés. D-301 présent uniquement sans pause effective de transition ni Rpositive, sans blocage. Vérifier symbole ≈ avec bip/omission sans bip à l’Exercice et montants issus de la spécification, aucune formule de capture.
+Tester annulation roulette/placement/Séance, sélection multiple/désélection/décompte, Rabsente/0/positive et point absent/présent, dans/hors placement. Tester frontières des deux types, dernière récupération, répétition par Tour, retrait/extérieur bulle, duplication/déplacement/suppression et sauvegarde atomique. Tester erreur/double tap ; D-214 révisée : vérifier l’absence du contrôle et des phases propres en SESSION ; V-04 clos. D-301 présent uniquement sans pause effective de transition ni Rpositive, sans blocage. Vérifier symbole ≈ avec bip/omission sans bip à l’Exercice et montants issus de la spécification, aucune formule de capture.
 
 ### 21. Traçabilité
 
@@ -2876,7 +2876,7 @@ Famille SESSION :1992:8132/8530/8626 ; dialogues 1992:8224/8326/8428 ; médias C
 
 ### 2. Finalité fonctionnelle
 
-Exécuter l’instantané de Séance avec Circuit répété en Tours, Exercices avant/après, phases propres, récupérations et points d’arrêt.
+Exécuter l’instantané de Séance avec Circuit répété en Tours, Exercices avant/après, phases de Séance uniquement pour préparation/fin, récupérations et points d’arrêt.
 
 ### 3. Contexte d’entrée
 
@@ -2888,7 +2888,7 @@ Plan achevé → CE-UI-08 ; arrêt depuis Pause confirmé → CE-UI-08 Interromp
 
 ### 5. Données affichées et source de vérité
 
-Instantané Session au démarrage, occurrences développées, Série/côté/Tour courants, paramètres propres et booléen global D-214, résultats et temps moteur ; aucune lecture réactive de la source modifiée.
+Instantané Session au démarrage, occurrences développées, Série/côté/Tour courants, paramètres intrinsèques, exclusion inconditionnelle des Compte à rebours/Fin propres selon D-214 révisée, résultats et temps moteur ; aucune lecture réactive de la source modifiée.
 
 Plan depuis les cibles/Pauses de chaque Série et l’Ordre des côtés de l’instantané ; R positive remplace seulement la dernière Pause de l’occurrence.
 
@@ -2920,7 +2920,7 @@ Commandes visibles à texte standard ; à texte agrandi scroll accessible sans m
 
 ### 11. États de l’écran
 
-Initial ; compte à rebours initial ; phases propres activées/ignorées ; Série ; pause inter-Séries ; côté ; récupération ; point d’arrêt ; pause utilisateur ; confirmations ; Fin de séance ; terminé/partiel/interrompu.
+Initial ; compte à rebours initial de Séance ; aucune phase Compte à rebours/Fin propre aux Exercices ; Série ; pause inter-Séries ; côté ; récupération ; point d’arrêt ; pause utilisateur ; confirmations ; Fin de séance ; terminé/partiel/interrompu.
 
 ### 12. Contrôles et interactions
 
@@ -2962,7 +2962,7 @@ Bip v2 remplace D-302/D-305 sur portée, signaux et symboles ; durées réelles 
 
 ### 20. Recette déterministe
 
-Séance avec avant/dans/après Circuit, Tours 1/2, unilatéral/bilatéral, trois modes ; D-214on/off ; toutes phases 0/>0 ; dernière récupération avant Fin ; points frontières/intérieur ; pause/reset/saut/arrêt confirmés/annulés ; source modifiée pendant run ; reprise ; médias ; vérifier poids §6 R-01 et transitions §6 R-03 ; aucun résultat de test applicatif n’est revendiqué ici.
+Séance avec avant/dans/après Circuit, Tours 1/2, unilatéral/bilatéral, trois modes ; D-214 révisée : absence des phases propres quelle que soit la valeur d’un éventuel ancien champ ; toutes phases 0/>0 ; dernière récupération avant Fin ; points frontières/intérieur ; pause/reset/saut/arrêt confirmés/annulés ; source modifiée pendant run ; reprise ; médias ; vérifier poids §6 R-01 et transitions §6 R-03 ; aucun résultat de test applicatif n’est revendiqué ici.
 
 Ordres D→G/G→D, A–F, N1, R0/positif et dernière occurrence/chaque Tour ; jamais cumul PN+R ni récupération ajoutée deux fois.
 
@@ -3286,7 +3286,7 @@ E01/E02/E13–E15/E19/E20 — [matrice v15](../MATRICE-EVOLUTIONS-V15-2026-10-07
 | V-01 | Dialogue2234:189 restauré et capture actualisée le01/10 | Preuve visuelle disponible ; boutons non câblés, recette interactive non acquise |
 | V-02 |Activité, Parcours/Tour mal employés dans plusieurs PNG | Contrats cible Exercice/Circuit/Tour ; corriger Figma sans renommer les IDs techniques |
 | V-03 | Anciennes variantes de phrase éditable remplacées par D-246 | Les nouveaux états et limites de la feuille sont documentés dans CE-UI-10 ; anciennes captures historiques |
-| V-04 |Contrôle global D-214 sans emplacement graphique complet | CE-T03-08 ; règle fonctionnelle complète, preuve graphique à fournir |
+| V-04 | Clos le12/10/2026 : ancien contrôle global D-214 supprimé du besoin | CE-T03-08 ; aucun emplacement ni composant à ajouter ; Figma confirmé aligné par le propriétaire |
 | V-05 |Chevauchement de créneaux Jour sans géométrie de référence | CE-UI-02 ; conserver lisibilité/accès, rendu à qualifier |
 | V-06 |Erreur d’initialisation Splash sans frame | CE-UI-06 ; aucune destruction de données ou blocage silencieux, rendu à qualifier |
 | V-07 |Direct/media montre Tour ;17 px/24 px divergent ; état Démarré parfois incohérent | CE-T03-09..13/MEDIA ; Tour absentACTIVITY,24 px cibleDSF T10 |

@@ -1107,7 +1107,7 @@ Le plan distingue au minimum la phase de Pause entre les côtés de la phase de 
 - `Session` porte `0..1` Étiquette.
 - Étiquette/Catégorie portent leur couleur. Les objets les référencent sans copier la couleur courante. Une valeur retirée du référentiel actif reste conservée tant qu’elle est référencée afin de préserver nom/couleur et affectations existantes.
 - Les défauts Profil sont lus uniquement à l’initialisation : aucune provenance `hérité/personnalisé` n’est nécessaire et aucune mise à jour rétroactive n’est effectuée.
-- `Session` porte un booléen global, activé par défaut, de prise en compte des phases propres `Compte à rebours d’exercice + Fin d’exercice`. Il n’existe pas de surcharge de ce booléen par occurrence.
+- `Session` ne porte aucun booléen de prise en compte des phases propres `Compte à rebours d’exercice + Fin d’exercice`. Ces phases sont toujours exclues du plan de Séance ; seuls le Compte à rebours initial et la Fin de séance s’appliquent. Les paramètres propres demeurent sur l’Exercice pour son exécution autonome.
 - Un Point d’arrêt placé dans le Circuit appartient au contenu répété et est donc développé à chaque Tour.
 
 
@@ -1180,3 +1180,6 @@ Français uniquement au MVP. Internationalisation ultérieure : gabarits et règ
 
 Une récupération explicite de0s est un objet conservé, distinct de l’absence ; seul Retirer la supprime. Elle ne crée aucune phase positive ni suppression dePN. Le scalaire historique ActivityDefinition.pauseSeconds ne devient pas une récupération : sa valeur est portée dans SeriesParameters.pauseSeconds lors de la refonte. Les pauses recovery/breakpoint de Composition restent une collection distincte. Aucun schéma physique ou migration exécutée dans ce lot.
 
+
+
+**Compatibilité D-214 — 12/10/2026.** Si un ancien champ d’activation est déjà persisté, il est obsolète et ne peut réactiver les phases propres lors de la construction d’un nouveau plan SESSION, quelle que soit sa valeur. L’inventaire du schéma réel détermine sa migration physique ; aucune suppression SQL n’est livrée par cette correction documentaire. Conserver les paramètres propres des Exercices et les instantanés/résultats historiques, sans réécriture des temps réalisés.
