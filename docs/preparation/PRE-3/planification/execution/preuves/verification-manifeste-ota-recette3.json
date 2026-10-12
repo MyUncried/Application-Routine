@@ -1,0 +1,26 @@
+{
+  "request": "GET https://u.expo.dev/0ee44f86-bd22-4b92-8780-e265b72907d9 (expo-platform ios, expo-runtime-version 1.1.0, expo-channel-name review, accept multipart/mixed)",
+  "http": 200,
+  "servedId": "01a130ce-0c5c-75c5-b821-2bc0d85e1113",
+  "assets": {
+    "total": 57,
+    "ok": 57,
+    "bad": [],
+    "launchAsset": {
+      "key": "87ad254e3d557310a478886fe3224bc3",
+      "ext": "application/javascript",
+      "http": 200,
+      "bytes": 2818928,
+      "hashOk": true,
+      "launch": true
+    },
+    "method": "en-têtes assetRequestHeaders (authorization EAS-HMAC), SHA-256 comparés"
+  },
+  "bundleMarkers": {
+    "exercise-instruction-submit": 1,
+    "updates-diagnostic": 3,
+    "execution-sheet-table-insertion-guide-before-": 1,
+    "category-picker-new-cancel": 0
+  },
+  "checkedAt": "2026-10-12T15:58:11.012Z"
+}

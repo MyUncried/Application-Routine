@@ -574,3 +574,13 @@ Ajustements demandés par Hermann dans la deuxième recette iPhone de PRE-3 (#34
 | D-347 | Formulaires de création de Catégorie et de Zone corporelle : plus de bouton « Annuler » ; ✕ de l’en-tête ferme la feuille (Catégorie : la Catégorie précédente reste affectée, D-343 ; Zones : sélection antérieure restaurée). Clavier ouvert : espace réduit entre le formulaire et le clavier. | Validée, Hermann 12/10 (N-01, N-02) | CE-UI-09 |
 | D-348 | Créer / Modifier un exercice : aucun liseré sous l’en-tête, aucun liseré autour du champ Nom ; zone de contexte avec courbure et fondu (sans bandes visibles). | Validée, Hermann 12/10 (T-49, partie éditeur) | CE-T03-04 |
 | D-349 | Créer / Modifier un exercice, clavier ouvert : Terminer reste en bas et ne remonte pas avec le clavier (il redevient accessible à sa fermeture) ; la Description se place juste au-dessus du clavier et le curseur reste visible pendant la saisie. Remplace, pour cet écran, « l’action finale reste accessible » du chapitre 06 pendant la saisie. | Validée, Hermann 12/10 (N-05) | CE-T03-04, chapitre 06 |
+
+## Recette PRE-3 n° 3 — demandes explicites du propriétaire — 12/10/2026
+
+Demandes de Hermann issues de la troisième recette iPhone de PRE-3 (#340), réalisées dans le périmètre autorisé. Traçabilité : `docs/preparation/PRE-3/planification/execution/preuves/registre-recette3.md`.
+
+| ID | Décision | Statut | Portée |
+|---|---|---|---|
+| D-350 | Création inline de Catégorie et de Zone corporelle : ↑ enregistre la nouvelle entrée sans fermer le clavier ni la feuille ; le formulaire reste ouvert, son nom est vidé (comportement antérieur conservé) ; une seule création par envoi (aucun doublon par appuis répétés). Catégorie : l’entrée créée est marquée, ✓ l’affecte (D-343) ; Zones : l’entrée créée rejoint la sélection, ✓ l’applique. | Validée, Hermann 12/10 (N-01, N-02) | CE-UI-09 |
+| D-351 | Créer / Modifier un exercice, champ Description : bouton d’envoi ↑ standard dans le champ pendant la saisie ; il ferme le clavier, le texte étant déjà dans le brouillon ; il n’enregistre pas l’exercice et ne remplace pas Terminer ; la touche Retour reste un retour à la ligne. Visibilité limitée à la saisie et place réservée au texte : choix d’implémentation, non décidés par Hermann. | Validée, Hermann 12/10 (N-05) ; présentation à confirmer au retest | CE-T03-04 |
+

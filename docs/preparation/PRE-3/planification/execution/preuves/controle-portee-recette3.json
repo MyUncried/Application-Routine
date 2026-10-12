@@ -1,0 +1,47 @@
+{
+  "check": "PRE3_WRITE_SCOPE@43e7b344",
+  "start": "6c519aa75142ca4bdb3aa029bb90c5c6e335d92a",
+  "paths": [
+    {
+      "path": "src/features/activities/ActivityEditorForm.tsx",
+      "inWriteScope": true
+    },
+    {
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "inWriteScope": true
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+      "inWriteScope": true
+    },
+    {
+      "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+      "inWriteScope": true
+    },
+    {
+      "path": "src/features/reference-data/BodyZonePickerModal.tsx",
+      "inWriteScope": true
+    },
+    {
+      "path": "src/features/reference-data/CategoryPickerModal.tsx",
+      "inWriteScope": true
+    },
+    {
+      "path": "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+      "inWriteScope": true
+    },
+    {
+      "path": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+      "inWriteScope": true
+    },
+    {
+      "path": "src/shared/i18n/index.ts",
+      "inWriteScope": true
+    },
+    {
+      "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "inWriteScope": true
+    }
+  ],
+  "result": "PASS"
+}

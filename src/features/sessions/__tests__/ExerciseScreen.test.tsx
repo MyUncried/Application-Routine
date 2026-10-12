@@ -289,8 +289,9 @@ async function chooseCategory() {
   fireEvent.press(await screen.findByTestId("category-picker-tag-cardio"));
   // Décision propriétaire D-8 (12/10) : le toucher marque la Catégorie, ✓ confirme et ferme.
   fireEvent.press(screen.getByTestId("category-picker-confirm"));
-  // Fermeture progressive (220 ms) : marge d’attente adaptée aux suites lourdes.
-  await waitFor(() => expect(screen.queryByTestId("category-picker-sheet")).toBeNull(), { timeout: 3000 });
+  // Fermeture progressive (220 ms). Recette 3 : dans cette suite, chaque image du rendu de
+  // test est coûteuse ; la fermeture mesurée se termine ({ finished: true }) en ≈ 7 s réelles.
+  await waitFor(() => expect(screen.queryByTestId("category-picker-sheet")).toBeNull(), { timeout: 20000 });
 }
 
 async function chooseZone(id = "cuisses") {

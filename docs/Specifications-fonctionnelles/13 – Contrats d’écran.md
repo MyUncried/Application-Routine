@@ -3104,7 +3104,7 @@ Noms et couleurs dynamiques ; dix zones initiales sont un jeu de départ, pas un
 
 ### 7. Structure de l’écran
 
-Modale de choix, création inline avec clavier (action ↑ dans le champ, sans bouton Annuler : ✕ ferme la feuille ; espace réduit au-dessus du clavier — D-347), palette seulement Catégorie, dialogue destructif centré sur appui long.
+Modale de choix, création inline avec clavier (action ↑ dans le champ, ↑ enregistre sans fermer le clavier ni la feuille — D-350 ; sans bouton Annuler : ✕ ferme la feuille ; espace réduit au-dessus du clavier — D-347), palette seulement Catégorie, dialogue destructif centré sur appui long.
 
 ### 8. Éléments obligatoires
 
