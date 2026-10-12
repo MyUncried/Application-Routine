@@ -108,3 +108,17 @@ Preuves : `resultats-tests-recette1b.json`, `couverture-obligations-recette1b.js
 ## Commit final et état Git
 
 Commit de code `f372cc5d`. Le commit documentaire, la publication et la mise à jour OTA sont consignés dans la section « Publication » ajoutée après leur exécution.
+
+## Publication
+
+| Étape | Résultat |
+|---|---|
+| Publication Git | Sans force, `e1c3296e..647e30d8` (`f372cc5d` code, `647e30d8` documentaire). Relu par `ls-remote` : `647e30d8…`. |
+| Compatibilité | `OTA_COMPATIBLE` par rapport à `9f5cee0e` (build 7), aucun fichier natif (`compatibilite-ota-recette1b.json`) |
+| Mise à jour EAS iOS | `01a12eb4-14a4-7a8e-8383-fb7ff3514c7c`, groupe `01d51fd6-79c7-4c02-9a01-5b3e363a1353`, branche et canal `review`, `runtimeVersion` 1.1.0, `gitCommitHash` **`647e30d8c29cfe33d3a3c2de9d3fea0a50ca42ce`** ; https://u.expo.dev/update/01a12eb4-14a4-7a8e-8383-fb7ff3514c7c (`publication-ota-recette1b.json`) |
+| Contrôle | `update:list --branch review` : c’est la mise à jour la plus récente du canal ; elle remplace `c43e73d5…` (`3da0841e`) |
+| Correspondance | Build 7 (`e1deb07e…`) + OTA `01a12eb4…` = code de `647e30d8` |
+
+Le commit qui ajoute cette section est documentaire seulement.
+
+**Prochaine action** : retest RT-01 à RT-13 par Hermann, décisions D-1 à D-9 et approbation des extensions X-1 à X-4. Ensuite, une seconde revue indépendante (ChatGPT). Aucune opération en cours.
