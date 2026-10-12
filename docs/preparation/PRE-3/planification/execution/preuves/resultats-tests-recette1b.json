@@ -1,0 +1,71 @@
+{
+ "schema": "kodjo.pre3.recette1.test-results.v1",
+ "step": "consolidation",
+ "code_commit": "f372cc5dbab3c97efc3c39a26db74c6dd683b995",
+ "commands": [
+  {
+   "command": "npx tsc --noEmit -p .",
+   "result": "PASS"
+  },
+  {
+   "command": "npx eslint src app",
+   "result": "PASS"
+  },
+  {
+   "command": "npx jest --json",
+   "result": "PASS",
+   "suites": "97/97",
+   "tests": "1931/1931",
+   "failed": 0
+  },
+  {
+   "command": "obligations tests-and-preservation.json@43e7b344 (mêmes tests propriétaires)",
+   "result": "442/442 PASS"
+  },
+  {
+   "command": "controle-portee.cjs --start 9f5cee0e…",
+   "result": "PASS"
+  }
+ ],
+ "replaced_assertions": [
+  {
+   "test": "CategoryPickerModal « renders the create palette inline »",
+   "before": "ouvrir la pastille « Couleur » puis color-palette-popover non absolu",
+   "after": "bandeau category-picker-new-color-band toujours visible, non absolu",
+   "reason": "C-5 : palette de 4474:7157 (CE-UI-09 §9)"
+  }
+ ],
+ "added_tests": [
+  {
+   "file": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+   "test": "ActivityEditorForm — recette 1 (T-49) T-49 — zone de contexte : halo blanc Ø 59,28 concentrique au bouton Retour, rogné à la zone, et fondu figé sur les 20 % inférieurs, tous deux sous le contenu",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+   "test": "ExecutionParametersSheet — recette 1 (A-01, A-04) A-01 — variable replié, désactivé puis réactivé : tableau déployé (état figé 6665:24616), lignes du brouillon restaurées",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+   "test": "ExecutionParametersSheet — recette 1 (A-01, A-04) A-04 — voile en fondu sur place (Modal fade, sans translation) ; seule la feuille monte depuis le bas",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+   "test": "CategoryPickerModal — recette 1 (T-34/T-59 : Envoyer ↑ et bandeau de couleurs) action « Envoyer » ↑ dans le champ : inactive à vide, active avec un nom, crée avec la couleur choisie dans le bandeau ; Annuler conservé",
+   "status": "passed"
+  },
+  {
+   "file": "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+   "test": "BodyZonePickerModal — recette 1 (T-34/T-59 : Envoyer ↑) action « Envoyer » ↑ dans le champ : inactive à vide, active avec un nom ; Annuler conservé ; aucune palette",
+   "status": "passed"
+  }
+ ],
+ "f02_additional_paths": [
+  "création mode vide → Durée, variable, aller-retour",
+  "changement de mode tableau replié",
+  "création Répétitions d’abord, aller-retour"
+ ],
+ "f02_result": "NON_REPRODUIT (8 trajets au total)"
+}

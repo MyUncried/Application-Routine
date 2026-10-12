@@ -118,3 +118,26 @@ Ces chemins sont hors `write_scope@43e7b344`. Aucun n’a été modifié. Chacun
 | `assets/icons/icon-categorie.svg`, `assets/icons/manifest.json`, `src/shared/ui/KodjoIcon.tsx` | R-09 : icône de la Catégorie | Éditeur | Nouvel asset extrait du master figé `icon/categorie` |
 | `src/features/sessions/ColorPalette.tsx` | R-11 : bandeau horizontal | Catégorie (PRE-3), Séance et Étiquettes (PRE-2) | Dépend de la décision sur les couleurs |
 | `src/shared/ui/ScreenShell.tsx` | R-06 : halo sous Retour ; R-12 : hauteur d’en-tête fixe | Tous les écrans | Composant partagé : à traiter avec prudence |
+
+## 6. Mise à jour du 12/10 — consolidation (`f372cc5d`)
+
+Détail et sources : `consolidation-recette1.md`. Retest : `procedure-retest-recette1-v2.md`.
+
+| ID | Nouvel état |
+|---|---|
+| R-02 | Toujours non reproduit (8 trajets). Scénario précis RT-02. |
+| R-03 | Catégorie et Zone corrigées. Étiquette : surface PRE-2, **hors PRE-3**, non proposée en extension. |
+| R-04 | Changement de besoin D-4 |
+| R-05 | Extension technique X-1 (Côté, Ordre, sélection nulle, hauteur) ; graisse du Mode = changement de besoin D-6 |
+| R-06 | Contradiction C-1 résolue (figé et ch. 12 > brief archivé). **Halo et fondu corrigés.** Couleur #EAEAFF : extension X-3 (token et ch. 12). |
+| R-07 | Inchangé (interrupteur natif ; vérification par capture) |
+| R-08 | C-4 : Annuler hors contrat (D-136 citée à tort) ; changement de besoin D-5 |
+| R-09 | Extension X-2 (asset et `KodjoIcon`) |
+| R-10 | C-6 résolue : **↑ dans le champ, corrigé** (Catégorie et Zone) ; Annuler conservé ; ✓ d’en-tête en création = D-8 |
+| R-11 | C-5 résolue : **bandeau figé avec les 12 couleurs D-026, corrigé** ; pastille à droite = D-9 |
+| R-12 | En-têtes des feuilles corrigés ; titres d’écran : extension X-4 ; Catalogue et Profil hors PRE-3 |
+| R-14 | C-9 résolue : **déploiement à l’activation, corrigé** |
+| R-15 | Contour corrigé ; messages = changement de besoin D-2 |
+| R-16 | D-256 (décision validée) ; changement de besoin D-1 |
+| R-17 | C-8 : **voile en fondu, corrigé** ; trajectoire de la feuille = D-7 |
+| R-19 | Changement de besoin D-3 |
