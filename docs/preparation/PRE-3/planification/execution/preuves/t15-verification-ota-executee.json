@@ -1,0 +1,60 @@
+{
+  "mission": "PRE3-340_T15-DEPOT-SERIE",
+  "collectedAt": "2026-10-12T12:38:18.634Z",
+  "source": "eas update:insights --platform ios --days 3 --json (eas-cli 21.7.1)",
+  "updates": {
+    "01a12f22 (commit 0f86cddb, sans correctif T-15)": {
+      "groupId": "2011ac0b-aa7d-4a24-a499-1bae0fe1162e",
+      "updateId": "01a12f22-927f-70a1-9060-17e3379ccc2d",
+      "timespan": {
+        "start": "2026-10-09T12:35:19.960Z",
+        "end": "2026-10-12T12:35:19.960Z",
+        "daysBack": 3
+      },
+      "totals": {
+        "uniqueUsers": 1,
+        "installs": 1,
+        "failedInstalls": 0,
+        "crashRatePercent": 0
+      },
+      "nonZeroBuckets": [
+        {
+          "date": "2026-10-12T08:00:00.000Z",
+          "installs": 1,
+          "failedInstalls": 0
+        }
+      ]
+    },
+    "01a12fae (commit a12bb92f, avec correctif T-15)": {
+      "groupId": "4d709de1-d9f2-44b3-9c4f-f035a102ca48",
+      "updateId": "01a12fae-53ec-72ca-b260-4e89a5f74e96",
+      "timespan": {
+        "start": "2026-10-09T12:35:12.919Z",
+        "end": "2026-10-12T12:35:12.918Z",
+        "daysBack": 3
+      },
+      "totals": {
+        "uniqueUsers": 0,
+        "installs": 0,
+        "failedInstalls": 0,
+        "crashRatePercent": 0
+      },
+      "nonZeroBuckets": []
+    }
+  },
+  "servedManifest": {
+    "request": "GET u.expo.dev/0ee44f86-… ios / runtime 1.1.0 / canal review, accept multipart/mixed",
+    "http": 200,
+    "id": "01a12fae-53ec-72ca-b260-4e89a5f74e96",
+    "createdAt": "2026-10-12T10:35:16.332Z"
+  },
+  "launchAssetDirect": {
+    "http": 403,
+    "note": "Unauthorized asset request : le CDN ne sert le bundle qu’à un client Expo ; contenu non inspectable ici"
+  },
+  "sourceCheck": {
+    "0f86cddb:ExecutionParametersSheet.tsx — occurrences isDraggingRow|InsertionGuide": 0,
+    "a12bb92f:ExecutionParametersSheet.tsx — occurrences": 5,
+    "git diff a12bb92f..81a6a2d5 -- src app assets package.json app.json": "vide"
+  }
+}
