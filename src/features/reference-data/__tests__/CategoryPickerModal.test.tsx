@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { describe, expect, it, jest } from "@jest/globals";
 
 import type { Category } from "@/domain/categories/Category";
@@ -50,18 +50,25 @@ function renderModal(
 }
 
 describe("CategoryPickerModal — selection (AC873C19CD5A9)", () => {
-  it("a tap on an active Category selects it and closes the modal, with no extra validation button", async () => {
+  // Décision propriétaire D-8 (12/10) : remplace « sélection et fermeture au toucher »
+  // (AC873C19CD5A9, D-222) pour la Catégorie — le toucher marque, ✓ confirme.
+  it("D-8 — a tap MARKS the Category without closing; ✓ confirms the assignment then closes", async () => {
     const onSelect = jest.fn();
     const onClose = jest.fn();
     const service = fakeReferentialService();
     renderModal(service, { onSelect, onClose });
 
     await screen.findByTestId("category-picker-tag-cardio");
+    expect(screen.getByTestId("category-picker-confirm").props.accessibilityState).toMatchObject({ disabled: true });
     await act(async () => {
       fireEvent.press(screen.getByTestId("category-picker-tag-cardio"));
     });
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByTestId("category-picker-tag-cardio").props.accessibilityState).toMatchObject({ selected: true });
 
-    expect(onSelect).toHaveBeenCalledWith("cardio");
+    fireEvent.press(screen.getByTestId("category-picker-confirm"));
+    await waitFor(() => expect(onSelect).toHaveBeenCalledWith("cardio"), { timeout: 3000 });
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -76,7 +83,7 @@ describe("CategoryPickerModal — selection (AC873C19CD5A9)", () => {
 });
 
 describe("CategoryPickerModal — create (D2 reactivation)", () => {
-  it("creates a new Category with the chosen color, selects it and closes", async () => {
+  it("D-8 — ↑ creates the Category and MARKS it as chosen without closing; ✓ then assigns it", async () => {
     const onSelect = jest.fn();
     const onClose = jest.fn();
     const service = fakeReferentialService({
@@ -97,8 +104,33 @@ describe("CategoryPickerModal — create (D2 reactivation)", () => {
     expect(service.createCategory).toHaveBeenCalledWith(
       expect.objectContaining({ name: "Danse" }),
     );
-    expect(onSelect).toHaveBeenCalledWith("new-cat");
+    // D-8 : créée dans le référentiel et marquée ; ni affectée ni fermée avant ✓.
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId("category-picker-confirm"));
+    await waitFor(() => expect(onSelect).toHaveBeenCalledWith("new-cat"), { timeout: 3000 });
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("D-8 — ✕ abandons the choice: previous Category kept, a Category created in the sheet stays in the referential (never deleted silently)", async () => {
+    const onSelect = jest.fn();
+    const onClose = jest.fn();
+    const service = fakeReferentialService({
+      createCategory: jest.fn(async () => ({
+        status: "OK" as const,
+        value: aCategory({ id: "new-cat", name: "Danse", isPredefined: false, displayOrder: null }),
+      })),
+    });
+    renderModal(service, { selectedId: "cardio", onSelect, onClose });
+    fireEvent.press(await screen.findByTestId("category-picker-create-action"));
+    fireEvent.changeText(screen.getByTestId("category-picker-new-name-input"), "Danse");
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("category-picker-new-add"));
+    });
+    fireEvent.press(screen.getByTestId("category-picker-close"));
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(service.retireCategory).not.toHaveBeenCalled();
   });
 
   it("shows a duplicate error and never closes when the name's key matches an active Category", async () => {
@@ -274,15 +306,20 @@ describe("CategoryPickerModal — PRE-3", () => {
     expect(screen.getByTestId("category-picker-new-add").props.accessibilityState).toMatchObject({ disabled: false });
   });
 
-  it("P3-20/all-surfaces — feuille ancrée en bas, voile #1F2129 à 34 %, en-tête ✕ / titre sans coche (D-222, chapitre 06), pastilles 30 rayon 16, action Créer 32", async () => {
+  it("P3-20/all-surfaces — feuille ancrée en bas, voile #1F2129 à 34 %, en-tête ✕ / titre / ✓ (D-8), pastilles 30 rayon 16, action Créer 32", async () => {
     renderModal(fakeReferentialService(), { selectedId: "cardio" });
     const tag = await screen.findByTestId("category-picker-tag-cardio");
     const backdrop = StyleSheet.flatten(screen.getByTestId("category-picker-backdrop").props.style);
     expect(backdrop).toMatchObject({ backgroundColor: "rgba(31, 33, 41, 0.34)", justifyContent: "flex-end" });
     expect(screen.getByTestId("category-picker-header")).toBeTruthy();
     expect(screen.getByTestId("category-picker-close")).toBeTruthy();
-    // « Une coche de validation encore visible dans la maquette Catégorie est un écart de rendu, pas une nouvelle règle. »
-    expect(screen.queryByTestId("category-picker-confirm")).toBeNull();
+    // D-8 (12/10) : la coche de validation de la maquette devient la règle — ✓ confirme le choix.
+    expect(StyleSheet.flatten(screen.getByTestId("category-picker-confirm").props.style)).toMatchObject({
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      backgroundColor: "#0508E5",
+    });
     expect(screen.getByText("Catégorie de l’exercice")).toBeTruthy();
     const pill = StyleSheet.flatten(tag.props.style);
     expect(pill).toMatchObject({ height: 30, borderRadius: 16, backgroundColor: "#E5F0FF", borderColor: "#8283F2" });
@@ -309,7 +346,7 @@ describe("CategoryPickerModal — PRE-3", () => {
     expect(onSelect).not.toHaveBeenCalled();
   });
 
-  it("INTERACTION/category — sélection simple validée au toucher (D-222) ; ✕ ferme sans sélectionner", async () => {
+  it("INTERACTION/category — sélection marquée au toucher puis confirmée par ✓ (D-8) ; ✕ ferme sans sélectionner", async () => {
     const onSelect = jest.fn();
     const onClose = jest.fn();
     renderModal(fakeReferentialService(), { selectedId: null, onSelect, onClose });
@@ -320,17 +357,19 @@ describe("CategoryPickerModal — PRE-3", () => {
     await act(async () => {
       fireEvent.press(screen.getByTestId("category-picker-tag-cardio"));
     });
-    expect(onSelect).toHaveBeenCalledWith("cardio");
+    expect(onSelect).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId("category-picker-confirm"));
+    await waitFor(() => expect(onSelect).toHaveBeenCalledWith("cardio"), { timeout: 3000 });
     expect(onClose).toHaveBeenCalledTimes(2);
   });
 
-  it("ACCESSIBILITY/category — nom et état sélectionné, ✕ nommé (aucune coche), titre en-tête, Ajouter annoncé désactivé sans erreur", async () => {
+  it("ACCESSIBILITY/category — nom et état sélectionné, ✕ et ✓ nommés (D-8), titre en-tête, Ajouter annoncé désactivé sans erreur", async () => {
     renderModal(fakeReferentialService(), { selectedId: "cardio" });
     const tag = await screen.findByTestId("category-picker-tag-cardio");
     expect(tag.props.accessibilityLabel).toContain("Cardio");
     expect(tag.props.accessibilityState).toMatchObject({ selected: true });
     expect(screen.getByTestId("category-picker-close").props.accessibilityLabel.length).toBeGreaterThan(0);
-    expect(screen.queryByTestId("category-picker-confirm")).toBeNull();
+    expect(screen.getByTestId("category-picker-confirm").props.accessibilityLabel).toBe("Confirmer la catégorie");
     expect(screen.getByRole("header").props.children).toBe("Catégorie de l’exercice");
     fireEvent.press(screen.getByTestId("category-picker-create-action"));
     expect(screen.getByTestId("category-picker-new-add").props.accessibilityState).toMatchObject({ disabled: true });
@@ -418,5 +457,19 @@ describe("CategoryPickerModal — recette 1 (T-34/T-59 : Envoyer ↑ et bandeau 
       fireEvent.press(send());
     });
     expect(service.createCategory).toHaveBeenCalledWith({ name: "Danse", color: "#2E9B62" });
+  });
+});
+
+describe("CategoryPickerModal — D-8 et « Réduire les animations »", () => {
+  it("✓ affecte puis ferme immédiatement, sans animation, quand « Réduire les animations » est actif", async () => {
+    const { AccessibilityInfo } = jest.requireActual<typeof import("react-native")>("react-native");
+    jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValueOnce(true);
+    const onSelect = jest.fn();
+    const onClose = jest.fn();
+    renderModal(fakeReferentialService(), { onSelect, onClose });
+    fireEvent.press(await screen.findByTestId("category-picker-tag-cardio"));
+    fireEvent.press(screen.getByTestId("category-picker-confirm"));
+    expect(onSelect).toHaveBeenCalledWith("cardio");
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

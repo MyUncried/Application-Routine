@@ -102,6 +102,10 @@ async function fillNewExercise(name: string, mode: "Durée" | "Répétitions", z
   fireEvent.press(screen.getByTestId("activity-editor-category-button"));
   const [firstCategory] = await screen.findAllByTestId(/^category-picker-tag-(?!row$)/);
   fireEvent.press(firstCategory!);
+  // Décision propriétaire D-8 (12/10) : le toucher marque la Catégorie, ✓ confirme et ferme.
+  fireEvent.press(screen.getByTestId("category-picker-confirm"));
+  // Fermeture progressive (220 ms) : marge d’attente adaptée aux suites lourdes.
+  await waitFor(() => expect(screen.queryByTestId("category-picker-sheet")).toBeNull(), { timeout: 3000 });
   fireEvent.press(screen.getByTestId("exercise-body-zones-open"));
   fireEvent.press(await screen.findByTestId(`body-zone-selector-tag-${zoneId}`));
   await act(async () => {

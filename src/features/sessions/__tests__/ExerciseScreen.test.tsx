@@ -287,6 +287,10 @@ function renderRoute(options: {
 async function chooseCategory() {
   fireEvent.press(screen.getByTestId("activity-editor-category-button"));
   fireEvent.press(await screen.findByTestId("category-picker-tag-cardio"));
+  // Décision propriétaire D-8 (12/10) : le toucher marque la Catégorie, ✓ confirme et ferme.
+  fireEvent.press(screen.getByTestId("category-picker-confirm"));
+  // Fermeture progressive (220 ms) : marge d’attente adaptée aux suites lourdes.
+  await waitFor(() => expect(screen.queryByTestId("category-picker-sheet")).toBeNull(), { timeout: 3000 });
 }
 
 async function chooseZone(id = "cuisses") {

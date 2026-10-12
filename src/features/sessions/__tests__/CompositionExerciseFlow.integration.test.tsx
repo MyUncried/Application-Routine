@@ -1,4 +1,4 @@
-import { act, fireEvent, renderRouter, screen, within } from "expo-router/testing-library";
+import { act, fireEvent, renderRouter, screen, waitFor, within } from "expo-router/testing-library";
 import { describe, expect, it, jest } from "@jest/globals";
 import type { ReactNode } from "react";
 
@@ -235,6 +235,10 @@ async function fillNewExercise(name: string) {
   fireEvent.changeText(screen.getByLabelText(exercise.name), name);
   fireEvent.press(screen.getByTestId("activity-editor-category-button"));
   fireEvent.press(await screen.findByTestId("category-picker-tag-renforcement"));
+  // Décision propriétaire D-8 (12/10) : le toucher marque la Catégorie, ✓ confirme et ferme.
+  fireEvent.press(screen.getByTestId("category-picker-confirm"));
+  // Fermeture progressive (220 ms) : marge d’attente adaptée aux suites lourdes.
+  await waitFor(() => expect(screen.queryByTestId("category-picker-sheet")).toBeNull(), { timeout: 3000 });
   fireEvent.press(screen.getByTestId("exercise-body-zones-open"));
   fireEvent.press(await screen.findByTestId("body-zone-selector-tag-dos"));
   await act(async () => {

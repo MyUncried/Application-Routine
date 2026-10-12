@@ -107,6 +107,8 @@ const executionParameters = {
   },
   referenceSheets: {
     categoryTitle: "Catégorie de l’exercice",
+    // Décision propriétaire D-8 (12/10) : confirmation explicite de la Catégorie.
+    categoryConfirmAction: "Confirmer la catégorie",
     zoneCreateAction: "Créer une zone corporelle",
   },
 } as const;

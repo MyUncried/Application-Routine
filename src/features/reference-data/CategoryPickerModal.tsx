@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  Animated,
+  Easing,
   Keyboard,
   KeyboardAvoidingView,
   Modal,
@@ -20,6 +22,7 @@ import {
 import { CATEGORY_NAME_MAX_LENGTH, validateCategoryName } from "@/domain/categories/validation";
 import { SESSION_COLORS } from "@/domain/sessions/Session";
 import { ReferenceValueDialog } from "@/features/reference-data/ReferenceValueDialog";
+import { useReduceMotion } from "@/features/activities/ExecutionParametersSheet";
 import { useReferentialService } from "@/features/reference-data/ReferentialServiceContext";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
@@ -28,7 +31,10 @@ import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@
 export type CategoryPickerModalProps = {
   /** Catégorie actuellement affectée — `null` si aucune (D-211 : toujours requise avant `Terminer`, mais l'ouverture de la modale ne présuppose rien). */
   selectedId: string | null;
-  /** Appui court sur une Catégorie active : sélectionne et ferme (AC873C19CD5A9) — jamais de bouton de validation supplémentaire. */
+  /**
+   * Décision propriétaire D-8 (12/10, remplace AC873C19CD5A9 et D-222 pour la
+   * Catégorie) : appelé UNIQUEMENT par ✓, avec la Catégorie marquée dans la feuille.
+   */
   onSelect: (id: string) => void;
   onClose: () => void;
 };
@@ -44,6 +50,12 @@ export type CategoryPickerModalProps = {
 export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryPickerModalProps) {
   const referentialService = useReferentialService();
   const [categories, setCategories] = useState<readonly Category[] | null>(null);
+  // D-8 : le toucher (ou ↑ en création) MARQUE le choix, sans fermer ; ✓ confirme
+  // l’affectation, ✕ abandonne et conserve la Catégorie précédente de l’Exercice.
+  const [chosenId, setChosenId] = useState<string | null>(selectedId);
+  const reduceMotion = useReduceMotion();
+  const [closing] = useState(() => new Animated.Value(1));
+  const [isConfirming, setIsConfirming] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [newColor, setNewColor] = useState<CategoryColor>(SESSION_COLORS[0]!);
@@ -87,8 +99,30 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
   const canSaveEdit = validateCategoryName(editName).ok;
 
   function handleSelect(category: Category) {
-    onSelect(category.id);
-    onClose();
+    setChosenId(category.id);
+  }
+
+  /** D-8 : ✓ confirme l’affectation puis ferme progressivement (immédiatement si « Réduire les animations »). */
+  function handleConfirm() {
+    if (chosenId === null || isConfirming) {
+      return;
+    }
+    const confirmedId = chosenId;
+    const finish = () => {
+      onSelect(confirmedId);
+      onClose();
+    };
+    if (reduceMotion) {
+      finish();
+      return;
+    }
+    setIsConfirming(true);
+    Animated.timing(closing, {
+      toValue: 0,
+      duration: CONFIRM_CLOSE_MS,
+      easing: Easing.in(Easing.cubic),
+      useNativeDriver: true,
+    }).start(() => finish());
   }
 
   async function handleCreate() {
@@ -108,8 +142,9 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
       setNewName("");
       setDuplicateError(false);
       if (result.status === "OK") {
-        onSelect(result.value.id);
-        onClose();
+        // D-8 : la nouvelle Catégorie est créée dans le référentiel et MARQUÉE comme
+        // choisie ; seule ✓ l’affecte. ✕ ne la supprime pas du référentiel.
+        setChosenId(result.value.id);
       }
     } catch (error) {
       console.error("La Catégorie n'a pas pu être créée.", error);
@@ -161,12 +196,18 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
       return;
     }
     const wasSelected = selectedId === longPressTarget.id;
+    const wasChosen = chosenId === longPressTarget.id;
     try {
       await referentialService.retireCategory(longPressTarget.id);
       reload();
       setLongPressTarget(null);
       if (wasSelected) {
         setRetiredNotice(true);
+      }
+      // Un choix non confirmé qui disparaît revient à l’affectation actuelle de l’Exercice
+      // (une affectation existante retirée reste conservable, CE-UI-09 §5).
+      if (wasChosen && !wasSelected) {
+        setChosenId(selectedId);
       }
     } catch (error) {
       console.error("La Catégorie n'a pas pu être supprimée.", error);
@@ -185,7 +226,17 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         testID="category-picker-backdrop"
       >
-        <View style={styles.card} accessibilityViewIsModal testID="category-picker-sheet">
+        <Animated.View
+          style={[
+            styles.card,
+            {
+              opacity: closing,
+              transform: [{ translateY: closing.interpolate({ inputRange: [0, 1], outputRange: [CONFIRM_CLOSE_OFFSET, 0] }) }],
+            },
+          ]}
+          accessibilityViewIsModal
+          testID="category-picker-sheet"
+        >
           <View style={styles.sheetHandle} />
           <View style={styles.sheetHeader} testID="category-picker-header">
             <Pressable
@@ -201,7 +252,18 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
             <Text style={styles.sheetTitle} accessibilityRole="header">
               {strings.executionParameters.referenceSheets.categoryTitle}
             </Text>
-            <View style={styles.sheetHeaderSpacer} />
+            <Pressable
+              onPress={handleConfirm}
+              disabled={chosenId === null}
+              accessibilityRole="button"
+              accessibilityLabel={strings.executionParameters.referenceSheets.categoryConfirmAction}
+              accessibilityState={{ disabled: chosenId === null }}
+              hitSlop={5}
+              style={[styles.sheetValidate, chosenId === null ? styles.sheetValidateDisabled : null]}
+              testID="category-picker-confirm"
+            >
+              <KodjoIcon name="wheel-action-validate" />
+            </Pressable>
           </View>
         <ScrollView
           ref={scrollRef}
@@ -225,7 +287,7 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
 
           <View ref={tagRowRef} style={styles.tagRow} testID="category-picker-tag-row">
             {activeCategories.map((category) => {
-              const isSelected = category.id === selectedId;
+              const isSelected = category.id === chosenId;
               return (
                 <Pressable
                   key={category.id}
@@ -363,7 +425,7 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
           )}
 
         </ScrollView>
-        </View>
+        </Animated.View>
       </KeyboardAvoidingView>
 
       {longPressTarget ? (
@@ -380,6 +442,10 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
     </Modal>
   );
 }
+
+/** D-8 : fermeture progressive après ✓ (convention 220 ms des contrôles animés). */
+const CONFIRM_CLOSE_MS = 220;
+const CONFIRM_CLOSE_OFFSET = 48;
 
 /** Action « Envoyer » figée (4474:7157) : cercle 32, marge interne droite 8. */
 const INLINE_SEND_SIZE = 32;
@@ -462,9 +528,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: colors.surfaceSubtle,
   },
-  // Sélection validée au toucher (D-222) : aucune coche ; réserve la largeur pour centrer le titre.
-  sheetHeaderSpacer: {
+  // D-8 : ✓ de confirmation (même rendu que la feuille Zones).
+  sheetValidate: {
     width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primary,
+  },
+  sheetValidateDisabled: {
+    backgroundColor: colors.disabled,
   },
   card: {
     width: "100%",

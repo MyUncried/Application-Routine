@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
+  AccessibilityInfo,
   Animated,
   Easing,
   Modal,
@@ -26,7 +27,6 @@ import {
   applyRequestedTotal,
   commitSheetDraft,
   effectiveParameters,
-  firstIncompleteSeries,
   isRequestedTotalEditable,
   isSingleSeries,
   moveRow,
@@ -95,6 +95,105 @@ type InlineControl = "mode" | "uniformDuration" | "sideMode" | "sideOrder" | "to
 
 const t = strings.executionParameters.sheet;
 
+type SelectorControl = "mode" | "sideMode" | "sideOrder";
+
+/** D-4 : temps laissé au cadre du segmenté pour rejoindre la valeur choisie (SegmentedControl, 220 ms). */
+const SELECTOR_SETTLE_MS = 220;
+/** D-4 : durée de la fermeture progressive du sélecteur. */
+const SELECTOR_CLOSE_MS = 200;
+
+/**
+ * Réglage iOS « Réduire les animations » (D-4, D-7, D-8). Lu au montage puis
+ * suivi en direct ; `false` tant que la lecture n'a pas répondu.
+ */
+export function useReduceMotion(): boolean {
+  const [reduceMotion, setReduceMotion] = useState(false);
+  useEffect(() => {
+    let active = true;
+    Promise.resolve(AccessibilityInfo.isReduceMotionEnabled())
+      .then((enabled) => {
+        if (active) setReduceMotion(enabled);
+      })
+      .catch(() => undefined);
+    const subscription = AccessibilityInfo.addEventListener("reduceMotionChanged", setReduceMotion);
+    return () => {
+      active = false;
+      subscription.remove();
+    };
+  }, []);
+  return reduceMotion;
+}
+
+/**
+ * D-4 — sélecteur en place qui, après un choix, laisse la valeur choisie visible
+ * (le cadre glisse vers elle), puis se replie en fondu. « Réduire les animations » :
+ * fermeture immédiate.
+ */
+function ClosingSelector({
+  closing,
+  reduceMotion,
+  onClosed,
+  children,
+  testID,
+}: {
+  closing: boolean;
+  reduceMotion: boolean;
+  onClosed: () => void;
+  children: ReactNode;
+  testID: string;
+}) {
+  const [height, setHeight] = useState<number | null>(null);
+  const [progress] = useState(() => new Animated.Value(1));
+  const onClosedRef = useRef(onClosed);
+  useEffect(() => {
+    onClosedRef.current = onClosed;
+  });
+  useEffect(() => {
+    if (!closing) {
+      progress.setValue(1);
+      return;
+    }
+    if (reduceMotion || height === null) {
+      onClosedRef.current();
+      return;
+    }
+    const animation = Animated.sequence([
+      Animated.delay(SELECTOR_SETTLE_MS),
+      Animated.timing(progress, {
+        toValue: 0,
+        duration: SELECTOR_CLOSE_MS,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: false,
+      }),
+    ]);
+    animation.start(({ finished }) => {
+      if (finished) onClosedRef.current();
+    });
+    return () => animation.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [closing, reduceMotion]);
+  return (
+    <Animated.View
+      onLayout={(event) => {
+        if (height === null) setHeight(event.nativeEvent.layout.height);
+      }}
+      style={[
+        styles.inlineControl,
+        closing && height !== null
+          ? {
+              height: progress.interpolate({ inputRange: [0, 1], outputRange: [0, height] }),
+              opacity: progress,
+              overflow: "hidden",
+            }
+          : null,
+      ]}
+      testID={testID}
+    >
+      {children}
+    </Animated.View>
+  );
+}
+
 /** Durée de montée de la feuille (prototype figé : ouverture 0,25 s, ease-out). */
 const SHEET_ENTRY_DURATION_MS = 250;
 /** Hauteur de ligne du tableau variable (DSF : 42 à 402). */
@@ -132,15 +231,23 @@ export function ExecutionParametersSheet({
   const [adjustment, setAdjustment] = useState<{ message: string; previous: ExecutionSheetDraft } | null>(null);
   // Recette 1 (A-04) : le voile apparaît en fondu, sur place (Modal `fade`, prototype
   // figé : aucune translation du voile) ; seule la feuille garde sa montée depuis le bas.
+  const reduceMotion = useReduceMotion();
   const [sheetEntry] = useState(() => new Animated.Value(windowHeight));
+  const [closingControl, setClosingControl] = useState<InlineControl>(null);
   useEffect(() => {
+    // D-7 : « Réduire les animations » → feuille en place, sans montée.
+    if (reduceMotion) {
+      sheetEntry.stopAnimation();
+      sheetEntry.setValue(0);
+      return;
+    }
     Animated.timing(sheetEntry, {
       toValue: 0,
       duration: SHEET_ENTRY_DURATION_MS,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start();
-  }, [sheetEntry]);
+  }, [sheetEntry, reduceMotion]);
 
   useEffect(() => {
     if (!adjustment) return;
@@ -157,7 +264,6 @@ export function ExecutionParametersSheet({
   const totalEditable = isRequestedTotalEditable(draft);
 
   const validation = commitSheetDraft(draft);
-  const incompleteSeries = validation.ok ? null : firstIncompleteSeries(validation.violations);
   const invalidRows = new Set(
     validation.ok
       ? []
@@ -167,14 +273,8 @@ export function ExecutionParametersSheet({
   );
   const uniformTargetInvalid =
     !validation.ok && !showVariableTable && validation.violations.some((violation) => violation.field === "target");
-  const message =
-    validation.ok || effective.mode === null || effective.mode === "TO_FAILURE"
-      ? null
-      : showVariableTable && incompleteSeries !== null
-        ? t.incompleteSeries[effective.mode].replace("{n}", String(incompleteSeries))
-        : uniformTargetInvalid
-          ? t.incompleteUniform[effective.mode]
-          : null;
+  // Décision propriétaire D-2 (recette 1) : aucun message « Renseignez … » ; la saisie
+  // incomplète reste signalée par le contour figé de la cellule et le ✓ indisponible.
 
   // Total applicable (v13 §6 ligne 8) : Durée, ou Répétitions avec bip ; « — » si incomplet.
   const totalApplicable =
@@ -188,7 +288,18 @@ export function ExecutionParametersSheet({
   }
 
   function toggle(control: Exclude<InlineControl, null>) {
+    setClosingControl(null);
     setOpenControl((current) => (current === control ? null : control));
+  }
+
+  /** D-4 : la valeur choisie est appliquée tout de suite, puis le sélecteur se referme. */
+  function closeAfterChoice(control: SelectorControl) {
+    setClosingControl(control);
+  }
+
+  function handleSelectorClosed(control: SelectorControl) {
+    setClosingControl((current) => (current === control ? null : current));
+    setOpenControl((current) => (current === control ? null : current));
   }
 
   function handleValidate() {
@@ -276,7 +387,12 @@ export function ExecutionParametersSheet({
                 />
               </Row>
               {openControl === "mode" ? (
-                <View style={styles.inlineControl}>
+                <ClosingSelector
+                  closing={closingControl === "mode"}
+                  reduceMotion={reduceMotion}
+                  onClosed={() => handleSelectorClosed("mode")}
+                  testID="execution-sheet-mode-selector"
+                >
                   <SegmentedControl<ExecutionMode>
                     options={[
                       { value: "DURATION", label: t.modes.DURATION },
@@ -284,11 +400,14 @@ export function ExecutionParametersSheet({
                       { value: "TO_FAILURE", label: t.modes.TO_FAILURE },
                     ]}
                     value={(draft.mode ?? "DURATION") as ExecutionMode}
-                    onChange={(mode) => update(setMode(draft, mode))}
+                    onChange={(mode) => {
+                      update(setMode(draft, mode));
+                      closeAfterChoice("mode");
+                    }}
                     accessibilityLabel={t.mode}
                     testID="execution-sheet-mode-control"
                   />
-                </View>
+                </ClosingSelector>
               ) : null}
               <Separator />
 
@@ -339,7 +458,6 @@ export function ExecutionParametersSheet({
                     />
                   </View>
                 </View>
-                {message && showVariableTable ? <InlineMessage text={message} /> : null}
                 {showVariableTable && !isTableFolded ? (
                   <VariableTable
                     draft={draft}
@@ -412,7 +530,6 @@ export function ExecutionParametersSheet({
                       </Row>
                     </>
                   ) : null}
-                  {message ? <InlineMessage text={message} /> : null}
                   <Separator indented />
                   <Row label={t.pause} indented testID="execution-sheet-row-pause">
                     <InlineStepper
@@ -442,7 +559,12 @@ export function ExecutionParametersSheet({
                 />
               </Row>
               {openControl === "sideMode" ? (
-                <View style={styles.inlineControl}>
+                <ClosingSelector
+                  closing={closingControl === "sideMode"}
+                  reduceMotion={reduceMotion}
+                  onClosed={() => handleSelectorClosed("sideMode")}
+                  testID="execution-sheet-side-selector"
+                >
                   <SegmentedControl<SideMode>
                     options={[
                       { value: "UNILATERAL", label: t.sideModes.UNILATERAL },
@@ -450,11 +572,14 @@ export function ExecutionParametersSheet({
                       { value: "LEFT_RIGHT", label: t.sideModes.LEFT_RIGHT },
                     ]}
                     value={draft.sideMode ?? "UNILATERAL"}
-                    onChange={(side) => update(setSideMode(draft, side, profileSideRecoverySecondsDefault))}
+                    onChange={(side) => {
+                      update(setSideMode(draft, side, profileSideRecoverySecondsDefault));
+                      closeAfterChoice("sideMode");
+                    }}
                     accessibilityLabel={t.sideMode}
                     testID="execution-sheet-side-control"
                   />
-                </View>
+                </ClosingSelector>
               ) : null}
               {bilateral ? (
                 <>
@@ -476,18 +601,26 @@ export function ExecutionParametersSheet({
                     </Row>
                   </View>
                   {openControl === "sideOrder" && !single ? (
-                    <View style={styles.inlineControl}>
+                    <ClosingSelector
+                      closing={closingControl === "sideOrder"}
+                      reduceMotion={reduceMotion}
+                      onClosed={() => handleSelectorClosed("sideOrder")}
+                      testID="execution-sheet-order-selector"
+                    >
                       <SegmentedControl<SideOrder>
                         options={[
                           { value: "BY_SIDE", label: t.sideOrders.BY_SIDE },
                           { value: "BY_SERIES", label: t.sideOrders.BY_SERIES },
                         ]}
                         value={draft.sideOrder}
-                        onChange={(order) => update(setSideOrder(draft, order))}
+                        onChange={(order) => {
+                          update(setSideOrder(draft, order));
+                          closeAfterChoice("sideOrder");
+                        }}
                         accessibilityLabel={t.sideOrder}
                         testID="execution-sheet-order-control"
                       />
-                    </View>
+                    </ClosingSelector>
                   ) : null}
                   <Separator indented />
                   <Row label={t.sideRecovery} indented longLabel testID="execution-sheet-row-side-recovery">
@@ -559,7 +692,17 @@ export function ExecutionParametersSheet({
                     </View>
                   ) : null}
                   {adjustment ? (
-                    <View style={styles.adjustment} accessibilityLiveRegion="polite" testID="execution-sheet-adjusted">
+                    // D-5 : toucher le message le ferme SANS annuler l’ajustement ; seul
+                    // « Annuler » (cadre clair sur le fond sombre) restaure les valeurs
+                    // précédant l’ajustement. Le conteneur n’est pas un élément VoiceOver :
+                    // texte et Annuler restent accessibles séparément.
+                    <Pressable
+                      onPress={() => setAdjustment(null)}
+                      accessible={false}
+                      style={styles.adjustment}
+                      accessibilityLiveRegion="polite"
+                      testID="execution-sheet-adjusted"
+                    >
                       <Text style={styles.adjustmentText}>{adjustment.message}</Text>
                       <Pressable
                         onPress={() => {
@@ -570,11 +713,12 @@ export function ExecutionParametersSheet({
                         accessibilityRole="button"
                         accessibilityLabel={strings.screens.exercise.adjustedTotalDurationUndoAction}
                         hitSlop={8}
+                        style={styles.adjustmentActionFrame}
                         testID="execution-sheet-adjusted-undo"
                       >
                         <Text style={styles.adjustmentAction}>{strings.screens.exercise.adjustedTotalDurationUndoAction}</Text>
                       </Pressable>
-                    </View>
+                    </Pressable>
                   ) : null}
                 </>
               ) : null}
@@ -767,13 +911,6 @@ function DraggableRow({
   );
 }
 
-function InlineMessage({ text }: { text: string }) {
-  return (
-    <Text style={styles.inlineMessage} accessibilityLiveRegion="polite" testID="execution-sheet-message">
-      {text}
-    </Text>
-  );
-}
 
 function Row({
   label,
@@ -998,12 +1135,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[8],
     alignItems: "center",
   },
-  inlineMessage: {
-    ...type.body,
-    color: colors.danger,
-    marginLeft: INDENT,
-    paddingVertical: spacing[4],
-  },
+
   // DSF : message temporaire sous la ligne concernée, à 4 pt ; fond snackbar, rayon 16.
   adjustment: {
     marginTop: spacing[4],
@@ -1024,6 +1156,14 @@ const styles = StyleSheet.create({
   adjustmentAction: {
     ...type.button,
     color: colors.background,
+  },
+  // D-5 : cadre plus clair que le fond sombre du message (présentation proposée, absente du figé).
+  adjustmentActionFrame: {
+    borderWidth: 1,
+    borderColor: colors.background,
+    borderRadius: fixedRadii[8],
+    paddingHorizontal: spacing[12],
+    paddingVertical: spacing[4],
   },
   table: {
     marginLeft: INDENT,

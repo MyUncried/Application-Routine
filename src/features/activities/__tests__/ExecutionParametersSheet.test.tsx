@@ -148,8 +148,9 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     tap("execution-sheet-beep-increment");
     tap("execution-sheet-beep-increment");
     expect(valueOf("execution-sheet-beep")).toBe("2 s");
-    fireEvent.press(screen.getByTestId("execution-sheet-mode-value"));
     for (const mode of ["Répétitions", "À l’échec", "Durée"]) {
+      // D-4 : le sélecteur se referme après chaque choix ; il est rouvert pour le suivant.
+      fireEvent.press(screen.getByTestId("execution-sheet-mode-value"));
       fireEvent.press(within(screen.getByTestId("execution-sheet-mode-control")).getByText(mode));
       expect(valueOf("execution-sheet-beep")).toBe("2 s");
     }
@@ -183,10 +184,14 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     expect(screen.queryByTestId("execution-sheet-total")).toBeNull();
   });
 
-  it("P3-16/fold-incomplete — Série 2 incomplète : ✓ grisé, message en ligne « Série 2 » même tableau replié, cellule signalée, données intactes, total —", () => {
+  it("P3-16/fold-incomplete — Série 2 incomplète : ✓ grisé, cellule « Série 2 » signalée (aucun message, décision D-2), même tableau replié, données intactes, total —", () => {
     const { onApply } = renderSheet(params({ series: variableRows([[30, 10], [null, 20], [60, 30]]) }));
     expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
-    expect(screen.getByTestId("execution-sheet-message").props.children).toBe("Série 2 : renseignez la durée.");
+    // Décision propriétaire D-2 (12/10) : plus de message « Série 2 : renseignez la durée. » ;
+    // la Série est identifiée par sa cellule signalée (contour figé) et annoncée « Valeur à renseigner ».
+    expect(screen.queryByTestId("execution-sheet-message")).toBeNull();
+    expect(screen.getByTestId("execution-sheet-table-row-2-target").props.accessibilityHint).toBe("Valeur à renseigner");
+    expect(screen.getByTestId("execution-sheet-table-row-2-target").props.accessibilityLabel).toMatch(/2/);
     // Recette 1 (A-02/A-07) : contour figé 6665:27232 (#FF8D28, 1,5) — remplace l’ancien rouge danger (E19, non sourcé v13).
     const invalidCell = StyleSheet.flatten(screen.getByTestId("execution-sheet-table-row-2-target").props.style);
     expect(invalidCell.borderColor).toBe("#FF8D28");
@@ -196,7 +201,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     // Replier ne modifie ni les données ni la validation.
     fireEvent.press(screen.getByLabelText("Masquer le tableau des séries"));
     expect(screen.queryByTestId("execution-sheet-table")).toBeNull();
-    expect(screen.getByTestId("execution-sheet-message").props.children).toBe("Série 2 : renseignez la durée.");
+    expect(screen.queryByTestId("execution-sheet-message")).toBeNull();
     validate();
     expect(onApply).not.toHaveBeenCalled();
     fireEvent.press(screen.getByLabelText("Afficher le tableau des séries"));
@@ -406,18 +411,19 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     expect(applied(onApply).series).toMatchObject({ count: 4 });
   });
 
-  it("ACCESSIBILITY/sheet-check-cross — mode absent ou cible incomplète : Valider annoncé indisponible ; message en ligne annoncé ; Annuler reste actif", () => {
+  it("ACCESSIBILITY/sheet-check-cross — mode absent ou cible incomplète : Valider annoncé indisponible ; valeur à renseigner annoncée sur le réglage (aucun message, D-2) ; Annuler reste actif", () => {
     const { onApply, onCancel } = renderSheet(params({ mode: null, series: { kind: "UNIFORM", count: 1, target: null, pauseSeconds: 0 } }));
     const validateButton = screen.getByTestId("execution-sheet-validate");
     expect(validateButton.props.accessibilityState).toMatchObject({ disabled: true });
     expect(validateButton.props.accessibilityLabel).toBe("Valider les paramètres, indisponible tant qu’une valeur requise manque");
     validate();
     expect(onApply).not.toHaveBeenCalled();
-    // Durée choisie, cible encore vide : message nommant la valeur à renseigner, pastille signalée.
+    // Durée choisie, cible encore vide : pastille signalée et annoncée ; décision D-2 (12/10) :
+    // plus de message « Renseignez la durée d’une série. ».
     fireEvent.press(screen.getByTestId("execution-sheet-mode-value"));
     fireEvent.press(within(screen.getByTestId("execution-sheet-mode-control")).getByText("Durée"));
-    expect(screen.getByTestId("execution-sheet-message").props.accessibilityLiveRegion).toBe("polite");
-    expect(screen.getByTestId("execution-sheet-message").props.children).toBe("Renseignez la durée d’une série.");
+    expect(screen.queryByTestId("execution-sheet-message")).toBeNull();
+    expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
     expect(screen.getByTestId("execution-sheet-target-value").props.accessibilityHint).toBe("Valeur à renseigner");
     fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
     expect(onCancel).toHaveBeenCalledTimes(1);
@@ -440,6 +446,8 @@ describe("ExecutionParametersSheet — correction revue 1", () => {
     expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
     validate();
     expect(onApply).not.toHaveBeenCalled();
+    // D-4 : le sélecteur s’est refermé après « Répétitions » ; il est rouvert.
+    fireEvent.press(screen.getByTestId("execution-sheet-mode-value"));
     fireEvent.press(within(screen.getByTestId("execution-sheet-mode-control")).getByText("Durée"));
     expect(valueOf("execution-sheet-table-row-1-target")).toBe("30 s");
     expect(valueOf("execution-sheet-table-row-2-target")).toBe("1 min");
@@ -631,5 +639,97 @@ describe("ExecutionParametersSheet — recette 1 (A-01, A-04)", () => {
     const transform = StyleSheet.flatten(screen.getByTestId("execution-sheet").props.style).transform as { translateY: unknown }[];
     expect(transform).toHaveLength(1);
     expect(transform[0]).toHaveProperty("translateY");
+  });
+});
+
+describe("ExecutionParametersSheet — décisions du propriétaire (12/10)", () => {
+  const { AccessibilityInfo } = jest.requireActual<typeof import("react-native")>("react-native");
+  // Valeur simulée pour un seul appel : le simulacre React Native reste intact pour la suite.
+  const reduceMotionOnce = (enabled: boolean) =>
+    jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValueOnce(enabled);
+
+  it("D-4 — Mode, Côté, Ordre : la valeur choisie est appliquée tout de suite, reste visible, puis le sélecteur se replie progressivement (cadre 220 ms puis repli 200 ms)", async () => {
+    jest.useFakeTimers();
+    try {
+      renderSheet(params());
+      fireEvent.press(screen.getByTestId("execution-sheet-mode-value"));
+      fireEvent(screen.getByTestId("execution-sheet-mode-selector"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 330, height: 58 } } });
+      fireEvent.press(within(screen.getByTestId("execution-sheet-mode-control")).getByText("Répétitions"));
+      // Valeur appliquée immédiatement ; le sélecteur reste affiché pendant la fermeture.
+      expect(text("execution-sheet-mode-value")).toBe("Répétitions");
+      expect(screen.getByTestId("execution-sheet-mode-control")).toBeTruthy();
+      expect(screen.getByTestId("execution-sheet-mode-control-REPETITIONS").props.accessibilityState).toMatchObject({ selected: true });
+      await act(async () => {
+        jest.advanceTimersByTime(200);
+      });
+      expect(screen.getByTestId("execution-sheet-mode-control")).toBeTruthy();
+      await act(async () => {
+        jest.advanceTimersByTime(400);
+      });
+      expect(screen.queryByTestId("execution-sheet-mode-control")).toBeNull();
+
+      // Côté puis Ordre : même règle.
+      fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
+      fireEvent.press(within(screen.getByTestId("execution-sheet-side-control")).getByText("Droite puis gauche"));
+      await act(async () => {
+        jest.advanceTimersByTime(600);
+      });
+      expect(screen.queryByTestId("execution-sheet-side-control")).toBeNull();
+      fireEvent.press(screen.getByTestId("execution-sheet-order-value"));
+      fireEvent.press(within(screen.getByTestId("execution-sheet-order-control")).getByText("Les deux côtés à chaque série"));
+      await act(async () => {
+        jest.advanceTimersByTime(600);
+      });
+      expect(screen.queryByTestId("execution-sheet-order-control")).toBeNull();
+      expect(text("execution-sheet-order-value")).toBe("Les deux côtés à chaque série");
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it("D-4 / D-7 — « Réduire les animations » : sélecteur refermé sans animation, feuille en place sans montée", async () => {
+    reduceMotionOnce(true);
+    renderSheet(params());
+    await act(async () => {
+      await Promise.resolve();
+    });
+    // Un rendu relit la valeur animée courante (Animated ne rerend pas de lui-même).
+    tap("execution-sheet-beep-increment");
+    const transform = StyleSheet.flatten(screen.getByTestId("execution-sheet").props.style).transform as { translateY: number }[];
+    expect(transform[0]!.translateY).toBe(0);
+    fireEvent.press(screen.getByTestId("execution-sheet-mode-value"));
+    fireEvent(screen.getByTestId("execution-sheet-mode-selector"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 330, height: 58 } } });
+    fireEvent.press(within(screen.getByTestId("execution-sheet-mode-control")).getByText("Répétitions"));
+    expect(screen.queryByTestId("execution-sheet-mode-control")).toBeNull();
+    expect(text("execution-sheet-mode-value")).toBe("Répétitions");
+  });
+
+  it("D-5 — message d’ajustement : Annuler encadré (cadre clair) restaure ; toucher le reste du message le ferme sans annuler", () => {
+    const { onApply } = renderSheet(params({ series: { kind: "UNIFORM", count: 1, target: 30, pauseSeconds: 10 } }));
+    // Total demandé 1 min 40 s : N=3 retenu, message d’ajustement (même geste que P3-14/inverse-enumeration).
+    const adjust = () => {
+      fireEvent.press(screen.getByTestId("execution-sheet-total"));
+      fireEvent(screen.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 1 } });
+      fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 40 } });
+      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+    };
+    // Annuler encadré : restaure les valeurs précédant l’ajustement (1 série).
+    adjust();
+    expect(valueOf("execution-sheet-series")).toBe("3 séries");
+    expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-adjusted-undo").props.style)).toMatchObject({
+      borderWidth: 1,
+      borderColor: "#FFFFFF",
+    });
+    expect(screen.getByTestId("execution-sheet-adjusted").props.accessible).toBe(false);
+    fireEvent.press(screen.getByTestId("execution-sheet-adjusted-undo"));
+    expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
+    expect(valueOf("execution-sheet-series")).toBe("1 série");
+    // Toucher le reste du message : fermé, ajustement conservé (3 séries).
+    adjust();
+    fireEvent.press(screen.getByTestId("execution-sheet-adjusted"));
+    expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
+    expect(valueOf("execution-sheet-series")).toBe("3 séries");
+    validate();
+    expect(applied(onApply).series).toMatchObject({ count: 3 });
   });
 });
