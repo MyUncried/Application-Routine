@@ -512,7 +512,7 @@ Référence : `../CONCEPTION-EXECUTION-MEDIA.md`.
 
 ## Parcours consolidés — 26 septembre 2026
 
-Création Exercice : choisir exactement une Catégorie et au moins une Zone corporelle avant validation. Les valeurs par défaut du Profil sont proposées à la création puis deviennent indépendantes. Création/modification Séance : le groupe répété est le **Circuit**, son nombre de répétitions est le nombre de **Tours** ; un réglage global activé par défaut contrôle la prise en compte des Compte à rebours/Fins propres aux Exercices. L’insertion d’un Point d’arrêt ne propose jamais la position immédiatement après le Compte à rebours initial ni immédiatement avant la Fin de séance ; un Point d’arrêt placé dans le Circuit est rencontré à chaque Tour.
+Création Exercice : choisir exactement une Catégorie et au moins une Zone corporelle avant validation. Les valeurs par défaut du Profil sont proposées à la création puis deviennent indépendantes. Création/modification Séance : le groupe répété est le **Circuit**, son nombre de répétitions est le nombre de **Tours** ; les phases Compte à rebours/Fin propres aux Exercices ne sont jamais exécutées dans la Séance, sans réglage d’activation ; seuls ceux de la Séance s’appliquent. L’insertion d’un Point d’arrêt ne propose jamais la position immédiatement après le Compte à rebours initial ni immédiatement avant la Fin de séance ; un Point d’arrêt placé dans le Circuit est rencontré à chaque Tour.
 
 
 ### Clôture de parcours Figma — 28 septembre 2026

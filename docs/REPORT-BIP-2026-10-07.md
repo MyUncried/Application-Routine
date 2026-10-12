@@ -29,7 +29,7 @@ Métadonnée courante139 références (136 frames et3 ensembles), ancienne roule
 
 La source demande de conserver les formulations mais retire la Pause terminale. « Une série suivie de15s de pause » devient faux ; « +15s de pause chacune » reste ambigu. La règle d’exécution est actualisée, les formulations historiques sont signalées dans Phrase v1 en attente d’un arbitrage. Proposition : « + 15 s de pause entre les séries » et aucune clause de pause pour une Série unilatérale. H-03 n’est pas réécrit silencieusement.
 
-Les écarts graphiques antérieurs (trait à zéro, compteur circuits, point terminal), V-04 et la dette de composants restent distincts. La conception sonore exige encore une qualification sur appareil. Aucune conformité fonctionnelle totale ni livraison logicielle annoncée.
+Les écarts graphiques antérieurs (trait à zéro, compteur circuits, point terminal), la dette de composants restent distincts. V-04 est clos par clarification du12/10/2026 : aucun réglage global des phases propres n’est requis (D-214 révisée). La conception sonore exige encore une qualification sur appareil. Aucune conformité fonctionnelle totale ni livraison logicielle annoncée.
 
 ## Contrôles exécutés
 

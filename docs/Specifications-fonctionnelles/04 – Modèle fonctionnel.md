@@ -390,7 +390,7 @@ Une Séance contient un **Circuit** ordonné ; un **Tour** est une répétition 
 
 La suppression d’une valeur de référentiel la rend inactive pour les nouvelles affectations mais conserve les références existantes. Les couleurs d’Étiquette/Catégorie restent portées par le référentiel et toute modification de couleur se reflète sur les objets associés.
 
-Les préférences du Profil initialisent les nouveaux objets puis sont découplées. Une Séance porte en outre un booléen global, activé par défaut, déterminant si les Compte à rebours d’exercice et Fin d’exercice propres à ses Exercices sont inclus dans son Plan. Ce booléen s’applique à tous les Exercices de la Séance.
+Les préférences du Profil initialisent les nouveaux objets puis sont découplées. Dans une Séance, les Compte à rebours d’exercice et Fin d’exercice ne sont jamais exécutés ; seuls le Compte à rebours initial et la Fin de séance s’appliquent, une fois, par substitution. Aucun booléen ni contrôle d’activation n’existe à cet effet. Les valeurs propres restent conservées pour l’exécution de l’Exercice seul.
 
 Le Point d’arrêt reste un élément structurel distinct de la Récupération. Lorsqu’ils coexistent après un Exercice, la récupération est exécutée avant le Point d’arrêt. Aucun Point d’arrêt n’est permis juste après le Compte à rebours initial ni juste avant la Fin de séance. Un Point d’arrêt interne au Circuit est rejoué à chaque Tour.
 

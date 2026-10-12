@@ -19,7 +19,7 @@ Les identifiants historiques de #247 sont conservés. Les corrections actives so
 | D-211 | Une Catégorie et au moins une Zone obligatoires ; Étiquette facultative |
 | D-212 | Couleur du référentiel comme source de vérité |
 | D-213 | Valeurs du Profil copiées sans rétroactivité |
-| D-214 | Réglage global des phases propres aux Exercices |
+| D-214 | Ancien réglage global retiré par clarification du12/10/2026 : phases propres jamais exécutées en Séance, sans booléen |
 | D-215 | Historique explicitement supersédé par D-232 |
 | D-216 | Lecture vidéo explicite ; bouton masqué pendant lecture |
 | D-217 | Placement et retrait des Points d’arrêt ; ordre des phases |
