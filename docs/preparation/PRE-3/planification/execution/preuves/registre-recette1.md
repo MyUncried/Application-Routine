@@ -183,3 +183,15 @@ Consignées au registre du projet (`07 – Registre des décisions de conception
 | X-4 | Titre d’écran non rogné au texte agrandi | Approbation | `ScreenShell.tsx` (`minHeight`), son test |
 
 **Extension bornée réutilisée** : `CategoriesSaveFlow.integration.test.tsx` et `CompositionExerciseFlow.integration.test.tsx`, déjà ouvertes en revue 1 pour leur harnais et leurs gestes. Seul le geste de confirmation D-8 a été ajouté (✓ après le toucher) ; aucune assertion n’a été modifiée.
+
+## 9. Autorisations du propriétaire — 12/10/2026 (extensions X-1 à X-4, valeurs D-6)
+
+Hermann autorise les extensions X-1, X-2, X-3 et X-4 nécessaires à la finalisation de PRE-3 et valide les valeurs D-6 (D-341).
+
+| Point | Décision de Hermann | Réalisation |
+|---|---|---|
+| D-6 / D-341 | Mode : Regular 14, interligne 17, centré. Côté : Regular 13, interligne 16, deux lignes, centré. Ordre : titre Regular 14/17 et sous-titre Regular 11/13, centrés. **60 est une hauteur minimale, pas fixe** ; le texte agrandi reste entièrement lisible. Les titres des lignes ne changent pas. | `type.body` (14/17), nouveau `type.segmentedCompactLabel` (13/16), `type.caption` (11/13). Libellés Côté sur deux lignes (`sideModeOptions`), noms accessibles sur une ligne. Sous-titres d’ordre figés. Hauteurs minimales 42/42/60 ; options et cadre de sélection suivent la hauteur mesurée. |
+| X-1 | Autorisée | `SegmentedControl.tsx` : variante `parameters` (cadre figé blanc, contour #DBDEE3, rayon 12, options #FCFCFE, libellés centrés sans troncature, hauteur minimale), `value: null` sans cadre de sélection, sous-titres. Rendu **standard (Catalogue) inchangé**. Tokens `parametersSegmentedBorder`, `parametersSegmentedOption`, `selectionSubtitle`, documentés au ch. 12. |
+| X-2 | Autorisée, identité du master à vérifier avant export, preuve à conserver | Master `icon/categorie` (6296:10530) vérifié dans Figma, identique au figé (id, nom, 24×24, position). L’icône pleine de l’écran figé (7287:13722, sans master, supprimée depuis dans Figma) mesure exactement le glyphe du master à l’échelle 20/24 (11,667 × 16,25). Asset `icon-categorie.svg` (les 4 tracés du master), entrée de manifeste, `KodjoIcon`, affichage à 20×20. Preuve : `x2-icone-categorie/correspondance.json` et les exports bruts. |
+| X-3 | Autorisée : rendu de l’application et documentation alignés ; autres consommateurs préservés | Tokens `exerciseEditorContextBand` #EAEAFF (zone de contexte de l’éditeur, avec le fondu existant) et `variableSeriesGroupSurface` #F3F3F6 (groupe Séries variables), appliqués au rendu et documentés au ch. 12. `exerciseContextBandBackground` est **inchangé**, la Composition l’utilise toujours. |
+| X-4 | Autorisée : titres non rognés, écrans consommateurs vérifiés, présentation inchangée à taille normale | `ScreenShell.tsx` : `height` remplacé par `minHeight` de même valeur. Suites `ScreenShell`, Catalogue, Composition et `ExerciseScreen` vertes ; suite complète verte. |

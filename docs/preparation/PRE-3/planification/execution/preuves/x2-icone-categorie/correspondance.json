@@ -1,0 +1,84 @@
+{
+ "schema": "kodjo.pre3.x2.icon-correspondence.v1",
+ "date": "2026-10-12",
+ "figma_file_key": "G6RY5Ebhgwb4AHIOYDwwvg",
+ "frozen_master": {
+  "source": "docs/preparation/PRE-3/figma/masters.json (extraction figée du 08/10)",
+  "id": "6296:10530",
+  "key": "6056691a0edb431bd710122355d51a9b305e49bc",
+  "name": "icon/categorie",
+  "type": "COMPONENT",
+  "width": 24,
+  "height": 24,
+  "x": 1176,
+  "y": 180
+ },
+ "live_master": {
+  "source": "Figma MCP get_metadata, 12/10",
+  "id": "6296:10530",
+  "name": "icon/categorie",
+  "type": "symbol",
+  "width": 24,
+  "height": 24,
+  "x": 1176,
+  "y": 180,
+  "child": {
+   "id": "6296:10531",
+   "name": "Tracé — categorie",
+   "width": 24,
+   "height": 24
+  }
+ },
+ "identity": "CONFORME : id, nom, type composant, dimensions et position identiques entre le figé et le live (la clé de composant n’est pas exposée par get_metadata ; elle est reportée depuis le figé)",
+ "frozen_placed_element": {
+  "source": "docs/preparation/PRE-3/figma/ecrans/4474-7157.json",
+  "id": "7287:13722",
+  "name": "Icône catégorie — pleine",
+  "type": "FRAME",
+  "size": "20x20",
+  "child": {
+   "id": "7287:13723",
+   "type": "VECTOR",
+   "width": 11.6667,
+   "height": 16.25,
+   "fill": "#0508E5"
+  },
+  "master": null,
+  "live_status": "Nœud absent du Figma actuel (supprimé après le 08/10) ; géométrie non figée"
+ },
+ "geometry_check": {
+  "master_glyph_bbox": "x 5→19 (14), y 2.5→22 (19.5) dans 24×24",
+  "scale": "20/24",
+  "expected_scaled": {
+   "width": 11.666666666666666,
+   "height": 16.25
+  },
+  "frozen_measured": {
+   "width": 11.6667,
+   "height": 16.25
+  },
+  "result": "CONFORME : l’icône pleine figée est le glyphe du master à l’échelle 20/24 (contour aplati en remplissage dans la maquette)"
+ },
+ "exports": {
+  "master_export_svg": {
+   "file": "categorie-master-export.svg",
+   "sha256": "25173ad7ca8976306415dc19e0d2cfc182a5f0479e5b83a47cadc72bc713291e",
+   "note": "export brut du nœud (contient le fond de page Figma)"
+  },
+  "master_vector_svg": {
+   "file": "categorie-master-vector.svg",
+   "sha256": "61c73b613fe94f2b96c86da9ccff150f3565cb3e110e947eb0ee9cff806f05f1",
+   "note": "vecteur du groupe, recadré"
+  }
+ },
+ "asset": {
+  "file": "assets/icons/icon-categorie.svg",
+  "sha256": "19f526d85f38de05abffd7df060b1f0fe8a1f7c5255365ff97a7e3c24f61c8d4",
+  "derivation": "Les 4 tracés de l’export du master, sans les rectangles de fond de page ni les groupes d’habillage ; viewBox 0 0 24 24 inchangé ; aucun tracé modifié",
+  "rendering": "KodjoIcon name=icon-categorie size=20 dans l’action Catégorie de l’éditeur"
+ },
+ "limits": [
+  "Les octets de l’icône pleine figée n’existent pas ; la correspondance repose sur l’identité du master et sur le contrôle d’échelle ci-dessus",
+  "Rendu sur appareil à vérifier (procédure finale)"
+ ]
+}
