@@ -950,6 +950,32 @@
           "scope": "JOB:close-vnext-delivery"
         }
       ]
+    },
+    {
+      "producer": "scripts/kodjo/signal-vnext-agent-continuation.js",
+      "producer_blob_oid": "2b1a8324cec62b15d972703aadb4de3ffbc757a8",
+      "authorization_condition": "VERIFIED_REGISTERED_SLICE_RESULT_EXACT_ARTIFACT_SINGLE_SIGNAL_PR_NONFORCED_WRITE_ONLY",
+      "required_job": null,
+      "capabilities": [
+        {
+          "capability": "REST_REPOSITORY_WRITE",
+          "destination": "static-source-line",
+          "scope": "SCRIPT"
+        }
+      ]
+    },
+    {
+      "producer": ".github/workflows/kodjo-vnext-work-continuation.yml",
+      "producer_blob_oid": "611540380a9d6fd1347e8986efe776339b3830dd",
+      "authorization_condition": "VERIFIED_REGISTERED_SLICE_RESULT_EXACT_ARTIFACT_SINGLE_SIGNAL_PR_NONFORCED_WRITE_ONLY",
+      "required_job": "publish-signal",
+      "capabilities": [
+        {
+          "capability": "GITHUB_PERMISSION_WRITE:contents",
+          "destination": "github-token:contents",
+          "scope": "JOB:publish-signal"
+        }
+      ]
     }
   ],
   "retirement_rule": "REMOVE_OR_DISABLE_ALL_LEGACY_WRITERS_AFTER_LAST_LEGACY_SLICE"

@@ -6,7 +6,7 @@ Ce document remplace le parcours de transport spécifique de `KODJO_VNEXT_CHATGP
 
 Le pilote effectue lui-même la préparation, la publication, la recherche du run, le téléchargement et la vérification. Il ne demande jamais à l'utilisateur une commande PowerShell, un fichier local, un rapport, un SHA ou un JSON à transporter. Si son outil GitHub ne permet pas une action, il publie un incident d'orchestration et conserve le checkpoint ; cela ne transfère pas la tâche technique à l'utilisateur.
 
-Un réveil automatique de conversation ChatGPT inactive n'est pas ajouté. Une instruction courte « reprends PRE-4 » peut rester nécessaire ; le pilote retrouve alors les preuves dans GitHub. Le parcours réel doit être constaté avant de déclarer l'automatisation totalement qualifiée.
+Le retour automatique vers Work est raccordé par le transport commun décrit dans KODJO_VNEXT_WORK_CONTINUATION.md et son binding scellé. La création de l'automation et l'émission d'un signal ne prouvent pas sa réception ; l'accusé durable du binding courant reste requis avant qualification effective. Les anciens réveils V1.3 ne prouvent pas le parcours courant. Une réactivation manuelle reste une récupération documentée en cas d'échec réel du transport, pas le chemin nominal.
 
 ## Inventaire des interactions et routage
 

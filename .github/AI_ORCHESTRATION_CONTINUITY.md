@@ -216,3 +216,8 @@ La fusion de cette extension est autorisée par l’utilisateur le 9 octobre apr
 ### Relais commun des revues VNext — pilote ChatGPT
 
 Pour PRE-4, appliquer `.github/orchestration/KODJO_VNEXT_CHATGPT_AGENT_RELAY.md` : un seul transport pour revue de plan, complément de portée et revue d’implémentation, réponses refusées comprises. Le pilote récupère les preuves GitHub lui-même ; aucun transfert technique par l’utilisateur. Les validations métier, portes humaines et workflows d’écriture existants restent obligatoires. Une opération non inscrite dans l’inventaire est un incident d’orchestration ; elle ne justifie pas un copier-coller utilisateur. Aucun réveil automatique de conversation ni activation PRE-3 n’est ajouté.
+
+
+## Retour Work commun aux tranches VNext — complément du 14 octobre
+
+Le retour courant est défini dans `.github/orchestration/KODJO_VNEXT_WORK_CONTINUATION.md`, avec un binding scellé et une automation liée à la conversation pilote. Les mentions précédentes « aucun réveil ajouté » décrivent les livraisons antérieures, pas le complément courant. Le signal de fin ne dépend plus de la campagne#269 : tranche et opération sont des données d’une demande enregistrée. La réception effective et son accusé durable doivent être observés avant conformité annoncée ; configuration et emission seules ne suffisent pas. Une réponse refusée ou partielle reste refusée ou partielle et n’autorise aucune relance payante implicite. Les gates du propriétaire sont conservés.
