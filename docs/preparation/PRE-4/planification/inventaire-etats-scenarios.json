@@ -645,15 +645,15 @@
       "state_id": "PRE4-ED-01/catalogue-create",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Le même éditeur est utilisé ; les paramètres typés et métadonnées sont relus, copie isolée ; aucune récupération ajoutée automatiquement.",
-      "reason": "Prescription ED-01 ; suite propriétaire src/features/activities/__tests__/ActivityEditorForm.test.tsx ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-01/catalogue-create — Le même éditeur est utilisé ; les paramètres typés et métadonnées sont relus, copie isolée ; aucune récupération ajoutée automatiquement.",
+      "reason": "État et résultat opposable du parcours éditeur ED-01/catalogue-create ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-01/catalogue-create",
           "given": "Catalogue et occurrence de Séance distincts, données existantes et médias ordonnés",
           "when": "Créer ou modifier puis Terminer, fermer et rouvrir dans le parcours catalogue-create",
-          "then": "Le même éditeur est utilisé ; les paramètres typés et métadonnées sont relus, copie isolée ; aucune récupération ajoutée automatiquement.",
+          "then": "ED-01/catalogue-create — Le même éditeur est utilisé ; les paramètres typés et métadonnées sont relus, copie isolée ; aucune récupération ajoutée automatiquement.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -664,15 +664,15 @@
       "state_id": "PRE4-ED-01/catalogue-edit",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Le même éditeur est utilisé ; les paramètres typés et métadonnées sont relus, copie isolée ; aucune récupération ajoutée automatiquement.",
-      "reason": "Prescription ED-01 ; suite propriétaire src/features/activities/__tests__/ActivityDefinitionService.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-01/catalogue-edit — Le même éditeur est utilisé ; les paramètres typés et métadonnées sont relus, copie isolée ; aucune récupération ajoutée automatiquement.",
+      "reason": "État et résultat opposable du parcours éditeur ED-01/catalogue-edit ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-01/catalogue-edit",
           "given": "Catalogue et occurrence de Séance distincts, données existantes et médias ordonnés",
           "when": "Créer ou modifier puis Terminer, fermer et rouvrir dans le parcours catalogue-edit",
-          "then": "Le même éditeur est utilisé ; les paramètres typés et métadonnées sont relus, copie isolée ; aucune récupération ajoutée automatiquement.",
+          "then": "ED-01/catalogue-edit — Le même éditeur est utilisé ; les paramètres typés et métadonnées sont relus, copie isolée ; aucune récupération ajoutée automatiquement.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -683,15 +683,15 @@
       "state_id": "PRE4-ED-01/session-create",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Le même éditeur est utilisé ; les paramètres typés et métadonnées sont relus, copie isolée ; aucune récupération ajoutée automatiquement.",
-      "reason": "Prescription ED-01 ; suite propriétaire src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-01/session-create — Le même éditeur est utilisé ; les paramètres typés et métadonnées sont relus, copie isolée ; aucune récupération ajoutée automatiquement.",
+      "reason": "État et résultat opposable du parcours éditeur ED-01/session-create ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-01/session-create",
           "given": "Catalogue et occurrence de Séance distincts, données existantes et médias ordonnés",
           "when": "Créer ou modifier puis Terminer, fermer et rouvrir dans le parcours session-create",
-          "then": "Le même éditeur est utilisé ; les paramètres typés et métadonnées sont relus, copie isolée ; aucune récupération ajoutée automatiquement.",
+          "then": "ED-01/session-create — Le même éditeur est utilisé ; les paramètres typés et métadonnées sont relus, copie isolée ; aucune récupération ajoutée automatiquement.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -702,15 +702,15 @@
       "state_id": "PRE4-ED-01/session-edit",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Le même éditeur est utilisé ; les paramètres typés et métadonnées sont relus, copie isolée ; aucune récupération ajoutée automatiquement.",
-      "reason": "Prescription ED-01 ; suite propriétaire src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-01/session-edit — Le même éditeur est utilisé ; les paramètres typés et métadonnées sont relus, copie isolée ; aucune récupération ajoutée automatiquement.",
+      "reason": "État et résultat opposable du parcours éditeur ED-01/session-edit ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-01/session-edit",
           "given": "Catalogue et occurrence de Séance distincts, données existantes et médias ordonnés",
           "when": "Créer ou modifier puis Terminer, fermer et rouvrir dans le parcours session-edit",
-          "then": "Le même éditeur est utilisé ; les paramètres typés et métadonnées sont relus, copie isolée ; aucune récupération ajoutée automatiquement.",
+          "then": "ED-01/session-edit — Le même éditeur est utilisé ; les paramètres typés et métadonnées sont relus, copie isolée ; aucune récupération ajoutée automatiquement.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -721,15 +721,15 @@
       "state_id": "PRE4-ED-02/whole-editor",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Composition complète de chaque état selon ses propriétés Figma, corps défilable et action finale accessible ; pas de sections accordéon héritées ni carte en grille conservées par défaut.",
-      "reason": "Prescription ED-02 ; suite propriétaire src/features/activities/__tests__/ActivityEditorForm.test.tsx ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-02/whole-editor — Composition complète de chaque état selon ses propriétés Figma, corps défilable et action finale accessible ; pas de sections accordéon héritées ni carte en grille conservées par défaut.",
+      "reason": "État et résultat opposable du parcours éditeur ED-02/whole-editor ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-02/whole-editor",
           "given": "Éditeur vide puis renseigné, largeur402 et références32figées",
           "when": "Afficher nom, Catégorie/Zones, Paramètres, description, médias et Terminer",
-          "then": "Composition complète de chaque état selon ses propriétés Figma, corps défilable et action finale accessible ; pas de sections accordéon héritées ni carte en grille conservées par défaut.",
+          "then": "ED-02/whole-editor — Composition complète de chaque état selon ses propriétés Figma, corps défilable et action finale accessible ; pas de sections accordéon héritées ni carte en grille conservées par défaut.",
           "proof_required": [
             "FUNCTIONAL_TEST",
             "VISUAL_COMPARE"
@@ -741,15 +741,15 @@
       "state_id": "PRE4-ED-03/anchored-popovers",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Un popover ancré à son contrôle à la fois ; voile et fermeture cohérents, focus revient au déclencheur ; aucune écriture persistée.",
-      "reason": "Prescription ED-03 ; suite propriétaire src/features/activities/__tests__/ExecutionParametersSheet.test.tsx ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-03/anchored-popovers — Un popover ancré à son contrôle à la fois ; voile et fermeture cohérents, focus revient au déclencheur ; aucune écriture persistée.",
+      "reason": "État et résultat opposable du parcours éditeur ED-03/anchored-popovers ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-03/anchored-popovers",
           "given": "Feuille Paramètres ouverte",
           "when": "Ouvrir successivement Mode, Côté, Ordre et Régime ; toucher extérieur puis Annuler",
-          "then": "Un popover ancré à son contrôle à la fois ; voile et fermeture cohérents, focus revient au déclencheur ; aucune écriture persistée.",
+          "then": "ED-03/anchored-popovers — Un popover ancré à son contrôle à la fois ; voile et fermeture cohérents, focus revient au déclencheur ; aucune écriture persistée.",
           "proof_required": [
             "FUNCTIONAL_TEST",
             "VISUAL_COMPARE",
@@ -762,15 +762,15 @@
       "state_id": "PRE4-ED-04/explicit-regime",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Aucun interrupteur Séries variables ; choix via popover, chevron indépendant seulement VARIABLE ; égalité ne normalise pas le régime.",
-      "reason": "Prescription ED-04 ; suite propriétaire src/features/activities/__tests__/ExecutionParametersSheet.test.tsx ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-04/explicit-regime — Aucun interrupteur Séries variables ; choix via popover, chevron indépendant seulement VARIABLE ; égalité ne normalise pas le régime.",
+      "reason": "État et résultat opposable du parcours éditeur ED-04/explicit-regime ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-04/explicit-regime",
           "given": "Trois lignes aux mêmes cibles/Pause en VARIABLE",
           "when": "Ouvrir Régime puis choisir identiques ou variables et replier le tableau",
-          "then": "Aucun interrupteur Séries variables ; choix via popover, chevron indépendant seulement VARIABLE ; égalité ne normalise pas le régime.",
+          "then": "ED-04/explicit-regime — Aucun interrupteur Séries variables ; choix via popover, chevron indépendant seulement VARIABLE ; égalité ne normalise pas le régime.",
           "proof_required": [
             "FUNCTIONAL_TEST",
             "VISUAL_COMPARE"
@@ -782,15 +782,15 @@
       "state_id": "PRE4-ED-05/two-modes",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Exactement Durée et Répétitions ; TO_FAILURE absent des options et du formatv2, reste lu uniquement par adaptateurv1.",
-      "reason": "Prescription ED-05 ; suite propriétaire src/domain/activities/__tests__/ExecutionParameters.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-05/two-modes — Exactement Durée et Répétitions ; TO_FAILURE absent des options et du formatv2, reste lu uniquement par adaptateurv1.",
+      "reason": "État et résultat opposable du parcours éditeur ED-05/two-modes ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-05/two-modes",
           "given": "Nouveau brouillon ou objet ancien TO_FAILURE",
           "when": "Ouvrir le mode puis valider les paramètres",
-          "then": "Exactement Durée et Répétitions ; TO_FAILURE absent des options et du formatv2, reste lu uniquement par adaptateurv1.",
+          "then": "ED-05/two-modes — Exactement Durée et Répétitions ; TO_FAILURE absent des options et du formatv2, reste lu uniquement par adaptateurv1.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -801,15 +801,15 @@
       "state_id": "PRE4-ED-06/typed-targets",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "FAILURE explicite sans valeur ; NUMBER avec entier du mode ; UNSET/0/NaN/chaîne/type inconnu refusés en persistable, jamais convertis en FAILURE.",
-      "reason": "Prescription ED-06 ; suite propriétaire src/domain/activities/__tests__/ExecutionParameters.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "DATA",
+      "expected": "ED-06/typed-targets — FAILURE explicite sans valeur ; NUMBER avec entier du mode ; UNSET/0/NaN/chaîne/type inconnu refusés en persistable, jamais convertis en FAILURE.",
+      "reason": "État et résultat opposable du parcours éditeur ED-06/typed-targets ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-06/typed-targets",
           "given": "Mode Durée puis Répétitions, UNIFORM puis VARIABLE",
           "when": "Construire cibles numériques, FAILURE et UNSET et valider",
-          "then": "FAILURE explicite sans valeur ; NUMBER avec entier du mode ; UNSET/0/NaN/chaîne/type inconnu refusés en persistable, jamais convertis en FAILURE.",
+          "then": "ED-06/typed-targets — FAILURE explicite sans valeur ; NUMBER avec entier du mode ; UNSET/0/NaN/chaîne/type inconnu refusés en persistable, jamais convertis en FAILURE.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -820,15 +820,15 @@
       "state_id": "PRE4-ED-07/numeric",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Roulette sur30s active, option échec45%, aucune coche.",
-      "reason": "Prescription ED-07 ; suite propriétaire src/features/activities/__tests__/ExecutionTargetPicker.test.tsx ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-07/numeric — Roulette sur30s active, option échec45%, aucune coche.",
+      "reason": "État et résultat opposable du parcours éditeur ED-07/numeric ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-07/numeric",
           "given": "30s sélectionnées",
           "when": "Ouvrir cible",
-          "then": "Roulette sur30s active, option échec45%, aucune coche.",
+          "then": "ED-07/numeric — Roulette sur30s active, option échec45%, aucune coche.",
           "proof_required": [
             "FUNCTIONAL_TEST",
             "VISUAL_COMPARE"
@@ -840,15 +840,15 @@
       "state_id": "PRE4-ED-07/failure",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Option Aucune durée, à l’échec active ; bloc00:00à45%, toujours manipulable.",
-      "reason": "Prescription ED-07 ; suite propriétaire src/features/activities/__tests__/ExecutionTargetPicker.test.tsx ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-07/failure — Option Aucune durée, à l’échec active ; bloc00:00à45%, toujours manipulable.",
+      "reason": "État et résultat opposable du parcours éditeur ED-07/failure ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-07/failure",
           "given": "FAILURE sélectionné",
           "when": "Ouvrir cible",
-          "then": "Option Aucune durée, à l’échec active ; bloc00:00à45%, toujours manipulable.",
+          "then": "ED-07/failure — Option Aucune durée, à l’échec active ; bloc00:00à45%, toujours manipulable.",
           "proof_required": [
             "FUNCTIONAL_TEST",
             "VISUAL_COMPARE"
@@ -860,15 +860,15 @@
       "state_id": "PRE4-ED-07/repeat",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Option Aucune répétition, à l’échec en tête ; roulette entière1–100 et une seule sélection.",
-      "reason": "Prescription ED-07 ; suite propriétaire src/features/activities/__tests__/ExecutionTargetPicker.test.tsx ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-07/repeat — Option Aucune répétition, à l’échec en tête ; roulette entière1–100 et une seule sélection.",
+      "reason": "État et résultat opposable du parcours éditeur ED-07/repeat ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-07/repeat",
           "given": "Mode Répétitions, cible10",
           "when": "Ouvrir cible",
-          "then": "Option Aucune répétition, à l’échec en tête ; roulette entière1–100 et une seule sélection.",
+          "then": "ED-07/repeat — Option Aucune répétition, à l’échec en tête ; roulette entière1–100 et une seule sélection.",
           "proof_required": [
             "FUNCTIONAL_TEST",
             "VISUAL_COMPARE"
@@ -880,15 +880,15 @@
       "state_id": "PRE4-ED-07/validation",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "✓ applique seulement au parent ; quitter avec abandon restaure la version persistée.",
-      "reason": "Prescription ED-07 ; suite propriétaire src/features/activities/__tests__/ExecutionTargetPicker.test.tsx ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-07/validation — ✓ applique seulement au parent ; quitter avec abandon restaure la version persistée.",
+      "reason": "État et résultat opposable du parcours éditeur ED-07/validation ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-07/validation",
           "given": "Brouillon parent sauvegardé et sous-brouillon modifié",
           "when": "Appuyer✓ puis quitter éditeur sans Terminer",
-          "then": "✓ applique seulement au parent ; quitter avec abandon restaure la version persistée.",
+          "then": "ED-07/validation — ✓ applique seulement au parent ; quitter avec abandon restaure la version persistée.",
           "proof_required": [
             "FUNCTIONAL_TEST",
             "VISUAL_COMPARE"
@@ -900,15 +900,15 @@
       "state_id": "PRE4-ED-08/failure-to-number",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Échec remet00:00et grise tout bloc45% ; tourner sans déverrouillage sélectionne30s, grise libellé ; Annuler restaure30s initiales.",
-      "reason": "Prescription ED-08 ; suite propriétaire src/features/activities/__tests__/ExecutionTargetPicker.test.tsx ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-08/failure-to-number — Échec remet00:00et grise tout bloc45% ; tourner sans déverrouillage sélectionne30s, grise libellé ; Annuler restaure30s initiales.",
+      "reason": "État et résultat opposable du parcours éditeur ED-08/failure-to-number ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-08/failure-to-number",
           "given": "Cible30s puis choix échec",
           "when": "Toucher échec puis tourner directement vers30s, annuler et rouvrir",
-          "then": "Échec remet00:00et grise tout bloc45% ; tourner sans déverrouillage sélectionne30s, grise libellé ; Annuler restaure30s initiales.",
+          "then": "ED-08/failure-to-number — Échec remet00:00et grise tout bloc45% ; tourner sans déverrouillage sélectionne30s, grise libellé ; Annuler restaure30s initiales.",
           "proof_required": [
             "FUNCTIONAL_TEST",
             "VISUAL_COMPARE",
@@ -921,15 +921,15 @@
       "state_id": "PRE4-ED-09/duration",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Seuls entiers5..3535par pas5 sont nouveaux nombres valides ;00:00ne sélectionne pas échec.",
-      "reason": "Prescription ED-09 ; suite propriétaire src/domain/activities/__tests__/ExecutionParameters.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-09/duration — Seuls entiers5..3535par pas5 sont nouveaux nombres valides ;00:00ne sélectionne pas échec.",
+      "reason": "État et résultat opposable du parcours éditeur ED-09/duration ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-09/duration",
           "given": "Mode Durée",
           "when": "Saisir0,1,4,5,30,3535,3540 et un non-multiple de5",
-          "then": "Seuls entiers5..3535par pas5 sont nouveaux nombres valides ;00:00ne sélectionne pas échec.",
+          "then": "ED-09/duration — Seuls entiers5..3535par pas5 sont nouveaux nombres valides ;00:00ne sélectionne pas échec.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -940,15 +940,15 @@
       "state_id": "PRE4-ED-09/repeat",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Seuls entiers1..100 valides.",
-      "reason": "Prescription ED-09 ; suite propriétaire src/domain/activities/__tests__/ExecutionParameters.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-09/repeat — Seuls entiers1..100 valides.",
+      "reason": "État et résultat opposable du parcours éditeur ED-09/repeat ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-09/repeat",
           "given": "Mode Répétitions",
           "when": "Saisir0,1,100,101,1.5",
-          "then": "Seuls entiers1..100 valides.",
+          "then": "ED-09/repeat — Seuls entiers1..100 valides.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -959,15 +959,15 @@
       "state_id": "PRE4-ED-09/historic",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Lecture conserve exactement31/5999 ; champ montre ancienne valeur et demande une valeur valide pour sa modification ; pause0toujours valide, aucune migration ne clamp.",
-      "reason": "Prescription ED-09 ; suite propriétaire src/domain/activities/__tests__/ExecutionParameters.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-09/historic — Lecture conserve exactement31/5999 ; champ montre ancienne valeur et demande une valeur valide pour sa modification ; pause0toujours valide, aucune migration ne clamp.",
+      "reason": "État et résultat opposable du parcours éditeur ED-09/historic ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-09/historic",
           "given": "Ancienne durée31s ou5999s et pause0",
           "when": "Lire puis ouvrir sans modifier ; modifier cible",
-          "then": "Lecture conserve exactement31/5999 ; champ montre ancienne valeur et demande une valeur valide pour sa modification ; pause0toujours valide, aucune migration ne clamp.",
+          "then": "ED-09/historic — Lecture conserve exactement31/5999 ; champ montre ancienne valeur et demande une valeur valide pour sa modification ; pause0toujours valide, aucune migration ne clamp.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -978,15 +978,15 @@
       "state_id": "PRE4-ED-10/active-cell",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Deux colonnes et poignée/numéro/retrait présents ; un champ actif ; pied commun n’agit que sur cellule active ; aucune cible échec changée par édition dePause.",
-      "reason": "Prescription ED-10 ; suite propriétaire src/features/activities/__tests__/ExecutionParametersSheet.test.tsx ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-10/active-cell — Deux colonnes et poignée/numéro/retrait présents ; un champ actif ; pied commun n’agit que sur cellule active ; aucune cible échec changée par édition dePause.",
+      "reason": "État et résultat opposable du parcours éditeur ED-10/active-cell ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-10/active-cell",
           "given": "TableauVARIABLE trois cibles dontFAILURE et pauses10/20/30",
           "when": "Sélectionner cellule cible puis Pause, utiliser pied commun +/− et supprimer",
-          "then": "Deux colonnes et poignée/numéro/retrait présents ; un champ actif ; pied commun n’agit que sur cellule active ; aucune cible échec changée par édition dePause.",
+          "then": "ED-10/active-cell — Deux colonnes et poignée/numéro/retrait présents ; un champ actif ; pied commun n’agit que sur cellule active ; aucune cible échec changée par édition dePause.",
           "proof_required": [
             "FUNCTIONAL_TEST",
             "VISUAL_COMPARE"
@@ -998,15 +998,15 @@
       "state_id": "PRE4-ED-11/mode-reservations",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "FAILURE resteFAILURE ; numériques incompatibles deviennentUNSET et restaurent leurs réserves de mode sans conversion ; bip2, côtés et phases conservés ; annulation complète.",
-      "reason": "Prescription ED-11 ; suite propriétaire src/domain/activities/__tests__/ExecutionParametersDraft.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-11/mode-reservations — FAILURE resteFAILURE ; numériques incompatibles deviennentUNSET et restaurent leurs réserves de mode sans conversion ; bip2, côtés et phases conservés ; annulation complète.",
+      "reason": "État et résultat opposable du parcours éditeur ED-11/mode-reservations ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-11/mode-reservations",
           "given": "Durée30s/FAILURE/45s, bip2, autres paramètres renseignés",
           "when": "Basculer Répétitions, saisir10, revenir Durée puis annuler",
-          "then": "FAILURE resteFAILURE ; numériques incompatibles deviennentUNSET et restaurent leurs réserves de mode sans conversion ; bip2, côtés et phases conservés ; annulation complète.",
+          "then": "ED-11/mode-reservations — FAILURE resteFAILURE ; numériques incompatibles deviennentUNSET et restaurent leurs réserves de mode sans conversion ; bip2, côtés et phases conservés ; annulation complète.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -1017,15 +1017,15 @@
       "state_id": "PRE4-ED-12/count",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "N1effectif UNIFORMpremière ligne courante, BY_SIDE immédiat ; réserves temporaires restaurent les lignes conformément au brouillon existant.",
-      "reason": "Prescription ED-12 ; suite propriétaire src/domain/activities/__tests__/ExecutionParametersDraft.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-12/count — N1effectif UNIFORMpremière ligne courante, BY_SIDE immédiat ; réserves temporaires restaurent les lignes conformément au brouillon existant.",
+      "reason": "État et résultat opposable du parcours éditeur ED-12/count ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-12/count",
           "given": "VARIABLE30s/FAILURE/45s et pauses10/20/30",
           "when": "Réduire N3à1 puis restaurer3 sans édition incompatible",
-          "then": "N1effectif UNIFORMpremière ligne courante, BY_SIDE immédiat ; réserves temporaires restaurent les lignes conformément au brouillon existant.",
+          "then": "ED-12/count — N1effectif UNIFORMpremière ligne courante, BY_SIDE immédiat ; réserves temporaires restaurent les lignes conformément au brouillon existant.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -1036,15 +1036,15 @@
       "state_id": "PRE4-ED-12/reorder",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Ordre cible/Pause reste couplé ; suppression annulée retrouve position ; ajout copie type etPause dernière ligne, aucun nombre inventé.",
-      "reason": "Prescription ED-12 ; suite propriétaire src/domain/activities/__tests__/ExecutionParametersDraft.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-12/reorder — Ordre cible/Pause reste couplé ; suppression annulée retrouve position ; ajout copie type etPause dernière ligne, aucun nombre inventé.",
+      "reason": "État et résultat opposable du parcours éditeur ED-12/reorder ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-12/reorder",
           "given": "VARIABLE30s/FAILURE/45s",
           "when": "DéplacerFAILURE en tête, supprimer puis Annuler, augmenterN",
-          "then": "Ordre cible/Pause reste couplé ; suppression annulée retrouve position ; ajout copie type etPause dernière ligne, aucun nombre inventé.",
+          "then": "ED-12/reorder — Ordre cible/Pause reste couplé ; suppression annulée retrouve position ; ajout copie type etPause dernière ligne, aucun nombre inventé.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -1055,15 +1055,15 @@
       "state_id": "PRE4-ED-12/regime",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Première ligne commune selon règle existante, restauration bornée du brouillon ; parent intact sans✓.",
-      "reason": "Prescription ED-12 ; suite propriétaire src/domain/activities/__tests__/ExecutionParametersDraft.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-12/regime — Première ligne commune selon règle existante, restauration bornée du brouillon ; parent intact sans✓.",
+      "reason": "État et résultat opposable du parcours éditeur ED-12/regime ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-12/regime",
           "given": "VARIABLE30s/FAILURE/45s",
           "when": "Passer identiques, revenir variable puis fermer sans✓",
-          "then": "Première ligne commune selon règle existante, restauration bornée du brouillon ; parent intact sans✓.",
+          "then": "ED-12/regime — Première ligne commune selon règle existante, restauration bornée du brouillon ; parent intact sans✓.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -1074,15 +1074,15 @@
       "state_id": "PRE4-ED-13/duration",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "lowerBound105s, affichage≥1min45s, aucune estimation du travail inconnu.",
-      "reason": "Prescription ED-13 ; suite propriétaire src/domain/activities/__tests__/executionCalculations.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-13/duration — lowerBound105s, affichage≥1min45s, aucune estimation du travail inconnu.",
+      "reason": "État et résultat opposable du parcours éditeur ED-13/duration ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-13/duration",
           "given": "Durée30/45/FAILURE, pauses10/10/10, unilatéral",
           "when": "Calculer total intrinsèque et ledger indépendant",
-          "then": "lowerBound105s, affichage≥1min45s, aucune estimation du travail inconnu.",
+          "then": "ED-13/duration — lowerBound105s, affichage≥1min45s, aucune estimation du travail inconnu.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -1093,15 +1093,15 @@
       "state_id": "PRE4-ED-13/repeat-beep",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "lowerBound74s, ≥1min14s prioritaire sur≈.",
-      "reason": "Prescription ED-13 ; suite propriétaire src/domain/activities/__tests__/executionCalculations.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-13/repeat-beep — lowerBound74s, ≥1min14s prioritaire sur≈.",
+      "reason": "État et résultat opposable du parcours éditeur ED-13/repeat-beep ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-13/repeat-beep",
           "given": "Répétitions10/12/FAILURE, bip2, pauses10/10/10",
           "when": "Calculer total intrinsèque et ledger indépendant",
-          "then": "lowerBound74s, ≥1min14s prioritaire sur≈.",
+          "then": "ED-13/repeat-beep — lowerBound74s, ≥1min14s prioritaire sur≈.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -1112,15 +1112,15 @@
       "state_id": "PRE4-ED-13/repeat-no-beep",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "omitted Exercice ; ledger30s pauses connues et travail inconnu.",
-      "reason": "Prescription ED-13 ; suite propriétaire src/domain/activities/__tests__/executionCalculations.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-13/repeat-no-beep — omitted Exercice ; ledger30s pauses connues et travail inconnu.",
+      "reason": "État et résultat opposable du parcours éditeur ED-13/repeat-no-beep ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-13/repeat-no-beep",
           "given": "Répétitions10/12/FAILURE, bip0, pauses10/10/10",
           "when": "Calculer total intrinsèque et ledger indépendant",
-          "then": "omitted Exercice ; ledger30s pauses connues et travail inconnu.",
+          "then": "ED-13/repeat-no-beep — omitted Exercice ; ledger30s pauses connues et travail inconnu.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -1131,15 +1131,15 @@
       "state_id": "PRE4-ED-13/all-failure",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "omitted Exercice ; ledger30s connu, aucun total Exercice même si pauses positives.",
-      "reason": "Prescription ED-13 ; suite propriétaire src/domain/activities/__tests__/executionCalculations.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-13/all-failure — omitted Exercice ; ledger30s connu, aucun total Exercice même si pauses positives.",
+      "reason": "État et résultat opposable du parcours éditeur ED-13/all-failure ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-13/all-failure",
           "given": "TroisFAILURE, pauses10/10/10, chaque mode et bip0/2",
           "when": "Calculer total intrinsèque et ledger indépendant",
-          "then": "omitted Exercice ; ledger30s connu, aucun total Exercice même si pauses positives.",
+          "then": "ED-13/all-failure — omitted Exercice ; ledger30s connu, aucun total Exercice même si pauses positives.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -1150,15 +1150,15 @@
       "state_id": "PRE4-ED-13/all-numeric",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Duréeexact165s ; Répétitionsestimated104s ; countdown/end exclus.",
-      "reason": "Prescription ED-13 ; suite propriétaire src/domain/activities/__tests__/executionCalculations.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-13/all-numeric — Duréeexact165s ; Répétitionsestimated104s ; countdown/end exclus.",
+      "reason": "État et résultat opposable du parcours éditeur ED-13/all-numeric ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-13/all-numeric",
           "given": "Durée30/45/60 ou Répétitions10/12/15bip2, pauses10/10/10",
           "when": "Calculer total intrinsèque et ledger indépendant",
-          "then": "Duréeexact165s ; Répétitionsestimated104s ; countdown/end exclus.",
+          "then": "ED-13/all-numeric — Duréeexact165s ; Répétitionsestimated104s ; countdown/end exclus.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -1169,15 +1169,15 @@
       "state_id": "PRE4-ED-13/figma-mixed",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "lowerBound135s=2min15s par oracle métier, pas copie du textePNG.",
-      "reason": "Prescription ED-13 ; suite propriétaire src/domain/activities/__tests__/executionCalculations.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-13/figma-mixed — lowerBound135s=2min15s par oracle métier, pas copie du textePNG.",
+      "reason": "État et résultat opposable du parcours éditeur ED-13/figma-mixed ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-13/figma-mixed",
           "given": "Durée30/45/FAILURE, pauses10/20/30",
           "when": "Calculer total intrinsèque et ledger indépendant",
-          "then": "lowerBound135s=2min15s par oracle métier, pas copie du textePNG.",
+          "then": "ED-13/figma-mixed — lowerBound135s=2min15s par oracle métier, pas copie du textePNG.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -1188,15 +1188,15 @@
       "state_id": "PRE4-ED-14/inverse",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "AvecFAILURE inverse indisponible et total affichable en lecture seule, omitted absent ; uniforme numérique conserve inverse existant et arrondi documenté, roulette total sans option échec.",
-      "reason": "Prescription ED-14 ; suite propriétaire src/domain/activities/__tests__/executionCalculations.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-14/inverse — AvecFAILURE inverse indisponible et total affichable en lecture seule, omitted absent ; uniforme numérique conserve inverse existant et arrondi documenté, roulette total sans option échec.",
+      "reason": "État et résultat opposable du parcours éditeur ED-14/inverse ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-14/inverse",
           "given": "UNIFORMouVARIABLE contenantFAILURE puis uniformenumérique Durée",
           "when": "Tenter modifier le total",
-          "then": "AvecFAILURE inverse indisponible et total affichable en lecture seule, omitted absent ; uniforme numérique conserve inverse existant et arrondi documenté, roulette total sans option échec.",
+          "then": "ED-14/inverse — AvecFAILURE inverse indisponible et total affichable en lecture seule, omitted absent ; uniforme numérique conserve inverse existant et arrondi documenté, roulette total sans option échec.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -1207,15 +1207,15 @@
       "state_id": "PRE4-ED-14/inverse-ui",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Total partiel annoncé en lecture seule sans popover inverse ; totalomitted non rendu ; roulette total numérique distincte de cible.",
-      "reason": "Prescription ED-14 ; suite propriétaire src/features/activities/__tests__/ExecutionParametersSheet.test.tsx ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-14/inverse-ui — Total partiel annoncé en lecture seule sans popover inverse ; totalomitted non rendu ; roulette total numérique distincte de cible.",
+      "reason": "État et résultat opposable du parcours éditeur ED-14/inverse-ui ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-14/inverse-ui",
           "given": "Feuille contenant une cibleFAILURE",
           "when": "Appuyer total affiché puis ouvrir cible numérique uniforme",
-          "then": "Total partiel annoncé en lecture seule sans popover inverse ; totalomitted non rendu ; roulette total numérique distincte de cible.",
+          "then": "ED-14/inverse-ui — Total partiel annoncé en lecture seule sans popover inverse ; totalomitted non rendu ; roulette total numérique distincte de cible.",
           "proof_required": [
             "FUNCTIONAL_TEST",
             "VISUAL_COMPARE",
@@ -1228,15 +1228,15 @@
       "state_id": "PRE4-ED-15/known-pauses",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "DernièrePause10 remplacée parR40 : known135intrinsèque+15phases=150s, lowerBound ; aucune nouvelleR créée ; recalcul identique après réouverture.",
-      "reason": "Prescription ED-15 ; suite propriétaire src/domain/sessions/__tests__/calculations.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-15/known-pauses — DernièrePause10 remplacée parR40 : known135intrinsèque+15phases=150s, lowerBound ; aucune nouvelleR créée ; recalcul identique après réouverture.",
+      "reason": "État et résultat opposable du parcours éditeur ED-15/known-pauses ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-15/known-pauses",
           "given": "Séance existante avec Exerciceunilatéral30/45/FAILURE, pauses10chacune, récupération40, phasesSéance10+5",
           "when": "Calculer agrégat via ledger deSéance",
-          "then": "DernièrePause10 remplacée parR40 : known135intrinsèque+15phases=150s, lowerBound ; aucune nouvelleR créée ; recalcul identique après réouverture.",
+          "then": "ED-15/known-pauses — DernièrePause10 remplacée parR40 : known135intrinsèque+15phases=150s, lowerBound ; aucune nouvelleR créée ; recalcul identique après réouverture.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -1247,15 +1247,15 @@
       "state_id": "PRE4-ED-15/bilateral",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Travail connu60s ; toutes pauses réellement planifiées comptées une fois ; terminale remplacée parR40 ; ledger annoté par côté/ligne, inconnus conservés sans2s/rép arbitraires.",
-      "reason": "Prescription ED-15 ; suite propriétaire src/domain/activities/__tests__/executionCalculations.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-15/bilateral — Travail connu60s ; toutes pauses réellement planifiées comptées une fois ; terminale remplacée parR40 ; ledger annoté par côté/ligne, inconnus conservés sans2s/rép arbitraires.",
+      "reason": "État et résultat opposable du parcours éditeur ED-15/bilateral ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-15/bilateral",
           "given": "N2Durée30/FAILURE, BY_SIDE, pause10, sideRecovery5, R40",
           "when": "Construire contributions selon séquence bilatérale existante",
-          "then": "Travail connu60s ; toutes pauses réellement planifiées comptées une fois ; terminale remplacée parR40 ; ledger annoté par côté/ligne, inconnus conservés sans2s/rép arbitraires.",
+          "then": "ED-15/bilateral — Travail connu60s ; toutes pauses réellement planifiées comptées une fois ; terminale remplacée parR40 ; ledger annoté par côté/ligne, inconnus conservés sans2s/rép arbitraires.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -1266,15 +1266,15 @@
       "state_id": "PRE4-ED-16/ordered",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Cibles énumérées dans ordre réel≤3, valeurs/unités en gras selon Phrasev1 ; aucune énumération des pauses variables.",
-      "reason": "Prescription ED-16 ; suite propriétaire src/domain/activities/__tests__/executionPhrase.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-16/ordered — Cibles énumérées dans ordre réel≤3, valeurs/unités en gras selon Phrasev1 ; aucune énumération des pauses variables.",
+      "reason": "État et résultat opposable du parcours éditeur ED-16/ordered ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-16/ordered",
           "given": "Deux/trois cibles mixtes, échec à chaque position, chaque mode",
           "when": "Générer segments à l’affichage",
-          "then": "Cibles énumérées dans ordre réel≤3, valeurs/unités en gras selon Phrasev1 ; aucune énumération des pauses variables.",
+          "then": "ED-16/ordered — Cibles énumérées dans ordre réel≤3, valeurs/unités en gras selon Phrasev1 ; aucune énumération des pauses variables.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -1285,15 +1285,15 @@
       "state_id": "PRE4-ED-16/compact",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Compaction de10rép. à l’échec ou de1min30s à l’échec ; minimum numérique choisi, pas première valeur arbitraire.",
-      "reason": "Prescription ED-16 ; suite propriétaire src/domain/activities/__tests__/executionPhrase.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-16/compact — Compaction de10rép. à l’échec ou de1min30s à l’échec ; minimum numérique choisi, pas première valeur arbitraire.",
+      "reason": "État et résultat opposable du parcours éditeur ED-16/compact ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-16/compact",
           "given": "Plus de3cibles mixtes10/12/FAILURE/20 ou90s/120s/FAILURE/150s",
           "when": "Générer segments",
-          "then": "Compaction de10rép. à l’échec ou de1min30s à l’échec ; minimum numérique choisi, pas première valeur arbitraire.",
+          "then": "ED-16/compact — Compaction de10rép. à l’échec ou de1min30s à l’échec ; minimum numérique choisi, pas première valeur arbitraire.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -1304,15 +1304,15 @@
       "state_id": "PRE4-ED-16/all-failure",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "3 séries jusqu’à l’échec avec clauses existantes ; aucun total ; Répétitionssansbip n’a jamais total même mixte.",
-      "reason": "Prescription ED-16 ; suite propriétaire src/domain/activities/__tests__/executionPhrase.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-16/all-failure — 3 séries jusqu’à l’échec avec clauses existantes ; aucun total ; Répétitionssansbip n’a jamais total même mixte.",
+      "reason": "État et résultat opposable du parcours éditeur ED-16/all-failure ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-16/all-failure",
           "given": "TroisFAILURE dans chacun des deux modes",
           "when": "Générer phrase",
-          "then": "3 séries jusqu’à l’échec avec clauses existantes ; aucun total ; Répétitionssansbip n’a jamais total même mixte.",
+          "then": "ED-16/all-failure — 3 séries jusqu’à l’échec avec clauses existantes ; aucun total ; Répétitionssansbip n’a jamais total même mixte.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -1323,15 +1323,15 @@
       "state_id": "PRE4-ED-16/full-display",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Phrase intégrale, segmentsgras corrects, pas de troncature ni de phrase persistée.",
-      "reason": "Prescription ED-16 ; suite propriétaire src/features/activities/__tests__/ActivityEditorForm.test.tsx ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-16/full-display — Phrase intégrale, segmentsgras corrects, pas de troncature ni de phrase persistée.",
+      "reason": "État et résultat opposable du parcours éditeur ED-16/full-display ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-16/full-display",
           "given": "Phrase longue générée, étroite360 et texte agrandi",
           "when": "Afficher éditeur et cartes existantes",
-          "then": "Phrase intégrale, segmentsgras corrects, pas de troncature ni de phrase persistée.",
+          "then": "ED-16/full-display — Phrase intégrale, segmentsgras corrects, pas de troncature ni de phrase persistée.",
           "proof_required": [
             "FUNCTIONAL_TEST",
             "VISUAL_COMPARE"
@@ -1343,15 +1343,15 @@
       "state_id": "PRE4-ED-17/corpus",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "276cas gardés avec adaptation explicite des anciennes entréesTO_FAILURE ; cas nouveaux couvrent échec toutespositions≤3/>3, mixtures, N1normalisation, bip0/positif, chaque ordre/côté, pauses0/variables ; aucune génération attendue depuis moteur testé.",
-      "reason": "Prescription ED-17 ; suite propriétaire src/domain/activities/__tests__/executionPhrase.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-17/corpus — 276cas gardés avec adaptation explicite des anciennes entréesTO_FAILURE ; cas nouveaux couvrent échec toutespositions≤3/>3, mixtures, N1normalisation, bip0/positif, chaque ordre/côté, pauses0/variables ; aucune génération attendue depuis moteur testé.",
+      "reason": "État et résultat opposable du parcours éditeur ED-17/corpus ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-17/corpus",
           "given": "276fixturesv15 figées et matrice mode×bip×régime×cible×N×côté×pauses",
           "when": "Comparer gabarits et montants oracle indépendant",
-          "then": "276cas gardés avec adaptation explicite des anciennes entréesTO_FAILURE ; cas nouveaux couvrent échec toutespositions≤3/>3, mixtures, N1normalisation, bip0/positif, chaque ordre/côté, pauses0/variables ; aucune génération attendue depuis moteur testé.",
+          "then": "ED-17/corpus — 276cas gardés avec adaptation explicite des anciennes entréesTO_FAILURE ; cas nouveaux couvrent échec toutespositions≤3/>3, mixtures, N1normalisation, bip0/positif, chaque ordre/côté, pauses0/variables ; aucune génération attendue depuis moteur testé.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -1362,15 +1362,15 @@
       "state_id": "PRE4-ED-18/migration",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Deux modesv2, anciennes cibleséchec→REPETITIONS+FAILURE, paramètres etIDs conservés, nullable scalaires numériques siFAILURE, aucune cible dummy ; liens/counts/ordre/empreintes fichiers inchangés, foreign_key_check vide.",
-      "reason": "Prescription ED-18 ; suite propriétaire src/infrastructure/database/__tests__/migrateDatabase.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "DATA",
+      "expected": "ED-18/migration — Deux modesv2, anciennes cibleséchec→REPETITIONS+FAILURE, paramètres etIDs conservés, nullable scalaires numériques siFAILURE, aucune cible dummy ; liens/counts/ordre/empreintes fichiers inchangés, foreign_key_check vide.",
+      "reason": "État et résultat opposable du parcours éditeur ED-18/migration ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-18/migration",
           "given": "BaseSQLitev9 avec definitions/copiesjsonv1et scalairesTO_FAILURE, associations catégorie/zones/médias",
           "when": "Migrer v10 puis rouvrir",
-          "then": "Deux modesv2, anciennes cibleséchec→REPETITIONS+FAILURE, paramètres etIDs conservés, nullable scalaires numériques siFAILURE, aucune cible dummy ; liens/counts/ordre/empreintes fichiers inchangés, foreign_key_check vide.",
+          "then": "ED-18/migration — Deux modesv2, anciennes cibleséchec→REPETITIONS+FAILURE, paramètres etIDs conservés, nullable scalaires numériques siFAILURE, aucune cible dummy ; liens/counts/ordre/empreintes fichiers inchangés, foreign_key_check vide.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -1381,15 +1381,15 @@
       "state_id": "PRE4-ED-18/rollback",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Transaction intégralement annulée, user_version9 et octets/relations d’origine identiques, corruption signalée ; aucun fallback silencieux.",
-      "reason": "Prescription ED-18 ; suite propriétaire src/infrastructure/database/__tests__/migrateDatabase.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "DATA",
+      "expected": "ED-18/rollback — Transaction intégralement annulée, user_version9 et octets/relations d’origine identiques, corruption signalée ; aucun fallback silencieux.",
+      "reason": "État et résultat opposable du parcours éditeur ED-18/rollback ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-18/rollback",
           "given": "Même base avec corruptionjson ou échec injecté après reconstruction avantCOMMIT",
           "when": "Exécuter migration",
-          "then": "Transaction intégralement annulée, user_version9 et octets/relations d’origine identiques, corruption signalée ; aucun fallback silencieux.",
+          "then": "ED-18/rollback — Transaction intégralement annulée, user_version9 et octets/relations d’origine identiques, corruption signalée ; aucun fallback silencieux.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -1400,15 +1400,15 @@
       "state_id": "PRE4-ED-18/definition-roundtrip",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "JSONv2 et scalaires cohérents ; retour exact types/ordre ; rejet atomiqueUNSET sans écritures partielles.",
-      "reason": "Prescription ED-18 ; suite propriétaire src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "DATA",
+      "expected": "ED-18/definition-roundtrip — JSONv2 et scalaires cohérents ; retour exact types/ordre ; rejet atomiqueUNSET sans écritures partielles.",
+      "reason": "État et résultat opposable du parcours éditeur ED-18/definition-roundtrip ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-18/definition-roundtrip",
           "given": "DefinitionVARIABLENUMBER/FAILURE avec médias",
           "when": "Créer/modifier/réouvrir sur vraieSQLite puis rejeter cibleUNSET",
-          "then": "JSONv2 et scalaires cohérents ; retour exact types/ordre ; rejet atomiqueUNSET sans écritures partielles.",
+          "then": "ED-18/definition-roundtrip — JSONv2 et scalaires cohérents ; retour exact types/ordre ; rejet atomiqueUNSET sans écritures partielles.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -1419,15 +1419,15 @@
       "state_id": "PRE4-ED-18/session-roundtrip",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Paramètres etRexactes, catégorie/zones/médias conservés ; échec sauvegarde ne laisse pas liens orphelins.",
-      "reason": "Prescription ED-18 ; suite propriétaire src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "DATA",
+      "expected": "ED-18/session-roundtrip — Paramètres etRexactes, catégorie/zones/médias conservés ; échec sauvegarde ne laisse pas liens orphelins.",
+      "reason": "État et résultat opposable du parcours éditeur ED-18/session-roundtrip ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-18/session-roundtrip",
           "given": "OccurrenceVARIABLENUMBER/FAILURE avecRexistante",
           "when": "SauvegarderSéance puis rouvrir sur vraieSQLite",
-          "then": "Paramètres etRexactes, catégorie/zones/médias conservés ; échec sauvegarde ne laisse pas liens orphelins.",
+          "then": "ED-18/session-roundtrip — Paramètres etRexactes, catégorie/zones/médias conservés ; échec sauvegarde ne laisse pas liens orphelins.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -1438,15 +1438,15 @@
       "state_id": "PRE4-ED-19/copies",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Collections profondément copiées ; mêmes assets physiques référencés sans suppression, ordre conservé ; source/autrescopiesintactes.",
-      "reason": "Prescription ED-19 ; suite propriétaire src/features/sessions/__tests__/SessionService.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "DATA",
+      "expected": "ED-19/copies — Collections profondément copiées ; mêmes assets physiques référencés sans suppression, ordre conservé ; source/autrescopiesintactes.",
+      "reason": "État et résultat opposable du parcours éditeur ED-19/copies ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-19/copies",
           "given": "Cataloguev2avecFAILURE etmédias",
           "when": "Copier occurrence, dupliquerSéance puis modifier une copie",
-          "then": "Collections profondément copiées ; mêmes assets physiques référencés sans suppression, ordre conservé ; source/autrescopiesintactes.",
+          "then": "ED-19/copies — Collections profondément copiées ; mêmes assets physiques référencés sans suppression, ordre conservé ; source/autrescopiesintactes.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -1457,15 +1457,15 @@
       "state_id": "PRE4-ED-19/snapshot",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Ancien octet et résultat inchangés ; lecteur versionné interprète ancien sans performances inventées ; nouveau encode cible typée et médiaordonné.",
-      "reason": "Prescription ED-19 ; suite propriétaire src/domain/activities/__tests__/exerciseSnapshot.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "DATA",
+      "expected": "ED-19/snapshot — Ancien octet et résultat inchangés ; lecteur versionné interprète ancien sans performances inventées ; nouveau encode cible typée et médiaordonné.",
+      "reason": "État et résultat opposable du parcours éditeur ED-19/snapshot ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-19/snapshot",
           "given": "Instantanév1archivéavec ancienTO_FAILURE, résultats et empreinte ; nouveauv2",
           "when": "Lire ancien puis créer/relire nouveau",
-          "then": "Ancien octet et résultat inchangés ; lecteur versionné interprète ancien sans performances inventées ; nouveau encode cible typée et médiaordonné.",
+          "then": "ED-19/snapshot — Ancien octet et résultat inchangés ; lecteur versionné interprète ancien sans performances inventées ; nouveau encode cible typée et médiaordonné.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -1476,15 +1476,15 @@
       "state_id": "PRE4-ED-19/no-write-on-cancel",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Aucune écritureSQLite ni suppression physique lors annulation ; bases/table/hashfile inchangés.",
-      "reason": "Prescription ED-19 ; suite propriétaire src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "DATA",
+      "expected": "ED-19/no-write-on-cancel — Aucune écritureSQLite ni suppression physique lors annulation ; bases/table/hashfile inchangés.",
+      "reason": "État et résultat opposable du parcours éditeur ED-19/no-write-on-cancel ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-19/no-write-on-cancel",
           "given": "Objetpersistéavec médias etrelations",
           "when": "Modifier brouillon puis annulerSousfeuille/éditeur",
-          "then": "Aucune écritureSQLite ni suppression physique lors annulation ; bases/table/hashfile inchangés.",
+          "then": "ED-19/no-write-on-cancel — Aucune écritureSQLite ni suppression physique lors annulation ; bases/table/hashfile inchangés.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -1495,15 +1495,15 @@
       "state_id": "PRE4-ED-20/Catégorie",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Clavier ne disparaît pas sur appui long/annulation/enregistrement ; nomvide désactiveAjouter sans erreur ;✓appliqueparent, annulationpréservechoix et données, retourcorrect.",
-      "reason": "Prescription ED-20 ; suite propriétaire src/features/reference-data/__tests__/CategoryPickerModal.test.tsx ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-20/Catégorie — Clavier ne disparaît pas sur appui long/annulation/enregistrement ; nomvide désactiveAjouter sans erreur ;✓appliqueparent, annulationpréservechoix et données, retourcorrect.",
+      "reason": "État et résultat opposable du parcours éditeur ED-20/Catégorie ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-20/Catégorie",
           "given": "SélecteurCatégorie ouvert depuis éditeur avecclavierdéjàprésent",
           "when": "Appui long, modifier/annuler/enregistrer ; créeravec nomvide ; sélectionneret✓",
-          "then": "Clavier ne disparaît pas sur appui long/annulation/enregistrement ; nomvide désactiveAjouter sans erreur ;✓appliqueparent, annulationpréservechoix et données, retourcorrect.",
+          "then": "ED-20/Catégorie — Clavier ne disparaît pas sur appui long/annulation/enregistrement ; nomvide désactiveAjouter sans erreur ;✓appliqueparent, annulationpréservechoix et données, retourcorrect.",
           "proof_required": [
             "FUNCTIONAL_TEST",
             "VISUAL_COMPARE",
@@ -1516,15 +1516,15 @@
       "state_id": "PRE4-ED-20/Zones",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Clavier ne disparaît pas sur appui long/annulation/enregistrement ; nomvide désactiveAjouter sans erreur ;✓appliqueparent, annulationpréservechoix et données, retourcorrect.",
-      "reason": "Prescription ED-20 ; suite propriétaire src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-20/Zones — Clavier ne disparaît pas sur appui long/annulation/enregistrement ; nomvide désactiveAjouter sans erreur ;✓appliqueparent, annulationpréservechoix et données, retourcorrect.",
+      "reason": "État et résultat opposable du parcours éditeur ED-20/Zones ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-20/Zones",
           "given": "SélecteurZones ouvert depuis éditeur avecclavierdéjàprésent",
           "when": "Appui long, modifier/annuler/enregistrer ; créeravec nomvide ; sélectionneret✓",
-          "then": "Clavier ne disparaît pas sur appui long/annulation/enregistrement ; nomvide désactiveAjouter sans erreur ;✓appliqueparent, annulationpréservechoix et données, retourcorrect.",
+          "then": "ED-20/Zones — Clavier ne disparaît pas sur appui long/annulation/enregistrement ; nomvide désactiveAjouter sans erreur ;✓appliqueparent, annulationpréservechoix et données, retourcorrect.",
           "proof_required": [
             "FUNCTIONAL_TEST",
             "VISUAL_COMPARE",
@@ -1537,15 +1537,15 @@
       "state_id": "PRE4-ED-21/media-preservation",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Ordre et identité conservés ; erreurs bornées réessayables ; leasesbrouillon libérées selon cycle existant ; fichierphysiqueencoreréférencé jamais supprimé ; migration ne touche aucunasset.",
-      "reason": "Prescription ED-21 ; suite propriétaire src/domain/media/__tests__/ActivityMediaImportService.test.ts ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-21/media-preservation — Ordre et identité conservés ; erreurs bornées réessayables ; leasesbrouillon libérées selon cycle existant ; fichierphysiqueencoreréférencé jamais supprimé ; migration ne touche aucunasset.",
+      "reason": "État et résultat opposable du parcours éditeur ED-21/media-preservation ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-21/media-preservation",
           "given": "Definition/copies partagent assetsphoto/video, importtemporaire échoué",
           "when": "Importer/réordonner/réessayer/sauver/rouvrir/annuler et retirer une seule référence",
-          "then": "Ordre et identité conservés ; erreurs bornées réessayables ; leasesbrouillon libérées selon cycle existant ; fichierphysiqueencoreréférencé jamais supprimé ; migration ne touche aucunasset.",
+          "then": "ED-21/media-preservation — Ordre et identité conservés ; erreurs bornées réessayables ; leasesbrouillon libérées selon cycle existant ; fichierphysiqueencoreréférencé jamais supprimé ; migration ne touche aucunasset.",
           "proof_required": [
             "FUNCTIONAL_TEST",
             "DEVICE_CHECK"
@@ -1557,15 +1557,15 @@
       "state_id": "PRE4-ED-22/editor",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Nom/description annoncés, catégories/zones avec état, ordre en-tête→nom→référentiels→paramètres→description→médias→Terminer ; focus restauré après fermeture. Aucun débordement ni action finale inaccessible ; cible tactile DSFgénéral48pt sans agrandir artificiellement dessin30px.",
-      "reason": "Prescription ED-22 ; suite propriétaire src/features/activities/__tests__/ActivityEditorForm.test.tsx ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-22/editor — Nom/description annoncés, catégories/zones avec état, ordre en-tête→nom→référentiels→paramètres→description→médias→Terminer ; focus restauré après fermeture. Aucun débordement ni action finale inaccessible ; cible tactile DSFgénéral48pt sans agrandir artificiellement dessin30px.",
+      "reason": "État et résultat opposable du parcours éditeur ED-22/editor ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-22/editor",
           "given": "Surfaceeditor largeur360/402/440 et texteagrandi,VoiceOver",
           "when": "Naviguer et activer toutes actions sans geste exclusif",
-          "then": "Nom/description annoncés, catégories/zones avec état, ordre en-tête→nom→référentiels→paramètres→description→médias→Terminer ; focus restauré après fermeture. Aucun débordement ni action finale inaccessible ; cible tactile DSFgénéral48pt sans agrandir artificiellement dessin30px.",
+          "then": "ED-22/editor — Nom/description annoncés, catégories/zones avec état, ordre en-tête→nom→référentiels→paramètres→description→médias→Terminer ; focus restauré après fermeture. Aucun débordement ni action finale inaccessible ; cible tactile DSFgénéral48pt sans agrandir artificiellement dessin30px.",
           "proof_required": [
             "FUNCTIONAL_TEST",
             "VISUAL_COMPARE",
@@ -1579,15 +1579,15 @@
       "state_id": "PRE4-ED-22/sheet",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Focus piégé dans feuille, fermeture/✓nommés, étatvariable et cibleéchec annoncés, totalpartiel lectureseule ; alternativesaccessibles suppression/réordonnancement. Aucun débordement ni action finale inaccessible ; cible tactile DSFgénéral48pt sans agrandir artificiellement dessin30px.",
-      "reason": "Prescription ED-22 ; suite propriétaire src/features/activities/__tests__/ExecutionParametersSheet.test.tsx ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-22/sheet — Focus piégé dans feuille, fermeture/✓nommés, étatvariable et cibleéchec annoncés, totalpartiel lectureseule ; alternativesaccessibles suppression/réordonnancement. Aucun débordement ni action finale inaccessible ; cible tactile DSFgénéral48pt sans agrandir artificiellement dessin30px.",
+      "reason": "État et résultat opposable du parcours éditeur ED-22/sheet ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-22/sheet",
           "given": "Surfacesheet largeur360/402/440 et texteagrandi,VoiceOver",
           "when": "Naviguer et activer toutes actions sans geste exclusif",
-          "then": "Focus piégé dans feuille, fermeture/✓nommés, étatvariable et cibleéchec annoncés, totalpartiel lectureseule ; alternativesaccessibles suppression/réordonnancement. Aucun débordement ni action finale inaccessible ; cible tactile DSFgénéral48pt sans agrandir artificiellement dessin30px.",
+          "then": "ED-22/sheet — Focus piégé dans feuille, fermeture/✓nommés, étatvariable et cibleéchec annoncés, totalpartiel lectureseule ; alternativesaccessibles suppression/réordonnancement. Aucun débordement ni action finale inaccessible ; cible tactile DSFgénéral48pt sans agrandir artificiellement dessin30px.",
           "proof_required": [
             "FUNCTIONAL_TEST",
             "VISUAL_COMPARE",
@@ -1601,15 +1601,15 @@
       "state_id": "PRE4-ED-22/target",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Option sélectionnée annoncée explicitement, bloc grisé manipulable, valeur etunités annoncées ; pas d’état transmis par gris seul. Aucun débordement ni action finale inaccessible ; cible tactile DSFgénéral48pt sans agrandir artificiellement dessin30px.",
-      "reason": "Prescription ED-22 ; suite propriétaire src/features/activities/__tests__/ExecutionTargetPicker.test.tsx ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-22/target — Option sélectionnée annoncée explicitement, bloc grisé manipulable, valeur etunités annoncées ; pas d’état transmis par gris seul. Aucun débordement ni action finale inaccessible ; cible tactile DSFgénéral48pt sans agrandir artificiellement dessin30px.",
+      "reason": "État et résultat opposable du parcours éditeur ED-22/target ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-22/target",
           "given": "Surfacetarget largeur360/402/440 et texteagrandi,VoiceOver",
           "when": "Naviguer et activer toutes actions sans geste exclusif",
-          "then": "Option sélectionnée annoncée explicitement, bloc grisé manipulable, valeur etunités annoncées ; pas d’état transmis par gris seul. Aucun débordement ni action finale inaccessible ; cible tactile DSFgénéral48pt sans agrandir artificiellement dessin30px.",
+          "then": "ED-22/target — Option sélectionnée annoncée explicitement, bloc grisé manipulable, valeur etunités annoncées ; pas d’état transmis par gris seul. Aucun débordement ni action finale inaccessible ; cible tactile DSFgénéral48pt sans agrandir artificiellement dessin30px.",
           "proof_required": [
             "FUNCTIONAL_TEST",
             "VISUAL_COMPARE",
@@ -1623,15 +1623,15 @@
       "state_id": "PRE4-ED-22/referentials",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "NomvideAjouter désactivé annoncé sans erreur, focus etclavierpréservés lors actions ; création/éditionretouraucontrôleorigine. Aucun débordement ni action finale inaccessible ; cible tactile DSFgénéral48pt sans agrandir artificiellement dessin30px.",
-      "reason": "Prescription ED-22 ; suite propriétaire src/features/reference-data/__tests__/CategoryPickerModal.test.tsx ; exigences normatives de la tranche, pas constat exécuté.",
-      "requirement_kind": "FUNCTIONAL",
+      "expected": "ED-22/referentials — NomvideAjouter désactivé annoncé sans erreur, focus etclavierpréservés lors actions ; création/éditionretouraucontrôleorigine. Aucun débordement ni action finale inaccessible ; cible tactile DSFgénéral48pt sans agrandir artificiellement dessin30px.",
+      "reason": "État et résultat opposable du parcours éditeur ED-22/referentials ; impacts fonctionnels et de données conservés dans le plan et sa suite propriétaire, pas une seule comparaison visuelle.",
+      "requirement_kind": "UI",
       "scenarios": [
         {
           "scenario_id": "SC-ED-22/referentials",
           "given": "Surfacereferentials largeur360/402/440 et texteagrandi,VoiceOver",
           "when": "Naviguer et activer toutes actions sans geste exclusif",
-          "then": "NomvideAjouter désactivé annoncé sans erreur, focus etclavierpréservés lors actions ; création/éditionretouraucontrôleorigine. Aucun débordement ni action finale inaccessible ; cible tactile DSFgénéral48pt sans agrandir artificiellement dessin30px.",
+          "then": "ED-22/referentials — NomvideAjouter désactivé annoncé sans erreur, focus etclavierpréservés lors actions ; création/éditionretouraucontrôleorigine. Aucun débordement ni action finale inaccessible ; cible tactile DSFgénéral48pt sans agrandir artificiellement dessin30px.",
           "proof_required": [
             "FUNCTIONAL_TEST",
             "VISUAL_COMPARE",

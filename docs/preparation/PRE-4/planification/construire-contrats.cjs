@@ -38,7 +38,7 @@ try{
  if(a.scope_id==='ED-19'&&a.assertion_id.endsWith('snapshot'))files=[dom+'exerciseSnapshot.ts',dom+'ExecutionParameters.ts'];
  if(a.scope_id==='ED-19'&&a.assertion_id.endsWith('no-write-on-cancel'))files=[db+'repositories/SqliteActivityDefinitionRepository.ts'];
  if(a.scope_id==='ED-20'){files=[a.test_owner.replace('/__tests__/','/').replace('.test.tsx','.tsx')];target=files[0];}
- if(a.scope_id==='ED-21'){files=[];target=editor;}// media code contract preserved, tests extended, no unrelated rewrites.
+ if(a.scope_id==='ED-21'){files=[editor];target=editor;}// media code contract preserved, tests extended, no unrelated rewrites.
  if(a.scope_id==='ED-22'){target=a.test_owner.replace('/__tests__/','/').replace('.test.tsx','.tsx');files=[target];}
  d={visual:false,state,target,files,test:a.test_owner,expected:a.assertion_id+' : Given '+a.given+' ; When '+a.when+' ; Expected '+a.expected,scopeIds:[a.scope_id],proofs:a.proof_required};
  }else{const frame=packet.frames.find(f=>f.state_id===state.state_id),target=frameTarget.get(frame.frame_id);d={visual:false,state,frame:frame.frame_id,target,files:[target],test:targetTest(target),expected:state.expected,scopeIds:[target===editor?'ED-02':target.includes('reference-data')?'ED-20':'ED-22'],proofs:['FUNCTIONAL_TEST','VISUAL_COMPARE']};}}
