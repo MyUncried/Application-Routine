@@ -73,7 +73,7 @@ test('closed/foreign destinations, conflicting duplicate and changed branch head
 });
 test('workflow privileges only the serialized signal job; no model invocation or business checkout',()=>{
  const file=fs.readFileSync(path.join(__dirname,'../../.github/workflows/kodjo-vnext-work-continuation.yml'),'utf8');
- assert.match(file,/workflow_run:/);assert.match(file,/types: \[completed\]/);assert.match(file,/cancel-in-progress: false/);assert.match(file,/permissions:\n  contents: read/);assert.match(file,/publish-signal:[\s\S]*contents: write/);assert.match(file,/ref: refs\/heads\/main/);assert.doesNotMatch(file,/claude-code-action|vnext-chain.js|run-local-claude/);
+ assert.match(file,/workflow_run:/);assert.match(file,/types: \[completed\]/);assert.match(file,/cancel-in-progress: false/);assert.match(file,/permissions:\r?\n  contents: read/);assert.match(file,/publish-signal:[\s\S]*contents: write/);assert.match(file,/ref: refs\/heads\/main/);assert.doesNotMatch(file,/claude-code-action|vnext-chain.js|run-local-claude/);
 });
 test('Work signal data does not request heavy CI, while its implementation and binding remain qualified',()=>{
  const C=require('../../scripts/kodjo/classify-protocol-impact');

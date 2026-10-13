@@ -44,3 +44,11 @@ Configuration Work confirmée, mais réception courante NON ENCORE DEMONTREE. Le
 Archive absente/altérée/sans provenance : publisher en échec technique visible, pas de signal métier ni retry modèle. Le fonctionnement de cette récupération reste à tracer, pas à annoncer conforme. Le défaut de couverture PRE-4 est distinct et n'est pas corrigé par le réveil ; ses six constats doivent être vérifiés et sa lecture complète obtenue selon le protocole, sans fabriquer une couverture.
 
 Fichiers : workflow/publisher/tests nouveaux, binding et contrat de retour commun, politique des deux writers nouveaux, manifeste/normative-inputs et documentation du relais/continuité ; filtres de CI partagés et classification des seuls chemins de données, avec empreintes correspondantes. Aucune logique d’exécution V2 modifiée. Commit exact et CI sont liés par la PR de correction ; la branche de transport reste distincte. Le dépôt applicatif et le plan0ef1ec59 restent inchangés. Pas d'action PowerShell, de fermeture ou de redémarrage demandé à Hermann.
+
+## Retour CI sur 18c0b6c7 et correction bornée
+
+Runs 38479582499 et 38479582949 terminés en FAILURE. Linux : IA-004 refuse le binding parce que le manifeste n'en cite que le nom, pas son chemin complet. Windows : le nouveau test de permissions exige LF et refuse le checkout CRLF ; l'archive qualification-controls-Windows 11858550160 (SHA-256449659b9504106ba9e2ff180c1aee096d8e2c9ca28591cf8c3c01a0880af7320) démontre cette cause. Aucun échec du publisher exécuté n'est déduit de ce défaut de test. Correction : chemins complets dans le manifeste et assertion acceptant LF/CRLF, avec exigences de permissions inchangées.
+
+Les diagnostics historiques Linux 11856043026 et Windows 11858190569 ont été téléchargés et vérifiés par leurs SHA-256. Windows contient aussi l'échec du test audit-prompt-transport/native probe, déjà suivi sous R-CI-HOST-01 ; il reste OPEN, sans attribution causale au nouveau publisher ni suppression du contrôle.
+
+Contrôles locaux de correction : 34 tests ciblés PASS, 10 tests du transport avec le vrai YAML converti temporairement en CRLF PASS puis restauration octet à octet. La nouvelle CI doit être suivie sur le commit publié de correction ; aucune fusion ni réception Work n'est annoncée sur ces seuls résultats.

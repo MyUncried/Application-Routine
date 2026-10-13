@@ -6,7 +6,7 @@ Le paquet de cette branche candidate est défini par la spécification 0.6.51, q
 
 ## Sources normatives
 
-Complément VNext : KODJO_VNEXT_WORK_CONTINUATION.md définit le retour commun ; KODJO_VNEXT_WORK_TRANSPORT.json porte le binding scellé observé. scripts/kodjo/signal-vnext-agent-continuation.js et kodjo-vnext-work-continuation.yml publient uniquement un signal lié au résultat archivé. tests/kodjo/vnext-work-continuation.pilot.js vérifie transport, portée et refus. L'état de réception réelle est consigné dans le rapport dédié, jamais déduit de la présence des fichiers.
+Complément VNext : `.github/orchestration/KODJO_VNEXT_WORK_CONTINUATION.md` définit le retour commun ; `.github/orchestration/KODJO_VNEXT_WORK_TRANSPORT.json` porte le binding scellé observé. `scripts/kodjo/signal-vnext-agent-continuation.js` et `.github/workflows/kodjo-vnext-work-continuation.yml` publient uniquement un signal lié au résultat archivé. `tests/kodjo/vnext-work-continuation.pilot.js` vérifie transport, portée et refus. L'état de réception réelle est consigné dans le rapport dédié, jamais déduit de la présence des fichiers.
 
 | Fichier | Rôle |
 |---|---|
