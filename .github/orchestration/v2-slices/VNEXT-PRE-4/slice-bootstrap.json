@@ -1,0 +1,75 @@
+{
+  "schema_version": "kodjo.protocol.v2.slice-bootstrap.0.6.12",
+  "slice_id": "VNEXT-PRE-4",
+  "issue_number": 352,
+  "repository": "MyUncried/Application-Routine",
+  "target_branch": "main",
+  "baseline_head": "c32e360d891614f2b08a1d8f7f3f631eef0b57ea",
+  "planning_application_head": "c32e360d891614f2b08a1d8f7f3f631eef0b57ea",
+  "protocol_version": "0.6.12",
+  "protocol_commit": "c32e360d891614f2b08a1d8f7f3f631eef0b57ea",
+  "activation_registry": ".github/orchestration/v2-activation-registry.json",
+  "previous_slice_id": null,
+  "previous_checkpoint": null,
+  "product_sources": [
+    {
+      "path": "docs/preparation/PRE-4/perimetre-et-couverture.md",
+      "sha256": "5d3cf7b06e62b83bbdd9a8f04f7586252a593e74a0ca724a1bdf4db3463dde1d"
+    },
+    {
+      "path": "docs/preparation/PRE-4/autorisation-demarrage.json",
+      "sha256": "2a920592e6f82f0b14b56f9a99e4aa9e37abbe4ca7159ecb3382aac072521fd4"
+    },
+    {
+      "path": "docs/preparation/PRE-4/references-figma.json",
+      "sha256": "d62498cc0fc13abf1320617a49bcad79b27387eb567fc36d8aa09d13f7e200f0"
+    },
+    {
+      "path": "docs/preparation/PRE-4/figma/manifest.json",
+      "sha256": "fd3a3e527f65f947b0c1e533757caec9c5bce2aa620ea22ef44cbbcfa9b023fb"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md",
+      "sha256": "1300ae2a5cab361f3fa8a09f4c8c88760206604ead1f1af2bca2121dd931351c"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v13.md",
+      "sha256": "3c80a9a82f80a9adb3d1194a3da6b9cc345b1350928e47a737f70c85c37926f7"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md",
+      "sha256": "9f4af7a2e8f5a08683e71339d3bd2815310d9f9ff173a3ed9686281762567c9c"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/SPECIFICATION-BIP-CADENCE-v2.md",
+      "sha256": "96c298c382677f77111b60adc067bbb11a2e2b9d5cf002ba6b259914fe918bf2"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+      "sha256": "b3208b31a34ab1d70b94084cdc54febeebdaf9238f50cb9b0b9bcf3cc0d50782"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md",
+      "sha256": "88b97a00aaa721bd5f4f033f27c080aebf919674e1a35e0239cd369d97b74312"
+    },
+    {
+      "path": "docs/DSF-DEUX-MODES-ECHEC-2026-10-13.md",
+      "sha256": "221757cbcf063378e258bb3b1c340fc7c260cd1f818643f1584ad46e069b4d72"
+    },
+    {
+      "path": "docs/DSF-CIRCUITS-CONTROLES-2026-10-12.md",
+      "sha256": "199d05d1d30a3908a35dbad62ec2386a77c76846fa333eebfbe4e6fee7bd58aa"
+    },
+    {
+      "path": "docs/DSF-INTERFACE-GENERALE-2026-10-08.md",
+      "sha256": "8394cbad5b63b6b4565c47f1014f95b9744528364c828d3b790ae4bf6949e0f3"
+    }
+  ],
+  "authorized_actors": [
+    "MyUncried"
+  ],
+  "created_at": "2026-10-13T00:52:23.723Z",
+  "protocol": "VNEXT",
+  "vnext_chain_file": ".github/orchestration/v2-slices/VNEXT-PRE-4/prepared-chain.json",
+  "slice_bootstrap_sha256": "5a779e1d2d7e45fd9cc5ee2f1a7ffdbe1cf97aaf6ed7b2f60d4a6d943ff1245a"
+}

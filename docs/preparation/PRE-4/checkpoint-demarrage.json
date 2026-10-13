@@ -1,0 +1,23 @@
+{
+  "slice_id": "VNEXT-PRE-4",
+  "issue_number": 352,
+  "protocol": "VNEXT",
+  "baseline_main": "96a191a975a5de03ed3194568cb991196908fc67",
+  "source_commit": "c32e360d891614f2b08a1d8f7f3f631eef0b57ea",
+  "bootstrap_hash": "5a779e1d2d7e45fd9cc5ee2f1a7ffdbe1cf97aaf6ed7b2f60d4a6d943ff1245a",
+  "pre3_closed": true,
+  "source_integrity": "PASS",
+  "frames": 32,
+  "nodes": 5085,
+  "properties": 246748,
+  "hidden": 35,
+  "full_frame_properties_saved": true,
+  "canonical_launch_completed": false,
+  "master_alias_closure_completed": false,
+  "plan_contract_completed": false,
+  "independent_review_invoked": false,
+  "owner_plan_approval": false,
+  "implementation_started": false,
+  "next_stage": "Complete source reconciliation and atomic inventories, then ImpactGraph/PlanContract/UI and independent relay review",
+  "active_remote_model_run": null
+}

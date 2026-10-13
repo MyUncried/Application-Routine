@@ -88,6 +88,16 @@
       "baseline_head": "061660b233e58719d3963a2efd9092880c9f3961",
       "bootstrap_path": ".github/orchestration/v2-slices/VNEXT-12-QUALIF/slice-bootstrap.json",
       "slice_bootstrap_sha256": "f6fb8948d421014b5883094bba6671cf684ec5d341977fa0f1692371ae50f2b7"
+    },
+    {
+      "slice_id": "VNEXT-PRE-4",
+      "status": "ACTIVE",
+      "issue_number": 352,
+      "baseline_head": "c32e360d891614f2b08a1d8f7f3f631eef0b57ea",
+      "planning_application_head": "c32e360d891614f2b08a1d8f7f3f631eef0b57ea",
+      "bootstrap_path": ".github/orchestration/v2-slices/VNEXT-PRE-4/slice-bootstrap.json",
+      "slice_bootstrap_sha256": "5a779e1d2d7e45fd9cc5ee2f1a7ffdbe1cf97aaf6ed7b2f60d4a6d943ff1245a",
+      "protocol": "VNEXT"
     }
   ]
 }
