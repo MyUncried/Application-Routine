@@ -95,7 +95,7 @@ function main(args = process.argv.slice(2)) {
     const request = Chain.readGitObject(cwd,input,Chain.relative(output));
     validate(request);
     if (path.posix.basename(output,'.json') !== request.contract_hash) throw Error('CHATGPT_REVIEW_REQUEST_PATH_HASH');
-    Chain.command('git',['merge-base','--is-ancestor',request.source_head,input],cwd);
+    require('./agent-relay').publishedSource(request,cwd);
     if (Chain.command('git',['rev-parse','HEAD'],cwd).trim() !== input
         || Chain.command('git',['status','--porcelain'],cwd).trim()) throw Error('CHATGPT_REVIEW_CHECKOUT_MISMATCH');
     if(process.env.GITHUB_REPOSITORY !== request.repository) throw Error('CHATGPT_REVIEW_REPOSITORY_MISMATCH');

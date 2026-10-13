@@ -77,13 +77,15 @@ test('workflow triggers only exact requests or dispatch, uses trusted main code,
   const workflow=require('../../scripts/kodjo/lib/yaml').parse(fs.readFileSync(path.resolve(__dirname,'../../.github/workflows/kodjo-vnext-chatgpt-plan-review.yml'),'utf8'));
   assert.deepEqual(Object.keys(workflow.on),['push','workflow_dispatch']);
   assert.deepEqual(workflow.on.push.branches,['main']);
-  assert.deepEqual(workflow.on.push.paths,['.github/orchestration/requests/vnext-plan-review/*.json','.github/orchestration/requests/vnext-agent/*.json']);
+  assert.deepEqual(workflow.on.push.paths,['.github/orchestration/requests/vnext-plan-review/*.json','.github/orchestration/requests/vnext-agent/*.json','.github/orchestration/requests/vnext-agent/resume/*.json']);
   assert.match(workflow.jobs.review.steps.find(s=>s.name==='Select exactly one newly committed request').run,/SINGLE_REQUEST_COMMIT_REQUIRED/);
   assert.deepEqual(workflow.permissions,{contents:'read',issues:'read',actions:'read'});
   assert.match(workflow.jobs.review.if,/refs\/heads\/main/);
   const steps=workflow.jobs.review.steps;
   assert.ok(steps.filter(s=>s.uses?.startsWith('actions/checkout')).every(s=>s.with['persist-credentials']===false));
   assert.equal(steps.find(s=>s.uses?.startsWith('actions/upload-artifact')).if,'always()');
+  assert.match(steps.find(s=>s.name==='Select exactly one newly committed request').run,/resolve-trigger/);
+  assert.equal(steps.find(s=>s.name==='Checkout immutable request and source objects').with.ref,'${{ env.REQUEST_COMMIT }}');
 });
 
 test('lost cache with a prior GitHub attempt refuses a new model call',()=>withFixture(f=>{

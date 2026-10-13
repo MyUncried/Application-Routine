@@ -4,7 +4,7 @@ run-name: VNext PRE-4 agent operation / ${{ inputs.request_commit || github.sha 
 on:
   push:
     branches: [main]
-    paths: ['.github/orchestration/requests/vnext-plan-review/*.json', '.github/orchestration/requests/vnext-agent/*.json']
+    paths: ['.github/orchestration/requests/vnext-plan-review/*.json', '.github/orchestration/requests/vnext-agent/*.json', '.github/orchestration/requests/vnext-agent/resume/*.json']
   workflow_dispatch:
     inputs:
       request_commit:
@@ -63,8 +63,12 @@ jobs:
           $delta=@(git diff --name-status $env:PUSH_BEFORE $env:REQUEST_COMMIT)
           if ($LASTEXITCODE -ne 0 -or $delta.Count -ne 1) { throw 'CHATGPT_REVIEW_SINGLE_REQUEST_COMMIT_REQUIRED' }
           $fields=$delta[0] -split "`t"
-          if ($fields.Count -ne 2 -or $fields[0] -ne 'A' -or $fields[1] -notmatch '^\.github/orchestration/requests/(vnext-plan-review|vnext-agent)/[0-9a-f]{64}\.json$') { throw 'CHATGPT_REVIEW_NEW_REQUEST_REQUIRED' }
-          "REQUEST_PATH=$($fields[1])" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          if ($fields.Count -ne 2 -or $fields[0] -ne 'A' -or $fields[1] -notmatch '^\.github/orchestration/requests/(vnext-plan-review|vnext-agent(?:/resume)?)/[0-9a-f]{64}\.json$') { throw 'CHATGPT_REVIEW_NEW_REQUEST_REQUIRED' }
+          $locator = & node scripts/kodjo/agent-relay.js resolve-trigger $env:REQUEST_COMMIT $fields[1]
+          if ($LASTEXITCODE -ne 0) { throw 'CHATGPT_REVIEW_TRIGGER_INVALID' }
+          $resolved = $locator | ConvertFrom-Json
+          "REQUEST_COMMIT=$($resolved.request_commit)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "REQUEST_PATH=$($resolved.request_path)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
       - name: Checkout immutable request and source objects
         uses: actions/checkout@v6
         env:
@@ -72,7 +76,7 @@ jobs:
           GIT_CONFIG_KEY_0: core.autocrlf
           GIT_CONFIG_VALUE_0: 'false'
         with:
-          ref: ${{ inputs.request_commit || github.sha }}
+          ref: ${{ env.REQUEST_COMMIT }}
           path: _request
           fetch-depth: 0
           persist-credentials: false
