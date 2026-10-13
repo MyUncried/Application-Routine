@@ -31,3 +31,17 @@ La reprise réelle de #352 doit être déclenchée après intégration du correc
 
 ## Complément de cohérence révélé par la CI
 Le run de CI38398126952 (jobWindows115298468999) échoue avant les tests sur VNEXT_REMOTE_WRITE_DECLARED_PRODUCER_DRIFT : workflow kodjo-vnext-proof-stability.yml, blob réel603eff72bc7b6c88784e7ca8a318d1a2d70fb79f, déclaration ancienne04cc0da9912040423a9b45cdf7cee871c1730220. Attribution démontrée : main96a191a9 a modifié le filtre de chemins sans actualiser cette empreinte. Ce décalage précède le correctif du relais ; aucun lien avec la source PRE-4. Correction bornée : actualiser seulement producer_blob_oid de ce seul workflow dans KODJO_VNEXT_REMOTE_WRITE_POLICY.json. Aucun changement de permission, de capacité, d'autorisation ou de règle de sécurité. La suite ciblée vnext-remote-write-security.pilot.js est rejouée. Le premier échec CI est conservé. Ce fichier de politique s'ajoute aux sept fichiers du correctif.
+
+## Intégration et preuves finales
+PR #353 fusionnée : dfa25708c26aa079490c97c6c5b65edc1c2f3f57, code26527694 et mise en cohérencef8cb1640. Le plan0ef1ec59 et la demande dece7bcf sont inchangés.
+
+84/84 tests locaux PASS (24 relais, 8 politique, 52 consommateurs sur f8cb1640). CI VNext run38399003079 : qualification Linux506PASS/0FAIL et Windows506PASS/0FAIL ; validation native du tree739794bda3f1055c80fce8b7fae33ea840db7461 VALIDATED. Artefacts téléchargés et SHA-256 vérifiés : Linux3bd6ab25d92987e58e1bed82a9ad7841a7570f45be261b4dbe712e507fc4a6cf ; Windows5792a711f4b44e28aced5dc2d1aa1a360f872b0bce70a66e8863d87529125223.
+
+Run38399002995 SUCCESS sur le même f8cb1640, job115303739072 KODJO-LOCAL-RUNNER (runner réel du relais) :1493tests,1489PASS,0FAIL,4SKIP. Le test Unicode audit-prompt-transport y est PASS (journal12:48:59Z).
+
+### Réserve R-CI-HOST-01 — OPEN, hors delta demandé
+Historique Windows hébergé GitHub : le probe Unicode de tests/kodjo/audit-prompt-transport.pilot.js échoue aux tentatives1 et2 de38399003079 ; le statut CI global reste FAILURE, aucune certification globale annoncée. Les deux fichiers de ce transport hérité (test et workflow V2-next-evolution-audit) sont identiques à la base7d832c4c ; le relais PRE-4 invoque son reviewer par spawn shell:false, pas par ce shim PowerShell. La cause précise n'est pas établie ; la différence d'environnement est une hypothèse, pas une attribution démontrée. Impact : conformité de ce probe sur Windows hébergé non établie et badge global rouge.
+
+Décision explicite du pilote dans #353 avant fusion : intégrer le correctif destiné au runner KODJO vérifié, conserver cet incident ouvert hors périmètre, ne modifier/désactiver aucun contrôle ni fabriquer de résultat positif, ne lancer aucune campagne globale. Tous les contrôles ciblés du changement et la suite sur son runner réel sont réussis. Aucun gate propriétaire PRE-4 supprimé ; développement toujours interdit avant approbation du plan revu. La qualification/couverture Linux historique est aussi SUCCESS. Une unique répétition du job hérité échoué a été réalisée après observation contradictoire ; aucune boucle ni appel Claude n'y est engagé.
+
+La reprise utilise le contrôle scellé73c85e3b8ba68bf5951c0295a8ab5fbee1fe477da0019861a677b65fffa7ef92, pointant vers demande/commit d'origine. Son run réel et son reçu doivent encore être suivis et vérifiés. Ce rapport ne prétend pas à une revue déjà réalisée.
