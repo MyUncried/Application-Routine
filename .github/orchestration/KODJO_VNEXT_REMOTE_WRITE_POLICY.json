@@ -914,7 +914,7 @@
     },
     {
       "producer": ".github/workflows/kodjo-vnext-proof-stability.yml",
-      "producer_blob_oid": "04cc0da9912040423a9b45cdf7cee871c1730220",
+      "producer_blob_oid": "603eff72bc7b6c88784e7ca8a318d1a2d70fb79f",
       "authorization_condition": "EXACT_SUCCESSFUL_CYCLE_CONTROLS_ISOLATED_SIGNAL_ONLY",
       "required_job": "wake-orchestrator",
       "capabilities": [
