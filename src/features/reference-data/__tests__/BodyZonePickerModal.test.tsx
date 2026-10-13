@@ -5,6 +5,7 @@ import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { BodyZonePickerModal } from "@/features/reference-data/BodyZonePickerModal";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
+import { Modal, StyleSheet } from "react-native";
 
 function aZone(overrides: Partial<BodyZone> = {}): BodyZone {
   return {
@@ -197,3 +198,267 @@ describe("BodyZonePickerModal — R4/R10 (défilement, en-tête accessible, éch
     expect(screen.getByTestId("body-zone-picker-new-name-input").props.value).toBe("Avant-bras");
   });
 });
+
+/**
+ * PRE-3 — feuille « Zones corporelles » (Figma 4478:7209, 4683:6336) ;
+ * règles PRE-2 conservées (sélection multiple, confirmation explicite, D2/D4).
+ */
+describe("BodyZonePickerModal — PRE-3", () => {
+  it("P3-03/empty-create-name — nom vide ou blanc : Ajouter inactif, aucun message d'erreur ; un nom valide l'active", async () => {
+    renderModal(fakeReferentialService());
+    fireEvent.press(await screen.findByTestId("body-zone-picker-create-action"));
+    expect(screen.getByTestId("body-zone-picker-new-add").props.accessibilityState).toMatchObject({ disabled: true });
+    fireEvent.changeText(screen.getByTestId("body-zone-picker-new-name-input"), "  ");
+    expect(screen.getByTestId("body-zone-picker-new-add").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.queryByTestId("body-zone-picker-new-error")).toBeNull();
+    expect(screen.queryByTestId("body-zone-picker-write-error")).toBeNull();
+    fireEvent.changeText(screen.getByTestId("body-zone-picker-new-name-input"), "Avant-bras");
+    expect(screen.getByTestId("body-zone-picker-new-add").props.accessibilityState).toMatchObject({ disabled: false });
+  });
+
+  it("P3-03/zones-presentation — pastilles textuelles sans silhouette répétée ; en-tête ✕ / titre / ✓ ; sélections conservées après aller-retour", async () => {
+    const onConfirm = jest.fn();
+    renderModal(fakeReferentialService(), { selectedIds: ["cou"], onConfirm, silhouette: "femme" });
+    await screen.findByTestId("body-zone-selector-tag-cou");
+    expect(screen.queryByTestId("body-zone-selector-icon-cou")).toBeNull();
+    expect(screen.queryByTestId("body-zone-selector-icon-epaules")).toBeNull();
+    expect(screen.getByTestId("body-zone-picker-header")).toBeTruthy();
+    expect(screen.getByText("Créer une zone corporelle")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("body-zone-selector-tag-epaules"));
+    fireEvent.press(screen.getByTestId("body-zone-picker-confirm"));
+    expect(onConfirm).toHaveBeenCalledWith(["cou", "epaules"]);
+  });
+
+  it("P3-20/all-surfaces — feuille ancrée en bas, voile #1F2129 à 34 %, en-tête au-dessus du contenu défilant", async () => {
+    renderModal(fakeReferentialService());
+    await screen.findByTestId("body-zone-selector-tag-cou");
+    const backdrop = StyleSheet.flatten(screen.getByTestId("body-zone-picker-backdrop").props.style);
+    expect(backdrop).toMatchObject({ backgroundColor: "rgba(31, 33, 41, 0.34)", justifyContent: "flex-end" });
+    const sheet = screen.getByTestId("body-zone-picker-sheet");
+    expect(sheet.props.children[1].props.testID).toBe("body-zone-picker-header");
+  });
+
+  it("P3-22/scope-regression — Zones retirées absentes, dernière Zone non décochable, appui long conservé", async () => {
+    const service = fakeReferentialService({
+      listBodyZones: jest.fn(async () => [aZone(), aZone({ id: "old", name: "Ancienne", canonicalKey: "ancienne", isActive: false })]),
+    });
+    renderModal(service, { selectedIds: ["cou"] });
+    await screen.findByTestId("body-zone-selector-tag-cou");
+    expect(screen.queryByTestId("body-zone-selector-tag-old")).toBeNull();
+    fireEvent.press(screen.getByTestId("body-zone-selector-tag-cou"));
+    expect(screen.getByTestId("body-zone-picker-at-least-one-notice")).toBeTruthy();
+    fireEvent(screen.getByTestId("body-zone-selector-tag-cou"), "longPress");
+    expect(await screen.findByTestId("body-zone-picker-long-press-cancel")).toBeTruthy();
+  });
+
+  it("INTERACTION/zones — sélection multiple ; ✕ sans effet ; ✓ applique ; nom vide sans erreur", async () => {
+    const onConfirm = jest.fn();
+    const onClose = jest.fn();
+    renderModal(fakeReferentialService(), { selectedIds: [], onConfirm, onClose });
+    await screen.findByTestId("body-zone-selector-tag-cou");
+    fireEvent.press(screen.getByTestId("body-zone-selector-tag-cou"));
+    fireEvent.press(screen.getByTestId("body-zone-selector-tag-epaules"));
+    fireEvent.press(screen.getByTestId("body-zone-picker-close"));
+    expect(onConfirm).not.toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("ACCESSIBILITY/zones — chaque pastille expose son nom et son état coché ; les autres sélections restent ; ✕/✓ nommés", async () => {
+    renderModal(fakeReferentialService(), { selectedIds: ["epaules"] });
+    const cou = await screen.findByTestId("body-zone-selector-tag-cou");
+    expect(cou.props.accessibilityRole).toBe("checkbox");
+    fireEvent.press(cou);
+    expect(screen.getByTestId("body-zone-selector-tag-cou").props.accessibilityState).toMatchObject({ checked: true });
+    expect(screen.getByTestId("body-zone-selector-tag-epaules").props.accessibilityState).toMatchObject({ checked: true });
+    expect(screen.getByTestId("body-zone-picker-close").props.accessibilityLabel).toBe("Fermer");
+    expect(screen.getByTestId("body-zone-picker-confirm").props.accessibilityLabel).toBe("Confirmer");
+  });
+});
+
+describe("BodyZonePickerModal — recette 1 F-03 (clavier)", () => {
+  it("la feuille évite le clavier iOS et ramène le formulaire en vue à son ouverture et à l'apparition du clavier", async () => {
+    const { Keyboard, KeyboardAvoidingView, Platform, ScrollView } = jest.requireActual<typeof import("react-native")>("react-native");
+    const scrollToEnd = jest.spyOn(ScrollView.prototype, "scrollToEnd");
+    const listeners: Record<string, () => void> = {};
+    const addListener = jest.spyOn(Keyboard, "addListener").mockImplementation(((event: string, listener: () => void) => {
+      listeners[event] = listener;
+      return { remove: jest.fn() };
+    }) as unknown as typeof Keyboard.addListener);
+    renderModal(fakeReferentialService());
+
+    await screen.findByTestId("body-zone-picker-backdrop");
+    expect(screen.UNSAFE_getByType(KeyboardAvoidingView).props.testID).toBe("body-zone-picker-backdrop");
+    expect(screen.UNSAFE_getByType(KeyboardAvoidingView).props.behavior).toBe(Platform.OS === "ios" ? "padding" : undefined);
+
+    scrollToEnd.mockClear();
+    fireEvent.press(await screen.findByTestId("body-zone-picker-create-action"));
+    fireEvent(screen.getByTestId("body-zone-picker-card"), "contentSizeChange", 360, 900);
+    expect(scrollToEnd).toHaveBeenCalled();
+
+    scrollToEnd.mockClear();
+    expect(listeners.keyboardDidShow).toBeDefined();
+    act(() => listeners.keyboardDidShow!());
+    expect(scrollToEnd).toHaveBeenCalled();
+    scrollToEnd.mockRestore();
+    addListener.mockRestore();
+  });
+});
+
+describe("BodyZonePickerModal — recette 1 (T-61)", () => {
+  it("T-61 — texte agrandi : en-tête à hauteur minimale (jamais fixe), titre non limité à une ligne", async () => {
+    renderModal(fakeReferentialService());
+    const header = StyleSheet.flatten((await screen.findByTestId("body-zone-picker-header")).props.style);
+    expect(header.height).toBeUndefined();
+    expect(header.minHeight).toBe(56);
+    expect(screen.getByRole("header").props.numberOfLines).toBeUndefined();
+  });
+});
+
+describe("BodyZonePickerModal — recette 1 (T-34/T-59 : Envoyer ↑)", () => {
+  it("action « Envoyer » ↑ dans le champ : inactive à vide, active avec un nom ; Annuler retiré (recette 2) ; aucune palette", async () => {
+    renderModal(fakeReferentialService());
+    fireEvent.press(await screen.findByTestId("body-zone-picker-create-action"));
+    const send = () => screen.getByTestId("body-zone-picker-new-add");
+    expect(screen.getByText("↑")).toBeTruthy();
+    expect(StyleSheet.flatten(send().props.style)).toMatchObject({ position: "absolute", width: 32, height: 32, borderRadius: 16 });
+    expect(send().props.accessibilityState).toMatchObject({ disabled: true });
+    fireEvent.changeText(screen.getByTestId("body-zone-picker-new-name-input"), "Mollets");
+    expect(send().props.accessibilityState).toMatchObject({ disabled: false });
+    // Recette 2 (N-01/N-02, décision du 12/10) : plus d’Annuler dans le formulaire de création ; ✕ ferme la feuille.
+    expect(screen.queryByTestId("body-zone-picker-new-cancel")).toBeNull();
+    expect(screen.queryByRole("radiogroup")).toBeNull();
+  });
+});
+
+describe("body-zone-picker — recette 2 (N-01/N-02 : clavier)", () => {
+  it("clavier ouvert : espace réduit sous le formulaire de création ; refermé : espacement d’origine", async () => {
+    const { Keyboard } = jest.requireActual<typeof import("react-native")>("react-native");
+    const listeners: Record<string, () => void> = {};
+    const spy = jest.spyOn(Keyboard, "addListener").mockImplementation(((event: string, listener: () => void) => {
+      listeners[event] = listener;
+      return { remove: jest.fn() };
+    }) as unknown as typeof Keyboard.addListener);
+    renderModal(fakeReferentialService());
+    fireEvent.press(await screen.findByTestId("body-zone-picker-create-action"));
+    const content = () => StyleSheet.flatten(screen.getByTestId("body-zone-picker-card").props.contentContainerStyle);
+    const sheet = () => StyleSheet.flatten(screen.getByTestId("body-zone-picker-sheet").props.style);
+    expect(content().paddingBottom ?? content().padding).toBe(24);
+    act(() => listeners.keyboardWillShow!());
+    expect(content().paddingBottom).toBe(8);
+    expect(sheet().paddingBottom).toBe(0);
+    act(() => listeners.keyboardWillHide!());
+    expect(content().paddingBottom ?? content().padding).toBe(24);
+    spy.mockRestore();
+  });
+});
+
+describe("BodyZonePickerModal — recette 3 (N-02 : ↑ ne ferme pas le clavier)", () => {
+  it("N-02 — ↑ crée la Zone sans démonter le formulaire (même champ, clavier conservé), l’ajoute à la sélection, vide le nom ; une seule création", async () => {
+    let resolveCreate: (value: unknown) => void = () => {};
+    const service = fakeReferentialService({
+      createBodyZone: jest.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveCreate = resolve;
+          }),
+      ) as unknown as ReferentialService["createBodyZone"],
+    });
+    const onConfirm = jest.fn();
+    const onClose = jest.fn();
+    renderModal(service, { selectedIds: [], onConfirm, onClose });
+    fireEvent.press(await screen.findByTestId("body-zone-picker-create-action"));
+    const input = screen.getByTestId("body-zone-picker-new-name-input");
+    fireEvent.changeText(input, "Avant-bras");
+
+    fireEvent.press(screen.getByTestId("body-zone-picker-new-add"));
+    fireEvent.press(screen.getByTestId("body-zone-picker-new-add"));
+    await act(async () => {
+      resolveCreate({ status: "OK", value: aZone({ id: "new-zone", name: "Avant-bras", canonicalKey: "avant-bras" }) });
+    });
+    expect(service.createBodyZone).toHaveBeenCalledTimes(1);
+
+    expect(screen.getByTestId("body-zone-picker-new-row")).toBeTruthy();
+    expect(screen.getByTestId("body-zone-picker-new-name-input")).toBe(input);
+    expect(screen.getByTestId("body-zone-picker-new-name-input").props.value).toBe("");
+    expect(screen.getByTestId("body-zone-picker-new-add").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(onConfirm).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+});
+
+describe("BodyZonePickerModal — recette 3 (N-01 : appui long avec clavier, Modifier effectif)", () => {
+  it("N-01 — formulaire de création ouvert : appui long en calque (aucun Modal imbriqué → clavier conservé), ✕ conserve le texte provisoire ; Modifier affiche l’édition de l’entrée ciblée, puis la création revient avec son texte", async () => {
+    const service = fakeReferentialService();
+    renderModal(service);
+    fireEvent.press(await screen.findByTestId("body-zone-picker-create-action"));
+    const createInput = screen.getByTestId("body-zone-picker-new-name-input");
+    fireEvent.changeText(createInput, "Provisoire");
+    const modalsBefore = screen.UNSAFE_getAllByType(Modal).length;
+    const target = screen.getByTestId("body-zone-selector-tag-cou");
+
+    await act(async () => {
+      fireEvent(target, "longPress");
+    });
+    expect(screen.getByTestId("body-zone-picker-long-press-card")).toBeTruthy();
+    expect(screen.UNSAFE_getAllByType(Modal)).toHaveLength(modalsBefore);
+    // Le champ reste monté et inchangé derrière le menu (masqué à VoiceOver, accessibilityViewIsModal).
+    expect(screen.getByTestId("body-zone-picker-new-name-input", { includeHiddenElements: true })).toBe(createInput);
+
+    fireEvent.press(screen.getByTestId("body-zone-picker-long-press-cancel"));
+    expect(screen.queryByTestId("body-zone-picker-long-press-card")).toBeNull();
+    expect(screen.getByTestId("body-zone-picker-new-name-input").props.value).toBe("Provisoire");
+
+    await act(async () => {
+      fireEvent(target, "longPress");
+    });
+    fireEvent.press(screen.getByTestId("body-zone-picker-long-press-modify"));
+    expect(screen.getByTestId("body-zone-picker-edit-name-input")).toBeTruthy();
+    expect(screen.getByTestId("body-zone-picker-edit-name-input").props.value).not.toBe("");
+    expect(screen.queryByTestId("body-zone-picker-new-row")).toBeNull();
+    fireEvent.press(screen.getByTestId("body-zone-picker-edit-cancel"));
+    expect(service.renameBodyZone).not.toHaveBeenCalled();
+    expect(screen.getByTestId("body-zone-picker-new-name-input").props.value).toBe("Provisoire");
+  });
+});
+
+describe("BodyZonePickerModal — recette 3 (N-01, dernier écart : clavier sans interruption)", () => {
+  it("N-01 — clavier ouvert → appui long → Modifier → Annuler, puis → Modifier → Enregistrer : le champ focalisé n’est JAMAIS démonté (même instance), la saisie provisoire est conservée", async () => {
+    const service = fakeReferentialService();
+    renderModal(service);
+    fireEvent.press(await screen.findByTestId("body-zone-picker-create-action"));
+    const field = screen.getByTestId("body-zone-picker-new-name-input");
+    fireEvent.changeText(field, "Provisoire");
+    const same = (testID: string) => expect(screen.getByTestId(testID, { includeHiddenElements: true })).toBe(field);
+
+    // Appui long → menu → Modifier : le même champ passe en modification, prérempli.
+    await act(async () => {
+      fireEvent(screen.getByTestId("body-zone-selector-tag-cou"), "longPress");
+    });
+    same("body-zone-picker-new-name-input");
+    fireEvent.press(screen.getByTestId("body-zone-picker-long-press-modify"));
+    same("body-zone-picker-edit-name-input");
+    expect(field.props.value).toBe("Cou");
+    fireEvent.changeText(field, "Brouillon de modification");
+
+    // Annuler : le même champ revient à la création, saisie provisoire intacte, rien d’enregistré.
+    fireEvent.press(screen.getByTestId("body-zone-picker-edit-cancel"));
+    same("body-zone-picker-new-name-input");
+    expect(field.props.value).toBe("Provisoire");
+    expect(service.renameBodyZone).not.toHaveBeenCalled();
+
+    // Même parcours, puis Enregistrer : même champ, renommage de l’entrée ciblée, retour à la création.
+    await act(async () => {
+      fireEvent(screen.getByTestId("body-zone-selector-tag-cou"), "longPress");
+    });
+    fireEvent.press(screen.getByTestId("body-zone-picker-long-press-modify"));
+    same("body-zone-picker-edit-name-input");
+    fireEvent.changeText(field, "Cou R3");
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("body-zone-picker-edit-save"));
+    });
+    expect(service.renameBodyZone).toHaveBeenCalledWith(expect.any(String), "Cou R3");
+    same("body-zone-picker-new-name-input");
+    expect(field.props.value).toBe("Provisoire");
+  });
+});
+

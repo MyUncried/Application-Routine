@@ -1,0 +1,33 @@
+{
+  "operation": 340,
+  "route": "DIRECT_PRODUCT_IMPLEMENTATION_WITH_VERIFIED_DELIVERY_CONTROLS",
+  "repository": "MyUncried/Application-Routine",
+  "branch": "feat/pre3-exercice-20261009",
+  "application_main": "46b91bd279424899a02c099a68b2729f6d710809",
+  "analyzed_application_baseline": "1ddfb6d144552f578388257adc78db47ab5992c8",
+  "plan_revision": "43e7b344937a2d60b04b987f19636faebb5aee06",
+  "manifest_sha256": "16c155548ba161778f8780e664c65561b7c0d7e27666ca34481ec33a75cc08ff",
+  "review_revision": "d5d016674e09042bc49410100eec6f6c02197d8f",
+  "owner_plan_approval": true,
+  "owner_decision_revision": "ab9aa0986889f080266ddb1846628e1eb51b7d07",
+  "writer": "CLAUDE_CODE_LOCAL",
+  "latest_user_instruction_at": "2026-10-09T20:00:04+02:00",
+  "latest_user_instruction": "Maintenant, je veux qu'on lance le développement de la tranche PRE-3 mais je ne veux pas faire n'importe quoi.",
+  "vnext_canonical_admission": false,
+  "implementation_started": false,
+  "safeguards": [
+    "approved exact write scope checked before commits/publication",
+    "real SQLite/migration/files tests",
+    "independent business calculation fixtures",
+    "59 source assertions and 23 requirements",
+    "Figma comparisons by relevant state",
+    "independent implementation review",
+    "targeted device acceptance",
+    "versioned installable delivery"
+  ],
+  "correction_of_previous_record": "Earlier attribution of an owner-authorized planning exception was incorrect. User had instructed correction/review within VNext. Historical files remain frozen evidence; no earlier derogation is retroactively authorized. The present direct product route is explained against the user's current launch request and product-first objective, with no claim of canonical VNext execution.",
+  "reserves": {
+    "R1": "accepted delivery obligations for secondary suites",
+    "R2": "distinct PRE3 .ts suite; original Profile .tsx preserved and rerun"
+  }
+}

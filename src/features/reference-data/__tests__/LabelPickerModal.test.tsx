@@ -1,4 +1,5 @@
-import { act, fireEvent, render, screen } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
+import { Modal, StyleSheet } from "react-native";
 import { describe, expect, it, jest } from "@jest/globals";
 
 import type { Label } from "@/domain/labels/Label";
@@ -42,7 +43,8 @@ function renderModal(
 }
 
 describe("LabelPickerModal — zero or one, toggle off on second touch (A3409468666E5)", () => {
-  it("a touch on an Étiquette selects it and closes the modal", async () => {
+  // Révisé recette 3 (D-355) — auparavant : « a touch on an Étiquette selects it and closes the modal ».
+  it("D-355 — a touch MARKS the Étiquette without closing; ✓ applies it then closes", async () => {
     const onSelect = jest.fn();
     const onClose = jest.fn();
     const service = fakeReferentialService();
@@ -52,12 +54,27 @@ describe("LabelPickerModal — zero or one, toggle off on second touch (A3409468
     await act(async () => {
       fireEvent.press(screen.getByTestId("label-picker-tag-focus"));
     });
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByTestId("label-picker-tag-focus").props.accessibilityState).toMatchObject({ selected: true });
 
-    expect(onSelect).toHaveBeenCalledWith("focus");
+    fireEvent.press(screen.getByTestId("label-picker-confirm"));
+    await waitFor(() => expect(onSelect).toHaveBeenCalledWith("focus"), { timeout: 3000 });
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it("a new touch on the already-selected Étiquette removes the assignment", async () => {
+  it("D-355 — ✕ abandons the marked choice: the previous Étiquette is kept (onSelect never called)", async () => {
+    const onSelect = jest.fn();
+    const onClose = jest.fn();
+    renderModal(fakeReferentialService(), { selectedId: null, onSelect, onClose });
+    fireEvent.press(await screen.findByTestId("label-picker-tag-focus"));
+    fireEvent.press(screen.getByTestId("label-picker-close"));
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  // Révisé recette 3 (D-355) — auparavant : le nouveau toucher retirait l'affectation immédiatement.
+  it("D-355 — a new touch on the marked Étiquette unmarks it; ✓ then confirms the removal (null)", async () => {
     const onSelect = jest.fn();
     const service = fakeReferentialService();
     renderModal(service, { selectedId: "focus", onSelect });
@@ -66,8 +83,11 @@ describe("LabelPickerModal — zero or one, toggle off on second touch (A3409468
     await act(async () => {
       fireEvent.press(screen.getByTestId("label-picker-tag-focus"));
     });
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(screen.getByTestId("label-picker-tag-focus").props.accessibilityState).toMatchObject({ selected: false });
 
-    expect(onSelect).toHaveBeenCalledWith(null);
+    fireEvent.press(screen.getByTestId("label-picker-confirm"));
+    await waitFor(() => expect(onSelect).toHaveBeenCalledWith(null), { timeout: 3000 });
   });
 
   /** R10 (CE-T03-16 L1677) : l'action proposée (choisir/retirer) est distincte du nom et de l'état sélectionné. */
@@ -102,25 +122,38 @@ describe("LabelPickerModal — long-press menu (A03C567FAE159)", () => {
 });
 
 describe("LabelPickerModal — create / modify / delete with reactivation (D2, D4)", () => {
-  it("creates a new Étiquette with the chosen color, selects it and closes", async () => {
+  // Révisé recette 3 (D-355) — auparavant : la création choisissait l'Étiquette et fermait la feuille.
+  it("D-355 — ↑ creates the Étiquette with the colour of the bar, MARKS it, keeps the form (same field: keyboard kept); ✓ then applies it", async () => {
     const onSelect = jest.fn();
     const onClose = jest.fn();
     const service = fakeReferentialService({
+      listLabels: jest.fn(async () => [aLabel(), aLabel({ id: "new-label", name: "Sport", canonicalKey: "sport", color: "#E5484D" })]),
       createLabel: jest.fn(async () => ({
         status: "OK" as const,
-        value: aLabel({ id: "new-label", name: "Sport" }),
+        value: aLabel({ id: "new-label", name: "Sport", canonicalKey: "sport", color: "#E5484D" }),
       })),
     });
     renderModal(service, { onSelect, onClose });
 
     fireEvent.press(await screen.findByTestId("label-picker-create-action"));
-    fireEvent.changeText(screen.getByTestId("label-picker-new-name-input"), "Sport");
+    const input = screen.getByTestId("label-picker-new-name-input");
+    fireEvent.changeText(input, "Sport");
+    fireEvent.press(screen.getByTestId("label-picker-new-color-band-#E5484D"));
     await act(async () => {
+      fireEvent.press(screen.getByTestId("label-picker-new-add"));
       fireEvent.press(screen.getByTestId("label-picker-new-add"));
     });
 
-    expect(service.createLabel).toHaveBeenCalledWith(expect.objectContaining({ name: "Sport" }));
-    expect(onSelect).toHaveBeenCalledWith("new-label");
+    expect(service.createLabel).toHaveBeenCalledTimes(1);
+    expect(service.createLabel).toHaveBeenCalledWith({ name: "Sport", color: "#E5484D" });
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByTestId("label-picker-new-name-input")).toBe(input);
+    expect(input.props.value).toBe("");
+    await waitFor(() => expect(screen.getByTestId("label-picker-tag-new-label").props.accessibilityState).toMatchObject({ selected: true }));
+
+    fireEvent.press(screen.getByTestId("label-picker-confirm"));
+    await waitFor(() => expect(onSelect).toHaveBeenCalledWith("new-label"), { timeout: 3000 });
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -176,15 +209,17 @@ describe("LabelPickerModal — R4/R10 (palette en flux, défilement, en-tête ac
     expect(title.props.accessibilityRole).toBe("header");
   });
 
-  it("renders the create palette inline (never a position: absolute overlay)", async () => {
+  // Révisé recette 3 (N-03) — auparavant : pastille « Couleur » ouvrant une palette déroulante.
+  it("N-03 — the creation colours are an inline horizontal bar of 12 colours (no swatch opening a palette)", async () => {
     const service = fakeReferentialService();
     renderModal(service);
 
     fireEvent.press(await screen.findByTestId("label-picker-create-action"));
-    fireEvent.press(screen.getByLabelText("Couleur"));
-
-    const palette = screen.getByTestId("color-palette-popover");
-    expect(palette.props.style.position).not.toBe("absolute");
+    const band = screen.getByTestId("label-picker-new-color-band");
+    expect(StyleSheet.flatten(band.props.style).position).not.toBe("absolute");
+    expect(within(band).getAllByRole("radio")).toHaveLength(12);
+    expect(screen.queryByLabelText("Couleur")).toBeNull();
+    expect(screen.queryByTestId("color-palette-popover")).toBeNull();
   });
 
   it("shows a write-error message and keeps the modal open and the draft intact when createLabel throws", async () => {
@@ -207,3 +242,125 @@ describe("LabelPickerModal — R4/R10 (palette en flux, défilement, en-tête ac
     expect(onClose).not.toHaveBeenCalled();
   });
 });
+
+describe("LabelPickerModal — recette 3 (N-03 : présentation alignée sur la Catégorie)", () => {
+  it("N-03 — feuille ancrée en bas, pleine largeur, hauteur au contenu ; en-tête ✕ / titre / ✓ avec séparateur ; plus de Fermer / Annuler / Ajouter en bas ; ↑ dans le champ", async () => {
+    renderModal(fakeReferentialService());
+    await screen.findByTestId("label-picker-tag-focus");
+
+    expect(StyleSheet.flatten(screen.getByTestId("label-picker-backdrop").props.style).justifyContent).toBe("flex-end");
+    const sheet = StyleSheet.flatten(screen.getByTestId("label-picker-sheet").props.style);
+    expect(sheet.width).toBe("100%");
+    expect(sheet.height).toBeUndefined();
+    expect(sheet.maxHeight).toBe("90%");
+    const header = screen.getByTestId("label-picker-header");
+    expect(StyleSheet.flatten(header.props.style)).toMatchObject({ borderBottomWidth: 1 });
+    expect(within(header).getByTestId("label-picker-close")).toBeTruthy();
+    expect(within(header).getByTestId("label-picker-confirm").props.accessibilityLabel).toBe("Confirmer l’étiquette");
+    expect(within(header).getByRole("header")).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId("label-picker-create-action"));
+    expect(screen.queryByTestId("label-picker-new-cancel")).toBeNull();
+    expect(screen.queryByText("Fermer")).toBeNull();
+    expect(screen.queryByText("Ajouter")).toBeNull();
+    const send = screen.getByTestId("label-picker-new-add");
+    expect(StyleSheet.flatten(send.props.style)).toMatchObject({ position: "absolute", width: 32, height: 32 });
+    expect(within(screen.getByTestId("label-picker-new-row")).getByText("↑")).toBeTruthy();
+  });
+
+  it("N-03 — pastille de la pilule : Ø 12, marges égales (9) à gauche, en haut et en bas dans la pilule de 30 (contour 1)", async () => {
+    renderModal(fakeReferentialService());
+    const tag = StyleSheet.flatten((await screen.findByTestId("label-picker-tag-focus")).props.style);
+    const swatch = StyleSheet.flatten(screen.getByTestId("label-picker-tag-focus-swatch").props.style);
+    expect(swatch).toMatchObject({ width: 12, height: 12, borderRadius: 6 });
+    const border = tag.borderWidth as number;
+    const left = border + (tag.paddingLeft as number);
+    const vertical = ((tag.height as number) - (swatch.height as number)) / 2;
+    expect(tag.alignItems).toBe("center");
+    expect(left).toBe(vertical);
+    expect(vertical).toBe(9);
+  });
+});
+
+describe("LabelPickerModal — recette 3 (N-01 : appui long avec clavier, Modifier effectif)", () => {
+  it("N-01 — formulaire de création ouvert : l’appui long ouvre le menu en calque (aucun Modal imbriqué → le clavier reste), ✕ conserve le texte ; Modifier ouvre l’édition de l’entrée ciblée, puis la création revient avec son texte", async () => {
+    const service = fakeReferentialService({
+      renameLabel: jest.fn(async () => ({ status: "OK" as const, value: aLabel({ name: "Concentration" }) })),
+      recolorLabel: jest.fn(async () => ({ status: "OK" as const, value: aLabel() })),
+    });
+    renderModal(service);
+    fireEvent.press(await screen.findByTestId("label-picker-create-action"));
+    const createInput = screen.getByTestId("label-picker-new-name-input");
+    fireEvent.changeText(createInput, "Provisoire");
+    const modalsBefore = screen.UNSAFE_getAllByType(Modal).length;
+
+    await act(async () => {
+      fireEvent(screen.getByTestId("label-picker-tag-focus"), "longPress");
+    });
+    expect(screen.getByTestId("label-picker-long-press-card")).toBeTruthy();
+    expect(screen.UNSAFE_getAllByType(Modal)).toHaveLength(modalsBefore);
+    // Le champ reste monté et inchangé derrière le menu (masqué à VoiceOver, accessibilityViewIsModal).
+    expect(screen.getByTestId("label-picker-new-name-input", { includeHiddenElements: true })).toBe(createInput);
+
+    fireEvent.press(screen.getByTestId("label-picker-long-press-cancel"));
+    expect(screen.queryByTestId("label-picker-long-press-card")).toBeNull();
+    expect(screen.getByTestId("label-picker-new-name-input").props.value).toBe("Provisoire");
+
+    await act(async () => {
+      fireEvent(screen.getByTestId("label-picker-tag-focus"), "longPress");
+    });
+    fireEvent.press(screen.getByTestId("label-picker-long-press-modify"));
+    const editInput = screen.getByTestId("label-picker-edit-name-input");
+    expect(editInput.props.value).toBe("Focus");
+    fireEvent.changeText(editInput, "Concentration");
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("label-picker-edit-save"));
+    });
+    expect(service.renameLabel).toHaveBeenCalledWith("focus", "Concentration");
+    expect(service.createLabel).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("label-picker-edit-row")).toBeNull();
+    expect(screen.getByTestId("label-picker-new-name-input").props.value).toBe("Provisoire");
+  });
+});
+
+describe("LabelPickerModal — recette 3 (N-01, dernier écart : clavier sans interruption)", () => {
+  it("N-01 — clavier ouvert → appui long → Modifier → Annuler, puis → Modifier → Enregistrer : le champ focalisé n’est JAMAIS démonté (même instance), la saisie provisoire est conservée", async () => {
+    const service = fakeReferentialService();
+    renderModal(service);
+    fireEvent.press(await screen.findByTestId("label-picker-create-action"));
+    const field = screen.getByTestId("label-picker-new-name-input");
+    fireEvent.changeText(field, "Provisoire");
+    const same = (testID: string) => expect(screen.getByTestId(testID, { includeHiddenElements: true })).toBe(field);
+
+    // Appui long → menu → Modifier : le même champ passe en modification, prérempli.
+    await act(async () => {
+      fireEvent(screen.getByTestId("label-picker-tag-focus"), "longPress");
+    });
+    same("label-picker-new-name-input");
+    fireEvent.press(screen.getByTestId("label-picker-long-press-modify"));
+    same("label-picker-edit-name-input");
+    expect(field.props.value).toBe("Focus");
+    fireEvent.changeText(field, "Brouillon de modification");
+
+    // Annuler : le même champ revient à la création, saisie provisoire intacte, rien d’enregistré.
+    fireEvent.press(screen.getByTestId("label-picker-edit-cancel"));
+    same("label-picker-new-name-input");
+    expect(field.props.value).toBe("Provisoire");
+    expect(service.renameLabel).not.toHaveBeenCalled();
+
+    // Même parcours, puis Enregistrer : même champ, renommage de l’entrée ciblée, retour à la création.
+    await act(async () => {
+      fireEvent(screen.getByTestId("label-picker-tag-focus"), "longPress");
+    });
+    fireEvent.press(screen.getByTestId("label-picker-long-press-modify"));
+    same("label-picker-edit-name-input");
+    fireEvent.changeText(field, "Focus R3");
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("label-picker-edit-save"));
+    });
+    expect(service.renameLabel).toHaveBeenCalledWith(expect.any(String), "Focus R3");
+    same("label-picker-new-name-input");
+    expect(field.props.value).toBe("Provisoire");
+  });
+});
+

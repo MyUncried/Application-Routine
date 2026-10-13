@@ -1,0 +1,379 @@
+{
+  "schema": "kodjo.pre3.proposed-file-scope.work.v1",
+  "baseline": "1ddfb6d144552f578388257adc78db47ab5992c8",
+  "status": "PROPOSED_NOT_APPROVED",
+  "changes": [
+    {
+      "path": "src/domain/activities/ActivityDefinition.ts",
+      "candidateId": "CAND-e0bda1b7f59cf9e8e315ac75",
+      "intent": "ExecutionParameters and full ordered media transport in validation/mappings."
+    },
+    {
+      "path": "src/domain/activities/ActivityDefinitionRepository.ts",
+      "candidateId": "CAND-48929046dfd4c2f264318da5",
+      "intent": "Complete DTO/read model without implicit loss of missing legacy media field."
+    },
+    {
+      "path": "src/domain/sessions/Session.ts",
+      "candidateId": "CAND-4eac38dbad391ead0e73d4e9",
+      "intent": "Occurrence parameters/category/media, explicit recovery unchanged."
+    },
+    {
+      "path": "src/domain/sessions/SessionDraft.ts",
+      "candidateId": "CAND-2be5642ff46a0fe0b8461f4a",
+      "intent": "Four-path adapters, immutable clones, equality and draft guards."
+    },
+    {
+      "path": "src/domain/sessions/validation.ts",
+      "candidateId": "CAND-db5b55781d3693fb3adc18f7",
+      "intent": "Canonical mode-dependent validation; preserve Tours bounds."
+    },
+    {
+      "path": "src/domain/sessions/composition.ts",
+      "candidateId": "CAND-91870493755a8664cc3f75f8",
+      "intent": "Complete duplication and placement-preserving copies."
+    },
+    {
+      "path": "src/domain/sessions/calculations.ts",
+      "candidateId": "CAND-9e6c743911d470fd0b6cdba0",
+      "intent": "Delegate exercise temporal facts to one shared pure authority and aggregate existing structure."
+    },
+    {
+      "path": "src/domain/media/MediaAsset.ts",
+      "candidateId": "CAND-0034e3b8012b9f25019089e2",
+      "intent": "Durable identity/storage path and nullable native metadata."
+    },
+    {
+      "path": "src/domain/media/ActivityMedia.ts",
+      "candidateId": "CAND-d0361e0ce6892ca722865bd7",
+      "intent": "Ordered association types shared by definitions and occurrences."
+    },
+    {
+      "path": "src/domain/media/MediaRepository.ts",
+      "candidateId": "CAND-ac10b9cd1f8ca6832131e125",
+      "intent": "Ordered reads, asset creation and reference checks; no unsafe physical deletion."
+    },
+    {
+      "path": "src/infrastructure/database/types/DatabaseRows.ts",
+      "candidateId": "CAND-1d3426d50a7ebf3819b7cb8e",
+      "intent": "Nullable canonical JSON and media/category columns."
+    },
+    {
+      "path": "src/infrastructure/database/constants.ts",
+      "candidateId": "CAND-053fab1f466f0141df15ae97",
+      "intent": "Database version009 if main still008 before implementation."
+    },
+    {
+      "path": "src/infrastructure/database/migrateDatabase.ts",
+      "candidateId": "CAND-3a6f8fb7173d4ed35fcd53d7",
+      "intent": "Register additive migration009; preserve old files."
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+      "candidateId": "CAND-a175c8ff4e59cd76a71cf61f",
+      "intent": "Canonical atomic writes plus read hydration and non-destructive media update."
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "candidateId": "CAND-4c670e09d50ba2eea77e1e96",
+      "intent": "Canonical occurrences/ordered media and shared domain list totals without N+1."
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteMediaRepository.ts",
+      "candidateId": "CAND-d365b76abbf6f325a16a2443",
+      "intent": "Asset/link reads and validated asset writes on same transaction."
+    },
+    {
+      "path": "src/features/activities/ActivityDefinitionService.ts",
+      "candidateId": "CAND-0c68ebbdcb769cec43ff6c33",
+      "intent": "Shared validation/hydration; repository boundary only."
+    },
+    {
+      "path": "src/features/activities/ActivitySelectionScreen.tsx",
+      "candidateId": "CAND-7d7af9f5a2865c4c7143c104",
+      "intent": "Full definition-copy adapter, new occurrence without automatic recovery."
+    },
+    {
+      "path": "src/features/activities/ActivityEditorForm.tsx",
+      "candidateId": "CAND-e632795dcec0df1b967816d7",
+      "intent": "Complete editor, flowing phrase card, media import states, controlled parent draft."
+    },
+    {
+      "path": "src/features/sessions/ExerciseScreen.tsx",
+      "candidateId": "CAND-3407d77b7b47157b2cec571a",
+      "intent": "Four routes and parent/sheet/abandon boundaries; save once; no automatic recovery."
+    },
+    {
+      "path": "src/features/sessions/SessionService.ts",
+      "candidateId": "CAND-3058fdec7500e732b382f269",
+      "intent": "Canonical input transport and validation without redefining Composition."
+    },
+    {
+      "path": "src/features/sessions/SessionServiceProvider.tsx",
+      "candidateId": "CAND-8ec646d2d9691e4c01eff975",
+      "intent": "Inject media adapters using same established SQLite connection/lifecycle."
+    },
+    {
+      "path": "src/features/sessions/SessionDraftContext.tsx",
+      "candidateId": "CAND-be6e4ddd0319b6ec106ad37f",
+      "intent": "Draft transport/action types as required by complete new parameters."
+    },
+    {
+      "path": "src/features/sessions/SessionDraftProvider.tsx",
+      "candidateId": "CAND-cdbe16f78dbfea3ba5fc1f7d",
+      "intent": "Complete equality/actions and retained parent on error."
+    },
+    {
+      "path": "src/features/sessions/compositionPresentation.ts",
+      "candidateId": "CAND-e2abe931ba4f08e4faf70b0b",
+      "intent": "Minimal shared duration/summary adapters, existing card layout retained."
+    },
+    {
+      "path": "src/features/sessions/formatSessionSummary.ts",
+      "candidateId": "CAND-3c3e5e678fe01c76efc65572",
+      "intent": "Typed exact/estimated/known bound facts, existing structure."
+    },
+    {
+      "path": "src/features/activities/ActivityCard.tsx",
+      "candidateId": "CAND-8286291ab22c66a96947f24b",
+      "intent": "Minimal correct duration/media presentation; no PRE-5 card redesign."
+    },
+    {
+      "path": "src/features/sessions/SessionCard.tsx",
+      "candidateId": "CAND-f615c6971160d0d5a60209bf",
+      "intent": "Correct shared summary only; no redesign."
+    },
+    {
+      "path": "src/features/reference-data/CategoryPickerModal.tsx",
+      "candidateId": "CAND-271b9ab9614b1937333bd393",
+      "intent": "PRE-3 host surfaces faithful to Figma; PRE-2 behavior/empty-name rule preserved."
+    },
+    {
+      "path": "src/features/reference-data/BodyZonePickerModal.tsx",
+      "candidateId": "CAND-974d955e2ee916b6549406f4",
+      "intent": "PRE-3 pills/forms/dialogue surfaces and accessible host selection."
+    },
+    {
+      "path": "src/shared/ui/ProfileStepper.tsx",
+      "candidateId": "CAND-b9fdec994d9ffc1c07592a61",
+      "intent": "Optional execution gesture policy only if this component is selected; default Profile policy preserved and tested."
+    },
+    {
+      "path": "src/shared/ui/tokens.ts",
+      "candidateId": "CAND-d446bd89212b98ac97f9a8dd",
+      "intent": "Only missing observed PRE-3 roles/variants; no global harmonization."
+    },
+    {
+      "path": "package.json",
+      "candidateId": "CAND-4e914ee1eda72635e3d25619",
+      "intent": "SDK57 expo-video dependency for poster only, not execution playback."
+    },
+    {
+      "path": "package-lock.json",
+      "candidateId": "CAND-a5b8170dd3f6c1e1ec1f8e7d",
+      "intent": "Matching reproducible dependency lock only."
+    },
+    {
+      "path": "src/shared/i18n/index.ts",
+      "candidateId": "CAND-e0c1b072930432cb3a6816c2",
+      "intent": "Only actual PRE-3 labels/errors; no translation engine."
+    },
+    {
+      "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "candidateId": "CAND-285b7f83a0f1cadd1a958738",
+      "intent": "Exercise concrete planned assertions for this boundary; preserve baseline obligations."
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+      "candidateId": "CAND-2ea6facb14430d7286568dd6",
+      "intent": "Exercise concrete planned assertions for this boundary; preserve baseline obligations."
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+      "candidateId": "CAND-68374cac6eeb3237f594a05a",
+      "intent": "Exercise concrete planned assertions for this boundary; preserve baseline obligations."
+    },
+    {
+      "path": "src/domain/sessions/__tests__/SessionDraft.test.ts",
+      "candidateId": "CAND-e574f49aedb0c8f6bc01066c",
+      "intent": "Exercise concrete planned assertions for this boundary; preserve baseline obligations."
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+      "candidateId": "CAND-0146d992b7b85a2d3529a000",
+      "intent": "Exercise concrete planned assertions for this boundary; preserve baseline obligations."
+    },
+    {
+      "path": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+      "candidateId": "CAND-c765aa0a5d1284c0fcbf2f36",
+      "intent": "Exercise concrete planned assertions for this boundary; preserve baseline obligations."
+    },
+    {
+      "path": "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+      "candidateId": "CAND-b88155b7cb6dd8666d567937",
+      "intent": "Exercise concrete planned assertions for this boundary; preserve baseline obligations."
+    },
+    {
+      "path": "src/features/sessions/__tests__/formatSessionSummary.test.ts",
+      "candidateId": "CAND-5678639b27566894b98ebc3f",
+      "intent": "Exercise concrete planned assertions for this boundary; preserve baseline obligations."
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+      "candidateId": "CAND-7a5fcedac3004c12cf08d7a0",
+      "intent": "Exercise concrete planned assertions for this boundary; preserve baseline obligations."
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "candidateId": "CAND-7f8c80aac1732842bb845bb3",
+      "intent": "Exercise concrete planned assertions for this boundary; preserve baseline obligations."
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+      "candidateId": "CAND-202fb63ef721916613697bd0",
+      "intent": "Exercise concrete planned assertions for this boundary; preserve baseline obligations."
+    },
+    {
+      "path": "src/features/sessions/__tests__/compositionPresentation.test.ts",
+      "candidateId": "CAND-a999e87c37676ffc9921fc5d",
+      "intent": "Exercise concrete planned assertions for this boundary; preserve baseline obligations."
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivityDefinitionService.test.ts",
+      "candidateId": "CAND-2daccc25e1768a68ea8682c2",
+      "intent": "Regression of complete transports/injection and existing same-connection behavior."
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionService.test.ts",
+      "candidateId": "CAND-b742e7446ef79f7c05d95211",
+      "intent": "Regression of complete transports/injection and existing same-connection behavior."
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "candidateId": "CAND-e1b801e66644daf0cb32fc61",
+      "intent": "Regression of complete transports/injection and existing same-connection behavior."
+    }
+  ],
+  "creations": [
+    {
+      "path": "src/domain/activities/ExecutionParameters.ts",
+      "candidateId": "CAND-6b3f63665b61bd0a9506ded3",
+      "intent": "Canonical versioned parameters, validation, conservative legacy conversion and effective normalization."
+    },
+    {
+      "path": "src/domain/activities/ExecutionParametersDraft.ts",
+      "candidateId": "CAND-c602e20c16b6190faa51cf48",
+      "intent": "Pure isolated draft transitions and temporary restoration."
+    },
+    {
+      "path": "src/domain/activities/executionCalculations.ts",
+      "candidateId": "CAND-59cca3189e818d19b23c3f51",
+      "intent": "Pure ledger-independent product calculation and uniform duration inversion."
+    },
+    {
+      "path": "src/domain/activities/executionPhrase.ts",
+      "candidateId": "CAND-3c9cbb56b01a592989bfd0ca",
+      "intent": "Pure v15 segment emitter; no persisted phrase."
+    },
+    {
+      "path": "src/domain/activities/exerciseSnapshot.ts",
+      "candidateId": "CAND-5836e6098f853e6c7789a3f2",
+      "intent": "Immutable serialization boundary only; no execution engine/history repository."
+    },
+    {
+      "path": "src/domain/media/ActivityMediaImportService.ts",
+      "candidateId": "CAND-af65f766cdcb0d4d0ab7ae64",
+      "intent": "Acquisition/copy/draft-error orchestration and stable retry identities."
+    },
+    {
+      "path": "src/domain/media/MediaDraftLeases.ts",
+      "candidateId": "CAND-1ce888e7bff71a4a4eae78e8",
+      "intent": "Track prepared-file loans to active drafts, no global cleanup."
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration009.ts",
+      "candidateId": "CAND-0787e317e20ec0ae2b76f648",
+      "intent": "Additive JSON/metadata/category/occurrence-link schema."
+    },
+    {
+      "path": "src/infrastructure/media/PhotoLibraryPicker.ts",
+      "candidateId": "CAND-87ca7d1375df5060ec45ae7d",
+      "intent": "Verified SDK57 photo-library-only acquisition and permissions."
+    },
+    {
+      "path": "src/infrastructure/media/LocalMediaStore.ts",
+      "candidateId": "CAND-e70f05b5081ffc493eb69200",
+      "intent": "Stable internal copies and guarded owned-preparation cleanup."
+    },
+    {
+      "path": "src/infrastructure/media/VideoPoster.ts",
+      "candidateId": "CAND-86646cfe8d806c8f52ce29dd",
+      "intent": "Regenerated native poster with explicit native release; no autoplay/audio."
+    },
+    {
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "candidateId": "CAND-7855f2c44cfe7e316ffdecae",
+      "intent": "Complete sheet and inline parameter controls, fixed header/scrolling body."
+    },
+    {
+      "path": "src/features/activities/ActivityMediaList.tsx",
+      "candidateId": "CAND-5771091f46c6d2947438e316",
+      "intent": "Ordered items, visible import/errors/retry and accessible move/remove commands."
+    },
+    {
+      "path": "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+      "candidateId": "CAND-5212fa991217515b0112ba23",
+      "intent": "Meaningful tests mapped in assertions-recette.json; application results not yet produced."
+    },
+    {
+      "path": "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+      "candidateId": "CAND-aee38456c5031cf7f9afc0e2",
+      "intent": "Meaningful tests mapped in assertions-recette.json; application results not yet produced."
+    },
+    {
+      "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+      "candidateId": "CAND-e0af8ec640affd4d2f853805",
+      "intent": "Meaningful tests mapped in assertions-recette.json; application results not yet produced."
+    },
+    {
+      "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+      "candidateId": "CAND-0b6b563dd127b9cd2a46fa38",
+      "intent": "Meaningful tests mapped in assertions-recette.json; application results not yet produced."
+    },
+    {
+      "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+      "candidateId": "CAND-b9ab15323341a793b6985ee5",
+      "intent": "Meaningful tests mapped in assertions-recette.json; application results not yet produced."
+    },
+    {
+      "path": "src/domain/activities/__tests__/exerciseSnapshot.test.ts",
+      "candidateId": "CAND-82d06ac4a7abe75204495781",
+      "intent": "Meaningful tests mapped in assertions-recette.json; application results not yet produced."
+    },
+    {
+      "path": "src/shared/ui/__tests__/ProfileStepper.test.ts",
+      "candidateId": "CAND-5b3bb218708529ce4cb9e110",
+      "intent": "Meaningful tests mapped in assertions-recette.json; application results not yet produced."
+    },
+    {
+      "path": "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+      "candidateId": "CAND-16f9e17c878f5096bef640a3",
+      "intent": "Meaningful tests mapped in assertions-recette.json; application results not yet produced."
+    },
+    {
+      "path": "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+      "candidateId": "CAND-27f5805fa8210452685ab6b1",
+      "intent": "Meaningful tests mapped in assertions-recette.json; application results not yet produced."
+    },
+    {
+      "path": "src/infrastructure/media/__tests__/VideoPoster.test.ts",
+      "candidateId": "CAND-d62f80b37470b158f8261ab8",
+      "intent": "Meaningful tests mapped in assertions-recette.json; application results not yet produced."
+    }
+  ],
+  "limits": [
+    "CandidateManifest/direct scan are actual VNext constructor artifacts; this proposal is not an ImpactGraph or approved write scope.",
+    "Every direct importer must receive a causal per-requirement classification before PlanContract.",
+    "Optional shared-control adaptations must be justified by the real interface; no unconditional Profile rewrite."
+  ]
+}

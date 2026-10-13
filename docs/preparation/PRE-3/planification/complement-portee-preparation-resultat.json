@@ -1,0 +1,68 @@
+{
+  "operation": 340,
+  "status": "SCOPE_PROPOSAL_READY_NOT_AUTHORIZED",
+  "original_produced_hash": "603de045f94fec3f14aa2198edaaad0b91020b79adddb19041b06314cc725e16",
+  "original_receipt_hash": "56568e7ae81d44c60cb5185d0b69f3099fb64650953804dbf322e478d3845ce9",
+  "original_report_hash": "4f71752587436a8cc338e2cb74ee650752e9d736502a51b3668241ed0118119d",
+  "request_hash": "f11d5172f9cfbca39bb162163da8d8c50ed2857d974f7bb31eb7d6c844edbb19",
+  "requests": [
+    {
+      "finding_id": "FND-22dcb4343aeee5008ae82f42",
+      "candidate_targets": 838
+    },
+    {
+      "finding_id": "FND-2aa59b7187ade34c38f136a7",
+      "candidate_targets": 835
+    },
+    {
+      "finding_id": "FND-45a23a9dc1c196e22ec192fd",
+      "candidate_targets": 93
+    },
+    {
+      "finding_id": "FND-50bc1bd53db4592408b49677",
+      "candidate_targets": 836
+    },
+    {
+      "finding_id": "FND-50fdbd72bbdd504a27290581",
+      "candidate_targets": 838
+    },
+    {
+      "finding_id": "FND-5b6a6d10170c7a649a2c3861",
+      "candidate_targets": 835
+    },
+    {
+      "finding_id": "FND-6bcfecf4fd3ab1c1e7461630",
+      "candidate_targets": 6289
+    },
+    {
+      "finding_id": "FND-8b2fcbd1b778ea06ee6cb2f0",
+      "candidate_targets": 838
+    },
+    {
+      "finding_id": "FND-aa97db96722333411e8d8c28",
+      "candidate_targets": 3732
+    },
+    {
+      "finding_id": "FND-c3c9529d7f622ac36707b163",
+      "candidate_targets": 837
+    },
+    {
+      "finding_id": "FND-d9a6d1286f3e1a2ae2ca7bbf",
+      "candidate_targets": 834
+    },
+    {
+      "finding_id": "FND-f5a1a0b6656cdff169dd0517",
+      "candidate_targets": 836
+    },
+    {
+      "finding_id": "FND-f86f8d67160a71a69c7cfcd7",
+      "candidate_targets": 835
+    }
+  ],
+  "candidate_target_total": 18476,
+  "unique_candidate_targets": 10859,
+  "original_objects_unchanged": true,
+  "independent_review": false,
+  "owner_plan_approval": false,
+  "implementation_started": false
+}

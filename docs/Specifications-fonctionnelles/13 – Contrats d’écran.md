@@ -150,11 +150,11 @@ Avancement vers l’écran suivant : cible entre depuis la droite, écran couran
 
 Les modales `Étiquettes`, `Catégorie` et `Zones corporelles` partagent le même contrat :
 
-- appui court : choix simple Catégorie/Étiquette validé au toucher et fermeture ; choix multiple Zones sélectionné/désélectionné puis confirmé ;
-- appui long : aucun changement de sélection ni désaffectation ; ouverture d’un `Overlay / Decision Dialog` proposant `Modifier` (renommer ; couleur pour Catégorie et Étiquette) et `Supprimer` (D-259) ;
+- appui court : Étiquette marquée au toucher (nouveau toucher : démarquée) puis confirmée par ✓ (D-355) ; Catégorie d’Exercice marquée au toucher puis confirmée par ✓ (D-343) ; choix multiple Zones sélectionné/désélectionné puis confirmé ;
+- appui long : aucun changement de sélection ni désaffectation ; ouverture d’un `Overlay / Decision Dialog` proposant `Modifier` (renommer ; couleur pour Catégorie et Étiquette) et `Supprimer` (D-259), dans la fenêtre de la feuille, sans masquer le clavier déjà affiché (D-354) ;
 - titre dynamique : `Supprimer « {nom} » ?` ;
 - message dynamique : si la valeur est utilisée, préciser qu’elle disparaît des nouveaux choix mais reste attachée aux objets existants, avec son nom et sa dernière couleur ; l’historique reste inchangé ;
-- actions : `Annuler`, `Modifier`, `Supprimer` ; `Supprimer` demande la confirmation destructive ci-dessus ; `Modifier` ouvre la saisie du nom (et la palette pour Catégorie/Étiquette) avec les composants existants ;
+- actions : ✕ rond en haut à gauche, puis `Modifier` (bleu Kodjo) et `Supprimer` (rouge) sur une ligne, texte blanc (D-354) ; `Supprimer` demande la confirmation destructive ci-dessus ; `Modifier` ouvre la saisie du nom de l’entrée visée, même formulaire de création ouvert (dont le texte est conservé) (et la palette pour Catégorie/Étiquette) avec les composants existants ;
 - toutes les valeurs sont concernées, y compris les valeurs initiales fournies par KODJO ;
 - après `Supprimer`, revenir à la modale de sélection restée ouverte, avec la valeur supprimée absente ;
 - une affectation existante reste sélectionnée et peut être conservée à l’enregistrement ; une nouvelle affectation à cette valeur retirée n’est plus permise ;
@@ -1867,7 +1867,7 @@ Action Étiquette dans CE-T03-08, avec sélection courante et brouillon conserv�
 
 ### 4. Contexte de sortie / destinations
 
-Choix simple valide au toucher puis ferme vers Composition ; fermer sans choix laisse la sélection antérieure. Un nouvel appui sur l’Étiquette sélectionnée retire l’affectation et revient à zéro Étiquette (D-259). Nouvelle Étiquette ouvre la création dans cette famille.
+Toucher marque une Étiquette ; ✓ applique le choix puis ferme vers Composition ; ✕ laisse la sélection antérieure. Un nouveau toucher sur l’Étiquette marquée la démarque ; ✓ confirme alors le retrait (zéro Étiquette) (D-355, remplace le choix au toucher et D-259 sur ce point). Nouvelle Étiquette ouvre la création dans cette famille.
 
 ### 5. Données affichées et source de vérité
 
@@ -3128,7 +3128,7 @@ Accès Catégorie ou Zones depuis éditeur persistant/local, avec brouillon cons
 
 ### 4. Contexte de sortie / destinations
 
-Catégorie choisie au toucher → éditeur ; Zones sélection multiple puis validation de la modale → éditeur ; fermer sans validation restaure sélection antérieure. Création/suppression restent dans la famille de sélection.
+Catégorie marquée au toucher (ou créée par ↑ et marquée), confirmée par ✓ → éditeur ; ✕ conserve la Catégorie précédente, une Catégorie créée reste dans le référentiel (D-343) ; Zones sélection multiple puis validation de la modale → éditeur ; fermer sans validation restaure sélection antérieure. Création/suppression restent dans la famille de sélection.
 
 ### 5. Données affichées et source de vérité
 
@@ -3142,7 +3142,7 @@ Noms et couleurs dynamiques ; dix zones initiales sont un jeu de départ, pas un
 
 ### 7. Structure de l’écran
 
-Modale de choix, création inline avec clavier, palette seulement Catégorie, dialogue destructif centré sur appui long.
+Modale de choix, création inline avec clavier (action ↑ dans le champ, ↑ enregistre sans fermer le clavier ni la feuille — D-350 ; sans bouton Annuler : ✕ ferme la feuille ; espace réduit au-dessus du clavier — D-347), palette seulement Catégorie, dialogue destructif centré sur appui long.
 
 ### 8. Éléments obligatoires
 
@@ -3150,7 +3150,7 @@ Catégorie 1 et Zones≥1 pour nouvel Exercice ; nouvelle valeur nommée ; annul
 
 ### 9. Layout déterministe
 
-Modales D-228 ; pastille Catégorie colorée et nom ; Zones icône silhouette depuis Profil ; palette de 4474:7157. Les Zones n’ont pas de palette.
+Modales D-228 ; pastille Catégorie colorée et nom ; Zones icône silhouette depuis Profil ; palette de 4474:7157 : barre de couleurs sous le champ, sans pastille séparée, 12 couleurs D-026 (D-344). Les Zones n’ont pas de palette.
 
 Actions destructives : token danger#D92D20 ; séparateurs#E0E3E8 et labels par rôle DSF. Aucune reprise des anciens rouges locaux.
 
@@ -3204,7 +3204,7 @@ Vérifier les deux silhouettes et le retour au repos après validation/annulatio
 
 ### 21. Traçabilité
 
-Les6frames de référentiels ont été réexportées et contrôlées le03/10 : rendu identique aux PNG publiés. ✓ sur Catégorie reste un écart à D-222 ; validation simple au toucher conservée. Les paramètres variables du parent sont conservés durant ces opérations.
+Les6frames de référentiels ont été réexportées et contrôlées le03/10 : rendu identique aux PNG publiés. ✓ sur Catégorie : règle depuis D-343 (12/10), qui remplace pour la Catégorie de l’Exercice la validation simple au toucher de D-222. Les paramètres variables du parent sont conservés durant ces opérations.
 
 D-199/D-200/D-210–212/D-222/D-238 ; CE-T03-04 ; frames§1. Renommage et couleur via Modifier du dialogue d’appui long (D-259), composants existants ; rendu prouvé en recette.
 

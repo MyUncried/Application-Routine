@@ -1,0 +1,560 @@
+{
+  "schema": "kodjo.pre3.independent-closure-checks.v1",
+  "operation": 340,
+  "reviewer": "ChatGPT/Codex (independent of Claude implementation)",
+  "reviewed_parent": "64174128fe1e2c82fccf44fc6b17628d49185571",
+  "source_sha256": {
+    "src/features/activities/ExecutionParametersSheet.tsx": "dabaf7858f7749a4d59b48901c5571fc598a50382c16102c34d1a7c362327eb4",
+    "src/shared/ui/SegmentedControl.tsx": "fb8e09d89f5599fef7b9a3926a70174db283251afe232a7b19b3110aa554e60e"
+  },
+  "environment": {
+    "os": "Linux",
+    "node": "24.19.0",
+    "jest": "29.7.0"
+  },
+  "checks": [
+    {
+      "command": "node node_modules/jest/bin/jest.js --runInBand --silent --json --outputFile=/tmp/pre3-closure-jest-final.json",
+      "exit_code": 0,
+      "suites": 98,
+      "passed_tests": 1970,
+      "failed_tests": 0,
+      "result_sha256": "79b26e29c11bf73c95a03c6d3dd46378f3489d4b26797e552498703e9755e7cd"
+    },
+    {
+      "command": "npx tsc --noEmit -p .",
+      "exit_code": 0
+    },
+    {
+      "command": "npx eslint src app",
+      "exit_code": 0
+    },
+    {
+      "command": "npx jest --runInBand --silent --testRegex 'revue-independent-transitions.repro.tsx$' --runTestsByPath docs/preparation/PRE-3/planification/execution/preuves/revue-independent-transitions.repro.tsx",
+      "exit_code": 0,
+      "tests": 3,
+      "scope": "same original adversarial assertions, no edits"
+    },
+    {
+      "command": "node docs/preparation/PRE-3/planification/passe2/verifier-passe2.cjs",
+      "exit_code": 0,
+      "checks": 2143,
+      "scope": "frozen plan integrity; its historical open_findings fields do not re-open the subsequently approved plan"
+    },
+    {
+      "command": "independent join actual Jest fullName/status/path to 442 delivered test obligations",
+      "matched": 442,
+      "total": 442
+    }
+  ],
+  "initial_process_failure": {
+    "assertions_passed": 1970,
+    "exit_code": 1,
+    "cause": "requestAnimationFrame callbacks outliving teardown in ExecutionParametersSheet and CatalogueScreen; missing cleanup in two animation effects",
+    "corrected": "stop each animation in effect cleanup; no --forceExit, timer masking or dropped assertions"
+  },
+  "suites": [
+    {
+      "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "status": "passed",
+      "passed": 26
+    },
+    {
+      "path": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "status": "passed",
+      "passed": 5
+    },
+    {
+      "path": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+      "status": "passed",
+      "passed": 165
+    },
+    {
+      "path": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "status": "passed",
+      "passed": 2
+    },
+    {
+      "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+      "status": "passed",
+      "passed": 45
+    },
+    {
+      "path": "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
+      "status": "passed",
+      "passed": 25
+    },
+    {
+      "path": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+      "status": "passed",
+      "passed": 27
+    },
+    {
+      "path": "src/features/reference-data/__tests__/LabelPickerModal.test.tsx",
+      "status": "passed",
+      "passed": 15
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+      "status": "passed",
+      "passed": 70
+    },
+    {
+      "path": "src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
+      "status": "passed",
+      "passed": 42
+    },
+    {
+      "path": "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+      "status": "passed",
+      "passed": 24
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+      "status": "passed",
+      "passed": 20
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "status": "passed",
+      "passed": 58
+    },
+    {
+      "path": "src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx",
+      "status": "passed",
+      "passed": 12
+    },
+    {
+      "path": "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+      "status": "passed",
+      "passed": 5
+    },
+    {
+      "path": "src/features/preferences/__tests__/ProfileEditScreen.test.tsx",
+      "status": "passed",
+      "passed": 13
+    },
+    {
+      "path": "src/features/sessions/__tests__/NumberWheelPicker.test.tsx",
+      "status": "passed",
+      "passed": 29
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+      "status": "passed",
+      "passed": 8
+    },
+    {
+      "path": "src/shared/ui/__tests__/TabsLayoutSearch.integration.test.tsx",
+      "status": "passed",
+      "passed": 9
+    },
+    {
+      "path": "src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx",
+      "status": "passed",
+      "passed": 9
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+      "status": "passed",
+      "passed": 26
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionDraftProvider.test.tsx",
+      "status": "passed",
+      "passed": 14
+    },
+    {
+      "path": "src/features/preferences/__tests__/ProfileScreen.test.tsx",
+      "status": "passed",
+      "passed": 16
+    },
+    {
+      "path": "src/features/sessions/__tests__/BodyZoneSelector.test.tsx",
+      "status": "passed",
+      "passed": 10
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "status": "passed",
+      "passed": 10
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteCategoryRepository.test.ts",
+      "status": "passed",
+      "passed": 17
+    },
+    {
+      "path": "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
+      "status": "passed",
+      "passed": 6
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteLabelRepository.test.ts",
+      "status": "passed",
+      "passed": 15
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteBodyZoneRepository.test.ts",
+      "status": "passed",
+      "passed": 13
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "status": "passed",
+      "passed": 20
+    },
+    {
+      "path": "src/features/activities/__tests__/useActivityCatalogue.test.ts",
+      "status": "passed",
+      "passed": 4
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivityCard.test.tsx",
+      "status": "passed",
+      "passed": 7
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteProfileRepository.test.ts",
+      "status": "passed",
+      "passed": 10
+    },
+    {
+      "path": "src/features/reference-data/__tests__/ReferenceValueDialog.test.tsx",
+      "status": "passed",
+      "passed": 15
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionCard.test.tsx",
+      "status": "passed",
+      "passed": 14
+    },
+    {
+      "path": "src/shared/ui/__tests__/ProfileStepper.test.tsx",
+      "status": "passed",
+      "passed": 11
+    },
+    {
+      "path": "src/features/sessions/__tests__/ColorPalette.test.tsx",
+      "status": "passed",
+      "passed": 11
+    },
+    {
+      "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+      "status": "passed",
+      "passed": 285
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivityCatalogueList.test.tsx",
+      "status": "passed",
+      "passed": 4
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivityMediaList.test.tsx",
+      "status": "passed",
+      "passed": 2
+    },
+    {
+      "path": "src/shared/ui/__tests__/DisclosureControl.test.tsx",
+      "status": "passed",
+      "passed": 12
+    },
+    {
+      "path": "src/shared/ui/__tests__/SegmentedControl.test.tsx",
+      "status": "passed",
+      "passed": 15
+    },
+    {
+      "path": "src/features/sessions/__tests__/AbandonCreationModal.test.tsx",
+      "status": "passed",
+      "passed": 15
+    },
+    {
+      "path": "src/domain/sessions/__tests__/validation.test.ts",
+      "status": "passed",
+      "passed": 76
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+      "status": "passed",
+      "passed": 5
+    },
+    {
+      "path": "app/__tests__/rootLayoutGesture.test.tsx",
+      "status": "passed",
+      "passed": 3
+    },
+    {
+      "path": "src/shared/ui/__tests__/ScreenShell.test.tsx",
+      "status": "passed",
+      "passed": 9
+    },
+    {
+      "path": "src/shared/ui/__tests__/BodyZoneIcon.test.tsx",
+      "status": "passed",
+      "passed": 4
+    },
+    {
+      "path": "src/features/sessions/__tests__/ExerciseExitConfirmModal.test.tsx",
+      "status": "passed",
+      "passed": 15
+    },
+    {
+      "path": "src/features/diagnostics/__tests__/UpdatesDiagnosticScreen.test.tsx",
+      "status": "passed",
+      "passed": 3
+    },
+    {
+      "path": "src/domain/media/__tests__/MediaRepository.test.ts",
+      "status": "passed",
+      "passed": 5
+    },
+    {
+      "path": "src/features/activities/__tests__/CatalogueCreateOptions.test.tsx",
+      "status": "passed",
+      "passed": 8
+    },
+    {
+      "path": "src/shared/ui/__tests__/ProfileStepper.test.ts",
+      "status": "passed",
+      "passed": 3
+    },
+    {
+      "path": "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+      "status": "passed",
+      "passed": 4
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionDraftContext.test.tsx",
+      "status": "passed",
+      "passed": 4
+    },
+    {
+      "path": "src/features/sessions/__tests__/WheelPickerOverlay.test.tsx",
+      "status": "passed",
+      "passed": 3
+    },
+    {
+      "path": "src/features/sessions/__tests__/useCompositionExitGuard.test.ts",
+      "status": "passed",
+      "passed": 12
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/initializeDatabase.test.ts",
+      "status": "passed",
+      "passed": 3
+    },
+    {
+      "path": "src/features/sessions/__tests__/SideModeControl.test.tsx",
+      "status": "passed",
+      "passed": 13
+    },
+    {
+      "path": "src/shared/ui/__tests__/TransientNotification.test.tsx",
+      "status": "passed",
+      "passed": 12
+    },
+    {
+      "path": "src/features/sessions/__tests__/compositionPresentation.test.ts",
+      "status": "passed",
+      "passed": 97
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionServiceContext.test.tsx",
+      "status": "passed",
+      "passed": 2
+    },
+    {
+      "path": "src/features/sessions/__tests__/useSessionCatalogue.test.ts",
+      "status": "passed",
+      "passed": 9
+    },
+    {
+      "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+      "status": "passed",
+      "passed": 28
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivityDefinitionService.test.ts",
+      "status": "passed",
+      "passed": 11
+    },
+    {
+      "path": "src/domain/sessions/__tests__/calculations.test.ts",
+      "status": "passed",
+      "passed": 40
+    },
+    {
+      "path": "src/shared/ui/__tests__/RootErrorFallback.test.tsx",
+      "status": "passed",
+      "passed": 1
+    },
+    {
+      "path": "src/domain/labels/__tests__/Label.test.ts",
+      "status": "passed",
+      "passed": 13
+    },
+    {
+      "path": "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+      "status": "passed",
+      "passed": 30
+    },
+    {
+      "path": "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+      "status": "passed",
+      "passed": 26
+    },
+    {
+      "path": "src/domain/sessions/__tests__/SessionDraft.test.ts",
+      "status": "passed",
+      "passed": 47
+    },
+    {
+      "path": "src/shared/ui/__tests__/RootErrorBoundary.test.tsx",
+      "status": "passed",
+      "passed": 2
+    },
+    {
+      "path": "src/shared/ui/__tests__/visualAssets.test.ts",
+      "status": "passed",
+      "passed": 5
+    },
+    {
+      "path": "app/__tests__/creationLayout.test.tsx",
+      "status": "passed",
+      "passed": 2
+    },
+    {
+      "path": "src/domain/body-zones/__tests__/BodyZone.test.ts",
+      "status": "passed",
+      "passed": 10
+    },
+    {
+      "path": "src/domain/sessions/__tests__/composition.test.ts",
+      "status": "passed",
+      "passed": 33
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionService.test.ts",
+      "status": "passed",
+      "passed": 23
+    },
+    {
+      "path": "src/shared/i18n/index.test.ts",
+      "status": "passed",
+      "passed": 45
+    },
+    {
+      "path": "src/infrastructure/media/__tests__/VideoPoster.test.ts",
+      "status": "passed",
+      "passed": 3
+    },
+    {
+      "path": "src/shared/ui/__tests__/tokensSpecification.test.ts",
+      "status": "passed",
+      "passed": 4
+    },
+    {
+      "path": "src/domain/categories/__tests__/validation.test.ts",
+      "status": "passed",
+      "passed": 9
+    },
+    {
+      "path": "src/domain/activities/__tests__/exerciseSnapshot.test.ts",
+      "status": "passed",
+      "passed": 4
+    },
+    {
+      "path": "src/domain/activities/__tests__/ActivityDefinition.test.ts",
+      "status": "passed",
+      "passed": 23
+    },
+    {
+      "path": "src/features/sessions/__tests__/formatSessionSummary.test.ts",
+      "status": "passed",
+      "passed": 25
+    },
+    {
+      "path": "src/features/preferences/__tests__/profilePhoto.test.ts",
+      "status": "passed",
+      "passed": 9
+    },
+    {
+      "path": "src/features/sessions/__tests__/wheelPickerMath.test.ts",
+      "status": "passed",
+      "passed": 35
+    },
+    {
+      "path": "src/features/reference-data/__tests__/ReferentialService.test.ts",
+      "status": "passed",
+      "passed": 3
+    },
+    {
+      "path": "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+      "status": "passed",
+      "passed": 6
+    },
+    {
+      "path": "src/features/sessions/__tests__/compositionGesture.test.ts",
+      "status": "passed",
+      "passed": 19
+    },
+    {
+      "path": "src/domain/preferences/__tests__/Profile.test.ts",
+      "status": "passed",
+      "passed": 24
+    },
+    {
+      "path": "src/features/reference-data/__tests__/bodyZones.test.ts",
+      "status": "passed",
+      "passed": 8
+    },
+    {
+      "path": "src/features/preferences/__tests__/ProfileService.test.ts",
+      "status": "passed",
+      "passed": 10
+    },
+    {
+      "path": "tests/kodjo-prod-qualif/preflight.test.ts",
+      "status": "passed",
+      "passed": 1
+    },
+    {
+      "path": "src/domain/categories/__tests__/matching.test.ts",
+      "status": "passed",
+      "passed": 3
+    },
+    {
+      "path": "tests/fixtures/vnext12/core.test.js",
+      "status": "passed",
+      "passed": 1
+    },
+    {
+      "path": "src/domain/sessions/__tests__/sideMode.test.ts",
+      "status": "passed",
+      "passed": 6
+    },
+    {
+      "path": "src/domain/sessions/__tests__/StopPoint.test.ts",
+      "status": "passed",
+      "passed": 6
+    },
+    {
+      "path": "src/shared/ui/__tests__/navigationLayout.test.ts",
+      "status": "passed",
+      "passed": 4
+    }
+  ],
+  "scope": {
+    "base_plan": "43e7b344937a2d60b04b987f19636faebb5aee06",
+    "paths": [
+      "src/features/activities/ExecutionParametersSheet.tsx",
+      "src/shared/ui/SegmentedControl.tsx"
+    ],
+    "authority": "ExecutionParametersSheet in original scope; SegmentedControl extension X-1 expressly authorized on12/10 and delivered6fd6d40d, plus minimal causal cleanup needed by closure instruction",
+    "original_scope_checker": "OUTSIDE_APPROVED_SCOPE for SegmentedControl: immutable original scope excludes the later authorized X-1; not reported PASS",
+    "protocol_changed": false
+  },
+  "visual_evidence": "owner global final acceptance; no automatic pixel or VoiceOver attestation fabricated",
+  "publication": "new OTA for this cleanup is pending; old29d149bd OTA remains historical validated product"
+}

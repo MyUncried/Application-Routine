@@ -26,6 +26,10 @@ import {
   DEFAULT_STRUCTURAL_POSITION,
   DEFAULT_TOUR_REPEAT_COUNT,
 } from "@/domain/sessions/defaults";
+import { activityDefinitionToDraftExercise, type ActivityDefinition } from "@/domain/activities/ActivityDefinition";
+import type { ExecutionParameters } from "@/domain/activities/ExecutionParameters";
+import type { MediaAsset } from "@/domain/media/MediaAsset";
+import { duplicateActivity } from "@/domain/sessions/composition";
 
 describe("createEmptyDraft", () => {
   it("initializes every field from the canonical defaults, with no Activity and no Category yet", () => {
@@ -769,5 +773,142 @@ describe("side mode across the draft (V2-BILAT-01, portée exclusivement par l'E
     if (updated.ok) {
       expect(updated.value.activities[0]?.sideMode).toBe("RIGHT_LEFT");
     }
+  });
+});
+
+/**
+ * PRE-3 — copies complètes et isolation (P3-01/copy-isolation, P3-18/copy-complete).
+ */
+describe("PRE-3 — copie Catalogue → Séance et duplication (paramètres, Catégorie, médias)", () => {
+  const parameters: ExecutionParameters = {
+    version: 1,
+    mode: "DURATION",
+    series: {
+      kind: "VARIABLE",
+      rows: [
+        { target: 30, pauseSeconds: 10 },
+        { target: 45, pauseSeconds: 20 },
+      ],
+    },
+    sideMode: "RIGHT_LEFT",
+    sideOrder: "BY_SERIES",
+    sideRecoverySeconds: 15,
+    cadenceBeepIntervalSeconds: 4,
+    countdownSeconds: 10,
+    endSeconds: 5,
+  };
+  const photo: MediaAsset = { id: "p1", uri: "kodjo-media/p1.jpg", createdAt: "now", kind: "PHOTO" };
+  const video: MediaAsset = { id: "v1", uri: "kodjo-media/v1.mov", createdAt: "now", kind: "VIDEO", durationMs: 1000 };
+  const definition: ActivityDefinition = {
+    id: "def-1",
+    name: "Fentes",
+    description: null,
+    executionMode: "DURATION",
+    durationSeconds: 30,
+    repetitionCount: null,
+    seriesCount: 2,
+    pauseSeconds: 10,
+    categoryId: "cardio",
+    bodyZoneIds: ["cuisses"],
+    sideMode: "RIGHT_LEFT",
+    sideRecoverySeconds: 15,
+    executionParameters: parameters,
+    media: [
+      { id: "l1", activityDefinitionId: "def-1", assetId: "v1", position: 0, asset: video },
+      { id: "l2", activityDefinitionId: "def-1", assetId: "p1", position: 1, asset: photo },
+    ],
+    createdAt: "now",
+    updatedAt: "now",
+  };
+
+  it("P3-18/copy-complete — la copie porte paramètres, Catégorie et médias ordonnés (mêmes fichiers), sans R automatique", () => {
+    const copy = activityDefinitionToDraftExercise(definition, "occ-1", 0);
+    expect(copy.executionParameters).toEqual(parameters);
+    expect(copy.executionParameters).not.toBe(parameters);
+    expect(copy.categoryId).toBe("cardio");
+    expect(copy.media?.map((item) => [item.assetId, item.asset.uri])).toEqual([
+      ["v1", "kodjo-media/v1.mov"],
+      ["p1", "kodjo-media/p1.jpg"],
+    ]);
+    expect(copy.postActivityRecoverySeconds).toBe(0);
+    const created = toCreateSessionInput({ ...createEmptyDraft(), name: "S", exercises: [copy] });
+    expect(created.ok && created.value.exercises[0]).toEqual(
+      expect.objectContaining({
+        executionParameters: parameters,
+        categoryId: "cardio",
+        media: [
+          { assetId: "v1", asset: video },
+          { assetId: "p1", asset: photo },
+        ],
+      }),
+    );
+  });
+
+  it("P3-01/copy-isolation — deux copies et la définition gardent leurs propres valeurs et médias", () => {
+    const first = activityDefinitionToDraftExercise(definition, "occ-1", 0);
+    const second = activityDefinitionToDraftExercise(definition, "occ-2", 0);
+    const duplicated = duplicateActivity([first, second], "occ-1", "occ-3");
+    (first.executionParameters!.series as unknown as { rows: { target: number | null }[] }).rows[0]!.target = 999;
+    (first.media as unknown as { assetId: string }[]).splice(0, 1);
+    expect(second.executionParameters).toEqual(parameters);
+    expect(second.media).toHaveLength(2);
+    expect(duplicated[1]!.executionParameters).toEqual(parameters);
+    expect(duplicated[1]!.media).toHaveLength(2);
+    expect(definition.executionParameters).toEqual(parameters);
+    expect(definition.media).toHaveLength(2);
+  });
+
+  it("l'égalité de brouillon tient compte des paramètres, de la Catégorie et de l'ordre des médias (garde d'abandon)", () => {
+    const copy = activityDefinitionToDraftExercise(definition, "occ-1", 0);
+    expect(exerciseEquals(copy, { ...copy })).toBe(true);
+    expect(exerciseEquals(copy, { ...copy, media: [...(copy.media ?? [])].reverse() })).toBe(false);
+    expect(exerciseEquals(copy, { ...copy, categoryId: "autre" })).toBe(false);
+    expect(
+      exerciseEquals(copy, { ...copy, executionParameters: { ...parameters, cadenceBeepIntervalSeconds: 0 } }),
+    ).toBe(false);
+  });
+
+  it("une occurrence relue transporte ses paramètres et médias jusqu'à toUpdateSessionInput", () => {
+    const activity: Activity = {
+      id: "occ-9",
+      type: "EXERCISE",
+      executionMode: "DURATION",
+      structuralPosition: "IN_TOUR",
+      position: 0,
+      name: "Fentes",
+      durationSeconds: 30,
+      repetitionCount: null,
+      seriesCount: 2,
+      pauseSeconds: 10,
+      postActivityRecoverySeconds: 30,
+      instruction: null,
+      bodyZoneIds: ["cuisses"],
+      sideMode: "RIGHT_LEFT",
+      executionParameters: parameters,
+      categoryId: "cardio",
+      media: [{ id: "sl1", activityId: "occ-9", assetId: "v1", position: 0, asset: video }],
+    };
+    const session: Session = {
+      id: "s",
+      ownerId: "o",
+      name: "S",
+      color: DEFAULT_SESSION_COLOR,
+      status: "ACTIVE",
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      createdAt: "now",
+      updatedAt: "now",
+      cycle: { id: "c", position: 1, repeatCount: 1, tour: { id: "t", position: 1, repeatCount: 1, exercises: [activity] } },
+    };
+    const update = toUpdateSessionInput(toSessionDraft(session));
+    expect(update.ok && update.value.activities[0]).toEqual(
+      expect.objectContaining({
+        id: "occ-9",
+        executionParameters: parameters,
+        categoryId: "cardio",
+        media: [{ assetId: "v1", asset: video }],
+        postActivityRecoverySeconds: 30,
+      }),
+    );
   });
 });

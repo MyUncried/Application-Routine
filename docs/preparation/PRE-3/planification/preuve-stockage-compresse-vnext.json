@@ -1,0 +1,27 @@
+{
+  "scope": "PRE3_SOURCE_STORAGE_ONLY",
+  "source_document_revision": "a221ab963169bc99a9c3261e1830c834ce86f956",
+  "storage_format": "kodjo.vnext.figma-storage.v1",
+  "bytes": 7184414,
+  "sha256": "b70da22f85019d3cb390c90006294286aa57b2f074afcf2c2fc8f8d54f31ee56",
+  "git_blob": "552b30d35fed8681e768ed074376f182a276c1dc",
+  "local_unreferenced_evidence_commit": "1ee408964c3d086f2e694ac28f7f1bc9d116d489",
+  "contract_hash": "4373280fd2b309bc9f150ea0b4f1462df0c19a370dd03e0c15142c061d83fcf9",
+  "nodes": 7369,
+  "properties": 471135,
+  "frames": 41,
+  "document_states": 95,
+  "reconstruction_equal": true,
+  "production_read_git": "PASS",
+  "github_create_blob": "PASS",
+  "canonical_launch_completed": false,
+  "independent_review": false,
+  "application_conformance": false,
+  "publication_failure_previous": {
+    "operation": "github.create_blob(compact_source)",
+    "bytes": 27551333,
+    "http_status": 400,
+    "message": "MCP request body is invalid or exceeds the 16 MiB limit"
+  },
+  "note": "Byte preservation and transport proof only. Not a Launch, PlanContract, application test or certification."
+}

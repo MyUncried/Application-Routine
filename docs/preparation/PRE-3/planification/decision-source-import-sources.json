@@ -1,0 +1,40 @@
+{
+  "schema_version": "kodjo.vnext.source-manifest.v1",
+  "slice_id": "PRE-3",
+  "product_head": "1ddfb6d144552f578388257adc78db47ab5992c8",
+  "sources": [
+    {
+      "source_id": "SRC-0b4a5fb89625bd0ce15e5964",
+      "source_kind": "MARKDOWN",
+      "authority": "FUNCTIONAL",
+      "locator": "docs/preparation/PRE-3/rapprochement-main-figma.md",
+      "revision": "1ddfb6d144552f578388257adc78db47ab5992c8",
+      "fingerprint": "55d06d6b9f0b9bda5dbfeb0166629d0e6627e67ad978d6220564eac72b5b6dda",
+      "units": [
+        {
+          "unit_id": "UNIT-cf3eabd499845255616e9bc4",
+          "locator": "FULL_FILE",
+          "fingerprint": "55d06d6b9f0b9bda5dbfeb0166629d0e6627e67ad978d6220564eac72b5b6dda",
+          "disposition": "REQUIREMENT_SOURCE"
+        }
+      ]
+    },
+    {
+      "source_id": "SRC-d3a280d0ae8488c81497ca6a",
+      "source_kind": "MARKDOWN",
+      "authority": "FUNCTIONAL",
+      "locator": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+      "revision": "1ddfb6d144552f578388257adc78db47ab5992c8",
+      "fingerprint": "9dbe81a98ffae429d38e116602261ea16d6061f95ef246056d27db501e5d25e1",
+      "units": [
+        {
+          "unit_id": "UNIT-7a0bb200d536d598b14838b6",
+          "locator": "FULL_FILE",
+          "fingerprint": "9dbe81a98ffae429d38e116602261ea16d6061f95ef246056d27db501e5d25e1",
+          "disposition": "REQUIREMENT_SOURCE"
+        }
+      ]
+    }
+  ],
+  "contract_hash": "ccdd4e0a80dc307a61d9057841859a388b8a02e462db7eee573636fd451521b7"
+}

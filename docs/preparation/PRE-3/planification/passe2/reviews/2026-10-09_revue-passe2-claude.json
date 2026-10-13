@@ -1,0 +1,202 @@
+{
+  "schema": "kodjo.pre3.second-review-report.v1",
+  "operation": 340,
+  "reviewer": "Claude Code (Opus 5.5), revue indépendante seconde passe",
+  "reviewed_at": "2026-10-09",
+  "reviewed_git_revision": "c0c900f50879ea955c7ca1b1a5f5961eb949c438",
+  "branch": "plan/pre3-vnext-20261008",
+  "branch_head_at_review_start": "aa004d19a324fe068b048bb31de3fa39735aa665",
+  "branch_head_note": "aa004d19 ajoute seulement un renvoi dans plancontract-publie.md ; git diff c0c900f5..aa004d19 sur passe2/ est vide. La revue porte sur c0c900f5 comme demandé.",
+  "application_baseline": "1ddfb6d144552f578388257adc78db47ab5992c8",
+  "manifest_sha256": "04505e969144e9660c8afab4cb1a2e3cc2d0d50800e467eb47ff8ac98a4deb22",
+  "integrity_check": {
+    "command": "node docs/preparation/PRE-3/planification/passe2/verifier-passe2.cjs",
+    "result": "PASS",
+    "checks": 1626,
+    "worktree": "worktree détaché distinct, core.autocrlf=false",
+    "incident": "Premier essai dans un worktree créé avec core.autocrlf=true : échec « Dossier drift: baseline-blobs.json ». Cause démontrée : conversion LF→CRLF au checkout ; les 15 objets Git de passe2/ à c0c900f5 ont exactement les SHA-256 du manifeste. Worktree recréé sans conversion, puis PASS. Aucune différence de hash ou de source acceptée."
+  },
+  "verdict": "REVISE",
+  "verdict_scope": "Ce verdict ne vaut ni validation propriétaire du plan, ni autorisation de développement. Les tests cités sont des obligations futures (PLANNED_NOT_EXECUTED) ; aucun code applicatif n'est prétendu testé.",
+  "finding_resolutions": [
+    {
+      "finding_id": "FND-22dcb4343aeee5008ae82f42",
+      "status": "RESOLVED",
+      "evidence_refs": [
+        "passe2/ui-criteria.json#/interactions (10 entrées)",
+        "passe2/ui-criteria.json#/native_assessments",
+        "passe2/baseline-blobs.json → src/features/sessions/DurationWheelPicker.tsx (blob 9bbba1a3, l.1 import Picker de @expo/ui/swift-ui, pickerStyle('wheel'))"
+      ],
+      "justification": "Dix assertions INTERACTION couvrent chaque contrôle demandé : roulette, stepper, bascule Séries variables, lignes triables avec Monter/Descendre, ✓/✕ de feuille et liste de médias (ajout/retrait/Réessayer). S'y ajoutent carte Paramètres, Terminer, Catégorie et Zones. Toutes ont source_authority=FUNCTIONAL, des source_assertions fonctionnelles et proof_required contenant FUNCTIONAL_TEST. INTERACTION/wheel porte native_primitive=SwiftUI.Picker.wheel ; native_assessments.interaction_assertion_ref=INTERACTION/wheel. Le blob baseline confirme la primitive SwiftUI native. Réserve non bloquante : les quatre évaluations AVAILABLE ne sont pas énumérées individuellement ; le rattachement est déclaré collectivement. test_paths de INTERACTION/wheel inclut ProfileStepper.test.ts, qui n'est pas propriétaire d'une roulette (voir REG-01)."
+    },
+    {
+      "finding_id": "FND-2aa59b7187ade34c38f136a7",
+      "status": "RESOLVED",
+      "evidence_refs": [
+        "passe2/requirements.json#/assertions P3-17/migration-real (« no modification 001..008 »), P3-17/canonical-roundtrip (« reps 100 accepted; count 99 »), P3-20/sheet-specific (« alpha 0.34 … at 402 x 36 / separator 330 … 360/440 »), P3-21/accessible-controls (« touch 44 minimum »)",
+        "passe2/requirements.json#/migration_requirements PRE3-MIG-fresh-v9 (« 001..009 … version 9 »)",
+        "../schema-et-ecritures.md l.22, 24, 26, 62, 64 (« à 300 », « atteindre 5999 », « Profil 10/5 », « Tours 1/99 »)",
+        "../decision-revue-numeriques-resolue.json (Décision A RESOLVED, valeurs inchangées)",
+        "passe2/tests-and-preservation.json P3-12/numeric/* (fixtures structurées, aucune chaîne collée)"
+      ],
+      "justification": "Toutes les valeurs listées par le constat se lisent désormais sans ambiguïté dans les données d'acceptation structurées (exigences, assertions, obligations), et les valeurs normatives restent inchangées conformément à la Décision A. Les lignes de schema-et-ecritures.md citées par le constat sont séparées. Résidus typographiques non bloquants, hors données d'acceptation : plan-technique-corrige.md l.75-76 (« tap1, maintien500ms, cadence150ms, paliers2s/4s, pas1 », « largeurs360/402/440 », hérités de plan-technique-travail.md) ; « cadence0/1/10 » dans requirements.json#/assertions (P3-11, champ when) ; « cadence0/positive », « R0/positive », « le08/10/2026 » dans schema-et-ecritures.md. Les sources figées assertions-recette.json et inventaire-etats-scenarios.json gardent les formes collées (« A195 exact C405 … », « N1235 ») ; le dossier passe2 les remplace pour la revue."
+    },
+    {
+      "finding_id": "FND-45a23a9dc1c196e22ec192fd",
+      "status": "RESOLVED",
+      "evidence_refs": [
+        "passe2/requirements.json#/documentary_requirements : FUNCTIONAL 85, PRESERVATION 5, DATA 3, UI 2 (contre UI 95 dans passe2/original-plan-index.json)",
+        "passe2/requirements.json#/migration_requirements (8 × MIGRATION, scope P3-17)",
+        "passe2/requirements.json#/canonical_data_requirement PRE3-DATA-ExecutionParameters (DATA)",
+        "PRESERVATION:REQUIRED sur P3-03/reference-retired, P3-15/no-storage, P3-18/historical-immutability, P3-22/scope-regression, P3-23/file-preservation"
+      ],
+      "justification": "Les 95 identifiants sont conservés (correspondance 1:1 avec l'index initial). UI est réservé à P3-20/all-surfaces et P3-20/sheet-specific, deux énoncés de présentation. Les 41 états Figma, dont l'énoncé est comportemental, deviennent FUNCTIONAL avec presentation_scope=P3-20. Les huit scénarios 009 deviennent des exigences MIGRATION distinctes. La représentation canonique devient DATA, et chaque exigence PRESERVATION porte preservation=REQUIRED. Aucune régression de typage observée."
+    },
+    {
+      "finding_id": "FND-50bc1bd53db4592408b49677",
+      "status": "RESOLVED",
+      "evidence_refs": [
+        "passe2/tests-and-preservation.json#/test_obligations P3-17/migration/{fresh-v9, populated-v8-v9, idempotent, foreign-key-position, malformed-unknown-json, scalar-projection, legacy-out-of-bounds, per-statement-rollback} (database=NodeSqliteDatabase REAL)",
+        "P3-12/numeric/* : 13 fixtures identiques octet pour octet (JSON) à ../attendus-numeriques.json#/cases",
+        "P3-15/corpus/1..276 : texte, segments {texte,gras} et expected_intrinsic identiques à ../attendus-phrases-276.json#/cases[i] (0 écart, 276 refs uniques)"
+      ],
+      "justification": "Les huit scénarios nommés par le constat sont des obligations distinctes sur base SQLite réelle. Les 13 cas numériques ont été recalculés indépendamment à la main : A 195, B 285, C 405, D 375, E/F0/F4 omis avec 135 connus, CADENCE ≈ 300, DURATION_BEEP 300, N1_SIDE 220, N1_SIDE_R 235, N1_WITH_PAUSE 45, N1_NO_PAUSE 30 ; tous concordent. Les 276 phrases ont un montant indépendant (somme d'événements). La distribution 140 sans total / 46 estimés / 90 exacts concorde avec P3-15/corpus-276 ; les deux cas N=1 sans Pause sont exacts mais sans total affiché."
+    },
+    {
+      "finding_id": "FND-50fdbd72bbdd504a27290581",
+      "status": "RESOLVED",
+      "evidence_refs": [
+        "passe2/baseline-blobs.json décompressé hors dépôt (2 793 746 octets, sha256 cf100178…61a2 conforme)",
+        "passe2/baseline-observations.json : 156/156 entrées vérifiées contre git ls-tree et git cat-file à 1ddfb6d1 (blob, SHA-256, longueur, contenu)",
+        "passe2/creation-observations.json : 23 créations sans blob",
+        "Fermeture : 182 chemins requis (write_scope, modify_preservation, no_change_direct_importers, ui-criteria) ; seuls ActivityMediaList.test.tsx, i18n/__tests__/index.test.ts, tokens.test.ts ne sont pas observés, et ils sont absents de la baseline (CREATE)"
+      ],
+      "justification": "Les objets matérialisés sont les blobs Git exacts de la baseline, y compris DurationWheelPicker.tsx (SwiftUI wheel natif). Chaque cible MODIFY, consommateur direct et cible de réutilisation est observé. La matérialisation est correcte. Le choix de créer i18n/__tests__/index.test.ts et tokens.test.ts au lieu d'adapter les suites existantes est traité dans REG-02."
+    },
+    {
+      "finding_id": "FND-5b6a6d10170c7a649a2c3861",
+      "status": "OPEN",
+      "evidence_refs": [
+        "passe2/ui-criteria.json#/accessibility (10 obligations ACCESSIBILITY_CHECK)",
+        "passe2/ui-criteria.json#/interactions[*].risk_types (ACCESSIBILITY partout ; DEVICE pour wheel, stepper, media-list)"
+      ],
+      "justification": "Le découpage par surface et la déclaration ACCESSIBILITY/DEVICE dans les risk_types sont faits. En revanche, le constat exigeait des obligations « with their own expected data, so that accessibility is not proven by one aggregate check ». Huit des dix champs expected sont la même chaîne : « Rôle/nom/valeur/état disabled accessibles ; cible tactile ≥ 44 pt ; focus entre dans la surface et revient au déclencheur ; messages et actions atteignables… ». Seules sortable-rows (Monter/Descendre) et parameter-card (phrase annoncée une fois) ont un attendu propre. Le champ device est aussi identique partout. Le contrôle agrégé est donc recopié dix fois, sans attendu par surface. Correction minimale proposée, fondée sur les sources existantes (aucune décision produit) : media-list → actions accessibles Retirer/Monter/Descendre (D-335), état Importation et erreur locale annoncés, Réessayer atteignable ; stepper → rôle ajustable avec incrément/décrément accessibles et valeur courante ; wheel → valeur annoncée par la primitive native et ✓/✕ atteignables ; sheet-check-cross → message nommant la Série incomplète annoncé et focus sur la correction ; category/zones → état sélectionné, bouton Ajouter désactivé annoncé sans message d'erreur."
+    },
+    {
+      "finding_id": "FND-6bcfecf4fd3ab1c1e7461630",
+      "status": "RESOLVED",
+      "evidence_refs": [
+        "passe2/ui-elements.json#/reference_policy (asserted, source_context_only = blendMode, dashPattern, strokeAlign, strokeCap, strokeJoin, vectorPaths)",
+        "passe2/ui-elements.json#/columns : record_id, target_path, source_node_ref, layout_schema, raw_properties_sha256, disposition, master_ref",
+        "dispositions : VISUAL_COMPARE 6660, HIDDEN_SOURCE_PRESERVED 65 ; 41 frames ; master_ref renseigné sur 881 éléments",
+        "../../figma/captures/6423-9953.png consulté"
+      ],
+      "justification": "Les éléments ne portent plus de projection d'attributs Figma en assertions : la source brute n'est référencée que par empreinte. La politique sépare explicitement le rendu observable asserté (géométrie relative, dimensions, typographie, couleur/opacité/effets, coins, contour et forme visibles comparés sur PNG) des métadonnées vectorielles et de compositing, classées contexte de source. VISUAL_COMPARE a donc un périmètre déchargeable. Les 65 descendants masqués et l'extraction figée sont conservés, sans nouvelle extraction globale."
+    },
+    {
+      "finding_id": "FND-8b2fcbd1b778ea06ee6cb2f0",
+      "status": "RESOLVED",
+      "evidence_refs": [
+        "passe2/tests-and-preservation.json#/write_scope : ADAPT pour calculations.test.ts, composition.test.ts, validation.test.ts, ActivityCard.test.tsx, DurationWheelPicker.test.tsx, SessionCard.test.tsx (avec preservation_expected), plus 15 autres ADAPT",
+        "baseline src/domain/sessions/__tests__/calculations.test.ts (blob observé) : suite du contrat de durée remplacé"
+      ],
+      "justification": "La suite visée par le constat (calculations.test.ts, auparavant NO_CHANGE et donc interdite d'écriture) est désormais ADAPT, avec l'attente « conserver les scénarios baseline, adapter seulement les attentes remplacées par les règles PRE-3, sans supprimer PRE-1/PRE-2 ». Les cinq autres suites citées suivent la même règle. Les autres suites baseline des cibles MODIFY restent RUN_EXISTING (exemples : ProfileStepper.test.tsx, targetSchema.test.ts et initializeDatabase.test.ts, qui suivent DATABASE_VERSION). C'est cohérent lorsque le contrat n'est pas remplacé. Quatre ADAPT (compositionPresentation, ActivityDefinitionService, SessionService, SessionServiceProvider) n'ont pas de champ preservation_expected, mais leur intent énonce la conservation. Non bloquant."
+    },
+    {
+      "finding_id": "FND-aa97db96722333411e8d8c28",
+      "status": "RESOLVED",
+      "evidence_refs": [
+        "passe2/tests-and-preservation.json#/modify_preservation (56/56 avec baseline_observation et ≥ 1 suite existante à la baseline)",
+        "passe2/tests-and-preservation.json#/no_change_direct_importers (100, tous RUN_EXISTING, chemins existants à la baseline)",
+        "Scan indépendant des imports, require et jest.mock de tous les fichiers src/ et app/ à 1ddfb6d1 : 146 importeurs directs des cibles MODIFY (dont 60 tests), 0 non couvert par ADAPT/MODIFY/RUN_EXISTING"
+      ],
+      "justification": "Chaque cible MODIFY a des suites de préservation et chaque importeur NO_CHANGE a une obligation RUN_EXISTING. La fermeture vérifiée indépendamment ne laisse aucun importeur direct sans obligation. Faiblesse non bloquante : les 56 listes de préservation et les 59 importeurs de code NO_CHANGE ajoutent tous un même lot générique de six suites (calculations, composition, validation, ActivityCard, SessionCard, SqliteMediaRepository). Les listes par cible omettent certaines suites directes : par exemple i18n/index.ts ne cite pas src/shared/i18n/index.test.ts, et SessionDraft.ts ne cite pas CompositionScreen.test.tsx. Ces suites sont toutefois obligées ailleurs (RUN_EXISTING ou ADAPT)."
+    },
+    {
+      "finding_id": "FND-c3c9529d7f622ac36707b163",
+      "status": "OPEN",
+      "evidence_refs": [
+        "passe2/tests-and-preservation.json#/test_obligations (ExecutionParametersSheet.test.tsx : 31 obligations, toutes préfixées « Rendu/actions de cette surface uniquement ; délégation vérifiée… »)",
+        "Diff par assertion entre ../assertions-recette.json proposedTestPaths (reproduits à l'identique dans passe2/requirements.json#/assertions) et les obligations de passe2 : 51/59 assertions divergent",
+        "src/shared/i18n/index.test.ts et src/shared/ui/__tests__/tokensSpecification.test.ts existent à 1ddfb6d1 ; les chemins cibles passe2 n'existent pas"
+      ],
+      "justification": "La partie « feuille » est corrigée : le test de la feuille n'affirme plus que son rendu et ses actions, et les propriétaires Domaine, SQLite et migration existent. Mais la redistribution vers « the boundary that actually owns each expectation » n'est pas obtenue. (1) Les obligations résultent d'un produit cartésien par scope, et non de la propriété par assertion : des propriétaires SQLite réels sont retirés d'assertions de persistance, et des attentes de rendu sont attachées à des tests Domaine, de stepper ou de roulette (REG-01). (2) Les propriétaires i18n et tokens pointent vers deux fichiers nouveaux et parallèles, alors que les vrais propriétaires baseline existent et restent NO_CHANGE (REG-02). La règle à appliquer, sans arbitrage propriétaire : propriétaire = proposedTestPaths de l'assertion source, et suite baseline existante de la frontière modifiée."
+    },
+    {
+      "finding_id": "FND-d9a6d1286f3e1a2ae2ca7bbf",
+      "status": "RESOLVED",
+      "evidence_refs": [
+        "passe2/requirements.json REQ-30b44b8b8eded65d2e28f9a9 : scope_ids [P3-14, P3-12], presentation_scope P3-20, assertion_refs P3-14/inverse-*, P3-12/*, tests executionCalculations.test.ts",
+        "passe2/traceability.json P3-14 rule_ids contient REQ-30b44b8b… ; figma_frames 6411:9546, 6423:9953",
+        "passe2/traceability.json P3-20 : 0 règle FIG, 41 figma_frames, proofs FUNCTIONAL_TEST et VISUAL_COMPARE",
+        "../../figma/captures/6423-9953.png : 3 séries / 1 min 30 s / 15 s / total 5 min 15 s + message « Durée ajustée à 5 min 15 s… »"
+      ],
+      "justification": "L'exigence est rattachée à P3-14/P3-12, et P3-20 n'est plus que la portée de présentation du message. Sur les 95, aucun état FIG ne porte P3-20 dans scope_ids : les 41 ont presentation_scope=P3-20, et P3-20 ne contient que ses deux exigences UI tout en gardant les 41 frames pour VISUAL_COMPARE. L'observabilité visuelle est donc conservée. Les autres rattachements sont comportementaux et cohérents avec les énoncés (lecture des 95). Réserve : functional_test_paths est l'union des tests du scope (même mécanisme que REG-01)."
+    },
+    {
+      "finding_id": "FND-f5a1a0b6656cdff169dd0517",
+      "status": "RESOLVED",
+      "evidence_refs": [
+        "passe2/tests-and-preservation.json#/write_scope comparé à ../fichiers-cible-proposes.json changes+creations : 71 intents identiques, 2 réécrits (tokens.ts, i18n/index.ts), 9 entrées de tests ajoutées",
+        "Aucun intent hors ExecutionParametersSheet ne contient 402, alpha, 0.34, x 36, separator ou #1F2129"
+      ],
+      "justification": "Chaque intent ne décrit plus que ce que son fichier livre : tokens.ts → « Rôles et tokens PRE-3 observés uniquement ; consommateurs existants conservés » ; i18n/index.ts → « Libellés et messages PRE-3 uniquement ». La géométrie propre à la feuille ne figure dans l'intent d'aucun autre fichier. Le constat portait sur les intents. La dispersion de l'obligation de test P3-20/sheet-specific vers CategoryPickerModal, BodyZonePickerModal, ActivityEditorForm, tokens.test.ts et index.test.ts relève de REG-01 et REG-02."
+    },
+    {
+      "finding_id": "FND-f86f8d67160a71a69c7cfcd7",
+      "status": "RESOLVED",
+      "evidence_refs": [
+        "passe2/tests-and-preservation.json P3-14/inverse-explicit (path executionCalculations.test.ts, numeric_oracle)",
+        "P3-14/inverse-enumeration et inverse-boundaries @ executionCalculations.test.ts (Domaine) ; @ ExecutionParametersSheet.test.tsx (rendu uniquement)"
+      ],
+      "justification": "L'obligation Domaine existe et contient les trois prédicats : total le plus proche, égalité résolue vers le N supérieur, message seulement si le total réalisé diffère. Oracle : demandé 100 s → N=3, 120 s, avec message ; demandé 80 s → N=2, sans message ; énumération N=1..99 avec N=1 normalisé. Vérifié : avec une Durée uniforme où T+P=40 s, N=2 donne 80 s et N=3 donne 120 s, et 100 s est équidistant, d'où N=3. Le test de feuille ne garde que le rendu du message. Réserve non bloquante : l'oracle n'est pas dans attendus-numeriques.json (aucun cas inverse dans ce fichier) et ne fixe pas explicitement T et P. Il reste déterminé, car le total ne dépend que de T+P=40 s. Recommandation : expliciter T=30, P=10 (ou le cas 6423-9953 : T=90, P=15, demandé 5 min 15 s)."
+    }
+  ],
+  "correction_regressions": [
+    {
+      "regression_id": "REG-01",
+      "caused_by_correction_of": ["FND-c3c9529d7f622ac36707b163", "FND-50bc1bd53db4592408b49677"],
+      "file": "passe2/tests-and-preservation.json#/test_obligations (et passe2/requirements.json#/documentary_requirements[*].functional_test_paths)",
+      "causality": "DÉMONTRÉE. Les obligations réécrites de passe2 attribuent chaque assertion à l'union des chemins de test de son scope, et non à ses proposedTestPaths. Ces proposedTestPaths sont pourtant reproduits à l'identique dans passe2/requirements.json#/assertions. Un diff déterministe montre 51/59 assertions divergentes. Le dossier est donc incohérent avec lui-même.",
+      "defect": "Des propriétaires réels sont retirés et des non-propriétaires ajoutés. Retraits : P3-15/no-storage (PRESERVATION REQUIRED, « no phrase or segments columns/JSON stored ») perd SqliteActivityDefinitionRepository, SqliteSessionRepository et exerciseSnapshot ; il ne reste que executionPhrase, ActivityEditorForm et la feuille, qui ne peuvent pas prouver l'absence de stockage SQL. P3-03/reference-retired (PRESERVATION REQUIRED) perd les deux repositories SQLite et ExerciseScreen. P3-16/failure-doubletap (rollback, aucun doublon partiel) perd les repositories SQLite. P3-18/copy-complete perd SqliteSessionRepository. P3-05/equal-variable (DATA), P3-06/commit-hidden et P3-08/restoration-N1 perdent SqliteActivityDefinitionRepository. P3-23/file-preservation perd SqliteMediaRepository. P3-22/scope-regression perd ProfileStepper, CategoryPickerModal, BodyZonePickerModal et compositionPresentation au profit de six suites sans rapport. P3-09/directions perd executionPhrase. Ajouts hors propriétaire : P3-15/long-phrase (Text imbriqué, VoiceOver) sur executionPhrase.test.ts (Domaine pur) ; P3-19/exclusive-scroll sur ProfileStepper.test.ts et DurationWheelPicker.test.tsx ; P3-19/hold sur DurationWheelPicker.test.tsx ; P3-20/sheet-specific (voile, 402 x 36 / separator 330) sur CategoryPickerModal, BodyZonePickerModal et ActivityEditorForm ; P3-23/permissions sur les repositories SQLite.",
+      "impact": "Des exigences PRESERVATION et DATA perdent leur seule preuve SQL réelle. Cela contredit le plan §5 (« Tester avec NodeSqliteDatabase réel ») et §9 (« Aucun test SQLite/calcul transféré »), ainsi que le principe même de FND-c3c9. P3-17/canonical-roundtrip ne couvre que partiellement ces cas.",
+      "required_correction": "Générer les obligations par assertion à partir de proposedTestPaths (source et requirements.json#/assertions). N'ajouter un propriétaire que s'il est justifié par sa frontière. Appliquer la même règle à functional_test_paths."
+    },
+    {
+      "regression_id": "REG-02",
+      "caused_by_correction_of": ["FND-c3c9529d7f622ac36707b163", "FND-f5a1a0b6656cdff169dd0517"],
+      "file": "passe2/tests-and-preservation.json#/write_scope (CREATE src/shared/i18n/__tests__/index.test.ts, CREATE src/shared/ui/__tests__/tokens.test.ts) et #/no_change_direct_importers",
+      "causality": "DÉMONTRÉE. Ces deux chemins n'apparaissent dans aucune source antérieure : original-plan-index, assertions-recette, fichiers-cible-proposes, candidate-manifest, tracabilite-travail, plan-technique-travail. Ils sont introduits par la seconde passe pour les propriétaires i18n et tokens.",
+      "defect": "Les vrais propriétaires existent à la baseline et restent NO_CHANGE/RUN_EXISTING, donc hors write_scope : src/shared/i18n/index.test.ts (colocalisé, assertions toEqual exactes par groupe de libellés) et src/shared/ui/__tests__/tokensSpecification.test.ts (contrat tokens.ts ↔ chapitre 12 « Design tokens canoniques »). L'attente tokens.test.ts « voile #1F2129 alpha 0.34 » est déjà imposée par tokensSpecification (color.overlayScrim existe à la baseline). La liste de préservation de i18n/index.ts ne cite pas i18n/index.test.ts. Tout nouveau token couleur ou typo exigerait une ligne au chapitre 12, hors write_scope.",
+      "impact": "Deux suites parallèles à créer, une duplication d'assertions et des propriétaires réels non adaptables sous la politique ALL_OUTSIDE_WRITE_SCOPE.",
+      "required_correction": "Remplacer ces deux CREATE par ADAPT de src/shared/i18n/index.test.ts et src/shared/ui/__tests__/tokensSpecification.test.ts, et ajouter ces suites à la préservation de i18n/index.ts et tokens.ts. Soit déclarer qu'aucun nouveau token n'est créé, soit inclure la ligne correspondante du chapitre 12 dans le périmètre."
+    }
+  ],
+  "observations_out_of_new_findings_scope": [
+    "src/shared/ui/__tests__/ProfileStepper.test.ts (CREATE) coexisterait avec la suite baseline src/shared/ui/__tests__/ProfileStepper.test.tsx (RUN_EXISTING). Le chemin vient du plan initial (original-plan-index, assertions-recette), non de la correction : signalé, non compté comme régression.",
+    "Les entrées CREATE de tests ont preservation_expected « Conserver les scénarios baseline existants », sans objet pour un fichier absent de la baseline.",
+    "Le diagnostic historique VNext obligatoire (CLAUDE.md) ne s'applique pas : il s'agit d'une revue de plan, non d'un échec ou d'une régression d'un parcours VNext."
+  ],
+  "reads": [
+    "docs/preparation/PRE-3/planification/passe2/mission-claude.md, manifest.json, verifier-passe2.cjs, verification.json (intégral)",
+    "passe2/plan-technique-corrige.md, finding-resolutions.json (intégral)",
+    "passe2/requirements.json : 95 exigences (kind, preservation, scopes, expected, tests, assertions), 8 migrations, exigence DATA, 59 assertions",
+    "passe2/tests-and-preservation.json : 501 obligations (familles, chemins, migrations, 13 numériques, 276 corpus, inverse), 82 write_scope, 56 modify_preservation, 100 no_change_direct_importers",
+    "passe2/traceability.json : 23 scopes, détail P3-14, P3-17, P3-20",
+    "passe2/ui-criteria.json : 10 interactions, 10 accessibility, native_assessments, capture_aliases, 41 visual_states",
+    "passe2/ui-elements.json : columns, reference_policy, dispositions, master_ref (lecture structurelle, non élément par élément)",
+    "passe2/baseline-blobs.json décodé hors dépôt ; baseline-observations.json ; creation-observations.json ; original-plan-index.json",
+    "Blobs examinés : DurationWheelPicker.tsx, calculations.test.ts ; baseline git : tokens.ts, tokensSpecification.test.ts, src/shared/i18n/index.test.ts, constants.ts, targetSchema.test.ts, initializeDatabase.test.ts, chapitre 12 (overlayScrim) ; scan des imports de tous les fichiers src/ et app/",
+    "Sources : ../attendus-numeriques.json, ../attendus-phrases-276.json, ../assertions-recette.json, ../inventaire-etats-scenarios.json (recherches ciblées), ../schema-et-ecritures.md (l.22-66), ../fichiers-cible-proposes.json, ../decision-revue-numeriques-resolue.json, ../revue-initiale-rapport.json (constats FND-f5a1, c3c9, 8b2f, 22dc, 2aa5)",
+    "Figma : ../../figma/captures/6423-9953.png (lecture visuelle) ; existence des 41 arbres et PNG vérifiée par verifier-passe2.cjs"
+  ],
+  "limits": [
+    "Aucun code applicatif exécuté ni testé ; toutes les obligations sont PLANNED_NOT_EXECUTED.",
+    "Aucun appareil, navigateur ni contrôle de rendu ; une seule capture PNG consultée. Aucune preuve visuelle n'est déclarée.",
+    "ui-elements.json revu structurellement (politique, colonnes, dispositions), pas élément par élément sur les 6 725 éléments.",
+    "Les quatre évaluations natives AVAILABLE de l'UIContract historique ne sont pas énumérées dans le dossier ; leur rattachement est vérifié au niveau du champ native_assessments seulement.",
+    "Les obligations du PlanContract initial ne sont pas matérialisées dans le dossier (index seul). La causalité de REG-01 est établie par rapport à la source figée assertions-recette.json et à requirements.json#/assertions.",
+    "Scan des imports par expressions régulières (import/from, require, import(), jest.mock) ; les accès dynamiques et les écritures SQL ne sont pas couverts, conformément à la réserve du plan §3.",
+    "Sous Windows avec core.autocrlf=true, verifier-passe2.cjs échoue faussement. Un attribut .gitattributes (-text ou eol=lf) sur passe2/ éviterait ce faux positif ; non modifié, hors périmètre."
+  ]
+}

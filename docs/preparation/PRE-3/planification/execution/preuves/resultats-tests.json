@@ -1,0 +1,786 @@
+{
+  "operation": 340,
+  "generated_by": "Claude Code local (writer), worktree isolé, conversion LF désactivée",
+  "generated_at": "2026-10-09T19:55:46.456Z",
+  "environment": {
+    "os": "Windows 11 Home 10.0.26200",
+    "node": "v24.19.0",
+    "jest": "29.7.0 (preset jest-expo ~57.0.4)",
+    "typescript": "6.0.3",
+    "expo": "~57.0.16",
+    "sqlite_tests": "node:sqlite via NodeSqliteDatabase (in-memory et fichier)",
+    "files_tests": "fichiers temporaires réels (os.tmpdir) via port fs Node"
+  },
+  "commands": [
+    {
+      "command": "npx tsc --noEmit -p .",
+      "result": "PASS (aucune erreur)"
+    },
+    {
+      "command": "npx eslint src app",
+      "result": "PASS (0 erreur, 0 avertissement)"
+    },
+    {
+      "command": "npx eslint .",
+      "result": "ÉCHEC PRÉEXISTANT hors application : 339 erreurs no-undef (__dirname/Buffer) dans tests/kodjo/*.pilot.js et scripts VNext, non touchés par PRE-3"
+    },
+    {
+      "command": "npx jest --json",
+      "result": "1886/1893 tests, 95/97 suites"
+    },
+    {
+      "command": "node docs/preparation/PRE-3/planification/passe2/verifier-passe2.cjs",
+      "result": "PASS (2143 contrôles)"
+    },
+    {
+      "command": "node docs/preparation/PRE-3/planification/execution/controle-portee.cjs --start ae50aaedc1aaf506dccbb81c4e406e127af9824b",
+      "result": "PASS"
+    }
+  ],
+  "totals": {
+    "suites": 97,
+    "suites_passed": 95,
+    "suites_failed": 2,
+    "tests": 1893,
+    "tests_passed": 1886,
+    "tests_failed": 7,
+    "baseline_before_pre3": "86 suites / 1527 tests, tous verts (c1ea664e)"
+  },
+  "failed_tests": [
+    {
+      "path": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "test": "Parcours Composition → Catégories → Enregistrer → Catalogue (T01-S09) persists a full multi-Activity, multi-Category session without any data loss, resets the draft and returns to the Catalogue only on success"
+    },
+    {
+      "path": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "test": "Parcours Composition → Catégories → Enregistrer → Catalogue (T01-S09) shows the exact failure message, keeps the draft intact and re-enables the action on a technical save failure — no navigation, no partial data"
+    },
+    {
+      "path": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "test": "Parcours Composition → Activité (écran unifié), vrai navigateur, vrai SessionDraftProvider (UI-ACT-001) 1. l'écran Activité expose tout le formulaire d'un seul tenant : aucune étape intermédiaire, Terminer devient actif dès que le Nom est valide (T02-S02, D-137)"
+    },
+    {
+      "path": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "test": "Parcours Composition → Activité (écran unifié), vrai navigateur, vrai SessionDraftProvider (UI-ACT-001) 2-3-4-5. Terminer enregistre atomiquement l'Activité, revient sur Composition, l'insère entre Compte à rebours et Tour, sans changer le résumé du Tour (BEFORE_TOUR)"
+    },
+    {
+      "path": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "test": "Parcours Composition → Activité (écran unifié), vrai navigateur, vrai SessionDraftProvider (UI-ACT-001) 6. un double-appui rapproché sur Terminer (avant tout rendu intermédiaire) n'enregistre l'Activité qu'une seule fois — pas de doublon"
+    },
+    {
+      "path": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "test": "Parcours Composition → Activité (écran unifié), vrai navigateur, vrai SessionDraftProvider (UI-ACT-001) 7. Continuer reste désactivé tant que le Nom de la séance est vide, même avec une Activité valide (T01-S09 : résolution de l'ARBITRAGE — Nom manquant, pas un blocage permanent)"
+    },
+    {
+      "path": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "test": "Parcours Composition → Activité (écran unifié), vrai navigateur, vrai SessionDraftProvider (UI-ACT-001) 8. Continuer s'active pour une Composition complète (Nom + Activité valide) et ouvre réellement Catégories de la séance (T01-S09, CE-T01-11)"
+    }
+  ],
+  "failed_tests_classification": {
+    "files": [
+      "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx"
+    ],
+    "in_write_scope": false,
+    "cause": "Ces deux parcours d'intégration pilotent l'ANCIEN éditeur (sections repliables, segmenté de mode en ligne, Terminer actif dès que le Nom est valide). PRE-3 remplace cet éditeur (plan 43e7b344 : carte Paramètres + feuille) et impose Nom + Catégorie + Zone + paramètres valides pour un nouvel Exercice (périmètre §5). Leurs attendus contredisent donc le périmètre approuvé.",
+    "action": "SCOPE_EXPANSION_REQUIRED — aucune modification silencieuse ; adaptation proposée au pilote (voir rapport)."
+  },
+  "obligations": {
+    "source": "passe2/tests-and-preservation.json#/test_obligations @ 43e7b344",
+    "total": 442,
+    "by_status": {
+      "PASS": 442
+    },
+    "by_scope": {
+      "P3-01": {
+        "total": 14,
+        "pass": 14
+      },
+      "P3-02": {
+        "total": 3,
+        "pass": 3
+      },
+      "P3-03": {
+        "total": 6,
+        "pass": 6
+      },
+      "P3-04": {
+        "total": 2,
+        "pass": 2
+      },
+      "P3-05": {
+        "total": 3,
+        "pass": 3
+      },
+      "P3-06": {
+        "total": 3,
+        "pass": 3
+      },
+      "P3-07": {
+        "total": 3,
+        "pass": 3
+      },
+      "P3-08": {
+        "total": 5,
+        "pass": 5
+      },
+      "P3-09": {
+        "total": 5,
+        "pass": 5
+      },
+      "P3-10": {
+        "total": 4,
+        "pass": 4
+      },
+      "P3-11": {
+        "total": 4,
+        "pass": 4
+      },
+      "P3-12": {
+        "total": 17,
+        "pass": 17
+      },
+      "P3-13": {
+        "total": 8,
+        "pass": 8
+      },
+      "P3-14": {
+        "total": 5,
+        "pass": 5
+      },
+      "P3-15": {
+        "total": 283,
+        "pass": 283
+      },
+      "P3-16": {
+        "total": 8,
+        "pass": 8
+      },
+      "P3-17": {
+        "total": 16,
+        "pass": 16
+      },
+      "P3-18": {
+        "total": 4,
+        "pass": 4
+      },
+      "P3-19": {
+        "total": 5,
+        "pass": 5
+      },
+      "P3-20": {
+        "total": 7,
+        "pass": 7
+      },
+      "P3-21": {
+        "total": 2,
+        "pass": 2
+      },
+      "P3-22": {
+        "total": 4,
+        "pass": 4
+      },
+      "P3-23": {
+        "total": 11,
+        "pass": 11
+      },
+      "INTERACTION": {
+        "total": 10,
+        "pass": 10
+      },
+      "ACCESSIBILITY": {
+        "total": 10,
+        "pass": 10
+      }
+    },
+    "detail_file": "couverture-obligations.json"
+  },
+  "suites": [
+    {
+      "path": "app/__tests__/creationLayout.test.tsx",
+      "status": "passed",
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "path": "app/__tests__/rootLayoutGesture.test.tsx",
+      "status": "passed",
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "path": "src/domain/activities/__tests__/ActivityDefinition.test.ts",
+      "status": "passed",
+      "passed": 23,
+      "failed": 0
+    },
+    {
+      "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+      "status": "passed",
+      "passed": 28,
+      "failed": 0
+    },
+    {
+      "path": "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+      "status": "passed",
+      "passed": 30,
+      "failed": 0
+    },
+    {
+      "path": "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+      "status": "passed",
+      "passed": 18,
+      "failed": 0
+    },
+    {
+      "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+      "status": "passed",
+      "passed": 285,
+      "failed": 0
+    },
+    {
+      "path": "src/domain/activities/__tests__/exerciseSnapshot.test.ts",
+      "status": "passed",
+      "passed": 4,
+      "failed": 0
+    },
+    {
+      "path": "src/domain/body-zones/__tests__/BodyZone.test.ts",
+      "status": "passed",
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "path": "src/domain/categories/__tests__/matching.test.ts",
+      "status": "passed",
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "path": "src/domain/categories/__tests__/validation.test.ts",
+      "status": "passed",
+      "passed": 9,
+      "failed": 0
+    },
+    {
+      "path": "src/domain/labels/__tests__/Label.test.ts",
+      "status": "passed",
+      "passed": 13,
+      "failed": 0
+    },
+    {
+      "path": "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+      "status": "passed",
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "path": "src/domain/media/__tests__/MediaRepository.test.ts",
+      "status": "passed",
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "path": "src/domain/preferences/__tests__/Profile.test.ts",
+      "status": "passed",
+      "passed": 24,
+      "failed": 0
+    },
+    {
+      "path": "src/domain/sessions/__tests__/calculations.test.ts",
+      "status": "passed",
+      "passed": 40,
+      "failed": 0
+    },
+    {
+      "path": "src/domain/sessions/__tests__/composition.test.ts",
+      "status": "passed",
+      "passed": 33,
+      "failed": 0
+    },
+    {
+      "path": "src/domain/sessions/__tests__/SessionDraft.test.ts",
+      "status": "passed",
+      "passed": 47,
+      "failed": 0
+    },
+    {
+      "path": "src/domain/sessions/__tests__/sideMode.test.ts",
+      "status": "passed",
+      "passed": 6,
+      "failed": 0
+    },
+    {
+      "path": "src/domain/sessions/__tests__/StopPoint.test.ts",
+      "status": "passed",
+      "passed": 6,
+      "failed": 0
+    },
+    {
+      "path": "src/domain/sessions/__tests__/validation.test.ts",
+      "status": "passed",
+      "passed": 76,
+      "failed": 0
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivityCard.test.tsx",
+      "status": "passed",
+      "passed": 6,
+      "failed": 0
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivityCatalogueList.test.tsx",
+      "status": "passed",
+      "passed": 4,
+      "failed": 0
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivityDefinitionService.test.ts",
+      "status": "passed",
+      "passed": 11,
+      "failed": 0
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+      "status": "passed",
+      "passed": 14,
+      "failed": 0
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivityMediaList.test.tsx",
+      "status": "passed",
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+      "status": "passed",
+      "passed": 8,
+      "failed": 0
+    },
+    {
+      "path": "src/features/activities/__tests__/CatalogueCreateOptions.test.tsx",
+      "status": "passed",
+      "passed": 8,
+      "failed": 0
+    },
+    {
+      "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+      "status": "passed",
+      "passed": 25,
+      "failed": 0
+    },
+    {
+      "path": "src/features/activities/__tests__/useActivityCatalogue.test.ts",
+      "status": "passed",
+      "passed": 4,
+      "failed": 0
+    },
+    {
+      "path": "src/features/preferences/__tests__/ProfileEditScreen.test.tsx",
+      "status": "passed",
+      "passed": 13,
+      "failed": 0
+    },
+    {
+      "path": "src/features/preferences/__tests__/profilePhoto.test.ts",
+      "status": "passed",
+      "passed": 9,
+      "failed": 0
+    },
+    {
+      "path": "src/features/preferences/__tests__/ProfileScreen.test.tsx",
+      "status": "passed",
+      "passed": 16,
+      "failed": 0
+    },
+    {
+      "path": "src/features/preferences/__tests__/ProfileService.test.ts",
+      "status": "passed",
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "path": "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+      "status": "passed",
+      "passed": 17,
+      "failed": 0
+    },
+    {
+      "path": "src/features/reference-data/__tests__/bodyZones.test.ts",
+      "status": "passed",
+      "passed": 8,
+      "failed": 0
+    },
+    {
+      "path": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+      "status": "passed",
+      "passed": 17,
+      "failed": 0
+    },
+    {
+      "path": "src/features/reference-data/__tests__/LabelPickerModal.test.tsx",
+      "status": "passed",
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "path": "src/features/reference-data/__tests__/ReferenceValueDialog.test.tsx",
+      "status": "passed",
+      "passed": 12,
+      "failed": 0
+    },
+    {
+      "path": "src/features/reference-data/__tests__/ReferentialService.test.ts",
+      "status": "passed",
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/AbandonCreationModal.test.tsx",
+      "status": "passed",
+      "passed": 15,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/BodyZoneSelector.test.tsx",
+      "status": "passed",
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+      "status": "passed",
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
+      "status": "passed",
+      "passed": 24,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "status": "failed",
+      "passed": 0,
+      "failed": 2
+    },
+    {
+      "path": "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
+      "status": "passed",
+      "passed": 6,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/ColorPalette.test.tsx",
+      "status": "passed",
+      "passed": 11,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "status": "failed",
+      "passed": 0,
+      "failed": 5
+    },
+    {
+      "path": "src/features/sessions/__tests__/compositionGesture.test.ts",
+      "status": "passed",
+      "passed": 19,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx",
+      "status": "passed",
+      "passed": 9,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/compositionPresentation.test.ts",
+      "status": "passed",
+      "passed": 97,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+      "status": "passed",
+      "passed": 164,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
+      "status": "passed",
+      "passed": 42,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/ExerciseExitConfirmModal.test.tsx",
+      "status": "passed",
+      "passed": 15,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx",
+      "status": "passed",
+      "passed": 12,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "status": "passed",
+      "passed": 26,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/formatSessionSummary.test.ts",
+      "status": "passed",
+      "passed": 25,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/NumberWheelPicker.test.tsx",
+      "status": "passed",
+      "passed": 29,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionCard.test.tsx",
+      "status": "passed",
+      "passed": 14,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionDraftContext.test.tsx",
+      "status": "passed",
+      "passed": 4,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionDraftProvider.test.tsx",
+      "status": "passed",
+      "passed": 14,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionService.test.ts",
+      "status": "passed",
+      "passed": 23,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionServiceContext.test.tsx",
+      "status": "passed",
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "status": "passed",
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/SideModeControl.test.tsx",
+      "status": "passed",
+      "passed": 13,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/useCompositionExitGuard.test.ts",
+      "status": "passed",
+      "passed": 12,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/useSessionCatalogue.test.ts",
+      "status": "passed",
+      "passed": 9,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/wheelPickerMath.test.ts",
+      "status": "passed",
+      "passed": 35,
+      "failed": 0
+    },
+    {
+      "path": "src/features/sessions/__tests__/WheelPickerOverlay.test.tsx",
+      "status": "passed",
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/initializeDatabase.test.ts",
+      "status": "passed",
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "status": "passed",
+      "passed": 58,
+      "failed": 0
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+      "status": "passed",
+      "passed": 26,
+      "failed": 0
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteBodyZoneRepository.test.ts",
+      "status": "passed",
+      "passed": 13,
+      "failed": 0
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteCategoryRepository.test.ts",
+      "status": "passed",
+      "passed": 17,
+      "failed": 0
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteLabelRepository.test.ts",
+      "status": "passed",
+      "passed": 15,
+      "failed": 0
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+      "status": "passed",
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteProfileRepository.test.ts",
+      "status": "passed",
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+      "status": "passed",
+      "passed": 70,
+      "failed": 0
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "status": "passed",
+      "passed": 20,
+      "failed": 0
+    },
+    {
+      "path": "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+      "status": "passed",
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "path": "src/infrastructure/media/__tests__/VideoPoster.test.ts",
+      "status": "passed",
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "path": "src/shared/i18n/index.test.ts",
+      "status": "passed",
+      "passed": 45,
+      "failed": 0
+    },
+    {
+      "path": "src/shared/ui/__tests__/BodyZoneIcon.test.tsx",
+      "status": "passed",
+      "passed": 4,
+      "failed": 0
+    },
+    {
+      "path": "src/shared/ui/__tests__/DisclosureControl.test.tsx",
+      "status": "passed",
+      "passed": 12,
+      "failed": 0
+    },
+    {
+      "path": "src/shared/ui/__tests__/navigationLayout.test.ts",
+      "status": "passed",
+      "passed": 4,
+      "failed": 0
+    },
+    {
+      "path": "src/shared/ui/__tests__/ProfileStepper.test.ts",
+      "status": "passed",
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "path": "src/shared/ui/__tests__/ProfileStepper.test.tsx",
+      "status": "passed",
+      "passed": 11,
+      "failed": 0
+    },
+    {
+      "path": "src/shared/ui/__tests__/RootErrorBoundary.test.tsx",
+      "status": "passed",
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "path": "src/shared/ui/__tests__/RootErrorFallback.test.tsx",
+      "status": "passed",
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "path": "src/shared/ui/__tests__/ScreenShell.test.tsx",
+      "status": "passed",
+      "passed": 8,
+      "failed": 0
+    },
+    {
+      "path": "src/shared/ui/__tests__/SegmentedControl.test.tsx",
+      "status": "passed",
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "path": "src/shared/ui/__tests__/TabsLayoutSearch.integration.test.tsx",
+      "status": "passed",
+      "passed": 9,
+      "failed": 0
+    },
+    {
+      "path": "src/shared/ui/__tests__/tokensSpecification.test.ts",
+      "status": "passed",
+      "passed": 4,
+      "failed": 0
+    },
+    {
+      "path": "src/shared/ui/__tests__/TransientNotification.test.tsx",
+      "status": "passed",
+      "passed": 12,
+      "failed": 0
+    },
+    {
+      "path": "src/shared/ui/__tests__/visualAssets.test.ts",
+      "status": "passed",
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "path": "tests/fixtures/vnext12/core.test.js",
+      "status": "passed",
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "path": "tests/kodjo-prod-qualif/preflight.test.ts",
+      "status": "passed",
+      "passed": 1,
+      "failed": 0
+    }
+  ],
+  "not_proven_here": [
+    "Rendu natif, perception, VoiceOver réel, permissions système réelles, photo/vidéo réelles de la photothèque, maintien tactile et défilement réels, redémarrage/installation : procédure appareil.",
+    "Comparaison visuelle rendue (captures 360/402/440) : non produite — comparaison statique propriétés code ↔ Figma uniquement (comparaison-visuelle.md)."
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "schema": "kodjo.pre3.create-policy.work.v1",
+  "status": "PROPOSED_REQUIRES_FINAL_PLAN_APPROVAL",
+  "baseline": "1ddfb6d144552f578388257adc78db47ab5992c8",
+  "paths": [
+    {
+      "path": "src/domain/activities/ExecutionParameters.ts",
+      "intent": "Canonical versioned parameters, validation, conservative legacy conversion and effective normalization."
+    },
+    {
+      "path": "src/domain/activities/ExecutionParametersDraft.ts",
+      "intent": "Pure isolated draft transitions and temporary restoration."
+    },
+    {
+      "path": "src/domain/activities/executionCalculations.ts",
+      "intent": "Pure ledger-independent product calculation and uniform duration inversion."
+    },
+    {
+      "path": "src/domain/activities/executionPhrase.ts",
+      "intent": "Pure v15 segment emitter; no persisted phrase."
+    },
+    {
+      "path": "src/domain/activities/exerciseSnapshot.ts",
+      "intent": "Immutable serialization boundary only; no execution engine/history repository."
+    },
+    {
+      "path": "src/domain/media/ActivityMediaImportService.ts",
+      "intent": "Acquisition/copy/draft-error orchestration and stable retry identities."
+    },
+    {
+      "path": "src/domain/media/MediaDraftLeases.ts",
+      "intent": "Track prepared-file loans to active drafts, no global cleanup."
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration009.ts",
+      "intent": "Additive JSON/metadata/category/occurrence-link schema."
+    },
+    {
+      "path": "src/infrastructure/media/PhotoLibraryPicker.ts",
+      "intent": "Verified SDK57 photo-library-only acquisition and permissions."
+    },
+    {
+      "path": "src/infrastructure/media/LocalMediaStore.ts",
+      "intent": "Stable internal copies and guarded owned-preparation cleanup."
+    },
+    {
+      "path": "src/infrastructure/media/VideoPoster.ts",
+      "intent": "Regenerated native poster with explicit native release; no autoplay/audio."
+    },
+    {
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "intent": "Complete sheet and inline parameter controls, fixed header/scrolling body."
+    },
+    {
+      "path": "src/features/activities/ActivityMediaList.tsx",
+      "intent": "Ordered items, visible import/errors/retry and accessible move/remove commands."
+    },
+    {
+      "path": "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+      "intent": "Meaningful tests mapped in assertions-recette.json; application results not yet produced."
+    },
+    {
+      "path": "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+      "intent": "Meaningful tests mapped in assertions-recette.json; application results not yet produced."
+    },
+    {
+      "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+      "intent": "Meaningful tests mapped in assertions-recette.json; application results not yet produced."
+    },
+    {
+      "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+      "intent": "Meaningful tests mapped in assertions-recette.json; application results not yet produced."
+    },
+    {
+      "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+      "intent": "Meaningful tests mapped in assertions-recette.json; application results not yet produced."
+    },
+    {
+      "path": "src/domain/activities/__tests__/exerciseSnapshot.test.ts",
+      "intent": "Meaningful tests mapped in assertions-recette.json; application results not yet produced."
+    },
+    {
+      "path": "src/shared/ui/__tests__/ProfileStepper.test.ts",
+      "intent": "Meaningful tests mapped in assertions-recette.json; application results not yet produced."
+    },
+    {
+      "path": "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+      "intent": "Meaningful tests mapped in assertions-recette.json; application results not yet produced."
+    },
+    {
+      "path": "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+      "intent": "Meaningful tests mapped in assertions-recette.json; application results not yet produced."
+    },
+    {
+      "path": "src/infrastructure/media/__tests__/VideoPoster.test.ts",
+      "intent": "Meaningful tests mapped in assertions-recette.json; application results not yet produced."
+    }
+  ],
+  "constraints": [
+    "No application files created before reviewed-plan owner approval.",
+    "No execution engine, audio emission or media playback during execution.",
+    "All outside approved canonical write scope forbidden."
+  ]
+}

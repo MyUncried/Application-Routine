@@ -8,6 +8,10 @@ import {
   formatSessionTagLine,
   formatTourCount,
 } from "@/features/sessions/formatSessionSummary";
+import {
+  computeStructuredSessionDuration,
+  type ActivityDurationFacts,
+} from "@/domain/sessions/calculations";
 
 describe("formatActivityCount", () => {
   it("uses the singular form for exactly one activity", () => {
@@ -113,5 +117,76 @@ describe("formatSessionTagLine (T01-S09, correction VISUAL tentative 2, point B 
     expect(formatSessionTagLine(["Zzz personnalisée", "Renforcement"], ["Chevilles et pieds", "Cou"])).toBe(
       "Zzz personnalisée, Renforcement : Chevilles et pieds, Cou",
     );
+  });
+});
+
+/**
+ * PRE-3 — symbole de la durée de Séance issu du résultat typé de l'autorité
+ * Domaine (`computeStructuredSessionDuration`), répétitions structurelles du
+ * Tour conservées.
+ */
+describe("formatEstimatedDuration — PRE-3 (P3-13/tours-cycles-list)", () => {
+  const exercise = (overrides: Partial<ActivityDurationFacts>): ActivityDurationFacts => ({
+    type: "EXERCISE",
+    executionMode: "DURATION",
+    durationSeconds: 60,
+    repetitionCount: null,
+    seriesCount: 2,
+    pauseSeconds: 15,
+    postActivityRecoverySeconds: 0,
+    sideMode: "UNILATERAL",
+    ...overrides,
+  });
+
+  it("P3-13/tours-cycles-list — exact sans symbole, ≈ estimé, ≥ travail inconnu ; Tour répété ; booléen historique accepté", () => {
+    // 2 × (60 + 15) = 150 s, Tour × 2 = 300 s + avant-Tour 150 s = 450 s exact.
+    const exact = computeStructuredSessionDuration({
+      beforeTour: [exercise({})],
+      inTour: [exercise({})],
+      afterTour: [],
+      tourRepeatCount: 2,
+    });
+    expect(exact).toEqual({ kind: "exact", seconds: 450 });
+    expect(formatEstimatedDuration(exact.seconds, exact.kind)).toBe("8 min");
+
+    const estimated = computeStructuredSessionDuration({
+      beforeTour: [],
+      inTour: [
+        exercise({
+          executionMode: "REPETITIONS",
+          durationSeconds: null,
+          repetitionCount: 15,
+          seriesCount: 4,
+          executionParameters: {
+            version: 1,
+            mode: "REPETITIONS",
+            series: { kind: "UNIFORM", count: 4, target: 15, pauseSeconds: 15 },
+            sideMode: "UNILATERAL",
+            sideOrder: "BY_SIDE",
+            sideRecoverySeconds: 0,
+            cadenceBeepIntervalSeconds: 4,
+            countdownSeconds: 10,
+            endSeconds: 5,
+          },
+        }),
+      ],
+      afterTour: [],
+      tourRepeatCount: 1,
+    });
+    expect(estimated).toEqual({ kind: "estimated", seconds: 300 });
+    expect(formatEstimatedDuration(estimated.seconds, estimated.kind)).toBe("≈ 5 min");
+
+    const lowerBound = computeStructuredSessionDuration({
+      beforeTour: [exercise({ executionMode: "TO_FAILURE", durationSeconds: null })],
+      inTour: [],
+      afterTour: [],
+      tourRepeatCount: 1,
+    });
+    expect(lowerBound).toEqual({ kind: "lowerBound", seconds: 30 });
+    expect(formatEstimatedDuration(lowerBound.seconds, lowerBound.kind)).toBe("≥ 1 min");
+
+    // Appelants existants : le booléen garde son sens historique.
+    expect(formatEstimatedDuration(30, true)).toBe("≥ 1 min");
+    expect(formatEstimatedDuration(30)).toBe("1 min");
   });
 });

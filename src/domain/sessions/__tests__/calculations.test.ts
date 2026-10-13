@@ -1,24 +1,20 @@
 import { describe, expect, it } from "@jest/globals";
 
+import { invertTotalDuration } from "@/domain/activities/executionCalculations";
 import {
-  applyTargetTotalDuration,
   computeActivityCount,
+  computeActivityDurationResult,
   computeActivityDurationSeconds,
   computeEstimatedDurationSeconds,
-  computePauseOccurrences,
-  computeSeriesCountForTotalDuration,
+  computeStructuredSessionDuration,
   computeTotalActivitiesToExecute,
-  computeTotalDurationSeconds,
   computeZoneDurationFacts,
-  isLowerBoundExecutionMode,
-  SERIES_COUNT_MAX,
-  SERIES_COUNT_MIN,
   toActivityCountFacts,
   toEstimatedDurationFacts,
+  toSessionDurationResult,
   type ActivityCountFacts,
   type ActivityDurationFacts,
   type EstimatedDurationFacts,
-  type TotalDurationFacts,
 } from "@/domain/sessions/calculations";
 import { DEFAULT_SESSION_COLOR, type Activity, type Session } from "@/domain/sessions/Session";
 
@@ -73,24 +69,37 @@ describe("computeEstimatedDurationSeconds (Facts only, no SQL/infra type)", () =
  * suit la dernière Série ne disparaît jamais : il change simplement de
  * porteur.
  */
-describe("computePauseOccurrences (règle conditionnelle T02-S02)", () => {
+/**
+ * PRE-3 (révisé aux sources courantes, Bip v2 §3) : l'ancienne fonction
+ * `computePauseOccurrences` est retirée au profit de l'autorité unique
+ * (`executionCalculations.ts`), dont le registre d'événements PROUVE la même
+ * règle T02-S02 conservée : une Récupération positive remplace UNIQUEMENT la
+ * toute dernière Pause, jamais cumulée.
+ */
+describe("Pause terminale et Récupération (règle conservée, autorité unique PRE-3)", () => {
+  const facts = (recovery: number, seriesCount: number | null = 3): ActivityDurationFacts => ({
+    type: "EXERCISE",
+    executionMode: "DURATION",
+    durationSeconds: 30,
+    seriesCount,
+    pauseSeconds: 10,
+    postActivityRecoverySeconds: recovery,
+  });
+  const pauses = (recovery: number, seriesCount?: number | null) =>
+    computeActivityDurationResult(facts(recovery, seriesCount)).events.filter((event) => event.kind === "SERIES_PAUSE");
+
   it("counts ONE pause per series when there is no Récupération", () => {
-    expect(computePauseOccurrences(3, 0)).toBe(3);
-    expect(computePauseOccurrences(2, 0)).toBe(2);
-    expect(computePauseOccurrences(1, 0)).toBe(1);
+    expect(pauses(0)).toHaveLength(3);
   });
 
   it("drops exactly the last pause when a Récupération exists — it replaces it", () => {
-    expect(computePauseOccurrences(3, 20)).toBe(2);
-    expect(computePauseOccurrences(2, 20)).toBe(1);
-    expect(computePauseOccurrences(1, 20)).toBe(0);
+    expect(pauses(20)).toHaveLength(2);
+    expect(computeActivityDurationResult(facts(20)).events.at(-1)).toEqual({ kind: "RECOVERY", seconds: 20 });
   });
 
-  it("returns zero for zero series or an absent series count, in both branches", () => {
-    expect(computePauseOccurrences(0, 0)).toBe(0);
-    expect(computePauseOccurrences(0, 20)).toBe(0);
-    expect(computePauseOccurrences(null, 0)).toBe(0);
-    expect(computePauseOccurrences(null, 20)).toBe(0);
+  it("keeps a single Series' only pause without Récupération (an absent count reads as one Series)", () => {
+    expect(pauses(0, 1)).toHaveLength(1);
+    expect(pauses(0, null)).toHaveLength(1);
   });
 });
 
@@ -134,30 +143,28 @@ describe("computeActivityDurationSeconds (une seule Activité)", () => {
     ).toBe(50);
   });
 
-  it("gives no conventional duration to REPETITIONS nor TO_FAILURE, but still counts their pauses and Récupération (RM-072/RM-132/D-112)", () => {
+  it("gives no conventional duration to REPETITIONS nor TO_FAILURE (omitted), but still counts their pauses and Récupération as known contributions", () => {
     for (const mode of ["REPETITIONS", "TO_FAILURE"] as const) {
-      // Sans Récupération : 3 × 10 = 30.
-      expect(
-        computeActivityDurationSeconds(
-          durationFacts({ executionMode: mode, durationSeconds: null, seriesCount: 3, pauseSeconds: 10 }),
-        ),
-      ).toBe(30);
-      // Avec Récupération : 2 × 10 + 15 = 35.
+      const withoutRecovery = computeActivityDurationResult(
+        durationFacts({ executionMode: mode, durationSeconds: null, repetitionCount: mode === "REPETITIONS" ? 12 : null, seriesCount: 3, pauseSeconds: 10 }),
+      );
+      // Sans Récupération : 3 × 10 = 30 de pauses connues, aucune durée d'Exercice.
+      expect(withoutRecovery).toEqual(expect.objectContaining({ kind: "omitted", knownSeconds: 30 }));
+      expect(withoutRecovery.seconds).toBeUndefined();
+      // Avec Récupération : 2 × 10 + 15 = 35 (R remplace la Pause terminale).
       expect(
         computeActivityDurationSeconds(
           durationFacts({
             executionMode: mode,
             durationSeconds: null,
+            repetitionCount: mode === "REPETITIONS" ? 12 : null,
             seriesCount: 3,
             pauseSeconds: 10,
             postActivityRecoverySeconds: 15,
           }),
         ),
       ).toBe(35);
-      expect(isLowerBoundExecutionMode(mode)).toBe(true);
     }
-    expect(isLowerBoundExecutionMode("DURATION")).toBe(false);
-    expect(isLowerBoundExecutionMode(null)).toBe(false);
   });
 
   it("counts a legacy standalone RECOVERY's own duration once, without series multiplication nor pause (D-041)", () => {
@@ -177,106 +184,44 @@ describe("computeActivityDurationSeconds (une seule Activité)", () => {
 });
 
 /**
- * T02-S02 — dépendance bidirectionnelle `Séries ↔ Durée totale` (RM-129/
- * RM-130, `06` §« Dépendance Séries / Durée totale »).
+ * PRE-3 (révisé aux sources courantes, v13 §5) : l'ancienne inversion par
+ * formule fermée (`computeSeriesCountForTotalDuration`/
+ * `applyTargetTotalDuration`) est remplacée par l'énumération N = 1..99 de
+ * l'autorité unique — total réalisable le plus proche, égalité vers le N le
+ * plus grand, ajustement signalé seulement si le total diffère.
  */
-describe("computeTotalDurationSeconds / computeSeriesCountForTotalDuration (formule canonique et son inverse)", () => {
-  function facts(overrides: Partial<TotalDurationFacts> = {}): TotalDurationFacts {
-    return { durationSeconds: 30, pauseSeconds: 10, postActivityRecoverySeconds: 0, ...overrides };
-  }
-
-  it("computes D = C × A + C × B without Récupération", () => {
-    // `A + B = 40` : sans Récupération, la durée est un multiple exact de 40.
-    expect(computeTotalDurationSeconds(3, facts())).toBe(120);
-    expect(computeTotalDurationSeconds(1, facts())).toBe(40);
+describe("Inversion Durée totale → Séries (autorité unique PRE-3)", () => {
+  const uniform = (count: number, overrides: Record<string, unknown> = {}) => ({
+    version: 1 as const,
+    mode: "DURATION" as const,
+    series: { kind: "UNIFORM" as const, count, target: 30, pauseSeconds: 10 },
+    sideMode: "UNILATERAL" as const,
+    sideOrder: "BY_SIDE" as const,
+    sideRecoverySeconds: 0,
+    cadenceBeepIntervalSeconds: 0,
+    countdownSeconds: 0,
+    endSeconds: 0,
+    ...overrides,
   });
-
-  it("computes D = C × A + (C − 1) × B + R with a Récupération, which replaces the last pause", () => {
-    expect(computeTotalDurationSeconds(3, facts({ postActivityRecoverySeconds: 20 }))).toBe(130);
-    expect(computeTotalDurationSeconds(1, facts({ postActivityRecoverySeconds: 20 }))).toBe(50);
-  });
-
-  it("inverts exactly, branch by branch: Cth = D / (A + B) without R, (D − R + B) / (A + B) with R", () => {
-    expect(computeSeriesCountForTotalDuration(120, facts())).toBe(3);
-    expect(computeSeriesCountForTotalDuration(40, facts())).toBe(1);
-    expect(computeSeriesCountForTotalDuration(130, facts({ postActivityRecoverySeconds: 20 }))).toBe(3);
-  });
-
-  it("never applies the '+ B' numerator term when there is no Récupération — that term belongs to the Récupération branch only", () => {
-    // Cible `59`, `A + B = 40`. Sans Récupération : `59 / 40 = 1,475 → 1`.
-    // Avec une Récupération (même minuscule) : `(59 − 1 + 10) / 40 = 1,7 → 2`.
-    // Le numérateur `+ B` appliqué inconditionnellement — règle précédente —
-    // aurait rendu `2` dans les DEUX cas, surestimant `C` d'une Série
-    // entière en l'absence de Récupération.
-    expect(computeSeriesCountForTotalDuration(59, facts())).toBe(1);
-    expect(computeSeriesCountForTotalDuration(59, facts({ postActivityRecoverySeconds: 1 }))).toBe(2);
-  });
-
-  it("rounds a .5 theoretical series count UP (D-092)", () => {
-    // A + B = 40 ; sans Récupération, cible 100 → 100 / 40 = 2.5 → 3.
-    expect(computeSeriesCountForTotalDuration(100, facts())).toBe(3);
-    // Contrôle du voisinage immédiat : 2.475 → 2, 2.525 → 3.
-    expect(computeSeriesCountForTotalDuration(99, facts())).toBe(2);
-    expect(computeSeriesCountForTotalDuration(101, facts())).toBe(3);
-  });
-
-  it("clamps the inverted series count to [1, 99]", () => {
-    expect(computeSeriesCountForTotalDuration(0, facts())).toBe(SERIES_COUNT_MIN);
-    expect(computeSeriesCountForTotalDuration(-1000, facts())).toBe(SERIES_COUNT_MIN);
-    expect(computeSeriesCountForTotalDuration(1_000_000, facts())).toBe(SERIES_COUNT_MAX);
-  });
-
-  it("falls back to the minimum series count when A + B is zero — the target carries no information about C", () => {
-    expect(
-      computeSeriesCountForTotalDuration(600, facts({ durationSeconds: 0, pauseSeconds: 0 })),
-    ).toBe(SERIES_COUNT_MIN);
-  });
-
-  it("is a true round trip in BOTH branches: inverting then recomputing returns the original series count", () => {
-    for (const seriesCount of [1, 2, 5, 12, 99]) {
-      const withoutRecovery = computeTotalDurationSeconds(seriesCount, facts());
-      expect(computeSeriesCountForTotalDuration(withoutRecovery, facts())).toBe(seriesCount);
-
-      const withRecovery = computeTotalDurationSeconds(seriesCount, facts({ postActivityRecoverySeconds: 20 }));
-      expect(computeSeriesCountForTotalDuration(withRecovery, facts({ postActivityRecoverySeconds: 20 }))).toBe(
-        seriesCount,
-      );
-    }
-  });
-});
-
-describe("applyTargetTotalDuration (RM-130) — pilote Séries, jamais la durée elle-même", () => {
-  const facts: TotalDurationFacts = { durationSeconds: 30, pauseSeconds: 10, postActivityRecoverySeconds: 0 };
 
   it("reports no adjustment when the target is exactly reachable", () => {
-    expect(applyTargetTotalDuration(120, facts)).toEqual({
-      seriesCount: 3,
-      totalDurationSeconds: 120,
-      wasAdjusted: false,
-    });
+    expect(invertTotalDuration(uniform(1), 120)).toEqual({ seriesCount: 3, totalSeconds: 120, adjusted: false });
   });
 
-  it("reports the adjusted duration when rounding changed the reachable total", () => {
-    // 100 → 2.5 Séries → 3 Séries → 3 × 30 + 3 × 10 = 120.
-    expect(applyTargetTotalDuration(100, facts)).toEqual({
-      seriesCount: 3,
-      totalDurationSeconds: 120,
-      wasAdjusted: true,
-    });
+  it("reports the adjusted duration when the target is not exactly reachable (tie → higher N)", () => {
+    expect(invertTotalDuration(uniform(1), 100)).toEqual({ seriesCount: 3, totalSeconds: 120, adjusted: true });
   });
 
-  it("reports the adjusted duration when the bounds [1, 99] clamped the series count", () => {
-    expect(applyTargetTotalDuration(1_000_000, facts)).toMatchObject({
-      seriesCount: SERIES_COUNT_MAX,
-      wasAdjusted: true,
-    });
-    expect(applyTargetTotalDuration(0, facts)).toMatchObject({
-      seriesCount: SERIES_COUNT_MIN,
-      // `1 × 30 + 1 × 10 = 40` : sans Récupération, l'unique Série garde sa
-      // Pause.
-      totalDurationSeconds: 40,
-      wasAdjusted: true,
-    });
+  it("clamps to the reachable extremes [1, 99]", () => {
+    expect(invertTotalDuration(uniform(5), 1)).toEqual({ seriesCount: 1, totalSeconds: 40, adjusted: true });
+    expect(invertTotalDuration(uniform(5), 1_000_000)).toEqual({ seriesCount: 99, totalSeconds: 3960, adjusted: true });
+  });
+
+  it("is a true round trip: inverting a reachable total returns its series count", () => {
+    for (const count of [1, 2, 5, 12, 99]) {
+      const total = (30 + 10) * count;
+      expect(invertTotalDuration(uniform(1), total).seriesCount).toBe(count);
+    }
   });
 });
 
@@ -654,10 +599,12 @@ describe("computeZoneDurationFacts — side mode (V2-PRE-1)", () => {
     });
   });
 
-  it("bilateral Activity: Li = 2 for this Activity, Ri counted only once after both sides", () => {
-    // perPass = 2×30 + 1×5 = 65 ; × L(2) = 130 ; + R(20, jamais doublée) = 150.
+  it("bilateral Activity: both sides counted, Ri counted only once after both sides", () => {
+    // PRE-3 (Bip v2 §3) : 2 × Σ(T + P) = 2 × (2×30 + 2×5) = 140 ; PC absent
+    // d'une ancienne occurrence = 0 ; R(20) remplace la seule Pause terminale
+    // (5) : 140 − 5 + 20 = 155 (jamais doublée).
     expect(computeZoneDurationFacts([activity({ sideMode: "RIGHT_LEFT" })])).toEqual({
-      seconds: 150,
+      seconds: 155,
       isLowerBoundEstimate: false,
     });
   });
@@ -676,48 +623,107 @@ describe("computeZoneDurationFacts — side mode (V2-PRE-1)", () => {
 });
 
 /**
- * V2-BILAT-01 — formule « autonome » (`D = L × [C × A + occurrences × B] +
- * R`) : une occurrence d'Activité isolée (`ExerciseScreen`), la Récupération
- * n'est jamais multipliée.
+ * PRE-3 (révisé aux sources courantes, v13 §5) : l'occurrence bilatérale
+ * isolée suit l'ordre des côtés et inclut la Pause entre les côtés ;
+ * l'inversion énumère N = 1..99 (N = 1 normalisé par côté). La Récupération
+ * appartient à l'occurrence et n'entre jamais dans l'inversion intrinsèque.
  */
-describe("computeTotalDurationSeconds / computeSeriesCountForTotalDuration / applyTargetTotalDuration — V2-BILAT-01 side mode", () => {
-  const facts: TotalDurationFacts = { durationSeconds: 30, pauseSeconds: 10, postActivityRecoverySeconds: 0 };
-  const facts20R: TotalDurationFacts = { durationSeconds: 30, pauseSeconds: 10, postActivityRecoverySeconds: 20 };
-
-  it("multiplies the Series + Pauses part by L, without ever multiplying the Récupération (R = 0 branch)", () => {
-    // Sans multiplicateur : 3 × 30 + 3 × 10 = 120 (T02-S02, inchangé).
-    expect(computeTotalDurationSeconds(3, facts, 1)).toBe(120);
-    // Bilatéral : (3 × 30 + 3 × 10) × 2 = 240.
-    expect(computeTotalDurationSeconds(3, facts, 2)).toBe(240);
+describe("Durée bilatérale et inversion — ordre des côtés et Pause entre les côtés (PRE-3)", () => {
+  const bilateral = (order: "BY_SIDE" | "BY_SERIES") => ({
+    version: 1 as const,
+    mode: "DURATION" as const,
+    series: { kind: "UNIFORM" as const, count: 3, target: 30, pauseSeconds: 10 },
+    sideMode: "RIGHT_LEFT" as const,
+    sideOrder: order,
+    sideRecoverySeconds: 5,
+    cadenceBeepIntervalSeconds: 0,
+    countdownSeconds: 0,
+    endSeconds: 0,
   });
 
-  it("multiplies the Series + Pauses part by L, R staying outside (R > 0 branch)", () => {
-    // Sans multiplicateur : 3 × 30 + 2 × 10 + 20 = 130 (T02-S02, inchangé).
-    expect(computeTotalDurationSeconds(3, facts20R, 1)).toBe(130);
-    // Bilatéral : (3 × 30 + 2 × 10) × 2 + 20 = 240.
-    expect(computeTotalDurationSeconds(3, facts20R, 2)).toBe(240);
+  it("counts both sides, the Pause between sides once (by side) or N times (by series), R once", () => {
+    const facts = (order: "BY_SIDE" | "BY_SERIES", recovery: number): ActivityDurationFacts => ({
+      type: "EXERCISE",
+      executionMode: "DURATION",
+      durationSeconds: 30,
+      seriesCount: 3,
+      pauseSeconds: 10,
+      postActivityRecoverySeconds: recovery,
+      sideMode: "RIGHT_LEFT",
+      executionParameters: bilateral(order),
+    });
+    // Par côté : 2 × 3 × (30 + 10) + 5 = 245 ; avec R20 : 245 − 10 + 20 = 255.
+    expect(computeActivityDurationSeconds(facts("BY_SIDE", 0))).toBe(245);
+    expect(computeActivityDurationSeconds(facts("BY_SIDE", 20))).toBe(255);
+    // Par paire : 2 × 90 + 30 + 3 × 5 = 225.
+    expect(computeActivityDurationSeconds(facts("BY_SERIES", 0))).toBe(225);
   });
 
-  it("defaults L to 1 — non-regression for every caller predating this tranche", () => {
-    expect(computeTotalDurationSeconds(3, facts)).toBe(120);
-  });
-
-  it("inverts exactly the bilateral formula, in both branches", () => {
-    for (const seriesCount of [1, 2, 5, 12, 99]) {
-      const withoutRecovery = computeTotalDurationSeconds(seriesCount, facts, 2);
-      expect(computeSeriesCountForTotalDuration(withoutRecovery, facts, 2)).toBe(seriesCount);
-
-      const withRecovery = computeTotalDurationSeconds(seriesCount, facts20R, 2);
-      expect(computeSeriesCountForTotalDuration(withRecovery, facts20R, 2)).toBe(seriesCount);
+  it("inverts the bilateral total exactly, by enumeration", () => {
+    for (const count of [2, 5, 12, 99]) {
+      const total = count * (2 * 30 + 10 + 5);
+      expect(invertTotalDuration({ ...bilateral("BY_SERIES"), series: { ...bilateral("BY_SERIES").series, count: 1 } }, total)).toEqual({
+        seriesCount: count,
+        totalSeconds: total,
+        adjusted: false,
+      });
     }
   });
+});
 
-  it("applyTargetTotalDuration propagates the side multiplier to both the inverse and the recomputed duration", () => {
-    // Cible atteignable exactement : 3 Séries bilatérales, `(3×30+3×10)×2 = 240`.
-    expect(applyTargetTotalDuration(240, facts, 2)).toEqual({
-      seriesCount: 3,
-      totalDurationSeconds: 240,
-      wasAdjusted: false,
+describe("P3-13/tours-cycles-list — une seule autorité pour la lecture complète et la liste", () => {
+  it("développe les répétitions du Circuit sur la seule zone IN_TOUR et type le total exact/≈/≥", () => {
+    const exact: ActivityDurationFacts = { type: "EXERCISE", executionMode: "DURATION", durationSeconds: 30, seriesCount: 2, pauseSeconds: 10, postActivityRecoverySeconds: 0 };
+    const unknown: ActivityDurationFacts = { type: "EXERCISE", executionMode: "TO_FAILURE", durationSeconds: null, seriesCount: 2, pauseSeconds: 15, postActivityRecoverySeconds: 0 };
+    expect(computeStructuredSessionDuration({ beforeTour: [exact], inTour: [exact], afterTour: [], tourRepeatCount: 99 })).toEqual({
+      kind: "exact",
+      seconds: 80 + 99 * 80,
     });
+    expect(computeStructuredSessionDuration({ beforeTour: [], inTour: [exact], afterTour: [unknown], tourRepeatCount: 1 })).toEqual({
+      kind: "lowerBound",
+      seconds: 80 + 30,
+    });
+  });
+
+  it("toSessionDurationResult lit l'agrégat complet sans requête supplémentaire", () => {
+    const session = {
+      id: "s",
+      ownerId: "o",
+      name: "S",
+      color: "#3B82F6",
+      status: "ACTIVE",
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      createdAt: "now",
+      updatedAt: "now",
+      cycle: {
+        id: "c",
+        position: 1,
+        repeatCount: 1,
+        tour: {
+          id: "t",
+          position: 1,
+          repeatCount: 2,
+          exercises: [
+            {
+              id: "a",
+              type: "EXERCISE",
+              executionMode: "DURATION",
+              structuralPosition: "IN_TOUR",
+              position: 0,
+              name: "A",
+              durationSeconds: 30,
+              repetitionCount: null,
+              seriesCount: 1,
+              pauseSeconds: 0,
+              postActivityRecoverySeconds: 0,
+              instruction: null,
+              bodyZoneIds: [],
+            },
+          ],
+        },
+      },
+    } as unknown as Session;
+    expect(toSessionDurationResult(session)).toEqual({ kind: "exact", seconds: 60 });
   });
 });

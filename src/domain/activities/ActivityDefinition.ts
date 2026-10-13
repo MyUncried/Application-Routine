@@ -23,6 +23,8 @@
  */
 
 import { validateCategoryColor, type CreateCategoryInput } from "@/domain/categories/Category";
+import type { ActivityMediaWithAsset, DraftMediaItem } from "@/domain/media/ActivityMedia";
+import { isValidNewMediaAsset, type MediaAsset } from "@/domain/media/MediaAsset";
 import { validateCategoryName } from "@/domain/categories/validation";
 import {
   createExerciseDraft,
@@ -43,6 +45,15 @@ import {
   validateRepetitionCount,
   validateSeriesCount,
 } from "@/domain/sessions/validation";
+
+import {
+  cloneExecutionParameters,
+  legacyExecutionParameters,
+  projectLegacyScalars,
+  validateExecutionParameters,
+  type ExecutionParameters,
+  type ExecutionParametersViolation,
+} from "./ExecutionParameters";
 
 export type ActivityDefinitionExecutionMode = ExerciseExecutionMode;
 
@@ -75,6 +86,16 @@ export type ActivityDefinition = {
   readonly sideRecoverySeconds?: number;
   /** @deprecated V2-PRE-1 : la récupération post-exercice n'appartient plus jamais à la définition (plan §3.1) — conservé uniquement pour la compatibilité structurelle de fixtures hors périmètre d'écriture (`ActivityCatalogueList.test.tsx`, `useActivityCatalogue.test.ts`, `CatalogueScreen.test.tsx`) qui l'utilisent encore ; jamais lu par le Domaine, les mappings ou la persistance. */
   readonly recoverySeconds?: number;
+  /**
+   * PRE-3 : paramètres canoniques versionnés — AUTORITÉ quand présents, les
+   * scalaires ci-dessus n'en étant que des projections. Toujours renseigné
+   * par le Repository (JSON persisté, ou adaptateur conservateur d'un
+   * ancien objet) ; optionnel sur ce type LU pour les fixtures hors
+   * périmètre d'écriture qui le construisent encore sans lui.
+   */
+  readonly executionParameters?: ExecutionParameters;
+  /** PRE-3 : médias ordonnés hydratés par le Repository (même convention optionnelle). */
+  readonly media?: readonly ActivityMediaWithAsset[];
   readonly createdAt: string;
   readonly updatedAt: string;
 };
@@ -89,6 +110,13 @@ export type ActivityDefinition = {
  */
 export type CreateActivityMediaInput = {
   readonly assetId: string;
+  /**
+   * PRE-3 (D-333) : asset complet. Présent pour un média fraîchement importé
+   * — créé dans la MÊME transaction que l'Exercice et ses liens, jamais
+   * avant — ou pour un asset déjà persisté (réouverture), auquel cas il
+   * n'est jamais réécrit.
+   */
+  readonly asset?: MediaAsset;
 };
 
 export type CreateActivityDefinitionInput = {
@@ -113,6 +141,13 @@ export type CreateActivityDefinitionInput = {
    * fournira.
    */
   readonly media?: readonly CreateActivityMediaInput[];
+  /**
+   * PRE-3 : paramètres canoniques. Quand présents, ils font AUTORITÉ : la
+   * validation les contrôle (bornes PRE-3) et réécrit les scalaires
+   * historiques ci-dessus comme simples projections. Absents : chemin
+   * historique inchangé.
+   */
+  readonly executionParameters?: ExecutionParameters;
 };
 
 export type UpdateActivityDefinitionInput = CreateActivityDefinitionInput;
@@ -138,12 +173,18 @@ export type ActivityDefinitionValidationField =
   | "activityDefinition.pauseSeconds"
   | "activityDefinition.category"
   | "activityDefinition.bodyZoneIds"
-  | "activityDefinition.sideRecoverySeconds";
+  | "activityDefinition.sideRecoverySeconds"
+  /** PRE-3 : paramètres canoniques invalides (détail dans `executionViolations`). */
+  | "activityDefinition.executionParameters"
+  /** PRE-3 : asset de média importé invalide. */
+  | "activityDefinition.media";
 
 export type ActivityDefinitionValidationViolation = {
   readonly code: ActivityDefinitionValidationCode;
   readonly field: ActivityDefinitionValidationField;
   readonly details?: { readonly min?: number; readonly max?: number };
+  /** PRE-3 : violations détaillées des paramètres canoniques (champ et Série). */
+  readonly executionViolations?: readonly ExecutionParametersViolation[];
 };
 
 export type ActivityDefinitionValidationResult<T> =
@@ -199,9 +240,38 @@ function validateCategoryInput(
  * `validateCreateSessionInput` (`@/domain/sessions/SessionDraft`).
  */
 export function validateActivityDefinitionInput(
-  input: CreateActivityDefinitionInput,
+  rawInput: CreateActivityDefinitionInput,
 ): ActivityDefinitionValidationResult<CreateActivityDefinitionInput> {
   const violations: ActivityDefinitionValidationViolation[] = [];
+
+  // PRE-3 : paramètres canoniques = autorité. Validés avec les bornes PRE-3,
+  // puis projetés vers les scalaires historiques (jamais écrits
+  // indépendamment).
+  let executionParameters: ExecutionParameters | undefined;
+  let input = rawInput;
+  if (rawInput.executionParameters !== undefined) {
+    const canonical = validateExecutionParameters(rawInput.executionParameters);
+    if (canonical.ok) {
+      executionParameters = canonical.value;
+      const projection = projectLegacyScalars(canonical.value);
+      input = {
+        ...rawInput,
+        executionMode: projection.executionMode,
+        durationSeconds: projection.durationSeconds,
+        repetitionCount: projection.repetitionCount,
+        seriesCount: projection.seriesCount,
+        pauseSeconds: projection.pauseSeconds,
+        sideMode: projection.sideMode,
+        sideRecoverySeconds: projection.sideRecoverySeconds,
+      };
+    } else {
+      violations.push({
+        code: "OUT_OF_RANGE",
+        field: "activityDefinition.executionParameters",
+        executionViolations: canonical.violations,
+      });
+    }
+  }
 
   const nameResult = validateExerciseName(input.name);
   const name = nameResult.ok ? nameResult.value : undefined;
@@ -239,6 +309,9 @@ export function validateActivityDefinitionInput(
   } else if (input.executionMode === "REPETITIONS") {
     if (input.repetitionCount === null) {
       violations.push({ code: "REQUIRED", field: "activityDefinition.repetitionCount" });
+    } else if (executionParameters) {
+      // Borne PRE-3 (1..100) déjà vérifiée par la validation canonique.
+      repetitionCount = input.repetitionCount;
     } else {
       const repetitionResult = validateRepetitionCount(input.repetitionCount);
       if (repetitionResult.ok) {
@@ -265,6 +338,13 @@ export function validateActivityDefinitionInput(
   }
 
   const pauseResult = validatePauseSeconds(input.pauseSeconds);
+  for (const item of input.media ?? []) {
+    const invalidAsset = item.asset !== undefined && (item.asset.id !== item.assetId || !isValidNewMediaAsset(item.asset));
+    if (item.assetId.trim().length === 0 || invalidAsset) {
+      violations.push({ code: "REQUIRED", field: "activityDefinition.media" });
+      break;
+    }
+  }
   if (!pauseResult.ok) {
     violations.push({ code: "OUT_OF_RANGE", field: "activityDefinition.pauseSeconds" });
   }
@@ -309,6 +389,7 @@ export function validateActivityDefinitionInput(
       // (l'intégrité référentielle de `assetId` reste à la charge du
       // Repository, même patron que `category`/`bodyZoneIds`).
       media: input.media ?? [],
+      ...(executionParameters ? { executionParameters } : {}),
     },
   };
 }
@@ -353,7 +434,35 @@ export function activityDefinitionToInput(
     bodyZoneIds: definition.bodyZoneIds,
     sideMode: definition.sideMode,
     sideRecoverySeconds: definition.sideRecoverySeconds ?? 0,
+    // PRE-3 : la réouverture conserve TOUS les paramètres et les liens
+    // ordonnés — la modification d'un seul champ ne les perd jamais.
+    ...(definition.executionParameters
+      ? { executionParameters: cloneExecutionParameters(definition.executionParameters) }
+      : {}),
+    ...(definition.media
+      ? { media: definition.media.map((item) => ({ assetId: item.assetId, asset: { ...item.asset } })) }
+      : {}),
   };
+}
+
+/**
+ * PRE-3 : paramètres canoniques EFFECTIFS d'une définition — le JSON
+ * persisté, ou l'adaptateur conservateur d'un ancien objet (jamais le
+ * Profil courant).
+ */
+export function resolveDefinitionExecutionParameters(definition: ActivityDefinition): ExecutionParameters {
+  return (
+    definition.executionParameters ??
+    legacyExecutionParameters({
+      executionMode: definition.executionMode,
+      durationSeconds: definition.durationSeconds,
+      repetitionCount: definition.repetitionCount,
+      seriesCount: definition.seriesCount,
+      pauseSeconds: definition.pauseSeconds,
+      sideMode: definition.sideMode,
+      sideRecoverySeconds: definition.sideRecoverySeconds ?? 0,
+    })
+  );
 }
 
 /**
@@ -409,7 +518,17 @@ export function activityDefinitionToDraftExercise(
   newId: string,
   postActivityRecoverySeconds: number,
 ): SessionDraftExercise {
+  // PRE-3 (P3-18) : copie COMPLÈTE et indépendante — paramètres canoniques
+  // clonés, Catégorie, médias ordonnés (mêmes fichiers physiques, nouveaux
+  // liens créés à l'enregistrement de la Séance). Aucune référence partagée.
+  const media: readonly DraftMediaItem[] = (definition.media ?? []).map((item) => ({
+    assetId: item.assetId,
+    asset: { ...item.asset },
+  }));
   return {
+    executionParameters: cloneExecutionParameters(resolveDefinitionExecutionParameters(definition)),
+    categoryId: definition.categoryId ?? null,
+    media,
     id: newId,
     type: DEFAULT_ACTIVITY_TYPE,
     structuralPosition: DEFAULT_STRUCTURAL_POSITION,

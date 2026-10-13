@@ -1,0 +1,26 @@
+{
+  "stage": "CLARIFICATION_RESOLVED",
+  "result": "PASS",
+  "producer_revision": "1d42479181586d926a9970867a41d35d44cc4661",
+  "base_plan_hash": "5145cbd30860f9ddef041ed33b97a71697517a3ef248229112bb0f5f7b92006f",
+  "base_review_hash": "4f71752587436a8cc338e2cb74ee650752e9d736502a51b3668241ed0118119d",
+  "original_verdict": "CLARIFICATION_REQUIRED",
+  "decision_hash": "afc359a46242aa81942538621f340f23c9503426b4adcb8a7e57f5f7020cc5a8",
+  "allowed_change_set_hash": "481f2b88d48c128a01c14014fdc4e952a17d6bd985952ea20fad9faab93d2d39",
+  "reentry_stage": "REQUIREMENTS",
+  "blocking_findings": 13,
+  "authorized_targets": 30,
+  "derived_targets": 411,
+  "preserved_targets": 306444,
+  "plan_root_dependency_ids": [
+    "CAND-2429d4b788b15402e680fd84",
+    "CAND-2915d264e742171ae2260c95",
+    "CAND-4379a2f6a92a8e1447ff71e8",
+    "CAND-92b0ddfd31668602a38dfea1",
+    "CAND-9e6c743911d470fd0b6cdba0",
+    "CAND-9f7f1080a6305d7aaa34676b"
+  ],
+  "independent_review": false,
+  "owner_plan_approval": false,
+  "implementation_started": false
+}

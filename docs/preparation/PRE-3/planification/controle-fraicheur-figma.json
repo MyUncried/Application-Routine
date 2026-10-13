@@ -1,0 +1,615 @@
+{
+  "schema": "kodjo.pre3.figma-freshness.work.v1",
+  "baseline": "1ddfb6d144552f578388257adc78db47ab5992c8",
+  "referenceExtractionAt": "2026-10-08T18:31:21.448879+00:00",
+  "expected": [
+    {
+      "frameId": "3542:4656",
+      "nodeCount": 82,
+      "comparisonDigest": "e4b06f9d07f9fe99",
+      "serializedLength": 196218
+    },
+    {
+      "frameId": "3943:6064",
+      "nodeCount": 80,
+      "comparisonDigest": "f9fd9a1debc39e91",
+      "serializedLength": 195978
+    },
+    {
+      "frameId": "4217:6980",
+      "nodeCount": 91,
+      "comparisonDigest": "604d8118b74479dc",
+      "serializedLength": 215502
+    },
+    {
+      "frameId": "5088:6398",
+      "nodeCount": 86,
+      "comparisonDigest": "779ffd65ad936501",
+      "serializedLength": 206000
+    },
+    {
+      "frameId": "4734:6342",
+      "nodeCount": 72,
+      "comparisonDigest": "816ef242a24f93f6",
+      "serializedLength": 176774
+    },
+    {
+      "frameId": "4332:7095",
+      "nodeCount": 145,
+      "comparisonDigest": "b2b05c3abbcc3166",
+      "serializedLength": 340287
+    },
+    {
+      "frameId": "4474:7157",
+      "nodeCount": 242,
+      "comparisonDigest": "12fe6138a4ea53f4",
+      "serializedLength": 549952
+    },
+    {
+      "frameId": "4478:7209",
+      "nodeCount": 137,
+      "comparisonDigest": "a02c4c3358026be7",
+      "serializedLength": 328782
+    },
+    {
+      "frameId": "4683:6336",
+      "nodeCount": 216,
+      "comparisonDigest": "e4c3d2a9ba1f2ba5",
+      "serializedLength": 510989
+    },
+    {
+      "frameId": "4714:6241",
+      "nodeCount": 92,
+      "comparisonDigest": "1062ed5049361754",
+      "serializedLength": 223593
+    },
+    {
+      "frameId": "4861:6259",
+      "nodeCount": 154,
+      "comparisonDigest": "c71a459268d5f0ae",
+      "serializedLength": 360397
+    },
+    {
+      "frameId": "4861:6348",
+      "nodeCount": 133,
+      "comparisonDigest": "8df3f422839dd70e",
+      "serializedLength": 322500
+    },
+    {
+      "frameId": "6407:9458",
+      "nodeCount": 82,
+      "comparisonDigest": "f92e7564fe34d8d0",
+      "serializedLength": 196614
+    },
+    {
+      "frameId": "6407:9551",
+      "nodeCount": 159,
+      "comparisonDigest": "04b039e563751e01",
+      "serializedLength": 382883
+    },
+    {
+      "frameId": "6407:9702",
+      "nodeCount": 83,
+      "comparisonDigest": "95d6a3444d7edc10",
+      "serializedLength": 202834
+    },
+    {
+      "frameId": "6407:9805",
+      "nodeCount": 172,
+      "comparisonDigest": "a2370163c1471a17",
+      "serializedLength": 421279
+    },
+    {
+      "frameId": "6407:9966",
+      "nodeCount": 164,
+      "comparisonDigest": "cf02b33c86b9cba0",
+      "serializedLength": 402711
+    },
+    {
+      "frameId": "6407:10127",
+      "nodeCount": 179,
+      "comparisonDigest": "861eedaa4374bc9e",
+      "serializedLength": 437368
+    },
+    {
+      "frameId": "6407:10481",
+      "nodeCount": 171,
+      "comparisonDigest": "eb089fe2e74aff1e",
+      "serializedLength": 418267
+    },
+    {
+      "frameId": "6411:9546",
+      "nodeCount": 179,
+      "comparisonDigest": "70cedd034a83640f",
+      "serializedLength": 437788
+    },
+    {
+      "frameId": "6411:9649",
+      "nodeCount": 177,
+      "comparisonDigest": "a2fc184305542507",
+      "serializedLength": 434876
+    },
+    {
+      "frameId": "6419:9847",
+      "nodeCount": 173,
+      "comparisonDigest": "d63b2df9b09d1405",
+      "serializedLength": 420320
+    },
+    {
+      "frameId": "6419:10028",
+      "nodeCount": 164,
+      "comparisonDigest": "6de7b8b0f6fc2aec",
+      "serializedLength": 398875
+    },
+    {
+      "frameId": "6423:9953",
+      "nodeCount": 166,
+      "comparisonDigest": "f900239dd9422cd1",
+      "serializedLength": 404619
+    },
+    {
+      "frameId": "6665:24616",
+      "nodeCount": 228,
+      "comparisonDigest": "a0ea71b70d0e817b",
+      "serializedLength": 539859
+    },
+    {
+      "frameId": "6665:24844",
+      "nodeCount": 226,
+      "comparisonDigest": "91e6aca60f29230a",
+      "serializedLength": 533233
+    },
+    {
+      "frameId": "6665:25072",
+      "nodeCount": 227,
+      "comparisonDigest": "e9ecbb6b2a4fe62f",
+      "serializedLength": 534099
+    },
+    {
+      "frameId": "6665:25277",
+      "nodeCount": 445,
+      "comparisonDigest": "9e35706a6d371c5e",
+      "serializedLength": 1017229
+    },
+    {
+      "frameId": "6665:26185",
+      "nodeCount": 186,
+      "comparisonDigest": "50433cd8901e8e34",
+      "serializedLength": 458487
+    },
+    {
+      "frameId": "6665:26575",
+      "nodeCount": 241,
+      "comparisonDigest": "10655fefd79a0133",
+      "serializedLength": 574887
+    },
+    {
+      "frameId": "6665:26822",
+      "nodeCount": 178,
+      "comparisonDigest": "3d0a928ed706541a",
+      "serializedLength": 436456
+    },
+    {
+      "frameId": "6665:27008",
+      "nodeCount": 226,
+      "comparisonDigest": "676fadc577710d59",
+      "serializedLength": 529817
+    },
+    {
+      "frameId": "6665:27232",
+      "nodeCount": 228,
+      "comparisonDigest": "8c336c7a360e2426",
+      "serializedLength": 538999
+    },
+    {
+      "frameId": "6665:27458",
+      "nodeCount": 153,
+      "comparisonDigest": "39d78cd6d82dee82",
+      "serializedLength": 372223
+    },
+    {
+      "frameId": "6665:27608",
+      "nodeCount": 229,
+      "comparisonDigest": "390496b719fc66f3",
+      "serializedLength": 541471
+    },
+    {
+      "frameId": "6665:27862",
+      "nodeCount": 83,
+      "comparisonDigest": "c3a8c7fa6023cf66",
+      "serializedLength": 206404
+    },
+    {
+      "frameId": "6665:28050",
+      "nodeCount": 83,
+      "comparisonDigest": "8f6f82f54adea121",
+      "serializedLength": 200074
+    },
+    {
+      "frameId": "7059:13302",
+      "nodeCount": 168,
+      "comparisonDigest": "ba1cfae8efb5963c",
+      "serializedLength": 408228
+    },
+    {
+      "frameId": "7069:13464",
+      "nodeCount": 177,
+      "comparisonDigest": "a22872a2d89af066",
+      "serializedLength": 435187
+    },
+    {
+      "frameId": "7069:13573",
+      "nodeCount": 165,
+      "comparisonDigest": "3156cf38fa89bd9c",
+      "serializedLength": 398680
+    },
+    {
+      "frameId": "7119:27855",
+      "nodeCount": 83,
+      "comparisonDigest": "e1b6903eb9f0ca92",
+      "serializedLength": 207335
+    }
+  ],
+  "actual": {
+    "capturedAt": "2026-10-08T20:52:52.366Z",
+    "method": "Two independent seeded32bit rolling digests of sorted JSON/UTF16 plus exact length; comparison only, not cryptographic integrity",
+    "fields": [
+      "visible",
+      "opacity",
+      "x",
+      "y",
+      "width",
+      "height",
+      "rotation",
+      "absoluteTransform",
+      "relativeTransform",
+      "constraints",
+      "layoutMode",
+      "layoutWrap",
+      "layoutSizingHorizontal",
+      "layoutSizingVertical",
+      "layoutPositioning",
+      "layoutAlign",
+      "layoutGrow",
+      "primaryAxisSizingMode",
+      "counterAxisSizingMode",
+      "primaryAxisAlignItems",
+      "counterAxisAlignItems",
+      "paddingLeft",
+      "paddingRight",
+      "paddingTop",
+      "paddingBottom",
+      "itemSpacing",
+      "counterAxisSpacing",
+      "clipsContent",
+      "overflowDirection",
+      "fills",
+      "strokes",
+      "strokeWeight",
+      "strokeAlign",
+      "strokeCap",
+      "strokeJoin",
+      "dashPattern",
+      "cornerRadius",
+      "topLeftRadius",
+      "topRightRadius",
+      "bottomLeftRadius",
+      "bottomRightRadius",
+      "effects",
+      "fillStyleId",
+      "strokeStyleId",
+      "effectStyleId",
+      "boundVariables",
+      "explicitVariableModes",
+      "resolvedVariableModes",
+      "isMask",
+      "maskType",
+      "blendMode",
+      "reactions",
+      "componentPropertyReferences",
+      "minWidth",
+      "minHeight",
+      "maxWidth",
+      "maxHeight",
+      "strokeTopWeight",
+      "strokeBottomWeight",
+      "strokeLeftWeight",
+      "strokeRightWeight",
+      "strokeMiterLimit",
+      "cornerSmoothing",
+      "layoutGrids",
+      "exportSettings",
+      "counterAxisAlignContent",
+      "itemReverseZIndex",
+      "strokesIncludedInLayout",
+      "numberOfFixedChildren",
+      "gridRowCount",
+      "gridColumnCount",
+      "gridRowSizes",
+      "gridColumnSizes",
+      "gridRowGap",
+      "gridColumnGap",
+      "gridChildHorizontalAlign",
+      "gridChildVerticalAlign",
+      "gridRowAnchorIndex",
+      "gridColumnAnchorIndex",
+      "gridRowSpan",
+      "gridColumnSpan",
+      "componentProperties",
+      "variantProperties",
+      "textStyleId",
+      "characters",
+      "fontName",
+      "fontSize",
+      "fontWeight",
+      "textAutoResize",
+      "textAlignHorizontal",
+      "textAlignVertical",
+      "lineHeight",
+      "letterSpacing",
+      "paragraphSpacing",
+      "paragraphIndent",
+      "textCase",
+      "textDecoration",
+      "maxLines",
+      "textTruncation",
+      "textSegments",
+      "vectorPaths"
+    ],
+    "results": [
+      {
+        "frameId": "3542:4656",
+        "nodeCount": 82,
+        "comparisonDigest": "e4b06f9d07f9fe99",
+        "serializedLength": 196218
+      },
+      {
+        "frameId": "3943:6064",
+        "nodeCount": 80,
+        "comparisonDigest": "f9fd9a1debc39e91",
+        "serializedLength": 195978
+      },
+      {
+        "frameId": "4217:6980",
+        "nodeCount": 91,
+        "comparisonDigest": "604d8118b74479dc",
+        "serializedLength": 215502
+      },
+      {
+        "frameId": "5088:6398",
+        "nodeCount": 86,
+        "comparisonDigest": "779ffd65ad936501",
+        "serializedLength": 206000
+      },
+      {
+        "frameId": "4734:6342",
+        "nodeCount": 72,
+        "comparisonDigest": "816ef242a24f93f6",
+        "serializedLength": 176774
+      },
+      {
+        "frameId": "4332:7095",
+        "nodeCount": 145,
+        "comparisonDigest": "b2b05c3abbcc3166",
+        "serializedLength": 340287
+      },
+      {
+        "frameId": "4474:7157",
+        "nodeCount": 242,
+        "comparisonDigest": "12fe6138a4ea53f4",
+        "serializedLength": 549952
+      },
+      {
+        "frameId": "4478:7209",
+        "nodeCount": 137,
+        "comparisonDigest": "a02c4c3358026be7",
+        "serializedLength": 328782
+      },
+      {
+        "frameId": "4683:6336",
+        "nodeCount": 216,
+        "comparisonDigest": "e4c3d2a9ba1f2ba5",
+        "serializedLength": 510989
+      },
+      {
+        "frameId": "4714:6241",
+        "nodeCount": 92,
+        "comparisonDigest": "1062ed5049361754",
+        "serializedLength": 223593
+      },
+      {
+        "frameId": "4861:6259",
+        "nodeCount": 154,
+        "comparisonDigest": "c71a459268d5f0ae",
+        "serializedLength": 360397
+      },
+      {
+        "frameId": "4861:6348",
+        "nodeCount": 133,
+        "comparisonDigest": "8df3f422839dd70e",
+        "serializedLength": 322500
+      },
+      {
+        "frameId": "6407:9458",
+        "nodeCount": 82,
+        "comparisonDigest": "f92e7564fe34d8d0",
+        "serializedLength": 196614
+      },
+      {
+        "frameId": "6407:9551",
+        "nodeCount": 159,
+        "comparisonDigest": "04b039e563751e01",
+        "serializedLength": 382883
+      },
+      {
+        "frameId": "6407:9702",
+        "nodeCount": 83,
+        "comparisonDigest": "95d6a3444d7edc10",
+        "serializedLength": 202834
+      },
+      {
+        "frameId": "6407:9805",
+        "nodeCount": 172,
+        "comparisonDigest": "a2370163c1471a17",
+        "serializedLength": 421279
+      },
+      {
+        "frameId": "6407:9966",
+        "nodeCount": 164,
+        "comparisonDigest": "cf02b33c86b9cba0",
+        "serializedLength": 402711
+      },
+      {
+        "frameId": "6407:10127",
+        "nodeCount": 179,
+        "comparisonDigest": "861eedaa4374bc9e",
+        "serializedLength": 437368
+      },
+      {
+        "frameId": "6407:10481",
+        "nodeCount": 171,
+        "comparisonDigest": "eb089fe2e74aff1e",
+        "serializedLength": 418267
+      },
+      {
+        "frameId": "6411:9546",
+        "nodeCount": 179,
+        "comparisonDigest": "70cedd034a83640f",
+        "serializedLength": 437788
+      },
+      {
+        "frameId": "6411:9649",
+        "nodeCount": 177,
+        "comparisonDigest": "a2fc184305542507",
+        "serializedLength": 434876
+      },
+      {
+        "frameId": "6419:9847",
+        "nodeCount": 173,
+        "comparisonDigest": "d63b2df9b09d1405",
+        "serializedLength": 420320
+      },
+      {
+        "frameId": "6419:10028",
+        "nodeCount": 164,
+        "comparisonDigest": "6de7b8b0f6fc2aec",
+        "serializedLength": 398875
+      },
+      {
+        "frameId": "6423:9953",
+        "nodeCount": 166,
+        "comparisonDigest": "f900239dd9422cd1",
+        "serializedLength": 404619
+      },
+      {
+        "frameId": "6665:24616",
+        "nodeCount": 228,
+        "comparisonDigest": "a0ea71b70d0e817b",
+        "serializedLength": 539859
+      },
+      {
+        "frameId": "6665:24844",
+        "nodeCount": 226,
+        "comparisonDigest": "91e6aca60f29230a",
+        "serializedLength": 533233
+      },
+      {
+        "frameId": "6665:25072",
+        "nodeCount": 227,
+        "comparisonDigest": "e9ecbb6b2a4fe62f",
+        "serializedLength": 534099
+      },
+      {
+        "frameId": "6665:25277",
+        "nodeCount": 445,
+        "comparisonDigest": "9e35706a6d371c5e",
+        "serializedLength": 1017229
+      },
+      {
+        "frameId": "6665:26185",
+        "nodeCount": 186,
+        "comparisonDigest": "50433cd8901e8e34",
+        "serializedLength": 458487
+      },
+      {
+        "frameId": "6665:26575",
+        "nodeCount": 241,
+        "comparisonDigest": "10655fefd79a0133",
+        "serializedLength": 574887
+      },
+      {
+        "frameId": "6665:26822",
+        "nodeCount": 178,
+        "comparisonDigest": "3d0a928ed706541a",
+        "serializedLength": 436456
+      },
+      {
+        "frameId": "6665:27008",
+        "nodeCount": 226,
+        "comparisonDigest": "676fadc577710d59",
+        "serializedLength": 529817
+      },
+      {
+        "frameId": "6665:27232",
+        "nodeCount": 228,
+        "comparisonDigest": "8c336c7a360e2426",
+        "serializedLength": 538999
+      },
+      {
+        "frameId": "6665:27458",
+        "nodeCount": 153,
+        "comparisonDigest": "39d78cd6d82dee82",
+        "serializedLength": 372223
+      },
+      {
+        "frameId": "6665:27608",
+        "nodeCount": 229,
+        "comparisonDigest": "390496b719fc66f3",
+        "serializedLength": 541471
+      },
+      {
+        "frameId": "6665:27862",
+        "nodeCount": 83,
+        "comparisonDigest": "c3a8c7fa6023cf66",
+        "serializedLength": 206404
+      },
+      {
+        "frameId": "6665:28050",
+        "nodeCount": 83,
+        "comparisonDigest": "8f6f82f54adea121",
+        "serializedLength": 200074
+      },
+      {
+        "frameId": "7059:13302",
+        "nodeCount": 168,
+        "comparisonDigest": "ba1cfae8efb5963c",
+        "serializedLength": 408228
+      },
+      {
+        "frameId": "7069:13464",
+        "nodeCount": 177,
+        "comparisonDigest": "a22872a2d89af066",
+        "serializedLength": 435187
+      },
+      {
+        "frameId": "7069:13573",
+        "nodeCount": 165,
+        "comparisonDigest": "3156cf38fa89bd9c",
+        "serializedLength": 398680
+      },
+      {
+        "frameId": "7119:27855",
+        "nodeCount": 83,
+        "comparisonDigest": "e1b6903eb9f0ca92",
+        "serializedLength": 207335
+      }
+    ],
+    "errors": []
+  },
+  "mismatches": [],
+  "limitations": [
+    "Comparison digests are not cryptographic integrity proofs; Git/blob SHA and manifest fingerprints freeze original files.",
+    "The 101 captured fields and node topology are compared; asynchronous main component links and current token/style definitions are not included in these digests.",
+    "No new screenshots or global extraction; no application visual conformance or delivered-state proof."
+  ]
+}

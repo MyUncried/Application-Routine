@@ -15,15 +15,31 @@ import {
   type CreateSessionInput,
   type UpdateSessionActivityInput,
   type UpdateSessionInput,
-} from "@/domain/sessions/Session";
+ CreateSessionActivityInput, Session } from "@/domain/sessions/Session";
 import type { Database, SqlParameters } from "@/infrastructure/database/Database";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import {
   assembleSession,
   SqliteSessionRepository,
-} from "@/infrastructure/database/repositories/SqliteSessionRepository";
+ RetiredOccurrenceCategoryError } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 import type { SessionAggregateRow } from "@/infrastructure/database/types/DatabaseRows";
+import { rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+import {
+  ExecutionParametersDataError,
+  resolveExecutionParameters,
+  type ExecutionParameters,
+} from "@/domain/activities/ExecutionParameters";
+import type { MediaAsset } from "@/domain/media/MediaAsset";
+import { toSessionDurationResult } from "@/domain/sessions/calculations";
+import { duplicateActivity } from "@/domain/sessions/composition";
+
+import { toSessionDraft, toUpdateSessionInput, type SessionDraft } from "@/domain/sessions/SessionDraft";
+
+import { SqliteMediaRepository } from "@/infrastructure/database/repositories/SqliteMediaRepository";
 // Exceptionnellement, ce fichier d'infrastructure importe un composant de
 // présentation (`SessionCard`) — voir la note de tête du test « propagates
 // the exact persisted yellow colour... » ci-dessous (correction REVISION
@@ -1620,8 +1636,10 @@ describe("SqliteSessionRepository", () => {
     });
 
     /**
-     * Parité SQL / Domaine — la Récupération n'est comptée qu'UNE SEULE FOIS,
-     * après les deux côtés de l'Activité bilatérale, jamais doublée.
+     * PRE-3 (Bip v2 §3, révisé aux sources courantes) : la liste utilise
+     * l'autorité unique du Domaine. Ancienne occurrence bilatérale (sans
+     * JSON, aucune colonne PC → 0) lue par côté : 2 × Σ(T + P) + PC ; la
+     * Récupération remplace UNIQUEMENT la Pause terminale, jamais doublée.
      */
     it("doubles the estimated duration for a bilateral Activity, never doubling the Récupération", async () => {
       const repository = new SqliteSessionRepository(database, uuidFactory());
@@ -1640,10 +1658,10 @@ describe("SqliteSessionRepository", () => {
       });
 
       const summaries = await repository.listActive();
-      // perPass = 120 ; × 2 = 240 ; + 20 (jamais doublée) = 260 s.
+      // 2 × 3 × (30 + 15) = 270 ; − 15 (Pause terminale) + 20 (R, une fois) = 275 s.
       expect(
         summaries.find((item) => item.id === created.id)?.estimatedDurationSeconds,
-      ).toBe(260);
+      ).toBe(275);
     });
 
     it("applies each Activity's own side mode independently of its structural position", async () => {
@@ -1887,5 +1905,337 @@ function validRow(): SessionAggregateRow {
     instruction: null,
     // V2-BILAT-01 : direction propre de l'Activité (`migration005`, défaut `'UNILATERAL'`).
     activity_side_mode: "UNILATERAL",
+    // PRE-3 (`migration009`) : ancienne occurrence — aucun JSON canonique ni Catégorie.
+    activity_execution_parameters: null,
+    activity_category_id: null,
   };
 }
+
+/**
+ * PRE-3 — obligations SQLite RÉELLES de l'occurrence de Séance
+ * (propriétaire SqliteSessionRepository) : paramètres canoniques, Catégorie
+ * de copie, médias ordonnés propres, total de liste = lecture complète.
+ */
+describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
+  let database: NodeSqliteDatabase;
+  let sequence = 0;
+  const ids = (prefix: string) => () => `${prefix}-${++sequence}`;
+
+  beforeEach(async () => {
+    database = NodeSqliteDatabase.openInMemory();
+    await migrateDatabase(database);
+  });
+
+  afterEach(() => {
+    database.close();
+  });
+
+  const asset = (id: string, kind: "PHOTO" | "VIDEO" = "PHOTO"): MediaAsset => ({
+    id,
+    uri: `kodjo-media/${id}`,
+    createdAt: "2026-10-09T10:00:00.000Z",
+    kind,
+    mimeType: kind === "PHOTO" ? "image/jpeg" : "video/mp4",
+    fileName: null,
+    sizeBytes: 10,
+    durationMs: kind === "VIDEO" ? 2000 : null,
+    width: null,
+    height: null,
+  });
+
+  function parameters(overrides: Partial<ExecutionParameters> = {}): ExecutionParameters {
+    return {
+      version: 1,
+      mode: "DURATION",
+      series: {
+        kind: "VARIABLE",
+        rows: [
+          { target: 30, pauseSeconds: 10 },
+          { target: 45, pauseSeconds: 20 },
+          { target: 60, pauseSeconds: 30 },
+        ],
+      },
+      sideMode: "RIGHT_LEFT",
+      sideOrder: "BY_SIDE",
+      sideRecoverySeconds: 15,
+      cadenceBeepIntervalSeconds: 0,
+      countdownSeconds: 10,
+      endSeconds: 5,
+      ...overrides,
+    };
+  }
+
+  function occurrence(overrides: Partial<CreateSessionActivityInput> = {}): CreateSessionActivityInput {
+    return {
+      type: "EXERCISE",
+      structuralPosition: "IN_TOUR",
+      name: "Fentes",
+      executionMode: "DURATION",
+      durationSeconds: 30,
+      repetitionCount: null,
+      seriesCount: 3,
+      pauseSeconds: 10,
+      postActivityRecoverySeconds: 0,
+      bodyZoneIds: ["cuisses"],
+      executionParameters: parameters(),
+      categoryId: "cardio",
+      media: [
+        { assetId: "v1", asset: asset("v1", "VIDEO") },
+        { assetId: "p1", asset: asset("p1") },
+      ],
+      ...overrides,
+    };
+  }
+
+  function sessionInput(exercises: readonly CreateSessionActivityInput[], tourRepeatCount = 1): CreateSessionInput {
+    return { name: "Jambes", initialCountdownSeconds: 10, finalPhaseSeconds: 5, tourRepeatCount, exercises };
+  }
+
+  function updateFromDraft(session: Session, mutate: (draft: SessionDraft) => SessionDraft): UpdateSessionInput {
+    const result = toUpdateSessionInput(mutate(toSessionDraft(session)));
+    if (!result.ok) {
+      throw new Error(JSON.stringify(result.violations));
+    }
+    return result.value;
+  }
+
+  it("P3-01/Session:create, P3-01/Session:edit, P3-01/Catalogue:create, P3-01/Catalogue:edit — la copie se rouvre complète ; Continuer seul la persiste", async () => {
+    const repository = new SqliteSessionRepository(database, ids("ses"));
+    const created = await repository.create(sessionInput([occurrence()]));
+    const read = (await repository.findById(created.id))!.cycle.tour.exercises[0]!;
+    expect(read.executionParameters).toEqual(parameters());
+    expect(read.categoryId).toBe("cardio");
+    expect(read.media?.map((item) => [item.assetId, item.position, item.asset.kind])).toEqual([
+      ["v1", 0, "VIDEO"],
+      ["p1", 1, "PHOTO"],
+    ]);
+    // Modification de la copie : cadence, ordre des côtés, ordre des médias.
+    const edited = parameters({ cadenceBeepIntervalSeconds: 3, sideOrder: "BY_SERIES" });
+    const outcome = await repository.update(
+      created.id,
+      updateFromDraft(created, (draft) => ({
+        ...draft,
+        exercises: draft.exercises.map((exercise) => ({
+          ...exercise,
+          executionParameters: edited,
+          media: [...(exercise.media ?? [])].reverse(),
+        })),
+      })),
+    );
+    const updated = outcome.status === "UPDATED" ? outcome.session.cycle.tour.exercises[0]! : null;
+    expect(updated?.id).toBe(read.id);
+    expect(updated?.executionParameters).toEqual(edited);
+    expect(updated?.media?.map((item) => item.assetId)).toEqual(["p1", "v1"]);
+    // Aucune définition Catalogue n'est créée ni modifiée par la Séance.
+    const definitions = await database.getFirstAsync<{ count: number }>("SELECT COUNT(*) AS count FROM activity_definitions");
+    expect(definitions?.count).toBe(0);
+  });
+
+  it("P3-03/reference-retired — Catégorie et Zone retirées conservées ; nouvelle affectation retirée refusée", async () => {
+    const repository = new SqliteSessionRepository(database, ids("ses"));
+    const created = await repository.create(sessionInput([occurrence()]));
+    await database.runAsync("UPDATE categories SET is_active = 0 WHERE id = 'cardio'");
+    await database.runAsync("UPDATE body_zones SET is_active = 0 WHERE id = 'cuisses'");
+    const kept = await repository.update(
+      created.id,
+      updateFromDraft(created, (draft) => ({ ...draft, name: "Renommée" })),
+    );
+    const activity = kept.status === "UPDATED" ? kept.session.cycle.tour.exercises[0]! : null;
+    expect(activity?.categoryId).toBe("cardio");
+    expect(activity?.bodyZoneIds).toEqual(["cuisses"]);
+    await expect(
+      repository.create(sessionInput([occurrence({ categoryId: "cardio", bodyZoneIds: ["dos"], media: [] })])),
+    ).rejects.toThrow(RetiredOccurrenceCategoryError);
+  });
+
+  it("P3-10/legacy-neutral-proposal et P3-17/corrupt-version — ancienne occurrence sans JSON lue telle quelle ; JSON corrompu : erreur explicite", async () => {
+    const repository = new SqliteSessionRepository(database, ids("ses"));
+    const created = await repository.create(
+      sessionInput([occurrence({ executionParameters: undefined, categoryId: undefined, media: undefined, pauseSeconds: 40 })]),
+    );
+    await database.runAsync("UPDATE profiles SET exercise_countdown_seconds_default = 60");
+    const legacy = (await repository.findById(created.id))!.cycle.tour.exercises[0]!;
+    expect(legacy.executionParameters).toBeUndefined();
+    expect(legacy.categoryId).toBeNull();
+    expect(resolveExecutionParameters(legacy)).toEqual(
+      expect.objectContaining({ countdownSeconds: 0, endSeconds: 0, series: { kind: "UNIFORM", count: 3, target: 30, pauseSeconds: 40 } }),
+    );
+    await database.runAsync("UPDATE activities SET execution_parameters = 'oops'");
+    await expect(repository.findById(created.id)).rejects.toThrow(ExecutionParametersDataError);
+  });
+
+  it("P3-13/tours-cycles-list — total de liste = lecture complète par l'autorité unique ; avant/dans/après Circuit, Tours 99, ≈ et ≥", async () => {
+    const repository = new SqliteSessionRepository(database, ids("ses"));
+    const estimated = parameters({
+      mode: "REPETITIONS",
+      series: { kind: "UNIFORM", count: 4, target: 15, pauseSeconds: 15 },
+      sideMode: "UNILATERAL",
+      cadenceBeepIntervalSeconds: 4,
+    });
+    const unknown = parameters({
+      mode: "TO_FAILURE",
+      series: { kind: "VARIABLE", rows: [{ target: null, pauseSeconds: 30 }, { target: null, pauseSeconds: 45 }, { target: null, pauseSeconds: 60 }] },
+      sideMode: "UNILATERAL",
+    });
+    const created = await repository.create(
+      sessionInput(
+        [
+          occurrence({ structuralPosition: "BEFORE_TOUR", media: [] }),
+          occurrence({ executionParameters: estimated, media: [], postActivityRecoverySeconds: 120 }),
+          occurrence({ structuralPosition: "AFTER_TOUR", executionParameters: unknown, media: [] }),
+        ],
+        99,
+      ),
+    );
+    const full = toSessionDurationResult((await repository.findById(created.id))!);
+    const listed = (await repository.listActive()).find((item) => item.id === created.id)!;
+    expect(listed.estimatedDurationSeconds).toBe(full.seconds);
+    expect(listed.durationKind).toBe("lowerBound");
+    expect(full).toEqual({ kind: "lowerBound", seconds: 405 + 99 * (300 - 15 + 120) + 135 });
+    const withoutUnknown = await repository.create(
+      sessionInput([occurrence({ media: [] }), occurrence({ executionParameters: estimated, media: [] })], 2),
+    );
+    expect((await repository.listActive()).find((item) => item.id === withoutUnknown.id)?.durationKind).toBe("estimated");
+  });
+
+  it("P3-13/no-auto-R — nouvelle occurrence R absente, occurrence existante R30 inchangée", async () => {
+    const repository = new SqliteSessionRepository(database, ids("ses"));
+    const created = await repository.create(sessionInput([occurrence({ postActivityRecoverySeconds: 30, media: [] })]));
+    const outcome = await repository.update(
+      created.id,
+      updateFromDraft(created, (draft) => ({
+        ...draft,
+        exercises: [...draft.exercises, { ...draft.exercises[0]!, id: "new-occurrence", postActivityRecoverySeconds: 0 }],
+      })),
+    );
+    const exercises = outcome.status === "UPDATED" ? outcome.session.cycle.tour.exercises : [];
+    expect(exercises.map((exercise) => [exercise.id, exercise.postActivityRecoverySeconds])).toEqual([
+      [created.cycle.tour.exercises[0]!.id, 30],
+      ["new-occurrence", 0],
+    ]);
+  });
+
+  it("P3-15/no-storage — aucune colonne de phrase/segment ; seul le JSON canonique est stocké", async () => {
+    const repository = new SqliteSessionRepository(database, ids("ses"));
+    await repository.create(sessionInput([occurrence({ media: [] })]));
+    const columns = (await database.getAllAsync<{ name: string }>("PRAGMA table_info(activities)")).map((c) => c.name);
+    expect(columns.some((name) => /phrase|segment|summary/i.test(name))).toBe(false);
+    const row = await database.getFirstAsync<{ execution_parameters: string }>("SELECT execution_parameters FROM activities");
+    expect(JSON.parse(row!.execution_parameters)).toEqual(parameters());
+  });
+
+  it("P3-16/failure-doubletap et P3-17/transaction-FK — échec en cours : rollback complet ; réessai unique ; IDs et created_at stables", async () => {
+    const repository = new SqliteSessionRepository(database, ids("ses"));
+    await expect(
+      repository.create(sessionInput([occurrence({ media: [{ assetId: "v1", asset: asset("v1", "VIDEO") }, { assetId: "missing" }] })])),
+    ).rejects.toThrow();
+    const empty = await database.getFirstAsync<Record<string, number>>(
+      "SELECT (SELECT COUNT(*) FROM sessions) AS s, (SELECT COUNT(*) FROM activities) AS a, (SELECT COUNT(*) FROM media_assets) AS m, (SELECT COUNT(*) FROM session_activity_media) AS l",
+    );
+    expect(empty).toEqual({ s: 0, a: 0, m: 0, l: 0 });
+    const created = await repository.create(sessionInput([occurrence()]));
+    const createdRow = await database.getFirstAsync<{ id: string; created_at: string }>("SELECT id, created_at FROM activities");
+    // Réordonnancement : jamais de violation UNIQUE(activity_id, position).
+    const outcome = await repository.update(
+      created.id,
+      updateFromDraft(created, (draft) => ({
+        ...draft,
+        exercises: draft.exercises.map((exercise) => ({ ...exercise, media: [...(exercise.media ?? [])].reverse() })),
+      })),
+    );
+    expect(outcome.status).toBe("UPDATED");
+    expect(await database.getFirstAsync("SELECT id, created_at FROM activities")).toEqual(createdRow);
+    expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual([]);
+    const positions = await database.getAllAsync<{ asset_id: string; position: number }>(
+      "SELECT asset_id, position FROM session_activity_media ORDER BY position",
+    );
+    expect(positions).toEqual([
+      { asset_id: "p1", position: 0 },
+      { asset_id: "v1", position: 1 },
+    ]);
+  });
+
+  it("P3-17/canonical-roundtrip — base fichier fermée puis rouverte : occurrence canonique, Catégorie et médias intacts", async () => {
+    const path = join(tmpdir(), `kodjo-pre3-session-${Date.now()}-${Math.random().toString(16).slice(2)}.db`);
+    const fileDatabase = NodeSqliteDatabase.openFile(path);
+    try {
+      await migrateDatabase(fileDatabase);
+      const extremes = parameters({
+        mode: "REPETITIONS",
+        series: { kind: "VARIABLE", rows: [{ target: 100, pauseSeconds: 300 }, { target: 1, pauseSeconds: 0 }] },
+        sideOrder: "BY_SERIES",
+        cadenceBeepIntervalSeconds: 10,
+      });
+      const created = await new SqliteSessionRepository(fileDatabase, ids("ses")).create(
+        sessionInput([occurrence({ executionParameters: extremes })]),
+      );
+      fileDatabase.close();
+      const reopened = NodeSqliteDatabase.openFile(path);
+      try {
+        const activity = (await new SqliteSessionRepository(reopened, ids("ses")).findById(created.id))!.cycle.tour.exercises[0]!;
+        expect(activity.executionParameters).toEqual(extremes);
+        expect(activity.repetitionCount).toBe(100);
+        expect(activity.seriesCount).toBe(2);
+        expect(activity.categoryId).toBe("cardio");
+        expect(activity.media?.map((item) => item.asset)).toEqual([asset("v1", "VIDEO"), asset("p1")]);
+      } finally {
+        reopened.close();
+      }
+    } finally {
+      rmSync(path, { force: true });
+      rmSync(`${path}-wal`, { force: true });
+      rmSync(`${path}-shm`, { force: true });
+    }
+  });
+
+  it("P3-18/copy-complete — duplication : nouvelle occurrence et nouveaux liens, mêmes fichiers, aucune mutation croisée", async () => {
+    const repository = new SqliteSessionRepository(database, ids("ses"));
+    const created = await repository.create(sessionInput([occurrence({ postActivityRecoverySeconds: 30 })]));
+    const sourceId = created.cycle.tour.exercises[0]!.id;
+    const duplicated = await repository.update(
+      created.id,
+      updateFromDraft(created, (draft) => ({ ...draft, exercises: duplicateActivity(draft.exercises, sourceId, "copy-1") })),
+    );
+    const exercises = duplicated.status === "UPDATED" ? duplicated.session.cycle.tour.exercises : [];
+    const [source, copy] = exercises;
+    expect(copy?.id).toBe("copy-1");
+    expect(copy?.executionParameters).toEqual(source?.executionParameters);
+    expect(copy?.categoryId).toBe(source?.categoryId);
+    expect(copy?.postActivityRecoverySeconds).toBe(30);
+    expect(copy?.media?.map((item) => item.assetId)).toEqual(source?.media?.map((item) => item.assetId));
+    expect(new Set([...(copy?.media ?? []), ...(source?.media ?? [])].map((item) => item.id)).size).toBe(4);
+    // Modifier la copie ne touche pas la source.
+    const afterEdit = await repository.update(
+      created.id,
+      updateFromDraft(duplicated.status === "UPDATED" ? duplicated.session : created, (draft) => ({
+        ...draft,
+        exercises: draft.exercises.map((exercise) =>
+          exercise.id === "copy-1" ? { ...exercise, executionParameters: parameters({ cadenceBeepIntervalSeconds: 7 }), media: [] } : exercise,
+        ),
+      })),
+    );
+    const finalSource = afterEdit.status === "UPDATED" ? afterEdit.session.cycle.tour.exercises[0] : null;
+    expect(finalSource?.executionParameters).toEqual(parameters());
+    expect(finalSource?.media?.map((item) => item.assetId)).toEqual(["v1", "p1"]);
+  });
+
+  it("P3-23/file-preservation — retirer un lien ou une occurrence ne supprime jamais l'asset référencé ailleurs", async () => {
+    const repository = new SqliteSessionRepository(database, ids("ses"));
+    const media = new SqliteMediaRepository(database);
+    const created = await repository.create(sessionInput([occurrence(), occurrence({ media: [{ assetId: "v1" }] })]));
+    expect(await media.countReferences("v1")).toBe(2);
+    const removedLink = await repository.update(
+      created.id,
+      updateFromDraft(created, (draft) => ({
+        ...draft,
+        exercises: draft.exercises.map((exercise, index) => (index === 0 ? { ...exercise, media: [] } : exercise)),
+      })),
+    );
+    expect(removedLink.status).toBe("UPDATED");
+    expect(await media.countReferences("v1")).toBe(1);
+    expect(await media.countReferences("p1")).toBe(0);
+    // Asset sans référence : conservé (aucune purge globale), toujours lisible.
+    expect(await media.findAsset("p1")).toEqual(asset("p1"));
+    expect(await media.findAsset("v1")).toEqual(asset("v1", "VIDEO"));
+  });
+});

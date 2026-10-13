@@ -60,6 +60,10 @@ export type SessionAggregateRow = {
   instruction: string | null;
   /** V2-BILAT-01 : direction propre de cette Activité (`Activity.sideMode`, `migration005`, défaut `'UNILATERAL'`). */
   activity_side_mode: SideMode;
+  /** PRE-3 (`migration009`) : JSON canonique versionné — `NULL` pour une ancienne occurrence. */
+  activity_execution_parameters: string | null;
+  /** PRE-3 : Catégorie de la copie — `NULL` pour une ancienne copie. */
+  activity_category_id: string | null;
 };
 
 export type ActivityBodyZoneRow = {
@@ -105,6 +109,8 @@ export type ActivityDefinitionRow = {
   side_mode: SideMode;
   /** V2-PRE-1 : pause de changement de côté propre à l'Exercice. */
   side_recovery_seconds: number;
+  /** PRE-3 (`migration009`) : JSON canonique versionné — `NULL` pour un ancien objet. */
+  execution_parameters: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -157,16 +163,43 @@ export type MediaAssetRow = {
   id: string;
   uri: string;
   created_at: string;
+  /** PRE-3 (`migration009`) : métadonnées natives nullables. */
+  kind: "PHOTO" | "VIDEO" | null;
+  mime_type: string | null;
+  file_name: string | null;
+  size_bytes: number | null;
+  duration_ms: number | null;
+  width: number | null;
+  height: number | null;
+};
+
+/** PRE-3 : colonnes de l'asset jointes à un lien de média (préfixe `asset_`). */
+export type JoinedMediaAssetColumns = {
+  asset_uri: string;
+  asset_created_at: string;
+  asset_kind: "PHOTO" | "VIDEO" | null;
+  asset_mime_type: string | null;
+  asset_file_name: string | null;
+  asset_size_bytes: number | null;
+  asset_duration_ms: number | null;
+  asset_width: number | null;
+  asset_height: number | null;
 };
 
 /** Une ligne par association média↔Exercice, jointe à son média (V2-PRE-1, `migration007`). */
-export type ActivityMediaRow = {
+export type ActivityMediaRow = JoinedMediaAssetColumns & {
   id: string;
   activity_definition_id: string;
   asset_id: string;
   position: number;
-  asset_uri: string;
-  asset_created_at: string;
+};
+
+/** PRE-3 (`migration009`) : lien ordonné de média d'une occurrence de Séance, joint à son asset. */
+export type SessionActivityMediaRow = JoinedMediaAssetColumns & {
+  id: string;
+  activity_id: string;
+  asset_id: string;
+  position: number;
 };
 
 export type SessionSummaryRow = {
@@ -177,11 +210,11 @@ export type SessionSummaryRow = {
   before_tour_activity_count: number;
   in_tour_activity_count: number;
   after_tour_activity_count: number;
-  before_tour_duration_seconds: number;
-  in_tour_duration_seconds: number;
-  after_tour_duration_seconds: number;
-  /** `1` dès qu'au moins une Activité de la Séance est en mode Répétitions ou « À l'échec » (T01-S09/T01-S10, RM-072/D-112) — sinon `0`. */
-  has_repetition_activity: 0 | 1;
+  /**
+   * PRE-3 : les anciennes colonnes de durée SQL (somme scalaire divergente)
+   * sont retirées de la projection — le total de liste est calculé par
+   * l'autorité unique du Domaine à partir des paramètres des occurrences.
+   */
   tour_repeat_count: number;
   updated_at: string;
 };

@@ -1,0 +1,1909 @@
+{
+  "schema": "kodjo.pre3.figma-token-freshness.work.v1",
+  "expected": [
+    {
+      "kind": "styles",
+      "id": "S:8c0166ad923f2f76eca2e03ae568cf61a74967fc,",
+      "comparisonDigest": "8a5bb35d8ccd2451",
+      "serializedLength": 624
+    },
+    {
+      "kind": "styles",
+      "id": "S:e769384e879ecc4fa14a54eb66ee877e6ada714d,",
+      "comparisonDigest": "653298f5a0c63e09",
+      "serializedLength": 624
+    },
+    {
+      "kind": "styles",
+      "id": "S:cb35978d395a80fe8f92cdad00088b03721eb4f1,",
+      "comparisonDigest": "def765c628ffb95a",
+      "serializedLength": 480
+    },
+    {
+      "kind": "styles",
+      "id": "S:74aa1b1356a0b2e234e1068d40070aca957e6f78,",
+      "comparisonDigest": "6097cc1cc4b4a848",
+      "serializedLength": 558
+    },
+    {
+      "kind": "styles",
+      "id": "S:0969cfc7bcab3a31fa7c34890c4a83e73c6969a4,",
+      "comparisonDigest": "c981041e2fd2575a",
+      "serializedLength": 561
+    },
+    {
+      "kind": "styles",
+      "id": "S:54c850fece2e94ef9a1a01c04acd6492317421b1,",
+      "comparisonDigest": "298804091695d8dd",
+      "serializedLength": 624
+    },
+    {
+      "kind": "styles",
+      "id": "S:8cac4968a32098d5ee5a15114fe059e95a3a056f,",
+      "comparisonDigest": "8f93e605b4baec59",
+      "serializedLength": 482
+    },
+    {
+      "kind": "styles",
+      "id": "S:a047b5205ffcdcf3d0832707104f6ae733a25e05,",
+      "comparisonDigest": "376be28744b7c3b3",
+      "serializedLength": 624
+    },
+    {
+      "kind": "styles",
+      "id": "S:4c7d500b3119e16c47da85e3381ba4402d492c05,",
+      "comparisonDigest": "970056414a023ead",
+      "serializedLength": 427
+    },
+    {
+      "kind": "styles",
+      "id": "S:095101711e362cc565ba1aab2494d9740d634ba0,",
+      "comparisonDigest": "56386ac5cc778909",
+      "serializedLength": 624
+    },
+    {
+      "kind": "styles",
+      "id": "S:f167a793983797049a0a52f649c5458beefb24f1,",
+      "comparisonDigest": "74d01e28634af7d4",
+      "serializedLength": 618
+    },
+    {
+      "kind": "styles",
+      "id": "S:659bb321877ab293184d3aa1e11dfc3dfc4c62e4,",
+      "comparisonDigest": "2415124da4578321",
+      "serializedLength": 604
+    },
+    {
+      "kind": "styles",
+      "id": "S:2cd69c8ab171092a5446a6ac9f9c8ec6211f2901,",
+      "comparisonDigest": "1a89713f5876e6b3",
+      "serializedLength": 620
+    },
+    {
+      "kind": "styles",
+      "id": "S:be729f46198b49a8732a540b245f7049e4ebf64c,",
+      "comparisonDigest": "7c6086d92b23595d",
+      "serializedLength": 557
+    },
+    {
+      "kind": "styles",
+      "id": "S:1a4cffea1fe708f3b4f582d7effadc253bf4d1b3,",
+      "comparisonDigest": "e48b4ea4480582f0",
+      "serializedLength": 618
+    },
+    {
+      "kind": "styles",
+      "id": "S:a2477536df32ea509afc8be44a06b170bc4f3697,",
+      "comparisonDigest": "acf7ad85b8193ab1",
+      "serializedLength": 620
+    },
+    {
+      "kind": "styles",
+      "id": "S:bde4aefa0d92e9b785fc8973f16739a48701d42b,",
+      "comparisonDigest": "2714ee2729e23feb",
+      "serializedLength": 620
+    },
+    {
+      "kind": "styles",
+      "id": "S:a5c68ff01e480637236c9cbd1add938b3676b3c1,",
+      "comparisonDigest": "d367f4e452d6c270",
+      "serializedLength": 618
+    },
+    {
+      "kind": "styles",
+      "id": "S:52c847e1512b44f61a2e4df0ce3f570871ba9b8f,",
+      "comparisonDigest": "c15d7d7385cf43af",
+      "serializedLength": 508
+    },
+    {
+      "kind": "styles",
+      "id": "S:6ffe5eaa32d7dd368034a08287ec2c53fefbb05a,",
+      "comparisonDigest": "174fa68c934696d8",
+      "serializedLength": 618
+    },
+    {
+      "kind": "styles",
+      "id": "S:d38d0d0d118cfa10d6f96a1d6aabcd07fd512fb8,",
+      "comparisonDigest": "5227f5f56152fa91",
+      "serializedLength": 620
+    },
+    {
+      "kind": "styles",
+      "id": "S:f02f8bac573a0f00eb79ab53991ab59246ea2ca8,",
+      "comparisonDigest": "44399c4b1d56872f",
+      "serializedLength": 428
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:54",
+      "comparisonDigest": "213f24f83cfdf77c",
+      "serializedLength": 464
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:72",
+      "comparisonDigest": "9fdc252c18a6cc60",
+      "serializedLength": 433
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:74",
+      "comparisonDigest": "3aa7a3461c375f0a",
+      "serializedLength": 433
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:73",
+      "comparisonDigest": "e7e2c276bf8c421a",
+      "serializedLength": 433
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:78",
+      "comparisonDigest": "e01188b2b46e2276",
+      "serializedLength": 439
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:57",
+      "comparisonDigest": "200e85363721783a",
+      "serializedLength": 484
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:71",
+      "comparisonDigest": "d8dc129c7e7c6850",
+      "serializedLength": 429
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:51",
+      "comparisonDigest": "c5415a1024fc865c",
+      "serializedLength": 453
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:70",
+      "comparisonDigest": "97fc8935f283f151",
+      "serializedLength": 429
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:69",
+      "comparisonDigest": "26ff9d315fd3fee5",
+      "serializedLength": 429
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:80",
+      "comparisonDigest": "67a0b4061ab1ccc2",
+      "serializedLength": 439
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:55",
+      "comparisonDigest": "2f39ce2ac3a5507e",
+      "serializedLength": 452
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:6935:11533",
+      "comparisonDigest": "95bda01734cd964b",
+      "serializedLength": 373
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:60",
+      "comparisonDigest": "39547017ecac1013",
+      "serializedLength": 451
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:6935:11534",
+      "comparisonDigest": "0d9d042090f0d90c",
+      "serializedLength": 375
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:79",
+      "comparisonDigest": "ddf92c2d03315dd9",
+      "serializedLength": 439
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:68",
+      "comparisonDigest": "85029e25d5ff5129",
+      "serializedLength": 429
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:76",
+      "comparisonDigest": "81b291e8622d169c",
+      "serializedLength": 435
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:62",
+      "comparisonDigest": "7e37a8bc88634b70",
+      "serializedLength": 458
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:77",
+      "comparisonDigest": "78af3cd52e9889c9",
+      "serializedLength": 435
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:3382:53",
+      "comparisonDigest": "91bce8bfaa95b1b3",
+      "serializedLength": 372
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:3382:54",
+      "comparisonDigest": "536518a9d24f13e5",
+      "serializedLength": 361
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:85",
+      "comparisonDigest": "5a74443a3e36d72e",
+      "serializedLength": 458
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:59",
+      "comparisonDigest": "8d4d9a09a23a7c75",
+      "serializedLength": 484
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4580",
+      "comparisonDigest": "14c934a6f2383072",
+      "serializedLength": 497
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2612:8",
+      "comparisonDigest": "8b91dee9afd37cad",
+      "serializedLength": 366
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4581",
+      "comparisonDigest": "2865a6912660164d",
+      "serializedLength": 505
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4627",
+      "comparisonDigest": "2697c24273d0a66e",
+      "serializedLength": 499
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4596",
+      "comparisonDigest": "651a280f290c4dbb",
+      "serializedLength": 497
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4310",
+      "comparisonDigest": "208434d51f2b44a9",
+      "serializedLength": 550
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2612:10",
+      "comparisonDigest": "510ab02665835cba",
+      "serializedLength": 637
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4314",
+      "comparisonDigest": "69c82f30088c0284",
+      "serializedLength": 550
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:3641:69",
+      "comparisonDigest": "5311265f1b97872b",
+      "serializedLength": 379
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4316",
+      "comparisonDigest": "44d897f694774112",
+      "serializedLength": 550
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:81",
+      "comparisonDigest": "f1936e65c51e2e19",
+      "serializedLength": 439
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:4151:6166",
+      "comparisonDigest": "5a343abfcca09bcb",
+      "serializedLength": 483
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:6974:15013",
+      "comparisonDigest": "182258c2af50a0e6",
+      "serializedLength": 382
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:3648:68",
+      "comparisonDigest": "9eacbef9fb5b784d",
+      "serializedLength": 373
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:3384:4490",
+      "comparisonDigest": "77684528c1b7b87c",
+      "serializedLength": 377
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4613",
+      "comparisonDigest": "4d75fd9d83cdcf79",
+      "serializedLength": 505
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4292",
+      "comparisonDigest": "fb1a6fe13ec95915",
+      "serializedLength": 550
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4458",
+      "comparisonDigest": "089cab5d642808c9",
+      "serializedLength": 550
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:66",
+      "comparisonDigest": "18428bf638340bc2",
+      "serializedLength": 450
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:3072:4057",
+      "comparisonDigest": "8e8171d57b242949",
+      "serializedLength": 528
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:3072:4056",
+      "comparisonDigest": "16389b3175aadad5",
+      "serializedLength": 528
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:56",
+      "comparisonDigest": "779876c046639024",
+      "serializedLength": 478
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:3072:4058",
+      "comparisonDigest": "fb245a6c6fc32550",
+      "serializedLength": 506
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:3078:64",
+      "comparisonDigest": "4b9e706a013e1296",
+      "serializedLength": 532
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:3078:61",
+      "comparisonDigest": "2a4d440bf437febf",
+      "serializedLength": 605
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:53",
+      "comparisonDigest": "4c8f7dac26906c40",
+      "serializedLength": 490
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:4151:6160",
+      "comparisonDigest": "701e1878809b448c",
+      "serializedLength": 410
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:52",
+      "comparisonDigest": "a27022ed480ac8d1",
+      "serializedLength": 461
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:4151:6163",
+      "comparisonDigest": "211f853035816d7c",
+      "serializedLength": 382
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4290",
+      "comparisonDigest": "45788c390254ab9d",
+      "serializedLength": 550
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:58",
+      "comparisonDigest": "55c2da634571fdc7",
+      "serializedLength": 464
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4460",
+      "comparisonDigest": "ca0588b53c451ee9",
+      "serializedLength": 550
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:61",
+      "comparisonDigest": "01981d264fe39dda",
+      "serializedLength": 467
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:6974:15011",
+      "comparisonDigest": "56c184a4a96f3590",
+      "serializedLength": 381
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4382",
+      "comparisonDigest": "b1607f22d573a7a6",
+      "serializedLength": 550
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5546:5119",
+      "comparisonDigest": "b18e2cf99123a385",
+      "serializedLength": 468
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5546:5121",
+      "comparisonDigest": "01f489f232fb4156",
+      "serializedLength": 470
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4384",
+      "comparisonDigest": "f4d6f74c6883fd98",
+      "serializedLength": 550
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4304",
+      "comparisonDigest": "398911d3673ec6ef",
+      "serializedLength": 550
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4605",
+      "comparisonDigest": "f66d3d6ff8031fbb",
+      "serializedLength": 507
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:6935:11530",
+      "comparisonDigest": "5ed9bdb7edc63c43",
+      "serializedLength": 442
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:63",
+      "comparisonDigest": "42a0312bfef47507",
+      "serializedLength": 457
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:4151:6161",
+      "comparisonDigest": "bf4fdd7707bf6bb3",
+      "serializedLength": 427
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:37",
+      "comparisonDigest": "fb9e003dc5a6e939",
+      "serializedLength": 392
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4343",
+      "comparisonDigest": "0d5f79d93028ee4d",
+      "serializedLength": 521
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4340",
+      "comparisonDigest": "50e6ad3d923cf249",
+      "serializedLength": 550
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:65",
+      "comparisonDigest": "41e72554697de840",
+      "serializedLength": 454
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4338",
+      "comparisonDigest": "28158d2dfbce8629",
+      "serializedLength": 550
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:5",
+      "comparisonDigest": "383b02b57e69a169",
+      "serializedLength": 466
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:25",
+      "comparisonDigest": "66eb54cdcb4acb91",
+      "serializedLength": 392
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:30",
+      "comparisonDigest": "d991b717704ba333",
+      "serializedLength": 392
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:26",
+      "comparisonDigest": "40083261a5b90a25",
+      "serializedLength": 392
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:24",
+      "comparisonDigest": "64a5e9cc8c4b6968",
+      "serializedLength": 392
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:8",
+      "comparisonDigest": "fa58cb7ba6ee79e7",
+      "serializedLength": 513
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:23",
+      "comparisonDigest": "f2e17eaf7261fc43",
+      "serializedLength": 387
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:2",
+      "comparisonDigest": "2acc7f539134f57f",
+      "serializedLength": 515
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:22",
+      "comparisonDigest": "018c9860fff7412c",
+      "serializedLength": 387
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:21",
+      "comparisonDigest": "c468c2b1208e519d",
+      "serializedLength": 387
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:6",
+      "comparisonDigest": "d03ba95f8229a143",
+      "serializedLength": 525
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:11",
+      "comparisonDigest": "a8a77dc46cb04be8",
+      "serializedLength": 522
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:3066:3895",
+      "comparisonDigest": "f62b61ccfd4eba10",
+      "serializedLength": 314
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:20",
+      "comparisonDigest": "a2bf265a1e8803ee",
+      "serializedLength": 387
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:13",
+      "comparisonDigest": "e0e273c86cc72b04",
+      "serializedLength": 529
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:3382:52",
+      "comparisonDigest": "a593a6d9fc3d1885",
+      "serializedLength": 393
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:19",
+      "comparisonDigest": "5c7aa59387228687",
+      "serializedLength": 387
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:9",
+      "comparisonDigest": "6d416a010b40e35d",
+      "serializedLength": 551
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4579",
+      "comparisonDigest": "c9e56c98115b35b4",
+      "serializedLength": 444
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:3485:61",
+      "comparisonDigest": "4fb5bd2ea22fa142",
+      "serializedLength": 407
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4626",
+      "comparisonDigest": "0f1a80db01e0c8b7",
+      "serializedLength": 447
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4595",
+      "comparisonDigest": "b666a5c8de1ab2cc",
+      "serializedLength": 444
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4309",
+      "comparisonDigest": "b6deb7bfbf488393",
+      "serializedLength": 470
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4313",
+      "comparisonDigest": "49b6aadb0f756527",
+      "serializedLength": 521
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:3641:68",
+      "comparisonDigest": "828472e6aff38162",
+      "serializedLength": 306
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4315",
+      "comparisonDigest": "548bf1bb01fe073f",
+      "serializedLength": 522
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:6974:15012",
+      "comparisonDigest": "1ae911b94366433d",
+      "serializedLength": 307
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:3384:4489",
+      "comparisonDigest": "af415ad44f1fda08",
+      "serializedLength": 429
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:27",
+      "comparisonDigest": "fc7ad85bc15c4187",
+      "serializedLength": 392
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4291",
+      "comparisonDigest": "7440f30233f9fd46",
+      "serializedLength": 524
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4457",
+      "comparisonDigest": "b557bbae98be1912",
+      "serializedLength": 522
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:17",
+      "comparisonDigest": "b6fcd69a748feaf6",
+      "serializedLength": 517
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:3644:68",
+      "comparisonDigest": "a27b56b2b7a6b106",
+      "serializedLength": 306
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:7",
+      "comparisonDigest": "5e6ba6a569e93a49",
+      "serializedLength": 551
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:4",
+      "comparisonDigest": "e32c807640424f1a",
+      "serializedLength": 534
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:3",
+      "comparisonDigest": "0cbae50f06e7db3b",
+      "serializedLength": 522
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4289",
+      "comparisonDigest": "546f8fb007ca63a4",
+      "serializedLength": 524
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4459",
+      "comparisonDigest": "05d129057c2d3649",
+      "serializedLength": 519
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4381",
+      "comparisonDigest": "bd878afd29a31581",
+      "serializedLength": 521
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5546:5118",
+      "comparisonDigest": "e4484909a65d8d95",
+      "serializedLength": 460
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5546:5120",
+      "comparisonDigest": "e2ba06bebba2dc3a",
+      "serializedLength": 462
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4383",
+      "comparisonDigest": "6fcf0f7052567064",
+      "serializedLength": 524
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4303",
+      "comparisonDigest": "f0bb6a2511f76a71",
+      "serializedLength": 521
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4441",
+      "comparisonDigest": "f25ca5c61b2c0612",
+      "serializedLength": 523
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:14",
+      "comparisonDigest": "d21ad833bf816307",
+      "serializedLength": 533
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4339",
+      "comparisonDigest": "0b2812956ff2e0e1",
+      "serializedLength": 521
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:2290:16",
+      "comparisonDigest": "9da7e67402914540",
+      "serializedLength": 505
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4337",
+      "comparisonDigest": "0b8de1f144c6c9bd",
+      "serializedLength": 520
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:3163:4015",
+      "comparisonDigest": "a36f9b24666a64a8",
+      "serializedLength": 468
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4380",
+      "comparisonDigest": "c354957321b7efcf",
+      "serializedLength": 550
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4360",
+      "comparisonDigest": "97abbaa9a19c63a5",
+      "serializedLength": 550
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4598",
+      "comparisonDigest": "4e11c43d71ec5a31",
+      "serializedLength": 497
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:3218:4021",
+      "comparisonDigest": "65145cd95108e945",
+      "serializedLength": 544
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4379",
+      "comparisonDigest": "f95654536acb535f",
+      "serializedLength": 504
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4359",
+      "comparisonDigest": "bb5959db7ff27acf",
+      "serializedLength": 520
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:3644:69",
+      "comparisonDigest": "2d11efa3f8d1ae77",
+      "serializedLength": 308
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4587",
+      "comparisonDigest": "78a16e3ea3694b3a",
+      "serializedLength": 505
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4456",
+      "comparisonDigest": "2094a19e5e0fcfa2",
+      "serializedLength": 550
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5546:5109",
+      "comparisonDigest": "80bd19f3599f445f",
+      "serializedLength": 468
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4585",
+      "comparisonDigest": "daaa0044342cf410",
+      "serializedLength": 444
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5541:4455",
+      "comparisonDigest": "73491ad83f37df74",
+      "serializedLength": 521
+    },
+    {
+      "kind": "variables",
+      "id": "VariableID:5546:5108",
+      "comparisonDigest": "9638d9ed15380231",
+      "serializedLength": 456
+    },
+    {
+      "kind": "collections",
+      "id": "VariableCollectionId:2289:3",
+      "comparisonDigest": "e2b1a2a7f660624b",
+      "serializedLength": 10091
+    },
+    {
+      "kind": "collections",
+      "id": "VariableCollectionId:2289:2",
+      "comparisonDigest": "f7c3ec39560e8a05",
+      "serializedLength": 8175
+    }
+  ],
+  "actual": {
+    "capturedAt": "2026-10-08T20:58:23.008Z",
+    "results": [
+      {
+        "kind": "styles",
+        "id": "S:8c0166ad923f2f76eca2e03ae568cf61a74967fc,",
+        "comparisonDigest": "8a5bb35d8ccd2451",
+        "serializedLength": 624
+      },
+      {
+        "kind": "styles",
+        "id": "S:e769384e879ecc4fa14a54eb66ee877e6ada714d,",
+        "comparisonDigest": "653298f5a0c63e09",
+        "serializedLength": 624
+      },
+      {
+        "kind": "styles",
+        "id": "S:cb35978d395a80fe8f92cdad00088b03721eb4f1,",
+        "comparisonDigest": "def765c628ffb95a",
+        "serializedLength": 480
+      },
+      {
+        "kind": "styles",
+        "id": "S:74aa1b1356a0b2e234e1068d40070aca957e6f78,",
+        "comparisonDigest": "6097cc1cc4b4a848",
+        "serializedLength": 558
+      },
+      {
+        "kind": "styles",
+        "id": "S:0969cfc7bcab3a31fa7c34890c4a83e73c6969a4,",
+        "comparisonDigest": "c981041e2fd2575a",
+        "serializedLength": 561
+      },
+      {
+        "kind": "styles",
+        "id": "S:54c850fece2e94ef9a1a01c04acd6492317421b1,",
+        "comparisonDigest": "298804091695d8dd",
+        "serializedLength": 624
+      },
+      {
+        "kind": "styles",
+        "id": "S:8cac4968a32098d5ee5a15114fe059e95a3a056f,",
+        "comparisonDigest": "8f93e605b4baec59",
+        "serializedLength": 482
+      },
+      {
+        "kind": "styles",
+        "id": "S:a047b5205ffcdcf3d0832707104f6ae733a25e05,",
+        "comparisonDigest": "376be28744b7c3b3",
+        "serializedLength": 624
+      },
+      {
+        "kind": "styles",
+        "id": "S:4c7d500b3119e16c47da85e3381ba4402d492c05,",
+        "comparisonDigest": "970056414a023ead",
+        "serializedLength": 427
+      },
+      {
+        "kind": "styles",
+        "id": "S:095101711e362cc565ba1aab2494d9740d634ba0,",
+        "comparisonDigest": "56386ac5cc778909",
+        "serializedLength": 624
+      },
+      {
+        "kind": "styles",
+        "id": "S:f167a793983797049a0a52f649c5458beefb24f1,",
+        "comparisonDigest": "74d01e28634af7d4",
+        "serializedLength": 618
+      },
+      {
+        "kind": "styles",
+        "id": "S:659bb321877ab293184d3aa1e11dfc3dfc4c62e4,",
+        "comparisonDigest": "2415124da4578321",
+        "serializedLength": 604
+      },
+      {
+        "kind": "styles",
+        "id": "S:2cd69c8ab171092a5446a6ac9f9c8ec6211f2901,",
+        "comparisonDigest": "1a89713f5876e6b3",
+        "serializedLength": 620
+      },
+      {
+        "kind": "styles",
+        "id": "S:be729f46198b49a8732a540b245f7049e4ebf64c,",
+        "comparisonDigest": "7c6086d92b23595d",
+        "serializedLength": 557
+      },
+      {
+        "kind": "styles",
+        "id": "S:1a4cffea1fe708f3b4f582d7effadc253bf4d1b3,",
+        "comparisonDigest": "e48b4ea4480582f0",
+        "serializedLength": 618
+      },
+      {
+        "kind": "styles",
+        "id": "S:a2477536df32ea509afc8be44a06b170bc4f3697,",
+        "comparisonDigest": "acf7ad85b8193ab1",
+        "serializedLength": 620
+      },
+      {
+        "kind": "styles",
+        "id": "S:bde4aefa0d92e9b785fc8973f16739a48701d42b,",
+        "comparisonDigest": "2714ee2729e23feb",
+        "serializedLength": 620
+      },
+      {
+        "kind": "styles",
+        "id": "S:a5c68ff01e480637236c9cbd1add938b3676b3c1,",
+        "comparisonDigest": "d367f4e452d6c270",
+        "serializedLength": 618
+      },
+      {
+        "kind": "styles",
+        "id": "S:52c847e1512b44f61a2e4df0ce3f570871ba9b8f,",
+        "comparisonDigest": "c15d7d7385cf43af",
+        "serializedLength": 508
+      },
+      {
+        "kind": "styles",
+        "id": "S:6ffe5eaa32d7dd368034a08287ec2c53fefbb05a,",
+        "comparisonDigest": "174fa68c934696d8",
+        "serializedLength": 618
+      },
+      {
+        "kind": "styles",
+        "id": "S:d38d0d0d118cfa10d6f96a1d6aabcd07fd512fb8,",
+        "comparisonDigest": "5227f5f56152fa91",
+        "serializedLength": 620
+      },
+      {
+        "kind": "styles",
+        "id": "S:f02f8bac573a0f00eb79ab53991ab59246ea2ca8,",
+        "comparisonDigest": "44399c4b1d56872f",
+        "serializedLength": 428
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:54",
+        "comparisonDigest": "213f24f83cfdf77c",
+        "serializedLength": 464
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:72",
+        "comparisonDigest": "9fdc252c18a6cc60",
+        "serializedLength": 433
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:74",
+        "comparisonDigest": "3aa7a3461c375f0a",
+        "serializedLength": 433
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:73",
+        "comparisonDigest": "e7e2c276bf8c421a",
+        "serializedLength": 433
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:78",
+        "comparisonDigest": "e01188b2b46e2276",
+        "serializedLength": 439
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:57",
+        "comparisonDigest": "200e85363721783a",
+        "serializedLength": 484
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:71",
+        "comparisonDigest": "d8dc129c7e7c6850",
+        "serializedLength": 429
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:51",
+        "comparisonDigest": "c5415a1024fc865c",
+        "serializedLength": 453
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:70",
+        "comparisonDigest": "97fc8935f283f151",
+        "serializedLength": 429
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:69",
+        "comparisonDigest": "26ff9d315fd3fee5",
+        "serializedLength": 429
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:80",
+        "comparisonDigest": "67a0b4061ab1ccc2",
+        "serializedLength": 439
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:55",
+        "comparisonDigest": "2f39ce2ac3a5507e",
+        "serializedLength": 452
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:6935:11533",
+        "comparisonDigest": "95bda01734cd964b",
+        "serializedLength": 373
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:60",
+        "comparisonDigest": "39547017ecac1013",
+        "serializedLength": 451
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:6935:11534",
+        "comparisonDigest": "0d9d042090f0d90c",
+        "serializedLength": 375
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:79",
+        "comparisonDigest": "ddf92c2d03315dd9",
+        "serializedLength": 439
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:68",
+        "comparisonDigest": "85029e25d5ff5129",
+        "serializedLength": 429
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:76",
+        "comparisonDigest": "81b291e8622d169c",
+        "serializedLength": 435
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:62",
+        "comparisonDigest": "7e37a8bc88634b70",
+        "serializedLength": 458
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:77",
+        "comparisonDigest": "78af3cd52e9889c9",
+        "serializedLength": 435
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:3382:53",
+        "comparisonDigest": "91bce8bfaa95b1b3",
+        "serializedLength": 372
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:3382:54",
+        "comparisonDigest": "536518a9d24f13e5",
+        "serializedLength": 361
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:85",
+        "comparisonDigest": "5a74443a3e36d72e",
+        "serializedLength": 458
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:59",
+        "comparisonDigest": "8d4d9a09a23a7c75",
+        "serializedLength": 484
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4580",
+        "comparisonDigest": "14c934a6f2383072",
+        "serializedLength": 497
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2612:8",
+        "comparisonDigest": "8b91dee9afd37cad",
+        "serializedLength": 366
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4581",
+        "comparisonDigest": "2865a6912660164d",
+        "serializedLength": 505
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4627",
+        "comparisonDigest": "2697c24273d0a66e",
+        "serializedLength": 499
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4596",
+        "comparisonDigest": "651a280f290c4dbb",
+        "serializedLength": 497
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4310",
+        "comparisonDigest": "208434d51f2b44a9",
+        "serializedLength": 550
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2612:10",
+        "comparisonDigest": "510ab02665835cba",
+        "serializedLength": 637
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4314",
+        "comparisonDigest": "69c82f30088c0284",
+        "serializedLength": 550
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:3641:69",
+        "comparisonDigest": "5311265f1b97872b",
+        "serializedLength": 379
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4316",
+        "comparisonDigest": "44d897f694774112",
+        "serializedLength": 550
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:81",
+        "comparisonDigest": "f1936e65c51e2e19",
+        "serializedLength": 439
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:4151:6166",
+        "comparisonDigest": "5a343abfcca09bcb",
+        "serializedLength": 483
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:6974:15013",
+        "comparisonDigest": "182258c2af50a0e6",
+        "serializedLength": 382
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:3648:68",
+        "comparisonDigest": "9eacbef9fb5b784d",
+        "serializedLength": 373
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:3384:4490",
+        "comparisonDigest": "77684528c1b7b87c",
+        "serializedLength": 377
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4613",
+        "comparisonDigest": "4d75fd9d83cdcf79",
+        "serializedLength": 505
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4292",
+        "comparisonDigest": "fb1a6fe13ec95915",
+        "serializedLength": 550
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4458",
+        "comparisonDigest": "089cab5d642808c9",
+        "serializedLength": 550
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:66",
+        "comparisonDigest": "18428bf638340bc2",
+        "serializedLength": 450
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:3072:4057",
+        "comparisonDigest": "8e8171d57b242949",
+        "serializedLength": 528
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:3072:4056",
+        "comparisonDigest": "16389b3175aadad5",
+        "serializedLength": 528
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:56",
+        "comparisonDigest": "779876c046639024",
+        "serializedLength": 478
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:3072:4058",
+        "comparisonDigest": "fb245a6c6fc32550",
+        "serializedLength": 506
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:3078:64",
+        "comparisonDigest": "4b9e706a013e1296",
+        "serializedLength": 532
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:3078:61",
+        "comparisonDigest": "2a4d440bf437febf",
+        "serializedLength": 605
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:53",
+        "comparisonDigest": "4c8f7dac26906c40",
+        "serializedLength": 490
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:4151:6160",
+        "comparisonDigest": "701e1878809b448c",
+        "serializedLength": 410
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:52",
+        "comparisonDigest": "a27022ed480ac8d1",
+        "serializedLength": 461
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:4151:6163",
+        "comparisonDigest": "211f853035816d7c",
+        "serializedLength": 382
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4290",
+        "comparisonDigest": "45788c390254ab9d",
+        "serializedLength": 550
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:58",
+        "comparisonDigest": "55c2da634571fdc7",
+        "serializedLength": 464
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4460",
+        "comparisonDigest": "ca0588b53c451ee9",
+        "serializedLength": 550
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:61",
+        "comparisonDigest": "01981d264fe39dda",
+        "serializedLength": 467
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:6974:15011",
+        "comparisonDigest": "56c184a4a96f3590",
+        "serializedLength": 381
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4382",
+        "comparisonDigest": "b1607f22d573a7a6",
+        "serializedLength": 550
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5546:5119",
+        "comparisonDigest": "b18e2cf99123a385",
+        "serializedLength": 468
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5546:5121",
+        "comparisonDigest": "01f489f232fb4156",
+        "serializedLength": 470
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4384",
+        "comparisonDigest": "f4d6f74c6883fd98",
+        "serializedLength": 550
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4304",
+        "comparisonDigest": "398911d3673ec6ef",
+        "serializedLength": 550
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4605",
+        "comparisonDigest": "f66d3d6ff8031fbb",
+        "serializedLength": 507
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:6935:11530",
+        "comparisonDigest": "5ed9bdb7edc63c43",
+        "serializedLength": 442
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:63",
+        "comparisonDigest": "42a0312bfef47507",
+        "serializedLength": 457
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:4151:6161",
+        "comparisonDigest": "bf4fdd7707bf6bb3",
+        "serializedLength": 427
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:37",
+        "comparisonDigest": "fb9e003dc5a6e939",
+        "serializedLength": 392
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4343",
+        "comparisonDigest": "0d5f79d93028ee4d",
+        "serializedLength": 521
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4340",
+        "comparisonDigest": "50e6ad3d923cf249",
+        "serializedLength": 550
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:65",
+        "comparisonDigest": "41e72554697de840",
+        "serializedLength": 454
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4338",
+        "comparisonDigest": "28158d2dfbce8629",
+        "serializedLength": 550
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:5",
+        "comparisonDigest": "383b02b57e69a169",
+        "serializedLength": 466
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:25",
+        "comparisonDigest": "66eb54cdcb4acb91",
+        "serializedLength": 392
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:30",
+        "comparisonDigest": "d991b717704ba333",
+        "serializedLength": 392
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:26",
+        "comparisonDigest": "40083261a5b90a25",
+        "serializedLength": 392
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:24",
+        "comparisonDigest": "64a5e9cc8c4b6968",
+        "serializedLength": 392
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:8",
+        "comparisonDigest": "fa58cb7ba6ee79e7",
+        "serializedLength": 513
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:23",
+        "comparisonDigest": "f2e17eaf7261fc43",
+        "serializedLength": 387
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:2",
+        "comparisonDigest": "2acc7f539134f57f",
+        "serializedLength": 515
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:22",
+        "comparisonDigest": "018c9860fff7412c",
+        "serializedLength": 387
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:21",
+        "comparisonDigest": "c468c2b1208e519d",
+        "serializedLength": 387
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:6",
+        "comparisonDigest": "d03ba95f8229a143",
+        "serializedLength": 525
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:11",
+        "comparisonDigest": "a8a77dc46cb04be8",
+        "serializedLength": 522
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:3066:3895",
+        "comparisonDigest": "f62b61ccfd4eba10",
+        "serializedLength": 314
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:20",
+        "comparisonDigest": "a2bf265a1e8803ee",
+        "serializedLength": 387
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:13",
+        "comparisonDigest": "e0e273c86cc72b04",
+        "serializedLength": 529
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:3382:52",
+        "comparisonDigest": "a593a6d9fc3d1885",
+        "serializedLength": 393
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:19",
+        "comparisonDigest": "5c7aa59387228687",
+        "serializedLength": 387
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:9",
+        "comparisonDigest": "6d416a010b40e35d",
+        "serializedLength": 551
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4579",
+        "comparisonDigest": "c9e56c98115b35b4",
+        "serializedLength": 444
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:3485:61",
+        "comparisonDigest": "4fb5bd2ea22fa142",
+        "serializedLength": 407
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4626",
+        "comparisonDigest": "0f1a80db01e0c8b7",
+        "serializedLength": 447
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4595",
+        "comparisonDigest": "b666a5c8de1ab2cc",
+        "serializedLength": 444
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4309",
+        "comparisonDigest": "b6deb7bfbf488393",
+        "serializedLength": 470
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4313",
+        "comparisonDigest": "49b6aadb0f756527",
+        "serializedLength": 521
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:3641:68",
+        "comparisonDigest": "828472e6aff38162",
+        "serializedLength": 306
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4315",
+        "comparisonDigest": "548bf1bb01fe073f",
+        "serializedLength": 522
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:6974:15012",
+        "comparisonDigest": "1ae911b94366433d",
+        "serializedLength": 307
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:3384:4489",
+        "comparisonDigest": "af415ad44f1fda08",
+        "serializedLength": 429
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:27",
+        "comparisonDigest": "fc7ad85bc15c4187",
+        "serializedLength": 392
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4291",
+        "comparisonDigest": "7440f30233f9fd46",
+        "serializedLength": 524
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4457",
+        "comparisonDigest": "b557bbae98be1912",
+        "serializedLength": 522
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:17",
+        "comparisonDigest": "b6fcd69a748feaf6",
+        "serializedLength": 517
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:3644:68",
+        "comparisonDigest": "a27b56b2b7a6b106",
+        "serializedLength": 306
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:7",
+        "comparisonDigest": "5e6ba6a569e93a49",
+        "serializedLength": 551
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:4",
+        "comparisonDigest": "e32c807640424f1a",
+        "serializedLength": 534
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:3",
+        "comparisonDigest": "0cbae50f06e7db3b",
+        "serializedLength": 522
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4289",
+        "comparisonDigest": "546f8fb007ca63a4",
+        "serializedLength": 524
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4459",
+        "comparisonDigest": "05d129057c2d3649",
+        "serializedLength": 519
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4381",
+        "comparisonDigest": "bd878afd29a31581",
+        "serializedLength": 521
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5546:5118",
+        "comparisonDigest": "e4484909a65d8d95",
+        "serializedLength": 460
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5546:5120",
+        "comparisonDigest": "e2ba06bebba2dc3a",
+        "serializedLength": 462
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4383",
+        "comparisonDigest": "6fcf0f7052567064",
+        "serializedLength": 524
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4303",
+        "comparisonDigest": "f0bb6a2511f76a71",
+        "serializedLength": 521
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4441",
+        "comparisonDigest": "f25ca5c61b2c0612",
+        "serializedLength": 523
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:14",
+        "comparisonDigest": "d21ad833bf816307",
+        "serializedLength": 533
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4339",
+        "comparisonDigest": "0b2812956ff2e0e1",
+        "serializedLength": 521
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:2290:16",
+        "comparisonDigest": "9da7e67402914540",
+        "serializedLength": 505
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4337",
+        "comparisonDigest": "0b8de1f144c6c9bd",
+        "serializedLength": 520
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:3163:4015",
+        "comparisonDigest": "a36f9b24666a64a8",
+        "serializedLength": 468
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4380",
+        "comparisonDigest": "c354957321b7efcf",
+        "serializedLength": 550
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4360",
+        "comparisonDigest": "97abbaa9a19c63a5",
+        "serializedLength": 550
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4598",
+        "comparisonDigest": "4e11c43d71ec5a31",
+        "serializedLength": 497
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:3218:4021",
+        "comparisonDigest": "65145cd95108e945",
+        "serializedLength": 544
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4379",
+        "comparisonDigest": "f95654536acb535f",
+        "serializedLength": 504
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4359",
+        "comparisonDigest": "bb5959db7ff27acf",
+        "serializedLength": 520
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:3644:69",
+        "comparisonDigest": "2d11efa3f8d1ae77",
+        "serializedLength": 308
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4587",
+        "comparisonDigest": "78a16e3ea3694b3a",
+        "serializedLength": 505
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4456",
+        "comparisonDigest": "2094a19e5e0fcfa2",
+        "serializedLength": 550
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5546:5109",
+        "comparisonDigest": "80bd19f3599f445f",
+        "serializedLength": 468
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4585",
+        "comparisonDigest": "daaa0044342cf410",
+        "serializedLength": 444
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5541:4455",
+        "comparisonDigest": "73491ad83f37df74",
+        "serializedLength": 521
+      },
+      {
+        "kind": "variables",
+        "id": "VariableID:5546:5108",
+        "comparisonDigest": "9638d9ed15380231",
+        "serializedLength": 456
+      },
+      {
+        "kind": "collections",
+        "id": "VariableCollectionId:2289:3",
+        "comparisonDigest": "e2b1a2a7f660624b",
+        "serializedLength": 10091
+      },
+      {
+        "kind": "collections",
+        "id": "VariableCollectionId:2289:2",
+        "comparisonDigest": "f7c3ec39560e8a05",
+        "serializedLength": 8175
+      }
+    ],
+    "errors": []
+  },
+  "mismatches": [],
+  "integrityPolicy": "Digests compare observations; original token files remain frozen by Git/blob SHA. Not application visual proof."
+}

@@ -1,0 +1,1070 @@
+{
+  "schema": "kodjo.pre3.figma-master-freshness.work.v1",
+  "expected": [
+    {
+      "id": "6981:14888",
+      "comparisonDigest": "d4ca524bb2df2e67",
+      "serializedLength": 2016
+    },
+    {
+      "id": "6944:26421",
+      "comparisonDigest": "712013307b0adf84",
+      "serializedLength": 2444
+    },
+    {
+      "id": "2537:1074",
+      "comparisonDigest": "5f230344432dd2c0",
+      "serializedLength": 1849
+    },
+    {
+      "id": "7021:13149",
+      "comparisonDigest": "b197901da469e101",
+      "serializedLength": 1597
+    },
+    {
+      "id": "5544:4503",
+      "comparisonDigest": "a68379e83fe13954",
+      "serializedLength": 2434
+    },
+    {
+      "id": "6955:26633",
+      "comparisonDigest": "9506500c78d257d0",
+      "serializedLength": 2485
+    },
+    {
+      "id": "6959:15825",
+      "comparisonDigest": "d9a021187cdb321c",
+      "serializedLength": 1500
+    },
+    {
+      "id": "6296:10530",
+      "comparisonDigest": "f89198c616e62b2a",
+      "serializedLength": 1416
+    },
+    {
+      "id": "6322:10874",
+      "comparisonDigest": "2e97c7565d7dc77a",
+      "serializedLength": 1386
+    },
+    {
+      "id": "5544:4485",
+      "comparisonDigest": "5933e5da7474abee",
+      "serializedLength": 2434
+    },
+    {
+      "id": "6959:15940",
+      "comparisonDigest": "d98297d0adb67864",
+      "serializedLength": 1616
+    },
+    {
+      "id": "5544:6087",
+      "comparisonDigest": "39f2be27fb7506f3",
+      "serializedLength": 2625
+    },
+    {
+      "id": "6974:14831",
+      "comparisonDigest": "8efeb0ee74f299b2",
+      "serializedLength": 1799
+    },
+    {
+      "id": "4155:6197",
+      "comparisonDigest": "090ae4d9a0fe0a95",
+      "serializedLength": 1580
+    },
+    {
+      "id": "5544:4537",
+      "comparisonDigest": "d2315b96bcd03d7a",
+      "serializedLength": 2277
+    },
+    {
+      "id": "4155:6200",
+      "comparisonDigest": "e2759982cdf9844e",
+      "serializedLength": 1584
+    },
+    {
+      "id": "4152:6182",
+      "comparisonDigest": "b59bb83d49679f59",
+      "serializedLength": 2404
+    },
+    {
+      "id": "4173:6713",
+      "comparisonDigest": "5b41a18885182a2c",
+      "serializedLength": 1604
+    },
+    {
+      "id": "6981:14890",
+      "comparisonDigest": "30b1a65e9ff59192",
+      "serializedLength": 1451
+    },
+    {
+      "id": "6981:14893",
+      "comparisonDigest": "f05b1a09adc7d3cd",
+      "serializedLength": 1443
+    },
+    {
+      "id": "5544:6069",
+      "comparisonDigest": "b0a4b3bdab244779",
+      "serializedLength": 2633
+    },
+    {
+      "id": "5544:5554",
+      "comparisonDigest": "00363b9386da8137",
+      "serializedLength": 2300
+    },
+    {
+      "id": "5826:4110",
+      "comparisonDigest": "8b2d83683e4c6794",
+      "serializedLength": 2441
+    },
+    {
+      "id": "5847:4029",
+      "comparisonDigest": "bb934f8645e90c9a",
+      "serializedLength": 2073
+    },
+    {
+      "id": "5544:5118",
+      "comparisonDigest": "322142d52e7cac31",
+      "serializedLength": 2108
+    },
+    {
+      "id": "5544:4732",
+      "comparisonDigest": "e8a1c285f4808781",
+      "serializedLength": 2471
+    },
+    {
+      "id": "6679:26610",
+      "comparisonDigest": "5b6b0cc8370d1d84",
+      "serializedLength": 1509
+    },
+    {
+      "id": "5544:4630",
+      "comparisonDigest": "5bdd2010548d7664",
+      "serializedLength": 2425
+    },
+    {
+      "id": "6981:14877",
+      "comparisonDigest": "48d53e5813ecf91c",
+      "serializedLength": 1719
+    },
+    {
+      "id": "6426:10043",
+      "comparisonDigest": "3fffb6aa33c558ae",
+      "serializedLength": 2030
+    },
+    {
+      "id": "6981:14863",
+      "comparisonDigest": "17841e032cab6667",
+      "serializedLength": 1721
+    },
+    {
+      "id": "6981:14870",
+      "comparisonDigest": "5faefb906bb941dc",
+      "serializedLength": 1722
+    },
+    {
+      "id": "6679:13418",
+      "comparisonDigest": "aae712a49d122dd0",
+      "serializedLength": 2501
+    },
+    {
+      "id": "6679:26645",
+      "comparisonDigest": "2bd3b8423ff210de",
+      "serializedLength": 1511
+    },
+    {
+      "id": "7501:13764",
+      "comparisonDigest": "d06a45b2f0e70bbe",
+      "serializedLength": 2287
+    },
+    {
+      "id": "5544:4628",
+      "comparisonDigest": "f68aa3d1ea71a1c5",
+      "serializedLength": 2421
+    },
+    {
+      "id": "6679:26485",
+      "comparisonDigest": "6b3e0a85365caa81",
+      "serializedLength": 1428
+    },
+    {
+      "id": "6679:13419",
+      "comparisonDigest": "0ee0eda7325219ab",
+      "serializedLength": 1373
+    },
+    {
+      "id": "6679:13442",
+      "comparisonDigest": "a8759d67edd96feb",
+      "serializedLength": 2157
+    },
+    {
+      "id": "6679:26555",
+      "comparisonDigest": "419d4e09ec150875",
+      "serializedLength": 1436
+    },
+    {
+      "id": "6679:26352",
+      "comparisonDigest": "48725f39b3af594d",
+      "serializedLength": 2685
+    },
+    {
+      "id": "6679:26654",
+      "comparisonDigest": "de1addaebedb4552",
+      "serializedLength": 1521
+    },
+    {
+      "id": "7092:13604",
+      "comparisonDigest": "b5c4fc92b32b0006",
+      "serializedLength": 2444
+    },
+    {
+      "id": "6679:26508",
+      "comparisonDigest": "c512480b4ecdd05f",
+      "serializedLength": 1432
+    },
+    {
+      "id": "6679:26637",
+      "comparisonDigest": "247e9262fb1ee2a6",
+      "serializedLength": 1509
+    },
+    {
+      "id": "7501:13761",
+      "comparisonDigest": "a084ef58bb7359ec",
+      "serializedLength": 2283
+    },
+    {
+      "id": "6679:26531",
+      "comparisonDigest": "b0b34dfe3ba03cf2",
+      "serializedLength": 1436
+    },
+    {
+      "id": "5544:4821",
+      "comparisonDigest": "61a90c8c03cb4078",
+      "serializedLength": 1643
+    },
+    {
+      "id": "6944:26423",
+      "comparisonDigest": "8129f0988763f19c",
+      "serializedLength": 1752
+    },
+    {
+      "id": "2537:1075",
+      "comparisonDigest": "a0ea76118879c0bd",
+      "serializedLength": 1505
+    },
+    {
+      "id": "5544:4504",
+      "comparisonDigest": "407270d774d56373",
+      "serializedLength": 1850
+    },
+    {
+      "id": "6322:10880",
+      "comparisonDigest": "c8ad8293575e73cf",
+      "serializedLength": 1472
+    },
+    {
+      "id": "5544:6095",
+      "comparisonDigest": "665018b61d1ad6c2",
+      "serializedLength": 1649
+    },
+    {
+      "id": "4155:6201",
+      "comparisonDigest": "93b80421710a5e3d",
+      "serializedLength": 1724
+    },
+    {
+      "id": "5544:4541",
+      "comparisonDigest": "ae1107496ac64afd",
+      "serializedLength": 1621
+    },
+    {
+      "id": "5548:10518",
+      "comparisonDigest": "4d33a1075bce55eb",
+      "serializedLength": 1742
+    },
+    {
+      "id": "5544:5567",
+      "comparisonDigest": "3926462abcbc51ae",
+      "serializedLength": 1653
+    },
+    {
+      "id": "5544:5146",
+      "comparisonDigest": "cb061446ffeb63b2",
+      "serializedLength": 1652
+    },
+    {
+      "id": "6679:26676",
+      "comparisonDigest": "48c491adc66d82d1",
+      "serializedLength": 1799
+    },
+    {
+      "id": "5544:4632",
+      "comparisonDigest": "16b0e3a45ab913e0",
+      "serializedLength": 1611
+    },
+    {
+      "id": "5548:9818",
+      "comparisonDigest": "95741a1bffe204d7",
+      "serializedLength": 1836
+    },
+    {
+      "id": "6426:10149",
+      "comparisonDigest": "75811077de7b50cb",
+      "serializedLength": 1513
+    },
+    {
+      "id": "5544:4650",
+      "comparisonDigest": "ab6dfbda0a5598ee",
+      "serializedLength": 1700
+    },
+    {
+      "id": "6679:26604",
+      "comparisonDigest": "5b1e8822164916be",
+      "serializedLength": 1838
+    },
+    {
+      "id": "5544:4798",
+      "comparisonDigest": "4feb77e07cc3b8bc",
+      "serializedLength": 2055
+    },
+    {
+      "id": "5544:4801",
+      "comparisonDigest": "80445f36c1af45a2",
+      "serializedLength": 2651
+    },
+    {
+      "id": "5544:4820",
+      "comparisonDigest": "d45d237eb5f2595a",
+      "serializedLength": 2138
+    },
+    {
+      "id": "5847:4035",
+      "comparisonDigest": "86cee40534af9151",
+      "serializedLength": 2180
+    },
+    {
+      "id": "7092:13606",
+      "comparisonDigest": "cf9aa666bccb706a",
+      "serializedLength": 2446
+    },
+    {
+      "id": "2537:1071",
+      "comparisonDigest": "9198bc36a9a98aba",
+      "serializedLength": 1852
+    },
+    {
+      "id": "5544:4467",
+      "comparisonDigest": "764749da7498f41e",
+      "serializedLength": 2432
+    },
+    {
+      "id": "6322:10877",
+      "comparisonDigest": "1ab15834a0141e48",
+      "serializedLength": 1386
+    },
+    {
+      "id": "5544:6061",
+      "comparisonDigest": "bf306c6d1ce136b1",
+      "serializedLength": 2625
+    },
+    {
+      "id": "5544:6077",
+      "comparisonDigest": "6241c40287635c6e",
+      "serializedLength": 2637
+    },
+    {
+      "id": "5544:4533",
+      "comparisonDigest": "80a764faae1f43ce",
+      "serializedLength": 2273
+    },
+    {
+      "id": "5548:10512",
+      "comparisonDigest": "a7cf32b50ed66331",
+      "serializedLength": 2160
+    },
+    {
+      "id": "5548:10517",
+      "comparisonDigest": "841b83fa3b0da106",
+      "serializedLength": 2155
+    },
+    {
+      "id": "5544:5542",
+      "comparisonDigest": "f0bad61e52fb3242",
+      "serializedLength": 2310
+    },
+    {
+      "id": "5544:5565",
+      "comparisonDigest": "f413363928ba72c5",
+      "serializedLength": 2302
+    },
+    {
+      "id": "5544:5101",
+      "comparisonDigest": "7f88fe084612a57c",
+      "serializedLength": 2399
+    },
+    {
+      "id": "5826:4290",
+      "comparisonDigest": "997252f65ed80d72",
+      "serializedLength": 1435
+    },
+    {
+      "id": "7130:13496",
+      "comparisonDigest": "80a9283c058ca610",
+      "serializedLength": 2364
+    },
+    {
+      "id": "6679:26615",
+      "comparisonDigest": "1672dc2c767cba20",
+      "serializedLength": 1513
+    },
+    {
+      "id": "6679:26623",
+      "comparisonDigest": "b188963ec9cd0cea",
+      "serializedLength": 1515
+    },
+    {
+      "id": "6679:26632",
+      "comparisonDigest": "42aba8e220e24626",
+      "serializedLength": 1505
+    },
+    {
+      "id": "6679:26659",
+      "comparisonDigest": "b344c6599ba38cd5",
+      "serializedLength": 1525
+    },
+    {
+      "id": "6679:26667",
+      "comparisonDigest": "9120ae8667a2e39a",
+      "serializedLength": 1527
+    },
+    {
+      "id": "6679:26361",
+      "comparisonDigest": "a8bd4e5dadf72279",
+      "serializedLength": 2685
+    },
+    {
+      "id": "6981:14884",
+      "comparisonDigest": "9298d284e9338a28",
+      "serializedLength": 1689
+    },
+    {
+      "id": "7388:13779",
+      "comparisonDigest": "ac0f7043e4521d7f",
+      "serializedLength": 1674
+    },
+    {
+      "id": "7388:13786",
+      "comparisonDigest": "4d133330de450ee4",
+      "serializedLength": 1677
+    },
+    {
+      "id": "6426:10013",
+      "comparisonDigest": "ff34db63e2c24f67",
+      "serializedLength": 2026
+    },
+    {
+      "id": "6426:10028",
+      "comparisonDigest": "58660bce95709bfa",
+      "serializedLength": 2030
+    },
+    {
+      "id": "6426:10058",
+      "comparisonDigest": "6e59c890a25a95e4",
+      "serializedLength": 2030
+    },
+    {
+      "id": "6426:10073",
+      "comparisonDigest": "043eb93925c74f95",
+      "serializedLength": 2030
+    },
+    {
+      "id": "6426:10088",
+      "comparisonDigest": "9971b4b317421637",
+      "serializedLength": 2030
+    },
+    {
+      "id": "6426:10103",
+      "comparisonDigest": "9fe68e01c073f685",
+      "serializedLength": 2030
+    },
+    {
+      "id": "6426:10118",
+      "comparisonDigest": "a3cd1dbe13a86da2",
+      "serializedLength": 2032
+    },
+    {
+      "id": "6426:10133",
+      "comparisonDigest": "a86505cf72615ff3",
+      "serializedLength": 2032
+    },
+    {
+      "id": "6426:10148",
+      "comparisonDigest": "5835a8321eca72f6",
+      "serializedLength": 2034
+    },
+    {
+      "id": "5544:4636",
+      "comparisonDigest": "b878e395145edc71",
+      "serializedLength": 2280
+    },
+    {
+      "id": "5544:4639",
+      "comparisonDigest": "c192146acd7fc6c6",
+      "serializedLength": 2284
+    },
+    {
+      "id": "5544:4649",
+      "comparisonDigest": "888ad8da6b414056",
+      "serializedLength": 2310
+    },
+    {
+      "id": "7501:13768",
+      "comparisonDigest": "c815b01e2882b152",
+      "serializedLength": 2313
+    },
+    {
+      "id": "6679:26579",
+      "comparisonDigest": "58235e2d8f475799",
+      "serializedLength": 1444
+    }
+  ],
+  "actual": {
+    "capturedAt": "2026-10-08T21:00:09.961Z",
+    "results": [
+      {
+        "id": "6981:14888",
+        "comparisonDigest": "d4ca524bb2df2e67",
+        "serializedLength": 2016
+      },
+      {
+        "id": "6944:26421",
+        "comparisonDigest": "712013307b0adf84",
+        "serializedLength": 2444
+      },
+      {
+        "id": "2537:1074",
+        "comparisonDigest": "5f230344432dd2c0",
+        "serializedLength": 1849
+      },
+      {
+        "id": "7021:13149",
+        "comparisonDigest": "b197901da469e101",
+        "serializedLength": 1597
+      },
+      {
+        "id": "5544:4503",
+        "comparisonDigest": "a68379e83fe13954",
+        "serializedLength": 2434
+      },
+      {
+        "id": "6955:26633",
+        "comparisonDigest": "9506500c78d257d0",
+        "serializedLength": 2485
+      },
+      {
+        "id": "6959:15825",
+        "comparisonDigest": "d9a021187cdb321c",
+        "serializedLength": 1500
+      },
+      {
+        "id": "6296:10530",
+        "comparisonDigest": "f89198c616e62b2a",
+        "serializedLength": 1416
+      },
+      {
+        "id": "6322:10874",
+        "comparisonDigest": "2e97c7565d7dc77a",
+        "serializedLength": 1386
+      },
+      {
+        "id": "5544:4485",
+        "comparisonDigest": "5933e5da7474abee",
+        "serializedLength": 2434
+      },
+      {
+        "id": "6959:15940",
+        "comparisonDigest": "d98297d0adb67864",
+        "serializedLength": 1616
+      },
+      {
+        "id": "5544:6087",
+        "comparisonDigest": "39f2be27fb7506f3",
+        "serializedLength": 2625
+      },
+      {
+        "id": "6974:14831",
+        "comparisonDigest": "8efeb0ee74f299b2",
+        "serializedLength": 1799
+      },
+      {
+        "id": "4155:6197",
+        "comparisonDigest": "090ae4d9a0fe0a95",
+        "serializedLength": 1580
+      },
+      {
+        "id": "5544:4537",
+        "comparisonDigest": "d2315b96bcd03d7a",
+        "serializedLength": 2277
+      },
+      {
+        "id": "4155:6200",
+        "comparisonDigest": "e2759982cdf9844e",
+        "serializedLength": 1584
+      },
+      {
+        "id": "4152:6182",
+        "comparisonDigest": "b59bb83d49679f59",
+        "serializedLength": 2404
+      },
+      {
+        "id": "4173:6713",
+        "comparisonDigest": "5b41a18885182a2c",
+        "serializedLength": 1604
+      },
+      {
+        "id": "6981:14890",
+        "comparisonDigest": "30b1a65e9ff59192",
+        "serializedLength": 1451
+      },
+      {
+        "id": "6981:14893",
+        "comparisonDigest": "f05b1a09adc7d3cd",
+        "serializedLength": 1443
+      },
+      {
+        "id": "5544:6069",
+        "comparisonDigest": "b0a4b3bdab244779",
+        "serializedLength": 2633
+      },
+      {
+        "id": "5544:5554",
+        "comparisonDigest": "00363b9386da8137",
+        "serializedLength": 2300
+      },
+      {
+        "id": "5826:4110",
+        "comparisonDigest": "8b2d83683e4c6794",
+        "serializedLength": 2441
+      },
+      {
+        "id": "5847:4029",
+        "comparisonDigest": "bb934f8645e90c9a",
+        "serializedLength": 2073
+      },
+      {
+        "id": "5544:5118",
+        "comparisonDigest": "322142d52e7cac31",
+        "serializedLength": 2108
+      },
+      {
+        "id": "5544:4732",
+        "comparisonDigest": "e8a1c285f4808781",
+        "serializedLength": 2471
+      },
+      {
+        "id": "6679:26610",
+        "comparisonDigest": "5b6b0cc8370d1d84",
+        "serializedLength": 1509
+      },
+      {
+        "id": "5544:4630",
+        "comparisonDigest": "5bdd2010548d7664",
+        "serializedLength": 2425
+      },
+      {
+        "id": "6981:14877",
+        "comparisonDigest": "48d53e5813ecf91c",
+        "serializedLength": 1719
+      },
+      {
+        "id": "6426:10043",
+        "comparisonDigest": "3fffb6aa33c558ae",
+        "serializedLength": 2030
+      },
+      {
+        "id": "6981:14863",
+        "comparisonDigest": "17841e032cab6667",
+        "serializedLength": 1721
+      },
+      {
+        "id": "6981:14870",
+        "comparisonDigest": "5faefb906bb941dc",
+        "serializedLength": 1722
+      },
+      {
+        "id": "6679:13418",
+        "comparisonDigest": "aae712a49d122dd0",
+        "serializedLength": 2501
+      },
+      {
+        "id": "6679:26645",
+        "comparisonDigest": "2bd3b8423ff210de",
+        "serializedLength": 1511
+      },
+      {
+        "id": "7501:13764",
+        "comparisonDigest": "d06a45b2f0e70bbe",
+        "serializedLength": 2287
+      },
+      {
+        "id": "5544:4628",
+        "comparisonDigest": "f68aa3d1ea71a1c5",
+        "serializedLength": 2421
+      },
+      {
+        "id": "6679:26485",
+        "comparisonDigest": "6b3e0a85365caa81",
+        "serializedLength": 1428
+      },
+      {
+        "id": "6679:13419",
+        "comparisonDigest": "0ee0eda7325219ab",
+        "serializedLength": 1373
+      },
+      {
+        "id": "6679:13442",
+        "comparisonDigest": "a8759d67edd96feb",
+        "serializedLength": 2157
+      },
+      {
+        "id": "6679:26555",
+        "comparisonDigest": "419d4e09ec150875",
+        "serializedLength": 1436
+      },
+      {
+        "id": "6679:26352",
+        "comparisonDigest": "48725f39b3af594d",
+        "serializedLength": 2685
+      },
+      {
+        "id": "6679:26654",
+        "comparisonDigest": "de1addaebedb4552",
+        "serializedLength": 1521
+      },
+      {
+        "id": "7092:13604",
+        "comparisonDigest": "b5c4fc92b32b0006",
+        "serializedLength": 2444
+      },
+      {
+        "id": "6679:26508",
+        "comparisonDigest": "c512480b4ecdd05f",
+        "serializedLength": 1432
+      },
+      {
+        "id": "6679:26637",
+        "comparisonDigest": "247e9262fb1ee2a6",
+        "serializedLength": 1509
+      },
+      {
+        "id": "7501:13761",
+        "comparisonDigest": "a084ef58bb7359ec",
+        "serializedLength": 2283
+      },
+      {
+        "id": "6679:26531",
+        "comparisonDigest": "b0b34dfe3ba03cf2",
+        "serializedLength": 1436
+      },
+      {
+        "id": "5544:4821",
+        "comparisonDigest": "61a90c8c03cb4078",
+        "serializedLength": 1643
+      },
+      {
+        "id": "6944:26423",
+        "comparisonDigest": "8129f0988763f19c",
+        "serializedLength": 1752
+      },
+      {
+        "id": "2537:1075",
+        "comparisonDigest": "a0ea76118879c0bd",
+        "serializedLength": 1505
+      },
+      {
+        "id": "5544:4504",
+        "comparisonDigest": "407270d774d56373",
+        "serializedLength": 1850
+      },
+      {
+        "id": "6322:10880",
+        "comparisonDigest": "c8ad8293575e73cf",
+        "serializedLength": 1472
+      },
+      {
+        "id": "5544:6095",
+        "comparisonDigest": "665018b61d1ad6c2",
+        "serializedLength": 1649
+      },
+      {
+        "id": "4155:6201",
+        "comparisonDigest": "93b80421710a5e3d",
+        "serializedLength": 1724
+      },
+      {
+        "id": "5544:4541",
+        "comparisonDigest": "ae1107496ac64afd",
+        "serializedLength": 1621
+      },
+      {
+        "id": "5548:10518",
+        "comparisonDigest": "4d33a1075bce55eb",
+        "serializedLength": 1742
+      },
+      {
+        "id": "5544:5567",
+        "comparisonDigest": "3926462abcbc51ae",
+        "serializedLength": 1653
+      },
+      {
+        "id": "5544:5146",
+        "comparisonDigest": "cb061446ffeb63b2",
+        "serializedLength": 1652
+      },
+      {
+        "id": "6679:26676",
+        "comparisonDigest": "48c491adc66d82d1",
+        "serializedLength": 1799
+      },
+      {
+        "id": "5544:4632",
+        "comparisonDigest": "16b0e3a45ab913e0",
+        "serializedLength": 1611
+      },
+      {
+        "id": "5548:9818",
+        "comparisonDigest": "95741a1bffe204d7",
+        "serializedLength": 1836
+      },
+      {
+        "id": "6426:10149",
+        "comparisonDigest": "75811077de7b50cb",
+        "serializedLength": 1513
+      },
+      {
+        "id": "5544:4650",
+        "comparisonDigest": "ab6dfbda0a5598ee",
+        "serializedLength": 1700
+      },
+      {
+        "id": "6679:26604",
+        "comparisonDigest": "5b1e8822164916be",
+        "serializedLength": 1838
+      },
+      {
+        "id": "5544:4798",
+        "comparisonDigest": "4feb77e07cc3b8bc",
+        "serializedLength": 2055
+      },
+      {
+        "id": "5544:4801",
+        "comparisonDigest": "80445f36c1af45a2",
+        "serializedLength": 2651
+      },
+      {
+        "id": "5544:4820",
+        "comparisonDigest": "d45d237eb5f2595a",
+        "serializedLength": 2138
+      },
+      {
+        "id": "5847:4035",
+        "comparisonDigest": "86cee40534af9151",
+        "serializedLength": 2180
+      },
+      {
+        "id": "7092:13606",
+        "comparisonDigest": "cf9aa666bccb706a",
+        "serializedLength": 2446
+      },
+      {
+        "id": "2537:1071",
+        "comparisonDigest": "9198bc36a9a98aba",
+        "serializedLength": 1852
+      },
+      {
+        "id": "5544:4467",
+        "comparisonDigest": "764749da7498f41e",
+        "serializedLength": 2432
+      },
+      {
+        "id": "6322:10877",
+        "comparisonDigest": "1ab15834a0141e48",
+        "serializedLength": 1386
+      },
+      {
+        "id": "5544:6061",
+        "comparisonDigest": "bf306c6d1ce136b1",
+        "serializedLength": 2625
+      },
+      {
+        "id": "5544:6077",
+        "comparisonDigest": "6241c40287635c6e",
+        "serializedLength": 2637
+      },
+      {
+        "id": "5544:4533",
+        "comparisonDigest": "80a764faae1f43ce",
+        "serializedLength": 2273
+      },
+      {
+        "id": "5548:10512",
+        "comparisonDigest": "a7cf32b50ed66331",
+        "serializedLength": 2160
+      },
+      {
+        "id": "5548:10517",
+        "comparisonDigest": "841b83fa3b0da106",
+        "serializedLength": 2155
+      },
+      {
+        "id": "5544:5542",
+        "comparisonDigest": "f0bad61e52fb3242",
+        "serializedLength": 2310
+      },
+      {
+        "id": "5544:5565",
+        "comparisonDigest": "f413363928ba72c5",
+        "serializedLength": 2302
+      },
+      {
+        "id": "5544:5101",
+        "comparisonDigest": "7f88fe084612a57c",
+        "serializedLength": 2399
+      },
+      {
+        "id": "5826:4290",
+        "comparisonDigest": "997252f65ed80d72",
+        "serializedLength": 1435
+      },
+      {
+        "id": "7130:13496",
+        "comparisonDigest": "80a9283c058ca610",
+        "serializedLength": 2364
+      },
+      {
+        "id": "6679:26615",
+        "comparisonDigest": "1672dc2c767cba20",
+        "serializedLength": 1513
+      },
+      {
+        "id": "6679:26623",
+        "comparisonDigest": "b188963ec9cd0cea",
+        "serializedLength": 1515
+      },
+      {
+        "id": "6679:26632",
+        "comparisonDigest": "42aba8e220e24626",
+        "serializedLength": 1505
+      },
+      {
+        "id": "6679:26659",
+        "comparisonDigest": "b344c6599ba38cd5",
+        "serializedLength": 1525
+      },
+      {
+        "id": "6679:26667",
+        "comparisonDigest": "9120ae8667a2e39a",
+        "serializedLength": 1527
+      },
+      {
+        "id": "6679:26361",
+        "comparisonDigest": "a8bd4e5dadf72279",
+        "serializedLength": 2685
+      },
+      {
+        "id": "6981:14884",
+        "comparisonDigest": "9298d284e9338a28",
+        "serializedLength": 1689
+      },
+      {
+        "id": "7388:13779",
+        "comparisonDigest": "ac0f7043e4521d7f",
+        "serializedLength": 1674
+      },
+      {
+        "id": "7388:13786",
+        "comparisonDigest": "4d133330de450ee4",
+        "serializedLength": 1677
+      },
+      {
+        "id": "6426:10013",
+        "comparisonDigest": "ff34db63e2c24f67",
+        "serializedLength": 2026
+      },
+      {
+        "id": "6426:10028",
+        "comparisonDigest": "58660bce95709bfa",
+        "serializedLength": 2030
+      },
+      {
+        "id": "6426:10058",
+        "comparisonDigest": "6e59c890a25a95e4",
+        "serializedLength": 2030
+      },
+      {
+        "id": "6426:10073",
+        "comparisonDigest": "043eb93925c74f95",
+        "serializedLength": 2030
+      },
+      {
+        "id": "6426:10088",
+        "comparisonDigest": "9971b4b317421637",
+        "serializedLength": 2030
+      },
+      {
+        "id": "6426:10103",
+        "comparisonDigest": "9fe68e01c073f685",
+        "serializedLength": 2030
+      },
+      {
+        "id": "6426:10118",
+        "comparisonDigest": "a3cd1dbe13a86da2",
+        "serializedLength": 2032
+      },
+      {
+        "id": "6426:10133",
+        "comparisonDigest": "a86505cf72615ff3",
+        "serializedLength": 2032
+      },
+      {
+        "id": "6426:10148",
+        "comparisonDigest": "5835a8321eca72f6",
+        "serializedLength": 2034
+      },
+      {
+        "id": "5544:4636",
+        "comparisonDigest": "b878e395145edc71",
+        "serializedLength": 2280
+      },
+      {
+        "id": "5544:4639",
+        "comparisonDigest": "c192146acd7fc6c6",
+        "serializedLength": 2284
+      },
+      {
+        "id": "5544:4649",
+        "comparisonDigest": "888ad8da6b414056",
+        "serializedLength": 2310
+      },
+      {
+        "id": "7501:13768",
+        "comparisonDigest": "c815b01e2882b152",
+        "serializedLength": 2313
+      },
+      {
+        "id": "6679:26579",
+        "comparisonDigest": "58235e2d8f475799",
+        "serializedLength": 1444
+      }
+    ],
+    "linksCompared": 881,
+    "changedLinks": [],
+    "errors": []
+  },
+  "mismatches": [],
+  "limitations": [
+    "105 unique roots = union of47 extracted masters,17sets and75 variantroots; overlapping roots deduplicated.",
+    "Properties originally captured on roots and881 instance-master links compared; current descendant topology closure supplemented separately.",
+    "Comparison digests are not cryptographic integrity or application visual conformance.",
+    "Retries: HTTP413 with verbose input then output-limit error from incorrectly treating index.master string as object; query corrected, no canvas edits."
+  ]
+}

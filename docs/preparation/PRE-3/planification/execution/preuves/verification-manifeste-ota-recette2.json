@@ -1,0 +1,18 @@
+{
+ "schema": "kodjo.pre3.ota-served-check.v1",
+ "checked_at": "2026-10-12T10:35:55.907Z",
+ "request": {
+  "url": "https://u.expo.dev/0ee44f86-bd22-4b92-8780-e265b72907d9",
+  "headers": {
+   "expo-platform": "ios",
+   "expo-runtime-version": "1.1.0",
+   "expo-channel-name": "review"
+  }
+ },
+ "response": {
+  "http": "200 OK",
+  "manifest_id": "01a12fae-53ec-72ca-b260-4e89a5f74e96",
+  "runtimeVersion": "1.1.0"
+ },
+ "update_list_latest_group": "4d709de1-d9f2-44b3-9c4f-f035a102ca48"
+}

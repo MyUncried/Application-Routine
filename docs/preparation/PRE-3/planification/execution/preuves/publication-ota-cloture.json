@@ -1,0 +1,42 @@
+{
+  "schema": "kodjo.pre3.ota-publication.v1",
+  "operation": 340,
+  "pr": 351,
+  "status": "PUBLISHED",
+  "source_commit": "626632c3bf5b888756f24dd7f34fce2c448f9eb8",
+  "worktree_clean_at_publication": true,
+  "mechanism": "eas update --channel review --platform ios --environment development (paramètres de kodjo-routine-dev-environment-sync.yml), eas-cli 21.7.1",
+  "update": {
+    "id": "01a1324c-5bed-7dd7-b98a-77ebbd315429",
+    "group": "1fbe366d-f95e-49e0-ac3c-2981869a81c3",
+    "platform": "ios",
+    "runtimeVersion": "1.1.0",
+    "branch": "review",
+    "message": "KODJO review PRE-3 cloture 626632c3bf5b888756f24dd7f34fce2c448f9eb8",
+    "gitCommitHash": "626632c3bf5b888756f24dd7f34fce2c448f9eb8",
+    "createdAt": "2026-10-12T22:47:07.501Z",
+    "manifestPermalink": "https://u.expo.dev/update/01a1324c-5bed-7dd7-b98a-77ebbd315429",
+    "isRollBackToEmbedded": false
+  },
+  "compatibility": {
+    "tool": "scripts/kodjo/classify-environment-update.js",
+    "vs_build_8": {
+      "build": "38bf5fc2-b053-4fd1-a475-48f08b7f542f",
+      "base": "58bbc3bc3221bbd4f2dd080016469620b6bf2643",
+      "status": "OTA_COMPATIBLE",
+      "native_sensitive_files": []
+    },
+    "vs_last_ota": {
+      "update": "01a131f9-1cf0-705c-8531-3919ff3b2aa6",
+      "base": "29d149bdcdc998e90eeff6d66834312f90e72d72",
+      "status": "OTA_COMPATIBLE",
+      "native_sensitive_files": [],
+      "code_delta": [
+        "src/features/activities/ExecutionParametersSheet.tsx",
+        "src/shared/ui/SegmentedControl.tsx"
+      ]
+    }
+  },
+  "new_native_build": false,
+  "errors": []
+}

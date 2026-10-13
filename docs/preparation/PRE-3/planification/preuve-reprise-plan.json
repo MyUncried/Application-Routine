@@ -1,0 +1,79 @@
+{
+  "status": "READY_FOR_INDEPENDENT_REVIEW",
+  "producer_revision": "1d42479181586d926a9970867a41d35d44cc4661",
+  "application_baseline": "1ddfb6d144552f578388257adc78db47ab5992c8",
+  "source_revision": "3019c5f8c4a38efb83865635e0a8d67d48a5b5ab",
+  "produced_chain_hash": "603de045f94fec3f14aa2198edaaad0b91020b79adddb19041b06314cc725e16",
+  "plan_contract_hash": "5145cbd30860f9ddef041ed33b97a71697517a3ef248229112bb0f5f7b92006f",
+  "ui_contract_hash": "d4aa55ad8a0752ae4083a33a96d5d006491258ab1dee5bf2856610ec9399e4c9",
+  "requirement_registry_hash": "efa418ec5b9c9d32b2254e805245f8d0c9ad63777240c4a09a3093a2934f8584",
+  "requirements": 6384,
+  "scopeIds": 23,
+  "assertions": 243974,
+  "target_count": 304638,
+  "native_assessments": 6384,
+  "figma_consumer_hash": "d01b6f5bb19cbfb4c5bb02234ed0d3933ff58ed2ba7c10f36243b683eb270ecd",
+  "navigation_bytes": 12593,
+  "readable_files": 1181,
+  "readable_total_bytes": 996522000,
+  "readable_max_file_bytes": 8092499,
+  "verification": [
+    {
+      "stage": "READ_COMPLETE_BUNDLE_PASS"
+    },
+    {
+      "stage": "VERIFY_PRODUCED_AND_PINNED_SOURCES_PASS"
+    },
+    {
+      "stage": "EXACT_PLAN_UI_HASHES_AND_23_REQUIREMENTS_PASS"
+    },
+    {
+      "stage": "READABLE_REVIEW_DOSSIER_PASS"
+    },
+    {
+      "stage": "FIGMA_REVIEW_RESOURCES_MATERIALIZED_PASS"
+    }
+  ],
+  "claude_probe": {
+    "binary": "claude",
+    "error": "ENOENT",
+    "invoked": false
+  },
+  "independentReview": false,
+  "ownerApproval": false,
+  "implementation": false,
+  "summary_generation_recovered": true,
+  "summary_error": "TypeError: C.reviewTargets is not a function (report only; all five checks completed)",
+  "launcher_validation": {
+    "syntax": "PASS",
+    "negative_guards": 3,
+    "externalProcessesInvoked": 0,
+    "actual_absent_claude_refusal": "ENOENT_BEFORE_OPERATION_CREATION",
+    "windows_launcher_execution": "NOT_OBSERVED"
+  },
+  "recorded_at": "2026-10-09T08:05:47.077Z",
+  "construction_receipt": "construction-reprise-plan.json",
+  "application_files_diff_main_since_baseline": [],
+  "preparation_checks": {
+    "extraction": "PASS",
+    "frames": 41,
+    "nodes": 6725,
+    "captures": 41,
+    "scopeIds": 23,
+    "expectedAssertions": 59,
+    "states": 95,
+    "normativeCases": 13,
+    "phraseFixtures": 276,
+    "applicationTested": false,
+    "liveFigmaReread": false
+  },
+  "verification_reproduction": {
+    "full_production": [
+      "node --max-old-space-size=6144 docs/preparation/PRE-3/planification/lancer-source-vnext.cjs <absolute-output>",
+      "node --max-old-space-size=7168 docs/preparation/PRE-3/planification/construire-contrats-vnext.cjs <absolute-output> <absolute-output>/launch.json"
+    ],
+    "canonical_reobservation": "vnext-file-bundle.read(produced.json), then vnext-live-chain.verifyProduced(produced, exactCheckout)",
+    "readable_dossier": "vnext-live-chain.compactReviewDossier + materializeReviewDossier; vnext-figma-source.consumeArtifacts PLANNER; no model invocation",
+    "published_contract_hashes_unchanged": true
+  }
+}

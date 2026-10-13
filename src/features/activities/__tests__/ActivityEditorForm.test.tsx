@@ -1,36 +1,38 @@
-import { act, fireEvent, render, screen } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import { describe, expect, it, jest } from "@jest/globals";
 import { useState } from "react";
+import { StyleSheet } from "react-native";
 
+import type { ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
-import { createExerciseDraft } from "@/domain/sessions/SessionDraft";
+import type { DraftMediaItem } from "@/domain/media/ActivityMedia";
+import type { ImportItem, ImportResult, PickedMedia } from "@/domain/media/ActivityMediaImportService";
+import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import {
   ActivityEditorForm,
   isActivityEditorFormValid,
   type ActivityEditorFormValue,
+  type EditorCategory,
 } from "@/features/activities/ActivityEditorForm";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
 /**
- * `ActivityEditorForm` reçoit désormais le référentiel persistant des Zones
- * corporelles en prop (V2-PRE-1, plan §3.1, UI-1652FFC3B512) — jamais
- * `BODY_ZONES` importé statiquement. Fixture locale reprenant les mêmes
- * identifiants/noms que le référentiel historique, pour ce fichier.
+ * Éditeur commun d'un Exercice (CE-T03-04, PRE-3). Rendu et actions de cette
+ * surface uniquement : la phrase et ses montants sont générés par le Domaine
+ * (`executionPhrase`, `executionCalculations`), prouvés dans leurs suites —
+ * ici, on vérifie qu'ils sont affichés tels quels, en flux, sans stockage.
  */
+jest.mock("expo-haptics", () => ({ selectionAsync: jest.fn(async () => undefined) }));
+jest.mock("@/infrastructure/media/VideoPoster", () => ({ generateVideoPoster: jest.fn(async () => null) }));
+
 const BODY_ZONE_FIXTURES: readonly BodyZone[] = [
   { id: "cou", name: "Cou", isActive: true, createdAt: "2026-01-01T00:00:00.000Z" },
-  { id: "epaules", name: "Épaules", isActive: true, createdAt: "2026-01-01T00:00:01.000Z" },
-  { id: "dos", name: "Dos", isActive: true, createdAt: "2026-01-01T00:00:04.000Z" },
+  { id: "cuisses", name: "Cuisses", isActive: true, createdAt: "2026-01-01T00:00:01.000Z" },
+  { id: "fessier", name: "Fessier", isActive: true, createdAt: "2026-01-01T00:00:04.000Z" },
 ];
 
-/**
- * V2-PRE-2 (plan §6.5) : `ActivityEditorForm` ouvre désormais
- * `BodyZonePickerModal` (confirmation explicite), qui s'auto-alimente via
- * `ReferentialServiceContext` — jamais `bodyZones` (la prop ne sert plus
- * qu'à la synthèse affichée hors modale).
- */
 function fakeReferentialService(): ReferentialService {
   return {
     listBodyZones: jest.fn(async () => BODY_ZONE_FIXTURES),
@@ -41,38 +43,50 @@ function fakeReferentialService(): ReferentialService {
   } as unknown as ReferentialService;
 }
 
-function baseValue(overrides: Partial<ActivityEditorFormValue> = {}): ActivityEditorFormValue {
-  const draft = createExerciseDraft("draft-id");
+function parameters(overrides: Partial<ExecutionParametersInput> = {}): ExecutionParametersInput {
   return {
-    name: draft.name,
-    instruction: draft.instruction,
-    executionMode: draft.executionMode,
-    durationSeconds: draft.durationSeconds,
-    repetitionCount: draft.repetitionCount,
-    seriesCount: draft.seriesCount,
-    pauseSeconds: draft.pauseSeconds,
-    bodyZoneIds: draft.bodyZoneIds,
-    sideMode: draft.sideMode,
+    version: 1,
+    mode: "DURATION",
+    series: { kind: "UNIFORM", count: 3, target: 90, pauseSeconds: 15 },
+    sideMode: "UNILATERAL",
+    sideOrder: "BY_SIDE",
+    sideRecoverySeconds: 0,
+    cadenceBeepIntervalSeconds: 0,
+    countdownSeconds: 10,
+    endSeconds: 5,
     ...overrides,
   };
+}
+
+const variable = (rows: [number | null, number][]) => ({
+  kind: "VARIABLE" as const,
+  rows: rows.map(([target, pauseSeconds]) => ({ target, pauseSeconds })),
+});
+
+function baseValue(overrides: Partial<ActivityEditorFormValue> = {}): ActivityEditorFormValue {
+  return { name: "", instruction: null, executionParameters: parameters(), bodyZoneIds: [], media: [], ...overrides };
 }
 
 function Harness({
   initial,
   onChangeSpy,
   onFinish = jest.fn(),
-  showMediaSection = true,
   errorMessage = null,
   isFinishDisabled = false,
+  category = null,
+  onOpenCategory = jest.fn(),
   onBodyZonesPickerClose,
+  mediaService = null,
 }: {
   initial?: Partial<ActivityEditorFormValue>;
   onChangeSpy?: (patch: Partial<ActivityEditorFormValue>) => void;
   onFinish?: () => void;
-  showMediaSection?: boolean;
   errorMessage?: string | null;
   isFinishDisabled?: boolean;
+  category?: EditorCategory;
+  onOpenCategory?: () => void;
   onBodyZonesPickerClose?: () => void;
+  mediaService?: ActivityDefinitionService | null;
 }) {
   const [value, setValue] = useState<ActivityEditorFormValue>(baseValue(initial));
   return (
@@ -86,7 +100,11 @@ function Harness({
           }}
           bodyZones={BODY_ZONE_FIXTURES}
           onBodyZonesPickerClose={onBodyZonesPickerClose}
-          showMediaSection={showMediaSection}
+          category={category}
+          onOpenCategory={onOpenCategory}
+          profileSideRecoverySecondsDefault={10}
+          mediaService={mediaService}
+          mediaDraftId="draft-test"
           finishLabel="Terminer"
           onFinish={onFinish}
           isFinishDisabled={isFinishDisabled}
@@ -100,155 +118,450 @@ function Harness({
   );
 }
 
-describe("ActivityEditorForm", () => {
-  it("renders the name field with the current value", () => {
-    render(<Harness initial={{ name: "Squat" }} />);
-    expect(screen.getByDisplayValue("Squat")).toBeTruthy();
-  });
+/**
+ * Texte intégral CANONIQUE de la phrase (segments imbriqués concaténés) : le
+ * retour de ligne de présentation avant « Durée totale » (phrase v1 §5) est
+ * ramené à l'espace du corpus v15.
+ */
+function phrase(): string {
+  return renderedPhrase().replace("\nDurée totale : ", " Durée totale : ");
+}
 
-  it("reports a name change", () => {
+/** Texte tel que rendu (retour de ligne de présentation compris). */
+function renderedPhrase(): string {
+  const node = screen.getByTestId("exercise-parameters-phrase");
+  const flatten = (children: unknown): string =>
+    Array.isArray(children)
+      ? children.map(flatten).join("")
+      : typeof children === "string"
+        ? children
+        : children && typeof children === "object" && "props" in children
+          ? flatten((children as { props: { children: unknown } }).props.children)
+          : "";
+  return flatten(node.props.children);
+}
+
+function boldSegments(): string[] {
+  const children = screen.getByTestId("exercise-parameters-phrase").props.children as unknown[];
+  return (Array.isArray(children) ? children : [children])
+    .filter((child): child is { props: { children: string } } => typeof child === "object" && child !== null)
+    .map((child) => child.props.children);
+}
+
+describe("ActivityEditorForm — contrats conservés", () => {
+  it("renders and reports the name field", () => {
     const onChangeSpy = jest.fn();
-    render(<Harness onChangeSpy={onChangeSpy} />);
+    render(<Harness initial={{ name: "Squat" }} onChangeSpy={onChangeSpy} />);
+    expect(screen.getByDisplayValue("Squat")).toBeTruthy();
     fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Fentes");
     expect(onChangeSpy).toHaveBeenCalledWith({ name: "Fentes" });
   });
 
-  it("switches to REPETITIONS mode and shows the repetition field instead of duration", async () => {
-    render(<Harness initial={{ name: "Squat" }} />);
-    expect(screen.getByTestId("exercise-field-duration")).toBeTruthy();
-
-    fireEvent.press(screen.getByText("Répétitions"));
-
-    // V2-CAT-01 (retour indépendant, minuteurs Jest) : ce changement de
-    // segment démarre l'indicateur animé de `SegmentedControl`
-    // (`Animated.timing`, 220 ms, minuteurs RÉELS — hors périmètre de
-    // modification de ce composant). Laisser ce minuteur s'achever avant la
-    // fin du test évite qu'il ne se déclenche après le démontage de
-    // l'environnement Jest de ce fichier (avertissement `act()`
-    // asynchrone, voire erreur d'environnement démonté sur certains
-    // runners CI).
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-    });
-
-    expect(screen.queryByTestId("exercise-field-duration")).toBeNull();
-    expect(screen.getByTestId("exercise-field-repetitionCount")).toBeTruthy();
-  });
-
-  it("selects a body zone via the picker modal and applies it on Confirmer (V2-PRE-2)", async () => {
-    const onChangeSpy = jest.fn();
-    render(<Harness onChangeSpy={onChangeSpy} />);
-    fireEvent.press(screen.getByTestId("exercise-section-body-zones-header"));
-    fireEvent.press(screen.getByTestId("exercise-body-zones-open"));
-
-    await screen.findByTestId("body-zone-selector-tag-dos");
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("body-zone-selector-tag-dos"));
-    });
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("body-zone-picker-confirm"));
-    });
-
-    expect(onChangeSpy).toHaveBeenCalledWith({ bodyZoneIds: ["dos"] });
-  });
-
-  /**
-   * R6 (CE-UI-09 L2784, L2816, L2840) : la fermeture de `BodyZonePickerModal`
-   * (Confirmer) notifie l'appelant via `onBodyZonesPickerClose`, pour qu'il
-   * relise son propre référentiel `bodyZones` — une Zone créée, renommée ou
-   * supprimée dans la modale devient ainsi visible SANS fermer ni rouvrir
-   * cet éditeur.
-   */
-  it("notifies the caller via onBodyZonesPickerClose when the body zone picker closes, so it can reload its referential", async () => {
+  it("selects body zones via the picker modal and applies them on Confirmer; notifies the caller on close", async () => {
     const onBodyZonesPickerClose = jest.fn();
     render(<Harness onBodyZonesPickerClose={onBodyZonesPickerClose} />);
-    fireEvent.press(screen.getByTestId("exercise-section-body-zones-header"));
     fireEvent.press(screen.getByTestId("exercise-body-zones-open"));
-
-    await screen.findByTestId("body-zone-picker-confirm");
+    fireEvent.press(await screen.findByTestId("body-zone-selector-tag-cuisses"));
     await act(async () => {
       fireEvent.press(screen.getByTestId("body-zone-picker-confirm"));
     });
-
+    expect(screen.getByText("Cuisses")).toBeTruthy();
     expect(onBodyZonesPickerClose).toHaveBeenCalledTimes(1);
   });
 
-  /**
-   * VISUAL_CORRECTION (revue indépendante 5753653735, point 3) :
-   * présentation Médias IDENTIQUE quelle que soit l'origine — la section
-   * est désormais visible par défaut aussi bien pour la Composition que
-   * pour le Catalogue (`showMediaSection` par défaut `true`).
-   */
-  it("shows the Médias section by default, identically regardless of origin (Composition or Catalogue)", () => {
-    render(<Harness />);
-    expect(screen.getByTestId("activity-editor-section-media")).toBeTruthy();
-  });
-
-  it("keeps the Médias section collapsed by default, with no redundant text or button once expanded", () => {
-    render(<Harness />);
-    expect(screen.queryByTestId("activity-editor-section-media-content")).toBeNull();
-
-    fireEvent.press(screen.getByTestId("activity-editor-section-media-header"));
-
-    expect(screen.getByTestId("activity-editor-section-media-content")).toBeTruthy();
-    // VISUAL_CORRECTION (point 3) : ni le texte d'état vide, ni le bouton
-    // `Ajouter un média` redondant de cette section ne subsistent — seul
-    // celui de la zone bleue contextuelle, sous le nom, reste (D-105).
-    expect(screen.queryByTestId("activity-editor-media-placeholder")).toBeNull();
-    expect(screen.queryByText("Aucun média pour cette activité.")).toBeNull();
-    expect(screen.queryByTestId("activity-editor-add-media")).toBeNull();
-    expect(screen.getByTestId("exercise-add-media")).toBeTruthy();
-  });
-
-  it("can still explicitly hide the Médias section when a caller opts out", () => {
-    render(<Harness showMediaSection={false} />);
-    expect(screen.queryByTestId("activity-editor-section-media")).toBeNull();
-  });
-
-  it("bolds only the name inside the summary", () => {
-    render(<Harness initial={{ name: "Squat" }} />);
-    const boldName = screen.getByTestId("exercise-summary-name");
-    expect(boldName.props.children).toBe("Squat");
-  });
-
-  it("disables the finish action while the name is empty, without calling onFinish", () => {
+  it("shows the provided error message above the finish action and honours the external disabled state", () => {
     const onFinish = jest.fn();
-    render(<Harness initial={{ name: "" }} onFinish={onFinish} />);
-    expect(screen.getByTestId("test-finish-action").props.accessibilityState.disabled).toBe(true);
-
+    render(<Harness errorMessage="Échec" isFinishDisabled onFinish={onFinish} />);
+    expect(screen.getByTestId("test-save-error").props.children).toBe("Échec");
     fireEvent.press(screen.getByTestId("test-finish-action"));
     expect(onFinish).not.toHaveBeenCalled();
   });
 
-  it("enables the finish action once the name becomes valid, and calls onFinish when pressed", () => {
-    const onFinish = jest.fn();
-    render(<Harness initial={{ name: "" }} onFinish={onFinish} />);
-
-    fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Squat");
-    expect(screen.getByTestId("test-finish-action").props.accessibilityState.disabled).toBe(false);
-
-    fireEvent.press(screen.getByTestId("test-finish-action"));
-    expect(onFinish).toHaveBeenCalledTimes(1);
-  });
-
-  it("shows the provided error message above the finish action without losing the draft", () => {
-    render(<Harness initial={{ name: "Squat" }} errorMessage="Erreur de sauvegarde" />);
-    expect(screen.getByTestId("test-save-error")).toBeTruthy();
-    expect(screen.getByDisplayValue("Squat")).toBeTruthy();
-  });
-
-  it("disables the finish action while an external save is in progress", () => {
-    render(<Harness initial={{ name: "Squat" }} isFinishDisabled />);
-    expect(screen.getByTestId("test-finish-action").props.accessibilityState.disabled).toBe(true);
+  it("isActivityEditorFormValid — nom et paramètres canoniques valides ; Catégorie et Zone exigées pour un nouvel Exercice", () => {
+    expect(isActivityEditorFormValid(baseValue())).toBe(false);
+    expect(isActivityEditorFormValid(baseValue({ name: "Squat" }))).toBe(true);
+    expect(isActivityEditorFormValid(baseValue({ name: "Squat", executionParameters: parameters({ mode: null }) }))).toBe(false);
+    expect(
+      isActivityEditorFormValid(baseValue({ name: "Squat" }), { requireReferences: true, hasCategory: true }),
+    ).toBe(false);
+    expect(
+      isActivityEditorFormValid(baseValue({ name: "Squat", bodyZoneIds: ["cou"] }), { requireReferences: true, hasCategory: true }),
+    ).toBe(true);
   });
 });
 
-describe("isActivityEditorFormValid", () => {
-  it("is false for an empty name", () => {
-    expect(isActivityEditorFormValid(baseValue({ name: "" }))).toBe(false);
+describe("ActivityEditorForm — PRE-3", () => {
+  it("P3-02/editor-fields — nom, Catégorie, Zones, Paramètres, description et médias accessibles ; Terminer désactivé tant que l'adaptateur l'exige", () => {
+    const onOpenCategory = jest.fn();
+    const onFinish = jest.fn();
+    render(<Harness onOpenCategory={onOpenCategory} onFinish={onFinish} isFinishDisabled />);
+    expect(screen.getByLabelText("Nom de l’exercice")).toBeTruthy();
+    expect(screen.getByLabelText("Catégorie — non renseignée")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("activity-editor-category-button"));
+    expect(onOpenCategory).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("exercise-body-zones-open")).toBeTruthy();
+    expect(screen.getByTestId("exercise-parameters-card")).toBeTruthy();
+    expect(screen.getByLabelText("Description de l’exercice")).toBeTruthy();
+    expect(screen.getByText("Médias")).toBeTruthy();
+    expect(screen.getByTestId("test-finish-action").props.accessibilityState).toMatchObject({ disabled: true });
+    fireEvent.press(screen.getByTestId("test-finish-action"));
+    expect(onFinish).not.toHaveBeenCalled();
   });
 
-  it("is true for a valid DURATION activity", () => {
-    expect(isActivityEditorFormValid(baseValue({ name: "Squat" }))).toBe(true);
+  it("P3-02/keyboard-scroll — corps défilant avec clavier ; Terminer hors du défilement, marge Safe Area ; description sans hauteur figée", () => {
+    render(<Harness />);
+    expect(screen.getByTestId("exercise-body").props.keyboardShouldPersistTaps).toBe("handled");
+    const instruction = StyleSheet.flatten(screen.getByTestId("exercise-instruction-input").props.style);
+    expect(instruction.height).toBeUndefined();
+    expect(instruction.minHeight).toBeGreaterThanOrEqual(44);
+    const slot = StyleSheet.flatten(screen.getByTestId("test-finish-slot").props.style);
+    expect(slot.marginBottom).toBeGreaterThanOrEqual(16);
+    expect(within(screen.getByTestId("exercise-body")).queryByTestId("test-finish-action")).toBeNull();
+  });
+
+  it("P3-12/normative-totals — totaux affichés tels que calculés : A 195 s, C 405 s, D 375 s exacts ; Répétitions cadencées ≈ 5 min ; Durée cadencée 5 min exact", () => {
+    const rows = variable([[30, 10], [45, 20], [60, 30]]);
+    const cases: [ExecutionParametersInput, string][] = [
+      [parameters({ series: rows }), "Durée totale : 3 min 15 s."],
+      [parameters({ series: rows, sideMode: "RIGHT_LEFT", sideRecoverySeconds: 15 }), "Durée totale : 6 min 45 s."],
+      [
+        parameters({ series: rows, sideMode: "RIGHT_LEFT", sideOrder: "BY_SERIES", sideRecoverySeconds: 15 }),
+        "Durée totale : 6 min 15 s.",
+      ],
+      [
+        parameters({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 4, target: 15, pauseSeconds: 15 }, cadenceBeepIntervalSeconds: 4 }),
+        "Durée totale : ≈ 5 min.",
+      ],
+      [
+        parameters({ series: { kind: "UNIFORM", count: 4, target: 60, pauseSeconds: 15 }, cadenceBeepIntervalSeconds: 4 }),
+        "Durée totale : 5 min.",
+      ],
+    ];
+    for (const [executionParameters, expected] of cases) {
+      const { unmount } = render(<Harness initial={{ executionParameters }} />);
+      expect(phrase().endsWith(expected)).toBe(true);
+      unmount();
+    }
+  });
+
+  it("P3-12/omission — Répétitions sans bip et À l'échec : aucune ligne, valeur, zéro, tiret ni « ≥ » de durée", () => {
+    for (const executionParameters of [
+      parameters({ mode: "REPETITIONS", series: variable([[12, 30], [10, 45], [8, 60]]) }),
+      parameters({ mode: "TO_FAILURE", series: { kind: "UNIFORM", count: 3, target: null, pauseSeconds: 15 }, cadenceBeepIntervalSeconds: 4 }),
+    ]) {
+      const { unmount } = render(<Harness initial={{ executionParameters }} />);
+      expect(phrase()).not.toMatch(/Durée totale|≥|—| 0 s/);
+      unmount();
+    }
+  });
+
+  it("P3-15/grammar-edges — N=1 sans pause : total redondant omis ; pause 15 s : total présent ; ≤ 3 variables énumérées, > 3 min/max", () => {
+    const render1 = (executionParameters: ExecutionParametersInput) => {
+      const view = render(<Harness initial={{ executionParameters }} />);
+      const result = phrase();
+      view.unmount();
+      return result;
+    };
+    expect(render1(parameters({ series: { kind: "UNIFORM", count: 1, target: 30, pauseSeconds: 0 } }))).not.toContain("Durée totale");
+    expect(render1(parameters({ series: { kind: "UNIFORM", count: 1, target: 30, pauseSeconds: 15 } }))).toContain("Durée totale : 45 s.");
+    expect(render1(parameters({ series: variable([[30, 10], [45, 20], [60, 30]]) }))).toContain("(30 s, 45 s puis 1 min)");
+    expect(render1(parameters({ series: variable([[20, 0], [25, 0], [30, 0], [45, 0]]) }))).toContain("de 20 s à 45 s");
+  });
+
+  it("P3-15/long-phrase — phrase longue intégrale en Text imbriqués, sans numberOfLines ni ellipse ; segments gras émis par le générateur", () => {
+    render(
+      <Harness
+        initial={{
+          executionParameters: parameters({
+            series: { kind: "UNIFORM", count: 1, target: 90, pauseSeconds: 15 },
+            sideMode: "RIGHT_LEFT",
+            sideRecoverySeconds: 10,
+          }),
+        }}
+      />,
+    );
+    const node = screen.getByTestId("exercise-parameters-phrase");
+    expect(node.props.numberOfLines).toBeUndefined();
+    expect(node.props.ellipsizeMode).toBeUndefined();
+    expect(phrase()).toBe(
+      "1 série de 1 min 30 s, avec 15 s de pause après chaque série, en faisant le côté droit puis le gauche, avec 10 s de pause au changement de côté. Durée totale : 3 min 40 s.",
+    );
+    expect(boldSegments()).toEqual(expect.arrayContaining(["1 série", "1 min 30 s", "gauche", "3 min 40 s"]));
+    expect(boldSegments()).not.toContain("droit");
+  });
+
+  it("P3-20/all-surfaces — titres et valeurs des écrans de référence ; carte bordée rayon 12 ; phrase Inter 13 / 20", () => {
+    render(<Harness initial={{ executionParameters: parameters({ mode: null, series: { kind: "UNIFORM", count: 1, target: null, pauseSeconds: 0 } }) }} />);
+    expect(screen.getByText("Paramètres d’exécution")).toBeTruthy();
+    expect(screen.getByText("Choisir un mode")).toBeTruthy();
+    expect(screen.getByText("Compte à rebours")).toBeTruthy();
+    expect(screen.getByText("Fin d’exercice")).toBeTruthy();
+    expect(screen.getByTestId("exercise-parameters-countdown").props.children).toBe("10 s");
+    expect(screen.getByTestId("exercise-parameters-end").props.children).toBe("5 s");
+    expect(StyleSheet.flatten(screen.getByTestId("exercise-parameters-card").props.style)).toMatchObject({
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: "#E0E3E8",
+    });
+    expect(StyleSheet.flatten(screen.getByTestId("exercise-parameters-phrase").props.style)).toMatchObject({
+      fontSize: 13,
+      lineHeight: 20,
+    });
+  });
+
+  it("P3-21/accessible-controls — libellés complets ; la feuille reçoit le focus modal ; ✕ y revient sans modifier le parent", () => {
+    const onChangeSpy = jest.fn();
+    render(<Harness onChangeSpy={onChangeSpy} category={{ name: "Renforcement", color: "#8FB8FF" }} initial={{ bodyZoneIds: ["cuisses", "fessier"] }} />);
+    expect(screen.getByLabelText("Catégorie Renforcement")).toBeTruthy();
+    expect(screen.getByTestId("exercise-body-zones-open").props.accessibilityLabel).toContain("Cuisses, Fessier");
+    fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+    expect(screen.getByTestId("execution-sheet").props.accessibilityViewIsModal).toBe(true);
+    fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
+    expect(screen.queryByTestId("execution-sheet")).toBeNull();
+    expect(onChangeSpy).not.toHaveBeenCalled();
+  });
+
+  it("INTERACTION/parameter-card — toute la carte ouvre la feuille ; ✓ remplace les paramètres et la phrase est régénérée", () => {
+    const onChangeSpy = jest.fn();
+    render(<Harness onChangeSpy={onChangeSpy} />);
+    expect(phrase()).toContain("3 séries");
+    fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+    fireEvent(screen.getByTestId("execution-sheet-series-increment"), "pressIn");
+    fireEvent(screen.getByTestId("execution-sheet-series-increment"), "pressOut");
+    fireEvent.press(screen.getByTestId("execution-sheet-validate"));
+    expect(onChangeSpy).toHaveBeenCalledWith({
+      executionParameters: expect.objectContaining({ series: { kind: "UNIFORM", count: 4, target: 90, pauseSeconds: 15 } }),
+    });
+    expect(phrase()).toContain("4 séries");
+    expect(screen.queryByTestId("execution-sheet")).toBeNull();
+  });
+
+  it("ACCESSIBILITY/parameter-card — une seule cible nommée contient la phrase intégrale, annoncée une fois ; segments non accessibles séparément", () => {
+    render(<Harness />);
+    const card = screen.getByTestId("exercise-parameters-card");
+    expect(card.props.accessibilityRole).toBe("button");
+    expect(card.props.accessibilityLabel).toBe(
+      `Modifier les paramètres d’exécution. ${phrase()} Compte à rebours 10 s, Fin d’exercice 5 s.`,
+    );
+    const nested = screen.getByTestId("exercise-parameters-phrase").props.children as { props?: { accessible?: boolean; accessibilityRole?: string } }[];
+    expect(nested.filter((child) => typeof child === "object" && child?.props?.accessibilityRole).length).toBe(0);
+  });
+});
+
+/**
+ * Correction revue 1 — REV-03 (ordre de sélection après échec/réessai) et
+ * phrase v1 §5 (retour de ligne de présentation avant « Durée totale »).
+ */
+describe("ActivityEditorForm — correction revue 1", () => {
+  const picked: PickedMedia = {
+    uri: "file:///cache/x.jpg",
+    kind: "PHOTO",
+    mimeType: "image/jpeg",
+    fileName: null,
+    sizeBytes: 1,
+    durationMs: null,
+    width: 1,
+    height: 1,
+    nativeAssetId: null,
+  };
+  const ready = (id: string): ImportItem => ({
+    key: id,
+    state: "READY",
+    picked,
+    media: { assetId: id, asset: { id, uri: `kodjo-media/${id}.jpg`, createdAt: "now", kind: "PHOTO" } },
+  });
+  const failed = (id: string): ImportItem => ({ key: id, state: "FAILED", picked, error: "COPY_FAILED" });
+
+  function mediaService(results: ImportResult[], retries: Record<string, ImportItem[]>) {
+    return {
+      supportsMediaImport: true,
+      resolveMediaUri: (uri: string) => uri,
+      leaseDraftMedia: jest.fn(),
+      importPendingMedia: jest.fn(async () => null),
+      importMedia: jest.fn(async () => results.shift()!),
+      retryMediaImport: jest.fn(async (_draft: string, item: ImportItem) => retries[item.key]!.shift()!),
+    } as unknown as ActivityDefinitionService;
+  }
+
+  function renderWithMedia(service: ActivityDefinitionService) {
+    let latest: readonly DraftMediaItem[] = [];
+    render(<Harness mediaService={service} onChangeSpy={(patch) => patch.media && (latest = patch.media)} />);
+    return () => latest.map((item) => item.assetId);
+  }
+
+  async function press(testID: string) {
+    await act(async () => {
+      fireEvent.press(screen.getByTestId(testID));
+    });
+  }
+
+  it("REV-03 — A, B, C avec A et C en échec : réessais (C puis A, A deux fois) → A, B, C ; une sélection ultérieure reste en fin ; annulation neutre ; aucun doublon", async () => {
+    const service = mediaService(
+      [
+        { status: "IMPORTED", limitedAccess: false, items: [failed("a"), ready("b"), failed("c")] },
+        { status: "CANCELED" },
+        { status: "IMPORTED", limitedAccess: false, items: [ready("d")] },
+      ],
+      { a: [failed("a"), ready("a")], c: [ready("c")] },
+    );
+    const order = renderWithMedia(service);
+    await press("media-add");
+    expect(order()).toEqual(["b"]);
+    expect(screen.getByTestId("media-pending-1-retry")).toBeTruthy();
+    expect(screen.getByTestId("media-pending-2-retry")).toBeTruthy();
+    await press("media-add"); // annulation : rien ne change, échecs conservés
+    expect(order()).toEqual(["b"]);
+    expect(screen.getByTestId("media-pending-2-retry")).toBeTruthy();
+    await press("media-add"); // sélection ultérieure D
+    expect(order()).toEqual(["b", "d"]);
+    expect(screen.getByTestId("media-pending-2-retry")).toBeTruthy();
+    await press("media-pending-2-retry"); // C
+    expect(order()).toEqual(["b", "c", "d"]);
+    await press("media-pending-1-retry"); // A échoue encore
+    expect(order()).toEqual(["b", "c", "d"]);
+    expect(screen.getByTestId("media-pending-1-error")).toBeTruthy();
+    await press("media-pending-1-retry"); // A réussit
+    expect(order()).toEqual(["a", "b", "c", "d"]);
+    expect(screen.queryByTestId("media-pending-1")).toBeNull();
+  });
+
+  it("REV-03 — un réordonnancement ou un retrait explicite avant le réessai est conservé", async () => {
+    const service = mediaService(
+      [{ status: "IMPORTED", limitedAccess: false, items: [failed("a"), ready("b"), ready("c")] }],
+      { a: [ready("a")] },
+    );
+    const order = renderWithMedia(service);
+    await press("media-add");
+    expect(order()).toEqual(["b", "c"]);
+    fireEvent(screen.getByTestId("media-item-2"), "accessibilityAction", { nativeEvent: { actionName: "moveUp" } });
+    expect(order()).toEqual(["c", "b"]);
+    fireEvent(screen.getByTestId("media-item-2"), "accessibilityAction", { nativeEvent: { actionName: "remove" } });
+    expect(order()).toEqual(["c"]);
+    await press("media-pending-1-retry");
+    // B retiré : A se place avant le premier voisin suivant encore présent (C).
+    expect(order()).toEqual(["a", "c"]);
+  });
+
+  it("phrase v1 §5 — retour de ligne de présentation avant « Durée totale », texte canonique inchangé pour l'accessibilité", () => {
+    render(<Harness />);
+    expect(renderedPhrase()).toBe(
+      "3 séries de 1 min 30 s, avec 15 s de pause après chaque série.\nDurée totale : 5 min 15 s.",
+    );
+    expect(screen.getByTestId("exercise-parameters-card").props.accessibilityLabel).toContain(
+      "après chaque série. Durée totale : 5 min 15 s.",
+    );
+  });
+});
+
+describe("ActivityEditorForm — recette 1 (T-49)", () => {
+  it("T-49 — zone de contexte : halo blanc Ø 59,28 concentrique au bouton Retour, rogné à la zone, et fondu figé sur les 20 % inférieurs, tous deux sous le contenu", () => {
+    render(<Harness />);
+    const band = screen.getByTestId("exercise-context-band");
+    expect(StyleSheet.flatten(band.props.style).overflow).toBe("hidden");
+    // X-3 : couleur figée de la « Zone bleue » ; le token partagé de la Composition ne change pas.
+    expect(StyleSheet.flatten(band.props.style).backgroundColor).toBe("#EAEAFF");
+
+    const halo = StyleSheet.flatten(screen.getByTestId("exercise-context-band-halo").props.style);
+    expect(halo).toMatchObject({ position: "absolute", width: 59.28, height: 59.28, borderRadius: 29.64, backgroundColor: "#FFFFFF" });
+    // Centre : marge 24 + rayon du bouton 19 en x ; 24 au-dessus de la zone (moitié de l’en-tête 48) en y.
+    expect(halo.left! + 29.64).toBeCloseTo(43, 5);
+    expect(halo.top! + 29.64).toBeCloseTo(-24, 5);
+
+    const fade = screen.getByTestId("exercise-context-band-fade");
+    expect(StyleSheet.flatten(fade.props.style)).toMatchObject({ position: "absolute", bottom: 0, height: "20%" });
+    const opacities = (fade.props.children as { props: { style: unknown } }[]).map(
+      (step) => (StyleSheet.flatten(step.props.style as never) as { opacity: number }).opacity,
+    );
+    expect(opacities.length).toBeGreaterThanOrEqual(10);
+    expect([...opacities].sort((a, b) => a - b)).toEqual(opacities);
+    expect(opacities[0]).toBeLessThan(0.1);
+    expect(opacities[opacities.length - 1]).toBeGreaterThan(0.9);
+    // Recette 2 (T-49) : couches superposées jusqu’au bas de la zone, aucune bande juxtaposée.
+    for (const layer of fade.props.children as { props: { style: unknown } }[]) {
+      expect(StyleSheet.flatten(layer.props.style as never)).toMatchObject({ position: "absolute", bottom: 0 });
+    }
+    // Recette 2 (T-49) : aucun liseré autour du champ Nom.
+    expect(StyleSheet.flatten(screen.getByTestId("exercise-name-input").props.style).borderWidth).toBeUndefined();
+
+    // Sous le contenu : les effets précèdent le champ du nom dans l’ordre de dessin.
+    const children = band.props.children as { props: { testID?: string } }[];
+    const order = children.flat().map((child) => child?.props?.testID).filter(Boolean);
+    expect(order.indexOf("exercise-context-band-fade")).toBeLessThan(order.indexOf("exercise-name-input"));
+    expect(order.indexOf("exercise-context-band-halo")).toBeLessThan(order.indexOf("exercise-name-input"));
+  });
+});
+
+describe("ActivityEditorForm — recette 2 (N-05 : Description et clavier)", () => {
+  it("N-05 — Terminer hors de la zone qui évite le clavier ; Description recadrée juste au-dessus du clavier, hauteur bornée pendant la saisie puis rétablie", () => {
+    const { Keyboard, KeyboardAvoidingView, ScrollView } = jest.requireActual<typeof import("react-native")>("react-native");
+    const scrollTo = jest.spyOn(ScrollView.prototype, "scrollTo");
+    const listeners: Record<string, () => void> = {};
+    const addListener = jest.spyOn(Keyboard, "addListener").mockImplementation(((event: string, listener: () => void) => {
+      listeners[event] = listener;
+      return { remove: jest.fn() };
+    }) as unknown as typeof Keyboard.addListener);
+    render(<Harness />);
+
+    // Terminer n’est pas dans la zone qui évite le clavier : il ne remonte pas avec lui.
+    expect(within(screen.UNSAFE_getByType(KeyboardAvoidingView)).queryByTestId("test-finish-slot")).toBeNull();
+    expect(screen.getByTestId("test-finish-slot")).toBeTruthy();
+
+    const layout = (testID: string, y: number, height: number) =>
+      fireEvent(screen.getByTestId(testID), "layout", { nativeEvent: { layout: { x: 0, y, width: 354, height } } });
+    layout("exercise-body", 0, 300);
+    layout("exercise-section-description", 0, 0);
+    fireEvent(screen.getByTestId("exercise-section-description"), "layout", { nativeEvent: { layout: { x: 24, y: 400, width: 354, height: 160 } } });
+    layout("exercise-instruction-input", 25, 120);
+
+    scrollTo.mockClear();
+    fireEvent(screen.getByTestId("exercise-instruction-input"), "focus");
+    expect(StyleSheet.flatten(screen.getByTestId("exercise-instruction-input").props.style).maxHeight).toBe(276);
+    act(() => listeners.keyboardDidShow!());
+    // Bas du champ (400 + 25 + 120) + marge 12 − zone visible 300 = 257.
+    expect(scrollTo).toHaveBeenLastCalledWith({ y: 257, animated: true });
+
+    // Le champ grandit avec les retours à la ligne : nouveau recadrage.
+    layout("exercise-instruction-input", 25, 180);
+    expect(scrollTo).toHaveBeenLastCalledWith({ y: 317, animated: true });
+
+    fireEvent(screen.getByTestId("exercise-instruction-input"), "blur");
+    expect(StyleSheet.flatten(screen.getByTestId("exercise-instruction-input").props.style).maxHeight).toBeUndefined();
+    scrollTo.mockRestore();
+    addListener.mockRestore();
+  });
+});
+
+describe("ActivityEditorForm — recette 3 (N-05 : ↑ dans la Description)", () => {
+  it("N-05 — ↑ visible dans le champ pendant la saisie, nommé ; il ferme le clavier sans enregistrer ; texte multiligne conservé ; retour à la ligne inchangé", () => {
+    const { Keyboard } = jest.requireActual<typeof import("react-native")>("react-native");
+    const dismiss = jest.spyOn(Keyboard, "dismiss").mockImplementation(() => {});
+    const onFinish = jest.fn();
+    render(<Harness onFinish={onFinish} />);
+    const input = () => screen.getByTestId("exercise-instruction-input");
+
+    // Hors saisie : pas de ↑ ; la place du bouton est réservée (le texte ne change pas de largeur au focus).
+    expect(screen.queryByTestId("exercise-instruction-submit")).toBeNull();
+    const reserved = StyleSheet.flatten(input().props.style).paddingRight as number;
+    expect(reserved).toBeGreaterThanOrEqual(32 + 16);
+
+    fireEvent(input(), "focus");
+    fireEvent.changeText(input(), "Ligne 1\nLigne 2");
+    const send = screen.getByTestId("exercise-instruction-submit");
+    expect(send.props.accessibilityLabel).toBe("Valider la description");
+    expect(within(screen.getByTestId("exercise-section-description")).getByTestId("exercise-instruction-submit")).toBe(send);
+    expect(StyleSheet.flatten(send.props.style)).toMatchObject({ position: "absolute", width: 32, height: 32, borderRadius: 16 });
+    expect(StyleSheet.flatten(input().props.style).paddingRight).toBe(reserved);
+    // Description reste multiligne : la touche Retour n’est jamais une validation.
+    expect(input().props.multiline).toBe(true);
+    expect(input().props.onSubmitEditing).toBeUndefined();
+
+    fireEvent.press(send);
+    expect(dismiss).toHaveBeenCalledTimes(1);
+    expect(onFinish).not.toHaveBeenCalled();
+    fireEvent(input(), "blur");
+    expect(screen.queryByTestId("exercise-instruction-submit")).toBeNull();
+    expect(input().props.value).toBe("Ligne 1\nLigne 2");
+    expect(screen.getByTestId("test-finish-slot")).toBeTruthy();
+    dismiss.mockRestore();
   });
 });

@@ -1,0 +1,3635 @@
+{
+  "baseline": "1ddfb6d144552f578388257adc78db47ab5992c8",
+  "method": "Static literal import/reexport/require graph, reverse closure from declared roots; no dynamic/reflection or SQL graph inferred",
+  "roots": [
+    "src/domain/activities/ActivityDefinition.ts",
+    "src/domain/sessions/Session.ts",
+    "src/domain/sessions/SessionDraft.ts",
+    "src/domain/sessions/calculations.ts",
+    "src/domain/media/MediaAsset.ts",
+    "src/domain/media/ActivityMedia.ts",
+    "src/domain/media/MediaRepository.ts",
+    "src/features/activities/ActivityEditorForm.tsx",
+    "src/features/reference-data/CategoryPickerModal.tsx",
+    "src/features/reference-data/BodyZonePickerModal.tsx",
+    "src/features/sessions/DurationWheelPicker.tsx",
+    "src/shared/ui/ProfileStepper.tsx"
+  ],
+  "reverseClosure": [
+    "app/(creation)/_layout.tsx",
+    "app/(creation)/activity-selection.tsx",
+    "app/(creation)/categories.tsx",
+    "app/(creation)/composition.tsx",
+    "app/(creation)/exercise.tsx",
+    "app/(tabs)/index.tsx",
+    "app/(tabs)/profile.tsx",
+    "app/__tests__/creationLayout.test.tsx",
+    "app/__tests__/rootLayoutGesture.test.tsx",
+    "app/_layout.tsx",
+    "src/domain/activities/ActivityDefinition.ts",
+    "src/domain/activities/ActivityDefinitionRepository.ts",
+    "src/domain/activities/__tests__/ActivityDefinition.test.ts",
+    "src/domain/activities/index.ts",
+    "src/domain/body-zones/BodyZone.ts",
+    "src/domain/body-zones/BodyZoneRepository.ts",
+    "src/domain/body-zones/__tests__/BodyZone.test.ts",
+    "src/domain/body-zones/index.ts",
+    "src/domain/categories/Category.ts",
+    "src/domain/categories/CategoryRepository.ts",
+    "src/domain/categories/__tests__/matching.test.ts",
+    "src/domain/categories/__tests__/validation.test.ts",
+    "src/domain/categories/index.ts",
+    "src/domain/categories/matching.ts",
+    "src/domain/categories/validation.ts",
+    "src/domain/labels/Label.ts",
+    "src/domain/labels/LabelRepository.ts",
+    "src/domain/labels/__tests__/Label.test.ts",
+    "src/domain/labels/index.ts",
+    "src/domain/media/ActivityMedia.ts",
+    "src/domain/media/MediaAsset.ts",
+    "src/domain/media/MediaRepository.ts",
+    "src/domain/media/__tests__/MediaRepository.test.ts",
+    "src/domain/media/index.ts",
+    "src/domain/sessions/Session.ts",
+    "src/domain/sessions/SessionDraft.ts",
+    "src/domain/sessions/SessionRepository.ts",
+    "src/domain/sessions/StopPoint.ts",
+    "src/domain/sessions/__tests__/SessionDraft.test.ts",
+    "src/domain/sessions/__tests__/StopPoint.test.ts",
+    "src/domain/sessions/__tests__/calculations.test.ts",
+    "src/domain/sessions/__tests__/composition.test.ts",
+    "src/domain/sessions/__tests__/validation.test.ts",
+    "src/domain/sessions/calculations.ts",
+    "src/domain/sessions/composition.ts",
+    "src/domain/sessions/index.ts",
+    "src/domain/sessions/validation.ts",
+    "src/features/activities/ActivityCard.tsx",
+    "src/features/activities/ActivityCatalogueList.tsx",
+    "src/features/activities/ActivityDefinitionService.ts",
+    "src/features/activities/ActivityDefinitionServiceContext.tsx",
+    "src/features/activities/ActivityDefinitionServiceProvider.tsx",
+    "src/features/activities/ActivityEditorForm.tsx",
+    "src/features/activities/ActivitySelectionScreen.tsx",
+    "src/features/activities/__tests__/ActivityCard.test.tsx",
+    "src/features/activities/__tests__/ActivityCatalogueList.test.tsx",
+    "src/features/activities/__tests__/ActivityDefinitionService.test.ts",
+    "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+    "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+    "src/features/activities/__tests__/useActivityCatalogue.test.ts",
+    "src/features/activities/useActivityCatalogue.ts",
+    "src/features/preferences/ProfileScreen.tsx",
+    "src/features/preferences/__tests__/ProfileScreen.test.tsx",
+    "src/features/reference-data/BodyZonePickerModal.tsx",
+    "src/features/reference-data/CategoryPickerModal.tsx",
+    "src/features/reference-data/LabelPickerModal.tsx",
+    "src/features/reference-data/ReferentialService.ts",
+    "src/features/reference-data/ReferentialServiceContext.tsx",
+    "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+    "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+    "src/features/reference-data/__tests__/LabelPickerModal.test.tsx",
+    "src/features/reference-data/__tests__/ReferentialService.test.ts",
+    "src/features/sessions/BodyZoneSelector.tsx",
+    "src/features/sessions/CatalogueScreen.tsx",
+    "src/features/sessions/CategoriesScreen.tsx",
+    "src/features/sessions/ColorPalette.tsx",
+    "src/features/sessions/CompositionScreen.tsx",
+    "src/features/sessions/DurationWheelPicker.tsx",
+    "src/features/sessions/ExerciseScreen.tsx",
+    "src/features/sessions/SessionCard.tsx",
+    "src/features/sessions/SessionDraftContext.tsx",
+    "src/features/sessions/SessionDraftProvider.tsx",
+    "src/features/sessions/SessionService.ts",
+    "src/features/sessions/SessionServiceContext.tsx",
+    "src/features/sessions/SessionServiceProvider.tsx",
+    "src/features/sessions/__tests__/BodyZoneSelector.test.tsx",
+    "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+    "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
+    "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+    "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
+    "src/features/sessions/__tests__/ColorPalette.test.tsx",
+    "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+    "src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx",
+    "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+    "src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
+    "src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx",
+    "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "src/features/sessions/__tests__/SessionCard.test.tsx",
+    "src/features/sessions/__tests__/SessionDraftContext.test.tsx",
+    "src/features/sessions/__tests__/SessionDraftProvider.test.tsx",
+    "src/features/sessions/__tests__/SessionService.test.ts",
+    "src/features/sessions/__tests__/SessionServiceContext.test.tsx",
+    "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+    "src/features/sessions/__tests__/compositionGesture.test.ts",
+    "src/features/sessions/__tests__/compositionPresentation.test.ts",
+    "src/features/sessions/__tests__/useSessionCatalogue.test.ts",
+    "src/features/sessions/compositionGesture.ts",
+    "src/features/sessions/compositionPresentation.ts",
+    "src/features/sessions/useSessionCatalogue.ts",
+    "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "src/infrastructure/database/__tests__/SqliteBodyZoneRepository.test.ts",
+    "src/infrastructure/database/__tests__/SqliteCategoryRepository.test.ts",
+    "src/infrastructure/database/__tests__/SqliteLabelRepository.test.ts",
+    "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+    "src/infrastructure/database/__tests__/SqliteProfileRepository.test.ts",
+    "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "src/infrastructure/database/__tests__/initializeDatabase.test.ts",
+    "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+    "src/infrastructure/database/__tests__/targetSchema.test.ts",
+    "src/infrastructure/database/initializeDatabase.ts",
+    "src/infrastructure/database/integration/runNativeDatabaseIntegrationCheck.ts",
+    "src/infrastructure/database/migrateDatabase.ts",
+    "src/infrastructure/database/migrations/migration002.ts",
+    "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+    "src/infrastructure/database/repositories/SqliteBodyZoneRepository.ts",
+    "src/infrastructure/database/repositories/SqliteCategoryRepository.ts",
+    "src/infrastructure/database/repositories/SqliteLabelRepository.ts",
+    "src/infrastructure/database/repositories/SqliteMediaRepository.ts",
+    "src/infrastructure/database/repositories/SqliteProfileRepository.ts",
+    "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+    "src/infrastructure/database/types/DatabaseRows.ts",
+    "src/shared/ui/ProfileStepper.tsx",
+    "src/shared/ui/__tests__/ProfileStepper.test.tsx"
+  ],
+  "edges": [
+    {
+      "consumer": "src/domain/sessions/SessionRepository.ts",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "./Session"
+    },
+    {
+      "consumer": "src/domain/sessions/validation.ts",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "./Session"
+    },
+    {
+      "consumer": "src/domain/sessions/validation.ts",
+      "source": "src/domain/sessions/defaults.ts",
+      "specifier": "./defaults"
+    },
+    {
+      "consumer": "src/domain/sessions/validation.ts",
+      "source": "src/domain/sessions/errors.ts",
+      "specifier": "./errors"
+    },
+    {
+      "consumer": "src/domain/sessions/validation.ts",
+      "source": "src/domain/sessions/sideMode.ts",
+      "specifier": "./sideMode"
+    },
+    {
+      "consumer": "src/domain/sessions/Session.ts",
+      "source": "src/domain/sessions/StopPoint.ts",
+      "specifier": "./StopPoint"
+    },
+    {
+      "consumer": "src/domain/sessions/Session.ts",
+      "source": "src/domain/sessions/sideMode.ts",
+      "specifier": "./sideMode"
+    },
+    {
+      "consumer": "src/domain/sessions/calculations.ts",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "./Session"
+    },
+    {
+      "consumer": "src/domain/sessions/calculations.ts",
+      "source": "src/domain/sessions/sideMode.ts",
+      "specifier": "./sideMode"
+    },
+    {
+      "consumer": "src/domain/sessions/composition.ts",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "./Session"
+    },
+    {
+      "consumer": "src/domain/sessions/composition.ts",
+      "source": "src/domain/sessions/SessionDraft.ts",
+      "specifier": "./SessionDraft"
+    },
+    {
+      "consumer": "src/domain/sessions/SessionDraft.ts",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "./Session"
+    },
+    {
+      "consumer": "src/domain/sessions/SessionDraft.ts",
+      "source": "src/domain/sessions/defaults.ts",
+      "specifier": "./defaults"
+    },
+    {
+      "consumer": "src/domain/sessions/SessionDraft.ts",
+      "source": "src/domain/sessions/errors.ts",
+      "specifier": "./errors"
+    },
+    {
+      "consumer": "src/domain/sessions/SessionDraft.ts",
+      "source": "src/domain/sessions/sideMode.ts",
+      "specifier": "./sideMode"
+    },
+    {
+      "consumer": "src/domain/sessions/SessionDraft.ts",
+      "source": "src/domain/sessions/validation.ts",
+      "specifier": "./validation"
+    },
+    {
+      "consumer": "src/domain/sessions/StopPoint.ts",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "./Session"
+    },
+    {
+      "consumer": "src/domain/sessions/index.ts",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "./Session"
+    },
+    {
+      "consumer": "src/domain/sessions/index.ts",
+      "source": "src/domain/sessions/SessionDraft.ts",
+      "specifier": "./SessionDraft"
+    },
+    {
+      "consumer": "src/domain/sessions/index.ts",
+      "source": "src/domain/sessions/SessionRepository.ts",
+      "specifier": "./SessionRepository"
+    },
+    {
+      "consumer": "src/domain/sessions/index.ts",
+      "source": "src/domain/sessions/StopPoint.ts",
+      "specifier": "./StopPoint"
+    },
+    {
+      "consumer": "src/domain/sessions/index.ts",
+      "source": "src/domain/sessions/calculations.ts",
+      "specifier": "./calculations"
+    },
+    {
+      "consumer": "src/domain/sessions/index.ts",
+      "source": "src/domain/sessions/composition.ts",
+      "specifier": "./composition"
+    },
+    {
+      "consumer": "src/domain/sessions/index.ts",
+      "source": "src/domain/sessions/defaults.ts",
+      "specifier": "./defaults"
+    },
+    {
+      "consumer": "src/domain/sessions/index.ts",
+      "source": "src/domain/sessions/errors.ts",
+      "specifier": "./errors"
+    },
+    {
+      "consumer": "src/domain/sessions/index.ts",
+      "source": "src/domain/sessions/sideMode.ts",
+      "specifier": "./sideMode"
+    },
+    {
+      "consumer": "src/domain/sessions/index.ts",
+      "source": "src/domain/sessions/validation.ts",
+      "specifier": "./validation"
+    },
+    {
+      "consumer": "src/domain/categories/CategoryRepository.ts",
+      "source": "src/domain/categories/Category.ts",
+      "specifier": "./Category"
+    },
+    {
+      "consumer": "src/domain/categories/validation.ts",
+      "source": "src/domain/categories/errors.ts",
+      "specifier": "./errors"
+    },
+    {
+      "consumer": "src/domain/categories/validation.ts",
+      "source": "src/domain/sessions/validation.ts",
+      "specifier": "@/domain/sessions/validation"
+    },
+    {
+      "consumer": "src/domain/categories/matching.ts",
+      "source": "src/domain/categories/validation.ts",
+      "specifier": "./validation"
+    },
+    {
+      "consumer": "src/domain/categories/Category.ts",
+      "source": "src/domain/categories/errors.ts",
+      "specifier": "./errors"
+    },
+    {
+      "consumer": "src/domain/categories/Category.ts",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/domain/categories/index.ts",
+      "source": "src/domain/categories/Category.ts",
+      "specifier": "./Category"
+    },
+    {
+      "consumer": "src/domain/categories/index.ts",
+      "source": "src/domain/categories/CategoryRepository.ts",
+      "specifier": "./CategoryRepository"
+    },
+    {
+      "consumer": "src/domain/categories/index.ts",
+      "source": "src/domain/categories/defaults.ts",
+      "specifier": "./defaults"
+    },
+    {
+      "consumer": "src/domain/categories/index.ts",
+      "source": "src/domain/categories/errors.ts",
+      "specifier": "./errors"
+    },
+    {
+      "consumer": "src/domain/categories/index.ts",
+      "source": "src/domain/categories/matching.ts",
+      "specifier": "./matching"
+    },
+    {
+      "consumer": "src/domain/categories/index.ts",
+      "source": "src/domain/categories/validation.ts",
+      "specifier": "./validation"
+    },
+    {
+      "consumer": "src/domain/body-zones/BodyZone.ts",
+      "source": "src/domain/sessions/validation.ts",
+      "specifier": "@/domain/sessions/validation"
+    },
+    {
+      "consumer": "src/domain/body-zones/BodyZoneRepository.ts",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "./BodyZone"
+    },
+    {
+      "consumer": "src/domain/body-zones/index.ts",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "./BodyZone"
+    },
+    {
+      "consumer": "src/domain/body-zones/index.ts",
+      "source": "src/domain/body-zones/BodyZoneRepository.ts",
+      "specifier": "./BodyZoneRepository"
+    },
+    {
+      "consumer": "src/domain/media/ActivityMedia.ts",
+      "source": "src/domain/media/MediaAsset.ts",
+      "specifier": "./MediaAsset"
+    },
+    {
+      "consumer": "src/domain/media/MediaRepository.ts",
+      "source": "src/domain/media/ActivityMedia.ts",
+      "specifier": "./ActivityMedia"
+    },
+    {
+      "consumer": "src/domain/media/index.ts",
+      "source": "src/domain/media/ActivityMedia.ts",
+      "specifier": "./ActivityMedia"
+    },
+    {
+      "consumer": "src/domain/media/index.ts",
+      "source": "src/domain/media/MediaAsset.ts",
+      "specifier": "./MediaAsset"
+    },
+    {
+      "consumer": "src/domain/media/index.ts",
+      "source": "src/domain/media/MediaRepository.ts",
+      "specifier": "./MediaRepository"
+    },
+    {
+      "consumer": "src/domain/activities/ActivityDefinition.ts",
+      "source": "src/domain/categories/Category.ts",
+      "specifier": "@/domain/categories/Category"
+    },
+    {
+      "consumer": "src/domain/activities/ActivityDefinition.ts",
+      "source": "src/domain/categories/validation.ts",
+      "specifier": "@/domain/categories/validation"
+    },
+    {
+      "consumer": "src/domain/activities/ActivityDefinition.ts",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/domain/activities/ActivityDefinition.ts",
+      "source": "src/domain/sessions/SessionDraft.ts",
+      "specifier": "@/domain/sessions/SessionDraft"
+    },
+    {
+      "consumer": "src/domain/activities/ActivityDefinition.ts",
+      "source": "src/domain/sessions/defaults.ts",
+      "specifier": "@/domain/sessions/defaults"
+    },
+    {
+      "consumer": "src/domain/activities/ActivityDefinition.ts",
+      "source": "src/domain/sessions/sideMode.ts",
+      "specifier": "@/domain/sessions/sideMode"
+    },
+    {
+      "consumer": "src/domain/activities/ActivityDefinition.ts",
+      "source": "src/domain/sessions/validation.ts",
+      "specifier": "@/domain/sessions/validation"
+    },
+    {
+      "consumer": "src/domain/activities/ActivityDefinitionRepository.ts",
+      "source": "src/domain/activities/ActivityDefinition.ts",
+      "specifier": "./ActivityDefinition"
+    },
+    {
+      "consumer": "src/domain/activities/index.ts",
+      "source": "src/domain/activities/ActivityDefinition.ts",
+      "specifier": "./ActivityDefinition"
+    },
+    {
+      "consumer": "src/domain/activities/index.ts",
+      "source": "src/domain/activities/ActivityDefinitionRepository.ts",
+      "specifier": "./ActivityDefinitionRepository"
+    },
+    {
+      "consumer": "src/domain/labels/LabelRepository.ts",
+      "source": "src/domain/labels/Label.ts",
+      "specifier": "./Label"
+    },
+    {
+      "consumer": "src/domain/labels/Label.ts",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/domain/labels/Label.ts",
+      "source": "src/domain/sessions/validation.ts",
+      "specifier": "@/domain/sessions/validation"
+    },
+    {
+      "consumer": "src/domain/labels/index.ts",
+      "source": "src/domain/labels/Label.ts",
+      "specifier": "./Label"
+    },
+    {
+      "consumer": "src/domain/labels/index.ts",
+      "source": "src/domain/labels/LabelRepository.ts",
+      "specifier": "./LabelRepository"
+    },
+    {
+      "consumer": "src/domain/sessions/__tests__/calculations.test.ts",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/domain/sessions/__tests__/calculations.test.ts",
+      "source": "src/domain/sessions/calculations.ts",
+      "specifier": "@/domain/sessions/calculations"
+    },
+    {
+      "consumer": "src/domain/sessions/__tests__/validation.test.ts",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/domain/sessions/__tests__/validation.test.ts",
+      "source": "src/domain/sessions/validation.ts",
+      "specifier": "@/domain/sessions/validation"
+    },
+    {
+      "consumer": "src/domain/sessions/__tests__/StopPoint.test.ts",
+      "source": "src/domain/sessions/StopPoint.ts",
+      "specifier": "../StopPoint"
+    },
+    {
+      "consumer": "src/domain/sessions/__tests__/SessionDraft.test.ts",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/domain/sessions/__tests__/SessionDraft.test.ts",
+      "source": "src/domain/sessions/SessionDraft.ts",
+      "specifier": "@/domain/sessions/SessionDraft"
+    },
+    {
+      "consumer": "src/domain/sessions/__tests__/SessionDraft.test.ts",
+      "source": "src/domain/sessions/defaults.ts",
+      "specifier": "@/domain/sessions/defaults"
+    },
+    {
+      "consumer": "src/domain/sessions/__tests__/composition.test.ts",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/domain/sessions/__tests__/composition.test.ts",
+      "source": "src/domain/sessions/SessionDraft.ts",
+      "specifier": "@/domain/sessions/SessionDraft"
+    },
+    {
+      "consumer": "src/domain/sessions/__tests__/composition.test.ts",
+      "source": "src/domain/sessions/composition.ts",
+      "specifier": "@/domain/sessions/composition"
+    },
+    {
+      "consumer": "src/domain/categories/__tests__/validation.test.ts",
+      "source": "src/domain/categories/validation.ts",
+      "specifier": "@/domain/categories/validation"
+    },
+    {
+      "consumer": "src/domain/categories/__tests__/matching.test.ts",
+      "source": "src/domain/categories/matching.ts",
+      "specifier": "@/domain/categories/matching"
+    },
+    {
+      "consumer": "src/domain/categories/__tests__/matching.test.ts",
+      "source": "src/domain/categories/validation.ts",
+      "specifier": "@/domain/categories/validation"
+    },
+    {
+      "consumer": "src/domain/body-zones/__tests__/BodyZone.test.ts",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "../BodyZone"
+    },
+    {
+      "consumer": "src/domain/media/__tests__/MediaRepository.test.ts",
+      "source": "src/domain/media/ActivityMedia.ts",
+      "specifier": "../ActivityMedia"
+    },
+    {
+      "consumer": "src/domain/media/__tests__/MediaRepository.test.ts",
+      "source": "src/domain/media/MediaAsset.ts",
+      "specifier": "../MediaAsset"
+    },
+    {
+      "consumer": "src/domain/media/__tests__/MediaRepository.test.ts",
+      "source": "src/domain/media/MediaRepository.ts",
+      "specifier": "../MediaRepository"
+    },
+    {
+      "consumer": "src/domain/activities/__tests__/ActivityDefinition.test.ts",
+      "source": "src/domain/activities/ActivityDefinition.ts",
+      "specifier": "@/domain/activities/ActivityDefinition"
+    },
+    {
+      "consumer": "src/domain/labels/__tests__/Label.test.ts",
+      "source": "src/domain/labels/Label.ts",
+      "specifier": "../Label"
+    },
+    {
+      "consumer": "src/shared/ui/ProfileStepper.tsx",
+      "source": "src/domain/preferences/Profile.ts",
+      "specifier": "@/domain/preferences/Profile"
+    },
+    {
+      "consumer": "src/shared/ui/ProfileStepper.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/shared/ui/ProfileStepper.tsx",
+      "source": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "@/shared/ui/KodjoIcon"
+    },
+    {
+      "consumer": "src/shared/ui/ProfileStepper.tsx",
+      "source": "src/shared/ui/tokens.ts",
+      "specifier": "@/shared/ui/tokens"
+    },
+    {
+      "consumer": "src/shared/ui/__tests__/ProfileStepper.test.tsx",
+      "source": "src/shared/ui/ProfileStepper.tsx",
+      "specifier": "@/shared/ui/ProfileStepper"
+    },
+    {
+      "consumer": "src/infrastructure/database/initializeDatabase.ts",
+      "source": "src/infrastructure/database/Database.ts",
+      "specifier": "./Database"
+    },
+    {
+      "consumer": "src/infrastructure/database/initializeDatabase.ts",
+      "source": "src/infrastructure/database/constants.ts",
+      "specifier": "./constants"
+    },
+    {
+      "consumer": "src/infrastructure/database/initializeDatabase.ts",
+      "source": "src/infrastructure/database/migrateDatabase.ts",
+      "specifier": "./migrateDatabase"
+    },
+    {
+      "consumer": "src/infrastructure/database/migrateDatabase.ts",
+      "source": "src/infrastructure/database/Database.ts",
+      "specifier": "./Database"
+    },
+    {
+      "consumer": "src/infrastructure/database/migrateDatabase.ts",
+      "source": "src/infrastructure/database/constants.ts",
+      "specifier": "./constants"
+    },
+    {
+      "consumer": "src/infrastructure/database/migrateDatabase.ts",
+      "source": "src/infrastructure/database/migrations/migration001.ts",
+      "specifier": "./migrations/migration001"
+    },
+    {
+      "consumer": "src/infrastructure/database/migrateDatabase.ts",
+      "source": "src/infrastructure/database/migrations/migration002.ts",
+      "specifier": "./migrations/migration002"
+    },
+    {
+      "consumer": "src/infrastructure/database/migrateDatabase.ts",
+      "source": "src/infrastructure/database/migrations/migration003.ts",
+      "specifier": "./migrations/migration003"
+    },
+    {
+      "consumer": "src/infrastructure/database/migrateDatabase.ts",
+      "source": "src/infrastructure/database/migrations/migration004.ts",
+      "specifier": "./migrations/migration004"
+    },
+    {
+      "consumer": "src/infrastructure/database/migrateDatabase.ts",
+      "source": "src/infrastructure/database/migrations/migration005.ts",
+      "specifier": "./migrations/migration005"
+    },
+    {
+      "consumer": "src/infrastructure/database/migrateDatabase.ts",
+      "source": "src/infrastructure/database/migrations/migration006.ts",
+      "specifier": "./migrations/migration006"
+    },
+    {
+      "consumer": "src/infrastructure/database/migrateDatabase.ts",
+      "source": "src/infrastructure/database/migrations/migration007.ts",
+      "specifier": "./migrations/migration007"
+    },
+    {
+      "consumer": "src/infrastructure/database/migrateDatabase.ts",
+      "source": "src/infrastructure/database/migrations/migration008.ts",
+      "specifier": "./migrations/migration008"
+    },
+    {
+      "consumer": "src/infrastructure/database/migrateDatabase.ts",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "@/domain/body-zones/BodyZone"
+    },
+    {
+      "consumer": "src/infrastructure/database/migrateDatabase.ts",
+      "source": "src/domain/labels/Label.ts",
+      "specifier": "@/domain/labels/Label"
+    },
+    {
+      "consumer": "src/infrastructure/database/integration/runNativeDatabaseIntegrationCheck.ts",
+      "source": "src/infrastructure/database/ExpoDatabase.ts",
+      "specifier": "@/infrastructure/database/ExpoDatabase"
+    },
+    {
+      "consumer": "src/infrastructure/database/integration/runNativeDatabaseIntegrationCheck.ts",
+      "source": "src/infrastructure/database/migrateDatabase.ts",
+      "specifier": "@/infrastructure/database/migrateDatabase"
+    },
+    {
+      "consumer": "src/infrastructure/database/integration/runNativeDatabaseIntegrationCheck.ts",
+      "source": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "specifier": "@/infrastructure/database/repositories/SqliteSessionRepository"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteProfileRepository.test.ts",
+      "source": "src/infrastructure/database/migrateDatabase.ts",
+      "specifier": "@/infrastructure/database/migrateDatabase"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteProfileRepository.test.ts",
+      "source": "src/infrastructure/database/repositories/SqliteProfileRepository.ts",
+      "specifier": "@/infrastructure/database/repositories/SqliteProfileRepository"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteProfileRepository.test.ts",
+      "source": "src/infrastructure/database/testing/NodeSqliteDatabase.ts",
+      "specifier": "@/infrastructure/database/testing/NodeSqliteDatabase"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteCategoryRepository.test.ts",
+      "source": "src/infrastructure/database/migrateDatabase.ts",
+      "specifier": "@/infrastructure/database/migrateDatabase"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteCategoryRepository.test.ts",
+      "source": "src/infrastructure/database/repositories/SqliteCategoryRepository.ts",
+      "specifier": "@/infrastructure/database/repositories/SqliteCategoryRepository"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteCategoryRepository.test.ts",
+      "source": "src/infrastructure/database/testing/NodeSqliteDatabase.ts",
+      "specifier": "@/infrastructure/database/testing/NodeSqliteDatabase"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteLabelRepository.test.ts",
+      "source": "src/infrastructure/database/migrateDatabase.ts",
+      "specifier": "@/infrastructure/database/migrateDatabase"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteLabelRepository.test.ts",
+      "source": "src/infrastructure/database/repositories/SqliteLabelRepository.ts",
+      "specifier": "@/infrastructure/database/repositories/SqliteLabelRepository"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteLabelRepository.test.ts",
+      "source": "src/infrastructure/database/testing/NodeSqliteDatabase.ts",
+      "specifier": "@/infrastructure/database/testing/NodeSqliteDatabase"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "source": "src/domain/categories/defaults.ts",
+      "specifier": "@/domain/categories/defaults"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "source": "src/domain/categories/validation.ts",
+      "specifier": "@/domain/categories/validation"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "source": "src/features/reference-data/bodyZones.ts",
+      "specifier": "@/features/reference-data/bodyZones"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "source": "src/infrastructure/database/constants.ts",
+      "specifier": "@/infrastructure/database/constants"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "source": "src/infrastructure/database/migrateDatabase.ts",
+      "specifier": "@/infrastructure/database/migrateDatabase"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "source": "src/infrastructure/database/migrations/migration001.ts",
+      "specifier": "@/infrastructure/database/migrations/migration001"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "source": "src/infrastructure/database/migrations/migration002.ts",
+      "specifier": "@/infrastructure/database/migrations/migration002"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "source": "src/infrastructure/database/migrations/migration003.ts",
+      "specifier": "@/infrastructure/database/migrations/migration003"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "source": "src/infrastructure/database/migrations/migration004.ts",
+      "specifier": "@/infrastructure/database/migrations/migration004"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "source": "src/infrastructure/database/migrations/migration005.ts",
+      "specifier": "@/infrastructure/database/migrations/migration005"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "source": "src/infrastructure/database/migrations/migration006.ts",
+      "specifier": "@/infrastructure/database/migrations/migration006"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "source": "src/infrastructure/database/testing/NodeSqliteDatabase.ts",
+      "specifier": "@/infrastructure/database/testing/NodeSqliteDatabase"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "source": "src/infrastructure/database/constants.ts",
+      "specifier": "@/infrastructure/database/constants"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "source": "src/infrastructure/database/migrateDatabase.ts",
+      "specifier": "@/infrastructure/database/migrateDatabase"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "source": "src/infrastructure/database/migrations/migration001.ts",
+      "specifier": "@/infrastructure/database/migrations/migration001"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "source": "src/infrastructure/database/migrations/migration002.ts",
+      "specifier": "@/infrastructure/database/migrations/migration002"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "source": "src/infrastructure/database/migrations/migration003.ts",
+      "specifier": "@/infrastructure/database/migrations/migration003"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "source": "src/infrastructure/database/migrations/migration004.ts",
+      "specifier": "@/infrastructure/database/migrations/migration004"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "source": "src/infrastructure/database/migrations/migration005.ts",
+      "specifier": "@/infrastructure/database/migrations/migration005"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "source": "src/infrastructure/database/testing/NodeSqliteDatabase.ts",
+      "specifier": "@/infrastructure/database/testing/NodeSqliteDatabase"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteBodyZoneRepository.test.ts",
+      "source": "src/features/reference-data/bodyZones.ts",
+      "specifier": "@/features/reference-data/bodyZones"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteBodyZoneRepository.test.ts",
+      "source": "src/infrastructure/database/migrateDatabase.ts",
+      "specifier": "@/infrastructure/database/migrateDatabase"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteBodyZoneRepository.test.ts",
+      "source": "src/infrastructure/database/repositories/SqliteBodyZoneRepository.ts",
+      "specifier": "@/infrastructure/database/repositories/SqliteBodyZoneRepository"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteBodyZoneRepository.test.ts",
+      "source": "src/infrastructure/database/testing/NodeSqliteDatabase.ts",
+      "specifier": "@/infrastructure/database/testing/NodeSqliteDatabase"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/initializeDatabase.test.ts",
+      "source": "src/infrastructure/database/constants.ts",
+      "specifier": "@/infrastructure/database/constants"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/initializeDatabase.test.ts",
+      "source": "src/infrastructure/database/initializeDatabase.ts",
+      "specifier": "@/infrastructure/database/initializeDatabase"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/initializeDatabase.test.ts",
+      "source": "src/infrastructure/database/testing/NodeSqliteDatabase.ts",
+      "specifier": "@/infrastructure/database/testing/NodeSqliteDatabase"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+      "source": "src/infrastructure/database/migrateDatabase.ts",
+      "specifier": "@/infrastructure/database/migrateDatabase"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+      "source": "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+      "specifier": "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+      "source": "src/infrastructure/database/testing/NodeSqliteDatabase.ts",
+      "specifier": "@/infrastructure/database/testing/NodeSqliteDatabase"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+      "source": "src/infrastructure/database/migrateDatabase.ts",
+      "specifier": "@/infrastructure/database/migrateDatabase"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+      "source": "src/infrastructure/database/repositories/SqliteMediaRepository.ts",
+      "specifier": "@/infrastructure/database/repositories/SqliteMediaRepository"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+      "source": "src/infrastructure/database/testing/NodeSqliteDatabase.ts",
+      "specifier": "@/infrastructure/database/testing/NodeSqliteDatabase"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+      "source": "src/domain/sessions/errors.ts",
+      "specifier": "@/domain/sessions/errors"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+      "source": "src/features/sessions/SessionCard.tsx",
+      "specifier": "@/features/sessions/SessionCard"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+      "source": "src/infrastructure/database/Database.ts",
+      "specifier": "@/infrastructure/database/Database"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+      "source": "src/infrastructure/database/migrateDatabase.ts",
+      "specifier": "@/infrastructure/database/migrateDatabase"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+      "source": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "specifier": "@/infrastructure/database/repositories/SqliteSessionRepository"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+      "source": "src/infrastructure/database/testing/NodeSqliteDatabase.ts",
+      "specifier": "@/infrastructure/database/testing/NodeSqliteDatabase"
+    },
+    {
+      "consumer": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+      "source": "src/infrastructure/database/types/DatabaseRows.ts",
+      "specifier": "@/infrastructure/database/types/DatabaseRows"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+      "source": "src/domain/activities/index.ts",
+      "specifier": "@/domain/activities"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+      "source": "src/domain/categories/Category.ts",
+      "specifier": "@/domain/categories/Category"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+      "source": "src/domain/categories/validation.ts",
+      "specifier": "@/domain/categories/validation"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+      "source": "src/domain/sessions/defaults.ts",
+      "specifier": "@/domain/sessions/defaults"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+      "source": "src/domain/sessions/sideMode.ts",
+      "specifier": "@/domain/sessions/sideMode"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+      "source": "src/infrastructure/database/Database.ts",
+      "specifier": "@/infrastructure/database/Database"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+      "source": "src/infrastructure/database/types/DatabaseRows.ts",
+      "specifier": "@/infrastructure/database/types/DatabaseRows"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteLabelRepository.ts",
+      "source": "src/domain/labels/Label.ts",
+      "specifier": "@/domain/labels/Label"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteLabelRepository.ts",
+      "source": "src/domain/labels/LabelRepository.ts",
+      "specifier": "@/domain/labels/LabelRepository"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteLabelRepository.ts",
+      "source": "src/infrastructure/database/Database.ts",
+      "specifier": "@/infrastructure/database/Database"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteLabelRepository.ts",
+      "source": "src/infrastructure/database/types/DatabaseRows.ts",
+      "specifier": "@/infrastructure/database/types/DatabaseRows"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteBodyZoneRepository.ts",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "@/domain/body-zones/BodyZone"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteBodyZoneRepository.ts",
+      "source": "src/domain/body-zones/BodyZoneRepository.ts",
+      "specifier": "@/domain/body-zones/BodyZoneRepository"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteBodyZoneRepository.ts",
+      "source": "src/infrastructure/database/Database.ts",
+      "specifier": "@/infrastructure/database/Database"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteBodyZoneRepository.ts",
+      "source": "src/infrastructure/database/types/DatabaseRows.ts",
+      "specifier": "@/infrastructure/database/types/DatabaseRows"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteCategoryRepository.ts",
+      "source": "src/domain/categories/Category.ts",
+      "specifier": "@/domain/categories/Category"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteCategoryRepository.ts",
+      "source": "src/domain/categories/CategoryRepository.ts",
+      "specifier": "@/domain/categories/CategoryRepository"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteCategoryRepository.ts",
+      "source": "src/domain/categories/validation.ts",
+      "specifier": "@/domain/categories/validation"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteCategoryRepository.ts",
+      "source": "src/infrastructure/database/Database.ts",
+      "specifier": "@/infrastructure/database/Database"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteCategoryRepository.ts",
+      "source": "src/infrastructure/database/types/DatabaseRows.ts",
+      "specifier": "@/infrastructure/database/types/DatabaseRows"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "source": "src/domain/sessions/SessionRepository.ts",
+      "specifier": "@/domain/sessions/SessionRepository"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "source": "src/domain/sessions/StopPoint.ts",
+      "specifier": "@/domain/sessions/StopPoint"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "source": "src/domain/sessions/calculations.ts",
+      "specifier": "@/domain/sessions/calculations"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "source": "src/domain/sessions/defaults.ts",
+      "specifier": "@/domain/sessions/defaults"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "source": "src/domain/sessions/errors.ts",
+      "specifier": "@/domain/sessions/errors"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "source": "src/domain/sessions/sideMode.ts",
+      "specifier": "@/domain/sessions/sideMode"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "source": "src/domain/sessions/validation.ts",
+      "specifier": "@/domain/sessions/validation"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "source": "src/features/reference-data/bodyZones.ts",
+      "specifier": "@/features/reference-data/bodyZones"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "source": "src/infrastructure/database/Database.ts",
+      "specifier": "@/infrastructure/database/Database"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "source": "src/infrastructure/database/constants.ts",
+      "specifier": "@/infrastructure/database/constants"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "source": "src/infrastructure/database/types/DatabaseRows.ts",
+      "specifier": "@/infrastructure/database/types/DatabaseRows"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteProfileRepository.ts",
+      "source": "src/domain/preferences/Profile.ts",
+      "specifier": "@/domain/preferences/Profile"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteProfileRepository.ts",
+      "source": "src/domain/preferences/ProfileRepository.ts",
+      "specifier": "@/domain/preferences/ProfileRepository"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteProfileRepository.ts",
+      "source": "src/infrastructure/database/Database.ts",
+      "specifier": "@/infrastructure/database/Database"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteProfileRepository.ts",
+      "source": "src/infrastructure/database/constants.ts",
+      "specifier": "@/infrastructure/database/constants"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteProfileRepository.ts",
+      "source": "src/infrastructure/database/types/DatabaseRows.ts",
+      "specifier": "@/infrastructure/database/types/DatabaseRows"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteMediaRepository.ts",
+      "source": "src/domain/media/ActivityMedia.ts",
+      "specifier": "@/domain/media/ActivityMedia"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteMediaRepository.ts",
+      "source": "src/domain/media/MediaRepository.ts",
+      "specifier": "@/domain/media/MediaRepository"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteMediaRepository.ts",
+      "source": "src/infrastructure/database/Database.ts",
+      "specifier": "@/infrastructure/database/Database"
+    },
+    {
+      "consumer": "src/infrastructure/database/repositories/SqliteMediaRepository.ts",
+      "source": "src/infrastructure/database/types/DatabaseRows.ts",
+      "specifier": "@/infrastructure/database/types/DatabaseRows"
+    },
+    {
+      "consumer": "src/infrastructure/database/types/DatabaseRows.ts",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/infrastructure/database/types/DatabaseRows.ts",
+      "source": "src/domain/sessions/sideMode.ts",
+      "specifier": "@/domain/sessions/sideMode"
+    },
+    {
+      "consumer": "src/infrastructure/database/migrations/migration002.ts",
+      "source": "src/domain/categories/defaults.ts",
+      "specifier": "@/domain/categories/defaults"
+    },
+    {
+      "consumer": "src/infrastructure/database/migrations/migration002.ts",
+      "source": "src/domain/categories/validation.ts",
+      "specifier": "@/domain/categories/validation"
+    },
+    {
+      "consumer": "src/infrastructure/database/migrations/migration002.ts",
+      "source": "src/features/reference-data/bodyZones.ts",
+      "specifier": "@/features/reference-data/bodyZones"
+    },
+    {
+      "consumer": "src/features/sessions/SessionCard.tsx",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/features/sessions/SessionCard.tsx",
+      "source": "src/features/sessions/formatSessionSummary.ts",
+      "specifier": "@/features/sessions/formatSessionSummary"
+    },
+    {
+      "consumer": "src/features/sessions/SessionCard.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/sessions/SessionCard.tsx",
+      "source": "src/shared/ui/CardTitleLine.tsx",
+      "specifier": "@/shared/ui/CardTitleLine"
+    },
+    {
+      "consumer": "src/features/sessions/SessionCard.tsx",
+      "source": "src/shared/ui/DisclosureControl.tsx",
+      "specifier": "@/shared/ui/DisclosureControl"
+    },
+    {
+      "consumer": "src/features/sessions/SessionCard.tsx",
+      "source": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "@/shared/ui/KodjoIcon"
+    },
+    {
+      "consumer": "src/features/sessions/SessionCard.tsx",
+      "source": "src/shared/ui/tokens.ts",
+      "specifier": "@/shared/ui/tokens"
+    },
+    {
+      "consumer": "src/features/sessions/SessionService.ts",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/features/sessions/SessionService.ts",
+      "source": "src/domain/sessions/SessionDraft.ts",
+      "specifier": "@/domain/sessions/SessionDraft"
+    },
+    {
+      "consumer": "src/features/sessions/SessionService.ts",
+      "source": "src/domain/sessions/SessionRepository.ts",
+      "specifier": "@/domain/sessions/SessionRepository"
+    },
+    {
+      "consumer": "src/features/sessions/SessionService.ts",
+      "source": "src/domain/sessions/errors.ts",
+      "specifier": "@/domain/sessions/errors"
+    },
+    {
+      "consumer": "src/features/sessions/useSessionCatalogue.ts",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/features/sessions/useSessionCatalogue.ts",
+      "source": "src/features/sessions/SessionServiceContext.tsx",
+      "specifier": "@/features/sessions/SessionServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/SessionServiceContext.tsx",
+      "source": "src/features/sessions/SessionService.ts",
+      "specifier": "@/features/sessions/SessionService"
+    },
+    {
+      "consumer": "src/features/sessions/compositionGesture.ts",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/features/sessions/compositionPresentation.ts",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "@/domain/body-zones/BodyZone"
+    },
+    {
+      "consumer": "src/features/sessions/compositionPresentation.ts",
+      "source": "src/domain/sessions/SessionDraft.ts",
+      "specifier": "@/domain/sessions/SessionDraft"
+    },
+    {
+      "consumer": "src/features/sessions/compositionPresentation.ts",
+      "source": "src/domain/sessions/calculations.ts",
+      "specifier": "@/domain/sessions/calculations"
+    },
+    {
+      "consumer": "src/features/sessions/compositionPresentation.ts",
+      "source": "src/domain/sessions/defaults.ts",
+      "specifier": "@/domain/sessions/defaults"
+    },
+    {
+      "consumer": "src/features/sessions/compositionPresentation.ts",
+      "source": "src/domain/sessions/sideMode.ts",
+      "specifier": "@/domain/sessions/sideMode"
+    },
+    {
+      "consumer": "src/features/sessions/compositionPresentation.ts",
+      "source": "src/features/sessions/formatSessionSummary.ts",
+      "specifier": "@/features/sessions/formatSessionSummary"
+    },
+    {
+      "consumer": "src/features/sessions/compositionPresentation.ts",
+      "source": "src/features/sessions/wheelPickerMath.ts",
+      "specifier": "@/features/sessions/wheelPickerMath"
+    },
+    {
+      "consumer": "src/features/sessions/compositionPresentation.ts",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/sessions/BodyZoneSelector.tsx",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "@/domain/body-zones/BodyZone"
+    },
+    {
+      "consumer": "src/features/sessions/BodyZoneSelector.tsx",
+      "source": "src/domain/preferences/Profile.ts",
+      "specifier": "@/domain/preferences/Profile"
+    },
+    {
+      "consumer": "src/features/sessions/BodyZoneSelector.tsx",
+      "source": "src/shared/ui/BodyZoneIcon.tsx",
+      "specifier": "@/shared/ui/BodyZoneIcon"
+    },
+    {
+      "consumer": "src/features/sessions/BodyZoneSelector.tsx",
+      "source": "src/shared/ui/tokens.ts",
+      "specifier": "@/shared/ui/tokens"
+    },
+    {
+      "consumer": "src/features/sessions/ColorPalette.tsx",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/features/sessions/ColorPalette.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/sessions/ColorPalette.tsx",
+      "source": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "@/shared/ui/KodjoIcon"
+    },
+    {
+      "consumer": "src/features/sessions/ColorPalette.tsx",
+      "source": "src/shared/ui/tokens.ts",
+      "specifier": "@/shared/ui/tokens"
+    },
+    {
+      "consumer": "src/features/sessions/CompositionScreen.tsx",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "@/domain/body-zones/BodyZone"
+    },
+    {
+      "consumer": "src/features/sessions/CompositionScreen.tsx",
+      "source": "src/domain/labels/Label.ts",
+      "specifier": "@/domain/labels/Label"
+    },
+    {
+      "consumer": "src/features/sessions/CompositionScreen.tsx",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/features/sessions/CompositionScreen.tsx",
+      "source": "src/domain/sessions/SessionDraft.ts",
+      "specifier": "@/domain/sessions/SessionDraft"
+    },
+    {
+      "consumer": "src/features/sessions/CompositionScreen.tsx",
+      "source": "src/domain/sessions/composition.ts",
+      "specifier": "@/domain/sessions/composition"
+    },
+    {
+      "consumer": "src/features/sessions/CompositionScreen.tsx",
+      "source": "src/domain/sessions/defaults.ts",
+      "specifier": "@/domain/sessions/defaults"
+    },
+    {
+      "consumer": "src/features/sessions/CompositionScreen.tsx",
+      "source": "src/domain/sessions/validation.ts",
+      "specifier": "@/domain/sessions/validation"
+    },
+    {
+      "consumer": "src/features/sessions/CompositionScreen.tsx",
+      "source": "src/features/activities/ActivityDefinitionService.ts",
+      "specifier": "@/features/activities/ActivityDefinitionService"
+    },
+    {
+      "consumer": "src/features/sessions/CompositionScreen.tsx",
+      "source": "src/features/activities/ActivityDefinitionServiceContext.tsx",
+      "specifier": "@/features/activities/ActivityDefinitionServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/CompositionScreen.tsx",
+      "source": "src/features/reference-data/LabelPickerModal.tsx",
+      "specifier": "@/features/reference-data/LabelPickerModal"
+    },
+    {
+      "consumer": "src/features/sessions/CompositionScreen.tsx",
+      "source": "src/features/reference-data/ReferentialServiceContext.tsx",
+      "specifier": "@/features/reference-data/ReferentialServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/CompositionScreen.tsx",
+      "source": "src/features/sessions/AbandonCreationModal.tsx",
+      "specifier": "@/features/sessions/AbandonCreationModal"
+    },
+    {
+      "consumer": "src/features/sessions/CompositionScreen.tsx",
+      "source": "src/features/sessions/DurationWheelPicker.tsx",
+      "specifier": "@/features/sessions/DurationWheelPicker"
+    },
+    {
+      "consumer": "src/features/sessions/CompositionScreen.tsx",
+      "source": "src/features/sessions/NumberWheelPicker.tsx",
+      "specifier": "@/features/sessions/NumberWheelPicker"
+    },
+    {
+      "consumer": "src/features/sessions/CompositionScreen.tsx",
+      "source": "src/features/sessions/SessionDraftContext.tsx",
+      "specifier": "@/features/sessions/SessionDraftContext"
+    },
+    {
+      "consumer": "src/features/sessions/CompositionScreen.tsx",
+      "source": "src/features/sessions/WheelPickerOverlay.tsx",
+      "specifier": "@/features/sessions/WheelPickerOverlay"
+    },
+    {
+      "consumer": "src/features/sessions/CompositionScreen.tsx",
+      "source": "src/features/sessions/compositionGesture.ts",
+      "specifier": "@/features/sessions/compositionGesture"
+    },
+    {
+      "consumer": "src/features/sessions/CompositionScreen.tsx",
+      "source": "src/features/sessions/compositionPresentation.ts",
+      "specifier": "@/features/sessions/compositionPresentation"
+    },
+    {
+      "consumer": "src/features/sessions/CompositionScreen.tsx",
+      "source": "src/features/sessions/useCompositionExitGuard.ts",
+      "specifier": "@/features/sessions/useCompositionExitGuard"
+    },
+    {
+      "consumer": "src/features/sessions/CompositionScreen.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/sessions/CompositionScreen.tsx",
+      "source": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "@/shared/ui/KodjoIcon"
+    },
+    {
+      "consumer": "src/features/sessions/CompositionScreen.tsx",
+      "source": "src/shared/ui/ScreenShell.tsx",
+      "specifier": "@/shared/ui/ScreenShell"
+    },
+    {
+      "consumer": "src/features/sessions/CompositionScreen.tsx",
+      "source": "src/shared/ui/tokens.ts",
+      "specifier": "@/shared/ui/tokens"
+    },
+    {
+      "consumer": "src/features/sessions/ExerciseScreen.tsx",
+      "source": "src/domain/activities/index.ts",
+      "specifier": "@/domain/activities"
+    },
+    {
+      "consumer": "src/features/sessions/ExerciseScreen.tsx",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "@/domain/body-zones/BodyZone"
+    },
+    {
+      "consumer": "src/features/sessions/ExerciseScreen.tsx",
+      "source": "src/domain/categories/Category.ts",
+      "specifier": "@/domain/categories/Category"
+    },
+    {
+      "consumer": "src/features/sessions/ExerciseScreen.tsx",
+      "source": "src/domain/preferences/Profile.ts",
+      "specifier": "@/domain/preferences/Profile"
+    },
+    {
+      "consumer": "src/features/sessions/ExerciseScreen.tsx",
+      "source": "src/domain/sessions/SessionDraft.ts",
+      "specifier": "@/domain/sessions/SessionDraft"
+    },
+    {
+      "consumer": "src/features/sessions/ExerciseScreen.tsx",
+      "source": "src/domain/sessions/composition.ts",
+      "specifier": "@/domain/sessions/composition"
+    },
+    {
+      "consumer": "src/features/sessions/ExerciseScreen.tsx",
+      "source": "src/domain/sessions/defaults.ts",
+      "specifier": "@/domain/sessions/defaults"
+    },
+    {
+      "consumer": "src/features/sessions/ExerciseScreen.tsx",
+      "source": "src/domain/sessions/sideMode.ts",
+      "specifier": "@/domain/sessions/sideMode"
+    },
+    {
+      "consumer": "src/features/sessions/ExerciseScreen.tsx",
+      "source": "src/features/activities/ActivityDefinitionService.ts",
+      "specifier": "@/features/activities/ActivityDefinitionService"
+    },
+    {
+      "consumer": "src/features/sessions/ExerciseScreen.tsx",
+      "source": "src/features/activities/ActivityDefinitionServiceContext.tsx",
+      "specifier": "@/features/activities/ActivityDefinitionServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/ExerciseScreen.tsx",
+      "source": "src/features/activities/ActivityEditorForm.tsx",
+      "specifier": "@/features/activities/ActivityEditorForm"
+    },
+    {
+      "consumer": "src/features/sessions/ExerciseScreen.tsx",
+      "source": "src/features/preferences/ProfileServiceContext.tsx",
+      "specifier": "@/features/preferences/ProfileServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/ExerciseScreen.tsx",
+      "source": "src/features/reference-data/CategoryPickerModal.tsx",
+      "specifier": "@/features/reference-data/CategoryPickerModal"
+    },
+    {
+      "consumer": "src/features/sessions/ExerciseScreen.tsx",
+      "source": "src/features/reference-data/ReferentialServiceContext.tsx",
+      "specifier": "@/features/reference-data/ReferentialServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/ExerciseScreen.tsx",
+      "source": "src/features/sessions/ExerciseExitConfirmModal.tsx",
+      "specifier": "@/features/sessions/ExerciseExitConfirmModal"
+    },
+    {
+      "consumer": "src/features/sessions/ExerciseScreen.tsx",
+      "source": "src/features/sessions/SessionDraftContext.tsx",
+      "specifier": "@/features/sessions/SessionDraftContext"
+    },
+    {
+      "consumer": "src/features/sessions/ExerciseScreen.tsx",
+      "source": "src/features/sessions/useCompositionExitGuard.ts",
+      "specifier": "@/features/sessions/useCompositionExitGuard"
+    },
+    {
+      "consumer": "src/features/sessions/ExerciseScreen.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/sessions/ExerciseScreen.tsx",
+      "source": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "@/shared/ui/KodjoIcon"
+    },
+    {
+      "consumer": "src/features/sessions/ExerciseScreen.tsx",
+      "source": "src/shared/ui/ScreenShell.tsx",
+      "specifier": "@/shared/ui/ScreenShell"
+    },
+    {
+      "consumer": "src/features/sessions/ExerciseScreen.tsx",
+      "source": "src/shared/ui/tokens.ts",
+      "specifier": "@/shared/ui/tokens"
+    },
+    {
+      "consumer": "src/features/sessions/SessionDraftContext.tsx",
+      "source": "src/domain/sessions/SessionDraft.ts",
+      "specifier": "@/domain/sessions/SessionDraft"
+    },
+    {
+      "consumer": "src/features/sessions/SessionDraftProvider.tsx",
+      "source": "src/domain/sessions/SessionDraft.ts",
+      "specifier": "@/domain/sessions/SessionDraft"
+    },
+    {
+      "consumer": "src/features/sessions/SessionDraftProvider.tsx",
+      "source": "src/features/preferences/ProfileServiceContext.tsx",
+      "specifier": "@/features/preferences/ProfileServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/SessionDraftProvider.tsx",
+      "source": "src/features/sessions/SessionDraftContext.tsx",
+      "specifier": "@/features/sessions/SessionDraftContext"
+    },
+    {
+      "consumer": "src/features/sessions/SessionDraftProvider.tsx",
+      "source": "src/features/sessions/SessionServiceContext.tsx",
+      "specifier": "@/features/sessions/SessionServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/DurationWheelPicker.tsx",
+      "source": "src/features/sessions/WheelSelectionOverlay.tsx",
+      "specifier": "@/features/sessions/WheelSelectionOverlay"
+    },
+    {
+      "consumer": "src/features/sessions/DurationWheelPicker.tsx",
+      "source": "src/features/sessions/wheelPickerMath.ts",
+      "specifier": "@/features/sessions/wheelPickerMath"
+    },
+    {
+      "consumer": "src/features/sessions/DurationWheelPicker.tsx",
+      "source": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "@/shared/ui/KodjoIcon"
+    },
+    {
+      "consumer": "src/features/sessions/DurationWheelPicker.tsx",
+      "source": "src/shared/ui/tokens.ts",
+      "specifier": "@/shared/ui/tokens"
+    },
+    {
+      "consumer": "src/features/sessions/CategoriesScreen.tsx",
+      "source": "src/features/sessions/SessionDraftContext.tsx",
+      "specifier": "@/features/sessions/SessionDraftContext"
+    },
+    {
+      "consumer": "src/features/sessions/CategoriesScreen.tsx",
+      "source": "src/features/sessions/SessionServiceContext.tsx",
+      "specifier": "@/features/sessions/SessionServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/CategoriesScreen.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/sessions/CategoriesScreen.tsx",
+      "source": "src/shared/ui/ScreenShell.tsx",
+      "specifier": "@/shared/ui/ScreenShell"
+    },
+    {
+      "consumer": "src/features/sessions/CategoriesScreen.tsx",
+      "source": "src/shared/ui/tokens.ts",
+      "specifier": "@/shared/ui/tokens"
+    },
+    {
+      "consumer": "src/features/sessions/SessionServiceProvider.tsx",
+      "source": "src/features/activities/ActivityDefinitionService.ts",
+      "specifier": "@/features/activities/ActivityDefinitionService"
+    },
+    {
+      "consumer": "src/features/sessions/SessionServiceProvider.tsx",
+      "source": "src/features/activities/ActivityDefinitionServiceProvider.tsx",
+      "specifier": "@/features/activities/ActivityDefinitionServiceProvider"
+    },
+    {
+      "consumer": "src/features/sessions/SessionServiceProvider.tsx",
+      "source": "src/features/preferences/ProfileService.ts",
+      "specifier": "@/features/preferences/ProfileService"
+    },
+    {
+      "consumer": "src/features/sessions/SessionServiceProvider.tsx",
+      "source": "src/features/preferences/ProfileServiceContext.tsx",
+      "specifier": "@/features/preferences/ProfileServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/SessionServiceProvider.tsx",
+      "source": "src/features/reference-data/ReferentialService.ts",
+      "specifier": "@/features/reference-data/ReferentialService"
+    },
+    {
+      "consumer": "src/features/sessions/SessionServiceProvider.tsx",
+      "source": "src/features/reference-data/ReferentialServiceContext.tsx",
+      "specifier": "@/features/reference-data/ReferentialServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/SessionServiceProvider.tsx",
+      "source": "src/features/sessions/SessionService.ts",
+      "specifier": "@/features/sessions/SessionService"
+    },
+    {
+      "consumer": "src/features/sessions/SessionServiceProvider.tsx",
+      "source": "src/features/sessions/SessionServiceContext.tsx",
+      "specifier": "@/features/sessions/SessionServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/SessionServiceProvider.tsx",
+      "source": "src/infrastructure/database/ExpoDatabase.ts",
+      "specifier": "@/infrastructure/database/ExpoDatabase"
+    },
+    {
+      "consumer": "src/features/sessions/SessionServiceProvider.tsx",
+      "source": "src/infrastructure/database/constants.ts",
+      "specifier": "@/infrastructure/database/constants"
+    },
+    {
+      "consumer": "src/features/sessions/SessionServiceProvider.tsx",
+      "source": "src/infrastructure/database/initializeDatabase.ts",
+      "specifier": "@/infrastructure/database/initializeDatabase"
+    },
+    {
+      "consumer": "src/features/sessions/SessionServiceProvider.tsx",
+      "source": "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+      "specifier": "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository"
+    },
+    {
+      "consumer": "src/features/sessions/SessionServiceProvider.tsx",
+      "source": "src/infrastructure/database/repositories/SqliteBodyZoneRepository.ts",
+      "specifier": "@/infrastructure/database/repositories/SqliteBodyZoneRepository"
+    },
+    {
+      "consumer": "src/features/sessions/SessionServiceProvider.tsx",
+      "source": "src/infrastructure/database/repositories/SqliteCategoryRepository.ts",
+      "specifier": "@/infrastructure/database/repositories/SqliteCategoryRepository"
+    },
+    {
+      "consumer": "src/features/sessions/SessionServiceProvider.tsx",
+      "source": "src/infrastructure/database/repositories/SqliteLabelRepository.ts",
+      "specifier": "@/infrastructure/database/repositories/SqliteLabelRepository"
+    },
+    {
+      "consumer": "src/features/sessions/SessionServiceProvider.tsx",
+      "source": "src/infrastructure/database/repositories/SqliteProfileRepository.ts",
+      "specifier": "@/infrastructure/database/repositories/SqliteProfileRepository"
+    },
+    {
+      "consumer": "src/features/sessions/SessionServiceProvider.tsx",
+      "source": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "specifier": "@/infrastructure/database/repositories/SqliteSessionRepository"
+    },
+    {
+      "consumer": "src/features/sessions/CatalogueScreen.tsx",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/features/sessions/CatalogueScreen.tsx",
+      "source": "src/features/activities/ActivityCatalogueList.tsx",
+      "specifier": "@/features/activities/ActivityCatalogueList"
+    },
+    {
+      "consumer": "src/features/sessions/CatalogueScreen.tsx",
+      "source": "src/features/activities/CatalogueCreateOptions.tsx",
+      "specifier": "@/features/activities/CatalogueCreateOptions"
+    },
+    {
+      "consumer": "src/features/sessions/CatalogueScreen.tsx",
+      "source": "src/features/activities/useActivityCatalogue.ts",
+      "specifier": "@/features/activities/useActivityCatalogue"
+    },
+    {
+      "consumer": "src/features/sessions/CatalogueScreen.tsx",
+      "source": "src/features/sessions/SessionCard.tsx",
+      "specifier": "@/features/sessions/SessionCard"
+    },
+    {
+      "consumer": "src/features/sessions/CatalogueScreen.tsx",
+      "source": "src/features/sessions/useSessionCatalogue.ts",
+      "specifier": "@/features/sessions/useSessionCatalogue"
+    },
+    {
+      "consumer": "src/features/sessions/CatalogueScreen.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/sessions/CatalogueScreen.tsx",
+      "source": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "@/shared/ui/KodjoIcon"
+    },
+    {
+      "consumer": "src/features/sessions/CatalogueScreen.tsx",
+      "source": "src/shared/ui/ScreenShell.tsx",
+      "specifier": "@/shared/ui/ScreenShell"
+    },
+    {
+      "consumer": "src/features/sessions/CatalogueScreen.tsx",
+      "source": "src/shared/ui/SegmentedControl.tsx",
+      "specifier": "@/shared/ui/SegmentedControl"
+    },
+    {
+      "consumer": "src/features/sessions/CatalogueScreen.tsx",
+      "source": "src/shared/ui/navigationLayout.ts",
+      "specifier": "@/shared/ui/navigationLayout"
+    },
+    {
+      "consumer": "src/features/sessions/CatalogueScreen.tsx",
+      "source": "src/shared/ui/tokens.ts",
+      "specifier": "@/shared/ui/tokens"
+    },
+    {
+      "consumer": "src/features/activities/ActivityEditorForm.tsx",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "@/domain/body-zones/BodyZone"
+    },
+    {
+      "consumer": "src/features/activities/ActivityEditorForm.tsx",
+      "source": "src/domain/preferences/Profile.ts",
+      "specifier": "@/domain/preferences/Profile"
+    },
+    {
+      "consumer": "src/features/activities/ActivityEditorForm.tsx",
+      "source": "src/domain/sessions/SessionDraft.ts",
+      "specifier": "@/domain/sessions/SessionDraft"
+    },
+    {
+      "consumer": "src/features/activities/ActivityEditorForm.tsx",
+      "source": "src/domain/sessions/calculations.ts",
+      "specifier": "@/domain/sessions/calculations"
+    },
+    {
+      "consumer": "src/features/activities/ActivityEditorForm.tsx",
+      "source": "src/domain/sessions/defaults.ts",
+      "specifier": "@/domain/sessions/defaults"
+    },
+    {
+      "consumer": "src/features/activities/ActivityEditorForm.tsx",
+      "source": "src/domain/sessions/sideMode.ts",
+      "specifier": "@/domain/sessions/sideMode"
+    },
+    {
+      "consumer": "src/features/activities/ActivityEditorForm.tsx",
+      "source": "src/domain/sessions/validation.ts",
+      "specifier": "@/domain/sessions/validation"
+    },
+    {
+      "consumer": "src/features/activities/ActivityEditorForm.tsx",
+      "source": "src/features/reference-data/BodyZonePickerModal.tsx",
+      "specifier": "@/features/reference-data/BodyZonePickerModal"
+    },
+    {
+      "consumer": "src/features/activities/ActivityEditorForm.tsx",
+      "source": "src/features/sessions/DurationWheelPicker.tsx",
+      "specifier": "@/features/sessions/DurationWheelPicker"
+    },
+    {
+      "consumer": "src/features/activities/ActivityEditorForm.tsx",
+      "source": "src/features/sessions/NumberWheelPicker.tsx",
+      "specifier": "@/features/sessions/NumberWheelPicker"
+    },
+    {
+      "consumer": "src/features/activities/ActivityEditorForm.tsx",
+      "source": "src/features/sessions/SideModeControl.tsx",
+      "specifier": "@/features/sessions/SideModeControl"
+    },
+    {
+      "consumer": "src/features/activities/ActivityEditorForm.tsx",
+      "source": "src/features/sessions/WheelPickerOverlay.tsx",
+      "specifier": "@/features/sessions/WheelPickerOverlay"
+    },
+    {
+      "consumer": "src/features/activities/ActivityEditorForm.tsx",
+      "source": "src/features/sessions/compositionPresentation.ts",
+      "specifier": "@/features/sessions/compositionPresentation"
+    },
+    {
+      "consumer": "src/features/activities/ActivityEditorForm.tsx",
+      "source": "src/features/sessions/wheelPickerMath.ts",
+      "specifier": "@/features/sessions/wheelPickerMath"
+    },
+    {
+      "consumer": "src/features/activities/ActivityEditorForm.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/activities/ActivityEditorForm.tsx",
+      "source": "src/shared/ui/DisclosureControl.tsx",
+      "specifier": "@/shared/ui/DisclosureControl"
+    },
+    {
+      "consumer": "src/features/activities/ActivityEditorForm.tsx",
+      "source": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "@/shared/ui/KodjoIcon"
+    },
+    {
+      "consumer": "src/features/activities/ActivityEditorForm.tsx",
+      "source": "src/shared/ui/SegmentedControl.tsx",
+      "specifier": "@/shared/ui/SegmentedControl"
+    },
+    {
+      "consumer": "src/features/activities/ActivityEditorForm.tsx",
+      "source": "src/shared/ui/TransientNotification.tsx",
+      "specifier": "@/shared/ui/TransientNotification"
+    },
+    {
+      "consumer": "src/features/activities/ActivityEditorForm.tsx",
+      "source": "src/shared/ui/tokens.ts",
+      "specifier": "@/shared/ui/tokens"
+    },
+    {
+      "consumer": "src/features/activities/ActivityCard.tsx",
+      "source": "src/domain/activities/index.ts",
+      "specifier": "@/domain/activities"
+    },
+    {
+      "consumer": "src/features/activities/ActivityCard.tsx",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "@/domain/body-zones/BodyZone"
+    },
+    {
+      "consumer": "src/features/activities/ActivityCard.tsx",
+      "source": "src/features/activities/ActivityDefinitionServiceContext.tsx",
+      "specifier": "@/features/activities/ActivityDefinitionServiceContext"
+    },
+    {
+      "consumer": "src/features/activities/ActivityCard.tsx",
+      "source": "src/features/sessions/compositionPresentation.ts",
+      "specifier": "@/features/sessions/compositionPresentation"
+    },
+    {
+      "consumer": "src/features/activities/ActivityCard.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/activities/ActivityCard.tsx",
+      "source": "src/shared/ui/CardTitleLine.tsx",
+      "specifier": "@/shared/ui/CardTitleLine"
+    },
+    {
+      "consumer": "src/features/activities/ActivityCard.tsx",
+      "source": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "@/shared/ui/KodjoIcon"
+    },
+    {
+      "consumer": "src/features/activities/ActivityCard.tsx",
+      "source": "src/shared/ui/tokens.ts",
+      "specifier": "@/shared/ui/tokens"
+    },
+    {
+      "consumer": "src/features/activities/ActivityCatalogueList.tsx",
+      "source": "src/features/activities/ActivityCard.tsx",
+      "specifier": "@/features/activities/ActivityCard"
+    },
+    {
+      "consumer": "src/features/activities/ActivityCatalogueList.tsx",
+      "source": "src/features/activities/useActivityCatalogue.ts",
+      "specifier": "@/features/activities/useActivityCatalogue"
+    },
+    {
+      "consumer": "src/features/activities/ActivityCatalogueList.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/activities/ActivityCatalogueList.tsx",
+      "source": "src/shared/ui/tokens.ts",
+      "specifier": "@/shared/ui/tokens"
+    },
+    {
+      "consumer": "src/features/activities/ActivityDefinitionServiceContext.tsx",
+      "source": "src/features/activities/ActivityDefinitionService.ts",
+      "specifier": "@/features/activities/ActivityDefinitionService"
+    },
+    {
+      "consumer": "src/features/activities/useActivityCatalogue.ts",
+      "source": "src/domain/activities/index.ts",
+      "specifier": "@/domain/activities"
+    },
+    {
+      "consumer": "src/features/activities/useActivityCatalogue.ts",
+      "source": "src/features/activities/ActivityDefinitionServiceContext.tsx",
+      "specifier": "@/features/activities/ActivityDefinitionServiceContext"
+    },
+    {
+      "consumer": "src/features/activities/ActivityDefinitionService.ts",
+      "source": "src/domain/activities/index.ts",
+      "specifier": "@/domain/activities"
+    },
+    {
+      "consumer": "src/features/activities/ActivityDefinitionService.ts",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "@/domain/body-zones/BodyZone"
+    },
+    {
+      "consumer": "src/features/activities/ActivityDefinitionService.ts",
+      "source": "src/domain/body-zones/BodyZoneRepository.ts",
+      "specifier": "@/domain/body-zones/BodyZoneRepository"
+    },
+    {
+      "consumer": "src/features/activities/ActivityDefinitionService.ts",
+      "source": "src/domain/categories/Category.ts",
+      "specifier": "@/domain/categories/Category"
+    },
+    {
+      "consumer": "src/features/activities/ActivityDefinitionService.ts",
+      "source": "src/domain/categories/CategoryRepository.ts",
+      "specifier": "@/domain/categories/CategoryRepository"
+    },
+    {
+      "consumer": "src/features/activities/ActivityDefinitionService.ts",
+      "source": "src/domain/labels/Label.ts",
+      "specifier": "@/domain/labels/Label"
+    },
+    {
+      "consumer": "src/features/activities/ActivityDefinitionService.ts",
+      "source": "src/domain/labels/LabelRepository.ts",
+      "specifier": "@/domain/labels/LabelRepository"
+    },
+    {
+      "consumer": "src/features/activities/ActivityDefinitionServiceProvider.tsx",
+      "source": "src/features/activities/ActivityDefinitionService.ts",
+      "specifier": "@/features/activities/ActivityDefinitionService"
+    },
+    {
+      "consumer": "src/features/activities/ActivityDefinitionServiceProvider.tsx",
+      "source": "src/features/activities/ActivityDefinitionServiceContext.tsx",
+      "specifier": "@/features/activities/ActivityDefinitionServiceContext"
+    },
+    {
+      "consumer": "src/features/activities/ActivitySelectionScreen.tsx",
+      "source": "src/domain/activities/index.ts",
+      "specifier": "@/domain/activities"
+    },
+    {
+      "consumer": "src/features/activities/ActivitySelectionScreen.tsx",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "@/domain/body-zones/BodyZone"
+    },
+    {
+      "consumer": "src/features/activities/ActivitySelectionScreen.tsx",
+      "source": "src/domain/preferences/Profile.ts",
+      "specifier": "@/domain/preferences/Profile"
+    },
+    {
+      "consumer": "src/features/activities/ActivitySelectionScreen.tsx",
+      "source": "src/domain/sessions/composition.ts",
+      "specifier": "@/domain/sessions/composition"
+    },
+    {
+      "consumer": "src/features/activities/ActivitySelectionScreen.tsx",
+      "source": "src/features/activities/ActivityDefinitionService.ts",
+      "specifier": "@/features/activities/ActivityDefinitionService"
+    },
+    {
+      "consumer": "src/features/activities/ActivitySelectionScreen.tsx",
+      "source": "src/features/activities/ActivityDefinitionServiceContext.tsx",
+      "specifier": "@/features/activities/ActivityDefinitionServiceContext"
+    },
+    {
+      "consumer": "src/features/activities/ActivitySelectionScreen.tsx",
+      "source": "src/features/activities/useActivityCatalogue.ts",
+      "specifier": "@/features/activities/useActivityCatalogue"
+    },
+    {
+      "consumer": "src/features/activities/ActivitySelectionScreen.tsx",
+      "source": "src/features/preferences/ProfileServiceContext.tsx",
+      "specifier": "@/features/preferences/ProfileServiceContext"
+    },
+    {
+      "consumer": "src/features/activities/ActivitySelectionScreen.tsx",
+      "source": "src/features/sessions/SessionDraftContext.tsx",
+      "specifier": "@/features/sessions/SessionDraftContext"
+    },
+    {
+      "consumer": "src/features/activities/ActivitySelectionScreen.tsx",
+      "source": "src/features/sessions/compositionPresentation.ts",
+      "specifier": "@/features/sessions/compositionPresentation"
+    },
+    {
+      "consumer": "src/features/activities/ActivitySelectionScreen.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/activities/ActivitySelectionScreen.tsx",
+      "source": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "@/shared/ui/KodjoIcon"
+    },
+    {
+      "consumer": "src/features/activities/ActivitySelectionScreen.tsx",
+      "source": "src/shared/ui/ScreenShell.tsx",
+      "specifier": "@/shared/ui/ScreenShell"
+    },
+    {
+      "consumer": "src/features/activities/ActivitySelectionScreen.tsx",
+      "source": "src/shared/ui/tokens.ts",
+      "specifier": "@/shared/ui/tokens"
+    },
+    {
+      "consumer": "src/features/preferences/ProfileScreen.tsx",
+      "source": "src/domain/preferences/Profile.ts",
+      "specifier": "@/domain/preferences/Profile"
+    },
+    {
+      "consumer": "src/features/preferences/ProfileScreen.tsx",
+      "source": "src/domain/preferences/ProfileRepository.ts",
+      "specifier": "@/domain/preferences/ProfileRepository"
+    },
+    {
+      "consumer": "src/features/preferences/ProfileScreen.tsx",
+      "source": "src/features/preferences/ProfileEditScreen.tsx",
+      "specifier": "@/features/preferences/ProfileEditScreen"
+    },
+    {
+      "consumer": "src/features/preferences/ProfileScreen.tsx",
+      "source": "src/features/preferences/ProfileServiceContext.tsx",
+      "specifier": "@/features/preferences/ProfileServiceContext"
+    },
+    {
+      "consumer": "src/features/preferences/ProfileScreen.tsx",
+      "source": "src/features/preferences/notificationPermission.ts",
+      "specifier": "@/features/preferences/notificationPermission"
+    },
+    {
+      "consumer": "src/features/preferences/ProfileScreen.tsx",
+      "source": "src/features/preferences/profilePhoto.ts",
+      "specifier": "@/features/preferences/profilePhoto"
+    },
+    {
+      "consumer": "src/features/preferences/ProfileScreen.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/preferences/ProfileScreen.tsx",
+      "source": "src/shared/ui/ProfileStepper.tsx",
+      "specifier": "@/shared/ui/ProfileStepper"
+    },
+    {
+      "consumer": "src/features/preferences/ProfileScreen.tsx",
+      "source": "src/shared/ui/ScreenShell.tsx",
+      "specifier": "@/shared/ui/ScreenShell"
+    },
+    {
+      "consumer": "src/features/preferences/ProfileScreen.tsx",
+      "source": "src/shared/ui/navigationLayout.ts",
+      "specifier": "@/shared/ui/navigationLayout"
+    },
+    {
+      "consumer": "src/features/preferences/ProfileScreen.tsx",
+      "source": "src/shared/ui/tokens.ts",
+      "specifier": "@/shared/ui/tokens"
+    },
+    {
+      "consumer": "src/features/reference-data/LabelPickerModal.tsx",
+      "source": "src/domain/labels/Label.ts",
+      "specifier": "@/domain/labels/Label"
+    },
+    {
+      "consumer": "src/features/reference-data/LabelPickerModal.tsx",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/features/reference-data/LabelPickerModal.tsx",
+      "source": "src/features/reference-data/ReferenceValueDialog.tsx",
+      "specifier": "@/features/reference-data/ReferenceValueDialog"
+    },
+    {
+      "consumer": "src/features/reference-data/LabelPickerModal.tsx",
+      "source": "src/features/reference-data/ReferentialServiceContext.tsx",
+      "specifier": "@/features/reference-data/ReferentialServiceContext"
+    },
+    {
+      "consumer": "src/features/reference-data/LabelPickerModal.tsx",
+      "source": "src/features/sessions/ColorPalette.tsx",
+      "specifier": "@/features/sessions/ColorPalette"
+    },
+    {
+      "consumer": "src/features/reference-data/LabelPickerModal.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/reference-data/LabelPickerModal.tsx",
+      "source": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "@/shared/ui/KodjoIcon"
+    },
+    {
+      "consumer": "src/features/reference-data/LabelPickerModal.tsx",
+      "source": "src/shared/ui/tokens.ts",
+      "specifier": "@/shared/ui/tokens"
+    },
+    {
+      "consumer": "src/features/reference-data/CategoryPickerModal.tsx",
+      "source": "src/domain/categories/Category.ts",
+      "specifier": "@/domain/categories/Category"
+    },
+    {
+      "consumer": "src/features/reference-data/CategoryPickerModal.tsx",
+      "source": "src/domain/categories/validation.ts",
+      "specifier": "@/domain/categories/validation"
+    },
+    {
+      "consumer": "src/features/reference-data/CategoryPickerModal.tsx",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/features/reference-data/CategoryPickerModal.tsx",
+      "source": "src/features/reference-data/ReferenceValueDialog.tsx",
+      "specifier": "@/features/reference-data/ReferenceValueDialog"
+    },
+    {
+      "consumer": "src/features/reference-data/CategoryPickerModal.tsx",
+      "source": "src/features/reference-data/ReferentialServiceContext.tsx",
+      "specifier": "@/features/reference-data/ReferentialServiceContext"
+    },
+    {
+      "consumer": "src/features/reference-data/CategoryPickerModal.tsx",
+      "source": "src/features/sessions/ColorPalette.tsx",
+      "specifier": "@/features/sessions/ColorPalette"
+    },
+    {
+      "consumer": "src/features/reference-data/CategoryPickerModal.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/reference-data/CategoryPickerModal.tsx",
+      "source": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "@/shared/ui/KodjoIcon"
+    },
+    {
+      "consumer": "src/features/reference-data/CategoryPickerModal.tsx",
+      "source": "src/shared/ui/tokens.ts",
+      "specifier": "@/shared/ui/tokens"
+    },
+    {
+      "consumer": "src/features/reference-data/ReferentialServiceContext.tsx",
+      "source": "src/features/reference-data/ReferentialService.ts",
+      "specifier": "@/features/reference-data/ReferentialService"
+    },
+    {
+      "consumer": "src/features/reference-data/BodyZonePickerModal.tsx",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "@/domain/body-zones/BodyZone"
+    },
+    {
+      "consumer": "src/features/reference-data/BodyZonePickerModal.tsx",
+      "source": "src/domain/preferences/Profile.ts",
+      "specifier": "@/domain/preferences/Profile"
+    },
+    {
+      "consumer": "src/features/reference-data/BodyZonePickerModal.tsx",
+      "source": "src/features/reference-data/ReferenceValueDialog.tsx",
+      "specifier": "@/features/reference-data/ReferenceValueDialog"
+    },
+    {
+      "consumer": "src/features/reference-data/BodyZonePickerModal.tsx",
+      "source": "src/features/reference-data/ReferentialServiceContext.tsx",
+      "specifier": "@/features/reference-data/ReferentialServiceContext"
+    },
+    {
+      "consumer": "src/features/reference-data/BodyZonePickerModal.tsx",
+      "source": "src/features/sessions/BodyZoneSelector.tsx",
+      "specifier": "@/features/sessions/BodyZoneSelector"
+    },
+    {
+      "consumer": "src/features/reference-data/BodyZonePickerModal.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/reference-data/BodyZonePickerModal.tsx",
+      "source": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "@/shared/ui/KodjoIcon"
+    },
+    {
+      "consumer": "src/features/reference-data/BodyZonePickerModal.tsx",
+      "source": "src/shared/ui/tokens.ts",
+      "specifier": "@/shared/ui/tokens"
+    },
+    {
+      "consumer": "src/features/reference-data/ReferentialService.ts",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "@/domain/body-zones/BodyZone"
+    },
+    {
+      "consumer": "src/features/reference-data/ReferentialService.ts",
+      "source": "src/domain/body-zones/BodyZoneRepository.ts",
+      "specifier": "@/domain/body-zones/BodyZoneRepository"
+    },
+    {
+      "consumer": "src/features/reference-data/ReferentialService.ts",
+      "source": "src/domain/categories/Category.ts",
+      "specifier": "@/domain/categories/Category"
+    },
+    {
+      "consumer": "src/features/reference-data/ReferentialService.ts",
+      "source": "src/domain/categories/CategoryRepository.ts",
+      "specifier": "@/domain/categories/CategoryRepository"
+    },
+    {
+      "consumer": "src/features/reference-data/ReferentialService.ts",
+      "source": "src/domain/labels/Label.ts",
+      "specifier": "@/domain/labels/Label"
+    },
+    {
+      "consumer": "src/features/reference-data/ReferentialService.ts",
+      "source": "src/domain/labels/LabelRepository.ts",
+      "specifier": "@/domain/labels/LabelRepository"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/compositionPresentation.test.ts",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "@/domain/body-zones/BodyZone"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/compositionPresentation.test.ts",
+      "source": "src/domain/sessions/SessionDraft.ts",
+      "specifier": "@/domain/sessions/SessionDraft"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/compositionPresentation.test.ts",
+      "source": "src/features/reference-data/bodyZones.ts",
+      "specifier": "@/features/reference-data/bodyZones"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/compositionPresentation.test.ts",
+      "source": "src/features/sessions/compositionPresentation.ts",
+      "specifier": "@/features/sessions/compositionPresentation"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionServiceContext.test.tsx",
+      "source": "src/features/sessions/SessionService.ts",
+      "specifier": "@/features/sessions/SessionService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionServiceContext.test.tsx",
+      "source": "src/features/sessions/SessionServiceContext.tsx",
+      "specifier": "@/features/sessions/SessionServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "source": "app/(creation)/_layout.tsx",
+      "specifier": "../../../../app/(creation)/_layout"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "source": "app/(creation)/activity-selection.tsx",
+      "specifier": "../../../../app/(creation)/activity-selection"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "source": "app/(creation)/categories.tsx",
+      "specifier": "../../../../app/(creation)/categories"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "source": "app/(creation)/composition.tsx",
+      "specifier": "../../../../app/(creation)/composition"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "source": "app/(creation)/exercise.tsx",
+      "specifier": "../../../../app/(creation)/exercise"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "source": "src/domain/activities/index.ts",
+      "specifier": "@/domain/activities"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "@/domain/body-zones/BodyZone"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "source": "src/domain/body-zones/BodyZoneRepository.ts",
+      "specifier": "@/domain/body-zones/BodyZoneRepository"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "source": "src/domain/categories/Category.ts",
+      "specifier": "@/domain/categories/Category"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "source": "src/domain/categories/CategoryRepository.ts",
+      "specifier": "@/domain/categories/CategoryRepository"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "source": "src/domain/preferences/Profile.ts",
+      "specifier": "@/domain/preferences/Profile"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "source": "src/domain/preferences/ProfileRepository.ts",
+      "specifier": "@/domain/preferences/ProfileRepository"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "source": "src/domain/sessions/SessionRepository.ts",
+      "specifier": "@/domain/sessions/SessionRepository"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "source": "src/features/activities/ActivityDefinitionService.ts",
+      "specifier": "@/features/activities/ActivityDefinitionService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "source": "src/features/activities/ActivityDefinitionServiceProvider.tsx",
+      "specifier": "@/features/activities/ActivityDefinitionServiceProvider"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "source": "src/features/preferences/ProfileService.ts",
+      "specifier": "@/features/preferences/ProfileService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "source": "src/features/preferences/ProfileServiceContext.tsx",
+      "specifier": "@/features/preferences/ProfileServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "source": "src/features/sessions/SessionService.ts",
+      "specifier": "@/features/sessions/SessionService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "source": "src/features/sessions/SessionServiceContext.tsx",
+      "specifier": "@/features/sessions/SessionServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionDraftProvider.test.tsx",
+      "source": "src/domain/preferences/Profile.ts",
+      "specifier": "@/domain/preferences/Profile"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionDraftProvider.test.tsx",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionDraftProvider.test.tsx",
+      "source": "src/domain/sessions/SessionDraft.ts",
+      "specifier": "@/domain/sessions/SessionDraft"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionDraftProvider.test.tsx",
+      "source": "src/features/preferences/ProfileService.ts",
+      "specifier": "@/features/preferences/ProfileService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionDraftProvider.test.tsx",
+      "source": "src/features/preferences/ProfileServiceContext.tsx",
+      "specifier": "@/features/preferences/ProfileServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionDraftProvider.test.tsx",
+      "source": "src/features/sessions/SessionDraftContext.tsx",
+      "specifier": "@/features/sessions/SessionDraftContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionDraftProvider.test.tsx",
+      "source": "src/features/sessions/SessionDraftProvider.tsx",
+      "specifier": "@/features/sessions/SessionDraftProvider"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionDraftProvider.test.tsx",
+      "source": "src/features/sessions/SessionService.ts",
+      "specifier": "@/features/sessions/SessionService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionDraftProvider.test.tsx",
+      "source": "src/features/sessions/SessionServiceContext.tsx",
+      "specifier": "@/features/sessions/SessionServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionCard.test.tsx",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionCard.test.tsx",
+      "source": "src/features/sessions/SessionCard.tsx",
+      "specifier": "@/features/sessions/SessionCard"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionCard.test.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionCard.test.tsx",
+      "source": "src/shared/ui/tokens.ts",
+      "specifier": "@/shared/ui/tokens"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionService.test.ts",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionService.test.ts",
+      "source": "src/domain/sessions/SessionDraft.ts",
+      "specifier": "@/domain/sessions/SessionDraft"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionService.test.ts",
+      "source": "src/domain/sessions/SessionRepository.ts",
+      "specifier": "@/domain/sessions/SessionRepository"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionService.test.ts",
+      "source": "src/domain/sessions/defaults.ts",
+      "specifier": "@/domain/sessions/defaults"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionService.test.ts",
+      "source": "src/domain/sessions/errors.ts",
+      "specifier": "@/domain/sessions/errors"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionService.test.ts",
+      "source": "src/features/sessions/SessionService.ts",
+      "specifier": "@/features/sessions/SessionService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "source": "src/domain/activities/index.ts",
+      "specifier": "@/domain/activities"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "@/domain/body-zones/BodyZone"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "source": "src/domain/categories/Category.ts",
+      "specifier": "@/domain/categories/Category"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "source": "src/domain/preferences/Profile.ts",
+      "specifier": "@/domain/preferences/Profile"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "source": "src/domain/sessions/SessionDraft.ts",
+      "specifier": "@/domain/sessions/SessionDraft"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "source": "src/features/activities/ActivityDefinitionService.ts",
+      "specifier": "@/features/activities/ActivityDefinitionService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "source": "src/features/activities/ActivityDefinitionServiceContext.tsx",
+      "specifier": "@/features/activities/ActivityDefinitionServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "source": "src/features/preferences/ProfileService.ts",
+      "specifier": "@/features/preferences/ProfileService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "source": "src/features/preferences/ProfileServiceContext.tsx",
+      "specifier": "@/features/preferences/ProfileServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "source": "src/features/reference-data/ReferentialService.ts",
+      "specifier": "@/features/reference-data/ReferentialService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "source": "src/features/reference-data/ReferentialServiceContext.tsx",
+      "specifier": "@/features/reference-data/ReferentialServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "source": "src/features/sessions/ExerciseScreen.tsx",
+      "specifier": "@/features/sessions/ExerciseScreen"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "source": "src/features/sessions/SessionDraftContext.tsx",
+      "specifier": "@/features/sessions/SessionDraftContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "source": "src/shared/ui/TestSafeAreaProvider.tsx",
+      "specifier": "@/shared/ui/TestSafeAreaProvider"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "source": "src/shared/ui/tokens.ts",
+      "specifier": "@/shared/ui/tokens"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+      "source": "app/(creation)/_layout.tsx",
+      "specifier": "../../../../app/(creation)/_layout"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+      "source": "app/(creation)/composition.tsx",
+      "specifier": "../../../../app/(creation)/composition"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+      "source": "app/(tabs)/index.tsx",
+      "specifier": "../../../../app/(tabs)/index"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+      "source": "src/domain/activities/index.ts",
+      "specifier": "@/domain/activities"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "@/domain/body-zones/BodyZone"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+      "source": "src/domain/body-zones/BodyZoneRepository.ts",
+      "specifier": "@/domain/body-zones/BodyZoneRepository"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+      "source": "src/domain/categories/Category.ts",
+      "specifier": "@/domain/categories/Category"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+      "source": "src/domain/categories/CategoryRepository.ts",
+      "specifier": "@/domain/categories/CategoryRepository"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+      "source": "src/domain/sessions/SessionRepository.ts",
+      "specifier": "@/domain/sessions/SessionRepository"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+      "source": "src/features/activities/ActivityDefinitionService.ts",
+      "specifier": "@/features/activities/ActivityDefinitionService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+      "source": "src/features/activities/ActivityDefinitionServiceProvider.tsx",
+      "specifier": "@/features/activities/ActivityDefinitionServiceProvider"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+      "source": "src/features/sessions/SessionService.ts",
+      "specifier": "@/features/sessions/SessionService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+      "source": "src/features/sessions/SessionServiceContext.tsx",
+      "specifier": "@/features/sessions/SessionServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
+      "source": "src/domain/sessions/SessionDraft.ts",
+      "specifier": "@/domain/sessions/SessionDraft"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
+      "source": "src/features/sessions/CategoriesScreen.tsx",
+      "specifier": "@/features/sessions/CategoriesScreen"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
+      "source": "src/features/sessions/SessionDraftContext.tsx",
+      "specifier": "@/features/sessions/SessionDraftContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
+      "source": "src/features/sessions/SessionService.ts",
+      "specifier": "@/features/sessions/SessionService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
+      "source": "src/features/sessions/SessionServiceContext.tsx",
+      "specifier": "@/features/sessions/SessionServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
+      "source": "src/shared/ui/TestSafeAreaProvider.tsx",
+      "specifier": "@/shared/ui/TestSafeAreaProvider"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "@/domain/body-zones/BodyZone"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+      "source": "src/domain/labels/Label.ts",
+      "specifier": "@/domain/labels/Label"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+      "source": "src/domain/sessions/SessionDraft.ts",
+      "specifier": "@/domain/sessions/SessionDraft"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+      "source": "src/domain/sessions/validation.ts",
+      "specifier": "@/domain/sessions/validation"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+      "source": "src/features/activities/ActivityDefinitionService.ts",
+      "specifier": "@/features/activities/ActivityDefinitionService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+      "source": "src/features/activities/ActivityDefinitionServiceContext.tsx",
+      "specifier": "@/features/activities/ActivityDefinitionServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+      "source": "src/features/reference-data/ReferentialService.ts",
+      "specifier": "@/features/reference-data/ReferentialService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+      "source": "src/features/reference-data/ReferentialServiceContext.tsx",
+      "specifier": "@/features/reference-data/ReferentialServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+      "source": "src/features/sessions/CompositionScreen.tsx",
+      "specifier": "@/features/sessions/CompositionScreen"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+      "source": "src/features/sessions/SessionDraftContext.tsx",
+      "specifier": "@/features/sessions/SessionDraftContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+      "source": "src/features/sessions/SessionDraftProvider.tsx",
+      "specifier": "@/features/sessions/SessionDraftProvider"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+      "source": "src/shared/ui/TestSafeAreaProvider.tsx",
+      "specifier": "@/shared/ui/TestSafeAreaProvider"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+      "source": "src/shared/ui/tokens.ts",
+      "specifier": "@/shared/ui/tokens"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionDraftContext.test.tsx",
+      "source": "src/domain/sessions/SessionDraft.ts",
+      "specifier": "@/domain/sessions/SessionDraft"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionDraftContext.test.tsx",
+      "source": "src/features/sessions/SessionDraftContext.tsx",
+      "specifier": "@/features/sessions/SessionDraftContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx",
+      "source": "src/domain/sessions/SessionDraft.ts",
+      "specifier": "@/domain/sessions/SessionDraft"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx",
+      "source": "src/features/sessions/ExerciseExitConfirmModal.tsx",
+      "specifier": "@/features/sessions/ExerciseExitConfirmModal"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx",
+      "source": "src/features/sessions/SessionDraftContext.tsx",
+      "specifier": "@/features/sessions/SessionDraftContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx",
+      "source": "src/features/sessions/SessionDraftProvider.tsx",
+      "specifier": "@/features/sessions/SessionDraftProvider"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx",
+      "source": "src/features/sessions/useCompositionExitGuard.ts",
+      "specifier": "@/features/sessions/useCompositionExitGuard"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx",
+      "source": "src/domain/sessions/SessionDraft.ts",
+      "specifier": "@/domain/sessions/SessionDraft"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx",
+      "source": "src/features/sessions/AbandonCreationModal.tsx",
+      "specifier": "@/features/sessions/AbandonCreationModal"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx",
+      "source": "src/features/sessions/SessionDraftContext.tsx",
+      "specifier": "@/features/sessions/SessionDraftContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx",
+      "source": "src/features/sessions/SessionDraftProvider.tsx",
+      "specifier": "@/features/sessions/SessionDraftProvider"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx",
+      "source": "src/features/sessions/useCompositionExitGuard.ts",
+      "specifier": "@/features/sessions/useCompositionExitGuard"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "source": "app/(creation)/_layout.tsx",
+      "specifier": "../../../../app/(creation)/_layout"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "source": "app/(creation)/activity-selection.tsx",
+      "specifier": "../../../../app/(creation)/activity-selection"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "source": "app/(creation)/categories.tsx",
+      "specifier": "../../../../app/(creation)/categories"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "source": "app/(creation)/composition.tsx",
+      "specifier": "../../../../app/(creation)/composition"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "source": "app/(creation)/exercise.tsx",
+      "specifier": "../../../../app/(creation)/exercise"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "source": "src/features/activities/ActivityDefinitionService.ts",
+      "specifier": "@/features/activities/ActivityDefinitionService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "source": "src/features/activities/ActivityDefinitionServiceProvider.tsx",
+      "specifier": "@/features/activities/ActivityDefinitionServiceProvider"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "source": "src/features/preferences/ProfileService.ts",
+      "specifier": "@/features/preferences/ProfileService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "source": "src/features/preferences/ProfileServiceContext.tsx",
+      "specifier": "@/features/preferences/ProfileServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "source": "src/features/reference-data/ReferentialService.ts",
+      "specifier": "@/features/reference-data/ReferentialService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "source": "src/features/reference-data/ReferentialServiceContext.tsx",
+      "specifier": "@/features/reference-data/ReferentialServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "source": "src/features/sessions/SessionService.ts",
+      "specifier": "@/features/sessions/SessionService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "source": "src/features/sessions/SessionServiceContext.tsx",
+      "specifier": "@/features/sessions/SessionServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "source": "src/infrastructure/database/migrateDatabase.ts",
+      "specifier": "@/infrastructure/database/migrateDatabase"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "source": "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+      "specifier": "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "source": "src/infrastructure/database/repositories/SqliteBodyZoneRepository.ts",
+      "specifier": "@/infrastructure/database/repositories/SqliteBodyZoneRepository"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "source": "src/infrastructure/database/repositories/SqliteCategoryRepository.ts",
+      "specifier": "@/infrastructure/database/repositories/SqliteCategoryRepository"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "source": "src/infrastructure/database/repositories/SqliteLabelRepository.ts",
+      "specifier": "@/infrastructure/database/repositories/SqliteLabelRepository"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "source": "src/infrastructure/database/repositories/SqliteProfileRepository.ts",
+      "specifier": "@/infrastructure/database/repositories/SqliteProfileRepository"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "source": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "specifier": "@/infrastructure/database/repositories/SqliteSessionRepository"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "source": "src/infrastructure/database/testing/NodeSqliteDatabase.ts",
+      "specifier": "@/infrastructure/database/testing/NodeSqliteDatabase"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/compositionGesture.test.ts",
+      "source": "src/features/sessions/compositionGesture.ts",
+      "specifier": "@/features/sessions/compositionGesture"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/useSessionCatalogue.test.ts",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/useSessionCatalogue.test.ts",
+      "source": "src/features/sessions/SessionService.ts",
+      "specifier": "@/features/sessions/SessionService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/useSessionCatalogue.test.ts",
+      "source": "src/features/sessions/SessionServiceContext.tsx",
+      "specifier": "@/features/sessions/SessionServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/useSessionCatalogue.test.ts",
+      "source": "src/features/sessions/useSessionCatalogue.ts",
+      "specifier": "@/features/sessions/useSessionCatalogue"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/BodyZoneSelector.test.tsx",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "@/domain/body-zones/BodyZone"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/BodyZoneSelector.test.tsx",
+      "source": "src/features/sessions/BodyZoneSelector.tsx",
+      "specifier": "@/features/sessions/BodyZoneSelector"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
+      "source": "src/features/sessions/DurationWheelPicker.tsx",
+      "specifier": "@/features/sessions/DurationWheelPicker"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
+      "source": "src/shared/ui/tokens.ts",
+      "specifier": "@/shared/ui/tokens"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
+      "source": "src/domain/activities/index.ts",
+      "specifier": "@/domain/activities"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
+      "source": "src/features/activities/ActivityDefinitionService.ts",
+      "specifier": "@/features/activities/ActivityDefinitionService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
+      "source": "src/features/activities/ActivityDefinitionServiceContext.tsx",
+      "specifier": "@/features/activities/ActivityDefinitionServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
+      "source": "src/features/sessions/CatalogueScreen.tsx",
+      "specifier": "@/features/sessions/CatalogueScreen"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
+      "source": "src/features/sessions/SessionService.ts",
+      "specifier": "@/features/sessions/SessionService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
+      "source": "src/features/sessions/SessionServiceContext.tsx",
+      "specifier": "@/features/sessions/SessionServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
+      "source": "src/shared/ui/TestSafeAreaProvider.tsx",
+      "specifier": "@/shared/ui/TestSafeAreaProvider"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
+      "source": "src/shared/ui/navigationLayout.ts",
+      "specifier": "@/shared/ui/navigationLayout"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
+      "source": "src/shared/ui/tokens.ts",
+      "specifier": "@/shared/ui/tokens"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "source": "src/domain/preferences/Profile.ts",
+      "specifier": "@/domain/preferences/Profile"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "source": "src/domain/sessions/SessionDraft.ts",
+      "specifier": "@/domain/sessions/SessionDraft"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "source": "src/features/activities/ActivityDefinitionService.ts",
+      "specifier": "@/features/activities/ActivityDefinitionService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "source": "src/features/activities/ActivityDefinitionServiceContext.tsx",
+      "specifier": "@/features/activities/ActivityDefinitionServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "source": "src/features/preferences/ProfileService.ts",
+      "specifier": "@/features/preferences/ProfileService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "source": "src/features/preferences/ProfileServiceContext.tsx",
+      "specifier": "@/features/preferences/ProfileServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "source": "src/features/reference-data/ReferentialService.ts",
+      "specifier": "@/features/reference-data/ReferentialService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "source": "src/features/reference-data/ReferentialServiceContext.tsx",
+      "specifier": "@/features/reference-data/ReferentialServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "source": "src/features/sessions/SessionService.ts",
+      "specifier": "@/features/sessions/SessionService"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "source": "src/features/sessions/SessionServiceContext.tsx",
+      "specifier": "@/features/sessions/SessionServiceContext"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "source": "src/features/sessions/SessionServiceProvider.tsx",
+      "specifier": "@/features/sessions/SessionServiceProvider"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "source": "src/infrastructure/database/constants.ts",
+      "specifier": "@/infrastructure/database/constants"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "source": "src/infrastructure/database/migrations/migration001.ts",
+      "specifier": "@/infrastructure/database/migrations/migration001"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "source": "src/infrastructure/database/migrations/migration002.ts",
+      "specifier": "@/infrastructure/database/migrations/migration002"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "source": "src/infrastructure/database/migrations/migration003.ts",
+      "specifier": "@/infrastructure/database/migrations/migration003"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "source": "src/infrastructure/database/migrations/migration004.ts",
+      "specifier": "@/infrastructure/database/migrations/migration004"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "source": "src/infrastructure/database/migrations/migration005.ts",
+      "specifier": "@/infrastructure/database/migrations/migration005"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "source": "src/infrastructure/database/migrations/migration006.ts",
+      "specifier": "@/infrastructure/database/migrations/migration006"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "source": "src/infrastructure/database/repositories/SqliteLabelRepository.ts",
+      "specifier": "@/infrastructure/database/repositories/SqliteLabelRepository"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "source": "src/infrastructure/database/testing/NodeSqliteDatabase.ts",
+      "specifier": "@/infrastructure/database/testing/NodeSqliteDatabase"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ColorPalette.test.tsx",
+      "source": "src/domain/sessions/Session.ts",
+      "specifier": "@/domain/sessions/Session"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ColorPalette.test.tsx",
+      "source": "src/features/sessions/ColorPalette.tsx",
+      "specifier": "@/features/sessions/ColorPalette"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ColorPalette.test.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/sessions/__tests__/ColorPalette.test.tsx",
+      "source": "src/shared/ui/tokens.ts",
+      "specifier": "@/shared/ui/tokens"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivityCard.test.tsx",
+      "source": "src/domain/activities/index.ts",
+      "specifier": "@/domain/activities"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivityCard.test.tsx",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "@/domain/body-zones/BodyZone"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivityCard.test.tsx",
+      "source": "src/features/activities/ActivityCard.tsx",
+      "specifier": "@/features/activities/ActivityCard"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivityCard.test.tsx",
+      "source": "src/features/activities/ActivityDefinitionService.ts",
+      "specifier": "@/features/activities/ActivityDefinitionService"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivityCard.test.tsx",
+      "source": "src/features/activities/ActivityDefinitionServiceContext.tsx",
+      "specifier": "@/features/activities/ActivityDefinitionServiceContext"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivityDefinitionService.test.ts",
+      "source": "src/domain/activities/index.ts",
+      "specifier": "@/domain/activities"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivityDefinitionService.test.ts",
+      "source": "src/features/activities/ActivityDefinitionService.ts",
+      "specifier": "@/features/activities/ActivityDefinitionService"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "@/domain/body-zones/BodyZone"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+      "source": "src/domain/sessions/SessionDraft.ts",
+      "specifier": "@/domain/sessions/SessionDraft"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+      "source": "src/features/activities/ActivityEditorForm.tsx",
+      "specifier": "@/features/activities/ActivityEditorForm"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+      "source": "src/features/reference-data/ReferentialService.ts",
+      "specifier": "@/features/reference-data/ReferentialService"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+      "source": "src/features/reference-data/ReferentialServiceContext.tsx",
+      "specifier": "@/features/reference-data/ReferentialServiceContext"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+      "source": "src/shared/ui/TestSafeAreaProvider.tsx",
+      "specifier": "@/shared/ui/TestSafeAreaProvider"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivityCatalogueList.test.tsx",
+      "source": "src/domain/activities/index.ts",
+      "specifier": "@/domain/activities"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivityCatalogueList.test.tsx",
+      "source": "src/features/activities/ActivityCatalogueList.tsx",
+      "specifier": "@/features/activities/ActivityCatalogueList"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+      "source": "src/domain/activities/index.ts",
+      "specifier": "@/domain/activities"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "@/domain/body-zones/BodyZone"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+      "source": "src/domain/preferences/Profile.ts",
+      "specifier": "@/domain/preferences/Profile"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+      "source": "src/domain/sessions/SessionDraft.ts",
+      "specifier": "@/domain/sessions/SessionDraft"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+      "source": "src/features/activities/ActivityDefinitionService.ts",
+      "specifier": "@/features/activities/ActivityDefinitionService"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+      "source": "src/features/activities/ActivityDefinitionServiceContext.tsx",
+      "specifier": "@/features/activities/ActivityDefinitionServiceContext"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+      "source": "src/features/activities/ActivitySelectionScreen.tsx",
+      "specifier": "@/features/activities/ActivitySelectionScreen"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+      "source": "src/features/preferences/ProfileService.ts",
+      "specifier": "@/features/preferences/ProfileService"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+      "source": "src/features/preferences/ProfileServiceContext.tsx",
+      "specifier": "@/features/preferences/ProfileServiceContext"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+      "source": "src/features/sessions/SessionDraftContext.tsx",
+      "specifier": "@/features/sessions/SessionDraftContext"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+      "source": "src/shared/ui/TestSafeAreaProvider.tsx",
+      "specifier": "@/shared/ui/TestSafeAreaProvider"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+      "source": "src/shared/ui/tokens.ts",
+      "specifier": "@/shared/ui/tokens"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/useActivityCatalogue.test.ts",
+      "source": "src/domain/activities/index.ts",
+      "specifier": "@/domain/activities"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/useActivityCatalogue.test.ts",
+      "source": "src/features/activities/ActivityDefinitionService.ts",
+      "specifier": "@/features/activities/ActivityDefinitionService"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/useActivityCatalogue.test.ts",
+      "source": "src/features/activities/ActivityDefinitionServiceContext.tsx",
+      "specifier": "@/features/activities/ActivityDefinitionServiceContext"
+    },
+    {
+      "consumer": "src/features/activities/__tests__/useActivityCatalogue.test.ts",
+      "source": "src/features/activities/useActivityCatalogue.ts",
+      "specifier": "@/features/activities/useActivityCatalogue"
+    },
+    {
+      "consumer": "src/features/preferences/__tests__/ProfileScreen.test.tsx",
+      "source": "src/domain/preferences/Profile.ts",
+      "specifier": "@/domain/preferences/Profile"
+    },
+    {
+      "consumer": "src/features/preferences/__tests__/ProfileScreen.test.tsx",
+      "source": "src/features/preferences/ProfileScreen.tsx",
+      "specifier": "@/features/preferences/ProfileScreen"
+    },
+    {
+      "consumer": "src/features/preferences/__tests__/ProfileScreen.test.tsx",
+      "source": "src/features/preferences/ProfileService.ts",
+      "specifier": "@/features/preferences/ProfileService"
+    },
+    {
+      "consumer": "src/features/preferences/__tests__/ProfileScreen.test.tsx",
+      "source": "src/features/preferences/ProfileServiceContext.tsx",
+      "specifier": "@/features/preferences/ProfileServiceContext"
+    },
+    {
+      "consumer": "src/features/preferences/__tests__/ProfileScreen.test.tsx",
+      "source": "src/shared/i18n/index.ts",
+      "specifier": "@/shared/i18n"
+    },
+    {
+      "consumer": "src/features/preferences/__tests__/ProfileScreen.test.tsx",
+      "source": "src/shared/ui/TestSafeAreaProvider.tsx",
+      "specifier": "@/shared/ui/TestSafeAreaProvider"
+    },
+    {
+      "consumer": "src/features/preferences/__tests__/ProfileScreen.test.tsx",
+      "source": "src/shared/ui/navigationLayout.ts",
+      "specifier": "@/shared/ui/navigationLayout"
+    },
+    {
+      "consumer": "src/features/reference-data/__tests__/LabelPickerModal.test.tsx",
+      "source": "src/domain/labels/Label.ts",
+      "specifier": "@/domain/labels/Label"
+    },
+    {
+      "consumer": "src/features/reference-data/__tests__/LabelPickerModal.test.tsx",
+      "source": "src/features/reference-data/LabelPickerModal.tsx",
+      "specifier": "@/features/reference-data/LabelPickerModal"
+    },
+    {
+      "consumer": "src/features/reference-data/__tests__/LabelPickerModal.test.tsx",
+      "source": "src/features/reference-data/ReferentialService.ts",
+      "specifier": "@/features/reference-data/ReferentialService"
+    },
+    {
+      "consumer": "src/features/reference-data/__tests__/LabelPickerModal.test.tsx",
+      "source": "src/features/reference-data/ReferentialServiceContext.tsx",
+      "specifier": "@/features/reference-data/ReferentialServiceContext"
+    },
+    {
+      "consumer": "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "@/domain/body-zones/BodyZone"
+    },
+    {
+      "consumer": "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+      "source": "src/features/reference-data/BodyZonePickerModal.tsx",
+      "specifier": "@/features/reference-data/BodyZonePickerModal"
+    },
+    {
+      "consumer": "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+      "source": "src/features/reference-data/ReferentialService.ts",
+      "specifier": "@/features/reference-data/ReferentialService"
+    },
+    {
+      "consumer": "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+      "source": "src/features/reference-data/ReferentialServiceContext.tsx",
+      "specifier": "@/features/reference-data/ReferentialServiceContext"
+    },
+    {
+      "consumer": "src/features/reference-data/__tests__/ReferentialService.test.ts",
+      "source": "src/features/reference-data/ReferentialService.ts",
+      "specifier": "../ReferentialService"
+    },
+    {
+      "consumer": "src/features/reference-data/__tests__/ReferentialService.test.ts",
+      "source": "src/domain/body-zones/BodyZone.ts",
+      "specifier": "@/domain/body-zones/BodyZone"
+    },
+    {
+      "consumer": "src/features/reference-data/__tests__/ReferentialService.test.ts",
+      "source": "src/domain/body-zones/BodyZoneRepository.ts",
+      "specifier": "@/domain/body-zones/BodyZoneRepository"
+    },
+    {
+      "consumer": "src/features/reference-data/__tests__/ReferentialService.test.ts",
+      "source": "src/domain/categories/Category.ts",
+      "specifier": "@/domain/categories/Category"
+    },
+    {
+      "consumer": "src/features/reference-data/__tests__/ReferentialService.test.ts",
+      "source": "src/domain/categories/CategoryRepository.ts",
+      "specifier": "@/domain/categories/CategoryRepository"
+    },
+    {
+      "consumer": "src/features/reference-data/__tests__/ReferentialService.test.ts",
+      "source": "src/domain/labels/Label.ts",
+      "specifier": "@/domain/labels/Label"
+    },
+    {
+      "consumer": "src/features/reference-data/__tests__/ReferentialService.test.ts",
+      "source": "src/domain/labels/LabelRepository.ts",
+      "specifier": "@/domain/labels/LabelRepository"
+    },
+    {
+      "consumer": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+      "source": "src/domain/categories/Category.ts",
+      "specifier": "@/domain/categories/Category"
+    },
+    {
+      "consumer": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+      "source": "src/features/reference-data/CategoryPickerModal.tsx",
+      "specifier": "@/features/reference-data/CategoryPickerModal"
+    },
+    {
+      "consumer": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+      "source": "src/features/reference-data/ReferentialService.ts",
+      "specifier": "@/features/reference-data/ReferentialService"
+    },
+    {
+      "consumer": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+      "source": "src/features/reference-data/ReferentialServiceContext.tsx",
+      "specifier": "@/features/reference-data/ReferentialServiceContext"
+    },
+    {
+      "consumer": "app/_layout.tsx",
+      "source": "src/features/sessions/SessionServiceProvider.tsx",
+      "specifier": "@/features/sessions/SessionServiceProvider"
+    },
+    {
+      "consumer": "app/_layout.tsx",
+      "source": "src/shared/ui/KodjoSplash.tsx",
+      "specifier": "@/shared/ui/KodjoSplash"
+    },
+    {
+      "consumer": "app/_layout.tsx",
+      "source": "src/shared/ui/RootErrorBoundary.tsx",
+      "specifier": "@/shared/ui/RootErrorBoundary"
+    },
+    {
+      "consumer": "app/_layout.tsx",
+      "source": "src/shared/ui/RootErrorFallback.tsx",
+      "specifier": "@/shared/ui/RootErrorFallback"
+    },
+    {
+      "consumer": "app/(creation)/composition.tsx",
+      "source": "src/features/sessions/CompositionScreen.tsx",
+      "specifier": "@/features/sessions/CompositionScreen"
+    },
+    {
+      "consumer": "app/(creation)/composition.tsx",
+      "source": "src/features/sessions/SessionDraftContext.tsx",
+      "specifier": "@/features/sessions/SessionDraftContext"
+    },
+    {
+      "consumer": "app/(creation)/activity-selection.tsx",
+      "source": "src/features/activities/ActivitySelectionScreen.tsx",
+      "specifier": "@/features/activities/ActivitySelectionScreen"
+    },
+    {
+      "consumer": "app/(creation)/exercise.tsx",
+      "source": "src/features/sessions/ExerciseScreen.tsx",
+      "specifier": "@/features/sessions/ExerciseScreen"
+    },
+    {
+      "consumer": "app/(creation)/_layout.tsx",
+      "source": "src/features/sessions/SessionDraftProvider.tsx",
+      "specifier": "@/features/sessions/SessionDraftProvider"
+    },
+    {
+      "consumer": "app/(creation)/categories.tsx",
+      "source": "src/features/sessions/CategoriesScreen.tsx",
+      "specifier": "@/features/sessions/CategoriesScreen"
+    },
+    {
+      "consumer": "app/__tests__/rootLayoutGesture.test.tsx",
+      "source": "app/_layout.tsx",
+      "specifier": "../_layout"
+    },
+    {
+      "consumer": "app/__tests__/creationLayout.test.tsx",
+      "source": "app/(creation)/_layout.tsx",
+      "specifier": "../(creation)/_layout"
+    },
+    {
+      "consumer": "app/(tabs)/index.tsx",
+      "source": "src/features/sessions/CatalogueScreen.tsx",
+      "specifier": "@/features/sessions/CatalogueScreen"
+    },
+    {
+      "consumer": "app/(tabs)/profile.tsx",
+      "source": "src/features/preferences/ProfileScreen.tsx",
+      "specifier": "@/features/preferences/ProfileScreen"
+    }
+  ],
+  "unresolved": [],
+  "limitations": [
+    "Dynamic imports with computed paths and runtime wiring require semantic review",
+    "SQL writes and file references listed separately in the technical draft",
+    "This evidence is not the canonical VNext ImpactGraph"
+  ],
+  "nonCodeAssetImports": [
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/action-add.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/action-start.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/body-zone-femme.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/body-zone-homme.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/composition-end-session.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/composition-initial-countdown.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/composition-reorder.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/control-chevron-down.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/control-chevron-up.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/icon-retour.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/icon-tour.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/label-outline.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/navigation-calendar-active.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/navigation-calendar.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/navigation-history-active.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/navigation-history.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/navigation-profile-active.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/navigation-profile.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/navigation-search.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/navigation-sessions-inactive.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/navigation-sessions.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/select-field-chevron.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/state-selected.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/stepper-minus.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/stepper-plus.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/wheel-action-cancel.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoIcon.tsx",
+      "specifier": "../../../assets/icons/wheel-action-validate.svg"
+    },
+    {
+      "consumer": "src/shared/ui/KodjoSplash.tsx",
+      "specifier": "../../../assets/branding/logo_icon_only_transparent_1024.png"
+    }
+  ]
+}

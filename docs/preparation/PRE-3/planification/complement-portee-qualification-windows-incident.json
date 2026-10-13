@@ -1,0 +1,50 @@
+{
+  "operation": 340,
+  "pr": 347,
+  "candidate": "bdfde87b9f034021dc30c6412071e895283d716c",
+  "run": 37938431543,
+  "attempt": 1,
+  "job": 113846318905,
+  "artifact": 11620457831,
+  "raw_jsonl_sha256": "5aa2360dcef69b85405a84d79e40482a86b3c2e836e2be36295ab5a86c516b81",
+  "summary": {
+    "type": "summary",
+    "success": false,
+    "counts": {
+      "tests": 1469,
+      "failed": 1,
+      "passed": 1465,
+      "cancelled": 0,
+      "skipped": 3,
+      "todo": 0,
+      "topLevel": 1456,
+      "suites": 0
+    },
+    "duration_ms": 748920.1387
+  },
+  "failed_tests": [
+    {
+      "type": "test",
+      "file": "tests/kodjo/audit-prompt-transport.pilot.js",
+      "name": "actual audit transport through PowerShell 5.1 and npm-style shim preserves a large Unicode dossier",
+      "line": 14,
+      "status": "FAIL",
+      "error": {
+        "name": "Error",
+        "message": "native probe failed\r\nAt C:\\Users\\runneradmin\\AppData\\Local\\Temp\\kodjo-audit-transport-kX4UAA\\run.ps1:15 char:15\r\n+ if($code-ne0){throw 'native probe failed'}\r\n+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : OperationStopped: (native probe failed:String) [], RuntimeException\r\n    + FullyQualifiedErrorId : native probe failed\r\n \r\n\n\n1 !== 0\n",
+        "code": "ERR_TEST_FAILURE",
+        "failureType": "testCodeFailure",
+        "stack": "Error [ERR_TEST_FAILURE]: native probe failed\r\nAt C:\\Users\\runneradmin\\AppData\\Local\\Temp\\kodjo-audit-transport-kX4UAA\\run.ps1:15 char:15\r\n+ if($code-ne0){throw 'native probe failed'}\r\n+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : OperationStopped: (native probe failed:String) [], RuntimeException\r\n    + FullyQualifiedErrorId : native probe failed\r\n \r\n\n\n1 !== 0\n",
+        "cause": {
+          "name": "AssertionError",
+          "message": "native probe failed\r\nAt C:\\Users\\runneradmin\\AppData\\Local\\Temp\\kodjo-audit-transport-kX4UAA\\run.ps1:15 char:15\r\n+ if($code-ne0){throw 'native probe failed'}\r\n+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : OperationStopped: (native probe failed:String) [], RuntimeException\r\n    + FullyQualifiedErrorId : native probe failed\r\n \r\n\n\n1 !== 0\n",
+          "code": "ERR_ASSERTION",
+          "stack": "AssertionError [ERR_ASSERTION]: native probe failed\r\nAt C:\\Users\\runneradmin\\AppData\\Local\\Temp\\kodjo-audit-transport-kX4UAA\\run.ps1:15 char:15\r\n+ if($code-ne0){throw 'native probe failed'}\r\n+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : OperationStopped: (native probe failed:String) [], RuntimeException\r\n    + FullyQualifiedErrorId : native probe failed\r\n \r\n\n\n1 !== 0\n\n    at TestContext.<anonymous> (D:\\a\\Application-Routine\\Application-Routine\\tests\\kodjo\\audit-prompt-transport.pilot.js:26:10)\n    at Test.runInAsyncScope (node:async_hooks:227:14)\n    at Test.run (node:internal/test_runner/test:1402:25)\n    at Test.processPendingSubtests (node:internal/test_runner/test:974:18)\n    at Test.postRun (node:internal/test_runner/test:1542:19)\n    at Test.run (node:internal/test_runner/test:1467:12)\n    at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)"
+        }
+      }
+    }
+  ],
+  "tested_historical_source_and_workflow_unchanged": true,
+  "precise_native_process_cause": "NOT_RECORDED_BY_EXISTING_TEST",
+  "next_action": "One explicit failed-jobs replay of the same run; no successful qualification re-run, no code change or full audit"
+}

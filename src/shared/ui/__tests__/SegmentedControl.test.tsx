@@ -147,3 +147,85 @@ describe("SegmentedControl", () => {
     });
   });
 });
+
+describe("SegmentedControl — variante « Paramètres » (X-1, D-341, 12/10)", () => {
+  const sides = [
+    { value: "UNILATERAL" as const, label: "Sans\nchangement", accessibilityLabel: "Sans changement" },
+    { value: "RIGHT_LEFT" as const, label: "Droite puis\ngauche", accessibilityLabel: "Droite puis gauche" },
+  ];
+  const layout = (height: number) =>
+    fireEvent(screen.getByTestId("seg"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 330, height } } });
+
+  it("cadre figé (blanc, contour #DBDEE3, rayon 12) et hauteur MINIMALE, jamais fixe ; libellés centrés avec la typographie demandée", () => {
+    render(
+      <SegmentedControl
+        options={sides}
+        value="RIGHT_LEFT"
+        onChange={jest.fn()}
+        variant="parameters"
+        labelStyle={type.segmentedCompactLabel}
+        testID="seg"
+      />,
+    );
+    const container = StyleSheet.flatten(screen.getByTestId("seg").props.style);
+    expect(container.height).toBeUndefined();
+    expect(container).toMatchObject({ minHeight: 42, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#DBDEE3", borderRadius: 12 });
+    const label = StyleSheet.flatten(screen.getByText("Droite puis\ngauche").props.style);
+    expect(label).toMatchObject({ fontSize: 13, lineHeight: 16, fontWeight: "400", textAlign: "center" });
+    expect(screen.getByTestId("seg-RIGHT_LEFT").props.accessibilityLabel).toBe("Droite puis gauche");
+    expect(StyleSheet.flatten(screen.getByTestId("seg-RIGHT_LEFT").props.style).minHeight).toBe(32);
+  });
+
+  it("texte agrandi : options et cadre de sélection suivent la hauteur RÉELLE mesurée (aucun rognage)", () => {
+    render(<SegmentedControl options={sides} value="UNILATERAL" onChange={jest.fn()} variant="parameters" testID="seg" />);
+    layout(96);
+    // 96 − contour 2 − marges 8 = 86.
+    expect(StyleSheet.flatten(screen.getByTestId("seg-indicator").props.style).height).toBe(86);
+    expect(StyleSheet.flatten(screen.getByTestId("seg-tile-RIGHT_LEFT").props.style)).toMatchObject({
+      height: 86,
+      backgroundColor: "#FCFCFE",
+    });
+  });
+
+  it("valeur nulle : aucun cadre de sélection, aucune option annoncée sélectionnée", () => {
+    render(<SegmentedControl options={sides} value={null} onChange={jest.fn()} variant="parameters" testID="seg" />);
+    layout(42);
+    expect(screen.queryByTestId("seg-indicator")).toBeNull();
+    for (const side of sides) {
+      expect(screen.getByTestId(`seg-${side.value}`).props.accessibilityState).toMatchObject({ selected: false });
+    }
+  });
+
+  it("sous-titres : Regular 11/13 centrés, #E0E3FF pour l’option choisie, #595E66 sinon ; hauteur minimale 60 respectée", () => {
+    render(
+      <SegmentedControl
+        options={[
+          { value: "BY_SIDE" as const, label: "Un côté après l’autre", subtitle: "(D1 → D2) → (G1 → G2)" },
+          { value: "BY_SERIES" as const, label: "Les deux côtés à chaque série", subtitle: "(D1 → G1) → (D2 → G2)" },
+        ]}
+        value="BY_SIDE"
+        onChange={jest.fn()}
+        variant="parameters"
+        labelStyle={type.body}
+        minHeight={60}
+        testID="seg"
+      />,
+    );
+    expect(StyleSheet.flatten(screen.getByTestId("seg").props.style).minHeight).toBe(60);
+    const selected = StyleSheet.flatten(screen.getByTestId("seg-BY_SIDE-subtitle").props.style);
+    const other = StyleSheet.flatten(screen.getByTestId("seg-BY_SERIES-subtitle").props.style);
+    expect(selected).toMatchObject({ fontSize: 11, lineHeight: 13, fontWeight: "400", textAlign: "center", color: "#E0E3FF" });
+    expect(other.color).toBe("#595E66");
+    expect(StyleSheet.flatten(screen.getByText("Un côté après l’autre").props.style)).toMatchObject({ fontSize: 14, lineHeight: 17, fontWeight: "400" });
+  });
+
+  it("standard inchangé : hauteur fixe 42, fond translucide, sans contour", () => {
+    render(<SegmentedControl options={sides} value="UNILATERAL" onChange={jest.fn()} testID="seg" />);
+    expect(StyleSheet.flatten(screen.getByTestId("seg").props.style)).toMatchObject({
+      height: 42,
+      backgroundColor: colors.segmentedSurface,
+      borderWidth: 0,
+      borderRadius: dimensions.segmentedControl.containerRadius,
+    });
+  });
+});

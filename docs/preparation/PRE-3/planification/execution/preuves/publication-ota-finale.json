@@ -1,0 +1,14 @@
+[
+  {
+    "id": "01a12f22-927f-70a1-9060-17e3379ccc2d",
+    "createdAt": "2026-10-12T08:02:37.311Z",
+    "group": "2011ac0b-aa7d-4a24-a499-1bae0fe1162e",
+    "branch": "review",
+    "message": "KODJO review PRE-3 recette finale 0f86cddb262364030d324a79ef96b8cde03a9351",
+    "runtimeVersion": "1.1.0",
+    "platform": "ios",
+    "manifestPermalink": "https://u.expo.dev/update/01a12f22-927f-70a1-9060-17e3379ccc2d",
+    "isRollBackToEmbedded": false,
+    "gitCommitHash": "0f86cddb262364030d324a79ef96b8cde03a9351"
+  }
+]

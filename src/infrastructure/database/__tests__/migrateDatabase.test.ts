@@ -8,6 +8,19 @@ import { MIGRATION_003 } from "@/infrastructure/database/migrations/migration003
 import { MIGRATION_004 } from "@/infrastructure/database/migrations/migration004";
 import { MIGRATION_005 } from "@/infrastructure/database/migrations/migration005";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
+import { MIGRATION_006 } from "@/infrastructure/database/migrations/migration006";
+import { MIGRATION_007 } from "@/infrastructure/database/migrations/migration007";
+import { MIGRATION_008_COLUMNS, MIGRATION_008_FINALIZE } from "@/infrastructure/database/migrations/migration008";
+import { canonicalBodyZoneKey } from "@/domain/body-zones/BodyZone";
+import { canonicalLabelKey } from "@/domain/labels/Label";
+import {
+  ExecutionParametersDataError,
+  validateExecutionParameters,
+  type ExecutionParameters,
+} from "@/domain/activities/ExecutionParameters";
+import type { Database } from "@/infrastructure/database/Database";
+import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
+import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 
 describe("migrateDatabase", () => {
   let database: NodeSqliteDatabase;
@@ -222,10 +235,10 @@ describe("migrateDatabase", () => {
       await migrateDatabase(database);
 
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
-      // V2-PRE-2 : la chaîne complète mène désormais à la version 8
-      // (`migration008`) — jamais à une version intermédiaire.
+      // PRE-3 : la chaîne complète mène désormais à la version 9
+      // (`migration009`) — jamais à une version intermédiaire.
       expect(version?.user_version).toBe(DATABASE_VERSION);
-      expect(DATABASE_VERSION).toBe(8);
+      expect(DATABASE_VERSION).toBe(9);
 
       // La contrainte historique DURATION+repetition reste rejetée.
       await expect(
@@ -727,6 +740,8 @@ describe("migrateDatabase", () => {
         "media_assets",
         "profiles",
         "session_stop_points",
+        // PRE-3 (`migration009`) : liens ordonnés des médias d'occurrence.
+        "session_activity_media",
       ].sort();
       expect(after.map((row) => row.name)).toEqual(expectedNames);
     });
@@ -758,7 +773,7 @@ describe("migrateDatabase", () => {
 
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
       expect(version?.user_version).toBe(DATABASE_VERSION);
-      expect(DATABASE_VERSION).toBe(8);
+      expect(DATABASE_VERSION).toBe(9);
 
       const tables = await database.getAllAsync<{ name: string }>(
         "SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'activity_definition%'",
@@ -1151,14 +1166,15 @@ describe("migrateDatabase", () => {
       ).rejects.toThrow();
     });
 
-    it("a fresh installation (v0) reaches version 8 directly, with every canonical_key already populated", async () => {
+    it("a fresh installation (v0) reaches the current version directly (8 then 9 in the same run), with every canonical_key already populated", async () => {
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
       expect(version?.user_version ?? 0).toBe(0);
 
       await migrateDatabase(database);
 
       const after = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
-      expect(after?.user_version).toBe(8);
+      // PRE-3 : la même exécution enchaîne `migration008` puis `migration009`.
+      expect(after?.user_version).toBe(9);
       const zones = await database.getAllAsync<{ canonical_key: string }>(
         "SELECT canonical_key FROM body_zones",
       );
@@ -1248,3 +1264,479 @@ function insertActivity(
     [values.id, values.executionMode, values.durationSeconds, values.repetitionCount],
   );
 }
+
+/**
+ * PRE-3 — \`migration009\` (P3-17/migration-real et P3-17/migration/*) : base
+ * SQLite RÉELLE (\`node:sqlite\`), jamais un mock. Une base v8 peuplée est
+ * construite en rejouant les migrations 001..008 telles quelles (fichiers
+ * inchangés), puis des données historiques y sont insérées.
+ */
+describe("migration009 — paramètres canoniques, Catégorie des copies, médias d'occurrence (PRE-3)", () => {
+  let database: NodeSqliteDatabase;
+  let sequence = 0;
+  const ids = (prefix: string) => () => `${prefix}-${++sequence}`;
+
+  beforeEach(() => {
+    database = NodeSqliteDatabase.openInMemory();
+  });
+
+  afterEach(() => {
+    database.close();
+  });
+
+  async function seedVersion8(): Promise<void> {
+    await database.withExclusiveTransactionAsync(async (transaction) => {
+      await transaction.execAsync(MIGRATION_001);
+      await transaction.runAsync(
+        "INSERT INTO users (singleton_key, id, created_at) VALUES (1, 'usr_0123456789abcdef0123456789abcdef', '2026-01-01T00:00:00.000Z')",
+      );
+      for (const migration of [MIGRATION_002, MIGRATION_003, MIGRATION_004, MIGRATION_005, MIGRATION_006, MIGRATION_007]) {
+        await transaction.execAsync(migration);
+      }
+      await transaction.execAsync(MIGRATION_008_COLUMNS);
+      for (const row of await transaction.getAllAsync<{ id: string; name: string }>("SELECT id, name FROM labels")) {
+        await transaction.runAsync("UPDATE labels SET canonical_key = ? WHERE id = ?", [canonicalLabelKey(row.name), row.id]);
+      }
+      for (const row of await transaction.getAllAsync<{ id: string; name: string }>("SELECT id, name FROM body_zones")) {
+        await transaction.runAsync("UPDATE body_zones SET canonical_key = ? WHERE id = ?", [
+          canonicalBodyZoneKey(row.name),
+          row.id,
+        ]);
+      }
+      await transaction.execAsync(MIGRATION_008_FINALIZE);
+      await transaction.execAsync("PRAGMA user_version = 8");
+    });
+  }
+
+  /** Données historiques v8 : Catégorie retirée, Pause hors nouvelles bornes, bilatéral, média, occurrence avec R. */
+  async function populateVersion8(): Promise<void> {
+    await database.runAsync("UPDATE categories SET is_active = 0 WHERE id = 'cardio'");
+    await database.runAsync(
+      `INSERT INTO activity_definitions (
+        id, name, description, execution_mode, duration_seconds, repetition_count,
+        series_count, pause_seconds, side_mode, created_at, updated_at, category_id, side_recovery_seconds
+      ) VALUES ('def-legacy', 'Gainage', NULL, 'DURATION', 45, NULL, 4, 900, 'RIGHT_LEFT',
+        '2026-01-02T00:00:00.000Z', '2026-01-03T00:00:00.000Z', 'cardio', 7)`,
+    );
+    await database.runAsync(
+      "INSERT INTO activity_definition_body_zones (activity_definition_id, body_zone_id) VALUES ('def-legacy', 'dos')",
+    );
+    await database.runAsync(
+      "INSERT INTO media_assets (id, uri, created_at) VALUES ('asset-legacy', 'file:///old/container/photo.jpg', '2026-01-02T00:00:00.000Z')",
+    );
+    await database.runAsync(
+      "INSERT INTO activity_media (id, activity_definition_id, asset_id, position) VALUES ('link-legacy', 'def-legacy', 'asset-legacy', 0)",
+    );
+    await seedStructure(database, "legacy");
+    await database.runAsync(
+      `INSERT INTO activities (
+        id, session_id, cycle_id, tour_id, type, structural_position, position, name,
+        execution_mode, duration_seconds, repetition_count, series_count, pause_seconds,
+        post_activity_recovery_seconds, instruction, created_at, updated_at, side_mode
+      ) VALUES ('occ-legacy', 'session-legacy', 'cycle-legacy', 'tour-legacy', 'EXERCISE', 'IN_TOUR', 0, 'Pompes',
+        'REPETITIONS', NULL, 12, 3, 600, 30, NULL, '2026-01-04T00:00:00.000Z', '2026-01-05T00:00:00.000Z', 'RIGHT_LEFT')`,
+    );
+    await database.runAsync("INSERT INTO activity_body_zones (activity_id, body_zone_id) VALUES ('occ-legacy', 'dos')");
+  }
+
+  async function dump(): Promise<Record<string, unknown[]>> {
+    const tables = [
+      "activity_definitions",
+      "activity_definition_body_zones",
+      "activity_media",
+      "media_assets",
+      "sessions",
+      "cycles",
+      "tours",
+      "activities",
+      "activity_body_zones",
+      "categories",
+      "body_zones",
+      "labels",
+      "profiles",
+      "users",
+    ];
+    const result: Record<string, unknown[]> = {};
+    for (const table of tables) {
+      result[table] = await database.getAllAsync(`SELECT * FROM ${table} ORDER BY rowid`);
+    }
+    return result;
+  }
+
+  function withoutPre3Columns(rows: unknown[]): unknown[] {
+    const pre3 = new Set([
+      "execution_parameters",
+      "kind",
+      "mime_type",
+      "file_name",
+      "size_bytes",
+      "duration_ms",
+      "width",
+      "height",
+    ]);
+    return rows.map((row) =>
+      Object.fromEntries(
+        Object.entries(row as Record<string, unknown>).filter(
+          ([key]) => !pre3.has(key) && !(key === "category_id" && (row as Record<string, unknown>).session_id),
+        ),
+      ),
+    );
+  }
+
+  it("P3-17/migration/fresh-v9 — base vide : 001..009 appliquées, version 9, tables et contraintes disponibles", async () => {
+    await migrateDatabase(database);
+    const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
+    expect(version?.user_version).toBe(9);
+    const definitionColumns = await database.getAllAsync<{ name: string }>("PRAGMA table_info(activity_definitions)");
+    expect(definitionColumns.map((column) => column.name)).toContain("execution_parameters");
+    const activityColumns = (await database.getAllAsync<{ name: string }>("PRAGMA table_info(activities)")).map(
+      (column) => column.name,
+    );
+    expect(activityColumns).toEqual(expect.arrayContaining(["execution_parameters", "category_id"]));
+    const assetColumns = (await database.getAllAsync<{ name: string }>("PRAGMA table_info(media_assets)")).map(
+      (column) => column.name,
+    );
+    expect(assetColumns).toEqual(
+      expect.arrayContaining(["kind", "mime_type", "file_name", "size_bytes", "duration_ms", "width", "height"]),
+    );
+    await expect(
+      database.runAsync("INSERT INTO media_assets (id, uri, created_at, kind) VALUES ('x', 'u', 'now', 'GIF')"),
+    ).rejects.toThrow();
+    await expect(
+      database.runAsync("INSERT INTO media_assets (id, uri, created_at, size_bytes) VALUES ('y', 'u', 'now', -1)"),
+    ).rejects.toThrow();
+  });
+
+  it("P3-17/migration/populated-v8-v9 et P3-17/migration-real — IDs, liens, dates et valeurs conservés ; aucun backfill du Profil", async () => {
+    await seedVersion8();
+    await populateVersion8();
+    const before = await dump();
+
+    await migrateDatabase(database);
+
+    const after = await dump();
+    for (const table of Object.keys(before)) {
+      expect(withoutPre3Columns(after[table]!)).toEqual(before[table]);
+    }
+    expect(after.activity_definitions!.map((row) => (row as { execution_parameters: unknown }).execution_parameters)).toEqual([null]);
+    const occurrence = after.activities![0] as { execution_parameters: unknown; category_id: unknown; post_activity_recovery_seconds: number };
+    expect(occurrence.execution_parameters).toBeNull();
+    expect(occurrence.category_id).toBeNull();
+    expect(occurrence.post_activity_recovery_seconds).toBe(30);
+    expect((after.media_assets![0] as { kind: unknown; uri: string }).kind).toBeNull();
+    expect((after.media_assets![0] as { uri: string }).uri).toBe("file:///old/container/photo.jpg");
+    expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual([]);
+    const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
+    expect(version?.user_version).toBe(9);
+  });
+
+  it("P3-17/migration/idempotent — second appel : version et données identiques, aucune association dupliquée", async () => {
+    await seedVersion8();
+    await populateVersion8();
+    await migrateDatabase(database);
+    const first = await dump();
+    await migrateDatabase(database);
+    expect(await dump()).toEqual(first);
+    const links = await database.getFirstAsync<{ count: number }>("SELECT COUNT(*) AS count FROM activity_media");
+    expect(links?.count).toBe(1);
+  });
+
+  it("P3-17/migration/foreign-key-position — FK vides ; lien orphelin ou position dupliquée refusés ; rollback intégral", async () => {
+    await seedVersion8();
+    await populateVersion8();
+    await migrateDatabase(database);
+    expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual([]);
+
+    await expect(
+      database.runAsync(
+        "INSERT INTO session_activity_media (id, activity_id, asset_id, position) VALUES ('l1', 'missing', 'asset-legacy', 0)",
+      ),
+    ).rejects.toThrow();
+    await expect(
+      database.runAsync(
+        "INSERT INTO session_activity_media (id, activity_id, asset_id, position) VALUES ('l2', 'occ-legacy', 'missing', 0)",
+      ),
+    ).rejects.toThrow();
+    await expect(
+      database.withExclusiveTransactionAsync(async (transaction) => {
+        await transaction.runAsync(
+          "INSERT INTO session_activity_media (id, activity_id, asset_id, position) VALUES ('l3', 'occ-legacy', 'asset-legacy', 0)",
+        );
+        await transaction.runAsync(
+          "INSERT INTO session_activity_media (id, activity_id, asset_id, position) VALUES ('l4', 'occ-legacy', 'asset-legacy', 0)",
+        );
+      }),
+    ).rejects.toThrow();
+    const links = await database.getFirstAsync<{ count: number }>("SELECT COUNT(*) AS count FROM session_activity_media");
+    expect(links?.count).toBe(0);
+    // Un asset référencé par un lien d'occurrence ne peut pas être supprimé.
+    await database.runAsync(
+      "INSERT INTO session_activity_media (id, activity_id, asset_id, position) VALUES ('l5', 'occ-legacy', 'asset-legacy', 0)",
+    );
+    await expect(database.runAsync("DELETE FROM media_assets WHERE id = 'asset-legacy'")).rejects.toThrow();
+  });
+
+  it("P3-17/migration/malformed-unknown-json — erreur typée, aucune coercition ni écriture destructive", async () => {
+    await seedVersion8();
+    await populateVersion8();
+    await migrateDatabase(database);
+    const definitions = new SqliteActivityDefinitionRepository(database, ids("def"));
+    const sessions = new SqliteSessionRepository(database, ids("ses"));
+
+    for (const corrupt of ["{not json", JSON.stringify({ version: 99, mode: "DURATION" })]) {
+      await database.runAsync("UPDATE activity_definitions SET execution_parameters = ? WHERE id = 'def-legacy'", [corrupt]);
+      await database.runAsync("UPDATE activities SET execution_parameters = ? WHERE id = 'occ-legacy'", [corrupt]);
+      const rowBefore = await database.getFirstAsync("SELECT * FROM activity_definitions WHERE id = 'def-legacy'");
+      await expect(definitions.findById("def-legacy")).rejects.toThrow(ExecutionParametersDataError);
+      await expect(definitions.listAll()).rejects.toThrow(ExecutionParametersDataError);
+      await expect(sessions.findById("session-legacy")).rejects.toThrow(ExecutionParametersDataError);
+      await expect(sessions.listActive()).rejects.toThrow(ExecutionParametersDataError);
+      expect(await database.getFirstAsync("SELECT * FROM activity_definitions WHERE id = 'def-legacy'")).toEqual(rowBefore);
+    }
+  });
+
+  function variableRepetitions(): ExecutionParameters {
+    return {
+      version: 1,
+      mode: "REPETITIONS",
+      series: {
+        kind: "VARIABLE",
+        rows: [
+          { target: 100, pauseSeconds: 20 },
+          { target: 8, pauseSeconds: 40 },
+        ],
+      },
+      sideMode: "LEFT_RIGHT",
+      sideOrder: "BY_SERIES",
+      sideRecoverySeconds: 12,
+      cadenceBeepIntervalSeconds: 4,
+      countdownSeconds: 6,
+      endSeconds: 3,
+    };
+  }
+
+  it("P3-17/migration/scalar-projection — JSON et projections concordants ; le JSON fait autorité ; relecture Catalogue et Séance identique", async () => {
+    await migrateDatabase(database);
+    const definitions = new SqliteActivityDefinitionRepository(database, ids("def"));
+    const sessions = new SqliteSessionRepository(database, ids("ses"));
+    const canonical = variableRepetitions();
+    const definition = await definitions.create({
+      name: "Fentes",
+      description: null,
+      executionMode: "REPETITIONS",
+      durationSeconds: null,
+      repetitionCount: 100,
+      seriesCount: 2,
+      pauseSeconds: 20,
+      category: { kind: "EXISTING", categoryId: "cardio" },
+      bodyZoneIds: ["cuisses"],
+      sideMode: "LEFT_RIGHT",
+      sideRecoverySeconds: 12,
+      executionParameters: canonical,
+    });
+    const session = await sessions.create({
+      name: "Jambes",
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 1,
+      exercises: [
+        {
+          type: "EXERCISE",
+          structuralPosition: "IN_TOUR",
+          name: "Fentes",
+          executionMode: "REPETITIONS",
+          durationSeconds: null,
+          repetitionCount: 100,
+          seriesCount: 2,
+          pauseSeconds: 20,
+          postActivityRecoverySeconds: 0,
+          bodyZoneIds: ["cuisses"],
+          executionParameters: canonical,
+        },
+      ],
+    });
+    const scalarRow = await database.getFirstAsync<Record<string, unknown>>(
+      "SELECT execution_mode, duration_seconds, repetition_count, series_count, pause_seconds, side_mode, side_recovery_seconds FROM activity_definitions WHERE id = ?",
+      [definition.id],
+    );
+    expect(scalarRow).toEqual({
+      execution_mode: "REPETITIONS",
+      duration_seconds: null,
+      repetition_count: 100,
+      series_count: 2,
+      pause_seconds: 20,
+      side_mode: "LEFT_RIGHT",
+      side_recovery_seconds: 12,
+    });
+    // Un writer concurrent qui ne toucherait que les scalaires ne prend jamais l'autorité.
+    await database.runAsync("UPDATE activity_definitions SET series_count = 7, pause_seconds = 99 WHERE id = ?", [definition.id]);
+    await database.runAsync("UPDATE activities SET series_count = 7 WHERE session_id = ?", [session.id]);
+    const rereadDefinition = await definitions.findById(definition.id);
+    const rereadSession = await sessions.findById(session.id);
+    expect(rereadDefinition?.executionParameters).toEqual(canonical);
+    expect(rereadSession?.cycle.tour.exercises[0]?.executionParameters).toEqual(canonical);
+  });
+
+  it("P3-17/migration/legacy-out-of-bounds — anciennes valeurs hors bornes lues sans clamp ; nouvelle modification validée explicitement", async () => {
+    await seedVersion8();
+    await populateVersion8();
+    await migrateDatabase(database);
+    const definition = await new SqliteActivityDefinitionRepository(database, ids("def")).findById("def-legacy");
+    expect(definition?.executionParameters).toEqual({
+      version: 1,
+      mode: "DURATION",
+      series: { kind: "UNIFORM", count: 4, target: 45, pauseSeconds: 900 },
+      sideMode: "RIGHT_LEFT",
+      sideOrder: "BY_SIDE",
+      sideRecoverySeconds: 7,
+      cadenceBeepIntervalSeconds: 0,
+      countdownSeconds: 0,
+      endSeconds: 0,
+    });
+    const occurrence = (await new SqliteSessionRepository(database, ids("ses")).findById("session-legacy"))?.cycle.tour.exercises[0];
+    expect(occurrence?.pauseSeconds).toBe(600);
+    expect(occurrence?.postActivityRecoverySeconds).toBe(30);
+    const revalidated = validateExecutionParameters(definition!.executionParameters!);
+    expect(revalidated.ok).toBe(false);
+    expect(!revalidated.ok && revalidated.violations).toEqual([
+      expect.objectContaining({ field: "pauseSeconds", code: "OUT_OF_RANGE" }),
+    ]);
+  });
+
+  /** Fait échouer la N-ième instruction d'écriture d'une transaction (rollback réel). */
+  class FailingDatabase implements Database {
+    writes = 0;
+    constructor(
+      private readonly inner: NodeSqliteDatabase,
+      private readonly failAt: number,
+    ) {}
+    execAsync(source: string) {
+      return this.inner.execAsync(source);
+    }
+    async runAsync(source: string, parameters?: readonly (string | number | null | Uint8Array)[]) {
+      this.writes += 1;
+      if (this.writes === this.failAt) {
+        throw new Error(`Injected failure at write ${this.failAt}`);
+      }
+      return this.inner.runAsync(source, parameters);
+    }
+    getFirstAsync<T>(source: string, parameters?: readonly (string | number | null | Uint8Array)[]) {
+      return this.inner.getFirstAsync<T>(source, parameters);
+    }
+    getAllAsync<T>(source: string, parameters?: readonly (string | number | null | Uint8Array)[]) {
+      return this.inner.getAllAsync<T>(source, parameters);
+    }
+    withExclusiveTransactionAsync(task: (transaction: Database) => Promise<void>) {
+      return this.inner.withExclusiveTransactionAsync(() => task(this));
+    }
+  }
+
+  it("P3-17/migration/per-statement-rollback — échec injecté à chaque instruction asset/définition/occurrence/lien : données intactes, réessai unique", async () => {
+    await migrateDatabase(database);
+    const photo = {
+      id: "asset-new-photo",
+      uri: "kodjo-media/asset-new-photo.jpg",
+      createdAt: "2026-10-09T10:00:00.000Z",
+      kind: "PHOTO" as const,
+      mimeType: "image/jpeg",
+    };
+    const video = {
+      id: "asset-new-video",
+      uri: "kodjo-media/asset-new-video.mov",
+      createdAt: "2026-10-09T10:00:01.000Z",
+      kind: "VIDEO" as const,
+      durationMs: 4000,
+    };
+    const media = [
+      { assetId: video.id, asset: video },
+      { assetId: photo.id, asset: photo },
+    ];
+    const definitionInput = {
+      name: "Burpees",
+      description: null,
+      executionMode: "DURATION" as const,
+      durationSeconds: 30,
+      repetitionCount: null,
+      seriesCount: 3,
+      pauseSeconds: 10,
+      category: { kind: "EXISTING" as const, categoryId: "cardio" },
+      bodyZoneIds: ["cuisses", "dos"],
+      sideRecoverySeconds: 0,
+      media,
+    };
+    const counts = async () =>
+      database.getFirstAsync<Record<string, number>>(
+        `SELECT
+          (SELECT COUNT(*) FROM activity_definitions) AS definitions,
+          (SELECT COUNT(*) FROM activity_definition_body_zones) AS zones,
+          (SELECT COUNT(*) FROM media_assets) AS assets,
+          (SELECT COUNT(*) FROM activity_media) AS links,
+          (SELECT COUNT(*) FROM activities) AS occurrences,
+          (SELECT COUNT(*) FROM session_activity_media) AS occurrenceLinks,
+          (SELECT COUNT(*) FROM sessions) AS sessions`,
+      );
+    const initial = await counts();
+
+    // Nombre d'écritures d'une création réussie, mesuré sur une base jetable.
+    const probe = NodeSqliteDatabase.openInMemory();
+    await migrateDatabase(probe);
+    const probeWrites = new FailingDatabase(probe, Number.POSITIVE_INFINITY);
+    await new SqliteActivityDefinitionRepository(probeWrites, ids("probe")).create(definitionInput);
+    probe.close();
+    expect(probeWrites.writes).toBeGreaterThanOrEqual(6);
+
+    for (let failAt = 1; failAt <= probeWrites.writes; failAt += 1) {
+      const failing = new FailingDatabase(database, failAt);
+      await expect(new SqliteActivityDefinitionRepository(failing, ids("fail")).create(definitionInput)).rejects.toThrow(
+        `Injected failure at write ${failAt}`,
+      );
+      expect(await counts()).toEqual(initial);
+    }
+
+    // Réessai : une seule définition, deux assets, deux liens dans l'ordre.
+    const created = await new SqliteActivityDefinitionRepository(database, ids("def")).create(definitionInput);
+    expect(created.media?.map((item) => item.assetId)).toEqual([video.id, photo.id]);
+    const afterDefinition = await counts();
+    expect(afterDefinition).toEqual({ ...initial, definitions: 1, zones: 2, assets: 2, links: 2 });
+
+    // Occurrence : mêmes assets partagés, nouveaux liens, échec à chaque instruction.
+    const sessionInput = {
+      name: "Cardio",
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 1,
+      exercises: [
+        {
+          type: "EXERCISE" as const,
+          structuralPosition: "IN_TOUR" as const,
+          name: "Burpees",
+          executionMode: "DURATION" as const,
+          durationSeconds: 30,
+          repetitionCount: null,
+          seriesCount: 3,
+          pauseSeconds: 10,
+          postActivityRecoverySeconds: 0,
+          bodyZoneIds: ["cuisses"],
+          categoryId: "cardio",
+          media: media.map((item) => ({ assetId: item.assetId })),
+        },
+      ],
+    };
+    const sessionProbe = NodeSqliteDatabase.openInMemory();
+    await migrateDatabase(sessionProbe);
+    await new SqliteActivityDefinitionRepository(sessionProbe, ids("probe")).create(definitionInput);
+    const sessionWrites = new FailingDatabase(sessionProbe, Number.POSITIVE_INFINITY);
+    await new SqliteSessionRepository(sessionWrites, ids("probe")).create(sessionInput);
+    sessionProbe.close();
+    for (let failAt = 1; failAt <= sessionWrites.writes; failAt += 1) {
+      await expect(
+        new SqliteSessionRepository(new FailingDatabase(database, failAt), ids("fail")).create(sessionInput),
+      ).rejects.toThrow(`Injected failure at write ${failAt}`);
+      expect(await counts()).toEqual(afterDefinition);
+    }
+    const session = await new SqliteSessionRepository(database, ids("ses")).create(sessionInput);
+    expect(session.cycle.tour.exercises[0]?.media?.map((item) => item.assetId)).toEqual([video.id, photo.id]);
+    expect(await counts()).toEqual({ ...afterDefinition, sessions: 1, occurrences: 1, occurrenceLinks: 2 });
+    expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual([]);
+  });
+});

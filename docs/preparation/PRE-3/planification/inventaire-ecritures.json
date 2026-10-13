@@ -1,0 +1,675 @@
+{
+  "baseline": "1ddfb6d144552f578388257adc78db47ab5992c8",
+  "method": "Literal SQL statements over src/app; comment matches retained for semantic review; dynamic SQL and indirect side effects not inferred",
+  "runtimeWriterPaths": [
+    "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+    "src/infrastructure/database/repositories/SqliteSessionRepository.ts"
+  ],
+  "rows": [
+    {
+      "path": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "line": 666,
+      "operation": "INSERT INTO",
+      "table": "activity_definitions",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activity_definitions (\n             id, name, description, execution_mode, duration_seconds, repetition_count,\n             series_count, "
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "line": 722,
+      "operation": "ALTER TABLE",
+      "table": "activity_definitions",
+      "classification": "TEST",
+      "statementPrefix": "ALTER TABLE activity_definitions ADD COLUMN category_id\n    // ... DEFAULT 'autre'` — toute ligne historique hérite donc de la\n    // Catégorie prédéf"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+      "line": 192,
+      "operation": "INSERT INTO",
+      "table": "media_assets",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO media_assets (id, uri, created_at) VALUES (?, ?, '2026-01-01T00:00:00.000Z')`,\n        [id, `file:///${id}.jpg`],\n      );\n    }\n\n    it(\""
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteBodyZoneRepository.test.ts",
+      "line": 85,
+      "operation": "INSERT INTO",
+      "table": "activity_definitions",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activity_definitions (id, name, description, execution_mode, duration_seconds, repetition_count, series_count, pause_seconds, side_mode, c"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteBodyZoneRepository.test.ts",
+      "line": 148,
+      "operation": "INSERT INTO",
+      "table": "activity_definitions",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activity_definitions (\n          id, name, description, execution_mode, duration_seconds, repetition_count,\n          series_count, pause_"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteCategoryRepository.test.ts",
+      "line": 210,
+      "operation": "INSERT INTO",
+      "table": "activity_definitions",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activity_definitions (\n          id, name, description, execution_mode, duration_seconds, repetition_count,\n          series_count, pause_"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+      "line": 9,
+      "operation": "INSERT INTO",
+      "table": "activity_definitions",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activity_definitions (\n      id, name, description, execution_mode, duration_seconds, repetition_count,\n      series_count, pause_seconds,"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+      "line": 38,
+      "operation": "INSERT INTO",
+      "table": "media_assets",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO media_assets (id, uri, created_at) VALUES ('asset-1', 'file://a1', 'now'), ('asset-2', 'file://a2', 'now')\",\n    );\n    await database.run"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+      "line": 41,
+      "operation": "INSERT INTO",
+      "table": "activity_media",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activity_media (id, activity_definition_id, asset_id, position) VALUES\n        ('am-2', 'def-1', 'asset-2', 1),\n        ('am-1', 'def-1', "
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+      "line": 57,
+      "operation": "INSERT INTO",
+      "table": "media_assets",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO media_assets (id, uri, created_at) VALUES ('asset-1', 'file://a1', 'now'), ('asset-2', 'file://a2', 'now')\",\n    );\n    await database.run"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+      "line": 60,
+      "operation": "INSERT INTO",
+      "table": "activity_media",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activity_media (id, activity_definition_id, asset_id, position) VALUES\n        ('am-1', 'def-1', 'asset-1', 0),\n        ('am-2', 'def-2', "
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+      "line": 586,
+      "operation": "INSERT INTO",
+      "table": "activities",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activities (\n          id, session_id, cycle_id, tour_id, type, structural_position,\n          position, name, execution_mode, duration_se"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+      "line": 1788,
+      "operation": "INSERT INTO",
+      "table": "activities",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activities\")) {\n      return Promise.reject(new Error(\"forced activity failure\"));\n    }\n    return this.delegate.runAsync(source, paramet"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+      "line": 1814,
+      "operation": "INSERT INTO",
+      "table": "activities",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activities\")) {\n      this.activityInsertCount += 1;\n      if (this.activityInsertCount === 2) {\n        return Promise.reject(new Error(\""
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 187,
+      "operation": "INSERT INTO",
+      "table": "activities",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activities (\n          id, session_id, cycle_id, tour_id, type, structural_position,\n          position, name, execution_mode, duration_se"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 242,
+      "operation": "INSERT INTO",
+      "table": "activities",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activities (\n          id, session_id, cycle_id, tour_id, type, structural_position,\n          position, name, execution_mode, duration_se"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 259,
+      "operation": "INSERT INTO",
+      "table": "activities",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activities (\n            id, session_id, cycle_id, tour_id, type, structural_position,\n            position, name, execution_mode, duratio"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 343,
+      "operation": "INSERT INTO",
+      "table": "activities",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activities (\n          id, session_id, cycle_id, tour_id, type, structural_position,\n          position, name, execution_mode, duration_se"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 380,
+      "operation": "INSERT INTO",
+      "table": "activities",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activities (\n          id, session_id, cycle_id, tour_id, type, structural_position,\n          position, name, execution_mode, duration_se"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 431,
+      "operation": "INSERT INTO",
+      "table": "activities",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activities (\n          id, session_id, cycle_id, tour_id, type, structural_position,\n          position, name, execution_mode, duration_se"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 537,
+      "operation": "INSERT INTO",
+      "table": "activities",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activities (\n            id, session_id, cycle_id, tour_id, type, structural_position,\n            position, name, execution_mode, duratio"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 574,
+      "operation": "INSERT INTO",
+      "table": "activities",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activities (\n          id, session_id, cycle_id, tour_id, type, structural_position,\n          position, name, execution_mode, duration_se"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 668,
+      "operation": "INSERT INTO",
+      "table": "activities",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activities (\n            id, session_id, cycle_id, tour_id, type, structural_position,\n            position, name, execution_mode, duratio"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 776,
+      "operation": "INSERT INTO",
+      "table": "activity_definitions",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activity_definitions (\n          id, name, description, execution_mode, duration_seconds, repetition_count,\n          series_count, pause_"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 793,
+      "operation": "INSERT INTO",
+      "table": "activity_definitions",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activity_definitions (\n            id, name, description, execution_mode, duration_seconds, repetition_count,\n            series_count, pa"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 802,
+      "operation": "INSERT INTO",
+      "table": "activity_definitions",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activity_definitions (\n            id, name, description, execution_mode, duration_seconds, repetition_count,\n            series_count, pa"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 813,
+      "operation": "INSERT INTO",
+      "table": "activity_definitions",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activity_definitions (\n          id, name, description, execution_mode, duration_seconds, repetition_count,\n          series_count, pause_"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 822,
+      "operation": "DELETE FROM",
+      "table": "activity_definitions",
+      "classification": "TEST",
+      "statementPrefix": "DELETE FROM activity_definitions WHERE id = 'def-1'\");\n\n      const remaining = await database.getFirstAsync<{ count: number }>(\n        \"SELECT COUNT"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 915,
+      "operation": "INSERT INTO",
+      "table": "activity_definitions",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activity_definitions (\n          id, name, description, execution_mode, duration_seconds, repetition_count,\n          series_count, pause_"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 921,
+      "operation": "INSERT INTO",
+      "table": "media_assets",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO media_assets (id, uri, created_at) VALUES ('asset-1', 'file://a1', 'now'), ('asset-2', 'file://a2', 'now')\",\n      );\n      await database"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 924,
+      "operation": "INSERT INTO",
+      "table": "activity_media",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activity_media (id, activity_definition_id, asset_id, position) VALUES\n          ('am-1', 'def-1', 'asset-1', 0),\n          ('am-2', 'def-"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 941,
+      "operation": "INSERT INTO",
+      "table": "activity_definitions",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activity_definitions (\n          id, name, description, execution_mode, duration_seconds, repetition_count,\n          series_count, pause_"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 947,
+      "operation": "INSERT INTO",
+      "table": "media_assets",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO media_assets (id, uri, created_at) VALUES ('asset-1', 'file://a1', 'now'), ('asset-2', 'file://a2', 'now')\",\n      );\n      await database"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 950,
+      "operation": "INSERT INTO",
+      "table": "activity_media",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activity_media (id, activity_definition_id, asset_id, position) VALUES ('am-1', 'def-1', 'asset-1', 0)\",\n      );\n      await expect(\n    "
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 954,
+      "operation": "INSERT INTO",
+      "table": "activity_media",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activity_media (id, activity_definition_id, asset_id, position) VALUES ('am-2', 'def-1', 'asset-2', 0)\",\n        ),\n      ).rejects.toThro"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 962,
+      "operation": "INSERT INTO",
+      "table": "activity_definitions",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activity_definitions (\n          id, name, description, execution_mode, duration_seconds, repetition_count,\n          series_count, pause_"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 968,
+      "operation": "INSERT INTO",
+      "table": "media_assets",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO media_assets (id, uri, created_at) VALUES ('asset-1', 'file://a1', 'now')\",\n      );\n      await database.runAsync(\n        \"INSERT INTO a"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 971,
+      "operation": "INSERT INTO",
+      "table": "activity_media",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activity_media (id, activity_definition_id, asset_id, position) VALUES ('am-1', 'def-1', 'asset-1', 0)\",\n      );\n\n      await database.ru"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 974,
+      "operation": "DELETE FROM",
+      "table": "activity_definitions",
+      "classification": "TEST",
+      "statementPrefix": "DELETE FROM activity_definitions WHERE id = 'def-1'\");\n\n      const remaining = await database.getFirstAsync<{ count: number }>(\n        \"SELECT COUNT"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 1096,
+      "operation": "DELETE FROM",
+      "table": "activities",
+      "classification": "TEST",
+      "statementPrefix": "DELETE FROM activities WHERE id = 'activity-cascade'\");\n\n      const remaining = await database.getFirstAsync<{ count: number }>(\n        \"SELECT COUN"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "line": 1242,
+      "operation": "INSERT INTO",
+      "table": "activities",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activities (\n      id, session_id, cycle_id, tour_id, type, structural_position,\n      position, name, execution_mode, duration_seconds, r"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "line": 129,
+      "operation": "CREATE TABLE",
+      "table": "activities",
+      "classification": "TEST",
+      "statementPrefix": "CREATE TABLE activities (\n  id TEXT PRIMARY KEY NOT NULL,\n  session_id TEXT NOT NULL,\n  cycle_id TEXT NOT NULL,\n  tour_id TEXT,\n  type TEXT NOT NULL C"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "line": 247,
+      "operation": "CREATE TABLE",
+      "table": "activities_new",
+      "classification": "TEST",
+      "statementPrefix": "CREATE TABLE activities_new (\n  id TEXT PRIMARY KEY NOT NULL,\n  session_id TEXT NOT NULL,\n  cycle_id TEXT NOT NULL,\n  tour_id TEXT,\n  type TEXT NOT NU"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "line": 328,
+      "operation": "INSERT INTO",
+      "table": "activities_new",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activities_new (\n  id, session_id, cycle_id, tour_id, type, structural_position,\n  position, name, execution_mode, duration_seconds, repet"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "line": 350,
+      "operation": "ALTER TABLE",
+      "table": "activities_new",
+      "classification": "TEST",
+      "statementPrefix": "ALTER TABLE activities_new RENAME TO activities;\n\nCREATE INDEX activities_session_position_idx\nON activities(session_id, structural_position, position"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "line": 373,
+      "operation": "CREATE TABLE",
+      "table": "activities_new",
+      "classification": "TEST",
+      "statementPrefix": "CREATE TABLE activities_new (\n  id TEXT PRIMARY KEY NOT NULL,\n  session_id TEXT NOT NULL,\n  cycle_id TEXT NOT NULL,\n  tour_id TEXT,\n  type TEXT NOT NU"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "line": 457,
+      "operation": "INSERT INTO",
+      "table": "activities_new",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activities_new (\n  id, session_id, cycle_id, tour_id, type, structural_position,\n  position, name, execution_mode, duration_seconds, repet"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "line": 469,
+      "operation": "UPDATE",
+      "table": "activities_new",
+      "classification": "TEST",
+      "statementPrefix": "UPDATE activities_new\nSET recovery_seconds = COALESCE((\n  SELECT recovery.duration_seconds\n  FROM activities AS recovery\n  WHERE recovery.type = 'RECO"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "line": 506,
+      "operation": "UPDATE",
+      "table": "activities_new",
+      "classification": "TEST",
+      "statementPrefix": "UPDATE activities_new\nSET position = ${EXPECTED_POSITION_STAGING_OFFSET} + (\n  SELECT mapped.new_position FROM activities_position_map AS mapped WHERE"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "line": 511,
+      "operation": "UPDATE",
+      "table": "activities_new",
+      "classification": "TEST",
+      "statementPrefix": "UPDATE activities_new\nSET position = (\n  SELECT mapped.new_position FROM activities_position_map AS mapped WHERE mapped.id = activities_new.id\n);\n\nDRO"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "line": 531,
+      "operation": "ALTER TABLE",
+      "table": "activities_new",
+      "classification": "TEST",
+      "statementPrefix": "ALTER TABLE activities_new RENAME TO activities;\n\nCREATE INDEX activities_session_position_idx\nON activities(session_id, structural_position, position"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "line": 550,
+      "operation": "ALTER TABLE",
+      "table": "activities",
+      "classification": "TEST",
+      "statementPrefix": "ALTER TABLE activities ADD COLUMN side_mode TEXT NOT NULL DEFAULT 'UNILATERAL'\n  CHECK (side_mode IN ('UNILATERAL', 'RIGHT_LEFT', 'LEFT_RIGHT'));\n\nALT"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "line": 559,
+      "operation": "CREATE TABLE",
+      "table": "activity_definitions",
+      "classification": "TEST",
+      "statementPrefix": "CREATE TABLE activity_definitions (\n  id TEXT PRIMARY KEY,\n  name TEXT NOT NULL,\n  description TEXT,\n  execution_mode TEXT NOT NULL CHECK (execution_m"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "line": 857,
+      "operation": "INSERT INTO",
+      "table": "activities",
+      "classification": "TEST",
+      "statementPrefix": "INSERT INTO activities (\n           id, session_id, cycle_id, tour_id, type, structural_position,\n           position, name, execution_mode, duration_"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "line": 944,
+      "operation": "DELETE FROM",
+      "table": "activities",
+      "classification": "TEST",
+      "statementPrefix": "DELETE FROM activities WHERE id = 'activity-v8'`);\n\n        const remaining = await database.getFirstAsync<{ count: number }>(\n          \"SELECT COUNT"
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration001.ts",
+      "line": 56,
+      "operation": "CREATE TABLE",
+      "table": "activities",
+      "classification": "MIGRATION",
+      "statementPrefix": "CREATE TABLE activities (\n  id TEXT PRIMARY KEY NOT NULL,\n  session_id TEXT NOT NULL,\n  cycle_id TEXT NOT NULL,\n  tour_id TEXT,\n  type TEXT NOT NULL C"
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration003.ts",
+      "line": 45,
+      "operation": "CREATE TABLE",
+      "table": "activities_new",
+      "classification": "MIGRATION",
+      "statementPrefix": "CREATE TABLE activities_new (\n  id TEXT PRIMARY KEY NOT NULL,\n  session_id TEXT NOT NULL,\n  cycle_id TEXT NOT NULL,\n  tour_id TEXT,\n  type TEXT NOT NU"
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration003.ts",
+      "line": 126,
+      "operation": "INSERT INTO",
+      "table": "activities_new",
+      "classification": "MIGRATION",
+      "statementPrefix": "INSERT INTO activities_new (\n  id, session_id, cycle_id, tour_id, type, structural_position,\n  position, name, execution_mode, duration_seconds, repet"
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration003.ts",
+      "line": 148,
+      "operation": "ALTER TABLE",
+      "table": "activities_new",
+      "classification": "MIGRATION",
+      "statementPrefix": "ALTER TABLE activities_new RENAME TO activities;\n\nCREATE INDEX activities_session_position_idx\nON activities(session_id, structural_position, position"
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration004.ts",
+      "line": 88,
+      "operation": "CREATE TABLE",
+      "table": "activities_new",
+      "classification": "MIGRATION",
+      "statementPrefix": "CREATE TABLE activities_new (\n  id TEXT PRIMARY KEY NOT NULL,\n  session_id TEXT NOT NULL,\n  cycle_id TEXT NOT NULL,\n  tour_id TEXT,\n  type TEXT NOT NU"
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration004.ts",
+      "line": 172,
+      "operation": "INSERT INTO",
+      "table": "activities_new",
+      "classification": "MIGRATION",
+      "statementPrefix": "INSERT INTO activities_new (\n  id, session_id, cycle_id, tour_id, type, structural_position,\n  position, name, execution_mode, duration_seconds, repet"
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration004.ts",
+      "line": 184,
+      "operation": "UPDATE",
+      "table": "activities_new",
+      "classification": "MIGRATION",
+      "statementPrefix": "UPDATE activities_new\nSET recovery_seconds = COALESCE((\n  SELECT recovery.duration_seconds\n  FROM activities AS recovery\n  WHERE recovery.type = 'RECO"
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration004.ts",
+      "line": 221,
+      "operation": "UPDATE",
+      "table": "activities_new",
+      "classification": "MIGRATION",
+      "statementPrefix": "UPDATE activities_new\nSET position = ${POSITION_STAGING_OFFSET} + (\n  SELECT mapped.new_position FROM activities_position_map AS mapped WHERE mapped.i"
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration004.ts",
+      "line": 226,
+      "operation": "UPDATE",
+      "table": "activities_new",
+      "classification": "MIGRATION",
+      "statementPrefix": "UPDATE activities_new\nSET position = (\n  SELECT mapped.new_position FROM activities_position_map AS mapped WHERE mapped.id = activities_new.id\n);\n\nDRO"
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration004.ts",
+      "line": 246,
+      "operation": "ALTER TABLE",
+      "table": "activities_new",
+      "classification": "MIGRATION",
+      "statementPrefix": "ALTER TABLE activities_new RENAME TO activities;\n\nCREATE INDEX activities_session_position_idx\nON activities(session_id, structural_position, position"
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration005.ts",
+      "line": 35,
+      "operation": "ALTER TABLE",
+      "table": "activities",
+      "classification": "MIGRATION",
+      "statementPrefix": "ALTER TABLE activities ADD COLUMN side_mode TEXT NOT NULL DEFAULT 'UNILATERAL'\n  CHECK (side_mode IN ('UNILATERAL', 'RIGHT_LEFT', 'LEFT_RIGHT'));\n\nALT"
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration006.ts",
+      "line": 17,
+      "operation": "CREATE TABLE",
+      "table": "activity_definitions",
+      "classification": "MIGRATION",
+      "statementPrefix": "CREATE TABLE activity_definitions (\n  id TEXT PRIMARY KEY,\n  name TEXT NOT NULL,\n  description TEXT,\n  execution_mode TEXT NOT NULL CHECK (execution_m"
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration007.ts",
+      "line": 117,
+      "operation": "CREATE TABLE",
+      "table": "media_assets",
+      "classification": "MIGRATION",
+      "statementPrefix": "CREATE TABLE media_assets (\n  id TEXT PRIMARY KEY NOT NULL,\n  uri TEXT NOT NULL,\n  created_at TEXT NOT NULL\n);\n\nCREATE TABLE activity_media (\n  id TEX"
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration007.ts",
+      "line": 123,
+      "operation": "CREATE TABLE",
+      "table": "activity_media",
+      "classification": "MIGRATION",
+      "statementPrefix": "CREATE TABLE activity_media (\n  id TEXT PRIMARY KEY NOT NULL,\n  activity_definition_id TEXT NOT NULL REFERENCES activity_definitions(id) ON UPDATE RES"
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration007.ts",
+      "line": 148,
+      "operation": "ALTER TABLE",
+      "table": "activity_definitions",
+      "classification": "MIGRATION",
+      "statementPrefix": "ALTER TABLE activity_definitions ADD COLUMN category_id TEXT\n  REFERENCES categories(id) ON UPDATE RESTRICT ON DELETE RESTRICT;\nUPDATE activity_defini"
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration007.ts",
+      "line": 150,
+      "operation": "UPDATE",
+      "table": "activity_definitions",
+      "classification": "MIGRATION",
+      "statementPrefix": "UPDATE activity_definitions SET category_id = 'autre' WHERE category_id IS NULL;\nALTER TABLE activity_definitions ADD COLUMN side_recovery_seconds INT"
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration007.ts",
+      "line": 151,
+      "operation": "ALTER TABLE",
+      "table": "activity_definitions",
+      "classification": "MIGRATION",
+      "statementPrefix": "ALTER TABLE activity_definitions ADD COLUMN side_recovery_seconds INTEGER NOT NULL DEFAULT 0\n  CHECK (side_recovery_seconds BETWEEN 0 AND 5999);\nALTER"
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration007.ts",
+      "line": 153,
+      "operation": "ALTER TABLE",
+      "table": "activity_definitions",
+      "classification": "MIGRATION",
+      "statementPrefix": "ALTER TABLE activity_definitions DROP COLUMN recovery_seconds;\n\nALTER TABLE sessions ADD COLUMN label_id TEXT REFERENCES labels(id) ON UPDATE RESTRICT"
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration007.ts",
+      "line": 160,
+      "operation": "ALTER TABLE",
+      "table": "activities",
+      "classification": "MIGRATION",
+      "statementPrefix": "ALTER TABLE activities RENAME COLUMN recovery_seconds TO post_activity_recovery_seconds;\n`;\n"
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+      "line": 116,
+      "operation": "INSERT INTO",
+      "table": "activity_definitions",
+      "classification": "RUNTIME_WRITER",
+      "statementPrefix": "INSERT INTO activity_definitions (\n          id, name, description, execution_mode, duration_seconds, repetition_count,\n          series_count, pause_"
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+      "line": 188,
+      "operation": "UPDATE",
+      "table": "activity_definitions",
+      "classification": "RUNTIME_WRITER",
+      "statementPrefix": "UPDATE activity_definitions SET\n          name = ?, description = ?, execution_mode = ?, duration_seconds = ?,\n          repetition_count = ?, series_"
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+      "line": 213,
+      "operation": "DELETE FROM",
+      "table": "activity_media",
+      "classification": "RUNTIME_WRITER",
+      "statementPrefix": "DELETE FROM activity_media WHERE activity_definition_id = ?`, [\n        id,\n      ]);\n      await insertMedia(transaction, id, input.media ?? [], this"
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+      "line": 294,
+      "operation": "INSERT INTO",
+      "table": "activity_media",
+      "classification": "RUNTIME_WRITER",
+      "statementPrefix": "INSERT INTO activity_media (id, activity_definition_id, asset_id, position) VALUES (?, ?, ?, ?)`,\n      [uuidFactory(), activityDefinitionId, item.ass"
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "line": 569,
+      "operation": "INSERT INTO",
+      "table": "activities",
+      "classification": "RUNTIME_WRITER",
+      "statementPrefix": "INSERT INTO activities (${ACTIVITY_ROW_COLUMNS})\n       VALUES (${ACTIVITY_ROW_PLACEHOLDERS})`,\n      [\n        activityId,\n        sessionId,\n       "
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "line": 724,
+      "operation": "DELETE FROM",
+      "table": "activities",
+      "classification": "RUNTIME_WRITER",
+      "statementPrefix": "DELETE FROM activities WHERE id = ? AND session_id = ?`, [\n        id,\n        sessionId,\n      ]);\n    }\n  }\n\n  let stagingPosition = 1_000_000;\n  fo"
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "line": 735,
+      "operation": "UPDATE",
+      "table": "activities",
+      "classification": "RUNTIME_WRITER",
+      "statementPrefix": "UPDATE activities SET position = ? WHERE id = ? AND session_id = ?`,\n        [stagingPosition, id, sessionId],\n      );\n      stagingPosition += 1;\n  "
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "line": 761,
+      "operation": "UPDATE",
+      "table": "activities",
+      "classification": "RUNTIME_WRITER",
+      "statementPrefix": "UPDATE activities SET\n           type = ?, structural_position = ?, position = ?, name = ?,\n           execution_mode = ?, duration_seconds = ?, repet"
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "line": 792,
+      "operation": "INSERT INTO",
+      "table": "activities",
+      "classification": "RUNTIME_WRITER",
+      "statementPrefix": "INSERT INTO activities (${ACTIVITY_ROW_COLUMNS})\n         VALUES (${ACTIVITY_ROW_PLACEHOLDERS})`,\n        [\n          activity.id,\n          sessionId"
+    }
+  ],
+  "observationNotExhaustiveDynamicProof": true
+}

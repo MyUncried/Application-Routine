@@ -102,9 +102,10 @@ export type SessionCardProps = {
  * Le chevron de déploiement est conservé (annexe I.3).
  */
 export function SessionCard({ session, onOpen }: SessionCardProps) {
+  // PRE-3 : symbole issu du résultat typé de l'autorité Domaine (exact / ≈ / ≥).
   const duration = formatEstimatedDuration(
     session.estimatedDurationSeconds,
-    session.isEstimatedDurationApproximate,
+    session.durationKind ?? session.isEstimatedDurationApproximate,
   );
   const summaryLine = [
     formatActivityCount(session.activityCount),

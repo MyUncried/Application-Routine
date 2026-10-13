@@ -1,0 +1,4307 @@
+[
+  {
+    "test_id": "P3-01/Catalogue:create@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "assertion_ref": "P3-01/Catalogue:create",
+    "matched_passed_tests": [
+      "ExerciseScreen — PRE-3 (quatre parcours) P3-01/Catalogue:create — Terminer écrit UNE définition (paramètres canoniques, Catégorie, Zones, médias) et jamais le brouillon de Séance"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-01/Catalogue:create@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "assertion_ref": "P3-01/Catalogue:create",
+    "matched_passed_tests": [
+      "SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-01/Catalogue:create et P3-01/Catalogue:edit — tous les champs se rouvrent ; Terminer Catalogue écrit la seule définition"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-01/Catalogue:create@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "assertion_ref": "P3-01/Catalogue:create",
+    "matched_passed_tests": [
+      "SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-01/Session:create, P3-01/Session:edit, P3-01/Catalogue:create, P3-01/Catalogue:edit — la copie se rouvre complète ; Continuer seul la persiste"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-01/Catalogue:edit@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "assertion_ref": "P3-01/Catalogue:edit",
+    "matched_passed_tests": [
+      "ExerciseScreen — PRE-3 (quatre parcours) P3-01/Catalogue:edit — tous les champs rouverts (variable, côtés, bip, CR/Fin, médias) ; Terminer met à jour cette définition"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-01/Catalogue:edit@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "assertion_ref": "P3-01/Catalogue:edit",
+    "matched_passed_tests": [
+      "SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-01/Catalogue:create et P3-01/Catalogue:edit — tous les champs se rouvrent ; Terminer Catalogue écrit la seule définition"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-01/Catalogue:edit@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "assertion_ref": "P3-01/Catalogue:edit",
+    "matched_passed_tests": [
+      "SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-01/Session:create, P3-01/Session:edit, P3-01/Catalogue:create, P3-01/Catalogue:edit — la copie se rouvre complète ; Continuer seul la persiste"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-01/Session:create@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "assertion_ref": "P3-01/Session:create",
+    "matched_passed_tests": [
+      "ExerciseScreen — PRE-3 (quatre parcours) P3-01/Session:create — la copie est appliquée au brouillon de Composition seulement (aucun service d'écriture)"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-01/Session:create@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "assertion_ref": "P3-01/Session:create",
+    "matched_passed_tests": [
+      "SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-01/Session:create et P3-01/Session:edit — une copie de Séance enregistrée ne réécrit jamais la définition source"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-01/Session:create@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "assertion_ref": "P3-01/Session:create",
+    "matched_passed_tests": [
+      "SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-01/Session:create, P3-01/Session:edit, P3-01/Catalogue:create, P3-01/Catalogue:edit — la copie se rouvre complète ; Continuer seul la persiste"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-01/Session:edit@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "assertion_ref": "P3-01/Session:edit",
+    "matched_passed_tests": [
+      "ExerciseScreen — PRE-3 (quatre parcours) P3-01/Session:edit — l'occurrence rouvre ses paramètres canoniques et médias ; Terminer les conserve"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-01/Session:edit@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "assertion_ref": "P3-01/Session:edit",
+    "matched_passed_tests": [
+      "SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-01/Session:create et P3-01/Session:edit — une copie de Séance enregistrée ne réécrit jamais la définition source"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-01/Session:edit@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "assertion_ref": "P3-01/Session:edit",
+    "matched_passed_tests": [
+      "SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-01/Session:create, P3-01/Session:edit, P3-01/Catalogue:create, P3-01/Catalogue:edit — la copie se rouvre complète ; Continuer seul la persiste"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-01/copy-isolation@src/domain/sessions/__tests__/SessionDraft.test.ts",
+    "path": "src/domain/sessions/__tests__/SessionDraft.test.ts",
+    "assertion_ref": "P3-01/copy-isolation",
+    "matched_passed_tests": [
+      "PRE-3 — copie Catalogue → Séance et duplication (paramètres, Catégorie, médias) P3-01/copy-isolation — deux copies et la définition gardent leurs propres valeurs et médias"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-01/copy-isolation@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "assertion_ref": "P3-01/copy-isolation",
+    "matched_passed_tests": [
+      "ExerciseScreen — PRE-3 (quatre parcours) P3-01/copy-isolation — modifier une occurrence ne change ni l'autre occurrence ni ses paramètres/médias"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-02/editor-fields@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+    "path": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+    "assertion_ref": "P3-02/editor-fields",
+    "matched_passed_tests": [
+      "ActivityEditorForm — PRE-3 P3-02/editor-fields — nom, Catégorie, Zones, Paramètres, description et médias accessibles ; Terminer désactivé tant que l'adaptateur l'exige"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-02/editor-fields@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "assertion_ref": "P3-02/editor-fields",
+    "matched_passed_tests": [
+      "ExerciseScreen — PRE-3 (quatre parcours) P3-02/editor-fields — Terminer reste inactif jusqu'à Nom + Catégorie + Zone + paramètres valides, puis revient à l'hôte"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-02/keyboard-scroll@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+    "path": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+    "assertion_ref": "P3-02/keyboard-scroll",
+    "matched_passed_tests": [
+      "ActivityEditorForm — PRE-3 P3-02/keyboard-scroll — corps défilant avec clavier ; Terminer hors du défilement, marge Safe Area ; description sans hauteur figée"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-03/reference-retired@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "assertion_ref": "P3-03/reference-retired",
+    "matched_passed_tests": [
+      "ExerciseScreen — PRE-3 (quatre parcours) P3-03/reference-retired — une Catégorie/Zone retirée affectée à un objet existant est conservée à l'enregistrement"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-03/reference-retired@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "assertion_ref": "P3-03/reference-retired",
+    "matched_passed_tests": [
+      "SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-03/reference-retired — Catégorie retirée conservée sur l'Exercice existant modifié"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-03/reference-retired@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "assertion_ref": "P3-03/reference-retired",
+    "matched_passed_tests": [
+      "SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-03/reference-retired — Catégorie et Zone retirées conservées ; nouvelle affectation retirée refusée"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-03/empty-create-name@src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+    "path": "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+    "assertion_ref": "P3-03/empty-create-name",
+    "matched_passed_tests": [
+      "BodyZonePickerModal — PRE-3 P3-03/empty-create-name — nom vide ou blanc : Ajouter inactif, aucun message d'erreur ; un nom valide l'active"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-03/empty-create-name@src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+    "path": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+    "assertion_ref": "P3-03/empty-create-name",
+    "matched_passed_tests": [
+      "CategoryPickerModal — PRE-3 P3-03/empty-create-name — nom vide ou blanc : Ajouter inactif, aucun message d'erreur ; un nom valide l'active"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-03/zones-presentation@src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+    "path": "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+    "assertion_ref": "P3-03/zones-presentation",
+    "matched_passed_tests": [
+      "BodyZonePickerModal — PRE-3 P3-03/zones-presentation — pastilles textuelles sans silhouette répétée ; en-tête ✕ / titre / ✓ ; sélections conservées après aller-retour"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-04/mode-targets@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+    "path": "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+    "assertion_ref": "P3-04/mode-targets",
+    "matched_passed_tests": [
+      "P3-04/mode-targets N, pauses et bip conservés ; cibles incompatibles null ; À l'échec sans cible ; retour restaure pendant l'ouverture",
+      "P3-04/mode-targets une cible « — » n'est jamais zéro et interdit ✓",
+      "P3-04/mode-targets création : première sélection Répétitions uniforme initialise la cible à 1"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-04/bounds@src/domain/activities/__tests__/ExecutionParameters.test.ts",
+    "path": "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+    "assertion_ref": "P3-04/bounds",
+    "matched_passed_tests": [
+      "P3-04/bounds — validation des paramètres actifs cible DURATION = 1 acceptée : true",
+      "P3-04/bounds — validation des paramètres actifs cible DURATION = 5999 acceptée : true",
+      "P3-04/bounds — validation des paramètres actifs cible DURATION = 0 acceptée : false",
+      "P3-04/bounds — validation des paramètres actifs cible DURATION = 6000 acceptée : false",
+      "P3-04/bounds — validation des paramètres actifs cible REPETITIONS = 1 acceptée : true",
+      "P3-04/bounds — validation des paramètres actifs cible REPETITIONS = 100 acceptée : true",
+      "P3-04/bounds — validation des paramètres actifs cible REPETITIONS = 0 acceptée : false",
+      "P3-04/bounds — validation des paramètres actifs cible REPETITIONS = 101 acceptée : false",
+      "P3-04/bounds — validation des paramètres actifs borne N = 1..99 exactement",
+      "P3-04/bounds — validation des paramètres actifs Pause et Pause entre les côtés 0..300, bip 0..10, CR/Fin 0..60",
+      "P3-04/bounds — validation des paramètres actifs valeurs fractionnaires refusées sans correction silencieuse",
+      "P3-04/bounds — validation des paramètres actifs une cible nulle est incomplète et identifie la Série en variable",
+      "P3-04/bounds — validation des paramètres actifs mode non renseigné : incomplet ; côté non renseigné normalisé Sans changement"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-05/equal-variable@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+    "path": "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+    "assertion_ref": "P3-05/equal-variable",
+    "matched_passed_tests": [
+      "P3-05/equal-variable et P3-05/toggle-restoration valeurs égales : le type validé reste VARIABLE avec ses trois lignes",
+      "P3-05/equal-variable et P3-05/toggle-restoration déplacer la dernière en tête, passer en uniforme, revenir : (60,30) puis restitution complète",
+      "P3-05/equal-variable et P3-05/toggle-restoration valider en uniforme ne persiste pas le tableau variable caché"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-05/equal-variable@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "assertion_ref": "P3-05/equal-variable",
+    "matched_passed_tests": [
+      "SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-05/equal-variable, P3-06/commit-hidden, P3-08/restoration-N1 — l'état validé est exactement relu"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-05/toggle-restoration@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+    "path": "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+    "assertion_ref": "P3-05/toggle-restoration",
+    "matched_passed_tests": [
+      "P3-05/equal-variable et P3-05/toggle-restoration valeurs égales : le type validé reste VARIABLE avec ses trois lignes",
+      "P3-05/equal-variable et P3-05/toggle-restoration déplacer la dernière en tête, passer en uniforme, revenir : (60,30) puis restitution complète",
+      "P3-05/equal-variable et P3-05/toggle-restoration valider en uniforme ne persiste pas le tableau variable caché"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-06/shrink-regrow@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+    "path": "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+    "assertion_ref": "P3-06/shrink-regrow",
+    "matched_passed_tests": [
+      "P3-06/shrink-regrow et P3-06/commit-hidden N 4→2→5 : A/B actives, C/D restaurées dans l'ordre, cinquième clone de D",
+      "P3-06/shrink-regrow et P3-06/commit-hidden ✓ à N=2 puis réouverture : C/D non conservées, nouvelles lignes clones de B"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-06/commit-hidden@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+    "path": "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+    "assertion_ref": "P3-06/commit-hidden",
+    "matched_passed_tests": [
+      "P3-06/shrink-regrow et P3-06/commit-hidden N 4→2→5 : A/B actives, C/D restaurées dans l'ordre, cinquième clone de D",
+      "P3-06/shrink-regrow et P3-06/commit-hidden ✓ à N=2 puis réouverture : C/D non conservées, nouvelles lignes clones de B"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-06/commit-hidden@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "assertion_ref": "P3-06/commit-hidden",
+    "matched_passed_tests": [
+      "SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-05/equal-variable, P3-06/commit-hidden, P3-08/restoration-N1 — l'état validé est exactement relu"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-07/move-terminal@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+    "path": "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+    "assertion_ref": "P3-07/move-terminal",
+    "matched_passed_tests": [
+      "P3-07/move-terminal — déplacement cible et Pause voyagent ensemble ; bornes sans effet",
+      "P3-07/move-terminal — déplacement lignes retirées puis restaurées après un déplacement : réinsérées en fin dans leur ordre"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-07/move-terminal@src/domain/activities/__tests__/executionCalculations.test.ts",
+    "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+    "assertion_ref": "P3-07/move-terminal",
+    "matched_passed_tests": [
+      "P3-07/move-terminal — la nouvelle dernière ligne porte PN C/A/B : intrinsèque 195 inchangé, occurrence 295 ; ✕ restitue 285"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-07/move-accessible@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "assertion_ref": "P3-07/move-accessible",
+    "matched_passed_tests": [
+      "ExecutionParametersSheet — PRE-3 P3-07/move-accessible — actions Monter/Descendre de la poignée : cible ET Pause ensemble, renumérotation, bornes absentes ; même résultat que le glisser"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-08/immediate-N1@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+    "path": "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+    "assertion_ref": "P3-08/immediate-N1",
+    "matched_passed_tests": [
+      "P3-08/immediate-N1 et P3-08/restoration-N1 réduire à N1 : effectif uniforme et par côté immédiatement, contrôles sans effet",
+      "P3-08/immediate-N1 et P3-08/restoration-N1 N3→1→3 avant ✓ restaure lignes et ordre ; ✓ à 1 rouvre uniforme/par côté sans réserve"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-08/immediate-N1@src/domain/activities/__tests__/executionCalculations.test.ts",
+    "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+    "assertion_ref": "P3-08/immediate-N1",
+    "matched_passed_tests": [
+      "P3-08/immediate-N1 — calcul du brouillon à N=1 variable N3 par paire réduite à N1 : 220 s, ordre demandé non utilisé"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-08/immediate-N1@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "assertion_ref": "P3-08/immediate-N1",
+    "matched_passed_tests": [
+      "ExecutionParametersSheet — PRE-3 P3-08/immediate-N1 — N=1 : uniforme et un côté après l'autre immédiatement ; contrôles sans effet grisés ; total 220 s"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-08/restoration-N1@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+    "path": "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+    "assertion_ref": "P3-08/restoration-N1",
+    "matched_passed_tests": [
+      "P3-08/immediate-N1 et P3-08/restoration-N1 réduire à N1 : effectif uniforme et par côté immédiatement, contrôles sans effet",
+      "P3-08/immediate-N1 et P3-08/restoration-N1 N3→1→3 avant ✓ restaure lignes et ordre ; ✓ à 1 rouvre uniforme/par côté sans réserve"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-08/restoration-N1@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "assertion_ref": "P3-08/restoration-N1",
+    "matched_passed_tests": [
+      "SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-05/equal-variable, P3-06/commit-hidden, P3-08/restoration-N1 — l'état validé est exactement relu"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-09/directions@src/domain/activities/__tests__/executionCalculations.test.ts",
+    "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+    "assertion_ref": "P3-09/directions",
+    "matched_passed_tests": [
+      "P3-09/directions et P3-09/unilateral-controls totaux indépendants du côté de départ ; PC une fois par côté, N fois par paire",
+      "P3-09/directions et P3-09/unilateral-controls en unilatéral, ordre et PC conservés en données n'injectent aucune Pause entre les côtés"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-09/directions@src/domain/activities/__tests__/executionPhrase.test.ts",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-09/directions",
+    "matched_passed_tests": [
+      "P3-15/grammar-edges P3-09/directions — départ gauche : directions inversées pour les trois formes"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-09/directions@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "assertion_ref": "P3-09/directions",
+    "matched_passed_tests": [
+      "ExecutionParametersSheet — PRE-3 P3-09/directions — droite→gauche ou gauche→droite : totaux identiques ; PC une fois par côté, N fois par série"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-09/unilateral-controls@src/domain/activities/__tests__/executionCalculations.test.ts",
+    "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+    "assertion_ref": "P3-09/unilateral-controls",
+    "matched_passed_tests": [
+      "P3-09/directions et P3-09/unilateral-controls totaux indépendants du côté de départ ; PC une fois par côté, N fois par paire",
+      "P3-09/directions et P3-09/unilateral-controls en unilatéral, ordre et PC conservés en données n'injectent aucune Pause entre les côtés"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-09/unilateral-controls@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "assertion_ref": "P3-09/unilateral-controls",
+    "matched_passed_tests": [
+      "ExecutionParametersSheet — PRE-3 P3-09/unilateral-controls — sans changement de côté : ordre et PC masqués, aucune contribution de PC"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-10/profile-new-only@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "assertion_ref": "P3-10/profile-new-only",
+    "matched_passed_tests": [
+      "ExerciseScreen — PRE-3 (quatre parcours) P3-10/profile-new-only — un nouvel Exercice copie CR/Fin du Profil ; la PC est copiée à l'activation ; un objet existant garde 7/3/2"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-10/profile-new-only@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "assertion_ref": "P3-10/profile-new-only",
+    "matched_passed_tests": [
+      "SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-10/profile-new-only — PC/CR/Fin enregistrés 7/3/2 inchangés après une modification du Profil"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-10/legacy-neutral-proposal@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "assertion_ref": "P3-10/legacy-neutral-proposal",
+    "matched_passed_tests": [
+      "SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-10/legacy-neutral-proposal et P3-17/corrupt-version — ancien objet sans JSON : neutre 0 sans Profil ; JSON corrompu : erreur explicite"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-10/legacy-neutral-proposal@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "assertion_ref": "P3-10/legacy-neutral-proposal",
+    "matched_passed_tests": [
+      "SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-10/legacy-neutral-proposal et P3-17/corrupt-version — ancienne occurrence sans JSON lue telle quelle ; JSON corrompu : erreur explicite"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-11/all-modes-bip@src/domain/activities/__tests__/ExecutionParameters.test.ts",
+    "path": "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+    "assertion_ref": "P3-11/all-modes-bip",
+    "matched_passed_tests": [
+      "P3-11/all-modes-bip — bip commun aux trois modes DURATION accepte 0/1/10 et refuse −1/11/fraction",
+      "P3-11/all-modes-bip — bip commun aux trois modes REPETITIONS accepte 0/1/10 et refuse −1/11/fraction",
+      "P3-11/all-modes-bip — bip commun aux trois modes TO_FAILURE accepte 0/1/10 et refuse −1/11/fraction",
+      "P3-11/all-modes-bip — bip commun aux trois modes À l'échec : aucune cible numérique admise"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-11/all-modes-bip@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+    "path": "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+    "assertion_ref": "P3-11/all-modes-bip",
+    "matched_passed_tests": [
+      "P3-11/all-modes-bip le bip survit aux trois modes et à ✓"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-11/all-modes-bip@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "assertion_ref": "P3-11/all-modes-bip",
+    "matched_passed_tests": [
+      "ExecutionParametersSheet — PRE-3 P3-11/all-modes-bip — Bip présent et commun dans les trois modes ; même valeur conservée en changeant de mode"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-11/all-modes-bip@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "assertion_ref": "P3-11/all-modes-bip",
+    "matched_passed_tests": [
+      "SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-11/all-modes-bip — le même bip valide est relu dans les trois modes"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-12/normative-totals@src/domain/activities/__tests__/executionCalculations.test.ts",
+    "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+    "assertion_ref": "P3-12/normative-totals",
+    "matched_passed_tests": [
+      "P3-12/normative-totals et P3-12/omission aucune convention historique de 2 s par répétition",
+      "P3-12/normative-totals et P3-12/omission Compte à rebours et Fin exclus du total intrinsèque"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-12/normative-totals@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+    "path": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+    "assertion_ref": "P3-12/normative-totals",
+    "matched_passed_tests": [
+      "ActivityEditorForm — PRE-3 P3-12/normative-totals — totaux affichés tels que calculés : A 195 s, C 405 s, D 375 s exacts ; Répétitions cadencées ≈ 5 min ; Durée cadencée 5 min exact"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-12/omission@src/domain/activities/__tests__/executionCalculations.test.ts",
+    "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+    "assertion_ref": "P3-12/omission",
+    "matched_passed_tests": [
+      "P3-12/normative-totals et P3-12/omission aucune convention historique de 2 s par répétition",
+      "P3-12/normative-totals et P3-12/omission Compte à rebours et Fin exclus du total intrinsèque"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-12/omission@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+    "path": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+    "assertion_ref": "P3-12/omission",
+    "matched_passed_tests": [
+      "ActivityEditorForm — PRE-3 P3-12/omission — Répétitions sans bip et À l'échec : aucune ligne, valeur, zéro, tiret ni « ≥ » de durée"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-13/R-terminal@src/domain/activities/__tests__/executionCalculations.test.ts",
+    "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+    "assertion_ref": "P3-13/R-terminal",
+    "matched_passed_tests": [
+      "P3-13/R-terminal — R remplace la seule Pause terminale A : 285 avec R120 ; N1 bilatéral : 235 avec R30 ; R0/absent sans effet"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-13/unknown-known@src/domain/activities/__tests__/executionCalculations.test.ts",
+    "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+    "assertion_ref": "P3-13/unknown-known",
+    "matched_passed_tests": [
+      "P3-13/unknown-known — contributions connues construites depuis le registre unilatéral/par côté/par paire avec R120 : travail inconnu jamais inventé"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-13/tours-cycles-list@src/domain/activities/__tests__/executionCalculations.test.ts",
+    "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+    "assertion_ref": "P3-13/tours-cycles-list",
+    "matched_passed_tests": [
+      "P3-13/tours-cycles-list — agrégation de Séance exact si tout exact ; ≈ si une estimation ; ≥ dès un inconnu (pauses connues incluses)",
+      "P3-13/tours-cycles-list — Compte à rebours et Fin une fois par Exercice complet plan complet : occurrence + CR + Fin une seule fois, jamais par Série ni par côté"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-13/tours-cycles-list@src/features/sessions/__tests__/formatSessionSummary.test.ts",
+    "path": "src/features/sessions/__tests__/formatSessionSummary.test.ts",
+    "assertion_ref": "P3-13/tours-cycles-list",
+    "matched_passed_tests": [
+      "formatEstimatedDuration — PRE-3 (P3-13/tours-cycles-list) P3-13/tours-cycles-list — exact sans symbole, ≈ estimé, ≥ travail inconnu ; Tour répété ; booléen historique accepté"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-13/tours-cycles-list@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "assertion_ref": "P3-13/tours-cycles-list",
+    "matched_passed_tests": [
+      "SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-13/tours-cycles-list — total de liste = lecture complète par l'autorité unique ; avant/dans/après Circuit, Tours 99, ≈ et ≥"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-13/no-auto-R@src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+    "path": "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+    "assertion_ref": "P3-13/no-auto-R",
+    "matched_passed_tests": [
+      "ActivitySelectionScreen P3-13/no-auto-R — a new copy gets R = 0 s whatever the Profile default, and carries full parameters/category/media"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-13/no-auto-R@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "assertion_ref": "P3-13/no-auto-R",
+    "matched_passed_tests": [
+      "ExerciseScreen — PRE-3 (quatre parcours) P3-13/no-auto-R — nouvelle occurrence : R = 0 s quel que soit le Profil ; occurrence existante : R = 30 s inchangée"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-13/no-auto-R@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "assertion_ref": "P3-13/no-auto-R",
+    "matched_passed_tests": [
+      "SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-13/no-auto-R — nouvelle occurrence R absente, occurrence existante R30 inchangée"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-14/inverse-enumeration@src/domain/activities/__tests__/executionCalculations.test.ts",
+    "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+    "assertion_ref": "P3-14/inverse-enumeration",
+    "matched_passed_tests": [
+      "P3-14/inverse-enumeration et P3-14/inverse-explicit — inversion Durée uniforme T=30, P=10 : demandé 100 → N=3/120 s avec message ; 80 → N=2 sans message",
+      "P3-14/inverse-enumeration et P3-14/inverse-explicit — inversion Durée uniforme cas 6423:9953 : 3 × 90 s, Pause 15 s → 5 min 15 s sans ajustement"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-14/inverse-enumeration@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "assertion_ref": "P3-14/inverse-enumeration",
+    "matched_passed_tests": [
+      "ExecutionParametersSheet — PRE-3 P3-14/inverse-enumeration — total demandé 100 s : N=3 retenu (égalité vers le plus grand), message d'ajustement 2 min ; 80 s exact sans message"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-14/inverse-boundaries@src/domain/activities/__tests__/executionCalculations.test.ts",
+    "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+    "assertion_ref": "P3-14/inverse-boundaries",
+    "matched_passed_tests": [
+      "P3-14/inverse-boundaries N=1 normalisé par côté ; en deçà du minimum → N=1 ; au-delà du maximum → N=99 ; jamais 0/100",
+      "P3-14/inverse-boundaries inversion désactivée en variable, Répétitions et À l'échec"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-14/inverse-boundaries@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "assertion_ref": "P3-14/inverse-boundaries",
+    "matched_passed_tests": [
+      "ExecutionParametersSheet — PRE-3 P3-14/inverse-boundaries — inversion réservée à la Durée uniforme : total non modifiable en variable, Répétitions ou À l'échec"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus-276@src/domain/activities/__tests__/executionPhrase.test.ts",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus-276",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) le corpus contient 276 cas et la distribution 140 sans total / 46 ≈ / 90 exacts",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 1 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 2 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 3 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 4 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 5 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 6 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 7 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 8 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 9 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 10 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 11 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 12 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 13 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 14 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 15 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 16 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 17 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 18 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 19 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 20 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 21 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 22 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 23 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 24 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 25 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 26 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 27 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 28 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 29 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 30 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 31 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 32 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 33 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 34 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 35 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 36 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 37 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 38 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 39 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 40 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 41 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 42 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 43 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 44 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 45 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 46 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 47 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 48 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 49 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 50 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 51 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 52 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 53 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 54 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 55 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 56 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 57 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 58 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 59 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 60 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 61 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 62 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 63 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 64 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 65 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 66 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 67 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 68 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 69 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 70 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 71 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 72 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 73 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 74 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 75 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 76 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 77 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 78 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 79 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 80 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 81 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 82 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 83 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 84 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 85 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 86 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 87 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 88 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 89 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 90 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 91 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 92 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 93 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 94 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 95 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 96 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 97 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 98 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 99 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 100 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 101 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 102 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 103 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 104 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 105 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 106 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 107 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 108 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 109 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 110 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 111 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 112 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 113 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 114 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 115 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 116 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 117 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 118 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 119 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 120 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 121 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 122 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 123 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 124 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 125 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 126 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 127 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 128 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 129 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 130 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 131 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 132 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 133 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 134 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 135 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 136 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 137 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 138 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 139 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 140 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 141 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 142 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 143 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 144 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 145 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 146 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 147 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 148 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 149 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 150 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 151 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 152 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 153 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 154 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 155 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 156 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 157 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 158 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 159 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 160 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 161 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 162 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 163 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 164 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 165 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 166 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 167 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 168 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 169 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 170 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 171 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 172 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 173 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 174 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 175 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 176 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 177 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 178 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 179 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 180 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 181 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 182 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 183 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 184 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 185 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 186 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 187 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 188 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 189 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 190 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 191 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 192 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 193 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 194 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 195 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 196 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 197 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 198 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 199 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 200 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 201 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 202 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 203 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 204 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 205 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 206 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 207 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 208 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 209 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 210 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 211 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 212 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 213 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 214 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 215 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 216 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 217 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 218 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 219 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 220 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 221 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 222 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 223 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 224 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 225 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 226 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 227 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 228 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 229 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 230 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 231 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 232 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 233 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 234 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 235 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 236 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 237 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 238 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 239 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 240 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 241 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 242 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 243 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 244 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 245 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 246 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 247 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 248 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 249 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 250 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 251 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 252 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 253 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 254 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 255 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 256 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 257 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 258 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 259 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 260 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 261 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 262 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 263 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 264 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 265 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 266 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 267 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 268 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 269 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 270 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 271 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 272 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 273 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 274 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 275 : texte, segments gras et montant",
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 276 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/grammar-edges@src/domain/activities/__tests__/executionPhrase.test.ts",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/grammar-edges",
+    "matched_passed_tests": [
+      "P3-15/grammar-edges N1 unilatéral D30 : P0 omet seulement le total redondant, P15 affiche 45 s",
+      "P3-15/grammar-edges variable : 2 et 3 cibles énumérées avec « puis » ; plus de 3 → vrai min/max des cibles actives",
+      "P3-15/grammar-edges la clause des pauses variables est omise sans perte de données dans le calcul",
+      "P3-15/grammar-edges P3-09/directions — départ gauche : directions inversées pour les trois formes",
+      "P3-15/grammar-edges Répétitions : « cadencées » seulement si bip > 0 ; Durée et À l'échec n'ont jamais de clause de bip",
+      "P3-15/grammar-edges deux valeurs identiques à des positions différentes restent deux segments distincts",
+      "P3-15/grammar-edges brouillon incomplet : aucune phrase inventée"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/grammar-edges@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+    "path": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+    "assertion_ref": "P3-15/grammar-edges",
+    "matched_passed_tests": [
+      "ActivityEditorForm — PRE-3 P3-15/grammar-edges — N=1 sans pause : total redondant omis ; pause 15 s : total présent ; ≤ 3 variables énumérées, > 3 min/max"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/no-storage@src/domain/activities/__tests__/exerciseSnapshot.test.ts",
+    "path": "src/domain/activities/__tests__/exerciseSnapshot.test.ts",
+    "assertion_ref": "P3-15/no-storage",
+    "matched_passed_tests": [
+      "P3-18/historical-immutability et P3-15/no-storage la durée réalisée reste inchangée ; aucune phrase/segment sérialisé ; la phrase se régénère",
+      "P3-18/historical-immutability et P3-15/no-storage version inconnue → erreur de données explicite"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/no-storage@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "assertion_ref": "P3-15/no-storage",
+    "matched_passed_tests": [
+      "SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-15/no-storage — aucune colonne ni clé de phrase/segment n'est persistée"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/no-storage@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "assertion_ref": "P3-15/no-storage",
+    "matched_passed_tests": [
+      "SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-15/no-storage — aucune colonne de phrase/segment ; seul le JSON canonique est stocké"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/long-phrase@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+    "path": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+    "assertion_ref": "P3-15/long-phrase",
+    "matched_passed_tests": [
+      "ActivityEditorForm — PRE-3 P3-15/long-phrase — phrase longue intégrale en Text imbriqués, sans numberOfLines ni ellipse ; segments gras émis par le générateur"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-16/sheet-boundary@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+    "path": "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+    "assertion_ref": "P3-16/sheet-boundary",
+    "matched_passed_tests": [
+      "P3-16/sheet-boundary et P3-16/fold-incomplete ✕ : le parent reste octet-équivalent (le sous-brouillon est une copie)",
+      "P3-16/sheet-boundary et P3-16/fold-incomplete ✓ n'applique que les paramètres effectifs valides",
+      "P3-16/sheet-boundary et P3-16/fold-incomplete Série 2 incomplète, tableau replié : aucun ✓, message « Série 2 »"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-16/sheet-boundary@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "assertion_ref": "P3-16/sheet-boundary",
+    "matched_passed_tests": [
+      "ExerciseScreen — PRE-3 (quatre parcours) P3-16/sheet-boundary — ✕ laisse le parent identique ; ✓ applique au parent sans aucun appel de service ; la phrase change"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-16/fold-incomplete@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+    "path": "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+    "assertion_ref": "P3-16/fold-incomplete",
+    "matched_passed_tests": [
+      "P3-16/sheet-boundary et P3-16/fold-incomplete ✕ : le parent reste octet-équivalent (le sous-brouillon est une copie)",
+      "P3-16/sheet-boundary et P3-16/fold-incomplete ✓ n'applique que les paramètres effectifs valides",
+      "P3-16/sheet-boundary et P3-16/fold-incomplete Série 2 incomplète, tableau replié : aucun ✓, message « Série 2 »"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-16/fold-incomplete@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "assertion_ref": "P3-16/fold-incomplete",
+    "matched_passed_tests": [
+      "ExecutionParametersSheet — PRE-3 P3-16/fold-incomplete — Série 2 incomplète : ✓ grisé, cellule « Série 2 » signalée (aucun message, décision D-2), même tableau replié, données intactes, total —"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-16/parent-guard@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "assertion_ref": "P3-16/parent-guard",
+    "matched_passed_tests": [
+      "ExerciseScreen — PRE-3 (quatre parcours) P3-16/parent-guard — la garde parent s'arme sur un média retiré ; Annuler la garde conserve tout ; Confirmer nettoie les seules préparations"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-16/failure-doubletap@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "assertion_ref": "P3-16/failure-doubletap",
+    "matched_passed_tests": [
+      "ExerciseScreen — PRE-3 (quatre parcours) P3-16/failure-doubletap — une seule opération en vol ; échec : brouillon et médias conservés, erreur annoncée ; réessai unique"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-16/failure-doubletap@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "assertion_ref": "P3-16/failure-doubletap",
+    "matched_passed_tests": [
+      "SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-16/failure-doubletap et P3-17/transaction-FK — asset inconnu : rollback complet ; réessai : une seule définition"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-16/failure-doubletap@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "assertion_ref": "P3-16/failure-doubletap",
+    "matched_passed_tests": [
+      "SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-16/failure-doubletap et P3-17/transaction-FK — échec en cours : rollback complet ; réessai unique ; IDs et created_at stables"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-17/migration-real@src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+    "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+    "assertion_ref": "P3-17/migration-real",
+    "matched_passed_tests": [
+      "migration009 — paramètres canoniques, Catégorie des copies, médias d'occurrence (PRE-3) P3-17/migration/populated-v8-v9 et P3-17/migration-real — IDs, liens, dates et valeurs conservés ; aucun backfill du Profil"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-17/canonical-roundtrip@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "assertion_ref": "P3-17/canonical-roundtrip",
+    "matched_passed_tests": [
+      "SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-17/canonical-roundtrip et P3-23/import-multiple — base fichier fermée puis rouverte : paramètres, ordre et métadonnées intacts"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-17/canonical-roundtrip@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "assertion_ref": "P3-17/canonical-roundtrip",
+    "matched_passed_tests": [
+      "SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-17/canonical-roundtrip — base fichier fermée puis rouverte : occurrence canonique, Catégorie et médias intacts"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-17/corrupt-version@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "assertion_ref": "P3-17/corrupt-version",
+    "matched_passed_tests": [
+      "SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-10/legacy-neutral-proposal et P3-17/corrupt-version — ancien objet sans JSON : neutre 0 sans Profil ; JSON corrompu : erreur explicite"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-17/corrupt-version@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "assertion_ref": "P3-17/corrupt-version",
+    "matched_passed_tests": [
+      "SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-10/legacy-neutral-proposal et P3-17/corrupt-version — ancienne occurrence sans JSON lue telle quelle ; JSON corrompu : erreur explicite"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-17/transaction-FK@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "assertion_ref": "P3-17/transaction-FK",
+    "matched_passed_tests": [
+      "SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-16/failure-doubletap et P3-17/transaction-FK — asset inconnu : rollback complet ; réessai : une seule définition"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-17/transaction-FK@src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+    "assertion_ref": "P3-17/transaction-FK",
+    "matched_passed_tests": [
+      "SqliteMediaRepository — PRE-3 (NodeSqliteDatabase REAL) P3-17/transaction-FK — assets + liens ordonnés atomiques ; positions uniques ; asset existant jamais réécrit"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-17/transaction-FK@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "assertion_ref": "P3-17/transaction-FK",
+    "matched_passed_tests": [
+      "SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-16/failure-doubletap et P3-17/transaction-FK — échec en cours : rollback complet ; réessai unique ; IDs et created_at stables"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-18/copy-complete@src/domain/activities/__tests__/exerciseSnapshot.test.ts",
+    "path": "src/domain/activities/__tests__/exerciseSnapshot.test.ts",
+    "assertion_ref": "P3-18/copy-complete",
+    "matched_passed_tests": [
+      "P3-18/copy-complete — instantané complet et immuable paramètres, Catégorie, médias ordonnés et métadonnées ; même fichier physique",
+      "P3-18/copy-complete — instantané complet et immuable muter la source après coup n'atteint jamais l'instantané"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-18/copy-complete@src/domain/sessions/__tests__/SessionDraft.test.ts",
+    "path": "src/domain/sessions/__tests__/SessionDraft.test.ts",
+    "assertion_ref": "P3-18/copy-complete",
+    "matched_passed_tests": [
+      "PRE-3 — copie Catalogue → Séance et duplication (paramètres, Catégorie, médias) P3-18/copy-complete — la copie porte paramètres, Catégorie et médias ordonnés (mêmes fichiers), sans R automatique"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-18/copy-complete@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "assertion_ref": "P3-18/copy-complete",
+    "matched_passed_tests": [
+      "SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-18/copy-complete — duplication : nouvelle occurrence et nouveaux liens, mêmes fichiers, aucune mutation croisée"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-18/historical-immutability@src/domain/activities/__tests__/exerciseSnapshot.test.ts",
+    "path": "src/domain/activities/__tests__/exerciseSnapshot.test.ts",
+    "assertion_ref": "P3-18/historical-immutability",
+    "matched_passed_tests": [
+      "P3-18/historical-immutability et P3-15/no-storage la durée réalisée reste inchangée ; aucune phrase/segment sérialisé ; la phrase se régénère",
+      "P3-18/historical-immutability et P3-15/no-storage version inconnue → erreur de données explicite"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-19/hold@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "assertion_ref": "P3-19/hold",
+    "matched_passed_tests": [
+      "ExecutionParametersSheet — PRE-3 P3-19/hold — Séries : tap 1, rien avant 500 ms, répétition 150 ms, pas 5 après 2 s, arrêt immédiat au relâchement"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-19/hold@src/shared/ui/__tests__/ProfileStepper.test.ts",
+    "path": "src/shared/ui/__tests__/ProfileStepper.test.ts",
+    "assertion_ref": "P3-19/hold",
+    "matched_passed_tests": [
+      "Politique de maintien PRE-3 (ProfileStepper.tsx, option) P3-19/hold — tap 1 ; rien avant 500 ms ; répétition 150 ms ; paliers 1/5/10 à 2 s/4 s en multiples directionnels ; bornes ; arrêt immédiat sans pas au relâchement"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-19/non-accelerated@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "assertion_ref": "P3-19/non-accelerated",
+    "matched_passed_tests": [
+      "ExecutionParametersSheet — PRE-3 P3-19/non-accelerated — Bip, Compte à rebours et Fin restent au pas 1 au-delà de 4 s de maintien"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-19/non-accelerated@src/shared/ui/__tests__/ProfileStepper.test.ts",
+    "path": "src/shared/ui/__tests__/ProfileStepper.test.ts",
+    "assertion_ref": "P3-19/non-accelerated",
+    "matched_passed_tests": [
+      "Politique de maintien PRE-3 (ProfileStepper.tsx, option) P3-19/non-accelerated — Bip/CR/Fin au pas 1 au-delà de 4 s ; le Profil garde 450 ms et le pas 1"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-19/exclusive-scroll@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "assertion_ref": "P3-19/exclusive-scroll",
+    "matched_passed_tests": [
+      "ExecutionParametersSheet — PRE-3 P3-19/exclusive-scroll — un seul contrôle en place ouvert ; l'ouverture d'un autre démonte le premier ; en-tête hors du corps défilant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-20/all-surfaces@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+    "path": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+    "assertion_ref": "P3-20/all-surfaces",
+    "matched_passed_tests": [
+      "ActivityEditorForm — PRE-3 P3-20/all-surfaces — titres et valeurs des écrans de référence ; carte bordée rayon 12 ; phrase Inter 13 / 20"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-20/all-surfaces@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "assertion_ref": "P3-20/all-surfaces",
+    "matched_passed_tests": [
+      "ExecutionParametersSheet — PRE-3 P3-20/all-surfaces — titre, ✕ / ✓, lignes et libellés des écrans de référence ; valeurs « — » / « Aucun » à l'état vide"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-20/all-surfaces@src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+    "path": "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+    "assertion_ref": "P3-20/all-surfaces",
+    "matched_passed_tests": [
+      "BodyZonePickerModal — PRE-3 P3-20/all-surfaces — feuille ancrée en bas, voile #1F2129 à 34 %, en-tête au-dessus du contenu défilant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-20/all-surfaces@src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+    "path": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+    "assertion_ref": "P3-20/all-surfaces",
+    "matched_passed_tests": [
+      "CategoryPickerModal — PRE-3 P3-20/all-surfaces — feuille ancrée en bas, voile #1F2129 à 34 %, en-tête ✕ / titre / ✓ (D-8), pastilles 30 rayon 16, action Créer 32"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-20/sheet-specific@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "assertion_ref": "P3-20/sheet-specific",
+    "matched_passed_tests": [
+      "ExecutionParametersSheet — PRE-3 P3-20/sheet-specific — voile #1F2129 à 34 % ; Bip avant le total applicable, sinon avant Compte à rebours ; lignes indentées vs premier niveau",
+      "ExecutionParametersSheet — PRE-3 P3-20/sheet-specific — À l'échec : aucun total, Bip immédiatement avant Compte à rebours"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-21/accessible-controls@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+    "path": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+    "assertion_ref": "P3-21/accessible-controls",
+    "matched_passed_tests": [
+      "ActivityEditorForm — PRE-3 P3-21/accessible-controls — libellés complets ; la feuille reçoit le focus modal ; ✕ y revient sans modifier le parent"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-21/accessible-controls@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "assertion_ref": "P3-21/accessible-controls",
+    "matched_passed_tests": [
+      "ExecutionParametersSheet — PRE-3 P3-21/accessible-controls — libellés complets, états désactivés, valeurs courantes, actions ✓/✕ nommées"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-22/scope-regression@src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+    "path": "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+    "assertion_ref": "P3-22/scope-regression",
+    "matched_passed_tests": [
+      "BodyZonePickerModal — PRE-3 P3-22/scope-regression — Zones retirées absentes, dernière Zone non décochable, appui long conservé"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-22/scope-regression@src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+    "path": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+    "assertion_ref": "P3-22/scope-regression",
+    "matched_passed_tests": [
+      "CategoryPickerModal — PRE-3 P3-22/scope-regression — valeurs retirées absentes de la liste, menu d'appui long et sélection par appui court conservés"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-22/scope-regression@src/features/sessions/__tests__/compositionPresentation.test.ts",
+    "path": "src/features/sessions/__tests__/compositionPresentation.test.ts",
+    "assertion_ref": "P3-22/scope-regression",
+    "matched_passed_tests": [
+      "PRE-3 — synthèses de Composition (adaptation minimale, P3-22) P3-22/scope-regression — carte : indicateur « N séries variables » sans détail des valeurs (v13 §7) ; scalaires inchangés sans paramètres canoniques ; ≈ pour un travail estimé"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-22/scope-regression@src/shared/ui/__tests__/ProfileStepper.test.ts",
+    "path": "src/shared/ui/__tests__/ProfileStepper.test.ts",
+    "assertion_ref": "P3-22/scope-regression",
+    "matched_passed_tests": [
+      "Politique de maintien PRE-3 (ProfileStepper.tsx, option) P3-22/scope-regression — la politique PRE-3 est opt-in : aucune constante Profil réécrite, le Profil n'utilise jamais l'accélération"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-23/import-multiple@src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+    "path": "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+    "assertion_ref": "P3-23/import-multiple",
+    "matched_passed_tests": [
+      "ActivityMediaImportService — PRE-3 P3-23/import-multiple — photo+vidéo+photo : trois éléments prêts, ordre conservé, état Importation visible, aucune conversion ni plafond"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-23/import-multiple@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "assertion_ref": "P3-23/import-multiple",
+    "matched_passed_tests": [
+      "SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-17/canonical-roundtrip et P3-23/import-multiple — base fichier fermée puis rouverte : paramètres, ordre et métadonnées intacts"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-23/import-multiple@src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+    "path": "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+    "assertion_ref": "P3-23/import-multiple",
+    "matched_passed_tests": [
+      "LocalMediaStore — PRE-3 (fichiers temporaires réels) P3-23/import-multiple — trois copies internes stables, associations ordonnées durables relues après réouverture de la base"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-23/cancel-local-error@src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+    "path": "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+    "assertion_ref": "P3-23/cancel-local-error",
+    "matched_passed_tests": [
+      "ActivityMediaImportService — PRE-3 P3-23/cancel-local-error — annulation neutre ; échec local isolé avec Réessayer sans doublon ; stockage plein et incompatibilité locales"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-23/cancel-local-error@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "assertion_ref": "P3-23/cancel-local-error",
+    "matched_passed_tests": [
+      "ExerciseScreen — PRE-3 (quatre parcours) P3-23/cancel-local-error — annulation neutre ; élément échoué visible avec Réessayer ; brouillon intact ; réessai sans doublon"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-23/cancel-local-error@src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+    "path": "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+    "assertion_ref": "P3-23/cancel-local-error",
+    "matched_passed_tests": [
+      "LocalMediaStore — PRE-3 (fichiers temporaires réels) P3-23/cancel-local-error — copie interrompue sans fichier partiel ; les autres conservées ; Réessayer réécrit la même identité sans doublon"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-23/permissions@src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+    "path": "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+    "assertion_ref": "P3-23/permissions",
+    "matched_passed_tests": [
+      "ActivityMediaImportService — PRE-3 P3-23/permissions — photothèque seule, accès limité accepté, refus actionnable, résultat Android en attente consommé une fois, nom/assetId nuls non fatals"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-23/file-preservation@src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+    "assertion_ref": "P3-23/file-preservation",
+    "matched_passed_tests": [
+      "SqliteMediaRepository — PRE-3 (NodeSqliteDatabase REAL) P3-23/file-preservation — retirer tous les liens ne supprime jamais l'asset ; références comptées sur définitions et occurrences"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-23/file-preservation@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "assertion_ref": "P3-23/file-preservation",
+    "matched_passed_tests": [
+      "SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL) P3-23/file-preservation — retirer un lien ou une occurrence ne supprime jamais l'asset référencé ailleurs"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-23/file-preservation@src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+    "path": "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+    "assertion_ref": "P3-23/file-preservation",
+    "matched_passed_tests": [
+      "LocalMediaStore — PRE-3 (fichiers temporaires réels) P3-23/file-preservation — un fichier partagé par la définition, deux occurrences et un brouillon actif n'est jamais supprimé ; seule la préparation non référencée du brouillon abandonné l'est"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-23/video-thumbnail@src/infrastructure/media/__tests__/VideoPoster.test.ts",
+    "path": "src/infrastructure/media/__tests__/VideoPoster.test.ts",
+    "assertion_ref": "P3-23/video-thumbnail",
+    "matched_passed_tests": [
+      "VideoPoster — PRE-3 P3-23/video-thumbnail — affiche régénérée via l'API vérifiée, lecteur muet jamais lancé et libéré, référence native jamais persistée puis libérée"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-17/migration/fresh-v9",
+    "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+    "assertion_ref": "P3-17/migration/fresh-v9",
+    "matched_passed_tests": [
+      "migration009 — paramètres canoniques, Catégorie des copies, médias d'occurrence (PRE-3) P3-17/migration/fresh-v9 — base vide : 001..009 appliquées, version 9, tables et contraintes disponibles"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-17/migration/populated-v8-v9",
+    "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+    "assertion_ref": "P3-17/migration/populated-v8-v9",
+    "matched_passed_tests": [
+      "migration009 — paramètres canoniques, Catégorie des copies, médias d'occurrence (PRE-3) P3-17/migration/populated-v8-v9 et P3-17/migration-real — IDs, liens, dates et valeurs conservés ; aucun backfill du Profil"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-17/migration/idempotent",
+    "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+    "assertion_ref": "P3-17/migration/idempotent",
+    "matched_passed_tests": [
+      "migration009 — paramètres canoniques, Catégorie des copies, médias d'occurrence (PRE-3) P3-17/migration/idempotent — second appel : version et données identiques, aucune association dupliquée"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-17/migration/foreign-key-position",
+    "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+    "assertion_ref": "P3-17/migration/foreign-key-position",
+    "matched_passed_tests": [
+      "migration009 — paramètres canoniques, Catégorie des copies, médias d'occurrence (PRE-3) P3-17/migration/foreign-key-position — FK vides ; lien orphelin ou position dupliquée refusés ; rollback intégral"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-17/migration/malformed-unknown-json",
+    "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+    "assertion_ref": "P3-17/migration/malformed-unknown-json",
+    "matched_passed_tests": [
+      "migration009 — paramètres canoniques, Catégorie des copies, médias d'occurrence (PRE-3) P3-17/migration/malformed-unknown-json — erreur typée, aucune coercition ni écriture destructive"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-17/migration/scalar-projection",
+    "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+    "assertion_ref": "P3-17/migration/scalar-projection",
+    "matched_passed_tests": [
+      "migration009 — paramètres canoniques, Catégorie des copies, médias d'occurrence (PRE-3) P3-17/migration/scalar-projection — JSON et projections concordants ; le JSON fait autorité ; relecture Catalogue et Séance identique"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-17/migration/legacy-out-of-bounds",
+    "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+    "assertion_ref": "P3-17/migration/legacy-out-of-bounds",
+    "matched_passed_tests": [
+      "migration009 — paramètres canoniques, Catégorie des copies, médias d'occurrence (PRE-3) P3-17/migration/legacy-out-of-bounds — anciennes valeurs hors bornes lues sans clamp ; nouvelle modification validée explicitement"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-17/migration/per-statement-rollback",
+    "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+    "assertion_ref": "P3-17/migration/per-statement-rollback",
+    "matched_passed_tests": [
+      "migration009 — paramètres canoniques, Catégorie des copies, médias d'occurrence (PRE-3) P3-17/migration/per-statement-rollback — échec injecté à chaque instruction asset/définition/occurrence/lien : données intactes, réessai unique"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-12/numeric/A",
+    "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+    "assertion_ref": "P3-12/numeric/A",
+    "matched_passed_tests": [
+      "P3-12/numeric — 13 cas indépendants (attendus-numeriques.json) cas A"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-12/numeric/B",
+    "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+    "assertion_ref": "P3-12/numeric/B",
+    "matched_passed_tests": [
+      "P3-12/numeric — 13 cas indépendants (attendus-numeriques.json) cas B"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-12/numeric/C",
+    "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+    "assertion_ref": "P3-12/numeric/C",
+    "matched_passed_tests": [
+      "P3-12/numeric — 13 cas indépendants (attendus-numeriques.json) cas C",
+      "P3-12/numeric — 13 cas indépendants (attendus-numeriques.json) cas CADENCE"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-12/numeric/D",
+    "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+    "assertion_ref": "P3-12/numeric/D",
+    "matched_passed_tests": [
+      "P3-12/numeric — 13 cas indépendants (attendus-numeriques.json) cas D",
+      "P3-12/numeric — 13 cas indépendants (attendus-numeriques.json) cas DURATION_BEEP"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-12/numeric/E",
+    "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+    "assertion_ref": "P3-12/numeric/E",
+    "matched_passed_tests": [
+      "P3-12/numeric — 13 cas indépendants (attendus-numeriques.json) cas E"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-12/numeric/F0",
+    "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+    "assertion_ref": "P3-12/numeric/F0",
+    "matched_passed_tests": [
+      "P3-12/numeric — 13 cas indépendants (attendus-numeriques.json) cas F0"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-12/numeric/F4",
+    "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+    "assertion_ref": "P3-12/numeric/F4",
+    "matched_passed_tests": [
+      "P3-12/numeric — 13 cas indépendants (attendus-numeriques.json) cas F4"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-12/numeric/CADENCE",
+    "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+    "assertion_ref": "P3-12/numeric/CADENCE",
+    "matched_passed_tests": [
+      "P3-12/numeric — 13 cas indépendants (attendus-numeriques.json) cas CADENCE"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-12/numeric/DURATION_BEEP",
+    "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+    "assertion_ref": "P3-12/numeric/DURATION_BEEP",
+    "matched_passed_tests": [
+      "P3-12/numeric — 13 cas indépendants (attendus-numeriques.json) cas DURATION_BEEP"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-12/numeric/N1_SIDE",
+    "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+    "assertion_ref": "P3-12/numeric/N1_SIDE",
+    "matched_passed_tests": [
+      "P3-12/numeric — 13 cas indépendants (attendus-numeriques.json) cas N1_SIDE",
+      "P3-12/numeric — 13 cas indépendants (attendus-numeriques.json) cas N1_SIDE_R"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-12/numeric/N1_SIDE_R",
+    "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+    "assertion_ref": "P3-12/numeric/N1_SIDE_R",
+    "matched_passed_tests": [
+      "P3-12/numeric — 13 cas indépendants (attendus-numeriques.json) cas N1_SIDE_R"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-12/numeric/N1_WITH_PAUSE",
+    "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+    "assertion_ref": "P3-12/numeric/N1_WITH_PAUSE",
+    "matched_passed_tests": [
+      "P3-12/numeric — 13 cas indépendants (attendus-numeriques.json) cas N1_WITH_PAUSE"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-12/numeric/N1_NO_PAUSE",
+    "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+    "assertion_ref": "P3-12/numeric/N1_NO_PAUSE",
+    "matched_passed_tests": [
+      "P3-12/numeric — 13 cas indépendants (attendus-numeriques.json) cas N1_NO_PAUSE"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/1",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/1",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 1 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/2",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/2",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 2 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/3",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/3",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 3 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/4",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/4",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 4 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/5",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/5",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 5 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/6",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/6",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 6 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/7",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/7",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 7 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/8",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/8",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 8 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/9",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/9",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 9 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/10",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/10",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 10 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/11",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/11",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 11 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/12",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/12",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 12 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/13",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/13",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 13 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/14",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/14",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 14 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/15",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/15",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 15 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/16",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/16",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 16 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/17",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/17",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 17 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/18",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/18",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 18 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/19",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/19",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 19 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/20",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/20",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 20 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/21",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/21",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 21 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/22",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/22",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 22 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/23",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/23",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 23 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/24",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/24",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 24 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/25",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/25",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 25 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/26",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/26",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 26 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/27",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/27",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 27 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/28",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/28",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 28 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/29",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/29",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 29 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/30",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/30",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 30 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/31",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/31",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 31 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/32",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/32",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 32 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/33",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/33",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 33 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/34",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/34",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 34 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/35",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/35",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 35 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/36",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/36",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 36 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/37",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/37",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 37 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/38",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/38",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 38 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/39",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/39",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 39 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/40",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/40",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 40 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/41",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/41",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 41 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/42",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/42",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 42 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/43",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/43",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 43 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/44",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/44",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 44 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/45",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/45",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 45 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/46",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/46",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 46 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/47",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/47",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 47 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/48",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/48",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 48 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/49",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/49",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 49 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/50",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/50",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 50 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/51",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/51",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 51 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/52",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/52",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 52 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/53",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/53",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 53 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/54",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/54",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 54 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/55",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/55",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 55 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/56",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/56",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 56 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/57",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/57",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 57 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/58",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/58",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 58 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/59",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/59",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 59 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/60",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/60",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 60 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/61",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/61",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 61 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/62",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/62",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 62 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/63",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/63",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 63 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/64",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/64",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 64 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/65",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/65",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 65 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/66",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/66",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 66 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/67",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/67",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 67 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/68",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/68",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 68 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/69",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/69",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 69 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/70",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/70",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 70 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/71",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/71",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 71 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/72",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/72",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 72 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/73",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/73",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 73 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/74",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/74",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 74 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/75",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/75",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 75 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/76",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/76",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 76 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/77",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/77",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 77 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/78",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/78",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 78 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/79",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/79",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 79 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/80",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/80",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 80 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/81",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/81",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 81 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/82",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/82",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 82 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/83",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/83",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 83 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/84",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/84",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 84 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/85",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/85",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 85 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/86",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/86",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 86 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/87",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/87",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 87 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/88",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/88",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 88 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/89",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/89",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 89 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/90",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/90",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 90 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/91",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/91",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 91 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/92",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/92",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 92 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/93",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/93",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 93 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/94",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/94",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 94 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/95",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/95",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 95 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/96",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/96",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 96 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/97",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/97",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 97 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/98",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/98",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 98 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/99",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/99",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 99 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/100",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/100",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 100 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/101",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/101",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 101 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/102",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/102",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 102 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/103",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/103",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 103 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/104",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/104",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 104 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/105",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/105",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 105 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/106",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/106",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 106 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/107",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/107",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 107 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/108",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/108",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 108 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/109",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/109",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 109 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/110",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/110",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 110 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/111",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/111",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 111 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/112",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/112",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 112 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/113",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/113",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 113 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/114",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/114",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 114 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/115",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/115",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 115 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/116",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/116",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 116 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/117",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/117",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 117 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/118",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/118",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 118 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/119",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/119",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 119 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/120",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/120",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 120 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/121",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/121",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 121 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/122",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/122",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 122 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/123",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/123",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 123 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/124",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/124",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 124 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/125",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/125",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 125 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/126",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/126",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 126 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/127",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/127",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 127 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/128",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/128",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 128 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/129",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/129",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 129 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/130",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/130",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 130 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/131",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/131",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 131 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/132",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/132",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 132 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/133",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/133",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 133 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/134",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/134",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 134 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/135",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/135",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 135 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/136",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/136",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 136 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/137",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/137",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 137 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/138",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/138",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 138 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/139",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/139",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 139 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/140",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/140",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 140 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/141",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/141",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 141 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/142",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/142",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 142 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/143",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/143",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 143 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/144",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/144",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 144 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/145",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/145",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 145 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/146",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/146",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 146 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/147",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/147",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 147 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/148",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/148",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 148 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/149",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/149",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 149 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/150",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/150",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 150 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/151",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/151",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 151 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/152",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/152",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 152 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/153",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/153",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 153 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/154",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/154",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 154 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/155",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/155",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 155 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/156",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/156",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 156 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/157",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/157",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 157 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/158",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/158",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 158 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/159",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/159",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 159 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/160",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/160",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 160 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/161",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/161",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 161 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/162",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/162",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 162 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/163",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/163",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 163 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/164",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/164",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 164 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/165",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/165",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 165 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/166",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/166",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 166 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/167",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/167",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 167 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/168",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/168",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 168 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/169",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/169",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 169 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/170",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/170",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 170 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/171",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/171",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 171 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/172",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/172",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 172 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/173",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/173",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 173 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/174",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/174",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 174 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/175",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/175",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 175 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/176",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/176",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 176 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/177",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/177",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 177 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/178",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/178",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 178 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/179",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/179",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 179 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/180",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/180",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 180 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/181",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/181",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 181 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/182",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/182",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 182 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/183",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/183",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 183 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/184",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/184",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 184 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/185",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/185",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 185 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/186",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/186",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 186 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/187",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/187",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 187 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/188",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/188",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 188 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/189",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/189",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 189 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/190",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/190",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 190 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/191",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/191",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 191 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/192",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/192",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 192 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/193",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/193",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 193 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/194",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/194",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 194 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/195",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/195",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 195 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/196",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/196",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 196 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/197",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/197",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 197 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/198",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/198",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 198 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/199",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/199",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 199 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/200",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/200",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 200 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/201",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/201",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 201 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/202",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/202",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 202 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/203",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/203",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 203 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/204",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/204",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 204 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/205",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/205",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 205 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/206",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/206",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 206 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/207",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/207",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 207 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/208",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/208",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 208 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/209",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/209",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 209 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/210",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/210",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 210 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/211",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/211",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 211 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/212",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/212",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 212 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/213",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/213",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 213 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/214",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/214",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 214 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/215",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/215",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 215 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/216",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/216",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 216 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/217",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/217",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 217 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/218",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/218",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 218 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/219",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/219",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 219 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/220",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/220",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 220 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/221",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/221",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 221 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/222",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/222",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 222 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/223",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/223",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 223 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/224",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/224",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 224 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/225",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/225",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 225 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/226",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/226",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 226 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/227",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/227",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 227 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/228",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/228",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 228 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/229",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/229",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 229 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/230",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/230",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 230 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/231",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/231",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 231 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/232",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/232",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 232 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/233",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/233",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 233 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/234",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/234",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 234 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/235",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/235",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 235 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/236",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/236",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 236 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/237",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/237",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 237 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/238",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/238",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 238 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/239",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/239",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 239 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/240",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/240",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 240 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/241",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/241",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 241 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/242",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/242",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 242 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/243",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/243",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 243 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/244",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/244",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 244 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/245",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/245",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 245 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/246",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/246",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 246 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/247",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/247",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 247 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/248",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/248",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 248 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/249",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/249",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 249 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/250",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/250",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 250 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/251",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/251",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 251 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/252",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/252",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 252 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/253",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/253",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 253 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/254",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/254",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 254 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/255",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/255",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 255 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/256",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/256",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 256 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/257",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/257",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 257 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/258",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/258",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 258 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/259",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/259",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 259 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/260",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/260",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 260 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/261",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/261",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 261 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/262",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/262",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 262 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/263",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/263",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 263 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/264",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/264",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 264 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/265",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/265",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 265 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/266",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/266",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 266 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/267",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/267",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 267 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/268",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/268",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 268 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/269",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/269",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 269 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/270",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/270",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 270 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/271",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/271",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 271 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/272",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/272",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 272 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/273",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/273",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 273 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/274",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/274",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 274 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/275",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/275",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 275 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-15/corpus/276",
+    "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+    "assertion_ref": "P3-15/corpus/276",
+    "matched_passed_tests": [
+      "P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n) cas 276 : texte, segments gras et montant"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-14/inverse-explicit",
+    "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+    "assertion_ref": "P3-14/inverse-explicit",
+    "matched_passed_tests": [
+      "P3-14/inverse-enumeration et P3-14/inverse-explicit — inversion Durée uniforme T=30, P=10 : demandé 100 → N=3/120 s avec message ; 80 → N=2 sans message",
+      "P3-14/inverse-enumeration et P3-14/inverse-explicit — inversion Durée uniforme cas 6423:9953 : 3 × 90 s, Pause 15 s → 5 min 15 s sans ajustement"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-20/contract-i18n",
+    "path": "src/shared/i18n/index.test.ts",
+    "assertion_ref": "P3-20/contract-i18n",
+    "matched_passed_tests": [
+      "strings — PRE-3 P3-20/contract-i18n — libellés PRE-3 des surfaces, modes et erreurs ; groupes existants conservés"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "P3-20/contract-tokens",
+    "path": "src/shared/ui/__tests__/tokensSpecification.test.ts",
+    "assertion_ref": "P3-20/contract-tokens",
+    "matched_passed_tests": [
+      "tokens.ts — PRE-3 (contrat de réutilisation) P3-20/contract-tokens — voile color.overlayScrim documenté et inchangé ; l'ensemble des tokens reste celui du chapitre 12"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "INTERACTION/wheel",
+    "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "assertion_ref": "INTERACTION/wheel",
+    "matched_passed_tests": [
+      "ExecutionParametersSheet — PRE-3 INTERACTION/wheel — roulette en place : valeur validée appliquée au brouillon ; ✕ de la roulette sans effet ; ✓ de la feuille applique"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "ACCESSIBILITY/wheel",
+    "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "assertion_ref": "ACCESSIBILITY/wheel",
+    "matched_passed_tests": [
+      "ExecutionParametersSheet — PRE-3 ACCESSIBILITY/wheel — réglage nommé avec sa valeur ; Valider/Annuler de la roulette nommés ; pastille annoncée déployée"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "INTERACTION/stepper",
+    "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "assertion_ref": "INTERACTION/stepper",
+    "matched_passed_tests": [
+      "ExecutionParametersSheet — PRE-3 INTERACTION/stepper — tap unique ; borne respectée ; aucun pas au relâchement"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "ACCESSIBILITY/stepper",
+    "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "assertion_ref": "ACCESSIBILITY/stepper",
+    "matched_passed_tests": [
+      "ExecutionParametersSheet — PRE-3 ACCESSIBILITY/stepper — réglage ajustable nommé avec unité ; incrémenter/décrémenter accessibles au pas 1"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "INTERACTION/variable-toggle",
+    "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "assertion_ref": "INTERACTION/variable-toggle",
+    "matched_passed_tests": [
+      "ExecutionParametersSheet — PRE-3 INTERACTION/variable-toggle — uniforme → lignes copiées ; retour uniforme = première ligne ; réactivation restaure ; égalité garde VARIABLE"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "ACCESSIBILITY/variable-toggle",
+    "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "assertion_ref": "ACCESSIBILITY/variable-toggle",
+    "matched_passed_tests": [
+      "ExecutionParametersSheet — PRE-3 ACCESSIBILITY/variable-toggle — sélection effective exposée ; N=1 rend le choix inactif et annoncé ; lignes dans l'ordre de lecture"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "INTERACTION/sortable-rows",
+    "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "assertion_ref": "INTERACTION/sortable-rows",
+    "matched_passed_tests": [
+      "ExecutionParametersSheet — PRE-3 INTERACTION/sortable-rows — déplacement puis ✕ : rien n'est appliqué au parent"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "ACCESSIBILITY/sortable-rows",
+    "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "assertion_ref": "ACCESSIBILITY/sortable-rows",
+    "matched_passed_tests": [
+      "ExecutionParametersSheet — PRE-3 ACCESSIBILITY/sortable-rows — Monter/Descendre portent le rang ; rangs actualisés après déplacement"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "INTERACTION/sheet-check-cross",
+    "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "assertion_ref": "INTERACTION/sheet-check-cross",
+    "matched_passed_tests": [
+      "ExecutionParametersSheet — PRE-3 INTERACTION/sheet-check-cross — ✓ atomique sans service ; ✕ / retour système restaurent le parent"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "ACCESSIBILITY/sheet-check-cross",
+    "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "assertion_ref": "ACCESSIBILITY/sheet-check-cross",
+    "matched_passed_tests": [
+      "ExecutionParametersSheet — PRE-3 ACCESSIBILITY/sheet-check-cross — mode absent ou cible incomplète : Valider annoncé indisponible ; valeur à renseigner annoncée sur le réglage (aucun message, D-2) ; Annuler reste actif"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "INTERACTION/parameter-card",
+    "path": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+    "assertion_ref": "INTERACTION/parameter-card",
+    "matched_passed_tests": [
+      "ActivityEditorForm — PRE-3 INTERACTION/parameter-card — toute la carte ouvre la feuille ; ✓ remplace les paramètres et la phrase est régénérée"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "ACCESSIBILITY/parameter-card",
+    "path": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+    "assertion_ref": "ACCESSIBILITY/parameter-card",
+    "matched_passed_tests": [
+      "ActivityEditorForm — PRE-3 ACCESSIBILITY/parameter-card — une seule cible nommée contient la phrase intégrale, annoncée une fois ; segments non accessibles séparément"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "INTERACTION/editor-finish",
+    "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "assertion_ref": "INTERACTION/editor-finish",
+    "matched_passed_tests": [
+      "ExerciseScreen — PRE-3 (quatre parcours) INTERACTION/editor-finish — Catalogue écrit la définition, Séance applique au brouillon ; une seule action même en double appui"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "ACCESSIBILITY/editor-finish",
+    "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+    "assertion_ref": "ACCESSIBILITY/editor-finish",
+    "matched_passed_tests": [
+      "ExerciseScreen — PRE-3 (quatre parcours) ACCESSIBILITY/editor-finish — Nom, description et Terminer identifiables ; état indisponible exposé ; erreur annoncée sans perte"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "INTERACTION/media-list",
+    "path": "src/features/activities/__tests__/ActivityMediaList.test.tsx",
+    "assertion_ref": "INTERACTION/media-list",
+    "matched_passed_tests": [
+      "ActivityMediaList — PRE-3 INTERACTION/media-list — ajout depuis la photothèque, import visible, Réessayer local sans doublon ; menu par média Retirer/Monter/Descendre ; ordre rendu = ordre du brouillon"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "ACCESSIBILITY/media-list",
+    "path": "src/features/activities/__tests__/ActivityMediaList.test.tsx",
+    "assertion_ref": "ACCESSIBILITY/media-list",
+    "matched_passed_tests": [
+      "ActivityMediaList — PRE-3 ACCESSIBILITY/media-list — chaque média identifié par type et rang ; actions nommées pour CE média, bornes exclues ; erreur annoncée ; Réessayer sur le seul élément échoué"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "INTERACTION/category",
+    "path": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+    "assertion_ref": "INTERACTION/category",
+    "matched_passed_tests": [
+      "CategoryPickerModal — PRE-3 INTERACTION/category — sélection marquée au toucher puis confirmée par ✓ (D-8) ; ✕ ferme sans sélectionner"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "ACCESSIBILITY/category",
+    "path": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+    "assertion_ref": "ACCESSIBILITY/category",
+    "matched_passed_tests": [
+      "CategoryPickerModal — PRE-3 ACCESSIBILITY/category — nom et état sélectionné, ✕ et ✓ nommés (D-8), titre en-tête, Ajouter annoncé désactivé sans erreur"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "INTERACTION/zones",
+    "path": "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+    "assertion_ref": "INTERACTION/zones",
+    "matched_passed_tests": [
+      "BodyZonePickerModal — PRE-3 INTERACTION/zones — sélection multiple ; ✕ sans effet ; ✓ applique ; nom vide sans erreur"
+    ],
+    "matched": true
+  },
+  {
+    "test_id": "ACCESSIBILITY/zones",
+    "path": "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+    "assertion_ref": "ACCESSIBILITY/zones",
+    "matched_passed_tests": [
+      "BodyZonePickerModal — PRE-3 ACCESSIBILITY/zones — chaque pastille expose son nom et son état coché ; les autres sélections restent ; ✕/✓ nommés"
+    ],
+    "matched": true
+  }
+]

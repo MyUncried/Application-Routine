@@ -183,7 +183,7 @@ Tous les écrans et états représentés dans la page Figma `Prototype MVP` util
 ### Formulaires, roulettes et clavier
 
 - Les champs occupent la largeur utile et leurs libellés restent visibles lorsque la valeur est saisie.
-- L’ouverture du clavier déplace ou fait défiler le contenu afin que le champ actif et l’action finale restent accessibles.
+- L’ouverture du clavier déplace ou fait défiler le contenu afin que le champ actif et l’action finale restent accessibles. Exception Créer / Modifier un exercice (D-349) : Terminer reste en bas, sous le clavier, et redevient accessible à sa fermeture ; la Description se place juste au-dessus du clavier, curseur visible. Aucun liseré sous l’en-tête ni autour du champ Nom (D-348). Un bouton ↑ dans la Description ferme le clavier sans enregistrer (D-351).
 - Les contrôles disposés côte à côte restent horizontaux tant que chacun conserve sa largeur minimale lisible ; en mode compact, ils peuvent passer sur plusieurs lignes.
 - Un cadre de synthèse ou d’aide occupe la largeur utile de son formulaire. Son texte utilise la largeur intérieure après déduction de ses marges internes et augmente la hauteur du cadre si plusieurs lignes sont nécessaires ; il ne peut ni dépasser horizontalement ni être masqué par une hauteur fixe.
 - Toute roulette numérique ouverte est rendue dans une **modale basse standardisée**, indépendante de la position du déclencheur et du défilement du contenu. Le voile `overlayScrim` (`color/overlay/scrim`, #1F2129 à 34 %), commun à tous les dialogues, feuilles et modales y compris CE-UI-10, atténue le fond et bloque ses interactions ainsi que son défilement jusqu’à `Annuler` ou `Confirmer`. Une action principale fixe inférieure (`Continuer`, `Terminer`, etc.) conserve son apparence visuelle normale sous le voile, mais devient fonctionnellement et accessibilité-inactive jusqu’à fermeture de la roulette.
@@ -1306,7 +1306,7 @@ Cette capture reflète le layout actuel. Le texte de fond énumérant les pauses
 
 ### Sélections, créations de référentiels et confirmation d’abandon
 
-Sélection simple Catégorie validée au toucher ; Zones multiples avec validation. L’abandon conserve ou supprime le brouillon selon CE-T03-04. Les captures ne changent pas ces règles.
+Catégorie marquée au toucher puis confirmée par ✓ ; ✕ conserve la Catégorie précédente (D-343, 12/10, remplace pour la Catégorie la validation au toucher de D-222) ; Zones multiples avec✓. Création avec clavier et suppression avec confirmation préservent le brouillon d’Exercice. Abandon Annuler conserve le formulaire ; Confirmer le quitte sans sauvegarder.
 
 #### Ajouter un exercice — Catégories
 

@@ -1,0 +1,17 @@
+{
+  "schema": "kodjo.environment.update-compatibility.v1",
+  "status": "OTA_COMPATIBLE",
+  "changed_files": [
+    ".github/orchestration/reports/2026-10-10_PRE3-340_DIAGNOSTIC-PUSH-NON-PUBLIE.md",
+    "src/features/activities/ExecutionParametersSheet.tsx",
+    "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+    "src/features/reference-data/BodyZonePickerModal.tsx",
+    "src/features/reference-data/CategoryPickerModal.tsx",
+    "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+    "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+    "src/infrastructure/media/VideoPoster.ts",
+    "src/infrastructure/media/__tests__/VideoPoster.test.ts",
+    "src/shared/ui/ProfileStepper.tsx"
+  ],
+  "native_sensitive_files": []
+}

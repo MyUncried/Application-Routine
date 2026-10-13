@@ -60,7 +60,9 @@ export function FixedHeader({ title, onBack, backAccessibilityLabel }: FixedHead
       testID="screen-header"
       style={[
         styles.header,
-        { paddingTop: insets.top, height: insets.top + dimensions.header.contentHeight },
+        // X-4 (recette PRE-3, 12/10) : hauteur MINIMALE — identique à taille normale,
+        // elle grandit avec le texte agrandi au lieu de rogner le titre.
+        { paddingTop: insets.top, minHeight: insets.top + dimensions.header.contentHeight },
       ]}
     >
       {onBack ? (

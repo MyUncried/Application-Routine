@@ -1,0 +1,14 @@
+[
+  {
+    "id": "01a131f9-1cf0-705c-8531-3919ff3b2aa6",
+    "createdAt": "2026-10-12T21:16:11.888Z",
+    "group": "b3915b2b-c2d1-4521-9535-dc0f1dd9daa0",
+    "branch": "review",
+    "message": "KODJO review PRE-3 N-01 clavier 29d149bdcdc998e90eeff6d66834312f90e72d72",
+    "runtimeVersion": "1.1.0",
+    "platform": "ios",
+    "manifestPermalink": "https://u.expo.dev/update/01a131f9-1cf0-705c-8531-3919ff3b2aa6",
+    "isRollBackToEmbedded": false,
+    "gitCommitHash": "29d149bdcdc998e90eeff6d66834312f90e72d72"
+  }
+]

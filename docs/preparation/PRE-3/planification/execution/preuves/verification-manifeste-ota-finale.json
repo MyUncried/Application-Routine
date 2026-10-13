@@ -1,0 +1,22 @@
+{
+ "schema": "kodjo.pre3.ota-served-check.v1",
+ "checked_at": "2026-10-12T08:03:14.314Z",
+ "request": {
+  "url": "https://u.expo.dev/0ee44f86-bd22-4b92-8780-e265b72907d9",
+  "headers": {
+   "expo-platform": "ios",
+   "expo-runtime-version": "1.1.0",
+   "expo-channel-name": "review"
+  }
+ },
+ "response": {
+  "http": "200 OK",
+  "manifest_id": "01a12f22-927f-70a1-9060-17e3379ccc2d",
+  "runtimeVersion": "1.1.0",
+  "assets": 56,
+  "svg_assets": 28,
+  "icon_categorie_md5": "a9192b1d300003358c95688442929f29",
+  "icon_categorie_present": true
+ },
+ "meaning": "Le serveur de mises à jour sert cette mise à jour au build iOS 7 (runtime 1.1.0, canal review) ; vérification indépendante de la sortie de eas update"
+}

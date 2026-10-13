@@ -307,8 +307,14 @@ describe("ActivitySelectionScreen", () => {
     expect(mockBack).toHaveBeenCalledTimes(1);
   });
 
-  /** V2-PRE-2 (D-171/D-213) : chaque copie insérée reçoit la Récupération COURANTE du Profil. */
-  it("gives each inserted copy the current Profile's Récupération après exercice default", async () => {
+  /**
+   * PRE-3 (spécification du 07/10, P3-13/no-auto-R) — remplace l'ancien
+   * attendu V2-PRE-2 (copie de la Récupération du Profil) : une nouvelle
+   * occurrence ne reçoit AUCUNE Récupération automatique ; le défaut du
+   * Profil (45 s ici) ne sert qu'à l'ajout explicite (PRE-4). La copie est
+   * complète (paramètres canoniques, Catégorie, médias ordonnés).
+   */
+  it("P3-13/no-auto-R — a new copy gets R = 0 s whatever the Profile default, and carries full parameters/category/media", async () => {
     const service: Partial<ActivityDefinitionService> = {
       listActivityDefinitions: jest
         .fn<ActivityDefinitionService["listActivityDefinitions"]>()
@@ -347,6 +353,11 @@ describe("ActivitySelectionScreen", () => {
 
     expect(updateDraft).toHaveBeenCalledTimes(1);
     const exercises = updateDraft.mock.calls[0][0].exercises ?? [];
-    expect(exercises[0]?.postActivityRecoverySeconds).toBe(45);
+    expect(exercises[0]?.postActivityRecoverySeconds).toBe(0);
+    expect(exercises[0]?.executionParameters).toEqual(
+      expect.objectContaining({ version: 1, mode: exercises[0]?.executionMode }),
+    );
+    expect(exercises[0]).toHaveProperty("categoryId");
+    expect(exercises[0]?.media).toEqual([]);
   });
 });

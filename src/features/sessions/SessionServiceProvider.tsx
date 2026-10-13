@@ -1,3 +1,4 @@
+import * as Crypto from "expo-crypto";
 import { SQLiteProvider, useSQLiteContext, type SQLiteDatabase } from "expo-sqlite";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 
@@ -8,6 +9,7 @@ import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/re
 import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories/SqliteBodyZoneRepository";
 import { SqliteCategoryRepository } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
 import { SqliteLabelRepository } from "@/infrastructure/database/repositories/SqliteLabelRepository";
+import { SqliteMediaRepository } from "@/infrastructure/database/repositories/SqliteMediaRepository";
 import { SqliteProfileRepository } from "@/infrastructure/database/repositories/SqliteProfileRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
@@ -18,6 +20,9 @@ import { ReferentialService } from "@/features/reference-data/ReferentialService
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { SessionService } from "@/features/sessions/SessionService";
+import { ActivityMediaImportService } from "@/domain/media/ActivityMediaImportService";
+import { getLocalMediaStore } from "@/infrastructure/media/LocalMediaStore";
+import { PhotoLibraryPicker } from "@/infrastructure/media/PhotoLibraryPicker";
 
 /**
  * Câblage réel `expo-sqlite → ExpoDatabase → SqliteSessionRepository →
@@ -126,6 +131,12 @@ function SessionServiceInitializer({
       new SqliteCategoryRepository(database),
       new SqliteBodyZoneRepository(database),
       new SqliteLabelRepository(database),
+      // PRE-3 (D-333/D-334) : adaptateurs médias — photothèque seule, copie
+      // interne stable, lecture des références sur la MÊME connexion.
+      {
+        importService: new ActivityMediaImportService(new PhotoLibraryPicker(), getLocalMediaStore(), () => Crypto.randomUUID()),
+        repository: new SqliteMediaRepository(database),
+      },
     );
   }, [nativeDatabase]);
 

@@ -125,3 +125,17 @@ describe("ContextBand", () => {
     expect(StyleSheet.flatten(band.props.style).zIndex).toBe(1);
   });
 });
+
+describe("ScreenShell — X-4 (recette PRE-3, 12/10)", () => {
+  it("en-tête à hauteur MINIMALE égale à l’ancienne hauteur fixe (rendu identique à taille normale) ; le titre n’est pas limité à une ligne", () => {
+    render(
+      <TestSafeAreaProvider>
+        <FixedHeader title="Créer un exercice" onBack={jest.fn()} backAccessibilityLabel="Retour" />
+      </TestSafeAreaProvider>,
+    );
+    const header = StyleSheet.flatten(screen.getByTestId("screen-header").props.style);
+    expect(header.height).toBeUndefined();
+    expect(header.minHeight).toBe((header.paddingTop as number) + 48);
+    expect(screen.getByRole("header").props.numberOfLines).toBeUndefined();
+  });
+});

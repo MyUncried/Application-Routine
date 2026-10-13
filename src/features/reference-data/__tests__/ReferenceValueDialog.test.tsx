@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react-native";
+import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { afterEach, describe, expect, it, jest } from "@jest/globals";
 import { useRef } from "react";
 import { AccessibilityInfo, View } from "react-native";
@@ -263,5 +263,56 @@ describe("ReferenceValueDialog — retour explicite du focus (R10, CE-UI-09 L284
     fireEvent.press(screen.getByTestId("ref-dialog-cancel"));
 
     expect(setAccessibilityFocus).not.toHaveBeenCalled();
+  });
+});
+
+describe("ReferenceValueDialog — recette 3 (N-04 présentation, N-01 clavier)", () => {
+  it("N-04 — ✕ rond standard en haut à gauche ; Modifier puis Supprimer sur une même ligne (D-102), fonds bleu Kodjo et rouge, texte blanc ; aucun Modal imbriqué", () => {
+    const { Modal, StyleSheet } = jest.requireActual<typeof import("react-native")>("react-native");
+    const { colors } = jest.requireActual<typeof import("@/shared/ui/tokens")>("@/shared/ui/tokens");
+    render(<ReferenceValueDialog name="Cardio" isUsed={false} onCancel={jest.fn()} onModify={jest.fn()} onDelete={jest.fn()} testIDPrefix="dlg" />);
+
+    expect(screen.UNSAFE_queryAllByType(Modal)).toHaveLength(0);
+    const backdrop = StyleSheet.flatten(screen.getByTestId("dlg-backdrop").props.style);
+    expect(backdrop).toMatchObject({ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 });
+
+    const close = StyleSheet.flatten(screen.getByTestId("dlg-cancel").props.style);
+    expect(close).toMatchObject({ width: 38, height: 38, borderRadius: 19 });
+    const actions = screen.getByTestId("dlg-actions");
+    expect(StyleSheet.flatten(actions.props.style).flexDirection).toBe("row");
+    const ids = (actions.props.children as { props: { testID: string } }[]).map((child) => child.props.testID);
+    expect(ids).toEqual(["dlg-modify", "dlg-delete"]);
+    const modify = StyleSheet.flatten(screen.getByTestId("dlg-modify").props.style);
+    const remove = StyleSheet.flatten(screen.getByTestId("dlg-delete").props.style);
+    expect(modify).toMatchObject({ flex: 1, minHeight: 48, borderRadius: 24, backgroundColor: colors.primary });
+    expect(remove).toMatchObject({ flex: 1, minHeight: 48, borderRadius: 24, backgroundColor: colors.danger });
+    expect(StyleSheet.flatten(screen.getByText("Modifier").props.style).color).toBe(colors.background);
+    expect(StyleSheet.flatten(screen.getByText("Supprimer").props.style).color).toBe(colors.background);
+  });
+
+  it("N-04 — Supprimer ouvre la confirmation destructive ; Annuler n’efface rien", () => {
+    const onCancel = jest.fn();
+    const onDelete = jest.fn();
+    render(<ReferenceValueDialog name="Cardio" isUsed onCancel={onCancel} onModify={jest.fn()} onDelete={onDelete} testIDPrefix="dlg" />);
+    fireEvent.press(screen.getByTestId("dlg-delete"));
+    expect(screen.getByText("Supprimer « Cardio » ?")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("dlg-delete-confirm-cancel"));
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(onDelete).not.toHaveBeenCalled();
+  });
+
+  it("N-01 — clavier affiché : la carte se place au-dessus du clavier (marge basse = hauteur du clavier)", () => {
+    const { Keyboard, StyleSheet } = jest.requireActual<typeof import("react-native")>("react-native");
+    const listeners: Record<string, (event?: unknown) => void> = {};
+    const addListener = jest.spyOn(Keyboard, "addListener").mockImplementation(((event: string, listener: (event?: unknown) => void) => {
+      listeners[event] = listener;
+      return { remove: jest.fn() };
+    }) as unknown as typeof Keyboard.addListener);
+    render(<ReferenceValueDialog name="Cardio" isUsed={false} onCancel={jest.fn()} onModify={jest.fn()} onDelete={jest.fn()} testIDPrefix="dlg" />);
+    act(() => listeners.keyboardWillShow!({ endCoordinates: { height: 300 } }));
+    expect(StyleSheet.flatten(screen.getByTestId("dlg-backdrop").props.style).paddingBottom).toBe(24 + 300);
+    act(() => listeners.keyboardWillHide!());
+    expect(StyleSheet.flatten(screen.getByTestId("dlg-backdrop").props.style).paddingBottom).toBe(24);
+    addListener.mockRestore();
   });
 });

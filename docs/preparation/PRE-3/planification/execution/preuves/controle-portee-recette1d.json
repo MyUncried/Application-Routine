@@ -1,0 +1,231 @@
+{
+ "check": "PRE3_EXTENDED_SCOPE",
+ "start": "9f5cee0e7049494033908fcec586b0c37587e168",
+ "paths": [
+  {
+   "path": ".github/orchestration/reports/2026-10-10_PRE3-340_DIAGNOSTIC-PUSH-NON-PUBLIE.md",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": ".github/orchestration/reports/2026-10-12_PRE3-340_CONSOLIDATION-RECETTE1.md",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": ".github/orchestration/reports/2026-10-12_PRE3-340_CORRECTION-RECETTE1.md",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": ".github/orchestration/reports/2026-10-12_PRE3-340_DECISIONS-PROPRIETAIRE.md",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "assets/icons/icon-categorie.svg",
+   "class": "EXTENSION_X-2_AUTORISEE_12_10"
+  },
+  {
+   "path": "assets/icons/manifest.json",
+   "class": "EXTENSION_X-2_AUTORISEE_12_10"
+  },
+  {
+   "path": "docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md",
+   "class": "DOCUMENTATION_NORMATIVE_DEMANDEE_PAR_HERMANN_12_10"
+  },
+  {
+   "path": "docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md",
+   "class": "DOCUMENTATION_NORMATIVE_DEMANDEE_PAR_HERMANN_12_10"
+  },
+  {
+   "path": "docs/Specifications-fonctionnelles/12 – Architecture technique.md",
+   "class": "EXTENSION_X-1/X-3_AUTORISEE_12_10"
+  },
+  {
+   "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+   "class": "DOCUMENTATION_NORMATIVE_DEMANDEE_PAR_HERMANN_12_10"
+  },
+  {
+   "path": "docs/Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v13.md",
+   "class": "DOCUMENTATION_NORMATIVE_DEMANDEE_PAR_HERMANN_12_10"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/compatibilite-ota-recette1.json",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/compatibilite-ota-recette1b.json",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/compatibilite-ota-recette1c.json",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/consolidation-recette1.md",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/controle-portee-recette1.json",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/controle-portee-recette1b.json",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/controle-portee-recette1c.json",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/couverture-obligations-recette1.json",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/couverture-obligations-recette1b.json",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/couverture-obligations-recette1c.json",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/couverture-obligations-recette1d.json",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/procedure-appareil-recette1.md",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/procedure-retest-recette1-v2.md",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/procedure-retest-recette1-v3.md",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/publication-ota-recette1.json",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/publication-ota-recette1b.json",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/publication-ota-recette1c.json",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/registre-recette1.md",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/resultats-tests-recette1.json",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/resultats-tests-recette1b.json",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/resultats-tests-recette1c.json",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/x2-icone-categorie/categorie-master-export.svg",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/x2-icone-categorie/categorie-master-vector.svg",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/x2-icone-categorie/correspondance.json",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "src/features/activities/ActivityEditorForm.tsx",
+   "class": "WRITE_SCOPE_43e7b344"
+  },
+  {
+   "path": "src/features/activities/ExecutionParametersSheet.tsx",
+   "class": "WRITE_SCOPE_43e7b344"
+  },
+  {
+   "path": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+   "class": "WRITE_SCOPE_43e7b344"
+  },
+  {
+   "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+   "class": "WRITE_SCOPE_43e7b344"
+  },
+  {
+   "path": "src/features/reference-data/BodyZonePickerModal.tsx",
+   "class": "WRITE_SCOPE_43e7b344"
+  },
+  {
+   "path": "src/features/reference-data/CategoryPickerModal.tsx",
+   "class": "WRITE_SCOPE_43e7b344"
+  },
+  {
+   "path": "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+   "class": "WRITE_SCOPE_43e7b344"
+  },
+  {
+   "path": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+   "class": "WRITE_SCOPE_43e7b344"
+  },
+  {
+   "path": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+   "class": "EXTENSION_BORNEE_REVUE1"
+  },
+  {
+   "path": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+   "class": "EXTENSION_BORNEE_REVUE1"
+  },
+  {
+   "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+   "class": "WRITE_SCOPE_43e7b344"
+  },
+  {
+   "path": "src/infrastructure/media/VideoPoster.ts",
+   "class": "WRITE_SCOPE_43e7b344"
+  },
+  {
+   "path": "src/infrastructure/media/__tests__/VideoPoster.test.ts",
+   "class": "WRITE_SCOPE_43e7b344"
+  },
+  {
+   "path": "src/shared/i18n/index.ts",
+   "class": "WRITE_SCOPE_43e7b344"
+  },
+  {
+   "path": "src/shared/ui/KodjoIcon.tsx",
+   "class": "EXTENSION_X-2_AUTORISEE_12_10"
+  },
+  {
+   "path": "src/shared/ui/ProfileStepper.tsx",
+   "class": "WRITE_SCOPE_43e7b344"
+  },
+  {
+   "path": "src/shared/ui/ScreenShell.tsx",
+   "class": "EXTENSION_X-4_AUTORISEE_12_10"
+  },
+  {
+   "path": "src/shared/ui/SegmentedControl.tsx",
+   "class": "EXTENSION_X-1_AUTORISEE_12_10"
+  },
+  {
+   "path": "src/shared/ui/__tests__/ScreenShell.test.tsx",
+   "class": "EXTENSION_X-4_AUTORISEE_12_10"
+  },
+  {
+   "path": "src/shared/ui/__tests__/SegmentedControl.test.tsx",
+   "class": "EXTENSION_X-1_AUTORISEE_12_10"
+  },
+  {
+   "path": "src/shared/ui/tokens.ts",
+   "class": "WRITE_SCOPE_43e7b344"
+  }
+ ],
+ "result": "PASS"
+}

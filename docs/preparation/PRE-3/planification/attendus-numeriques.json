@@ -1,0 +1,232 @@
+{
+  "purpose": "Expected results from normative cases written before development; not execution results",
+  "sources": [
+    "SPECIFICATION-PARAMETRES-MODALE-v13.md §§5,9",
+    "SPECIFICATION-BIP-CADENCE-v2.md §§2,3",
+    "SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md §4"
+  ],
+  "cases": [
+    {
+      "id": "A",
+      "given": {
+        "mode": "DURATION",
+        "targets": [
+          30,
+          45,
+          60
+        ],
+        "pauses": [
+          10,
+          20,
+          30
+        ],
+        "side": "UNILATERAL"
+      },
+      "expected": {
+        "kind": "exact",
+        "seconds": 195
+      }
+    },
+    {
+      "id": "B",
+      "given": {
+        "base": "A",
+        "recovery": 120
+      },
+      "expected": {
+        "kind": "exact",
+        "seconds": 285
+      }
+    },
+    {
+      "id": "C",
+      "given": {
+        "base": "A",
+        "side": "RIGHT_LEFT",
+        "order": "BY_SIDE",
+        "sidePause": 15
+      },
+      "expected": {
+        "kind": "exact",
+        "seconds": 405
+      }
+    },
+    {
+      "id": "D",
+      "given": {
+        "base": "A",
+        "side": "RIGHT_LEFT",
+        "order": "BY_SERIES",
+        "sidePause": 15
+      },
+      "expected": {
+        "kind": "exact",
+        "seconds": 375
+      }
+    },
+    {
+      "id": "E",
+      "given": {
+        "mode": "REPETITIONS",
+        "targets": [
+          12,
+          10,
+          8
+        ],
+        "pauses": [
+          30,
+          45,
+          60
+        ],
+        "cadence": 0
+      },
+      "expected": {
+        "kind": "omitted",
+        "knownSessionSeconds": 135
+      }
+    },
+    {
+      "id": "F0",
+      "given": {
+        "mode": "TO_FAILURE",
+        "pauses": [
+          30,
+          45,
+          60
+        ],
+        "cadence": 0
+      },
+      "expected": {
+        "kind": "omitted",
+        "knownSessionSeconds": 135
+      }
+    },
+    {
+      "id": "F4",
+      "given": {
+        "mode": "TO_FAILURE",
+        "pauses": [
+          30,
+          45,
+          60
+        ],
+        "cadence": 4
+      },
+      "expected": {
+        "kind": "omitted",
+        "knownSessionSeconds": 135
+      }
+    },
+    {
+      "id": "CADENCE",
+      "given": {
+        "mode": "REPETITIONS",
+        "targets": [
+          15,
+          15,
+          15,
+          15
+        ],
+        "pauses": [
+          15,
+          15,
+          15,
+          15
+        ],
+        "cadence": 4
+      },
+      "expected": {
+        "kind": "estimated",
+        "seconds": 300
+      }
+    },
+    {
+      "id": "DURATION_BEEP",
+      "given": {
+        "mode": "DURATION",
+        "targets": [
+          60,
+          60,
+          60,
+          60
+        ],
+        "pauses": [
+          15,
+          15,
+          15,
+          15
+        ],
+        "cadence": 4
+      },
+      "expected": {
+        "kind": "exact",
+        "seconds": 300
+      }
+    },
+    {
+      "id": "N1_SIDE",
+      "given": {
+        "mode": "DURATION",
+        "targets": [
+          90
+        ],
+        "pauses": [
+          15
+        ],
+        "side": "RIGHT_LEFT",
+        "orderRequested": "BY_SERIES",
+        "sidePause": 10
+      },
+      "expected": {
+        "kind": "exact",
+        "effectiveOrder": "BY_SIDE",
+        "seconds": 220
+      }
+    },
+    {
+      "id": "N1_SIDE_R",
+      "given": {
+        "base": "N1_SIDE",
+        "recovery": 30
+      },
+      "expected": {
+        "kind": "exact",
+        "seconds": 235
+      }
+    },
+    {
+      "id": "N1_WITH_PAUSE",
+      "given": {
+        "mode": "DURATION",
+        "targets": [
+          30
+        ],
+        "pauses": [
+          15
+        ]
+      },
+      "expected": {
+        "kind": "exact",
+        "seconds": 45,
+        "phraseTotalPresent": true
+      }
+    },
+    {
+      "id": "N1_NO_PAUSE",
+      "given": {
+        "mode": "DURATION",
+        "targets": [
+          30
+        ],
+        "pauses": [
+          0
+        ]
+      },
+      "expected": {
+        "kind": "exact",
+        "seconds": 30,
+        "phraseTotalPresent": false
+      }
+    }
+  ]
+}

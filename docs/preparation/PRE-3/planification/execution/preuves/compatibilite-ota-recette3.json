@@ -1,0 +1,16 @@
+{
+  "head": "1645b52f3deaa185606aa2375e4ad3192c3675f7",
+  "build8": {
+    "build": "38bf5fc2-b053-4fd1-a475-48f08b7f542f",
+    "base": "58bbc3bc3221bbd4f2dd080016469620b6bf2643",
+    "status": "OTA_COMPATIBLE",
+    "native_sensitive_files": []
+  },
+  "build7": {
+    "build": "e1deb07e-3f67-43d3-9d34-9b15147af94b",
+    "base": "9f5cee0e7049494033908fcec586b0c37587e168",
+    "status": "OTA_COMPATIBLE",
+    "native_sensitive_files": []
+  },
+  "tool": "scripts/kodjo/classify-environment-update.js"
+}

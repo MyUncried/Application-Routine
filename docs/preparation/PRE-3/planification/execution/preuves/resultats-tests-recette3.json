@@ -1,0 +1,28 @@
+{
+  "head": "1645b52f + ExerciseScreen.test.tsx (attente 20 s)",
+  "suites": {
+    "passed": 98,
+    "total": 98
+  },
+  "tests": {
+    "passed": 1955,
+    "total": 1955,
+    "failed": 0
+  },
+  "obligations43e7b344": {
+    "PASS": 442,
+    "total": 442
+  },
+  "tsc": "PASS",
+  "eslint": "PASS",
+  "verifierPasse2": {
+    "result": "PASS",
+    "checks": 2143
+  },
+  "mutation": {
+    "T-53": "rouge sur l’original",
+    "N-01": "rouge sur l’original",
+    "N-02": "rouge sur l’original",
+    "N-05": "rouge sur l’original"
+  }
+}

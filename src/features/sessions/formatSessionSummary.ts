@@ -45,10 +45,22 @@ export function formatTourCount(count: number): string {
  * (`compositionPresentation.ts`), désormais également appliquée à une
  * Séance persistée (`SessionSummary.isEstimatedDurationApproximate`).
  */
-export function formatEstimatedDuration(seconds: number, isApproximate = false): string {
+/**
+ * PRE-3 (P3-13/tours-cycles-list) : `kind` accepte désormais le résultat
+ * typé de l'autorité Domaine (`exact` sans symbole, `estimated` → « ≈ »,
+ * `lowerBound` → « ≥ ») ; le booléen historique reste accepté (`true` =
+ * borne minimale) pour les appelants existants.
+ */
+export function formatEstimatedDuration(
+  seconds: number,
+  kind: boolean | "exact" | "estimated" | "lowerBound" = false,
+): string {
   const minutes = Math.ceil(seconds / 60);
   const formatted = `${minutes} ${strings.screens.sessions.card.durationUnit}`;
-  return isApproximate ? `≥ ${formatted}` : formatted;
+  if (kind === "estimated") {
+    return `≈ ${formatted}`;
+  }
+  return kind === true || kind === "lowerBound" ? `≥ ${formatted}` : formatted;
 }
 
 /**

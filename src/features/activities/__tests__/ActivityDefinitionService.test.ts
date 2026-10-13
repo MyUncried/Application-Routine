@@ -6,6 +6,8 @@ import type {
   CreateActivityDefinitionInput,
 } from "@/domain/activities";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
+import { ActivityMediaImportService } from "@/domain/media/ActivityMediaImportService";
+import { MediaDraftLeases } from "@/domain/media/MediaDraftLeases";
 
 function makeDefinition(overrides: Partial<ActivityDefinition> = {}): ActivityDefinition {
   return {
@@ -49,7 +51,8 @@ class FakeRepository implements ActivityDefinitionRepository {
 
   async create(input: CreateActivityDefinitionInput): Promise<ActivityDefinition> {
     this.created.push(input);
-    const definition = makeDefinition({ id: `def-${this.store.size + 1}`, ...input });
+    const { media: _media, ...persisted } = input;
+    const definition = makeDefinition({ id: `def-${this.store.size + 1}`, ...persisted });
     this.store.set(definition.id, definition);
     return definition;
   }
@@ -68,7 +71,8 @@ class FakeRepository implements ActivityDefinitionRepository {
     if (!existing) {
       return null;
     }
-    const next = makeDefinition({ ...existing, ...input, id });
+    const { media: _media, ...persisted } = input;
+    const next = makeDefinition({ ...existing, ...persisted, id });
     this.store.set(id, next);
     return next;
   }
@@ -179,5 +183,61 @@ describe("ActivityDefinitionService", () => {
 
     expect(await service.getActivityDefinition(created.id)).toEqual(created);
     expect(await service.getActivityDefinition("missing")).toBeNull();
+  });
+});
+
+/**
+ * PRE-3 — frontière de service : médias conservés quand l'appelant les omet,
+ * import délégué au port, nettoyage gardé par les références persistées.
+ */
+describe("ActivityDefinitionService — PRE-3 (médias)", () => {
+  it("une modification sans `media` ne transmet jamais `media: []` au Repository (liens conservés) ; une liste explicite est transmise", async () => {
+    const repository = new FakeRepository();
+    const service = new ActivityDefinitionService(repository);
+    const created = await service.createActivityDefinition(validInput());
+    expect(created.ok).toBe(true);
+    const id = created.ok ? created.value.id : "";
+    await service.updateActivityDefinition(id, { ...validInput(), name: "Squat sauté" });
+    expect(repository.updated[0]!.input).not.toHaveProperty("media");
+    await service.updateActivityDefinition(id, { ...validInput(), media: [] });
+    expect(repository.updated[1]!.input.media).toEqual([]);
+  });
+
+  it("abandon confirmé : seules les préparations non référencées sont nettoyées ; une lecture de référence en échec conserve le fichier", async () => {
+    const leases = new MediaDraftLeases();
+    const deleted: string[] = [];
+    const importService = new ActivityMediaImportService(
+      { pickFromLibrary: async () => ({ status: "CANCELED" }) },
+      {
+        copyToInternal: async (_source, assetId) => ({ uri: `kodjo-media/${assetId}`, sizeBytes: 1 }),
+        availableBytes: () => null,
+        deletePrepared: async (uri) => {
+          deleted.push(uri);
+        },
+      },
+      () => "unused",
+      () => "now",
+      leases,
+    );
+    const picked = { uri: "file:///x", kind: "PHOTO" as const, mimeType: null, fileName: null, sizeBytes: 1, durationMs: null, width: null, height: null, nativeAssetId: null };
+    for (const key of ["a", "b", "c"]) {
+      await importService.retry("draft-1", { key, state: "FAILED", picked, error: "COPY_FAILED" });
+    }
+    const countReferences = async (assetId: string) => {
+      if (assetId === "c") throw new Error("io");
+      return assetId === "b" ? 1 : 0;
+    };
+    const service = new ActivityDefinitionService(new FakeRepository(), undefined, undefined, undefined, {
+      importService,
+      repository: { listForActivityDefinition: async () => [], countReferences },
+    });
+    expect(service.supportsMediaImport).toBe(true);
+    expect(await service.abandonMediaDraft("draft-1")).toEqual(["a"]);
+    expect(deleted).toEqual(["kodjo-media/a"]);
+    expect(service.resolveMediaUri("kodjo-media/a")).toBe("kodjo-media/a");
+    // Sans adaptateurs : aucune suppression, aucun import.
+    const bare = new ActivityDefinitionService(new FakeRepository());
+    expect(bare.supportsMediaImport).toBe(false);
+    expect(await bare.abandonMediaDraft("draft-1")).toEqual([]);
   });
 });

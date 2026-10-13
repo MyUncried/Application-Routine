@@ -1,10 +1,11 @@
-import { act, fireEvent, render, screen } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { describe, expect, it, jest } from "@jest/globals";
 
 import type { Category } from "@/domain/categories/Category";
 import { CategoryPickerModal } from "@/features/reference-data/CategoryPickerModal";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
+import { Modal, StyleSheet } from "react-native";
 
 function aCategory(overrides: Partial<Category> = {}): Category {
   return {
@@ -49,18 +50,25 @@ function renderModal(
 }
 
 describe("CategoryPickerModal — selection (AC873C19CD5A9)", () => {
-  it("a tap on an active Category selects it and closes the modal, with no extra validation button", async () => {
+  // Décision propriétaire D-8 (12/10) : remplace « sélection et fermeture au toucher »
+  // (AC873C19CD5A9, D-222) pour la Catégorie — le toucher marque, ✓ confirme.
+  it("D-8 — a tap MARKS the Category without closing; ✓ confirms the assignment then closes", async () => {
     const onSelect = jest.fn();
     const onClose = jest.fn();
     const service = fakeReferentialService();
     renderModal(service, { onSelect, onClose });
 
     await screen.findByTestId("category-picker-tag-cardio");
+    expect(screen.getByTestId("category-picker-confirm").props.accessibilityState).toMatchObject({ disabled: true });
     await act(async () => {
       fireEvent.press(screen.getByTestId("category-picker-tag-cardio"));
     });
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByTestId("category-picker-tag-cardio").props.accessibilityState).toMatchObject({ selected: true });
 
-    expect(onSelect).toHaveBeenCalledWith("cardio");
+    fireEvent.press(screen.getByTestId("category-picker-confirm"));
+    await waitFor(() => expect(onSelect).toHaveBeenCalledWith("cardio"), { timeout: 3000 });
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -75,7 +83,7 @@ describe("CategoryPickerModal — selection (AC873C19CD5A9)", () => {
 });
 
 describe("CategoryPickerModal — create (D2 reactivation)", () => {
-  it("creates a new Category with the chosen color, selects it and closes", async () => {
+  it("D-8 — ↑ creates the Category and MARKS it as chosen without closing; ✓ then assigns it", async () => {
     const onSelect = jest.fn();
     const onClose = jest.fn();
     const service = fakeReferentialService({
@@ -96,8 +104,33 @@ describe("CategoryPickerModal — create (D2 reactivation)", () => {
     expect(service.createCategory).toHaveBeenCalledWith(
       expect.objectContaining({ name: "Danse" }),
     );
-    expect(onSelect).toHaveBeenCalledWith("new-cat");
+    // D-8 : créée dans le référentiel et marquée ; ni affectée ni fermée avant ✓.
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId("category-picker-confirm"));
+    await waitFor(() => expect(onSelect).toHaveBeenCalledWith("new-cat"), { timeout: 3000 });
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("D-8 — ✕ abandons the choice: previous Category kept, a Category created in the sheet stays in the referential (never deleted silently)", async () => {
+    const onSelect = jest.fn();
+    const onClose = jest.fn();
+    const service = fakeReferentialService({
+      createCategory: jest.fn(async () => ({
+        status: "OK" as const,
+        value: aCategory({ id: "new-cat", name: "Danse", isPredefined: false, displayOrder: null }),
+      })),
+    });
+    renderModal(service, { selectedId: "cardio", onSelect, onClose });
+    fireEvent.press(await screen.findByTestId("category-picker-create-action"));
+    fireEvent.changeText(screen.getByTestId("category-picker-new-name-input"), "Danse");
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("category-picker-new-add"));
+    });
+    fireEvent.press(screen.getByTestId("category-picker-close"));
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(service.retireCategory).not.toHaveBeenCalled();
   });
 
   it("shows a duplicate error and never closes when the name's key matches an active Category", async () => {
@@ -204,7 +237,8 @@ describe("CategoryPickerModal — R4/R10 (palette en flux, défilement, en-tête
     renderModal(service);
 
     await screen.findByTestId("category-picker-card");
-    const title = screen.getByText("Catégorie");
+    // PRE-3 (Figma 4332:7095) : titre de feuille « Catégorie de l’exercice ».
+    const title = screen.getByText("Catégorie de l’exercice");
     expect(title.props.accessibilityRole).toBe("header");
   });
 
@@ -213,10 +247,10 @@ describe("CategoryPickerModal — R4/R10 (palette en flux, défilement, en-tête
     renderModal(service);
 
     fireEvent.press(await screen.findByTestId("category-picker-create-action"));
-    fireEvent.press(screen.getByLabelText("Couleur"));
 
-    const palette = screen.getByTestId("color-palette-popover");
-    expect(palette.props.style.position).not.toBe("absolute");
+    // Recette 1 : la palette est le bandeau figé (4474:7157), toujours visible — plus de pastille à déplier.
+    const palette = screen.getByTestId("category-picker-new-color-band");
+    expect(StyleSheet.flatten(palette.props.style).position).not.toBe("absolute");
   });
 
   it("shows a write-error message and keeps the modal open and the draft intact when createCategory throws", async () => {
@@ -253,3 +287,326 @@ describe("CategoryPickerModal — predefined categories are administrable like c
     expect(screen.getByTestId("category-picker-long-press-delete")).toBeTruthy();
   });
 });
+
+/**
+ * PRE-3 — feuille « Catégorie de l'exercice » (Figma 4332:7095, 4474:7157) ;
+ * comportements PRE-2 conservés (appui court = sélection, D2/D4).
+ */
+describe("CategoryPickerModal — PRE-3", () => {
+  it("P3-03/empty-create-name — nom vide ou blanc : Ajouter inactif, aucun message d'erreur ; un nom valide l'active", async () => {
+    renderModal(fakeReferentialService());
+    fireEvent.press(await screen.findByTestId("category-picker-create-action"));
+    const add = screen.getByTestId("category-picker-new-add");
+    expect(add.props.accessibilityState).toMatchObject({ disabled: true });
+    fireEvent.changeText(screen.getByTestId("category-picker-new-name-input"), "   ");
+    expect(screen.getByTestId("category-picker-new-add").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.queryByTestId("category-picker-new-error")).toBeNull();
+    expect(screen.queryByTestId("category-picker-write-error")).toBeNull();
+    fireEvent.changeText(screen.getByTestId("category-picker-new-name-input"), "Danse");
+    expect(screen.getByTestId("category-picker-new-add").props.accessibilityState).toMatchObject({ disabled: false });
+  });
+
+  it("P3-20/all-surfaces — feuille ancrée en bas, voile #1F2129 à 34 %, en-tête ✕ / titre / ✓ (D-8), pastilles 30 rayon 16, action Créer 32", async () => {
+    renderModal(fakeReferentialService(), { selectedId: "cardio" });
+    const tag = await screen.findByTestId("category-picker-tag-cardio");
+    const backdrop = StyleSheet.flatten(screen.getByTestId("category-picker-backdrop").props.style);
+    expect(backdrop).toMatchObject({ backgroundColor: "rgba(31, 33, 41, 0.34)", justifyContent: "flex-end" });
+    expect(screen.getByTestId("category-picker-header")).toBeTruthy();
+    expect(screen.getByTestId("category-picker-close")).toBeTruthy();
+    // D-8 (12/10) : la coche de validation de la maquette devient la règle — ✓ confirme le choix.
+    expect(StyleSheet.flatten(screen.getByTestId("category-picker-confirm").props.style)).toMatchObject({
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      backgroundColor: "#0508E5",
+    });
+    expect(screen.getByText("Catégorie de l’exercice")).toBeTruthy();
+    const pill = StyleSheet.flatten(tag.props.style);
+    expect(pill).toMatchObject({ height: 30, borderRadius: 16, backgroundColor: "#E5F0FF", borderColor: "#8283F2" });
+    expect(StyleSheet.flatten(screen.getByTestId("category-picker-create-action").props.style)).toMatchObject({
+      height: 32,
+      borderRadius: 16,
+      borderColor: "#8283F2",
+    });
+  });
+
+  it("P3-22/scope-regression — valeurs retirées absentes de la liste, menu d'appui long et sélection par appui court conservés", async () => {
+    const onSelect = jest.fn();
+    const service = fakeReferentialService({
+      listCategories: jest.fn(async () => [
+        aCategory(),
+        aCategory({ id: "old", name: "Ancienne", canonicalKey: "ancienne", isActive: false }),
+      ]),
+    });
+    renderModal(service, { onSelect });
+    await screen.findByTestId("category-picker-tag-cardio");
+    expect(screen.queryByTestId("category-picker-tag-old")).toBeNull();
+    fireEvent(screen.getByTestId("category-picker-tag-cardio"), "longPress");
+    expect(await screen.findByTestId("category-picker-long-press-cancel")).toBeTruthy();
+    expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it("INTERACTION/category — sélection marquée au toucher puis confirmée par ✓ (D-8) ; ✕ ferme sans sélectionner", async () => {
+    const onSelect = jest.fn();
+    const onClose = jest.fn();
+    renderModal(fakeReferentialService(), { selectedId: null, onSelect, onClose });
+    await screen.findByTestId("category-picker-tag-cardio");
+    fireEvent.press(screen.getByTestId("category-picker-close"));
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("category-picker-tag-cardio"));
+    });
+    expect(onSelect).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId("category-picker-confirm"));
+    await waitFor(() => expect(onSelect).toHaveBeenCalledWith("cardio"), { timeout: 3000 });
+    expect(onClose).toHaveBeenCalledTimes(2);
+  });
+
+  it("ACCESSIBILITY/category — nom et état sélectionné, ✕ et ✓ nommés (D-8), titre en-tête, Ajouter annoncé désactivé sans erreur", async () => {
+    renderModal(fakeReferentialService(), { selectedId: "cardio" });
+    const tag = await screen.findByTestId("category-picker-tag-cardio");
+    expect(tag.props.accessibilityLabel).toContain("Cardio");
+    expect(tag.props.accessibilityState).toMatchObject({ selected: true });
+    expect(screen.getByTestId("category-picker-close").props.accessibilityLabel.length).toBeGreaterThan(0);
+    expect(screen.getByTestId("category-picker-confirm").props.accessibilityLabel).toBe("Confirmer la catégorie");
+    expect(screen.getByRole("header").props.children).toBe("Catégorie de l’exercice");
+    fireEvent.press(screen.getByTestId("category-picker-create-action"));
+    expect(screen.getByTestId("category-picker-new-add").props.accessibilityState).toMatchObject({ disabled: true });
+  });
+});
+
+describe("CategoryPickerModal — recette 1 F-03 (clavier)", () => {
+  it("la feuille évite le clavier iOS et ramène le formulaire en vue à son ouverture et à l'apparition du clavier", async () => {
+    const { Keyboard, KeyboardAvoidingView, Platform, ScrollView } = jest.requireActual<typeof import("react-native")>("react-native");
+    const scrollToEnd = jest.spyOn(ScrollView.prototype, "scrollToEnd");
+    const listeners: Record<string, () => void> = {};
+    const addListener = jest.spyOn(Keyboard, "addListener").mockImplementation(((event: string, listener: () => void) => {
+      listeners[event] = listener;
+      return { remove: jest.fn() };
+    }) as unknown as typeof Keyboard.addListener);
+    renderModal(fakeReferentialService());
+
+    await screen.findByTestId("category-picker-backdrop");
+    expect(screen.UNSAFE_getByType(KeyboardAvoidingView).props.testID).toBe("category-picker-backdrop");
+    expect(screen.UNSAFE_getByType(KeyboardAvoidingView).props.behavior).toBe(Platform.OS === "ios" ? "padding" : undefined);
+
+    scrollToEnd.mockClear();
+    fireEvent.press(screen.getByTestId("category-picker-create-action"));
+    fireEvent(screen.getByTestId("category-picker-card"), "contentSizeChange", 360, 900);
+    expect(scrollToEnd).toHaveBeenCalled();
+
+    scrollToEnd.mockClear();
+    expect(listeners.keyboardDidShow).toBeDefined();
+    act(() => listeners.keyboardDidShow!());
+    expect(scrollToEnd).toHaveBeenCalled();
+    scrollToEnd.mockRestore();
+    addListener.mockRestore();
+  });
+
+  it("formulaire fermé : aucun défilement forcé de la liste", async () => {
+    const { ScrollView } = jest.requireActual<typeof import("react-native")>("react-native");
+    const scrollToEnd = jest.spyOn(ScrollView.prototype, "scrollToEnd");
+    renderModal(fakeReferentialService());
+    fireEvent(await screen.findByTestId("category-picker-card"), "contentSizeChange", 360, 900);
+    expect(scrollToEnd).not.toHaveBeenCalled();
+    scrollToEnd.mockRestore();
+  });
+});
+
+describe("CategoryPickerModal — recette 1 (T-61)", () => {
+  it("T-61 — texte agrandi : en-tête à hauteur minimale (jamais fixe), titre non limité à une ligne", async () => {
+    renderModal(fakeReferentialService());
+    const header = StyleSheet.flatten((await screen.findByTestId("category-picker-header")).props.style);
+    expect(header.height).toBeUndefined();
+    expect(header.minHeight).toBe(56);
+    expect(screen.getByRole("header").props.numberOfLines).toBeUndefined();
+  });
+});
+
+describe("CategoryPickerModal — recette 1 (T-34/T-59 : Envoyer ↑ et bandeau de couleurs)", () => {
+  it("action « Envoyer » ↑ dans le champ : inactive à vide, active avec un nom, crée avec la couleur choisie dans le bandeau ; Annuler retiré (recette 2)", async () => {
+    const service = fakeReferentialService({
+      createCategory: jest.fn(async () => ({
+        status: "OK" as const,
+        value: aCategory({ id: "new-cat", name: "Danse", color: "#2E9B62", isPredefined: false, displayOrder: null }),
+      })),
+    });
+    renderModal(service);
+    fireEvent.press(await screen.findByTestId("category-picker-create-action"));
+
+    const send = () => screen.getByTestId("category-picker-new-add");
+    expect(within(screen.getByTestId("category-picker-new-row")).getByText("↑")).toBeTruthy();
+    expect(StyleSheet.flatten(send().props.style)).toMatchObject({ position: "absolute", width: 32, height: 32, borderRadius: 16 });
+    expect(send().props.accessibilityState).toMatchObject({ disabled: true });
+    // Recette 2 (N-01/N-02, décision du 12/10) : plus d’Annuler dans le formulaire de création ; ✕ ferme la feuille.
+    expect(screen.queryByTestId("category-picker-new-cancel")).toBeNull();
+
+    const band = screen.getByTestId("category-picker-new-color-band");
+    expect(band.props.accessibilityRole).toBe("radiogroup");
+    expect(StyleSheet.flatten(band.props.style)).toMatchObject({ flexDirection: "row", height: 40 });
+    const segments = within(band).getAllByRole("radio");
+    expect(segments).toHaveLength(12);
+    fireEvent.press(screen.getByTestId("category-picker-new-color-band-#2E9B62"));
+    const selected = StyleSheet.flatten(screen.getByTestId("category-picker-new-color-band-#2E9B62").props.style);
+    expect(selected).toMatchObject({ height: 40, borderRadius: 3, borderWidth: 2, borderColor: "#FFFFFF", backgroundColor: "#2E9B62" });
+    expect(StyleSheet.flatten(screen.getByTestId("category-picker-new-color-band-#E5484D").props.style).height).toBe(32);
+
+    fireEvent.changeText(screen.getByTestId("category-picker-new-name-input"), "Danse");
+    expect(send().props.accessibilityState).toMatchObject({ disabled: false });
+    await act(async () => {
+      fireEvent.press(send());
+    });
+    expect(service.createCategory).toHaveBeenCalledWith({ name: "Danse", color: "#2E9B62" });
+  });
+});
+
+describe("CategoryPickerModal — D-8 et « Réduire les animations »", () => {
+  it("✓ affecte puis ferme immédiatement, sans animation, quand « Réduire les animations » est actif", async () => {
+    const { AccessibilityInfo } = jest.requireActual<typeof import("react-native")>("react-native");
+    jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValueOnce(true);
+    const onSelect = jest.fn();
+    const onClose = jest.fn();
+    renderModal(fakeReferentialService(), { onSelect, onClose });
+    fireEvent.press(await screen.findByTestId("category-picker-tag-cardio"));
+    fireEvent.press(screen.getByTestId("category-picker-confirm"));
+    expect(onSelect).toHaveBeenCalledWith("cardio");
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("category-picker — recette 2 (N-01/N-02 : clavier)", () => {
+  it("clavier ouvert : espace réduit sous le formulaire de création ; refermé : espacement d’origine", async () => {
+    const { Keyboard } = jest.requireActual<typeof import("react-native")>("react-native");
+    const listeners: Record<string, () => void> = {};
+    const spy = jest.spyOn(Keyboard, "addListener").mockImplementation(((event: string, listener: () => void) => {
+      listeners[event] = listener;
+      return { remove: jest.fn() };
+    }) as unknown as typeof Keyboard.addListener);
+    renderModal(fakeReferentialService());
+    fireEvent.press(await screen.findByTestId("category-picker-create-action"));
+    const content = () => StyleSheet.flatten(screen.getByTestId("category-picker-card").props.contentContainerStyle);
+    const sheet = () => StyleSheet.flatten(screen.getByTestId("category-picker-sheet").props.style);
+    expect(content().paddingBottom ?? content().padding).toBe(24);
+    act(() => listeners.keyboardWillShow!());
+    expect(content().paddingBottom).toBe(8);
+    expect(sheet().paddingBottom).toBe(0);
+    act(() => listeners.keyboardWillHide!());
+    expect(content().paddingBottom ?? content().padding).toBe(24);
+    spy.mockRestore();
+  });
+});
+
+describe("CategoryPickerModal — recette 3 (N-01 : ↑ ne ferme pas le clavier)", () => {
+  it("N-01 — ↑ crée la Catégorie sans démonter le formulaire (même champ, clavier conservé), vide le nom, une seule création, ni affectation ni fermeture", async () => {
+    let resolveCreate: (value: unknown) => void = () => {};
+    const service = fakeReferentialService({
+      createCategory: jest.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveCreate = resolve;
+          }),
+      ) as unknown as ReferentialService["createCategory"],
+    });
+    const onSelect = jest.fn();
+    const onClose = jest.fn();
+    renderModal(service, { onSelect, onClose });
+    fireEvent.press(await screen.findByTestId("category-picker-create-action"));
+    const input = screen.getByTestId("category-picker-new-name-input");
+    fireEvent.changeText(input, "Danse");
+
+    // Appuis répétés pendant l’écriture : une seule création.
+    fireEvent.press(screen.getByTestId("category-picker-new-add"));
+    fireEvent.press(screen.getByTestId("category-picker-new-add"));
+    await act(async () => {
+      resolveCreate({ status: "OK", value: aCategory({ id: "new-cat", name: "Danse", isPredefined: false, displayOrder: null }) });
+    });
+    expect(service.createCategory).toHaveBeenCalledTimes(1);
+
+    // Le formulaire reste ouvert, avec le MÊME champ (jamais démonté → le focus et le clavier restent).
+    expect(screen.getByTestId("category-picker-new-row")).toBeTruthy();
+    expect(screen.getByTestId("category-picker-new-name-input")).toBe(input);
+    expect(screen.getByTestId("category-picker-new-name-input").props.value).toBe("");
+    // Nom vidé : ↑ inactif, un nouvel appui ne crée rien.
+    expect(screen.getByTestId("category-picker-new-add").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+});
+
+describe("CategoryPickerModal — recette 3 (N-01 : appui long avec clavier, Modifier effectif)", () => {
+  it("N-01 — formulaire de création ouvert : appui long en calque (aucun Modal imbriqué → clavier conservé), ✕ conserve le texte provisoire ; Modifier affiche l’édition de l’entrée ciblée, puis la création revient avec son texte", async () => {
+    const service = fakeReferentialService();
+    renderModal(service);
+    fireEvent.press(await screen.findByTestId("category-picker-create-action"));
+    const createInput = screen.getByTestId("category-picker-new-name-input");
+    fireEvent.changeText(createInput, "Provisoire");
+    const modalsBefore = screen.UNSAFE_getAllByType(Modal).length;
+    const target = screen.getByTestId("category-picker-tag-cardio");
+
+    await act(async () => {
+      fireEvent(target, "longPress");
+    });
+    expect(screen.getByTestId("category-picker-long-press-card")).toBeTruthy();
+    expect(screen.UNSAFE_getAllByType(Modal)).toHaveLength(modalsBefore);
+    // Le champ reste monté et inchangé derrière le menu (masqué à VoiceOver, accessibilityViewIsModal).
+    expect(screen.getByTestId("category-picker-new-name-input", { includeHiddenElements: true })).toBe(createInput);
+
+    fireEvent.press(screen.getByTestId("category-picker-long-press-cancel"));
+    expect(screen.queryByTestId("category-picker-long-press-card")).toBeNull();
+    expect(screen.getByTestId("category-picker-new-name-input").props.value).toBe("Provisoire");
+
+    await act(async () => {
+      fireEvent(target, "longPress");
+    });
+    fireEvent.press(screen.getByTestId("category-picker-long-press-modify"));
+    expect(screen.getByTestId("category-picker-edit-name-input")).toBeTruthy();
+    expect(screen.getByTestId("category-picker-edit-name-input").props.value).not.toBe("");
+    expect(screen.queryByTestId("category-picker-new-row")).toBeNull();
+    fireEvent.press(screen.getByTestId("category-picker-edit-cancel"));
+    expect(service.renameCategory).not.toHaveBeenCalled();
+    expect(screen.getByTestId("category-picker-new-name-input").props.value).toBe("Provisoire");
+  });
+});
+
+describe("CategoryPickerModal — recette 3 (N-01, dernier écart : clavier sans interruption)", () => {
+  it("N-01 — clavier ouvert → appui long → Modifier → Annuler, puis → Modifier → Enregistrer : le champ focalisé n’est JAMAIS démonté (même instance), la saisie provisoire est conservée", async () => {
+    const service = fakeReferentialService();
+    renderModal(service);
+    fireEvent.press(await screen.findByTestId("category-picker-create-action"));
+    const field = screen.getByTestId("category-picker-new-name-input");
+    fireEvent.changeText(field, "Provisoire");
+    const same = (testID: string) => expect(screen.getByTestId(testID, { includeHiddenElements: true })).toBe(field);
+
+    // Appui long → menu → Modifier : le même champ passe en modification, prérempli.
+    await act(async () => {
+      fireEvent(screen.getByTestId("category-picker-tag-cardio"), "longPress");
+    });
+    same("category-picker-new-name-input");
+    fireEvent.press(screen.getByTestId("category-picker-long-press-modify"));
+    same("category-picker-edit-name-input");
+    expect(field.props.value).toBe("Cardio");
+    fireEvent.changeText(field, "Brouillon de modification");
+
+    // Annuler : le même champ revient à la création, saisie provisoire intacte, rien d’enregistré.
+    fireEvent.press(screen.getByTestId("category-picker-edit-cancel"));
+    same("category-picker-new-name-input");
+    expect(field.props.value).toBe("Provisoire");
+    expect(service.renameCategory).not.toHaveBeenCalled();
+
+    // Même parcours, puis Enregistrer : même champ, renommage de l’entrée ciblée, retour à la création.
+    await act(async () => {
+      fireEvent(screen.getByTestId("category-picker-tag-cardio"), "longPress");
+    });
+    fireEvent.press(screen.getByTestId("category-picker-long-press-modify"));
+    same("category-picker-edit-name-input");
+    fireEvent.changeText(field, "Cardio R3");
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("category-picker-edit-save"));
+    });
+    expect(service.renameCategory).toHaveBeenCalledWith(expect.any(String), "Cardio R3");
+    same("category-picker-new-name-input");
+    expect(field.props.value).toBe("Provisoire");
+  });
+});
+

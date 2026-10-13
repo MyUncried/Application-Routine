@@ -1,0 +1,37 @@
+{
+ "schema": "kodjo.pre3.recette1.test-results.v1",
+ "step": "extensions-x1-x4-et-d341",
+ "commands": [
+  {
+   "command": "npx tsc --noEmit -p .",
+   "result": "PASS"
+  },
+  {
+   "command": "npx eslint src app",
+   "result": "PASS"
+  },
+  {
+   "command": "npx jest --json",
+   "result": "PASS",
+   "suites": "97/97",
+   "tests": "1943/1943",
+   "failed": 0
+  },
+  {
+   "command": "verifier-passe2.cjs",
+   "result": "PASS (2143)"
+  },
+  {
+   "command": "obligations @43e7b344",
+   "result": "442/442 PASS"
+  },
+  {
+   "command": "contrôle étendu (controle-portee-recette1d.json)",
+   "result": "PASS, 56 chemins, aucun hors périmètre"
+  },
+  {
+   "command": "suites consommateurs ScreenShell/SegmentedControl (shared, Catalogue, Composition, ExerciseScreen)",
+   "result": "350/350 PASS"
+  }
+ ]
+}

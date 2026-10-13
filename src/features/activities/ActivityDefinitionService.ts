@@ -19,6 +19,23 @@ import type { Category } from "@/domain/categories/Category";
 import type { CategoryRepository } from "@/domain/categories/CategoryRepository";
 import type { Label } from "@/domain/labels/Label";
 import type { LabelRepository } from "@/domain/labels/LabelRepository";
+import type {
+  ActivityMediaImportService,
+  ImportItem,
+  ImportResult,
+} from "@/domain/media/ActivityMediaImportService";
+import type { MediaRepository } from "@/domain/media/MediaRepository";
+
+/**
+ * PRE-3 (D-333/D-334/D-335) — adaptateurs médias injectés par
+ * `SessionServiceProvider` sur la MÊME connexion SQLite (lecture des
+ * références) ; l'écriture des assets/liens reste dans la transaction du
+ * Repository propriétaire (Terminer/Continuer).
+ */
+export type ActivityMediaAdapters = {
+  readonly importService: ActivityMediaImportService;
+  readonly repository: MediaRepository;
+};
 
 export type CreateActivityDefinitionResult =
   | { readonly ok: true; readonly value: ActivityDefinition }
@@ -66,6 +83,7 @@ export class ActivityDefinitionService {
     private readonly categoryRepository?: CategoryRepository,
     private readonly bodyZoneRepository?: BodyZoneRepository,
     private readonly labelRepository?: LabelRepository,
+    private readonly media?: ActivityMediaAdapters,
   ) {}
 
   /**
@@ -100,7 +118,11 @@ export class ActivityDefinitionService {
     if (!validated.ok) {
       return { status: "INVALID", violations: validated.violations };
     }
-    const value = await this.repository.update(id, validated.value);
+    // PRE-3 : un appelant qui n'envoie pas `media` conserve les liens
+    // existants — la valeur par défaut `[]` de la validation ne doit jamais
+    // les effacer implicitement en modification.
+    const { media: _media, ...withoutMedia } = validated.value;
+    const value = await this.repository.update(id, input.media === undefined ? withoutMedia : validated.value);
     if (!value) {
       return { status: "NOT_FOUND" };
     }
@@ -160,5 +182,70 @@ export class ActivityDefinitionService {
       throw new Error("ActivityDefinitionService was constructed without a LabelRepository.");
     }
     return this.labelRepository.listAll();
+  }
+
+  private requireMedia(): ActivityMediaAdapters {
+    if (!this.media) {
+      throw new Error("ActivityDefinitionService was constructed without media adapters.");
+    }
+    return this.media;
+  }
+
+  /** Les médias sont disponibles (photothèque + copie interne) — sinon la section reste en lecture seule. */
+  get supportsMediaImport(): boolean {
+    return this.media !== undefined;
+  }
+
+  /** Import depuis la photothèque pour le brouillon `draftId` (aucune écriture SQLite). */
+  async importMedia(draftId: string, onProgress?: (items: readonly ImportItem[]) => void): Promise<ImportResult> {
+    return this.requireMedia().importService.importFromLibrary(draftId, onProgress);
+  }
+
+  /** Android : résultat du sélecteur en attente, importé une seule fois. */
+  async importPendingMedia(draftId: string, onProgress?: (items: readonly ImportItem[]) => void): Promise<ImportResult | null> {
+    return this.media ? this.media.importService.importPendingResult(draftId, onProgress) : null;
+  }
+
+  async retryMediaImport(draftId: string, item: ImportItem): Promise<ImportItem> {
+    return this.requireMedia().importService.retry(draftId, item);
+  }
+
+  /** Prête les assets déjà enregistrés (réouverture, copie) au brouillon actif. */
+  leaseDraftMedia(draftId: string, assetIds: readonly string[]): void {
+    this.media?.importService.leaseExisting(draftId, assetIds);
+  }
+
+  /** Enregistrement réussi du brouillon : ses copies sont désormais référencées. */
+  commitMediaDraft(draftId: string): void {
+    this.media?.importService.commitDraft(draftId);
+  }
+
+  /**
+   * Abandon CONFIRMÉ : seules les copies préparées par ce brouillon, sans
+   * référence en base (définitions et occurrences) et non prêtées à un autre
+   * brouillon actif sont supprimées. Une lecture de référence en échec
+   * conserve le fichier.
+   */
+  async abandonMediaDraft(draftId: string): Promise<readonly string[]> {
+    if (!this.media) {
+      return [];
+    }
+    const { importService, repository } = this.media;
+    const persisted = new Set<string>();
+    for (const assetId of importService.preparedAssetIds(draftId)) {
+      try {
+        if (!repository.countReferences || (await repository.countReferences(assetId)) > 0) {
+          persisted.add(assetId);
+        }
+      } catch {
+        persisted.add(assetId);
+      }
+    }
+    return importService.cleanupAbandonedDraft(draftId, persisted);
+  }
+
+  /** URI d'affichage d'un média (URI interne relative résolue). */
+  resolveMediaUri(uri: string): string {
+    return this.media ? this.media.importService.resolveUri(uri) : uri;
   }
 }

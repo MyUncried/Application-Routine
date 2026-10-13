@@ -37,8 +37,13 @@ export const DATABASE_NAME = "kodjo.db";
  * obligatoire et unique pour Étiquettes et Zones, et `activity_body_zones`
  * reconstruite sans `CHECK` sur les 10 identifiants historiques — une Zone
  * créée devient liable à une occurrence de Séance (plan §6.2).
+ *
+ * **PRE-3 (version 9, `migration009`)** : paramètres d'exécution canoniques
+ * (JSON versionné nullable) sur définitions et occurrences, Catégorie des
+ * copies, métadonnées natives des médias et liens ordonnés des occurrences
+ * (`session_activity_media`) — migration additive, 001..008 inchangées.
  */
-export const DATABASE_VERSION = 8;
+export const DATABASE_VERSION = 9;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

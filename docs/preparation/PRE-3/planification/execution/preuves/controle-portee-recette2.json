@@ -1,0 +1,84 @@
+{
+ "check": "PRE3_EXTENDED_SCOPE",
+ "step": "recette-2",
+ "start": "b1399804b6d1a777302da137404d420f198b7740",
+ "paths": [
+  {
+   "path": "docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md",
+   "class": "DOCUMENTATION_NORMATIVE_DEMANDEE_PAR_HERMANN"
+  },
+  {
+   "path": "docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md",
+   "class": "DOCUMENTATION_NORMATIVE_DEMANDEE_PAR_HERMANN"
+  },
+  {
+   "path": "docs/Specifications-fonctionnelles/12 – Architecture technique.md",
+   "class": "DOCUMENTATION_NORMATIVE_DEMANDEE_PAR_HERMANN"
+  },
+  {
+   "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+   "class": "DOCUMENTATION_NORMATIVE_DEMANDEE_PAR_HERMANN"
+  },
+  {
+   "path": "docs/Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v13.md",
+   "class": "DOCUMENTATION_NORMATIVE_DEMANDEE_PAR_HERMANN"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/couverture-obligations-recette2.json",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "docs/preparation/PRE-3/planification/execution/preuves/registre-recette2.md",
+   "class": "DOCUMENTAIRE_PRE3"
+  },
+  {
+   "path": "src/features/activities/ActivityEditorForm.tsx",
+   "class": "WRITE_SCOPE_43e7b344"
+  },
+  {
+   "path": "src/features/activities/ExecutionParametersSheet.tsx",
+   "class": "WRITE_SCOPE_43e7b344"
+  },
+  {
+   "path": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+   "class": "WRITE_SCOPE_43e7b344"
+  },
+  {
+   "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+   "class": "WRITE_SCOPE_43e7b344"
+  },
+  {
+   "path": "src/features/reference-data/BodyZonePickerModal.tsx",
+   "class": "WRITE_SCOPE_43e7b344"
+  },
+  {
+   "path": "src/features/reference-data/CategoryPickerModal.tsx",
+   "class": "WRITE_SCOPE_43e7b344"
+  },
+  {
+   "path": "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+   "class": "WRITE_SCOPE_43e7b344"
+  },
+  {
+   "path": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+   "class": "WRITE_SCOPE_43e7b344"
+  },
+  {
+   "path": "src/features/sessions/ExerciseScreen.tsx",
+   "class": "WRITE_SCOPE_43e7b344"
+  },
+  {
+   "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+   "class": "WRITE_SCOPE_43e7b344"
+  },
+  {
+   "path": "src/shared/ui/ProfileStepper.tsx",
+   "class": "WRITE_SCOPE_43e7b344"
+  },
+  {
+   "path": "src/shared/ui/tokens.ts",
+   "class": "WRITE_SCOPE_43e7b344"
+  }
+ ],
+ "result": "PASS"
+}

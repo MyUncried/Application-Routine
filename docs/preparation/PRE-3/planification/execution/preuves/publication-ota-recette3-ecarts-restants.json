@@ -1,0 +1,14 @@
+[
+  {
+    "id": "01a131d0-3f73-712c-8c34-19db4f55de01",
+    "createdAt": "2026-10-12T20:31:33.747Z",
+    "group": "0e8faf73-fcb5-42d3-a20a-f0eb346bde65",
+    "branch": "review",
+    "message": "KODJO review PRE-3 recette 3 ecarts restants ce8e35a27705146ae76287f847cbdad45ee671bb",
+    "runtimeVersion": "1.1.0",
+    "platform": "ios",
+    "manifestPermalink": "https://u.expo.dev/update/01a131d0-3f73-712c-8c34-19db4f55de01",
+    "isRollBackToEmbedded": false,
+    "gitCommitHash": "ce8e35a27705146ae76287f847cbdad45ee671bb"
+  }
+]

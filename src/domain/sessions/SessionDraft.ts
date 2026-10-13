@@ -20,6 +20,13 @@
  * l'origine de l'entrée. Elle ne lève jamais d'exception.
  */
 
+import {
+  cloneExecutionParameters,
+  executionParametersEqual,
+  type ExecutionParametersInput,
+} from "@/domain/activities/ExecutionParameters";
+import { draftMediaEqual, toDraftMediaItems, type DraftMediaItem } from "@/domain/media/ActivityMedia";
+
 import type {
   Activity,
   ActivityType,
@@ -101,6 +108,17 @@ export type SessionDraftExercise = {
   readonly bodyZoneIds: readonly string[];
   /** V2-BILAT-01 : direction propre de cette Activité (`sideMode.ts`) — `DEFAULT_SIDE_MODE` (`UNILATERAL`) pour un nouveau brouillon (`createExerciseDraft`). */
   readonly sideMode: SideMode;
+  /**
+   * PRE-3 : paramètres canoniques de l'occurrence — éventuellement
+   * incomplets pendant l'édition (mode « — »). Absents pour une occurrence
+   * antérieure à PRE-3 jamais rééditée : elle reste sur son chemin
+   * historique, sans nouvelle validation imposée.
+   */
+  readonly executionParameters?: ExecutionParametersInput;
+  /** PRE-3 : Catégorie transportée par la copie (`null` = aucune). */
+  readonly categoryId?: string | null;
+  /** PRE-3 : médias ordonnés de l'occurrence (assets partagés, liens propres). */
+  readonly media?: readonly DraftMediaItem[];
 };
 
 export type SessionDraft = {
@@ -270,6 +288,12 @@ function activityToDraftExercise(activity: Activity): SessionDraftExercise {
     // (même convention que `cycle.beforeTour`/`afterTour`) — `??
     // DEFAULT_SIDE_MODE` couvre une Séance persistée avant cette tranche.
     sideMode: activity.sideMode ?? DEFAULT_SIDE_MODE,
+    // PRE-3 : transport complet et indépendant (copies profondes).
+    ...(activity.executionParameters
+      ? { executionParameters: cloneExecutionParameters(activity.executionParameters) }
+      : {}),
+    ...(activity.categoryId !== undefined ? { categoryId: activity.categoryId } : {}),
+    ...(activity.media ? { media: toDraftMediaItems(activity.media) } : {}),
   };
 }
 
@@ -312,7 +336,10 @@ export function exerciseEquals(
     a.postActivityRecoverySeconds === b.postActivityRecoverySeconds &&
     a.instruction === b.instruction &&
     bodyZoneIdSetsEqual(a.bodyZoneIds, b.bodyZoneIds) &&
-    a.sideMode === b.sideMode
+    a.sideMode === b.sideMode &&
+    executionParametersEqual(a.executionParameters, b.executionParameters) &&
+    (a.categoryId ?? null) === (b.categoryId ?? null) &&
+    draftMediaEqual(a.media, b.media)
   );
 }
 
@@ -408,6 +435,14 @@ function toDraftActivityParameters(exercise: SessionDraftExercise) {
     instruction: exercise.instruction,
     bodyZoneIds: exercise.bodyZoneIds,
     sideMode: exercise.sideMode,
+    // PRE-3 : l'autorité canonique, la Catégorie et les médias ordonnés
+    // voyagent jusqu'à la transaction de Séance (Continuer) — jamais
+    // persistés avant.
+    ...(exercise.executionParameters ? { executionParameters: exercise.executionParameters } : {}),
+    ...(exercise.categoryId !== undefined ? { categoryId: exercise.categoryId } : {}),
+    ...(exercise.media
+      ? { media: exercise.media.map((item) => ({ assetId: item.assetId, asset: item.asset })) }
+      : {}),
   };
 }
 

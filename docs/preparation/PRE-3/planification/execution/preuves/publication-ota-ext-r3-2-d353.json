@@ -1,0 +1,14 @@
+[
+  {
+    "id": "01a13191-b515-7e40-b5fa-f4ff579d8cb1",
+    "createdAt": "2026-10-12T19:23:15.093Z",
+    "group": "2aa81d03-149d-48cc-b2cd-467b31754c3e",
+    "branch": "review",
+    "message": "KODJO review PRE-3 recette 3 EXT-R3-2 D-353 c649bffce883773172dfe3a46c0f033afa828462",
+    "runtimeVersion": "1.1.0",
+    "platform": "ios",
+    "manifestPermalink": "https://u.expo.dev/update/01a13191-b515-7e40-b5fa-f4ff579d8cb1",
+    "isRollBackToEmbedded": false,
+    "gitCommitHash": "c649bffce883773172dfe3a46c0f033afa828462"
+  }
+]

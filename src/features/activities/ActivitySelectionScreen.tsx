@@ -6,12 +6,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { activityDefinitionToDraftExercise, type ActivityDefinition } from "@/domain/activities";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
-import { DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS } from "@/domain/preferences/Profile";
 import { appendActivityAfterLastDisplayed } from "@/domain/sessions/composition";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { useActivityCatalogue } from "@/features/activities/useActivityCatalogue";
-import { useProfileService } from "@/features/preferences/ProfileServiceContext";
 import {
   formatExerciseBodyZones,
   formatExerciseRowSummary,
@@ -80,32 +78,6 @@ export function ActivitySelectionScreen() {
   const bodyZonesReferential = useBodyZonesReferential(activityDefinitionService);
   const t = strings.screens.activities.selection;
 
-  // V2-PRE-2 (plan §6.1/§7, D-171/D-213) : chaque copie insérée ici reçoit la
-  // Récupération COURANTE du Profil (lue une seule fois au montage) — jamais
-  // rétroactive sur une copie déjà insérée dans le brouillon.
-  const profileService = useProfileService();
-  const [postActivityRecoveryDefault, setPostActivityRecoveryDefault] = useState<number>(
-    DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS,
-  );
-  useEffect(() => {
-    let cancelled = false;
-    profileService.getProfile().then(
-      (profile) => {
-        if (!cancelled) {
-          setPostActivityRecoveryDefault(profile.postActivityRecoverySecondsDefault);
-        }
-      },
-      (error: unknown) => {
-        if (!cancelled) {
-          console.error("Impossible de charger le Profil.", error);
-        }
-      },
-    );
-    return () => {
-      cancelled = true;
-    };
-  }, [profileService]);
-
   useFocusEffect(
     useCallback(() => {
       reload();
@@ -159,13 +131,12 @@ export function ActivitySelectionScreen() {
     for (const definition of orderedSelection) {
       // V2-PRE-1 (plan §3.2) : `postActivityRecoverySeconds` est une
       // propriété de l'OCCURRENCE, jamais dérivée de la définition.
-      // V2-PRE-2 (D-171/D-213) : chaque copie reçoit la valeur COURANTE du
-      // Profil (`postActivityRecoveryDefault`, lue une seule fois ci-dessus).
-      const copy = activityDefinitionToDraftExercise(
-        definition,
-        Crypto.randomUUID(),
-        postActivityRecoveryDefault,
-      );
+      // PRE-3 (spécification du 07/10, P3-13/no-auto-R) : une nouvelle
+      // occurrence ne reçoit AUCUNE Récupération automatique — le défaut du
+      // Profil n'est utilisé que par l'ajout explicite d'une Récupération
+      // (placement PRE-4). Copie complète : paramètres, Catégorie et médias
+      // ordonnés (`activityDefinitionToDraftExercise`).
+      const copy = activityDefinitionToDraftExercise(definition, Crypto.randomUUID(), 0);
       nextExercises = appendActivityAfterLastDisplayed(nextExercises, copy);
     }
     // Insertion atomique : une seule mutation du brouillon pour l'ensemble

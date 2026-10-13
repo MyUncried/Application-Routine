@@ -1,0 +1,37 @@
+{
+  "status": "BLOCKED_BEFORE_REVIEW",
+  "operation": "vnext-live-chain.produce -> vnext-contract.sealContract -> canonicalHash -> canonicalStringify",
+  "evidence_kind": "EXACT_SERIALIZATION_LOWER_BOUND_ON_REAL_CONSTRUCTED_ARTIFACTS",
+  "runtime": "v24.19.0",
+  "MAX_STRING_LENGTH": 536870888,
+  "fields": [
+    {
+      "field": "figma_launch",
+      "file": "launch.json",
+      "utf16_code_units": 119911440,
+      "bytes": 121634636
+    },
+    {
+      "field": "requirementRegistry",
+      "file": "requirement-registry.json",
+      "utf16_code_units": 115822545,
+      "bytes": 117534334
+    },
+    {
+      "field": "uiAtomicityContract",
+      "file": "ui-atomicity-contract.json",
+      "utf16_code_units": 490634380,
+      "bytes": 493901942
+    }
+  ],
+  "minimum_utf16_code_units": 726368365,
+  "other_required_produced_fields_included_in_lower_bound": false,
+  "minimum_excess_code_units": 189497477,
+  "plan_contract_hash": "5145cbd30860f9ddef041ed33b97a71697517a3ef248229112bb0f5f7b92006f",
+  "ui_contract_hash": "d4aa55ad8a0752ae4083a33a96d5d006491258ab1dee5bf2856610ec9399e4c9",
+  "scope_preserved": true,
+  "independentReview": false,
+  "ownerApproval": false,
+  "applicationConformance": false,
+  "note": "The complete production object is necessarily larger than these three mandatory fields. Git/CLI gzip storage does not change canonicalHash, which materializes the complete logical JSON string. This is not a fabricated model refusal or a simulated review."
+}

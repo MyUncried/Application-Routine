@@ -1,0 +1,40 @@
+{
+  "schema_version": "kodjo.vnext.decision-record.v1",
+  "decision_id": "DEC-b3ac043fa59d2b6939307404",
+  "slice_id": "PRE-3",
+  "question": "Pour FND-2aa59b7187ade34c38f136a7, confirmer le rétablissement des séparateurs des valeurs numériques à règles constantes, ou identifier une valeur réellement à arbitrer.",
+  "options": [
+    {
+      "option_id": "OPT-605d82297ca6977d17c4ad92",
+      "label": "A — Rétablir les séparateurs uniquement, conserver toutes les valeurs et règles déjà validées."
+    },
+    {
+      "option_id": "OPT-c21fd3ed6473690facc1f221",
+      "label": "B — Je signale une valeur précise réellement ambiguë à arbitrer avant la révision."
+    }
+  ],
+  "source_ids": [
+    "SRC-73db2f2f8fa401b7bc919b4f"
+  ],
+  "affected_requirement_ids": [
+    "REQ-5b34a61e1bba57ca4cc09932"
+  ],
+  "status": "RESOLVED",
+  "response": {
+    "selected_option_id": "OPT-605d82297ca6977d17c4ad92",
+    "response_text": "oui je valide — après explication des valeurs concernées ; option A, correction de rédaction uniquement, valeurs et règles inchangées.",
+    "responded_by": "MyUncried"
+  },
+  "created_at": "2026-10-09T11:42:13.636Z",
+  "causal_evidence": [
+    "finding:FND-2aa59b7187ade34c38f136a7",
+    "claude_session:ebde720a-8c4a-4685-95b4-407b2116ff58#56568e7ae81d44c60cb5185d0b69f3099fb64650953804dbf322e478d3845ce9",
+    "git:3a8975620cc85e03d3bc5fb2871c8279332ba3b5:docs/preparation/PRE-3/planification/assertions-recette.json"
+  ],
+  "resolved_at": "2026-10-09T11:46:38.000Z",
+  "resolution_evidence": [
+    "owner_message:2026-10-09T13:46:38+02:00:oui-je-valide",
+    "github_issue:MyUncried/Application-Routine#340"
+  ],
+  "contract_hash": "afc359a46242aa81942538621f340f23c9503426b4adcb8a7e57f5f7020cc5a8"
+}

@@ -6,9 +6,15 @@ import type {
   ActivityDefinition,
   ActivityDefinitionRepository,
   CreateActivityDefinitionInput,
-  CreateActivityMediaInput,
   UpdateActivityDefinitionInput,
 } from "@/domain/activities";
+import {
+  legacyExecutionParameters,
+  parseExecutionParameters,
+  projectLegacyScalars,
+  serializeExecutionParameters,
+  type ExecutionParameters,
+} from "@/domain/activities/ExecutionParameters";
 import { DEFAULT_SIDE_MODE } from "@/domain/sessions/defaults";
 import type { ExerciseExecutionMode } from "@/domain/sessions/Session";
 import type { SideMode } from "@/domain/sessions/sideMode";
@@ -17,6 +23,8 @@ import type {
   ActivityDefinitionBodyZoneRow,
   ActivityDefinitionRow,
 } from "@/infrastructure/database/types/DatabaseRows";
+
+import { listDefinitionMediaByIds, replaceDefinitionMediaLinks } from "./SqliteMediaRepository";
 
 type UuidFactory = () => string;
 type CategoryIdRow = { id: string; is_active: 0 | 1 };
@@ -39,8 +47,29 @@ export class RetiredCategoryError extends Error {
 const SELECT_COLUMNS = `
   id, name, description, execution_mode, duration_seconds, repetition_count,
   series_count, pause_seconds, category_id, side_mode, side_recovery_seconds,
-  created_at, updated_at
+  execution_parameters, created_at, updated_at
 `;
+
+/**
+ * PRE-3 : valeurs scalaires écrites. Quand des paramètres canoniques font
+ * autorité, les colonnes historiques reçoivent UNIQUEMENT leurs projections
+ * (respect des `CHECK`, compatibilité des anciens DTO) — jamais une écriture
+ * indépendante concurrente.
+ */
+function scalarValues(input: CreateActivityDefinitionInput, canonical: ExecutionParameters | null) {
+  if (!canonical) {
+    return {
+      executionMode: input.executionMode,
+      durationSeconds: input.durationSeconds,
+      repetitionCount: input.repetitionCount,
+      seriesCount: input.seriesCount,
+      pauseSeconds: input.pauseSeconds,
+      sideMode: input.sideMode ?? DEFAULT_SIDE_MODE,
+      sideRecoverySeconds: input.sideRecoverySeconds,
+    };
+  }
+  return projectLegacyScalars(canonical);
+}
 
 /**
  * Résout une référence de Catégorie (`CreateCategoryInput`) vers un
@@ -107,53 +136,45 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
   async create(input: CreateActivityDefinitionInput): Promise<ActivityDefinition> {
     const id = this.uuidFactory();
     const timestamp = this.now();
-    const sideMode = input.sideMode ?? DEFAULT_SIDE_MODE;
-    let categoryId = "";
+    const canonical = input.executionParameters ?? null;
+    const values = scalarValues(input, canonical);
 
+    // PRE-3 : asset(s) importé(s) + définition + liens ordonnés dans UNE
+    // transaction (Terminer Catalogue) — aucune écriture partielle.
     await this.database.withExclusiveTransactionAsync(async (transaction) => {
-      categoryId = await resolveCategoryId(transaction, input.category, this.uuidFactory, timestamp);
+      const categoryId = await resolveCategoryId(transaction, input.category, this.uuidFactory, timestamp);
       await transaction.runAsync(
         `INSERT INTO activity_definitions (
           id, name, description, execution_mode, duration_seconds, repetition_count,
           series_count, pause_seconds, category_id, side_mode, side_recovery_seconds,
-          created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          execution_parameters, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           id,
           input.name,
           input.description,
-          input.executionMode,
-          input.durationSeconds,
-          input.repetitionCount,
-          input.seriesCount,
-          input.pauseSeconds,
+          values.executionMode,
+          values.durationSeconds,
+          values.repetitionCount,
+          values.seriesCount,
+          values.pauseSeconds,
           categoryId,
-          sideMode,
-          input.sideRecoverySeconds,
+          values.sideMode,
+          values.sideRecoverySeconds,
+          canonical ? serializeExecutionParameters(canonical) : null,
           timestamp,
           timestamp,
         ],
       );
       await insertBodyZones(transaction, id, input.bodyZoneIds);
-      await insertMedia(transaction, id, input.media ?? [], this.uuidFactory);
+      await replaceDefinitionMediaLinks(transaction, id, input.media ?? [], this.uuidFactory);
     });
 
-    return {
-      id,
-      name: input.name,
-      description: input.description,
-      executionMode: input.executionMode,
-      durationSeconds: input.durationSeconds,
-      repetitionCount: input.repetitionCount,
-      seriesCount: input.seriesCount,
-      pauseSeconds: input.pauseSeconds,
-      categoryId,
-      bodyZoneIds: input.bodyZoneIds,
-      sideMode,
-      sideRecoverySeconds: input.sideRecoverySeconds,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    };
+    const created = await this.findById(id);
+    if (!created) {
+      throw new Error("The created activity definition could not be read back.");
+    }
+    return created;
   }
 
   async update(
@@ -161,22 +182,26 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
     input: UpdateActivityDefinitionInput,
   ): Promise<ActivityDefinition | null> {
     const timestamp = this.now();
-    const sideMode = input.sideMode ?? DEFAULT_SIDE_MODE;
     let updated = false;
-    let createdAt: string | null = null;
-    let categoryId = "";
 
     await this.database.withExclusiveTransactionAsync(async (transaction) => {
       const existing = await transaction.getFirstAsync<{
         id: string;
         created_at: string;
         category_id: string;
-      }>("SELECT id, created_at, category_id FROM activity_definitions WHERE id = ?", [id]);
+        execution_parameters: string | null;
+      }>("SELECT id, created_at, category_id, execution_parameters FROM activity_definitions WHERE id = ?", [id]);
       if (!existing) {
         return;
       }
-      createdAt = existing.created_at;
-      categoryId = await resolveCategoryId(
+      // PRE-3 : sans paramètres canoniques fournis (ancien appelant), un JSON
+      // déjà persisté reste l'autorité — ses projections sont réécrites,
+      // jamais des scalaires divergents.
+      const canonical =
+        input.executionParameters ??
+        (existing.execution_parameters !== null ? parseExecutionParameters(existing.execution_parameters) : null);
+      const values = scalarValues(input, canonical);
+      const categoryId = await resolveCategoryId(
         transaction,
         input.category,
         this.uuidFactory,
@@ -188,19 +213,21 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
         `UPDATE activity_definitions SET
           name = ?, description = ?, execution_mode = ?, duration_seconds = ?,
           repetition_count = ?, series_count = ?, pause_seconds = ?,
-          category_id = ?, side_mode = ?, side_recovery_seconds = ?, updated_at = ?
+          category_id = ?, side_mode = ?, side_recovery_seconds = ?,
+          execution_parameters = ?, updated_at = ?
          WHERE id = ?`,
         [
           input.name,
           input.description,
-          input.executionMode,
-          input.durationSeconds,
-          input.repetitionCount,
-          input.seriesCount,
-          input.pauseSeconds,
+          values.executionMode,
+          values.durationSeconds,
+          values.repetitionCount,
+          values.seriesCount,
+          values.pauseSeconds,
           categoryId,
-          sideMode,
-          input.sideRecoverySeconds,
+          values.sideMode,
+          values.sideRecoverySeconds,
+          canonical ? serializeExecutionParameters(canonical) : null,
           timestamp,
           id,
         ],
@@ -210,33 +237,19 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
         [id],
       );
       await insertBodyZones(transaction, id, input.bodyZoneIds);
-      await transaction.runAsync(`DELETE FROM activity_media WHERE activity_definition_id = ?`, [
-        id,
-      ]);
-      await insertMedia(transaction, id, input.media ?? [], this.uuidFactory);
+      // PRE-3 : `media` absent (ancien appelant) conserve les liens ; une
+      // liste explicite — même vide — les remplace. Les assets ne sont
+      // jamais supprimés.
+      if (input.media !== undefined) {
+        await replaceDefinitionMediaLinks(transaction, id, input.media, this.uuidFactory);
+      }
       updated = true;
     });
 
-    if (!updated || createdAt === null) {
+    if (!updated) {
       return null;
     }
-
-    return {
-      id,
-      name: input.name,
-      description: input.description,
-      executionMode: input.executionMode,
-      durationSeconds: input.durationSeconds,
-      repetitionCount: input.repetitionCount,
-      seriesCount: input.seriesCount,
-      pauseSeconds: input.pauseSeconds,
-      categoryId,
-      bodyZoneIds: input.bodyZoneIds,
-      sideMode,
-      sideRecoverySeconds: input.sideRecoverySeconds,
-      createdAt,
-      updatedAt: timestamp,
-    };
+    return this.findById(id);
   }
 
   async findById(id: string): Promise<ActivityDefinition | null> {
@@ -248,7 +261,8 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
       return null;
     }
     const bodyZoneIds = await getBodyZoneIds(this.database, [id]);
-    return mapActivityDefinitionRow(row, bodyZoneIds.get(id) ?? []);
+    const media = await listDefinitionMediaByIds(this.database, [id]);
+    return mapActivityDefinitionRow(row, bodyZoneIds.get(id) ?? [], media.get(id) ?? []);
   }
 
   async listAll(): Promise<readonly ActivityDefinition[]> {
@@ -257,7 +271,10 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
     );
     const ids = rows.map((row) => row.id);
     const bodyZonesById = await getBodyZoneIds(this.database, ids);
-    return rows.map((row) => mapActivityDefinitionRow(row, bodyZonesById.get(row.id) ?? []));
+    const mediaById = await listDefinitionMediaByIds(this.database, ids);
+    return rows.map((row) =>
+      mapActivityDefinitionRow(row, bodyZonesById.get(row.id) ?? [], mediaById.get(row.id) ?? []),
+    );
   }
 }
 
@@ -270,29 +287,6 @@ async function insertBodyZones(
     await transaction.runAsync(
       `INSERT INTO activity_definition_body_zones (activity_definition_id, body_zone_id) VALUES (?, ?)`,
       [activityDefinitionId, bodyZoneId],
-    );
-  }
-}
-
-/**
- * Persiste les médias de l'Exercice avec une position STABLE égale à l'ordre
- * du tableau (0-indexée, V2-PRE-1, plan §3.3/§13, REQ-001108DC7F67664C) —
- * jamais retriée, jamais une position fournie séparément par l'appelant qui
- * pourrait diverger de cet ordre. `activity_media.asset_id` référence
- * `media_assets(id)` (`ON DELETE CASCADE` côté Exercice) : un `assetId`
- * inconnu échoue la transaction entière (contrainte `FOREIGN KEY`), jamais
- * une ligne orpheline silencieuse.
- */
-async function insertMedia(
-  transaction: Database,
-  activityDefinitionId: string,
-  media: readonly CreateActivityMediaInput[],
-  uuidFactory: UuidFactory,
-): Promise<void> {
-  for (const [position, item] of media.entries()) {
-    await transaction.runAsync(
-      `INSERT INTO activity_media (id, activity_definition_id, asset_id, position) VALUES (?, ?, ?, ?)`,
-      [uuidFactory(), activityDefinitionId, item.assetId, position],
     );
   }
 }
@@ -322,11 +316,32 @@ async function getBodyZoneIds(
   return byId;
 }
 
+/**
+ * Projection d'une ligne. PRE-3 : le JSON canonique fait autorité ; corrompu
+ * ou de version inconnue, il lève une `ExecutionParametersDataError` —
+ * jamais un repli silencieux sur les scalaires. Sans JSON (ancien objet),
+ * l'adaptateur conservateur s'applique (aucune lecture du Profil).
+ */
 function mapActivityDefinitionRow(
   row: ActivityDefinitionRow,
   bodyZoneIds: readonly string[],
+  media: ActivityDefinition["media"] = [],
 ): ActivityDefinition {
+  const executionParameters =
+    row.execution_parameters !== null && row.execution_parameters !== undefined
+      ? parseExecutionParameters(row.execution_parameters)
+      : legacyExecutionParameters({
+          executionMode: row.execution_mode as ExerciseExecutionMode,
+          durationSeconds: row.duration_seconds,
+          repetitionCount: row.repetition_count,
+          seriesCount: row.series_count,
+          pauseSeconds: row.pause_seconds,
+          sideMode: row.side_mode as SideMode,
+          sideRecoverySeconds: row.side_recovery_seconds,
+        });
   return {
+    executionParameters,
+    media,
     id: row.id,
     name: row.name,
     description: row.description,
