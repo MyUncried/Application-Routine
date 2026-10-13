@@ -1,0 +1,23 @@
+{
+  "schema_version": "kodjo.pre4.source-receipt.v1",
+  "result": "PASS",
+  "document_revision": "69e9178c6c7dffcc8273bd512dcff6710071d2a0",
+  "reference_hash": "6d6853ecab8d0c3aaf65dfd767fd5a65f28b642796b18ea3d0b834283529e63f",
+  "frames": 32,
+  "nodes": 5465,
+  "properties": 265068,
+  "required_properties": 180443,
+  "states": 83,
+  "scenarios": 83,
+  "masters_nodes": 380,
+  "variables": 786,
+  "collections": 3,
+  "styles_context": 61,
+  "source_bytes": 5348818,
+  "physical_sha256": "afd9bd3b88641be553ad756aa08e31ed196eb8e90658d547b854c5e21c8e7103",
+  "semantics": "Source assembly timestamp; targeted capture13Oct has day precision only and is frozen as Git bytes,32PNG previously committed reused as layout context. No upstream Figma version or application visual compliance claimed.",
+  "canonical_launch_completed": false,
+  "independent_review": false,
+  "owner_plan_approval": false,
+  "implementation_started": false
+}
