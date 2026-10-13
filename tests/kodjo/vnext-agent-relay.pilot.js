@@ -165,6 +165,60 @@ test('historical pre-model failure requires trusted code, divergent ancestry and
  }
  f.values.jobs.jobs[0].steps[0].conclusion='failure';assert.equal(check(),false);
 });
+test('raw historical logs are requested with escape sequences permitted and retained as evidence',()=>{
+ const f=historicalRunFixture();let checked=false;
+ const command=(bin,args,cwd)=>{
+  if(bin==='gh'&&args[1].endsWith('/logs')){assert.ok(args.includes('--allow-escape-sequences'));checked=true;}
+  return f.command(bin,args,cwd);
+ };
+ assert.equal(Agent.failedAncestryBeforeInvocation(f.run,f.request,f.commit,'.',command),true);assert.equal(checked,true);
+});
+function archivedFailureFixture(t){
+ const f=setup(t,'plan-review'),run={id:123,status:'completed',conclusion:'failure',run_attempt:1,event:'push',head_sha:'d'.repeat(40),actor:{login:'MyUncried'},path:'.github/workflows/kodjo-vnext-chatgpt-plan-review.yml'};
+ const checkpoint={request_hash:f.request.contract_hash,slice_id:f.request.slice_id,operation:f.request.operation,state:'ORCHESTRATION_FAILURE',model_invoked:false,run_id:'123',run_attempt:'1',error:'TEST gh refuses ANSI'};
+ const failure=V.sealContract({schema_version:'kodjo.vnext.agent-failure.v1',request_hash:f.request.contract_hash,source_head:f.request.source_head,slice_id:f.request.slice_id,operation:f.request.operation,status:'ORCHESTRATION_FAILURE',error:checkpoint.error,model_invoked:false});
+ const blobs={'scripts/kodjo/agent-relay.js':'c5ff10f7017fcb0fd8c0aa4cc38524bc17adfeb1','scripts/kodjo/lib/vnext-agent-relay.js':'6b9d48e41f6f3cbb62d41d4cbe5394fa623db35b','.github/workflows/kodjo-vnext-chatgpt-plan-review.yml':'19dfae2defdef73851c0350d53fb17100fbd5a7e'};
+ const artifact={name:'vnext-chatgpt-review-123-1',expired:false,workflow_run:{id:123,head_sha:run.head_sha}};
+ const data={checkpoint,failure,blobs,artifact,extra:false,tamper:false};
+ const command=(bin,args)=>{
+  if(bin==='git'&&args[0]==='rev-parse')return data.blobs[args[1].slice(41)];
+  if(bin==='gh'&&args[0]==='api')return JSON.stringify({total_count:1,artifacts:[data.artifact]});
+  if(bin==='gh'&&args[0]==='run'){
+   const directory=args[args.indexOf('--dir')+1];B.write(path.join(directory,'checkpoint.json'),data.checkpoint);B.write(path.join(directory,'failure.json'),data.failure);
+   if(data.extra)B.write(path.join(directory,'invocation-intent.json'),{});
+   Relay.publishManifest(directory,f.request);
+   if(data.tamper)fs.appendFileSync(path.join(directory,'checkpoint.json'),' ');
+   return '';
+  }
+  throw Error('TEST unexpected command');
+ };
+ return {...f,run,data,command};
+}
+test('authenticated failure archive proves non-invocation, rejects invoked calls, changed bindings, code and extra evidence',t=>{
+ const f=archivedFailureFixture(t),check=()=>Agent.recordedFailureBeforeInvocation(f.run,f.request,f.cwd,f.command);
+ assert.equal(check(),true);
+ for(const patch of [{model_invoked:true},{source_head:'e'.repeat(40)},{request_hash:'f'.repeat(64)},{status:'COMPLETED'}]){
+  const original=f.data.failure;f.data.failure=reseal({...original,...patch});assert.equal(check(),false);f.data.failure=original;
+ }
+ for(const patch of [{model_invoked:true},{run_id:'999'},{run_attempt:'2'},{error:'other'}]){
+  const original=f.data.checkpoint;f.data.checkpoint={...original,...patch};assert.equal(check(),false);f.data.checkpoint=original;
+ }
+ f.data.extra=true;assert.equal(check(),false);f.data.extra=false;
+ f.data.artifact.expired=true;assert.equal(check(),false);f.data.artifact.expired=false;
+ f.data.blobs['scripts/kodjo/lib/vnext-agent-relay.js']='untrusted';assert.equal(check(),false);f.data.blobs['scripts/kodjo/lib/vnext-agent-relay.js']='6b9d48e41f6f3cbb62d41d4cbe5394fa623db35b';
+ f.data.tamper=true;assert.throws(check,/EVIDENCE_CHANGED/);
+});
+test('retrying a resume run resolves back to the exact original request and rejects a different operation',t=>{
+ const repo=require('./helpers/vnext-figma-fixture').fixture();t.after(()=>repo.cleanup());const f=historicalRunFixture();
+ const file='.github/orchestration/requests/vnext-agent/'+f.request.contract_hash+'.json';B.write(path.join(repo.cwd,file),f.request);repo.git('add','.');repo.git('commit','-m','TEST request');const original=repo.git('rev-parse','HEAD');
+ const first=V.sealContract({schema_version:'kodjo.vnext.agent-resume.v1',request_commit:original,request_path:file,request_hash:f.request.contract_hash,source_head:f.request.source_head,operation_hash:f.request.operation_hash,prior_run_id:123});
+ const firstFile='.github/orchestration/requests/vnext-agent/resume/'+first.contract_hash+'.json';B.write(path.join(repo.cwd,firstFile),first);repo.git('add','.');repo.git('commit','-m','TEST first resume');const firstHead=repo.git('rev-parse','HEAD');
+ const next=reseal({...first,prior_run_id:789}),nextFile='.github/orchestration/requests/vnext-agent/resume/'+next.contract_hash+'.json';B.write(path.join(repo.cwd,nextFile),next);repo.git('add','.');repo.git('commit','-m','TEST second resume');const nextHead=repo.git('rev-parse','HEAD');
+ const command=(bin,args,cwd)=>bin==='gh'?JSON.stringify({...f.run,id:args[1].endsWith('/789')?789:123,head_sha:args[1].endsWith('/789')?firstHead:original}):Chain.command(bin,args,cwd);
+ assert.deepEqual(Agent.resolveTrigger(nextHead,nextFile,repo.cwd,command),{request_commit:original,request_path:file,prior_run_id:789});
+ const wrong=(bin,args,cwd)=>bin==='gh'?JSON.stringify({...f.run,id:789,head_sha:nextHead}):Chain.command(bin,args,cwd);
+ assert.throws(()=>Agent.resolveTrigger(nextHead,nextFile,repo.cwd,wrong),/RUN_MISMATCH/);
+});
 test('same-operation prior scan allows only the proven pre-model failure and still refuses ambiguity',t=>{
  const repo=require('./helpers/vnext-figma-fixture').fixture();t.after(()=>repo.cleanup());const f=historicalRunFixture();
  const file='.github/orchestration/requests/vnext-agent/'+f.request.contract_hash+'.json';B.write(path.join(repo.cwd,file),f.request);repo.git('add','.');repo.git('commit','-m','TEST immutable request');

@@ -134,8 +134,17 @@ function resolveTrigger(commit,file,cwd,command=Chain.command){
   if(request.contract_hash!==resume.request_hash||request.source_head!==resume.source_head||request.operation_hash!==resume.operation_hash
     ||path.posix.basename(resume.request_path,'.json')!==request.contract_hash)throw Error('AGENT_RESUME_REQUEST_CHANGED');
   const run=JSON.parse(command('gh',['api','repos/'+request.repository+'/actions/runs/'+resume.prior_run_id],cwd));
-  if(run.id!==resume.prior_run_id||run.status!=='completed'||run.head_sha!==resume.request_commit
+  if(run.id!==resume.prior_run_id||run.status!=='completed'
     ||run.path!=='.github/workflows/kodjo-vnext-chatgpt-plan-review.yml'||run.actor?.login!=='MyUncried')throw Error('AGENT_RESUME_RUN_MISMATCH');
+  if(run.head_sha!==resume.request_commit){
+    V.assertSha40(run.head_sha);
+    if(run.head_sha===commit)throw Error('AGENT_RESUME_RUN_MISMATCH');
+    command('git',['merge-base','--is-ancestor',run.head_sha,commit],cwd);
+    const paths=command('git',['diff-tree','--no-commit-id','--name-only','-r',run.head_sha],cwd).trim().split('\n');
+    if(paths.length!==1)throw Error('AGENT_RESUME_RUN_MISMATCH');
+    const previous=resolveTrigger(run.head_sha,paths[0],cwd,command);
+    if(previous.request_commit!==resume.request_commit||previous.request_path!==resume.request_path)throw Error('AGENT_RESUME_RUN_MISMATCH');
+  }
   return {request_commit:resume.request_commit,request_path:resume.request_path,prior_run_id:resume.prior_run_id};
 }
 // Historical compatibility, not a retry exemption supplied by a caller. This
@@ -156,7 +165,8 @@ function failedAncestryBeforeInvocation(run,request,commit,cwd,command){
     if(steps.find(s=>s.name===name)?.conclusion!=='success')return false;
   }
   if(steps.find(s=>s.name==='Review or recover with the trusted protocol')?.conclusion!=='failure')return false;
-  const log=command('gh',['api','repos/'+request.repository+'/actions/jobs/'+job.id+'/logs'],cwd);
+  // Raw logs contain ANSI escapes. They are evidence bytes, never terminal UI.
+  const log=command('gh',['api','repos/'+request.repository+'/actions/jobs/'+job.id+'/logs','--allow-escape-sequences'],cwd);
   const verified=/^\S+ VNEXT_LIVE_PROCESS_FAILED: git: \s*\r?$/m.test(log)
     &&log.includes('REQUEST_COMMIT: '+commit)&&log.includes('REQUEST_PATH: .github/orchestration/requests/vnext-agent/'+request.contract_hash+'.json');
   if(verified&&process.env.KODJO_REVIEW_OUTPUT){
@@ -168,6 +178,46 @@ function failedAncestryBeforeInvocation(run,request,commit,cwd,command){
       jobs_sha256:V.sha256(V.canonicalStringify(jobs)),log_sha256:V.sha256(log)}));
   }
   return verified;
+}
+// Only a completed run of the known, integrated publisher can establish that
+// it failed before invocation. Missing/tampered evidence remains ambiguous.
+function recordedFailureBeforeInvocation(run,request,cwd,command=Chain.command){
+  if(run.status!=='completed'||run.conclusion!=='failure'||run.run_attempt!==1||run.event!=='push'
+    ||run.actor?.login!=='MyUncried'||run.path!=='.github/workflows/kodjo-vnext-chatgpt-plan-review.yml')return false;
+  V.assertSha40(run.head_sha);
+  const trusted={
+    'scripts/kodjo/agent-relay.js':'c5ff10f7017fcb0fd8c0aa4cc38524bc17adfeb1',
+    'scripts/kodjo/lib/vnext-agent-relay.js':'6b9d48e41f6f3cbb62d41d4cbe5394fa623db35b',
+    '.github/workflows/kodjo-vnext-chatgpt-plan-review.yml':'19dfae2defdef73851c0350d53fb17100fbd5a7e',
+  };
+  for(const [file,blob] of Object.entries(trusted))if(command('git',['rev-parse',run.head_sha+':'+file],cwd).trim()!==blob)return false;
+  const name='vnext-chatgpt-review-'+run.id+'-'+run.run_attempt;
+  const listing=JSON.parse(command('gh',['api','repos/'+request.repository+'/actions/runs/'+run.id+'/artifacts?per_page=100'],cwd));
+  if(listing.total_count!==1||listing.artifacts?.length!==1)return false;
+  const artifact=listing.artifacts[0];
+  if(artifact.name!==name||artifact.expired||artifact.workflow_run?.id!==run.id||artifact.workflow_run?.head_sha!==run.head_sha)return false;
+  const directory=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'kodjo-pre-invocation-'));
+  try{
+    command('gh',['run','download',String(run.id),'--repo',request.repository,'--name',name,'--dir',directory],cwd);
+    Relay.verifyEvidence(request,directory);
+    const failure=B.read(path.join(directory,'failure.json')),checkpoint=B.read(path.join(directory,'checkpoint.json'));
+    V.verifyContractHash(failure);
+    if(failure.schema_version!=='kodjo.vnext.agent-failure.v1'||failure.status!=='ORCHESTRATION_FAILURE'
+      ||failure.request_hash!==request.contract_hash||failure.source_head!==request.source_head||failure.slice_id!==request.slice_id
+      ||failure.operation!==request.operation||failure.model_invoked!==false
+      ||checkpoint.request_hash!==request.contract_hash||checkpoint.slice_id!==request.slice_id||checkpoint.operation!==request.operation
+      ||checkpoint.state!=='ORCHESTRATION_FAILURE'||checkpoint.model_invoked!==false
+      ||String(checkpoint.run_id)!==String(run.id)||String(checkpoint.run_attempt)!==String(run.run_attempt)
+      ||checkpoint.error!==failure.error)return false;
+    // A result, intent or response in the archive contradicts non-invocation.
+    const manifest=B.read(path.join(directory,'evidence-manifest.json'));
+    if(V.canonicalHash(manifest.files.map(x=>x.path).sort())!==V.canonicalHash(['checkpoint.json','failure.json']))return false;
+    if(process.env.KODJO_REVIEW_OUTPUT){
+      const output=path.join(process.env.KODJO_REVIEW_OUTPUT,'pre-invocation-'+run.id);
+      fs.mkdirSync(output,{recursive:true});fs.cpSync(directory,output,{recursive:true});
+    }
+    return true;
+  }finally{fs.rmSync(directory,{recursive:true,force:true});}
 }
 function priorInvocation(request,input,cwd,command=Chain.command){
     if(Number(process.env.GITHUB_RUN_ATTEMPT)>1)return true;
@@ -183,7 +233,8 @@ function priorInvocation(request,input,cwd,command=Chain.command){
         const locator=resolveTrigger(commit,paths[0],cwd,command);
         const prior=Chain.readGitObject(cwd,locator.request_commit,locator.request_path);
         if(prior.schema_version===SCHEMA){validate(prior);if(prior.operation_hash===request.operation_hash
-          &&!failedAncestryBeforeInvocation(run,prior,locator.request_commit,cwd,command))return true;}
+          &&!failedAncestryBeforeInvocation(run,prior,locator.request_commit,cwd,command)
+          &&!recordedFailureBeforeInvocation(run,prior,cwd,command))return true;}
         else{require('./chatgpt-plan-review').validate(prior);if(request.operation==='plan-review'&&prior.produced_chain_hash===request.operation_hash)return true;}
       }
       if(rows.length<100)return false;
@@ -222,4 +273,4 @@ function main(args=process.argv.slice(2)){
 }
 if(require.main===module)try{const r=main();process.stdout.write(JSON.stringify(process.argv[2]==='resolve-trigger'?r:{status:r.status||'RECORDED',request_hash:r.request_hash,request_path:r.request_path,verdict:r.verdict??null})+'\n');}
 catch(error){process.stderr.write(error.message+'\n');process.exitCode=1;}
-module.exports={OPERATIONS,validate,inputs,create,adapterFor,execute,verify,publishedSource,resolveTrigger,failedAncestryBeforeInvocation,priorInvocation,executeRequest,main};
+module.exports={OPERATIONS,validate,inputs,create,adapterFor,execute,verify,publishedSource,resolveTrigger,failedAncestryBeforeInvocation,recordedFailureBeforeInvocation,priorInvocation,executeRequest,main};
