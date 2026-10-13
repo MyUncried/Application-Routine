@@ -40,6 +40,25 @@ test('active Claude, open PRE-3 and prior GitHub attempt refuse invocation and p
   assert.equal(Agent.verify(f.request,f.options.outputDirectory,{cwd:f.cwd}).status,'ORCHESTRATION_FAILURE');
  }
 });
+test('external Claude applications do not block any registered operation; the protocol lock is still acquired and released',t=>{
+ for(const operation of Agent.OPERATIONS){
+  const f=setup(t,operation);let acquired=0,released=0;
+  const lock={claudeProcessState:()=>({state:'NONE',external_claude_count:8}),acquire:()=>{acquired++;return {};},release:()=>{released++;}};
+  Agent.execute(f.request,{...f.options,lock});assert.deepEqual(f.counts(),{calls:1,recovers:0});assert.equal(acquired,1);assert.equal(released,1);
+  Agent.execute(f.request,{...f.options,lock});assert.equal(f.counts().calls,1);assert.equal(acquired,1);
+ }
+});
+test('managed Claude activity, ambiguous inspection and an occupied lock still refuse invocation with external apps open',t=>{
+ for(const state of ['ACTIVE','AMBIGUOUS']){
+  const f=setup(t);let acquisitions=0;
+  const lock={claudeProcessState:()=>({state,external_claude_count:8}),acquire:()=>{acquisitions++;return {};},release:()=>{}};
+  assert.throws(()=>Agent.execute(f.request,{...f.options,lock}),/EXECUTION_UNAVAILABLE/);assert.equal(f.counts().calls,0);assert.equal(acquisitions,0);
+  assert.equal(B.read(path.join(f.options.outputDirectory,'failure.json')).model_invoked,false);
+ }
+ const f=setup(t),lock={claudeProcessState:()=>({state:'NONE',external_claude_count:8}),acquire:()=>{throw Error('CLAUDE_EXECUTION_ALREADY_ACTIVE');},release:()=>{throw Error('cannot release unowned lock');}};
+ assert.throws(()=>Agent.execute(f.request,{...f.options,lock}),/ALREADY_ACTIVE/);assert.equal(f.counts().calls,0);
+ assert.equal(fs.existsSync(path.join(f.options.evidenceRoot,f.request.contract_hash,'invocation-intent.json')),false);
+});
 test('lost local cache cannot bypass an earlier GitHub invocation by republishing the same operation in a different commit',t=>{
  const f=setup(t),git=(...args)=>require('node:child_process').execFileSync('git',args,{cwd:f.cwd,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
  git('init');git('config','user.name','Test');git('config','user.email','test@example.invalid');git('commit','--allow-empty','-m','TEST baseline');
@@ -186,6 +205,12 @@ function archivedFailureFixture(t){
   if(bin==='gh'&&args[0]==='run'){
    const directory=args[args.indexOf('--dir')+1];B.write(path.join(directory,'checkpoint.json'),data.checkpoint);B.write(path.join(directory,'failure.json'),data.failure);
    if(data.extra)B.write(path.join(directory,'invocation-intent.json'),{});
+   if(data.nested){
+    const child=path.join(directory,'pre-invocation-122');fs.mkdirSync(child,{recursive:true});
+    B.write(path.join(child,'checkpoint.json'),{...data.checkpoint,run_id:'122'});B.write(path.join(child,'failure.json'),data.failure);
+    if(data.nestedExtra)B.write(path.join(child,'initial-review-response.json'),{});
+    Relay.publishManifest(child,f.request);
+   }
    Relay.publishManifest(directory,f.request);
    if(data.tamper)fs.appendFileSync(path.join(directory,'checkpoint.json'),' ');
    return '';
@@ -205,8 +230,43 @@ test('authenticated failure archive proves non-invocation, rejects invoked calls
  }
  f.data.extra=true;assert.equal(check(),false);f.data.extra=false;
  f.data.artifact.expired=true;assert.equal(check(),false);f.data.artifact.expired=false;
+ const publisherFile=require.resolve('../../scripts/kodjo/lib/vnext-agent-relay'),publisherBytes=fs.readFileSync(publisherFile);
+ f.data.blobs['scripts/kodjo/lib/vnext-agent-relay.js']=require('node:crypto').createHash('sha1').update(Buffer.from('blob '+publisherBytes.length+'\0')).update(publisherBytes).digest('hex');assert.equal(check(),true);
  f.data.blobs['scripts/kodjo/lib/vnext-agent-relay.js']='untrusted';assert.equal(check(),false);f.data.blobs['scripts/kodjo/lib/vnext-agent-relay.js']='6b9d48e41f6f3cbb62d41d4cbe5394fa623db35b';
  f.data.tamper=true;assert.throws(check,/EVIDENCE_CHANGED/);
+});
+test('successive pre-model recovery accepts the integrated reader and recursively verifies archived non-invocation',t=>{
+ const f=archivedFailureFixture(t),check=()=>Agent.recordedFailureBeforeInvocation(f.run,f.request,f.cwd,f.command);
+ f.data.blobs['scripts/kodjo/agent-relay.js']='51860b1feace52b45cf89d5aeef10a0288f8519f';
+ f.data.nested=true;assert.equal(check(),true);
+ f.data.nestedExtra=true;assert.equal(check(),false);f.data.nestedExtra=false;
+ f.data.blobs['scripts/kodjo/agent-relay.js']='f'.repeat(40);assert.equal(check(),false);
+});
+test('a trusted publisher archive cannot hide a response, invoked call or wrong binding in nested recovery evidence',t=>{
+ const f=setup(t,'plan-review'),root=path.join(f.cwd,'nested-proof');fs.mkdirSync(root,{recursive:true});
+ const write=(directory,id,invoked=false)=>{
+  fs.mkdirSync(directory,{recursive:true});
+  B.write(path.join(directory,'checkpoint.json'),{request_hash:f.request.contract_hash,slice_id:f.request.slice_id,operation:f.request.operation,state:'ORCHESTRATION_FAILURE',model_invoked:invoked,run_id:String(id),run_attempt:'1',error:'TEST'});
+  B.write(path.join(directory,'failure.json'),V.sealContract({schema_version:'kodjo.vnext.agent-failure.v1',request_hash:f.request.contract_hash,source_head:f.request.source_head,slice_id:f.request.slice_id,operation:f.request.operation,status:'ORCHESTRATION_FAILURE',error:'TEST',model_invoked:invoked}));
+  Relay.publishManifest(directory,f.request);
+ };
+ const child=path.join(root,'pre-invocation-122');write(child,122);write(root,123);
+ assert.equal(Agent.verifyNonInvocationArchive(f.request,root,{id:123,run_attempt:1}),true);
+ write(child,122,true);Relay.publishManifest(root,f.request);assert.equal(Agent.verifyNonInvocationArchive(f.request,root,{id:123,run_attempt:1}),false);
+ write(child,999);Relay.publishManifest(root,f.request);assert.equal(Agent.verifyNonInvocationArchive(f.request,root,{id:123,run_attempt:1}),false);
+ write(child,122);B.write(path.join(child,'invocation-intent.json'),{});Relay.publishManifest(child,f.request);Relay.publishManifest(root,f.request);
+ assert.equal(Agent.verifyNonInvocationArchive(f.request,root,{id:123,run_attempt:1}),false);
+});
+test('repeated historical proofs remain valid across recoveries; forged historical proof is refused',t=>{
+ const f=archivedFailureFixture(t),root=path.join(f.cwd,'history'),child=path.join(root,'pre-invocation-122');
+ const historical=V.sealContract({schema_version:'kodjo.vnext.pre-invocation-recovery.v1',request_hash:f.request.contract_hash,operation_hash:f.request.operation_hash,request_commit:'d'.repeat(40),run_id:121,run_attempt:1,reason:'VERIFIED_LEGACY_ANCESTRY_GUARD',model_invoked:false,entry_blob:'3ca49ad3fd0f792328fbf7c60854061b4376f33c',workflow_blob:'d8ee7a2c38a2182b3e7de6296748cd987c8db8a5',jobs_sha256:'a'.repeat(64),log_sha256:'b'.repeat(64)});
+ for(const [directory,id] of [[child,122],[root,123]]){
+  fs.mkdirSync(directory,{recursive:true});B.write(path.join(directory,'checkpoint.json'),{...f.data.checkpoint,run_id:String(id)});B.write(path.join(directory,'failure.json'),f.data.failure);
+  B.write(path.join(directory,'pre-invocation-recovery-121.json'),historical);Relay.publishManifest(directory,f.request);
+ }
+ assert.equal(Agent.verifyNonInvocationArchive(f.request,root,{id:123,run_attempt:1}),true);
+ B.write(path.join(child,'pre-invocation-recovery-121.json'),reseal({...historical,model_invoked:true}));Relay.publishManifest(child,f.request);Relay.publishManifest(root,f.request);
+ assert.equal(Agent.verifyNonInvocationArchive(f.request,root,{id:123,run_attempt:1}),false);
 });
 test('retrying a resume run resolves back to the exact original request and rejects a different operation',t=>{
  const repo=require('./helpers/vnext-figma-fixture').fixture();t.after(()=>repo.cleanup());const f=historicalRunFixture();
