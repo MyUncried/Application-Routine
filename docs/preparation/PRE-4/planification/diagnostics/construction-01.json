@@ -1,0 +1,16 @@
+{
+  "status": "BLOCKED_BEFORE_REVIEW",
+  "code": "VNEXT_REQUIREMENT_ID_DUPLICATE",
+  "error": "VNEXT_REQUIREMENT_ID_DUPLICATE",
+  "stack": "Error: VNEXT_REQUIREMENT_ID_DUPLICATE\n    at Object.fail (/workspace/scratch/ca7a820e0839/pre4-plan/scripts/kodjo/lib/vnext-contract.js:11:17)\n    at Object.build (/workspace/scratch/ca7a820e0839/pre4-plan/scripts/kodjo/lib/requirement-registry.js:137:43)\n    at Object.<anonymous> (/workspace/scratch/ca7a820e0839/pre4-plan/docs/preparation/PRE-4/planification/construire-contrats.cjs:11:21)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14)\n    at Object..js (node:internal/modules/cjs/loader:2003:10)\n    at Module.load (node:internal/modules/cjs/loader:1594:32)\n    at Module._load (node:internal/modules/cjs/loader:1396:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47",
+  "stages": [
+    {
+      "stage": "planning-envelope",
+      "result": "PASS",
+      "transport": "json",
+      "contract_hash": "03795e15fefe4d45da3735798c7e843cee9b9506185d1b8d6b4219c31aa96139"
+    }
+  ],
+  "independent_review": false,
+  "implementation_started": false
+}
