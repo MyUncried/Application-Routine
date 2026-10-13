@@ -5,6 +5,12 @@ on:
     paths:
       - '.github/workflows/**'
       - '.github/orchestration/**'
+      # Exclude published operation data and reports, not protocol implementation.
+      - '!.github/orchestration/requests/vnext-agent/**'
+      - '!.github/orchestration/vnext-closure/**'
+      - '!.github/orchestration/v2-slices/**'
+      - '!.github/orchestration/vnext12/**'
+      - '!.github/orchestration/reports/**'
       - '.github/AI_ORCHESTRATION*.md'
       - 'CLAUDE.md'
       - 'scripts/kodjo/**'
