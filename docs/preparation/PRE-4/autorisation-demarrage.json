@@ -1,0 +1,15 @@
+{
+  "operation": 352,
+  "slice_id": "VNEXT-PRE-4",
+  "owner": "Hermann",
+  "authorization": "Lance Vnext sur ce périmètre",
+  "authorized_at": "2026-10-13T01:57:55+02:00",
+  "confirmation_at": "2026-10-13T02:33:36+02:00",
+  "scope_file": "docs/preparation/PRE-4/perimetre-et-couverture.md",
+  "planning_authorized": true,
+  "owner_plan_approval": false,
+  "implementation_started": false,
+  "pre3_issue": 340,
+  "pre3_state_verified": "closed",
+  "baseline": "96a191a975a5de03ed3194568cb991196908fc67"
+}
