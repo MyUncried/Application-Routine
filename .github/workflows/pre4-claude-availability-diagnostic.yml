@@ -1,0 +1,65 @@
+name: PRE-4 Claude availability diagnostic
+run-name: PRE-4 #352 — read-only Claude availability
+on:
+  push:
+    branches: [main]
+    paths: ['.github/orchestration/requests/diagnostics/pre4-352-claude-availability-20261013.json']
+permissions:
+  contents: read
+concurrency:
+  group: kodjo-claude-local-auth-diagnostic
+  cancel-in-progress: false
+jobs:
+  probe:
+    if: github.actor == 'MyUncried'
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 5
+    env:
+      EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
+    steps:
+      - name: Validate runner
+        shell: powershell
+        run: |
+          if ('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME) { throw 'Unexpected runner' }
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: scripts/kodjo/lib/execution-lock.js
+      - name: Observe process guard without invoking a model or stopping a process
+        shell: powershell
+        run: |
+          @'
+          const {spawnSync}=require('node:child_process');
+          const L=require('./scripts/kodjo/lib/execution-lock');
+          const summary=s=>({state:s.state,external_claude_count:s.external_claude_count??null,
+            evidence_code:/ENOBUFS/.test(s.evidence||'')?'ENOBUFS':/^CIM_JSON_INVALID/.test(s.evidence||'')?'CIM_JSON_INVALID':
+              s.state==='ACTIVE'?'MANAGED_CLAUDE_FOUND':s.state==='NONE'?'NO_MANAGED_CLAUDE':'UNREADABLE',
+            managed_pids:s.state==='ACTIVE'?String(s.evidence||'').split(/\r?\n/).map(x=>/^(\d+)\|/.exec(x)?.[1]).filter(Boolean):[]});
+          const original=spawnSync(process.execPath,['-e',"console.log(JSON.stringify(require('./scripts/kodjo/lib/execution-lock').claudeProcessState()))"],
+            {encoding:'utf8',windowsHide:true,shell:false,timeout:15000,maxBuffer:64*1024*1024});
+          let old;
+          try{old=original.error||original.status!==0?{state:'AMBIGUOUS',evidence:original.error?.code||'PROBE_FAILED'}:JSON.parse(original.stdout);}
+          catch{old={state:'AMBIGUOUS',evidence:'PROBE_RESULT_INVALID'};}
+          const script="$ErrorActionPreference='Stop'; @(Get-CimInstance Win32_Process | Select-Object ProcessId,ParentProcessId,CreationDate,Name,ExecutablePath,CommandLine) | ConvertTo-Json -Compress -Depth 3";
+          const expanded=spawnSync('powershell.exe',['-NoProfile','-NonInteractive','-Command',script],
+            {encoding:'utf8',windowsHide:true,shell:false,timeout:15000,maxBuffer:64*1024*1024});
+          const parsed=expanded.error||expanded.status!==0?{state:'AMBIGUOUS'}:L.parseWindowsSnapshot(expanded.stdout);
+          const matches=parsed.state==='OK'?L.classifyClaudeProcesses(parsed.rows):[];
+          const external=parsed.state==='OK'?parsed.rows.filter(x=>/^claude\.exe$/i.test(x.Name||'')&&!matches.includes(x)):[];
+          const rows=[...matches.map(x=>({...x,managed:true})),...external.map(x=>({...x,managed:false}))].map(x=>{
+            const executable=String(x.ExecutablePath||'').replace(/\\/g,'/').toLowerCase();
+            return {pid:Number(x.ProcessId),parent_pid:Number(x.ParentProcessId),managed:x.managed,
+              executable_kind:executable.includes('/extensions/anthropic.claude-code-')?'CODE_EXTENSION':
+                executable.includes('/@anthropic-ai/claude-code/')?'GLOBAL_CLI':
+                  executable.includes('/programs/claude/')||executable.includes('/claude/app-')?'DESKTOP':'OTHER'};
+          });
+          console.log('PRE4_AVAILABILITY_JSON '+JSON.stringify({issue_number:352,failed_run_id:38444371283,
+            observed_at:new Date().toISOString(),model_invoked:false,processes_stopped:0,
+            original:summary(old),expanded:{state:parsed.state==='OK'?(matches.length?'ACTIVE':'NONE'):'AMBIGUOUS',
+              error_code:expanded.error?.code??null,snapshot_bytes:Buffer.byteLength(expanded.stdout||''),process_count:parsed.rows?.length??null,
+              external_claude_count:external.length,processes:rows}}));
+          '@ | node
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
