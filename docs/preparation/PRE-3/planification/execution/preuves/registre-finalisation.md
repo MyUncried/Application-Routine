@@ -1,6 +1,6 @@
 # PRE-3 #340 — registre de finalisation
 
-**Statut : recette intégralement validée ; contrôles indépendants réussis ; publication finale, fusion et clôture en attente.**
+**Statut : PRE-3 livré et fusionné ; recette intégralement validée ; contrôles indépendants et CI réussis ; OTA finale publiée et vérifiée.**
 
 Ce registre concerne la route directe PRE-3. Il ne constitue pas un reçu de clôture canonique VNext.
 
@@ -11,7 +11,7 @@ Hermann : « PRE-3 est validé dans son intégralité »,12/10/2026 à23:52:48 E
 ## Références
 
 - Opération : [#340](https://github.com/MyUncried/Application-Routine/issues/340).
-- PR de livraison : [#351](https://github.com/MyUncried/Application-Routine/pull/351), non fusionnée à la publication de ce registre.
+- PR de livraison : [#351](https://github.com/MyUncried/Application-Routine/pull/351), fusionnée au commit `dfc83e6c0dcad316bf0ca66618d55419e4ddb0f8`.
 - Baseline main :46b91bd279424899a02c099a68b2729f6d710809 ; départ produit ae50aaedc1aaf506dccbb81c4e406e127af9824b.
 - Plan approuvé :43e7b344937a2d60b04b987f19636faebb5aee06 ; revue de plan APPROVE d5d016674e09042bc49410100eec6f6c02197d8f.
 - Revue initiale indépendante :94c8512e ; corrections et recettes jusqu'à64174128.
@@ -52,11 +52,26 @@ Les liens précis assertion → test réellement passé figurent dans `couvertur
 
 1970/1970 tests,98/98 suites ; TypeScript et ESLint PASS ;3/3 repros indépendants ;442/442 obligations reliées aux résultats ;2143 contrôles documentaires PASS. Le processus complet sort avec0 après nettoyage des animations ; l'ancien1970 assertions vertes/sortie1 reste conservé comme échec de processus, pas comme livraison technique PASS.
 
-## Livraison disponible et dernière étape
+## Livraison finale
 
-Routine Dev iOS **1.0.0(8)** : [installation](https://expo.dev/accounts/ankushas-team/projects/routine/builds/38bf5fc2-b053-4fd1-a475-48f08b7f542f), runtime1.1.0, canal review. Dernière OTA validée :01a131f9-1cf0-705c-8531-3919ff3b2aa6, commit29d149bd. Le nettoyage de clôture n'est pas encore dans cette OTA.
+Routine Dev iOS **1.0.0 (8)** : [installation](https://expo.dev/accounts/ankushas-team/projects/routine/builds/38bf5fc2-b053-4fd1-a475-48f08b7f542f), runtime **1.1.0**, canal **review**. Le build embarque58bbc3bc ; l’OTA finale remplace son bundle JavaScript sans changement natif.
 
-**Reste précisément** : revue indépendante de ces deux nettoyages par Claude, publication OTA du commit exact, preuve de succès/lien ; vérification CI de #351 ; fusion ; mise à jour de ce registre avec le SHA de fusion et fermeture effective de #340. Ces éléments ne sont pas déclarés accomplis avant preuve.
+OTA finale **[01a1324c-5bed-7dd7-b98a-77ebbd315429](https://u.expo.dev/update/01a1324c-5bed-7dd7-b98a-77ebbd315429)**, groupe1fbe366d-f95e-49e0-ac3c-2981869a81c3, code exact626632c3bf5b888756f24dd7f34fce2c448f9eb8. Publication depuis un dossier propre ; servie HTTP200 ;57/57assets et empreintes conformes. Preuves `publication-ota-cloture.json` / `verification-ota-cloture.json`, publiées dans18476565.
+
+Claude a revu indépendamment le nettoyage des deux animations : conforme, aucun défaut causal. Mutation sans nettoyage :7rappels tardifs ; avec :0. Typage/lint/Jest complets1970/1970, sortie0, confirmés par cette revue. Rapport `.github/orchestration/reports/2026-10-13_PRE3-340_PUBLICATION-CLOTURE.md`.
+
+L’exécution de cette dernière OTA sur l’iPhone n’est pas observée. Limite explicite, sans prétendre une nouvelle observation perceptive : le seul delta après recette acceptée est le nettoyage des deux animations revu et testé sans changement de présentation. Le diagnostic routine://diagnostic-updates permet d’identifier l’OTA exécutée ; aucune nouvelle recette intégrale n’est requise par cette finalisation.
+
+## Fusion et contrôles finaux
+
+- CI du code626632c3 : [38315529872](https://github.com/MyUncried/Application-Routine/actions/runs/38315529872), SUCCESS.
+- CI des preuves18476565 : [38318732025](https://github.com/MyUncried/Application-Routine/actions/runs/38318732025), SUCCESS.
+- Réconciliation documentaire des fusions #349/#350 :096686e10dd2786847313cd7e586e27d858f39b4, aucun changement applicatif/protocole/dépendance ; D-336..356, CIR et EC conservés. CI exacte [38325306976](https://github.com/MyUncried/Application-Routine/actions/runs/38325306976), SUCCESS. Rapport de réconciliation publié.
+- PR #351 fusionnée ; tête096686e1, baseb6b62ddf ; commit de fusion **dfc83e6c0dcad316bf0ca66618d55419e4ddb0f8**. Arbre de fusion **1a7c025fcac713d20baa94b3c89526aafcaa9d84**, identique à la tête livrée.
+
+Le pilote exécute l’autorisation de clôture de Hermann après vérification des preuves, de la CI et de la fusion effective. Ce registre est documentaire, sans code nouveau. La fermeture effective de #340 suit sa publication et est vérifiable dans GitHub.
+
+La documentation normative fusionnée depuis #350 décrit des évolutions futures (cibles échec par série, circuits). Elles ne sont pas annoncées implémentées dans PRE-3 : sa livraison reste liée au plan et aux décisions de recette figés. La tranche suivante #352 les prépare conformément à son périmètre, sans réécrire les preuves historiques.
 
 ## Limites et évolutions suivantes
 
