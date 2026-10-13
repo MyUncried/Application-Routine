@@ -1,0 +1,22 @@
+{
+  "result": "PASS",
+  "stages": [
+    "CAPTURE",
+    "RECONCILE",
+    "INVENTORY_AND_SCENARIOS_VALIDATED",
+    "GIT_FREEZE",
+    "ATOMIC_REQUIREMENTS"
+  ],
+  "source_revision": "a082de8c9e74ad3954654e225526d92093c93c99",
+  "document_revision": "66ece980e294935118bbd355d2eb44bc2f47b58a",
+  "launch_hash": "dc4f58ea85ab765e5dd42cff1fd1b3c319457df58fdb5ff616f13bcb381ac805",
+  "reference_hash": "088c6dc6c9df81d9ad433d71413a6de62c03e97473d976438b5cd3a96111db0d",
+  "requirements": 4843,
+  "states": 83,
+  "scenarios": 83,
+  "frames": 32,
+  "source_semantics": "Reuse complete Git-frozen targeted13Oct read-only captures and committed PNGs; no new global extraction or application conformance claimed.",
+  "independent_review": false,
+  "owner_plan_approval": false,
+  "implementation_started": false
+}

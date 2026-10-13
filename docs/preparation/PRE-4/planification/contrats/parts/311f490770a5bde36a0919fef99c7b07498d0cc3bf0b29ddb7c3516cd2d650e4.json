@@ -1,0 +1,1 @@
+{"items":{"additionalProperties":false,"properties":{"evidence_refs":{"items":{"minLength":1,"type":"string"},"minItems":1,"type":"array"},"finding_id":{"minLength":1,"type":"string"},"note":{"minLength":1,"type":"string"},"status":{"enum":["RESOLVED","OPEN"],"type":"string"}},"required":["finding_id","status","evidence_refs","note"],"type":"object"},"type":"array"}

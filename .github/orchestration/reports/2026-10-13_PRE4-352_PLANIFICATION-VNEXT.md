@@ -1,0 +1,13 @@
+# PRE-4 / #352 — planification VNext
+
+Plan technique et attendus avant développement publiés sur la branche unique plan/pre4-vnext-20261013. Bootstrap existant réutilisé ; aucune correction du protocole ni campagne d’audit nouvelle.
+
+Source : 32 arbres, 5085 éléments écran (35 masqués), 380 éléments de fermeture des maîtres, 786 variables / 3 collections et 61 styles de contexte. 265068 propriétés conservées, 180443 obligations visuelles. Les PNG documentaires sont réutilisés comme références de layout et ne sont pas présentés comme de nouvelles captures actuelles. Source Git a082de8c9e74ad3954654e225526d92093c93c99, référence 088c6dc6c9df81d9ad433d71413a6de62c03e97473d976438b5cd3a96111db0d.
+
+Launch intégré : CAPTURE → RECONCILE → INVENTORY_AND_SCENARIOS_VALIDATED → GIT_FREEZE → ATOMIC_REQUIREMENTS, PASS. 4843 exigences ; 83 états/scénarios. Graphe de consommateurs réellement scanné au c32e360d, classifications par exigence ; chaque suite propriétaire conserve ses attendus, les suites d’importeurs reçoivent leurs propres obligations de préservation. Chaque élément est associé à son véritable hôte (éditeur, feuille, popover, roulette ou référentiel) selon ses ancêtres, sans attribuer tout l’écran au seul popover.
+
+PlanContract 50f3947fe82af15499bd4a2b80f6113523baf7239b874ceb69271a9adeb11ade. UIContract f8ad9ae291f2b35aaf17c7e0db1f94be7267d9476edd212e72e40fb14c5c813d. Chaîne e5170d9752d323fe9ae8a9fb26875687aa23c0d773c4b40fd1614291cd818d30, producteur committé 41f58047f6d5fa5a0ba7531461a1ae710aa76add. Reconstruction réelle PASS sans dérive des deux contrats. Frontières locales Launch/transport : 32/32 tests PASS, sortie0. Aucun test applicatif PRE-4 exécuté ni code applicatif modifié. Les essais de préparation rejetés sont conservés sans les présenter comme une revue ou un reçu valide.
+
+Proposition de données : parametersv2, modesDURATION/REPETITIONS, ciblesNUMBER/FAILURE etUNSET brouillon ; migration010 transactionnelle des seuls objets live avec sauvegarde/restauration des quatre tables de liens et fichiers intacts ; snapshotsv1 lus selon version, sans réécriture. Calculs et phrases utilisent un oracle indépendant ; récupération terminale et contributions connues conservées. Roulettes natives réutilisées, états gris manipulables. Préservation PRE-3 et frontière Composition/moteur explicites.
+
+Statut à cette publication : dossier READY_FOR_INDEPENDENT_REVIEW, aucune revue ni approbation propriétaire fabriquée, aucun développement engagé. Publier la demande immuable de revue via agent-relay, suivre son run exact et consommer son artefact vérifié ; ne pas demander un transport PowerShell/JSON au propriétaire.

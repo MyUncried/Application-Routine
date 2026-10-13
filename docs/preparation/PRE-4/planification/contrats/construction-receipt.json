@@ -1,0 +1,84 @@
+{
+  "assertions": 180526,
+  "implementation_started": false,
+  "independent_review": false,
+  "launch_hash": "dc4f58ea85ab765e5dd42cff1fd1b3c319457df58fdb5ff616f13bcb381ac805",
+  "owner_plan_approval": false,
+  "plan_contract_hash": "50f3947fe82af15499bd4a2b80f6113523baf7239b874ceb69271a9adeb11ade",
+  "produced_chain_hash": "e5170d9752d323fe9ae8a9fb26875687aa23c0d773c4b40fd1614291cd818d30",
+  "producer_revision": "41f58047f6d5fa5a0ba7531461a1ae710aa76add",
+  "requirements": 4843,
+  "scope_rows": 22,
+  "source_revision": "a082de8c9e74ad3954654e225526d92093c93c99",
+  "stages": [
+    {
+      "contract_hash": "108f5916c68aad58a6e1e339fb864da97e768f1daebc15bc97e022795b7958d8",
+      "result": "PASS",
+      "stage": "planning-envelope",
+      "transport": "json"
+    },
+    {
+      "contract_hash": "4fc06aff208a59e53a5e69f2701c30ef51c818d0d4b8b0d17c4c63f3dfe75157",
+      "result": "PASS",
+      "stage": "requirement-registry",
+      "transport": "kodjo.vnext.file-bundle.v1"
+    },
+    {
+      "contract_hash": "2c8e4a189a7fd869d86418c7c6521e12d43a038384ff48e2ade640a9094f4420",
+      "result": "PASS",
+      "stage": "candidate-manifest",
+      "transport": "json"
+    },
+    {
+      "contract_hash": "f1474da3f84cc578bf413a9d646a0cc8950d4985fdfd44fd4f80d94ae5ebd27e",
+      "result": "PASS",
+      "stage": "direct-import-scan",
+      "transport": "json"
+    },
+    {
+      "contract_hash": "50c7fdb07ac7d56e3dc67b3456e2964d7848935ad41f35fd03105a20e501af45",
+      "result": "PASS",
+      "stage": "impact-graph",
+      "transport": "kodjo.vnext.file-bundle.v1"
+    },
+    {
+      "contract_hash": "50f3947fe82af15499bd4a2b80f6113523baf7239b874ceb69271a9adeb11ade",
+      "result": "PASS",
+      "stage": "plan-contract",
+      "transport": "kodjo.vnext.file-bundle.v1"
+    },
+    {
+      "contract_hash": null,
+      "result": "PASS",
+      "stage": "ui-input",
+      "transport": "kodjo.vnext.file-bundle.v1"
+    },
+    {
+      "contract_hash": "f8ad9ae291f2b35aaf17c7e0db1f94be7267d9476edd212e72e40fb14c5c813d",
+      "result": "PASS",
+      "stage": "ui-atomicity-contract",
+      "transport": "kodjo.vnext.file-bundle.v1"
+    },
+    {
+      "contract_hash": null,
+      "result": "PASS",
+      "stage": "recipe",
+      "transport": "kodjo.vnext.file-bundle.v1"
+    },
+    {
+      "contract_hash": null,
+      "result": "PASS",
+      "stage": "tracabilite-canonique",
+      "transport": "json"
+    },
+    {
+      "contract_hash": "4b2220d00148a6b5fa7e0746d7677f260c9bddb38887814f028592fe06d1d18a",
+      "result": "PASS",
+      "stage": "produced",
+      "transport": "kodjo.vnext.file-bundle.v1"
+    }
+  ],
+  "status": "READY_FOR_INDEPENDENT_REVIEW",
+  "ui_contract_hash": "f8ad9ae291f2b35aaf17c7e0db1f94be7267d9476edd212e72e40fb14c5c813d",
+  "exact_committed_adapter_reconstruction": "PASS"
+}
