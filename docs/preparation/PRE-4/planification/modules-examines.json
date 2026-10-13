@@ -1,0 +1,32 @@
+{
+  "baseline": "c32e360d891614f2b08a1d8f7f3f631eef0b57ea",
+  "paths": [
+    "src/domain/activities/ActivityDefinition.ts",
+    "src/domain/activities/ExecutionParameters.ts",
+    "src/domain/activities/ExecutionParametersDraft.ts",
+    "src/domain/activities/executionCalculations.ts",
+    "src/domain/activities/executionPhrase.ts",
+    "src/domain/activities/exerciseSnapshot.ts",
+    "src/domain/sessions/Session.ts",
+    "src/domain/sessions/SessionDraft.ts",
+    "src/domain/sessions/calculations.ts",
+    "src/domain/sessions/validation.ts",
+    "src/features/activities/ActivityDefinitionService.ts",
+    "src/features/activities/ActivityEditorForm.tsx",
+    "src/features/activities/ExecutionParametersSheet.tsx",
+    "src/features/sessions/DurationWheelPicker.tsx",
+    "src/features/sessions/ExerciseScreen.tsx",
+    "src/features/sessions/NumberWheelPicker.tsx",
+    "src/features/sessions/SessionDraftContext.tsx",
+    "src/features/sessions/SessionDraftProvider.tsx",
+    "src/features/sessions/SessionService.ts",
+    "src/features/sessions/WheelPickerOverlay.tsx",
+    "src/features/sessions/compositionPresentation.ts",
+    "src/features/sessions/formatSessionSummary.ts",
+    "src/infrastructure/database/constants.ts",
+    "src/infrastructure/database/migrateDatabase.ts",
+    "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+    "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+    "src/infrastructure/database/types/DatabaseRows.ts"
+  ]
+}

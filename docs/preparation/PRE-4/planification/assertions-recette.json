@@ -1,0 +1,649 @@
+{
+  "schema_version": "kodjo.pre4.assertions.v1",
+  "status": "EXPECTED_BEFORE_IMPLEMENTATION",
+  "assertions": [
+    {
+      "assertion_id": "ED-01/catalogue-create",
+      "scope_id": "ED-01",
+      "given": "Catalogue et occurrence de Séance distincts, données existantes et médias ordonnés",
+      "when": "Créer ou modifier puis Terminer, fermer et rouvrir dans le parcours catalogue-create",
+      "expected": "Le même éditeur est utilisé ; les paramètres typés et métadonnées sont relus, copie isolée ; aucune récupération ajoutée automatiquement.",
+      "test_owner": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-01/catalogue-edit",
+      "scope_id": "ED-01",
+      "given": "Catalogue et occurrence de Séance distincts, données existantes et médias ordonnés",
+      "when": "Créer ou modifier puis Terminer, fermer et rouvrir dans le parcours catalogue-edit",
+      "expected": "Le même éditeur est utilisé ; les paramètres typés et métadonnées sont relus, copie isolée ; aucune récupération ajoutée automatiquement.",
+      "test_owner": "src/features/activities/__tests__/ActivityDefinitionService.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-01/session-create",
+      "scope_id": "ED-01",
+      "given": "Catalogue et occurrence de Séance distincts, données existantes et médias ordonnés",
+      "when": "Créer ou modifier puis Terminer, fermer et rouvrir dans le parcours session-create",
+      "expected": "Le même éditeur est utilisé ; les paramètres typés et métadonnées sont relus, copie isolée ; aucune récupération ajoutée automatiquement.",
+      "test_owner": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-01/session-edit",
+      "scope_id": "ED-01",
+      "given": "Catalogue et occurrence de Séance distincts, données existantes et médias ordonnés",
+      "when": "Créer ou modifier puis Terminer, fermer et rouvrir dans le parcours session-edit",
+      "expected": "Le même éditeur est utilisé ; les paramètres typés et métadonnées sont relus, copie isolée ; aucune récupération ajoutée automatiquement.",
+      "test_owner": "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-02/whole-editor",
+      "scope_id": "ED-02",
+      "given": "Éditeur vide puis renseigné, largeur402 et références32figées",
+      "when": "Afficher nom, Catégorie/Zones, Paramètres, description, médias et Terminer",
+      "expected": "Composition complète de chaque état selon ses propriétés Figma, corps défilable et action finale accessible ; pas de sections accordéon héritées ni carte en grille conservées par défaut.",
+      "test_owner": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-03/anchored-popovers",
+      "scope_id": "ED-03",
+      "given": "Feuille Paramètres ouverte",
+      "when": "Ouvrir successivement Mode, Côté, Ordre et Régime ; toucher extérieur puis Annuler",
+      "expected": "Un popover ancré à son contrôle à la fois ; voile et fermeture cohérents, focus revient au déclencheur ; aucune écriture persistée.",
+      "test_owner": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE",
+        "ACCESSIBILITY_CHECK"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-04/explicit-regime",
+      "scope_id": "ED-04",
+      "given": "Trois lignes aux mêmes cibles/Pause en VARIABLE",
+      "when": "Ouvrir Régime puis choisir identiques ou variables et replier le tableau",
+      "expected": "Aucun interrupteur Séries variables ; choix via popover, chevron indépendant seulement VARIABLE ; égalité ne normalise pas le régime.",
+      "test_owner": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-05/two-modes",
+      "scope_id": "ED-05",
+      "given": "Nouveau brouillon ou objet ancien TO_FAILURE",
+      "when": "Ouvrir le mode puis valider les paramètres",
+      "expected": "Exactement Durée et Répétitions ; TO_FAILURE absent des options et du formatv2, reste lu uniquement par adaptateurv1.",
+      "test_owner": "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-06/typed-targets",
+      "scope_id": "ED-06",
+      "given": "Mode Durée puis Répétitions, UNIFORM puis VARIABLE",
+      "when": "Construire cibles numériques, FAILURE et UNSET et valider",
+      "expected": "FAILURE explicite sans valeur ; NUMBER avec entier du mode ; UNSET/0/NaN/chaîne/type inconnu refusés en persistable, jamais convertis en FAILURE.",
+      "test_owner": "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "DATA"
+    },
+    {
+      "assertion_id": "ED-07/numeric",
+      "scope_id": "ED-07",
+      "given": "30s sélectionnées",
+      "when": "Ouvrir cible",
+      "expected": "Roulette sur30s active, option échec45%, aucune coche.",
+      "test_owner": "src/features/activities/__tests__/ExecutionTargetPicker.test.tsx",
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-07/failure",
+      "scope_id": "ED-07",
+      "given": "FAILURE sélectionné",
+      "when": "Ouvrir cible",
+      "expected": "Option Aucune durée, à l’échec active ; bloc00:00à45%, toujours manipulable.",
+      "test_owner": "src/features/activities/__tests__/ExecutionTargetPicker.test.tsx",
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-07/repeat",
+      "scope_id": "ED-07",
+      "given": "Mode Répétitions, cible10",
+      "when": "Ouvrir cible",
+      "expected": "Option Aucune répétition, à l’échec en tête ; roulette entière1–100 et une seule sélection.",
+      "test_owner": "src/features/activities/__tests__/ExecutionTargetPicker.test.tsx",
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-07/validation",
+      "scope_id": "ED-07",
+      "given": "Brouillon parent sauvegardé et sous-brouillon modifié",
+      "when": "Appuyer✓ puis quitter éditeur sans Terminer",
+      "expected": "✓ applique seulement au parent ; quitter avec abandon restaure la version persistée.",
+      "test_owner": "src/features/activities/__tests__/ExecutionTargetPicker.test.tsx",
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-08/failure-to-number",
+      "scope_id": "ED-08",
+      "given": "Cible30s puis choix échec",
+      "when": "Toucher échec puis tourner directement vers30s, annuler et rouvrir",
+      "expected": "Échec remet00:00et grise tout bloc45% ; tourner sans déverrouillage sélectionne30s, grise libellé ; Annuler restaure30s initiales.",
+      "test_owner": "src/features/activities/__tests__/ExecutionTargetPicker.test.tsx",
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE",
+        "DEVICE_CHECK"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-09/duration",
+      "scope_id": "ED-09",
+      "given": "Mode Durée",
+      "when": "Saisir0,1,4,5,30,3535,3540 et un non-multiple de5",
+      "expected": "Seuls entiers5..3535par pas5 sont nouveaux nombres valides ;00:00ne sélectionne pas échec.",
+      "test_owner": "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-09/repeat",
+      "scope_id": "ED-09",
+      "given": "Mode Répétitions",
+      "when": "Saisir0,1,100,101,1.5",
+      "expected": "Seuls entiers1..100 valides.",
+      "test_owner": "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-09/historic",
+      "scope_id": "ED-09",
+      "given": "Ancienne durée31s ou5999s et pause0",
+      "when": "Lire puis ouvrir sans modifier ; modifier cible",
+      "expected": "Lecture conserve exactement31/5999 ; champ montre ancienne valeur et demande une valeur valide pour sa modification ; pause0toujours valide, aucune migration ne clamp.",
+      "test_owner": "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-10/active-cell",
+      "scope_id": "ED-10",
+      "given": "TableauVARIABLE trois cibles dontFAILURE et pauses10/20/30",
+      "when": "Sélectionner cellule cible puis Pause, utiliser pied commun +/− et supprimer",
+      "expected": "Deux colonnes et poignée/numéro/retrait présents ; un champ actif ; pied commun n’agit que sur cellule active ; aucune cible échec changée par édition dePause.",
+      "test_owner": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-11/mode-reservations",
+      "scope_id": "ED-11",
+      "given": "Durée30s/FAILURE/45s, bip2, autres paramètres renseignés",
+      "when": "Basculer Répétitions, saisir10, revenir Durée puis annuler",
+      "expected": "FAILURE resteFAILURE ; numériques incompatibles deviennentUNSET et restaurent leurs réserves de mode sans conversion ; bip2, côtés et phases conservés ; annulation complète.",
+      "test_owner": "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-12/count",
+      "scope_id": "ED-12",
+      "given": "VARIABLE30s/FAILURE/45s et pauses10/20/30",
+      "when": "Réduire N3à1 puis restaurer3 sans édition incompatible",
+      "expected": "N1effectif UNIFORMpremière ligne courante, BY_SIDE immédiat ; réserves temporaires restaurent les lignes conformément au brouillon existant.",
+      "test_owner": "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-12/reorder",
+      "scope_id": "ED-12",
+      "given": "VARIABLE30s/FAILURE/45s",
+      "when": "DéplacerFAILURE en tête, supprimer puis Annuler, augmenterN",
+      "expected": "Ordre cible/Pause reste couplé ; suppression annulée retrouve position ; ajout copie type etPause dernière ligne, aucun nombre inventé.",
+      "test_owner": "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-12/regime",
+      "scope_id": "ED-12",
+      "given": "VARIABLE30s/FAILURE/45s",
+      "when": "Passer identiques, revenir variable puis fermer sans✓",
+      "expected": "Première ligne commune selon règle existante, restauration bornée du brouillon ; parent intact sans✓.",
+      "test_owner": "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-13/duration",
+      "scope_id": "ED-13",
+      "given": "Durée30/45/FAILURE, pauses10/10/10, unilatéral",
+      "when": "Calculer total intrinsèque et ledger indépendant",
+      "expected": "lowerBound105s, affichage≥1min45s, aucune estimation du travail inconnu.",
+      "test_owner": "src/domain/activities/__tests__/executionCalculations.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-13/repeat-beep",
+      "scope_id": "ED-13",
+      "given": "Répétitions10/12/FAILURE, bip2, pauses10/10/10",
+      "when": "Calculer total intrinsèque et ledger indépendant",
+      "expected": "lowerBound74s, ≥1min14s prioritaire sur≈.",
+      "test_owner": "src/domain/activities/__tests__/executionCalculations.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-13/repeat-no-beep",
+      "scope_id": "ED-13",
+      "given": "Répétitions10/12/FAILURE, bip0, pauses10/10/10",
+      "when": "Calculer total intrinsèque et ledger indépendant",
+      "expected": "omitted Exercice ; ledger30s pauses connues et travail inconnu.",
+      "test_owner": "src/domain/activities/__tests__/executionCalculations.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-13/all-failure",
+      "scope_id": "ED-13",
+      "given": "TroisFAILURE, pauses10/10/10, chaque mode et bip0/2",
+      "when": "Calculer total intrinsèque et ledger indépendant",
+      "expected": "omitted Exercice ; ledger30s connu, aucun total Exercice même si pauses positives.",
+      "test_owner": "src/domain/activities/__tests__/executionCalculations.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-13/all-numeric",
+      "scope_id": "ED-13",
+      "given": "Durée30/45/60 ou Répétitions10/12/15bip2, pauses10/10/10",
+      "when": "Calculer total intrinsèque et ledger indépendant",
+      "expected": "Duréeexact165s ; Répétitionsestimated104s ; countdown/end exclus.",
+      "test_owner": "src/domain/activities/__tests__/executionCalculations.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-13/figma-mixed",
+      "scope_id": "ED-13",
+      "given": "Durée30/45/FAILURE, pauses10/20/30",
+      "when": "Calculer total intrinsèque et ledger indépendant",
+      "expected": "lowerBound135s=2min15s par oracle métier, pas copie du textePNG.",
+      "test_owner": "src/domain/activities/__tests__/executionCalculations.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-14/inverse",
+      "scope_id": "ED-14",
+      "given": "UNIFORMouVARIABLE contenantFAILURE puis uniformenumérique Durée",
+      "when": "Tenter modifier le total",
+      "expected": "AvecFAILURE inverse indisponible et total affichable en lecture seule, omitted absent ; uniforme numérique conserve inverse existant et arrondi documenté, roulette total sans option échec.",
+      "test_owner": "src/domain/activities/__tests__/executionCalculations.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-14/inverse-ui",
+      "scope_id": "ED-14",
+      "given": "Feuille contenant une cibleFAILURE",
+      "when": "Appuyer total affiché puis ouvrir cible numérique uniforme",
+      "expected": "Total partiel annoncé en lecture seule sans popover inverse ; totalomitted non rendu ; roulette total numérique distincte de cible.",
+      "test_owner": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE",
+        "ACCESSIBILITY_CHECK"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-15/known-pauses",
+      "scope_id": "ED-15",
+      "given": "Séance existante avec Exerciceunilatéral30/45/FAILURE, pauses10chacune, récupération40, phasesSéance10+5",
+      "when": "Calculer agrégat via ledger deSéance",
+      "expected": "DernièrePause10 remplacée parR40 : known135intrinsèque+15phases=150s, lowerBound ; aucune nouvelleR créée ; recalcul identique après réouverture.",
+      "test_owner": "src/domain/sessions/__tests__/calculations.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-15/bilateral",
+      "scope_id": "ED-15",
+      "given": "N2Durée30/FAILURE, BY_SIDE, pause10, sideRecovery5, R40",
+      "when": "Construire contributions selon séquence bilatérale existante",
+      "expected": "Travail connu60s ; toutes pauses réellement planifiées comptées une fois ; terminale remplacée parR40 ; ledger annoté par côté/ligne, inconnus conservés sans2s/rép arbitraires.",
+      "test_owner": "src/domain/activities/__tests__/executionCalculations.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-16/ordered",
+      "scope_id": "ED-16",
+      "given": "Deux/trois cibles mixtes, échec à chaque position, chaque mode",
+      "when": "Générer segments à l’affichage",
+      "expected": "Cibles énumérées dans ordre réel≤3, valeurs/unités en gras selon Phrasev1 ; aucune énumération des pauses variables.",
+      "test_owner": "src/domain/activities/__tests__/executionPhrase.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-16/compact",
+      "scope_id": "ED-16",
+      "given": "Plus de3cibles mixtes10/12/FAILURE/20 ou90s/120s/FAILURE/150s",
+      "when": "Générer segments",
+      "expected": "Compaction de10rép. à l’échec ou de1min30s à l’échec ; minimum numérique choisi, pas première valeur arbitraire.",
+      "test_owner": "src/domain/activities/__tests__/executionPhrase.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-16/all-failure",
+      "scope_id": "ED-16",
+      "given": "TroisFAILURE dans chacun des deux modes",
+      "when": "Générer phrase",
+      "expected": "3 séries jusqu’à l’échec avec clauses existantes ; aucun total ; Répétitionssansbip n’a jamais total même mixte.",
+      "test_owner": "src/domain/activities/__tests__/executionPhrase.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-16/full-display",
+      "scope_id": "ED-16",
+      "given": "Phrase longue générée, étroite360 et texte agrandi",
+      "when": "Afficher éditeur et cartes existantes",
+      "expected": "Phrase intégrale, segmentsgras corrects, pas de troncature ni de phrase persistée.",
+      "test_owner": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-17/corpus",
+      "scope_id": "ED-17",
+      "given": "276fixturesv15 figées et matrice mode×bip×régime×cible×N×côté×pauses",
+      "when": "Comparer gabarits et montants oracle indépendant",
+      "expected": "276cas gardés avec adaptation explicite des anciennes entréesTO_FAILURE ; cas nouveaux couvrent échec toutespositions≤3/>3, mixtures, N1normalisation, bip0/positif, chaque ordre/côté, pauses0/variables ; aucune génération attendue depuis moteur testé.",
+      "test_owner": "src/domain/activities/__tests__/executionPhrase.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-18/migration",
+      "scope_id": "ED-18",
+      "given": "BaseSQLitev9 avec definitions/copiesjsonv1et scalairesTO_FAILURE, associations catégorie/zones/médias",
+      "when": "Migrer v10 puis rouvrir",
+      "expected": "Deux modesv2, anciennes cibleséchec→REPETITIONS+FAILURE, paramètres etIDs conservés, nullable scalaires numériques siFAILURE, aucune cible dummy ; liens/counts/ordre/empreintes fichiers inchangés, foreign_key_check vide.",
+      "test_owner": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "DATA"
+    },
+    {
+      "assertion_id": "ED-18/rollback",
+      "scope_id": "ED-18",
+      "given": "Même base avec corruptionjson ou échec injecté après reconstruction avantCOMMIT",
+      "when": "Exécuter migration",
+      "expected": "Transaction intégralement annulée, user_version9 et octets/relations d’origine identiques, corruption signalée ; aucun fallback silencieux.",
+      "test_owner": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "DATA"
+    },
+    {
+      "assertion_id": "ED-18/definition-roundtrip",
+      "scope_id": "ED-18",
+      "given": "DefinitionVARIABLENUMBER/FAILURE avec médias",
+      "when": "Créer/modifier/réouvrir sur vraieSQLite puis rejeter cibleUNSET",
+      "expected": "JSONv2 et scalaires cohérents ; retour exact types/ordre ; rejet atomiqueUNSET sans écritures partielles.",
+      "test_owner": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "DATA"
+    },
+    {
+      "assertion_id": "ED-18/session-roundtrip",
+      "scope_id": "ED-18",
+      "given": "OccurrenceVARIABLENUMBER/FAILURE avecRexistante",
+      "when": "SauvegarderSéance puis rouvrir sur vraieSQLite",
+      "expected": "Paramètres etRexactes, catégorie/zones/médias conservés ; échec sauvegarde ne laisse pas liens orphelins.",
+      "test_owner": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "DATA"
+    },
+    {
+      "assertion_id": "ED-19/copies",
+      "scope_id": "ED-19",
+      "given": "Cataloguev2avecFAILURE etmédias",
+      "when": "Copier occurrence, dupliquerSéance puis modifier une copie",
+      "expected": "Collections profondément copiées ; mêmes assets physiques référencés sans suppression, ordre conservé ; source/autrescopiesintactes.",
+      "test_owner": "src/features/sessions/__tests__/SessionService.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "DATA"
+    },
+    {
+      "assertion_id": "ED-19/snapshot",
+      "scope_id": "ED-19",
+      "given": "Instantanév1archivéavec ancienTO_FAILURE, résultats et empreinte ; nouveauv2",
+      "when": "Lire ancien puis créer/relire nouveau",
+      "expected": "Ancien octet et résultat inchangés ; lecteur versionné interprète ancien sans performances inventées ; nouveau encode cible typée et médiaordonné.",
+      "test_owner": "src/domain/activities/__tests__/exerciseSnapshot.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "DATA"
+    },
+    {
+      "assertion_id": "ED-19/no-write-on-cancel",
+      "scope_id": "ED-19",
+      "given": "Objetpersistéavec médias etrelations",
+      "when": "Modifier brouillon puis annulerSousfeuille/éditeur",
+      "expected": "Aucune écritureSQLite ni suppression physique lors annulation ; bases/table/hashfile inchangés.",
+      "test_owner": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "requirement_kind": "DATA"
+    },
+    {
+      "assertion_id": "ED-20/Catégorie",
+      "scope_id": "ED-20",
+      "given": "SélecteurCatégorie ouvert depuis éditeur avecclavierdéjàprésent",
+      "when": "Appui long, modifier/annuler/enregistrer ; créeravec nomvide ; sélectionneret✓",
+      "expected": "Clavier ne disparaît pas sur appui long/annulation/enregistrement ; nomvide désactiveAjouter sans erreur ;✓appliqueparent, annulationpréservechoix et données, retourcorrect.",
+      "test_owner": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE",
+        "DEVICE_CHECK"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-20/Zones",
+      "scope_id": "ED-20",
+      "given": "SélecteurZones ouvert depuis éditeur avecclavierdéjàprésent",
+      "when": "Appui long, modifier/annuler/enregistrer ; créeravec nomvide ; sélectionneret✓",
+      "expected": "Clavier ne disparaît pas sur appui long/annulation/enregistrement ; nomvide désactiveAjouter sans erreur ;✓appliqueparent, annulationpréservechoix et données, retourcorrect.",
+      "test_owner": "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE",
+        "DEVICE_CHECK"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-21/media-preservation",
+      "scope_id": "ED-21",
+      "given": "Definition/copies partagent assetsphoto/video, importtemporaire échoué",
+      "when": "Importer/réordonner/réessayer/sauver/rouvrir/annuler et retirer une seule référence",
+      "expected": "Ordre et identité conservés ; erreurs bornées réessayables ; leasesbrouillon libérées selon cycle existant ; fichierphysiqueencoreréférencé jamais supprimé ; migration ne touche aucunasset.",
+      "test_owner": "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "DEVICE_CHECK"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-22/editor",
+      "scope_id": "ED-22",
+      "given": "Surfaceeditor largeur360/402/440 et texteagrandi,VoiceOver",
+      "when": "Naviguer et activer toutes actions sans geste exclusif",
+      "expected": "Nom/description annoncés, catégories/zones avec état, ordre en-tête→nom→référentiels→paramètres→description→médias→Terminer ; focus restauré après fermeture. Aucun débordement ni action finale inaccessible ; cible tactile DSFgénéral48pt sans agrandir artificiellement dessin30px.",
+      "test_owner": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE",
+        "ACCESSIBILITY_CHECK",
+        "DEVICE_CHECK"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-22/sheet",
+      "scope_id": "ED-22",
+      "given": "Surfacesheet largeur360/402/440 et texteagrandi,VoiceOver",
+      "when": "Naviguer et activer toutes actions sans geste exclusif",
+      "expected": "Focus piégé dans feuille, fermeture/✓nommés, étatvariable et cibleéchec annoncés, totalpartiel lectureseule ; alternativesaccessibles suppression/réordonnancement. Aucun débordement ni action finale inaccessible ; cible tactile DSFgénéral48pt sans agrandir artificiellement dessin30px.",
+      "test_owner": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE",
+        "ACCESSIBILITY_CHECK",
+        "DEVICE_CHECK"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-22/target",
+      "scope_id": "ED-22",
+      "given": "Surfacetarget largeur360/402/440 et texteagrandi,VoiceOver",
+      "when": "Naviguer et activer toutes actions sans geste exclusif",
+      "expected": "Option sélectionnée annoncée explicitement, bloc grisé manipulable, valeur etunités annoncées ; pas d’état transmis par gris seul. Aucun débordement ni action finale inaccessible ; cible tactile DSFgénéral48pt sans agrandir artificiellement dessin30px.",
+      "test_owner": "src/features/activities/__tests__/ExecutionTargetPicker.test.tsx",
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE",
+        "ACCESSIBILITY_CHECK",
+        "DEVICE_CHECK"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    },
+    {
+      "assertion_id": "ED-22/referentials",
+      "scope_id": "ED-22",
+      "given": "Surfacereferentials largeur360/402/440 et texteagrandi,VoiceOver",
+      "when": "Naviguer et activer toutes actions sans geste exclusif",
+      "expected": "NomvideAjouter désactivé annoncé sans erreur, focus etclavierpréservés lors actions ; création/éditionretouraucontrôleorigine. Aucun débordement ni action finale inaccessible ; cible tactile DSFgénéral48pt sans agrandir artificiellement dessin30px.",
+      "test_owner": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE",
+        "ACCESSIBILITY_CHECK",
+        "DEVICE_CHECK"
+      ],
+      "requirement_kind": "FUNCTIONAL"
+    }
+  ]
+}

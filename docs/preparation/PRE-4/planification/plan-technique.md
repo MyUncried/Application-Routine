@@ -1,0 +1,63 @@
+# PRE-4 — Plan technique de l’éditeur Exercice et de la cible À l’échec par série
+
+Opération #352, VNEXT-PRE-4. Baseline canonique du bootstrap c32e360d891614f2b08a1d8f7f3f631eef0b57ea ; son code applicatif est identique au main96a191a975a5de03ed3194568cb991196908fc67. Plan proposé, non approuvé par le propriétaire ; aucun code produit développé. Les objets scellés et leurs références exactes sont produits par les constructeurs VNext intégrés, puis revus via agent-relay, pas par une mission libre parallèle.
+
+## 1. Autorité et interfaces
+
+ED-01..ED-22 constituent le cadrage complet. Deux modes§2/4/6/7/9/11, Paramètresv13, Phrasev1/corpusv15, Bipv2, CE-T03-04/CE-UI-10 et DSF13Oct gouvernent comportements et états. Les32arbres figés décrivent chaque propriété ; fermeture380éléments maîtres/variantes,786variables avec alias et61styles. Les valeurs d’exemple Figma ne deviennent pas des défauts métier. Les clauses de pauses variables contradictoires sont remplacées par la grammaire normative, écart tracé dans le paquet.
+
+Les quatre parcours conservent le même ActivityEditorForm : définition Catalogue via ActivityDefinitionService/repository ; occurrence de Séance via ExerciseScreen, SessionDraftProvider et SessionService/repository. Aucun nouveau circuit Composition, moteur, son réel, relevé, Synthèse/Suivi ou catalogue général. Les modifications des consommateurs partagés sont limitées aux types, projections, phrases et calculs devenus nécessaires.
+
+## 2. Format canonique v2
+
+ExecutionParameters.version=2 ; mode DURATION|REPETITIONS, régime UNIFORM|VARIABLE toujours explicite. Cible persistable discriminée `{kind:NUMBER,value:entier}` ou `{kind:FAILURE}` ; pas de valeur numérique pour FAILURE. Brouillon ajoute `{kind:UNSET}` ; UNSET jamais sérialisé. En uniforme : count et cible/Pause commune ; variable : rows ordonnées cible/Pause. Autres champs et identités PRE-3 conservés, R séparée portée par occurrence.
+
+Séparer les types LegacyExecutionParametersV1 et LegacyExerciseExecutionMode des modes courants. parseExecutionParameters acceptev1/v2, erreur explicite pour version inconnue, JSONmalformé ou cible corrompue ; aucun fallback de corruption vers scalaires. v1TO_FAILURE→modeREPETITIONS et chaque cibleFAILURE, sans nombre inventé. v1numericnull hors échec reste invalide/incomplet et n’est pas converti. Adapter scalarlegacy sansJSON selon mêmes règles. serialize n’écrit quev2 valide. clone profond préserve toutes cibles et leurs pauses.
+
+Bornes nouvelles5..3535s pas5 et1..100répétitions. Lecture conservatrice des anciennes valeurs positives hors nouvelle borne/pas : aucun clamp/arrondi ni réécriture par simple ouverture. Une valeur historique non modifiée reste transportable avec provenance de lecture ; un champ modifié doit satisfaire la nouvelle règle. Définir cette distinction dans validateNewTarget versus decodeStoredTarget, pas un relâchement global de validation. Tests de sauvegarde d’une modification de nom sur cible31/5999 sans édition numérique, puis rejet d’une nouvelle cible31/5999. Les pauses/totaux et leurs bornes restent propres à leurs contrôles.
+
+## 3. Écritures SQLite et migration010
+
+Le schéma réelv9 impose dans activities un nombre nonNULL pour les modes numériques ; donc la projection d’une cibleFAILURE avec modeREPETITIONS violerait son CHECK. Pas de dummy1 ni maintien dissimulé deTO_FAILURE dans les nouvelles écritures. Migration010 reconstructive des tables live activities et activity_definitions, avec execution_mode limité aux deux modes. Les contraintes d’identité, positions, cycle/tour composites, noms, récupérations, côtés, catégorie, indices et uniques restent identiques. Adapter seulement le CHECK cible : scalaires du mode nullable lorsque JSONv2 canonique valide est présent ; chemin legacy numérique conserve contraintes antérieures. Validation typée avant tout write ; JSONv2+mode/compte/pauses/projection vérifiés par repositories, et tests SQL directs sur les invariants que le schéma peut exprimer.
+
+Tout live objet obtient JSONv2 à partir de sonJSONv1 ou de ses scalaires avant insertion dans tables neuves. projectionLegacyScalars devient projection SQL dérivée : première cible numérique ouNULL siFAILURE, jamais une source secondaire ni calcul résumé du variable. La validation canonique doit précéder les branches legacy exigeant repCount, dans ActivityDefinition et sessions/validation. Toutes lectures/calculs/UI existants doivent choisir canonical s’il existe, adaptateurlegacy sinon ; aucune interprétation duNULL comme échec.
+
+La transaction exclusive actuelle est conservée, defer_foreign_keys=ON ; foreign_keysOFF est inefficace dans transaction et interdit ici. Sauvegarder et retirer temporairement les tables enfants activity_body_zones, session_activity_media, activity_definition_body_zones et activity_media avant DROPparents ; restaurer exactement liens/positions/IDs puis indices. DROP cascade même différé : ne pas se contenter de defer. media_assets et fichiers restent intacts. Contrôler foreign_key_check, comptages et valeurs avantCOMMIT ; user_version10 seulement en fin. Tout JSON corrompu ou erreur de restauration annule intégralité, user_version9 inchangé. Migrations001..009 immuables. Baseneuve traverse toute séquence ; testsv0/v8/v9, rollback injecté avantCOMMIT, seconde ouverture idempotente, copies bilatérales/relations/media avec SQLite NodeSqliteDatabase réelle.
+
+## 4. Instantanés, copies et médias
+
+ExerciseSnapshot nouveau snapshotVersion2 encodeparametersv2 ; lecteur continue d’accepter snapshotVersion1 et d’interpréter ses paramètres selon version. Aucun UPDATE des instantanés/résultats archivés ; octets et performances comparés avant/après. Les données live Catalogue et copies évoluent ensemble. ActivityDefinitionService, SessionDraft/SessionService, SqliteSessionRepository et exerciseSnapshot clone/codec sont propriétaires des transports. Modification copie ne modifie pas source/autres occurrences.
+
+Le cycle PRE-3 import→leasebrouillon→associationordonnée→commit/abandon reste inchangé : réutiliser ActivityMediaImportService, MediaDraftLeases, PhotoLibraryPicker, LocalMediaStore/VideoPoster, repositoriesliens. Migration ne déplace ni ne supprime d’asset, suppression occurrence supprime sesliens et jamais asset encore référencé. Réessaiimport/annulation/erreurs et ordre à la réouverture sont régressions exigées. Aucun nouveau format, quota ou caméra inventé.
+
+## 5. Brouillons et calculs
+
+Sousfeuille possède un clone temporaire ; ✓parent seulement, Terminer persiste. Réserves par mode gardent nombres incompatibles et regime/lignes pendant restauration admissible. FAILURE traverse modes sansconversion ; nouvellesnumériques deviennentUNSET jusqu’à saisie. Réduction N1normalise immédiatement UNIFORM etBY_SIDE sur premièrelignecourante, réserves hors format effectif. Déplacement associe cible/Pause ; ajout copie dernièreligne avectype ; annulersuppression restaureposition.
+
+ExecutionLedger conserve séquences de pauses PRE-3. WORKNUMBER enDurée→value ; enRépétitionsbip>0→value*bip ; FAILURE etRépétitionsbip0→unknown. Résultat ExerciseDuration ajoute lowerBound. ToutnumériqueDuréeexact, toutnumériqueRépétitionsavecBipestimated, mixtecalculablelowerBound avec knownSeconds ; toutesFAILURE ouRépétitionsbip0omitted maisledgerpausesconnu conservé. Countdown/end exclusintrinsèque, phasesSéance existantes distinctes. ≥prioritaire sur≈ ; inversion refusée dèsFAILURE, variablelectureseule, autresinverseuniformepréservés. Adapters calculs/summary/cartes propagent le discriminant et jamais un zéro inventé.
+
+Oracle indépendant : fixtures événements écrites avantcode, fonction test distincte faisant sommes explicites, sansimport executionCalculations/executionPhrase. Attendus R01=105s, R02=74s, Figma mixed30/45/failure avecpauses10/20/30=135s ; récupération40 remplace terminale10, pasadditiondes2. BY_SIDE N2durée30/failure, P10, PC5, R40 : travaux60+3P30+PC5+R40=135known ; BY_SERIES mêmes données : travaux60+P10+2PC10+R40=120known. ToutFAILURE garde seulementlespauses au ledger mais aucune totalExercice. Plus phasesSéanceau niveauSéance seulement.
+
+## 6. Phrase
+
+Générateur segments{texte,gras} à l’affichage ; jamaispersisté. ≤3mixte énumérationordonnée, >3minimum numérique→échec, toutesFAILURE phrasehéritée. Aucun totalRépétitionssansbip ni toutesFAILURE, ≥pourmixte calculable. Clausescôtés/pausesnormativesinchangées, aucune énumération variablepauses. Conserver276fixturesv15 originales ; nouvelle couche d’adaptation des inputsTO_FAILURE et extension explicite couvrant combinatoire des modes/bip/régime/N/côtés/pauses/positionsFAILURE. Comparaison des segments etmontants oracle indépendant, pas exécution de générateur pour écrire attendus.
+
+## 7. UI complète et contrôles natifs
+
+ActivityEditorForm réalisé dans sa composition entière, pas greffe de champs sur anciensaccordéons : en-têtefermeture, bandeaunom/Catégorie/Zones, carte Paramètres avec Choisirunmode, phasespropres, description, médiashorizontaux, Terminer. Fixturesinitiale/renseignée/quatreparcours etannulation selon32références. Header/button états portent mesures extraitesarbre, pas positions déduites du nom.
+
+ExecutionParametersSheet : suppressioninterrupteur, popovers Mode2options/Côté/Ordre/Régime, tablevariable2colonnes cible/Pause, poignéenuméro/retrait etpiedcommun agissant seulementcelluleactive. Composer un ExecutionTargetPicker local qui réutilise nativeSwiftUI.Picker.wheel de DurationWheelPicker et NumberWheelPicker. Extraire/réutiliser primitive numérique seulement si nécessaire, en conservant leurs API/defaults pour autresconsommateurs. Pas d’imitation scrollwheel iOS. Option échec330×30, trait330×1 y30, blocnumérique330×150 y31, ensemble330×181 hôte354×249 ; total reste330×150 hôte354×216 sansoptionéchec. Mode184×99deuxoptions. OptionInter20. Blocnonselected45%toujoursmanipulable, valeur neutre00:00, exactementune sélectionsanscoche.
+
+Réutiliser overlay/popper existant WheelPickerOverlay comme ancrage/focusquandpossible, wrapperlocalExecutionChoicePopover si shell existantneportepascecontrat. Pas de refonte partagée du Profil ni nouveaustepperparallèle. FootercomposeProfileStepper avecpolicylocale, maintiendefaultet48pt. i18n et tokens existants, suitesindex.test.ts/tokensSpecification.test.ts ADAPT s’ils changent. Les propriétés de chaque élément sont une assertion UI atomique avecréférence/état etpreuve ; geometrie402adaptée360/440sanscopier x/ycanvas. Comparer PNGdelivrés parétat pertinent et arbre, aucun PASSvisuel depuisJest.
+
+## 8. Accessibilité et preuves
+
+Éditeur : ordrelexical nom→référentiels→paramètres→description→médias→Terminer ; libellés/valeurs, validationvisible, retourfocus. Feuille : focustrappé, fermeture/✓nommés, étatvariable annoncé, actionsaccessiblessupprimer/déplacer alternativesdrag, totalpartiel annoncélectureseule. Cible : étatselected explicite, gris seulinsuffisant ; roulettegrisée activegesture/accessibilityadjustable. Popovers : itemselected annoncé, ancragecorpsdéfilable etfocusrestauré. Référentiels : claviercontinu N01conservé, Ajoutervide désactivé sanserreur. Médias : import/erreur/ordre/retourfocus. Chaque surface a scénariotestpropriétaire propre, pas recopieglobal.
+
+Séparer preuves automatisées (modèle/oracle/drafts/SQLite/migrations/copies/files/testsowners/consommateurs), comparaisonsvisuelles (32états+étatsdocseulement,360/402/440 ettexteagrandi), perceptionappareil(roulettesnatives/VoiceOver/clavier/import). Le piloteexécute tout ce quiestautomatisable, n’assigne pasSQLite/calculs au propriétaire. Aucune réservesansimpact/justification/statut/décisionexplicite. Les scénariosappareilrestentPENDING tant quenonobservés.
+
+## 9. Séquence et livraison
+
+Produire sources atomiques→graphedirectimport/écritures→PlanContract+UIAtomicityContract+traçabilité ; reconstituerlescontratsdepuisGitrévisionspubliées. Demande immuableplan-reviewviaagent-relay du protocoleintégré, seulnouveaufichier danscommitmainpour déclenchement. Revueindépendante reliéeauPlanContractetreceipt, résolutionbornée desconstats selonVNext. Puis validationpropriétaire duplanexact avantadmission.
+
+Aprèsapprobation : modèle/codec+migration d’abord, calculs/phrase puisUI/adapters, testsownersspécifiques etrégressionsdirectimporters, revued’implémentation/recette. Publier touscommits etvérifierbrancheexacte avantCIetOTA/buildreview ; fournirversion/lien etdiagnosticupdate exécutée. Aucuncommit localrestant ; registre finaletmergeportentpreuvesexactes. Un filtreCIdedocumentsn’autorise pasde masquerchangementsprotocoleréels. Aucun nouveauworkflow oucorrectifVNext inclus.
