@@ -27,6 +27,6 @@ Q-07 : le symbole ≥ est acté, mais l’estimation antérieure 2s/répétition
 
 D-307 explicite une conséquence de conception : le défaut Profil de récupération est proposé à l’ajout explicite, au lieu de l’insertion de l’occurrence. Ce statut dérivé n’est pas présenté comme une citation du propriétaire.
 
-Les écarts Figma (trait à zéro, « circuits » au lieu de « tours » sur deux nouveaux états, emplacement terminal de Point d’arrêt) sont consignés dans la matrice. Aucune retouche d’image ne les masque. V-04 sur le réglage global de phases propres et la dette de composants/assets restent visibles.
+Les écarts Figma (trait à zéro, « circuits » au lieu de « tours » sur deux nouveaux états, emplacement terminal de Point d’arrêt) sont consignés dans la matrice. Aucune retouche d’image ne les masque. V-04, historiquement ouvert sur le réglage global des phases propres, est clos par la clarification du12/10/2026 : ce réglage n’existe pas (D-214 révisée). La dette de composants/assets reste distincte.
 
 Aucune fusion main, aucun pull local, aucun test applicatif ni nouvelle revue externe exécuté dans ce lot.

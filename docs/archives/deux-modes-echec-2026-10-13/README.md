@@ -1,0 +1,3 @@
+Sources reçues, conservées sans altération. La proposition disponible ne contient pas le §4.5 annoncé par le prompt. Les arbitrages utilisateur ultérieurs (absence de calcul sans bip, relevé estimé tant que non confirmé, dernière tentative) priment sur les formulations abrégées des sources. Référence normative : spécification Deux modes, chapitres09/10/13.
+
+Complément reçu : KODJO_Prompt_Deux-modes-et-echec_2026-10-13_complet.md reproduit le §4.5 intégral au §4.2. La première transmission reste historique ; R01 est close. R06 ensuite close : Hermann précise58min55s maximum (3535s) et indique que5999s était une coquille. Cette correction prime sur59:55 dans la source archivée.

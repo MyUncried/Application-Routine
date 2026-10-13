@@ -1,5 +1,7 @@
 ## 11.0 Objet et périmètre
 
+> **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
+
 > Planification à plusieurs contenus (08/10) : les règles antérieures d’archivage supprimant les Routines associées restent décrites pour le cas à contenu unique. Leur extension à une Routine contenant d’autres contenus est **non définie** ; ne pas supprimer ces autres planifications par généralisation. Voir la spécification du 08/10 et son registre de points ouverts.
 
 
@@ -73,7 +75,7 @@ Les API fonctionnelles respectent les principes suivants :
 |ID|Opération|Entrées principales|Résultat|Règles / validations|Objets impactés|
 |---|---|---|---|---|---|
 | API-ACT-01 | Paramétrer un Exercice | Nom, référentiels, mode unique, N, uniforme/variable, cibles/Pauses/Bip0..10 ordonnés, direction, ordre des côtés, PC, CR/Fin | Exercice validé | Validation v13 ; N1 normalisé ; aucune R contextuelle sur ActivityDefinition ; écriture atomique | Exercice |
-| API-ACT-02 | Calculer les paramètres temporels | Mode, N, uniforme/variable, cibles/Pauses/Bip0..10 ordonnés, direction, ordre des côtés, PC, R contextuel éventuel, Tv en Durée uniforme | Total dérivé avec niveau d’incertitude, statut incomplet et N canonique si inversion | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. | Exercice / occurrence |
+| API-ACT-02 | Calculer les paramètres temporels | Mode, N, uniforme/variable, cibles/Pauses/Bip0..10 ordonnés, direction, ordre des côtés, PC, R contextuel éventuel, Tv en Durée uniforme | Total dérivé avec niveau d’incertitude, statut incomplet et N canonique si inversion | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. | Exercice / occurrence |
 | API-ACT-03 | Définir les pauses | Paramètres uniformes/variables, PC | Exercice validé | Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : Bip v2§3 et paramètres v13§§4–5. | Exercice |
 |API-ACT-04|Lire/afficher les médias associés|ID Exercice|Média(s) associé(s) pour la gouttière permanente de la carte d’Exercice|L’affichage en gouttière, sans déploiement, fait partie du MVP (D-260/D-261) ; cette API fonctionnelle ne préjuge pas du mécanisme d’import/capture|Exercice, Média|
 |API-ACT-05|Associer des zones corporelles|ID Exercice, zones corporelles|Zones corporelles mises à jour|Zéro à plusieurs zones du référentiel utilisateur courant|Exercice, Zone corporelle|
@@ -267,7 +269,7 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 | `API-CAT-01` | MVP T03 / V2 | type, filtre, tri | Avant T03, accepte uniquement `SESSION`; dans le MVP T03, accepte également `ACTIVITY`; l’ancien type autonome `CIRCUIT` n’est pas réintroduit par la planification multi-contenus. Défaut : non archivés, dernière modification décroissante. |
 | API-CIR (ancienne famille) | Retirée 08/10 | Sans nouvelle implémentation | L’objet autonome Parcours et son exécution globale ne font plus partie de la cible. |
 
-`API-EXE-05` couvre aussi `TO_FAILURE` : comme pour `REPETITIONS`, `Suivant` constitue une fin normale de Série sans confirmation. Les DTO d’Exercice acceptent `DURATION`, `REPETITIONS`, `TO_FAILURE` et appliquent les contraintes d’exclusivité du chapitre 09.
+`API-EXE-05` termine par Suivant toute Série Répétitions ou à cible À l’échec. Les DTO acceptent DURATION/REPETITIONS et une cible typée par Série ; TO_FAILURE est un format historique à migrer (chapitre09). La confirmation du relevé est indépendante de la transition.
 
 ## API de bilatéralité
 
@@ -348,12 +350,12 @@ Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTE
 - Suppression référentiel : désactive la valeur pour les nouvelles sélections sans casser les références existantes ; Étiquette/Catégorie conservent nom et couleur nécessaires au rendu des objets existants.
 - Mise à jour couleur Étiquette/Catégorie : agit sur le référentiel source ; les consommateurs relisent cette couleur, sans copie locale par objet.
 - Création Exercice / occurrence : lecture ponctuelle des défauts Profil, sans synchronisation ultérieure.
-- Mise à jour Séance : expose un booléen global de prise en compte des Compte à rebours et Fins propres aux Exercices, activé par défaut.
+- Mise à jour Séance : aucun paramètre d’activation des Compte à rebours/Fin propres aux Exercices. Construction du plan SESSION : exclusion inconditionnelle de ces phases, sans effacement des valeurs propres ; les phases de Séance les remplacent.
 - Construction du Plan : développe le Circuit pour `tourCount` Tours ; tout Point d’arrêt interne au Circuit est reproduit à chaque Tour ; après un Exercice, `POST_ACTIVITY_RECOVERY` précède le Point d’arrêt.
 
 | API-PHRASE-01 | Générer la phrase de synthèse | Paramètres courants de l’Exercice | Segments `{texte, gras}` ou tableau vide | Applique D-298 et Phrase v1 à partir des paramètres et du résultat de calcul fourni (total et niveau d’incertitude) ; sans mode retourne un tableau vide. Ne recalcule aucune durée et ne persiste aucune phrase ni aucun segment, même en cache en base. | Exercice |
 
-| API-PARAM-01 | Valider les bornes des paramètres | Paramètres d’exécution | paramètres valides / erreur | Séries `1..99`; Répétitions `1..100`; durée par Série `1..5999 s`; pauses inter-Séries/inter-côtés `0..300 s`. | Exercice |
+| API-PARAM-01 | Valider les bornes des paramètres | Paramètres d’exécution | paramètres valides / erreur | Séries `1..99`; Répétitions `1..100`; durée par Série `5..3535 s`; pauses inter-Séries/inter-côtés `0..300 s`. | Exercice |
 
 
 
@@ -372,8 +374,8 @@ Validation, calcul, duplication, insertion dans une Séance et instantané parta
 
 | Opération | Entrées | Sortie / effet atomique | Refus et compatibilité |
 |---|---|---|---|
-| Valider/appliquer paramètres | Brouillon mode, Séries ordonnées et Bip commun0..10 | Normalise N1 ; propage cadence ; ✓ remplace le brouillon parent ; Terminer seul persiste | Bip−1/11/non entier : validation refusée et erreur champ ;0 valide ; les trois modes conservent le Bip |
-| Calculer paramètres (API-ACT-02) | Collection effective, côtés, PC, R contextuelle éventuelle | Total intrinsèque/occurrence et niveau d’incertitude, ou incomplet ; Ri×b si bip positif en Répétitions, omitted sinon ; Durée exacte et À l’échec omitted | Pas d’inversion Répétitions ; ni Figma ni Excel en entrée de calcul |
+| Valider/appliquer paramètres | Brouillon mode, Séries ordonnées et Bip commun0..10 | Normalise N1 ; propage cadence ; ✓ remplace le brouillon parent ; Terminer seul persiste | Bip−1/11/non entier : validation refusée et erreur champ ;0 valide ; les deux modes conservent le Bip |
+| Calculer paramètres (API-ACT-02) | Collection effective, côtés, PC, R contextuelle éventuelle | Total intrinsèque/occurrence et niveau d’incertitude, ou incomplet ; Ri×b si bip positif en Répétitions, omitted sinon ; Durée chiffrée exacte ; mélange calculable lowerBound ; toutes cibles échec omitted | Pas d’inversion Répétitions ; ni Figma ni Excel en entrée de calcul |
 | Générer la phrase | Paramètres valides et résultat temporel fourni | Segments ordonnés `{texte, gras}` ; régénérés à chaque affichage | Aucun recalcul de pause/durée dans cette fonction ; aucune mutation métier |
 | Démarrer/copier/dupliquer | Définition ou occurrence avec cadences | Snapshot/collection complets ; début immédiat de première répétition ; aucune nouvelle phase Répétition | Ancien objet sans champ : Bip0=Aucun ; aucun tempo implicite |
 | Pause/Reprendre/Réinitialiser/Suivant | Exécution, identifiant de transition et horodatage monotone | État récupérable + temps actif cumulé ; intervalle complet après Pause, scope existant pour reset ; Suivant fin normale | Idempotence ; mauvais état refusé ; fin nominale ne déclenche pas Suivant |
@@ -394,4 +396,28 @@ La [spécification de phrase](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md) g
 Aucune colonne phrase ni sérialisation des segments dans définition/occurrence/snapshot. Génération à chaque affichage depuis les paramètres ; ✓ applique le brouillon, ne persiste pas le texte. Un changement rédactionnel est visible au prochain rendu des objets existants. Paramètres historiques et temps réalisés préservés.
 
 Français uniquement au MVP. Internationalisation ultérieure : gabarits et règles de pluriel/genre/ordre par locale, avec recette dédiée ; prévoir la réécriture de la grammaire française, pas une traduction des segments isolés. Corpus276 utilisé uniquement pour les phrases, valeurs totales injectées par le calcul métier.
+
+
+
+
+## Contrats fonctionnels — circuits du12/10/2026
+
+| Opération | Entrées / résultat / atomicité |
+|---|---|
+| Préparer une conversion | Circuit courant + nature cible ; calcul des exercices affectés et pertes, sans mutation partielle |
+| Appliquer une conversion | État préparé confirmé si perte ; appliquer nature, compte et lignes ensemble ; Annuler conserve tout |
+| Modifier le compte | Brouillon du circuit ; synchroniser tous les exercices en nature séries, avec réserve temporaire/restauration |
+| Ajouter/sortir un exercice | Copie locale indépendante ; confirmer adaptation destructrice à l’ajout ; sortie conserve état actif |
+| Obtenir les volumes | Projection en lecture seule : cellules typées valeur/échec/absence, unité/mode, direction ; aucune mutation ni total inventé |
+| Construire le plan | Même représentation que validation/calcul ; développement selon nature et phases contextuelles ; identifiants d’occurrences stables |
+| Calculer la durée du circuit | Somme des phases effectives, résultat exact/estimated/lowerBound ; aucune lecture du texte de carte |
+
+L’API de mise à jour des paramètres refuse une modification locale de N lorsqu’il est hérité et ne propose pas l’inversion de durée dans ce contexte. Les validations ne reposent pas sur la seule désactivation visuelle. Le formateur de volume respecte le régime ; la phrase complète conserve son générateur de segments et son corpus propre.
+
+
+## Contrats de service — cibles typées et relevés13/10
+
+Validation/édition/copie/instantané transportent le mode commun et la cible typée de chaque Série. Le calcul retourne exact/estimated/lowerBound/omitted selon la spécification Deux modes§4 ; aucune valeur pour omitted, erreur distincte. Le générateur reçoit ce résultat et retourne des segments, jamais une phrase persistée.
+
+La fin de Série reste indépendante du relevé. Le service de relevé reçoit l’identité de l’occurrence/côté/tentative, valeur facultative, unité, origine et qualification ; une proposition issue du bip reste estimée jusqu’à confirmation/correction explicite. Événements idempotents, pas de doublons lors de reprise. Aucun endpoint réseau ni nouvelle API déjà implémentée n’est présumé par ce contrat fonctionnel.
 

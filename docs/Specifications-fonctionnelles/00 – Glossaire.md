@@ -1,5 +1,7 @@
 # Glossaire
 
+> **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
+
 Le glossaire définit le vocabulaire officiel du projet KODJO. Les écrans, la documentation, les tests et le code doivent rester rattachables à ces termes et ne doivent pas introduire de concept concurrent.
 
 Une **entité métier** possède une identité propre et peut être représentée dans le modèle de données. Un **concept métier** décrit une règle, un état ou une structure sans correspondre nécessairement à un objet persistant.
@@ -131,7 +133,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 |---|---|
 | **Exercice de référence** | Exercice persistante autonome du Catalogue des exercices dans le MVP T03. Elle est directement exécutable à partir d’un instantané autonome et sert aussi de source à des copies indépendantes, incluant sa Pause et sa Récupération éventuelles. |
 | **Exercice de Séance** | Copie indépendante d’un Exercice, intégrée et ordonnée dans une Séance. Elle est persistée avec la Séance mais n’apparaît jamais comme doublon dans le Catalogue des exercices. |
-| **À l’échec** | Troisième mode d’Exercice du MVP, sans durée ni répétitions cibles. Chaque Série se termine par l’action `Suivant`, comme en mode Répétitions. |
+| **À l’échec** | Nature de cible d’une Série, disponible dans les modes Durée et Répétitions. Aucun nombre prescrit ; fin par Suivant. Relevé éventuel distinct de la prescription. |
 | **Contrôle pilote** | Parmi `Séries` et `Durée totale`, contrôle dont la dernière valeur confirmée détermine le calcul de l’autre. Il reçoit un contour `color/selection` renforcé. Le choix n’est pas persisté. |
 | **Contrôle calculé** | Contrôle dépendant recalculé depuis le contrôle pilote. Il conserve son apparence standard, reste tactile et peut devenir pilote après validation de sa roulette. |
 | **Média** | Photo ou vidéo déjà associée à un Exercice, consultable dans le MVP dans les présentations de carte applicables et pendant l’Exécution : galerie ordonnée, vidéo et plein écran (D-203). L’ajout/import dans l’éditeur n’est pas activé par D-203. La vignette de carte et la galerie d’Exécution sont deux présentations distinctes ; Photo retire Déployer selon D-238. |
@@ -212,7 +214,7 @@ Références normatives : Bip v 2 et paramètres v 13. Circuit reste la structur
 
 | Terme | Définition |
 |---|---|
-| Bip de cadence | Signal sonore périodique pendant les Séries des trois modes. Intervalle entier0..10s ;0=Aucun. Ne compte pas les répétitions et ne termine pas la Série. |
+| Bip de cadence | Signal sonore périodique pendant les Séries des deux modes. Intervalle entier0..10s ;0=Aucun. Ne détecte pas les répétitions et ne termine pas la Série. Le nombre d’intervalles logiques peut proposer un relevé estimé en Répétitions à l’échec. |
 
 ## Titres affichés — 07/10/2026
 
@@ -235,3 +237,16 @@ Les noms de frames Figma et annotations restent des références techniques : il
 | **Borne de fin** | Paramètre jusqu’au (date) ou pendant (nombre d’unités) ; conversion encore ouverte. |
 
 Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
+
+
+
+## Circuits — vocabulaire cible du12/10/2026
+
+| Terme | Définition |
+|---|---|
+| Circuit de tours | Groupe ordonné ; chaque tour exécute toutes les séries de chaque exercice. Nature par défaut et reprise des anciens objets. |
+| Circuit de séries | Groupe ordonné ; au passage i, chaque exercice exécute sa série i. N est commun, imposé par le circuit. |
+| Passage | Position dans le développement du circuit ; ne constitue pas une nouvelle entité persistante autonome. |
+| Régime | Identiques ou variables, explicite et propre à l’exercice ; non déduit de l’égalité des valeurs. |
+| Valeur héritée en lecture seule | Valeur réelle déterminée par le contexte, visible sans possibilité d’édition ; différente d’un champ sans effet affichant un tiret. |
+

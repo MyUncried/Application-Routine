@@ -1,5 +1,7 @@
 # Utilisateurs et besoins
 
+> **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
+
 **Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Placement explicite et distinction contenu/trait conservés. **Bip de cadence et durées : la spécification Bip v2 du07/10 remplace les dispositions antérieures.**
 
 ## Objectif du chapitre
@@ -228,7 +230,7 @@ Le besoin détaillé est consolidé dans `../CONCEPTION-EXECUTION-MEDIA.md`.
 
 ## Besoins consolidés — 26 septembre 2026
 
-L’utilisateur doit pouvoir classer chaque nouvel Exercice avec exactement une Catégorie et une ou plusieurs Zones corporelles, sans que ces métadonnées conditionnent son exécution. Il peut retirer des valeurs des référentiels sans casser les objets existants. Dans une Séance, il peut décider globalement d’appliquer ou non les Compte à rebours et Fins propres aux Exercices, sans gérer ces paramètres occurrence par occurrence. Les Points d’arrêt restent positionnables dans la séquence selon D-217 et sont rejoués à chaque Tour lorsqu’ils appartiennent au Circuit.
+L’utilisateur doit pouvoir classer chaque nouvel Exercice avec exactement une Catégorie et une ou plusieurs Zones corporelles, sans que ces métadonnées conditionnent son exécution. Il peut retirer des valeurs des référentiels sans casser les objets existants. Dans une Séance, les Compte à rebours d’exercice et Fin d’exercice ne sont jamais exécutés ; seuls le Compte à rebours initial et la Fin de séance s’appliquent, une fois, par substitution. Aucun booléen ni contrôle d’activation n’existe à cet effet. Les valeurs propres restent conservées pour l’exécution de l’Exercice seul. Les Points d’arrêt restent positionnables dans la séquence selon D-217 et sont rejoués à chaque Tour lorsqu’ils appartiennent au Circuit.
 
 
 ## Paramètres d’exécution — complément du02/10/2026
@@ -244,3 +246,4 @@ Pour un entraînement ou une rééducation, prescrire un intervalle entre répé
 ## Conception de planification du 08/10/2026
 
 Choisir une ou plusieurs Séances/Exercices par cases → Ajouter n éléments → Programme facultatif, Début, Répétition, contenus ordonnés si plusieurs, Rappel → Enregistrer. Chaque contenu filtre les occurrences du créneau par son motif x fois sur n. Les modalités ouvertes ne sont pas considérées livrées. Voir la [spécification](SPECIFICATION-PLANIFICATION-2026-10-08.md), les contrats CE-UI-04/05/11 et le [DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md).
+

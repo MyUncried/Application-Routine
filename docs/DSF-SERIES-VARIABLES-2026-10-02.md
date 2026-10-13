@@ -1,5 +1,8 @@
 # DSF — Séries variables et Ordre des côtés — 02/10/2026
 
+**Actualisation du 12/10 :** [DSF Circuits et contrôles du 12/10](DSF-CIRCUITS-CONTROLES-2026-10-12.md) fait autorité sur les nouveaux contrôles de séries, la nature du circuit, les volumes et la lecture seule héritée. Les mesures datées ci-dessous ne décrivent pas les états remplacés. Les règles communes sans rapport avec ces éléments restent applicables.
+
+
 **État courant06/10 :** [DSF Cadence et corrections](DSF-CADENCE-2026-10-06.md), [matrice courante](MATRICE-CADENCE-FIGMA-2026-10-06.md). Les mesures/captures datées ci-dessous restent historiques lorsqu’elles sont remplacées ; règles cartes média conservées. Cadence commune REPS et phrase unique selon paramètres v13, Phrase v1.
 
 Complément des shells et composants existants ; aucun nouveau design. Actualisé le03/10. Sources : métadonnées et captures courantes de Prototype MVP, fichierG6RY5Ebhgwb4AHIOYDwwvg. Figma fixe le layout ; [v13](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v13.md) et CE-UI-10 fixent les comportements et calculs. Les composants maîtres ne sont pas modifiés par cette livraison documentaire. Inventaire actuel : ETAT-DES-LIEUX-CREATION-EXERCICE-2026-10-03.md.
@@ -22,26 +25,9 @@ Complément des shells et composants existants ; aucun nouveau design. Actualis�
 | Message temporaire | Sous la ligne concernée à4 px ; état6423:9953 : croissance vers le haut de62 px à402, lignes du bas inchangées |
 
 
-## Tableau variable et Ordre des côtés
+## Tableau variable et Ordre des côtés — références remplacées le 12/10
 
-Dimensions de référence à402px ; coordonnées locales au contenu de la feuille, pas à la page Figma.
-
-| Élément | Implantation / adaptation | Preuve |
-|---|---|---|
-| Groupe Séries variables | x24, largeur354 ; fond et contour rattachent l’interrupteur au tableau | 6665:24616 |
-| Ligne de commande | x36, largeur334, hauteur42 ; sous Séries ; libellé/chevron à gauche et interrupteur à droite | 6665:24616 |
-| Ligne variable | Numéro aligné à droite sans symbole, poignée puis cible et Pause ; deux steppers128px | 6665:24616/27608 |
-| À l’échec | Libellé fixe remplace cible ; seul le stepper Pause subsiste | 6665:25072 |
-| Ordre des côtés | Ligne après Changement de côté ; sélection sous la ligne, x36,330×60 ; deux options sur deux lignes, titre et flèches centrés | 6665:26185 (segmenté) /6665:26575 (valeur alternée) |
-| Total | Ligne du corps ; sans rôle bouton en variable ; demeure dans le flux lorsque tableau replié | 6665:27458 |
-| Douze lignes | Défilement du corps entier, en-tête fixe ; ne pas introduire un second scroll dans le tableau | 6665:25277 (haut ; bas sans frame dédiée) |
-| N=1 | Interrupteur désactivé grisé, ordre effectif par défaut grisé ; aucun texte explicatif | 6665:26822, complété par arbitrage D-250 |
-| Invalide | ✓ grisé, cellule signalée, message en ligne nommant la Série ; total— | 6665:27232 |
-| Résumé parent | Trois premières valeurs et ellipse ; ordre des côtés dans le texte | 6665:27862/28050 ; Répétitions derrière6665:24844 |
-| Ligne de Séance | N séries variables, sans liste des valeurs | 6665:23973 |
-| Exécution | Série n/N et côté distinct ; aucune barre par Série ; barre Tour réservée à la Séance | 1992:8132,4968:8188,5581:4257 ; états spécialisés non représentés actuellement |
-
-Les largeurs sont des références de rendu : adapter dans le shell360/402/440, Safe Areas et texte agrandi, sans couper les valeurs ni chevaucher les cibles tactiles. Garder les contrôles directs dans la feuille, aucun sous-dialogue variable. Nommer chaque stepper avec Série et unité ; annoncer erreur et lecture seule ; fournir une action accessible de déplacement utilisant le même ordre métier. D-237 régit appuis et maintien≈500ms, répétition150ms et accélération selon DSF Bip ; ne pas inventer de temporisation métier.
+Le régime se sélectionne par popover identiques/variables, avec chevron indépendant en variable. Le tableau utilise deux cellules et un pied de réglage commun, non deux steppers permanents par ligne. Les choix de côtés utilisent les popovers des captures actuelles. Les prescriptions, composants et mesures sont centralisés dans le [DSF du 12/10](DSF-CIRCUITS-CONTROLES-2026-10-12.md). Les mesures des anciennes frames 6665 restent consultables dans l’historique Git ; elles ne constituent plus la cible courante.
 
 ## Portée et écarts observés
 

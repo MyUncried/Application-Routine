@@ -1,5 +1,7 @@
 ## V1 – KODJO MVP : séance structurée et exécution locale
 
+> **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
+
 > Mise à jour du 24 septembre 2026 : Étiquette = classification/couleur de Séance ; Catégorie = classification/couleur d’Exercice ; Point d’arrêt ; Compte à rebours et Fin propres à l’Exercice ; changement de côté non exposé au niveau Tour ; roulettes en modale basse ; média en gouttière permanente dans le Catalogue des Exercices depuis D-260/D-261 du03/10/2026.
 
 ### Objectif
@@ -13,7 +15,7 @@ Permettre à un utilisateur de créer des Séances structurées et des Exercices
 - définir pour chaque exercice :
   - un nom ;
   - une consigne ;
-  - une durée, un nombre de répétitions ou le mode À l’échec ;
+  - une durée, un nombre de répétitions ou une cible À l’échec ;
   - un nombre de Séries propre à l'Exercice ;
 - Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : Bip v2§3 et paramètres v13§§4–5.
   - une Pause entre les côtés éventuelle, uniquement pour un Exercice bilatéral ;
@@ -189,7 +191,7 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 
 ### MVP
 
-- troisième mode d’Exercice `À l’échec`, exécuté comme le mode Répétitions avec `Suivant` ;
+- cible À l’échec par Série dans les deux modes, terminée par Suivant ;
 - Catalogue affichant `Exercices / Séances` ; `Séances` est actif dès T01 et `Exercices` devient actif dans le MVP avec T03 ; `Parcours` est absent du sélecteur ;
 - carte d’Exercice à gouttière permanente au MVP, photo ou icône de nature, sans Déployer quel que soit le média (D-260/D-261) ; l’activation de cet affichage n’implique pas de nouveau mécanisme d’import ou de capture.
 - nouvelle structure d’édition d’un Exercice : suppression du type, accès `Catégorie` et `Zones corporelles`, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Changement de côté / Pause entre les côtés / Durée totale`, la Pause entre les côtés étant conditionnelle à `D→G/G→D` ;
@@ -261,7 +263,7 @@ Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTE
 
 ## Consolidation avant planification — 26 septembre 2026
 
-D-209 à D-218 décrivent la cible fonctionnelle à prendre en compte lors de la définition de la prochaine tranche. Leur inscription dans la documentation ne vaut pas inclusion automatique dans T03/T04 : le découpage de livraison sera arbitré après l’audit final. Les impacts de modèle de données à considérer en priorité sont les cardinalités Catégorie/Zones corporelles, le retrait logique des référentiels, le Circuit/Tours, le booléen global de Séance pour les phases propres aux Exercices et les propriétés de récupération déjà définies par D-208.
+D-209 à D-218 décrivent la cible fonctionnelle à prendre en compte lors de la définition de la prochaine tranche. Leur inscription dans la documentation ne vaut pas inclusion automatique dans T03/T04 : le découpage de livraison sera arbitré après l’audit final. Les impacts de modèle de données à considérer en priorité sont les cardinalités Catégorie/Zones corporelles, le retrait logique des référentiels, le Circuit/Tours, les propriétés de récupération déjà définies par D-208. D-214 révisée le 12/10 retire le booléen des phases propres : aucune propriété de Séance n’est à créer pour leur activation.
 
 
 ## Clôture Figma / DSF — 28 septembre 2026
@@ -275,10 +277,11 @@ Le parcours existant permet maintenant des Séries variables dans la même feuil
 
 ## Évolution Cadence — statut au06/10/2026
 
-Cible documentée, non déclarée livrée : Bip de cadence0..10 dans trois modes, steppers et calculs Bip v2. Dépendances : SeriesParameters, pauses explicites, migration, ordonnanceur audio périodique, snapshots et qualification mobile. L’écran de roulette est supprimé ; les cinq modales modifiées sont reprises ; les autres modes restent à compléter visuellement. Le layout d’exécution est conservé.
+Cible documentée, non déclarée livrée : Bip de cadence0..10 dans deux modes, steppers et calculs Bip v2. Dépendances : SeriesParameters, pauses explicites, migration, ordonnanceur audio périodique, snapshots et qualification mobile. L’écran de roulette est supprimé ; les cinq modales modifiées sont reprises ; les autres modes restent à compléter visuellement. Le layout d’exécution est conservé.
 
 
 
 ## Conception de planification du 08/10/2026
 
 Choisir une ou plusieurs Séances/Exercices par cases → Ajouter n éléments → Programme facultatif, Début, Répétition, contenus ordonnés si plusieurs, Rappel → Enregistrer. Chaque contenu filtre les occurrences du créneau par son motif x fois sur n. Les modalités ouvertes ne sont pas considérées livrées. Voir la [spécification](SPECIFICATION-PLANIFICATION-2026-10-08.md), les contrats CE-UI-04/05/11 et le [DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md).
+

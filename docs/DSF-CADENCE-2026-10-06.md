@@ -1,5 +1,7 @@
 # DSF courant — Cadence et corrections du05/10 intégrées le06/10/2026
 
+**Actualisation13/10 :** [DSF Deux modes et cible À l’échec](DSF-DEUX-MODES-ECHEC-2026-10-13.md) remplace les références à trois modes et complète les roulettes, cibles et totaux. Les dispositions non concernées restent applicables.
+
 Référence de layout, tokens et qualification documentaire ; aucune règle de calcul issue de Figma. Baseline dépôt6d03f5be579f2d0e2e7602b6abf1c2b46f4c740b. Sources figées dans `archives/cadence-2026-10-06`, relevé courant de Figma `G6RY5Ebhgwb4AHIOYDwwvg`. D-299/D-300. Le présent état supersède les valeurs incompatibles des inventaires DSF antérieurs ; ceux-ci restent des preuves datées.
 
 ## 1. Inventaire direct du06/10

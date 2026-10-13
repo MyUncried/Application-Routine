@@ -1,5 +1,7 @@
 # Écrans et navigation
 
+> **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
+
 **Évolutions v15 du07/10 :**36captations vérifiées, dont15PNG changés depuis main72d1bf4. [Inventaire et preuves](../MATRICE-EVOLUTIONS-V15-2026-10-07.md), [DSF phrases](../DSF-PHRASES-V15-2026-10-07.md). Vue longue renommée224caractères ; les calculs déjà décidés sont conservés.
 
 **Mise à jour du07/10 — cartes, pauses et phrases :** [matrice de traçabilité](../MATRICE-CARTES-PHRASES-2026-10-07.md), [DSF des cartes](../DSF-CARTES-DUREE-2026-10-07.md), [phrase v15](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md). Captures reprises pour les cartes, modales Bip et résumés ; chiffres Figma illustratifs.
@@ -226,7 +228,7 @@ Les modales `Étiquettes`, `Catégorie` et `Zones corporelles` utilisent la mêm
 | Splash | Logo et textes sont centrés dans la zone sûre ; le logo conserve ses proportions et ne doit jamais être étiré. Aucun défilement n’est prévu. |
 | Catalogue, Calendrier, Suivi, Profil | En-tête et navigation basse fixes ; seule la zone centrale défile. Les listes conservent un espace final d’au moins `16` points avant la séparation ou la navigation, en plus de l’inset inférieur applicable. |
 | Composition, Exercice, Planification | En-tête et action finale fixes ; le formulaire central défile. Avec le clavier ouvert, l’action reste atteignable sans recouvrir le champ actif. |
-| Exercice | Aucun contrôle de type n’est affiché. Les accès `Catégorie` et `Zones corporelles`, le `Mode d’exécution` et la zone Média suivent le Figma courant. L’import/ajout de médias est actif au MVP dans PRE-3 (D-333) ; les états système et règles d’import non représentés restent à clarifier. Le segment `Durée / Répétitions / À l’échec` utilise trois zones égales. Le résumé et la feuille de paramètres suivent D-247 à D-255/v13 et CE-T03-04/CE-UI-10 ; aucune ancienne double rangée fixe de synthèse. L’action `Terminer` reste accessible avec le clavier et le texte agrandi. |
+| Exercice | Aucun contrôle de type n’est affiché. Les accès `Catégorie` et `Zones corporelles`, le `Mode d’exécution` et la zone Média suivent le Figma courant. L’import/ajout de médias est actif au MVP dans PRE-3 (D-333) ; les états système et règles d’import non représentés restent à clarifier. Le popover de mode propose Durée et Répétitions ; À l’échec se sélectionne dans la cible de chaque Série. Le résumé et la feuille de paramètres suivent D-247 à D-255/v13 et CE-T03-04/CE-UI-10 ; aucune ancienne double rangée fixe de synthèse. L’action `Terminer` reste accessible avec le clavier et le texte agrandi. |
 | Planification | Rappel par interrupteur, options égales ; récapitulatif protégé et pied fixe. Voir CE-UI-05 et spécification 08/10. |
 | Calendrier Semaine | La barre des jours reste lisible sur la largeur compacte ; les sept jours se répartissent la largeur disponible sans défilement horizontal. La liste journalière défile verticalement, utilise `8` points entre ses cartes et s’arrête `16` points avant la séparation de navigation. |
 | Calendrier Mois | Les sept colonnes se répartissent la largeur disponible ; une cellule peut grandir verticalement mais ne défile pas horizontalement. |
@@ -356,7 +358,7 @@ Les mêmes termes sont utilisés dans toute l’application :
 
 - `Séance` : contenu complet d’un entraînement ;
 - `Routine` : créneau portant une liste ordonnée de Séances et/ou Exercices persistants ;
-- `Exercice` : action élémentaire exécutée en mode Durée, Répétitions ou À l’échec, avec Pause après chaque série et, en bilatéral, Pause entre les côtés éventuelle ;
+- `Exercice` : action élémentaire exécutée en mode Durée ou Répétitions, avec cible chiffrée ou À l’échec par série, avec Pause après chaque série et, en bilatéral, Pause entre les côtés éventuelle ;
 - `Pause entre les côtés` : durée intrinsèque facultative d’un Exercice bilatéral, exécutée selon l’Ordre des côtés ;
 - `Récupération après exercice` : durée contextuelle portée par chaque occurrence d’Exercice dans une Séance, non affichée sur les cartes (D-238) et exécutée après l’occurrence lorsqu’elle est positive ;
 - `Série` : répétition propre à un Exercice ;
@@ -818,13 +820,13 @@ L’ouverture de la modale Étiquettes conserve la Composition en arrière-plan 
 
 L’icône affichée à gauche de `Nombre de tours` est exclusivement une instance de `Icon / Tour` (`3066:4685`). Son dessin canonique est celui validé dans `Composition séance — Nom saisi` (`2028:12003`) ; l’ancienne sous-référence graphique supprimée n’est plus utilisée comme preuve active : cadre visuel `18 × 18`, quatre tracés, trait `1,35`, couleur `color.textPrimary` (`#141414`). Les copies vectorielles locales et l’ancien pictogramme Tour ne sont pas autorisés. L’actif exportable correspondant est uniquement `assets/icons/icon-tour.svg`, clé de registre `icon.tour`.
 
-Le Circuit possède un nombre de Tours compris entre **1 et 99**, avec **1** comme valeur par défaut.
+Le Circuit porte une nature tours (défaut) ou séries et un compte de1 à99, initialisé à1.
 
-Dans l’interface courante, le nombre apparaît dans un stepper permanent à droite de l’en-tête du Circuit. Le libellé de Composition a été corrigé en « Circuit » le 05/10/2026 (journal des modifications, §8 ; D-209) ; aucune nouvelle correction Figma n’est requise sur ce point. La référence `2028:11700` montre `− / 3 tours / +`, sur 137 × 36 px. La valeur provient du brouillon, jamais de l’exemple Figma. La synthèse des exercices et de leur durée reste associée au conteneur ; Compte à rebours et Fin en sont exclus. Les anciennes dimensions 66 × 34 et l’ancien déclencheur violet de roulette ne sont plus une prescription visuelle active.
+Le chiffre du compteur ouvre les boutons −/+ ; la pastille portant uniquement tours/séries ouvre le choix de nature. Le bouton œil permanent, sur la ligne du titre, ouvre les volumes. Les captures actuelles et les mesures figurent dans le DSF du 12/10 ; les ± visibles dans ces exemples illustrent l’édition, pas le repos.
 
 La synthèse n’est plus affichée isolément au bas de l’écran. Elle est recalculée uniquement après une modification validée qui affecte les Exercices ou le nombre de Tours. La confirmation du `Compte à rebours initial` ou de la `Fin de séance` actualise seulement le jalon structurel concerné et ne modifie jamais cette synthèse. Celle-ci reste attachée au conteneur Circuit dans ses états applicables.
 
-Le nombre de tours se règle directement avec le stepper permanent `− / valeur / +` (`4913:7432`, dans `2028:11700`). Aucune ouverture de roulette ni confirmation modale distincte n’est requise. Les modifications appartiennent au brouillon de Composition jusqu’à son enregistrement ; bornes 1–99 et valeur initiale 1 inchangées.
+Le nombre se règle via ± révélés par appui sur le chiffre. La diminution est sans message ; une conversion de nature entraînant une perte exige une confirmation atomique. Les modifications appartiennent au brouillon de Composition jusqu’à son enregistrement ; bornes 1–99 et valeur initiale 1 inchangées.
 
 ### Retour haptique des roulettes
 
@@ -850,19 +852,13 @@ Aucune récupération automatique à la création d’une occurrence. Une récup
 
 ### Composition — ligne de Série variable — références du03/10
 
-#### Composition séance — Standard — Séries variables
-
-[Source Figma — `6665:23973`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-23973)
-
-![Composition séance — Standard — Séries variables](images/figma-6665-23973.png)
-
 ### Résumé de la ligne d’un Exercice (D-095 révisée par D-238)
 
 La ligne présente le nom, la Catégorie puis les Zones corporelles sur une ligne de classement, puis la synthèse :
 
-- Durée : `N séries de X` (ex. `3 séries de 1 min 30 s`) ;
-- Répétitions : `N séries de N rép.` ;
-- À l’échec : `N séries à l’échec`.
+- Séries identiques : `N × cible` avec unité ; le préfixe N × est conservé sous circuit de séries ;
+- Séries variables : cibles séparées par un point médian, unité à la fin ; au plus trois valeurs qui tiennent, puis ellipse ;
+- À l’échec : libellé métier conservé sur la carte ; la grille Volumes utilise ✓ pour les cibles À l’échec. Le mode reste identifiable ; le rendu d’unité des lignes mixtes reste à aligner (matrice du13/10).
 
 Le nom n’est pas répété, le mode n’est pas nommé. Aucun texte de pause/récupération dans le corps de la carte. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). Les valeurs et phases D-208 restent conservées, solidaires de l’occurrence lors des opérations et utilisées dans les calculs. Le réglage de récupération existant sur cette ligne est conservé.
 
@@ -979,151 +975,161 @@ La Composition reste visible en arrière-plan, assombrie et non interactive.
 
 Ce comportement concerne uniquement le parcours de création. Pour une Séance existante ouverte en modification, Retour ne supprime jamais la Séance.
 
+### Captures courantes — relevé du 12/10/2026
+
+Exports directs des 23 états de Composition retrouvés dans Prototype MVP. Les overlays restent classés avec leur parcours parent. [Inventaire et traçabilité](../MATRICE-DSF-CIRCUITS-2026-10-12.md). Les nombres illustrent la mise en page et ne définissent aucun calcul.
+
 ### Vues principales et états intégrés
 
 #### Composition séance — Initial
 
-[Source Figma — `2028:11137`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2028-11137)
+[Source Figma — `8328:28172`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28172)
 
-![Composition séance — Initial](images/ecran-3b-composition-etat-initial.png)
-
-Nom vide, Circuit initial avec synthèse intégrée et action principale désactivée
-
-#### Composition séance — Standard
-
-[Source Figma — `2028:11700`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2028-11700)
-
-![Composition séance — Standard](images/ecran-3-composition-seance.png)
-
-#### Composition séance — Actions glissées
-
-[Source Figma — `2028:11808`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2028-11808)
-
-![Composition séance — Actions glissées](images/ecran-3a-composition-actions-glissees.png)
+![Composition séance — Initial](images/circuits-2026-10-12/8328-28172.png)
 
 #### Composition séance — Nom saisi
 
-[Source Figma — `2028:12003`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2028-12003)
+[Source Figma — `8328:28238`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28238)
 
-![Composition séance — Nom saisi](images/ecran-3c-composition-nom-renseigne.png)
+![Composition séance — Nom saisi](images/circuits-2026-10-12/8328-28238.png)
 
-Le nom seul ne suffit pas à activer `Continuer`
+#### Composition séance — Standard
 
-#### Composition séance — Déplacement
+[Source Figma — `8328:28605`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28605)
 
-[Source Figma — `3518:4576`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=3518-4576)
+![Composition séance — Standard](images/circuits-2026-10-12/8328-28605.png)
 
-![Composition séance — Déplacement](images/ecran-3h-composition-appui-long.png)
+#### Composition séance — Actions glissées
 
-État transitoire précédant et accompagnant le déplacement d’un Exercice
+[Source Figma — `8328:28863`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28863)
+
+![Composition séance — Actions glissées](images/circuits-2026-10-12/8328-28863.png)
 
 #### Composition séance — Point d’arrêt
 
-[Source Figma — `3722:5061`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=3722-5061)
+[Source Figma — `8328:29428`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-29428)
 
-![Composition séance — Point d’arrêt](images/figma-3722-5061.png)
+![Composition séance — Point d’arrêt](images/circuits-2026-10-12/8328-29428.png)
 
-Point d’arrêt inséré dans la Composition, sans écran dédié ; élément déplaçable
+#### Composition séance — Déplacement
+
+[Source Figma — `8328:33546`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-33546)
+
+![Composition séance — Déplacement](images/circuits-2026-10-12/8328-33546.png)
 
 #### Composition séance — Étiquette sélectionnée
 
-[Source Figma — `4581:6404`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4581-6404)
+[Source Figma — `8328:34377`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-34377)
 
-![Composition séance — Étiquette sélectionnée](images/figma-4581-6404.png)
+![Composition séance — Étiquette sélectionnée](images/circuits-2026-10-12/8328-34377.png)
 
-Étiquette et couleur visibles dans la Composition
+#### Composition séance — Standard — Séries variables
 
-#### Modification d'une séance
+[Source Figma — `8328:34520`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-34520)
 
-[Source Figma — `5271:5455`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=5271-5455)
+![Composition séance — Standard — Séries variables](images/circuits-2026-10-12/8328-34520.png)
 
-![Modification d'une séance](images/figma-5271-5455.png)
+### Placement, réglage et retrait des pauses
 
-#### Composition d’une séance — Placement des pauses
+#### Composition séance — Placement d’une pause
 
-[Source Figma — 7167:13503](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7167-13503)
+[Source Figma — `8328:29270`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-29270)
 
-![Placement des pauses](images/figma-7167-13503.png)
+![Composition séance — Placement d’une pause](images/circuits-2026-10-12/8328-29270.png)
 
-#### Modale — Durée de récupération
+#### Composition séance — Récupération (modale)
 
-[Source Figma — 7173:13521](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7173-13521)
+[Source Figma — `8328:28733`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28733)
 
-![Durée de récupération](images/figma-7173-13521.png)
+![Composition séance — Récupération (modale)](images/circuits-2026-10-12/8328-28733.png)
 
-#### Bulle — Retirer la récupération
+#### Composition séance — Retirer une récupération
 
-[Source Figma — 7296:13696](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7296-13696)
+[Source Figma — `8328:29133`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-29133)
 
-![Retirer la récupération](images/figma-7296-13696.png)
-
-### Modales, panneaux et confirmations
-
-#### Composition séance — Étiquettes
-
-[Source Figma — `2028:11204`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2028-11204)
-
-![Composition séance — Étiquettes](images/figma-2028-11204.png)
-
-Sélection de l’Étiquette ; la couleur de la Séance est celle de l’Étiquette
-
-#### Composition séance — Abandon
-
-[Source Figma — `2028:11298`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2028-11298)
-
-![Composition séance — Abandon](images/modale-1-abandon-creation-seance.png)
-
-#### Composition séance — Compte à rebours
-
-[Source Figma — `2028:11375`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2028-11375)
-
-![Composition séance — Compte à rebours](images/ecran-3e-composition-compte-rebours-ouvert.png)
-
-Réglage minutes/secondes avec Annuler et Confirmer circulaires
-
-#### Composition séance — Fin
-
-[Source Figma — `2028:11457`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2028-11457)
-
-![Composition séance — Fin](images/ecran-3f-composition-fin-seance-ouverte.png)
-
-Réglage indépendant avec Annuler et Confirmer circulaires
-
-#### Composition séance — Sélection exercices
-
-[Source Figma — `3789:5349`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=3789-5349)
-
-![Composition séance — Sélection exercices](images/ecran-14-selection-activites-existantes.png)
-
-#### Composition séance — Nouvelle étiquette
-
-[Source Figma — `4640:6308`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4640-6308)
-
-![Composition séance — Nouvelle étiquette](images/figma-4640-6308.png)
-
-Création d’une Étiquette depuis la modale
-
-#### Composition séance — Étiquettes — Appui long — Confirmation suppression
-
-[Source Figma — `4861:6145`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4861-6145)
-
-![Composition séance — Étiquettes — Appui long — Confirmation suppression](images/figma-4861-6145.png)
-
-Appui long sur une Étiquette ; confirmation destructive `Annuler / Supprimer`
-
-### Bulle contextuelle
+![Composition séance — Retirer une récupération](images/circuits-2026-10-12/8328-29133.png)
 
 #### Composition séance — Retirer un point d’arrêt
 
-[Source Figma — `5301:5443`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=5301-5443)
+[Source Figma — `8328:33689`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-33689)
 
-![Composition séance — Retirer un point d’arrêt](images/figma-5301-5443.png)
+![Composition séance — Retirer un point d’arrêt](images/circuits-2026-10-12/8328-33689.png)
+
+### Sélections, paramètres et confirmations de Composition
+
+#### Composition séance — Compte à rebours
+
+[Source Figma — `8328:28304`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28304)
+
+![Composition séance — Compte à rebours](images/circuits-2026-10-12/8328-28304.png)
+
+#### Composition séance — Abandon (confirmation)
+
+[Source Figma — `8328:28377`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28377)
+
+![Composition séance — Abandon (confirmation)](images/circuits-2026-10-12/8328-28377.png)
+
+#### Composition séance — Sélection exercices
+
+[Source Figma — `8328:28445`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28445)
+
+![Composition séance — Sélection exercices](images/circuits-2026-10-12/8328-28445.png)
+
+#### Composition séance — Fin de séance
+
+[Source Figma — `8328:28998`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28998)
+
+![Composition séance — Fin de séance](images/circuits-2026-10-12/8328-28998.png)
+
+#### Composition séance — Étiquettes
+
+[Source Figma — `8328:33836`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-33836)
+
+![Composition séance — Étiquettes](images/circuits-2026-10-12/8328-33836.png)
+
+#### Composition séance — Étiquettes — Appui long — Confirmation suppression
+
+[Source Figma — `8328:34006`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-34006)
+
+![Composition séance — Étiquettes — Appui long — Confirmation suppression](images/circuits-2026-10-12/8328-34006.png)
+
+#### Composition séance — Nouvelle étiquette
+
+[Source Figma — `8328:34107`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-34107)
+
+![Composition séance — Nouvelle étiquette](images/circuits-2026-10-12/8328-34107.png)
+
+### Circuit — popover, confirmation et volumes
+
+CE-CIR-01/02/03. La confirmation est conditionnée à la perte de valeurs, pas à tout changement de nature. Les deux grilles illustrent des volumes planifiés, pas des résultats. Écarts de preuve : case absente encore vide au lieu du tiret ; direction de côté absente de la grille. Échec ✓, débordement et colonnes fixes restent des exigences sans capture dédiée.
+
+#### Composition séance — Circuit — Nature (popover)
+
+[Source Figma — `8328:34662`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-34662)
+
+![Composition séance — Circuit — Nature (popover)](images/circuits-2026-10-12/8328-34662.png)
+
+#### Composition séance — Circuit — Nature (confirmation générique)
+
+[Source Figma — `8328:34813`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-34813)
+
+![Composition séance — Circuit — Nature (confirmation générique)](images/circuits-2026-10-12/8328-34813.png)
+
+#### Composition séance — Circuit — Volumes (de séries)
+
+[Source Figma — `8328:34965`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-34965)
+
+![Composition séance — Circuit — Volumes (de séries)](images/circuits-2026-10-12/8328-34965.png)
+
+#### Composition séance — Circuit — Volumes (de tours)
+
+[Source Figma — `8328:35135`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-35135)
+
+![Composition séance — Circuit — Volumes (de tours)](images/circuits-2026-10-12/8328-35135.png)
 
 ## Créer ou modifier un exercice
 
-Inventaire initial du03/10 :37frames pour cette famille ;5frames supplémentaires sont intégrées au06/10 (cadence13/14, copies9b/10b et phrase longue). Le détail courant et les captures figurent dans la matrice06/10. Les titres suffisent ; les numéros contenus dans les noms Figma sont des identifiants de travail, pas une numérotation documentaire.
-
-Contrats : CE-T03-04 (formulaire et abandon), CE-UI-10 (une feuille, plusieurs états), CE-UI-09 (Catégorie/Zones et confirmations). [État des lieux et vérification par frame](../ETAT-DES-LIEUX-CREATION-EXERCICE-2026-10-03.md). Les anciens exports Copie6603/6611/6612/6623 ne définissent plus ce parcours courant. Leurs fichiers sont conservés comme historique.
+Références courantes du12/10, complétées le13/10 :32 captures du parcours de création et de ses états de Modalités d’exécution, issues de Prototype MVP. Contrats CE-T03-04, CE-UI-09 et CE-UI-10. Les anciens relevés du 03/10 et du 06/10 restent historiques pour les états remplacés ; [matrice actuelle](../MATRICE-DSF-CIRCUITS-2026-10-12.md).
 
 ### Parcours, données et validation
 
@@ -1133,292 +1139,222 @@ Spécification [v13](SPECIFICATION-PARAMETRES-MODALE-v13.md) : mode unique, N s�
 
 ### Placement et contrôles
 
-Formulaire : en-tête → nom/référentiels → carte Paramètres → Description → Média → Terminer. Feuille : en-tête fixe ✕/titre/✓ ; corps défilant Mode → Séries → Séries variables → cible commune → Cadence si Répétitions → Pause commune (ou tableau puis Cadence commune en variable) → Changement de côté → Ordre des côtés/PC si bilatéral → Total applicable → Compte à rebours → Fin.
+Formulaire : conserver les shells et l’ordre visible dans les captures. Toute la zone de phrase ouvre la feuille. Feuille : en-tête fixe ✕ / Modalités d’exécution / ✓ ; corps défilant Mode → Séries (régime, chevron indépendant, nombre) → cible/Pause uniformes ou tableau variable → Changement de côté et Ordre/PC si applicables → Bip de cadence → Total applicable → Compte à rebours → Fin.
 
-Tableau rattaché à l’interrupteur : poignée, numéro aligné à droite, cible et Pause par steppers ; À l’échec cible textuelle. Chevron replie seulement le tableau. Les modes/directions/ordre utilisent les segmentés ; Durée/Total uniformes utilisent les roulettes ; aucune sous-modale variable. Détails géométriques : [DSF](../DSF-SERIES-VARIABLES-2026-10-02.md). Le contrôle devient accessible par défilement, sans tableau à scroll indépendant.
+Le tableau variable comporte poignée, numéro, cellules cible/Pause et retrait ; une seule cellule active et un pied de réglage commun. Le régime identiques/variables, le mode et les choix de côtés utilisent les popovers représentés. Les roulettes Durée et Total restent des états intégrés. [DSF courant et mesures](../DSF-CIRCUITS-CONTROLES-2026-10-12.md). Les règles et bornes restent celles de v13 et de la spécification Circuits. Sous nombre hérité, nombre et total affichable sont en lecture seule ; aucun écran dédié identifié ne fixe encore l’emplacement de la mention discrète.
 
-Figma définit le layout. Les valeurs, calculs, validations et comportements restent ceux des spécifications. La présence d’un ✓ bleu dans un exemple incomplet ne le rend pas validable.
-
-### Formulaire — vues principales et résumés
-
-#### Ajouter un exercice — Initial
-
-[Source Figma — `3943:6064`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=3943-6064)
-
-![Ajouter un exercice — Initial](images/figma-3943-6064.png)
-
-#### Ajouter un exercice — Nom Description Media
-
-[Source Figma — `4217:6980`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4217-6980)
-
-![Ajouter un exercice — Nom Description Media](images/ecran-15-creation-activite-persistante.png)
-
-#### Ajouter un exercice — Catégorie renseignée
-
-[Source Figma — `5088:6398`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=5088-6398)
-
-![Ajouter un exercice — Catégorie renseignée](images/figma-5088-6398.png)
+### Formulaire — vues principales et résumé
 
 #### Création exercice — Avant Paramètres d'exécution
 
-[Source Figma — `3542:4656`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=3542-4656)
+[Source Figma — `8328:36711`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36711)
 
-![Création exercice — Avant Paramètres d'exécution](images/ecran-4-creation-activite-duree.png)
+![Création exercice — Avant Paramètres d'exécution](images/circuits-2026-10-12/8328-36711.png)
 
-#### Modifier un exercice
+#### Création exercice — Paramètres — Champ vide
 
-[Source Figma — `4734:6342`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4734-6342)
+[Source Figma — `8328:36853`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36853)
 
-![Modifier un exercice](images/ecran-15a-modification-activite-persistante.png)
+![Création exercice — Paramètres — Champ vide](images/circuits-2026-10-12/8328-36853.png)
 
-#### Création exercice — Paramètres en modale — Champ vide
+#### Création exercice — Paramètres — Résumé affiché
 
-[Source Figma — `6407:9458`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6407-9458)
+[Source Figma — `8328:37022`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-37022)
 
-![Création exercice — Paramètres en modale — Champ vide](images/figma-6407-9458.png)
+![Création exercice — Paramètres — Résumé affiché](images/circuits-2026-10-12/8328-37022.png)
 
-#### Création exercice — Paramètres en modale — Texte affiché
+#### Ajouter un exercice — Initial
 
-[Source Figma — `6407:9702`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6407-9702)
+[Source Figma — `8328:35698`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-35698)
 
-![Création exercice — Paramètres en modale — Texte affiché](images/figma-6407-9702.png)
+![Ajouter un exercice — Initial](images/circuits-2026-10-12/8328-35698.png)
 
-#### Résumé — Durée variable bilatérale Les deux côtés à chaque série
+#### Ajouter un exercice — Nom Description Media
 
-[Source Figma — `6665:27862`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-27862)
+[Source Figma — `8328:35740`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-35740)
 
-![Résumé — Durée variable bilatérale Les deux côtés à chaque série](images/figma-6665-27862.png)
+![Ajouter un exercice — Nom Description Media](images/circuits-2026-10-12/8328-35740.png)
 
+#### Ajouter un exercice — Catégorie renseignée
 
-#### Résumé — À l’échec variable
+[Source Figma — `8328:36278`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36278)
 
-[Source Figma — `6665:28050`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-28050)
+![Ajouter un exercice — Catégorie renseignée](images/circuits-2026-10-12/8328-36278.png)
 
-![Résumé — À l’échec variable](images/figma-6665-28050.png)
+### Feuille Modalités d’exécution — états intégrés
 
-### Feuille Paramètres — états intégrés
+Ces 19 frames sont des états de CE-UI-10, pas 19 pages applicatives. Quatre références ont été recapturées et le cas mixte ajouté selon la matrice du13/10.
 
-Les21frames suivantes décrivent CE-UI-10 ; elles ne constituent pas21écrans indépendants.
+#### Création exercice — Paramètres (modale) — Champs vides
 
-#### Création exercice — Paramètres en modale — Modale ouverte (champs vides)
+[Source Figma — `8328:36923`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36923)
 
-[Source Figma — `6407:9551`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6407-9551)
+![Création exercice — Paramètres (modale) — Champs vides](images/circuits-2026-10-12/8328-36923.png)
 
-![Création exercice — Paramètres en modale — Modale ouverte (champs vides)](images/figma-6407-9551.png)
+#### Création exercice — Paramètres (modale) — Mode d’exécution (popover)
 
-#### Création exercice — Paramètres en modale — Modale complète — mode activé
+[Source Figma — `8328:37092`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-37092)
 
-[Source Figma — `6407:9805`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6407-9805)
+![Création exercice — Paramètres (modale) — Mode d’exécution (popover)](images/echec-2026-10-13/8328-37092.png)
 
-![Création exercice — Paramètres en modale — Modale complète — mode activé](images/figma-6407-9805.png)
+#### Création exercice — Paramètres (modale) — Série en durée
 
-#### Création exercice — Paramètres en modale — Modale complète — steppers (séries, pauses)
+[Source Figma — `8328:37760`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-37760)
 
-[Source Figma — `6407:9966`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6407-9966)
+![Création exercice — Paramètres (modale) — Série en durée](images/circuits-2026-10-12/8328-37760.png)
 
-![Création exercice — Paramètres en modale — Modale complète — steppers (séries, pauses)](images/figma-6407-9966.png)
+#### Création exercice — Paramètres (modale) — Durée d’une série (roulette)
 
-#### Création exercice — Paramètres en modale — Durée activée (roulette ouverte)
+[Source Figma — `8328:37862`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-37862)
 
-[Source Figma — `6407:10127`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6407-10127)
+![Création exercice — Paramètres (modale) — Durée d’une série (roulette)](images/echec-2026-10-13/8328-37862.png)
 
-![Création exercice — Paramètres en modale — Durée activée (roulette ouverte)](images/figma-6407-10127.png)
+#### Création exercice — Paramètres (modale) — Changement de côté (popover)
 
-#### Création exercice — Paramètres en modale — Changement de côté activé (contrôle segmenté)
+[Source Figma — `8328:37972`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-37972)
 
-[Source Figma — `6407:10481`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6407-10481)
+![Création exercice — Paramètres (modale) — Changement de côté (popover)](images/circuits-2026-10-12/8328-37972.png)
 
-![Création exercice — Paramètres en modale — Changement de côté activé (contrôle segmenté)](images/figma-6407-10481.png)
+#### Création exercice — Paramètres (modale) — Durée totale (roulette)
 
-#### Création exercice — Paramètres en modale — Durée totale activée (roulette ouverte)
+[Source Figma — `8328:38084`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38084)
 
-[Source Figma — `6411:9546`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6411-9546)
+![Création exercice — Paramètres (modale) — Durée totale (roulette)](images/circuits-2026-10-12/8328-38084.png)
 
-![Création exercice — Paramètres en modale — Durée totale activée (roulette ouverte)](images/figma-6411-9546.png)
+#### Création exercice — Paramètres (modale) — Un côté après l’autre
 
-#### Création exercice — Paramètres en modale — Avec changement de côté (pause au changement de côté)
+[Source Figma — `8328:38193`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38193)
 
-[Source Figma — `6411:9649`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6411-9649)
+![Création exercice — Paramètres (modale) — Un côté après l’autre](images/circuits-2026-10-12/8328-38193.png)
 
-![Création exercice — Paramètres en modale — Avec changement de côté (pause au changement de côté)](images/figma-6411-9649.png)
+#### Création exercice — Paramètres (modale) — Les deux côtés à chaque série
 
-#### Création exercice — Paramètres en modale — Répétitions (mode activé)
+[Source Figma — `8328:38301`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38301)
 
-[Source Figma — `6419:9847`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6419-9847)
+![Création exercice — Paramètres (modale) — Les deux côtés à chaque série](images/circuits-2026-10-12/8328-38301.png)
 
-![Création exercice — Paramètres en modale — Répétitions (mode activé)](images/figma-6419-9847.png)
+#### Création exercice — Paramètres (modale) — Durée totale ajustée (message)
 
-#### Création exercice — Paramètres en modale — À l’échec (mode activé)
+[Source Figma — `8328:38409`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38409)
 
-[Source Figma — `6419:10028`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6419-10028)
+![Création exercice — Paramètres (modale) — Durée totale ajustée (message)](images/circuits-2026-10-12/8328-38409.png)
 
-![Création exercice — Paramètres en modale — À l’échec (mode activé)](images/figma-6419-10028.png)
+#### Création exercice — Paramètres (modale) — Mode d’exécution (popover) — séries variables
 
-#### Création exercice — Paramètres en modale — Modale complète — steppers (séries, pauses) avec message de durée totale ajustée
+[Source Figma — `8328:38513`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38513)
 
-[Source Figma — `6423:9953`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6423-9953)
+![Création exercice — Paramètres (modale) — Mode d’exécution (popover) — séries variables](images/echec-2026-10-13/8328-38513.png)
 
-![Création exercice — Paramètres en modale — Modale complète — steppers (séries, pauses) avec message de durée totale ajustée](images/figma-6423-9953.png)
+#### Création exercice — Paramètres (modale) — Séries variables en durée
 
+[Source Figma — `8328:38632`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38632)
 
-#### Séries variables — Durée variable (scénario A)
+![Création exercice — Paramètres (modale) — Séries variables en durée](images/circuits-2026-10-12/8328-38632.png)
 
-[Source Figma — `6665:24616`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-24616)
+#### Création exercice — Paramètres (modale) — Séries variables en répétitions
 
-![Séries variables — Durée variable (scénario A)](images/figma-6665-24616.png)
+[Source Figma — `8328:38741`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38741)
 
+![Création exercice — Paramètres (modale) — Séries variables en répétitions](images/circuits-2026-10-12/8328-38741.png)
 
-#### Séries variables — Répétitions variables (scénario E)
+#### Création exercice — Paramètres (modale) — Séries variables à l’échec
 
-[Source Figma — `6665:24844`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-24844)
+[Source Figma — `8328:38848`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38848)
 
-![Séries variables — Répétitions variables (scénario E)](images/figma-6665-24844.png)
+![Création exercice — Paramètres (modale) — Séries variables à l’échec](images/echec-2026-10-13/8328-38848.png)
 
-#### Séries variables — À l’échec variable (scénario F)
+Cette capture reflète le layout actuel. Le texte de fond énumérant les pauses variables reste un écart rédactionnel avec Phrase v1 ; voir la matrice Deux modes.
 
-[Source Figma — `6665:25072`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-25072)
+#### Modalités d’exécution — Séries variables, cas mixte
 
-![Séries variables — À l’échec variable (scénario F)](images/figma-6665-25072.png)
+[Source Figma — `8470:13303`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8470-13303)
 
-#### Séries variables — Douze séries (défilement — haut)
+![Modalités d’exécution — Séries variables, cas mixte](images/echec-2026-10-13/8470-13303.png)
 
-[Source Figma — `6665:25277`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-25277)
+État de CE-UI-10 : mode Durée, cibles30s/45s/échec, pauses10s/20s/30s et total partiel ≥2min15, non modifiable. La cible échec conserve sa colonne ; le mode n’est pas « À l’échec ». [DSF et anatomie du sélecteur](../DSF-DEUX-MODES-ECHEC-2026-10-13.md) ; [matrice de traçabilité](../MATRICE-DEUX-MODES-ECHEC-2026-10-13.md).
 
-![Séries variables — Douze séries (défilement — haut)](images/figma-6665-25277.png)
 
+#### Création exercice — Paramètres (modale) — Ordre des côtés (popover)
 
-#### Ordre des côtés — Sélection : Un côté après l’autre
+[Source Figma — `8328:38953`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38953)
 
-[Source Figma — `6665:26185`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-26185)
+![Création exercice — Paramètres (modale) — Ordre des côtés (popover)](images/circuits-2026-10-12/8328-38953.png)
 
-![Ordre des côtés — Sélection : Un côté après l’autre](images/figma-6665-26185.png)
+#### Création exercice — Paramètres (modale) — Une seule série
 
+[Source Figma — `8328:39072`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-39072)
 
-#### Séries variables + Les deux côtés à chaque série — (scénario D)
+![Création exercice — Paramètres (modale) — Une seule série](images/circuits-2026-10-12/8328-39072.png)
 
-[Source Figma — `6665:26575`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-26575)
+#### Création exercice — Paramètres (modale) — Séries variables (tableau replié)
 
-![Séries variables + Les deux côtés à chaque série — (scénario D)](images/figma-6665-26575.png)
+[Source Figma — `8328:39181`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-39181)
 
-#### Une seule série — Options sans effet
+![Création exercice — Paramètres (modale) — Séries variables (tableau replié)](images/circuits-2026-10-12/8328-39181.png)
 
-[Source Figma — `6665:26822`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-26822)
+#### Création exercice — Paramètres (modale) — Séries variables (déplacement)
 
-![Une seule série — Options sans effet](images/figma-6665-26822.png)
+[Source Figma — `8328:39279`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-39279)
 
+![Création exercice — Paramètres (modale) — Séries variables (déplacement)](images/circuits-2026-10-12/8328-39279.png)
 
-#### Changement de mode — Cibles à renseigner
+#### Création exercice — Paramètres (modale) — Mode des séries (popover)
 
-[Source Figma — `6665:27008`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-27008)
+[Source Figma — `8328:39390`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-39390)
 
-![Changement de mode — Cibles à renseigner](images/figma-6665-27008.png)
+![Création exercice — Paramètres (modale) — Mode des séries (popover)](images/circuits-2026-10-12/8328-39390.png)
 
-#### Validation impossible — Série incomplète
-
-[Source Figma — `6665:27232`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-27232)
-
-![Validation impossible — Série incomplète](images/figma-6665-27232.png)
-
-
-#### Séries variables — Tableau masqué
-
-[Source Figma — `6665:27458`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-27458)
-
-![Séries variables — Tableau masqué](images/figma-6665-27458.png)
-
-#### Séries variables — Déplacement d’une série
-
-[Source Figma — `6665:27608`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-27608)
-
-![Séries variables — Déplacement d’une série](images/figma-6665-27608.png)
-
-
-### Sélections, créations de référentiels et confirmations
+### Sélections, créations de référentiels et confirmation d’abandon
 
 Catégorie marquée au toucher puis confirmée par ✓ ; ✕ conserve la Catégorie précédente (D-343, 12/10, remplace pour la Catégorie la validation au toucher de D-222) ; Zones multiples avec✓. Création avec clavier et suppression avec confirmation préservent le brouillon d’Exercice. Abandon Annuler conserve le formulaire ; Confirmer le quitte sans sauvegarder.
 
 #### Ajouter un exercice — Catégories
 
-[Source Figma — `4332:7095`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4332-7095)
+[Source Figma — `8328:35810`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-35810)
 
-![Ajouter un exercice — Catégories](images/figma-4332-7095.png)
-
-#### Ajouter un exercice — Nouvelle catégorie
-
-[Source Figma — `4474:7157`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4474-7157)
-
-![Ajouter un exercice — Nouvelle catégorie](images/figma-4474-7157.png)
-
-#### Ajouter un exercice — Zones corporelles
-
-[Source Figma — `4478:7209`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4478-7209)
-
-![Ajouter un exercice — Zones corporelles](images/ecran-4h-creation-activite-zone-corporelle.png)
-
-#### Ajouter un exercice — Nouvelle zone corporelle
-
-[Source Figma — `4683:6336`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4683-6336)
-
-![Ajouter un exercice — Nouvelle zone corporelle](images/figma-4683-6336.png)
+![Ajouter un exercice — Catégories](images/circuits-2026-10-12/8328-35810.png)
 
 #### Ajouter un exercice — Catégorie — Appui long — Confirmation suppression
 
-[Source Figma — `4861:6259`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4861-6259)
+[Source Figma — `8328:35932`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-35932)
 
-![Ajouter un exercice — Catégorie — Appui long — Confirmation suppression](images/figma-4861-6259.png)
+![Ajouter un exercice — Catégorie — Appui long — Confirmation suppression](images/circuits-2026-10-12/8328-35932.png)
+
+#### Ajouter un exercice — Nouvelle catégorie
+
+[Source Figma — `8328:36056`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36056)
+
+![Ajouter un exercice — Nouvelle catégorie](images/circuits-2026-10-12/8328-36056.png)
+
+#### Ajouter un exercice — Zones corporelles
+
+[Source Figma — `8328:36348`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36348)
+
+![Ajouter un exercice — Zones corporelles](images/circuits-2026-10-12/8328-36348.png)
 
 #### Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression
 
-[Source Figma — `4861:6348`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4861-6348)
+[Source Figma — `8328:36441`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36441)
 
-![Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression](images/figma-4861-6348.png)
+![Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression](images/circuits-2026-10-12/8328-36441.png)
 
-#### Modal — Abandonner la création de l’exercice
+#### Ajouter un exercice — Nouvelle zone corporelle
 
-[Source Figma — `4714:6241`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4714-6241)
+[Source Figma — `8328:36536`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36536)
 
-![Modal — Abandonner la création de l’exercice](images/figma-4714-6241.png)
+![Ajouter un exercice — Nouvelle zone corporelle](images/circuits-2026-10-12/8328-36536.png)
 
-### Couverture et écarts de preuve
+#### Création exercice — Abandon (confirmation)
 
-Le bas des12séries, le segmenté avec l’option alternée sélectionnée, le résumé Répétitions seul, le résumé uniforme alterné, l’activation par copie et G→D n’ont pas de frame dédiée dans le lot actuel. Leurs règles et recettes restent définies dans CE-UI-10/v13 ; aucune capture ancienne n’est présentée comme leur état actuel. Les captures des modales Répétitions et de l’état alterné montrent une partie de cette couverture. Voir l’état des lieux pour la liste exacte.
+[Source Figma — `8328:36781`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36781)
 
-Les chiffres derrière le voile appartiennent au parent et ne prouvent pas un calcul du brouillon. Les anciens textes « pause entre les séries » et les5min visibles sur Modifier/confirmations restent des écarts connus : ne pas modifier les règles pour les reproduire. Les médias déjà associés sont consultables ; leur présence ne crée pas de capacité d’import supplémentaire.
+![Création exercice — Abandon (confirmation)](images/circuits-2026-10-12/8328-36781.png)
 
-### Bip de cadence et phrase — états complémentaires du06/10
+### Couverture et limites
 
-Contrats hôtes CE-T03-04 et CE-UI-10, sans nouvelle page fonctionnelle. Bip de cadence commun0..10 dans les trois modes, initialement0=Aucun ; stepper au premier niveau juste avant le total applicable, hors tableau variable. Aucune roulette Bip. ✓ applique au parent et régénère une phrase unique ; toute la zone de phrase ouvre la feuille. Valeurs en gras, Inter13/20, largeur324 sur402, hauteur auto.
+Les états hérités (N et total non modifiables), validation incomplète, douze séries avec défilement, phrase longue et plusieurs résumés spécialisés ne disposent pas d’une nouvelle frame identifiée dans ce relevé. Leurs règles restent requises. Les anciennes captures ne sont pas présentées comme des preuves actuelles de ces états. L’écran Modifier un exercice `4734:6342` et la modification de séance `5271:5455` sont hors réexport de ce lot ; leurs contrats restent applicables.
 
-Les textes des frames13/14/phrase longue ne suivent pas tous la grammaire finale (par exemple «sans changement de côté» ou «à raison de…»). Ils servent de témoins de layout ; appliquer Phrase v1 sans reprendre ces textes ni leurs nombres comme règles. Bip supprimé en mettant le stepper à0=Aucun. Ancien écran de roulette supprimé ; aucune commande additionnelle.
-
-#### Répétitions avec cadence renseignée
-
-[Figma7059:13302](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7059-13302) — nouvelle frame ; feuille sur formulaire, CE-UI-10.
-
-![Paramètres Répétitions avec cadence](images/figma-7059-13302.png)
-
-
-#### Changement de côté — état9b
-
-[Figma7069:13464](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7069-13464) — copie supplémentaire présente ; même contrat CE-UI-10, pas nouvelle règle.
-
-![Paramètres avec changement de côté, état9b](images/figma-7069-13464.png)
-
-
-#### Répétitions sans cadence — état10b
-
-[Figma7069:13573](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7069-13573) — copie supplémentaire présente ; Aucune est valide.
-
-![Paramètres Répétitions, état10b](images/figma-7069-13573.png)
-
-
-#### Phrase longue — parent de la feuille
-
-[Figma7119:27855](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7119-27855) — nouvelle frame, CE-T03-04. Le nombre de caractères du nom est une annotation, pas une limite produit.
-
-![Formulaire et phrase longue](images/figma-7119-27855.png)
-
-
+Le corpus de phrases et les spécifications déterminent les textes dynamiques, le gras et les calculs ; les valeurs derrière les voiles ne sont pas des recettes. Les captures sont des exports sans retouche.
 
 ## Calendrier
 
@@ -1735,7 +1671,7 @@ Sans cadence, le cercle du minuteur effectue une rotation complète par minute :
 - à `01:00`, il recommence une nouvelle rotation ;
 - le chronomètre continue à croître (`01:01`, `01:02`, etc.).
 
-Bip positif : signal périodique dans les trois modes pendant Série, y compris après le nominal Répétitions ; aucun dernier signal nominal distinct ni bip minute superposé. Bip0 : règles antérieures de signal minute conservées pour les modes concernés. Fin Durée au minuteur ; Répétitions/À l’échec manuelles. Même shell, pas de nouvel écran.
+Bip positif : signal périodique dans les deux modes pendant Série, y compris après le nominal Répétitions ; aucun dernier signal nominal distinct ni bip minute superposé. Bip0 : règles antérieures de signal minute conservées pour les modes concernés. Fin Durée chiffrée au minuteur ; Répétitions et toute cible À l’échec manuelles. Même shell, pas de nouvel écran.
 
 `Pause` suspend le chronomètre et la rotation du cercle. `Reprendre` les relance depuis l’état exact où ils ont été suspendus.
 
@@ -1919,7 +1855,7 @@ Confirmer l’interruption anticipée d’un Exercice chronométré.
 
 Cette modale s’affiche lorsque l’utilisateur appuie sur `Exercice suivant` avant la fin d’un Exercice chronométré.
 
-Elle ne s’affiche pas pour un Exercice en mode Répétitions ou À l’échec : dans ce cas, `Suivant` constitue la validation normale de la Série courante.
+Elle ne s’affiche pas pour une Série en mode Répétitions ou à cible À l’échec : dans ce cas, `Suivant` constitue la validation normale de la Série courante.
 
 #### Contenu
 
@@ -2544,3 +2480,17 @@ Les noms de frames Figma et annotations restent des références techniques : il
 ## Règles générales d’interface —08/10/2026
 
 Les espaces de contexte et de section, les pieds d’action et les surfaces de modales/blocs suivent le [DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md). Les captures hors de la galerie de planification n’ont pas été réexportées dans cette passe : leurs mesures antérieures ne remplacent pas ces règles.
+
+
+### Clarification du12/10/2026 — Préparation et fin dans une Séance
+
+Dans une Séance, les Compte à rebours d’exercice et Fin d’exercice ne sont jamais exécutés ; seuls le Compte à rebours initial et la Fin de séance s’appliquent, une fois, par substitution. Aucun booléen ni contrôle d’activation n’existe à cet effet. Les valeurs propres restent conservées pour l’exécution de l’Exercice seul. Aucun contrôle correspondant n’est à ajouter à la Composition ou à l’Exécution. Figma est confirmé aligné par le propriétaire ; cette correction documentaire ne demande aucune nouvelle maquette.
+
+
+
+## Évolution des vues de composition —12/10/2026
+
+Les contrats CE-CIR-01 (choix de nature), CE-CIR-02 (confirmation de perte) et CE-CIR-03 (volumes), ajoutés au chapitre13, complètent CE-T03-08 et CE-UI-10. En-tête : chiffre pour ±, pastille d’unité pour nature, œil permanent sur la ligne du titre pour la grille. Les cartes affichent les volumes, pas seulement N séries variables.
+
+**Alignement documentaire du 12/10 :** 54 captures réexportées, [DSF courant](../DSF-CIRCUITS-CONTROLES-2026-10-12.md) et [traçabilité](../MATRICE-DSF-CIRCUITS-2026-10-12.md). Les écarts visuels résiduels y sont explicites ; aucune conformité complète de Figma ou de l’application n’est revendiquée. La page modèles `8334:28437` et le parcours Tabata `8388:28362`, `8388:28484`, `8388:32052`, `8388:32181` sont dans Conception — Hors MVP ; cet alignement ne les promeut pas au périmètre MVP.
+
