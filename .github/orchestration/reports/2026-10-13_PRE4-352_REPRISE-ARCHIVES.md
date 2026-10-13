@@ -1,3 +1,17 @@
+# État final de la correction — intégrée, preuve réelle en attente
+
+PR[#355](https://github.com/MyUncried/Application-Routine/pull/355) fusionnée au commit13d03c15ba96cca610f41f7db37f87494872e86c après vérification de la tête4cd3f0144154452eb41704408e3c79b64c9c894c et des deux CI SUCCESS : [38457357967](https://github.com/MyUncried/Application-Routine/actions/runs/38457357967) et [38457357961](https://github.com/MyUncried/Application-Routine/actions/runs/38457357961). Linux1502tests/1500PASS/0FAIL/2SKIP ; runner Windows local1502tests/1498PASS/0FAIL/4SKIP. Les nouveaux tests de distinction externe et de verrou sont exécutés et réussis dans les deux suites. Contrôles VNext et équivalence historique Linux/Windows réussis, précontrôle Windows/chemin de queue réussi. Audit indépendant et test jetable SKIPPED ; aucune nouvelle campagne lancée.74tests ciblés locaux PASS.
+
+La modification est active sur main : applications Claude externes permises, exécution gérée ACTIVE/état AMBIGUOUS/verrou occupé/tentative antérieure inconnue toujours refusés. Admission de branche de préparation et vérification récursive des archives intégrées. Aucun fichier de plan/application modifié. Rapport et documentation publiés avec le code et mis à jour ici.
+
+Limite de clôture : ces résultats établissent la correction technique ; ils ne prouvent pas encore l'appel réel de la revue PRE-4. Contrôle de reprise5fc307dd prêt pour publication unique après ce registre, lié au run38444371283 sans invocation et à la demande originaledece7bcf. Plan0ef1ec59 et chaîne540b058a inchangés. Il reste à constater le parcours réel et à récupérer son reçu ; aucun verdict ni approbation produit annoncé. Aucune action technique propriétaire requise, pas de fermeture des applications ni de redémarrage.
+
+L'incident historique R-CI-HOST-01 du correctif#353 reste distinct : la CI actuelle est verte, mais sa cause historique n'est pas attribuée ou effacée par ce succès. Ce registre ne déclare pas une nouvelle clôture globale de VNext.
+
+---
+
+## Rapport de conception et historique
+
 # PRE-4 #352 — reprise et restauration de la distinction Claude
 
 ## Objet et point de départ
