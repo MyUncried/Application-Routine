@@ -7,6 +7,9 @@ on:
       - '.github/orchestration/**'
       # Exclude published operation data and reports, not protocol implementation.
       - '!.github/orchestration/requests/vnext-agent/**'
+      - '!.github/orchestration/requests/vnext-work/README.md'
+      - '!.github/orchestration/requests/vnext-work/signals/*.json'
+      - '!.github/orchestration/requests/vnext-work/publish/*.json'
       - '!.github/orchestration/vnext-closure/**'
       - '!.github/orchestration/v2-slices/**'
       - '!.github/orchestration/vnext12/**'

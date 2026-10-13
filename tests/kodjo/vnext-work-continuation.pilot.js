@@ -75,6 +75,12 @@ test('workflow privileges only the serialized signal job; no model invocation or
  const file=fs.readFileSync(path.join(__dirname,'../../.github/workflows/kodjo-vnext-work-continuation.yml'),'utf8');
  assert.match(file,/workflow_run:/);assert.match(file,/types: \[completed\]/);assert.match(file,/cancel-in-progress: false/);assert.match(file,/permissions:\n  contents: read/);assert.match(file,/publish-signal:[\s\S]*contents: write/);assert.match(file,/ref: refs\/heads\/main/);assert.doesNotMatch(file,/claude-code-action|vnext-chain.js|run-local-claude/);
 });
+test('Work signal data does not request heavy CI, while its implementation and binding remain qualified',()=>{
+ const C=require('../../scripts/kodjo/classify-protocol-impact');
+ for(const file of ['README.md','signals/'+('a'.repeat(64))+'.json','publish/123.json'])assert.equal(C.classifyFiles(['.github/orchestration/requests/vnext-work/'+file]).full_windows_required,false);
+ for(const file of ['scripts/kodjo/signal-vnext-agent-continuation.js','.github/workflows/kodjo-vnext-work-continuation.yml','.github/orchestration/KODJO_VNEXT_WORK_TRANSPORT.json','.github/orchestration/requests/vnext-work/code.js'])assert.equal(C.classifyFiles([file]).full_windows_required,true);
+ assert.equal(C.classifyFiles(['.github/orchestration/requests/vnext-work/publish/123.json','scripts/kodjo/signal-vnext-agent-continuation.js']).full_windows_required,true);
+});
 test('binary artifact streaming verifies ZIP digest and refuses traversal and symlinks before extraction',{skip:process.platform==='win32'},async t=>{
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'work-zip-test-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
  const stub=path.join(root,'gh');fs.writeFileSync(stub,'#!'+process.execPath+'\nif(!process.argv.includes("--allow-escape-sequences"))process.exit(3);process.stdout.write(require("node:fs").readFileSync(process.env.WORK_TEST_ZIP));\n',{mode:0o755});

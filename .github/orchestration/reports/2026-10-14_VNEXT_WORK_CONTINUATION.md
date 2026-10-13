@@ -28,11 +28,14 @@ L'automation exige accusé durable [VNEXT_WORK_SIGNAL_RECEIVED]/[VNEXT_WORK_SIGN
 
 ## Contrôles
 
-- 9tests du nouveau transport PASS : deux tranches distinctes et trois opérations, échec partiel après modèle, preuves incohérentes, fork/acteur/état refusés, activation exigée, signal idempotent, branche déplacée sans push, chemin de signal refusé, digest ZIP, symlinks et traversal refusés avant extraction.
+- 10tests du nouveau transport PASS : deux tranches distinctes et trois opérations, échec partiel après modèle, preuves incohérentes, fork/acteur/état refusés, activation exigée, signal idempotent, branche déplacée sans push, chemin de signal refusé, digest ZIP, symlinks et traversal refusés avant extraction, absence de CI lourde pour les seuls chemins de données.
 - 60tests transport/relais/entrée compatible/ancien signal/sécurité des écritures PASS avant dernière extension des assertions de refus ; les9tests étendus repassent sans erreur.
 - Archive PRE-4 réelle acceptée par le constructeur sans masquer son échec sémantique ; aucun nouveau modèle invoqué.
 - Scanner NO_UNDECLARED_REMOTE_WRITE_CAPABILITY ; YAML indépendant75workflows acceptés ; syntaxe Node et git diff --check PASS.
 - CI du candidat de raccordement à suivre avant intégration.
+- Passe finale92tests PASS, zéro échec : transport/relais/entrée compatible/ancien signal/sécurité des écritures/classification et préservation de l'audit indépendant. L'ajout des exclusions a d'abord été refusé par l'empreinte du workflow de CI figé et par le test qui exige les mêmes filtres sur l'audit ; les consommateurs miroirs et seulement leurs empreintes correspondantes ont été actualisés. Les permissions et exécuteurs historiques restent inchangés.
+
+La création de la PR de transport a déclenché les CI automatiques existantes sur son namespace nouveau, encore classé UNKNOWN. Ce manque de précontrôle est identifié avant le premier signal et corrigé dans le candidat : seules README/signals/*.json/publish/*.json sont données non normatives, jamais le code/binding/contrat ni un diff mixte. Les runs déjà créés ne sont pas des appels modèle et restent historiques ; aucun endpoint d'annulation n'est exposé au pilote. Ce constat n'est pas reclassé en absence de run.
 
 ## Limites et jalons
 
@@ -40,4 +43,4 @@ Configuration Work confirmée, mais réception courante NON ENCORE DEMONTREE. Le
 
 Archive absente/altérée/sans provenance : publisher en échec technique visible, pas de signal métier ni retry modèle. Le fonctionnement de cette récupération reste à tracer, pas à annoncer conforme. Le défaut de couverture PRE-4 est distinct et n'est pas corrigé par le réveil ; ses six constats doivent être vérifiés et sa lecture complète obtenue selon le protocole, sans fabriquer une couverture.
 
-Fichiers : workflow/publisher/tests nouveaux, binding et contrat de retour commun, politique des seuls deux writers nouveaux, manifeste et documentation du relais/continuité. Commit exact et CI sont liés par la PR de correction ; la branche de transport reste distincte. Le dépôt applicatif et le plan0ef1ec59 restent inchangés. Pas d'action PowerShell, de fermeture ou de redémarrage demandé à Hermann.
+Fichiers : workflow/publisher/tests nouveaux, binding et contrat de retour commun, politique des deux writers nouveaux, manifeste/normative-inputs et documentation du relais/continuité ; filtres de CI partagés et classification des seuls chemins de données, avec empreintes correspondantes. Aucune logique d’exécution V2 modifiée. Commit exact et CI sont liés par la PR de correction ; la branche de transport reste distincte. Le dépôt applicatif et le plan0ef1ec59 restent inchangés. Pas d'action PowerShell, de fermeture ou de redémarrage demandé à Hermann.

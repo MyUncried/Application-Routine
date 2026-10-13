@@ -8,7 +8,7 @@ Le binding scellé KODJO_VNEXT_WORK_TRANSPORT.json relie la PR de transport comm
 
 ## Emission
 
-Le workflow kodjo-vnext-work-continuation.yml réagit à la fin du workflow de relais commun actuellement intégré. Son nom historique contient PRE-4 ; le publisher utilise la tranche portée par la demande, son bootstrap et son activation, pas ce nom. L'inventaire allowed_workflows reste fermé et versionné. Une nouvelle famille d'exécuteur exige l'inscription explicite de son producteur et de son préfixe d'archive, pas un nouveau mécanisme par tranche.
+Le workflow kodjo-vnext-work-continuation.yml réagit à la fin du workflow de relais commun actuellement intégré. Son nom historique contient PRE-4 ; le publisher utilise la tranche portée par la demande, son bootstrap et son activation, pas ce nom. L'inventaire allowed_workflows reste fermé et versionné. Une nouvelle famille d'exécuteur exige l'inscription explicite de son producteur/préfixe d'archive et, si son contrat de sortie diffère, un adaptateur de ce contrat ; pas un nouveau mécanisme par tranche. Cette livraison raccorde les trois opérations du relais, pas les sorties d'autres exécuteurs non encore inscrits.
 
 Un résultat déjà terminé avant intégration peut être signalé par un unique fichier scellé requests/vnext-work/publish/<run_id>.json. Ce contrôle ne relance pas le reviewer. Les deux entrées consomment le même publisher et le même binding.
 
@@ -17,6 +17,8 @@ Le publisher exige un run terminé sur main du dépôt autorisé, un acteur auto
 Le résultat peut être un échec après invocation, notamment une revue partielle. Le signal garde error/model_invoked ; il n'invente ni non-invocation ni approbation. Le champ semantic_validation_required est toujours vrai : le pilote doit vérifier le reçu métier, pas traiter le signal comme un verdict accepté.
 
 Le job d'émission est sérialisé. Ses seules écritures sont blob/tree/commit non forcé sur la branche de transport, un seul fichier de signal sous requests/vnext-work/signals/. La clé déduplique demande/opération/run/tentative. Un signal identique est réutilisé ; un signal différent pour la même clé, une destination fermée/étrangère ou une tête déplacée sont refusés. Le publisher n'appelle aucun modèle et ne dispose d'aucune capacité d'implémentation ou d'approbation.
+
+Les trois chemins de données (README de transport, signals/*.json et publish/*.json) sont exclus des CI lourdes et classés non normatifs. Le publisher, son workflow, le binding et ce contrat restent qualifiés ; un fichier de code sous ce namespace ou une modification mixte n'est pas exempté. Les filtres miroirs de CI sont propagés sans changer les exécuteurs V2 ni leurs permissions.
 
 ## Réception Work
 

@@ -18,6 +18,8 @@
     ".github/orchestration/KODJO_VNEXT_HISTORICAL_DISPOSITION.md",
     ".github/orchestration/KODJO_VNEXT_HISTORICAL_EQUIVALENCE.json",
     ".github/orchestration/KODJO_VNEXT_REMOTE_WRITE_POLICY.json",
-    ".github/orchestration/KODJO_VNEXT_ACTIVATION.md"
+    ".github/orchestration/KODJO_VNEXT_ACTIVATION.md",
+    ".github/orchestration/KODJO_VNEXT_WORK_TRANSPORT.json",
+    ".github/orchestration/KODJO_VNEXT_WORK_CONTINUATION.md"
   ]
 }
