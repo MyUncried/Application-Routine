@@ -181,6 +181,41 @@ function failedAncestryBeforeInvocation(run,request,commit,cwd,command){
 }
 // Only a completed run of the known, integrated publisher can establish that
 // it failed before invocation. Missing/tampered evidence remains ambiguous.
+function verifyNonInvocationArchive(request,directory,run,seen=new Set()){
+  if(seen.has(String(run.id)))return false;
+  seen=new Set(seen);
+  seen.add(String(run.id));
+  Relay.verifyEvidence(request,directory);
+  const failure=B.read(path.join(directory,'failure.json')),checkpoint=B.read(path.join(directory,'checkpoint.json'));
+  V.verifyContractHash(failure);
+  if(failure.schema_version!=='kodjo.vnext.agent-failure.v1'||failure.status!=='ORCHESTRATION_FAILURE'
+    ||failure.request_hash!==request.contract_hash||failure.source_head!==request.source_head||failure.slice_id!==request.slice_id
+    ||failure.operation!==request.operation||failure.model_invoked!==false
+    ||checkpoint.request_hash!==request.contract_hash||checkpoint.slice_id!==request.slice_id||checkpoint.operation!==request.operation
+    ||checkpoint.state!=='ORCHESTRATION_FAILURE'||checkpoint.model_invoked!==false
+    ||String(checkpoint.run_id)!==String(run.id)||String(checkpoint.run_attempt)!==String(run.run_attempt)
+    ||checkpoint.error!==failure.error)return false;
+  const paths=B.read(path.join(directory,'evidence-manifest.json')).files.map(x=>x.path);
+  if(!paths.includes('checkpoint.json')||!paths.includes('failure.json'))return false;
+  const nested=new Set();
+  for(const file of paths){
+    if(file==='checkpoint.json'||file==='failure.json')continue;
+    const archive=/^pre-invocation-([1-9][0-9]*)\//.exec(file);
+    if(archive){nested.add(archive[1]);continue;}
+    const historical=/^pre-invocation-recovery-([1-9][0-9]*)\.json$/.exec(file);
+    if(!historical)return false; // Results, responses, intents and unknown evidence are refused.
+    const proof=B.read(path.join(directory,file));V.verifyContractHash(proof);
+    if(proof.schema_version!=='kodjo.vnext.pre-invocation-recovery.v1'||proof.model_invoked!==false
+      ||String(proof.run_id)!==historical[1]||proof.run_attempt!==1||proof.request_hash!==request.contract_hash
+      ||proof.operation_hash!==request.operation_hash||proof.reason!=='VERIFIED_LEGACY_ANCESTRY_GUARD'
+      ||proof.entry_blob!=='3ca49ad3fd0f792328fbf7c60854061b4376f33c'
+      ||proof.workflow_blob!=='d8ee7a2c38a2182b3e7de6296748cd987c8db8a5')return false;
+    V.assertSha40(proof.request_commit);V.assertSha64(proof.jobs_sha256);V.assertSha64(proof.log_sha256);
+    if(seen.has(historical[1]))return false;
+  }
+  for(const id of nested)if(!verifyNonInvocationArchive(request,path.join(directory,'pre-invocation-'+id),{id,run_attempt:1},seen))return false;
+  return true;
+}
 function recordedFailureBeforeInvocation(run,request,cwd,command=Chain.command){
   if(run.status!=='completed'||run.conclusion!=='failure'||run.run_attempt!==1||run.event!=='push'
     ||run.actor?.login!=='MyUncried'||run.path!=='.github/workflows/kodjo-vnext-chatgpt-plan-review.yml')return false;
@@ -190,7 +225,15 @@ function recordedFailureBeforeInvocation(run,request,cwd,command=Chain.command){
     'scripts/kodjo/lib/vnext-agent-relay.js':'6b9d48e41f6f3cbb62d41d4cbe5394fa623db35b',
     '.github/workflows/kodjo-vnext-chatgpt-plan-review.yml':'19dfae2defdef73851c0350d53fb17100fbd5a7e',
   };
-  for(const [file,blob] of Object.entries(trusted))if(command('git',['rev-parse',run.head_sha+':'+file],cwd).trim()!==blob)return false;
+  // The executing entry is from the trusted main checkout. Accept its own
+  // exact blob and both previously integrated readers; keep publisher and
+  // workflow pinned. This does not trust arbitrary code from a request branch.
+  const bytes=fs.readFileSync(__filename),currentEntry=require('node:crypto').createHash('sha1').update(Buffer.from('blob '+bytes.length+'\0')).update(bytes).digest('hex');
+  const entries=new Set([trusted['scripts/kodjo/agent-relay.js'],'51860b1feace52b45cf89d5aeef10a0288f8519f',currentEntry]);
+  for(const [file,blob] of Object.entries(trusted)){
+    const observed=command('git',['rev-parse',run.head_sha+':'+file],cwd).trim();
+    if(file==='scripts/kodjo/agent-relay.js'?!entries.has(observed):observed!==blob)return false;
+  }
   const name='vnext-chatgpt-review-'+run.id+'-'+run.run_attempt;
   const listing=JSON.parse(command('gh',['api','repos/'+request.repository+'/actions/runs/'+run.id+'/artifacts?per_page=100'],cwd));
   if(listing.total_count!==1||listing.artifacts?.length!==1)return false;
@@ -199,19 +242,7 @@ function recordedFailureBeforeInvocation(run,request,cwd,command=Chain.command){
   const directory=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'kodjo-pre-invocation-'));
   try{
     command('gh',['run','download',String(run.id),'--repo',request.repository,'--name',name,'--dir',directory],cwd);
-    Relay.verifyEvidence(request,directory);
-    const failure=B.read(path.join(directory,'failure.json')),checkpoint=B.read(path.join(directory,'checkpoint.json'));
-    V.verifyContractHash(failure);
-    if(failure.schema_version!=='kodjo.vnext.agent-failure.v1'||failure.status!=='ORCHESTRATION_FAILURE'
-      ||failure.request_hash!==request.contract_hash||failure.source_head!==request.source_head||failure.slice_id!==request.slice_id
-      ||failure.operation!==request.operation||failure.model_invoked!==false
-      ||checkpoint.request_hash!==request.contract_hash||checkpoint.slice_id!==request.slice_id||checkpoint.operation!==request.operation
-      ||checkpoint.state!=='ORCHESTRATION_FAILURE'||checkpoint.model_invoked!==false
-      ||String(checkpoint.run_id)!==String(run.id)||String(checkpoint.run_attempt)!==String(run.run_attempt)
-      ||checkpoint.error!==failure.error)return false;
-    // A result, intent or response in the archive contradicts non-invocation.
-    const manifest=B.read(path.join(directory,'evidence-manifest.json'));
-    if(V.canonicalHash(manifest.files.map(x=>x.path).sort())!==V.canonicalHash(['checkpoint.json','failure.json']))return false;
+    if(!verifyNonInvocationArchive(request,directory,run))return false;
     if(process.env.KODJO_REVIEW_OUTPUT){
       const output=path.join(process.env.KODJO_REVIEW_OUTPUT,'pre-invocation-'+run.id);
       fs.mkdirSync(output,{recursive:true});fs.cpSync(directory,output,{recursive:true});
@@ -273,4 +304,4 @@ function main(args=process.argv.slice(2)){
 }
 if(require.main===module)try{const r=main();process.stdout.write(JSON.stringify(process.argv[2]==='resolve-trigger'?r:{status:r.status||'RECORDED',request_hash:r.request_hash,request_path:r.request_path,verdict:r.verdict??null})+'\n');}
 catch(error){process.stderr.write(error.message+'\n');process.exitCode=1;}
-module.exports={OPERATIONS,validate,inputs,create,adapterFor,execute,verify,publishedSource,resolveTrigger,failedAncestryBeforeInvocation,recordedFailureBeforeInvocation,priorInvocation,executeRequest,main};
+module.exports={OPERATIONS,validate,inputs,create,adapterFor,execute,verify,publishedSource,resolveTrigger,failedAncestryBeforeInvocation,verifyNonInvocationArchive,recordedFailureBeforeInvocation,priorInvocation,executeRequest,main};

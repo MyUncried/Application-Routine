@@ -57,6 +57,8 @@ Une exception de récupération historique est admise uniquement sur preuve GitH
 
 La récupération de la publication réutilise reçu/réponse/intent, sans retry payant implicite. Cache perdu, quota ou tentative ambiguë restent bloquants. Une erreur de publication ou d'archivage ne doit pas masquer le refus primaire. Les décisions produit, approbations du plan et portes humaines existantes sont conservées.
 
+Les archives d'échec sans invocation peuvent contenir les preuves de reprises antérieures. Chaque sous-archive est vérifiée récursivement avec son numéro de run, ses contrats et son manifeste. Les reçus historiques gardent leurs producteurs épinglés. Les fichiers de résultat, réponse, intent ou provenance inconnue restent bloquants, à tout niveau. Le lecteur reconnaît sa propre version exacte du checkout de protocole de confiance ainsi que les lecteurs précédemment intégrés ; le publisher et le workflow restent épinglés.
+
 ## Qualification
 
 Les tests locaux utilisent des processus/adaptateurs simulés et les validateurs réels, des objets Git épinglés et des artefacts déplacés. Ils ne prouvent ni un appel Claude réel, ni un réveil automatique. #345 reste ouverte jusqu'au parcours réel, aux reprises et à la récupération directe constatés. Les preuves CI du commit candidat sont consignées dans sa PR ; aucun run vert seul n'est une approbation indépendante.
