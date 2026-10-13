@@ -226,13 +226,16 @@ function recordedFailureBeforeInvocation(run,request,cwd,command=Chain.command){
     '.github/workflows/kodjo-vnext-chatgpt-plan-review.yml':'19dfae2defdef73851c0350d53fb17100fbd5a7e',
   };
   // The executing entry is from the trusted main checkout. Accept its own
-  // exact blob and both previously integrated readers; keep publisher and
-  // workflow pinned. This does not trust arbitrary code from a request branch.
+  // exact blob and both previously integrated readers. The publisher accepts
+  // only its old integrated blob or the exact trusted checkout version; the
+  // workflow stays pinned. No code from a request branch is trusted here.
   const bytes=fs.readFileSync(__filename),currentEntry=require('node:crypto').createHash('sha1').update(Buffer.from('blob '+bytes.length+'\0')).update(bytes).digest('hex');
+  const publisherBytes=fs.readFileSync(require.resolve('./lib/vnext-agent-relay')),currentPublisher=require('node:crypto').createHash('sha1').update(Buffer.from('blob '+publisherBytes.length+'\0')).update(publisherBytes).digest('hex');
   const entries=new Set([trusted['scripts/kodjo/agent-relay.js'],'51860b1feace52b45cf89d5aeef10a0288f8519f',currentEntry]);
+  const publishers=new Set([trusted['scripts/kodjo/lib/vnext-agent-relay.js'],currentPublisher]);
   for(const [file,blob] of Object.entries(trusted)){
     const observed=command('git',['rev-parse',run.head_sha+':'+file],cwd).trim();
-    if(file==='scripts/kodjo/agent-relay.js'?!entries.has(observed):observed!==blob)return false;
+    if(file==='scripts/kodjo/agent-relay.js'?!entries.has(observed):file==='scripts/kodjo/lib/vnext-agent-relay.js'?!publishers.has(observed):observed!==blob)return false;
   }
   const name='vnext-chatgpt-review-'+run.id+'-'+run.run_attempt;
   const listing=JSON.parse(command('gh',['api','repos/'+request.repository+'/actions/runs/'+run.id+'/artifacts?per_page=100'],cwd));

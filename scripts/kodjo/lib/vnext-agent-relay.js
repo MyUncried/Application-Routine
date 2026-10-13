@@ -44,7 +44,9 @@ function execute(request,{cwd,evidenceRoot,outputDirectory,adapter,issueState,lo
     else{
       if(fs.existsSync(intentFile)||priorAttempt())throw Error('CHATGPT_REVIEW_PRIOR_INVOCATION_UNKNOWN_NO_RETRY');
       const active=lock.claudeProcessState();
-      if(active.state!=='NONE'||active.external_claude_count>0)throw Error('CHATGPT_REVIEW_CLAUDE_EXECUTION_UNAVAILABLE');
+      // The scanner already distinguishes KODJO's CLI from external Claude
+      // applications. Their presence is diagnostic, not a concurrent operation.
+      if(active.state!=='NONE')throw Error('CHATGPT_REVIEW_CLAUDE_EXECUTION_UNAVAILABLE');
       ownedLock=lock.acquire(path.join(process.env.KODJO_STATE_ROOT||path.join(os.homedir(),'.kodjo-v2'),'claude-local.lock'),
         {run_id:diagnostic.run_id||request.contract_hash,request_id:request.contract_hash,github_run_id:diagnostic.run_id,github_run_attempt:diagnostic.run_attempt});
       fs.writeFileSync(intentFile,JSON.stringify({request_hash:request.contract_hash,operation:adapter.name}),{flag:'wx'});

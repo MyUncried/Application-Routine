@@ -42,6 +42,10 @@ test('PRE-3 closure, issue state, source mismatch and Claude concurrency fail be
   assert.throws(()=>R.execute(f.request,{...f.options,lock:{claudeProcessState:()=>({state:'ACTIVE'})}}),/UNAVAILABLE/);
   assert.equal(f.counts().calls,0);
 }));
+test('the compatibility plan entry also permits external Claude applications without bypassing the shared lock',()=>withFixture(f=>{
+ let acquired=0;const lock={...f.options.lock,claudeProcessState:()=>({state:'NONE',external_claude_count:15}),acquire:()=>{acquired++;return {};}};
+ R.execute(f.request,{...f.options,lock});assert.equal(f.counts().calls,1);assert.equal(acquired,1);
+}));
 test('one call, exact result, duplicate dispatch and artifact republication without another call',()=>withFixture(f=>{
   const result=R.execute(f.request,f.options);assert.equal(R.verifyResult(f.request,result,f.options).verdict,'APPROVE');
   fs.rmSync(f.options.outputDirectory,{recursive:true});

@@ -40,6 +40,25 @@ test('active Claude, open PRE-3 and prior GitHub attempt refuse invocation and p
   assert.equal(Agent.verify(f.request,f.options.outputDirectory,{cwd:f.cwd}).status,'ORCHESTRATION_FAILURE');
  }
 });
+test('external Claude applications do not block any registered operation; the protocol lock is still acquired and released',t=>{
+ for(const operation of Agent.OPERATIONS){
+  const f=setup(t,operation);let acquired=0,released=0;
+  const lock={claudeProcessState:()=>({state:'NONE',external_claude_count:8}),acquire:()=>{acquired++;return {};},release:()=>{released++;}};
+  Agent.execute(f.request,{...f.options,lock});assert.deepEqual(f.counts(),{calls:1,recovers:0});assert.equal(acquired,1);assert.equal(released,1);
+  Agent.execute(f.request,{...f.options,lock});assert.equal(f.counts().calls,1);assert.equal(acquired,1);
+ }
+});
+test('managed Claude activity, ambiguous inspection and an occupied lock still refuse invocation with external apps open',t=>{
+ for(const state of ['ACTIVE','AMBIGUOUS']){
+  const f=setup(t);let acquisitions=0;
+  const lock={claudeProcessState:()=>({state,external_claude_count:8}),acquire:()=>{acquisitions++;return {};},release:()=>{}};
+  assert.throws(()=>Agent.execute(f.request,{...f.options,lock}),/EXECUTION_UNAVAILABLE/);assert.equal(f.counts().calls,0);assert.equal(acquisitions,0);
+  assert.equal(B.read(path.join(f.options.outputDirectory,'failure.json')).model_invoked,false);
+ }
+ const f=setup(t),lock={claudeProcessState:()=>({state:'NONE',external_claude_count:8}),acquire:()=>{throw Error('CLAUDE_EXECUTION_ALREADY_ACTIVE');},release:()=>{throw Error('cannot release unowned lock');}};
+ assert.throws(()=>Agent.execute(f.request,{...f.options,lock}),/ALREADY_ACTIVE/);assert.equal(f.counts().calls,0);
+ assert.equal(fs.existsSync(path.join(f.options.evidenceRoot,f.request.contract_hash,'invocation-intent.json')),false);
+});
 test('lost local cache cannot bypass an earlier GitHub invocation by republishing the same operation in a different commit',t=>{
  const f=setup(t),git=(...args)=>require('node:child_process').execFileSync('git',args,{cwd:f.cwd,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
  git('init');git('config','user.name','Test');git('config','user.email','test@example.invalid');git('commit','--allow-empty','-m','TEST baseline');
@@ -211,6 +230,8 @@ test('authenticated failure archive proves non-invocation, rejects invoked calls
  }
  f.data.extra=true;assert.equal(check(),false);f.data.extra=false;
  f.data.artifact.expired=true;assert.equal(check(),false);f.data.artifact.expired=false;
+ const publisherFile=require.resolve('../../scripts/kodjo/lib/vnext-agent-relay'),publisherBytes=fs.readFileSync(publisherFile);
+ f.data.blobs['scripts/kodjo/lib/vnext-agent-relay.js']=require('node:crypto').createHash('sha1').update(Buffer.from('blob '+publisherBytes.length+'\0')).update(publisherBytes).digest('hex');assert.equal(check(),true);
  f.data.blobs['scripts/kodjo/lib/vnext-agent-relay.js']='untrusted';assert.equal(check(),false);f.data.blobs['scripts/kodjo/lib/vnext-agent-relay.js']='6b9d48e41f6f3cbb62d41d4cbe5394fa623db35b';
  f.data.tamper=true;assert.throws(check,/EVIDENCE_CHANGED/);
 });
