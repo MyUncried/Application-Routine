@@ -126,3 +126,83 @@ test('generic plan adapter preserves the live review validator and its REVISE ve
  const Legacy=require('../../scripts/kodjo/chatgpt-plan-review'),oldRequest=Legacy.create({source_head:request.source_head,produced_file:'produced.json',causal_file:null},repo.cwd);
  Legacy.execute(oldRequest,{...f.options,cwd:repo.cwd,chain:{...Chain,review:()=>{throw Error('must not invoke the same dossier through the compatibility entry');}}});assert.equal(calls,1);
 });
+
+
+test('a published sibling preparation branch is admitted; local-only commits are refused',t=>{
+ const repo=require('./helpers/vnext-figma-fixture').fixture();t.after(()=>repo.cleanup());
+ const main=repo.head;repo.git('checkout','-b','plan/pre4-test');repo.write('plan.txt','TEST unapproved plan');repo.git('add','plan.txt');repo.git('commit','-m','TEST preparation branch');
+ const source=repo.git('rev-parse','HEAD'),request={source_head:source};
+ assert.throws(()=>Agent.publishedSource(request,repo.cwd),/SOURCE_NOT_PUBLISHED/);
+ repo.git('update-ref','refs/remotes/origin/plan/pre4-test',source);repo.git('checkout','--detach',main);
+ assert.throws(()=>repo.git('merge-base','--is-ancestor',source,main));
+ Agent.publishedSource(request,repo.cwd);
+ assert.equal(repo.git('rev-parse','HEAD'),main); // admission does not merge or approve
+ assert.throws(()=>Agent.publishedSource({source_head:repo.git('rev-parse',main+':app.ts')},repo.cwd));
+});
+function historicalRunFixture(){
+ const commit='d'.repeat(40),request=V.sealContract({schema_version:'kodjo.vnext.agent-request.v1',pilot:'CHATGPT_WORK',slice_id:'VNEXT-PRE-4',repository:'MyUncried/Application-Routine',issue_number:352,source_head:'a'.repeat(40),operation:'plan-review',inputs_file:'inputs.json',inputs_hash:'b'.repeat(64),operation_hash:'c'.repeat(64)});
+ const run={id:123,status:'completed',conclusion:'failure',run_attempt:1,event:'push',head_sha:commit,actor:{login:'MyUncried'},path:'.github/workflows/kodjo-vnext-chatgpt-plan-review.yml'};
+ const jobs={total_count:1,jobs:[{id:456,name:'review',status:'completed',conclusion:'failure',steps:[...['Validate runner and request locator before checkout','Checkout trusted protocol','Select exactly one newly committed request','Checkout immutable request and source objects'].map(name=>({name,conclusion:'success'})),{name:'Review or recover with the trusted protocol',conclusion:'failure'}]}]};
+ const log='2026-10-13T12:02:18.000Z REQUEST_COMMIT: '+commit+'\n2026-10-13T12:02:18.000Z REQUEST_PATH: .github/orchestration/requests/vnext-agent/'+request.contract_hash+'.json\n2026-10-13T12:02:22.992Z VNEXT_LIVE_PROCESS_FAILED: git: \r\n';
+ const values={entry:'3ca49ad3fd0f792328fbf7c60854061b4376f33c',workflow:'d8ee7a2c38a2182b3e7de6296748cd987c8db8a5',notAncestor:'a'.repeat(40),jobs,log};
+ const command=(bin,args)=>{
+  if(bin==='git'&&args[0]==='rev-parse')return args[1].includes('agent-relay.js')?values.entry:values.workflow;
+  if(bin==='git'&&args[0]==='rev-list')return values.notAncestor;
+  if(bin==='gh'&&args[1].includes('/jobs?'))return JSON.stringify(values.jobs);
+  if(bin==='gh'&&args[1].endsWith('/logs'))return values.log;
+  throw Error('TEST unexpected command '+bin+' '+args.join(' '));
+ };
+ return {run,request,commit,values,command};
+}
+test('historical pre-model failure requires trusted code, divergent ancestry and authenticated complete job/log evidence',()=>{
+ const f=historicalRunFixture(),check=()=>Agent.failedAncestryBeforeInvocation(f.run,f.request,f.commit,'.',f.command);
+ assert.equal(check(),true);
+ for(const [key,value] of [['status','in_progress'],['conclusion','success'],['run_attempt',2],['event','workflow_dispatch'],['head_sha','e'.repeat(40)],['path','other.yml'],['actor',{login:'another-user'}]]){
+  const old=f.run[key];f.run[key]=value;assert.equal(check(),false,key);f.run[key]=old;
+ }
+ for(const [key,value] of [['entry','changed'],['workflow','changed'],['notAncestor',''],['log','2026-10-13T12:02:22Z VNEXT_REVIEW_USAGE_LIMIT'],['jobs',{total_count:2,jobs:f.values.jobs.jobs}]]){
+  const old=f.values[key];f.values[key]=value;assert.equal(check(),false,key);f.values[key]=old;
+ }
+ f.values.jobs.jobs[0].steps[0].conclusion='failure';assert.equal(check(),false);
+});
+test('same-operation prior scan allows only the proven pre-model failure and still refuses ambiguity',t=>{
+ const repo=require('./helpers/vnext-figma-fixture').fixture();t.after(()=>repo.cleanup());const f=historicalRunFixture();
+ const file='.github/orchestration/requests/vnext-agent/'+f.request.contract_hash+'.json';B.write(path.join(repo.cwd,file),f.request);repo.git('add','.');repo.git('commit','-m','TEST immutable request');
+ f.commit=repo.git('rev-parse','HEAD');f.run.head_sha=f.commit;f.run.display_title='VNext PRE-4 agent operation / '+f.commit;
+ f.values.log=f.values.log.replaceAll('d'.repeat(40),f.commit);
+ const command=(bin,args,cwd)=>{
+  if(bin==='gh'&&args[1].includes('/runs?'))return JSON.stringify({workflow_runs:[f.run]});
+  if(bin==='git'&&args[0]==='diff-tree')return file;
+  return f.command(bin,args,cwd);
+ };
+ assert.equal(Agent.priorInvocation(f.request,f.commit,repo.cwd,command),false);
+ f.values.log='unknown prior outcome';assert.equal(Agent.priorInvocation(f.request,f.commit,repo.cwd,command),true);
+});
+test('resume control binds the original request and completed GitHub run without republishing the plan',t=>{
+ const repo=require('./helpers/vnext-figma-fixture').fixture();t.after(()=>repo.cleanup());const f=historicalRunFixture();
+ const file='.github/orchestration/requests/vnext-agent/'+f.request.contract_hash+'.json';B.write(path.join(repo.cwd,file),f.request);repo.git('add','.');repo.git('commit','-m','TEST original request');const original=repo.git('rev-parse','HEAD');
+ const resume=V.sealContract({schema_version:'kodjo.vnext.agent-resume.v1',request_commit:original,request_path:file,request_hash:f.request.contract_hash,source_head:f.request.source_head,operation_hash:f.request.operation_hash,prior_run_id:123});
+ const control='.github/orchestration/requests/vnext-agent/resume/'+resume.contract_hash+'.json';B.write(path.join(repo.cwd,control),resume);repo.git('add','.');repo.git('commit','-m','TEST resume only');const trigger=repo.git('rev-parse','HEAD');
+ const run={...f.run,head_sha:original},command=(bin,args,cwd)=>bin==='gh'?JSON.stringify(run):Chain.command(bin,args,cwd);
+ assert.deepEqual(Agent.resolveTrigger(trigger,control,repo.cwd,command),{request_commit:original,request_path:file,prior_run_id:123});
+ assert.deepEqual(Agent.resolveTrigger(original,file,repo.cwd,command),{request_commit:original,request_path:file});
+ run.status='in_progress';assert.throws(()=>Agent.resolveTrigger(trigger,control,repo.cwd,command),/RUN_MISMATCH/);run.status='completed';
+ const bad=reseal({...resume,operation_hash:'f'.repeat(64)}),badFile='.github/orchestration/requests/vnext-agent/resume/'+bad.contract_hash+'.json';B.write(path.join(repo.cwd,badFile),bad);repo.git('add','.');repo.git('commit','-m','TEST corrupt recovery');
+ assert.throws(()=>Agent.resolveTrigger(repo.git('rev-parse','HEAD'),badFile,repo.cwd,command),/REQUEST_CHANGED/);
+});
+
+test('production execute entry checks out a sibling published plan and invokes its pinned adapter once',t=>{
+ const f=setup(t,'plan-review'),repo=require('./helpers/vnext-figma-fixture').fixture();t.after(()=>repo.cleanup());
+ repo.recipe.sourceManifestInput.slice_id='VNEXT-PRE-4';repo.recipe.planningInput.slice_id='VNEXT-PRE-4';
+ const produced=repo.produce(),base=repo.git('rev-parse','HEAD');repo.git('checkout','-b','plan/pre4-test');
+ B.write(path.join(repo.cwd,'produced.json'),produced);B.write(path.join(repo.cwd,'inputs.json'),{produced_file:'produced.json',causal_file:null});repo.git('add','.');repo.git('commit','-m','TEST sibling plan');const source=repo.git('rev-parse','HEAD');
+ const request=Agent.create({source_head:source,inputs_file:'inputs.json',operation:'plan-review',slice_id:'VNEXT-PRE-4',repository:f.request.repository,issue_number:999},repo.cwd);
+ repo.git('update-ref','refs/remotes/origin/plan/pre4-test',source);repo.git('checkout','--detach',base);
+ const file='.github/orchestration/requests/vnext-agent/'+request.contract_hash+'.json';B.write(path.join(repo.cwd,file),request);repo.git('add','.');repo.git('commit','-m','TEST main request alone');const requestCommit=repo.git('rev-parse','HEAD');
+ assert.throws(()=>repo.git('merge-base','--is-ancestor',source,requestCommit));
+ let calls=0;const adapter=Agent.adapterFor(request,repo.cwd,{invoke:()=>{calls++;return JSON.stringify({type:'result',session_id:'TEST',structured_output:{native_assessment_observations:[],semantic_review:require('./helpers/review-attestation-fixture').semantic(produced.artifacts.reviewContext,[])}});}});
+ const options={...f.options,cwd:repo.cwd,repository:request.repository,adapter,priorAttempt:()=>false};
+ const result=Agent.executeRequest(requestCommit,file,options);assert.equal(repo.git('rev-parse','HEAD'),source);assert.equal(result.verdict,'APPROVE');assert.equal(calls,1);
+ repo.git('checkout','--detach',requestCommit);Agent.executeRequest(requestCommit,file,options);assert.equal(calls,1);
+ assert.equal(Agent.verify(request,f.options.outputDirectory,{cwd:repo.cwd}).verdict,'APPROVE');
+});

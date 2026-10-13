@@ -112,6 +112,63 @@ function verify(request,directory,{cwd}={}){
   const receipt=adapter.verify(result.receipt,path.join(directory,'process-evidence'));
   if(V.canonicalHash(adapter.result(receipt))!==V.canonicalHash(result))throw Error('AGENT_RESULT_CHANGED');return result;
 }
+// A published preparation branch is a valid source. Remote refs come from the
+// trusted checkout, not from a local working file or an uncommitted plan.
+function publishedSource(request,cwd,command=Chain.command){
+  if(command('git',['cat-file','-t',request.source_head],cwd).trim()!=='commit')throw Error('AGENT_SOURCE_COMMIT_REQUIRED');
+  const refs=command('git',['for-each-ref','--contains',request.source_head,'--format=%(refname)','refs/remotes/origin/'],cwd).trim().split('\n');
+  if(!refs.some(ref=>/^refs\/remotes\/origin\/(?!HEAD$).+/.test(ref)))throw Error('AGENT_SOURCE_NOT_PUBLISHED');
+}
+function resolveTrigger(commit,file,cwd,command=Chain.command){
+  V.assertSha40(commit);Chain.relative(file);
+  if(/^\.github\/orchestration\/requests\/vnext-(agent|plan-review)\/[0-9a-f]{64}\.json$/.test(file))return {request_commit:commit,request_path:file};
+  if(!/^\.github\/orchestration\/requests\/vnext-agent\/resume\/[0-9a-f]{64}\.json$/.test(file))throw Error('AGENT_RESUME_PATH');
+  const resume=Chain.readGitObject(cwd,commit,file);V.verifyContractHash(resume);
+  V.assertExactKeys(resume,['schema_version','request_commit','request_path','request_hash','source_head','operation_hash','prior_run_id','contract_hash'],[],'AGENT_RESUME_KEYS');
+  if(resume.schema_version!=='kodjo.vnext.agent-resume.v1'||path.posix.basename(file,'.json')!==resume.contract_hash
+    ||!Number.isSafeInteger(resume.prior_run_id)||resume.prior_run_id<=0)throw Error('AGENT_RESUME_BINDING');
+  V.assertSha40(resume.request_commit);
+  if(!/^\.github\/orchestration\/requests\/vnext-agent\/[0-9a-f]{64}\.json$/.test(resume.request_path))throw Error('AGENT_RESUME_REQUEST_PATH');
+  command('git',['merge-base','--is-ancestor',resume.request_commit,commit],cwd);
+  const request=validate(Chain.readGitObject(cwd,resume.request_commit,resume.request_path));
+  if(request.contract_hash!==resume.request_hash||request.source_head!==resume.source_head||request.operation_hash!==resume.operation_hash
+    ||path.posix.basename(resume.request_path,'.json')!==request.contract_hash)throw Error('AGENT_RESUME_REQUEST_CHANGED');
+  const run=JSON.parse(command('gh',['api','repos/'+request.repository+'/actions/runs/'+resume.prior_run_id],cwd));
+  if(run.id!==resume.prior_run_id||run.status!=='completed'||run.head_sha!==resume.request_commit
+    ||run.path!=='.github/workflows/kodjo-vnext-chatgpt-plan-review.yml'||run.actor?.login!=='MyUncried')throw Error('AGENT_RESUME_RUN_MISMATCH');
+  return {request_commit:resume.request_commit,request_path:resume.request_path,prior_run_id:resume.prior_run_id};
+}
+// Historical compatibility, not a retry exemption supplied by a caller. This
+// exact trusted entry and workflow failed at their first Git ancestry guard,
+// before execute, cache/intent creation or any reviewer could be invoked.
+function failedAncestryBeforeInvocation(run,request,commit,cwd,command){
+  if(run.status!=='completed'||run.conclusion!=='failure'||run.run_attempt!==1||run.event!=='push'
+    ||run.head_sha!==commit||run.actor?.login!=='MyUncried'||run.path!=='.github/workflows/kodjo-vnext-chatgpt-plan-review.yml')return false;
+  if(command('git',['rev-parse',commit+':scripts/kodjo/agent-relay.js'],cwd).trim()!=='3ca49ad3fd0f792328fbf7c60854061b4376f33c'
+    ||command('git',['rev-parse',commit+':.github/workflows/kodjo-vnext-chatgpt-plan-review.yml'],cwd).trim()!=='d8ee7a2c38a2182b3e7de6296748cd987c8db8a5')return false;
+  // rev-list has a successful exit even when the source is not an ancestor.
+  if(!command('git',['rev-list',request.source_head,'--not',commit],cwd).trim())return false;
+  const jobs=JSON.parse(command('gh',['api','repos/'+request.repository+'/actions/runs/'+run.id+'/attempts/1/jobs?per_page=100'],cwd));
+  if(jobs.total_count!==1||jobs.jobs?.length!==1)return false;
+  const job=jobs.jobs[0],steps=job.steps||[];
+  if(job.name!=='review'||job.status!=='completed'||job.conclusion!=='failure')return false;
+  for(const name of ['Validate runner and request locator before checkout','Checkout trusted protocol','Select exactly one newly committed request','Checkout immutable request and source objects']){
+    if(steps.find(s=>s.name===name)?.conclusion!=='success')return false;
+  }
+  if(steps.find(s=>s.name==='Review or recover with the trusted protocol')?.conclusion!=='failure')return false;
+  const log=command('gh',['api','repos/'+request.repository+'/actions/jobs/'+job.id+'/logs'],cwd);
+  const verified=/^\S+ VNEXT_LIVE_PROCESS_FAILED: git: \s*\r?$/m.test(log)
+    &&log.includes('REQUEST_COMMIT: '+commit)&&log.includes('REQUEST_PATH: .github/orchestration/requests/vnext-agent/'+request.contract_hash+'.json');
+  if(verified&&process.env.KODJO_REVIEW_OUTPUT){
+    fs.mkdirSync(process.env.KODJO_REVIEW_OUTPUT,{recursive:true});
+    B.write(path.join(process.env.KODJO_REVIEW_OUTPUT,'pre-invocation-recovery-'+run.id+'.json'),V.sealContract({
+      schema_version:'kodjo.vnext.pre-invocation-recovery.v1',request_hash:request.contract_hash,operation_hash:request.operation_hash,
+      request_commit:commit,run_id:run.id,run_attempt:1,job_id:job.id,reason:'VERIFIED_LEGACY_ANCESTRY_GUARD',model_invoked:false,
+      entry_blob:'3ca49ad3fd0f792328fbf7c60854061b4376f33c',workflow_blob:'d8ee7a2c38a2182b3e7de6296748cd987c8db8a5',
+      jobs_sha256:V.sha256(V.canonicalStringify(jobs)),log_sha256:V.sha256(log)}));
+  }
+  return verified;
+}
 function priorInvocation(request,input,cwd,command=Chain.command){
     if(Number(process.env.GITHUB_RUN_ATTEMPT)>1)return true;
     for(let page=1;page<=100;page++){
@@ -121,15 +178,34 @@ function priorInvocation(request,input,cwd,command=Chain.command){
         if(String(run.id)===process.env.GITHUB_RUN_ID)continue;
         const commit=/^VNext PRE-4 (?:plan review|agent operation) \/ ([0-9a-f]{40})$/.exec(run.display_title)?.[1];
         if(!commit)throw Error('AGENT_PRIOR_RUN_BINDING_UNKNOWN');
-        if(commit===input)return true;
         const paths=command('git',['diff-tree','--no-commit-id','--name-only','-r',commit],cwd).trim().split('\n');
-        if(paths.length!==1||!/^\.github\/orchestration\/requests\/(vnext-agent|vnext-plan-review)\/[0-9a-f]{64}\.json$/.test(paths[0]))throw Error('AGENT_PRIOR_REQUEST_UNKNOWN');
-        const prior=Chain.readGitObject(cwd,commit,paths[0]);
-        if(prior.schema_version===SCHEMA){validate(prior);if(prior.operation_hash===request.operation_hash)return true;}
+        if(paths.length!==1)throw Error('AGENT_PRIOR_REQUEST_UNKNOWN');
+        const locator=resolveTrigger(commit,paths[0],cwd,command);
+        const prior=Chain.readGitObject(cwd,locator.request_commit,locator.request_path);
+        if(prior.schema_version===SCHEMA){validate(prior);if(prior.operation_hash===request.operation_hash
+          &&!failedAncestryBeforeInvocation(run,prior,locator.request_commit,cwd,command))return true;}
         else{require('./chatgpt-plan-review').validate(prior);if(request.operation==='plan-review'&&prior.produced_chain_hash===request.operation_hash)return true;}
       }
       if(rows.length<100)return false;
     }throw Error('AGENT_PRIOR_RUN_SCAN_INCOMPLETE');
+}
+
+function executeRequest(input,output,options={}){
+  const cwd=options.cwd||process.cwd(),command=options.command||Chain.command;
+  V.assertSha40(input,'AGENT_REQUEST_COMMIT');
+  if(!/^\.github\/orchestration\/requests\/vnext-agent\/[0-9a-f]{64}\.json$/.test(output))throw Error('AGENT_REQUEST_PATH');
+  const request=Chain.readGitObject(cwd,input,output);validate(request);
+  if(path.posix.basename(output,'.json')!==request.contract_hash)throw Error('AGENT_REQUEST_PATH_HASH');
+  publishedSource(request,cwd,command);
+  if(command('git',['rev-parse','HEAD'],cwd).trim()!==input||command('git',['status','--porcelain'],cwd).trim())throw Error('AGENT_CHECKOUT_MISMATCH');
+  if((options.repository||process.env.GITHUB_REPOSITORY)!==request.repository)throw Error('AGENT_REPOSITORY_MISMATCH');
+  const issueState=options.issueState|| (n=>JSON.parse(command('gh',['api','repos/'+request.repository+'/issues/'+n],cwd)).state);
+  const priorAttempt=options.priorAttempt||(()=>priorInvocation(request,input,cwd,command));
+  // Semantic delivery validators require the exact delivery HEAD, not the later request commit.
+  let executionHead=request.source_head;
+  if(request.operation==='implementation-review'){const data=inputs(request,cwd);executionHead=Chain.readGitObject(cwd,request.source_head,Chain.relative(data.observations_file)).deliveryHead;V.assertSha40(executionHead,'AGENT_IMPLEMENTATION_HEAD_BINDING');command('git',['merge-base','--is-ancestor',executionHead,request.source_head],cwd);}
+  command('git',['checkout','--detach',executionHead],cwd);
+  return execute(request,{...options,cwd,evidenceRoot:options.evidenceRoot||process.env.KODJO_REVIEW_CACHE,outputDirectory:options.outputDirectory||process.env.KODJO_REVIEW_OUTPUT,issueState,priorAttempt});
 }
 
 function main(args=process.argv.slice(2)){
@@ -140,22 +216,10 @@ function main(args=process.argv.slice(2)){
     else B.write(file,request,{exclusive:true});return {request_hash:request.contract_hash,request_path:file};
   }
   if(stage==='verify')return verify(B.read(input),output,{cwd});
+  if(stage==='resolve-trigger')return resolveTrigger(input,output,cwd);
   if(stage!=='execute')throw Error('Usage: agent-relay.js <create config directory|execute request_commit request_path|verify request artifact_directory>');
-  V.assertSha40(input,'AGENT_REQUEST_COMMIT');
-  if(!/^\.github\/orchestration\/requests\/vnext-agent\/[0-9a-f]{64}\.json$/.test(output))throw Error('AGENT_REQUEST_PATH');
-  const request=Chain.readGitObject(cwd,input,output);validate(request);
-  if(path.posix.basename(output,'.json')!==request.contract_hash)throw Error('AGENT_REQUEST_PATH_HASH');
-  Chain.command('git',['merge-base','--is-ancestor',request.source_head,input],cwd);
-  if(Chain.command('git',['rev-parse','HEAD'],cwd).trim()!==input||Chain.command('git',['status','--porcelain'],cwd).trim())throw Error('AGENT_CHECKOUT_MISMATCH');
-  if(process.env.GITHUB_REPOSITORY!==request.repository)throw Error('AGENT_REPOSITORY_MISMATCH');
-  const issueState=n=>JSON.parse(Chain.command('gh',['api','repos/'+request.repository+'/issues/'+n],cwd)).state;
-  const priorAttempt=()=>priorInvocation(request,input,cwd);
-  // Semantic delivery validators require the exact delivery HEAD, not the later request commit.
-  let executionHead=request.source_head;
-  if(request.operation==='implementation-review'){const data=inputs(request,cwd);executionHead=Chain.readGitObject(cwd,request.source_head,Chain.relative(data.observations_file)).deliveryHead;V.assertSha40(executionHead,'AGENT_IMPLEMENTATION_HEAD_BINDING');Chain.command('git',['merge-base','--is-ancestor',executionHead,request.source_head],cwd);}
-  Chain.command('git',['checkout','--detach',executionHead],cwd);
-  return execute(request,{cwd,evidenceRoot:process.env.KODJO_REVIEW_CACHE,outputDirectory:process.env.KODJO_REVIEW_OUTPUT,issueState,priorAttempt});
+  return executeRequest(input,output,{cwd});
 }
-if(require.main===module)try{const r=main();process.stdout.write(JSON.stringify({status:r.status||'RECORDED',request_hash:r.request_hash,request_path:r.request_path,verdict:r.verdict??null})+'\n');}
+if(require.main===module)try{const r=main();process.stdout.write(JSON.stringify(process.argv[2]==='resolve-trigger'?r:{status:r.status||'RECORDED',request_hash:r.request_hash,request_path:r.request_path,verdict:r.verdict??null})+'\n');}
 catch(error){process.stderr.write(error.message+'\n');process.exitCode=1;}
-module.exports={OPERATIONS,validate,inputs,create,adapterFor,execute,verify,priorInvocation,main};
+module.exports={OPERATIONS,validate,inputs,create,adapterFor,execute,verify,publishedSource,resolveTrigger,failedAncestryBeforeInvocation,priorInvocation,executeRequest,main};
