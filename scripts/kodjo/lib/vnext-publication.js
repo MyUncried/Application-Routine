@@ -24,6 +24,18 @@ function verifyWindow({ repository, branch, expectedParent, checkpointSha, read 
   return { expected_parent: expectedParent, checkpoint_sha: checkpointSha,
     controller_generation: state.controller_generation, observed_at: new Date().toISOString() };
 }
+// Common candidate publication has no historical campaign checkpoint. Keep
+// verifyWindow above for its historical callers and their original safeguards.
+function verifyCandidateWindow({repository,branch,expectedParent,read=Github.readGithub}){
+  V.assertSha40(expectedParent,'VNEXT_PUBLICATION_PARENT_REQUIRED');
+  if(!/^[^/\s]+\/[^/\s]+$/.test(repository)||typeof branch!=='string'||!branch||branch.includes('..'))V.fail('VNEXT_PUBLICATION_SCOPE_INVALID');
+  const ref=read('repos/'+repository+'/git/ref/heads/'+branch.split('/').map(encodeURIComponent).join('/'));
+  if(ref.object?.sha!==expectedParent)V.fail('VNEXT_PUBLICATION_PARENT_MOVED');
+  const runs=Github.pages('repos/'+repository+'/actions/runs?branch='+encodeURIComponent(branch),'workflow_runs',read);
+  const active=runs.filter(run=>run.head_sha===expectedParent&&run.status!=='completed');
+  if(active.length)V.fail('VNEXT_PUBLICATION_CANDIDATE_RUN_ACTIVE');
+  return {mode:'CURRENT_CANDIDATE',expected_parent:expectedParent,observed_at:new Date().toISOString()};
+}
 function renderGithubExpressionsForSyntax(block) {
   // GitHub expands its expressions before invoking the PowerShell parser.
   // Keep real PowerShell interpolation intact; neutral values certify only
@@ -65,13 +77,18 @@ function validateTree({ cwd, expectedParent, candidateTree, run = execFileSync }
     const Security = require('./vnext-remote-write-security');
     const json = file => JSON.parse(fs.readFileSync(path.join(temporary, file), 'utf8'));
     for (const file of changed.filter(file => file.endsWith('.json') && fs.existsSync(path.join(temporary, file)))) json(file);
-    const request = json('.github/orchestration/vnext12/VNEXT-12-QUALIF/request.json');
-    if (!['PREPARE_INITIAL', 'PREPARE_REVISION', 'QUALIFY_ONLY', 'EXECUTE_INITIAL', 'EXECUTE_REVISION', 'FIGMA_INITIAL', 'CERTIFY_INCIDENTS', 'CERTIFY_HISTORICAL', 'TARGETED_RESULT_RECORDED', 'FINALIZE_DELIVERY'].includes(request.stage)
-        || request.pre1_in_scope !== false || request.final_audit_authorized !== false || request.revision_limit !== 1) V.fail('VNEXT_PUBLICATION_STAGE_INVALID');
-    if (request.stage === 'FIGMA_INITIAL') require('../qualify-vnext-figma-real-path').validateConfig(request);
-    if (request.stage === 'CERTIFY_INCIDENTS') require('../certify-vnext-incidents').validateConfig(request);
-    if (request.stage === 'FINALIZE_DELIVERY') require('./vnext-github-closure').validateConfig(request);
-    if (request.stage.startsWith('EXECUTE_')) require('../execute-vnext12').validateConfig(request);
+    // Historical campaign validation stays mandatory when its own request is
+    // changed; an unrelated candidate does not inherit that campaign's stage.
+    const historicalRequest = '.github/orchestration/vnext12/VNEXT-12-QUALIF/request.json';
+    if (changed.includes(historicalRequest)) {
+      const request = json('.github/orchestration/vnext12/VNEXT-12-QUALIF/request.json');
+      if (!['PREPARE_INITIAL', 'PREPARE_REVISION', 'QUALIFY_ONLY', 'EXECUTE_INITIAL', 'EXECUTE_REVISION', 'FIGMA_INITIAL', 'CERTIFY_INCIDENTS', 'CERTIFY_HISTORICAL', 'TARGETED_RESULT_RECORDED', 'FINALIZE_DELIVERY'].includes(request.stage)
+          || request.pre1_in_scope !== false || request.final_audit_authorized !== false || request.revision_limit !== 1) V.fail('VNEXT_PUBLICATION_STAGE_INVALID');
+      if (request.stage === 'FIGMA_INITIAL') require('../qualify-vnext-figma-real-path').validateConfig(request);
+      if (request.stage === 'CERTIFY_INCIDENTS') require('../certify-vnext-incidents').validateConfig(request);
+      if (request.stage === 'FINALIZE_DELIVERY') require('./vnext-github-closure').validateConfig(request);
+      if (request.stage.startsWith('EXECUTE_')) require('../execute-vnext12').validateConfig(request);
+    }
 
     const security = Security.evaluateRemoteWriteSecurity({ root: temporary,
       policy: json('.github/orchestration/KODJO_VNEXT_REMOTE_WRITE_POLICY.json'),
@@ -105,4 +122,4 @@ function validateTree({ cwd, expectedParent, candidateTree, run = execFileSync }
       historical_subjects: inventory.incidents.length + inventory.tests.length + inventory.normative_paragraphs.length };
   } finally { fs.rmSync(temporary, { recursive: true, force: true }); }
 }
-module.exports = { CHECKPOINT, WORKFLOWS, verifyWindow, validateTree, javascriptSyntaxArgs, renderGithubExpressionsForSyntax };
+module.exports = { CHECKPOINT, WORKFLOWS, verifyWindow, verifyCandidateWindow, validateTree, javascriptSyntaxArgs, renderGithubExpressionsForSyntax };

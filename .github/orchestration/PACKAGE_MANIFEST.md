@@ -8,6 +8,8 @@ Le paquet de cette branche candidate est défini par la spécification 0.6.51, q
 
 Complément VNext : `.github/orchestration/KODJO_VNEXT_WORK_CONTINUATION.md` définit le retour commun ; `.github/orchestration/KODJO_VNEXT_WORK_TRANSPORT.json` porte le binding scellé observé. `scripts/kodjo/signal-vnext-agent-continuation.js` et `.github/workflows/kodjo-vnext-work-continuation.yml` publient uniquement un signal lié au résultat archivé. `tests/kodjo/vnext-work-continuation.pilot.js` vérifie transport, portée et refus. L'état de réception réelle est consigné dans le rapport dédié, jamais déduit de la présence des fichiers.
 
+Complément de source fonctionnelle atomique : `scripts/kodjo/lib/vnext-figma-launch.js` et `scripts/kodjo/lib/vnext-live-chain.js` appliquent par défaut le découpage précis pour les nouvelles préparations. Le document Git complet reste conservé en contexte ; chaque état et ses scénarios sont liés à des lignes exactes. Le mode est scellé dans le checkpoint et les anciens checkpoints gardent leur projection d’origine. `tests/kodjo/vnext-document-units.pilot.js` et `tests/kodjo/vnext-figma-launch-review.pilot.js` couvrent ce raccordement. Le ledger commun de planification est décrit dans le complément de couverture ci-dessous ; son existence ne démontre pas une reprise Work effective.
+
 | Fichier | Rôle |
 |---|---|
 | `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.51.md` | Spécification normative candidate PE-27 à PE-38 ; NON RETESTÉE |
@@ -277,4 +279,33 @@ Relais de revue du plan : `.github/orchestration/KODJO_VNEXT_CHATGPT_PRE4_REVIEW
 
 ## Relais commun VNext / ChatGPT PRE-4
 
-`scripts/kodjo/agent-relay.js` → `scripts/kodjo/lib/vnext-agent-relay.js` (cycle commun) → adaptateurs existants `vnext-live-chain`, `vnext-review-scope`, `vnext-figma-implementation-review`. L'ancien `chatgpt-plan-review.js` utilise aussi ce moteur. Le workflow de revue existant accepte les demandes de `.github/orchestration/requests/vnext-agent`. Procédure et inventaire : `.github/orchestration/KODJO_VNEXT_CHATGPT_AGENT_RELAY.md`. Tests : `tests/kodjo/vnext-agent-relay.pilot.js`, tests de compatibilité plan et validateurs existants. Activation toujours limitée à PRE-4 après clôture #340 et autorisation de démarrage.
+`scripts/kodjo/agent-relay.js` → `scripts/kodjo/lib/vnext-agent-relay.js` (cycle commun) → adaptateurs existants `vnext-live-chain`, `vnext-review-scope`, `vnext-figma-implementation-review`. L'ancien `chatgpt-plan-review.js` utilise aussi ce moteur. Le workflow de revue existant accepte les demandes de `.github/orchestration/requests/vnext-agent`. Procédure et inventaire : `.github/orchestration/KODJO_VNEXT_CHATGPT_AGENT_RELAY.md`. Tests : `tests/kodjo/vnext-agent-relay.pilot.js`, tests de compatibilité plan et validateurs existants. Admission commune selon le routage, les dépendances déclarées et les autorisations vérifiés ; aucune activation propre à PRE-4.
+
+## Couverture commune VNext — admission, composants et cumul
+
+| Fichier | Rôle |
+|---|---|
+| `.github/orchestration/KODJO_VNEXT_COMPONENT_COVERAGE.md` | Contrat de couverture directe/héritée et limites des preuves |
+| `scripts/kodjo/lib/vnext-component-coverage.js` | Classification, contrôles d'instance et liens de revue conditionnels ; dépendance de la fermeture partagée |
+| `scripts/kodjo/lib/vnext-component-implementation-coverage.js` | Qualification de mapping au HEAD et octets de livraison |
+| `scripts/kodjo/lib/vnext-operation-admission.js` | Admission VNext depuis routage, identité et dépendances déclarées |
+| `scripts/kodjo/lib/vnext-cumulative-review.js` | Portées et ledger exacts, reçus partiels séparés du verdict final |
+| `scripts/kodjo/consume-vnext-review-progress.js` | Consommation vérifiée de progression sans nouvel appel modèle |
+| `scripts/kodjo/analyze-vnext-component-reuse.js` | Mesure reproductible sans réécriture de source ni couverture inventée |
+
+L'ajout de la dépendance commune à la liste figée du runtime IMPLEMENT préserve sa fermeture récursive. Aucun mode, transition, autorisation ou gate V2 n'est modifié. Les preuves du candidat courant restent distinctes des preuves historiques.
+
+## Retour et récupération communs des opérations VNext
+
+| Fichier | Rôle |
+|---|---|
+| `scripts/kodjo/lib/vnext-work-execution.js` | Descripteurs et faits vérifiés de CI, développement, tests et clôture ; aucune approbation implicite |
+| `scripts/kodjo/signal-vnext-work-execution.js` | Adaptateurs de provenance et archives physiques pour les producteurs inscrits |
+| `scripts/kodjo/lib/vnext-work-consumption.js` | Possession sans expiration, checkpoint et reçu durable |
+| `scripts/kodjo/consume-vnext-work-signal.js` | Transactions Git non forcées limitées au transport |
+| `scripts/kodjo/recover-vnext-work.js` | Rattrapage des opérations enregistrées et réveil des signaux pendants, sans appel modèle |
+| `tests/kodjo/vnext-work-execution.pilot.js` | Refus de provenance, archive absente, concurrence, déplacement de tête et migration |
+
+| `scripts/kodjo/lib/vnext-implementation-cumulative.js` | Portées, réponses partielles et agrégat d'implémentation sans nouveau modèle |
+| `scripts/kodjo/lib/vnext-qualified-component-import.js` | Revalidation des preuves communes importées et invalidation de code/tokens |
+| `tests/kodjo/vnext-implementation-cumulative.pilot.js` | Couverture, préservation, refus de faux APPROVE et contextes modifiés |

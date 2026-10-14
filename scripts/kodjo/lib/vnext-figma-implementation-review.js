@@ -1,6 +1,7 @@
 'use strict';
 // VNext-only implementation review entry. Shared V2 workflow stays unchanged.
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os');
+const Components=require('./vnext-component-implementation-coverage');
 const V=require('./vnext-contract'),F=require('./vnext-figma-source'),Chain=require('./vnext-live-chain');
 const {extractTaggedJson}=require('./plan-impact');
 const digest=bytes=>require('node:crypto').createHash('sha256').update(bytes).digest('hex');
@@ -35,15 +36,20 @@ function functionalPreservation(row,cwd,root){
   actualFact(proof,root);return proof;
  });
 }
-function prepare(planBody,{cwd,approvedPlanSha256,deliveryHead,evidenceDirectory,measurements,scenarioResults,readText}){
+function prepare(planBody,{cwd,approvedPlanSha256,deliveryHead,evidenceDirectory,measurements,scenarioResults,readText,metadataPaths=[],qualifiedCommonReviews=[]}){
  V.assertSha40(deliveryHead,'VNEXT_FIGMA_REVIEW_DELIVERY_HEAD_REQUIRED');
  V.assertSha64(approvedPlanSha256,'VNEXT_FIGMA_REVIEW_APPROVED_PLAN_REQUIRED');
  if(V.sha256(planBody)!==approvedPlanSha256)V.fail('VNEXT_FIGMA_REVIEW_PLAN_DRIFT');outside(cwd,evidenceDirectory);
- if(Chain.command('git',['rev-parse','HEAD'],cwd).trim()!==deliveryHead)V.fail('VNEXT_FIGMA_REVIEW_CHECKOUT_HEAD_MISMATCH');
  if(!Array.isArray(measurements)||!Array.isArray(scenarioResults))V.fail('VNEXT_FIGMA_REVIEW_OBSERVATIONS_REQUIRED');
  fs.mkdirSync(evidenceDirectory,{recursive:true});const assets=path.join(evidenceDirectory,'references');fs.mkdirSync(assets,{recursive:true});
  const observation=F.consume(planBody,assets,'IMPLEMENTATION_REVIEWER',{cwd,readText});
  const ui=F.unpackUi(require('./machine-block').parse(planBody,'KODJO_VNEXT_UI_ATOMICITY_JSON',{code:'VNEXT_FIGMA_TRANSPORT_REQUIRED',cwd,readText}));
+ if(Chain.command('git',['rev-parse','HEAD'],cwd).trim()!==deliveryHead){
+  metadataPaths.forEach(F.safePath);Chain.command('git',['merge-base','--is-ancestor',deliveryHead,'HEAD'],cwd);
+  const changed=Chain.command('git',['diff','--name-only',deliveryHead,'HEAD'],cwd).trim().split('\n').filter(Boolean);
+  const allowed=metadataPaths.filter(p=>/^(?:\.github\/orchestration|docs\/preparation)\//.test(p)&&/\.(?:json|md)$/.test(p));
+  if(!allowed.length||changed.some(p=>!allowed.includes(p)))V.fail('VNEXT_FIGMA_REVIEW_CHECKOUT_HEAD_MISMATCH');
+ }
  if(!ui.figma_references?.length)V.fail('VNEXT_FIGMA_REVIEW_REFERENCE_REQUIRED');
  const observedFiles=new Map();
  const preservationResults=new Map();
@@ -70,14 +76,20 @@ function prepare(planBody,{cwd,approvedPlanSha256,deliveryHead,evidenceDirectory
   }
  }
  if(measurements.some(m=>!ui.figma_references.some(r=>r.packet.contract_hash===m.reference_hash))||scenarioResults.some(s=>!ui.figma_references.some(r=>r.packet.contract_hash===s.reference_hash)))V.fail('VNEXT_FIGMA_REVIEW_FOREIGN_REFERENCE');
- return {schema_version:'kodjo.vnext.figma-implementation-dossier.v1',approved_plan_sha256:approvedPlanSha256,delivery_head:deliveryHead,observation,ui:F.packUi(ui),measurements,scenario_results:scenarioResults,preservation_results:[...preservationResults.values()],preservation_ids:[...preservationResults.keys()].sort(),observed_files:[...observedFiles].map(([file,sha256])=>({file,sha256})),assertion_ids:ui.criteria.flatMap(c=>c.assertions.map(a=>a.assertion_id)).sort(),scenario_ids:scenarioResults.map(s=>s.scenario_id).sort(),limits:['Execution JSON facts attest the disposable fixture only; they are not pixel or native-device compliance.','Reading resource bytes alone does not attest semantic use.']};
+ const componentReview=Components.prepare(ui,{cwd,deliveryHead,evidenceDirectory});
+ const dossier={...(componentReview?{component_review:componentReview}:{}),schema_version:'kodjo.vnext.figma-implementation-dossier.v1',approved_plan_sha256:approvedPlanSha256,delivery_head:deliveryHead,observation,ui:F.packUi(ui),measurements,scenario_results:scenarioResults,preservation_results:[...preservationResults.values()],preservation_ids:[...preservationResults.keys()].sort(),observed_files:[...observedFiles].map(([file,sha256])=>({file,sha256})),assertion_ids:ui.criteria.flatMap(c=>c.assertions.map(a=>a.assertion_id)).sort(),scenario_ids:scenarioResults.map(s=>s.scenario_id).sort(),limits:['Execution JSON facts attest the disposable fixture only; they are not pixel or native-device compliance.','Reading resource bytes alone does not attest semantic use.']};
+ if(!Array.isArray(qualifiedCommonReviews))V.fail('VNEXT_QUALIFIED_REVIEW_SOURCES_INVALID');
+ if(qualifiedCommonReviews.length){const base={...dossier};dossier.qualified_common_imports=qualifiedCommonReviews.map(source=>require('./vnext-qualified-component-import').fromPreviousReview({...source,currentDossier:base,currentCwd:cwd}));}
+ return dossier;
 }
 function validateAssessment(dossier,assessment){
- V.assertExactKeys(assessment,['verdict','reference_hashes','reviewed_assertion_ids','reviewed_scenario_ids','findings','reservations','reason'],['reviewed_preservation_ids','consulted_resource_sha256'],'VNEXT_FIGMA_REVIEW_ASSESSMENT_INVALID');
+ V.assertExactKeys(assessment,['verdict','reference_hashes','reviewed_assertion_ids','reviewed_scenario_ids','findings','reservations','reason'],['reviewed_preservation_ids','consulted_resource_sha256','component_mapping_observations'],'VNEXT_FIGMA_REVIEW_ASSESSMENT_INVALID');
  if(!['APPROVE','REVISE'].includes(assessment.verdict)||!Array.isArray(assessment.findings)||!Array.isArray(assessment.reservations))V.fail('VNEXT_FIGMA_REVIEW_ASSESSMENT_INVALID');
  V.assertUnicodeExactText(assessment.reason,'VNEXT_FIGMA_REVIEW_REASON_REQUIRED');
  equal(assessment.reference_hashes.slice().sort(),dossier.observation.references.map(r=>r.reference_hash).sort(),'VNEXT_FIGMA_REVIEW_REFERENCES_UNCOVERED');
- equal(assessment.reviewed_assertion_ids.slice().sort(),dossier.assertion_ids,'VNEXT_FIGMA_REVIEW_ASSERTIONS_UNCOVERED');
+ const componentCoverage=Components.coverage(dossier,assessment);
+ const imported=Components.qualifiedIds(dossier,assessment.component_mapping_observations).filter(id=>!assessment.reviewed_assertion_ids.includes(id));
+ equal([...assessment.reviewed_assertion_ids,...imported,...(componentCoverage?.inherited_assertion_ids||[])].sort(),dossier.assertion_ids,'VNEXT_FIGMA_REVIEW_ASSERTIONS_UNCOVERED');
  equal(assessment.reviewed_scenario_ids.slice().sort(),dossier.scenario_ids,'VNEXT_FIGMA_REVIEW_SCENARIOS_UNCOVERED');
  if(dossier.preservation_ids?.length||assessment.reviewed_preservation_ids)equal((assessment.reviewed_preservation_ids||[]).slice().sort(),dossier.preservation_ids||[],'VNEXT_FIGMA_REVIEW_PRESERVATION_UNCOVERED');
  // Legacy declarations remain readable, but are not evidence of file integrity
@@ -87,7 +99,7 @@ function validateAssessment(dossier,assessment){
  if(assessment.verdict==='APPROVE'&&assessment.findings.some(f=>f.blocking!==false))V.fail('VNEXT_FIGMA_REVIEW_FALSE_APPROVAL');
  return assessment;
 }
-function assessmentSchema(){return {type:'object',additionalProperties:false,properties:{verdict:{enum:['APPROVE','REVISE']},reference_hashes:{type:'array',items:{type:'string'}},reviewed_assertion_ids:{type:'array',items:{type:'string'}},reviewed_scenario_ids:{type:'array',items:{type:'string'}},reviewed_preservation_ids:{type:'array',items:{type:'string'}},findings:{type:'array',items:{type:'object',properties:{blocking:{type:'boolean'},reason:{type:'string'}},required:['blocking','reason'],additionalProperties:false}},reservations:{type:'array',items:{type:'string'}},reason:{type:'string'}},required:['verdict','reference_hashes','reviewed_assertion_ids','reviewed_scenario_ids','findings','reservations','reason']};}
+function assessmentSchema(dossier){const schema={type:'object',additionalProperties:false,properties:{verdict:{enum:['APPROVE','REVISE']},reference_hashes:{type:'array',items:{type:'string'}},reviewed_assertion_ids:{type:'array',items:{type:'string'}},reviewed_scenario_ids:{type:'array',items:{type:'string'}},reviewed_preservation_ids:{type:'array',items:{type:'string'}},findings:{type:'array',items:{type:'object',properties:{blocking:{type:'boolean'},reason:{type:'string'}},required:['blocking','reason'],additionalProperties:false}},reservations:{type:'array',items:{type:'string'}},reason:{type:'string'}},required:['verdict','reference_hashes','reviewed_assertion_ids','reviewed_scenario_ids','findings','reservations','reason']};if(dossier?.component_review){schema.properties.component_mapping_observations=Components.schema();schema.required.push('component_mapping_observations');}return schema;}
 function resourceIntegrity(dossier){
  const resources=dossier.observation.references.flatMap(ref=>ref.assets.map(asset=>{
   const actual=digest(fs.readFileSync(asset.path));
@@ -98,6 +110,12 @@ function resourceIntegrity(dossier){
 }
 function verifyReceipt(planBody,options,receipt,raw){
  V.verifyContractHash(receipt,'VNEXT_FIGMA_REVIEW_RECEIPT_HASH_INVALID');
+ if(receipt.schema_version==='kodjo.vnext.cumulative-implementation-review.v1'){
+  const d=prepare(planBody,options),C=require('./vnext-implementation-cumulative');equal(C.aggregate(d,receipt.ledger),receipt,'VNEXT_IMPLEMENTATION_CUMULATIVE_CHANGED');return receipt;
+ }
+ if(receipt.schema_version==='kodjo.vnext.partial-implementation-review.v1'){
+  const d=prepare(planBody,options),C=require('./vnext-implementation-cumulative');equal(C.record(d,options.reviewScope,raw,receipt.process),receipt,'VNEXT_IMPLEMENTATION_PARTIAL_CHANGED');return receipt;
+ }
  const dossier=prepare(planBody,options),response=JSON.parse(raw);
  if(receipt.schema_version!=='kodjo.vnext.figma-implementation-review.v1'||response.type!=='result'||response.is_error||!response.session_id||!response.structured_output)V.fail('VNEXT_FIGMA_REVIEW_PROCESS_RESULT_INVALID');
  if(receipt.approved_plan_sha256!==dossier.approved_plan_sha256||receipt.delivery_head!==dossier.delivery_head||receipt.dossier_hash!==dossierHash(dossier,options)||receipt.raw_response_sha256!==V.sha256(raw)||receipt.session_id!==response.session_id)V.fail('VNEXT_FIGMA_REVIEW_RECEIPT_BINDING_INVALID');
@@ -105,7 +123,11 @@ function verifyReceipt(planBody,options,receipt,raw){
  equal(receipt.limits,dossier.limits,'VNEXT_FIGMA_REVIEW_RECEIPT_LIMITS_CHANGED');
  const integrity=resourceIntegrity(dossier);
  if(receipt.resource_integrity)equal(receipt.resource_integrity,integrity,'VNEXT_FIGMA_REVIEW_RECEIPT_BINDING_INVALID');
- validateAssessment(dossier,receipt.assessment);return receipt;
+ validateAssessment(dossier,receipt.assessment);
+ const componentCoverage=Components.coverage(dossier,receipt.assessment);
+ if(componentCoverage)equal(receipt.component_coverage,componentCoverage,'VNEXT_IMPLEMENTATION_COMPONENT_COVERAGE_CHANGED');
+ else if(receipt.component_coverage)V.fail('VNEXT_IMPLEMENTATION_UNEXPECTED_COMPONENT_COVERAGE');
+ return receipt;
 }
 function dossierHash(dossier,options){
  if(!options.portableReceipt)return V.canonicalHash(dossier);
@@ -114,14 +136,16 @@ function dossierHash(dossier,options){
  for(const ref of normalized.observation.references)for(const asset of ref.assets)asset.path=relative(asset.path);
  delete normalized.observation.contract_hash;normalized.observation=V.sealContract(normalized.observation);
  for(const row of normalized.observed_files)row.file=relative(row.file);
+ if(normalized.component_review)for(const mapping of normalized.component_review.mapping_facts)for(const file of mapping.files)file.materialized_path=relative(file.materialized_path);
  return V.canonicalHash(normalized);
 }
 function receiptFromRaw(planBody,options,raw,preparedDossier){
  const dossier=preparedDossier||prepare(planBody,options),response=JSON.parse(raw);
+ if(options.reviewScope){const process=JSON.parse(fs.readFileSync(path.join(options.evidenceDirectory,'implementation-review-process.json'),'utf8'));return require('./vnext-implementation-cumulative').record(dossier,options.reviewScope,raw,process);}
  if(response.type!=='result'||response.is_error||!response.session_id||!response.structured_output)V.fail('VNEXT_FIGMA_REVIEW_PROCESS_RESULT_INVALID');
  const assessment=validateAssessment(dossier,response.structured_output),resource_integrity=resourceIntegrity(dossier);
  for(const a of dossier.observed_files)if(digest(fs.readFileSync(a.file))!==a.sha256)V.fail('VNEXT_FIGMA_REVIEW_ARTIFACT_CHANGED');
- return V.sealContract({schema_version:'kodjo.vnext.figma-implementation-review.v1',approved_plan_sha256:dossier.approved_plan_sha256,delivery_head:dossier.delivery_head,dossier_hash:dossierHash(dossier,options),session_id:response.session_id,raw_response_sha256:V.sha256(raw),assessment,resource_integrity,limits:dossier.limits});
+ return V.sealContract({schema_version:'kodjo.vnext.figma-implementation-review.v1',approved_plan_sha256:dossier.approved_plan_sha256,delivery_head:dossier.delivery_head,dossier_hash:dossierHash(dossier,options),session_id:response.session_id,raw_response_sha256:V.sha256(raw),assessment,resource_integrity,...(dossier.component_review?{component_coverage:Components.coverage(dossier,assessment)}:{}),limits:dossier.limits});
 }
 function recover(planBody,options){
  const directory=options.evidenceDirectory,raw=fs.readFileSync(path.join(directory,'implementation-review-response.json'),'utf8');
@@ -139,8 +163,10 @@ function review(planBody,options){
  const dossier=prepare(planBody,options),directory=options.evidenceDirectory;
  resourceIntegrity(dossier);
  fs.writeFileSync(path.join(directory,'implementation-dossier.json'),JSON.stringify(dossier,null,2)+'\n');
- const schema=assessmentSchema();
-const input={instructions:'Independent implementation review. Read the referenced source context, property manifest and execution artifacts, check every bound assertion and documentary scenario against the observed delivery. Orchestration constructs the resource inventory and verifies actual file SHA-256 bytes before and after review; do not compute or report consulted-resource hashes. This mechanical integrity check does not attest which files you read. Distinguish actual execution facts on a disposable fixture from injected unit-test observations; neither proves product appearance or native-device compliance. For the functional-only protocol benchmark, no browser, automatic rendering or human visual gate is required or authorized. Do not invent such obligations. Read every preservation_results fact and cover every preservation_id in reviewed_preservation_ids when present; these are the existing shared-export preservation obligations. No inferred PASS. Return REVISE for semantic gaps, wrong scope or evidence. Do not change files or use network.',dossier};
+ const schema=assessmentSchema(dossier);
+ if(options.reviewScope){schema.properties.verdict.enum=['REVIEW_INCOMPLETE'];}
+const input={instructions:'Independent implementation review. When component_review is present, read its exact materialized code and usage sources, verify each Figma/code mapping including instance identity, variants, parameters, bindings and overrides, and report component_mapping_observations. Review common assertions once and attest only assertions directly reviewed; the controller derives inherited coverage from verified mappings and common review. A plan review never proves implementation conformity. Read the referenced source context, property manifest and execution artifacts, account for every bound assertion through direct or controller-verified inherited review, and check every documentary scenario against the observed delivery. All executed property facts remain mandatory. Orchestration constructs the resource inventory and verifies actual file SHA-256 bytes before and after review; do not compute or report consulted-resource hashes. This mechanical integrity check does not attest which files you read. Distinguish actual execution facts on a disposable fixture from injected unit-test observations; neither proves product appearance or native-device compliance. For the functional-only protocol benchmark, no browser, automatic rendering or human visual gate is required or authorized. Do not invent such obligations. Read every preservation_results fact and cover every preservation_id in reviewed_preservation_ids when present; these are the existing shared-export preservation obligations. No inferred PASS. Return REVISE for semantic gaps, wrong scope or evidence. Do not change files or use network.',dossier};
+ if(options.reviewScope){input.review_scope=options.reviewScope;input.instructions+=' This is a scoped partial review: review only review_scope.target_ids, return REVIEW_INCOMPLETE and observations only for this scope. The complete dossier remains context; do not declare the rest reviewed. All raw responses and sessions are retained by the controller; final aggregation invokes no model.';}
  const temp=fs.mkdtempSync(path.join(os.tmpdir(),'vnext-figma-review-'));
  fs.writeFileSync(path.join(temp,'mcp.json'),JSON.stringify({mcpServers:{}}));fs.writeFileSync(path.join(temp,'settings.json'),JSON.stringify({disableAllHooks:true}));
  const env={...process.env};for(const k of ['GH_TOKEN','GITHUB_TOKEN','KODJO_LIVE_GH_TOKEN'])delete env[k];

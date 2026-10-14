@@ -14,10 +14,10 @@ function setup(t,operation='review-scope'){
  const options={cwd,evidenceRoot:path.join(root,'cache'),outputDirectory:path.join(root,'artifact'),adapter,issueState:n=>n===340?'closed':'open',lock:{claudeProcessState:()=>({state:'NONE'}),acquire:()=>({}),release:()=>{}}};
  return {root,cwd,request,adapter,options,counts:()=>({calls,recovers})};
 }
-test('all registered operations share one lock/cache/evidence lifecycle; arbitrary commands and PRE-3 are refused',t=>{
+test('all registered operations share one lock/cache/evidence lifecycle; arbitrary commands and invalid identities are refused',t=>{
  assert.deepEqual(Agent.OPERATIONS,['plan-review','review-scope','implementation-review']);
  for(const operation of Agent.OPERATIONS){const f=setup(t,operation);Agent.execute(f.request,f.options);Agent.execute(f.request,f.options);assert.equal(f.counts().calls,1);Relay.verifyEvidence(f.request,f.options.outputDirectory);}
- const f=setup(t);for(const patch of [{operation:'shell'},{slice_id:'VNEXT-PRE-3'},{issue_number:340},{pilot:'CLAUDE_CODE'},{inputs_file:'../secret'}])assert.throws(()=>Agent.execute(reseal({...f.request,...patch}),f.options));
+ const f=setup(t);for(const patch of [{operation:'shell'},{slice_id:'invalid identity'},{issue_number:0},{pilot:'CLAUDE_CODE'},{inputs_file:'../secret'}])assert.throws(()=>Agent.execute(reseal({...f.request,...patch}),f.options));
  assert.throws(()=>Agent.execute(reseal({...f.request,command:'anything'}),f.options),/KEYS/);
 });
 test('quota/ambiguous call publishes failure evidence, blocks another model call and permits direct diagnostic consumption',t=>{
@@ -34,8 +34,8 @@ test('saved response is recovered after publication interruption without a secon
  fs.appendFileSync(path.join(f.options.outputDirectory,'process-evidence','raw.json'),' ');
  assert.throws(()=>Relay.verifyEvidence(f.request,f.options.outputDirectory),/EVIDENCE_CHANGED/);
 });
-test('active Claude, open PRE-3 and prior GitHub attempt refuse invocation and preserve a consumable diagnostic',t=>{
- for(const patch of [{issueState:()=> 'open'},{lock:{claudeProcessState:()=>({state:'ACTIVE'})}},{priorAttempt:()=>true}]){
+test('active Claude, unmet declared dependency and prior GitHub attempt refuse invocation and preserve a consumable diagnostic',t=>{
+ for(const patch of [{dependencies:[{issue_number:123}],issueState:()=> 'open'},{lock:{claudeProcessState:()=>({state:'ACTIVE'})}},{priorAttempt:()=>true}]){
   const f=setup(t);assert.throws(()=>Agent.execute(f.request,{...f.options,...patch}));assert.equal(f.counts().calls,0);
   assert.equal(Agent.verify(f.request,f.options.outputDirectory,{cwd:f.cwd}).status,'ORCHESTRATION_FAILURE');
  }
@@ -63,12 +63,12 @@ test('lost local cache cannot bypass an earlier GitHub invocation by republishin
  const f=setup(t),git=(...args)=>require('node:child_process').execFileSync('git',args,{cwd:f.cwd,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
  git('init');git('config','user.name','Test');git('config','user.email','test@example.invalid');git('commit','--allow-empty','-m','TEST baseline');
  const file='.github/orchestration/requests/vnext-agent/'+f.request.contract_hash+'.json';B.write(path.join(f.cwd,file),f.request);git('add','.');git('commit','-m','TEST exact earlier request');const previous=git('rev-parse','HEAD');
- const current=reseal({...f.request,source_head:previous}),command=(bin,args,cwd)=>bin==='gh'?JSON.stringify({workflow_runs:[{id:'previous-run',display_title:'VNext PRE-4 plan review / '+previous}]}):Chain.command(bin,args,cwd);
+ const current=reseal({...f.request,source_head:previous}),command=(bin,args,cwd)=>bin==='gh'?JSON.stringify({workflow_runs:[{id:'previous-run',head_sha:previous,display_title:'Renamed workflow without slice or SHA'}]}):Chain.command(bin,args,cwd);
  const priorAttempt=()=>Agent.priorInvocation(current,'f'.repeat(40),f.cwd,command);
  assert.equal(priorAttempt(),true);assert.throws(()=>Agent.execute(current,{...f.options,priorAttempt}),/PRIOR_INVOCATION_UNKNOWN_NO_RETRY/);assert.equal(f.counts().calls,0);
  const legacy=V.sealContract({schema_version:'kodjo.vnext.chatgpt-plan-review-request.v1',pilot:'CHATGPT_WORK',slice_id:'VNEXT-PRE-4',repository:f.request.repository,issue_number:999,source_head:'a'.repeat(40),produced_file:'produced.json',produced_chain_hash:'d'.repeat(64),causal_file:null});
  B.write(path.join(f.cwd,'.github/orchestration/requests/vnext-plan-review/'+legacy.contract_hash+'.json'),legacy);git('add','.');git('commit','-m','TEST legacy request');const oldCommit=git('rev-parse','HEAD');
- const oldCommand=(bin,args,cwd)=>bin==='gh'?JSON.stringify({workflow_runs:[{id:'old-run',display_title:'VNext PRE-4 plan review / '+oldCommit}]}):Chain.command(bin,args,cwd);
+ const oldCommand=(bin,args,cwd)=>bin==='gh'?JSON.stringify({workflow_runs:[{id:'old-run',head_sha:oldCommit,display_title:'Historical label renamed'}]}):Chain.command(bin,args,cwd);
  assert.equal(Agent.priorInvocation({...legacy,operation:'plan-review',operation_hash:legacy.produced_chain_hash},'f'.repeat(40),f.cwd,oldCommand),true);
 });
 test('exact screenshot refusal publishes the raw scope reply and recovery reproduces the refusal without invoking again',t=>{
@@ -134,6 +134,25 @@ test('implementation adapter binds the original plan/delivery/facts, recovers sa
  Agent.execute(request,options);assert.equal(calls,1);
  const moved=path.join(f.root,'download');fs.cpSync(f.options.outputDirectory,moved,{recursive:true});assert.equal(Agent.verify(request,moved,{cwd:repo.cwd}).verdict,'APPROVE');
  const other=reseal({...request,issue_number:998});assert.throws(()=>Agent.adapterFor(other,repo.cwd),/SCOPE_BINDING/);
+});
+test('implementation relay scopes real pinned inputs and closes cumulative review without another invocation',t=>{
+ const Fixture=require('./helpers/vnext-figma-fixture'),F=require('../../scripts/kodjo/lib/vnext-figma-source'),I=require('../../scripts/kodjo/lib/vnext-implementation-cumulative');
+ const repo=Fixture.fixture({transformPacket:p=>{const {contract_hash,...x}=p;x.states[0].scenarios=[{scenario_id:'toggle',given:'Off',when:'Press',then:'On',proof_required:['FUNCTIONAL_TEST']}];return V.sealContract(x);}});t.after(()=>repo.cleanup());repo.recipe.sourceManifestInput.slice_id='VNEXT-PRE-4';repo.recipe.planningInput.slice_id='VNEXT-PRE-4';
+ const produced=repo.produce(),a=produced.artifacts,body=require('../../scripts/kodjo/lib/vnext-legacy-queue-adapter').renderCompatibilityPlan({application_head:a.planningEnvelope.application_head,plan_contract_hash:a.planContract.contract_hash},a.planContract,a.uiAtomicityContract,a.requirementRegistry,a.candidateManifest),prefix='docs/preparation/TEST-SCOPED/';
+ const bytes=JSON.stringify({values:Object.fromEntries(F.required(repo.snapshot).map(d=>[d.property_id,d.rule.value])),scenarios:{toggle:true}}),fact={artifact_path:'facts/execution.json',artifact_sha256:V.sha256(bytes),observer:'EXECUTED_JSON_FACT',delivery_head:repo.head};
+ const observed={approvedPlanSha256:V.sha256(body),deliveryHead:repo.head,measurements:F.required(repo.snapshot).flatMap(d=>d.rule.viewports.map(viewport=>({...fact,measurement_id:d.property_id+'@'+viewport,property_id:d.property_id,reference_hash:repo.snapshot.contract_hash,viewport,value:d.rule.value,value_path:['values',d.property_id],evidence:'TEST ONLY'}))),scenarioResults:[{...fact,scenario_id:'toggle',reference_hash:repo.snapshot.contract_hash,status:'PASS',value:true,value_path:['scenarios','toggle'],proof_results:[{proof_type:'FUNCTIONAL_TEST',status:'PASS'}]}]};
+ const data={produced_file:prefix+'produced.json',approved_plan_file:prefix+'approved.md',observations_file:prefix+'observations.json',evidence_files:[{artifact_path:fact.artifact_path,git_path:prefix+'execution.json',sha256:V.sha256(bytes)}]};repo.write(data.approved_plan_file,body);repo.write(prefix+'execution.json',bytes);B.write(path.join(repo.cwd,data.produced_file),produced);B.write(path.join(repo.cwd,data.observations_file),observed);
+ let ledger=null,calls=0,closed=false;const output=fs.mkdtempSync(path.join(os.tmpdir(),'scoped-implementation-test-'));t.after(()=>fs.rmSync(output,{recursive:true,force:true}));
+ for(let n=0;n<20;n++){
+  if(ledger){const file='.github/orchestration/vnext-implementation-review-ledgers/'+ledger.dossier_hash+'.json';B.write(path.join(repo.cwd,file),ledger);data.review_ledger_file=file;}
+  B.write(path.join(repo.cwd,prefix+'inputs.json'),data);repo.git('add','.');repo.git('commit','-m','TEST ONLY scoped implementation progress');const source=repo.git('rev-parse','HEAD');
+  const request=Agent.create({source_head:source,inputs_file:prefix+'inputs.json',operation:'implementation-review',slice_id:'VNEXT-PRE-4',repository:'MyUncried/Application-Routine',issue_number:999},repo.cwd,{reviewCapacity:2});
+  const adapter=Agent.adapterFor(request,repo.cwd,{invoke:(_b,_a,_c,input)=>{calls++;const {dossier,review_scope:s}=JSON.parse(input),ids=prefix=>s.target_ids.filter(id=>id.startsWith(prefix)).map(id=>id.slice(prefix.length));return JSON.stringify({type:'result',session_id:'TEST-SCOPED-'+calls,structured_output:{verdict:'REVIEW_INCOMPLETE',reference_hashes:dossier.observation.references.map(r=>r.reference_hash),reviewed_assertion_ids:ids('ASSERTION:'),reviewed_scenario_ids:ids('SCENARIO:'),reviewed_preservation_ids:ids('PRESERVATION:'),findings:[],reservations:[],reason:'TEST ONLY scoped evidence'}});}});
+  const dir=path.join(output,String(n));fs.mkdirSync(dir);
+  if(!adapter.reviewScope){const before=calls,receipt=adapter.recover(dir);adapter.verify(receipt,dir);assert.equal(receipt.assessment.verdict,'APPROVE');assert.equal(calls,before);closed=true;break;}
+  const receipt=adapter.invoke(dir);adapter.verify(receipt,dir);assert.equal(receipt.status,'REVIEW_INCOMPLETE');ledger=I.append(adapter.implementationDossier,ledger,receipt);
+ }
+ assert.equal(closed,true);assert.ok(calls>1);assert.equal(ledger.records.length,calls);
 });
 test('generic plan adapter preserves the live review validator and its REVISE verdict',t=>{
  const f=setup(t,'plan-review'),repo=require('./helpers/vnext-figma-fixture').fixture();t.after(()=>repo.cleanup());
@@ -290,7 +309,7 @@ test('same-operation prior scan allows only the proven pre-model failure and sti
  f.values.log=f.values.log.replaceAll('d'.repeat(40),f.commit);
  const command=(bin,args,cwd)=>{
   if(bin==='gh'&&args[1].includes('/runs?'))return JSON.stringify({workflow_runs:[f.run]});
-  if(bin==='git'&&args[0]==='diff-tree')return file;
+  if(bin==='git'&&['diff-tree','diff'].includes(args[0]))return file;
   return f.command(bin,args,cwd);
  };
  assert.equal(Agent.priorInvocation(f.request,f.commit,repo.cwd,command),false);
@@ -311,12 +330,14 @@ test('resume control binds the original request and completed GitHub run without
  assert.throws(()=>Agent.resolveTrigger(repo.git('rev-parse','HEAD'),badFile,repo.cwd,command),/REQUEST_CHANGED/);
 });
 
-test('production execute entry checks out a sibling published plan and invokes its pinned adapter once',t=>{
+test('operational execute entry admits two routed identities and recovers their pinned reviews without a new call',async t=>{
+ for(const sliceId of ['VNEXT-QUAL-A','VNEXT-QUAL-B'])await t.test(sliceId,t=>{
  const f=setup(t,'plan-review'),repo=require('./helpers/vnext-figma-fixture').fixture();t.after(()=>repo.cleanup());
- repo.recipe.sourceManifestInput.slice_id='VNEXT-PRE-4';repo.recipe.planningInput.slice_id='VNEXT-PRE-4';
+ repo.recipe.sourceManifestInput.slice_id=sliceId;repo.recipe.planningInput.slice_id=sliceId;
+ require('./helpers/vnext-operation-admission-fixture').register(repo,sliceId);
  const produced=repo.produce(),base=repo.git('rev-parse','HEAD');repo.git('checkout','-b','plan/pre4-test');
  B.write(path.join(repo.cwd,'produced.json'),produced);B.write(path.join(repo.cwd,'inputs.json'),{produced_file:'produced.json',causal_file:null});repo.git('add','.');repo.git('commit','-m','TEST sibling plan');const source=repo.git('rev-parse','HEAD');
- const request=Agent.create({source_head:source,inputs_file:'inputs.json',operation:'plan-review',slice_id:'VNEXT-PRE-4',repository:f.request.repository,issue_number:999},repo.cwd);
+ const request=Agent.create({source_head:source,inputs_file:'inputs.json',operation:'plan-review',slice_id:sliceId,repository:f.request.repository,issue_number:999},repo.cwd);
  repo.git('update-ref','refs/remotes/origin/plan/pre4-test',source);repo.git('checkout','--detach',base);
  const file='.github/orchestration/requests/vnext-agent/'+request.contract_hash+'.json';B.write(path.join(repo.cwd,file),request);repo.git('add','.');repo.git('commit','-m','TEST main request alone');const requestCommit=repo.git('rev-parse','HEAD');
  assert.throws(()=>repo.git('merge-base','--is-ancestor',source,requestCommit));
@@ -325,4 +346,14 @@ test('production execute entry checks out a sibling published plan and invokes i
  const result=Agent.executeRequest(requestCommit,file,options);assert.equal(repo.git('rev-parse','HEAD'),source);assert.equal(result.verdict,'APPROVE');assert.equal(calls,1);
  repo.git('checkout','--detach',requestCommit);Agent.executeRequest(requestCommit,file,options);assert.equal(calls,1);
  assert.equal(Agent.verify(request,f.options.outputDirectory,{cwd:repo.cwd}).verdict,'APPROVE');
+ assert.throws(()=>require('../../scripts/kodjo/lib/vnext-operation-admission').admit(request,{cwd:repo.cwd,actor:'unauthorized-fixture'}),/ACTOR_UNAUTHORIZED/);
+ assert.throws(()=>require('../../scripts/kodjo/lib/vnext-operation-admission').admit({...request,slice_id:'PROTECTED-FIXTURE'},{cwd:repo.cwd}),/LEGACY_SLICE/);
+ });
+});
+test('dispatch run identity uses the resolved execution locator despite changed title and an earlier input environment',t=>{
+ const f=setup(t),repo=require('./helpers/vnext-figma-fixture').fixture();t.after(()=>repo.cleanup());const file='.github/orchestration/requests/vnext-agent/'+f.request.contract_hash+'.json';B.write(path.join(repo.cwd,file),f.request);repo.git('add','.');repo.git('commit','-m','TEST ONLY request locator');const commit=repo.git('rev-parse','HEAD');
+ const run={id:77,run_attempt:1,event:'workflow_dispatch',head_sha:commit,display_title:'Changed display name'},log='2026-10-14T12:00:00Z REQUEST_COMMIT: '+'a'.repeat(40)+'\n2026-10-14T12:00:00Z ##[group]Run $env:KODJO_REVIEW_CACHE=...\n2026-10-14T12:00:00Z $env:KODJO_REVIEW_OUTPUT=...\n2026-10-14T12:00:00Z REQUEST_COMMIT: '+commit+'\n2026-10-14T12:00:00Z REQUEST_PATH: '+file+'\n2026-10-14T12:00:00Z ##[endgroup]\n';
+ const command=(bin,args,cwd)=>bin==='gh'?(args[1].endsWith('/logs')?log:JSON.stringify({total_count:1,jobs:[{id:88,name:'review'}]})):Chain.command(bin,args,cwd);
+ assert.deepEqual(Agent.locatorForRun(run,f.request,repo.cwd,command),{request_commit:commit,request_path:file});
+ assert.throws(()=>Agent.locatorForRun(run,f.request,repo.cwd,(bin,args,cwd)=>bin==='gh'&&args[1].endsWith('/logs')?log+log:command(bin,args,cwd)),/BINDING_UNKNOWN/);
 });

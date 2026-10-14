@@ -1,6 +1,6 @@
-# VNext — relais commun ChatGPT / Claude pour PRE-4
+# VNext — relais commun ChatGPT / Claude
 
-Ce document remplace le parcours de transport spécifique de `KODJO_VNEXT_CHATGPT_PRE4_REVIEW_RELAY.md`. Le moteur commun est `scripts/kodjo/lib/vnext-agent-relay.js`, l'entrée du pilote `scripts/kodjo/agent-relay.js`. L'ancien CLI reste compatible et utilise le même moteur. Aucun démarrage de PRE-4 n'est autorisé par une modification du protocole. Le déploiement reste limité à `VNEXT-PRE-4`, après clôture de #340 et instruction de démarrage. La variante Claude #344 reste indépendante.
+Ce document remplace le parcours de transport spécifique de `KODJO_VNEXT_CHATGPT_PRE4_REVIEW_RELAY.md`. Le moteur commun est `scripts/kodjo/lib/vnext-agent-relay.js`, l'entrée du pilote `scripts/kodjo/agent-relay.js`. L'ancien CLI reste compatible et utilise le même moteur. Aucun démarrage de PRE-4 n'est autorisé par une modification du protocole. L'admission utilise le routage VNext, le bootstrap et le registre scellés au `source_head` exact : dépôt, issue, statut actif et acteur autorisé doivent correspondre. Une ancienne tranche protégée reste refusée par son routage/état, sans liste de numéros d'issues dans le moteur. Les dépendances réellement déclarées remplacent tout prérequis PRE-3 global. La variante Claude #344 reste indépendante.
 
 ## Contrat du pilote
 
@@ -64,3 +64,15 @@ Le détecteur distingue le CLI Claude géré par KODJO des applications Claude e
 ## Qualification
 
 Les tests locaux utilisent des processus/adaptateurs simulés et les validateurs réels, des objets Git épinglés et des artefacts déplacés. Ils ne prouvent ni un appel Claude réel, ni un réveil automatique. #345 reste ouverte jusqu'au parcours réel, aux reprises et à la récupération directe constatés. Les preuves CI du commit candidat sont consignées dans sa PR ; aucun run vert seul n'est une approbation indépendante.
+
+## Dépendances et identification des runs
+
+Le bootstrap haché peut déclarer `operation_dependencies` : liste de `slice_id`, `checkpoint_path`, `checkpoint_hash`. Chaque dépendance doit être unique, distincte de la tranche courante, clôturée dans le registre et dans GitHub, avec un checkpoint scellé exact lié à la tranche. Un `previous_slice_id` exige le checkpoint correspondant et sa localisation explicite ; un hash opaque historique n'est pas deviné. Une identité historique manquante ou ambiguë reste refusée.
+
+La recherche d'un appel antérieur n'utilise plus les titres. Pour un push elle relit le delta Git du HEAD réel du run contre son premier parent. Pour un dispatch elle exige le locator immuable unique enregistré dans le job de revue et son ascendance Git. Une preuve inaccessible ou ambiguë reste bloquante ; renommer un workflow ne crée aucun droit à rappeler le modèle. Les anciens contrôles de non-invocation, intentions, verrous, réponses et archives sont conservés.
+
+Toute nouvelle préparation documentaire emploie par défaut les unités précises d'états/scénarios et conserve le document intégral comme contexte. Les anciens checkpoints sans marqueur gardent leur projection FULL_FILE exacte lors de la validation. Pour les composants, appliquer `KODJO_VNEXT_COMPONENT_COVERAGE.md` : exhaustivité des sources et assertions conservée, couverture directe/héritée explicitée et phases de qualification distinctes.
+
+## Revues partielles et cumul
+
+Une nouvelle demande générique de grande revue de plan porte automatiquement `review_scope` scellé : contexte/produit exacts, ledger précédent, cibles assignées et capacité bornée. Ce paramètre de portée n'assouplit aucun seuil de couverture finale. Le mécanisme exige d'abord l'analyse de réutilisation des composants répétés, puis sélectionne les obligations directes restant à examiner. Le reçu partiel et ses sessions/réponses sont archivés sans verdict final. Le pilote consomme `consume-vnext-review-progress.js`, publie le ledger au chemin dérivé du contexte, puis crée la demande suivante avec le même mécanisme. L'agrégation finale réutilise les observations sans nouvel appel modèle et passe par les gates existants. Une tentative complète historique n'est jamais contournée par une nouvelle clé de sous-portée ; son archive doit être explicitement réconciliée.

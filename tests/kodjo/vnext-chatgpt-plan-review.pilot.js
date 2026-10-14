@@ -35,8 +35,8 @@ test('PRE-3, other pilots, altered requests and path traversal are rejected befo
   assert.throws(()=>R.execute({...f.request,produced_chain_hash:'b'.repeat(64)},f.options),/HASH/);
   assert.deepEqual(f.counts(),{calls:0,recovers:0});
 }));
-test('PRE-3 closure, issue state, source mismatch and Claude concurrency fail before paid review',()=>withFixture(f=>{
-  assert.throws(()=>R.execute(f.request,{...f.options,issueState:()=> 'open'}),/PRE3_NOT_CLOSED/);
+test('declared dependency, issue state, source mismatch and Claude concurrency fail before paid review',()=>withFixture(f=>{
+  assert.throws(()=>R.execute(f.request,{...f.options,dependencies:[{issue_number:123}],issueState:()=> 'open'}),/DEPENDENCY_ISSUE_NOT_CLOSED/);
   assert.throws(()=>R.execute(f.request,{...f.options,issueState:()=> 'closed'}),/ISSUE_NOT_OPEN/);
   assert.throws(()=>R.execute(reseal({...f.request,produced_chain_hash:'b'.repeat(64)}),f.options),/PLAN_BINDING/);
   assert.throws(()=>R.execute(f.request,{...f.options,lock:{claudeProcessState:()=>({state:'ACTIVE'})}}),/UNAVAILABLE/);

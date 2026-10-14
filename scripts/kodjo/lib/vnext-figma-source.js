@@ -342,6 +342,7 @@ function consumeArtifacts(ui,registry,directory,stage,planHash=null){
   V.verifyContractHash(ui,'VNEXT_FIGMA_UI_TRANSPORT_HASH_INVALID');
   V.verifyContractHash(registry,'VNEXT_FIGMA_REGISTRY_TRANSPORT_HASH_INVALID');
   validateCoverage(references,ui.criteria,registry);
+  if(ui.component_coverage)require('./vnext-component-coverage').validate(ui.component_coverage,{assertionIds:ui.criteria.flatMap(c=>c.assertions.map(a=>a.assertion_id)),criterionIds:ui.criteria.map(c=>c.criterion_id)});
   const base=fs.realpathSync(directory),observed=[];
   for(const ref of references){validate(ref.packet,{ready:true});const assets=[],look=lookup(ref.packet);
     for(const r of ref.packet.resources){const target=path.resolve(base,safePath(r.path));
@@ -353,6 +354,6 @@ function consumeArtifacts(ui,registry,directory,stage,planHash=null){
       if(!fs.readFileSync(target).equals(checkResource(r)))V.fail('VNEXT_FIGMA_RESOURCE_MATERIALIZATION_MISMATCH');assets.push({resource_id:r.resource_id,path:target,sha256:r.sha256});}
     observed.push({source_id:ref.source_id,reference_hash:ref.packet.contract_hash,documentary_states:ref.packet.states,properties:required(ref.packet).map(d=>propertyUnit(ref.packet,d.property_id,look)),assets});
   }
-  return V.sealContract({schema_version:'kodjo.vnext.figma-consumer-observation.v1',stage,plan_sha256:planHash||V.canonicalHash({ui_contract_hash:ui.contract_hash,requirement_registry_hash:registry.contract_hash}),references:observed,semantic_use:'NOT_ATTESTED_BY_BYTE_OBSERVATION'});
+  return V.sealContract({schema_version:'kodjo.vnext.figma-consumer-observation.v1',stage,plan_sha256:planHash||V.canonicalHash({ui_contract_hash:ui.contract_hash,requirement_registry_hash:registry.contract_hash}),references:observed,...(ui.component_coverage?{component_review_coverage_hash:ui.component_coverage.contract_hash,component_review_coverage_phase:ui.component_coverage.phase}:{}),semantic_use:'NOT_ATTESTED_BY_BYTE_OBSERVATION'});
 }
 module.exports={lookup,SCHEMA,id,safePath,build,validate,sourceInput,observe,unitText,propertyUnit,required,validateRegistry,validateCoverage,assertCurrent,verifyMeasurements,pack,unpack,packUi,unpackUi,consume,consumeArtifacts,snapshotContent,snapshotPacket};

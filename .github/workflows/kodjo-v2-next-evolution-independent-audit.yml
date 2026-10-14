@@ -10,6 +10,7 @@ on:
       - '!.github/orchestration/requests/vnext-work/README.md'
       - '!.github/orchestration/requests/vnext-work/signals/*.json'
       - '!.github/orchestration/requests/vnext-work/publish/*.json'
+      - '!.github/orchestration/requests/vnext-work/consumption/**/*.json'
       # Pure backlog edits are known non normative and need no workflow run.
       - '!.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md'
       - '!.github/orchestration/reports/**'

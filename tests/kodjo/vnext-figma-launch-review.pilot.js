@@ -5,7 +5,7 @@ function seal(p){const c=structuredClone(p);delete c.contract_hash;return V.seal
 function scenarios(p){p.states[0].scenarios=[{scenario_id:'toggle-off-on',given:'Selection is off',when:'Activate the toggle',then:'Selection is on',proof_required:['FUNCTIONAL_TEST']},{scenario_id:'toggle-on-off',given:'Selection is on',when:'Activate the toggle again',then:'Selection is off',proof_required:['FUNCTIONAL_TEST']}];return seal(p);}
 function setup(t){const f=Fixture.fixture({transformPacket:scenarios,launchMode:true});t.after(()=>f.cleanup());return f;}
 function capture(f,scope){const p=f.snapshot;return {launch_id:scope.launch_id,file_key:p.file_key,captured_at:p.captured_at,frames:p.frames,inventories:[{end:true,count:p.nodes.length,rows:p.nodes.map(n=>[n.id,n.parent_id,n.type,n.name])}],batches:[{end:true,requested_ids:p.nodes.map(n=>n.id),rows:p.nodes.map(n=>({id:n.id,child_ids:n.child_ids,properties:n.properties}))}],variables:p.variables,collections:p.collections,resources:p.resources};}
-async function launched(f,options={}){const scope={slice_id:f.recipe.planningInput.slice_id,launch_id:'TEST launch '+(options.suffix||'a'),file_key:f.snapshot.file_key,frames:f.snapshot.frames,documents:f.snapshot.documents};const c=await Launch.launch(scope,{capture:options.capture||((s)=>capture(f,s)),reconcile:options.reconcile||((raw,docs)=>({...raw,documents:docs,states:f.snapshot.states,decisions:f.snapshot.decisions,conflicts:[]})),persist:options.persist||(()=>({revision:f.head,path:f.packetPath,content:JSON.stringify(f.snapshot,null,2)+'\n'}))});return {c,scope};}
+async function launched(f,options={}){const scope={slice_id:f.recipe.planningInput.slice_id,launch_id:'TEST launch '+(options.suffix||'a'),file_key:f.snapshot.file_key,frames:f.snapshot.frames,documents:f.snapshot.documents};const c=await Launch.launch(scope,{...(options.atomicDocumentUnits===null?{}:{atomicDocumentUnits:options.atomicDocumentUnits||false}),capture:options.capture||((s)=>capture(f,s)),reconcile:options.reconcile||((raw,docs)=>({...raw,documents:docs,states:f.snapshot.states,decisions:f.snapshot.decisions,conflicts:[]})),persist:options.persist||(()=>({revision:f.head,path:f.packetPath,content:JSON.stringify(f.snapshot,null,2)+'\n'}))});return {c,scope};}
 function plan(f){const p=f.produce(),a=p.artifacts;return Adapter.renderCompatibilityPlan({application_head:a.planningEnvelope.application_head,plan_contract_hash:a.planContract.contract_hash},a.planContract,a.uiAtomicityContract,a.requirementRegistry,a.candidateManifest);}
 function facts(f,dir){const values=Object.fromEntries(F.required(f.snapshot).map(d=>[d.property_id,d.rule.value]));const observations={values,scenarios:{'toggle-off-on':true,'toggle-on-off':true}},content=JSON.stringify(observations);fs.writeFileSync(path.join(dir,'execution.json'),content);const artifact={artifact_path:'execution.json',artifact_sha256:V.sha256(content),observer:'EXECUTED_JSON_FACT',delivery_head:f.head};return {measurements:F.required(f.snapshot).flatMap(d=>d.rule.viewports.map(viewport=>({...artifact,measurement_id:d.property_id+'@'+viewport,property_id:d.property_id,reference_hash:f.snapshot.contract_hash,viewport,value:d.rule.value,value_path:['values',d.property_id],evidence:'TEST fixture execution facts; no pixel or device evidence'}))),scenarioResults:f.snapshot.states[0].scenarios.map(s=>({...artifact,scenario_id:s.scenario_id,reference_hash:f.snapshot.contract_hash,status:'PASS',value:true,value_path:['scenarios',s.scenario_id],proof_results:s.proof_required.map(proof_type=>({proof_type,status:'PASS'}))}))};}
 function reviewOptions(f,t){const dir=fs.mkdtempSync(path.join(os.tmpdir(),'vnext-figma-evidence-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));const body=plan(f);return {body,options:{cwd:f.cwd,approvedPlanSha256:V.sha256(body),deliveryHead:f.head,evidenceDirectory:dir,...facts(f,dir)}};}
@@ -106,7 +106,7 @@ test('documentary requirement kinds are explicit, frozen and separate from visua
  d.content='<KODJO_SCREEN_STATES_JSON>'+JSON.stringify({schema_version:'kodjo.screen-states.v1',states})+'</KODJO_SCREEN_STATES_JSON>';d.fingerprint=V.sha256(d.content);
  p.states=Launch.documentStates(p.documents);p.frames[0].state_id=states[0].state_id;
  const packet=seal(p);Launch.validateDocumentCoverage(packet);
- const c=Launch.requirements(packet,f.head,f.packetPath);
+ const c=Launch.requirements(packet,f.head,f.packetPath,undefined,false);
  for(const state of states)assert.equal(c.requirementInput.requirements.find(r=>r.statement===state.expected).kind,state.requirement_kind);
  assert.ok(c.requirementInput.requirements.filter(r=>r.statement.startsWith('Presentation ')).every(r=>r.kind==='UI'));
  const changed=structuredClone(packet);changed.states[0].requirement_kind='UI';
@@ -131,4 +131,14 @@ test('legacy inventories retain UI kind and full candidate observations include 
  delete legacy.candidate_observation_scope;delete legacy.contract_hash;
  legacy.candidate_observations=legacy.candidate_observations.filter(r=>ids.has(r.candidate_id)).map(({content_sha256,...r})=>r);
  Chain.verifyProduced(V.sealContract(legacy),f.cwd);
+});
+
+test('atomic launch binds documentary requirement to exact state and validates sealed mode',async t=>{
+ const f=setup(t),{c}=await launched(f,{atomicDocumentUnits:null});Launch.validate(c);assert.equal(c.functional_unit_mode,'ATOMIC_SCREEN_STATES');
+ const source=c.sourceManifestInput.sources.find(s=>s.authority==='FUNCTIONAL');
+ assert.equal(source.units[0].disposition,'CONTEXT_ONLY');
+ assert.ok(source.units.filter(u=>u.disposition==='REQUIREMENT_SOURCE').every(u=>/^L[0-9]+-L[0-9]+$/.test(u.locator)));
+ const functional=c.requirementInput.requirements.filter(r=>r.source_id===require('../../scripts/kodjo/lib/source-manifest').build(c.sourceManifestInput).sources.find(s=>s.authority==='FUNCTIONAL').source_id);
+ assert.equal(functional.length,f.snapshot.states.filter(s=>s.disposition==='REQUIRED').length);
+ const changed=structuredClone(c);delete changed.functional_unit_mode;delete changed.contract_hash;assert.throws(()=>Launch.validate(V.sealContract(changed)),/SOURCES_MISMATCH/);
 });

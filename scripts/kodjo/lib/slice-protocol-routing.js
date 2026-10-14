@@ -11,9 +11,9 @@ function git(cwd, args, optional = false) {
   }
   return result.stdout;
 }
-function resolve(sliceId, { cwd = process.cwd() } = {}) {
+function resolve(sliceId, { cwd = process.cwd(), revision = 'HEAD' } = {}) {
   V.assertSliceId(sliceId);
-  const head = git(cwd, ['rev-parse', 'HEAD']).trim();
+  const head = git(cwd, ['rev-parse', '--verify', revision + '^{commit}']).trim();
   const read = name => git(cwd, ['show', head + ':' + DIRECTORY + '/' + name], true);
   const rawPlan = read('cutover-plan.json'), rawActivation = read('activation.json');
   if (rawPlan === null && rawActivation === null) return Cutover.LEGACY;
