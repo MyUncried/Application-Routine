@@ -1,6 +1,6 @@
 # DSF — Pauses, icônes et symboles — 07/10/2026
 
-Complète [DSF Cadence](DSF-CADENCE-2026-10-06.md), avec priorité sur ses prescriptions incompatibles. Figma : G6RY5Ebhgwb4AHIOYDwwvg. Règles métier : [consolidation](Specifications-fonctionnelles/SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Les shells, Safe Areas, cibles tactiles et animations d’appui existants sont conservés.
+Complète [DSF Cadence](DSF-CADENCE-2026-10-06.md), avec priorité sur ses prescriptions incompatibles. Figma : G6RY5Ebhgwb4AHIOYDwwvg. Règles métier : [consolidation](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#resultats-temporels). Les shells, Safe Areas, cibles tactiles et animations d’appui existants sont conservés.
 
 ## États des actions contextuelles
 
@@ -63,4 +63,4 @@ Phrase unique Inter13/20, largeur324 à402, hauteur adaptée ; valeurs en gras, 
 Boutons locaux à componentiser ; contrôler layoutMode, centrage et liaisons aux tokens. Carte séance, Carte exercice et Ressenti hors DSF ne sont pas déclarés promus par ce lot. Aucune obligation de trois nouvelles maquettes d’exécution : shell existant réutilisé. Le Bip de cadence est désactivé en ramenant son stepper à0, affiché Aucun ; aucune nouvelle commande inventée.
 
 
-**Complément courant cartes :** [durée sans cadre, propriété Durée et géométrie](DSF-CARTES-DUREE-2026-10-07.md). Les276 textes v15 et les segments `{texte, gras}` sont définis dans [Phrase v1 actualisée](Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md).
+**Complément courant cartes :** [durée sans cadre, propriété Durée et géométrie](DSF-CARTES-DUREE-2026-10-07.md). Les276 textes v15 et les segments `{texte, gras}` sont définis dans [Phrase v1 actualisée](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases).

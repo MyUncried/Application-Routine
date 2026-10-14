@@ -34,7 +34,7 @@ Les phrases sont rendues en segments `{texte, gras}`, issus des paramètres, non
 
 46 captures et leurs empreintes dans `Specifications-fonctionnelles/images/formats-2026-10-14/manifest.json`. Les écarts F-01…04 sont dans la revue transverse. Aucun layout spécifique de confirmation/résultat Death by n’est qualifié par cette galerie. La couverture des captures ne détermine pas à elle seule la possibilité de développer : appliquer la clarification de portée ci-dessous.
 
-Voir [matrice](MATRICE-FORMATS-SEANCES-2026-10-14.md), [revue transverse](REVUE-COHERENCE-FORMATS-2026-10-14.md) et [spécification](Specifications-fonctionnelles/SPECIFICATION-FORMATS-SEANCES-2026-10-14.md).
+Voir [matrice](MATRICE-FORMATS-SEANCES-2026-10-14.md), [revue transverse](REVUE-COHERENCE-FORMATS-2026-10-14.md) et [spécification](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#formats-conception).
 
 ## Clarification d’autorité et de portée — 14/10/2026
 
