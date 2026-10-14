@@ -41,11 +41,11 @@ async function signalRun(c,run){
  W.binding(c);E.execution(run,pages('repos/'+c.repository+'/actions/runs/'+run.id+'/attempts/'+run.run_attempt+'/jobs','jobs'),c.repository);
  const operation=context(c,run);if(!operation)return {status:'LEGACY_OPERATION_IGNORED',run_id:run.id};
  const artifacts=pages('repos/'+c.repository+'/actions/runs/'+run.id+'/artifacts','artifacts').filter(a=>operation.kind==='CI'?Date.parse(a.created_at)>=Date.parse(run.run_started_at):a.name.endsWith('-'+run.id+'-'+run.run_attempt));
- const archives=[];for(const a of artifacts){
+ const archives=[],caches=[];for(const a of artifacts){
   if(a.expired||a.workflow_run?.id!==run.id||a.workflow_run.head_sha!==run.head_sha||!/^sha256:[a-f0-9]{64}$/.test(a.digest))throw Error('WORK_ARCHIVE_PROVENANCE');
-  const root=fs.mkdtempSync(path.join(os.tmpdir(),'vnext-work-archive-'));try{const dir=await W.archive(c.repository,a,root),files=fileManifest(dir);archives.push({artifact_id:a.id,artifact_name:a.name,artifact_sha256:a.digest.slice(7),run_id:run.id,run_attempt:run.run_attempt,run_head:run.head_sha,files,manifest_hash:V.canonicalHash(files)});}finally{fs.rmSync(root,{recursive:true,force:true,maxRetries:3,retryDelay:100});}
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),'vnext-work-archive-'));try{const dir=await W.archive(c.repository,a,root),files=fileManifest(dir);archives.push({artifact_id:a.id,artifact_name:a.name,artifact_sha256:a.digest.slice(7),run_id:run.id,run_attempt:run.run_attempt,run_head:run.head_sha,files,manifest_hash:V.canonicalHash(files)});caches.push(require('./lib/vnext-work-archive-cache').encode({artifact_id:a.id,artifact_sha256:a.digest.slice(7)},fs.readFileSync(path.join(root,'artifact.zip'))));}finally{fs.rmSync(root,{recursive:true,force:true,maxRetries:3,retryDelay:100});}
  }
  const jobs=pages('repos/'+c.repository+'/actions/runs/'+run.id+'/attempts/'+run.run_attempt+'/jobs','jobs');
- return W.publish(c,E.makeSignal(c,operation,run,jobs,archives),W.gh);
+ return W.publish(c,E.makeSignal(c,operation,run,jobs,archives),W.gh,caches);
 }
 module.exports={pages,context,fileManifest,signalRun};

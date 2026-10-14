@@ -60,6 +60,35 @@ function apiFixture(c){let head='1'.repeat(40),counter=1;const files=new Map(),b
   throw Error('Unexpected '+url);
  }return {api,files,calls,head:()=>head,move:()=>{moved=true;}};
 }
+function runSteps(f,action,input,api){
+ const transcript=[];
+ for(let count=0;count<100;count++){
+  const next=Consume.step(f.c,f.signal,action,input,transcript);
+  if(next.status==='COMPLETE')return {result:next.result,transcript};
+  const q=next.request,response=api(q.endpoint,q.method,q.data===null?undefined:q.data,q.allowMissing);
+  transcript.push({context_hash:next.context_hash,request:q,response:response===undefined?null:response});
+ }
+ throw Error('TEST step loop exceeded');
+}
+test('connector stepping executes the delivered consumer once and preserves ownership and checkpoint lineage',()=>{
+ const f=fixture(),a=apiFixture(f.c),input={owner_id:'EVENT',nonce:'a'.repeat(64),signal_commit_sha:a.head(),conversation_id:'CHAT',receipt_kind:'AUTOMATION_EVENT'};
+ a.files.set('.github/orchestration/requests/vnext-work/signals/'+f.signal.signal_key+'.json',f.signal);
+ const acquired=runSteps(f,'claim',input,a.api);assert.equal(acquired.result.status,'CLAIMED');
+ assert.equal(a.calls.filter(x=>x.method==='PATCH').length,1);
+ const before=a.calls.length;assert.equal(Consume.step(f.c,f.signal,'claim',input,acquired.transcript).status,'COMPLETE');assert.equal(a.calls.length,before);
+ const outcome={continuation_state:'RESULT_CONSUMED',next_action:'Technical result only',evidence_refs:['git:verified']};
+ const done=runSteps(f,'finish',{claim:acquired.result.claim,outcome},a.api);assert.equal(done.result.status,'PROCESSED');assert.equal(a.calls.filter(x=>x.method==='PATCH').length,3);
+ const receipt=a.files.get(C.ROOT+'receipts/'+f.signal.signal_key+'.json');assert.equal(receipt.claim_hash,acquired.result.claim.contract_hash);assert.match(receipt.checkpoint_ref,/^git:/);
+ assert.throws(()=>runSteps(f,'finish',{claim:C.claim(f.c,f.signal,{...input,nonce:'b'.repeat(64)}),outcome},a.api),/OWNED_ELSEWHERE/);
+});
+test('connector transcripts reject changed context, altered requests, missing responses and non-forced races',()=>{
+ const f=fixture(),a=apiFixture(f.c),input={owner_id:'A',nonce:'a'.repeat(64),signal_commit_sha:a.head(),conversation_id:'CHAT',receipt_kind:'AUTOMATION_EVENT'};
+ a.files.set('.github/orchestration/requests/vnext-work/signals/'+f.signal.signal_key+'.json',f.signal);
+ const first=Consume.step(f.c,f.signal,'claim',input),row={context_hash:first.context_hash,request:first.request,response:{content:Buffer.from(V.canonicalStringify(f.signal)).toString('base64')}};
+ assert.throws(()=>Consume.step(f.c,f.signal,'claim',{...input,nonce:'b'.repeat(64)},[row]),/TRANSCRIPT_CHANGED/);
+ assert.throws(()=>Consume.step(f.c,f.signal,'claim',input,[{...row,request:{...row.request,endpoint:'repos/attacker/repo'}}]),/TRANSCRIPT_CHANGED/);
+ a.move();assert.throws(()=>runSteps(f,'claim',input,a.api),/not fast forward/);
+});
 test('atomic durable claim prevents a second consumer; processed requires a published checkpoint',()=>{
  const f=fixture(),a=apiFixture(f.c),input={owner_id:'WORK_OWNER',nonce:'a'.repeat(64),signal_commit_sha:a.head(),conversation_id:'CHAT',receipt_kind:'MANUAL_RECOVERY'};a.files.set('.github/orchestration/requests/vnext-work/signals/'+f.signal.signal_key+'.json',f.signal);
  const acquired=Consume.acquire(f.c,f.signal,input,a.api);assert.equal(acquired.status,'CLAIMED');assert.equal(Consume.acquire(f.c,f.signal,input,a.api).status,'OWNED_BY_THIS_CONSUMER');

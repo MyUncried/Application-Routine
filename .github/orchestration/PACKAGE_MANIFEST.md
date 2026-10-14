@@ -302,7 +302,9 @@ L'ajout de la dépendance commune à la liste figée du runtime IMPLEMENT prése
 | `scripts/kodjo/lib/vnext-work-execution.js` | Descripteurs et faits vérifiés de CI, développement, tests et clôture ; aucune approbation implicite |
 | `scripts/kodjo/signal-vnext-work-execution.js` | Adaptateurs de provenance et archives physiques pour les producteurs inscrits |
 | `scripts/kodjo/lib/vnext-work-consumption.js` | Possession sans expiration, checkpoint et reçu durable |
-| `scripts/kodjo/consume-vnext-work-signal.js` | Transactions Git non forcées limitées au transport |
+| `scripts/kodjo/consume-vnext-work-signal.js` | Transactions Git non forcées limitées au transport ; modes connecteur reprenant exactement le même consommateur |
+| `scripts/kodjo/lib/vnext-work-archive-cache.js` | Copie exacte des octets ZIP, reconstruction locale et refus de digest/binding divergent |
+| `tests/kodjo/vnext-work-archive-cache.pilot.js` | Publication atomique signal/copie et refus d’altération |
 | `scripts/kodjo/recover-vnext-work.js` | Rattrapage des opérations enregistrées et réveil des signaux pendants, sans appel modèle |
 | `tests/kodjo/vnext-work-execution.pilot.js` | Refus de provenance, archive absente, concurrence, déplacement de tête et migration |
 

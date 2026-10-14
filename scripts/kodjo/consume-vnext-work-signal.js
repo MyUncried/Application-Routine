@@ -29,12 +29,39 @@ function finish(c,s,owned,outcome,api=W.gh){
  const receipt=C.processed(owned,cp,'git:'+written.head+':'+C.ROOT+'checkpoints/'+s.signal_key+'.json');
  const done=transaction(c,C.ROOT+'receipts/'+s.signal_key+'.json',receipt,api);return {status:'PROCESSED',head:done.head,checkpoint_hash:cp.contract_hash};
 }
+
+// Replay only recorded connector results. Never execute an API from the stepper.
+// The next missing request is returned to the authorized connector caller.
+function step(c,s,action,input,transcript=[]){
+ if(!['claim','finish'].includes(action)||!Array.isArray(transcript))throw Error('WORK_STEP_INPUT');
+ const context_hash=V.canonicalHash({binding:c,signal:s,action,input});
+ let index=0;
+ const api=(endpoint,method='GET',data,allowMissing=false)=>{
+  const request={endpoint,method,data:data===undefined?null:data,allowMissing};
+  const row=transcript[index++];
+  if(!row){const pause=Error('WORK_STEP_WAITING');pause.request=request;throw pause;}
+  V.assertExactKeys(row,['context_hash','request','response'],[],'WORK_STEP_ROW');
+  if(row.context_hash!==context_hash||V.canonicalStringify(row.request)!==V.canonicalStringify(request))throw Error('WORK_STEP_TRANSCRIPT_CHANGED');
+  if(row.response===null&&!allowMissing)throw Error('WORK_STEP_RESPONSE_REQUIRED');
+  return row.response;
+ };
+ try{
+  const result=action==='claim'?acquire(c,s,input,api):finish(c,s,input.claim,input.outcome,api);
+  if(index!==transcript.length)throw Error('WORK_STEP_TRAILING_RESPONSE');
+  return {status:'COMPLETE',context_hash,result};
+ }catch(error){
+  if(error.message!=='WORK_STEP_WAITING')throw error;
+  return {status:'WAITING_CONNECTOR',context_hash,request_index:index-1,request:error.request};
+ }
+}
+
 function main(args=process.argv.slice(2)){
  const fs=require('node:fs'),c=W.binding(JSON.parse(fs.readFileSync(W.CONFIG||'.github/orchestration/KODJO_VNEXT_WORK_TRANSPORT.json','utf8'))),[action,signalPath,inputPath]=args;
  const s=JSON.parse(fs.readFileSync(signalPath,'utf8')),input=JSON.parse(fs.readFileSync(inputPath,'utf8'));
+ if(action==='step-claim'||action==='step-finish')return step(c,s,action.slice(5),input.input,input.transcript);
  if(action==='claim')return acquire(c,s,input);
  if(action==='finish')return finish(c,s,input.claim,input.outcome);
  throw Error('Usage: consume-vnext-work-signal.js claim|finish signal.json private-input.json');
 }
 if(require.main===module)try{console.log(JSON.stringify(main()));}catch(e){console.error(e.message);process.exitCode=1;}
-module.exports={read,transaction,acquire,finish};
+module.exports={read,transaction,acquire,finish,step};

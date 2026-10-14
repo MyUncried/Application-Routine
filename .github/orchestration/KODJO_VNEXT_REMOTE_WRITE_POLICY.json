@@ -953,7 +953,7 @@
     },
     {
       "producer": "scripts/kodjo/signal-vnext-agent-continuation.js",
-      "producer_blob_oid": "1b4c66c36909e5166a17dd6c621ce0c1820990a8",
+      "producer_blob_oid": "d5cefbb0d760b02d32742edcff5ac4be9e5d008e",
       "authorization_condition": "VERIFIED_REGISTERED_SLICE_RESULT_EXACT_ARTIFACT_SINGLE_SIGNAL_PR_NONFORCED_WRITE_ONLY",
       "required_job": null,
       "capabilities": [
@@ -979,7 +979,7 @@
     },
     {
       "producer": "scripts/kodjo/consume-vnext-work-signal.js",
-      "producer_blob_oid": "07d6bc641ad5e4212dcce4f74070c13f9685a18f",
+      "producer_blob_oid": "1b13498c48d4697670675d816f663ff07d06e1fd",
       "authorization_condition": "VERIFIED_SIGNAL_ATOMIC_OWNERSHIP_CHECKPOINT_NONFORCED_TRANSPORT_CONSUMPTION_ONLY",
       "required_job": null,
       "capabilities": [
