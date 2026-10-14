@@ -9,12 +9,15 @@ const Identity=require('./lib/slice-identity');
 const CONFIG='.github/orchestration/KODJO_VNEXT_WORK_TRANSPORT.json';
 const ROOT='.github/orchestration/requests/vnext-work/signals/';
 function binding(c){
- V.assertExactKeys(c,['schema_version','repository','transport_pr','transport_branch','automation_id','conversation_id','allowed_workflows','contract_hash'],[],'WORK_BINDING_KEYS');V.verifyContractHash(c);
+ V.assertExactKeys(c,['schema_version','repository','transport_pr','transport_branch','automation_id','conversation_id','allowed_workflows','contract_hash'],['authorized_actors','recovery_since','accepted_prior_destinations'],'WORK_BINDING_KEYS');V.verifyContractHash(c);
  if(c.schema_version!=='kodjo.vnext.work-transport.v1'||!Number.isSafeInteger(c.transport_pr)||c.transport_pr<1
   ||!/^[-\w]+\/[-.\w]+$/.test(c.repository)||c.transport_branch!=='orchestration/vnext-work-signals'
   ||!c.automation_id||!c.conversation_id||!Array.isArray(c.allowed_workflows)||!c.allowed_workflows.length)throw Error('WORK_BINDING_INVALID');
- for(const w of c.allowed_workflows){V.assertExactKeys(w,['path','artifact_prefix'],[],'WORK_WORKFLOW_KEYS');
-  if(!/^\.github\/workflows\/[\w-]+\.yml$/.test(w.path)||!/^[\w-]+-$/.test(w.artifact_prefix))throw Error('WORK_WORKFLOW_INVALID');}
+ if(c.authorized_actors)V.uniqueStrings(c.authorized_actors,'WORK_ACTORS_REQUIRED','authorized_actors');
+ if(c.recovery_since)V.assertIsoDate(c.recovery_since,'WORK_RECOVERY_START');
+ if(c.accepted_prior_destinations){if(!Array.isArray(c.accepted_prior_destinations))throw Error('WORK_PRIOR_DESTINATIONS');for(const p of c.accepted_prior_destinations){V.assertExactKeys(p,['automation_id','conversation_id'],[],'WORK_PRIOR_DESTINATION_KEYS');if(!p.automation_id||!p.conversation_id)throw Error('WORK_PRIOR_DESTINATION');}}
+ for(const w of c.allowed_workflows){V.assertExactKeys(w,['path','artifact_prefix'],['operation_kind'],'WORK_WORKFLOW_KEYS');
+  if(!/^\.github\/workflows\/[\w-]+\.yml$/.test(w.path)||!/^[\w-]+-$/.test(w.artifact_prefix)||(w.operation_kind&&!require('./lib/vnext-work-execution').KINDS.has(w.operation_kind)))throw Error('WORK_WORKFLOW_INVALID');}
  return c;
 }
 function makeSignal(c,request,run,artifact,directory,bootstrap,registry){
@@ -60,7 +63,8 @@ function publish(c,signal,api){
  binding(c);V.verifyContractHash(signal);
   V.assertSha64(signal.signal_key,'WORK_SIGNAL_KEY');
  if(signal.repository!==c.repository||signal.transport_pr!==c.transport_pr||signal.automation_id!==c.automation_id
-  ||signal.conversation_id!==c.conversation_id||signal.schema_version!=='kodjo.vnext.work-signal.v1')throw Error('WORK_SIGNAL_BINDING');
+  ||signal.conversation_id!==c.conversation_id||!['kodjo.vnext.work-signal.v1','kodjo.vnext.work-signal.v2'].includes(signal.schema_version))throw Error('WORK_SIGNAL_BINDING');
+ if(signal.schema_version==='kodjo.vnext.work-signal.v2')require('./lib/vnext-work-execution').validateSignal(signal,c);
  const prefix='repos/'+c.repository,pr=api(prefix+'/pulls/'+c.transport_pr);
  if(pr.state!=='open'||pr.head?.repo?.full_name!==c.repository||pr.head.ref!==c.transport_branch)throw Error('WORK_DESTINATION_INVALID');
  const ref=prefix+'/git/refs/heads/'+c.transport_branch,head=api(ref).object.sha;V.assertSha40(head);
@@ -101,6 +105,7 @@ async function main(){
  const env=process.env;
  if(env.GITHUB_ACTIONS!=='true'||env.VNEXT_WORK_SIGNAL_JOB!=='publish-signal')throw Error('WORK_SERIALIZED_JOB_REQUIRED');
  const c=binding(B.read(CONFIG));if(env.GITHUB_REPOSITORY!==c.repository)throw Error('WORK_REPOSITORY');
+ if(env.GITHUB_EVENT_NAME==='schedule'||env.VNEXT_RECOVER_WORK==='true')return require('./recover-vnext-work').recover(c);
  let id=Number(env.VNEXT_SOURCE_RUN_ID);
  if(env.GITHUB_EVENT_NAME==='push'){
   const changed=git(['diff','--name-status',env.VNEXT_PUSH_BEFORE,env.GITHUB_SHA]).split('\n');
@@ -111,6 +116,7 @@ async function main(){
  }
  if(!Number.isSafeInteger(id)||id<1)throw Error('WORK_RUN_REQUIRED');
  const run=gh('repos/'+c.repository+'/actions/runs/'+id);
+ if(c.allowed_workflows.find(w=>w.path===run.path)?.operation_kind)return require('./signal-vnext-work-execution').signalRun(c,run);
  // Refuse foreign runs before downloading any artifact or granting a signal.
  if(run.status!=='completed'||!c.allowed_workflows.some(w=>w.path===run.path)||run.head_repository?.full_name!==c.repository||run.head_branch!=='main')throw Error('WORK_RUN_PROVENANCE');
  const listing=gh('repos/'+c.repository+'/actions/runs/'+id+'/artifacts?per_page=100');
@@ -132,4 +138,4 @@ async function main(){
  }finally{fs.rmSync(directory,{recursive:true,force:true});}
 }
 if(require.main===module)main().then(r=>console.log(JSON.stringify(r))).catch(e=>{console.error(e.message);process.exitCode=1;});
-module.exports={binding,makeSignal,publish,main,archive};
+module.exports={binding,makeSignal,publish,main,archive,gh,git};

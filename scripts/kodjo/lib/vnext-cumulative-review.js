@@ -22,11 +22,12 @@ function validateScope(produced,scope){
  const ids=V.uniqueStrings(scope.target_ids,'VNEXT_CUMULATIVE_SCOPE_TARGETS','target_ids'),allowed=new Set(targets(produced));
  if(!Number.isSafeInteger(scope.target_limit)||scope.target_limit<1||scope.target_limit>MAX_DIRECT_TARGETS||ids.length>scope.target_limit||ids.some(id=>!allowed.has(id)))throw Error('VNEXT_CUMULATIVE_SCOPE_TARGETS');return scope;
 }
-function record(produced,saved,{scope=null}={}){
+function record(produced,saved,{scope=null,sourceRequestHash=null}={}){
  V.verifyContractHash(produced);V.verifyContractHash(saved);
  if(saved.schema_version!=='kodjo.vnext.review-response.v1'||saved.produced_chain_hash!==produced.contract_hash||saved.reviewer_packet_hash!==produced.reviewer_packet.contract_hash||saved.stdout_sha256!==V.sha256(saved.stdout)||saved.process_result?.status!==0||saved.process_result.signal||saved.process_result.error_code)throw Error('VNEXT_CUMULATIVE_PROCESS_UNVERIFIED');
  if(scope){validateScope(produced,scope);if(saved.review_scope_hash!==scope.contract_hash)throw Error('VNEXT_CUMULATIVE_SCOPE_UNBOUND');}
  else if(saved.review_scope_hash)throw Error('VNEXT_CUMULATIVE_SCOPE_REQUIRED');
+ if(sourceRequestHash!==null){V.assertSha64(sourceRequestHash);if(scope)throw Error('VNEXT_CUMULATIVE_HISTORICAL_SCOPE_INVALID');}
  let result;try{result=JSON.parse(saved.stdout);}catch{throw Error('VNEXT_CUMULATIVE_RAW_INVALID');}
  if(result.type!=='result'||result.is_error||typeof result.session_id!=='string'||!result.session_id||!result.structured_output)throw Error('VNEXT_CUMULATIVE_RAW_INVALID');
  const semantic=require('./vnext-live-chain').decodeReviewOutput(produced.artifacts.reviewContext,result.structured_output.semantic_review);
@@ -35,11 +36,11 @@ function record(produced,saved,{scope=null}={}){
  if(!Array.isArray(result.structured_output.native_assessment_observations))throw Error('VNEXT_CUMULATIVE_NATIVE_OBSERVATIONS_REQUIRED');
  if(scope&&result.structured_output.native_assessment_observations.some(r=>!scope.target_ids.includes(r.criterion_id)))throw Error('VNEXT_CUMULATIVE_NATIVE_SCOPE_EXCEEDED');
  return V.sealContract({schema_version:PARTIAL,produced_chain_hash:produced.contract_hash,review_context_hash:produced.artifacts.reviewContext.contract_hash,reviewer_packet_hash:produced.reviewer_packet.contract_hash,
-  scope,session_id:result.session_id,saved_response:saved,partial_report:partial,native_observations:result.structured_output.native_assessment_observations});
+  scope,...(sourceRequestHash?{source_request_hash:sourceRequestHash}:{}),session_id:result.session_id,saved_response:saved,partial_report:partial,native_observations:result.structured_output.native_assessment_observations});
 }
 function verifyRecord(produced,receipt){
  V.verifyContractHash(receipt);if(receipt.schema_version!==PARTIAL)throw Error('VNEXT_CUMULATIVE_PARTIAL_SCHEMA');
- equal(record(produced,receipt.saved_response,{scope:receipt.scope}),receipt,'VNEXT_CUMULATIVE_PARTIAL_CHANGED');return receipt;
+ equal(record(produced,receipt.saved_response,{scope:receipt.scope,sourceRequestHash:receipt.source_request_hash||null}),receipt,'VNEXT_CUMULATIVE_PARTIAL_CHANGED');return receipt;
 }
 function initial(produced){return V.sealContract({schema_version:LEDGER,produced_chain_hash:produced.contract_hash,review_context_hash:produced.artifacts.reviewContext.contract_hash,target_limit:MAX_DIRECT_TARGETS,records:[],coverage:{direct_target_ids:[],inherited_target_ids:[],pending_target_ids:[...targets(produced)].sort()},finding_ids:[],status:'PARTIAL_NOT_APPROVED'});}
 function project(produced,records){

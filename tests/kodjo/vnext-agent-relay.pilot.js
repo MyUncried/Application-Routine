@@ -135,6 +135,25 @@ test('implementation adapter binds the original plan/delivery/facts, recovers sa
  const moved=path.join(f.root,'download');fs.cpSync(f.options.outputDirectory,moved,{recursive:true});assert.equal(Agent.verify(request,moved,{cwd:repo.cwd}).verdict,'APPROVE');
  const other=reseal({...request,issue_number:998});assert.throws(()=>Agent.adapterFor(other,repo.cwd),/SCOPE_BINDING/);
 });
+test('implementation relay scopes real pinned inputs and closes cumulative review without another invocation',t=>{
+ const Fixture=require('./helpers/vnext-figma-fixture'),F=require('../../scripts/kodjo/lib/vnext-figma-source'),I=require('../../scripts/kodjo/lib/vnext-implementation-cumulative');
+ const repo=Fixture.fixture({transformPacket:p=>{const {contract_hash,...x}=p;x.states[0].scenarios=[{scenario_id:'toggle',given:'Off',when:'Press',then:'On',proof_required:['FUNCTIONAL_TEST']}];return V.sealContract(x);}});t.after(()=>repo.cleanup());repo.recipe.sourceManifestInput.slice_id='VNEXT-PRE-4';repo.recipe.planningInput.slice_id='VNEXT-PRE-4';
+ const produced=repo.produce(),a=produced.artifacts,body=require('../../scripts/kodjo/lib/vnext-legacy-queue-adapter').renderCompatibilityPlan({application_head:a.planningEnvelope.application_head,plan_contract_hash:a.planContract.contract_hash},a.planContract,a.uiAtomicityContract,a.requirementRegistry,a.candidateManifest),prefix='docs/preparation/TEST-SCOPED/';
+ const bytes=JSON.stringify({values:Object.fromEntries(F.required(repo.snapshot).map(d=>[d.property_id,d.rule.value])),scenarios:{toggle:true}}),fact={artifact_path:'facts/execution.json',artifact_sha256:V.sha256(bytes),observer:'EXECUTED_JSON_FACT',delivery_head:repo.head};
+ const observed={approvedPlanSha256:V.sha256(body),deliveryHead:repo.head,measurements:F.required(repo.snapshot).flatMap(d=>d.rule.viewports.map(viewport=>({...fact,measurement_id:d.property_id+'@'+viewport,property_id:d.property_id,reference_hash:repo.snapshot.contract_hash,viewport,value:d.rule.value,value_path:['values',d.property_id],evidence:'TEST ONLY'}))),scenarioResults:[{...fact,scenario_id:'toggle',reference_hash:repo.snapshot.contract_hash,status:'PASS',value:true,value_path:['scenarios','toggle'],proof_results:[{proof_type:'FUNCTIONAL_TEST',status:'PASS'}]}]};
+ const data={produced_file:prefix+'produced.json',approved_plan_file:prefix+'approved.md',observations_file:prefix+'observations.json',evidence_files:[{artifact_path:fact.artifact_path,git_path:prefix+'execution.json',sha256:V.sha256(bytes)}]};repo.write(data.approved_plan_file,body);repo.write(prefix+'execution.json',bytes);B.write(path.join(repo.cwd,data.produced_file),produced);B.write(path.join(repo.cwd,data.observations_file),observed);
+ let ledger=null,calls=0,closed=false;const output=fs.mkdtempSync(path.join(os.tmpdir(),'scoped-implementation-test-'));t.after(()=>fs.rmSync(output,{recursive:true,force:true}));
+ for(let n=0;n<20;n++){
+  if(ledger){const file='.github/orchestration/vnext-implementation-review-ledgers/'+ledger.dossier_hash+'.json';B.write(path.join(repo.cwd,file),ledger);data.review_ledger_file=file;}
+  B.write(path.join(repo.cwd,prefix+'inputs.json'),data);repo.git('add','.');repo.git('commit','-m','TEST ONLY scoped implementation progress');const source=repo.git('rev-parse','HEAD');
+  const request=Agent.create({source_head:source,inputs_file:prefix+'inputs.json',operation:'implementation-review',slice_id:'VNEXT-PRE-4',repository:'MyUncried/Application-Routine',issue_number:999},repo.cwd,{reviewCapacity:2});
+  const adapter=Agent.adapterFor(request,repo.cwd,{invoke:(_b,_a,_c,input)=>{calls++;const {dossier,review_scope:s}=JSON.parse(input),ids=prefix=>s.target_ids.filter(id=>id.startsWith(prefix)).map(id=>id.slice(prefix.length));return JSON.stringify({type:'result',session_id:'TEST-SCOPED-'+calls,structured_output:{verdict:'REVIEW_INCOMPLETE',reference_hashes:dossier.observation.references.map(r=>r.reference_hash),reviewed_assertion_ids:ids('ASSERTION:'),reviewed_scenario_ids:ids('SCENARIO:'),reviewed_preservation_ids:ids('PRESERVATION:'),findings:[],reservations:[],reason:'TEST ONLY scoped evidence'}});}});
+  const dir=path.join(output,String(n));fs.mkdirSync(dir);
+  if(!adapter.reviewScope){const before=calls,receipt=adapter.recover(dir);adapter.verify(receipt,dir);assert.equal(receipt.assessment.verdict,'APPROVE');assert.equal(calls,before);closed=true;break;}
+  const receipt=adapter.invoke(dir);adapter.verify(receipt,dir);assert.equal(receipt.status,'REVIEW_INCOMPLETE');ledger=I.append(adapter.implementationDossier,ledger,receipt);
+ }
+ assert.equal(closed,true);assert.ok(calls>1);assert.equal(ledger.records.length,calls);
+});
 test('generic plan adapter preserves the live review validator and its REVISE verdict',t=>{
  const f=setup(t,'plan-review'),repo=require('./helpers/vnext-figma-fixture').fixture();t.after(()=>repo.cleanup());
  repo.recipe.sourceManifestInput.slice_id='VNEXT-PRE-4';repo.recipe.planningInput.slice_id='VNEXT-PRE-4';const produced=repo.produce(),a=produced.artifacts;

@@ -40,9 +40,11 @@ function coverage(dossier,assessment){
   if(V.canonicalHash(row.observed_files.slice().sort((a,b)=>a.path.localeCompare(b.path)))!==V.canonicalHash(expected))throw Error('VNEXT_IMPLEMENTATION_MAPPING_SOURCE_UNVERIFIED');
   if(row.status==='MATCH')matched.push(row.criterion_id);else if(assessment.verdict==='APPROVE')throw Error('VNEXT_IMPLEMENTATION_MAPPING_FALSE_APPROVAL');
  }
- const inherited=C.covered(descriptor.plan,[...assessment.reviewed_assertion_ids,...matched]);
+ const imported=qualifiedIds(dossier,observations);
+ const inherited=C.covered(descriptor.plan,[...assessment.reviewed_assertion_ids,...matched,...imported]);
  return V.sealContract({schema_version:'kodjo.vnext.component-implementation-coverage.v1',delivery_head:descriptor.delivery_head,signature:descriptor.signature,
-  direct_assertion_ids:[...assessment.reviewed_assertion_ids].sort(),inherited_assertion_ids:inherited,mapping_observations_hash:V.canonicalHash(observations)});
+  direct_assertion_ids:[...assessment.reviewed_assertion_ids].sort(),inherited_assertion_ids:inherited,...(imported.length?{qualified_common_assertion_ids:imported.sort()}:{}),mapping_observations_hash:V.canonicalHash(observations)});
 }
 function schema(){return {type:'array',items:{type:'object',additionalProperties:false,required:['criterion_id','status','observed_files','reason'],properties:{criterion_id:{type:'string'},status:{enum:['MATCH','MISMATCH']},observed_files:{type:'array',items:{type:'object',additionalProperties:false,required:['path','revision','sha256'],properties:{path:{type:'string'},revision:{type:'string'},sha256:{type:'string'}}}},reason:{type:'string'}}}};}
-module.exports={prepare,coverage,schema};
+function qualifiedIds(dossier,observations){const matched=new Set((observations||[]).filter(o=>o.status==='MATCH').map(o=>o.criterion_id));return [...new Set((dossier.qualified_common_imports||[]).flatMap(q=>q.imported_common_assertions.map(x=>x.assertion_id)))].filter(id=>(dossier.component_review?.plan.inheritance_links||[]).some(l=>l.common_assertion_id===id&&matched.has(l.common_criterion_id)));}
+module.exports={prepare,coverage,schema,qualifiedIds};

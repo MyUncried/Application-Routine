@@ -10,6 +10,7 @@ on:
       - '!.github/orchestration/requests/vnext-work/README.md'
       - '!.github/orchestration/requests/vnext-work/signals/*.json'
       - '!.github/orchestration/requests/vnext-work/publish/*.json'
+      - '!.github/orchestration/requests/vnext-work/consumption/**/*.json'
       - '!.github/orchestration/vnext-closure/**'
       - '!.github/orchestration/v2-slices/**'
       - '!.github/orchestration/vnext12/**'

@@ -11,7 +11,7 @@ const CATEGORIES=new Set(['RUNTIME_PROTOCOL_CHANGE','NORMATIVE_PROTOCOL_CHANGE',
 function classifyPath(file){
   if(/^(?:scripts\/kodjo\/|tests\/kodjo\/|\.github\/workflows\/kodjo(?:-v2|-slice|-vnext)[^/]*\.ya?ml$)/.test(file))return 'RUNTIME_PROTOCOL_CHANGE';
   if(NORMATIVE_FILES.has(file)||/^\.github\/orchestration\/(?:KODJO_PROTOCOL_V2_SPEC[^/]*\.md|v2-slices\/[^/]+\/(?:slice-bootstrap\.json|technical-plan\.md|planning-mission\.md|independent-review\.md))$/.test(file))return 'NORMATIVE_PROTOCOL_CHANGE';
-  if(file==='.github/orchestration/requests/vnext-work/README.md'||/^\.github\/orchestration\/requests\/vnext-work\/(?:signals|publish)\/[^/]+\.json$/.test(file))return 'NON_NORMATIVE_DOCUMENTATION';
+  if(file==='.github/orchestration/requests/vnext-work/README.md'||/^\.github\/orchestration\/requests\/vnext-work\/consumption\/(?:claims|checkpoints|receipts)\/[a-f0-9]{64}\.json$/.test(file)||/^\.github\/orchestration\/requests\/vnext-work\/consumption\/wakeup-[a-f0-9]{64}\.json$/.test(file)||/^\.github\/orchestration\/requests\/vnext-work\/(?:signals|publish)\/[^/]+\.json$/.test(file))return 'NON_NORMATIVE_DOCUMENTATION';
   if(file==='.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md'||file.startsWith('.github/orchestration/reports/'))return 'NON_NORMATIVE_DOCUMENTATION';
   return 'UNKNOWN';
 }

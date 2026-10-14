@@ -294,3 +294,18 @@ Relais de revue du plan : `.github/orchestration/KODJO_VNEXT_CHATGPT_PRE4_REVIEW
 | `scripts/kodjo/analyze-vnext-component-reuse.js` | Mesure reproductible sans réécriture de source ni couverture inventée |
 
 L'ajout de la dépendance commune à la liste figée du runtime IMPLEMENT préserve sa fermeture récursive. Aucun mode, transition, autorisation ou gate V2 n'est modifié. Les preuves du candidat courant restent distinctes des preuves historiques.
+
+## Retour et récupération communs des opérations VNext
+
+| Fichier | Rôle |
+|---|---|
+| `scripts/kodjo/lib/vnext-work-execution.js` | Descripteurs et faits vérifiés de CI, développement, tests et clôture ; aucune approbation implicite |
+| `scripts/kodjo/signal-vnext-work-execution.js` | Adaptateurs de provenance et archives physiques pour les producteurs inscrits |
+| `scripts/kodjo/lib/vnext-work-consumption.js` | Possession sans expiration, checkpoint et reçu durable |
+| `scripts/kodjo/consume-vnext-work-signal.js` | Transactions Git non forcées limitées au transport |
+| `scripts/kodjo/recover-vnext-work.js` | Rattrapage des opérations enregistrées et réveil des signaux pendants, sans appel modèle |
+| `tests/kodjo/vnext-work-execution.pilot.js` | Refus de provenance, archive absente, concurrence, déplacement de tête et migration |
+
+| `scripts/kodjo/lib/vnext-implementation-cumulative.js` | Portées, réponses partielles et agrégat d'implémentation sans nouveau modèle |
+| `scripts/kodjo/lib/vnext-qualified-component-import.js` | Revalidation des preuves communes importées et invalidation de code/tokens |
+| `tests/kodjo/vnext-implementation-cumulative.pilot.js` | Couverture, préservation, refus de faux APPROVE et contextes modifiés |

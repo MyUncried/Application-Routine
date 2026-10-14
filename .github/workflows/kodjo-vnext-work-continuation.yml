@@ -2,8 +2,16 @@ name: KODJO VNext — Work continuation
 run-name: VNext Work continuation / ${{ github.event.workflow_run.id || github.sha }}
 on:
   workflow_run:
-    workflows: ['KODJO VNext — ChatGPT agent relay', 'KODJO VNext — ChatGPT PRE-4 agent relay']
+    workflows: ['KODJO VNext — ChatGPT agent relay', 'KODJO VNext — ChatGPT PRE-4 agent relay', 'KODJO V2 Lean Queue', 'KODJO VNext generic delivery closure', 'KODJO VNext proof stability and architecture', 'KODJO V2 pilot tests']
     types: [completed]
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+    inputs:
+      recover:
+        description: Recover registered pending operations without invoking a model
+        type: boolean
+        default: true
   push:
     branches: [main]
     paths: ['.github/orchestration/requests/vnext-work/publish/*.json']
@@ -14,7 +22,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   publish-signal:
-    if: github.event_name == 'workflow_run' || github.actor == 'MyUncried'
+    if: github.event_name == 'workflow_run' || github.event_name == 'schedule' || github.actor == 'MyUncried'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -27,6 +35,7 @@ jobs:
       VNEXT_WORK_SIGNAL_JOB: publish-signal
       VNEXT_SOURCE_RUN_ID: ${{ github.event.workflow_run.id || '' }}
       VNEXT_PUSH_BEFORE: ${{ github.event.before || '' }}
+      VNEXT_RECOVER_WORK: ${{ github.event_name == 'workflow_dispatch' && inputs.recover || false }}
     steps:
       - uses: actions/checkout@v6
         with:

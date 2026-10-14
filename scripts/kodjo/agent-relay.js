@@ -9,7 +9,7 @@ function validate(request){
   V.assertExactKeys(request,['schema_version','pilot','slice_id','repository','issue_number','source_head','operation','inputs_file','inputs_hash','operation_hash','contract_hash'],['review_scope'],'AGENT_REQUEST_KEYS');
   V.verifyContractHash(request,'AGENT_REQUEST_HASH');V.assertSha40(request.source_head,'AGENT_REQUEST_HEAD');V.assertSha64(request.inputs_hash,'AGENT_REQUEST_INPUTS_HASH');V.assertSha64(request.operation_hash,'AGENT_REQUEST_OPERATION_HASH');
   Chain.relative(request.inputs_file);V.assertSliceId(request.slice_id);
-  if(request.review_scope){V.verifyContractHash(request.review_scope);if(request.operation!=='plan-review')throw Error('AGENT_REVIEW_SCOPE_OPERATION');}
+  if(request.review_scope){V.verifyContractHash(request.review_scope);if(!['plan-review','implementation-review'].includes(request.operation))throw Error('AGENT_REVIEW_SCOPE_OPERATION');}
   if(request.schema_version!==SCHEMA||request.pilot!=='CHATGPT_WORK'
     ||request.repository!=='MyUncried/Application-Routine'||!Number.isSafeInteger(request.issue_number)||request.issue_number<=0
     ||!OPERATIONS.includes(request.operation))throw Error('AGENT_REQUEST_SCOPE_REFUSED');
@@ -26,7 +26,8 @@ function create(config,cwd,options={}){
   validate(request);const adapter=adapterFor(request,cwd,options);adapter.preflight();const {contract_hash,...fields}=request;request=V.sealContract({...fields,...(adapter.reviewScope?{review_scope:adapter.reviewScope}:{}),operation_hash:adapter.storageKey});return request;
 }
 function adapterFor(request,cwd,{invoke,reviewCapacity=require('./lib/vnext-cumulative-review').MAX_DIRECT_TARGETS}={}){
-  const data=inputs(request,cwd),read=file=>Chain.readGitObject(cwd,request.source_head,Chain.relative(file));
+  const data=inputs(request,cwd),metadataPaths=[request.inputs_file];
+  const read=file=>B.read(Chain.relative(file),{readText:name=>{name=Chain.relative(name);if(!metadataPaths.includes(name))metadataPaths.push(name);return Chain.readGit(cwd,request.source_head,name);}});
   let operation;
   if(request.operation==='plan-review'){
     V.assertExactKeys(data,['produced_file','causal_file'],[],'AGENT_PLAN_INPUTS');
@@ -73,7 +74,7 @@ function adapterFor(request,cwd,{invoke,reviewCapacity=require('./lib/vnext-cumu
     operation={storageKey:V.canonicalHash({operation:'review-scope',produced:produced.contract_hash,baseReceipt:baseReceipt.contract_hash,scopeRequest:scopeRequest.contract_hash}),preflight,hasResponse:d=>fs.existsSync(path.join(d,'scope-review-response.json')),invoke:d=>run(d,false),recover:d=>run(d,true),
       verify:r=>{Scope.validateReceipt(r,context());if(r.request.contract_hash!==scopeRequest.contract_hash)throw Error('AGENT_SCOPE_RECEIPT_BINDING');return r;},verdict:()=>null};
   }else{
-    V.assertExactKeys(data,['produced_file','approved_plan_file','observations_file','evidence_files'],[],'AGENT_IMPLEMENTATION_INPUTS');
+    V.assertExactKeys(data,['produced_file','approved_plan_file','observations_file','evidence_files'],['review_ledger_file','qualified_common_reviews'],'AGENT_IMPLEMENTATION_INPUTS');
     if(!Array.isArray(data.evidence_files))throw Error('AGENT_IMPLEMENTATION_EVIDENCE_REQUIRED');
     const planBody=Chain.readGit(cwd,request.source_head,Chain.relative(data.approved_plan_file)),observed=read(data.observations_file);
     V.assertExactKeys(observed,['approvedPlanSha256','deliveryHead','measurements','scenarioResults'],[],'AGENT_IMPLEMENTATION_OBSERVATIONS');
@@ -86,6 +87,11 @@ function adapterFor(request,cwd,{invoke,reviewCapacity=require('./lib/vnext-cumu
     V.verifyContractHash(plan);
     if(plan.contract_hash!==produced.artifacts.planContract.contract_hash)throw Error('AGENT_IMPLEMENTATION_PLAN_BINDING');
     const F=require('./lib/vnext-figma-implementation-review');
+    const qualifiedSources=(data.qualified_common_reviews||[]).map(s=>{
+      V.assertExactKeys(s,['plan_file','observations_file','receipt_file','response_file','evidence_files'],[],'AGENT_QUALIFIED_SOURCE_KEYS');
+      if(!Array.isArray(s.evidence_files))throw Error('AGENT_QUALIFIED_SOURCE_FACTS');
+      return {...s,body:Chain.readGit(cwd,request.source_head,Chain.relative(s.plan_file)),observations:read(s.observations_file),receipt:read(s.receipt_file),raw:Chain.readGit(cwd,request.source_head,Chain.relative(s.response_file))};
+    });
     const materialize=d=>{
       const seen=new Set();
       for(const row of data.evidence_files){
@@ -98,16 +104,35 @@ function adapterFor(request,cwd,{invoke,reviewCapacity=require('./lib/vnext-cumu
         if(fs.existsSync(file)){if(V.sha256(fs.readFileSync(file))!==row.sha256)throw Error('AGENT_IMPLEMENTATION_CACHE_CHANGED');}
         else fs.writeFileSync(file,bytes,{flag:'wx'});
       }
-      return {...observed,cwd,evidenceDirectory:d,portableReceipt:true,readText:file=>Chain.readGit(cwd,request.source_head,path.relative(cwd,file).split(path.sep).join('/'))};
+      const meta=[...new Set([...metadataPaths,data.approved_plan_file,...data.evidence_files.map(x=>x.git_path)])];
+      const readText=file=>{const rel=path.relative(cwd,file).split(path.sep).join('/');if(!meta.includes(rel))meta.push(rel);return Chain.readGit(cwd,request.source_head,rel);};
+      const qualifiedCommonReviews=qualifiedSources.map(s=>{
+       const directory=path.join(d,'qualified-history',s.receipt.contract_hash),seen=new Set();V.verifyContractHash(s.receipt);
+       for(const row of s.evidence_files){V.assertExactKeys(row,['artifact_path','git_path','sha256'],[],'AGENT_QUALIFIED_FILE_KEYS');const relative=Chain.relative(row.artifact_path);Chain.relative(row.git_path);V.assertSha64(row.sha256);if(seen.has(relative)||!/\.json$/.test(relative))throw Error('AGENT_QUALIFIED_FILE_PATH');seen.add(relative);
+        const bytes=Chain.readGit(cwd,request.source_head,row.git_path);if(V.sha256(bytes)!==row.sha256)throw Error('AGENT_QUALIFIED_FILE_CHANGED');const file=path.join(directory,relative);fs.mkdirSync(path.dirname(file),{recursive:true});if(fs.existsSync(file)){if(V.sha256(fs.readFileSync(file))!==row.sha256)throw Error('AGENT_QUALIFIED_CACHE_CHANGED');}else fs.writeFileSync(file,bytes,{flag:'wx'});
+       }
+       return {previousPlanBody:s.body,previousOptions:{...s.observations,cwd,evidenceDirectory:directory,portableReceipt:true,readText},previousReceipt:s.receipt,previousRaw:s.raw};
+      });
+      return {...observed,cwd,evidenceDirectory:d,portableReceipt:true,metadataPaths:meta,readText,qualifiedCommonReviews};
     };
-    operation={storageKey:V.canonicalHash({operation:'implementation-review',plan:V.sha256(planBody),observed,evidence_files:data.evidence_files}),preflight:()=>{
+    const C=require('./lib/vnext-implementation-cumulative'),ledger=data.review_ledger_file?read(data.review_ledger_file):null;
+    if(request.review_scope)reviewCapacity=request.review_scope.capacity;
+    const temp=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'vnext-implementation-scope-'));let dossier,scope;
+    try{const legacyKey=V.canonicalHash({operation:'implementation-review',plan:V.sha256(planBody),observed,evidence_files:data.evidence_files,...(qualifiedSources.length?{qualified_reviews:qualifiedSources.map(s=>({receipt_hash:s.receipt.contract_hash,plan_sha256:V.sha256(s.body),raw_sha256:V.sha256(s.raw),evidence_files:s.evidence_files}))}:{})});
+      const count=produced.artifacts.uiAtomicityContract.assertion_count+observed.scenarioResults.length+produced.artifacts.uiAtomicityContract.criteria.length;
+      const chunked=!!ledger||!!request.review_scope||request.operation_hash!==legacyKey&&count>reviewCapacity;
+      if(chunked){dossier=F.prepare(planBody,materialize(temp));if(ledger)C.verify(dossier,ledger);scope=C.scope(dossier,ledger,{capacity:reviewCapacity});}else scope=null;
+      if(request.review_scope&&scope?.contract_hash!==request.review_scope.contract_hash)throw Error('AGENT_IMPLEMENTATION_SCOPE_BINDING');
+      operation={storageKey:chunked?V.canonicalHash({legacyKey,scope:scope?.contract_hash||null,ledger:ledger?.contract_hash||null}):legacyKey,reviewScope:scope,reviewLedger:ledger,implementationDossier:dossier,preflight:()=>{
       Chain.verifyProduced(produced,cwd);
       if(V.sha256(planBody)!==observed.approvedPlanSha256)throw Error('AGENT_IMPLEMENTATION_PLAN_CHANGED');
       for(const row of data.evidence_files)if(V.sha256(Chain.readGit(cwd,request.source_head,Chain.relative(row.git_path)))!==row.sha256)throw Error('AGENT_IMPLEMENTATION_FILE_CHANGED');
-    },hasResponse:d=>fs.existsSync(path.join(d,'implementation-review-response.json')),
-      invoke:d=>F.review(planBody,{...materialize(d),...(invoke?{invoke}:{})}),recover:d=>F.recover(planBody,materialize(d)),
-      verify:(r,d)=>F.verifyReceipt(planBody,materialize(d),r,fs.readFileSync(path.join(d,'implementation-review-response.json'),'utf8')),
-      verdict:r=>r.assessment.verdict};
+      if(chunked&&!scope)C.aggregate(dossier,ledger);
+    },hasResponse:d=>chunked&&!scope||fs.existsSync(path.join(d,'implementation-review-response.json')),
+      invoke:d=>F.review(planBody,{...materialize(d),reviewScope:scope,...(invoke?{invoke}:{})}),recover:d=>chunked&&!scope?C.aggregate(dossier,ledger):F.recover(planBody,{...materialize(d),reviewScope:scope}),
+      verify:(r,d)=>F.verifyReceipt(planBody,{...materialize(d),reviewScope:scope},r,r.schema_version==='kodjo.vnext.cumulative-implementation-review.v1'?null:fs.readFileSync(path.join(d,'implementation-review-response.json'),'utf8')),
+      verdict:r=>r.status==='REVIEW_INCOMPLETE'?null:r.assessment.verdict};
+    }finally{fs.rmSync(temp,{recursive:true,force:true,maxRetries:3,retryDelay:100});}
   }
   return {...operation,name:request.operation,result:r=>V.sealContract({schema_version:'kodjo.vnext.agent-result.v1',
     request_hash:request.contract_hash,source_head:request.source_head,slice_id:request.slice_id,operation:request.operation,
@@ -297,7 +322,20 @@ function locatorForRun(run,request,cwd,command=Chain.command){
   return resolveTrigger(run.head_sha,paths[0],cwd,command);
 }
 function priorScopeReconciled(prior,request,cwd){
-  if(!prior.review_scope||!request.review_scope?.previous_ledger_hash)return false;
+  if(!request.review_scope?.previous_ledger_hash)return false;
+  if(!prior.review_scope){
+    if(prior.operation!=='plan-review'||request.operation!=='plan-review')return false;
+    const C=require('./lib/vnext-cumulative-review'),data=inputs(request,cwd),produced=Chain.readGitObject(cwd,request.source_head,data.produced_file);
+    if(produced.contract_hash!==prior.operation_hash)return false;
+    const ledger=Chain.readGitObject(cwd,request.source_head,C.pathFor(produced));C.verifyLedger(produced,ledger);
+    if(ledger.contract_hash!==request.review_scope.previous_ledger_hash)throw Error('AGENT_PRIOR_HISTORICAL_LEDGER_CHANGED');
+    const record=ledger.records.find(r=>r.scope===null&&r.source_request_hash===prior.contract_hash&&r.saved_response.produced_chain_hash===prior.operation_hash);
+    return !!record&&request.review_scope.target_ids.every(id=>!record.partial_report.reviewed_target_ids.includes(id));
+  }
+  if(request.operation==='implementation-review'){
+    const op=adapterFor(request,cwd);if(!op.reviewLedger||op.reviewLedger.contract_hash!==request.review_scope.previous_ledger_hash)throw Error('AGENT_PRIOR_IMPLEMENTATION_LEDGER_CHANGED');
+    const record=op.reviewLedger.records.find(r=>r.scope.contract_hash===prior.review_scope.contract_hash);return !!record&&request.review_scope.target_ids.every(id=>!record.reviewed_targets.includes(id));
+  }
   const Cumulative=require('./lib/vnext-cumulative-review'),data=inputs(request,cwd),produced=Chain.readGitObject(cwd,request.source_head,data.produced_file);
   const ledger=Chain.readGitObject(cwd,request.source_head,Cumulative.pathFor(produced));Cumulative.verifyLedger(produced,ledger);
   if(ledger.contract_hash!==request.review_scope.previous_ledger_hash)throw Error('AGENT_PRIOR_SCOPE_LEDGER_CHANGED');
@@ -314,12 +352,12 @@ function priorInvocation(request,input,cwd,command=Chain.command){
         const locator=locatorForRun(run,request,cwd,command);
         const prior=Chain.readGitObject(cwd,locator.request_commit,locator.request_path);
         if(prior.schema_version===SCHEMA){validate(prior);
-          const overlap=prior.review_scope&&request.review_scope&&prior.review_scope.produced_chain_hash===request.review_scope.produced_chain_hash&&prior.review_scope.target_ids.some(id=>request.review_scope.target_ids.includes(id));
+          const overlap=prior.review_scope&&request.review_scope&&prior.review_scope.schema_version===request.review_scope.schema_version&&(prior.review_scope.produced_chain_hash||prior.review_scope.dossier_hash)===(request.review_scope.produced_chain_hash||request.review_scope.dossier_hash)&&prior.review_scope.target_ids.some(id=>request.review_scope.target_ids.includes(id));
           const unreconciledOverlap=overlap&&!priorScopeReconciled(prior,request,cwd);
           if((prior.operation_hash===request.operation_hash||unreconciledOverlap
           ||request.review_scope&&prior.operation==='plan-review'&&prior.operation_hash===request.review_scope.produced_chain_hash)
           &&!failedAncestryBeforeInvocation(run,prior,locator.request_commit,cwd,command)
-          &&!recordedFailureBeforeInvocation(run,prior,cwd,command))return true;}
+          &&!priorScopeReconciled(prior,request,cwd)&&!recordedFailureBeforeInvocation(run,prior,cwd,command))return true;}
         else{require('./chatgpt-plan-review').validate(prior);if(request.operation==='plan-review'&&(prior.produced_chain_hash===request.operation_hash||prior.produced_chain_hash===request.review_scope?.produced_chain_hash))return true;}
       }
       if(rows.length<100)return false;

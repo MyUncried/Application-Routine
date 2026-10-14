@@ -6,7 +6,7 @@ Audit lu intégralement : `94ea7dc96604843ff6a9b1ed4551ab4f83890aa1`, rapport `2
 
 PRE-4 a avancé séparément jusqu'à `211a9a592f1a5743c89736111132816fc8e84d76`. Son pilote a déjà corrigé notamment les préservations, classifications natives, sources documentaires et captures. Ce checkpoint ne remplace pas ces travaux. Aucune revue Claude ni aucun développement PRE-4 n'est lancé ici. La variante #344, V2, les cycles clôturés et le produit ne sont pas modifiés.
 
-## État des axes
+## État des axes au checkpoint initial (avant reprise du pilote)
 
 « Implémenté » désigne le candidat de #358, pas main. Les contrôles locaux sont des contrôles du mécanisme avec processus simulés et objets Git réels ; ils ne prouvent pas une réception Work ni une qualification visuelle produit.
 
@@ -74,3 +74,21 @@ Le chantier n'est pas clos : terminer N06–N08, les interfaces de cumul/import 
 Run VNext `38561066022` : qualification Linux `115841965349` et Windows `115841965243` réussies. Les deux jobs d'équivalence historique échouent ; l'archive Linux `11892980110` désigne exactement F-001 : `lib/vnext-component-coverage.js` manque dans la liste des dépendances embarquées par le runtime IMPLEMENT. Le run de contrôles hérités `38561066211`, job `115842085201`, confirme le même défaut (1 530 réussites, un échec, deux skips).
 
 La liste de fichiers du workflow IMPLEMENT est complétée, son empreinte exacte de sécurité mise à jour et le manifeste complété. Aucun changement des modes, transitions ou autorisations V2. Les 16 contrôles locaux ciblés de fermeture et gel passent. Le candidat corrigé doit repasser la CI ; un succès du candidat précédent ne vaut pas validation de cette correction.
+
+
+## Reprise publiée du pilote PRE-4 — 14 octobre 2026
+
+La reprise conserve le candidat `bb15aae411d6d3877eacfb881f4d79efb1d7ca5e` et la PR #358. Les états ci-dessus décrivent le checkpoint initial ; les corrections suivantes les complètent sans déclarer le chantier clos.
+
+| Axe complémentaire | État du nouveau candidat | Preuve réelle restant nécessaire |
+|---|---|---|
+| N03, reprise historique | Import explicite de réponse partielle et de ses constats dans un ledger du même contexte exact ; refus de changement de source ou de faux raccordement. | L'ancien PRE-4 modifié n'est pas réconciliable par transfert de couverture. |
+| N06, familles asynchrones | Adaptateurs CI, implémentation et tests/clôture avec provenance du run, tentative exacte, requête immuable, archives vérifiées et diagnostic d'archive absente. | CI du commit publié puis signal et consommation effectifs. |
+| N07, récupération commune | Balayage paginé des opérations enregistrées et réveil commun ; claims durables, checkpoints publiés et reçus distincts de la récupération manuelle ; aucun vol par expiration. | Exécution du workflow sur main et poursuite effective. |
+| N08, destination | Automation remplacée et ancienne désactivée. La destination renvoyée par Work correspond au binding Git de cette conversation ; destinations historiques explicitement conservées en lecture. | Configuration vérifiée seulement : réception automatique et accusé durable restent à démontrer. |
+| Cumul d'implémentation | Portées bornées, réponses brutes et sessions conservées, ledger append-only, agrégation sans nouvel appel ; branchement au relais et consommation. | Qualification CI et opération réelle selon les gates existantes. |
+| Import de preuve commune | Relecture de la preuve brute antérieure et de son code Git exact ; signature commune/token/variante/bindings ; mapping courant toujours obligatoire. | Aucun donneur ni mapping PRE-4 réellement qualifié à ce checkpoint. |
+
+Contrôles locaux : suite complète **564 réussites, zéro échec, zéro skip**. Après le raccordement historique final, les **30 contrôles ciblés** du relais et du cumul passent également. Les tests de revue utilisent des réponses explicitement TEST ONLY ; ils ne sont pas une revue Claude du produit. Les contrôles de sécurité des écritures distantes et les filtres V2 restent exigés en CI. Aucun code applicatif n'est modifié.
+
+Le plan PRE-4 consolidé reste à `211a9a592f1a5743c89736111132816fc8e84d76`. Le catalogue initial de 180 526 obligations est conservé ; sa réduction effective n'est toujours pas démontrée. Prochaine étape : qualifier ce candidat publié, intégrer les interfaces communes, compléter les sources/mappings réels avant mesure et reconstruction exactes. La revue résiduelle précède l'approbation explicite du propriétaire ; le développement produit reste interdit avant cette approbation.
