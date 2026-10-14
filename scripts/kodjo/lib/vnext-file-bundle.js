@@ -92,6 +92,9 @@ function describe(file, value, onFile = () => {}) {
 }
 
 function read(file, { readText } = {}) {
+  // Relative injected readers address Git objects with '/' on every host.
+  // Absolute and filesystem readers retain native paths and existing guards.
+  const paths = readText && !path.isAbsolute(file) ? path.posix : path;
   const get = readText || (name => {
     if (fs.lstatSync(name).isSymbolicLink()) V.fail('VNEXT_BUNDLE_SYMLINK');
     return fs.readFileSync(name, 'utf8');
@@ -101,8 +104,8 @@ function read(file, { readText } = {}) {
   V.assertExactKeys(parsed, ['schema_version', 'logical_sha256', 'folder', 'root', 'contract_hash'], [], 'VNEXT_BUNDLE_MANIFEST_INVALID');
   V.verifyContractHash(parsed, 'VNEXT_BUNDLE_MANIFEST_HASH_INVALID');
   V.assertSha64(parsed.logical_sha256, 'VNEXT_BUNDLE_LOGICAL_HASH_INVALID');
-  if (parsed.folder !== PARTS_FOLDER && parsed.folder !== path.basename(file) + '.parts-' + parsed.logical_sha256) V.fail('VNEXT_BUNDLE_PATH_INVALID');
-  const directory = path.join(path.dirname(file), parsed.folder);
+  if (parsed.folder !== PARTS_FOLDER && parsed.folder !== paths.basename(file) + '.parts-' + parsed.logical_sha256) V.fail('VNEXT_BUNDLE_PATH_INVALID');
+  const directory = paths.join(paths.dirname(file), parsed.folder);
   if (!readText && fs.lstatSync(directory).isSymbolicLink()) V.fail('VNEXT_BUNDLE_SYMLINK');
   let count = 0;
   const decode = (node, depth = 0) => {
@@ -111,7 +114,7 @@ function read(file, { readText } = {}) {
       V.assertExactKeys(node, ['kind', 'file', 'sha256', 'bytes'], [], 'VNEXT_BUNDLE_DESCRIPTOR_INVALID');
       V.assertSha64(node.sha256, 'VNEXT_BUNDLE_PART_HASH_INVALID');
       if (node.file !== node.sha256 + '.json' || !Number.isInteger(node.bytes) || node.bytes < 1 || node.bytes > LIMIT) V.fail('VNEXT_BUNDLE_PATH_INVALID');
-      const text = get(path.join(directory, node.file));
+      const text = get(paths.join(directory, node.file));
       if (Buffer.byteLength(text) !== node.bytes || crypto.createHash('sha256').update(text, 'utf8').digest('hex') !== node.sha256) V.fail('VNEXT_BUNDLE_PART_HASH_INVALID');
       return JSON.parse(text);
     }

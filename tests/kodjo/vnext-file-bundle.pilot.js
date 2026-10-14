@@ -11,6 +11,68 @@ const Chain = require('../../scripts/kodjo/lib/vnext-live-chain');
 function temp(t) { const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vnext-bundle-')); t.after(() => fs.rmSync(dir, { recursive: true, force: true })); return dir; }
 function firstLeaf(root) { if (root.kind === 'file') return root; for (const item of root.fields?.map(x => x[1]) || root.parts || root.items || []) { const found = firstLeaf(item); if (found) return found; } }
 
+function platformBundle(platformPath) {
+  const moduleFile = require.resolve('../../scripts/kodjo/lib/vnext-file-bundle');
+  const localRequire = require('node:module').createRequire(moduleFile), isolated = { exports: {} };
+  require('node:vm').runInThisContext('(function(require,module,exports){\n' + fs.readFileSync(moduleFile, 'utf8') + '\n})', { filename: moduleFile })(
+    name => name === 'node:path' ? platformPath : localRequire(name), isolated, isolated.exports);
+  return isolated.exports;
+}
+
+test('Git-backed bundle reader uses Git paths on Windows and preserves integrity checks', () => {
+  // Execute the production reader with each platform's real path implementation,
+  // without changing process.platform or the shared node:path module.
+  for (const platformPath of [path.win32, path.posix]) {
+    const reader = platformBundle(platformPath);
+    for (const file of ['prepared.json', 'nested/contracts/prepared.json']) {
+      for (const historical of [false, true]) {
+        const value = V.sealContract({ text: 'é😀', rows: [1, 2, 3] }), files = new Map();
+        B.describe(file, value, (name, text) => files.set(name, text));
+        let manifest = JSON.parse(files.get(file));
+        if (historical) {
+          const folder = path.posix.basename(file) + '.parts-' + manifest.logical_sha256;
+          const oldPart = path.posix.join(path.posix.dirname(file), manifest.folder, firstLeaf(manifest.root).file);
+          files.set(path.posix.join(path.posix.dirname(file), folder, firstLeaf(manifest.root).file), files.get(oldPart));
+          const { contract_hash, ...unsigned } = manifest;
+          manifest = V.sealContract({ ...unsigned, folder });
+          files.set(file, JSON.stringify(manifest));
+        }
+        const observed = [];
+        const readText = name => {
+          Chain.relative(name);
+          observed.push(name);
+          assert.ok(files.has(name), 'every part must come from the pinned Git namespace');
+          return files.get(name);
+        };
+        assert.deepEqual(reader.read(file, { readText }), value);
+        assert.equal(observed.length, 2);
+        const part = observed[1], original = files.get(part);
+        files.set(part, '{}');
+        assert.throws(() => reader.read(file, { readText }), { code: 'VNEXT_BUNDLE_PART_HASH_INVALID' });
+        files.set(part, original);
+        const { contract_hash, ...unsigned } = manifest;
+        files.set(file, JSON.stringify(V.sealContract({ ...unsigned, folder: '../outside' })));
+        assert.throws(() => reader.read(file, { readText }), { code: 'VNEXT_BUNDLE_PATH_INVALID' });
+        files.set(file, JSON.stringify(V.sealContract({ ...unsigned, root: { ...manifest.root, file: '../outside.json' } })));
+        assert.throws(() => reader.read(file, { readText }), { code: 'VNEXT_BUNDLE_PATH_INVALID' });
+      }
+    }
+  }
+});
+
+test('injected absolute-path readers retain native Windows and POSIX paths', () => {
+  for (const [platformPath, file] of [[path.win32, 'C:\\checkout\\contracts\\plan.json'], [path.win32, '\\\\server\\share\\plan.json'], [path.posix, '/checkout/contracts/plan.json']]) {
+    const value = { text: 'TEST ONLY é😀' }, text = JSON.stringify(value), hash = V.sha256(text);
+    const manifest = V.sealContract({ schema_version: B.SCHEMA, logical_sha256: V.canonicalHash(value), folder: 'parts', root: { kind: 'file', file: hash + '.json', sha256: hash, bytes: Buffer.byteLength(text) } });
+    const part = platformPath.join(platformPath.dirname(file), 'parts', hash + '.json');
+    const files = new Map([[file, JSON.stringify(manifest)], [part, text]]);
+    assert.deepEqual(platformBundle(platformPath).read(file, { readText: name => {
+      assert.ok(files.has(name), 'absolute-path readers must retain the native directory');
+      return files.get(name);
+    } }), value);
+  }
+});
+
 test('compact part storage shares immutable full-hash leaves and accepts historical folder manifests', t => {
   const dir=temp(t),first=path.join(dir,'first.json'),second=path.join(dir,'second.json');
   const a={name:'premier',rows:[1,2,3]},b={name:'second',rows:[1,2,3]};
