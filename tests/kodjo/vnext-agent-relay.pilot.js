@@ -280,6 +280,10 @@ test('retrying a resume run resolves back to the exact original request and reje
  assert.throws(()=>Agent.resolveTrigger(nextHead,nextFile,repo.cwd,wrong),/RUN_MISMATCH/);
 });
 test('same-operation prior scan allows only the proven pre-model failure and still refuses ambiguity',t=>{
+ const inherited={GITHUB_RUN_ATTEMPT:process.env.GITHUB_RUN_ATTEMPT,GITHUB_RUN_ID:process.env.GITHUB_RUN_ID};
+ t.after(()=>{for(const [key,value] of Object.entries(inherited)){if(value===undefined)delete process.env[key];else process.env[key]=value;}});
+ // Exercise the intended invocation context, not the outer CI retry attempt.
+ process.env.GITHUB_RUN_ATTEMPT='1';process.env.GITHUB_RUN_ID='999';
  const repo=require('./helpers/vnext-figma-fixture').fixture();t.after(()=>repo.cleanup());const f=historicalRunFixture();
  const file='.github/orchestration/requests/vnext-agent/'+f.request.contract_hash+'.json';B.write(path.join(repo.cwd,file),f.request);repo.git('add','.');repo.git('commit','-m','TEST immutable request');
  f.commit=repo.git('rev-parse','HEAD');f.run.head_sha=f.commit;f.run.display_title='VNext PRE-4 agent operation / '+f.commit;
@@ -290,6 +294,8 @@ test('same-operation prior scan allows only the proven pre-model failure and sti
   return f.command(bin,args,cwd);
  };
  assert.equal(Agent.priorInvocation(f.request,f.commit,repo.cwd,command),false);
+ process.env.GITHUB_RUN_ATTEMPT='2';assert.equal(Agent.priorInvocation(f.request,f.commit,repo.cwd,command),true);
+ process.env.GITHUB_RUN_ATTEMPT='1';
  f.values.log='unknown prior outcome';assert.equal(Agent.priorInvocation(f.request,f.commit,repo.cwd,command),true);
 });
 test('resume control binds the original request and completed GitHub run without republishing the plan',t=>{

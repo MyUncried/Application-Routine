@@ -229,7 +229,7 @@
     },
     {
       "path": ".github/workflows/kodjo-v2-pilot-tests.yml",
-      "blob_oid": "8ad1c552294eb1e60e553440957de8fcb3339812",
+      "blob_oid": "eb4133b75374c68abe92e9ed3b322ef72b0df63a",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -319,7 +319,7 @@
     },
     {
       "path": ".github/workflows/kodjo-v2-next-evolution-independent-audit.yml",
-      "blob_oid": "bbc09e54d8189db1a4e59d5b2715472238acd36a",
+      "blob_oid": "4ec05fcf8bdce6fc6f9a7cb509a2a369ad6b6f5a",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -914,7 +914,7 @@
     },
     {
       "producer": ".github/workflows/kodjo-vnext-proof-stability.yml",
-      "producer_blob_oid": "603eff72bc7b6c88784e7ca8a318d1a2d70fb79f",
+      "producer_blob_oid": "9f0d02ce9d09749d5d0917293662dbeefff0095b",
       "authorization_condition": "EXACT_SUCCESSFUL_CYCLE_CONTROLS_ISOLATED_SIGNAL_ONLY",
       "required_job": "wake-orchestrator",
       "capabilities": [
@@ -948,6 +948,32 @@
           "capability": "GITHUB_PERMISSION_WRITE:issues",
           "destination": "github-token:issues",
           "scope": "JOB:close-vnext-delivery"
+        }
+      ]
+    },
+    {
+      "producer": "scripts/kodjo/signal-vnext-agent-continuation.js",
+      "producer_blob_oid": "2b1a8324cec62b15d972703aadb4de3ffbc757a8",
+      "authorization_condition": "VERIFIED_REGISTERED_SLICE_RESULT_EXACT_ARTIFACT_SINGLE_SIGNAL_PR_NONFORCED_WRITE_ONLY",
+      "required_job": null,
+      "capabilities": [
+        {
+          "capability": "REST_REPOSITORY_WRITE",
+          "destination": "static-source-line",
+          "scope": "SCRIPT"
+        }
+      ]
+    },
+    {
+      "producer": ".github/workflows/kodjo-vnext-work-continuation.yml",
+      "producer_blob_oid": "611540380a9d6fd1347e8986efe776339b3830dd",
+      "authorization_condition": "VERIFIED_REGISTERED_SLICE_RESULT_EXACT_ARTIFACT_SINGLE_SIGNAL_PR_NONFORCED_WRITE_ONLY",
+      "required_job": "publish-signal",
+      "capabilities": [
+        {
+          "capability": "GITHUB_PERMISSION_WRITE:contents",
+          "destination": "github-token:contents",
+          "scope": "JOB:publish-signal"
         }
       ]
     }
