@@ -75,6 +75,86 @@ jobs:
           [IO.File]::WriteAllLines($reportPath, [string[]]$lines, (New-Object Text.UTF8Encoding($false)))
           $lines | ForEach-Object { Write-Host ('KODJO_INVENTORY`t' + $_) }
 
+      - name: Measure current workspace storage without mutation
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $workspace = [IO.Path]::GetFullPath($env:GITHUB_WORKSPACE).TrimEnd('\')
+          $evidence = Join-Path $env:RUNNER_TEMP "kodjo-runner-inventory-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
+          $rows = New-Object Collections.Generic.List[object]
+          $scanErrors = New-Object Collections.Generic.List[string]
+          $deadline = (Get-Date).AddMinutes(6)
+          function Measure-SafeTree([string]$Root) {
+            $bytes = [int64]0; $files = [int64]0; $dependencyBytes = [int64]0; $links = 0; $errors = 0
+            $pending = New-Object 'Collections.Generic.Stack[string]'
+            $pending.Push($Root)
+            while ($pending.Count -gt 0) {
+              if ((Get-Date) -gt $deadline) { throw 'STORAGE_SCAN_DEADLINE: partial measurements must not authorize deletion' }
+              $dir = $pending.Pop()
+              try { $children = @(Get-ChildItem -LiteralPath $dir -Force -ErrorAction Stop) }
+              catch { $errors++; $scanErrors.Add($dir); continue }
+              foreach ($item in $children) {
+                if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) { $links++; continue }
+                if ($item.PSIsContainer) { $pending.Push($item.FullName); continue }
+                $bytes += $item.Length; $files++
+                if ($item.FullName -match '[\\/]node_modules[\\/]') { $dependencyBytes += $item.Length }
+              }
+            }
+            [pscustomobject]@{ path=$Root; bytes=$bytes; files=$files; node_modules_bytes=$dependencyBytes; skipped_links=$links; unreadable_directories=$errors }
+          }
+          $rootFiles = [int64]0
+          foreach ($item in @(Get-ChildItem -LiteralPath $workspace -Force)) {
+            if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
+              $rows.Add([pscustomobject]@{path=$item.FullName; skipped_reparse_point=$true}); continue
+            }
+            if ($item.PSIsContainer) {
+              # Per-run rows preserve the distinction between expendable dependencies and evidence.
+              if ($item.Name -in @('_qualification','_kodjo')) {
+                foreach ($child in @(Get-ChildItem -LiteralPath $item.FullName -Directory -Force)) {
+                  if ($child.Attributes -band [IO.FileAttributes]::ReparsePoint) {
+                    $rows.Add([pscustomobject]@{path=$child.FullName; skipped_reparse_point=$true}); continue
+                  }
+                  $rows.Add((Measure-SafeTree $child.FullName))
+                }
+                $directFiles = @(Get-ChildItem -LiteralPath $item.FullName -File -Force)
+                $rows.Add([pscustomobject]@{path=$item.FullName; direct_files_only=$true; files=$directFiles.Count; bytes=($directFiles | Measure-Object Length -Sum).Sum})
+              } else { $rows.Add((Measure-SafeTree $item.FullName)) }
+            } else { $rootFiles += $item.Length }
+          }
+          $repos = @($workspace, (Join-Path $workspace '_protocol'), (Join-Path $workspace '_request'))
+          foreach ($container in @('_qualification','_kodjo')) {
+            $p = Join-Path $workspace $container
+            if (Test-Path -LiteralPath $p) {
+              $repos += @(Get-ChildItem -LiteralPath $p -Directory -Force | Where-Object { -not ($_.Attributes -band [IO.FileAttributes]::ReparsePoint) } | ForEach-Object { $_.FullName })
+            }
+          }
+          $gitRows = @()
+          foreach ($repo in $repos) {
+            $marker = Join-Path $repo '.git'
+            if (-not (Test-Path -LiteralPath $marker)) { continue }
+            if ((Get-Item -LiteralPath $repo -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) { continue }
+            # No fetch, hooks, fsmonitor, clean, reset, or optional index writes.
+            $env:GIT_OPTIONAL_LOCKS = '0'
+            $status = @(& git -c core.fsmonitor=false -c core.hooksPath=NUL -C $repo status --porcelain --untracked-files=normal 2>$null)
+            $statusExit = $LASTEXITCODE
+            $head = @(& git -c core.fsmonitor=false -C $repo rev-parse HEAD 2>$null)
+            $headExit = $LASTEXITCODE
+            $gitRows += [pscustomobject]@{path=$repo; status_exit=$statusExit; status_count=$status.Count; clean=($statusExit -eq 0 -and $status.Count -eq 0); head=($head -join ''); head_exit=$headExit}
+          }
+          $drive = Get-PSDrive -Name ([IO.Path]::GetPathRoot($workspace).Substring(0,1))
+          $report = [ordered]@{
+            schema='kodjo.runner-storage-inventory.1'; observed_utc=(Get-Date).ToUniversalTime().ToString('o')
+            run_id=$env:GITHUB_RUN_ID; runner=$env:RUNNER_NAME; workspace=$workspace
+            disk_free_bytes=$drive.Free; disk_used_bytes=$drive.Used; root_file_bytes=$rootFiles
+            directories=@($rows.ToArray()); git=$gitRows; unreadable_paths=@($scanErrors.ToArray())
+            protected_review_cache_present=(Test-Path -LiteralPath (Join-Path (Split-Path -Parent $env:RUNNER_TEMP) '_kodjo_vnext_pre4_reviews'))
+            limits=@('No deletion authorized by this report', 'Protected model cache and user profile not traversed', 'Temporary directory not measured', 'Git status counts omit filenames and content', 'Sizes exclude reparse points; live filesystem is not a snapshot')
+          }
+          $json = $report | ConvertTo-Json -Depth 8
+          [IO.File]::WriteAllText((Join-Path $evidence 'storage-inventory.json'), $json, (New-Object Text.UTF8Encoding($false)))
+          Write-Host $json
+          $global:LASTEXITCODE = 0
+
       - name: Observe Claude ownership ancestry and activity without mutation
         shell: powershell
         run: |
@@ -194,3 +274,4 @@ jobs:
             throw ('REPORT_CLEANUP_IDENTITY_MISMATCH: ' + $target)
           }
           if (Test-Path -LiteralPath $target) { Remove-Item -LiteralPath $target -Recurse -Force }
+
