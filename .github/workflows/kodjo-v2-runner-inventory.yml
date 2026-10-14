@@ -139,7 +139,7 @@ jobs:
             $statusExit = $LASTEXITCODE
             $head = @(& git -c core.fsmonitor=false -C $repo rev-parse HEAD 2>$null)
             $headExit = $LASTEXITCODE
-            $gitRows += [pscustomobject]@{path=$repo; status_exit=$statusExit; status_count=$status.Count; clean=($statusExit -eq 0 -and $status.Count -eq 0); head=($head -join ''); head_exit=$headExit}
+            $gitRows += [pscustomobject]@{path=$repo; status_exit=$statusExit; status_count=$status.Count; status_entries=$status; clean=($statusExit -eq 0 -and $status.Count -eq 0); head=($head -join ''); head_exit=$headExit}
           }
           $drive = Get-PSDrive -Name ([IO.Path]::GetPathRoot($workspace).Substring(0,1))
           $report = [ordered]@{
@@ -148,7 +148,7 @@ jobs:
             disk_free_bytes=$drive.Free; disk_used_bytes=$drive.Used; root_file_bytes=$rootFiles
             directories=@($rows.ToArray()); git=$gitRows; unreadable_paths=@($scanErrors.ToArray())
             protected_review_cache_present=(Test-Path -LiteralPath (Join-Path (Split-Path -Parent $env:RUNNER_TEMP) '_kodjo_vnext_pre4_reviews'))
-            limits=@('No deletion authorized by this report', 'Protected model cache and user profile not traversed', 'Temporary directory not measured', 'Git status counts omit filenames and content', 'Sizes exclude reparse points; live filesystem is not a snapshot')
+            limits=@('No deletion authorized by this report', 'Protected model cache and user profile not traversed', 'Temporary directory not measured', 'Git status records paths only, never file contents', 'Sizes exclude reparse points; live filesystem is not a snapshot')
           }
           $json = $report | ConvertTo-Json -Depth 8
           [IO.File]::WriteAllText((Join-Path $evidence 'storage-inventory.json'), $json, (New-Object Text.UTF8Encoding($false)))
@@ -274,4 +274,3 @@ jobs:
             throw ('REPORT_CLEANUP_IDENTITY_MISMATCH: ' + $target)
           }
           if (Test-Path -LiteralPath $target) { Remove-Item -LiteralPath $target -Recurse -Force }
-
