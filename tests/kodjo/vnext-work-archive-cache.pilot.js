@@ -30,3 +30,9 @@ test('publisher commits signal and verified byte cache atomically, without a sec
  const cached=entries.find(e=>e.path===Cache.pathFor(f.a.artifact_sha256));assert(Cache.decode(JSON.parse(blobs.get(cached.sha)),f.a).equals(f.bytes));
  let calls=0;assert.throws(()=>W.publish(c,signal,()=>{calls++;},[{...f.value,artifact_id:999}]),/NOT_IN_SIGNAL/);assert.equal(calls,0);
 });
+
+test('only exact archive cache JSON is nonnormative; executable, malformed and mixed paths remain qualified',()=>{
+ const Impact=require('../../scripts/kodjo/classify-protocol-impact'),cache=Cache.pathFor('a'.repeat(64));
+ assert.equal(Impact.classifyFiles([cache]).full_windows_required,false);
+ for(const paths of [[cache.replace('.json','.js')],[cache.replace('a'.repeat(64),'arbitrary')],[cache,'scripts/kodjo/signal-vnext-agent-continuation.js']])assert.equal(Impact.classifyFiles(paths).full_windows_required,true);
+});
