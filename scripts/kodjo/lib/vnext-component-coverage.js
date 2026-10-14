@@ -7,6 +7,13 @@ const SCHEMA='kodjo.vnext.component-review-coverage.v1';
 const INSTANCE_FIELDS=new Set(['main_component_id','variantProperties','componentProperties','overrides','boundVariables','explicitVariableModes','resolvedVariableModes']);
 const INTEGRATION_FIELDS=new Set(['characters','text','visible','x','y','constraints','layoutPositioning','layoutAlign','layoutGrow','layoutSizingHorizontal','layoutSizingVertical','minWidth','minHeight','maxWidth','maxHeight','overflowDirection']);
 function same(a,b){return V.canonicalHash(a)===V.canonicalHash(b);}
+function hasObservableOverrides(root,property){
+ const overrides=root.properties.overrides;
+ if(!Array.isArray(overrides))return true;
+ // A layer rename is metadata. It does not change an unrelated observable;
+ // every other override remains conservative until dependencies are qualified.
+ return overrides.some(o=>!o||typeof o.id!=='string'||!Array.isArray(o.overriddenFields)||o.overriddenFields.some(f=>f!=='name'||property==='name'));
+}
 function ownership(packet){
  const nodes=new Map(packet.nodes.map(n=>[n.id,n]));
  function owner(node){const seen=new Set();while(node){if(seen.has(node.id))throw Error('VNEXT_COMPONENT_ANCESTRY_CYCLE');seen.add(node.id);if(node.type==='INSTANCE'||node.type==='COMPONENT')return node;node=nodes.get(node.parent_id);}return null;}
@@ -63,7 +70,7 @@ function build({references,criteria,candidateManifest,componentBindings=[],compo
    if(root?.type!=='INSTANCE'){direct(a.assertion_id,'COMMON_PROPERTY_REQUIRES_DIRECT_QUALIFICATION');continue;}
    if(!row.override_provenance_available){direct(a.assertion_id,'OVERRIDE_PROVENANCE_UNAVAILABLE');continue;}
    if(Object.keys(root.properties.componentProperties||{}).length){direct(a.assertion_id,'INSTANCE_PARAMETERS_REQUIRE_DEPENDENCY_QUALIFICATION');continue;}
-   if(root.properties.overrides.length){direct(a.assertion_id,'INSTANCE_HAS_OVERRIDES');continue;}
+   if(hasObservableOverrides(root,row.property)){direct(a.assertion_id,'INSTANCE_HAS_OVERRIDES');continue;}
    if(!row.equal_to_master){direct(a.assertion_id,'PARAMETER_OR_PROPERTY_DIFFERS');continue;}
    const current=bindings.get(ref.source_id+'\0ELEMENT:'+row.element_id)||bindings.get(ref.source_id+'\0ELEMENT:'+row.owner_id),common=bindings.get(ref.source_id+'\0ELEMENT:'+row.master_element_id);
    if(!current||current.b.master_id!==row.master_id||candidates.get(c.selected_component_candidate_id)?.path!==current.b.code_path||c.selected_component!==current.b.code_export){direct(a.assertion_id,'COMPONENT_CODE_MAPPING_UNQUALIFIED');continue;}
@@ -134,4 +141,4 @@ function covered(plan,reviewedIds){
  return plan.inheritance_links.filter(row=>!direct.has(row.assertion_id)&&row.required_review_target_ids.every(id=>direct.has(id))).map(row=>row.assertion_id).sort();
 }
 function assertReviewReady(ui){if(!ui?.figma_references?.length)return;if(!ui.component_coverage)throw Error('VNEXT_COMPONENT_REUSE_ASSESSMENT_REQUIRED');if(ui.component_coverage.reuse_assessment.status!=='ASSESSED')throw Error('VNEXT_COMPONENT_REUSE_QUALIFICATION_REQUIRED_BEFORE_LARGE_REVIEW');}
-module.exports={SCHEMA,analyze,build,validate,covered,assertReviewReady};
+module.exports={SCHEMA,analyze,build,validate,covered,assertReviewReady,hasObservableOverrides};

@@ -31,6 +31,13 @@ test('token changes invalidate exact context/signature; functional and integrati
  for(const level of ['INSTANCE','INTEGRATION'])assert.ok(old.levels[level].every(id=>!old.inheritance_links.some(r=>r.assertion_id===id)));
  const ids=Object.values(old.levels).flat();assert.equal(new Set(ids).size,a.artifacts.uiAtomicityContract.assertion_count);
 });
+test('captured layer renames preserve unrelated common observables; observable overrides and malformed provenance stay direct',t=>{
+ const renamed=fixture(t,{overrides:[{id:'2:1',overriddenFields:['name']}]}).produce().artifacts.uiAtomicityContract.component_coverage;
+ assert.equal(renamed.inheritance_links.length,2);
+ for(const fields of [['fills'],['width'],['name','cornerRadius']])assert.equal(fixture(t,{overrides:[{id:'2:1',overriddenFields:fields}]}).produce().artifacts.uiAtomicityContract.component_coverage.inheritance_links.length,0);
+ assert.equal(C.hasObservableOverrides({properties:{overrides:[{id:'2:1',overriddenFields:['name']}]}},'name'),true);
+ assert.equal(C.hasObservableOverrides({properties:{overrides:[{id:'2:1'}]}},'cornerRadius'),true);
+});
 test('historical contracts without component coverage retain their exact serialized meaning and hashes',t=>{
  const f=fixture(t),p=f.produce(),ui=p.artifacts.uiAtomicityContract;
  const {component_coverage,component_bindings,component_reuse_decisions,contract_hash,...historic}=ui;

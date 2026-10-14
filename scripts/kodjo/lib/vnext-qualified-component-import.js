@@ -8,7 +8,7 @@ function properties(d){
   for(const criterion of ui.criteria)for(const a of criterion.assertions){const b=a.figma_reference;if(b?.source_id!==ref.source_id)continue;const row=rows.get(b.property_id);if(row?.level!=='COMPONENT_COMMON')continue;
    const mapping=d.component_review?.mapping_facts.find(f=>f.criterion_id===criterion.criterion_id||f.criterion_id===d.component_review.plan.inheritance_links.find(l=>l.common_assertion_id===a.assertion_id)?.common_criterion_id);
    if(!mapping)continue;const root=nodes.get(row.owner_id),node=nodes.get(row.element_id);
-   if(root?.type==='INSTANCE'&&(!row.equal_to_master||!Array.isArray(root.properties.overrides)||root.properties.overrides.length||Object.keys(root.properties.componentProperties||{}).length))continue;
+   if(root?.type==='INSTANCE'&&(!row.equal_to_master||C.hasObservableOverrides(root,row.property)||Object.keys(root.properties.componentProperties||{}).length))continue;
    const key=V.canonicalHash({file_key:ref.packet.file_key,master_id:row.master_id,master_element_id:row.master_element_id||node.id,property:row.property,observable:b.observable,bindings:node.properties.boundVariables||{},modes:node.properties.resolvedVariableModes||{},variant:root.properties.variantProperties||{},variables:ref.packet.variables,resources:ref.packet.resources.map(r=>r.sha256).sort(),mapping:{code_path:mapping.code_path,code_export:mapping.code_export,files:mapping.files.map(({revision,materialized_path,...f})=>f)}});
    if(!byProperty.has(key))byProperty.set(key,[]);byProperty.get(key).push(a.assertion_id);
   }

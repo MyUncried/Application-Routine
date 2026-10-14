@@ -43,3 +43,5 @@ Le relais commun dérive une portée de la version exacte du dossier, conserve l
 Les critères de préservation et les scénarios restent directs. Un mapping MISMATCH réintroduit les propriétés conditionnelles dans le travail restant ; il ne peut pas faire disparaître ces obligations. Les imports qualifiés couvrent seulement le commun canonique et exigent encore le mapping commun courant MATCH. L'agrégat garde les vraies sessions séparées, sans session synthétique.
 
 Les commits de preuves/ledgers peuvent suivre le HEAD applicatif : seule une différence limitée aux métadonnées exactes déclarées et effectivement lues est admissible ; tout changement applicatif reste refusé. Les fichiers, head et signatures de livraison sont toujours revalidés. Les contrats et snapshots historiques restent inchangés.
+
+Les surcharges explicites portant uniquement sur le nom du calque sont conservées comme métadonnées. Elles n’interdisent pas l’héritage d’un autre observable inchangé ; une assertion portant sur ce nom reste directe. Toute autre surcharge, provenance malformée ou dépendance de paramètre non qualifiée reste traitée directement.
