@@ -39,9 +39,9 @@ Les phases propres Compte à rebours/Fin d’exercice restent exclues des séanc
 
 Ce sont des écarts d’unité, de constante ou de texte, pas une recherche d’exactitude des sommes illustratives. Les textes de récupération présents mais masqués dans les calques du nouveau Tabata par exercice ne sont pas considérés comme visibles. Figma n’a pas été modifié par ce lot.
 
-## Raccordements non qualifiés — sans nouvel arbitrage implicite
+## Sujets de vérification ciblée — aucun blocage global établi
 
-| Repère | Sujet | Ce qui reste à démontrer avant réalisation du cas |
+| Repère | Sujet | Vérification à rattacher au comportement concerné |
 |---|---|---|
 | R-01 | Fenêtres et commandes générales | Articuler Pause/Reprendre, reset, points d’arrêt, reprise système et gardes avec les échéances continues, sans déduire cette politique du simple appui de fin de travail |
 | R-02 | Fenêtres et côtés | Rattacher les deux côtés et leurs pauses à la fenêtre sans multiplicateur caché dans N×E×W |
@@ -56,3 +56,11 @@ Les R-01…04 reprennent les réserves déjà explicites de la spécification §
 Aucun test de moteur, audit du schéma physique, migration ou revue indépendante VNext n’a été réalisé. Les statuts fonctionnels doivent être raccordés au stockage sans confondre motif/résultat/achèvement. Les erreurs ou limites préexistantes hors concept ne sont pas déclarées corrigées. Le lot est destiné à une branche documentaire ; aucune fusion main ni mise à jour du dev local dans cette demande.
 
 Vérification avant publication : `main` a avancé vers `d08ba87fa4d881303c6c66b82ab1376fd0be3a70` (rapport de nettoyage des branches uniquement). Aucun document source modifié ; le lot est construit sur cette nouvelle tête pour préserver ce rapport.
+
+## Clarification d’autorité et de portée — 14/10/2026
+
+Les spécifications définissent les règles métier, les calculs et les comportements. Figma illustre les scénarios de présentation des écrans et contrôles. Un scénario absent de Figma ne constitue pas une lacune fonctionnelle lorsque son comportement est spécifié. Les shells, composants, DSF et contrats existants permettent de décliner des états sans dessiner chaque combinaison.
+
+R-01 à R-05 sont des sujets de vérification ciblée, pas cinq blocages démontrés ni un préalable global au développement. R-01 concerne les commandes du moteur à fenêtres ; R-02 son exécution bilatérale ; R-03 l’enchaînement Death by multi-exercices. Leurs réponses doivent être recherchées dans les spécifications avant toute question. R-04 concerne uniquement la synchronisation des champs de l’éditeur For time s’ils sont modifiables séparément ; le contrôle du double comptage EMOM relève de l’implémentation et de ses tests. R-05 ne bloque rien du seul fait de captures absentes : une clarification de présentation n’est nécessaire que si l’implantation d’un élément nouveau ne peut pas être déterminée depuis les contrats et le DSF.
+
+Aucun de ces constats ne suspend globalement la création/composition. Seule une règle effectivement absente ou contradictoire doit être clarifiée avant l’implémentation du comportement concerné. Les mentions de preuve visuelle partielle décrivent la couverture des illustrations, pas une obligation de produire une nouvelle maquette.

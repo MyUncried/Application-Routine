@@ -100,3 +100,11 @@ La V2 originale et l’inventaire d’écrans sont archivés dans `sources/forma
 Pas de modification du protocole, d’énumération physique, de migration, de code applicatif ou de preuves PRE-3/PRE-4. Pas de modification Figma. La publication du lot n’est pas une fusion main.
 
 Vérification avant publication : `main` a avancé vers `d08ba87fa4d881303c6c66b82ab1376fd0be3a70` (rapport de nettoyage des branches uniquement). Aucun document source modifié ; le lot est construit sur cette nouvelle tête pour préserver ce rapport.
+
+## Clarification d’autorité et de portée — 14/10/2026
+
+Les spécifications définissent les règles métier, les calculs et les comportements. Figma illustre les scénarios de présentation des écrans et contrôles. Un scénario absent de Figma ne constitue pas une lacune fonctionnelle lorsque son comportement est spécifié. Les shells, composants, DSF et contrats existants permettent de décliner des états sans dessiner chaque combinaison.
+
+R-01 à R-05 sont des sujets de vérification ciblée, pas cinq blocages démontrés ni un préalable global au développement. R-01 concerne les commandes du moteur à fenêtres ; R-02 son exécution bilatérale ; R-03 l’enchaînement Death by multi-exercices. Leurs réponses doivent être recherchées dans les spécifications avant toute question. R-04 concerne uniquement la synchronisation des champs de l’éditeur For time s’ils sont modifiables séparément ; le contrôle du double comptage EMOM relève de l’implémentation et de ses tests. R-05 ne bloque rien du seul fait de captures absentes : une clarification de présentation n’est nécessaire que si l’implantation d’un élément nouveau ne peut pas être déterminée depuis les contrats et le DSF.
+
+Aucun de ces constats ne suspend globalement la création/composition. Seule une règle effectivement absente ou contradictoire doit être clarifiée avant l’implémentation du comportement concerné. Les mentions de preuve visuelle partielle décrivent la couverture des illustrations, pas une obligation de produire une nouvelle maquette.

@@ -338,7 +338,7 @@ Les arbitrages explicitement traités sont clos. Cela ne vaut pas qualification 
 - **Reconfiguration des comptes :** l’éditeur du Volume par tour doit conserver le lien entre nombre de tours et échelle ; l’EMOM « Par exercice » ne doit pas multiplier à la fois séries et tours. La représentation technique doit respecter les séquences et formules déjà décidées.
 - **Dernier Figma :** lecture et 46 captures effectuées dans ce lot. Les écarts résiduels F-01…04 et l’absence de layout qualifié pour CE-FMT-05/06 sont recensés dans la revue transverse ; ils empêchent de déclarer un alignement complet. Les erreurs numériques d’une maquette ne remplacent aucune règle de cette spécification.
 
-Ces points ne remettent pas en question les décisions consignées. Ils empêchent seulement de déclarer prêts des cas non décrits ou non vérifiés. S’ils ne se résolvent pas par les règles existantes, le dossier VNext doit conserver une clarification localisée, sans inventer de comportement.
+Ces points ne remettent pas en question les décisions consignées. Ils ne constituent pas des blocages démontrés ; leur effet éventuel se limite au comportement dont une règle manquerait réellement. S’ils ne se résolvent pas par les règles existantes, le dossier VNext doit conserver une clarification localisée, sans inventer de comportement.
 
 ### 14.3 État de livraison de ce document
 
@@ -367,3 +367,11 @@ Ces références permettent de retrouver le travail ; elles ne figent pas une ve
 | Conception | Même modale | `8747:30989` |
 
 Fichier : https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg
+
+## Clarification d’autorité et de portée — 14/10/2026
+
+Les spécifications définissent les règles métier, les calculs et les comportements. Figma illustre les scénarios de présentation des écrans et contrôles. Un scénario absent de Figma ne constitue pas une lacune fonctionnelle lorsque son comportement est spécifié. Les shells, composants, DSF et contrats existants permettent de décliner des états sans dessiner chaque combinaison.
+
+R-01 à R-05 sont des sujets de vérification ciblée, pas cinq blocages démontrés ni un préalable global au développement. R-01 concerne les commandes du moteur à fenêtres ; R-02 son exécution bilatérale ; R-03 l’enchaînement Death by multi-exercices. Leurs réponses doivent être recherchées dans les spécifications avant toute question. R-04 concerne uniquement la synchronisation des champs de l’éditeur For time s’ils sont modifiables séparément ; le contrôle du double comptage EMOM relève de l’implémentation et de ses tests. R-05 ne bloque rien du seul fait de captures absentes : une clarification de présentation n’est nécessaire que si l’implantation d’un élément nouveau ne peut pas être déterminée depuis les contrats et le DSF.
+
+Aucun de ces constats ne suspend globalement la création/composition. Seule une règle effectivement absente ou contradictoire doit être clarifiée avant l’implémentation du comportement concerné. Les mentions de preuve visuelle partielle décrivent la couverture des illustrations, pas une obligation de produire une nouvelle maquette.
