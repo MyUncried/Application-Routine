@@ -68,3 +68,9 @@ Cas locaux : composant répété, variantes distinctes, paramètre/surcharge, to
 Point à transmettre au pilote PRE-4 : attendre l'interface commune qualifiée ; conserver son HEAD et ses corrections ; compléter, sur une nouvelle source identifiée, la provenance des surcharges et les mappings Figma/code ou les justifications directes étayées ; mesurer de nouveau avant toute revue. Ensuite reconstruire les unités fonctionnelles par défaut, le catalogue et les contrats, puis seulement admettre la revue résiduelle justifiée. La revue Claude et le développement restent exclusivement sous son pilotage, avec approbation explicite du plan avant développement.
 
 Le chantier n'est pas clos : terminer N06–N08, les interfaces de cumul/import restantes, la qualification opérationnelle et la réception/reprise réelle. Aucun succès unitaire ou diminution d'un compteur ne remplace ces critères.
+
+## Qualification CI du candidat 4010508e et correction de fermeture
+
+Run VNext `38561066022` : qualification Linux `115841965349` et Windows `115841965243` réussies. Les deux jobs d'équivalence historique échouent ; l'archive Linux `11892980110` désigne exactement F-001 : `lib/vnext-component-coverage.js` manque dans la liste des dépendances embarquées par le runtime IMPLEMENT. Le run de contrôles hérités `38561066211`, job `115842085201`, confirme le même défaut (1 530 réussites, un échec, deux skips).
+
+La liste de fichiers du workflow IMPLEMENT est complétée, son empreinte exacte de sécurité mise à jour et le manifeste complété. Aucun changement des modes, transitions ou autorisations V2. Les 16 contrôles locaux ciblés de fermeture et gel passent. Le candidat corrigé doit repasser la CI ; un succès du candidat précédent ne vaut pas validation de cette correction.

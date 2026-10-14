@@ -219,7 +219,7 @@
     },
     {
       "path": ".github/workflows/kodjo-v2-implementation-artifact.yml",
-      "blob_oid": "730e1e5b20eca161d219e21a7ce0a96f83a8e136",
+      "blob_oid": "93435c5afc8f75e5a4a871357ef6fdc5eb35b332",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
