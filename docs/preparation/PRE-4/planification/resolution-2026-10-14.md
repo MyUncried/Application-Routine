@@ -1,0 +1,13 @@
+# PRE-4 — résolution engagée après revue partielle
+
+Baseline de plan : 0ef1ec59 ; branche et preuves conservées jusqu’à f96e682d. Autorisation du 14 octobre : poursuivre sans nouvelle sollicitation, jusqu’au plan revu soumis au propriétaire. Aucun code produit, aucune demande identique rejouée.
+
+La reconstruction locale corrigée de préservation passe les constructeurs ImpactGraph, PlanContract et UIAtomicityContract. Contrôle séparé : write_scope strictement identique ; 51 candidats hors écriture sont maintenant explicitement préservés, y compris la reproduction PRE-3. Ce fichier est une preuve historique figée, pas un consommateur runtime ; l’import réel détecté reste conservé, sans exclusion aveugle du scanner. Aucun candidat modifié pour une autre exigence n’est gelé par erreur.
+
+Le constructeur des assessments natifs relie les 46 décisions AVAILABLE à leur requirement_id, aux preuves propres du critère et à son unité de source exacte, avec provenance Git des primitives dans la justification. Cette seconde correction doit encore être reconstruite et contrôlée par les validateurs aval ; ni observation native indépendante ni conformité annoncée.
+
+Contrôle Figma direct en lecture seule le 14 octobre : frames 8328:36711 et 8328:36853, même dimensions 402×874, mêmes textes, positions et état visible du champ de modalités (« Appuyez pour définir les séries et les durées »). Les noms d’états diffèrent ; aucune mutation Figma ni fusion/suppression de référence effectuée. Deux screenshots actuels récupérables ont été exportés. Leur égalité de pixels reste à vérifier avant clôture du constat.
+
+Reste : atomiser la source fonctionnelle FULL_FILE tout en conservant sa preuve intégrale ; corriger les éventuelles obligations natives supplémentaires ; résoudre la lecture de toutes les cibles sans supprimer les 180526 assertions ni abaisser les exigences de couverture. Le mécanisme actuel exige une réponse unique et ne propose aucune accumulation de passages de revue : constat de code, pas preuve d’impossibilité absolue. La réponse historique contient 4996/236896 cibles ; elle reste refusée et immuable. Une nouvelle revue ne sera déclenchée que sur un paquet réellement corrigé et précontrôlé, pas pour réparer le transport de l’ancien résultat.
+
+Points locaux de reprise : checkout /workspace/scratch/ca7a820e0839/pre4-resolution ; reconstruction /workspace/scratch/ca7a820e0839/pre4-corrected-contracts ; archive extraite /workspace/scratch/ca7a820e0839/review-evidence. Le checkpoint Git est durable ; les sorties locales sont intermédiaires et ne constituent pas une livraison canonique publiée.
