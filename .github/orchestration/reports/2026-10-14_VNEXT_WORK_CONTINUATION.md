@@ -52,3 +52,16 @@ Runs 38479582499 et 38479582949 terminés en FAILURE. Linux : IA-004 refuse le b
 Les diagnostics historiques Linux 11856043026 et Windows 11858190569 ont été téléchargés et vérifiés par leurs SHA-256. Windows contient aussi l'échec du test audit-prompt-transport/native probe, déjà suivi sous R-CI-HOST-01 ; il reste OPEN, sans attribution causale au nouveau publisher ni suppression du contrôle.
 
 Contrôles locaux de correction : 34 tests ciblés PASS, 10 tests du transport avec le vrai YAML converti temporairement en CRLF PASS puis restauration octet à octet. La nouvelle CI doit être suivie sur le commit publié de correction ; aucune fusion ni réception Work n'est annoncée sur ces seuls résultats.
+
+## Diagnostic des deux tentatives Linux de 38483049278
+
+Baseline du complément : 87eaf5cca35bdeef138affdceccbe8be8493975c, PR #357 conservée. CI principale 38483049288 SUCCESS ; qualification Windows et équivalences historiques Linux/Windows SUCCESS. Les deux tentatives Linux ont chacune 524 tests PASS sur 525, mais leurs causes sont différentes.
+
+- Tentative 1, archive locale linux-controls.zip : assertions du test de liaison de reprise terminées puis hook de nettoyage en échec ENOTEMPTY, dans vnext-figma-fixture.js. Le nettoyage n'avait aucune reprise sur erreur transitoire. L'auteur d'une éventuelle écriture concurrente n'est pas identifiable dans cette trace ; une maintenance Git détachée est une hypothèse, pas une cause démontrée.
+- Tentative 2, job 115701672424, archive 11872617442 : assertion du test « same-operation prior scan » en échec, true au lieu de false. Le test hérite de GITHUB_RUN_ATTEMPT=2 du job relancé. priorInvocation refuse intentionnellement cette seconde tentative avant même la lecture des preuves. Reproduction locale exacte sur l'ancien test avec GITHUB_RUN_ATTEMPT=2 : FAILURE ; ce défaut est déterministe et distinct du nettoyage. Relancer le job sans isoler ce contexte ne pouvait pas le réparer.
+
+Correction limitée aux tests : définir et restaurer GITHUB_RUN_ATTEMPT/GITHUB_RUN_ID pour le scénario simulé ; vérifier explicitement le refus en tentative 2, puis le refus du résultat antérieur inconnu. La fixture Git désactive uniquement sa maintenance automatique locale et effectue jusqu'à cinq reprises de nettoyage de 100 ms ; une suppression définitivement impossible reste un échec visible. Aucun catch silencieux, aucun test supprimé, aucune protection de production modifiée.
+
+Contrôle ciblé : 32 tests relais/transport PASS sous GITHUB_RUN_ATTEMPT=2 et GITHUB_RUN_ID=123, contre-épreuve de l'ancien test FAILURE sous la même tentative. Après checkout complet, suite VNext entière avec ces mêmes variables : 525 tests PASS, zéro échec, zéro skip, 67 792 ms. Syntaxe des deux fichiers et git diff --check PASS. Contrôles distants à suivre sur le nouveau commit avant conclusion. Le premier essai local de suite complète utilisait un checkout partiel dépourvu de tests/fixtures/vnext12 : résultat non recevable, checkout complété avant répétition.
+
+Cette correction ne démontre ni la réception Work, ni la couverture de revue PRE-4. Le résultat partiel déjà archivé reste inchangé. Aucun nouvel appel Claude, aucun développement, aucune nouvelle campagne de certification.

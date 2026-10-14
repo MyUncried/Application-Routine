@@ -22,6 +22,8 @@ function fixture({transformPacket,launchMode=false,documentContent='Pressable to
  const cwd=fs.mkdtempSync(path.join(os.tmpdir(),'vnext-figma-')),git=(...a)=>execFileSync('git',a,{cwd,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
  const write=(p,b)=>{fs.mkdirSync(path.dirname(path.join(cwd,p)),{recursive:true});fs.writeFileSync(path.join(cwd,p),b);};
  git('init');git('config','user.name','TEST');git('config','user.email','test@example.invalid');
+ // Throwaway repositories must not start detached maintenance during teardown.
+ git('config','gc.auto','0');git('config','maintenance.auto','false');
  fs.cpSync(path.resolve(__dirname,'../../../scripts/kodjo'),path.join(cwd,'scripts/kodjo'),{recursive:true,filter:p=>!p.split(path.sep).includes('node_modules')});
  write('src/shared/ui/Existing.js','module.exports = {Existing: true};\n');write('src/features/example/Screen.js',"const {Existing}=require('../../shared/ui/Existing');module.exports={Existing};\n");
  write('tests/ui.test.js',"const s=require('../src/features/example/Screen');if(!s)throw Error('fixture');\n");write('docs/spec.md',documentContent);git('add','.');git('commit','-m','TEST code and documentary baseline');
@@ -45,7 +47,7 @@ function fixture({transformPacket,launchMode=false,documentContent='Pressable to
  const docSource=manifest.sources[1],docRef='source:'+docSource.source_id+'#'+docSource.units[0].unit_id;
  const native=ui.criteria.map(c=>({criterion_id:c.criterion_id,availability:c.source.authority==='FUNCTIONAL'?'AVAILABLE':'NOT_APPLICABLE',primitive:c.source.authority==='FUNCTIONAL'?'Pressable':null,selected_primitive:c.source.authority==='FUNCTIONAL'?'Pressable':null,functional_requirement_id:null,evidence_refs:[docRef,...(c.source.authority==='FUNCTIONAL'?c.proof_ids.map(id=>'proof:'+id):[])],justification:'TEST injected native assessment only',exception_reason:null}));
  const recipe={sourceManifestInput:sourceInput,planningInput,requirementInput,classifications,requirementPlans,uiInput:{criteria},executionContext:{mode:'LOCAL',writer_id:'CLAUDE:fixture-writer'},nativeAssessments:native,registerInput:{authorizedActor:'MyUncried',revisionCount:0,revisionLimit:1,observations:[]}};
- return {cwd,git,write,head,docHead,snapshot,packetPath,recipe,manifest,registry,produce:()=>Chain.produce(recipe,{cwd}),cleanup:()=>fs.rmSync(cwd,{recursive:true,force:true})};
+ return {cwd,git,write,head,docHead,snapshot,packetPath,recipe,manifest,registry,produce:()=>Chain.produce(recipe,{cwd}),cleanup:()=>fs.rmSync(cwd,{recursive:true,force:true,maxRetries:5,retryDelay:100})};
 }
 function admit(f,produced,receipt){
  const T=Common.transport(),Approval=require('../../../scripts/kodjo/lib/approval-handoff-contract');
