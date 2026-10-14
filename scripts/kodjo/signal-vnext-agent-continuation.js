@@ -137,5 +137,5 @@ async function main(){
   return publish(c,makeSignal(c,request,run,artifact,evidence,bootstrap,registry),gh);
  }finally{fs.rmSync(directory,{recursive:true,force:true});}
 }
-if(require.main===module)main().then(r=>console.log(JSON.stringify(r))).catch(e=>{console.error(e.message);process.exitCode=1;});
 module.exports={binding,makeSignal,publish,main,archive,gh,git};
+if(require.main===module)main().then(r=>console.log(JSON.stringify(r))).catch(e=>{console.error(e.message);process.exitCode=1;});

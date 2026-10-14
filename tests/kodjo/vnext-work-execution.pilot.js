@@ -8,6 +8,33 @@ function fixture(kind='IMPLEMENTATION',slice='VNEXT-OTHER'){
  const files=[{path:'result.json',sha256:'f'.repeat(64),bytes:100}],archives=[{artifact_id:11,artifact_name:'example-9-2',artifact_sha256:'e'.repeat(64),run_id:9,run_attempt:2,run_head:run.head_sha,files,manifest_hash:V.canonicalHash(files)}];
  const signal=E.makeSignal(c,op,run,jobs,archives);return {c,op,run,jobs,archives,signal};
 }
+test('real publisher CLI exports its API before push and workflow-run dispatch, preserving actor refusal',t=>{
+ const fs=require('node:fs'),os=require('node:os'),path=require('node:path'),cp=require('node:child_process');
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'vnext-work-cli-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+ const f=fixture('CI'),run={...f.run,actor:{login:'unauthorized-test-actor'}};
+ const configPath=path.join(dir,'.github/orchestration/KODJO_VNEXT_WORK_TRANSPORT.json');fs.mkdirSync(path.dirname(configPath),{recursive:true});fs.writeFileSync(configPath,JSON.stringify(f.c));
+ const publication=V.sealContract({schema_version:'kodjo.vnext.work-publication.v1',repository:f.c.repository,run_id:run.id});
+ const requestPath='.github/orchestration/requests/vnext-work/publish/'+run.id+'.json';
+ const preload=path.join(dir,'test-only-api.cjs');
+ fs.writeFileSync(preload,`'use strict';
+ const cp=require('node:child_process'),run=${JSON.stringify(run)},jobs=${JSON.stringify(f.jobs)},publication=${JSON.stringify(publication)},requestPath=${JSON.stringify(requestPath)};
+ cp.execFileSync=(command,args)=>{
+  if(command==='git'&&args[0]==='diff')return 'A\\t'+requestPath+'\\n';
+  if(command==='git'&&args[0]==='show')return JSON.stringify(publication);
+  if(command==='gh'&&args[0]==='api'){
+   if(args[1]==='repos/owner/repo/actions/runs/9')return JSON.stringify(run);
+   if(args[1].startsWith('repos/owner/repo/actions/runs/9/attempts/2/jobs?'))return JSON.stringify({jobs});
+  }
+  throw Error('TEST_ONLY_UNEXPECTED_EXTERNAL_COMMAND');
+ };
+ `);
+ const cli=path.resolve(__dirname,'../../scripts/kodjo/signal-vnext-agent-continuation.js');
+ for(const event of ['push','workflow_run']){
+  const result=cp.spawnSync(process.execPath,['--require',preload,cli],{cwd:dir,encoding:'utf8',timeout:10000,env:{...process.env,GITHUB_ACTIONS:'true',GITHUB_REPOSITORY:f.c.repository,GITHUB_EVENT_NAME:event,GITHUB_SHA:'c'.repeat(40),VNEXT_PUSH_BEFORE:'d'.repeat(40),VNEXT_SOURCE_RUN_ID:String(run.id),VNEXT_RECOVER_WORK:'false',VNEXT_WORK_SIGNAL_JOB:'publish-signal'}});
+  assert.ifError(result.error);assert.equal(result.status,1);assert.match(result.stderr,/WORK_ACTOR_OR_PRODUCER/);
+  assert.doesNotMatch(result.stderr,/circular dependency|is not a function|TEST_ONLY_UNEXPECTED_EXTERNAL_COMMAND/);
+ }
+});
 test('all asynchronous families preserve real failure, exact attempts and two slice identities',()=>{
  for(const kind of ['CI','IMPLEMENTATION','DELIVERY_TESTS_AND_CLOSURE'])for(const slice of ['VNEXT-A','VNEXT-B']){const f=fixture(kind,slice);assert.equal(f.signal.semantic_verdict,null);assert.equal(f.signal.model_invoked,null);assert.equal(f.signal.transport_status,'EXECUTION_NOT_SUCCEEDED');assert.equal(f.signal.execution.run_attempt,2);assert.equal(f.op.slice_id,kind==='CI'?null:slice);E.validateSignal(f.signal,f.c);}
 });
