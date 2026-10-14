@@ -1,0 +1,59 @@
+{
+  "scope": "Extension Formats ; ne remplace pas le corpus Excel des phrases d’exercice",
+  "cases": [
+    {
+      "id": "FMT-PH-01",
+      "requirement": "FMT-32",
+      "params": {
+        "format": "for_time",
+        "volume_par_tour": [
+          21,
+          15,
+          9
+        ]
+      },
+      "expected": "21 répétitions au premier tour, 15 au deuxième, 9 au troisième. Le plus vite possible.",
+      "segments": [
+        {
+          "texte": "21",
+          "gras": true
+        },
+        {
+          "texte": " répétitions au premier tour, ",
+          "gras": false
+        },
+        {
+          "texte": "15",
+          "gras": true
+        },
+        {
+          "texte": " au deuxième, ",
+          "gras": false
+        },
+        {
+          "texte": "9",
+          "gras": true
+        },
+        {
+          "texte": " au troisième. Le plus vite possible.",
+          "gras": false
+        }
+      ]
+    },
+    {
+      "id": "FMT-PH-02",
+      "requirement": "FMT-38",
+      "params": {
+        "tours_acquis": 12,
+        "repetitions_partielles": 5
+      },
+      "expected": "12 tours + 5 répétitions",
+      "usage": "Restitution du résultat, pas phrase de prescription"
+    }
+  ],
+  "rules": [
+    "Génération depuis paramètres effectifs ; aucun stockage de phrase en base",
+    "Progression indexée par série, For time par tour",
+    "Corpus de phrases, jamais modélisateur de durée"
+  ]
+}

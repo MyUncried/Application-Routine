@@ -1,5 +1,8 @@
 # Phrase des paramètres d’exécution — spécification rédactionnelle v1
 
+> **Formats de séances — cible du 14/10/2026 :** [spécification Formats du 14/10](SPECIFICATION-FORMATS-SEANCES-2026-10-14.md). Les règles propres aux formats complètent les séances libres ; elles ne changent pas les preuves figées de PRE-3/PRE-4. Moteur cible à développer. [Traçabilité](../MATRICE-FORMATS-SEANCES-2026-10-14.md) et [revue transverse](../REVUE-COHERENCE-FORMATS-2026-10-14.md).
+
+
 Actualisée le07/10/2026 selon la clarification explicite du propriétaire et le classeur v15. La version du document reste indépendante de celle du classeur. Q-08 est clos ; les formulations antérieures « + … de pause chacune », « suivie de » et la proposition « pause entre les séries » sont remplacées.
 
 ## 1. Sources et responsabilité
@@ -83,3 +86,11 @@ Le total est celui du moteur : ≥ pour mélange calculable, prioritaire sur ≈
 | Trois cibles échec, pauses variables | 3 séries menées jusqu’à l’échec | Absent ; aucune clause énumérant les pauses |
 
 Ces fragments étendent les gabarits ; les autres clauses, segments gras et ponctuation suivent les sections précédentes. Couvrir aussi échec en première/deuxième position, bip0/positif et les deux côtés. La capture8328:38848 contient encore une énumération des pauses : écart rédactionnel visuel, pas une nouvelle règle.
+
+<a id="formats-raccordement"></a>
+
+## Raccordement aux formats de séance — 14/10
+
+Le générateur reste une fonction des paramètres produisant des segments {texte, gras} ; aucune phrase persistée. For time : « 21 répétitions au premier tour, 15 au deuxième, 9 au troisième. Le plus vite possible. » L’échelle est indexée par tour ; Progression conserve les répétitions par série. Tabata : pause après chaque série, jamais récupération substituée comme simple artifice de présentation. EMOM : fenêtre et objectif distincts, repos résiduel. Le corpus historique v15 reste conservé ; les nouvelles phrases ne permettent pas de recalculer une durée ni de requalifier ses 276 cas comme un modèle de formats.
+
+Source : [spécification Formats du 14/10](SPECIFICATION-FORMATS-SEANCES-2026-10-14.md).

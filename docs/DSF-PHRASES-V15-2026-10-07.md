@@ -36,3 +36,7 @@ Conserver RM-151/RM-152 : direction propre D→G/G→D, rien en unilatéral. La 
 ## Limites des preuves
 
 139références de page, dont30blocs nommés Phrase dans les frames relues ; la source annonce31phrases avec un périmètre qui inclut une forme compacte ; la lecture ne prouve pas31blocs de phrase complète. Les brouillons incomplets illustrés ne sont pas des sorties valides parmi les276cas. Les24modales portent Bip de cadence. Le contrôle structurel et les captures portent sur Figma, pas sur le rendu applicatif ou la qualification audio.
+
+## Raccordement Formats du 14/10/2026
+
+Le [DSF Formats](DSF-FORMATS-SEANCES-2026-10-14.md) complète ce document : organisation Par exercice/En alternance, compte nommé selon son unité, constantes Tabata grisées mais effectives et phrases contextuelles. L’état imposé effectif conserve une valeur réelle ; ne pas lui appliquer le tiret des valeurs sans effet. Les cartes de modèles illustrées ne changent pas la règle des cartes catalogue. Les points de layout non qualifiés restent signalés dans la [revue transverse](REVUE-COHERENCE-FORMATS-2026-10-14.md).

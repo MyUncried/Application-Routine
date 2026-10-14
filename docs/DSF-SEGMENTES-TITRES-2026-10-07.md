@@ -76,3 +76,7 @@ L’occurrence « Parcours » qui subsiste dans la Composition5271:5455 est ext�
 ![Deux options — Exercices sélectionné](Specifications-fonctionnelles/images/dsf-segmente-7388-13779.png)
 
 ![Deux options — Séances sélectionné](Specifications-fonctionnelles/images/dsf-segmente-7388-13786.png)
+
+## Raccordement Formats du 14/10/2026
+
+Le [DSF Formats](DSF-FORMATS-SEANCES-2026-10-14.md) complète ce document : organisation Par exercice/En alternance, compte nommé selon son unité, constantes Tabata grisées mais effectives et phrases contextuelles. L’état imposé effectif conserve une valeur réelle ; ne pas lui appliquer le tiret des valeurs sans effet. Les cartes de modèles illustrées ne changent pas la règle des cartes catalogue. Les points de layout non qualifiés restent signalés dans la [revue transverse](REVUE-COHERENCE-FORMATS-2026-10-14.md).

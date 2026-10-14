@@ -113,3 +113,12 @@ v12 et v10.2 sont historiques ; leurs règles remplacées ne doivent pas être u
 
 - [Report des dernières décisions : H-08 et H-09](../.github/orchestration/reports/2026-10-06_REPORT_DECISIONS_H08_H09.md) — rectifie l’interprétation de D-238 dans les rapports antérieurs ; décisions H-03/H-10 déjà conservées.
 
+## Formats de séances — conception du 14/10/2026
+
+- [Spécification consolidée](Specifications-fonctionnelles/SPECIFICATION-FORMATS-SEANCES-2026-10-14.md)
+- [Matrice de traçabilité exhaustive](MATRICE-FORMATS-SEANCES-2026-10-14.md)
+- [Analyse de cohérence transverse](REVUE-COHERENCE-FORMATS-2026-10-14.md)
+- [DSF Formats](DSF-FORMATS-SEANCES-2026-10-14.md)
+- [Corpus rédactionnel additionnel](CORPUS-PHRASES-FORMATS-2026-10-14.json)
+
+Les règles sont intégrées aux chapitres 00–13 ; six contrats CE-FMT complètent les contrats existants. Cette conception ne déclare ni le moteur livré, ni les écarts Figma résolus.

@@ -1,5 +1,8 @@
 
 
+> **Formats de séances — cible du 14/10/2026 :** [spécification Formats du 14/10](SPECIFICATION-FORMATS-SEANCES-2026-10-14.md). Les règles propres aux formats complètent les séances libres ; elles ne changent pas les preuves figées de PRE-3/PRE-4. Moteur cible à développer. [Traçabilité](../MATRICE-FORMATS-SEANCES-2026-10-14.md) et [revue transverse](../REVUE-COHERENCE-FORMATS-2026-10-14.md).
+
+
 > **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
 Ce document devient le registre permanent des décisions de conception du produit.
 
@@ -621,3 +624,27 @@ Choix visuels : cinquième variante de roulette8452:13297, deux popovers de mode
 ### Réception du §4.5 — sélecteur de cible
 
 Source reçue dans le §4.2 du prompt complété. Roue manipulable même grisée ; tourner sélectionne le nombre, toucher le libellé sélectionne l’échec et neutralise la roue à00:00. Exactement une sélection, pas de coche ;45% sur le bloc numérique non sélectionné. R01 close. R06 close après correction explicite du propriétaire :58min55s=3535s maximum ;5999s était une coquille. Sélecteur dès5s, par pas5s. D-232, RM-234 et les contrats sont corrigés.
+
+<a id="formats-decisions"></a>
+
+## Formats de séances — décisions du 14 octobre 2026
+
+| ID | Décision / provenance | Statut | Portée |
+|---|---|---|---|
+| D-357 | DEC-01 — Réglages figés après création ou modifiables. 14:16 : « les réglages modifiables du format restent modifiables dans la séance composée » | Validée le 14/10/2026 par Hermann ; voir preuve source de la spécification | FMT-04–06 |
+| D-358 | DEC-02 — Tabata par exercice ou alternance imposée. 14:35–14:41 : proposer les deux organisations ; confirmation que le récapitulatif concerné est Tabata | Validée le 14/10/2026 par Hermann ; voir preuve source de la spécification | FMT-10–13 |
+| D-359 | DEC-03 — Présentation du choix. 14:43–14:50 : dans la liste des paramètres, dernière ligne « Exécution », libellés à la taille des autres paramètres, séparateur et distribution régulière ; « Séries par exercice — 8 » remplace « Circuit — 8 tours » | Validée le 14/10/2026 par Hermann ; voir preuve source de la spécification | FMT-14–15 |
+| D-360 | DEC-04 — Configuration Tabata par exercice. 14:58–15:13 : copie à 1 tour, cartes 8 × 20 s, pause de 10 s dans la modale ; Durée, 8, 20 s, 10 s grisés | Validée le 14/10/2026 par Hermann ; voir preuve source de la spécification | FMT-12, FMT-16–18 |
+| D-361 | DEC-05 — EMOM borné par durée ou par compte. 16:14 : nombre de tours réglable, fenêtre réglable, organisation réglable ; durée calculée en direct, repos résiduel non réglable, fenêtres continues | Validée le 14/10/2026 par Hermann ; voir preuve source de la spécification | FMT-20–25 |
+| D-362 | DEC-06 — Borne des formats cadencés. 16:14 : Tabata, Intervalles et EMOM bornés par un compte ; For time par le travail, AMRAP par la durée | Validée le 14/10/2026 par Hermann ; voir preuve source de la spécification | FMT-19, FMT-26–27 |
+| D-363 | DEC-07 — Progression. 16:22 : Claude propose les deux organisations dans Figma ; ne pas rouvrir le choix comme un nouveau problème métier | Validée le 14/10/2026 par Hermann ; voir preuve source de la spécification | FMT-28–29 |
+| D-364 | DEC-08 — Commande d’arrêt Death by. 16:22 : un seul bouton, puis confirmation « limite atteinte » ou « abandon » | Validée le 14/10/2026 par Hermann ; voir preuve source de la spécification | FMT-34 |
+| D-365 | DEC-09 — Rapports et comparaison. 16:25–16:30 : conception reportée au Suivi ; les exigences générales d’historique ne sont pas spécifiques aux formats | Validée le 14/10/2026 par Hermann ; voir preuve source de la spécification | FMT-39 |
+| D-366 | DEC-10 — Interprétation 21 · 15 · 9. 17:02 : volume par tour, chaque exercice à 21 puis 15 puis 9 ; aucun sélecteur d’organisation pour For time | Validée le 14/10/2026 par Hermann ; voir preuve source de la spécification | FMT-30–32 |
+| D-367 | DEC-11 — Comptage Death by. 17:13 : rang et objectif déduits de l’horloge ; appui confirme l’objectif accompli et révèle le repos ; fenêtre sans appui non acquise | Validée le 14/10/2026 par Hermann ; voir preuve source de la spécification | FMT-33, FMT-35–36 |
+| D-368 | DEC-12 — Dernière fenêtre et achèvement Death by. 17:13 : répétitions partielles demandées à l’arrêt, préremplies à zéro ; résultat tours acquis + répétitions ; état toujours incomplet | Validée le 14/10/2026 par Hermann ; voir preuve source de la spécification | FMT-37–38 |
+| D-369 | DEC-13 — État de développement. 17:15 : le moteur n’a pas encore été développé | Validée le 14/10/2026 par Hermann ; voir preuve source de la spécification | §10 et §14 |
+
+La V2 est amendée par ces décisions, notamment : réglages éditables ; organisation Tabata/EMOM/Progression ; For time indexé par tour sans choix d’organisation ; Death by cadencé, tours acquis par appui, résultat partiel et état toujours incomplet. Les décisions ne valent pas livraison applicative ni clôture des raccordements explicitement signalés.
+
+Source : [spécification Formats du 14/10](SPECIFICATION-FORMATS-SEANCES-2026-10-14.md), §2 et §12.

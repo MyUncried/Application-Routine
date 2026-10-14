@@ -1,5 +1,8 @@
 ## 12.0 Objet et périmètre
 
+> **Formats de séances — cible du 14/10/2026 :** [spécification Formats du 14/10](SPECIFICATION-FORMATS-SEANCES-2026-10-14.md). Les règles propres aux formats complètent les séances libres ; elles ne changent pas les preuves figées de PRE-3/PRE-4. Moteur cible à développer. [Traçabilité](../MATRICE-FORMATS-SEANCES-2026-10-14.md) et [revue transverse](../REVUE-COHERENCE-FORMATS-2026-10-14.md).
+
+
 > **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
 
 **Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Placement explicite et distinction contenu/trait conservés. **Bip de cadence et durées : la spécification Bip v2 du07/10 remplace les dispositions antérieures.**
@@ -1605,7 +1608,7 @@ La planification applique [sa spécification](SPECIFICATION-PLANIFICATION-2026-1
 
 ## Architecture — circuits du12/10/2026
 
-Séparer paramètres persistés, brouillon avec réserves temporaires, développement du plan, agrégation typée et formatage visuel. Le plan est développé une fois selon la nature ; calcul et progression consomment les occurrences effectives sans multiplication supplémentaire. Le retour arrière/réinitialisation conserve sa portée existante et les résultats acquis ; le raccordement doit utiliser les identifiants d’occurrence, sans rejouer implicitement un exercice intermédiaire déjà terminé.
+Séparer paramètres persistés, brouillon avec réserves temporaires, développement du plan, agrégation typée et formatage visuel. Pour les plans finis à compte borné, le plan est développé une fois selon la nature ; calcul et progression consomment les occurrences effectives sans multiplication supplémentaire. AMRAP/Death by ajoutent une génération progressive depuis l’instantané ; ils ne nécessitent pas de précréer un nombre arbitraire de passages. Le retour arrière/réinitialisation conserve sa portée existante et les résultats acquis ; le raccordement doit utiliser les identifiants d’occurrence, sans rejouer implicitement un exercice intermédiaire déjà terminé.
 
 Prévoir transactions de conversion et adaptation, compatibilité tours par défaut, invariants aux frontières API/persistance et instantanés immuables. La formalisation technique des reprises sera vérifiée avant qualification ; aucune livraison du moteur ni migration n’est revendiquée ici. Les nouveaux états visuels réutilisent les shells existants ; mesures DSF et captures différées par demande utilisateur.
 
@@ -1616,3 +1619,16 @@ Classifier chaque phase par mode ET nature de cible ; DURATION seul ne garantit 
 
 Migration versionnée et atomique de l’ancien mode, copies/snapshots compris ; compatibilité/reprise à qualifier sur le schéma réel. Le §4.5 reçu impose une roulette grisée mais manipulable : son mouvement sélectionne une cible numérique. Ne pas traduire cet état par disabled bloquant les gestes. Qualification des interactions, du rendu45% du bloc et de l’accessibilité sur chaque plateforme à réaliser. Aucun coût nul ni capacité déjà livrée n’est revendiqué.
 
+<a id="formats-architecture"></a>
+
+## Formats — architecture cible du moteur à construire
+
+Source : [spécification Formats du 14/10](SPECIFICATION-FORMATS-SEANCES-2026-10-14.md), FMT-01–42. Le moteur n’est pas encore développé : cette section fixe des capacités de conception initiale, pas une refonte d’un moteur livré.
+
+Séparer prescription versionnée, paramètres contextuels, développement des occurrences, horloge, acquisition de résultat et formatage UI. Réutiliser les circuits de tours/séries ; porter l’unité d’indexation afin qu’un volume par tour ne soit pas interprété comme des séries successives.
+
+Les plans à compte fini peuvent être déroulés ; AMRAP/Death by doivent générer leurs passages progressivement jusqu’à leur borne. Les fenêtres EMOM/Death by ont une échéance indépendante de la fin du travail : un appui ne provoque pas la transition. Le signal audio n’est pas l’horloge métier et ne prouve pas une répétition physique. Conserver des identités de fenêtre pour éviter une double acquisition lors d’une reprise ou d’un doublon d’événement.
+
+L’instantané porte la prescription et les paramètres effectifs. Le résultat Death by conserve séparément rang, tours acquis, répétitions partielles déclarées, motif et achèvement incomplet. Les données nécessaires au Suivi prolongent les structures générales ; aucun moteur de classement ni service distant n’est ajouté.
+
+Avant développement : inventaire du schéma et des consommateurs réels, raccordement des règles de Pause/Reprendre/reset/points d’arrêt et de bilatéralité aux fenêtres, vérification de la déclinaison Death by multi-exercice et de la progression d’un plan à nombre inconnu. Ne pas généraliser aux formats ouverts les poids figés d’un plan fini. Ces limites sont listées dans la revue transverse ; les fonctions métier manquantes ne sont pas réputées livrées.

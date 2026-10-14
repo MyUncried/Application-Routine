@@ -1,0 +1,67 @@
+{
+  "baseline": "55aa34480d51472b540156e2e664b8528c511f6b",
+  "requirements": {
+    "total": 42,
+    "exact_text_propagated_to_chapter_10": 42,
+    "matrix_rows": 42
+  },
+  "decisions": 13,
+  "integration_items": 12,
+  "contracts": {
+    "CE-FMT-01": {
+      "sections": 21,
+      "layout_reference_available": true,
+      "note": "Exigences renseignées ; écarts Figma suivis"
+    },
+    "CE-FMT-02": {
+      "sections": 21,
+      "layout_reference_available": true,
+      "note": "Exigences renseignées ; écarts Figma suivis"
+    },
+    "CE-FMT-03": {
+      "sections": 21,
+      "layout_reference_available": true,
+      "note": "Exigences renseignées ; écarts Figma suivis"
+    },
+    "CE-FMT-04": {
+      "sections": 21,
+      "layout_reference_available": true,
+      "note": "Exigences renseignées ; écarts Figma suivis"
+    },
+    "CE-FMT-05": {
+      "sections": 21,
+      "layout_reference_available": false,
+      "note": "Preuve de layout manquante"
+    },
+    "CE-FMT-06": {
+      "sections": 21,
+      "layout_reference_available": false,
+      "note": "Preuve de layout manquante"
+    }
+  },
+  "captures": {
+    "count": 46,
+    "png_signature_sha256_and_dimensions_verified": 46,
+    "dimensions": [
+      402,
+      874
+    ]
+  },
+  "introduced_local_links_checked": 534,
+  "missing_links": [],
+  "phrase_segments_match": true,
+  "diff_whitespace_check": "passed",
+  "application_tests": "not run — documentation only; engine not developed",
+  "figma_changes": "none",
+  "remaining_issues": [
+    "F-01",
+    "F-02",
+    "F-03",
+    "F-04",
+    "R-01",
+    "R-02",
+    "R-03",
+    "R-04",
+    "R-05"
+  ]
+}
