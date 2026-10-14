@@ -9,6 +9,17 @@ for(const file of manifest.files){const raw=fs.readFileSync(root+'/'+file.path);
 for(const n of closure.nodes)nodes.push(n);
 const byId=new Map(nodes.map(n=>[n.id,n]));if(byId.size!==nodes.length)throw Error('Duplicate node');
 const docPath='docs/Specifications-fonctionnelles/13 – Contrats d’écran.md',revision=process.argv[2];if(!/^[a-f0-9]{40}$/.test(revision||''))throw Error('Published document revision required');
+// Provenance complémentaire publiée : elle enrichit les captures historiques,
+// sans supposer une absence de surcharge ni remplacer leurs propriétés.
+const provenancePath='docs/preparation/PRE-4/figma/provenance-instances-2026-10-14.json';
+const provenance=JSON.parse(cp.execFileSync('git',['show',revision+':'+provenancePath],{cwd:root,encoding:'utf8',maxBuffer:16*1024*1024}));
+const instanceIds=new Set(nodes.filter(n=>n.type==='INSTANCE').map(n=>n.id)),capturedIds=new Set();
+if(provenance.file_key!==refs.file_key||provenance.page_id!==refs.page_id||provenance.instances.length!==instanceIds.size)throw Error('Instance provenance scope mismatch');
+for(const row of provenance.instances){
+ const node=byId.get(row.id);if(!instanceIds.has(row.id)||capturedIds.has(row.id)||!Array.isArray(row.overrides))throw Error('Instance provenance incomplete or duplicate');capturedIds.add(row.id);
+ for(const field of ['main_component_id','componentProperties','variantProperties','boundVariables','explicitVariableModes','resolvedVariableModes'])if(Object.hasOwn(node.properties,field)&&V.canonicalHash(node.properties[field])!==V.canonicalHash(row[field]))throw Error('Instance source drift '+row.id+'.'+field);
+ for(const field of ['overrides','componentProperties','variantProperties','boundVariables','explicitVariableModes','resolvedVariableModes'])node.properties[field]=row[field];
+}
 const content=cp.execFileSync('git',['show',revision+':'+docPath],{cwd:root,encoding:'utf8',maxBuffer:16*1024*1024});const document={document_id:'PRE4-CONTRATS-ECRAN',path:docPath,locator:'FULL_FILE',revision,fingerprint:V.sha256(content),content};
 const states=L.documentStates([document]);
 const visualFields=new Set(['visible','opacity','x','y','width','height','rotation','constraints','layoutMode','layoutWrap','layoutSizingHorizontal','layoutSizingVertical','layoutPositioning','layoutAlign','layoutGrow','primaryAxisSizingMode','counterAxisSizingMode','primaryAxisAlignItems','counterAxisAlignItems','paddingLeft','paddingRight','paddingTop','paddingBottom','itemSpacing','counterAxisSpacing','clipsContent','overflowDirection','fills','strokes','strokeWeight','strokeAlign','strokeCap','strokeJoin','dashPattern','cornerRadius','topLeftRadius','topRightRadius','bottomLeftRadius','bottomRightRadius','effects','blendMode','characters','fontName','fontSize','fontWeight','textAutoResize','textAlignHorizontal','textAlignVertical','lineHeight','letterSpacing','paragraphSpacing','paragraphIndent','textCase','textDecoration','maxLines','textTruncation','textSegments','vectorPaths','minWidth','minHeight','maxWidth','maxHeight','strokeTopWeight','strokeBottomWeight','strokeLeftWeight','strokeRightWeight','cornerSmoothing']);
