@@ -1,5 +1,8 @@
 # 4.1 Objectif
 
+> **Formats de séances — cible du 14/10/2026 :** [spécification Formats du 14/10](SPECIFICATION-FORMATS-SEANCES-2026-10-14.md). Les règles propres aux formats complètent les séances libres ; elles ne changent pas les preuves figées de PRE-3/PRE-4. Moteur cible à développer. [Traçabilité](../MATRICE-FORMATS-SEANCES-2026-10-14.md) et [revue transverse](../REVUE-COHERENCE-FORMATS-2026-10-14.md).
+
+
 > **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
 
 **Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Placement explicite et distinction contenu/trait conservés. **Bip de cadence et durées : la spécification Bip v2 du07/10 remplace les dispositions antérieures.**
@@ -77,7 +80,7 @@ Un **Cycle** est conservé comme structure technique unique de la Composition. I
 
 ## Circuit et Tour
 
-Un **Circuit** est le groupe ordonné d’Exercices contenu dans le Cycle technique unique du MVP. Un **Tour** est une exécution complète de ce Circuit. Le compte est compris entre1 et99, défaut1 : nombre de tours pour la nature tours, nombre de séries imposé à chaque exercice pour la nature séries. D-209 est complétée par la spécification du12/10.
+Un **Circuit** est le groupe ordonné d’Exercices contenu dans le Cycle technique unique du MVP. Un **Tour** est une exécution complète de ce Circuit. Pour une séance libre à compte borné, le compte est compris entre1 et99, défaut1 : nombre de tours pour la nature tours, nombre de séries imposé à chaque exercice pour la nature séries. Les formats ajoutent des bornes et indexations explicites ; leur détail figure dans la section Formats ci-dessous. D-209 est complétée par la spécification du12/10.
 
 ## Exercice
 
@@ -453,3 +456,22 @@ Le régime n’est pas contraint par le circuit. Conversion vers séries adapte 
 
 Les récupérations et points internes sont développés à chaque passage à leur position ; extérieurs au circuit, ils ne se répètent pas. Compte à rebours/Fin propres exclus en SESSION sans booléen. Bilatéral dans un circuit de séries : premier côté → PC → second côté → Pi ; récupération positive remplace seulement Pi terminale.
 
+<a id="formats-modele"></a>
+
+## Formats — modèle fonctionnel
+
+Source : [spécification Formats du 14/10](SPECIFICATION-FORMATS-SEANCES-2026-10-14.md), FMT-01–13, 19–40.
+
+Le format appliqué, l’origine de création et les paramètres du format sont trois informations distinctes de Séance. Les constantes sont imposées ; les réglages autorisés restent éditables ; les valeurs dérivées sont recalculées. Une modification n’altère jamais les instantanés passés.
+
+| Format / origine | Organisation et borne | Indexation |
+|---|---|---|
+| Tabata | Par exercice ou alternance ; huit séries de 20 s et pause 10 s par exercice | Série ; un tour d’ensemble dans la copie par exercice |
+| Intervalles 30/30 | Compte réglable, jamais durée globale saisie | Occurrences de 30 s + 30 s |
+| EMOM | Organisation réglable ; compte et fenêtre réglables | N passages de chaque exercice ; durée N × E × W |
+| AMRAP | Répétition jusqu’à la durée imposée | Tours réalisés, nombre non fixé au départ |
+| For time | Travail prescrit jusqu’à son accomplissement ; pas de choix d’organisation | Volume par tour, pas séries locales successives |
+| Death by | Fenêtres cadencées à objectif croissant ; arrêt déclaré | Rang par horloge ; tour acquis par objectif confirmé |
+| Départs rapides | Valeurs préremplies, librement modifiables | Progression : répétitions par série, y compris en alternance |
+
+Le résultat Death by distingue rang, tours acquis, répétitions partielles, motif et état incomplet. La cible À l’échec reste celle de la série définie le 13/10. Aucun nouveau mode d’exercice n’est créé. Les côtés demeurent propres à l’exercice ; les raccordements non démontrés avec les fenêtres restent explicités dans la spécification §14.2.

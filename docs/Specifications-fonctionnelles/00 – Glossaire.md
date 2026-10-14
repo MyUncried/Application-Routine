@@ -1,5 +1,8 @@
 # Glossaire
 
+> **Formats de séances — cible du 14/10/2026 :** [spécification Formats du 14/10](SPECIFICATION-FORMATS-SEANCES-2026-10-14.md). Les règles propres aux formats complètent les séances libres ; elles ne changent pas les preuves figées de PRE-3/PRE-4. Moteur cible à développer. [Traçabilité](../MATRICE-FORMATS-SEANCES-2026-10-14.md) et [revue transverse](../REVUE-COHERENCE-FORMATS-2026-10-14.md).
+
+
 > **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
 
 Le glossaire définit le vocabulaire officiel du projet KODJO. Les écrans, la documentation, les tests et le code doivent rester rattachables à ces termes et ne doivent pas introduire de concept concurrent.
@@ -24,7 +27,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Point d’arrêt** | Élément de Composition qui suspend l’enchaînement jusqu’à une reprise explicite, sans écran dédié. Le temps passé au Point d’arrêt n’entre pas dans la durée de la Séance. | |
 | **Compte à rebours d’Exercice** | Phase optionnelle propre à un Exercice, distincte du Compte à rebours initial de la Séance. | |
 | **Fin d’exercice** | Phase optionnelle propre à un Exercice, distincte de la Fin de séance. | |
-| **Plan d’Exécution** | Liste ordonnée calculée au démarrage après développement des Séries, Pauses, phases `SIDE_RECOVERY`/`POST_ACTIVITY_RECOVERY` applicables et répétitions du Circuit en Tours. | |
+| **Plan d’Exécution** | Représentation des occurrences effectives issue de l’instantané. Développement fini pour les comptes bornés ; génération progressive pour AMRAP/Death by selon leur borne. Les fenêtres, séries, pauses et récupérations ne sont pas comptées deux fois. | |
 | **Pause après chaque série** | Pi configurée et exécutée après chaque Série, dernière comprise, même à N=1. Seule la dernière Pause est remplacée par la récupération positive qui suit l’Exercice. Pause de série et pause de changement de côté se cumulent à leur frontière. | 15s après chaque Série |
 | **Pause entre les côtés** | Durée intrinsèque facultative d’un Exercice bilatéral, portée par `sideRecoverySeconds`. Elle n’a de sens qu’avec `D→G` ou `G→D`, s’exécute selon l’Ordre des côtés : une fois entre les blocs ou une fois à l’intérieur de chaque paire, et entre dans la durée intrinsèque de l’Exercice. Avec `Aucun`, elle est sans objet. Sa valeur initiale lors de l’activation bilatérale provient du défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice. | 30 s entre côté droit et côté gauche |
 | **Récupération après exercice** | Pause chronométrée ajoutée explicitement à une occurrence, absente par défaut ; jamais sur ActivityDefinition. Attachée à l’occurrence lors des opérations. À 0s : aucune information de récupération ni phase ; trait indépendant D-303. | Récupération30s ajoutée |
@@ -250,3 +253,21 @@ Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2
 | Régime | Identiques ou variables, explicite et propre à l’exercice ; non déduit de l’égalité des valeurs. |
 | Valeur héritée en lecture seule | Valeur réelle déterminée par le contexte, visible sans possibilité d’édition ; différente d’un champ sans effet affichant un tiret. |
 
+<a id="formats-vocabulaire"></a>
+
+## Formats de séance — vocabulaire normatif
+
+| Terme | Définition |
+|---|---|
+| Format appliqué | Règles contraignantes : Tabata, Intervalles 30/30, EMOM, AMRAP, For time, Death by. Fixé à la création ; absent pour une séance libre. |
+| Origine de création | Modèle de départ conservé pour la provenance ; ne contraint pas les exercices. Renforcement, Gainage · Mobilité, Superset, Progression, À l’échec et Libre restent libres. |
+| Réglage du format | Paramètre de séance autorisé à être modifié dans la composition ; distinct des constantes et des valeurs calculées. |
+| Organisation des efforts | Par exercice ou en alternance lorsque le format l’autorise ; distinct du mode Durée/Répétitions. |
+| Fenêtre cadencée | Intervalle de durée imposée ; la fin du travail ne déclenche pas sa fin. La cadence de fenêtre est distincte du bip périodique d’exercice. |
+| Volume par tour | Objectif indexé par tour : For time 21 · 15 · 9 signifie 21 de chaque exercice au premier tour, puis 15, puis 9. |
+| Répétitions par série | Objectif indexé par série ; Progression conserve cette unité dans les deux organisations. |
+| Tour acquis — Death by | Fenêtre dont l’objectif accompli a été confirmé sur le cadran ; distinct du rang temporel de fenêtre. |
+| Incomplet — Death by | État d’achèvement conservé pour limite atteinte comme abandon ; un résultat reste enregistré. Ne pas le transformer en Terminée. |
+| Motif de fin | Cause de l’arrêt, distincte du résultat et de l’achèvement. Pour Death by : limite atteinte ou abandon. |
+
+FMT-01–09, 30–39. Les libellés des champs ne créent pas d’entités persistantes supplémentaires. Les concepts généraux d’historique ne sont pas redéfinis pour ces formats.

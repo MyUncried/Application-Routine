@@ -1,5 +1,8 @@
 # 13 — Contrats d’écran
 
+> **Formats de séances — cible du 14/10/2026 :** [spécification Formats du 14/10](SPECIFICATION-FORMATS-SEANCES-2026-10-14.md). Les règles propres aux formats complètent les séances libres ; elles ne changent pas les preuves figées de PRE-3/PRE-4. Moteur cible à développer. [Traçabilité](../MATRICE-FORMATS-SEANCES-2026-10-14.md) et [revue transverse](../REVUE-COHERENCE-FORMATS-2026-10-14.md).
+
+
 > **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
 
 > Planification à plusieurs contenus (08/10) : les règles antérieures d’archivage supprimant les Routines associées restent décrites pour le cas à contenu unique. Leur extension à une Routine contenant d’autres contenus est **non définie** ; ne pas supprimer ces autres planifications par généralisation. Voir la spécification du 08/10 et son registre de points ouverts.
@@ -478,6 +481,8 @@ Relecture documentaire06/10 : règles transverses§4.14 et matrice courante Figm
 Vérification complémentairev15 : règle de durée omise sans libellé de remplacement conservée ; états icônes et textes de fond selon [matrice v15](../MATRICE-EVOLUTIONS-V15-2026-10-07.md). Aucune nouvelle variante ni action.
 
 ## CE-T03-03 — Catalogue — action `Créer` contextuelle
+
+**Complément Formats du 14/10 :** L’entrée par modèle/format suit CE-FMT-01 et CE-FMT-02. La création libre reste disponible. Format et origine sont séparés ; aucune contrainte ne vient du seul nom du modèle.
 
 ### 1. Identification
 
@@ -990,6 +995,8 @@ D-171/D-194/D-208/D-213/D-222/D-238 ; frame 3789:5349 ; CE-T03-08. Clarification
 Relecture documentaire06/10 : règles transverses§4.14 et matrice courante Figma ; maintien des rubriques sans changement fonctionnel lorsque non concernées. Les captures sont centralisées au chapitre06, aucun test applicatif présumé.
 
 ## CE-T03-08 — Composer une séance / Modifier une séance — brouillon, Circuit, points d’arrêt et validation
+
+**Complément Formats du 14/10 :** Pour une séance issue d’un format, appliquer CE-FMT-03 : réglages autorisés toujours éditables, identité et constantes conservées, synthèse et calculs actualisés. Conserver la nature et l’unité de compte propres au format.
 
 ### 1. Identification
 
@@ -2902,6 +2909,8 @@ Relecture documentaire06/10 : règles transverses§4.14 et matrice courante Figm
 
 ## CE-EXEC-SESSION-01 — Exécution d’une Séance — phases, commandes et confirmations
 
+**Complément Formats du 14/10 :** Les commandes et transitions génériques ci-dessous décrivent les plans libres finis. Les fenêtres EMOM/Death by et la borne AMRAP suivent CE-FMT-05 ; l’arrêt Death by suit CE-FMT-06. Ne pas appliquer Suivant, fin de cible, arrêt depuis Pause ou formule de progression générique aux fenêtres sans le raccordement explicitement signalé.
+
 ### 1. Identification
 
 Famille SESSION :1992:8132/8530/8626 ; dialogues 1992:8224/8326/8428 ; médias CE-MEDIA-EXEC-01/02. ACTIVITY reste CE-T03-09..13.
@@ -2920,7 +2929,7 @@ Plan achevé → CE-UI-08 ; arrêt depuis Pause confirmé → CE-UI-08 Interromp
 
 ### 5. Données affichées et source de vérité
 
-**Cible par Série (13/10) :** fin automatique seulement en Durée chiffrée ; Suivant pour Répétitions ou toute cible À l’échec. Pas de nominal pour l’échec, même avec bip. Relevé par occurrence/côté : durée de dernière tentative ou répétitions estimées/déclarées ; non bloquant. Voir spécification Deux modes §§3–5. Aucun nouveau layout de saisie/restitution n’est livré dans cette passe.
+**Cible par Série hors fenêtres de formats (13/10) :** fin automatique seulement en Durée chiffrée ; Suivant pour Répétitions ou toute cible À l’échec. Pas de nominal pour l’échec, même avec bip. Relevé par occurrence/côté : durée de dernière tentative ou répétitions estimées/déclarées ; non bloquant. Voir spécification Deux modes §§3–5. Aucun nouveau layout de saisie/restitution n’est livré dans cette passe.
 
 Instantané Session au démarrage, occurrences développées, Série/côté/Tour courants, paramètres intrinsèques, exclusion inconditionnelle des Compte à rebours/Fin propres selon D-214 révisée, résultats et temps moteur ; aucune lecture réactive de la source modifiée.
 
@@ -2958,7 +2967,7 @@ Initial ; compte à rebours initial de Séance ; aucune phase Compte à rebours/
 
 ### 12. Contrôles et interactions
 
-Démarrer construit le plan ; ordre canonique§4.12. Pause suspend temps actif ; Reprendre relance ; Arrêter seulement depuis Pause avec confirmation. Réinitialiser/Suivant suivent table§4.12, résultat partiel si saut chronométré anticipé. Point d’arrêt attend reprise explicite ; média ne suspend pas moteur.
+Pour une séance libre à plan fini, Démarrer construit le plan ; ordre canonique§4.12. Pause suspend temps actif ; Reprendre relance ; Arrêter seulement depuis Pause avec confirmation. Réinitialiser/Suivant suivent table§4.12, résultat partiel si saut chronométré anticipé. Point d’arrêt attend reprise explicite ; média ne suspend pas moteur.
 
 Si la Série est en Répétitions avec bip, appliquer Bip v2 : nominal sans transition, Suivant normal ; dans les deux autres modes, le bip est périodique sans changer leur terminaison ; Pause/Reprise sur intervalle complet ; reset de portée existante avec temps réel conservé. En préparation/phase chronométrée, conserver le décompte propre. Média/retournement ne déclenchent pas Pause.
 
@@ -2968,7 +2977,7 @@ Tap commandes ; confirmation explicite avant action destructive ; gestes média 
 
 ### 14. Validation
 
-Séance contenant≥1Exercice valide ; pas de double démarrage. Points aux positions D-217 seulement. Phases 0 s instantanées. Progression hybride selon la formule §6 R-01, calculée sur toutes les étapes contributives du plan.
+Séance contenant≥1Exercice valide ; pas de double démarrage. Points aux positions D-217 seulement. Phases 0 s instantanées. Hors fenêtres et formats à borne ouverte, progression hybride selon la formule §6 R-01, calculée sur toutes les étapes contributives du plan.
 
 ### 15. Brouillon et persistance
 
@@ -2990,7 +2999,7 @@ Annoncer phase, nom et côté au démarrage/changement ; commandes nommées selo
 
 Pause après chaque série, dernière comprise, même N1. Hors circuit de séries, PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon Paramètres v13. Dans un circuit de séries : premier côté → PC → second côté → Pi, déroulement unique ; R positive remplace Pi terminale. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.
 
-Circuit unilatéral, Tours 1..99 ; récupération après chaque occurrence y compris dernière et chaque Tour ; point interne répété chaque Tour ; attente hors durée ; pas de mutation de la source ; média indépendant du moteur.
+Séance libre à compte borné : Circuit unilatéral, Tours 1..99 ; récupération après chaque occurrence y compris dernière et chaque Tour ; point interne répété chaque Tour ; attente hors durée ; pas de mutation de la source ; média indépendant du moteur.
 
 Bip v2 remplace D-302/D-305 sur portée, signaux et symboles ; durées réelles conservées.
 
@@ -3017,6 +3026,8 @@ D-133/D-149/D-150/D-191/D-197/D-208–220 ; chapitres 04/08/09/10/11/12 ; CE-UI-
 Relecture documentaire06/10 : règles transverses§4.14 et matrice courante Figma ; maintien des rubriques sans changement fonctionnel lorsque non concernées. Les captures sont centralisées au chapitre06, aucun test applicatif présumé.
 
 ## CE-UI-08 — Synthèse de Séance
+
+**Complément Formats du 14/10 :** Pour Death by, montrer le résultat tours acquis + répétitions partielles et le motif, avec achèvement incomplet dans les deux cas. Ne pas transformer « limite atteinte » en Terminée. La représentation visuelle de ce résultat reste à illustrer ; CE-FMT-06.
 
 ### 1. Identification
 
@@ -3215,6 +3226,8 @@ Relecture documentaire06/10 : règles transverses§4.14 et matrice courante Figm
 Vérification complémentairev15 : règle de durée omise sans libellé de remplacement conservée ; états icônes et textes de fond selon [matrice v15](../MATRICE-EVOLUTIONS-V15-2026-10-07.md). Aucune nouvelle variante ni action.
 
 ## CE-UI-10 — Paramètres d’exécution — feuille basse
+
+**Complément Formats du 14/10 :** Complément format : CE-FMT-04. Les valeurs imposées restent réelles et effectives ; Tabata affiche Durée/8/20 s/10 s grisées et non modifiables, avec raison. Ne pas appliquer à cet état le tiret d’une valeur sans effet.
 
 
 ### 1. Identification
@@ -3601,6 +3614,8 @@ D-222/D-223 révisées, D-327 à D-332 ; [spécification](SPECIFICATION-PLANIFIC
 
 ## CE-CIR-01 — Choix de nature du circuit
 
+**Complément Formats du 14/10 :** Le format peut imposer la nature du circuit selon CE-FMT-03. Le choix libre Tours/Séries ne permet pas de contourner ses constantes ou l’indexation du Volume par tour For time.
+
 ### 1. Identification
 
 Popover de CE-T03-08, déclenché uniquement par la pastille tours/séries. Référence Prototype MVP `8328:34662`, capture au chapitre 06 ; DSF Circuits du 12/10.
@@ -3687,6 +3702,8 @@ Spécification Circuits §§1,9 ; C01/C02/C15 ; frame `8328:34662`, DSF et matri
 
 
 ## CE-CIR-02 — Confirmation d’adaptation avec perte
+
+**Complément Formats du 14/10 :** Les confirmations de conversion libre restent applicables seulement aux conversions autorisées. Un format n’est pas changé par cette confirmation ; aucune conversion For time en séries locales.
 
 ### 1. Identification
 
@@ -3775,6 +3792,8 @@ Spécification §§1.3–1.4,9.2–9.3 ; C02/C06/C08. Aucune image déclarée ac
 
 ## CE-CIR-03 — Volumes du circuit
 
+**Complément Formats du 14/10 :** Pour For time, l’échelle est un Volume par tour ; pour Progression, des répétitions par série. Le nombre de valeurs et le compte correspondant restent cohérents ; le parcours détaillé de redimensionnement For time reste le raccordement R-04 de la revue.
+
 ### 1. Identification
 
 Fenêtre de lecture seule ouverte par œil sur la ligne du titre de circuit ; frame à rattacher ensuite.
@@ -3860,3 +3879,531 @@ A2/B4 avec tirets ;45s/60s/90s→0:45/1:00/1:30 ; échec✓ ; variables égales 
 ### 21. Traçabilité
 
 Spécification §§3,9.5 ; C11/C12/C13 ; frames `8328:34965` / `8328:35135`, DSF et matrice du 12/10. Écarts Figma restants : tiret de série absente et direction non dessinés ; échec ✓, débordement et accessibilité non illustrés. Les exigences restent inchangées.
+
+<a id="ce-fmt-01"></a>
+
+## CE-FMT-01 — Choix du modèle et du format
+
+### 1. Identification
+
+Entrée 8598:29271 ; page complète, shell de composition existant. Captures au chapitre 06, ancre formats-galerie.
+
+### 2. Finalité fonctionnelle
+
+Choisir un des six formats contraignants ou un départ rapide libre, sans les confondre.
+
+### 3. Contexte d’entrée
+
+Action de création d’une séance depuis les entrées existantes ; aucune nouvelle condition de compte communautaire.
+
+### 4. Contexte de sortie / destinations
+
+Choix → parcours de paramètres correspondant CE-FMT-02 ; Libre → composition existante ; retour selon navigation du shell.
+
+### 5. Données affichées et source de vérité
+
+Catalogue de modèles ; format et origine distincts. Le nom de la carte n’est pas utilisé comme identifiant métier.
+
+### 6. Classification des valeurs Figma
+
+Images et exemples illustrent le choix. Une photographie de carte modèle ne crée pas un visuel attaché à chaque séance sauvegardée.
+
+### 7. Structure de l’écran
+
+Titre, groupes de cartes de modèles, libellés et descriptions, navigation existante.
+
+### 8. Éléments obligatoires
+
+Distinguer les six formats et les départs rapides ; entrée Libre disponible.
+
+### 9. Layout déterministe
+
+Conserver la grille, proportions, couleurs, images et espacements du nœud 8598:29271. Ne pas convertir les cartes modèles en cartes catalogue. DSF Formats §2.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+Grille adaptée à la largeur utile ; Safe Areas ; texte agrandi sans couper le nom ni rendre une carte inaccessible, défilement vertical si nécessaire.
+
+### 11. États de l’écran
+
+Liste disponible ; sélection ; navigation en cours ; erreur d’initialisation du brouillon. Aucun état sélectionné persistant inventé.
+
+### 12. Contrôles et interactions
+
+Tap sur carte initialise le brouillon adapté puis ouvre ses paramètres ; empêcher une double création par double tap.
+
+### 13. Gestes
+
+Tap carte et retour ; aucun glissement requis pour accéder à une entrée.
+
+### 14. Validation
+
+Entrée reconnue ; aucune affectation d’un format par comparaison de titre ou valeurs.
+
+### 15. Brouillon et persistance
+
+Le choix initialise format/origine et paramètres du brouillon ; la sauvegarde explicite de séance reste celle du parcours existant.
+
+### 16. Navigation et conservation d’état
+
+Retour ne transforme pas silencieusement un brouillon déjà composé en autre format ; conservation selon le parcours de brouillon existant.
+
+### 17. Erreurs et cas limites
+
+Ancienne séance sans format reste libre. Carte indisponible ne doit pas créer un objet partiellement typé.
+
+### 18. Accessibilité
+
+Nom accessible de carte égal au modèle ; ordre de focus égal à la lecture ; image décorative non redondante.
+
+### 19. Invariants
+
+FMT-01–03, 28, 40 ; pas de verrouillage pour un départ rapide.
+
+### 20. Recette déterministe
+
+REC-01, REC-25 ; choisir chaque entrée et vérifier format/origine, puis la possibilité de modifier une séance libre.
+
+### 21. Traçabilité
+
+FMT-01–03, 28, 40 ; D-357…369 ; inventaire chapitre 06, DSF Formats.
+
+<a id="ce-fmt-02"></a>
+
+## CE-FMT-02 — Paramètres globaux et récapitulatif
+
+### 1. Identification
+
+Famille des paramètres, sélection Tabata et récapitulatifs : inventaire chapitre 06, CE-FMT-02 ; plusieurs états, pas un écran universel inventé.
+
+### 2. Finalité fonctionnelle
+
+Régler les paramètres autorisés et lire les constantes/calculs avant composition.
+
+### 3. Contexte d’entrée
+
+Choix d’un modèle ; brouillon initialisé et exercices sélectionnés selon son parcours.
+
+### 4. Contexte de sortie / destinations
+
+Validation → CE-FMT-03 ; retour → étape précédente en conservant les valeurs selon brouillon existant.
+
+### 5. Données affichées et source de vérité
+
+Paramètres effectifs du brouillon. EMOM : tours, fenêtre, organisation ; durée calculée N×E×W. For time : Volume par tour.
+
+### 6. Classification des valeurs Figma
+
+Constantes Tabata et Intervalles normatives ; nombres d’exercices/tours d’exemple illustratifs ; aucune formule tirée de la maquette.
+
+### 7. Structure de l’écran
+
+En-tête, exercices et bloc de paramètres, durée calculée lorsqu’applicable, action de composition.
+
+### 8. Éléments obligatoires
+
+Tabata : Séries par exercice 8 ; Exécution si plusieurs exercices. EMOM : compte/fenêtre/organisation et total. For time : Volume par tour sans sélecteur. Progression : répétitions par série et organisation.
+
+### 9. Layout déterministe
+
+Exécution en dernière ligne après Durée totale lorsqu’elle existe ; séparateur entre les deux dernières lignes. Titre et options sur une ligne, typographie des paramètres voisins. Sources 8624:30306, 8624:30392, 8656:35062 ; DSF §2.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+Largeur du segment limitée à l’espace de valeur ; petits écrans et texte agrandi préservent les libellés et l’accès aux options. Pas de clavier sur une valeur calculée.
+
+### 11. États de l’écran
+
+Paramètres initiaux/modifiés ; organisation sélectionnée ; sélection d’exercices ; erreur de saisie ; total recalculé. Un exercice Tabata : pas de question d’organisation inutile.
+
+### 12. Contrôles et interactions
+
+Changer un réglage recalcule synthèse et durée. Segment change ordre, pas volume. Aucun champ Durée totale éditable EMOM. For time ne propose pas le segment.
+
+### 13. Gestes
+
+Tap sur réglage/option et contrôles existants ; pas de nouvelle gestuelle.
+
+### 14. Validation
+
+Paramètres valides suivant leurs bornes normatives ; aucune borne nouvelle déduite des chiffres de Figma. Échelle et unité cohérentes.
+
+### 15. Brouillon et persistance
+
+Réglages conservés dans brouillon ; la synthèse est générée, jamais stockée comme source.
+
+### 16. Navigation et conservation d’état
+
+Retour conserve les réglages ; changement du nombre d’exercices EMOM conserve N et recalcule le total.
+
+### 17. Erreurs et cas limites
+
+Ne pas arrondir les tours EMOM pour préserver une durée antérieure. Éditeur de longueur For time : raccordement R-04 explicitement non qualifié.
+
+### 18. Accessibilité
+
+Segment expose nom, choix et sélection ; total calculé annoncé sans provoquer une annonce à chaque rendu ; constante expliquée autrement que par couleur.
+
+### 19. Invariants
+
+FMT-04–05, 10–15, 19–22, 26–32 ; pas de durée saisie pour les formats cadencés à compte.
+
+### 20. Recette déterministe
+
+REC-02, 04–05, 09–11, 14, 16–18, 28 ; vérifier même volume avant/après organisation.
+
+### 21. Traçabilité
+
+FMT-04–05, 10–15, 19–22, 26–32 ; captures CE-FMT-02 ; écarts F-01/F-04 de la revue.
+
+<a id="ce-fmt-03"></a>
+
+## CE-FMT-03 — Composition d’une séance issue d’un format
+
+### 1. Identification
+
+Famille des compositions préremplies ; notamment Tabata 8747:14320, EMOM 8795:14449, Progression 8795:14681. Complète CE-T03-08.
+
+### 2. Finalité fonctionnelle
+
+Éditer les réglages autorisés d’une séance déjà composée et consulter sa prescription effective.
+
+### 3. Contexte d’entrée
+
+Validation du récapitulatif ou réouverture d’une séance sauvegardée.
+
+### 4. Contexte de sortie / destinations
+
+Modale de paramètres CE-FMT-04 ; sauvegarde de séance ; départ vers exécution selon règles existantes.
+
+### 5. Données affichées et source de vérité
+
+Format, origine, paramètres contextualisés, organisation, cartes et synthèse calculées depuis la séance courante.
+
+### 6. Classification des valeurs Figma
+
+Valeurs d’exemple ne font pas autorité sur durée calculée. Le 1 tour de représentation par exercice ne remplace pas le compte de passages EMOM.
+
+### 7. Structure de l’écran
+
+Shell composition existant : en-tête, circuit et cartes ordonnées, récupérations/points présents selon règles existantes, actions de composition.
+
+### 8. Éléments obligatoires
+
+Tabata par exercice : un tour dans la configuration de référence, cartes 8×20 s. Progression alternée : compte en séries. Réglages autorisés restent accessibles.
+
+### 9. Layout déterministe
+
+Conserver l’implantation des cartes du chapitre 06. Volume dans l’emplacement existant sans cadre ajouté. Pas de pause dans le libellé 8×20 s ; aucune récupération fictive pour montrer la pause.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+Défilement du contenu et actions du shell ; Safe Areas ; ordre visuel cohérent avec l’ordre accessible. Textes longs conservent les règles existantes.
+
+### 11. États de l’écran
+
+Brouillon initial/modifié/sauvegardé ; réorganisation ; erreur de sauvegarde ; constantes effectives en lecture seule.
+
+### 12. Contrôles et interactions
+
+Édition autorisée recalcule immédiatement synthèse et métriques. Ajout/retrait EMOM conserve N. Les opérations permises ne changent pas le format.
+
+### 13. Gestes
+
+Gestes de composition existants ; pas de geste de conversion du format ajouté.
+
+### 14. Validation
+
+Au moins un exercice valide ; aucune double multiplication du compte du format par sa représentation locale. Contraintes réappliquées après édition.
+
+### 15. Brouillon et persistance
+
+Persister paramètres et origine/format ; générer la phrase en segments. Ne pas modifier ActivityDefinition du catalogue pour un héritage contextuel.
+
+### 16. Navigation et conservation d’état
+
+Réouverture restaure paramètres effectifs ; annuler suit le brouillon existant ; historiques conservés.
+
+### 17. Erreurs et cas limites
+
+Anciennes séances restent libres ; suppression d’exercice recalcule les valeurs dérivées. Redimensionnement For time reste R-04, sans destruction implicite inventée.
+
+### 18. Accessibilité
+
+Cartes, compte et unité lisibles ; expliquer le verrouillage ; déplacement accessible suit le contrat de composition existant.
+
+### 19. Invariants
+
+Pas de récupération par défaut ajoutée pour Tabata ; phases propres d’exercice exclues des séances ; bilatéralité dans fenêtres reste R-02.
+
+### 20. Recette déterministe
+
+REC-02–07, 11, 16–17, 25–26 ; vérifier le même résultat après sauvegarde/réouverture et l’historique inchangé.
+
+### 21. Traçabilité
+
+FMT-03–09, 12–13, 16, 18, 22, 29–32, 39–42 ; CE-T03-08 et CE-CIR-01…03 ; DSF Formats.
+
+<a id="ce-fmt-04"></a>
+
+## CE-FMT-04 — Paramètres d’exercice contextualisés par un format
+
+### 1. Identification
+
+Famille des modales ; Tabata par exercice 8747:14451, EMOM par exercice 8795:14588 et autres nœuds CE-FMT-04 de la galerie. Complète CE-UI-10.
+
+### 2. Finalité fonctionnelle
+
+Lire les paramètres effectifs imposés et éditer seulement ceux autorisés dans le contexte de séance.
+
+### 3. Contexte d’entrée
+
+Ouverture depuis une carte de composition ; occurrence et format connus.
+
+### 4. Contexte de sortie / destinations
+
+Validation/fermeture → même composition, état conforme au brouillon existant.
+
+### 5. Données affichées et source de vérité
+
+Paramètres effectifs de l’occurrence, provenance de la contrainte, phrase générée. Ne pas afficher les valeurs brutes du catalogue si elles sont remplacées par le format.
+
+### 6. Classification des valeurs Figma
+
+Tabata Durée/8/20 s/10 s : constantes métier ; exemples EMOM ne définissent pas de nouvelle borne. Le texte de fond reste celui de la séance.
+
+### 7. Structure de l’écran
+
+Modale du système existant : titre, phrase, lignes paramètres, contrôle de fermeture et voile.
+
+### 8. Éléments obligatoires
+
+Quatre valeurs Tabata réelles grisées non modifiables et raison visible. Valeur effective imposée ≠ valeur sans effet : aucun tiret de remplacement.
+
+### 9. Layout déterministe
+
+Réutiliser tailles, alignements, voile et lignes de la modale de référence. Le grisé approuvé s’applique au contrôle/à la valeur ; garder les libellés et la raison lisibles. Aucun nouveau voile.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+Hauteur/scroll et Safe Areas selon CE-UI-10 ; clavier uniquement pour les champs autorisés ; texte de justification accessible au grossissement.
+
+### 11. États de l’écran
+
+Imposé effectif ; éditable ; erreur de saisie. Ne pas confondre avec indisponible sans effet ou héritage structurel du nombre de séries.
+
+### 12. Contrôles et interactions
+
+Tap sur constante n’ouvre pas un éditeur. Changement autorisé actualise la phrase et les calculs sans écraser la définition catalogue.
+
+### 13. Gestes
+
+Fermeture et interactions existantes de modale ; pas d’appui long requis pour comprendre la raison.
+
+### 14. Validation
+
+Refuser une modification des constantes au niveau métier, même si une commande UI incorrecte est envoyée.
+
+### 15. Brouillon et persistance
+
+Valeurs modifiées dans le brouillon contextualisé ; phrase non persistée ; validation selon contrat existant.
+
+### 16. Navigation et conservation d’état
+
+Retour ferme la modale et restitue le focus à la carte ; annulation ne laisse pas de mutation partielle du format.
+
+### 17. Erreurs et cas limites
+
+For time : phrase par tour, jamais « 21,15 puis9 à chaque tour ». Intervalles : 30/30, jamais 20/30. Les captures en écart restent identifiées.
+
+### 18. Accessibilité
+
+Lecture de la valeur réelle et de la raison ; état non modifiable annoncé ; grisé seul insuffisant ; contraste selon DSF.
+
+### 19. Invariants
+
+FMT-17, 19, 30–32, 42 ; les constantes restent effectives dans le moteur futur.
+
+### 20. Recette déterministe
+
+REC-08, 18 ; vérifier absence d’éditeur sur les quatre constantes et absence de tiret ; contrôle des segments et de l’unité tour.
+
+### 21. Traçabilité
+
+FMT-16–19, 30–32, 42 ; CE-UI-10 ; DSF Formats §3 ; F-02/F-03.
+
+<a id="ce-fmt-05"></a>
+
+## CE-FMT-05 — Exécution des fenêtres et formats à borne ouverte
+
+### 1. Identification
+
+Complément fonctionnel CE-EXEC-SESSION-01. Aucun écran d’exécution spécifique qualifié dans les 46 captures ; layout non clôturé.
+
+### 2. Finalité fonctionnelle
+
+Exécuter la prescription selon sa borne et son unité sans double comptage ni transition anticipée.
+
+### 3. Contexte d’entrée
+
+Démarrage d’un instantané valide ; format et paramètres effectifs figés.
+
+### 4. Contexte de sortie / destinations
+
+EMOM : fin du nombre prévu de fenêtres ; AMRAP : échéance globale ; Death by : CE-FMT-06. Pas de fin par un compte d’exercices supposé.
+
+### 5. Données affichées et source de vérité
+
+Instantané, horloge, rang/échéance/objectif courants et signal de travail accompli ; données de résultat distinctes.
+
+### 6. Classification des valeurs Figma
+
+Les captures de composition ne prouvent pas le layout d’exécution. Les nombres du cadran sont calculés depuis l’exécution, pas copiés de Figma.
+
+### 7. Structure de l’écran
+
+Réemploi du shell Exécution ; cadran de fenêtre et contexte exercice. Position précise des informations propres au format à illustrer avant qualification visuelle.
+
+### 8. Éléments obligatoires
+
+Objectif et fenêtre courante ; temps restant ; distinction travail/repos ; rang distinct de tours acquis Death by.
+
+### 9. Layout déterministe
+
+Pas de coordonnées nouvelles prescrites sans frame. Conserver shell, Safe Areas et hiérarchie existants ; compléter la preuve de layout pour les informations propres au format.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+Commandes accessibles sans recouvrir le cadran ; textes agrandis et lecteurs d’écran ; aucun clavier pour saisir le rang.
+
+### 11. États de l’écran
+
+Travail ; travail confirmé/repos révélé ; échéance ; clôture. R-01 couvre le raccordement avec pause utilisateur/reset/point et reprise.
+
+### 12. Contrôles et interactions
+
+Appui sur cadran révèle le repos sans avancer. Death by acquiert au plus une fois la fenêtre accomplie. L’échéance EMOM relance quoi qu’il arrive. Aucune saisie manuelle de rang.
+
+### 13. Gestes
+
+Appui cadran explicite ; son et média ne confirment pas de travail. Gestes génériques ne doivent pas contourner l’échéance.
+
+### 14. Validation
+
+Identité de fenêtre/exécution vérifiée, doublons idempotents ; objectif issu du rang et des paramètres. Cas multi-exercices Death by R-03 non extrapolé.
+
+### 15. Brouillon et persistance
+
+Conserver instantané, événements/résultats qualifiés et échéances nécessaires ; pas de liste infinie de fenêtres précréée.
+
+### 16. Navigation et conservation d’état
+
+Reprise sans double acquisition ni lecture de la source modifiée ; politique de suspension/reprise exacte à raccorder en R-01.
+
+### 17. Erreurs et cas limites
+
+Fenêtre sans appui ≠ objectif confirmé. Audio indisponible ne doit pas devenir l’horloge métier. R-02 bilatéralité reste explicitement non qualifié.
+
+### 18. Accessibilité
+
+Annonces des changements de phase, objectif et fin de fenêtre ; repos et travail différenciés autrement que par couleur ou son.
+
+### 19. Invariants
+
+FMT-20–27, 33–36, 39–41 ; repos inclus dans fenêtre ; pas de multiplicateur caché pour côtés.
+
+### 20. Recette déterministe
+
+REC-10–15, 19–21, 27 ; ces scénarios sont prescrits, non exécutés sur un moteur livré.
+
+### 21. Traçabilité
+
+FMT-20–27, 33–36 ; chapitres 08–12 ; raccordements R-01–03 de la revue ; preuve visuelle absente.
+
+<a id="ce-fmt-06"></a>
+
+## CE-FMT-06 — Arrêt et résultat Death by
+
+### 1. Identification
+
+Contrat fonctionnel de confirmation et raccord à CE-UI-08. Aucun nœud de confirmation Death by identifié dans l’inventaire courant ; layout partiel.
+
+### 2. Finalité fonctionnelle
+
+Clore avec un motif fidèle et un résultat tours acquis + répétitions partielles, sans confondre résultat et achèvement.
+
+### 3. Contexte d’entrée
+
+Un seul déclencheur de fin pendant une exécution Death by ; dernière fenêtre et acquisitions connues.
+
+### 4. Contexte de sortie / destinations
+
+Validation → synthèse/résultat ; refus de clôturer conserve l’exécution selon contrat de confirmation existant, sans acquérir un tour.
+
+### 5. Données affichées et source de vérité
+
+Tours acquis par appuis valides, dernière fenêtre non acquise, répétitions partielles proposées à zéro, motif limite/abandon et état incomplet.
+
+### 6. Classification des valeurs Figma
+
+12 tours + 5 répétitions est un exemple de résultat ; zéro initial est une proposition de saisie, non une mesure.
+
+### 7. Structure de l’écran
+
+Confirmation à deux choix métier : Limite atteinte / Abandonner ; saisie des répétitions partielles lorsqu’applicable ; synthèse ensuite.
+
+### 8. Éléments obligatoires
+
+Un seul déclencheur d’arrêt ; deux motifs ; saisie partielle si fenêtre entamée inachevée ; résultat et état incomplet indépendants du motif.
+
+### 9. Layout déterministe
+
+Réutiliser le système de modale de confirmation ; emplacement précis des deux choix et du champ à illustrer. Ne pas prétendre ce layout validé depuis une capture de paramètres.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+Clavier numérique pour répétitions ; valeur/action accessibles au-dessus du clavier et via scroll selon shell modal ; Safe Areas.
+
+### 11. États de l’écran
+
+Confirmation ouverte ; valeur proposée/modifiée ; validation ; erreur ; clôture. Aucune issue « Terminée » sur limite atteinte.
+
+### 12. Contrôles et interactions
+
+Saisie initiale 0 ; validation confirme la valeur affichée ; choisir le motif ne crée pas de tour supplémentaire. Empêcher une double clôture.
+
+### 13. Gestes
+
+Actions explicites ; la fermeture non validée ne doit pas enregistrer la proposition comme mesure.
+
+### 14. Validation
+
+Valeur entière non négative conforme au type répétitions ; ne pas inventer une borne max issue de Figma. Contrôle de cohérence avec fenêtre et résultat avant validation.
+
+### 15. Brouillon et persistance
+
+Persister le résultat confirmé, son motif et l’achèvement incomplet avec l’instantané ; brouillon du formulaire non assimilé à un relevé acquis.
+
+### 16. Navigation et conservation d’état
+
+Après clôture, synthèse puis suivi existants ; l’édition ultérieure de la séance ne modifie pas ce résultat.
+
+### 17. Erreurs et cas limites
+
+Aucun appui dans la dernière fenêtre : aucun tour acquis pour elle. Aucun doublon de clôture. Cas sans répétitions partielles à afficher selon valeur effective, sans faux objectif accompli.
+
+### 18. Accessibilité
+
+Champs et choix nommés ; focus contenu dans la modale ; annonce du motif et du résultat ; retour du focus si non-validation.
+
+### 19. Invariants
+
+FMT-34–38 ; limite atteinte et abandon donnent tous deux incomplet ; rang déduit de l’horloge.
+
+### 20. Recette déterministe
+
+REC-20–24 ; 12 tours confirmés +5 déclarées ; zéro validé conservé comme déclaration ; double appui sans double acquisition.
+
+### 21. Traçabilité
+
+FMT-34–38 ; CE-UI-08 ; modèle/API chapitres 09/11 ; preuve de layout à compléter.

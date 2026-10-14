@@ -1,5 +1,8 @@
 # KODJO — Règles et concepts nouveaux
 
+> **Formats de séances — cible du 14/10/2026 :** [spécification Formats du 14/10](SPECIFICATION-FORMATS-SEANCES-2026-10-14.md). Les règles propres aux formats complètent les séances libres ; elles ne changent pas les preuves figées de PRE-3/PRE-4. Moteur cible à développer. [Traçabilité](../MATRICE-FORMATS-SEANCES-2026-10-14.md) et [revue transverse](../REVUE-COHERENCE-FORMATS-2026-10-14.md).
+
+
 **Actualisation13/10 :** [Deux modes et cible À l’échec](SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md). Mode commun Durée/Répétitions, cible typée par Série ; ≥ pour mélange calculable. Contrat CE-UI-10 et DSF Deux modes pour le sélecteur actuel.
 
 **Spécification fonctionnelle cible — arbitrages clos le12/10/2026 à09h39. Propagation documentaire autorisée à09h44. Captures et DSF à aligner ultérieurement.**
@@ -435,7 +438,7 @@ Les règles d’affichage temporel restent applicables : un résultat omitted n�
 - Bornes vérifiées dans chapitre08 et Paramètres v13 : compte du circuit et nombre de séries sont compatibles,1..99, défaut1. Aucune nouvelle borne.
 - Vérifier le schéma et les APIs avant de choisir les noms physiques et la migration ; préférer un compte sémantiquement neutre associé à la nature plutôt que deux valeurs concurrentes.
 - Finaliser le layout dans Figma : astérisque/mention, position du chevron, couleur destructive, formats longs et notification Annuler. Document jumeau et inventaire des frames encore nécessaires pour une propagation exhaustive des captures.
-- Tours ouverts (EMOM/AMRAP), remplissage par progression et multicircuit : hors périmètre, pas des obstacles à la clôture du présent besoin.
+- Historique du lot du 12/10 : les formats et le multicircuit n’étaient pas inclus. Depuis la spécification Formats du 14/10, EMOM est borné par un compte, AMRAP par une durée, Death by par arrêt déclaré ; leurs extensions sont documentées dans ce lot distinct. Le multicircuit reste exclu.
 
 ## 12. Propagation documentaire et architecture cible
 
@@ -487,3 +490,11 @@ Les identifiants ci-dessous sont locaux à ce document ; ils ne remplacent pas l
 
 
 **Suivi de publication :** la correction indépendante « aucun booléen de phases propres en Séance » est publiée dans la [PR #349](https://github.com/MyUncried/Application-Routine/pull/349). Ce lien ne constitue pas une preuve de fusion. Les autres règles sont propagées dans ce lot documentaire dédié ; aucune livraison logicielle ni conformité visuelle n’est revendiquée.
+
+<a id="formats-raccordement"></a>
+
+## Raccordement aux formats de séance — 14/10
+
+Par exercice et en alternance sont des organisations, pas de nouveaux modes. Tabata : huit séries par exercice ; alternance via circuit de séries ; copie par exercice à un tour. Progression conserve l’indexation série. For time impose une échelle par tour et n’expose pas ce sélecteur. EMOM conserve N passages par exercice, durée N × E × W quelle que soit l’organisation ; ne pas multiplier deux fois N. Les champs hérités restent effectifs. Les formats à fin temporelle/arrêt déclaré complètent le cas historique des comptes finis.
+
+Source : [spécification Formats du 14/10](SPECIFICATION-FORMATS-SEANCES-2026-10-14.md).

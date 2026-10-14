@@ -1,0 +1,370 @@
+[
+  {
+    "node_id": "8598:29271",
+    "name": "Composition séance — Modèles",
+    "path": "images/formats-2026-10-14/figma-8598-29271.png",
+    "contract": "CE-FMT-01",
+    "sha256": "a4ac25d4d3070985c700a0df8b6ddf118215f2404a5dd97355f3ee525939aa58",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8624:29980",
+    "name": "Composition séance — Modèles — Tabata (quels exercices)",
+    "path": "images/formats-2026-10-14/figma-8624-29980.png",
+    "contract": "CE-FMT-02",
+    "sha256": "cc8dd075531d7d456d5ae790211e49730bce0f25cba3fe0b0a3fcfd1ddc67df3",
+    "observation": "F-01 : compte présenté comme tours et pause comme récupération ; représentation à aligner."
+  },
+  {
+    "node_id": "8598:29503",
+    "name": "Composition séance — Modèles — Tabata (sélection des exercices)",
+    "path": "images/formats-2026-10-14/figma-8598-29503.png",
+    "contract": "CE-FMT-02",
+    "sha256": "5f561bd1338e5deb537d52a7c6ad0399f38221c8230d44cba0a99baf8b8ab84b",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8624:30306",
+    "name": "Composition séance — Modèles — Tabata (récapitulatif)",
+    "path": "images/formats-2026-10-14/figma-8624-30306.png",
+    "contract": "CE-FMT-02",
+    "sha256": "9bf63ff1665adf40b7d659a9d38ae23251df3afd2a9dc33110ca95b8ac068c94",
+    "observation": "F-01 : compte corrigé, récupération encore à distinguer de la pause."
+  },
+  {
+    "node_id": "8624:30749",
+    "name": "Composition séance — Tabata (préremplie)",
+    "path": "images/formats-2026-10-14/figma-8624-30749.png",
+    "contract": "CE-FMT-03",
+    "sha256": "2640d87fba7229b77ea872404319d400592170d7172c715bace1fe90480413d9",
+    "observation": "F-01 : ancienne représentation par tours/récupérations ; ne pas en dériver la prescription."
+  },
+  {
+    "node_id": "8624:30040",
+    "name": "Composition séance — Modèles — EMOM (paramètres)",
+    "path": "images/formats-2026-10-14/figma-8624-30040.png",
+    "contract": "CE-FMT-02",
+    "sha256": "4ef76be55bd25116b7e683237eb2342ef814ae1a6666ecbb682a6d4f6c7f8fa5",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8624:30392",
+    "name": "Composition séance — Modèles — EMOM (récapitulatif)",
+    "path": "images/formats-2026-10-14/figma-8624-30392.png",
+    "contract": "CE-FMT-02",
+    "sha256": "6735785a1d4c16a180b4fecd8746837d5b33ee4f6b321b7ac61b2b08b30e1a6d",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8624:30880",
+    "name": "Composition séance — EMOM (préremplie)",
+    "path": "images/formats-2026-10-14/figma-8624-30880.png",
+    "contract": "CE-FMT-03",
+    "sha256": "02a4015ae9a2ac5d91d79c5f96cc85f28f5219f1c4df6347d23e6e77771939e3",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8624:30143",
+    "name": "Composition séance — Modèles — AMRAP (paramètres)",
+    "path": "images/formats-2026-10-14/figma-8624-30143.png",
+    "contract": "CE-FMT-02",
+    "sha256": "77197b3c950962de4ad140faa94f230495011868d35d7094e4480cdacd8c9278",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8624:30521",
+    "name": "Composition séance — Modèles — AMRAP (récapitulatif)",
+    "path": "images/formats-2026-10-14/figma-8624-30521.png",
+    "contract": "CE-FMT-02",
+    "sha256": "8e0ec7fa0bd9450ea2c0940234692007e9d67203f43daacac8cd592458dc87c5",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8624:31043",
+    "name": "Composition séance — AMRAP (préremplie)",
+    "path": "images/formats-2026-10-14/figma-8624-31043.png",
+    "contract": "CE-FMT-03",
+    "sha256": "c5cd79712af56f445bae9112e03b02d37d22fdc152472f4adb0937436ea05159",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8624:30198",
+    "name": "Composition séance — Modèles — Death by (paramètres)",
+    "path": "images/formats-2026-10-14/figma-8624-30198.png",
+    "contract": "CE-FMT-02",
+    "sha256": "49d1cf4e5fc5db2be63c9589999ca648a45c949d18271eb15061491ab11177ff",
+    "observation": "F-04 : description du résultat à compléter avec les répétitions partielles."
+  },
+  {
+    "node_id": "8624:30602",
+    "name": "Composition séance — Modèles — Death by (récapitulatif)",
+    "path": "images/formats-2026-10-14/figma-8624-30602.png",
+    "contract": "CE-FMT-02",
+    "sha256": "e1f000f0da1e06f8a7827561019c3022cd05e5500a57ee50037983d5e3923117",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8624:31157",
+    "name": "Composition séance — Death by (préremplie)",
+    "path": "images/formats-2026-10-14/figma-8624-31157.png",
+    "contract": "CE-FMT-03",
+    "sha256": "cfc5767bd10deb44aa1340eaed041f4ef0c919412791c5d33038e9c8049d733f",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8624:30255",
+    "name": "Composition séance — Modèles — For time (paramètres)",
+    "path": "images/formats-2026-10-14/figma-8624-30255.png",
+    "contract": "CE-FMT-02",
+    "sha256": "79cf37cbd2be080fb53f110e772dc317118ae8767c41660bde303f96e13f49dc",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8624:30672",
+    "name": "Composition séance — Modèles — For time (récapitulatif)",
+    "path": "images/formats-2026-10-14/figma-8624-30672.png",
+    "contract": "CE-FMT-02",
+    "sha256": "5783d757f5669c9a4d070e5b1d845902f8ca23b83b951ea26d579147b35db9c5",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8624:31263",
+    "name": "Composition séance — For time (préremplie)",
+    "path": "images/formats-2026-10-14/figma-8624-31263.png",
+    "contract": "CE-FMT-03",
+    "sha256": "a53d326cac76b0a193c93f91f2fd3385b5a4be271f6e6265fc28143b2b94265d",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8656:33799",
+    "name": "Composition séance — Modèles — Intervalles 30/30 (paramètres)",
+    "path": "images/formats-2026-10-14/figma-8656-33799.png",
+    "contract": "CE-FMT-02",
+    "sha256": "e8d54e2b4c61f7c52f7887e422c55840367bf9d5e8372304af77e6a329be7a3e",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8656:33857",
+    "name": "Composition séance — Modèles — Intervalles 30/30 (récapitulatif)",
+    "path": "images/formats-2026-10-14/figma-8656-33857.png",
+    "contract": "CE-FMT-02",
+    "sha256": "99c13b5e39d1b60374c6ea5a81c3147d484414a5ae149e34d5a8232b22053e18",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8656:33941",
+    "name": "Composition séance — Intervalles 30/30 (préremplie)",
+    "path": "images/formats-2026-10-14/figma-8656-33941.png",
+    "contract": "CE-FMT-03",
+    "sha256": "527a9edb58d096811e2ff3e90c2b3a09248216e1320b51ca13168146743ecb9a",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8656:34196",
+    "name": "Composition séance — Modèles — Renforcement (paramètres)",
+    "path": "images/formats-2026-10-14/figma-8656-34196.png",
+    "contract": "CE-FMT-02",
+    "sha256": "899082b2d594262523c457d12014c111c15b4071587d9a68ec9e923e5d68d41c",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8656:34263",
+    "name": "Composition séance — Modèles — Renforcement (récapitulatif)",
+    "path": "images/formats-2026-10-14/figma-8656-34263.png",
+    "contract": "CE-FMT-02",
+    "sha256": "8a3fd4cc0df82d9db72375b52c0e105c1a762b581dc78e2e063700c15bc88c33",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8656:34356",
+    "name": "Composition séance — Renforcement (préremplie)",
+    "path": "images/formats-2026-10-14/figma-8656-34356.png",
+    "contract": "CE-FMT-03",
+    "sha256": "c1ee8682fd351eade61a84c66c68023fa4fc8eae7f73fabfa083a5a1a6e8864d",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8656:34494",
+    "name": "Composition séance — Modèles — Gainage · Mobilité (paramètres)",
+    "path": "images/formats-2026-10-14/figma-8656-34494.png",
+    "contract": "CE-FMT-02",
+    "sha256": "8cafaa1414aaff7e71279b2e33337422bb4960a6d6af0f7035fd78a302111841",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8656:34548",
+    "name": "Composition séance — Modèles — Gainage · Mobilité (récapitulatif)",
+    "path": "images/formats-2026-10-14/figma-8656-34548.png",
+    "contract": "CE-FMT-02",
+    "sha256": "e1c0e1932ca38a53a1a1fc1bd3bdc2b57fcce728fd279dc96a73be05667d5d97",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8656:34628",
+    "name": "Composition séance — Gainage · Mobilité (préremplie)",
+    "path": "images/formats-2026-10-14/figma-8656-34628.png",
+    "contract": "CE-FMT-03",
+    "sha256": "26e87d979adc945d6e87f7693b75883ca30bfe1bc860e91ffc174054cee5f9dd",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8656:34753",
+    "name": "Composition séance — Modèles — Superset (paramètres)",
+    "path": "images/formats-2026-10-14/figma-8656-34753.png",
+    "contract": "CE-FMT-02",
+    "sha256": "7d912b8866ae3b37b913ddb2845ced02a00b5b0cd3be848f92692e368537d525",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8656:34807",
+    "name": "Composition séance — Modèles — Superset (récapitulatif)",
+    "path": "images/formats-2026-10-14/figma-8656-34807.png",
+    "contract": "CE-FMT-02",
+    "sha256": "085305a1199400e95236d9c0bf8627d21eb8cbb31036245fd173cf3aa0f32b1e",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8656:34887",
+    "name": "Composition séance — Superset (préremplie)",
+    "path": "images/formats-2026-10-14/figma-8656-34887.png",
+    "contract": "CE-FMT-03",
+    "sha256": "745271d436131761dac536e5e836151cc330f3f22aae584efb1b5d5772e82556",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8656:35005",
+    "name": "Composition séance — Modèles — Progression (paramètres)",
+    "path": "images/formats-2026-10-14/figma-8656-35005.png",
+    "contract": "CE-FMT-02",
+    "sha256": "083c19a90a495fed32d7342c67b6bd45195e32055dbbb94848dd8988018289dc",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8656:35062",
+    "name": "Composition séance — Modèles — Progression (récapitulatif)",
+    "path": "images/formats-2026-10-14/figma-8656-35062.png",
+    "contract": "CE-FMT-02",
+    "sha256": "673b49c8dd253ae3535fce10a3d2569827b6311306c3c0e2ee7e36868eb6bc11",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8656:35145",
+    "name": "Composition séance — Progression (préremplie)",
+    "path": "images/formats-2026-10-14/figma-8656-35145.png",
+    "contract": "CE-FMT-03",
+    "sha256": "3dd7688bec9ed88f9d83f643a80c743e7a55fafd795ee37a95698512305a7a0f",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8656:35273",
+    "name": "Composition séance — Modèles — À l’échec (paramètres)",
+    "path": "images/formats-2026-10-14/figma-8656-35273.png",
+    "contract": "CE-FMT-02",
+    "sha256": "f32dbd3aeb4552b749e12a7ae91bfc16e72ba8ea060e19a020bce597e52776ef",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8656:35331",
+    "name": "Composition séance — Modèles — À l’échec (récapitulatif)",
+    "path": "images/formats-2026-10-14/figma-8656-35331.png",
+    "contract": "CE-FMT-02",
+    "sha256": "5503767b2b9c4b534ac83ab8ba6fc1ebd8f4811f41492f9702bbce19472a474f",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8656:35415",
+    "name": "Composition séance — À l’échec (préremplie)",
+    "path": "images/formats-2026-10-14/figma-8656-35415.png",
+    "contract": "CE-FMT-03",
+    "sha256": "6fc268a4611550e83cf368a860cf643ae9d6128ecc9299c290faac61103d32c8",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8747:14320",
+    "name": "Composition séance — Tabata (préremplie) — Par exercice",
+    "path": "images/formats-2026-10-14/figma-8747-14320.png",
+    "contract": "CE-FMT-03",
+    "sha256": "4e318c7ebb3c31103619d3a7cdfa8b370974d7dd10867a94d5d96cd823f38f33",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8795:14449",
+    "name": "Composition séance — EMOM (préremplie) — Par exercice",
+    "path": "images/formats-2026-10-14/figma-8795-14449.png",
+    "contract": "CE-FMT-03",
+    "sha256": "56fbb3d6e3a0ceebbf29c02e2f04b0ef5c11dde8260464fe7cc12468ab31e4e1",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8795:14681",
+    "name": "Composition séance — Progression (préremplie) — Par alternance",
+    "path": "images/formats-2026-10-14/figma-8795-14681.png",
+    "contract": "CE-FMT-03",
+    "sha256": "225ed4c6ea7b4274e0d6657e3be6396b66bc6dee68c89c149844c8e5c0737800",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8598:30059",
+    "name": "Modification activité — Paramètres (modale) — Exercice Tabata",
+    "path": "images/formats-2026-10-14/figma-8598-30059.png",
+    "contract": "CE-FMT-04",
+    "sha256": "28e67896122f84cb751c7bb9de56545700241bb69e8c0d6bdc630959ea790c5f",
+    "observation": "F-01 : ancienne représentation effort par tour/récupération."
+  },
+  {
+    "node_id": "8598:30515",
+    "name": "Modification activité — Paramètres (modale) — Exercice EMOM",
+    "path": "images/formats-2026-10-14/figma-8598-30515.png",
+    "contract": "CE-FMT-04",
+    "sha256": "a11f0e550f5786320ab7a3f7b485deb6173f463a8d78d8f8b7ca5d872effa55e",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8598:30873",
+    "name": "Modification activité — Paramètres (modale) — Exercice AMRAP",
+    "path": "images/formats-2026-10-14/figma-8598-30873.png",
+    "contract": "CE-FMT-04",
+    "sha256": "60898ffa87e1a26ed28801ef447f74d4cddb7aefeb2bac9f7812e7092afc9b9e",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8598:31210",
+    "name": "Modification activité — Paramètres (modale) — Exercice Death by",
+    "path": "images/formats-2026-10-14/figma-8598-31210.png",
+    "contract": "CE-FMT-04",
+    "sha256": "a3123c63f584d3d77447261ec708e955e5cb86e18c5db55908706628526f68cc",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8598:31560",
+    "name": "Modification activité — Paramètres (modale) — Exercice For time",
+    "path": "images/formats-2026-10-14/figma-8598-31560.png",
+    "contract": "CE-FMT-04",
+    "sha256": "3514276725fef95e178412f127af60d7ad419df49e061de62acf093dec1ae5fc",
+    "observation": "F-02 : phrase « à chaque tour » incompatible avec l’échelle par tour validée."
+  },
+  {
+    "node_id": "8656:34070",
+    "name": "Modification activité — Paramètres (modale) — Exercice Intervalles 30/30",
+    "path": "images/formats-2026-10-14/figma-8656-34070.png",
+    "contract": "CE-FMT-04",
+    "sha256": "0c6ad25c6852f188edbc3e0554ea3f7718a7c4cde32a6f87b4aa39fe459bef74",
+    "observation": "F-03 : valeur de travail 20 s incompatible avec la constante de format 30 s."
+  },
+  {
+    "node_id": "8747:14451",
+    "name": "Modification activité — Paramètres (modale) — Exercice Tabata — Par exercice",
+    "path": "images/formats-2026-10-14/figma-8747-14451.png",
+    "contract": "CE-FMT-04",
+    "sha256": "cebea459bdbb2865bc8fd97f3dcd349946a0c6a3ccb6e8dac67037eb3f3d5b9b",
+    "observation": "Capture observée ; pas de recette applicative"
+  },
+  {
+    "node_id": "8795:14588",
+    "name": "Modification activité — Paramètres (modale) — Exercice EMOM — Par exercice",
+    "path": "images/formats-2026-10-14/figma-8795-14588.png",
+    "contract": "CE-FMT-04",
+    "sha256": "7a7c5e423c22d47ddf90048d091f0920ad04164a7ba3499e6dd09fd230619b19",
+    "observation": "Capture observée ; pas de recette applicative"
+  }
+]

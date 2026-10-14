@@ -64,3 +64,7 @@ La hauteur suit le contenu disponible ; ne pas coder 190 comme plafond. Colonnes
 ## Composants et qualification
 
 Ce lot met à jour le DSF documentaire et les preuves visuelles ; il ne modifie pas les maîtres Figma. Les nouveaux composants de ligne, pied et œil sont présents, mais les assemblages Circuit et Volumes ne sont pas déclarés entièrement factorisés. Les dettes de variantes et de propagation sont tracées dans la matrice. Aucun test applicatif ni changement du périmètre PRE-3.
+
+## Raccordement Formats du 14/10/2026
+
+Le [DSF Formats](DSF-FORMATS-SEANCES-2026-10-14.md) complète ce document : organisation Par exercice/En alternance, compte nommé selon son unité, constantes Tabata grisées mais effectives et phrases contextuelles. L’état imposé effectif conserve une valeur réelle ; ne pas lui appliquer le tiret des valeurs sans effet. Les cartes de modèles illustrées ne changent pas la règle des cartes catalogue. Les points de layout non qualifiés restent signalés dans la [revue transverse](REVUE-COHERENCE-FORMATS-2026-10-14.md).

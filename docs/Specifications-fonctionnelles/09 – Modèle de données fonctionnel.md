@@ -1,5 +1,8 @@
 # 09.0 Vue d'ensemble
 
+> **Formats de séances — cible du 14/10/2026 :** [spécification Formats du 14/10](SPECIFICATION-FORMATS-SEANCES-2026-10-14.md). Les règles propres aux formats complètent les séances libres ; elles ne changent pas les preuves figées de PRE-3/PRE-4. Moteur cible à développer. [Traçabilité](../MATRICE-FORMATS-SEANCES-2026-10-14.md) et [revue transverse](../REVUE-COHERENCE-FORMATS-2026-10-14.md).
+
+
 > **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
 
 > Planification à plusieurs contenus (08/10) : les règles antérieures d’archivage supprimant les Routines associées restent décrites pour le cas à contenu unique. Leur extension à une Routine contenant d’autres contenus est **non définie** ; ne pas supprimer ces autres planifications par généralisation. Voir la spécification du 08/10 et son registre de points ouverts.
@@ -206,6 +209,8 @@ Elle ne contient pas directement :
 | Nom                                     | Nom affiché de la séance                                                  |         Obligatoire          | Saisi avant la création effective de la séance                                                                                                                                                                                                         |
 | Étiquette                              | Classification de la Séance                                               |          Facultatif          | Zéro ou une Étiquette ; elle porte la couleur affichée de la Séance                                                                                                                                                                                     |
 | Couleur affichée                        | Couleur visuelle de la Séance                                              |           Calculé            | Dérivée de l’Étiquette lorsqu’elle est renseignée ; aucune couleur métier indépendante de l’Étiquette                                                                                                                                                  |
+> **Formats :** cette grille antérieure n’encode pas à elle seule l’achèvement incomplet du Death by. Conserver séparément motif, résultat et achèvement selon FMT-38 ; aucun mapping implicite vers Terminée.
+
 | Statut                                  | État de la séance                                                         |         Obligatoire          | Active ou archivée                                                                                                                                                                                                                                     |
 | Date de création                        | Date de création effective                                                |         Obligatoire          | Générée automatiquement                                                                                                                                                                                                                                |
 | Date de modification                    | Date de dernière modification                                             |         Obligatoire          | Mise à jour automatiquement                                                                                                                                                                                                                            |
@@ -378,6 +383,8 @@ Une Occurrence planifiée à contenu unique possède directement :
 | Source       | Source concernée                               | Obligatoire | Référence à la source planifiée au moment de l’occurrence |
 | Date prévue  | Date planifiée                                |  Obligatoire | Valeur issue de la Routine au moment de l'occurrence |
 | Heure prévue | Heure planifiée                               |  Obligatoire | Valeur issue de la Routine au moment de l'occurrence |
+> **Formats :** cette grille antérieure n’encode pas à elle seule l’achèvement incomplet du Death by. Conserver séparément motif, résultat et achèvement selon FMT-38 ; aucun mapping implicite vers Terminée.
+
 | Statut       | Résultat de l'occurrence                      |  Obligatoire | `Exécutée` ou `Non exécutée`                         |
 | Exécution    | Exécution associée                            | Conditionnel | Présente uniquement si la source a été démarrée      |
 ### Règles métier
@@ -531,6 +538,8 @@ Une Exécution possède directement :
 | État d'exécution | Avancement | Obligatoire | Mis à jour en continu |
 | Date de début | Début réel | Obligatoire | Générée automatiquement |
 | Date de fin | Fin réelle | Facultatif | À la clôture |
+> **Formats :** cette grille antérieure n’encode pas à elle seule l’achèvement incomplet du Death by. Conserver séparément motif, résultat et achèvement selon FMT-38 ; aucun mapping implicite vers Terminée.
+
 | Statut | En cours, Suspendue, Terminée, Partielle ou Interrompue | Obligatoire | |
 | Durée réelle | Temps actif réellement exécuté | Calculé | Exclut uniquement les périodes de Pause manuelle déclenchées par l’utilisateur ; inclut le Compte à rebours initial, le temps réellement passé dans les Exercices, les Pauses entre Séries, les phases `SIDE_RECOVERY` / `POST_ACTIVITY_RECOVERY` réellement exécutées et la Fin de séance |
 | Dernière sauvegarde | Date de sauvegarde | Obligatoire | Technique |
@@ -628,6 +637,8 @@ Chaque occurrence d’Exercice parcourue pendant une Exécution produit un **Ré
 | Exercice de l’Instantané | Exercice source | Obligatoire | Référence l’Instantané, pas la Séance courante |
 | Position d’exécution | Rang dans le plan d’exécution | Obligatoire | Permet de distinguer les occurrences |
 | Série / Tour / Cycle | Indices de répétition applicables | Calculé | Conservés pour restitution |
+> **Formats :** cette grille antérieure n’encode pas à elle seule l’achèvement incomplet du Death by. Conserver séparément motif, résultat et achèvement selon FMT-38 ; aucun mapping implicite vers Terminée.
+
 | Statut | Résultat de l’occurrence | Obligatoire | `Terminée` ou `Partielle` selon le type et le déroulement |
 | Durée réelle | Temps réellement passé sur l’Exercice | Obligatoire | Chronométré pour les modes Durée ou Répétitions, avec cible chiffrée ou À l’échec par série |
 | Pause entre les côtés prévue/écoulée | Durées de la phase intrinsèque éventuelle | Conditionnel | Champs distincts rattachés à `SIDE_RECOVERY` lorsqu’elle existe |
@@ -651,7 +662,7 @@ Le moteur d'exécution, le plan d'exécution et les structures qu'il manipule so
 
 ### Définition
 
-Le plan d'exécution est la représentation linéaire de la séance obtenue après résolution de sa structure.
+Pour un compte borné, le plan est la représentation linéaire obtenue après résolution de la structure. Pour AMRAP/Death by, le plan cible génère progressivement les passages à partir de l’instantané et de la borne ; il n’exige pas une liste finie entièrement déroulée au départ.
 
 Le Compte à rebours initial structurellement présent, éventuellement instantané à `0 s`, les Exercices placés avant le Circuit, les Tours du Circuit et les Exercices placés après le Circuit sont développés afin d'obtenir une liste ordonnée directement exploitable. Le Cycle technique enveloppe cette structure avec une répétition imposée à `1` dans le MVP ; la Fin de séance est ajoutée à la suite du plan développé.
 
@@ -683,9 +694,9 @@ Le Compte à rebours initial structurellement présent, éventuellement instanta
 - Il est construit exclusivement à partir de l'instantané de séance.
 - Toute modification ultérieure de la séance ou de la routine est sans effet.
 - La fin de le dernier Exercice active `SESSION_END`. L’Exécution n’est terminée qu’après l’achèvement de cette dernière étape ; une durée de `0 s` l’achève immédiatement.
-- Les Tours du Circuit et du cycle sont résolues lors de la génération.
-- Chaque Série produit une phase `ACTIVITY`. Une phase `SERIES_PAUSE` n’existe qu’entre Séries successives. `SIDE_RECOVERY` est insérée entre les côtés si nécessaire ; `POST_ACTIVITY_RECOVERY` est insérée après chaque occurrence de Séance si sa durée contextuelle est positive.
-- T04 développe les Séries multiples, les répétitions de Tour et les passages de côté avant démarrage. Le Plan obtenu est figé dans l’instantané.
+- Les comptes bornés sont résolus lors de la génération. Pour AMRAP/Death by, les passages sont générés progressivement ; rang temporel et acquisition de résultat sont distincts.
+- Chaque Série produit une phase `ACTIVITY`. Une phase `SERIES_PAUSE` existe après chaque Série quand sa pause est positive, dernière comprise, sauf substitution terminale par une récupération positive suivant les règles de l’occurrence. `SIDE_RECOVERY` est insérée entre les côtés si nécessaire ; `POST_ACTIVITY_RECOVERY` est insérée après chaque occurrence de Séance si sa durée contextuelle est positive.
+- La conception T04 à compte borné développe Séries, Tours et côtés avant démarrage. Pour les formats ouverts, l’instantané fige la prescription et la règle de génération, pas un nombre arbitraire de fenêtres futures.
 - Les préférences globales sont appliquées pendant l'exécution sans modifier le plan.
 
 
@@ -1209,3 +1220,24 @@ La cible typée appartient à chaque Série effective et à chaque copie/snapsho
 
 Migration de l’ancien TO_FAILURE : REPETITIONS + cibles échec, valeurs et comportement conservés ; lecture versionnée des snapshots historiques, aucune répétition rétrocalculée. La donnée dernière tentative doit être distinguée du cumul :20s reset35s →55s cumulé,35s relevé. Voir spécification Deux modes §§5/7 ; schéma physique à réaliser, non livré par la documentation.
 
+<a id="formats-donnees"></a>
+
+## Formats — données fonctionnelles et invariants
+
+Source : [spécification Formats du 14/10](SPECIFICATION-FORMATS-SEANCES-2026-10-14.md), FMT-01–09, 20–25, 30–42. Modèle cible, noms physiques et migration à déterminer depuis le code.
+
+| Porteur | Information | Règle de cohérence |
+|---|---|---|
+| Séance | Format facultatif | Six formats ; absent = libre. Aucune déduction depuis le titre ou des valeurs similaires. |
+| Séance | Origine de création | Distincte du format ; les départs rapides ne portent aucune contrainte. |
+| Séance | Réglages de format et organisation applicable | Modifiables dans la composition ; ne modifient pas les constantes ni l’historique. |
+| Prescription | Valeurs ordonnées et unité d’indexation | Série pour Progression, tour pour For time. Pas de réinterprétation implicite. |
+| Occurrence contextualisée | Valeur effective, provenance et caractère imposé | Ne pas réécrire ActivityDefinition du catalogue pour appliquer le contexte. |
+| Instantané | Format, origine, réglages effectifs, prescription et version de règle | Lecture stable après modification/suppression de la source. |
+| Fenêtre exécutée | Rang, début, échéance, objectif, signal de fin du travail | Une fin de travail ne change pas l’échéance ; horloge indépendante de l’audio. |
+| Acquisition Death by | Fenêtre confirmée, tour acquis | Au plus une acquisition par fenêtre ; aucun tour acquis sans appui. |
+| Clôture Death by | Répétitions partielles confirmées, motif, état d’achèvement | Formulaire proposé à 0, résultat déclaré après validation ; limite/abandon distincts, état incomplet dans les deux cas. |
+
+La durée EMOM est dérivée N × E × W ; le repos résiduel appartient à sa fenêtre, ce n’est pas une récupération ajoutée. Les valeurs calculées ne constituent pas une deuxième prescription persistée. Les phrases ne sont pas stockées : segments régénérés à l’affichage.
+
+Compatibilité : les anciennes séances sans format restent libres, leurs historiques inchangés. L’état fonctionnel « incomplet » du Death by n’est pas converti silencieusement en l’ancien statut Terminée/Interrompue ; son raccordement au schéma physique doit conserver les trois axes motif/résultat/achèvement. Les exigences générales de relevé qualifié du 13/10 restent applicables ; la clôture Death by ne rend pas obligatoire la saisie des relevés d’autres exercices.

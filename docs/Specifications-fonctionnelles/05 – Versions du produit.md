@@ -1,5 +1,8 @@
 ## V1 – KODJO MVP : séance structurée et exécution locale
 
+> **Formats de séances — cible du 14/10/2026 :** [spécification Formats du 14/10](SPECIFICATION-FORMATS-SEANCES-2026-10-14.md). Les règles propres aux formats complètent les séances libres ; elles ne changent pas les preuves figées de PRE-3/PRE-4. Moteur cible à développer. [Traçabilité](../MATRICE-FORMATS-SEANCES-2026-10-14.md) et [revue transverse](../REVUE-COHERENCE-FORMATS-2026-10-14.md).
+
+
 > **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
 
 > Mise à jour du 24 septembre 2026 : Étiquette = classification/couleur de Séance ; Catégorie = classification/couleur d’Exercice ; Point d’arrêt ; Compte à rebours et Fin propres à l’Exercice ; changement de côté non exposé au niveau Tour ; roulettes en modale basse ; média en gouttière permanente dans le Catalogue des Exercices depuis D-260/D-261 du03/10/2026.
@@ -285,3 +288,8 @@ Cible documentée, non déclarée livrée : Bip de cadence0..10 dans deux modes,
 
 Choisir une ou plusieurs Séances/Exercices par cases → Ajouter n éléments → Programme facultatif, Début, Répétition, contenus ordonnés si plusieurs, Rappel → Enregistrer. Chaque contenu filtre les occurrences du créneau par son motif x fois sur n. Les modalités ouvertes ne sont pas considérées livrées. Voir la [spécification](SPECIFICATION-PLANIFICATION-2026-10-08.md), les contrats CE-UI-04/05/11 et le [DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md).
 
+<a id="formats-perimetre"></a>
+
+## Formats — conception cible et livraison
+
+Cette évolution documente les six formats et les départs rapides selon [spécification Formats du 14/10](SPECIFICATION-FORMATS-SEANCES-2026-10-14.md). La présence d’un écran sur Prototype MVP ne constitue ni son admission dans une tranche ni sa livraison applicative. Le moteur n’est pas encore développé ; le lot courant est exclusivement documentaire. Les preuves et périmètres PRE-3/PRE-4 restent figés. Rapports, classement, charge additionnelle, tempo et entrée Pyramide ne sont pas ajoutés au périmètre.

@@ -1,5 +1,8 @@
 # Objectif de cette note
 
+> **Formats de séances — cible du 14/10/2026 :** [spécification Formats du 14/10](SPECIFICATION-FORMATS-SEANCES-2026-10-14.md). Les règles propres aux formats complètent les séances libres ; elles ne changent pas les preuves figées de PRE-3/PRE-4. Moteur cible à développer. [Traçabilité](../MATRICE-FORMATS-SEANCES-2026-10-14.md) et [revue transverse](../REVUE-COHERENCE-FORMATS-2026-10-14.md).
+
+
 > **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
 
 > Planification à plusieurs contenus (08/10) : les règles antérieures d’archivage supprimant les Routines associées restent décrites pour le cas à contenu unique. Leur extension à une Routine contenant d’autres contenus est **non définie** ; ne pas supprimer ces autres planifications par généralisation. Voir la spécification du 08/10 et son registre de points ouverts.
@@ -109,6 +112,8 @@ Il peut créer une séance entièrement nouvelle ou partir d'une copie d'une sé
 ## Parcours
 
 ### 1. Créer une séance
+
+**Entrée Formats (cible 14/10) :** le choix du modèle précède le parcours propre à ce modèle ; voir [Formats et départs rapides](#formats-parcours). Le parcours libre ci-dessous reste disponible.
 
 L'utilisateur crée une nouvelle séance depuis le Catalogue.
 
@@ -559,3 +564,17 @@ Choisir une ou plusieurs Séances/Exercices par cases → Ajouter n éléments �
 
 D-333 inclut l’import/ajout de photos ou vidéos locales depuis l’éditeur, dans le Catalogue comme dans une copie de Séance. L’utilisateur associe le média au brouillon de l’Exercice puis enregistre avec Terminer ; il retrouve ses associations après réouverture. Les associations sont ordonnées, indépendantes dans les copies et peuvent partager un fichier physique immuable. Retirer une association ne supprime jamais un fichier encore référencé. Les sources système, formats et états du sélecteur d’import restent à clarifier ; aucune caméra ni limite n’est déduite des maquettes. La consultation pendant l’Exécution conserve D-203 et relève du moteur ultérieur.
 
+<a id="formats-parcours"></a>
+
+## Formats et départs rapides — parcours
+
+Source : [spécification Formats du 14/10](SPECIFICATION-FORMATS-SEANCES-2026-10-14.md), FMT-01–07, 10–38.
+
+1. Choisir une entrée : six formats contraignants ou six origines libres.
+2. Lire les constantes et régler les paramètres autorisés. Le parcours Tabata inclut une sélection d’exercices ; ne pas imposer quatre étapes identiques à toutes les entrées.
+3. Au récapitulatif, vérifier l’ordre des exercices et les paramètres. Tabata, EMOM et Progression proposent « Exécution : Par exercice / En alternance » selon leurs conditions ; For time ne propose pas ce contrôle.
+4. Composer la séance préremplie. Les réglages autorisés restent éditables, avec synthèse et durée calculée actualisées. Les constantes ne deviennent pas éditables dans la modale d’exercice.
+5. Démarrer à partir d’un instantané. EMOM/Death by : l’appui sur le cadran révèle le repos sans avancer la fenêtre. Death by : il confirme aussi l’objectif accompli, ce qui acquiert le tour.
+6. Arrêt Death by : un seul déclencheur ouvre les deux issues « Limite atteinte » et « Abandonner ». Si la dernière fenêtre n’est pas acquise, renseigner les répétitions partielles, proposées à zéro. Résultat conservé, état incomplet dans les deux cas.
+
+Navigation, annulation et sauvegarde reprennent les brouillons existants ; le choix d’un segment ne sauvegarde pas la séance à lui seul. Les captures actuelles et les variantes sont au chapitre 06, contrats CE-FMT-01…06 au chapitre 13.
