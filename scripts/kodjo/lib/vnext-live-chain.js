@@ -98,9 +98,9 @@ function observeCandidates(artifacts, cwd, scope) {
 }
 
 // Recipe fields are constructor inputs, not pre-approved serialized contracts.
-async function launchAndProduce(scope,{capture,reconcile,persist,buildRecipe,cwd,github}){
+async function launchAndProduce(scope,{capture,reconcile,persist,buildRecipe,cwd,github,atomicDocumentUnits=false}){
   if(typeof buildRecipe!=='function')V.fail('VNEXT_FIGMA_TECHNICAL_RECIPE_BUILDER_REQUIRED');
-  const checkpoint=await require('./vnext-figma-launch').launch(scope,{capture,reconcile,persist});
+  const checkpoint=await require('./vnext-figma-launch').launch(scope,{capture,reconcile,persist,atomicDocumentUnits});
   const recipe=await buildRecipe(structuredClone(checkpoint));
   recipe.figmaScope=scope;recipe.figmaLaunch=checkpoint;
   return produce(recipe,{cwd,github});

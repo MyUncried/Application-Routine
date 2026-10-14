@@ -8,6 +8,8 @@ Le paquet de cette branche candidate est défini par la spécification 0.6.51, q
 
 Complément VNext : `.github/orchestration/KODJO_VNEXT_WORK_CONTINUATION.md` définit le retour commun ; `.github/orchestration/KODJO_VNEXT_WORK_TRANSPORT.json` porte le binding scellé observé. `scripts/kodjo/signal-vnext-agent-continuation.js` et `.github/workflows/kodjo-vnext-work-continuation.yml` publient uniquement un signal lié au résultat archivé. `tests/kodjo/vnext-work-continuation.pilot.js` vérifie transport, portée et refus. L'état de réception réelle est consigné dans le rapport dédié, jamais déduit de la présence des fichiers.
 
+Complément de source fonctionnelle atomique : `scripts/kodjo/lib/vnext-figma-launch.js` et `scripts/kodjo/lib/vnext-live-chain.js` acceptent `atomicDocumentUnits=true` pour les nouvelles préparations. Le document Git complet reste conservé en contexte ; chaque état et ses scénarios sont liés à des lignes exactes. Le mode est scellé dans le checkpoint et les anciens checkpoints gardent leur projection d’origine. `tests/kodjo/vnext-document-units.pilot.js` et `tests/kodjo/vnext-figma-launch-review.pilot.js` couvrent ce raccordement. La couverture sémantique cumulée de grandes revues reste un point distinct non résolu par ce changement.
+
 | Fichier | Rôle |
 |---|---|
 | `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.51.md` | Spécification normative candidate PE-27 à PE-38 ; NON RETESTÉE |

@@ -46,9 +46,37 @@ function validateScenarios(packet){
   }
  }
 }
-function requirements(packet,revision,packetPath,content){
+// Keep the complete frozen document as context; bind each required state to its
+// exact inventory object, including scenarios. Historical checkpoints retain their
+// original FULL_FILE requirement unit and are never rewritten during validation.
+function documentUnits(document, atomic) {
+ if(!atomic)return [{locator:document.locator,fingerprint:document.fingerprint,disposition:'REQUIREMENT_SOURCE'}];
+ const text=document.content.replace(/\r\n/g,'\n');
+ const tag=[...text.matchAll(/<KODJO_SCREEN_STATES_JSON>\s*([\s\S]*?)\s*<\/KODJO_SCREEN_STATES_JSON>/g)];
+ if(tag.length!==1)V.fail('VNEXT_FIGMA_DOCUMENT_INVENTORY_REQUIRED');
+ const raw=tag[0][1],inventory=JSON.parse(raw),offset=tag[0].index+tag[0][0].indexOf(raw);
+ const open=/"states"\s*:\s*\[/.exec(raw);if(!open)V.fail('VNEXT_DOCUMENT_UNIT_INVENTORY_REQUIRED');
+ const ranges=[];let depth=0,quoted=false,escaped=false,begin=-1;
+ for(let i=open.index+open[0].length;i<raw.length;i++){
+  const ch=raw[i];
+  if(quoted){if(escaped)escaped=false;else if(ch==='\\')escaped=true;else if(ch==='"')quoted=false;continue;}
+  if(ch==='"'){quoted=true;continue;}
+  if(ch==='{'||ch==='['){if(depth===0){if(ch!=='{')V.fail('VNEXT_DOCUMENT_UNIT_STATE_INVALID');begin=i;}depth++;}
+  else if(ch==='}'||ch===']'){if(depth===0)break;if(--depth===0)ranges.push([begin,i+1]);}
+ }
+ if(ranges.length!==inventory.states.length)V.fail('VNEXT_DOCUMENT_UNIT_STATE_COUNT_MISMATCH');
+ let last=0;
+ const units=ranges.map(([a,b],i)=>{
+  const state=JSON.parse(raw.slice(a,b));equal(state,inventory.states[i],'VNEXT_DOCUMENT_UNIT_STATE_MISMATCH');
+  const first=text.slice(0,offset+a).split('\n').length,end=text.slice(0,offset+b).split('\n').length;
+  if(first<=last)V.fail('VNEXT_DOCUMENT_UNIT_NON_ATOMIC_LINES',state.state_id);last=end;
+  return {locator:'L'+first+'-L'+end,fingerprint:V.sha256(text.split('\n').slice(first-1,end).join('\n')),disposition:state.disposition==='REQUIRED'?'REQUIREMENT_SOURCE':'CONTEXT_ONLY'};
+ });
+ return [{locator:'FULL_FILE',fingerprint:document.fingerprint,disposition:'CONTEXT_ONLY'},...units];
+}
+function requirements(packet,revision,packetPath,content,atomic=false){
  if(packet.documents.some(d=>d.locator!=='FULL_FILE'))V.fail('VNEXT_FIGMA_LAUNCH_FULL_DOCUMENT_SOURCE_REQUIRED');
- const sources=[F.sourceInput(packet,revision,packetPath,content),...packet.documents.map(d=>({source_kind:'MARKDOWN',authority:'FUNCTIONAL',locator:d.path,revision:d.revision,fingerprint:d.fingerprint,units:[{locator:d.locator,fingerprint:d.fingerprint,disposition:'REQUIREMENT_SOURCE'}]}))];
+ const sources=[F.sourceInput(packet,revision,packetPath,content),...packet.documents.map(d=>({source_kind:'MARKDOWN',authority:'FUNCTIONAL',locator:d.path,revision:d.revision,fingerprint:d.fingerprint,units:documentUnits(d,atomic)}))];
  // Exact duplicates are shared, never used to silently pick one authority.
  const unique=[...new Map(sources.map(s=>[V.canonicalStringify(s),s])).values()];
  const manifest=Source.build({slice_id:'SOURCE-PREPARATION',product_head:revision,sources:unique});
@@ -60,11 +88,14 @@ function requirements(packet,revision,packetPath,content){
   const source=manifest.sources.find(s=>s.authority==='FUNCTIONAL'&&s.locator===doc.path&&s.revision===doc.revision&&s.fingerprint===doc.fingerprint);
   // Explicit typing is frozen in the authoritative documentary inventory.
   // Keep legacy inventories byte-compatible; never infer kind from UI names.
-  rows.push({source_id:source.source_id,unit_id:source.units[0].unit_id,kind:state.requirement_kind||'UI',statement:state.expected,priority:'MUST',status:'ACTIVE',rationale:'Documentary state '+state.state_id+'; scenarios '+state.scenarios.map(s=>s.scenario_id).join(', '),related_unit_ids:[],conflict_unit_ids:[]});
+  const index=atomic?documentStates([doc]).findIndex(s=>s.state_id===state.state_id):0;
+  const unit=source.units[atomic?index+1:0];
+  rows.push({source_id:source.source_id,unit_id:unit.unit_id,kind:state.requirement_kind||'UI',statement:state.expected,priority:'MUST',status:'ACTIVE',rationale:'Documentary state '+state.state_id+'; scenarios '+state.scenarios.map(s=>s.scenario_id).join(', '),related_unit_ids:[],conflict_unit_ids:[]});
  }
  return {sources:unique,requirementInput:{requirements:rows}};
 }
-async function launch(scope,{capture,reconcile,persist}){
+async function launch(scope,{capture,reconcile,persist,atomicDocumentUnits=false}){
+ if(typeof atomicDocumentUnits!=='boolean')V.fail('VNEXT_DOCUMENT_UNIT_MODE_INVALID');
  validateScope(scope);
  if(typeof capture!=='function'||typeof reconcile!=='function'||typeof persist!=='function')V.fail('VNEXT_FIGMA_LAUNCH_ADAPTER_REQUIRED');
  const stages=[];
@@ -85,8 +116,8 @@ async function launch(scope,{capture,reconcile,persist}){
  const persisted=F.snapshotPacket(frozen.content);F.validate(persisted,{ready:true});
  equal(persisted,packet,'VNEXT_FIGMA_LAUNCH_FROZEN_BYTES_MISMATCH');
  stages.push('GIT_FREEZE');
- const prepared=requirements(persisted,frozen.revision,frozen.path,frozen.content);stages.push('ATOMIC_REQUIREMENTS');
- return V.sealContract({schema_version:SCHEMA,scope,reference_hash:packet.contract_hash,frozen,stages,sourceManifestInput:{slice_id:scope.slice_id,product_head:frozen.revision,sources:prepared.sources},requirementInput:prepared.requirementInput,scenario_ids:packet.states.flatMap(s=>(s.scenarios||[]).map(x=>x.scenario_id))});
+ const prepared=requirements(persisted,frozen.revision,frozen.path,frozen.content,atomicDocumentUnits);stages.push('ATOMIC_REQUIREMENTS');
+ return V.sealContract({schema_version:SCHEMA,...(atomicDocumentUnits?{functional_unit_mode:'ATOMIC_SCREEN_STATES'}:{}),scope,reference_hash:packet.contract_hash,frozen,stages,sourceManifestInput:{slice_id:scope.slice_id,product_head:frozen.revision,sources:prepared.sources},requirementInput:prepared.requirementInput,scenario_ids:packet.states.flatMap(s=>(s.scenarios||[]).map(x=>x.scenario_id))});
 }
 function validate(checkpoint,recipe){
  V.verifyContractHash(checkpoint,'VNEXT_FIGMA_LAUNCH_HASH_INVALID');validateScope(checkpoint.scope);
@@ -98,11 +129,12 @@ function validate(checkpoint,recipe){
  F.validate(packet,{ready:true});validateScenarios(packet);validateDocumentCoverage(packet);
  if(checkpoint.reference_hash!==packet.contract_hash||checkpoint.scope.file_key!==packet.file_key)V.fail('VNEXT_FIGMA_LAUNCH_REFERENCE_MISMATCH');
  equal(checkpoint.scope.frames,packet.frames,'VNEXT_FIGMA_LAUNCH_FRAME_SCOPE_MISMATCH');
- const expected=requirements(packet,checkpoint.frozen.revision,checkpoint.frozen.path,checkpoint.frozen.content);
+ if(Object.hasOwn(checkpoint,'functional_unit_mode')&&checkpoint.functional_unit_mode!=='ATOMIC_SCREEN_STATES')V.fail('VNEXT_DOCUMENT_UNIT_MODE_INVALID');
+ const expected=requirements(packet,checkpoint.frozen.revision,checkpoint.frozen.path,checkpoint.frozen.content,checkpoint.functional_unit_mode==='ATOMIC_SCREEN_STATES');
  equal(checkpoint.sourceManifestInput,{slice_id:checkpoint.scope.slice_id,product_head:checkpoint.frozen.revision,sources:expected.sources},'VNEXT_FIGMA_LAUNCH_SOURCES_MISMATCH');
  equal(checkpoint.requirementInput,expected.requirementInput,'VNEXT_FIGMA_LAUNCH_REQUIREMENTS_MISMATCH');
  equal(checkpoint.scenario_ids,packet.states.flatMap(s=>(s.scenarios||[]).map(x=>x.scenario_id)),'VNEXT_FIGMA_LAUNCH_SCENARIOS_MISMATCH');
  if(recipe){equal(recipe.sourceManifestInput,checkpoint.sourceManifestInput,'VNEXT_FIGMA_LAUNCH_RECIPE_SOURCES_MISMATCH');equal(recipe.requirementInput,checkpoint.requirementInput,'VNEXT_FIGMA_LAUNCH_RECIPE_REQUIREMENTS_MISMATCH');}
  return checkpoint;
 }
-module.exports={SCHEMA,launch,validate,validateScope,validateScenarios,documentStates,validateDocumentCoverage,requirements};
+module.exports={SCHEMA,launch,validate,validateScope,validateScenarios,documentStates,validateDocumentCoverage,requirements,documentUnits};
