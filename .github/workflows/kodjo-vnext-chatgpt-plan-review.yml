@@ -1,5 +1,5 @@
-name: KODJO VNext — ChatGPT PRE-4 agent relay
-run-name: VNext PRE-4 agent operation / ${{ inputs.request_commit || github.sha }}
+name: KODJO VNext — ChatGPT agent relay
+run-name: VNext agent operation / ${{ inputs.request_commit || github.sha }}
 
 on:
   push:

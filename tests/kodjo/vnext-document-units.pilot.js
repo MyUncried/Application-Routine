@@ -7,7 +7,7 @@ function doc({compact=false,crlf=false}={}){
  if(crlf)content=content.replace(/\n/g,'\r\n');return {document_id:'DOC',locator:'FULL_FILE',content,fingerprint:V.sha256(content)};
 }
 test('atomic inventory units retain full bytes as context and state with its scenarios',()=>{
- const d=doc(),units=L.documentUnits(d,true),lines=d.content.split('\n');assert.equal(units.length,3);assert.deepEqual(units[0],{locator:'FULL_FILE',fingerprint:d.fingerprint,disposition:'CONTEXT_ONLY'});
+ const d=doc(),units=L.documentUnits(d),lines=d.content.split('\n');assert.equal(units.length,3);assert.deepEqual(units[0],{locator:'FULL_FILE',fingerprint:d.fingerprint,disposition:'CONTEXT_ONLY'});
  const m=/L(\d+)-L(\d+)/.exec(units[1].locator),part=lines.slice(+m[1]-1,+m[2]).join('\n');assert.equal(units[1].fingerprint,V.sha256(part));assert.match(part,/A-1/);assert.doesNotMatch(part,/"state_id": "B"/);assert.equal(units[1].disposition,'REQUIREMENT_SOURCE');assert.equal(units[2].disposition,'CONTEXT_ONLY');
 });
 test('atomic line hashes accept CRLF without changing frozen full document hash',()=>{const a=doc(),b=doc({crlf:true});assert.notEqual(a.fingerprint,b.fingerprint);assert.deepEqual(L.documentUnits(a,true).slice(1),L.documentUnits(b,true).slice(1));});

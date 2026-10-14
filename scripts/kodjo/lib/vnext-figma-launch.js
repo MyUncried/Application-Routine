@@ -49,7 +49,7 @@ function validateScenarios(packet){
 // Keep the complete frozen document as context; bind each required state to its
 // exact inventory object, including scenarios. Historical checkpoints retain their
 // original FULL_FILE requirement unit and are never rewritten during validation.
-function documentUnits(document, atomic) {
+function documentUnits(document, atomic=true) {
  if(!atomic)return [{locator:document.locator,fingerprint:document.fingerprint,disposition:'REQUIREMENT_SOURCE'}];
  const text=document.content.replace(/\r\n/g,'\n');
  const tag=[...text.matchAll(/<KODJO_SCREEN_STATES_JSON>\s*([\s\S]*?)\s*<\/KODJO_SCREEN_STATES_JSON>/g)];
@@ -74,7 +74,7 @@ function documentUnits(document, atomic) {
  });
  return [{locator:'FULL_FILE',fingerprint:document.fingerprint,disposition:'CONTEXT_ONLY'},...units];
 }
-function requirements(packet,revision,packetPath,content,atomic=false){
+function requirements(packet,revision,packetPath,content,atomic=true){
  if(packet.documents.some(d=>d.locator!=='FULL_FILE'))V.fail('VNEXT_FIGMA_LAUNCH_FULL_DOCUMENT_SOURCE_REQUIRED');
  const sources=[F.sourceInput(packet,revision,packetPath,content),...packet.documents.map(d=>({source_kind:'MARKDOWN',authority:'FUNCTIONAL',locator:d.path,revision:d.revision,fingerprint:d.fingerprint,units:documentUnits(d,atomic)}))];
  // Exact duplicates are shared, never used to silently pick one authority.
@@ -94,7 +94,7 @@ function requirements(packet,revision,packetPath,content,atomic=false){
  }
  return {sources:unique,requirementInput:{requirements:rows}};
 }
-async function launch(scope,{capture,reconcile,persist,atomicDocumentUnits=false}){
+async function launch(scope,{capture,reconcile,persist,atomicDocumentUnits=true}){
  if(typeof atomicDocumentUnits!=='boolean')V.fail('VNEXT_DOCUMENT_UNIT_MODE_INVALID');
  validateScope(scope);
  if(typeof capture!=='function'||typeof reconcile!=='function'||typeof persist!=='function')V.fail('VNEXT_FIGMA_LAUNCH_ADAPTER_REQUIRED');

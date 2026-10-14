@@ -334,14 +334,16 @@ function normalizeAssertions({
   return normalized;
 }
 
-function buildUiAtomicityContract({
+function buildContract({
   requirementRegistry,
   impactGraph,
   candidateManifest,
   planContract,
   criteria,
   figmaReferences = [],
-}) {
+  componentBindings = [],
+  componentReuseDecisions = [],
+}, includeComponentCoverage) {
   RequirementRegistry.assertReady(requirementRegistry);
   Impact.validateCandidateManifest(candidateManifest);
   Plan.validatePlanContract(planContract, {
@@ -531,8 +533,13 @@ function buildUiAtomicityContract({
     assertion_ids_sha256: V.canonicalHash([...assertionIds].sort()),
     criteria: normalizedCriteria,
     ...(figmaReferences.length ? {figma_references:figmaReferences} : {}),
+    ...(includeComponentCoverage ? {component_bindings:componentBindings,component_reuse_decisions:componentReuseDecisions,component_coverage:require('./vnext-component-coverage').build({references:figmaReferences,criteria:normalizedCriteria,candidateManifest,componentBindings,componentReuseDecisions})} : {}),
   });
 }
+
+// New construction always emits coverage. The validator below reconstructs old
+// contracts without adding fields or changing any historical proof hash.
+function buildUiAtomicityContract(input){return buildContract(input,true);}
 
 function validateUiAtomicityContract(contract, {
   requirementRegistry,
@@ -556,7 +563,7 @@ function validateUiAtomicityContract(contract, {
       'criteria',
       'contract_hash',
     ],
-    ['figma_references'],
+    ['figma_references','component_bindings','component_reuse_decisions','component_coverage'],
     'VNEXT_UI_CONTRACT_KEYS_INVALID',
   );
   if (contract.schema_version !== SCHEMA) V.fail('VNEXT_UI_CONTRACT_SCHEMA_INVALID');
@@ -597,14 +604,16 @@ function validateUiAtomicityContract(contract, {
     })),
   }));
 
-  const rebuilt = buildUiAtomicityContract({
+  const rebuilt = buildContract({
     requirementRegistry,
     impactGraph,
     candidateManifest,
     planContract,
     criteria: criteriaInput,
     figmaReferences: contract.figma_references || [],
-  });
+    componentBindings:contract.component_bindings||[],
+    componentReuseDecisions:contract.component_reuse_decisions||[],
+  }, Object.hasOwn(contract,'component_coverage'));
 
   if (V.canonicalHash(rebuilt) !== V.canonicalHash(contract)) {
     V.fail('VNEXT_UI_CONTRACT_REBUILD_MISMATCH');

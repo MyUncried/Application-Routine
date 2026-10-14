@@ -914,7 +914,7 @@
     },
     {
       "producer": ".github/workflows/kodjo-vnext-proof-stability.yml",
-      "producer_blob_oid": "9f0d02ce9d09749d5d0917293662dbeefff0095b",
+      "producer_blob_oid": "77a8141c3a79dc7e8a8ee4a067d2577e80fd1b29",
       "authorization_condition": "EXACT_SUCCESSFUL_CYCLE_CONTROLS_ISOLATED_SIGNAL_ONLY",
       "required_job": "wake-orchestrator",
       "capabilities": [
@@ -953,7 +953,7 @@
     },
     {
       "producer": "scripts/kodjo/signal-vnext-agent-continuation.js",
-      "producer_blob_oid": "2b1a8324cec62b15d972703aadb4de3ffbc757a8",
+      "producer_blob_oid": "acc709bc7491f1fa338ade325cb17bc56d06ce3f",
       "authorization_condition": "VERIFIED_REGISTERED_SLICE_RESULT_EXACT_ARTIFACT_SINGLE_SIGNAL_PR_NONFORCED_WRITE_ONLY",
       "required_job": null,
       "capabilities": [
@@ -966,7 +966,7 @@
     },
     {
       "producer": ".github/workflows/kodjo-vnext-work-continuation.yml",
-      "producer_blob_oid": "611540380a9d6fd1347e8986efe776339b3830dd",
+      "producer_blob_oid": "be5c8a6c39b5bfcb84b7b904e5ef5269019e3ccb",
       "authorization_condition": "VERIFIED_REGISTERED_SLICE_RESULT_EXACT_ARTIFACT_SINGLE_SIGNAL_PR_NONFORCED_WRITE_ONLY",
       "required_job": "publish-signal",
       "capabilities": [

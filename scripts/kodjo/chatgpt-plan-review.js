@@ -10,10 +10,10 @@ const SCHEMA = 'kodjo.vnext.chatgpt-plan-review-request.v1';
 function validate(request) {
   V.assertExactKeys(request, ['schema_version','pilot','slice_id','repository','issue_number',
     'source_head','produced_file','produced_chain_hash','causal_file','contract_hash'], [], 'CHATGPT_REVIEW_REQUEST_KEYS');
-  V.verifyContractHash(request, 'CHATGPT_REVIEW_REQUEST_HASH');
+  V.verifyContractHash(request, 'CHATGPT_REVIEW_REQUEST_HASH');V.assertSliceId(request.slice_id);
   if (request.schema_version !== SCHEMA || request.pilot !== 'CHATGPT_WORK'
-      || request.slice_id !== 'VNEXT-PRE-4' || request.repository !== 'MyUncried/Application-Routine'
-      || !Number.isSafeInteger(request.issue_number) || request.issue_number <= 0 || request.issue_number === 340)
+      || request.repository !== 'MyUncried/Application-Routine'
+      || !Number.isSafeInteger(request.issue_number) || request.issue_number <= 0)
     throw Error('CHATGPT_REVIEW_SCOPE_REFUSED');
   V.assertSha40(request.source_head, 'CHATGPT_REVIEW_SOURCE_HEAD');
   if (!/^[0-9a-f]{64}$/.test(request.produced_chain_hash)) throw Error('CHATGPT_REVIEW_PRODUCED_HASH');
@@ -83,6 +83,7 @@ function main(args = process.argv.slice(2)) {
   const [stage,input,output] = args,cwd = process.cwd();
   if(stage === 'create') {
     const request = create(Bundle.read(input),cwd);
+    require('./lib/vnext-operation-admission').admit(request,{cwd});
     const file = path.join(output,request.contract_hash+'.json');
     if(fs.existsSync(file)) {
       if(V.canonicalHash(Bundle.read(file)) !== V.canonicalHash(request)) throw Error('CHATGPT_REVIEW_EXISTING_REQUEST_MISMATCH');
@@ -100,11 +101,12 @@ function main(args = process.argv.slice(2)) {
         || Chain.command('git',['status','--porcelain'],cwd).trim()) throw Error('CHATGPT_REVIEW_CHECKOUT_MISMATCH');
     if(process.env.GITHUB_REPOSITORY !== request.repository) throw Error('CHATGPT_REVIEW_REPOSITORY_MISMATCH');
     const issueState = number => JSON.parse(Chain.command('gh',['api','repos/'+request.repository+'/issues/'+number],cwd)).state;
+    const {dependencies}=require('./lib/vnext-operation-admission').admit(request,{cwd});
     const priorAttempt = () => require('./agent-relay').priorInvocation(
       {...request,operation:'plan-review',operation_hash:request.produced_chain_hash},input,cwd);
 
     return execute(request,{cwd,evidenceRoot:process.env.KODJO_REVIEW_CACHE,
-      outputDirectory:process.env.KODJO_REVIEW_OUTPUT,issueState,priorAttempt});
+      outputDirectory:process.env.KODJO_REVIEW_OUTPUT,issueState,priorAttempt,dependencies});
   }
   if(stage === 'verify') return verifyResult(Bundle.read(input),Bundle.read(output),{cwd});
   throw Error('Usage: chatgpt-plan-review.js <create config output|execute request_commit request_path|verify request result>');

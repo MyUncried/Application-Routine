@@ -2,7 +2,7 @@ name: KODJO VNext — Work continuation
 run-name: VNext Work continuation / ${{ github.event.workflow_run.id || github.sha }}
 on:
   workflow_run:
-    workflows: ['KODJO VNext — ChatGPT PRE-4 agent relay']
+    workflows: ['KODJO VNext — ChatGPT agent relay', 'KODJO VNext — ChatGPT PRE-4 agent relay']
     types: [completed]
   push:
     branches: [main]

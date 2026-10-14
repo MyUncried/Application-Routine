@@ -8,7 +8,7 @@ Le binding scellé KODJO_VNEXT_WORK_TRANSPORT.json relie la PR de transport comm
 
 ## Emission
 
-Le workflow kodjo-vnext-work-continuation.yml réagit à la fin du workflow de relais commun actuellement intégré. Son nom historique contient PRE-4 ; le publisher utilise la tranche portée par la demande, son bootstrap et son activation, pas ce nom. L'inventaire allowed_workflows reste fermé et versionné. Une nouvelle famille d'exécuteur exige l'inscription explicite de son producteur/préfixe d'archive et, si son contrat de sortie diffère, un adaptateur de ce contrat ; pas un nouveau mécanisme par tranche. Cette livraison raccorde les trois opérations du relais, pas les sorties d'autres exécuteurs non encore inscrits.
+Le workflow kodjo-vnext-work-continuation.yml réagit à la fin du workflow de relais commun actuellement intégré. Il s'appelle désormais « KODJO VNext — ChatGPT agent relay » ; son ancien nom PRE-4 reste écouté pour les fins de runs historiques ; le publisher utilise la tranche portée par la demande, son bootstrap et son activation, pas ce nom. L'inventaire allowed_workflows reste fermé et versionné. Une nouvelle famille d'exécuteur exige l'inscription explicite de son producteur/préfixe d'archive et, si son contrat de sortie diffère, un adaptateur de ce contrat ; pas un nouveau mécanisme par tranche. Cette livraison raccorde les trois opérations du relais, pas les sorties d'autres exécuteurs non encore inscrits.
 
 Un résultat déjà terminé avant intégration peut être signalé par un unique fichier scellé requests/vnext-work/publish/<run_id>.json. Ce contrôle ne relance pas le reviewer. Les deux entrées consomment le même publisher et le même binding.
 

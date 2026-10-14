@@ -6,25 +6,26 @@ const Relay=require('./lib/vnext-agent-relay');
 const OPERATIONS=Object.freeze(['plan-review','review-scope','implementation-review']);
 const SCHEMA='kodjo.vnext.agent-request.v1';
 function validate(request){
-  V.assertExactKeys(request,['schema_version','pilot','slice_id','repository','issue_number','source_head','operation','inputs_file','inputs_hash','operation_hash','contract_hash'],[],'AGENT_REQUEST_KEYS');
+  V.assertExactKeys(request,['schema_version','pilot','slice_id','repository','issue_number','source_head','operation','inputs_file','inputs_hash','operation_hash','contract_hash'],['review_scope'],'AGENT_REQUEST_KEYS');
   V.verifyContractHash(request,'AGENT_REQUEST_HASH');V.assertSha40(request.source_head,'AGENT_REQUEST_HEAD');V.assertSha64(request.inputs_hash,'AGENT_REQUEST_INPUTS_HASH');V.assertSha64(request.operation_hash,'AGENT_REQUEST_OPERATION_HASH');
-  Chain.relative(request.inputs_file);
-  if(request.schema_version!==SCHEMA||request.pilot!=='CHATGPT_WORK'||request.slice_id!=='VNEXT-PRE-4'
+  Chain.relative(request.inputs_file);V.assertSliceId(request.slice_id);
+  if(request.review_scope){V.verifyContractHash(request.review_scope);if(request.operation!=='plan-review')throw Error('AGENT_REVIEW_SCOPE_OPERATION');}
+  if(request.schema_version!==SCHEMA||request.pilot!=='CHATGPT_WORK'
     ||request.repository!=='MyUncried/Application-Routine'||!Number.isSafeInteger(request.issue_number)||request.issue_number<=0
-    ||request.issue_number===340||!OPERATIONS.includes(request.operation))throw Error('AGENT_REQUEST_SCOPE_REFUSED');
+    ||!OPERATIONS.includes(request.operation))throw Error('AGENT_REQUEST_SCOPE_REFUSED');
   return request;
 }
 function inputs(request,cwd){
   validate(request);const data=Chain.readGitObject(cwd,request.source_head,request.inputs_file);
   if(V.canonicalHash(data)!==request.inputs_hash)throw Error('AGENT_REQUEST_INPUTS_CHANGED');return data;
 }
-function create(config,cwd){
+function create(config,cwd,options={}){
   const data=Chain.readGitObject(cwd,config.source_head,config.inputs_file);
   let request=V.sealContract({schema_version:SCHEMA,pilot:'CHATGPT_WORK',slice_id:config.slice_id,repository:config.repository,
     issue_number:config.issue_number,source_head:config.source_head,operation:config.operation,inputs_file:config.inputs_file,inputs_hash:V.canonicalHash(data),operation_hash:'0'.repeat(64)});
-  validate(request);const adapter=adapterFor(request,cwd);adapter.preflight();const {contract_hash,...fields}=request;request=V.sealContract({...fields,operation_hash:adapter.storageKey});return request;
+  validate(request);const adapter=adapterFor(request,cwd,options);adapter.preflight();const {contract_hash,...fields}=request;request=V.sealContract({...fields,...(adapter.reviewScope?{review_scope:adapter.reviewScope}:{}),operation_hash:adapter.storageKey});return request;
 }
-function adapterFor(request,cwd,{invoke}={}){
+function adapterFor(request,cwd,{invoke,reviewCapacity=require('./lib/vnext-cumulative-review').MAX_DIRECT_TARGETS}={}){
   const data=inputs(request,cwd),read=file=>Chain.readGitObject(cwd,request.source_head,Chain.relative(file));
   let operation;
   if(request.operation==='plan-review'){
@@ -33,11 +34,28 @@ function adapterFor(request,cwd,{invoke}={}){
     const derived=legacy.create({source_head:request.source_head,...data},cwd);
     if(derived.slice_id!==request.slice_id||derived.issue_number!==request.issue_number||derived.repository!==request.repository)throw Error('AGENT_PLAN_BINDING');
     const loaded=legacy.load(derived,cwd);
-    operation={storageKey:loaded.produced.contract_hash,preflight:()=>legacy.load(derived,cwd),
-      hasResponse:d=>fs.existsSync(path.join(d,loaded.produced.artifacts.planningEnvelope.planning_mode.toLowerCase()+'-review-response.json')),
-      invoke:d=>Chain.review(loaded.produced,{cwd,evidenceDirectory:d,causalEvidence:loaded.causalEvidence,...(invoke?{invoke}:{})}),
-      recover:d=>Chain.recoverReview(loaded.produced,{cwd,evidenceDirectory:d}),
-      verify:r=>{Chain.verifyReceipt(loaded.produced,r);return r;},verdict:r=>r.review_report.verdict};
+    const Cumulative=require('./lib/vnext-cumulative-review'),ledgerPath=Cumulative.pathFor(loaded.produced);
+    const exists=require('node:child_process').spawnSync('git',['cat-file','-e',request.source_head+':'+ledgerPath],{cwd,windowsHide:true,stdio:'ignore'}).status===0;
+    const ledger=exists?Chain.readGitObject(cwd,request.source_head,ledgerPath):null;
+    if(ledger)Cumulative.verifyLedger(loaded.produced,ledger);
+    if(request.review_scope){Cumulative.validateScope(loaded.produced,request.review_scope);reviewCapacity=request.review_scope.target_limit;}
+    const historicalFull=request.operation_hash===loaded.produced.contract_hash;
+    const chunked=!historicalFull&&(ledger||Object.values(loaded.produced.artifacts.reviewContext.target_catalog).reduce((n,ids)=>n+ids.length,0)>reviewCapacity);
+    if(chunked)require('./lib/vnext-component-coverage').assertReviewReady(loaded.produced.artifacts.uiAtomicityContract);
+    const scope=chunked?Cumulative.scopeFor(loaded.produced,ledger,{maxTargets:reviewCapacity}):null;
+    if(request.review_scope&&scope?.contract_hash!==request.review_scope.contract_hash)throw Error('AGENT_REVIEW_SCOPE_BINDING');
+    const completeFromLedger=chunked&&!scope;
+    const storageKey=chunked?V.canonicalHash({produced:loaded.produced.contract_hash,scope:scope?.contract_hash||null,ledger:completeFromLedger?ledger.contract_hash:null}):loaded.produced.contract_hash;
+    const verify=r=>{
+      if(scope){Cumulative.verifyRecord(loaded.produced,r);if(r.scope?.contract_hash!==scope.contract_hash)throw Error('AGENT_REVIEW_SCOPE_BINDING');}
+      else Chain.verifyReceipt(loaded.produced,r);
+      return r;
+    };
+    operation={storageKey,reviewScope:scope,preflight:()=>{legacy.load(derived,cwd);if(completeFromLedger)Cumulative.aggregate(loaded.produced,ledger);},
+      hasResponse:d=>completeFromLedger||fs.existsSync(path.join(d,loaded.produced.artifacts.planningEnvelope.planning_mode.toLowerCase()+'-review-response.json')),
+      invoke:d=>Chain.review(loaded.produced,{cwd,evidenceDirectory:d,causalEvidence:loaded.causalEvidence,reviewScope:scope,...(invoke?{invoke}:{})}),
+      recover:d=>completeFromLedger?Cumulative.aggregate(loaded.produced,ledger):Chain.recoverReview(loaded.produced,{cwd,evidenceDirectory:d,reviewScope:scope}),
+      verify,verdict:r=>r.review_report?.verdict||null};
   }else if(request.operation==='review-scope'){
     V.assertExactKeys(data,['produced_file','review_receipt_file','scope_request_file'],[],'AGENT_SCOPE_INPUTS');
     const produced=read(data.produced_file),baseReceipt=read(data.review_receipt_file),scopeRequest=read(data.scope_request_file);
@@ -140,7 +158,7 @@ function resolveTrigger(commit,file,cwd,command=Chain.command){
     V.assertSha40(run.head_sha);
     if(run.head_sha===commit)throw Error('AGENT_RESUME_RUN_MISMATCH');
     command('git',['merge-base','--is-ancestor',run.head_sha,commit],cwd);
-    const paths=command('git',['diff-tree','--no-commit-id','--name-only','-r',run.head_sha],cwd).trim().split('\n');
+    const paths=command('git',['diff','--name-only',run.head_sha+'^',run.head_sha],cwd).trim().split('\n');
     if(paths.length!==1)throw Error('AGENT_RESUME_RUN_MISMATCH');
     const previous=resolveTrigger(run.head_sha,paths[0],cwd,command);
     if(previous.request_commit!==resume.request_commit||previous.request_path!==resume.request_path)throw Error('AGENT_RESUME_RUN_MISMATCH');
@@ -253,6 +271,39 @@ function recordedFailureBeforeInvocation(run,request,cwd,command=Chain.command){
     return true;
   }finally{fs.rmSync(directory,{recursive:true,force:true});}
 }
+function locatorForRun(run,request,cwd,command=Chain.command){
+  // Workflow names and display titles are presentation only. Push provenance is
+  // the actual Git delta; dispatch provenance comes from the runner's recorded
+  // immutable locator. An unavailable or ambiguous locator remains blocking.
+  V.assertSha40(run.head_sha,'AGENT_PRIOR_RUN_BINDING_UNKNOWN');
+  if(run.event==='workflow_dispatch'){
+    const jobs=JSON.parse(command('gh',['api','repos/'+request.repository+'/actions/runs/'+run.id+'/attempts/'+run.run_attempt+'/jobs?per_page=100'],cwd));
+    if(jobs.total_count!==1||jobs.jobs?.length!==1||jobs.jobs[0].name!=='review')throw Error('AGENT_PRIOR_RUN_BINDING_UNKNOWN');
+    const wholeLog=command('gh',['api','repos/'+request.repository+'/actions/jobs/'+jobs.jobs[0].id+'/logs','--allow-escape-sequences'],cwd);
+    const groups=[...wholeLog.matchAll(/##\[group\]Run[\s\S]*?##\[endgroup\]/g)].map(m=>m[0]).filter(group=>group.includes('KODJO_REVIEW_CACHE')&&group.includes('KODJO_REVIEW_OUTPUT'));
+    if(groups.length>1)throw Error('AGENT_PRIOR_RUN_BINDING_UNKNOWN');
+    // A resume dispatch has an input locator and then a resolved locator. Read
+    // the immutable environment of the actual execution step, not both steps.
+    const log=groups[0]||wholeLog;
+    const commits=[...new Set([...log.matchAll(/(?:^|\n)[^\n]*?REQUEST_COMMIT: ([0-9a-f]{40})\s*(?=\r?$)/gm)].map(m=>m[1]))];
+    const paths=[...new Set([...log.matchAll(/(?:^|\n)[^\n]*?REQUEST_PATH: (\.github\/orchestration\/requests\/(?:vnext-plan-review|vnext-agent(?:\/resume)?)\/[0-9a-f]{64}\.json)\s*(?=\r?$)/gm)].map(m=>m[1]))];
+    if(commits.length!==1||paths.length!==1)throw Error('AGENT_PRIOR_RUN_BINDING_UNKNOWN');
+    command('git',['merge-base','--is-ancestor',commits[0],run.head_sha],cwd);
+    return resolveTrigger(commits[0],paths[0],cwd,command);
+  }
+  if(run.event&&run.event!=='push')throw Error('AGENT_PRIOR_RUN_BINDING_UNKNOWN');
+  const paths=command('git',['diff','--name-only',run.head_sha+'^',run.head_sha],cwd).trim().split('\n');
+  if(paths.length!==1)throw Error('AGENT_PRIOR_REQUEST_UNKNOWN');
+  return resolveTrigger(run.head_sha,paths[0],cwd,command);
+}
+function priorScopeReconciled(prior,request,cwd){
+  if(!prior.review_scope||!request.review_scope?.previous_ledger_hash)return false;
+  const Cumulative=require('./lib/vnext-cumulative-review'),data=inputs(request,cwd),produced=Chain.readGitObject(cwd,request.source_head,data.produced_file);
+  const ledger=Chain.readGitObject(cwd,request.source_head,Cumulative.pathFor(produced));Cumulative.verifyLedger(produced,ledger);
+  if(ledger.contract_hash!==request.review_scope.previous_ledger_hash)throw Error('AGENT_PRIOR_SCOPE_LEDGER_CHANGED');
+  const record=ledger.records.find(r=>r.scope?.contract_hash===prior.review_scope.contract_hash);
+  return !!record&&request.review_scope.target_ids.every(id=>!record.partial_report.reviewed_target_ids.includes(id));
+}
 function priorInvocation(request,input,cwd,command=Chain.command){
     if(Number(process.env.GITHUB_RUN_ATTEMPT)>1)return true;
     for(let page=1;page<=100;page++){
@@ -260,16 +311,16 @@ function priorInvocation(request,input,cwd,command=Chain.command){
       if(!Array.isArray(rows))throw Error('AGENT_PRIOR_RUN_SCAN_INVALID');
       for(const run of rows){
         if(String(run.id)===process.env.GITHUB_RUN_ID)continue;
-        const commit=/^VNext PRE-4 (?:plan review|agent operation) \/ ([0-9a-f]{40})$/.exec(run.display_title)?.[1];
-        if(!commit)throw Error('AGENT_PRIOR_RUN_BINDING_UNKNOWN');
-        const paths=command('git',['diff-tree','--no-commit-id','--name-only','-r',commit],cwd).trim().split('\n');
-        if(paths.length!==1)throw Error('AGENT_PRIOR_REQUEST_UNKNOWN');
-        const locator=resolveTrigger(commit,paths[0],cwd,command);
+        const locator=locatorForRun(run,request,cwd,command);
         const prior=Chain.readGitObject(cwd,locator.request_commit,locator.request_path);
-        if(prior.schema_version===SCHEMA){validate(prior);if(prior.operation_hash===request.operation_hash
+        if(prior.schema_version===SCHEMA){validate(prior);
+          const overlap=prior.review_scope&&request.review_scope&&prior.review_scope.produced_chain_hash===request.review_scope.produced_chain_hash&&prior.review_scope.target_ids.some(id=>request.review_scope.target_ids.includes(id));
+          const unreconciledOverlap=overlap&&!priorScopeReconciled(prior,request,cwd);
+          if((prior.operation_hash===request.operation_hash||unreconciledOverlap
+          ||request.review_scope&&prior.operation==='plan-review'&&prior.operation_hash===request.review_scope.produced_chain_hash)
           &&!failedAncestryBeforeInvocation(run,prior,locator.request_commit,cwd,command)
           &&!recordedFailureBeforeInvocation(run,prior,cwd,command))return true;}
-        else{require('./chatgpt-plan-review').validate(prior);if(request.operation==='plan-review'&&prior.produced_chain_hash===request.operation_hash)return true;}
+        else{require('./chatgpt-plan-review').validate(prior);if(request.operation==='plan-review'&&(prior.produced_chain_hash===request.operation_hash||prior.produced_chain_hash===request.review_scope?.produced_chain_hash))return true;}
       }
       if(rows.length<100)return false;
     }throw Error('AGENT_PRIOR_RUN_SCAN_INCOMPLETE');
@@ -285,18 +336,20 @@ function executeRequest(input,output,options={}){
   if(command('git',['rev-parse','HEAD'],cwd).trim()!==input||command('git',['status','--porcelain'],cwd).trim())throw Error('AGENT_CHECKOUT_MISMATCH');
   if((options.repository||process.env.GITHUB_REPOSITORY)!==request.repository)throw Error('AGENT_REPOSITORY_MISMATCH');
   const issueState=options.issueState|| (n=>JSON.parse(command('gh',['api','repos/'+request.repository+'/issues/'+n],cwd)).state);
+  const admission=require('./lib/vnext-operation-admission').admit(request,{cwd});
+  const dependencies=admission.dependencies;
   const priorAttempt=options.priorAttempt||(()=>priorInvocation(request,input,cwd,command));
   // Semantic delivery validators require the exact delivery HEAD, not the later request commit.
   let executionHead=request.source_head;
   if(request.operation==='implementation-review'){const data=inputs(request,cwd);executionHead=Chain.readGitObject(cwd,request.source_head,Chain.relative(data.observations_file)).deliveryHead;V.assertSha40(executionHead,'AGENT_IMPLEMENTATION_HEAD_BINDING');command('git',['merge-base','--is-ancestor',executionHead,request.source_head],cwd);}
   command('git',['checkout','--detach',executionHead],cwd);
-  return execute(request,{...options,cwd,evidenceRoot:options.evidenceRoot||process.env.KODJO_REVIEW_CACHE,outputDirectory:options.outputDirectory||process.env.KODJO_REVIEW_OUTPUT,issueState,priorAttempt});
+  return execute(request,{...options,cwd,evidenceRoot:options.evidenceRoot||process.env.KODJO_REVIEW_CACHE,outputDirectory:options.outputDirectory||process.env.KODJO_REVIEW_OUTPUT,issueState,priorAttempt,dependencies});
 }
 
 function main(args=process.argv.slice(2)){
   const [stage,input,output]=args,cwd=process.cwd();
   if(stage==='create'){
-    const request=create(B.read(input),cwd),file=path.join(output,request.contract_hash+'.json');
+    const request=create(B.read(input),cwd);require('./lib/vnext-operation-admission').admit(request,{cwd});const file=path.join(output,request.contract_hash+'.json');
     if(fs.existsSync(file)){if(V.canonicalHash(B.read(file))!==V.canonicalHash(request))throw Error('AGENT_EXISTING_REQUEST_CHANGED');}
     else B.write(file,request,{exclusive:true});return {request_hash:request.contract_hash,request_path:file};
   }
@@ -307,4 +360,4 @@ function main(args=process.argv.slice(2)){
 }
 if(require.main===module)try{const r=main();process.stdout.write(JSON.stringify(process.argv[2]==='resolve-trigger'?r:{status:r.status||'RECORDED',request_hash:r.request_hash,request_path:r.request_path,verdict:r.verdict??null})+'\n');}
 catch(error){process.stderr.write(error.message+'\n');process.exitCode=1;}
-module.exports={OPERATIONS,validate,inputs,create,adapterFor,execute,verify,publishedSource,resolveTrigger,failedAncestryBeforeInvocation,verifyNonInvocationArchive,recordedFailureBeforeInvocation,priorInvocation,executeRequest,main};
+module.exports={OPERATIONS,validate,inputs,create,adapterFor,execute,verify,publishedSource,resolveTrigger,failedAncestryBeforeInvocation,verifyNonInvocationArchive,recordedFailureBeforeInvocation,locatorForRun,priorScopeReconciled,priorInvocation,executeRequest,main};

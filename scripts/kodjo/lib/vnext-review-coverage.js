@@ -16,6 +16,7 @@ function fromPlan(plan) {
   return {phase:'PLANNING',coverage_status:pending.length ? 'ACCEPTED_WITH_PENDING_SECONDARY_TARGETS' : 'COMPLETE',
     pending_target_ids:structuredClone(pending),review_report_hash:evidence.report.contract_hash,
     review_context_hash:evidence.context.contract_hash,plan_contract_hash:evidence.report.plan_contract_hash,
+    ...(evidence.context.component_coverage?{direct_reviewed_target_count:evidence.report.reviewed_target_ids.length,inherited_review_target_count:evidence.report.inherited_target_ids.length,component_review_coverage_hash:evidence.context.component_coverage.contract_hash,inheritance_phase:evidence.context.component_coverage.phase}:{}),
     catalogue_size:Object.values(evidence.context.target_catalog).reduce((n,ids)=>n+ids.length,0),
     coverage_policy:structuredClone(evidence.context.coverage_policy || null)};
 }

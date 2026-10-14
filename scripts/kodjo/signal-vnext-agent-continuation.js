@@ -18,9 +18,9 @@ function binding(c){
  return c;
 }
 function makeSignal(c,request,run,artifact,directory,bootstrap,registry){
- binding(c);V.verifyContractHash(request);Identity.validateBootstrap(bootstrap);Identity.validateRegistry(registry,bootstrap);
+ binding(c);V.verifyContractHash(request);V.assertSliceId(request.slice_id);Identity.validateBootstrap(bootstrap);Identity.validateRegistry(registry,bootstrap);
  if(request.schema_version!=='kodjo.vnext.agent-request.v1'||request.pilot!=='CHATGPT_WORK'
-  ||request.repository!==c.repository||!/^VNEXT-[A-Z0-9-]+$/.test(request.slice_id)
+  ||request.repository!==c.repository
   ||!['plan-review','review-scope','implementation-review'].includes(request.operation)
   ||bootstrap.protocol!=='VNEXT'||bootstrap.slice_id!==request.slice_id||bootstrap.repository!==c.repository
   ||bootstrap.issue_number!==request.issue_number)throw Error('WORK_REQUEST_SCOPE');
@@ -122,7 +122,8 @@ async function main(){
   const evidence=await archive(c.repository,artifact,directory),checkpoint=B.read(path.join(evidence,'checkpoint.json'));V.assertSha64(checkpoint.request_hash);
   const requestFile='.github/orchestration/requests/vnext-agent/'+checkpoint.request_hash+'.json';
   const request=JSON.parse(git(['show',run.head_sha+':'+requestFile]));V.verifyContractHash(request);
-  if(!/^VNEXT-[A-Z0-9-]+$/.test(request.slice_id))throw Error('WORK_SLICE_ID');
+  V.assertSliceId(request.slice_id);
+  require('./lib/vnext-operation-admission').admit(request,{cwd:process.cwd(),actor:run.actor?.login});
   const bootstrap=JSON.parse(git(['show',request.source_head+':.github/orchestration/v2-slices/'+request.slice_id+'/slice-bootstrap.json']));
   const registry=JSON.parse(git(['show',request.source_head+':.github/orchestration/v2-activation-registry.json']));
   git(['merge-base','--is-ancestor',run.head_sha,'origin/main']);

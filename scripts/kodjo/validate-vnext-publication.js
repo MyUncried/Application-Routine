@@ -6,8 +6,10 @@ const Publication = require('./lib/vnext-publication');
 function main(configFile, { read } = {}) {
   const config = JSON.parse(fs.readFileSync(configFile, 'utf8'));
   const candidate = Publication.validateTree({ cwd: process.cwd(), expectedParent: config.expected_parent, candidateTree: config.candidate_tree });
-  const window = Publication.verifyWindow({ repository: config.repository, branch: config.branch,
-    expectedParent: config.expected_parent, checkpointSha: config.checkpoint_sha, read });
+  const scope={repository:config.repository,branch:config.branch,expectedParent:config.expected_parent,read};
+  // Existing configs explicitly carrying a campaign checkpoint retain their
+  // historical control; new candidates use the generic verified Git window.
+  const window=Object.hasOwn(config,'checkpoint_sha')?Publication.verifyWindow({...scope,checkpointSha:config.checkpoint_sha}):Publication.verifyCandidateWindow(scope);
   return { ...candidate, publication_window: window };
 }
 if (require.main === module) {
