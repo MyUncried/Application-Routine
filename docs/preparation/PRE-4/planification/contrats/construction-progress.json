@@ -1,0 +1,80 @@
+[
+  {
+    "stage": "planning-envelope",
+    "result": "PASS",
+    "transport": "json",
+    "contract_hash": "274fe90218fcff3ed53015c22f217e962ba6812ade1577fae715c0e4603b8028"
+  },
+  {
+    "stage": "requirement-registry",
+    "result": "PASS",
+    "transport": "kodjo.vnext.file-bundle.v1",
+    "contract_hash": "0b627d860a37a7029638e3b068c864309746b27095b6cac9f1b8816199574280"
+  },
+  {
+    "stage": "candidate-manifest",
+    "result": "PASS",
+    "transport": "json",
+    "contract_hash": "2c8e4a189a7fd869d86418c7c6521e12d43a038384ff48e2ade640a9094f4420"
+  },
+  {
+    "stage": "direct-import-scan",
+    "result": "PASS",
+    "transport": "json",
+    "contract_hash": "46e251680a793c91fc10618c2bbff9d943c41fc7d98834b1756834a626dbc5fb"
+  },
+  {
+    "stage": "impact-graph",
+    "result": "PASS",
+    "transport": "kodjo.vnext.file-bundle.v1",
+    "contract_hash": "1fcac43d37880d74f8e6bf96102e0e4dfea337fc2d15cafdf584ed22e925811a"
+  },
+  {
+    "stage": "plan-contract",
+    "result": "PASS",
+    "transport": "kodjo.vnext.file-bundle.v1",
+    "contract_hash": "ec0a18facdde4b96c96912743e3440339fbd9efd853f3390c767c71ea5565043"
+  },
+  {
+    "stage": "ui-input",
+    "result": "PASS",
+    "transport": "kodjo.vnext.file-bundle.v1",
+    "contract_hash": null
+  },
+  {
+    "stage": "ui-atomicity-contract",
+    "result": "PASS",
+    "transport": "kodjo.vnext.file-bundle.v1",
+    "contract_hash": "ff21154c8d61e49befedab79b08f57e549b8915481328a9cccad8a46cd703789"
+  },
+  {
+    "stage": "component-reuse-assessment",
+    "result": "PASS",
+    "transport": "json",
+    "contract_hash": null
+  },
+  {
+    "stage": "recipe",
+    "result": "PASS",
+    "transport": "kodjo.vnext.file-bundle.v1",
+    "contract_hash": null
+  },
+  {
+    "stage": "tracabilite-canonique",
+    "result": "PASS",
+    "transport": "json",
+    "contract_hash": null
+  },
+  {
+    "stage": "produced",
+    "result": "PASS",
+    "transport": "kodjo.vnext.file-bundle.v1",
+    "contract_hash": "530882908ac52584899a84d82d6186cdcaf280ae6e6642809aa7fb7cf41a8da2"
+  },
+  {
+    "stage": "construction-receipt",
+    "result": "PASS",
+    "transport": "json",
+    "contract_hash": null
+  }
+]
