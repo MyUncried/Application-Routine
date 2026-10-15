@@ -2,6 +2,40 @@
 
 ## Contrat commun
 
+### Pilotage : opération terminée et mission terminée
+
+Le principe de simplicité/proportionnalité VNX-00 s'applique à ce raccordement :
+pas de nouveau workflow, verrou, approbation, fichier de configuration par tranche
+ou remplacement des contrôles existants.
+
+Le point d'entrée `vnext-chain.js` fournit automatiquement un champ de retour
+`continuation` après succès et échec. Les appels directs à la bibliothèque commune
+`vnext-live-chain` enrichissent aussi leurs erreurs sans changer les contrats
+scellés ni leurs hashes. La politique d'erreurs existante est réutilisée pour
+orienter le traitement ; une catégorie n'accorde aucun droit ni retry.
+
+`ACTION_REQUIRED` demande au pilote déjà autorisé de relire l'état GitHub actuel,
+réutiliser les sorties acquises et poursuivre l'action utile dans son autorité.
+Un manque de qualification de mappings conduit à cette qualification, pas à un
+nouvel appel sur le gros paquet refusé. Une revue partielle conduit au traitement
+de sa couverture existante ; un REVISE à une correction dans le périmètre admis.
+Une ambiguïté demande d'abord de matérialiser la question existante. Seul un gate
+propriétaire effectivement publié donne `WAITING_OWNER` dans ce retour CLI.
+
+Le pilote reporte le résultat, son identité et la prochaine action dans son
+checkpoint ou rapport existant. Une erreur technique n'est pas un arbitrage
+produit ; un résultat d'opération n'atteste pas l'objectif global. Une répétition
+du même état demande réconciliation et diagnostic, jamais répétition aveugle.
+Une attente externe garde ses preuves de lancement/réveil observées ; l'absence
+de ces preuves ne devient pas une promesse de continuation. Les contrôles de
+propriété, déduplication et admission restent ceux déjà en place.
+
+Ce retour n'intercepte pas la fermeture d'un tour de l'application Work et ne
+constitue pas un exécuteur autonome. Il ne transforme pas l'automation limitée à
+la consommation en pilote d'une tranche. La poursuite effective et l'observation
+de son déclencheur restent à démontrer dans la destination autorisée ; ni le champ
+`continuation` ni un test local ne prouvent cette réception ou cette action.
+
 Le retour après une opération est commun à toutes les tranches VNext enregistrées : résultat archivé → vérification du transport → signal unique → événement PR synchronize → automation Work → accusé durable et reprise. Tranche, issue, demande, source, run/tentative et archive sont des données ; aucune condition PRE-4 n'est inscrite dans le publisher.
 
 Le binding scellé KODJO_VNEXT_WORK_TRANSPORT.json relie la PR de transport commune, sa branche, l'automation et la conversation observées. La PR de transport n'est jamais une PR de livraison et ne porte aucun code métier. Elle reste ouverte pour les signaux de toutes les tranches. L'ancienne automation V1.3/#19 et le signal de qualification/#269 restent historiques ; aucune preuve de réveil antérieure n'est reclassée en preuve du binding courant.
