@@ -113,9 +113,9 @@ test('recovery scans every page and emits a wake-up for pending work without ste
   if(url.includes('/actions/workflows/'))return {workflow_runs:[]};
   if(url.includes('/git/trees/')&&url.endsWith('?recursive=1'))return {truncated:false,tree:[{path:signalPath}]};
   return a.api(url,...args);
- };const result=await Recover.recover(c,{api,recoveryRunId:123,signalRun:async()=>{invocations++;}});assert.equal(result.pending,1);assert.equal(invocations,0);assert.equal(result.status,'RECOVERY_WAKEUP_PUBLISHED');
+ };const inspectWork=()=>({rows:[],operations:[]});const result=await Recover.recover(c,{api,recoveryRunId:123,inspectWork,signalRun:async()=>{invocations++;}});assert.equal(result.pending,1);assert.equal(invocations,0);assert.equal(result.status,'RECOVERY_WAKEUP_PUBLISHED');
  const marker=[...a.files.values()].find(v=>v.schema_version==='kodjo.vnext.work-recovery-wakeup.v1');assert.deepEqual(marker.pending_signal_keys,[key]);assert.deepEqual(marker.claimed_signal_keys,[]);
  let pages=0;const list=X.pages('endpoint','rows',(url)=>{pages++;return {rows:pages===1?Array.from({length:100},(_,i)=>i):[100]};});assert.equal(list.length,101);assert.equal(pages,2);
  const claim=C.claim(c,f.signal,{owner_id:'OWNER',nonce:'a'.repeat(64),signal_commit_sha:'a'.repeat(40),conversation_id:'CHAT',receipt_kind:'MANUAL_RECOVERY'});a.files.set(C.ROOT+'claims/'+key+'.json',claim);
- const stalled=await Recover.recover(c,{api,recoveryRunId:124});assert.equal(stalled.claimed,1);assert.equal(stalled.pending,0);assert.equal(a.files.get(C.ROOT+'claims/'+key+'.json').contract_hash,claim.contract_hash);
+ const stalled=await Recover.recover(c,{api,recoveryRunId:124,inspectWork});assert.equal(stalled.claimed,1);assert.equal(stalled.pending,0);assert.equal(a.files.get(C.ROOT+'claims/'+key+'.json').contract_hash,claim.contract_hash);
 });

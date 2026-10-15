@@ -27,7 +27,9 @@ function finish(c,s,owned,outcome,api=W.gh){
  const actual=read(api,c,C.ROOT+'claims/'+s.signal_key+'.json',head);if(!actual)throw Error('WORK_CLAIM_NOT_OBSERVED');C.owns(actual,owned);
  const cp=C.checkpoint(c,s,owned,outcome),written=transaction(c,C.ROOT+'checkpoints/'+s.signal_key+'.json',cp,api);
  const receipt=C.processed(owned,cp,'git:'+written.head+':'+C.ROOT+'checkpoints/'+s.signal_key+'.json');
- const done=transaction(c,C.ROOT+'receipts/'+s.signal_key+'.json',receipt,api);return {status:'PROCESSED',head:done.head,checkpoint_hash:cp.contract_hash};
+ const done=transaction(c,C.ROOT+'receipts/'+s.signal_key+'.json',receipt,api);
+ let notification=null;try{notification=require('./lib/vnext-work-resume').notification(s,cp);}catch{/* Advisory feedback cannot invalidate a published receipt. */}
+ return {status:'PROCESSED',head:done.head,checkpoint_hash:cp.contract_hash,notification};
 }
 
 // Replay only recorded connector results. Never execute an API from the stepper.
