@@ -140,7 +140,8 @@ function adapterFor(request,cwd,{invoke,reviewCapacity=require('./lib/vnext-cumu
 }
 function execute(request,options){
   validate(request);let loaded;
-  const adapter=options.adapter||{name:request.operation,preflight:()=>{loaded=adapterFor(request,options.cwd);loaded.preflight();if(loaded.storageKey!==request.operation_hash)throw Error('AGENT_OPERATION_BINDING');adapter.storageKey=loaded.storageKey;},
+  const resumedInvoke=options.resumeAuthorization?require('./lib/vnext-interrupted-session').invoke(options.resumeAuthorization,request):null;
+  const adapter=options.adapter||{name:request.operation,preflight:()=>{loaded=adapterFor(request,options.cwd,resumedInvoke?{invoke:resumedInvoke}:{});loaded.preflight();if(loaded.storageKey!==request.operation_hash)throw Error('AGENT_OPERATION_BINDING');adapter.storageKey=loaded.storageKey;},
     hasResponse:d=>loaded.hasResponse(d),invoke:d=>loaded.invoke(d),recover:d=>loaded.recover(d),verify:(r,d)=>loaded.verify(r,d),result:(r,d)=>loaded.result(r,d)};
   return Relay.execute(request,{...options,adapter});
 }
@@ -167,13 +168,15 @@ function resolveTrigger(commit,file,cwd,command=Chain.command){
   if(/^\.github\/orchestration\/requests\/vnext-(agent|plan-review)\/[0-9a-f]{64}\.json$/.test(file))return {request_commit:commit,request_path:file};
   if(!/^\.github\/orchestration\/requests\/vnext-agent\/resume\/[0-9a-f]{64}\.json$/.test(file))throw Error('AGENT_RESUME_PATH');
   const resume=Chain.readGitObject(cwd,commit,file);V.verifyContractHash(resume);
-  V.assertExactKeys(resume,['schema_version','request_commit','request_path','request_hash','source_head','operation_hash','prior_run_id','contract_hash'],[],'AGENT_RESUME_KEYS');
-  if(resume.schema_version!=='kodjo.vnext.agent-resume.v1'||path.posix.basename(file,'.json')!==resume.contract_hash
+  V.assertExactKeys(resume,['schema_version','request_commit','request_path','request_hash','source_head','operation_hash','prior_run_id','contract_hash'],['interrupted_session'],'AGENT_RESUME_KEYS');
+  if(!['kodjo.vnext.agent-resume.v1','kodjo.vnext.agent-resume.v2'].includes(resume.schema_version)||path.posix.basename(file,'.json')!==resume.contract_hash
     ||!Number.isSafeInteger(resume.prior_run_id)||resume.prior_run_id<=0)throw Error('AGENT_RESUME_BINDING');
   V.assertSha40(resume.request_commit);
   if(!/^\.github\/orchestration\/requests\/vnext-agent\/[0-9a-f]{64}\.json$/.test(resume.request_path))throw Error('AGENT_RESUME_REQUEST_PATH');
   command('git',['merge-base','--is-ancestor',resume.request_commit,commit],cwd);
   const request=validate(Chain.readGitObject(cwd,resume.request_commit,resume.request_path));
+  if(resume.schema_version==='kodjo.vnext.agent-resume.v2')require('./lib/vnext-interrupted-session').validate(resume,request);
+  else if(resume.interrupted_session)throw Error('AGENT_SESSION_AUTH_SCHEMA');
   if(request.contract_hash!==resume.request_hash||request.source_head!==resume.source_head||request.operation_hash!==resume.operation_hash
     ||path.posix.basename(resume.request_path,'.json')!==request.contract_hash)throw Error('AGENT_RESUME_REQUEST_CHANGED');
   const run=JSON.parse(command('gh',['api','repos/'+request.repository+'/actions/runs/'+resume.prior_run_id],cwd));
@@ -188,7 +191,7 @@ function resolveTrigger(commit,file,cwd,command=Chain.command){
     const previous=resolveTrigger(run.head_sha,paths[0],cwd,command);
     if(previous.request_commit!==resume.request_commit||previous.request_path!==resume.request_path)throw Error('AGENT_RESUME_RUN_MISMATCH');
   }
-  return {request_commit:resume.request_commit,request_path:resume.request_path,prior_run_id:resume.prior_run_id};
+  return {request_commit:resume.request_commit,request_path:resume.request_path,prior_run_id:resume.prior_run_id,...(resume.interrupted_session?{session_resume_commit:commit,session_resume_path:file}:{})};
 }
 // Historical compatibility, not a retry exemption supplied by a caller. This
 // exact trusted entry and workflow failed at their first Git ancestry guard,
@@ -369,6 +372,12 @@ function executeRequest(input,output,options={}){
   V.assertSha40(input,'AGENT_REQUEST_COMMIT');
   if(!/^\.github\/orchestration\/requests\/vnext-agent\/[0-9a-f]{64}\.json$/.test(output))throw Error('AGENT_REQUEST_PATH');
   const request=Chain.readGitObject(cwd,input,output);validate(request);
+  if(process.env.VNEXT_SESSION_RESUME_COMMIT||process.env.VNEXT_SESSION_RESUME_PATH){
+    const commit=process.env.VNEXT_SESSION_RESUME_COMMIT,file=process.env.VNEXT_SESSION_RESUME_PATH;
+    const resolved=resolveTrigger(commit,file,cwd,command);
+    if(resolved.request_commit!==input||resolved.request_path!==output||!resolved.session_resume_commit)throw Error('AGENT_SESSION_LOCATOR');
+    options.resumeAuthorization=Chain.readGitObject(cwd,commit,file);
+  }
   if(path.posix.basename(output,'.json')!==request.contract_hash)throw Error('AGENT_REQUEST_PATH_HASH');
   publishedSource(request,cwd,command);
   if(command('git',['rev-parse','HEAD'],cwd).trim()!==input||command('git',['status','--porcelain'],cwd).trim())throw Error('AGENT_CHECKOUT_MISMATCH');

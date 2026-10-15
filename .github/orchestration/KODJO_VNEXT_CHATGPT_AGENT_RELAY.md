@@ -63,6 +63,14 @@ Le détecteur distingue le CLI Claude géré par KODJO des applications Claude e
 
 ## Qualification
 
+### Continuation explicite d'une session interrompue
+
+Un contrôle `kodjo.vnext.agent-resume.v2` peut porter `interrupted_session` : session_id, session_sha256, authorized_actor et authorization=`OWNER_REQUESTED_SAME_SESSION_CONTINUATION`. Cette voie concerne uniquement une revue de plan INITIAL partielle dont le run initial a perdu la communication avec GitHub. Le propriétaire autorise explicitement la continuation ; ce n'est pas un retry implicite. Le contrôle reste lié à la demande, la source, l'opération et le run initial exacts.
+
+Le consommateur exige le run/job initial terminé en échec et son annotation GitHub de perte de communication, l'intent original concordant, le diagnostic de portée exact, une unique session locale de même empreinte liée au dossier et à la portée, aucun résultat final conservé, aucun Claude géré actif et le verrou habituel. Il réserve exclusivement une seule continuation par opération. L'intent original reste intact et les diagnostics précédents sont copiés avant écriture de nouveaux diagnostics. Une réservation ambiguë ne se réinitialise pas et une session modifiée ou étrangère est refusée.
+
+L'adaptateur et le superviseur existants appellent exclusivement `--resume <session_id>` avec les restrictions et validateurs habituels. Le résultat doit conserver cet identifiant. Une réponse/reçu déjà présent se récupère sans appel. Les contrôles v1 et le refus de tentative antérieure inconnue restent inchangés hors de cette autorisation explicite. Cette voie ne garantit pas que la session pourra terminer et ne permet ni un appel neuf après refus, ni une approbation de plan, ni un développement.
+
 Les tests locaux utilisent des processus/adaptateurs simulés et les validateurs réels, des objets Git épinglés et des artefacts déplacés. Ils ne prouvent ni un appel Claude réel, ni un réveil automatique. #345 reste ouverte jusqu'au parcours réel, aux reprises et à la récupération directe constatés. Les preuves CI du commit candidat sont consignées dans sa PR ; aucun run vert seul n'est une approbation indépendante.
 
 ## Dépendances et identification des runs
