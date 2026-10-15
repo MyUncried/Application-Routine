@@ -76,6 +76,19 @@ Les API fonctionnelles respectent les principes suivants :
 |API-ACT-05|Associer des zones corporelles|ID Exercice, zones corporelles|Zones corporelles mises à jour|Zéro à plusieurs zones du référentiel utilisateur courant|Exercice, Zone corporelle|
 |API-ACT-06|Définir le nombre de Séries|ID Exercice, nombre de Séries|Exercice mis à jour|Entier de 1 à 99 ; valeur par défaut 1 ; valeur canonique persistée ; ne crée aucune entité Série autonome|Exercice|
 |API-ACT-07|Dupliquer un Exercice de Séance|ID Exercice source|Nouvelle Exercice de Séance indépendante|Nouvel identifiant ; copie des propriétés intrinsèques dont Pause et `sideRecoverySeconds`, ainsi que du `postActivityRecoverySeconds` contextuel de l’occurrence ; insertion immédiatement après la source dans la même zone ; aucune création dans le catalogue|Exercice, Composition, associations Média|
+### Contrats internes des phases d’exercice
+
+Les opérations de création, modification, copie et duplication transportent la liste ordonnée de phases avec les paramètres canoniques. Aucun endpoint ni service distant supplémentaire n’est requis. Contrat de données : chapitre 09, Phases de l’exercice ; comportement : [chapitre 08](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
+
+- Normalisation du brouillon : retire les phases de saisie à 0 s et remplace les libellés vides par Phase n ; résultat appliqué atomiquement à ✓, annulé à ✕.
+- Validation : éligibilité, six phases maximum, libellés 20 caractères, cohérence avec la durée imposée ; les données corrompues ne bénéficient pas d’un effacement silencieux.
+- Calcul : somme des phases comme durée de série ; projections et agrégats issus des mêmes paramètres, sans double comptage.
+- Adaptation au format : reçoit la liste et la durée de travail imposée ; renvoie la liste adaptée et les valeurs avant/après nécessaires au message informatif. Source Catalogue inchangée. Les arrondis extrêmes attendent la règle du chapitre 08.
+- Génération du plan : conserve la série comme unité logique et expose les sous-étapes chronométrées et leur identité à la reprise/audio.
+- Génération de phrase : segments `{texte, gras}` depuis les paramètres effectifs, sans chaîne persistée. Les formulations exactes avec phases restent à intégrer au corpus ; ne pas appliquer les seuls 276 cas historiques comme couverture de cette extension.
+
+Conserver les contrats d’annulation, copie indépendante et lecture d’anciennes versions ; ne pas supprimer une liste de phases lors d’un aller-retour par un DTO historique.
+
 ## 11.5 API Routines et Planification
 
 Ces opérations conservent leurs identifiants, avec une entrée étendue à la liste ordonnée de contenus. Contrat fonctionnel cible, pas signature d’API implémentée.

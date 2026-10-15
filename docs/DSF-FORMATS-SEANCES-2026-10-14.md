@@ -30,6 +30,12 @@ EMOM par exercice : garder le compte global de passages distinct de la représen
 
 Les phrases sont rendues en segments `{texte, gras}`, issus des paramètres, non stockées. Le texte For time normatif est conservé dans le corpus Formats associé. Un calcul illustratif faux dans Figma n’est pas une nouvelle règle ; les écarts de libellé/unité/constante sont suivis séparément.
 
+## Phases dans les modales de format
+
+Pour un exercice éligible et une durée de travail imposée, la dernière phase affiche le restant calculé. Les précédentes sont modifiables dans ce budget. Ajout à0 ; réorganisation conservant les valeurs ; suppression reportant le temps sur la dernière restante. Le style calculé reste distinct d’une option sans effet. Réutiliser le tableau décrit dans le DSF Deux modes et les contrats CE-UI-10/CE-FMT-04.
+
+L’intégration d’un exercice de durée différente affiche le message informatif d’adaptation proportionnelle ; aucune confirmation supplémentaire ni nouveau dialogue bloquant. Le placement du message réutilise la notification existante. Une fenêtre EMOM ne vaut pas automatiquement durée de travail imposée. Les seize modales de format restent sans ligne Phases selon le rapport Figma du15/10 ; aucune capture n’est annoncée conforme à cet ajout.
+
 ## 5. Preuves et limites
 
 46 captures et leurs empreintes dans `Specifications-fonctionnelles/images/formats-2026-10-14/manifest.json`. Les écarts F-01…04 sont dans la revue transverse. Aucun layout spécifique de confirmation/résultat Death by n’est qualifié par cette galerie. La couverture des captures ne détermine pas à elle seule la possibilité de développer : appliquer la clarification de portée ci-dessous.

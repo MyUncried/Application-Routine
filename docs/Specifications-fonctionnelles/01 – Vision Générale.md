@@ -248,6 +248,10 @@ Une **entité métier** possède une identité propre et peut être représenté
 - Le Circuit et ses Tours ne portent aucun changement de côté. Une bilatéralité éventuelle est définie au niveau de l’Exercice.
 - Pour un Exercice bilatéral hors de toute règle de Circuit, un Exercice proprement bilatérale affiche `D→G` ou `G→D` dans le petit indicateur de sa carte ; seul le texte de la Synthèse des écrans Créer un exercice / Modifier un exercice développe `à droite, puis à gauche` ou `à gauche, puis à droite`.
 
+#### Phases d’un exercice
+
+Une **phase d’exercice** est une action chronométrée et nommée au sein d’une série. Une séquence de 1 à 6 phases est rejouée à chaque série, sans pause entre phases. Cette capacité appartient au MVP, uniquement en Durée chiffrée avec séries identiques. Elle ne crée ni exercice de catalogue ni compteur de cycles supplémentaire. Le terme se distingue des phases structurelles du plan (préparation, récupération, fin).
+
 #### 4. Concepts de planification
 
 | Terme | Définition |

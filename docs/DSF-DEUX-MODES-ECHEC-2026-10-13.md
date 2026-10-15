@@ -48,6 +48,16 @@ Le cas mixte `8470:13303` illustre30s/45s/échec, pauses10s/20s/30s, ≥2min15 e
 
 Aucun écran uniforme « Série à l’échec » supplémentaire : la frame créée puis supprimée ne doit pas revenir dans l’inventaire. Les huit cartes catalogue, ses filtres, les roulettes de total et les layouts d’exécution/synthèse/suivi sont conservés dans cette passe.
 
+## Phases d’exercice — état des contrôles
+
+La ligne Phases suit Mode d’exécution et précède Séries. Aucune est éditable uniquement en Durée chiffrée avec séries identiques ; aucun chevron sans tableau. Appui sur Aucune : création de la première phase. Liste existante : chevron de repli, tableau Libellé/Durée à deux colonnes, poignée, suppression et pied commun. Maximum6 phases, libellé20 caractères ; saisie texte pour le libellé, contrôle de durée pour une valeur éditable.
+
+La durée de série calculée et la dernière durée sous format restent lisibles et non modifiables, sans tiret. La ligne Phases indisponible n’a pas le sens d’une valeur calculée ni d’une valeur imposée mais effective. Réutiliser les styles existants, sans déclarer qu’un nouveau maître a été créé. La raison d’indisponibilité doit être accessible ; le seul gris ne porte pas la règle.
+
+Le rapport Figma du15/10 indique une insertion de42px, un fond gris se terminant16px après la dernière ligne et une marge basse de24px ; les feuilles suivent la hauteur de leur contenu et le chevron Séries reste aligné sur son libellé. Ces mesures sont celles du rapport, à vérifier au relevé des frames ; elles ne deviennent pas des hauteurs fixes sur tous les appareils. Corps défilant, clavier et Safe Areas selon le shell existant.
+
+La roulette de cible chiffrée ci-dessus ne détermine pas les bornes de phase : un exemple6+3 est valide dans la conception. Pas/bornes spécifiques et cas extrêmes restent localisés au chapitre08. États et interactions complets : CE-UI-10. Les captures des phases ne sont pas actualisées dans cette consolidation.
+
 ## Accessibilité et limites
 
 Adapter les géométries à360/402/440 et au texte agrandi ; conserver focus modal, défilement du corps et actions accessibles. Annoncer l’option sélectionnée et le caractère non éditable du total ; ne pas transmettre l’état uniquement par le gris. Les cibles tactiles suivent le DSF général, indépendamment de la hauteur dessinée30px.
