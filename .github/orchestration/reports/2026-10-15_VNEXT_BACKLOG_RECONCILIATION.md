@@ -392,3 +392,33 @@ Liens vers les sources figées :
 - [Révision VNext et recontrôle de l’outcome](https://github.com/MyUncried/Application-Routine/blob/f8020627015c74e5d11e7972b5f685a4874fec04/.github/orchestration/reports/2026-10-07_VNEXT_REVISION_PLAN_SUCCESS_37546751570.md).
 - [Exclusions CI VNext et limites documentées](https://github.com/MyUncried/Application-Routine/blob/f8020627015c74e5d11e7972b5f685a4874fec04/.github/orchestration/reports/2026-10-13_VNEXT_CI_PATH_EXCLUSIONS.md).
 
+
+
+## Complément PE-27 — besoin satisfait et suivi clos le 15 octobre 2026
+
+Demande : déterminer si PE-27 est satisfait, sans refaire une campagne de tests. Base de ce complément : main `8c47602282767bdb0df7b30e159f671688783ae2`, moteur inchangé depuis le candidat audité. Le passage à DÉMONTRÉ porte sur le besoin protocolaire, pas sur la conformité de tous les écrans.
+
+### Correspondance exhaustive du besoin
+
+| Obligation | Code et raccordement vérifiés | Preuves déjà exécutées |
+|---|---|---|
+| Décomposer les exigences UI en assertions distinctes, observables et sourcées, liées au critère ; couvrir les propriétés et preuves attendues | lib/ui-atomicity-contract.js ; lib/ui-criteria-contract.js ; lib/vnext-legacy-queue-adapter.js projectUi conserve les critères/assertions et leurs preuves dans le contrat consommé | Q1 : VNext-05 construit Requirement → Criterion → Atomic Assertions ; impose une source pour les propriétés visuelles ; refuse preuves absentes et changements non couverts. Q3 : UI plan: matrice atomique valide produit un contrat versionne. |
+| Conclusion du critère déterminée par ses assertions, sans omission ni fusion pour obtenir une conclusion plus favorable | verify-ui-implementation-review.js deriveCriterionFromAssertions compare les identités attendues, les preuves requises et les résultats ; NON_CONFORME puis NON_VERIFIABLE/PENDING_DEVICE empêchent une conclusion CONFORME. Le workflow partagé kodjo-slice-implementation-review.yml prépare puis valide le contrat, y compris la projection VNext. | Q3 : atomic review v2: prépare les assertions et dérive le statut du critère ; refuse un verdict global plus favorable que ses assertions ; refuse omission ou fusion d assertion ; semantic failure remains REVISE even when the functional proof passes. |
+| Préserver la lecture des anciens plans approuvés sans en produire de nouveaux au format historique, sans nouveau workflow/canal/état nécessaire | lib/ui-criteria-contract.js accepte les formats historiques en lecture ; le contrat de nouveaux plans exige les assertions et présente v3 comme autorité. L’adaptateur VNext est une projection explicite de compatibilité, pas une nouvelle génération libre de plan historique. | Q3 : UI plan: consume conserve la compatibilite des plans historiques v1 ; IA-005: approved positional v2 IDs are consumable, never newly produced ; workflows: INITIAL et REVISION produisent la matrice et les revues la rejouent avant Claude. Q1 : D8 UI projection retains atomic assertions and an exact component path/export binding. |
+
+### Nature et suffisance des preuves
+
+Run [38650355491](https://github.com/MyUncried/Application-Routine/actions/runs/38650355491), candidat `16af73dc851160bba949425e887328c3124876c3` intégré par #362 :
+- Qualification VNext Linux : archive 11935405938 relue physiquement, 570 PASS, zéro échec.
+- Équivalence Linux : archive 11935481034 relue physiquement, 1555 PASS, zéro échec, deux skips. Le workflow exécute **tous** les fichiers tests/kodjo/*.pilot.js ; les tests ciblés ci-dessus sont présents, sans déclaration de skip. Le rapport JSON ne restitue individuellement que ses cas historiques mappés : les autres résultats ne sont pas inventés comme des lignes du JSON. L’exécution de la suite complète et le code des cas sont distingués de cette projection.
+- Vérification statique des consommateurs pour établir que les contrôles communs sont bien raccordés à VNext, sans déduire cette propagation du seul nom d’un test V2.
+
+Le besoin PE-27 exige un mécanisme et ses non-régressions ; il n’exige pas que tous les futurs écrans soient conformes ni une nouvelle utilisation produit pour clore cette évolution. Les décisions de conformité d’une tranche continuent d’exiger ses propres preuves. Aucune preuve visuelle/native, aucun passage appareil ni approbation produit n’est ajouté ici.
+
+### Décision et modification
+
+**PE-27 SATISFAIT / DÉMONTRÉ / CLOS sur son objectif protocolaire.** Aucun écart restant identifié dans les trois obligations ci-dessus. La mention antérieure « consolidation à délimiter » est supersédée par cette conclusion ; ce n’est pas une attente indéfinie de preuves produit.
+
+Registre : ligne détaillée et statut de suivi PE-27 mis à jour ; PE-02/15 restent clos, 25 des 28 sujets initialement ouverts restent ouverts. Les autres lignes de besoin sont conservées. Ce complément est ajouté au rapport existant ; l’audit initial reste lisible comme historique.
+
+Contrôles de cette modification documentaire : unicité et cardinalités du registre, compatibilité des quatre statuts, seule ligne de besoin PE-27 modifiée par rapport à la base, diff limité au registre et au présent rapport. Aucun test nouveau, aucun appel modèle, aucun workflow, aucune correction de moteur ni intervention PRE-4 lancés. Publication documentaire non forcée avec HEAD attendu, puis relecture des contenus sur main.
