@@ -20,6 +20,7 @@ permissions:
   contents: read
   issues: read
   actions: read
+  checks: read
 
 concurrency:
   group: kodjo-claude-local-execution
@@ -37,6 +38,8 @@ jobs:
       REQUEST_COMMIT: ${{ inputs.request_commit || github.sha }}
       REQUEST_PATH: ${{ inputs.request_path || '' }}
       PUSH_BEFORE: ${{ github.event.before || '' }}
+      VNEXT_SESSION_RESUME_COMMIT: ''
+      VNEXT_SESSION_RESUME_PATH: ''
     defaults:
       run:
         shell: powershell
@@ -69,6 +72,10 @@ jobs:
           $resolved = $locator | ConvertFrom-Json
           "REQUEST_COMMIT=$($resolved.request_commit)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "REQUEST_PATH=$($resolved.request_path)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          if ($resolved.session_resume_commit) {
+            "VNEXT_SESSION_RESUME_COMMIT=$($resolved.session_resume_commit)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+            "VNEXT_SESSION_RESUME_PATH=$($resolved.session_resume_path)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          }
       - name: Checkout immutable request and source objects
         uses: actions/checkout@v6
         env:

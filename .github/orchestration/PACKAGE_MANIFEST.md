@@ -311,3 +311,12 @@ L'ajout de la dépendance commune à la liste figée du runtime IMPLEMENT prése
 | `scripts/kodjo/lib/vnext-implementation-cumulative.js` | Portées, réponses partielles et agrégat d'implémentation sans nouveau modèle |
 | `scripts/kodjo/lib/vnext-qualified-component-import.js` | Revalidation des preuves communes importées et invalidation de code/tokens |
 | `tests/kodjo/vnext-implementation-cumulative.pilot.js` | Couverture, préservation, refus de faux APPROVE et contextes modifiés |
+
+## Reprise autorisée d'une revue interrompue
+
+| Fichier | Rôle |
+|---|---|
+| `scripts/kodjo/lib/vnext-interrupted-session.js` | Vérifie l'interruption GitHub et l'identité du contexte/session ; réserve une seule continuation de la même session, sans nouvelle revue ni effacement du cache |
+| `tests/kodjo/vnext-interrupted-session.pilot.js` | Refus avant invocation, conservation des preuves, priorité à la réponse déjà disponible et identité de session conservée |
+
+La permission `checks: read` du relais existant permet uniquement de lire les annotations GitHub attestant l'interruption du runner. Le test du workflow conserve une liste exacte de permissions en lecture ; aucune permission d'écriture n'est ajoutée. La qualification du correctif reste distincte de la reprise réelle de PRE-4.
