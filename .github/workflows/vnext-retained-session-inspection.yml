@@ -1,0 +1,98 @@
+name: VNext retained session inspection
+on:
+  push:
+    branches: [recovery/pre4-session-20261015]
+    paths: [.github/workflows/vnext-retained-session-inspection.yml]
+permissions:
+  contents: read
+concurrency:
+  group: kodjo-claude-local-execution
+  cancel-in-progress: false
+jobs:
+  inspect:
+    if: github.actor == 'MyUncried'
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 10
+    steps:
+      - name: Read only the interrupted operation and host events
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $out=Join-Path $env:RUNNER_TEMP "vnext-session-inspection-$env:GITHUB_RUN_ID"
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          $operation='9f8af0b68a97131f6148463eee4624109b51f73bb66aedbed25a2d329e1d9998'
+          $produced='530882908ac52584899a84d82d6186cdcaf280ae6e6642809aa7fb7cf41a8da2'
+          $scope='de49d02fa808cf28131ab5560da8c983b30602c10c76c6ae098feec1f03d95b5'
+          $since=[DateTime]::Parse('2026-10-15T08:45:00Z').ToUniversalTime()
+          $until=[DateTime]::Parse('2026-10-15T10:35:00Z').ToUniversalTime()
+          $report=[ordered]@{schema='kodjo.vnext.retained-session-inspection.v1';observed_utc=(Get-Date).ToUniversalTime().ToString('o');run_id=$env:GITHUB_RUN_ID;operation_hash=$operation;model_invoked=$false;processes_stopped=0;source_files_modified=0;cache=@();sessions=@();host_events=@();runner_events=@();limitations=@()}
+          $cache=Join-Path (Split-Path -Parent $env:RUNNER_TEMP) "_kodjo_vnext_pre4_reviews\$operation"
+          if(Test-Path -LiteralPath $cache){
+            $item=Get-Item -LiteralPath $cache -Force
+            if($item.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'CACHE_REPARSE_POINT'}
+            foreach($file in @(Get-ChildItem -LiteralPath $cache -File -Force)){
+              $report.cache+=@{name=$file.Name;bytes=$file.Length;sha256=(Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant();modified_utc=$file.LastWriteTimeUtc.ToString('o')}
+              if($file.Name -match '^(initial-review-(response|process|progress)|receipt)\.json$'){
+                if($file.Length -gt 67108864 -or ($file.Attributes -band [IO.FileAttributes]::ReparsePoint)){throw 'CACHE_FILE_REFUSED'}
+                Copy-Item -LiteralPath $file.FullName -Destination (Join-Path $out $file.Name)
+              }
+            }
+          }else{$report.limitations+='OPERATION_CACHE_ABSENT'}
+          $all=@(Get-CimInstance Win32_Process)
+          $report.managed_processes=@($all | Where-Object {$_.Name -match '^(claude|node|Runner.Listener|Runner.Worker)(\.exe)?$' -and ($_.Name -match '^Runner\.' -or $_.CommandLine -like '*_request*' -or $_.CommandLine -like '*vnext-review-process*' -or $_.CommandLine -like '*kodjo-vnext-review-*')} | ForEach-Object {@{pid=[int64]$_.ProcessId;parent_pid=[int64]$_.ParentProcessId;name=$_.Name;created_utc=$_.CreationDate.ToUniversalTime().ToString('o')}})
+          $projects=Join-Path $env:USERPROFILE '.claude\projects'
+          if(Test-Path -LiteralPath $projects){
+            $dirs=@(Get-ChildItem -LiteralPath $projects -Directory -Force | Where-Object {$_.Name -match '(?i)actions-runner.*Application-Routine.*request'})
+            foreach($dir in $dirs){
+              if($dir.Attributes -band [IO.FileAttributes]::ReparsePoint){continue}
+              foreach($file in @(Get-ChildItem -LiteralPath $dir.FullName -File -Filter '*.jsonl' | Where-Object {$_.LastWriteTimeUtc -ge $since -and $_.CreationTimeUtc -le $until})){
+                if($file.Length -gt 134217728 -or ($file.Attributes -band [IO.FileAttributes]::ReparsePoint)){continue}
+                $matched=$false;$session='';$events=0;$lastType='';$lastStop='';$results=@();$tools=@();$errors=@();$first='';$last=''
+                foreach($line in [IO.File]::ReadLines($file.FullName)){
+                  if($line.Contains($produced) -and $line.Contains($scope)){$matched=$true}
+                  try{$e=$line|ConvertFrom-Json}catch{continue}
+                  $events++;if($e.sessionId){$session=[string]$e.sessionId};if($e.timestamp){if(-not $first){$first=[string]$e.timestamp};$last=[string]$e.timestamp};$lastType=[string]$e.type
+                  if($e.message.stop_reason){$lastStop=[string]$e.message.stop_reason}
+                  if($e.type -eq 'result' -and $e.structured_output){$results+=,$e}
+                  foreach($part in @($e.message.content)){
+                    if($part.type -eq 'tool_use'){$tools+=@{name=[string]$part.name;id=[string]$part.id}}
+                    if($part.type -eq 'tool_result' -and $part.is_error){$errors+=@{tool_use_id=[string]$part.tool_use_id;is_error=$true}}
+                  }
+                }
+                if($matched){
+                  $record=@{file=$file.Name;session_id=$session;bytes=$file.Length;sha256=(Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant();events=$events;first_event=$first;last_event=$last;last_type=$lastType;last_stop_reason=$lastStop;tools=$tools;tool_errors=$errors;terminal_results=$results.Count}
+                  $report.sessions+=,$record
+                  if($results.Count -eq 1){[IO.File]::WriteAllText((Join-Path $out 'retained-terminal-result.json'),($results[0]|ConvertTo-Json -Depth 100),(New-Object Text.UTF8Encoding($false)))}
+                }
+              }
+            }
+          }else{$report.limitations+='CLAUDE_PROJECTS_ABSENT'}
+          try{
+            $ids=@(1,12,13,41,42,107,109,506,507,6005,6006,6008,7031,7034,7040)
+            $events=@(Get-WinEvent -FilterHashtable @{LogName='System';StartTime=$since.ToLocalTime();EndTime=$until.ToLocalTime();Id=$ids} -ErrorAction Stop)
+            $report.host_events=@($events|ForEach-Object {@{utc=$_.TimeCreated.ToUniversalTime().ToString('o');id=$_.Id;provider=$_.ProviderName;level=$_.LevelDisplayName;message=$_.Message}})
+          }catch{$report.limitations+='SYSTEM_EVENTS_UNAVAILABLE_OR_EMPTY'}
+          $diag=Join-Path (Split-Path -Parent (Split-Path -Parent $env:RUNNER_TEMP)) '_diag'
+          if(Test-Path -LiteralPath $diag){
+            foreach($file in @(Get-ChildItem -LiteralPath $diag -File -Filter '*.log'|Where-Object {$_.LastWriteTimeUtc -ge $since -and $_.CreationTimeUtc -le $until})){
+              foreach($line in [IO.File]::ReadLines($file.FullName)){
+                $stamp=[regex]::Match($line,'2026-10-15[ T]\d\d:\d\d:\d\d')
+                if($stamp.Success -and $line -match '(?i)(lost communication|heartbeat|connect.*(fail|error)|reconnect|timed out|shutdown|cancell|job.*(finish|complet)|session.*(expire|conflict))'){
+                  try{$at=[DateTime]::SpecifyKind([DateTime]::Parse($stamp.Value),[DateTimeKind]::Utc)}catch{continue}
+                  if($at -lt $since -or $at -gt $until){continue}
+                  $category=if($line -match '(?i)heartbeat'){'HEARTBEAT'}elseif($line -match '(?i)cancell'){'CANCELLATION'}elseif($line -match '(?i)shutdown'){'SHUTDOWN'}elseif($line -match '(?i)reconnect'){'RECONNECT'}elseif($line -match '(?i)timed out'){'TIMEOUT'}else{'CONNECTION_OR_JOB'}
+                  $report.runner_events+=@{file=$file.Name;utc=$at.ToString('o');category=$category}
+                }
+              }
+            }
+          }else{$report.limitations+='RUNNER_DIAG_ABSENT'}
+          [IO.File]::WriteAllText((Join-Path $out 'inspection.json'),($report|ConvertTo-Json -Depth 30),(New-Object Text.UTF8Encoding($false)))
+          Write-Host ('INSPECTION_COMPLETE cache_files='+$report.cache.Count+' matched_sessions='+$report.sessions.Count+' host_events='+$report.host_events.Count)
+      - name: Preserve inspection evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vnext-session-inspection-${{ github.run_id }}
+          path: ${{ runner.temp }}/vnext-session-inspection-${{ github.run_id }}/*
+          retention-days: 14
+          if-no-files-found: error
