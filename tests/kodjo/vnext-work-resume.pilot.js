@@ -53,6 +53,22 @@ test('owner decision is preserved and a result notice never invents approval or 
   const f=fixture(),cp=C.checkpoint(f.c,f.signal,f.claim,{continuation_state:'WAITING_USER_DECISION',next_action:'Present the exact existing gate.',evidence_refs:['github:real-gate-required']});
   const n=R.notification(f.signal,cp);assert.equal(n.title,'Décision utilisateur attendue');assert.equal(n.grants_authority,false);assert.equal(n.delivery_scope,'CURRENT_EXECUTION');
 });
+test('read-only connector mode shares the existing replay adapter without gh or duplicate requests',()=>{
+  const f=fixture(),a=apiFixture(f),transcript=[];
+  const git=args=>args[0]==='ls-tree'?'':JSON.stringify({activations:[]});
+  let result;
+  for(let i=0;i<30;i++){
+    const next=Inspect.step(f.c,transcript,{git});
+    if(next.status==='COMPLETE'){result=next.result;break;}
+    const q=next.request;assert.equal(q.method,'GET');
+    const response=q.endpoint.includes('/actions/runs?')?{workflow_runs:[]}:a.api(q.endpoint,q.method,q.data,q.allowMissing);
+    transcript.push({context_hash:next.context_hash,request:q,response});
+  }
+  assert.equal(result.rows[0].continuation_state,'BLOCKED_WITH_EVIDENCE');assert.equal(a.writes.length,0);
+  assert.equal(Inspect.step(f.c,transcript,{git}).status,'COMPLETE');
+  const altered=structuredClone(transcript);altered[0].context_hash='f'.repeat(64);
+  assert.throws(()=>Inspect.step(f.c,altered,{git}),/TRANSCRIPT_CHANGED/);
+});
 test('handover proposal preserves histories, refuses live owners and requires observed automation destinations',()=>{
   const f=fixture(),s=R.reconstruct(f.c,f.state),observed={previous_automation:{id:'AUTO',conversation_id:'CHAT',is_enabled:false},next_automation:{id:'NEXT',conversation_id:'NEXT_CHAT',is_enabled:true}};
   const next=R.prepareHandover(f.c,s,observed);assert.equal(next.conversation_id,'NEXT_CHAT');C.validateSignal(next,f.signal);

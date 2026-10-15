@@ -80,7 +80,7 @@ function inspect(c,{api=W.gh,git=W.git,includeRegistered=true,runs:providedRuns}
       if(binding(api,c,match[2],match[1])?.contract_hash!==checkpoints[s.signal_key]?.contract_hash)throw Error('WORK_RESUME_UNPUBLISHED_CHECKPOINT');
     }
   }
-  const runs=providedRuns||c.allowed_workflows.flatMap(w=>X.pages(repo+'/actions/workflows/'+w.path.split('/').at(-1)+'/runs?created='+encodeURIComponent('>='+c.recovery_since),'workflow_runs',api));
+  const runs=providedRuns||X.pages(repo+'/actions/runs?created='+encodeURIComponent('>='+c.recovery_since),'workflow_runs',api).filter(r=>c.allowed_workflows.some(w=>w.path===r.path));
   const operations=includeRegistered?registered(c,main_head,runs,signals,git):[];
   for(const run of runs.filter(r=>r.status!=='completed'&&r.repository?.full_name===c.repository&&r.head_repository?.full_name===c.repository&&(c.authorized_actors||[]).includes(r.actor?.login)&&c.allowed_workflows.some(w=>w.path===r.path))) {
     operations.push({run_id:run.id,run_attempt:run.run_attempt,head:run.head_sha,workflow:run.path,status:run.status,
@@ -89,11 +89,15 @@ function inspect(c,{api=W.gh,git=W.git,includeRegistered=true,runs:providedRuns}
   if(api(repo+'/git/refs/heads/main').object.sha!==main_head||api(repo+'/git/refs/heads/'+c.transport_branch).object.sha!==transport_head)throw Error('WORK_RESUME_HEAD_MOVED');
   return Resume.reconstruct(c,{main_head,transport_head,signals,claims,checkpoints,receipts,operations});
 }
+function step(c,transcript=[],{git=W.git}={}) {
+  return require('./lib/vnext-connector-step').step({binding:c,action:'inspect'},api=>inspect(c,{api,git}),transcript);
+}
 function main(args=process.argv.slice(2)) {
   const fs=require('node:fs'),c=JSON.parse(fs.readFileSync(CONFIG,'utf8'));
   if(!args.length)return inspect(c);
+  if(args.length===2&&args[0]==='step-inspect')return step(c,JSON.parse(fs.readFileSync(args[1],'utf8')));
   if(args.length===2&&args[0]==='prepare-handover')return Resume.prepareHandover(c,inspect(c),JSON.parse(fs.readFileSync(args[1],'utf8')));
-  throw Error('Usage: inspect-vnext-work.js [prepare-handover observed-automations.json]');
+  throw Error('Usage: inspect-vnext-work.js [step-inspect transcript.json | prepare-handover observed-automations.json]');
 }
 if(require.main===module)try{console.log(JSON.stringify(main()));}catch(e){console.error(e.message);process.exitCode=1;}
-module.exports={inspect,registered,main};
+module.exports={inspect,registered,step,main};

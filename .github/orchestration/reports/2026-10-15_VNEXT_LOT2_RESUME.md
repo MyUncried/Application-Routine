@@ -53,6 +53,11 @@ Les séries précédentes de 25, 33 et 50 tests se recouvrent ; elles ne sont pa
 Premier test du nouveau fixture : 7 PASS / 1 FAIL, erreur de construction du fixture
 (tentative de resceller un objet portant déjà contract_hash), corrigée sans affaiblir le contrôle.
 Syntaxe Node, validate-workflows.js et git diff --check : PASS.
+Après raccordement du mode connecteur commun : **82 PASS / 0 FAIL / 0 SKIP**
+sur les mêmes suites, avec vérification du rejeu en lecture seule, de la compatibilité
+des modes du consommateur et du refus d'un transcript modifié. Les 81 tests précédents
+sont inclus dans cette série. Le premier candidat ae60bcda26b8734f7343daf0b92e03787d1b9e2b
+est supersédé par le candidat intégrant ce raccordement justifié par le contrôle réel.
 
 Cas couverts : deux identités VNEXT-RESUME-A/B sans activation particulière ; reprise
 depuis données Git sans mémoire ; échec/absence d'archive conservés ; décision utilisateur
@@ -72,6 +77,12 @@ L'API du connecteur refuse la collection runs par nom de workflow ; la collectio
 autorisée a donc été paginée intégralement (78 runs sur la fenêtre), puis filtrée sans
 changer les données par producteur. Les enveloppes REST contents ont été reconstruites
 depuis le texte exact retourné par le connecteur, pas depuis des assertions inventées.
+
+Cette limitation d'API a conduit à raccorder le mode step-inspect à l'adaptateur de
+rejeu existant, extrait dans vnext-connector-step sans changer les hashes de contexte,
+les requêtes ou contrôles step-claim/step-finish. Le lecteur utilise directement la
+collection globale autorisée. Ce raccordement remplace le besoin d'un pont de lecture
+à reconstruire dans chaque nouvelle session ; aucune activation par tranche.
 
 Un premier passage avait observé f23946a2a687c5b366861f481989b83812429818 au départ
 et une autre tête à la fin : WORK_RESUME_HEAD_MOVED, sans snapshot annoncé courant.

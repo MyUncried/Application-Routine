@@ -94,6 +94,11 @@ Chaque reçu est lié au checkpoint effectivement publié et à son ascendance G
 Le résultat distingue un signal traité de la mission terminée et conserve la
 prochaine action, y compris après PROCESSED. Il ne divulgue pas les nonces de possession,
 ne prend aucune charge et n'accorde aucune autorisation d'écriture ou de retry.
+Sans `gh`, `step-inspect transcript.json` utilise le même adaptateur de rejeu
+`vnext-connector-step` que step-claim/step-finish : prochaine lecture GET retournée
+au connecteur autorisé, réponse normalisée conservée, contexte et ordre contrôlés.
+La liste globale des runs est paginée puis filtrée sur les producteurs inscrits ;
+aucun endpoint privé supplémentaire ni adaptateur particulier à une tranche n'est requis.
 
 La fin du consommateur retourne un message utilisable dans son chat d'exécution :
 résultat réel, erreur/verdict éventuels, état, prochaine action et preuves. Ce message
