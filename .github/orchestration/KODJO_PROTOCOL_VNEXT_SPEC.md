@@ -6,6 +6,20 @@
 
 ## 1. Principes normatifs
 
+### VNX-00 — Simplicité et proportionnalité
+
+Principe demandé par le propriétaire le 15/10/2026 : « pas d'usine à gaz,
+pas de sur contrainte qui rigidifie et ajoute des conditions de blocage au
+protocole ». Réutiliser les mécanismes existants et présenter explicitement au
+propriétaire toute nouvelle condition de blocage envisagée. Ne supprimer aucun
+contrôle existant, sauf substitution explicite ou inutilité démontrée ; en
+documenter la raison, la portée et les contrôles conservés.
+
+Un retour de continuité n'est pas une nouvelle condition d'admission. Il ne
+modifie ni les autorisations d'écriture, ni les preuves exigées, ni les gates.
+Un précontrôle négatif interdit l'opération concernée, sans conclure que la
+mission entière est terminée lorsqu'un travail autorisé reste possible.
+
 ### VNX-01 — Source avant interprétation
 Toute exigence provient d'une source normative identifiée et adressable. L'IA ne crée pas de décision produit.
 

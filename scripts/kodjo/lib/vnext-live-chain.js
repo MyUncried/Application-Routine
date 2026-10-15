@@ -749,3 +749,11 @@ function guardLocalRequest(raw, { cwd, queueFile, github } = {}) {
 
 module.exports = { readGitObject, SCHEMA, CLAUDE_TIMEOUT_MS, command, relative, readGit, unitText, observeSources, observeClarification, launchAndProduce, produce, verifyProduced,
   compactReviewDossier, materializeReviewDossier, decodeReviewOutput, boundedReviewOutput, validateReviewResponse, recoverReview, reviewOrRecover, preserveFailure, review, verifyReceipt, validateReceipt, observeScopeRefinement, nativeResolver, preparedArtifacts, prepare, approvalTarget, deriveQueue, admit, guard, guardLocalRequest };
+
+// Library callers and CLI share the same failure guidance. Successful sealed
+// artifacts remain byte-for-byte unchanged; this cannot grant a retry or gate.
+for (const [name,stage] of Object.entries({launchAndProduce:'launch',produce:'produce',verifyProduced:'produce',
+  review:'review',reviewOrRecover:'review',recoverReview:'recover-review',prepare:'prepare',
+  approvalTarget:'request-approval',deriveQueue:'handoff',admit:'admit',guard:'admit',guardLocalRequest:'admit'})) {
+  module.exports[name]=require('./vnext-pilot-continuity').wrap(stage,module.exports[name]);
+}

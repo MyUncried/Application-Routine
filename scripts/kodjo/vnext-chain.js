@@ -10,7 +10,7 @@ const Chain = require('./lib/vnext-live-chain');
 const Approval = require('./lib/approval-handoff-contract');
 const Bundle = require('./lib/vnext-file-bundle');
 function read(file) { return Bundle.read(file); }
-function write(file, value) {
+function writeOutput(file, value) {
   fs.mkdirSync(path.dirname(path.resolve(file)), { recursive: true });
   if (typeof value === 'string') fs.writeFileSync(file, value, 'utf8');
   else Bundle.write(file, value);
@@ -81,8 +81,9 @@ function finalizeTransport(prepared, draft, reservation, { cwd, github = require
   return { ...fields, gate_ref: verifyReservation(prepared, reservation, github),
     request_id: crypto.randomUUID(), created_at: new Date().toISOString() };
 }
-function main(args = process.argv.slice(2)) {
+function perform(args = process.argv.slice(2), onRecorded = () => {}) {
   const [stage, configFile, output] = args;
+  const write=(file,value)=>{writeOutput(file,value);if(file===output)onRecorded(value);};
   const cwd = process.cwd();
   if (!stage || !configFile) throw new Error('Usage: vnext-chain.js <launch|produce|review|recover-review|prepare-implementation-review|implementation-review|verify-implementation-review|prepare|reserve-gate|finalize-transport|request-approval|handoff|admit|validate-publication> <config.json|queue.json> [output]');
   if (stage === 'admit') {
@@ -167,7 +168,7 @@ function main(args = process.argv.slice(2)) {
   } else throw new Error('VNEXT_CHAIN_COMMAND_INVALID');
   return { stage, status: 'RECORDED', output };
 }
-async function launchMain(configFile,output){
+async function performLaunch(configFile,output,onRecorded=()=>{}){
   if(!configFile||!output||fs.existsSync(output))throw Error('VNEXT_FIGMA_LAUNCH_NEW_OUTPUT_REQUIRED');
   const cwd=process.cwd(),config=read(configFile),relative=Chain.relative(config.adapter_module);
   const head=Chain.command('git',['rev-parse','HEAD'],cwd).trim();
@@ -175,11 +176,34 @@ async function launchMain(configFile,output){
   if(Chain.readGit(cwd,head,relative)!==fs.readFileSync(path.resolve(cwd,relative),'utf8'))throw Error('VNEXT_FIGMA_LAUNCH_ADAPTER_NOT_COMMITTED');
   const adapter=require(path.resolve(cwd,relative));
   const produced=await Chain.launchAndProduce(config.scope,{...adapter,cwd});
-  write(output,produced);return {stage:'launch',status:'RECORDED',output};
+  writeOutput(output,produced);onRecorded(produced);return {stage:'launch',status:'RECORDED',output};
+}
+function continuity(args,result,error,artifact=null){
+  try {
+    let checkoutHead = null;
+    try { checkoutHead = Chain.command('git',['rev-parse','HEAD'],process.cwd()).trim(); } catch { /* No fabricated remote observation. */ }
+    return require('./lib/vnext-pilot-continuity').feedback(args,result,error,{checkoutHead,readArtifact:()=>artifact});
+  } catch { return null; } // Feedback must not become a new protocol gate.
+}
+function main(args = process.argv.slice(2)) {
+  let artifact=null;
+  try { const result=perform(args,value=>{artifact=value;}); return {...result,continuation:continuity(args,result,null,artifact)}; }
+  catch(error){ error.continuation=continuity(args,null,error); throw error; }
+}
+async function launchMain(configFile,output){
+  const args=['launch',configFile,output];
+  let artifact=null;
+  try { const result=await performLaunch(configFile,output,value=>{artifact=value;}); return {...result,continuation:continuity(args,result,null,artifact)}; }
+  catch(error){ error.continuation=continuity(args,null,error); throw error; }
+}
+function reportFailure(error){
+  process.stderr.write(String(error.message)+'\n');
+  if(error.continuation)process.stdout.write(JSON.stringify({status:'OPERATION_FAILED',continuation:error.continuation})+'\n');
+  process.exitCode=1;
 }
 if (require.main === module) {
-  if(process.argv[2]==='launch'){launchMain(process.argv[3],process.argv[4]).then(r=>process.stdout.write(JSON.stringify(r)+'\n')).catch(error=>{process.stderr.write(String(error.message)+'\n');process.exitCode=1;});}
+  if(process.argv[2]==='launch')launchMain(process.argv[3],process.argv[4]).then(r=>process.stdout.write(JSON.stringify(r)+'\n')).catch(reportFailure);
   else try { process.stdout.write(JSON.stringify(main()) + '\n'); }
-  catch (error) { process.stderr.write(String(error.message) + '\n'); process.exitCode = 1; }
+  catch (error) { reportFailure(error); }
 }
 module.exports = { main, launchMain, reservationMessage, verifyReservation, finalizeTransport, reserveComment, publishReservedApproval };
