@@ -1,0 +1,48 @@
+{
+  "schema_version": "kodjo.pre4.component-reuse-input.v1",
+  "application_revision": "c32e360d891614f2b08a1d8f7f3f631eef0b57ea",
+  "mappings": [
+    {
+      "master_id": "6679:13419",
+      "code_path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "code_export": "ExecutionParametersSheet",
+      "implementation_symbol": "DraggableRow",
+      "usage_paths": ["src/features/activities/ActivityEditorForm.tsx"],
+      "required_code_fragments": ["function DraggableRow({", "<DraggableRow", "style={styles.dragHandle}", "[0, 1, 2].map((line)"],
+      "reason": "La poignée est réalisée une seule fois par DraggableRow dans l'export ExecutionParametersSheet, puis instanciée par VariableTable. ActivityEditorForm importe réellement cet export. Le mapping est une obligation de revue du plan, pas une attestation de conformité du tracé Figma : seuls les observables égaux, sans surcharge, avec variantes/bindings identiques et identité d'instance examinée peuvent recevoir un lien conditionnel. Les gestes, dimensions/positions d'instance, état de glisser et accessibilité restent directs.",
+      "evidence_paths": ["src/features/activities/ExecutionParametersSheet.tsx", "src/features/activities/ActivityEditorForm.tsx", "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"]
+    }
+  ],
+  "direct_decisions": [
+    {
+      "master_id": "7021:13149",
+      "reason": "Le manifeste relie icon/photo-ajouter à l'export exact icon-photo-ajouter.svg, mais le marque explicitement non raccordé. KodjoIcon ne propose pas cette source et ActivityMediaList affiche actuellement action-add. Une preuve sur action-add ne qualifie pas photo-ajouter. Chaque insertion/hôte de la future icône doit donc être directement examiné dans cette révision du plan ; l'asset exact est à réutiliser sans le redessiner, mais son simple dépôt ne permet pas un héritage de conformité du runtime.",
+      "evidence_paths": ["assets/icons/manifest.json", "assets/icons/icon-photo-ajouter.svg", "src/shared/ui/KodjoIcon.tsx", "src/features/activities/ActivityMediaList.tsx"]
+    },
+    {
+      "master_id": "6959:15825",
+      "reason": "Le manifeste dépose icon-fermer.svg comme EXACT_EXPORT mais le déclare non raccordé. Les consommateurs actuels emploient wheel-action-cancel, qui est un autre actif. Aucune qualification de code commun pour icon/fermer ne peut être importée de ce bouton. Conserver l'asset et examiner directement les hôtes/actions concernés, sans déclarer la croix et ses conteneurs conformes par identité de nom.",
+      "evidence_paths": ["assets/icons/manifest.json", "assets/icons/icon-fermer.svg", "src/shared/ui/KodjoIcon.tsx", "src/features/activities/ExecutionParametersSheet.tsx", "src/features/reference-data/ReferenceValueDialog.tsx"]
+    },
+    {
+      "master_id": "4173:6713",
+      "reason": "La primitive Figma d'ajout de dialogue n'a pas de correspondance canonique nommée dans le manifeste. CategoryPickerModal affiche action-add avec une taille de 16 pour créer une catégorie ; ReferenceValueDialog est un dialogue de renommage/suppression, pas la qualification de cette primitive d'ajout. L'identité d'asset, le conteneur et l'action de chaque dialogue doivent donc rester directement examinés. Ne pas assimiler deux glyphes plus de noms voisins ni fabriquer un export de composant.",
+      "evidence_paths": ["assets/icons/manifest.json", "src/features/reference-data/CategoryPickerModal.tsx", "src/features/reference-data/BodyZonePickerModal.tsx", "src/features/reference-data/ReferenceValueDialog.tsx", "docs/DSF-CADENCE-2026-10-06.md"]
+    },
+    {
+      "master_id": "8129:31601",
+      "reason": "Le pied de tableau Figma porte une cellule active nommée et les commandes moins/plus communes. Le code existant VariableTable rend des InlineStepper dans chaque cellule ; il ne possède pas de composant exporté implémentant ce pied et cette sélection. Le plan prévoit une adaptation de la feuille. Les états, la sélection et l'intégration de ce nouveau pied restent directement examinés ; aucune réutilisation du rendu existant n'est démontrée par sa seule ressemblance.",
+      "evidence_paths": ["src/features/activities/ExecutionParametersSheet.tsx", "docs/DSF-CIRCUITS-CONTROLES-2026-10-12.md"]
+    },
+    {
+      "master_id": "8129:31604",
+      "reason": "Le DSF constate que des copies de l'icône retirer montrent encore une croix. Le renderer partagé utilise les signes stepper-minus/plus d'une autre provenance ; le manifeste ne relie pas ces actifs au maître 8129:31604. Vérifier directement l'icône et ses usages dans le nouveau pied, plutôt que d'hériter d'un master non propagé ou d'un autre glyphe ; conserver toutes les obligations de retrait et d'accessibilité.",
+      "evidence_paths": ["docs/DSF-CIRCUITS-CONTROLES-2026-10-12.md", "assets/icons/manifest.json", "src/shared/ui/KodjoIcon.tsx", "src/features/activities/ExecutionParametersSheet.tsx"]
+    },
+    {
+      "master_id": "6959:15706",
+      "reason": "La correspondance d'asset action.add -> action-add.svg -> maître 6959:15706 et son entrée KodjoIcon sont réelles. Cependant les assertions concernent notamment le nouveau pied de réglage, absent du runtime actuel : aucune qualification antérieure de ses usages/paramètres et de son intégration n'est disponible. Réutiliser l'asset exact, mais examiner directement ces obligations dans ce plan ; les occurrences Figma ne sont pas une preuve d'usage du renderer ni un reçu de qualification réutilisable.",
+      "evidence_paths": ["assets/icons/manifest.json", "assets/icons/action-add.svg", "src/shared/ui/KodjoIcon.tsx", "src/features/activities/ExecutionParametersSheet.tsx", "src/features/activities/ActivityMediaList.tsx"]
+    }
+  ]
+}
