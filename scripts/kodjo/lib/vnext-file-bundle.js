@@ -25,31 +25,34 @@ function boundedJson(value, limit = LIMIT) {
   return chunks.join('');
 }
 
-function partition(item, leaf, pretty = false) {
-    const compact = boundedJson(item,pretty?LIMIT/8:LIMIT);
+function partition(item, leaf, pretty = false, limit = LIMIT, maxLineBytes = Infinity) {
+    const compact = boundedJson(item,pretty && limit === LIMIT ? limit/8 : limit);
     const text = compact !== null && pretty ? JSON.stringify(JSON.parse(compact),null,2) : compact;
-    if (text !== null && Buffer.byteLength(text) <= LIMIT) return leaf(text);
+    if (text !== null && Buffer.byteLength(text) <= limit && text.split('\n').every(line => Buffer.byteLength(line) <= maxLineBytes)) return leaf(text);
     if (Array.isArray(item)) {
-      if (item.length === 1) return { kind: 'array', items: [partition(item[0], leaf, pretty)] };
+      if (item.length === 1) return { kind: 'array', items: [partition(item[0], leaf, pretty, limit, maxLineBytes)] };
       const middle = Math.floor(item.length / 2);
-      return { kind: 'concat', parts: [partition(item.slice(0, middle), leaf, pretty), partition(item.slice(middle), leaf, pretty)] };
+      return { kind: 'concat', parts: [partition(item.slice(0, middle), leaf, pretty, limit, maxLineBytes), partition(item.slice(middle), leaf, pretty, limit, maxLineBytes)] };
     }
     if (typeof item === 'string') {
       const parts = [];
-      const length = Math.floor((pretty ? LIMIT / 8 : LIMIT) / 6);
-      for (let i = 0; i < item.length; i += length) parts.push(partition(item.slice(i, i + length), leaf, pretty));
+      const length = Math.max(1, Math.floor(Math.min(pretty ? limit / 8 : limit, maxLineBytes - 2) / 6));
+      for (let i = 0; i < item.length; i += length) parts.push(partition(item.slice(i, i + length), leaf, pretty, limit, maxLineBytes));
       return { kind: 'string', parts };
     }
     if (!V.isPlainObject(item)) V.fail('VNEXT_BUNDLE_VALUE_INVALID');
-    return { kind: 'object', fields: Object.keys(item).map(key => [key, partition(item[key], leaf, pretty)]) };
+    return { kind: 'object', fields: Object.keys(item).map(key => [key, partition(item[key], leaf, pretty, limit, maxLineBytes)]) };
 }
 
-function write(file, value, { exclusive = false, forceBundle = false, pretty = false } = {}) {
+function write(file, value, { exclusive = false, forceBundle = false, pretty = false, maxPartBytes = LIMIT, maxLineBytes = Infinity } = {}) {
+  if (!Number.isInteger(maxPartBytes) || maxPartBytes < 1024 || maxPartBytes > LIMIT) V.fail('VNEXT_BUNDLE_PART_LIMIT_INVALID');
+  if (maxLineBytes !== Infinity && (!Number.isInteger(maxLineBytes) || maxLineBytes < 64)) V.fail('VNEXT_BUNDLE_LINE_LIMIT_INVALID');
   const absolute = path.resolve(file);
   fs.mkdirSync(path.dirname(absolute), { recursive: true });
   if (!forceBundle) {
-    const small = boundedJson(value);
-    if (small !== null) {
+    const compact = boundedJson(value, pretty ? maxPartBytes / 8 : maxPartBytes);
+    const small = compact !== null && pretty ? JSON.stringify(JSON.parse(compact), null, 2) : compact;
+    if (small !== null && Buffer.byteLength(small) <= maxPartBytes && small.split('\n').every(line => Buffer.byteLength(line) <= maxLineBytes)) {
       fs.writeFileSync(absolute, small + '\n', { flag: exclusive ? 'wx' : 'w' });
       return { format: 'json', file: absolute };
     }
@@ -67,11 +70,11 @@ function write(file, value, { exclusive = false, forceBundle = false, pretty = f
     } else fs.writeFileSync(target, text, { flag: 'wx' });
     return { kind: 'file', file: name, sha256: hash, bytes: Buffer.byteLength(text) };
   };
-  const manifest = V.sealContract({ schema_version: SCHEMA, logical_sha256: logicalHash, folder, root: partition(value, leaf, pretty) });
+  const manifest = V.sealContract({ schema_version: SCHEMA, logical_sha256: logicalHash, folder, root: partition(value, leaf, pretty, maxPartBytes, maxLineBytes) });
   const text = boundedJson(manifest);
   if (text === null) V.fail('VNEXT_BUNDLE_MANIFEST_TOO_LARGE');
   // Publish the manifest only after every referenced part exists.
-  fs.writeFileSync(absolute, text + '\n', { flag: exclusive ? 'wx' : 'w' });
+  fs.writeFileSync(absolute, (pretty ? JSON.stringify(manifest, null, 2) : text) + '\n', { flag: exclusive ? 'wx' : 'w' });
   return { format: SCHEMA, file: absolute, logical_sha256: logicalHash };
 }
 

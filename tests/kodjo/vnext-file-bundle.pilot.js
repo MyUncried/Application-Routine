@@ -218,3 +218,28 @@ test('large plan projection stores complete contracts and stays bounded', t => {
   for(const [file,text]of files){const target=path.join(repo.cwd,file);fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,text);}
   assert.deepEqual(require('../../scripts/kodjo/lib/machine-block').parse(body,'KODJO_VNEXT_PLAN_CONTRACT_JSON',{cwd:repo.cwd}),plan);
 });
+
+test('readable review bundles retain exact values with small multiline leaves and paged manifests', t => {
+  const dir = temp(t), file = path.join(dir, 'observation.json');
+  const value = { properties: Array.from({length: 500}, (_, i) => ({
+    element_id: 'node:' + i, observed: 'é😀'.repeat(120), reason: 'Source decision ' + i,
+    document_ids: ['DOC'], disposition: i % 2 ? 'EXCLUDE' : 'REALIZE',
+  })), long_string: 'é😀'.repeat(20000) };
+  B.write(file, value, {pretty: true, maxPartBytes: 64 * 1024, maxLineBytes: 1800});
+  assert.deepEqual(B.read(file), value);
+  const manifest = fs.readFileSync(file, 'utf8');
+  assert.ok(manifest.includes('\n  "root"'));
+  const parts = fs.readdirSync(path.join(dir, 'parts'));
+  assert.ok(parts.length > 1);
+  for (const name of parts) assert.ok(fs.statSync(path.join(dir, 'parts', name)).size <= 64 * 1024);
+  const rows = parts.map(name => fs.readFileSync(path.join(dir, 'parts', name), 'utf8'));
+  assert.ok(rows.every(text => text.split('\n').every(line => Buffer.byteLength(line) <= 1800)));
+  assert.ok(rows.some(text => text.includes('\n') && text.includes('"element_id"')));
+  const original = fs.readFileSync(path.join(dir, 'parts', parts[0]), 'utf8');
+  fs.writeFileSync(path.join(dir, 'parts', parts[0]), original + ' ');
+  assert.throws(() => B.read(file), /PART_HASH_INVALID/);
+  const small = path.join(dir, 'small.json');
+  B.write(small, {reason: 'readable'}, {pretty: true, maxPartBytes: 64 * 1024, maxLineBytes: 1800});
+  assert.match(fs.readFileSync(small, 'utf8'), /\n  "reason"/);
+  assert.throws(() => B.write(small, {}, {maxPartBytes: 0}), /PART_LIMIT_INVALID/);
+});
