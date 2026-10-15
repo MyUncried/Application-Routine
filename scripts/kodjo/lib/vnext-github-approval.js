@@ -5,9 +5,13 @@ const Approval = require('./approval-handoff-contract');
 function verifyObservation({ repository, issueNumber, head, target, gateRef, comment, reactions,
   actor = repository.split('/')[0], observedAt, evidenceRef = null }) {
   const id = /^issue_comment:([1-9][0-9]*)$/.exec(gateRef)?.[1];
+  const approvalUrl = 'https://github.com/' + repository + '/issues/' + issueNumber + '#issuecomment-' + id;
+  // Preserve exact historical approvals; presentation never changes their sealed target.
+  const bodies = [Approval.renderApprovalMessage(target, {approvalUrl}),
+    Approval.renderApprovalMessage(target), Approval.renderApprovalMessage(target, {legacy:true})];
   if (!id || String(comment?.id) !== id
       || comment.issue_url !== 'https://api.github.com/repos/' + repository + '/issues/' + issueNumber
-      || comment.body !== head + '\n' + Approval.renderApprovalMessage(target)) {
+      || !bodies.some(body => comment.body === head + '\n' + body)) {
     V.fail('VNEXT_CHAIN_EXACT_APPROVAL_MESSAGE_REQUIRED');
   }
   const edited = Date.parse(comment.updated_at), observed = Date.parse(observedAt);

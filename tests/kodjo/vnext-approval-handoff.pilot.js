@@ -332,6 +332,8 @@ test('VNext-08 produit un message actionnable lié à l’objet canonique', () =
   assert.match(message, new RegExp(target.contract_hash));
   assert.match(message, /APPROVE_EXACT_EXECUTION/);
   assert.match(message, /approval_url=/);
+  assert.match(message, /👍/);
+  assert.match(message, /Le pilote attend cette réaction/);
 });
 
 test('VNext-08 le transport du message ne change pas l’identité de la cible approuvée', () => {
@@ -561,4 +563,22 @@ test('VNext-08 ne permet aucun path libre ni scope libre en entrée de handoff',
   assert.match(code, /planContract\.boundaries\.preserve_scope/);
   assert.doesNotMatch(code, /scope_allow\s*:\s*input/);
   assert.doesNotMatch(code, /write_scope\s*:\s*input/);
+});
+
+
+test('PE-29 exact new permalink and historical body share the same target, never an arbitrary link', () => {
+  const target = Approval.buildApprovalTarget(artifacts(buildFixture()));
+  const GitHub = require('../../scripts/kodjo/lib/vnext-github-approval');
+  const repository='MyUncried/Application-Routine', issueNumber=999, head='a'.repeat(40);
+  const gateRef='issue_comment:12345', approvalUrl='https://github.com/'+repository+'/issues/999#issuecomment-12345';
+  const base={repository, issueNumber, head, target, gateRef, observedAt:'2026-10-15T10:00:00Z',
+    reactions:[{id:77,content:'+1',user:{login:'MyUncried'},created_at:'2026-10-15T09:01:00Z'}]};
+  const comment=body=>({id:12345,issue_url:'https://api.github.com/repos/'+repository+'/issues/999',
+    updated_at:'2026-10-15T09:00:00Z',body:head+'\n'+body});
+  for (const options of [{approvalUrl},{legacy:true},{}]) {
+    assert.equal(GitHub.verifyObservation({...base,comment:comment(Approval.renderApprovalMessage(target,options))}).id,77);
+  }
+  assert.throws(()=>GitHub.verifyObservation({...base,comment:comment(Approval.renderApprovalMessage(target,{approvalUrl:approvalUrl+'0'}))}),/EXACT_APPROVAL_MESSAGE/);
+  assert.throws(()=>GitHub.verifyObservation({...base,reactions:[],comment:comment(Approval.renderApprovalMessage(target,{approvalUrl}))}),/OWNER_APPROVAL/);
+  assert.throws(()=>GitHub.verifyObservation({...base,reactions:[{...base.reactions[0],user:{login:'other'}}],comment:comment(Approval.renderApprovalMessage(target,{approvalUrl}))}),/OWNER_APPROVAL/);
 });

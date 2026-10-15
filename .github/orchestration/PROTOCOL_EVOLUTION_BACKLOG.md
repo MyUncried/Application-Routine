@@ -36,6 +36,22 @@ Qualification du candidat : [contrôles VNext Linux/Windows et compatibilité hi
 
 Dans le tableau historique, `DÉMONTRÉ` désigne uniquement le mécanisme livré et qualifié ; la disposition précise des trois sujets est **CLOS AVEC LIMITE ACCEPTÉE**, pas « objectif intégral garanti ». Aucun statut ou contrôle de runtime n'est ajouté pour gérer cette clôture. #365/PE-32 reste sans fusion ; #364, #344 et PRE-4 restent hors périmètre.
 
+### Avancement du lot 3 — PE-28 / PE-29 / PE-30
+
+Candidat distinct préparé le 15/10 : chemin direct de correction visuelle VNext sur
+contrat inchangé, approbation avec permalink/👍/attente explicite, clôture de sa propre
+activation par écriture conditionnelle du registre. **Développé et testé localement ;
+non intégré et non démontré sur une livraison produit réelle à ce checkpoint.**
+Deux identités passent l’admission et le runtime locaux de correction ; deux identités
+passent la clôture avec registre simulé. Aucune tranche réelle n’est corrigée ou clôturée
+pour fabriquer une preuve. Détails, contrôles et limites dans
+[le bilan du lot 3](reports/2026-10-15_VNEXT_LOT3.md). Le nombre de sujets ouverts reste
+21 tant que le candidat n’est pas qualifié/intégré et que sa disposition n’est pas publiée.
+
+Le lot 2/#367 a reçu le correctif d’empreinte du consommateur `8eac18511cab33f064f258420b0304cae8d59e31`
+après l’échec expliqué du run 38756077055. Ses contrôles locaux de sécurité/cutover/source
+passent (22 tests) ; la CI de ce nouveau candidat reste à observer. #365/PE-32 reste sans fusion.
+
 ### Avancement du lot 2 — PE-04 à PE-09
 
 Candidat [#367](https://github.com/MyUncried/Application-Routine/pull/367), `2d423be7e912a483473e298b45001804e3e364b8`, base réconciliée après #364 (`81d962cd…`). **DÉVELOPPÉ ET TESTÉ LOCALEMENT / NON INTÉGRÉ** : lecture commune de reprise, message de résultat après consommation, observation des demandes sans run correspondant, des runs en cours et déduplication des réveils ; proposition de handover conservant les destinations historiques. Le mode connecteur partage le même adaptateur que le consommateur, sans activation par tranche.
@@ -69,9 +85,9 @@ La limite Work connue reste distinguée : reconstruction/configuration ne prouve
 | **PE-17** | ÉTUDE HISTORIQUE À RÉÉVALUER | Rapports locaux présents ; comparatif V1.2/V1.3/Local non réalisé | Mesures locales, pas benchmark homogène | Comparaison complète NON DÉMONTRÉE | DÉCISION : maintien/utilité actuelle ; pas un prérequis automatique de fiabilisation VNext. |
 | **PE-25** | LIMITATION EXTERNE | Diagnostic/protections présents ; résorption non obtenue | H1 et API audit : queued, zéro job | DÉFAUT EXTERNE toujours observé lors de l’audit | SUIVI EXTERNE GitHub ; pas une implémentation interne à certifier, pas une preuve de runner actuellement occupé. |
 | **PE-27** | BESOIN SATISFAIT — CLOS | IMPLÉMENTÉ / INTÉGRÉ MAIN : assertions atomiques, couverture et validation du résultat d’ensemble | Q1 : contrôles VNext PASS ; Q3 : contrat atomique, omissions/verdict trop favorable et anciens plans testés dans la suite complète réussie | DÉMONTRÉ EN QUALIFICATION AUTOMATISÉE ; usage en préparation ; pas une certification du rendu de chaque écran | CLOS : les trois obligations du besoin sont satisfaites. Les futures conformités d’écran relèvent de leurs tranches, pas d’un reliquat indéfini PE-27. |
-| **PE-28** | ACTUEL — PROPAGATION VNEXT | PARTIEL — VISUAL_CORRECTION historique ; deliveryCorrection VNext exige REVISION | Q3 teste la politique historique, pas tout le parcours VNext | Chemin direct VNext après non-conformité device : NON DÉMONTRÉ | RACCORDER / QUALIFIER contrat inchangé vs changé ; préserver scope, revue et gate device. |
-| **PE-29** | ACTUEL — PROPAGATION VNEXT | PARTIEL — gate exact intégré ; lien optionnel et message sans 👍 explicite | Q1 : gate ; Q3 PE-29 cible le handoff V2 | Gate réel dans R3 ; actionnabilité complète VNext non établie | COMPLÉTER lien canonique, action 👍 et attente claire ; ne pas redévelopper le gate. |
-| **PE-30** | ACTUEL — PROPAGATION ET RÉCONCILIATION | PARTIEL — clôture registre V2 câblée ; clôture GitHub VNext distincte | Q3 : idempotence ; finalisation/clôture VNext testées | R3 : clôture GitHub réelle ; CAT-01/E2E restent ACTIVE au registre | RACCORDER registre VNext ; réconcilier historiques sur preuves ; fermeture issue/PR non universelle. |
+| **PE-28** | ACTUEL — CANDIDAT LOT 3 | Chemin direct VNext développé ; plan inchangé, scope réduit et autorisation device vérifiés ; deux identités passent admission/runtime locaux. | Voir bilan lot 3 : preuves locales | Non intégré ; production non démontrée | Observer CI, publier disposition et limites. |
+| **PE-29** | ACTUEL — CANDIDAT LOT 3 | Producteur avec lien canonique, 👍 et attente ; anciennes approbations exactes conservées. Tests locaux PASS. | Voir bilan lot 3 : preuves locales | Non intégré ; production non démontrée | Observer CI, publier disposition et limites. |
+| **PE-30** | ACTUEL — CANDIDAT LOT 3 | Clôture de sa propre activation raccordée, écriture conditionnelle/idempotente et réserves conservées. Deux identités locales PASS ; lignes V2 historiques préservées. | Voir bilan lot 3 : preuves locales | Non intégré ; production non démontrée | Observer CI, publier disposition et limites. |
 | **PE-31** | CLOS AVEC LIMITE ACCEPTÉE | IMPLÉMENTÉ / INTÉGRÉ MAIN par #366 : distinction opération/mission et prochaine action commune. | Qualification Linux/Windows 38743638498 ; suite et précontrôle 38743638473 ; deux identités via CLI. | Préparations locales et CI démontrées ; poursuite automatique Work non garantie, lecture fraîche GitHub rappelée mais non forcée par le client. | Suivi clos sur décision propriétaire ; limite externe acceptée, aucun reliquat de preuve Work indéfini. |
 | **PE-32** | BESOIN ACTUEL — NON SATISFAIT SUR MAIN | Défaut reproduit : demande mêlant cibles valides/invalides contrôlée après entrée du scan. Correctif développé séparément dans [#365](https://github.com/MyUncried/Application-Routine/pull/365), pas intégré au moteur de main. | Avant correction : 2 tests FAIL sur le refus précoce. Candidat : 34 PASS ciblés Linux, plus série incluant live-chain 27 PASS (recouvrement) ; CI/Windows en attente de résultat. | Détection tardive établie ; correctif non utilisé en production, pas d’approbation déduite des tests locaux. | CORRECTIF CANDIDAT à qualifier et intégrer. Le reliquat est un défaut réel de séquencement, plus une simple consolidation de preuves. |
 | **PE-33** | BESOIN SATISFAIT — CLOS SUR LE PARCOURS AUTORISÉ | IMPLÉMENTÉ / INTÉGRÉ MAIN : correction ciblée, préservation exacte, réentrée minimale et revalidation | Q1 : VNext-07 préservation/refus PASS, compléments de scope causal PASS, handoff réel-format PASS ; contrôles INITIAL → REVISION | DÉMONTRÉ : révision du plan avec Claude réel, run 37546751570 SUCCESS, 1610 cibles préservées ; pas une autorisation de révisions illimitées | CLOS : ne pas rouvrir les éléments validés hors cause précise ; un élargissement reste contrôlé et justifié. Gates et limites de révision conservés. |

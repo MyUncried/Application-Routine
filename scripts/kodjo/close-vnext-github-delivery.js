@@ -10,6 +10,16 @@ function ghClient() {
     return JSON.parse(execFileSync('gh',args,{encoding:'utf8',input:data?JSON.stringify(data):undefined,windowsHide:true,timeout:30000,maxBuffer:16*1024*1024}));
   };
   return {
+    registryFile:(r,file,revision)=>{
+      const row=api(`repos/${r}/contents/${file}?ref=${encodeURIComponent(revision)}`);
+      if(row.encoding!=='base64'||!row.sha) throw Error('VNEXT_ACTIVATION_REGISTRY_RESPONSE_INVALID');
+      return {sha:row.sha,value:JSON.parse(Buffer.from(row.content,'base64').toString('utf8'))};
+    },
+    writeRegistry:(r,file,sha,value)=>{
+      if(file!=='.github/orchestration/v2-activation-registry.json') throw Error('VNEXT_ACTIVATION_REGISTRY_PATH_REFUSED');
+      return api(`repos/${r}/contents/.github/orchestration/v2-activation-registry.json`,'PUT',{branch:'main',sha,
+        message:'chore(vnext): record verified slice closure',content:Buffer.from(JSON.stringify(value,null,2)+'\n').toString('base64')});
+    },
     issue:(r,n)=>api(`repos/${r}/issues/${n}`),pull:(r,n)=>api(`repos/${r}/pulls/${n}`),
     comment:(r,n,body)=>api(`repos/${r}/issues/${n}/comments`,'POST',{body}),
     closeIssue:(r,n)=>api(`repos/${r}/issues/${n}`,'PATCH',{state:'closed',state_reason:'completed'}),

@@ -2446,3 +2446,81 @@ Le transport canonique du plan approuvé conserve le contexte et le rapport de r
 La tolérance reste au plus 3 omissions secondaires ET 2 % du catalogue ; les exigences essentielles restent couvertes. Les omissions sont des limites d’examen persistantes, jamais des preuves PASS. La reprise idempotente compare le record complet, omissions incluses.
 
 Dans le diagnostic historique VNext, l’absence de l’ancien paquet donne SKIP/HISTORICAL_RECOVERY_ARTIFACT_UNAVAILABLE. Lorsque le téléchargement réussit, un échec de certification donne FAIL/HISTORICAL_RECOVERY_CERTIFICATION_FAILED et fait échouer le job. Seul le téléchargement peut tolérer une erreur. Les workflows legacy V2 figés restent hors du chantier VNext ; leurs diagnostics ne qualifient aucune livraison VNext.
+
+
+## Lot 3 — correction visuelle, approbation et registre (2026-10-15)
+
+Ce complément substitue uniquement le traitement VNext des trois interfaces ci-dessous.
+Les contrôles historiques V2 et leurs preuves restent applicables à V2. Aucun nouveau
+workflow, état de tranche, abonnement, surveillance ou activation par tranche n’est créé.
+
+### Correction d’un rendu par rapport au contrat inchangé — PE-28
+
+`vnext-chain.js visual-correction` consomme une référence Git exacte (révision, chemin,
+SHA-256) vers `kodjo.vnext.visual-correction-input.v1`. Le pilote construit ce dossier
+depuis la file initiale archivée, les références de livraison, le checkpoint existant
+et la décision du propriétaire sur les écarts device. Ce n’est pas une demande de
+nouvelle planification. La décision existante `KODJO_VNEXT_ACCEPTANCE_GAPS_JSON` peut
+porter `AUTHORIZE_VISUAL_CORRECTION` pour cette exécution bornée ; `AUTHORIZE_REVISION`
+reste réservé au chemin de révision et n’autorise pas directement du code.
+
+Le moteur relit le plan, sa revue et l’approbation originale, reconstruit leur admission,
+observe la revue technique de la livraison et la décision propriétaire, vérifie les
+hashes exacts, les critères concernés, les références figées et les documents applicables.
+Les références de la décision doivent être celles du plan et de la revue approuvés.
+Le scope de correction est l’union des fichiers autorisés pour les écarts, tous déjà
+présents dans le write_scope approuvé. Une modification du contrat exige le chemin
+de révision existant, jamais une requalification déclarative `CONTRACT_UNCHANGED`.
+Les snapshots Figma restent figés : ce contrôle ne certifie pas le Figma vivant ; une
+nouvelle extraction reste nécessaire lorsqu’il change, conformément à la politique existante.
+
+Le résultat est une file `VISUAL_CORRECTION / RESUME_DELTA`, consommée par le runner
+existant. `delivery_checkpoint.vnext_correction` porte la référence du dossier ; elle
+n’est ni un opt-in de tranche ni une autorisation suffisante. Toute correction visuelle
+VNext sans référence vérifiée est refusée, sans repli sur V2. La nouvelle demande
+`kodjo.vnext.visual-execution-request.v1` lie l’exécution initiale, la décision d’écarts,
+le HEAD actuel, le scope réduit et le dossier. Le plan/revue/mission originaux restent
+inchangés et leur vue temporaire est contrôlée/restaurée par le runtime commun.
+
+Le vérificateur commun de checkpoint délègue les seules files VNext à ce contrôle.
+Cette substitution est nécessaire : son contrôle V2 attend un bloc de plan V2 absent
+des plans VNext. Son traitement historique reste inchangé après la délégation ; son
+empreinte gelée est actualisée explicitement avec tests de non-régression, sans retirer
+un contrôle. Le checkpoint applicatif de transport conserve son marqueur historique.
+Les tests, la revue indépendante de l’implémentation corrigée et le contrôle device
+après correction restent obligatoires. Une approbation passée ne certifie jamais le
+rendu du nouveau HEAD. Le dossier ne donne pas une autorisation générale de relance :
+les protections de file, consommation unique, concurrence et fraîcheur restent actives.
+
+### Approbation directement actionnable — PE-29
+
+Le producteur utilise l’identifiant du commentaire réservé pour publier son permalink
+canonique, demande explicitement une réaction 👍 du propriétaire sur ce commentaire
+et indique que le pilote attend cette réaction. L’identité et le hash de la cible ne
+changent pas. Le lecteur accepte seulement les formes exactes générées pour cette
+même cible : nouveau permalink canonique, forme sans lien et ancienne présentation.
+Il ne traite pas une URL libre ni une phrase approximative comme une preuve d’approbation.
+Les contrôles d’acteur, issue, HEAD, dates et réaction après édition sont conservés.
+Les anciens commentaires approuvés ne sont pas réécrits pour adopter la nouvelle présentation.
+
+### Clôture du registre commun — PE-30
+
+Après une finalisation `READY_TO_CLOSE` revérifiée et le `FINAL_OUTPUT` durable,
+la clôture produit inscrit sa propre activation `CLOSED` dans le registre commun
+`.github/orchestration/v2-activation-registry.json`, par comparaison de l’empreinte du
+fichier GitHub avant écriture. Elle conserve les références de finalisation/revue,
+le HEAD, le commentaire final, les réserves, preuves pendantes et portée d’acceptation.
+Elle n’invente aucune approbation visuelle. Si l’activation n’a été publiée que sur
+la branche de préparation, sa ligne est relue avec son bootstrap à la révision de
+livraison vérifiée, puis ajoutée fermée ; aucun cycle inconnu n’est inventé.
+
+Une réponse perdue est réconciliée par relecture. Une même clôture ne réécrit rien ;
+une identité ou preuve contradictoire n’est pas écrasée. Les modifications concurrentes
+d’autres tranches sont conservées. L’issue n’est déclarée clôturée qu’après observation
+du registre et des étapes GitHub existantes ; une interruption entre ces étapes reste
+rejouable. Le job de clôture existant reçoit `contents: write`, limité dans le code au
+seul chemin du registre sur main avec comparaison de SHA ; ce besoin et ses producteurs
+exacts sont déclarés dans la politique de sécurité. Aucun nouveau jeton n’est créé.
+La certification jetable conserve son comportement historique sans clôturer le registre
+produit. Les lignes V2 historiques ne sont pas automatiquement corrigées sur la seule
+fermeture d’une issue/PR ; leurs anciennes preuves ne sont ni supprimées ni réécrites.

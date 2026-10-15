@@ -47,6 +47,11 @@ function verify(queueFile, options = {}) {
   if (String(queue.operation_kind || 'IMPLEMENT').toUpperCase() !== 'VISUAL_CORRECTION') {
     return { status: 'NOT_APPLICABLE' };
   }
+  const vnext=require('./lib/vnext-live-chain').guard(queueFile,{cwd,github:options.github});
+  if(vnext) {
+    if(!vnext.visual_checkpoint) throw Error('VNEXT_VISUAL_REFERENCE_REQUIRED');
+    return vnext.visual_checkpoint;
+  }
   const cp = queue.delivery_checkpoint;
   const target = queue.delivery_target;
   const match = COMMENT_REF.exec(String(cp && cp.checkpoint_ref || ''));

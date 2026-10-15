@@ -861,7 +861,7 @@
     },
     {
       "path": "scripts/kodjo/verify-visual-checkpoint.js",
-      "blob_oid": "8eb4d36aa670defc149d4e0f0377cf2dadf39b44",
+      "blob_oid": "e519d4c43aa8c375a139270d98dbd896f8978444",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -901,13 +901,18 @@
     },
     {
       "producer": "scripts/kodjo/close-vnext-github-delivery.js",
-      "producer_blob_oid": "705e2f604cec7f158a5243b17d4067987e79299a",
+      "producer_blob_oid": "cda933bdc93eb26bc672829046971f7e52135eb2",
       "authorization_condition": "SERIALIZED_FINALIZE_DELIVERY_EXACT_BOUND_CERTIFICATION_OR_VNEXT_SLICE_TARGET_ONLY",
       "required_job": null,
       "capabilities": [
         {
           "capability": "REST_REPOSITORY_WRITE",
           "destination": "static-source-line",
+          "scope": "SCRIPT"
+        },
+        {
+          "capability": "REST_REPOSITORY_WRITE",
+          "destination": "repos/${r}/contents/.github/orchestration/v2-activation-registry.json`,",
           "scope": "SCRIPT"
         }
       ]
@@ -940,13 +945,18 @@
     },
     {
       "producer": ".github/workflows/kodjo-vnext-closure.yml",
-      "producer_blob_oid": "cc69cd106eff257e412e4f9eaf7685e227fbf3cc",
-      "authorization_condition": "SERIALIZED_EXACT_FINALIZATION_REVALIDATED_SLICE_CLOSURE_ONLY",
+      "producer_blob_oid": "594e31f83f9ca8532ebd70ebf9db3420baddcae6",
+      "authorization_condition": "SERIALIZED_EXACT_FINALIZATION_REVALIDATED_SLICE_CLOSURE_AND_OWN_ACTIVATION_CAS_ONLY",
       "required_job": "close-vnext-delivery",
       "capabilities": [
         {
           "capability": "GITHUB_PERMISSION_WRITE:issues",
           "destination": "github-token:issues",
+          "scope": "JOB:close-vnext-delivery"
+        },
+        {
+          "capability": "GITHUB_PERMISSION_WRITE:contents",
+          "destination": "github-token:contents",
           "scope": "JOB:close-vnext-delivery"
         }
       ]

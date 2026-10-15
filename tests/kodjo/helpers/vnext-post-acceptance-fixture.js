@@ -32,14 +32,14 @@ function response(produced,status='RESOLVED'){
  if(produced.artifacts.reviewContext.acceptance_gaps)semantic.acceptance_resolutions=produced.artifacts.reviewContext.acceptance_gaps.map(g=>({gap_id:g.gap_id,status,evidence_refs:['FIXTURE ONLY: correction inspected'],note:'Injected reviewer resolution, no real model call'}));
  return JSON.stringify({type:'result',session_id:'FIXTURE-NOT-A-REAL-SESSION',structured_output:{semantic_review:semantic,native_assessment_observations:produced.native_assessments.map(assessment=>({criterion_id:assessment.criterion_id,assessment_hash:V.canonicalHash(assessment),verified:true,observed_git_evidence:[{path:'docs/profile.md',revision:produced.artifacts.planningEnvelope.application_head,content_sha256:V.sha256('FIXTURE profile delivery\n')}],reason:'FIXTURE injected review, actual local Git bytes'}))}});
 }
-function fixture({existingPR=false}={}){
+function fixture({existingPR=false,sliceId='V2-VNEXT-09'}={}){
  const repo=F.fixtureRepo(),cwd=repo.cwd,git=(...a)=>execFileSync('git',a,{cwd,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
  const write=(p,b)=>{fs.mkdirSync(path.dirname(path.join(cwd,p)),{recursive:true});fs.writeFileSync(path.join(cwd,p),b);};
  fs.cpSync(path.join(ROOT,'scripts/kodjo'),path.join(cwd,'scripts/kodjo'),{recursive:true});
  const profile='src/features/preferences/profilePhoto.ts',profileTest='tests/profile.test.js',text='FIXTURE profile delivery\n';
  write(profile,"module.exports={value:require('../../core.js').value};\n");write(profileTest,"require('../src/features/preferences/profilePhoto.ts');\n");write('docs/profile.md',text);git('add','.');git('commit','-m','fixture source and exact producer');
- const head=git('rev-parse','HEAD'),sourceInput={slice_id:'V2-VNEXT-09',product_head:head,sources:[{source_kind:'MARKDOWN',authority:'FUNCTIONAL',locator:'docs/profile.md',revision:head,fingerprint:V.sha256(text),units:[{locator:'FULL_FILE',fingerprint:V.sha256(text),disposition:'REQUIREMENT_SOURCE'}]}]};
- const planning={slice_id:'V2-VNEXT-09',planning_mode:'INITIAL',baseline_head:head,product_head:head,application_head:head,issue_id:'github_issue:MyUncried/Application-Routine#999',base_plan_hash:null,base_review_hash:null,causal_findings:[],created_from:{kind:'INITIAL_REQUEST',refs:['issue_comment:100']}};
+ const head=git('rev-parse','HEAD'),sourceInput={slice_id:sliceId,product_head:head,sources:[{source_kind:'MARKDOWN',authority:'FUNCTIONAL',locator:'docs/profile.md',revision:head,fingerprint:V.sha256(text),units:[{locator:'FULL_FILE',fingerprint:V.sha256(text),disposition:'REQUIREMENT_SOURCE'}]}]};
+ const planning={slice_id:sliceId,planning_mode:'INITIAL',baseline_head:head,product_head:head,application_head:head,issue_id:'github_issue:MyUncried/Application-Routine#999',base_plan_hash:null,base_review_hash:null,causal_findings:[],created_from:{kind:'INITIAL_REQUEST',refs:['issue_comment:100']}};
  const recipe=makeRecipe(cwd,sourceInput,planning,profile,profileTest,true),baseProduced=Chain.produce(recipe,{cwd});
  const baseReceipt=Chain.review(baseProduced,{cwd,claude:'TEST-FIXTURE',invoke:()=>response(baseProduced)});
  const prior=Chain.prepare(baseProduced,baseReceipt,F.transport(),{cwd}).compatibility_files.plan.content;

@@ -1,0 +1,88 @@
+{
+  "previous_revision": "fd85ac5832315a8ddf789f0fb4fd2ed4a7e62f31",
+  "cases_preserved": 453,
+  "subjects_preserved": 430,
+  "changes": [
+    {
+      "case_id": "CASE-cba0dbbfb3977055",
+      "path": "tests/kodjo/vnext-approval-handoff.pilot.js",
+      "old_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417",
+      "old_line": 301,
+      "new_source_sha256": "73df95aaa15078fbc7b2158acd9236091a1cdc9c34bd0c45867e145d1610770b",
+      "new_line": 301
+    },
+    {
+      "case_id": "CASE-d117fc211d89f585",
+      "path": "tests/kodjo/vnext-approval-handoff.pilot.js",
+      "old_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417",
+      "old_line": 465,
+      "new_source_sha256": "73df95aaa15078fbc7b2158acd9236091a1cdc9c34bd0c45867e145d1610770b",
+      "new_line": 467
+    },
+    {
+      "case_id": "CASE-8b177f500ff420ee",
+      "path": "tests/kodjo/vnext-approval-handoff.pilot.js",
+      "old_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417",
+      "old_line": 337,
+      "new_source_sha256": "73df95aaa15078fbc7b2158acd9236091a1cdc9c34bd0c45867e145d1610770b",
+      "new_line": 339
+    },
+    {
+      "case_id": "CASE-fa16531ae31aa25d",
+      "path": "tests/kodjo/vnext-approval-handoff.pilot.js",
+      "old_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417",
+      "old_line": 482,
+      "new_source_sha256": "73df95aaa15078fbc7b2158acd9236091a1cdc9c34bd0c45867e145d1610770b",
+      "new_line": 484
+    },
+    {
+      "case_id": "CASE-98cbf0d80b2af3bb",
+      "path": "tests/kodjo/vnext-approval-handoff.pilot.js",
+      "old_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417",
+      "old_line": 499,
+      "new_source_sha256": "73df95aaa15078fbc7b2158acd9236091a1cdc9c34bd0c45867e145d1610770b",
+      "new_line": 501
+    },
+    {
+      "case_id": "CASE-21de337977e79cdf",
+      "path": "tests/kodjo/vnext-approval-handoff.pilot.js",
+      "old_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417",
+      "old_line": 346,
+      "new_source_sha256": "73df95aaa15078fbc7b2158acd9236091a1cdc9c34bd0c45867e145d1610770b",
+      "new_line": 348
+    },
+    {
+      "case_id": "CASE-fcc1746d23745b27",
+      "path": "tests/kodjo/vnext-approval-handoff.pilot.js",
+      "old_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417",
+      "old_line": 391,
+      "new_source_sha256": "73df95aaa15078fbc7b2158acd9236091a1cdc9c34bd0c45867e145d1610770b",
+      "new_line": 393
+    },
+    {
+      "case_id": "CASE-3c83098a74174fcb",
+      "path": "tests/kodjo/vnext-approval-handoff.pilot.js",
+      "old_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417",
+      "old_line": 431,
+      "new_source_sha256": "73df95aaa15078fbc7b2158acd9236091a1cdc9c34bd0c45867e145d1610770b",
+      "new_line": 433
+    },
+    {
+      "case_id": "CASE-ee0221c241fcedc6",
+      "path": "tests/kodjo/vnext-approval-handoff.pilot.js",
+      "old_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417",
+      "old_line": 247,
+      "new_source_sha256": "73df95aaa15078fbc7b2158acd9236091a1cdc9c34bd0c45867e145d1610770b",
+      "new_line": 247
+    },
+    {
+      "case_id": "CASE-288978467a46373a",
+      "path": "tests/kodjo/vnext-approval-handoff.pilot.js",
+      "old_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417",
+      "old_line": 260,
+      "new_source_sha256": "73df95aaa15078fbc7b2158acd9236091a1cdc9c34bd0c45867e145d1610770b",
+      "new_line": 260
+    }
+  ],
+  "reason": "Two additional assertions and appended PE-29 test changed the whole-file fingerprint; original cases, protections and mechanism bindings retained. No old execution evidence rewritten."
+}

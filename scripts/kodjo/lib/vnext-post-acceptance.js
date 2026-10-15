@@ -24,7 +24,7 @@ function validateBaseline(base) {
   V.assertExactKeys(d,['head','slice_id','issue_number','implementation_review_comment_id','not_executed_proofs'],[],'VNEXT_ACCEPTANCE_DELIVERY_KEYS_INVALID');
   V.assertSha40(d.head,'VNEXT_ACCEPTANCE_DELIVERY_HEAD_INVALID');
   V.assertExactKeys(a,['schema_version','decision','slice_id','head','source_review_comment_id','base_plan_hash','base_review_hash','gaps'],[],'VNEXT_ACCEPTANCE_DECISION_KEYS_INVALID');
-  if(a.schema_version!==GAPS_SCHEMA || a.decision!=='AUTHORIZE_REVISION')V.fail('VNEXT_ACCEPTANCE_AUTHORIZATION_REQUIRED');
+  if(a.schema_version!==GAPS_SCHEMA || !['AUTHORIZE_REVISION','AUTHORIZE_VISUAL_CORRECTION'].includes(a.decision))V.fail('VNEXT_ACCEPTANCE_AUTHORIZATION_REQUIRED');
   if(a.head!==d.head || r.delivery_head!==d.head || a.slice_id!==d.slice_id || d.issue_number!==r.issue_number
       || String(a.source_review_comment_id)!==String(d.implementation_review_comment_id) || String(r.implementation_review_comment_id)!==String(d.implementation_review_comment_id)) V.fail('VNEXT_ACCEPTANCE_DELIVERY_MISMATCH');
   V.assertSha64(a.base_plan_hash,'VNEXT_ACCEPTANCE_PLAN_HASH_REQUIRED');V.assertSha64(a.base_review_hash,'VNEXT_ACCEPTANCE_REVIEW_HASH_REQUIRED');
@@ -87,6 +87,7 @@ function observe(reference,{cwd,readGit,github}) {
 }
 function validateBindings(baseline,bindings,artifacts) {
   validateBaseline(baseline);
+  if(baseline.acceptance.decision!=='AUTHORIZE_REVISION')V.fail('VNEXT_ACCEPTANCE_AUTHORIZATION_REQUIRED');
   const {planningEnvelope:e,planContract:plan,requirementRegistry:registry}=artifacts;
   if(e.planning_mode!=='REVISION'||e.created_from.kind!=='ACCEPTANCE_GAPS'||e.causal_findings.length)V.fail('VNEXT_ACCEPTANCE_ORIGIN_INVALID');
   if(e.application_head!==baseline.delivery.head||e.slice_id!==baseline.delivery.slice_id||e.issue_id!=='github_issue:'+baseline.reference.repository+'#'+baseline.reference.issue_number
