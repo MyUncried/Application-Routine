@@ -422,3 +422,26 @@ Le besoin PE-27 exige un mécanisme et ses non-régressions ; il n’exige pas q
 Registre : ligne détaillée et statut de suivi PE-27 mis à jour ; PE-02/15 restent clos, 25 des 28 sujets initialement ouverts restent ouverts. Les autres lignes de besoin sont conservées. Ce complément est ajouté au rapport existant ; l’audit initial reste lisible comme historique.
 
 Contrôles de cette modification documentaire : unicité et cardinalités du registre, compatibilité des quatre statuts, seule ligne de besoin PE-27 modifiée par rapport à la base, diff limité au registre et au présent rapport. Aucun test nouveau, aucun appel modèle, aucun workflow, aucune correction de moteur ni intervention PRE-4 lancés. Publication documentaire non forcée avec HEAD attendu, puis relecture des contenus sur main.
+
+
+## Complément PE-32 — défaut réel confirmé, correctif candidat #365
+
+Base vérifiée : main `0ceebe9a70f618080b45c8c4ca052cb34cc48372`. Conclusion : **NON SATISFAIT sur cette version de main**. La réserve « consolidation de preuves » est remplacée par un défaut précis de séquencement.
+
+La préparation filtre les racines valides puis appelle le scan d’importeurs avant buildImpactGraph. Une demande mélangeant une cible MODIFY valide et une cible inconnue ou une opération interdite atteint donc le scan avant son refus. Les protections d’identité existent mais interviennent trop tard pour satisfaire PE-32.
+
+Reproduction sur code de base : nouveaux cas via l’entrée réelle Chain.produce, sonde de frontière du scan, **2 FAIL / 0 PASS** avant correction ; erreur TEST_SCAN_REACHED_BEFORE_PATH_REFUSAL à la place du refus de cible attendu. Après correction : tests vérifient directement zéro entrée du scan pour absent, mauvaise casse, accent retiré/Unicode différent, CREATE existant/interdit et MODIFY de slot CREATE. Positif : chemin accentué exact et CREATE autorisé au SHA Git source, sans accepter un état local non commité comme vérité.
+
+Correctif développé et publié dans [PR #365](https://github.com/MyUncried/Application-Routine/pull/365), candidat [af112474bb2ff98348c8b55848b7de5792e3abb5](https://github.com/MyUncried/Application-Routine/commit/af112474bb2ff98348c8b55848b7de5792e3abb5). Extraction/réutilisation du même validateur avant le scan, maintien de la validation à la construction du graphe. Aucun changement de schéma ou périmètre autorisé ; précision normative §13.4.
+
+Validation locale :
+- série comprenant live-chain / impact-graph et les deux premières régressions : **27 PASS / 0 FAIL / 0 SKIP** ;
+- série finale path-preflight / impact-graph / plan-contract / runtime-plan, incluant le positif supplémentaire : **34 PASS / 0 FAIL / 0 SKIP** ;
+- git diff --check PASS ; séries recouvrantes, pas une somme de tests uniques ;
+- pas de nouveau modèle, revue PRE-4, dispatch manuel ou changement V2.
+
+À la publication de ce suivi, CI automatique du candidat observée : [VNext 38737898684](https://github.com/MyUncried/Application-Routine/actions/runs/38737898684) queued, [pilot 38737898708](https://github.com/MyUncried/Application-Routine/actions/runs/38737898708) in_progress ; audit indépendant 38737898673 skipped. Ce sont des états observés, pas un succès ni une preuve Windows. Aucun test ancien n’est présenté comme qualification de ce nouveau code.
+
+Statut : **développé dans un candidat / testé localement Linux / non intégré main / usage réel non démontré / PE-32 OUVERT**. Le moteur de main est inchangé par cette mise à jour documentaire. Le rapport technique complet est [dans le candidat à SHA exact](https://github.com/MyUncried/Application-Routine/blob/af112474bb2ff98348c8b55848b7de5792e3abb5/.github/orchestration/reports/2026-10-15_PE32_PATH_PREFLIGHT.md). La clôture exige la livraison et la qualification appropriée du correctif, pas une simple reclassification documentaire.
+
+Contrôles du présent suivi : 41 besoins conservés, seule ligne de besoin PE-32 modifiée depuis la base, statuts compatibles, PE-27 reste clos et 25 sujets restent ouverts. Publication limitée au registre et au présent rapport avec HEAD attendu, sans force, puis relecture sur main.
