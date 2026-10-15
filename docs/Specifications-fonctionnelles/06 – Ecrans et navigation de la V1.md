@@ -1010,6 +1010,12 @@ Exports directs des 23 états de Composition retrouvés dans Prototype MVP. Les 
 
 ![Composition séance — Standard — Séries variables](images/circuits-2026-10-12/8328-34520.png)
 
+#### Modification d'une séance
+
+[Source Figma — `5271:5455`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=5271-5455)
+
+![Modification d'une séance](images/figma-5271-5455.png)
+
 ### Placement, réglage et retrait des pauses
 
 #### Composition séance — Placement d’une pause
@@ -1161,6 +1167,12 @@ Le tableau variable comporte poignée, numéro, cellules cible/Pause et retrait 
 [Source Figma — `8328:36278`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36278)
 
 ![Ajouter un exercice — Catégorie renseignée](images/circuits-2026-10-12/8328-36278.png)
+
+#### Modifier un exercice
+
+[Source Figma — `4734:6342`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4734-6342)
+
+![Modifier un exercice](images/figma-4734-6342.png)
 
 ### Feuille Modalités d’exécution — états intégrés
 
@@ -1332,7 +1344,7 @@ Catégorie marquée au toucher puis confirmée par ✓ ; ✕ conserve la Catégo
 
 ### Couverture et limites
 
-Les états hérités (N et total non modifiables), validation incomplète, douze séries avec défilement, phrase longue et plusieurs résumés spécialisés ne disposent pas d’une nouvelle frame identifiée dans ce relevé. Leurs règles restent requises. Les anciennes captures ne sont pas présentées comme des preuves actuelles de ces états. L’écran Modifier un exercice `4734:6342` et la modification de séance `5271:5455` sont hors réexport de ce lot ; leurs contrats restent applicables.
+Les états hérités (N et total non modifiables), validation incomplète, douze séries avec défilement, phrase longue et plusieurs résumés spécialisés ne disposent pas d’une nouvelle frame identifiée dans ce relevé. Leurs règles restent requises. Les anciennes captures ne sont pas présentées comme des preuves actuelles de ces états. Les captures de Modifier un exercice `4734:6342` et de Modification d’une séance `5271:5455` sont intégrées ci-dessus dans leur famille d’écran respective ; leurs contrats restent applicables.
 
 Le corpus de phrases et les spécifications déterminent les textes dynamiques, le gras et les calculs ; les valeurs derrière les voiles ne sont pas des recettes. Les captures sont des exports sans retouche.
 
@@ -1532,6 +1544,20 @@ Frame `1992:6838` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?
 Frame `7599:14197` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7599-14197).
 
 ![Modal — Planifier une séance — Sélectionner une séance](images/figma-7599-14197.png)
+
+Les deux captures « Liste longue » ci-dessous ont été exportées le 15/10/2026. Elles illustrent la présentation des listes, mais montrent encore une sélection unique sans CTA « Ajouter ». Elles ne remplacent pas le contrat CE-UI-04 : sélection à cases et CTA « Ajouter 1 élément » / « Ajouter n éléments ».
+
+#### Modal — Choisir une séance — Planification — Liste longue
+
+[Source Figma — `1992:6249`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6249)
+
+![Modal — Choisir une séance — Planification — Liste longue](images/figma-1992-6249.png)
+
+#### Modal — Choisir un exercice — Planification — Liste longue
+
+[Source Figma — `5451:4272`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=5451-4272)
+
+![Modal — Choisir un exercice — Planification — Liste longue](images/figma-5451-4272.png)
 
 #### Planifier une séance — Sélecteur de date ouvert
 
@@ -2792,3 +2818,4 @@ Nœud [8747:14451](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 Nœud [8795:14588](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8795-14588) · Contrat [CE-FMT-04](13%20–%20Contrats%20d’écran.md#ce-fmt-04). Capture du layout courant ; données illustratives.
 
 ![Modification activité — Paramètres (modale) — Exercice EMOM — Par exercice](images/formats-2026-10-14/figma-8795-14588.png)
+
