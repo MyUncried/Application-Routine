@@ -258,6 +258,12 @@ Le détail ordonné des phases est défini par chapitre 08, paramètres d’exer
 
 Dans une occurrence, R>0 se substitue à la seule Pause terminale ; R reste une donnée contextuelle, hors définition intrinsèque.
 
+## Phases internes d’une série
+
+Un exercice peut porter une liste ordonnée de zéro à six phases, chacune avec un libellé de 20 caractères maximum et une durée. Elles sont communes aux séries identiques, uniquement en mode Durée à cible chiffrée. Une série exécute exactement une fois cette liste ; sa durée en est la somme, et non une seconde valeur indépendante. L’absence de phases conserve le comportement existant.
+
+Les phases s’enchaînent sans pause. Les pauses après série, les côtés, les circuits et la récupération contextuelle conservent leur portée. Chaque passage de travail d’un côté déroule le motif complet ; une phase ne devient pas un passage de circuit. Les phases de geste ne doivent pas être confondues avec les phases structurelles du plan. Voir [règles d’édition et de format](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
+
 # 4.6 Déroulement d’un Exercice
 
 L’ordre d’exécution vient du paramètre Ordre des côtés : Un côté après l’autre (défaut) ou Les deux côtés à chaque série. En bilatéral N est toujours par côté, paramètres communs aux deux côtés. Les successions et pauses sont celles de chapitre 08, paramètres d’exercice ; aucun repli de PC vers la Pause. Les cibles et Pauses variables proviennent de la ligne courante.

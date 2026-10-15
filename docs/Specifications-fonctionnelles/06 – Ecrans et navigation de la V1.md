@@ -1162,6 +1162,14 @@ Le tableau variable comporte poignée, numéro, cellules cible/Pause et retrait 
 
 ![Ajouter un exercice — Catégorie renseignée](images/circuits-2026-10-12/8328-36278.png)
 
+### Présentation des phases d’exercice
+
+La ligne Phases se place après Mode d’exécution et avant Séries. Aucune crée la première phase sans chevron ; la liste existante expose son repli et un tableau Libellé/Durée. La durée de série devient calculée. Les états incompatibles sont non modifiables, sans transformer une valeur effective calculée en tiret. Contrat CE-UI-10 et [règles métier](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
+
+Le rapport Figma V2 du 15/10 décrit trois écrans dédiés sur Conception — Hors MVP : « Phases (aucune) », « Phases (définies) » et « Phases verrouillées (séries variables) ». Il décrit aussi la ligne ajoutée sur 19 écrans de Prototype MVP et 19 de Conception. Ces nombres sont ceux du rapport fourni, pas un nouvel inventaire direct. Les seize modales de format n’ont pas encore reçu cette ligne selon ce rapport.
+
+Les captures existantes ci-dessous ne sont pas des preuves actualisées des phases. Les exports des états modifiés et le report des trois écrans dédiés restent à effectuer ; aucune capture n’est fabriquée ou retouchée dans cette consolidation. Le cadran et la carte de composition attendent leur précision de présentation. Les corrections collatérales du fond gris, des hauteurs de feuille et du chevron Séries doivent être conservées lors du prochain relevé.
+
 ### Feuille Modalités d’exécution — états intégrés
 
 Ces 19 frames sont des états de CE-UI-10, pas 19 pages applicatives. Quatre références ont été recapturées et le cas mixte ajouté selon la matrice du13/10.

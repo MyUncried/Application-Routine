@@ -260,6 +260,124 @@ Changement de mode : conserver N et les Pauses ; remplacer les cibles incompatib
 
 **N=1 — arbitrage explicite** : état effectif uniforme et Ordre des côtés effectif Un côté après l’autre **dès le brouillon et son calcul**, pas seulement à la sauvegarde. Champ de régime non modifiable, selon la normalisation N1 existante ; Ordre des côtés grisé lorsqu’il est visible en bilatéral ; aucun texte explicatif. Conserver temporairement l’ancien état variable, ses lignes et l’ancien ordre des côtés pour les restaurer si N remonte à2+ avant ✓. Valider à1 ne conserve qu’une série uniforme et l’ordre par défaut. Hors circuit de séries, les deux formules bilatérales ne sont pas déclarées équivalentes à N=1 : la normalisation choisit explicitement la première. Dans un circuit de séries, le passage suit toujours premier côté → PC → second côté → Pi, y compris pour compte1 ; aucun Pi supplémentaire avant PC.
 
+<a id="phases-exercice"></a>
+
+## Phases d’un exercice — MVP
+
+Une phase est une subdivision d’un geste au sein d’une série, distincte des phases structurelles du plan. Les décisions D-370 à D-375 s’appliquent.
+
+### Structure, édition et calcul
+
+#### Structure et éligibilité
+
+- Un exercice contient zéro à six phases ordonnées. Zéro signifie « Aucune » ; une seule phase est autorisée.
+- Chaque phase porte un libellé de 20 caractères maximum et une durée.
+- Les phases sont réservées au mode Durée avec une cible chiffrée et des séries identiques.
+- Elles sont incompatibles avec le mode Répétitions, une cible À l’échec et les séries variables.
+- Si des phases existent, les choix incompatibles sont indisponibles. L’utilisateur supprime d’abord les phases ; aucune conversion destructive automatique n’est créée.
+- Avec des séries variables ou une cible À l’échec, la création de phases est indisponible. L’interface doit également respecter l’exclusion du mode Répétitions.
+- La séquence de phases est commune à toutes les séries de l’exercice. Elle ne définit ni exercice supplémentaire ni pause entre ses éléments.
+
+#### Création et édition
+
+La ligne « Phases » se trouve entre « Mode d’exécution » et « Séries ». Sans phases, la valeur « Aucune » ne porte pas de chevron. Son appui crée la première phase, reprend la durée actuelle de la série et propose le libellé « Phase 1 ».
+
+Lorsque des phases existent, le chevron permet de replier et déplier leur tableau. Celui-ci réutilise les conventions du tableau des séries : déplacement, numéro, colonnes Libellé et Durée, suppression, ligne active et commandes d’ajout/retrait. L’appui sur le libellé ouvre la saisie de texte ; l’appui sur une durée modifiable ouvre son contrôle de durée.
+
+Hors durée imposée, une phase ajoutée reprend la durée de la dernière phase et reçoit un libellé initial « Phase n ». Toutes les durées sont modifiables ; la durée de série est recalculée. L’ajout est indisponible après la sixième phase, sans créer de septième ligne.
+
+Un libellé laissé vide est remplacé par « Phase n » à la validation, suivant la position finale. Les libellés personnalisés restent attachés à leur phase lors d’un déplacement.
+
+Toute phase restée à 0 s est retirée automatiquement à la validation, sans message ni blocage. Zéro est un état temporaire de saisie, pas une phase exécutable persistée. La validation de la feuille applique les paramètres au brouillon parent ; l’enregistrement définitif suit la frontière existante de l’éditeur. Annuler restaure l’état antérieur de cette feuille.
+
+#### Suppression et retour sans phases
+
+Hors durée imposée, supprimer une phase retire sa contribution à la durée de série. Supprimer la dernière phase existante ramène la ligne à « Aucune » et conserve la durée qu’elle portait juste avant sa suppression comme durée de série. Cette durée redevient modifiable, sauf contrainte du format.
+
+Les conventions existantes de suppression et d’annulation doivent être réutilisées : restaurer une suppression restitue l’ordre, les libellés et les durées de l’état précédent, y compris les valeurs calculées affectées par cette suppression.
+
+#### Durée de série et durée totale
+
+Soit D la somme des durées des phases actives. La durée d’une série est D, affichée comme résultat calculé non modifiable. Une somme telle que 6 + 3 = 9 s n’est pas arrondie au pas de la roulette de durée saisie. Elle ne constitue pas une seconde prescription indépendante.
+
+Pour un exercice unilatéral de N séries identiques et une pause P après chaque série :
+
+`T intrinsèque = N × (D + P)`
+
+Le réglage inverse de Durée totale conserve la règle existante du chapitre 13, R-02 : il choisit N lorsque N est libre, sans modifier les durées des phases. Avec un nombre imposé, le total reste en lecture seule.
+
+Cette durée comprend la dernière pause et exclut le compte à rebours et la fin propres. Si une récupération de séance positive R suit l’occurrence, la substitution existante s’applique à sa pause terminale : `T occurrence = T intrinsèque − P + R`, dans ce cas unilatéral exécuté comme bloc complet. Dans un circuit de séries, appliquer la substitution au passage concerné conformément au plan existant, sans transposer aveuglément la formule de bloc.
+
+Exemple validé : phases 6 s et 3 s, trois séries, pause de 15 s : D = 9 s ; T = 3 × (9 + 15) = 72 s, soit 1 min 12 s. C’est la valeur du champ Durée totale des paramètres. Aucun compte à rebours ni fin n’y est ajouté.
+
+Les règles bilatérales, les deux ordres de côtés, les circuits, les récupérations et les points d’arrêt restent applicables. Chaque passage de travail d’un côté exécute la séquence complète avant la transition déjà prescrite. Les phases n’ajoutent aucune pause de côté ni pause de série.
+
+Une séquence chronométrée a une durée déterminée. Elle n’introduit pas à elle seule un symbole ≈ ou ≥. Le symbole de la séance reste déterminé par l’ensemble de ses contributions. Aucune estimation de 2 s par répétition n’est utilisée.
+
+### Formats imposant une durée de travail
+
+#### Réglage dans le format
+
+Les phases sont autorisées lorsque le format impose une durée de travail compatible avec l’éligibilité ci-dessus. Tabata constitue le cas validé : une série reste de 20 s.
+
+La dernière phase porte automatiquement le temps restant :
+
+`durée dernière phase = durée imposée − somme des phases précédentes`.
+
+Les durées précédentes sont modifiables dans les limites du budget restant ; aucune durée négative n’est produite et aucun blocage de validation pour dépassement n’est ajouté. La dernière phase est calculée et peut temporairement valoir zéro.
+
+| Action | Résultat attendu pour 20 s |
+| --- | --- |
+| Créer la première phase | Une phase calculée de 20 s |
+| Ajouter une deuxième phase | 20 s + 0 s ; aucune division automatique |
+| Régler la première à 12 s | 12 s + 8 s |
+| Ajouter une troisième | 12 s + 8 s + 0 s ; la deuxième devient modifiable |
+| Déplacer une phase | Les durées restent inchangées ; la nouvelle dernière devient calculée |
+| Supprimer 7 s dans 5 + 7 + 8 | 5 + 15 s |
+| Supprimer la dernière dans 5 + 7 + 8 | 5 + 15 s ; la précédente devient calculée |
+| Supprimer l’unique phase | Aucune phase ; série de 20 s toujours imposée |
+| Valider 20 + 0 | Retrait silencieux de la phase à zéro ; une phase de 20 s |
+
+#### Intégration d’un exercice déjà décomposé
+
+Si la somme des phases de l’exercice ajouté diffère de la durée imposée, adapter proportionnellement leurs durées dans la copie de séance, à la hausse comme à la baisse. Préserver l’ordre et les libellés. L’exercice source du catalogue reste inchangé.
+
+Avant arrondi, chaque durée est multipliée par le rapport `durée imposée / somme initiale`. Les arrondis sont absorbés par la dernière phase pour conserver exactement le total imposé. Les détails des très petites durées restent à fermer dans les compléments à préciser ci-dessous.
+
+Un message informatif explique l’adaptation, sans demander de confirmation supplémentaire. Exemple : « Les durées des phases ont été ajustées pour respecter les 20 s du format Tabata : 15 s + 15 s deviennent 10 s + 10 s. »
+
+Exemples validés : 15 + 15 devient 10 + 10 ; 6 + 3 devient 13 + 7. Lorsque les totaux sont déjà égaux, aucune adaptation n’est nécessaire. Cette adaptation à l’intégration ne remplace pas le calcul du temps restant pendant l’édition.
+
+#### Limite de généralisation
+
+Une durée globale de séance ou de fenêtre n’est pas nécessairement une durée de travail imposée à l’exercice. Ne pas transformer automatiquement une fenêtre EMOM en durée d’effort : son repos résiduel fait partie de sa définition. L’éligibilité dépend du mode et de la cible de travail réellement prescrits. Les formats prescrivant des répétitions restent incompatibles avec les phases dans cette version ; leurs règles ne sont pas converties pour permettre l’ajout.
+
+### Exécution, audio et progression
+
+Les phases s’enchaînent automatiquement à expiration de leur durée, sans pause ni attente d’une annonce. La fin de la dernière phase termine le passage de travail de la série ; le plan reprend ensuite la pause, le côté ou le passage suivant selon les règles existantes.
+
+Le bip de cadence reste continu à l’intérieur d’une série : un changement de phase ne réinitialise pas son intervalle. Exemple 6 s + 3 s, bip toutes les 4 s : bips à 4 s et 8 s. Les règles existantes de pause manuelle/reprise du bip restent applicables. Si un bip coïncide avec une transition, le signal de transition prime ; aucun double signal.
+
+Si les annonces vocales sont activées, le libellé est annoncé au début de chaque phase, première comprise. Le chronométrage ne l’attend pas. L’annonce de la nouvelle phase interrompt celle de la précédente si elle n’est pas terminée. Aucun empilement d’annonces de phases périmées.
+
+Les commandes gardent leur portée existante. Réinitialiser recommence la série courante en unilatéral, donc depuis sa première phase ; en bilatéral, le périmètre du côté courant reste celui déjà spécifié. Les résultats de l’autre côté et le temps réel cumulé sont conservés. Suivant ne devient pas implicitement une commande « phase suivante » : il garde le périmètre et les confirmations de la série ou du bloc existant.
+
+Pause/Reprendre et reprise technique doivent conserver la position dans la séquence et le temps restant, sans rejouer les phases déjà achevées du passage. L’exécution s’appuie sur son instantané figé, pas sur une relecture du catalogue.
+
+La progression ne doit pas dépendre artificiellement du nombre de subdivisions. Décomposer une série de 9 s en 6 + 3 ne change pas son poids global. Conserver l’unité contributive Série dans la pondération existante et répartir sa progression interne selon le temps ; ne pas augmenter mécaniquement M dans les plans mêlant durées connues et inconnues.
+
+Le placement exact du libellé de phase, le temps montré sur le cadran et la représentation sur les cartes restent à spécifier dans le chantier de présentation annoncé. Aucune nouvelle commande de navigation entre phases n’est créée par ce document.
+
+
+### Compléments à préciser avant les comportements concernés
+
+1. **Durées et arrondis extrêmes.** La durée minimale et le pas propres aux phases ne sont pas explicitement arbitrés. Une phase de 3 s est déjà prévue, donc il serait incorrect de lui appliquer mécaniquement la borne minimale documentaire de 5 s par série. Une réduction proportionnelle peut produire une durée arrondie à zéro : supprimer cette phase ferait perdre une action. Il faut préciser l’arrondi préservant les phases positives et le traitement d’un budget trop court pour leur nombre, sans inventer de suppression silencieuse à l’intégration. La suppression des zéros de saisie, déjà validée, ne suffit pas à régler ce cas.
+2. **Création sans durée préexistante et suppression de toutes les phases nulles.** La reprise de la durée actuelle est définie lorsqu’elle existe. Le brouillon initial sans cible et le retour après normalisation d’une liste entièrement nulle doivent suivre une règle explicite ; ne pas fabriquer une durée valide arbitraire.
+3. **Phrase et présentation.** Rédiger les nouvelles phrases et exemples du corpus, puis préciser le cadran et les cartes dans le chantier séparé. La structure des segments est actée, les textes et dispositions exacts ne le sont pas.
+4. **Écart préexistant de bornes.** RM-234 du chapitre 10 indique 5..3535 s par série, alors que le code canonique inspecté au commit 6656fefc autorise 1..5999 s. La spécification prime ; il faut rattacher la correction au bon lot de développement et ne pas faire de la valeur historique du code une nouvelle décision métier. Cette divergence n’est pas créée par les phases.
+
+Le message d’adaptation et son principe sont validés. Son placement réutilisera la convention de notification existante. L’articulation de l’annonce de première phase avec les annonces existantes de nom/côté doit être précisée à l’intégration audio, sans retarder le plan ni accumuler des annonces périmées.
+
 # 3. Composition d'une séance
 
 ## 3.1 Principe général

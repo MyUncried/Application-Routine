@@ -59,6 +59,10 @@ Une personne qui souhaite créer, planifier, exécuter et suivre seule des Séan
 
 Le Cycle technique n’est ni manipulé ni affiché dans le MVP.
 
+#### Décomposer un exercice en phases
+
+Décrire plusieurs actions successives, par exemple 6 s puis 3 s, au sein d’un même exercice et les rejouer à chaque série. Le MVP permet jusqu’à six phases nommées, sans multiplier les exercices dans le catalogue ou les lignes dans la séance. Le guidage annonce l’action courante selon la préférence vocale.
+
 #### Planifier une Séance ou un Exercice
 
 - Visualiser le Calendrier en vues Jour, Semaine et Mois.

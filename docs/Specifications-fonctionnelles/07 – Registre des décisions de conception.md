@@ -630,3 +630,16 @@ Source reçue dans le §4.2 du prompt complété. Roue manipulable même grisée
 | D-369 | État de développement. le moteur n’a pas encore été développé |
 
 La V2 est amendée par ces décisions, notamment : réglages éditables ; organisation Tabata/EMOM/Progression ; For time indexé par tour sans choix d’organisation ; Death by cadencé, tours acquis par appui, résultat partiel et état toujours incomplet. Les décisions ne valent pas livraison applicative ni clôture des raccordements explicitement signalés.
+
+### Phases d’exercice — décisions du 15 octobre 2026
+
+| ID | Décision |
+|---|---|
+| D-370 | Phases au MVP ; 0 à 6 phases ordonnées, libellé 20 caractères maximum ; Durée chiffrée et séries identiques uniquement ; une série joue une fois le motif sans pause interne. |
+| D-371 | Aucune crée une phase reprenant la durée de série ; chevron seulement avec phases. Ajout libre : copie de la dernière durée. Supprimer la dernière conserve sa durée comme durée de série. |
+| D-372 | Formats à durée de travail imposée : dernière phase calculée par différence ; ajout à 0, sans division ; réglages bornés pendant saisie, pas de blocage de validation pour dépassement. Déplacement conserve les durées et transfère le calcul à la dernière position ; suppression transfère le temps libéré à la dernière restante. |
+| D-373 | Validation : retrait silencieux des phases restées à 0 s ; libellé vide remplacé par Phase n. Zéro de saisie non persisté. Le cas des arrondis à zéro lors d’une adaptation proportionnelle reste distinct et à préciser. |
+| D-374 | À l’intégration dans un format, somme différente : adaptation proportionnelle dans la copie de séance, à la hausse comme à la baisse ; message informatif sans confirmation supplémentaire ; catalogue intact. |
+| D-375 | Bip continu sur la série, sans redémarrage au changement de phase ; transition prioritaire en cas de coïncidence. Annonce de chaque libellé, première phase comprise, si voix activée ; sans retarder le temps ; nouvelle annonce interrompt la précédente. |
+
+Les paramètres limites non arbitrés, les textes de synthèse et la présentation d’exécution restent localisés dans la section Phases du chapitre 08. Ces décisions ne remplacent ni les pauses et côtés existants ni leurs commandes.

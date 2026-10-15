@@ -191,6 +191,12 @@ Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 
 
 Instantané immuable au départ, résultats moteur clôturés une fois, puis finalisation Ressenti/Commentaire distincte et atomique. Le bouton courant de Synthèse est Enregistrer ; Terminer reste le bouton de l’éditeur Exercice. SESSION finalisé ouvre Suivi ; ACTIVITY restaure son appelant Catalogue/Calendrier. Une interruption technique sans Synthèse peut ne pas avoir de Ressenti ; une Synthèse présentée l’exige. Ni consultation média, ni paramètres de lecteur vidéo ne modifient le plan.
 
+#### Phases internes de travail — complément commun
+
+Les contrats ACTIVITY et SESSION appliquent les phases sous la série : enchaînement automatique sans repos, cadence continue, libellé annoncé au début si voix activée, sans retard du temps ; nouvelle annonce interrompt la précédente. Transition prioritaire en cas de coïncidence sonore. Pause conserve phase et restant ; réinitialisation repart de la première phase du périmètre de série/côté existant ; Suivant ne devient pas une commande de phase. Une subdivision ne modifie pas le poids global de la série.
+
+Vérifier6+3 avec bip4 : bips à4 et8 ; annonces courtes/longues, voix désactivée, pause/reprise, reset et saut, deux côtés et circuit de séries. La position du libellé de phase et le choix du temps affiché sur le cadran restent à préciser ; aucun layout de référence n’est déclaré qualifié pour ces nouveaux éléments.
+
 ### 4.13 Usage des références et portée des recettes
 
 Une frame présente peut montrer un état ancien ou incomplet. Chaque contrat distingue comportement cible, preuve graphique et limite constatée. Les recettes décrivent ce qu’il faut vérifier ; cette documentation ne constitue pas une recette réussie de l’application ni du prototype interactif. Les règles communes sont héritées par renvoi précis ; une rubrique non applicable en explique la raison. Les identifiants techniques ActivityDefinition/ACTIVITY restent inchangés et ne sont pas des libellés utilisateur.
@@ -2954,17 +2960,25 @@ Vérifier les deux silhouettes et le retour au repos après validation/annulatio
 
 Feuille Paramètres d’exécution de CE-T03-04. Références courantes :8328:37092,8328:37862,8328:38513,8328:38848 et nouveau8470:13303 ; les autres états du12/10 restent applicables. Captures au chapitre06 ; matrice Deux modes du13/10. Les références6419/6665/7059/7069 du07/10 sont historiques.
 
+**Phases — MVP :** cette même feuille porte la création et l’édition des phases ; aucun contrat de page autonome supplémentaire. Les trois états dédiés du rapport Figma du15/10 ne sont pas encore recapturés au chapitre06.
+
 ### 2. Finalité fonctionnelle
 
 Saisir/éditer mode, Séries uniformes/variables, cibles, Pauses, côtés, Bip de cadence, Compte à rebours et Fin ; appliquer au brouillon parent et régénérer la phrase sans sauvegarde prématurée.
+
+Définir jusqu’à six phases de travail sans créer d’autres exercices ; maintenir les contraintes du format et calculer la durée de série.
 
 ### 3. Contexte d’entrée
 
 Ouverture depuis la zone Paramètres d’exécution. Copie du parent ; Bip initial0=Aucun, reprendre valeur existante0..10 en édition. Aucun tempo implicite. Création : N1,Pause0,cibles et mode selon v13 ; absence de cible requise distincte de Bip0.
 
+Phases absentes sur les anciens exercices. En édition, reprendre la liste effective de la définition ou de la copie de séance, jamais une référence mutable vers le Catalogue.
+
 ### 4. Contexte de sortie / destinations
 
 ✕/retour système annule l’ouverture ; ✓ applique état actif valide au parent ; Terminer du parent persiste. Même feuille pour création/modification et copie d’Exercice dans Séance.
+
+Les phases suivent la même frontière ✓/✕/Terminer ; aucune confirmation supplémentaire n’est ajoutée pour les adaptations validées.
 
 ### 5. Données affichées et source de vérité
 
@@ -2974,21 +2988,29 @@ Phrase selon les276 cas v15, total fourni par le calcul métier. Générateur �
 
 Collection effective des Séries, cible/Pause/bip, mode, direction, ordre,PC,Compte à rebours/Fin. Bip commun à toutes les lignes,0..10 dans deux modes ; aucune surcharge persistée. Calcul typé fourni par Bip v2 ; phrase et montants Figma ne pilotent aucune donnée.
 
+Avec phases : liste ordonnée de libellés/durées, durée de série égale à leur somme ; dernière durée calculée sous format. Le corpus historique de phrases ne couvre pas cette extension ; les nouveaux textes restent à valider.
+
 ### 6. Classification des valeurs Figma
 
 Titres/règles statiques ; valeurs de champs dynamiques ; exemples Figma démonstratifs. exact/estimated/lowerBound/omitted à l’Exercice ; lowerBound réservé au mélange calculable. Une erreur de cible n’est pas une durée omitted et bloque ✓ sans inventer un montant.
+
+Phase 1 et Phase n sont des libellés initiaux ; les libellés personnalisés et durées sont des données. Les chiffres des maquettes ne déterminent aucun calcul.
 
 ### 7. Structure de l’écran
 
 **Complément cible12/10 :** Champ régime identiques/variables et chevron distinct ; identiques sans chevron. Tableau variable visible ou replié.
 
-En-tête fixe ✕/titre/✓ ; corps défilant Mode → Séries → régime identiques/variables avec chevron indépendant → cible/Pause uniformes ou tableau → Changement de côté → Ordre/PC si bilatéral → Bip de cadence → Total applicable → Compte à rebours → Fin. Bip commun hors tableau, présent dans les deux modes. N1 normalisé uniforme et ordre par côté.
+En-tête fixe ✕/titre/✓ ; corps défilant Mode → Phases → Séries → régime identiques/variables avec chevron indépendant → cible/Pause uniformes ou tableau → Changement de côté → Ordre/PC si bilatéral → Bip de cadence → Total applicable → Compte à rebours → Fin. Bip commun hors tableau, présent dans les deux modes. N1 normalisé uniforme et ordre par côté.
+
+Phases entre Mode et Séries ; tableau Libellé/Durée sous cette ligne lorsqu’il est déployé. Aucune sans chevron ; chevron seulement avec liste existante.
 
 ### 8. Éléments obligatoires
 
 **Complément cible12/10 :** Valeur numérique au repos, ± au toucher ; N hérité visible et non modifiable, origine discrète. Total affichable en lecture seule sous héritage.
 
 Bip0..10, boutons ± révélés par appui sur sa valeur,0 libellé Aucun ; contrôle actif même à0. Aucun interrupteur ou roulette Bip. Total absent en Répétitions sans bip et toutes cibles À l’échec ; exact en Durée toute chiffrée, ≈ en Répétitions toute chiffrée avec bip, ≥ en mélange calculable. Pause entre les côtés seulement en bilatéral. Compte à rebours/Fin conservés.
+
+Libellés limités à20 caractères, ajout limité à6 phases. Durée de série calculée visible. Mode incompatible, cible À l’échec et régime variable indisponibles tant que les phases existent.
 
 ### 9. Layout déterministe
 
@@ -3000,15 +3022,21 @@ Bip0..10, boutons ± révélés par appui sur sa valeur,0 libellé Aucun ; contr
 
 Référence longue7119:27855 :224caractères, cinq lignes/100px à largeur324, carte193px en AUTO. Contenu et contrôles suivants suivent la hauteur intrinsèque, sans plafond.
 
+Réutiliser la ligne de tableau à deux colonnes et son pied, le repli et les états existants. Distinguer valeur calculée lisible, valeur imposée effective et option indisponible. Fond gris et hauteur suivent le contenu ; DSF Deux modes, section Phases.
+
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
 360/402/440, Safe Areas, texte agrandi et scroll ; en-tête reste accessible. Tableau replié conserve données et erreurs ; feuille sans total conserve accès au Bip et aux actions. Aucune hauteur fixe ne doit rogner le texte ou les steppers.
+
+Le clavier du libellé ne masque ni le champ actif ni les actions. Jusqu’à six phases : corps défilant, en-tête accessible, repli sans perte des valeurs ; aucune hauteur fixée à l’exemple de deux phases.
 
 ### 11. États de l’écran
 
 Cible chiffrée / À l’échec / mélange ; ouverture sur la cible courante. Option sélectionnée100%, sinon45% du remplissage #1a1a1f. À l’échec sélectionné : partie numérique neutre00:00 et grisée ; ce zéro n’est pas une cible valide. Aucun écran uniforme supplémentaire : un changement de valeur seul ne crée pas un nouveau contrat.
 
 Bip0/positif dans chacun des deux modes ; cible valide/incomplète ; uniforme/variable ;N1 ; deux ordres/directions ; tableau ouvert/replié ; steppers au minimum/maximum et maintenus ; validation/annulation. Plus aucun état roulette de cadence.
+
+Sans phases ; phases ouvertes/repliées ; incompatibilité ; une/six phases ; zéro temporaire ; dernière durée imposée calculée ; libellé vide ; adaptation avec message. Un état non illustré reste spécifié par ce contrat.
 
 ### 12. Contrôles et interactions
 
@@ -3018,13 +3046,21 @@ Deux modes seulement. Cible chiffrée et À l’échec mutuellement exclusives ;
 
 ± modifie Bip par1, bornes0..10, sans accélération. Autres steppers : DSF Bip (maintien≈500ms, paliers1/5/10 selon durée du maintien et champ). Bascule de mode conserve Bip même à✓ ; cibles numériques incompatibles remplacées par— et restaurées dans le brouillon selon v13. Variable copie les valeurs uniformes ; retour uniforme reprend première ligne ; réduction/augmentation/restauration et déplacement selon v13. Une seule roulette/segmenté ouvert pour les autres champs. Le total Durée uniforme entièrement chiffré garde son inversion seulement si N est libre ; sous N imposé par un circuit de séries, tout total affichable est en lecture seule. omitted reste absent.
 
+Aucune crée Phase1 à la durée actuelle. Ajout libre copie la dernière durée ; ajout sous format crée0 et rend la précédente modifiable. La dernière reçoit le restant. Déplacement conserve valeurs et transfère le calcul à la dernière position. Suppression sous format transfère le temps libéré à la dernière restante ; supprimer l’unique phase conserve sa durée comme durée simple. Message informatif lors de l’adaptation proportionnelle à l’intégration, catalogue intact.
+
+Avec phases et N libre, Durée totale conserve le calcul inverse de R-02 : seul N est ajusté, les durées des phases restent inchangées. N imposé : total en lecture seule.
+
 ### 13. Gestes
 
 Tap et maintien sur steppers, arrêt au relâchement/sortie de cible, pas supplémentaire de relâchement interdit après répétition. Glisser la poignée réordonne cible/Pause/bip ensemble et recalcule la dernière ligne. Alternatives accessibles sans geste fin.
 
+Poignée : déplacer le libellé et sa durée ensemble. Tap libellé : saisie texte ; tap durée éditable : contrôle durée. La dernière calculée n’ouvre pas de saisie. Les gestes et alternatives accessibles du tableau existant sont conservés.
+
 ### 14. Validation
 
 Mode et cibles typées actives requis ; une cible À l’échec est valide sans nombre. R06 close : maximum58min55s (3535s) confirmé ; roulette de cible par pas5s dès5s. Cibles chiffrées : N1..99,Ri1..100,Ti5..3535s,Pauses0..300s,Bip entier0..10 dans deux modes. −1,11,fraction invalides, aucune correction silencieuse. Repli ne contourne pas validation ; erreur nommant la Série.0=Aucun reste valide. Nom/Catégorie/Zones contrôlés au parent.
+
+À ✓, phases de saisie à0 retirées silencieusement, libellés vides remplacés par Phase n. Les phases persistées sont positives. La somme calculée de6+3=9s n’est pas arrondie au pas5s du sélecteur de série. Les bornes/pas spécifiques, le cas initial sans durée et les arrondis extrêmes restent à préciser au chapitre08 ; ne pas choisir une nouvelle borne implicitement.
 
 ### 15. Brouillon et persistance
 
@@ -3032,13 +3068,19 @@ Aucune phrase ni aucun segment en base, occurrence ou snapshot. Régénération 
 
 Brouillon isolé ; ✓ atomique au parent ; ✕ restaure totalité avant ouverture. Bip persiste quel que soit le mode. Les variantes cachées de cibles/tableaux ne sont pas persistées hors état actif. Duplication/copie/snapshot incluent Bip ; aucune mutation partielle.
 
+Conserver les zéros temporaires uniquement en brouillon. Annuler restaure l’ordre, les libellés et toutes les durées, y compris le restant recalculé. Copie, duplication et instantané conservent la liste ; aucun total ni phrase en base.
+
 ### 16. Navigation et conservation d’état
 
 Retour au parent même position et contenu, phrase régénérée à chaque affichage depuis les paramètres appliqués, notamment après✓ valide. Une bascule de mode seule ne sauvegarde rien. Pas de navigation vers un écran de cadence ni de nouvelle route.
 
+Même retour au parent ; le repli n’est pas une sortie. Les modifications de la copie de séance n’affectent pas le Catalogue.
+
 ### 17. Erreurs et cas limites
 
 Cible manquante, valeur hors borne, double validation, interruption ou erreur de persistance : aucun état partiel. Mode sans durée propre : ligne absente même si pauses positives. Historique non modifié ; données héritées hors plage à traiter explicitement, jamais tronquées silencieusement.
+
+Pas de septième phase, de durée restante négative ou d’effacement des phases à travers un ancien DTO. Les arrondis à zéro lors d’une adaptation ne sont pas assimilés sans arbitrage à des zéros de saisie.
 
 ### 18. Accessibilité
 
@@ -3046,9 +3088,13 @@ Cible manquante, valeur hors borne, double validation, interruption ou erreur de
 
 Nom accessible Bip de cadence ; valeur Aucun ou intervalle en secondes ; boutons augmenter/diminuer et limites annoncées. Total ≈ annoncé estimation ; ≥ annoncé total prévisionnel partiel. Option À l’échec annoncée sélectionnée/non sélectionnée ; le grisé n’est pas le seul indicateur accessible. Focus modal contenu, retour à la zone Paramètres. Texte agrandi, cibles44 minimum, alternatives au maintien/glisser.
 
+Annoncer position, libellé, durée et état calculé/non modifiable ; raison de l’indisponibilité accessible, pas uniquement grise. Ordre de focus cohérent après ajout, suppression et déplacement ; texte20 caractères sans réduire les cibles tactiles.
+
 ### 19. Invariants
 
 Bip sonore uniquement pendant Série, aucune transition automatique. Les intervalles logiques peuvent proposer un relevé estimé en Répétitions à l’échec. Son ne transforme pas À l’échec en durée connue. Aucune estimation forfaitaire ; ≥ seulement pour mélange calculable à l’Exercice. Pause après chaque série, y compris la dernière ; récupération contextuelle positive remplaçant seulement la dernière Pause. Les images ne gouvernent ni calculs ni persistance.
+
+Une série = un motif complet ; phases seulement Durée chiffrée et identiques. Pauses et côtés inchangés. Aucun comportement ne découle d’un exemple chiffré Figma.
 
 ### 20. Recette déterministe
 
@@ -3061,6 +3107,9 @@ Recette rédactionnelle :276 gabarits v15 avec total métier injecté, gras sur 
 Deux modes × deux types de cible × bip nul/positif ;0/1/10 et rejets−1/11/fraction ; conservation lors des bascules, annulation et duplication.4×15×4+4×15=300s≈ ; sans bip ligne absente. Tester N1,variable,repli,réordre de dernière Série,inversion Durée,deux côtés/R ; géométrie42px, texte agrandi et accessibilité. Phrase de pauses conforme aux276 formulations v15 ; Q-08 clos.
 
 Corpusv15 :276gabarits, total métier injecté ; aucun changement grammatical vs v14. Tester virgule jamais isolée en début de ligne, cas144 long et ordre des cibles après déplacement. Les cas de brouillon incomplet restent hors des276sorties validées.
+
+Recette phases : création/repli ; ajout libre6→6+6 ; format20→20+0→12+8 ; suppression5+7+8→5+15 ; déplacement sans modification du total ; dernière supprimée→durée simple ; six phases ; libellé20/vide ; zéro retiré ; annulation complète ; adaptation15+15→10+10 et6+3→13+7 avec message ; total3×(6+3+15)=72s ; ancien objet inchangé. Recette applicative non exécutée par la présente mise à jour documentaire.
+
 
 ## 5. État des preuves visuelles
 
@@ -3858,6 +3907,8 @@ Imposé effectif ; éditable ; erreur de saisie. Ne pas confondre avec indisponi
 
 Tap sur constante n’ouvre pas un éditeur. Changement autorisé actualise la phrase et les calculs sans écraser la définition catalogue.
 
+Phases éligibles : dernière durée calculée, contraintes assurées pendant la saisie. À l’intégration, adaptation proportionnelle dans la copie seulement si total différent, à la hausse comme à la baisse, avec message informatif sans confirmation. Durée de fenêtre EMOM et durée d’effort restent distinctes. Les règles détaillées de CE-UI-10 s’appliquent.
+
 ### 13. Gestes
 
 Fermeture et interactions existantes de modale ; pas d’appui long requis pour comprendre la raison.
@@ -3889,6 +3940,9 @@ les constantes restent effectives dans le moteur futur.
 ### 20. Recette déterministe
 
 REC-08, 18 ; vérifier absence d’éditeur sur les quatre constantes et absence de tiret ; contrôle des segments et de l’unité tour.
+
+Vérifier les exemples20s du contrat CE-UI-10, le message d’adaptation, l’indépendance du catalogue et l’absence de conversion vers un mode incompatible. Les modales Figma de format n’illustrent pas encore les phases selon le rapport du15/10.
+
 
 ## CE-FMT-05 — Exécution des fenêtres et formats à borne ouverte
 

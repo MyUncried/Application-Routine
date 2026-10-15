@@ -208,6 +208,14 @@ La technologie cloud et la stratégie précise de synchronisation ne sont pas ch
 
 Après le MVP, les médias ne seront pas stockés comme blobs dans SQLite : la base conservera leurs métadonnées et leurs références locales ou distantes.
 
+### Évolution des paramètres canoniques pour les phases
+
+Étendre le contrat versionné ExecutionParameters, les brouillons, validateurs, projections, copies, sérialiseurs et parseurs. La persistance locale dispose déjà d’un champ execution_parameters pour le Catalogue ; une nouvelle table n’est pas imposée par le concept. Vérifier aussi les chemins de Séance et d’instantané avant de choisir la migration physique.
+
+Les anciennes définitions restent sans phases. La nouvelle écriture et sa lecture compatible doivent être livrées ensemble ; préserver le refus explicite d’une version inconnue, sans repli scalaire destructeur. Les totaux et phrases restent dérivés. Le choix des noms techniques et du numéro de version relève de la réalisation, pas de Figma.
+
+L’impact est transversal mais additif : éditeur, calcul, données et moteur cible doivent évoluer ensemble. Aucun nouveau besoin d’hébergement n’est identifié. Les bornes de durée actuelles du code divergent de RM-234 ; la correction doit suivre la spécification et être rattachée au lot approprié, sans migration silencieuse des anciennes valeurs.
+
 ## 12.7 Identité utilisateur
 
 ### MVP
@@ -303,6 +311,14 @@ Le moteur gère ensuite :
 Le Plan distingue les phases `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `SIDE_RECOVERY`, `POST_ACTIVITY_RECOVERY` et `SESSION_END`. Ces valeurs qualifient une phase d’exécution et non un type d’Exercice. `SIDE_RECOVERY` conserve la référence de l’Exercice bilatéral ; `POST_ACTIVITY_RECOVERY` conserve la référence de l’occurrence. Leurs métriques planifiées/écoulées sont distinctes. Après la dernier Exercice et sa récupération post-exercice éventuelle, `ExecutionService` active `SESSION_END` et continue le calcul du temps écoulé. Il ne persiste la clôture normale qu’à l’achèvement de cette étape ; `0 s` provoque la transition immédiatement. Le routeur ouvre ensuite la fin minimale dans T04, ou la Synthèse dans la tranche qui la livre. Un arrêt antérieur suit le chemin d’interruption et produit le statut `Interrompue`.
 
 La logique du moteur doit être indépendante des composants graphiques afin de pouvoir être testée automatiquement.
+
+### Phases internes aux séries
+
+Les phases s’insèrent sous le passage de travail de la série, sans changer les frontières des pauses, côtés, circuits ou résultats. Un changement de phase ne clôt pas la série et ne redémarre pas le bip périodique. Le moteur temporel demeure la source de vérité ; le guidage vocal ne retarde jamais la transition. Une annonce de phase remplace la précédente encore active.
+
+La reprise technique conserve l’identité de l’occurrence, de la série, du côté et de la phase, ainsi que son temps restant. Réinitialiser et Suivant gardent leur portée métier existante. Pour la progression globale, subdiviser un travail de 9 s en 6 + 3 ne change pas son poids, notamment avec des séries non déterminables ailleurs dans le plan.
+
+Les données de phases sont figées dans l’instantané, pas relues depuis le catalogue. Leur définition reste une liste unique ; le plan développe ses occurrences. Aucun stockage de phrase, aucune boucle supplémentaire ni service distant ne découle de cette évolution.
 
 ## 12.10 Gestion du temps
 
