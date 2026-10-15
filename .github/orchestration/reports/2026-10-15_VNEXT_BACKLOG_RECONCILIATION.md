@@ -445,3 +445,34 @@ Validation locale :
 Statut : **développé dans un candidat / testé localement Linux / non intégré main / usage réel non démontré / PE-32 OUVERT**. Le moteur de main est inchangé par cette mise à jour documentaire. Le rapport technique complet est [dans le candidat à SHA exact](https://github.com/MyUncried/Application-Routine/blob/af112474bb2ff98348c8b55848b7de5792e3abb5/.github/orchestration/reports/2026-10-15_PE32_PATH_PREFLIGHT.md). La clôture exige la livraison et la qualification appropriée du correctif, pas une simple reclassification documentaire.
 
 Contrôles du présent suivi : 41 besoins conservés, seule ligne de besoin PE-32 modifiée depuis la base, statuts compatibles, PE-27 reste clos et 25 sujets restent ouverts. Publication limitée au registre et au présent rapport avec HEAD attendu, sans force, puis relecture sur main.
+
+
+## Complément PE-33 — préservation après REVISE satisfaite, suivi clos
+
+Date : 15 octobre 2026. Base de cette conclusion : main `df387b04b790894f961c3b3686cad22d0449a8e7`. Comparaison avec le code audité `f8020627015c74e5d11e7972b5f685a4874fec04` : aucun changement moteur/workflow/tests ; seules données opérationnelles et documentation ont avancé. La PR #365 de PE-32 reste distincte et n’est pas fusionnée par cette mission.
+
+### Correspondance du besoin et des preuves
+
+| Obligation PE-33 | Vérification dans VNext actuel | Preuve existante |
+|---|---|---|
+| Le plan et la revue précédents constituent la base opposable | revision-contract.buildAllowedChangeSet contrôle hashes de la revue, du contexte et du graphe exact ; live-chain vérifie les reçus et références de base ; runtime reconstruit la chaîne | Q1 : live revision handoff binds both real-format receipts without rewriting the reviewed proposal, incluant refus d’une base, session ou outcome substitués |
+| Corriger seulement les cibles contestées ; conserver les autres parties strictement identiques | authorized_targets / derived_targets / preserved_targets disjoints ; contrôle des object_hash et des objets nouveaux ; patch limité aux identités autorisées | Q1 : VNext-07 construit un AllowedChangeSet borné et préserve le plan item non ciblé ; accepte une correction ciblée et vérifie la préservation exacte ; détecte une modification d’un objet préservé ; refuse une correction sur une cible hors AllowedChangeSet |
+| Une modification plus large exige une cause précise, pas la simple mention du plan complet | Refus PLAN_CONTRACT sans dépendances ciblées ; descendants recalculés mécaniquement ; ajout de dépendances par reçu de scope contrôlé et lié au finding, sans réécrire la revue originale | Q1 : refuse un finding PLAN_CONTRACT trop large sans dépendances ciblées ; scope supplement opens only an independently selected existing requirement and leaves the original report unchanged ; rejects unauthorized target, unobserved selection, changed request, altered raw result and manufactured additions |
+| Appliquer la règle au passage de la planification initiale à la révision ; revalider intégralement la sortie | Même moteur de revue INITIAL/REVISION ; reconstruction canonique, calcul de réentrée, contrôle de préservation et résolution causale avant handoff | Q1 : VNext-07 correction ciblée INITIAL → REVISION, finding_id stable entre les deux modes, détection REVISION_STALLED/nouveau défaut sur objet préservé ; revision supervisor preserves immutable source, scope and causal findings through exactly one correction ; live revision handoff |
+| Démonstration réelle du mécanisme, sans la confondre avec une implémentation produit | Source de base, patch, constats, nouvelle revue et outcome relus dans le rapport versionné | Run [37546751570](https://github.com/MyUncried/Application-Routine/actions/runs/37546751570) API completed/success, HEAD 7992c924aa13cd3e6dc495814b9d15a78baf9152 : vraie revue Claude REVISE puis APPROVE, résolution causale, **1610 cibles préservées**. Archive 11451511042, SHA-256 5c05982a60b1f7d48ee65683eb41f8dceefac8a3afaf529f790bf73c01ed4c6f, provenance et vérification physique documentées dans le rapport source |
+
+Les résultats Q1 ci-dessus sont effectivement présents PASS dans l’archive qualification-controls-Linux 11935405938 du run [38650355491](https://github.com/MyUncried/Application-Routine/actions/runs/38650355491), candidat 16af73dc intégré par #362. Archive déjà téléchargée et hash contrôlé dans l’audit ; il ne s’agit pas de nouveaux tests supposés exécutés. Le [rapport du cycle réel de révision](2026-10-07_VNEXT_REVISION_PLAN_SUCCESS_37546751570.md) a été relu intégralement ; l’API du run réel a été revérifiée.
+
+### Portée et limites exactes
+
+**PE-33 SATISFAIT / DÉMONTRÉ / CLOS pour la préservation dans les révisions autorisées.** Aucun développement supplémentaire nécessaire pour le besoin vérifié. Le cas réel de révision de plan est une preuve plus directe que le seul succès ultérieur EXECUTE_REVISION, lequel concerne le développement après plan approuvé.
+
+La formulation précédente « vérifier premier plan comme plan déjà révisé » ne doit pas être comprise comme une obligation nouvelle de boucles illimitées. Le contrôle commun protège la base et la sortie révisée ; un dernier REVISE ou une limite de révision atteinte reste bloquant. live-chain impose INITIAL comme base de son parcours causal automatique et conserve compteurs/approbations ; ce n’est pas une permission de corriger récursivement une base REVISION. Ce refus n’autorise aucune réécriture des éléments préservés. Une extension du nombre de cycles serait un autre besoin, pas un reliquat nécessaire à PE-33.
+
+Une révision après nouvelle décision produit demeure soumise à ses nouvelles sources, son autorisation et ses contrôles ; PE-33 ne certifie pas toutes les futures tranches ni leur conformité produit. Les protections contre l’absence de progrès et les gates propriétaires sont conservées. Les problèmes de continuité de PE-31/35/39 ne sont pas clos par ce verdict.
+
+### Mise à jour et contrôles
+
+Vue détaillée et statut de suivi PE-33 mis à jour à DÉMONTRÉ. PE-02, PE-15 et PE-27 restent clos ; PE-32 reste ouvert avec correctif candidat #365. **24 sujets ouverts** parmi les 28 initialement réconciliés.
+
+Contrôles documentaires : 41 lignes de besoins conservées, seule ligne de besoin PE-33 modifiée depuis la base, quatre statuts compatibles, aucun changement de moteur/workflow/test ni nouvelle exécution. Le présent complément conserve les constats et preuves antérieurs comme historiques. Publication atomique limitée au registre et au rapport, avec HEAD attendu sans force, puis relecture sur main.
