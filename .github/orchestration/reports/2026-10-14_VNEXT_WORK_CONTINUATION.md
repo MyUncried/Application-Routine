@@ -1,5 +1,13 @@
 # VNext — restauration du retour commun vers Work
 
+## Bilan actualisé — 15 octobre 2026
+
+Le correctif de consolidation #362 est intégré sur main `fb875bc7f38750c85fc9e1dab0001df6f9e89ec0`, avec l'arbre exact du candidat `16af73dc851160bba949425e887328c3124876c3`. Qualifications VNext `38650355491` et contrôles hérités `38650355485` SUCCESS, Linux et Windows compris. Le bilan détaillé et ses limites figurent dans [le checkpoint commun](2026-10-14_VNEXT_COMMON_CORRECTION_CHECKPOINT.md).
+
+La réception automatique et la consommation durable ont été démontrées à 00:31 Paris : quatre ZIP vérifiés, claim `ae877afe8a357d0cae13604e0c9160c7cfdfbd69`, checkpoint RESULT_CONSUMED `f8b84bc5be79247116e6df775eda95659646f190`, reçu PROCESSED `d884cf9250694bf9824a57094aac2d3b52a37237`, origine AUTOMATION_EVENT. La consigne de l'automation existante est désormais générique et ses déclencheurs restent actifs sur #356 ; aucun nouveau réveil de qualification ni appel Claude n'a été provoqué pour cette clôture. La restitution spontanée dans le fil pilote reste non vérifiée, distincte du résultat dans le chat d'exécution/Planifié. Aucun PRE-4 n'est lancé.
+
+Les mentions « non encore démontrée » ci-dessous décrivent l'historique antérieur à cette preuve, conservé sans réécriture de ses résultats.
+
 ## Demande et baseline
 
 Hermann demande de rétablir le réveil automatique par synchronize, commun aux tranches, après constat de sa disparition du relais PRE-4. Travail depuis main e844b55fddf23ffb648108fa56c423ccd1f4a7f9 ; correction #355 déjà intégrée et qualifiée. Aucun code produit ni PlanContract modifié, aucune nouvelle certification ou appel Claude.

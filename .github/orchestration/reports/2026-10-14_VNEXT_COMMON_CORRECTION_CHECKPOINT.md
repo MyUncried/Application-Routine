@@ -1,4 +1,14 @@
-# VNext commun — checkpoint de correction, chantier ouvert
+# VNext commun — bilan de consolidation intégré
+
+## État final de cette livraison — 15 octobre 2026
+
+La consolidation #362 est fusionnée sur `main` au commit `fb875bc7f38750c85fc9e1dab0001df6f9e89ec0`. Son arbre `ec3c07ee30413fef980f0565b9828499426d376c` est exactement celui du candidat qualifié `16af73dc851160bba949425e887328c3124876c3`, vérifié après fusion. Le run [38650355491](https://github.com/MyUncried/Application-Routine/actions/runs/38650355491) est SUCCESS : qualification et équivalence historique Linux/Windows, ainsi que couverture historique des plateformes. Le run hérité [38650355485](https://github.com/MyUncried/Application-Routine/actions/runs/38650355485) est SUCCESS, précontrôle Windows compris. Les jobs volontairement SKIPPED ne sont pas présentés comme des tests exécutés ni comme un nouvel audit indépendant.
+
+La preuve opérationnelle du retour reste la chaîne réelle du 15 octobre à 00:31 Paris : claim `ae877afe8a357d0cae13604e0c9160c7cfdfbd69`, checkpoint RESULT_CONSUMED `f8b84bc5be79247116e6df775eda95659646f190`, reçu PROCESSED `d884cf9250694bf9824a57094aac2d3b52a37237`, origine AUTOMATION_EVENT et quatre ZIP physiquement vérifiés. Elle est antérieure à la consolidation #362 : aucun nouvel essai automatique du consommateur consolidé n'est inventé.
+
+L'automation existante `6acfddf6231c8191867783a49d7a55a8` conserve le déclencheur PR #356/auteur MyUncried/mises à jour de commits, sans commentaires, revues ni cadence ajoutée. Sa consigne d'essai borné est remplacée par la consommation générique des signaux et wakeups inscrits : aucun signal, run ou candidat de test figé ; code depuis main, données à SHA exact, contrôle des octets, modes step-claim/step-finish et reçus relus. Elle reste active, sans création de tâche. Les écritures restent limitées à la consommation ; aucun workflow, appel Claude, lancement de tranche ou PRE-4 n'est autorisé par cette consigne.
+
+**Bilan clos pour la livraison #362 : correctif intégré, candidat qualifié, main relu et consigne générique installée.** N06/N07 disposent de la démonstration réelle CI décrite ci-dessus ; les autres familles gardent leurs preuves de contrat, sans parcours produit nouveau. N08 reste partiel : réception/consommation dans le chat d'exécution démontrées, routage spontané vers le fil pilote non vérifié. Cette limite n'est ni corrigée ni certifiée par un changement de prompt. Aucune certification globale supplémentaire, approbation produit, réduction du catalogue ou reprise PRE-4 n'est déduite de cette clôture. Les sections suivantes sont des checkpoints historiques, pas l'état courant de #362.
 
 ## Reprise et réconciliation
 
