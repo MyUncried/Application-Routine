@@ -1,0 +1,39 @@
+✔ historical equivalence binds every exact source subject and named test locations (454.510193ms)
+✔ historical equivalence refuses stale candidate, forged stdout and incomplete summary (0.613222ms)
+✔ historical equivalence preserves SKIP and refuses operational certification from fixture PASS (0.183847ms)
+✔ historical structured reporter ignores stdout that imitates a passing assertion (4.427401ms)
+✔ historical reporter preserves the actual test runner failure and nested browser diagnostic (153.836453ms)
+/tmp/kodjo-publication-tQlWgd/.github/workflows/broken.yml: while parsing a flow sequence
+  in "<unicode string>", line 2, column 5:
+    on: [unterminated
+        ^
+expected ',' or ']', but got '<stream end>'
+  in "<unicode string>", line 3, column 1:
+    
+    ^
+/tmp/kodjo-publication-2KKCEp/.github/workflows/broken.yaml: while parsing a flow sequence
+  in "<unicode string>", line 2, column 5:
+    on: [unterminated
+        ^
+expected ',' or ']', but got '<stream end>'
+  in "<unicode string>", line 3, column 1:
+    
+    ^
+✔ qualification admission refuses stale, incomplete, failed or wrong workflow evidence (2.549847ms)
+✔ dedicated branch qualification preserves exact-head and every-job admission gates (1.423031ms)
+✔ publication admission refuses a moved parent, checkpoint or active phase including later API pages (0.97678ms)
+✔ prepublication validation refuses malformed workflow bytes before publication (2724.382122ms)
+✔ prepublication validation refuses exact writer blob drift (2600.079679ms)
+✔ prepublication validation refuses stale historical test correspondence (2698.887221ms)
+✔ environmental and unknown failures request technical diagnosis without automatic retry (0.484779ms)
+✔ changed PowerShell must be parsed and invalid or unavailable parsing refuses publication (2677.54493ms)
+✔ execution qualification binds a separately changed controller and refuses missing controller proof (49.241379ms)
+✔ changed frozen Figma source requires a qualification of the changed controller (122.212392ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10984.636667

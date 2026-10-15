@@ -183,7 +183,7 @@
         "scripts/kodjo/lib/source-manifest.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417"
+      "test_source_sha256": "73df95aaa15078fbc7b2158acd9236091a1cdc9c34bd0c45867e145d1610770b"
     },
     {
       "id": "CASE-849d27e38e102839",
@@ -379,7 +379,7 @@
       "id": "CASE-d117fc211d89f585",
       "test_path": "tests/kodjo/vnext-approval-handoff.pilot.js",
       "test_name": "VNext-08 refuse le handoff si le HEAD applicatif a bougé",
-      "source_line": 465,
+      "source_line": 467,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/approval-handoff-contract.js",
@@ -391,7 +391,7 @@
         "scripts/kodjo/lib/source-manifest.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417"
+      "test_source_sha256": "73df95aaa15078fbc7b2158acd9236091a1cdc9c34bd0c45867e145d1610770b"
     },
     {
       "id": "CASE-2408170ab0ae4112",
@@ -1678,7 +1678,7 @@
       "id": "CASE-8b177f500ff420ee",
       "test_path": "tests/kodjo/vnext-approval-handoff.pilot.js",
       "test_name": "VNext-08 le transport du message ne change pas l’identité de la cible approuvée",
-      "source_line": 337,
+      "source_line": 339,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/approval-handoff-contract.js",
@@ -1690,7 +1690,7 @@
         "scripts/kodjo/lib/source-manifest.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417"
+      "test_source_sha256": "73df95aaa15078fbc7b2158acd9236091a1cdc9c34bd0c45867e145d1610770b"
     },
     {
       "id": "CASE-e57030db5e390656",
@@ -3956,7 +3956,7 @@
       "id": "CASE-fa16531ae31aa25d",
       "test_path": "tests/kodjo/vnext-approval-handoff.pilot.js",
       "test_name": "VNext-08 refuse le handoff si le HEAD produit a bougé",
-      "source_line": 482,
+      "source_line": 484,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/approval-handoff-contract.js",
@@ -3968,13 +3968,13 @@
         "scripts/kodjo/lib/source-manifest.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417"
+      "test_source_sha256": "73df95aaa15078fbc7b2158acd9236091a1cdc9c34bd0c45867e145d1610770b"
     },
     {
       "id": "CASE-98cbf0d80b2af3bb",
       "test_path": "tests/kodjo/vnext-approval-handoff.pilot.js",
       "test_name": "VNext-08 invalide l’approbation si la version protocolaire change",
-      "source_line": 499,
+      "source_line": 501,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/approval-handoff-contract.js",
@@ -3986,7 +3986,7 @@
         "scripts/kodjo/lib/source-manifest.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417"
+      "test_source_sha256": "73df95aaa15078fbc7b2158acd9236091a1cdc9c34bd0c45867e145d1610770b"
     },
     {
       "id": "CASE-cecab50c90716bf9",
@@ -4676,7 +4676,7 @@
       "id": "CASE-21de337977e79cdf",
       "test_path": "tests/kodjo/vnext-approval-handoff.pilot.js",
       "test_name": "VNext-08 exige une action utilisateur explicite liée au hash exact",
-      "source_line": 346,
+      "source_line": 348,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/approval-handoff-contract.js",
@@ -4688,13 +4688,13 @@
         "scripts/kodjo/lib/source-manifest.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417"
+      "test_source_sha256": "73df95aaa15078fbc7b2158acd9236091a1cdc9c34bd0c45867e145d1610770b"
     },
     {
       "id": "CASE-fcc1746d23745b27",
       "test_path": "tests/kodjo/vnext-approval-handoff.pilot.js",
       "test_name": "VNext-08 une décision REJECTED bloque toujours le handoff",
-      "source_line": 391,
+      "source_line": 393,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/approval-handoff-contract.js",
@@ -4706,13 +4706,13 @@
         "scripts/kodjo/lib/source-manifest.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417"
+      "test_source_sha256": "73df95aaa15078fbc7b2158acd9236091a1cdc9c34bd0c45867e145d1610770b"
     },
     {
       "id": "CASE-3c83098a74174fcb",
       "test_path": "tests/kodjo/vnext-approval-handoff.pilot.js",
       "test_name": "VNext-08 refuse une approbation devenue obsolète après modification du plan",
-      "source_line": 431,
+      "source_line": 433,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/approval-handoff-contract.js",
@@ -4724,7 +4724,7 @@
         "scripts/kodjo/lib/source-manifest.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417"
+      "test_source_sha256": "73df95aaa15078fbc7b2158acd9236091a1cdc9c34bd0c45867e145d1610770b"
     },
     {
       "id": "CASE-3f2d9e424a7f3da8",
@@ -6238,7 +6238,7 @@
         "scripts/kodjo/lib/vnext-preserved-controls.js",
         "scripts/kodjo/lib/approval-handoff-contract.js"
       ],
-      "test_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417"
+      "test_source_sha256": "73df95aaa15078fbc7b2158acd9236091a1cdc9c34bd0c45867e145d1610770b"
     },
     {
       "id": "CASE-288978467a46373a",
@@ -6250,7 +6250,7 @@
         "scripts/kodjo/lib/vnext-preserved-controls.js",
         "scripts/kodjo/lib/approval-handoff-contract.js"
       ],
-      "test_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417"
+      "test_source_sha256": "73df95aaa15078fbc7b2158acd9236091a1cdc9c34bd0c45867e145d1610770b"
     },
     {
       "id": "CASE-9751c13d83c68a4c",
