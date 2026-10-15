@@ -1,0 +1,90 @@
+{
+  "kind": "LOCAL_EXECUTED_TESTS",
+  "recorded_at": "2026-10-15T15:32:21.713387+00:00",
+  "base_head": "b43c18a41eac91faa0ce6d55cc8789834c97e7cf",
+  "unique_pass": 143,
+  "fail": 0,
+  "skip": 0,
+  "series": [
+    {
+      "log": "lot3-approval-one.txt",
+      "sha256": "a25812f1ed1ee1a280d2b255eba13e910321b9db1e45d7e58843a527b1cc1d7c",
+      "pass": 20,
+      "fail": 0,
+      "skip": 0,
+      "overlap": 0
+    },
+    {
+      "log": "lot3-live-tests.txt",
+      "sha256": "4d04492c15665de0e0202c76944b306578947db1abbbbcf721ca84b0fa2f5f61",
+      "pass": 21,
+      "fail": 0,
+      "skip": 0,
+      "overlap": 0
+    },
+    {
+      "log": "lot3-closure-tests.txt",
+      "sha256": "647b2af7ff0e8f7716f4a9f9f4257c7d4ec82ae734fdfd4d645f6c984a52d57c",
+      "pass": 23,
+      "fail": 0,
+      "skip": 0,
+      "overlap": 0
+    },
+    {
+      "log": "lot3-visual-all.txt",
+      "sha256": "54af62e921f6f8b9c4b3954b8d342eef7d8723e9d6efb7ad6875d837ceec22da",
+      "pass": 23,
+      "fail": 0,
+      "skip": 0,
+      "overlap": 0
+    },
+    {
+      "log": "lot3-regression-tests.txt",
+      "sha256": "1b9f55f5e8cde7cc174086e152cb912fe1e6f37d0291d8c37d3fac22baa16a68",
+      "pass": 34,
+      "fail": 0,
+      "skip": 0,
+      "overlap": 0
+    },
+    {
+      "log": "lot3-security-tests.txt",
+      "sha256": "7478add74d0dfd0ef9b9815b07fd6838eadb37f4b7a4192bc909f72b5f6378cf",
+      "pass": 22,
+      "fail": 0,
+      "skip": 0,
+      "overlap": 0
+    },
+    {
+      "log": "lot3-runtime-tests.txt",
+      "sha256": "17d7c6d39585ce0a50a7d5f9cad4df121dd723d3116dad54fe0a5ed96709653b",
+      "pass": 6,
+      "fail": 0,
+      "skip": 0,
+      "overlap": 6
+    }
+  ],
+  "aggregate_log": ".github/orchestration/reports/evidence/2026-10-15_VNEXT_LOT3_LOCAL_TESTS.txt",
+  "aggregate_log_sha256": "09b7f744e99d1a391841cefbae53f8ce7314f4eea29d6d2c4b8046e2de229357",
+  "files_sha256": {
+    ".github/orchestration/KODJO_VNEXT_REMOTE_WRITE_POLICY.json": "c629cb60a7ef19903a750764a89581bfe36a7a9f28f25d344b18376cf63b7751",
+    ".github/workflows/kodjo-vnext-closure.yml": "6b6c35dc222b1872f2a1dcbfff709d66eea99ffd0f08de0ac06ffd1cb3253238",
+    "scripts/kodjo/close-vnext-github-delivery.js": "a872a14e70e6a0007858339952cd0d2c3a4761e744665ab6b3727efeebad57df",
+    "scripts/kodjo/lib/approval-handoff-contract.js": "4e624c415bef902936be2b9706d9ccf1b80aaeeef892b9ae1eda413a437db9cb",
+    "scripts/kodjo/lib/vnext-github-approval.js": "a380963c0ff451dbdf49a7175908e43e0cb38e4395185c65beed0c7910c3a569",
+    "scripts/kodjo/lib/vnext-github-closure.js": "0f0daffb4a89a5ca1cb1355de1b0f1c9143fb87e68be184a88f7970302261d9f",
+    "scripts/kodjo/lib/vnext-live-chain.js": "44f8fc5eec2d85751d90d301b93217b5620c18662ba76c92ae7dab137e975938",
+    "scripts/kodjo/lib/vnext-post-acceptance.js": "9771915ee3fb0f044ea9f57a156f8e79426253957fc7c1b74ebc077a485cd118",
+    "scripts/kodjo/verify-visual-checkpoint.js": "aa2bf999b5fe4933a3295ec70e43488684212b9494a733e48af5d5703cffb0f4",
+    "scripts/kodjo/vnext-chain.js": "0cf5c7e68af2314c56e577f5b6e61caf3a049ce534485b204a3a6a7a5334ca47",
+    "tests/kodjo/helpers/vnext-post-acceptance-fixture.js": "f0a6a136e627541a7db363843af9cfc67e67fbac96c8f199d837c6f183805177",
+    "tests/kodjo/vnext-approval-handoff.pilot.js": "73df95aaa15078fbc7b2158acd9236091a1cdc9c34bd0c45867e145d1610770b",
+    "tests/kodjo/vnext-github-closure.pilot.js": "26297464d10bacca65d3012ef345db02dd71939846c6f80ebd238389fe584393",
+    "scripts/kodjo/lib/vnext-activation-closure.js": "b04b6e03ac958670ddb0401fd0cb573613ada1c29033e5bfb86a86b51d135203",
+    "scripts/kodjo/lib/vnext-visual-correction.js": "f93f8624ab84915de81a005d2d422d0da6b76c9fd55c6e0c618a0505dd6549ed",
+    "tests/kodjo/vnext-visual-correction.pilot.js": "909099d5d326f62eae4db945b213e2bf3e284ee78d7b66dba7c43b57bc57a189"
+  },
+  "limitations": [
+    "Injected GitHub clients in correction and registry scenarios",
+    "No product execution, device conformity, Work resumption or actual registry write inferred"
+  ]
+}

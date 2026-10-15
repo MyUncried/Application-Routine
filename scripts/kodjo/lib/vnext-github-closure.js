@@ -86,6 +86,9 @@ function close(c, finalization, github) {
     final = matching('FINAL_OUTPUT',plan.finalBody);
     if (!final) V.fail('VNEXT_GITHUB_CLOSURE_FINAL_OUTPUT_NOT_OBSERVED');
   }
+  observe(c,github); // Do not close an activation if the delivery moved after publication.
+  const activation = c.closure_scope === 'GITHUB_SLICE_DELIVERY'
+    ? require('./vnext-activation-closure').record(c,finalization,String(final.id),github) : null;
   current = observe(c,github); // Recheck delivery and destination after publication.
   if (current.issue.state === 'open') github.closeIssue(c.repository,c.issue_number);
   current = observe(c,github);
@@ -96,6 +99,7 @@ function close(c, finalization, github) {
     if (!closed) V.fail('VNEXT_GITHUB_CLOSURE_RECORD_NOT_OBSERVED');
   }
   return V.sealContract({schema_version:'kodjo.vnext.github-closure.v1', ...plan.record,
+    ...(activation ? {activation_registry:activation} : {}),
     status:'SLICE_CLOSED', github_issue_closed:true, final_output_comment_id:String(final.id),
     slice_closed_comment_id:String(closed.id), issue_url:current.issue.html_url});
 }

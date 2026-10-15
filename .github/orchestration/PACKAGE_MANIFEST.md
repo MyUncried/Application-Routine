@@ -320,3 +320,17 @@ L'ajout de la dépendance commune à la liste figée du runtime IMPLEMENT prése
 | `tests/kodjo/vnext-interrupted-session.pilot.js` | Refus avant invocation, conservation des preuves, priorité à la réponse déjà disponible et identité de session conservée |
 
 La permission `checks: read` du relais existant permet uniquement de lire les annotations GitHub attestant l'interruption du runner. Le test du workflow conserve une liste exacte de permissions en lecture ; aucune permission d'écriture n'est ajoutée. La qualification du correctif reste distincte de la reprise réelle de PRE-4.
+
+
+## Complément VNext lot 3 — candidat du 15 octobre 2026
+
+Norme : section « Lot 3 » de `KODJO_PROTOCOL_VNEXT_SPEC.md`. État de qualification,
+limites et références exactes : `reports/2026-10-15_VNEXT_LOT3.md`.
+
+| Chemin | Rôle |
+|---|---|
+| `scripts/kodjo/lib/vnext-visual-correction.js` | Exécution bornée du plan inchangé sur décision device vérifiée ; admission et projection par la file commune |
+| `scripts/kodjo/lib/vnext-activation-closure.js` | Clôture idempotente de sa propre activation, preuve de finalisation et écriture conditionnelle du registre |
+| `tests/kodjo/vnext-visual-correction.pilot.js` | Deux identités, admission et runtime réels locaux sans appel modèle ; refus des références/scope/autorisation modifiés |
+| `tests/kodjo/vnext-github-closure.pilot.js` | Registre, clôture, réponse perdue, concurrence et compatibilité certification |
+| `tests/kodjo/vnext-approval-handoff.pilot.js` | Message actionnable et compatibilité des approbations exactes historiques |

@@ -48,6 +48,7 @@ test('IA-004 closure accepts another certification campaign with exact destinati
 test('IA-004 product closure preserves conservative attestations and never publishes the app',()=>{
  const x=fixture();x.c.closure_scope='GITHUB_SLICE_DELIVERY';x.c.slice_id='PRE-3';x.c.base_branch='main';x.c.delivery_branch='feat/pre3';
  x.issue.body=C.binding(x.c)+'Product fixture only';x.c.issue_body_sha256=V.sha256(x.issue.body);x.pr.head.ref=x.c.delivery_branch;x.pr.base.ref='main';
+ registryFixture(x);
  const f={...x.f,slice_id:'PRE-3',visual_compliance_attested:false};delete f.contract_hash;
  const result=C.close(x.c,V.sealContract(f),x.github);assert.equal(result.scope,'GITHUB_SLICE_DELIVERY');assert.equal(result.visual_compliance_attested,false);assert.equal(result.application_published,false);
  x.writes.length=0;C.close(x.c,V.sealContract(f),x.github);assert.deepEqual(x.writes,[]);
@@ -88,4 +89,49 @@ test('IA-F07 omissions survive both durable publications and idempotent recovery
  const result=C.close(x.c,sealed,x.github);assert.deepEqual(result.review_coverage,coverage);
  for(const comment of x.comments) assert.deepEqual(JSON.parse(comment.body.split('```json\n')[1].split('\n```')[0]).review_coverage,coverage);
  x.writes.length=0;assert.deepEqual(C.close(x.c,sealed,x.github),result);assert.deepEqual(x.writes,[]);
+});
+
+
+function registryFixture(x,{absent=false}={}) {
+ const I=require('../../scripts/kodjo/lib/slice-identity');
+ const bootstrap={schema_version:I.BOOTSTRAP_SCHEMA,protocol:'VNEXT',slice_id:x.c.slice_id,
+  issue_number:x.c.issue_number,repository:x.c.repository,target_branch:'main',baseline_head:'b'.repeat(40),
+  protocol_version:'0.6.12',protocol_commit:'c'.repeat(40),previous_slice_id:null,previous_checkpoint:null,
+  product_sources:[{path:'docs/source.md',sha256:'d'.repeat(64)}],authorized_actors:['MyUncried'],
+  created_at:'2026-10-15T09:00:00Z',activation_registry:'.github/orchestration/v2-activation-registry.json'};
+ bootstrap.slice_bootstrap_sha256=I.sha256(I.canonical(bootstrap));
+ const row={slice_id:x.c.slice_id,status:'ACTIVE',issue_number:x.c.issue_number,baseline_head:bootstrap.baseline_head,
+  bootstrap_path:'.github/orchestration/v2-slices/'+x.c.slice_id+'/slice-bootstrap.json',slice_bootstrap_sha256:bootstrap.slice_bootstrap_sha256};
+ const legacy={slice_id:'V2-CAT-01',status:'ACTIVE',issue_number:150};
+ const source={schema_version:I.REGISTRY_SCHEMA,activations:[legacy,row]};
+ const state={value:structuredClone(source),sha:'e'.repeat(40)};
+ if(absent)state.value.activations.pop();
+ x.github.registryFile=(r,file,ref)=>({sha:state.sha,value:structuredClone(file.endsWith('slice-bootstrap.json')?bootstrap:ref==='main'?state.value:source)});
+ x.github.writeRegistry=(r,file,sha,value)=>{assert.equal(sha,state.sha);state.value=structuredClone(value);state.sha='f'.repeat(40);x.writes.push('registry');};
+ return {state,source,bootstrap,legacy};
+}
+function productFixture(slice_id='VNEXT-REGISTRY-A') {
+ const x=fixture();Object.assign(x.c,{closure_scope:'GITHUB_SLICE_DELIVERY',slice_id,base_branch:'main',delivery_branch:'feat/registry'});
+ x.issue.body=C.binding(x.c)+'Product fixture';x.c.issue_body_sha256=V.sha256(x.issue.body);
+ x.pr.head.ref=x.c.delivery_branch;x.pr.base.ref='main';
+ const f={...x.f,slice_id};delete f.contract_hash;x.f=V.sealContract(f);return x;
+}
+for(const slice of ['VNEXT-REGISTRY-A','VNEXT-REGISTRY-B']) test('PE-30 closes and resumes exact activation without changing other cycles: '+slice,()=>{
+ const x=productFixture(slice),r=registryFixture(x,{absent:slice.endsWith('B')});
+ const first=C.close(x.c,x.f,x.github);assert.equal(first.activation_registry.status,'CLOSED');
+ assert.deepEqual(r.state.value.activations[0],r.legacy);
+ assert.equal(r.state.value.activations.find(a=>a.slice_id===slice).closure.finalization_hash,x.f.contract_hash);
+ assert.deepEqual(x.writes,['comment','registry','close','comment']);x.writes.length=0;
+ assert.deepEqual(C.close(x.c,x.f,x.github),first);assert.deepEqual(x.writes,[]);
+});
+test('PE-30 reconciles lost registry response, preserves concurrent unrelated changes',()=>{
+ const x=productFixture(),r=registryFixture(x),write=x.github.writeRegistry;let once=true;
+ x.github.writeRegistry=(...args)=>{if(once){once=false;r.state.value.activations.push({slice_id:'OTHER',status:'ACTIVE'});r.state.sha='1'.repeat(40);throw Error('conflict');}write(...args);throw Error('response lost');};
+ C.close(x.c,x.f,x.github);assert.equal(r.state.value.activations.at(-2).slice_id,'VNEXT-REGISTRY-A');
+ assert.equal(r.state.value.activations.at(-1).slice_id,'OTHER');assert.equal(x.writes.filter(w=>w==='registry').length,1);
+});
+test('PE-30 conflicting closure or activation identity never closes issue',()=>{
+ for(const mutate of [r=>r.state.value.activations[1].issue_number++,r=>r.state.value.activations[1].status='PAUSED',r=>{r.state.value.activations[1].status='CLOSED';r.state.value.activations[1].closure={final_head:'0'.repeat(40)};}]) {
+ const x=productFixture(),r=registryFixture(x);mutate(r);assert.throws(()=>C.close(x.c,x.f,x.github),/CYCLE_DRIFT|STATE_REFUSED|PROOF_DRIFT/);assert.equal(x.issue.state,'open');assert.ok(!x.writes.includes('registry'));
+ }
 });

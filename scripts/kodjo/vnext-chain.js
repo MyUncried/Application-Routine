@@ -99,6 +99,10 @@ function perform(args = process.argv.slice(2), onRecorded = () => {}) {
     if(config.sourceManifestInput?.sources.some(s=>s.source_kind==='FIGMA')&&!config.figmaLaunch)throw Error('VNEXT_FIGMA_LAUNCH_REQUIRED');
     write(output, Chain.produce(config, { cwd }));
   }
+  else if(stage==='visual-correction') {
+    const result=require('./lib/vnext-visual-correction').prepare(config.reference,{cwd});
+    write(output,result.projection.legacy_queue_request);
+  }
   else if(['prepare-implementation-review','implementation-review','verify-implementation-review'].includes(stage)){
     const R=require('./lib/vnext-figma-implementation-review');
     const planBody=fs.readFileSync(config.approved_plan_file,'utf8'),observed=read(config.observations_file);
@@ -144,7 +148,11 @@ function perform(args = process.argv.slice(2), onRecorded = () => {}) {
     const target = Chain.approvalTarget(prepared, { cwd, protocolHead: head });
     const issue = /^github_issue:([^#]+)#([1-9][0-9]*)$/.exec(prepared.produced.artifacts.planningEnvelope.issue_id);
     if (!issue || bootstrap.repository !== issue[1]) throw new Error('VNEXT_CHAIN_REPOSITORY_MISMATCH');
-    const response = publishReservedApproval(prepared, read(config.gate_reservation_file), head + '\n' + Approval.renderApprovalMessage(target),
+    const reservation = read(config.gate_reservation_file);
+    const commentId = /^issue_comment:([1-9][0-9]*)$/.exec(reservation.gate_ref)?.[1];
+    if (!commentId) throw Error('VNEXT_CHAIN_RESERVED_GATE_REQUIRED');
+    const approvalUrl = 'https://github.com/' + issue[1] + '/issues/' + issue[2] + '#issuecomment-' + commentId;
+    const response = publishReservedApproval(prepared, reservation, head + '\n' + Approval.renderApprovalMessage(target, {approvalUrl}),
       { cwd, github: require('./verify-authorizations').ghClient(), output });
     const result = { approval_target: target, gate_ref: 'issue_comment:' + response.id, approval_url: response.html_url };
     if (output) write(output, result);

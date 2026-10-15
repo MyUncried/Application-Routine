@@ -567,7 +567,7 @@ function validateExecutionRequest(request, {
   return true;
 }
 
-function renderApprovalMessage(approvalTarget, { approvalUrl = null } = {}) {
+function renderApprovalMessage(approvalTarget, { approvalUrl = null, legacy = false } = {}) {
   validateApprovalTarget(approvalTarget);
   if (approvalUrl !== null) {
     V.assertUnicodeExactText(approvalUrl, 'VNEXT_APPROVAL_URL_INVALID', 'approvalUrl');
@@ -589,10 +589,13 @@ function renderApprovalMessage(approvalTarget, { approvalUrl = null } = {}) {
   for (const id of Preserved.exceptionIds(core.native_primitive_decisions)) lines.push('native_primitive_exception_request=' + id);
   if (Preserved.exceptionIds(core.native_primitive_decisions).length) lines.push('Action requise : autoriser explicitement les exceptions natives listées, ou conserver l’arrêt NATIVE_PRIMITIVE_EXCEPTION_REQUIRED.');
   if (approvalUrl !== null) lines.push('approval_url=' + approvalUrl);
-  lines.push(
-    '',
+  lines.push('', ...(legacy ? [
     'Action requise : approuver explicitement cet objet exact, ou ne pas approuver.',
-  );
+  ] : [
+    'Action requise : ouvrez le commentaire canonique' + (approvalUrl ? ' : ' + approvalUrl : ' de cette demande') + '.',
+    'Si vous approuvez cette exécution précise, ajoutez une réaction 👍 à ce commentaire avec votre compte GitHub propriétaire du dépôt.',
+    'Le pilote attend cette réaction avant de poursuivre. Sans approbation, aucune exécution n’est autorisée.',
+  ]));
   return lines.join('\n');
 }
 

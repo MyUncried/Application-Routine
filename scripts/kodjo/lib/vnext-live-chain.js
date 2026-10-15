@@ -711,6 +711,7 @@ function deriveQueue(queue, { cwd, github = Auth.ghClient() } = {}) {
 
 function admit(queueFile, { cwd, github = Auth.ghClient(), allowExternalQueueFile = false } = {}) {
   const queue = JSON.parse(fs.readFileSync(path.resolve(cwd, queueFile), 'utf8').replace(/^\uFEFF/, ''));
+  if(queue.operation_kind==='VISUAL_CORRECTION') return require('./vnext-visual-correction').admit(queueFile,{cwd,github});
   const result = deriveQueue(queue, { cwd, github });
   const admission = Admission.verifyQueueAdmission({ queueFile, projection: result.projection,
     artifacts: result.artifacts, transport: result.transport, github: result.github, allowExternalQueueFile });
