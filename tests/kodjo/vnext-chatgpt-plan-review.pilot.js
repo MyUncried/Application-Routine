@@ -83,7 +83,9 @@ test('workflow triggers only exact requests or dispatch, uses trusted main code,
   assert.deepEqual(workflow.on.push.branches,['main']);
   assert.deepEqual(workflow.on.push.paths,['.github/orchestration/requests/vnext-plan-review/*.json','.github/orchestration/requests/vnext-agent/*.json','.github/orchestration/requests/vnext-agent/resume/*.json']);
   assert.match(workflow.jobs.review.steps.find(s=>s.name==='Select exactly one newly committed request').run,/SINGLE_REQUEST_COMMIT_REQUIRED/);
-  assert.deepEqual(workflow.permissions,{contents:'read',issues:'read',actions:'read'});
+  // Reading check annotations is required to corroborate an interrupted runner.
+  // Keep the exact allowlist: no write permission or unrelated scope is admitted.
+  assert.deepEqual(workflow.permissions,{contents:'read',issues:'read',actions:'read',checks:'read'});
   assert.match(workflow.jobs.review.if,/refs\/heads\/main/);
   const steps=workflow.jobs.review.steps;
   assert.ok(steps.filter(s=>s.uses?.startsWith('actions/checkout')).every(s=>s.with['persist-credentials']===false));
