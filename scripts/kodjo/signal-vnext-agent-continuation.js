@@ -59,12 +59,16 @@ function makeSignal(c,request,run,artifact,directory,bootstrap,registry){
   transport_status:record.status,error:failure?record.error:null,model_invoked:checkpoint.model_invoked,
   semantic_verdict:failure?null:record.verdict,semantic_validation_required:true});
 }
-function publish(c,signal,api){
+function publish(c,signal,api,caches=[]){
  binding(c);V.verifyContractHash(signal);
   V.assertSha64(signal.signal_key,'WORK_SIGNAL_KEY');
  if(signal.repository!==c.repository||signal.transport_pr!==c.transport_pr||signal.automation_id!==c.automation_id
   ||signal.conversation_id!==c.conversation_id||!['kodjo.vnext.work-signal.v1','kodjo.vnext.work-signal.v2'].includes(signal.schema_version))throw Error('WORK_SIGNAL_BINDING');
  if(signal.schema_version==='kodjo.vnext.work-signal.v2')require('./lib/vnext-work-execution').validateSignal(signal,c);
+ const Cache=require('./lib/vnext-work-archive-cache');
+ const archives=signal.evidence_archives||[{artifact_id:signal.artifact_id,artifact_sha256:signal.artifact_sha256}];
+ const cacheEntries=caches.map(value=>{const artifact=archives.find(a=>a.artifact_id===value.artifact_id);if(!artifact)throw Error('WORK_CACHE_NOT_IN_SIGNAL');Cache.decode(value,artifact);return {path:Cache.pathFor(value.artifact_sha256),content:JSON.stringify(value,null,2)+'\n'};});
+ if(new Set(cacheEntries.map(e=>e.path)).size!==cacheEntries.length)throw Error('WORK_CACHE_DUPLICATE');
  const prefix='repos/'+c.repository,pr=api(prefix+'/pulls/'+c.transport_pr);
  if(pr.state!=='open'||pr.head?.repo?.full_name!==c.repository||pr.head.ref!==c.transport_branch)throw Error('WORK_DESTINATION_INVALID');
  const ref=prefix+'/git/refs/heads/'+c.transport_branch,head=api(ref).object.sha;V.assertSha40(head);
@@ -78,7 +82,9 @@ function publish(c,signal,api){
  }
  const base=api(prefix+'/git/commits/'+head);
  const blob=api(prefix+'/git/blobs','POST',{encoding:'utf-8',content:V.canonicalStringify(signal)+'\n'});
- const tree=api(prefix+'/git/trees','POST',{base_tree:base.tree.sha,tree:[{path:file,mode:'100644',type:'blob',sha:blob.sha}]});
+ const entries=[{path:file,mode:'100644',type:'blob',sha:blob.sha}];
+ for(const e of cacheEntries){const oldCache=api(prefix+'/contents/'+e.path+'?ref='+head,'GET',undefined,true);if(oldCache){const value=JSON.parse(Buffer.from(oldCache.content,'base64').toString('utf8'));Cache.decode(value,archives.find(a=>a.artifact_id===value.artifact_id));if(JSON.stringify(value)!==JSON.stringify(JSON.parse(e.content)))throw Error('WORK_CACHE_ALREADY_CHANGED');}else{const b=api(prefix+'/git/blobs','POST',{encoding:'utf-8',content:e.content});entries.push({path:e.path,mode:'100644',type:'blob',sha:b.sha});}}
+ const tree=api(prefix+'/git/trees','POST',{base_tree:base.tree.sha,tree:entries});
  const commit=api(prefix+'/git/commits','POST',{message:'[skip ci] VNext verified operation signal\nsignal_key='+signal.signal_key,tree:tree.sha,parents:[head]});
  if(api(ref).object.sha!==head)throw Error('WORK_DESTINATION_MOVED');
  api(ref,'PATCH',{sha:commit.sha,force:false});
@@ -98,6 +104,9 @@ async function archive(repository,artifact,directory){
  await Promise.all([pipeline(child.stdout,fs.createWriteStream(file)),closed]);
  if(digest.digest('hex')!==artifact.digest.slice(7))throw Error('WORK_ARCHIVE_DIGEST_CHANGED');
  const evidence=path.join(directory,'evidence');fs.mkdirSync(evidence);
+ return extractArchive(file,evidence);
+}
+function extractArchive(file,evidence){
  const extract="import sys,zipfile,pathlib,stat,shutil\nz=zipfile.ZipFile(sys.argv[1]);root=pathlib.Path(sys.argv[2]);seen=set()\nfor i in z.infolist():\n p=pathlib.PurePosixPath(i.filename)\n if p.is_absolute() or '\\\\' in i.filename or '..' in p.parts or stat.S_ISLNK(i.external_attr >> 16) or i.filename in seen: raise ValueError('WORK_ARCHIVE_PATH')\n seen.add(i.filename)\nfor i in z.infolist():\n p=root.joinpath(*pathlib.PurePosixPath(i.filename).parts)\n if i.is_dir(): p.mkdir(parents=True,exist_ok=True);continue\n p.parent.mkdir(parents=True,exist_ok=True)\n with z.open(i) as src,p.open('xb') as dst: shutil.copyfileobj(src,dst)";
  execFileSync('python3',['-c',extract,file,evidence],{stdio:['ignore','pipe','pipe']});return evidence;
 }
@@ -134,8 +143,9 @@ async function main(){
   const registry=JSON.parse(git(['show',request.source_head+':.github/orchestration/v2-activation-registry.json']));
   git(['merge-base','--is-ancestor',run.head_sha,'origin/main']);
   const issue=gh('repos/'+c.repository+'/issues/'+request.issue_number);if(issue.state!=='open')throw Error('WORK_ISSUE_NOT_OPEN');
-  return publish(c,makeSignal(c,request,run,artifact,evidence,bootstrap,registry),gh);
+  const signal=makeSignal(c,request,run,artifact,evidence,bootstrap,registry),cache=require('./lib/vnext-work-archive-cache').encode({artifact_id:artifact.id,artifact_sha256:artifact.digest.slice(7)},fs.readFileSync(path.join(directory,'artifact.zip')));
+  return publish(c,signal,gh,[cache]);
  }finally{fs.rmSync(directory,{recursive:true,force:true});}
 }
-module.exports={binding,makeSignal,publish,main,archive,gh,git};
+module.exports={binding,makeSignal,publish,main,archive,extractArchive,gh,git};
 if(require.main===module)main().then(r=>console.log(JSON.stringify(r))).catch(e=>{console.error(e.message);process.exitCode=1;});
