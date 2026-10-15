@@ -33,8 +33,9 @@ propriété, déduplication et admission restent ceux déjà en place.
 Ce retour n'intercepte pas la fermeture d'un tour de l'application Work et ne
 constitue pas un exécuteur autonome. Il ne transforme pas l'automation limitée à
 la consommation en pilote d'une tranche. La poursuite effective et l'observation
-de son déclencheur restent à démontrer dans la destination autorisée ; ni le champ
+de son déclencheur ne sont pas établies par ce retour ; ni le champ
 `continuation` ni un test local ne prouvent cette réception ou cette action.
+Cette limite est explicitement acceptée pour la clôture du lot 1 (voir disposition finale).
 
 Le retour après une opération est commun à toutes les tranches VNext enregistrées : résultat archivé → vérification du transport → signal unique → événement PR synchronize → automation Work → accusé durable et reprise. Tranche, issue, demande, source, run/tentative et archive sont des données ; aucune condition PRE-4 n'est inscrite dans le publisher.
 
@@ -94,3 +95,12 @@ Le workflow commun utilise un rattrapage GitHub horaire, sans créer une surveil
 L'ancienne automation retournée par Work pointe vers 6acf34ca-bfac-83ed-82bd-33adefbc2cbd, tandis que le binding Git indique 6ac7f420-2fd8-83eb-83ae-4c72a07603a5. Le champ Git n'était pas un routeur : il ne pouvait pas réorienter l'ancienne automation. À la demande de reprise d'Hermann, cette dernière a été désactivée ; une automation de remplacement, créée dans la conversation pilote actuelle, retourne précisément 6ac7f420-2fd8-83eb-83ae-4c72a07603a5. Le binding candidat reprend cet ID observé et le nouvel automation_id. Les anciens signaux sont conservés et leurs anciennes destinations sont explicitement admises pour récupération, sans réécriture de leurs hashes.
 
 Cette migration établit une configuration cohérente. Elle ne constitue pas encore la réception effective d'un événement et son accusé durable. Cette preuve doit être observée après intégration, sur un résultat réel existant ou sur la CI du candidat, sans nouvel appel Claude.
+
+
+## Limite acceptée à la clôture du lot 1 — décision propriétaire du 15 octobre 2026
+
+Le retour de continuité commun livré par #366 est qualifié et intégré. Il indique au pilote la suite autorisée ; il ne garantit pas que le client Work poursuivra ou rouvrira automatiquement un tour. Le propriétaire accepte explicitement cette limite et clôt PE-31/35/39 sur le périmètre livré. L'absence de cette garantie n'est donc plus une condition de clôture du lot 1 ni un travail de preuve laissé ouvert indéfiniment.
+
+Cette disposition ne transforme aucune émission, configuration ou fixture en réception réelle. Elle conserve les obligations opérationnelles du pilote, la fraîcheur des sources, les contrôles d'intégrité, la déduplication, la possession et les approbations utilisateur. Elle n'ajoute ni gate, retry, automation ni autorisation. Une nouvelle capacité ou un nouvel incident pourra justifier un nouveau travail ; le manque de preuve déjà accepté ne suffit pas à rouvrir ce lot.
+
+Voir le [bilan de qualification et de clôture](reports/2026-10-15_VNEXT_LOT1_CONTINUITY.md).
