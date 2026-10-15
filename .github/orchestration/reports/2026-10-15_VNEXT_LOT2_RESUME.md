@@ -115,3 +115,9 @@ La limite Work déjà explicite au lot 1 ne devient pas une nouvelle garantie. L
 qualifie les mécanismes contrôlables du dépôt ; il ne certifie ni un handover réel non
 demandé, ni une destination inventée, ni une poursuite du pilote qui n'a pas été observée.
 Le résultat CI exact, l'intégration et la disposition finale seront ajoutés après contrôle.
+
+## Correctif de déclaration du writer après CI
+
+Le run 38756077055 du candidat 2d423be7e912a483473e298b45001804e3e364b8 a échoué : l’empreinte déclarée de consume-vnext-work-signal.js était encore celle du fichier antérieur. Le contrôle a correctement refusé le candidat ; ses refus de publication et de cutover en sont les conséquences. L’empreinte déclarée devient 6773158c91e64b97ba2b34e3855efd5e86b1e040, calculée sur les octets du producteur. Aucune condition ni capacité du writer n’est changée.
+
+Après correction : série locale vnext-remote-write-security, vnext-cutover-preparation et vnext-candidate-source : **22 PASS / 0 FAIL / 0 SKIP**. Ce résultat ne remplace pas la CI du nouveau candidat et ne clôture pas le lot 2.
