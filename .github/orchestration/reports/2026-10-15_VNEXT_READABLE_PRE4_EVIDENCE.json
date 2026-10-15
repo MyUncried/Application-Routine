@@ -1,0 +1,54 @@
+{
+  "source_head": "caa2a5cf11dc70f4c158dc5ccde325b49ff9d76d",
+  "reference_hash": "6b821f9d15da5d1a112b83b0be82affd7fe34b75eb9e2f55b517e249c0b3f204",
+  "ui_hash": "ff21154c8d61e49befedab79b08f57e549b8915481328a9cccad8a46cd703789",
+  "requirements": 4843,
+  "assertions": 180535,
+  "decisions": 267060,
+  "required_properties": 180443,
+  "context_properties": 86617,
+  "excluded_node_decisions": 49,
+  "example_context": {
+    "reference_hash": "6b821f9d15da5d1a112b83b0be82affd7fe34b75eb9e2f55b517e249c0b3f204",
+    "disposition": "OBSERVED_ONLY",
+    "document_ids": [
+      "PRE4-CONTRATS-ECRAN"
+    ],
+    "element_id": "I8328:35736;6955:26706;6955:26625",
+    "property": "visible",
+    "property_id": "FIGPROP-ebdbf0dc7b0e12de94113945",
+    "reason": "Chrome système natif conservé comme contexte.",
+    "rule": null,
+    "observed": true
+  },
+  "roundtrip": "PASS",
+  "decision_values_and_reasons": "PASS",
+  "parts": 4529,
+  "max_part_bytes": 65374,
+  "max_line_bytes": 522,
+  "manifest_bytes": 9306143,
+  "manifest_lines": 88128,
+  "matching_resources": [
+    {
+      "byte_length": 103104,
+      "media_type": "image/png",
+      "node_ids": [
+        "8328:36711"
+      ],
+      "path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-36711.png",
+      "resource_id": "PRE4-PNG-8328-36711",
+      "sha256": "3171e2c9d955abd622812291f58f96a81aa0ac7ed42aef76ae620c94307b787f"
+    },
+    {
+      "byte_length": 103104,
+      "media_type": "image/png",
+      "node_ids": [
+        "8328:36853"
+      ],
+      "path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-36853.png",
+      "resource_id": "PRE4-PNG-8328-36853",
+      "sha256": "3171e2c9d955abd622812291f58f96a81aa0ac7ed42aef76ae620c94307b787f"
+    }
+  ],
+  "qualification_type": "LOCAL_PRODUCTION_CONSUMER_AND_BUNDLE_ROUNDTRIP_NOT_CLAUDE_TOOL_OBSERVATION"
+}

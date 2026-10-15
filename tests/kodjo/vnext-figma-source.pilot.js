@@ -15,6 +15,13 @@ test('Figma nominal: frozen Git -> source units -> requirements -> plan -> asser
   const dossier=JSON.parse(input);assert.equal(dossier.figma_consumer_observation.references[0].reference_hash,f.snapshot.contract_hash);
   assert.deepEqual(JSON.parse(fs.readFileSync(dossier.canonical_observation.path)).uiAtomicityContract,p.artifacts.uiAtomicityContract);
   assert.ok(!dossier.instructions.includes('appeler unpackUi'));
+  const observation=require('../../scripts/kodjo/lib/vnext-file-bundle').read(dossier.figma_consumer_observation.manifest);
+  const ref=observation.references[0];
+  assert.equal(ref.properties.length+ref.context_properties.length,f.snapshot.decisions.length);
+  const context=ref.context_properties.find(d=>d.property==='main_component_id');
+  assert.deepEqual(context,F.propertyUnit(f.snapshot,F.id('2:1','main_component_id')));
+  assert.equal(context.disposition,'OBSERVED_ONLY');
+  assert.match(fs.readFileSync(dossier.figma_consumer_observation.manifest,'utf8'),/\n  \"/);
   for(const r of dossier.figma_consumer_observation.references[0].assets)assert.ok(fs.readFileSync(r.path).length>0);
   assert.equal(JSON.parse(fs.readFileSync(dossier.figma_consumer_observation.manifest)).semantic_use,'NOT_ATTESTED_BY_BYTE_OBSERVATION');
   return JSON.stringify({type:'result',session_id:'TEST',structured_output:{semantic_review:{findings:[],finding_resolutions:[],target_catalog_hash:dossier.target_catalog_hash,reviewed_target_indices:Object.values(dossier.target_catalog).flat().map((_,i)=>i)},native_assessment_observations:dossier.native_assessment_subjects.map(r=>({criterion_id:r.assessment.criterion_id,assessment_hash:r.assessment_hash,verified:true,observed_git_evidence:[{path:"docs/spec.md",revision:f.docHead,content_sha256:V.sha256("Pressable toggle on press\n")}],reason:"TEST injected observation; no real native proof"}))}});

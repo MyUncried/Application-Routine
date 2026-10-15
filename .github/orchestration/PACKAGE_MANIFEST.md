@@ -320,3 +320,7 @@ L'ajout de la dépendance commune à la liste figée du runtime IMPLEMENT prése
 | `tests/kodjo/vnext-interrupted-session.pilot.js` | Refus avant invocation, conservation des preuves, priorité à la réponse déjà disponible et identité de session conservée |
 
 La permission `checks: read` du relais existant permet uniquement de lire les annotations GitHub attestant l'interruption du runner. Le test du workflow conserve une liste exacte de permissions en lecture ; aucune permission d'écriture n'est ajoutée. La qualification du correctif reste distincte de la reprise réelle de PRE-4.
+
+## Dossier Figma lisible de revue — 15 octobre 2026
+
+Le consommateur PLANNER conserve les propriétés REALIZE/PRESERVE dans `properties` et expose les autres décisions dans `context_properties`, avec valeur observée, raison, références documentaires et empreinte source. Il ne crée aucune obligation supplémentaire. `vnext-live-chain` utilise le file-bundle existant en JSON multi-lignes, parties de 64 Kio et lignes de 1800 octets maximum ; les chaînes longues sont reconstruites par le lecteur existant. Les options par défaut et la lecture des anciens bundles restent compatibles. Les contrôles de hash, de couverture et de non-altération restent actifs. Tests : `vnext-file-bundle.pilot.js`, `vnext-figma-source.pilot.js`. Rapport : `reports/2026-10-15_VNEXT_READABLE_FIGMA_REVIEW.md`.

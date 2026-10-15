@@ -352,7 +352,8 @@ function consumeArtifacts(ui,registry,directory,stage,planHash=null){
       if(fs.existsSync(target)){if(!fs.readFileSync(target).equals(checkResource(r)))V.fail('VNEXT_FIGMA_RESOURCE_DESTINATION_CHANGED');}
       else{fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,checkResource(r),{flag:'wx'});}
       if(!fs.readFileSync(target).equals(checkResource(r)))V.fail('VNEXT_FIGMA_RESOURCE_MATERIALIZATION_MISMATCH');assets.push({resource_id:r.resource_id,path:target,sha256:r.sha256});}
-    observed.push({source_id:ref.source_id,reference_hash:ref.packet.contract_hash,documentary_states:ref.packet.states,properties:required(ref.packet).map(d=>propertyUnit(ref.packet,d.property_id,look)),assets});
+    observed.push({source_id:ref.source_id,reference_hash:ref.packet.contract_hash,documentary_states:ref.packet.states,properties:required(ref.packet).map(d=>propertyUnit(ref.packet,d.property_id,look)),
+      ...(stage==='PLANNER'?{context_properties:ref.packet.decisions.filter(d=>!['REALIZE','PRESERVE'].includes(d.disposition)).map(d=>propertyUnit(ref.packet,d.property_id,look))}:{}),assets});
   }
   return V.sealContract({schema_version:'kodjo.vnext.figma-consumer-observation.v1',stage,plan_sha256:planHash||V.canonicalHash({ui_contract_hash:ui.contract_hash,requirement_registry_hash:registry.contract_hash}),references:observed,...(ui.component_coverage?{component_review_coverage_hash:ui.component_coverage.contract_hash,component_review_coverage_phase:ui.component_coverage.phase}:{}),semantic_use:'NOT_ATTESTED_BY_BYTE_OBSERVATION'});
 }
