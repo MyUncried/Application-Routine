@@ -1,11 +1,6 @@
 ## 11.0 Objet et périmètre
 
-> **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
-
-> Planification à plusieurs contenus (08/10) : les règles antérieures d’archivage supprimant les Routines associées restent décrites pour le cas à contenu unique. Leur extension à une Routine contenant d’autres contenus est **non définie** ; ne pas supprimer ces autres planifications par généralisation. Voir la spécification du 08/10 et son registre de points ouverts.
-
-
-**Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Placement explicite et distinction contenu/trait conservés. **Bip de cadence et durées : la spécification Bip v2 du07/10 remplace les dispositions antérieures.**
+> Planification à plusieurs contenus (08/10) : les règles antérieures d’archivage supprimant les Routines associées restent décrites pour le cas à contenu unique. Leur extension à une Routine contenant d’autres contenus est **non définie** ; ne pas supprimer ces autres planifications par généralisation. Voir la chapitre 08, Planification.
 
 Ce chapitre définit les API fonctionnelles internes nécessaires au fonctionnement du MVP.
 
@@ -35,7 +30,7 @@ Les intégrations avec des services externes, notamment les calendriers Apple, G
 
 Les API fonctionnelles respectent les principes suivants :
 - une Séance représente un contenu exécutable ; dans le MVP T03, un Exercice persistant valide peut aussi constituer directement une source d’Exécution ;
-- Une Routine porte une liste ordonnée de références SESSION/ACTIVITY ; API-ROU définit le contrat cible multi-contenus (D-328).
+- Une Routine porte une liste ordonnée de références SESSION/ACTIVITY ; API-ROU définit le contrat cible multi-contenus .
 - une Exécution représente la réalisation effective d’une source `SESSION` ou `ACTIVITY` ;
 - les occurrences futures d’une Routine sont calculées dynamiquement et ne sont pas persistées ;
 - une occurrence arrivée à échéance est historisée avec le statut `Exécutée` ou `Non exécutée` ;
@@ -76,8 +71,8 @@ Les API fonctionnelles respectent les principes suivants :
 |---|---|---|---|---|---|
 | API-ACT-01 | Paramétrer un Exercice | Nom, référentiels, mode unique, N, uniforme/variable, cibles/Pauses/Bip0..10 ordonnés, direction, ordre des côtés, PC, CR/Fin | Exercice validé | Validation v13 ; N1 normalisé ; aucune R contextuelle sur ActivityDefinition ; écriture atomique | Exercice |
 | API-ACT-02 | Calculer les paramètres temporels | Mode, N, uniforme/variable, cibles/Pauses/Bip0..10 ordonnés, direction, ordre des côtés, PC, R contextuel éventuel, Tv en Durée uniforme | Total dérivé avec niveau d’incertitude, statut incomplet et N canonique si inversion | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. | Exercice / occurrence |
-| API-ACT-03 | Définir les pauses | Paramètres uniformes/variables, PC | Exercice validé | Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : Bip v2§3 et paramètres v13§§4–5. | Exercice |
-|API-ACT-04|Lire/afficher les médias associés|ID Exercice|Média(s) associé(s) pour la gouttière permanente de la carte d’Exercice|L’affichage en gouttière, sans déploiement, fait partie du MVP (D-260/D-261) ; cette API fonctionnelle ne préjuge pas du mécanisme d’import/capture|Exercice, Média|
+| API-ACT-03 | Définir les pauses | Paramètres uniformes/variables, PC | Exercice validé | Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : chapitre 10, Calculs des durées et ordre des phases. | Exercice |
+|API-ACT-04|Lire/afficher les médias associés|ID Exercice|Média(s) associé(s) pour la gouttière permanente de la carte d’Exercice|L’affichage en gouttière, sans déploiement, fait partie du MVP  ; cette API fonctionnelle ne préjuge pas du mécanisme d’import/capture|Exercice, Média|
 |API-ACT-05|Associer des zones corporelles|ID Exercice, zones corporelles|Zones corporelles mises à jour|Zéro à plusieurs zones du référentiel utilisateur courant|Exercice, Zone corporelle|
 |API-ACT-06|Définir le nombre de Séries|ID Exercice, nombre de Séries|Exercice mis à jour|Entier de 1 à 99 ; valeur par défaut 1 ; valeur canonique persistée ; ne crée aucune entité Série autonome|Exercice|
 |API-ACT-07|Dupliquer un Exercice de Séance|ID Exercice source|Nouvelle Exercice de Séance indépendante|Nouvel identifiant ; copie des propriétés intrinsèques dont Pause et `sideRecoverySeconds`, ainsi que du `postActivityRecoverySeconds` contextuel de l’occurrence ; insertion immédiatement après la source dans la même zone ; aucune création dans le catalogue|Exercice, Composition, associations Média|
@@ -99,7 +94,7 @@ Ces opérations conservent leurs identifiants, avec une entrée étendue à la l
 
 Le mode d’exécution de chaque source reste SESSION ou ACTIVITY ; le mot parcours ne crée pas un troisième moteur. La suppression du modèle autonome Parcours retire ses anciennes API-CIR de la cible. L’enchaînement et les états d’une occurrence à plusieurs contenus doivent être spécifiés avant livraison ; ne pas reprendre par défaut l’ancienne Exécution de Parcours.
 
-Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
+Voir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
 
 ## 11.6 API Exécution
 
@@ -149,7 +144,7 @@ Le MVP expose la liste chronologique des Séances/Exécutions et leur détail. L
 
 Les modifications ultérieures d’une Séance ou d’une Routine ne doivent pas rendre illisibles les Exécutions et occurrences déjà historisées.
 
-Chaque Exécution repose sur un **Instantané fonctionnel immuable** créé au démarrage. Cet instantané conserve les informations nécessaires pour restituer fidèlement la Séance exécutée et, dès l’introduction des médias au MVP (D-333), les associations et références média stables, sans dupliquer les fichiers physiques.
+Chaque Exécution repose sur un **Instantané fonctionnel immuable** créé au démarrage. Cet instantané conserve les informations nécessaires pour restituer fidèlement la Séance exécutée et, dès l’introduction des médias au MVP , les associations et références média stables, sans dupliquer les fichiers physiques.
 
 Le choix du format et du mode de persistance de cet instantané relève du chapitre `12 – Architecture technique`.
 
@@ -164,15 +159,15 @@ Le choix du format et du mode de persistance de cet instantané relève du chapi
 | ID         | Opération                     | Entrées principales             | Résultat                                    | Règles / validations                                            | Objets impactés          |
 | ---------- | ----------------------------- | ------------------------------- | ------------------------------------------- | --------------------------------------------------------------- | ------------------------ |
 | API-REF-01 | Lister les catégories         | Aucun ou filtre éventuel        | Liste des catégories                        | Prédéfinies selon `displayOrder`, puis personnalisées par date de création croissante | Catégorie, lecture       |
-| API-REF-02 | Créer une catégorie           | Nom                              | Nouvelle catégorie                          | Respect des contraintes d’unicité ; icône KODJO et couleur blanche DSF attribuées automatiquement et non modifiables dans le MVP ; dans le parcours de création d’une Séance, l’opération reste dans le brouillon et est persistée par `API-SEA-03` ; un nom correspondant à une valeur retirée la réactive (D-257) | Catégorie |
+| API-REF-02 | Créer une catégorie           | Nom                              | Nouvelle catégorie                          | Respect des contraintes d’unicité ; icône KODJO et couleur blanche DSF attribuées automatiquement et non modifiables dans le MVP ; dans le parcours de création d’une Séance, l’opération reste dans le brouillon et est persistée par `API-SEA-03` ; un nom correspondant à une valeur retirée la réactive  | Catégorie |
 | API-REF-03 | Modifier une catégorie        | ID Catégorie, nouveau nom        | Catégorie mise à jour                       | La Catégorie doit exister ; l’icône et la couleur ne sont pas modifiables dans le MVP | Catégorie |
 | API-REF-04 | Supprimer une catégorie | ID Catégorie, confirmation | Catégorie supprimée | Toute Catégorie, initiale ou personnalisée, est supprimable ; si utilisée, elle est retirée des choix futurs mais reste affectée aux Exercices existants concernés ; les Instantanés/Exécutions historiques restent inchangés | Catégorie, Exercice |
 | API-REF-05 | Lister les zones corporelles | Aucun | Liste des zones corporelles | Retourne le référentiel utilisateur courant, valeurs par défaut et personnalisées | Zone corporelle, lecture |
-| API-REF-06 | Créer une Zone corporelle | Nom | Nouvelle Zone corporelle | Nom obligatoire et unique ; nouvel identifiant stable ; la Zone devient immédiatement sélectionnable ; un nom correspondant à une valeur retirée la réactive (D-257) | Zone corporelle |
+| API-REF-06 | Créer une Zone corporelle | Nom | Nouvelle Zone corporelle | Nom obligatoire et unique ; nouvel identifiant stable ; la Zone devient immédiatement sélectionnable ; un nom correspondant à une valeur retirée la réactive  | Zone corporelle |
 | API-REF-07 | Renommer une Zone corporelle | ID Zone, nouveau nom | Zone corporelle mise à jour | L’identifiant reste inchangé ; nom obligatoire et unique | Zone corporelle |
 | API-REF-08 | Supprimer une Zone corporelle | ID Zone, confirmation | Zone corporelle supprimée | Toute Zone, initiale ou personnalisée, est supprimable ; si utilisée, la retire des choix futurs tout en conservant les associations des Exercices existants ; les Instantanés/Exécutions historiques restent inchangés | Zone corporelle, Exercice |
 | API-REF-09 | Lister les Étiquettes | Aucun | Liste des Étiquettes | Retourne toutes les valeurs courantes du référentiel utilisateur | Étiquette, lecture |
-| API-REF-10 | Créer une Étiquette | Nom, couleur | Nouvelle Étiquette | Nom obligatoire et unique ; couleur issue de la palette contrôlée ; un nom correspondant à une valeur retirée la réactive (D-257) | Étiquette |
+| API-REF-10 | Créer une Étiquette | Nom, couleur | Nouvelle Étiquette | Nom obligatoire et unique ; couleur issue de la palette contrôlée ; un nom correspondant à une valeur retirée la réactive  | Étiquette |
 | API-REF-11 | Renommer une Étiquette | ID Étiquette, nouveau nom | Étiquette mise à jour | L’identifiant reste inchangé ; les Séances associées conservent la référence | Étiquette |
 | API-REF-12 | Supprimer une Étiquette | ID Étiquette, confirmation | Étiquette supprimée | Toute Étiquette, initiale ou personnalisée, est supprimable ; si utilisée, elle est retirée des choix futurs mais reste affectée aux Séances existantes ; les Instantanés/Exécutions historiques restent inchangés | Étiquette, Séance |
 ## 11.10 Conventions fonctionnelles de gestion des erreurs
@@ -257,7 +252,7 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 
 - Une Exécution lancée depuis une occurrence planifiée conserve le lien avec cette occurrence et la date/heure initialement prévues.
 - L’Instantané d’Exécution est un JSON immuable ; les champs nécessaires à la recherche et au tri chronologique du Suivi MVP sont accessibles efficacement. Les index dédiés aux filtres avancés sont reportés avec cette évolution.
-- Les API Média sont incluses au MVP dans PRE-3 (D-333) pour importer/associer, lister, réordonner et retirer `0..n` photos ou vidéos locales ; la capture caméra n’est pas implicitement activée.
+- Les API Média sont incluses au MVP dans PRE-3  pour importer/associer, lister, réordonner et retirer `0..n` photos ou vidéos locales ; la capture caméra n’est pas implicitement activée.
 
 ## 11.13 API du Catalogue des Exercices, des Médias et des Parcours
 
@@ -265,7 +260,7 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 |---|---|---|---|
 | `API-ACT-REF-01..05` | MVP T03 | définition d’Exercice | Créer, lire, lister, modifier, archiver/supprimer une référence autonome. Si des Routines ciblent l’Exercice, l’archivage arrête leurs occurrences futures selon la même règle que pour une Séance ; les occurrences historisées et Exécutions restent conservées. |
 | `API-ACT-COPY-01` | MVP T03 | ID référence, ID Séance, position | Crée une copie complète indépendante ; aucune association fonctionnelle durable à la référence. |
-| `API-MED-01..05` | MVP PRE-3 | exercice, fichier ou position | Importer/choisir, associer, lister, réordonner et retirer `0..n` médias locaux (D-333) ; nettoyage physique seulement sans référence. Capture caméra à clarifier, sans activation implicite. |
+| `API-MED-01..05` | MVP PRE-3 | exercice, fichier ou position | Importer/choisir, associer, lister, réordonner et retirer `0..n` médias locaux  ; nettoyage physique seulement sans référence. Capture caméra à clarifier, sans activation implicite. |
 | `API-CAT-01` | MVP T03 / V2 | type, filtre, tri | Avant T03, accepte uniquement `SESSION`; dans le MVP T03, accepte également `ACTIVITY`; l’ancien type autonome `CIRCUIT` n’est pas réintroduit par la planification multi-contenus. Défaut : non archivés, dernière modification décroissante. |
 | API-CIR (ancienne famille) | Retirée 08/10 | Sans nouvelle implémentation | L’objet autonome Parcours et son exécution globale ne font plus partie de la cible. |
 
@@ -292,10 +287,9 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 | API-ACT-EXE-02 | Démarrer | ID Exercice, état de retour Catalogue | ID Exécution, plan | Instantané autonome, origine `ACTIVITY`, préparation `5 s`, aucune Séance créée. |
 | API-ACT-EXE-03 | Construire le plan | Instantané Exercice | Étapes développées | Séries, Pauses, côtés et `SIDE_RECOVERY` éventuelle ; aucune `POST_ACTIVITY_RECOVERY`, aucun Tour/Cycle ni `SESSION_END`. |
 | API-ACT-EXE-04 | Finaliser la Synthèse | ID Exécution, Ressenti, Commentaire éventuel | Exécution finalisée | Ressenti obligatoire si Synthèse présentée ; statistiques compatibles mises à jour. |
-| API-ACT-EXE-05 | Obtenir la destination de sortie | ID Exécution | État Catalogue | Filtres et position restaurés ; aucune recherche Catalogue dans le MVP (D-221). |
+| API-ACT-EXE-05 | Obtenir la destination de sortie | ID Exécution | État Catalogue | Filtres et position restaurés ; aucune recherche Catalogue dans le MVP . |
 
 Les services d’exécution communs acceptent une origine discriminante `SESSION | ACTIVITY`. Ils ne doivent jamais fabriquer une Séance pour satisfaire leurs contrats historiques.
-
 
 ## 11.15 Sélection multiple d’Exercices existants — MVP T03
 
@@ -318,7 +312,7 @@ La face courante, l’index de galerie et l’état de lecture sont des états d
 
 ### Extension future des API Routine — Parcours
 
-**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
+**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
 
 ### API de récupération contextuelle — D-208
 
@@ -332,7 +326,7 @@ La face courante, l’index de galerie et l’état de lecture sont des états d
 
 ## Impact API de la revue des cartes — 30 septembre 2026
 
-Décisions finales du propriétaire : les 17 points du 30/09 sont clos. Révision des cartes du 03/10/2026 (D-260 à D-264) : un seul format de carte d’Exercice, avec une gouttière permanente de 64 px dans le Catalogue et les listes de sélection d’exercices ; photo si média associé, icône de nature sinon. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Les Séances ne portent jamais de visuel. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi. Aucun déploiement d’Exercice ni de carte du Suivi ; le déploiement des Séances reste accessible dans le Catalogue et le Calendrier Semaine. Le Suivi présente deux lignes : nature/titre/statut, puis durée/catégorie/ressenti ; sans heure, zones corporelles ni étiquettes. Le Ressenti y est un indicateur sans action, distinct de sa saisie obligatoire en Synthèse. Les variantes déployées d’Exercice et du Suivi sont historiques, hors MVP. Pauses/récupérations et prochaine planification restent absentes des cartes concernées. Les données, instantanés, calculs et fonctions de planification sont conservés.
+Décisions finales du propriétaire : les 17 points du 30/09 sont clos. Révision des cartes du 03/10/2026 (D-260 à D-264) : un seul format de carte d’Exercice, avec une gouttière permanente de 64 px dans le Catalogue et les listes de sélection d’exercices ; photo si média associé, icône de nature sinon. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture . Les Séances ne portent jamais de visuel. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi. Aucun déploiement d’Exercice ni de carte du Suivi ; le déploiement des Séances reste accessible dans le Catalogue et le Calendrier Semaine. Le Suivi présente deux lignes : nature/titre/statut, puis durée/catégorie/ressenti ; sans heure, zones corporelles ni étiquettes. Le Ressenti y est un indicateur sans action, distinct de sa saisie obligatoire en Synthèse. Les variantes déployées d’Exercice et du Suivi sont historiques, hors MVP. Pauses/récupérations et prochaine planification restent absentes des cartes concernées. Les données, instantanés, calculs et fonctions de planification sont conservés.
 
 Synthèses : « N séries de X », « N séries de N rép. », « N séries à l’échec » ; bilatéralité par miroir dans les variantes concernées. Heure Semaine « 08:00 » ; aucune heure dans la carte du Suivi. Séance sans étiquette : catégories de ses exercices ; listes de catégories/zones séparées par un point médian et tronquées avec « … ». Choix sans badge durée ; récurrence du Calendrier Semaine dans la carte déployée seulement.
 
@@ -357,18 +351,15 @@ Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTE
 
 | API-PARAM-01 | Valider les bornes des paramètres | Paramètres d’exécution | paramètres valides / erreur | Séries `1..99`; Répétitions `1..100`; durée par Série `5..3535 s`; pauses inter-Séries/inter-côtés `0..300 s`. | Exercice |
 
-
-
 > **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v13 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
-
 
 ### Saisie des paramètres — D-246
 
-La référence active est [Paramètres en modale v13](SPECIFICATION-PARAMETRES-MODALE-v13.md), contrats CE-T03-04/CE-UI-10. Elle intègre Séries variables, Ordre des côtés, pauses terminales et récupération de l’occurrence. Feuille transactionnelle : ✕ annule, ✓ applique au parent, Terminer persiste. Les calculs et comportements sont normatifs dans les spécifications ; Figma définit le layout seulement. Les anciens textes v11 sont historiques.
+La référence active est [Paramètres en modale v13](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice), contrats CE-T03-04/CE-UI-10. Elle intègre Séries variables, Ordre des côtés, pauses terminales et récupération de l’occurrence. Feuille transactionnelle : ✕ annule, ✓ applique au parent, Terminer persiste. Les calculs et comportements sont normatifs dans les spécifications ; Figma définit le layout seulement. Les anciens textes v11 sont historiques.
 
 ### Contrat transverse des paramètres v13
 
-Validation, calcul, duplication, insertion dans une Séance et instantané partagent la représentation de v13 §8. Le tableau ordonné cible/Pause et l’état variable explicite sont copiés intégralement. Les API de Séance calculent To avec récupération explicite, sans ajouter R deux fois. Les API de lecture ne réécrivent pas les résultats historiques. Aucun champ caché de brouillon ne traverse la persistance.
+Validation, calcul, duplication, insertion dans une Séance et instantané partagent la représentation de chapitre 08, paramètres d’exercice. Le tableau ordonné cible/Pause et l’état variable explicite sont copiés intégralement. Les API de Séance calculent To avec récupération explicite, sans ajouter R deux fois. Les API de lecture ne réécrivent pas les résultats historiques. Aucun champ caché de brouillon ne traverse la persistance.
 
 ## Extension des API — Cadence et phrase
 
@@ -383,22 +374,17 @@ Validation, calcul, duplication, insertion dans une Séance et instantané parta
 
 Les erreurs utilisent les catégories existantes de validation et INVALID_STATE, avec champ/Série localisés ; aucune nouvelle API réseau ou nouvelle entité imposée. La nouvelle version d’instantané doit rester lisible avec les snapshots antérieurs ; qualification technique et mobile à réaliser.
 
-
-
-## Propagation Pauses et symboles — 07/10
+## Pauses et symboles
 
 Les API de placement travaillent dans un sous-brouillon : ouverture, ajout/édition/retrait par identifiant, validation des positions par type, confirmation atomique/annulation. Le calcul renvoie exact/estimated/lowerBound/omitted ; incomplete reste une erreur de validité distincte. Le générateur reçoit la nature et le montant applicable, jamais les formules Excel.
 
-## Contrat technique de phrase — clarification du07/10
+## Contrat technique de phrase
 
-La [spécification de phrase](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md) gouverne le générateur pur : paramètres métier + résultat de durée + locale française → `Array<{texte: string, gras: boolean}>`. Retour vide `[]` si aucune phrase applicable. Aucun calcul depuis Excel, aucune chaîne à redécouper pour trouver les valeurs en gras. React Native utilise des Text imbriqués ; le découpage est émis par le gabarit, y compris si une valeur se répète.
+La [spécification de phrase](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases) gouverne le générateur pur : paramètres métier + résultat de durée + locale française → `Array<{texte: string, gras: boolean}>`. Retour vide `[]` si aucune phrase applicable. Aucun calcul depuis Excel, aucune chaîne à redécouper pour trouver les valeurs en gras. React Native utilise des Text imbriqués ; le découpage est émis par le gabarit, y compris si une valeur se répète.
 
 Aucune colonne phrase ni sérialisation des segments dans définition/occurrence/snapshot. Génération à chaque affichage depuis les paramètres ; ✓ applique le brouillon, ne persiste pas le texte. Un changement rédactionnel est visible au prochain rendu des objets existants. Paramètres historiques et temps réalisés préservés.
 
 Français uniquement au MVP. Internationalisation ultérieure : gabarits et règles de pluriel/genre/ordre par locale, avec recette dédiée ; prévoir la réécriture de la grammaire française, pas une traduction des segments isolés. Corpus276 utilisé uniquement pour les phrases, valeurs totales injectées par le calcul métier.
-
-
-
 
 ## Contrats fonctionnels — circuits du12/10/2026
 
@@ -414,10 +400,64 @@ Français uniquement au MVP. Internationalisation ultérieure : gabarits et règ
 
 L’API de mise à jour des paramètres refuse une modification locale de N lorsqu’il est hérité et ne propose pas l’inversion de durée dans ce contexte. Les validations ne reposent pas sur la seule désactivation visuelle. Le formateur de volume respecte le régime ; la phrase complète conserve son générateur de segments et son corpus propre.
 
-
 ## Contrats de service — cibles typées et relevés13/10
 
-Validation/édition/copie/instantané transportent le mode commun et la cible typée de chaque Série. Le calcul retourne exact/estimated/lowerBound/omitted selon la spécification Deux modes§4 ; aucune valeur pour omitted, erreur distincte. Le générateur reçoit ce résultat et retourne des segments, jamais une phrase persistée.
+Validation/édition/copie/instantané transportent le mode commun et la cible typée de chaque Série. Le calcul retourne exact/estimated/lowerBound/omitted selon la chapitre 10, Calculs des cibles mixtes ; aucune valeur pour omitted, erreur distincte. Le générateur reçoit ce résultat et retourne des segments, jamais une phrase persistée.
 
 La fin de Série reste indépendante du relevé. Le service de relevé reçoit l’identité de l’occurrence/côté/tentative, valeur facultative, unité, origine et qualification ; une proposition issue du bip reste estimée jusqu’à confirmation/correction explicite. Événements idempotents, pas de doublons lors de reprise. Aucun endpoint réseau ni nouvelle API déjà implémentée n’est présumé par ce contrat fonctionnel.
 
+<a id="formats-api"></a>
+
+## Formats — contrats de services fonctionnels
+
+| Opération | Entrée / sortie | Validation et effets |
+|---|---|---|
+| Initialiser depuis un modèle | Entrée choisie → brouillon de séance, format/origine et paramètres | Départ rapide = libre ; ne pas déduire le format du nom |
+| Modifier un réglage | Brouillon + réglage autorisé → paramètres effectifs, synthèse et durée | Constantes et format inchangés ; refus d’une édition non autorisée |
+| Changer l’organisation | Choix admis → ordre effectif | Tabata/EMOM/Progression selon règles ; interdit For time ; volume conservé |
+| Développer la prescription | Instantané → occurrences finies ou générateur progressif | Unité d’indexation explicite ; aucun double multiplicateur série × tour |
+| Calculer les métriques | Prescription effective → durée typée | EMOM N × E × W ; aucun repos résiduel ajouté ; aucune durée Death by inventée |
+| Signaler le travail accompli | Identité d’exécution et de fenêtre courante | Révèle repos ; échéance inchangée ; Death by acquiert au plus une fois la fenêtre |
+| Clore Death by | Motif limite/abandon + répétitions partielles applicables | Résultat confirmé, état incomplet ; un seul déclencheur de confirmation |
+| Générer les modalités | Paramètres effectifs → segments ordonnés texte/gras | Pas de phrase persistée ; unité par tour/série préservée |
+| Lire l’historique | Identité d’exécution → instantané et résultat | Jamais de recalcul depuis la séance source actuelle |
+
+La saisie du rang de fenêtre ou d’un nombre de tours à chaque passage n’est pas exposée. L’horloge génère les échéances ; les commandes doivent être idempotentes face aux doublons. Le formulaire proposé à zéro n’est pas une mesure avant validation. Erreurs : format incompatible, constante modifiée, objectif ou compte invalide selon sa borne existante, unité incohérente et fenêtre obsolète ne doivent pas être acceptés silencieusement. Les détails des combinaisons non résolues sont tracés dans la revue, pas compensés par une valeur métier arbitraire.
+
+<a id="api-pauses"></a>
+
+## Opérations sur les récupérations et points d’arrêt
+
+### Modèle fonctionnel et API
+
+Le modèle logique distingue deux objets de pause : recovery (durée, occurrence source) et breakpoint (position structurelle). La présence explicite n’est pas déduite de la durée. Un identifiant stable permet les opérations idempotentes. L’attachement de recovery à l’occurrence est conservé ; le Point d’arrêt garde ses règles de position structurelle.
+
+postActivityRecoverySeconds devient une projection compatible pour les calculs : durée de recovery si présente,0 sinon. Il n’est pas une seconde source persistée concurrente. Schéma physique et index relèvent du développement. Au main72d1bf4, seules les migrations001..008 existent :009 est le numéro suivant constaté, à revalider à l’ouverture de la tranche, pas une réservation globale. Aucune reprise des séances anciennes n’est demandée dans ce lot de conception.
+
+Déplacer/dupliquer l’occurrence conserve sa récupération explicite et ses paramètres ; supprimer l’occurrence supprime sa récupération. Les règles structurelles des points d’arrêt restent celles de la Composition. Le snapshot copie les pauses effectives ; POST_ACTIVITY_RECOVERY est générée seulement pour recovery positive. Aucune récupération post-exercice en exécution directe. La machine distingue récupération chronométrée et attente au point d’arrêt ; phases existantes réutilisées.
+
+| Opération | Entrée | Résultat et contrat |
+|---|---|---|
+| Ouvrir le placement | Brouillon Composition | Sous-brouillon isolé, positions autorisées par type |
+| Ajouter recovery | Occurrence, durée validée | Objet explicite ; défaut proposé au moment de l’ajout |
+| Ajouter breakpoint | Position autorisée | Objet structurel, pas de durée cible |
+| Modifier/retirer | Identifiant de pause | Mutation du sous-brouillon/brouillon, aucune sauvegarde prématurée |
+| Confirmer/Annuler | Sous-brouillon | Application atomique ou restitution, décompte correct |
+| Calculer le total | Plan et séries effectives | exact/estimated/lowerBound/omitted, ou incomplete |
+| Exécuter | Snapshot | Séries/pauses/côtés/récupérations/points selon plan, cadence sonore conservée |
+
+Le scalaire historique `ActivityDefinition.pauseSeconds` représente la Pause après chaque série : sa refonte doit porter cette valeur dans chaque `SeriesParameters.pauseSeconds`. Il ne peut pas être remplacé par la collection de pauses de Composition, qui représente récupération/point d’arrêt. Les deux collections et leurs cycles de vie restent distincts.
+
+<a id="api-phrase"></a>
+
+## Contrat du générateur de phrase
+
+### Contrat de génération et persistance
+
+Fonction pure : mêmes paramètres, même locale et même résultat métier donnent les mêmes segments. Retour **`Array<{texte: string, gras: boolean}>`**, jamais une chaîne à redécouper par recherche de valeurs. Le choix du gras appartient au gabarit à l’émission des segments ; deux valeurs identiques restent deux occurrences distinctes. La concaténation des `texte` restitue la phrase exacte. Valeurs et unités paramétrées en gras, texte grammatical normal.
+
+Exemple de début : `[{texte:"3",gras:true},{texte:" séries de ",gras:false},{texte:"30 s",gras:true}]`. React Native rend les segments directement en `<Text>` imbriqués dans un `<Text>` parent. Aucun balisage Markdown à analyser au rendu, aucune recherche/remplacement de sous-chaînes pour le gras.
+
+**Aucune phrase ni aucun segment n’est stocké en base**, dans la définition, l’occurrence ou l’instantané. Seuls les paramètres métier sont persistés ; la phrase se régénère **à chaque affichage**, notamment après validation ✓. ✕ annule le brouillon ; ✓ applique atomiquement au parent ; Terminer persiste ses paramètres. Le retour sur une séance existante utilise la grammaire courante, pas une phrase figée avant correction. Les paramètres et durées réelles historiques restent immuables.
+
+Pendant un brouillon incomplet, aucune cible inventée : conserver les règles de champs manquants/validation et interdire✓. Compte à rebours et Fin sont des lignes séparées, exclus du texte et du total intrinsèque.

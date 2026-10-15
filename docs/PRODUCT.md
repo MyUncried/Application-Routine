@@ -1,6 +1,6 @@
 # PRODUCT — KODJO
 
-**Référence courante — évolutions v15 :** [inventaire, plan et preuves](MATRICE-EVOLUTIONS-V15-2026-10-07.md), [consolidation fonctionnelle](Specifications-fonctionnelles/CONSOLIDATION-EVOLUTIONS-V15-2026-10-07.md), [DSF phrases](DSF-PHRASES-V15-2026-10-07.md). Corpus276 actualisé ; calculs conservés ; captures et contrats repris.
+**Référence courante — évolutions v15 :** [inventaire, plan et preuves](MATRICE-EVOLUTIONS-V15-2026-10-07.md), [consolidation fonctionnelle](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calculs-durees), [DSF phrases](DSF-PHRASES-V15-2026-10-07.md). Corpus276 actualisé ; calculs conservés ; captures et contrats repris.
 
 **Lot cartes du07/10, avant v15 :** [matrice cartes/phrases](MATRICE-CARTES-PHRASES-2026-10-07.md) ; [DSF cartes sans cadre de durée](DSF-CARTES-DUREE-2026-10-07.md). Pause après chaque série, récupération substitutive,276 textes v15, segments non persistés.
 
@@ -43,7 +43,7 @@ La sélection utilise des cases à cocher et « Ajouter 1 élément » / « Ajou
 
 La spécification du 08/10 définit le comportement cible et ses points ouverts ; elle ne certifie pas une implémentation. Une Routine peut toujours partager ses sources avec d’autres Routines. Les données historiques ne sont pas réécrites.
 
-Voir [la spécification](Specifications-fonctionnelles/SPECIFICATION-PLANIFICATION-2026-10-08.md).
+Voir [la spécification](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification).
 
 ### Exercice
 
@@ -230,7 +230,7 @@ La spécification du 08/10 définit le comportement cible et ses points ouverts 
 
 Depuis Catalogue ou Calendrier, les changements restent dans un brouillon jusqu’à Enregistrer. Une Routine définit une seule heure ; plusieurs créneaux peuvent répondre à plusieurs horaires. Les occurrences futures sont calculées dynamiquement ; le contenu filtre cette suite sans ajouter de dates. Les règles hebdomadaires existantes restent propres à Semaine.
 
-Voir [la spécification](Specifications-fonctionnelles/SPECIFICATION-PLANIFICATION-2026-10-08.md) pour les limites Jour/Mois, le motif par contenu, les écrans Programme manquants et les règles de suppression/archivage à compléter pour plusieurs contenus.
+Voir [la spécification](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification) pour les limites Jour/Mois, le motif par contenu, les écrans Programme manquants et les règles de suppression/archivage à compléter pour plusieurs contenus.
 
 ### Suivi et historique
 
@@ -505,7 +505,7 @@ Le générateur suit v13 §7. Le résumé omet le total uniquement lorsqu’il �
 
 ## Paramètres — consolidation du02/10/2026
 
-Référence courante : [v13](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v13.md), [DSF](DSF-SERIES-VARIABLES-2026-10-02.md), [matrice](MATRICE-SERIES-VARIABLES-2026-10-02.md) et [rapport](RAPPORT-MISE-A-JOUR-SERIES-VARIABLES-2026-10-02.md). D-247 à D-255 remplacent les anciennes formules et descriptions uniformes sur ce périmètre. Les règles de cartes sans rapport avec les paramètres restent conservées. Les nouvelles copies fournissent le layout ; elles ne prouvent ni intégration DSF ni conformité du moteur.
+Référence courante : [v13](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice), [DSF](DSF-SERIES-VARIABLES-2026-10-02.md), [matrice](MATRICE-SERIES-VARIABLES-2026-10-02.md) et [rapport](RAPPORT-MISE-A-JOUR-SERIES-VARIABLES-2026-10-02.md). D-247 à D-255 remplacent les anciennes formules et descriptions uniformes sur ce périmètre. Les règles de cartes sans rapport avec les paramètres restent conservées. Les nouvelles copies fournissent le layout ; elles ne prouvent ni intégration DSF ni conformité du moteur.
 
 ## Inventaire courant du parcours Créer un exercice — 03/10/2026
 
@@ -523,4 +523,4 @@ Références actives : paramètres v13, Bip v2, Phrase v1, chapitre13 et DSF-CAD
 
 ## Circuits de tours et de séries —12/10/2026
 
-[Spécification normative](Specifications-fonctionnelles/SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md) : décisions consolidées, propagation fonctionnelle et contrats CE-CIR-01/02/03. Un circuit MVP ; nature, conversions, héritage, volumes, calcul et bilatéralité définis. Captures et DSF à aligner dans une étape ultérieure ; aucun développement applicatif livré.
+[Spécification normative](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#circuits) : décisions consolidées, propagation fonctionnelle et contrats CE-CIR-01/02/03. Un circuit MVP ; nature, conversions, héritage, volumes, calcul et bilatéralité définis. Captures et DSF à aligner dans une étape ultérieure ; aucun développement applicatif livré.

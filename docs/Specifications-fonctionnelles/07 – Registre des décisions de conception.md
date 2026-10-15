@@ -1,6 +1,3 @@
-
-
-> **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
 Ce document devient le registre permanent des décisions de conception du produit.
 
 # Format
@@ -49,7 +46,7 @@ Les identifiants suivants ne correspondent à aucune décision active et ne doiv
 | D-026 | La création d'une séance nécessite un nom et une couleur issue d’une palette prédéfinie de 12 couleurs ; une couleur est proposée par défaut. | Révisée post-Figma | Oui |
 | D-027 | Dans le MVP, le Suivi présente des cartes condensées pouvant être déployées individuellement pour afficher le détail. | Révisée par D-260/D-261/D-262 le 03/10/2026 ; ancienne règle d’affichage ci-contre historique ; autres dispositions conservées | Oui |
 | D-028 | L'écran d'exécution ne comporte que trois commandes : Réinitialiser, Pause/Reprendre et Exercice suivant. L'arrêt d'une séance est accessible uniquement depuis l'état Pause. | Validée | Oui |
-| D-029 | La réinitialisation de l'exercice en cours demande une confirmation. Après confirmation, la progression de la séance hors périmètre est conservée. Portée précisée par RM-062, D-150 et v13 §7 : Série courante en unilatéral ; bloc du côté courant depuis sa première Série en bilatéral ; phase courante pendant une récupération. L’autre côté, les résultats hors périmètre et le temps actif cumulé sont conservés. | Validée | Oui |
+| D-029 | La réinitialisation de l'exercice en cours demande une confirmation. Après confirmation, la progression de la séance hors périmètre est conservée. Portée précisée par RM-062, D-150 et chapitre 08, paramètres d’exercice : Série courante en unilatéral ; bloc du côté courant depuis sa première Série en bilatéral ; phase courante pendant une récupération. L’autre côté, les résultats hors périmètre et le temps actif cumulé sont conservés. | Validée | Oui |
 | D-030 | Pour un Exercice chronométré, `Suivant` avant son terme demande une confirmation ; pour un Exercice en Répétitions ou À l’échec, `Suivant` constitue la fin normale de la Série et ne demande pas cette confirmation. | Révisée par D-111 | Oui |
 | D-031 | Le Suivi affiche `Vue d’ensemble`, `Filtrer` et `Trier`, mais ces trois commandes sont désactivées dans le MVP. Les Exécutions sont affichées sous forme condensée ou déployée. | Révisée par D-260/D-261/D-262 le 03/10/2026 ; ancienne règle d’affichage ci-contre historique ; autres dispositions conservées | Oui |
 | D-032 | Dans le MVP, une Séance contient exactement un Cycle et chaque Cycle contient exactement un Tour. Le modèle technique doit toutefois représenter les Cycles et les Tours sous forme de collections ordonnées afin de permettre ultérieurement plusieurs Cycles par Séance et plusieurs Tours par Cycle sans refonte du modèle. Les Cycles, Tours et Exercices restent propres à leur Séance et ne sont pas réutilisables directement entre plusieurs Séances. | Validé | Oui |
@@ -123,9 +120,9 @@ Les identifiants suivants ne correspondent à aucune décision active et ne doiv
 | D-079 | Les notifications ne sont pas autorisées par défaut. La demande système intervient lorsque l’utilisateur active pour la première fois un rappel ; en cas de refus, le rappel reste désactivé. | Validée post-Figma | Oui |
 | D-080 | **Amendée le06/10 : voir D-268 à D-298 (cadence, incertitude, phrase), autres dispositions conservées.** En arrière-plan ou écran verrouillé, le Plan d’Exécution continue selon ses horodatages. Une pause de sécurité intervient 30 minutes après la fin théorique d’un Exercice chronométré ou la fin nominale recalculée d’une Série cadencée sans interaction, ou après 2 heures sans interaction pour un Exercice en Répétitions sans cadence ou À l’échec. | Révisée par D-111 | Oui |
 | D-081 | Tous les textes destinés à l’utilisateur utilisent des clés de traduction centralisées, incluant pluriels, variables, formats locaux, notifications et libellés d’accessibilité. | Validée post-Figma | Oui |
-| D-089 | Le Compte à rebours initial et la Fin de séance acceptent une durée de `0 s à 59 min 59 s` (0 à 3599 secondes), aussi bien en Composition qu’au titre des valeurs par défaut du Profil (D-004/D-005) — même champ, mêmes bornes, la Composition pouvant remplacer la valeur par défaut (RM-085). Amendée par D-265 : les valeurs par défaut du Profil sont bornées à 0..60 s ; les champs de la Séance en Composition conservent 0..3599 s. | Validée | Oui |
+| D-089 | Le Compte à rebours initial et la Fin de séance acceptent une durée de `0 s à 59 min 59 s` (0 à 3599 secondes), aussi bien en Composition qu’au titre des valeurs par défaut du Profil  — même champ, mêmes bornes, la Composition pouvant remplacer la valeur par défaut (RM-085). Amendée par D-265 : les valeurs par défaut du Profil sont bornées à 0..60 s ; les champs de la Séance en Composition conservent 0..3599 s. | Validée | Oui |
 | D-090 | La durée synthétique des Exercices affichée dans le Catalogue et la Composition est convertie en minutes par arrondi à la minute supérieure (`Math.ceil`). Elle exclut toujours le Compte à rebours initial et la Fin de séance (RM-101). | Révisée par D-131 | Oui |
-| D-091 | À l’état vide de la Composition (aucun Exercice défini), le résumé affiche exactement `0 exercice · 0 min`, au singulier — exception locale à cet écran qui ne modifie ni la règle générale de pluralisation (D-081) ni le libellé du Catalogue, qui reste `0 exercices`. | Validée | Oui |
+| D-091 | À l’état vide de la Composition (aucun Exercice défini), le résumé affiche exactement `0 exercice · 0 min`, au singulier — exception locale à cet écran qui ne modifie ni la règle générale de pluralisation  ni le libellé du Catalogue, qui reste `0 exercices`. | Validée | Oui |
 | D-092 | Les roulettes `Nombre de répétitions` et `Nombre de Séries` d’un Exercice sont bornées à 1–99, par cohérence avec le seul précédent comparable du produit (Tour, D-058). | Validée | Oui |
 | D-093 | Le référentiel initial des Zones corporelles contient dix valeurs par défaut (Cou, Épaules, Bras, Poignets et mains, Dos, Hanches et bassin, Cuisses, Genoux, Jambes, Chevilles et pieds), sans `Corps entier` ni distinction gauche/droite dans ce jeu initial. La sélection sur un Exercice est multiple. | Révisée par D-199 | Oui |
 | D-094 | La confirmation des modifications non enregistrées de l’écran Exercice utilisait la frame historique `3224:4082` (supprimée, non exploitable comme cible courante) et conserve `Overlay / Decision Dialog`, variante danger/neutre à deux actions (`2590:2934`). Elle affiche : titre `Abandonner les modifications ?`, message `Les modifications apportées à cette exercice seront perdues.`, action non destructive `Annuler`, action destructive `Confirmer`. | Révisée post-Figma | Oui |
@@ -280,12 +277,11 @@ Les décisions historiques D-173, D-179, D-181 et D-184 s’appuyaient sur l’�
 | --- | --- | --- | --- |
 | D-208 | La séparation des porteurs est conservée : PC intrinsèque à l’Exercice ; R contextuelle à l’occurrence ; aucune Récupération en direct. Les anciennes formules et fréquences de pauses sont remplacées par D-248 et v12. | Révision 07/10 : affichage, initialisation et symboles incompatibles remplacés par D-302–D-307 ; autres règles conservées.  Supersédée sur ces points le 02/10/2026 | Historique conservé dans Git ; référence active v12 |
 
-
 ## Décisions du 26 septembre 2026 — consolidation fonctionnelle avant planification
 
 | ID | Décision | Statut | Impact / supersession |
 |---|---|---|---|
-| D-209 | Dans une Séance, le groupe ordonné d’Exercices répété est un **Circuit**. Un **Tour** est une répétition de ce Circuit ; le nombre de Tours indique combien de fois le Circuit est exécuté. **parcours** est désormais un libellé de planification multi-contenus (D-328) ; il ne désigne pas le Circuit interne d’une Séance. La bilatéralité n’existe qu’au niveau de l’Exercice. | Révision 07/10 : affichage, initialisation et symboles incompatibles remplacés par D-302–D-307 ; autres règles conservées.  Validée — 26/09/2026 | Révise les formulations historiques où Tour désignait le conteneur répété ; précise D-201/D-202. |
+| D-209 | Dans une Séance, le groupe ordonné d’Exercices répété est un **Circuit**. Un **Tour** est une répétition de ce Circuit ; le nombre de Tours indique combien de fois le Circuit est exécuté. **parcours** est désormais un libellé de planification multi-contenus  ; il ne désigne pas le Circuit interne d’une Séance. La bilatéralité n’existe qu’au niveau de l’Exercice. | Révision 07/10 : affichage, initialisation et symboles incompatibles remplacés par D-302–D-307 ; autres règles conservées.  Validée — 26/09/2026 | Révise les formulations historiques où Tour désignait le conteneur répété ; précise D-201/D-202. |
 | D-210 | Supprimer une Étiquette, une Catégorie ou une Zone corporelle la retire du référentiel actif sans invalider les objets qui la référencent déjà. Si elle est utilisée, une confirmation avertit l’utilisateur. Les affectations existantes, le nom et la dernière couleur éventuelle sont conservés ; la valeur n’est plus proposée pour de nouvelles affectations. Un objet existant peut être enregistré sans remplacer cette valeur. | Validée — 26/09/2026 | Révise D-199/D-200 ; aucune réaffectation automatique. |
 | D-211 | Un nouvel Exercice valide possède **exactement une Catégorie** et **une ou plusieurs Zones corporelles**. Les Zones corporelles restent multi-sélectionnables. Ces métadonnées servent à la classification/reporting et n’affectent pas l’Exécution. Une Séance peut conserver **zéro ou une Étiquette** ; l’Étiquette reste facultative. | Validée — 26/09/2026 | Révise les validations Exercice et les cardinalités fonctionnelles. |
 | D-212 | La couleur appartient au référentiel Étiquette/Catégorie et constitue la source de vérité d’affichage. Modifier la couleur d’une valeur met à jour l’affichage de tous les objets qui la référencent. Une valeur retirée du référentiel actif conserve sa dernière couleur pour les objets existants. Les Zones corporelles n’ont pas de couleur. | Validée — 26/09/2026 | Précise D-188/D-210. |
@@ -293,11 +289,10 @@ Les décisions historiques D-173, D-179, D-181 et D-184 s’appuyaient sur l’�
 | D-214 | Dans une Séance, les Compte à rebours d’exercice et Fin d’exercice ne sont jamais exécutés ; seuls le Compte à rebours initial et la Fin de séance s’appliquent, une fois, par substitution. Aucun booléen ni contrôle d’activation n’existe à cet effet. Les valeurs propres restent conservées pour l’exécution de l’Exercice seul. | Révisée par Hermann — 12/10/2026 ; remplace la règle booléenne du26/09 | Suppression du réglage dans modèle, API et contrats ; Figma confirmé aligné par le propriétaire. |
 | D-215 | Ancienne règle imposant Durée totale avec une seule Série. | **Supersédée par D-232 / v10.2** : en Durée, affichage si plusieurs Séries ou changement de côté. | Historique. |
 | D-216 | En face Média compacte pendant l’Exécution, une vidéo n’est pas lancée automatiquement. Le bouton Lecture central est visible avant lecture puis **disparaît pendant la lecture**. Le retour à Information met la vidéo en pause. Le plein écran conserve ses propres contrôles et l’Exécution continue. | Validée — 26/09/2026 | Précise D-203. |
-| D-217 | Le Point d’arrêt est distinct de la Récupération. La ligne structurelle Récupération / Point d’arrêt reste toujours présente entre les Exercices, y compris avec `Récupération 0 s` et sans Point d’arrêt. La récupération se règle sur cette ligne et appartient à l’occurrence. Les deux éléments restent distincts ; pendant le placement d’un Point d’arrêt, les emplacements autorisés sont mis en évidence pour permettre leur sélection. Le retrait des informations de pause/récupération sur les cartes (D-238) ne supprime ni cette ligne ni son réglage. À un même emplacement : `Exercice → Récupération après exercice → Point d’arrêt → suite`. Aucun Point d’arrêt n’est autorisé immédiatement après le Compte à rebours initial ni immédiatement avant la Fin de séance. Il est autorisé avant/après un Circuit et entre les Exercices d’un Circuit. Tout élément placé dans le Circuit, Point d’arrêt compris, est exécuté à chaque Tour sauf règle explicite contraire. L’action d’ajout dédiée met en évidence les positions autorisées sur la ligne permanente ; l’utilisateur choisit la position et peut annuler le mode d’insertion via le snackbar. Un appui long sur un Point d’arrêt existant ouvre la bulle permettant de le retirer ; un appui ailleurs referme la bulle sans modification. | Révision 07/10 : affichage, initialisation et symboles incompatibles remplacés par D-302–D-307 ; autres règles conservées.  Validée — 26/09/2026 | Précise D-190 et la sémantique/interaction de Composition. |
+| D-217 | Le Point d’arrêt est distinct de la Récupération. La ligne structurelle Récupération / Point d’arrêt reste toujours présente entre les Exercices, y compris avec `Récupération 0 s` et sans Point d’arrêt. La récupération se règle sur cette ligne et appartient à l’occurrence. Les deux éléments restent distincts ; pendant le placement d’un Point d’arrêt, les emplacements autorisés sont mis en évidence pour permettre leur sélection. Le retrait des informations de pause/récupération sur les cartes  ne supprime ni cette ligne ni son réglage. À un même emplacement : `Exercice → Récupération après exercice → Point d’arrêt → suite`. Aucun Point d’arrêt n’est autorisé immédiatement après le Compte à rebours initial ni immédiatement avant la Fin de séance. Il est autorisé avant/après un Circuit et entre les Exercices d’un Circuit. Tout élément placé dans le Circuit, Point d’arrêt compris, est exécuté à chaque Tour sauf règle explicite contraire. L’action d’ajout dédiée met en évidence les positions autorisées sur la ligne permanente ; l’utilisateur choisit la position et peut annuler le mode d’insertion via le snackbar. Un appui long sur un Point d’arrêt existant ouvre la bulle permettant de le retirer ; un appui ailleurs referme la bulle sans modification. | Révision 07/10 : affichage, initialisation et symboles incompatibles remplacés par D-302–D-307 ; autres règles conservées.  Validée — 26/09/2026 | Précise D-190 et la sémantique/interaction de Composition. |
 | D-218 | Le Splash de référence documentaire est l’unique Splash actif de la page Figma `Prototype MVP`. Il n’existe aucun Splash concurrent à arbitrer. | Validée — 26/09/2026 | Clôt les anciens `À CLARIFIER` liés au Splash. |
 | D-219 | Convention de saisie : les **durées** utilisent les roulettes dans une modale basse ; les **sélections d’objets/référentiels** utilisent les modales de sélection ; les **entiers simples et courts** de l’éditeur/Composition (`Nombre de Séries`, `Nombre de répétitions`, `Nombre de Tours`) utilisent un **stepper inline** et n’ouvrent pas de roulette/modale. Les dialogues de confirmation restent centrés. L’implémentation doit réutiliser les composants standard/DSF compatibles React Native/Expo lorsqu’ils existent plutôt que recréer un contrôle équivalent sans nécessité. | Validée — 26/09/2026 | Révise D-098/D-130 et les contrats qui décrivaient encore des roulettes numériques pour ces entiers. |
 | D-220 | Dans l’écran d’Exécution d’un Exercice, la ligne de contexte immédiatement sous le nom n’est jamais vide : dans une Exécution de Séance elle contient le **nom de la Séance et la Catégorie de l’Exercice** ; en Exécution directe elle contient la **Catégorie de l’Exercice** seule. Cette règle s’appuie sur D-211, qui rend la Catégorie obligatoire pour un nouvel Exercice. L’indication éventuelle du côté courant reste une information distincte. | Validée — 26/09/2026 | Précise les contrats d’Exécution et la donnée de contexte affichée. |
-
 
 ## Décisions de clôture Figma / DSF avant développement — 28 septembre 2026
 
@@ -315,7 +310,6 @@ Les décisions historiques D-173, D-179, D-181 et D-184 s’appuyaient sur l’�
 | D-230 | Les listes défilantes rognent leur contenu (`clipsContent: true`). La carte média déployée du Catalogue des Exercices est un état réellement étendu avec carte/barre latérale étendues, chevron haut et aperçus média ; l’ancienne carte condensée ne doit plus être documentée sous ce nom. Les règles spécialisées Profil, Exécution, Ressenti et Point d’arrêt suivent les composants/tokens DSF V2 validés au 28/09/2026. | Révisée par D-260/D-261/D-262 le 03/10/2026 ; ancienne règle d’affichage ci-contre historique ; autres dispositions conservées | Recette UI / composants spécialisés. |
 | D-231 | La phrase de synthèse des paramètres d’exécution suit la spécification v9 du 28/09/2026. | **Supersédée par D-232 / v10.2**. | Historique de la conception du générateur. |
 | D-232 | **Amendée le06/10 : voir D-268 à D-298 (cadence, incertitude, phrase), autres dispositions conservées.** Bornes conservées : N1..99, répétitions1..100, durée5..3535s, pauses0..300s ; aucune estimation forfaitaire de répétition (Bip v2). Anciennes saisie inline, valeurs initiales, formules et granularités remplacées par D-246 puis D-247 à D-253/v12. | Supersédée sur ces points le 02/10/2026 | Historique conservé dans Git ; référence active v12 |
-
 
 ## Décisions du 30 septembre 2026 — cartes, icônes et appuis
 
@@ -343,7 +337,6 @@ Le complément porte RG-1 à RG-13 et leurs critères. Les 17 points sont clos. 
 
 Les situations acceptées de la section 3.17 du document source, dont contraste pastel, absence d’écran Archivé, animations non câblées, convention icon/<nom> et attribution target/pulse, ne sont pas rouvertes. Les anciennes formulations « à valider » du journal sont supersédées dans ce périmètre par la validation explicite du propriétaire.
 
-
 ## Clôture des contrats — 30/09–01/10/2026
 
 | ID | Décision | Statut | Portée |
@@ -354,15 +347,13 @@ Les situations acceptées de la section 3.17 du document source, dont contraste 
 | D-244 | Fréquence périodique entière : 1 à 12 semaines incluses. | Maximum 12 donné le 01/10 | Contrat Planifier, stepper et validation |
 | D-245 | Précisions dérivées : Total borné T(1)..T(99) dans le sélecteur existant ; sans réponse à la pause de sécurité, rester suspendu ; reset du bloc côté selon D-029/D-150 ; exclusion d’occurrence persistante selon le comportement déjà prescrit. | Dérivées, aucun nouvel arbitrage de design | Chapitre13 §6, obligations de développement/recette |
 
-
 ## Décision du 30 septembre 2026 — valeurs par défaut du Profil
 
 | ID | Décision | Statut | Portée |
 |---|---|---|---|
 | D-240 | Le Profil fixe les valeurs par défaut propres à l’Exercice : **Compte à rebours d’Exercice `10 s`** et **Fin d’Exercice `5 s`**. Elles complètent les défauts déjà spécifiés (Pause entre les côtés `10 s`, récupération post-exercice `30 s`) et initialisent les nouveaux Exercices sans rétroactivité. | Validée par Hermann le 30/09/2026 (issue #249, clarification du run de développement 36773441104) | Complète `qualification-spec.md` §10 de V2-PRE-1 ; modèle, persistance et seed du Profil singleton ; distinct du Compte à rebours initial et de la Fin de séance de la Séance |
 
-
-## Saisie des paramètres en feuille basse — 01/10/2026
+## Saisie des paramètres en feuille basse
 
 | ID | Décision | Statut | Portée |
 |---|---|---|---|
@@ -370,14 +361,14 @@ Les situations acceptées de la section 3.17 du document source, dont contraste 
 
 La numérotation D-241 à D-245 des clôtures de contrats remplace D-240 à D-244 de la première version non fusionnée de la PR272 : D-240 a été attribuée sur main aux défauts Profil 10 s/5 s. Il n’existe qu’une décision par identifiant.
 
-## Séries variables et Ordre des côtés — 02/10/2026
+## Séries variables et Ordre des côtés
 
 Dernier identifiant publié vérifié sur main 8fc58a4 : D-246.
 
 | ID | Décision | Statut | Traçabilité |
 |---|---|---|---|
 | D-247 | Séries variables explicites, mode unique et N Séries par côté ; collection ordonnée cible/Pause, aucune surcharge commune. Direction et Ordre des côtés indépendants ; Un côté après l’autre par défaut / Les deux côtés à chaque série. | Validée | C1/C4–6/C8/C11/C19–20, prompt§4.1–4.2 |
-| D-248 | Pause après chaque série, dernière comprise ; PN puis PC à la frontière des côtés successifs. Seule la dernière Pause est remplacée par R positive dans une occurrence ; aucune récupération contextuelle en direct. Formules et inversion : Paramètres v13. | Confirmée par D-314 le07/10 | Remplace l’interprétation contraire de D-311 ; conserve ordre par paire et normalisation N1 |
+| D-248 | Pause après chaque série, dernière comprise ; PN puis PC à la frontière des côtés successifs. Seule la dernière Pause est remplacée par R positive dans une occurrence ; aucune récupération contextuelle en direct. Formules et inversion : paramètres d’exercice du chapitre 08. | Confirmée par D-314 le07/10 | Remplace l’interprétation contraire de D-311 ; conserve ordre par paire et normalisation N1 |
 | D-249 | Brouillon transactionnel, bascules uniforme/variable, restauration des cibles par mode et lignes retirées ; déplacement conjoint cible/Pause, nouvelle dernière Pause stockée et exécutée, sauf substitution par récupération positive et nouvelle première ligne reprise à désactivation. Ordre relatif des lignes retirées conservé à restauration. | Validée | C2/C7/C9 et arbitrage déplacement02/10 |
 | D-250 | À N=1 : uniforme et Un côté après l’autre effectifs dès le brouillon/calcul ; options grisées, interrupteur visuellement désactivé. Ancien état conservé seulement pour retour N≥2 avant ✓ ; normalisation persistée à ✓. | Validée | C17/C18 corrigées, réponses explicites02/10 |
 | D-251 | Feuille scrollable, en-tête fixe, tableau rattaché au champ de régime, steppers directs et chevron de repli sans effet métier. Cible incomplète : total—, ✓ grisé, cellule et message en ligne. Durée totale variable non éditable. | Validée | C10/C13/C15/C22, prompt§4.3–4.4 |
@@ -385,7 +376,7 @@ Dernier identifiant publié vérifié sur main 8fc58a4 : D-246.
 | D-253 | **Amendée le06/10 : voir D-268 à D-298 (cadence, incertitude, phrase), autres dispositions conservées.** Libellé Pause entre les côtés dans tout le produit, Profil compris ; défaut10s inchangé. Ancien résumé paramètres à trois premières valeurs variables remplacé par D-298/Phrase v1 (énumération jusqu’à trois puis min/max) ; lignes séance : N séries variables seul. Compteur Série n/N et côté séparé ; aucune barre par Série. | Validée | Prompt§4 et confirmation vocabulaire02/10 |
 | D-254 | Nouvelle politique des pauses appliquée aussi aux Exercices existants ; quantité de travail et ordre par défaut conservés, augmentation de durée assumée ; aucun recalcul des résultats historiques. R>0 ne garantit pas une durée identique à l’ancienne règle en bilatéral. | Validée | C21 amendée et confirmation02/10/2026 |
 | D-255 | Spécifications et arbitrages déterminent calculs et comportements ; Figma définit uniquement le layout/rendu. Exemples chiffrés et câblages ne sont jamais une règle. PRE-1 reste figé ; cible documentaire préalable à PRE-2. | Validée | Clarification explicite02/10/2026 |
-| D-256 | Compte à rebours d’Exercice et Fin d’exercice : 0 à 60 s inclus, pas 1 s, défauts 10 s et 5 s (Profil et champ propre de l’Exercice). Ces bornes ne concernent pas la durée de réalisation de l’Exercice. Les bornes des réglages de Séance (D-089) sont inchangées. | Validée | Arbitrage propriétaire 03/10/2026 |
+| D-256 | Compte à rebours d’Exercice et Fin d’exercice : 0 à 60 s inclus, pas 1 s, défauts 10 s et 5 s (Profil et champ propre de l’Exercice). Ces bornes ne concernent pas la durée de réalisation de l’Exercice. Les bornes des réglages de Séance  sont inchangées. | Validée | Arbitrage propriétaire 03/10/2026 |
 | D-257 | Créer dans un référentiel (Catégorie, Étiquette, Zone corporelle) un nom dont la clé normalisée existante correspond à une entrée retirée du même référentiel réactive cette entrée : même identifiant, associations existantes conservées, aucune confirmation ni parcours de restauration distinct. Catégorie et Étiquette reçoivent la couleur choisie lors de cette création, propagée aux objets courants. Si l’entrée est active, le contrôle de doublon s’applique. Le démarrage et les migrations ne réactivent jamais une entrée retirée. Révise D-200/D-210 (« aucune restauration automatique ») pour ce seul cas de création explicite. | Validée | Arbitrage propriétaire 03/10/2026 |
 | D-258 | Photo du Profil : source galerie uniquement ; copie locale persistante de l’image choisie ; annulation sans effet ; erreur signalée sans perte du brouillon d’identité. Les dépendances natives nécessaires imposent un nouveau build natif et sa vérification sur iPhone. | Validée | Arbitrage propriétaire 03/10/2026 |
 | D-259 | Dialogue d’appui long des référentiels : actions `Modifier` (renommer ; couleur pour Catégorie et Étiquette) et `Supprimer`, plus `Annuler`. L’appui long ne sélectionne ni ne désaffecte. Un nouvel appui sur l’Étiquette sélectionnée retire son affectation. Composants et styles existants réutilisés. | Validée | Arbitrage propriétaire 03/10/2026 |
@@ -394,7 +385,7 @@ Dernier identifiant publié vérifié sur main 8fc58a4 : D-246.
 
 La réserve créée le02/10 sur Réinitialiser et le saut du bloc de côté était injustifiée. D-029/D-150 conservent leur portée dans les deux ordres ; la documentation décrit leur application aux passages alternés sans nouveau choix de design. Le nouvel inventaire courant est celui du03/10, après remplacement des copies par les frames intégrées à Prototype MVP. Aucun nouvel identifiant de décision métier n’est créé pour cette correction.
 
-## Révision des cartes — 03/10/2026
+## Révision des cartes
 
 Source : décisions du propriétaire et prompt « Mise à jour DSF et documentation après la révision des cartes », étape 6 autorisée ; rendus contrôlés directement dans Figma.
 
@@ -406,13 +397,13 @@ Source : décisions du propriétaire et prompt « Mise à jour DSF et documentat
 | D-263 | Zones corporelles tronquées par points de suspension, sans défilement horizontal ; largeur de coupe adaptée au contrôle droit effectivement présent dans chaque carte. Les couleurs des trois composants suivent les variables sémantiques DSF, sans changement de valeur ; les trois composants promus conservent leurs identifiants. | Validée par le propriétaire — 03/10/2026 | Étapes Figma 1 à 5 ; DSF / Cards / Séance 6214:7276, Exercice 6214:7278, Status & Tags / Ressenti 6234:8895 |
 | D-264 | La vignette d’Exercice dans le Catalogue et les listes de sélection d’exercices utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, son image de couverture est utilisée. | Validée explicitement par le propriétaire — 03/10/2026 | Clôt la réserve de RG-2 ; complète D-235/D-260 ; ordre de galerie et associations existants conservés |
 
-## Recette iPhone V2-PRE-2 — 04/10/2026
+## Recette iPhone V2-PRE-2
 
 Source : retour de recette iPhone du propriétaire sur la livraison V2-PRE-2 (PR #303, commit `10ac761e`), arbitrage du 04/10/2026.
 
 | ID | Décision | Statut | Traçabilité |
 |---|---|---|---|
-| D-265 | Valeurs par défaut du Profil « Compte à rebours initial » et « Fin de séance » : 0 à 60 s inclus, pas 1 s, défauts inchangés 10 s et 5 s. La borne porte sur ces deux réglages du Profil seulement : les champs Compte à rebours initial et Fin de séance de la Séance en Composition conservent 0..3599 s (D-089 amendée) ; un éventuel alignement de la Composition et des Séances existantes relève de PRE-4. Une valeur déjà enregistrée au-delà de 60 s est conservée telle quelle, sans plafonnement ni réécriture à la lecture ou par migration : elle est affichée et utilisée exactement ; au réglage, « + » est inactif et « − » ramène d’abord à 60 s, puis suit le pas de 1 s. Les réglages d’Exercice restent 0..60 s (D-256) ; bornes et grille de Pause entre les côtés et de Récupération inchangées (D-252). | Validée | Arbitrage propriétaire 04/10/2026 |
+| D-265 | Valeurs par défaut du Profil « Compte à rebours initial » et « Fin de séance » : 0 à 60 s inclus, pas 1 s, défauts inchangés 10 s et 5 s. La borne porte sur ces deux réglages du Profil seulement : les champs Compte à rebours initial et Fin de séance de la Séance en Composition conservent 0..3599 s (D-089 amendée) ; un éventuel alignement de la Composition et des Séances existantes relève de PRE-4. Une valeur déjà enregistrée au-delà de 60 s est conservée telle quelle, sans plafonnement ni réécriture à la lecture ou par migration : elle est affichée et utilisée exactement ; au réglage, « + » est inactif et « − » ramène d’abord à 60 s, puis suit le pas de 1 s. Les réglages d’Exercice restent 0..60 s  ; bornes et grille de Pause entre les côtés et de Récupération inchangées . | Validée | Arbitrage propriétaire 04/10/2026 |
 | D-266 | Dans le Profil, le réglage de valeur par défaut du Compte à rebours propre d’Exercice s’intitule « Compte à rebours d’un exercice », à l’écran et dans les libellés accessibles correspondants. | Validée | Décision propriétaire 04/10/2026 |
 | D-267 | Profil : à l’intérieur de chaque groupe de réglages, un séparateur horizontal sépare deux lignes consécutives (groupe Exercice : entre Pause entre les côtés et Compte à rebours d’un exercice, puis entre Compte à rebours d’un exercice et Fin d’exercice), au style de séparateur de référence existant de l’application ; aucun séparateur avant la première ni après la dernière ligne d’un groupe. | Validée | Décision propriétaire 04/10/2026 |
 
@@ -460,12 +451,11 @@ D-268 à D-297 transcrivent CAD-01 à CAD-30 sans nouvel arbitrage. Ce paragraph
 
 Les décisions datées conservent leur texte d’origine. Le badge replié décrit en #F4F4F8 utilise désormais surface #F5F7FA (journal §5.3, D-299) ; cette ancienne valeur ne prescrit plus le rendu courant. Les fonds de cartes #FCFCFE deviennent surfaceSubtle #F9FAFC, les icônes neutres #5C636E deviennent iconNeutral/textSecondary #595E66. Les autres décisions métier restent inchangées.
 
-## Clarification de l’avertissement d’enchaînement — 06/10/2026
+## Clarification de l’avertissement d’enchaînement
 
 | ID | Décision | Statut | Portée |
 |---|---|---|---|
 | D-301 | Lorsque deux Exercices consécutifs n’ont ni pause effective de transition ni Récupération positive après son occurrence, la Composition affiche l’avertissement non bloquant : « Attention, les exercices vont s’enchaîner sans pause. » Il concerne l’enchaînement entre Exercices ; aucun avertissement distinct entre Séries n’est ajouté. Il n’empêche ni l’enregistrement ni l’exécution et ne modifie aucun paramètre. | Validée par le propriétaire — 06/10/2026 | H-09 ; Composition CE-T03-08 ; aucun changement de calcul. |
-
 
 ## Consolidation du 07/10/2026
 
@@ -484,7 +474,7 @@ D-314 confirme D-248 sur Pause terminale et récupération ; D-315 remplace H-03
 
 Répétitions sans bip : total d’Exercice omis. ≥ uniquement en Séance, selon contributions connues. Aucun calcul forfaitaire de répétition conservé.
 
-## Bip de cadence — seconde clarification du07/10
+## Bip de cadence
 
 | ID | Décision | Statut | Source |
 |---|---|---|---|
@@ -517,16 +507,15 @@ Q-08 clos par instruction explicite du propriétaire : pause après chaque séri
 | D-322 | Phrase longue224caractères, cinq lignes à largeur324 ; hauteur intrinsèque sans plafond ; césure sans virgule isolée. | Source reçue et layout Figma relu | CE-T03-04/CE-UI-10 ; aucun nouveau shell |
 | D-323 | Recovery explicitement0 reste conservée ; Pi demeure dans SeriesParameters, distinct de Pause de Composition. | §6 rapproché des règles publiées | Précision modèle ; D-303 sur le trait conservée |
 
-CF1/CF2/CF3 sont déjà résolus par les règles publiées ; CF4 reste un contrôle de données avant implémentation, aucune reprise fonctionnelle supplémentaire demandée ici. Le montant330s et le trait hors placement priment sur les passages contradictoires de la source. [Matrice des écarts et preuves](../MATRICE-EVOLUTIONS-V15-2026-10-07.md).
+CF1/CF2/CF3 sont déjà résolus par les règles publiées ; CF4 reste un contrôle de données avant implémentation, aucune reprise fonctionnelle supplémentaire demandée ici. Le montant330s et le trait hors placement priment sur les passages contradictoires de la source. .
 
-## Compléments segmentés et titres — 07/10/2026
+## Compléments segmentés et titres
 
 | ID | Décision | Statut | Traçabilité |
 |---|---|---|---|
 | D-324 | Catalogues et modales de sélection de type de contenu : seulement Exercices et Séances ; troisième segment Parcours/Circuits supprimé, y compris son espace et son annonce accessible. Séances par défaut conservé. Circuit dans la Composition inchangé ; ancien concept Parcours autonome retiré par D-328 ; pas d’entrée de Catalogue. | Validée, décision propriétaire | Complément 1 ; remplace D10 du brief visuel pour le catalogue et précise D-167/RM-109. Backlog fonctionnel FUNC-SEG-02 |
 | D-325 | Titres visibles : Composer une séance, Modifier une séance, Créer un exercice ; Modifier un exercice et Créer une activité inchangés. Aucun renommage des IDs/noms de cadres ni changement de destination induit par les boutons Ajouter. | Validée | Complément 2 ; CE-T03-04/08, chapitre06 |
 | D-326 | Deux nouvelles variantes Deux options — 1/2 sélectionné dans DSF Segmenté ; 354×42, options171×34. Typographie segmentés Inter Semi Bold16/20 ; exceptions Changement de côté13 et Ordre14/11 conservées. Fond standard blanc50%, rayon14 ; options rayon10, inactive#EAEAFF. | Validée ; état Figma et limites distingués | Complément 3 ; DSF-SEGMENTES-TITRES-2026-10-07 |
-
 
 ## Décisions du 08 octobre 2026 — interface générale et planification
 
@@ -543,21 +532,21 @@ Clarification propriétaire 08/10 : retirer « Éléments planifiés » dans Fig
 
 Les règles historiques D-023/D-024/D-206 d’archivage et de repère visuel mono-source ne déterminent pas à elles seules le traitement d’une liste mixte. Ces compléments restent ouverts dans la spécification du 08/10.
 
-## Inclusion de l’import de médias au MVP — 08/10/2026
+## Inclusion de l’import de médias au MVP
 
 | ID | Décision | Statut | Portée |
 |---|---|---|---|
 | D-333 | L’ajout/import de médias associés à un Exercice est inclus au MVP et livré dans PRE-3, avant le moteur d’exécution qui utilise ces médias. Les règles documentées de fichiers locaux, associations ordonnées, copies indépendantes et conservation tant qu’une référence existe restent applicables. | Validée explicitement par Hermann le08/10/2026 dans la préparation PRE-3 | Remplace le report post-MVP de D-066/D-068 et l’exclusion d’import de CE-T03-04 ; complète D-203 sans changer ses règles de consultation. Le détail du parcours d’import et ses preuves sont à établir dans le plan PRE-3, sans inventer de caméra ou de limites fonctionnelles. |
 
-## Recette PRE-3 — décisions du propriétaire — 12/10/2026
+## Recette PRE-3 — décisions du propriétaire
 
 Décisions explicites de Hermann après la recette iPhone 1 de PRE-3 (#340). Traçabilité : `docs/preparation/PRE-3/planification/execution/preuves/registre-recette1.md` §7 et `consolidation-recette1.md` §3 (arbitrages D-1 à D-9 de la recette).
 
 | ID | Décision | Statut | Portée |
 |---|---|---|---|
 | D-336 | Compte à rebours et Fin d’exercice : pas constant de 1 s, y compris au maintien ; D-256 confirmée. | Validée, Hermann 12/10 | CE-UI-10, Profil |
-| D-337 | Saisie incomplète dans la feuille Paramètres : aucun message « Renseignez la durée… » ni « Renseignez les répétitions » ; contour de la cellule (orange figé #FF8D28, 1,5) et ✓ indisponible conservés. Le remplacement du contour par un fond rouge est reporté à une tranche ultérieure, après définition dans Figma. | Validée, Hermann 12/10 ; remplace le message en ligne de v13 §6 | CE-UI-10, SPECIFICATION-PARAMETRES-MODALE-v13 |
-| D-338 | Phrase des paramètres : corpus v15 conservé pour PRE-3. La mention des Pauses variables dans les phrases (« X s, Y s, Z s… ») est une évolution à spécifier et planifier dans une tranche ultérieure ; elle ne bloque pas la clôture de PRE-3. | Validée ; évolution ouverte hors PRE-3 | SPECIFICATION-PHRASE-PARAMETRES-EXECUTION |
+| D-337 | Saisie incomplète dans la feuille Paramètres : aucun message « Renseignez la durée… » ni « Renseignez les répétitions » ; contour de la cellule (orange figé #FF8D28, 1,5) et ✓ indisponible conservés. Le remplacement du contour par un fond rouge est reporté à une tranche ultérieure, après définition dans Figma. | Validée, Hermann 12/10 ; remplace le message en ligne de chapitre 08, paramètres d’exercice | CE-UI-10, chapitre 08, Paramètres et brouillon |
+| D-338 | Phrase des paramètres : corpus v15 conservé pour PRE-3. La mention des Pauses variables dans les phrases (« X s, Y s, Z s… ») est une évolution à spécifier et planifier dans une tranche ultérieure ; elle ne bloque pas la clôture de PRE-3. | Validée ; évolution ouverte hors PRE-3 | chapitre 08, Phrase de synthèse |
 | D-339 | Sélecteurs Mode, Côté et Ordre : après un choix, la valeur est appliquée immédiatement, reste visible, puis le sélecteur se referme progressivement (conventions d’animation existantes) ; « Réduire les animations » d’iOS respecté (fermeture immédiate). | Validée, Hermann 12/10 | CE-UI-10 |
 | D-340 | Message d’ajustement de la Durée totale : « Annuler » conservé, entouré d’un cadre plus clair que le fond sombre ; Annuler restaure les valeurs précédant l’ajustement ; toucher le reste du message le ferme sans annuler l’ajustement. | Validée, Hermann 12/10 ; formalise l’action ajoutée par l’écart E15 (dont la référence à D-136 était erronée) | CE-UI-10 |
 | D-341 | Options des sélecteurs Mode, Côté et Ordre : textes plus petits, en Regular, centrés horizontalement et verticalement, sans débordement ; les titres des lignes ne changent pas. Valeurs exactes proposées et soumises, non encore validées : voir registre de recette §7. | Validée sur le principe ; valeurs à valider | CE-UI-10, DSF segmentés (variante Paramètres) |
@@ -565,7 +554,7 @@ Décisions explicites de Hermann après la recette iPhone 1 de PRE-3 (#340). Tra
 | D-343 | Catégorie de l’Exercice : confirmation explicite. Toucher une Catégorie la marque sans fermer ; en création, ↑ crée la Catégorie dans le référentiel et la marque comme choisie, sans fermer ; ✓ confirme l’affectation et ferme progressivement ; ✕ abandonne le choix et conserve la Catégorie précédente. Une Catégorie créée dans la feuille reste dans le référentiel, même après ✕. Remplace, pour la Catégorie de l’Exercice, le choix « validé au toucher » de D-222 et D-228 ; l’Étiquette de Séance n’est pas concernée. | Validée, Hermann 12/10 | CE-UI-09, chapitre 06 |
 | D-344 | Palette de création de Catégorie : une seule barre de couleurs sous le champ texte, sans pastille séparée à droite, avec les 12 couleurs de D-026. | Validée, Hermann 12/10 | CE-UI-09 |
 
-## Recette PRE-3 n° 2 — ajustements explicites du propriétaire — 12/10/2026
+## Recette PRE-3 n° 2 — ajustements explicites du propriétaire
 
 Ajustements demandés par Hermann dans la deuxième recette iPhone de PRE-3 (#340), réalisés dans le périmètre autorisé. Traçabilité : `docs/preparation/PRE-3/planification/execution/preuves/registre-recette2.md`. Les décisions récentes prévalent, dans leur portée, sur les présentations antérieures (maquette figée du 08/10 comprise).
 
@@ -577,18 +566,18 @@ Ajustements demandés par Hermann dans la deuxième recette iPhone de PRE-3 (#34
 | D-348 | Créer / Modifier un exercice : aucun liseré sous l’en-tête, aucun liseré autour du champ Nom ; zone de contexte avec courbure et fondu (sans bandes visibles). | Validée, Hermann 12/10 (T-49, partie éditeur) | CE-T03-04 |
 | D-349 | Créer / Modifier un exercice, clavier ouvert : Terminer reste en bas et ne remonte pas avec le clavier (il redevient accessible à sa fermeture) ; la Description se place juste au-dessus du clavier et le curseur reste visible pendant la saisie. Remplace, pour cet écran, « l’action finale reste accessible » du chapitre 06 pendant la saisie. | Validée, Hermann 12/10 (N-05) | CE-T03-04, chapitre 06 |
 
-## Recette PRE-3 n° 3 — demandes explicites du propriétaire — 12/10/2026
+## Recette PRE-3 n° 3 — demandes explicites du propriétaire
 
 Demandes de Hermann issues de la troisième recette iPhone de PRE-3 (#340), réalisées dans le périmètre autorisé. Traçabilité : `docs/preparation/PRE-3/planification/execution/preuves/registre-recette3.md`.
 
 | ID | Décision | Statut | Portée |
 |---|---|---|---|
-| D-350 | Création inline de Catégorie et de Zone corporelle : ↑ enregistre la nouvelle entrée sans fermer le clavier ni la feuille ; le formulaire reste ouvert, son nom est vidé (comportement antérieur conservé) ; une seule création par envoi (aucun doublon par appuis répétés). Catégorie : l’entrée créée est marquée, ✓ l’affecte (D-343) ; Zones : l’entrée créée rejoint la sélection, ✓ l’applique. | Validée, Hermann 12/10 (N-01, N-02) | CE-UI-09 |
+| D-350 | Création inline de Catégorie et de Zone corporelle : ↑ enregistre la nouvelle entrée sans fermer le clavier ni la feuille ; le formulaire reste ouvert, son nom est vidé (comportement antérieur conservé) ; une seule création par envoi (aucun doublon par appuis répétés). Catégorie : l’entrée créée est marquée, ✓ l’affecte  ; Zones : l’entrée créée rejoint la sélection, ✓ l’applique. | Validée, Hermann 12/10 (N-01, N-02) | CE-UI-09 |
 | D-351 | Créer / Modifier un exercice, champ Description : bouton d’envoi ↑ standard dans le champ pendant la saisie ; il ferme le clavier, le texte étant déjà dans le brouillon ; il n’enregistre pas l’exercice et ne remplace pas Terminer ; la touche Retour reste un retour à la ligne. Visibilité limitée à la saisie et place réservée au texte : choix d’implémentation, non décidés par Hermann. | Validée, Hermann 12/10 (N-05) ; présentation à confirmer au retest | CE-T03-04 |
 | D-352 | Composition d’une séance, zone de contexte : courbe blanche sous Retour (halo Ø 59,28 concentrique au bouton, comme l’éditeur) et fondu inférieur vers le fond blanc (20 % inférieurs, couches superposées, sans liseré), sur la couleur propre de la Composition ; plus de liseré blanc autour du champ `Nom de la séance` (supersède ce point de D-103). Séparateur sous l’en-tête : voir D-353. Autorisation d’extension EXT-R3-2 accordée par Hermann le 12/10 (`CompositionScreen.tsx` et ses tests, pendant PRE-3 ; PRE-4 non lancé). | Validée, Hermann 12/10 (T-49, Composition) | CE-T03 Composition |
 | D-353 | Composition d’une séance : plus de trait gris (séparateur d’en-tête) entre l’en-tête et la zone de contexte colorée ; la courbe blanche sous Retour s’y raccorde directement. L’écran d’état (chargement / erreur), sans zone de contexte, conserve son séparateur. Complète D-352 dans la même extension EXT-R3-2. | Validée, Hermann 12/10 (T-49, retour visuel après D-352) | CE-T03 Composition |
 | D-354 | Menu d’appui long des référentiels (Catégorie, Zones corporelles, Étiquette) : ✕ rond standard en haut à gauche à la place d’« Annuler » ; « Modifier » puis « Supprimer » sur une même ligne, fond bleu Kodjo et fond rouge, texte blanc, selon la disposition standard D-102 (deux choix alignés, 147 × 48 dans le dialogue de 354, adaptés à la largeur disponible). Confirmation destructive conservée. Le menu s’affiche dans la fenêtre de la feuille : un clavier déjà affiché reste affiché (N-01). | Validée, Hermann 12/10 (N-04, N-01) | CE-UI-09, CE-T03-16 |
-| D-355 | Étiquette de séance : confirmation explicite, alignée sur la Catégorie (D-343). Toucher marque l’Étiquette sans fermer ; toucher l’Étiquette marquée la démarque (absence d’Étiquette) ; ↑ crée et marque sans fermer ni le clavier ni la feuille ; ✓ applique le choix ou le retrait et ferme progressivement (« Réduire les animations » respecté) ; ✕ abandonne et conserve l’Étiquette antérieure ; une Étiquette créée reste au référentiel. Présentation des feuilles « sélectionner » et « créer » sur le modèle Catégorie (feuille ancrée en bas, en-tête ✕ / titre / ✓ avec séparateur, ↑ dans le champ, barre de 12 couleurs D-026, sans boutons inférieurs) ; pastille de pilule Ø 12 à marges égales (9). Ajustement produit de la mission recette 3 (ARB-R3-1, option B), remplace pour l’Étiquette le choix au toucher (D-222, CE-T03-16 §4). | Validée, Hermann 12/10 (N-03) | CE-T03-16 |
+| D-355 | Étiquette de séance : confirmation explicite, alignée sur la Catégorie . Toucher marque l’Étiquette sans fermer ; toucher l’Étiquette marquée la démarque (absence d’Étiquette) ; ↑ crée et marque sans fermer ni le clavier ni la feuille ; ✓ applique le choix ou le retrait et ferme progressivement (« Réduire les animations » respecté) ; ✕ abandonne et conserve l’Étiquette antérieure ; une Étiquette créée reste au référentiel. Présentation des feuilles « sélectionner » et « créer » sur le modèle Catégorie (feuille ancrée en bas, en-tête ✕ / titre / ✓ avec séparateur, ↑ dans le champ, barre de 12 couleurs D-026, sans boutons inférieurs) ; pastille de pilule Ø 12 à marges égales (9). Ajustement produit de la mission recette 3 (ARB-R3-1, option B), remplace pour l’Étiquette le choix au toucher (D-222, CE-T03-16 §4). | Validée, Hermann 12/10 (N-03) | CE-T03-16 |
 | D-356 | Catalogue (vues Exercices et Séances) : plus de trait gris entre l’en-tête et la zone de contexte ; bord bas sans arête nette, fondu vers le blanc sur les 20 % inférieurs (chapitre 12), sur la couleur propre du Catalogue. Commandes, sélecteur de vue et contenu inchangés. | Validée, Hermann 12/10 (T-49, Catalogue) | CE-T03 Catalogue |
 
 ## Décisions CIR-20261012 — conception des circuits
@@ -610,14 +599,34 @@ Ces identifiants dédiés complètent D-209/D-247/D-249/D-250 dans le contexte d
 | CIR-11 | Suppression manuelle immédiate avec Annuler ; restauration position et paramètres |
 | CIR-12 | Captures/DSF différés ; multi-circuit, progression automatique et tours ouverts hors périmètre |
 
-
 ## Décisions Deux modes —13/10/2026
 
-Les décisions EC-01…EC-10 sont identifiées dans la [spécification consolidée](SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md). Elles remplacent la création d’un troisième mode de D-111 et l’interdiction d’un total partiel à l’Exercice. D-298 est étendue aux cibles mixtes (≥ calculable, compaction au-delà de3), tout en conservant segments, non-persistance et grammaire des pauses. D-308/D-313 portent désormais sur deux modes ; le bip peut proposer un relevé estimé à l’échec, sans détecter le mouvement. RM-077/RM-126 conservent leurs formules mais leurs prédicats doivent distinguer les cibles, contrairement à la mention « inchangées » du prompt.
+Les règles sur les cibles typées sont définies dans la [spécification consolidée](09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#cibles-typees). Elles remplacent la création d’un troisième mode de D-111 et l’interdiction d’un total partiel à l’Exercice. D-298 est étendue aux cibles mixtes (≥ calculable, compaction au-delà de3), tout en conservant segments, non-persistance et grammaire des pauses. D-308/D-313 portent désormais sur deux modes ; le bip peut proposer un relevé estimé à l’échec, sans détecter le mouvement. RM-077/RM-126 conservent leurs formules mais leurs prédicats doivent distinguer les cibles, contrairement à la mention « inchangées » du prompt.
 
 Choix visuels : cinquième variante de roulette8452:13297, deux popovers de mode réduits, colonne de valeur rétablie et nouveau cas mixte. Aucune variante à une colonne ni écran uniforme dédié. Réserves de source/qualification : matrice Deux modes du13/10.
-
 
 ### Réception du §4.5 — sélecteur de cible
 
 Source reçue dans le §4.2 du prompt complété. Roue manipulable même grisée ; tourner sélectionne le nombre, toucher le libellé sélectionne l’échec et neutralise la roue à00:00. Exactement une sélection, pas de coche ;45% sur le bloc numérique non sélectionné. R01 close. R06 close après correction explicite du propriétaire :58min55s=3535s maximum ;5999s était une coquille. Sélecteur dès5s, par pas5s. D-232, RM-234 et les contrats sont corrigés.
+
+<a id="formats-decisions"></a>
+
+## Formats de séances — décisions du 14 octobre 2026
+
+| ID | Décision |
+|---|---|
+| D-357 | Réglages figés après création ou modifiables. « les réglages modifiables du format restent modifiables dans la séance composée » |
+| D-358 | Tabata par exercice ou alternance imposée. proposer les deux organisations ; confirmation que le récapitulatif concerné est Tabata |
+| D-359 | Présentation du choix. dans la liste des paramètres, dernière ligne « Exécution », libellés à la taille des autres paramètres, séparateur et distribution régulière ; « Séries par exercice — 8 » remplace « Circuit — 8 tours » |
+| D-360 | Configuration Tabata par exercice. copie à 1 tour, cartes 8 × 20 s, pause de 10 s dans la modale ; Durée, 8, 20 s, 10 s grisés |
+| D-361 | EMOM borné par durée ou par compte. nombre de tours réglable, fenêtre réglable, organisation réglable ; durée calculée en direct, repos résiduel non réglable, fenêtres continues |
+| D-362 | Borne des formats cadencés. Tabata, Intervalles et EMOM bornés par un compte ; For time par le travail, AMRAP par la durée |
+| D-363 | Progression. Claude propose les deux organisations dans Figma ; ne pas rouvrir le choix comme un nouveau problème métier |
+| D-364 | Commande d’arrêt Death by. un seul bouton, puis confirmation « limite atteinte » ou « abandon » |
+| D-365 | Rapports et comparaison. conception reportée au Suivi ; les exigences générales d’historique ne sont pas spécifiques aux formats |
+| D-366 | Interprétation 21 · 15 · 9. volume par tour, chaque exercice à 21 puis 15 puis 9 ; aucun sélecteur d’organisation pour For time |
+| D-367 | Comptage Death by. rang et objectif déduits de l’horloge ; appui confirme l’objectif accompli et révèle le repos ; fenêtre sans appui non acquise |
+| D-368 | Dernière fenêtre et achèvement Death by. répétitions partielles demandées à l’arrêt, préremplies à zéro ; résultat tours acquis + répétitions ; état toujours incomplet |
+| D-369 | État de développement. le moteur n’a pas encore été développé |
+
+La V2 est amendée par ces décisions, notamment : réglages éditables ; organisation Tabata/EMOM/Progression ; For time indexé par tour sans choix d’organisation ; Death by cadencé, tours acquis par appui, résultat partiel et état toujours incomplet. Les décisions ne valent pas livraison applicative ni clôture des raccordements explicitement signalés.

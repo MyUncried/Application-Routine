@@ -239,6 +239,7 @@ function buildReviewContext({
     ui_applicable: uiApplicable,
     mechanical_checks: mechanicalChecks,
     target_catalog: targetCatalog,
+    ...(uiAtomicityContract?.component_coverage ? {component_coverage:uiAtomicityContract.component_coverage} : {}),
     coverage_policy: {
       // Only preserve-only candidates can be left pending within this tolerance.
       optional_target_ids: targetCatalog.CANDIDATE.filter(id =>
@@ -270,7 +271,7 @@ function validateReviewContext(context) {
       'target_catalog',
       'contract_hash',
     ],
-    ['acceptance_gaps', 'coverage_policy'],
+    ['acceptance_gaps', 'coverage_policy','component_coverage'],
     'VNEXT_REVIEW_CONTEXT_KEYS_INVALID',
   );
   if (context.schema_version !== CONTEXT_SCHEMA) V.fail('VNEXT_REVIEW_CONTEXT_SCHEMA_INVALID');
@@ -293,6 +294,7 @@ function validateReviewContext(context) {
     V.assertSha64(check.evidence_hash, 'VNEXT_REVIEW_MECHANICAL_EVIDENCE_INVALID', check.check_id);
   }
   const targets = validateCatalog(context.target_catalog);
+  if(context.component_coverage)require('./vnext-component-coverage').validate(context.component_coverage,{assertionIds:context.target_catalog.ASSERTION,criterionIds:context.target_catalog.CRITERION});
   if (context.coverage_policy) {
     const p = context.coverage_policy;
     V.assertExactKeys(p, ['optional_target_ids','max_pending_targets','max_pending_ratio'], [], 'VNEXT_REVIEW_TOLERANCE_INVALID');
@@ -454,7 +456,7 @@ function normalizeFinding(row, index, reviewContext, allTargets) {
   };
 }
 
-function buildReviewReport({ reviewContext, semanticReview }) {
+function buildReport({ reviewContext, semanticReview }, partial = false) {
   validateReviewContext(reviewContext);
   V.assertExactKeys(
     semanticReview,
@@ -469,9 +471,11 @@ function buildReviewReport({ reviewContext, semanticReview }) {
   const allTargets = validateCatalog(reviewContext.target_catalog);
   const reviewedTargets = V.uniqueStrings(semanticReview.reviewed_target_ids, 'VNEXT_REVIEW_COVERAGE_INVALID', 'reviewed_target_ids', {allowEmpty:true}).sort();
   if (reviewedTargets.some(id => !allTargets.has(id))) V.fail('VNEXT_REVIEW_COVERAGE_UNKNOWN');
-  const pendingTargets = [...allTargets].filter(id => !reviewedTargets.includes(id)).sort();
+  const inheritedTargets=reviewContext.component_coverage?require('./vnext-component-coverage').covered(reviewContext.component_coverage,reviewedTargets):[];
+  const coveredTargets=new Set([...reviewedTargets,...inheritedTargets]);
+  const pendingTargets = [...allTargets].filter(id => !coveredTargets.has(id)).sort();
   const policy = reviewContext.coverage_policy;
-  if (pendingTargets.length && (!policy
+  if (!partial && pendingTargets.length && (!policy
       || pendingTargets.some(id => !policy.optional_target_ids.includes(id))
       || pendingTargets.length > policy.max_pending_targets
       || pendingTargets.length / allTargets.size > policy.max_pending_ratio)) V.fail('VNEXT_REVIEW_COVERAGE_INCOMPLETE');
@@ -484,7 +488,8 @@ function buildReviewReport({ reviewContext, semanticReview }) {
     V.assertUnicodeExactText(row.note, 'VNEXT_REVIEW_RESOLUTION_NOTE_REQUIRED');
     return { ...row, evidence_refs: V.uniqueStrings(row.evidence_refs, 'VNEXT_REVIEW_RESOLUTION_EVIDENCE_REQUIRED', 'evidence_refs').sort() };
   }).sort((a,b) => a.finding_id.localeCompare(b.finding_id));
-  if (V.canonicalStringify(resolutions.map(row => row.finding_id)) !== V.canonicalStringify(reviewContext.causal_finding_ids)) V.fail('VNEXT_REVIEW_CAUSAL_RESOLUTION_COVERAGE');
+  if(partial){if(resolutions.some(row=>!reviewContext.causal_finding_ids.includes(row.finding_id)))V.fail('VNEXT_REVIEW_CAUSAL_RESOLUTION_COVERAGE');}
+  else if (V.canonicalStringify(resolutions.map(row => row.finding_id)) !== V.canonicalStringify(reviewContext.causal_finding_ids)) V.fail('VNEXT_REVIEW_CAUSAL_RESOLUTION_COVERAGE');
   if (reviewContext.planning_mode === 'INITIAL' && resolutions.length) V.fail('VNEXT_INITIAL_RESOLUTIONS_FORBIDDEN');
   let acceptanceResolutions;
   if (reviewContext.acceptance_gaps) {
@@ -495,7 +500,8 @@ function buildReviewReport({ reviewContext, semanticReview }) {
       V.assertUnicodeExactText(row.note,'VNEXT_ACCEPTANCE_RESOLUTION_NOTE_REQUIRED');
       return {...row,evidence_refs:V.uniqueStrings(row.evidence_refs,'VNEXT_ACCEPTANCE_RESOLUTION_EVIDENCE_REQUIRED','evidence_refs').sort()};
     }).sort((a,b)=>a.gap_id.localeCompare(b.gap_id));
-    if (V.canonicalStringify(acceptanceResolutions.map(r=>r.gap_id)) !== V.canonicalStringify(reviewContext.acceptance_gaps.map(g=>g.gap_id).sort())) V.fail('VNEXT_ACCEPTANCE_RESOLUTION_COVERAGE_INVALID');
+    if(partial){if(new Set(acceptanceResolutions.map(r=>r.gap_id)).size!==acceptanceResolutions.length||acceptanceResolutions.some(r=>!reviewContext.acceptance_gaps.some(g=>g.gap_id===r.gap_id)))V.fail('VNEXT_ACCEPTANCE_RESOLUTION_COVERAGE_INVALID');}
+    else if (V.canonicalStringify(acceptanceResolutions.map(r=>r.gap_id)) !== V.canonicalStringify(reviewContext.acceptance_gaps.map(g=>g.gap_id).sort())) V.fail('VNEXT_ACCEPTANCE_RESOLUTION_COVERAGE_INVALID');
   }
   const findings = semanticReview.findings
     .map((row, index) => normalizeFinding(row, index, reviewContext, allTargets))
@@ -517,24 +523,30 @@ function buildReviewReport({ reviewContext, semanticReview }) {
   const reentryStages = [...new Set(blockingFindings.map((finding) => finding.reentry_stage))].sort();
 
   return V.sealContract({
-    schema_version: REPORT_SCHEMA,
+    schema_version: partial ? 'kodjo.vnext.partial-review-report.v1' : REPORT_SCHEMA,
     review_context_hash: reviewContext.contract_hash,
     planning_mode: reviewContext.planning_mode,
     plan_contract_hash: reviewContext.plan_contract_hash,
     ui_atomicity_hash: reviewContext.ui_atomicity_hash,
     finding_count: findings.length,
     blocking_finding_count: blockingFindings.length,
-    verdict,
+    verdict:partial?'REVIEW_INCOMPLETE':verdict,
     affected_target_ids: affectedTargetIds,
     reentry_stages: reentryStages,
     findings,
     reviewed_target_ids: reviewedTargets,
-    ...(policy ? {coverage_status: pendingTargets.length ? 'ACCEPTED_WITH_PENDING_SECONDARY_TARGETS' : 'COMPLETE',
+    ...(reviewContext.component_coverage ? {inherited_target_ids:inheritedTargets} : {}),
+    ...(policy||partial ? {coverage_status: partial?'PARTIAL_NOT_APPROVED':pendingTargets.length ? 'ACCEPTED_WITH_PENDING_SECONDARY_TARGETS' : 'COMPLETE',
       pending_target_ids: pendingTargets} : {}),
     finding_resolutions: resolutions,
     ...(acceptanceResolutions ? {acceptance_resolutions:acceptanceResolutions} : {}),
   });
 }
+
+function buildReviewReport(input){return buildReport(input,false);}
+// A separate schema keeps partial observations available without weakening the
+// complete-review validator or minting an approval for unread targets.
+function buildPartialReviewReport(input){return buildReport(input,true);}
 
 function validateReviewReport(report, reviewContext) {
   V.assertExactKeys(
@@ -555,7 +567,7 @@ function validateReviewReport(report, reviewContext) {
       'finding_resolutions',
       'contract_hash',
     ],
-    [...(reviewContext.acceptance_gaps ? ['acceptance_resolutions'] : []), ...(reviewContext.coverage_policy ? ['coverage_status','pending_target_ids'] : [])],
+    [...(reviewContext.acceptance_gaps ? ['acceptance_resolutions'] : []), ...(reviewContext.coverage_policy ? ['coverage_status','pending_target_ids'] : []),...(reviewContext.component_coverage ? ['inherited_target_ids'] : [])],
     'VNEXT_REVIEW_REPORT_KEYS_INVALID',
   );
   if (report.schema_version !== REPORT_SCHEMA) V.fail('VNEXT_REVIEW_REPORT_SCHEMA_INVALID');
@@ -610,5 +622,6 @@ module.exports = {
   verifyReviewContext,
   reviewerOutputSchema,
   buildReviewReport,
+  buildPartialReviewReport,
   validateReviewReport,
 };

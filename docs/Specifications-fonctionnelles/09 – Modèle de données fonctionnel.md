@@ -1,11 +1,6 @@
 # 09.0 Vue d'ensemble
 
-> **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
-
-> Planification à plusieurs contenus (08/10) : les règles antérieures d’archivage supprimant les Routines associées restent décrites pour le cas à contenu unique. Leur extension à une Routine contenant d’autres contenus est **non définie** ; ne pas supprimer ces autres planifications par généralisation. Voir la spécification du 08/10 et son registre de points ouverts.
-
-
-**Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Placement explicite et distinction contenu/trait conservés. **Bip de cadence et durées : la spécification Bip v2 du07/10 remplace les dispositions antérieures.**
+> Planification à plusieurs contenus (08/10) : les règles antérieures d’archivage supprimant les Routines associées restent décrites pour le cas à contenu unique. Leur extension à une Routine contenant d’autres contenus est **non définie** ; ne pas supprimer ces autres planifications par généralisation. Voir la chapitre 08, Planification.
 
 ## Objectif et périmètre
 
@@ -37,7 +32,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 - Le cycle et le Tour possèdent chacun un nombre de répétitions.
 - Un Circuit contient une suite ordonnée d'Exercices ; un Tour est une répétition complète de ce Circuit.
 - Un Exercice ne possède pas de type `Exercice` ou `Récupération`.
-- Un Exercice possède un nombre de Séries propre, de 1 à 99 (D-092), une Pause après chaque série d’un même côté et, lorsqu’elle est bilatérale, une `sideRecoverySeconds` facultative exécutée entre les deux côtés. La récupération post-exercice appartient à l’occurrence, pas à l’`ActivityDefinition`.
+- Un Exercice possède un nombre de Séries propre, de 1 à 99 , une Pause après chaque série d’un même côté et, lorsqu’elle est bilatérale, une `sideRecoverySeconds` facultative exécutée entre les deux côtés. La récupération post-exercice appartient à l’occurrence, pas à l’`ActivityDefinition`.
 - Une **Exécution** est créée au démarrage d’une source exécutable : une Séance ou, à partir de T03, un Exercice persistant dans le MVP.
 - Chaque Exécution conserve un **instantané fonctionnel** immuable et allégé de sa source.
 - Toute modification ultérieure d'une séance ou d'une routine est sans effet sur les exécutions déjà enregistrées.
@@ -72,15 +67,15 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | DM-003 | Une séance contient un cycle unique.                                                                                                                                                                         | V1             |
 | DM-004 | Un cycle contient un Circuit unique.                                                                                                                                                                            | V1             |
 | DM-005 | Le cycle et le Tour sont répétés par leurs paramètres de répétition.                                                                                                                                         | V1             |
-| DM-006 | Une même Séance ou une même `ActivityDefinition` peut être planifiée par plusieurs Routines ; chaque Routine porte une liste ordonnée de références SESSION/ACTIVITY (D-328). | MVP — D-206 |
+| DM-006 | Une même Séance ou une même `ActivityDefinition` peut être planifiée par plusieurs Routines ; chaque Routine porte une liste ordonnée de références SESSION/ACTIVITY . | MVP — D-206 |
 | DM-007 | Une Exécution crée automatiquement un Instantané fonctionnel immuable et allégé de sa source (`SESSION` ou `ACTIVITY`).                                                                                                                                       | V1             |
 | DM-008 | Les occurrences futures sont calculées dynamiquement à partir des Routines et ne sont pas stockées. À leur échéance, elles sont historisées afin de conserver leur résultat.                                 | V1             |
 | DM-009 | Les exceptions de planification sont prévues pour une version ultérieure.                                                                                                                                    | V2             |
 | DM-010 | Une seule entité Utilisateur locale existe dans la V1.                                                                                                                                                       | V1             |
 | DM-011 | La cardinalité Cycle et Tour est limitée à 1 dans le MVP, mais le modèle est conçu pour permettre ultérieurement une collection ordonnée de Cycles par Séance et une collection ordonnée de Tours par Cycle. | Évolution      |
 | DM-012 | Un Cycle, un Tour et une `SessionActivity` appartiennent à une seule Séance. Une `ActivityDefinition` du MVP T03 est autonome et peut être copiée dans plusieurs Séances ; ses copies ne restent pas liées. | MVP T03 |
-| DM-013 | Un Exercice possède un nombre de Séries propre, entier de 1 à 99 (D-092). Une Série n'est pas une entité autonome. | V1 |
-| DM-014 | Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : Bip v2§3 et paramètres v13§§4–5. | D-247/D-248/v13 |
+| DM-013 | Un Exercice possède un nombre de Séries propre, entier de 1 à 99 . Une Série n'est pas une entité autonome. | V1 |
+| DM-014 | Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : chapitre 10, Calculs des durées et ordre des phases. | D-247/D-248/v13 |
 | DM-015 | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. | D-247/D-248/v13 |
 | DM-017 | Dans la version actuelle, le Tour ne porte aucun changement de côté exposé. Tout champ technique historique de direction Tour est conservé pour compatibilité mais contraint à `UNILATERAL`. | 24/09/2026 |
 | DM-018 | Un Exercice peut porter un Compte à rebours propre et une Fin d’exercice propre. | 24/09/2026 |
@@ -165,7 +160,6 @@ Il ne contient pas directement les exercices, les médias, les structures intern
 - Un utilisateur possède une seule structure de préférences globales.
 - Toutes les données métier appartiennent directement ou indirectement à un seul Utilisateur. Les racines d’agrégat persistantes portent la référence de propriétaire ; les objets enfants héritent de cette propriété par leur rattachement.
 
-
 # 09.2 Entité Séance
 
 ## Définition
@@ -196,7 +190,7 @@ Elle ne contient pas directement :
 - l’historique ;
 - les préférences globales ;
 - les résultats ou états d’exécution ;
-- les fichiers médias physiques, stockés séparément des entités et non dupliqués dans les instantanés (D-333).
+- les fichiers médias physiques, stockés séparément des entités et non dupliqués dans les instantanés .
 
 ## Attributs fonctionnels
 
@@ -206,6 +200,8 @@ Elle ne contient pas directement :
 | Nom                                     | Nom affiché de la séance                                                  |         Obligatoire          | Saisi avant la création effective de la séance                                                                                                                                                                                                         |
 | Étiquette                              | Classification de la Séance                                               |          Facultatif          | Zéro ou une Étiquette ; elle porte la couleur affichée de la Séance                                                                                                                                                                                     |
 | Couleur affichée                        | Couleur visuelle de la Séance                                              |           Calculé            | Dérivée de l’Étiquette lorsqu’elle est renseignée ; aucune couleur métier indépendante de l’Étiquette                                                                                                                                                  |
+> **Formats :** cette grille antérieure n’encode pas à elle seule l’achèvement incomplet du Death by. Conserver séparément motif, résultat et achèvement selon aucun mapping implicite vers Terminée.
+
 | Statut                                  | État de la séance                                                         |         Obligatoire          | Active ou archivée                                                                                                                                                                                                                                     |
 | Date de création                        | Date de création effective                                                |         Obligatoire          | Générée automatiquement                                                                                                                                                                                                                                |
 | Date de modification                    | Date de dernière modification                                             |         Obligatoire          | Mise à jour automatiquement                                                                                                                                                                                                                            |
@@ -336,7 +332,7 @@ La Routine porte le créneau et une liste ordonnée de références, non les con
 
 Le schéma physique, les identifiants d’entrée et les liens aux exécutions devront être spécifiés avant développement. Ces noms fonctionnels ne sont pas un schéma SQL livré. Les occurrences futures restent dérivées ; aucun stockage de phrase récapitulative comme vérité métier. Une mise à jour ne réécrit pas les exécutions/instantanés passés. Les règles mono-source d’archivage ou suppression ne sont pas généralisées à une liste sans préciser l’effet sur les autres entrées.
 
-Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
+Voir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
 
 # 09.3.1 Règles de planification
 
@@ -348,7 +344,7 @@ Rappel : interrupteur puis 5 min/15 min/30 min/1 h/Autre, choix égaux sur la la
 
 La modification agit sur le futur ; suppression de Routine conserve sources et histoire. L’agrégation des états de plusieurs contenus, les exclusions d’occurrence et l’archivage d’un contenu de liste nécessitent les compléments explicitement ouverts dans la spécification. Ne pas créer d’Exécution fictive pour un contenu non réalisé.
 
-Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
+Voir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
 
 # 09.4 Entité Occurrence planifiée
 ### Définition
@@ -378,6 +374,8 @@ Une Occurrence planifiée à contenu unique possède directement :
 | Source       | Source concernée                               | Obligatoire | Référence à la source planifiée au moment de l’occurrence |
 | Date prévue  | Date planifiée                                |  Obligatoire | Valeur issue de la Routine au moment de l'occurrence |
 | Heure prévue | Heure planifiée                               |  Obligatoire | Valeur issue de la Routine au moment de l'occurrence |
+> **Formats :** cette grille antérieure n’encode pas à elle seule l’achèvement incomplet du Death by. Conserver séparément motif, résultat et achèvement selon aucun mapping implicite vers Terminée.
+
 | Statut       | Résultat de l'occurrence                      |  Obligatoire | `Exécutée` ou `Non exécutée`                         |
 | Exécution    | Exécution associée                            | Conditionnel | Présente uniquement si la source a été démarrée      |
 ### Règles métier
@@ -442,7 +440,7 @@ Elle ne contient pas directement :
 | Durée                      | Durée                                           |       Conditionnel        | Exercice chronométré                                                         |
 | Nombre de répétitions      | Répétitions                                     |       Conditionnel        | Mode Répétitions                                                              |
 | Nombre de Séries           | Entier canonique persisté                       |        Obligatoire        | Valeur de 1 à 99 ; valeur par défaut 1                                        |
-| Pause après chaque série         | Durée                                           |        Obligatoire        | Valeur canonique `0 s` ; attachée à chaque Série, terminale comprise ; v13 §4                     |
+| Pause après chaque série         | Durée                                           |        Obligatoire        | Valeur canonique `0 s` ; attachée à chaque Série, terminale comprise ; chapitre 08, paramètres d’exercice                     |
 | Pause entre les côtés   | Durée                                           |        Conditionnel       | `sideRecoverySeconds`; pertinente uniquement en bilatéral, phase `SIDE_RECOVERY` si > 0 |
 | Séries variables | Booléen explicite | Obligatoire | Faux par défaut ; faux à N=1 ; l’égalité des valeurs ne le détermine pas |
 | Paramètres par Série | Collection ordonnée de N cibles/Pauses | Conditionnel | Source unique en variable ; cible absente À l’échec ; aucun brouillon caché persisté |
@@ -455,8 +453,8 @@ Elle ne contient pas directement :
 
 - Une `SessionActivity` appartient à une seule Séance et occupe exactement une position structurelle ordonnée. Une `ActivityDefinition` du MVP T03 est autonome et ne porte aucune position de Séance.
 - Un Exercice peut être exécutée selon une Durée, un nombre de Répétitions ou jusqu’à l’échec.
-- Un Exercice possède un nombre de Séries entier de 1 à 99 (D-092) ; la valeur par défaut à la création est 1.
-- Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : Bip v2§3 et paramètres v13§§4–5.
+- Un Exercice possède un nombre de Séries entier de 1 à 99  ; la valeur par défaut à la création est 1.
+- Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : chapitre 10, Calculs des durées et ordre des phases.
 - Une `ActivityDefinition` bilatérale peut porter `sideRecoverySeconds`, exécuté une fois par Exercice en Un côté après l’autre, ou une fois par paire en Les deux côtés à chaque série.
 - Toute `SessionActivity` porte `postActivityRecoverySeconds`, y compris avec la valeur `0`; une valeur positive crée une phase après l’occurrence et avant `SESSION_END` si elle est la dernière.
 - Ni la Pause ni les récupérations ne créent une entité Exercice associé.
@@ -468,11 +466,11 @@ Elle ne contient pas directement :
 
 # 09.6 Entité Média
 
-> **Périmètre :** consultation des médias pendant l’Exécution incluse au MVP (D-203). L’ajout/import et le stockage local sont inclus au MVP dans PRE-3, avant le moteur d’exécution (D-333). Les règles de partage des fichiers et de conservation de D-066/D-068 sont conservées ; seul leur report post-MVP est remplacé.
+> **Périmètre :** consultation des médias pendant l’Exécution incluse au MVP . L’ajout/import et le stockage local sont inclus au MVP dans PRE-3, avant le moteur d’exécution . Les règles de partage des fichiers et de conservation de D-066/D-068 sont conservées ; seul leur report post-MVP est remplacé.
 
 ## Définition
 
-Un **Média** est une ressource visuelle locale associée à un Exercice. L’import/ajout et la persistance de ces associations sont livrés dans PRE-3 au MVP (D-333), avant leur consultation pendant l’Exécution.
+Un **Média** est une ressource visuelle locale associée à un Exercice. L’import/ajout et la persistance de ces associations sont livrés dans PRE-3 au MVP , avant leur consultation pendant l’Exécution.
 
 ## Périmètre
 
@@ -498,7 +496,6 @@ Un `MediaAsset` possède son identité et ses informations techniques. Les liens
 - Un exercice possède zéro à plusieurs associations média ordonnées.
 - La duplication d’un Exercice ou d’une Séance crée une nouvelle association/entité Média pour l’Exercice dupliquée ; cette association peut référencer le même fichier physique local.
 - Retirer un média d’un Exercice supprime uniquement son association. Le fichier physique est supprimé seulement lorsqu’aucun Exercice ni aucun instantané ne le référence.
-
 
 # 09.7 Entité Exécution
 
@@ -531,6 +528,8 @@ Une Exécution possède directement :
 | État d'exécution | Avancement | Obligatoire | Mis à jour en continu |
 | Date de début | Début réel | Obligatoire | Générée automatiquement |
 | Date de fin | Fin réelle | Facultatif | À la clôture |
+> **Formats :** cette grille antérieure n’encode pas à elle seule l’achèvement incomplet du Death by. Conserver séparément motif, résultat et achèvement selon aucun mapping implicite vers Terminée.
+
 | Statut | En cours, Suspendue, Terminée, Partielle ou Interrompue | Obligatoire | |
 | Durée réelle | Temps actif réellement exécuté | Calculé | Exclut uniquement les périodes de Pause manuelle déclenchées par l’utilisateur ; inclut le Compte à rebours initial, le temps réellement passé dans les Exercices, les Pauses entre Séries, les phases `SIDE_RECOVERY` / `POST_ACTIVITY_RECOVERY` réellement exécutées et la Fin de séance |
 | Dernière sauvegarde | Date de sauvegarde | Obligatoire | Technique |
@@ -586,7 +585,7 @@ Contient notamment :
 - L’Instantané est immuable après sa création.
 - Toute modification, archivage ou suppression ultérieure de la source est sans effet sur l’Instantané.
 - L’Exécution conserve la référence à sa source lorsqu’elle existe, mais son historique est reconstruit exclusivement à partir de l’Instantané.
-- Les fichiers médias ne sont pas dupliqués dans l’Instantané ; leurs associations ordonnées et références stables y sont conservées dès l’introduction des médias au MVP (D-333).
+- Les fichiers médias ne sont pas dupliqués dans l’Instantané ; leurs associations ordonnées et références stables y sont conservées dès l’introduction des médias au MVP .
 - Toute modification ultérieure de la routine est sans effet.
 - Une seule exécution peut être en cours simultanément.
 - Après une interruption technique alors que l’Exécution était `En cours`, elle n’est pas clôturée automatiquement. Au retour dans l’application, l’utilisateur doit choisir l’action de reprise ou l’action d’arrêt adaptée à son origine. Tant que ce choix n’est pas effectué, aucune nouvelle Exécution ne peut démarrer. L’arrêt clôt l’Exécution avec le statut `Interrompue` puis ouvre la fin minimale dans T04, ou la Synthèse lorsqu’elle est livrée.
@@ -605,7 +604,7 @@ Contient notamment :
 
 ## Contraintes d’Exercice
 
-`executionMode ∈ {DURATION, REPETITIONS}`. Chaque série possède un type de cible explicite : chiffrée (durée ou répétitions selon le mode) ou À l’échec (aucun nombre prescrit). Valeur invalide/absente distincte de l’échec. L’ancien TO_FAILURE est lu/migré vers REPETITIONS avec toutes les cibles À l’échec, sans inventer de relevé historique. Pause, nombre de Séries et Récupération restent disponibles dans les deux modes. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Bip entier0..10 par Série, réglage commun valide dans les deux modes. La phrase elle-même n’est pas persistée comme source de vérité (D-232).
+`executionMode ∈ {DURATION, REPETITIONS}`. Chaque série possède un type de cible explicite : chiffrée (durée ou répétitions selon le mode) ou À l’échec (aucun nombre prescrit). Valeur invalide/absente distincte de l’échec. L’ancien TO_FAILURE est lu/migré vers REPETITIONS avec toutes les cibles À l’échec, sans inventer de relevé historique. Pause, nombre de Séries et Récupération restent disponibles dans les deux modes. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Bip entier0..10 par Série, réglage commun valide dans les deux modes. La phrase elle-même n’est pas persistée comme source de vérité .
 
 L’ajout d’une définition copie nom, description, zones corporelles, mode, durée ou répétitions, Séries, Pause, Récupération et associations média. La copie n’a plus de lien fonctionnel avec la définition. La position `BEFORE_TOUR`, `IN_TOUR` ou `AFTER_TOUR` n’existe que sur `SessionActivity`.
 
@@ -615,7 +614,7 @@ Un Exercice possède `0..n` lignes `ActivityMedia`, chacune avec une position un
 
 ## Contraintes Parcours
 
-**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
+**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
 
 # 09.7.1 Résultat d’Exercice exécuté
 
@@ -628,6 +627,8 @@ Chaque occurrence d’Exercice parcourue pendant une Exécution produit un **Ré
 | Exercice de l’Instantané | Exercice source | Obligatoire | Référence l’Instantané, pas la Séance courante |
 | Position d’exécution | Rang dans le plan d’exécution | Obligatoire | Permet de distinguer les occurrences |
 | Série / Tour / Cycle | Indices de répétition applicables | Calculé | Conservés pour restitution |
+> **Formats :** cette grille antérieure n’encode pas à elle seule l’achèvement incomplet du Death by. Conserver séparément motif, résultat et achèvement selon aucun mapping implicite vers Terminée.
+
 | Statut | Résultat de l’occurrence | Obligatoire | `Terminée` ou `Partielle` selon le type et le déroulement |
 | Durée réelle | Temps réellement passé sur l’Exercice | Obligatoire | Chronométré pour les modes Durée ou Répétitions, avec cible chiffrée ou À l’échec par série |
 | Pause entre les côtés prévue/écoulée | Durées de la phase intrinsèque éventuelle | Conditionnel | Champs distincts rattachés à `SIDE_RECOVERY` lorsqu’elle existe |
@@ -651,7 +652,7 @@ Le moteur d'exécution, le plan d'exécution et les structures qu'il manipule so
 
 ### Définition
 
-Le plan d'exécution est la représentation linéaire de la séance obtenue après résolution de sa structure.
+Pour un compte borné, le plan est la représentation linéaire obtenue après résolution de la structure. Pour AMRAP/Death by, le plan cible génère progressivement les passages à partir de l’instantané et de la borne ; il n’exige pas une liste finie entièrement déroulée au départ.
 
 Le Compte à rebours initial structurellement présent, éventuellement instantané à `0 s`, les Exercices placés avant le Circuit, les Tours du Circuit et les Exercices placés après le Circuit sont développés afin d'obtenir une liste ordonnée directement exploitable. Le Cycle technique enveloppe cette structure avec une répétition imposée à `1` dans le MVP ; la Fin de séance est ajoutée à la suite du plan développé.
 
@@ -683,11 +684,10 @@ Le Compte à rebours initial structurellement présent, éventuellement instanta
 - Il est construit exclusivement à partir de l'instantané de séance.
 - Toute modification ultérieure de la séance ou de la routine est sans effet.
 - La fin de le dernier Exercice active `SESSION_END`. L’Exécution n’est terminée qu’après l’achèvement de cette dernière étape ; une durée de `0 s` l’achève immédiatement.
-- Les Tours du Circuit et du cycle sont résolues lors de la génération.
-- Chaque Série produit une phase `ACTIVITY`. Une phase `SERIES_PAUSE` n’existe qu’entre Séries successives. `SIDE_RECOVERY` est insérée entre les côtés si nécessaire ; `POST_ACTIVITY_RECOVERY` est insérée après chaque occurrence de Séance si sa durée contextuelle est positive.
-- T04 développe les Séries multiples, les répétitions de Tour et les passages de côté avant démarrage. Le Plan obtenu est figé dans l’instantané.
+- Les comptes bornés sont résolus lors de la génération. Pour AMRAP/Death by, les passages sont générés progressivement ; rang temporel et acquisition de résultat sont distincts.
+- Chaque Série produit une phase `ACTIVITY`. Une phase `SERIES_PAUSE` existe après chaque Série quand sa pause est positive, dernière comprise, sauf substitution terminale par une récupération positive suivant les règles de l’occurrence. `SIDE_RECOVERY` est insérée entre les côtés si nécessaire ; `POST_ACTIVITY_RECOVERY` est insérée après chaque occurrence de Séance si sa durée contextuelle est positive.
+- La conception T04 à compte borné développe Séries, Tours et côtés avant démarrage. Pour les formats ouverts, l’instantané fige la prescription et la règle de génération, pas un nombre arbitraire de fenêtres futures.
 - Les préférences globales sont appliquées pendant l'exécution sans modifier le plan.
-
 
 # 09.9 Entité Préférences globales
 
@@ -735,7 +735,7 @@ Elles ne contiennent pas directement :
 | Durée de la Fin d’exercice par défaut              | Durée proposée pour la Fin propre d’une nouvelle Exercice                  | Obligatoire | Valeur proposée par le Profil                                             |
 ## Règles métier
 
-La Pause après chaque série n’est pas un défaut du Profil ; elle est initialisée à `0 s` dans la feuille de création (v13 §6, CE-UI-10 §3). L’ancien attribut global est historique et ne doit pas être ajouté au modèle cible. Les valeurs déjà propres aux Exercices restent conservées.
+La Pause après chaque série n’est pas un défaut du Profil ; elle est initialisée à `0 s` dans la feuille de création (chapitre 08, paramètres d’exercice, CE-UI-10 §3). L’ancien attribut global est historique et ne doit pas être ajouté au modèle cible. Les valeurs déjà propres aux Exercices restent conservées.
 
 - Chaque utilisateur possède une seule structure de préférences globales.
 - Les préférences s'appliquent à toutes les séances et à toutes les exécutions.
@@ -747,7 +747,6 @@ La Pause après chaque série n’est pas un défaut du Profil ; elle est initia
 - Les valeurs par défaut du Compte à rebours initial et de la Fin de séance sont copiées dans la Séance lors de sa création.
 - Les valeurs par défaut du Compte à rebours d’Exercice et de la Fin d’exercice sont proposées lors de la création d’une nouvelle Exercice.
 - Une modification ultérieure des Préférences globales ne modifie pas les séances déjà créées
-
 
 # 09.10 Entité Étiquette
 
@@ -776,7 +775,7 @@ Une Étiquette possède son identité, son libellé et sa couleur persistante. U
 - lorsqu’une Étiquette est associée, sa couleur est la couleur affichée de la Séance ;
 - créer une nouvelle Étiquette depuis la Composition l’ajoute au référentiel utilisateur selon le parcours validé ;
 - toute Étiquette est supprimable, y compris une valeur fournie initialement par KODJO ; la suppression la retire des choix futurs mais conserve son association aux Séances existantes qui l’utilisent ;
-- créer une Étiquette dont le nom normalisé correspond à une Étiquette retirée réactive celle-ci (même identifiant, associations conservées, couleur choisie appliquée) (D-257) ;
+- créer une Étiquette dont le nom normalisé correspond à une Étiquette retirée réactive celle-ci (même identifiant, associations conservées, couleur choisie appliquée)  ;
 - les Instantanés historiques conservent les informations nécessaires à la restitution du libellé et de la couleur.
 
 # 09.10.1 Entité Catégorie
@@ -809,7 +808,7 @@ Une Catégorie possède son identité, son libellé, sa couleur et son ordre d�
 - la couleur de la Catégorie est utilisée comme repère sémantique de l’Exercice dans les cartes et l’éditeur ;
 - une Catégorie créée depuis l’éditeur devient disponible dans le référentiel utilisateur selon le parcours validé ;
 - toute Catégorie est supprimable, y compris une valeur fournie initialement par KODJO ; la suppression la retire des choix futurs mais conserve son association aux Exercices existants qui l’utilisent et préserve l’historique.
-- créer une Catégorie dont le nom normalisé correspond à une Catégorie retirée réactive celle-ci (même identifiant, associations conservées, couleur choisie appliquée) (D-257).
+- créer une Catégorie dont le nom normalisé correspond à une Catégorie retirée réactive celle-ci (même identifiant, associations conservées, couleur choisie appliquée) .
 
 # 09.11 Entité Zone corporelle
 
@@ -844,7 +843,7 @@ Un nouvel Exercice valide référence une ou plusieurs Zones corporelles. Une zo
 - L’utilisateur peut créer, renommer et supprimer une Zone corporelle.
 - Toutes les Zones, y compris les dix valeurs initiales fournies par KODJO, sont supprimables.
 - La suppression d’une Zone utilisée demande confirmation, la retire des choix futurs, conserve ses associations aux Exercices existants et ne modifie pas les Instantanés/Exécutions historiques.
-- Créer une Zone dont le nom normalisé correspond à une Zone retirée réactive celle-ci (même identifiant, associations conservées) (D-257).
+- Créer une Zone dont le nom normalisé correspond à une Zone retirée réactive celle-ci (même identifiant, associations conservées) .
 
 ## Valeurs initiales du référentiel (D-093, révisée par D-199)
 
@@ -880,7 +879,7 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 - Toute `SessionActivity` appartient à une seule Séance et occupe une seule position structurelle ; seules les copies techniquement `Dans Tour` appartiennent au conteneur `Tour` représentant le Circuit pour l’exécution structurelle. Une `ActivityDefinition` du MVP T03 reste autonome.
 - Tout Tour appartient à un seul cycle.
 - Tout cycle appartient à une seule séance.
-- Toute Routine porte une liste ordonnée de références SESSION/ACTIVITY (D-328).
+- Toute Routine porte une liste ordonnée de références SESSION/ACTIVITY .
 - Toute Exécution référence exactement une source selon son origine.
 - Toute Étiquette et toute Catégorie appartient au référentiel de l’Utilisateur local ; l’origine initiale ou personnalisée n’affecte pas les droits de suppression.
 - Une Séance référence au plus une Étiquette ; un nouvel Exercice valide référence exactement une Catégorie.
@@ -1086,7 +1085,7 @@ La face et l’index ne sont pas persistés entre séances, ne sont pas copiés 
 
 ## Extension future de Routine — source Parcours
 
-**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
+**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
 
 ## Données D-208 — récupérations
 
@@ -1096,7 +1095,7 @@ La face et l’index ne sont pas persistés entre séances, ne sont pas copiés 
 
 ### SessionActivity
 
-Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). Déplacement, duplication et suppression conservent la sémantique d’appartenance à l’occurrence.
+Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération . Déplacement, duplication et suppression conservent la sémantique d’appartenance à l’occurrence.
 
 ### Plan d’Exécution
 
@@ -1112,14 +1111,13 @@ Le plan distingue au minimum la phase de Pause entre les côtés de la phase de 
 - `Session` ne porte aucun booléen de prise en compte des phases propres `Compte à rebours d’exercice + Fin d’exercice`. Ces phases sont toujours exclues du plan de Séance ; seuls le Compte à rebours initial et la Fin de séance s’appliquent. Les paramètres propres demeurent sur l’Exercice pour son exécution autonome.
 - Un Point d’arrêt placé dans le Circuit appartient au contenu répété et est donc développé à chaque Tour.
 
-
-La phrase de synthèse des paramètres d’exécution est une **valeur dérivée non persistée**. Elle est régénérée depuis `executionMode`, nombre de Séries, état uniforme/variable, cible/Pause communes ou collection ordonnée, `sideMode`, Ordre des côtés et `sideRecoverySeconds`. Aucun champ de stockage autonome de la phrase n’est requis (D-232).
+La phrase de synthèse des paramètres d’exécution est une **valeur dérivée non persistée**. Elle est régénérée depuis `executionMode`, nombre de Séries, état uniforme/variable, cible/Pause communes ou collection ordonnée, `sideMode`, Ordre des côtés et `sideRecoverySeconds`. Aucun champ de stockage autonome de la phrase n’est requis .
 
 Bornes de validation D-232 : `seriesCount ∈ [1,99]`, répétitions par Série `∈ [1,100]`, durée par Série `∈ [5,3535] s`, pauses inter-Séries et inter-côtés `∈ [0,300] s`. Le pas UI n’est pas une contrainte de stockage : tap1s, maintien accéléré1/5/10 selon DSF Bip ; aucun arrondi à la lecture.
 
 ## Impacts de données de la revue des cartes — 30 septembre 2026
 
-Décisions finales du propriétaire : les 17 points du 30/09 sont clos. Révision des cartes du 03/10/2026 (D-260 à D-264) : un seul format de carte d’Exercice, avec une gouttière permanente de 64 px dans le Catalogue et les listes de sélection d’exercices ; photo si média associé, icône de nature sinon. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Les Séances ne portent jamais de visuel. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi. Aucun déploiement d’Exercice ni de carte du Suivi ; le déploiement des Séances reste accessible dans le Catalogue et le Calendrier Semaine. Le Suivi présente deux lignes : nature/titre/statut, puis durée/catégorie/ressenti ; sans heure, zones corporelles ni étiquettes. Le Ressenti y est un indicateur sans action, distinct de sa saisie obligatoire en Synthèse. Les variantes déployées d’Exercice et du Suivi sont historiques, hors MVP. Pauses/récupérations et prochaine planification restent absentes des cartes concernées. Les données, instantanés, calculs et fonctions de planification sont conservés.
+Décisions finales du propriétaire : les 17 points du 30/09 sont clos. Révision des cartes du 03/10/2026 (D-260 à D-264) : un seul format de carte d’Exercice, avec une gouttière permanente de 64 px dans le Catalogue et les listes de sélection d’exercices ; photo si média associé, icône de nature sinon. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture . Les Séances ne portent jamais de visuel. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi. Aucun déploiement d’Exercice ni de carte du Suivi ; le déploiement des Séances reste accessible dans le Catalogue et le Calendrier Semaine. Le Suivi présente deux lignes : nature/titre/statut, puis durée/catégorie/ressenti ; sans heure, zones corporelles ni étiquettes. Le Ressenti y est un indicateur sans action, distinct de sa saisie obligatoire en Synthèse. Les variantes déployées d’Exercice et du Suivi sont historiques, hors MVP. Pauses/récupérations et prochaine planification restent absentes des cartes concernées. Les données, instantanés, calculs et fonctions de planification sont conservés.
 
 Synthèses : « N séries de X », « N séries de N rép. », « N séries à l’échec » ; bilatéralité par miroir dans les variantes concernées. Heure Semaine « 08:00 » ; aucune heure dans la carte du Suivi. Séance sans étiquette : catégories de ses exercices ; listes de catégories/zones séparées par un point médian et tronquées avec « … ». Choix sans badge durée ; récurrence du Calendrier Semaine dans la carte déployée seulement.
 
@@ -1131,20 +1129,17 @@ Contrat de donnée : ajouter au Profil la préférence facultative `silhouette`,
 
 Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.
 
-
-
 > **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v13 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
-
 
 ### Saisie des paramètres — D-246
 
-La référence active est [Paramètres en modale v13](SPECIFICATION-PARAMETRES-MODALE-v13.md), contrats CE-T03-04/CE-UI-10. Elle intègre Séries variables, Ordre des côtés, pauses terminales et récupération de l’occurrence. Feuille transactionnelle : ✕ annule, ✓ applique au parent, Terminer persiste. Les calculs et comportements sont normatifs dans les spécifications ; Figma définit le layout seulement. Les anciens textes v11 sont historiques.
+La référence active est [Paramètres en modale v13](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice), contrats CE-T03-04/CE-UI-10. Elle intègre Séries variables, Ordre des côtés, pauses terminales et récupération de l’occurrence. Feuille transactionnelle : ✕ annule, ✓ applique au parent, Terminer persiste. Les calculs et comportements sont normatifs dans les spécifications ; Figma définit le layout seulement. Les anciens textes v11 sont historiques.
 
 ## Paramètres de Série et Ordre des côtés — D-247 à D-254
 
 Le mode d’exécution est commun à l’Exercice. Le stockage distingue explicitement uniforme et variable, même si les valeurs sont identiques. En variable, conserver N lignes ordonnées avec cible (Durée/Répétitions) et Pause ; aucune cible numérique À l’échec. Les mêmes lignes s’appliquent aux deux côtés. Direction et Ordre des côtés sont deux propriétés distinctes. N=1 est normalisé uniforme/Un côté après l’autre dès le brouillon.
 
-Copie Catalogue→Séance, duplication et nouvel instantané conservent tout cet état. Les données sans nouveaux attributs sont uniformes/Un côté après l’autre. Les calculs actuels s’appliquent aussi aux Exercices existants ; résultats historiques immuables. Les valeurs temporaires de restauration et le repli visuel ne sont jamais persistés. Voir v13 §§2–5 et8 pour le contrat complet.
+Copie Catalogue→Séance, duplication et nouvel instantané conservent tout cet état. Les données sans nouveaux attributs sont uniformes/Un côté après l’autre. Les calculs actuels s’appliquent aussi aux Exercices existants ; résultats historiques immuables. Les valeurs temporaires de restauration et le repli visuel ne sont jamais persistés. Voir chapitre 08, paramètres d’exercice et8 pour le contrat complet.
 
 ## Extension normative de données — Cadence
 
@@ -1160,19 +1155,17 @@ Copie Catalogue→Séance, duplication et nouvel instantané conservent tout cet
 
 Migration : ancien objet sans champ initialisé à0 ; conserver valeurs et historique. Bip valide et conservé dans les deux modes après validation. Écriture atomique des paramètres et de la collection ; transitions moteur idempotentes. Le schéma physique et sa migration sont à implémenter, pas réputés présents du fait de cette cible.
 
-
-
-## Propagation Pauses et symboles — 07/10
+## Pauses et symboles
 
 Modèle logique : pause explicite avec identifiant stable, type recovery ou breakpoint et position ; recovery référence son occurrence source et sa durée. postActivityRecoverySeconds est une projection pour les calculs, pas une seconde source persistée. Absent, présent0 et présent positif restent distinguables. Snapshot copie les objets effectifs ; suppression d’occurrence emporte recovery. Le schéma physique et la migration restent à implémenter ; aucune reprise des anciennes séances demandée.
 
-## Bip de cadence — seconde clarification du07/10
+## Bip de cadence
 
 cadenceBeepIntervalSeconds entier0..10 dans les deux modes ;0=Aucun, défaut0. Même champ sur les Séries effectives et snapshots, réglage commun sans surcharge. Aucune suppression lors d’une bascule de mode. Résultat temporel exact/estimated/lowerBound/omitted ; omitted sans montant, validation erronée séparée. LowerBound autorisé à l’Exercice mixte calculable, ainsi qu’aux agrégats Circuit/Séance. SeriesParameters et pauses explicites doivent être intégrés au schéma avant ce champ ; numérotation de migration à planifier.
 
-## Contrat technique de phrase — clarification du07/10
+## Contrat technique de phrase
 
-La [spécification de phrase](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md) gouverne le générateur pur : paramètres métier + résultat de durée + locale française → `Array<{texte: string, gras: boolean}>`. Retour vide `[]` si aucune phrase applicable. Aucun calcul depuis Excel, aucune chaîne à redécouper pour trouver les valeurs en gras. React Native utilise des Text imbriqués ; le découpage est émis par le gabarit, y compris si une valeur se répète.
+La [spécification de phrase](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases) gouverne le générateur pur : paramètres métier + résultat de durée + locale française → `Array<{texte: string, gras: boolean}>`. Retour vide `[]` si aucune phrase applicable. Aucun calcul depuis Excel, aucune chaîne à redécouper pour trouver les valeurs en gras. React Native utilise des Text imbriqués ; le découpage est émis par le gabarit, y compris si une valeur se répète.
 
 Aucune colonne phrase ni sérialisation des segments dans définition/occurrence/snapshot. Génération à chaque affichage depuis les paramètres ; ✓ applique le brouillon, ne persiste pas le texte. Un changement rédactionnel est visible au prochain rendu des objets existants. Paramètres historiques et temps réalisés préservés.
 
@@ -1182,13 +1175,9 @@ Français uniquement au MVP. Internationalisation ultérieure : gabarits et règ
 
 Une récupération explicite de0s est un objet conservé, distinct de l’absence ; seul Retirer la supprime. Elle ne crée aucune phase positive ni suppression dePN. Le scalaire historique ActivityDefinition.pauseSeconds ne devient pas une récupération : sa valeur est portée dans SeriesParameters.pauseSeconds lors de la refonte. Les pauses recovery/breakpoint de Composition restent une collection distincte. Aucun schéma physique ou migration exécutée dans ce lot.
 
-
-
 **Compatibilité D-214 — 12/10/2026.** Si un ancien champ d’activation est déjà persisté, il est obsolète et ne peut réactiver les phases propres lors de la construction d’un nouveau plan SESSION, quelle que soit sa valeur. L’inventaire du schéma réel détermine sa migration physique ; aucune suppression SQL n’est livrée par cette correction documentaire. Conserver les paramètres propres des Exercices et les instantanés/résultats historiques, sans réécriture des temps réalisés.
 
-
-
-## Données des circuits — cible du12/10/2026
+## Données des circuits
 
 | Donnée | Contrat fonctionnel |
 |---|---|
@@ -1202,10 +1191,84 @@ Une récupération explicite de0s est un objet conservé, distinct de l’absenc
 
 Les noms physiques, éventuel renommage de tourRepeatCount et migration sont à déterminer par inventaire du schéma réel ; aucune migration SQL n’est prescrite par Figma. Aucune persistance des phrases, totaux ou états visuels actifs/repliés comme sources métier concurrentes. Les séries définitivement tronquées par conversion confirmée ne sont pas récupérables par un retour de nature.
 
-
-## Cibles et relevés — complément normatif13/10
+## Cibles et relevés
 
 La cible typée appartient à chaque Série effective et à chaque copie/snapshot ; le mode appartient à l’Exercice. Interdire simultanéité cible numérique/échec et interdire zéro comme cible. La valeur relevée est facultative, distincte de la prescription, rattachée à exécution/occurrence/série/côté/passage/tentative. Unité, origine et qualification (chronométrée, estimée, déclarée, absente) sont conservées. Garder la proposition source en cas de correction. Aucun relevé absent transformé en zéro. Les paramètres et résultats historiques ne sont pas réécrits par la régénération d’une phrase.
 
-Migration de l’ancien TO_FAILURE : REPETITIONS + cibles échec, valeurs et comportement conservés ; lecture versionnée des snapshots historiques, aucune répétition rétrocalculée. La donnée dernière tentative doit être distinguée du cumul :20s reset35s →55s cumulé,35s relevé. Voir spécification Deux modes §§5/7 ; schéma physique à réaliser, non livré par la documentation.
+Migration de l’ancien TO_FAILURE : REPETITIONS + cibles échec, valeurs et comportement conservés ; lecture versionnée des snapshots historiques, aucune répétition rétrocalculée. La donnée dernière tentative doit être distinguée du cumul :20s reset35s →55s cumulé,35s relevé. Voir chapitre 09, Cibles typées, et chapitre 08, Relevés d’exécution ; schéma physique à réaliser, non livré par la documentation.
 
+<a id="formats-donnees"></a>
+
+## Formats — données fonctionnelles et invariants
+
+| Porteur | Information | Règle de cohérence |
+|---|---|---|
+| Séance | Format facultatif | Six formats ; absent = libre. Aucune déduction depuis le titre ou des valeurs similaires. |
+| Séance | Origine de création | Distincte du format ; les départs rapides ne portent aucune contrainte. |
+| Séance | Réglages de format et organisation applicable | Modifiables dans la composition ; ne modifient pas les constantes ni l’historique. |
+| Prescription | Valeurs ordonnées et unité d’indexation | Série pour Progression, tour pour For time. Pas de réinterprétation implicite. |
+| Occurrence contextualisée | Valeur effective, provenance et caractère imposé | Ne pas réécrire ActivityDefinition du catalogue pour appliquer le contexte. |
+| Instantané | Format, origine, réglages effectifs, prescription et version de règle | Lecture stable après modification/suppression de la source. |
+| Fenêtre exécutée | Rang, début, échéance, objectif, signal de fin du travail | Une fin de travail ne change pas l’échéance ; horloge indépendante de l’audio. |
+| Acquisition Death by | Fenêtre confirmée, tour acquis | Au plus une acquisition par fenêtre ; aucun tour acquis sans appui. |
+| Clôture Death by | Répétitions partielles confirmées, motif, état d’achèvement | Formulaire proposé à 0, résultat déclaré après validation ; limite/abandon distincts, état incomplet dans les deux cas. |
+
+La durée EMOM est dérivée N × E × W ; le repos résiduel appartient à sa fenêtre, ce n’est pas une récupération ajoutée. Les valeurs calculées ne constituent pas une deuxième prescription persistée. Les phrases ne sont pas stockées : segments régénérés à l’affichage.
+
+Compatibilité : les anciennes séances sans format restent libres, leurs historiques inchangés. L’état fonctionnel « incomplet » du Death by n’est pas converti silencieusement en l’ancien statut Terminée/Interrompue ; son raccordement au schéma physique doit conserver les trois axes motif/résultat/achèvement. Les exigences générales de relevé qualifié du 13/10 restent applicables ; la clôture Death by ne rend pas obligatoire la saisie des relevés d’autres exercices.
+
+<a id="compatibilite-series"></a>
+
+## Persistance des séries et compatibilité
+
+### Compatibilité, données, API et instantanés
+
+Existant sans nouveaux attributs : uniforme, Un côté après l’autre. Quantité de travail, cibles, Pauses stockées et direction conservées. **Le changement de durée et de pauses exécutées est assumé pour les exercices existants**, confirmé le02/10. Les instantanés et résultats historiques restent immuables ; ne pas réécrire les durées réalisées.
+
+La clarification du07/10 conserve la Pause après chaque série, dernière comprise ; seule une récupération positive qui suit remplace la dernière Pause. Les snapshots existants demeurent immuables ; la migration physique doit être planifiée.
+
+Le modèle persistant et les copies/duplications doivent conserver le mode uniforme/variable explicite, N, la collection ordonnée cible/Pause lorsque variable, la direction, l’ordre des côtés, PC, Compte à rebours et Fin. R reste dans l’occurrence. Les paramètres variables remplacent les paramètres uniformes comme source effective, sans surcharges. Prévoir représentation et version d’instantané compatibles ; la structure SQL exacte et la migration relèvent de la planification technique, pas d’un nouveau choix Figma.
+
+API de validation/calcul/duplication et construction du plan doivent consommer la même représentation et les mêmes formules. Aucun résumé textuel ni total dérivé n’est une source persistée indépendante. Persistance atomique : aucune série partiellement écrite, aucune mutation d’ActivityDefinition par sa copie dans une Séance.
+
+<a id="cibles-typees"></a>
+
+## Cibles typées et migration des anciennes définitions
+
+### Modèle de paramètres
+
+Le mode reste unique pour l’exercice. La cible devient une propriété de chaque série effective :
+
+- **Cible chiffrée** : durée en secondes si mode Durée ; entier de répétitions si mode Répétitions.
+- **Cible À l’échec** : aucune valeur numérique prescrite ; fin décidée par l’utilisateur.
+- **Cible incomplète ou invalide** : erreur de saisie distincte, jamais convertie implicitement en À l’échec.
+
+Une représentation typée distinguera explicitement cible chiffrée et cible à l’échec. Ni `0`, ni une chaîne dans un champ numérique, ni un simple `null` ambigu ne doivent porter seuls cette distinction. Le nom physique des champs et le schéma de migration restent des choix d’implémentation.
+
+Le régime identiques/variables reste indépendant du mode. En identiques, toutes les séries ont la même cible, y compris À l’échec. En variable, la collection peut mélanger cibles numériques et À l’échec ; l’ordre est conservé. Des cibles momentanément égales ne changent pas automatiquement le régime. N=1 suit la normalisation déjà actée.
+
+Les mêmes prescriptions s’appliquent aux deux côtés ; leurs résultats sont distincts. Nombre hérité d’un circuit de séries, ajout, suppression, copie de dernière ligne, déplacement, retour au régime identique et restauration temporaire suivent les règles existantes. Copier une cible À l’échec copie son type et sa pause, sans inventer de nombre.
+
+Une bascule Durée/Répétitions conserve le caractère À l’échec, indépendant de l’unité. Les cibles numériques incompatibles suivent les mécanismes existants de brouillon, mise à renseigner et restauration ; aucune conversion secondes ↔ répétitions n’est introduite.
+
+### Migration et compatibilité
+
+Tout ancien exercice en mode À l’échec est interprété comme Répétitions avec toutes ses séries à l’échec. Conserver nombre, pauses, bip, côté, ordre et autres paramètres. Fin par Suivant, omission du total et phrase existante restent préservées.
+
+Appliquer la transformation aux définitions et copies concernées, pas seulement au Catalogue. Les instantanés et résultats historiques restent interprétables selon leur version ; ne pas réécrire un résultat historique ni lui attribuer rétrospectivement des répétitions à partir d’un temps global.
+
+La migration est comportementalement conservatrice, mais nécessite une conception technique : inventaire des enums/champs existants, versionnement, lecture de l’ancien format, transformation atomique, copies, reprises et compatibilité des données déjà sauvegardées. Ne pas déclarer une migration SQL définie avant inventaire du schéma réel.
+
+Le chronométrage existant ne garantit pas à lui seul que la durée de dernière tentative soit déjà disponible : le modèle documenté stocke notamment le temps cumulé, tentatives réinitialisées comprises. Il faut vérifier l’état moteur effectivement conservé et compléter la persistance de tentative si nécessaire. Le coût technique n’est donc pas déclaré nul.
+
+<a id="donnees-bip"></a>
+
+## Paramètre de bip et validation des données
+
+### Données et livraison
+
+Entrées de Série/snapshot : cible du mode, Pause, cadenceBeepIntervalSeconds0..10. Validation commune aux deux modes ; valeurs −1,11 et fractions refusées sans correction silencieuse. Les données historiques restent immuables ; ne pas tronquer silencieusement un ancien intervalle hors plage si une version de code l’a réellement persisté. La stratégie de reprise dépend de cet inventaire réel.
+
+Résultats temporels typés exact/estimated/lowerBound/omitted ; omitted sans montant. Une erreur de validation est séparée. APIs validation, calcul, génération du plan et phrase utilisent ce même contrat. Renommer les paramètres logiques et l’ordonnanceur ; réutiliser les phases Série existantes, ne pas ajouter un quatrième mode.
+
+Le prérequis SeriesParameters et les objets de pause doit être planifié avant intégration de cette évolution au modèle scalaire existant. Le numéro de migration n’est pas décidé par Figma. Ce lot documentaire ne livre ni migration SQL ni code audio.

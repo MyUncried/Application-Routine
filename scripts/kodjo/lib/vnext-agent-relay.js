@@ -18,7 +18,7 @@ function verifyEvidence(request,directory){
   if(manifest.schema_version!=='kodjo.vnext.agent-evidence.v1'||manifest.request_hash!==request.contract_hash)throw Error('AGENT_RELAY_EVIDENCE_BINDING');
   if(V.canonicalHash(manifest.files)!==V.canonicalHash(files(directory).filter(row=>row.path!=='evidence-manifest.json')))throw Error('AGENT_RELAY_EVIDENCE_CHANGED');
 }
-function execute(request,{cwd,evidenceRoot,outputDirectory,adapter,issueState,lock=require('./execution-lock'),priorAttempt=()=>false}={}){
+function execute(request,{cwd,evidenceRoot,outputDirectory,adapter,issueState,lock=require('./execution-lock'),priorAttempt=()=>false,dependencies=[]}={}){
   if(!evidenceRoot||!outputDirectory||!adapter)throw Error('CHATGPT_REVIEW_STORAGE_REQUIRED');
   fs.mkdirSync(outputDirectory,{recursive:true});
   const diagnostic={request_hash:request.contract_hash,slice_id:request.slice_id,operation:adapter.name,
@@ -27,7 +27,7 @@ function execute(request,{cwd,evidenceRoot,outputDirectory,adapter,issueState,lo
   const record=()=>B.write(path.join(outputDirectory,'checkpoint.json'),diagnostic);
   let directory,ownedLock,primary;
   try{
-    if(issueState(340)!=='closed')throw Error('CHATGPT_REVIEW_PRE3_NOT_CLOSED');
+    for(const dependency of dependencies)if(issueState(dependency.issue_number)!=='closed')throw Error('VNEXT_OPERATION_DEPENDENCY_ISSUE_NOT_CLOSED');
     if(issueState(request.issue_number)!=='open')throw Error('CHATGPT_REVIEW_ISSUE_NOT_OPEN');
     // Validate immutable inputs before reserving any model invocation.
     adapter.preflight();
@@ -44,7 +44,9 @@ function execute(request,{cwd,evidenceRoot,outputDirectory,adapter,issueState,lo
     else{
       if(fs.existsSync(intentFile)||priorAttempt())throw Error('CHATGPT_REVIEW_PRIOR_INVOCATION_UNKNOWN_NO_RETRY');
       const active=lock.claudeProcessState();
-      if(active.state!=='NONE'||active.external_claude_count>0)throw Error('CHATGPT_REVIEW_CLAUDE_EXECUTION_UNAVAILABLE');
+      // The scanner already distinguishes KODJO's CLI from external Claude
+      // applications. Their presence is diagnostic, not a concurrent operation.
+      if(active.state!=='NONE')throw Error('CHATGPT_REVIEW_CLAUDE_EXECUTION_UNAVAILABLE');
       ownedLock=lock.acquire(path.join(process.env.KODJO_STATE_ROOT||path.join(os.homedir(),'.kodjo-v2'),'claude-local.lock'),
         {run_id:diagnostic.run_id||request.contract_hash,request_id:request.contract_hash,github_run_id:diagnostic.run_id,github_run_attempt:diagnostic.run_attempt});
       fs.writeFileSync(intentFile,JSON.stringify({request_hash:request.contract_hash,operation:adapter.name}),{flag:'wx'});

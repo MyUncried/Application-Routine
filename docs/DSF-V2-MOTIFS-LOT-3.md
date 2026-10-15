@@ -5,7 +5,7 @@
 
 ## T1 à T4 — paramètres : remplacés par la feuille basse
 
-Les prescriptions de phrase éditable et contrôles inline sont obsolètes sur le parcours Exercice. Référence active : [DSF Paramètres en modale](DSF-PARAMETRES-MODALE-2026-10-01.md) et [spécification v12](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md). La phrase devient résumé/raccourcis ; steppers, segmentés et roulettes sont dans la feuille. Les badges réutilisés ailleurs conservent leur variante locale ; cette évolution n’impose pas un changement de tous les écrans.
+Les prescriptions de phrase éditable et contrôles inline sont obsolètes sur le parcours Exercice. Référence active : [DSF Paramètres en modale](DSF-PARAMETRES-MODALE-2026-10-01.md) et [spécification v12](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice). La phrase devient résumé/raccourcis ; steppers, segmentés et roulettes sont dans la feuille. Les badges réutilisés ailleurs conservent leur variante locale ; cette évolution n’impose pas un changement de tous les écrans.
 
 ## T5 — Libellés Profil et exercice
 
@@ -69,7 +69,7 @@ D-203 inclut au MVP la face Média et son état plein écran pour les Exercices 
 
 ## Paramètres — consolidation du02/10/2026
 
-Référence courante : [v12](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md), [DSF](DSF-SERIES-VARIABLES-2026-10-02.md), [matrice](MATRICE-SERIES-VARIABLES-2026-10-02.md) et [rapport](RAPPORT-MISE-A-JOUR-SERIES-VARIABLES-2026-10-02.md). D-247 à D-255 remplacent les anciennes formules et descriptions uniformes sur ce périmètre. Les règles de cartes sans rapport avec les paramètres restent conservées. Les nouvelles copies fournissent le layout ; elles ne prouvent ni intégration DSF ni conformité du moteur.
+Référence courante : [v12](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice), [DSF](DSF-SERIES-VARIABLES-2026-10-02.md), [matrice](MATRICE-SERIES-VARIABLES-2026-10-02.md) et [rapport](RAPPORT-MISE-A-JOUR-SERIES-VARIABLES-2026-10-02.md). D-247 à D-255 remplacent les anciennes formules et descriptions uniformes sur ce périmètre. Les règles de cartes sans rapport avec les paramètres restent conservées. Les nouvelles copies fournissent le layout ; elles ne prouvent ni intégration DSF ni conformité du moteur.
 
 
-**Complément courant cartes :** [durée sans cadre, propriété Durée et géométrie](DSF-CARTES-DUREE-2026-10-07.md). Les276 textes v15 et les segments `{texte, gras}` sont définis dans [Phrase v1 actualisée](Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md).
+**Complément courant cartes :** [durée sans cadre, propriété Durée et géométrie](DSF-CARTES-DUREE-2026-10-07.md). Les276 textes v15 et les segments `{texte, gras}` sont définis dans [Phrase v1 actualisée](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases).

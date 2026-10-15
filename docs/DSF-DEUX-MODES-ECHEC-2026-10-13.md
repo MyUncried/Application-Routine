@@ -1,6 +1,6 @@
 # DSF — Deux modes et cible À l’échec — 13/10/2026
 
-Référence courante pour les composants ci-dessous, en complément du [DSF Circuits](DSF-CIRCUITS-CONTROLES-2026-10-12.md). Source : prompt transmis et inspection directe des deux pages Figma et du set `5544:5146`. Les dates des fichiers désignent le lot source. Les règles métier sont dans la [spécification](Specifications-fonctionnelles/SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md), les interactions dans CE-UI-10 ; Figma détermine le layout.
+Référence courante pour les composants ci-dessous, en complément du [DSF Circuits](DSF-CIRCUITS-CONTROLES-2026-10-12.md). Source : prompt transmis et inspection directe des deux pages Figma et du set `5544:5146`. Les dates des fichiers désignent le lot source. Les règles métier sont dans la [spécification](Specifications-fonctionnelles/09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#cibles-typees), les interactions dans CE-UI-10 ; Figma détermine le layout.
 
 ## Popover de mode
 
@@ -53,3 +53,7 @@ Aucun écran uniforme « Série à l’échec » supplémentaire : la frame cré
 Adapter les géométries à360/402/440 et au texte agrandi ; conserver focus modal, défilement du corps et actions accessibles. Annoncer l’option sélectionnée et le caractère non éditable du total ; ne pas transmettre l’état uniquement par le gris. Les cibles tactiles suivent le DSF général, indépendamment de la hauteur dessinée30px.
 
 La grille Volumes devra conserver l’unité du mode pour les cibles mixtes ; son rendu n’est pas illustré dans ce lot. Les autres réserves héritées du DSF Circuits ne sont pas déclarées résolues. Voir [matrice de traçabilité](MATRICE-DEUX-MODES-ECHEC-2026-10-13.md).
+
+## Raccordement Formats du 14/10/2026
+
+Le [DSF Formats](DSF-FORMATS-SEANCES-2026-10-14.md) complète ce document : organisation Par exercice/En alternance, compte nommé selon son unité, constantes Tabata grisées mais effectives et phrases contextuelles. L’état imposé effectif conserve une valeur réelle ; ne pas lui appliquer le tiret des valeurs sans effet. Les cartes de modèles illustrées ne changent pas la règle des cartes catalogue. Les points de layout non qualifiés restent signalés dans la [revue transverse](REVUE-COHERENCE-FORMATS-2026-10-14.md).

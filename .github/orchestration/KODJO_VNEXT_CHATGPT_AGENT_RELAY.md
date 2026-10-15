@@ -1,12 +1,12 @@
-# VNext — relais commun ChatGPT / Claude pour PRE-4
+# VNext — relais commun ChatGPT / Claude
 
-Ce document remplace le parcours de transport spécifique de `KODJO_VNEXT_CHATGPT_PRE4_REVIEW_RELAY.md`. Le moteur commun est `scripts/kodjo/lib/vnext-agent-relay.js`, l'entrée du pilote `scripts/kodjo/agent-relay.js`. L'ancien CLI reste compatible et utilise le même moteur. Aucun démarrage de PRE-4 n'est autorisé par une modification du protocole. Le déploiement reste limité à `VNEXT-PRE-4`, après clôture de #340 et instruction de démarrage. La variante Claude #344 reste indépendante.
+Ce document remplace le parcours de transport spécifique de `KODJO_VNEXT_CHATGPT_PRE4_REVIEW_RELAY.md`. Le moteur commun est `scripts/kodjo/lib/vnext-agent-relay.js`, l'entrée du pilote `scripts/kodjo/agent-relay.js`. L'ancien CLI reste compatible et utilise le même moteur. Aucun démarrage de PRE-4 n'est autorisé par une modification du protocole. L'admission utilise le routage VNext, le bootstrap et le registre scellés au `source_head` exact : dépôt, issue, statut actif et acteur autorisé doivent correspondre. Une ancienne tranche protégée reste refusée par son routage/état, sans liste de numéros d'issues dans le moteur. Les dépendances réellement déclarées remplacent tout prérequis PRE-3 global. La variante Claude #344 reste indépendante.
 
 ## Contrat du pilote
 
 Le pilote effectue lui-même la préparation, la publication, la recherche du run, le téléchargement et la vérification. Il ne demande jamais à l'utilisateur une commande PowerShell, un fichier local, un rapport, un SHA ou un JSON à transporter. Si son outil GitHub ne permet pas une action, il publie un incident d'orchestration et conserve le checkpoint ; cela ne transfère pas la tâche technique à l'utilisateur.
 
-Un réveil automatique de conversation ChatGPT inactive n'est pas ajouté. Une instruction courte « reprends PRE-4 » peut rester nécessaire ; le pilote retrouve alors les preuves dans GitHub. Le parcours réel doit être constaté avant de déclarer l'automatisation totalement qualifiée.
+Le retour automatique vers Work est raccordé par le transport commun décrit dans KODJO_VNEXT_WORK_CONTINUATION.md et son binding scellé. La création de l'automation et l'émission d'un signal ne prouvent pas sa réception ; l'accusé durable du binding courant reste requis avant qualification effective. Les anciens réveils V1.3 ne prouvent pas le parcours courant. Une réactivation manuelle reste une récupération documentée en cas d'échec réel du transport, pas le chemin nominal.
 
 ## Inventaire des interactions et routage
 
@@ -29,7 +29,7 @@ Une nouvelle opération de revue se raccorde par un adaptateur (précontrôle, i
 
 Le pilote versionne les données et leurs parties file-bundle avant la demande. Il exécute lui-même `agent-relay.js create <configuration> <répertoire>` ; le répertoire est `.github/orchestration/requests/vnext-agent`. La configuration fournit `operation`, `slice_id`, `repository`, `issue_number`, `source_head`, `inputs_file`.
 
-La demande scellée contient l'empreinte du manifeste d'entrées et une `operation_hash` calculée depuis les objets sémantiques exacts. Cette dernière dédoublonne un même dossier republié dans un autre commit ; le nom du fichier est l'empreinte de la demande. Les données sont lues depuis Git, jamais depuis un fichier local modifié. La demande est publiée seule, en ajout, dans un commit sur main. Le workflow existant `kodjo-vnext-chatgpt-plan-review.yml` accepte ce répertoire et l'ancien répertoire de compatibilité ; acteur, runner, permissions en lecture et verrou global sont conservés.
+La demande scellée contient l'empreinte du manifeste d'entrées et une `operation_hash` calculée depuis les objets sémantiques exacts. Cette dernière dédoublonne un même dossier republié dans un autre commit ; le nom du fichier est l'empreinte de la demande. Les données sont lues depuis Git, jamais depuis un fichier local modifié. Le commit source peut appartenir à une branche de préparation publiée dans le même dépôt : sa présence dans les refs distantes origin est contrôlée. Son intégration dans main ne précède pas la revue. Le checkout de revue porte sur ce commit exact ; les empreintes et les validations métier restent opposables. La demande est publiée seule, en ajout, dans un commit sur main. Le workflow existant `kodjo-vnext-chatgpt-plan-review.yml` accepte ce répertoire et l'ancien répertoire de compatibilité ; acteur, runner, permissions en lecture et verrou global sont conservés.
 
 | Opération | Objet JSON du manifeste `inputs_file` |
 |---|---|
@@ -51,8 +51,28 @@ Les observations d'implémentation contiennent exactement `approvedPlanSha256`, 
 
 Le cas `VNEXT_SCOPE_UNOBSERVED_DEPENDENCY` conserve et publie `scope-review-response.json` et le diagnostic. ChatGPT peut inspecter cette preuve directement ; une reprise de la même réponse reproduit le refus, sans appel IA. Aucune correction automatique d'une attestation d'observation n'est autorisée.
 
+Une reprise peut être publiée seule sous `.github/orchestration/requests/vnext-agent/resume/<hash>.json`. Ce contrôle scellé ne crée pas une seconde demande : il référence le commit, le chemin et les empreintes de la demande d’origine, ainsi que le run antérieur terminé. Le workflow existant résout ce contrôle avec le protocole courant de main, puis checkout la demande d’origine. Il conserve son acteur, son runner, son verrou et ses permissions. La demande et le dossier ne sont ni modifiés ni republiés.
+
+Une exception de récupération historique est admise uniquement sur preuve GitHub que l’ancienne entrée exacte (blob `3ca49ad3fd0f792328fbf7c60854061b4376f33c`) et son workflow exact (blob `d8ee7a2c38a2182b3e7de6296748cd987c8db8a5`) ont échoué au premier contrôle d’ascendance, avant toute invocation. Statut/tentative/acteur/HEAD/workflow, étapes du job, journal et divergence Git sont vérifiés conjointement ; la preuve de récupération est archivée avec le nouvel artefact. Une assertion locale `model_invoked=false`, un run vert ou une erreur quelconque ne suffisent pas. Toute tentative ambiguë, après appel, ou non observable reste refusée. L’archivage général des erreurs précédant execute reste une amélioration distincte, non incluse dans ce correctif.
+
 La récupération de la publication réutilise reçu/réponse/intent, sans retry payant implicite. Cache perdu, quota ou tentative ambiguë restent bloquants. Une erreur de publication ou d'archivage ne doit pas masquer le refus primaire. Les décisions produit, approbations du plan et portes humaines existantes sont conservées.
+
+Les archives d'échec sans invocation peuvent contenir les preuves de reprises antérieures. Chaque sous-archive est vérifiée récursivement avec son numéro de run, ses contrats et son manifeste. Les reçus historiques gardent leurs producteurs épinglés. Les fichiers de résultat, réponse, intent ou provenance inconnue restent bloquants, à tout niveau. Le lecteur reconnaît sa propre version exacte du checkout de protocole de confiance ainsi que les lecteurs précédemment intégrés. Le publisher accepte uniquement son ancien blob intégré ou sa version exacte du checkout de protocole de confiance ; le workflow reste épinglé.
+
+Le détecteur distingue le CLI Claude géré par KODJO des applications Claude externes (notamment Desktop et extensions). Une exécution gérée active ou une lecture ambiguë refuse l'invocation. Le compteur des applications externes est diagnostique : il ne bloque pas le relais. Le verrou exclusif KODJO est toujours acquis avant la création de l'intent et avant tout appel modèle. Un verrou occupé, un intent antérieur ou une tentative inconnue reste bloquant. Cette distinction s'applique aux trois opérations du relais commun et à l'entrée de revue de plan compatible ; aucune fermeture des autres applications Claude n'est demandée au propriétaire.
 
 ## Qualification
 
 Les tests locaux utilisent des processus/adaptateurs simulés et les validateurs réels, des objets Git épinglés et des artefacts déplacés. Ils ne prouvent ni un appel Claude réel, ni un réveil automatique. #345 reste ouverte jusqu'au parcours réel, aux reprises et à la récupération directe constatés. Les preuves CI du commit candidat sont consignées dans sa PR ; aucun run vert seul n'est une approbation indépendante.
+
+## Dépendances et identification des runs
+
+Le bootstrap haché peut déclarer `operation_dependencies` : liste de `slice_id`, `checkpoint_path`, `checkpoint_hash`. Chaque dépendance doit être unique, distincte de la tranche courante, clôturée dans le registre et dans GitHub, avec un checkpoint scellé exact lié à la tranche. Un `previous_slice_id` exige le checkpoint correspondant et sa localisation explicite ; un hash opaque historique n'est pas deviné. Une identité historique manquante ou ambiguë reste refusée.
+
+La recherche d'un appel antérieur n'utilise plus les titres. Pour un push elle relit le delta Git du HEAD réel du run contre son premier parent. Pour un dispatch elle exige le locator immuable unique enregistré dans le job de revue et son ascendance Git. Une preuve inaccessible ou ambiguë reste bloquante ; renommer un workflow ne crée aucun droit à rappeler le modèle. Les anciens contrôles de non-invocation, intentions, verrous, réponses et archives sont conservés.
+
+Toute nouvelle préparation documentaire emploie par défaut les unités précises d'états/scénarios et conserve le document intégral comme contexte. Les anciens checkpoints sans marqueur gardent leur projection FULL_FILE exacte lors de la validation. Pour les composants, appliquer `KODJO_VNEXT_COMPONENT_COVERAGE.md` : exhaustivité des sources et assertions conservée, couverture directe/héritée explicitée et phases de qualification distinctes.
+
+## Revues partielles et cumul
+
+Une nouvelle demande générique de grande revue de plan porte automatiquement `review_scope` scellé : contexte/produit exacts, ledger précédent, cibles assignées et capacité bornée. Ce paramètre de portée n'assouplit aucun seuil de couverture finale. Le mécanisme exige d'abord l'analyse de réutilisation des composants répétés, puis sélectionne les obligations directes restant à examiner. Le reçu partiel et ses sessions/réponses sont archivés sans verdict final. Le pilote consomme `consume-vnext-review-progress.js`, publie le ledger au chemin dérivé du contexte, puis crée la demande suivante avec le même mécanisme. L'agrégation finale réutilise les observations sans nouvel appel modèle et passe par les gates existants. Une tentative complète historique n'est jamais contournée par une nouvelle clé de sous-portée ; son archive doit être explicitement réconciliée.

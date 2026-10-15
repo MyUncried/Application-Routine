@@ -1,37 +1,14 @@
 # Application Routine
 
-**Compléments du07/10 — segmentés et titres :** [analyse, plan et traçabilité](MATRICE-COMPLEMENTS-2026-10-07.md), [DSF](DSF-SEGMENTES-TITRES-2026-10-07.md), [backlog fonctionnel](BACKLOG-SEGMENTS-CATALOGUE-2026-10-07.md). Catalogues à deux choix ; titres Composer/Modifier une séance et Créer un exercice ; noms de frames et IDs conservés.
-
-**Voile modal unifié — 07/10/2026 :** [décision, clôtures et captures](MATRICE-VOILE-MODAL-2026-10-07.md). `overlayScrim` #1F2129 à 34 % pour toutes les modales ; ombre de déplacement distincte.
-
-**Référence courante — évolutions v15 :** [inventaire, plan et preuves](MATRICE-EVOLUTIONS-V15-2026-10-07.md), [consolidation fonctionnelle](Specifications-fonctionnelles/CONSOLIDATION-EVOLUTIONS-V15-2026-10-07.md), [DSF phrases](DSF-PHRASES-V15-2026-10-07.md). Corpus276 actualisé ; calculs conservés ; captures et contrats repris.
-
-**Lot cartes du07/10, avant v15 :** [matrice cartes/phrases](MATRICE-CARTES-PHRASES-2026-10-07.md) ; [DSF cartes sans cadre de durée](DSF-CARTES-DUREE-2026-10-07.md). Pause après chaque série, récupération substitutive,276 textes v15, segments non persistés.
-
-## Dernière clarification — Bip de cadence
-
-[Spécification Bip v2](Specifications-fonctionnelles/SPECIFICATION-BIP-CADENCE-v2.md) · [DSF Bip/steppers](DSF-BIP-CADENCE-2026-10-07.md) · [Inventaire et captures](MATRICE-BIP-FIGMA-2026-10-07.md) · [Rapport de cohérence](REPORT-BIP-2026-10-07.md).
-
-Bip0..10 transverse aux trois modes ; omission des durées non calculables d’Exercice ; ≥ réservé aux Séances ; pause après chaque série, dernière comprise, remplacée seulement par la récupération positive qui suit. Q-07 et Q-08 clos ; les276 formulations v15 font référence. Cette clarification remplace les règles incompatibles du premier lot du07/10.
-
-## Consolidation du 07/10/2026
-
-- [Spécification Pauses et symboles](Specifications-fonctionnelles/SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md)
-- [DSF — Pauses et icônes](DSF-PAUSES-ICONES-2026-10-07.md)
-- [Inventaire des références Figma](MATRICE-FIGMA-2026-10-07.md)
-
-Les documents source de Claude sont archivés sans altération ; les arbitrages D-302 à D-307 précisent les passages qui ne font pas autorité. Bip transverse0..10 ; Durée exacte, Répétitions avec bip ≈, sans bip durée omise ; contenu de récupération et trait de démarcation distingués.
-
-
 Application mobile de création, d’exécution et de suivi de routines personnelles, développée avec React Native et Expo.
 
 ## Références du projet
 
 - [`PRODUCT.md`](./PRODUCT.md) : synthèse fonctionnelle et périmètre du MVP.
-- Obsidian : documentation fonctionnelle détaillée.
+- [Documentation consolidée — chapitres 01 à 13](INDEX.md).
 - Figma : écrans et prototype navigable de référence.
 
-En cas de contradiction documentaire, l’ordre de priorité défini dans `PRODUCT.md` s’applique.
+Les spécifications définissent les règles métier ; Figma définit le layout et le rendu des états.
 
 ## Socle technique
 
@@ -82,9 +59,9 @@ Le dossier `node_modules` est local et ne doit jamais être ajouté à GitHub.
 
 ## Références actives — Cadence et documentation du06/10/2026
 
-1. [Paramètres v13](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v13.md) — pauses/côtés conservés, cadence et symboles.
-2. [Bip v2](Specifications-fonctionnelles/SPECIFICATION-BIP-CADENCE-v2.md) — calculs, exécution, données et recette.
-3. [Phrase v1](Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md) — grammaire et rendu ; Excel exclusivement rédactionnel.
+1. [Règles détaillées](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice) — pauses/côtés conservés, cadence et symboles.
+2. [Règles détaillées](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#resultats-temporels) — calculs, exécution, données et recette.
+3. [Phrase v1](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases) — grammaire et rendu ; Excel exclusivement rédactionnel.
 4. [DSF courant](DSF-CADENCE-2026-10-06.md) et [matrice courante Figma](MATRICE-CADENCE-FIGMA-2026-10-06.md).
 5. Chapitre06 : captures centralisées ; chapitre13 :30 contrats dont CE-UI-10,21 rubriques chacun, états et limites graphiques explicites.
 
@@ -113,3 +90,12 @@ v12 et v10.2 sont historiques ; leurs règles remplacées ne doivent pas être u
 
 - [Report des dernières décisions : H-08 et H-09](../.github/orchestration/reports/2026-10-06_REPORT_DECISIONS_H08_H09.md) — rectifie l’interprétation de D-238 dans les rapports antérieurs ; décisions H-03/H-10 déjà conservées.
 
+## Formats de séances — conception du 14/10/2026
+
+- [Spécification consolidée](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#formats-conception)
+- [Matrice de traçabilité exhaustive](MATRICE-FORMATS-SEANCES-2026-10-14.md)
+- [Analyse de cohérence transverse](REVUE-COHERENCE-FORMATS-2026-10-14.md)
+- [DSF Formats](DSF-FORMATS-SEANCES-2026-10-14.md)
+- [Corpus rédactionnel additionnel](CORPUS-PHRASES-FORMATS-2026-10-14.json)
+
+Les règles sont intégrées aux chapitres 00–13 ; six contrats CE-FMT complètent les contrats existants. Cette conception ne déclare ni le moteur livré, ni les écarts Figma résolus.

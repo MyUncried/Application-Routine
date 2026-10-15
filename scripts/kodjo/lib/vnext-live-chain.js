@@ -98,9 +98,9 @@ function observeCandidates(artifacts, cwd, scope) {
 }
 
 // Recipe fields are constructor inputs, not pre-approved serialized contracts.
-async function launchAndProduce(scope,{capture,reconcile,persist,buildRecipe,cwd,github}){
+async function launchAndProduce(scope,{capture,reconcile,persist,buildRecipe,cwd,github,atomicDocumentUnits=true}){
   if(typeof buildRecipe!=='function')V.fail('VNEXT_FIGMA_TECHNICAL_RECIPE_BUILDER_REQUIRED');
-  const checkpoint=await require('./vnext-figma-launch').launch(scope,{capture,reconcile,persist});
+  const checkpoint=await require('./vnext-figma-launch').launch(scope,{capture,reconcile,persist,atomicDocumentUnits});
   const recipe=await buildRecipe(structuredClone(checkpoint));
   recipe.figmaScope=scope;recipe.figmaLaunch=checkpoint;
   return produce(recipe,{cwd,github});
@@ -274,8 +274,9 @@ function boundedReviewOutput(text) {
   return { bytes: bytes.length, sha256: V.sha256(text), truncated: bytes.length > limit,
     text: bytes.subarray(0, limit).toString('utf8').replace(/\uFFFD$/, '') };
 }
-function validateReviewResponse(produced, raw) {
+function validateReviewResponse(produced, raw, {reviewScope=null,savedResponse=null} = {}) {
   const artifacts = produced.artifacts;
+  if(reviewScope){if(!savedResponse)V.fail('VNEXT_CUMULATIVE_SAVED_RESPONSE_REQUIRED');return require('./vnext-cumulative-review').record(produced,savedResponse,{scope:reviewScope});}
   let result;
   try { result = JSON.parse(raw); } catch (_) { V.fail('VNEXT_REVIEW_OUTPUT_UNPARSEABLE'); }
   if (result.is_error || result.type !== 'result' || !result.session_id || !result.structured_output) V.fail('VNEXT_REVIEW_STRUCTURED_RESULT_REQUIRED');
@@ -292,7 +293,7 @@ function validateReviewResponse(produced, raw) {
 function responsePath(produced, directory) {
   return path.join(directory, produced.artifacts.planningEnvelope.planning_mode.toLowerCase() + '-review-response.json');
 }
-function recoverReview(produced, { cwd, github, evidenceDirectory } = {}) {
+function recoverReview(produced, { cwd, github, evidenceDirectory,reviewScope=null } = {}) {
   verifyProduced(produced, cwd, github);
   const rel = evidenceDirectory && path.relative(cwd, path.resolve(evidenceDirectory));
   if (!rel || (!rel.startsWith('..' + path.sep) && !path.isAbsolute(rel))) V.fail('VNEXT_REVIEW_EVIDENCE_OUTSIDE_CHECKOUT_REQUIRED');
@@ -307,9 +308,10 @@ function recoverReview(produced, { cwd, github, evidenceDirectory } = {}) {
   const record = () => fs.writeFileSync(path.join(evidenceDirectory,
     produced.artifacts.planningEnvelope.planning_mode.toLowerCase() + '-review-revalidation.json'), JSON.stringify(diagnostic, null, 2) + '\n');
   let receipt;
-  try { receipt = validateReviewResponse(produced, saved.stdout); }
+  if((saved.review_scope_hash||null)!==(reviewScope?.contract_hash||null))V.fail('VNEXT_CUMULATIVE_SCOPE_UNBOUND');
+  try { receipt = validateReviewResponse(produced, saved.stdout,{reviewScope,savedResponse:saved}); }
   catch (error) { diagnostic.error = boundedReviewOutput(error.message).text; preserveFailure(error, record); throw error; }
-  diagnostic.review_accepted = true; diagnostic.session_id = receipt.session_id; record();
+  diagnostic.review_accepted = !reviewScope;diagnostic.partial_recorded=!!reviewScope; diagnostic.session_id = receipt.session_id; record();
   return receipt;
 }
 function reviewOrRecover(produced, options) {
@@ -380,8 +382,9 @@ function materializeReviewDossier(dossier, produced, directory, causalEvidence =
   }
   return dossier;
 }
-function review(produced, { cwd, claude = require('./claude-local').resolveClaudeBinary(), github, invoke = require('./vnext-review-process').command, evidenceDirectory, causalEvidence = null } = {}) {
+function review(produced, { cwd, claude = require('./claude-local').resolveClaudeBinary(), github, invoke = require('./vnext-review-process').command, evidenceDirectory, causalEvidence = null,reviewScope=null } = {}) {
   const artifacts = verifyProduced(produced, cwd, github);
+  if(reviewScope){require('./vnext-cumulative-review').validateScope(produced,reviewScope);if(!evidenceDirectory)V.fail('VNEXT_CUMULATIVE_ARCHIVE_REQUIRED');}
   const schema = { type: 'object', additionalProperties: false, required: ['semantic_review', 'native_assessment_observations'],
     properties: { semantic_review: Review.reviewerOutputSchema(artifacts.reviewContext),
       native_assessment_observations: { type: 'array', items: { type: 'object', additionalProperties: false,
@@ -409,7 +412,7 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
   output.required = ['findings', 'reviewed_target_ranges', 'target_catalog_hash', 'finding_resolutions', ...(artifacts.reviewContext.acceptance_gaps ? ['acceptance_resolutions'] : [])];
   output.properties.reviewed_target_ranges = { type: 'array', items: {type:'array',minItems:2,maxItems:2,items:{type:'integer',minimum:0}} };
   output.properties.target_catalog_hash = { type: 'string', pattern: '^[0-9a-f]{64}$' };
-  const dossier = { ...compactReviewDossier(produced), instructions: 'Revue indépendante de plan uniquement. Lire les objets Git exacts. Ne pas modifier le dépôt. Refuser une preuve non observée. Pour chaque assessment natif, vérifier le besoin fonctionnel, le choix natif et ses preuves effectives ; ne pas confondre référence et observation. Indiquer verified=false si la preuve ne peut être observée. Examiner toutes les cibles du target_catalog, pas seulement celles portant un finding. En REVISION, fournir finding_resolutions pour chaque causal_finding_id, avec statut OPEN ou RESOLVED, references de preuves observees et explication; ne pas conclure RESOLVED sans observation du correctif. Ceci ne constitue pas un audit FINAL. Le catalogue complet est conserve : construire les indices a partir de target_index_order puis des tableaux de target_catalog, base zero. Restituer reviewed_target_ranges, plages inclusives [debut,fin] triees sans chevauchement, uniquement pour les cibles effectivement examinees et recopier target_catalog_hash exact. Les cibles essentielles sont requises. coverage_policy autorise au plus 3 omissions secondaires et 2 pour cent du catalogue ; ne jamais attester une cible non examinee. Les omissions restent explicites dans le rapport. candidateManifest.columns et rows encodent sans perte les objets candidats. Avant de verifier les empreintes canoniques, reconstruire candidateManifest.candidates depuis columns/rows et reviewContext.target_catalog depuis target_catalog ; cette projection de transport ne remplace pas les contrats canoniques. Les sources de consommateurs sont disponibles une seule fois dans consumer_sources. Si une intention contredit une obligation TEST correcte, identifier le change_id de cette intention dans required_correction et le PLAN_ITEM dans dependency_target_ids ; ne pas demander de modifier une obligation correcte.' };
+  const dossier = { ...compactReviewDossier(produced), instructions: 'Revue indépendante de plan uniquement. Lire les objets Git exacts. Ne pas modifier le dépôt. Refuser une preuve non observée. Pour chaque assessment natif, vérifier le besoin fonctionnel, le choix natif et ses preuves effectives ; ne pas confondre référence et observation. Indiquer verified=false si la preuve ne peut être observée. Couvrir toutes les obligations du target_catalog. Si component_coverage est présent, examiner directement chaque propriété commune canonique et les critères de mapping Figma/code indiqués dans required_review_target_ids ; les liens hérités ne deviennent couverts qu’après ces examens attestés. Ne pas déclarer les occurrences héritées comme directement examinées. Les paramètres, surcharges et intégrations restent directs ; aucune conformité d’implémentation ne découle de cette couverture de revue du plan. Examiner aussi les cibles sans finding. En REVISION, fournir finding_resolutions pour chaque causal_finding_id, avec statut OPEN ou RESOLVED, references de preuves observees et explication; ne pas conclure RESOLVED sans observation du correctif. Ceci ne constitue pas un audit FINAL. Le catalogue complet est conserve : construire les indices a partir de target_index_order puis des tableaux de target_catalog, base zero. Restituer reviewed_target_ranges, plages inclusives [debut,fin] triees sans chevauchement, uniquement pour les cibles effectivement examinees et recopier target_catalog_hash exact. Les cibles essentielles sont requises. coverage_policy autorise au plus 3 omissions secondaires et 2 pour cent du catalogue ; ne jamais attester une cible non examinee. Les omissions restent explicites dans le rapport. candidateManifest.columns et rows encodent sans perte les objets candidats. Avant de verifier les empreintes canoniques, reconstruire candidateManifest.candidates depuis columns/rows et reviewContext.target_catalog depuis target_catalog ; cette projection de transport ne remplace pas les contrats canoniques. Les sources de consommateurs sont disponibles une seule fois dans consumer_sources. Si une intention contredit une obligation TEST correcte, identifier le change_id de cette intention dans required_correction et le PLAN_ITEM dans dependency_target_ids ; ne pas demander de modifier une obligation correcte.' };
   if (artifacts.reviewContext.acceptance_gaps) dossier.instructions += ' Pour une révision après recette, les acceptance_gaps sont des écarts utilisateur authentifiés, pas des findings Claude. Fournir acceptance_resolutions pour chaque gap_id avec preuves observées et note causale. La revue de plan initiale APPROVE reste inchangée ; ne pas inventer de REVISE. Le format structuré demandé est obligatoire.';
   dossier.instructions += ' Pour chaque finding, utiliser dependency_target_indices : indices entiers zero-based du meme catalogue scelle. Ne jamais employer un nom de type tel que PLAN_CONTRACT comme identifiant de cible. Le decodeur reconstruit les identifiants exacts et les controles canoniques restent obligatoires.';
   dossier.instructions += ' AUTODEPENDANCE INTERDITE : target_id designe deja la cible du constat. dependency_target_indices designe exclusivement les AUTRES cibles affectees. Rechercher l’indice de target_id dans le catalogue et l’exclure de cette liste ; si aucune autre cible n’est affectee, retourner []. Avant de rendre chaque finding, verifier que chaque indice de dependance se decode en un identifiant different de target_id. Ne pas confondre cette liste avec reviewed_target_ranges, qui couvre les cibles effectivement examinees. Une reponse contenant sa propre cible sera refusee, jamais corrigee silencieusement.';
@@ -432,6 +435,7 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
   const configDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-vnext-review-'));
   try { materializeReviewDossier(dossier, produced, configDir, causalEvidence); }
   catch (error) { fs.rmSync(configDir, { recursive: true, force: true }); throw error; }
+  if(reviewScope){dossier.review_scope=reviewScope;dossier.instructions=dossier.instructions.replace('Couvrir toutes les obligations du target_catalog.','Le target_catalog conserve toutes les obligations ; cette invocation porte seulement sur review_scope.target_ids.').replace('Les cibles essentielles sont requises.','Toutes les cibles essentielles restent requises pour la clôture cumulative.');dossier.instructions+=' Cette invocation est une revue partielle : examiner uniquement review_scope.target_ids et les sources nécessaires à leurs vérifications. Le catalogue et les sources complets restent conservés comme contexte. Ne pas prétendre couvrir le reste. Rapporter les constats observés et les preuves natives uniquement pour les critères de cette portée. Le contrôleur archive cette progression sans APPROVE ; seules les observations vérifiées cumulées peuvent terminer la revue.';}
   dossier.instructions = dossier.instructions.replace('Avant de verifier les empreintes canoniques, reconstruire candidateManifest.candidates depuis columns/rows et reviewContext.target_catalog depuis target_catalog ; cette projection de transport ne remplace pas les contrats canoniques.',
     'Le controleur a reconstruit et verifie les objets canoniques avant cet appel ; canonical_observation indique le fichier exact et les empreintes verifiees. Lire ce fichier selon les besoins de la revue ; aucun calcul de hash ni execution de code ne vous est demande. La projection de transport ne remplace pas les contrats canoniques.');
   dossier.instructions += ' Les sources exactes des consommateurs sont disponibles dans consumer_sources[].source_path, avec leur chemin Git et empreinte verifies. Utiliser Read pour les consulter ; ne pas executer les consommateurs.';
@@ -449,7 +453,7 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
     produced_chain_hash: produced.contract_hash, review_context_hash: artifacts.reviewContext.contract_hash,
     planning_mode: artifacts.planningEnvelope.planning_mode, timeout_ms: timeoutMs,
     input_bytes: Buffer.byteLength(input), input_sha256: V.sha256(input),
-    target_count: reviewTargets(artifacts.reviewContext).length, started_at: new Date().toISOString(),
+    target_count: reviewTargets(artifacts.reviewContext).length,...(reviewScope?{assigned_target_count:reviewScope.target_ids.length,review_scope_hash:reviewScope.contract_hash}:{}), started_at: new Date().toISOString(),
     invocation_completed: false, review_accepted: false };
   const diagnosticPath = evidenceDirectory && path.join(evidenceDirectory,
     artifacts.planningEnvelope.planning_mode.toLowerCase() + '-review-process.json');
@@ -461,7 +465,7 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
   const saveResponse = (stdout, stderr = '', processResult = { status: 0, signal: null, error_code: null }) => {
     if (evidenceDirectory) fs.writeFileSync(responsePath(produced, evidenceDirectory), JSON.stringify(V.sealContract({
       schema_version: 'kodjo.vnext.review-response.v1', produced_chain_hash: produced.contract_hash,
-      reviewer_packet_hash: produced.reviewer_packet.contract_hash, process_result: processResult, stdout, stderr, stdout_sha256: V.sha256(stdout)
+      reviewer_packet_hash: produced.reviewer_packet.contract_hash,...(reviewScope?{review_scope_hash:reviewScope.contract_hash}:{}), process_result: processResult, stdout, stderr, stdout_sha256: V.sha256(stdout)
     }), null, 2) + '\n', { flag: 'wx' });
   };
   try {
@@ -479,9 +483,9 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
         artifacts.planningEnvelope.planning_mode.toLowerCase() + '-review-progress.json') });
     if (evidenceDirectory && !fs.existsSync(responsePath(produced, evidenceDirectory))) archive(() => saveResponse(raw));
     diagnostic.stdout = boundedReviewOutput(raw);
-    const receipt = validateReviewResponse(produced, raw);
+    const receipt = validateReviewResponse(produced, raw,{reviewScope,savedResponse:reviewScope?JSON.parse(fs.readFileSync(responsePath(produced,evidenceDirectory),'utf8')):null});
     if (archiveError) throw archiveError;
-    diagnostic.session_id = receipt.session_id; diagnostic.review_accepted = true;
+    diagnostic.session_id = receipt.session_id; diagnostic.review_accepted = !reviewScope;diagnostic.partial_recorded=!!reviewScope;
     return receipt;
   } catch (error) {
     primaryError = error;
@@ -505,6 +509,7 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
 }
 
 function verifyReceipt(produced, receipt) {
+  if(receipt?.schema_version==='kodjo.vnext.cumulative-review-receipt.v1')return require('./vnext-cumulative-review').verifyComplete(produced,receipt);
   V.verifyContractHash(receipt, 'VNEXT_REVIEW_RECEIPT_HASH_INVALID');
   if (receipt.schema_version !== 'kodjo.vnext.live-review-receipt.v1'
       || receipt.produced_chain_hash !== produced.contract_hash || receipt.reviewer_packet_hash !== produced.reviewer_packet.contract_hash
@@ -628,7 +633,7 @@ function nativeResolver(produced, receipt, cwd) {
     }
     return V.sealContract({ schema_version: 'kodjo.vnext.native-assessment-evidence.v1', status: 'VERIFIED',
       native_assessment_hash: V.canonicalHash(assessment), source_manifest_hash: sourceManifest.contract_hash,
-      application_head: applicationHead, evidence_ref: 'claude_session:' + receipt.session_id + '#' + receipt.contract_hash });
+      application_head: applicationHead, evidence_ref: receipt.schema_version==='kodjo.vnext.cumulative-review-receipt.v1' ? 'claude_sessions:'+receipt.native_observation_sessions[assessment.criterion_id].join(',')+'#'+receipt.contract_hash : 'claude_session:' + receipt.session_id + '#' + receipt.contract_hash });
   };
 }
 

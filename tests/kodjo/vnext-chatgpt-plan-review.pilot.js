@@ -35,12 +35,16 @@ test('PRE-3, other pilots, altered requests and path traversal are rejected befo
   assert.throws(()=>R.execute({...f.request,produced_chain_hash:'b'.repeat(64)},f.options),/HASH/);
   assert.deepEqual(f.counts(),{calls:0,recovers:0});
 }));
-test('PRE-3 closure, issue state, source mismatch and Claude concurrency fail before paid review',()=>withFixture(f=>{
-  assert.throws(()=>R.execute(f.request,{...f.options,issueState:()=> 'open'}),/PRE3_NOT_CLOSED/);
+test('declared dependency, issue state, source mismatch and Claude concurrency fail before paid review',()=>withFixture(f=>{
+  assert.throws(()=>R.execute(f.request,{...f.options,dependencies:[{issue_number:123}],issueState:()=> 'open'}),/DEPENDENCY_ISSUE_NOT_CLOSED/);
   assert.throws(()=>R.execute(f.request,{...f.options,issueState:()=> 'closed'}),/ISSUE_NOT_OPEN/);
   assert.throws(()=>R.execute(reseal({...f.request,produced_chain_hash:'b'.repeat(64)}),f.options),/PLAN_BINDING/);
   assert.throws(()=>R.execute(f.request,{...f.options,lock:{claudeProcessState:()=>({state:'ACTIVE'})}}),/UNAVAILABLE/);
   assert.equal(f.counts().calls,0);
+}));
+test('the compatibility plan entry also permits external Claude applications without bypassing the shared lock',()=>withFixture(f=>{
+ let acquired=0;const lock={...f.options.lock,claudeProcessState:()=>({state:'NONE',external_claude_count:15}),acquire:()=>{acquired++;return {};}};
+ R.execute(f.request,{...f.options,lock});assert.equal(f.counts().calls,1);assert.equal(acquired,1);
 }));
 test('one call, exact result, duplicate dispatch and artifact republication without another call',()=>withFixture(f=>{
   const result=R.execute(f.request,f.options);assert.equal(R.verifyResult(f.request,result,f.options).verdict,'APPROVE');
@@ -77,13 +81,15 @@ test('workflow triggers only exact requests or dispatch, uses trusted main code,
   const workflow=require('../../scripts/kodjo/lib/yaml').parse(fs.readFileSync(path.resolve(__dirname,'../../.github/workflows/kodjo-vnext-chatgpt-plan-review.yml'),'utf8'));
   assert.deepEqual(Object.keys(workflow.on),['push','workflow_dispatch']);
   assert.deepEqual(workflow.on.push.branches,['main']);
-  assert.deepEqual(workflow.on.push.paths,['.github/orchestration/requests/vnext-plan-review/*.json','.github/orchestration/requests/vnext-agent/*.json']);
+  assert.deepEqual(workflow.on.push.paths,['.github/orchestration/requests/vnext-plan-review/*.json','.github/orchestration/requests/vnext-agent/*.json','.github/orchestration/requests/vnext-agent/resume/*.json']);
   assert.match(workflow.jobs.review.steps.find(s=>s.name==='Select exactly one newly committed request').run,/SINGLE_REQUEST_COMMIT_REQUIRED/);
   assert.deepEqual(workflow.permissions,{contents:'read',issues:'read',actions:'read'});
   assert.match(workflow.jobs.review.if,/refs\/heads\/main/);
   const steps=workflow.jobs.review.steps;
   assert.ok(steps.filter(s=>s.uses?.startsWith('actions/checkout')).every(s=>s.with['persist-credentials']===false));
   assert.equal(steps.find(s=>s.uses?.startsWith('actions/upload-artifact')).if,'always()');
+  assert.match(steps.find(s=>s.name==='Select exactly one newly committed request').run,/resolve-trigger/);
+  assert.equal(steps.find(s=>s.name==='Checkout immutable request and source objects').with.ref,'${{ env.REQUEST_COMMIT }}');
 });
 
 test('lost cache with a prior GitHub attempt refuses a new model call',()=>withFixture(f=>{

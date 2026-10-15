@@ -219,7 +219,7 @@
     },
     {
       "path": ".github/workflows/kodjo-v2-implementation-artifact.yml",
-      "blob_oid": "730e1e5b20eca161d219e21a7ce0a96f83a8e136",
+      "blob_oid": "93435c5afc8f75e5a4a871357ef6fdc5eb35b332",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -229,7 +229,7 @@
     },
     {
       "path": ".github/workflows/kodjo-v2-pilot-tests.yml",
-      "blob_oid": "8ad1c552294eb1e60e553440957de8fcb3339812",
+      "blob_oid": "af1d15e19e8ecc32d394dd6c8de44a81ba6e7119",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -319,7 +319,7 @@
     },
     {
       "path": ".github/workflows/kodjo-v2-next-evolution-independent-audit.yml",
-      "blob_oid": "bbc09e54d8189db1a4e59d5b2715472238acd36a",
+      "blob_oid": "0ab73a813558f8e04fa2ab9ffa9bc4ee294023b1",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -914,7 +914,7 @@
     },
     {
       "producer": ".github/workflows/kodjo-vnext-proof-stability.yml",
-      "producer_blob_oid": "04cc0da9912040423a9b45cdf7cee871c1730220",
+      "producer_blob_oid": "a5e2f42c48d7287828a29bf88d7e5ac4cca76357",
       "authorization_condition": "EXACT_SUCCESSFUL_CYCLE_CONTROLS_ISOLATED_SIGNAL_ONLY",
       "required_job": "wake-orchestrator",
       "capabilities": [
@@ -948,6 +948,45 @@
           "capability": "GITHUB_PERMISSION_WRITE:issues",
           "destination": "github-token:issues",
           "scope": "JOB:close-vnext-delivery"
+        }
+      ]
+    },
+    {
+      "producer": "scripts/kodjo/signal-vnext-agent-continuation.js",
+      "producer_blob_oid": "d5cefbb0d760b02d32742edcff5ac4be9e5d008e",
+      "authorization_condition": "VERIFIED_REGISTERED_SLICE_RESULT_EXACT_ARTIFACT_SINGLE_SIGNAL_PR_NONFORCED_WRITE_ONLY",
+      "required_job": null,
+      "capabilities": [
+        {
+          "capability": "REST_REPOSITORY_WRITE",
+          "destination": "static-source-line",
+          "scope": "SCRIPT"
+        }
+      ]
+    },
+    {
+      "producer": ".github/workflows/kodjo-vnext-work-continuation.yml",
+      "producer_blob_oid": "03a6d3b220f2bddf390bdb402608ba9c6f0f2e00",
+      "authorization_condition": "VERIFIED_REGISTERED_SLICE_RESULT_EXACT_ARTIFACT_SINGLE_SIGNAL_PR_NONFORCED_WRITE_ONLY",
+      "required_job": "publish-signal",
+      "capabilities": [
+        {
+          "capability": "GITHUB_PERMISSION_WRITE:contents",
+          "destination": "github-token:contents",
+          "scope": "JOB:publish-signal"
+        }
+      ]
+    },
+    {
+      "producer": "scripts/kodjo/consume-vnext-work-signal.js",
+      "producer_blob_oid": "1b13498c48d4697670675d816f663ff07d06e1fd",
+      "authorization_condition": "VERIFIED_SIGNAL_ATOMIC_OWNERSHIP_CHECKPOINT_NONFORCED_TRANSPORT_CONSUMPTION_ONLY",
+      "required_job": null,
+      "capabilities": [
+        {
+          "capability": "REST_REPOSITORY_WRITE",
+          "destination": "static-source-line",
+          "scope": "SCRIPT"
         }
       ]
     }

@@ -1,0 +1,1629 @@
+{
+  "date": "2026-10-14",
+  "repository": "MyUncried/Application-Routine",
+  "owner_instruction": "point 4 — nettoyage des branches distantes",
+  "main_before_cleanup": "55aa34480d51472b540156e2e664b8528c511f6b",
+  "main_after_deletions": "55aa34480d51472b540156e2e664b8528c511f6b",
+  "pre4_head": "211a9a592f1a5743c89736111132816fc8e84d76",
+  "counts": {
+    "before": 399,
+    "deleted": 188,
+    "retained": 211
+  },
+  "method": [
+    "Inventaire API exhaustif en quatre pages avant nettoyage et trois pages après.",
+    "Chaque tête supprimée appartient à git rev-list du main exact, historique complet récupéré.",
+    "Branches des neuf PR ouvertes et leurs bases main exclues.",
+    "Branches plan/, audit/, evidence/, certification/, test-state/, orchestration/, recovery/ et qualification/ conservées ; forensics/claude-resume5-final conservée après affinage.",
+    "Nom exact de chaque candidate recherché dans les fichiers textuels suivis de main : aucune référence trouvée pour les suppressions.",
+    "Chaque suppression par UI GitHub précédée de la comparaison visible 0 ahead et suivie de Deleted.",
+    "Nouvel inventaire API après expiration de session et en clôture ; absence des 188 noms confirmée, toutes les branches restantes conservées au SHA observé avant nettoyage."
+  ],
+  "limitations": [
+    "La recherche de références porte sur les fichiers textuels suivis de main, pas sur les clones locaux, les commentaires historiques ou tous les contenus des branches divergentes.",
+    "Les anciens liens vers un nom de branche supprimé peuvent cesser de fonctionner ; leurs commits exacts restent accessibles dans main.",
+    "Aucune branche divergente supprimée, aucun historique réécrit, aucun commit ou artefact supprimé.",
+    "Le nettoyage ne démontre pas la résolution des interruptions de connexion ChatGPT."
+  ],
+  "restoration": "Chaque branche supprimée peut être recréée à partir de son nom et du SHA ci-dessous ; le commit est conservé dans main. Aucune restauration automatique engagée.",
+  "deleted_branches": [
+    {
+      "name": "bootstrap/claude-local-session-resume-test",
+      "sha": "30674c05865f4650beda8a3e8a6b02d38ac3cd66"
+    },
+    {
+      "name": "chore/activate-v2-pre-2",
+      "sha": "7782390b03cd754b1683dccf83e97092c388d926"
+    },
+    {
+      "name": "chore/orchestration-event-test",
+      "sha": "fbc08cfbf053a7a414dd13d3eb9d5a3f445d5c1d"
+    },
+    {
+      "name": "chore/orchestration-protocol-v1",
+      "sha": "004c050ba0df231365546d40fc4ef8aa8fb0a5d9"
+    },
+    {
+      "name": "chore/orchestration-protocol-v1.1",
+      "sha": "5774172415a64beaa4aa2133ded758fafe355ec0"
+    },
+    {
+      "name": "chore/orchestration-protocol-v1.2",
+      "sha": "10cd1a4b04ce2cc753c1135e53d81abf92314e5d"
+    },
+    {
+      "name": "chore/pre2-body-zone-icons",
+      "sha": "d7823552e4433d87ddda8e6a0bde1800bdcae4bd"
+    },
+    {
+      "name": "chore/pre2-photo-dependencies",
+      "sha": "ea876fb72b1dee46e8d744860f61aaa0e176898b"
+    },
+    {
+      "name": "chore/pre2-plan-closure-candidate",
+      "sha": "57c701f1dc94f16abfddabb5897f80c8f1bfaffc"
+    },
+    {
+      "name": "chore/pre2-plan-publication",
+      "sha": "69db9f5499f28e9cbbead84ccb60cfb27b27ffff"
+    },
+    {
+      "name": "ci/eas-ios-preview-20260918",
+      "sha": "5813a4ae44997083e0b8b09d01871237146dec8e"
+    },
+    {
+      "name": "docs/bilateralite-alignement-ui-20260913",
+      "sha": "d224d1309aba0356755e8e327c8da23ba3416c98"
+    },
+    {
+      "name": "docs/cartes-corrections-audit-2026-10-04",
+      "sha": "4daa81df043e88ecb0e2f4bfddfe1f36efcb3924"
+    },
+    {
+      "name": "docs/cartes-dsf-2026-09-30",
+      "sha": "c9641e706cee616ee4a693d86a7d5d6e547859fd"
+    },
+    {
+      "name": "docs/cartes-dsf-reprise-20261003",
+      "sha": "c52b6959d0da2e62c6e575a2fec41b59b7f08723"
+    },
+    {
+      "name": "docs/certify-routine-dev-bootstrap-20260919",
+      "sha": "c46befcd05f3f0ebc7e2052813c52f40193d69d1"
+    },
+    {
+      "name": "docs/consolidate-06-07-t03-20260916-audit",
+      "sha": "679e7c7e8b3fe772387ba593c9d145a387eca43c"
+    },
+    {
+      "name": "docs/consolidate-06-07-t03-20260916-final",
+      "sha": "679e7c7e8b3fe772387ba593c9d145a387eca43c"
+    },
+    {
+      "name": "docs/consolidate-06-07-t03-20260916-review",
+      "sha": "679e7c7e8b3fe772387ba593c9d145a387eca43c"
+    },
+    {
+      "name": "docs/correction-contrats-ecrans-2026-09-30",
+      "sha": "7aa6566a9eaa82e6958bfc61f8ffd119c17b470e"
+    },
+    {
+      "name": "docs/final-closeout-t03-20260916",
+      "sha": "6eaeeaaa4332107fcac4c42819bec1a405dff8b8"
+    },
+    {
+      "name": "docs/kodjo-backlog-ui-atomic-assertions-20260920",
+      "sha": "96e58c64e5cd6962eaad38aaf8a45553fbe64daa"
+    },
+    {
+      "name": "docs/pre2-decisions-d256-d259",
+      "sha": "e9a410ba0a3f4a01d7ceaa1e99b2513234aa2319"
+    },
+    {
+      "name": "docs/pre2-delivery-ready",
+      "sha": "cdf86b283933035e0e7b6b07c7a502b2dc808086"
+    },
+    {
+      "name": "docs/pre2-recette-d265-d267",
+      "sha": "188d1b42513dedaac4442b8c5f3a82f15996054f"
+    },
+    {
+      "name": "docs/pre2-recette-register",
+      "sha": "e105425c88bba70441535053eb7e03a401ee37f1"
+    },
+    {
+      "name": "docs/pre2-recette-report-diagnostic",
+      "sha": "bd42f3c62036adbe1b0cdd3d226e49b544b833af"
+    },
+    {
+      "name": "docs/pre2-recette-report-run3",
+      "sha": "36699e47750394b59bc0c4db0ca1cfeb0273b3c2"
+    },
+    {
+      "name": "docs/pre2-recette-revision-report",
+      "sha": "2eb62d69b22c9bb3bccee6b5bfe30daa5c03cfba"
+    },
+    {
+      "name": "docs/protocol-doc-only-fast-path",
+      "sha": "0361f07b0e36d2cdb3f79973542b20fb8675331a"
+    },
+    {
+      "name": "docs/reconcile-screen-chapter-20260930",
+      "sha": "6e582d4f6a675e670f6782b759252e4ec0cb918d"
+    },
+    {
+      "name": "docs/series-variables-ordre-cotes-2026-10-02",
+      "sha": "012f2364693ec150e71f113f9662e0b0c640906f"
+    },
+    {
+      "name": "docs/t03-catalogue-activites-figma-20260916",
+      "sha": "7648cd39b2bd10c90eb6980a0d86bcc27ae1302d"
+    },
+    {
+      "name": "docs/t03-catalogue-activites-final-20260915",
+      "sha": "4d4c738facac7f499e4a67a92aacac135112f1ab"
+    },
+    {
+      "name": "docs/t03-consolidation-main-20260916",
+      "sha": "7648cd39b2bd10c90eb6980a0d86bcc27ae1302d"
+    },
+    {
+      "name": "docs/ui-contracts-t01-20260831",
+      "sha": "4111c1f698010c84c4b09d24cf12e23fd8e41ab2"
+    },
+    {
+      "name": "docs/v2-0.6.29-final-certification-20260917",
+      "sha": "723f9a31254d3c01eb2e6298d30a6c0e37e4208c"
+    },
+    {
+      "name": "docs/v2-bilat-pause-rule-attestation",
+      "sha": "e33051596befadc3bfb11d8c3cb1d6a6669af61d"
+    },
+    {
+      "name": "docs/v2-bilat-review-plan-name-certified",
+      "sha": "051d1f53ef003e50b6e2fc239904dc6e29f0fd57"
+    },
+    {
+      "name": "docs/v2-bilat-review-verdict-compat",
+      "sha": "6448c0f351bbeedbb9865cdb46ef5a1db0ceab32"
+    },
+    {
+      "name": "docs/v2-cat-01-final-plan-findings-20260917",
+      "sha": "368682babb639ca9566430743195bbebacbb7dea"
+    },
+    {
+      "name": "docs/v2-cat-01-review2-findings-20260917",
+      "sha": "c5dc13c9fe85506ed0e9e3ed4b0e25ce1f0b21e9"
+    },
+    {
+      "name": "docs/v2-cat-01-review4-findings-20260917",
+      "sha": "bed140fac4dd5507d9d3a1f2eca821008e26efb8"
+    },
+    {
+      "name": "docs/v2-cat-01-review-findings-20260917",
+      "sha": "18077bb453524d695cef70212df463be3569f931"
+    },
+    {
+      "name": "export/figma-prototype-mvp-2026-09-23",
+      "sha": "2c14455bcadef9a7271c1fa9bc5c62674a2b7105"
+    },
+    {
+      "name": "feat/t01-visual-assets",
+      "sha": "059a0c2a14baa695bbc9c942765fd4d9b4880834"
+    },
+    {
+      "name": "feat/v2-minor-plan-clarification-fast-path-20260917",
+      "sha": "f4e1ecdfe85de944f12120a1972ffb172ac34b84"
+    },
+    {
+      "name": "fix/base3-recovery-dispatch-permission",
+      "sha": "d9e0def4373ffa4b72b068dde5545f1063c9bade"
+    },
+    {
+      "name": "fix/base3-workflow-run-verifier",
+      "sha": "d48f5b4c6b11d19946ff1778e8538dc4767f24c3"
+    },
+    {
+      "name": "fix/claude-session-base3-recovery",
+      "sha": "735211d410aba381de2de2eba3012f9d534eb8d4"
+    },
+    {
+      "name": "fix/claude-session-resume-claim-rest",
+      "sha": "2ffe427d15381ad8d7f8959eb681f93687494abd"
+    },
+    {
+      "name": "fix/claude-session-resume-durable-store",
+      "sha": "04128a28c50fc023b7d413d31586fabc98d56894"
+    },
+    {
+      "name": "fix/eas-ios-preview-build-url-20260918",
+      "sha": "14e07880e7131de50ccdd11fdb2472e934c73f06"
+    },
+    {
+      "name": "fix/eas-ios-preview-install-deps-20260918",
+      "sha": "35eea842d1d8f32b60cf76d8d926f8dfb79eb6d7"
+    },
+    {
+      "name": "fix/eas-ios-preview-project-id-20260918",
+      "sha": "6a0ab6087cd08641bf20d0476870f8660041a7fd"
+    },
+    {
+      "name": "fix/f12-checkout-blob-bytes-20260919",
+      "sha": "306f8c66be46754b3827b12cc6bb34f261218cb8"
+    },
+    {
+      "name": "fix/f12-deterministic-review-evidence-20260919",
+      "sha": "dad808f0c6cd2be101fe2c145114e07d8a50d5be"
+    },
+    {
+      "name": "fix/f12-non-ui-plan-review-20260919",
+      "sha": "945fb6e2ce170b9289f33a23a50848e797f6f30b"
+    },
+    {
+      "name": "fix/f12-qualification-no-deploy-20260919",
+      "sha": "dad808f0c6cd2be101fe2c145114e07d8a50d5be"
+    },
+    {
+      "name": "fix/f12-windows-npm-preflight-20260919",
+      "sha": "ff8b0cb40e4fd23e4712b996698caf86af491b5c"
+    },
+    {
+      "name": "fix/kodjo-comment-workflow-fanout-20260929",
+      "sha": "167db36da64dd837b2cf3e743e5fdc610ec30fec"
+    },
+    {
+      "name": "fix/kodjo-crlf-diff-check-20260920",
+      "sha": "8e7d4ddf6392fb629695461cf7340ebe827bf2fc"
+    },
+    {
+      "name": "fix/kodjo-ignore-backlog-only-ci-20260920",
+      "sha": "c533911dbfa76f812cd5b2e8618e0e58ab2a6787"
+    },
+    {
+      "name": "fix/kodjo-implementation-report-source-binding-20260920",
+      "sha": "eb444764c9398462d1b90779fc33f70b73eb3f2a"
+    },
+    {
+      "name": "fix/kodjo-materialized-cumulative-review-20260920",
+      "sha": "86ceb9371e821a32b275424e20cfc58febe85e88"
+    },
+    {
+      "name": "fix/kodjo-pilot-explicit-runtime-version",
+      "sha": "7eb6526c08ea24a66509db709629b8b9376aa875"
+    },
+    {
+      "name": "fix/kodjo-review-artifact-read-20260920",
+      "sha": "31ab6168150557db96119ffc35f7a65ce2154eb5"
+    },
+    {
+      "name": "fix/kodjo-tiered-pilot-ci",
+      "sha": "f08ac740cc6b3e36bfa724a05f41ef43a13d1e17"
+    },
+    {
+      "name": "fix/kodjo-v2-046-audit-findings",
+      "sha": "691ea4bc290dc81831a3f338e99b6e8fcebc5118"
+    },
+    {
+      "name": "fix/kodjo-v2-chained-materialized-recovery-20260920",
+      "sha": "5e116ddd9071976d02ccf6953d4751b976b85f80"
+    },
+    {
+      "name": "fix/kodjo-v2-delta-stable-review-20260920",
+      "sha": "9656d5ce22af9e10b6bc1dec260815c27e86b5af"
+    },
+    {
+      "name": "fix/kodjo-v2-existing-pr-authorized-plan",
+      "sha": "54154b22423899743127728952598aec9b21b1d9"
+    },
+    {
+      "name": "fix/kodjo-v2-existing-pr-component-evidence",
+      "sha": "c1677126007b176e4b6e8afc4a1466f99b6a211a"
+    },
+    {
+      "name": "fix/kodjo-v2-existing-pr-cumulative-targets",
+      "sha": "3e5b4503adfeba6df21173618964f295dc4e487a"
+    },
+    {
+      "name": "fix/kodjo-v2-generic-closure-review",
+      "sha": "78bb1b0aec49836a6dbc0e76370fa3bdf28d53f7"
+    },
+    {
+      "name": "fix/kodjo-v2-generic-plan-publication",
+      "sha": "13d6d8e989d1c8236291f0f6cb677ddd28b836fc"
+    },
+    {
+      "name": "fix/kodjo-v2-handoff-queue-pr-read-20260920",
+      "sha": "56fb430cca5b0d6e61dcf280dc222f6d91476bb7"
+    },
+    {
+      "name": "fix/kodjo-v2-implement-existing-pr-20260920",
+      "sha": "8443752ab827cd418fcff980537d948a855fe9b2"
+    },
+    {
+      "name": "fix/kodjo-v2-legacy-recovery-bootstrap",
+      "sha": "9c2528c653e9b903a366d85a6a0960849c8e0377"
+    },
+    {
+      "name": "fix/kodjo-v2-materialized-plan-head-binding-20260920",
+      "sha": "61bb5c99b49db6111ba16864fc3c77a7a0a03502"
+    },
+    {
+      "name": "fix/kodjo-v2-materialized-review-resume-20260920",
+      "sha": "0b986f276166efb9b805005e325939dd439d62a4"
+    },
+    {
+      "name": "fix/kodjo-v2-plan-review-publication-retry",
+      "sha": "aed1445dafdcf9ceff0915d7993d7c1ab676e4f6"
+    },
+    {
+      "name": "fix/kodjo-v2-plan-review-republish",
+      "sha": "45a8ec6221efac48eca096411adbaf067d92d5ab"
+    },
+    {
+      "name": "fix/kodjo-v2-pre2-closure-r3",
+      "sha": "c9dee7386d30dc00a78908dc5cad57cc04b55503"
+    },
+    {
+      "name": "fix/kodjo-v2-pre2-r4-change-request",
+      "sha": "dd5ac10d74f42a211743b73ebdc42841c2148566"
+    },
+    {
+      "name": "fix/kodjo-v2-queue-projection",
+      "sha": "d6624a58d52a9dc5d00fda4a0d220a3b8213e7bc"
+    },
+    {
+      "name": "fix/kodjo-v2-real-runner-certification-0.6.18",
+      "sha": "8486fbc823bd881e7431fb342d3e49969e5ff38c"
+    },
+    {
+      "name": "fix/kodjo-v2-report-machine-declared-tests",
+      "sha": "4f68550674788d33e6aeab59c794932336564f05"
+    },
+    {
+      "name": "fix/kodjo-v2-resume-recovery",
+      "sha": "d6f5010ae0fbe2498d4deda45e3db95190225843"
+    },
+    {
+      "name": "fix/kodjo-v2-retry-reason-prompt",
+      "sha": "177369b707f4b763b1c909b5847ee7588007c8b6"
+    },
+    {
+      "name": "fix/kodjo-v2-review-device-doubt",
+      "sha": "b6d0acf20fbbec4a58dcaa2794d41d8659d92623"
+    },
+    {
+      "name": "fix/kodjo-v2-revision-draft-prompt",
+      "sha": "804a59623ecda89d1e8499661e1a048af050a1af"
+    },
+    {
+      "name": "fix/kodjo-v2-slice-identity-0.6.12",
+      "sha": "7ca5166fa45fd28761dc62aac6a873c6faa4a3fc"
+    },
+    {
+      "name": "fix/kodjo-v2-turn-budget",
+      "sha": "c2d14f991ecc75f3b5161523201dce337de1094f"
+    },
+    {
+      "name": "fix/pre1-prompt-closure-prepared-20260930",
+      "sha": "e717d8315286ec4144f4f8362fbc822dbc2461bc"
+    },
+    {
+      "name": "fix/pre1-visual-proof-construction-20260930",
+      "sha": "771f5a40d231281188e5d470d6268f364ab7fd36"
+    },
+    {
+      "name": "fix/pre4-relay-log-recovery-20261013",
+      "sha": "0f70ebe1dd0039d37f425fc1eef34ba5b2837bf2"
+    },
+    {
+      "name": "fix/protocol-certified-recovery-migration",
+      "sha": "60f8bc12281be34f6ceef5765f3c768c82e7a18f"
+    },
+    {
+      "name": "fix/q-env-01-qualification-20260919",
+      "sha": "85a0e0bf45dbf5278d985fc217d962f59d4a2c74"
+    },
+    {
+      "name": "fix/routine-dev-historical-bootstrap-20260919",
+      "sha": "da6c3395e0f7f8eedc7ab16252806c1d9779e3bb"
+    },
+    {
+      "name": "fix/routine-dev-standalone-build-number-20260920",
+      "sha": "b8766756e83693f54f855d7ce8b006ff2346ecc5"
+    },
+    {
+      "name": "fix/v2-activation-planning-head-20260918",
+      "sha": "c810070bb44ca112ae784560c66db768ba97e8fe"
+    },
+    {
+      "name": "fix/v2-causal-unicode-drift-20260917",
+      "sha": "ba27ac16d1dae11f22facf01ba8bd8a65a665480"
+    },
+    {
+      "name": "fix/v2-comment-gate-to-local-implementation-20260917",
+      "sha": "307ae41392e8c00147d8bfadeb0093e9492bdbe8"
+    },
+    {
+      "name": "fix/v2-existing-review-implementation-base-20260918",
+      "sha": "3f3cb3d12bd6707a4c213caa749de0846d16b8ed"
+    },
+    {
+      "name": "fix/v2-existing-review-no-dispatch-20260918",
+      "sha": "ba180e7f2ea52ba4102c39ed5e759c5c87ffc78e"
+    },
+    {
+      "name": "fix/v2-freeze-runtime-before-application-checkout-20260918",
+      "sha": "17d7909b526b27cf58045f3a43e38ff2d4fac141"
+    },
+    {
+      "name": "fix/v2-initial-plan-direct-scan-20260917",
+      "sha": "9505e2775a8de9a0a8f91154b3abb9f22360bc9c"
+    },
+    {
+      "name": "fix/v2-initial-plan-hash-root-cause-20260917",
+      "sha": "6322755d9152bb739c2f2732b220e34715b853fc"
+    },
+    {
+      "name": "fix/v2-initial-plan-line-endings-20260917",
+      "sha": "0a033e49f15a025ce6c4710370404ddad4fa844b"
+    },
+    {
+      "name": "fix/v2-initial-plan-scope-reconciliation-20260917",
+      "sha": "bda781e02ce1658b6baef46ff5cd317a88616050"
+    },
+    {
+      "name": "fix/v2-initial-plan-structured-output-20260917",
+      "sha": "e0ce3a6e45cd491f0680ffd3dd889707ad3fd380"
+    },
+    {
+      "name": "fix/v2-initial-review-e2e-forensics-temp-20260917",
+      "sha": "a22527af81f77e3f3304002f799868d82cd53a52"
+    },
+    {
+      "name": "fix/v2-initial-review-e2e-hardening-20260917",
+      "sha": "dd013c65eb6853f8f4156258e653068540f55304"
+    },
+    {
+      "name": "fix/v2-initial-review-portable-product-hash-20260917",
+      "sha": "27e9263d101efa6ae22da7d7c99b21995b1410c5"
+    },
+    {
+      "name": "fix/v2-initial-revise-bounded-20260928",
+      "sha": "7fb3704c9a2c60cac81ace522e6405e5ccea8664"
+    },
+    {
+      "name": "fix/v2-initial-trigger-collision-20260917",
+      "sha": "082708d64177dbc4d852ede9243be8f064781dca"
+    },
+    {
+      "name": "fix/v2-lean-failure-diagnostics",
+      "sha": "eaa3f187be11845823e66c5a76824877857d7667"
+    },
+    {
+      "name": "fix/v2-lean-install-and-budget",
+      "sha": "2cc5ed918a6a8cac0daf652177d29f6d137acccd"
+    },
+    {
+      "name": "fix/v2-plan-consumption-lifecycle-20260917",
+      "sha": "667ad068baa70ddecd94100225b7e779bf9e3f9b"
+    },
+    {
+      "name": "fix/v2-plan-contract-consistency-20260917",
+      "sha": "f808b30cc558888dfb0becd7f74fce5d28a56a72"
+    },
+    {
+      "name": "fix/v2-plan-evidence-assembly",
+      "sha": "1ea563ca549320282bf4b2c9bc54aa423c1f9283"
+    },
+    {
+      "name": "fix/v2-plan-handoff-budget-defaults-20260918",
+      "sha": "9398f3c5676bf8abb12c371f2768e074d26135b8"
+    },
+    {
+      "name": "fix/v2-plan-handoff-explicit-lean-dispatch-20260918",
+      "sha": "3e28193b341e99255194af95f0bb6a81abfdf7c2"
+    },
+    {
+      "name": "fix/v2-plan-handoff-github-verification-20260918",
+      "sha": "69ef4b140018f843e21bf4722b1b700f2fa12152"
+    },
+    {
+      "name": "fix/v2-plan-heredoc-syntax",
+      "sha": "d1c9df47efb40c78002f989f34794a95ae0ea9fd"
+    },
+    {
+      "name": "fix/v2-plan-review-lifecycle-0625",
+      "sha": "ef4bd1c82984ca15f74669869ffedeea04a58905"
+    },
+    {
+      "name": "fix/v2-plan-root-tests-20260919",
+      "sha": "dd8e8b56d43fe9c50353720b136f9146e2cb4698"
+    },
+    {
+      "name": "fix/v2-planning-pr-read-permission",
+      "sha": "06825a430e625ee9effa7dc452135ee381f60322"
+    },
+    {
+      "name": "fix/v2-powershell-utf8-boundaries",
+      "sha": "28cfdcf9e2cc19484f616d16f9e36cc2d1b99468"
+    },
+    {
+      "name": "fix/v2-private-ref-auth",
+      "sha": "7ad74aa9ece67440d4b042178f476d74c16ea336"
+    },
+    {
+      "name": "fix/v2-product-source-git-blob-verification-20260917",
+      "sha": "18b26bdcf66f3c5d8d84efd1101da554282397a1"
+    },
+    {
+      "name": "fix/v2-restore-implementation-review-20260918",
+      "sha": "2b0c75fb8e24c9da62dcb0a1962decb7271a422e"
+    },
+    {
+      "name": "fix/v2-review-base-routing-20260918",
+      "sha": "28d4f17bcf260fcf6f535c644bd0f59c4cc40ca6"
+    },
+    {
+      "name": "fix/v2-review-existing-delivery-20260918",
+      "sha": "2171c25863c701091a7fbee8cdbfdcdad5329c77"
+    },
+    {
+      "name": "fix/v2-review-policy-0623",
+      "sha": "8d71ce4bb75a90e293e151e5d76273300d01599a"
+    },
+    {
+      "name": "fix/v2-windows-check-runner-20260918",
+      "sha": "555c4a1b36279f0addaa39dda2f64c4a46508693"
+    },
+    {
+      "name": "fix/vnext-common-work-continuation-20261014",
+      "sha": "c3611b15bc5a3333840b9ad3bb6cf0e85c6b421e"
+    },
+    {
+      "name": "fix/vnext-pre3-clarification-20261009",
+      "sha": "8378cf4a99403bff74337e25406633e4666c967e"
+    },
+    {
+      "name": "fix/vnext-pre3-review-scope-20261009",
+      "sha": "bdfde87b9f034021dc30c6412071e895283d716c"
+    },
+    {
+      "name": "fix/vnext-pre4-plan-branch-recovery-20261013",
+      "sha": "f8cb1640d2b0c17fe99f22b3d6578b8e2165d996"
+    },
+    {
+      "name": "fix/vnext-pre4-recursive-recovery-20261013",
+      "sha": "4cd3f0144154452eb41704408e3c79b64c9c894c"
+    },
+    {
+      "name": "integration/t01-s09-final",
+      "sha": "8381b124fe048c51cf2ee9b885652ba64688e873"
+    },
+    {
+      "name": "kodjo/kpb-001-ui-plan-contract",
+      "sha": "f8b99653e3588c828f41b0fb7b2430b494ab75e3"
+    },
+    {
+      "name": "kodjo/targeted-global-requalification",
+      "sha": "3162d7c3f4be9d4fa19773f4dc2ffab74b151f2d"
+    },
+    {
+      "name": "kodjo/v2-v2-bilat-01-34948992572",
+      "sha": "8ffe46aca1a4001a8381f047ef31177de721c148"
+    },
+    {
+      "name": "kodjo/v2-v2-pre-1-36997819228",
+      "sha": "2a6e92c0593a1269f1ac101cde8f306718787d15"
+    },
+    {
+      "name": "noop-should-not-use",
+      "sha": "ecd3f92e1077c68948824204ff4432aeb42d1b3b"
+    },
+    {
+      "name": "noop-temp-ignore",
+      "sha": "9cda81b5163dade75e30cfe6c4f6c3f42cb8bd10"
+    },
+    {
+      "name": "orchestration-temp",
+      "sha": "f7e42ad40e32d97227cc7cc1a268c5de4c41ddf7"
+    },
+    {
+      "name": "protocol/activate-v2-bilat-01",
+      "sha": "6e0ab18485addd0f0b423bc2494465704805afb4"
+    },
+    {
+      "name": "protocol/certify-application-checkpoint-34948992572",
+      "sha": "024a7ff0a74b82de7afe0c040ba0d6db0574da38"
+    },
+    {
+      "name": "protocol/handoff-application-drift",
+      "sha": "ea31ba80cb070315d8c61c0851d723e2477f70a8"
+    },
+    {
+      "name": "protocol/handoff-ui-fingerprint",
+      "sha": "4581e9333a3968c125f15b3d12a6063ce5a2dfb7"
+    },
+    {
+      "name": "protocol/lifecycle-routing-checkpoint-20260915",
+      "sha": "946efc6fc5c4d55232f5ec7fb7e1b2c912790f95"
+    },
+    {
+      "name": "protocol/plan-impact-direct-imports",
+      "sha": "ea25cca3f5f9b21063afdc116af1978c8ab84f06"
+    },
+    {
+      "name": "protocol/planning-application-head-binding",
+      "sha": "f61c5f213a3ad5daa57752e9b0cb97d29925b0e8"
+    },
+    {
+      "name": "protocol/recovery-attestation-finalization",
+      "sha": "08893f6e637c2370dfa2d054e0f0d3d99fc101f0"
+    },
+    {
+      "name": "protocol/v2-bilat-01-plan-review",
+      "sha": "60974c94b4ee338266a3769035422bea33bc0682"
+    },
+    {
+      "name": "protocol/v2-bilat-01-planning-mission",
+      "sha": "41b404665c5cc5303d27a4c125f11b346fbb3f35"
+    },
+    {
+      "name": "protocol/v2-bilat-approved-plan-artifacts",
+      "sha": "bd8c9afe80bb0e95c383db3d531fee0d2e112599"
+    },
+    {
+      "name": "protocol/v2-cat-01-obsolete-undispatched-request-20260918",
+      "sha": "6fa5b9673c475e4a0aa3dbe3c9a6103ef885e055"
+    },
+    {
+      "name": "protocol/v2-initial-plan-entry-20260916",
+      "sha": "c4f4938d025cdac083934da73d21f69e3eef36ab"
+    },
+    {
+      "name": "protocol/v2-lean-interface-0.6.13",
+      "sha": "67dbfa838a6592cb95d46057d1be1f5668d3c1b5"
+    },
+    {
+      "name": "protocol/v2-planning-entry",
+      "sha": "f87c41ddd0aff73b803abc7c96e542d220e90b36"
+    },
+    {
+      "name": "protocol/visual-correction-structural-hardening-20260915-temp",
+      "sha": "ecd3f92e1077c68948824204ff4432aeb42d1b3b"
+    },
+    {
+      "name": "protocol/visual-correction-structural-hardening-20260915",
+      "sha": "7d533b8d8e79f5b55ebef97d6fb45bf756b8ff3a"
+    },
+    {
+      "name": "protocol/vnext-01-foundations-20260929",
+      "sha": "06435c85ef749ecedb5d31be736cc793b7bbe4b5"
+    },
+    {
+      "name": "protocol/vnext-02-requirement-registry-20260929",
+      "sha": "d51cd924ab462f521260aa0dbb8fc24fb145c11c"
+    },
+    {
+      "name": "protocol/vnext-03-impact-graph-20260929",
+      "sha": "ba415251c43a8daa67be9cdd8c8cca683c906dbd"
+    },
+    {
+      "name": "protocol/vnext-04-plan-contract-20260929",
+      "sha": "50ff958ad058dbaf1357e16c0a6c9fab0393824d"
+    },
+    {
+      "name": "protocol/vnext-05-ui-atomicity-20260929",
+      "sha": "dfcd8512e011425551973e31953f3eda2004af5e"
+    },
+    {
+      "name": "protocol/vnext-06-common-review-20260930",
+      "sha": "9edff764b106f76311f3fab4792a83cf2b23959e"
+    },
+    {
+      "name": "protocol/vnext-07-bounded-revision-20260930",
+      "sha": "d63a5aeec2cacf8fba526691948c225884850db5"
+    },
+    {
+      "name": "protocol/vnext-08-approval-handoff-20260930",
+      "sha": "b24b62a5148cb3953c5285ee455884c56733e10b"
+    },
+    {
+      "name": "protocol/vnext-09-e2e-migration-20260930",
+      "sha": "1a8e6a0614b5f1c32081f9a7549ec27239611a71"
+    },
+    {
+      "name": "protocol/vnext-generic-chatgpt-relay-20261009",
+      "sha": "ed9fc5104992f97bdd236f0b56be36055f9b101f"
+    },
+    {
+      "name": "protocol/0.6.24-recovery-scope",
+      "sha": "f9e8bbcfc7fdbced52c68e732c621a24e31e007d"
+    },
+    {
+      "name": "queue/c1-ae8d0033",
+      "sha": "b5054fdcc789650493929989c5146cdfbc83bd58"
+    },
+    {
+      "name": "queue/c1-human-9a451a73",
+      "sha": "7609cacac2f8c2df36b720d3e19b8770f5d3ef16"
+    },
+    {
+      "name": "queue/c1-human-b865d7ad",
+      "sha": "e44ce7306c6610cc94e95775701b7a75ecb7a01b"
+    },
+    {
+      "name": "queue/c1-pr-44a1326c",
+      "sha": "5dc91fb46d6415cda77721b3131c9322b632f9ce"
+    },
+    {
+      "name": "queue/c2-human-b8b1773e",
+      "sha": "10b95703a787669410e0fd7be4b7cfc896dbfa06"
+    },
+    {
+      "name": "queue/c3-human-132e9331",
+      "sha": "504042c747adf2abd6ce6b1b3412a8ddee8c9677"
+    },
+    {
+      "name": "queue/c3-human-e5be6cbf",
+      "sha": "1f623ca3e9463a45a066c4357cc967c167882d69"
+    },
+    {
+      "name": "test/claude-session-resume-01",
+      "sha": "48e7c5db2a4d22602d99233983b61fcec8b40628"
+    },
+    {
+      "name": "test/trigger-base3-durable-verification",
+      "sha": "657bce6a4decc456308265652f2ff65d059e4819"
+    },
+    {
+      "name": "test/v2-e2e-20260919-activation",
+      "sha": "0a737b5820d7fe485481dcbfc99e0157eae673c4"
+    }
+  ],
+  "retained_branches": [
+    {
+      "name": "recovery/t01-s09-attempt2",
+      "sha": "ce898eb623ea9c5db196100036e1a6016b9d79ff"
+    },
+    {
+      "name": "recovery/vnext-run-37446216690-20261006-fixture",
+      "sha": "c611b9d7e9cb6c2443829f2debb88b2f62787131"
+    },
+    {
+      "name": "recovery/vnext-run-37446216690-20261006-staged",
+      "sha": "4440adaa75e00ff78060d5c9fbefa1f08eacba5f"
+    },
+    {
+      "name": "recovery/vnext-run-37446216690-20261006",
+      "sha": "2918666dd48a33a27e60726102ed664304d8b84f"
+    },
+    {
+      "name": "test/claude-session-store-resume-02",
+      "sha": "5b9671f767e4ebbec41fede9420e30c77dc36841"
+    },
+    {
+      "name": "test/jest-timeout-qualification",
+      "sha": "32e09e02620d237e4098e395dea8459b1c13b252"
+    },
+    {
+      "name": "test-state/claude-local-session-resume-01",
+      "sha": "faa8f627a4d5e5c9ddeda0726376fce5a02388c6"
+    },
+    {
+      "name": "test-state/claude-local-session-resume-02",
+      "sha": "6333eba01f22cd4fc87cc25af21d0f3df1ac03a1"
+    },
+    {
+      "name": "test-state/claude-local-session-resume-03",
+      "sha": "8df9a81604760c243d1dd4e7a1d1f51d57bb6361"
+    },
+    {
+      "name": "test-state/claude-session-resume-01",
+      "sha": "352eb5e0ab16ec405958975de9ad27dbe7cb1c94"
+    },
+    {
+      "name": "tmp",
+      "sha": "f7e42ad40e32d97227cc7cc1a268c5de4c41ddf7"
+    },
+    {
+      "name": "kodjo/v2-v2-bilat-01-34769884846",
+      "sha": "8483781666680428a641a5fc8d579eab7829f5b8"
+    },
+    {
+      "name": "kodjo/v2-v2-bilat-01-34770454986",
+      "sha": "24e38203b592bc4c696e6685268e71f15b629bb6"
+    },
+    {
+      "name": "kodjo/v2-v2-bilat-01-34872653037",
+      "sha": "df38ade5e8737ed8f59a3a7472ebe9b168a85145"
+    },
+    {
+      "name": "kodjo/v2-v2-cat-01-35333601872",
+      "sha": "f2292a8d2c60f2c799a879e0c58457c136177e86"
+    },
+    {
+      "name": "kodjo/v2-v2-e2e-20260919-35465345801",
+      "sha": "a8ef4fd2f26b4d7804d06aba3f2d02c6a8757d11"
+    },
+    {
+      "name": "kodjo/v2-v2-pre-1-36807221893",
+      "sha": "a3c2af94ca91fbd06e410f1bad015a0122a1b07b"
+    },
+    {
+      "name": "kodjo/v2-v2-pre-1-36830619665",
+      "sha": "f51cab820bb583fc7b06987286bd4ffbc2e71c93"
+    },
+    {
+      "name": "kodjo/v2-v2-pre-1-36841919131",
+      "sha": "2e3f1e3d54e905036e4666aca485803936aa8f7f"
+    },
+    {
+      "name": "kodjo/v2-v2-pre-1-36863538435",
+      "sha": "a8569e26b39cccb67686549b7ea9e7183ed311b4"
+    },
+    {
+      "name": "kodjo/v2-v2-pre-1-36865160369",
+      "sha": "d55fd13fc47b86a6d7f22538af0d6bfa1cf45f23"
+    },
+    {
+      "name": "kodjo/v2-v2-pre-1-36909039881",
+      "sha": "4c95ec7aa3067252f412b218e89a5b9b91131c42"
+    },
+    {
+      "name": "kodjo/v2-v2-pre-1-36932540055",
+      "sha": "8c632ef99aaacccfd479b1c4982f8f4c385cf236"
+    },
+    {
+      "name": "kodjo/v2-v2-pre-1-36989717234",
+      "sha": "c2c017f7d874936be7eec6df3df68c22267a3cd8"
+    },
+    {
+      "name": "kodjo/v2-v2-pre-2-37172915456",
+      "sha": "ebce0453b2df60befe28fbcb3bef55c19276d112"
+    },
+    {
+      "name": "kodjo/v2-v2-pre-2-37174751835",
+      "sha": "a843f62cf452f0134f444b2307828769b06de643"
+    },
+    {
+      "name": "kodjo/v2-v2-pre-2-37175517264",
+      "sha": "0c4c0c1498bb930ccdeffeb071133832ee17048e"
+    },
+    {
+      "name": "kodjo/v2-v2-pre-2-37176774024",
+      "sha": "5d2b4cdccd7e41586ef2efdcde76c855b7c4bfda"
+    },
+    {
+      "name": "kodjo/v2-v2-pre-2-37177456453",
+      "sha": "32b6a41fc0b8335798b4df167de885f15b968e8e"
+    },
+    {
+      "name": "kodjo/v2-v2-pre-2-37178165890",
+      "sha": "3780eb9287cf8bc60c79dc322c1662542469a389"
+    },
+    {
+      "name": "main",
+      "sha": "55aa34480d51472b540156e2e664b8528c511f6b"
+    },
+    {
+      "name": "ops/cleanup-run-34713139211",
+      "sha": "c807ae46d958d4069f58f777c189621c972370d3"
+    },
+    {
+      "name": "orchestration/t01-s09-resume-v1-3",
+      "sha": "f7e42ad40e32d97227cc7cc1a268c5de4c41ddf7"
+    },
+    {
+      "name": "orchestration/t01-s09-v1-3-runner",
+      "sha": "f7e42ad40e32d97227cc7cc1a268c5de4c41ddf7"
+    },
+    {
+      "name": "orchestration/t7-t8-work-transport",
+      "sha": "c5b8c2ce93ba88015e2a73345e648bf207ae0e1e"
+    },
+    {
+      "name": "orchestration/v1-3-integrated-t1-t9",
+      "sha": "db55395a9a1f6b85e35c3a008adfc9ce89ce2dbf"
+    },
+    {
+      "name": "orchestration/v1-4-e2e-harness",
+      "sha": "b62491f74da66f066b0b9b776a02d21f34b76343"
+    },
+    {
+      "name": "orchestration/v1-4-local",
+      "sha": "d59e92fd806c3d6aab3fc14aad6916da32639073"
+    },
+    {
+      "name": "orchestration/v1-4-local-e2e-01",
+      "sha": "7dd5657e2309c588ea5c92941adf1ada8734d301"
+    },
+    {
+      "name": "orchestration/v1-4-local-e2e-02",
+      "sha": "d4a05bd243a0e9eb5c0d1c22d86bab0673a8e9aa"
+    },
+    {
+      "name": "orchestration/vnext-work-signals",
+      "sha": "59bdbfba4bdc7452f55b9bef8bf22b3ec87a5d9f"
+    },
+    {
+      "name": "plan/pre3-vnext-20261008",
+      "sha": "341f4d4165050e81f5c9dbbb54174176c4c3014c"
+    },
+    {
+      "name": "plan/pre4-vnext-20261013",
+      "sha": "211a9a592f1a5743c89736111132816fc8e84d76"
+    },
+    {
+      "name": "pre1/correction-review-36734142447",
+      "sha": "990103188f2936bb2ed7d766fabe56ab0b779210"
+    },
+    {
+      "name": "pre1/published-plan-36720420887",
+      "sha": "04b6e2d31a02ba9789add5b76a96ad5c40ee3e5f"
+    },
+    {
+      "name": "protocol/artifact-retention-14d-20260928",
+      "sha": "b170e77da9a2b73fbc5559a3c571ef47c6f47fe4"
+    },
+    {
+      "name": "protocol/conception-evolution-v1",
+      "sha": "7e6919aeb009c455ca48ac780d67cbdc5d41d7a2"
+    },
+    {
+      "name": "protocol/fix-lean-runner-context",
+      "sha": "b663a311e4289d84f64fc5ca2069ad8242a6ebdd"
+    },
+    {
+      "name": "protocol/kodjo-v2-0.6.16-hardening",
+      "sha": "7c03935de395722c93797aa54ea0fc20b7b71d90"
+    },
+    {
+      "name": "protocol/kodjo-v2-0.6.22-ordinary-path-certification",
+      "sha": "ba3ca1bc6ae60c2e1f8e39183fa6731b07fedd7a"
+    },
+    {
+      "name": "protocol/next-evolution-r1-r3-r4-continuity-20260928",
+      "sha": "14896ed140e36eef4d9abbc0ab59cd1072eba906"
+    },
+    {
+      "name": "protocol/ui-atomic-assertions-20260921",
+      "sha": "50db22f2f56fcc6c461943139d4e31b30f52f16b"
+    },
+    {
+      "name": "protocol/v2-initial-handoff-redesign-20260917",
+      "sha": "2c44717422ba29e3324486ff27b599445d00b594"
+    },
+    {
+      "name": "protocol/v2-prod-00-preparation",
+      "sha": "5d1e906b9d3015a5722d4949b4e4d2a08ce3ab14"
+    },
+    {
+      "name": "protocol/vnext-10-cutover-preparation-20260930",
+      "sha": "0ef5feeb20dec4a3c20b6ea5b9e50b4bdaaecd09"
+    },
+    {
+      "name": "protocol/vnext-11-1-remote-write-security-20260930",
+      "sha": "8d99c719f9363dec67cd9bf7702a8b34d7770628"
+    },
+    {
+      "name": "protocol/vnext-11-audit-convergence-20260930",
+      "sha": "9a16a86dc95b1bd13afc704e6c01cc5f3a4137a5"
+    },
+    {
+      "name": "protocol/vnext-11-audit-stability-20260930",
+      "sha": "e835c876be6665dd92eb554eb0776d97a7d593e8"
+    },
+    {
+      "name": "protocol/vnext-chatgpt-pre4-relay-20261009",
+      "sha": "696754577e67443efdb5d35ee91518d0660ec399"
+    },
+    {
+      "name": "protocol/vnext-claude-pilot-variant-20261009",
+      "sha": "9947f5223f4da59144f081ee57b0ea156bf957c6"
+    },
+    {
+      "name": "protocol/vnext-f01-remote-write-security-20260930",
+      "sha": "7176904974bffd1b5f01252724323a0fb2287442"
+    },
+    {
+      "name": "protocol/vnext-proof-stability-20260930",
+      "sha": "2ec2f9f14db0d7cd5b32d126bdbcffff39f9954e"
+    },
+    {
+      "name": "qualification/vnext-absolute-paths-20261006",
+      "sha": "df2cfc406ac67c0b29b61bc6a4c7bfc9ae011bca"
+    },
+    {
+      "name": "qualification/vnext-browser-budget-20261005",
+      "sha": "3ad6426f4ffec579247da4062950091d4e5497ea"
+    },
+    {
+      "name": "qualification/vnext-browser-diagnostics-20261005",
+      "sha": "b6b4923da5bb61b8d69af0e95dbd2b0b840e7d2b"
+    },
+    {
+      "name": "qualification/vnext-browser-fix-20261005",
+      "sha": "9058cd57853390d099cdb255cff2ee09c2c79ecb"
+    },
+    {
+      "name": "qualification/vnext-browser-load-20261005",
+      "sha": "cbf69dd26827eecbe3ece0a72ac28a124d64adf0"
+    },
+    {
+      "name": "qualification/vnext-browser-session-20261005",
+      "sha": "960533eddbfd733cb75b10ecf51b20a4ecc4dd6c"
+    },
+    {
+      "name": "qualification/vnext-closure-20261008",
+      "sha": "d7e20b794b14f3b6202185edd07f66ed07995d60"
+    },
+    {
+      "name": "qualification/vnext-current-20261005",
+      "sha": "b286a6bb79aca9fa45c5ec96a5970af39c458218"
+    },
+    {
+      "name": "qualification/vnext-cutover-native-20261007",
+      "sha": "bebfcd45d9c987b68d356f5858a9d84abfd1561b"
+    },
+    {
+      "name": "qualification/vnext-full-cycle-auto-de2b9683-20261007",
+      "sha": "e19cfcef2fd7e3ec88ba5e274aa71fa65ece6824"
+    },
+    {
+      "name": "qualification/vnext-full-cycle-de2b9683-20261007",
+      "sha": "3bb64be15d7662a76160bbe918a3bac297731935"
+    },
+    {
+      "name": "qualification/vnext-full-cycle-historical-connector-81a107ff-20261007",
+      "sha": "9b57e713ce4d14d1664caddbac916799100ad44d"
+    },
+    {
+      "name": "qualification/vnext-full-cycle-historical-relay-terminal-81a107ff-20261007",
+      "sha": "88516d91bdc7ff266c1fe9e730662969748d3719"
+    },
+    {
+      "name": "qualification/vnext-full-cycle-historical-sequence-3b3a2190-20261007",
+      "sha": "e21c9a142ed41d4863f1273d22bd1f43643adcbd"
+    },
+    {
+      "name": "qualification/vnext-full-cycle-historical-writer-policy-81a107ff-20261007",
+      "sha": "eccc1d55eca0543667dd185193db17559a242617"
+    },
+    {
+      "name": "qualification/vnext-full-cycle-incidents-retention-ee55d53d-20261007",
+      "sha": "fe4e36eca5ccab54d0a8abfbaee4f2cb166bfb28"
+    },
+    {
+      "name": "qualification/vnext-full-cycle-initial-bytefix-de2b9683-20261007",
+      "sha": "661bdba157cab2f791c2941125f2867058bc1ace"
+    },
+    {
+      "name": "qualification/vnext-full-cycle-initial-de2b9683-20261007",
+      "sha": "ab68c2de3d98a4247d3d18fde53f802fa1466837"
+    },
+    {
+      "name": "qualification/vnext-full-cycle-real-fix2-232ae5f7-20261007",
+      "sha": "e4faa5dd855af2ef2726870bebcb6b51714218e3"
+    },
+    {
+      "name": "qualification/vnext-full-cycle-real-fix-d6a8f4c1-20261007",
+      "sha": "9411096c1d78d9b930346af02a30b077b4ccc7e3"
+    },
+    {
+      "name": "qualification/vnext-full-cycle-real-stdin-232ae5f7-20261007",
+      "sha": "42d10d8a7500a55d69ddeb26866fea7b625affa0"
+    },
+    {
+      "name": "qualification/vnext-full-cycle-revision-6db62fdd-20261007",
+      "sha": "53ebeae733286b55b6d96478cd27c76276e5a346"
+    },
+    {
+      "name": "qualification/vnext-plan-contract-fixes-20261006",
+      "sha": "67bafd3371e59f2d95c91f566d793c69346a825c"
+    },
+    {
+      "name": "qualification/vnext-resolution-review-20261008",
+      "sha": "412bd3bdb4fde154d1d9807bbfef6170e016ede3"
+    },
+    {
+      "name": "qualification/vnext-resource-integrity-20261006",
+      "sha": "4280eefa7f94c0989154d626e038b6d0c18fb9c3"
+    },
+    {
+      "name": "qualification/vnext-stabilization-audit-20261006-r2",
+      "sha": "cc35919d408759ee26c2e37033ba85374fad37f1"
+    },
+    {
+      "name": "qualification/vnext-stabilization-audit-20261006",
+      "sha": "cc35919d408759ee26c2e37033ba85374fad37f1"
+    },
+    {
+      "name": "qualification/vnext-stabilization-fixes-20261006",
+      "sha": "0fb8ad80703c4dc86caa1dd2e011e1a17a821c2c"
+    },
+    {
+      "name": "qualification/vnext-task2-admission-20261006",
+      "sha": "d1402d91c56b55b3ff8b8a925afd5f7bcd279f4c"
+    },
+    {
+      "name": "qualification/vnext-task2-documentary-scope-20261006",
+      "sha": "676a3b8f68dab3ee3986b2e92d6b7ac66af41fb4"
+    },
+    {
+      "name": "qualification/vnext-task2-evidence-basis-20261006",
+      "sha": "90c590504d9e5942b7989e4469117a4ff48cd583"
+    },
+    {
+      "name": "qualification/vnext-task2-inline-contract-20261006",
+      "sha": "8e6aafebd659dcbbf5a7890dad07bbf4def524dc"
+    },
+    {
+      "name": "qualification/vnext-task2-native-templates-20261006",
+      "sha": "83a192883b78d6df09f4a9d74135524f1f57c4ce"
+    },
+    {
+      "name": "qualification/vnext-task2-no-browser-20261006",
+      "sha": "f15aa64eef32549e2c37b2fa242a6541146fa460"
+    },
+    {
+      "name": "qualification/vnext-task2-no-html-gate-20261006",
+      "sha": "187b8846ff22981c9c79662eb453ec77fdc3fd32"
+    },
+    {
+      "name": "qualification/vnext-task2-plan-completion-20261006",
+      "sha": "a1ab2ab641536d90df288136af843c1989a5e940"
+    },
+    {
+      "name": "qualification/vnext-task2-plan-completion-http-20261006",
+      "sha": "92015bd3e640bbe71a65d78b5cbc50a45d2c38f2"
+    },
+    {
+      "name": "qualification/vnext-task2-plan-contract-20261006",
+      "sha": "67d18be21e865846fac780351b34bc6cd4c636a3"
+    },
+    {
+      "name": "qualification/vnext-task2-plan-proof-fix-20261006",
+      "sha": "988bd1da798b8290135adc122ceb960f69745de1"
+    },
+    {
+      "name": "qualification/vnext-task2-proof-routing-20261006",
+      "sha": "bd34c389e46191670d0ec446cadd6826720282e9"
+    },
+    {
+      "name": "qualification/vnext-task2-provenance-20261006",
+      "sha": "ae4420751d64bfc98add0eb75df975ac14ee8728"
+    },
+    {
+      "name": "qualification/vnext-task2-readonly-sequence-20261006",
+      "sha": "5ef22f089610779f6b098bb385623bd4a54c6060"
+    },
+    {
+      "name": "qualification/vnext-task2-regression-fix-20261006",
+      "sha": "cf80c57c69a1f74e0ff3e4b6c62da169a1fd30c9"
+    },
+    {
+      "name": "qualification/vnext-task2-review-20261006",
+      "sha": "434adeef6d42e861a3dbee7c6236e77cc1ba74f9"
+    },
+    {
+      "name": "qualification/vnext-task2-two-hours-20261006",
+      "sha": "d1746b16bbe957861e369c66b72823579e2ed05e"
+    },
+    {
+      "name": "qualification/vnext-task2-two-hours-r2-20261006",
+      "sha": "abecf87e88abbf387c1e22e319cda1374762018d"
+    },
+    {
+      "name": "queue/v2-bilat-01-final-start",
+      "sha": "4a27dd0a7eeab0b07d0b96a8e9aeabec7f5af56c"
+    },
+    {
+      "name": "queue/v2-bilat-01-fresh-start",
+      "sha": "06ed7827ae86bff52e550dba88c119160efe8bde"
+    },
+    {
+      "name": "queue/v2-cat-01-residual-visual-corrections-20260921",
+      "sha": "9764c0d4b161f4a39d9702dfe2312d59f9b63f3b"
+    },
+    {
+      "name": "archive/v1-3-prepare-claude-local-resume",
+      "sha": "4c9291a1a91c0936a0d4e3ba669d01e5c310b2da"
+    },
+    {
+      "name": "audit/vnext-generalisation-20261014",
+      "sha": "94ea7dc96604843ff6a9b1ed4551ab4f83890aa1"
+    },
+    {
+      "name": "bootstrap/claude-local-preflight",
+      "sha": "751bc12823183e46f61dbc4f2a93295f89f2a35f"
+    },
+    {
+      "name": "certification/vnext/628b3349-88b4-4bf1-be6b-50bc09e7d245",
+      "sha": "3db2ac6129f0aaf5b6e47bf1d3030a1fe8a57609"
+    },
+    {
+      "name": "chore/cloud-trigger-test-v1",
+      "sha": "9084ec4f3520a9d9f7be7ebaecac684f651d1662"
+    },
+    {
+      "name": "chore/cloud-write-test-v1",
+      "sha": "3d55d2123cb1eb93a02d07a74db3c6b218ca5d81"
+    },
+    {
+      "name": "chore/kodjo-v2-pilot",
+      "sha": "0bb791c01a734f3917aeacb02d8cfac0df90bbf6"
+    },
+    {
+      "name": "diagnostic/disposable-patch-20260919",
+      "sha": "8259da586cfdecc768556a5a913961353fd499cd"
+    },
+    {
+      "name": "diagnostic/f12-preflight-20260919",
+      "sha": "b2e3c65716f20a65d7c10b89ba5189052628c27b"
+    },
+    {
+      "name": "diagnostic/run53-jest-full",
+      "sha": "2de1315fafaff6d192b8f4c4ddc8700f36b04890"
+    },
+    {
+      "name": "diagnostic/vnext-performance-task2-20261005",
+      "sha": "5f8763dfade776f2bfa8139dea7ff1f23fc3aee3"
+    },
+    {
+      "name": "docs/activity-catalogue-card-interactions",
+      "sha": "81a0ecd0cbd71b315703e2563f2f6fc484db37e3"
+    },
+    {
+      "name": "docs/activity-direct-execution-v2",
+      "sha": "2b929da5dbfb764708d1247c7c8f0b8e2372abdd"
+    },
+    {
+      "name": "docs/activity-direct-screenshots",
+      "sha": "f8aa9a6ecb99ed6cd9a2eeaa0154acffbbc80a04"
+    },
+    {
+      "name": "docs/activity-direct-screenshots-chapter-06",
+      "sha": "99b6a38b78dd5350a0c19c23335881e4396c111f"
+    },
+    {
+      "name": "docs/activity-model-alignment-20260915",
+      "sha": "663918996b56d617def4868a989a7e298821b772"
+    },
+    {
+      "name": "docs/cadence-dsf-2026-10-06",
+      "sha": "3ac3460d4cc5061e51e6b47dbea750e9cc0d25a7"
+    },
+    {
+      "name": "docs/catalogue-create-contextual-20260921",
+      "sha": "42837cbeb0bb2d3a92ca5ceeea5df815641b15fc"
+    },
+    {
+      "name": "docs/circuits-tours-series-20261012",
+      "sha": "08a5c580d3250658abfd7459b26568c130e58e97"
+    },
+    {
+      "name": "docs/consolidate-06-07-t03-20260916",
+      "sha": "679e7c7e8b3fe772387ba593c9d145a387eca43c"
+    },
+    {
+      "name": "docs/consolidation-catalogue-activites",
+      "sha": "eaead51e9cd3a4818ce521e706b8d663118545d2"
+    },
+    {
+      "name": "docs/contrats-ecrans-figma-explicites",
+      "sha": "366ca2d31140c0b25cbcf18b51f757a98cc818b7"
+    },
+    {
+      "name": "docs/contre-audit-pr65",
+      "sha": "a0b521cebb5cffcf2e3ab220738ebfcce621b577"
+    },
+    {
+      "name": "docs/d208-profile-recovery-defaults",
+      "sha": "5d3cc203c7f552a99949967a45d0137362963f75"
+    },
+    {
+      "name": "docs/evolutions-v15-2026-10-07",
+      "sha": "e070a22e98dd5503445ccc7579289f63431d0599"
+    },
+    {
+      "name": "docs/execution-media-20260925",
+      "sha": "fe44b57b7b0982247d02735f647588ef7942a3d1"
+    },
+    {
+      "name": "docs/mvp-archive-swipe-20260921",
+      "sha": "b0483b32897337ee4727fbbac31ac94809c241dd"
+    },
+    {
+      "name": "docs/planification-2026-10-08",
+      "sha": "f6afc3c6971ee633cbea13a39747af8657050cbc"
+    },
+    {
+      "name": "docs/point-arret-contextual-create-20260921",
+      "sha": "67051e82aedce63963bcffd40fbeaf0dfba8acf8"
+    },
+    {
+      "name": "docs/pre2-closure-r3-result",
+      "sha": "f9bde6aede73810f3dcfa12303a7a7086f2196fc"
+    },
+    {
+      "name": "docs/pre2-finalization-reports",
+      "sha": "601d2aefcfcb7e1cdc765a5796aa7b9a8a7dd492"
+    },
+    {
+      "name": "docs/pre2-review-r2-result",
+      "sha": "31417c2b5c072d99fb49339633ec8db3156e77f0"
+    },
+    {
+      "name": "docs/pre3-perimetre-medias-20261008",
+      "sha": "fcdeea111e0d507fac93048213710db97f0206cd"
+    },
+    {
+      "name": "docs/protocol-backlog-direct-visual-correction-20260921",
+      "sha": "7ab8c67c2e740f0327a7e87828b82f39e64f6626"
+    },
+    {
+      "name": "docs/selection-order-vector-icons",
+      "sha": "7d8e8148c13f26df4aa5ab8697464bd28a447ef3"
+    },
+    {
+      "name": "docs/session-phases-sans-booleen-20261012",
+      "sha": "ebc8f8045ad151c1e15280cf2485f3deab9aea38"
+    },
+    {
+      "name": "docs/t03-catalogue-activites-mvp",
+      "sha": "37c12c71530fa55e36c75b9936ae3bccdddc3661"
+    },
+    {
+      "name": "docs/t03-figma-sync-20260916",
+      "sha": "0d56828addc80ddf2c2166d44e39b4d9d600ed59"
+    },
+    {
+      "name": "docs/v2-bilat-finalisation-20260914",
+      "sha": "67b35833368fb10b87930529d89647d59e6c440d"
+    },
+    {
+      "name": "docs/v2-bilat-review-plan-name",
+      "sha": "745cd6f03fb493d000b3d71bd5da22355c6dcae5"
+    },
+    {
+      "name": "docs/voile-modal-2026-10-07",
+      "sha": "e4fddc152c90ab4660c3f12aedfd02a82f042118"
+    },
+    {
+      "name": "evidence/kodjo-independent-audits",
+      "sha": "c50dd5b996097e15ffcb9d57b1074e19bbad6fdd"
+    },
+    {
+      "name": "evidence/vnext-minor-resolution-37825871378",
+      "sha": "bd4533817469c8f1fe6b36a363890f8a2322e96b"
+    },
+    {
+      "name": "evidence/vnext-revision-success-37548553181",
+      "sha": "e52719ed06e8c7a865f4c78901f805fd6e264370"
+    },
+    {
+      "name": "export/documentation-audit-20260921",
+      "sha": "a1207ef261e8d66ab373c46ce775f8f61ca28e0c"
+    },
+    {
+      "name": "feat/alignement-dsf-figma-2026-10-07",
+      "sha": "a16149de15457b8ed05ecba7234c296a3158acde"
+    },
+    {
+      "name": "feat/alignement-voile-segmentes-2026-10-07",
+      "sha": "15a6afe25ef98d359134288ec44fef5372f92b9b"
+    },
+    {
+      "name": "feat/creation-seance-catalogue",
+      "sha": "6e762133f8b8862628ff4f4c251aabda8da93254"
+    },
+    {
+      "name": "feat/pre3-exercice-20261009",
+      "sha": "096686e10dd2786847313cd7e586e27d858f39b4"
+    },
+    {
+      "name": "fix/environment-sync-applicable-false",
+      "sha": "c5006cfcaa95848e86f4ff8e5282fd77ae95dc03"
+    },
+    {
+      "name": "fix/kodjo-c1-runner-stability",
+      "sha": "f95e87fbfe6d45e93e6a84f44807e9bbebeb0590"
+    },
+    {
+      "name": "fix/kodjo-initial-recovery-probe",
+      "sha": "2779c4bb28333d48df10a887097945ae3ea66540"
+    },
+    {
+      "name": "fix/kodjo-lean-runner-isolation",
+      "sha": "9945c30379149c7bc0809008079801b8234b15fd"
+    },
+    {
+      "name": "fix/kodjo-remote-ref-delivery-source-of-truth",
+      "sha": "fce0422c9b8330553362a0af1801ce2238175024"
+    },
+    {
+      "name": "fix/kodjo-review-visual-existing-delivery",
+      "sha": "ed11768c105d9110eea9b8e5de5610e16f25c4eb"
+    },
+    {
+      "name": "fix/kodjo-v2-bounded-file-mutations",
+      "sha": "47ed84337dc46d551c04a72a828ca107b5caffd0"
+    },
+    {
+      "name": "fix/kodjo-v2-controlled-retry-code",
+      "sha": "43c43ef632d3c8c4cf3395c58f2eb721f7f1b8cc"
+    },
+    {
+      "name": "fix/kodjo-v2-empty-recovery-rebase",
+      "sha": "7139b202518bce1a0aabcdfee6053c1cd47f850f"
+    },
+    {
+      "name": "fix/kodjo-v2-finalize-accessibility-pending",
+      "sha": "a07fc5d2ed631b8ee3cc70d686711785f9132e25"
+    },
+    {
+      "name": "fix/kodjo-v2-finalize-cumulative-delivered",
+      "sha": "c8e7d0d9aa83ce13df4a0cbd45bb488ac8592314"
+    },
+    {
+      "name": "fix/kodjo-v2-handoff-pr-read-20260920",
+      "sha": "182846ae6021f3ebb0bbe4f178cf5bb792705bf7"
+    },
+    {
+      "name": "fix/kodjo-v2-lean-launch",
+      "sha": "494a9daf86bd14e876c90bf653bf5b94f55035b7"
+    },
+    {
+      "name": "fix/kodjo-v2-lock-diagnostics-0.6.17",
+      "sha": "7af5d5cc6d58ee4e3fe1b87f2e24750ac3c8c4a9"
+    },
+    {
+      "name": "fix/kodjo-v2-provider-governed-turns-0.6.19",
+      "sha": "fd8bc5c9cb747fa1281bf1a7d7551195ba86bbb5"
+    },
+    {
+      "name": "fix/kodjo-v2-real-e2e-certification-0.6.20",
+      "sha": "90e87f540540c41714bd413c1cfd33550ebc6866"
+    },
+    {
+      "name": "fix/kodjo-v2-revision-publication",
+      "sha": "8d24fa96934b32874fc5d95e446d1c6dfd19d4fe"
+    },
+    {
+      "name": "fix/kodjo-v2-run-budget-context",
+      "sha": "b1e8107075ff62bb82aad121a129153f10bc47ff"
+    },
+    {
+      "name": "fix/kodjo-visual-checkpoint-optional-attestation",
+      "sha": "8297ae2fd681407f9c4efcd5054844ac606c1589"
+    },
+    {
+      "name": "fix/kodjo-visual-resume-head-binding",
+      "sha": "86886624e29db34df4c7a1f60c748a3c0a8b85e7"
+    },
+    {
+      "name": "fix/routine-dev-historical-head-overlay-20260921",
+      "sha": "9df454a7f0db9e07a1d3dabc498feb3d68502f69"
+    },
+    {
+      "name": "fix/v2-causal-gate-bom-20260917",
+      "sha": "5b051c7436d7af891834a945fc44173ad5c1fb7c"
+    },
+    {
+      "name": "fix/v2-existing-pr-delivery-observation-20260918",
+      "sha": "c6eda82d1a19976781185d19ca73852f4cdad58e"
+    },
+    {
+      "name": "fix/v2-handoff-canonical-runtime-limits-20260918",
+      "sha": "5d22d0ccd9ba5cb16fc6f8fdf7c5d9af5d007681"
+    },
+    {
+      "name": "fix/v2-initial-deterministic-decisions-20260928",
+      "sha": "c8902650d774d14c9565b90d1a5fc38d1fd6d42f"
+    },
+    {
+      "name": "fix/v2-initial-plan-byte-source-diagnostics",
+      "sha": "18c4b813269533618b2554a57353393faa6e9a93"
+    },
+    {
+      "name": "fix/v2-initial-scope-convergence-20260917",
+      "sha": "e2c5e1c9e94ce1775e225f6a8226db7c93cac7e2"
+    },
+    {
+      "name": "fix/v2-review-bridge-dispatch-permission-20260918",
+      "sha": "56c1fdf63ec6a91d8839663c47f83f85b219740e"
+    },
+    {
+      "name": "fix/v2-review-bridge-source-binding-20260918",
+      "sha": "e9f355db94852a4859fa7943a65329bedf8ef3af"
+    },
+    {
+      "name": "fix/v2-review-implementation-base-20260918",
+      "sha": "ade8c4c0df6188812435170b36b681442b84c208"
+    },
+    {
+      "name": "fix/vnext-atomic-functional-source-20261014",
+      "sha": "bb15aae411d6d3877eacfb881f4d79efb1d7ca5e"
+    },
+    {
+      "name": "fix/vnext-audit-tolerance-20261008",
+      "sha": "b9f6e34acffe0576c4cd2c624de3e7ffdf42a09e"
+    },
+    {
+      "name": "fix/vnext-closure-provenance-20261008",
+      "sha": "5f982f0f617771da49a9312364cafe43d1b00cd7"
+    },
+    {
+      "name": "fix/vnext-minor-reserves-20261008",
+      "sha": "5f0a6cc7378c6538108360e3b2ed93766f167564"
+    },
+    {
+      "name": "fix/vnext-stream-seal-pre3-20261009",
+      "sha": "ad5b9086ec66a714166ab7923a3c26a57ba93c36"
+    },
+    {
+      "name": "fix/vnext-volume-main-20261009",
+      "sha": "1f2d59e930a63ea00116345e431593352259516a"
+    },
+    {
+      "name": "forensics/claude-resume5-final",
+      "sha": "7054d70645d6290c0e299f0a41265ac3d2cf2827"
+    },
+    {
+      "name": "handoff/vnext-revision-37546751570",
+      "sha": "d1c5241be95a1e27933d8049cb6c0dfb8dbec4d9"
+    },
+    {
+      "name": "integration/t01-s09-code-only",
+      "sha": "d9e32536476e536d5a6cf752e672cf5f3135450d"
+    },
+    {
+      "name": "integration/vnext-cutover-20261007",
+      "sha": "9ecd3ec729dd9443462a53e03d9ed6b37f02746c"
+    },
+    {
+      "name": "kodjo/deterministic-preflight-architecture-0.6.42",
+      "sha": "77fa31d73fbbd3fc4134776a3ff19260cb7b02e3"
+    },
+    {
+      "name": "kodjo/deterministic-preflight-lot-a-0.6.43",
+      "sha": "3f87c894cd531150403ddbb19998a317c449e3b8"
+    },
+    {
+      "name": "kodjo/deterministic-preflight-lot-b-0.6.44",
+      "sha": "a2e0c4101c5918e539e0338dab775415eee19fc1"
+    },
+    {
+      "name": "kodjo/deterministic-preflight-lot-c-0.6.45",
+      "sha": "3d3e4a384355450c36d930d99d09d100adc537a8"
+    },
+    {
+      "name": "kodjo/e2e-ui-finalization-0.6.41",
+      "sha": "b01740d8bcfc5e0f5be769e5426f2221df6ecf5d"
+    },
+    {
+      "name": "kodjo/environment-sync-sidecars-0.6.46",
+      "sha": "9d7a83eefa24c3694404cbe004d30ab8635e5acd"
+    },
+    {
+      "name": "kodjo/kpb-002-bounded-planning-context",
+      "sha": "e95e4f9bcf6122d018adfb1cd62e581590f6d1d1"
+    },
+    {
+      "name": "kodjo/protocol-evidence-v2",
+      "sha": "ef5007f809697659500d4ccbaae17a7ccce7a3f6"
+    },
+    {
+      "name": "kodjo/restore-ui-implementation-contract-0.6.39",
+      "sha": "8d5133469a74b981593d21ca68b6d0666452cb3e"
+    },
+    {
+      "name": "kodjo/restore-ui-implementation-review-contract-0.6.40",
+      "sha": "18dfe05321fafdd9b1522782b6e0149a791830c2"
+    },
+    {
+      "name": "kodjo/restore-ui-plan-contract-0.6.38",
+      "sha": "e9ad93a66415a7496da5b1290b7a7a410dc78cf1"
+    }
+  ]
+}

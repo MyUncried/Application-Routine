@@ -1,0 +1,168 @@
+{
+  "schema_version": "kodjo.vnext.component-impact-report.v1",
+  "revision": "211a9a592f1a5743c89736111132816fc8e84d76",
+  "snapshot_path": "docs/preparation/PRE-4/planification/figma-source-vnext.json",
+  "ui_path": "docs/preparation/PRE-4/planification/contrats/ui-atomicity-contract.json",
+  "ui_contract_hash": "e39b394618ad2a24769b93c2c84bd7b6925e7bbd2121d398a9d47315df8f2216",
+  "figma_reference_hash": "088c6dc6c9df81d9ad433d71413a6de62c03e97473d976438b5cd3a96111db0d",
+  "source_inventory": {
+    "nodes": 5465,
+    "instances": 680,
+    "masters": 58,
+    "component_sets": 11,
+    "required_properties": 180443,
+    "assertions": 180526,
+    "assertions_by_type": {
+      "STYLE": 35729,
+      "GEOMETRY": 143473,
+      "CONTENT": 1241,
+      "STATE": 83
+    }
+  },
+  "before": {
+    "direct_obligations": 180526,
+    "inherited_obligations": 0
+  },
+  "after": {
+    "direct_obligations": 180526,
+    "conditional_inheritance_links": 0,
+    "verified_inherited_obligations": 0,
+    "remaining_to_verify": 180526,
+    "measured_verified_reduction": 0
+  },
+  "direct_instance_checks": 680,
+  "reuse_assessment": {
+    "status": "REQUIRES_SOURCE_OR_MAPPING_QUALIFICATION",
+    "unresolved_components": [
+      {
+        "source_id": "SRC-af2182f98fc9410547a17360",
+        "master_id": "6981:14888"
+      },
+      {
+        "source_id": "SRC-af2182f98fc9410547a17360",
+        "master_id": "7021:13149"
+      },
+      {
+        "source_id": "SRC-af2182f98fc9410547a17360",
+        "master_id": "5613:5346"
+      },
+      {
+        "source_id": "SRC-af2182f98fc9410547a17360",
+        "master_id": "5544:4503"
+      },
+      {
+        "source_id": "SRC-af2182f98fc9410547a17360",
+        "master_id": "6959:15825"
+      },
+      {
+        "source_id": "SRC-af2182f98fc9410547a17360",
+        "master_id": "7872:14696"
+      },
+      {
+        "source_id": "SRC-af2182f98fc9410547a17360",
+        "master_id": "6974:14831"
+      },
+      {
+        "source_id": "SRC-af2182f98fc9410547a17360",
+        "master_id": "4155:6197"
+      },
+      {
+        "source_id": "SRC-af2182f98fc9410547a17360",
+        "master_id": "5544:4537"
+      },
+      {
+        "source_id": "SRC-af2182f98fc9410547a17360",
+        "master_id": "4155:6200"
+      },
+      {
+        "source_id": "SRC-af2182f98fc9410547a17360",
+        "master_id": "4152:6182"
+      },
+      {
+        "source_id": "SRC-af2182f98fc9410547a17360",
+        "master_id": "4173:6713"
+      },
+      {
+        "source_id": "SRC-af2182f98fc9410547a17360",
+        "master_id": "5544:6069"
+      },
+      {
+        "source_id": "SRC-af2182f98fc9410547a17360",
+        "master_id": "6981:14890"
+      },
+      {
+        "source_id": "SRC-af2182f98fc9410547a17360",
+        "master_id": "6981:14893"
+      },
+      {
+        "source_id": "SRC-af2182f98fc9410547a17360",
+        "master_id": "5544:5554"
+      },
+      {
+        "source_id": "SRC-af2182f98fc9410547a17360",
+        "master_id": "5826:4110"
+      },
+      {
+        "source_id": "SRC-af2182f98fc9410547a17360",
+        "master_id": "6679:13418"
+      },
+      {
+        "source_id": "SRC-af2182f98fc9410547a17360",
+        "master_id": "8129:31593"
+      },
+      {
+        "source_id": "SRC-af2182f98fc9410547a17360",
+        "master_id": "6679:13419"
+      },
+      {
+        "source_id": "SRC-af2182f98fc9410547a17360",
+        "master_id": "8129:31601"
+      },
+      {
+        "source_id": "SRC-af2182f98fc9410547a17360",
+        "master_id": "8129:31604"
+      },
+      {
+        "source_id": "SRC-af2182f98fc9410547a17360",
+        "master_id": "6959:15706"
+      },
+      {
+        "source_id": "SRC-af2182f98fc9410547a17360",
+        "master_id": "7501:13764"
+      }
+    ],
+    "repeated_equal_groups": 1957,
+    "direct_decisions": []
+  },
+  "levels": {
+    "COMPONENT_COMMON": 50177,
+    "INSTANCE": 0,
+    "INTEGRATION": 130349
+  },
+  "direct_reasons": {
+    "INTEGRATION": 130266,
+    "OVERRIDE_PROVENANCE_UNAVAILABLE": 50177,
+    "FUNCTION_OR_ACCESSIBILITY_OR_NON_FIGMA": 83
+  },
+  "exploratory_only": {
+    "equal_value_candidates": 45109,
+    "distinct_master_properties": 3574,
+    "instances_with_override_provenance": 0,
+    "component_bindings": 0,
+    "warning": "These counts are neither a factorisable volume nor inherited coverage: mapping, overrides, bindings and valid qualification must still be established."
+  },
+  "conservation": {
+    "initial_assertion_ids_sha256": "094173f6b9f93529dad7da11121775e715aae75057eaf55e83c3a93b665cdfef",
+    "classified_assertion_ids_sha256": "094173f6b9f93529dad7da11121775e715aae75057eaf55e83c3a93b665cdfef",
+    "source_contract_unchanged": true,
+    "historical_coverage_plan_hash": null,
+    "proposed_coverage_plan_hash": "35f68229c8c31736a332e09d47f52a79609e3ffb3331b37d4121b678aa8dc07c"
+  },
+  "qualification": "IMPACT_ONLY_NO_REVIEW_INVOKED",
+  "limits": [
+    "No implementation or review was run.",
+    "Historical partial-review targets are not transferred to this changed context.",
+    "No reusable implementation qualification is inferred from a component name, a token, or equal values."
+  ],
+  "contract_hash": "1a4d2374ca37a377b86e655e1740f2203974d7087ad8d4224448a79672eafce1"
+}

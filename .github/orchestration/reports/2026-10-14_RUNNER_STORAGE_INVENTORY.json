@@ -1,0 +1,307 @@
+{
+  "schema": "kodjo.runner-storage-audit.2026-10-14",
+  "scope": "Persistent Actions project workspace only; not the whole PC",
+  "inventory_runs": [
+    38612264707,
+    38612746393,
+    38615816829
+  ],
+  "inventory_artifact_id": 11920171311,
+  "inventory_artifact_sha256": "f39adc055f8e92057b8f3beb7093729e9e73442a1ce4bb39563ab30fe5c491a3",
+  "measurement": {
+    "schema": "kodjo.runner-storage-inventory.1",
+    "observed_utc": "2026-10-14T18:31:51.3291926Z",
+    "run_id": "38615816829",
+    "runner": "KODJO-LOCAL-RUNNER",
+    "workspace": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine",
+    "disk_free_bytes": 83580211200,
+    "disk_used_bytes": 426150936576,
+    "root_file_bytes": 0,
+    "directories": [
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\.git",
+        "bytes": 209152598,
+        "files": 2779,
+        "node_modules_bytes": 0,
+        "skipped_links": 0,
+        "unreadable_directories": 0
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\scripts",
+        "bytes": 9469,
+        "files": 1,
+        "node_modules_bytes": 0,
+        "skipped_links": 0,
+        "unreadable_directories": 0
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_protocol",
+        "bytes": 528378657,
+        "files": 3686,
+        "node_modules_bytes": 0,
+        "skipped_links": 0,
+        "unreadable_directories": 0
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_qualification\\38455042324",
+        "bytes": 551290256,
+        "files": 3758,
+        "node_modules_bytes": 22443556,
+        "skipped_links": 0,
+        "unreadable_directories": 0
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_qualification\\38457357967",
+        "bytes": 551335313,
+        "files": 3766,
+        "node_modules_bytes": 22443556,
+        "skipped_links": 0,
+        "unreadable_directories": 0
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_qualification\\38475743934",
+        "bytes": 551340454,
+        "files": 3770,
+        "node_modules_bytes": 22443556,
+        "skipped_links": 0,
+        "unreadable_directories": 0
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_qualification\\38477939383",
+        "bytes": 550943065,
+        "files": 3736,
+        "node_modules_bytes": 22443556,
+        "skipped_links": 0,
+        "unreadable_directories": 0
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_qualification\\38483049288",
+        "bytes": 551492052,
+        "files": 3777,
+        "node_modules_bytes": 22443556,
+        "skipped_links": 0,
+        "unreadable_directories": 0
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_qualification\\38526921006",
+        "bytes": 551498851,
+        "files": 3777,
+        "node_modules_bytes": 22443556,
+        "skipped_links": 0,
+        "unreadable_directories": 0
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_qualification\\38535506692",
+        "bytes": 551551889,
+        "files": 3782,
+        "node_modules_bytes": 22443556,
+        "skipped_links": 0,
+        "unreadable_directories": 0
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_qualification\\38565594442",
+        "bytes": 558686639,
+        "files": 3799,
+        "node_modules_bytes": 22443556,
+        "skipped_links": 0,
+        "unreadable_directories": 0
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_qualification\\38611865071",
+        "bytes": 561699670,
+        "files": 3395,
+        "node_modules_bytes": 22443556,
+        "skipped_links": 0,
+        "unreadable_directories": 0
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_qualification\\38612983406",
+        "bytes": 539275482,
+        "files": 3355,
+        "node_modules_bytes": 0,
+        "skipped_links": 0,
+        "unreadable_directories": 0
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_qualification",
+        "direct_files_only": true,
+        "files": 0,
+        "bytes": null
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_request",
+        "bytes": 1444154166,
+        "files": 3965,
+        "node_modules_bytes": 0,
+        "skipped_links": 0,
+        "unreadable_directories": 0
+      }
+    ],
+    "git": [
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine",
+        "status_exit": 0,
+        "status_count": 3,
+        "status_entries": [
+          "?? _protocol/",
+          "?? _qualification/",
+          "?? _request/"
+        ],
+        "clean": false,
+        "head": "7479c7ec5832e705d69d1d1600570f42af6c0f5b",
+        "head_exit": 0
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_protocol",
+        "status_exit": 0,
+        "status_count": 0,
+        "status_entries": [],
+        "clean": true,
+        "head": "e844b55fddf23ffb648108fa56c423ccd1f4a7f9",
+        "head_exit": 0
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_request",
+        "status_exit": 0,
+        "status_count": 0,
+        "status_entries": [],
+        "clean": true,
+        "head": "0ef1ec593343809a41b243850df12e1e91337d49",
+        "head_exit": 0
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_qualification\\38455042324",
+        "status_exit": 0,
+        "status_count": 1,
+        "status_entries": [
+          "?? real-recovery-certification.json"
+        ],
+        "clean": false,
+        "head": "e5555213a35c276a354894d4fd5a289f21352f62",
+        "head_exit": 0
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_qualification\\38457357967",
+        "status_exit": 0,
+        "status_count": 2,
+        "status_entries": [
+          "?? disposable-preflight-evidence/",
+          "?? real-recovery-certification.json"
+        ],
+        "clean": false,
+        "head": "4cd3f0144154452eb41704408e3c79b64c9c894c",
+        "head_exit": 0
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_qualification\\38475743934",
+        "status_exit": 0,
+        "status_count": 2,
+        "status_entries": [
+          "?? disposable-preflight-evidence/",
+          "?? real-recovery-certification.json"
+        ],
+        "clean": false,
+        "head": "c86364835210a53667fb0f4939fddd63b8cd3e8a",
+        "head_exit": 0
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_qualification\\38477939383",
+        "status_exit": 0,
+        "status_count": 1,
+        "status_entries": [
+          "?? real-recovery-certification.json"
+        ],
+        "clean": false,
+        "head": "3813632861e2b8a248e8601f12fc7596c6fa069e",
+        "head_exit": 0
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_qualification\\38483049288",
+        "status_exit": 0,
+        "status_count": 2,
+        "status_entries": [
+          "?? disposable-preflight-evidence/",
+          "?? real-recovery-certification.json"
+        ],
+        "clean": false,
+        "head": "87eaf5cca35bdeef138affdceccbe8be8493975c",
+        "head_exit": 0
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_qualification\\38526921006",
+        "status_exit": 0,
+        "status_count": 2,
+        "status_entries": [
+          "?? disposable-preflight-evidence/",
+          "?? real-recovery-certification.json"
+        ],
+        "clean": false,
+        "head": "c3611b15bc5a3333840b9ad3bb6cf0e85c6b421e",
+        "head_exit": 0
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_qualification\\38535506692",
+        "status_exit": 0,
+        "status_count": 2,
+        "status_entries": [
+          "?? disposable-preflight-evidence/",
+          "?? real-recovery-certification.json"
+        ],
+        "clean": false,
+        "head": "363e27a7126b93e452f7ad6cb5c7ec17da6cc125",
+        "head_exit": 0
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_qualification\\38565594442",
+        "status_exit": 0,
+        "status_count": 2,
+        "status_entries": [
+          "?? disposable-preflight-evidence/",
+          "?? real-recovery-certification.json"
+        ],
+        "clean": false,
+        "head": "bb15aae411d6d3877eacfb881f4d79efb1d7ca5e",
+        "head_exit": 0
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_qualification\\38611865071",
+        "status_exit": 0,
+        "status_count": 1,
+        "status_entries": [
+          "?? real-recovery-certification.json"
+        ],
+        "clean": false,
+        "head": "a422be3c2c2aad6bc57a6fa90fcabf2c05a4a1a3",
+        "head_exit": 0
+      },
+      {
+        "path": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_qualification\\38612983406",
+        "status_exit": 0,
+        "status_count": 0,
+        "status_entries": [],
+        "clean": true,
+        "head": "08109c11de8e2d1a13af4cdb0ac39b27dadf94cb",
+        "head_exit": 0
+      }
+    ],
+    "unreadable_paths": [],
+    "protected_review_cache_present": true,
+    "limits": [
+      "No deletion authorized by this report",
+      "Protected model cache and user profile not traversed",
+      "Temporary directory not measured",
+      "Git status records paths only, never file contents",
+      "Sizes exclude reparse points; live filesystem is not a snapshot"
+    ]
+  },
+  "decision": {
+    "deleted_project_files": 0,
+    "old_kodjo_directory": "absent",
+    "source_modifications": "No tracked modifications reported by git status in inspected repositories; nine completed qualification checkouts have only untracked generated evidence.",
+    "retained": "All qualification directories, _protocol, _request, protected model cache, replies, invocation intents, receipts and user workspace.",
+    "reason": "Qualification directories belong to the current 13-14 October campaign. Preserve diagnostic evidence during ongoing VNext work. Inventory does not certify entire directories as disposable.",
+    "next_cleanup": "Before removing whole completed-run checkouts: preserve and verify disposable-preflight-evidence and real-recovery-certification.json; verify source identity, run completion, absent process references/locks and no new changes immediately before a reviewed deletion.",
+    "limits": "Temporary storage, protected model cache contents, user profile and C:\\Dev clone not measured. Free space alone does not explain ChatGPT connection interruptions.",
+    "implementation": "Read-only inventory extension isolated on maintenance/runner-storage-inventory-20261014; not merged into main."
+  }
+}

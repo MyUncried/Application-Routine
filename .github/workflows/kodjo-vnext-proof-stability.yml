@@ -7,6 +7,10 @@ on:
       - '.github/orchestration/**'
       # Exclude published operation data and reports, not protocol implementation.
       - '!.github/orchestration/requests/vnext-agent/**'
+      - '!.github/orchestration/requests/vnext-work/README.md'
+      - '!.github/orchestration/requests/vnext-work/signals/*.json'
+      - '!.github/orchestration/requests/vnext-work/publish/*.json'
+      - '!.github/orchestration/requests/vnext-work/consumption/**/*.json'
       - '!.github/orchestration/vnext-closure/**'
       - '!.github/orchestration/v2-slices/**'
       - '!.github/orchestration/vnext12/**'
@@ -57,11 +61,14 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $parent=(git rev-parse 'HEAD^').Trim()
-          $checkpoint=Get-Content -LiteralPath '.github/orchestration/vnext12/VNEXT-12-QUALIF/campaign-state.json' -Raw -Encoding UTF8 | ConvertFrom-Json
-          # A failed parser attempt cannot certify unchanged units in its child.
-          # Revalidate the entire consolidated delta from its recorded base.
-          if ($checkpoint.v8_consolidation.parent_head) { $parent=$checkpoint.v8_consolidation.parent_head }
+          # Validate this candidate against the event's exact base, independently
+          # of the historical VNEXT-12 qualification campaign.
+          $eventBase='${{ github.event.pull_request.base.sha || github.event.before }}'
+          if ($eventBase -and $eventBase -notmatch '^0+$') {
+            if ($eventBase -notmatch '^[0-9a-f]{40}$') { throw 'VNEXT_NATIVE_EVENT_BASE_INVALID' }
+            $parent=(git merge-base $eventBase HEAD).Trim()
+            if ($LASTEXITCODE -ne 0) { throw 'VNEXT_NATIVE_EVENT_BASE_UNRELATED' }
+          } else { $parent=(git rev-parse 'HEAD^').Trim() }
           if ($parent -notmatch '^[0-9a-f]{40}$') { throw 'VNEXT_NATIVE_VALIDATION_BASE_INVALID' }
           git merge-base --is-ancestor $parent HEAD
           if ($LASTEXITCODE -ne 0) { throw 'VNEXT_NATIVE_VALIDATION_BASE_NOT_ANCESTOR' }

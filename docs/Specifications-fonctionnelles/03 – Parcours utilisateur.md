@@ -1,11 +1,6 @@
 # Objectif de cette note
 
-> **Évolution cible du12/10/2026 — circuits de tours et de séries :** [SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md](SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md). Les dispositions nouvelles remplacent les prescriptions antérieures incompatibles dans leur périmètre. Référence PRE-3 conservée dans ses preuves figées ; captures et DSF non actualisés dans ce lot.
-
-> Planification à plusieurs contenus (08/10) : les règles antérieures d’archivage supprimant les Routines associées restent décrites pour le cas à contenu unique. Leur extension à une Routine contenant d’autres contenus est **non définie** ; ne pas supprimer ces autres planifications par généralisation. Voir la spécification du 08/10 et son registre de points ouverts.
-
-
-**Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Placement explicite et distinction contenu/trait conservés. **Bip de cadence et durées : la spécification Bip v2 du07/10 remplace les dispositions antérieures.**
+> Planification à plusieurs contenus (08/10) : les règles antérieures d’archivage supprimant les Routines associées restent décrites pour le cas à contenu unique. Leur extension à une Routine contenant d’autres contenus est **non définie** ; ne pas supprimer ces autres planifications par généralisation. Voir la chapitre 08, Planification.
 
 Décrire, du point de vue de l'utilisateur, les principaux parcours permettant de créer, planifier, exécuter et suivre ses séances dans l'application.
 
@@ -42,7 +37,7 @@ Le MVP permet à l'utilisateur :
 ## Principes communs
 
 - Une Séance ou un Exercice persistant définit un contenu pouvant être exécuté directement.
-- Une Routine porte une liste ordonnée de références SESSION/ACTIVITY ; API-ROU définit le contrat cible multi-contenus (D-328).
+- Une Routine porte une liste ordonnée de références SESSION/ACTIVITY ; API-ROU définit le contrat cible multi-contenus .
 - Une Exécution conserve le déroulement réel de la source exécutée.
 - Une Séance ou un Exercice persistant peut être exécuté sans être planifié.
 - Une Séance ou un Exercice persistant peut être associé à plusieurs Routines.
@@ -110,6 +105,8 @@ Il peut créer une séance entièrement nouvelle ou partir d'une copie d'une sé
 
 ### 1. Créer une séance
 
+**Entrée Formats (cible 14/10) :** le choix du modèle précède le parcours propre à ce modèle ; voir [Formats et départs rapides](#formats-parcours). Le parcours libre ci-dessous reste disponible.
+
 L'utilisateur crée une nouvelle séance depuis le Catalogue.
 
 Dans l’écran unique `Composer une séance`, il renseigne son nom, sélectionne éventuellement son Étiquette — dont la couleur devient la couleur affichée de la Séance — puis construit progressivement la Composition. La Composition peut contenir un Point d’arrêt déplaçable ; son attente ne compte pas dans la durée. Un Exercice peut définir son propre Compte à rebours et sa propre Fin d’exercice, distincts des phases structurelles de la Séance. Les Exercices peuvent être placées avant le Circuit, dans le Circuit ou après le Circuit. Le premier Exercice ajouté est inséré après le Compte à rebours initial et avant le Circuit. Le Cycle technique reste fixé à 1 et n’est jamais affiché.
@@ -133,7 +130,7 @@ Il peut notamment :
 
 Les modifications sont immédiatement prises en compte pour les futures exécutions.
 
-Chaque occurrence peut recevoir explicitement une **Récupération après exercice**. Elle affiche ses informations seulement si sa durée est positive. Le trait de démarcation est conservé hors placement et supprimé pendant le choix (D-303). Cette récupération se déplace avec l’occurrence, est copiée lors de sa duplication et disparaît lors de sa suppression. Sa valeur n’est jamais recalculée en fonction de l’Exercice suivant.
+Chaque occurrence peut recevoir explicitement une **Récupération après exercice**. Elle affiche ses informations seulement si sa durée est positive. Le trait de démarcation est conservé hors placement et supprimé pendant le choix . Cette récupération se déplace avec l’occurrence, est copiée lors de sa duplication et disparaît lors de sa suppression. Sa valeur n’est jamais recalculée en fonction de l’Exercice suivant.
 ### 3. Démarrer une séance
 
 L'utilisateur choisit la zone `Démarrer` d’une séance et ouvre d’abord l’état initial d’Exécution. Toucher la partie principale de la carte ouvre au contraire la Séance en modification.
@@ -319,7 +316,7 @@ Il souhaite consulter son historique afin de retrouver une séance, vérifier so
 1. L'utilisateur ouvre le menu **Suivi**.
 2. Il consulte la liste chronologique de ses Exécutions enregistrées.
 3. Il peut rechercher une Exécution et modifier l’ordre chronologique d’affichage, du plus récent au plus ancien ou inversement.
-4. Il consulte les groupes de dates et, sur chaque carte, la nature, le titre, le statut, la durée réelle, la catégorie et le ressenti lorsqu’il existe ; aucune heure n’est affichée dans la carte (D-262).
+4. Il consulte les groupes de dates et, sur chaque carte, la nature, le titre, le statut, la durée réelle, la catégorie et le ressenti lorsqu’il existe ; aucune heure n’est affichée dans la carte .
 5. Il peut sélectionner une autre Exécution, modifier sa recherche ou inverser l’ordre chronologique d’affichage.
 
 La vue détaillée déployée d'une Exécution est reportée à une version ultérieure.
@@ -406,7 +403,7 @@ L’utilisateur démarre une Série sans objectif temporel ni nombre de répéti
 
 ## Créer et exécuter un Parcours — hors MVP, conception partielle
 
-**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
+**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
 
 ## Parcours bilatéral
 
@@ -435,7 +432,7 @@ L’utilisateur démarre une Série sans objectif temporel ni nombre de répéti
 3. Consulter ou modifier l’Exercice.
 4. Revenir au Catalogue dans son état précédent.
 
-Le bouton Lecture reste réservé à l’Exécution directe. La carte d’Exercice affiche son média dans la gouttière permanente, sans Déployer avec ou sans média (D-260/D-261) ; l’action principale reste inchangée.
+Le bouton Lecture reste réservé à l’Exécution directe. La carte d’Exercice affiche son média dans la gouttière permanente, sans Déployer avec ou sans média  ; l’action principale reste inchangée.
 
 ## Ajouter plusieurs Exercices existants à une Composition — MVP T03
 
@@ -510,20 +507,19 @@ Référence : `../CONCEPTION-EXECUTION-MEDIA.md`.
 
 ## Planifier un Parcours — cible future
 
-**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
+**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
 
 ## Parcours consolidés — 26 septembre 2026
 
 Création Exercice : choisir exactement une Catégorie et au moins une Zone corporelle avant validation. Les valeurs par défaut du Profil sont proposées à la création puis deviennent indépendantes. Création/modification Séance : le groupe répété est le **Circuit**, son nombre de répétitions est le nombre de **Tours** ; les phases Compte à rebours/Fin propres aux Exercices ne sont jamais exécutées dans la Séance, sans réglage d’activation ; seuls ceux de la Séance s’appliquent. L’insertion d’un Point d’arrêt ne propose jamais la position immédiatement après le Compte à rebours initial ni immédiatement avant la Fin de séance ; un Point d’arrêt placé dans le Circuit est rencontré à chaque Tour.
 
-
 ### Clôture de parcours Figma — 28 septembre 2026
 
-Le MVP ne comporte aucune recherche globale ni recherche locale dans les Catalogues (D-221). La planification utilise désormais des cases à cocher et Ajouter n éléments, y compris pour un seul contenu (D-222 révisée). Son titre dépend du nombre et du type des contenus (D-223 révisée). La Composition conserve son contrat propre.
+Le MVP ne comporte aucune recherche globale ni recherche locale dans les Catalogues . La planification utilise désormais des cases à cocher et Ajouter n éléments, y compris pour un seul contenu (D-222 révisée). Son titre dépend du nombre et du type des contenus (D-223 révisée). La Composition conserve son contrat propre.
 
 ## Parcours visuels des cartes — 30 septembre 2026
 
-Décisions finales du propriétaire : les 17 points du 30/09 sont clos. Révision des cartes du 03/10/2026 (D-260 à D-264) : un seul format de carte d’Exercice, avec une gouttière permanente de 64 px dans le Catalogue et les listes de sélection d’exercices ; photo si média associé, icône de nature sinon. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Les Séances ne portent jamais de visuel. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi. Aucun déploiement d’Exercice ni de carte du Suivi ; le déploiement des Séances reste accessible dans le Catalogue et le Calendrier Semaine. Le Suivi présente deux lignes : nature/titre/statut, puis durée/catégorie/ressenti ; sans heure, zones corporelles ni étiquettes. Le Ressenti y est un indicateur sans action, distinct de sa saisie obligatoire en Synthèse. Les variantes déployées d’Exercice et du Suivi sont historiques, hors MVP. Pauses/récupérations et prochaine planification restent absentes des cartes concernées. Les données, instantanés, calculs et fonctions de planification sont conservés.
+Décisions finales du propriétaire : les 17 points du 30/09 sont clos. Révision des cartes du 03/10/2026 (D-260 à D-264) : un seul format de carte d’Exercice, avec une gouttière permanente de 64 px dans le Catalogue et les listes de sélection d’exercices ; photo si média associé, icône de nature sinon. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture . Les Séances ne portent jamais de visuel. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi. Aucun déploiement d’Exercice ni de carte du Suivi ; le déploiement des Séances reste accessible dans le Catalogue et le Calendrier Semaine. Le Suivi présente deux lignes : nature/titre/statut, puis durée/catégorie/ressenti ; sans heure, zones corporelles ni étiquettes. Le Ressenti y est un indicateur sans action, distinct de sa saisie obligatoire en Synthèse. Les variantes déployées d’Exercice et du Suivi sont historiques, hors MVP. Pauses/récupérations et prochaine planification restent absentes des cartes concernées. Les données, instantanés, calculs et fonctions de planification sont conservés.
 
 Synthèses : « N séries de X », « N séries de N rép. », « N séries à l’échec » ; bilatéralité par miroir dans les variantes concernées. Heure Semaine « 08:00 » ; aucune heure dans la carte du Suivi. Séance sans étiquette : catégories de ses exercices ; listes de catégories/zones séparées par un point médian et tronquées avec « … ». Choix sans badge durée ; récurrence du Calendrier Semaine dans la carte déployée seulement.
 
@@ -533,10 +529,9 @@ D-239 : Calendrier Jour est une exception compacte (séance 298 × 46, exercice 
 
 Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.
 
-
 ## Paramètres d’exécution — complément du02/10/2026
 
-Le parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série. La direction et l’Ordre des côtés sont indépendants. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [v13](SPECIFICATION-PARAMETRES-MODALE-v13.md), CE-T03-04 et CE-UI-10.
+Le parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série. La direction et l’Ordre des côtés sont indépendants. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [v13](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice), CE-T03-04 et CE-UI-10.
 
 ## Parcours Répétitions avec cadence
 
@@ -544,18 +539,27 @@ Dans créer/modifier un Exercice, ouvrir la zone Paramètres, choisir Répétiti
 
 En direct comme en Séance, la première répétition commence immédiatement, puis les signaux rythment les intervalles. Le signal final nominal ne change pas de Série ; Suivant le fait normalement. Pause abandonne l’intervalle incomplet pour la progression et Reprendre lance un intervalle complet ; le temps actif est conservé. Réinitialiser suit le périmètre existant. La Synthèse restitue le temps réellement passé sans demander de compte de répétitions. Le Profil n’ajoute aucun réglage Cadence.
 
-
-
-## Propagation Pauses et symboles — 07/10
+## Pauses et symboles
 
 Entrer en placement Pause depuis Composition → sélectionner plusieurs emplacements/types → renseigner immédiatement la durée des récupérations → Confirmer N pauses ajoutées ou Annuler → retour au brouillon. Retrait par bulle. Continuer seul persiste.
 
-
 ## Conception de planification du 08/10/2026
 
-Choisir une ou plusieurs Séances/Exercices par cases → Ajouter n éléments → Programme facultatif, Début, Répétition, contenus ordonnés si plusieurs, Rappel → Enregistrer. Chaque contenu filtre les occurrences du créneau par son motif x fois sur n. Les modalités ouvertes ne sont pas considérées livrées. Voir la [spécification](SPECIFICATION-PLANIFICATION-2026-10-08.md), les contrats CE-UI-04/05/11 et le [DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md).
+Choisir une ou plusieurs Séances/Exercices par cases → Ajouter n éléments → Programme facultatif, Début, Répétition, contenus ordonnés si plusieurs, Rappel → Enregistrer. Chaque contenu filtre les occurrences du créneau par son motif x fois sur n. Les modalités ouvertes ne sont pas considérées livrées. Voir la [spécification](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), les contrats CE-UI-04/05/11 et le [DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md).
 
 ## Ajouter des médias à un Exercice — MVP PRE-3
 
 D-333 inclut l’import/ajout de photos ou vidéos locales depuis l’éditeur, dans le Catalogue comme dans une copie de Séance. L’utilisateur associe le média au brouillon de l’Exercice puis enregistre avec Terminer ; il retrouve ses associations après réouverture. Les associations sont ordonnées, indépendantes dans les copies et peuvent partager un fichier physique immuable. Retirer une association ne supprime jamais un fichier encore référencé. Les sources système, formats et états du sélecteur d’import restent à clarifier ; aucune caméra ni limite n’est déduite des maquettes. La consultation pendant l’Exécution conserve D-203 et relève du moteur ultérieur.
 
+<a id="formats-parcours"></a>
+
+## Formats et départs rapides — parcours
+
+1. Choisir une entrée : six formats contraignants ou six origines libres.
+2. Lire les constantes et régler les paramètres autorisés. Le parcours Tabata inclut une sélection d’exercices ; ne pas imposer quatre étapes identiques à toutes les entrées.
+3. Au récapitulatif, vérifier l’ordre des exercices et les paramètres. Tabata, EMOM et Progression proposent « Exécution : Par exercice / En alternance » selon leurs conditions ; For time ne propose pas ce contrôle.
+4. Composer la séance préremplie. Les réglages autorisés restent éditables, avec synthèse et durée calculée actualisées. Les constantes ne deviennent pas éditables dans la modale d’exercice.
+5. Démarrer à partir d’un instantané. EMOM/Death by : l’appui sur le cadran révèle le repos sans avancer la fenêtre. Death by : il confirme aussi l’objectif accompli, ce qui acquiert le tour.
+6. Arrêt Death by : un seul déclencheur ouvre les deux issues « Limite atteinte » et « Abandonner ». Si la dernière fenêtre n’est pas acquise, renseigner les répétitions partielles, proposées à zéro. Résultat conservé, état incomplet dans les deux cas.
+
+Navigation, annulation et sauvegarde reprennent les brouillons existants ; le choix d’un segment ne sauvegarde pas la séance à lui seul. Les captures actuelles et les variantes sont au chapitre 06, contrats CE-FMT-01…06 au chapitre 13.

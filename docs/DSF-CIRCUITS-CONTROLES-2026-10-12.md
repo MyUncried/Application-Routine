@@ -4,7 +4,7 @@
 
 Référence courante pour les éléments ci-dessous. Complète le [DSF général](DSF-INTERFACE-GENERALE-2026-10-08.md) et remplace les anciennes descriptions d’interrupteur de régime, de steppers permanents par cellule et de compteur Circuit indivisible. Ne change ni shells ni règles métier. Sources : inspection directe des pages Prototype MVP et Fondations le 12/10 ; [inventaire préalable](INVENTAIRE-DSF-CIRCUITS-2026-10-12.md), [matrice des exports](MATRICE-DSF-CIRCUITS-2026-10-12.md).
 
-Figma définit le layout. [Circuits](Specifications-fonctionnelles/SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md), Paramètres v13 et CE-T03-08 / CE-UI-10 / CE-CIR-01…03 déterminent les données, interactions, bornes et calculs. Toutes les mesures sont des références à 402 × 874, pas des coordonnées absolues à reproduire sur tous les appareils. Safe Areas, texte agrandi, en-tête accessible et contenu défilant restent requis.
+Figma définit le layout. [Circuits](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#circuits), Paramètres v13 et CE-T03-08 / CE-UI-10 / CE-CIR-01…03 déterminent les données, interactions, bornes et calculs. Toutes les mesures sont des références à 402 × 874, pas des coordonnées absolues à reproduire sur tous les appareils. Safe Areas, texte agrandi, en-tête accessible et contenu défilant restent requis.
 
 ## En-tête du circuit et choix de nature
 
@@ -64,3 +64,7 @@ La hauteur suit le contenu disponible ; ne pas coder 190 comme plafond. Colonnes
 ## Composants et qualification
 
 Ce lot met à jour le DSF documentaire et les preuves visuelles ; il ne modifie pas les maîtres Figma. Les nouveaux composants de ligne, pied et œil sont présents, mais les assemblages Circuit et Volumes ne sont pas déclarés entièrement factorisés. Les dettes de variantes et de propagation sont tracées dans la matrice. Aucun test applicatif ni changement du périmètre PRE-3.
+
+## Raccordement Formats du 14/10/2026
+
+Le [DSF Formats](DSF-FORMATS-SEANCES-2026-10-14.md) complète ce document : organisation Par exercice/En alternance, compte nommé selon son unité, constantes Tabata grisées mais effectives et phrases contextuelles. L’état imposé effectif conserve une valeur réelle ; ne pas lui appliquer le tiret des valeurs sans effet. Les cartes de modèles illustrées ne changent pas la règle des cartes catalogue. Les points de layout non qualifiés restent signalés dans la [revue transverse](REVUE-COHERENCE-FORMATS-2026-10-14.md).
