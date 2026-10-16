@@ -1,0 +1,21 @@
+{
+  "description": "Corrections documentaires issues de la revue indépendante du 16/10 (KODJO_revue_reserves_lots1-5_2026-10-16.md, point 1 : renvois D-232/D-246 réintroduits par le lot 3b). Aucune règle supprimée ; seules les citations sont précisées. Analyse : constats/REVUE-R1-analyse-D232-D246.md.",
+  "corrections": [
+    { "id": "R1-a", "ref": "D-232 actuel : « Bornes conservées : N1..99, répétitions1..100 … » — renvoi actif démontré", "file": "@08 – Conception fonctionnelle détaillée.md",
+      "ancien": "Entier de 1 à 100 (D-232)", "nouveau": "Entier de 1 à 100 (D-232, bornes conservées)" },
+    { "id": "R1-b", "ref": "idem (validité de la cible selon les bornes du mode)", "file": "@08 – Conception fonctionnelle détaillée.md",
+      "ancien": "cible valide selon le mode (D-211/D-232)", "nouveau": "cible valide selon le mode (D-211 ; bornes conservées par D-232)" },
+    { "id": "R1-c", "ref": "Texte d'origine de D-232 (fd9555bc, 30/09) : « après la première sélection, impossible de revenir à « aucun mode » » ; non remplacé explicitement, mais absent du texte actuel de D-232", "file": "@08 – Conception fonctionnelle détaillée.md",
+      "ancien": "premier choix irréversible vers aucun mode (D-232)",
+      "nouveau": "premier choix irréversible vers aucun mode (texte d’origine de D-232 du 30/09/2026, absent du texte actuel du registre — À CLARIFIER)" },
+    { "id": "R1-d", "ref": "Ni le texte d'origine ni le texte actuel de D-232 ne traitent de la persistance de la phrase — renvoi non démontré", "file": "@09 – Modèle de données fonctionnel.md",
+      "ancien": "La phrase elle-même n’est pas persistée comme source de vérité (D-232).",
+      "nouveau": "La phrase elle-même n’est pas persistée comme source de vérité (renvoi historique D-232 non démontré — À CLARIFIER)." },
+    { "id": "R1-e", "ref": "idem", "file": "@09 – Modèle de données fonctionnel.md",
+      "ancien": "Aucun champ de stockage autonome de la phrase n’est requis (D-232).",
+      "nouveau": "Aucun champ de stockage autonome de la phrase n’est requis (renvoi historique D-232 non démontré — À CLARIFIER)." },
+    { "id": "R1-f", "ref": "D-246 (feuille transactionnelle ; supersédée sur ces points le 02/10) ne traite pas de la ligne Total — renvoi non démontré ; sujet voisin de Q-K (b)", "file": "@13 – Contrats d’écran.md",
+      "ancien": "la ligne Total reste présente dans la feuille en Durée/Répétitions (D-246).",
+      "nouveau": "la ligne Total reste présente dans la feuille en Durée/Répétitions (renvoi historique D-246 non démontré — À CLARIFIER)." }
+  ]
+}

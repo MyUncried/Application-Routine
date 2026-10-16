@@ -6,7 +6,9 @@
 import fs from 'fs'; import path from 'path'; import { fileURLToPath } from 'url';
 const repo = process.argv[2]; const go = process.argv.includes('--appliquer');
 const here = path.dirname(fileURLToPath(import.meta.url));
-const spec = JSON.parse(fs.readFileSync(path.join(here, '..', 'constats', 'LOT-5-corrections.json'), 'utf8'));
+// Fichier de corrections : --fichier=<nom dans constats/> (défaut : LOT-5-corrections.json).
+const nom = (process.argv.find(a => a.startsWith('--fichier=')) || '--fichier=LOT-5-corrections.json').split('=')[1];
+const spec = JSON.parse(fs.readFileSync(path.join(here, '..', 'constats', nom), 'utf8'));
 const files = new Map(); const out = [];
 const rel = f => f.startsWith('@') ? path.join('docs', 'Specifications-fonctionnelles', f.slice(1)) : path.join('docs', f);
 for (const c of spec.corrections) {

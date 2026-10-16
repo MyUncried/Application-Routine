@@ -1,10 +1,12 @@
 # Tasks — révision documentaire KODJO (plan révisé, révision 2)
 
-**État (16/10) :** révision 2 validée.
-- Lot 1 exécuté et publié (`4668e215` sur `origin/docs/openspec-revision`).
-- Lots 2 à 5 autorisés, en cours, avec livraison par lot.
-- Lot 6 non autorisé.
-- **Aucun lot n'est considéré comme validé avant le retour de la revue ChatGPT.**
+**État (16/10, après la revue indépendante des lots 1 à 5) :**
+- Lots 1 à 5 exécutés et publiés (`4668e215` → `e5e22cc4`).
+- Revue indépendante : **PARTIELLEMENT CONFORME**. Les livraisons sont conservables, mais la **clôture fonctionnelle n'est pas acquise** ([KODJO_revue_reserves_lots1-5_2026-10-16.md](KODJO_revue_reserves_lots1-5_2026-10-16.md)).
+- Réserves documentaires traitées (journal « Revue du 16/10 » ci-dessous).
+- Questions produit regroupées par thème dans [arbitrages.md](arbitrages.md), en attente de Hermann.
+- **Aucun lot n'est déclaré clos ni certifié.**
+- Lot 6 non autorisé et non lancé.
 
 **Fonctionnement autorisé par Hermann (16/10) :**
 - publier les commits sur `docs/openspec-revision`, sans merge vers `main` ;
@@ -38,6 +40,29 @@
   - Fichier autorisé : `docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md`.
   - Toute autre modification de règle produit, tout changement de statut non prévu, toute résolution de contradiction fonctionnelle et toute intervention sur un autre clone restent interdits sans nouvel arbitrage.
 - [ ] 0.7b Réponses de Hermann aux autres questions d'[arbitrages.md §2](arbitrages.md) (questions 2 à 11) : en attente
+- [x] 0.8 Revue indépendante ciblée des réserves des lots 1 à 5 (16/10) : **PARTIELLEMENT CONFORME**, consignée telle quelle ([KODJO_revue_reserves_lots1-5_2026-10-16.md](KODJO_revue_reserves_lots1-5_2026-10-16.md)). Avis de la revue : les résultats de contrôle rapportés par Claude ne sont pas tous rejoués indépendamment, et les lots ne doivent pas être qualifiés de « certifiés ».
+- [x] 0.9 Traitement des réserves documentaires de la revue (journal ci-dessous) et [rapport de conformité par axe](conformite-lots1-5.md)
+- [ ] 0.10 Décision de Hermann sur la publication du [signalement à la PR #371](signalement-PR371-X06-X07.md) (commentaire GitHub ou transmission directe)
+
+### Journal — revue du 16/10 (traitement des réserves documentaires)
+
+**Départ :** `e5e22cc4`.
+
+| Point de la revue | Traitement | Preuve |
+|---|---|---|
+| 1. Renvois D-232 et D-246 du lot 3b | 6 citations précisées sans toucher aux règles : 2 renvois actifs démontrés (« bornes conservées », d'après le texte actuel de D-232) ; 1 citation historique explicitée et marquée `À CLARIFIER` (retour à « aucun mode », présent dans le texte d'origine de D-232 mais absent du texte actuel) ; 3 renvois non démontrés marqués `À CLARIFIER` (non-persistance de la phrase ×2, ligne Total) | [constats/REVUE-R1-analyse-D232-D246.md](constats/REVUE-R1-analyse-D232-D246.md), [constats/REVUE-R1-corrections.json](constats/REVUE-R1-corrections.json) |
+| 2. Lot 1 A5 : « Bip v2 » de D-237 et D-252 | Isolé comme anomalie de prescription non arbitrée ; aucune modification du registre | [arbitrages.md](arbitrages.md), thème 6 |
+| 3. Lot 4 : navigation et autorité | INDEX.md : la section se déclare aide à la navigation et ne tranche pas Q-A ni Q-B ; statut des DSF face à D-339 et D-341 ajouté aux points non arbitrés | `docs/INDEX.md` |
+| 4. PR #371 : X-06 et X-07 | Signalement rédigé avec preuves ; PR non modifiée ; non publié (communication externe à autoriser) | [signalement-PR371-X06-X07.md](signalement-PR371-X06-X07.md) |
+| 5. Traçabilité de D-334, D-335 et de Q31 | Consignée explicitement (sources, commits, lot 1, amendement PRE-4 Q31 de portée non établie, non reporté) | [arbitrages.md](arbitrages.md), thèmes 5 et 7 |
+| Marche 3 : questions produit | Regroupées par thème avec options et preuves ; aucune réponse présumée | [arbitrages.md](arbitrages.md), « Questions ouvertes regroupées par thème » |
+| Marche 4 : rapport par axe | Contrôles rejoués (lot 1 : 139/139 ; lot 3 : 163/163 et 155/155 ; lot 5 rejoué sur les commits : 42/42), relectures et limites | [conformite-lots1-5.md](conformite-lots1-5.md) |
+
+**Contrôles de ce correctif :**
+- fichiers `docs/` modifiés : ch. 08 (3 lignes), ch. 09 (2), ch. 13 (1), INDEX.md ;
+- `links.mjs` : 2 anomalies, inchangé ;
+- fusions simulées avec #363, #370 et #371 : 0 conflit ;
+- `openspec validate --strict` réussi.
 
 ## 1. Lot 1 — Restauration et traçabilité des décisions historiques (premier lot, délimité)
 

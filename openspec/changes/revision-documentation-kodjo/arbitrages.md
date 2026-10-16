@@ -1,5 +1,68 @@
 # Arbitrages — réexamen des questions Q-A à Q-N (révision 2, 16/10)
 
+## Questions ouvertes regroupées par thème (après la revue indépendante du 16/10)
+
+Ce regroupement reprend toutes les questions encore ouvertes : celles du §2 ci-dessous, les éléments isolés aux lots 1 et 5, et les réserves de la [revue indépendante](KODJO_revue_reserves_lots1-5_2026-10-16.md).
+
+- Aucune réponse n'est présumée.
+- Les recommandations sont celles déjà formulées, signalées comme non validées.
+- Les preuves détaillées sont dans les sections indiquées et dans `constats/`.
+
+### Thème 1 — Autorité documentaire (décision de gouvernance)
+
+| Question | Options | Preuves | Effet si non tranchée |
+|---|---|---|---|
+| **Q-A** — Rang entre le ch. 08 et un contrat du ch. 13 en cas de contradiction ; sort de la borne « jusqu’à D-255 » (ch. 13 §2) | A : ch. 13 ; B : ch. 08 ; C : aucun rang automatique, arbitrage documenté au cas par cas (recommandé par Claude et par la revue, non validé) | ch. 08 §1.3 ; ch. 13 §2 ; PRODUCT.md §13 ; §2 question 2 | Q-H (a) reste isolée (ch. 08 « enregistrées automatiquement » contre CE-T03-08 §15) ; tâches 4.2 et 4.3 non faites |
+| **Q-B** — Les DSF du 12/10 et du 13/10 remplacent-ils D-339 et D-341 ? | A : les deux sont remplacées ; B : D-341 remplacée, comportement de D-339 maintenu et transposé aux popovers (recommandé par Claude, non validé) ; C : les deux sont maintenues. Dans tous les cas, une décision D-xxx doit l'acter. | ch. 13 « Le DSF du12/10 et Deux modes du13/10 supersèdent cette présentation pour la prochaine tranche » (sans D-xxx) ; §2 question 3 | Le statut des DSF reste signalé comme non arbitré dans INDEX.md |
+
+### Thème 2 — Périmètre des versions
+
+| Question | Options | Preuves |
+|---|---|---|
+| **Q-D** — Les six formats et les départs rapides sont-ils au MVP ? Le guidage de cadence pendant l'Exécution est-il au MVP ? | MVP ou version ultérieure, pour chacun (aucune recommandation) | ch. 13:9, ch. 08:64 (lecture MVP) ; ch. 05:284, ch. 06:2414 (lecture ultérieure) ; §2 question 4 |
+| **P-03** — Le segment Exercices du Catalogue est-il au MVP ? (ch. 12 l. ~1365 : « désactivé, aucune requête ») | Oui, par D-166 (« entrent dans le MVP »), si D-183 la conserve sur ce point ; ou non | D-166 « Supersédée et consolidée par D-183 » ; D-183 ne dit pas « MVP » ; RM-109 « actif à partir de T03 » ; dossier L5A-10 |
+| **D-209, périmètre futur** — La V2 « plusieurs Tours » (ch. 05) et le besoin « bilatéralité d'un Tour » (ch. 02 §8) deviennent-ils « plusieurs Circuits » et sont-ils retirés ? | Réécrire selon D-209 ; ou conserver comme formulation d'évolution à revoir lors de la conception V2 | D-209 « La bilatéralité n’existe qu’au niveau de l’Exercice » ; CIR-12 (multi-circuit hors périmètre) ; dossier L5B 1.7 et 1.8 |
+
+### Thème 3 — Exécution et statuts
+
+| Question | Options | Preuves |
+|---|---|---|
+| **Q-F** — Une Séance close est-elle `Partielle` si et seulement si au moins un Résultat d'Exercice est `Partielle` ? | A : oui (recommandé par Claude, non validé) ; B : une récupération écourtée suffit aussi | D-053, D-150, ch. 06:2037 ; ch. 08:996 et 1386 ; §2 question 5 |
+| **Q-I** — Statut affiché d'un Death by incomplet | A : un statut existant avec le motif ; B : un nouveau libellé ; C : différer à la planification des Formats (D-365) | D-365 « conception reportée au Suivi » ; FMT-38 ; §2 question 7 |
+
+### Thème 4 — Composition, saisie et calculs
+
+| Question | Options | Preuves |
+|---|---|---|
+| **Q-H (b)** — Séance contenant un Exercice dont une cible est à renseigner | A : enregistrée et exécutée en sautant l'Exercice ; B : enregistrée, non exécutable ; C : non enregistrable | RM-017 ; ch. 08:352 ; `pre4:H29` (hypothèse) ; §2 question 6 |
+| **Q-J** — Total affiché sous le titre du Circuit | A : Circuit développé seul ; B : tous les Exercices de la Séance | Spécification Circuits supprimée §5.2, ch. 10:684 ; D-100, D-131 ; §2 question 8 |
+| **Q-K (a)** — Valeur historique hors bornes non modifiée : enregistrable ? | Oui pour PRE-4 / oui en général / non | `pre4:Q15`, `pre4:H25` ; ch. 13 (bornes), API-PARAM-01 ; §2 question 9 |
+| **Q-K (b)** — Ligne Total pendant une cible à renseigner | « — » ou absence | ch. 06:1119, ch. 08:1565 ; `pre4:H10` ; voir aussi le renvoi À CLARIFIER du ch. 13 (thème 7) |
+
+### Thème 5 — Portée des décisions de la préparation PRE-4
+
+| Question | Options | Preuves |
+|---|---|---|
+| **Q-L / Q-N** — Les décisions PRE-4 Q8, Q11–Q18, Q20, Q21, Q23, Q25–Q31 valent-elles pour la documentation générale ? | Décision par décision : PRE-4 seulement, ou générale. Q19 est déjà déclarée générale (« phase projet ») ; Q22 ne relève pas de la documentation ; Q24 est déjà conforme. | Fichier de décisions PRE-4 committé dans le clone PRE-4 (`e0e8ce58`, non publié) ; §3 ci-dessous. **Q31 déclare amender D-335**, réinsérée au lot 1. |
+| **Écarts X-06 et X-07 de la PR #371** | À signaler au chantier propriétaire ; ce clone ne modifie pas la PR | [signalement-PR371-X06-X07.md](signalement-PR371-X06-X07.md) (texte prêt, non publié) |
+
+### Thème 6 — Anomalies de prescription du registre
+
+| Question | Options | Preuves |
+|---|---|---|
+| **D-237 et D-252** — Leur prescription courante « Bip v2 et D-308–313 » est sans rapport avec leur objet (animations d'appui ; pas des steppers). Quelle est leur prescription courante ? | A : leur texte historique (restauré au lot 1) redevient la prescription ; B : D-252 est remplacée sur les steppers par D-312 (« Stepper : tap1,maintien≈500ms,paliers5 après2s/10 après4s avec multiples directionnels ; … »), et D-237 redevient active ; C : autre | `37e372cd` (07/10) a posé le même texte sur 24 décisions, dont 22 relèvent de la Cadence ; D-237 est citée environ 15 fois comme applicable dans les chapitres ; constat R-08 ; lot 1 A5. **Anomalie non arbitrée : le contenu de ces décisions n'a pas été modifié.** |
+| **D-032 / D-077** — Sont-elles révisées par D-209 sur le terme du conteneur (« Tour ») ? | Oui (statut à mettre à jour) ; non | D-209 « Révise les formulations historiques où Tour désignait le conteneur répété », sans les nommer ; dossier L5B 1.9 |
+| **D-092** — Son statut « Validée » avec une borne de répétitions 1–99 | Mention « répétitions 1..100 selon D-232 et RM-234 » ; ou maintien | D-232 « Bornes conservées : … répétitions1..100 » ; RM-234 ; aucune source ne nomme D-092 ; constat X-08 |
+| **D-251 / D-228 (Étiquette)** — Faut-il mettre à jour leur statut ? | Oui, si Hermann confirme que D-337 vise D-251 (message en ligne) et que D-355 vise D-228 (Étiquette) ; sinon non | D-337 « remplace le message en ligne de chapitre 08 » ; D-355 cite D-222 et non D-228 ; dossier L5B 2 et 4 |
+
+### Thème 7 — Traçabilité documentaire à clarifier (sans effet sur les règles)
+
+| Point | État | Preuves |
+|---|---|---|
+| Renvois D-232 et D-246 marqués `À CLARIFIER` : ch. 08 (retour à « aucun mode »), ch. 09 (non-persistance de la phrase, 2 lignes), ch. 13 (ligne Total) | Règles inchangées ; la décision qui les fonde reste à identifier | [constats/REVUE-R1-analyse-D232-D246.md](constats/REVUE-R1-analyse-D232-D246.md) |
+| H-11 : ch. 08 l. ~1595 (« fragments conditionnels D-232 ») ; ch. 13 l. ~3099 (« pas … de D-232 ») | Isolé : aucune décision ne désigne le remplaçant | Dossier L5B 7 |
+| **D-334 et D-335** | Réinsérées au lot 1 (`4668e215`) à l'identique depuis `341f4d41` (ch. 07 l. 550 et 552), perdues lors de la fusion `ae50aaed` du 09/10. Sources : `docs/preparation/PRE-3/planification/decision-modalites-import.json`, commits `fa62fc49` et `acc07c1f`. **Amendement PRE-4 Q31** (geste de consultation et menu à l'appui long) : consigné, portée non établie, **non reporté**. | [constats/LOT-1-registre.tsv](constats/LOT-1-registre.tsv) (G4) ; thème 5 |
+
 ## État au 16/10 après les lots 1 à 5
 
 - **Appliquées** (décisions explicites trouvées) :
