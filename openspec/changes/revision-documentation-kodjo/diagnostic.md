@@ -156,3 +156,33 @@ Les gravités sont celles des fichiers de constats.
 ## 5. Conclusion de couverture
 
 La lecture est ciblée. Elle ne permet pas d'affirmer qu'il n'existe pas d'autres contradictions, en particulier dans les contrats du ch. 13 non lus et dans les parties du ch. 06 non ciblées.
+
+## 6. Compléments de la révision 2 (16/10) : origine Git des pertes d'identifiants et de statuts
+
+Ces constats ont été établis en vérifiant l'historique Git, après la revue ChatGPT. Ils **requalifient** plusieurs constats de la passe 1 : des défauts présentés comme des manques de rédaction sont en réalité des **pertes restaurables**.
+
+| ID | Constat | Preuve | Constats requalifiés |
+|---|---|---|---|
+| R-06 | La consolidation `7a89220f` (PR #360, 14/10) a effacé des identifiants dans les 13 chapitres. Familles touchées, d'après `outils/compter-identifiants.mjs <racine> 7a89220f^ 7a89220f` : D-nnn −360 ; FMT-nn −162 ; RM-FMT −52 ; DEC-nn −13 ; CE-… −43. Sur les lignes concernées, 244 ne diffèrent de leur version d'origine **que** par des identifiants, et toutes portent une trace d'effacement mécanique (espace orpheline avant ponctuation, parenthèse vide, libellé « **.** »). 6 lignes sont ambiguës, et 214 ont aussi été reformulées ou supprimées. | [constats/R-06-restauration-identifiants.tsv](constats/R-06-restauration-identifiants.tsv), `outils/plan-restauration-identifiants.mjs` | R-03, H-13, S-10, QF-03, QS-07 (titres `### RM-` : `RM-FMT-01`…`42` à `7a89220f^`, 42 appariements ancre/numéro vérifiés) ; QF-18 (REC-01…28 présentes à `7a89220f^:…/SPECIFICATION-FORMATS-SEANCES-2026-10-14.md` l. 248 et suivantes ; leurs 28 situations figurent au ch. 10 sans la colonne Repère) ; H-08 (EC-01…EC-10 définies dans `7a89220f^:…/SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md`) |
+| R-07 | La même consolidation a modifié 25 lignes du registre. Elle a effacé, pour D-357 à D-369, le repère `DEC-nn`, l'horodatage, **la colonne Statut** (« Validée le 14/10/2026 par Hermann ; … ») et la trace `FMT-nn`, et a retiré des renvois dans 8 autres décisions. Aucune ligne du registre n'a été modifiée depuis (`comparer-registre.mjs 7a89220f 6656fefc` : 0). | [constats/R-07-registre-7a89220f.tsv](constats/R-07-registre-7a89220f.tsv), [constats/LOT-1-registre.tsv](constats/LOT-1-registre.tsv) | H-12 (« D-357 à D-369 n'ont pas de colonne Statut ») |
+| R-08 | Sur les 24 décisions vidées par `37e372cd` (07/10), 22 portent sur la Cadence (D-268 à D-305 : 20 portent un repère CAD-nn, entre CAD-01 et CAD-29, plus D-302 et D-305) et relèvent d'un remplacement **explicite** par « Bip v2 et D-308–313 ». Deux n'ont pas cet objet : D-237 (animations d'appui) et D-252 (pas des steppers, qui « maintien D-237 conservé »). D-312 traite aussi des steppers. | `git show 37e372cd^:…/07 – …md` ; ch. 07 D-308 à D-313 | H-04 précisé : la restauration du texte d'origine est documentaire ; le statut de D-237 et D-252 reste une question (Q-M) |
+
+**Texte d'origine des exclusions (R-06)** — `7a89220f^`, ch. 10 :
+> | RM-071 | Hors règles propres des formats (RM-FMT-20–27 et RM-FMT-33–38), La Durée estimée d'exécution agrège les étapes contri…
+
+Texte actuel : « Hors règles propres des formats (RM-et RM-), … ». La plage n'est donc **pas à décider** : elle est à restaurer. La proposition de la révision 1, qui la soumettait à Hermann, est retirée.
+
+**Intention de la consolidation :** la PR #360 annonce « Rubriques de traçabilité des contrats et audit historique redondant retirés ; historique conservé dans Git ». Elle n'annonce ni l'effacement des numéros de règles, ni celui des recettes, ni celui des statuts de décisions. L'effacement des renvois D-nnn dans le texte courant n'est pas annoncé non plus, mais il peut relever de la même intention : question Q-O dans [arbitrages.md](arbitrages.md).
+
+## 7. Évolutions postérieures à la base d'analyse (consignées, non intégrées)
+
+Relevé du 16/10, après la revue ChatGPT.
+
+| Élément | État à la base du diagnostic | État au 16/10 (révision 2) | Traitement |
+|---|---|---|---|
+| `main` distant | `6656fefc` | `6656fefc` (inchangé) | Base conservée |
+| PR #363 | ouverte, tête `d2386c8d` | ouverte, tête `d2386c8d` ; **base `caeee0ef`, antérieure à `main`** ; ne modifie que le ch. 06 | Inchangée ; rebase nécessaire avant toute fusion (constat, pas une action de ce chantier) |
+| PR #370 | ouverte, tête `6cf3634a` | inchangée ; 17 fichiers ; ajoute D-370 à D-375 **sans colonne Statut**, dans le même format que les lignes tronquées par R-07 | Signalé en Q-L |
+| PR #371 | brouillon, tête `2c050d0e` | inchangée ; modifie D-094 et D-309 au ch. 07 | Signalé en Q-L ; écarts X-06 et X-07 maintenus |
+| Décisions PRE-4 BMAD (fichier non versionné `KODJO-BMAD-PRE4/docs/preparation/PRE-4/bmad/questions-ouvertes.md`) | Q1 à Q23 (copie du 16/10, empreinte SHA-256 `d96654c4…`) | Q1 à Q26, plus P45, F9, H31 à H33 (copie du 16/10 17:31, empreinte SHA-256 `ceadbee3…`) | Nouvelles décisions **Q24** (résumé « {N} séries à l'échec »), **Q25** (ouverture de la roulette sur la valeur minimale), **Q26** (± sans Cellule active). Consignées ici et dans Q-L, **non intégrées** aux constats de la passe 1. |
+| Lignes des PR qui recouvrent les restaurations R-06 et R-07 | — | 0 ligne restaurable modifiée par #363, #370 ou #371 | Les PR ne font pas doublon avec les lots 1 et 3 |

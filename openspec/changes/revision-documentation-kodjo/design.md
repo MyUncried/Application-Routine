@@ -1,81 +1,137 @@
-# Design — organisation documentaire proposée
+# Design — gouvernance documentaire (révision 2)
+
+## Historique de ce document
+
+| Révision | Date | Motif |
+|---|---|---|
+| 1 | 2026-10-16 | Proposition initiale à partir des passes 1 et 2 |
+| 2 | 2026-10-16 | Intégration de la revue ChatGPT des deux diagnostics. L'orientation est conservée ; la gouvernance est allégée : DSF maintenus jusqu'au transfert, le domicile ne tranche pas les contradictions, ancres ciblées, pas de bandeaux systématiques. Ajout des constats de restauration R-06 et R-07 (identifiants et statuts effacés par `7a89220f`). |
+
+Les principaux écarts entre les deux révisions figurent en fin de document (§ « Ce qui change par rapport à la révision 1 »).
 
 ## Contexte
 
-Le diagnostic ([diagnostic.md](diagnostic.md)) montre que les défauts viennent moins des règles elles-mêmes que de leur organisation :
+Le diagnostic ([diagnostic.md](diagnostic.md), [qualite.md](qualite.md)) montre que les défauts viennent surtout de l'organisation :
 
-- plusieurs règles de priorité concurrentes (H-01, H-02, H-03, H-14) ;
-- des remplacements implicites (P-21, P-22, H-09) ;
-- des copies multiples (P-13, P-14, H-19) ;
-- des documents de travail encore normatifs (H-15, H-16, H-18).
+- règles de priorité concurrentes ;
+- remplacements implicites ;
+- copies multiples ;
+- identifiants perdus.
 
-L'objectif est que **chaque règle ait une référence claire et une seule version normative**.
+Le réexamen de la révision 2 établit qu'une part importante des pertes d'identifiants et de statuts vient d'**un seul commit**, la consolidation `7a89220f` du 14/10. Elle est donc **restaurable depuis Git, sans décision produit** (voir [diagnostic.md §6](diagnostic.md)).
 
-## Décisions de conception proposées
+L'objectif reste : **chaque règle a une référence claire, et il n'existe qu'une version normative de chaque règle**.
 
-### D1 — Une seule couche normative : les chapitres 01 à 13
+## Principes
 
-C'est déjà l'intention de `INDEX.md:3`. Tout autre document de `docs/` est soit de **navigation** (INDEX, README, PRODUCT), soit de **traçabilité** (DSF, MATRICE, RAPPORT, REVUE, JOURNAL, VERIFICATION). Un document de traçabilité ne peut ni prévaloir sur un chapitre, ni porter seul une règle.
+### G1 — Les 13 chapitres restent la structure principale
 
-- Conséquence pour les règles qui n'existent que dans un DSF, par exemple RG-1 à RG-13 de DSF-CARTES-ICONES-APPUIS : elles sont **intégrées** dans leur chapitre domicile. Le DSF devient alors une trace.
-- Alternative écartée : donner un rang aux DSF. Cela perpétue deux versions normatives (H-03).
+- Aucune refonte des chapitres.
+- Aucune renumérotation générale.
+- Aucun déplacement massif de contenu.
 
-### D2 — Un domicile unique par type de règle, au lieu d'un classement des chapitres
+Les améliorations se font **sur place**, par petites révisions traçables.
 
-Un classement des chapitres, du type « ch. 08 > ch. 13 », traite les conflits comme normaux. Un domicile unique les rend anormaux : toute divergence est un défaut à corriger. Domiciles proposés :
+### G2 — Une source normative unique par règle, atteinte progressivement
 
-| Type de contenu | Domicile | Les autres chapitres… |
+Une règle produit est énoncée en un seul endroit faisant foi. Ailleurs, elle est **citée** par son identifiant, avec un lien quand c'est utile, plutôt que reformulée.
+
+Pour savoir **où écrire** une règle nouvelle ou réécrite, le tableau indicatif ci-dessous reprend l'organisation déjà annoncée par `INDEX.md` et les chapitres. Il ne sert pas à décider qui a raison en cas de conflit.
+
+| Type de contenu | Emplacement habituel |
+|---|---|
+| Termes, définitions | ch. 01 (glossaire) |
+| Besoins | ch. 02 |
+| Parcours (illustratifs) | ch. 03 |
+| Concepts et objets | ch. 04 |
+| Périmètre des versions | ch. 05 |
+| Navigation, inventaire des écrans, captures | ch. 06 |
+| Décisions (arbitrages) | ch. 07 |
+| Comportements fonctionnels transverses | ch. 08 |
+| Données, persistance, migration | ch. 09 |
+| Règles métier et calculs (RM-xxx) | ch. 10 |
+| API fonctionnelles | ch. 11 |
+| Architecture technique | ch. 12 |
+| Comportement par écran (CE-xx) | ch. 13 |
+| Rendu visuel | Figma |
+
+**Les copies existantes ne sont pas supprimées d'office.** Une copie n'est remplacée par un renvoi que dans deux cas :
+- elle diverge de la règle de référence et cette divergence a été tranchée ;
+- les deux textes sont identiques, et le remplacement est fait règle par règle, lors d'une révision qui touche déjà ce passage.
+
+### G3 — Le seul emplacement ne résout jamais une contradiction
+
+- Une contradiction entre deux passages est **soit résolue par une décision explicite existante** (D-xxx, ou décision de Hermann documentée), dont la référence est citée, **soit soumise à décision**.
+- Ni l'emplacement d'un passage, ni sa date, ni le rang d'un chapitre ne suffisent à la trancher automatiquement.
+- Tant qu'une contradiction n'est pas tranchée, **les deux passages restent en place**. La contradiction est consignée dans le change OpenSpec qui la traite.
+- Les ordres de priorité existants (PRODUCT.md:434–442, ch. 13:19, ch. 08:33, ch. 07:559) **ne sont pas appliqués mécaniquement** par ce chantier. Leur harmonisation est l'objet de la question Q-A ([arbitrages.md](arbitrages.md)).
+
+### G4 — Les DSF restent applicables jusqu'au transfert vérifié de leurs règles
+
+- Un DSF qui porte aujourd'hui une règle applicable, par exemple RG-1 à RG-13 de DSF-CARTES-ICONES-APPUIS, **reste la référence de cette règle** tant que celle-ci n'a pas été transférée dans un chapitre et que ce transfert n'a pas été vérifié.
+- Le transfert se fait règle par règle. Le renvoi depuis le DSF vers le chapitre est posé **dans le même commit** que le transfert, afin d'éviter deux versions normatives.
+- Aucun DSF n'est déclassé, déplacé ni marqué « traçabilité » avant ce transfert.
+
+### G5 — Remplacement explicite et texte d'origine conservé
+
+- Une décision qui en remplace une autre la nomme, ainsi que le point remplacé.
+- La décision remplacée indique par quoi elle l'est, **et son texte d'origine reste lisible** dans le registre : le renvoi « ancienne version conservée dans Git » ne remplace pas le texte d'origine.
+- Une révision réécrit le texte qu'elle modifie et cite la décision. Ce principe vaut pour les révisions futures. Il **n'impose pas** de reprendre d'un coup les compléments datés existants (P-21, P-22) : ils seront traités progressivement (lot 6).
+
+### G6 — Identifiants et liens
+
+- **Restaurer avant de numéroter.** Les identifiants effacés sont rétablis à l'identique depuis Git : `RM-FMT-nn`, `REC-nn`, `DEC-nn`, statuts. Aucune nouvelle numérotation n'est créée tant qu'une restauration est possible.
+- **Une nouvelle numérotation** n'est proposée que pour un besoin démontré, par exemple pour des règles sans aucun identifiant historique. Elle se fait alors par famille, sans renumérotation générale.
+- **Ancres explicites ciblées.** Elles sont réservées aux cibles qui doivent rester stables face aux renommages et qui sont fortement citées. Cas avéré : CE-FMT-01 à 06, 166 liens. Ailleurs, les liens vers les ancres générées depuis les titres suffisent.
+- **Liens rompus.** Ils sont corrigés vers la cible actuelle quand elle existe. Quand la cible a disparu, ils pointent vers un permalien Git de l'état antérieur, si le document est historique.
+- Le contrôle mécanique des liens (`outils/links.mjs`) est rejoué après chaque lot.
+
+### G7 — Statut des documents : seulement là où il manque ou trompe
+
+- Pas de bandeau systématique.
+- Une mention de statut n'est ajoutée ou corrigée que lorsqu'un document **se présente comme courant alors qu'il ne l'est plus**, ou lorsqu'il **déclare deux statuts incompatibles** (H-15, H-17, H-18). Cas concret : README « Références actives ».
+
+### G8 — Frontière documentation / Figma
+
+C'est un acquis explicite :
+- `INDEX.md:3` : « Les règles métier, calculs et comportements sont définis ici ; Figma décrit les dispositions visuelles » ;
+- `README.md:11` ;
+- décisions D-255 et D-300.
+
+Une valeur de calcul ou par défaut ne se justifie pas par une capture. Le retrait du rendu visuel recopié dans les ch. 09 à 12 (P-17) relève de l'amélioration progressive : il n'est pas prioritaire.
+
+### G9 — OpenSpec : outil de gestion des changements, pas seconde source
+
+- Chaque révision documentaire passe par un change `openspec/changes/<nom>/` : diagnostic, proposition, lot, preuves.
+- Aucune règle produit n'est écrite dans `openspec/specs/`.
+- La spec delta `specs/gouvernance-documentaire/spec.md` ne décrit que la **méthode de gestion de la documentation**. Elle reste une proposition non archivée.
+- L'archivage, qui la copierait dans `openspec/specs/`, ne se fera qu'après validation de cette gouvernance par Hermann.
+- L'alternative « migrer les règles produit dans `openspec/specs/` » est **écartée** pour ce chantier.
+
+### G10 — Séparer le documentaire du fonctionnel
+
+Chaque tâche est classée :
+
+| Classe | Définition | Exigence avant application |
 |---|---|---|
-| Termes, définitions, termes interdits | ch. 01 Glossaire | emploient le terme, sans le redéfinir |
-| Besoins | ch. 02 | — |
-| Parcours | ch. 03 (illustratifs) | renvoient aux RM et aux CE |
-| Concepts et objets | ch. 04 | — |
-| **Périmètre de version** (capacité → version) | **ch. 05, tableau unique** | ne déclarent pas de version |
-| Navigation et inventaire des écrans, captures (illustratives) | ch. 06 | — |
-| **Décisions** (arbitrages, avec statut et remplacement) | **ch. 07** | citent la décision sans la paraphraser |
-| Comportements fonctionnels détaillés, transverses à plusieurs écrans | ch. 08 | — |
-| Données, persistance, migration | ch. 09 | — |
-| **Règles métier et calculs** (RM numérotées) | **ch. 10** | renvoient à RM-xxx sans recopier la formule |
-| API fonctionnelles | ch. 11 | — |
-| Architecture et contraintes techniques | ch. 12 | — |
-| **Comportement par écran** (champs, états, contrôles, erreurs) | **ch. 13** (CE-xx) | renvoient au CE-xx |
-| **Rendu visuel** (layout, couleurs, typographies, dimensions, animations) | **Figma** | la documentation ne recopie ni px ni couleurs ; elle peut nommer la présence, l'ordre logique ou le libellé d'un élément s'ils ont une portée comportementale |
+| **DOC** | Purement documentaire, sans effet possible sur une règle produit : restauration exacte depuis Git, lien, ancre, typographie, mention de statut | Accord de lot ; preuve mécanique de l'absence d'autre changement |
+| **DOC-AUTORITÉ** | Clarifie qui fait foi, sans changer le contenu d'une règle | Décision de gouvernance (Q-A à Q-C) |
+| **FONCT-ARBITRÉ** | Modifie le texte d'une règle produit pour l'aligner sur une décision **déjà prise** et citée | Citation de la décision ; coordination avec les PR ; vérification de sa portée (générale ou PRE-4) |
+| **FONCT-À-ARBITRER** | Exige une décision produit nouvelle | Décision de Hermann |
 
-**Règle d'arbitrage transitoire**, tant que les doublons ne sont pas résorbés :
+## Contraintes transverses
 
-1. une décision explicite du ch. 07, dans sa portée ;
-2. le domicile ;
-3. les autres chapitres.
+- **Sources figées PRE-4.** Les chapitres 01, 04 à 13 et cinq DSF ou matrices sont des sources de PRE-4, figées à `caa2a5cf`. PRE-4 BMAD travaille sur des **copies** (`docs/preparation/PRE-4/bmad/sources-caa2a5cf/`), mais la consigne reste : aucune mise à jour de ces fichiers dans `main` sans décision explicite. Chaque tâche qui les touche porte la marque `[PRE4]`.
+- **PR ouvertes :** #363 (ch. 06), #370 (13 chapitres et 3 DSF) et #371 (ch. 06, 07, 08, 13 et 2 DSF). Il a été vérifié qu'**aucune des lignes à restaurer des lots 1 et 3** (lignes EXACT de R-06, lignes du registre de R-07) n'est modifiée par ces PR (`outils/plan-restauration-identifiants.mjs`, `outils/inventaire-lot1-registre.mjs`). Les PR ajoutent cependant des lignes dans les mêmes fichiers : l'ordre de fusion doit être fixé (voir [arbitrages.md](arbitrages.md) Q-L).
+- **Pas de nouvelle règle bloquante.** Les principes G1 à G10 décrivent une manière de travailler. Aucun ne bloque une livraison produit. La spec de gouvernance n'emploie MUST que pour des propriétés vérifiables de la documentation.
 
-Le critère de récence n'est **jamais** un critère d'arbitrage (contre ch. 07:559, H-14).
+## Ce qui change par rapport à la révision 1
 
-Cette proposition remplace les ordres de PRODUCT.md:434, ch. 13:19 et ch. 08:33 par **une règle écrite à un seul endroit** : en tête du ch. 07 ou dans INDEX.md, au choix de Hermann.
-
-### D3 — Remplacement explicite et bidirectionnel
-
-- Une décision qui en remplace une autre la **nomme** : « remplace D-xxx, sur tel point ».
-- La décision remplacée prend le statut `Remplacée par D-yyy (sur tel point)`. **Son texte d'origine reste lisible**, ce qui interdit d'écrire « ancienne version conservée dans Git » à la place du texte (H-04).
-- Le texte normatif du domicile est **réécrit en place**. Une ligne d'historique cite la décision. Il est interdit d'empiler un « Complément du JJ/MM » ou une « Révision » au-dessus d'un corps devenu faux (P-21, P-22).
-- Aucune formule générique du type « prévaut sur les anciennes formulations » sans nommer ce qu'elle remplace (H-20).
-
-### D4 — Identifiants stables et liens vérifiables
-
-- Toute règle normative porte un identifiant : D-xxx, RM-xxx, CE-xx, ou des identifiants de version.
-- Les titres porteurs d'identifiant reçoivent une ancre explicite courte (`<a id="ce-fmt-01"></a>`). Les liens visent cette ancre et non l'ancre générée depuis le titre. Cela corrige R-02 et résiste aux renommages.
-- Plus de numéros vides (R-03), ni de renvois à des fichiers supprimés (R-01). Un contrôle mécanique des liens (`outils/links.mjs`) est rejoué à chaque lot.
-
-### D5 — Statut visible de chaque document hors chapitres
-
-En-tête obligatoire : `Statut : navigation | traçabilité | historique`, la date, et « ne fait pas foi ; voir <chapitre/ancre> ». Pour l'historique, les liens vers des fichiers supprimés sont remplacés par des permaliens Git vers le commit antérieur, par exemple `7a89220f^`.
-
-### D6 — Rôle d'OpenSpec : processus, pas seconde source
-
-- `openspec/specs/gouvernance-documentaire` porte les règles de gouvernance. Ce sont des règles sur la documentation, pas sur le produit.
-- Les règles **produit** restent dans les chapitres. Chaque révision documentaire passe par un change OpenSpec (`openspec/changes/<nom>/`) qui décrit le diagnostic, la proposition et le lot. Le change est archivé après application.
-- **Alternative B, non recommandée maintenant :** migrer progressivement les règles produit en `openspec/specs/<capacité>/spec.md`. Elle n'est acceptable que si chaque capacité migrée est **retirée du chapitre dans le même commit**, avec un renvoi. Sinon, deux versions normatives coexistent. Elle demanderait en outre de réécrire environ 1,4 Mo de spécifications au format Requirement/Scenario, ce qui n'est pas une exigence de qualité universelle (voir [qualite.md](qualite.md)).
-
-## Risques et arbitrages
-
-- **Sources figées PRE-4 :** la plupart des corrections structurantes touchent des fichiers figés par PRE-4. Elles sont donc séparées en lot 1B, appliqué seulement sur décision explicite et après coordination de l'ordre de fusion avec les PR #370 et #371.
-- **Ch. 13 de `main` sans « Inventaire opposable PRE-4 » :** si PRE-4 doit devenir normatif dans `main`, son intégration est un sujet séparé. Elle ne fait pas partie de ce lot.
-- **Taille des ch. 06 et 13 :** la résorption des compléments empilés (P-21, P-22) est un travail important, planifié contrat par contrat après le lot 1.
+| Révision 1 | Révision 2 | Raison |
+|---|---|---|
+| D1 : seuls les chapitres sont normatifs ; DSF en traçabilité | G4 : DSF applicables jusqu'au transfert vérifié | Ne pas créer de vide normatif |
+| D2 : domicile + règle d'arbitrage « décision > domicile > autres » | G2 et G3 : l'emplacement indique où écrire ; il ne tranche rien | Éviter une résolution automatique non décidée |
+| D4 : ancres explicites pour tous les titres porteurs d'identifiant ; numérotation RM-FMT proposée | G6 : restauration depuis Git d'abord ; ancres ciblées (CE-FMT) | Éviter numérotation et balisage disproportionnés |
+| D5 : en-tête de statut obligatoire sur tout document hors chapitres | G7 : seulement là où le statut manque ou trompe | Valeur ajoutée |
+| D6 : alternative B (migration vers `openspec/specs`) décrite | G9 : écartée | Pas de seconde source normative |
+| Réécriture en place de tous les compléments (lot 2.4) | G5 : principe pour l'avenir ; reprise progressive | Proportionnalité |

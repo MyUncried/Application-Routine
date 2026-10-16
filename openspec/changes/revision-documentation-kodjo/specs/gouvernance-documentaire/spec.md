@@ -2,79 +2,74 @@
 
 ## Purpose
 
-Définir les règles qui garantissent que chaque règle produit de KODJO possède une seule référence normative identifiable, que les remplacements sont explicites et que la documentation reste distincte du rendu visuel Figma.
+Décrire la manière de gérer la documentation fonctionnelle de KODJO : chaque règle produit a une source normative unique et identifiable ; les remplacements et les contradictions sont traités explicitement ; Figma reste la référence du rendu visuel. Cette capacité ne contient aucune règle produit.
 
 ## ADDED Requirements
 
-### Requirement: Couche normative unique
-Seuls les chapitres 01 à 13 de `docs/Specifications-fonctionnelles/` MUST porter des règles produit normatives. Tout autre document de `docs/` MUST déclarer en tête un statut `navigation`, `traçabilité` ou `historique` et renvoyer au chapitre qui fait foi.
+### Requirement: Source normative unique par règle
+Chaque règle produit MUST avoir une seule source qui fait foi, dans un chapitre 01 à 13 ou, tant que son transfert n'est pas fait et vérifié, dans le DSF qui la porte aujourd'hui. Hors de cette source, une révision MUST citer la règle par son identifiant plutôt que la reformuler.
 
-#### Scenario: Document de traçabilité consulté
-- **WHEN** un lecteur ouvre un DSF, une matrice, un rapport ou une revue
-- **THEN** l'en-tête indique son statut non normatif, sa date et le chapitre ou l'ancre qui fait foi
+#### Scenario: Règle portée par un DSF
+- **WHEN** une règle applicable n'existe que dans un DSF
+- **THEN** le DSF reste sa source jusqu'à ce que la règle soit transférée dans un chapitre et que le renvoi soit posé dans le même commit
 
-#### Scenario: Règle présente uniquement hors chapitres
-- **WHEN** une règle produit n'existe que dans un document de traçabilité
-- **THEN** elle est intégrée dans son chapitre domicile avant que le document ne soit marqué `traçabilité`
+#### Scenario: Révision d'un passage qui recopie une règle
+- **WHEN** une révision touche un passage qui recopie une règle à l'identique
+- **THEN** la copie peut être remplacée par une citation de l'identifiant, sans obligation de traiter les autres copies dans la même révision
 
-### Requirement: Domicile unique de chaque type de règle
-Chaque type de contenu MUST avoir un chapitre domicile unique (table de `design.md` D2). Hors de son domicile, une règle MUST être citée par son identifiant et un lien, sans reformulation normative.
+### Requirement: Résolution explicite des contradictions
+Une contradiction entre deux passages MUST être résolue par une décision explicite citée (D-xxx ou décision de Hermann documentée), ou rester en place et être consignée comme question. L'emplacement, la date ou le rang d'un document MUST NOT suffire à la résoudre.
 
-#### Scenario: Formule de calcul utilisée par un contrat d'écran
-- **WHEN** un contrat CE-xx affiche une durée calculée
-- **THEN** il renvoie à la règle RM-xxx du chapitre 10 sans recopier la formule
+#### Scenario: Contradiction couverte par une décision existante
+- **WHEN** une décision explicite tranche déjà l'objet de la contradiction
+- **THEN** la correction cite cette décision et sa portée (générale ou limitée à une préparation)
 
-#### Scenario: Divergence entre domicile et copie
-- **WHEN** une copie diverge de son domicile
-- **THEN** la divergence est traitée comme un défaut et la copie est remplacée par un renvoi
+#### Scenario: Contradiction sans décision
+- **WHEN** aucune décision explicite ne tranche la contradiction
+- **THEN** les deux passages restent inchangés et la question est soumise à décision
 
-### Requirement: Règle d'arbitrage écrite à un seul endroit
-La documentation MUST contenir une seule règle d'arbitrage en cas de conflit, écrite à un seul endroit et citée ailleurs. L'antériorité ou la récence d'un texte MUST NOT servir de critère d'arbitrage.
+### Requirement: Texte d'origine des décisions remplacées
+Une décision qui en remplace une autre MUST nommer la décision et le point remplacés. Une décision remplacée MUST conserver son texte d'origine lisible dans le registre, avec l'indication de ce qui la remplace.
 
-#### Scenario: Conflit entre deux chapitres
-- **WHEN** deux chapitres énoncent des règles incompatibles sur le même objet
-- **THEN** le lecteur applique la règle d'arbitrage unique et le conflit est consigné pour correction
+#### Scenario: Décision dont le texte a été remplacé par un renvoi
+- **WHEN** le registre ne montre qu'un renvoi tel que « ancienne version conservée dans Git »
+- **THEN** le texte d'origine est restauré à l'identique depuis Git à côté de la prescription courante, sans changement de statut
 
-#### Scenario: Texte plus récent sans remplacement explicite
-- **WHEN** un texte plus récent contredit un texte plus ancien sans le nommer
-- **THEN** aucun des deux n'est réputé remplacé et le conflit est soumis à décision
+### Requirement: Restauration des identifiants avant toute numérotation
+Un identifiant de règle, de recette ou de décision effacé MUST être restauré à l'identique depuis l'historique Git lorsqu'il y existe. Une nouvelle numérotation MUST NOT être introduite pour des règles dont l'identifiant historique est récupérable.
 
-### Requirement: Remplacement explicite et bidirectionnel des décisions
-Une décision qui en remplace une autre MUST nommer la décision et le point remplacés. La décision remplacée MUST porter le statut `Remplacée par D-yyy (point)` et conserver son texte d'origine lisible.
+#### Scenario: Titre de règle dont le numéro a été effacé
+- **WHEN** un titre porte un identifiant vide tel que `RM-` et que sa version antérieure porte `RM-FMT-12`
+- **THEN** le titre retrouve `RM-FMT-12`, apparié par l'ancre ou la position d'origine, et rien d'autre ne change dans la ligne
 
-#### Scenario: Décision remplacée consultée
-- **WHEN** un lecteur consulte une décision remplacée dans le chapitre 07
-- **THEN** il lit son texte d'origine, son statut et l'identifiant de la décision remplaçante
+### Requirement: Liens internes résolus
+Un lien interne de `docs/` hors `archives/` MUST NOT viser un fichier inexistant. Une ancre explicite MUST être ajoutée seulement pour une cible fortement citée ou exposée aux renommages.
 
-#### Scenario: Remplacement par un document non normatif
-- **WHEN** un DSF ou une matrice entend modifier une décision
-- **THEN** une décision D-xxx explicite est enregistrée au chapitre 07, à défaut de quoi la décision d'origine reste applicable
+#### Scenario: Contrôle après un lot
+- **WHEN** le contrôle `outils/links.mjs` est rejoué après un lot
+- **THEN** il ne signale aucun fichier manquant dans les fichiers touchés par le lot
 
-### Requirement: Réécriture en place plutôt que complément empilé
-Une modification de règle MUST réécrire le texte normatif à son domicile et ajouter une ligne d'historique citant la décision. Un ajout daté MUST NOT laisser en place un texte normatif qu'il contredit.
-
-#### Scenario: Révision d'une rubrique de contrat d'écran
-- **WHEN** une décision modifie une rubrique d'un contrat CE-xx
-- **THEN** la rubrique est réécrite et l'ancienne formulation n'apparaît plus comme règle applicable
-
-### Requirement: Identifiants stables et liens valides
-Toute règle normative MUST porter un identifiant unique non vide (D-xxx, RM-xxx, CE-xx, REC-xx). Les titres porteurs d'identifiant MUST exposer une ancre explicite stable. Aucun lien interne de `docs/` hors archives MUST NOT viser un fichier ou une ancre inexistants.
-
-#### Scenario: Contrôle mécanique des liens
-- **WHEN** le contrôle `outils/links.mjs` est exécuté après un lot de corrections
-- **THEN** il ne signale aucun fichier manquant ni aucune ancre manquante
-
-#### Scenario: Règle sans numéro
-- **WHEN** un titre de règle porte un identifiant vide tel que `RM-`
-- **THEN** la règle est considérée comme non référençable et doit recevoir un identifiant avant toute citation
+#### Scenario: Cible disparue d'un document historique
+- **WHEN** un document historique pointe vers un fichier supprimé
+- **THEN** le lien vise un permalien Git de l'état antérieur au lieu d'une cible actuelle de sens différent
 
 ### Requirement: Séparation entre comportement et rendu visuel
-La documentation MUST définir les comportements, calculs, libellés et états. Figma MUST rester la référence du rendu visuel. Une valeur de calcul ou par défaut MUST NOT être justifiée par une capture ou par Figma.
+Une valeur de calcul ou une valeur par défaut MUST être rattachée à une règle ou à une décision, et MUST NOT être justifiée par une capture ou par Figma seuls. Le rendu visuel reste défini par Figma.
 
-#### Scenario: Valeur par défaut justifiée par Figma
-- **WHEN** une règle justifie une valeur par défaut par « le Figma de référence »
-- **THEN** la valeur est rattachée à une décision D-xxx ou à une règle RM-xxx, ou signalée comme à confirmer
+#### Scenario: Valeur par défaut justifiée par une capture
+- **WHEN** un passage justifie une valeur par « le Figma de référence »
+- **THEN** la valeur est rattachée à la décision ou à la règle qui la fixe, ou signalée comme question
 
-#### Scenario: Dimension visuelle dans un chapitre de données
-- **WHEN** un chapitre de données, d'API ou d'architecture contient des px, couleurs ou polices
-- **THEN** ce contenu est retiré au profit d'un renvoi à Figma ou au contrat d'écran
+### Requirement: Classement des corrections documentaires
+Chaque tâche de correction MUST être classée DOC, DOC-AUTORITÉ, FONCT-ARBITRÉ ou FONCT-À-ARBITRER (design G10). Une tâche DOC MUST être accompagnée d'une preuve mécanique qu'elle ne modifie aucune règle produit.
+
+#### Scenario: Restauration présentée comme purement documentaire
+- **WHEN** une restauration est classée DOC
+- **THEN** son diff ne contient que les identifiants ou textes d'origine restaurés, vérifiés contre leur commit source
+
+### Requirement: Pas de seconde source normative dans OpenSpec
+Les changes OpenSpec MUST décrire des révisions de la documentation, et MUST NOT servir de source normative pour une règle produit. Le répertoire `openspec/specs/` MUST NOT contenir de règle produit.
+
+#### Scenario: Archivage d'un change documentaire
+- **WHEN** un change de révision documentaire est archivé
+- **THEN** seules des exigences de gestion documentaire rejoignent `openspec/specs/`, et les règles produit restent dans les chapitres
