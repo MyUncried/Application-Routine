@@ -11,7 +11,8 @@ const [repo, before, after] = process.argv.slice(2);
 const git = (...a) => execFileSync('git', ['-C', repo, '-c', 'core.quotepath=off', ...a], { encoding: 'utf8', maxBuffer: 1 << 28 });
 const SF = 'docs/Specifications-fonctionnelles';
 const diffArgs = after ? [before, after] : [before];
-const files = git('diff', '--name-only', ...diffArgs).trim().split('\n').filter(Boolean);
+// Seule la documentation produit est contrôlée ; les fichiers du change OpenSpec (openspec/) sont hors objet.
+const files = git('diff', '--name-only', ...diffArgs, '--', 'docs').trim().split('\n').filter(Boolean);
 const ko = []; let ok = 0;
 const SPEC = git('show', `7a89220f^:${SF}/SPECIFICATION-FORMATS-SEANCES-2026-10-14.md`).split(/\r?\n/);
 const ID = /\b(?:RM-|CE-)?FMT-\d+(?:[–-]\d+)?|\bD-\d{3}(?:[–-]\d{3})?|\bDEC-\d+|\bREC-\d+(?:[–-]\d+)?|\bSRC-\d+|\bCAD-\d+|\bCIR-\d+|\bRM-\d{3}[a-z]?|\bCE-[A-Z0-9]+(?:-[A-Z0-9]+)*-\d+\b/g;
