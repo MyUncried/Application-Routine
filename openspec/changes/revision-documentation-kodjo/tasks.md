@@ -8,10 +8,16 @@ Légende : `[PRE4]` signale un fichier figé par PRE-4 (`caa2a5cf`). Une telle t
 
 - [x] 0.1 Cloner le dépôt et créer la branche `docs/openspec-revision` sur `main` `6656fefc`
 - [x] 0.2 Installer OpenSpec 1.14.2 avec l'intégration Claude Code ; séparer les instructions produit et VNext (`openspec/instructions/`)
-- [x] 0.3 Diagnostic de cohérence ([diagnostic.md](diagnostic.md), [constats/](constats/))
-- [x] 0.4 Évaluation de la qualité de la spécification ([qualite.md](qualite.md))
-- [ ] 0.5 Revue ChatGPT du diagnostic, de l'organisation et du lot 1
-- [ ] 0.6 Validation de Hermann : organisation (design D1 à D6), décisions 1C, autorisation des lots 1A et 1B
+Chaque passe distingue trois états : analyse terminée, synthèse produite, revue indépendante.
+
+- [x] 0.3a Passe 1, cohérence : **analyse terminée**. Rapports bruts H, X, S, P et R dans [constats/](constats/).
+- [x] 0.3b Passe 1, cohérence : **synthèse produite** ([diagnostic.md](diagnostic.md)), avec erratum §4.
+- [ ] 0.3c Passe 1, cohérence : **revue indépendante ChatGPT en attente**.
+- [x] 0.4a Passe 2, qualité : **analyse terminée**. Rapports bruts QS, QF et QC dans [constats/qualite/](constats/qualite/).
+- [x] 0.4b Passe 2, qualité : **synthèse produite** ([qualite.md](qualite.md)).
+- [ ] 0.4c Passe 2, qualité : **revue indépendante ChatGPT en attente**.
+- [ ] 0.5 Revue ChatGPT de l'organisation proposée ([design.md](design.md)) et du lot 1 (ci-dessous), en même temps que 0.3c et 0.4c
+- [ ] 0.6 Validation de Hermann **après** la revue : organisation (design D1 à D6), décisions 1C, autorisation des lots 1A et 1B
 
 ## 1A. Premier lot — sans décision produit, hors sources figées PRE-4
 
@@ -19,7 +25,7 @@ Légende : `[PRE4]` signale un fichier figé par PRE-4 (`caa2a5cf`). Une telle t
   - Exemple : `docs/MATRICE-PLANIFICATION-2026-10-08.md:5` → `Specifications-fonctionnelles/SPECIFICATION-PLANIFICATION-2026-10-08.md`
 - [ ] 1A.2 **R-02 (partie hors PRE-4)** : `MATRICE-FORMATS-SEANCES-2026-10-14.md`, 120 liens `#ce-fmt-0x`. Les corriger vers les ancres explicites créées en 1B.3, ou, sans 1B, vers les ancres générées par les titres.
 - [ ] 1A.3 **H-15** : réécrire `docs/README.md` § « Références actives » en renvoi aux seuls chapitres et ancres. Retirer « DSF courant » et « matrice courante ».
-  - Passage actuel `README.md` : « [DSF courant](DSF-CADENCE-2026-10-06.md) et [matrice courante Figma](MATRICE-CADENCE-FIGMA-2026-10-06.md) »
+  - Passage actuel `README.md` : « `[DSF courant](DSF-CADENCE-2026-10-06.md) et [matrice courante Figma](MATRICE-CADENCE-FIGMA-2026-10-06.md)` »
 - [ ] 1A.4 **H-17, H-18, H-20 (D5)** : ajouter un en-tête de statut aux DSF et matrices non figés : DSF-CADENCE, DSF-BIP-CADENCE, DSF-PAUSES-ICONES, DSF-V2-MOTIFS-LOT-3, MATRICE-CADENCE-FIGMA, MATRICE-FIGMA, etc.
   - DSF-V2-MOTIFS-LOT-3 : neutraliser « le classeur v10 détermine les règles de gestion », contraire à D-315
 - [ ] 1A.5 **R-05** : corriger les mentions « chapitre 00 » dans REVUE-COHERENCE-FORMATS et MATRICE-FORMATS (le glossaire est dans le ch. 01 depuis `7a89220f`)

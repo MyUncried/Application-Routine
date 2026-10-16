@@ -147,4 +147,12 @@ Les gravités sont celles des fichiers de constats.
 | P (périmètre) | ch. 05, PRODUCT, passages ciblés des ch. 01, 02, 03, 06, 12 et 13 | Voir `P-perimetre.md` « Couverture » |
 | R (liens) | 78 fichiers `.md` de `docs/` hors archives, préparation et sources | Liens en texte brut non balisés ; images |
 
-**Conclusion de couverture :** la lecture est ciblée. Elle ne permet pas d'affirmer qu'il n'existe pas d'autres contradictions, en particulier dans les contrats du ch. 13 non lus et dans les parties du ch. 06 non ciblées.
+## 4. Errata (rapports bruts conservés tels quels)
+
+| Date | Rapport | Passage | Correction | Vérification |
+|---|---|---|---|---|
+| 2026-10-16 | `constats/H-hierarchie.md` §3.3 | « 37 titres CE-… distincts ont été comptés dans ch13 » | Le ch. 13 compte **40** contrats, comme il l'annonce l. 13. L'écart avec README:66 « 30 contrats » reste valable. | `grep -c '^## CE-'` = 40 ; 40 identifiants distincts ; 40 rubriques `### 20.` |
+
+## 5. Conclusion de couverture
+
+La lecture est ciblée. Elle ne permet pas d'affirmer qu'il n'existe pas d'autres contradictions, en particulier dans les contrats du ch. 13 non lus et dans les parties du ch. 06 non ciblées.
