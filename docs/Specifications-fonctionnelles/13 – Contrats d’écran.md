@@ -4054,7 +4054,7 @@ Champs et choix nommés ; focus contenu dans la modale ; annonce du motif et du 
 
 ### 19. Invariants
 
-limite atteinte et abandon donnent tous deux incomplet ; rang déduit de l’horloge.
+FMT-34–38 ; limite atteinte et abandon donnent tous deux incomplet ; rang déduit de l’horloge.
 
 ### 20. Recette déterministe
 

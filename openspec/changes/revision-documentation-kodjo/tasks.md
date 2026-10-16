@@ -154,7 +154,7 @@ Inventaire exact des lignes ajoutées :
 **Réalisé :**
 - **2.1** : 26 liens, dans 15 documents de traçabilité, pointent désormais vers un permalien GitHub au commit `3623466a` (parent de `7a89220f`, état d'origine). Le texte des liens est inchangé. Les 11 permaliens répondent en HTTP 200.
 - **2.2** : 6 ancres `<a id="ce-fmt-0n"></a>` ajoutées au ch. 13, **juste après** chaque titre `## CE-FMT-0n`. Une ancre placée avant le titre entrait en conflit avec la PR #370, qui insère du texte juste avant `## CE-FMT-05` (vérifié par `git merge-tree`). Ces ancres réparent 166 liens (120 dans MATRICE-FORMATS, 46 au ch. 06), sans modifier ces fichiers.
-- **2.3** : ch. 08, « Source normative : la présente section, issue de la [spécification Formats du 14/10](permalien) intégrée le 14/10/2026, FMT-01–38. ». La version d'origine (`7a89220f^`) pointait vers la spécification ; la consolidation l'avait fait pointer vers la section elle-même et avait effacé « FMT-01–38 ». Le libellé « source normative » désigne la section du chapitre, pas la spécification supprimée : l'autorité reste inchangée.
+- **2.3** : ch. 08, « Source normative : la présente section, issue de la spécification Formats du 14/10 (lien : permalien GitHub vers `3623466a`) intégrée le 14/10/2026, FMT-01–38. ». La version d'origine (`7a89220f^`) pointait vers la spécification ; la consolidation l'avait fait pointer vers la section elle-même et avait effacé « FMT-01–38 ». Le libellé « source normative » désigne la section du chapitre, pas la spécification supprimée : l'autorité reste inchangée.
 - **2.5** : README, point 4 des « Références actives ». Les statuts sont repris des en-têtes des documents eux-mêmes : DSF Cadence « actualisé le 13/10 par le DSF Deux modes » ; matrice du 06/10 « inventaire historique ».
 - **2.6** : [correspondance-alias.md](correspondance-alias.md), avec la localisation par `outils/localiser-specifications-integrees.mjs` (détail dans `constats/R-09-localisation-specifications.tsv`). Aucun texte des chapitres n'est modifié par cette tâche.
 
@@ -176,10 +176,29 @@ Inventaire exact des lignes ajoutées :
 | AMBIGU | 6 |
 | À EXAMINER | 214 |
 
-- [ ] 3.1 `[PRE4]` ch. 10 : rétablir `RM-FMT-01` à `RM-FMT-42` dans les 42 titres `### RM-`. L'appariement se fait par l'ancre `fmt-nn` qui précède chaque titre : 42 appariements vérifiés, 0 écart à `7a89220f^`.
-- [ ] 3.2 `[PRE4]` ch. 10 : rétablir les exclusions « (RM-FMT-20–27 et RM-FMT-33–38) » dans RM-071, RM-072, RM-075, RM-125 et RM-126. Le texte d'origine est cité dans [diagnostic.md §6](diagnostic.md).
-- [ ] 3.3 `[PRE4]` ch. 10 : rétablir les colonnes « Repère » (REC-01 à REC-28) et « Exigences » de la table des recettes Formats. Les 28 lignes sont présentes, avec le même texte (28/28 vérifiées).
-- [ ] 3.4 `[PRE4]` ch. 08 et 09 : rétablir les libellés `FMT-nn` des règles Formats (lignes EXACT de l'inventaire ; libellés vides « **.** » et « **— …** »). Les 6 lignes AMBIGU sont une même note Formats répétée (ch. 08 l. 991 et 1381 ; ch. 09 l. 203, 377, 531 et 630 ; constat S-11), qui a perdu le même identifiant `FMT-38` : la restauration est identique pour chaque occurrence. La réparation des tableaux que cette note coupe (S-11) est une autre tâche (lot 6).
+- [x] 3.1 `[PRE4]` ch. 10 : rétablir `RM-FMT-01` à `RM-FMT-42` dans les 42 titres `### RM-`. L'appariement se fait par l'ancre `fmt-nn` qui précède chaque titre : 42 appariements vérifiés, 0 écart à `7a89220f^`.
+- [x] 3.2 `[PRE4]` ch. 10 : rétablir les exclusions « (RM-FMT-20–27 et RM-FMT-33–38) » dans RM-071, RM-072, RM-075, RM-125 et RM-126. Le texte d'origine est cité dans [diagnostic.md §6](diagnostic.md).
+- [x] 3.3 `[PRE4]` ch. 10 : rétablir les colonnes « Repère » (REC-01 à REC-28) et « Exigences » de la table des recettes Formats. Les 28 lignes sont présentes, avec le même texte (28/28 vérifiées).
+- [x] 3.4 `[PRE4]` ch. 08 et 09 : rétablir les libellés `FMT-nn` des règles Formats (lignes EXACT de l'inventaire ; libellés vides « **.** » et « **— …** »). Les 6 lignes AMBIGU sont une même note Formats répétée (ch. 08 l. 991 et 1381 ; ch. 09 l. 203, 377, 531 et 630 ; constat S-11), qui a perdu le même identifiant `FMT-38` : la restauration est identique pour chaque occurrence. La réparation des tableaux que cette note coupe (S-11) est une autre tâche (lot 6).
+### Journal d'exécution du lot 3a (16/10/2026) — identifiants de règles, de recettes et Formats
+
+**Départ :** `a8714b29` (lot 2 publié).
+
+**Méthode :** `outils/appliquer-lot3-identifiants.mjs --groupe=3a`, avec un critère **plus strict** que la forme normalisée de la révision 2 (correction du défaut A1). Une ligne n'est restaurée que si la ligne actuelle s'obtient à partir de la ligne d'origine (`7a89220f^`) **par suppressions seules** d'identifiants et de leur ponctuation de liaison. Aucune modification légitime n'est donc annulée. Les lignes modifiées par les PR #363, #370 et #371 sont exclues.
+
+**Réalisé (237 lignes dans 4 chapitres) :**
+- **3.1** : ch. 10, 42 titres `### RM-` → `### RM-FMT-01` à `### RM-FMT-42`, appariés par l'ancre `fmt-nn` qui précède chaque titre.
+- **3.2** : ch. 10, « (RM-FMT-20–27 et RM-FMT-33–38) » rétabli dans RM-071, RM-072, RM-075, RM-125 et RM-126.
+- **3.3** : ch. 10, table des recettes Formats, colonnes « Repère » (REC-01 à REC-28) et « Exigences » reprises de la spécification d'origine §11. Le texte des colonnes Situation et Attendu est inchangé (28/28).
+- **3.4** : ch. 08 (40 lignes, dont les libellés vides « **.** » et « **— …** » qui retrouvent `FMT-nn`), ch. 09 (4 occurrences de la note Formats : « FMT-38 ; »), ch. 10 (41 autres lignes), ch. 13 (1 ligne).
+- Inventaire ligne à ligne : [constats/LOT-3a-restaurations.tsv](constats/LOT-3a-restaurations.tsv).
+
+**Contrôles :**
+- Seconde passe indépendante, `outils/verifier-lot3-identifiants.mjs`, fondée sur une différence optimale de Myers et non sur l'alignement glouton de l'outil : **163 paires de lignes vérifiées, 0 échec**. Aucune insertion ; chaque ligne restaurée existe à `7a89220f^` ou dans la spécification d'origine ; seuls des identifiants ont été retirés.
+- Nouvelle exécution du plan après application : 0 action (idempotent).
+- Aucune ligne restaurée ne réintroduit de lien vers un fichier supprimé ; `links.mjs` : 2 anomalies, inchangé.
+- Fusions simulées avec #363, #370, #371 : 0 conflit.
+
 - [ ] 3.5 `[PRE4]` **Renvois D-nnn effacés dans les chapitres** (EXACT, environ 210 occurrences dans les 13 chapitres) : **soumis à Q-O**. La PR #360 annonce le retrait des « rubriques de traçabilité des contrats ». Les 244 lignes EXACT portent toutes une trace d'effacement mécanique (espace orpheline avant ponctuation, parenthèse vide, libellé vide), ce qui suggère une suppression non éditoriale. L'intention reste à confirmer.
 - [ ] 3.6 Les 214 lignes À EXAMINER **ne sont pas restaurées automatiquement**. Elles sont examinées par fichier au lot 6 ; certaines correspondent à des suppressions annoncées par la PR #360.
 - [ ] 3.7 Contrôle : `outils/compter-identifiants.mjs <racine> 7a89220f^ HEAD` montre le retour des familles RM-FMT, FMT et REC (D-nnn selon Q-O). `git diff --word-diff` ne contient que des identifiants.
