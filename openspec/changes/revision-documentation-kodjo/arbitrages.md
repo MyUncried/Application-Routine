@@ -1,5 +1,44 @@
 # Arbitrages — réexamen des questions Q-A à Q-N (révision 2, 16/10)
 
+## Clôture des 14 réserves (17/10) — arbitrages réellement restants
+
+Le détail réserve par réserve figure dans [rapport-cloture-reserves-2026-10-17.md](rapport-cloture-reserves-2026-10-17.md).
+
+- **Résolues :**
+  - #1 borne D-255 : formulation obsolète ;
+  - #3 « ignorer un exercice » : D-028, D-053 ;
+  - #7 Q30 / D-384 : objets différents ;
+  - #13 D-012, D-048, D-058.
+- **Résolues en partie :** #4, #11, #12 et #14 ; il ne reste que les points ci-dessous.
+- **Faux arbitrages éliminés :** #1, #3, #7, #11 (d).
+
+### Questions à Hermann (doublons retirés)
+
+Les règles concernées restent inchangées et marquées `À CLARIFIER` dans les chapitres.
+
+| ID | Question | Options et conséquences | Preuves | Recommandation |
+|---|---|---|---|---|
+| **A1** | Quand la Composition est-elle persistée ? (ch. 08 §3.10 contre CE-T03-08 §15) | **A** — Persistance automatique de chaque modification : il faut alors réécrire CE-T03-08 §15, ch. 06:329, ch. 08 l. ~342 et ~581, et revoir l'abandon (« restitue la version persistée »). **B** — Brouillon persisté seulement par `Continuer` : il suffit de corriger la puce du ch. 08 §3.10. | ch. 08 l. ~581 « Continuer seul enregistre la Séance » ; CIR-03 « réserve de séance jusqu’à enregistrement » ; D-123 ; seule la puce du 06/08 dit le contraire | **B**, car tout le reste du corpus, y compris le ch. 08 lui-même, la prescrit |
+| **A2** | Comment l’Exercice dont une cible obligatoire manque est-il signalé dans la Composition ? (`Continuer` est déjà désactivé : D-123 + D-380) | Message à l’appui sur `Continuer` désactivé ; indication sur la carte de l’Exercice, ce qui exige de revoir CIR-09 « aucun marqueur d’incomplétude » ; aucune signalisation autre que la désactivation | ch. 08:350 « Les exercices incomplètes sont signalées » ; CIR-09 | aucune |
+| **A3** | Le nombre « N exercice(s) » sous le titre du Circuit compte-t-il ce seul Circuit, toute la Séance, ou est-il retiré ? (D-382 fixe le total) | **Circuit** : cohérent avec D-382. **Séance** : périmètre différent du total juste à côté. **Retiré** : conforme au DSF du 12/10 et aux captures, mais D-100 serait à mettre à jour. | D-100 ; ch. 08:1509 ; DSF Circuits du 12/10 « La durée agrégée est sous le titre » ; captures du ch. 06 | aucune (dépend du rendu Figma voulu) |
+| **A4** | Totaux **exacts et estimés** des cartes Catalogue et Composition : arrondi à la minute supérieure (D-090, RM-159) ou minutes et secondes ? (le total partiel ≥ est déjà en min/s, Q20) | **Arrondi** : documentation inchangée ; le code PRE-3 (« 2 min 45 s ») s’en écarte. **Min/s** : D-090 et RM-159 à réviser. | D-090, RM-159 ; rectification de Q20 (renvoi à P41, règle de priorité et non décision) | aucune |
+| **A5** | Carte de liste d’une Séance sans Exercice : « 0 exercice » (Q32) ou « 0 exercices » (D-091) ? | **Q32** : D-091 à mettre à jour (singulier pour zéro, comme la Composition). **D-091** : Q32 ne s’applique pas à la carte. | Q32 (PRE-4, D-385) ; D-091 ; D-081 ; ch. 13 l. ~291 | **Q32**, plus récente et explicite sur cet objet, mais elle ne nomme pas D-091 : la décision doit l'acter |
+| **A6** | Consultation vidéo dans l’éditeur sous Android | Lecteur natif de chaque plateforme ; comportement propre à Android ; iOS seulement | Q27 « lecteur natif iOS » ; MVP iOS et Android (ch. 12) | **Lecteur natif de chaque plateforme**, par symétrie avec Q27, sans nouveau composant |
+| **A7** | Forme du signalement des Exercices écartés par la migration (texte, moment, action) | À définir (la seule description existante est l’hypothèse PRE-4 H24) | Q19 « simplement signalé » ; Q28 | aucune |
+| **A8** | Besoin futur « bilatéralité d’un Circuit » (ch. 02 §8) : le conserver comme évolution ou le retirer ? | **Conserver** : la qualification « non retenu dans la version actuelle » est déjà posée. **Retirer** : alignement complet sur D-209. | D-209 ; RM-145 à RM-147 (« dans la version actuelle ») ; D-387 | aucune |
+| **A9** | « La ligne Total reste présente dans la feuille en Durée/Répétitions » (ch. 13, renvoi D-246 non démontré) : règle confirmée ? | Confirmer (citation à corriger) ; préciser le cas N = 1 | D-384 ne couvre que la cible manquante ; D-246 ne traite pas de la ligne Total | aucune |
+
+**Vérification visuelle, et non arbitrage :**
+- **V1** : dans Figma, en lecture seule, vérifier le contour des lignes à popover (ch. 08, RM-131), l'existence d'un segmenté « Mode d’exécution » (ch. 13 l. ~117) et la typographie des popovers (D-377).
+
+**À coordonner avec la PR #371 :**
+- les écarts X-06, X-07, Q17, Q21 et Q25 sont confirmés sur `2c050d0e` ([signalement](signalement-PR371-X06-X07.md), non publié) ;
+- le ch. 08 l. 1573 (renvois D-232/D-246) attend la fusion de la PR.
+
+**Relevant du lot 6 :** titres « Saisie des paramètres — D-246 » (ch. 01, 04, 08, 09) ; marquage de RM-131 (après la PR #370) ; inventaire des contrats du ch. 13 ; alias de documents ; rôle de PRODUCT.md (Q-C).
+
+---
+
 ## Après les arbitrages du 16/10 (D-376 à D-387)
 
 Hermann a tranché Q-A, Q-B, Q-D, Q-F, Q-H, Q-I, Q-J, Q-K, Q-L, D-237/D-252 et D-209, et a demandé de traiter sans nouvel arbitrage P-03 et les statuts de D-032, D-077, D-092, D-251 et D-228. Le report au registre et dans les chapitres est décrit dans [rapport-arbitrages-2026-10-16.md](rapport-arbitrages-2026-10-16.md).

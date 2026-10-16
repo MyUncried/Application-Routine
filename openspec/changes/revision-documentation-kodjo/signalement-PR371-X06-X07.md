@@ -2,6 +2,13 @@
 
 **Objet :** à transmettre au chantier qui porte la PR #371 (`docs/clarifications-q11-q18-20261016`, tête `2c050d0e`, brouillon). Ce clone **ne modifie pas** la PR.
 
+**État vérifié le 17/10/2026** sur la tête `2c050d0e`, inchangée depuis le 16/10 : les cinq écarts ci-dessous sont toujours présents dans le diff de la PR.
+- X-06 : 2 occurrences du texte court, 0 du texte décidé.
+- X-07 : stepper conservé pour les Répétitions.
+- Q17 : aucune mention « jamais « 0 s » » ni « 0 rép. ».
+- Q21 : « pas de 5 s » sans multiple voisin ni position d'ouverture.
+- Q25 : aucune ouverture sur la plus petite valeur valide.
+
 **Statut :** texte prêt. **Non publié** sur GitHub : un commentaire de PR est une communication externe, qui attend l'accord de Hermann (voir la réponse de session).
 
 ---

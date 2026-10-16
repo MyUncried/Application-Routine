@@ -44,7 +44,8 @@
 - [x] 0.9 Traitement des réserves documentaires de la revue (journal ci-dessous) et [rapport de conformité par axe](conformite-lots1-5.md)
 - [ ] 0.10 Décision de Hermann sur la publication du [signalement à la PR #371](signalement-PR371-X06-X07.md) (commentaire GitHub ou transmission directe)
 - [x] 0.11 Arbitrages de Hermann du 16/10 intégrés : registre D-376 à D-387 et 113 corrections documentaires (`e8d98309`, `948665ef` et commit du rapport). Voir [rapport-arbitrages-2026-10-16.md](rapport-arbitrages-2026-10-16.md). Soumis à revue indépendante, non déclaré clos.
-- [ ] 0.12 Décisions sur les 14 points encore indéterminés ([arbitrages.md](arbitrages.md), « Après les arbitrages du 16/10 »)
+- [x] 0.12 Clôture des 14 réserves (17/10, départ `0a8d6656`) : 31 corrections démontrées et marquages `À CLARIFIER` (`2ccd9fc5`) ; [rapport-cloture-reserves-2026-10-17.md](rapport-cloture-reserves-2026-10-17.md). Résolues : #1, #3, #7, #13. En partie : #4, #11, #12, #14. À arbitrer : A1 à A9. À vérifier dans Figma : V1.
+- [ ] 0.12b Décisions de Hermann sur A1 à A9 ([arbitrages.md](arbitrages.md), « Clôture des 14 réserves ») ; vérification Figma V1
 - [ ] 0.13 Revue indépendante de la livraison des arbitrages, préalable au lot 6
 
 ### Journal — revue du 16/10 (traitement des réserves documentaires)
