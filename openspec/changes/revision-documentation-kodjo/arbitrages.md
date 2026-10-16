@@ -1,6 +1,54 @@
 # Arbitrages — réexamen des questions Q-A à Q-N (révision 2, 16/10)
 
+## Après les arbitrages du 16/10 (D-376 à D-387)
+
+Hermann a tranché Q-A, Q-B, Q-D, Q-F, Q-H, Q-I, Q-J, Q-K, Q-L, D-237/D-252 et D-209, et a demandé de traiter sans nouvel arbitrage P-03 et les statuts de D-032, D-077, D-092, D-251 et D-228. Le report au registre et dans les chapitres est décrit dans [rapport-arbitrages-2026-10-16.md](rapport-arbitrages-2026-10-16.md).
+
+### Décisions intégrées
+
+| Question | Décision | État |
+|---|---|---|
+| Q-A | D-376 | intégrée ; borne « jusqu’à D-255 » non tranchée |
+| Q-B | D-377 | intégrée |
+| Q-D | D-378 | intégrée (périmètre MVP ; aucune tranche créée) |
+| Q-F | D-379 | intégrée |
+| Q-H (b) | D-380 | intégrée |
+| Q-I | D-381 | intégrée (report au chantier Suivi) |
+| Q-J | D-382 | intégrée ; confirme l’arbitrage Circuits du 12/10 |
+| Q-K (a), Q-K (b) | D-383, D-384 | intégrées |
+| Q-L / Q-N | D-385 | intégrée ; 23 corrections tirées des décisions PRE-4 (hors Q11–Q18, laissées à la PR #371) |
+| D-237 / D-252 | D-386 | intégrée |
+| D-209 | D-387 | intégrée (terminologie) |
+| P-03 ; statuts D-032, D-077, D-092, D-251, D-228 | — | corrigés (sans nouvel arbitrage) |
+
+### Points encore indéterminés (décision nécessaire, aucune réponse présumée)
+
+| # | Point | Options | Preuves |
+|---|---|---|---|
+| 1 | Borne « jusqu’à D-255 » de l’ordre d’application du ch. 13 §2 | La retirer (le rang 1 vaut pour toutes les décisions) ; la conserver | Introduite le 03/10 (`117bedcb`), quand D-255 était la dernière décision ; D-376 ne la traite pas |
+| 2 | ch. 08 §3.10 « les modifications sont enregistrées automatiquement » contre CE-T03-08 §15 « Continuer seul persiste » | Persistance automatique ; brouillon persisté par `Continuer` | Marqué `À CLARIFIER` selon D-376 ; ch. 06:329 et D-123 vont dans le sens de `Continuer` |
+| 3 | Action « ignorer un exercice » (ch. 03) | Supprimer l’action ; la définir (statut du Résultat d’Exercice ignoré) | D-379 définit `Partielle` par les Résultats d’Exercice ; aucune commande « ignorer » n’existe parmi les commandes d’exécution (S-01) |
+| 4 | D-380 : comportement de `Continuer` et signalisation de l’Exercice dont la cible manque | `Continuer` désactivé ; message à l’appui ; signalisation de l’Exercice | RM-017, CE-T03-08 §12/14/16, ch. 08:350 |
+| 5 | D-382 : le **nombre** « N exercice(s) » affiché avec le total du Circuit compte-t-il aussi ce seul Circuit ? | Ce Circuit ; toute la Séance | ch. 08:1509, ch. 06:794 et 808, D-100 |
+| 6 | Q20 / P41 : arrondi des totaux exacts et estimés des cartes (RM-159 `Math.ceil`, D-090) | Garder l’arrondi ; minutes et secondes | Rectification de Q20 du 16/10 ; carte Catalogue PRE-3 (« 2 min 45 s » pour 165 s) |
+| 7 | Q30 contre D-384 : « l’Exercice lui-même n’affiche aucun total » contre la ligne Total « — » | Ligne Total « — » (D-384) ; pas de total | Q30 (PRE-4), D-384 |
+| 8 | Q32 contre D-091 : « 0 exercice » au singulier sur la carte de liste contre « le libellé du Catalogue, qui reste `0 exercices` » | Appliquer Q32 et mettre à jour D-091 ; conserver D-091 | Q32 (PRE-4), D-091 ; ch. 13 l. ~289, ch. 06 l. ~483 |
+| 9 | Q27 : consultation vidéo dans l’éditeur sur Android | Lecteur natif Android ; autre | Q27 nomme « lecteur natif iOS » ; le corpus vise iOS et Android |
+| 10 | Q19 : forme du signalement des Exercices écartés par la migration | Texte, moment, action | Q19 dit « simplement signalé » ; seule l’hypothèse PRE-4 H24 décrit la forme |
+| 11 | D-377, conséquences de présentation : couleur `color.selectionSubtitle` (ch. 12), contour « roulette/segmenté » (ch. 08, RM-131, DSF-SERIES-VARIABLES), segmenté « Mode d’exécution » (ch. 13 l. 117), mention « pour la prochaine tranche » | À relire dans Figma et les DSF ; décision de jalonnement pour la tranche | Dossier AR1, points isolés |
+| 12 | Besoin futur du ch. 02 §8 « Activer la bilatéralité d’un Circuit » | Conserver comme besoin d’évolution ; le retirer (contraire à D-209 sur le fond) | D-209 « La bilatéralité n’existe qu’au niveau de l’Exercice » ; D-387 corrige seulement le terme |
+| 13 | D-012, D-048, D-058 : « Tour » au sens de conteneur | Mention de statut D-387 ; laisser | D-387 ne les nomme pas |
+| 14 | Traçabilité `À CLARIFIER` (renvois D-232/D-246 de la revue R1 ; H-11) | Désigner la décision fondatrice ; laisser | [constats/REVUE-R1-analyse-D232-D246.md](constats/REVUE-R1-analyse-D232-D246.md) |
+
+**Écarts de la PR #371 à signaler :** X-06 (texte d’abandon de Q18), X-07 (stepper des répétitions contre Q8), Q17 (« jamais « 0 s » ni « 0 rép. » » absent des six contrats de cartes), Q21 (« pas de 5 s » sans le « multiple voisin » ni la position d’ouverture), Q25 (ouverture d’une cible à renseigner, côté DSF). Le texte est prêt, non publié : [signalement-PR371-X06-X07.md](signalement-PR371-X06-X07.md).
+
+**Relevant du lot 6 :** inventaire des contrats du ch. 13 (31 lignes pour 40 contrats), alias de documents dans PRODUCT et le README, rôle de PRODUCT.md (Q-C).
+
+---
+
 ## Questions ouvertes regroupées par thème (après la revue indépendante du 16/10)
+
+*Section antérieure aux arbitrages du 16/10, conservée pour la traçabilité. Les questions tranchées sont indiquées ci-dessus.*
 
 Ce regroupement reprend toutes les questions encore ouvertes : celles du §2 ci-dessous, les éléments isolés aux lots 1 et 5, et les réserves de la [revue indépendante](KODJO_revue_reserves_lots1-5_2026-10-16.md).
 

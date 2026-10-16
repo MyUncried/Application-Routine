@@ -19,7 +19,13 @@
 >    - PR #371 (ch. 08, réécriture de la l. 1573) : « Séries `1..99` et Répétitions `1..100` utilisent des steppers ».
 >    - La phrase réécrite conserve le stepper que Q8 remplace pour la cible.
 >
-> La portée générale de ces décisions PRE-4 reste à confirmer par Hermann (question 10 d'`arbitrages.md` du chantier OpenSpec). Ce signalement ne préjuge pas de cette portée.
+> 3. **Q17** — Les six contrats de cartes (« Durée et symbole viennent du calcul commun… ») reprennent ≥ et la durée omise, mais pas « le résumé des séries n’affiche jamais « 0 s » ni « 0 rép. » ».
+> 4. **Q21 (X-05)** — « Le pied ± de cible Durée utilise un pas de 5 s » ne dit pas que la valeur ancienne hors grille va au multiple de 5 s voisin, ni la position d’ouverture de la roulette.
+> 5. **Q25** — Côté DSF Deux modes (« À l’ouverture : … »), le cas d’une cible à renseigner manque : la roulette s’ouvre sur la plus petite valeur valide, sélectionnée (00:05 ou 1) ; rien n’est appliqué avant le ✓ ; ✕ laisse la cible à renseigner.
+>
+> Depuis le 16/10, D-385 donne à ces décisions PRE-4 une portée générale KODJO, sauf restriction explicite.
+
+*Points 3 à 5 ajoutés le 16/10, d'après le dossier AR4 (constats de la livraison des arbitrages).*
 
 ---
 

@@ -43,6 +43,9 @@
 - [x] 0.8 Revue indépendante ciblée des réserves des lots 1 à 5 (16/10) : **PARTIELLEMENT CONFORME**, consignée telle quelle ([KODJO_revue_reserves_lots1-5_2026-10-16.md](KODJO_revue_reserves_lots1-5_2026-10-16.md)). Avis de la revue : les résultats de contrôle rapportés par Claude ne sont pas tous rejoués indépendamment, et les lots ne doivent pas être qualifiés de « certifiés ».
 - [x] 0.9 Traitement des réserves documentaires de la revue (journal ci-dessous) et [rapport de conformité par axe](conformite-lots1-5.md)
 - [ ] 0.10 Décision de Hermann sur la publication du [signalement à la PR #371](signalement-PR371-X06-X07.md) (commentaire GitHub ou transmission directe)
+- [x] 0.11 Arbitrages de Hermann du 16/10 intégrés : registre D-376 à D-387 et 113 corrections documentaires (`e8d98309`, `948665ef` et commit du rapport). Voir [rapport-arbitrages-2026-10-16.md](rapport-arbitrages-2026-10-16.md). Soumis à revue indépendante, non déclaré clos.
+- [ ] 0.12 Décisions sur les 14 points encore indéterminés ([arbitrages.md](arbitrages.md), « Après les arbitrages du 16/10 »)
+- [ ] 0.13 Revue indépendante de la livraison des arbitrages, préalable au lot 6
 
 ### Journal — revue du 16/10 (traitement des réserves documentaires)
 
