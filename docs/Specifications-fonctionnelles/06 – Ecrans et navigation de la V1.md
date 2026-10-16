@@ -1110,7 +1110,7 @@ CE-CIR-01/02/03. La confirmation est conditionnée à la perte de valeurs, pas �
 
 ## Créer ou modifier un exercice
 
-Références courantes du12/10, complétées le13/10 :32 captures du parcours de création et de ses états de Modalités d’exécution, issues de Prototype MVP. Contrats CE-T03-04, CE-UI-09 et CE-UI-10. Les anciens relevés du 03/10 et du 06/10 restent historiques pour les états remplacés ; .
+Références courantes du12/10, complétées le13/10 :32 captures du parcours de création et de ses états de Paramètres d’exécution, issues de Prototype MVP. Contrats CE-T03-04, CE-UI-09 et CE-UI-10. Les anciens relevés du 03/10 et du 06/10 restent historiques pour les états remplacés ; .
 
 ### Parcours, données et validation
 
@@ -1120,7 +1120,7 @@ Spécification [v13](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%
 
 ### Placement et contrôles
 
-Formulaire : conserver les shells et l’ordre visible dans les captures. Toute la zone de phrase ouvre la feuille. Feuille : en-tête fixe ✕ / Modalités d’exécution / ✓ ; corps défilant Mode → Séries (régime, chevron indépendant, nombre) → cible/Pause uniformes ou tableau variable → Changement de côté et Ordre/PC si applicables → Bip de cadence → Total applicable → Compte à rebours → Fin.
+Formulaire : conserver les shells et l’ordre visible dans les captures. Toute la zone de phrase ouvre la feuille. Feuille : en-tête fixe ✕ / Paramètres d’exécution / ✓ ; corps défilant Mode → Séries (régime, chevron indépendant, nombre) → cible/Pause uniformes ou tableau variable → Changement de côté et Ordre/PC si applicables → Bip de cadence → Total applicable → Compte à rebours → Fin.
 
 Le tableau variable comporte poignée, numéro, cellules cible/Pause et retrait ; une seule cellule active et un pied de réglage commun. Le régime identiques/variables, le mode et les choix de côtés utilisent les popovers représentés. Les roulettes Durée et Total restent des états intégrés. [DSF courant et mesures](../DSF-CIRCUITS-CONTROLES-2026-10-12.md). Les règles et bornes restent celles de v13 et de la spécification Circuits. Sous nombre hérité, nombre et total affichable sont en lecture seule ; aucun écran dédié identifié ne fixe encore l’emplacement de la mention discrète.
 
@@ -1162,7 +1162,7 @@ Le tableau variable comporte poignée, numéro, cellules cible/Pause et retrait 
 
 ![Ajouter un exercice — Catégorie renseignée](images/circuits-2026-10-12/8328-36278.png)
 
-### Feuille Modalités d’exécution — états intégrés
+### Feuille Paramètres d’exécution — états intégrés
 
 Ces 19 frames sont des états de CE-UI-10, pas 19 pages applicatives. Quatre références ont été recapturées et le cas mixte ajouté selon la matrice du13/10.
 
@@ -1246,11 +1246,11 @@ Ces 19 frames sont des états de CE-UI-10, pas 19 pages applicatives. Quatre ré
 
 Cette capture reflète le layout actuel. Le texte de fond énumérant les pauses variables reste un écart rédactionnel avec Phrase v1 ; voir la matrice Deux modes.
 
-#### Modalités d’exécution — Séries variables, cas mixte
+#### Paramètres d’exécution — Séries variables, cas mixte
 
 [Source Figma — `8470:13303`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8470-13303)
 
-![Modalités d’exécution — Séries variables, cas mixte](images/echec-2026-10-13/8470-13303.png)
+![Paramètres d’exécution — Séries variables, cas mixte](images/echec-2026-10-13/8470-13303.png)
 
 État de CE-UI-10 : mode Durée, cibles30s/45s/échec, pauses10s/20s/30s et total partiel ≥2min15, non modifiable. La cible échec conserve sa colonne ; le mode n’est pas « À l’échec ». [DSF et anatomie du sélecteur](../DSF-DEUX-MODES-ECHEC-2026-10-13.md) ; .
 

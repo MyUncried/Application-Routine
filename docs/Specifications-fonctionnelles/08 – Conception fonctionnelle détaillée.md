@@ -650,7 +650,7 @@ La pause après chaque série, dernière comprise, fait partie du calcul intrins
 
 ### Extension normative — deux modes et cibles mixtes (13/10)
 
-Le mode ne sélectionne plus une branche « À l’échec » : le générateur examine les cibles ordonnées. Tout échec conserve le gabarit existant et les cartes du catalogue. Jusqu’à trois cibles, énumérer dans l’ordre, en insérant « jusqu’à l’échec » à la place de la valeur concernée. Au-delà, compacter le mélange en « de {minimum numérique} rép. à l’échec » ou « de {minimum numérique formaté} à l’échec ». Les clauses de pauses/côtés restent celles du corpus : aucune liste de pauses variables.
+Le mode ne sélectionne plus une branche « À l’échec » : le générateur examine les cibles ordonnées. Tout échec conserve le gabarit existant et les cartes du catalogue. Jusqu’à trois cibles, énumérer dans l’ordre. En Durée, insérer « jusqu’à l’échec » à la place de la durée concernée. En Répétitions mixtes, utiliser « {N} séries de répétitions variables ({r1}, {r2} puis jusqu’à l’échec) » ; à deux cibles, séparer par « puis ». Ne pas ajouter « répétitions » après la parenthèse. Conserver la position réelle de chaque cible à l’échec. Au-delà, compacter le mélange en « de {minimum numérique} rép. à l’échec » ou « de {minimum numérique formaté} à l’échec ». Les clauses de pauses/côtés restent celles du corpus : aucune liste de pauses variables.
 
 Le total est celui du moteur : ≥ pour mélange calculable, prioritaire sur ≈ ; aucun total pour Répétitions sans bip ni toutes cibles À l’échec. Le corpus v15 ne couvre pas ces nouveaux cas ; ses 276 sorties ne doivent pas être présentées comme recette exhaustive du nouveau modèle. Ne pas modifier rétroactivement le fichier source Excel.
 
@@ -658,6 +658,7 @@ Le total est celui du moteur : ≥ pour mélange calculable, prioritaire sur ≈
 |---|---|---|
 | Durée 30s,45s,échec | 3 séries de durée variable (30 s, 45 s puis jusqu’à l’échec) | ≥ si calculable |
 | Durée 30s,45s,60s,échec | 4 séries variables, de 30 s à l’échec | ≥ |
+| Répétitions 10,12,échec | 3 séries de répétitions variables (10, 12 puis jusqu’à l’échec) | ≥ avec bip ; absent sans bip |
 | Répétitions 10,12,15,échec | 4 séries variables, de 10 rép. à l’échec | ≥ avec bip ; absent sans bip |
 | Trois cibles échec, pauses variables | 3 séries menées jusqu’à l’échec | Absent ; aucune clause énumérant les pauses |
 
@@ -1570,7 +1571,7 @@ L’Étiquette est gérée directement dans la Composition via une modale basse.
 
 **Présentation courante des paramètres :** la carte présente une phrase unique ; sa zone entière ouvre la feuille, sans raccourci autonome par segment. Les steppers sont permanents dans la feuille CE-UI-10 ; les roulettes de durée se déploient sous leur ligne dans cette même feuille. Les anciennes rangées de cadres ne sont plus la référence de placement.
 
-Dans CE-UI-10, durée par Série et Durée totale utilisent des roulettes sous leur ligne ; les pauses utilisent des steppers. Séries `1..99` et Répétitions `1..100` utilisent des steppers ; les réglages du Profil utilisent des steppers. Les bornes et pas suivent D-232, les valeurs initiales D-246. Annuler et Valider portent sur l’ensemble de la feuille, sans seconde validation par roulette.
+Dans CE-UI-10, durée par Série et Durée totale utilisent des roulettes sous leur ligne ; les pauses utilisent des steppers. Séries `1..99` et Répétitions `1..100` utilisent des steppers ; les réglages du Profil utilisent des steppers. Les bornes et pas suivent D-232, les valeurs initiales D-246. ✓ de la roulette applique la sélection au brouillon de la feuille ; ✕ de la roulette restaure la valeur à son ouverture. ✓ de la feuille applique l’ensemble au parent ; ✕ de la feuille annule toutes les modifications depuis son ouverture, y compris celles validées dans une roulette. Aucune persistance définitive à la validation de la roulette.
 ### Règles fonctionnelles
 
 | Règle             | Description                                                                                                                                                                                                                                                                                                                                                                                |

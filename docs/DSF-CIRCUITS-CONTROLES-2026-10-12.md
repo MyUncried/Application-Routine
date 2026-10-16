@@ -20,7 +20,7 @@ Le titre Circuit et l’œil sont sur la même ligne. La durée agrégée est so
 
 Le dialogue apparaît uniquement en cas de perte de séries/valeurs. Annuler conserve nature, compte et valeurs. Le fond et le popover derrière le dialogue sont inertes. La présence du popover derrière la confirmation n’autorise pas deux surfaces interactives simultanées.
 
-## Modalités d’exécution et tableau variable
+## Paramètres d’exécution et tableau variable
 
 La ligne Séries regroupe le libellé, le régime identiques/variables, le chevron de repli indépendant en variable, puis le nombre à droite. Le régime ouvre son popover ; identiques n’a pas de chevron. Les modes d’exécution et choix de côtés reprennent les popovers exportés ; ne pas réintroduire les anciens segmentés dans ces emplacements.
 
@@ -68,3 +68,7 @@ Ce lot met à jour le DSF documentaire et les preuves visuelles ; il ne modifie 
 ## Raccordement Formats du 14/10/2026
 
 Le [DSF Formats](DSF-FORMATS-SEANCES-2026-10-14.md) complète ce document : organisation Par exercice/En alternance, compte nommé selon son unité, constantes Tabata grisées mais effectives et phrases contextuelles. L’état imposé effectif conserve une valeur réelle ; ne pas lui appliquer le tiret des valeurs sans effet. Les cartes de modèles illustrées ne changent pas la règle des cartes catalogue. Les points de layout non qualifiés restent signalés dans la [revue transverse](REVUE-COHERENCE-FORMATS-2026-10-14.md).
+
+### Cible variable — accès au choix
+
+Toucher la cellule cible ouvre la roulette sur sa cible courante, numérique ou À l’échec. Le choix s’applique à cette cellule seulement. Le pied commun conserve son rôle de réglage de la cellule active ; il ne constitue pas l’unique accès à la cible À l’échec. ✓ de la roulette applique la sélection au brouillon de la feuille ; ✕ de la roulette restaure la valeur à son ouverture. ✓ de la feuille applique l’ensemble au parent ; ✕ de la feuille annule toutes les modifications depuis son ouverture, y compris celles validées dans une roulette. Aucune persistance définitive à la validation de la roulette.
