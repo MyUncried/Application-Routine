@@ -115,7 +115,7 @@ Pour chaque Exercice, un écran unique permet de renseigner le nom, la Catégori
 
 En mode Durée, l’utilisateur peut confirmer soit `Séries`, soit `Durée totale`. Le contrôle confirmé devient pilote ; l’autre est recalculé. Après saisie d'une Durée totale cible `Tv`, l’application arrondit au nombre entier de Séries le plus proche, avec `.5` vers le haut, puis recalcule `T(N)`. Si `T(N) ≠ Tv`, elle affiche temporairement « Durée ajustée à {T(N)} pour respecter un nombre entier de Séries. » ; si `T(N) = Tv`, elle n'affiche pas ce message.
 
-`Continuer` reste désactivé tant que le nom n’est pas renseigné ou qu’aucun Exercice valide n’est présent. L’Étiquette éventuelle est déjà gérée dans la Composition ; `Continuer` valide et enregistre la Séance avec sa Composition et son Étiquette.
+`Continuer` reste désactivé tant que le nom n’est pas renseigné, qu’aucun Exercice valide n’est présent ou qu’un Exercice comporte une cible obligatoire non renseignée (D-380, D-123). L’Étiquette éventuelle est déjà gérée dans la Composition ; `Continuer` valide et enregistre la Séance avec sa Composition et son Étiquette.
 ### 2. Réorganiser une séance
 
 À tout moment, l'utilisateur peut revenir modifier une séance existante.
@@ -268,7 +268,6 @@ La séance peut avoir été lancée directement ou à partir d'une routine plani
     - mettre la séance en pause ;
     - reprendre la séance ;
     - passer directement à l'exercice suivante ;
-    - ignorer un exercice ;
     - terminer un exercice avant son terme ;
     - interrompre complètement la séance.
 3. En cas d'interruption volontaire, l'application lui propose :
@@ -278,7 +277,6 @@ La séance peut avoir été lancée directement ou à partir d'une routine plani
 5. Lorsque la séance est terminée ou abandonnée, l'application présente un récapitulatif indiquant notamment :
     - les exercices réalisées ;
     - les exercices partiellement réalisées ;
-    - les exercices ignorées ;
     - les exercices non commencées ;
     - la durée réelle de la séance ;
     - son statut.
@@ -291,7 +289,7 @@ La séance peut avoir été lancée directement ou à partir d'une routine plani
 
 - Une fermeture accidentelle de l'application ne doit pas faire perdre la séance en cours. Au retour dans l’application, si une Exécution était `En cours`, l’utilisateur doit choisir **Reprendre la séance** ou **Arrêter la séance** avant de pouvoir démarrer une nouvelle Exécution.
 - Les données déjà enregistrées doivent pouvoir être restaurées.
-- L'application ne doit pas obliger l'utilisateur à justifier chaque exercice ignorée.
+- L'application ne doit pas obliger l'utilisateur à justifier chaque exercice passé avant son terme.
 - La différence entre une séance suspendue, terminée et abandonnée doit rester compréhensible.
 - La règle permettant de reprendre une séance après une très longue interruption est définie comme suit :
 	- Si une Séance reste en pause pendant au moins 30 minutes consécutives, l'application demande à l'utilisateur s'il souhaite reprendre son Exécution.

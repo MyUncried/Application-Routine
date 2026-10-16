@@ -16,7 +16,7 @@ Les 40 contrats actifs couvrent les familles CE-T03, CE-MEDIA-EXEC, CE-UI, CE-EX
 
 Pour les contrats actifs :
 
-1. décisions validées dans le chapitre 07, jusqu’à D-255, avec priorité aux décisions explicitement supersédantes ; D-247 à D-255 et la section Paramètres et brouillon du chapitre 08 pour l’éditeur ;
+1. décisions validées dans le chapitre 07, avec priorité aux décisions explicitement supersédantes ; D-247 à D-255 et la section Paramètres et brouillon du chapitre 08 pour l’éditeur ;
 2. modèle fonctionnel / modèle de données / règles métier ;
 3. API fonctionnelles ;
 4. architecture technique ;
@@ -288,7 +288,7 @@ Header fixe → segmenté deux types → rangée commandes Catalogue (`Créer`, 
 
 ### 8. Éléments obligatoires
 
-Carte : titre et badge durée, Étiquette puis catégories issues des exercices (catégories seules sans Étiquette), `N exercices` et `N tours`. Pas de prochaine planification ni pause/récupération. Séance sans vignette. Archivée : fond `color/surface #F5F7FA` (ancienne prescription `#F6F6F6` historique ; référence couleur centralisée au chapitre12), bord #D9D9D9, Restaurer. Catalogue : Séances sélectionné, Exercices actif, Trier désactivé et aucun segment Parcours ; commandes §4.5 et navigation Catalogues.
+Carte : titre et badge durée, Étiquette puis catégories issues des exercices (catégories seules sans Étiquette), `N exercices` et `N tours` (Séance sans Exercice : « 0 exercice » selon la décision PRE-4 Q32, « 0 exercices » selon D-091 — À CLARIFIER). Pas de prochaine planification ni pause/récupération. Séance sans vignette. Archivée : fond `color/surface #F5F7FA` (ancienne prescription `#F6F6F6` historique ; référence couleur centralisée au chapitre12), bord #D9D9D9, Restaurer. Catalogue : Séances sélectionné, Exercices actif, Trier désactivé et aucun segment Parcours ; commandes §4.5 et navigation Catalogues.
 
 ### 9. Layout déterministe
 
@@ -981,7 +981,7 @@ Swipe occurrence : Dupliquer/Supprimer ; appui long puis glisser : déplacer. Ap
 
 ### 14. Validation
 
-Continuer exige nom et au moins un Exercice valide ; la Séance n’est pas enregistrée si un de ses Exercices comporte une cible obligatoire non renseignée (D-380). Récupération0..300s, grille1s jusqu’à5,5s jusqu’à120,30s jusqu’à300 ; aucune durée requise pour point. Récupération après occurrence, dernière comprise ; pas avant première. Point interdit immédiatement après compte à rebours initial et avant Fin ; autorisé avant/après Circuit et entre ses Exercices. Un élément de chaque type au même emplacement ; pas de doublon du même type. Drop invalide restitue la position. Les affectations de référentiels retirées restent valides selon D-210.
+Continuer exige nom et au moins un Exercice valide ; il reste désactivé, et la Séance n’est pas enregistrée, si un de ses Exercices comporte une cible obligatoire non renseignée (D-380, D-123). Récupération0..300s, grille1s jusqu’à5,5s jusqu’à120,30s jusqu’à300 ; aucune durée requise pour point. Récupération après occurrence, dernière comprise ; pas avant première. Point interdit immédiatement après compte à rebours initial et avant Fin ; autorisé avant/après Circuit et entre ses Exercices. Un élément de chaque type au même emplacement ; pas de doublon du même type. Drop invalide restitue la position. Les affectations de référentiels retirées restent valides selon D-210.
 
 ### 15. Brouillon et persistance
 
@@ -3098,7 +3098,7 @@ Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : �
 - Planifier : fréquence entière de 1 à 12 semaines incluses ; − inactif à 1 et + inactif à 12 ; toute valeur extérieure est refusée à l’enregistrement.
 - Rappel Autre : délai strictement positif, maximum 24 h (1 440 minutes), avec les unités et le sélecteur existants. Aucun désactive le rappel ; zéro ne crée pas une deuxième manière de désactiver le champ. Une notification dont l’échéance est déjà passée n’est pas envoyée rétroactivement ; les futures occurrences conservent leur rappel.
 - Durée totale : conserver le sélecteur minutes/secondes. La borne dérivée est T(1)..T(99) pour les paramètres courants, et non 58 min 55 s (borne par Série). La colonne minutes doit représenter T(99), sans nouvelle colonne ni nouveau contrôle. Granularité seconde ; le calcul inverse existant choisit N dans 1..99, arrondi .5 vers le haut, puis affiche T(N) et le message d’ajustement si nécessaire. En Durée uniforme, une diminution à N=1 ne masque le total du résumé que s’il égale effectivement la cible ; la ligne Total reste présente dans la feuille en Durée/Répétitions (renvoi historique D-246 non démontré — À CLARIFIER).
-- Profil : les paramètres identiques héritent des mêmes bornes que leur champ cible, sans maximum tiré des valeurs d’exemple, sauf D-265. Compte à rebours initial/Fin de séance : 0..3599 s pour les champs de la Séance (D-089), 0..60 s pas 1 s pour leurs valeurs par défaut du Profil (D-265) ; Compte à rebours d’exercice/Fin d’exercice : 0..60 s, pas 1 s (D-256) ; pauses et récupération : 0..300 s ; le contrôle et ses pas restent ceux du DSF et de D-232. Les valeurs initiales déjà validées ne changent pas.
+- Profil : les paramètres identiques héritent des mêmes bornes que leur champ cible, sans maximum tiré des valeurs d’exemple, sauf D-265. Compte à rebours initial/Fin de séance : 0..3599 s pour les champs de la Séance (D-089), 0..60 s pas 1 s pour leurs valeurs par défaut du Profil (D-265) ; Compte à rebours d’exercice/Fin d’exercice : 0..60 s, pas 1 s (D-256) ; pauses et récupération : 0..300 s ; le contrôle et ses pas restent ceux du DSF et, pour les steppers, de D-312 (D-386). Les valeurs initiales déjà validées ne changent pas.
 
 ### R-03 — Transition, reset et suspension
 

@@ -896,7 +896,7 @@ Les noms avec barre oblique, par exemple `color/primary`, sont les noms physique
 | `color.segmentedInactiveSurface` | `#EAEAFF` | Fond des options inactives du contrôle segmenté standard, rayon 10 ; peinture locale du maître `7388:13779`, sans variable Figma |
 | `color.parametersSegmentedBorder` | `#DBDEE3` | Contour 1 du cadre segmenté de la feuille Paramètres (Mode, Côté, Ordre) ; figés `6407-9805` et `6665-26185` ; D-341, présentation remplacée par les DSF validés (D-377) |
 | `color.parametersSegmentedOption` | `#FCFCFE` | Options inactives du segmenté de la feuille Paramètres, contour blanc 1 ; figé `6407-9805` ; D-341, présentation remplacée par les DSF validés (D-377) |
-| `color.selectionSubtitle` | `#E0E3FF` | Sous-titre de l’option sélectionnée (Ordre des côtés) ; figé `6665-26185` ; D-341 |
+| `color.selectionSubtitle` | `#E0E3FF` | Sous-titre de l’option sélectionnée (Ordre des côtés) ; figé `6665-26185` ; D-341, présentation remplacée par les DSF validés (D-377) |
 | `color.exerciseEditorContextBand` | `#EAEAFF` | Zone de contexte de Créer/Modifier un exercice, opaque jusqu’à 80 % puis fondu vers le fond (« Zone bleue » figée `3542:4656`) ; distincte de `exerciseContextBandBackground` (Composition) ; extension X-3 du 12/10 |
 | `color.variableSeriesGroupSurface` | `#F3F3F6` | Fond du groupe Séries variables déployé, contour `color.selection` 1,5 (figé `6665:24616`) ; extension X-3 du 12/10 |
 

@@ -867,7 +867,7 @@ Le Circuit reste structurel. Le Compte à rebours initial et la Fin de séance s
 
 L’écran ne comporte pas de bouton `Démarrer`.
 
-L’action `Continuer` valide la Composition. Elle reste désactivée tant que le nom n’est pas renseigné ou que la Composition ne contient pas au moins un Exercice valide. L’Étiquette est facultative ; lorsqu’elle est sélectionnée, sa couleur devient celle de la Séance.
+L’action `Continuer` valide la Composition. Elle reste désactivée tant que le nom n’est pas renseigné, que la Composition ne contient pas au moins un Exercice valide ou qu’un de ses Exercices comporte une cible obligatoire non renseignée (D-380, D-123). L’Étiquette est facultative ; lorsqu’elle est sélectionnée, sa couleur devient celle de la Séance.
 
 En création comme en modification, l’Étiquette de la Séance est gérée depuis la Composition par la modale `Étiquettes`. L’Étiquette sélectionnée est affichée sous le nom de la Séance et porte sa couleur.
 
