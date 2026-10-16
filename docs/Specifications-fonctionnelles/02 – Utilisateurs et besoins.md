@@ -31,7 +31,6 @@ Une personne qui souhaite créer, planifier, exécuter et suivre seule des Séan
 #### Retrouver et gérer ses Séances
 
 - Arriver dans le Catalogue des séances après le splash.
-- Rechercher une Séance.
 - Ouvrir une carte directement en mode modification.
 - Planifier, dupliquer ou archiver une Séance active.
 - Consulter les Séances archivées, les restaurer ou les supprimer après confirmation.
@@ -201,7 +200,7 @@ L’utilisateur doit pouvoir :
 - lancer un Exercice persistant, disposer de `5 s` pour se préparer et être guidé selon tous ses paramètres ;
 - renseigner le Ressenti obligatoire dans la Synthèse ;
 - retrouver l’Exécution dans le Suivi général sous le type Exercice ;
-- revenir au Catalogue avec recherche, filtres et position restaurés.
+- revenir au Catalogue avec filtres et position restaurés.
 
 Les résultats alimentent les indicateurs compatibles sans compter une Séance.
 

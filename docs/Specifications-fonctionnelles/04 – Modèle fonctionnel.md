@@ -169,7 +169,7 @@ Dans le MVP :
 
 # 4.4 Structure d'une séance
 
-Le modèle fonctionnel repose sur une hiérarchie : Séance → Cycle technique → Tour → Exercice. Chaque niveau apporte une responsabilité distincte.
+Le modèle fonctionnel repose sur une hiérarchie : Séance → Cycle technique → Circuit → Exercice. Chaque niveau apporte une responsabilité distincte.
 
 Une Séance comprend, dans l'ordre :
 1. un Compte à rebours initial ;
@@ -185,9 +185,9 @@ Le Compte à rebours initial et la Fin de séance sont des éléments structurel
 
 Un **Point d’arrêt** est un élément de Composition sans écran dédié. Il suspend l’enchaînement jusqu’à reprise explicite et son temps d’attente est exclu de la durée de la Séance.
 
-Le modèle distingue trois mesures temporelles. La **Durée synthétique des Exercices**, utilisée dans le Catalogue et la synthèse du Tour de la Composition, développe les occurrences d’Exercices mais exclut le Compte à rebours initial et la Fin de séance. La **Durée estimée d’exécution**, utilisée pendant l’Exécution de Séance, couvre le Plan complet et inclut ces deux phases structurelles. Le **temps total écoulé** et la **Durée réelle** couvrent toutes les phases effectivement exécutées, mais excluent les Pauses déclenchées manuellement par l’utilisateur.
+Le modèle distingue trois mesures temporelles. La **Durée synthétique des Exercices**, utilisée dans le Catalogue et la synthèse du Circuit de la Composition, développe les occurrences d’Exercices mais exclut le Compte à rebours initial et la Fin de séance. La **Durée estimée d’exécution**, utilisée pendant l’Exécution de Séance, couvre le Plan complet et inclut ces deux phases structurelles. Le **temps total écoulé** et la **Durée réelle** couvrent toutes les phases effectivement exécutées, mais excluent les Pauses déclenchées manuellement par l’utilisateur.
 
-Le **Cycle** contient le **Circuit unique** et les Exercices ordonnés avant et après ce Tour. Sa répétition est fixée à `1` dans le MVP.
+Le **Cycle** contient le **Circuit unique** et les Exercices ordonnés avant et après ce Circuit. Sa répétition est fixée à `1` dans le MVP.
 
 Le **Circuit** regroupe une suite ordonnée d'Exercices. Les Exercices placés hors du Circuit sont exécutés une seule fois, avant le premier Tour ou après le dernier Tour selon leur position. Dans la version actuelle, aucun réglage de changement de côté n’est exposé au niveau du Circuit ; tout support technique historique de cette propriété reste fixé à `UNILATERAL` et non modifiable. La bilatéralité reste portée par les Exercices.
 
@@ -195,7 +195,7 @@ Un **Exercice** possède un mode Durée ou Répétitions, avec une cible chiffr�
 
 Dans le MVP :
 - une Séance contient exactement un Cycle technique ;
-- ce Cycle contient exactement un Tour ;
+- ce Cycle contient exactement un Circuit ;
 - le Cycle est exécuté une seule fois et n’est jamais exposé dans l’interface ;
 - le compte du Circuit reste configurable de1 à99, avec sa nature tours/séries.
 
@@ -206,7 +206,7 @@ Compte à rebours initial
 
 Cycle technique × 1 — non affiché
 ├── Exercice avant le Circuit
-├── Tour × N
+├── Circuit × N
 │      ├── Exercice
 │      ├── Exercice
 │      └── Exercice
@@ -220,7 +220,7 @@ Le déroulement du Cycle est donc :
 ```
 Exécuter une fois le Cycle technique :
     Exécuter les Exercices placés avant le Circuit
-    Répéter N fois le Tour et ses Exercices
+    Répéter N fois le Circuit et ses Exercices
     Exécuter les Exercices placés après le Circuit
 ```
 

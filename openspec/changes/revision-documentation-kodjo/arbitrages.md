@@ -1,5 +1,22 @@
 # Arbitrages — réexamen des questions Q-A à Q-N (révision 2, 16/10)
 
+## État au 16/10 après les lots 1 à 5
+
+- **Appliquées** (décisions explicites trouvées) :
+  - Q-E (D-203) ;
+  - Q-G (RM-007, D-121) ;
+  - Q-M (D-334 et D-335 réinsérées au lot 1) ;
+  - Q-O (renvois D-nnn restaurés au lot 3b, commit séparé).
+- **Toujours ouvertes :** questions 2 (Q-A), 3 (Q-B), 4 (Q-D), 5 (Q-F), 6 (Q-H b), 7 (Q-I), 8 (Q-J), 9 (Q-K), 10 (Q-L/Q-N).
+- **Q-H (a) reste isolée.** Sa seule source est le contrat CE-T03-08 du ch. 13, sans D-xxx ni RM-xxx : la corriger trancherait Q-A.
+- **Nouveaux éléments pour la question 10.** Le fichier de décisions PRE-4 est désormais committé dans le clone PRE-4 (`e0e8ce58`, non publié) et va jusqu'à Q31 :
+  - Q27 et Q31 : consultation d'un Média dans l'Éditeur ;
+  - Q28 : valeurs négatives ou fractionnaires écartées selon Q19 ;
+  - Q29 : invalidation d'« Annuler » ;
+  - Q30 : contribution d'une cible à renseigner au total de Séance.
+
+  **Q31 déclare amender D-335**, réinsérée au lot 1 (« Le menu Retirer / Monter / Descendre passe à l'appui long … D-335 est amendée sur ce point »). Cet amendement n'est pas reporté : sa portée générale reste à confirmer (question 10).
+
 ## Méthode et sources
 
 - **Base :** `main` `6656fefc` (inchangé). Les fichiers de `docs/` de la branche sont identiques à la base.

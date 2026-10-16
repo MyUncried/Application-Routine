@@ -48,7 +48,7 @@ L’architecture textuelle repose néanmoins sur un lexique centralisé et des c
 
 ### Catalogue des séances
 
-Le `Catalogue des séances` est l’état par défaut de l’espace `Catalogues` après le splash et après une relance complète. Il permet de rechercher une Séance, d’ouvrir sa carte en modification, de la planifier, de la dupliquer ou de l’archiver. Une Séance active ne peut pas être supprimée directement : elle doit d’abord être archivée. Depuis la liste des Séances archivées, elle peut être restaurée ou supprimée après confirmation.
+Le `Catalogue des séances` est l’état par défaut de l’espace `Catalogues` après le splash et après une relance complète. Il permet d’ouvrir sa carte en modification, de la planifier, de la dupliquer ou de l’archiver. Une Séance active ne peut pas être supprimée directement : elle doit d’abord être archivée. Depuis la liste des Séances archivées, elle peut être restaurée ou supprimée après confirmation.
 
 ### Catalogue des exercices — T03
 
@@ -104,7 +104,7 @@ Les Sons, les Annonces vocales et les Vibrations fonctionnelles sont indépendan
 
 - interface mobile en portrait, compatible avec les Safe Areas du système ;
 - navigation principale fixe : `Catalogues`, `Calendrier`, `Suivi`, `Profil` ;
-- l’espace `Catalogues` utilise les titres contextuels `Catalogue des séances`, `Catalogue des exercices` et `Catalogue des parcours` ;
+- l’espace `Catalogues` utilise les titres contextuels `Catalogue des séances` et `Catalogue des exercices` ;
 - libellé affiché uniquement sous l’onglet actif ;
 - actions contextuelles cohérentes entre les listes ;
 - sauvegarde immédiate des Préférences ;
@@ -152,7 +152,7 @@ La configuration permet de choisir `Aucun`, droite puis gauche, ou gauche puis d
 
 Le MVP permet de consulter les médias de l’Exercice sans quitter l’Exécution ni interrompre son moteur. L’utilisateur peut retourner la zone d’information vers une face Média, parcourir une galerie ordonnée, lancer une vidéo à la demande et ouvrir le média en plein écran. Le plein écran conserve un cadre flottant de suivi et de commande de l’Exécution.
 
-Cette cible est conçue mais n’est pas ajoutée au périmètre MVP courant sans décision de roadmap distincte. Voir `../CONCEPTION-EXECUTION-MEDIA.md`.
+Cette consultation est incluse au MVP (D-203, confirmation du 28/09/2026). Voir `../CONCEPTION-EXECUTION-MEDIA.md`.
 
 ### Cible de planification commune
 
@@ -252,8 +252,8 @@ Une **entité métier** possède une identité propre et peut être représenté
 
 | Terme | Définition |
 | --- | --- |
-| **Planification unique** | Routine produisant une occurrence à une date et une heure déterminées. Le libellé d’interface utilisé est `Aucune` dans le choix de répétition. |
-| **Planification périodique** | Routine produisant des occurrences hebdomadaires selon une fréquence en semaines, des jours sélectionnés et une date de fin incluse. |
+| **Planification unique** | Routine produisant une occurrence à une date et une heure déterminées. Elle correspond à l’interrupteur `Répétition` désactivé ; l’option `Aucune` est supprimée (D-330). |
+| **Planification périodique** | Routine produisant des occurrences selon une unité Jour, Semaine ou Mois (D-330), des jours sélectionnés et une date de fin incluse. |
 | **Rappel** | Notification locale facultative associée à une Routine. Une Routine possède zéro ou un rappel. |
 | **Calendrier** | Écran de consultation des occurrences planifiées, disponible en vues Jour, Semaine et Mois dans le MVP. |
 
@@ -308,7 +308,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Set** | Ancien terme de groupe remplacé par **Circuit** ; **Tour** désigne une répétition du Circuit. Il ne doit plus être utilisé dans l’interface, les spécifications actives, le modèle de données, les API ou le code. |
 | **Bloc** | Ancienne appellation non retenue pour la structure répétable. |
 | **Mes séances** | Ancienne appellation de l’écran désormais nommé **Catalogue des séances**. |
-| **Sans répétition** | Ancien libellé du choix de planification unique ; l’interface utilise **Aucune**. |
+| **Sans répétition** | Ancien libellé du choix de planification unique ; l’interface utilise l’interrupteur `Répétition` désactivé (D-330). |
 | **Routine** pour désigner un contenu | Usage incorrect : la Routine est le créneau de planification et sa liste ordonnée de références, pas une Séance ni un Exercice. |
 
 #### 9. Concepts ajoutés — Exercices, Médias et Parcours

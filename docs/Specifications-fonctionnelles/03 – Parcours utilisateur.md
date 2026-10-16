@@ -419,10 +419,10 @@ L’utilisateur démarre une Série sans objectif temporel ni nombre de répéti
 1. Ouvrir `Exercices` dans le Catalogue.
 2. Appuyer sur l’action `Exécuter` d’un Exercice valide.
 3. Le système fige un instantané autonome et affiche une préparation de `5 s`.
-4. Après la préparation système, exécuter le Compte à rebours propre éventuel de l’Exercice, puis les Séries, Pauses, côtés, la Récupération et la Fin d’exercice éventuelle selon la définition figée.
+4. Après la préparation système, exécuter le Compte à rebours propre éventuel de l’Exercice, puis les Séries, Pauses, côtés et la Fin d’exercice éventuelle selon la définition figée.
 5. Après la dernière phase propre à l’Exercice, entendre le signal de fin et ouvrir immédiatement la Synthèse.
 6. Sélectionner obligatoirement un Ressenti ; le Commentaire reste facultatif.
-7. Appuyer sur `Terminer` pour enregistrer l’Exécution dans le Suivi général avec l’origine `ACTIVITY`.
+7. Appuyer sur `Enregistrer` pour enregistrer l’Exécution dans le Suivi général avec l’origine `ACTIVITY`.
 8. Revenir au Catalogue des Exercices avec filtres et position de défilement restaurés.
 
 ## Consulter ou modifier un Exercice depuis le Catalogue — MVP T03

@@ -241,9 +241,59 @@ Ces lignes citent D-232 sur des points qu'elle déclare elle-même conservés (�
 
 **Classe :** `FONCT-ARBITRÉ`. Chaque tâche cite la décision et sa portée. **Aucune n'est exécutée avant la résolution de Q-L**, qui fixe l'ordre avec les PR #370 et #371. Le détail figure dans [arbitrages.md](arbitrages.md).
 
-- [ ] 5.1 Décisions générales déjà prises mais non reportées partout : D-209 (Tour, constats S-06, S-08, P-08), D-343 et D-355 (appui court, H-10), D-092 et la borne 1..100 (X-08), D-337 et D-251 (H-09).
-- [ ] 5.2 Décisions de Hermann prises pour PRE-4 (Q8, Q11 à Q26 de la préparation PRE-4 BMAD) : à reporter dans la documentation **seulement pour celles dont la portée générale est confirmée** (voir Q-L). Q11 à Q18 sont déjà portées par la PR #371, à corriger sur X-06 et X-07.
-- [ ] 5.3 Hors de ce lot, en attente de décision produit : Q-E à Q-K, selon [arbitrages.md](arbitrages.md).
+- [x] 5.1 **Fait en partie (voir le journal du lot 5).** Énoncé initial : Décisions générales déjà prises mais non reportées partout : D-209 (Tour, constats S-06, S-08, P-08), D-343 et D-355 (appui court, H-10), D-092 et la borne 1..100 (X-08), D-337 et D-251 (H-09).
+- [ ] 5.2 **ISOLÉE** (portée générale des décisions PRE-4 non confirmée : question 10 d’arbitrages.md ; PRE-4 contient désormais Q1 à Q31, dont Q31 qui amende D-335). Énoncé initial : Décisions de Hermann prises pour PRE-4 (Q8, Q11 à Q26 de la préparation PRE-4 BMAD) : à reporter dans la documentation **seulement pour celles dont la portée générale est confirmée** (voir Q-L). Q11 à Q18 sont déjà portées par la PR #371, à corriger sur X-06 et X-07.
+- [x] 5.3 **Q-E et Q-G appliquées** (décisions explicites D-203, RM-007/D-121 trouvées au réexamen) ; Q-F, Q-H, Q-I, Q-J et Q-K restent isolées. Énoncé initial : Hors de ce lot, en attente de décision produit : Q-E à Q-K, selon [arbitrages.md](arbitrages.md).
+
+### Journal d'exécution du lot 5 (16/10/2026)
+
+**Départ :** `9c24c705` (lot 4 publié).
+
+**Règle appliquée :**
+- ne sont corrigés que les passages couverts **exactement** par une décision explicite versionnée dans ce dépôt (D-xxx, RM-xxx, décision écrite dans `docs/`) ;
+- les décisions PRE-4 (Q, P, H) ne sont pas utilisées ;
+- les lignes modifiées par les PR ouvertes sont exclues ;
+- aucun statut n'est changé si la décision remplaçante ne nomme pas la décision remplacée.
+
+**Préparation :** dossiers en lecture seule L5A et L5B (scratchpad), revus un par un. Trois propositions des dossiers ont été **rejetées** (L5A-03, L5B-1.8 pour le ch. 02, L5B-4 ; voir « Isolé »).
+
+**Corrections :** [constats/LOT-5-corrections.json](constats/LOT-5-corrections.json) (42 entrées, avec la décision de référence de chacune). Application par `outils/appliquer-lot5.mjs` : chaque « ancien » est unique au moment de son application, sinon arrêt sans écriture.
+
+| Objet | Décision de référence | Passages |
+|---|---|---|
+| Médias pendant l'Exécution au MVP (Q-E, P-05) | D-203 « périmètre MVP confirmé le 28/09/2026 » | ch. 01, ch. 10 (RM-203) |
+| Suppression d'une Séance active (Q-G, S-03) | RM-007, D-121, RM-008, RM-011 | ch. 08 §2.5 (3 phrases) |
+| Recherche absente du MVP (P-04) | D-221 (« Supersède D-163 et D-168 ») | ch. 01, ch. 02 (2) |
+| Répétition sans « Aucune », Jour/Semaine/Mois (S-12, P-19) | D-330 ; D-062 « Supersédée par D-330 » | ch. 01 (3) |
+| Catalogue des parcours retiré (P-06) | D-328, D-324, D-167 | PRODUCT.md (3), ch. 01, ch. 06 |
+| Synthèse d'Exécution directe : `Enregistrer` (S-16) | RM-101 | ch. 03 |
+| Pas de Récupération en exécution directe (S-17) | D-172 révisée par D-208, RM-036 | ch. 03 |
+| Tour = répétition du Circuit (S-06, P-08) | D-209 « Révise les formulations historiques où Tour désignait le conteneur » ; CIR-01 | ch. 10 (RM-025), ch. 04 (6), ch. 05, PRODUCT.md (§6 Hors MVP) |
+| Compteur du Circuit (S-08) | Décision du 12/10 (ch. 08 « Le contrôle ») ; CIR-10 | ch. 10, RM-027 : **mention de remplacement ajoutée, texte d'origine conservé** |
+| Appui court en sélection simple (H-10) | D-343, D-355 | ch. 10 (RM-200), ch. 08, PRODUCT.md ; statuts de D-222 et de D-228 (Catégorie seulement) |
+| D-341 : valeurs validées | `docs/preparation/PRE-3/…/registre-recette1.md:189` (§9, 12/10) | ch. 07 (statut et texte) |
+| Deux modes, ≥ à l'Exercice, borne 58 min 55 s (P-12) | Décision du 13/10 (« remplacent la création d’un troisième mode de D-111 et l’interdiction d’un total partiel à l’Exercice ») ; R06 close ; RM-033 ; RM-132 ; RM-234 | PRODUCT.md (5), ch. 05 |
+| « référence active v12 » (H-06), 8 décisions | README:68 « v12 et v10.2 sont historiques » ; ch. 01 « La référence active est … #parametres-exercice » | ch. 07 → « référence active : chapitre 08, paramètres d’exercice » |
+
+**Isolé (aucune correction ; décision nécessaire ou hors périmètre) :**
+
+| Objet | Motif |
+|---|---|
+| Q-H (a) : ch. 08 « modifications enregistrées automatiquement » contre brouillon + `Continuer` (L5A-03) | La seule source est un contrat du ch. 13 (CE-T03-08 §15) et le ch. 06 ; aucun D-xxx ni RM-xxx. Choisir le ch. 13 reviendrait à trancher le rang ch. 08 / ch. 13 (Q-A). |
+| P-03 : ch. 12 « segment Exercices désactivé au MVP » | D-166 (« entrent dans le MVP ») est supersédée par D-183, qui ne dit pas « MVP ». |
+| P-04 : ch. 03 recherche dans le Suivi | D-221 ne vise que les Catalogues. |
+| D-209 : ch. 02 §8 (besoins futurs : bilatéralité d'un Tour), ch. 05 V2 « plusieurs Tours », ch. 09 et ch. 05 (entité technique `Tour`, que ch. 11 dit ne pas renommer), ch. 06 « stepper Nombre de tours », statut de D-032 | Périmètre futur, nom technique, ou décision qui ne nomme pas le passage |
+| Statut de D-228 pour l'Étiquette ; statut de D-251 (message en ligne) | D-355 ne nomme pas D-228 ; D-337 désigne « chapitre 08 » et non D-251 |
+| D-092 « 1–99 » pour les répétitions (X-08) | Aucune source ne nomme D-092 (1..100 vient de D-232 et RM-234) |
+| H-11 : ch. 08:1573 (PR #371), ch. 08:1595, ch. 13:3099 | PR concurrente, ou aucune décision ne désigne le remplaçant |
+| D-309 (P-12) | Ligne modifiée par la PR #371 |
+| Décisions PRE-4 (Q8, Q19–Q31, H, P) | Portée générale non confirmée (question 10) ; sources hors de ce dépôt (clone PRE-4, commit local `e0e8ce58`) |
+
+**Contrôles :**
+- 42/42 corrections : nouveaux textes présents, anciens absents.
+- Fichiers modifiés : PRODUCT.md, ch. 01 à 08 et ch. 10, soit 10 fichiers et 47 lignes.
+- `links.mjs` : 2 anomalies, inchangé.
+- Fusions simulées avec #363, #370, #371 : 0 conflit.
 
 ## 6. Lot 6 — Amélioration progressive de la qualité des exigences
 

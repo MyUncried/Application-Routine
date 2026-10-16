@@ -126,13 +126,13 @@ Les deux séances deviennent totalement indépendantes.
 
 ## 2.5 Suppression d'une séance
 
-Une séance peut être supprimée depuis le catalogue.
+Une séance active ne peut pas être supprimée : elle doit d'abord être archivée, puis supprimée depuis le résultat du filtre `Archivées` (RM-007, D-121).
 
 La suppression est définitive.
 
-Si la séance est utilisée par une ou plusieurs routines, l'application demande une confirmation avant la suppression.
+La suppression d'une séance archivée demande une confirmation explicite (RM-011).
 
-La suppression d'une séance entraîne également la suppression de toutes les routines qui lui sont associées.
+Les routines futures associées ont déjà été supprimées lors de l'archivage (RM-008).
 
 Les exécutions déjà enregistrées restent conservées dans l'historique.
 
@@ -1589,7 +1589,7 @@ Dans CE-UI-10, durée par Série et Durée totale utilisent des roulettes sous l
 
 ### Gestion commune des référentiels de classification
 
-Dans les modales de sélection `Étiquettes`, `Catégorie` et `Zones corporelles`, un appui court valide et ferme une sélection simple ; il sélectionne/désélectionne une option dans une sélection multiple (D-222). Un appui long ouvre une confirmation destructrice sans modifier la sélection. Toutes les valeurs, initiales comme ajoutées ensuite, sont supprimables. Après confirmation, la valeur est retirée des choix futurs mais ses affectations existantes sont conservées ; les Instantanés et Exécutions historiques restent inchangés. La modale de sélection reste ouverte et reflète immédiatement la suppression.
+Dans les modales de sélection `Étiquettes`, `Catégorie` et `Zones corporelles`, en sélection simple (Catégorie, Étiquette), un appui court marque la valeur sans fermer et ✓ confirme puis ferme (D-343, D-355) ; il sélectionne/désélectionne une option dans une sélection multiple (D-222). Un appui long ouvre une confirmation destructrice sans modifier la sélection. Toutes les valeurs, initiales comme ajoutées ensuite, sont supprimables. Après confirmation, la valeur est retirée des choix futurs mais ses affectations existantes sont conservées ; les Instantanés et Exécutions historiques restent inchangés. La modale de sélection reste ouverte et reflète immédiatement la suppression.
 | Validation        | Impossible tant que les champs obligatoires ne sont pas renseignés.                                                                                                                                                                                                                                                                                                                        |
 | Retour            | Si des modifications non enregistrées existent, une confirmation est demandée.                                                                                                                                                                                                                                                                                                             |
 | Synthèse          | Cadre immuable, indépendant du déploiement des sections et placé en bas du contenu à `spacing/24` de l’action finale. Style `KODJO / Body` (`14/20`). La phrase commence par le nombre de Séries et ne répète pas le mode. Sans mode sélectionné, elle est vide. Elle suit les fragments conditionnels D-232, se régénère à chaque modification et exclut nom d’Exercice, Compte à rebours, Fin d’exercice et Récupération post-activité.
