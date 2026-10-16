@@ -894,8 +894,8 @@ Les noms avec barre oblique, par exemple `color/primary`, sont les noms physique
 | `color.stepperSurface` | `#F2F2FF` | Fond lavande du stepper ouvert (`DSF / Controls / Stepper / Profil` `5544:4732`) ; variable Figma observée `color/observed/f2f2ff`, sans token sémantique |
 | `color.segmentedSurface` | `rgba(255, 255, 255, 0.5)` | Cadre du contrôle segmenté standard : `color/background` (`2290:54`) avec opacité de remplissage 0,5, jamais une opacité de conteneur (`DSF / Controls / Segmenté` `7388:13779`) |
 | `color.segmentedInactiveSurface` | `#EAEAFF` | Fond des options inactives du contrôle segmenté standard, rayon 10 ; peinture locale du maître `7388:13779`, sans variable Figma |
-| `color.parametersSegmentedBorder` | `#DBDEE3` | Contour 1 du cadre segmenté de la feuille Paramètres (Mode, Côté, Ordre) ; figés `6407-9805` et `6665-26185` ; D-341 |
-| `color.parametersSegmentedOption` | `#FCFCFE` | Options inactives du segmenté de la feuille Paramètres, contour blanc 1 ; figé `6407-9805` ; D-341 |
+| `color.parametersSegmentedBorder` | `#DBDEE3` | Contour 1 du cadre segmenté de la feuille Paramètres (Mode, Côté, Ordre) ; figés `6407-9805` et `6665-26185` ; D-341, présentation remplacée par les DSF validés (D-377) |
+| `color.parametersSegmentedOption` | `#FCFCFE` | Options inactives du segmenté de la feuille Paramètres, contour blanc 1 ; figé `6407-9805` ; D-341, présentation remplacée par les DSF validés (D-377) |
 | `color.selectionSubtitle` | `#E0E3FF` | Sous-titre de l’option sélectionnée (Ordre des côtés) ; figé `6665-26185` ; D-341 |
 | `color.exerciseEditorContextBand` | `#EAEAFF` | Zone de contexte de Créer/Modifier un exercice, opaque jusqu’à 80 % puis fondu vers le fond (« Zone bleue » figée `3542:4656`) ; distincte de `exerciseContextBandBackground` (Composition) ; extension X-3 du 12/10 |
 | `color.variableSeriesGroupSurface` | `#F3F3F6` | Fond du groupe Séries variables déployé, contour `color.selection` 1,5 (figé `6665:24616`) ; extension X-3 du 12/10 |
@@ -956,7 +956,7 @@ Le relevé du06/10 comporte51 styles. La correspondance code/Figma se fait par r
 | `type.cardTitle` | Semi Bold | `16` | `19` Auto ;20 si style explicite | Titres hors famille Cartes du 30 septembre |
 | `type.listCardTitle` | Semi Bold | `15` | `18` | Titre des nouvelles cartes (rôle distinct de `type.cardTitle`) : Catalogue, choix, Calendrier Semaine et Suivi ; exception documentée à D-083 |
 | `type.cardDuration` | Semi Bold | `12` | `15` | Durée des cartes, sans cadre, `color.textPrimary`, calée à droite à 16 du bord (D11) |
-| `type.segmentedCompactLabel` | Regular | `13` | `16` | Options du segmenté « Changement de côté » de la feuille Paramètres, sur deux lignes, centrées (D-341, 12/10) |
+| `type.segmentedCompactLabel` | Regular | `13` | `16` | Options du segmenté « Changement de côté » de la feuille Paramètres, sur deux lignes, centrées (D-341, 12/10 ; présentation remplacée par les DSF validés, D-377) |
 | `type.editableValue` | Semi Bold | `13` | `16` | `DSF / Forms / Valeur modifiable` `Texte=13` et valeur du stepper ; état `Grisé` = texte `color.disabled`, jamais une opacité de conteneur |
 | `type.compactCardTitle` | Semi Bold | `15` | `18` | Titre d’une carte compacte imbriquée, notamment dans une Composition |
 | `type.body` | Regular | `14` | `17` Auto ;20 si style explicite | Texte courant |
@@ -1111,7 +1111,7 @@ Les valeurs historiques `9`, `9,4` et `18,8` utilisées comme rayons fixes ont �
 | Stepper du nombre de Tours | Contrôle inline ; valeur de `1..99` sans ouverture de modale ; alignement et dimensions suivent le Figma actif ; aucun chevron de repli |
 | Icône Tour | composant DSF `DSF / Primitives / Icône de tour` (`3066:4685`) ; dessin `18 × 18` ; trait `1,35` ; `color.textPrimary` (`#141414`) ; actif `assets/icons/icon-tour.svg` ; clé `icon.tour` |
 
-Dans `Composition / Circuit Section`, le groupe `Nombre de tours` + synthèse mesure `33` points de haut et est centré verticalement face au sélecteur. La synthèse utilise `type.caption` (`11/13`), `color.textSecondary` et un espacement vertical de `4` points sous le titre. Son calcul consomme la Durée synthétique des Exercices et exclut toujours le `Compte à rebours initial` et la `Fin de séance`, éléments structurels hors Circuit. Ces valeurs réemploient les tokens existants ; aucun nouveau token n’est créé. Les variantes `State=Collapsed` et `State=Expanded` partagent strictement cet en-tête.
+Dans `Composition / Circuit Section`, le groupe `Nombre de tours` + synthèse mesure `33` points de haut et est centré verticalement face au sélecteur. La synthèse utilise `type.caption` (`11/13`), `color.textSecondary` et un espacement vertical de `4` points sous le titre. Son calcul consomme la Durée synthétique des Exercices de ce seul Circuit (D-382) et exclut toujours le `Compte à rebours initial` et la `Fin de séance`, éléments structurels hors Circuit. Ces valeurs réemploient les tokens existants ; aucun nouveau token n’est créé. Les variantes `State=Collapsed` et `State=Expanded` partagent strictement cet en-tête.
 
 ##### Source canonique de l’icône Tour
 
@@ -1337,7 +1337,7 @@ Ordre de développement retenu :
 2. **Spike technique critique** : timer, arrière-plan, écran verrouillé, audio, voix et vibrations sur iOS et Android.
 3. **Séance simple** : création et modification d’une Séance avec quelques Exercices et un Cycle technique déjà fixé à 1.
 4. **Premier moteur d’Exécution bout-en-bout** : démarrage, timer, pause, Exercice suivant, arrêt et fin.
-5. **Structure complète du MVP** : Tour et ses répétitions, Cycle technique masqué, Récupération, Compte à rebours initial et Fin de Séance.
+5. **Structure complète du MVP** : Circuit et ses Tours, Cycle technique masqué, Récupération, Compte à rebours initial et Fin de Séance.
 6. **Exécution complète** : règles, sons, annonces, confirmations, interruptions et Instantané.
 7. **Historique / Suivi**.
 8. **Planification / Agenda / notifications locales**.
@@ -1362,7 +1362,7 @@ Le schéma d’`ActivityDefinition` utilise `executionMode ∈ {DURATION, REPETI
 
 | Segment | MVP | V2 |
 |---|---|---|
-| Exercices | désactivé, aucune requête | `ActivityDefinitionRepository` |
+| Exercices | `ActivityDefinitionRepository`, à partir de T03 (D-166, D-183, RM-109) | `ActivityDefinitionRepository` |
 | Séances | `SessionRepository` | `SessionRepository` |
 
 Le filtrage et le tri sont des paramètres de requête indépendants du segment. L’ordre par défaut est `updatedAt DESC`; l’exécution d’une Séance ne modifie jamais `updatedAt`.

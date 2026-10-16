@@ -1,0 +1,614 @@
+{
+ "description": "Arbitrages de Hermann du 16/10/2026 (D-376 à D-387) et constats associés — corrections documentaires. Préparation : dossiers AR1 (autorité, périmètre, transverses), AR2 (exécution, composition, calculs), AR3 (registre et terminologie), revus ; ajustements : AR2-12/13 (« précisée » au lieu de « remplacée »), AR2-16 (information conservée), AR3-06/07 (lignes complètes reconstruites depuis 37e372cd^, portée d’origine rétablie avec historique).",
+ "corrections": [
+  {
+   "id": "AR3-01",
+   "ref": "D-387 ; D-209 (« Révise les formulations historiques où Tour désignait le conteneur répété »)",
+   "file": "@07 – Registre des décisions de conception.md",
+   "ancien": "ne sont pas réutilisables directement entre plusieurs Séances. | Validé | Oui |",
+   "nouveau": "ne sont pas réutilisables directement entre plusieurs Séances. | Validé ; terminologie révisée par D-209 (D-387) : le conteneur nommé ici « Tour » est le Circuit, un Tour en est une répétition ; nom technique `Tour` non renommé | Oui |"
+  },
+  {
+   "id": "AR3-02",
+   "ref": "D-387 ; D-209 ; ch. 11 API-COM-02 (« le nom technique historique n’est pas renommé par D-209 »)",
+   "file": "@07 – Registre des décisions de conception.md",
+   "ancien": "les API et le code. | Validée post-Figma | Oui |",
+   "nouveau": "les API et le code. | Validée post-Figma ; terminologie fonctionnelle révisée par D-209 (D-387) : le conteneur est le Circuit, un Tour en est une répétition ; identifiants techniques `Tour` non renommés | Oui |"
+  },
+  {
+   "id": "AR3-03",
+   "ref": "D-232 (« Bornes conservées : N1..99, répétitions1..100 ») ; RM-234",
+   "file": "@07 – Registre des décisions de conception.md",
+   "ancien": "(Tour, D-058). | Validée | Oui |",
+   "nouveau": "(Tour, D-058). | Validée ; borne `Nombre de répétitions` portée à 1–100 par D-232 (RM-234) ; `Nombre de Séries` 1–99 inchangée | Oui |"
+  },
+  {
+   "id": "AR3-04",
+   "ref": "D-337 (« remplace le message en ligne de chapitre 08, paramètres d’exercice »)",
+   "file": "@07 – Registre des décisions de conception.md",
+   "ancien": "Durée totale variable non éditable. | Validée |",
+   "nouveau": "Durée totale variable non éditable. | Validée ; message en ligne remplacé par D-337 (12/10) |"
+  },
+  {
+   "id": "AR3-05",
+   "ref": "D-355 (« remplace pour l’Étiquette le choix au toucher ») ; CE-T03-16 §9 (« Modale DSF D-228 »)",
+   "file": "@07 – Registre des décisions de conception.md",
+   "ancien": "fermeture au toucher remplacée pour la Catégorie de l’Exercice par D-343 (12/10) |",
+   "nouveau": "fermeture au toucher remplacée pour la Catégorie de l’Exercice par D-343 (12/10) et pour l’Étiquette de séance par D-355 (12/10) |"
+  },
+  {
+   "id": "AR3-06",
+   "ref": "D-386 ; texte, statut et portée d’origine lus à 37e372cd^",
+   "file": "@07 – Registre des décisions de conception.md",
+   "ancien": "| D-237 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. Texte historique antérieur au 07/10/2026 (`37e372cd^`), restauré pour traçabilité ; il ne remplace pas la prescription courante : « La spécification d’animation d’appui figée v2 du 29/09/2026 est reprise : dilatation uniforme centrée au contact ; retour au relâchement ; action immédiate au relâchement/tap, sans attendre la fin de l’animation. Rebond et Discret, annulation hors cible, reprise depuis l’état courant, stepper indépendant et opacité seule en réduction des animations suivent le complément DSF. » | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |",
+   "nouveau": "| D-237 | La spécification d’animation d’appui figée v2 du 29/09/2026 est reprise : dilatation uniforme centrée au contact ; retour au relâchement ; action immédiate au relâchement/tap, sans attendre la fin de l’animation. Rebond et Discret, annulation hors cible, reprise depuis l’état courant, stepper indépendant et opacité seule en réduction des animations suivent le complément DSF. Historique : le 07/10/2026 (`37e372cd`), le texte de cette décision avait été remplacé par « Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. », son statut par « Révisée le07/10 — seconde clarification » et sa portée par « Portée, pauses, signaux, données, steppers ou durées selon la décision concernée » ; ces mentions ne sont plus la prescription courante (D-386). | Validée — reprise de la spécification v2 ; prescription rétablie par D-386 (16/10/2026) | Supersède l’ancienne formulation action après animation ; aucune nouvelle temporisation métier |"
+  },
+  {
+   "id": "AR3-07",
+   "ref": "D-386 ; D-312 ; texte, statut et portée d’origine lus à 37e372cd^",
+   "file": "@07 – Registre des décisions de conception.md",
+   "ancien": "| D-252 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. Texte historique antérieur au 07/10/2026 (`37e372cd^`), restauré pour traçabilité ; il ne remplace pas la prescription courante : « Durée des steppers : pas1s ; répétitions : pas1. Pauses : 0,1,2,3,4,5,10…120,150…300s. Bornes inchangées ; maintien D-237 conservé. » | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |",
+   "nouveau": "| D-252 | Prescription courante : pour les steppers, D-312 prévaut (D-386). Texte de l’arbitrage du 02/10/2026, conservé à titre historique : « Durée des steppers : pas1s ; répétitions : pas1. Pauses : 0,1,2,3,4,5,10…120,150…300s. Bornes inchangées ; maintien D-237 conservé. » Historique : le 07/10/2026 (`37e372cd`), le texte de cette décision avait été remplacé par « Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. », son statut par « Révisée le07/10 — seconde clarification » et sa portée par « Portée, pauses, signaux, données, steppers ou durées selon la décision concernée » ; ces mentions ne sont plus la prescription courante (D-386). | Validée ; révisée par D-386 (16/10/2026) : D-312 prévaut pour les steppers | Arbitrage propriétaire02/10 |"
+  },
+  {
+   "id": "AR3-08",
+   "ref": "D-377 (« D-339 conserve son comportement de fermeture après sélection, y compris dans les popovers »)",
+   "file": "@07 – Registre des décisions de conception.md",
+   "ancien": "« Réduire les animations » d’iOS respecté (fermeture immédiate). | Validée, Hermann 12/10 |",
+   "nouveau": "« Réduire les animations » d’iOS respecté (fermeture immédiate). | Validée, Hermann 12/10 ; comportement de fermeture maintenu, popovers compris (D-377) |"
+  },
+  {
+   "id": "AR3-09",
+   "ref": "D-377 (« présentation D-341 remplacée par les DSF validés »)",
+   "file": "@07 – Registre des décisions de conception.md",
+   "ancien": "| Validée ; valeurs validées par Hermann le 12/10 (registre de recette §9) |",
+   "nouveau": "| Validée ; valeurs validées par Hermann le 12/10 (registre de recette §9) ; présentation remplacée par les DSF validés (Circuits du 12/10, Deux modes du 13/10) (D-377) |"
+  },
+  {
+   "id": "AR3-10",
+   "ref": "D-386 ; D-312 ; même contrat CE-UI-07 §13 et §14 (« tap1s puis maintien accéléré selon DSF Bip »)",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "pas des pauses validé D-252.",
+   "nouveau": "pas des pauses selon D-312 (D-386)."
+  },
+  {
+   "id": "AR3-11",
+   "ref": "D-387 ; D-209",
+   "file": "@01 – Vision Générale.md",
+   "ancien": "il provient de l’Exercice ; le Tour n’expose aucun changement de côté.",
+   "nouveau": "il provient de l’Exercice ; le Circuit n’expose aucun changement de côté."
+  },
+  {
+   "id": "AR3-12",
+   "ref": "D-387 ; D-209",
+   "file": "@02 – Utilisateurs et besoins.md",
+   "ancien": "Configurer un Exercice ou un Tour en unilatéral",
+   "nouveau": "Configurer un Exercice ou un Circuit en unilatéral"
+  },
+  {
+   "id": "AR3-13",
+   "ref": "D-387 ; D-209",
+   "file": "@02 – Utilisateurs et besoins.md",
+   "ancien": "Activer la bilatéralité d’un Tour après confirmation ; toutes ses Exercices héritent alors du Tour",
+   "nouveau": "Activer la bilatéralité d’un Circuit après confirmation ; toutes ses Exercices héritent alors du Circuit"
+  },
+  {
+   "id": "AR3-14",
+   "ref": "D-387 ; D-209",
+   "file": "@04 – Modèle fonctionnel.md",
+   "ancien": "- sa structure (Cycle technique, Tour et Exercices) ;",
+   "nouveau": "- sa structure (Cycle technique, Circuit et Exercices) ;"
+  },
+  {
+   "id": "AR3-15",
+   "ref": "D-387 ; D-209",
+   "file": "@04 – Modèle fonctionnel.md",
+   "ancien": "Le Tour ne remplace ni ne neutralise les réglages de côté de ses Exercices",
+   "nouveau": "Le Circuit ne remplace ni ne neutralise les réglages de côté de ses Exercices"
+  },
+  {
+   "id": "AR3-16",
+   "ref": "D-387 ; D-209",
+   "file": "@05 – Versions du produit.md",
+   "ancien": "changement de côté non exposé au niveau Tour ;",
+   "nouveau": "changement de côté non exposé au niveau Circuit ;"
+  },
+  {
+   "id": "AR3-17",
+   "ref": "D-387 ; D-209",
+   "file": "@05 – Versions du produit.md",
+   "ancien": "plusieurs Tours ordonnés dans un même Cycle ;",
+   "nouveau": "plusieurs Circuits ordonnés dans un même Cycle ;"
+  },
+  {
+   "id": "AR3-18",
+   "ref": "D-387 ; D-209",
+   "file": "@05 – Versions du produit.md",
+   "ancien": "un nombre de répétitions propre à chaque Cycle et à chaque Tour.",
+   "nouveau": "un nombre de répétitions propre à chaque Cycle et à chaque Circuit."
+  },
+  {
+   "id": "AR3-19",
+   "ref": "D-387 ; D-209",
+   "file": "@05 – Versions du produit.md",
+   "ancien": "ne rend pas les Cycles, Tours ou copies",
+   "nouveau": "ne rend pas les Cycles, Circuits ou copies"
+  },
+  {
+   "id": "AR3-20",
+   "ref": "D-387 ; D-209",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "Aucune confirmation d’activation bilatérale du Tour n’est exposée",
+   "nouveau": "Aucune confirmation d’activation bilatérale du Circuit n’est exposée"
+  },
+  {
+   "id": "AR3-21",
+   "ref": "D-387 ; D-209",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "Une séance contient obligatoirement un Cycle et un Tour et",
+   "nouveau": "Une séance contient obligatoirement un Cycle et un Circuit et"
+  },
+  {
+   "id": "AR3-22",
+   "ref": "D-387 ; D-209",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "Le Tour répète automatiquement son contenu",
+   "nouveau": "Le Circuit répète automatiquement son contenu"
+  },
+  {
+   "id": "AR3-23",
+   "ref": "D-387 ; D-209",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "- la structure ordonnée des Cycles, Tours et Exercices ;",
+   "nouveau": "- la structure ordonnée des Cycles, Circuits et Exercices ;"
+  },
+  {
+   "id": "AR3-24",
+   "ref": "D-387 ; D-209",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "Aucun réglage de côté n’est exposé au niveau Tour |",
+   "nouveau": "Aucun réglage de côté n’est exposé au niveau Circuit |"
+  },
+  {
+   "id": "AR3-25",
+   "ref": "D-387 ; D-209",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "Aucun réglage de côté n’est exposé au niveau Tour. |",
+   "nouveau": "Aucun réglage de côté n’est exposé au niveau Circuit. |"
+  },
+  {
+   "id": "AR3-26",
+   "ref": "D-387 ; D-209",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "## 3. Composition, Tour et Cycle technique",
+   "nouveau": "## 3. Composition, Circuit et Cycle technique"
+  },
+  {
+   "id": "AR3-27",
+   "ref": "D-387 ; D-209",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "Aucun réglage de côté n’est exposé au niveau Tour dans la version actuelle.",
+   "nouveau": "Aucun réglage de côté n’est exposé au niveau Circuit dans la version actuelle."
+  },
+  {
+   "id": "AR3-28",
+   "ref": "D-387 ; D-209",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "le Tour n’impose aucune direction à ses Exercices",
+   "nouveau": "le Circuit n’impose aucune direction à ses Exercices"
+  },
+  {
+   "id": "AR3-29",
+   "ref": "D-387 ; D-209",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "Aucun contrôle ni confirmation d’activation bilatérale du Tour n’est exposé",
+   "nouveau": "Aucun contrôle ni confirmation d’activation bilatérale du Circuit n’est exposé"
+  },
+  {
+   "id": "AR3-30",
+   "ref": "D-387 ; D-209",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "Le Tour ne porte pas de direction exposée.",
+   "nouveau": "Le Circuit ne porte pas de direction exposée."
+  },
+  {
+   "id": "AR3-31",
+   "ref": "D-387 ; D-209",
+   "file": "@12 – Architecture technique.md",
+   "ancien": "**Structure complète du MVP** : Tour et ses répétitions,",
+   "nouveau": "**Structure complète du MVP** : Circuit et ses Tours,"
+  },
+  {
+   "id": "AR1-01",
+   "ref": "D-376",
+   "file": "PRODUCT.md",
+   "ancien": "7. documents de travail, historiques et revues externes.",
+   "nouveau": "7. documents de travail, historiques et revues externes.\r\n\r\nCet ordre n’établit aucune priorité automatique entre la conception fonctionnelle détaillée (chapitre 08) et les contrats d’écran (chapitre 13) : une contradiction entre eux qui n’est pas résolue par une décision explicite reste `À CLARIFIER` (D-376)."
+  },
+  {
+   "id": "AR1-02",
+   "ref": "D-376",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "7. Figma pour le rendu visuel et les états effectivement représentés.",
+   "nouveau": "7. Figma pour le rendu visuel et les états effectivement représentés.\r\n\r\nCet ordre n’établit aucune priorité automatique entre le chapitre 08, y compris sa section Paramètres et brouillon citée au rang 1, et le présent chapitre : une contradiction entre eux qui n’est pas résolue par une décision explicite reste `À CLARIFIER` (D-376)."
+  },
+  {
+   "id": "AR1-03",
+   "ref": "D-376",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "- les modifications sont enregistrées automatiquement ;",
+   "nouveau": "- les modifications sont enregistrées automatiquement (`À CLARIFIER` : contradiction avec CE-T03-08 §15, « Continuer seul persiste » ; D-376) ;"
+  },
+  {
+   "id": "AR1-04",
+   "ref": "D-376, D-377",
+   "file": "INDEX.md",
+   "ancien": "Elle ne tranche aucun point d’autorité encore ouvert, en particulier le rang entre les chapitres 08 et 13 et le statut des DSF (voir les points non arbitrés ci-dessous).",
+   "nouveau": "Elle ne tranche aucun point d’autorité encore ouvert (voir les points non arbitrés ci-dessous)."
+  },
+  {
+   "id": "AR1-05",
+   "ref": "D-376, D-377",
+   "file": "INDEX.md",
+   "ancien": "Une règle n’est pas remplacée du seul fait qu’un texte est plus récent ou placé ailleurs.",
+   "nouveau": "Une règle n’est pas remplacée du seul fait qu’un texte est plus récent ou placé ailleurs.\r\n- **Chapitres 08 et 13.** « Aucune priorité automatique entre le chapitre 08 et le chapitre 13 : une contradiction entre eux qui n’est pas résolue par une décision explicite reste `À CLARIFIER`. » (D-376.) La borne « jusqu’à D-255 » du chapitre 13 § 2 n’est pas tranchée par cette décision.\r\n- **DSF, D-339 et D-341.** « D-339 conserve son comportement de fermeture après sélection, y compris dans les popovers ; présentation D-341 remplacée par les DSF validés. » (D-377.)"
+  },
+  {
+   "id": "AR1-06",
+   "ref": "D-376",
+   "file": "INDEX.md",
+   "ancien": "- **Rang entre le chapitre 08 et le chapitre 13** en cas de contradiction sur un même écran. Trois passages divergent : `PRODUCT.md` § Gouvernance documentaire, chapitre 13 § 2 et chapitre 08 § 1.3 Organisation (« Les champs, contrôles et comportements spécifiques des écrans sont définis au chapitre 13. »).\r\n",
+   "nouveau": ""
+  },
+  {
+   "id": "AR1-07",
+   "ref": "D-377",
+   "file": "INDEX.md",
+   "ancien": "- **Statut des DSF face aux décisions D-339 et D-341.** Le chapitre 13 indique : « Le DSF du12/10 et Deux modes du13/10 supersèdent cette présentation pour la prochaine tranche ». Aucune décision du chapitre 07 ne consigne ce remplacement.\r\n",
+   "nouveau": ""
+  },
+  {
+   "id": "AR1-08",
+   "ref": "D-377",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Le DSF du12/10 et Deux modes du13/10 supersèdent cette présentation pour la prochaine tranche ; ils ne prétendent pas être déjà réalisés.",
+   "nouveau": "Le DSF du12/10 et Deux modes du13/10 remplacent la présentation D-341 pour la prochaine tranche (D-377) ; la fermeture après sélection de D-339 est conservée, y compris dans les popovers (D-377). Ces DSF ne prétendent pas être déjà réalisés."
+  },
+  {
+   "id": "AR1-09",
+   "ref": "D-377 ; DSF-CIRCUITS-CONTROLES-2026-10-12 l. 25",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "| 5 | Changement de côté | Segmenté, sans changement / D→G / G→D |",
+   "nouveau": "| 5 | Changement de côté | Popover, sans changement / D→G / G→D (DSF du 12/10, D-377) |"
+  },
+  {
+   "id": "AR1-10",
+   "ref": "D-377",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Exceptions conservées : Changement de côté 13 px sur deux lignes ; Ordre des côtés 14 px + sous-titre 11 px.",
+   "nouveau": "Exceptions historiques de la feuille Paramètres, dont la présentation D-341 est remplacée par les DSF validés (D-377) : Changement de côté 13 px sur deux lignes ; Ordre des côtés 14 px + sous-titre 11 px."
+  },
+  {
+   "id": "AR1-11",
+   "ref": "D-377",
+   "file": "@12 – Architecture technique.md",
+   "ancien": "figés `6407-9805` et `6665-26185` ; D-341 |",
+   "nouveau": "figés `6407-9805` et `6665-26185` ; D-341, présentation remplacée par les DSF validés (D-377) |"
+  },
+  {
+   "id": "AR1-12",
+   "ref": "D-377",
+   "file": "@12 – Architecture technique.md",
+   "ancien": "contour blanc 1 ; figé `6407-9805` ; D-341 |",
+   "nouveau": "contour blanc 1 ; figé `6407-9805` ; D-341, présentation remplacée par les DSF validés (D-377) |"
+  },
+  {
+   "id": "AR1-13",
+   "ref": "D-377",
+   "file": "@12 – Architecture technique.md",
+   "ancien": "sur deux lignes, centrées (D-341, 12/10) |",
+   "nouveau": "sur deux lignes, centrées (D-341, 12/10 ; présentation remplacée par les DSF validés, D-377) |"
+  },
+  {
+   "id": "AR1-14",
+   "ref": "D-377 ; DSF-CIRCUITS-CONTROLES-2026-10-12 l. 25",
+   "file": "DSF-SERIES-VARIABLES-2026-10-02.md",
+   "ancien": "| Segmenté en feuille | Trois largeurs égales ;",
+   "nouveau": "| Segmenté en feuille | Historique : remplacé par les popovers du DSF du 12/10 (D-377). Trois largeurs égales ;"
+  },
+  {
+   "id": "AR1-15",
+   "ref": "D-378",
+   "file": "@05 – Versions du produit.md",
+   "ancien": "Le layout d’exécution est conservé.",
+   "nouveau": "Le layout d’exécution est conservé. Le guidage de cadence pendant l’Exécution appartient au MVP (D-378)."
+  },
+  {
+   "id": "AR1-16",
+   "ref": "D-378 ; D-369 conservée",
+   "file": "@05 – Versions du produit.md",
+   "ancien": "La présence d’un écran sur Prototype MVP ne constitue ni son admission dans une tranche ni sa livraison applicative.",
+   "nouveau": "Les six formats d’entraînement et les départs rapides appartiennent au MVP (D-378). La présence d’un écran sur Prototype MVP ne constitue ni son admission dans une tranche ni sa livraison applicative."
+  },
+  {
+   "id": "AR1-17",
+   "ref": "D-378",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "sont dans Conception — Hors MVP ; cet alignement ne les promeut pas au périmètre MVP.",
+   "nouveau": "sont dans la page Figma Conception — Hors MVP ; ce nom de page ne définit pas le périmètre : les six formats d’entraînement et les départs rapides appartiennent au MVP (D-378)."
+  },
+  {
+   "id": "AR1-18",
+   "ref": "D-378",
+   "file": "@01 – Vision Générale.md",
+   "ancien": "Les deux modes peuvent émettre un Bip de cadence",
+   "nouveau": "Le guidage de cadence pendant l’Exécution appartient au MVP (D-378). Les deux modes peuvent émettre un Bip de cadence"
+  },
+  {
+   "id": "AR1-19",
+   "ref": "D-378",
+   "file": "@01 – Vision Générale.md",
+   "ancien": "Les six formats proposent des contraintes d’exécution, tandis que les six autres entrées accélèrent la création d’une séance libre.",
+   "nouveau": "Les six formats proposent des contraintes d’exécution, tandis que les six autres entrées accélèrent la création d’une séance libre. Les six formats et ces départs rapides appartiennent au MVP (D-378)."
+  },
+  {
+   "id": "AR1-20",
+   "ref": "D-378",
+   "file": "@03 – Parcours utilisateur.md",
+   "ancien": "**Entrée Formats (cible 14/10) :**",
+   "nouveau": "**Entrée Formats (cible 14/10, MVP selon D-378) :**"
+  },
+  {
+   "id": "AR1-21",
+   "ref": "D-378 ; D-369 conservée",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "Ces règles étendent les parcours libres ; elles ne déclarent pas le moteur livré.",
+   "nouveau": "Les six formats et les départs rapides appartiennent au MVP (D-378). Ces règles étendent les parcours libres ; elles ne déclarent pas le moteur livré."
+  },
+  {
+   "id": "AR1-22",
+   "ref": "D-378",
+   "file": "PRODUCT.md",
+   "ancien": "- le signal des trois dernières secondes ;",
+   "nouveau": "- le signal des trois dernières secondes ;\r\n- le guidage de cadence pendant l’Exécution (D-378) ;"
+  },
+  {
+   "id": "AR1-23",
+   "ref": "D-378",
+   "file": "PRODUCT.md",
+   "ancien": "\r\n### Exécution d’une Séance",
+   "nouveau": "\r\n### Formats et départs rapides\r\n\r\nLes six formats d’entraînement (Tabata, Intervalles 30/30, EMOM, AMRAP, For time, Death by) et les départs rapides appartiennent au MVP (D-378). Leurs règles sont au chapitre 08, section Formats de séances ; le moteur n’est pas encore développé (D-369).\r\n\r\n### Exécution d’une Séance"
+  },
+  {
+   "id": "AR1-24",
+   "ref": "P-03 : D-166, D-183, RM-109",
+   "file": "@12 – Architecture technique.md",
+   "ancien": "| Exercices | désactivé, aucune requête | `ActivityDefinitionRepository` |",
+   "nouveau": "| Exercices | `ActivityDefinitionRepository`, à partir de T03 (D-166, D-183, RM-109) | `ActivityDefinitionRepository` |"
+  },
+  {
+   "id": "AR1-25",
+   "ref": "ch. 13 § 1 (« Les 40 contrats actifs » ; « 20 rubriques canoniques »)",
+   "file": "README.md",
+   "ancien": "chapitre13 :30 contrats dont CE-UI-10,21 rubriques chacun",
+   "nouveau": "chapitre13 :40 contrats actifs (chapitre 13 § 1) dont CE-UI-10, 20 rubriques canoniques chacun"
+  },
+  {
+   "id": "AR1-26",
+   "ref": "INDEX.md l. 3 et 20 (treize chapitres 01 à 13 ; glossaire intégré au ch. 01)",
+   "file": "README.md",
+   "ancien": "Les règles sont intégrées aux chapitres 00–13 ;",
+   "nouveau": "Les règles sont intégrées aux chapitres 01–13 ;"
+  },
+  {
+   "id": "AR1-27",
+   "ref": "DSF-CADENCE-2026-10-06 l. 3 ; README.md l. 65",
+   "file": "PRODUCT.md",
+   "ancien": "et DSF-CADENCE-2026-10-06.",
+   "nouveau": "et DSF-CADENCE-2026-10-06, actualisé le 13/10 par DSF-DEUX-MODES-ECHEC-2026-10-13."
+  },
+  {
+   "id": "AR2-01",
+   "ref": "D-379 (Q-F)",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "| Partielle   | `SESSION_END` a été achevée, mais au moins un Exercice a été interrompue ou ignorée. |",
+   "nouveau": "| Partielle   | `SESSION_END` a été achevée et au moins un Résultat d’Exercice est `Partielle` ; une récupération écourtée ne suffit pas (D-379). |"
+  },
+  {
+   "id": "AR2-02",
+   "ref": "D-379 (Q-F)",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "|Partielle|La séance est arrivée à son terme, mais au moins un exercice chronométré a été interrompue avant la fin de sa durée.|",
+   "nouveau": "|Partielle|La séance est arrivée à son terme et au moins un Résultat d’Exercice est `Partielle` ; une récupération écourtée ne suffit pas (D-379).|"
+  },
+  {
+   "id": "AR2-03",
+   "ref": "D-379 (Q-F)",
+   "file": "@03 – Parcours utilisateur.md",
+   "ancien": "- Partielle : la phase `SESSION_END` a été achevée, mais au moins un Exercice a été interrompue ou ignorée.",
+   "nouveau": "- Partielle : la phase `SESSION_END` a été achevée et au moins un Résultat d’Exercice est `Partielle` ; une récupération écourtée ne suffit pas (D-379)."
+  },
+  {
+   "id": "AR2-04",
+   "ref": "D-379 (Q-F)",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "| RM-057 | Une Exécution peut être `En cours`, `Suspendue`, `Terminée`, `Partielle` ou `Interrompue`. |",
+   "nouveau": "| RM-057 | Une Exécution peut être `En cours`, `Suspendue`, `Terminée`, `Partielle` ou `Interrompue`. Le statut `Partielle` d’une Séance close découle d’au moins un Résultat d’Exercice `Partielle` ; une récupération écourtée ne suffit pas (D-379). |"
+  },
+  {
+   "id": "AR2-05",
+   "ref": "D-380 (Q-H)",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "Une séance incomplète peut être enregistrée mais ne peut pas être exécutée.",
+   "nouveau": "Une séance dont un Exercice comporte une cible obligatoire non renseignée ne peut pas être enregistrée (D-380)."
+  },
+  {
+   "id": "AR2-06",
+   "ref": "D-380 (Q-H)",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "qu’aucun Exercice valide n’est présent. L’Étiquette est facultative ; lorsqu’elle est renseignée, sa couleur devient celle de la Séance. |",
+   "nouveau": "qu’aucun Exercice valide n’est présent. Une Séance ne peut pas être enregistrée si un de ses Exercices comporte une cible obligatoire non renseignée (D-380). L’Étiquette est facultative ; lorsqu’elle est renseignée, sa couleur devient celle de la Séance. |"
+  },
+  {
+   "id": "AR2-07",
+   "ref": "D-380 (Q-H)",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Continuer exige nom et au moins un Exercice valide.",
+   "nouveau": "Continuer exige nom et au moins un Exercice valide ; la Séance n’est pas enregistrée si un de ses Exercices comporte une cible obligatoire non renseignée (D-380)."
+  },
+  {
+   "id": "AR2-08",
+   "ref": "D-380 (Q-H)",
+   "file": "@01 – Vision Générale.md",
+   "ancien": "Elle devient validable lorsqu’elle contient au moins un Exercice valide.",
+   "nouveau": "Elle devient validable lorsqu’elle contient au moins un Exercice valide et qu’aucun de ses Exercices ne comporte de cible obligatoire non renseignée (D-380)."
+  },
+  {
+   "id": "AR2-09",
+   "ref": "D-381 (Q-I), D-365",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "son mapping physique reste à qualifier.",
+   "nouveau": "son mapping physique reste à qualifier ; sa représentation sera définie dans le chantier Suivi (D-381, D-365)."
+  },
+  {
+   "id": "AR2-10",
+   "ref": "D-381 (Q-I), D-365",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "La représentation visuelle de ce résultat reste à illustrer ; CE-FMT-06.",
+   "nouveau": "La représentation visuelle de ce résultat reste à illustrer ; CE-FMT-06. La représentation d’un Death by incomplet sera définie dans le chantier Suivi (D-381, D-365)."
+  },
+  {
+   "id": "AR2-11",
+   "ref": "D-381 (Q-I), D-365",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Après clôture, synthèse puis suivi existants ; l’édition ultérieure de la séance ne modifie pas ce résultat.",
+   "nouveau": "Après clôture, synthèse puis suivi existants ; l’édition ultérieure de la séance ne modifie pas ce résultat. La représentation d’un Death by incomplet sera définie dans le chantier Suivi (D-381, D-365)."
+  },
+  {
+   "id": "AR2-12",
+   "ref": "D-382 (Q-J)",
+   "file": "@07 – Registre des décisions de conception.md",
+   "ancien": "centré verticalement avec le sélecteur du nombre de tours. | Validée post-Figma | Oui |",
+   "nouveau": "centré verticalement avec le sélecteur du nombre de tours. | Validée post-Figma ; précisée sur ce point (total sous le titre du Circuit : ce Circuit seul) par D-382 | Oui |"
+  },
+  {
+   "id": "AR2-13",
+   "ref": "D-382 (Q-J)",
+   "file": "@07 – Registre des décisions de conception.md",
+   "ancien": "mais excluent les Pauses manuelles conformément à D-071. | Validée | Oui |",
+   "nouveau": "mais excluent les Pauses manuelles conformément à D-071. | Validée ; précisée sur ce point (total sous le titre du Circuit : ce Circuit seul) par D-382 | Oui |"
+  },
+  {
+   "id": "AR2-14",
+   "ref": "D-382 (Q-J)",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "La durée synthétique des Exercices est affichée sur les cartes du Catalogue et sous `Nombre de tours` dans la Composition.",
+   "nouveau": "La durée synthétique des Exercices est affichée sur les cartes du Catalogue ; le total affiché sous le titre du Circuit dans la Composition concerne exclusivement ce Circuit (D-382)."
+  },
+  {
+   "id": "AR2-15",
+   "ref": "D-382 (Q-J)",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "la durée de Séance intègre les durées intrinsèques des Exercices ainsi que leurs récupérations après exercice.",
+   "nouveau": "la durée concerne exclusivement ce Circuit (D-382) et intègre les durées intrinsèques de ses Exercices ainsi que leurs récupérations après exercice."
+  },
+  {
+   "id": "AR2-16",
+   "ref": "D-382 (Q-J)",
+   "file": "@12 – Architecture technique.md",
+   "ancien": "Son calcul consomme la Durée synthétique des Exercices et exclut toujours",
+   "nouveau": "Son calcul consomme la Durée synthétique des Exercices de ce seul Circuit (D-382) et exclut toujours"
+  },
+  {
+   "id": "AR2-17",
+   "ref": "D-382 (Q-J)",
+   "file": "@01 – Vision Générale.md",
+   "ancien": "Elle est utilisée dans le Catalogue et dans la synthèse du Circuit de la Composition.",
+   "nouveau": "Elle est utilisée dans le Catalogue ; le total affiché sous le titre du Circuit de la Composition concerne exclusivement ce Circuit (D-382)."
+  },
+  {
+   "id": "AR2-18",
+   "ref": "D-382 (Q-J)",
+   "file": "@04 – Modèle fonctionnel.md",
+   "ancien": "La **Durée synthétique des Exercices**, utilisée dans le Catalogue et la synthèse du Circuit de la Composition, développe les occurrences d’Exercices mais exclut le Compte à rebours initial et la Fin de séance.",
+   "nouveau": "La **Durée synthétique des Exercices**, utilisée dans le Catalogue, développe les occurrences d’Exercices mais exclut le Compte à rebours initial et la Fin de séance ; le total affiché sous le titre du Circuit de la Composition concerne exclusivement ce Circuit (D-382)."
+  },
+  {
+   "id": "AR2-19",
+   "ref": "D-382 (Q-J)",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "utilisée dans le Catalogue et la Composition ;",
+   "nouveau": "utilisée dans le Catalogue ; le total affiché sous le titre du Circuit de la Composition concerne exclusivement ce Circuit (D-382) ;"
+  },
+  {
+   "id": "AR2-20",
+   "ref": "D-382 (Q-J)",
+   "file": "@05 – Versions du produit.md",
+   "ancien": "la Durée synthétique des Exercices affichée dans le Catalogue et la Composition ;",
+   "nouveau": "la Durée synthétique des Exercices affichée dans le Catalogue, distincte du total propre au Circuit affiché sous son titre dans la Composition (D-382) ;"
+  },
+  {
+   "id": "AR2-21",
+   "ref": "D-383 (Q-K1)",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "pauses inter-Séries/inter-côtés `0..300 s`. Les deux pauses utilisent un stepper",
+   "nouveau": "pauses inter-Séries/inter-côtés `0..300 s`. Une valeur héritée hors bornes, non modifiée, peut être conservée ; toute nouvelle saisie ou modification doit respecter ces bornes (D-383). Les deux pauses utilisent un stepper"
+  },
+  {
+   "id": "AR2-22",
+   "ref": "D-383 (Q-K1)",
+   "file": "@11 – API fonctionnelles.md",
+   "ancien": "pauses inter-Séries/inter-côtés `0..300 s`. | Exercice |",
+   "nouveau": "pauses inter-Séries/inter-côtés `0..300 s`. Une valeur héritée hors bornes, non modifiée, est acceptée ; toute valeur saisie ou modifiée doit respecter ces bornes (D-383). | Exercice |"
+  },
+  {
+   "id": "AR2-23",
+   "ref": "D-383 (Q-K1)",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "pauses inter-Séries et inter-côtés `∈ [0,300] s`.",
+   "nouveau": "pauses inter-Séries et inter-côtés `∈ [0,300] s`. Une valeur héritée hors bornes, non modifiée, peut être conservée ; toute nouvelle saisie ou modification doit respecter ces bornes (D-383)."
+  },
+  {
+   "id": "AR2-24",
+   "ref": "D-383 (Q-K1)",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "(D-211 ; bornes conservées par D-232)",
+   "nouveau": "(D-211 ; bornes conservées par D-232 ; une valeur héritée hors bornes, non modifiée, peut être conservée, D-383)"
+  },
+  {
+   "id": "AR2-25",
+   "ref": "D-383 (Q-K1)",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "données héritées hors plage à traiter explicitement, jamais tronquées silencieusement.",
+   "nouveau": "données héritées hors plage conservées tant qu’elles ne sont pas modifiées, toute nouvelle saisie ou modification respectant les bornes (D-383) ; jamais tronquées silencieusement."
+  },
+  {
+   "id": "AR2-26",
+   "ref": "D-383 (Q-K1)",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Pause0 valide. Repli du tableau ne contourne jamais la validation.",
+   "nouveau": "Pause0 valide. Une valeur héritée hors bornes, non modifiée, reste valide ; toute nouvelle saisie ou modification respecte les bornes (D-383). Repli du tableau ne contourne jamais la validation."
+  },
+  {
+   "id": "AR2-27",
+   "ref": "D-384 (Q-K2)",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "Variable : lecture seule, — si incomplet ;",
+   "nouveau": "Variable : lecture seule ; ligne affichée avec « — » lorsqu’une cible nécessaire au calcul manque (D-384) ;"
+  },
+  {
+   "id": "AR2-28",
+   "ref": "D-384 (Q-K2)",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "mélange calculable : ≥ en lecture seule |",
+   "nouveau": "mélange calculable : ≥ en lecture seule ; cible nécessaire au calcul manquante : ligne affichée avec « — » (D-384) |"
+  },
+  {
+   "id": "AR2-29",
+   "ref": "D-384 (Q-K2)",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "Total variable readonly et — si incomplet ;",
+   "nouveau": "Total variable readonly ; ligne Total affichée avec « — » lorsqu’une cible nécessaire au calcul manque (D-384) ;"
+  }
+ ]
+}

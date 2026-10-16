@@ -24,6 +24,8 @@ Pour les contrats actifs :
 6. présent chapitre 13 ;
 7. Figma pour le rendu visuel et les états effectivement représentés.
 
+Cet ordre n’établit aucune priorité automatique entre le chapitre 08, y compris sa section Paramètres et brouillon citée au rang 1, et le présent chapitre : une contradiction entre eux qui n’est pas résolue par une décision explicite reste `À CLARIFIER` (D-376).
+
 Figma ne transforme jamais une valeur de démonstration en règle métier. Inversement, un comportement métier ne permet pas d’inventer un composant graphique absent de Figma. Tout détail visuel non représenté et non arbitré est `NON VÉRIFIABLE` ou `À CLARIFIER`.
 
 ### Portée transverse des paramètres v13
@@ -114,7 +116,7 @@ Catalogues et sélecteurs de type de contenu dans les modales « Choisir une sé
 
 À largeur de référence 354 : cadre 354×42, padding 4, gap 4, deux options 171×34 ; rayon extérieur 14, fond blanc `VariableID:2290:54` à 50 %, sans contour. Rayon des options 10 ; sélection indigo, texte blanc ; inactive #EAEAFF, texte sombre, sans contour. Largeurs flexibles : répartir la largeur utile, sans figer 171 sur tous appareils.
 
-Libellés de tous les segmentés : `KODJO / Section title`, Inter Semi Bold 16/20, notamment Catalogue, Calendrier Jour/Semaine/Mois, Suivi, Mode, Mode d’exécution et Statut. Exceptions conservées : Changement de côté 13 px sur deux lignes ; Ordre des côtés 14 px + sous-titre 11 px. Les Calendriers et modes à trois choix gardent leurs trois options. La typographie ne modifie ni les libellés, ni les règles de sélection, ni l’état actif/désactivé propre à leur contexte.
+Libellés de tous les segmentés : `KODJO / Section title`, Inter Semi Bold 16/20, notamment Catalogue, Calendrier Jour/Semaine/Mois, Suivi, Mode, Mode d’exécution et Statut. Exceptions historiques de la feuille Paramètres, dont la présentation D-341 est remplacée par les DSF validés (D-377) : Changement de côté 13 px sur deux lignes ; Ordre des côtés 14 px + sous-titre 11 px. Les Calendriers et modes à trois choix gardent leurs trois options. La typographie ne modifie ni les libellés, ni les règles de sélection, ni l’état actif/désactivé propre à leur contexte.
 
 Titres affichés : CE-T03-04 `Créer un exercice` / `Modifier un exercice` ; CE-T03-08 `Composer une séance` / `Modifier une séance`. `Créer une activité` reste inchangé. Les noms techniques de frames et annotations historiques peuvent différer : les IDs et chemins restent stables. Un libellé d’action `Ajouter` ne devient pas automatiquement `Créer` ; depuis Composition, `Ajouter un exercice` conserve la destination CE-T03-07. Aucun arbre de création retiré n’est réintroduit.
 
@@ -979,7 +981,7 @@ Swipe occurrence : Dupliquer/Supprimer ; appui long puis glisser : déplacer. Ap
 
 ### 14. Validation
 
-Continuer exige nom et au moins un Exercice valide. Récupération0..300s, grille1s jusqu’à5,5s jusqu’à120,30s jusqu’à300 ; aucune durée requise pour point. Récupération après occurrence, dernière comprise ; pas avant première. Point interdit immédiatement après compte à rebours initial et avant Fin ; autorisé avant/après Circuit et entre ses Exercices. Un élément de chaque type au même emplacement ; pas de doublon du même type. Drop invalide restitue la position. Les affectations de référentiels retirées restent valides selon D-210.
+Continuer exige nom et au moins un Exercice valide ; la Séance n’est pas enregistrée si un de ses Exercices comporte une cible obligatoire non renseignée (D-380). Récupération0..300s, grille1s jusqu’à5,5s jusqu’à120,30s jusqu’à300 ; aucune durée requise pour point. Récupération après occurrence, dernière comprise ; pas avant première. Point interdit immédiatement après compte à rebours initial et avant Fin ; autorisé avant/après Circuit et entre ses Exercices. Un élément de chaque type au même emplacement ; pas de doublon du même type. Drop invalide restitue la position. Les affectations de référentiels retirées restent valides selon D-210.
 
 ### 15. Brouillon et persistance
 
@@ -2606,7 +2608,7 @@ Identité/Modifier, groupes Exercice et Séance de réglages, commandes son/voca
 
 Six défauts distincts ; aucune Pause inter-Séries globale ajoutée. La Pause après chaque série est initialisée à 0 s dans l’éditeur (chapitre 08, paramètres d’exercice, CE-UI-10 §3), sans défaut global du Profil. Silhouette ne se modifie que dans CE-UI-01.
 
-Libellé unique Pause entre les côtés ; défaut10s ; pas des pauses validé D-252. Les captures anciennes de Profil portant un ancien libellé sont historiques sur ce texte.
+Libellé unique Pause entre les côtés ; défaut10s ; pas des pauses selon D-312 (D-386). Les captures anciennes de Profil portant un ancien libellé sont historiques sur ce texte.
 
 ### 9. Layout déterministe
 
@@ -2768,7 +2770,7 @@ Vérifier passage entre préparation, Série cadencée, pauses programmées et f
 
 ## CE-UI-08 — Synthèse de Séance
 
-**Complément Formats du 14/10 :** Pour Death by, montrer le résultat tours acquis + répétitions partielles et le motif, avec achèvement incomplet dans les deux cas. Ne pas transformer « limite atteinte » en Terminée. La représentation visuelle de ce résultat reste à illustrer ; CE-FMT-06.
+**Complément Formats du 14/10 :** Pour Death by, montrer le résultat tours acquis + répétitions partielles et le motif, avec achèvement incomplet dans les deux cas. Ne pas transformer « limite atteinte » en Terminée. La représentation visuelle de ce résultat reste à illustrer ; CE-FMT-06. La représentation d’un Death by incomplet sera définie dans le chantier Suivi (D-381, D-365).
 
 ### 1. Identification
 
@@ -3038,7 +3040,7 @@ Retour au parent même position et contenu, phrase régénérée à chaque affic
 
 ### 17. Erreurs et cas limites
 
-Cible manquante, valeur hors borne, double validation, interruption ou erreur de persistance : aucun état partiel. Mode sans durée propre : ligne absente même si pauses positives. Historique non modifié ; données héritées hors plage à traiter explicitement, jamais tronquées silencieusement.
+Cible manquante, valeur hors borne, double validation, interruption ou erreur de persistance : aucun état partiel. Mode sans durée propre : ligne absente même si pauses positives. Historique non modifié ; données héritées hors plage conservées tant qu’elles ne sont pas modifiées, toute nouvelle saisie ou modification respectant les bornes (D-383) ; jamais tronquées silencieusement.
 
 ### 18. Accessibilité
 
@@ -4042,7 +4044,7 @@ Persister le résultat confirmé, son motif et l’achèvement incomplet avec l�
 
 ### 16. Navigation et conservation d’état
 
-Après clôture, synthèse puis suivi existants ; l’édition ultérieure de la séance ne modifie pas ce résultat.
+Après clôture, synthèse puis suivi existants ; l’édition ultérieure de la séance ne modifie pas ce résultat. La représentation d’un Death by incomplet sera définie dans le chantier Suivi (D-381, D-365).
 
 ### 17. Erreurs et cas limites
 
@@ -4080,17 +4082,17 @@ Aucun de ces constats ne suspend globalement la création/composition. Seule une
 | 2 | Séries | Valeur numérique, défaut1 ; appui révèle ± si N libre ; valeur réelle en lecture seule avec origine si N hérité du circuit |
 | 3 | Régime des séries | Valeur identiques/variables et popover ; chevron indépendant uniquement si variable ; normalisation N1 existante conservée |
 | 4 | Cible et Pause | Uniforme : lignes Durée/Répétitions et Pause après chaque série ; variable : tableau rattaché au champ de régime, ligne numérotée, poignée, cible et Pause par steppers ; À l’échec : cible textuelle sélectionnable, sans nombre prescrit |
-| 5 | Changement de côté | Segmenté, sans changement / D→G / G→D |
+| 5 | Changement de côté | Popover, sans changement / D→G / G→D (DSF du 12/10, D-377) |
 | 6 | Ordre des côtés | Bilatéral uniquement, deux options ; grisé à1 |
 | 7 | Pause entre les côtés | Bilatéral uniquement, stepper ; copie du Profil à activation |
 | 7b | Bip de cadence | Deux modes ; stepper0..10,0=Aucun ; premier niveau, juste avant le total applicable ; commun hors tableau variable. |
-| 8 | Durée totale | Durée uniforme chiffrée avec N libre : roulette ; N hérité du circuit, variable/Répétitions avec bip : lecture seule ; Répétitions sans bip et toutes cibles À l’échec : absente ; mélange calculable : ≥ en lecture seule |
+| 8 | Durée totale | Durée uniforme chiffrée avec N libre : roulette ; N hérité du circuit, variable/Répétitions avec bip : lecture seule ; Répétitions sans bip et toutes cibles À l’échec : absente ; mélange calculable : ≥ en lecture seule ; cible nécessaire au calcul manquante : ligne affichée avec « — » (D-384) |
 | 9 | Compte à rebours | Stepper ; défaut Profil10s |
 | 10 | Fin d’exercice | Stepper ; défaut Profil5s |
 
 Création : mode/durée/côté non renseignés —, Série1, Pause0s ; cible Répétitions uniforme initiale1 ; aucune cible implicite lors d’un changement de mode variable. Côté vide normalisé Sans changement à validation. La feuille entière défile sous un en-tête ✕/titre/✓ fixe. Ouverture : voile en fondu sur place, feuille montante depuis le bas ; « Réduire les animations » : feuille en place . Un seul popover/roulette ouvert ; les boutons ± apparaissent à l’appui sur une valeur numérique ; un seul champ est actif, sans modale supplémentaire. Glisser une Série : corps immobile et repère d’insertion entre les lignes . Le chevron masque le tableau sans modifier les données ni désactiver le mode variable.
 
-État historique livré PRE-3 : sélecteurs segmentés et steppers permanents, avec fermeture progressive D-339 et typographie D-341. Le DSF du12/10 et Deux modes du13/10 supersèdent cette présentation pour la prochaine tranche ; ils ne prétendent pas être déjà réalisés.
+État historique livré PRE-3 : sélecteurs segmentés et steppers permanents, avec fermeture progressive D-339 et typographie D-341. Le DSF du12/10 et Deux modes du13/10 remplacent la présentation D-341 pour la prochaine tranche (D-377) ; la fermeture après sélection de D-339 est conservée, y compris dans les popovers (D-377). Ces DSF ne prétendent pas être déjà réalisés.
 
 | Paramètre | Bornes | Granularité validée le02/10 |
 |---|---|---|
@@ -4103,7 +4105,7 @@ Création : mode/durée/côté non renseignés —, Série1, Pause0s ; cible Ré
 
 Steppers : tap1 ; maintien≈500ms, puis paliers5 après≈2s et10 après≈4s, arrondi directionnel au multiple et saturation aux bornes. Bip/Compte à rebours/Fin restent au pas1. Relâchement arrête et rétablit le pas1 ; pas d’arrondi à l’ouverture. Voir DSF Bip. Les roulettes ne sont pas redéfinies par cette règle.
 
-✓ grisé tant que le mode ou une cible active exigée est invalide ; cellule concernée signalée par son contour ; aucun message en ligne (D-337, 12/10 : remplace le message nommant la Série à renseigner). Pause0 valide. Repli du tableau ne contourne jamais la validation. Nom, Catégorie et Zones restent validés dans le parent.
+✓ grisé tant que le mode ou une cible active exigée est invalide ; cellule concernée signalée par son contour ; aucun message en ligne (D-337, 12/10 : remplace le message nommant la Série à renseigner). Pause0 valide. Une valeur héritée hors bornes, non modifiée, reste valide ; toute nouvelle saisie ou modification respecte les bornes (D-383). Repli du tableau ne contourne jamais la validation. Nom, Catégorie et Zones restent validés dans le parent.
 
 ### Sélecteur de cible — complément §4.5 du13/10
 

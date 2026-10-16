@@ -24,15 +24,15 @@ La documentation décrit la conception attendue ; elle ne constitue pas une preu
 
 ## Autorité documentaire — ce qui est décidé
 
-Cette section est une aide à la navigation. Elle regroupe, sans en ajouter, les règles d'autorité déjà décidées explicitement. Elle ne tranche aucun point d’autorité encore ouvert, en particulier le rang entre les chapitres 08 et 13 et le statut des DSF (voir les points non arbitrés ci-dessous).
+Cette section est une aide à la navigation. Elle regroupe, sans en ajouter, les règles d'autorité déjà décidées explicitement. Elle ne tranche aucun point d’autorité encore ouvert (voir les points non arbitrés ci-dessous).
 
 - **Comportements et calculs / rendu.** « Spécifications et arbitrages déterminent calculs et comportements ; Figma définit uniquement le layout/rendu. Exemples chiffrés et câblages ne sont jamais une règle. » ([D-255](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md), confirmée par D-300.) Voir aussi le chapitre 13, « Clarification d’autorité et de portée ».
 - **Décisions.** Les décisions validées du chapitre 07 s’appliquent dans leur portée. Une décision n’en remplace une autre que si elle le dit explicitement (`PRODUCT.md`, § Gouvernance documentaire, rang 1 : « arbitrages explicitement supersédants »). Une règle n’est pas remplacée du seul fait qu’un texte est plus récent ou placé ailleurs.
+- **Chapitres 08 et 13.** « Aucune priorité automatique entre le chapitre 08 et le chapitre 13 : une contradiction entre eux qui n’est pas résolue par une décision explicite reste `À CLARIFIER`. » (D-376.) La borne « jusqu’à D-255 » du chapitre 13 § 2 n’est pas tranchée par cette décision.
+- **DSF, D-339 et D-341.** « D-339 conserve son comportement de fermeture après sélection, y compris dans les popovers ; présentation D-341 remplacée par les DSF validés. » (D-377.)
 
 Points non arbitrés, signalés pour décision, sans effet sur les règles en vigueur :
 
-- **Rang entre le chapitre 08 et le chapitre 13** en cas de contradiction sur un même écran. Trois passages divergent : `PRODUCT.md` § Gouvernance documentaire, chapitre 13 § 2 et chapitre 08 § 1.3 Organisation (« Les champs, contrôles et comportements spécifiques des écrans sont définis au chapitre 13. »).
 - **Borne « jusqu’à D-255 »** de l’ordre d’application du chapitre 13 § 2. Elle a été introduite le 03/10/2026, quand D-255 était la dernière décision du registre.
-- **Statut des DSF face aux décisions D-339 et D-341.** Le chapitre 13 indique : « Le DSF du12/10 et Deux modes du13/10 supersèdent cette présentation pour la prochaine tranche ». Aucune décision du chapitre 07 ne consigne ce remplacement.
 
 En cas de contradiction entre deux passages, les deux sont conservés jusqu’à décision explicite.

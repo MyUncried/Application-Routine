@@ -1,6 +1,6 @@
 ## V1 – KODJO MVP : séance structurée et exécution locale
 
-> Mise à jour du 24 septembre 2026 : Étiquette = classification/couleur de Séance ; Catégorie = classification/couleur d’Exercice ; Point d’arrêt ; Compte à rebours et Fin propres à l’Exercice ; changement de côté non exposé au niveau Tour ; roulettes en modale basse ; média en gouttière permanente dans le Catalogue des Exercices depuis D-260/D-261 du03/10/2026.
+> Mise à jour du 24 septembre 2026 : Étiquette = classification/couleur de Séance ; Catégorie = classification/couleur d’Exercice ; Point d’arrêt ; Compte à rebours et Fin propres à l’Exercice ; changement de côté non exposé au niveau Circuit ; roulettes en modale basse ; média en gouttière permanente dans le Catalogue des Exercices depuis D-260/D-261 du03/10/2026.
 
 ### Objectif
 
@@ -85,7 +85,7 @@ Enrichir rapidement la construction et l’exécution des routines, sans modifie
 - copier son contenu afin qu’il devienne indépendant de la séance source ;
 - développer, replier et modifier une séance intégrée ;
 - enrichir les structures d’échauffement et de fin de séance si les tests montrent ce besoin ;
-- calculer distinctement la Durée estimée d’exécution du Plan complet et la Durée synthétique des Exercices affichée dans le Catalogue et la Composition ;
+- calculer distinctement la Durée estimée d’exécution du Plan complet et la Durée synthétique des Exercices affichée dans le Catalogue, distincte du total propre au Circuit affiché sous son titre dans la Composition (D-382) ;
 - afficher la progression dans les structures et séances intégrées ;
 - enregistrer les structures imbriquées et les éléments réellement effectués.
 - ajouter des filtres avancés du Suivi (catégories, zones corporelles, période, statut) et, si utile, des critères de tri supplémentaires.
@@ -108,10 +108,10 @@ Aucun sélecteur de langue n’est affiché dans le MVP.
 La structure d'une séance pourra être étendue afin de permettre :
  
  - plusieurs Cycles ordonnés dans une même Séance ;
- - plusieurs Tours ordonnés dans un même Cycle ;
- - un nombre de répétitions propre à chaque Cycle et à chaque Tour.
+ - plusieurs Circuits ordonnés dans un même Cycle ;
+ - un nombre de répétitions propre à chaque Cycle et à chaque Circuit.
  
- Cette évolution ne rend pas les Cycles, Tours ou copies `SessionActivity` réutilisables entre plusieurs Séances. Le Catalogue des Exercices du MVP T03 permet séparément de copier une `ActivityDefinition` autonome dans plusieurs Séances ; chaque copie devient ensuite indépendante.
+ Cette évolution ne rend pas les Cycles, Circuits ou copies `SessionActivity` réutilisables entre plusieurs Séances. Le Catalogue des Exercices du MVP T03 permet séparément de copier une `ActivityDefinition` autonome dans plusieurs Séances ; chaque copie devient ensuite indépendante.
 
 ## V3 – Synchronisation et relation avec un kinésithérapeute
 
@@ -271,7 +271,7 @@ Le parcours existant permet maintenant des Séries variables dans la même feuil
 
 ## Évolution Cadence — statut au06/10/2026
 
-Cible documentée, non déclarée livrée : Bip de cadence0..10 dans deux modes, steppers et calculs Bip v2. Dépendances : SeriesParameters, pauses explicites, migration, ordonnanceur audio périodique, snapshots et qualification mobile. L’écran de roulette est supprimé ; les cinq modales modifiées sont reprises ; les autres modes restent à compléter visuellement. Le layout d’exécution est conservé.
+Cible documentée, non déclarée livrée : Bip de cadence0..10 dans deux modes, steppers et calculs Bip v2. Dépendances : SeriesParameters, pauses explicites, migration, ordonnanceur audio périodique, snapshots et qualification mobile. L’écran de roulette est supprimé ; les cinq modales modifiées sont reprises ; les autres modes restent à compléter visuellement. Le layout d’exécution est conservé. Le guidage de cadence pendant l’Exécution appartient au MVP (D-378).
 
 ## Conception de planification du 08/10/2026
 
@@ -281,4 +281,4 @@ Choisir une ou plusieurs Séances/Exercices par cases → Ajouter n éléments �
 
 ## Formats — conception cible et livraison
 
-Cette évolution documente les six formats et les départs rapides selon [spécification Formats du 14/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#formats-conception). La présence d’un écran sur Prototype MVP ne constitue ni son admission dans une tranche ni sa livraison applicative. Le moteur n’est pas encore développé ; le lot courant est exclusivement documentaire. Les preuves et périmètres PRE-3/PRE-4 restent figés. Rapports, classement, charge additionnelle, tempo et entrée Pyramide ne sont pas ajoutés au périmètre.
+Cette évolution documente les six formats et les départs rapides selon [spécification Formats du 14/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#formats-conception). Les six formats d’entraînement et les départs rapides appartiennent au MVP (D-378). La présence d’un écran sur Prototype MVP ne constitue ni son admission dans une tranche ni sa livraison applicative. Le moteur n’est pas encore développé ; le lot courant est exclusivement documentaire. Les preuves et périmètres PRE-3/PRE-4 restent figés. Rapports, classement, charge additionnelle, tempo et entrée Pyramide ne sont pas ajoutés au périmètre.

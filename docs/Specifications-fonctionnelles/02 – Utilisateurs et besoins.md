@@ -183,10 +183,10 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 - Ancienne cible de Parcours autonome retirée par D-328 ; voir la planification multi-contenus du 08/10.
 - Ancienne cible de Parcours autonome retirée par D-328 ; voir la planification multi-contenus du 08/10.
 - Exécuter dès le MVP un Exercice `À l’échec` avec le même geste `Suivant` que le mode Répétitions.
-- Configurer un Exercice ou un Tour en unilatéral, droite-gauche ou gauche-droite, sans créer de zones corporelles latéralisées.
+- Configurer un Exercice ou un Circuit en unilatéral, droite-gauche ou gauche-droite, sans créer de zones corporelles latéralisées.
 - Comprendre le côté courant pendant l’Exécution grâce au sous-titre `Côté droit` ou `Côté gauche`, sans compteur supplémentaire.
 - Conserver séparément les résultats du côté droit et du côté gauche, y compris lorsqu’un seul côté est partiellement réalisé.
-- Activer la bilatéralité d’un Tour après confirmation ; toutes ses Exercices héritent alors du Tour et leur contrôle propre devient unilatéral désactivé.
+- Activer la bilatéralité d’un Circuit après confirmation ; toutes ses Exercices héritent alors du Circuit et leur contrôle propre devient unilatéral désactivé.
 
 ## 9. Besoins MVP T03 — Catalogue des Exercices et Exécution directe
 

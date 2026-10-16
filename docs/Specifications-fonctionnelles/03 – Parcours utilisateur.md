@@ -105,7 +105,7 @@ Il peut créer une séance entièrement nouvelle ou partir d'une copie d'une sé
 
 ### 1. Créer une séance
 
-**Entrée Formats (cible 14/10) :** le choix du modèle précède le parcours propre à ce modèle ; voir [Formats et départs rapides](#formats-parcours). Le parcours libre ci-dessous reste disponible.
+**Entrée Formats (cible 14/10, MVP selon D-378) :** le choix du modèle précède le parcours propre à ce modèle ; voir [Formats et départs rapides](#formats-parcours). Le parcours libre ci-dessous reste disponible.
 
 L'utilisateur crée une nouvelle séance depuis le Catalogue.
 
@@ -285,7 +285,7 @@ La séance peut avoir été lancée directement ou à partir d'une routine plani
 6. Lorsque l'écran de Synthèse est présenté, l'utilisateur doit renseigner un ressenti et peut ajouter un commentaire facultatif de **200 caractères maximum**. En cas d'interruption technique sans passage par la Synthèse, le ressenti peut être absent.
 7. La séance est enregistrée dans l'historique avec son statut :
 - Terminée : toutes les Exercices ont été terminées normalement et la phase `SESSION_END` a été achevée.
-- Partielle : la phase `SESSION_END` a été achevée, mais au moins un Exercice a été interrompue ou ignorée.
+- Partielle : la phase `SESSION_END` a été achevée et au moins un Résultat d’Exercice est `Partielle` ; une récupération écourtée ne suffit pas (D-379).
 - Interrompue : l'Exécution a été arrêtée avant l'achèvement de `SESSION_END`, y compris pendant cette phase.
 ## Points d'attention
 

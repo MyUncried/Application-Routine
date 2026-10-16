@@ -148,6 +148,10 @@ Le Compte à rebours initial et la Fin de séance sont structurels et non dépla
 
 Dans le MVP, les médias déjà associés à un Exercice peuvent être consultés dans le Catalogue et pendant l’Exécution. Pendant l’Exécution, la galerie ordonnée, la pagination et le plein écran suivent D-203. L’ajout/import de photos ou vidéos locales, leurs associations ordonnées et leur persistance sont inclus au MVP dans PRE-3, avant le moteur d’exécution (D-333). Les règles de stockage et de non-duplication de D-066/D-068 sont conservées.
 
+### Formats et départs rapides
+
+Les six formats d’entraînement (Tabata, Intervalles 30/30, EMOM, AMRAP, For time, Death by) et les départs rapides appartiennent au MVP (D-378). Leurs règles sont au chapitre 08, section Formats de séances ; le moteur n’est pas encore développé (D-369).
+
 ### Exécution d’une Séance
 
 Le MVP permet de :
@@ -209,6 +213,7 @@ Le guidage comprend :
 - l’annonce du côté au début du premier passage et une seule fois lors du passage au second côté ;
 - les sons prévus pendant les Exercices chronométrés, dont le bip grave de rythme ;
 - le signal des trois dernières secondes ;
+- le guidage de cadence pendant l’Exécution (D-378) ;
 - un réglage global des sons dans le MVP ;
 - un réglage séparé des annonces vocales ;
 - les vibrations fonctionnelles de séance selon les préférences définies ;
@@ -441,6 +446,8 @@ En cas de contradiction, l’ordre de référence est :
 6. versions du produit et vision générale ;
 7. documents de travail, historiques et revues externes.
 
+Cet ordre n’établit aucune priorité automatique entre la conception fonctionnelle détaillée (chapitre 08) et les contrats d’écran (chapitre 13) : une contradiction entre eux qui n’est pas résolue par une décision explicite reste `À CLARIFIER` (D-376).
+
 Pour T03, les références explicites de cette mise à jour sont :
 - `06 – Ecrans et navigation de la V1.md`, qui intègre directement les corrections UX T03 ;
 - `07 – Registre des décisions de conception.md`, qui intègre D-167 à D-187 ;
@@ -515,7 +522,7 @@ Référence courante : [v13](Specifications-fonctionnelles/08%20%E2%80%93%20Conc
 
 Les deux modes acceptent Bip de cadence0..10s,0=Aucun par défaut. Répétitions/À l’échec gardent le chronomètre croissant et la fin manuelle ; Durée garde son minuteur. Le bip ne modifie pas ces terminaisons. La phrase de paramètres est unique, valeurs en gras, issue des paramètres validés et d’un total calculé par la spécification. Exercice : exact en Durée, ≈ en Répétitions avec bip, omitted en Répétitions sans bip et À l’échec. Séance : exact si tout exact, ≈ avec estimation sans inconnu, ≥ avec travail inconnu. Bip v2 gouverne calculs et périmètres.
 
-Références actives : paramètres v13, Bip v2, Phrase v1, chapitre13 et DSF-CADENCE-2026-10-06. Cible à implémenter/qualifier ; aucune annonce de livraison. Les règles photos, Circuit/Tour, pauses et récupération restent conservées. Le classeur v13 est exclusivement rédactionnel.
+Références actives : paramètres v13, Bip v2, Phrase v1, chapitre13 et DSF-CADENCE-2026-10-06, actualisé le 13/10 par DSF-DEUX-MODES-ECHEC-2026-10-13. Cible à implémenter/qualifier ; aucune annonce de livraison. Les règles photos, Circuit/Tour, pauses et récupération restent conservées. Le classeur v13 est exclusivement rédactionnel.
 
 
 
