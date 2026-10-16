@@ -1,6 +1,6 @@
 # Tasks — révision documentaire KODJO (plan révisé, révision 2)
 
-**État :** proposition. **Aucune tâche des lots 1 à 6 n'est exécutée.** `/opsx:apply` ne sera lancé qu'après la revue ChatGPT de cette révision et l'accord de Hermann sur le lot concerné.
+**État (16/10) :** révision 2 validée. **Lot 1 autorisé et en cours d'exécution** (voir le journal du lot 1 ci-dessous). **Lots 2 à 6 non autorisés, non exécutés.**
 
 **Base d'analyse conservée :** `main` `6656fefc58330955f5ad74d513ce616ea51809b0`, inchangé au 16/10, revérifié par `git ls-remote`. Les évolutions postérieures sont consignées dans [diagnostic.md §7](diagnostic.md) sans être intégrées.
 
@@ -16,8 +16,13 @@
 - [x] 0.3 Passe 2, qualité : analyse terminée, synthèse produite ([qualite.md](qualite.md))
 - [x] 0.4 Revue ChatGPT des deux diagnostics : orientation retenue, plan à réviser (16/10)
 - [x] 0.5 Révision 2 : gouvernance ajustée ([design.md](design.md)), arbitrages réexaminés ([arbitrages.md](arbitrages.md)), dépendances contrôlées, constats R-06 et R-07
-- [ ] 0.6 Revue ChatGPT de la révision 2
-- [ ] 0.7 Accord de Hermann : A-PRE4 pour le lot 1, et réponses aux arbitrages restants
+- [x] 0.6 Revue ChatGPT de la révision 2 : **avis favorable** (16/10), avec deux réserves de contrôle :
+  - ne pas confondre restauration historique et réactivation d'une décision ;
+  - vérifier les évolutions Git concurrentes avant application.
+- [x] 0.7a Décision de Hermann (16/10) : **A-PRE4 AUTORISÉE pour le lot 1 uniquement.**
+  - Fichier autorisé : `docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md`.
+  - Toute autre modification de règle produit, tout changement de statut non prévu, toute résolution de contradiction fonctionnelle et toute intervention sur un autre clone restent interdits sans nouvel arbitrage.
+- [ ] 0.7b Réponses de Hermann aux autres questions d'[arbitrages.md §2](arbitrages.md) (questions 2 à 11) : en attente
 
 ## 1. Lot 1 — Restauration et traçabilité des décisions historiques (premier lot, délimité)
 
@@ -27,32 +32,91 @@
 
 **Inventaire exact :** [constats/LOT-1-registre.tsv](constats/LOT-1-registre.tsv), produit par `outils/inventaire-lot1-registre.mjs`.
 
-- [ ] 1.1 **G1 — 24 décisions vidées le 07/10** (`37e372cd`) : D-237, D-252, D-268–D-271, D-274–D-277, D-279–D-286, D-288, D-292, D-295, D-296, D-302, D-305.
+- [x] 1.1 **G1 — 24 décisions vidées le 07/10** (`37e372cd`) : D-237, D-252, D-268–D-271, D-274–D-277, D-279–D-286, D-288, D-292, D-295, D-296, D-302, D-305.
   - Conserver la mention actuelle « Prescription courante : Bip v2 et D-308–313 ; … ».
   - Ajouter à sa suite « Texte d'origine : « … » », copié de `37e372cd^`.
   - Ne changer ni la colonne Statut ni la colonne Traçabilité.
   - *Justification :* ces décisions sont toujours citées (D-237 une quinzaine de fois ; D-302 et D-305 comme remplaçantes de D-208, D-209, D-217 et D-238), et leur contenu est aujourd'hui illisible sans Git.
   - *Hors tâche :* le statut de D-237 et D-252, dont l'objet (appuis, pas des steppers) n'est pas la cadence, est traité en Q-M ([arbitrages.md](arbitrages.md)).
-- [ ] 1.2 **G2 — D-357 à D-369 : colonnes effacées le 14/10** (`7a89220f`). Restaurer depuis `7a89220f^` les éléments suivants :
+- [x] 1.2 **G2 — D-357 à D-369 : colonnes effacées le 14/10** (`7a89220f`). Restaurer depuis `7a89220f^` les éléments suivants :
   - le repère `DEC-nn` et l'horodatage d'arbitrage en tête du texte ;
   - la colonne Statut (« Validée le 14/10/2026 par Hermann ; … ») ;
   - la colonne de trace `FMT-nn`.
 
   Les colonnes `FMT-nn` renvoient aux règles `RM-FMT-nn` rétablies au lot 3 : tant que le lot 3 n'est pas appliqué, elles restent des identifiants d'origine sans cible, ce qui est signalé dans le commit.
-- [ ] 1.3 **G3 — renvois effacés dans le texte de 8 décisions** (`7a89220f`) : D-089 (D-004/D-005), D-091 (D-081), D-209 (D-328), D-217 (D-238), D-256 (D-089), D-265 (D-256, D-252), D-350 (D-343), D-355 (D-343). Remettre la ligne de `7a89220f^` : c'est la seule différence, vérifiée par forme normalisée.
-- [ ] 1.4 **G3 mixtes — D-029 et D-248.** La consolidation y a remplacé un alias de version (« v13 §7 », « Paramètres v13 ») par un renvoi au ch. 08, ce qui est légitime, **et** a effacé des renvois (RM-062, D-150 ; D-314, D-311). Réinsérer seulement les renvois effacés, sans toucher à la nouvelle formulation.
-- [ ] 1.5 **G4 — D-334 et D-335, décisions validées perdues lors d'une fusion.** Elles sont présentes à `341f4d41` (ch. 07 l. 550 et 552), second parent de la fusion `ae50aaed` du 09/10, et absentes de `main`.
+- [x] 1.3 **G3 — renvois effacés dans le texte de 8 décisions** (`7a89220f`) : D-089 (D-004/D-005), D-091 (D-081), D-209 (D-328), D-217 (D-238), D-256 (D-089), D-265 (D-256, D-252), D-350 (D-343), D-355 (D-343). Remettre la ligne de `7a89220f^` : c'est la seule différence, vérifiée par forme normalisée.
+- [x] 1.4 **G3 mixtes — D-029 et D-248.** **SANS OBJET, constaté à l'application (16/10) : rien à restaurer, lignes non modifiées.**
+  - Le plan prévoyait de réinsérer les renvois effacés (RM-062, D-150 ; D-314, D-311), sans toucher au remplacement légitime de l'alias de version (« v13 §7 », « Paramètres v13 ») par un renvoi au ch. 08.
+  - Une comparaison mot à mot avec `7a89220f^` montre que **aucun renvoi n'a été effacé** : RM-062, D-150, D-314 et D-311 sont toujours présents. La seule différence est ce remplacement légitime.
+  - Origine de l'erreur : l'outil `plan-restauration-identifiants.mjs` liste tous les identifiants des lignes qu'il ne peut pas apparier, et pas seulement ceux qui ont disparu. Voir le journal ci-dessous, anomalie A1.
+- [x] 1.5 **G4 — D-334 et D-335, décisions validées perdues lors d'une fusion.** Elles sont présentes à `341f4d41` (ch. 07 l. 550 et 552), second parent de la fusion `ae50aaed` du 09/10, et absentes de `main`.
   - Les réinsérer à l'identique entre D-333 et D-336.
   - Aucune décision ultérieure ne les remplace, d'après l'analyse G (Q-M) ; ce point est à revérifier au moment de l'application.
   - Sources de la validation : `decision-modalites-import.json`, « responded_by: Hermann », et les commits `fa62fc49` et `acc07c1f` (voir [constats/arbitrages/G-gouvernance.md](constats/arbitrages/G-gouvernance.md) Q-M).
-- [ ] 1.6 **Hors restauration, à ne pas modifier :** D-337 et D-338, dont les renvois vers une spécification supprimée ont été remplacés par le ch. 08, ce qui est une mise à jour légitime.
-- [ ] 1.7 **Contrôles :**
+- [x] 1.6 **Hors restauration, à ne pas modifier :** D-337 et D-338, dont les renvois vers une spécification supprimée ont été remplacés par le ch. 08, ce qui est une mise à jour légitime.
+- [x] 1.7 **Contrôles :**
   - le diff ne contient que des ajouts de texte d'origine et d'identifiants ;
   - `outils/comparer-registre.mjs <racine> 7a89220f^ HEAD` ne montre plus d'écart pour G2 et G3, hors D-029, D-248, D-337 et D-338 ;
   - `outils/links.mjs` est rejoué ;
   - le nombre de décisions passe de 365 à 367 (G4), sans autre ajout ni suppression.
-- [ ] 1.8 **Coordination :** les PR #370 et #371 ajoutent ou modifient d'autres lignes du ch. 07 (D-370 à D-375 ; D-094, D-309). Aucune des lignes du lot 1 n'est modifiée par elles (vérifié). L'ordre d'application est soumis à la question 10 d'[arbitrages.md](arbitrages.md). Les nouvelles lignes D-370 à D-375 de la PR #370 n'ont pas de colonne Statut, comme les lignes tronquées en G2 : à signaler à la PR, sans la modifier depuis ce change.
-- [ ] 1.9 **Préalable :** accord A-PRE4 (question 1 d'[arbitrages.md](arbitrages.md)).
+- [ ] 1.8 **Coordination — PARTIELLEMENT RÉALISÉE.** Les PR #370 et #371 ajoutent ou modifient d'autres lignes du ch. 07 (D-370 à D-375 ; D-094, D-309). Aucune des lignes du lot 1 n'est modifiée par elles (vérifié).
+  - *Fait :* fusions simulées (`git merge-tree`) du lot 1 avec #363, #370 et #371 : **0 conflit**. Après fusion : 373 décisions uniques avec #370, 367 avec #371 ; les lignes du lot 1 sont conservées.
+  - *Reste ouvert :* l'ordre de fusion (question 10 d'[arbitrages.md](arbitrages.md)). Les lignes D-370 à D-375 de la PR #370 sont dans un tableau à 2 colonnes, sans Statut : à signaler à la PR, sans la modifier depuis ce change.
+  - Après le lot 1, le tableau des décisions du 14/10 a de nouveau 4 colonnes ; la PR #370 ajoute le sien, distinct. Il n'y a pas de collision.
+- [x] 1.9 **Préalable :** accord A-PRE4 (question 1 d'[arbitrages.md](arbitrages.md)), donné le 16/10 pour le lot 1 uniquement.
+
+### Journal d'exécution du lot 1 (16/10/2026)
+
+**Point de départ :** HEAD `1348415929cc6872f308da4ca4b92dda419b6e83` ; ch. 07 = blob `2b5e02efeae73e06438315d516a25fad023136f5`. Ce blob est identique à la base `6656fefc` et à la source figée PRE-4 `caa2a5cf` ; c'est aussi celui de l'inventaire.
+
+**Vérifications préalables :**
+- `main` distant toujours `6656fefc` ;
+- PR #363 (`d2386c8d`), #370 (`6cf3634a`) et #371 (`2c050d0e`) inchangées ;
+- aucune autre branche distante récente ne touche le ch. 07.
+
+**Méthode :**
+- application par `outils/appliquer-lot1-registre.mjs`, qui refuse de s'exécuter si le blob de départ diffère ; tous les textes sont lus dans les objets Git sources ;
+- contrôle par une seconde passe indépendante, `outils/verifier-lot1-registre.mjs`, qui repart de la différence réelle et explique chaque ligne par sa source à l'octet près.
+
+**Réalisé :**
+
+| Groupe | Décisions | Opération | Source |
+|---|---|---|---|
+| G1 | 24 : D-237, D-252, D-268–D-271, D-274–D-277, D-279–D-286, D-288, D-292, D-295, D-296, D-302, D-305 | Après la prescription courante, ajout de : « Texte historique antérieur au 07/10/2026 (`37e372cd^`), restauré pour traçabilité ; il ne remplace pas la prescription courante : « … » ». Colonnes Statut et Traçabilité inchangées. | `37e372cd^` |
+| G2 | 13 : D-357 à D-369, plus l'en-tête du tableau | Lignes d'origine restaurées (DEC-nn, horodatage, Statut, Portée) ; en-tête « ID \| Décision / provenance \| Statut \| Portée » restauré, sans quoi les colonnes ne s'affichent pas | `7a89220f^` |
+| G3 | 8 : D-089, D-091, D-209, D-217, D-256, D-265, D-350, D-355 | Ligne d'origine restaurée ; seule différence : renvois entre parenthèses (vérifié mot à mot) | `7a89220f^` |
+| G4 | 2 : D-334, D-335 | Lignes réinsérées à l'identique, directement après D-333 | `341f4d41` |
+
+**Non modifiées :** D-029, D-248 (tâche 1.4 sans objet), D-337 et D-338 (tâche 1.6).
+
+**Contrôles (tous réussis) :**
+- seconde passe indépendante : **139 contrôles réussis, 0 échec**, dont :
+  - 365 → 367 décisions, ajout de D-334 et D-335 seulement, aucun doublon ;
+  - 45 décisions modifiées, toutes en G1, G2 ou G3, et identiques à leur source ;
+  - aucune colonne Statut modifiée hors G2 ;
+  - seules lignes hors décisions modifiées : les 2 lignes d'en-tête G2 ;
+  - D-029, D-248, D-337 et D-338 inchangées ;
+- diff : 47 lignes remplacées et 2 ajoutées, dans le seul ch. 07 ;
+- liens : `outils/links.mjs` donne des anomalies identiques avant et après ; aucune ligne ajoutée ne contient de lien ;
+- autres fichiers de `docs/`, code, `.github/` : inchangés ; clones PRE-4 et PRE-5 non touchés ; Figma et VNext non utilisés ;
+- fusions simulées avec #363, #370 et #371 : 0 conflit, pas de doublon ;
+- fins de ligne : copie de travail CRLF homogène ; le blob committé est en LF, comme le reste du dépôt (`core.autocrlf=true`).
+
+**Anomalies résiduelles (signalées, non corrigées) :**
+- **A1 — Erreur d'inventaire.** D-029 et D-248 étaient classées « mixtes » à tort (tâche 1.4 sans objet). L'outil `plan-restauration-identifiants.mjs` surestime les identifiants perdus pour les lignes classées À_EXAMINER : ce chiffre doit être relu avant le lot 3.
+- **A2 — Mise en forme de la source G4.** Dans `341f4d41`, D-334 et D-335 étaient séparées de D-333 par des lignes vides, ce qui les sortait du tableau Markdown. Elles sont réinsérées sans ligne vide ; leur texte est inchangé.
+- **A3 — Références sans cible dans les lignes restaurées.** C'est la conséquence attendue d'une restauration exacte :
+Inventaire exact des lignes ajoutées :
+  - 13 fois « voir preuve source de la spécification » (G2), qui renvoie à la spécification Formats supprimée ;
+  - 15 identifiants `FMT-nn` (G2, colonne Portée), qui renvoient aux règles rétablies au lot 3 ;
+  - des renvois de section `§4`, `§10`, `§14`, qui visent cette même spécification ;
+  - 1 mention « Q-07 » (G1, D-305 : « Q-07 ouvert »), question historique de la conception Cadence.
+
+À traiter aux lots 2 et 3. Aucun lien Markdown n'est concerné.
+- **A4 — Mentions « À CLARIFIER » antérieures à D-334 et D-335.** ch. 05:199 et ch. 13:564 (caméra, sources système) n'ont pas été alignés : ce serait une modification de règle hors lot 1 (lot 5).
+- **A5 — Statuts de D-237 et D-252.** La prescription courante « Bip v2 » de ces deux décisions est sans rapport avec leur objet. Le lot 1 ne l'a pas modifiée et n'a pas réactivé leur texte historique (question Q-M).
+
+**Bloqué :** aucune tâche du lot 1.
 
 ## 2. Lot 2 — Références et liens rompus
 
