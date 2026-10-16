@@ -1,3 +1,4 @@
+@AGENTS.md
 @docs/AGENTS.md
 
 ## Méthode de travail dans ce clone

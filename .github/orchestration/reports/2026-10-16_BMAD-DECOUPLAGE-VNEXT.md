@@ -49,7 +49,19 @@ Retirés du chargement automatique :
 
 Conservé : l'import `@docs/AGENTS.md`, qui est une exigence technique produit sans lien avec VNext.
 
-Ajouté : la méthode de travail (BMad tel qu'installé, `/bmad-help`), le renvoi vers `AGENTS.md`, la neutralité de tranche, et l'inventaire des références VNext devenues inactives.
+Ajouté : l'import explicite `@AGENTS.md` ; la méthode de travail (BMad tel qu'installé, `/bmad-help`) ; le renvoi vers `AGENTS.md` ; la neutralité de tranche ; et l'inventaire des références VNext devenues inactives.
+
+L'import `@AGENTS.md` a été ajouté sur instruction Hermann, en complément du découplage, pour garantir le chargement du bloc de contexte sans dépendre d'une lecture implicite de `AGENTS.md` par le harnais. Sous Claude Code, qui lit déjà ce fichier à la racine, le bloc peut être chargé deux fois : compromis accepté au profit d'un chargement explicite et vérifiable, valable pour tout harnais lisant les imports.
+
+Graphe d'import vérifié après ajout :
+
+```
+CLAUDE.md
+├── AGENTS.md        (feuille, aucun import)
+└── docs/AGENTS.md   (feuille, aucun import)
+```
+
+Aucun cycle : ni `AGENTS.md` ni `docs/AGENTS.md` ne déclare d'import, et aucun des deux ne référence `CLAUDE.md`. Aucun réimport VNext : aucune ligne d'import des trois fichiers ne vise `AI_ORCHESTRATION*`, `.github/orchestration/`, `scripts/kodjo/` ni `tests/kodjo/`.
 
 ### 2. `AGENTS.md` — créé
 
@@ -113,9 +125,10 @@ Ce sont des autorisations, pas des instructions : elles n'imposent aucune obliga
 
 ## Hypothèses non démontrées
 
-- **H1** : Claude Code charge le `AGENTS.md` de la racine sans import explicite depuis `CLAUDE.md`. Je n'ai pas ajouté `@AGENTS.md` pour éviter un double chargement du même bloc. À confirmer par la vérification en session neuve décrite ci-dessous ; si le bloc n'apparaît pas, ajouter l'import.
-- **H2** : aucun autre harnais que Claude Code n'est utilisé dans ce clone. Non vérifié. Un harnais qui ne lirait ni `AGENTS.md` ni `CLAUDE.md` ne recevrait aucun contexte.
-- **H3** : contradiction documentaire relevée et non tranchée — le chapitre 01 §8 donne `Circuit` comme remplaçant de `Set` (avec `Tour` pour une répétition du Circuit), tandis que D-077 énonce que `Tour` remplace complètement `Set`. `AGENTS.md` cite la proscription sans désigner le remplaçant. À arbitrer hors de cette mission.
+L'hypothèse sur le mode de chargement de `AGENTS.md`, qui figurait ici dans la version initiale de ce rapport, est résolue : l'import explicite `@AGENTS.md` rend le chargement indépendant du comportement implicite du harnais. Elle est retirée de cette liste.
+
+- **H1** : aucun autre harnais que Claude Code n'est utilisé dans ce clone. Non vérifié. Un harnais qui ne lirait ni `AGENTS.md` ni `CLAUDE.md`, et qui n'interpréterait pas les lignes `@`, ne recevrait aucun contexte.
+- **H2** : contradiction documentaire relevée et non tranchée — le chapitre 01 §8 donne `Circuit` comme remplaçant de `Set` (avec `Tour` pour une répétition du Circuit), tandis que D-077 énonce que `Tour` remplace complètement `Set`. `AGENTS.md` cite la proscription sans désigner le remplaçant. À arbitrer hors de cette mission.
 
 ## Preuves et tests
 
@@ -148,7 +161,7 @@ Aucun fichier applicatif, aucun workflow, aucun script, aucun skill BMad modifi�
 - `~/.claude/settings.json` : dépendance extérieure signalée, non modifiée.
 - `_bmad/` et `.claude/skills/` restent non suivis par Git. Décision de versionnement non prise ; hors périmètre.
 - Règle de branche contradictoire dans `AI_ORCHESTRATION.md:459` : non corrigée, le fichier étant devenu référence inactive.
-- Contradiction `Circuit` / `Tour` sur le remplacement de `Set` : consignée en H3, non tranchée.
+- Contradiction `Circuit` / `Tour` sur le remplacement de `Set` : consignée en H2, non tranchée.
 
 ## Vérifications restant à effectuer sur appareil réel
 
@@ -164,11 +177,11 @@ Pour contrôler, ouvrir une session neuve dans ce clone :
 2. `claude`
 3. Demander : « Liste les fichiers d'instructions que tu as chargés et cite leurs titres de section. »
 
-Attendu : `CLAUDE.md`, `docs/AGENTS.md` et `AGENTS.md` ; aucune mention de `AI_ORCHESTRATION.md`, `AI_ORCHESTRATION_CONTINUITY.md`, de « Livraison documentaire obligatoire » ni de « Diagnostic historique obligatoire de VNext ».
+Attendu : `CLAUDE.md`, `AGENTS.md` et `docs/AGENTS.md` — les deux derniers étant importés explicitement en tête de `CLAUDE.md` ; aucune mention de `AI_ORCHESTRATION.md`, `AI_ORCHESTRATION_CONTINUITY.md`, de « Livraison documentaire obligatoire » ni de « Diagnostic historique obligatoire de VNext ».
 
 Contrôle complémentaire : demander « Dois-tu produire un rapport de mission committé pour une simple question ? ». La réponse attendue est non.
 
-Si le bloc `bmad:context` de `AGENTS.md` n'apparaît pas dans les instructions chargées, H1 est fausse : ajouter `@AGENTS.md` en tête de `CLAUDE.md`.
+Si le bloc `bmad:context` apparaît en double sous Claude Code, c'est le compromis documenté plus haut et non un défaut ; retirer `@AGENTS.md` suffirait à l'éliminer, au prix d'un chargement implicite.
 
 ## Commit final
 
