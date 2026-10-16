@@ -274,7 +274,7 @@ Segment Exercices → CE-T03-02 ; Séances reste ; Créer → CE-T03-08 nouveau 
 
 Séances enregistrées du dépôt local, non archivées par défaut, tri updatedAt décroissant. Étiquette facultative ; en son absence, catégories issues des Exercices. Aucun champ Catégorie propre à la Séance. Les objets historiques incomplets restent consultables mais Démarrer est désactivé tant qu’ils ne sont pas exécutables.
 
-Durée et symbole viennent du calcul commun : Durée exacte, Répétitions avec bip ≈, sans bip et À l’échec omis à l’Exercice ; ≥ seulement à la Séance avec travail inconnu ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
+Durée et symbole viennent du calcul commun : Durée exacte si toutes les cibles sont chiffrées, Répétitions avec bip ≈ si toutes sont chiffrées ; ≥ à l’Exercice pour un mélange chiffré/échec calculable, prioritaire sur ≈. Répétitions sans bip ou toutes cibles À l’échec : durée omise à l’Exercice. Séance/Circuit : ≥ si travail inconnu ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
 
 ### 6. Classification des valeurs Figma
 
@@ -375,7 +375,7 @@ Source : `ActivityDefinitionRepository` / `API-CAT-01`. Défaut : non archivées
 
 Exercice variable : indicateur N séries variables et total intrinsèque selon v13 ; pas de détail exhaustif des cibles sur la carte.
 
-Durée et symbole viennent du calcul commun : Durée exacte, Répétitions avec bip ≈, sans bip et À l’échec omis à l’Exercice ; ≥ seulement à la Séance avec travail inconnu ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
+Durée et symbole viennent du calcul commun : Durée exacte si toutes les cibles sont chiffrées, Répétitions avec bip ≈ si toutes sont chiffrées ; ≥ à l’Exercice pour un mélange chiffré/échec calculable, prioritaire sur ≈. Répétitions sans bip ou toutes cibles À l’échec : durée omise à l’Exercice. Séance/Circuit : ≥ si travail inconnu ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
 
 ### 6. Classification des valeurs Figma
 
@@ -549,7 +549,7 @@ Créer depuis Catalogue ou modifier une définition existante ; nouveau brouillo
 
 ### 4. Contexte de sortie / destinations
 
-Terminer valide et persiste puis retourne au contexte appelant. Carte Paramètres → CE-UI-10. Retour avec modifications → confirmation d’abandon existante.
+Terminer valide et persiste puis retourne au contexte appelant. Carte Paramètres → CE-UI-10. Retour avec modifications → confirmation d’abandon existante. Création : « Abandonner la création ? » / « L’exercice ne sera pas créé. ». Modification : « Abandonner les modifications ? » / « Les modifications apportées à cet exercice seront perdues. ». Annuler conserve le brouillon ; Confirmer abandonne les changements.
 
 ### 5. Données affichées et source de vérité
 
@@ -761,7 +761,7 @@ Ouvre CE-T03-07 au-dessus du brouillon courant. Fermer sans Sélectionner rend l
 
 Aucune donnée métier n’est créée à l’ouverture. Le brouillon de Composition existant est conservé.
 
-Durée et symbole viennent du calcul commun : Durée exacte, Répétitions avec bip ≈, sans bip et À l’échec omis à l’Exercice ; ≥ seulement à la Séance avec travail inconnu ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
+Durée et symbole viennent du calcul commun : Durée exacte si toutes les cibles sont chiffrées, Répétitions avec bip ≈ si toutes sont chiffrées ; ≥ à l’Exercice pour un mélange chiffré/échec calculable, prioritaire sur ≈. Répétitions sans bip ou toutes cibles À l’échec : durée omise à l’Exercice. Séance/Circuit : ≥ si travail inconnu ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
 
 ### 6. Classification des valeurs Figma
 
@@ -847,7 +847,7 @@ Fermer/Annuler → Composition sans mutation ; Sélectionner avec N>0 → insert
 
 Définitions actives et ensemble d’IDs sélectionnés en mémoire. Ordre de la liste affichée, stable pendant la sélection. Aucun filtre/recherche supplémentaire n’est exposé par cette modale de référence ; les règles de filtres Catalogue ne créent pas ici un contrôle. Il n’existe donc pas de sélection cachée par un filtre local.
 
-Durée et symbole viennent du calcul commun : Durée exacte, Répétitions avec bip ≈, sans bip et À l’échec omis à l’Exercice ; ≥ seulement à la Séance avec travail inconnu ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
+Durée et symbole viennent du calcul commun : Durée exacte si toutes les cibles sont chiffrées, Répétitions avec bip ≈ si toutes sont chiffrées ; ≥ à l’Exercice pour un mélange chiffré/échec calculable, prioritaire sur ≈. Répétitions sans bip ou toutes cibles À l’échec : durée omise à l’Exercice. Séance/Circuit : ≥ si travail inconnu ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
 
 ### 6. Classification des valeurs Figma
 
@@ -2164,7 +2164,7 @@ Surface occurrence → CE-UI-05 en modification ; Lecture → moteur SESSION/ACT
 
 Occurrences futures Routine SESSION/ACTIVITY ; titre, heure, durée et couleur de l’événement. Nature issue du type de source.
 
-Durée et symbole viennent du calcul commun : Durée exacte, Répétitions avec bip ≈, sans bip et À l’échec omis à l’Exercice ; ≥ seulement à la Séance avec travail inconnu ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
+Durée et symbole viennent du calcul commun : Durée exacte si toutes les cibles sont chiffrées, Répétitions avec bip ≈ si toutes sont chiffrées ; ≥ à l’Exercice pour un mélange chiffré/échec calculable, prioritaire sur ≈. Répétitions sans bip ou toutes cibles À l’échec : durée omise à l’Exercice. Séance/Circuit : ≥ si travail inconnu ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
 
 ### 6. Classification des valeurs Figma
 
@@ -2256,7 +2256,7 @@ Occurrence et type SESSION/ACTIVITY, heure, durée et classement de la source ; 
 
 Sources SESSION : durées d’occurrence et total de Séance sans double ajout de R ; ACTIVITY : durée intrinsèque ; chapitre 08, paramètres d’exercice.
 
-Durée et symbole viennent du calcul commun : Durée exacte, Répétitions avec bip ≈, sans bip et À l’échec omis à l’Exercice ; ≥ seulement à la Séance avec travail inconnu ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
+Durée et symbole viennent du calcul commun : Durée exacte si toutes les cibles sont chiffrées, Répétitions avec bip ≈ si toutes sont chiffrées ; ≥ à l’Exercice pour un mélange chiffré/échec calculable, prioritaire sur ≈. Répétitions sans bip ou toutes cibles À l’échec : durée omise à l’Exercice. Séance/Circuit : ≥ si travail inconnu ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
 
 ### 6. Classification des valeurs Figma
 
@@ -2994,6 +2994,8 @@ Bip0..10, boutons ± révélés par appui sur sa valeur,0 libellé Aucun ; contr
 
 **Révision13/10 :** popover Mode184×99, hauteur automatique, deux options. Roulette cible : popover354×249 avec maître8452:13297 (330×181), option en tête330×30, séparateur1px, roulette numérique150px. Le total conserve le maître5544:5118 (330×150) et son popover354×216. Ligne de série à deux colonnes maintenue, même tout échec ; aucune variante à une colonne. Voir DSF Deux modes pour tailles et opacités.
 
+Toucher une cellule cible du tableau variable ouvre sa roulette sur la cible courante (numérique ou À l’échec) ; seule cette cellule est modifiée. Le pied commun reste le réglage de la cellule active.
+
 **Alignement DSF du 12/10 :** ligne variable `8129:31593`, 334 × 36 ; cellules cible/Pause 76 × 24 ; pied commun `8129:31601`, 354 × 48, ± à droite. Une cellule active ; plus de steppers permanents dans chaque cellule. Les 19 états de la feuille sont illustrés au chapitre 06. Seul le placement de la mention/astérisque du nombre hérité reste sans référence visuelle identifiée.
 
 À402 : groupe à x24, largeur354 ; Bip au premier niveau x36. Les anciennes indentations systématiques x52 des contrôles variables sont remplacées par la grille à cellules décrite dans le DSF du 12/10. Bip juste au-dessus du total ou avant Compte à rebours si total absent. Retrait du total raccourcit la feuille de42px par le haut, bas ancré. Valeurs/steppers à droite ; marges adaptées, pas de coordonnées absolues sur toutes largeurs. Voile modal `overlayScrim` (`color/overlay/scrim`) #1F2129 à 34 %, distinct de `compositionDraggedCardShadow`, qui ne sert jamais de voile.
@@ -3006,13 +3008,13 @@ Référence longue7119:27855 :224caractères, cinq lignes/100px à largeur324, c
 
 ### 11. États de l’écran
 
-Cible chiffrée / À l’échec / mélange ; ouverture sur la cible courante. Option sélectionnée100%, sinon45% du remplissage #1a1a1f. À l’échec sélectionné : partie numérique neutre00:00 et grisée ; ce zéro n’est pas une cible valide. Aucun écran uniforme supplémentaire : un changement de valeur seul ne crée pas un nouveau contrat.
+Cible chiffrée / À l’échec / mélange ; ouverture sur la cible courante. Option sélectionnée100%, sinon45% du remplissage #1a1a1f. À l’échec sélectionné : partie numérique neutre00:00 et grisée en mode Durée ; ce zéro n’est pas une cible valide. Aucun écran uniforme supplémentaire : un changement de valeur seul ne crée pas un nouveau contrat.
 
 Bip0/positif dans chacun des deux modes ; cible valide/incomplète ; uniforme/variable ;N1 ; deux ordres/directions ; tableau ouvert/replié ; steppers au minimum/maximum et maintenus ; validation/annulation. Plus aucun état roulette de cadence.
 
 ### 12. Contrôles et interactions
 
-Deux modes seulement. Cible chiffrée et À l’échec mutuellement exclusives ; libellé « Aucune durée, à l’échec » ou « Aucune répétition, à l’échec ». Aucune coche dans la liste ; ✓ de la feuille applique. Conserver le type À l’échec lors d’une bascule de mode. À tout instant, exactement une cible est sélectionnée. À l’ouverture : cible numérique → roulette active sur la valeur courante et libellé échec à45% ; cible échec → libellé actif et bloc numérique grisé à45%, affiché à00:00. Faire tourner la roulette sélectionne la valeur numérique et grise le libellé. Toucher le libellé sélectionne l’échec et ramène la roulette grisée à00:00. Le grisé exprime la non-sélection, pas une interdiction de manipuler la roulette. Aucun geste supplémentaire de déverrouillage, aucune coche. Validation par le bouton de la feuille ; annulation selon le brouillon existant.00:00 n’est jamais une cible valide ; pause0 reste valide.
+Deux modes seulement. Cible chiffrée et À l’échec mutuellement exclusives ; libellé « Aucune durée, à l’échec » ou « Aucune répétition, à l’échec ». En Répétitions, « Aucune répétition, à l’échec » est la ligne de tête de la roulette à une colonne ; aucun bloc horaire 00:00 n’y est transposé. Aucune coche dans la liste ; ✓ de la roulette applique la sélection au brouillon de la feuille ; ✕ de la roulette restaure la valeur à son ouverture. ✓ de la feuille applique l’ensemble au parent ; ✕ de la feuille annule toutes les modifications depuis son ouverture, y compris celles validées dans une roulette. Aucune persistance définitive à la validation de la roulette. Conserver le type À l’échec lors d’une bascule de mode. À tout instant, exactement une cible est sélectionnée. À l’ouverture : cible numérique → roulette active sur la valeur courante et libellé échec à45% ; cible échec → libellé actif et bloc numérique grisé à45%, affiché à00:00 en mode Durée uniquement. Faire tourner la roulette sélectionne la valeur numérique et grise le libellé. Toucher le libellé sélectionne l’échec et ramène le bloc numérique grisé à00:00 en mode Durée. Le grisé exprime la non-sélection, pas une interdiction de manipuler la roulette. Aucun geste supplémentaire de déverrouillage, aucune coche. ✓ de la roulette applique la sélection au brouillon de la feuille ; ✕ de la roulette restaure la valeur à son ouverture. ✓ de la feuille applique l’ensemble au parent ; ✕ de la feuille annule toutes les modifications depuis son ouverture, y compris celles validées dans une roulette. Aucune persistance définitive à la validation de la roulette.00:00 n’est jamais une cible valide ; pause0 reste valide.
 
 **Complément cible12/10 :** Un seul champ actif. Changer de champ ferme/ouvre en un geste. Pi et cible copiées depuis dernière ligne. Suppression immédiate + Annuler avec position et paramètres ; sous N hérité, suppression locale indisponible.
 
@@ -4101,9 +4103,9 @@ Steppers : tap1 ; maintien≈500ms, puis paliers5 après≈2s et10 après≈4s, 
 
 ### Sélecteur de cible — complément §4.5 du13/10
 
-À tout instant, exactement une cible est sélectionnée. À l’ouverture : cible numérique → roulette active sur la valeur courante et libellé échec à45% ; cible échec → libellé actif et bloc numérique grisé à45%, affiché à00:00. Faire tourner la roulette sélectionne la valeur numérique et grise le libellé. Toucher le libellé sélectionne l’échec et ramène la roulette grisée à00:00. Le grisé exprime la non-sélection, pas une interdiction de manipuler la roulette. Aucun geste supplémentaire de déverrouillage, aucune coche. Validation par le bouton de la feuille ; annulation selon le brouillon existant.00:00 n’est jamais une cible valide ; pause0 reste valide.
+À tout instant, exactement une cible est sélectionnée. À l’ouverture : cible numérique → roulette active sur la valeur courante et libellé échec à45% ; cible échec → libellé actif et bloc numérique grisé à45%, affiché à00:00 en mode Durée uniquement. Faire tourner la roulette sélectionne la valeur numérique et grise le libellé. Toucher le libellé sélectionne l’échec et ramène le bloc numérique grisé à00:00 en mode Durée. Le grisé exprime la non-sélection, pas une interdiction de manipuler la roulette. Aucun geste supplémentaire de déverrouillage, aucune coche. ✓ de la roulette applique la sélection au brouillon de la feuille ; ✕ de la roulette restaure la valeur à son ouverture. ✓ de la feuille applique l’ensemble au parent ; ✕ de la feuille annule toutes les modifications depuis son ouverture, y compris celles validées dans une roulette. Aucune persistance définitive à la validation de la roulette.00:00 n’est jamais une cible valide ; pause0 reste valide.
 
-**Bornes confirmées le13/10 :** cible Durée de00:05 à58:55 (5–3535s), sélecteur par pas de5s. Hermann corrige explicitement la borne maximale :58min55s ;5999s était une coquille. Répétitions : entiers1–100.00:00 reste réservé à la représentation neutre de l’échec, jamais une cible. Les valeurs historiques ne sont pas arrondies silencieusement à la lecture ; les contrôles de pauses et de Durée totale conservent leurs règles propres.
+**Bornes confirmées le13/10 :** cible Durée de00:05 à58:55 (5–3535s), sélecteur par pas de5s. Hermann corrige explicitement la borne maximale :58min55s ;5999s était une coquille. Répétitions : entiers1–100.00:00 reste réservé à la représentation neutre de l’échec, jamais une cible. Les valeurs historiques ne sont pas arrondies silencieusement à la lecture ; les contrôles de pauses et de Durée totale conservent leurs règles propres. Valeur historique hors grille : conserver et afficher exactement la valeur tant que l’utilisateur ne la modifie pas, sans arrondi ni plafonnement à la lecture ou à l’ouverture. La roulette propose les valeurs de 5 à 3535 s par pas de 5 s ; une sélection explicite remplace la valeur historique. Le pied ± de cible Durée utilise un pas de 5 s, dans les bornes autorisées ; ne pas confondre ce pas avec celui des pauses ou des phases. 00:00 ne peut pas être validé comme cible numérique et ne sélectionne jamais implicitement À l’échec. 5999 s n’est pas une borne autorisée.
 
 <a id="formats-raccordement"></a>
 
