@@ -199,7 +199,33 @@ Inventaire exact des lignes ajoutées :
 - Aucune ligne restaurée ne réintroduit de lien vers un fichier supprimé ; `links.mjs` : 2 anomalies, inchangé.
 - Fusions simulées avec #363, #370, #371 : 0 conflit.
 
-- [ ] 3.5 `[PRE4]` **Renvois D-nnn effacés dans les chapitres** (EXACT, environ 210 occurrences dans les 13 chapitres) : **soumis à Q-O**. La PR #360 annonce le retrait des « rubriques de traçabilité des contrats ». Les 244 lignes EXACT portent toutes une trace d'effacement mécanique (espace orpheline avant ponctuation, parenthèse vide, libellé vide), ce qui suggère une suppression non éditoriale. L'intention reste à confirmer.
+### Journal d'exécution du lot 3b (16/10/2026) — renvois D-nnn (Q-O)
+
+**Départ :** `406fecf1`.
+
+**Fondement :**
+- question Q-O, classée recommandation documentaire : la restauration ne change aucune règle et ne fait que remettre des citations de décisions ;
+- autorisation de Hermann du 16/10 pour les corrections purement documentaires ;
+- commit **séparé**, pour pouvoir être annulé seul si Hermann préfère des chapitres sans renvois.
+
+**Méthode :** `appliquer-lot3-identifiants.mjs --groupe=3b`, même critère strict de suppressions seules. Les lignes modifiées par les PR ouvertes sont exclues, dont ch. 08:1573 (PR #371).
+
+**Réalisé :** 155 lignes dans 12 chapitres (ch. 01 : 4 ; 02 : 2 ; 03 : 6 ; 04 : 5 ; 05 : 5 ; 06 : 23 ; 08 : 29 ; 09 : 16 ; 10 : 9 ; 11 : 10 ; 12 : 17 ; 13 : 29). 43 décisions distinctes sont citées de nouveau, toutes présentes au registre. Inventaire : [constats/LOT-3b-restaurations.tsv](constats/LOT-3b-restaurations.tsv).
+
+**Contrôles :**
+- vérification indépendante (Myers) : **155/155** ;
+- idempotence ;
+- 0 lien mort réintroduit ;
+- fusions simulées avec #363, #370, #371 : 0 conflit.
+
+**Réserve R3b-1 :** 6 lignes citent de nouveau D-232 ou D-246, décisions « supersédées sur ces points le 02/10/2026 » :
+- ch. 08 : l. 1557, 1559, 1567 ;
+- ch. 09 : l. 607, 1114 ;
+- ch. 13 : l. 3098.
+
+Ces lignes citent D-232 sur des points qu'elle déclare elle-même conservés (« Bornes conservées : … répétitions 1..100 »), ou sans modifier la prescription de la ligne. Le renvoi rétablit la citation d'origine et ne réactive aucun point remplacé. La désignation du remplaçant pour les points supersédés reste ouverte (H-11).
+
+- [x] 3.5 `[PRE4]` **Renvois D-nnn effacés dans les chapitres** (EXACT, environ 210 occurrences dans les 13 chapitres) : **soumis à Q-O**. La PR #360 annonce le retrait des « rubriques de traçabilité des contrats ». Les 244 lignes EXACT portent toutes une trace d'effacement mécanique (espace orpheline avant ponctuation, parenthèse vide, libellé vide), ce qui suggère une suppression non éditoriale. L'intention reste à confirmer.
 - [ ] 3.6 Les 214 lignes À EXAMINER **ne sont pas restaurées automatiquement**. Elles sont examinées par fichier au lot 6 ; certaines correspondent à des suppressions annoncées par la PR #360.
 - [ ] 3.7 Contrôle : `outils/compter-identifiants.mjs <racine> 7a89220f^ HEAD` montre le retour des familles RM-FMT, FMT et REC (D-nnn selon Q-O). `git diff --word-diff` ne contient que des identifiants.
 

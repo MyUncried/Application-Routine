@@ -165,7 +165,7 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 5. enregistrer son ressenti ;
 6. retrouver une trace fidèle de l’Exécution dans le Suivi.
 
-**Question à clarifier pour PRE-3  :** sources système d’import, formats acceptés et éventuelles limites de taille/durée des photos et vidéos locales. Ces éléments ne sont plus reportés automatiquement après le MVP ; aucun seuil arbitraire n’est décidé ici.
+**Question à clarifier pour PRE-3 (D-333) :** sources système d’import, formats acceptés et éventuelles limites de taille/durée des photos et vidéos locales. Ces éléments ne sont plus reportés automatiquement après le MVP ; aucun seuil arbitraire n’est décidé ici.
 
 ## 7. Questions reportées après le MVP
 
@@ -219,7 +219,7 @@ Le besoin détaillé est consolidé dans `../CONCEPTION-EXECUTION-MEDIA.md`.
 
 - Distinguer clairement la Pause après chaque série, la Pause entre les côtés et la Récupération après exercice.
 - Dans l’éditeur d’Exercice, n’exposer la Pause entre les côtés que lorsque le Changement de côté vaut `D→G` ou `G→D`.
-- Dans la Composition, ajouter explicitement une récupération, en modifier la durée et la retirer. À 0 s ou en son absence, aucune information de récupération ; le trait reste indépendant du contenu .
+- Dans la Composition, ajouter explicitement une récupération, en modifier la durée et la retirer. À 0 s ou en son absence, aucune information de récupération ; le trait reste indépendant du contenu (D-303).
 - Conserver cette récupération avec l’occurrence lors d’un déplacement ou d’une duplication ; la supprimer avec l’occurrence.
 - Exécuter la récupération de la dernier Exercice avant la Fin de séance, et celle de la dernier Exercice du Circuit à chaque Tour.
 - Ne pas ajouter de récupération post-exercice lors de l’Exécution directe depuis le Catalogue.

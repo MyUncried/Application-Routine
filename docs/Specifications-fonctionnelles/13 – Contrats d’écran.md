@@ -81,7 +81,7 @@ Les noms d’Exercices/Séances, catégories, zones corporelles, durées, nombre
 
 ### 4.3 Navigation globale
 
-Destination basse permanente : `Catalogues`, `Calendrier`, `Suivi`, `Profil`. Aucun contrôle Recherche n’est présent dans le MVP .
+Destination basse permanente : `Catalogues`, `Calendrier`, `Suivi`, `Profil`. Aucun contrôle Recherche n’est présent dans le MVP (D-221/D-225).
 
 Composant : `Navigation / Bottom` (`6298:12462`). Les quatre dessins de destination mesurent au maximum `24 pt`, centrés dans une boîte optique `32 × 32 pt`. Aucune substitution par glyphe/emoji/système.
 
@@ -144,15 +144,15 @@ Avancement vers l’écran suivant : cible entre depuis la droite, écran couran
 
 Les modales `Étiquettes`, `Catégorie` et `Zones corporelles` partagent le même contrat :
 
-- appui court : Étiquette marquée au toucher (nouveau toucher : démarquée) puis confirmée par ✓  ; Catégorie d’Exercice marquée au toucher puis confirmée par ✓  ; choix multiple Zones sélectionné/désélectionné puis confirmé ;
-- appui long : aucun changement de sélection ni désaffectation ; ouverture d’un `Overlay / Decision Dialog` proposant `Modifier` (renommer ; couleur pour Catégorie et Étiquette) et `Supprimer` , dans la fenêtre de la feuille, sans masquer le clavier déjà affiché  ;
+- appui court : Étiquette marquée au toucher (nouveau toucher : démarquée) puis confirmée par ✓ (D-355) ; Catégorie d’Exercice marquée au toucher puis confirmée par ✓ (D-343) ; choix multiple Zones sélectionné/désélectionné puis confirmé ;
+- appui long : aucun changement de sélection ni désaffectation ; ouverture d’un `Overlay / Decision Dialog` proposant `Modifier` (renommer ; couleur pour Catégorie et Étiquette) et `Supprimer` (D-259), dans la fenêtre de la feuille, sans masquer le clavier déjà affiché (D-354) ;
 - titre dynamique : `Supprimer « {nom} » ?` ;
 - message dynamique : si la valeur est utilisée, préciser qu’elle disparaît des nouveaux choix mais reste attachée aux objets existants, avec son nom et sa dernière couleur ; l’historique reste inchangé ;
-- actions : ✕ rond en haut à gauche, puis `Modifier` (bleu Kodjo) et `Supprimer` (rouge) sur une ligne, texte blanc  ; `Supprimer` demande la confirmation destructive ci-dessus ; `Modifier` ouvre la saisie du nom de l’entrée visée, même formulaire de création ouvert (dont le texte est conservé) (et la palette pour Catégorie/Étiquette) avec les composants existants ;
+- actions : ✕ rond en haut à gauche, puis `Modifier` (bleu Kodjo) et `Supprimer` (rouge) sur une ligne, texte blanc (D-354) ; `Supprimer` demande la confirmation destructive ci-dessus ; `Modifier` ouvre la saisie du nom de l’entrée visée, même formulaire de création ouvert (dont le texte est conservé) (et la palette pour Catégorie/Étiquette) avec les composants existants ;
 - toutes les valeurs sont concernées, y compris les valeurs initiales fournies par KODJO ;
 - après `Supprimer`, revenir à la modale de sélection restée ouverte, avec la valeur supprimée absente ;
 - une affectation existante reste sélectionnée et peut être conservée à l’enregistrement ; une nouvelle affectation à cette valeur retirée n’est plus permise ;
-- aucune restauration automatique d’une valeur supprimée au démarrage ou par migration ; créer explicitement un nom correspondant à une valeur retirée la réactive .
+- aucune restauration automatique d’une valeur supprimée au démarrage ou par migration ; créer explicitement un nom correspondant à une valeur retirée la réactive (D-257).
 
 La recette doit couvrir au minimum une Étiquette, une Catégorie et une Zone corporelle, chacune dans un cas utilisé et non utilisé.
 
@@ -162,7 +162,7 @@ Références Figma : `4861:6145` (Étiquette), `4861:6259` (Catégorie), `4861:6
 
 ### 4.11 Cartes, médias de carte et appuis — référence courante
 
-D-233–239 révisées par D-260 à D-264 et DSF-CARTES-ICONES-APPUIS-2026-09-30 gouvernent le rendu. Carte standard 354 sur 402, rayon 8, fond#F9FAFC/bord 0,5#CCD1E0, titre 15 Semi Bold, pastilles 20 et valeurs 16 ; marges adaptatives, aucune barre verticale hors Jour. Carte d’Exercice Catalogue/choix : gouttière permanente 64, photo recadrée centrée sans déformation ou icône de nature sans média/pendant chargement/erreur ; texte à x88 ; Catalogue replié/archivé : titre250, lignes basses207 ; Choix conserve sa coupe propre ; aucun Déployer. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi ; texte alternatif de la vignette égal au nom. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture . La galerie d’Exécution conserve au contraire le média intégral sans recadrage. Séance sans photo . Choix sans badge durée/heure ni Lecture/Déployer. Pauses/récupérations absentes des cartes Catalogue/choix/Composition ; prochaine planification absente des Catalogues ; données et calculs conservés.
+D-233–239 révisées par D-260 à D-264 et DSF-CARTES-ICONES-APPUIS-2026-09-30 gouvernent le rendu. Carte standard 354 sur 402, rayon 8, fond#F9FAFC/bord 0,5#CCD1E0, titre 15 Semi Bold, pastilles 20 et valeurs 16 ; marges adaptatives, aucune barre verticale hors Jour. Carte d’Exercice Catalogue/choix : gouttière permanente 64, photo recadrée centrée sans déformation ou icône de nature sans média/pendant chargement/erreur ; texte à x88 ; Catalogue replié/archivé : titre250, lignes basses207 ; Choix conserve sa coupe propre ; aucun Déployer. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi ; texte alternatif de la vignette égal au nom. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). La galerie d’Exécution conserve au contraire le média intégral sans recadrage. Séance sans photo (D-260). Choix sans badge durée/heure ni Lecture/Déployer. Pauses/récupérations absentes des cartes Catalogue/choix/Composition ; prochaine planification absente des Catalogues ; données et calculs conservés.
 
 Commandes contextuelles 34/dessin 20/cible 44, gaps 12 ou 10 en Composition ; dimensions spécifiques 48 conservées. Jour compact 298×46/48, barre 4, nature 26, titre 13, valeurs 11, Lecture 26 ; pas de déploiement. Aujourd’hui/Planifier 32 restent l’exception acceptée aprèsT04. Action au relâchement, sans attendre le retour animé ; sortie de cible annule ; stepper : maintien≈500ms, répétition150ms et paliers1/5/10 selon DSF Bip ; réduction des animations par opacité sans dilatation. Les dimensions à402 ne sont pas des coordonnées absolues d’implémentation.
 
@@ -296,7 +296,7 @@ Cartes standard : largeur 354 sur écran 402, rayon 8, fond #F9FAFC, bord intér
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-Appliquer §4.2. Segmenté flexible ; libellés complets ; contenu liste scrollable. Aucune recherche n’est exposée .
+Appliquer §4.2. Segmenté flexible ; libellés complets ; contenu liste scrollable. Aucune recherche n’est exposée (D-221).
 
 ### 11. États de l’écran
 
@@ -393,11 +393,11 @@ Pastille Catégorie colorée, Zones corporelles, titre et badge durée ; synthè
 
 Cartes Catalogue : [DSF Durée du07/10](../DSF-CARTES-DUREE-2026-10-07.md). Texte de durée sans fond/cadre/padding, Inter Semi Bold12 #141414, droite16px. Propriété booléenne Durée des sets6214:7276/7278 ; absence → aucun contenu de remplacement. Exercice replié/archivé : titre250px, lignes basses207px àx88 ; coupes60/69/145 fondées sur207. Gouttière12px conservée ; Séance16/16. La référence Exercice Déployé ne crée aucun accès MVP.
 
-Cartes standard : largeur 354 sur écran 402, rayon 8, fond #F9FAFC, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Repliée 354 × 91. Gouttière permanente d’exercice : carré 64 à12 du bord, photo si média ou icône de nature sinon, centrée et recadrée sans déformation (couverture vidéo), texte x88 ; titre250 en Catalogue replié/archivé, lignes basses207 ; Choix conserve sa largeur liée au contrôle ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture . Durée Catalogue sans cadre, Inter Semi Bold12 #141414 à16px du bord droit, présence selon Bip v2 ; heure selon contexte, catégorie conservée, pictogramme de zone conservé ; Déployer absent. Séance sans vignette . Commandes 34/dessins 20/gaps 12/cibles 44. La référence Exercice Déployé est historique hors MVP, sans chemin d’accès.
+Cartes standard : largeur 354 sur écran 402, rayon 8, fond #F9FAFC, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Repliée 354 × 91. Gouttière permanente d’exercice : carré 64 à12 du bord, photo si média ou icône de nature sinon, centrée et recadrée sans déformation (couverture vidéo), texte x88 ; titre250 en Catalogue replié/archivé, lignes basses207 ; Choix conserve sa largeur liée au contrôle ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Durée Catalogue sans cadre, Inter Semi Bold12 #141414 à16px du bord droit, présence selon Bip v2 ; heure selon contexte, catégorie conservée, pictogramme de zone conservé ; Déployer absent. Séance sans vignette (D-260). Commandes 34/dessins 20/gaps 12/cibles 44. La référence Exercice Déployé est historique hors MVP, sans chemin d’accès.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-§4.2. Liste et cartes prennent largeur utile. Aucune recherche active ; `1992:10129` est une archive . Cibles ≥44 pour les commandes contextuelles visuelles hautes de 34 pt ; les cibles spécifiques de 48 restent conservées. Texte long peut passer sur plusieurs lignes selon DSF.
+§4.2. Liste et cartes prennent largeur utile. Aucune recherche active ; `1992:10129` est une archive (D-221). Cibles ≥44 pour les commandes contextuelles visuelles hautes de 34 pt ; les cibles spécifiques de 48 restent conservées. Texte long peut passer sur plusieurs lignes selon DSF.
 
 ### 11. États de l’écran
 
@@ -541,7 +541,7 @@ Phrase longue7119:27855 et Bip7059:13302 ;7061:13383 supprimé ; copies9b/10b706
 
 ### 2. Finalité fonctionnelle
 
-Créer/modifier un Exercice avec paramètres saisis dans la feuille basse. Le résumé de la carte est dérivé et sert de raccourci ; il ne contient aucun contrôle de saisie inline. Ajout/import de médias inclus au MVP dans PRE-3, avant le moteur d’exécution .
+Créer/modifier un Exercice avec paramètres saisis dans la feuille basse. Le résumé de la carte est dérivé et sert de raccourci ; il ne contient aucun contrôle de saisie inline. Ajout/import de médias inclus au MVP dans PRE-3, avant le moteur d’exécution (D-333).
 
 ### 3. Contexte d’entrée
 
@@ -557,7 +557,7 @@ Deux modes communs, cible typée par Série et régime conservé. Phrase régén
 
 Phrase selon les276 cas v15, total fourni par le calcul métier. Générateur → segments ordonnés `{texte, gras}`, valeurs et unités en gras, aucun redécoupage de chaîne. Terme « pause après chaque série », y compris N=1 ; clause de pauses variables omise conformément au corpus.
 
-Brouillon parent : nom, référentiels, description, paramètres validés par la feuille et associations médias ordonnées, existantes ou ajoutées dans PRE-3 . Aucun texte de démonstration codé en dur.
+Brouillon parent : nom, référentiels, description, paramètres validés par la feuille et associations médias ordonnées, existantes ou ajoutées dans PRE-3 (D-333). Aucun texte de démonstration codé en dur.
 
 Paramètres étendus : uniforme/variable, liste ordonnée de cibles/Pauses, Ordre des côtés ; copie complète vers CE-UI-10.
 
@@ -937,7 +937,7 @@ Exercice → éditeur de copie locale ; Ajouter un exercice → CE-T03-07 ; Éti
 
 **Complément cible12/10 :** Nature, compte et régime explicites. N imposé en circuit de séries ; durées agrégées exact/≈/≥, sans lire les chiffres Figma.
 
-Brouillon Session indépendant, nom, Étiquette0..1, compte à rebours/Fin, Circuit unique, nature tours/séries, compte1..99, exclusion systématique des Compte à rebours/Fin propres selon D-214 révisée, sans booléen et sans effacer leurs valeurs. Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération . Chaque occurrence conserve ses séries/cadences ; To=T−PN+R si R>0, sinon To=T pour un travail calculable. Total développé selon la nature du Circuit ; exact/estimated/lowerBound selon Bip v2 et spécification Circuits du12/10. Point d’arrêt sans durée prévue.
+Brouillon Session indépendant, nom, Étiquette0..1, compte à rebours/Fin, Circuit unique, nature tours/séries, compte1..99, exclusion systématique des Compte à rebours/Fin propres selon D-214 révisée, sans booléen et sans effacer leurs valeurs. Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). Chaque occurrence conserve ses séries/cadences ; To=T−PN+R si R>0, sinon To=T pour un travail calculable. Total développé selon la nature du Circuit ; exact/estimated/lowerBound selon Bip v2 et spécification Circuits du12/10. Point d’arrêt sans durée prévue.
 
 ### 6. Classification des valeurs Figma
 
@@ -1007,7 +1007,7 @@ Annoncer type, position, durée, sélection et nombre d’ajouts ; ordre de focu
 
 Pause après chaque série, dernière comprise, même N1. Hors circuit de séries, PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon paramètres d’exercice du chapitre 08. Dans un circuit de séries : premier côté → PC → second côté → Pi, déroulement unique ; R positive remplace Pi terminale. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.
 
-Circuit=groupe, Tour=répétition ; récupération positive avant point, attente exclue du prévu ; éléments internes répétés à chaque Tour. Aucune récupération automatique ni récupération directe ACTIVITY. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement . D-248 confirmée sur pause terminale et substitution par R ; D-301 maintenu pour l’absence de pause effective entre Exercices ; aucune persistance avant Continuer.
+Circuit=groupe, Tour=répétition ; récupération positive avant point, attente exclue du prévu ; éléments internes répétés à chaque Tour. Aucune récupération automatique ni récupération directe ACTIVITY. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). D-248 confirmée sur pause terminale et substitution par R ; D-301 maintenu pour l’absence de pause effective entre Exercices ; aucune persistance avant Continuer.
 
 CF3 déjà tranché par RM-151/RM-152 : indicateur compact D→G/G→D conservé, sans nouvelle ligne de pause ni phrase longue injectée dans les cartes.
 
@@ -1753,7 +1753,7 @@ Aucune/une Étiquette ; liste vide ; création ; nom invalide ; sélection retir
 
 ### 12. Contrôles et interactions
 
-Tap valide une sélection simple ; appui long ne change pas la sélection et ouvre le dialogue Modifier/Supprimer . Créer valide le référentiel ; son affectation reste dans le brouillon de Séance. La suppression globale conserve les affectations existantes D-210.
+Tap valide une sélection simple ; appui long ne change pas la sélection et ouvre le dialogue Modifier/Supprimer (D-259). Créer valide le référentiel ; son affectation reste dans le brouillon de Séance. La suppression globale conserve les affectations existantes D-210.
 
 ### 13. Gestes
 
@@ -1761,7 +1761,7 @@ Tap, scroll, appui long option ; fermeture hors dialogue n’exécute jamais Sup
 
 ### 14. Validation
 
-Nom de nouvelle Étiquette non vide et unique dans le référentiel ; couleur choisie dans palette. Un nom correspondant à une Étiquette retirée la réactive avec la couleur choisie . Aucune Étiquette exigée pour Continuer dans Composition ; affectation retirée existante reste conservable.
+Nom de nouvelle Étiquette non vide et unique dans le référentiel ; couleur choisie dans palette. Un nom correspondant à une Étiquette retirée la réactive avec la couleur choisie (D-257). Aucune Étiquette exigée pour Continuer dans Composition ; affectation retirée existante reste conservable.
 
 ### 15. Brouillon et persistance
 
@@ -2078,7 +2078,7 @@ Enregistrer valide/persiste et revient à Profil ; retour avec modification prop
 
 ### 5. Données affichées et source de vérité
 
-Photo locale facultative choisie dans la galerie , nom d’affichage et silhouette facultative homme/femme ; absence silhouette affiche homme. Les champs viennent du brouillon de Profil, pas de données d’événement.
+Photo locale facultative choisie dans la galerie (D-258), nom d’affichage et silhouette facultative homme/femme ; absence silhouette affiche homme. Les champs viennent du brouillon de Profil, pas de données d’événement.
 
 ### 6. Classification des valeurs Figma
 
@@ -2308,7 +2308,7 @@ Après confirmation, conserver date/vue et actualiser liste/marqueurs. Après an
 
 ### 17. Erreurs et cas limites
 
-Semaine/mois vide, occurrence déjà retirée, source disparue, erreur de suppression : informer sans mutation partielle. Ne pas confondre média absent avec erreur métier. Aucune photo sur les cartes du Calendrier, quel que soit le type .
+Semaine/mois vide, occurrence déjà retirée, source disparue, erreur de suppression : informer sans mutation partielle. Ne pas confondre média absent avec erreur métier. Aucune photo sur les cartes du Calendrier, quel que soit le type (D-260).
 
 ### 18. Accessibilité
 
@@ -2590,7 +2590,7 @@ Modifier → CE-UI-01 ; navigation basse vers les trois autres destinations ; un
 
 ### 5. Données affichées et source de vérité
 
-Préférences locales : Sons, Annonces vocales, Vibration, Notifications ; groupe Exercice : Pause entre les côtés, Compte à rebours d’un exercice , Fin d’exercice ; groupe Séance : Récupération après exercice, Compte à rebours initial, Fin de séance.
+Préférences locales : Sons, Annonces vocales, Vibration, Notifications ; groupe Exercice : Pause entre les côtés, Compte à rebours d’un exercice (D-266), Fin d’exercice ; groupe Séance : Récupération après exercice, Compte à rebours initial, Fin de séance.
 
 Révision D-307 : le défaut récupération est proposé à son ajout explicite en Composition, pas à l’insertion de chaque Exercice.
 
@@ -2610,7 +2610,7 @@ Libellé unique Pause entre les côtés ; défaut10s ; pas des pauses validé D-
 
 ### 9. Layout déterministe
 
-Groupes selonDSF T5/T6 : fond#F9FAFC, liseré blanc 1, rayon 12, ombre sans rognage. Dans chaque groupe, un séparateur horizontal entre deux lignes consécutives, au style de séparateur de référence, aucun après la dernière ligne . Durées par steppers Profil, pas par roulette d’Exercice ; libellés complets accessibles.
+Groupes selonDSF T5/T6 : fond#F9FAFC, liseré blanc 1, rayon 12, ombre sans rognage. Dans chaque groupe, un séparateur horizontal entre deux lignes consécutives, au style de séparateur de référence, aucun après la dernière ligne (D-267). Durées par steppers Profil, pas par roulette d’Exercice ; libellés complets accessibles.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -2630,7 +2630,7 @@ Tap bascule ; stepper incrément immédiat, maintien≈500ms, répétition150ms 
 
 ### 14. Validation
 
-Valeurs non négatives ; pauses côté/récupération 0..300 s, tap1s puis maintien accéléré selon DSF Bip. Compte à rebours d’exercice et Fin d’exercice : 0..60 s, pas 1 s . Compte à rebours initial et Fin de séance (valeurs par défaut) : 0..60 s, pas 1 s  ; une valeur enregistrée au-delà est conservée sans plafonnement : « + » inactif, « − » ramène d’abord à 60 s. Pas de maximum déduit d’un exemple. Les bornes partagées sont consolidées au §6 R-02.
+Valeurs non négatives ; pauses côté/récupération 0..300 s, tap1s puis maintien accéléré selon DSF Bip. Compte à rebours d’exercice et Fin d’exercice : 0..60 s, pas 1 s (D-256). Compte à rebours initial et Fin de séance (valeurs par défaut) : 0..60 s, pas 1 s (D-265) ; une valeur enregistrée au-delà est conservée sans plafonnement : « + » inactif, « − » ramène d’abord à 60 s. Pas de maximum déduit d’un exemple. Les bornes partagées sont consolidées au §6 R-02.
 
 ### 15. Brouillon et persistance
 
@@ -2872,7 +2872,7 @@ Accès Catégorie ou Zones depuis éditeur persistant/local, avec brouillon cons
 
 ### 4. Contexte de sortie / destinations
 
-Catégorie marquée au toucher (ou créée par ↑ et marquée), confirmée par ✓ → éditeur ; ✕ conserve la Catégorie précédente, une Catégorie créée reste dans le référentiel  ; Zones sélection multiple puis validation de la modale → éditeur ; fermer sans validation restaure sélection antérieure. Création/suppression restent dans la famille de sélection.
+Catégorie marquée au toucher (ou créée par ↑ et marquée), confirmée par ✓ → éditeur ; ✕ conserve la Catégorie précédente, une Catégorie créée reste dans le référentiel (D-343) ; Zones sélection multiple puis validation de la modale → éditeur ; fermer sans validation restaure sélection antérieure. Création/suppression restent dans la famille de sélection.
 
 ### 5. Données affichées et source de vérité
 
@@ -2894,7 +2894,7 @@ Catégorie 1 et Zones≥1 pour nouvel Exercice ; nouvelle valeur nommée ; annul
 
 ### 9. Layout déterministe
 
-Modales D-228 ; pastille Catégorie colorée et nom ; Zones icône silhouette depuis Profil ; palette de 4474:7157 : barre de couleurs sous le champ, sans pastille séparée, 12 couleurs D-026 . Les Zones n’ont pas de palette.
+Modales D-228 ; pastille Catégorie colorée et nom ; Zones icône silhouette depuis Profil ; palette de 4474:7157 : barre de couleurs sous le champ, sans pastille séparée, 12 couleurs D-026 (D-344). Les Zones n’ont pas de palette.
 
 Actions destructives : token danger#D92D20 ; séparateurs#E0E3E8 et labels par rôle DSF. Aucune reprise des anciens rouges locaux.
 
@@ -2910,7 +2910,7 @@ Liste vide/initiale/enrichie ; aucune/une Catégorie ; zéro/N Zones ; création
 
 ### 12. Contrôles et interactions
 
-Catégorie tap valide/ferme ; Zones tap toggle puis confirmer. Appui long ouvre le dialogue Modifier/Supprimer sans sélectionner . Créer/renommer conserve identité de référence ; changer couleur Catégorie se propage aux objets courants, pas aux instantanés.
+Catégorie tap valide/ferme ; Zones tap toggle puis confirmer. Appui long ouvre le dialogue Modifier/Supprimer sans sélectionner (D-259). Créer/renommer conserve identité de référence ; changer couleur Catégorie se propage aux objets courants, pas aux instantanés.
 
 ### 13. Gestes
 
@@ -2918,7 +2918,7 @@ Tap, scroll, saisie et appui long option ; aucun drag des référentiels ; appui
 
 ### 14. Validation
 
-Nom non vide et unique dans son référentiel ; un nom correspondant à une valeur retirée la réactive avec son identifiant et ses associations  ; Catégorie exactement 1, Zones≥1 pour nouvel objet. Une valeur retirée ne peut recevoir de nouvelle affectation ; l’ancienne affectation n’exige pas un remplacement forcé.
+Nom non vide et unique dans son référentiel ; un nom correspondant à une valeur retirée la réactive avec son identifiant et ses associations (D-257) ; Catégorie exactement 1, Zones≥1 pour nouvel objet. Une valeur retirée ne peut recevoir de nouvelle affectation ; l’ancienne affectation n’exige pas un remplacement forcé.
 
 ### 15. Brouillon et persistance
 
@@ -2930,7 +2930,7 @@ Fermer restitue éditeur/brouillon ; Annuler suppression restitue sélection int
 
 ### 17. Erreurs et cas limites
 
-Nom vide/dupliqué, valeur retirée entre lecture et choix, échec écriture : message et brouillon conservé. Ne jamais recréer ni réactiver automatiquement une valeur supprimée au démarrage ou par migration ; seule une création explicite du même nom la réactive .
+Nom vide/dupliqué, valeur retirée entre lecture et choix, échec écriture : message et brouillon conservé. Ne jamais recréer ni réactiver automatiquement une valeur supprimée au démarrage ou par migration ; seule une création explicite du même nom la réactive (D-257).
 
 ### 18. Accessibilité
 
@@ -3095,8 +3095,8 @@ Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : �
 
 - Planifier : fréquence entière de 1 à 12 semaines incluses ; − inactif à 1 et + inactif à 12 ; toute valeur extérieure est refusée à l’enregistrement.
 - Rappel Autre : délai strictement positif, maximum 24 h (1 440 minutes), avec les unités et le sélecteur existants. Aucun désactive le rappel ; zéro ne crée pas une deuxième manière de désactiver le champ. Une notification dont l’échéance est déjà passée n’est pas envoyée rétroactivement ; les futures occurrences conservent leur rappel.
-- Durée totale : conserver le sélecteur minutes/secondes. La borne dérivée est T(1)..T(99) pour les paramètres courants, et non 58 min 55 s (borne par Série). La colonne minutes doit représenter T(99), sans nouvelle colonne ni nouveau contrôle. Granularité seconde ; le calcul inverse existant choisit N dans 1..99, arrondi .5 vers le haut, puis affiche T(N) et le message d’ajustement si nécessaire. En Durée uniforme, une diminution à N=1 ne masque le total du résumé que s’il égale effectivement la cible ; la ligne Total reste présente dans la feuille en Durée/Répétitions .
-- Profil : les paramètres identiques héritent des mêmes bornes que leur champ cible, sans maximum tiré des valeurs d’exemple, sauf D-265. Compte à rebours initial/Fin de séance : 0..3599 s pour les champs de la Séance , 0..60 s pas 1 s pour leurs valeurs par défaut du Profil  ; Compte à rebours d’exercice/Fin d’exercice : 0..60 s, pas 1 s  ; pauses et récupération : 0..300 s ; le contrôle et ses pas restent ceux du DSF et de D-232. Les valeurs initiales déjà validées ne changent pas.
+- Durée totale : conserver le sélecteur minutes/secondes. La borne dérivée est T(1)..T(99) pour les paramètres courants, et non 58 min 55 s (borne par Série). La colonne minutes doit représenter T(99), sans nouvelle colonne ni nouveau contrôle. Granularité seconde ; le calcul inverse existant choisit N dans 1..99, arrondi .5 vers le haut, puis affiche T(N) et le message d’ajustement si nécessaire. En Durée uniforme, une diminution à N=1 ne masque le total du résumé que s’il égale effectivement la cible ; la ligne Total reste présente dans la feuille en Durée/Répétitions (D-246).
+- Profil : les paramètres identiques héritent des mêmes bornes que leur champ cible, sans maximum tiré des valeurs d’exemple, sauf D-265. Compte à rebours initial/Fin de séance : 0..3599 s pour les champs de la Séance (D-089), 0..60 s pas 1 s pour leurs valeurs par défaut du Profil (D-265) ; Compte à rebours d’exercice/Fin d’exercice : 0..60 s, pas 1 s (D-256) ; pauses et récupération : 0..300 s ; le contrôle et ses pas restent ceux du DSF et de D-232. Les valeurs initiales déjà validées ne changent pas.
 
 ### R-03 — Transition, reset et suspension
 
@@ -3125,7 +3125,7 @@ Le comportement utilisateur est déjà fixé. L’exclusion d’une occurrence i
 | E05 | Navigation basse `Catalogues` |
 | E06 | Icônes navigation conformes DSF |
 | E07 | Lister ActivityDefinition |
-| E08 | Absence de recherche globale ou locale MVP  |
+| E08 | Absence de recherche globale ou locale MVP (D-221) |
 | E09 | Rangée Catalogue `Créer / Filtrer / Trier` commune ; Filtres contextuels statut/Catégories/Zones pour Exercices, statut/Étiquettes pour Séances ; Trier désactivé |
 | E10 | Préserver filtres/tri/scroll pendant aller-retour |
 | E11 | Ne pas conserver au relaunch |
@@ -3150,7 +3150,7 @@ Le comportement utilisateur est déjà fixé. L’exclusion d’une occurrence i
 | E30 | Copier tout état métier applicable |
 | E31 | Retour Composition enrichie |
 | E32 | Bouton Lecture Activity |
-| E33 | Aucun Déployer d’Exercice, avec ou sans média  |
+| E33 | Aucun Déployer d’Exercice, avec ou sans média (D-261) |
 | E34 | Gouttière permanente Exercice ; déploiement réservé aux Séances Catalogue/Semaine |
 | E35 | Zone droite réservée identique |
 | E36 | Pas poignée Catalogue Activity |
