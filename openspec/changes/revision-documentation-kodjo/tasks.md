@@ -226,16 +226,16 @@ Inventaire exact des lignes ajoutées :
 Ces lignes citent D-232 sur des points qu'elle déclare elle-même conservés (« Bornes conservées : … répétitions 1..100 »), ou sans modifier la prescription de la ligne. Le renvoi rétablit la citation d'origine et ne réactive aucun point remplacé. La désignation du remplaçant pour les points supersédés reste ouverte (H-11).
 
 - [x] 3.5 `[PRE4]` **Renvois D-nnn effacés dans les chapitres** (EXACT, environ 210 occurrences dans les 13 chapitres) : **soumis à Q-O**. La PR #360 annonce le retrait des « rubriques de traçabilité des contrats ». Les 244 lignes EXACT portent toutes une trace d'effacement mécanique (espace orpheline avant ponctuation, parenthèse vide, libellé vide), ce qui suggère une suppression non éditoriale. L'intention reste à confirmer.
-- [ ] 3.6 Les 214 lignes À EXAMINER **ne sont pas restaurées automatiquement**. Elles sont examinées par fichier au lot 6 ; certaines correspondent à des suppressions annoncées par la PR #360.
-- [ ] 3.7 Contrôle : `outils/compter-identifiants.mjs <racine> 7a89220f^ HEAD` montre le retour des familles RM-FMT, FMT et REC (D-nnn selon Q-O). `git diff --word-diff` ne contient que des identifiants.
+- [ ] 3.6 **REPORTÉE au lot 6 (non autorisé).** Les 214 lignes À EXAMINER **ne sont pas restaurées automatiquement**. Elles sont examinées par fichier au lot 6 ; certaines correspondent à des suppressions annoncées par la PR #360.
+- [x] 3.7 **Fait :** écart par rapport à `7a89220f^` après les lots 3a et 3b : D-nnn −142 (au lieu de −360), FMT −59 (au lieu de −162), RM-FMT −2 (au lieu de −52), REC +28 ; le reste correspond aux lignes reformulées (3.6). Énoncé initial : Contrôle : `outils/compter-identifiants.mjs <racine> 7a89220f^ HEAD` montre le retour des familles RM-FMT, FMT et REC (D-nnn selon Q-O). `git diff --word-diff` ne contient que des identifiants.
 
 ## 4. Lot 4 — Clarification de l'autorité documentaire
 
 **Classe :** `DOC-AUTORITÉ`. Ce lot dépend de Q-A, Q-B et Q-C.
 
-- [ ] 4.1 Écrire **une** formulation de l'autorité, en un seul endroit, et la citer ailleurs. Elle reprend ce qui est déjà acquis (documentation = comportements et calculs ; Figma = rendu ; décisions explicites ; DSF jusqu'au transfert) et le point tranché en Q-A.
-- [ ] 4.2 Aligner PRODUCT.md:434–442, ch. 13:19 et ch. 08:33 sur cette formulation, en les remplaçant par un renvoi, ou en retirer la borne « jusqu'à D-255 » selon Q-A `[PRE4]`.
-- [ ] 4.3 Ch. 07:559 (critère de récence) : reformuler conformément à design G3, selon Q-A `[PRE4]`.
+- [x] 4.1 **Fait en partie (16/10) :** `docs/INDEX.md`, section « Autorité documentaire — ce qui est décidé ». Elle regroupe sans ajout ce qui est explicitement décidé (D-255, D-300, ch. 13 « Clarification d’autorité », rang 1 des décisions explicitement supersédantes) et signale deux points non arbitrés (rang ch. 08 / ch. 13 ; borne « jusqu’à D-255 »). Aucun ordre nouveau, aucune règle modifiée. Énoncé initial : Écrire **une** formulation de l'autorité, en un seul endroit, et la citer ailleurs. Elle reprend ce qui est déjà acquis (documentation = comportements et calculs ; Figma = rendu ; décisions explicites ; DSF jusqu'au transfert) et le point tranché en Q-A.
+- [ ] 4.2 **ISOLÉE — arbitrage Q-A (question 2 d’arbitrages.md)** : modifier ces passages trancherait le rang ch. 08 / ch. 13 ou la borne D-255 ; non autorisé sans décision. Énoncé initial : Aligner PRODUCT.md:434–442, ch. 13:19 et ch. 08:33 sur cette formulation, en les remplaçant par un renvoi, ou en retirer la borne « jusqu'à D-255 » selon Q-A `[PRE4]`.
+- [ ] 4.3 **ISOLÉE — Q-A** : ch. 07:559 vise des « présentations », et non des décisions ; sa reformulation reste une recommandation. Énoncé initial : Ch. 07:559 (critère de récence) : reformuler conformément à design G3, selon Q-A `[PRE4]`.
 
 ## 5. Lot 5 — Contradictions fonctionnelles déjà arbitrées
 

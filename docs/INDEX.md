@@ -21,3 +21,17 @@ La documentation de référence forme un ensemble unique de treize chapitres. Le
 Le glossaire est intégré au chapitre 01. Les captures sont centralisées au chapitre 06, les contrats d’écran au chapitre 13. Les annexes de spécification et de consolidation ont été réintégrées aux chapitres concernés. L’historique des modifications reste consultable dans Git.
 
 La documentation décrit la conception attendue ; elle ne constitue pas une preuve de réalisation ni de qualification sur appareil. Les limites fonctionnelles encore ouvertes sont indiquées dans le sujet concerné.
+
+## Autorité documentaire — ce qui est décidé
+
+Cette section regroupe, sans en ajouter, les règles d'autorité déjà décidées explicitement :
+
+- **Comportements et calculs / rendu.** « Spécifications et arbitrages déterminent calculs et comportements ; Figma définit uniquement le layout/rendu. Exemples chiffrés et câblages ne sont jamais une règle. » ([D-255](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md), confirmée par D-300.) Voir aussi le chapitre 13, « Clarification d’autorité et de portée ».
+- **Décisions.** Les décisions validées du chapitre 07 s’appliquent dans leur portée. Une décision n’en remplace une autre que si elle le dit explicitement (`PRODUCT.md`, § Gouvernance documentaire, rang 1 : « arbitrages explicitement supersédants »). Une règle n’est pas remplacée du seul fait qu’un texte est plus récent ou placé ailleurs.
+
+Points non arbitrés, signalés pour décision, sans effet sur les règles en vigueur :
+
+- **Rang entre le chapitre 08 et le chapitre 13** en cas de contradiction sur un même écran. Trois passages divergent : `PRODUCT.md` § Gouvernance documentaire, chapitre 13 § 2 et chapitre 08 § 1.3 Organisation (« Les champs, contrôles et comportements spécifiques des écrans sont définis au chapitre 13. »).
+- **Borne « jusqu’à D-255 »** de l’ordre d’application du chapitre 13 § 2. Elle a été introduite le 03/10/2026, quand D-255 était la dernière décision du registre.
+
+En cas de contradiction entre deux passages, les deux sont conservés jusqu’à décision explicite.
