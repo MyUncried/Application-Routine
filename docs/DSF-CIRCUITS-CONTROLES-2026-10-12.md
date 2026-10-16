@@ -31,7 +31,7 @@ La ligne Séries regroupe le libellé, le régime identiques/variables, le chevr
 | Numéro | x24/y10, 24 × 17, texte 14 | Position de la série |
 | Cellules | x79/y6 et x175/y6, chacune 76 × 24 | Cible puis Pause ; cellule active distincte ; unité selon le mode |
 | Retrait | Zone x294/y0, 36 × 36 | Suppression immédiate avec Annuler selon contrat ; indisponible si N hérité |
-| Pied commun de réglage | `8129:31601`, 354 × 48 | Nom de la cellule active à gauche, ± à droite ; agir uniquement sur cette cellule |
+| Pied commun de réglage | `8129:31601`, 354 × 48 | Nom de la cellule active à gauche, ± à droite ; agir uniquement sur cette cellule. Sans cellule active, le pied reste affiché et ses ± sont indisponibles (décision PRE-4 Q26 du 16/10, D-385). Sur une cellule active dont la cible est à renseigner, + donne la valeur minimale (5 s ou 1) et − est indisponible (Q26) |
 | Libellé actif du pied | x12/y17, texte 12 | Exemple « Série 1 · Durée » ; annoncer série et champ |
 | Groupe ± du pied | x254/y6, 88 × 36 | Conserver paliers et bornes du champ, définis par la spécification |
 | Icône retirer | `8129:31604`, 24 × 24, trait 14 px | Maître existant ; les copies exportées montrent encore une croix : existence ne vaut pas propagation |

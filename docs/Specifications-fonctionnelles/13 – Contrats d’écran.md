@@ -124,7 +124,7 @@ Titres affichés : CE-T03-04 `Créer un exercice` / `Modifier un exercice` ; CE-
 
 ### 4.6 Roulettes de durée et steppers
 
-Toutes les roulettes de **durée** actives utilisent la famille de modales basses du DSF. Les entiers simples `Nombre de Séries`, `Nombre de répétitions` et `Nombre de Tours` utilisent un **stepper inline** et n’ouvrent aucune roulette. Les anciennes représentations contraires ne constituent plus une référence active.
+Toutes les roulettes de **durée** actives utilisent la famille de modales basses du DSF. Les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent un **stepper inline** et n’ouvrent aucune roulette. La cible `Nombre de répétitions` utilise une roulette native à une colonne : « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385). Les anciennes représentations contraires ne constituent plus une référence active.
 
 Tous les voiles modaux utilisent exclusivement `overlayScrim` (`color/overlay/scrim`) = #1F2129 à 34 % : dialogues de décision, feuilles de sélection, roues, filtres, classification, catégorie, zones corporelles, calendrier ouvert, abandon/confirmation et CE-UI-10. Cette règle est commune à tous les contrats ci-dessous. L’exception de CE-UI-10 concerne uniquement la roulette inline, jamais la couleur ou l’opacité du voile. `compositionDraggedCardShadow` (`color/overlay-scrim`, #14171F) est réservé à l’ombre de la carte déplacée. Voir .
 
@@ -569,9 +569,9 @@ La collection inclut la bip commun0..10 de chaque Série. Phrase dérivée des p
 
 ### 6. Classification des valeurs Figma
 
-Créer un exercice/Modifier un exercice, Paramètres d’exécution, Description de l’exercice, Terminer : statiques. Nom et résumé : dynamiques. Mode et Compte à rebours/Fin restent séparés de la phrase intrinsèque.
+Créer un exercice/Modifier un exercice, Paramètres d’exécution, Description de l’exercice, Terminer : statiques. Nom et résumé : dynamiques. Compte à rebours/Fin restent séparés de la phrase intrinsèque ; le Mode n’a pas de champ propre sur la carte et reste visible dans la phrase (décision PRE-4 Q23 du 16/10, D-385).
 
-Le champ du mode est distinct de la durée : Répétitions sur7059:13302 et7119:27855. La phrase et le mode reflètent les paramètres appliqués ; les montants statiques des copies ne sont pas des valeurs par défaut.
+Le champ du mode à droite du titre de la carte, visible sur7059:13302 et7119:27855, est retiré : la carte forme une seule zone touchable qui ouvre la feuille ; le Mode reste visible dans la phrase et se choisit dans la feuille, par son popover (décision PRE-4 Q23 du 16/10, D-385). La phrase reflète les paramètres appliqués ; les montants statiques des copies ne sont pas des valeurs par défaut.
 
 ### 7. Structure de l’écran
 
@@ -607,7 +607,7 @@ Toucher la zone Paramètres ouvre CE-UI-10. Aucun mot ou nombre de la phrase ne 
 
 ### 13. Gestes
 
-Tap, saisie et défilement du formulaire ; pas de geste métier supplémentaire.
+Tap, saisie et défilement du formulaire. Toucher une tuile Média la consulte : vidéo lue en plein écran par le lecteur natif, sans lecture automatique ; photo ouverte en plein écran. Appui long sur la tuile : menu contextuel natif Retirer / Monter / Descendre, avec actions VoiceOver équivalentes ; aucun bouton ajouté sur la tuile (décisions PRE-4 Q27 et Q31 du 16/10, D-385). Pas d’autre geste métier.
 
 ### 14. Validation
 
@@ -4090,7 +4090,7 @@ Aucun de ces constats ne suspend globalement la création/composition. Seule une
 | 9 | Compte à rebours | Stepper ; défaut Profil10s |
 | 10 | Fin d’exercice | Stepper ; défaut Profil5s |
 
-Création : mode/durée/côté non renseignés —, Série1, Pause0s ; cible Répétitions uniforme initiale1 ; aucune cible implicite lors d’un changement de mode variable. Côté vide normalisé Sans changement à validation. La feuille entière défile sous un en-tête ✕/titre/✓ fixe. Ouverture : voile en fondu sur place, feuille montante depuis le bas ; « Réduire les animations » : feuille en place . Un seul popover/roulette ouvert ; les boutons ± apparaissent à l’appui sur une valeur numérique ; un seul champ est actif, sans modale supplémentaire. Glisser une Série : corps immobile et repère d’insertion entre les lignes . Le chevron masque le tableau sans modifier les données ni désactiver le mode variable.
+Création : mode/durée/côté non renseignés —, Série1, Pause0s ; cible Répétitions uniforme initiale1 ; aucune cible implicite lors d’un changement de mode variable. Une cible à renseigner (—) ouvre la roulette sur la plus petite valeur valide, sélectionnée : 00:05 en Durée, 1 en Répétitions ; rien n’est appliqué avant le ✓ de la roulette ; ✕ laisse la cible à renseigner (décision PRE-4 Q25 du 16/10, D-385). Côté vide normalisé Sans changement à validation. La feuille entière défile sous un en-tête ✕/titre/✓ fixe. Ouverture : voile en fondu sur place, feuille montante depuis le bas ; « Réduire les animations » : feuille en place . Un seul popover/roulette ouvert ; les boutons ± apparaissent à l’appui sur une valeur numérique ; un seul champ est actif, sans modale supplémentaire. Glisser une Série : corps immobile et repère d’insertion entre les lignes . Le chevron masque le tableau sans modifier les données ni désactiver le mode variable.
 
 État historique livré PRE-3 : sélecteurs segmentés et steppers permanents, avec fermeture progressive D-339 et typographie D-341. Le DSF du12/10 et Deux modes du13/10 remplacent la présentation D-341 pour la prochaine tranche (D-377) ; la fermeture après sélection de D-339 est conservée, y compris dans les popovers (D-377). Ces DSF ne prétendent pas être déjà réalisés.
 

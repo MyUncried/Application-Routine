@@ -830,7 +830,7 @@ Les contraintes de contexte déjà validées restent applicables ; les noms ci-d
 | Média | Référence conservée par contrat ; ancien nom de provenance : `Media / Preview` (`3382:59`) | aperçu Photo ou Vidéo |
 | Média | Référence conservée par contrat ; ancien nom de provenance : `Media / Gallery — Source exact` (`3382:64`) | liste horizontale ordonnée avec aperçu suivant tronqué |
 | Média | Référence conservée par contrat ; ancien nom de provenance : `Media / Section — Source exact` (`3382:71`) | section média visible au MVP ; associations ordonnées importables dans PRE-3 (D-333) |
-| Stepper entier simple | Référence conservée par contrat ; ancien nom de provenance : Composant standard/DSF compatible React Native/Expo | Stepper permanent pour Séries/Répétitions dans CE-UI-10 et Tours dans Composition ; bornes métier appliquées ; pas de roulette entière |
+| Stepper entier simple | Référence conservée par contrat ; ancien nom de provenance : Composant standard/DSF compatible React Native/Expo | Stepper permanent pour Séries dans CE-UI-10 et Tours dans Composition ; bornes métier appliquées ; pas de roulette pour ces entiers. La cible Répétitions utilise une roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385) |
 
 Disclosure `5544:4650` : six variantes État(Replié/Déployé/Désactivé) × Cadre(Oui/Non), Oui par défaut ; cibles `48 × 48` relues le 08/10. Cadre interne 28×28, habillage retiré avec Cadre Non . Les anciennes variantes 2537:1033/1038 sont archivées. Réutiliser le master courant, sans copie graphique locale ; les destinations relèvent du contrat hôte.
 
@@ -1478,7 +1478,7 @@ Le schéma cible doit pouvoir représenter : (1) le Circuit interne et son nombr
 
 Les défauts Profil sont lus à la création uniquement : aucune synchronisation réactive ni indicateur d’héritage n’est requis. Le générateur de Plan développe les Points d’arrêt internes au Circuit à chaque Tour et ordonne, après un Exercice, `POST_ACTIVITY_RECOVERY` avant le Point d’arrêt. Les identifiants techniques historiques peuvent rester inchangés jusqu’à une refactorisation explicitement planifiée.
 
-**D-219 — composants de saisie.** Les durées conservent les pickers/roulettes en modale basse. Les entiers simples `Nombre de Séries`, `Nombre de répétitions` et `Nombre de Tours` utilisent un stepper inline. L’implémentation réutilise en priorité un composant standard/DSF compatible React Native/Expo ; un contrôle ad hoc équivalent ne doit pas être recréé sans contrainte technique documentée.
+**D-219 — composants de saisie.** Les durées conservent les pickers/roulettes en modale basse. Les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent un stepper inline ; la cible `Nombre de répétitions` utilise une roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385). L’implémentation réutilise en priorité un composant standard/DSF compatible React Native/Expo ; un contrôle ad hoc équivalent ne doit pas être recréé sans contrainte technique documentée.
 
 ## 28 septembre 2026 — contraintes DSF avant développement
 
@@ -1594,7 +1594,7 @@ Prévoir transactions de conversion et adaptation, compatibilité tours par déf
 
 Classifier chaque phase par mode ET nature de cible ; DURATION seul ne garantit plus une fin automatique. Les formules de poids sont conservées, les prédicats changent : cible échec inconnue et fin Suivant, même avec bip. Reprendre les intervalles logiques pour la proposition de répétitions, indépendamment de l’audibilité ; ne pas diviser le temps global cumulé par l’intervalle après des pauses/reset. Persister séparément cumul et dernière tentative, identité par occurrence/côté, et qualification du relevé. Confirmer/corriger ne commande pas l’avancement.
 
-Migration versionnée et atomique de l’ancien mode, copies/snapshots compris ; compatibilité/reprise à qualifier sur le schéma réel. Le §4.5 reçu impose une roulette grisée mais manipulable : son mouvement sélectionne une cible numérique. Ne pas traduire cet état par disabled bloquant les gestes. Qualification des interactions, du rendu45% du bloc et de l’accessibilité sur chaque plateforme à réaliser. Aucun coût nul ni capacité déjà livrée n’est revendiqué.
+Migration versionnée et atomique de l’ancien mode, copies/snapshots compris ; une erreur structurelle annule toute la migration, tandis que les Exercices aux paramètres illisibles, valeurs négatives ou non entières comprises, sont écartés et dénombrés (décisions PRE-4 Q19 et Q28 du 16/10, D-385 ; chapitre 09, Migration et compatibilité) ; compatibilité/reprise à qualifier sur le schéma réel. Le §4.5 reçu impose une roulette grisée mais manipulable : son mouvement sélectionne une cible numérique. Ne pas traduire cet état par disabled bloquant les gestes. Qualification des interactions, du rendu45% du bloc et de l’accessibilité sur chaque plateforme à réaliser. Aucun coût nul ni capacité déjà livrée n’est revendiqué.
 
 <a id="formats-architecture"></a>
 

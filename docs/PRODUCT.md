@@ -146,7 +146,7 @@ Dans la phrase de synthèse des paramètres d’exécution, le mode est affiché
 
 Le Compte à rebours initial et la Fin de séance sont structurels et non déplaçables : aucun appui long ni aucune poignée de déplacement ne leur est associé.
 
-Dans le MVP, les médias déjà associés à un Exercice peuvent être consultés dans le Catalogue et pendant l’Exécution. Pendant l’Exécution, la galerie ordonnée, la pagination et le plein écran suivent D-203. L’ajout/import de photos ou vidéos locales, leurs associations ordonnées et leur persistance sont inclus au MVP dans PRE-3, avant le moteur d’exécution (D-333). Les règles de stockage et de non-duplication de D-066/D-068 sont conservées.
+Dans le MVP, les médias déjà associés à un Exercice peuvent être consultés dans le Catalogue, dans l’éditeur d’Exercice (lecture vidéo et plein écran par le lecteur natif, sans lecture automatique ; décision PRE-4 Q27 du 16/10, D-385) et pendant l’Exécution. Pendant l’Exécution, la galerie ordonnée, la pagination et le plein écran suivent D-203. L’ajout/import de photos ou vidéos locales, leurs associations ordonnées et leur persistance sont inclus au MVP dans PRE-3, avant le moteur d’exécution (D-333). Les règles de stockage et de non-duplication de D-066/D-068 sont conservées.
 
 ### Formats et départs rapides
 
@@ -489,7 +489,7 @@ Une récupération est ajoutée explicitement après une occurrence et reste dis
 - Média d’Exécution compact : le bouton Lecture central disparaît pendant la lecture vidéo ; le retour à Information met la vidéo en pause ; le plein écran n’interrompt pas l’Exécution.
 
 
-**Convention de saisie D-219.** Les durées utilisent les roulettes en modale basse ; les sélections d’objets/référentiels utilisent leurs modales dédiées ; les entiers simples `Nombre de Séries`, `Nombre de répétitions` et `Nombre de Tours` utilisent des steppers inline sans roulette. Les dialogues de confirmation restent centrés.
+**Convention de saisie D-219.** Les durées utilisent les roulettes en modale basse ; les sélections d’objets/référentiels utilisent leurs modales dédiées ; les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent des steppers inline sans roulette ; la cible `Nombre de répétitions` utilise une roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385). Les dialogues de confirmation restent centrés.
 
 
 **Contexte d’Exécution (D-220).** La ligne immédiatement sous le nom de l’Exercice est toujours renseignée : nom de Séance et Catégorie de l’Exercice lors d’une Exécution de Séance, Catégorie de l’Exercice seule en Exécution directe. L’indication du côté courant, lorsqu’elle existe, reste distincte.

@@ -1,0 +1,166 @@
+{
+ "corrections": [
+  {
+   "id": "AR4-01",
+   "ref": "D-385 ; décision PRE-4 Q8 (et Q14 pour le rendu)",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "Conformément à D-219, les entiers simples `Nombre de Séries`, `Nombre de répétitions` et `Nombre de Tours` utilisent un stepper inline et n’ouvrent aucune roulette.",
+   "nouveau": "Conformément à D-219, les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent un stepper inline et n’ouvrent aucune roulette. La cible `Nombre de répétitions` utilise une roulette native à une colonne : « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385)."
+  },
+  {
+   "id": "AR4-02",
+   "ref": "D-385 ; décision PRE-4 Q8",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "Les entiers simples `Nombre de Séries`, `Nombre de répétitions` et `Nombre de Tours` utilisent des steppers inline conformément à D-219.",
+   "nouveau": "Les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent des steppers inline conformément à D-219 ; la cible `Nombre de répétitions` utilise une roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385)."
+  },
+  {
+   "id": "AR4-03",
+   "ref": "D-385 ; décision PRE-4 Q8 (« Elle remplace, pour la cible, le stepper en ligne de […] D-219 »)",
+   "file": "@07 – Registre des décisions de conception.md",
+   "ancien": "| Validée — 26/09/2026 | Révise D-098/D-130",
+   "nouveau": "| Validée — 26/09/2026 ; **révisée pour la cible `Nombre de répétitions` par la décision PRE-4 Q8 du 16/10/2026 (D-385)** : roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis 1 à 100 | Révise D-098/D-130"
+  },
+  {
+   "id": "AR4-04",
+   "ref": "D-385 ; décision PRE-4 Q31 (« D-335 est amendée sur ce point »)",
+   "file": "@07 – Registre des décisions de conception.md",
+   "ancien": "| Validée explicitement par Hermann le08/10/2026, choix A dans la reprise PRE-3 |",
+   "nouveau": "| Validée explicitement par Hermann le08/10/2026, choix A dans la reprise PRE-3 ; **amendée le 16/10/2026 par la décision PRE-4 Q31 (D-385)** : toucher la tuile consulte le Média ; Retirer/Monter/Descendre passent à l’appui long (menu contextuel natif), avec une alternative accessible (actions VoiceOver), sans bouton ajouté sur la tuile |"
+  },
+  {
+   "id": "AR4-05",
+   "ref": "D-385 ; décisions PRE-4 Q27 et Q31",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "une vidéo ne démarre jamais automatiquement.",
+   "nouveau": "une vidéo ne démarre jamais automatiquement. Dans l’éditeur, toucher une tuile Média la consulte : une vidéo est lue en plein écran par le lecteur natif, sans lecture automatique ; une photo s’ouvre en plein écran. Cette consultation est indépendante du moteur d’Exécution. Le menu Retirer / Monter / Descendre s’ouvre par appui long (menu contextuel natif), avec une alternative accessible (actions VoiceOver), sans bouton ajouté sur la tuile (décisions PRE-4 Q27 et Q31 du 16/10, D-385)."
+  },
+  {
+   "id": "AR4-06",
+   "ref": "D-385 ; décision PRE-4 Q29 (confirmation de H5) — ajustement de revue : « de même que la fermeture de la feuille » retiré (absent de Q29)",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "Annuler restaure les paramètres et la position.",
+   "nouveau": "Annuler restaure les paramètres et la position. Toute modification du brouillon de la feuille (Cible, Pause, N, Mode, Régime, Bip, Pause commune, réordonnancement, autre retrait) invalide Annuler ; seules l’ouverture et la fermeture d’un popover ou du sélecteur, sans application, ne l’invalident pas (décision PRE-4 Q29 du 16/10, D-385)."
+  },
+  {
+   "id": "AR4-07",
+   "ref": "D-385 ; décision PRE-4 Q8 (ch. 08 l. 1559 nommée)",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "| Nombre de répétitions     | Stepper intégré | Étape 1, mode Répétition      | Oui         | 1                              | Entier de 1 à 100 (D-232, bornes conservées)                       | Activité | Sélection      | Commandes − / valeur / + permanentes dans la feuille CE-UI-10 |",
+   "nouveau": "| Nombre de répétitions     | Roulette native à une colonne | Étape 1, mode Répétition      | Oui         | 1                              | Entier de 1 à 100 (D-232, bornes conservées)                       | Activité | Sélection      | « Aucune répétition, à l’échec » en tête, puis 1 à 100, dans la feuille CE-UI-10 (décision PRE-4 Q8 du 16/10, D-385) |"
+  },
+  {
+   "id": "AR4-08",
+   "ref": "D-385 ; décision PRE-4 Q8",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "Séries : stepper `1..99`. Répétitions : stepper `1..100`.",
+   "nouveau": "Séries : stepper `1..99`. Répétitions : roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis `1..100` (décision PRE-4 Q8 du 16/10, D-385)."
+  },
+  {
+   "id": "AR4-09",
+   "ref": "D-385 ; décisions PRE-4 Q19 (portée déclarée : phase projet, PRE-4 BMAD et VNext) et Q28",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "Ne pas déclarer une migration SQL définie avant inventaire du schéma réel.",
+   "nouveau": "Ne pas déclarer une migration SQL définie avant inventaire du schéma réel. Pour la phase projet, la migration ne reprend que les données utilisables : un Exercice dont les paramètres sont illisibles est écarté, sans sauvegarde de récupération ni quarantaine, et le nombre d’Exercices écartés est signalé. L’intégrité des données migrées est préservée : aucun lien orphelin, aucune suppression en cascade d’une Séance entière ; au Catalogue, l’Exercice écarté disparaît ; en Séance, l’occurrence est retirée et la Séance conservée. Une erreur structurelle de migration reste un échec avec annulation complète (décision PRE-4 Q19 du 16/10, commune aux versions PRE-4 BMAD et VNext ; D-385). Une valeur numérique négative ou non entière de Cible, Pause, Pause au changement de côté, Bip, Compte à rebours ou Fin, dans une Définition comme dans une Copie en Séance, fait écarter l’Exercice selon la même règle ; aucun calcul n’utilise une valeur négative. Les valeurs positives hors grille ou hors plage restent conservées (D-383) ; une Cible nulle ou à 0 reste à renseigner (décision PRE-4 Q28 du 16/10, D-385)."
+  },
+  {
+   "id": "AR4-10",
+   "ref": "D-385 ; décision PRE-4 Q20 (rectifiée le 16/10)",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "convertie en minutes par arrondi à la minute supérieure (`Math.ceil`).",
+   "nouveau": "convertie en minutes par arrondi à la minute supérieure (`Math.ceil`). Un total partiel (≥) sur les cartes Catalogue et Composition est affiché en minutes et secondes, sans arrondi : « ≥ 1 min 45 s » pour 105 s (décision PRE-4 Q20 du 16/10, D-385)."
+  },
+  {
+   "id": "AR4-11",
+   "ref": "D-385 ; décision PRE-4 Q30 (remplace H30)",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "Erreur de cible : validation distincte, aucune fausse valeur.",
+   "nouveau": "Erreur de cible : validation distincte, aucune fausse valeur. Une Copie en Séance dont une Cible ancienne est à renseigner contribue au total de Séance par son travail connu et ses Pauses, comme un mélange avec échec, et le total de Séance est partiel (≥) : pour 30 s, —, 45 s et des Pauses de 10 s, 30 + 45 + 30 = 105 s (décision PRE-4 Q30 du 16/10, D-385)."
+  },
+  {
+   "id": "AR4-12",
+   "ref": "D-385 ; décision PRE-4 Q19 et Q28",
+   "file": "@12 – Architecture technique.md",
+   "ancien": "Migration versionnée et atomique de l’ancien mode, copies/snapshots compris ;",
+   "nouveau": "Migration versionnée et atomique de l’ancien mode, copies/snapshots compris ; une erreur structurelle annule toute la migration, tandis que les Exercices aux paramètres illisibles, valeurs négatives ou non entières comprises, sont écartés et dénombrés (décisions PRE-4 Q19 et Q28 du 16/10, D-385 ; chapitre 09, Migration et compatibilité) ;"
+  },
+  {
+   "id": "AR4-13",
+   "ref": "D-385 ; décision PRE-4 Q8",
+   "file": "@12 – Architecture technique.md",
+   "ancien": "| Stepper permanent pour Séries/Répétitions dans CE-UI-10 et Tours dans Composition ; bornes métier appliquées ; pas de roulette entière |",
+   "nouveau": "| Stepper permanent pour Séries dans CE-UI-10 et Tours dans Composition ; bornes métier appliquées ; pas de roulette pour ces entiers. La cible Répétitions utilise une roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385) |"
+  },
+  {
+   "id": "AR4-14",
+   "ref": "D-385 ; décision PRE-4 Q8",
+   "file": "@12 – Architecture technique.md",
+   "ancien": "Les entiers simples `Nombre de Séries`, `Nombre de répétitions` et `Nombre de Tours` utilisent un stepper inline. L’implémentation",
+   "nouveau": "Les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent un stepper inline ; la cible `Nombre de répétitions` utilise une roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385). L’implémentation"
+  },
+  {
+   "id": "AR4-15",
+   "ref": "D-385 ; décision PRE-4 Q8 (ch. 13 l. 125 nommée)",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Les entiers simples `Nombre de Séries`, `Nombre de répétitions` et `Nombre de Tours` utilisent un **stepper inline** et n’ouvrent aucune roulette.",
+   "nouveau": "Les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent un **stepper inline** et n’ouvrent aucune roulette. La cible `Nombre de répétitions` utilise une roulette native à une colonne : « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385)."
+  },
+  {
+   "id": "AR4-16",
+   "ref": "D-385 ; décision PRE-4 Q23",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Mode et Compte à rebours/Fin restent séparés de la phrase intrinsèque.",
+   "nouveau": "Compte à rebours/Fin restent séparés de la phrase intrinsèque ; le Mode n’a pas de champ propre sur la carte et reste visible dans la phrase (décision PRE-4 Q23 du 16/10, D-385)."
+  },
+  {
+   "id": "AR4-17",
+   "ref": "D-385 ; décision PRE-4 Q23",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Le champ du mode est distinct de la durée : Répétitions sur7059:13302 et7119:27855. La phrase et le mode reflètent les paramètres appliqués ;",
+   "nouveau": "Le champ du mode à droite du titre de la carte, visible sur7059:13302 et7119:27855, est retiré : la carte forme une seule zone touchable qui ouvre la feuille ; le Mode reste visible dans la phrase et se choisit dans la feuille, par son popover (décision PRE-4 Q23 du 16/10, D-385). La phrase reflète les paramètres appliqués ;"
+  },
+  {
+   "id": "AR4-18",
+   "ref": "D-385 ; décisions PRE-4 Q27 et Q31",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Tap, saisie et défilement du formulaire ; pas de geste métier supplémentaire.",
+   "nouveau": "Tap, saisie et défilement du formulaire. Toucher une tuile Média la consulte : vidéo lue en plein écran par le lecteur natif, sans lecture automatique ; photo ouverte en plein écran. Appui long sur la tuile : menu contextuel natif Retirer / Monter / Descendre, avec actions VoiceOver équivalentes ; aucun bouton ajouté sur la tuile (décisions PRE-4 Q27 et Q31 du 16/10, D-385). Pas d’autre geste métier."
+  },
+  {
+   "id": "AR4-19",
+   "ref": "D-385 ; décision PRE-4 Q25",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "aucune cible implicite lors d’un changement de mode variable.",
+   "nouveau": "aucune cible implicite lors d’un changement de mode variable. Une cible à renseigner (—) ouvre la roulette sur la plus petite valeur valide, sélectionnée : 00:05 en Durée, 1 en Répétitions ; rien n’est appliqué avant le ✓ de la roulette ; ✕ laisse la cible à renseigner (décision PRE-4 Q25 du 16/10, D-385)."
+  },
+  {
+   "id": "AR4-20",
+   "ref": "D-385 ; décision PRE-4 Q26 — ajustement de revue : phrase Q13 retirée (Q13 relève de la PR #371)",
+   "file": "DSF-CIRCUITS-CONTROLES-2026-10-12.md",
+   "ancien": "| Nom de la cellule active à gauche, ± à droite ; agir uniquement sur cette cellule |",
+   "nouveau": "| Nom de la cellule active à gauche, ± à droite ; agir uniquement sur cette cellule. Sans cellule active, le pied reste affiché et ses ± sont indisponibles (décision PRE-4 Q26 du 16/10, D-385). Sur une cellule active dont la cible est à renseigner, + donne la valeur minimale (5 s ou 1) et − est indisponible (Q26) |"
+  },
+  {
+   "id": "AR4-21",
+   "ref": "D-385 ; décision PRE-4 Q23",
+   "file": "DSF-PHRASES-V15-2026-10-07.md",
+   "ancien": "Le champ à droite de Paramètres d’exécution affiche le **mode** des paramètres appliqués ; il n’affiche pas un total. Répétitions est constaté sur7059:13302 et7119:27855.",
+   "nouveau": "Aucun champ n’est affiché à droite de Paramètres d’exécution : le champ du **mode**, constaté sur7059:13302 et7119:27855, est retiré ; la carte forme une seule zone touchable qui ouvre la feuille, et le Mode reste visible dans la phrase et se choisit dans la feuille, par son popover (décision PRE-4 Q23 du 16/10, D-385)."
+  },
+  {
+   "id": "AR4-22",
+   "ref": "D-385 ; décision PRE-4 Q27",
+   "file": "PRODUCT.md",
+   "ancien": "peuvent être consultés dans le Catalogue et pendant l’Exécution.",
+   "nouveau": "peuvent être consultés dans le Catalogue, dans l’éditeur d’Exercice (lecture vidéo et plein écran par le lecteur natif, sans lecture automatique ; décision PRE-4 Q27 du 16/10, D-385) et pendant l’Exécution."
+  },
+  {
+   "id": "AR4-23",
+   "ref": "D-385 ; décision PRE-4 Q8",
+   "file": "PRODUCT.md",
+   "ancien": "les entiers simples `Nombre de Séries`, `Nombre de répétitions` et `Nombre de Tours` utilisent des steppers inline sans roulette.",
+   "nouveau": "les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent des steppers inline sans roulette ; la cible `Nombre de répétitions` utilise une roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385)."
+  }
+ ],
+ "description": "Décisions fonctionnelles de la préparation PRE-4 rendues générales par D-385 (Q-L), source : fichier de décisions PRE-4 committé localement dans le clone PRE-4 (8133e4bb, non publié), lu en lecture seule. Q11–Q18 exclues (PR #371). Dossier AR4 revu ; ajustements AR4-06 et AR4-20."
+}

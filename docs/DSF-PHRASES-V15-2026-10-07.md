@@ -12,7 +12,7 @@ Les cartes parentes agrandies de9/9b, Ordre7, N1, Résumé15, phrase longue, Mod
 
 ## Textes de fond et mode
 
-Le champ à droite de Paramètres d’exécution affiche le **mode** des paramètres appliqués ; il n’affiche pas un total. Répétitions est constaté sur7059:13302 et7119:27855. Après déplacement d’une Série, la phrase suit l’ordre effectif des cibles ; les résumés bilatéraux distinguent les clauses par paire et par côté. Une cible manquante n’est pas remplacée par un nombre de démonstration : état incomplet, validation interdite.
+Aucun champ n’est affiché à droite de Paramètres d’exécution : le champ du **mode**, constaté sur7059:13302 et7119:27855, est retiré ; la carte forme une seule zone touchable qui ouvre la feuille, et le Mode reste visible dans la phrase et se choisit dans la feuille, par son popover (décision PRE-4 Q23 du 16/10, D-385). Après déplacement d’une Série, la phrase suit l’ordre effectif des cibles ; les résumés bilatéraux distinguent les clauses par paire et par côté. Une cible manquante n’est pas remplacée par un nombre de démonstration : état incomplet, validation interdite.
 
 Le parent inerte derrière une feuille suit son brouillon appliqué ; la validation applique le nouveau mode et la phrase ensemble. Le champ Durée reste dessiné derrière À l’échec sur6419:10028 : résidu connu de la maquette, non annoncé corrigé ni pris comme règle métier.
 
