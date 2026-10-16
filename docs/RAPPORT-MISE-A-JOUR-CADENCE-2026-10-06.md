@@ -4,7 +4,7 @@
 
 La documentation cible intègre la conception Cadence, les formulations du classeur, les changements de layout et le rapport de corrections DSF. Base distante vérifiée au début puis avant publication : `6d03f5be579f2d0e2e7602b6abf1c2b46f4c740b`. Travail réalisé séparément ; aucun changement du code applicatif, du manifeste d’assets, de Figma ou du répertoire local `/dev` de l’utilisateur.
 
-Références actives : [Paramètres v13](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v13.md), [Cadence v1](Specifications-fonctionnelles/SPECIFICATION-CADENCE-REPETITIONS-v1.md), [Phrase v1](Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md), [DSF courant](DSF-CADENCE-2026-10-06.md) et [matrice Figma courante](MATRICE-CADENCE-FIGMA-2026-10-06.md). Les versions de ces documents sont indépendantes de la version du classeur.
+Références actives : [Paramètres v13](https://github.com/MyUncried/Application-Routine/blob/3623466af5a6dcf44dfe676f0ae8019b9c56bf76/docs/Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v13.md), [Cadence v1](https://github.com/MyUncried/Application-Routine/blob/3623466af5a6dcf44dfe676f0ae8019b9c56bf76/docs/Specifications-fonctionnelles/SPECIFICATION-CADENCE-REPETITIONS-v1.md), [Phrase v1](https://github.com/MyUncried/Application-Routine/blob/3623466af5a6dcf44dfe676f0ae8019b9c56bf76/docs/Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md), [DSF courant](DSF-CADENCE-2026-10-06.md) et [matrice Figma courante](MATRICE-CADENCE-FIGMA-2026-10-06.md). Les versions de ces documents sont indépendantes de la version du classeur.
 
 ## Travaux réalisés
 

@@ -62,7 +62,7 @@ Le dossier `node_modules` est local et ne doit jamais être ajouté à GitHub.
 1. [Règles détaillées](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice) — pauses/côtés conservés, cadence et symboles.
 2. [Règles détaillées](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#resultats-temporels) — calculs, exécution, données et recette.
 3. [Phrase v1](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases) — grammaire et rendu ; Excel exclusivement rédactionnel.
-4. [DSF courant](DSF-CADENCE-2026-10-06.md) et [matrice courante Figma](MATRICE-CADENCE-FIGMA-2026-10-06.md).
+4. [DSF Cadence du 06/10](DSF-CADENCE-2026-10-06.md), actualisé le 13/10 par le [DSF Deux modes](DSF-DEUX-MODES-ECHEC-2026-10-13.md) ; [matrice Figma Cadence du 06/10](MATRICE-CADENCE-FIGMA-2026-10-06.md), inventaire historique (voir la [matrice du 07/10](MATRICE-FIGMA-2026-10-07.md)).
 5. Chapitre06 : captures centralisées ; chapitre13 :30 contrats dont CE-UI-10,21 rubriques chacun, états et limites graphiques explicites.
 
 v12 et v10.2 sont historiques ; leurs règles remplacées ne doivent pas être utilisées pour la cible. Les sources reçues sont conservées dans `archives/cadence-2026-10-06` ; elles ne remplacent pas cette chaîne normative consolidée.

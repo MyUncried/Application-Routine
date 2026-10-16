@@ -6,7 +6,7 @@
 
 Base GitHub main : `8fc58a466679a85ea74752f0273939f901efa1b8`, arbre `406ab64f2e54c066f74563eec7675bfc8c0b02c3`, vérifiée à nouveau avant préparation de la publication. Dernière décision antérieure D-246. Pas de reprise d’une ancienne branche documentaire. Livrable exclusivement documentaire, sans code ni tests applicatifs modifiés, sans modification Figma ; PRE-1 et ses preuves restent fermés. La planification PRE-2 vient après intégration formelle.
 
-Cible : [v12](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md), [DSF](DSF-SERIES-VARIABLES-2026-10-02.md), [matrice](MATRICE-SERIES-VARIABLES-2026-10-02.md). Les calculs/comportements viennent des spécifications et arbitrages ; seules la géométrie et la présentation sont reprises de Figma.
+Cible : [v12](https://github.com/MyUncried/Application-Routine/blob/3623466af5a6dcf44dfe676f0ae8019b9c56bf76/docs/Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md), [DSF](DSF-SERIES-VARIABLES-2026-10-02.md), [matrice](MATRICE-SERIES-VARIABLES-2026-10-02.md). Les calculs/comportements viennent des spécifications et arbitrages ; seules la géométrie et la présentation sont reprises de Figma.
 
 ## Décisions ajoutées
 
@@ -75,7 +75,7 @@ Les lignes suivantes décrivent chaque fichier Markdown touché ou explicitement
 | [RAPPORT-MISE-A-JOUR-SERIES-VARIABLES-2026-10-02.md](RAPPORT-MISE-A-JOUR-SERIES-VARIABLES-2026-10-02.md) | Créé | Consolidation normative, preuve ou traçabilité du02/10 |
 | [SOURCE-SAISIE-PARAMETRES-MODALE-2026-10-01.md](SOURCE-SAISIE-PARAMETRES-MODALE-2026-10-01.md) | Inchangé | Source utilisateur / archive historique à préserver |
 | [SOURCE-SERIES-VARIABLES-2026-10-02.md](SOURCE-SERIES-VARIABLES-2026-10-02.md) | Créé | Consolidation normative, preuve ou traçabilité du02/10 |
-| [Specifications-fonctionnelles/00 – Glossaire.md](Specifications-fonctionnelles/00%20%E2%80%93%20Glossaire.md) | Modifié | Règles, contrats, vocabulaire, références et/ou captures alignés avec v12 |
+| [Specifications-fonctionnelles/00 – Glossaire.md](https://github.com/MyUncried/Application-Routine/blob/3623466af5a6dcf44dfe676f0ae8019b9c56bf76/docs/Specifications-fonctionnelles/00%20%E2%80%93%20Glossaire.md) | Modifié | Règles, contrats, vocabulaire, références et/ou captures alignés avec v12 |
 | [Specifications-fonctionnelles/01 – Vision Générale.md](Specifications-fonctionnelles/01%20%E2%80%93%20Vision%20G%C3%A9n%C3%A9rale.md) | Modifié | Règles, contrats, vocabulaire, références et/ou captures alignés avec v12 |
 | [Specifications-fonctionnelles/02 – Utilisateurs et besoins.md](Specifications-fonctionnelles/02%20%E2%80%93%20Utilisateurs%20et%20besoins.md) | Modifié | Règles, contrats, vocabulaire, références et/ou captures alignés avec v12 |
 | [Specifications-fonctionnelles/03 – Parcours utilisateur.md](Specifications-fonctionnelles/03%20%E2%80%93%20Parcours%20utilisateur.md) | Modifié | Règles, contrats, vocabulaire, références et/ou captures alignés avec v12 |
@@ -89,9 +89,9 @@ Les lignes suivantes décrivent chaque fichier Markdown touché ou explicitement
 | [Specifications-fonctionnelles/11 – API fonctionnelles.md](Specifications-fonctionnelles/11%20%E2%80%93%20API%20fonctionnelles.md) | Modifié | Règles, contrats, vocabulaire, références et/ou captures alignés avec v12 |
 | [Specifications-fonctionnelles/12 – Architecture technique.md](Specifications-fonctionnelles/12%20%E2%80%93%20Architecture%20technique.md) | Modifié | Règles, contrats, vocabulaire, références et/ou captures alignés avec v12 |
 | [Specifications-fonctionnelles/13 – Contrats d’écran.md](Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md) | Modifié | Règles, contrats, vocabulaire, références et/ou captures alignés avec v12 |
-| [Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v11.md](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v11.md) | Remplacé | Ancienne cible archivée ; renvoi explicite à v12 et matrice courante |
-| [Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md) | Créé | Consolidation normative, preuve ou traçabilité du02/10 |
-| [Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v10.2.md](Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v10.2.md) | Inchangé | Source utilisateur / archive historique à préserver |
+| [Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v11.md](https://github.com/MyUncried/Application-Routine/blob/3623466af5a6dcf44dfe676f0ae8019b9c56bf76/docs/Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v11.md) | Remplacé | Ancienne cible archivée ; renvoi explicite à v12 et matrice courante |
+| [Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md](https://github.com/MyUncried/Application-Routine/blob/3623466af5a6dcf44dfe676f0ae8019b9c56bf76/docs/Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md) | Créé | Consolidation normative, preuve ou traçabilité du02/10 |
+| [Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v10.2.md](https://github.com/MyUncried/Application-Routine/blob/3623466af5a6dcf44dfe676f0ae8019b9c56bf76/docs/Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v10.2.md) | Inchangé | Source utilisateur / archive historique à préserver |
 | [archives/series-variables-2026-10-02/ARBITRAGES-CONTRATS-2026-09-30.md](archives/series-variables-2026-10-02/ARBITRAGES-CONTRATS-2026-09-30.md) | Archivé | Référence historique ; liens figés vers le commit d’origine |
 | [archives/series-variables-2026-10-02/DSF-PARAMETRES-MODALE-2026-10-01.md](archives/series-variables-2026-10-02/DSF-PARAMETRES-MODALE-2026-10-01.md) | Archivé | Référence historique ; liens figés vers le commit d’origine |
 | [archives/series-variables-2026-10-02/MATRICE-TRACABILITE-BILATERALITE.md](archives/series-variables-2026-10-02/MATRICE-TRACABILITE-BILATERALITE.md) | Archivé | Référence historique ; liens figés vers le commit d’origine |

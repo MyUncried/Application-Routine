@@ -2,7 +2,7 @@
 
 Les deux pièces fournies sont conservées sans modification : [conception C1–C27](archives/series-variables-2026-10-02/conception-source.md), [prompt de propagation](archives/series-variables-2026-10-02/prompt-source.md). La source du01/10 reste inchangée, historique.
 
-Consolidation normative : [v12](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md). Le prompt amende notamment les termes, résumés, tableau et états de validation. Les confirmations du propriétaire ajoutent :
+Consolidation normative : [v12](https://github.com/MyUncried/Application-Routine/blob/3623466af5a6dcf44dfe676f0ae8019b9c56bf76/docs/Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md). Le prompt amende notamment les termes, résumés, tableau et états de validation. Les confirmations du propriétaire ajoutent :
 
 - N=1 normalisé uniforme/Un côté après l’autre dès le brouillon ; restauration temporaire si retour≥2 avant✓ ; interrupteur off et grisé.
 - Déplacement conjoint cible/Pause, renumérotation, nouvelle dernière Pause terminale ; première courante reprise à désactivation ; lignes retirées restaurées dans leur ordre conservé.

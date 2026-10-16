@@ -1,0 +1,221 @@
+specification	section	chapitre	ligne	ancre_precedente	lignes_retrouvees/lignes_testees
+00 – Glossaire.md	Glossaire	01	189	glossaire	2/4
+00 – Glossaire.md	1. Identité du produit	01	198	glossaire	1/1
+00 – Glossaire.md	2. Entités métier	01	205	glossaire	23/24
+00 – Glossaire.md	3. Concepts de composition	01	234	glossaire	9/9
+00 – Glossaire.md	Direction propre	01	247	glossaire	3/3
+00 – Glossaire.md	4. Concepts de planification	01	255	glossaire	4/4
+00 – Glossaire.md	5. Concepts d’exécution et de suivi	01	264	glossaire	16/16
+00 – Glossaire.md	6. Interface et navigation	01	285	glossaire	9/9
+00 – Glossaire.md	7. Termes réservés aux évolutions post-MVP	01	299	glossaire	3/3
+00 – Glossaire.md	8. Termes obsolètes ou interdits	01	307	glossaire	5/5
+00 – Glossaire.md	9. Concepts ajoutés — Exercices, Médias et Parcours	01	318	glossaire	10/10
+00 – Glossaire.md	10. Bilatéralité	01	334	glossaire	5/5
+00 – Glossaire.md	11. Concepts d’exécution directe — MVP T03	01	344	glossaire	3/3
+00 – Glossaire.md	9. Complément D-203 — Exécution média	01	352	glossaire	5/5
+00 – Glossaire.md	Cartes et iconographie — complément du 30 septembre 2026	01	361	glossaire	8/8
+00 – Glossaire.md	Cadence et métriques — complément du06/10/2026	01	382	glossaire	6/6
+00 – Glossaire.md	Vocabulaire complémentaire — 07/10	01	394	glossaire	3/3
+00 – Glossaire.md	Titres affichés — 07/10/2026	01	410	glossaire	1/1
+00 – Glossaire.md	Planification — concepts du 08/10/2026	01	416	glossaire	4/4
+00 – Glossaire.md	Circuits — vocabulaire cible du12/10/2026	01	426	glossaire	5/5
+00 – Glossaire.md	Formats de séance — vocabulaire normatif	01	438	formats-vocabulaire	11/11
+CONSOLIDATION-EVOLUTIONS-V15-2026-10-07.md	Évolutions du 07/10 — consolidation et lecture de la source v15	—			0/1
+CONSOLIDATION-EVOLUTIONS-V15-2026-10-07.md	Hiérarchie et corrections de la source	—			0/11
+CONSOLIDATION-EVOLUTIONS-V15-2026-10-07.md	CF1 à CF4 : statut sans nouveau design	—			0/4
+CONSOLIDATION-EVOLUTIONS-V15-2026-10-07.md	Calculs conservés	—			0/2
+CONSOLIDATION-EVOLUTIONS-V15-2026-10-07.md	Dépendances de développement à transmettre	—			0/2
+SPECIFICATION-BIP-CADENCE-v2.md	Bip de cadence — spécification normative v2	—			0/4
+SPECIFICATION-BIP-CADENCE-v2.md	1. Paramètre commun aux deux modes	08	1030	bip-execution	2/2
+SPECIFICATION-BIP-CADENCE-v2.md	2. Résultats de durée	10	645	resultats-temporels	9/9
+SPECIFICATION-BIP-CADENCE-v2.md	3. Calcul, pauses et périmètres	10	660	resultats-temporels	8/9
+SPECIFICATION-BIP-CADENCE-v2.md	4. Exécution et son	08	1036	bip-execution	4/4
+SPECIFICATION-BIP-CADENCE-v2.md	5. Progression, sécurité et arrière-plan	08	1046	bip-execution	4/4
+SPECIFICATION-BIP-CADENCE-v2.md	6. Interface et steppers	13	4253	controle-bip	3/3
+SPECIFICATION-BIP-CADENCE-v2.md	7. Données et livraison	09	1270	donnees-bip	3/3
+SPECIFICATION-BIP-CADENCE-v2.md	8. Phrase et classeur v15	—			0/1
+SPECIFICATION-BIP-CADENCE-v2.md	9. Recette attendue	—			0/2
+SPECIFICATION-BIP-CADENCE-v2.md	Extension normative du12/10 — niveau Circuit	10	684	resultats-temporels	2/2
+SPECIFICATION-BIP-CADENCE-v2.md	Raccordement aux formats de séance — 14/10	—			0/1
+SPECIFICATION-CADENCE-REPETITIONS-v1.md	Cadence en Répétitions — référence remplacée	—			0/1
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	KODJO — Règles et concepts nouveaux	—			0/4
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	0. Objet, et comment lire ce document	—			0/5
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	1.1 La règle	08	414	circuits	5/5
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	1.2 Le contrôle	08	429	circuits	2/2
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	1.3 La conversion entre les deux natures	08	441	circuits	3/3
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	1.4 La règle de déclenchement de la confirmation	08	449	circuits	3/3
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	1.5 Ce que le circuit ne contraint pas	08	457	circuits	3/3
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	2.1 Deux valeurs	08	474	circuits	1/1
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	2.2 Trois états d'affichage, pas deux	08	478	circuits	1/1
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	2.3 Le préremplissage, et la disparition du marqueur d'incomplétude	08	490	circuits	2/3
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	3.1 Le besoin	13	4122	controles-circuit	1/1
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	3.2 La règle	13	4126	controles-circuit	2/2
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	3.3 Le bouton est permanent, dans les deux natures	13	4136	controles-circuit	1/1
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	3.4 La grille accepte deux régimes dans la même colonne	13	4140	controles-circuit	3/3
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	3.5 Sens de lecture, et défilement	13	4149	controles-circuit	3/3
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	4.1 La règle	13	4161	controles-circuit	4/4
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	4.2 Le repli, et sa règle	13	4177	controles-circuit	2/2
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	4.3 La forme suit le régime, pas les valeurs	13	4183	controles-circuit	2/2
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	4.4 Deux arbitrages actés, à ne pas rouvrir	13	4189	controles-circuit	2/2
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	5.1 Le défaut corrigé	—			0/2
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	5.2 La règle posée	—			0/2
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	5.3 Rappel du contrat temporel, inchangé	—			0/5
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	6. Le modèle d'interaction des valeurs réglables	13	4197	controles-circuit	1/1
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	6.1 Au repos, seule la valeur est visible	13	4201	controles-circuit	2/2
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	6.2 Un seul champ actif à la fois	13	4207	controles-circuit	1/1
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	6.3 Il n'y a rien à valider	13	4211	controles-circuit	2/2
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	6.4 Deux règles de sûreté	13	4217	controles-circuit	2/2
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	6.5 La cellule active a deux coordonnées	13	4223	controles-circuit	1/1
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	7.1 L'état des lieux, établi par recensement	13	4231	controles-circuit	4/4
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	7.2 La règle retenue	13	4239	controles-circuit	3/3
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	8.1 Modèle de données	—			0/3
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	8.2 Règles de calcul	—			0/5
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	8.3 Documentation à mettre à jour	—			0/4
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	8.4 Ce qui disparaît de la documentation	—			0/1
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	9.1 Périmètre et plan d’exécution	08	500	circuits	5/6
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	9.2 Nombre imposé et diminution	08	514	circuits	4/4
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	9.3 Ajout et sortie du circuit	08	524	circuits	3/3
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	9.4 Régime et validation : règles existantes conservées	08	534	circuits	2/3
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	9.5 Grille des volumes	08	540	circuits	6/6
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	9.6 Suppression et interactions	08	551	circuits	4/4
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	10. Vérification du référentiel existant	—			0/16
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	Q-01 — Déroulement bilatéral unique par passage — CLOSE	—			0/4
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	Q-02 — Durée totale sous nombre de séries imposé — CLOSE	—			0/3
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	Travaux de formalisation et de vérification, sans questionnaire de red	—			0/5
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	12. Propagation documentaire et architecture cible	—			0/11
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	13. Matrice de traçabilité et recette attendue	—			0/23
+SPECIFICATION-CIRCUITS-TOURS-SERIES-2026-10-12.md	Raccordement aux formats de séance — 14/10	—			0/1
+SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md	KODJO — Deux modes d’exécution et cible À l’échec par série	—			0/2
+SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md	1. Sources et décisions	—			0/13
+SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md	2. Modèle de paramètres	09	1240	cibles-typees	8/8
+SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md	3. Exécution et plan développé	08	1062	releves-execution	5/5
+SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md	3.1 Pauses, côtés et circuits	08	1073	releves-execution	2/2
+SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md	3.2 Progression et sécurité	08	1081	releves-execution	5/5
+SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md	4. Calcul de la durée prévisionnelle	10	703	cibles-mixtes	8/8
+SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md	5. Relevés d’exécution	08	1092	releves-execution	1/1
+SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md	5.1 Origine et qualification	08	1098	releves-execution	5/5
+SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md	5.2 Comptage de la proposition	08	1111	releves-execution	2/2
+SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md	5.3 Réinitialisation	08	1117	releves-execution	3/3
+SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md	5.4 Identité et historique	08	1125	releves-execution	3/3
+SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md	6. Phrases, cartes et contrôles	—			0/9
+SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md	7. Migration et compatibilité	09	1256	cibles-typees	4/4
+SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md	8. Analyse d’impacts documentaires	—			0/16
+SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md	9. Recettes déterministes à intégrer	10	726	cibles-mixtes	14/14
+SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md	10. Plan d’intégration et limites	—			0/6
+SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md	11. Sélecteur — §4.5 reçu dans le prompt complété	13	3015		2/5
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	KODJO — Formats de séances et modèles de départ	—			0/4
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	0. Objet et convention VNext	—			0/3
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	1.1 Sources	—			0/9
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	1.2 Inclus et exclus	—			0/3
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	2. Registre des décisions et provenance	07	620	formats-decisions	12/14
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	3.1 Format, origine et paramètres	08	695	formats-conception	7/7
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	3.2 Trois dimensions à distinguer	08	707	formats-conception	6/6
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	4.1 Tabata	08	720	formats-conception	11/11
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	4.2 Intervalles 30/30	08	736	formats-conception	2/2
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	5. EMOM : fenêtres et borne	08	742	formats-conception	8/8
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	6.1 AMRAP	08	757	formats-conception	3/3
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	6.2 Départs rapides et Progression	08	764	formats-conception	3/3
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	6.3 For time	08	771	formats-conception	5/5
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	7.1 Fenêtres, objectif et acquisition	08	783	formats-conception	6/6
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	7.2 Dernière fenêtre et résultat	08	794	formats-conception	4/4
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	8.1 Modèle fonctionnel cible	10	571	fmt-39	4/13
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	8.2 Calculs et absence de régression	—			0/4
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	9. Contrats d’écrans à intégrer	—			0/14
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	10. Analyse d’impacts sur la solution	—			0/9
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	11. Recettes fonctionnelles et preuves attendues	10	751	recette-formats	15/25
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	12. Disposition explicite des règles antérieures	—			0/13
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	13. Matrice des mises à jour documentaires	—			0/14
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	14.1 Séquence documentaire puis VNext	—			0/5
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	14.2 Vérifications de raccordement à ne pas masquer	08	676	combinaisons-formats	6/7
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	14.3 État de livraison de ce document	—			0/2
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	Annexe — Repères Figma observés le 14 octobre	06	2734	format-8598-30059	1/4
+SPECIFICATION-FORMATS-SEANCES-2026-10-14.md	Clarification d’autorité et de portée — 14/10/2026	13	4059		3/3
+SPECIFICATION-PARAMETRES-MODALE-v11.md	Paramètres en modale v11 — archive	—			0/2
+SPECIFICATION-PARAMETRES-MODALE-v12.md	Paramètres d’exécution — v12 historique	—			0/1
+SPECIFICATION-PARAMETRES-MODALE-v13.md	Paramètres d’exécution — Séries variables, Bip de cadence et phrase — 	—			0/4
+SPECIFICATION-PARAMETRES-MODALE-v13.md	1. Autorité, portée et sources	—			0/2
+SPECIFICATION-PARAMETRES-MODALE-v13.md	2. Modèle et terminologie	08	238	parametres-exercice	8/8
+SPECIFICATION-PARAMETRES-MODALE-v13.md	3. Brouillon, bascules et normalisation	08	251	parametres-exercice	6/6
+SPECIFICATION-PARAMETRES-MODALE-v13.md	4. Ordres d’exécution et pauses	10	599	calculs-durees	1/2
+SPECIFICATION-PARAMETRES-MODALE-v13.md	5. Durées, affichage et inversion	10	603	calculs-durees	3/4
+SPECIFICATION-PARAMETRES-MODALE-v13.md	6. Feuille et contrôles	13	4074	editeur-parametres	11/11
+SPECIFICATION-PARAMETRES-MODALE-v13.md	7. Résumés et exécution	13	33		1/4
+SPECIFICATION-PARAMETRES-MODALE-v13.md	8. Compatibilité, données, API et instantanés	09	1226	compatibilite-series	4/4
+SPECIFICATION-PARAMETRES-MODALE-v13.md	9. Scénarios de recette normative	10	625	calculs-durees	3/3
+SPECIFICATION-PARAMETRES-MODALE-v13.md	10. Bip de cadence, validation et compatibilité	—			0/1
+SPECIFICATION-PARAMETRES-MODALE-v13.md	Amendement du12/10 — interaction et contexte circuit	—			0/3
+SPECIFICATION-PARAMETRES-MODALE-v13.md	Sélecteur de cible — complément §4.5 du13/10	13	3015		2/2
+SPECIFICATION-PARAMETRES-MODALE-v13.md	Raccordement aux formats de séance — 14/10	13	4112	formats-raccordement	1/1
+SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md	Pauses de Composition et symboles de durée — consolidation du 07/10/20	—			0/1
+SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md	1. Autorité et règles conservées	—			0/2
+SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md	2. Résultats temporels — remplacés par Bip v2	—			0/1
+SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md	3. Pause de Composition : deux types, un parcours	08	566	pauses-composition	4/4
+SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md	4. Brouillons, validation et annulation	08	577	pauses-composition	4/4
+SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md	5. Contenu et trait de démarcation	08	589	pauses-composition	5/5
+SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md	6. Positions, ordre et retrait	08	599	pauses-composition	3/3
+SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md	7. Modèle fonctionnel et API	11	433	api-pauses	11/11
+SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md	8. Recette documentaire et fonctionnelle	—			0/3
+SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md	Phrase des paramètres d’exécution — spécification rédactionnelle v1	—			0/2
+SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md	1. Sources et responsabilité	—			0/3
+SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md	2. Contrat de génération et persistance	11	457	api-phrase	4/4
+SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md	3. Grammaire française v15	08	622	phrases	7/7
+SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md	4. Côtés et durée	08	645	phrases	2/3
+SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md	5. Rendu et accessibilité	13	4265	rendu-phrase	3/3
+SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md	6. Internationalisation — décision et dette explicites	12	1617	generateur-phrase	1/1
+SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md	7. Recette de développement	12	1621	generateur-phrase	2/2
+SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md	Extension normative — deux modes et cibles mixtes (13/10)	08	653	phrases	6/6
+SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md	Raccordement aux formats de séance — 14/10	08	670	formats-raccordement	1/1
+SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v10.2.md	Spécification fonctionnelle — Phrase de synthèse des paramètres d'exéc	—			0/5
+SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v10.2.md	1. Objet	—			0/6
+SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v10.2.md	2. Paramètres	—			0/10
+SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v10.2.md	3. États du champ et phrases de départ	—			0/9
+SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v10.2.md	5. Règles de calcul	—			0/7
+SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v10.2.md	6. Construction de la phrase	—			0/9
+SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v10.2.md	7. Comportements	—			0/20
+SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v10.2.md	8. Décisions V1/MVP et point V2 hors MVP	—			0/4
+SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v10.2.md	Annexe A — Textes en vigueur	—			0/8
+SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v10.2.md	Annexe B — Jeu de cas de test (7 états d'entrée + 36 cas)	—			0/41
+SPECIFICATION-PLANIFICATION-2026-10-08.md	Spécification — planification à plusieurs contenus — 08/10/2026	—			0/2
+SPECIFICATION-PLANIFICATION-2026-10-08.md	Synthèse du parcours	—			0/1
+SPECIFICATION-PLANIFICATION-2026-10-08.md	1.1 Ce qui change	08	1139	planification	1/1
+SPECIFICATION-PLANIFICATION-2026-10-08.md	1.2 L'invariant, qui ne bouge pas	08	1145	planification	1/1
+SPECIFICATION-PLANIFICATION-2026-10-08.md	1.3 « Parcours » : un mot, pas un objet	08	1149	planification	3/3
+SPECIFICATION-PLANIFICATION-2026-10-08.md	1.4 Ordre des contenus	08	1159	planification	1/1
+SPECIFICATION-PLANIFICATION-2026-10-08.md	2.1 La forme retenue	08	1167	planification	1/1
+SPECIFICATION-PLANIFICATION-2026-10-08.md	2.2 Pourquoi cette forme, et pas « tous les 2 jours »	08	1175	planification	2/2
+SPECIFICATION-PLANIFICATION-2026-10-08.md	2.3 Le cas par défaut	08	1181	planification	1/1
+SPECIFICATION-PLANIFICATION-2026-10-08.md	2.4 Le réglage : combien, puis lesquelles	08	1187	planification	6/6
+SPECIFICATION-PLANIFICATION-2026-10-08.md	2.5 Ce que montre la liste	08	1200	planification	1/1
+SPECIFICATION-PLANIFICATION-2026-10-08.md	2.6 Point ouvert à consigner comme tel	08	1207	planification	3/3
+SPECIFICATION-PLANIFICATION-2026-10-08.md	3.1 Un interrupteur, puis une unité	08	1220	planification	2/2
+SPECIFICATION-PLANIFICATION-2026-10-08.md	3.2 L'unité de récurrence	08	1231	planification	5/5
+SPECIFICATION-PLANIFICATION-2026-10-08.md	3.3 La phrase éditable	08	1252	planification	2/2
+SPECIFICATION-PLANIFICATION-2026-10-08.md	3.4 `jusqu'au` / `pendant` : un paramètre, pas un mot fixe	08	1262	planification	2/2
+SPECIFICATION-PLANIFICATION-2026-10-08.md	3.5 Les jours de la semaine	08	1273	planification	1/1
+SPECIFICATION-PLANIFICATION-2026-10-08.md	3.6 Accord grammatical	08	1277	planification	1/1
+SPECIFICATION-PLANIFICATION-2026-10-08.md	4.1 Première apparition dans l'interface	08	1285	planification	1/1
+SPECIFICATION-PLANIFICATION-2026-10-08.md	4.2 Forme et position	08	1289	planification	1/1
+SPECIFICATION-PLANIFICATION-2026-10-08.md	4.3 Pourquoi en première position	08	1297	planification	2/2
+SPECIFICATION-PLANIFICATION-2026-10-08.md	4.4 Ce qui reste à concevoir	08	1303	planification	3/3
+SPECIFICATION-PLANIFICATION-2026-10-08.md	5. Les écrans	06	1530		3/11
+SPECIFICATION-PLANIFICATION-2026-10-08.md	5.1 Renommages à répercuter	06	1530		1/7
+SPECIFICATION-PLANIFICATION-2026-10-08.md	5.2 La modale de choix est la même dans les deux cas	—			0/1
+SPECIFICATION-PLANIFICATION-2026-10-08.md	5.3 La section des éléments planifiés disparaît à contenu unique	—			0/2
+SPECIFICATION-PLANIFICATION-2026-10-08.md	6. Règles d'interface propres à la planification	—			0/1
+SPECIFICATION-PLANIFICATION-2026-10-08.md	6.1 La modale de planification occupe toute la hauteur	13	4281	controles-planification	2/2
+SPECIFICATION-PLANIFICATION-2026-10-08.md	6.2 Les blocs du formulaire	13	4289	controles-planification	2/3
+SPECIFICATION-PLANIFICATION-2026-10-08.md	6.3 Ordre des sections du formulaire	13	4301	controles-planification	1/1
+SPECIFICATION-PLANIFICATION-2026-10-08.md	6.4 La ligne Rappel	13	4307	controles-planification	2/2
+SPECIFICATION-PLANIFICATION-2026-10-08.md	6.5 Échelle typographique du formulaire	13	4320	controles-planification	1/1
+SPECIFICATION-PLANIFICATION-2026-10-08.md	6.6 Le récapitulatif de planification	13	4324	controles-planification	3/3
+SPECIFICATION-PLANIFICATION-2026-10-08.md	6.7 Sélection	13	4338	controles-planification	4/4
+SPECIFICATION-PLANIFICATION-2026-10-08.md	7.1 D-222 — rappel	—			0/1
+SPECIFICATION-PLANIFICATION-2026-10-08.md	7.2 D-223 — le titre de planification a maintenant trois branches	—			0/3
+SPECIFICATION-PLANIFICATION-2026-10-08.md	7.3 Nouvelle décision — l'option « Aucune » de la répétition est suppr	—			0/1
+SPECIFICATION-PLANIFICATION-2026-10-08.md	7.4 Nouvelle décision — la fréquence d'un contenu	—			0/1
+SPECIFICATION-PLANIFICATION-2026-10-08.md	7.5 Nouvelle décision — la borne de fin est un paramètre	—			0/1
+SPECIFICATION-PLANIFICATION-2026-10-08.md	7.6 Nouvelle décision — règles d'interface de portée fichier	—			0/1
+SPECIFICATION-PLANIFICATION-2026-10-08.md	9. Ce que ce document ne demande pas	—			0/1
+SPECIFICATION-PLANIFICATION-2026-10-08.md	10. Points ouverts, à consigner comme tels	08	1313	planification	4/4
+SPECIFICATION-PLANIFICATION-2026-10-08.md	Limites de spécification à traiter avant développement	08	1323	planification	3/3
+SPECIFICATION-PLANIFICATION-2026-10-08.md	Vérification visuelle après correction	—			0/1

@@ -1,6 +1,21 @@
 # Tasks — révision documentaire KODJO (plan révisé, révision 2)
 
-**État (16/10) :** révision 2 validée. **Lot 1 autorisé et en cours d'exécution** (voir le journal du lot 1 ci-dessous). **Lots 2 à 6 non autorisés, non exécutés.**
+**État (16/10) :** révision 2 validée.
+- Lot 1 exécuté et publié (`4668e215` sur `origin/docs/openspec-revision`).
+- Lots 2 à 5 autorisés, en cours, avec livraison par lot.
+- Lot 6 non autorisé.
+- **Aucun lot n'est considéré comme validé avant le retour de la revue ChatGPT.**
+
+**Fonctionnement autorisé par Hermann (16/10) :**
+- publier les commits sur `docs/openspec-revision`, sans merge vers `main` ;
+- enchaîner les lots 2 à 5 ;
+- appliquer les corrections purement documentaires et les corrections fonctionnelles couvertes par une décision explicite ;
+- isoler les arbitrages non résolus ;
+- aucune modification des autres clones ni des sources figées PRE-4 ;
+- aucun code, Figma, BMAD ni VNext ;
+- aucune restructuration générale (lot 6).
+
+**Interprétation retenue de « sources figées PRE-4 » :** le commit `caa2a5cf`, la branche `plan/pre4-vnext-20261013` et les copies `docs/preparation/PRE-4/**` (dont le dossier `sources-caa2a5cf` du clone PRE-4 BMAD). Elles ne sont pas touchées. Les chapitres de cette branche restent modifiables dans le périmètre des lots 2 à 5 ; c'est la condition pour exécuter ces lots, et le lot 1 l'a déjà fait sur le ch. 07. *Interprétation signalée pour confirmation.*
 
 **Base d'analyse conservée :** `main` `6656fefc58330955f5ad74d513ce616ea51809b0`, inchangé au 16/10, revérifié par `git ls-remote`. Les évolutions postérieures sont consignées dans [diagnostic.md §7](diagnostic.md) sans être intégrées.
 
@@ -122,13 +137,32 @@ Inventaire exact des lignes ajoutées :
 
 **Classe :** `DOC`.
 
-- [ ] 2.1 **R-01** — hors PRE-4 : 26 liens vers des fichiers supprimés le 14/10, dans 17 documents de traçabilité. Les remplacer par un permalien `7a89220f^:<chemin>` (documents historiques), sans ajouter de bandeau.
-- [ ] 2.2 **R-02, CE-FMT** `[PRE4]` (ch. 13) : 166 liens `#ce-fmt-0x` (120 dans la matrice Formats, 46 au ch. 06). Option recommandée : 6 ancres explicites `<a id="ce-fmt-01"></a>` à `ce-fmt-06` au ch. 13. C'est le seul cas d'ancres explicites proposé (design G6) : il ne touche qu'un fichier et répare les 166 liens. Alternative sans toucher au ch. 13 : corriger les 120 liens de la matrice (hors PRE-4) et les 46 du ch. 06 `[PRE4]` `[PR363]` `[PR370]` `[PR371]`.
-- [ ] 2.3 **R-04** `[PRE4]` (ch. 08) : remplacer le lien circulaire vers la « spécification Formats du 14/10 » par un permalien `7a89220f^:…/SPECIFICATION-FORMATS-SEANCES-2026-10-14.md`. Ce permalien donne aussi accès à §12 (dispositions des règles antérieures) et à SRC-01 à SRC-08 (constat S-09).
-- [ ] 2.4 **R-05** : « chapitre 00 » dans REVUE-COHERENCE-FORMATS et MATRICE-FORMATS → ch. 01 (hors PRE-4).
-- [ ] 2.5 **H-15** (hors PRE-4) : `docs/README.md` « Références actives » ne doit plus présenter DSF-CADENCE et MATRICE-CADENCE-FIGMA comme « courants » ; ces deux documents se déclarent eux-mêmes dépassés. C'est la seule correction de statut proposée (design G7).
-- [ ] 2.6 **Alias de documents supprimés** `[PRE4]` (« Bip v2 », « v13 », « Phrase v1 », « EC-01/02 ») : établir pour chacun la correspondance vers sa section actuelle. Exemple : EC-01…EC-10 sont définis dans `7a89220f^:…/SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md`. Le livrable est une **table de correspondance** ; le remplacement dans le texte vient plus tard (lot 6), car il touche de nombreuses lignes.
-- [ ] 2.7 Contrôle : `outils/links.mjs` → 0 fichier manquant ; 0 ancre CE-FMT manquante.
+- [x] 2.1 **R-01** — hors PRE-4 : 26 liens vers des fichiers supprimés le 14/10, dans 17 documents de traçabilité. Les remplacer par un permalien `7a89220f^:<chemin>` (documents historiques), sans ajouter de bandeau.
+- [x] 2.2 **R-02, CE-FMT** `[PRE4]` (ch. 13) : 166 liens `#ce-fmt-0x` (120 dans la matrice Formats, 46 au ch. 06). Option recommandée : 6 ancres explicites `<a id="ce-fmt-01"></a>` à `ce-fmt-06` au ch. 13. C'est le seul cas d'ancres explicites proposé (design G6) : il ne touche qu'un fichier et répare les 166 liens. Alternative sans toucher au ch. 13 : corriger les 120 liens de la matrice (hors PRE-4) et les 46 du ch. 06 `[PRE4]` `[PR363]` `[PR370]` `[PR371]`.
+- [x] 2.3 **R-04** `[PRE4]` (ch. 08) : remplacer le lien circulaire vers la « spécification Formats du 14/10 » par un permalien `7a89220f^:…/SPECIFICATION-FORMATS-SEANCES-2026-10-14.md`. Ce permalien donne aussi accès à §12 (dispositions des règles antérieures) et à SRC-01 à SRC-08 (constat S-09).
+- [x] 2.4 **R-05 — SANS OBJET** (faux positif : REVUE-COHERENCE-FORMATS relit la baseline `55aa3448`, où le chapitre 00 existait ; texte historique exact, non modifié ; MATRICE-FORMATS ne contient pas cette mention). Énoncé initial : « chapitre 00 » dans REVUE-COHERENCE-FORMATS et MATRICE-FORMATS → ch. 01 (hors PRE-4).
+- [x] 2.5 **H-15** (hors PRE-4) : `docs/README.md` « Références actives » ne doit plus présenter DSF-CADENCE et MATRICE-CADENCE-FIGMA comme « courants » ; ces deux documents se déclarent eux-mêmes dépassés. C'est la seule correction de statut proposée (design G7).
+- [x] 2.6 **Alias de documents supprimés** `[PRE4]` (« Bip v2 », « v13 », « Phrase v1 », « EC-01/02 ») : établir pour chacun la correspondance vers sa section actuelle. Exemple : EC-01…EC-10 sont définis dans `7a89220f^:…/SPECIFICATION-DEUX-MODES-ECHEC-PAR-SERIE-2026-10-13.md`. Le livrable est une **table de correspondance** ; le remplacement dans le texte vient plus tard (lot 6), car il touche de nombreuses lignes.
+- [x] 2.7 Contrôle : `outils/links.mjs` → 0 fichier manquant ; 0 ancre CE-FMT manquante.
+
+### Journal d'exécution du lot 2 (16/10/2026)
+
+**Départ :** `4668e215` (lot 1 publié).
+
+**Méthode :** `outils/appliquer-lot2-liens.mjs`. Chaque remplacement exige une correspondance exacte et unique ; la liste des liens morts est recalculée par l'outil, pas saisie à la main.
+
+**Réalisé :**
+- **2.1** : 26 liens, dans 15 documents de traçabilité, pointent désormais vers un permalien GitHub au commit `3623466a` (parent de `7a89220f`, état d'origine). Le texte des liens est inchangé. Les 11 permaliens répondent en HTTP 200.
+- **2.2** : 6 ancres `<a id="ce-fmt-0n"></a>` ajoutées au ch. 13, **juste après** chaque titre `## CE-FMT-0n`. Une ancre placée avant le titre entrait en conflit avec la PR #370, qui insère du texte juste avant `## CE-FMT-05` (vérifié par `git merge-tree`). Ces ancres réparent 166 liens (120 dans MATRICE-FORMATS, 46 au ch. 06), sans modifier ces fichiers.
+- **2.3** : ch. 08, « Source normative : la présente section, issue de la [spécification Formats du 14/10](permalien) intégrée le 14/10/2026, FMT-01–38. ». La version d'origine (`7a89220f^`) pointait vers la spécification ; la consolidation l'avait fait pointer vers la section elle-même et avait effacé « FMT-01–38 ». Le libellé « source normative » désigne la section du chapitre, pas la spécification supprimée : l'autorité reste inchangée.
+- **2.5** : README, point 4 des « Références actives ». Les statuts sont repris des en-têtes des documents eux-mêmes : DSF Cadence « actualisé le 13/10 par le DSF Deux modes » ; matrice du 06/10 « inventaire historique ».
+- **2.6** : [correspondance-alias.md](correspondance-alias.md), avec la localisation par `outils/localiser-specifications-integrees.mjs` (détail dans `constats/R-09-localisation-specifications.tsv`). Aucun texte des chapitres n'est modifié par cette tâche.
+
+**Contrôles :**
+- `links.mjs` : 194 anomalies avant, 2 après ; ce sont deux mentions de chemins en texte brut, dans des documents historiques, conservées.
+- Diff mot à mot de 2.1 : seules les cibles des liens changent.
+- Fusions simulées avec #363, #370, #371 : 0 conflit.
+- Aucun autre fichier modifié.
 
 ## 3. Lot 3 — Identifiants de règles, de recettes et de renvois effacés par la consolidation
 

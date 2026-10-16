@@ -686,7 +686,7 @@ Ces points ne remettent pas en question les décisions consignées. Ils ne const
 
 ## Formats de séances — comportements consolidés
 
-Source normative : [spécification Formats du 14/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#formats-conception), . Ces règles étendent les parcours libres ; elles ne déclarent pas le moteur livré.
+Source normative : la présente section, issue de la [spécification Formats du 14/10](https://github.com/MyUncried/Application-Routine/blob/3623466af5a6dcf44dfe676f0ae8019b9c56bf76/docs/Specifications-fonctionnelles/SPECIFICATION-FORMATS-SEANCES-2026-10-14.md) intégrée le 14/10/2026, FMT-01–38. Ces règles étendent les parcours libres ; elles ne déclarent pas le moteur livré.
 
 ### 3. Concepts et invariants
 

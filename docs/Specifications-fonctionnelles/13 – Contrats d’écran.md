@@ -3563,6 +3563,7 @@ Répétitions numériques + rép. ; durée min:ss ; échec ✓ + À l’échec e
 A2/B4 avec tirets ;45s/60s/90s→0:45/1:00/1:30 ; échec✓ ; variables égales ; bilatéral10 affiché10 ; défilements ; aucune écriture.
 
 ## CE-FMT-01 — Choix du modèle et du format
+<a id="ce-fmt-01"></a>
 
 ### 1. Identification
 
@@ -3645,6 +3646,7 @@ pas de verrouillage pour un départ rapide.
 REC-01, REC-25 ; choisir chaque entrée et vérifier format/origine, puis la possibilité de modifier une séance libre.
 
 ## CE-FMT-02 — Paramètres globaux et récapitulatif
+<a id="ce-fmt-02"></a>
 
 ### 1. Identification
 
@@ -3727,6 +3729,7 @@ pas de durée saisie pour les formats cadencés à compte.
 REC-02, 04–05, 09–11, 14, 16–18, 28 ; vérifier même volume avant/après organisation.
 
 ## CE-FMT-03 — Composition d’une séance issue d’un format
+<a id="ce-fmt-03"></a>
 
 ### 1. Identification
 
@@ -3809,6 +3812,7 @@ Pas de récupération par défaut ajoutée pour Tabata ; phases propres d’exer
 REC-02–07, 11, 16–17, 25–26 ; vérifier le même résultat après sauvegarde/réouverture et l’historique inchangé.
 
 ## CE-FMT-04 — Paramètres d’exercice contextualisés par un format
+<a id="ce-fmt-04"></a>
 
 ### 1. Identification
 
@@ -3891,6 +3895,7 @@ les constantes restent effectives dans le moteur futur.
 REC-08, 18 ; vérifier absence d’éditeur sur les quatre constantes et absence de tiret ; contrôle des segments et de l’unité tour.
 
 ## CE-FMT-05 — Exécution des fenêtres et formats à borne ouverte
+<a id="ce-fmt-05"></a>
 
 ### 1. Identification
 
@@ -3973,6 +3978,7 @@ repos inclus dans fenêtre ; pas de multiplicateur caché pour côtés.
 REC-10–15, 19–21, 27 ; ces scénarios sont prescrits, non exécutés sur un moteur livré.
 
 ## CE-FMT-06 — Arrêt et résultat Death by
+<a id="ce-fmt-06"></a>
 
 ### 1. Identification
 

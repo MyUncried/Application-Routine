@@ -8,7 +8,7 @@
 
 # Matrice — Séries variables et Ordre des côtés — 02/10/2026
 
-Source active : [v12](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md), D-247 à D-255. Baseline main8fc58a466679a85ea74752f0273939f901efa1b8, dernier identifiant antérieur D-246. Ce document remplace les anciennes matrices de calcul/bilatéralité sur le périmètre modifié ; il ne certifie pas le code.
+Source active : [v12](https://github.com/MyUncried/Application-Routine/blob/3623466af5a6dcf44dfe676f0ae8019b9c56bf76/docs/Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md), D-247 à D-255. Baseline main8fc58a466679a85ea74752f0273939f901efa1b8, dernier identifiant antérieur D-246. Ce document remplace les anciennes matrices de calcul/bilatéralité sur le périmètre modifié ; il ne certifie pas le code.
 
 ## Traçabilité de la conception
 

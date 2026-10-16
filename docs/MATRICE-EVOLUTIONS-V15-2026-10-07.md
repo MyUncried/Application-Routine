@@ -48,7 +48,7 @@ Les21points ont reçu le traitement décrit ci-dessus. Les modifications documen
 | Points | Résultat vérifié | Preuve |
 |---|---|---|
 | E01–E02 | Corpusv15 archivé,276cas,36montants d’exemple modifiés,0gabarit modifié | [Comparaison](archives/evolutions-v15-2026-10-07/comparaison-v14-v15.json), Phrase v1§1/7 |
-| E03–E12 | Règles conservées et contradictions explicitement résolues ; recovery0 persistée,Pi distincte | [Consolidation](Specifications-fonctionnelles/CONSOLIDATION-EVOLUTIONS-V15-2026-10-07.md), Pauses§4/7, modèle09 |
+| E03–E12 | Règles conservées et contradictions explicitement résolues ; recovery0 persistée,Pi distincte | [Consolidation](https://github.com/MyUncried/Application-Routine/blob/3623466af5a6dcf44dfe676f0ae8019b9c56bf76/docs/Specifications-fonctionnelles/CONSOLIDATION-EVOLUTIONS-V15-2026-10-07.md), Pauses§4/7, modèle09 |
 | E13–E16 |36captures réexportées,15PNG différents et21identiques ;139références couvertes | Inventaire ci-dessous ; chapitre06 ; contrats CE-T03-04/CE-UI-10 |
 | E17–E18 | Composants déjà traités, planches reprises ; aucune nouvelle variante inventée | [DSF v15](DSF-PHRASES-V15-2026-10-07.md), DSF Cartes/Pauses |
 | E19–E20 | Césure, hauteur intrinsèque et références actualisées dans les sections de contrat ;24modales avec Bip | Phrase v1§5 ; CE-T03-04/CE-UI-10§9/20/21 |

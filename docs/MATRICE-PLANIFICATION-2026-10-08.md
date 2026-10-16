@@ -2,7 +2,7 @@
 
 **État : documentation propagée et captures de planification reprises.** Après confirmation du propriétaire, Planifier un parcours et la modale Fréquence ont été relus et recapturés sur les deux pages. Cette matrice ne vaut ni recette de l’application ni validation du prototype interactif.
 
-Sources : [prompt archivé](archives/planification-2026-10-08/demande-source.md), [relevé Figma](archives/planification-2026-10-08/releve-figma.json). Règles : [DSF général](DSF-INTERFACE-GENERALE-2026-10-08.md), [spécification de planification](Specifications-fonctionnelles/SPECIFICATION-PLANIFICATION-2026-10-08.md), contrats CE-UI-04/05/11 du chapitre13.
+Sources : [prompt archivé](archives/planification-2026-10-08/demande-source.md), [relevé Figma](archives/planification-2026-10-08/releve-figma.json). Règles : [DSF général](DSF-INTERFACE-GENERALE-2026-10-08.md), [spécification de planification](https://github.com/MyUncried/Application-Routine/blob/3623466af5a6dcf44dfe676f0ae8019b9c56bf76/docs/Specifications-fonctionnelles/SPECIFICATION-PLANIFICATION-2026-10-08.md), contrats CE-UI-04/05/11 du chapitre13.
 
 ## Exigences et propagation
 
