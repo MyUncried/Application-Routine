@@ -216,6 +216,12 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 
 - Ancienne cible de Parcours autonome retirée par D-328 ; voir la planification multi-contenus du 08/10.
 
+## Champs et comportements des fonctionnalités — Suivi - Vue d'ensemble
+
+### Règles liées à la couleur
+
+- Les futurs indicateurs et graphiques peuvent utiliser la couleur enregistrée avec chaque exécution afin de faciliter l’identification des séances.
+
 ## Roadmap des tranches MVP après arbitrage
 
 | Tranche | Périmètre |
@@ -267,3 +273,46 @@ Contenu identique à la section [« Conception de planification »](01%20%E2%80%
 ## Formats — conception cible et livraison
 
 Cette évolution documente les six formats et les départs rapides selon [spécification Formats du 14/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#formats-conception). Les six formats d’entraînement et les départs rapides appartiennent au MVP (D-378). La présence d’un écran sur Prototype MVP ne constitue ni son admission dans une tranche ni sa livraison applicative. Le moteur n’est pas encore développé ; le lot courant est exclusivement documentaire. Les preuves et périmètres PRE-3/PRE-4 restent figés. Rapports, classement, charge additionnelle, tempo et entrée Pyramide ne sont pas ajoutés au périmètre.
+
+## Principes généraux — Évolutivité
+
+Les comportements décrits correspondent au périmètre du MVP.
+
+Les évolutions prévues pour les versions ultérieures sont décrites dans le chapitre **05 – Versions du produit** et ne sont pas détaillées dans ce document, sauf lorsqu'elles sont nécessaires pour justifier un choix de conception du MVP.
+
+## Catalogue des Exercices — cycle de vie d’un Exercice persistant — MVP T03 — Limite Parcours
+
+**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
+
+<a id="combinaisons-formats"></a>
+## Phrase de synthèse des paramètres — Combinaisons dont la règle reste à préciser
+
+Les arbitrages explicitement traités sont clos. Cela ne vaut pas qualification exhaustive de toutes les combinaisons du futur moteur. Avant de déclarer un périmètre de réalisation prêt, les raccordements suivants doivent être démontrés dans les sources détaillées ou signalés comme incomplets :
+
+- **Fenêtres et commandes générales :** portée de Pause/Reprendre, réinitialisation, points d’arrêt et reprise système face à la règle « fenêtre continue ». Cette règle décrit déjà la fin du travail ; elle ne suffit pas à décider silencieusement de supprimer les commandes générales ou de les laisser modifier les échéances.
+- **Fenêtres et bilatéralité :** rattachement des côtés et de leurs pauses à la fenêtre commune. La formule EMOM validée ne doit pas recevoir un multiplicateur caché ; conserver une règle existante seulement si elle est compatible et démontrée.
+- **Death by à plusieurs exercices :** la règle validée lie un tour acquis à une fenêtre accomplie ; le rang global, le changement d’exercice et l’incrément doivent être explicitement raccordés si le parcours autorise plusieurs exercices. L’exemple d’un exercice ne prouve pas ce raccordement.
+- **Reconfiguration des comptes :** l’éditeur du Volume par tour doit conserver le lien entre nombre de tours et échelle ; l’EMOM « Par exercice » ne doit pas multiplier à la fois séries et tours. La représentation technique doit respecter les séquences et formules déjà décidées.
+
+Ces points ne remettent pas en question les décisions consignées. Ils ne constituent pas des blocages démontrés ; leur effet éventuel se limite au comportement dont une règle manquerait réellement. S’ils ne se résolvent pas par les règles existantes, le dossier VNext doit conserver une clarification localisée, sans inventer de comportement.
+
+## Planification des créneaux et de leurs contenus — Points ouverts, à consigner comme tels
+
+1. **x : plafond ou résultat ?** Le premier stepper et le nombre de pastilles cochées expriment la même information (§ 2.6).
+2. **La rangée L M M J V S D sous les unités Jour et Mois** — masquée ou remplacée (§ 3.5).
+3. **Les trois écrans du parcours Programme** : création, proposition de rattachement, avertissement hors période (§ 4.4).
+4. **La conversion `jusqu'au` ↔ `pendant`** dans les deux sens, quand l'utilisateur bascule le paramètre (§ 3.4).
+5. **Le décalage de 3 px du carré de Disclosure** dans les variantes `Cadre=Oui`, soit 196 instances annoncées par le brief (DSF général, § 8.1).
+
+---
+
+## Planification des créneaux et de leurs contenus — Limites de spécification à traiter avant développement
+
+La borne hebdomadaire existante 1..12 et le calcul ancré sur la semaine contenant le début restent applicables à Semaine ; ils ne fixent pas automatiquement les bornes de Jour/Mois ou des steppersx/n. Les règles de fin de mois, l’ancrage précis du motif après édition/suppression, les résultats partiels d’un créneau à plusieurs contenus et l’effet de l’archivage d’un seul contenu nécessitent une spécification complémentaire. Les anciens traitements mono-source ne peuvent pas être généralisés implicitement à toute la liste.
+
+Une fréquence valide doit décrire x positions parmi n ; le comportement d’interaction qui garantit cette cohérence reste le point ouvert 1. Ne pas inventer de sélection automatique après remise au gris. Pas d’unité Heure ; plusieurs heures par jour est une piste, pas une capacité livrée.
+
+Le document Programme / Modèle de Programme V1.2 cité par le brief n’a pas été retrouvé dans le dépôt lu. Une recherche des fichiers a retrouvé la V1.1 du 18/09, mais pas la V1.2. La V1.1 ne suffit pas à attester les clauses V1.2 : son §29.2 porte sur la réalisation à date et son §32 prévoit encore le recalcul rétroactif ; ne pas les substituer au gel de l’échu annoncé par le nouveau brief. Le rattachement facultatif, la fenêtre bornant les dates et le gel des données échues sont les exigences explicitement fournies ; aucune autre clause de cette source n’est reconstituée de mémoire. Les trois écrans manquants restent à concevoir.
+## Suivi et historique des séances — Filtres
+
+Les filtres avancés du Suivi ne font pas partie du MVP. Ils sont reportés à une version ultérieure.

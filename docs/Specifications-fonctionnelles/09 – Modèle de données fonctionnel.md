@@ -933,6 +933,71 @@ Une Occurrence planifiée à contenu unique possède directement :
 - Une occurrence `Non exécutée` ne possède aucune Exécution associée.
 - Une occurrence historisée est conservée même si la Routine d'origine est ensuite modifiée ou supprimée.
 
+## Suivi et synthèse
+
+### Cycle de vie d'une séance — Historique
+
+Chaque exécution crée un nouvel enregistrement dans le suivi.
+
+L'historique conserve notamment :
+
+- l'instantané de la séance ;
+- les temps réalisés ;
+- le statut de l'exécution ;
+- le ressenti de l'utilisateur.
+
+L'historique n'est jamais modifié par les évolutions ultérieures de la séance.
+
+### Exécution d'une séance — Historique d'exécution
+
+Chaque exécution enregistre notamment :
+
+- la date et l'heure de début ;
+- la durée réelle ;
+- le statut de l'exécution ;
+- le ressenti de l'utilisateur ;
+- l’instantané fonctionnel de la séance ;
+- les informations propres à chaque exercice exécuté.
+
+Cet instantané est suffisamment complet pour restituer la structure, les paramètres et les libellés de la Séance exécutée, mais il reste volontairement léger. Dès leur introduction au MVP dans PRE-3 (D-333), il conserve les associations média ordonnées et leurs références stables sans dupliquer les fichiers physiques.
+
+Une exécution n'est jamais modifiée après son enregistrement.
+
+### Suivi et historique des séances — Création d'un historique
+
+Un historique est créé dès le démarrage d'une séance.
+
+Il est basé sur l'instantané enregistré au lancement de l'exécution.
+
+Cet instantané comprend notamment :
+
+- l’identifiant et le nom de la Séance source ;
+- son Étiquette et la couleur portée par cette Étiquette ;
+- le Compte à rebours initial ;
+- la structure ordonnée des Cycles, Circuits et Exercices ;
+- les paramètres fonctionnels nécessaires de chaque Exercice ;
+- les zones corporelles nécessaires à la restitution fidèle de l’historique ;
+- la Fin de séance ;
+- les paramètres nécessaires à la génération du plan d’exécution.
+
+Les informations média nécessaires à la restitution suivent le périmètre média courant ; l’historique conserve en priorité les données nécessaires à la fidélité fonctionnelle de l’Exécution.
+
+L'instantané n'est jamais modifié après sa création.
+
+### Suivi et historique des séances — Informations enregistrées
+
+Chaque historique enregistre notamment :
+
+- la date et l'heure de début ;
+- la durée réelle ;
+- le statut de l'exécution ;
+- le ressenti de l'utilisateur ;
+- le détail des exercices exécutés ;
+- les temps réellement réalisés ;
+- les éventuelles interruptions.
+
+Ces informations restent définitivement associées à cette exécution.
+
 ## Profil et préférences
 
 ### Entité Utilisateur

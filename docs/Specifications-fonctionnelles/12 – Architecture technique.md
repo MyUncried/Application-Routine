@@ -359,8 +359,8 @@ Le passage en arrière-plan ou le verrouillage ne met pas automatiquement l’Ex
 
 Le moteur applique une pause de sécurité en l’absence d’interaction :
 
-- *Texte identique à celui de la section [« Arrière-plan et verrouillage »](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#arrière-plan-et-verrouillage) ; il n’est pas recopié ici.*
-- *Texte identique à celui de la section [« Arrière-plan et verrouillage »](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#arrière-plan-et-verrouillage) ; il n’est pas recopié ici.*
+- *Texte identique à celui de la section [« Arrière-plan et verrouillage »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#arrière-plan-et-verrouillage) ; il n’est pas recopié ici.*
+- *Texte identique à celui de la section [« Arrière-plan et verrouillage »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#arrière-plan-et-verrouillage) ; il n’est pas recopié ici.*
 
 Cette pause est déterminée à partir des horodatages et ne suppose pas qu’un timer JavaScript reste actif en permanence en arrière-plan.
 

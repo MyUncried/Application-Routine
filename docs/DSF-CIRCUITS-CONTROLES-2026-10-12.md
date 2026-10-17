@@ -4,7 +4,7 @@
 
 Référence courante pour les éléments ci-dessous. Complète le [DSF général](DSF-INTERFACE-GENERALE-2026-10-08.md) et remplace les anciennes descriptions d’interrupteur de régime, de steppers permanents par cellule et de compteur Circuit indivisible. Ne change ni shells ni règles métier. Sources : inspection directe des pages Prototype MVP et Fondations le 12/10 ; [inventaire préalable](INVENTAIRE-DSF-CIRCUITS-2026-10-12.md), [matrice des exports](MATRICE-DSF-CIRCUITS-2026-10-12.md).
 
-Figma définit le layout. [Circuits](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#circuits), Paramètres v13 et CE-T03-08 / CE-UI-10 / CE-CIR-01…03 déterminent les données, interactions, bornes et calculs. Toutes les mesures sont des références à 402 × 874, pas des coordonnées absolues à reproduire sur tous les appareils. Safe Areas, texte agrandi, en-tête accessible et contenu défilant restent requis.
+Figma définit le layout. [Circuits](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#circuits), Paramètres v13 et CE-T03-08 / CE-UI-10 / CE-CIR-01…03 déterminent les données, interactions, bornes et calculs. Toutes les mesures sont des références à 402 × 874, pas des coordonnées absolues à reproduire sur tous les appareils. Safe Areas, texte agrandi, en-tête accessible et contenu défilant restent requis.
 
 ## En-tête du circuit et choix de nature
 
