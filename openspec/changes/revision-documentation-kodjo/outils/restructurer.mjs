@@ -49,7 +49,7 @@ const parCh = {}; for (const s of S) (parCh[s.ch] ||= []).push(s);
 for (const [ch, L] of Object.entries(parCh)) {
   const B = BASEL[ch];
   L.forEach((s, i) => { s.pre = []; s.head = s.lvl > 0 ? B[s.debut - 1] : null; s.body = B.slice(s.lvl > 0 ? s.debut : s.debut - 1, s.fin); s.baseHeadIdx = s.lvl > 0 ? s.debut - 1 : -1; s.bodyBaseIdx = s.lvl > 0 ? s.debut : s.debut - 1; });
-  for (let i = 0; i + 1 < L.length; i++) { const a = L[i], b = L[i + 1]; let k = a.body.length; while (k > 0 && a.body[k - 1].trim() === '') k--;
+  if (has('6E')) for (let i = 0; i + 1 < L.length; i++) { const a = L[i], b = L[i + 1]; let k = a.body.length; while (k > 0 && a.body[k - 1].trim() === '') k--;
     let j = k; while (j > 0 && /^<a (?:id|name)="/.test(a.body[j - 1].trim())) j--; if (j < k) { b.pre = a.body.slice(j, k); a.body = a.body.slice(0, j).concat(a.body.slice(k)); a.preMoved = true; } }
   L.forEach((s, i) => { s.parent = null; for (let j = i - 1; j >= 0; j--) if (L[j].lvl < s.lvl && L[j].lvl > 0) { s.parent = L[j]; break; } });
 }
@@ -173,6 +173,7 @@ function rendreFichier(k) {
     if (r.dest !== r.ch && r.parent && r.parent.dest !== r.dest && r.parent !== titreChapitre[r.ch] && !/^(?:RM|CE|D|REC|CIR|DM|API)-/.test(t)) { const pt = titreCible(r.parent); if (!t.includes(pt)) t = `${pt} — ${t}`; }
     return t + (suffixes.get(r.id) || ''); };
   const rendreBloc = (b, nivRacine) => { const d = nivRacine - b.racine.lvl; b.sections.forEach(s => out.push(...rendreSection(s, s.lvl + d, d, s === b.racine ? titreRacine(b, nivRacine) : titreCible(s) + (suffixes.get(s.id) || '')))); };
+  if (mode === 'annexe' && !B.length) return null;
   if (mode === 'fige' || !has('6E')) { // ordre de base, sans changement de niveau
     for (const b of B) { const r = b.racine; b.sections.forEach(s => out.push(...rendreSection(s, s.lvl, 0, titreCible(s)))); }
     return out; }
@@ -253,7 +254,9 @@ let liensReecrits = 0;
 function reecrire(t, origineCh, dansFichierK, prefixeDoc) { let fence = false; return t.replace(/\]\(([^)\s]+)((?:\s+"[^"]*")?)\)/g, (m, u, titre) => {
   if (/^(https?:|mailto:)/.test(u)) return m; let [p, h] = u.split('#'); let pd = p; try { pd = decodeURIComponent(p); } catch {}
   const base = path.basename(pd); const chCible = p ? nomVersCh[base] : origineCh; if (!chCible) return m;
-  const n = cibleNouvelle(chCible, h); if (!n) { if (!p && dansFichierK !== origineCh && h) { liensReecrits++; return `](${encodeURIComponent(NOMS[origineCh])}#${h}${titre})`; } return m; }
+  const n = cibleNouvelle(chCible, h); let hd0 = h; try { hd0 = decodeURIComponent(h); } catch {}
+  if (n && n.k === chCible && n.slug === hd0 && (p ? true : dansFichierK === origineCh)) return m; // cible inchangée : lien laissé tel quel
+  if (!n) { if (!p && dansFichierK !== origineCh && h) { liensReecrits++; return `](${encodeURIComponent(NOMS[origineCh])}#${h}${titre})`; } return m; }
   const nomN = fichierDe(n.k); let nu;
   if (prefixeDoc === null) nu = (dansFichierK === n.k ? '' : encodeURIComponent(nomN)) + '#' + n.slug;
   else nu = prefixeDoc + encodeURIComponent(nomN) + '#' + n.slug;
@@ -287,7 +290,7 @@ if (has('6G')) {
 
 // ── 10. Écriture ────────────────────────────────────────────────────────────────────────────────────────────────────
 const nl = '\r\n';
-for (const [k, lines] of Object.entries(R)) { let txt = lines.map(o => o.t).join('\n').replace(/\n{3,}/g, '\n\n'); if (!txt.endsWith('\n')) txt += '\n';
+for (const [k, lines] of Object.entries(R)) { let txt = lines.map(o => o.t).join('\n'); if (has('6E')) txt = txt.replace(/\n{3,}/g, '\n\n'); if (!txt.endsWith('\n')) txt += '\n';
   if (k === '07' && !has('6C')) { /* inchangé */ }
   fs.writeFileSync(path.join(OUT, fichierDe(k)), txt.replace(/\n/g, nl)); }
 if (!R.HIST && fs.existsSync(path.join(OUT, NOM_HIST))) fs.unlinkSync(path.join(OUT, NOM_HIST));

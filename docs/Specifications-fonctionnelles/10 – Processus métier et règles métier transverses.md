@@ -249,8 +249,9 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 
 Ces règles relèvent du périmètre MVP (D-203, confirmation du 28/09/2026).
 
+| ID | Règle |
+|---|---|
 | RM-208 | Ancienne extension à une source Parcours autonome retirée. La planification multi-contenus utilise les sources SESSION/ACTIVITY de chaque entrée. |
-
 | RM-209 | Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). |
 | RM-210 | La récupération après exercice se déplace avec l’occurrence, est copiée lors de sa duplication et supprimée avec elle ; aucun recalcul ne dépend de l’adjacence. |
 | RM-211 | Une Exécution directe d’`ActivityDefinition` n’exécute jamais de récupération post-exercice ; elle peut uniquement exécuter la Pause entre les côtés si l’Exercice est bilatéral. |
@@ -269,14 +270,11 @@ Ces règles relèvent du périmètre MVP (D-203, confirmation du 28/09/2026).
 | RM-219 | Après un Exercice, la Récupération après exercice est exécutée avant un éventuel Point d’arrêt. Aucun Point d’arrêt juste après le Compte à rebours initial ni juste avant la Fin de séance. |
 | RM-220 | Un Point d’arrêt peut être placé avant/après le Circuit et entre ses Exercices ; s’il est dans le Circuit, il est rencontré à chaque Tour. |
 | Ancienne RM-221 (phrase, historique) | Supersédée par RM-232 / D-298 ; la RM-221 active ci-dessous porte sur les Catalogues. |
-
 | RM-221 | Les Catalogues du MVP ne proposent aucune recherche globale ou locale ; filtres et tri restent les mécanismes de réduction/organisation disponibles selon leur périmètre. |
 | RM-222 | En planification, cases à cocher pour un ou plusieurs contenus ; valider par Ajouter 1 élément / Ajouter n éléments. Le toucher ne ferme pas la modale. La Composition et les référentiels conservent leurs contrats propres. |
 | RM-223 | Planifier sans contenu ; Planifier une séance ou Planifier un exercice à contenu unique ; Planifier un parcours à plusieurs contenus, de même type ou mixtes. Aucun objet autonome Parcours. |
-
 | RM-231 | **Supersédée par RM-232 / D-298.** |
 | RM-232 | Phrase v1 étendue : segments {texte, gras}, sans persistance. Cibles variables énumérées jusqu’à3 ; au-delà, mélange compacté « de 10 rép. à l’échec » / « de 1 min 30 s à l’échec » selon minimum numérique. Tout échec : formulation existante. Total fourni par le calcul, ≥ pour mélange calculable ; sans bip en Répétitions ou tout échec : omis. Pauses variables non énumérées. Compte à rebours/Fin hors phrase. Excel exclusivement rédactionnel. Voir chapitre 08, Phrase de synthèse. |
-
 | RM-233 | Au changement de mode, conserver les paramètres communs et, pendant l’édition, la dernière valeur spécifique de chaque mode. Après la première sélection, aucun retour à l’état « aucun mode » ; `Terminer` reste désactivé avant cette première sélection. |
 | RM-234 | Séries `1..99`; Répétitions `1..100`; Durée par Série `5..3535 s`; pauses inter-Séries/inter-côtés `0..300 s`. Une valeur héritée hors bornes, non modifiée, peut être conservée ; toute nouvelle saisie ou modification doit respecter ces bornes (D-383). Les deux pauses utilisent un stepper : tap1s, maintien accéléré1/5/10 selon DSF Bip. |
 

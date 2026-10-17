@@ -590,6 +590,8 @@ Les technologies du MVP sont évaluées selon les critères suivants :
 | Tests end-to-end | **Maestro** | Automatisation des parcours mobiles critiques après stabilisation |
 | Builds / distribution | **Expo EAS** | Builds et distribution privée iOS/Android, adaptés à un environnement de développement Windows |
 | Crash reporting | **Sentry** | Diagnostic des crashs et erreurs lors des tests distribués |
+| Backend | **Aucun dans le MVP** | Architecture local-first et réduction de la complexité |
+| Authentification | **Aucune dans le MVP ; Apple/Google préparés** | Évite la complexité des comptes tout en préservant l’évolution future |
 
 ### Contraintes techniques propres à T04
 
@@ -600,8 +602,6 @@ Les technologies du MVP sont évaluées selon les critères suivants :
 - Pour D-208, la base de développement peut être **réinitialisée** : le schéma cible doit être créé directement avec `side_recovery_seconds` sur l’Exercice et `post_activity_recovery_seconds` sur l’occurrence de Séance. Aucune exigence de migration utilisateur de l’ancien `recovery_seconds` n’est portée par cette conception.
 - Les migrations `005`/`006` restent des traces de l’état technique antérieur et des évolutions déjà réalisées ; elles ne doivent pas être interprétées comme le scénario cible de migration D-208. Lors de l’implémentation de D-208, la version de schéma et les éventuels scripts techniques doivent être recalés sur la baseline de base réinitialisée.
 - L’archivage, la restauration et la suppression restent hors du périmètre de livraison T04 ; leur modèle existant n’est pas supprimé.
-| Backend | **Aucun dans le MVP** | Architecture local-first et réduction de la complexité |
-| Authentification | **Aucune dans le MVP ; Apple/Google préparés** | Évite la complexité des comptes tout en préservant l’évolution future |
 
 ## 12.25 Justification des principaux choix
 

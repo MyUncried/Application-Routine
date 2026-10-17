@@ -200,8 +200,6 @@ Elle ne contient pas directement :
 | Nom                                     | Nom affiché de la séance                                                  |         Obligatoire          | Saisi avant la création effective de la séance                                                                                                                                                                                                         |
 | Étiquette                              | Classification de la Séance                                               |          Facultatif          | Zéro ou une Étiquette ; elle porte la couleur affichée de la Séance                                                                                                                                                                                     |
 | Couleur affichée                        | Couleur visuelle de la Séance                                              |           Calculé            | Dérivée de l’Étiquette lorsqu’elle est renseignée ; aucune couleur métier indépendante de l’Étiquette                                                                                                                                                  |
-> **Formats :** cette grille antérieure n’encode pas à elle seule l’achèvement incomplet du Death by. Conserver séparément motif, résultat et achèvement selon FMT-38 ; aucun mapping implicite vers Terminée.
-
 | Statut                                  | État de la séance                                                         |         Obligatoire          | Active ou archivée                                                                                                                                                                                                                                     |
 | Date de création                        | Date de création effective                                                |         Obligatoire          | Générée automatiquement                                                                                                                                                                                                                                |
 | Date de modification                    | Date de dernière modification                                             |         Obligatoire          | Mise à jour automatiquement                                                                                                                                                                                                                            |
@@ -216,6 +214,9 @@ Elle ne contient pas directement :
 | Texte vocal du compte à rebours initial | Texte annoncé vocalement pendant ou au début du compte à rebours initial  |          Facultatif          | Valeur initiale issue des Préférences globales ; peut être vide                                                                                                                                                                                        |
 | Durée de la fin de séance               | Durée de la phase suivant le dernier exercice                            |         Obligatoire          | Valeur en secondes ; 0 s rend la phase instantanée                                                                                                                                                                                                     |
 | Texte vocal de la fin de séance         | Texte annoncé vocalement pendant ou au début de la fin de séance          |          Facultatif          | Valeur initiale issue des Préférences globales ; peut être vide                                                                                                                                                                                        |
+
+> **Formats :** cette grille antérieure n’encode pas à elle seule l’achèvement incomplet du Death by. Conserver séparément motif, résultat et achèvement selon FMT-38 ; aucun mapping implicite vers Terminée.
+
 ## Structure interne de la séance
 
 La structure d’une séance est composée, dans l’ordre, de :
@@ -374,10 +375,11 @@ Une Occurrence planifiée à contenu unique possède directement :
 | Source       | Source concernée                               | Obligatoire | Référence à la source planifiée au moment de l’occurrence |
 | Date prévue  | Date planifiée                                |  Obligatoire | Valeur issue de la Routine au moment de l'occurrence |
 | Heure prévue | Heure planifiée                               |  Obligatoire | Valeur issue de la Routine au moment de l'occurrence |
-> **Formats :** cette grille antérieure n’encode pas à elle seule l’achèvement incomplet du Death by. Conserver séparément motif, résultat et achèvement selon FMT-38 ; aucun mapping implicite vers Terminée.
-
 | Statut       | Résultat de l'occurrence                      |  Obligatoire | `Exécutée` ou `Non exécutée`                         |
 | Exécution    | Exécution associée                            | Conditionnel | Présente uniquement si la source a été démarrée      |
+
+> **Formats :** cette grille antérieure n’encode pas à elle seule l’achèvement incomplet du Death by. Conserver séparément motif, résultat et achèvement selon FMT-38 ; aucun mapping implicite vers Terminée.
+
 ### Règles métier
 
 - Une Occurrence planifiée est normalement persistée à son échéance. **Exception :** lorsqu’une occurrence future est exécutée en avance depuis l’action `Démarrer` de sa carte, elle est persistée immédiatement avec sa date/heure initialement planifiées et son lien vers l’Exécution réelle, afin de ne pas être reproposée à son horaire initial.
@@ -528,8 +530,6 @@ Une Exécution possède directement :
 | État d'exécution | Avancement | Obligatoire | Mis à jour en continu |
 | Date de début | Début réel | Obligatoire | Générée automatiquement |
 | Date de fin | Fin réelle | Facultatif | À la clôture |
-> **Formats :** cette grille antérieure n’encode pas à elle seule l’achèvement incomplet du Death by. Conserver séparément motif, résultat et achèvement selon FMT-38 ; aucun mapping implicite vers Terminée.
-
 | Statut | En cours, Suspendue, Terminée, Partielle ou Interrompue | Obligatoire | |
 | Durée réelle | Temps actif réellement exécuté | Calculé | Exclut uniquement les périodes de Pause manuelle déclenchées par l’utilisateur ; inclut le Compte à rebours initial, le temps réellement passé dans les Exercices, les Pauses entre Séries, les phases `SIDE_RECOVERY` / `POST_ACTIVITY_RECOVERY` réellement exécutées et la Fin de séance |
 | Dernière sauvegarde | Date de sauvegarde | Obligatoire | Technique |
@@ -537,6 +537,9 @@ Une Exécution possède directement :
 | Commentaire | Commentaire libre de Synthèse | Facultatif | **200 caractères maximum** |
 | Nombre d’Exercices exécutés | Nombre de Résultats d’Exercice exécuté effectivement créés | Calculé | Un Exercice `Partielle` compte comme exécutée ; un Exercice jamais atteinte ne compte pas ; utilisé notamment pour le Suivi et les indicateurs historiques |
 | Occurrence planifiée satisfaite | Occurrence future éventuellement satisfaite par une Exécution anticipée | Facultatif | Renseignée lorsqu’une occurrence future est démarrée en avance |
+
+> **Formats :** cette grille antérieure n’encode pas à elle seule l’achèvement incomplet du Death by. Conserver séparément motif, résultat et achèvement selon FMT-38 ; aucun mapping implicite vers Terminée.
+
 
 ## Structures internes
 
@@ -627,12 +630,13 @@ Chaque occurrence d’Exercice parcourue pendant une Exécution produit un **Ré
 | Exercice de l’Instantané | Exercice source | Obligatoire | Référence l’Instantané, pas la Séance courante |
 | Position d’exécution | Rang dans le plan d’exécution | Obligatoire | Permet de distinguer les occurrences |
 | Série / Tour / Cycle | Indices de répétition applicables | Calculé | Conservés pour restitution |
-> **Formats :** cette grille antérieure n’encode pas à elle seule l’achèvement incomplet du Death by. Conserver séparément motif, résultat et achèvement selon FMT-38 ; aucun mapping implicite vers Terminée.
-
 | Statut | Résultat de l’occurrence | Obligatoire | `Terminée` ou `Partielle` selon le type et le déroulement |
 | Durée réelle | Temps réellement passé sur l’Exercice | Obligatoire | Chronométré pour les modes Durée ou Répétitions, avec cible chiffrée ou À l’échec par série |
 | Pause entre les côtés prévue/écoulée | Durées de la phase intrinsèque éventuelle | Conditionnel | Champs distincts rattachés à `SIDE_RECOVERY` lorsqu’elle existe |
 | Récupération après exercice prévue/écoulée | Durées de la phase contextuelle | Obligatoire / calculé | Planifiée depuis `postActivityRecoverySeconds`; `0` reste une valeur de donnée, temps écoulé nul si aucune phase positive |
+
+> **Formats :** cette grille antérieure n’encode pas à elle seule l’achèvement incomplet du Death by. Conserver séparément motif, résultat et achèvement selon FMT-38 ; aucun mapping implicite vers Terminée.
+
 
 Ces résultats sont conservés avec l’Exécution et permettent de calculer le **Nombre d’Exercices exécutés** et les indicateurs de Suivi.
 

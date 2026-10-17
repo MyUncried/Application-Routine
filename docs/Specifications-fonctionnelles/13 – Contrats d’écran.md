@@ -246,6 +246,15 @@ La suppression du titre des contenus de planification est confirmée par le prop
 | CE-UI-09 | Référentiels d’Exercice — Catégorie et Zones corporelles |
 | CE-UI-10 | Paramètres d’exécution — feuille basse |
 | CE-UI-11 | Planification — fréquence d’un contenu |
+| CE-CIR-01 | Choix de nature du circuit |
+| CE-CIR-02 | Confirmation d’adaptation avec perte |
+| CE-CIR-03 | Volumes du circuit |
+| CE-FMT-01 | Choix du modèle et du format |
+| CE-FMT-02 | Paramètres globaux et récapitulatif |
+| CE-FMT-03 | Composition d’une séance issue d’un format |
+| CE-FMT-04 | Paramètres d’exercice contextualisés par un format |
+| CE-FMT-05 | Exécution des fenêtres et formats à borne ouverte |
+| CE-FMT-06 | Arrêt et résultat Death by |
 
 ## CE-T03-01 — Catalogue des séances — état T03
 

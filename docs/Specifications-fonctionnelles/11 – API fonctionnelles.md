@@ -347,8 +347,9 @@ Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTE
 - Mise à jour Séance : aucun paramètre d’activation des Compte à rebours/Fin propres aux Exercices. Construction du plan SESSION : exclusion inconditionnelle de ces phases, sans effacement des valeurs propres ; les phases de Séance les remplacent.
 - Construction du Plan : développe le Circuit pour `tourCount` Tours ; tout Point d’arrêt interne au Circuit est reproduit à chaque Tour ; après un Exercice, `POST_ACTIVITY_RECOVERY` précède le Point d’arrêt.
 
+| ID | Opération | Entrées principales | Résultat | Règles / validations | Objets impactés |
+|---|---|---|---|---|---|
 | API-PHRASE-01 | Générer la phrase de synthèse | Paramètres courants de l’Exercice | Segments `{texte, gras}` ou tableau vide | Applique D-298 et Phrase v1 à partir des paramètres et du résultat de calcul fourni (total et niveau d’incertitude) ; sans mode retourne un tableau vide. Ne recalcule aucune durée et ne persiste aucune phrase ni aucun segment, même en cache en base. | Exercice |
-
 | API-PARAM-01 | Valider les bornes des paramètres | Paramètres d’exécution | paramètres valides / erreur | Séries `1..99`; Répétitions `1..100`; durée par Série `5..3535 s`; pauses inter-Séries/inter-côtés `0..300 s`. Une valeur héritée hors bornes, non modifiée, est acceptée ; toute valeur saisie ou modifiée doit respecter ces bornes (D-383). | Exercice |
 
 > **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v13 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
