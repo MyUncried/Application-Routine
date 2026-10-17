@@ -52,13 +52,13 @@ Ce document décrit :
 - le comportement détaillé des fonctionnalités du MVP ;
 - les interactions entre les différents écrans ;
 - les comportements attendus lors des actions de l'utilisateur ;
-- les règles propres à chaque fonctionnalité.
+- les enchaînements, états et transitions propres à chaque fonctionnalité, en citant les règles du chapitre 10 qui s’y appliquent.
 
 Il ne décrit pas :
 - les parcours utilisateur ;
 - la navigation entre les écrans ;
 - le modèle de données ;
-- les règles métier transverses ;
+- les règles métier testables, énoncées au chapitre 10 ;
 - les choix techniques d'implémentation.
 
 #### Organisation
@@ -67,7 +67,7 @@ Le document est organisé selon les principales fonctionnalités du MVP.
 
 Chaque chapitre décrit le fonctionnement détaillé d'une fonctionnalité indépendamment des écrans utilisés.
 Lorsqu'une fonctionnalité fait intervenir plusieurs écrans, son comportement est décrit une seule fois dans le présent document.
-Les caractéristiques propres à chaque écran restent décrites dans le chapitre **06 – Écrans et navigation de la V1**.
+La navigation, l’inventaire des écrans et les conventions d’interface communes à plusieurs écrans sont décrits au chapitre **06 – Interface : navigation, écrans et conventions communes**.
 Les champs, contrôles et comportements spécifiques des écrans sont définis au chapitre 13.
 
 #### Documents de référence
@@ -80,14 +80,15 @@ Chaque sujet est décrit dans un document unique afin d'éviter toute redondance
 | Utilisateurs et besoins                   | 02 – Utilisateurs et besoins                       |
 | Parcours utilisateur                      | 03 – Parcours utilisateur                          |
 | Fonctionnalités                           | 04 – Modèle fonctionnel                            |
-| Versions du produit                       | 05 – Versions du produit                           |
-| Navigation et écrans                      | 06 – Écrans et navigation de la V1                 |
+| Versions du produit                       | 05 – Versions et périmètre                         |
+| Navigation, écrans et conventions communes | 06 – Interface : navigation, écrans et conventions communes |
 | Décisions de conception                   | 07 – Registre des décisions                        |
-| Comportement détaillé des fonctionnalités | 08 – Conception fonctionnelle détaillée            |
+| Enchaînements, états et transitions des fonctionnalités | 08 – Conception fonctionnelle par fonctionnalité |
 | Modèle de données                         | 09 – Modèle de données fonctionnel                 |
-| Règles métier transverses                 | 10 – Processus métier et règles métier transverses |
+| Règles métier testables et calculs        | 10 – Règles métier et calculs                      |
 | API fonctionnelles                        | 11 – API fonctionnelles                            |
 | Architecture technique                    | 12 – Architecture technique                        |
+| Comportement de chaque écran              | 13 – Contrats d’écran                              |
 
 #### Convention de lecture
 

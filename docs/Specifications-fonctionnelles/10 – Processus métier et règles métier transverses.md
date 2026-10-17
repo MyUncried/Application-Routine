@@ -136,7 +136,7 @@ Ce chapitre réunit les règles métier testables et les calculs, identifiés ou
 
 ### Objet
 
-Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs écrans ou parcours. Le détail visuel et les interactions écran par écran restent définis dans le chapitre 06.
+Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs écrans ou parcours. Les interactions écran par écran sont définies par les contrats du chapitre 13 ; la navigation et les conventions d’interface communes, par le chapitre 06 ; le rendu visuel, par Figma.
 
 ## Séances
 

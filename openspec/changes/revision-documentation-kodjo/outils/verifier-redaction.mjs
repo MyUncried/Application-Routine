@@ -25,6 +25,7 @@ const FAMILLES = {
 const multiset = a => a.slice().sort().join('|');
 let ko = 0;
 for (const c of corr) {
+  if (c.motif && c.motif !== 'REDACTION') continue; // seules les corrections rédactionnelles sont soumises aux invariants (les autres ont leur propre preuve)
   const diffs = Object.entries(FAMILLES).filter(([, f]) => multiset(f(c.ancien)) !== multiset(f(c.nouveau))).map(([k]) => k);
   const classe = c.classe || 'DOC';
   if (!diffs.length) continue;

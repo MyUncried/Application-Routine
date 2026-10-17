@@ -28,7 +28,8 @@ const args = process.argv.slice(2); const opt = Object.fromEntries(args.filter(a
 const [repo, ref, justif] = args.filter(a => !a.startsWith('--'));
 const DIR = 'docs/Specifications-fonctionnelles';
 const git = (...a) => execFileSync('git', ['-c', 'core.quotepath=false', '-C', repo, ...a], { encoding: 'utf8', maxBuffer: 1 << 28 });
-const refFiles = git('ls-tree', '--name-only', ref, DIR + '/').split('\n').filter(f => /\/\d\d – .*\.md$/.test(f));
+// La référence inclut l'annexe historique quand elle existe (état postérieur au lot 6) : ses lignes y gardent leur portée.
+const refFiles = git('ls-tree', '--name-only', ref, DIR + '/').split('\n').filter(f => /\/(\d\d|Annexe) – .*\.md$/.test(f));
 const refDocs = refFiles.map(f => ({ name: path.basename(f), lines: git('show', `${ref}:${f}`).split(/\r?\n/) }));
 const tgtDir = opt.cible || path.join(repo, DIR); // --cible=<dossier> : contrôle d'une copie de travail hors dépôt
 const tgtDocs = []; (function walk(d) { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, e.name); if (e.isDirectory()) { if (!/^images/.test(e.name)) walk(p); } else if (p.endsWith('.md')) tgtDocs.push({ name: path.relative(tgtDir, p), lines: fs.readFileSync(p, 'utf8').split(/\r?\n/) }); } })(tgtDir);
@@ -46,7 +47,7 @@ const ANNEXE_GENEREE = n => /^Annexe – (Correspondance|Index)/.test(path.basen
 function sansSommaire(lines) { let som = false; return lines.map(l => { const m = l.match(/^(#{1,6}) (.*)$/); if (m && m[1].length <= 2) som = m[1].length === 2 && m[2].trim() === 'Sommaire'; return som ? '' : l; }); }
 for (const d of [...refDocs, ...tgtDocs]) d.lines = ANNEXE_GENEREE(d.name) ? [] : sansSommaire(d.lines);
 function scan(docs) {
-  const ids = new Map(), c1 = new Map(), c2 = new Map(), dec = new Map(), por = new Map(), por2 = new Map(), cites = new Map(), marq = {};
+  const decK1 = new Map(); const ids = new Map(), c1 = new Map(), c2 = new Map(), dec = new Map(), por = new Map(), por2 = new Map(), cites = new Map(), marq = {};
   for (const d of docs) { let fence = false; const stack = []; const annexe = /^Annexe/i.test(path.basename(d.name));
     d.lines.forEach((l, i) => {
       if (/^```/.test(l)) fence = !fence;
@@ -59,14 +60,14 @@ function scan(docs) {
       const ps = por.get(k1) || new Set(); ps.add(p.join('+') || 'COURANT'); por.set(k1, ps); const ps2 = por2.get(k2) || new Set(); ps2.add(p.join('+') || 'COURANT'); por2.set(k2, ps2);
       for (const c of t.match(ID_CITE) || []) cites.set(c, (cites.get(c) || 0) + 1);
       for (const [k, re] of MARQUEURS) if (re.test(t)) (marq[k] ||= new Set()).add(k2); // lignes distinctes (normalisation N2) : retirer une copie ou corriger une espace ne compte pas
-      const m = l.match(/^\| (D-\d{3}) \|/); if (m) dec.set(m[1], h(n1(l.replace(/\]\([^)]*\)/g, ']()')))); // C4 : texte comparé hors cibles de liens
+      const m = l.match(/^\| (D-\d{3}) \|/); if (m) { dec.set(m[1], h(n1(l.replace(/\]\([^)]*\)/g, ']()')))); decK1.set(m[1], k1); } // C4 : texte comparé hors cibles de liens
     }); }
-  return { ids, c1, c2, dec, por, por2, cites, marq };
+  return { ids, c1, c2, dec, decK1, por, por2, cites, marq };
 }
 const R = scan(refDocs), T = scan(tgtDocs);
 const fail = []; const detail = ['controle\tcle\tetat\tinfo'];
 // Justifications
-const J = new Map(); const MOTIF = /^(COPIE-RETIREE|RENVOI|FUSION-TITRE|HISTORIQUE-ARCHIVE|CORRECTION-DECIDEE:(D-\d{3}))$/;
+const J = new Map(); const MOTIF = /^(COPIE-RETIREE|RENVOI|FUSION-TITRE|HISTORIQUE-ARCHIVE|REDACTION|RESTAURATION:[0-9a-f]{7,40}\^?|CORRECTION-DECIDEE:(D-\d{3}))$/;
 if (justif && fs.existsSync(justif)) for (const l of fs.readFileSync(justif, 'utf8').split(/\r?\n/).slice(1)) { const c = l.split('\t'); if (!c[0]) continue;
   const m = (c[1] || '').match(MOTIF); if (!m) fail.push(`JUSTIF motif invalide pour ${c[0]} : « ${c[1]} »`); else if (m[2] && !T.ids.has(m[2])) fail.push(`JUSTIF ${c[0]} cite ${m[2]}, absente du registre`); J.set(c[0], c[1]); }
 // C1
@@ -89,7 +90,7 @@ for (const d of refDocs) d.lines.forEach((l, i) => { const t = content(l); if (!
   if (J.has(k1)) { sj++; detail.push(`C2\t${k1}\tJUSTIFIE\t${J.get(k1)} ${where}`); return; }
   ko++; fail.push(`C2 ligne absente ${where} « ${t.slice(0, 70)} »`); detail.push(`C2\t${k1}\tKO\t${where}`); });
 // C4
-let c4 = 0; const tdec = new Set(T.dec.values()); for (const [id, k] of R.dec) if (!tdec.has(k)) { c4++; fail.push(`C4 texte de ${id} modifié`); }
+let c4 = 0; const tdec = new Set(T.dec.values()); for (const [id, k] of R.dec) if (!tdec.has(k)) { const j = J.get(R.decK1.get(id)) || ''; if (/^RESTAURATION:/.test(j)) { detail.push(`C4\t${id}\tRESTAURATION\t${j}`); continue; } c4++; fail.push(`C4 texte de ${id} modifié`); } // seule la restauration d'un texte d'origine prouvée par Git est admise
 // C6
 const c6 = []; for (const [k] of MARQUEURS) { const rs = R.marq[k] || new Set(), ts = T.marq[k] || new Set(); const perdus = [...rs].filter(x => !ts.has(x) && !J.has(x)); if (perdus.length) c6.push(`${k} : ${perdus.length} ligne(s) marquée(s) disparue(s)`); }
 c6.forEach(x => fail.push(`C6 marqueur d'autorité en baisse : ${x}`));
