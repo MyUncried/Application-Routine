@@ -230,6 +230,13 @@ if (has('6E')) for (let tour = 0; tour < 3; tour++) { let change = false;
       const r = racineDe.get(s.id); const perdRacine = kk => r && r !== s && flagsOf(r).has(kk) && !new Set(pr[lines.findIndex(x => x.head === r.id)] || []).has(kk);
       for (const [kk, , suf] of PORTEE) if (avant.has(kk) && !apres.has(kk) && !perdRacine(kk) && !(suffixes.get(s.id) || '').includes(suf)) { suffixes.set(s.id, (suffixes.get(s.id) || '') + suf); change = true; note(s.id, '6E-portee', suf.trim()); } }); }
   if (!change) break; R = assembler(); }
+// ── 8 ter. Étape 6I : transfert des règles RG-1 à RG-13 du DSF Cartes, icônes et appuis vers le ch. 06 (G4) ──────────
+const TITRE_RG = 'Cartes d’Exercice — règles RG-1 à RG-13';
+let rgLignes = null; if (has('6I') && R['06']) { const D = git('show', `${BASE}:docs/DSF-CARTES-ICONES-APPUIS-2026-09-30.md`).split(/\r?\n/); const h = D.findIndex(l => l.startsWith('## État avec photo/vidéo et RG-1 à RG-13'));
+  let a = h + 1; while (!D[a].startsWith('| ID |')) a++; let b = a; while (b < D.length && D[b].startsWith('|')) b++; rgLignes = D.slice(a, b);
+  const neuL = t => ({ t, ch: '06', bi: -1, neu: true });
+  R['06'].push(neuL(''), neuL(`### ${TITRE_RG}`), neuL(''), neuL('Règles de gestion transférées sans modification depuis le [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md) (§ « État avec photo/vidéo et RG-1 à RG-13 »), conformément à G4 et D-402. Le DSF renvoie désormais ici.'), neuL(''), ...rgLignes.map(neuL));
+  note('S06', '6I-transfert', `${rgLignes.length - 2} règles RG`); }
 // Slugs de base (pour retrouver la cible d'un ancien lien) et slugs rendus.
 const slugsBase = {}; for (const [ch, B] of Object.entries(BASEL)) { const cnt = {}; const parIdx = {}, parSlug = {}; let fence = false;
   B.forEach((l, i) => { if (/^```/.test(l)) fence = !fence; const m = !fence && l.match(/^#{1,6}\s+(.*)$/); if (!m) return; let s = slug(m[1]); if (cnt[s] !== undefined) { cnt[s]++; s = `${s}-${cnt[s]}`; } else cnt[s] = 0; parIdx[i] = s; parSlug[s] = i; });
@@ -273,6 +280,17 @@ for (const [k, lines] of Object.entries(R)) { let fence = false; for (const o of
 if (has('6G') && R['02']) { let n = 0; const st = []; for (const o of R['02']) { const m = o.t.match(/^(#{1,6}) (.*)$/); if (m) { while (st.length && st[st.length - 1].lvl >= m[1].length) st.pop(); st.push({ lvl: m[1].length, t: m[2] }); continue; }
   if (!o.neu && /^- (?!\*\*B-\d{3}\*\*)/.test(o.t) && st.some(x => /^Besoin|\bBesoins?\b/.test(x.t) && !/^Sommaire$/.test(x.t))) { n++; o.t = o.t.replace(/^- /, `- **B-${String(n).padStart(3, '0')}** — `); } }
   note('S02', '6G-besoins', `${n} besoins identifiés`); }
+
+// ── 8 quater. Étape 6K : espaces manquantes (QS-14, QF-13, QF-17) : après une préposition suivie d'un nombre, entre un
+// nombre et son unité (min, ms, s, h), entre « min »/« ms » et le nombre suivant. Hors registre (C4), code et liens.
+const corr6K = [];
+if (has('6K')) { const P = /(?<![\p{L}\p{N}])(du|le|au|aux|les|des|de|et|à|entre|sur|sous|avec|par|pour|dès|depuis|après|avant)(\d)/gu;
+  const U = /(\d)(min|ms|s|h)(?![\p{L}\p{N}])/gu, M = /(?<=\d)(min|ms)(\d)/gu;
+  const corriger = seg => seg.replace(P, '$1 $2').replace(M, '$1 $2').replace(U, '$1 $2');
+  for (const [k, lines] of Object.entries(R)) { if (k === '07' || k === 'HIST') continue; let fence = false; lines.forEach((o, i) => { if (/^```/.test(o.t)) { fence = !fence; return; } if (fence || o.neu || /^#{1,6} /.test(o.t)) return;
+    const parts = o.t.split(/(`[^`]*`|\]\([^)]*\)|<[^>]+>)/); const n = parts.map((p, j) => j % 2 ? p : corriger(p)).join('');
+    if (n !== o.t) { corr6K.push({ id: `6K-${k}-${i + 1}`, ref: 'QS-14, QF-13, QF-17', file: fichierDe(k), ancien: o.t, nouveau: n }); o.t = n; } }); }
+  note('6K', '6K-espaces', `${corr6K.length} lignes`); }
 
 // ── 9. Étape 6G : sommaires, annexes ─────────────────────────────────────────────────────────────────────────────────
 const annexes = {};
@@ -318,6 +336,11 @@ if (!opt.cible && has('6G')) fs.writeFileSync(path.join(repo, 'docs', 'INDEX.md'
 if (!opt.cible && has('6H')) { const f = path.join(repo, 'docs', 'PRODUCT.md'); let t = fs.readFileSync(f, 'utf8'); const crlf = t.includes('\r\n'); t = t.replace(/\r\n/g, '\n');
   const a = t.indexOf('En cas de contradiction, l’ordre de référence est :'), b = t.indexOf('Pour T03, les références explicites');
   if (a > 0 && b > a) { t = t.slice(0, a) + fs.readFileSync(path.join(L6, 'modeles', 'PRODUCT-gouvernance.md'), 'utf8').replace(/\r?\n/g, '\n').trim() + '\n\n' + t.slice(b); fs.writeFileSync(f, crlf ? t.replace(/\n/g, '\r\n') : t); note('PRODUCT', '6H-Q-C', 'ordre de référence remplacé par un renvoi'); } }
+if (has('6I') && rgLignes && !opt.cible) { const f = path.join(repo, 'docs', 'DSF-CARTES-ICONES-APPUIS-2026-09-30.md'); let t = fs.readFileSync(f, 'utf8'); const crlf = t.includes('\r\n'); t = t.replace(/\r\n/g, '\n');
+  const bloc = rgLignes.join('\n'); if (t.includes(bloc)) { const h6 = R['06'].find(o => o.t === `### ${TITRE_RG}`);
+    t = t.replace(bloc, `Les règles RG-1 à RG-13 sont désormais énoncées au [chapitre 06, « ${TITRE_RG} »](Specifications-fonctionnelles/${encodeURIComponent(NOMS['06'])}#${h6 ? h6.slug : ''}) (transfert G4, D-402). Leur texte n’a pas changé ; la version antérieure de ce tableau reste consultable dans Git (commit \`${BASE.slice(0, 8)}\`).`);
+    fs.writeFileSync(f, crlf ? t.replace(/\n/g, '\r\n') : t); note('DSF', '6I-renvoi', 'DSF-CARTES-ICONES-APPUIS-2026-09-30.md'); } }
+if (opt.corrections6k && corr6K.length) fs.writeFileSync(opt.corrections6k, JSON.stringify({ description: 'Étape 6K — espaces manquantes (QS-14, QF-13, QF-17), corrections rédactionnelles', corrections: corr6K }, null, 1));
 if (opt.rapport) fs.writeFileSync(opt.rapport, rapport.join('\n') + '\n');
 // Matrice de correspondance actualisée : mêmes colonnes que correspondance.tsv, fichier_cible = fichier réellement atteint,
 // plus le titre et l'ancre actuels et l'état d'exécution de la section.

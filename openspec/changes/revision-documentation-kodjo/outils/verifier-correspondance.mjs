@@ -16,7 +16,7 @@ const git = (...a) => execFileSync('git', ['-c', 'core.quotepath=false', '-C', r
 const refLines = Object.fromEntries(git('ls-tree', '--name-only', ref, DIR + '/').split('\n').filter(f => /\/\d\d – .*\.md$/.test(f)).map(f => [path.basename(f).slice(0, 2), git('show', `${ref}:${f}`).split(/\r?\n/)]));
 const tgtDir = opt.cible || path.join(repo, DIR);
 const tgt = {}; for (const f of fs.readdirSync(tgtDir)) if (f.endsWith('.md')) tgt[f.startsWith('Annexe') ? f.split(' – ')[0] + ' – ' + f.split(' – ')[1].replace(/\.md$/, '') : f.slice(0, 2)] = new Set(fs.readFileSync(path.join(tgtDir, f), 'utf8').split(/\r?\n/).map(l => norm(l)));
-function norm(l) { return l.replace(/^(\s*- )\*\*B-\d{3}\*\* — /, '$1').replace(/\]\([^)]*\)/g, ']()').replace(/\s+/g, ' ').trim(); }
+function norm(l) { return l.replace(/^(\s*- )\*\*B-\d{3}\*\* — /, '$1').replace(/(?<=[\p{L}])\s+(?=\d)|(?<=\d)\s+(?=(?:min|ms|s|h)(?![\p{L}\p{N}]))|(?<=\d(?:min|ms))\s+(?=\d)/gu, '').replace(/\]\([^)]*\)/g, ']()').replace(/\s+/g, ' ').trim(); }
 const key = name => name.startsWith('Annexe') ? name.replace(/.md$/, '') : name.slice(0, 2);
 const rows = fs.readFileSync(corf, 'utf8').trim().split('\n').slice(1).map(l => l.split('\t'));
 const byId = new Map(rows.map(r => [r[0], r]));
