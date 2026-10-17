@@ -1,0 +1,999 @@
+id	chapitre	niveau	titre	ancres	ligne_debut	ligne_fin	lignes	mots	ids_definis	nb_ids_cites	datee	liens_entrants
+S01-0001	01	1	Vision générale de KODJO		1	2	2	5		0	non	0
+S01-0002	01	2	L’idée en une phrase		3	6	4	32		0	non	0
+S01-0003	01	2	Identité du produit		7	13	7	62		0	non	0
+S01-0004	01	2	Le problème rencontré		14	17	4	62		0	non	0
+S01-0005	01	2	La réponse proposée		18	33	16	145		1	non	0
+S01-0006	01	2	Utilisateur prioritaire du MVP		34	46	13	98		0	non	0
+S01-0007	01	2	Périmètre fonctionnel du MVP		47	48	2	5		0	non	0
+S01-0008	01	3	Catalogue des séances		49	52	4	68		0	non	0
+S01-0009	01	3	Catalogue des exercices — T03		53	58	6	98		0	non	0
+S01-0010	01	3	Création et composition		59	80	22	410		1	non	0
+S01-0011	01	3	Planification et calendrier		81	84	4	51		0	non	0
+S01-0012	01	3	Exécution guidée		85	90	6	93		0	non	0
+S01-0013	01	3	Suivi		91	96	6	61		0	non	0
+S01-0014	01	3	Profil et Préférences		97	102	6	64		0	non	0
+S01-0015	01	2	Principes d’expérience		103	113	11	83		0	non	0
+S01-0016	01	2	Ambition après le MVP		114	128	15	100		0	non	0
+S01-0017	01	2	Cible fonctionnelle confirmée		129	130	2	4		0	non	0
+S01-0018	01	3	Catalogue multi-type		131	134	4	48		1	non	0
+S01-0019	01	3	Catalogue des exercices — MVP T03		135	142	8	178		2	non	0
+S01-0020	01	3	Parcours — post-MVP		143	146	4	62		0	non	0
+S01-0021	01	2	Vision de la bilatéralité		147	150	4	82		0	non	0
+S01-0022	01	2	Vision cible — médias pendant l’Exécution		151	156	6	76		1	non	0
+S01-0023	01	3	Cible de planification commune		157	160	4	32		1	non	0
+S01-0024	01	2	Concepts de composition		161	166	6	198		2	non	0
+S01-0025	01	3	Saisie des paramètres — D-246		167	170	4	61		3	non	0
+S01-0026	01	2	Cadence facultative — cible documentaire		171	174	4	88		1	non	0
+S01-0027	01	2	Conception de planification du 08/10/2026		175	180	6	63		1	oui	0
+S01-0028	01	2	Formats et création rapide	formats-vision	181	186	6	75		1	non	0
+S01-0029	01	2	Glossaire	glossaire	187	450	264	4710		16	non	9
+S02-0030	02	1	Utilisateurs et besoins		1	2	2	4		0	non	0
+S02-0031	02	2	Objectif du chapitre		3	6	4	30		0	non	0
+S02-0032	02	2	1. Utilisateur individuel — cible du MVP		7	8	2	8		0	non	0
+S02-0033	02	3	Profil		9	18	10	52		0	non	0
+S02-0034	02	3	Problèmes rencontrés		19	28	10	98		0	non	0
+S02-0035	02	3	Besoins couverts dans le MVP		29	98	70	782		0	non	0
+S02-0036	02	2	2. Utilisateur accompagné — pris en compte pour l’évolution		99	100	2	10		0	non	0
+S02-0037	02	3	Profil		101	104	4	26		0	non	0
+S02-0038	02	3	Besoins futurs		105	113	9	51		0	non	0
+S02-0039	02	2	3. Professionnel — profil post-MVP		114	115	2	6		0	non	0
+S02-0040	02	3	Profil		116	119	4	17		0	non	0
+S02-0041	02	3	Besoins futurs		120	130	11	65		0	non	0
+S02-0042	02	2	4. Groupe et partage — périmètre post-MVP		131	143	13	91		0	non	0
+S02-0043	02	2	5. Besoins transverses		144	155	12	122		0	non	0
+S02-0044	02	2	6. Critère de réussite du MVP		156	168	13	101		1	non	0
+S02-0045	02	2	7. Questions reportées après le MVP		169	177	9	72		0	non	0
+S02-0046	02	2	8. Besoins validés pour les évolutions		178	190	13	225		9	non	0
+S02-0047	02	2	9. Besoins MVP T03 — Catalogue des Exercices et Exécution directe		191	206	16	154		0	non	0
+S02-0048	02	2	Besoin cible — consulter un média sans perdre l’Exécution		207	225	19	266		1	non	0
+S02-0049	02	2	Besoins consolidés — 26 septembre 2026		226	229	4	114		1	oui	0
+S02-0050	02	2	Paramètres d’exécution — complément du02/10/2026		230	233	4	74		2	oui	0
+S02-0051	02	2	Besoin de rythme reproductible		234	237	4	60		0	non	0
+S02-0052	02	2	Conception de planification du 08/10/2026		238	243	6	63		1	oui	0
+S02-0053	02	2	Besoins couverts par les formats	formats-besoins	244	247	4	63		0	non	0
+S03-0054	03	1	Objectif de cette note		1	7	7	95		0	non	0
+S03-0055	03	1	Synthèse des parcours du MVP		8	9	2	6		0	non	0
+S03-0056	03	2	Objectif		10	24	15	153		0	non	0
+S03-0057	03	2	Parcours de référence		25	36	12	195		0	non	0
+S03-0058	03	2	Principes communs		37	46	10	116		1	non	0
+S03-0059	03	2	Limites du MVP		47	58	12	74		0	non	0
+S03-0060	03	1	Gestion des référentiels utilisateur		59	65	7	61		0	non	0
+S03-0061	03	2	Gestion des Étiquettes et des Catégories		66	72	7	84		0	non	0
+S03-0062	03	3	Parcours		73	82	10	186		0	non	0
+S03-0063	03	2	Référentiel des zones corporelles		83	89	7	111		0	non	0
+S03-0064	03	1	Parcours principal — Créer et exécuter une séance		90	93	4	26		0	non	0
+S03-0065	03	2	Objectif du parcours		94	98	5	39		0	non	0
+S03-0066	03	2	Situation de départ		99	103	5	44		0	non	0
+S03-0067	03	2	Parcours		104	105	2	2		0	non	0
+S03-0068	03	3	1. Créer une séance		106	118	13	349		3	non	0
+S03-0069	03	3	2. Réorganiser une séance		119	133	15	140		1	non	0
+S03-0070	03	3	3. Démarrer une séance		134	137	4	48		0	non	0
+S03-0071	03	3	4. Exécuter une séance		138	147	10	49		0	non	0
+S03-0072	03	3	5. Terminer une séance		148	151	4	37		0	non	0
+S03-0073	03	3	6. Consulter l'historique		152	155	4	25		0	non	0
+S03-0074	03	3	8. Modifier une séance		156	160	5	33		0	non	0
+S03-0075	03	2	Points d'attention		161	166	6	46		0	non	0
+S03-0076	03	2	Résultat attendu		167	170	4	24		0	non	0
+S03-0077	03	1	Parcours complémentaire 1 — Créer une séance à partir d'une référence		171	172	2	12		0	oui	0
+S03-0078	03	2	Objectif du parcours		173	175	3	18		0	non	0
+S03-0079	03	2	Situation de départ		176	179	4	29		0	non	0
+S03-0080	03	2	Parcours		180	188	9	50		0	non	0
+S03-0081	03	2	Points d'attention		189	193	5	40		0	non	0
+S03-0082	03	2	Résultat attendu		194	196	3	23		0	non	0
+S03-0083	03	1	Parcours complémentaire 2 — Gérer les routines		197	198	2	8		0	oui	0
+S03-0084	03	2	Objectif du parcours		199	201	3	22		0	non	0
+S03-0085	03	2	Situation de départ		202	205	4	28		0	non	0
+S03-0086	03	2	Parcours		206	207	2	2		0	non	0
+S03-0087	03	3	Créer une routine		208	218	11	117		0	non	0
+S03-0088	03	3	Modifier une routine		219	226	8	30		0	non	0
+S03-0089	03	3	Supprimer une routine		227	235	9	75		0	non	0
+S03-0090	03	1	Parcours complémentaire 3 — Archiver puis supprimer une Séance		236	246	11	152		0	oui	0
+S03-0091	03	2	Points d'attention		247	253	7	115		0	non	0
+S03-0092	03	2	Résultat attendu		254	257	4	25		0	non	0
+S03-0093	03	1	Parcours complémentaire 3 — Gérer une séance interrompue ou partiellement réalisée		258	259	2	12		0	oui	0
+S03-0094	03	2	Situation de départ		260	263	4	37		0	non	0
+S03-0095	03	2	Parcours		264	287	24	226		1	non	0
+S03-0096	03	2	Points d'attention		288	298	11	171		0	non	0
+S03-0097	03	2	Résultat attendu		299	302	4	25		0	non	0
+S03-0098	03	1	Parcours complémentaire 4 — Consulter le suivi des séances		303	304	2	10		0	oui	0
+S03-0099	03	2	Objectif du parcours		305	307	3	26		0	non	0
+S03-0100	03	2	Situation de départ		308	311	4	33		0	non	0
+S03-0101	03	2	Parcours		312	321	10	100		1	non	0
+S03-0102	03	2	Points d'attention		322	327	6	81		0	non	0
+S03-0103	03	2	Résultat attendu		328	331	4	26		0	non	0
+S03-0104	03	1	Parcours MVP T03 — Catalogue des Exercices		332	333	2	8		0	non	0
+S03-0105	03	2	Accéder au Catalogue des Exercices		334	343	10	88		0	non	0
+S03-0106	03	2	Créer un contenu depuis le Catalogue		344	353	10	84		1	non	0
+S03-0107	03	2	Créer ou modifier un Exercice		354	373	20	158		0	non	0
+S03-0108	03	3	Déroulement d’un Exercice		374	377	4	67		0	non	0
+S03-0109	03	2	Ajouter un Exercice depuis une Composition		378	387	10	92		0	non	0
+S03-0110	03	2	Utiliser un Exercice de référence		388	397	10	82		0	non	0
+S03-0111	03	2	Exécuter un Exercice À l’échec — MVP		398	401	4	88		0	non	0
+S03-0112	03	2	Créer et exécuter un Parcours — hors MVP, conception partielle		402	405	4	69		0	non	0
+S03-0113	03	2	Parcours bilatéral		406	414	9	136		0	non	0
+S03-0114	03	2	Exécuter directement un Exercice — MVP T03		415	425	11	119		0	non	0
+S03-0115	03	2	Consulter ou modifier un Exercice depuis le Catalogue — MVP T03		426	434	9	72		2	non	0
+S03-0116	03	2	Ajouter plusieurs Exercices existants à une Composition — MVP T03		435	445	11	132		0	non	0
+S03-0117	03	1	Parcours prévus pour une phase ultérieure		446	448	3	22		0	non	0
+S03-0118	03	2	Collaboration		449	456	8	46		0	non	0
+S03-0119	03	2	Professionnels de santé et coachs		457	463	7	54		0	non	0
+S03-0120	03	2	Synchronisation		464	470	7	34		0	non	0
+S03-0121	03	2	Intelligence artificielle		471	477	7	43		0	non	0
+S03-0122	03	2	Bibliothèque de contenus		478	483	6	36		0	non	0
+S03-0123	03	2	Statistiques avancées		484	490	7	34		0	non	0
+S03-0124	03	2	Consulter les médias pendant l’Exécution — MVP		491	505	15	171		0	non	0
+S03-0125	03	2	Planifier un Parcours — cible future		506	509	4	65		0	non	0
+S03-0126	03	2	Parcours consolidés — 26 septembre 2026		510	513	4	116		0	oui	0
+S03-0127	03	3	Clôture de parcours Figma — 28 septembre 2026		514	517	4	61		3	oui	0
+S03-0128	03	2	Parcours visuels des cartes — 30 septembre 2026		518	529	12	440		4	oui	0
+S03-0129	03	2	Paramètres d’exécution — complément du02/10/2026		530	533	4	74		2	oui	0
+S03-0130	03	2	Parcours Répétitions avec cadence		534	539	6	123		0	non	0
+S03-0131	03	2	Pauses et symboles		540	543	4	38		0	non	0
+S03-0132	03	2	Conception de planification du 08/10/2026		544	547	4	61		1	oui	0
+S03-0133	03	2	Ajouter des médias à un Exercice — MVP PRE-3		548	553	6	107		2	non	0
+S03-0134	03	2	Formats et départs rapides — parcours	formats-parcours	554	564	11	218		1	non	1
+S04-0135	04	1	4.1 Objectif		1	8	8	67		0	non	0
+S04-0136	04	1	4.2 Principes de conception		9	19	11	78		0	non	0
+S04-0137	04	1	4.3 Concepts métier		20	21	2	4		0	non	0
+S04-0138	04	2	Classification active		22	27	6	66		0	non	0
+S04-0139	04	2	Utilisateur		28	41	14	55		0	non	0
+S04-0140	04	2	Séance		42	69	28	103		0	non	0
+S04-0141	04	2	Cycle		70	73	4	51		0	non	0
+S04-0142	04	2	Circuit et Tour		74	77	4	85		1	non	0
+S04-0143	04	2	Exercice		78	105	28	457		1	non	0
+S04-0144	04	3	Exercice de référence et Exercice de Séance		106	115	10	203		2	non	0
+S04-0145	04	2	Routine		116	127	12	227		0	non	0
+S04-0146	04	2	Exécution		128	138	11	105		0	non	0
+S04-0147	04	2	Préférences globales		139	160	22	168		0	non	0
+S04-0148	04	2	Référentiels utilisateur		161	169	9	95		0	non	0
+S04-0149	04	1	4.4 Structure d'une séance		170	230	61	700		1	non	0
+S04-0150	04	1	4.5 Structure d'un Exercice		231	260	30	357		0	non	0
+S04-0151	04	1	4.6 Déroulement d’un Exercice		261	268	8	213		0	non	0
+S04-0152	04	1	4.7 Déroulement d'une séance		269	280	12	69		0	non	0
+S04-0153	04	1	4.8 Guidage de l'utilisateur		281	299	19	153		0	non	0
+S04-0154	04	1	4.9 Historisation		300	309	10	76		0	non	0
+S04-0155	04	1	4.10 Périmètre du MVP		310	339	30	228		1	non	0
+S04-0156	04	1	4.11 Extension validée du modèle		340	351	12	207		4	non	0
+S04-0157	04	2	Modèle fonctionnel de bilatéralité		352	359	8	163		0	non	0
+S04-0158	04	2	Exécution directe d’un Exercice — MVP T03		360	365	6	101		0	non	0
+S04-0159	04	2	Modèle cible — média pendant l’Exécution		366	376	11	87		0	non	0
+S04-0160	04	2	Extension du contenu planifiable — Parcours		377	380	4	65		0	non	0
+S04-0161	04	3	Récupération après exercice portée par l’occurrence		381	384	4	70		0	non	0
+S04-0162	04	2	Consolidation du modèle — D-209 à D-217		385	394	10	219		2	non	0
+S04-0163	04	3	Phrase de synthèse des paramètres d’exécution		395	400	6	179		3	non	0
+S04-0164	04	2	Présentation des objets — 30 septembre 2026		401	414	14	526		6	oui	0
+S04-0165	04	3	Saisie des paramètres — D-246		415	418	4	61		3	non	0
+S04-0166	04	2	Paramètres de Série et Ordre des côtés — D-247 à D-254		419	424	6	130		2	non	0
+S04-0167	04	2	Extension Cadence du modèle de Série		425	430	6	105		0	non	0
+S04-0168	04	2	Pauses et symboles		431	434	4	46		0	non	0
+S04-0169	04	2	Développement des circuits		435	444	10	174		0	non	0
+S04-0170	04	2	Formats — modèle fonctionnel	formats-modele	445	460	16	272		0	non	9
+S05-0171	05	2	V1 – KODJO MVP : séance structurée et exécution locale		1	4	4	69		2	non	0
+S05-0172	05	3	Objectif		5	8	4	35		0	non	0
+S05-0173	05	3	Fonctionnalités		9	70	62	773		2	non	0
+S05-0174	05	2	Complément intégré au MVP		71	74	4	38		1	oui	0
+S05-0175	05	2	V2 – Réutilisation avancée des séances		75	76	2	7		0	non	0
+S05-0176	05	3	Objectif		77	80	4	23		0	non	0
+S05-0177	05	3	Fonctionnalités		81	115	35	343		1	non	0
+S05-0178	05	2	V3 – Synchronisation et relation avec un kinésithérapeute		116	117	2	9		0	non	0
+S05-0179	05	3	Objectif		118	121	4	21		0	non	0
+S05-0180	05	3	Fonctionnalités		122	146	25	143		0	non	0
+S05-0181	05	2	V4 – Extension de la vision		147	148	2	7		0	non	0
+S05-0182	05	3	Objectif		149	152	4	20		0	non	0
+S05-0183	05	3	Fonctionnalités envisagées		153	181	29	185		0	non	0
+S05-0184	05	3	V1 (MVP)		182	185	4	23		0	non	0
+S05-0185	05	2	Répartition validée — 6 septembre 2026		186	187	2	7		0	oui	0
+S05-0186	05	3	MVP		188	196	9	203		3	non	0
+S05-0187	05	3	MVP — complément PRE-3 (D-333)		197	200	4	63		1	oui	0
+S05-0188	05	3	MVP — complément T03		201	207	7	66		0	oui	0
+S05-0189	05	3	V2		208	212	5	33		3	non	0
+S05-0190	05	3	V3		213	216	4	18		1	non	0
+S05-0191	05	2	Roadmap des tranches MVP après arbitrage du 14 septembre 2026		217	225	9	96		0	oui	0
+S05-0192	05	2	Tranche Bilatéralité et révision de T04		226	231	6	104		0	oui	0
+S05-0193	05	2	MVP T03 — Exercice directement exécutable		232	235	4	67		0	non	0
+S05-0194	05	3	Précision MVP T03 — Carte d’Exercice et vignette média		236	239	4	56		1	non	0
+S05-0195	05	2	Évolution conçue — consultation média pendant l’Exécution		240	247	8	66		1	non	0
+S05-0196	05	2	Portée de la revue des cartes — 30 septembre 2026		248	259	12	442		4	oui	0
+S05-0197	05	2	Consolidation avant planification — 26 septembre 2026		260	263	4	100		4	oui	0
+S05-0198	05	2	Conventions communes d’interface		264	267	4	66		3	non	0
+S05-0199	05	2	Paramètres d’exécution — complément du02/10/2026		268	271	4	74		2	oui	0
+S05-0200	05	2	Évolution Cadence — statut au06/10/2026		272	275	4	71		1	non	0
+S05-0201	05	2	Conception de planification du 08/10/2026		276	281	6	63		1	oui	0
+S05-0202	05	2	Formats — conception cible et livraison	formats-perimetre	282	285	4	87		1	non	0
+S06-0203	06	1	Écrans et navigation		1	4	4	26		0	non	0
+S06-0204	06	2	Organisation et lecture		5	15	11	155		0	non	0
+S06-0205	06	3	Mise à jour Cadence et DSF du06/10/2026		16	21	6	84		0	non	0
+S06-0206	06	2	Objectif de conception		22	41	20	176		0	non	0
+S06-0207	06	3	Rapidité de création		42	55	14	113		1	non	0
+S06-0208	06	2	Contrat d’affichage commun aux écrans du MVP		56	66	11	159		0	non	0
+S06-0209	06	3	Contrats d’écran et conformité de l’implémentation		67	84	18	343		0	non	0
+S06-0210	06	3	Révision écran par écran — 30 septembre 2026		85	90	6	185		5	oui	0
+S06-0211	06	3	Unités et largeur utile		91	99	9	168		0	non	0
+S06-0212	06	3	Structure verticale standard et Screen Shells		100	124	25	309		0	non	0
+S06-0213	06	3	En-têtes		125	132	8	139		0	non	0
+S06-0214	06	3	Textes et contenus longs		133	140	8	116		0	non	0
+S06-0215	06	3	Boutons et zones tactiles		141	149	9	183		0	non	0
+S06-0216	06	3	Contrôles segmentés		150	156	7	98		0	non	0
+S06-0217	06	3	Navigation basse		157	164	8	187		2	non	0
+S06-0218	06	3	Listes et cartes		165	174	10	233		0	non	0
+S06-0219	06	3	Formulaires, roulettes et clavier		175	187	13	609		6	non	0
+S06-0220	06	3	Modales basses / bottom sheets		188	193	6	162		0	non	0
+S06-0221	06	3	Gestion des référentiels dans les modales de sélection		194	206	13	180		0	non	0
+S06-0222	06	3	Dialogues d’action et modales plein écran		207	215	9	213		0	non	0
+S06-0223	06	3	Exceptions adaptatives par famille d’écran		216	233	18	540		6	non	0
+S06-0224	06	2	Navigation principale et articulation des écrans		234	234	1	7		0	non	0
+S06-0225	06	3	Navigation principale		235	251	17	145		0	non	0
+S06-0226	06	3	Parcours de création d’une Séance		252	265	14	108		0	non	0
+S06-0227	06	3	Parcours du Catalogue des Exercices — MVP T03		266	275	10	269		1	non	0
+S06-0228	06	3	Parcours d’ouverture et de modification d’une Séance		276	283	8	79		0	non	0
+S06-0229	06	3	Parcours d’Exécution		284	293	10	93		1	non	0
+S06-0230	06	3	Parcours de consultation du Suivi		294	303	10	101		0	non	0
+S06-0231	06	3	Familles de vues		304	307	4	50		0	non	0
+S06-0232	06	3	Retour et fermeture		308	315	8	74		0	non	0
+S06-0233	06	3	Conservation du contexte		316	326	11	68		0	non	0
+S06-0234	06	3	Enregistrement automatique		327	332	6	51		1	non	0
+S06-0235	06	3	Navigation pendant une Exécution		333	346	14	64		0	non	0
+S06-0236	06	3	Cohérence des libellés		347	360	14	182		1	non	0
+S06-0237	06	2	Splash KODJO		361	364	4	63		0	non	0
+S06-0238	06	3	Vues principales et états intégrés		365	372	8	17		0	non	0
+S06-0239	06	2	Profil		373	374	2	2		0	non	0
+S06-0240	06	3	Objectif		375	378	4	21		0	non	0
+S06-0241	06	3	Contenu		379	400	22	283		0	non	0
+S06-0242	06	3	Comportement		401	408	8	129		0	non	0
+S06-0243	06	3	Choix de silhouette		409	412	4	86		1	non	0
+S06-0244	06	3	Navigation		413	418	6	32		0	non	0
+S06-0245	06	3	Vues principales et états intégrés		419	464	46	150		0	non	0
+S06-0246	06	2	Catalogue des séances		465	466	2	4		0	non	0
+S06-0247	06	3	Objectif		467	472	6	49		0	non	0
+S06-0248	06	3	Filtres		473	480	8	136		0	non	0
+S06-0249	06	3	Carte de Séance — vue condensée		481	488	8	195		2	non	0
+S06-0250	06	3	Actions sur une carte		489	498	10	65		0	non	0
+S06-0251	06	3	Carte de Séance — vue déployée		499	515	17	140		0	non	0
+S06-0252	06	3	Création d’une Séance		516	521	6	53		0	non	0
+S06-0253	06	3	Actions secondaires		522	527	6	70		0	non	0
+S06-0254	06	3	Suppression d’une Séance		528	542	15	110		0	non	0
+S06-0255	06	3	Archivage		543	554	12	116		0	non	0
+S06-0256	06	3	Séance vide		555	565	11	46		0	non	0
+S06-0257	06	3	État vide		566	573	8	119		0	non	0
+S06-0258	06	3	Confirmation — Confirmer la suppression d’une Séance archivée		574	581	8	69		0	non	0
+S06-0259	06	3	Confirmation — Confirmer l’archivage d’une Séance planifiée		582	587	6	53		0	non	0
+S06-0260	06	3	Vues principales et états intégrés		588	669	82	306		0	non	0
+S06-0261	06	3	Modales, panneaux et confirmations		670	693	24	129		0	non	0
+S06-0262	06	2	Catalogue des exercices		694	716	23	474		1	non	0
+S06-0263	06	3	Vues principales et états intégrés		717	754	38	137		0	non	0
+S06-0264	06	3	Modales, panneaux et confirmations		755	762	8	26		0	non	0
+S06-0265	06	2	Composer une séance / Modifier une séance		763	764	2	8		0	non	0
+S06-0266	06	3	Objectif		765	770	6	22		0	non	0
+S06-0267	06	3	Structure affichée		771	786	16	133		0	non	0
+S06-0268	06	3	En-tête		787	799	13	127		1	non	0
+S06-0269	06	3	Paramètres du Circuit		800	811	12	260		0	non	0
+S06-0270	06	3	Retour haptique des roulettes		812	815	4	61		0	non	0
+S06-0271	06	3	Ajout d’un Exercice		816	833	18	394		4	non	0
+S06-0272	06	3	Composition — ligne de Série variable — références du03/10		834	835	2	10		0	non	0
+S06-0273	06	3	Résumé de la ligne d’un Exercice (D-095 révisée par D-238)		836	849	14	308		4	non	0
+S06-0274	06	3	Consultation et modification d’un Exercice		850	855	6	202		1	non	0
+S06-0275	06	3	Réorganisation		856	865	10	264		0	non	0
+S06-0276	06	3	Validation de la Composition		866	875	10	128		3	non	0
+S06-0277	06	3	Enregistrement		876	879	4	22		0	non	0
+S06-0278	06	3	Composition — Récupération après exercice — D-208 révisée sur l’affichage		880	885	6	89		2	non	0
+S06-0279	06	3	Sélection des exercices — modale		886	893	8	180		2	non	0
+S06-0280	06	3	Étiquettes — sélection et création en modale		894	902	9	59		0	non	0
+S06-0281	06	3	Objectif		903	906	4	30		0	non	0
+S06-0282	06	3	Contenu et comportement		907	917	11	145		0	non	0
+S06-0283	06	3	Placement et retrait des pauses		918	923	6	128		1	non	0
+S06-0284	06	3	Confirmation — Abandonner la création d’une séance		924	958	35	136		0	non	0
+S06-0285	06	3	Captures courantes — relevé du 12/10/2026		959	962	4	39		0	oui	0
+S06-0286	06	3	Vues principales et états intégrés		963	1012	50	124		0	non	0
+S06-0287	06	3	Placement, réglage et retrait des pauses		1013	1038	26	75		0	non	0
+S06-0288	06	3	Sélections, paramètres et confirmations de Composition		1039	1082	44	124		0	non	0
+S06-0289	06	3	Circuit — popover, confirmation et volumes		1083	1110	28	147		1	non	0
+S06-0290	06	2	Créer ou modifier un exercice		1111	1114	4	49		3	non	0
+S06-0291	06	3	Parcours, données et validation		1115	1120	6	158		2	non	0
+S06-0292	06	3	Placement et contrôles		1121	1126	6	155		0	non	0
+S06-0293	06	3	Formulaire — vues principales et résumé		1127	1164	38	113		0	non	0
+S06-0294	06	3	Feuille Modalités d’exécution — états intégrés		1165	1286	122	559		2	non	0
+S06-0295	06	3	Sélections, créations de référentiels et confirmation d’abandon		1287	1332	46	199		2	non	0
+S06-0296	06	3	Couverture et limites		1333	1338	6	108		0	non	0
+S06-0297	06	2	Calendrier		1339	1340	2	2		0	non	0
+S06-0298	06	3	Objectif		1341	1344	4	21		0	non	0
+S06-0299	06	3	Ouverture		1345	1348	4	8		0	non	0
+S06-0300	06	3	Contenu		1349	1361	13	103		0	non	0
+S06-0301	06	3	Cartes et commandes — vues Jour, Semaine et Mois		1362	1375	14	290		7	non	0
+S06-0302	06	3	Comportement		1376	1393	18	347		1	non	0
+S06-0303	06	3	Confirmation — Suppression d’une planification		1394	1399	6	97		0	non	0
+S06-0304	06	3	Vues principales et états intégrés		1400	1499	100	307		0	non	0
+S06-0305	06	3	Modales, panneaux et confirmations		1500	1513	14	45		0	non	0
+S06-0306	06	2	Planifier une séance, un exercice ou plusieurs contenus		1514	1519	6	120		3	non	0
+S06-0307	06	3	États de référence actuels		1520	1583	64	237		0	non	0
+S06-0308	06	2	Exécution — séance ou exercice		1584	1585	2	6		0	non	0
+S06-0309	06	3	Écarts de terminologie constatés		1586	1591	6	130		3	non	0
+S06-0310	06	3	Objectif		1592	1597	6	58		0	non	0
+S06-0311	06	3	Entrée dans l’écran et démarrage		1598	1612	15	122		0	non	0
+S06-0312	06	3	Hiérarchie des informations affichées		1613	1632	20	410		0	non	0
+S06-0313	06	3	Exercice défini par une durée		1633	1640	8	69		0	non	0
+S06-0314	06	3	Exercice défini par un nombre de répétitions		1641	1658	18	206		0	non	0
+S06-0315	06	3	Séries		1659	1669	11	146		0	non	0
+S06-0316	06	3	Récupérations		1670	1675	6	116		1	non	0
+S06-0317	06	3	Commandes principales		1676	1687	12	49		0	non	0
+S06-0318	06	3	Réinitialiser l’Exercice		1688	1702	15	120		0	non	0
+S06-0319	06	3	Mise en pause		1703	1725	23	116		0	non	0
+S06-0320	06	3	Exercice suivant		1726	1734	9	112		0	non	0
+S06-0321	06	3	Navigation pendant l’Exécution		1735	1740	6	28		0	non	0
+S06-0322	06	3	Guidage sonore		1741	1750	10	149		0	non	0
+S06-0323	06	3	Arrière-plan et verrouillage		1751	1767	17	155		0	non	0
+S06-0324	06	3	Fin de l’Exécution		1768	1773	6	35		0	non	0
+S06-0325	06	3	Exercice lancé directement depuis le catalogue		1774	1779	6	74		0	non	0
+S06-0326	06	3	Confirmation — Réinitialisation de l’Exercice		1780	1824	45	231		0	non	0
+S06-0327	06	3	Confirmation — Passage à l’Exercice suivant		1825	1867	43	233		0	non	0
+S06-0328	06	3	Confirmation — Pause / arrêt de l’Exécution		1868	1920	53	287		0	non	0
+S06-0329	06	3	Lecture des variantes avec média		1921	1924	4	69		2	non	0
+S06-0330	06	3	Vues principales et états intégrés		1925	1954	30	99		0	non	0
+S06-0331	06	3	Modales, panneaux et confirmations		1955	1974	20	50		0	non	0
+S06-0332	06	3	Variantes Information et Média		1975	2006	32	124		0	non	0
+S06-0333	06	2	Synthèse — séance ou exercice		2007	2013	7	37		1	non	0
+S06-0334	06	3	Objectif		2014	2017	4	16		0	non	0
+S06-0335	06	3	Contenu		2018	2034	17	85		0	non	0
+S06-0336	06	3	Statut		2035	2040	6	33		0	non	0
+S06-0337	06	3	Ressenti		2041	2050	10	109		0	non	0
+S06-0338	06	3	Commentaire		2051	2058	8	51		0	non	0
+S06-0339	06	3	Navigation		2059	2064	6	23		0	non	0
+S06-0340	06	3	Résultat d’un exercice lancé directement		2065	2068	4	49		1	non	0
+S06-0341	06	3	Vues principales et états intégrés		2069	2106	38	132		0	non	0
+S06-0342	06	2	Suivi — Séances		2107	2108	2	4		0	non	0
+S06-0343	06	3	Objectif		2109	2114	6	33		1	non	0
+S06-0344	06	3	Contenu		2115	2126	12	141		0	non	0
+S06-0345	06	3	Carte d’Exécution		2127	2139	13	137		2	non	0
+S06-0346	06	3	Filtres avancés		2140	2143	4	27		0	non	0
+S06-0347	06	3	Tri		2144	2147	4	30		0	non	0
+S06-0348	06	3	État vide		2148	2153	6	42		0	non	0
+S06-0349	06	3	Vues principales et états intégrés		2154	2179	26	86		1	non	0
+S06-0350	06	2	Règles communes aux sélections et réglages		2180	2181	2	7		0	non	0
+S06-0351	06	3	Supprimer une valeur de référentiel		2182	2197	16	195		0	non	0
+S06-0352	06	3	Contrôles à roulette – Compte à rebours et fins		2198	2204	7	212		3	non	0
+S06-0353	06	2	Règles transverses de l’éditeur d’Exercice		2205	2209	5	207		1	non	0
+S06-0354	06	2	Composant transverse `Status / Badge`		2210	2228	19	226		0	non	0
+S06-0355	06	2	Couverture du Prototype MVP et exclusions justifiées		2229	2229	1	8		0	non	0
+S06-0356	06	3	Périmètre intégré		2230	2235	6	74		0	non	0
+S06-0357	06	3	Éléments non intégrés comme écrans distincts		2236	2239	4	50		0	non	0
+S06-0358	06	3	Règle de maintenance		2240	2243	4	42		0	non	0
+S06-0359	06	3	Mise à jour Bilatéralité — rectifiée le 13 septembre 2026		2244	2255	12	214		0	oui	0
+S06-0360	06	3	Évidences Figma T03 — état courant du 16 septembre 2026		2256	2261	6	108		1	oui	0
+S06-0361	06	3	Résolutions postérieures au contrôle visuel du 16 septembre 2026		2262	2265	4	101		3	oui	0
+S06-0362	06	2	Références transverses des cartes et appuis — 30 septembre 2026		2266	2289	24	697		8	oui	0
+S06-0363	06	2	Conventions communes d’interface		2290	2297	8	193		10	non	0
+S06-0364	06	3	Référence DSF V2 détaillée — clôture 28 septembre 2026		2298	2309	12	479		3	oui	0
+S06-0365	06	3	Paramètres — référence courante du 02/10/2026		2310	2313	4	55		1	oui	0
+S06-0366	06	2	Archives et références hors prototype actif		2314	2324	11	105		1	non	0
+S06-0367	06	3	Objectif		2325	2330	6	20		0	non	0
+S06-0368	06	3	Présence dans le MVP		2331	2334	4	41		0	non	0
+S06-0369	06	3	Profil — Cible post-MVP		2335	2340	6	22		0	non	0
+S06-0370	06	3	Référence historique hors MVP — Suivi — Séances — Vue déployée		2341	2346	6	31		0	non	0
+S06-0371	06	3	Suivi — Vue d’ensemble		2347	2352	6	22		0	non	0
+S06-0372	06	3	Recherche globale — Champ déployé		2353	2358	6	24		0	non	0
+S06-0373	06	3	Recherche globale — Résultats affichés		2359	2364	6	24		0	non	0
+S06-0374	06	3	HISTORIQUE — Catalogue Séances — ancien arbre Créer — supersédé D-187		2365	2372	8	123		4	non	0
+S06-0375	06	3	Référence de composant — Stepper — Séries (interactif)		2373	2378	6	20		0	non	0
+S06-0376	06	3	Référence de composant — Cadre bas — retournement		2379	2384	6	20		0	non	0
+S06-0377	06	3	Référence de composant — Zone d’exécution — retournements		2385	2390	6	20		0	non	0
+S06-0378	06	2	Titres affichés		2391	2401	11	116		5	non	0
+S06-0379	06	2	Règles générales d’interface —08/10/2026		2402	2405	4	48		0	oui	0
+S06-0380	06	3	Clarification du12/10/2026 — Préparation et fin dans une Séance		2406	2409	4	89		0	non	0
+S06-0381	06	2	Évolution des vues de composition —12/10/2026		2410	2417	8	132		6	oui	0
+S06-0382	06	2	Formats de séances — inventaire et captures du 14/10/2026	formats-galerie	2418	2423	6	112		0	oui	1
+S06-0383	06	3	Pages de choix, paramètres, récapitulatif et composition		2424	2729	306	1129		38	non	0
+S06-0384	06	3	Modales de paramètres d’exercice		2730	2795	66	286		8	non	0
+S07-0385	07	0	(préambule)		1	2	2	12		0	non	0
+S07-0386	07	1	Format		3	9	7	98	D-046 D-047	2	non	0
+S07-0387	07	2	Identifiants de décision non utilisés		10	19	10	85	D-003 D-009 D-010	3	non	0
+S07-0388	07	1	Décisions validées		20	74	55	2553	D-001 D-002 D-004 D-005 D-006 D-007 D-008 D-011 D-012 D-013 D-014 D-015 D-016 D-017 D-018 D-019 D-020 D-021 D-022 D-023 D-024 D-025 D-026 D-027 D-028 D-029 D-030 D-031 D-032 D-033 D-034 D-035 D-036 D-037 D-038 D-039 D-040 D-041 D-042 D-043 D-044 D-045 D-082 D-083 D-084 D-085 D-086 D-087 D-088 D-096	84	non	0
+S07-0389	07	2	Décisions issues de la revue finale du chapitre 06		75	90	16	557	D-048 D-049 D-050 D-051 D-052 D-053 D-054 D-055 D-056 D-057 D-058	24	non	0
+S07-0390	07	2	Décisions issues de la contre-revue finale — étapes 1 à 3		91	106	16	362	D-069 D-059 D-060 D-061 D-062 D-063 D-064 D-065 D-066 D-067 D-068	18	non	0
+S07-0391	07	2	Décisions relatives aux règles de calcul du MVP		107	189	83	3751	D-070 D-071 D-072 D-073 D-074 D-075 D-076 D-077 D-078 D-079 D-080 D-081 D-089 D-090 D-091 D-092 D-093 D-094 D-095 D-098 D-099 D-100 D-101 D-102 D-103 D-104 D-105 D-106 D-107 D-108 D-109 D-110 D-111 D-112 D-113 D-114 D-115 D-116 D-117 D-118 D-119 D-120 D-121 D-122 D-123 D-124 D-125 D-126 D-127 D-128 D-129 D-130 D-131 D-132 D-133 D-134 D-135 D-136 D-137 D-138 D-139 D-140 D-141 D-142 D-143 D-144 D-145 D-146 D-147 D-148 D-149 D-150 D-151 D-152 D-153 D-154 D-155 D-156	170	non	0
+S07-0392	07	2	Décisions du 14 septembre 2026 — Exécution directe d’un Exercice		190	203	14	384	D-157 D-158 D-159 D-160 D-161 D-162 D-163 D-164 D-165	11	oui	0
+S07-0393	07	2	Décision de roadmap — Catalogue des Exercices dans le MVP		204	209	6	130	D-166	2	non	0
+S07-0394	07	2	Décisions T03 — Catalogue des exercices — 15–16 septembre 2026		210	250	41	2080	D-167 D-168 D-169 D-170 D-171 D-172 D-173 D-174 D-175 D-176 D-177 D-178 D-179 D-180 D-181 D-182 D-183 D-184 D-185 D-186 D-187 D-188 D-189 D-190 D-191 D-192 D-193 D-194 D-195 D-196 D-197 D-198 D-199 D-200 D-201 D-202	89	oui	0
+S07-0395	07	2	Évidence Figma T03 vérifiée le 16 septembre 2026		251	254	4	75		6	oui	0
+S07-0396	07	2	Décisions du 25 septembre 2026 — médias pendant l’Exécution		255	261	7	274	D-203 D-204	3	oui	0
+S07-0397	07	2	Décision du 25 septembre 2026 — planification des Exercices		262	267	6	143	D-206	3	oui	0
+S07-0398	07	2	Décision du 25 septembre 2026 — extension de la planification aux Parcours		268	273	6	144	D-207	4	oui	0
+S07-0399	07	2	Décision du 25 septembre 2026 — refonte des récupérations		274	279	6	101	D-208	4	oui	0
+S07-0400	07	2	Décisions du 26 septembre 2026 — consolidation fonctionnelle avant planification		280	296	17	1041	D-209 D-210 D-211 D-212 D-213 D-214 D-215 D-216 D-217 D-218 D-219 D-220	33	oui	0
+S07-0401	07	2	Décisions de clôture Figma / DSF avant développement — 28 septembre 2026		297	313	17	955	D-221 D-222 D-223 D-224 D-225 D-226 D-227 D-228 D-229 D-230 D-231 D-232	33	oui	0
+S07-0402	07	2	Décisions du 30 septembre 2026 — cartes, icônes et appuis		314	324	11	320	D-233 D-234 D-235 D-236	18	oui	0
+S07-0403	07	2	Précision normative — animations d’appui		325	330	6	166	D-237	4	non	0
+S07-0404	07	2	Clôture des 17 points et ajout Calendrier Jour — 30 septembre 2026		331	339	9	290	D-238 D-239	13	oui	0
+S07-0405	07	2	Clôture des contrats — 30/09–01/10/2026		340	349	10	213	D-241 D-242 D-243 D-244 D-245	13	oui	0
+S07-0406	07	2	Décision du 30 septembre 2026 — valeurs par défaut du Profil		350	355	6	115	D-240	1	oui	0
+S07-0407	07	2	Saisie des paramètres en feuille basse		356	363	8	106	D-246	8	non	0
+S07-0408	07	2	Séries variables et Ordre des côtés		364	383	20	833	D-247 D-248 D-249 D-250 D-251 D-252 D-253 D-254 D-255 D-256 D-257 D-258 D-259	30	non	0
+S07-0409	07	2	Rectification documentaire du03/10/2026		384	387	4	70		2	non	0
+S07-0410	07	2	Révision des cartes		388	399	12	404	D-260 D-261 D-262 D-263 D-264	14	oui	0
+S07-0411	07	2	Recette iPhone V2-PRE-2		400	409	10	308	D-265 D-266 D-267	6	non	0
+S07-0412	07	2	Cadence et phrase — intégration du06/10/2026		410	449	40	1744	D-268 D-269 D-270 D-271 D-272 D-273 D-274 D-275 D-276 D-277 D-278 D-279 D-280 D-281 D-282 D-283 D-284 D-285 D-286 D-287 D-288 D-289 D-290 D-291 D-292 D-293 D-294 D-295 D-296 D-297 D-298 D-299 D-300	65	non	0
+S07-0413	07	2	Qualification des valeurs historiques — audit du 06/10		450	453	4	60		1	oui	0
+S07-0414	07	2	Clarification de l’avertissement d’enchaînement		454	459	6	92	D-301	2	non	0
+S07-0415	07	2	Consolidation du 07/10/2026		460	472	13	296	D-302 D-303 D-304 D-305 D-306 D-307	14	oui	0
+S07-0416	07	2	Q-07 — clos par la seconde clarification du07/10		473	476	4	29		0	non	0
+S07-0417	07	2	Bip de cadence		477	489	13	191	D-308 D-309 D-310 D-311 D-312 D-313	7	non	0
+S07-0418	07	2	Clarification finale du07/10/2026 — pauses, phrases et cartes		490	501	12	287	D-314 D-315 D-316 D-317 D-318 D-319 D-320	10	non	0
+S07-0419	07	2	Consolidation du07/10 — corpusv15 et références actualisées		502	511	10	160	D-321 D-322 D-323	6	non	0
+S07-0420	07	2	Compléments segmentés et titres		512	519	8	190	D-324 D-325 D-326	7	oui	0
+S07-0421	07	2	Décisions du 08 octobre 2026 — interface générale et planification		520	534	15	344	D-327 D-328 D-329 D-330 D-331 D-332	11	oui	0
+S07-0422	07	2	Inclusion de l’import de médias au MVP		535	542	8	323	D-333 D-334 D-335	14	non	0
+S07-0423	07	2	Recette PRE-3 — décisions du propriétaire		543	558	16	610	D-336 D-337 D-338 D-339 D-340 D-341 D-342 D-343 D-344	26	non	0
+S07-0424	07	2	Recette PRE-3 n° 2 — ajustements explicites du propriétaire		559	570	12	346	D-345 D-346 D-347 D-348 D-349	12	non	0
+S07-0425	07	2	Recette PRE-3 n° 3 — demandes explicites du propriétaire		571	584	14	659	D-350 D-351 D-352 D-353 D-354 D-355 D-356	25	non	0
+S07-0426	07	2	Décisions CIR-20261012 — conception des circuits		585	603	19	244	CIR-01 CIR-02 CIR-03 CIR-04 CIR-05 CIR-06 CIR-07 CIR-08 CIR-09 CIR-10 CIR-11 CIR-12	18	non	0
+S07-0427	07	2	Décisions Deux modes —13/10/2026		604	609	6	130		6	oui	0
+S07-0428	07	3	Réception du §4.5 — sélecteur de cible		610	615	6	76		2	non	0
+S07-0429	07	2	Arbitrages de Hermann du 16 octobre 2026 — révision documentaire	arbitrages-20261016	616	639	24	643	D-376 D-377 D-378 D-379 D-380 D-381 D-382 D-383 D-384 D-385 D-386 D-387	38	oui	0
+S07-0430	07	3	Arbitrages complémentaires de Hermann du 17 octobre 2026 (A1 à A9)	arbitrages-20261017	640	657	18	675	D-388 D-389 D-390 D-391 D-392 D-393 D-394 D-395 D-396	23	oui	0
+S07-0431	07	3	Précisions de Hermann du 17 octobre 2026 (B1 à B5)	arbitrages-20261017-b	658	669	12	344	D-397 D-398 D-399 D-400 D-401	16	oui	0
+S07-0432	07	2	Formats de séances — décisions du 14 octobre 2026	formats-decisions	670	689	20	664	D-357 D-358 D-359 D-360 D-361 D-362 D-363 D-364 D-365 D-366 D-367 D-368 D-369	13	oui	13
+S08-0433	08	1	1. Principes généraux		1	4	4	52		0	non	0
+S08-0434	08	2	1.1 Objectif du document		5	10	6	52		0	non	0
+S08-0435	08	2	1.2 Périmètre		11	25	15	75		0	non	0
+S08-0436	08	2	1.3 Organisation		26	34	9	74		0	non	0
+S08-0437	08	2	1.4 Documents de référence		35	53	19	159		0	non	0
+S08-0438	08	2	1.5 Convention de lecture		54	61	8	47		0	non	0
+S08-0439	08	2	1.6 Évolutivité		62	67	6	48		0	non	0
+S08-0440	08	1	2. Cycle de vie d'une séance		68	69	2	7		0	non	0
+S08-0441	08	2	2.1 Principe général		70	79	10	68		0	non	0
+S08-0442	08	2	2.2 Création d'une séance		80	91	12	67		0	non	0
+S08-0443	08	2	2.3 Modification d'une séance		92	111	20	101		0	non	0
+S08-0444	08	2	2.4 Duplication d'une séance		112	126	15	76		0	non	0
+S08-0445	08	2	2.5 Suppression d'une séance		127	138	12	63		4	non	0
+S08-0446	08	2	2.6 Exécution d'une séance		139	149	11	53		0	non	0
+S08-0447	08	2	2.7 Planification d’un contenu		150	157	8	72		1	non	0
+S08-0448	08	2	2.8 Historique		158	170	13	49		0	non	0
+S08-0449	08	2	2.9 État persistant et qualificatifs d'une séance		171	183	13	174		0	non	0
+S08-0450	08	1	2 bis. Catalogue des Exercices — cycle de vie d’un Exercice persistant — MVP T03		184	185	2	16		0	non	0
+S08-0451	08	2	2 bis.1 Catalogue multi-type		186	191	6	132		1	non	0
+S08-0452	08	2	2 bis.2 Créer, consulter ou modifier un Exercice de référence		192	199	8	192		2	non	0
+S08-0453	08	2	2 bis.3 Ajouter un Exercice à une Séance		200	209	10	147		0	non	0
+S08-0454	08	2	2 bis.4 Exécuter directement un Exercice		210	217	8	130		0	non	0
+S08-0455	08	2	2 bis.5 Médias d’Exercice		218	221	4	219		6	non	0
+S08-0456	08	2	2 bis.6 Bilatéralité		222	227	6	78		0	non	0
+S08-0457	08	2	2 bis.7 Limite Parcours		228	233	6	65		0	non	0
+S08-0458	08	2	Paramètres et brouillon d’un exercice	parametres-exercice	234	235	2	6		0	non	20
+S08-0459	08	3	Modèle et terminologie		236	248	13	273		0	non	0
+S08-0460	08	3	Brouillon, bascules et normalisation		249	262	14	404		0	non	0
+S08-0461	08	1	3. Composition d'une séance		263	264	2	5		0	non	0
+S08-0462	08	2	3.1 Principe général		265	272	8	48		0	non	0
+S08-0463	08	2	3.2 Structure d'une séance		273	289	17	188		0	non	0
+S08-0464	08	2	3.3 Les exercices		290	306	17	209		1	non	0
+S08-0465	08	2	3.4 Modes et récupération d’un Exercice		307	322	16	174		0	non	0
+S08-0466	08	2	3.5 Circuit et compte		323	326	4	64		0	non	0
+S08-0467	08	2	3.6 Cycle technique		327	330	4	41		0	non	0
+S08-0468	08	2	3.7 Réorganisation		331	343	13	45		0	non	0
+S08-0469	08	2	3.8 Validation		344	353	10	148		4	non	0
+S08-0470	08	2	3.9 Estimation		354	361	8	30		0	non	0
+S08-0471	08	3	Durée estimée d’exécution		362	379	18	230		0	non	0
+S08-0472	08	3	Durée synthétique des Exercices		380	385	6	226		2	non	0
+S08-0473	08	3	Nombre d'Exercices de la Composition		386	396	11	61		0	non	0
+S08-0474	08	2	3.10 Principes de conception		397	407	11	82		1	non	0
+S08-0475	08	2	Circuits de tours et de séries	circuits	408	409	2	7		0	non	2
+S08-0476	08	3	Un circuit est *de tours* ou *de séries*		410	464	55	668		0	non	0
+S08-0477	08	3	Le régime des séries d'un exercice		465	495	31	281		0	non	0
+S08-0478	08	3	Compléments normatifs issus des arbitrages du 12 octobre		496	560	65	1263		1	oui	0
+S08-0479	08	2	Placement des récupérations et des points d’arrêt	pauses-composition	561	562	2	8		0	non	0
+S08-0480	08	3	Pause de Composition : deux types, un parcours		563	574	12	164		0	non	0
+S08-0481	08	3	Brouillons, validation et annulation		575	584	10	238		0	non	0
+S08-0482	08	3	Contenu et trait de démarcation		585	596	12	191		1	non	0
+S08-0483	08	3	Positions, ordre et retrait		597	606	10	157		0	non	0
+S08-0484	08	2	Phrase de synthèse des paramètres	phrases	607	608	2	6		0	non	14
+S08-0485	08	3	Format d'affichage des durées		609	619	11	67		0	non	0
+S08-0486	08	3	Grammaire française v15		620	642	23	319		0	non	0
+S08-0487	08	3	Côtés et durée		643	650	8	230		0	non	0
+S08-0488	08	3	Extension normative — deux modes et cibles mixtes (13/10)		651	667	17	288		0	oui	0
+S08-0489	08	3	Raccordement aux formats de séance	formats-raccordement	668	673	6	106		0	non	0
+S08-0490	08	3	Combinaisons dont la règle reste à préciser	combinaisons-formats	674	686	13	285		0	non	0
+S08-0491	08	2	Formats de séances — comportements consolidés	formats-conception	687	690	4	49		1	non	31
+S08-0492	08	3	3. Concepts et invariants		691	715	25	449		0	non	0
+S08-0493	08	3	4. Tabata et Intervalles		716	739	24	552		0	non	0
+S08-0494	08	3	5. EMOM : fenêtres et borne		740	752	13	361		0	non	0
+S08-0495	08	3	6. AMRAP, For time et départs rapides		753	778	26	442		0	non	0
+S08-0496	08	3	7. Death by		779	800	22	454		0	non	0
+S08-0497	08	1	4. Exécution d'une séance		801	802	2	5		0	non	0
+S08-0498	08	2	4.1 Principe général		803	810	8	79		0	non	0
+S08-0499	08	2	4.2 Démarrage d'une séance		811	824	14	77		0	non	0
+S08-0500	08	2	4.3 Déroulement		825	838	14	117		0	non	0
+S08-0501	08	2	4.4 Informations affichées		839	852	14	118		0	non	0
+S08-0502	08	3	Temps écoulé et durée réelle		853	866	14	113		0	non	0
+S08-0503	08	3	Barre de progression globale		867	878	12	347		1	non	0
+S08-0504	08	2	4.5 Actions disponibles		879	888	10	33		0	non	0
+S08-0505	08	2	4.6 Réinitialisation d'un exercice		889	911	23	269		6	non	0
+S08-0506	08	2	4.7 Passage à l'exercice suivante		912	922	11	107		0	non	0
+S08-0507	08	2	4.8 Mise en pause		923	938	16	71		0	non	0
+S08-0508	08	2	4.9 Reprise		939	942	4	46		0	non	0
+S08-0509	08	3	Arrière-plan et verrouillage		943	953	11	121		0	non	0
+S08-0510	08	2	4.10 Arrêt anticipé		954	967	14	87		0	non	0
+S08-0511	08	3	Pause prolongée		968	980	13	66		0	non	0
+S08-0512	08	2	4.11 Fin de séance		981	998	18	162		1	non	0
+S08-0513	08	2	4.12 Historique d'exécution		999	1013	15	103		1	non	0
+S08-0514	08	2	4.13 Principes de conception		1014	1025	12	76		0	non	0
+S08-0515	08	2	Bip de cadence, progression et sécurité	bip-execution	1026	1027	2	7		0	non	0
+S08-0516	08	3	Paramètre commun aux deux modes		1028	1033	6	150		0	non	0
+S08-0517	08	3	Exécution et son		1034	1043	10	297		0	non	0
+S08-0518	08	3	Progression, sécurité et arrière-plan		1044	1055	12	239		0	non	0
+S08-0519	08	2	Cibles et relevés d’exécution	releves-execution	1056	1057	2	5		0	non	0
+S08-0520	08	3	Exécution et plan développé		1058	1089	32	410		2	non	0
+S08-0521	08	3	Relevés d’exécution		1090	1132	43	608		0	non	0
+S08-0522	08	2	5. Planification des créneaux et de leurs contenus	planification	1133	1134	2	9		0	non	25
+S08-0523	08	3	Le concept central : un créneau peut porter plusieurs contenus		1135	1162	28	253		0	non	0
+S08-0524	08	3	La fréquence d'un contenu : « x fois sur n »		1163	1215	53	498		0	non	0
+S08-0525	08	3	La répétition du créneau		1216	1280	65	666		0	non	0
+S08-0526	08	3	Le Programme		1281	1310	30	220		0	non	0
+S08-0527	08	3	Points ouverts, à consigner comme tels		1311	1320	10	111		0	non	0
+S08-0528	08	3	Limites de spécification à traiter avant développement		1321	1327	7	244		0	non	0
+S08-0529	08	1	6. Suivi et historique des séances		1328	1329	2	7		0	non	0
+S08-0530	08	2	6.1 Principe général		1330	1337	8	49		0	non	0
+S08-0531	08	2	6.2 Création d'un historique		1338	1358	21	137		0	non	0
+S08-0532	08	2	6.3 Informations enregistrées		1359	1372	14	59		0	non	0
+S08-0533	08	2	6.4 Statut d'une exécution		1373	1390	18	137		1	non	0
+S08-0534	08	2	6.5 Consultation de l'historique		1391	1403	13	93		1	non	0
+S08-0535	08	2	6.6 Recherche		1404	1413	10	49		0	non	0
+S08-0536	08	2	6.7 Filtres		1414	1417	4	21		0	non	0
+S08-0537	08	2	6.8 Tri		1418	1426	9	50		0	non	0
+S08-0538	08	2	6.9 Déploiement du détail		1427	1432	6	39		0	non	0
+S08-0539	08	2	6.10 Conservation des historiques		1433	1442	10	39		0	non	0
+S08-0540	08	2	6.11 Principes de conception		1443	1452	10	91		1	non	0
+S08-0541	08	1	Champs et comportements des fonctionnalités		1453	1454	2	6		0	non	0
+S08-0542	08	2	Catalogue de séances		1455	1456	2	4		0	non	0
+S08-0543	08	3	Champs affichés		1457	1477	21	388		1	non	0
+S08-0544	08	3	Règles fonctionnelles		1478	1494	17	243		0	non	0
+S08-0545	08	2	Composition d’une séance — création et modification		1495	1498	4	20		0	non	0
+S08-0546	08	3	Éléments affichés		1499	1522	24	677		13	non	0
+S08-0547	08	2	Étiquettes de la séance		1523	1526	4	16		0	non	0
+S08-0548	08	3	Éléments affichés		1527	1536	10	100		0	non	0
+S08-0549	08	3	Règles fonctionnelles		1537	1544	8	92		0	non	0
+S08-0550	08	2	Exercice		1545	1546	2	2		0	non	0
+S08-0551	08	3	Eléments affichés		1547	1573	27	1009		24	non	0
+S08-0552	08	3	Règles fonctionnelles		1574	1589	16	687		3	non	0
+S08-0553	08	3	Gestion commune des référentiels de classification		1590	1595	6	234		6	non	0
+S08-0554	08	2	Exécution d'une séance		1596	1597	2	4		0	non	0
+S08-0555	08	3	Éléments affichés		1598	1614	17	349		0	non	0
+S08-0556	08	3	Règles fonctionnelles		1615	1627	13	209		0	non	0
+S08-0557	08	3	Sons et annonces		1628	1633	6	49		0	non	0
+S08-0558	08	2	Synthèse de séance		1634	1635	2	4		0	non	0
+S08-0559	08	3	Eléments affichés		1636	1655	20	433		0	non	0
+S08-0560	08	3	Règles fonctionnelles		1656	1667	12	138		0	non	0
+S08-0561	08	2	Profil		1668	1669	2	2		0	non	0
+S08-0562	08	3	Eléments affichés		1670	1682	13	324		4	non	0
+S08-0563	08	3	Règles fonctionnelles		1683	1700	18	316		0	non	0
+S08-0564	08	2	Calendrier		1701	1702	2	2		0	non	0
+S08-0565	08	3	Règles liées à la couleur		1703	1708	6	60		0	non	0
+S08-0566	08	2	Planifier une Séance ou un Exercice		1709	1712	4	129		0	non	0
+S08-0567	08	3	Règles liées à la couleur		1713	1718	6	70		0	non	0
+S08-0568	08	2	Suivi - Vue d'ensemble		1719	1720	2	5		0	non	0
+S08-0569	08	3	Règles liées à la couleur		1721	1724	4	26		0	non	0
+S08-0570	08	2	Suivi - Séances		1725	1726	2	4		0	non	0
+S08-0571	08	3	Élément affiché lié à la couleur		1727	1732	6	88		0	non	0
+S08-0572	08	3	Règle fonctionnelle liée à la couleur		1733	1736	4	35		0	non	0
+S08-0573	08	2	Dialogues de confirmation		1737	1751	15	341		0	non	0
+S08-0574	08	2	Consultation média pendant l’Exécution — MVP		1752	1753	2	7		0	non	0
+S08-0575	08	3	Face Information et Face Média		1754	1757	4	50		0	non	0
+S08-0576	08	3	Galerie		1758	1761	4	59		0	non	0
+S08-0577	08	3	Vidéo et audio		1762	1765	4	59		0	non	0
+S08-0578	08	3	Mémoire de séance		1766	1769	4	44		0	non	0
+S08-0579	08	3	Plein écran		1770	1773	4	48		0	non	0
+S08-0580	08	3	Fin et erreur		1774	1779	6	40		0	non	0
+S08-0581	08	3	Récupérations — conception détaillée D-208		1780	1785	6	142		3	non	0
+S08-0582	08	2	Règles communes — D-209 à D-217		1786	1797	12	350		6	non	0
+S08-0583	08	2	Conventions communes d’interface		1798	1801	4	72		5	non	0
+S08-0584	08	3	8.x Générateur de phrase de synthèse v13		1802	1805	4	136		0	non	0
+S08-0585	08	3	Contrôles et bornes v13		1806	1809	4	138		2	non	0
+S08-0586	08	2	Présentation et interactions des cartes — 30 septembre 2026		1810	1823	14	507		5	oui	0
+S08-0587	08	3	Implantation des contrôles — réconciliation Figma du 30 septembre		1824	1829	6	160		3	non	0
+S08-0588	08	3	Saisie des paramètres — D-246		1830	1833	4	61		3	non	0
+S08-0589	08	2	Cadence — comportements communs complémentaires		1834	1837	4	76		0	oui	0
+S08-0590	08	3	Avertissement d’enchaînement sans pause (D-301)		1838	1841	4	62		1	non	0
+S08-0591	08	2	Pauses et symboles		1842	1845	4	118		3	non	0
+S08-0592	08	2	Composition — comportement cible du12/10		1846	1851	6	107		0	non	0
+S09-0593	09	1	09.0 Vue d'ensemble		1	4	4	52		0	non	0
+S09-0594	09	2	Objectif et périmètre		5	22	18	107		0	non	0
+S09-0595	09	2	Principes structurants		23	40	18	244		1	non	0
+S09-0596	09	2	Vue d'ensemble du modèle		41	42	2	5		0	non	0
+S09-0597	09	3	Liste des entités		43	60	18	194		0	non	0
+S09-0598	09	2	Décisions structurantes du modèle		61	85	25	785	DM-001 DM-002 DM-003 DM-004 DM-005 DM-006 DM-007 DM-008 DM-009 DM-010 DM-011 DM-012 DM-013 DM-014 DM-015 DM-017 DM-018 DM-019 DM-020 DM-016	31	non	0
+S09-0599	09	2	Relations principales		86	119	34	192		0	non	0
+S09-0600	09	1	09.1 Entité Utilisateur		120	121	2	4		0	non	0
+S09-0601	09	2	Définition		122	127	6	21		0	non	0
+S09-0602	09	2	Périmètre		128	143	16	67		0	non	0
+S09-0603	09	2	Attributs fonctionnels		144	153	10	95		0	non	0
+S09-0604	09	2	Règles métier		154	162	9	75		0	non	0
+S09-0605	09	1	09.2 Entité Séance		163	164	2	4		0	non	0
+S09-0606	09	2	Définition		165	172	8	74		0	non	0
+S09-0607	09	2	Périmètre		173	194	22	128		1	non	0
+S09-0608	09	2	Attributs fonctionnels		195	218	24	621		1	non	0
+S09-0609	09	2	Structure interne de la séance		219	262	44	529		0	non	0
+S09-0610	09	3	Évolutivité de la structure		263	277	15	103		0	non	0
+S09-0611	09	2	Relations principales		278	289	12	133		0	non	0
+S09-0612	09	2	Règles métier		290	314	25	380		0	non	0
+S09-0613	09	1	09.3 Entité Routine		315	336	22	346		0	non	0
+S09-0614	09	1	09.3.1 Règles de planification		337	348	12	201		0	non	0
+S09-0615	09	1	09.4 Entité Occurrence planifiée		349	349	1	5		0	non	0
+S09-0616	09	3	Définition		350	354	5	25		0	non	0
+S09-0617	09	3	Périmètre		355	366	12	101		0	non	0
+S09-0618	09	3	Attributs fonctionnels		367	380	14	184		0	non	0
+S09-0619	09	3	Règles métier		381	388	8	108		0	non	0
+S09-0620	09	1	09.5 Entité Exercice		389	390	2	4		0	non	0
+S09-0621	09	2	Définition		391	398	8	78		0	non	0
+S09-0622	09	2	Périmètre		399	424	26	174		0	non	0
+S09-0623	09	2	Attributs fonctionnels		425	451	27	483		1	non	0
+S09-0624	09	2	Règles métier		452	466	15	422		1	non	0
+S09-0625	09	1	09.6 Entité Média		467	470	4	52		4	non	0
+S09-0626	09	2	Définition		471	474	4	32		1	non	0
+S09-0627	09	2	Périmètre		475	478	4	23		0	non	0
+S09-0628	09	2	Attributs fonctionnels		479	491	13	110		0	non	0
+S09-0629	09	2	Règles métier		492	499	8	86		0	non	0
+S09-0630	09	1	09.7 Entité Exécution		500	501	2	4		0	non	0
+S09-0631	09	2	Définition		502	507	6	52		0	non	0
+S09-0632	09	2	Périmètre		508	518	11	56		0	non	0
+S09-0633	09	2	Attributs fonctionnels		519	540	22	371		0	non	0
+S09-0634	09	2	Structures internes		541	542	2	3		0	non	0
+S09-0635	09	3	Instantané de source		543	568	26	300		0	non	0
+S09-0636	09	3	État d'exécution		569	578	10	27		0	non	0
+S09-0637	09	2	Règles métier		579	593	15	224		1	non	0
+S09-0638	09	1	09.14 Extension du modèle — Exercices, Médias et Parcours		594	595	2	10		0	non	0
+S09-0639	09	2	Racines et associations		596	604	9	86		0	non	0
+S09-0640	09	2	Contraintes d’Exercice		605	610	6	191		1	non	0
+S09-0641	09	2	Contraintes Média		611	614	4	70		0	non	0
+S09-0642	09	2	Contraintes Parcours		615	618	4	61		0	non	0
+S09-0643	09	1	09.7.1 Résultat d’Exercice exécuté		619	638	20	283		0	non	0
+S09-0644	09	1	09.8 Structures internes du moteur d'exécution		639	640	2	7		0	non	0
+S09-0645	09	2	Définition		641	650	10	74		0	non	0
+S09-0646	09	2	Plan d'exécution		651	652	2	3		0	non	0
+S09-0647	09	3	Définition		653	658	6	113		0	non	0
+S09-0648	09	3	Contenu		659	667	9	37		0	non	0
+S09-0649	09	2	Exercice d'exécution		668	669	2	3		0	non	0
+S09-0650	09	3	Attributs fonctionnels		670	680	11	131		0	non	0
+S09-0651	09	2	Règles métier		681	691	11	197		0	non	0
+S09-0652	09	1	09.9 Entité Préférences globales		692	693	2	5		0	non	0
+S09-0653	09	2	Définition		694	699	6	30		0	non	0
+S09-0654	09	2	Périmètre		700	715	16	60		0	non	0
+S09-0655	09	2	Attributs fonctionnels		716	735	20	435		0	non	0
+S09-0656	09	2	Règles métier		736	750	15	200		1	non	0
+S09-0657	09	1	09.10 Entité Étiquette		751	752	2	4		0	non	0
+S09-0658	09	2	Définition		753	756	4	27		0	non	0
+S09-0659	09	2	Périmètre		757	760	4	20		0	non	0
+S09-0660	09	2	Attributs fonctionnels		761	771	11	113		0	non	0
+S09-0661	09	2	Règles métier		772	780	9	116		1	non	0
+S09-0662	09	1	09.10.1 Entité Catégorie		781	782	2	4		0	non	0
+S09-0663	09	2	Définition		783	786	4	18		0	non	0
+S09-0664	09	2	Périmètre		787	790	4	23		0	non	0
+S09-0665	09	2	Attributs fonctionnels		791	802	12	125		0	non	0
+S09-0666	09	2	Règles métier		803	812	10	130		1	non	0
+S09-0667	09	1	09.11 Entité Zone corporelle		813	814	2	5		0	non	0
+S09-0668	09	2	Définition		815	820	6	44		0	non	0
+S09-0669	09	2	Périmètre		821	830	10	41		0	non	0
+S09-0670	09	2	Attributs fonctionnels		831	838	8	60		0	non	0
+S09-0671	09	2	Règles métier		839	847	9	101		1	non	0
+S09-0672	09	2	Valeurs initiales du référentiel (D-093, révisée par D-199)		848	862	15	87		2	non	0
+S09-0673	09	1	09.12 Règles d’intégrité et de copie		863	864	2	7		0	non	0
+S09-0674	09	2	Objectif		865	868	4	30		0	non	0
+S09-0675	09	2	Règles d'intégrité		869	870	2	3		0	non	0
+S09-0676	09	3	Identité		871	876	6	28		0	non	0
+S09-0677	09	3	Cohérence des relations		877	888	12	161		1	non	0
+S09-0678	09	3	Cohérence des données		889	894	6	56		0	non	0
+S09-0679	09	2	Duplication d'une séance		895	902	8	71		0	non	0
+S09-0680	09	2	Duplication d'un exercice		903	910	8	120		0	non	0
+S09-0681	09	2	Suppression d’un média		911	919	9	79		0	non	0
+S09-0682	09	2	Archivage et suppression		920	921	2	4		0	non	0
+S09-0683	09	3	Archivage d'une séance		922	937	16	137		0	non	0
+S09-0684	09	3	Suppression d'une séance		938	942	5	25		0	non	0
+S09-0685	09	2	Historique		943	948	6	31		0	non	0
+S09-0686	09	1	09.13 Cycles de vie		949	950	2	5		0	non	0
+S09-0687	09	2	Objectif		951	954	4	14		0	non	0
+S09-0688	09	2	Cycle de vie d'une séance		955	963	9	27		0	non	0
+S09-0689	09	3	Règles métier		964	970	7	56		0	non	0
+S09-0690	09	2	Cycle de vie d'un exercice		971	985	15	151		0	non	0
+S09-0691	09	2	Cycle de vie d'une routine		986	989	4	11		0	non	0
+S09-0692	09	3	Règles métier		990	994	5	34		0	non	0
+S09-0693	09	2	Cycle de vie d’une Exécution		995	998	4	21		0	non	0
+S09-0694	09	3	Règles métier		999	1005	7	113		0	non	0
+S09-0695	09	2	Données de bilatéralité		1006	1017	12	174		0	non	0
+S09-0696	09	2	Extension V2 — origine et instantané d’Exécution		1018	1030	13	117		0	non	0
+S09-0697	09	1	09.15 Migration T03 — Catalogue des Exercices		1031	1034	4	30		0	non	0
+S09-0698	09	2	Distinction ActivityDefinition / SessionActivity		1035	1042	8	116		0	non	0
+S09-0699	09	2	Migration T03		1043	1054	12	64		0	non	0
+S09-0700	09	2	Exécution directe		1055	1066	12	94		0	non	0
+S09-0701	09	2	Sélection multiple depuis une Composition		1067	1072	6	50		0	non	0
+S09-0702	09	2	Frontière d’évolution		1073	1076	4	35		1	non	0
+S09-0703	09	2	Données cibles — état média de l’Exécution		1077	1085	9	115		1	non	0
+S09-0704	09	2	Extension future de Routine — source Parcours		1086	1089	4	66		0	non	0
+S09-0705	09	2	Données D-208 — récupérations		1090	1091	2	5		1	non	0
+S09-0706	09	3	ActivityDefinition		1092	1095	4	20		0	non	0
+S09-0707	09	3	SessionActivity		1096	1099	4	54		2	non	0
+S09-0708	09	3	Plan d’Exécution		1100	1103	4	55		0	non	0
+S09-0709	09	2	Données D-209 à D-214 — consolidation		1104	1117	14	315		5	non	0
+S09-0710	09	2	Impacts de données de la revue des cartes — 30 septembre 2026		1118	1133	16	577		6	oui	0
+S09-0711	09	3	Saisie des paramètres — D-246		1134	1137	4	61		3	non	0
+S09-0712	09	2	Paramètres de Série et Ordre des côtés — D-247 à D-254		1138	1143	6	130		2	non	0
+S09-0713	09	2	Extension normative de données — Cadence		1144	1157	14	214		0	oui	0
+S09-0714	09	2	Pauses et symboles		1158	1161	4	72		0	non	0
+S09-0715	09	2	Bip de cadence		1162	1165	4	69		0	non	0
+S09-0716	09	2	Contrat technique de phrase		1166	1173	8	157		0	non	0
+S09-0717	09	2	Précision de modèle — source du07/10, v15		1174	1179	6	139		1	non	0
+S09-0718	09	2	Données des circuits		1180	1193	14	199		0	non	0
+S09-0719	09	2	Cibles et relevés		1194	1201	8	139		0	non	0
+S09-0720	09	2	Formats — données fonctionnelles et invariants	formats-donnees	1202	1221	20	338		0	non	32
+S09-0721	09	2	Persistance des séries et compatibilité	compatibilite-series	1222	1223	2	6		0	non	0
+S09-0722	09	3	Compatibilité, données, API et instantanés		1224	1235	12	204		0	non	0
+S09-0723	09	2	Cibles typées et migration des anciennes définitions	cibles-typees	1236	1237	2	8		0	non	2
+S09-0724	09	3	Modèle de paramètres		1238	1253	16	248		0	non	0
+S09-0725	09	3	Migration et compatibilité		1254	1265	12	443		5	non	0
+S09-0726	09	2	Paramètre de bip et validation des données	donnees-bip	1266	1267	2	8		0	non	0
+S09-0727	09	3	Données et livraison		1268	1275	8	143		0	non	0
+S10-0728	10	1	Processus métier et règles métier transverses		1	4	4	55		0	non	0
+S10-0729	10	2	Objet		5	8	4	30		0	non	0
+S10-0730	10	2	1. Gestion du Catalogue et des Séances		9	27	19	399	RM-001 RM-002 RM-003 RM-004 RM-005 RM-006 RM-007 RM-008 RM-009 RM-010 RM-011 RM-012 RM-013 RM-014	15	non	0
+S10-0731	10	2	2. Création et modification d’une Séance		28	43	16	486	RM-015 RM-016 RM-017 RM-018 RM-019 RM-020 RM-021 RM-022 RM-023 RM-024 RM-124	14	non	0
+S10-0732	10	2	3. Composition, Circuit et Cycle technique		44	56	13	307	RM-025 RM-026 RM-027 RM-028 RM-029 RM-030 RM-031 RM-032	10	non	0
+S10-0733	10	2	4. Exercices, Séries et Récupérations		57	76	20	791	RM-033 RM-034 RM-035 RM-036 RM-037 RM-038 RM-039 RM-040 RM-200 RM-041 RM-042 RM-129 RM-130 RM-131 RM-132	22	non	0
+S10-0734	10	2	5. Planification et Calendrier		77	92	16	341	RM-043 RM-044 RM-045 RM-046 RM-047 RM-048 RM-049 RM-050 RM-123 RM-206 RM-207	13	non	0
+S10-0735	10	2	6. Notifications et rappels		93	102	10	116	RM-051 RM-052 RM-053 RM-054 RM-054a	5	non	0
+S10-0736	10	2	7. Exécution d’une Séance		103	119	17	429	RM-055 RM-056 RM-057 RM-058 RM-059 RM-060 RM-061 RM-062 RM-063 RM-064 RM-065 RM-065a	15	non	0
+S10-0737	10	2	8. Arrière-plan, verrouillage et sécurité temporelle		120	129	10	157	RM-066 RM-067 RM-068 RM-069 RM-070	5	non	0
+S10-0738	10	2	9. Calculs et progression		130	146	17	851	RM-071 RM-072 RM-073 RM-074 RM-075 RM-076 RM-077 RM-159 RM-125 RM-126 RM-127 RM-128	25	non	0
+S10-0739	10	2	10. Synthèse, Suivi et historique		147	158	12	204	RM-078 RM-079 RM-080 RM-081 RM-082 RM-083 RM-084	9	non	0
+S10-0740	10	2	11. Préférences, sons, voix et vibrations		159	169	11	113	RM-085 RM-086 RM-087 RM-088 RM-089 RM-090	6	non	0
+S10-0741	10	2	12. Langue, terminologie et accessibilité structurelle		170	214	45	1378	RM-091 RM-092 RM-093 RM-094 RM-095 RM-154 RM-155 RM-156 RM-157 RM-158 RM-160 RM-161 RM-104 RM-105 RM-106 RM-107 RM-108 RM-109 RM-110 RM-111 RM-112 RM-113 RM-114 RM-115 RM-116 RM-117 RM-118 RM-119 RM-120 RM-143 RM-144 RM-145 RM-146 RM-147 RM-148 RM-149 RM-150 RM-151 RM-152 RM-153	52	non	0
+S10-0742	10	2	12. Règles métier — Exécution directe d’un Exercice — MVP T03		215	235	21	433	RM-096 RM-097 RM-098 RM-099 RM-100 RM-101 RM-102 RM-103 RM-162 RM-163 RM-188 RM-189 RM-190 RM-191 RM-192 RM-164	16	non	0
+S10-0743	10	2	RM-203 — Consultation média pendant l’Exécution		236	258	23	351	RM-208 RM-209 RM-210 RM-211 RM-212	20	non	0
+S10-0744	10	2	Règles RM-213 à RM-221 — consolidation du 26 septembre 2026		259	282	24	601	RM-213 RM-214 RM-215 RM-216 RM-217 RM-218 RM-219 RM-220 RM-221 RM-222 RM-223 RM-231 RM-232 RM-233 RM-234	24	oui	0
+S10-0745	10	2	RG des cartes — 30 septembre 2026		283	298	16	592		7	oui	0
+S10-0746	10	3	Saisie des paramètres — D-246		299	302	4	61		3	non	0
+S10-0747	10	2	Cadence — règles transverses complémentaires		303	306	4	79		3	oui	0
+S10-0748	10	2	Avertissement non bloquant d’enchaînement (D-301)		307	310	4	96		1	non	0
+S10-0749	10	2	Planification multi-contenus		311	322	12	199		0	non	0
+S10-0750	10	2	Règles transverses — circuits du12/10/2026		323	336	14	216		0	non	0
+S10-0751	10	2	Formats — règles métier transverses	formats-regles	337	340	4	8		0	non	0
+S10-0752	10	3	RM-FMT-01	fmt-01	341	346	6	39	RM-FMT-01	1	non	1
+S10-0753	10	3	RM-FMT-02	fmt-02	347	352	6	44	RM-FMT-02	1	non	1
+S10-0754	10	3	RM-FMT-03	fmt-03	353	358	6	30	RM-FMT-03	1	non	1
+S10-0755	10	3	RM-FMT-04	fmt-04	359	364	6	31	RM-FMT-04	1	non	1
+S10-0756	10	3	RM-FMT-05	fmt-05	365	370	6	35	RM-FMT-05	1	non	1
+S10-0757	10	3	RM-FMT-06	fmt-06	371	376	6	37	RM-FMT-06	1	non	1
+S10-0758	10	3	RM-FMT-07	fmt-07	377	382	6	43	RM-FMT-07	1	non	1
+S10-0759	10	3	RM-FMT-08	fmt-08	383	388	6	35	RM-FMT-08	1	non	1
+S10-0760	10	3	RM-FMT-09	fmt-09	389	394	6	50	RM-FMT-09	1	non	1
+S10-0761	10	3	RM-FMT-10	fmt-10	395	400	6	26	RM-FMT-10	1	non	1
+S10-0762	10	3	RM-FMT-11	fmt-11	401	406	6	33	RM-FMT-11	1	non	1
+S10-0763	10	3	RM-FMT-12	fmt-12	407	412	6	40	RM-FMT-12	1	non	1
+S10-0764	10	3	RM-FMT-13	fmt-13	413	418	6	41	RM-FMT-13	1	non	1
+S10-0765	10	3	RM-FMT-14	fmt-14	419	424	6	39	RM-FMT-14	1	non	1
+S10-0766	10	3	RM-FMT-15	fmt-15	425	430	6	53	RM-FMT-15	1	non	1
+S10-0767	10	3	RM-FMT-16	fmt-16	431	436	6	26	RM-FMT-16	1	non	1
+S10-0768	10	3	RM-FMT-17	fmt-17	437	442	6	60	RM-FMT-17	1	non	1
+S10-0769	10	3	RM-FMT-18	fmt-18	443	448	6	56	RM-FMT-18	1	non	1
+S10-0770	10	3	RM-FMT-19	fmt-19	449	454	6	66	RM-FMT-19	1	non	1
+S10-0771	10	3	RM-FMT-20	fmt-20	455	460	6	31	RM-FMT-20	1	non	1
+S10-0772	10	3	RM-FMT-21	fmt-21	461	466	6	46	RM-FMT-21	1	non	1
+S10-0773	10	3	RM-FMT-22	fmt-22	467	472	6	34	RM-FMT-22	1	non	1
+S10-0774	10	3	RM-FMT-23	fmt-23	473	478	6	37	RM-FMT-23	1	non	1
+S10-0775	10	3	RM-FMT-24	fmt-24	479	484	6	33	RM-FMT-24	1	non	1
+S10-0776	10	3	RM-FMT-25	fmt-25	485	490	6	62	RM-FMT-25	1	non	1
+S10-0777	10	3	RM-FMT-26	fmt-26	491	496	6	31	RM-FMT-26	1	non	1
+S10-0778	10	3	RM-FMT-27	fmt-27	497	502	6	44	RM-FMT-27	1	non	1
+S10-0779	10	3	RM-FMT-28	fmt-28	503	508	6	30	RM-FMT-28	1	non	1
+S10-0780	10	3	RM-FMT-29	fmt-29	509	514	6	55	RM-FMT-29	1	non	1
+S10-0781	10	3	RM-FMT-30	fmt-30	515	520	6	35	RM-FMT-30	1	non	1
+S10-0782	10	3	RM-FMT-31	fmt-31	521	526	6	38	RM-FMT-31	1	non	1
+S10-0783	10	3	RM-FMT-32	fmt-32	527	532	6	43	RM-FMT-32	1	non	1
+S10-0784	10	3	RM-FMT-33	fmt-33	533	538	6	56	RM-FMT-33	1	non	1
+S10-0785	10	3	RM-FMT-34	fmt-34	539	544	6	26	RM-FMT-34	1	non	1
+S10-0786	10	3	RM-FMT-35	fmt-35	545	550	6	43	RM-FMT-35	1	non	1
+S10-0787	10	3	RM-FMT-36	fmt-36	551	556	6	47	RM-FMT-36	1	non	1
+S10-0788	10	3	RM-FMT-37	fmt-37	557	562	6	55	RM-FMT-37	1	non	1
+S10-0789	10	3	RM-FMT-38	fmt-38	563	568	6	51	RM-FMT-38	1	non	1
+S10-0790	10	3	RM-FMT-39	fmt-39	569	574	6	30	RM-FMT-39	1	non	1
+S10-0791	10	3	RM-FMT-40	fmt-40	575	580	6	38	RM-FMT-40	1	non	1
+S10-0792	10	3	RM-FMT-41	fmt-41	581	586	6	39	RM-FMT-41	1	non	1
+S10-0793	10	3	RM-FMT-42	fmt-42	587	592	6	38	RM-FMT-42	1	non	1
+S10-0794	10	2	Calculs des durées et ordre des phases	calculs-durees	593	594	2	8		0	non	2
+S10-0795	10	3	Ordres d’exécution et pauses		595	600	6	125		0	non	0
+S10-0796	10	3	Durées, affichage et inversion		601	616	16	540		2	non	0
+S10-0797	10	3	Scénarios de recette normative		617	638	22	214		0	non	0
+S10-0798	10	2	Résultats temporels et agrégation du circuit	resultats-temporels	639	640	2	7		0	non	8
+S10-0799	10	3	Résultats de durée		641	657	17	294		0	non	0
+S10-0800	10	3	Calcul, pauses et périmètres		658	681	24	496		1	non	0
+S10-0801	10	3	Extension normative du12/10 — niveau Circuit		682	691	10	185		0	oui	0
+S10-0802	10	2	Calculs et cas de recette des cibles mixtes	cibles-mixtes	692	693	2	9		0	non	0
+S10-0803	10	3	Calcul de la durée prévisionnelle		694	721	28	330		0	oui	0
+S10-0804	10	3	Recettes déterministes à intégrer		722	746	25	358		0	non	0
+S10-0805	10	2	Cas de recette des formats	recette-formats	747	748	2	6		0	non	0
+S10-0806	10	3	Recettes fonctionnelles et preuves attendues		749	785	37	732	REC-01 REC-02 REC-03 REC-04 REC-05 REC-06 REC-07 REC-08 REC-09 REC-10 REC-11 REC-12 REC-13 REC-14 REC-15 REC-16 REC-17 REC-18 REC-19 REC-20 REC-21 REC-22 REC-23 REC-24 REC-25 REC-26 REC-27 REC-28	28	non	0
+S11-0807	11	2	11.0 Objet et périmètre		1	28	28	202		0	non	0
+S11-0808	11	2	11.1 Principes généraux		29	42	14	201		1	non	0
+S11-0809	11	2	11.2 API Séances		43	54	12	370	API-SEA-01 API-SEA-02 API-SEA-03 API-SEA-04 API-SEA-05 API-SEA-06 API-SEA-07 API-SEA-08	8	non	0
+S11-0810	11	2	11.3 API Composition d'une séance		55	67	13	419	API-COM-01 API-COM-02 API-COM-03 API-COM-04 API-COM-05 API-COM-06 API-COM-07 API-COM-08 API-COM-09	10	non	0
+S11-0811	11	2	11.4 API Exercices		68	78	11	445	API-ACT-01 API-ACT-02 API-ACT-03	9	non	0
+S11-0812	11	2	11.5 API Routines et Planification		79	98	20	324	API-ROU-01 API-ROU-02 API-ROU-03 API-ROU-04 API-ROU-05 API-ROU-06 API-ROU-07 API-ROU-08 API-ROU-09	9	non	0
+S11-0813	11	2	11.6 API Exécution		99	115	17	617	API-EXE-01 API-EXE-02 API-EXE-03 API-EXE-04 API-EXE-05 API-EXE-06 API-EXE-07 API-EXE-08 API-EXE-09 API-EXE-10 API-EXE-11	12	non	0
+S11-0814	11	3	Règles de navigation pendant l’exécution		116	131	16	81		0	non	0
+S11-0815	11	2	API 11.7 Historique et Suivi		132	138	7	148	API-HIS-01 API-HIS-02 API-HIS-03	3	non	0
+S11-0816	11	3	Périmètre du Suivi dans le MVP		139	142	4	51		0	non	0
+S11-0817	11	3	Conservation de l’historique		143	150	8	84		1	non	0
+S11-0818	11	2	11.8 API Préférences globales		151	156	6	107	API-PRE-01 API-PRE-02	2	non	0
+S11-0819	11	2	11.9 Référentiels		157	172	16	502	API-REF-01 API-REF-02 API-REF-03 API-REF-04 API-REF-05 API-REF-06 API-REF-07 API-REF-08 API-REF-09 API-REF-10 API-REF-11 API-REF-12	16	non	0
+S11-0820	11	2	11.10 Conventions fonctionnelles de gestion des erreurs		173	212	40	345		0	non	0
+S11-0821	11	2	11.11 Contrats internes et découpage des services		213	236	24	204		0	non	0
+S11-0822	11	2	11.12 API externes et évolutions futures		237	250	14	111		0	non	0
+S11-0823	11	2	Compléments de cohérence MVP		251	256	6	89		1	oui	0
+S11-0824	11	2	11.13 API du Catalogue des Exercices, des Médias et des Parcours		257	268	12	240	API-MED-01..05 API-CAT-01	4	non	0
+S11-0825	11	2	API de bilatéralité		269	281	13	222	API-SIDE-01 API-SIDE-02 API-SIDE-03 API-SIDE-04	4	non	0
+S11-0826	11	2	11.14 Exécution directe d’un Exercice — MVP T03		282	293	12	173		1	non	0
+S11-0827	11	2	11.15 Sélection multiple d’Exercices existants — MVP T03		294	303	10	141		0	non	0
+S11-0828	11	2	Contrat fonctionnel futur — médias pendant l’Exécution		304	312	9	100		1	non	0
+S11-0829	11	3	Extension future des API Routine — Parcours		313	316	4	66		0	non	0
+S11-0830	11	3	API de récupération contextuelle — D-208		317	326	10	146		6	non	0
+S11-0831	11	2	Impact API de la revue des cartes — 30 septembre 2026		327	340	14	492		4	oui	0
+S11-0832	11	2	API fonctionnelles — consolidation D-209 à D-217		341	355	15	386	API-PHRASE-01 API-PARAM-01	8	non	0
+S11-0833	11	3	Saisie des paramètres — D-246		356	359	4	61		3	non	0
+S11-0834	11	3	Contrat transverse des paramètres v13		360	363	4	67		0	non	0
+S11-0835	11	2	Extension des API — Cadence et phrase		364	376	13	309		1	non	0
+S11-0836	11	2	Pauses et symboles		377	380	4	49		0	non	0
+S11-0837	11	2	Contrat technique de phrase		381	388	8	157		0	non	0
+S11-0838	11	2	Contrats fonctionnels — circuits du12/10/2026		389	402	14	219		0	non	0
+S11-0839	11	2	Contrats de service — cibles typées et relevés13/10		403	410	8	110		0	non	0
+S11-0840	11	2	Formats — contrats de services fonctionnels	formats-api	411	428	18	329		0	non	18
+S11-0841	11	2	Opérations sur les récupérations et points d’arrêt	api-pauses	429	430	2	8		0	non	0
+S11-0842	11	3	Modèle fonctionnel et API		431	452	22	338		0	non	0
+S11-0843	11	2	Contrat du générateur de phrase	api-phrase	453	454	2	6		0	non	0
+S11-0844	11	3	Contrat de génération et persistance		455	464	10	211		0	non	0
+S12-0845	12	2	12.0 Objet et périmètre		1	23	23	149		0	non	0
+S12-0846	12	2	12.1 Principes d’architecture		24	44	21	190		3	non	0
+S12-0847	12	3	Internationalisation		45	58	14	163		0	non	0
+S12-0848	12	2	12.2 Architecture logique générale		59	96	38	112		0	non	0
+S12-0849	12	2	12.3 Interface utilisateur		97	111	15	78		0	non	0
+S12-0850	12	2	12.4 Services applicatifs		112	131	20	187		0	non	0
+S12-0851	12	2	12.5 Domaine métier		132	155	24	283		0	non	0
+S12-0852	12	2	12.6 Persistance et stockage local		156	157	2	6		0	non	0
+S12-0853	12	3	Principe		158	173	16	146		0	non	0
+S12-0854	12	3	Données persistées		174	192	19	96		0	non	0
+S12-0855	12	3	Repositories		193	210	18	140		0	non	0
+S12-0856	12	2	12.7 Identité utilisateur		211	212	2	4		0	non	0
+S12-0857	12	3	MVP		213	229	17	135		0	non	0
+S12-0858	12	3	Évolution future		230	248	19	145		0	non	0
+S12-0859	12	2	12.8 Gestion de l’état		249	252	4	10		0	non	0
+S12-0860	12	3	État persistant		253	258	6	22		0	non	0
+S12-0861	12	3	État temporaire		259	272	14	112		0	non	0
+S12-0862	12	2	12.9 Architecture du moteur d’exécution		273	306	34	392		0	non	0
+S12-0863	12	2	12.10 Gestion du temps		307	323	17	167		0	non	0
+S12-0864	12	2	12.11 Audio, voix et vibrations		324	346	23	177		0	non	0
+S12-0865	12	2	12.12 Fonctionnement en arrière-plan		347	368	22	234		0	non	0
+S12-0866	12	2	12.13 Notifications locales		369	388	20	183		0	non	0
+S12-0867	12	2	12.14 Médias		389	406	18	197		2	non	0
+S12-0868	12	2	12.15 Instantanés et historique		407	423	17	159		0	non	0
+S12-0869	12	2	12.16 Transactions et intégrité		424	439	16	104		0	non	0
+S12-0870	12	2	12.17 Gestion technique des erreurs		440	457	18	87		0	non	0
+S12-0871	12	2	12.18 Tests automatisés		458	484	27	257		0	non	0
+S12-0872	12	2	12.19 Crash reporting et observabilité		485	500	16	87		0	non	0
+S12-0873	12	2	12.20 Sécurité et données personnelles		501	512	12	102		0	non	0
+S12-0874	12	2	12.21 Synchronisation future		513	536	24	130		0	non	0
+S12-0875	12	2	12.22 Intégrations externes futures		537	551	15	108		0	non	0
+S12-0876	12	2	12.23 Critères de choix technologiques		552	571	20	226		0	non	0
+S12-0877	12	2	12.24 Choix technologiques retenus		572	593	22	305		0	non	0
+S12-0878	12	3	Contraintes techniques propres à T04		594	605	12	263		4	non	0
+S12-0879	12	2	12.25 Justification des principaux choix		606	607	2	6		0	non	0
+S12-0880	12	3	React Native + Expo		608	619	12	112		0	non	0
+S12-0881	12	3	TypeScript strict		620	627	8	46		0	non	0
+S12-0882	12	3	SQLite		628	641	14	57		0	non	0
+S12-0883	12	3	Accès direct à `expo-sqlite`		642	647	6	101		1	non	0
+S12-0884	12	3	Gestion d’état		648	658	11	73		0	non	0
+S12-0885	12	3	Moteur d’exécution		659	672	14	66		0	non	0
+S12-0886	12	3	Gestion du temps		673	682	10	54		0	non	0
+S12-0887	12	3	Notifications		683	689	7	28		0	non	0
+S12-0888	12	3	Médias — MVP PRE-3		690	693	4	55		4	non	0
+S12-0889	12	3	Tests		694	706	13	97		0	non	0
+S12-0890	12	2	12.26 Mise en page adaptative et bornes sûres		707	721	15	242		0	non	0
+S12-0891	12	3	Unités d’implémentation		722	728	7	75		0	non	0
+S12-0892	12	3	Paliers de largeur du MVP		729	739	11	144		0	non	0
+S12-0893	12	3	Architecture canonique de spécification UI		740	751	12	155		0	non	0
+S12-0894	12	3	Screen Shells		752	783	32	313		0	non	0
+S12-0895	12	3	Composants et contrôles réutilisables		784	836	53	1243		8	non	0
+S12-0896	12	3	Règles de réutilisation et de contrôle		837	847	11	167		0	non	0
+S12-0897	12	3	Design tokens canoniques		848	1138	291	5336		18	non	0
+S12-0898	12	3	Règles de dimensionnement des composants		1139	1162	24	728		2	non	0
+S12-0899	12	3	Matrice de validation responsive		1163	1178	16	210		0	non	0
+S12-0900	12	2	12.27 Risques techniques et validations préalables		1179	1182	4	16		0	non	0
+S12-0901	12	3	RT-001 — Timer, audio et arrière-plan		1183	1205	23	213		0	non	0
+S12-0902	12	3	RT-002 — Drizzle ORM / Expo		1206	1211	6	71		1	non	0
+S12-0903	12	3	RT-003 — Comportement audio réel		1212	1220	9	48		0	non	0
+S12-0904	12	2	12.28 Distribution		1221	1235	15	79		0	non	0
+S12-0905	12	2	12.29 Évolutivité		1236	1251	16	95		0	non	0
+S12-0906	12	2	12.30 Organisation du code		1252	1299	48	165		0	non	0
+S12-0907	12	2	12.31 Architecture UI, accessibilité et responsive		1300	1329	30	253		0	non	0
+S12-0908	12	2	12.32 Stratégie de développement incrémental		1330	1348	19	250		0	non	0
+S12-0909	12	2	12.33 Réconciliation après interruption technique		1349	1352	4	85		0	non	0
+S12-0910	12	2	12.34 Architecture cible — Exercices, Médias et Parcours		1353	1360	8	200		1	non	0
+S12-0911	12	3	Sources de données du Catalogue		1361	1369	9	61		3	non	0
+S12-0912	12	3	Composants et tokens Figma		1370	1384	15	215		6	non	0
+S12-0913	12	2	Architecture de la bilatéralité		1385	1396	12	414		0	non	0
+S12-0914	12	2	Architecture MVP T03 — Catalogue des Exercices et moteur multi-origine		1397	1402	6	169		0	non	0
+S12-0915	12	3	Moteur d’Exécution multi-origine		1403	1410	8	108		0	non	0
+S12-0916	12	3	Icônes vectorielles de sélection multiple		1411	1421	11	275		1	non	0
+S12-0917	12	2	Architecture cible — média pendant l’Exécution		1422	1436	15	167		1	non	0
+S12-0918	12	2	12.35 Source polymorphe des Routines — D-206		1437	1460	24	394		1	non	0
+S12-0919	12	2	12.36 Extensibilité de la source Routine — Parcours		1461	1464	4	67		0	non	0
+S12-0920	12	2	12.37 Schéma cible des récupérations — D-208		1465	1474	10	109		1	non	0
+S12-0921	12	2	12.38 Impacts techniques de la consolidation D-209 à D-217		1475	1482	8	237		4	non	0
+S12-0922	12	2	28 septembre 2026 — contraintes DSF avant développement		1483	1486	4	70		3	oui	0
+S12-0923	12	3	Référence DSF V2 détaillée — clôture 28 septembre 2026		1487	1498	12	478		4	oui	0
+S12-0924	12	3	Générateur et validation des paramètres v13		1499	1506	8	199		2	non	0
+S12-0925	12	2	DSF courant — Cartes, icônes et animations d’appui (30 septembre 2026)		1507	1524	18	646		9	oui	0
+S12-0926	12	3	Saisie des paramètres — D-246		1525	1528	4	61		3	non	0
+S12-0927	12	2	Moteur Cadence — cible technique du06/10/2026		1529	1536	8	186		0	non	0
+S12-0928	12	2	Cohérence des couleurs après rationalisation — H-13, 06/10/2026		1537	1546	10	174		0	oui	0
+S12-0929	12	2	Pauses et symboles		1547	1550	4	75		0	non	0
+S12-0930	12	2	Vérification de l’existant pour Bip de cadence		1551	1554	4	77		0	non	0
+S12-0931	12	2	Contrat technique de phrase		1555	1562	8	157		0	non	0
+S12-0932	12	2	Transmission au développement — évolutions v15		1563	1568	6	98		0	non	0
+S12-0933	12	2	Segmentés — complément du07/10		1569	1574	6	105		0	oui	0
+S12-0934	12	2	Écart d’implémentation constaté lors de la fusion documentaire		1575	1578	4	104		0	non	0
+S12-0935	12	2	Interface générale — règles du 08/10/2026		1579	1586	8	159		2	oui	0
+S12-0936	12	2	Architecture — circuits du12/10/2026		1587	1592	6	147		0	non	0
+S12-0937	12	2	Adaptation moteur et persistance —13/10		1593	1600	8	227		2	oui	0
+S12-0938	12	2	Formats — architecture cible du moteur à construire	formats-architecture	1601	1612	12	229		0	non	18
+S12-0939	12	2	Internationalisation et vérification du générateur	generateur-phrase	1613	1614	2	6		0	non	0
+S12-0940	12	3	Internationalisation — décision et dette explicites		1615	1618	4	108		0	non	0
+S12-0941	12	3	Recette de développement		1619	1624	6	143		0	non	0
+S13-0942	13	1	13 — Contrats d’écran		1	6	6	96		0	non	0
+S13-0943	13	2	1. Objet et statut normatif		7	14	8	154		6	non	0
+S13-0944	13	2	2. Sources et ordre d’application		15	36	22	384		11	non	0
+S13-0945	13	2	3. Structure canonique obligatoire		37	61	25	119		0	non	0
+S13-0946	13	2	4. Règles communes T03		62	213	152	2632		27	non	0
+S13-0947	13	2	Inventaire des contrats actifs		214	249	36	319		31	non	0
+S13-0948	13	2	CE-T03-01 — Catalogue des séances — état T03		250	346	97	1099	CE-T03-01	9	non	0
+S13-0949	13	2	CE-T03-02 — Catalogue des exercices — liste, filtres et cartes		347	449	103	1186	CE-T03-02	14	non	0
+S13-0950	13	2	CE-T03-03 — Catalogue — action `Créer` contextuelle		450	535	86	594	CE-T03-03	6	non	0
+S13-0951	13	2	CE-T03-04 — Éditeur Exercice — créer / modifier		536	655	120	1426	CE-T03-04	21	non	0
+S13-0952	13	2	CE-T03-05 — ActivityDefinition — archiver / restaurer / supprimer		656	743	88	727	CE-T03-05	2	non	0
+S13-0953	13	2	CE-T03-06 — Composition — `Ajouter un exercice` vers le Catalogue		744	829	86	469	CE-T03-06	8	non	0
+S13-0954	13	2	CE-T03-07 — Sélection multiple d’Exercices existants		830	917	88	849	CE-T03-07	4	non	0
+S13-0955	13	2	CE-T03-08 — Composer une séance / Modifier une séance — brouillon, Circuit, points d’arrêt et validation		918	1021	104	1648	CE-T03-08	26	non	0
+S13-0956	13	2	CE-T03-09 — Lancement direct et préparation fixe 5 s		1022	1117	96	789	CE-T03-09	2	non	0
+S13-0957	13	2	CE-T03-10 — Exécution directe — Durée chiffrée unilatérale		1118	1217	100	856	CE-T03-10	4	non	0
+S13-0958	13	2	CE-T03-11 — Exécution directe — Répétitions et À l’échec		1218	1331	114	1099	CE-T03-11	7	non	0
+S13-0959	13	2	CE-T03-12 — Exécution directe — bilatéralité, Pauses, Récupération		1332	1429	98	923	CE-T03-12	4	non	0
+S13-0960	13	2	CE-T03-13 — Fin, interruption et retour d’Exécution directe		1430	1525	96	745	CE-T03-13	3	non	0
+S13-0961	13	2	CE-T03-14 — Synthèse d’Exécution directe		1526	1613	88	610	CE-T03-14	2	non	0
+S13-0962	13	2	CE-T03-15 — Suivi général — Exécution ACTIVITY		1614	1705	92	771	CE-T03-15	1	non	0
+S13-0963	13	2	CE-T03-16 — Étiquettes de Séance — sélectionner, créer, retirer		1706	1793	88	692	CE-T03-16	8	non	0
+S13-0964	13	2	CE-T03-17 — Navigation principale — inventaire DSF		1794	1882	89	464	CE-T03-17	2	non	0
+S13-0965	13	2	CE-MEDIA-EXEC-01 — Exécution — faces Information et Média		1883	1972	90	853	CE-MEDIA-EXEC-01	3	non	0
+S13-0966	13	2	CE-MEDIA-EXEC-02 — Exécution — média plein écran		1973	2062	90	759	CE-MEDIA-EXEC-02	3	non	0
+S13-0967	13	2	CE-UI-01 — Profil — préférence silhouette		2063	2146	84	504	CE-UI-01	4	non	0
+S13-0968	13	2	CE-UI-02 — Calendrier — Jour compact		2147	2236	90	741	CE-UI-02	4	non	0
+S13-0969	13	2	CE-UI-03 — Calendrier — Semaine et structure Mois		2237	2328	92	807	CE-UI-03	5	non	0
+S13-0970	13	2	CE-UI-04 — Calendrier et planification — choisir des contenus		2329	2410	82	680	CE-UI-04	5	non	0
+S13-0971	13	2	CE-UI-05 — Planification — formulaire et états de paramètres		2411	2492	82	833	CE-UI-05	8	non	0
+S13-0972	13	2	CE-UI-06 — Splash KODJO		2493	2574	82	417	CE-UI-06	1	non	0
+S13-0973	13	2	CE-UI-07 — Profil — préférences et défauts d’exécution		2575	2664	90	739	CE-UI-07	14	non	0
+S13-0974	13	2	CE-EXEC-SESSION-01 — Exécution d’une Séance — phases, commandes et confirmations		2665	2770	106	1173	CE-EXEC-SESSION-01	17	non	0
+S13-0975	13	2	CE-UI-08 — Synthèse de Séance		2771	2860	90	649	CE-UI-08	6	non	0
+S13-0976	13	2	CE-UI-09 — Référentiels d’Exercice — Catégorie et Zones corporelles		2861	2950	90	738	CE-UI-09	14	non	0
+S13-0977	13	2	CE-UI-10 — Paramètres d’exécution — feuille basse		2951	3066	116	1838	CE-UI-10	4	non	0
+S13-0978	13	2	5. État des preuves visuelles		3067	3085	19	421		15	non	0
+S13-0979	13	2	6. Clôture des réserves fonctionnelles des contrats		3086	3118	33	1079		15	non	0
+S13-0980	13	2	7. Référentiel élémentaire T03 et couverture		3119	3220	102	843		23	non	0
+S13-0981	13	2	8. Frontière de réalisation et recette		3221	3226	6	121		0	non	0
+S13-0982	13	2	Mise à jour des références visuelles — 07/10, corrections rédactionnelles		3227	3230	4	59		4	oui	0
+S13-0983	13	2	CE-UI-11 — Planification — fréquence d’un contenu		3231	3312	82	609	CE-UI-11	5	non	0
+S13-0984	13	2	CE-CIR-01 — Choix de nature du circuit		3313	3396	84	445	CE-CIR-01	4	non	0
+S13-0985	13	2	CE-CIR-02 — Confirmation d’adaptation avec perte		3397	3480	84	471	CE-CIR-02	1	non	0
+S13-0986	13	2	CE-CIR-03 — Volumes du circuit		3481	3566	86	556	CE-CIR-03	1	non	0
+S13-0987	13	2	CE-FMT-01 — Choix du modèle et du format	ce-fmt-01	3567	3649	83	444	CE-FMT-01	4	non	10
+S13-0988	13	2	CE-FMT-02 — Paramètres globaux et récapitulatif	ce-fmt-02	3650	3732	83	479	CE-FMT-02	4	non	55
+S13-0989	13	2	CE-FMT-03 — Composition d’une séance issue d’un format	ce-fmt-03	3733	3815	83	462	CE-FMT-03	4	non	50
+S13-0990	13	2	CE-FMT-04 — Paramètres d’exercice contextualisés par un format	ce-fmt-04	3816	3898	83	486	CE-FMT-04	5	non	23
+S13-0991	13	2	CE-FMT-05 — Exécution des fenêtres et formats à borne ouverte	ce-fmt-05	3899	3981	83	486	CE-FMT-05	4	non	18
+S13-0992	13	2	CE-FMT-06 — Arrêt et résultat Death by	ce-fmt-06	3982	4064	83	531	CE-FMT-06	5	non	10
+S13-0993	13	2	Clarification d’autorité et de portée		4065	4074	10	216		0	non	0
+S13-0994	13	2	Règles communes de l’éditeur de paramètres	editeur-parametres	4075	4123	49	1049		15	non	0
+S13-0995	13	2	Cartes, grille des volumes et interactions de composition	controles-circuit	4124	4256	133	1438		0	non	0
+S13-0996	13	2	Implantation du bip et comportement des steppers	controle-bip	4257	4268	12	217		0	non	0
+S13-0997	13	2	Rendu et accessibilité de la phrase	rendu-phrase	4269	4280	12	195		1	non	0
+S13-0998	13	2	Contrôles et layout de planification	controles-planification	4281	4352	72	692		0	non	0

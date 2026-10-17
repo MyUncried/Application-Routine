@@ -17,7 +17,7 @@ Les diagnostics ([diagnostic.md](diagnostic.md), [qualite.md](qualite.md)) ont �
 Aucune spécification produit n'est modifiée par cette révision. Le change propose :
 
 - **Une gouvernance allégée** ([design.md](design.md), G1 à G10) :
-  - les 13 chapitres restent la structure ;
+  - les 13 chapitres restent la structure, tant que la restructuration proposée par le lot 6A ([lot6/plan-restructuration.md](lot6/plan-restructuration.md)) n'est pas validée ;
   - une source normative unique par règle, atteinte progressivement ;
   - les DSF restent applicables jusqu'au transfert vérifié de leurs règles ;
   - l'emplacement ne tranche aucune contradiction ;
@@ -30,7 +30,7 @@ Aucune spécification produit n'est modifiée par cette révision. Le change pro
   3. identifiants effacés ;
   4. autorité documentaire ;
   5. contradictions déjà arbitrées ;
-  6. amélioration progressive.
+  6. restructuration documentaire (conception 6A : [lot6/plan-restructuration.md](lot6/plan-restructuration.md)) et amélioration progressive.
 - **Un premier lot délimité :** le seul registre ch. 07. Il restaure, à l'identique depuis Git et sans changement de statut :
   - 24 textes de décisions ;
   - les colonnes de 13 décisions ;

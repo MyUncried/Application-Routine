@@ -1,0 +1,999 @@
+id	chapitre	niveau	titre	lignes	type	domaine	action	fichier_cible	partie_cible	etape	classe	renvoi_vers	divergences	defauts	regle	justification
+S01-0001	01	1	Vision générale de KODJO	2	CONTENEUR	TRANSVERSE-PRODUIT	CONSERVER	01 – Vision et glossaire	0 Produit	—	DOC				R4	
+S01-0002	01	2	L’idée en une phrase	4	VISION	TRANSVERSE-PRODUIT	CONSERVER	01 – Vision et glossaire	0 Produit	—	DOC				R4	
+S01-0003	01	2	Identité du produit	7	CONCEPT	TRANSVERSE-PRODUIT	CONSERVER	01 – Vision et glossaire	0 Produit	—	DOC			MELANGE	R4	
+S01-0004	01	2	Le problème rencontré	4	VISION	TRANSVERSE-PRODUIT	CONSERVER	01 – Vision et glossaire	0 Produit	—	DOC				R4	
+S01-0005	01	2	La réponse proposée	16	VISION	TRANSVERSE-PRODUIT	CONSERVER	01 – Vision et glossaire	0 Produit	—	DOC			AUTRE:liste-interrompue-par-un-paragraphe	R4	
+S01-0006	01	2	Utilisateur prioritaire du MVP	13	PERIMETRE	TRANSVERSE-PRODUIT	DÉPLACER	05 – Versions et périmètre	0 Produit	6F4	DOC				R4	type PERIMETRE : domicile 05 ; à scinder si nécessaire (types secondaires : BESOIN+ARCHITECTURE)
+S01-0007	01	2	Périmètre fonctionnel du MVP	2	CONTENEUR	TRANSVERSE-PRODUIT	CONSERVER	01 – Vision et glossaire	0 Produit	—	DOC				R4	
+S01-0008	01	3	Catalogue des séances	4	PERIMETRE	SEANCE	DÉPLACER	05 – Versions et périmètre	1 Séances	6F4	DOC			RENVOI-ABSENT SANS-ID	R4	type PERIMETRE : domicile 05 ; à scinder si nécessaire (types secondaires : REGLE)
+S01-0009	01	3	Catalogue des exercices — T03	6	PERIMETRE	EXERCICE	DÉPLACER	05 – Versions et périmètre	2 Exercices	6F4	DOC			DOUBLON RENVOI-ABSENT	R4	type PERIMETRE : domicile 05 ; à scinder si nécessaire (types secondaires : REGLE)
+S01-0010	01	3	Création et composition	22	REGLE	COMPOSITION	DÉPLACER	10 – Règles fonctionnelles et calculs	4 Composition	6F4	DOC			HORS-DOMICILE MELANGE DOUBLON RENVOI-ABSENT SANS-ID	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : CALCUL+PERIMETRE)
+S01-0011	01	3	Planification et calendrier	4	PERIMETRE	PLANIFICATION	DÉPLACER	05 – Versions et périmètre	10 Planification	6F4	DOC			RENVOI-ABSENT	R4	type PERIMETRE : domicile 05 ; à scinder si nécessaire (types secondaires : REGLE)
+S01-0012	01	3	Exécution guidée	6	REGLE	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F4	DOC			RENVOI-ABSENT SANS-ID	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : PERIMETRE)
+S01-0013	01	3	Suivi	6	REGLE	SUIVI	DÉPLACER	10 – Règles fonctionnelles et calculs	11 Suivi et synthèse	6F4	DOC			RENVOI-ABSENT SANS-ID	R4	type REGLE : domicile 10
+S01-0014	01	3	Profil et Préférences	6	PERIMETRE	PROFIL	DÉPLACER	05 – Versions et périmètre	12 Profil et préférences	6F4	DOC (divergences conservées, G3)		S13-0973 S04-0147	RENVOI-ABSENT SANS-ID	R4	type PERIMETRE : domicile 05 ; à scinder si nécessaire (types secondaires : REGLE)
+S01-0015	01	2	Principes d’expérience	11	CONVENTION-UI	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC			HORS-DOMICILE SANS-ID	R4	type CONVENTION-UI : domicile 14 ; à scinder si nécessaire (types secondaires : VISION)
+S01-0016	01	2	Ambition après le MVP	15	VISION	TRANSVERSE-PRODUIT	CONSERVER	01 – Vision et glossaire	0 Produit	—	DOC				R4	
+S01-0017	01	2	Cible fonctionnelle confirmée	2	CONTENEUR	TRANSVERSE-PRODUIT	CONSERVER	01 – Vision et glossaire	0 Produit	—	DOC				R4	
+S01-0018	01	3	Catalogue multi-type	4	PERIMETRE	MULTI	DÉPLACER	05 – Versions et périmètre	18 Multi-domaines	6F4	DOC			AUTRE:titre-cible-pour-contenu-MVP RENVOI-ABSENT	R4	type PERIMETRE : domicile 05 ; à scinder si nécessaire (types secondaires : NAVIGATION)
+S01-0019	01	3	Catalogue des exercices — MVP T03	8	PERIMETRE	EXERCICE	DÉPLACER	05 – Versions et périmètre	2 Exercices	6F4	DOC			DOUBLON RENVOI-ABSENT	R4	type PERIMETRE : domicile 05 ; à scinder si nécessaire (types secondaires : REGLE)
+S01-0020	01	3	Parcours — post-MVP	4	HISTORIQUE	PLANIFICATION	ARCHIVER	Annexe – Historique des consolidations	10 Planification	6F5	DOC			DOUBLON AUTRE:titre-contredit-contenu	R3	historique non normatif : annexe, texte conservé ; à scinder si nécessaire (types secondaires : PERIMETRE)
+S01-0021	01	2	Vision de la bilatéralité	4	CONCEPT	BILATERALITE	CONSERVER	01 – Vision et glossaire	7 Bilatéralité	—	DOC			RENVOI-ABSENT	R4	
+S01-0022	01	2	Vision cible — médias pendant l’Exécution	6	PERIMETRE	MEDIA-EXEC	DÉPLACER	05 – Versions et périmètre	9 Médias pendant l’Exécution	6F4	DOC (divergences conservées, G3)		S04-0159	AUTRE:titre-cible-pour-contenu-MVP	R4	type PERIMETRE : domicile 05 ; à scinder si nécessaire (types secondaires : COMPORTEMENT)
+S01-0023	01	3	Cible de planification commune	4	REGLE	PLANIFICATION	DÉPLACER	10 – Règles fonctionnelles et calculs	10 Planification	6F4	DOC			AUTRE:H3-rattache-a-la-section-medias RENVOI-ABSENT	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : CONCEPT)
+S01-0024	01	2	Concepts de composition	6	CONCEPT	COMPOSITION	INTÉGRER	01 – Vision et glossaire	4 Composition	6E	DOC			MELANGE DOUBLON ALIAS RENVOI-ABSENT	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : REGLE+HISTORIQUE)
+S01-0025	01	3	Saisie des paramètres — D-246	4	META	PARAMETRES	RENVOI	10 – Règles fonctionnelles et calculs	3 Paramètres d’exécution	6D	DOC	S10-0746		DOUBLON ALIAS AUTRE:titre-porte-un-numero-de-decision	R2	copie intégrale (≥ 0,9) de S10-0746 « Saisie des paramètres — D-246 » ; remplacée par un renvoi
+S01-0026	01	2	Cadence facultative — cible documentaire	4	PERIMETRE	PARAMETRES	DÉPLACER	05 – Versions et périmètre	3 Paramètres d’exécution	6F4	DOC			HORS-DOMICILE MELANGE AUTRE:titre-cible-pour-contenu-MVP	R4	type PERIMETRE : domicile 05 ; à scinder si nécessaire (types secondaires : REGLE)
+S01-0027	01	2	Conception de planification du 08/10/2026	6	PARCOURS	PLANIFICATION	DÉPLACER	03 – Parcours utilisateur	10 Planification	6F4	DOC			TITRE-DATE DOUBLON HORS-DOMICILE	R4	type PARCOURS : domicile 03 ; à scinder si nécessaire (types secondaires : PERIMETRE)
+S01-0028	01	2	Formats et création rapide	6	PERIMETRE	FORMAT	DÉPLACER	05 – Versions et périmètre	6 Formats	6F4	DOC			RENVOI-ABSENT	R4	type PERIMETRE : domicile 05 ; à scinder si nécessaire (types secondaires : VISION)
+S01-0029	01	2	Glossaire	264	CONCEPT	MULTI	INTÉGRER	01 – Vision et glossaire	18 Multi-domaines	6E	DOC (divergences conservées, G3)		S09-0616 S09-0626 S04-0140 S04-0145 S04-0147 S04-0150 S04-0157	TITRE-NUM TITRE-DATE MELANGE HORS-DOMICILE DOUBLON TABLEAU-COUPE ALIAS SANS-ID AUTRE:264-lignes-en-H4-non-inventoriees	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : REGLE+CALCUL+RENDU+DECISION+HISTORIQUE)
+S02-0030	02	1	Utilisateurs et besoins	2	CONTENEUR	TRANSVERSE-PRODUIT	CONSERVER	02 – Utilisateurs et besoins	0 Produit	—	DOC				R4	
+S02-0031	02	2	Objectif du chapitre	4	META	GOUVERNANCE	CONSERVER	02 – Utilisateurs et besoins	0 Gouvernance	—	DOC				R4	
+S02-0032	02	2	1. Utilisateur individuel — cible du MVP	2	CONTENEUR	TRANSVERSE-PRODUIT	CONSERVER	02 – Utilisateurs et besoins	0 Produit	—	DOC				R4	
+S02-0033	02	3	Profil	10	BESOIN	TRANSVERSE-PRODUIT	CONSERVER	02 – Utilisateurs et besoins	0 Produit	—	DOC				R4	
+S02-0034	02	3	Problèmes rencontrés	10	VISION	TRANSVERSE-PRODUIT	DÉPLACER	01 – Vision et glossaire	0 Produit	6F4	DOC				R4	type VISION : domicile 01 ; à scinder si nécessaire (types secondaires : BESOIN)
+S02-0035	02	3	Besoins couverts dans le MVP	70	BESOIN	MULTI	CONSERVER	02 – Utilisateurs et besoins	18 Multi-domaines	—	DOC			MELANGE SANS-ID RENVOI-ABSENT AUTRE:sous-sections-H4-non-inventoriees	R4	
+S02-0036	02	2	2. Utilisateur accompagné — pris en compte pour l’évolution	2	CONTENEUR	TRANSVERSE-PRODUIT	CONSERVER	02 – Utilisateurs et besoins	0 Produit	—	DOC				R4	
+S02-0037	02	3	Profil	4	BESOIN	TRANSVERSE-PRODUIT	CONSERVER	02 – Utilisateurs et besoins	0 Produit	—	DOC				R4	
+S02-0038	02	3	Besoins futurs	9	BESOIN	PARCOURS-HORS-MVP	CONSERVER	02 – Utilisateurs et besoins	16 Hors MVP	—	DOC			SANS-ID	R4	
+S02-0039	02	2	3. Professionnel — profil post-MVP	2	CONTENEUR	TRANSVERSE-PRODUIT	CONSERVER	02 – Utilisateurs et besoins	0 Produit	—	DOC				R4	
+S02-0040	02	3	Profil	4	BESOIN	TRANSVERSE-PRODUIT	CONSERVER	02 – Utilisateurs et besoins	0 Produit	—	DOC				R4	
+S02-0041	02	3	Besoins futurs	11	BESOIN	PARCOURS-HORS-MVP	CONSERVER	02 – Utilisateurs et besoins	16 Hors MVP	—	DOC			SANS-ID	R4	
+S02-0042	02	2	4. Groupe et partage — périmètre post-MVP	13	BESOIN	PARCOURS-HORS-MVP	CONSERVER	02 – Utilisateurs et besoins	16 Hors MVP	—	DOC			SANS-ID	R4	
+S02-0043	02	2	5. Besoins transverses	12	BESOIN	TRANSVERSE-PRODUIT	CONSERVER	02 – Utilisateurs et besoins	0 Produit	—	DOC			SANS-ID AUTRE:terme-repete	R4	
+S02-0044	02	2	6. Critère de réussite du MVP	13	BESOIN	TRANSVERSE-PRODUIT	CONSERVER	02 – Utilisateurs et besoins	0 Produit	—	DOC			MELANGE AUTRE:question-ouverte-inseree	R4	
+S02-0045	02	2	7. Questions reportées après le MVP	9	PERIMETRE	TRANSVERSE-PRODUIT	CONSERVER	02 – Utilisateurs et besoins	0 Produit	—	DOC				R4	
+S02-0046	02	2	8. Besoins validés pour les évolutions	13	BESOIN	MULTI	CONSERVER	02 – Utilisateurs et besoins	18 Multi-domaines	—	DOC		S04-0157 S04-0144	DOUBLON MELANGE SANS-ID	R4	
+S02-0047	02	2	9. Besoins MVP T03 — Catalogue des Exercices et Exécution directe	16	BESOIN	EXERCICE	CONSERVER	02 – Utilisateurs et besoins	2 Exercices	—	DOC			SANS-ID	R4	
+S02-0048	02	2	Besoin cible — consulter un média sans perdre l’Exécution	19	BESOIN	MULTI	CONSERVER	02 – Utilisateurs et besoins	18 Multi-domaines	—	DOC			MELANGE HORS-DOMICILE DOUBLON AUTRE:sous-sections-H4-sans-rapport	R4	
+S02-0049	02	2	Besoins consolidés — 26 septembre 2026	4	BESOIN	MULTI	INTÉGRER	02 – Utilisateurs et besoins	18 Multi-domaines	6E	DOC			TITRE-DATE DOUBLON HORS-DOMICILE SANS-ID	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : REGLE)
+S02-0050	02	2	Paramètres d’exécution — complément du02/10/2026	4	PARCOURS	PARAMETRES	DÉPLACER	03 – Parcours utilisateur	3 Paramètres d’exécution	6F4	DOC			TITRE-DATE DOUBLON HORS-DOMICILE ALIAS AUTRE:espace-manquant-du02	R4	type PARCOURS : domicile 03 ; à scinder si nécessaire (types secondaires : REGLE)
+S02-0051	02	2	Besoin de rythme reproductible	4	BESOIN	PARAMETRES	INTÉGRER	02 – Utilisateurs et besoins	3 Paramètres d’exécution	6E	DOC			SANS-ID	R4	complément empilé : à placer dans la rubrique thématique
+S02-0052	02	2	Conception de planification du 08/10/2026	6	PARCOURS	PLANIFICATION	RENVOI	03 – Parcours utilisateur	10 Planification	6D	DOC	S01-0027		TITRE-DATE DOUBLON HORS-DOMICILE	R2	copie intégrale (≥ 0,9) de S01-0027 « Conception de planification du 08/10/2026 » ; remplacée par un renvoi
+S02-0053	02	2	Besoins couverts par les formats	4	BESOIN	FORMAT	INTÉGRER	02 – Utilisateurs et besoins	6 Formats	6E	DOC			SANS-ID	R4	complément empilé : à placer dans la rubrique thématique
+S03-0054	03	1	Objectif de cette note	7	META	GOUVERNANCE	CONSERVER	03 – Parcours utilisateur	0 Gouvernance	—	DOC			MELANGE AUTRE:H1-sans-titre-de-chapitre	R4	
+S03-0055	03	1	Synthèse des parcours du MVP	2	CONTENEUR	TRANSVERSE-PRODUIT	CONSERVER	03 – Parcours utilisateur	0 Produit	—	DOC				R4	
+S03-0056	03	2	Objectif	15	PERIMETRE	TRANSVERSE-PRODUIT	CONSERVER	03 – Parcours utilisateur	0 Produit	—	DOC				R4	
+S03-0057	03	2	Parcours de référence	12	PERIMETRE	TRANSVERSE-PRODUIT	CONSERVER	03 – Parcours utilisateur	0 Produit	—	DOC				R4	
+S03-0058	03	2	Principes communs	10	REGLE	PLANIFICATION	DÉPLACER	10 – Règles fonctionnelles et calculs	10 Planification	6F4	DOC			HORS-DOMICILE SANS-ID RENVOI-ABSENT	R4	type REGLE : domicile 10
+S03-0059	03	2	Limites du MVP	12	PERIMETRE	TRANSVERSE-PRODUIT	CONSERVER	03 – Parcours utilisateur	0 Produit	—	DOC				R4	
+S03-0060	03	1	Gestion des référentiels utilisateur	7	CONCEPT	REFERENTIELS	DÉPLACER	04 – Modèle fonctionnel	13 Référentiels	6F4	DOC			AUTRE:annonce-deux-natures-puis-liste-trois	R4	type CONCEPT : domicile 04
+S03-0061	03	2	Gestion des Étiquettes et des Catégories	7	CONCEPT	REFERENTIELS	DÉPLACER	04 – Modèle fonctionnel	13 Référentiels	6F4	DOC			DOUBLON	R4	type CONCEPT : domicile 04 ; à scinder si nécessaire (types secondaires : REGLE)
+S03-0062	03	3	Parcours	10	PARCOURS	REFERENTIELS	CONSERVER	03 – Parcours utilisateur	13 Référentiels	—	DOC			MELANGE SANS-ID	R4	
+S03-0063	03	2	Référentiel des zones corporelles	7	CONCEPT	REFERENTIELS	DÉPLACER	04 – Modèle fonctionnel	13 Référentiels	6F4	DOC				R4	type CONCEPT : domicile 04 ; à scinder si nécessaire (types secondaires : REGLE)
+S03-0064	03	1	Parcours principal — Créer et exécuter une séance	4	PARCOURS	SEANCE	CONSERVER	03 – Parcours utilisateur	1 Séances	—	DOC				R4	
+S03-0065	03	2	Objectif du parcours	5	PARCOURS	SEANCE	CONSERVER	03 – Parcours utilisateur	1 Séances	—	DOC				R4	
+S03-0066	03	2	Situation de départ	5	PARCOURS	SEANCE	CONSERVER	03 – Parcours utilisateur	1 Séances	—	DOC				R4	
+S03-0067	03	2	Parcours	2	CONTENEUR	SEANCE	CONSERVER	03 – Parcours utilisateur	1 Séances	—	DOC				R4	
+S03-0068	03	3	1. Créer une séance	13	PARCOURS	COMPOSITION	INTÉGRER	03 – Parcours utilisateur	4 Composition	6E	DOC (divergences conservées, G3)		S10-0796 S08-0442	MELANGE RENVOI-ABSENT SANS-ID	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : REGLE+CALCUL)
+S03-0069	03	3	2. Réorganiser une séance	15	PARCOURS	COMPOSITION	CONSERVER	03 – Parcours utilisateur	4 Composition	—	DOC			MELANGE SANS-ID	R4	
+S03-0070	03	3	3. Démarrer une séance	4	PARCOURS	EXECUTION	CONSERVER	03 – Parcours utilisateur	8 Exécution	—	DOC				R4	
+S03-0071	03	3	4. Exécuter une séance	10	PARCOURS	EXECUTION	CONSERVER	03 – Parcours utilisateur	8 Exécution	—	DOC				R4	
+S03-0072	03	3	5. Terminer une séance	4	PARCOURS	SUIVI	CONSERVER	03 – Parcours utilisateur	11 Suivi et synthèse	—	DOC				R4	
+S03-0073	03	3	6. Consulter l'historique	4	PARCOURS	SUIVI	CONSERVER	03 – Parcours utilisateur	11 Suivi et synthèse	—	DOC			TITRE-NUM	R4	
+S03-0074	03	3	8. Modifier une séance	5	PARCOURS	SEANCE	CONSERVER	03 – Parcours utilisateur	1 Séances	—	DOC			TITRE-NUM	R4	
+S03-0075	03	2	Points d'attention	6	REGLE	SEANCE	DÉPLACER	10 – Règles fonctionnelles et calculs	1 Séances	6F4	DOC			SANS-ID	R4	type REGLE : domicile 10
+S03-0076	03	2	Résultat attendu	4	PARCOURS	SEANCE	CONSERVER	03 – Parcours utilisateur	1 Séances	—	DOC				R4	
+S03-0077	03	1	Parcours complémentaire 1 — Créer une séance à partir d'une référence	2	CONTENEUR	SEANCE	CONSERVER	03 – Parcours utilisateur	1 Séances	—	DOC				R4	
+S03-0078	03	2	Objectif du parcours	3	PARCOURS	SEANCE	CONSERVER	03 – Parcours utilisateur	1 Séances	—	DOC				R4	
+S03-0079	03	2	Situation de départ	4	PARCOURS	SEANCE	CONSERVER	03 – Parcours utilisateur	1 Séances	—	DOC				R4	
+S03-0080	03	2	Parcours	9	PARCOURS	SEANCE	CONSERVER	03 – Parcours utilisateur	1 Séances	—	DOC		S08-0444		R4	
+S03-0081	03	2	Points d'attention	5	REGLE	SEANCE	DÉPLACER	10 – Règles fonctionnelles et calculs	1 Séances	6F4	DOC			SANS-ID	R4	type REGLE : domicile 10
+S03-0082	03	2	Résultat attendu	3	PARCOURS	SEANCE	CONSERVER	03 – Parcours utilisateur	1 Séances	—	DOC				R4	
+S03-0083	03	1	Parcours complémentaire 2 — Gérer les routines	2	CONTENEUR	PLANIFICATION	CONSERVER	03 – Parcours utilisateur	10 Planification	—	DOC				R4	
+S03-0084	03	2	Objectif du parcours	3	PARCOURS	PLANIFICATION	CONSERVER	03 – Parcours utilisateur	10 Planification	—	DOC				R4	
+S03-0085	03	2	Situation de départ	4	PARCOURS	PLANIFICATION	CONSERVER	03 – Parcours utilisateur	10 Planification	—	DOC				R4	
+S03-0086	03	2	Parcours	2	CONTENEUR	PLANIFICATION	CONSERVER	03 – Parcours utilisateur	10 Planification	—	DOC				R4	
+S03-0087	03	3	Créer une routine	11	PARCOURS	PLANIFICATION	CONSERVER	03 – Parcours utilisateur	10 Planification	—	DOC				R4	
+S03-0088	03	3	Modifier une routine	8	PARCOURS	PLANIFICATION	CONSERVER	03 – Parcours utilisateur	10 Planification	—	DOC				R4	
+S03-0089	03	3	Supprimer une routine	9	PARCOURS	PLANIFICATION	CONSERVER	03 – Parcours utilisateur	10 Planification	—	DOC			AUTRE:phrase-repetee	R4	
+S03-0090	03	1	Parcours complémentaire 3 — Archiver puis supprimer une Séance	11	PARCOURS	SEANCE	CONSERVER	03 – Parcours utilisateur	1 Séances	—	DOC			TITRE-NUM	R4	
+S03-0091	03	2	Points d'attention	7	REGLE	SEANCE	DÉPLACER	10 – Règles fonctionnelles et calculs	1 Séances	6F4	DOC			DOUBLON AUTRE:points-du-parcours-routines	R4	type REGLE : domicile 10
+S03-0092	03	2	Résultat attendu	4	PARCOURS	PLANIFICATION	CONSERVER	03 – Parcours utilisateur	10 Planification	—	DOC			AUTRE:resultat-du-parcours-routines	R4	
+S03-0093	03	1	Parcours complémentaire 3 — Gérer une séance interrompue ou partiellement réalisée	2	CONTENEUR	EXECUTION	CONSERVER	03 – Parcours utilisateur	8 Exécution	—	DOC			TITRE-NUM	R4	
+S03-0094	03	2	Situation de départ	4	PARCOURS	EXECUTION	CONSERVER	03 – Parcours utilisateur	8 Exécution	—	DOC				R4	
+S03-0095	03	2	Parcours	24	PARCOURS	EXECUTION	CONSERVER	03 – Parcours utilisateur	8 Exécution	—	DOC		S08-0533	MELANGE SANS-ID RENVOI-ABSENT	R4	
+S03-0096	03	2	Points d'attention	11	REGLE	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F4	DOC			SANS-ID	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : PERIMETRE)
+S03-0097	03	2	Résultat attendu	4	PARCOURS	SUIVI	CONSERVER	03 – Parcours utilisateur	11 Suivi et synthèse	—	DOC				R4	
+S03-0098	03	1	Parcours complémentaire 4 — Consulter le suivi des séances	2	CONTENEUR	SUIVI	CONSERVER	03 – Parcours utilisateur	11 Suivi et synthèse	—	DOC				R4	
+S03-0099	03	2	Objectif du parcours	3	PARCOURS	SUIVI	CONSERVER	03 – Parcours utilisateur	11 Suivi et synthèse	—	DOC				R4	
+S03-0100	03	2	Situation de départ	4	PARCOURS	SUIVI	CONSERVER	03 – Parcours utilisateur	11 Suivi et synthèse	—	DOC				R4	
+S03-0101	03	2	Parcours	10	PARCOURS	SUIVI	CONSERVER	03 – Parcours utilisateur	11 Suivi et synthèse	—	DOC		S10-0739		R4	
+S03-0102	03	2	Points d'attention	6	REGLE	SUIVI	DÉPLACER	10 – Règles fonctionnelles et calculs	11 Suivi et synthèse	6F4	DOC			SANS-ID	R4	type REGLE : domicile 10
+S03-0103	03	2	Résultat attendu	4	PARCOURS	SUIVI	CONSERVER	03 – Parcours utilisateur	11 Suivi et synthèse	—	DOC				R4	
+S03-0104	03	1	Parcours MVP T03 — Catalogue des Exercices	2	CONTENEUR	EXERCICE	CONSERVER	03 – Parcours utilisateur	2 Exercices	—	DOC				R4	
+S03-0105	03	2	Accéder au Catalogue des Exercices	10	PARCOURS	EXERCICE	CONSERVER	03 – Parcours utilisateur	2 Exercices	—	DOC		S08-0451	SANS-ID	R4	
+S03-0106	03	2	Créer un contenu depuis le Catalogue	10	PARCOURS	EXERCICE	CONSERVER	03 – Parcours utilisateur	2 Exercices	—	DOC			AUTRE:liste-numerotee-melangeant-etapes-et-regles	R4	
+S03-0107	03	2	Créer ou modifier un Exercice	20	PARCOURS	EXERCICE	CONSERVER	03 – Parcours utilisateur	2 Exercices	—	DOC		S08-0452		R4	
+S03-0108	03	3	Déroulement d’un Exercice	4	REGLE	PARAMETRES	DÉPLACER	10 – Règles fonctionnelles et calculs	3 Paramètres d’exécution	6F4	DOC (divergences conservées, G3)		S04-0151 S10-0733	HORS-DOMICILE RENVOI-ABSENT	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : CALCUL)
+S03-0109	03	2	Ajouter un Exercice depuis une Composition	10	PARCOURS	COMPOSITION	CONSERVER	03 – Parcours utilisateur	4 Composition	—	DOC			DOUBLON	R4	
+S03-0110	03	2	Utiliser un Exercice de référence	10	PARCOURS	EXERCICE	CONSERVER	03 – Parcours utilisateur	2 Exercices	—	DOC			DOUBLON	R4	
+S03-0111	03	2	Exécuter un Exercice À l’échec — MVP	4	PARCOURS	EXECUTION	CONSERVER	03 – Parcours utilisateur	8 Exécution	—	DOC			ALIAS RENVOI-ABSENT	R4	
+S03-0112	03	2	Créer et exécuter un Parcours — hors MVP, conception partielle	4	HISTORIQUE	PLANIFICATION	RENVOI	Annexe – Historique des consolidations	10 Planification	6D	DOC	S01-0020		DOUBLON AUTRE:titre-contredit-contenu	R2	copie intégrale (≥ 0,9) de S01-0020 « Parcours — post-MVP » ; remplacée par un renvoi
+S03-0113	03	2	Parcours bilatéral	9	PARCOURS	BILATERALITE	CONSERVER	03 – Parcours utilisateur	7 Bilatéralité	—	DOC		S04-0166	SANS-ID	R4	
+S03-0114	03	2	Exécuter directement un Exercice — MVP T03	11	PARCOURS	EXECUTION	CONSERVER	03 – Parcours utilisateur	8 Exécution	—	DOC				R4	
+S03-0115	03	2	Consulter ou modifier un Exercice depuis le Catalogue — MVP T03	9	PARCOURS	EXERCICE	CONSERVER	03 – Parcours utilisateur	2 Exercices	—	DOC		S10-0742		R4	
+S03-0116	03	2	Ajouter plusieurs Exercices existants à une Composition — MVP T03	11	PARCOURS	COMPOSITION	CONSERVER	03 – Parcours utilisateur	4 Composition	—	DOC			DOUBLON	R4	
+S03-0117	03	1	Parcours prévus pour une phase ultérieure	3	PERIMETRE	PARCOURS-HORS-MVP	CONSERVER	03 – Parcours utilisateur	16 Hors MVP	—	DOC				R4	
+S03-0118	03	2	Collaboration	8	PERIMETRE	PARCOURS-HORS-MVP	CONSERVER	03 – Parcours utilisateur	16 Hors MVP	—	DOC				R4	
+S03-0119	03	2	Professionnels de santé et coachs	7	PERIMETRE	PARCOURS-HORS-MVP	CONSERVER	03 – Parcours utilisateur	16 Hors MVP	—	DOC				R4	
+S03-0120	03	2	Synchronisation	7	PERIMETRE	PARCOURS-HORS-MVP	CONSERVER	03 – Parcours utilisateur	16 Hors MVP	—	DOC				R4	
+S03-0121	03	2	Intelligence artificielle	7	PERIMETRE	PARCOURS-HORS-MVP	CONSERVER	03 – Parcours utilisateur	16 Hors MVP	—	DOC				R4	
+S03-0122	03	2	Bibliothèque de contenus	6	PERIMETRE	PARCOURS-HORS-MVP	CONSERVER	03 – Parcours utilisateur	16 Hors MVP	—	DOC				R4	
+S03-0123	03	2	Statistiques avancées	7	PERIMETRE	PARCOURS-HORS-MVP	CONSERVER	03 – Parcours utilisateur	16 Hors MVP	—	DOC				R4	
+S03-0124	03	2	Consulter les médias pendant l’Exécution — MVP	15	PARCOURS	MEDIA-EXEC	INTÉGRER	03 – Parcours utilisateur	9 Médias pendant l’Exécution	6E	DOC			HORS-DOMICILE AUTRE:section-MVP-sous-H1-phase-ulterieure	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : REGLE)
+S03-0125	03	2	Planifier un Parcours — cible future	4	HISTORIQUE	PLANIFICATION	RENVOI	Annexe – Historique des consolidations	10 Planification	6D	DOC	S01-0020		DOUBLON AUTRE:titre-contredit-contenu	R2	copie intégrale (≥ 0,9) de S01-0020 « Parcours — post-MVP » ; remplacée par un renvoi
+S03-0126	03	2	Parcours consolidés — 26 septembre 2026	4	PARCOURS	MULTI	INTÉGRER	03 – Parcours utilisateur	18 Multi-domaines	6E	DOC			TITRE-DATE HORS-DOMICILE SANS-ID	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : REGLE)
+S03-0127	03	3	Clôture de parcours Figma — 28 septembre 2026	4	DECISION	TRANSVERSE-UI	INTÉGRER	03 – Parcours utilisateur	15 Interface transverse	6E	DOC			TITRE-DATE HORS-DOMICILE	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : REGLE)
+S03-0128	03	2	Parcours visuels des cartes — 30 septembre 2026	12	RENDU	TRANSVERSE-UI	RENVOI	14 – Conventions d’interface	15 Interface transverse	6D	DOC	S12-0925		TITRE-DATE HORS-DOMICILE DOUBLON MELANGE	R2	copie intégrale (≥ 0,9) de S12-0925 « DSF courant — Cartes, icônes et animations d’appui » ; remplacée par un renvoi
+S03-0129	03	2	Paramètres d’exécution — complément du02/10/2026	4	PARCOURS	PARAMETRES	RENVOI	03 – Parcours utilisateur	3 Paramètres d’exécution	6D	DOC	S02-0050		TITRE-DATE DOUBLON ALIAS AUTRE:espace-manquant-du02	R2	copie intégrale (≥ 0,9) de S02-0050 « Paramètres d’exécution — complément du02/10/2026 » ; remplacée par un renvoi
+S03-0130	03	2	Parcours Répétitions avec cadence	6	PARCOURS	PARAMETRES	INTÉGRER	03 – Parcours utilisateur	3 Paramètres d’exécution	6E	DOC			MELANGE SANS-ID	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : REGLE)
+S03-0131	03	2	Pauses et symboles	4	PARCOURS	COMPOSITION	INTÉGRER	03 – Parcours utilisateur	4 Composition	6E	DOC			AUTRE:titre-identique-dans-6-chapitres	R4	complément empilé : à placer dans la rubrique thématique
+S03-0132	03	2	Conception de planification du 08/10/2026	4	PARCOURS	PLANIFICATION	RENVOI	03 – Parcours utilisateur	10 Planification	6D	DOC	S01-0027		TITRE-DATE DOUBLON	R2	copie intégrale (≥ 0,9) de S01-0027 « Conception de planification du 08/10/2026 » ; remplacée par un renvoi
+S03-0133	03	2	Ajouter des médias à un Exercice — MVP PRE-3	6	PARCOURS	EXERCICE	INTÉGRER	03 – Parcours utilisateur	2 Exercices	6E	DOC			MELANGE SANS-ID	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : REGLE)
+S03-0134	03	2	Formats et départs rapides — parcours	11	PARCOURS	FORMAT	INTÉGRER	03 – Parcours utilisateur	6 Formats	6E	DOC				R4	complément empilé : à placer dans la rubrique thématique
+S04-0135	04	1	4.1 Objectif	8	META	GOUVERNANCE	CONSERVER	04 – Modèle fonctionnel	0 Gouvernance	—	DOC				R4	
+S04-0136	04	1	4.2 Principes de conception	11	VISION	TRANSVERSE-PRODUIT	DÉPLACER	01 – Vision et glossaire	0 Produit	6F4	DOC				R4	type VISION : domicile 01
+S04-0137	04	1	4.3 Concepts métier	2	CONTENEUR	TRANSVERSE-PRODUIT	CONSERVER	04 – Modèle fonctionnel	0 Produit	—	DOC				R4	
+S04-0138	04	2	Classification active	6	CONCEPT	REFERENTIELS	CONSERVER	04 – Modèle fonctionnel	13 Référentiels	—	DOC			MELANGE AUTRE:introduction-de-4.3-sous-classification	R4	
+S04-0139	04	2	Utilisateur	14	CONCEPT	TRANSVERSE-PRODUIT	CONSERVER	04 – Modèle fonctionnel	0 Produit	—	DOC				R4	
+S04-0140	04	2	Séance	28	CONCEPT	SEANCE	CONSERVER	04 – Modèle fonctionnel	1 Séances	—	DOC		S01-0029		R4	
+S04-0141	04	2	Cycle	4	CONCEPT	COMPOSITION	CONSERVER	04 – Modèle fonctionnel	4 Composition	—	DOC				R4	
+S04-0142	04	2	Circuit et Tour	4	CONCEPT	CIRCUIT	CONSERVER	04 – Modèle fonctionnel	5 Circuits	—	DOC				R4	
+S04-0143	04	2	Exercice	28	CONCEPT	EXERCICE	CONSERVER	04 – Modèle fonctionnel	2 Exercices	—	DOC		S04-0150	MELANGE DOUBLON HORS-DOMICILE	R4	
+S04-0144	04	3	Exercice de référence et Exercice de Séance	10	CONCEPT	EXERCICE	CONSERVER	04 – Modèle fonctionnel	2 Exercices	—	DOC		S01-0029		R4	
+S04-0145	04	2	Routine	12	CONCEPT	PLANIFICATION	CONSERVER	04 – Modèle fonctionnel	10 Planification	—	DOC		S01-0029	MELANGE HORS-DOMICILE	R4	
+S04-0146	04	2	Exécution	11	CONCEPT	EXECUTION	CONSERVER	04 – Modèle fonctionnel	8 Exécution	—	DOC		S09-0631		R4	
+S04-0147	04	2	Préférences globales	22	CONCEPT	PROFIL	CONSERVER	04 – Modèle fonctionnel	12 Profil et préférences	—	DOC		S10-0740 S01-0014 S13-0973		R4	
+S04-0148	04	2	Référentiels utilisateur	9	CONCEPT	REFERENTIELS	CONSERVER	04 – Modèle fonctionnel	13 Référentiels	—	DOC				R4	
+S04-0149	04	1	4.4 Structure d'une séance	61	CONCEPT	COMPOSITION	CONSERVER	04 – Modèle fonctionnel	4 Composition	—	DOC			MELANGE HORS-DOMICILE	R4	
+S04-0150	04	1	4.5 Structure d'un Exercice	30	CONCEPT	EXERCICE	CONSERVER	04 – Modèle fonctionnel	2 Exercices	—	DOC		S04-0143 S01-0029	DOUBLON AUTRE:representation-annoncee-absente	R4	
+S04-0151	04	1	4.6 Déroulement d’un Exercice	8	REGLE	PARAMETRES	DÉPLACER	10 – Règles fonctionnelles et calculs	3 Paramètres d’exécution	6F4	DOC (divergences conservées, G3)		S03-0108	DOUBLON	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : CALCUL)
+S04-0152	04	1	4.7 Déroulement d'une séance	12	COMPORTEMENT	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F4	DOC				R4	type COMPORTEMENT : domicile 10
+S04-0153	04	1	4.8 Guidage de l'utilisateur	19	COMPORTEMENT	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F4	DOC			SANS-ID	R4	type COMPORTEMENT : domicile 10 ; à scinder si nécessaire (types secondaires : REGLE)
+S04-0154	04	1	4.9 Historisation	10	REGLE	SUIVI	DÉPLACER	10 – Règles fonctionnelles et calculs	11 Suivi et synthèse	6F4	DOC			SANS-ID	R4	type REGLE : domicile 10
+S04-0155	04	1	4.10 Périmètre du MVP	30	PERIMETRE	TRANSVERSE-PRODUIT	DÉPLACER	05 – Versions et périmètre	0 Produit	6F4	DOC (divergences conservées, G3)		S05-0187	HORS-DOMICILE	R4	type PERIMETRE : domicile 05
+S04-0156	04	1	4.11 Extension validée du modèle	12	CONCEPT	EXERCICE	CONSERVER	04 – Modèle fonctionnel	2 Exercices	—	DOC		S08-0454		R4	
+S04-0157	04	2	Modèle fonctionnel de bilatéralité	8	CONCEPT	BILATERALITE	CONSERVER	04 – Modèle fonctionnel	7 Bilatéralité	—	DOC		S01-0029 S02-0046	HORS-DOMICILE MELANGE	R4	
+S04-0158	04	2	Exécution directe d’un Exercice — MVP T03	6	CONCEPT	EXECUTION	CONSERVER	04 – Modèle fonctionnel	8 Exécution	—	DOC		S08-0454 S10-0743		R4	
+S04-0159	04	2	Modèle cible — média pendant l’Exécution	11	CONCEPT	MEDIA-EXEC	CONSERVER	04 – Modèle fonctionnel	9 Médias pendant l’Exécution	—	DOC		S10-0743 S05-0195 S01-0022	AUTRE:statut-post-MVP-perime	R4	
+S04-0160	04	2	Extension du contenu planifiable — Parcours	4	HISTORIQUE	PLANIFICATION	RENVOI	Annexe – Historique des consolidations	10 Planification	6D	DOC	S01-0020		DOUBLON AUTRE:titre-contredit-contenu	R2	copie intégrale (≥ 0,9) de S01-0020 « Parcours — post-MVP » ; remplacée par un renvoi
+S04-0161	04	3	Récupération après exercice portée par l’occurrence	4	REGLE	COMPOSITION	DÉPLACER	10 – Règles fonctionnelles et calculs	4 Composition	6F4	DOC (divergences conservées, G3)		S04-0168 S09-0714	AUTRE:H3-rattache-a-la-section-Parcours	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : DONNEE)
+S04-0162	04	2	Consolidation du modèle — D-209 à D-217	10	REGLE	MULTI	DÉPLACER	10 – Règles fonctionnelles et calculs	18 Multi-domaines	6F4	DOC			DOUBLON SANS-ID AUTRE:titre-plage-de-decisions	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : CONCEPT)
+S04-0163	04	3	Phrase de synthèse des paramètres d’exécution	6	REGLE	PARAMETRES	DÉPLACER	10 – Règles fonctionnelles et calculs	3 Paramètres d’exécution	6F4	DOC			MELANGE ALIAS HORS-DOMICILE	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : CALCUL+CONVENTION-UI)
+S04-0164	04	2	Présentation des objets — 30 septembre 2026	14	RENDU	TRANSVERSE-UI	RENVOI	14 – Conventions d’interface	15 Interface transverse	6D	DOC	S12-0925		TITRE-DATE HORS-DOMICILE DOUBLON MELANGE	R2	copie intégrale (≥ 0,9) de S12-0925 « DSF courant — Cartes, icônes et animations d’appui » ; remplacée par un renvoi
+S04-0165	04	3	Saisie des paramètres — D-246	4	META	PARAMETRES	RENVOI	10 – Règles fonctionnelles et calculs	3 Paramètres d’exécution	6D	DOC	S10-0746		DOUBLON ALIAS AUTRE:titre-porte-un-numero-de-decision	R2	copie intégrale (≥ 0,9) de S10-0746 « Saisie des paramètres — D-246 » ; remplacée par un renvoi
+S04-0166	04	2	Paramètres de Série et Ordre des côtés — D-247 à D-254	6	DONNEE	PARAMETRES	DÉPLACER	09 – Modèle de données	3 Paramètres d’exécution	6F4	DOC			DOUBLON AUTRE:titre-plage-de-decisions AUTRE:renvoi-tronque	R4	type DONNEE : domicile 09 ; à scinder si nécessaire (types secondaires : REGLE)
+S04-0167	04	2	Extension Cadence du modèle de Série	6	DONNEE	PARAMETRES	DÉPLACER	09 – Modèle de données	3 Paramètres d’exécution	6F4	DOC			HORS-DOMICILE ALIAS	R4	type DONNEE : domicile 09 ; à scinder si nécessaire (types secondaires : CALCUL)
+S04-0168	04	2	Pauses et symboles	4	DONNEE	COMPOSITION	DÉPLACER	09 – Modèle de données	4 Composition	6F4	DOC (divergences conservées, G3)		S04-0161	HORS-DOMICILE AUTRE:titre-identique-dans-6-chapitres	R4	type DONNEE : domicile 09
+S04-0169	04	2	Développement des circuits	10	REGLE	CIRCUIT	DÉPLACER	10 – Règles fonctionnelles et calculs	5 Circuits	6F4	DOC			SANS-ID	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : CALCUL)
+S04-0170	04	2	Formats — modèle fonctionnel	16	CONCEPT	FORMAT	INTÉGRER	04 – Modèle fonctionnel	6 Formats	6E	DOC				R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : DONNEE)
+S05-0171	05	2	V1 – KODJO MVP : séance structurée et exécution locale	4	PERIMETRE	TRANSVERSE-PRODUIT	INTÉGRER	05 – Versions et périmètre	0 Produit	6E	DOC			TITRE-NUM AUTRE:bandeau-date-en-tete	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : HISTORIQUE)
+S05-0172	05	3	Objectif	4	PERIMETRE	TRANSVERSE-PRODUIT	CONSERVER	05 – Versions et périmètre	0 Produit	—	DOC				R4	
+S05-0173	05	3	Fonctionnalités	62	PERIMETRE	MULTI	CONSERVER	05 – Versions et périmètre	18 Multi-domaines	—	DOC			MELANGE HORS-DOMICILE DOUBLON AUTRE:liste-interrompue	R4	
+S05-0174	05	2	Complément intégré au MVP	4	PERIMETRE	REFERENTIELS	INTÉGRER	05 – Versions et périmètre	13 Référentiels	6E	DOC			TITRE-DATE	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : DECISION)
+S05-0175	05	2	V2 – Réutilisation avancée des séances	2	CONTENEUR	TRANSVERSE-PRODUIT	CONSERVER	05 – Versions et périmètre	0 Produit	—	DOC				R4	
+S05-0176	05	3	Objectif	4	PERIMETRE	TRANSVERSE-PRODUIT	CONSERVER	05 – Versions et périmètre	0 Produit	—	DOC				R4	
+S05-0177	05	3	Fonctionnalités	35	PERIMETRE	MULTI	CONSERVER	05 – Versions et périmètre	18 Multi-domaines	—	DOC		S04-0149	MELANGE AUTRE:sous-sections-H4-hors-V2	R4	
+S05-0178	05	2	V3 – Synchronisation et relation avec un kinésithérapeute	2	CONTENEUR	TRANSVERSE-PRODUIT	CONSERVER	05 – Versions et périmètre	0 Produit	—	DOC				R4	
+S05-0179	05	3	Objectif	4	PERIMETRE	TRANSVERSE-PRODUIT	CONSERVER	05 – Versions et périmètre	0 Produit	—	DOC				R4	
+S05-0180	05	3	Fonctionnalités	25	PERIMETRE	PARCOURS-HORS-MVP	CONSERVER	05 – Versions et périmètre	16 Hors MVP	—	DOC				R4	
+S05-0181	05	2	V4 – Extension de la vision	2	CONTENEUR	TRANSVERSE-PRODUIT	CONSERVER	05 – Versions et périmètre	0 Produit	—	DOC				R4	
+S05-0182	05	3	Objectif	4	PERIMETRE	TRANSVERSE-PRODUIT	CONSERVER	05 – Versions et périmètre	0 Produit	—	DOC				R4	
+S05-0183	05	3	Fonctionnalités envisagées	29	PERIMETRE	PARCOURS-HORS-MVP	CONSERVER	05 – Versions et périmètre	16 Hors MVP	—	DOC			AUTRE:liste-sans-intertitre-apres-IA	R4	
+S05-0184	05	3	V1 (MVP)	4	PERIMETRE	MULTI	CONSERVER	05 – Versions et périmètre	18 Multi-domaines	—	DOC			DOUBLON AUTRE:H3-V1-place-sous-V4	R4	
+S05-0185	05	2	Répartition validée — 6 septembre 2026	2	CONTENEUR	TRANSVERSE-PRODUIT	CONSERVER	05 – Versions et périmètre	0 Produit	—	DOC			TITRE-DATE	R4	
+S05-0186	05	3	MVP	9	PERIMETRE	MULTI	INTÉGRER	05 – Versions et périmètre	18 Multi-domaines	6E	DOC (divergences conservées, G3)		S04-0144	MELANGE HORS-DOMICILE	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : REGLE+DONNEE)
+S05-0187	05	3	MVP — complément PRE-3 (D-333)	4	PERIMETRE	EXERCICE	INTÉGRER	05 – Versions et périmètre	2 Exercices	6E	DOC (divergences conservées, G3)		S04-0155	TITRE-DATE	R4	complément empilé : à placer dans la rubrique thématique
+S05-0188	05	3	MVP — complément T03	7	PERIMETRE	EXERCICE	INTÉGRER	05 – Versions et périmètre	2 Exercices	6E	DOC			TITRE-DATE	R4	complément empilé : à placer dans la rubrique thématique
+S05-0189	05	3	V2	5	HISTORIQUE	PLANIFICATION	ARCHIVER	Annexe – Historique des consolidations	10 Planification	6F5	DOC			DOUBLON AUTRE:section-ne-contenant-que-des-retraits	R3	historique non normatif : annexe, texte conservé
+S05-0190	05	3	V3	4	HISTORIQUE	PLANIFICATION	ARCHIVER	Annexe – Historique des consolidations	10 Planification	6F5	DOC			DOUBLON AUTRE:section-ne-contenant-que-des-retraits	R3	historique non normatif : annexe, texte conservé
+S05-0191	05	2	Roadmap des tranches MVP après arbitrage du 14 septembre 2026	9	PERIMETRE	TRANSVERSE-PRODUIT	INTÉGRER	05 – Versions et périmètre	0 Produit	6E	DOC			TITRE-DATE	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : DECISION)
+S05-0192	05	2	Tranche Bilatéralité et révision de T04	6	PERIMETRE	BILATERALITE	INTÉGRER	05 – Versions et périmètre	7 Bilatéralité	6E	DOC			AUTRE:tranche-hors-tableau-de-roadmap	R4	complément empilé : à placer dans la rubrique thématique
+S05-0193	05	2	MVP T03 — Exercice directement exécutable	4	PERIMETRE	EXECUTION	INTÉGRER	05 – Versions et périmètre	8 Exécution	6E	DOC			DOUBLON	R4	complément empilé : à placer dans la rubrique thématique
+S05-0194	05	3	Précision MVP T03 — Carte d’Exercice et vignette média	4	RENDU	EXERCICE	DÉPLACER	14 – Conventions d’interface	2 Exercices	6F1	DOC (divergences conservées, G3)		S10-0742	HORS-DOMICILE	R4	type RENDU : domicile 14 ; à scinder si nécessaire (types secondaires : REGLE)
+S05-0195	05	2	Évolution conçue — consultation média pendant l’Exécution	8	PERIMETRE	MEDIA-EXEC	INTÉGRER	05 – Versions et périmètre	9 Médias pendant l’Exécution	6E	DOC (divergences conservées, G3)		S04-0159	AUTRE:titre-evolution-pour-contenu-MVP	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : COMPORTEMENT)
+S05-0196	05	2	Portée de la revue des cartes — 30 septembre 2026	12	RENDU	TRANSVERSE-UI	RENVOI	14 – Conventions d’interface	15 Interface transverse	6D	DOC	S12-0925		TITRE-DATE HORS-DOMICILE DOUBLON MELANGE	R2	copie intégrale (≥ 0,9) de S12-0925 « DSF courant — Cartes, icônes et animations d’appui » ; remplacée par un renvoi
+S05-0197	05	2	Consolidation avant planification — 26 septembre 2026	4	PERIMETRE	MULTI	INTÉGRER	05 – Versions et périmètre	18 Multi-domaines	6E	DOC			TITRE-DATE	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : HISTORIQUE)
+S05-0198	05	2	Conventions communes d’interface	4	CONVENTION-UI	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC			HORS-DOMICILE	R4	type CONVENTION-UI : domicile 14 ; à scinder si nécessaire (types secondaires : DECISION)
+S05-0199	05	2	Paramètres d’exécution — complément du02/10/2026	4	PARCOURS	PARAMETRES	RENVOI	03 – Parcours utilisateur	3 Paramètres d’exécution	6D	DOC	S02-0050		TITRE-DATE DOUBLON HORS-DOMICILE ALIAS AUTRE:espace-manquant-du02	R2	copie intégrale (≥ 0,9) de S02-0050 « Paramètres d’exécution — complément du02/10/2026 » ; remplacée par un renvoi
+S05-0200	05	2	Évolution Cadence — statut au06/10/2026	4	PERIMETRE	PARAMETRES	INTÉGRER	05 – Versions et périmètre	3 Paramètres d’exécution	6E	DOC			TITRE-DATE ALIAS AUTRE:statut-et-inclusion-melanges	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : HISTORIQUE)
+S05-0201	05	2	Conception de planification du 08/10/2026	6	PARCOURS	PLANIFICATION	RENVOI	03 – Parcours utilisateur	10 Planification	6D	DOC	S01-0027		TITRE-DATE DOUBLON HORS-DOMICILE	R2	copie intégrale (≥ 0,9) de S01-0027 « Conception de planification du 08/10/2026 » ; remplacée par un renvoi
+S05-0202	05	2	Formats — conception cible et livraison	4	PERIMETRE	FORMAT	INTÉGRER	05 – Versions et périmètre	6 Formats	6E	DOC				R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : HISTORIQUE)
+S06-0203	06	1	Écrans et navigation	4	META	GOUVERNANCE	CONSERVER	06 – Écrans et navigation	0 Gouvernance	—	DOC			ALIAS AUTRE:renvoi-vide	R4	
+S06-0204	06	2	Organisation et lecture	11	META	GOUVERNANCE	CONSERVER	06 – Écrans et navigation	0 Gouvernance	—	DOC			AUTRE:renvoi-vide	R4	
+S06-0205	06	3	Mise à jour Cadence et DSF du06/10/2026	6	HISTORIQUE	GOUVERNANCE	ARCHIVER	Annexe – Historique des consolidations	0 Gouvernance	6F5	DOC			TITRE-DATE ALIAS AUTRE:renvoi-vide	R3	historique non normatif : annexe, texte conservé ; à scinder si nécessaire (types secondaires : META)
+S06-0206	06	2	Objectif de conception	20	VISION	TRANSVERSE-PRODUIT	DÉPLACER	01 – Vision et glossaire	0 Produit	6F4	DOC			HORS-DOMICILE	R4	type VISION : domicile 01
+S06-0207	06	3	Rapidité de création	14	VISION	TRANSVERSE-PRODUIT	DÉPLACER	01 – Vision et glossaire	0 Produit	6F4	DOC			HORS-DOMICILE DOUBLON	R4	type VISION : domicile 01 ; à scinder si nécessaire (types secondaires : REGLE)
+S06-0208	06	2	Contrat d’affichage commun aux écrans du MVP	11	CONVENTION-UI	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC				R4	type CONVENTION-UI : domicile 14 ; à scinder si nécessaire (types secondaires : ARCHITECTURE)
+S06-0209	06	3	Contrats d’écran et conformité de l’implémentation	18	META	GOUVERNANCE	CONSERVER	06 – Écrans et navigation	0 Gouvernance	—	DOC		S06-0356		R4	
+S06-0210	06	3	Révision écran par écran — 30 septembre 2026	6	HISTORIQUE	TRANSVERSE-UI	ARCHIVER	Annexe – Historique des consolidations	15 Interface transverse	6F5	DOC			TITRE-DATE MELANGE AUTRE:renvoi-vide	R3	historique non normatif : annexe, texte conservé ; à scinder si nécessaire (types secondaires : CONVENTION-UI)
+S06-0211	06	3	Unités et largeur utile	9	CONVENTION-UI	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC			SANS-ID	R4	type CONVENTION-UI : domicile 14 ; à scinder si nécessaire (types secondaires : RENDU)
+S06-0212	06	3	Structure verticale standard et Screen Shells	25	RENDU	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC			HORS-DOMICILE	R4	type RENDU : domicile 14 ; à scinder si nécessaire (types secondaires : CONVENTION-UI)
+S06-0213	06	3	En-têtes	8	CONVENTION-UI	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC (divergences conservées, G3)		S13-0946	SANS-ID	R4	type CONVENTION-UI : domicile 14 ; à scinder si nécessaire (types secondaires : RENDU)
+S06-0214	06	3	Textes et contenus longs	8	CONVENTION-UI	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC			SANS-ID	R4	type CONVENTION-UI : domicile 14
+S06-0215	06	3	Boutons et zones tactiles	9	CONVENTION-UI	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC (divergences conservées, G3)		S13-0946 S06-0227 S06-0248	SANS-ID	R4	type CONVENTION-UI : domicile 14 ; à scinder si nécessaire (types secondaires : RENDU)
+S06-0216	06	3	Contrôles segmentés	7	CONVENTION-UI	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC			SANS-ID	R4	type CONVENTION-UI : domicile 14
+S06-0217	06	3	Navigation basse	8	CONVENTION-UI	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC			SANS-ID DOUBLON	R4	type CONVENTION-UI : domicile 14 ; à scinder si nécessaire (types secondaires : RENDU)
+S06-0218	06	3	Listes et cartes	10	CONVENTION-UI	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC			SANS-ID	R4	type CONVENTION-UI : domicile 14
+S06-0219	06	3	Formulaires, roulettes et clavier	13	CONVENTION-UI	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC (divergences conservées, G3)		S08-0551 S06-0352	MELANGE SANS-ID	R4	type CONVENTION-UI : domicile 14 ; à scinder si nécessaire (types secondaires : RENDU)
+S06-0220	06	3	Modales basses / bottom sheets	6	RENDU	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC				R4	type RENDU : domicile 14 ; à scinder si nécessaire (types secondaires : CONVENTION-UI)
+S06-0221	06	3	Gestion des référentiels dans les modales de sélection	13	REGLE	REFERENTIELS	DÉPLACER	10 – Règles fonctionnelles et calculs	13 Référentiels	6F4	DOC (divergences conservées, G3)		S13-0946 S13-0963 S13-0976 S08-0553 S06-0295	SANS-ID DOUBLON	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : CONVENTION-UI)
+S06-0222	06	3	Dialogues d’action et modales plein écran	9	CONVENTION-UI	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC			SANS-ID	R4	type CONVENTION-UI : domicile 14 ; à scinder si nécessaire (types secondaires : RENDU)
+S06-0223	06	3	Exceptions adaptatives par famille d’écran	18	CONVENTION-UI	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC			MELANGE ALIAS	R4	type CONVENTION-UI : domicile 14 ; à scinder si nécessaire (types secondaires : RENDU+PERIMETRE)
+S06-0224	06	2	Navigation principale et articulation des écrans	1	CONTENEUR	TRANSVERSE-UI	CONSERVER	06 – Écrans et navigation	15 Interface transverse	—	DOC				R4	
+S06-0225	06	3	Navigation principale	17	NAVIGATION	TRANSVERSE-UI	CONSERVER	06 – Écrans et navigation	15 Interface transverse	—	DOC			DOUBLON	R4	
+S06-0226	06	3	Parcours de création d’une Séance	14	PARCOURS	SEANCE	DÉPLACER	03 – Parcours utilisateur	1 Séances	6F4	DOC (divergences conservées, G3)		S08-0442		R4	type PARCOURS : domicile 03 ; à scinder si nécessaire (types secondaires : NAVIGATION)
+S06-0227	06	3	Parcours du Catalogue des Exercices — MVP T03	10	PARCOURS	EXERCICE	DÉPLACER	03 – Parcours utilisateur	2 Exercices	6F4	DOC (divergences conservées, G3)		S08-0543 S06-0215	MELANGE DOUBLON SANS-ID	R4	type PARCOURS : domicile 03 ; à scinder si nécessaire (types secondaires : CONVENTION-UI+RENDU)
+S06-0228	06	3	Parcours d’ouverture et de modification d’une Séance	8	PARCOURS	SEANCE	DÉPLACER	03 – Parcours utilisateur	1 Séances	6F4	DOC			DOUBLON	R4	type PARCOURS : domicile 03 ; à scinder si nécessaire (types secondaires : COMPORTEMENT)
+S06-0229	06	3	Parcours d’Exécution	10	PARCOURS	EXECUTION	DÉPLACER	03 – Parcours utilisateur	8 Exécution	6F4	DOC (divergences conservées, G3)		S06-0311	DOUBLON	R4	type PARCOURS : domicile 03
+S06-0230	06	3	Parcours de consultation du Suivi	10	PARCOURS	SUIVI	DÉPLACER	03 – Parcours utilisateur	11 Suivi et synthèse	6F4	DOC (divergences conservées, G3)		S08-0540 S13-0962 S06-0343 S06-0344	AUTRE:contradiction-interne	R4	type PARCOURS : domicile 03 ; à scinder si nécessaire (types secondaires : PERIMETRE)
+S06-0231	06	3	Familles de vues	4	META	GOUVERNANCE	CONSERVER	06 – Écrans et navigation	0 Gouvernance	—	DOC			DOUBLON	R4	
+S06-0232	06	3	Retour et fermeture	8	COMPORTEMENT	TRANSVERSE-UI	DÉPLACER	10 – Règles fonctionnelles et calculs	15 Interface transverse	6F4	DOC			SANS-ID	R4	type COMPORTEMENT : domicile 10 ; à scinder si nécessaire (types secondaires : NAVIGATION)
+S06-0233	06	3	Conservation du contexte	11	COMPORTEMENT	TRANSVERSE-UI	DÉPLACER	10 – Règles fonctionnelles et calculs	15 Interface transverse	6F4	DOC			SANS-ID	R4	type COMPORTEMENT : domicile 10
+S06-0234	06	3	Enregistrement automatique	6	REGLE	TRANSVERSE-UI	DÉPLACER	10 – Règles fonctionnelles et calculs	15 Interface transverse	6F4	DOC (divergences conservées, G3)		S08-0474 S06-0277	SANS-ID	R4	type REGLE : domicile 10
+S06-0235	06	3	Navigation pendant une Exécution	14	COMPORTEMENT	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F4	DOC			DOUBLON SANS-ID	R4	type COMPORTEMENT : domicile 10 ; à scinder si nécessaire (types secondaires : NAVIGATION)
+S06-0236	06	3	Cohérence des libellés	14	CONCEPT	TRANSVERSE-PRODUIT	DÉPLACER	04 – Modèle fonctionnel	0 Produit	6F4	DOC			HORS-DOMICILE RENVOI-ABSENT	R4	type CONCEPT : domicile 04
+S06-0237	06	2	Splash KODJO	4	CONTRAT	TRANSVERSE-UI	DÉPLACER	13 – Contrats d’écran	15 Interface transverse	6F3	DOC (divergences conservées, G3)		S13-0972	SANS-ID	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : COMPORTEMENT)
+S06-0238	06	3	Vues principales et états intégrés	8	NAVIGATION	TRANSVERSE-UI	CONSERVER	06 – Écrans et navigation	15 Interface transverse	—	DOC				R4	
+S06-0239	06	2	Profil	2	CONTENEUR	PROFIL	CONSERVER	06 – Écrans et navigation	12 Profil et préférences	—	DOC				R4	
+S06-0240	06	3	Objectif	4	CONTRAT	PROFIL	DÉPLACER	13 – Contrats d’écran	12 Profil et préférences	6F3	DOC				R4	type CONTRAT : domicile 13
+S06-0241	06	3	Contenu	22	CONTRAT	PROFIL	DÉPLACER	13 – Contrats d’écran	12 Profil et préférences	6F3	DOC (divergences conservées, G3)		S13-0973 S08-0562 S01-0014	MELANGE HORS-DOMICILE	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : REGLE+ARCHITECTURE)
+S06-0242	06	3	Comportement	8	CONTRAT	PROFIL	DÉPLACER	13 – Contrats d’écran	12 Profil et préférences	6F3	DOC			MELANGE SANS-ID	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : REGLE)
+S06-0243	06	3	Choix de silhouette	4	RENDU	PROFIL	DÉPLACER	14 – Conventions d’interface	12 Profil et préférences	6F1	DOC			HORS-DOMICILE	R4	type RENDU : domicile 14 ; à scinder si nécessaire (types secondaires : CONTRAT)
+S06-0244	06	3	Navigation	6	NAVIGATION	PROFIL	CONSERVER	06 – Écrans et navigation	12 Profil et préférences	—	DOC				R4	
+S06-0245	06	3	Vues principales et états intégrés	46	NAVIGATION	PROFIL	CONSERVER	06 – Écrans et navigation	12 Profil et préférences	—	DOC		S06-0361		R4	
+S06-0246	06	2	Catalogue des séances	2	CONTENEUR	SEANCE	CONSERVER	06 – Écrans et navigation	1 Séances	—	DOC				R4	
+S06-0247	06	3	Objectif	6	CONTRAT	SEANCE	DÉPLACER	13 – Contrats d’écran	1 Séances	6F3	DOC				R4	type CONTRAT : domicile 13
+S06-0248	06	3	Filtres	8	CONTRAT	SEANCE	DÉPLACER	13 – Contrats d’écran	1 Séances	6F3	DOC (divergences conservées, G3)		S08-0543 S08-0544 S06-0215	DOUBLON MELANGE	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : RENDU+PERIMETRE)
+S06-0249	06	3	Carte de Séance — vue condensée	8	RENDU	SEANCE	DÉPLACER	14 – Conventions d’interface	1 Séances	6F1	DOC (divergences conservées, G3)		S08-0543	HORS-DOMICILE MELANGE	R4	type RENDU : domicile 14 ; à scinder si nécessaire (types secondaires : CONTRAT)
+S06-0250	06	3	Actions sur une carte	10	CONTRAT	SEANCE	DÉPLACER	13 – Contrats d’écran	1 Séances	6F3	DOC			DOUBLON SANS-ID	R4	type CONTRAT : domicile 13
+S06-0251	06	3	Carte de Séance — vue déployée	17	CONTRAT	SEANCE	DÉPLACER	13 – Contrats d’écran	1 Séances	6F3	DOC (divergences conservées, G3)		S08-0543	DOUBLON SANS-ID	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : CALCUL)
+S06-0252	06	3	Création d’une Séance	6	CONTRAT	SEANCE	DÉPLACER	13 – Contrats d’écran	1 Séances	6F3	DOC				R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : PARCOURS)
+S06-0253	06	3	Actions secondaires	6	CONTRAT	SEANCE	DÉPLACER	13 – Contrats d’écran	1 Séances	6F3	DOC			DOUBLON SANS-ID	R4	type CONTRAT : domicile 13
+S06-0254	06	3	Suppression d’une Séance	15	REGLE	SEANCE	DÉPLACER	10 – Règles fonctionnelles et calculs	1 Séances	6F4	DOC (divergences conservées, G3)		S08-0445	SANS-ID RENVOI-ABSENT	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : CONTRAT)
+S06-0255	06	3	Archivage	12	REGLE	SEANCE	DÉPLACER	10 – Règles fonctionnelles et calculs	1 Séances	6F4	DOC			SANS-ID RENVOI-ABSENT	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : CONTRAT)
+S06-0256	06	3	Séance vide	11	REGLE	SEANCE	DÉPLACER	10 – Règles fonctionnelles et calculs	1 Séances	6F4	DOC (divergences conservées, G3)		S06-0281	SANS-ID	R4	type REGLE : domicile 10
+S06-0257	06	3	État vide	8	CONTRAT	SEANCE	DÉPLACER	13 – Contrats d’écran	1 Séances	6F3	DOC (divergences conservées, G3)		S06-0260	SANS-ID	R4	type CONTRAT : domicile 13
+S06-0258	06	3	Confirmation — Confirmer la suppression d’une Séance archivée	8	CONTRAT	SEANCE	DÉPLACER	13 – Contrats d’écran	1 Séances	6F3	DOC			DOUBLON	R4	type CONTRAT : domicile 13
+S06-0259	06	3	Confirmation — Confirmer l’archivage d’une Séance planifiée	6	CONTRAT	SEANCE	DÉPLACER	13 – Contrats d’écran	1 Séances	6F3	DOC			DOUBLON	R4	type CONTRAT : domicile 13
+S06-0260	06	3	Vues principales et états intégrés	82	NAVIGATION	SEANCE	CONSERVER	06 – Écrans et navigation	1 Séances	—	DOC		S06-0257		R4	
+S06-0261	06	3	Modales, panneaux et confirmations	24	NAVIGATION	SEANCE	CONSERVER	06 – Écrans et navigation	1 Séances	—	DOC			MELANGE	R4	
+S06-0262	06	2	Catalogue des exercices	23	CONTRAT	EXERCICE	DÉPLACER	13 – Contrats d’écran	2 Exercices	6F3	DOC			MELANGE HORS-DOMICILE DOUBLON	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : RENDU+NAVIGATION)
+S06-0263	06	3	Vues principales et états intégrés	38	NAVIGATION	EXERCICE	CONSERVER	06 – Écrans et navigation	2 Exercices	—	DOC				R4	
+S06-0264	06	3	Modales, panneaux et confirmations	8	NAVIGATION	EXERCICE	CONSERVER	06 – Écrans et navigation	2 Exercices	—	DOC				R4	
+S06-0265	06	2	Composer une séance / Modifier une séance	2	CONTENEUR	COMPOSITION	CONSERVER	06 – Écrans et navigation	4 Composition	—	DOC				R4	
+S06-0266	06	3	Objectif	6	CONTRAT	COMPOSITION	DÉPLACER	13 – Contrats d’écran	4 Composition	6F3	DOC				R4	type CONTRAT : domicile 13
+S06-0267	06	3	Structure affichée	16	CONCEPT	COMPOSITION	DÉPLACER	04 – Modèle fonctionnel	4 Composition	6F4	DOC			HORS-DOMICILE RENVOI-ABSENT	R4	type CONCEPT : domicile 04 ; à scinder si nécessaire (types secondaires : REGLE)
+S06-0268	06	3	En-tête	13	CONTRAT	COMPOSITION	DÉPLACER	13 – Contrats d’écran	4 Composition	6F3	DOC			MELANGE	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : CALCUL)
+S06-0269	06	3	Paramètres du Circuit	12	RENDU	CIRCUIT	DÉPLACER	14 – Conventions d’interface	5 Circuits	6F1	DOC (divergences conservées, G3)		S06-0359	MELANGE DOUBLON	R4	type RENDU : domicile 14 ; à scinder si nécessaire (types secondaires : REGLE)
+S06-0270	06	3	Retour haptique des roulettes	4	REGLE	TRANSVERSE-UI	DÉPLACER	10 – Règles fonctionnelles et calculs	15 Interface transverse	6F4	DOC			HORS-DOMICILE DOUBLON SANS-ID	R4	type REGLE : domicile 10
+S06-0271	06	3	Ajout d’un Exercice	18	CONTRAT	COMPOSITION	DÉPLACER	13 – Contrats d’écran	4 Composition	6F3	DOC			MELANGE DOUBLON SANS-ID	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : REGLE+RENDU)
+S06-0272	06	3	Composition — ligne de Série variable — références du03/10	2	CONTENEUR	COMPOSITION	CONSERVER	06 – Écrans et navigation	4 Composition	—	DOC			TITRE-DATE ORPHELIN AUTRE:hiérarchie	R4	
+S06-0273	06	3	Résumé de la ligne d’un Exercice (D-095 révisée par D-238)	14	CONTRAT	COMPOSITION	DÉPLACER	13 – Contrats d’écran	4 Composition	6F3	DOC (divergences conservées, G3)		S08-0546	MELANGE DOUBLON SANS-ID	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : CALCUL+RENDU)
+S06-0274	06	3	Consultation et modification d’un Exercice	6	CONTRAT	COMPOSITION	DÉPLACER	13 – Contrats d’écran	4 Composition	6F3	DOC (divergences conservées, G3)		S06-0278	DOUBLON SANS-ID	R4	type CONTRAT : domicile 13
+S06-0275	06	3	Réorganisation	10	CONTRAT	COMPOSITION	DÉPLACER	13 – Contrats d’écran	4 Composition	6F3	DOC (divergences conservées, G3)		S06-0278	MELANGE DOUBLON	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : RENDU)
+S06-0276	06	3	Validation de la Composition	10	REGLE	COMPOSITION	DÉPLACER	10 – Règles fonctionnelles et calculs	4 Composition	6F4	DOC			DOUBLON SANS-ID	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : CONTRAT)
+S06-0277	06	3	Enregistrement	4	REGLE	COMPOSITION	DÉPLACER	10 – Règles fonctionnelles et calculs	4 Composition	6F4	DOC (divergences conservées, G3)		S13-0955 S06-0234	SANS-ID	R4	type REGLE : domicile 10
+S06-0278	06	3	Composition — Récupération après exercice — D-208 révisée sur l’affichage	6	REGLE	COMPOSITION	DÉPLACER	10 – Règles fonctionnelles et calculs	4 Composition	6F4	DOC (divergences conservées, G3)		S08-0546 S06-0274 S06-0275	AUTRE:titre-révision SANS-ID	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : DECISION)
+S06-0279	06	3	Sélection des exercices — modale	8	CONTRAT	COMPOSITION	DÉPLACER	13 – Contrats d’écran	4 Composition	6F3	DOC (divergences conservées, G3)		S13-0954 S06-0363	MELANGE	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : RENDU)
+S06-0280	06	3	Étiquettes — sélection et création en modale	9	CONTRAT	SEANCE	DÉPLACER	13 – Contrats d’écran	1 Séances	6F3	DOC			AUTRE:hiérarchie	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : NAVIGATION)
+S06-0281	06	3	Objectif	4	CONCEPT	SEANCE	DÉPLACER	04 – Modèle fonctionnel	1 Séances	6F4	DOC (divergences conservées, G3)		S06-0256	TITRE-NUM AUTRE:hiérarchie	R4	type CONCEPT : domicile 04
+S06-0282	06	3	Contenu et comportement	11	CONTRAT	SEANCE	DÉPLACER	13 – Contrats d’écran	1 Séances	6F3	DOC (divergences conservées, G3)		S13-0946	SANS-ID	R4	type CONTRAT : domicile 13
+S06-0283	06	3	Placement et retrait des pauses	6	CONTRAT	COMPOSITION	DÉPLACER	13 – Contrats d’écran	4 Composition	6F3	DOC			DOUBLON	R4	type CONTRAT : domicile 13
+S06-0284	06	3	Confirmation — Abandonner la création d’une séance	35	CONTRAT	COMPOSITION	DÉPLACER	13 – Contrats d’écran	4 Composition	6F3	DOC			AUTRE:hiérarchie	R4	type CONTRAT : domicile 13
+S06-0285	06	3	Captures courantes — relevé du 12/10/2026	4	HISTORIQUE	COMPOSITION	ARCHIVER	Annexe – Historique des consolidations	4 Composition	6F5	DOC			TITRE-DATE AUTRE:renvoi-vide	R3	historique non normatif : annexe, texte conservé
+S06-0286	06	3	Vues principales et états intégrés	50	NAVIGATION	COMPOSITION	CONSERVER	06 – Écrans et navigation	4 Composition	—	DOC				R4	
+S06-0287	06	3	Placement, réglage et retrait des pauses	26	NAVIGATION	COMPOSITION	CONSERVER	06 – Écrans et navigation	4 Composition	—	DOC			AUTRE:titre-voisin	R4	
+S06-0288	06	3	Sélections, paramètres et confirmations de Composition	44	NAVIGATION	COMPOSITION	CONSERVER	06 – Écrans et navigation	4 Composition	—	DOC				R4	
+S06-0289	06	3	Circuit — popover, confirmation et volumes	28	NAVIGATION	CIRCUIT	CONSERVER	06 – Écrans et navigation	5 Circuits	—	DOC			MELANGE	R4	
+S06-0290	06	2	Créer ou modifier un exercice	4	HISTORIQUE	EXERCICE	ARCHIVER	Annexe – Historique des consolidations	2 Exercices	6F5	DOC			AUTRE:renvoi-vide	R3	historique non normatif : annexe, texte conservé ; à scinder si nécessaire (types secondaires : META)
+S06-0291	06	3	Parcours, données et validation	6	REGLE	EXERCICE	DÉPLACER	10 – Règles fonctionnelles et calculs	2 Exercices	6F4	DOC			MELANGE SANS-ID ALIAS RENVOI-ABSENT	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : CALCUL)
+S06-0292	06	3	Placement et contrôles	6	CONTRAT	PARAMETRES	DÉPLACER	13 – Contrats d’écran	3 Paramètres d’exécution	6F3	DOC (divergences conservées, G3)		S13-0977 S13-0994 S08-0551	ALIAS	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : RENDU)
+S06-0293	06	3	Formulaire — vues principales et résumé	38	NAVIGATION	EXERCICE	CONSERVER	06 – Écrans et navigation	2 Exercices	—	DOC				R4	
+S06-0294	06	3	Feuille Modalités d’exécution — états intégrés	122	NAVIGATION	PARAMETRES	CONSERVER	06 – Écrans et navigation	3 Paramètres d’exécution	—	DOC			AUTRE:renvoi-vide	R4	
+S06-0295	06	3	Sélections, créations de référentiels et confirmation d’abandon	46	REGLE	REFERENTIELS	DÉPLACER	10 – Règles fonctionnelles et calculs	13 Référentiels	6F4	DOC (divergences conservées, G3)		S13-0976 S06-0221	SANS-ID	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : NAVIGATION)
+S06-0296	06	3	Couverture et limites	6	PERIMETRE	EXERCICE	DÉPLACER	05 – Versions et périmètre	2 Exercices	6F4	DOC				R4	type PERIMETRE : domicile 05 ; à scinder si nécessaire (types secondaires : RECETTE)
+S06-0297	06	2	Calendrier	2	CONTENEUR	PLANIFICATION	CONSERVER	06 – Écrans et navigation	10 Planification	—	DOC				R4	
+S06-0298	06	3	Objectif	4	CONTRAT	PLANIFICATION	DÉPLACER	13 – Contrats d’écran	10 Planification	6F3	DOC				R4	type CONTRAT : domicile 13
+S06-0299	06	3	Ouverture	4	NAVIGATION	PLANIFICATION	CONSERVER	06 – Écrans et navigation	10 Planification	—	DOC				R4	
+S06-0300	06	3	Contenu	13	CONTRAT	PLANIFICATION	DÉPLACER	13 – Contrats d’écran	10 Planification	6F3	DOC			SANS-ID	R4	type CONTRAT : domicile 13
+S06-0301	06	3	Cartes et commandes — vues Jour, Semaine et Mois	14	RENDU	PLANIFICATION	DÉPLACER	14 – Conventions d’interface	10 Planification	6F1	DOC			HORS-DOMICILE MELANGE	R4	type RENDU : domicile 14 ; à scinder si nécessaire (types secondaires : CONTRAT)
+S06-0302	06	3	Comportement	18	CONTRAT	PLANIFICATION	DÉPLACER	13 – Contrats d’écran	10 Planification	6F3	DOC (divergences conservées, G3)		S13-0970 S06-0306 S06-0363	MELANGE SANS-ID	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : REGLE)
+S06-0303	06	3	Confirmation — Suppression d’une planification	6	CONTRAT	PLANIFICATION	DÉPLACER	13 – Contrats d’écran	10 Planification	6F3	DOC				R4	type CONTRAT : domicile 13
+S06-0304	06	3	Vues principales et états intégrés	100	NAVIGATION	PLANIFICATION	CONSERVER	06 – Écrans et navigation	10 Planification	—	DOC				R4	
+S06-0305	06	3	Modales, panneaux et confirmations	14	NAVIGATION	PLANIFICATION	CONSERVER	06 – Écrans et navigation	10 Planification	—	DOC				R4	
+S06-0306	06	2	Planifier une séance, un exercice ou plusieurs contenus	6	CONTRAT	PLANIFICATION	DÉPLACER	13 – Contrats d’écran	10 Planification	6F3	DOC (divergences conservées, G3)		S06-0302		R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : NAVIGATION)
+S06-0307	06	3	États de référence actuels	64	NAVIGATION	PLANIFICATION	CONSERVER	06 – Écrans et navigation	10 Planification	—	DOC				R4	
+S06-0308	06	2	Exécution — séance ou exercice	2	CONTENEUR	EXECUTION	CONSERVER	06 – Écrans et navigation	8 Exécution	—	DOC				R4	
+S06-0309	06	3	Écarts de terminologie constatés	6	HISTORIQUE	EXECUTION	ARCHIVER	Annexe – Historique des consolidations	8 Exécution	6F5	DOC			HORS-DOMICILE MELANGE	R3	historique non normatif : annexe, texte conservé ; à scinder si nécessaire (types secondaires : CONCEPT)
+S06-0310	06	3	Objectif	6	CONTRAT	EXECUTION	DÉPLACER	13 – Contrats d’écran	8 Exécution	6F3	DOC				R4	type CONTRAT : domicile 13
+S06-0311	06	3	Entrée dans l’écran et démarrage	15	CONTRAT	EXECUTION	DÉPLACER	13 – Contrats d’écran	8 Exécution	6F3	DOC (divergences conservées, G3)		S06-0229	DOUBLON	R4	type CONTRAT : domicile 13
+S06-0312	06	3	Hiérarchie des informations affichées	20	CONTRAT	EXECUTION	DÉPLACER	13 – Contrats d’écran	8 Exécution	6F3	DOC			MELANGE RENVOI-ABSENT HORS-DOMICILE	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : CALCUL)
+S06-0313	06	3	Exercice défini par une durée	8	COMPORTEMENT	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F4	DOC			DOUBLON SANS-ID	R4	type COMPORTEMENT : domicile 10
+S06-0314	06	3	Exercice défini par un nombre de répétitions	18	COMPORTEMENT	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F4	DOC			MELANGE SANS-ID	R4	type COMPORTEMENT : domicile 10 ; à scinder si nécessaire (types secondaires : REGLE)
+S06-0315	06	3	Séries	11	REGLE	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F4	DOC			DOUBLON	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : CALCUL)
+S06-0316	06	3	Récupérations	6	REGLE	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F4	DOC			SANS-ID HORS-DOMICILE	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : CONCEPT)
+S06-0317	06	3	Commandes principales	12	CONTRAT	EXECUTION	DÉPLACER	13 – Contrats d’écran	8 Exécution	6F3	DOC			DOUBLON	R4	type CONTRAT : domicile 13
+S06-0318	06	3	Réinitialiser l’Exercice	15	COMPORTEMENT	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F4	DOC (divergences conservées, G3)		S08-0505 S06-0374	DOUBLON SANS-ID	R4	type COMPORTEMENT : domicile 10
+S06-0319	06	3	Mise en pause	23	COMPORTEMENT	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F4	DOC (divergences conservées, G3)		S06-0328	DOUBLON SANS-ID AUTRE:portée-tranche	R4	type COMPORTEMENT : domicile 10
+S06-0320	06	3	Exercice suivant	9	COMPORTEMENT	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F4	DOC			DOUBLON SANS-ID	R4	type COMPORTEMENT : domicile 10
+S06-0321	06	3	Navigation pendant l’Exécution	6	COMPORTEMENT	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F4	DOC			DOUBLON SANS-ID	R4	type COMPORTEMENT : domicile 10
+S06-0322	06	3	Guidage sonore	10	COMPORTEMENT	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F4	DOC (divergences conservées, G3)		S08-0555 S13-0973	MELANGE SANS-ID AUTRE:portée-tranche	R4	type COMPORTEMENT : domicile 10 ; à scinder si nécessaire (types secondaires : REGLE+PERIMETRE)
+S06-0323	06	3	Arrière-plan et verrouillage	17	COMPORTEMENT	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F4	DOC			SANS-ID	R4	type COMPORTEMENT : domicile 10 ; à scinder si nécessaire (types secondaires : REGLE)
+S06-0324	06	3	Fin de l’Exécution	6	COMPORTEMENT	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F4	DOC				R4	type COMPORTEMENT : domicile 10
+S06-0325	06	3	Exercice lancé directement depuis le catalogue	6	COMPORTEMENT	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F4	DOC (divergences conservées, G3)		S13-0956 S03-0114	SANS-ID	R4	type COMPORTEMENT : domicile 10
+S06-0326	06	3	Confirmation — Réinitialisation de l’Exercice	45	CONTRAT	EXECUTION	DÉPLACER	13 – Contrats d’écran	8 Exécution	6F3	DOC (divergences conservées, G3)		S08-0505	DOUBLON MELANGE	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : RENDU)
+S06-0327	06	3	Confirmation — Passage à l’Exercice suivant	43	CONTRAT	EXECUTION	DÉPLACER	13 – Contrats d’écran	8 Exécution	6F3	DOC			DOUBLON MELANGE	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : RENDU)
+S06-0328	06	3	Confirmation — Pause / arrêt de l’Exécution	53	CONTRAT	EXECUTION	DÉPLACER	13 – Contrats d’écran	8 Exécution	6F3	DOC (divergences conservées, G3)		S06-0319	DOUBLON MELANGE	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : RENDU)
+S06-0329	06	3	Lecture des variantes avec média	4	PERIMETRE	MEDIA-EXEC	DÉPLACER	05 – Versions et périmètre	9 Médias pendant l’Exécution	6F4	DOC				R4	type PERIMETRE : domicile 05
+S06-0330	06	3	Vues principales et états intégrés	30	NAVIGATION	EXECUTION	CONSERVER	06 – Écrans et navigation	8 Exécution	—	DOC				R4	
+S06-0331	06	3	Modales, panneaux et confirmations	20	NAVIGATION	EXECUTION	CONSERVER	06 – Écrans et navigation	8 Exécution	—	DOC				R4	
+S06-0332	06	3	Variantes Information et Média	32	NAVIGATION	MEDIA-EXEC	CONSERVER	06 – Écrans et navigation	9 Médias pendant l’Exécution	—	DOC				R4	
+S06-0333	06	2	Synthèse — séance ou exercice	7	NAVIGATION	SUIVI	CONSERVER	06 – Écrans et navigation	11 Suivi et synthèse	—	DOC				R4	
+S06-0334	06	3	Objectif	4	CONTRAT	SUIVI	DÉPLACER	13 – Contrats d’écran	11 Suivi et synthèse	6F3	DOC				R4	type CONTRAT : domicile 13
+S06-0335	06	3	Contenu	17	CONTRAT	SUIVI	DÉPLACER	13 – Contrats d’écran	11 Suivi et synthèse	6F3	DOC				R4	type CONTRAT : domicile 13
+S06-0336	06	3	Statut	6	REGLE	SUIVI	DÉPLACER	10 – Règles fonctionnelles et calculs	11 Suivi et synthèse	6F4	DOC (divergences conservées, G3)		S08-0533	SANS-ID RENVOI-ABSENT	R4	type REGLE : domicile 10
+S06-0337	06	3	Ressenti	10	CONTRAT	SUIVI	DÉPLACER	13 – Contrats d’écran	11 Suivi et synthèse	6F3	DOC			MELANGE	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : RENDU)
+S06-0338	06	3	Commentaire	8	CONTRAT	SUIVI	DÉPLACER	13 – Contrats d’écran	11 Suivi et synthèse	6F3	DOC			MELANGE DOUBLON	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : REGLE)
+S06-0339	06	3	Navigation	6	NAVIGATION	SUIVI	CONSERVER	06 – Écrans et navigation	11 Suivi et synthèse	—	DOC				R4	
+S06-0340	06	3	Résultat d’un exercice lancé directement	4	CONTRAT	SUIVI	DÉPLACER	13 – Contrats d’écran	11 Suivi et synthèse	6F3	DOC				R4	type CONTRAT : domicile 13
+S06-0341	06	3	Vues principales et états intégrés	38	NAVIGATION	SUIVI	CONSERVER	06 – Écrans et navigation	11 Suivi et synthèse	—	DOC				R4	
+S06-0342	06	2	Suivi — Séances	2	CONTENEUR	SUIVI	CONSERVER	06 – Écrans et navigation	11 Suivi et synthèse	—	DOC				R4	
+S06-0343	06	3	Objectif	6	CONTRAT	SUIVI	DÉPLACER	13 – Contrats d’écran	11 Suivi et synthèse	6F3	DOC (divergences conservées, G3)		S06-0230		R4	type CONTRAT : domicile 13
+S06-0344	06	3	Contenu	12	CONTRAT	SUIVI	DÉPLACER	13 – Contrats d’écran	11 Suivi et synthèse	6F3	DOC (divergences conservées, G3)		S08-0534 S06-0230	MELANGE	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : RENDU)
+S06-0345	06	3	Carte d’Exécution	13	RENDU	SUIVI	DÉPLACER	14 – Conventions d’interface	11 Suivi et synthèse	6F1	DOC			HORS-DOMICILE MELANGE	R4	type RENDU : domicile 14 ; à scinder si nécessaire (types secondaires : CONTRAT)
+S06-0346	06	3	Filtres avancés	4	PERIMETRE	SUIVI	DÉPLACER	05 – Versions et périmètre	11 Suivi et synthèse	6F4	DOC				R4	type PERIMETRE : domicile 05
+S06-0347	06	3	Tri	4	PERIMETRE	SUIVI	DÉPLACER	05 – Versions et périmètre	11 Suivi et synthèse	6F4	DOC (divergences conservées, G3)		S08-0537		R4	type PERIMETRE : domicile 05
+S06-0348	06	3	État vide	6	CONTRAT	SUIVI	DÉPLACER	13 – Contrats d’écran	11 Suivi et synthèse	6F3	DOC				R4	type CONTRAT : domicile 13
+S06-0349	06	3	Vues principales et états intégrés	26	NAVIGATION	SUIVI	CONSERVER	06 – Écrans et navigation	11 Suivi et synthèse	—	DOC		S06-0370		R4	
+S06-0350	06	2	Règles communes aux sélections et réglages	2	CONTENEUR	REFERENTIELS	CONSERVER	06 – Écrans et navigation	13 Référentiels	—	DOC				R4	
+S06-0351	06	3	Supprimer une valeur de référentiel	16	REGLE	REFERENTIELS	DÉPLACER	10 – Règles fonctionnelles et calculs	13 Référentiels	6F4	DOC (divergences conservées, G3)		S13-0946	DOUBLON SANS-ID	R4	type REGLE : domicile 10
+S06-0352	06	3	Contrôles à roulette – Compte à rebours et fins	7	REGLE	PARAMETRES	DÉPLACER	10 – Règles fonctionnelles et calculs	3 Paramètres d’exécution	6F4	DOC (divergences conservées, G3)		S13-0977 S08-0551 S06-0219	MELANGE DOUBLON	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : CONVENTION-UI)
+S06-0353	06	2	Règles transverses de l’éditeur d’Exercice	5	REGLE	EXERCICE	DÉPLACER	10 – Règles fonctionnelles et calculs	2 Exercices	6F4	DOC (divergences conservées, G3)		S08-0552	MELANGE	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : HISTORIQUE)
+S06-0354	06	2	Composant transverse `Status / Badge`	19	RENDU	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC			HORS-DOMICILE	R4	type RENDU : domicile 14 ; à scinder si nécessaire (types secondaires : HISTORIQUE)
+S06-0355	06	2	Couverture du Prototype MVP et exclusions justifiées	1	CONTENEUR	GOUVERNANCE	CONSERVER	06 – Écrans et navigation	0 Gouvernance	—	DOC				R4	
+S06-0356	06	3	Périmètre intégré	6	META	GOUVERNANCE	CONSERVER	06 – Écrans et navigation	0 Gouvernance	—	DOC		S06-0209		R4	
+S06-0357	06	3	Éléments non intégrés comme écrans distincts	4	META	GOUVERNANCE	CONSERVER	06 – Écrans et navigation	0 Gouvernance	—	DOC				R4	
+S06-0358	06	3	Règle de maintenance	4	META	GOUVERNANCE	CONSERVER	06 – Écrans et navigation	0 Gouvernance	—	DOC				R4	
+S06-0359	06	3	Mise à jour Bilatéralité — rectifiée le 13 septembre 2026	12	HISTORIQUE	BILATERALITE	ARCHIVER	Annexe – Historique des consolidations	7 Bilatéralité	6F5	DOC (divergences conservées, G3)		S06-0269	TITRE-DATE HORS-DOMICILE ALIAS	R3	historique non normatif : annexe, texte conservé ; à scinder si nécessaire (types secondaires : REGLE)
+S06-0360	06	3	Évidences Figma T03 — état courant du 16 septembre 2026	6	HISTORIQUE	GOUVERNANCE	ARCHIVER	Annexe – Historique des consolidations	0 Gouvernance	6F5	DOC (divergences conservées, G3)		S06-0372	TITRE-DATE	R3	historique non normatif : annexe, texte conservé
+S06-0361	06	3	Résolutions postérieures au contrôle visuel du 16 septembre 2026	4	HISTORIQUE	GOUVERNANCE	ARCHIVER	Annexe – Historique des consolidations	0 Gouvernance	6F5	DOC (divergences conservées, G3)		S06-0245	TITRE-DATE	R3	historique non normatif : annexe, texte conservé
+S06-0362	06	2	Références transverses des cartes et appuis — 30 septembre 2026	24	DECISION	MULTI	INTÉGRER	06 – Écrans et navigation	18 Multi-domaines	6E	DOC			TITRE-DATE MELANGE DOUBLON AUTRE:fragment-orphelin	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : REGLE+RENDU+CONVENTION-UI)
+S06-0363	06	2	Conventions communes d’interface	8	CONVENTION-UI	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC (divergences conservées, G3)		S08-0583 S06-0302 S06-0279	MELANGE	R4	type CONVENTION-UI : domicile 14 ; à scinder si nécessaire (types secondaires : DECISION)
+S06-0364	06	3	Référence DSF V2 détaillée — clôture 28 septembre 2026	12	RENDU	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC (divergences conservées, G3)		S13-0973	TITRE-DATE HORS-DOMICILE	R4	type RENDU : domicile 14 ; à scinder si nécessaire (types secondaires : DECISION)
+S06-0365	06	3	Paramètres — référence courante du 02/10/2026	4	HISTORIQUE	PARAMETRES	ARCHIVER	Annexe – Historique des consolidations	3 Paramètres d’exécution	6F5	DOC			TITRE-DATE ALIAS	R3	historique non normatif : annexe, texte conservé ; à scinder si nécessaire (types secondaires : DECISION)
+S06-0366	06	2	Archives et références hors prototype actif	11	REGLE	SEANCE	DÉPLACER	10 – Règles fonctionnelles et calculs	1 Séances	6F4	DOC			HORS-DOMICILE AUTRE:titre-manquant	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : HISTORIQUE)
+S06-0367	06	3	Objectif	6	PERIMETRE	SUIVI	DÉPLACER	05 – Versions et périmètre	11 Suivi et synthèse	6F4	DOC			AUTRE:titre-manquant	R4	type PERIMETRE : domicile 05
+S06-0368	06	3	Présence dans le MVP	4	PERIMETRE	SUIVI	DÉPLACER	05 – Versions et périmètre	11 Suivi et synthèse	6F4	DOC			AUTRE:titre-manquant DOUBLON	R4	type PERIMETRE : domicile 05
+S06-0369	06	3	Profil — Cible post-MVP	6	HISTORIQUE	PROFIL	ARCHIVER	Annexe – Historique des consolidations	12 Profil et préférences	6F5	DOC				R3	historique non normatif : annexe, texte conservé ; à scinder si nécessaire (types secondaires : NAVIGATION)
+S06-0370	06	3	Référence historique hors MVP — Suivi — Séances — Vue déployée	6	HISTORIQUE	SUIVI	ARCHIVER	Annexe – Historique des consolidations	11 Suivi et synthèse	6F5	DOC (divergences conservées, G3)		S06-0349	DOUBLON	R3	historique non normatif : annexe, texte conservé ; à scinder si nécessaire (types secondaires : NAVIGATION)
+S06-0371	06	3	Suivi — Vue d’ensemble	6	HISTORIQUE	SUIVI	ARCHIVER	Annexe – Historique des consolidations	11 Suivi et synthèse	6F5	DOC				R3	historique non normatif : annexe, texte conservé ; à scinder si nécessaire (types secondaires : NAVIGATION)
+S06-0372	06	3	Recherche globale — Champ déployé	6	HISTORIQUE	PARCOURS-HORS-MVP	ARCHIVER	Annexe – Historique des consolidations	16 Hors MVP	6F5	DOC (divergences conservées, G3)		S06-0360		R3	historique non normatif : annexe, texte conservé ; à scinder si nécessaire (types secondaires : NAVIGATION)
+S06-0373	06	3	Recherche globale — Résultats affichés	6	HISTORIQUE	PARCOURS-HORS-MVP	ARCHIVER	Annexe – Historique des consolidations	16 Hors MVP	6F5	DOC				R3	historique non normatif : annexe, texte conservé ; à scinder si nécessaire (types secondaires : NAVIGATION)
+S06-0374	06	3	HISTORIQUE — Catalogue Séances — ancien arbre Créer — supersédé D-187	8	HISTORIQUE	SEANCE	ARCHIVER	Annexe – Historique des consolidations	1 Séances	6F5	DOC (divergences conservées, G3)		S06-0318	MELANGE AUTRE:bloc-déplacé	R3	historique non normatif : annexe, texte conservé ; à scinder si nécessaire (types secondaires : REGLE)
+S06-0375	06	3	Référence de composant — Stepper — Séries (interactif)	6	HISTORIQUE	PARAMETRES	ARCHIVER	Annexe – Historique des consolidations	3 Paramètres d’exécution	6F5	DOC				R3	historique non normatif : annexe, texte conservé ; à scinder si nécessaire (types secondaires : NAVIGATION)
+S06-0376	06	3	Référence de composant — Cadre bas — retournement	6	HISTORIQUE	MEDIA-EXEC	ARCHIVER	Annexe – Historique des consolidations	9 Médias pendant l’Exécution	6F5	DOC				R3	historique non normatif : annexe, texte conservé ; à scinder si nécessaire (types secondaires : NAVIGATION)
+S06-0377	06	3	Référence de composant — Zone d’exécution — retournements	6	HISTORIQUE	MEDIA-EXEC	ARCHIVER	Annexe – Historique des consolidations	9 Médias pendant l’Exécution	6F5	DOC				R3	historique non normatif : annexe, texte conservé ; à scinder si nécessaire (types secondaires : NAVIGATION)
+S06-0378	06	2	Titres affichés	11	CONVENTION-UI	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC (divergences conservées, G3)		S08-0551		R4	type CONVENTION-UI : domicile 14 ; à scinder si nécessaire (types secondaires : DECISION)
+S06-0379	06	2	Règles générales d’interface —08/10/2026	4	META	TRANSVERSE-UI	CONSERVER	06 – Écrans et navigation	15 Interface transverse	—	DOC			TITRE-DATE	R4	
+S06-0380	06	3	Clarification du12/10/2026 — Préparation et fin dans une Séance	4	REGLE	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F4	DOC			TITRE-DATE HORS-DOMICILE DOUBLON AUTRE:hiérarchie	R4	type REGLE : domicile 10
+S06-0381	06	2	Évolution des vues de composition —12/10/2026	8	HISTORIQUE	CIRCUIT	ARCHIVER	Annexe – Historique des consolidations	5 Circuits	6F5	DOC			TITRE-DATE AUTRE:renvoi-vide	R3	historique non normatif : annexe, texte conservé ; à scinder si nécessaire (types secondaires : PERIMETRE)
+S06-0382	06	2	Formats de séances — inventaire et captures du 14/10/2026	6	HISTORIQUE	FORMAT	ARCHIVER	Annexe – Historique des consolidations	6 Formats	6F5	DOC			TITRE-DATE	R3	historique non normatif : annexe, texte conservé ; à scinder si nécessaire (types secondaires : PERIMETRE+NAVIGATION)
+S06-0383	06	3	Pages de choix, paramètres, récapitulatif et composition	306	NAVIGATION	FORMAT	CONSERVER	06 – Écrans et navigation	6 Formats	—	DOC			AUTRE:ancres-rompues	R4	
+S06-0384	06	3	Modales de paramètres d’exercice	66	NAVIGATION	FORMAT	CONSERVER	06 – Écrans et navigation	6 Formats	—	DOC			AUTRE:ancres-rompues	R4	
+S07-0385	07	0	(préambule)	2	META	GOUVERNANCE	CONSERVER	07 – Registre des décisions	0 Gouvernance	—	DOC				R4	
+S07-0386	07	1	Format	7	DECISION	MULTI	CONSERVER	07 – Registre des décisions	18 Multi-domaines	—	DOC			AUTRE:décisions-réelles-dans-un-tableau-exemple TITRE-NUM	R4	
+S07-0387	07	2	Identifiants de décision non utilisés	10	META	GOUVERNANCE	CONSERVER	07 – Registre des décisions	0 Gouvernance	—	DOC				R4	
+S07-0388	07	1	Décisions validées	55	DECISION	MULTI	CONSERVER	07 – Registre des décisions	18 Multi-domaines	—	DOC		S12-0897	MELANGE	R4	
+S07-0389	07	2	Décisions issues de la revue finale du chapitre 06	16	DECISION	MULTI	CONSERVER	07 – Registre des décisions	18 Multi-domaines	—	DOC				R4	
+S07-0390	07	2	Décisions issues de la contre-revue finale — étapes 1 à 3	16	DECISION	MULTI	CONSERVER	07 – Registre des décisions	18 Multi-domaines	—	DOC			AUTRE:ordre-des-ID-non-croissant	R4	
+S07-0391	07	2	Décisions relatives aux règles de calcul du MVP	83	DECISION	MULTI	CONSERVER	07 – Registre des décisions	18 Multi-domaines	—	DOC			MELANGE AUTRE:titre-ne-couvre-pas-le-contenu	R4	
+S07-0392	07	2	Décisions du 14 septembre 2026 — Exécution directe d’un Exercice	14	DECISION	EXECUTION	CONSERVER	07 – Registre des décisions	8 Exécution	—	DOC			TITRE-DATE	R4	
+S07-0393	07	2	Décision de roadmap — Catalogue des Exercices dans le MVP	6	DECISION	TRANSVERSE-PRODUIT	CONSERVER	07 – Registre des décisions	0 Produit	—	DOC				R4	
+S07-0394	07	2	Décisions T03 — Catalogue des exercices — 15–16 septembre 2026	41	DECISION	MULTI	CONSERVER	07 – Registre des décisions	18 Multi-domaines	—	DOC			TITRE-DATE MELANGE	R4	
+S07-0395	07	2	Évidence Figma T03 vérifiée le 16 septembre 2026	4	HISTORIQUE	EXERCICE	CONSERVER	07 – Registre des décisions	2 Exercices	—	DOC			TITRE-DATE	R4	
+S07-0396	07	2	Décisions du 25 septembre 2026 — médias pendant l’Exécution	7	DECISION	MEDIA-EXEC	CONSERVER	07 – Registre des décisions	9 Médias pendant l’Exécution	—	DOC		S12-0917 S11-0828	TITRE-DATE	R4	
+S07-0397	07	2	Décision du 25 septembre 2026 — planification des Exercices	6	DECISION	PLANIFICATION	CONSERVER	07 – Registre des décisions	10 Planification	—	DOC			TITRE-DATE	R4	
+S07-0398	07	2	Décision du 25 septembre 2026 — extension de la planification aux Parcours	6	DECISION	PLANIFICATION	CONSERVER	07 – Registre des décisions	10 Planification	—	DOC			TITRE-DATE	R4	
+S07-0399	07	2	Décision du 25 septembre 2026 — refonte des récupérations	6	DECISION	COMPOSITION	CONSERVER	07 – Registre des décisions	4 Composition	—	DOC			TITRE-DATE	R4	
+S07-0400	07	2	Décisions du 26 septembre 2026 — consolidation fonctionnelle avant planification	17	DECISION	MULTI	CONSERVER	07 – Registre des décisions	18 Multi-domaines	—	DOC			TITRE-DATE MELANGE	R4	
+S07-0401	07	2	Décisions de clôture Figma / DSF avant développement — 28 septembre 2026	17	DECISION	TRANSVERSE-UI	CONSERVER	07 – Registre des décisions	15 Interface transverse	—	DOC		S12-0923 S12-0897 S12-0898	TITRE-DATE MELANGE	R4	
+S07-0402	07	2	Décisions du 30 septembre 2026 — cartes, icônes et appuis	11	DECISION	TRANSVERSE-UI	CONSERVER	07 – Registre des décisions	15 Interface transverse	—	DOC			TITRE-DATE	R4	
+S07-0403	07	2	Précision normative — animations d’appui	6	DECISION	TRANSVERSE-UI	CONSERVER	07 – Registre des décisions	15 Interface transverse	—	DOC				R4	
+S07-0404	07	2	Clôture des 17 points et ajout Calendrier Jour — 30 septembre 2026	9	DECISION	TRANSVERSE-UI	CONSERVER	07 – Registre des décisions	15 Interface transverse	—	DOC			TITRE-DATE	R4	
+S07-0405	07	2	Clôture des contrats — 30/09–01/10/2026	10	DECISION	MULTI	CONSERVER	07 – Registre des décisions	18 Multi-domaines	—	DOC			TITRE-DATE	R4	
+S07-0406	07	2	Décision du 30 septembre 2026 — valeurs par défaut du Profil	6	DECISION	PROFIL	CONSERVER	07 – Registre des décisions	12 Profil et préférences	—	DOC			TITRE-DATE AUTRE:ID-hors-ordre	R4	
+S07-0407	07	2	Saisie des paramètres en feuille basse	8	DECISION	PARAMETRES	CONSERVER	07 – Registre des décisions	3 Paramètres d’exécution	—	DOC			MELANGE	R4	
+S07-0408	07	2	Séries variables et Ordre des côtés	20	DECISION	PARAMETRES	CONSERVER	07 – Registre des décisions	3 Paramètres d’exécution	—	DOC		S11-0819	MELANGE AUTRE:méta-« dernier identifiant publié vérifié »	R4	
+S07-0409	07	2	Rectification documentaire du03/10/2026	4	HISTORIQUE	EXECUTION	CONSERVER	07 – Registre des décisions	8 Exécution	—	DOC			TITRE-DATE SANS-ID	R4	
+S07-0410	07	2	Révision des cartes	12	DECISION	TRANSVERSE-UI	CONSERVER	07 – Registre des décisions	15 Interface transverse	—	DOC				R4	
+S07-0411	07	2	Recette iPhone V2-PRE-2	10	DECISION	PROFIL	CONSERVER	07 – Registre des décisions	12 Profil et préférences	—	DOC				R4	
+S07-0412	07	2	Cadence et phrase — intégration du06/10/2026	40	DECISION	PARAMETRES	CONSERVER	07 – Registre des décisions	3 Paramètres d’exécution	—	DOC			TITRE-DATE MELANGE ALIAS	R4	
+S07-0413	07	2	Qualification des valeurs historiques — audit du 06/10	4	HISTORIQUE	TRANSVERSE-UI	CONSERVER	07 – Registre des décisions	15 Interface transverse	—	DOC			TITRE-DATE SANS-ID	R4	
+S07-0414	07	2	Clarification de l’avertissement d’enchaînement	6	DECISION	COMPOSITION	CONSERVER	07 – Registre des décisions	4 Composition	—	DOC				R4	
+S07-0415	07	2	Consolidation du 07/10/2026	13	DECISION	COMPOSITION	CONSERVER	07 – Registre des décisions	4 Composition	—	DOC			TITRE-DATE	R4	
+S07-0416	07	2	Q-07 — clos par la seconde clarification du07/10	4	DECISION	PARAMETRES	CONSERVER	07 – Registre des décisions	3 Paramètres d’exécution	—	DOC			SANS-ID TITRE-DATE	R4	
+S07-0417	07	2	Bip de cadence	13	DECISION	PARAMETRES	CONSERVER	07 – Registre des décisions	3 Paramètres d’exécution	—	DOC				R4	
+S07-0418	07	2	Clarification finale du07/10/2026 — pauses, phrases et cartes	12	DECISION	MULTI	CONSERVER	07 – Registre des décisions	18 Multi-domaines	—	DOC			TITRE-DATE MELANGE	R4	
+S07-0419	07	2	Consolidation du07/10 — corpusv15 et références actualisées	10	DECISION	PARAMETRES	CONSERVER	07 – Registre des décisions	3 Paramètres d’exécution	—	DOC			TITRE-DATE ALIAS	R4	
+S07-0420	07	2	Compléments segmentés et titres	8	DECISION	TRANSVERSE-UI	CONSERVER	07 – Registre des décisions	15 Interface transverse	—	DOC			TITRE-DATE	R4	
+S07-0421	07	2	Décisions du 08 octobre 2026 — interface générale et planification	15	DECISION	MULTI	CONSERVER	07 – Registre des décisions	18 Multi-domaines	—	DOC		S12-0898	TITRE-DATE MELANGE	R4	
+S07-0422	07	2	Inclusion de l’import de médias au MVP	8	DECISION	EXERCICE	CONSERVER	07 – Registre des décisions	2 Exercices	—	DOC		S12-0910		R4	
+S07-0423	07	2	Recette PRE-3 — décisions du propriétaire	16	DECISION	PARAMETRES	CONSERVER	07 – Registre des décisions	3 Paramètres d’exécution	—	DOC		S11-0819		R4	
+S07-0424	07	2	Recette PRE-3 n° 2 — ajustements explicites du propriétaire	12	DECISION	MULTI	CONSERVER	07 – Registre des décisions	18 Multi-domaines	—	DOC			AUTRE:règle-de-priorité-en-prose	R4	
+S07-0425	07	2	Recette PRE-3 n° 3 — demandes explicites du propriétaire	14	DECISION	MULTI	CONSERVER	07 – Registre des décisions	18 Multi-domaines	—	DOC				R4	
+S07-0426	07	2	Décisions CIR-20261012 — conception des circuits	19	DECISION	CIRCUIT	CONSERVER	07 – Registre des décisions	5 Circuits	—	DOC			AUTRE:espace-CIR-sans-colonne-statut	R4	
+S07-0427	07	2	Décisions Deux modes —13/10/2026	6	DECISION	PARAMETRES	CONSERVER	07 – Registre des décisions	3 Paramètres d’exécution	—	DOC			SANS-ID TITRE-DATE	R4	
+S07-0428	07	3	Réception du §4.5 — sélecteur de cible	6	DECISION	PARAMETRES	CONSERVER	07 – Registre des décisions	3 Paramètres d’exécution	—	DOC			SANS-ID	R4	
+S07-0429	07	2	Arbitrages de Hermann du 16 octobre 2026 — révision documentaire	24	DECISION	MULTI	CONSERVER	07 – Registre des décisions	18 Multi-domaines	—	DOC			TITRE-DATE AUTRE:placée-avant-le-groupe-du-14-10	R4	
+S07-0430	07	3	Arbitrages complémentaires de Hermann du 17 octobre 2026 (A1 à A9)	18	DECISION	MULTI	CONSERVER	07 – Registre des décisions	18 Multi-domaines	—	DOC			TITRE-DATE	R4	
+S07-0431	07	3	Précisions de Hermann du 17 octobre 2026 (B1 à B5)	12	DECISION	MULTI	CONSERVER	07 – Registre des décisions	18 Multi-domaines	—	DOC			TITRE-DATE	R4	
+S07-0432	07	2	Formats de séances — décisions du 14 octobre 2026	20	DECISION	FORMAT	CONSERVER	07 – Registre des décisions	6 Formats	—	DOC			TITRE-DATE AUTRE:placé-en-fin-après-D-401	R4	
+S08-0433	08	1	1. Principes généraux	4	REGLE	PLANIFICATION	RENVOI	10 – Règles fonctionnelles et calculs	10 Planification	6D	DOC	S10-0728		HORS-DOMICILE MELANGE AUTRE:bandeau-autoréférent	R2	copie intégrale (≥ 0,9) de S10-0728 « Processus métier et règles métier transverses » ; remplacée par un renvoi
+S08-0434	08	2	1.1 Objectif du document	6	META	GOUVERNANCE	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	0 Gouvernance	—	DOC				R4	le ch. 08 devient une table de renvoi
+S08-0435	08	2	1.2 Périmètre	15	META	GOUVERNANCE	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	0 Gouvernance	—	DOC			AUTRE:périmètre-démenti-par-le-contenu	R4	le ch. 08 devient une table de renvoi ; à scinder si nécessaire (types secondaires : PERIMETRE)
+S08-0436	08	2	1.3 Organisation	9	META	GOUVERNANCE	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	0 Gouvernance	—	DOC				R4	le ch. 08 devient une table de renvoi
+S08-0437	08	2	1.4 Documents de référence	19	META	GOUVERNANCE	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	0 Gouvernance	—	DOC			AUTRE:table-sans-ch13	R4	le ch. 08 devient une table de renvoi
+S08-0438	08	2	1.5 Convention de lecture	8	META	GOUVERNANCE	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	0 Gouvernance	—	DOC				R4	le ch. 08 devient une table de renvoi
+S08-0439	08	2	1.6 Évolutivité	6	PERIMETRE	TRANSVERSE-PRODUIT	DÉPLACER	05 – Versions et périmètre	0 Produit	6F2	DOC				R4	type PERIMETRE : domicile 05
+S08-0440	08	1	2. Cycle de vie d'une séance	2	CONTENEUR	SEANCE	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	1 Séances	—	DOC				R4	le ch. 08 devient une table de renvoi
+S08-0441	08	2	2.1 Principe général	10	CONCEPT	SEANCE	DÉPLACER	04 – Modèle fonctionnel	1 Séances	6F2	DOC			RENVOI-ABSENT	R4	type CONCEPT : domicile 04 ; à scinder si nécessaire (types secondaires : REGLE)
+S08-0442	08	2	2.2 Création d'une séance	12	COMPORTEMENT	SEANCE	DÉPLACER	10 – Règles fonctionnelles et calculs	1 Séances	6F2	DOC (divergences conservées, G3)		S10-0731 S13-0955 S08-0549	AUTRE:quatre-étapes-annoncées-trois-listées	R4	type COMPORTEMENT : domicile 10
+S08-0443	08	2	2.3 Modification d'une séance	20	COMPORTEMENT	SEANCE	DÉPLACER	10 – Règles fonctionnelles et calculs	1 Séances	6F2	DOC (divergences conservées, G3)		S08-0549	RENVOI-ABSENT	R4	type COMPORTEMENT : domicile 10
+S08-0444	08	2	2.4 Duplication d'une séance	15	COMPORTEMENT	SEANCE	DÉPLACER	10 – Règles fonctionnelles et calculs	1 Séances	6F2	DOC			RENVOI-ABSENT	R4	type COMPORTEMENT : domicile 10 ; à scinder si nécessaire (types secondaires : REGLE)
+S08-0445	08	2	2.5 Suppression d'une séance	12	REGLE	SEANCE	DÉPLACER	10 – Règles fonctionnelles et calculs	1 Séances	6F2	DOC				R4	type REGLE : domicile 10
+S08-0446	08	2	2.6 Exécution d'une séance	11	COMPORTEMENT	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F2	DOC (divergences conservées, G3)		S08-0499	DOUBLON RENVOI-ABSENT	R4	type COMPORTEMENT : domicile 10
+S08-0447	08	2	2.7 Planification d’un contenu	8	REGLE	PLANIFICATION	DÉPLACER	10 – Règles fonctionnelles et calculs	10 Planification	6F2	DOC				R4	type REGLE : domicile 10
+S08-0448	08	2	2.8 Historique	13	DONNEE	SUIVI	DÉPLACER	09 – Modèle de données	11 Suivi et synthèse	6F2	DOC			DOUBLON HORS-DOMICILE	R4	type DONNEE : domicile 09 ; à scinder si nécessaire (types secondaires : COMPORTEMENT)
+S08-0449	08	2	2.9 État persistant et qualificatifs d'une séance	13	CONCEPT	SEANCE	DÉPLACER	04 – Modèle fonctionnel	1 Séances	6F2	DOC			HORS-DOMICILE	R4	type CONCEPT : domicile 04 ; à scinder si nécessaire (types secondaires : DONNEE)
+S08-0450	08	1	2 bis. Catalogue des Exercices — cycle de vie d’un Exercice persistant — MVP T03	2	CONTENEUR	EXERCICE	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	2 Exercices	—	DOC			TITRE-NUM AUTRE:tranche-T03-dans-le-titre	R4	le ch. 08 devient une table de renvoi ; à scinder si nécessaire (types secondaires : PERIMETRE)
+S08-0451	08	2	2 bis.1 Catalogue multi-type	6	COMPORTEMENT	EXERCICE	DÉPLACER	10 – Règles fonctionnelles et calculs	2 Exercices	6F2	DOC (divergences conservées, G3)		S10-0744 S13-0949 S08-0583	HORS-DOMICILE	R4	type COMPORTEMENT : domicile 10 ; à scinder si nécessaire (types secondaires : CONTRAT)
+S08-0452	08	2	2 bis.2 Créer, consulter ou modifier un Exercice de référence	8	COMPORTEMENT	EXERCICE	DÉPLACER	10 – Règles fonctionnelles et calculs	2 Exercices	6F2	DOC			HORS-DOMICILE AUTRE:renvoi-« contrats-de-l'Écran-4 »	R4	type COMPORTEMENT : domicile 10
+S08-0453	08	2	2 bis.3 Ajouter un Exercice à une Séance	10	COMPORTEMENT	COMPOSITION	DÉPLACER	10 – Règles fonctionnelles et calculs	4 Composition	6F2	DOC			AUTRE:menu-d'options-contredit-par-la-phrase-précédente	R4	type COMPORTEMENT : domicile 10
+S08-0454	08	2	2 bis.4 Exécuter directement un Exercice	8	COMPORTEMENT	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F2	DOC			RENVOI-ABSENT	R4	type COMPORTEMENT : domicile 10
+S08-0455	08	2	2 bis.5 Médias d’Exercice	4	COMPORTEMENT	EXERCICE	DÉPLACER	10 – Règles fonctionnelles et calculs	2 Exercices	6F2	DOC			MELANGE	R4	type COMPORTEMENT : domicile 10 ; à scinder si nécessaire (types secondaires : HISTORIQUE)
+S08-0456	08	2	2 bis.6 Bilatéralité	6	REGLE	BILATERALITE	DÉPLACER	10 – Règles fonctionnelles et calculs	7 Bilatéralité	6F2	DOC (divergences conservées, G3)		S10-0733 S08-0459	RENVOI-ABSENT	R4	type REGLE : domicile 10
+S08-0457	08	2	2 bis.7 Limite Parcours	6	PERIMETRE	PARCOURS-HORS-MVP	RENVOI	Annexe – Historique des consolidations	16 Hors MVP	6D	DOC	S01-0020		DOUBLON AUTRE:lien-autoréférent	R2	copie intégrale (≥ 0,9) de S01-0020 « Parcours — post-MVP » ; remplacée par un renvoi
+S08-0458	08	2	Paramètres et brouillon d’un exercice	2	CONTENEUR	PARAMETRES	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	3 Paramètres d’exécution	—	DOC			TITRE-NUM	R4	le ch. 08 devient une table de renvoi
+S08-0459	08	3	Modèle et terminologie	13	CONCEPT	PARAMETRES	DÉPLACER	04 – Modèle fonctionnel	3 Paramètres d’exécution	6F2	DOC (divergences conservées, G3)		S08-0456		R4	type CONCEPT : domicile 04 ; à scinder si nécessaire (types secondaires : REGLE)
+S08-0460	08	3	Brouillon, bascules et normalisation	14	COMPORTEMENT	PARAMETRES	DÉPLACER	10 – Règles fonctionnelles et calculs	3 Paramètres d’exécution	6F2	DOC				R4	type COMPORTEMENT : domicile 10 ; à scinder si nécessaire (types secondaires : REGLE)
+S08-0461	08	1	3. Composition d'une séance	2	CONTENEUR	COMPOSITION	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	4 Composition	—	DOC				R4	le ch. 08 devient une table de renvoi
+S08-0462	08	2	3.1 Principe général	8	CONCEPT	COMPOSITION	DÉPLACER	04 – Modèle fonctionnel	4 Composition	6F2	DOC				R4	type CONCEPT : domicile 04
+S08-0463	08	2	3.2 Structure d'une séance	17	CONCEPT	COMPOSITION	DÉPLACER	04 – Modèle fonctionnel	4 Composition	6F2	DOC			DOUBLON RENVOI-ABSENT	R4	type CONCEPT : domicile 04 ; à scinder si nécessaire (types secondaires : REGLE)
+S08-0464	08	2	3.3 Les exercices	17	CONCEPT	EXERCICE	DÉPLACER	04 – Modèle fonctionnel	2 Exercices	6F2	DOC			MELANGE DOUBLON AUTRE:puce-de-règle-dans-une-liste-d'attributs	R4	type CONCEPT : domicile 04 ; à scinder si nécessaire (types secondaires : REGLE)
+S08-0465	08	2	3.4 Modes et récupération d’un Exercice	16	CONCEPT	PARAMETRES	DÉPLACER	04 – Modèle fonctionnel	3 Paramètres d’exécution	6F2	DOC (divergences conservées, G3)		S10-0733		R4	type CONCEPT : domicile 04 ; à scinder si nécessaire (types secondaires : REGLE)
+S08-0466	08	2	3.5 Circuit et compte	4	REGLE	CIRCUIT	DÉPLACER	10 – Règles fonctionnelles et calculs	5 Circuits	6F2	DOC				R4	type REGLE : domicile 10
+S08-0467	08	2	3.6 Cycle technique	4	REGLE	CIRCUIT	DÉPLACER	10 – Règles fonctionnelles et calculs	5 Circuits	6F2	DOC			RENVOI-ABSENT	R4	type REGLE : domicile 10
+S08-0468	08	2	3.7 Réorganisation	13	COMPORTEMENT	COMPOSITION	DÉPLACER	10 – Règles fonctionnelles et calculs	4 Composition	6F2	DOC				R4	type COMPORTEMENT : domicile 10
+S08-0469	08	2	3.8 Validation	10	REGLE	COMPOSITION	DÉPLACER	10 – Règles fonctionnelles et calculs	4 Composition	6F2	DOC			MELANGE	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : RENDU)
+S08-0470	08	2	3.9 Estimation	8	CALCUL	COMPOSITION	DÉPLACER	10 – Règles fonctionnelles et calculs	4 Composition	6F2	DOC				R4	type CALCUL : domicile 10
+S08-0471	08	3	Durée estimée d’exécution	18	CALCUL	TRANSVERSE-CALCUL	DÉPLACER	10 – Règles fonctionnelles et calculs	14 Calculs transverses	6F2	DOC			DOUBLON RENVOI-ABSENT	R4	type CALCUL : domicile 10
+S08-0472	08	3	Durée synthétique des Exercices	6	CALCUL	TRANSVERSE-CALCUL	DÉPLACER	10 – Règles fonctionnelles et calculs	14 Calculs transverses	6F2	DOC			DOUBLON RENVOI-ABSENT	R4	type CALCUL : domicile 10
+S08-0473	08	3	Nombre d'Exercices de la Composition	11	CALCUL	COMPOSITION	DÉPLACER	10 – Règles fonctionnelles et calculs	4 Composition	6F2	DOC			RENVOI-ABSENT	R4	type CALCUL : domicile 10
+S08-0474	08	2	3.10 Principes de conception	11	REGLE	COMPOSITION	DÉPLACER	10 – Règles fonctionnelles et calculs	4 Composition	6F2	DOC				R4	type REGLE : domicile 10
+S08-0475	08	2	Circuits de tours et de séries	2	CONTENEUR	CIRCUIT	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	5 Circuits	—	DOC			TITRE-NUM	R4	le ch. 08 devient une table de renvoi
+S08-0476	08	3	Un circuit est *de tours* ou *de séries*	55	REGLE	CIRCUIT	DÉPLACER	10 – Règles fonctionnelles et calculs	5 Circuits	6F2	DOC			MELANGE AUTRE:renvois-§9.2-§9.3-du-brief-inexistants	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : COMPORTEMENT+HISTORIQUE)
+S08-0477	08	3	Le régime des séries d'un exercice	31	REGLE	PARAMETRES	DÉPLACER	10 – Règles fonctionnelles et calculs	3 Paramètres d’exécution	6F2	DOC			MELANGE	R4	type REGLE : domicile 10
+S08-0478	08	3	Compléments normatifs issus des arbitrages du 12 octobre	65	REGLE	CIRCUIT	DÉPLACER	10 – Règles fonctionnelles et calculs	5 Circuits	6F2	DOC			TITRE-DATE MELANGE ALIAS AUTRE:renvois-§10-§1.2-inexistants	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : COMPORTEMENT+RENDU)
+S08-0479	08	2	Placement des récupérations et des points d’arrêt	2	CONTENEUR	COMPOSITION	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	4 Composition	—	DOC			TITRE-NUM	R4	le ch. 08 devient une table de renvoi
+S08-0480	08	3	Pause de Composition : deux types, un parcours	12	CONCEPT	COMPOSITION	DÉPLACER	04 – Modèle fonctionnel	4 Composition	6F2	DOC			DOUBLON	R4	type CONCEPT : domicile 04 ; à scinder si nécessaire (types secondaires : COMPORTEMENT)
+S08-0481	08	3	Brouillons, validation et annulation	10	COMPORTEMENT	COMPOSITION	DÉPLACER	10 – Règles fonctionnelles et calculs	4 Composition	6F2	DOC				R4	type COMPORTEMENT : domicile 10
+S08-0482	08	3	Contenu et trait de démarcation	12	RENDU	COMPOSITION	DÉPLACER	14 – Conventions d’interface	4 Composition	6F1	DOC			HORS-DOMICILE DOUBLON MELANGE	R4	type RENDU : domicile 14 ; à scinder si nécessaire (types secondaires : COMPORTEMENT+HISTORIQUE)
+S08-0483	08	3	Positions, ordre et retrait	10	REGLE	COMPOSITION	DÉPLACER	10 – Règles fonctionnelles et calculs	4 Composition	6F2	DOC			DOUBLON RENVOI-ABSENT	R4	type REGLE : domicile 10
+S08-0484	08	2	Phrase de synthèse des paramètres	2	CONTENEUR	PARAMETRES	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	3 Paramètres d’exécution	—	DOC			TITRE-NUM	R4	le ch. 08 devient une table de renvoi
+S08-0485	08	3	Format d'affichage des durées	11	CALCUL	TRANSVERSE-CALCUL	DÉPLACER	10 – Règles fonctionnelles et calculs	14 Calculs transverses	6F2	DOC			HORS-DOMICILE	R4	type CALCUL : domicile 10
+S08-0486	08	3	Grammaire française v15	23	REGLE	PARAMETRES	DÉPLACER	10 – Règles fonctionnelles et calculs	3 Paramètres d’exécution	6F2	DOC			ALIAS	R4	type REGLE : domicile 10
+S08-0487	08	3	Côtés et durée	8	REGLE	PARAMETRES	DÉPLACER	10 – Règles fonctionnelles et calculs	3 Paramètres d’exécution	6F2	DOC				R4	type REGLE : domicile 10
+S08-0488	08	3	Extension normative — deux modes et cibles mixtes (13/10)	17	REGLE	PARAMETRES	DÉPLACER	10 – Règles fonctionnelles et calculs	3 Paramètres d’exécution	6F2	DOC			TITRE-DATE	R4	type REGLE : domicile 10
+S08-0489	08	3	Raccordement aux formats de séance	6	REGLE	FORMAT	DÉPLACER	10 – Règles fonctionnelles et calculs	6 Formats	6F2	DOC				R4	type REGLE : domicile 10
+S08-0490	08	3	Combinaisons dont la règle reste à préciser	13	PERIMETRE	FORMAT	DÉPLACER	05 – Versions et périmètre	6 Formats	6F2	DOC			AUTRE:renvoi-au-dossier-VNext	R4	type PERIMETRE : domicile 05 ; à scinder si nécessaire (types secondaires : META)
+S08-0491	08	2	Formats de séances — comportements consolidés	4	META	FORMAT	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	6 Formats	—	DOC			TITRE-NUM AUTRE:source-normative-hors-dépôt	R4	le ch. 08 devient une table de renvoi ; à scinder si nécessaire (types secondaires : PERIMETRE)
+S08-0492	08	3	3. Concepts et invariants	25	REGLE	FORMAT	DÉPLACER	10 – Règles fonctionnelles et calculs	6 Formats	6F2	DOC			TITRE-NUM DOUBLON	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : CONCEPT)
+S08-0493	08	3	4. Tabata et Intervalles	24	REGLE	FORMAT	DÉPLACER	10 – Règles fonctionnelles et calculs	6 Formats	6F2	DOC			TITRE-NUM DOUBLON	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : CALCUL)
+S08-0494	08	3	5. EMOM : fenêtres et borne	13	REGLE	FORMAT	DÉPLACER	10 – Règles fonctionnelles et calculs	6 Formats	6F2	DOC			TITRE-NUM DOUBLON	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : CALCUL)
+S08-0495	08	3	6. AMRAP, For time et départs rapides	26	REGLE	FORMAT	DÉPLACER	10 – Règles fonctionnelles et calculs	6 Formats	6F2	DOC			TITRE-NUM DOUBLON AUTRE:renvoi-SRC-01	R4	type REGLE : domicile 10
+S08-0496	08	3	7. Death by	22	REGLE	FORMAT	DÉPLACER	10 – Règles fonctionnelles et calculs	6 Formats	6F2	DOC			TITRE-NUM DOUBLON	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : CALCUL)
+S08-0497	08	1	4. Exécution d'une séance	2	CONTENEUR	EXECUTION	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	8 Exécution	—	DOC				R4	le ch. 08 devient une table de renvoi
+S08-0498	08	2	4.1 Principe général	8	COMPORTEMENT	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F2	DOC			DOUBLON	R4	type COMPORTEMENT : domicile 10
+S08-0499	08	2	4.2 Démarrage d'une séance	14	COMPORTEMENT	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F2	DOC (divergences conservées, G3)		S08-0446	AUTRE:liste-de-départ-incomplète	R4	type COMPORTEMENT : domicile 10
+S08-0500	08	2	4.3 Déroulement	14	COMPORTEMENT	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F2	DOC			DOUBLON	R4	type COMPORTEMENT : domicile 10
+S08-0501	08	2	4.4 Informations affichées	14	CONTRAT	EXECUTION	DÉPLACER	13 – Contrats d’écran	8 Exécution	6F2	DOC			HORS-DOMICILE DOUBLON	R4	type CONTRAT : domicile 13
+S08-0502	08	3	Temps écoulé et durée réelle	14	CALCUL	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F2	DOC			RENVOI-ABSENT	R4	type CALCUL : domicile 10
+S08-0503	08	3	Barre de progression globale	12	CALCUL	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F2	DOC			DOUBLON RENVOI-ABSENT MELANGE	R4	type CALCUL : domicile 10 ; à scinder si nécessaire (types secondaires : RENDU)
+S08-0504	08	2	4.5 Actions disponibles	10	COMPORTEMENT	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F2	DOC				R4	type COMPORTEMENT : domicile 10
+S08-0505	08	2	4.6 Réinitialisation d'un exercice	23	COMPORTEMENT	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F2	DOC (divergences conservées, G3)		S08-0556	MELANGE RENVOI-ABSENT	R4	type COMPORTEMENT : domicile 10 ; à scinder si nécessaire (types secondaires : REGLE)
+S08-0506	08	2	4.7 Passage à l'exercice suivante	11	REGLE	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F2	DOC			DOUBLON	R4	type REGLE : domicile 10
+S08-0507	08	2	4.8 Mise en pause	16	COMPORTEMENT	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F2	DOC				R4	type COMPORTEMENT : domicile 10
+S08-0508	08	2	4.9 Reprise	4	REGLE	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F2	DOC			AUTRE:renvoi-« Cadence§4 »-inexistant	R4	type REGLE : domicile 10
+S08-0509	08	3	Arrière-plan et verrouillage	11	REGLE	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F2	DOC (divergences conservées, G3)		S08-0518	RENVOI-ABSENT	R4	type REGLE : domicile 10
+S08-0510	08	2	4.10 Arrêt anticipé	14	COMPORTEMENT	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F2	DOC				R4	type COMPORTEMENT : domicile 10
+S08-0511	08	3	Pause prolongée	13	REGLE	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F2	DOC			SANS-ID	R4	type REGLE : domicile 10
+S08-0512	08	2	4.11 Fin de séance	18	REGLE	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F2	DOC (divergences conservées, G3)		S08-0533	DOUBLON	R4	type REGLE : domicile 10
+S08-0513	08	2	4.12 Historique d'exécution	15	DONNEE	SUIVI	DÉPLACER	09 – Modèle de données	11 Suivi et synthèse	6F2	DOC			DOUBLON HORS-DOMICILE	R4	type DONNEE : domicile 09
+S08-0514	08	2	4.13 Principes de conception	12	REGLE	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F2	DOC			SANS-ID	R4	type REGLE : domicile 10
+S08-0515	08	2	Bip de cadence, progression et sécurité	2	CONTENEUR	PARAMETRES	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	3 Paramètres d’exécution	—	DOC			TITRE-NUM	R4	le ch. 08 devient une table de renvoi
+S08-0516	08	3	Paramètre commun aux deux modes	6	REGLE	PARAMETRES	DÉPLACER	10 – Règles fonctionnelles et calculs	3 Paramètres d’exécution	6F2	DOC			MELANGE	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : DONNEE)
+S08-0517	08	3	Exécution et son	10	REGLE	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F2	DOC				R4	type REGLE : domicile 10
+S08-0518	08	3	Progression, sécurité et arrière-plan	12	REGLE	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F2	DOC (divergences conservées, G3)		S08-0509	DOUBLON	R4	type REGLE : domicile 10
+S08-0519	08	2	Cibles et relevés d’exécution	2	CONTENEUR	EXECUTION	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	8 Exécution	—	DOC			TITRE-NUM	R4	le ch. 08 devient une table de renvoi
+S08-0520	08	3	Exécution et plan développé	32	REGLE	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F2	DOC			DOUBLON AUTRE:consigne-de-réécriture-de-RM-077-RM-126	R4	type REGLE : domicile 10
+S08-0521	08	3	Relevés d’exécution	43	REGLE	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F2	DOC			SANS-ID	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : DONNEE)
+S08-0522	08	2	5. Planification des créneaux et de leurs contenus	2	CONTENEUR	PLANIFICATION	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	10 Planification	—	DOC			TITRE-NUM	R4	le ch. 08 devient une table de renvoi
+S08-0523	08	3	Le concept central : un créneau peut porter plusieurs contenus	28	CONCEPT	PLANIFICATION	DÉPLACER	04 – Modèle fonctionnel	10 Planification	6F2	DOC			MELANGE AUTRE:renvois-§-du-brief	R4	type CONCEPT : domicile 04 ; à scinder si nécessaire (types secondaires : REGLE+RENDU)
+S08-0524	08	3	La fréquence d'un contenu : « x fois sur n »	53	REGLE	PLANIFICATION	DÉPLACER	10 – Règles fonctionnelles et calculs	10 Planification	6F2	DOC			MELANGE AUTRE:renvois-§-du-brief	R4	type REGLE : domicile 10
+S08-0525	08	3	La répétition du créneau	65	REGLE	PLANIFICATION	DÉPLACER	10 – Règles fonctionnelles et calculs	10 Planification	6F2	DOC (divergences conservées, G3)		S01-0029	MELANGE HORS-DOMICILE AUTRE:renvois-§-du-brief	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : RENDU)
+S08-0526	08	3	Le Programme	30	CONCEPT	PLANIFICATION	DÉPLACER	04 – Modèle fonctionnel	10 Planification	6F2	DOC			MELANGE AUTRE:source-V1.2-introuvable	R4	type CONCEPT : domicile 04 ; à scinder si nécessaire (types secondaires : PERIMETRE)
+S08-0527	08	3	Points ouverts, à consigner comme tels	10	PERIMETRE	PLANIFICATION	DÉPLACER	05 – Versions et périmètre	10 Planification	6F2	DOC			DOUBLON AUTRE:point-visuel-3-px	R4	type PERIMETRE : domicile 05
+S08-0528	08	3	Limites de spécification à traiter avant développement	7	PERIMETRE	PLANIFICATION	DÉPLACER	05 – Versions et périmètre	10 Planification	6F2	DOC				R4	type PERIMETRE : domicile 05 ; à scinder si nécessaire (types secondaires : REGLE)
+S08-0529	08	1	6. Suivi et historique des séances	2	CONTENEUR	SUIVI	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	11 Suivi et synthèse	—	DOC			TITRE-NUM	R4	le ch. 08 devient une table de renvoi
+S08-0530	08	2	6.1 Principe général	8	CONCEPT	SUIVI	DÉPLACER	04 – Modèle fonctionnel	11 Suivi et synthèse	6F2	DOC			DOUBLON	R4	type CONCEPT : domicile 04
+S08-0531	08	2	6.2 Création d'un historique	21	DONNEE	SUIVI	DÉPLACER	09 – Modèle de données	11 Suivi et synthèse	6F2	DOC			HORS-DOMICILE	R4	type DONNEE : domicile 09
+S08-0532	08	2	6.3 Informations enregistrées	14	DONNEE	SUIVI	DÉPLACER	09 – Modèle de données	11 Suivi et synthèse	6F2	DOC			DOUBLON HORS-DOMICILE	R4	type DONNEE : domicile 09
+S08-0533	08	2	6.4 Statut d'une exécution	18	REGLE	SUIVI	DÉPLACER	10 – Règles fonctionnelles et calculs	11 Suivi et synthèse	6F2	DOC (divergences conservées, G3)		S08-0512	DOUBLON	R4	type REGLE : domicile 10
+S08-0534	08	2	6.5 Consultation de l'historique	13	COMPORTEMENT	SUIVI	DÉPLACER	10 – Règles fonctionnelles et calculs	11 Suivi et synthèse	6F2	DOC (divergences conservées, G3)		S10-0739 S13-0962		R4	type COMPORTEMENT : domicile 10
+S08-0535	08	2	6.6 Recherche	10	COMPORTEMENT	SUIVI	DÉPLACER	10 – Règles fonctionnelles et calculs	11 Suivi et synthèse	6F2	DOC (divergences conservées, G3)		S13-0962	SANS-ID	R4	type COMPORTEMENT : domicile 10
+S08-0536	08	2	6.7 Filtres	4	PERIMETRE	SUIVI	DÉPLACER	05 – Versions et périmètre	11 Suivi et synthèse	6F2	DOC				R4	type PERIMETRE : domicile 05
+S08-0537	08	2	6.8 Tri	9	COMPORTEMENT	SUIVI	DÉPLACER	10 – Règles fonctionnelles et calculs	11 Suivi et synthèse	6F2	DOC (divergences conservées, G3)		S10-0739 S08-0540		R4	type COMPORTEMENT : domicile 10
+S08-0538	08	2	6.9 Déploiement du détail	6	COMPORTEMENT	SUIVI	DÉPLACER	10 – Règles fonctionnelles et calculs	11 Suivi et synthèse	6F2	DOC (divergences conservées, G3)		S08-0534 S08-0540 S10-0745 S08-0586		R4	type COMPORTEMENT : domicile 10
+S08-0539	08	2	6.10 Conservation des historiques	10	REGLE	SUIVI	DÉPLACER	10 – Règles fonctionnelles et calculs	11 Suivi et synthèse	6F2	DOC			RENVOI-ABSENT	R4	type REGLE : domicile 10
+S08-0540	08	2	6.11 Principes de conception	10	REGLE	SUIVI	DÉPLACER	10 – Règles fonctionnelles et calculs	11 Suivi et synthèse	6F2	DOC (divergences conservées, G3)		S08-0538		R4	type REGLE : domicile 10
+S08-0541	08	1	Champs et comportements des fonctionnalités	2	CONTENEUR	MULTI	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	18 Multi-domaines	—	DOC			TITRE-NUM HORS-DOMICILE	R4	le ch. 08 devient une table de renvoi
+S08-0542	08	2	Catalogue de séances	2	CONTENEUR	SEANCE	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	1 Séances	—	DOC				R4	le ch. 08 devient une table de renvoi
+S08-0543	08	3	Champs affichés	21	CONTRAT	SEANCE	DÉPLACER	13 – Contrats d’écran	1 Séances	6F2	DOC (divergences conservées, G3)		S13-0948 S10-0744 S08-0583	HORS-DOMICILE DOUBLON AUTRE:ligne-Circuit-intruse-à-5-colonnes-manquantes	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : RENDU)
+S08-0544	08	3	Règles fonctionnelles	17	CONTRAT	SEANCE	DÉPLACER	13 – Contrats d’écran	1 Séances	6F2	DOC			RENVOI-ABSENT DOUBLON	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : REGLE)
+S08-0545	08	2	Composition d’une séance — création et modification	4	CONTENEUR	COMPOSITION	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	4 Composition	—	DOC				R4	le ch. 08 devient une table de renvoi
+S08-0546	08	3	Éléments affichés	24	CONTRAT	COMPOSITION	DÉPLACER	13 – Contrats d’écran	4 Composition	6F2	DOC			MELANGE HORS-DOMICILE	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : RENDU+HISTORIQUE)
+S08-0547	08	2	Étiquettes de la séance	4	CONTENEUR	SEANCE	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	1 Séances	—	DOC				R4	le ch. 08 devient une table de renvoi
+S08-0548	08	3	Éléments affichés	10	CONTRAT	SEANCE	DÉPLACER	13 – Contrats d’écran	1 Séances	6F2	DOC			HORS-DOMICILE	R4	type CONTRAT : domicile 13
+S08-0549	08	3	Règles fonctionnelles	8	REGLE	SEANCE	DÉPLACER	10 – Règles fonctionnelles et calculs	1 Séances	6F2	DOC (divergences conservées, G3)		S10-0731 S08-0442 S08-0443		R4	type REGLE : domicile 10
+S08-0550	08	2	Exercice	2	CONTENEUR	EXERCICE	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	2 Exercices	—	DOC				R4	le ch. 08 devient une table de renvoi
+S08-0551	08	3	Eléments affichés	27	CONTRAT	EXERCICE	DÉPLACER	13 – Contrats d’écran	2 Exercices	6F2	DOC			MELANGE DOUBLON AUTRE:libellés-« activité »-et-« Trois-modes »	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : RENDU+REGLE)
+S08-0552	08	3	Règles fonctionnelles	16	REGLE	EXERCICE	DÉPLACER	10 – Règles fonctionnelles et calculs	2 Exercices	6F2	DOC (divergences conservées, G3)		S10-0796	DOUBLON TABLEAU-COUPE MELANGE	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : CALCUL)
+S08-0553	08	3	Gestion commune des référentiels de classification	6	REGLE	REFERENTIELS	DÉPLACER	10 – Règles fonctionnelles et calculs	13 Référentiels	6F2	DOC			TABLEAU-COUPE HORS-DOMICILE	R4	type REGLE : domicile 10 ; à scinder si nécessaire (types secondaires : CONTRAT)
+S08-0554	08	2	Exécution d'une séance	2	CONTENEUR	EXECUTION	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	8 Exécution	—	DOC				R4	le ch. 08 devient une table de renvoi
+S08-0555	08	3	Éléments affichés	17	CONTRAT	EXECUTION	DÉPLACER	13 – Contrats d’écran	8 Exécution	6F2	DOC			DOUBLON HORS-DOMICILE	R4	type CONTRAT : domicile 13
+S08-0556	08	3	Règles fonctionnelles	13	CONTRAT	EXECUTION	DÉPLACER	13 – Contrats d’écran	8 Exécution	6F2	DOC (divergences conservées, G3)		S08-0505	MELANGE DOUBLON	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : REGLE+RENDU)
+S08-0557	08	3	Sons et annonces	6	REGLE	EXECUTION	DÉPLACER	10 – Règles fonctionnelles et calculs	8 Exécution	6F2	DOC			SANS-ID	R4	type REGLE : domicile 10
+S08-0558	08	2	Synthèse de séance	2	CONTENEUR	SUIVI	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	11 Suivi et synthèse	—	DOC				R4	le ch. 08 devient une table de renvoi
+S08-0559	08	3	Eléments affichés	20	CONTRAT	SUIVI	DÉPLACER	13 – Contrats d’écran	11 Suivi et synthèse	6F2	DOC			HORS-DOMICILE	R4	type CONTRAT : domicile 13
+S08-0560	08	3	Règles fonctionnelles	12	REGLE	SUIVI	DÉPLACER	10 – Règles fonctionnelles et calculs	11 Suivi et synthèse	6F2	DOC			RENVOI-ABSENT AUTRE:cellule-surnuméraire	R4	type REGLE : domicile 10
+S08-0561	08	2	Profil	2	CONTENEUR	PROFIL	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	12 Profil et préférences	—	DOC				R4	le ch. 08 devient une table de renvoi
+S08-0562	08	3	Eléments affichés	13	CONTRAT	PROFIL	DÉPLACER	13 – Contrats d’écran	12 Profil et préférences	6F2	DOC (divergences conservées, G3)		S13-0973	HORS-DOMICILE	R4	type CONTRAT : domicile 13
+S08-0563	08	3	Règles fonctionnelles	18	REGLE	PROFIL	DÉPLACER	10 – Règles fonctionnelles et calculs	12 Profil et préférences	6F2	DOC			RENVOI-ABSENT	R4	type REGLE : domicile 10
+S08-0564	08	2	Calendrier	2	CONTENEUR	PLANIFICATION	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	10 Planification	—	DOC				R4	le ch. 08 devient une table de renvoi
+S08-0565	08	3	Règles liées à la couleur	6	REGLE	PLANIFICATION	DÉPLACER	10 – Règles fonctionnelles et calculs	10 Planification	6F2	DOC			DOUBLON	R4	type REGLE : domicile 10
+S08-0566	08	2	Planifier une Séance ou un Exercice	4	RENDU	PLANIFICATION	DÉPLACER	14 – Conventions d’interface	10 Planification	6F1	DOC			HORS-DOMICILE	R4	type RENDU : domicile 14
+S08-0567	08	3	Règles liées à la couleur	6	REGLE	PLANIFICATION	DÉPLACER	10 – Règles fonctionnelles et calculs	10 Planification	6F2	DOC			DOUBLON	R4	type REGLE : domicile 10
+S08-0568	08	2	Suivi - Vue d'ensemble	2	CONTENEUR	SUIVI	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	11 Suivi et synthèse	—	DOC				R4	le ch. 08 devient une table de renvoi
+S08-0569	08	3	Règles liées à la couleur	4	PERIMETRE	SUIVI	DÉPLACER	05 – Versions et périmètre	11 Suivi et synthèse	6F2	DOC				R4	type PERIMETRE : domicile 05
+S08-0570	08	2	Suivi - Séances	2	CONTENEUR	SUIVI	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	11 Suivi et synthèse	—	DOC				R4	le ch. 08 devient une table de renvoi
+S08-0571	08	3	Élément affiché lié à la couleur	6	CONTRAT	SUIVI	DÉPLACER	13 – Contrats d’écran	11 Suivi et synthèse	6F2	DOC				R4	type CONTRAT : domicile 13
+S08-0572	08	3	Règle fonctionnelle liée à la couleur	4	REGLE	SUIVI	DÉPLACER	10 – Règles fonctionnelles et calculs	11 Suivi et synthèse	6F2	DOC			DOUBLON	R4	type REGLE : domicile 10
+S08-0573	08	2	Dialogues de confirmation	15	CONVENTION-UI	MULTI	DÉPLACER	14 – Conventions d’interface	18 Multi-domaines	6F1	DOC			MELANGE HORS-DOMICILE	R4	type CONVENTION-UI : domicile 14 ; à scinder si nécessaire (types secondaires : RENDU)
+S08-0574	08	2	Consultation média pendant l’Exécution — MVP	2	CONTENEUR	MEDIA-EXEC	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	9 Médias pendant l’Exécution	—	DOC				R4	le ch. 08 devient une table de renvoi
+S08-0575	08	3	Face Information et Face Média	4	COMPORTEMENT	MEDIA-EXEC	DÉPLACER	10 – Règles fonctionnelles et calculs	9 Médias pendant l’Exécution	6F2	DOC			RENVOI-ABSENT	R4	type COMPORTEMENT : domicile 10 ; à scinder si nécessaire (types secondaires : RENDU)
+S08-0576	08	3	Galerie	4	COMPORTEMENT	MEDIA-EXEC	DÉPLACER	10 – Règles fonctionnelles et calculs	9 Médias pendant l’Exécution	6F2	DOC			RENVOI-ABSENT	R4	type COMPORTEMENT : domicile 10
+S08-0577	08	3	Vidéo et audio	4	COMPORTEMENT	MEDIA-EXEC	DÉPLACER	10 – Règles fonctionnelles et calculs	9 Médias pendant l’Exécution	6F2	DOC			RENVOI-ABSENT	R4	type COMPORTEMENT : domicile 10
+S08-0578	08	3	Mémoire de séance	4	COMPORTEMENT	MEDIA-EXEC	DÉPLACER	10 – Règles fonctionnelles et calculs	9 Médias pendant l’Exécution	6F2	DOC			RENVOI-ABSENT	R4	type COMPORTEMENT : domicile 10
+S08-0579	08	3	Plein écran	4	COMPORTEMENT	MEDIA-EXEC	DÉPLACER	10 – Règles fonctionnelles et calculs	9 Médias pendant l’Exécution	6F2	DOC			RENVOI-ABSENT	R4	type COMPORTEMENT : domicile 10
+S08-0580	08	3	Fin et erreur	6	COMPORTEMENT	MEDIA-EXEC	DÉPLACER	10 – Règles fonctionnelles et calculs	9 Médias pendant l’Exécution	6F2	DOC			RENVOI-ABSENT AUTRE:référence-normative-hors-chapitres	R4	type COMPORTEMENT : domicile 10
+S08-0581	08	3	Récupérations — conception détaillée D-208	6	REGLE	COMPOSITION	DÉPLACER	10 – Règles fonctionnelles et calculs	4 Composition	6F2	DOC			HORS-DOMICILE DOUBLON AUTRE:titre-numéro-de-décision	R4	type REGLE : domicile 10
+S08-0582	08	2	Règles communes — D-209 à D-217	12	REGLE	MULTI	DÉPLACER	10 – Règles fonctionnelles et calculs	18 Multi-domaines	6F2	DOC			MELANGE DOUBLON AUTRE:titre-plage-de-décisions	R4	type REGLE : domicile 10
+S08-0583	08	2	Conventions communes d’interface	4	CONVENTION-UI	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC (divergences conservées, G3)		S08-0543 S08-0451		R4	type CONVENTION-UI : domicile 14
+S08-0584	08	3	8.x Générateur de phrase de synthèse v13	4	CALCUL	TRANSVERSE-CALCUL	DÉPLACER	10 – Règles fonctionnelles et calculs	14 Calculs transverses	6F2	DOC			TITRE-NUM ALIAS DOUBLON AUTRE:titre-sans-rapport-avec-le-contenu	R4	type CALCUL : domicile 10
+S08-0585	08	3	Contrôles et bornes v13	4	REGLE	PARAMETRES	DÉPLACER	10 – Règles fonctionnelles et calculs	3 Paramètres d’exécution	6F2	DOC			ALIAS DOUBLON	R4	type REGLE : domicile 10
+S08-0586	08	2	Présentation et interactions des cartes — 30 septembre 2026	14	CONVENTION-UI	TRANSVERSE-UI	RENVOI	14 – Conventions d’interface	15 Interface transverse	6D	DOC	S12-0925		TITRE-DATE DOUBLON MELANGE HORS-DOMICILE	R2	copie intégrale (≥ 0,9) de S12-0925 « DSF courant — Cartes, icônes et animations d’appui » ; remplacée par un renvoi
+S08-0587	08	3	Implantation des contrôles — réconciliation Figma du 30 septembre	6	META	EXERCICE	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	2 Exercices	—	DOC			TITRE-DATE DOUBLON MELANGE AUTRE:renvoi-« ci-dessous »-sans-objet	R4	le ch. 08 devient une table de renvoi ; à scinder si nécessaire (types secondaires : HISTORIQUE)
+S08-0588	08	3	Saisie des paramètres — D-246	4	META	PARAMETRES	RENVOI	10 – Règles fonctionnelles et calculs	3 Paramètres d’exécution	6D	DOC	S10-0746		ALIAS DOUBLON AUTRE:lien-autoréférent	R2	copie intégrale (≥ 0,9) de S10-0746 « Saisie des paramètres — D-246 » ; remplacée par un renvoi
+S08-0589	08	2	Cadence — comportements communs complémentaires	4	META	PARAMETRES	TABLE-DE-RENVOI	08 – Table de renvoi (ancienne conception détaillée)	3 Paramètres d’exécution	—	DOC			ALIAS	R4	le ch. 08 devient une table de renvoi ; à scinder si nécessaire (types secondaires : REGLE)
+S08-0590	08	3	Avertissement d’enchaînement sans pause (D-301)	4	REGLE	COMPOSITION	RENVOI	10 – Règles fonctionnelles et calculs	4 Composition	6D	DOC	S10-0748		DOUBLON SANS-ID	R2	copie intégrale (≥ 0,9) de S10-0748 « Avertissement non bloquant d’enchaînement (D-301) » ; remplacée par un renvoi
+S08-0591	08	2	Pauses et symboles	4	REGLE	COMPOSITION	DÉPLACER	10 – Règles fonctionnelles et calculs	4 Composition	6F2	DOC			DOUBLON AUTRE:titre-« symboles »-sans-contenu	R4	type REGLE : domicile 10
+S08-0592	08	2	Composition — comportement cible du12/10	6	CONTRAT	COMPOSITION	DÉPLACER	13 – Contrats d’écran	4 Composition	6F2	DOC			TITRE-DATE DOUBLON	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : RENDU)
+S09-0593	09	1	09.0 Vue d'ensemble	4	META	GOUVERNANCE	RENVOI	10 – Règles fonctionnelles et calculs	0 Gouvernance	6D	DOC	S10-0728		DOUBLON	R2	copie intégrale (≥ 0,9) de S10-0728 « Processus métier et règles métier transverses » ; remplacée par un renvoi
+S09-0594	09	2	Objectif et périmètre	18	META	GOUVERNANCE	CONSERVER	09 – Modèle de données	0 Gouvernance	—	DOC				R4	
+S09-0595	09	2	Principes structurants	18	CONCEPT	MULTI	CONSERVER	09 – Modèle de données	18 Multi-domaines	—	DOC		S04-0142 S01-0029		R4	
+S09-0596	09	2	Vue d'ensemble du modèle	2	CONTENEUR	MULTI	CONSERVER	09 – Modèle de données	18 Multi-domaines	—	DOC				R4	
+S09-0597	09	3	Liste des entités	18	DONNEE	MULTI	CONSERVER	09 – Modèle de données	18 Multi-domaines	—	DOC		S01-0029 S04-0142		R4	
+S09-0598	09	2	Décisions structurantes du modèle	25	DECISION	MULTI	INTÉGRER	09 – Modèle de données	18 Multi-domaines	6E	DOC			DOUBLON HORS-DOMICILE ALIAS MELANGE AUTRE:ordre-ID-DM-016-après-DM-020	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : CALCUL+DONNEE)
+S09-0599	09	2	Relations principales	34	DONNEE	MULTI	CONSERVER	09 – Modèle de données	18 Multi-domaines	—	DOC		S04-0139		R4	
+S09-0600	09	1	09.1 Entité Utilisateur	2	CONTENEUR	PROFIL	CONSERVER	09 – Modèle de données	12 Profil et préférences	—	DOC				R4	
+S09-0601	09	2	Définition	6	CONCEPT	PROFIL	CONSERVER	09 – Modèle de données	12 Profil et préférences	—	DOC				R4	
+S09-0602	09	2	Périmètre	16	DONNEE	PROFIL	CONSERVER	09 – Modèle de données	12 Profil et préférences	—	DOC		S04-0139		R4	
+S09-0603	09	2	Attributs fonctionnels	10	DONNEE	PROFIL	CONSERVER	09 – Modèle de données	12 Profil et préférences	—	DOC				R4	
+S09-0604	09	2	Règles métier	9	REGLE	PROFIL	CONSERVER	09 – Modèle de données	12 Profil et préférences	—	DOC				R4	
+S09-0605	09	1	09.2 Entité Séance	2	CONTENEUR	SEANCE	CONSERVER	09 – Modèle de données	1 Séances	—	DOC				R4	
+S09-0606	09	2	Définition	8	CONCEPT	SEANCE	CONSERVER	09 – Modèle de données	1 Séances	—	DOC				R4	
+S09-0607	09	2	Périmètre	22	DONNEE	SEANCE	CONSERVER	09 – Modèle de données	1 Séances	—	DOC		S04-0140	AUTRE:Tour-employé-comme-conteneur	R4	
+S09-0608	09	2	Attributs fonctionnels	24	DONNEE	SEANCE	INTÉGRER	09 – Modèle de données	1 Séances	6E	DOC			TABLEAU-COUPE MELANGE HORS-DOMICILE	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : CALCUL)
+S09-0609	09	2	Structure interne de la séance	44	DONNEE	COMPOSITION	CONSERVER	09 – Modèle de données	4 Composition	—	DOC			AUTRE:Tour-employé-comme-conteneur	R4	
+S09-0610	09	3	Évolutivité de la structure	15	DONNEE	COMPOSITION	CONSERVER	09 – Modèle de données	4 Composition	—	DOC			DOUBLON AUTRE:Tour-employé-comme-conteneur	R4	
+S09-0611	09	2	Relations principales	12	DONNEE	SEANCE	CONSERVER	09 – Modèle de données	1 Séances	—	DOC			DOUBLON	R4	
+S09-0612	09	2	Règles métier	25	REGLE	SEANCE	CONSERVER	09 – Modèle de données	1 Séances	—	DOC		S10-0731 S04-0140	DOUBLON RENVOI-ABSENT SANS-ID	R4	
+S09-0613	09	1	09.3 Entité Routine	22	DONNEE	PLANIFICATION	CONSERVER	09 – Modèle de données	10 Planification	—	DOC			DOUBLON AUTRE:gabarit-entité-non-suivi	R4	
+S09-0614	09	1	09.3.1 Règles de planification	12	REGLE	PLANIFICATION	CONSERVER	09 – Modèle de données	10 Planification	—	DOC			DOUBLON HORS-DOMICILE AUTRE:sous-section-numérotée-au-niveau-H1	R4	
+S09-0615	09	1	09.4 Entité Occurrence planifiée	1	CONTENEUR	PLANIFICATION	CONSERVER	09 – Modèle de données	10 Planification	—	DOC			AUTRE:sous-titres-H3-directement-sous-H1	R4	
+S09-0616	09	3	Définition	5	CONCEPT	PLANIFICATION	CONSERVER	09 – Modèle de données	10 Planification	—	DOC		S01-0029		R4	
+S09-0617	09	3	Périmètre	12	DONNEE	PLANIFICATION	INTÉGRER	09 – Modèle de données	10 Planification	6E	DOC				R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : PERIMETRE)
+S09-0618	09	3	Attributs fonctionnels	14	DONNEE	PLANIFICATION	INTÉGRER	09 – Modèle de données	10 Planification	6E	DOC			TABLEAU-COUPE	R4	complément empilé : à placer dans la rubrique thématique
+S09-0619	09	3	Règles métier	8	REGLE	PLANIFICATION	CONSERVER	09 – Modèle de données	10 Planification	—	DOC			RENVOI-ABSENT SANS-ID	R4	
+S09-0620	09	1	09.5 Entité Exercice	2	CONTENEUR	EXERCICE	CONSERVER	09 – Modèle de données	2 Exercices	—	DOC				R4	
+S09-0621	09	2	Définition	8	CONCEPT	EXERCICE	CONSERVER	09 – Modèle de données	2 Exercices	—	DOC				R4	
+S09-0622	09	2	Périmètre	26	DONNEE	EXERCICE	CONSERVER	09 – Modèle de données	2 Exercices	—	DOC			HORS-DOMICILE	R4	
+S09-0623	09	2	Attributs fonctionnels	27	DONNEE	EXERCICE	CONSERVER	09 – Modèle de données	2 Exercices	—	DOC		S04-0143 S10-0744 S09-0666 S09-0671	AUTRE:caractère-d'attribut-contradictoire	R4	
+S09-0624	09	2	Règles métier	15	REGLE	EXERCICE	CONSERVER	09 – Modèle de données	2 Exercices	—	DOC			DOUBLON HORS-DOMICILE MELANGE SANS-ID	R4	
+S09-0625	09	1	09.6 Entité Média	4	PERIMETRE	EXERCICE	INTÉGRER	09 – Modèle de données	2 Exercices	6E	DOC				R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : HISTORIQUE)
+S09-0626	09	2	Définition	4	CONCEPT	EXERCICE	CONSERVER	09 – Modèle de données	2 Exercices	—	DOC		S01-0029		R4	
+S09-0627	09	2	Périmètre	4	DONNEE	EXERCICE	CONSERVER	09 – Modèle de données	2 Exercices	—	DOC				R4	
+S09-0628	09	2	Attributs fonctionnels	13	DONNEE	EXERCICE	CONSERVER	09 – Modèle de données	2 Exercices	—	DOC		S09-0641		R4	
+S09-0629	09	2	Règles métier	8	REGLE	EXERCICE	CONSERVER	09 – Modèle de données	2 Exercices	—	DOC			DOUBLON SANS-ID	R4	
+S09-0630	09	1	09.7 Entité Exécution	2	CONTENEUR	EXECUTION	CONSERVER	09 – Modèle de données	8 Exécution	—	DOC				R4	
+S09-0631	09	2	Définition	6	CONCEPT	EXECUTION	CONSERVER	09 – Modèle de données	8 Exécution	—	DOC				R4	
+S09-0632	09	2	Périmètre	11	DONNEE	EXECUTION	CONSERVER	09 – Modèle de données	8 Exécution	—	DOC				R4	
+S09-0633	09	2	Attributs fonctionnels	22	DONNEE	EXECUTION	INTÉGRER	09 – Modèle de données	8 Exécution	6E	DOC			TABLEAU-COUPE	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : CALCUL)
+S09-0634	09	2	Structures internes	2	CONTENEUR	EXECUTION	CONSERVER	09 – Modèle de données	8 Exécution	—	DOC				R4	
+S09-0635	09	3	Instantané de source	26	DONNEE	EXECUTION	CONSERVER	09 – Modèle de données	8 Exécution	—	DOC			HORS-DOMICILE	R4	
+S09-0636	09	3	État d'exécution	10	DONNEE	EXECUTION	CONSERVER	09 – Modèle de données	8 Exécution	—	DOC				R4	
+S09-0637	09	2	Règles métier	15	REGLE	EXECUTION	CONSERVER	09 – Modèle de données	8 Exécution	—	DOC			DOUBLON SANS-ID	R4	
+S09-0638	09	1	09.14 Extension du modèle — Exercices, Médias et Parcours	2	CONTENEUR	EXERCICE	CONSERVER	09 – Modèle de données	2 Exercices	—	DOC			TITRE-NUM	R4	
+S09-0639	09	2	Racines et associations	9	DONNEE	EXERCICE	CONSERVER	09 – Modèle de données	2 Exercices	—	DOC				R4	
+S09-0640	09	2	Contraintes d’Exercice	6	DONNEE	EXERCICE	CONSERVER	09 – Modèle de données	2 Exercices	—	DOC			DOUBLON HORS-DOMICILE MELANGE	R4	
+S09-0641	09	2	Contraintes Média	4	DONNEE	EXERCICE	CONSERVER	09 – Modèle de données	2 Exercices	—	DOC			HORS-DOMICILE	R4	
+S09-0642	09	2	Contraintes Parcours	4	HISTORIQUE	PARCOURS-HORS-MVP	RENVOI	Annexe – Historique des consolidations	16 Hors MVP	6D	DOC	S01-0020		DOUBLON AUTRE:titre-obsolète	R2	copie intégrale (≥ 0,9) de S01-0020 « Parcours — post-MVP » ; remplacée par un renvoi
+S09-0643	09	1	09.7.1 Résultat d’Exercice exécuté	20	DONNEE	EXECUTION	INTÉGRER	09 – Modèle de données	8 Exécution	6E	DOC			TITRE-NUM TABLEAU-COUPE	R4	complément empilé : à placer dans la rubrique thématique
+S09-0644	09	1	09.8 Structures internes du moteur d'exécution	2	CONTENEUR	EXECUTION	CONSERVER	09 – Modèle de données	8 Exécution	—	DOC				R4	
+S09-0645	09	2	Définition	10	CONCEPT	EXECUTION	CONSERVER	09 – Modèle de données	8 Exécution	—	DOC				R4	
+S09-0646	09	2	Plan d'exécution	2	CONTENEUR	EXECUTION	CONSERVER	09 – Modèle de données	8 Exécution	—	DOC				R4	
+S09-0647	09	3	Définition	6	CONCEPT	EXECUTION	CONSERVER	09 – Modèle de données	8 Exécution	—	DOC				R4	
+S09-0648	09	3	Contenu	9	DONNEE	EXECUTION	CONSERVER	09 – Modèle de données	8 Exécution	—	DOC				R4	
+S09-0649	09	2	Exercice d'exécution	2	CONTENEUR	EXECUTION	CONSERVER	09 – Modèle de données	8 Exécution	—	DOC				R4	
+S09-0650	09	3	Attributs fonctionnels	11	DONNEE	EXECUTION	CONSERVER	09 – Modèle de données	8 Exécution	—	DOC				R4	
+S09-0651	09	2	Règles métier	11	REGLE	EXECUTION	CONSERVER	09 – Modèle de données	8 Exécution	—	DOC			RENVOI-ABSENT SANS-ID	R4	
+S09-0652	09	1	09.9 Entité Préférences globales	2	CONTENEUR	PROFIL	CONSERVER	09 – Modèle de données	12 Profil et préférences	—	DOC				R4	
+S09-0653	09	2	Définition	6	CONCEPT	PROFIL	CONSERVER	09 – Modèle de données	12 Profil et préférences	—	DOC				R4	
+S09-0654	09	2	Périmètre	16	DONNEE	PROFIL	CONSERVER	09 – Modèle de données	12 Profil et préférences	—	DOC		S04-0147		R4	
+S09-0655	09	2	Attributs fonctionnels	20	DONNEE	PROFIL	CONSERVER	09 – Modèle de données	12 Profil et préférences	—	DOC		S10-0740 S01-0029 S04-0147 S08-0562	AUTRE:valeur-par-défaut-justifiée-par-Figma	R4	
+S09-0656	09	2	Règles métier	15	REGLE	PROFIL	CONSERVER	09 – Modèle de données	12 Profil et préférences	—	DOC			DOUBLON RENVOI-ABSENT SANS-ID	R4	
+S09-0657	09	1	09.10 Entité Étiquette	2	CONTENEUR	REFERENTIELS	CONSERVER	09 – Modèle de données	13 Référentiels	—	DOC				R4	
+S09-0658	09	2	Définition	4	CONCEPT	REFERENTIELS	CONSERVER	09 – Modèle de données	13 Référentiels	—	DOC				R4	
+S09-0659	09	2	Périmètre	4	DONNEE	REFERENTIELS	CONSERVER	09 – Modèle de données	13 Référentiels	—	DOC				R4	
+S09-0660	09	2	Attributs fonctionnels	11	DONNEE	REFERENTIELS	CONSERVER	09 – Modèle de données	13 Référentiels	—	DOC				R4	
+S09-0661	09	2	Règles métier	9	REGLE	REFERENTIELS	CONSERVER	09 – Modèle de données	13 Référentiels	—	DOC			RENVOI-ABSENT SANS-ID	R4	
+S09-0662	09	1	09.10.1 Entité Catégorie	2	CONTENEUR	REFERENTIELS	CONSERVER	09 – Modèle de données	13 Référentiels	—	DOC			TITRE-NUM	R4	
+S09-0663	09	2	Définition	4	CONCEPT	REFERENTIELS	CONSERVER	09 – Modèle de données	13 Référentiels	—	DOC				R4	
+S09-0664	09	2	Périmètre	4	DONNEE	REFERENTIELS	CONSERVER	09 – Modèle de données	13 Référentiels	—	DOC				R4	
+S09-0665	09	2	Attributs fonctionnels	12	DONNEE	REFERENTIELS	CONSERVER	09 – Modèle de données	13 Référentiels	—	DOC		S10-0731 S11-0819		R4	
+S09-0666	09	2	Règles métier	10	REGLE	REFERENTIELS	CONSERVER	09 – Modèle de données	13 Référentiels	—	DOC		S10-0731 S09-0623	RENVOI-ABSENT SANS-ID	R4	
+S09-0667	09	1	09.11 Entité Zone corporelle	2	CONTENEUR	REFERENTIELS	CONSERVER	09 – Modèle de données	13 Référentiels	—	DOC				R4	
+S09-0668	09	2	Définition	6	CONCEPT	REFERENTIELS	CONSERVER	09 – Modèle de données	13 Référentiels	—	DOC				R4	
+S09-0669	09	2	Périmètre	10	DONNEE	REFERENTIELS	CONSERVER	09 – Modèle de données	13 Référentiels	—	DOC				R4	
+S09-0670	09	2	Attributs fonctionnels	8	DONNEE	REFERENTIELS	CONSERVER	09 – Modèle de données	13 Référentiels	—	DOC				R4	
+S09-0671	09	2	Règles métier	9	REGLE	REFERENTIELS	CONSERVER	09 – Modèle de données	13 Référentiels	—	DOC			RENVOI-ABSENT SANS-ID	R4	
+S09-0672	09	2	Valeurs initiales du référentiel (D-093, révisée par D-199)	15	DONNEE	REFERENTIELS	CONSERVER	09 – Modèle de données	13 Référentiels	—	DOC				R4	
+S09-0673	09	1	09.12 Règles d’intégrité et de copie	2	CONTENEUR	MULTI	CONSERVER	09 – Modèle de données	18 Multi-domaines	—	DOC				R4	
+S09-0674	09	2	Objectif	4	META	GOUVERNANCE	CONSERVER	09 – Modèle de données	0 Gouvernance	—	DOC				R4	
+S09-0675	09	2	Règles d'intégrité	2	CONTENEUR	MULTI	CONSERVER	09 – Modèle de données	18 Multi-domaines	—	DOC				R4	
+S09-0676	09	3	Identité	6	DONNEE	TECHNIQUE	CONSERVER	09 – Modèle de données	17 Technique	—	DOC				R4	
+S09-0677	09	3	Cohérence des relations	12	DONNEE	MULTI	CONSERVER	09 – Modèle de données	18 Multi-domaines	—	DOC		S09-0632 S09-0633 S09-0623		R4	
+S09-0678	09	3	Cohérence des données	6	DONNEE	COMPOSITION	CONSERVER	09 – Modèle de données	4 Composition	—	DOC				R4	
+S09-0679	09	2	Duplication d'une séance	8	REGLE	SEANCE	CONSERVER	09 – Modèle de données	1 Séances	—	DOC			DOUBLON SANS-ID	R4	
+S09-0680	09	2	Duplication d'un exercice	8	REGLE	COMPOSITION	CONSERVER	09 – Modèle de données	4 Composition	—	DOC			DOUBLON SANS-ID	R4	
+S09-0681	09	2	Suppression d’un média	9	REGLE	EXERCICE	CONSERVER	09 – Modèle de données	2 Exercices	—	DOC		S09-0625	DOUBLON SANS-ID	R4	
+S09-0682	09	2	Archivage et suppression	2	CONTENEUR	SEANCE	CONSERVER	09 – Modèle de données	1 Séances	—	DOC				R4	
+S09-0683	09	3	Archivage d'une séance	16	REGLE	SEANCE	CONSERVER	09 – Modèle de données	1 Séances	—	DOC			RENVOI-ABSENT SANS-ID	R4	
+S09-0684	09	3	Suppression d'une séance	5	REGLE	SEANCE	CONSERVER	09 – Modèle de données	1 Séances	—	DOC		S08-0445 S09-0612	SANS-ID	R4	
+S09-0685	09	2	Historique	6	REGLE	SUIVI	CONSERVER	09 – Modèle de données	11 Suivi et synthèse	—	DOC		S09-0700	SANS-ID	R4	
+S09-0686	09	1	09.13 Cycles de vie	2	CONTENEUR	MULTI	CONSERVER	09 – Modèle de données	18 Multi-domaines	—	DOC				R4	
+S09-0687	09	2	Objectif	4	META	GOUVERNANCE	CONSERVER	09 – Modèle de données	0 Gouvernance	—	DOC				R4	
+S09-0688	09	2	Cycle de vie d'une séance	9	DONNEE	SEANCE	CONSERVER	09 – Modèle de données	1 Séances	—	DOC				R4	
+S09-0689	09	3	Règles métier	7	REGLE	SEANCE	CONSERVER	09 – Modèle de données	1 Séances	—	DOC		S10-0731	SANS-ID	R4	
+S09-0690	09	2	Cycle de vie d'un exercice	15	DONNEE	EXERCICE	CONSERVER	09 – Modèle de données	2 Exercices	—	DOC			DOUBLON	R4	
+S09-0691	09	2	Cycle de vie d'une routine	4	DONNEE	PLANIFICATION	CONSERVER	09 – Modèle de données	10 Planification	—	DOC				R4	
+S09-0692	09	3	Règles métier	5	REGLE	PLANIFICATION	CONSERVER	09 – Modèle de données	10 Planification	—	DOC			SANS-ID	R4	
+S09-0693	09	2	Cycle de vie d’une Exécution	4	DONNEE	EXECUTION	CONSERVER	09 – Modèle de données	8 Exécution	—	DOC		S10-0736		R4	
+S09-0694	09	3	Règles métier	7	REGLE	EXECUTION	CONSERVER	09 – Modèle de données	8 Exécution	—	DOC			DOUBLON SANS-ID	R4	
+S09-0695	09	2	Données de bilatéralité	12	DONNEE	BILATERALITE	INTÉGRER	09 – Modèle de données	7 Bilatéralité	6E	DOC			AUTRE:hors-rubrique-cycles-de-vie	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : API)
+S09-0696	09	2	Extension V2 — origine et instantané d’Exécution	13	DONNEE	EXECUTION	INTÉGRER	09 – Modèle de données	8 Exécution	6E	DOC			AUTRE:titre-V2-ambigu AUTRE:hors-rubrique-cycles-de-vie	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : API)
+S09-0697	09	1	09.15 Migration T03 — Catalogue des Exercices	4	META	EXERCICE	CONSERVER	09 – Modèle de données	2 Exercices	—	DOC			TITRE-NUM	R4	
+S09-0698	09	2	Distinction ActivityDefinition / SessionActivity	8	CONCEPT	EXERCICE	CONSERVER	09 – Modèle de données	2 Exercices	—	DOC				R4	
+S09-0699	09	2	Migration T03	12	DONNEE	EXERCICE	CONSERVER	09 – Modèle de données	2 Exercices	—	DOC				R4	
+S09-0700	09	2	Exécution directe	12	COMPORTEMENT	EXECUTION	CONSERVER	09 – Modèle de données	8 Exécution	—	DOC		S10-0743	HORS-DOMICILE	R4	
+S09-0701	09	2	Sélection multiple depuis une Composition	6	COMPORTEMENT	COMPOSITION	CONSERVER	09 – Modèle de données	4 Composition	—	DOC			HORS-DOMICILE	R4	
+S09-0702	09	2	Frontière d’évolution	4	PERIMETRE	EXERCICE	CONSERVER	09 – Modèle de données	2 Exercices	—	DOC				R4	
+S09-0703	09	2	Données cibles — état média de l’Exécution	9	DONNEE	MEDIA-EXEC	CONSERVER	09 – Modèle de données	9 Médias pendant l’Exécution	—	DOC				R4	
+S09-0704	09	2	Extension future de Routine — source Parcours	4	HISTORIQUE	PARCOURS-HORS-MVP	RENVOI	Annexe – Historique des consolidations	16 Hors MVP	6D	DOC	S01-0020		DOUBLON AUTRE:titre-obsolète	R2	copie intégrale (≥ 0,9) de S01-0020 « Parcours — post-MVP » ; remplacée par un renvoi
+S09-0705	09	2	Données D-208 — récupérations	2	CONTENEUR	COMPOSITION	CONSERVER	09 – Modèle de données	4 Composition	—	DOC			AUTRE:titre-par-décision	R4	
+S09-0706	09	3	ActivityDefinition	4	DONNEE	EXERCICE	CONSERVER	09 – Modèle de données	2 Exercices	—	DOC				R4	
+S09-0707	09	3	SessionActivity	4	DONNEE	COMPOSITION	CONSERVER	09 – Modèle de données	4 Composition	—	DOC			DOUBLON	R4	
+S09-0708	09	3	Plan d’Exécution	4	COMPORTEMENT	EXECUTION	CONSERVER	09 – Modèle de données	8 Exécution	—	DOC				R4	
+S09-0709	09	2	Données D-209 à D-214 — consolidation	14	DONNEE	MULTI	INTÉGRER	09 – Modèle de données	18 Multi-domaines	6E	DOC			MELANGE AUTRE:titre-par-décision	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : REGLE+CALCUL)
+S09-0710	09	2	Impacts de données de la revue des cartes — 30 septembre 2026	16	RENDU	TRANSVERSE-UI	RENVOI	14 – Conventions d’interface	15 Interface transverse	6D	DOC	S12-0925		TITRE-DATE HORS-DOMICILE DOUBLON MELANGE	R2	copie intégrale (≥ 0,9) de S12-0925 « DSF courant — Cartes, icônes et animations d’appui » ; remplacée par un renvoi
+S09-0711	09	3	Saisie des paramètres — D-246	4	META	PARAMETRES	RENVOI	10 – Règles fonctionnelles et calculs	3 Paramètres d’exécution	6D	DOC	S10-0746		DOUBLON ALIAS AUTRE:titre-par-décision	R2	copie intégrale (≥ 0,9) de S10-0746 « Saisie des paramètres — D-246 » ; remplacée par un renvoi
+S09-0712	09	2	Paramètres de Série et Ordre des côtés — D-247 à D-254	6	DONNEE	PARAMETRES	RENVOI	09 – Modèle de données	3 Paramètres d’exécution	6D	DOC	S04-0166		DOUBLON AUTRE:titre-par-décision AUTRE:renvoi-tronqué	R2	copie intégrale (≥ 0,9) de S04-0166 « Paramètres de Série et Ordre des côtés — D-247 à D » ; remplacée par un renvoi
+S09-0713	09	2	Extension normative de données — Cadence	14	DONNEE	PARAMETRES	INTÉGRER	09 – Modèle de données	3 Paramètres d’exécution	6E	DOC			DOUBLON	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : CALCUL)
+S09-0714	09	2	Pauses et symboles	4	DONNEE	COMPOSITION	INTÉGRER	09 – Modèle de données	4 Composition	6E	DOC			AUTRE:titre-non-représentatif	R4	complément empilé : à placer dans la rubrique thématique
+S09-0715	09	2	Bip de cadence	4	DONNEE	PARAMETRES	INTÉGRER	09 – Modèle de données	3 Paramètres d’exécution	6E	DOC			DOUBLON MELANGE	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : CALCUL)
+S09-0716	09	2	Contrat technique de phrase	8	API	PARAMETRES	DÉPLACER	11 – API fonctionnelles	3 Paramètres d’exécution	6F4	DOC			HORS-DOMICILE DOUBLON	R4	type API : domicile 11 ; à scinder si nécessaire (types secondaires : ARCHITECTURE+DONNEE)
+S09-0717	09	2	Précision de modèle — source du07/10, v15	6	DONNEE	COMPOSITION	INTÉGRER	09 – Modèle de données	4 Composition	6E	DOC			TITRE-DATE ALIAS MELANGE	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : HISTORIQUE)
+S09-0718	09	2	Données des circuits	14	DONNEE	CIRCUIT	CONSERVER	09 – Modèle de données	5 Circuits	—	DOC				R4	
+S09-0719	09	2	Cibles et relevés	8	DONNEE	PARAMETRES	CONSERVER	09 – Modèle de données	3 Paramètres d’exécution	—	DOC			DOUBLON AUTRE:renvoi-vers-le-même-chapitre	R4	
+S09-0720	09	2	Formats — données fonctionnelles et invariants	20	DONNEE	FORMAT	CONSERVER	09 – Modèle de données	6 Formats	—	DOC				R4	
+S09-0721	09	2	Persistance des séries et compatibilité	2	CONTENEUR	PARAMETRES	CONSERVER	09 – Modèle de données	3 Paramètres d’exécution	—	DOC				R4	
+S09-0722	09	3	Compatibilité, données, API et instantanés	12	DONNEE	PARAMETRES	CONSERVER	09 – Modèle de données	3 Paramètres d’exécution	—	DOC			MELANGE	R4	
+S09-0723	09	2	Cibles typées et migration des anciennes définitions	2	CONTENEUR	PARAMETRES	CONSERVER	09 – Modèle de données	3 Paramètres d’exécution	—	DOC				R4	
+S09-0724	09	3	Modèle de paramètres	16	DONNEE	PARAMETRES	CONSERVER	09 – Modèle de données	3 Paramètres d’exécution	—	DOC				R4	
+S09-0725	09	3	Migration et compatibilité	12	DONNEE	PARAMETRES	CONSERVER	09 – Modèle de données	3 Paramètres d’exécution	—	DOC			HORS-DOMICILE MELANGE	R4	
+S09-0726	09	2	Paramètre de bip et validation des données	2	CONTENEUR	PARAMETRES	CONSERVER	09 – Modèle de données	3 Paramètres d’exécution	—	DOC				R4	
+S09-0727	09	3	Données et livraison	8	DONNEE	PARAMETRES	CONSERVER	09 – Modèle de données	3 Paramètres d’exécution	—	DOC			DOUBLON	R4	
+S10-0728	10	1	Processus métier et règles métier transverses	4	META	GOUVERNANCE	CONSERVER	10 – Règles fonctionnelles et calculs	0 Gouvernance	—	DOC			DOUBLON	R4	
+S10-0729	10	2	Objet	4	META	GOUVERNANCE	CONSERVER	10 – Règles fonctionnelles et calculs	0 Gouvernance	—	DOC			AUTRE:renvoi-ch06-au-lieu-de-ch13	R4	
+S10-0730	10	2	1. Gestion du Catalogue et des Séances	19	REGLE	SEANCE	CONSERVER	10 – Règles fonctionnelles et calculs	1 Séances	—	DOC			MELANGE	R4	
+S10-0731	10	2	2. Création et modification d’une Séance	16	REGLE	COMPOSITION	CONSERVER	10 – Règles fonctionnelles et calculs	4 Composition	—	DOC		S08-0442 S08-0549 S09-0612 S09-0665	MELANGE AUTRE:règles-contradictoires-dans-la-section	R4	
+S10-0732	10	2	3. Composition, Circuit et Cycle technique	13	REGLE	COMPOSITION	CONSERVER	10 – Règles fonctionnelles et calculs	4 Composition	—	DOC		S08-0476	MELANGE	R4	
+S10-0733	10	2	4. Exercices, Séries et Récupérations	20	REGLE	EXERCICE	INTÉGRER	10 – Règles fonctionnelles et calculs	2 Exercices	6E	DOC (divergences conservées, G3)		S08-0465	MELANGE DOUBLON AUTRE:ordre-ID-non-séquentiel	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : CALCUL+CONVENTION-UI)
+S10-0734	10	2	5. Planification et Calendrier	16	REGLE	PLANIFICATION	CONSERVER	10 – Règles fonctionnelles et calculs	10 Planification	—	DOC			MELANGE	R4	
+S10-0735	10	2	6. Notifications et rappels	10	REGLE	PLANIFICATION	CONSERVER	10 – Règles fonctionnelles et calculs	10 Planification	—	DOC				R4	
+S10-0736	10	2	7. Exécution d’une Séance	17	REGLE	EXECUTION	CONSERVER	10 – Règles fonctionnelles et calculs	8 Exécution	—	DOC		S09-0693	AUTRE:règle-de-prototype	R4	
+S10-0737	10	2	8. Arrière-plan, verrouillage et sécurité temporelle	10	REGLE	EXECUTION	CONSERVER	10 – Règles fonctionnelles et calculs	8 Exécution	—	DOC			DOUBLON	R4	
+S10-0738	10	2	9. Calculs et progression	17	CALCUL	TRANSVERSE-CALCUL	INTÉGRER	10 – Règles fonctionnelles et calculs	14 Calculs transverses	6E	DOC (divergences conservées, G3)		S08-0503	DOUBLON MELANGE ALIAS AUTRE:renvoi-tronqué-RM-et-RM	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : REGLE+COMPORTEMENT)
+S10-0739	10	2	10. Synthèse, Suivi et historique	12	REGLE	SUIVI	CONSERVER	10 – Règles fonctionnelles et calculs	11 Suivi et synthèse	—	DOC		S08-0537		R4	
+S10-0740	10	2	11. Préférences, sons, voix et vibrations	11	REGLE	PROFIL	CONSERVER	10 – Règles fonctionnelles et calculs	12 Profil et préférences	—	DOC		S09-0655		R4	
+S10-0741	10	2	12. Langue, terminologie et accessibilité structurelle	45	REGLE	MULTI	INTÉGRER	10 – Règles fonctionnelles et calculs	18 Multi-domaines	6E	DOC (divergences conservées, G3)		S08-0456 S10-0742 S10-0743	MELANGE TITRE-NUM DOUBLON AUTRE:titre-non-représentatif	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : CONVENTION-UI+HISTORIQUE+CALCUL)
+S10-0742	10	2	12. Règles métier — Exécution directe d’un Exercice — MVP T03	21	REGLE	EXECUTION	INTÉGRER	10 – Règles fonctionnelles et calculs	8 Exécution	6E	DOC (divergences conservées, G3)		S10-0741	TITRE-NUM MELANGE	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : COMPORTEMENT+CONVENTION-UI)
+S10-0743	10	2	RM-203 — Consultation média pendant l’Exécution	23	REGLE	MEDIA-EXEC	INTÉGRER	10 – Règles fonctionnelles et calculs	9 Médias pendant l’Exécution	6E	DOC (divergences conservées, G3)		S09-0700	TABLEAU-COUPE MELANGE AUTRE:titre-non-représentatif AUTRE:sous-identifiants-RM-203.x	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : COMPORTEMENT+DONNEE)
+S10-0744	10	2	Règles RM-213 à RM-221 — consolidation du 26 septembre 2026	24	REGLE	MULTI	INTÉGRER	10 – Règles fonctionnelles et calculs	18 Multi-domaines	6E	DOC			TITRE-DATE TABLEAU-COUPE MELANGE AUTRE:plage-de-titre-inexacte	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : CONVENTION-UI+HISTORIQUE+CALCUL)
+S10-0745	10	2	RG des cartes — 30 septembre 2026	16	RENDU	TRANSVERSE-UI	RENVOI	14 – Conventions d’interface	15 Interface transverse	6D	DOC	S12-0925		TITRE-DATE HORS-DOMICILE DOUBLON MELANGE	R2	copie intégrale (≥ 0,9) de S12-0925 « DSF courant — Cartes, icônes et animations d’appui » ; remplacée par un renvoi
+S10-0746	10	3	Saisie des paramètres — D-246	4	META	PARAMETRES	CONSERVER	10 – Règles fonctionnelles et calculs	3 Paramètres d’exécution	—	DOC			DOUBLON ALIAS AUTRE:titre-par-décision	R4	
+S10-0747	10	2	Cadence — règles transverses complémentaires	4	REGLE	PARAMETRES	INTÉGRER	10 – Règles fonctionnelles et calculs	3 Paramètres d’exécution	6E	DOC			ALIAS	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : META)
+S10-0748	10	2	Avertissement non bloquant d’enchaînement (D-301)	4	REGLE	COMPOSITION	INTÉGRER	10 – Règles fonctionnelles et calculs	4 Composition	6E	DOC			DOUBLON SANS-ID AUTRE:titre-par-décision	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : CONVENTION-UI)
+S10-0749	10	2	Planification multi-contenus	12	REGLE	PLANIFICATION	RENVOI	09 – Modèle de données	10 Planification	6D	DOC	S09-0614		DOUBLON SANS-ID	R2	copie intégrale (≥ 0,9) de S09-0614 « 09.3.1 Règles de planification » ; remplacée par un renvoi
+S10-0750	10	2	Règles transverses — circuits du12/10/2026	14	REGLE	CIRCUIT	INTÉGRER	10 – Règles fonctionnelles et calculs	5 Circuits	6E	DOC			TITRE-DATE DOUBLON SANS-ID	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : CALCUL)
+S10-0751	10	2	Formats — règles métier transverses	4	CONTENEUR	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC				R4	
+S10-0752	10	3	RM-FMT-01	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0753	10	3	RM-FMT-02	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0754	10	3	RM-FMT-03	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0755	10	3	RM-FMT-04	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0756	10	3	RM-FMT-05	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0757	10	3	RM-FMT-06	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0758	10	3	RM-FMT-07	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0759	10	3	RM-FMT-08	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0760	10	3	RM-FMT-09	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT AUTRE:référence-SRC-04-sans-destination	R4	
+S10-0761	10	3	RM-FMT-10	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0762	10	3	RM-FMT-11	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0763	10	3	RM-FMT-12	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0764	10	3	RM-FMT-13	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0765	10	3	RM-FMT-14	6	CONTRAT	FORMAT	DÉPLACER	13 – Contrats d’écran	6 Formats	6F4	DOC			DOUBLON HORS-DOMICILE AUTRE:double-identifiant-RM-FMT-et-FMT	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : REGLE)
+S10-0766	10	3	RM-FMT-15	6	RENDU	FORMAT	DÉPLACER	14 – Conventions d’interface	6 Formats	6F1	DOC			DOUBLON HORS-DOMICILE AUTRE:double-identifiant-RM-FMT-et-FMT	R4	type RENDU : domicile 14
+S10-0767	10	3	RM-FMT-16	6	CONTRAT	FORMAT	DÉPLACER	13 – Contrats d’écran	6 Formats	6F4	DOC			DOUBLON HORS-DOMICILE AUTRE:double-identifiant-RM-FMT-et-FMT	R4	type CONTRAT : domicile 13
+S10-0768	10	3	RM-FMT-17	6	CONTRAT	FORMAT	DÉPLACER	13 – Contrats d’écran	6 Formats	6F4	DOC			DOUBLON HORS-DOMICILE AUTRE:double-identifiant-RM-FMT-et-FMT	R4	type CONTRAT : domicile 13 ; à scinder si nécessaire (types secondaires : REGLE)
+S10-0769	10	3	RM-FMT-18	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT AUTRE:référence-SRC-04-05-sans-destination	R4	
+S10-0770	10	3	RM-FMT-19	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT AUTRE:référence-SRC-01-sans-destination	R4	
+S10-0771	10	3	RM-FMT-20	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0772	10	3	RM-FMT-21	6	CALCUL	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0773	10	3	RM-FMT-22	6	CALCUL	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0774	10	3	RM-FMT-23	6	COMPORTEMENT	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0775	10	3	RM-FMT-24	6	COMPORTEMENT	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0776	10	3	RM-FMT-25	6	CALCUL	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0777	10	3	RM-FMT-26	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0778	10	3	RM-FMT-27	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0779	10	3	RM-FMT-28	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0780	10	3	RM-FMT-29	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0781	10	3	RM-FMT-30	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0782	10	3	RM-FMT-31	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0783	10	3	RM-FMT-32	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0784	10	3	RM-FMT-33	6	CALCUL	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0785	10	3	RM-FMT-34	6	COMPORTEMENT	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0786	10	3	RM-FMT-35	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0787	10	3	RM-FMT-36	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0788	10	3	RM-FMT-37	6	COMPORTEMENT	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0789	10	3	RM-FMT-38	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			DOUBLON AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0790	10	3	RM-FMT-39	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0791	10	3	RM-FMT-40	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			AUTRE:double-identifiant-RM-FMT-et-FMT	R4	
+S10-0792	10	3	RM-FMT-41	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			AUTRE:double-identifiant-RM-FMT-et-FMT RENVOI-ABSENT	R4	
+S10-0793	10	3	RM-FMT-42	6	REGLE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC			AUTRE:double-identifiant-RM-FMT-et-FMT RENVOI-ABSENT	R4	
+S10-0794	10	2	Calculs des durées et ordre des phases	2	CONTENEUR	TRANSVERSE-CALCUL	CONSERVER	10 – Règles fonctionnelles et calculs	14 Calculs transverses	—	DOC				R4	
+S10-0795	10	3	Ordres d’exécution et pauses	6	REGLE	PARAMETRES	CONSERVER	10 – Règles fonctionnelles et calculs	3 Paramètres d’exécution	—	DOC			SANS-ID AUTRE:renvoi-vers-soi	R4	
+S10-0796	10	3	Durées, affichage et inversion	16	CALCUL	TRANSVERSE-CALCUL	CONSERVER	10 – Règles fonctionnelles et calculs	14 Calculs transverses	—	DOC			DOUBLON MELANGE HORS-DOMICILE SANS-ID	R4	
+S10-0797	10	3	Scénarios de recette normative	22	RECETTE	TRANSVERSE-CALCUL	CONSERVER	10 – Règles fonctionnelles et calculs	14 Calculs transverses	—	DOC			AUTRE:cas-de-recette-sans-identifiant-stable	R4	
+S10-0798	10	2	Résultats temporels et agrégation du circuit	2	CONTENEUR	TRANSVERSE-CALCUL	CONSERVER	10 – Règles fonctionnelles et calculs	14 Calculs transverses	—	DOC				R4	
+S10-0799	10	3	Résultats de durée	17	CALCUL	TRANSVERSE-CALCUL	CONSERVER	10 – Règles fonctionnelles et calculs	14 Calculs transverses	—	DOC			DOUBLON SANS-ID	R4	
+S10-0800	10	3	Calcul, pauses et périmètres	24	CALCUL	TRANSVERSE-CALCUL	INTÉGRER	10 – Règles fonctionnelles et calculs	14 Calculs transverses	6E	DOC			DOUBLON MELANGE SANS-ID AUTRE:méta-texte-de-rédaction	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : REGLE+HISTORIQUE)
+S10-0801	10	3	Extension normative du12/10 — niveau Circuit	10	CALCUL	CIRCUIT	INTÉGRER	10 – Règles fonctionnelles et calculs	5 Circuits	6E	DOC			TITRE-DATE SANS-ID	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : RECETTE)
+S10-0802	10	2	Calculs et cas de recette des cibles mixtes	2	CONTENEUR	PARAMETRES	CONSERVER	10 – Règles fonctionnelles et calculs	3 Paramètres d’exécution	—	DOC			AUTRE:ancre-orpheline-formats-raccordement	R4	
+S10-0803	10	3	Calcul de la durée prévisionnelle	28	CALCUL	PARAMETRES	INTÉGRER	10 – Règles fonctionnelles et calculs	3 Paramètres d’exécution	6E	DOC			DOUBLON SANS-ID	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : REGLE)
+S10-0804	10	3	Recettes déterministes à intégrer	25	RECETTE	PARAMETRES	CONSERVER	10 – Règles fonctionnelles et calculs	3 Paramètres d’exécution	—	DOC			AUTRE:identifiants-homonymes-R01-R16	R4	
+S10-0805	10	2	Cas de recette des formats	2	CONTENEUR	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC				R4	
+S10-0806	10	3	Recettes fonctionnelles et preuves attendues	37	RECETTE	FORMAT	CONSERVER	10 – Règles fonctionnelles et calculs	6 Formats	—	DOC				R4	
+S11-0807	11	2	11.0 Objet et périmètre	28	META	GOUVERNANCE	CONSERVER	11 – API fonctionnelles	0 Gouvernance	—	DOC			MELANGE HORS-DOMICILE	R4	
+S11-0808	11	2	11.1 Principes généraux	14	REGLE	MULTI	CONSERVER	11 – API fonctionnelles	18 Multi-domaines	—	DOC			MELANGE	R4	
+S11-0809	11	2	11.2 API Séances	12	API	SEANCE	CONSERVER	11 – API fonctionnelles	1 Séances	—	DOC				R4	
+S11-0810	11	2	11.3 API Composition d'une séance	13	API	COMPOSITION	CONSERVER	11 – API fonctionnelles	4 Composition	—	DOC				R4	
+S11-0811	11	2	11.4 API Exercices	11	API	EXERCICE	CONSERVER	11 – API fonctionnelles	2 Exercices	—	DOC			DOUBLON ALIAS	R4	
+S11-0812	11	2	11.5 API Routines et Planification	20	API	PLANIFICATION	CONSERVER	11 – API fonctionnelles	10 Planification	—	DOC				R4	
+S11-0813	11	2	11.6 API Exécution	17	API	EXECUTION	CONSERVER	11 – API fonctionnelles	8 Exécution	—	DOC				R4	
+S11-0814	11	3	Règles de navigation pendant l’exécution	16	REGLE	EXECUTION	CONSERVER	11 – API fonctionnelles	8 Exécution	—	DOC			HORS-DOMICILE SANS-ID	R4	
+S11-0815	11	2	API 11.7 Historique et Suivi	7	API	SUIVI	CONSERVER	11 – API fonctionnelles	11 Suivi et synthèse	—	DOC			TITRE-NUM	R4	
+S11-0816	11	3	Périmètre du Suivi dans le MVP	4	PERIMETRE	SUIVI	CONSERVER	11 – API fonctionnelles	11 Suivi et synthèse	—	DOC			HORS-DOMICILE	R4	
+S11-0817	11	3	Conservation de l’historique	8	REGLE	SUIVI	CONSERVER	11 – API fonctionnelles	11 Suivi et synthèse	—	DOC			HORS-DOMICILE	R4	
+S11-0818	11	2	11.8 API Préférences globales	6	API	PROFIL	CONSERVER	11 – API fonctionnelles	12 Profil et préférences	—	DOC				R4	
+S11-0819	11	2	11.9 Référentiels	16	API	REFERENTIELS	CONSERVER	11 – API fonctionnelles	13 Référentiels	—	DOC		S11-0832 S07-0408 S07-0423		R4	
+S11-0820	11	2	11.10 Conventions fonctionnelles de gestion des erreurs	40	API	TECHNIQUE	CONSERVER	11 – API fonctionnelles	17 Technique	—	DOC				R4	
+S11-0821	11	2	11.11 Contrats internes et découpage des services	24	ARCHITECTURE	TECHNIQUE	DÉPLACER	12 – Architecture technique	17 Technique	6F4	DOC (divergences conservées, G3)		S12-0850	DOUBLON HORS-DOMICILE	R4	type ARCHITECTURE : domicile 12
+S11-0822	11	2	11.12 API externes et évolutions futures	14	PERIMETRE	TECHNIQUE	CONSERVER	11 – API fonctionnelles	17 Technique	—	DOC				R4	
+S11-0823	11	2	Compléments de cohérence MVP	6	REGLE	MULTI	INTÉGRER	11 – API fonctionnelles	18 Multi-domaines	6E	DOC			TITRE-DATE SANS-ID MELANGE	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : DONNEE+PERIMETRE)
+S11-0824	11	2	11.13 API du Catalogue des Exercices, des Médias et des Parcours	12	API	EXERCICE	CONSERVER	11 – API fonctionnelles	2 Exercices	—	DOC			MELANGE AUTRE:titre-cite-Parcours-retiré	R4	
+S11-0825	11	2	API de bilatéralité	13	API	BILATERALITE	CONSERVER	11 – API fonctionnelles	7 Bilatéralité	—	DOC			TITRE-NUM	R4	
+S11-0826	11	2	11.14 Exécution directe d’un Exercice — MVP T03	12	API	EXECUTION	CONSERVER	11 – API fonctionnelles	8 Exécution	—	DOC		S09-0700		R4	
+S11-0827	11	2	11.15 Sélection multiple d’Exercices existants — MVP T03	10	API	COMPOSITION	CONSERVER	11 – API fonctionnelles	4 Composition	—	DOC				R4	
+S11-0828	11	2	Contrat fonctionnel futur — médias pendant l’Exécution	9	API	MEDIA-EXEC	CONSERVER	11 – API fonctionnelles	9 Médias pendant l’Exécution	—	DOC		S07-0396		R4	
+S11-0829	11	3	Extension future des API Routine — Parcours	4	PERIMETRE	PARCOURS-HORS-MVP	RENVOI	Annexe – Historique des consolidations	16 Hors MVP	6D	DOC	S01-0020		DOUBLON AUTRE:niveau-de-titre-sous-section-média	R2	copie intégrale (≥ 0,9) de S01-0020 « Parcours — post-MVP » ; remplacée par un renvoi
+S11-0830	11	3	API de récupération contextuelle — D-208	10	API	COMPOSITION	CONSERVER	11 – API fonctionnelles	4 Composition	—	DOC		S11-0842	AUTRE:niveau-de-titre-sous-section-média	R4	
+S11-0831	11	2	Impact API de la revue des cartes — 30 septembre 2026	14	RENDU	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC			HORS-DOMICILE DOUBLON TITRE-DATE MELANGE	R4	type RENDU : domicile 14 ; à scinder si nécessaire (types secondaires : CONVENTION-UI+API)
+S11-0832	11	2	API fonctionnelles — consolidation D-209 à D-217	15	API	MULTI	INTÉGRER	11 – API fonctionnelles	18 Multi-domaines	6E	DOC (divergences conservées, G3)		S11-0819	TABLEAU-COUPE MELANGE SANS-ID ALIAS	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : REGLE)
+S11-0833	11	3	Saisie des paramètres — D-246	4	COMPORTEMENT	PARAMETRES	RENVOI	10 – Règles fonctionnelles et calculs	3 Paramètres d’exécution	6D	DOC	S10-0746		DOUBLON HORS-DOMICILE ALIAS AUTRE:titre-cite-décision-supersédée	R2	copie intégrale (≥ 0,9) de S10-0746 « Saisie des paramètres — D-246 » ; remplacée par un renvoi
+S11-0834	11	3	Contrat transverse des paramètres v13	4	REGLE	PARAMETRES	CONSERVER	11 – API fonctionnelles	3 Paramètres d’exécution	—	DOC			ALIAS	R4	
+S11-0835	11	2	Extension des API — Cadence et phrase	13	API	PARAMETRES	INTÉGRER	11 – API fonctionnelles	3 Paramètres d’exécution	6E	DOC			TITRE-DATE SANS-ID	R4	complément empilé : à placer dans la rubrique thématique
+S11-0836	11	2	Pauses et symboles	4	API	COMPOSITION	INTÉGRER	11 – API fonctionnelles	4 Composition	6E	DOC			SANS-ID DOUBLON	R4	complément empilé : à placer dans la rubrique thématique
+S11-0837	11	2	Contrat technique de phrase	8	API	PARAMETRES	RENVOI	11 – API fonctionnelles	3 Paramètres d’exécution	6D	DOC	S09-0716		DOUBLON	R2	copie intégrale (≥ 0,9) de S09-0716 « Contrat technique de phrase » ; remplacée par un renvoi
+S11-0838	11	2	Contrats fonctionnels — circuits du12/10/2026	14	API	CIRCUIT	INTÉGRER	11 – API fonctionnelles	5 Circuits	6E	DOC			TITRE-DATE SANS-ID	R4	complément empilé : à placer dans la rubrique thématique
+S11-0839	11	2	Contrats de service — cibles typées et relevés13/10	8	API	PARAMETRES	INTÉGRER	11 – API fonctionnelles	3 Paramètres d’exécution	6E	DOC			TITRE-DATE SANS-ID	R4	complément empilé : à placer dans la rubrique thématique
+S11-0840	11	2	Formats — contrats de services fonctionnels	18	API	FORMAT	INTÉGRER	11 – API fonctionnelles	6 Formats	6E	DOC			SANS-ID	R4	complément empilé : à placer dans la rubrique thématique
+S11-0841	11	2	Opérations sur les récupérations et points d’arrêt	2	CONTENEUR	COMPOSITION	CONSERVER	11 – API fonctionnelles	4 Composition	—	DOC				R4	
+S11-0842	11	3	Modèle fonctionnel et API	22	API	COMPOSITION	INTÉGRER	11 – API fonctionnelles	4 Composition	6E	DOC (divergences conservées, G3)		S11-0830 S12-0920	MELANGE SANS-ID AUTRE:état-du-dépôt-daté	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : DONNEE+ARCHITECTURE)
+S11-0843	11	2	Contrat du générateur de phrase	2	CONTENEUR	PARAMETRES	CONSERVER	11 – API fonctionnelles	3 Paramètres d’exécution	—	DOC				R4	
+S11-0844	11	3	Contrat de génération et persistance	10	API	PARAMETRES	INTÉGRER	11 – API fonctionnelles	3 Paramètres d’exécution	6E	DOC			DOUBLON	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : ARCHITECTURE)
+S12-0845	12	2	12.0 Objet et périmètre	23	META	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0846	12	2	12.1 Principes d’architecture	21	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0847	12	3	Internationalisation	14	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC			RENVOI-ABSENT	R4	
+S12-0848	12	2	12.2 Architecture logique générale	38	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0849	12	2	12.3 Interface utilisateur	15	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0850	12	2	12.4 Services applicatifs	20	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC		S11-0821	DOUBLON MELANGE	R4	
+S12-0851	12	2	12.5 Domaine métier	24	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC			MELANGE	R4	
+S12-0852	12	2	12.6 Persistance et stockage local	2	CONTENEUR	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0853	12	3	Principe	16	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC			DOUBLON	R4	
+S12-0854	12	3	Données persistées	19	DONNEE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0855	12	3	Repositories	18	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC		S12-0867		R4	
+S12-0856	12	2	12.7 Identité utilisateur	2	CONTENEUR	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0857	12	3	MVP	17	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0858	12	3	Évolution future	19	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC			RENVOI-ABSENT	R4	
+S12-0859	12	2	12.8 Gestion de l’état	4	CONTENEUR	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0860	12	3	État persistant	6	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0861	12	3	État temporaire	14	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC			DOUBLON	R4	
+S12-0862	12	2	12.9 Architecture du moteur d’exécution	34	ARCHITECTURE	EXECUTION	CONSERVER	12 – Architecture technique	8 Exécution	—	DOC			DOUBLON RENVOI-ABSENT	R4	
+S12-0863	12	2	12.10 Gestion du temps	17	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC			DOUBLON	R4	
+S12-0864	12	2	12.11 Audio, voix et vibrations	23	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC			MELANGE	R4	
+S12-0865	12	2	12.12 Fonctionnement en arrière-plan	22	ARCHITECTURE	EXECUTION	CONSERVER	12 – Architecture technique	8 Exécution	—	DOC			RENVOI-ABSENT	R4	
+S12-0866	12	2	12.13 Notifications locales	20	ARCHITECTURE	PLANIFICATION	CONSERVER	12 – Architecture technique	10 Planification	—	DOC				R4	
+S12-0867	12	2	12.14 Médias	18	ARCHITECTURE	EXERCICE	CONSERVER	12 – Architecture technique	2 Exercices	—	DOC		S12-0855	DOUBLON	R4	
+S12-0868	12	2	12.15 Instantanés et historique	17	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0869	12	2	12.16 Transactions et intégrité	16	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0870	12	2	12.17 Gestion technique des erreurs	18	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0871	12	2	12.18 Tests automatisés	27	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC			DOUBLON	R4	
+S12-0872	12	2	12.19 Crash reporting et observabilité	16	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0873	12	2	12.20 Sécurité et données personnelles	12	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0874	12	2	12.21 Synchronisation future	24	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0875	12	2	12.22 Intégrations externes futures	15	PERIMETRE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0876	12	2	12.23 Critères de choix technologiques	20	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0877	12	2	12.24 Choix technologiques retenus	22	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC			TABLEAU-COUPE	R4	
+S12-0878	12	3	Contraintes techniques propres à T04	12	ARCHITECTURE	TECHNIQUE	INTÉGRER	12 – Architecture technique	17 Technique	6E	DOC (divergences conservées, G3)		S12-0901 S11-0842	TABLEAU-COUPE MELANGE	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : HISTORIQUE+PERIMETRE)
+S12-0879	12	2	12.25 Justification des principaux choix	2	CONTENEUR	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0880	12	3	React Native + Expo	12	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0881	12	3	TypeScript strict	8	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0882	12	3	SQLite	14	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0883	12	3	Accès direct à `expo-sqlite`	6	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC			DOUBLON	R4	
+S12-0884	12	3	Gestion d’état	11	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC			DOUBLON	R4	
+S12-0885	12	3	Moteur d’exécution	14	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0886	12	3	Gestion du temps	10	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC			DOUBLON	R4	
+S12-0887	12	3	Notifications	7	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0888	12	3	Médias — MVP PRE-3	4	ARCHITECTURE	EXERCICE	CONSERVER	12 – Architecture technique	2 Exercices	—	DOC				R4	
+S12-0889	12	3	Tests	13	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC			DOUBLON	R4	
+S12-0890	12	2	12.26 Mise en page adaptative et bornes sûres	15	CONVENTION-UI	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC				R4	type CONVENTION-UI : domicile 14 ; à scinder si nécessaire (types secondaires : ARCHITECTURE+RENDU)
+S12-0891	12	3	Unités d’implémentation	7	CONVENTION-UI	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC				R4	type CONVENTION-UI : domicile 14
+S12-0892	12	3	Paliers de largeur du MVP	11	CONVENTION-UI	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC				R4	type CONVENTION-UI : domicile 14 ; à scinder si nécessaire (types secondaires : RENDU)
+S12-0893	12	3	Architecture canonique de spécification UI	12	CONVENTION-UI	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC				R4	type CONVENTION-UI : domicile 14 ; à scinder si nécessaire (types secondaires : META)
+S12-0894	12	3	Screen Shells	32	RENDU	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC			HORS-DOMICILE	R4	type RENDU : domicile 14 ; à scinder si nécessaire (types secondaires : CONVENTION-UI)
+S12-0895	12	3	Composants et contrôles réutilisables	53	RENDU	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC			HORS-DOMICILE MELANGE	R4	type RENDU : domicile 14 ; à scinder si nécessaire (types secondaires : CONVENTION-UI+REGLE)
+S12-0896	12	3	Règles de réutilisation et de contrôle	11	CONVENTION-UI	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC				R4	type CONVENTION-UI : domicile 14
+S12-0897	12	3	Design tokens canoniques	291	RENDU	TRANSVERSE-UI	CONSERVER	12 – Architecture technique	15 Interface transverse	—	DOC		S07-0388 S12-0898 S07-0401	HORS-DOMICILE MELANGE	R1	Contrainte K1 : le test src/shared/ui/__tests__/tokensSpecification.test.ts lit cette table dans le fichier du ch. 12
+S12-0898	12	3	Règles de dimensionnement des composants	24	CONVENTION-UI	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC (divergences conservées, G3)		S12-0897 S07-0421 S07-0401	MELANGE	R4	type CONVENTION-UI : domicile 14 ; à scinder si nécessaire (types secondaires : RENDU)
+S12-0899	12	3	Matrice de validation responsive	16	RECETTE	TRANSVERSE-UI	CONSERVER	12 – Architecture technique	15 Interface transverse	—	DOC				R4	
+S12-0900	12	2	12.27 Risques techniques et validations préalables	4	CONTENEUR	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0901	12	3	RT-001 — Timer, audio et arrière-plan	23	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC		S12-0878		R4	
+S12-0902	12	3	RT-002 — Drizzle ORM / Expo	6	HISTORIQUE	TECHNIQUE	ARCHIVER	Annexe – Historique des consolidations	17 Technique	6F5	DOC				R3	historique non normatif : annexe, texte conservé ; à scinder si nécessaire (types secondaires : ARCHITECTURE)
+S12-0903	12	3	RT-003 — Comportement audio réel	9	RECETTE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0904	12	2	12.28 Distribution	15	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0905	12	2	12.29 Évolutivité	16	PERIMETRE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0906	12	2	12.30 Organisation du code	48	ARCHITECTURE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0907	12	2	12.31 Architecture UI, accessibilité et responsive	30	ARCHITECTURE	TRANSVERSE-UI	CONSERVER	12 – Architecture technique	15 Interface transverse	—	DOC				R4	
+S12-0908	12	2	12.32 Stratégie de développement incrémental	19	PERIMETRE	TECHNIQUE	CONSERVER	12 – Architecture technique	17 Technique	—	DOC				R4	
+S12-0909	12	2	12.33 Réconciliation après interruption technique	4	COMPORTEMENT	EXECUTION	CONSERVER	12 – Architecture technique	8 Exécution	—	DOC			HORS-DOMICILE	R4	
+S12-0910	12	2	12.34 Architecture cible — Exercices, Médias et Parcours	8	ARCHITECTURE	EXERCICE	CONSERVER	12 – Architecture technique	2 Exercices	—	DOC		S07-0422	AUTRE:titre-cite-Parcours-retiré	R4	
+S12-0911	12	3	Sources de données du Catalogue	9	ARCHITECTURE	EXERCICE	CONSERVER	12 – Architecture technique	2 Exercices	—	DOC				R4	
+S12-0912	12	3	Composants et tokens Figma	15	RENDU	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC			HORS-DOMICILE	R4	type RENDU : domicile 14 ; à scinder si nécessaire (types secondaires : CONVENTION-UI)
+S12-0913	12	2	Architecture de la bilatéralité	12	ARCHITECTURE	BILATERALITE	CONSERVER	12 – Architecture technique	7 Bilatéralité	—	DOC			MELANGE HORS-DOMICILE	R4	
+S12-0914	12	2	Architecture MVP T03 — Catalogue des Exercices et moteur multi-origine	6	ARCHITECTURE	EXERCICE	CONSERVER	12 – Architecture technique	2 Exercices	—	DOC				R4	
+S12-0915	12	3	Moteur d’Exécution multi-origine	8	ARCHITECTURE	EXECUTION	CONSERVER	12 – Architecture technique	8 Exécution	—	DOC				R4	
+S12-0916	12	3	Icônes vectorielles de sélection multiple	11	RENDU	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC			HORS-DOMICILE	R4	type RENDU : domicile 14
+S12-0917	12	2	Architecture cible — média pendant l’Exécution	15	ARCHITECTURE	MEDIA-EXEC	CONSERVER	12 – Architecture technique	9 Médias pendant l’Exécution	—	DOC		S07-0396		R4	
+S12-0918	12	2	12.35 Source polymorphe des Routines — D-206	24	DONNEE	PLANIFICATION	CONSERVER	12 – Architecture technique	10 Planification	—	DOC			AUTRE:titre-cite-décision-révisée	R4	
+S12-0919	12	2	12.36 Extensibilité de la source Routine — Parcours	4	PERIMETRE	PARCOURS-HORS-MVP	RENVOI	Annexe – Historique des consolidations	16 Hors MVP	6D	DOC	S01-0020		DOUBLON	R2	copie intégrale (≥ 0,9) de S01-0020 « Parcours — post-MVP » ; remplacée par un renvoi
+S12-0920	12	2	12.37 Schéma cible des récupérations — D-208	10	DONNEE	COMPOSITION	CONSERVER	12 – Architecture technique	4 Composition	—	DOC		S11-0842		R4	
+S12-0921	12	2	12.38 Impacts techniques de la consolidation D-209 à D-217	8	ARCHITECTURE	MULTI	CONSERVER	12 – Architecture technique	18 Multi-domaines	—	DOC			MELANGE	R4	
+S12-0922	12	2	28 septembre 2026 — contraintes DSF avant développement	4	RENDU	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC			TITRE-DATE TITRE-NUM HORS-DOMICILE	R4	type RENDU : domicile 14 ; à scinder si nécessaire (types secondaires : CONVENTION-UI)
+S12-0923	12	3	Référence DSF V2 détaillée — clôture 28 septembre 2026	12	RENDU	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC (divergences conservées, G3)		S07-0401	HORS-DOMICILE DOUBLON TITRE-DATE	R4	type RENDU : domicile 14
+S12-0924	12	3	Générateur et validation des paramètres v13	8	ARCHITECTURE	PARAMETRES	CONSERVER	12 – Architecture technique	3 Paramètres d’exécution	—	DOC			ALIAS AUTRE:H3-sous-une-section-DSF-sans-rapport	R4	
+S12-0925	12	2	DSF courant — Cartes, icônes et animations d’appui (30 septembre 2026)	18	RENDU	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC			HORS-DOMICILE DOUBLON TITRE-DATE MELANGE TITRE-NUM	R4	type RENDU : domicile 14 ; à scinder si nécessaire (types secondaires : CONVENTION-UI+ARCHITECTURE)
+S12-0926	12	3	Saisie des paramètres — D-246	4	COMPORTEMENT	PARAMETRES	RENVOI	10 – Règles fonctionnelles et calculs	3 Paramètres d’exécution	6D	DOC	S10-0746		DOUBLON HORS-DOMICILE ALIAS AUTRE:titre-cite-décision-supersédée	R2	copie intégrale (≥ 0,9) de S10-0746 « Saisie des paramètres — D-246 » ; remplacée par un renvoi
+S12-0927	12	2	Moteur Cadence — cible technique du06/10/2026	8	ARCHITECTURE	EXECUTION	INTÉGRER	12 – Architecture technique	8 Exécution	6E	DOC			TITRE-DATE TITRE-NUM	R4	complément empilé : à placer dans la rubrique thématique
+S12-0928	12	2	Cohérence des couleurs après rationalisation — H-13, 06/10/2026	10	RENDU	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC			TITRE-DATE TITRE-NUM HORS-DOMICILE	R4	type RENDU : domicile 14 ; à scinder si nécessaire (types secondaires : HISTORIQUE)
+S12-0929	12	2	Pauses et symboles	4	ARCHITECTURE	COMPOSITION	INTÉGRER	12 – Architecture technique	4 Composition	6E	DOC			TITRE-NUM	R4	complément empilé : à placer dans la rubrique thématique
+S12-0930	12	2	Vérification de l’existant pour Bip de cadence	4	HISTORIQUE	PARAMETRES	ARCHIVER	Annexe – Historique des consolidations	3 Paramètres d’exécution	6F5	DOC			TITRE-NUM AUTRE:constat-d’état-du-code	R3	historique non normatif : annexe, texte conservé ; à scinder si nécessaire (types secondaires : ARCHITECTURE)
+S12-0931	12	2	Contrat technique de phrase	8	API	PARAMETRES	RENVOI	11 – API fonctionnelles	3 Paramètres d’exécution	6D	DOC	S09-0716		DOUBLON TITRE-NUM	R2	copie intégrale (≥ 0,9) de S09-0716 « Contrat technique de phrase » ; remplacée par un renvoi
+S12-0932	12	2	Transmission au développement — évolutions v15	6	HISTORIQUE	PARAMETRES	ARCHIVER	Annexe – Historique des consolidations	3 Paramètres d’exécution	6F5	DOC			TITRE-NUM ALIAS	R3	historique non normatif : annexe, texte conservé ; à scinder si nécessaire (types secondaires : RECETTE)
+S12-0933	12	2	Segmentés — complément du07/10	6	RENDU	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC			TITRE-DATE TITRE-NUM HORS-DOMICILE	R4	type RENDU : domicile 14
+S12-0934	12	2	Écart d’implémentation constaté lors de la fusion documentaire	4	HISTORIQUE	TRANSVERSE-UI	ARCHIVER	Annexe – Historique des consolidations	15 Interface transverse	6F5	DOC			TITRE-NUM AUTRE:constat-d’écart-code	R3	historique non normatif : annexe, texte conservé ; à scinder si nécessaire (types secondaires : RENDU)
+S12-0935	12	2	Interface générale — règles du 08/10/2026	8	CONVENTION-UI	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC			TITRE-DATE TITRE-NUM MELANGE	R4	type CONVENTION-UI : domicile 14 ; à scinder si nécessaire (types secondaires : META+REGLE)
+S12-0936	12	2	Architecture — circuits du12/10/2026	6	ARCHITECTURE	CIRCUIT	INTÉGRER	12 – Architecture technique	5 Circuits	6E	DOC			TITRE-DATE TITRE-NUM	R4	complément empilé : à placer dans la rubrique thématique
+S12-0937	12	2	Adaptation moteur et persistance —13/10	8	ARCHITECTURE	EXECUTION	INTÉGRER	12 – Architecture technique	8 Exécution	6E	DOC			TITRE-DATE TITRE-NUM MELANGE	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : DONNEE)
+S12-0938	12	2	Formats — architecture cible du moteur à construire	12	ARCHITECTURE	FORMAT	INTÉGRER	12 – Architecture technique	6 Formats	6E	DOC			TITRE-NUM	R4	complément empilé : à placer dans la rubrique thématique
+S12-0939	12	2	Internationalisation et vérification du générateur	2	CONTENEUR	PARAMETRES	CONSERVER	12 – Architecture technique	3 Paramètres d’exécution	—	DOC			TITRE-NUM	R4	
+S12-0940	12	3	Internationalisation — décision et dette explicites	4	ARCHITECTURE	TECHNIQUE	INTÉGRER	12 – Architecture technique	17 Technique	6E	DOC			DOUBLON	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : PERIMETRE)
+S12-0941	12	3	Recette de développement	6	RECETTE	PARAMETRES	INTÉGRER	12 – Architecture technique	3 Paramètres d’exécution	6E	DOC			AUTRE:cas-sans-identifiant	R4	complément empilé : à placer dans la rubrique thématique
+S13-0942	13	1	13 — Contrats d’écran	6	META	GOUVERNANCE	CONSERVER	13 – Contrats d’écran	0 Gouvernance	—	DOC			HORS-DOMICILE DOUBLON	R4	
+S13-0943	13	2	1. Objet et statut normatif	8	META	GOUVERNANCE	CONSERVER	13 – Contrats d’écran	0 Gouvernance	—	DOC			AUTRE:famille-CE-CIR-omise	R4	
+S13-0944	13	2	2. Sources et ordre d’application	22	META	GOUVERNANCE	CONSERVER	13 – Contrats d’écran	0 Gouvernance	—	DOC			MELANGE HORS-DOMICILE ALIAS	R4	
+S13-0945	13	2	3. Structure canonique obligatoire	25	META	GOUVERNANCE	CONSERVER	13 – Contrats d’écran	0 Gouvernance	—	DOC				R4	
+S13-0946	13	2	4. Règles communes T03	152	CONVENTION-UI	TRANSVERSE-UI	DÉPLACER	14 – Conventions d’interface	15 Interface transverse	6F1	DOC (divergences conservées, G3)		S06-0351 S10-0742	MELANGE TITRE-DATE ALIAS HORS-DOMICILE DOUBLON RENVOI-ABSENT AUTRE:renvois-vides-«Voir .»	R4	type CONVENTION-UI : domicile 14 ; à scinder si nécessaire (types secondaires : RENDU+CALCUL+REGLE+COMPORTEMENT+HISTORIQUE)
+S13-0947	13	2	Inventaire des contrats actifs	36	NAVIGATION	GOUVERNANCE	CONSERVER	13 – Contrats d’écran	0 Gouvernance	—	DOC			AUTRE:inventaire-incomplet-31/40 AUTRE:libelles-divergents	R4	
+S13-0948	13	2	CE-T03-01 — Catalogue des séances — état T03	97	CONTRAT	SEANCE	CONSERVER	13 – Contrats d’écran	1 Séances	—	DOC			DOUBLON RENVOI-ABSENT	R4	
+S13-0949	13	2	CE-T03-02 — Catalogue des exercices — liste, filtres et cartes	103	CONTRAT	EXERCICE	CONSERVER	13 – Contrats d’écran	2 Exercices	—	DOC		S10-0742	DOUBLON RENVOI-ABSENT AUTRE:renvoi-«complément-Cartes-30/09»-non-localisé	R4	
+S13-0950	13	2	CE-T03-03 — Catalogue — action `Créer` contextuelle	86	CONTRAT	MULTI	CONSERVER	13 – Contrats d’écran	18 Multi-domaines	—	DOC			AUTRE:complement-date-empile	R4	
+S13-0951	13	2	CE-T03-04 — Éditeur Exercice — créer / modifier	120	CONTRAT	EXERCICE	CONSERVER	13 – Contrats d’écran	2 Exercices	—	DOC			DOUBLON ALIAS	R4	
+S13-0952	13	2	CE-T03-05 — ActivityDefinition — archiver / restaurer / supprimer	88	CONTRAT	EXERCICE	CONSERVER	13 – Contrats d’écran	2 Exercices	—	DOC			DOUBLON	R4	
+S13-0953	13	2	CE-T03-06 — Composition — `Ajouter un exercice` vers le Catalogue	86	CONTRAT	COMPOSITION	CONSERVER	13 – Contrats d’écran	4 Composition	—	DOC			DOUBLON AUTRE:bloc-hors-sujet	R4	
+S13-0954	13	2	CE-T03-07 — Sélection multiple d’Exercices existants	88	CONTRAT	COMPOSITION	CONSERVER	13 – Contrats d’écran	4 Composition	—	DOC		S06-0279	DOUBLON	R4	
+S13-0955	13	2	CE-T03-08 — Composer une séance / Modifier une séance — brouillon, Circuit, points d’arrêt et validation	104	CONTRAT	COMPOSITION	CONSERVER	13 – Contrats d’écran	4 Composition	—	DOC			DOUBLON AUTRE:complements-dates-empiles	R4	
+S13-0956	13	2	CE-T03-09 — Lancement direct et préparation fixe 5 s	96	CONTRAT	EXECUTION	CONSERVER	13 – Contrats d’écran	8 Exécution	—	DOC		S06-0325 S10-0742	DOUBLON ALIAS	R4	
+S13-0957	13	2	CE-T03-10 — Exécution directe — Durée chiffrée unilatérale	100	CONTRAT	EXECUTION	CONSERVER	13 – Contrats d’écran	8 Exécution	—	DOC			DOUBLON ALIAS AUTRE:complement-date-empile	R4	
+S13-0958	13	2	CE-T03-11 — Exécution directe — Répétitions et À l’échec	114	CONTRAT	EXECUTION	CONSERVER	13 – Contrats d’écran	8 Exécution	—	DOC			DOUBLON ALIAS AUTRE:complement-date-empile	R4	
+S13-0959	13	2	CE-T03-12 — Exécution directe — bilatéralité, Pauses, Récupération	98	CONTRAT	BILATERALITE	CONSERVER	13 – Contrats d’écran	7 Bilatéralité	—	DOC			DOUBLON AUTRE:titre-«Récupération»-trompeur	R4	
+S13-0960	13	2	CE-T03-13 — Fin, interruption et retour d’Exécution directe	96	CONTRAT	EXECUTION	CONSERVER	13 – Contrats d’écran	8 Exécution	—	DOC			DOUBLON	R4	
+S13-0961	13	2	CE-T03-14 — Synthèse d’Exécution directe	88	CONTRAT	SUIVI	CONSERVER	13 – Contrats d’écran	11 Suivi et synthèse	—	DOC			DOUBLON	R4	
+S13-0962	13	2	CE-T03-15 — Suivi général — Exécution ACTIVITY	92	CONTRAT	SUIVI	CONSERVER	13 – Contrats d’écran	11 Suivi et synthèse	—	DOC			DOUBLON AUTRE:bloc-hors-sujet	R4	
+S13-0963	13	2	CE-T03-16 — Étiquettes de Séance — sélectionner, créer, retirer	88	CONTRAT	SEANCE	CONSERVER	13 – Contrats d’écran	1 Séances	—	DOC		S06-0282 S06-0351	AUTRE:contradiction-interne-§9/§12/§4	R4	
+S13-0964	13	2	CE-T03-17 — Navigation principale — inventaire DSF	89	CONTRAT	TRANSVERSE-UI	CONSERVER	13 – Contrats d’écran	15 Interface transverse	—	DOC			DOUBLON AUTRE:bloc-hors-sujet	R4	
+S13-0965	13	2	CE-MEDIA-EXEC-01 — Exécution — faces Information et Média	90	CONTRAT	MEDIA-EXEC	CONSERVER	13 – Contrats d’écran	9 Médias pendant l’Exécution	—	DOC			DOUBLON	R4	
+S13-0966	13	2	CE-MEDIA-EXEC-02 — Exécution — média plein écran	90	CONTRAT	MEDIA-EXEC	CONSERVER	13 – Contrats d’écran	9 Médias pendant l’Exécution	—	DOC			DOUBLON	R4	
+S13-0967	13	2	CE-UI-01 — Profil — préférence silhouette	84	CONTRAT	PROFIL	CONSERVER	13 – Contrats d’écran	12 Profil et préférences	—	DOC			DOUBLON	R4	
+S13-0968	13	2	CE-UI-02 — Calendrier — Jour compact	90	CONTRAT	PLANIFICATION	CONSERVER	13 – Contrats d’écran	10 Planification	—	DOC			DOUBLON	R4	
+S13-0969	13	2	CE-UI-03 — Calendrier — Semaine et structure Mois	92	CONTRAT	PLANIFICATION	CONSERVER	13 – Contrats d’écran	10 Planification	—	DOC			DOUBLON	R4	
+S13-0970	13	2	CE-UI-04 — Calendrier et planification — choisir des contenus	82	CONTRAT	PLANIFICATION	CONSERVER	13 – Contrats d’écran	10 Planification	—	DOC		S06-0302	DOUBLON	R4	
+S13-0971	13	2	CE-UI-05 — Planification — formulaire et états de paramètres	82	CONTRAT	PLANIFICATION	CONSERVER	13 – Contrats d’écran	10 Planification	—	DOC			DOUBLON	R4	
+S13-0972	13	2	CE-UI-06 — Splash KODJO	82	CONTRAT	TRANSVERSE-UI	CONSERVER	13 – Contrats d’écran	15 Interface transverse	—	DOC		S06-0237		R4	
+S13-0973	13	2	CE-UI-07 — Profil — préférences et défauts d’exécution	90	CONTRAT	PROFIL	CONSERVER	13 – Contrats d’écran	12 Profil et préférences	—	DOC		S06-0241 S08-0562	DOUBLON	R4	
+S13-0974	13	2	CE-EXEC-SESSION-01 — Exécution d’une Séance — phases, commandes et confirmations	106	CONTRAT	EXECUTION	CONSERVER	13 – Contrats d’écran	8 Exécution	—	DOC		S06-0311	DOUBLON ALIAS AUTRE:complements-dates-empiles	R4	
+S13-0975	13	2	CE-UI-08 — Synthèse de Séance	90	CONTRAT	SUIVI	CONSERVER	13 – Contrats d’écran	11 Suivi et synthèse	—	DOC			DOUBLON AUTRE:complement-date-empile	R4	
+S13-0976	13	2	CE-UI-09 — Référentiels d’Exercice — Catégorie et Zones corporelles	90	CONTRAT	REFERENTIELS	CONSERVER	13 – Contrats d’écran	13 Référentiels	—	DOC		S06-0351	DOUBLON AUTRE:contradiction-interne-§12/§4	R4	
+S13-0977	13	2	CE-UI-10 — Paramètres d’exécution — feuille basse	116	CONTRAT	PARAMETRES	CONSERVER	13 – Contrats d’écran	3 Paramètres d’exécution	—	DOC		S13-0994 S13-0996 S06-0292 S06-0352	DOUBLON ALIAS AUTRE:complements-dates-empiles	R4	
+S13-0978	13	2	5. État des preuves visuelles	19	HISTORIQUE	MULTI	ARCHIVER	Annexe – Historique des consolidations	18 Multi-domaines	6F5	DOC			HORS-DOMICILE	R3	historique non normatif : annexe, texte conservé ; à scinder si nécessaire (types secondaires : META)
+S13-0979	13	2	6. Clôture des réserves fonctionnelles des contrats	33	REGLE	MULTI	INTÉGRER	13 – Contrats d’écran	18 Multi-domaines	6E	DOC			HORS-DOMICILE DOUBLON AUTRE:homonymie-R-01..R-05-avec-S13-0993	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : CALCUL+HISTORIQUE)
+S13-0980	13	2	7. Référentiel élémentaire T03 et couverture	102	META	MULTI	CONSERVER	13 – Contrats d’écran	18 Multi-domaines	—	DOC			AUTRE:couverture-limitee-T03	R4	
+S13-0981	13	2	8. Frontière de réalisation et recette	6	PERIMETRE	TRANSVERSE-PRODUIT	CONSERVER	13 – Contrats d’écran	0 Produit	—	DOC				R4	
+S13-0982	13	2	Mise à jour des références visuelles — 07/10, corrections rédactionnelles	4	HISTORIQUE	MULTI	ARCHIVER	Annexe – Historique des consolidations	18 Multi-domaines	6F5	DOC			TITRE-DATE	R3	historique non normatif : annexe, texte conservé
+S13-0983	13	2	CE-UI-11 — Planification — fréquence d’un contenu	82	CONTRAT	PLANIFICATION	INTÉGRER	13 – Contrats d’écran	10 Planification	6E	DOC			AUTRE:hors-serie-CE-UI	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : RENDU+RECETTE)
+S13-0984	13	2	CE-CIR-01 — Choix de nature du circuit	84	CONTRAT	CIRCUIT	INTÉGRER	13 – Contrats d’écran	5 Circuits	6E	DOC			AUTRE:complement-date-empile	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : RENDU+RECETTE)
+S13-0985	13	2	CE-CIR-02 — Confirmation d’adaptation avec perte	84	CONTRAT	CIRCUIT	INTÉGRER	13 – Contrats d’écran	5 Circuits	6E	DOC			AUTRE:complement-date-empile AUTRE:§1/§9-incohérents	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : RENDU+RECETTE)
+S13-0986	13	2	CE-CIR-03 — Volumes du circuit	86	CONTRAT	CIRCUIT	INTÉGRER	13 – Contrats d’écran	5 Circuits	6E	DOC (divergences conservées, G3)		S13-0995	AUTRE:complements-dates-empiles AUTRE:§1/§9-incohérents	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : RENDU+RECETTE)
+S13-0987	13	2	CE-FMT-01 — Choix du modèle et du format	83	CONTRAT	FORMAT	INTÉGRER	13 – Contrats d’écran	6 Formats	6E	DOC			AUTRE:§19-fragment	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : RECETTE)
+S13-0988	13	2	CE-FMT-02 — Paramètres globaux et récapitulatif	83	CONTRAT	FORMAT	INTÉGRER	13 – Contrats d’écran	6 Formats	6E	DOC			AUTRE:§19-fragment AUTRE:homonymie-R-04	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : CALCUL+RECETTE)
+S13-0989	13	2	CE-FMT-03 — Composition d’une séance issue d’un format	83	CONTRAT	FORMAT	INTÉGRER	13 – Contrats d’écran	6 Formats	6E	DOC			AUTRE:§19-fragment AUTRE:homonymie-R-02/R-04	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : RECETTE)
+S13-0990	13	2	CE-FMT-04 — Paramètres d’exercice contextualisés par un format	83	CONTRAT	FORMAT	INTÉGRER	13 – Contrats d’écran	6 Formats	6E	DOC			AUTRE:§19-fragment	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : RECETTE)
+S13-0991	13	2	CE-FMT-05 — Exécution des fenêtres et formats à borne ouverte	83	CONTRAT	FORMAT	INTÉGRER	13 – Contrats d’écran	6 Formats	6E	DOC			AUTRE:§19-fragment AUTRE:homonymie-R-01..R-03	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : COMPORTEMENT+RECETTE)
+S13-0992	13	2	CE-FMT-06 — Arrêt et résultat Death by	83	CONTRAT	FORMAT	INTÉGRER	13 – Contrats d’écran	6 Formats	6E	DOC			AUTRE:§19-fragment	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : COMPORTEMENT+RECETTE)
+S13-0993	13	2	Clarification d’autorité et de portée	10	META	GOUVERNANCE	CONSERVER	13 – Contrats d’écran	0 Gouvernance	—	DOC			HORS-DOMICILE DOUBLON AUTRE:homonymie-R-01..R-05-avec-§6	R4	
+S13-0994	13	2	Règles communes de l’éditeur de paramètres	49	REGLE	PARAMETRES	INTÉGRER	13 – Contrats d’écran	3 Paramètres d’exécution	6E	DOC (divergences conservées, G3)		S13-0977 S06-0292	HORS-DOMICILE MELANGE ALIAS TITRE-DATE AUTRE:renvoi-«§4.5»-erroné	R4	complément empilé : à placer dans la rubrique thématique ; à scinder si nécessaire (types secondaires : CONVENTION-UI+RENDU+HISTORIQUE)
+S13-0995	13	2	Cartes, grille des volumes et interactions de composition	133	CONVENTION-UI	COMPOSITION	DÉPLACER	14 – Conventions d’interface	4 Composition	6F1	DOC (divergences conservées, G3)		S13-0986	HORS-DOMICILE MELANGE AUTRE:renvois-§9.5-§9.6-inexistants AUTRE:style-argumentatif	R4	type CONVENTION-UI : domicile 14 ; à scinder si nécessaire (types secondaires : BESOIN+DECISION+RENDU+REGLE)
+S13-0996	13	2	Implantation du bip et comportement des steppers	12	CONVENTION-UI	PARAMETRES	DÉPLACER	14 – Conventions d’interface	3 Paramètres d’exécution	6F1	DOC (divergences conservées, G3)		S13-0977	HORS-DOMICILE DOUBLON AUTRE:mention-«prompt»	R4	type CONVENTION-UI : domicile 14 ; à scinder si nécessaire (types secondaires : RENDU)
+S13-0997	13	2	Rendu et accessibilité de la phrase	12	RENDU	PARAMETRES	DÉPLACER	14 – Conventions d’interface	3 Paramètres d’exécution	6F1	DOC			HORS-DOMICILE DOUBLON	R4	type RENDU : domicile 14 ; à scinder si nécessaire (types secondaires : REGLE)
+S13-0998	13	2	Contrôles et layout de planification	72	RENDU	PLANIFICATION	DÉPLACER	14 – Conventions d’interface	10 Planification	6F1	DOC			HORS-DOMICILE MELANGE AUTRE:renvois-§5.3-§0.1-§8.3-non-résolus	R4	type RENDU : domicile 14 ; à scinder si nécessaire (types secondaires : CONVENTION-UI+DECISION+REGLE)

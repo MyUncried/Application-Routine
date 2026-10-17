@@ -67,6 +67,17 @@ Chaque tâche de correction MUST être classée DOC, DOC-AUTORITÉ, FONCT-ARBITR
 - **WHEN** une restauration est classée DOC
 - **THEN** son diff ne contient que les identifiants ou textes d'origine restaurés, vérifiés contre leur commit source
 
+### Requirement: Conservation vérifiée lors d'une restructuration
+Un déplacement, un regroupement ou un dédoublonnage de sections MUST conserver chaque identifiant défini (une seule définition), chaque ligne de contenu (à l'identique, aux renvois de localisation près, ou retirée avec un motif consigné) et le texte de chaque décision du registre. Il MUST NOT réécrire le texte d'une règle qu'il déplace, et MUST NOT fusionner deux passages divergents.
+
+#### Scenario: Étape de restructuration contrôlée
+- **WHEN** une étape de restructuration est prête à être publiée
+- **THEN** le contrôle de conservation, rejoué contre le commit de départ de l'étape, ne signale aucun identifiant manquant ou dupliqué, aucune ligne absente sans motif et aucune décision modifiée
+
+#### Scenario: Copie divergente
+- **WHEN** deux passages sur le même sujet diffèrent
+- **THEN** les deux restent en place, marqués `À CLARIFIER`, jusqu'à une décision explicite
+
 ### Requirement: Pas de seconde source normative dans OpenSpec
 Les changes OpenSpec MUST décrire des révisions de la documentation, et MUST NOT servir de source normative pour une règle produit. Le répertoire `openspec/specs/` MUST NOT contenir de règle produit.
 

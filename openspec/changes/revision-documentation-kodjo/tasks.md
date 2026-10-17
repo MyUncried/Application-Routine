@@ -6,7 +6,7 @@
 - Réserves documentaires traitées (journal « Revue du 16/10 » ci-dessous).
 - Questions produit regroupées par thème dans [arbitrages.md](arbitrages.md), en attente de Hermann.
 - **Aucun lot n'est déclaré clos ni certifié.**
-- Lot 6 non autorisé et non lancé.
+- Lot 6 : **6A (conception) réalisé le 17/10**, aucun document produit modifié ([lot6/plan-restructuration.md](lot6/plan-restructuration.md)). Exécution (6B et suivantes) non autorisée.
 
 **Fonctionnement autorisé par Hermann (16/10) :**
 - publier les commits sur `docs/openspec-revision`, sans merge vers `main` ;
@@ -50,6 +50,8 @@
 - [ ] 0.12d Validation de C1 (texte de D-401 avec `{N}` et forme au singulier) ; vérifications Figma (teinte, boutons-icônes, V1)
 - [ ] 0.13 Revue indépendante de la livraison des arbitrages, préalable au lot 6
 - [ ] 0.14 Revue indépendante des livraisons A1–A9 et B1–B5, préalable à la planification du lot 6
+- [ ] 0.15 Revue indépendante du lot 6A (conception de la restructuration), préalable à toute exécution
+- [ ] 0.16 Décisions de Hermann sur QR-1 à QR-9 ([plan-restructuration.md §10](lot6/plan-restructuration.md))
 
 ### Journal — revue du 16/10 (traitement des réserves documentaires)
 
@@ -327,22 +329,96 @@ Ces lignes citent D-232 sur des points qu'elle déclare elle-même conservés (�
 - `links.mjs` : 2 anomalies, inchangé.
 - Fusions simulées avec #363, #370, #371 : 0 conflit.
 
-## 6. Lot 6 — Amélioration progressive de la qualité des exigences
+## 6. Lot 6 — Restructuration documentaire et amélioration de la qualité des exigences
 
-**Classe :** `DOC` ou `FONCT-*` selon la tâche. Les tâches sont réalisées au fil des révisions, **sans refonte ni nouvelle obligation générale**. Elles reprennent les recommandations de [qualite.md §6](qualite.md) comme propositions.
+**Conception (6A) :** [lot6/plan-restructuration.md](lot6/plan-restructuration.md), avec :
+- l'inventaire et la classification des 998 sections ;
+- la table de correspondance ;
+- le plan d'exécution ;
+- la garantie de conservation ;
+- la couverture des défauts.
 
-- [ ] 6.1 Examiner les 214 lignes À EXAMINER du lot 3
-- [ ] 6.2 Réécrire en place les compléments datés lorsqu'une révision touche la rubrique (P-21, P-22)
-- [ ] 6.3 Copies multiples (P-13, P-14, H-19, QS-10) : citer au lieu de recopier, règle par règle ; corriger ch. 08 l. 1584–1587 (QS-10, trois règles au même texte) **après décision** sur la règle d'inversion à y citer (FONCT)
-- [ ] 6.4 Remplacer les alias de version par des renvois (table 2.6)
-- [ ] 6.5 Proposer, sans l'imposer, une convention d'obligation et un format des oracles de recette (QF) ; à valider par Hermann
-- [ ] 6.6 Exigences non fonctionnelles et interruptions système (QC) : décisions produit nécessaires avant rédaction
+L'architecture recommandée (option C) est une **proposition** : aucune étape d'exécution ne commence sans décision de Hermann sur QR-1 à QR-9 et sans revue indépendante du lot 6A.
+
+**Classes :** `DOC` par défaut ; `DOC-AUTORITÉ` ou `FONCT-*` lorsque l'étape l'indique.
+
+**Contrôles bloquants à chaque étape :** C1 à C10 ([plan §7](lot6/plan-restructuration.md)), dont :
+- `outils/verifier-conservation.mjs` ;
+- `outils/verifier-correspondance.mjs`.
+
+### 6A — Conception (17/10/2026)
+
+- [x] 6A.1 Analyse structurelle exhaustive des 13 chapitres :
+  - [inventaire-sections.tsv](lot6/inventaire-sections.tsv) (998 sections) ;
+  - [classification.tsv](lot6/classification.tsv) (6 sous-agents en lecture seule, brief `outils/brief-L6A-classification.md`) ;
+  - [recouvrements-mecaniques.tsv](lot6/recouvrements-mecaniques.tsv) ;
+  - constats L6-01 à L6-12, qui réutilisent les diagnostics existants.
+- [x] 6A.2 Évaluation du découpage actuel :
+  - contraintes externes K1 à K7, dont le test du code qui lit le ch. 12 et les workflows qui lisent les ch. 06 à 13 ;
+  - options A à D ;
+  - recommandation C.
+- [x] 6A.3 Correspondance section par section : [correspondance.tsv](lot6/correspondance.tsv), produite par `outils/correspondance-cible.mjs` selon les règles R1 à R4.
+- [x] 6A.4 Plan des déplacements, regroupements, dédoublonnages, améliorations de navigation et de traçabilité :
+  - [plan §6](lot6/plan-restructuration.md) ;
+  - [copies-lignes.tsv](lot6/copies-lignes.tsv) ;
+  - [divergences.tsv](lot6/divergences.tsv).
+- [x] 6A.5 Garantie de conservation :
+  - [base-conservation.tsv](lot6/base-conservation.tsv) ;
+  - outils de contrôle autotestés (plan §7).
+- [x] 6A.6 Plan d'exécution découpé en étapes 6B à 6J (plan §8).
+- [x] 6A.7 Couverture des défauts structurels (plan §9).
+
+### Étapes d'exécution (non autorisées)
+
+- [ ] 6B Validation (QR-1 à QR-9) ; révision 3 de design (G1, G2) ; outils `reecrire-liens.mjs` et `appliquer-deplacements.mjs` — `DOC-AUTORITÉ`
+- [ ] 6C Corrections dans chaque fichier, sans déplacement :
+  - numérotation des titres ;
+  - tableaux coupés (S-11) ;
+  - D-047 ;
+  - inventaire des 40 contrats ;
+  - tables des matières.
+- [ ] 6D Dédoublonnage :
+  - 32 copies intégrales ;
+  - 247 occurrences de lignes ;
+  - FMT-01 à FMT-38 ;
+  - bandeaux ;
+  - titres « Saisie des paramètres — D-246 ».
+
+  Il reprend l'ancienne tâche 6.3 (P-13, P-14, H-19, QS-10). Sa partie fonctionnelle, la règle d'inversion à citer au ch. 08, passe en 6J.
+- [ ] 6E Intégration des compléments empilés dans leur fichier (P-21, P-22 ; ancienne tâche 6.2)
+- [ ] 6F1 Création du ch. 14 Conventions d'interface `[PR370]` `[PR371]`
+- [ ] 6F2 Répartition du ch. 08 et table de renvoi `[PR370]` `[PR371]`
+- [ ] 6F3 Écrans du ch. 06 vers les contrats du ch. 13 `[PR363]` `[PR370]` `[PR371]`
+- [ ] 6F4 Autres déplacements (concepts, données, périmètre, parcours)
+- [ ] 6F5 Annexe historique
+- [ ] 6G Navigation et traçabilité :
+  - INDEX ;
+  - index des identifiants et du registre ;
+  - inventaire écran → contrat ;
+  - rubriques « Règles applicables » ;
+  - identifiants B-xx si QR-7.
+- [ ] 6H Reports antérieurs :
+  - 214 lignes « à examiner » de R-06 (ancienne tâche 6.1) ;
+  - alias (ancienne tâche 6.4) ;
+  - RM-131 après la PR #370 ;
+  - ch. 08 l. 1573 après la PR #371 ;
+  - PRODUCT.md (Q-C).
+- [ ] 6I Transfert des règles des DSF, règle par règle (G4, Q-B a)
+- [ ] 6J Hors restructuration, à soumettre à décision :
+  - divergences de `divergences.tsv` ;
+  - contrat d'écran du message de migration ;
+  - exigences non fonctionnelles et interruptions système (ancienne tâche 6.6, QC) ;
+  - convention d'obligation et format des oracles (ancienne tâche 6.5, QF) ;
+  - emplacement du nombre d'Exercices (D-399).
 
 ## Ce qui n'est pas proposé
 
-- Renumérotation générale.
-- Refonte ou fusion de chapitres.
+- Renumérotation générale des identifiants (D-, RM-, CE-…) : ils restent stables, y compris pendant la restructuration.
+- Renommage ou suppression des fichiers de chapitres : contraintes K1 à K3 du lot 6A.
+- Réécriture du texte du registre (G5) ou d'une règle à l'occasion d'un déplacement.
 - Bandeaux de statut systématiques.
-- Ancres explicites généralisées.
+- Ancres explicites généralisées : seules les cibles qui changent de fichier en reçoivent une (G6).
 - Migration vers `openspec/specs/`.
 - Toute nouvelle règle bloquante.
+
+La refonte et la fusion de chapitres, exclues jusqu'ici, font désormais l'objet d'une **proposition** (lot 6A, option C). Elle est soumise à décision.

@@ -1,0 +1,229 @@
+section_a	chapitre_a	titre_a	section_b	chapitre_b	titre_b	mots_a	mots_b	containment	nature
+S01-0010	01	Création et composition	S08-0584	08	8.x Générateur de phrase de synthèse v13	401	130	1.00	COPIE
+S01-0020	01	Parcours — post-MVP	S02-0048	02	Besoin cible — consulter un média sans perdre l’Exécution	73	269	1.00	COPIE
+S01-0020	01	Parcours — post-MVP	S03-0112	03	Créer et exécuter un Parcours — hors MVP, conception partielle	73	73	1.00	COPIE
+S01-0020	01	Parcours — post-MVP	S03-0125	03	Planifier un Parcours — cible future	73	73	1.00	COPIE
+S01-0020	01	Parcours — post-MVP	S04-0160	04	Extension du contenu planifiable — Parcours	73	73	1.00	COPIE
+S01-0020	01	Parcours — post-MVP	S08-0457	08	2 bis.7 Limite Parcours	73	77	1.00	COPIE
+S01-0020	01	Parcours — post-MVP	S09-0642	09	Contraintes Parcours	73	73	1.00	COPIE
+S01-0020	01	Parcours — post-MVP	S09-0704	09	Extension future de Routine — source Parcours	73	73	1.00	COPIE
+S01-0020	01	Parcours — post-MVP	S11-0829	11	Extension future des API Routine — Parcours	73	73	1.00	COPIE
+S01-0020	01	Parcours — post-MVP	S12-0919	12	12.36 Extensibilité de la source Routine — Parcours	73	73	1.00	COPIE
+S01-0024	01	Concepts de composition	S06-0380	06	Clarification du12/10/2026 — Préparation et fin dans une Séance	193	77	0.63	RECOUVREMENT
+S01-0024	01	Concepts de composition	S06-0374	06	HISTORIQUE — Catalogue Séances — ancien arbre Créer — supersédé D-187	193	112	0.79	QUASI-COPIE
+S01-0024	01	Concepts de composition	S08-0587	08	Implantation des contrôles — réconciliation Figma du 30 septembre	193	152	0.57	RECOUVREMENT
+S01-0025	01	Saisie des paramètres — D-246	S04-0165	04	Saisie des paramètres — D-246	66	66	1.00	COPIE
+S01-0025	01	Saisie des paramètres — D-246	S08-0588	08	Saisie des paramètres — D-246	66	66	1.00	COPIE
+S01-0025	01	Saisie des paramètres — D-246	S09-0711	09	Saisie des paramètres — D-246	66	66	1.00	COPIE
+S01-0025	01	Saisie des paramètres — D-246	S10-0746	10	Saisie des paramètres — D-246	66	66	1.00	COPIE
+S01-0025	01	Saisie des paramètres — D-246	S11-0833	11	Saisie des paramètres — D-246	66	66	1.00	COPIE
+S01-0025	01	Saisie des paramètres — D-246	S12-0926	12	Saisie des paramètres — D-246	66	66	1.00	COPIE
+S01-0027	01	Conception de planification du 08/10/2026	S02-0052	02	Conception de planification du 08/10/2026	75	75	0.97	COPIE
+S01-0027	01	Conception de planification du 08/10/2026	S03-0132	03	Conception de planification du 08/10/2026	75	71	1.00	COPIE
+S01-0027	01	Conception de planification du 08/10/2026	S05-0201	05	Conception de planification du 08/10/2026	75	75	0.97	COPIE
+S01-0029	01	Glossaire	S03-0128	03	Parcours visuels des cartes — 30 septembre 2026	4122	414	0.97	COPIE
+S01-0029	01	Glossaire	S04-0164	04	Présentation des objets — 30 septembre 2026	4122	503	0.80	QUASI-COPIE
+S01-0029	01	Glossaire	S05-0196	05	Portée de la revue des cartes — 30 septembre 2026	4122	414	0.97	COPIE
+S01-0029	01	Glossaire	S06-0362	06	Références transverses des cartes et appuis — 30 septembre 2026	4122	662	0.61	RECOUVREMENT
+S01-0029	01	Glossaire	S08-0586	08	Présentation et interactions des cartes — 30 septembre 2026	4122	478	0.84	QUASI-COPIE
+S01-0029	01	Glossaire	S09-0710	09	Impacts de données de la revue des cartes — 30 septembre 2026	4122	546	0.74	QUASI-COPIE
+S01-0029	01	Glossaire	S10-0745	10	RG des cartes — 30 septembre 2026	4122	567	0.71	QUASI-COPIE
+S01-0029	01	Glossaire	S11-0831	11	Impact API de la revue des cartes — 30 septembre 2026	4122	459	0.88	QUASI-COPIE
+S01-0029	01	Glossaire	S12-0925	12	DSF courant — Cartes, icônes et animations d’appui (30 septembre 2026)	4122	614	0.66	RECOUVREMENT
+S01-0029	01	Glossaire	S06-0378	06	Titres affichés	4122	87	1.00	COPIE
+S02-0046	02	8. Besoins validés pour les évolutions	S05-0189	05	V2	216	31	0.50	RECOUVREMENT
+S02-0048	02	Besoin cible — consulter un média sans perdre l’Exécution	S03-0112	03	Créer et exécuter un Parcours — hors MVP, conception partielle	269	73	1.00	COPIE
+S02-0048	02	Besoin cible — consulter un média sans perdre l’Exécution	S03-0125	03	Planifier un Parcours — cible future	269	73	1.00	COPIE
+S02-0048	02	Besoin cible — consulter un média sans perdre l’Exécution	S04-0160	04	Extension du contenu planifiable — Parcours	269	73	1.00	COPIE
+S02-0048	02	Besoin cible — consulter un média sans perdre l’Exécution	S08-0457	08	2 bis.7 Limite Parcours	269	77	0.94	COPIE
+S02-0048	02	Besoin cible — consulter un média sans perdre l’Exécution	S09-0642	09	Contraintes Parcours	269	73	1.00	COPIE
+S02-0048	02	Besoin cible — consulter un média sans perdre l’Exécution	S09-0704	09	Extension future de Routine — source Parcours	269	73	1.00	COPIE
+S02-0048	02	Besoin cible — consulter un média sans perdre l’Exécution	S11-0829	11	Extension future des API Routine — Parcours	269	73	1.00	COPIE
+S02-0048	02	Besoin cible — consulter un média sans perdre l’Exécution	S12-0919	12	12.36 Extensibilité de la source Routine — Parcours	269	73	1.00	COPIE
+S02-0049	02	Besoins consolidés — 26 septembre 2026	S06-0380	06	Clarification du12/10/2026 — Préparation et fin dans une Séance	106	77	0.63	RECOUVREMENT
+S02-0050	02	Paramètres d’exécution — complément du02/10/2026	S03-0129	03	Paramètres d’exécution — complément du02/10/2026	82	82	1.00	COPIE
+S02-0050	02	Paramètres d’exécution — complément du02/10/2026	S05-0199	05	Paramètres d’exécution — complément du02/10/2026	82	82	1.00	COPIE
+S02-0052	02	Conception de planification du 08/10/2026	S03-0132	03	Conception de planification du 08/10/2026	75	71	1.00	COPIE
+S02-0052	02	Conception de planification du 08/10/2026	S05-0201	05	Conception de planification du 08/10/2026	75	75	0.97	COPIE
+S03-0054	03	Objectif de cette note	S08-0433	08	1. Principes généraux	88	46	1.00	COPIE
+S03-0054	03	Objectif de cette note	S09-0593	09	09.0 Vue d'ensemble	88	46	1.00	COPIE
+S03-0054	03	Objectif de cette note	S10-0728	10	Processus métier et règles métier transverses	88	46	1.00	COPIE
+S03-0112	03	Créer et exécuter un Parcours — hors MVP, conception partielle	S03-0125	03	Planifier un Parcours — cible future	73	73	1.00	COPIE
+S03-0112	03	Créer et exécuter un Parcours — hors MVP, conception partielle	S04-0160	04	Extension du contenu planifiable — Parcours	73	73	1.00	COPIE
+S03-0112	03	Créer et exécuter un Parcours — hors MVP, conception partielle	S08-0457	08	2 bis.7 Limite Parcours	73	77	1.00	COPIE
+S03-0112	03	Créer et exécuter un Parcours — hors MVP, conception partielle	S09-0642	09	Contraintes Parcours	73	73	1.00	COPIE
+S03-0112	03	Créer et exécuter un Parcours — hors MVP, conception partielle	S09-0704	09	Extension future de Routine — source Parcours	73	73	1.00	COPIE
+S03-0112	03	Créer et exécuter un Parcours — hors MVP, conception partielle	S11-0829	11	Extension future des API Routine — Parcours	73	73	1.00	COPIE
+S03-0112	03	Créer et exécuter un Parcours — hors MVP, conception partielle	S12-0919	12	12.36 Extensibilité de la source Routine — Parcours	73	73	1.00	COPIE
+S03-0125	03	Planifier un Parcours — cible future	S04-0160	04	Extension du contenu planifiable — Parcours	73	73	1.00	COPIE
+S03-0125	03	Planifier un Parcours — cible future	S08-0457	08	2 bis.7 Limite Parcours	73	77	1.00	COPIE
+S03-0125	03	Planifier un Parcours — cible future	S09-0642	09	Contraintes Parcours	73	73	1.00	COPIE
+S03-0125	03	Planifier un Parcours — cible future	S09-0704	09	Extension future de Routine — source Parcours	73	73	1.00	COPIE
+S03-0125	03	Planifier un Parcours — cible future	S11-0829	11	Extension future des API Routine — Parcours	73	73	1.00	COPIE
+S03-0125	03	Planifier un Parcours — cible future	S12-0919	12	12.36 Extensibilité de la source Routine — Parcours	73	73	1.00	COPIE
+S03-0128	03	Parcours visuels des cartes — 30 septembre 2026	S04-0164	04	Présentation des objets — 30 septembre 2026	414	503	1.00	COPIE
+S03-0128	03	Parcours visuels des cartes — 30 septembre 2026	S05-0196	05	Portée de la revue des cartes — 30 septembre 2026	414	414	1.00	COPIE
+S03-0128	03	Parcours visuels des cartes — 30 septembre 2026	S06-0362	06	Références transverses des cartes et appuis — 30 septembre 2026	414	662	1.00	COPIE
+S03-0128	03	Parcours visuels des cartes — 30 septembre 2026	S08-0586	08	Présentation et interactions des cartes — 30 septembre 2026	414	478	1.00	COPIE
+S03-0128	03	Parcours visuels des cartes — 30 septembre 2026	S09-0710	09	Impacts de données de la revue des cartes — 30 septembre 2026	414	546	0.99	COPIE
+S03-0128	03	Parcours visuels des cartes — 30 septembre 2026	S10-0745	10	RG des cartes — 30 septembre 2026	414	567	1.00	COPIE
+S03-0128	03	Parcours visuels des cartes — 30 septembre 2026	S11-0831	11	Impact API de la revue des cartes — 30 septembre 2026	414	459	0.99	COPIE
+S03-0128	03	Parcours visuels des cartes — 30 septembre 2026	S12-0925	12	DSF courant — Cartes, icônes et animations d’appui (30 septembre 2026)	414	614	0.99	COPIE
+S03-0129	03	Paramètres d’exécution — complément du02/10/2026	S05-0199	05	Paramètres d’exécution — complément du02/10/2026	82	82	1.00	COPIE
+S03-0132	03	Conception de planification du 08/10/2026	S05-0201	05	Conception de planification du 08/10/2026	71	75	1.00	COPIE
+S04-0143	04	Exercice	S08-0584	08	8.x Générateur de phrase de synthèse v13	443	130	1.00	COPIE
+S04-0144	04	Exercice de référence et Exercice de Séance	S09-0707	09	SessionActivity	196	52	0.79	QUASI-COPIE
+S04-0151	04	4.6 Déroulement d’un Exercice	S10-0733	10	4. Exercices, Séries et Récupérations	204	720	0.61	RECOUVREMENT
+S04-0151	04	4.6 Déroulement d’un Exercice	S13-0959	13	CE-T03-12 — Exécution directe — bilatéralité, Pauses, Récupération	204	868	0.61	RECOUVREMENT
+S04-0160	04	Extension du contenu planifiable — Parcours	S08-0457	08	2 bis.7 Limite Parcours	73	77	1.00	COPIE
+S04-0160	04	Extension du contenu planifiable — Parcours	S09-0642	09	Contraintes Parcours	73	73	1.00	COPIE
+S04-0160	04	Extension du contenu planifiable — Parcours	S09-0704	09	Extension future de Routine — source Parcours	73	73	1.00	COPIE
+S04-0160	04	Extension du contenu planifiable — Parcours	S11-0829	11	Extension future des API Routine — Parcours	73	73	1.00	COPIE
+S04-0160	04	Extension du contenu planifiable — Parcours	S12-0919	12	12.36 Extensibilité de la source Routine — Parcours	73	73	1.00	COPIE
+S04-0162	04	Consolidation du modèle — D-209 à D-217	S06-0380	06	Clarification du12/10/2026 — Préparation et fin dans une Séance	209	77	0.63	RECOUVREMENT
+S04-0164	04	Présentation des objets — 30 septembre 2026	S05-0196	05	Portée de la revue des cartes — 30 septembre 2026	503	414	1.00	COPIE
+S04-0164	04	Présentation des objets — 30 septembre 2026	S06-0362	06	Références transverses des cartes et appuis — 30 septembre 2026	503	662	0.82	QUASI-COPIE
+S04-0164	04	Présentation des objets — 30 septembre 2026	S08-0586	08	Présentation et interactions des cartes — 30 septembre 2026	503	478	0.86	QUASI-COPIE
+S04-0164	04	Présentation des objets — 30 septembre 2026	S09-0710	09	Impacts de données de la revue des cartes — 30 septembre 2026	503	546	0.99	COPIE
+S04-0164	04	Présentation des objets — 30 septembre 2026	S10-0745	10	RG des cartes — 30 septembre 2026	503	567	0.99	COPIE
+S04-0164	04	Présentation des objets — 30 septembre 2026	S11-0831	11	Impact API de la revue des cartes — 30 septembre 2026	503	459	0.89	QUASI-COPIE
+S04-0164	04	Présentation des objets — 30 septembre 2026	S12-0925	12	DSF courant — Cartes, icônes et animations d’appui (30 septembre 2026)	503	614	0.98	COPIE
+S04-0164	04	Présentation des objets — 30 septembre 2026	S06-0374	06	HISTORIQUE — Catalogue Séances — ancien arbre Créer — supersédé D-187	503	112	0.79	QUASI-COPIE
+S04-0164	04	Présentation des objets — 30 septembre 2026	S08-0587	08	Implantation des contrôles — réconciliation Figma du 30 septembre	503	152	0.57	RECOUVREMENT
+S04-0165	04	Saisie des paramètres — D-246	S08-0588	08	Saisie des paramètres — D-246	66	66	1.00	COPIE
+S04-0165	04	Saisie des paramètres — D-246	S09-0711	09	Saisie des paramètres — D-246	66	66	1.00	COPIE
+S04-0165	04	Saisie des paramètres — D-246	S10-0746	10	Saisie des paramètres — D-246	66	66	1.00	COPIE
+S04-0165	04	Saisie des paramètres — D-246	S11-0833	11	Saisie des paramètres — D-246	66	66	1.00	COPIE
+S04-0165	04	Saisie des paramètres — D-246	S12-0926	12	Saisie des paramètres — D-246	66	66	1.00	COPIE
+S04-0166	04	Paramètres de Série et Ordre des côtés — D-247 à D-254	S09-0712	09	Paramètres de Série et Ordre des côtés — D-247 à D-254	121	121	1.00	COPIE
+S05-0196	05	Portée de la revue des cartes — 30 septembre 2026	S06-0362	06	Références transverses des cartes et appuis — 30 septembre 2026	414	662	1.00	COPIE
+S05-0196	05	Portée de la revue des cartes — 30 septembre 2026	S08-0586	08	Présentation et interactions des cartes — 30 septembre 2026	414	478	1.00	COPIE
+S05-0196	05	Portée de la revue des cartes — 30 septembre 2026	S09-0710	09	Impacts de données de la revue des cartes — 30 septembre 2026	414	546	0.99	COPIE
+S05-0196	05	Portée de la revue des cartes — 30 septembre 2026	S10-0745	10	RG des cartes — 30 septembre 2026	414	567	1.00	COPIE
+S05-0196	05	Portée de la revue des cartes — 30 septembre 2026	S11-0831	11	Impact API de la revue des cartes — 30 septembre 2026	414	459	0.99	COPIE
+S05-0196	05	Portée de la revue des cartes — 30 septembre 2026	S12-0925	12	DSF courant — Cartes, icônes et animations d’appui (30 septembre 2026)	414	614	0.99	COPIE
+S06-0271	06	Ajout d’un Exercice	S08-0591	08	Pauses et symboles	376	112	0.72	QUASI-COPIE
+S06-0271	06	Ajout d’un Exercice	S09-0707	09	SessionActivity	376	52	0.79	QUASI-COPIE
+S06-0271	06	Ajout d’un Exercice	S07-0414	07	Clarification de l’avertissement d’enchaînement	376	75	0.69	RECOUVREMENT
+S06-0271	06	Ajout d’un Exercice	S08-0590	08	Avertissement d’enchaînement sans pause (D-301)	376	52	1.00	COPIE
+S06-0271	06	Ajout d’un Exercice	S10-0748	10	Avertissement non bloquant d’enchaînement (D-301)	376	86	0.58	RECOUVREMENT
+S06-0362	06	Références transverses des cartes et appuis — 30 septembre 2026	S08-0586	08	Présentation et interactions des cartes — 30 septembre 2026	662	478	1.00	COPIE
+S06-0362	06	Références transverses des cartes et appuis — 30 septembre 2026	S09-0710	09	Impacts de données de la revue des cartes — 30 septembre 2026	662	546	0.75	QUASI-COPIE
+S06-0362	06	Références transverses des cartes et appuis — 30 septembre 2026	S10-0745	10	RG des cartes — 30 septembre 2026	662	567	0.84	QUASI-COPIE
+S06-0362	06	Références transverses des cartes et appuis — 30 septembre 2026	S11-0831	11	Impact API de la revue des cartes — 30 septembre 2026	662	459	0.89	QUASI-COPIE
+S06-0362	06	Références transverses des cartes et appuis — 30 septembre 2026	S12-0925	12	DSF courant — Cartes, icônes et animations d’appui (30 septembre 2026)	662	614	0.78	QUASI-COPIE
+S06-0364	06	Référence DSF V2 détaillée — clôture 28 septembre 2026	S12-0923	12	Référence DSF V2 détaillée — clôture 28 septembre 2026	463	461	0.85	QUASI-COPIE
+S06-0374	06	HISTORIQUE — Catalogue Séances — ancien arbre Créer — supersédé D-187	S08-0587	08	Implantation des contrôles — réconciliation Figma du 30 septembre	112	152	0.79	QUASI-COPIE
+S06-0374	06	HISTORIQUE — Catalogue Séances — ancien arbre Créer — supersédé D-187	S09-0710	09	Impacts de données de la revue des cartes — 30 septembre 2026	112	546	0.79	QUASI-COPIE
+S06-0374	06	HISTORIQUE — Catalogue Séances — ancien arbre Créer — supersédé D-187	S10-0745	10	RG des cartes — 30 septembre 2026	112	567	0.79	QUASI-COPIE
+S06-0374	06	HISTORIQUE — Catalogue Séances — ancien arbre Créer — supersédé D-187	S11-0832	11	API fonctionnelles — consolidation D-209 à D-217	112	362	0.79	QUASI-COPIE
+S06-0374	06	HISTORIQUE — Catalogue Séances — ancien arbre Créer — supersédé D-187	S12-0925	12	DSF courant — Cartes, icônes et animations d’appui (30 septembre 2026)	112	614	0.79	QUASI-COPIE
+S06-0380	06	Clarification du12/10/2026 — Préparation et fin dans une Séance	S07-0400	07	Décisions du 26 septembre 2026 — consolidation fonctionnelle avant planification	77	969	0.63	RECOUVREMENT
+S06-0380	06	Clarification du12/10/2026 — Préparation et fin dans une Séance	S08-0582	08	Règles communes — D-209 à D-217	77	333	0.63	RECOUVREMENT
+S06-0380	06	Clarification du12/10/2026 — Préparation et fin dans une Séance	S10-0744	10	Règles RM-213 à RM-221 — consolidation du 26 septembre 2026	77	523	0.63	RECOUVREMENT
+S06-0380	06	Clarification du12/10/2026 — Préparation et fin dans une Séance	S10-0800	10	Calcul, pauses et périmètres	77	520	0.63	RECOUVREMENT
+S06-0380	06	Clarification du12/10/2026 — Préparation et fin dans une Séance	S13-0946	13	4. Règles communes T03	77	2552	0.63	RECOUVREMENT
+S07-0414	07	Clarification de l’avertissement d’enchaînement	S08-0590	08	Avertissement d’enchaînement sans pause (D-301)	75	52	1.00	COPIE
+S07-0414	07	Clarification de l’avertissement d’enchaînement	S10-0748	10	Avertissement non bloquant d’enchaînement (D-301)	75	86	0.67	RECOUVREMENT
+S08-0433	08	1. Principes généraux	S09-0593	09	09.0 Vue d'ensemble	46	46	1.00	COPIE
+S08-0433	08	1. Principes généraux	S10-0728	10	Processus métier et règles métier transverses	46	46	1.00	COPIE
+S08-0433	08	1. Principes généraux	S11-0807	11	11.0 Objet et périmètre	46	182	1.00	COPIE
+S08-0433	08	1. Principes généraux	S13-0942	13	13 — Contrats d’écran	46	88	1.00	COPIE
+S08-0457	08	2 bis.7 Limite Parcours	S09-0642	09	Contraintes Parcours	77	73	1.00	COPIE
+S08-0457	08	2 bis.7 Limite Parcours	S09-0704	09	Extension future de Routine — source Parcours	77	73	1.00	COPIE
+S08-0457	08	2 bis.7 Limite Parcours	S11-0829	11	Extension future des API Routine — Parcours	77	73	1.00	COPIE
+S08-0457	08	2 bis.7 Limite Parcours	S12-0919	12	12.36 Extensibilité de la source Routine — Parcours	77	73	1.00	COPIE
+S08-0471	08	Durée estimée d’exécution	S08-0584	08	8.x Générateur de phrase de synthèse v13	208	130	0.71	QUASI-COPIE
+S08-0472	08	Durée synthétique des Exercices	S08-0584	08	8.x Générateur de phrase de synthèse v13	210	130	0.71	QUASI-COPIE
+S08-0492	08	3. Concepts et invariants	S10-0752	10	RM-FMT-01	407	39	0.88	QUASI-COPIE
+S08-0492	08	3. Concepts et invariants	S10-0753	10	RM-FMT-02	407	42	0.89	QUASI-COPIE
+S08-0492	08	3. Concepts et invariants	S10-0754	10	RM-FMT-03	407	29	0.83	QUASI-COPIE
+S08-0492	08	3. Concepts et invariants	S10-0755	10	RM-FMT-04	407	30	0.84	QUASI-COPIE
+S08-0492	08	3. Concepts et invariants	S10-0756	10	RM-FMT-05	407	34	0.86	QUASI-COPIE
+S08-0492	08	3. Concepts et invariants	S10-0757	10	RM-FMT-06	407	35	0.87	QUASI-COPIE
+S08-0492	08	3. Concepts et invariants	S10-0758	10	RM-FMT-07	407	41	0.89	QUASI-COPIE
+S08-0492	08	3. Concepts et invariants	S10-0759	10	RM-FMT-08	407	34	0.86	QUASI-COPIE
+S08-0492	08	3. Concepts et invariants	S10-0760	10	RM-FMT-09	407	48	0.91	COPIE
+S08-0493	08	4. Tabata et Intervalles	S10-0761	10	RM-FMT-10	523	26	0.81	QUASI-COPIE
+S08-0493	08	4. Tabata et Intervalles	S10-0762	10	RM-FMT-11	523	29	0.83	QUASI-COPIE
+S08-0493	08	4. Tabata et Intervalles	S10-0763	10	RM-FMT-12	523	40	0.89	QUASI-COPIE
+S08-0493	08	4. Tabata et Intervalles	S10-0764	10	RM-FMT-13	523	41	0.89	QUASI-COPIE
+S08-0493	08	4. Tabata et Intervalles	S10-0765	10	RM-FMT-14	523	36	0.87	QUASI-COPIE
+S08-0493	08	4. Tabata et Intervalles	S10-0766	10	RM-FMT-15	523	50	0.91	COPIE
+S08-0493	08	4. Tabata et Intervalles	S10-0767	10	RM-FMT-16	523	25	0.80	QUASI-COPIE
+S08-0493	08	4. Tabata et Intervalles	S10-0768	10	RM-FMT-17	523	55	0.92	COPIE
+S08-0493	08	4. Tabata et Intervalles	S10-0769	10	RM-FMT-18	523	57	0.92	COPIE
+S08-0493	08	4. Tabata et Intervalles	S10-0770	10	RM-FMT-19	523	65	0.93	COPIE
+S08-0494	08	5. EMOM : fenêtres et borne	S10-0771	10	RM-FMT-20	324	26	0.81	QUASI-COPIE
+S08-0494	08	5. EMOM : fenêtres et borne	S10-0772	10	RM-FMT-21	324	42	0.89	QUASI-COPIE
+S08-0494	08	5. EMOM : fenêtres et borne	S10-0773	10	RM-FMT-22	324	33	0.86	QUASI-COPIE
+S08-0494	08	5. EMOM : fenêtres et borne	S10-0774	10	RM-FMT-23	324	35	0.87	QUASI-COPIE
+S08-0494	08	5. EMOM : fenêtres et borne	S10-0775	10	RM-FMT-24	324	32	0.85	QUASI-COPIE
+S08-0494	08	5. EMOM : fenêtres et borne	S10-0776	10	RM-FMT-25	324	60	0.93	COPIE
+S08-0495	08	6. AMRAP, For time et départs rapides	S10-0777	10	RM-FMT-26	407	30	0.84	QUASI-COPIE
+S08-0495	08	6. AMRAP, For time et départs rapides	S10-0778	10	RM-FMT-27	407	44	0.90	QUASI-COPIE
+S08-0495	08	6. AMRAP, For time et départs rapides	S10-0779	10	RM-FMT-28	407	29	0.83	QUASI-COPIE
+S08-0495	08	6. AMRAP, For time et départs rapides	S10-0780	10	RM-FMT-29	407	49	0.91	COPIE
+S08-0495	08	6. AMRAP, For time et départs rapides	S10-0781	10	RM-FMT-30	407	31	0.85	QUASI-COPIE
+S08-0495	08	6. AMRAP, For time et départs rapides	S10-0783	10	RM-FMT-32	407	39	0.88	QUASI-COPIE
+S08-0495	08	6. AMRAP, For time et départs rapides	S10-0782	10	RM-FMT-31	407	34	0.86	QUASI-COPIE
+S08-0496	08	7. Death by	S10-0784	10	RM-FMT-33	428	54	0.92	COPIE
+S08-0496	08	7. Death by	S10-0786	10	RM-FMT-35	428	42	0.89	QUASI-COPIE
+S08-0496	08	7. Death by	S10-0787	10	RM-FMT-36	428	47	0.90	COPIE
+S08-0496	08	7. Death by	S10-0788	10	RM-FMT-37	428	55	0.92	COPIE
+S08-0496	08	7. Death by	S10-0789	10	RM-FMT-38	428	46	0.90	COPIE
+S08-0552	08	Règles fonctionnelles	S08-0584	08	8.x Générateur de phrase de synthèse v13	651	130	1.00	COPIE
+S08-0584	08	8.x Générateur de phrase de synthèse v13	S09-0598	09	Décisions structurantes du modèle	130	705	1.00	COPIE
+S08-0584	08	8.x Générateur de phrase de synthèse v13	S09-0624	09	Règles métier	130	421	1.00	COPIE
+S08-0584	08	8.x Générateur de phrase de synthèse v13	S10-0733	10	4. Exercices, Séries et Récupérations	130	720	1.00	COPIE
+S08-0584	08	8.x Générateur de phrase de synthèse v13	S11-0811	11	11.4 API Exercices	130	455	1.00	COPIE
+S08-0584	08	8.x Générateur de phrase de synthèse v13	S13-0946	13	4. Règles communes T03	130	2552	1.00	COPIE
+S08-0584	08	8.x Générateur de phrase de synthèse v13	S13-0979	13	6. Clôture des réserves fonctionnelles des contrats	130	1041	1.00	COPIE
+S08-0586	08	Présentation et interactions des cartes — 30 septembre 2026	S09-0710	09	Impacts de données de la revue des cartes — 30 septembre 2026	478	546	0.85	QUASI-COPIE
+S08-0586	08	Présentation et interactions des cartes — 30 septembre 2026	S10-0745	10	RG des cartes — 30 septembre 2026	478	567	1.00	COPIE
+S08-0586	08	Présentation et interactions des cartes — 30 septembre 2026	S11-0831	11	Impact API de la revue des cartes — 30 septembre 2026	478	459	0.89	QUASI-COPIE
+S08-0586	08	Présentation et interactions des cartes — 30 septembre 2026	S12-0925	12	DSF courant — Cartes, icônes et animations d’appui (30 septembre 2026)	478	614	0.99	COPIE
+S08-0587	08	Implantation des contrôles — réconciliation Figma du 30 septembre	S09-0710	09	Impacts de données de la revue des cartes — 30 septembre 2026	152	546	0.57	RECOUVREMENT
+S08-0587	08	Implantation des contrôles — réconciliation Figma du 30 septembre	S10-0745	10	RG des cartes — 30 septembre 2026	152	567	0.57	RECOUVREMENT
+S08-0587	08	Implantation des contrôles — réconciliation Figma du 30 septembre	S11-0832	11	API fonctionnelles — consolidation D-209 à D-217	152	362	0.57	RECOUVREMENT
+S08-0587	08	Implantation des contrôles — réconciliation Figma du 30 septembre	S12-0925	12	DSF courant — Cartes, icônes et animations d’appui (30 septembre 2026)	152	614	0.57	RECOUVREMENT
+S08-0588	08	Saisie des paramètres — D-246	S09-0711	09	Saisie des paramètres — D-246	66	66	1.00	COPIE
+S08-0588	08	Saisie des paramètres — D-246	S10-0746	10	Saisie des paramètres — D-246	66	66	1.00	COPIE
+S08-0588	08	Saisie des paramètres — D-246	S11-0833	11	Saisie des paramètres — D-246	66	66	1.00	COPIE
+S08-0588	08	Saisie des paramètres — D-246	S12-0926	12	Saisie des paramètres — D-246	66	66	1.00	COPIE
+S08-0590	08	Avertissement d’enchaînement sans pause (D-301)	S10-0748	10	Avertissement non bloquant d’enchaînement (D-301)	52	86	1.00	COPIE
+S08-0591	08	Pauses et symboles	S09-0707	09	SessionActivity	112	52	0.79	QUASI-COPIE
+S08-0591	08	Pauses et symboles	S13-0955	13	CE-T03-08 — Composer une séance / Modifier une séance — brouillon, Circuit, points d’arrêt et validation	112	1591	0.67	RECOUVREMENT
+S09-0593	09	09.0 Vue d'ensemble	S10-0728	10	Processus métier et règles métier transverses	46	46	1.00	COPIE
+S09-0593	09	09.0 Vue d'ensemble	S11-0807	11	11.0 Objet et périmètre	46	182	1.00	COPIE
+S09-0593	09	09.0 Vue d'ensemble	S13-0942	13	13 — Contrats d’écran	46	88	1.00	COPIE
+S09-0613	09	09.3 Entité Routine	S12-0918	12	12.35 Source polymorphe des Routines — D-206	307	351	1.00	COPIE
+S09-0614	09	09.3.1 Règles de planification	S10-0749	10	Planification multi-contenus	214	214	1.00	COPIE
+S09-0637	09	Règles métier	S09-0694	09	Règles métier	220	110	0.62	RECOUVREMENT
+S09-0642	09	Contraintes Parcours	S09-0704	09	Extension future de Routine — source Parcours	73	73	1.00	COPIE
+S09-0642	09	Contraintes Parcours	S11-0829	11	Extension future des API Routine — Parcours	73	73	1.00	COPIE
+S09-0642	09	Contraintes Parcours	S12-0919	12	12.36 Extensibilité de la source Routine — Parcours	73	73	1.00	COPIE
+S09-0660	09	Attributs fonctionnels	S09-0665	09	Attributs fonctionnels	69	76	0.69	RECOUVREMENT
+S09-0704	09	Extension future de Routine — source Parcours	S11-0829	11	Extension future des API Routine — Parcours	73	73	1.00	COPIE
+S09-0704	09	Extension future de Routine — source Parcours	S12-0919	12	12.36 Extensibilité de la source Routine — Parcours	73	73	1.00	COPIE
+S09-0707	09	SessionActivity	S10-0743	10	RM-203 — Consultation média pendant l’Exécution	52	331	0.79	QUASI-COPIE
+S09-0707	09	SessionActivity	S13-0955	13	CE-T03-08 — Composer une séance / Modifier une séance — brouillon, Circuit, points d’arrêt et validation	52	1591	0.79	QUASI-COPIE
+S09-0710	09	Impacts de données de la revue des cartes — 30 septembre 2026	S10-0745	10	RG des cartes — 30 septembre 2026	546	567	0.90	COPIE
+S09-0710	09	Impacts de données de la revue des cartes — 30 septembre 2026	S11-0831	11	Impact API de la revue des cartes — 30 septembre 2026	546	459	0.89	QUASI-COPIE
+S09-0710	09	Impacts de données de la revue des cartes — 30 septembre 2026	S12-0925	12	DSF courant — Cartes, icônes et animations d’appui (30 septembre 2026)	546	614	0.90	COPIE
+S09-0711	09	Saisie des paramètres — D-246	S10-0746	10	Saisie des paramètres — D-246	66	66	1.00	COPIE
+S09-0711	09	Saisie des paramètres — D-246	S11-0833	11	Saisie des paramètres — D-246	66	66	1.00	COPIE
+S09-0711	09	Saisie des paramètres — D-246	S12-0926	12	Saisie des paramètres — D-246	66	66	1.00	COPIE
+S09-0716	09	Contrat technique de phrase	S11-0837	11	Contrat technique de phrase	161	161	1.00	COPIE
+S09-0716	09	Contrat technique de phrase	S12-0931	12	Contrat technique de phrase	161	161	1.00	COPIE
+S09-0717	09	Précision de modèle — source du07/10, v15	S12-0935	12	Interface générale — règles du 08/10/2026	133	171	0.50	RECOUVREMENT
+S10-0728	10	Processus métier et règles métier transverses	S11-0807	11	11.0 Objet et périmètre	46	182	1.00	COPIE
+S10-0728	10	Processus métier et règles métier transverses	S13-0942	13	13 — Contrats d’écran	46	88	1.00	COPIE
+S10-0745	10	RG des cartes — 30 septembre 2026	S11-0831	11	Impact API de la revue des cartes — 30 septembre 2026	567	459	0.89	QUASI-COPIE
+S10-0745	10	RG des cartes — 30 septembre 2026	S12-0925	12	DSF courant — Cartes, icônes et animations d’appui (30 septembre 2026)	567	614	0.99	COPIE
+S10-0746	10	Saisie des paramètres — D-246	S11-0833	11	Saisie des paramètres — D-246	66	66	1.00	COPIE
+S10-0746	10	Saisie des paramètres — D-246	S12-0926	12	Saisie des paramètres — D-246	66	66	1.00	COPIE
+S11-0829	11	Extension future des API Routine — Parcours	S12-0919	12	12.36 Extensibilité de la source Routine — Parcours	73	73	1.00	COPIE
+S11-0831	11	Impact API de la revue des cartes — 30 septembre 2026	S12-0925	12	DSF courant — Cartes, icônes et animations d’appui (30 septembre 2026)	459	614	0.89	QUASI-COPIE
+S11-0833	11	Saisie des paramètres — D-246	S12-0926	12	Saisie des paramètres — D-246	66	66	1.00	COPIE
+S11-0837	11	Contrat technique de phrase	S12-0931	12	Contrat technique de phrase	161	161	1.00	COPIE
