@@ -6,7 +6,11 @@
 - Réserves documentaires traitées (journal « Revue du 16/10 » ci-dessous).
 - Questions produit regroupées par thème dans [arbitrages.md](arbitrages.md), en attente de Hermann.
 - **Aucun lot n'est déclaré clos ni certifié.**
-- Lot 6 : **6A (conception) réalisé le 17/10, révisé le 17/10 après la revue indépendante** (PARTIELLEMENT CONFORME, 4 réserves). Aucun document produit modifié ([lot6/plan-restructuration.md](lot6/plan-restructuration.md)). Exécution (6B et suivantes) non autorisée.
+- Lot 6 :
+  - 6A (conception) réalisé et révisé le 17/10 ;
+  - exécution autorisée par Hermann (QR-1 à QR-9, D-402) et réalisée le 17/10, étapes 6B à 6K ([rapport de conservation](lot6/rapport-conservation-lot6.md)) ;
+  - soumise à revue indépendante, non déclarée close ;
+  - aucun merge dans `main`.
 
 **Fonctionnement autorisé par Hermann (16/10) :**
 - publier les commits sur `docs/openspec-revision`, sans merge vers `main` ;
@@ -51,8 +55,8 @@
 - [ ] 0.13 Revue indépendante de la livraison des arbitrages, préalable au lot 6
 - [ ] 0.14 Revue indépendante des livraisons A1–A9 et B1–B5, préalable à la planification du lot 6
 - [x] 0.15 Revue indépendante du lot 6A (révision 1, `1122bb9d`) : **PARTIELLEMENT CONFORME** ; 4 réserves et 4 réexamens traités en révision 2 ([plan, tableau de réponse](lot6/plan-restructuration.md))
-- [ ] 0.15b Revue indépendante de la révision 2 du lot 6A
-- [ ] 0.16 Décisions de Hermann sur QR-1 à QR-9 ([plan-restructuration.md §11](lot6/plan-restructuration.md)), valant autorisation globale des étapes DOC (plan §8.3)
+- [x] 0.15b Revue indépendante de la révision 2 du lot 6A : corrections ciblées sur les affectations de défauts structurels demandées. Le rapport n'est pas dans le dépôt ; les affectations ont été réexaminées à l'exécution (rapport de conservation, « Affectations corrigées »).
+- [x] 0.16 Décisions de Hermann sur QR-1 à QR-9 (17/10) : validées selon les recommandations, avec QR-8 « restructuration immédiate » ; consignées en D-402. Voir ([plan-restructuration.md §11](lot6/plan-restructuration.md)), valant autorisation globale des étapes DOC (plan §8.3)
 
 ### Journal — revue du 16/10 (traitement des réserves documentaires)
 
@@ -370,51 +374,49 @@ Voir plan §8.3.
 - [x] 6A.8 Défauts de qualité restants : corrections rédactionnelles (6K) et décisions produit (6J) séparées (plan §10).
 - [x] 6A.9 Révision 2 après la revue indépendante (réserves 1 à 4 ; rôle du ch. 08 ; ch. 14 ; PR ; points d'arrêt).
 
-### Étapes d'exécution (non autorisées)
+### Étapes d'exécution (autorisées par Hermann le 17/10, QR-1 à QR-9, D-402)
 
-- [ ] 6B Préparation : `appliquer-deplacements.mjs`, `reecrire-liens.mjs`, révision 3 de design (G1, G2) — `DOC-AUTORITÉ`
-- [ ] 6C Corrections dans chaque fichier :
-  - titres et numérotation ;
-  - tableaux coupés (S-11) ;
-  - renvois internes rompus ;
-  - D-047 ;
-  - inventaire des 40 contrats ;
-  - tables des matières.
-- [ ] 6D Dédoublonnage par équivalence complète :
-  - 21 renvois ;
-  - 89 occurrences de lignes ;
-  - examen des 158 occurrences « à vérifier » et des 11 copies partielles ;
-  - FMT ;
-  - bandeaux ;
-  - titres « D-246 » ;
-  - renvois absents.
+Exécutées le 17/10 à partir de `cefc9b99`, chacune contrôlée contre la base et contre l'étape précédente, puis publiée.
+Voir le [rapport de conservation](lot6/rapport-conservation-lot6.md), la [matrice actualisée](lot6/correspondance-actualisee.tsv), le [dossier d'arbitrage](lot6/arbitrages-lot6.md) et les journaux dans `lot6/execution/`.
 
-  Reprend l'ancienne tâche 6.3 (P-13, P-14, H-19, QS-10).
-- [ ] 6E Intégration des 110 compléments empilés et des 6 blocs placés après les contrats (P-21, P-22 ; ancienne tâche 6.2)
-- [ ] 6F1 Conventions d'interface vers le ch. 06, dont le ch. 13 §4
-- [ ] 6F2 Recentrage du ch. 08 sur la conception par fonctionnalité : règles vers 10, champs vers 13, concepts vers 04, données vers 09
-- [ ] 6F3 Écrans du ch. 06 vers les contrats du ch. 13
-- [ ] 6F4 Autres déplacements
-- [ ] 6F5 Annexe historique
-- [ ] 6G Navigation et traçabilité :
-  - INDEX et table de correspondance ;
-  - index des identifiants, du registre et des règles sans identifiant ;
-  - inventaire écran → contrat ;
-  - « Règles applicables ».
-- [ ] 6H Reports antérieurs :
-  - 214 lignes « à examiner » de R-06 (ancienne tâche 6.1) ;
-  - alias (ancienne tâche 6.4) ;
-  - RM-131 (#370) ;
-  - ch. 08 l. 1573 (#371) ;
-  - PRODUCT.md (Q-C).
-- [ ] 6I Transfert des règles des DSF vers le ch. 06, règle par règle (G4, Q-B a)
-- [ ] 6K Corrections rédactionnelles (plan §10.1), contrôlées par C10
-- [ ] 6J Décisions produit, en une liste groupée (plan §10.2) :
-  - divergences ;
-  - exigences non fonctionnelles (ancienne tâche 6.6) ;
-  - convention d'obligation (ancienne tâche 6.5) ;
-  - message de migration ;
-  - nombre d'Exercices (D-399).
+- [x] 6B Outillage (`restructurer.mjs`, `executer-etape.sh`) ; affectations corrigées : archive limitée au non normatif, sections des PR et sections définissant un identifiant maintenues dans leur fichier — `3789f1de`
+- [x] 6C Corrections dans chaque fichier — `444e5822` :
+  - 13 réparations de tableaux coupés (S-11 et rangs orphelins) ;
+  - inventaire du ch. 13 complété de 9 contrats ;
+  - D-046 et D-047 rangées.
+- [x] 6D Dédoublonnage par équivalence complète — `cc5c6ff2` :
+  - 20 sections remplacées par un renvoi ;
+  - 53 lignes remplacées par un renvoi ;
+  - 7 titres « D-246 » retitrés.
+
+  Les 11 copies partielles et les 158 occurrences « à vérifier » restent en place (dossier d'arbitrage §3).
+- [x] 6E Plan de domaine commun, ch. 06 en trois parties, compléments intégrés, titres sans numérotation ni date — `2cf0b27a`
+- [x] 6F1 Conventions d'interface vers le ch. 06 — `a23770be`
+- [x] 6F2 Recentrage du ch. 08 — `681babf6`
+- [x] 6F3 Écrans du ch. 06 vers le ch. 13 — `7b43cb7c`
+- [x] 6F4 Autres déplacements — `4b6c2c3c`
+- [x] 6F5 Annexe historique (17 sections, 40 lignes justifiées) — `c2625d02`
+- [x] 6G Navigation et traçabilité — `383bdeeb` :
+  - sommaires ;
+  - annexes « Correspondance des sections » et « Index des identifiants » (règles sans identifiant, registre par thème) ;
+  - INDEX.md ;
+  - besoins B-001 à B-091.
+
+  Reste à faire : la rubrique « Règles applicables » et la matrice besoin → règle → contrat → recette, qui exigent des rattachements à valider.
+- [x] 6H En partie — `ff9fd738` :
+  - D-402 au registre ;
+  - ordre de référence de PRODUCT.md remplacé par un renvoi (Q-C).
+- [ ] 6H, reste :
+  - 214 lignes « à examiner » de R-06 ;
+  - alias de version ;
+  - RM-131 (après #370) ;
+  - ch. 08 l. 1573 (après #371).
+- [x] 6I RG-1 à RG-13 transférées au ch. 06, avec renvoi dans le DSF Cartes, icônes et appuis — `4d6d9722`
+- [ ] 6I, reste : autres DSF, règle par règle
+- [x] 6K En partie : 157 lignes d'espaces manquantes, C10 sans écart — `aa9cd0bd`
+- [ ] 6K, reste : pronoms, termes proscrits, découpage des règles longues, au cas par cas
+- [ ] 6J Décisions produit, en une liste groupée : [arbitrages-lot6.md](lot6/arbitrages-lot6.md) (204 divergences, copies à rapprocher, décisions de qualité)
+- [ ] 6L Revue indépendante de la restructuration, puis résolution des dépendances Git avec les PR #363, #370 et #371 avant toute fusion dans `main`
 
 ## Ce qui n'est pas proposé
 

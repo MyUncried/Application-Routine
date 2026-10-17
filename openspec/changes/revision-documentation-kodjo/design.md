@@ -5,7 +5,7 @@
 | Révision | Date | Motif |
 |---|---|---|
 | 1 | 2026-10-16 | Proposition initiale à partir des passes 1 et 2 |
-| 3 (proposée, non validée) | 2026-10-17 | Lot 6A, révision 2 : architecture cible de la restructuration ([lot6/plan-restructuration.md](lot6/plan-restructuration.md)). Si Hermann la valide (QR-1), G1 est remplacé par l'architecture C révisée : fichiers conservés ; ch. 08 en conception par fonctionnalité citant les règles du ch. 10 ; conventions d'interface au ch. 06 ; une annexe historique créée. Le tableau de G2 est alors remplacé par les règles de domicile du plan §4.5. D'ici là, G1 et G2 s'appliquent tels quels. |
+| 3 (validée par Hermann le 17/10/2026, D-402) | 2026-10-17 | Lot 6A, révision 2 : architecture cible de la restructuration ([lot6/plan-restructuration.md](lot6/plan-restructuration.md)). Si Hermann la valide (QR-1), G1 est remplacé par l'architecture C révisée : fichiers conservés ; ch. 08 en conception par fonctionnalité citant les règles du ch. 10 ; conventions d'interface au ch. 06 ; une annexe historique créée. Le tableau de G2 est alors remplacé par les règles de domicile du plan §4.5. D'ici là, G1 et G2 s'appliquent tels quels. |
 | 2 | 2026-10-16 | Intégration de la revue ChatGPT des deux diagnostics. L'orientation est conservée ; la gouvernance est allégée : DSF maintenus jusqu'au transfert, le domicile ne tranche pas les contradictions, ancres ciblées, pas de bandeaux systématiques. Ajout des constats de restauration R-06 et R-07 (identifiants et statuts effacés par `7a89220f`). |
 
 Les principaux écarts entre les deux révisions figurent en fin de document (§ « Ce qui change par rapport à la révision 1 »).
@@ -33,7 +33,7 @@ L'objectif reste : **chaque règle a une référence claire, et il n'existe qu'u
 
 Les améliorations se font **sur place**, par petites révisions traçables.
 
-*Lot 6A (17/10) :* une restructuration est désormais **proposée** (plan-restructuration.md, option C). Elle ne s'appliquera qu'après décision de Hermann (QR-1 à QR-9) et sous les contrôles C1 à C12 (texte, portée, autorité, références). Tant que cette décision n'est pas prise, G1 reste en vigueur.
+*Lot 6A (17/10) :* une restructuration est désormais **proposée** (plan-restructuration.md, option C). Elle ne s'appliquera qu'après décision de Hermann (QR-1 à QR-9) et sous les contrôles C1 à C12 (texte, portée, autorité, références). **Décision prise le 17/10 (D-402) :** G1 est remplacé par l'architecture C révisée, et le tableau de G2 par les règles de domicile du plan §4.5. La restructuration est exécutée (lot 6, étapes 6B à 6K).
 
 ### G2 — Une source normative unique par règle, atteinte progressivement
 
