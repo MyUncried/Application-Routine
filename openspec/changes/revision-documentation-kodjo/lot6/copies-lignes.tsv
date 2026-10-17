@@ -1,98 +1,98 @@
-empreinte	occurrences	chapitres	conservee	a_remplacer	extrait
-d158b40256f697c3	5	01,04,08,13	S01-0010:01:77	S04-0143:04:104 S08-0584:08:1804 S13-0946:13:181 S13-0979:13:3107	Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+
-aefa5c7d68d3aedf	10	01,02,03,04,08,09,11,12	S01-0020:01:145	S02-0048:02:215 S03-0112:03:404 S03-0125:03:508 S04-0160:04:379 S08-0457:08:230 S09-0642:09:617 S09-0704:09:1088 S11-0829:11:315 S12-0919:12:1463	**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le lib
-6dba99f4f1c17a7c	8	01,04,06,08,09,10,11,12	S12-0925:12:1523	S01-0024:01:165 S04-0164:04:413 S06-0374:06:2371 S08-0587:08:1828 S09-0710:09:1132 S10-0745:10:297 S11-0832:11:354	> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13,
-a30184d092189ce2	7	01,04,08,09,10,11,12	S10-0746:10:301	S01-0025:01:169 S04-0165:04:417 S08-0588:08:1832 S09-0711:09:1136 S11-0833:11:358 S12-0926:12:1527	La référence active est [Paramètres en modale v13](08%20%E2%80%93%20Conception%2
-dc45038fbeaa1bfd	4	01,02,03,05	S01-0027:01:177	S02-0052:02:240 S03-0132:03:546 S05-0201:05:278	Choisir une ou plusieurs Séances/Exercices par cases → Ajouter n éléments → Prog
-97326e69c0a22d9a	10	01,03,04,05,06,08,09,10,11,12	S11-0831:11:331	S01-0029:01:363 S03-0128:03:522 S04-0164:04:405 S05-0196:05:252 S06-0362:06:2269 S08-0586:08:1814 S09-0710:09:1122 S10-0745:10:287 S12-0925:12:1511	Synthèses : « N séries de X », « N séries de N rép. », « N séries à l’échec » ; 
-aef55f9ef8ccc8ed	10	01,03,04,05,06,08,09,10,11,12	S11-0831:11:333	S01-0029:01:365 S03-0128:03:524 S04-0164:04:407 S05-0196:05:254 S06-0362:06:2271 S08-0586:08:1816 S09-0710:09:1124 S10-0745:10:289 S12-0925:12:1513	RG-10 : le Profil porte une préférence silhouette facultative, homme/femme ; abs
-d7ff6ecbf28a7b15	10	01,03,04,05,06,08,09,10,11,12	S11-0831:11:335	S01-0029:01:367 S03-0128:03:526 S04-0164:04:409 S05-0196:05:256 S06-0362:06:2273 S08-0586:08:1818 S09-0710:09:1126 S10-0745:10:291 S12-0925:12:1515	D-239 : Calendrier Jour est une exception compacte (séance 298 × 46, exercice 29
-6675000aaabdcbb4	10	01,03,04,05,06,08,09,10,11,12	S11-0831:11:339	S01-0029:01:371 S03-0128:03:528 S04-0164:04:411 S05-0196:05:258 S06-0362:06:2275 S08-0586:08:1820 S09-0710:09:1130 S10-0745:10:293 S12-0925:12:1519	Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICON
-7ab96843dd9b4931	2	01,08	S01-0029:01:382	S08-0551:08:1564	| Bip de cadence | Stepper | Trois modes, réglage commun | Non | Aucun (0) | Ent
-c5989907ea67d7fe	2	01,06	S01-0029:01:406	S06-0378:06:2396	| Modification d’Exercice | Modifier un exercice | CE-T03-04 |
-b4d260c5676f1a79	2	01,06	S01-0029:01:407	S06-0378:06:2397	| Composition d’une nouvelle Séance | Composer une séance | CE-T03-08 |
-f9dc1219b615d9d8	2	01,06	S01-0029:01:408	S06-0378:06:2398	| Modification d’une Séance | Modifier une séance | CE-T03-08 |
-b07278b24b469f05	2	01,06	S01-0029:01:410	S06-0378:06:2400	Les noms de frames Figma et annotations restent des références techniques : ils 
-aec271e8ed994853	7	01,04,09,10,11,12	S09-0613:09:335	S01-0029:01:420 S04-0145:04:126 S09-0614:09:347 S10-0749:10:321 S11-0812:11:97 S12-0918:12:1457	Voir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20
-e6f0cc127844958d	4	02,05	S02-0046:02:183	S02-0046:02:184 S05-0189:05:210 S05-0190:05:215	- Ancienne cible de Parcours autonome retirée par D-328 ; voir la planification 
-9bd93ab205a27e65	3	02,03,05	S02-0050:02:232	S03-0129:03:532 S05-0199:05:270	Le parcours existant permet maintenant des Séries variables dans la même feuille
-36eefc0aed6fa543	6	03,08,09,10,11,13	S10-0728:10:3	S03-0054:03:3 S08-0433:08:3 S09-0593:09:3 S11-0807:11:3 S13-0942:13:3	> Planification à plusieurs contenus (08/10) : les règles antérieures d’archivag
-54ae3a0cb57b015b	2	03,11	S03-0058:03:40	S11-0808:11:33	- Une Routine porte une liste ordonnée de références SESSION/ACTIVITY ; API-ROU 
-43759e0cc94a4b44	2	03	S03-0058:03:43	S03-0091:03:250	- Une Séance ou un Exercice persistant peut être associé à plusieurs Routines.
-9f362a6c8f4174fc	9	03,04,05,06,08,09,10,11,12	S11-0831:11:329	S03-0128:03:520 S04-0164:04:403 S05-0196:05:250 S06-0362:06:2267 S08-0586:08:1812 S09-0710:09:1120 S10-0745:10:285 S12-0925:12:1509	Décisions finales du propriétaire : les 17 points du 30/09 sont clos. Révision d
-b6ef75a7b4987f76	6	04,05,06,08,09,12	S04-0150:04:241	S05-0173:05:18 S06-0315:06:1665 S08-0464:08:300 S09-0624:09:457 S12-0862:12:290	- Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontiè
-f357ab5ef605e6f9	2	04,13	S04-0151:04:263	S13-0979:13:3105	L’ordre d’exécution vient du paramètre Ordre des côtés : Un côté après l’autre (
-b11c0acfbadec534	2	04,13	S04-0151:04:265	S13-0959:13:1396	Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière
-2a6b85b6454ba572	2	04,09	S04-0166:04:421	S09-0712:09:1140	Le mode d’exécution est commun à l’Exercice. Le stockage distingue explicitement
-716c9acbf12cc8fd	2	04,09	S04-0166:04:423	S09-0712:09:1142	Copie Catalogue→Séance, duplication et nouvel instantané conservent tout cet éta
-e3f63a6c41f88169	2	06	S06-0326:06:1823	S06-0328:06:1902	Les deux boutons `147 × 48` sont alignés sur une ligne avec un écart de `12`. Le
-e377386eb878739e	4	06,08,10,12	S12-0925:12:1521	S06-0362:06:2277 S08-0586:08:1822 S10-0745:10:295	Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation
-0f9fc6d2692d9040	2	06,12	S06-0364:06:2301	S12-0923:12:1490	- **Fond / contexte** : écran ordinaire `#FFFFFF`; Splash `#0006F1`; média plein
-c5c792678e1249e4	2	06,12	S06-0364:06:2303	S12-0923:12:1492	- **Stepper / valeur** : variante lavande `#F2F2FF` pour Profil/paramètres, vari
-01a3c2707916158e	2	06,12	S06-0364:06:2304	S12-0923:12:1493	- **Point d’arrêt** : bouton rond blanc opaque, icône Pause, contour 1 px `#0508
-3ed33b39a2ae422e	2	06,12	S06-0364:06:2305	S12-0923:12:1494	- **Ressenti** : ne pas confondre contrôle de choix et pictogramme de résultat. 
-d6adaedbc9062d32	2	06,12	S06-0364:06:2306	S12-0923:12:1495	- **Profil** : titres de section Semi Bold 16 px ; `Modifier` en `#0508E5`; grou
-e4b5f961288e2235	2	06,12	S06-0364:06:2307	S12-0923:12:1496	- **Exécution** : sur les cinq écrans portant `Zone — Progression et suite`, déb
-9ab3291122bff9d4	3	08,13	S08-0471:08:378	S08-0472:08:384 S13-0979:13:3094	Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si 
-57b3bdd28565504b	4	08	S08-0500:08:827	S08-0506:08:914 S08-0510:08:956 S08-0533:08:1375	**Portée formats :** les fenêtres EMOM/Death by, la borne AMRAP et la clôture De
-42ec52facee9036a	2	08,13	S08-0503:08:873	S13-0979:13:3092	Le calcul porte sur le plan développé et conserve la piste existante. M compte l
-4550e3bdbbdca17a	2	08,12	S08-0509:08:949	S12-0865:12:360	- 30 minutes après la fin théorique d’un Exercice chronométré ou la fin nominale
-5827ff75ad6a873a	2	08,12	S08-0509:08:950	S12-0865:12:361	- 2 heures après le démarrage d’un Exercice en Répétitions sans cadence ou À l’é
-cfedc49a2e221534	6	08,09	S09-0608:09:203	S08-0512:08:991 S08-0533:08:1381 S09-0618:09:377 S09-0633:09:531 S09-0643:09:630	> **Formats :** cette grille antérieure n’encode pas à elle seule l’achèvement i
-82c4cd405fd3a7c8	2	08	S08-0543:08:1472	S08-0546:08:1506	| Circuit | Conteneur unique ; nature tours/séries, compte1..99 défaut1. Chiffre
-6eeccba4d1840c79	4	08	S08-0551:08:1549	S08-0559:08:1638 S08-0562:08:1671 S08-0571:08:1729	| Élément affiché | Type | Visible | Obligatoire | Valeur par défaut | Contraint
-c4da53a9d9aea29b	4	09	S09-0603:09:151	S09-0655:09:728 S09-0660:09:769 S09-0665:09:800	| Date de création | Date de création | Obligatoire | Générée automatiquement |
-d947c52b43d1167e	4	09	S09-0603:09:152	S09-0655:09:729 S09-0660:09:770 S09-0665:09:801	| Date de modification | Dernière modification | Obligatoire | Mise à jour autom
-f5619c92f896f19d	2	09,12	S09-0613:09:317	S12-0918:12:1439	La Routine porte le créneau et une liste ordonnée de références, non les contenu
-760a13c1312de308	2	09,12	S09-0613:09:321	S12-0918:12:1443	| Identité, propriétaire, dates de création/modification | Routine | Identité st
-8086078ab1cc01b3	2	09,12	S09-0613:09:322	S12-0918:12:1444	| Liste de contenus | Routine | Ordonnée, mixte SESSION/ACTIVITY ; une ou plusie
-d938b9bff44656d8	2	09,12	S09-0613:09:323	S12-0918:12:1445	| Type et référence de contenu, rang | Entrée de la liste | Référence source ; p
-c23e95b4d51b668d	2	09,12	S09-0613:09:324	S12-0918:12:1446	| x, n, positions retenues | Entrée de la liste | Filtre sans unité ; n position
-8921d10c4524bce3	2	09,12	S09-0613:09:325	S12-0918:12:1447	| Programme | Routine | Facultatif ; fenêtre borne les dates ; source Programme 
-db58fc26fce54f3e	2	09,12	S09-0613:09:327	S12-0918:12:1449	| Répétition activée | Routine | Non : unique ; Oui : paramètres de récurrence |
-c1cf499bb595855b	2	09,12	S09-0613:09:328	S12-0918:12:1450	| Unité, multiplicateur | Routine | Jour/Semaine/Mois ; bornes Jour/Mois à préci
-a6605bf92199b8e9	2	09,12	S09-0613:09:329	S12-0918:12:1451	| Jours sélectionnés | Récurrence hebdomadaire | Au moins un jour pour Semaine ;
-de555422d1239ca6	2	09,12	S09-0613:09:330	S12-0918:12:1452	| Type de borne | Routine | jusqu’au/date ou pendant/nombre d’unités ; conversio
-36535b382a502fa3	2	09,12	S09-0613:09:331	S12-0918:12:1453	| Rappel activé, délai | Routine |0..1 ; permission système requise pour activat
-472ea4cd19150447	2	09,12	S09-0613:09:333	S12-0918:12:1455	Le schéma physique, les identifiants d’entrée et les liens aux exécutions devron
-113e0ae339ef1338	2	09,10	S09-0614:09:339	S10-0749:10:313	Le créneau produit d’abord sa suite d’occurrences. Chaque contenu retient ensuit
-035cc028c45c20b3	2	09,10	S09-0614:09:341	S10-0749:10:315	Sans répétition : une date/heure. Avec répétition : Jour/Semaine/Mois. Pour Sema
-f625a5a810a6c0b6	2	09,10	S09-0614:09:343	S10-0749:10:317	Rappel : interrupteur puis 5 min/15 min/30 min/1 h/Autre, choix égaux sur la lar
-d68cc8ae3d5081d5	2	09,10	S09-0614:09:345	S10-0749:10:319	La modification agit sur le futur ; suppression de Routine conserve sources et h
-5a674f0a68bdc583	2	09	S09-0637:09:592	S09-0694:09:1004	- Une exécution terminée, partielle ou interrompue est conservée dans le suivi.
-eebb0c2ab9609825	2	09	S09-0660:09:767	S09-0665:09:797	| Nom | Libellé affiché | Obligatoire | Non vide après trim ; unicité selon norm
-66de89bfed88e707	2	09	S09-0679:09:898	S09-0680:09:906	- Nom `{nom d’origine} (copie)`, puis `{nom d’origine} (copie 2)`, `(copie 3)`, 
-f3bc949070d5e3f1	3	09,11,12	S09-0716:09:1168	S11-0837:11:383 S12-0931:12:1557	La [spécification de phrase](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%
-c4ad012051f0ca1a	3	09,11,12	S09-0716:09:1170	S11-0837:11:385 S12-0931:12:1559	Aucune colonne phrase ni sérialisation des segments dans définition/occurrence/s
-e106f76814e30f6a	3	09,11,12	S09-0716:09:1172	S11-0837:11:387 S12-0931:12:1561	Français uniquement au MVP. Internationalisation ultérieure : gabarits et règles
-a9590b46b94b7a2f	2	09,12	S09-0717:09:1178	S12-0935:12:1585	**Compatibilité D-214 — 12/10/2026.** Si un ancien champ d’activation est déjà p
-cf179de8c8269d7b	6	11	S11-0809:11:45	S11-0810:11:57 S11-0813:11:101 S11-0815:11:134 S11-0818:11:153 S11-0819:11:159	| ID | Opération | Entrées principales | Résultat | Règles / validations | Objet
-d822d95ef34273e4	2	11,12	S11-0821:11:229	S12-0850:12:120	| `PlanningService` | Gestion des Routines et calcul des occurrences |
-510fb16c51df2828	2	13	S13-0944:13:35	S13-0979:13:3111	Réinitialiser conserve D-029/D-150 et RM-062 : recommencer la Série courante en 
-c5f8298a6de1b36f	6	13	S13-0948:13:279	S13-0949:13:380 S13-0953:13:766 S13-0954:13:852 S13-0968:13:2169 S13-0969:13:2261	Durée et symbole viennent du calcul commun : Durée exacte, Répétitions avec bip 
-4edf5eccb0136645	3	13	S13-0948:13:295	S13-0949:13:396 S13-0952:13:692	Cartes Catalogue : [DSF Durée du07/10](../DSF-CARTES-DUREE-2026-10-07.md). Texte
-d1721b1119d2402d	3	13	S13-0948:13:341	S13-0949:13:442 S13-0952:13:740	Vérifier présence/absence puis retour de durée sans perdre titre/catégorie/zones
-973f6d18478e0510	6	13	S13-0948:13:345	S13-0949:13:448 S13-0953:13:828 S13-0954:13:916 S13-0968:13:2235 S13-0969:13:2327	Comparer sources Durée, Répétitions avec/sans cadence et À l’échec dans les empl
-867cf4c1dab61c4e	2	13	S13-0951:13:560	S13-0977:13:2975	Phrase selon les276 cas v15, total fourni par le calcul métier. Générateur → seg
-8146701d7ed545b3	2	13	S13-0951:13:592	S13-0977:13:3003	Référence longue7119:27855 :224caractères, cinq lignes/100px à largeur324, carte
-1f98fee342c28fe1	2	13	S13-0951:13:620	S13-0977:13:3033	Aucune phrase ni aucun segment en base, occurrence ou snapshot. Régénération à c
-0e38dd9dcc9002a5	2	13	S13-0951:13:644	S13-0977:13:3061	Recette rédactionnelle :276 gabarits v15 avec total métier injecté, gras sur occ
-4296b2a4f29e2779	2	13	S13-0951:13:654	S13-0977:13:3065	Corpusv15 :276gabarits, total métier injecté ; aucun changement grammatical vs v
-3a09179b22d3b0e3	3	13	S13-0952:13:696	S13-0963:13:1744 S13-0976:13:2901	Actions destructives : token danger#D92D20 ; séparateurs#E0E3E8 et labels par rô
-c71e92dcfe8226d9	4	13	S13-0954:13:868	S13-0962:13:1654 S13-0968:13:2185 S13-0969:13:2277	Composants actifs et propriété Durée : [DSF cartes du07/10](../DSF-CARTES-DUREE-
-b454637b947deca9	7	13	S13-0955:13:1010	S13-0956:13:1106 S13-0957:13:1204 S13-0958:13:1316 S13-0959:13:1416 S13-0960:13:1514 S13-0974:13:2755	Pause après chaque série, dernière comprise, même N1. Hors circuit de séries, PN
-b64a3a9af5148f57	5	13	S13-0956:13:1044	S13-0957:13:1142 S13-0958:13:1242 S13-0959:13:1354 S13-0960:13:1452	Paramètres de la Série courante issus de l’instantané variable/uniforme ; ordres
-2478b3e75c1e93fe	7	13	S13-0956:13:1046	S13-0957:13:1144 S13-0959:13:1356 S13-0960:13:1454 S13-0965:13:1905 S13-0966:13:1995 S13-0974:13:2693	Cadence éventuelle issue de la Série de l’instantané, jamais du Profil ou des ch
-2cdb79e84e993e33	5	13	S13-0956:13:1060	S13-0957:13:1158 S13-0958:13:1258 S13-0959:13:1370 S13-0960:13:1468	Série n/N ; côté courant distinct uniquement en bilatéral, absent en unilatéral 
-6d90b71a8064982c	7	13	S13-0956:13:1078	S13-0957:13:1176 S13-0959:13:1388 S13-0960:13:1486 S13-0965:13:1935 S13-0966:13:2025 S13-0974:13:2727	Si la Série est en Répétitions avec bip, appliquer Bip v2 : nominal sans transit
-8ff5c866d80d0ab6	5	13	S13-0956:13:1114	S13-0957:13:1214 S13-0958:13:1328 S13-0959:13:1426 S13-0960:13:1522	Vérifier les deux ordres et directions, valeurs variables, PC0 sans repli, Pause
-71aea6a6bccba406	7	13	S13-0956:13:1116	S13-0957:13:1216 S13-0959:13:1428 S13-0960:13:1524 S13-0965:13:1971 S13-0966:13:2061 S13-0974:13:2769	Vérifier passage entre préparation, Série cadencée, pauses programmées et fin ; 
-04563035f0eef62e	2	13	S13-0957:13:1138	S13-0958:13:1238	**Cible par Série (13/10) :** fin automatique seulement en Durée chiffrée ; Suiv
-8087e9cf96bd036c	3	13	S13-0957:13:1210	S13-0958:13:1324 S13-0974:13:2763	Vérifier alternance chiffré/échec, sécurité2h sans nominal, progression des cibl
-56cbefaa8cab14cb	3	13	S13-0961:13:1546	S13-0962:13:1634 S13-0975:13:2793	Le futur relevé À l’échec distingue chronométré, estimé, déclaré et non renseign
-262c5e3b7ee10b33	3	13	S13-0961:13:1550	S13-0962:13:1638 S13-0975:13:2797	La cadence prescrite est conservée dans l’instantané ; durée affichée réelle, cu
-8f0f74a45f55f9e1	3	13	S13-0961:13:1612	S13-0962:13:1704 S13-0975:13:2859	10×4s terminé avec Suivant20s : temps réel20s et fin normale ; reset6s puis10s :
-7da247a003333ed3	3	13	S13-0962:13:1658	S13-0968:13:2189 S13-0969:13:2281	Durée des cartes : chronomètre16×16, trait0,9, #9499A8 lié au rôle catégorie ; t
-329e9769fe9880a6	3	13	S13-0964:13:1877	S13-0967:13:2141 S13-0973:13:2657	Aucune préférence Cadence ajoutée au Profil ; sons selon réglages existants. Bar
-f82c14d3cb84a6bb	3	13	S13-0967:13:2103	S13-0968:13:2193 S13-0969:13:2285	Références 360/402/440, Safe Areas existantes ; texte agrandi sans réduction de 
-7060dd41bb8136bf	2	13	S13-0968:13:2173	S13-0969:13:2265	Noms, dates, durées et couleurs d’événement sont des données ; les exemples Figm
+empreinte	occurrences	chapitres	conservee	renvoi_possible	a_verifier	extrait
+d158b40256f697c3	5	01,04,08,13	S01-0010:01:77		S04-0143:04:104(domaine EXERCICE≠COMPOSITION) S08-0584:08:1804(domaine TRANSVERSE-CALCUL≠COMPOSITION) S13-0946:13:181(domaine TRANSVERSE-UI≠COMPOSITION) S13-0979:13:3107(domaine MULTI≠COMPOSITION)	Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+
+aefa5c7d68d3aedf	10	01,02,03,04,08,09,11,12	S02-0048:02:215		S01-0020:01:145(portée HORS-MVP≠COURANT,domaine PLANIFICATION≠MULTI) S03-0112:03:404(portée HORS-MVP≠COURANT,domaine PLANIFICATION≠MULTI,normatif non≠mixte) S03-0125:03:508(portée HORS-MVP≠COURANT,domaine PLANIFICATION≠MULTI,normatif non≠mixte) S04-0160:04:379(domaine PLANIFICATION≠MULTI,normatif non≠mixte) S08-0457:08:230(domaine PARCOURS-HORS-MVP≠MULTI) S09-0642:09:617(domaine PARCOURS-HORS-MVP≠MULTI) S09-0704:09:1088(portée HORS-MVP≠COURANT,domaine PARCOURS-HORS-MVP≠MULTI) S11-0829:11:315(portée HORS-MVP≠COURANT,domaine PARCOURS-HORS-MVP≠MULTI,normatif non≠mixte) S12-0919:12:1463(domaine PARCOURS-HORS-MVP≠MULTI,normatif non≠mixte)	**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le lib
+6dba99f4f1c17a7c	8	01,04,06,08,09,10,11,12	S09-0710:09:1132	S10-0745:10:297	S01-0024:01:165(domaine COMPOSITION≠TRANSVERSE-UI,normatif oui≠mixte) S04-0164:04:413(normatif oui≠mixte) S06-0374:06:2371(portée HISTORIQUE≠COURANT,domaine SEANCE≠TRANSVERSE-UI) S08-0587:08:1828(domaine EXERCICE≠TRANSVERSE-UI) S11-0832:11:354(domaine MULTI≠TRANSVERSE-UI,normatif oui≠mixte) S12-0925:12:1523(normatif oui≠mixte)	> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13,
+a30184d092189ce2	7	01,04,08,09,10,11,12	S10-0746:10:301	S01-0025:01:169 S04-0165:04:417 S08-0588:08:1832 S09-0711:09:1136	S11-0833:11:358(normatif oui≠mixte) S12-0926:12:1527(normatif oui≠mixte)	La référence active est [Paramètres en modale v13](08%20%E2%80%93%20Conception%2
+dc45038fbeaa1bfd	4	01,02,03,05	S01-0027:01:177	S02-0052:02:240 S05-0201:05:278	S03-0132:03:546(portée HORS-MVP≠COURANT)	Choisir une ou plusieurs Séances/Exercices par cases → Ajouter n éléments → Prog
+97326e69c0a22d9a	10	01,03,04,05,06,08,09,10,11,12	S03-0128:03:522		S01-0029:01:363(portée COURANT≠HORS-MVP,domaine MULTI≠TRANSVERSE-UI) S04-0164:04:405(portée COURANT≠HORS-MVP) S05-0196:05:252(portée COURANT≠HORS-MVP) S06-0362:06:2269(portée COURANT≠HORS-MVP,domaine MULTI≠TRANSVERSE-UI) S08-0586:08:1814(portée COURANT≠HORS-MVP,normatif mixte≠oui) S09-0710:09:1122(portée COURANT≠HORS-MVP,normatif mixte≠oui) S10-0745:10:287(portée COURANT≠HORS-MVP,normatif mixte≠oui) S11-0831:11:331(portée COURANT≠HORS-MVP) S12-0925:12:1511(portée COURANT≠HORS-MVP)	Synthèses : « N séries de X », « N séries de N rép. », « N séries à l’échec » ; 
+aef55f9ef8ccc8ed	10	01,03,04,05,06,08,09,10,11,12	S03-0128:03:524		S01-0029:01:365(portée COURANT≠HORS-MVP,domaine MULTI≠TRANSVERSE-UI) S04-0164:04:407(portée COURANT≠HORS-MVP) S05-0196:05:254(portée COURANT≠HORS-MVP) S06-0362:06:2271(portée COURANT≠HORS-MVP,domaine MULTI≠TRANSVERSE-UI) S08-0586:08:1816(portée COURANT≠HORS-MVP,normatif mixte≠oui) S09-0710:09:1124(portée COURANT≠HORS-MVP,normatif mixte≠oui) S10-0745:10:289(portée COURANT≠HORS-MVP,normatif mixte≠oui) S11-0831:11:333(portée COURANT≠HORS-MVP) S12-0925:12:1513(portée COURANT≠HORS-MVP)	RG-10 : le Profil porte une préférence silhouette facultative, homme/femme ; abs
+d7ff6ecbf28a7b15	10	01,03,04,05,06,08,09,10,11,12	S03-0128:03:526		S01-0029:01:367(portée COURANT≠HORS-MVP,domaine MULTI≠TRANSVERSE-UI) S04-0164:04:409(portée COURANT≠HORS-MVP) S05-0196:05:256(portée COURANT≠HORS-MVP) S06-0362:06:2273(portée COURANT≠HORS-MVP,domaine MULTI≠TRANSVERSE-UI) S08-0586:08:1818(portée COURANT≠HORS-MVP,normatif mixte≠oui) S09-0710:09:1126(portée COURANT≠HORS-MVP,normatif mixte≠oui) S10-0745:10:291(portée COURANT≠HORS-MVP,normatif mixte≠oui) S11-0831:11:335(portée COURANT≠HORS-MVP) S12-0925:12:1515(portée COURANT≠HORS-MVP)	D-239 : Calendrier Jour est une exception compacte (séance 298 × 46, exercice 29
+6675000aaabdcbb4	10	01,03,04,05,06,08,09,10,11,12	S03-0128:03:528		S01-0029:01:371(portée COURANT≠HORS-MVP,domaine MULTI≠TRANSVERSE-UI) S04-0164:04:411(portée COURANT≠HORS-MVP) S05-0196:05:258(portée COURANT≠HORS-MVP) S06-0362:06:2275(portée COURANT≠HORS-MVP,domaine MULTI≠TRANSVERSE-UI) S08-0586:08:1820(portée COURANT≠HORS-MVP,normatif mixte≠oui) S09-0710:09:1130(portée COURANT≠HORS-MVP,normatif mixte≠oui) S10-0745:10:293(portée COURANT≠HORS-MVP,normatif mixte≠oui) S11-0831:11:339(portée COURANT≠HORS-MVP) S12-0925:12:1519(portée COURANT≠HORS-MVP)	Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICON
+7ab96843dd9b4931	2	01,08	S01-0029:01:382		S08-0551:08:1564(domaine EXERCICE≠MULTI,en-tête de tableau différent)	| Bip de cadence | Stepper | Trois modes, réglage commun | Non | Aucun (0) | Ent
+c5989907ea67d7fe	2	01,06	S01-0029:01:406		S06-0378:06:2396(domaine TRANSVERSE-UI≠MULTI)	| Modification d’Exercice | Modifier un exercice | CE-T03-04 |
+b4d260c5676f1a79	2	01,06	S01-0029:01:407		S06-0378:06:2397(domaine TRANSVERSE-UI≠MULTI)	| Composition d’une nouvelle Séance | Composer une séance | CE-T03-08 |
+f9dc1219b615d9d8	2	01,06	S01-0029:01:408		S06-0378:06:2398(domaine TRANSVERSE-UI≠MULTI)	| Modification d’une Séance | Modifier une séance | CE-T03-08 |
+b07278b24b469f05	2	01,06	S01-0029:01:410		S06-0378:06:2400(domaine TRANSVERSE-UI≠MULTI)	Les noms de frames Figma et annotations restent des références techniques : ils 
+aec271e8ed994853	7	01,04,09,10,11,12	S09-0613:09:335	S04-0145:04:126 S09-0614:09:347 S10-0749:10:321 S11-0812:11:97 S12-0918:12:1457	S01-0029:01:420(domaine MULTI≠PLANIFICATION)	Voir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20
+e6f0cc127844958d	4	02,05	S02-0046:02:183	S02-0046:02:184	S05-0189:05:210(domaine PLANIFICATION≠MULTI,normatif non≠mixte) S05-0190:05:215(domaine PLANIFICATION≠MULTI,normatif non≠mixte)	- Ancienne cible de Parcours autonome retirée par D-328 ; voir la planification 
+9bd93ab205a27e65	3	02,03,05	S02-0050:02:232	S05-0199:05:270	S03-0129:03:532(portée HORS-MVP≠COURANT)	Le parcours existant permet maintenant des Séries variables dans la même feuille
+36eefc0aed6fa543	6	03,08,09,10,11,13	S10-0728:10:3	S03-0054:03:3 S09-0593:09:3 S11-0807:11:3 S13-0942:13:3	S08-0433:08:3(domaine PLANIFICATION≠GOUVERNANCE,normatif oui≠mixte)	> Planification à plusieurs contenus (08/10) : les règles antérieures d’archivag
+54ae3a0cb57b015b	2	03,11	S03-0058:03:40		S11-0808:11:33(domaine MULTI≠PLANIFICATION)	- Une Routine porte une liste ordonnée de références SESSION/ACTIVITY ; API-ROU 
+43759e0cc94a4b44	2	03	S03-0058:03:43		S03-0091:03:250(portée HISTORIQUE≠COURANT,domaine SEANCE≠PLANIFICATION)	- Une Séance ou un Exercice persistant peut être associé à plusieurs Routines.
+9f362a6c8f4174fc	9	03,04,05,06,08,09,10,11,12	S03-0128:03:520		S04-0164:04:403(portée COURANT≠HORS-MVP) S05-0196:05:250(portée COURANT≠HORS-MVP) S06-0362:06:2267(portée COURANT≠HORS-MVP,domaine MULTI≠TRANSVERSE-UI) S08-0586:08:1812(portée COURANT≠HORS-MVP,normatif mixte≠oui) S09-0710:09:1120(portée COURANT≠HORS-MVP,normatif mixte≠oui) S10-0745:10:285(portée COURANT≠HORS-MVP,normatif mixte≠oui) S11-0831:11:329(portée COURANT≠HORS-MVP) S12-0925:12:1509(portée COURANT≠HORS-MVP)	Décisions finales du propriétaire : les 17 points du 30/09 sont clos. Révision d
+b6ef75a7b4987f76	6	04,05,06,08,09,12	S04-0150:04:241	S08-0464:08:300 S09-0624:09:457	S05-0173:05:18(domaine MULTI≠EXERCICE) S06-0315:06:1665(domaine EXECUTION≠EXERCICE) S12-0862:12:290(domaine EXECUTION≠EXERCICE)	- Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontiè
+f357ab5ef605e6f9	2	04,13	S04-0151:04:263		S13-0979:13:3105(domaine MULTI≠PARAMETRES)	L’ordre d’exécution vient du paramètre Ordre des côtés : Un côté après l’autre (
+b11c0acfbadec534	2	04,13	S04-0151:04:265		S13-0959:13:1396(domaine BILATERALITE≠PARAMETRES)	Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière
+2a6b85b6454ba572	2	04,09	S04-0166:04:421	S09-0712:09:1140		Le mode d’exécution est commun à l’Exercice. Le stockage distingue explicitement
+716c9acbf12cc8fd	2	04,09	S04-0166:04:423	S09-0712:09:1142		Copie Catalogue→Séance, duplication et nouvel instantané conservent tout cet éta
+e3f63a6c41f88169	2	06	S06-0326:06:1823	S06-0328:06:1902		Les deux boutons `147 × 48` sont alignés sur une ligne avec un écart de `12`. Le
+e377386eb878739e	4	06,08,10,12	S06-0362:06:2277		S08-0586:08:1822(domaine TRANSVERSE-UI≠MULTI,normatif mixte≠oui) S10-0745:10:295(domaine TRANSVERSE-UI≠MULTI,normatif mixte≠oui) S12-0925:12:1521(domaine TRANSVERSE-UI≠MULTI)	Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation
+0f9fc6d2692d9040	2	06,12	S06-0364:06:2301	S12-0923:12:1490		- **Fond / contexte** : écran ordinaire `#FFFFFF`; Splash `#0006F1`; média plein
+c5c792678e1249e4	2	06,12	S06-0364:06:2303	S12-0923:12:1492		- **Stepper / valeur** : variante lavande `#F2F2FF` pour Profil/paramètres, vari
+01a3c2707916158e	2	06,12	S06-0364:06:2304	S12-0923:12:1493		- **Point d’arrêt** : bouton rond blanc opaque, icône Pause, contour 1 px `#0508
+3ed33b39a2ae422e	2	06,12	S06-0364:06:2305	S12-0923:12:1494		- **Ressenti** : ne pas confondre contrôle de choix et pictogramme de résultat. 
+d6adaedbc9062d32	2	06,12	S06-0364:06:2306	S12-0923:12:1495		- **Profil** : titres de section Semi Bold 16 px ; `Modifier` en `#0508E5`; grou
+e4b5f961288e2235	2	06,12	S06-0364:06:2307	S12-0923:12:1496		- **Exécution** : sur les cinq écrans portant `Zone — Progression et suite`, déb
+9ab3291122bff9d4	3	08,13	S08-0471:08:378	S08-0472:08:384	S13-0979:13:3094(domaine MULTI≠TRANSVERSE-CALCUL)	Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si 
+57b3bdd28565504b	4	08	S08-0500:08:827	S08-0506:08:914 S08-0510:08:956	S08-0533:08:1375(portée HISTORIQUE≠COURANT,domaine SUIVI≠EXECUTION)	**Portée formats :** les fenêtres EMOM/Death by, la borne AMRAP et la clôture De
+42ec52facee9036a	2	08,13	S08-0503:08:873		S13-0979:13:3092(domaine MULTI≠EXECUTION)	Le calcul porte sur le plan développé et conserve la piste existante. M compte l
+4550e3bdbbdca17a	2	08,12	S08-0509:08:949	S12-0865:12:360		- 30 minutes après la fin théorique d’un Exercice chronométré ou la fin nominale
+5827ff75ad6a873a	2	08,12	S08-0509:08:950	S12-0865:12:361		- 2 heures après le démarrage d’un Exercice en Répétitions sans cadence ou À l’é
+cfedc49a2e221534	6	08,09	S09-0608:09:203		S08-0512:08:991(domaine EXECUTION≠SEANCE) S08-0533:08:1381(portée HISTORIQUE≠COURANT,domaine SUIVI≠SEANCE) S09-0618:09:377(domaine PLANIFICATION≠SEANCE) S09-0633:09:531(domaine EXECUTION≠SEANCE) S09-0643:09:630(domaine EXECUTION≠SEANCE)	> **Formats :** cette grille antérieure n’encode pas à elle seule l’achèvement i
+82c4cd405fd3a7c8	2	08	S08-0543:08:1472		S08-0546:08:1506(domaine COMPOSITION≠SEANCE,en-tête de tableau différent)	| Circuit | Conteneur unique ; nature tours/séries, compte1..99 défaut1. Chiffre
+6eeccba4d1840c79	4	08	S08-0551:08:1549		S08-0559:08:1638(domaine SUIVI≠EXERCICE) S08-0562:08:1671(domaine PROFIL≠EXERCICE) S08-0571:08:1729(domaine SUIVI≠EXERCICE)	| Élément affiché | Type | Visible | Obligatoire | Valeur par défaut | Contraint
+c4da53a9d9aea29b	4	09	S09-0603:09:151	S09-0655:09:728	S09-0660:09:769(domaine REFERENTIELS≠PROFIL) S09-0665:09:800(domaine REFERENTIELS≠PROFIL)	| Date de création | Date de création | Obligatoire | Générée automatiquement |
+d947c52b43d1167e	4	09	S09-0603:09:152	S09-0655:09:729	S09-0660:09:770(domaine REFERENTIELS≠PROFIL) S09-0665:09:801(domaine REFERENTIELS≠PROFIL)	| Date de modification | Dernière modification | Obligatoire | Mise à jour autom
+f5619c92f896f19d	2	09,12	S09-0613:09:317	S12-0918:12:1439		La Routine porte le créneau et une liste ordonnée de références, non les contenu
+760a13c1312de308	2	09,12	S09-0613:09:321	S12-0918:12:1443		| Identité, propriétaire, dates de création/modification | Routine | Identité st
+8086078ab1cc01b3	2	09,12	S09-0613:09:322	S12-0918:12:1444		| Liste de contenus | Routine | Ordonnée, mixte SESSION/ACTIVITY ; une ou plusie
+d938b9bff44656d8	2	09,12	S09-0613:09:323	S12-0918:12:1445		| Type et référence de contenu, rang | Entrée de la liste | Référence source ; p
+c23e95b4d51b668d	2	09,12	S09-0613:09:324	S12-0918:12:1446		| x, n, positions retenues | Entrée de la liste | Filtre sans unité ; n position
+8921d10c4524bce3	2	09,12	S09-0613:09:325	S12-0918:12:1447		| Programme | Routine | Facultatif ; fenêtre borne les dates ; source Programme 
+db58fc26fce54f3e	2	09,12	S09-0613:09:327	S12-0918:12:1449		| Répétition activée | Routine | Non : unique ; Oui : paramètres de récurrence |
+c1cf499bb595855b	2	09,12	S09-0613:09:328	S12-0918:12:1450		| Unité, multiplicateur | Routine | Jour/Semaine/Mois ; bornes Jour/Mois à préci
+a6605bf92199b8e9	2	09,12	S09-0613:09:329	S12-0918:12:1451		| Jours sélectionnés | Récurrence hebdomadaire | Au moins un jour pour Semaine ;
+de555422d1239ca6	2	09,12	S09-0613:09:330	S12-0918:12:1452		| Type de borne | Routine | jusqu’au/date ou pendant/nombre d’unités ; conversio
+36535b382a502fa3	2	09,12	S09-0613:09:331	S12-0918:12:1453		| Rappel activé, délai | Routine |0..1 ; permission système requise pour activat
+472ea4cd19150447	2	09,12	S09-0613:09:333	S12-0918:12:1455		Le schéma physique, les identifiants d’entrée et les liens aux exécutions devron
+113e0ae339ef1338	2	09,10	S09-0614:09:339	S10-0749:10:313		Le créneau produit d’abord sa suite d’occurrences. Chaque contenu retient ensuit
+035cc028c45c20b3	2	09,10	S09-0614:09:341	S10-0749:10:315		Sans répétition : une date/heure. Avec répétition : Jour/Semaine/Mois. Pour Sema
+f625a5a810a6c0b6	2	09,10	S09-0614:09:343	S10-0749:10:317		Rappel : interrupteur puis 5 min/15 min/30 min/1 h/Autre, choix égaux sur la lar
+d68cc8ae3d5081d5	2	09,10	S09-0614:09:345	S10-0749:10:319		La modification agit sur le futur ; suppression de Routine conserve sources et h
+5a674f0a68bdc583	2	09	S09-0637:09:592	S09-0694:09:1004		- Une exécution terminée, partielle ou interrompue est conservée dans le suivi.
+eebb0c2ab9609825	2	09	S09-0660:09:767	S09-0665:09:797		| Nom | Libellé affiché | Obligatoire | Non vide après trim ; unicité selon norm
+66de89bfed88e707	2	09	S09-0679:09:898		S09-0680:09:906(domaine COMPOSITION≠SEANCE)	- Nom `{nom d’origine} (copie)`, puis `{nom d’origine} (copie 2)`, `(copie 3)`, 
+f3bc949070d5e3f1	3	09,11,12	S09-0716:09:1168	S11-0837:11:383 S12-0931:12:1557		La [spécification de phrase](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%
+c4ad012051f0ca1a	3	09,11,12	S09-0716:09:1170	S11-0837:11:385 S12-0931:12:1559		Aucune colonne phrase ni sérialisation des segments dans définition/occurrence/s
+e106f76814e30f6a	3	09,11,12	S09-0716:09:1172	S11-0837:11:387 S12-0931:12:1561		Français uniquement au MVP. Internationalisation ultérieure : gabarits et règles
+a9590b46b94b7a2f	2	09,12	S09-0717:09:1178		S12-0935:12:1585(domaine TRANSVERSE-UI≠COMPOSITION)	**Compatibilité D-214 — 12/10/2026.** Si un ancien champ d’activation est déjà p
+cf179de8c8269d7b	6	11	S11-0809:11:45		S11-0810:11:57(domaine COMPOSITION≠SEANCE) S11-0813:11:101(domaine EXECUTION≠SEANCE) S11-0815:11:134(portée HISTORIQUE≠COURANT,domaine SUIVI≠SEANCE) S11-0818:11:153(domaine PROFIL≠SEANCE) S11-0819:11:159(domaine REFERENTIELS≠SEANCE)	| ID | Opération | Entrées principales | Résultat | Règles / validations | Objet
+d822d95ef34273e4	2	11,12	S11-0821:11:229	S12-0850:12:120		| `PlanningService` | Gestion des Routines et calcul des occurrences |
+510fb16c51df2828	2	13	S13-0944:13:35		S13-0979:13:3111(domaine MULTI≠GOUVERNANCE,normatif oui≠mixte)	Réinitialiser conserve D-029/D-150 et RM-062 : recommencer la Série courante en 
+c5f8298a6de1b36f	6	13	S13-0948:13:279		S13-0949:13:380(domaine EXERCICE≠SEANCE) S13-0953:13:766(domaine COMPOSITION≠SEANCE) S13-0954:13:852(domaine COMPOSITION≠SEANCE) S13-0968:13:2169(domaine PLANIFICATION≠SEANCE) S13-0969:13:2261(domaine PLANIFICATION≠SEANCE)	Durée et symbole viennent du calcul commun : Durée exacte, Répétitions avec bip 
+4edf5eccb0136645	3	13	S13-0948:13:295		S13-0949:13:396(domaine EXERCICE≠SEANCE) S13-0952:13:692(portée HISTORIQUE≠COURANT,domaine EXERCICE≠SEANCE)	Cartes Catalogue : [DSF Durée du07/10](../DSF-CARTES-DUREE-2026-10-07.md). Texte
+d1721b1119d2402d	3	13	S13-0948:13:341		S13-0949:13:442(domaine EXERCICE≠SEANCE) S13-0952:13:740(portée HISTORIQUE≠COURANT,domaine EXERCICE≠SEANCE)	Vérifier présence/absence puis retour de durée sans perdre titre/catégorie/zones
+973f6d18478e0510	6	13	S13-0948:13:345		S13-0949:13:448(domaine EXERCICE≠SEANCE) S13-0953:13:828(domaine COMPOSITION≠SEANCE) S13-0954:13:916(domaine COMPOSITION≠SEANCE) S13-0968:13:2235(domaine PLANIFICATION≠SEANCE) S13-0969:13:2327(domaine PLANIFICATION≠SEANCE)	Comparer sources Durée, Répétitions avec/sans cadence et À l’échec dans les empl
+867cf4c1dab61c4e	2	13	S13-0951:13:560		S13-0977:13:2975(domaine PARAMETRES≠EXERCICE)	Phrase selon les276 cas v15, total fourni par le calcul métier. Générateur → seg
+8146701d7ed545b3	2	13	S13-0951:13:592		S13-0977:13:3003(domaine PARAMETRES≠EXERCICE)	Référence longue7119:27855 :224caractères, cinq lignes/100px à largeur324, carte
+1f98fee342c28fe1	2	13	S13-0951:13:620		S13-0977:13:3033(domaine PARAMETRES≠EXERCICE)	Aucune phrase ni aucun segment en base, occurrence ou snapshot. Régénération à c
+0e38dd9dcc9002a5	2	13	S13-0951:13:644		S13-0977:13:3061(domaine PARAMETRES≠EXERCICE)	Recette rédactionnelle :276 gabarits v15 avec total métier injecté, gras sur occ
+4296b2a4f29e2779	2	13	S13-0951:13:654		S13-0977:13:3065(domaine PARAMETRES≠EXERCICE)	Corpusv15 :276gabarits, total métier injecté ; aucun changement grammatical vs v
+3a09179b22d3b0e3	3	13	S13-0952:13:696		S13-0963:13:1744(portée COURANT≠HISTORIQUE,domaine SEANCE≠EXERCICE) S13-0976:13:2901(portée COURANT≠HISTORIQUE,domaine REFERENTIELS≠EXERCICE)	Actions destructives : token danger#D92D20 ; séparateurs#E0E3E8 et labels par rô
+c71e92dcfe8226d9	4	13	S13-0954:13:868		S13-0962:13:1654(domaine SUIVI≠COMPOSITION) S13-0968:13:2185(domaine PLANIFICATION≠COMPOSITION) S13-0969:13:2277(domaine PLANIFICATION≠COMPOSITION)	Composants actifs et propriété Durée : [DSF cartes du07/10](../DSF-CARTES-DUREE-
+b454637b947deca9	7	13	S13-0955:13:1010		S13-0956:13:1106(domaine EXECUTION≠COMPOSITION) S13-0957:13:1204(domaine EXECUTION≠COMPOSITION) S13-0958:13:1316(domaine EXECUTION≠COMPOSITION) S13-0959:13:1416(domaine BILATERALITE≠COMPOSITION) S13-0960:13:1514(domaine EXECUTION≠COMPOSITION) S13-0974:13:2755(domaine EXECUTION≠COMPOSITION)	Pause après chaque série, dernière comprise, même N1. Hors circuit de séries, PN
+b64a3a9af5148f57	5	13	S13-0956:13:1044	S13-0957:13:1142 S13-0958:13:1242 S13-0960:13:1452	S13-0959:13:1354(domaine BILATERALITE≠EXECUTION)	Paramètres de la Série courante issus de l’instantané variable/uniforme ; ordres
+2478b3e75c1e93fe	7	13	S13-0956:13:1046	S13-0957:13:1144 S13-0960:13:1454 S13-0974:13:2693	S13-0959:13:1356(domaine BILATERALITE≠EXECUTION) S13-0965:13:1905(domaine MEDIA-EXEC≠EXECUTION) S13-0966:13:1995(domaine MEDIA-EXEC≠EXECUTION)	Cadence éventuelle issue de la Série de l’instantané, jamais du Profil ou des ch
+2cdb79e84e993e33	5	13	S13-0956:13:1060	S13-0957:13:1158 S13-0958:13:1258 S13-0960:13:1468	S13-0959:13:1370(domaine BILATERALITE≠EXECUTION)	Série n/N ; côté courant distinct uniquement en bilatéral, absent en unilatéral 
+6d90b71a8064982c	7	13	S13-0956:13:1078	S13-0957:13:1176 S13-0960:13:1486 S13-0974:13:2727	S13-0959:13:1388(domaine BILATERALITE≠EXECUTION) S13-0965:13:1935(domaine MEDIA-EXEC≠EXECUTION) S13-0966:13:2025(domaine MEDIA-EXEC≠EXECUTION)	Si la Série est en Répétitions avec bip, appliquer Bip v2 : nominal sans transit
+8ff5c866d80d0ab6	5	13	S13-0956:13:1114	S13-0957:13:1214 S13-0958:13:1328 S13-0960:13:1522	S13-0959:13:1426(domaine BILATERALITE≠EXECUTION)	Vérifier les deux ordres et directions, valeurs variables, PC0 sans repli, Pause
+71aea6a6bccba406	7	13	S13-0956:13:1116	S13-0957:13:1216 S13-0960:13:1524 S13-0974:13:2769	S13-0959:13:1428(domaine BILATERALITE≠EXECUTION) S13-0965:13:1971(domaine MEDIA-EXEC≠EXECUTION) S13-0966:13:2061(domaine MEDIA-EXEC≠EXECUTION)	Vérifier passage entre préparation, Série cadencée, pauses programmées et fin ; 
+04563035f0eef62e	2	13	S13-0957:13:1138	S13-0958:13:1238		**Cible par Série (13/10) :** fin automatique seulement en Durée chiffrée ; Suiv
+8087e9cf96bd036c	3	13	S13-0957:13:1210	S13-0958:13:1324 S13-0974:13:2763		Vérifier alternance chiffré/échec, sécurité2h sans nominal, progression des cibl
+56cbefaa8cab14cb	3	13	S13-0961:13:1546	S13-0962:13:1634 S13-0975:13:2793		Le futur relevé À l’échec distingue chronométré, estimé, déclaré et non renseign
+262c5e3b7ee10b33	3	13	S13-0961:13:1550	S13-0962:13:1638 S13-0975:13:2797		La cadence prescrite est conservée dans l’instantané ; durée affichée réelle, cu
+8f0f74a45f55f9e1	3	13	S13-0961:13:1612	S13-0962:13:1704 S13-0975:13:2859		10×4s terminé avec Suivant20s : temps réel20s et fin normale ; reset6s puis10s :
+7da247a003333ed3	3	13	S13-0962:13:1658		S13-0968:13:2189(domaine PLANIFICATION≠SUIVI) S13-0969:13:2281(domaine PLANIFICATION≠SUIVI)	Durée des cartes : chronomètre16×16, trait0,9, #9499A8 lié au rôle catégorie ; t
+329e9769fe9880a6	3	13	S13-0964:13:1877		S13-0967:13:2141(domaine PROFIL≠TRANSVERSE-UI) S13-0973:13:2657(domaine PROFIL≠TRANSVERSE-UI)	Aucune préférence Cadence ajoutée au Profil ; sons selon réglages existants. Bar
+f82c14d3cb84a6bb	3	13	S13-0967:13:2103		S13-0968:13:2193(domaine PLANIFICATION≠PROFIL) S13-0969:13:2285(domaine PLANIFICATION≠PROFIL)	Références 360/402/440, Safe Areas existantes ; texte agrandi sans réduction de 
+7060dd41bb8136bf	2	13	S13-0968:13:2173	S13-0969:13:2265		Noms, dates, durées et couleurs d’événement sont des données ; les exemples Figm

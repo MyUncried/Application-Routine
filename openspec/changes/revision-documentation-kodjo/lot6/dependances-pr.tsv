@@ -1,0 +1,38 @@
+pr	chapitre	section	titre	lignes_modifiees	rattachement
+363	06	S06-0238	Vues principales et états intégrés	6	EXACT
+363	06	S06-0293	Formulaire — vues principales et résumé	6	EXACT
+363	06	S06-0296	Couverture et limites	1	EXACT
+363	06	S06-0307	États de référence actuels	14	EXACT
+363	06	S06-0384	Modales de paramètres d’exercice	1	EXACT
+370	01	S01-0029	Glossaire	4	EXACT
+370	02	S02-0035	Besoins couverts dans le MVP	4	EXACT
+370	03	S03-0107	Créer ou modifier un Exercice	6	EXACT
+370	04	S04-0150	4.5 Structure d'un Exercice	6	EXACT
+370	05	S05-0173	Fonctionnalités	4	EXACT
+370	06	S06-0293	Formulaire — vues principales et résumé	8	EXACT
+370	07	S07-0432	Formats de séances — décisions du 14 octobre 2026	13	EXACT
+370	08	S08-0460	Brouillon, bascules et normalisation	118	EXACT
+370	09	S09-0604	Règles métier	12	EXACT
+370	10	S10-0733	4. Exercices, Séries et Récupérations	20	EXACT
+370	11	S11-0811	11.4 API Exercices	13	EXACT
+370	12	S12-0855	Repositories	8	EXACT
+370	12	S12-0862	12.9 Architecture du moteur d’exécution	8	EXACT
+370	13	S13-0946	4. Règles communes T03	6	EXACT
+370	13	S13-0977	CE-UI-10 — Paramètres d’exécution — feuille basse	44	EXACT
+370	13	S13-0990	CE-FMT-04 — Paramètres d’exercice contextualisés par un format	5	EXACT
+371	06	S06-0290	Créer ou modifier un exercice	1	EXACT
+371	06	S06-0292	Placement et contrôles	1	EXACT
+371	06	S06-0294	Feuille Modalités d’exécution — états intégrés	3	EXACT
+371	07	S07-0391	Décisions relatives aux règles de calcul du MVP	1	EXACT
+371	07	S07-0417	Bip de cadence	1	EXACT
+371	08	S08-0488	Extension normative — deux modes et cibles mixtes (13/10)	2	EXACT
+371	08	S08-0551	Eléments affichés	1	EXACT
+371	13	S13-0948	CE-T03-01 — Catalogue des séances — état T03	1	EXACT
+371	13	S13-0949	CE-T03-02 — Catalogue des exercices — liste, filtres et cartes	1	EXACT
+371	13	S13-0951	CE-T03-04 — Éditeur Exercice — créer / modifier	1	EXACT
+371	13	S13-0953	CE-T03-06 — Composition — `Ajouter un exercice` vers le Catalogue	1	EXACT
+371	13	S13-0954	CE-T03-07 — Sélection multiple d’Exercices existants	1	EXACT
+371	13	S13-0968	CE-UI-02 — Calendrier — Jour compact	1	EXACT
+371	13	S13-0969	CE-UI-03 — Calendrier — Semaine et structure Mois	1	EXACT
+371	13	S13-0977	CE-UI-10 — Paramètres d’exécution — feuille basse	4	EXACT
+371	13	S13-0994	Règles communes de l’éditeur de paramètres	2	EXACT

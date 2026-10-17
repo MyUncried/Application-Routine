@@ -6,7 +6,7 @@
 - Réserves documentaires traitées (journal « Revue du 16/10 » ci-dessous).
 - Questions produit regroupées par thème dans [arbitrages.md](arbitrages.md), en attente de Hermann.
 - **Aucun lot n'est déclaré clos ni certifié.**
-- Lot 6 : **6A (conception) réalisé le 17/10**, aucun document produit modifié ([lot6/plan-restructuration.md](lot6/plan-restructuration.md)). Exécution (6B et suivantes) non autorisée.
+- Lot 6 : **6A (conception) réalisé le 17/10, révisé le 17/10 après la revue indépendante** (PARTIELLEMENT CONFORME, 4 réserves). Aucun document produit modifié ([lot6/plan-restructuration.md](lot6/plan-restructuration.md)). Exécution (6B et suivantes) non autorisée.
 
 **Fonctionnement autorisé par Hermann (16/10) :**
 - publier les commits sur `docs/openspec-revision`, sans merge vers `main` ;
@@ -50,8 +50,9 @@
 - [ ] 0.12d Validation de C1 (texte de D-401 avec `{N}` et forme au singulier) ; vérifications Figma (teinte, boutons-icônes, V1)
 - [ ] 0.13 Revue indépendante de la livraison des arbitrages, préalable au lot 6
 - [ ] 0.14 Revue indépendante des livraisons A1–A9 et B1–B5, préalable à la planification du lot 6
-- [ ] 0.15 Revue indépendante du lot 6A (conception de la restructuration), préalable à toute exécution
-- [ ] 0.16 Décisions de Hermann sur QR-1 à QR-9 ([plan-restructuration.md §10](lot6/plan-restructuration.md))
+- [x] 0.15 Revue indépendante du lot 6A (révision 1, `1122bb9d`) : **PARTIELLEMENT CONFORME** ; 4 réserves et 4 réexamens traités en révision 2 ([plan, tableau de réponse](lot6/plan-restructuration.md))
+- [ ] 0.15b Revue indépendante de la révision 2 du lot 6A
+- [ ] 0.16 Décisions de Hermann sur QR-1 à QR-9 ([plan-restructuration.md §11](lot6/plan-restructuration.md)), valant autorisation globale des étapes DOC (plan §8.3)
 
 ### Journal — revue du 16/10 (traitement des réserves documentaires)
 
@@ -331,94 +332,98 @@ Ces lignes citent D-232 sur des points qu'elle déclare elle-même conservés (�
 
 ## 6. Lot 6 — Restructuration documentaire et amélioration de la qualité des exigences
 
-**Conception (6A) :** [lot6/plan-restructuration.md](lot6/plan-restructuration.md), avec :
-- l'inventaire et la classification des 998 sections ;
-- la table de correspondance ;
-- le plan d'exécution ;
-- la garantie de conservation ;
-- la couverture des défauts.
+**Conception (6A, révision 2) :** [lot6/plan-restructuration.md](lot6/plan-restructuration.md). L'architecture recommandée (option C révisée) est une **proposition**.
 
-L'architecture recommandée (option C) est une **proposition** : aucune étape d'exécution ne commence sans décision de Hermann sur QR-1 à QR-9 et sans revue indépendante du lot 6A.
+**Autorisation :** une autorisation globale (QR-1 à QR-9) vaut pour les étapes DOC, de 6B à 6I et 6K. Ensuite, aucun arrêt entre les étapes. Il n'y a d'arrêt qu'en deux cas :
+- un contrôle bloquant échoue sans pouvoir être corrigé à l'identique ;
+- des décisions produit sont à prendre (6J, liste groupée).
 
-**Classes :** `DOC` par défaut ; `DOC-AUTORITÉ` ou `FONCT-*` lorsque l'étape l'indique.
+Voir plan §8.3.
 
-**Contrôles bloquants à chaque étape :** C1 à C10 ([plan §7](lot6/plan-restructuration.md)), dont :
-- `outils/verifier-conservation.mjs` ;
-- `outils/verifier-correspondance.mjs`.
+**Contrôles de chaque étape :**
+- C1 à C12 (plan §7) : texte, portée, autorité, références, place, liens, rédaction ;
+- outils `verifier-conservation.mjs`, `verifier-correspondance.mjs` et `verifier-redaction.mjs`.
+
+**PR :** seules les sections modifiées par une PR ouverte attendent ([dependances-pr.tsv](lot6/dependances-pr.tsv), 35 sections). Elles sont reprises dans un rattrapage après la fusion ou la fermeture de la PR.
 
 ### 6A — Conception (17/10/2026)
 
-- [x] 6A.1 Analyse structurelle exhaustive des 13 chapitres :
-  - [inventaire-sections.tsv](lot6/inventaire-sections.tsv) (998 sections) ;
-  - [classification.tsv](lot6/classification.tsv) (6 sous-agents en lecture seule, brief `outils/brief-L6A-classification.md`) ;
+- [x] 6A.1 Analyse structurelle :
+  - [inventaire-sections.tsv](lot6/inventaire-sections.tsv) ;
+  - [classification.tsv](lot6/classification.tsv) ;
   - [recouvrements-mecaniques.tsv](lot6/recouvrements-mecaniques.tsv) ;
-  - constats L6-01 à L6-12, qui réutilisent les diagnostics existants.
-- [x] 6A.2 Évaluation du découpage actuel :
-  - contraintes externes K1 à K7, dont le test du code qui lit le ch. 12 et les workflows qui lisent les ch. 06 à 13 ;
+  - constats L6-01 à L6-12.
+- [x] 6A.2 Évaluation du découpage :
+  - contraintes K1 à K7 ;
   - options A à D ;
-  - recommandation C.
-- [x] 6A.3 Correspondance section par section : [correspondance.tsv](lot6/correspondance.tsv), produite par `outils/correspondance-cible.mjs` selon les règles R1 à R4.
-- [x] 6A.4 Plan des déplacements, regroupements, dédoublonnages, améliorations de navigation et de traçabilité :
-  - [plan §6](lot6/plan-restructuration.md) ;
-  - [copies-lignes.tsv](lot6/copies-lignes.tsv) ;
+  - recommandation C révisée : le ch. 08 devient la conception par fonctionnalité, les conventions d'interface vont au ch. 06, pas de ch. 14.
+- [x] 6A.3 Correspondance section par section : [correspondance.tsv](lot6/correspondance.tsv), produite par les règles R1 à R4 (R2 : équivalence complète).
+- [x] 6A.4 Plan des opérations :
+  - [copies-lignes.tsv](lot6/copies-lignes.tsv), qui distingue occurrences remplaçables et à vérifier ;
   - [divergences.tsv](lot6/divergences.tsv).
 - [x] 6A.5 Garantie de conservation :
   - [base-conservation.tsv](lot6/base-conservation.tsv) ;
-  - outils de contrôle autotestés (plan §7).
-- [x] 6A.6 Plan d'exécution découpé en étapes 6B à 6J (plan §8).
-- [x] 6A.7 Couverture des défauts structurels (plan §9).
+  - contrôles de portée, d'autorité et de références ;
+  - autotests.
+- [x] 6A.6 Plan d'exécution, dépendances réelles aux PR, points d'arrêt (plan §8).
+- [x] 6A.7 Couverture des défauts structurels : traitement par section (colonne `traitements`, 0 défaut non couvert) et par constat (plan §9).
+- [x] 6A.8 Défauts de qualité restants : corrections rédactionnelles (6K) et décisions produit (6J) séparées (plan §10).
+- [x] 6A.9 Révision 2 après la revue indépendante (réserves 1 à 4 ; rôle du ch. 08 ; ch. 14 ; PR ; points d'arrêt).
 
 ### Étapes d'exécution (non autorisées)
 
-- [ ] 6B Validation (QR-1 à QR-9) ; révision 3 de design (G1, G2) ; outils `reecrire-liens.mjs` et `appliquer-deplacements.mjs` — `DOC-AUTORITÉ`
-- [ ] 6C Corrections dans chaque fichier, sans déplacement :
-  - numérotation des titres ;
+- [ ] 6B Préparation : `appliquer-deplacements.mjs`, `reecrire-liens.mjs`, révision 3 de design (G1, G2) — `DOC-AUTORITÉ`
+- [ ] 6C Corrections dans chaque fichier :
+  - titres et numérotation ;
   - tableaux coupés (S-11) ;
+  - renvois internes rompus ;
   - D-047 ;
   - inventaire des 40 contrats ;
   - tables des matières.
-- [ ] 6D Dédoublonnage :
-  - 32 copies intégrales ;
-  - 247 occurrences de lignes ;
-  - FMT-01 à FMT-38 ;
+- [ ] 6D Dédoublonnage par équivalence complète :
+  - 21 renvois ;
+  - 89 occurrences de lignes ;
+  - examen des 158 occurrences « à vérifier » et des 11 copies partielles ;
+  - FMT ;
   - bandeaux ;
-  - titres « Saisie des paramètres — D-246 ».
+  - titres « D-246 » ;
+  - renvois absents.
 
-  Il reprend l'ancienne tâche 6.3 (P-13, P-14, H-19, QS-10). Sa partie fonctionnelle, la règle d'inversion à citer au ch. 08, passe en 6J.
-- [ ] 6E Intégration des compléments empilés dans leur fichier (P-21, P-22 ; ancienne tâche 6.2)
-- [ ] 6F1 Création du ch. 14 Conventions d'interface `[PR370]` `[PR371]`
-- [ ] 6F2 Répartition du ch. 08 et table de renvoi `[PR370]` `[PR371]`
-- [ ] 6F3 Écrans du ch. 06 vers les contrats du ch. 13 `[PR363]` `[PR370]` `[PR371]`
-- [ ] 6F4 Autres déplacements (concepts, données, périmètre, parcours)
+  Reprend l'ancienne tâche 6.3 (P-13, P-14, H-19, QS-10).
+- [ ] 6E Intégration des 110 compléments empilés et des 6 blocs placés après les contrats (P-21, P-22 ; ancienne tâche 6.2)
+- [ ] 6F1 Conventions d'interface vers le ch. 06, dont le ch. 13 §4
+- [ ] 6F2 Recentrage du ch. 08 sur la conception par fonctionnalité : règles vers 10, champs vers 13, concepts vers 04, données vers 09
+- [ ] 6F3 Écrans du ch. 06 vers les contrats du ch. 13
+- [ ] 6F4 Autres déplacements
 - [ ] 6F5 Annexe historique
 - [ ] 6G Navigation et traçabilité :
-  - INDEX ;
-  - index des identifiants et du registre ;
+  - INDEX et table de correspondance ;
+  - index des identifiants, du registre et des règles sans identifiant ;
   - inventaire écran → contrat ;
-  - rubriques « Règles applicables » ;
-  - identifiants B-xx si QR-7.
+  - « Règles applicables ».
 - [ ] 6H Reports antérieurs :
   - 214 lignes « à examiner » de R-06 (ancienne tâche 6.1) ;
   - alias (ancienne tâche 6.4) ;
-  - RM-131 après la PR #370 ;
-  - ch. 08 l. 1573 après la PR #371 ;
+  - RM-131 (#370) ;
+  - ch. 08 l. 1573 (#371) ;
   - PRODUCT.md (Q-C).
-- [ ] 6I Transfert des règles des DSF, règle par règle (G4, Q-B a)
-- [ ] 6J Hors restructuration, à soumettre à décision :
-  - divergences de `divergences.tsv` ;
-  - contrat d'écran du message de migration ;
-  - exigences non fonctionnelles et interruptions système (ancienne tâche 6.6, QC) ;
-  - convention d'obligation et format des oracles (ancienne tâche 6.5, QF) ;
-  - emplacement du nombre d'Exercices (D-399).
+- [ ] 6I Transfert des règles des DSF vers le ch. 06, règle par règle (G4, Q-B a)
+- [ ] 6K Corrections rédactionnelles (plan §10.1), contrôlées par C10
+- [ ] 6J Décisions produit, en une liste groupée (plan §10.2) :
+  - divergences ;
+  - exigences non fonctionnelles (ancienne tâche 6.6) ;
+  - convention d'obligation (ancienne tâche 6.5) ;
+  - message de migration ;
+  - nombre d'Exercices (D-399).
 
 ## Ce qui n'est pas proposé
 
 - Renumérotation générale des identifiants (D-, RM-, CE-…) : ils restent stables, y compris pendant la restructuration.
-- Renommage ou suppression des fichiers de chapitres : contraintes K1 à K3 du lot 6A.
+- Renommage, suppression ou création de chapitre : contraintes K1 à K3 du lot 6A ; seule une annexe historique non normative est proposée.
 - Réécriture du texte du registre (G5) ou d'une règle à l'occasion d'un déplacement.
 - Bandeaux de statut systématiques.
 - Ancres explicites généralisées : seules les cibles qui changent de fichier en reçoivent une (G6).
 - Migration vers `openspec/specs/`.
 - Toute nouvelle règle bloquante.
 
-La refonte et la fusion de chapitres, exclues jusqu'ici, font désormais l'objet d'une **proposition** (lot 6A, option C). Elle est soumise à décision.
+La redistribution du contenu entre chapitres, exclue jusqu'ici, fait désormais l'objet d'une **proposition** (lot 6A, option C révisée). Elle est soumise à décision.

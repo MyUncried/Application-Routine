@@ -78,6 +78,17 @@ Un déplacement, un regroupement ou un dédoublonnage de sections MUST conserver
 - **WHEN** deux passages sur le même sujet diffèrent
 - **THEN** les deux restent en place, marqués `À CLARIFIER`, jusqu'à une décision explicite
 
+### Requirement: Sens, portée et autorité conservés
+Une transformation MUST conserver la portée de chaque ligne (MVP courant, hors MVP, historique), ses marqueurs d'autorité et ses références. Une copie MUST NOT être remplacée par un renvoi sans équivalence complète du texte, de la portée et de l'autorité.
+
+#### Scenario: Copie quasi identique de portée différente
+- **WHEN** deux passages ont le même texte mais l'un est placé sous une portée hors MVP et l'autre sous une portée courante
+- **THEN** aucun des deux n'est remplacé par un renvoi vers l'autre
+
+#### Scenario: Correction rédactionnelle
+- **WHEN** une correction classée DOC modifie un nombre, une unité, un identifiant, un libellé, une négation ou une modalité
+- **THEN** elle est reclassée FONCT et ne s'applique qu'avec la décision qui la fonde
+
 ### Requirement: Pas de seconde source normative dans OpenSpec
 Les changes OpenSpec MUST décrire des révisions de la documentation, et MUST NOT servir de source normative pour une règle produit. Le répertoire `openspec/specs/` MUST NOT contenir de règle produit.
 
