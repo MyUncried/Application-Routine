@@ -35,18 +35,28 @@ const f13 = ch['13']; const L13 = lire(f13).split(/\r?\n/); const contrats = new
 L13.forEach((l, i) => { const m = l.match(/^(#{1,6}) (CE-[A-Z0-9-]+?\d)(?: —|\s*$)/); if (m) { curCE = m[2]; nivCE = m[1].length; contrats.set(curCE, { debut: i, lignes: [] }); return; }
   const h = l.match(/^(#{1,6}) /); if (h && curCE && h[1].length <= nivCE) curCE = null; if (curCE) contrats.get(curCE).lignes.push(i); });
 const citeesPar = (txt, re) => uniq(txt.match(re) || []);
+// Rattachements établis par lecture (lot6/finalisation/tracabilite-contrats-*.tsv) : CERTAIN = même condition et même résultat
+// énoncés par le contrat et par la règle, extraits vérifiés mot pour mot ; PROBABLE = à confirmer (annexe seulement).
+const L6F = path.join(repo, 'openspec', 'changes', 'revision-documentation-kodjo', 'lot6', 'finalisation');
+const rattach = []; for (const f of ['tracabilite-contrats-A.tsv', 'tracabilite-contrats-B.tsv']) { const p = path.join(L6F, f); if (!fs.existsSync(p)) continue;
+  fs.readFileSync(p, 'utf8').trim().split(/\r?\n/).slice(1).forEach(l => { const c = l.split('\t'); if (c[0] && c[1]) rattach.push({ ce: c[0], rm: c[1], niveau: c[2], pc: c[3] || '', pr: c[4] || '' }); }); }
+const certains = ce => rattach.filter(r => r.ce === ce && r.niveau === 'CERTAIN' && regles.has(r.rm)).map(r => r.rm);
 const rapport = { contrats: 0, lignes_ajoutees: 0, regles_par_contrat: {} };
 const ajouts = new Map(); // index de ligne (après laquelle insérer) → texte
 for (const [ce, c] of contrats) {
   const txt = c.lignes.map(i => L13[i]).join(' ');
   const citees = citeesPar(txt, RE.RM).filter(id => regles.has(id));
   const citant = [...regles].filter(([id, t]) => t.includes(ce)).map(([id]) => id);
-  const toutes = uniq([...citees, ...citant]); rapport.regles_par_contrat[ce] = toutes.length;
+  const toutes = uniq([...citees, ...citant, ...certains(ce)]); rapport.regles_par_contrat[ce] = toutes.length;
   // Tableau de la rubrique 1 : dernière ligne de tableau après le titre « 1. Identification ».
   const t1 = c.lignes.find(i => /^#{1,6} 1\. Identification/.test(L13[i])); if (t1 === undefined || !toutes.length) continue;
-  let k = t1 + 1; while (k < L13.length && !L13[k].startsWith('|')) k++; while (k + 1 < L13.length && L13[k + 1].startsWith('|')) k++;
-  if (L13.slice(t1, k + 1).some(l => l.startsWith('| Règles applicables |'))) continue;
-  ajouts.set(k, `| Règles applicables | ${toutes.join(', ')} (identifiants cités dans ce contrat ou citant ce contrat ; voir l’annexe « Matrice de traçabilité ») |`);
+  // Rubrique 1 : de son titre au titre suivant. Ligne de tableau si la rubrique porte un tableau, sinon paragraphe en fin de rubrique.
+  let fin = t1 + 1; while (fin < L13.length && !/^#{1,6} /.test(L13[fin])) fin++;
+  if (L13.slice(t1, fin).some(l => /^\|? ?Règles applicables/.test(l.replace(/^\| /, '| ')) || l.startsWith('Règles applicables :'))) continue;
+  const texte = `${toutes.join(', ')} (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)`;
+  let k = t1 + 1; while (k < fin && !L13[k].startsWith('|')) k++;
+  if (k < fin) { while (k + 1 < fin && L13[k + 1].startsWith('|')) k++; ajouts.set(k, `| Règles applicables | ${texte} |`); }
+  else { k = fin - 1; while (k > t1 && !L13[k].trim()) k--; ajouts.set(k, `\r\nRègles applicables : ${texte}`); }
   rapport.contrats++; }
 rapport.lignes_ajoutees = ajouts.size;
 // Annexe générée.
@@ -60,9 +70,20 @@ for (const [id, t] of [...regles].sort((x, y) => x[0].localeCompare(y[0], 'fr', 
   A.push(`| ${lien(id)} | ${cs.map(lien).join(', ')} | ${rs.map(lien).join(', ')} | ${citeesPar(t, RE.D).map(lien).join(', ')} |`); }
 A.push('', '## Contrats → règles', '', '| Contrat | Règles applicables (références écrites) |', '|---|---|');
 for (const [ce] of contrats) { const txt = contrats.get(ce).lignes.map(i => L13[i]).join(' '); const toutes = uniq([...citeesPar(txt, RE.RM).filter(id => regles.has(id)), ...[...regles].filter(([id, t]) => t.includes(ce)).map(([id]) => id)]); A.push(`| ${lien(ce)} | ${toutes.map(lien).join(', ')} |`); }
+A.push('', '## Rattachements contrat → règle établis par lecture', '', 'CERTAIN : le contrat énonce, pour cet écran, la même condition et le même résultat que la règle (extraits exacts ci-dessous) ; repris dans la ligne « Règles applicables » du contrat. PROBABLE : même sujet, application non explicite ; **à confirmer**, non repris dans le contrat.', '', '| Contrat | Règle | Niveau | Extrait du contrat | Extrait de la règle |', '|---|---|---|---|---|');
+const cel = s => s.replace(/\|/g, '\\|').replace(/\]\([^)]*\)/g, ']');
+for (const r of rattach) A.push(`| ${lien(r.ce)} | ${lien(r.rm)} | ${r.niveau} | ${cel(r.pc)} | ${cel(r.pr)} |`);
 A.push('', '## Recettes → règles et contrats cités', '', '| Recette | Règles | Contrats |', '|---|---|---|');
 for (const [r, l] of recettes) A.push(`| ${lien(r)} | ${citeesPar(l, RE.RM).map(lien).join(', ')} | ${citeesPar(l, RE.CE).map(lien).join(', ')} |`);
 console.log(JSON.stringify({ besoins: besoins.size, besoins_citant: bAvec, regles: regles.size, contrats: contrats.size, recettes: recettes.size, contrats_completes: rapport.contrats, contrats_sans_regle: Object.values(rapport.regles_par_contrat).filter(n => !n).length }));
+// --json=<fichier> : les ajouts aux contrats sont émis comme corrections JSON (ancien = dernière ligne du tableau
+// d'identification, avec le titre du contrat pour l'unicité), à appliquer par appliquer-finalisation.mjs ; l'annexe est écrite.
+const oj = (process.argv.find(a => a.startsWith('--json=')) || '').slice(7);
+if (oj) { const corr = []; for (const [k, ligne] of ajouts) { const ce = [...contrats].filter(([, c]) => c.debut < k).sort((a, b) => b[1].debut - a[1].debut)[0][0];
+    const i0 = contrats.get(ce).debut; const bloc = L13.slice(i0, k + 1).join('\r\n');
+    corr.push({ id: `TRA-${ce}`, ref: 'références écrites et rattachements CERTAIN (tracabilite-contrats-*.tsv)', motif: 'RENVOI', classe: 'DOC', file: `@${f13}`, ancien: bloc, nouveau: bloc + '\r\n' + ligne }); }
+  fs.writeFileSync(oj, JSON.stringify({ description: 'Traçabilité : ligne « Règles applicables » ajoutée au tableau d’identification des contrats (ajout seul, texte du contrat inchangé).', corrections: corr }, null, 1));
+  fs.writeFileSync(path.join(SF, 'Annexe – Matrice de traçabilité.md'), A.join('\r\n') + '\r\n'); console.log(`corrections=${corr.length}`); }
 if (go) { const crlf = lire(f13).includes('\r\n'); const out = []; L13.forEach((l, i) => { out.push(l); if (ajouts.has(i)) out.push(ajouts.get(i)); });
   fs.writeFileSync(path.join(SF, f13), out.join(crlf ? '\r\n' : '\n'));
   fs.writeFileSync(path.join(SF, 'Annexe – Matrice de traçabilité.md'), A.join('\r\n') + '\r\n'); }

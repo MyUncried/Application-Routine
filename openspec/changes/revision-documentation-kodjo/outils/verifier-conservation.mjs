@@ -43,7 +43,7 @@ const h = s => crypto.createHash('sha1').update(s).digest('hex').slice(0, 16);
 // Lignes générées par la restructuration (renvois, sommaires, annexes d'index et de correspondance) : navigation, hors contrôle.
 const GENEREE = /il n’est pas recopié ici\.\*?$/;
 const content = l => { const t = n1(l); return t && !/^\|?\s*:?-{3,}/.test(t) && !/^#{1,6} /.test(t) && !/^<a id=/.test(t) && t !== '---' && !GENEREE.test(t) ? t : null; };
-const ANNEXE_GENEREE = n => /^Annexe – (Correspondance|Index)/.test(path.basename(n));
+const ANNEXE_GENEREE = n => /^Annexe – (Correspondance|Index|Matrice)/.test(path.basename(n));
 function sansSommaire(lines) { let som = false; return lines.map(l => { const m = l.match(/^(#{1,6}) (.*)$/); if (m && m[1].length <= 2) som = m[1].length === 2 && m[2].trim() === 'Sommaire'; return som ? '' : l; }); }
 for (const d of [...refDocs, ...tgtDocs]) d.lines = ANNEXE_GENEREE(d.name) ? [] : sansSommaire(d.lines);
 function scan(docs) {

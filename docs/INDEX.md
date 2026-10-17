@@ -1,6 +1,6 @@
 # Documentation de KODJO
 
-La documentation de référence forme un ensemble de treize chapitres, complété par trois annexes non normatives. Les règles métier, calculs et comportements sont définis ici ; Figma décrit les dispositions visuelles et illustre des états. Les valeurs de démonstration des captures ne définissent pas les calculs.
+La documentation de référence forme un ensemble de treize chapitres, complété par quatre annexes non normatives. Les règles métier, calculs et comportements sont définis ici ; Figma décrit les dispositions visuelles et illustre des états. Les valeurs de démonstration des captures ne définissent pas les calculs.
 
 | Chapitre | Titre | Contenu |
 |---|---|---|
@@ -21,6 +21,7 @@ La documentation de référence forme un ensemble de treize chapitres, complét�
 **Annexes non normatives :**
 - [Correspondance des sections](Specifications-fonctionnelles/Annexe%20%E2%80%93%20Correspondance%20des%20sections.md) : pour chaque ancienne section, sa place actuelle ;
 - [Index des identifiants](Specifications-fonctionnelles/Annexe%20%E2%80%93%20Index%20des%20identifiants.md) : où chaque identifiant est défini, règles sans identifiant, registre par thème ;
+- [Matrice de traçabilité](Specifications-fonctionnelles/Annexe%20%E2%80%93%20Matrice%20de%20tra%C3%A7abilit%C3%A9.md) : besoins, règles, contrats et recettes reliés par les seules références établies (citations et rattachements prouvés) ;
 - [Historique des consolidations](Specifications-fonctionnelles/Annexe%20%E2%80%93%20Historique%20des%20consolidations.md) : passages historiques conservés à l’identique.
 
 **Organisation (D-402).**

@@ -1,0 +1,23 @@
+{
+ "description": "INDEX.md : quatrième annexe non normative (matrice de traçabilité). — sous-ensemble appliqué (voir FIN-INDEX-ecartees.tsv)",
+ "corrections": [
+  {
+   "id": "IDX-001",
+   "ref": "traçabilité (finalisation lot 6)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "INDEX.md",
+   "ancien": "La documentation de référence forme un ensemble de treize chapitres, complété par trois annexes non normatives. Les règles métier, calculs et comportements sont définis ici ; Figma décrit les dispositions visuelles et illustre des états. Les valeurs de démonstration des captures ne définissent pas les calculs.",
+   "nouveau": "La documentation de référence forme un ensemble de treize chapitres, complété par quatre annexes non normatives. Les règles métier, calculs et comportements sont définis ici ; Figma décrit les dispositions visuelles et illustre des états. Les valeurs de démonstration des captures ne définissent pas les calculs."
+  },
+  {
+   "id": "IDX-002",
+   "ref": "traçabilité (finalisation lot 6)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "INDEX.md",
+   "ancien": "- [Index des identifiants](Specifications-fonctionnelles/Annexe%20%E2%80%93%20Index%20des%20identifiants.md) : où chaque identifiant est défini, règles sans identifiant, registre par thème ;",
+   "nouveau": "- [Index des identifiants](Specifications-fonctionnelles/Annexe%20%E2%80%93%20Index%20des%20identifiants.md) : où chaque identifiant est défini, règles sans identifiant, registre par thème ;\n- [Matrice de traçabilité](Specifications-fonctionnelles/Annexe%20%E2%80%93%20Matrice%20de%20tra%C3%A7abilit%C3%A9.md) : besoins, règles, contrats et recettes reliés par les seules références établies (citations et rattachements prouvés) ;"
+  }
+ ]
+}
