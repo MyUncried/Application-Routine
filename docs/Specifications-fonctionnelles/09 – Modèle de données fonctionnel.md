@@ -506,7 +506,7 @@ Le plan distingue au minimum la phase de Pause entre les côtés de la phase de 
 
 La phrase de synthèse des paramètres d’exécution est une **valeur dérivée non persistée**. Elle est régénérée depuis `executionMode`, nombre de Séries, état uniforme/variable, cible/Pause communes ou collection ordonnée, `sideMode`, Ordre des côtés et `sideRecoverySeconds`. Aucun champ de stockage autonome de la phrase n’est requis (RM-232).
 
-Bornes de validation D-232 : `seriesCount ∈ [1,99]`, répétitions par Série `∈ [1,100]`, durée par Série `∈ [5,3535] s`, pauses inter-Séries et inter-côtés `∈ [0,300] s`. Une valeur héritée hors bornes, non modifiée, peut être conservée ; toute nouvelle saisie ou modification doit respecter ces bornes (D-383). Le pas UI n’est pas une contrainte de stockage : tap1s, maintien accéléré1/5/10 selon DSF Bip ; aucun arrondi à la lecture.
+Bornes de validation D-232 : `seriesCount ∈ [1,99]`, répétitions par Série `∈ [1,100]`, durée par Série `∈ [5,3535] s`, pauses inter-Séries et inter-côtés `∈ [0,300] s`. Une valeur héritée hors bornes, non modifiée, peut être conservée ; toute nouvelle saisie ou modification doit respecter ces bornes (D-383). Le pas UI n’est pas une contrainte de stockage : tap1 s, maintien accéléré1/5/10 selon DSF Bip ; aucun arrondi à la lecture.
 
 #### Paramètres de Série et Ordre des côtés — D-247 à D-254
 
@@ -524,7 +524,7 @@ Contenu identique à la section [« Extension validée du modèle — Paramètre
 | Résultat par Série/côté | Temps actif cumulé, incluant fractions abandonnées et tentatives reset ; aucun nombre réel de répétitions déduit |
 | Calcul dérivé | Secondes prévisionnelles et niveau d’incertitude ; phrase et total non persistés comme vérité indépendante |
 
-Migration : ancien objet sans champ initialisé à0 ; conserver valeurs et historique. Bip valide et conservé dans les deux modes après validation. Écriture atomique des paramètres et de la collection ; transitions moteur idempotentes. Le schéma physique et sa migration sont à implémenter, pas réputés présents du fait de cette cible.
+Migration : ancien objet sans champ initialisé à 0 ; conserver valeurs et historique. Bip valide et conservé dans les deux modes après validation. Écriture atomique des paramètres et de la collection ; transitions moteur idempotentes. Le schéma physique et sa migration sont à implémenter, pas réputés présents du fait de cette cible.
 
 #### Pauses et symboles
 
@@ -536,7 +536,7 @@ cadenceBeepIntervalSeconds entier0..10 dans les deux modes ;0=Aucun, défaut0. M
 
 #### Précision de modèle — source, v15
 
-Une récupération explicite de0s est un objet conservé, distinct de l’absence ; seul Retirer la supprime. Elle ne crée aucune phase positive ni suppression dePN. Le scalaire historique ActivityDefinition.pauseSeconds ne devient pas une récupération : sa valeur est portée dans SeriesParameters.pauseSeconds lors de la refonte. Les pauses recovery/breakpoint de Composition restent une collection distincte. Aucun schéma physique ou migration exécutée dans ce lot.
+Une récupération explicite de 0 s est un objet conservé, distinct de l’absence ; seul Retirer la supprime. Elle ne crée aucune phase positive ni suppression dePN. Le scalaire historique ActivityDefinition.pauseSeconds ne devient pas une récupération : sa valeur est portée dans SeriesParameters.pauseSeconds lors de la refonte. Les pauses recovery/breakpoint de Composition restent une collection distincte. Aucun schéma physique ou migration exécutée dans ce lot.
 
 **Compatibilité D-214 — 12/10/2026.** Si un ancien champ d’activation est déjà persisté, il est obsolète et ne peut réactiver les phases propres lors de la construction d’un nouveau plan SESSION, quelle que soit sa valeur. L’inventaire du schéma réel détermine sa migration physique ; aucune suppression SQL n’est livrée par cette correction documentaire. Conserver les paramètres propres des Exercices et les instantanés/résultats historiques, sans réécriture des temps réalisés.
 
@@ -558,7 +558,7 @@ Les noms physiques, éventuel renommage de tourRepeatCount et migration sont à 
 
 La cible typée appartient à chaque Série effective et à chaque copie/snapshot ; le mode appartient à l’Exercice. Interdire simultanéité cible numérique/échec et interdire zéro comme cible. La valeur relevée est facultative, distincte de la prescription, rattachée à exécution/occurrence/série/côté/passage/tentative. Unité, origine et qualification (chronométrée, estimée, déclarée, absente) sont conservées. Garder la proposition source en cas de correction. Aucun relevé absent transformé en zéro. Les paramètres et résultats historiques ne sont pas réécrits par la régénération d’une phrase.
 
-Migration de l’ancien TO_FAILURE : REPETITIONS + cibles échec, valeurs et comportement conservés ; lecture versionnée des snapshots historiques, aucune répétition rétrocalculée. La donnée dernière tentative doit être distinguée du cumul :20s reset35s →55s cumulé,35s relevé. Voir chapitre 09, Cibles typées, et chapitre 08, Relevés d’exécution ; schéma physique à réaliser, non livré par la documentation.
+Migration de l’ancien TO_FAILURE : REPETITIONS + cibles échec, valeurs et comportement conservés ; lecture versionnée des snapshots historiques, aucune répétition rétrocalculée. La donnée dernière tentative doit être distinguée du cumul :20 s reset35 s →55 s cumulé,35 s relevé. Voir chapitre 09, Cibles typées, et chapitre 08, Relevés d’exécution ; schéma physique à réaliser, non livré par la documentation.
 
 <a id="formats-donnees"></a>
 #### Formats — données fonctionnelles et invariants
@@ -584,9 +584,9 @@ Compatibilité : les anciennes séances sans format restent libres, leurs histor
 
 ##### Compatibilité, données, API et instantanés
 
-Existant sans nouveaux attributs : uniforme, Un côté après l’autre. Quantité de travail, cibles, Pauses stockées et direction conservées. **Le changement de durée et de pauses exécutées est assumé pour les exercices existants**, confirmé le02/10. Les instantanés et résultats historiques restent immuables ; ne pas réécrire les durées réalisées.
+Existant sans nouveaux attributs : uniforme, Un côté après l’autre. Quantité de travail, cibles, Pauses stockées et direction conservées. **Le changement de durée et de pauses exécutées est assumé pour les exercices existants**, confirmé le 02/10. Les instantanés et résultats historiques restent immuables ; ne pas réécrire les durées réalisées.
 
-La clarification du07/10 conserve la Pause après chaque série, dernière comprise ; seule une récupération positive qui suit remplace la dernière Pause. Les snapshots existants demeurent immuables ; la migration physique doit être planifiée.
+La clarification du 07/10 conserve la Pause après chaque série, dernière comprise ; seule une récupération positive qui suit remplace la dernière Pause. Les snapshots existants demeurent immuables ; la migration physique doit être planifiée.
 
 Le modèle persistant et les copies/duplications doivent conserver le mode uniforme/variable explicite, N, la collection ordonnée cible/Pause lorsque variable, la direction, l’ordre des côtés, PC, Compte à rebours et Fin. R reste dans l’occurrence. Les paramètres variables remplacent les paramètres uniformes comme source effective, sans surcharges. Prévoir représentation et version d’instantané compatibles ; la structure SQL exacte et la migration relèvent de la planification technique, pas d’un nouveau choix Figma.
 
@@ -640,7 +640,7 @@ Contenu identique à la section [« Saisie des paramètres d’exécution »](10
 
 Le mode d’exécution est commun à l’Exercice. Le stockage distingue explicitement uniforme et variable, même si les valeurs sont identiques. En variable, conserver N lignes ordonnées avec cible (Durée/Répétitions) et Pause ; aucune cible numérique À l’échec. Les mêmes lignes s’appliquent aux deux côtés. Direction et Ordre des côtés sont deux propriétés distinctes. N=1 est normalisé uniforme/Un côté après l’autre dès le brouillon.
 
-Copie Catalogue→Séance, duplication et nouvel instantané conservent tout cet état. Les données sans nouveaux attributs sont uniformes/Un côté après l’autre. Les calculs actuels s’appliquent aussi aux Exercices existants ; résultats historiques immuables. Les valeurs temporaires de restauration et le repli visuel ne sont jamais persistés. Voir chapitre 08, paramètres d’exercice et8 pour le contrat complet.
+Copie Catalogue→Séance, duplication et nouvel instantané conservent tout cet état. Les données sans nouveaux attributs sont uniformes/Un côté après l’autre. Les calculs actuels s’appliquent aussi aux Exercices existants ; résultats historiques immuables. Les valeurs temporaires de restauration et le repli visuel ne sont jamais persistés. Voir chapitre 08, paramètres d’exercice et 8 pour le contrat complet.
 
 ### Extension validée du modèle — Extension Cadence du modèle de Série
 
@@ -652,7 +652,7 @@ Une durée prévisionnelle déterminable ne signifie pas une fin automatique : R
 
 ### Extension validée du modèle — Pauses et symboles
 
-La Composition possède des pauses explicites recovery et breakpoint. recovery appartient à une occurrence ; breakpoint conserve une position structurelle. Une projection R=0 pour absence ne crée pas d’objet. La présence et la durée0 sont distinctes, les phases0s ne sont pas générées.
+La Composition possède des pauses explicites recovery et breakpoint. recovery appartient à une occurrence ; breakpoint conserve une position structurelle. Une projection R=0 pour absence ne crée pas d’objet. La présence et la durée0 sont distinctes, les phases0 s ne sont pas générées.
 
 ## Exécution
 

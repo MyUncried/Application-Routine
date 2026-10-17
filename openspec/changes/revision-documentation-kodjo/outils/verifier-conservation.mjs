@@ -46,7 +46,7 @@ const ANNEXE_GENEREE = n => /^Annexe – (Correspondance|Index)/.test(path.basen
 function sansSommaire(lines) { let som = false; return lines.map(l => { const m = l.match(/^(#{1,6}) (.*)$/); if (m && m[1].length <= 2) som = m[1].length === 2 && m[2].trim() === 'Sommaire'; return som ? '' : l; }); }
 for (const d of [...refDocs, ...tgtDocs]) d.lines = ANNEXE_GENEREE(d.name) ? [] : sansSommaire(d.lines);
 function scan(docs) {
-  const ids = new Map(), c1 = new Map(), c2 = new Map(), dec = new Map(), por = new Map(), cites = new Map(), marq = {};
+  const ids = new Map(), c1 = new Map(), c2 = new Map(), dec = new Map(), por = new Map(), por2 = new Map(), cites = new Map(), marq = {};
   for (const d of docs) { let fence = false; const stack = []; const annexe = /^Annexe/i.test(path.basename(d.name));
     d.lines.forEach((l, i) => {
       if (/^```/.test(l)) fence = !fence;
@@ -56,12 +56,12 @@ function scan(docs) {
       const k1 = h(t), k2 = h(n2(l)); c1.set(k1, (c1.get(k1) || 0) + 1); c2.set(k2, (c2.get(k2) || 0) + 1);
       const chemin = stack.map(x => x.t).join(' / ');
       const p = PORTEE.filter(([, re]) => re.test(chemin)).map(([k]) => k); if (annexe && !p.includes('HISTORIQUE')) p.push('HISTORIQUE');
-      const ps = por.get(k1) || new Set(); ps.add(p.join('+') || 'COURANT'); por.set(k1, ps);
+      const ps = por.get(k1) || new Set(); ps.add(p.join('+') || 'COURANT'); por.set(k1, ps); const ps2 = por2.get(k2) || new Set(); ps2.add(p.join('+') || 'COURANT'); por2.set(k2, ps2);
       for (const c of t.match(ID_CITE) || []) cites.set(c, (cites.get(c) || 0) + 1);
-      for (const [k, re] of MARQUEURS) if (re.test(t)) (marq[k] ||= new Set()).add(k1); // lignes distinctes : retirer une copie ne compte pas
+      for (const [k, re] of MARQUEURS) if (re.test(t)) (marq[k] ||= new Set()).add(k2); // lignes distinctes (normalisation N2) : retirer une copie ou corriger une espace ne compte pas
       const m = l.match(/^\| (D-\d{3}) \|/); if (m) dec.set(m[1], h(n1(l.replace(/\]\([^)]*\)/g, ']()')))); // C4 : texte comparé hors cibles de liens
     }); }
-  return { ids, c1, c2, dec, por, cites, marq };
+  return { ids, c1, c2, dec, por, por2, cites, marq };
 }
 const R = scan(refDocs), T = scan(tgtDocs);
 const fail = []; const detail = ['controle\tcle\tetat\tinfo'];
@@ -81,7 +81,11 @@ for (const d of refDocs) d.lines.forEach((l, i) => { const t = content(l); if (!
     const gagnees = [...tp].filter(x => !rp.has(x)); const perdues = baisse ? [] : [...rp].filter(x => !tp.has(x));
     if ((gagnees.length || perdues.length) && !J.has(k1)) { c5++; fail.push(`C5 portée changée ${where} : ${[...rp].join(',')} → ${[...tp].join(',')} « ${t.slice(0, 50)} »`); detail.push(`C5\t${k1}\tKO\t${where} ${[...rp].join(',')}→${[...tp].join(',')}`); }
     return; }
-  if (T.c2.has(h(n2(l)))) { s2++; detail.push(`C2\t${k1}\tN2\t${where}`); return; }
+  if (T.c2.has(h(n2(l)))) { s2++; detail.push(`C2\t${k1}\tN2\t${where}`);
+    // C5 aussi pour une ligne retrouvée en N2 : elle ne prend aucune portée nouvelle.
+    const k2 = h(n2(l)); const gagnees = [...(T.por2.get(k2) || [])].filter(x => !(R.por2.get(k2) || new Set()).has(x));
+    if (gagnees.length && !J.has(k1)) { c5++; fail.push(`C5 portée changée ${where} (N2) : → ${gagnees.join(',')} « ${t.slice(0, 50)} »`); }
+    return; }
   if (J.has(k1)) { sj++; detail.push(`C2\t${k1}\tJUSTIFIE\t${J.get(k1)} ${where}`); return; }
   ko++; fail.push(`C2 ligne absente ${where} « ${t.slice(0, 70)} »`); detail.push(`C2\t${k1}\tKO\t${where}`); });
 // C4

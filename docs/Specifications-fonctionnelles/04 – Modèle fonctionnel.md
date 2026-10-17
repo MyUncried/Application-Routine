@@ -144,7 +144,7 @@ Un **Cycle** est conservé comme structure technique unique de la Composition. I
 
 #### Circuit et Tour
 
-Un **Circuit** est le groupe ordonné d’Exercices contenu dans le Cycle technique unique du MVP. Un **Tour** est une exécution complète de ce Circuit. Pour une séance libre à compte borné, le compte est compris entre1 et99, défaut1 : nombre de tours pour la nature tours, nombre de séries imposé à chaque exercice pour la nature séries. Les formats ajoutent des bornes et indexations explicites ; leur détail figure dans la section Formats ci-dessous. D-209 est complétée par la spécification du12/10.
+Un **Circuit** est le groupe ordonné d’Exercices contenu dans le Cycle technique unique du MVP. Un **Tour** est une exécution complète de ce Circuit. Pour une séance libre à compte borné, le compte est compris entre 1 et 99, défaut1 : nombre de tours pour la nature tours, nombre de séries imposé à chaque exercice pour la nature séries. Les formats ajoutent des bornes et indexations explicites ; leur détail figure dans la section Formats ci-dessous. D-209 est complétée par la spécification du 12/10.
 
 #### Exercice
 
@@ -348,7 +348,7 @@ Dans le MVP :
 - une Séance contient exactement un Cycle technique ;
 - ce Cycle contient exactement un Circuit ;
 - le Cycle est exécuté une seule fois et n’est jamais exposé dans l’interface ;
-- le compte du Circuit reste configurable de1 à99, avec sa nature tours/séries.
+- le compte du Circuit reste configurable de 1 à 99, avec sa nature tours/séries.
 
 L'ordre général d'exécution est le suivant :
 
@@ -430,7 +430,7 @@ Ces objets ne fusionnent pas avec la Pause après chaque série, la Pause entre 
 
 Une nouvelle occurrence ne crée aucune récupération. Le bouton Pause ouvre le mode placement de la Composition. Chaque emplacement autorisé présente deux blocs côte à côte, de largeur identique : Récupération et Point d’arrêt. Plusieurs éléments peuvent être sélectionnés en une seule entrée ; une récupération et un point peuvent coexister à la même position.
 
-Sélectionner Récupération ouvre immédiatement la modale de durée. La valeur proposée provient du défaut Profil de récupération, initialement 0min30s. Cette règle dérivée conserve le réglage existant en déplaçant son application de la création d’occurrence à l’ajout explicite. Une modification ultérieure du Profil n’altère pas les pauses déjà ajoutées.
+Sélectionner Récupération ouvre immédiatement la modale de durée. La valeur proposée provient du défaut Profil de récupération, initialement 0 min 30 s. Cette règle dérivée conserve le réglage existant en déplaçant son application de la création d’occurrence à l’ajout explicite. Une modification ultérieure du Profil n’altère pas les pauses déjà ajoutées.
 
 ## Formats de séances
 

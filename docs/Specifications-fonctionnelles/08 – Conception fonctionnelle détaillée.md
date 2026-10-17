@@ -208,13 +208,13 @@ La feuille travaille sur une copie des paramètres du parent. ✕/retour systèm
 
 Activation variable : chaque ligne copie la cible et la Pause uniformes courantes. Désactivation : sans confirmation ni message temporaire, l’état uniforme reprend la **première ligne dans l’ordre courant**. Réactivation avant ✓ restitue le dernier tableau variable. Si ✓ valide en uniforme, les anciennes valeurs variables cachées ne sont pas persistées.
 
-Augmentation de N : rétablir d’abord les lignes temporairement retirées ; au-delà des lignes récupérables, copier la dernière ligne active. Réduction : retirer les dernières lignes de la liste active, conserver temporairement leur cible/Pause et leur ordre pour une restauration avant ✓. Restaurer une tranche retirée dans son ordre relatif d’origine (par exemple réduire 5→3 puis revenir à5 restitue 4 puis5, pas5 puis4). Après ✓, les lignes retirées ne sont plus conservées.
+Augmentation de N : rétablir d’abord les lignes temporairement retirées ; au-delà des lignes récupérables, copier la dernière ligne active. Réduction : retirer les dernières lignes de la liste active, conserver temporairement leur cible/Pause et leur ordre pour une restauration avant ✓. Restaurer une tranche retirée dans son ordre relatif d’origine (par exemple réduire 5→3 puis revenir à 5 restitue 4 puis5, pas5 puis4). Après ✓, les lignes retirées ne sont plus conservées.
 
 **Déplacement validé** : la cible, la Pause et la cadence éventuelle se déplacent ensemble ; les lignes sont renumérotées 1..N dans l’ordre obtenu ; la nouvelle dernière ligne porte PN. Les lignes actives déplacées conservent leur nouvel ordre lors de la restauration des lignes retirées, qui sont réinsérées en fin dans leur ordre conservé. La désactivation reprend la nouvelle première ligne. ✕ annule aussi les déplacements.
 
 Changement de mode : conserver N et les Pauses ; remplacer les cibles incompatibles par —, sans conversion Durée/Répétitions. Revenir au mode précédent avant ✓ restaure ses dernières cibles. Une valeur — n’est jamais zéro.
 
-**N=1 — arbitrage explicite** : état effectif uniforme et Ordre des côtés effectif Un côté après l’autre **dès le brouillon et son calcul**, pas seulement à la sauvegarde. Champ de régime non modifiable, selon la normalisation N1 existante ; Ordre des côtés grisé lorsqu’il est visible en bilatéral ; aucun texte explicatif. Conserver temporairement l’ancien état variable, ses lignes et l’ancien ordre des côtés pour les restaurer si N remonte à2+ avant ✓. Valider à1 ne conserve qu’une série uniforme et l’ordre par défaut. Hors circuit de séries, les deux formules bilatérales ne sont pas déclarées équivalentes à N=1 : la normalisation choisit explicitement la première. Dans un circuit de séries, le passage suit toujours premier côté → PC → second côté → Pi, y compris pour compte1 ; aucun Pi supplémentaire avant PC.
+**N=1 — arbitrage explicite** : état effectif uniforme et Ordre des côtés effectif Un côté après l’autre **dès le brouillon et son calcul**, pas seulement à la sauvegarde. Champ de régime non modifiable, selon la normalisation N1 existante ; Ordre des côtés grisé lorsqu’il est visible en bilatéral ; aucun texte explicatif. Conserver temporairement l’ancien état variable, ses lignes et l’ancien ordre des côtés pour les restaurer si N remonte à 2+ avant ✓. Valider à 1 ne conserve qu’une série uniforme et l’ordre par défaut. Hors circuit de séries, les deux formules bilatérales ne sont pas déclarées équivalentes à N=1 : la normalisation choisit explicitement la première. Dans un circuit de séries, le passage suit toujours premier côté → PC → second côté → Pi, y compris pour compte1 ; aucun Pi supplémentaire avant PC.
 
 ### Champs et comportements des fonctionnalités
 
@@ -240,8 +240,8 @@ L’Étiquette est gérée directement dans la Composition via une modale basse.
 | Pause après chaque série | Stepper permanent | Uniforme ou par ligne variable CE-UI-10 | Non | 0 s | 0..300 s ; tap1 et maintien DSF Bip | Exercice / Série | −/+ | Après chaque série, dernière comprise ; seule la dernière Pause est remplacée par R positive en occurrence |
 | Nombre de Séries          | Stepper intégré | Mode déployé                  | Oui         | 1                              | Entier de 1 à 99 (D-092)                       | Activité | Sélection      | Commandes − / valeur / + permanentes dans la feuille CE-UI-10 ; valeur canonique persistée |
 | Changement de côté | Contrôle | Mode déployé | Non | `Aucun` (`UNILATERAL`) | `UNILATERAL`, `D→G`, `G→D` | Activité | Déployer le contrôle sous sa ligne dans la feuille | Aucun réglage de côté n’est exposé au niveau Circuit |
-| Pause entre les côtés | Stepper permanent CE-UI-10 | Visible uniquement en `D→G/G→D` | Non | Copie de la valeur courante du Profil (initialement 10 s) | 0..5min ; tap1s, maintien DSF Bip | Activité | Sélection | `sideRecoverySeconds`; une phase entre les côtés selon l’Ordre des côtés ; aucune récupération post-activité dans l’éditeur |
-| Bip de cadence | Stepper | Trois modes, réglage commun | Non | Aucun (0) | Entier0..10s | Série | ± dans le brouillon ;0 retire le bip | Propagation à toutes les Séries ; conservation au changement de mode |
+| Pause entre les côtés | Stepper permanent CE-UI-10 | Visible uniquement en `D→G/G→D` | Non | Copie de la valeur courante du Profil (initialement 10 s) | 0..5 min ; tap1 s, maintien DSF Bip | Activité | Sélection | `sideRecoverySeconds`; une phase entre les côtés selon l’Ordre des côtés ; aucune récupération post-activité dans l’éditeur |
+| Bip de cadence | Stepper | Trois modes, réglage commun | Non | Aucun (0) | Entier0..10 s | Série | ± dans le brouillon ;0 retire le bip | Propagation à toutes les Séries ; conservation au changement de mode |
 | Durée totale | Valeur calculée | Durée/Répétitions | Non | Calculée | Formules chapitre 08, paramètres d’exercice | Calcul | Roulette en Durée uniforme seulement | Variable : lecture seule ; ligne affichée, y compris à N = 1 (D-396), avec « — » lorsqu’une cible nécessaire au calcul manque (D-384) ; Répétitions chiffrées avec bip≈ ; sans bip absente ; mélange calculable≥ ; tout échec absent (ligne masquée faute de durée totale calculée, D-397) |
 | Médias                    | Zone média | Selon état | Non | Vide | Le média associé est présenté dans la gouttière permanente de 64 px de la carte Catalogue ; aucun déploiement de carte d’Exercice n’est accessible au MVP (D-260/D-261) ; l’import/ajout local est inclus au MVP dans PRE-3 (D-333), sans activation implicite de la caméra | Activité | Afficher / masquer | La Synthèse reste au-dessus en cas de chevauchement dans l’éditeur |
 | Bouton Terminer           | Bouton            | Toujours                           | Oui         | Désactivé si activité invalide | Nom, une Catégorie, au moins une Zone et un mode obligatoires ; cible valide selon le mode (D-211 ; bornes conservées par D-232 ; une valeur héritée hors bornes, non modifiée, peut être conservée, D-383) | Statique | Enregistrer | Remplace l’ancien libellé `Valider` puisqu’il n’existe plus de second écran |
@@ -333,7 +333,7 @@ Le bouton indique « Confirmer N pauses ajoutées » ; N compte les ajouts du so
 
 Confirmer applique atomiquement le sous-brouillon au brouillon parent. Continuer seul enregistre la Séance. Quitter/abandonner la Composition restitue la version persistée. Échec de validation, double appui et erreur d’écriture ne produisent pas d’ajout partiel.
 
-Les récupérations restent 0..300s avec la grille de pas déjà validée ; 0 est valide, ne produit pas de phase et n’affiche pas d’information de récupération. Un objet explicitement réglé à0 est conservé en base, distinct de l’absence ; seul son retrait explicite supprime l’objet. La valeur0 ne crée aucune phase et ne remplace pas la Pause finale de Série. Tester séparément présence de données et visibilité.
+Les récupérations restent 0..300 s avec la grille de pas déjà validée ; 0 est valide, ne produit pas de phase et n’affiche pas d’information de récupération. Un objet explicitement réglé à 0 est conservé en base, distinct de l’absence ; seul son retrait explicite supprime l’objet. La valeur0 ne crée aucune phase et ne remplace pas la Pause finale de Série. Tester séparément présence de données et visibilité.
 
 <a id="phrases"></a>
 #### Phrase de synthèse des paramètres
@@ -346,8 +346,8 @@ Le total est celui du moteur : ≥ pour mélange calculable, prioritaire sur ≈
 
 | Cas complémentaire | Fragment cible attendu | Total métier |
 |---|---|---|
-| Durée 30s,45s,échec | 3 séries de durée variable (30 s, 45 s puis jusqu’à l’échec) | ≥ si calculable |
-| Durée 30s,45s,60s,échec | 4 séries variables, de 30 s à l’échec | ≥ |
+| Durée 30 s,45 s,échec | 3 séries de durée variable (30 s, 45 s puis jusqu’à l’échec) | ≥ si calculable |
+| Durée 30 s,45 s,60 s,échec | 4 séries variables, de 30 s à l’échec | ≥ |
 | Répétitions 10,12,15,échec | 4 séries variables, de 10 rép. à l’échec | ≥ avec bip ; absent sans bip |
 | Trois cibles échec, pauses variables | 3 séries menées jusqu’à l’échec | Absent ; aucune clause énumérant les pauses |
 
@@ -521,7 +521,7 @@ Si l’utilisateur appuie sur `Exercice suivant` avant zéro, une confirmation e
 
 Pour un Exercice défini par un nombre de répétitions, l’écran conserve le même layout que pour un Exercice chronométré.
 
-Le temps actif est affiché par un chronomètre croissant à partir de00:00. Sans cadence, aucune durée prescrite ; avec cadence, Ri×Ci définit une fin nominale, sans fin automatique de Série.
+Le temps actif est affiché par un chronomètre croissant à partir de 00:00. Sans cadence, aucune durée prescrite ; avec cadence, Ri×Ci définit une fin nominale, sans fin automatique de Série.
 
 Sans cadence, le cercle du minuteur effectue une rotation complète par minute :
 
@@ -610,8 +610,8 @@ Si l’application passe en arrière-plan ou si l’écran se verrouille :
 Une mise en pause de sécurité est appliquée en cas d’inexercice prolongée :
 
 - pour un Exercice chronométré, si aucune interaction n’a eu lieu 30 minutes après sa fin théorique ;
-- pour une Série Répétitions cadencée,30min après la fin nominale recalculée sans interaction ;
-- pour un Exercice en Répétitions sans cadence ou À l’échec,2h sans interaction depuis son démarrage.
+- pour une Série Répétitions cadencée,30 min après la fin nominale recalculée sans interaction ;
+- pour un Exercice en Répétitions sans cadence ou À l’échec,2 h sans interaction depuis son démarrage.
 
 Le comportement précis fait l’objet du spike technique prévu avant le développement complet du moteur d’Exécution.
 
