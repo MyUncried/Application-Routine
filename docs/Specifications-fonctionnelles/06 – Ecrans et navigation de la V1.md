@@ -400,7 +400,7 @@ Le chiffre du compteur ouvre les boutons −/+ ; la pastille portant uniquement 
 
 La synthèse n’est plus affichée isolément au bas de l’écran. Elle est recalculée uniquement après une modification validée qui affecte les Exercices ou le nombre de Tours. La confirmation du `Compte à rebours initial` ou de la `Fin de séance` actualise seulement le jalon structurel concerné et ne modifie jamais cette synthèse. Celle-ci reste attachée au conteneur Circuit dans ses états applicables.
 
-Le nombre se règle via ± révélés par appui sur le chiffre. La diminution est sans message ; une conversion de nature entraînant une perte exige une confirmation atomique. Les modifications appartiennent au brouillon de Composition jusqu’à son enregistrement ; bornes 1–99 et valeur initiale 1 inchangées.
+La diminution est sans message ; une conversion de nature entraînant une perte exige une confirmation atomique. Les modifications appartiennent au brouillon de Composition jusqu’à son enregistrement ; bornes 1–99 et valeur initiale 1 inchangées.
 
 #### Composition — ligne de Série variable — références
 
@@ -1577,9 +1577,9 @@ Tous les écrans et états représentés dans la page Figma `Prototype MVP` util
 #### Boutons et zones tactiles
 
 - Un bouton principal occupe la largeur utile, possède une hauteur minimale de `48` points et un rayon de `24` points.
-- Un bouton secondaire compact peut avoir une hauteur visuelle de `32` points et un rayon de `16` points, mais il est placé dans une cible tactile d’au moins `48 × 48` points logiques sur toutes les plateformes du MVP.
+- Un bouton secondaire compact peut avoir une hauteur visuelle de `32` points et un rayon de `16` points, mais il est placé dans une cible tactile d’au moins `44 × 44` points logiques sur toutes les plateformes du MVP ; les dimensions spécifiques de `48 × 48` restent conservées (D-087, D-234).
 - Une icône seule possède la même cible tactile minimale, même si son dessin est plus petit.
-- Un champ, un contrôle segmenté ou une autre commande visuelle de `32` à `42` points conserve sa hauteur visuelle lorsqu’elle est intentionnelle. Son composant interactif utilise néanmoins un conteneur tactile ou un `hitSlop` portant sa cible effective à `48 × 48` au minimum, sans chevauchement avec une cible voisine.
+- Un champ, un contrôle segmenté ou une autre commande visuelle de `32` à `42` points conserve sa hauteur visuelle lorsqu’elle est intentionnelle. Son composant interactif utilise néanmoins un conteneur tactile ou un `hitSlop` portant sa cible effective à `44 × 44` au minimum (D-087, D-234), sans chevauchement avec une cible voisine.
 - Deux actions adjacentes conservent au moins `8` points entre leurs cibles. Si elles ne tiennent plus, elles passent verticalement plutôt que de réduire leur surface tactile.
 - Les états actif, pressé, désactivé, sélectionné et destructif utilisent les tokens sémantiques ; leur signification ne repose jamais uniquement sur la couleur.
 
@@ -1772,7 +1772,7 @@ Tous les dialogues de décision utilisent `Overlay / Decision Dialog` (`2590:296
 
 ### Champs et comportements des fonctionnalités — Conventions communes d’interface
 
-D-221 retire la recherche globale et toute recherche locale des Catalogues du MVP. D-222 distingue sélection simple auto-validée et sélection multiple avec validation explicite. D-223 rend le titre de Planifier contextuel. Les règles de rendu communes sont celles de D-224 à D-230 : fonds/zones de contexte, navigation, halo et actions circulaires, steppers/badges, listes/modales, roulettes et composants spécialisés. Elles ne modifient le métier que lorsqu’un comportement est explicitement décrit.
+D-221 retire la recherche globale et toute recherche locale des Catalogues du MVP. D-222, révisée le 08/10, impose en planification la modale à cases à cocher validée par « Ajouter 1 élément » ou « Ajouter n éléments », même pour un seul contenu ; les contrats de Composition et de référentiels conservent leurs règles propres. D-223 rend le titre de Planifier contextuel. Les règles de rendu communes sont celles de D-224 à D-230 : fonds/zones de contexte, navigation, halo et actions circulaires, steppers/badges, listes/modales, roulettes et composants spécialisés. Elles ne modifient le métier que lorsqu’un comportement est explicitement décrit.
 
 ### Migration T03 — Catalogue des Exercices — Impacts de données de la revue des cartes
 

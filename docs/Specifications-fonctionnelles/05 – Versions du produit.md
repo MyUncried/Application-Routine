@@ -249,7 +249,7 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 - carte d’Exercice à gouttière permanente au MVP, photo ou icône de nature, sans Déployer quel que soit le média (D-260/D-261) ; l’activation de cet affichage n’implique pas de nouveau mécanisme d’import ou de capture.
 - nouvelle structure d’édition d’un Exercice : suppression du type, accès `Catégorie` et `Zones corporelles`, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Changement de côté / Pause entre les côtés / Durée totale`, la Pause entre les côtés étant conditionnelle à `D→G/G→D` ;
 - référentiels Étiquettes / Catégories / Zones corporelles administrables dans le MVP : toutes les valeurs, initiales comme personnalisées, sont supprimables par appui long puis confirmation ; création et renommage suivent les parcours propres à chaque référentiel ;
-- modèle D-208 : `ActivityDefinition` porte seulement la Pause entre les côtés éventuelle ; chaque occurrence de Séance porte sa récupération après exercice, y compris à `0 s`, exécutée après l’occurrence et exclue de la durée intrinsèque de l’Exercice.
+- modèle D-208 : `ActivityDefinition` porte seulement la Pause entre les côtés éventuelle ; une occurrence de Séance peut porter une récupération après exercice ajoutée explicitement, jamais créée automatiquement (D-304, D-307) ; positive, elle est exécutée après l’occurrence et exclue de la durée intrinsèque de l’Exercice.
 
 ### MVP — complément PRE-3 (D-333)
 

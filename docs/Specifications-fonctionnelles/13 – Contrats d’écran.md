@@ -397,7 +397,7 @@ Aucune/une Étiquette ; liste vide ; création ; nom invalide ; sélection retir
 
 #### 12. Contrôles et interactions
 
-Tap valide une sélection simple ; appui long ne change pas la sélection et ouvre le dialogue Modifier/Supprimer (D-259). Créer valide le référentiel ; son affectation reste dans le brouillon de Séance. La suppression globale conserve les affectations existantes D-210.
+Tap marque ou démarque l’Étiquette sans fermer, ✓ applique le choix (D-355) ; appui long ne change pas la sélection et ouvre le dialogue Modifier/Supprimer (D-259). Créer valide le référentiel ; son affectation reste dans le brouillon de Séance. La suppression globale conserve les affectations existantes D-210.
 
 #### 13. Gestes
 
@@ -521,7 +521,7 @@ Références Figma courantes :
 
 - l’action Étiquette ouvre une modale basse sur la Composition ;
 - la modale affiche les Étiquettes disponibles et l’action `Nouvelle étiquette` ;
-- sélectionner une Étiquette ferme le choix et affiche son libellé sous le nom de la Séance ; sa couleur devient la couleur de la Séance ;
+- toucher une Étiquette la marque sans fermer ; ✓ applique le choix et ferme la modale, puis son libellé s’affiche sous le nom de la Séance ; sa couleur devient la couleur de la Séance (D-355) ;
 - `Nouvelle étiquette` ouvre la saisie `Nom de l’étiquette` dans la modale ; l’action d’envoi ajoute la nouvelle valeur aux choix ;
 - les libellés visibles dans Figma (`Marathon`, `Hyrox`, `Vacances d'été`, `Challenge groupe`) sont des données de démonstration, pas des valeurs codées en dur ;
 - la navigation et les autres valeurs déjà saisies dans la Composition sont conservées pendant l’ouverture/fermeture de la modale.
@@ -534,8 +534,7 @@ La validation de la Séance reste portée par l’action `Continuer` de la Compo
 
 | Élément affiché | Type | Visible | Valeur / comportement | Action |
 | --- | --- | --- | --- | --- |
-| Bouton Ajouter (+) | Bouton | Toujours | Visible | Créer une Séance |
-| Champ Recherche | Champ texte | Toujours | Recherche instantanée sur le nom | Filtrer |
+| Commande `Créer` | Bouton | Toujours | Visible | Créer une Séance (D-187) |
 | Filtre `Toutes` | Filtre | Toujours | Affiche toutes les Séances actives, planifiées ou non ; exclut les archivées | Filtrer |
 | Filtre `Planifiées` | Filtre | Toujours | Séances ayant au moins une Routine | Filtrer |
 | Filtre `Non planifiées` | Filtre | Toujours | Séances actives ne possédant aucune Routine | Filtrer |
@@ -1448,7 +1447,7 @@ Le Circuit reste structurel. Le Compte à rebours initial et la Fin de séance s
 
 ### Composer une séance / Modifier une séance — Sélection des exercices — modale
 
-Depuis `Ajouter un exercice`, la frame `3789:5349` ouvre directement la sélection des Exercices du Catalogue au-dessus de la Composition grisée. La liste seule défile. Les boutons fixes sont `Annuler` à gauche et `Ajouter N exercice(s)` à droite.
+Depuis `Ajouter un exercice`, la frame `3789:5349` ouvre directement la sélection des Exercices du Catalogue au-dessus de la Composition grisée. La liste seule défile. Les boutons fixes sont `Annuler` à gauche et `Sélectionner` à droite (D-228).
 
 Les Exercices sont insérés selon leur ordre courant de présentation dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers. L’état sélectionné de la sélection multiple utilise le composant DSF dédié ; aucun glyphe texte ne peut le remplacer.
 
@@ -1517,7 +1516,7 @@ Le Cycle reste présent dans le modèle avec une répétition toujours égale à
 
 Le Compte à rebours initial et la Fin de séance conservent chacun leur propre valeur confirmée et leur propre brouillon. L’ouverture copie la dernière valeur confirmée dans le brouillon ; le défilement ne modifie ni le jalon concerné ni la synthèse intégrée au Circuit. Annuler abandonne le brouillon. Confirmer enregistre exactement les minutes et secondes centrées, puis actualise seulement le jalon structurel concerné. La synthèse sous `Nombre de tours` reste inchangée, car elle exclut ces deux éléments structurels hors Circuit. Les secondes couvrent `00` à `59` avec un pas de `1`.
 
-Dans la variante d’actions glissées (`2028:11808`), la liste conserve l’origine verticale canonique `y = 92` sous l’en-tête fixe. La carte ou le bloc suit le glissement et révèle progressivement `Dupliquer` et `Supprimer` placés derrière. Selon D-208, la ligne `Récupération {durée}` est systématique pour toute occurrence, y compris à `0 s`; le groupe d’actions couvre donc le bloc complet occurrence + ligne de récupération. Les anciennes géométries distinguant un bloc avec/sans récupération sont historiques sur cet axe jusqu’au réalignement Figma. `Dupliquer` conserve les rayons définis par Figma/DSF et un espace visuel à son bord gauche laisse apparaître le fond du conteneur Circuit conformément à D-176.
+Dans la variante d’actions glissées (`2028:11808`), la liste conserve l’origine verticale canonique `y = 92` sous l’en-tête fixe. La carte ou le bloc suit le glissement et révèle progressivement `Dupliquer` et `Supprimer` placés derrière. Selon D-217, la ligne structurelle de récupération est présente pour toute occurrence ; absente ou à `0 s`, elle n’affiche aucune information de récupération et seul le trait demeure (D-303) ; le groupe d’actions couvre donc le bloc complet occurrence + ligne de récupération. Les anciennes géométries distinguant un bloc avec/sans récupération sont historiques sur cet axe jusqu’au réalignement Figma. `Dupliquer` conserve les rayons définis par Figma/DSF et un espace visuel à son bord gauche laisse apparaître le fond du conteneur Circuit conformément à D-176.
 
 Dans la variante d’appui long (`3518:4576`), l’occurrence et sa ligne `Récupération {durée}` constituent un seul bloc fonctionnel déplacé ensemble. Les dimensions historiques liées à une récupération conditionnelle sont supersédées sur cet axe par D-208 et doivent être requalifiées après réalignement Figma. L’état soulevé reste transitoire : il ne modifie ni `postActivityRecoverySeconds` ni les autres données avant la dépose.
 
@@ -2913,7 +2912,7 @@ Un seul layout standard est utilisé pour les Exercices en Durée, en Répétiti
 
 L’écran peut être ouvert :
 
-- depuis la zone principale d’une carte du Catalogue ;
+- depuis la zone `Démarrer` d’une carte de Séance ou le bouton Lecture d’une carte d’Exercice du Catalogue (D-049, RM-162) ;
 - depuis l’action `Démarrer` d’une occurrence planifiée, y compris lorsqu’une occurrence future est exécutée en avance.
 
 L’ouverture de l’écran ne démarre pas immédiatement l’Exercice.
@@ -2962,7 +2961,7 @@ Référence Figma : `1992:8224`, `Modal — Réinitialiser l’exercice`. Le dia
 
 #### Objectif
 
-Permettre de recommencer l’Exercice / Série en cours depuis son état initial sans revenir en arrière dans la Séance.
+Permettre de recommencer depuis son état initial le périmètre courant (Série courante en unilatéral, bloc du côté courant en bilatéral, phase courante pendant une récupération, D-029) sans revenir en arrière dans la Séance.
 
 #### Ouverture
 
@@ -3135,7 +3134,7 @@ La notion d'« étape » n'est pas affichée comme indicateur de progression dan
 | Ouverture | Ouvrir l’écran d’Exécution ne démarre pas automatiquement le premier Exercice. |
 | Exercice chronométré | Compte à rebours. `Exercice suivant` avant zéro demande confirmation et enregistre l’Exercice comme `Partielle`. |
 | Exercice en Répétitions ou À l’échec | Chronomètre croissant ; sans cadence/À l’échec : rotation et bip minute. Avec cadence : intervalles sans signal nominal final, progression temporelle des seules cibles chiffrées sans fin automatique ; Pause/Reprise sur intervalle complet. Suivant termine normalement dans les deux cas. |
-| Réinitialisation | Demande confirmation et remet l’Exercice courant à son état initial sans revenir à un Exercice antérieur. |
+| Réinitialisation | Demande confirmation et remet à son état initial le périmètre courant (Série courante en unilatéral, bloc du côté courant en bilatéral, phase courante pendant une récupération, D-029) sans revenir à un Exercice antérieur. |
 | Pause / arrêt | `Pause` ouvre la modale permettant `Reprendre la séance` ou `Arrêter la séance`. Aucun bouton Arrêter direct n’est présent sur l’écran. |
 | Présentation | Le nouveau layout regroupe chrono circulaire, côté courant, cible `Sur`, Série/Tour, progression segmentée et bloc `Temps écoulé / À suivre`. Le contenu d’Exécution utilise Roboto Condensed ; le titre supérieur de Séance et les dialogues utilisent Inter. |
 | Navigation | L’utilisateur ne revient pas à un Exercice déjà exécutée. |
@@ -3853,7 +3852,7 @@ En vue Semaine, la liste est organisée chronologiquement en sections journaliè
 
 La barre de semaine occupe toute la largeur utile. Les sept jours forment sept colonnes flexibles de même largeur ; aucune largeur de cellule ni position horizontale issue du gabarit `402` n’est conservée en dur. Les espacements s’adaptent afin que les sept jours restent entièrement visibles dès `360` points et utilisent l’espace supplémentaire sur un grand téléphone. La grille de la vue Mois applique la même répartition en sept colonnes égales.
 
-`+ Planifier` ouvre le bottom sheet `Choisir une séance`. La liste y défile si nécessaire ; toucher une Séance valide le choix et ferme la modale sans CTA bas (D-222).
+`+ Planifier` ouvre la modale de sélection à cases à cocher, titrée « Choisir des séances » ou « Choisir des exercices » selon le segment. La liste y défile si nécessaire ; toucher un contenu bascule sa case sans fermer la modale ; la validation se fait par « Ajouter 1 élément » ou « Ajouter n éléments » (D-222 révisée).
 
 Lorsqu’une occurrence future est exécutée en avance, elle est considérée exécutée pour cette occurrence et n’est plus proposée à son horaire initial.
 
@@ -4462,6 +4461,8 @@ Les notifications ne sont pas autorisées par défaut. La demande d’autorisati
 | Fin de séance par défaut            | Sélecteur durée | Toujours |         Oui | 5 s                        | 0 à 60 s, pas 1 s (D-265)       | Préférences | Modifier             | 0 s = phase instantanée (D-089)                      |
 | Notifications                       | Interrupteur    | Toujours |         Oui | Non autorisées             | Booléen                         | Préférences | Activer / Désactiver | Demande système lors de la première activation d’un rappel |
 
+Les valeurs par défaut Pause entre les côtés, Compte à rebours d’un exercice, Fin d’exercice et Récupération après exercice figurent aussi au Profil (D-240) : voir [CE-UI-07 — Profil — préférences et défauts d’exécution](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-ui-07--profil--préférences-et-défauts-dexécution).
+
 ## Référentiels
 
 ### CE-UI-09 — Référentiels d’Exercice — Catégorie et Zones corporelles
@@ -4518,7 +4519,7 @@ Liste vide/initiale/enrichie ; aucune/une Catégorie ; zéro/N Zones ; création
 
 #### 12. Contrôles et interactions
 
-Catégorie tap valide/ferme ; Zones tap toggle puis confirmer. Appui long ouvre le dialogue Modifier/Supprimer sans sélectionner (D-259). Créer/renommer conserve identité de référence ; changer couleur Catégorie se propage aux objets courants, pas aux instantanés.
+Catégorie tap marque sans fermer, ✓ confirme et ferme (D-343) ; Zones tap toggle puis confirmer. Appui long ouvre le dialogue Modifier/Supprimer sans sélectionner (D-259). Créer/renommer conserve identité de référence ; changer couleur Catégorie se propage aux objets courants, pas aux instantanés.
 
 #### 13. Gestes
 

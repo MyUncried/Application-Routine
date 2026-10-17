@@ -60,10 +60,10 @@ Une séance possède directement :
 - zéro ou une Étiquette, qui porte sa couleur affichée ;
 - un compte à rebours initial ;
 - un cycle ;
-- un Tour contenu dans le cycle ;
+- un Circuit (conteneur technique `Tour`) contenu dans le cycle ;
 - les exercices contenues dans le Circuit ;
 - une fin de séance ;
-- le paramètre de répétition de son Tour ; le Cycle vaut toujours 1 dans le MVP.
+- le paramètre de répétition de son Circuit ; le Cycle vaut toujours 1 dans le MVP.
 
 Elle ne contient pas directement :
 
@@ -186,7 +186,7 @@ Les Cycles et les Tours ne sont pas réutilisables ou partageables entre plusieu
 - La suppression d’une Séance archivée demande toujours confirmation. Les Routines associées ont déjà été supprimées lors de l’archivage.
 - La suppression d’une séance ne supprime jamais les exécutions déjà enregistrées ni leurs instantanés.
 - Une modification de la séance n’altère jamais les exécutions déjà présentes dans le suivi.
-- Le cycle et le Tour ne peuvent pas être supprimés.
+- Le cycle et le Circuit ne peuvent pas être supprimés.
 - Le nombre de répétitions du Cycle vaut toujours 1 dans le MVP. Le nombre de Tours du Circuit est compris entre 1 et 99.
 - Les exercices peuvent être ajoutées, modifiées, déplacées, dupliquées ou supprimées.
 - Les sons et les annonces vocales ne sont pas enregistrés dans la séance ; ils proviennent des préférences globales.
@@ -245,7 +245,7 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 
 #### Suppression d’un média
 
-Les règles suivantes sont préparatoires et ne s’appliquent qu’après l’introduction des médias :
+Les règles suivantes s’appliquent aux médias, dont l’import/ajout est inclus au MVP (D-333) :
 
 - Un fichier physique local peut être référencé par plusieurs entités/associations Média, chacune appartenant à une seule Exercice.
 - Le retrait d’un média depuis un Exercice supprime uniquement l’association ciblée.
@@ -272,13 +272,13 @@ La restauration d'une Séance :
 - nécessite la création de nouvelles Routines si l'utilisateur souhaite la planifier de nouveau.
 ##### Suppression d'une séance
 
-- Supprime la séance et les routines qui la référencent.
+- Supprime définitivement la séance archivée ; ses routines ont déjà été supprimées lors de l’archivage (D-023, D-121).
 - Ne supprime jamais les exécutions de séance ni leurs instantanés.
 
 #### Historique
 
-- L'historique est constitué exclusivement des exécutions de séance.
-- Chaque exécution possède son propre instantané de séance.
+- L'historique est constitué des exécutions de séance (origine `SESSION`) et des Exécutions directes d’Exercice (origine `ACTIVITY`, D-161).
+- Chaque exécution possède son propre instantané de sa source (Séance ou Exercice).
 - Une modification de la séance n'affecte jamais les exécutions existantes.
 
 ## Exercices
@@ -329,7 +329,7 @@ Elle ne contient pas directement :
 | Tour (technique) | Conteneur technique historique représentant le Circuit fonctionnel | Conditionnel | Obligatoire uniquement pour un Exercice fonctionnellement placé dans le Circuit (`Dans Tour` techniquement) |
 | Nom                        | Libellé affiché                                 |        Obligatoire        |                                                                               |
 | Description                | Instructions                                    |        Facultatif         |                                                                               |
-| Catégorie                  | Classification de l’Exercice                    |        Facultatif         | Porte la couleur sémantique de l’Exercice                                      |
+| Catégorie                  | Classification de l’Exercice                    | Obligatoire (nouvel Exercice) | Exactement une pour un nouvel Exercice valide (D-211) ; porte la couleur sémantique de l’Exercice                                      |
 | Changement de côté        | `UNILATERAL`, `RIGHT_LEFT`, `LEFT_RIGHT`        |        Obligatoire        | Affiché `Aucun`, `D→G`, `G→D`; défaut `UNILATERAL`                             |
 | Compte à rebours d’Exercice | Durée propre précédant le travail              |        Facultatif         | Distinct du Compte à rebours initial de Séance                                 |
 | Fin d’exercice            | Durée propre suivant les phases de l’Exercice   |        Facultatif         | Distincte de la Fin de séance                                                   |
@@ -343,7 +343,7 @@ Elle ne contient pas directement :
 | Paramètres par Série | Collection ordonnée de N cibles/Pauses | Conditionnel | Source unique en variable ; cible absente À l’échec ; aucun brouillon caché persisté |
 | Ordre des côtés | Un côté après l’autre / Les deux côtés à chaque série | Bilatéral | Premier ordre par défaut et à N=1 ; indépendant de D→G/G→D |
 | Durée totale               | Durée dérivée                                   |          Calculé          | Non persistée ; exacte en Durée, estimation ≈ avec cadence, borne omission sans bip à l’Exercice, absente À l’échec                            |
-| Zones corporelles          | Zones sollicitées                               |        Facultatif         | Zéro à plusieurs                                                              |
+| Zones corporelles          | Zones sollicitées                               | Obligatoire (nouvel Exercice) | Une ou plusieurs pour un nouvel Exercice valide (D-211)                                                              |
 | Médias                     | Média(s) associé(s)                             |        Selon périmètre    | Affichage du média associé dans la gouttière permanente de la carte Catalogue inclus au MVP, sans déploiement       |
 
 #### Règles métier
@@ -453,7 +453,7 @@ Une Exécution directe d’Exercice :
 - utilise un instantané autonome immuable de l’`ActivityDefinition` au lancement ;
 - ne crée aucune Séance technique ou artificielle ;
 - applique la préparation système fixe de `5 s` ;
-- exécute ensuite les phases propres de l’Exercice, y compris son Compte à rebours éventuel, ses Séries, Pauses, côtés, Récupération et Fin d’exercice éventuelle ;
+- exécute ensuite les phases propres de l’Exercice, y compris son Compte à rebours éventuel, ses Séries, Pauses, côtés (dont la Pause entre les côtés éventuelle) et Fin d’exercice éventuelle, sans Récupération après exercice (D-248) ;
 - ne contient ni Cycle ni Tour de Séance artificiels ;
 - alimente le Suivi et les statistiques compatibles sans augmenter le nombre de Séances.
 
@@ -1298,8 +1298,8 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 - Une **Routine** porte un créneau et une liste ordonnée de contenus SESSION/ACTIVITY.
 - Une même séance peut être associée à plusieurs routines.
 - Une séance contient un **cycle**.
-- Un cycle contient un **Tour**.
-- Le cycle et le Tour possèdent chacun un nombre de répétitions.
+- Un cycle contient un **Circuit** (conteneur technique `Tour`).
+- Le cycle et le Circuit possèdent chacun un nombre de répétitions.
 - Un Circuit contient une suite ordonnée d'Exercices ; un Tour est une répétition complète de ce Circuit.
 - Un Exercice ne possède pas de type `Exercice` ou `Récupération`.
 - Un Exercice possède un nombre de Séries propre, de 1 à 99 (D-092), une Pause après chaque série d’un même côté et, lorsqu’elle est bilatérale, une `sideRecoverySeconds` facultative exécutée entre les deux côtés. La récupération post-exercice appartient à l’occurrence, pas à l’`ActivityDefinition`.
@@ -1317,7 +1317,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | Utilisateur | Propriétaire des données | Principale |
 | Séance | Définition réutilisable d'un entraînement | Principale |
 | Cycle | Structure ordonnée de la séance portant son propre nombre de répétitions | Structure interne de séance |
-| Tour | Conteneur ordonné d'exercices portant son propre nombre de répétitions | Structure interne de séance |
+| Circuit (conteneur technique `Tour`) | Conteneur ordonné d'exercices portant son propre nombre de répétitions | Structure interne de séance |
 | Routine | Créneau et liste ordonnée de références `SESSION`/`ACTIVITY` | Principale |
 | Occurrence planifiée | Trace historisée d'une planification arrivée à échéance | Principale |
 | Exercice | Action élémentaire d'une séance | Principale |
@@ -1365,7 +1365,7 @@ UTILISATEUR
 │       ├── contient 1 CYCLE
 │       │      │
 │       │      ├── nombre de répétitions
-│       │      ├── contient 1 TOUR
+│       │      ├── contient 1 CIRCUIT (conteneur technique TOUR)
 │       │      │      │
 │       │      │      ├── nombre de répétitions
 │       │      │      └── contient 0..n EXERCICES DANS LE CIRCUIT

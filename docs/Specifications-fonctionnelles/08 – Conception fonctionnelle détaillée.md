@@ -168,7 +168,7 @@ Cet instantané est utilisé pour garantir la cohérence de l'historique, même 
 
 Le Catalogue distingue `Exercices` et `Séances`. `Séances` reste le type actif par défaut ; `Exercices` devient également actif dans le MVP à partir de T03. Dans le MVP T03, sélectionner `Exercices` charge les références persistantes ; aucun segment ni objet autonome Parcours n’est prévu (D-328).
 
-La liste des Exercices conserve recherche, filtres, tri et position de défilement dans l’état de navigation. Chaque carte utilise une pastille de Catégorie colorée, sans barre verticale. Sa surface ouvre la consultation ou la modification ; le bouton Lecture lance uniquement l’Exécution directe. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé. Un glissement gauche expose `Planifier / Dupliquer / Archiver` sur les Exercices actives et `Supprimer` dans les archives. Aucune poignée de déplacement n’est affichée.
+La liste des Exercices conserve filtres, tri et position de défilement dans l’état de navigation ; aucune recherche Catalogue n’existe au MVP (D-221). Chaque carte utilise une pastille de Catégorie colorée, sans barre verticale. Sa surface ouvre la consultation ou la modification ; le bouton Lecture lance uniquement l’Exécution directe. Aucun contrôle `Déployer` n’est accessible, avec ou sans média ; le média associé est présenté dans la gouttière permanente de la carte (D-260, D-261). Un glissement gauche expose `Planifier / Dupliquer / Archiver` sur les Exercices actives et `Supprimer` dans les archives. Aucune poignée de déplacement n’est affichée.
 
 #### Créer, consulter ou modifier un Exercice de référence
 
@@ -230,7 +230,7 @@ L’Étiquette est gérée directement dans la Composition via une modale basse.
 | Élément affiché           | Type              | Visible                            | Obligatoire | Valeur par défaut              | Contraintes                                    | Source   | Action         | Remarques                                                                                                                                                                                                                              |
 | ------------------------- | ----------------- | ---------------------------------- | ----------- | ------------------------------ | ---------------------------------------------- | -------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Bouton Retour             | Bouton            | Toujours                           | Oui         | Visible                        | Confirmation si modifications non enregistrées | Système  | Retour         |                                                                                                                                                                                                                                        |
-| Titre de l'écran          | Texte             | Toujours                           | Oui         | "Ajouter une activité"            | Texte fixe                                     | Statique | Aucune         | En modification : "Modifier une activité"                                                                                                                                                                                                 |
+| Titre de l'écran          | Texte             | Toujours                           | Oui         | "Créer un exercice"            | Texte fixe                                     | Statique | Aucune         | En modification : "Modifier un exercice"                                                                                                                                                                                                 |
 | Nom                       | Champ texte       | Toujours                           | Oui         | Vide                           | 1 à 80 caractères | Exercice | Saisie | Premier élément du bandeau bleu ; même hauteur et alignement que `Nom de la séance` en Composition |
 | Catégorie | Bouton / sélection | Toujours | Oui | Aucune | Exactement une Catégorie d’Exercice (D-211) | Exercice | Ouvrir la modale de sélection | Icône Catégorie dans l’état non renseigné ; pilule avec le nom après sélection |
 | Zones corporelles | Bouton / sélection | Toujours | Oui | Aucune | Au moins une Zone, sélection multiple (D-211) | Exercice | Ouvrir la modale de sélection | Icône de zone corporelle selon la silhouette du Profil ; accès à la modale |
@@ -242,7 +242,7 @@ L’Étiquette est gérée directement dans la Composition via une modale basse.
 | Nombre de Séries          | Stepper intégré | Mode déployé                  | Oui         | 1                              | Entier de 1 à 99 (D-092)                       | Exercice | Sélection      | Commandes − / valeur / + permanentes dans la feuille CE-UI-10 ; valeur canonique persistée |
 | Changement de côté | Contrôle | Mode déployé | Non | `Aucun` (`UNILATERAL`) | `UNILATERAL`, `D→G`, `G→D` | Exercice | Déployer le contrôle sous sa ligne dans la feuille | Aucun réglage de côté n’est exposé au niveau Circuit |
 | Pause entre les côtés | Stepper permanent CE-UI-10 | Visible uniquement en `D→G/G→D` | Non | Copie de la valeur courante du Profil (initialement 10 s) | 0..5 min ; tap 1 s, maintien DSF Bip | Exercice | Sélection | `sideRecoverySeconds`; une phase entre les côtés selon l’Ordre des côtés ; aucune récupération post-exercice dans l’éditeur |
-| Bip de cadence | Stepper | Trois modes, réglage commun | Non | Aucun (0) | Entier 0..10 s | Série | ± dans le brouillon ; 0 retire le bip | Propagation à toutes les Séries ; conservation au changement de mode |
+| Bip de cadence | Stepper | Deux modes, réglage commun (D-313) | Non | Aucun (0) | Entier 0..10 s | Série | ± dans le brouillon ; 0 retire le bip | Propagation à toutes les Séries ; conservation au changement de mode |
 | Durée totale | Valeur calculée | Durée/Répétitions | Non | Calculée | Formules chapitre 08, paramètres d’exercice | Calcul | Roulette en Durée uniforme seulement | Variable : lecture seule ; ligne affichée, y compris à N = 1 (D-396), avec « — » lorsqu’une cible nécessaire au calcul manque (D-384) ; Répétitions chiffrées avec bip≈ ; sans bip absente ; mélange calculable≥ ; tout échec absent (ligne masquée faute de durée totale calculée, D-397) |
 | Médias                    | Zone média | Selon état | Non | Vide | Le média associé est présenté dans la gouttière permanente de 64 px de la carte Catalogue ; aucun déploiement de carte d’Exercice n’est accessible au MVP (D-260/D-261) ; l’import/ajout local est inclus au MVP dans PRE-3 (D-333), sans activation implicite de la caméra | Exercice | Afficher / masquer | La Synthèse reste au-dessus en cas de chevauchement dans l’éditeur |
 | Bouton Terminer           | Bouton            | Toujours                           | Oui         | Désactivé si exercice invalide | Nom, une Catégorie, au moins une Zone et un mode obligatoires ; cible valide selon le mode (D-211 ; bornes conservées par D-232 ; une valeur héritée hors bornes, non modifiée, peut être conservée, D-383) | Statique | Enregistrer | Remplace l’ancien libellé `Valider` puisqu’il n’existe plus de second écran |
@@ -542,7 +542,7 @@ L’action ouvre la modale de confirmation.
 
 Après confirmation :
 
-- la Série / Exercice courant recommence depuis son état initial ;
+- en unilatéral, la Série courante recommence depuis son état initial ; en bilatéral, le bloc du côté courant recommence depuis sa première Série (D-029, D-150) ;
 - pour un Exercice chronométré, le compte à rebours retrouve sa durée initiale ;
 - pour un Exercice en Répétitions ou À l’échec, le chronomètre d’Exercice revient à `00:00` ;
 - la cible de répétitions n’est pas modifiée ;
@@ -626,7 +626,7 @@ La Séance source et la Routine éventuelle ne sont jamais modifiées par l’Ex
 
 L’Exécution directe conserve une préparation système fixe de `5 s`. Cette durée n’est pas un attribut de l’Exercice. Les anciennes captures dédiées sont retirées de ce parcours ; les variantes actuelles sont présentées ci-dessous.
 
-L’écran réutilise le moteur et le Shell d’Exécution. Il développe Séries, Pauses, côtés et Récupération, sans structure de Séance artificielle ni phase `SESSION_END`. Après la dernière phase, un signal ouvre immédiatement la Synthèse.
+L’écran réutilise le moteur et le Shell d’Exécution. Il développe Séries, Pauses et côtés, sans Récupération après exercice (D-208), sans structure de Séance artificielle ni phase `SESSION_END`. Après la dernière phase, un signal ouvre immédiatement la Synthèse.
 
 ## Suivi et synthèse
 
@@ -641,7 +641,7 @@ Les séances exécutées sont présentées sous forme de liste chronologique.
 Pour les Exécutions enregistrées, l'utilisateur peut :
 
 - rechercher une Exécution ;
-- modifier l’ordre chronologique d’affichage.
+- modifier l’ordre chronologique d’affichage, hors MVP : dans le MVP, `Trier` est visible mais désactivé (D-031).
 
 Dans le MVP, les cartes du Suivi ont deux lignes, sans déploiement : nature, titre et statut ; puis durée réelle, catégorie et Ressenti lorsqu’il existe. Elles n’affichent ni heure, ni zones corporelles, ni étiquettes. Le détail d’Exécution demeure enregistré dans l’instantané et les résultats ; sa présentation déployée est hors MVP (D-262).
 
@@ -657,7 +657,7 @@ Les résultats sont mis à jour au fur et à mesure de la saisie.
 
 #### Tri
 
-Le Suivi permet d’inverser l’ordre chronologique des Exécutions :
+Hors MVP, le Suivi permettra d’inverser l’ordre chronologique des Exécutions ; dans le MVP, `Trier` est visible mais désactivé (D-031) :
 
 - plus récent au plus ancien ;
 - plus ancien au plus récent.
@@ -666,9 +666,9 @@ Par défaut, les Exécutions sont triées de la plus récente à la plus ancienn
 
 #### Déploiement du détail
 
-Chaque Exécution peut être déployée individuellement dans le MVP afin d’afficher son détail directement dans la carte.
+Dans le MVP, une Exécution du Suivi n’est pas déployée : sa présentation déployée est hors MVP ; le détail d’Exécution demeure enregistré dans l’instantané et les résultats (D-262).
 
-Aucun bouton **Déployer tout / Replier tout** n'est affiché ; le déploiement est géré carte par carte.
+Aucun bouton **Déployer tout / Replier tout** n'est affiché.
 
 ## Interface transverse
 

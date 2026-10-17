@@ -161,7 +161,7 @@ Chaque Exercice possède notamment :
 - un mode d'exécution ;
 - une durée cible, un nombre de répétitions cible ou aucune cible chiffrée pour une cible À l’échec ;
 - un nombre de Séries ;
-- une Pause facultative entre Séries successives ;
+- une Pause facultative après chaque Série, dernière comprise (D-248) ;
 - une `sideRecoverySeconds` facultative, pertinente uniquement pour `D→G` ou `G→D`, exécutée selon l’Ordre des côtés (une fois par Exercice ou une fois par Série) ;
 - un Changement de côté propre : `Aucun`, `D→G` ou `G→D` ;
 - un Compte à rebours d’Exercice facultatif ;
@@ -218,6 +218,12 @@ Elles comprennent :
 - le texte vocal par défaut du compte à rebours initial ;
 - la durée par défaut de la fin de séance ;
 - le texte vocal par défaut de la fin de séance.
+
+**Préférences de création d’un Exercice et d’une occurrence (D-240, D-213) :**
+- la Pause entre les côtés par défaut ;
+- le Compte à rebours d’un exercice par défaut ;
+- la Fin d’exercice par défaut ;
+- la Récupération après exercice par défaut.
 
 **Préférences de planification :**
 - les paramètres par défaut des rappels associés aux routines.
@@ -308,7 +314,7 @@ Elle peut être définie :
 
 - par une durée ;
 - par un nombre de répétitions ;
-- jusqu’à l’échec, sans durée ni nombre de répétitions cibles.
+- dans l’un ou l’autre de ces modes, avec une cible À l’échec par Série, sans durée ni nombre de répétitions cibles ; À l’échec n’est pas un troisième mode (D-111).
 
 Elle peut être associée à une ou plusieurs zones corporelles.
 
@@ -342,7 +348,7 @@ Le **Cycle** contient le **Circuit unique** et les Exercices ordonnés avant et 
 
 Le **Circuit** regroupe une suite ordonnée d'Exercices. Les Exercices placés hors du Circuit sont exécutés une seule fois, avant le premier Tour ou après le dernier Tour selon leur position. Dans la version actuelle, aucun réglage de changement de côté n’est exposé au niveau du Circuit ; tout support technique historique de cette propriété reste fixé à `UNILATERAL` et non modifiable. La bilatéralité reste portée par les Exercices.
 
-Un **Exercice** possède un mode Durée ou Répétitions, avec une cible chiffrée ou À l’échec par Série, un nombre de Séries propre, une Pause facultative entre Séries et, lorsqu’elle est bilatérale, une `sideRecoverySeconds` facultative entre les deux côtés. La Récupération après exercice n’est pas une propriété intrinsèque de l’Exercice : elle appartient à l’occurrence contextualisée. L’Exercice peut également définir un Compte à rebours propre et une Fin d’exercice propre, distincts des phases structurelles de la Séance.
+Un **Exercice** possède un mode Durée ou Répétitions, avec une cible chiffrée ou À l’échec par Série, un nombre de Séries propre, une Pause facultative après chaque Série, dernière comprise (D-248), et, lorsqu’elle est bilatérale, une `sideRecoverySeconds` facultative entre les deux côtés. La Récupération après exercice n’est pas une propriété intrinsèque de l’Exercice : elle appartient à l’occurrence contextualisée. L’Exercice peut également définir un Compte à rebours propre et une Fin d’exercice propre, distincts des phases structurelles de la Séance.
 
 Dans le MVP :
 - une Séance contient exactement un Cycle technique ;
@@ -440,7 +446,7 @@ L’Exercice possède deux formes distinctes dans le MVP T03 : la **référence 
 
 Un Exercice accepte Durée ou Répétitions. Chaque Série porte une cible chiffrée ou À l’échec ; cette dernière ne prescrit aucun nombre. La Récupération éventuelle reste une phase chronométrée indépendante du mode.
 
-L’Exécution directe d’Exercice T03 développe uniquement le sous-ensemble autonome nécessaire aux Séries, Pauses, côtés et Récupération. T04 porte l’orchestration complète des Séances, notamment les Tours du Circuit et les passages bilatéraux décrits dans le Plan d’Exécution.
+L’Exécution directe d’Exercice T03 développe uniquement le sous-ensemble autonome nécessaire aux Séries, Pauses et côtés, sans Récupération après exercice (D-208, RM-211). T04 porte l’orchestration complète des Séances, notamment les Tours du Circuit et les passages bilatéraux décrits dans le Plan d’Exécution.
 
 Le Média est un actif local associé à un Exercice. Dans le MVP, le Catalogue affiche le média associé dans la gouttière permanente de la carte d’Exercice, sans déploiement (D-260/D-261). L’import/ajout local et la gestion des associations ordonnées sont inclus dans PRE-3 au MVP (D-333). La capture caméra n’est pas implicitement activée.
 
@@ -458,11 +464,11 @@ Le Plan d’Exécution mémorise la direction effective et le côté courant. Ch
 
 Une `ActivityDefinition` valide constitue un contenu exécutable. Son lancement produit une Exécution d’origine `ACTIVITY` fondée sur un instantané autonome. Cet instantané contient toutes les données nécessaires à l’exécution, mais aucune structure de Séance, aucun Tour artificiel et aucune phase `SESSION_END`.
 
-La préparation de `5 s` appartient au contexte d’Exécution, pas à l’Exercice. Les règles propres aux modes, Séries, Pauses, côtés et Récupération sont identiques à celles déjà validées pour un Exercice autonome. Le signal de fin conduit à la Synthèse ; le Ressenti est obligatoire lorsqu’elle est présentée et le Commentaire reste facultatif.
+La préparation de `5 s` appartient au contexte d’Exécution, pas à l’Exercice. Les règles propres aux modes, Séries, Pauses et côtés sont identiques à celles déjà validées pour un Exercice autonome ; aucune Récupération après exercice n’est exécutée en direct (D-208, RM-211). Le signal de fin conduit à la Synthèse ; le Ressenti est obligatoire lorsqu’elle est présentée et le Commentaire reste facultatif.
 
 #### Modèle cible — média pendant l’Exécution
 
-La conception post-MVP distingue :
+La conception de la consultation média incluse au MVP (D-203) distingue :
 - la collection ordonnée de Médias appartenant à l’Exercice ;
 - l’état durable de l’Exercice et de son Instantané ;
 - un état UI transitoire propre à la séance d’Exécution courante.

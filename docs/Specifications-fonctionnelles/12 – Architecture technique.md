@@ -1189,15 +1189,15 @@ Les valeurs historiques `9`, `9,4` et `18,8` utilisées comme rayons fixes ont �
 | `size/modal-width` / `size/modal-height` | `378` / `822`, gabarit de référence |
 | Bouton principal | Hauteur minimale `48`, rayon `24`, largeur utile complète |
 | Bouton secondaire compact | Hauteur visuelle `32`, rayon `16`, dans une cible tactile de `48 × 48` minimum |
-| Cible tactile commune | Minimum `48 × 48` points logiques sur iOS et Android |
-| Minimum natif iOS | `44 × 44` points ; le MVP retient volontairement la règle commune plus exigeante de `48 × 48` |
+| Cible tactile commune | Minimum `44 × 44` points logiques sur iOS et Android ; dimensions spécifiques de `48 × 48` conservées (D-087) |
+| Minimum natif iOS | `44 × 44` points ; le MVP retient la cible commune de `44 × 44` (D-087) |
 | Minimum natif Android | `48 × 48 dp` |
 | En-tête | Hauteur de contenu `48` + inset supérieur dynamique |
 | Région d’en-tête du gabarit historique | `92` (référence ancienne ; token courant 95) ; zone utile `48` et réserve système de référence, remplacée par l’inset supérieur réel |
 | Action finale d’écran | Région de référence `84` (`790–874`) ; bouton de `48` dans un conteneur intégrant marges et inset inférieur réel |
 | Action finale de modale plein écran | Région de référence `70` (`752–822`) ; bouton `354 × 48` et espace inférieur de référence `22` |
 | Région de navigation du gabarit | `77` (`797–874`) ; contient la barre principale visuelle de `66` et la réserve d’inset inférieur |
-| Navigation principale | Hauteur visuelle `66`, rayon `33`, positionnée avec l’inset inférieur réel |
+| Navigation principale | Pilule DSF `322 × 62` (D-225), positionnée avec l’inset inférieur réel |
 | Destination active | Hauteur visuelle `56`, rayon `28` |
 | Carte standard | Nouvelles cartes Catalogue/choix/Semaine/Suivi : largeur 354 sur référence 402, rayon 8 ; les cartes structurelles hors famille conservent leur variante propre |
 | Roulette compacte à deux colonnes — `Type=Duration` | Contenu de roulette rendu dans la modale basse canonique ; barre d’actions `Annuler / Confirmer`, contenu natif et dimensions internes selon Figma/DSF actifs. Aucun overlay centré ad hoc. |
@@ -1258,7 +1258,7 @@ Les tokens Figma associés sont `component/wheel/compact-height`, `component/whe
 - Les actions situées à droite d’une carte sont regroupées dans un conteneur `row` aligné en fin de carte. Le groupe possède une marge droite interne de `6` et un espacement fixe entre actions ; aucune action n’utilise une coordonnée calculée depuis la largeur de l’écran.
 - Les cadres de synthèse utilisent `width: '100%'`, un padding horizontal canonique et une hauteur minimale. Le texte est multi-ligne et détermine la hauteur finale ; `numberOfLines` et une hauteur fixe ne doivent pas masquer ou faire dépasser le contenu.
 - Dans le formulaire Exercice, le récapitulatif est un frère du groupe de paramètres et non son enfant. Le layout principal utilise un espace flexible entre les paramètres et ce récapitulatif pour maintenir ce dernier au-dessus de l’action finale. Le code ne doit pas reproduire les coordonnées absolues du gabarit.
-- Le sélecteur de rappel utilise trois zones sœurs : option fixe `Aucun`, `ScrollView` horizontal pour les choix rapides, option fixe `Personnalisé`. Le défilement ne déplace pas les options fixes et accepte l’ajout de délais rapides sans modifier la structure du composant.
+- Le Rappel est activé par un interrupteur ; l’option `Aucun` est supprimée (D-330). Le sélecteur de rappel présente ensuite cinq options de largeur égale, dont `Autre` (D-229, révision du 08/10).
 - La barre de jours du Calendrier utilise `width: '100%'` et sept cellules de même poids (`flex: 1`). Les espacements sont inclus dans la largeur disponible : aucune cellule ne conserve la largeur ou la position du gabarit `402`.
 - Le groupe `Série / Tour` de l’Exécution comporte deux zones flexibles symétriques et un séparateur central fixe. Il ne repose sur aucune coordonnée absolue et reste sur une ligne à partir de `360` points avec le texte à `100 %` ou `135 %` ; à une taille d’accessibilité supérieure, son conteneur peut grandir verticalement sans rendre les valeurs ambiguës.
 - La progression par Tours est contenue dans un parent de largeur utile avec débordement masqué. Pour `n` Tours, la largeur de chaque segment est calculée à partir de la largeur disponible après déduction des `n - 1` espacements ; aucune largeur de segment provenant du Figma n’est codée en dur.
@@ -1623,7 +1623,7 @@ La conception D-203 impose des propriétés techniques observables sans imposer 
 - une transition de fin d’Exercice ferme tout média de l’Exercice terminé avant d’afficher l’étape suivante ;
 - une erreur de chargement média reste confinée au média concerné.
 
-Cette cible reste post-MVP tant qu’une tranche d’implémentation n’est pas décidée.
+Cette cible fait partie du périmètre MVP (D-203, confirmation du 28/09/2026).
 
 ## 12.35 Source polymorphe des Routines — D-206
 

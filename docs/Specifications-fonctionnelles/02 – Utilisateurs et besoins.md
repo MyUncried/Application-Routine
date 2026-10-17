@@ -191,7 +191,7 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 
 ## 8. Besoins validés pour les évolutions
 
-- **B-068** — Créer dans le MVP T03 un Exercice de référence indépendamment d’une Séance, avec sa Pause et sa Récupération éventuelles.
+- **B-068** — Créer dans le MVP T03 un Exercice de référence indépendamment d’une Séance, avec sa Pause éventuelle ; la Récupération après exercice appartient à chaque occurrence de Séance (D-208).
 - **B-069** — Ajouter cette référence à plusieurs Séances sous forme de copies indépendantes qui n’encombrent pas le catalogue.
 - **B-070** — Associer `0..n` photos ou vidéos à un Exercice, les réordonner et les consulter hors ligne.
 - **B-071** — Ancienne cible de Parcours autonome retirée par D-328 ; voir la planification multi-contenus du 08/10.

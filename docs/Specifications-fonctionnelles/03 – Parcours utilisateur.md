@@ -170,7 +170,7 @@ Dans T03/MVP, le segment `Parcours` est supprimé : aucune troisième option, m�
 
 1. Depuis le Catalogue des Exercices, utiliser `Créer` pour ouvrir une nouvelle `ActivityDefinition`, ou toucher une carte existante pour la modifier.
 2. Renseigner le nom de l’Exercice.
-3. Sélectionner sa **Catégorie** et, si nécessaire, ses **Zones corporelles**.
+3. Sélectionner sa **Catégorie** et au moins une **Zone corporelle** (D-211).
 4. Définir les paramètres d’exécution :
    - mode `Durée`, `Répétitions` ou `À l’échec` ;
    - cible du mode lorsqu’elle existe ;
@@ -191,7 +191,7 @@ Les paramètres métier restent identiques entre création et modification ; seu
 1. Appuyer sur `Ajouter un exercice`.
 2. Le parcours actuellement exposé ouvre directement la sélection des Exercices du Catalogue.
 3. Filtrer si nécessaire les Exercices puis sélectionner une ou plusieurs références.
-4. Valider avec `Ajouter N exercice(s)`.
+4. Valider avec `Sélectionner` (D-228).
 5. Les copies sont insérées dans la Composition et deviennent indépendantes de leur `ActivityDefinition` source.
 
 La capacité existante de créer directement un Exercice local à la Séance, non enregistrée dans le Catalogue, reste fonctionnellement et techniquement conservée mais n’est pas exposée dans cet enchaînement d’écrans du MVP courant.
@@ -216,7 +216,7 @@ L’utilisateur démarre une Série sans objectif temporel ni nombre de répéti
 2. Aucun réglage de côté n’est exposé au niveau du Circuit dans la version actuelle ; le support technique historique est conservé mais reste fixé à `UNILATERAL` et non modifiable.
 3. Une carte d’Exercice affiche sa direction propre `D→G` ou `G→D` lorsqu’elle est bilatérale ; elle n’affiche rien avec `Aucun`.
 4. À l’Exécution, `Côté droit` ou `Côté gauche` apparaît pour le passage concerné, sans compteur `1/2` ou `2/2`.
-5. Un Exercice bilatéral termine toutes ses Séries du premier côté puis toutes celles du second.
+5. Un Exercice bilatéral exécute ses Séries selon l’Ordre des côtés : toutes ses Séries du premier côté puis toutes celles du second (défaut), ou les deux côtés à chaque série (D-247).
 6. La modale générique de passage à l’Exercice suivant reste inchangée. Confirmée pendant le premier côté, elle enregistre ce côté comme partiel et ouvre le second côté ; confirmée pendant le second, elle poursuit le Plan d’Exécution.
 
 #### Exécuter directement un Exercice — MVP T03
@@ -244,8 +244,8 @@ Le bouton Lecture reste réservé à l’Exécution directe. La carte d’Exerci
 1. Depuis `Ajouter un exercice` dans la Composition, ouvrir le Catalogue d’Exercices présenté pour la sélection.
 2. Filtrer le Catalogue si nécessaire.
 3. Sélectionner une ou plusieurs cartes ; l’ordre des touchers est libre.
-4. Vérifier le nombre indiqué par `Ajouter N exercice(s)`.
-5. Appuyer sur `Ajouter N exercice(s)`.
+4. Vérifier le nombre indiqué par le compteur de sélection.
+5. Appuyer sur `Sélectionner` (D-228).
 6. Retrouver la Composition avec les copies insérées selon l’ordre de présentation qu’avaient les Exercices dans la liste filtrée au moment de la validation.
 
 `Annuler` ferme le panneau sans insertion et restaure la Composition, sa position de défilement et ses valeurs déjà saisies. Le mécanisme existant de création directe d’un Exercice local à la Séance reste conservé fonctionnellement et techniquement, mais il n’est pas exposé dans cet enchaînement d’écrans du MVP courant.
@@ -449,9 +449,9 @@ Il souhaite consulter son historique afin de retrouver une séance, vérifier so
 
 1. L'utilisateur ouvre le menu **Suivi**.
 2. Il consulte la liste chronologique de ses Exécutions enregistrées.
-3. Il peut rechercher une Exécution et modifier l’ordre chronologique d’affichage, du plus récent au plus ancien ou inversement.
+3. Il peut rechercher une Exécution ; l’ordre chronologique d’affichage, du plus récent au plus ancien, n’est pas modifiable dans le MVP, `Trier` étant désactivé (D-031).
 4. Il consulte les groupes de dates et, sur chaque carte, la nature, le titre, le statut, la durée réelle, la catégorie et le ressenti lorsqu’il existe ; aucune heure n’est affichée dans la carte (D-262).
-5. Il peut sélectionner une autre Exécution, modifier sa recherche ou inverser l’ordre chronologique d’affichage.
+5. Il peut sélectionner une autre Exécution ou modifier sa recherche.
 
 La vue détaillée déployée d'une Exécution est reportée à une version ultérieure.
 
@@ -465,7 +465,7 @@ Dans le MVP, le `Suivi` affiche la liste des Exécutions enregistrées.
 
 La future `Vue d’ensemble` reste visible dans le sélecteur mais elle est grisée et inactive. Elle est prévue pour une version ultérieure.
 
-Chaque carte peut être déployée individuellement pour consulter le détail de l’Exécution directement dans la liste.
+Chaque carte présente deux lignes, sans déploiement (D-262) ; le détail de l’Exécution reste conservé dans l’instantané et les résultats.
 
 Les commandes `Filtrer` et `Trier` restent visibles mais désactivées dans le MVP ; la Vue d’ensemble est abandonnée pour le MVP et ne constitue plus un écran à développer. Cette règle du Suivi est distincte du Catalogue T03, où `Filtrer` est fonctionnel pour `Archivées` sur Exercices.
 
