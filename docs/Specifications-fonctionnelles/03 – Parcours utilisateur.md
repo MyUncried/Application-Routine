@@ -179,10 +179,6 @@ Un Exercice créé directement dans une Séance ne rejoint pas le catalogue. L�
 
 L’utilisateur démarre une Série sans objectif temporel ni nombre de répétitions cible. Il sélectionne `Suivant` pour terminer la Série, exactement comme en mode Répétitions. La Pause configurée s’exécute après chaque Série, selon l’Ordre des côtés, dernière Pause comprise (Bip v 2). Si l’Exercice est bilatéral, la Pause entre les côtés éventuelle intervient entre les deux passages. En Exécution directe, aucune Récupération après exercice n’est ajoutée ; dans une Séance, la Récupération après exercice appartient à l’occurrence et s’exécute après celle-ci.
 
-#### Créer et exécuter un Parcours — hors MVP, conception partielle
-
-**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
-
 #### Parcours bilatéral
 
 1. Dans l’éditeur d’Exercice, `Changement de côté` propose `Aucun`, `D→G` ou `G→D`.
@@ -518,7 +514,7 @@ Référence : `../CONCEPTION-EXECUTION-MEDIA.md`.
 
 #### Planifier un Parcours — cible future
 
-Contenu identique à la section [« Créer et exécuter un Parcours — hors MVP, conception partielle »](#créer-et-exécuter-un-parcours--hors-mvp-conception-partielle) : il n’est pas recopié ici.
+Contenu identique à la section [« Parcours MVP T03 — Catalogue des Exercices — Créer et exécuter un Parcours — hors MVP, conception partielle »](Annexe%20%E2%80%93%20Historique%20des%20consolidations.md#parcours-mvp-t03--catalogue-des-exercices--créer-et-exécuter-un-parcours--hors-mvp-conception-partielle) : il n’est pas recopié ici.
 
 #### Parcours consolidés
 

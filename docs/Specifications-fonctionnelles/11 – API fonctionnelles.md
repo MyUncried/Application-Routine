@@ -152,7 +152,7 @@ La face courante, l’index de galerie et l’état de lecture sont des états d
 
 #### Extension future des API Routine — Parcours
 
-Contenu identique à la section [« Créer et exécuter un Parcours — hors MVP, conception partielle »](03%20%E2%80%93%20Parcours%20utilisateur.md#créer-et-exécuter-un-parcours--hors-mvp-conception-partielle) : il n’est pas recopié ici.
+Contenu identique à la section [« Parcours MVP T03 — Catalogue des Exercices — Créer et exécuter un Parcours — hors MVP, conception partielle »](Annexe%20%E2%80%93%20Historique%20des%20consolidations.md#parcours-mvp-t03--catalogue-des-exercices--créer-et-exécuter-un-parcours--hors-mvp-conception-partielle) : il n’est pas recopié ici.
 
 #### API de récupération contextuelle — D-208
 

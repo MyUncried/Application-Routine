@@ -439,10 +439,6 @@ Cet état UI porte la face courante et le média courant. Il ne modifie ni l’E
 
 Voir `../CONCEPTION-EXECUTION-MEDIA.md`.
 
-#### Extension du contenu planifiable — Parcours
-
-**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
-
 #### Présentation des objets
 
 Contenu identique à la section [« RG des cartes »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#rg-des-cartes) : il n’est pas recopié ici.

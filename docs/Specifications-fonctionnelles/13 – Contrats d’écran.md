@@ -4833,25 +4833,6 @@ Action Créer contextuelle conservée D-187 ; ancien arbre Un circuit retiré, P
 
 Depuis chaque segment actif, un tap ouvre exactement le formulaire correspondant ; aucun arbre. Annuler ne crée rien ; double tap n’empile pas deux formulaires ; aucun segment Parcours, aucune cible ni annonce accessible résiduelle.
 
-### État des preuves visuelles
-
-| ID | Écart ou limite | Contrat / traitement |
-|---|---|---|
-| V-01 | Dialogue2234:189 restauré et capture actualisée le01/10 | Preuve visuelle disponible ; boutons non câblés, recette interactive non acquise |
-| V-02 |Activité, Parcours/Tour mal employés dans plusieurs PNG | Contrats cible Exercice/Circuit/Tour ; corriger Figma sans renommer les IDs techniques |
-| V-03 | Anciennes variantes de phrase éditable remplacées par D-246 | Les nouveaux états et limites de la feuille sont documentés dans CE-UI-10 ; anciennes captures historiques |
-| V-04 | Clos le12/10/2026 : ancien contrôle global D-214 supprimé du besoin | CE-T03-08 ; aucun emplacement ni composant à ajouter ; Figma confirmé aligné par le propriétaire |
-| V-05 |Chevauchement de créneaux Jour sans géométrie de référence | CE-UI-02 ; conserver lisibilité/accès, rendu à qualifier |
-| V-06 |Erreur d’initialisation Splash sans frame | CE-UI-06 ; aucune destruction de données ou blocage silencieux, rendu à qualifier |
-| V-07 |Direct/media montre Tour ;17 px/24 px divergent ; état Démarré parfois incohérent | CE-T03-09..13/MEDIA ; Tour absentACTIVITY,24 px cibleDSF T10 |
-| V-08 |Étiquette 4861:6145 mentionne Exercices au lieu de Séances ; renommages sans preuve dédiée | CE-T03-16/CE-UI-09 ; textes et comportement explicités, pas de preuve inventée |
-| V-09 |Récurrence 2 semaines avec récapitulatif hebdomadaire ; filtre dit inactif avec critère appliqué | CE-UI-05/CE-T03-02 ; récapitulatif et état dérivés des données |
-| V-10 | Lignes structurelles de récupération conformes au principe de visibilité permanente (H-08, clarification propriétaire du 06/10), dont 2028:11700 à 0 s sans Point d’arrêt ; 4738:6355 et 1992:8996 représentent des déploiements historiques | D-260/D-261/D-262 gouvernent les cartes courantes ; variantes déployées Exercice/Suivi hors MVP. Copies historiques conservées, sans retouche |
-| V-11 |Compte à rebours Composition inline 2028:11375 mais description roulette ; pas Fin 5 s contre prescription 1 s | CE-T03-08 ; aucun état de picker déclaré vérifié tant que la description 06 et sa preuve ne sont pas réconciliées |
-| V-12 |Archives Exercice sans écran complet ; Photo à200% non qualifiée ; animations non câblées ; contrastes acceptés | Limites déjà documentées du DSF, pas de nouvelle décision produit |
-
-Les captures courantes sont centralisées au chapitre06 ; l’état des lieux du03/10 distingue42références du parcours, leurs contrats et les copies historiques remplacées. La matrice donne l’inventaire, dont les références hors prototype qui ne deviennent pas des écrans MVP. Les matrices ci-jointes donnent les rattachements ; la présence de chaque capture a été vérifiée lors de l’audit, pas son fonctionnement interactif.
-
 ### Clôture des réserves fonctionnelles des contrats
 
 Les arbitrages des 30 septembre et 1er octobre 2026 ferment les points fonctionnels ci-dessous. Ils ne valent ni recette de l’application ni validation de preuves Figma absentes. Aucun shell, composant, placement ou parcours n’est redessiné.
@@ -4986,7 +4967,3 @@ Le comportement utilisateur est déjà fixé. L’exclusion d’une occurrence i
 | E73 | règle commune §4.1 + tous contrats données |
 
 Chaque contenu E01–E73 est rattaché ci-dessus ; E08 est rattaché à CE-T03-02/17 et §4.3. E70 n’a volontairement pas d’écran artificiel.
-
-### Mise à jour des références visuelles, corrections rédactionnelles
-
-Les références de CE-T03-02 (catalogue), CE-T03-04 (éditeur et abandon), CE-UI-09 (zones corporelles) et CE-UI-10 (paramètres) ont été recapturées après correction du libellé de carte et des19 phrases. [Inventaire exact](../CLOTURE-CAPTURES-PHRASES-2026-10-07.md). Les comportements, champs et règles métier de ces contrats restent ceux déjà validés ; aucune nouvelle décision de conception.

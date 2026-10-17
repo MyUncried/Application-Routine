@@ -207,15 +207,6 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 - ajout dans une Séance par copie indépendante et sélection multiple ; pas d’action `Enregistrer dans mes exercices` dans la première livraison ;
 - Exécution directe avec préparation fixe de `5 s`, Synthèse à Ressenti obligatoire, Suivi général et statistiques compatibles.
 
-### V2
-
-- Ancienne cible de Parcours autonome retirée par D-328 ; voir la planification multi-contenus du 08/10.
-- Ancienne transition de Parcours autonome retirée avec D-119/D-328 ; l’enchaînement multi-contenus reste à spécifier.
-
-### V3
-
-- Ancienne cible de Parcours autonome retirée par D-328 ; voir la planification multi-contenus du 08/10.
-
 ## Champs et comportements des fonctionnalités — Suivi - Vue d'ensemble
 
 ### Règles liées à la couleur

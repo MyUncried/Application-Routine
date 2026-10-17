@@ -50,16 +50,6 @@ Dans une carte d’Exercice, l’indicateur propre affiche `D→G` ou `G→D` lo
 
 Dans la famille Exécution — séance ou exercice, un Exercice effectivement bilatéral affiche `Côté droit` ou `Côté gauche` sous son nom. Les indicateurs de progression gardent leur sémantique ; aucun compteur de côté n’est ajouté. Les frames d’Exécution existantes restent inchangées.
 
-#### Évidences Figma T03 — état courant
-
-Les contrôles d’entrée `Créer / Filtrer / Trier` restent conçus et vérifiables dans Figma pour leur rendu. Les références courantes principales sont `3786:5093` (Catalogue Exercices), `1992:9910` (Catalogue Séances), `1992:10129` (Recherche globale — Champ déployé), `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064` (éditeur Exercice), `2537:1033` (Déployer) et `6298:12462` (Navigation Bottom). Les anciennes frames d’arbre `3787:5148` et `3841:8375` sont supersédées fonctionnellement par D-187.
-
-L’ancienne référence `3787:5209 — Catalogue — action contextuelle directe` n’existe plus dans le Figma courant et ne constitue plus une évidence active. Les panneaux ouverts de `Filtrer` sont désormais conçus et vérifiables dans Figma ; `Trier` reste disabled T03.
-
-#### Résolutions postérieures au contrôle visuel
-
-Les points suivants ont été résolus depuis ce contrôle : la modale d’abandon de création d’Exercice est représentée par `4714:6241`; les panneaux ouverts de `Filtrer` sont conçus ; l’affichage média en gouttière permanente du Catalogue des Exercices appartient au MVP, sans déploiement (D-260/D-261) ; l’ancien arbre `Créer` reste historique ; la création inline d’une Zone corporelle dans `4683:6336` est désormais cohérente avec D-199. Le contrôle de l’état `2139:86` a confirmé qu’il est redondant avec `1992:684` (`Vibration activée`) ; il n’est plus présenté comme un état d’écran distinct dans le chapitre 06.
-
 ### Références transverses des cartes et appuis
 Décisions finales du propriétaire : les 17 points du 30/09 sont clos. Révision des cartes du 03/10/2026 (D-260 à D-264) : un seul format de carte d’Exercice, avec une gouttière permanente de 64 px dans le Catalogue et les listes de sélection d’exercices ; photo si média associé, icône de nature sinon. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Les Séances ne portent jamais de visuel. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi. Aucun déploiement d’Exercice ni de carte du Suivi ; le déploiement des Séances reste accessible dans le Catalogue et le Calendrier Semaine. Le Suivi présente deux lignes : nature/titre/statut, puis durée/catégorie/ressenti ; sans heure, zones corporelles ni étiquettes. Le Ressenti y est un indicateur sans action, distinct de sa saisie obligatoire en Synthèse. Les variantes déployées d’Exercice et du Suivi sont historiques, hors MVP. Pauses/récupérations et prochaine planification restent absentes des cartes concernées. Les données, instantanés, calculs et fonctions de planification sont conservés.
 
@@ -84,36 +74,6 @@ Dans l’éditeur d’Exercice, le contrôle générique `Récupération` est re
 
 **Contexte d’Exécution (D-220).** La ligne immédiatement sous le nom de l’Exercice est toujours renseignée : nom de Séance et Catégorie de l’Exercice lors d’une Exécution de Séance, Catégorie de l’Exercice seule en Exécution directe. L’indication du côté courant, lorsqu’elle existe, reste distincte.
 
-### Profil — Cible post-MVP (historique)
-
-Référence hors prototype actif — Figma `1354:182` ; ne vaut pas activation MVP.
-
-![Profil — Cible post-MVP](images/figma-1354-182.png)
-
-### Référence historique hors MVP — Suivi — Séances — Vue déployée
-
-Référence hors prototype actif — Figma `1842:2` ; ne vaut pas activation MVP.
-
-![Suivi — Séances — Vue déployée](images/figma-1842-2.png)
-
-### Suivi — Vue d’ensemble (historique)
-
-Référence hors prototype actif — Figma `3401:86` ; ne vaut pas activation MVP.
-
-![Suivi — Vue d’ensemble](images/figma-3401-86.png)
-
-### Recherche globale — Champ déployé (historique)
-
-Référence hors prototype actif — Figma `1992:10129` ; ne vaut pas activation MVP.
-
-![Recherche globale — Champ déployé](images/ecran-2c-recherche-globale-champ.png)
-
-### Recherche globale — Résultats affichés (historique)
-
-Référence hors prototype actif — Figma `1992:10320` ; ne vaut pas activation MVP.
-
-![Recherche globale — Résultats affichés](images/ecran-2a-recherche-globale-resultats.png)
-
 ### HISTORIQUE — Catalogue Séances — ancien arbre Créer — supersédé D-187
 
 Référence hors prototype actif — Figma `3841:8375` ; ne vaut pas activation MVP.
@@ -121,24 +81,6 @@ Référence hors prototype actif — Figma `3841:8375` ; ne vaut pas activation 
 ![HISTORIQUE — Catalogue Séances — ancien arbre Créer — supersédé D-187](images/ecran-13a-catalogue-seances-creer-arbre.png)
 
 > **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v13 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
-
-### Référence de composant — Stepper — Séries (interactif) (historique)
-
-Ensemble6426:10149, export06/10 ; pas un écran autonome.
-
-![Stepper — Séries (interactif)](images/figma-6426-10149.png)
-
-### Référence de composant — Cadre bas — retournement (historique)
-
-Ensemble6446:10103, export06/10 ; pas un écran autonome.
-
-![Cadre bas — retournement](images/figma-6446-10103.png)
-
-### Référence de composant — Zone d’exécution — retournements (historique)
-
-Ensemble6451:10942, export06/10 ; pas un écran autonome.
-
-![Zone d’exécution — retournements](images/figma-6451-10942.png)
 
 ### Règles générales d’interface
 
@@ -417,10 +359,6 @@ La synthèse n’est plus affichée isolément au bas de l’écran. Elle est re
 Le nombre se règle via ± révélés par appui sur le chiffre. La diminution est sans message ; une conversion de nature entraînant une perte exige une confirmation atomique. Les modifications appartiennent au brouillon de Composition jusqu’à son enregistrement ; bornes 1–99 et valeur initiale 1 inchangées.
 
 #### Composition — ligne de Série variable — références
-
-#### Captures courantes — relevé
-
-Exports directs des 23 états de Composition retrouvés dans Prototype MVP. Les overlays restent classés avec leur parcours parent. . Les nombres illustrent la mise en page et ne définissent aucun calcul.
 
 #### Vues principales et états intégrés
 
