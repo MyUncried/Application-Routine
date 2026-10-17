@@ -1,6 +1,38 @@
 # Arbitrages — réexamen des questions Q-A à Q-N (révision 2, 16/10)
 
+## Après les arbitrages A1 à A9 (17/10, D-388 à D-396)
+
+Hermann a tranché A1 à A9. Le report au registre (D-388 à D-396) et dans les chapitres est décrit dans [rapport-conformite-A1-A9-2026-10-17.md](rapport-conformite-A1-A9-2026-10-17.md).
+
+| Arbitrage | Décision | Conformité |
+|---|---|---|
+| A1 Persistance de la Composition | D-388 | vérifiée |
+| A2 Contrôle obligatoire incomplet | D-389 | partielle (voir B2) |
+| A3 En-tête du Circuit | D-390 | vérifiée pour l’emplacement (voir B3) |
+| A4 Durées des cartes | D-391 | vérifiée |
+| A5 Carte de Séance vide | D-392 | vérifiée |
+| A6 Lecteur vidéo de l’éditeur | D-393 | vérifiée (voir B4) |
+| A7 Message de migration | D-394 | partielle (voir B5) |
+| A8 Bilatéralité d’un Circuit | D-395 | vérifiée |
+| A9 Ligne Total | D-396 | partielle (voir B1) |
+
+### Points à clarifier issus de l’application (aucune réponse présumée ; règles en vigueur inchangées)
+
+| ID | Question | Options | Preuves |
+|---|---|---|---|
+| **B1** | Ligne Total de la feuille Paramètres en Répétitions **sans bip** ou quand **toutes les cibles sont À l’échec** : D-396 dit « toujours affichée », le corpus la retire (total omis) | Afficher la ligne avec « — » ; afficher un autre libellé ; maintenir le retrait comme exception à D-396 | D-396 ; CE-UI-10 §8, §9 (« Retrait du total »), §10, §12, §20 ; ch. 08 (ligne Total) ; DSF Deux modes ; DSF Séries variables ; RM-132 |
+| **B2** | Feuille Paramètres : le contour orange de D-337 est-il maintenu avec le fond rouge pâle de D-389 ? Que devient « erreur nommant la Série » (CE-UI-10 §14) pour les valeurs invalides ? | Fond seul ; fond et contour ; contour réservé aux valeurs invalides | D-337 (« contour … conservé » ; remplacement par un fond annoncé « après définition dans Figma ») ; D-389 ; CE-UI-10 §14 |
+| **B3** | Libellé de durée à vide sous le titre du Circuit ; emplacement éventuel du nombre d’Exercices de la Composition | Durée à vide selon le format min/s de D-391 ; « 0 min » ; nombre affiché ailleurs ou nulle part | D-091, D-390, D-391 ; ch. 08 §3.9 ; RM-074 |
+| **B4** | Alternative accessible Android au menu de la tuile Média (« actions VoiceOver » sur iOS) | Équivalent natif Android (actions d’accessibilité TalkBack) ; autre | Q31 ; D-393 |
+| **B5** | Libellé du message récapitulatif de migration | À fixer avec son contrat d’écran (lot 6) | D-394 (seule l’action `Compris` est fixée) |
+
+**Vérification visuelle (non-arbitrage) :** application de D-389 aux boutons-icônes Catégorie et Zones corporelles ; teinte du fond rouge pâle (Figma).
+
+---
+
 ## Clôture des 14 réserves (17/10) — arbitrages réellement restants
+
+*État antérieur à A1–A9, conservé pour la traçabilité : A1 à A9 sont désormais tranchés (section ci-dessus).*
 
 Le détail réserve par réserve figure dans [rapport-cloture-reserves-2026-10-17.md](rapport-cloture-reserves-2026-10-17.md).
 
