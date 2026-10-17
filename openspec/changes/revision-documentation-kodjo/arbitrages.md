@@ -1,5 +1,29 @@
 # Arbitrages — réexamen des questions Q-A à Q-N (révision 2, 16/10)
 
+## Après les précisions B1 à B5 (17/10, D-397 à D-401)
+
+Hermann a tranché B1 à B5 ; la portée de B1 a été confirmée : cas « omitted » seulement. Détail : [rapport-conformite-B1-B5-2026-10-17.md](rapport-conformite-B1-B5-2026-10-17.md).
+
+| Point | Décision | Conformité |
+|---|---|---|
+| B1 Ligne Durée totale | D-397 | vérifiée |
+| B2 Valeur obligatoire absente | D-398 | vérifiée |
+| B3 Circuit vide | D-399 | vérifiée |
+| B4 Accessibilité Android | D-400 | vérifiée |
+| B5 Message de migration | D-401 | partielle : marque `{N}` restituée, à valider |
+
+**Reste à valider par Hermann :**
+- **C1** : le texte de D-401 tel que restitué, « {N} exercice(s) n’ont pas pu être récupérés … », avec la forme au singulier attendue.
+
+**Vérifications Figma (non-arbitrages) :**
+- teinte du fond rouge pâle ;
+- application de D-389 et D-398 aux boutons-icônes Catégorie et Zones corporelles ;
+- V1.
+
+**Lot 6 :** contrat d’écran du message de migration ; emplacement éventuel du nombre d’Exercices de la Composition (aucun n’est décidé, D-399).
+
+---
+
 ## Après les arbitrages A1 à A9 (17/10, D-388 à D-396)
 
 Hermann a tranché A1 à A9. Le report au registre (D-388 à D-396) et dans les chapitres est décrit dans [rapport-conformite-A1-A9-2026-10-17.md](rapport-conformite-A1-A9-2026-10-17.md).
