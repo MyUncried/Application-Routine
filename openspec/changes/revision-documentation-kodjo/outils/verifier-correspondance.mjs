@@ -4,6 +4,8 @@
 // référence, espaces normalisés, cibles de liens neutralisées) doivent toutes se trouver dans le fichier cible annoncé
 // (identifié par son préfixe « NN – » ou « Annexe – »). Pour une ligne RENVOI, elles doivent se trouver dans le fichier cible
 // de la section conservée, et la section d'origine doit contenir un lien ou une mention de cette destination.
+// Une ligne absente de la section mais présente dans un autre fichier de la cible est comptée comme « renvoi de ligne »
+// (étape 6D : copie identique conservée ailleurs) ; la conservation elle-même relève de verifier-conservation.mjs.
 // Code de sortie 1 si une section n'est pas à sa place.
 import fs from 'fs'; import path from 'path'; import { execFileSync } from 'child_process';
 const args = process.argv.slice(2); const opt = Object.fromEntries(args.filter(a => a.startsWith('--')).map(a => a.slice(2).split('=')));
@@ -19,14 +21,15 @@ const key = name => name.startsWith('Annexe') ? name : name.slice(0, 2);
 const rows = fs.readFileSync(corf, 'utf8').trim().split('\n').slice(1).map(l => l.split('\t'));
 const byId = new Map(rows.map(r => [r[0], r]));
 const inv = new Map(fs.readFileSync(path.join(path.dirname(corf), 'inventaire-sections.tsv'), 'utf8').trim().split('\n').slice(1).map(l => { const c = l.split('\t'); return [c[0], c]; }));
-let ok = 0, ko = 0; const fails = [];
+const tous = new Set(); for (const v of Object.values(tgt)) for (const l of v) tous.add(l);
+let ok = 0, ko = 0, rl = 0; const fails = [];
 for (const r of rows) {
   if (!etapes.has(r[10])) continue;
   const c = inv.get(r[0]); const body = refLines[c[1]].slice(+c[5], +c[6]).map(norm).filter(l => l && !/^\|?\s*:?-{3,}/.test(l) && !/^#{1,6} /.test(l) && !/^<a id=/.test(l));
   const dest = r[7] === 'RENVOI' ? key(byId.get(r[12])[8]) : key(r[8]);
-  const set = tgt[dest]; const missing = set ? body.filter(l => !set.has(l)) : body;
+  const set = tgt[dest]; const absentes = set ? body.filter(l => !set.has(l)) : body; const missing = absentes.filter(l => !tous.has(l)); rl += absentes.length - missing.length;
   if (!set || missing.length) { ko++; fails.push(`${r[0]} (${r[7]} → ${dest}) : ${set ? missing.length + ' ligne(s) absente(s), ex. « ' + missing[0].slice(0, 60) + ' »' : 'fichier cible absent'}`); } else ok++;
 }
-console.log(`étapes=${[...etapes].join(',')} sections_contrôlées=${ok + ko} conformes=${ok} non_conformes=${ko}`);
+console.log(`étapes=${[...etapes].join(',')} sections_contrôlées=${ok + ko} conformes=${ok} non_conformes=${ko} renvois_de_ligne=${rl}`);
 fails.slice(0, 40).forEach(f => console.log('  ' + f));
 process.exit(ko ? 1 : 0);

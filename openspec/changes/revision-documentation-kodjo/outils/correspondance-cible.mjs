@@ -73,8 +73,13 @@ const N = 6, tok = s => s.toLowerCase().normalize('NFC').replace(/[|*`_#>]/g, ' 
 const grams = new Map();
 for (const [id, c] of inv) { const t = tok(files[c[1]].slice(+c[5], +c[6]).join(' ')); const g = new Set(); for (let i = 0; i + N <= t.length; i++) g.add(t.slice(i, i + N).join(' ')); grams.set(id, g); }
 const idx = new Map(); for (const [id, g] of grams) for (const x of g) { let a = idx.get(x); if (!a) idx.set(x, a = []); a.push(id); }
+const prsIds = new Set(); try { for (const l of fs.readFileSync(path.join(L6, 'dependances-pr.tsv'), 'utf8').trim().split(/\r?\n/).slice(1)) prsIds.add(l.split('\t')[2]); } catch {}
 const base = new Map();
-for (const [id] of inv) { const c = cls.get(id); const t = (EXCEPTIONS[id] || [])[0] || domicile(c[1], id.slice(1, 3)); base.set(id, t); }
+for (const [id] of inv) { const c = cls.get(id); let t = (EXCEPTIONS[id] || [])[0] || domicile(c[1], id.slice(1, 3));
+  if (t === 'HIST' && c[5] !== 'non') t = id.slice(1, 3); // exécution (17/10) : seul un historique non normatif part en annexe
+  if (prsIds.has(id) && t !== id.slice(1, 3)) t = id.slice(1, 3); // exécution : une section modifiée par une PR ouverte reste dans son fichier
+  if (inv.get(id)[9] && t !== id.slice(1, 3)) t = id.slice(1, 3); // exécution : une section qui définit un identifiant reste avec sa famille (RM-FMT au ch. 10…)
+  base.set(id, t); }
 // Portée lue dans les titres englobants de la section (et son propre titre).
 const PORTEE = [['HORS-MVP', /hors MVP|post-MVP|cible future|\bfutur|ultérieure|\bV[2-4]\b|évolution/i], ['HISTORIQUE', /historique|\bancien|retiré|archiv/i]];
 const portee = new Map(); { const stack = []; let prevCh = '';
@@ -141,7 +146,7 @@ function traitements(defauts, action, dest, ch) {
 }
 const prs = new Map(); try { for (const r of tsv('dependances-pr.tsv')) prs.set(r[2], [...(prs.get(r[2]) || []), '#' + r[0]]); } catch {}
 const out = [['id', 'chapitre', 'niveau', 'titre', 'lignes', 'type', 'domaine', 'action', 'fichier_cible', 'partie_cible', 'etape', 'classe', 'renvoi_vers', 'divergences', 'defauts', 'traitements', 'copie', 'portee', 'pr', 'regle', 'justification'].join('\t')];
-const stats = {};
+const stats = {}; const rows = new Map();
 for (const [id, c] of inv) {
   const k = cls.get(id); const ch = c[1]; const type = k[1]; const dom = k[3];
   let to, action, regle, just = '', rv = '';
@@ -153,6 +158,14 @@ for (const [id, c] of inv) {
   if (k[2] && action !== 'RENVOI' && action !== 'CONSERVER') just += ` ; à scinder si nécessaire (types secondaires : ${k[2]})`;
   const divs = k[7].split(' ').filter(r => r.endsWith(':DIVERGENCE')).map(r => r.split(':')[0]).join(' ');
   const classe = divs && action !== 'CONSERVER' ? 'DOC (divergences conservées, G3)' : 'DOC';
+  rows.set(id, { id, ch, c, k, type, dom, action, to, rv, divs, classe, regle, just });
+}
+// Exécution (17/10) : un titre-conteneur suit ses sous-sections quand elles partent toutes vers le même autre fichier.
+{ const ids = [...inv.keys()];
+  ids.forEach((id, i) => { const r = rows.get(id); if (r.type !== 'CONTENEUR' || prsIds.has(id)) return; const lvl = +r.c[2]; const desc = [];
+    for (let j = i + 1; j < ids.length && inv.get(ids[j])[1] === r.ch && +inv.get(ids[j])[2] > lvl; j++) desc.push(rows.get(ids[j]));
+    const dests = new Set(desc.filter(d => d.action !== 'RENVOI').map(d => d.to)); if (desc.length && dests.size === 1) { const to = [...dests][0]; if (to !== r.ch && to !== 'HIST') { r.to = to; r.action = 'DÉPLACER'; r.regle = 'R4'; r.just = `titre-conteneur : suit ses sous-sections (domicile ${to})`; } } }); }
+for (const r of rows.values()) { const { id, ch, c, k, type, dom, action, to, rv, divs, classe, regle, just } = r;
   const e = etape(action, ch, to); stats[action] = (stats[action] || 0) + 1;
   out.push([id, ch, c[2], c[3], c[7], type, dom, action, CIBLE[to] || to, PARTIE[dom] || dom, e, classe, rv, divs, k[9].replace(/\s+/g, ' '), traitements(k[9].trim(), action, to, ch), ecart.get(id) || '', portee.get(id), (prs.get(id) || []).join(' '), regle, just.replace(/\t/g, ' ')].join('\t'));
 }

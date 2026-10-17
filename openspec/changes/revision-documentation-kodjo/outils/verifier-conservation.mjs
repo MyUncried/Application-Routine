@@ -11,7 +11,7 @@
 //     N1 à l'identique (espaces normalisés) ; N2 aux cibles de liens et renvois de localisation près (« ch. 08 », « § 3.8 »,
 //     « l. 1584 ») ; sinon elle figure dans justifications.tsv (empreinte N1, motif).
 //  C3 copies retirées (informatif) — lignes dont le nombre d'occurrences baisse.
-//  C4 registre — le texte de chaque décision D-nnn est conservé à l'identique, sans exception possible.
+//  C4 registre — le texte de chaque décision D-nnn est conservé à l'identique (cibles des liens exceptées), sans exception possible.
 //  C5 portée — chaque ligne garde son contexte de portée, lu dans le chemin des titres qui l'englobent : COURANT, HORS-MVP
 //     (« hors MVP », « post-MVP », « cible future », « V2 »…), HISTORIQUE (« historique », « ancien », « retiré »… ; tout le
 //     fichier « Annexe »). Aucune ligne ne prend une portée qu'elle n'avait pas (une règle hors MVP ne devient pas courante, un
@@ -32,7 +32,7 @@ const refFiles = git('ls-tree', '--name-only', ref, DIR + '/').split('\n').filte
 const refDocs = refFiles.map(f => ({ name: path.basename(f), lines: git('show', `${ref}:${f}`).split(/\r?\n/) }));
 const tgtDir = opt.cible || path.join(repo, DIR); // --cible=<dossier> : contrôle d'une copie de travail hors dépôt
 const tgtDocs = []; (function walk(d) { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, e.name); if (e.isDirectory()) { if (!/^images/.test(e.name)) walk(p); } else if (p.endsWith('.md')) tgtDocs.push({ name: path.relative(tgtDir, p), lines: fs.readFileSync(p, 'utf8').split(/\r?\n/) }); } })(tgtDir);
-const ID_DEF = [/^\| (D-\d{3}) \|/, /^\| (RM-\d{3}[a-z]?) \|/, /^#{2,4} (RM-FMT-\d+)\s*$/, /^#{2,4} (CE-[A-Z0-9-]+?)(?: —|$)/, /^\| (REC-\d+) \|/, /^\| (CIR-\d+) \|/, /^\| (DM-\d+) \|/, /^\| `?(API-[A-Z]+-\d+(?:\.\.\d+)?)`? \|/];
+const ID_DEF = [/^\| (D-\d{3}) \|/, /^\| (RM-\d{3}[a-z]?) \|/, /^#{2,6} (RM-FMT-\d+)\s*$/, /^#{2,6} (CE-[A-Z0-9-]+?)(?: —|$)/, /^\| (REC-\d+) \|/, /^\| (CIR-\d+) \|/, /^\| (DM-\d+) \|/, /^\| `?(API-[A-Z]+-\d+(?:\.\.\d+)?)`? \|/];
 const ID_CITE = /\b(?:D-\d{3}|RM-FMT-\d+|RM-\d{3}[a-z]?|CE-[A-Z0-9]+(?:-[A-Z0-9]+)*-\d+|REC-\d+|CIR-\d+|DM-\d+|API-[A-Z]+-\d+)\b/g;
 const PORTEE = [['HORS-MVP', /hors MVP|post-MVP|cible future|\bfutur|ultérieure|\bV[2-4]\b|évolution/i], ['HISTORIQUE', /historique|\bancien|retiré|archiv/i]];
 const MARQUEURS = [['A-CLARIFIER', /À CLARIFIER/], ['REMPLACE', /remplacée? par|supersédée?|\bsupersède/i], ['PRECISE', /précisée? sur ce point|précise D-\d{3}/i], ['PREVAUT', /\bprévaut\b|\bprévalent\b/i], ['VALIDEE', /\bValidée\b/], ['NON-DECIDE', /non décidé|aucun n’est décidé|non tranché/i]];
@@ -54,7 +54,7 @@ function scan(docs) {
       const ps = por.get(k1) || new Set(); ps.add(p.join('+') || 'COURANT'); por.set(k1, ps);
       for (const c of t.match(ID_CITE) || []) cites.set(c, (cites.get(c) || 0) + 1);
       for (const [k, re] of MARQUEURS) if (re.test(t)) (marq[k] ||= new Set()).add(k1); // lignes distinctes : retirer une copie ne compte pas
-      const m = l.match(/^\| (D-\d{3}) \|/); if (m) dec.set(m[1], k1);
+      const m = l.match(/^\| (D-\d{3}) \|/); if (m) dec.set(m[1], h(n1(l.replace(/\]\([^)]*\)/g, ']()')))); // C4 : texte comparé hors cibles de liens
     }); }
   return { ids, c1, c2, dec, por, cites, marq };
 }
@@ -80,7 +80,7 @@ for (const d of refDocs) d.lines.forEach((l, i) => { const t = content(l); if (!
   if (J.has(k1)) { sj++; detail.push(`C2\t${k1}\tJUSTIFIE\t${J.get(k1)} ${where}`); return; }
   ko++; fail.push(`C2 ligne absente ${where} « ${t.slice(0, 70)} »`); detail.push(`C2\t${k1}\tKO\t${where}`); });
 // C4
-let c4 = 0; for (const [id, k] of R.dec) if (!T.c1.has(k)) { c4++; fail.push(`C4 texte de ${id} modifié`); }
+let c4 = 0; const tdec = new Set(T.dec.values()); for (const [id, k] of R.dec) if (!tdec.has(k)) { c4++; fail.push(`C4 texte de ${id} modifié`); }
 // C6
 const c6 = []; for (const [k] of MARQUEURS) { const rs = R.marq[k] || new Set(), ts = T.marq[k] || new Set(); const perdus = [...rs].filter(x => !ts.has(x) && !J.has(x)); if (perdus.length) c6.push(`${k} : ${perdus.length} ligne(s) marquée(s) disparue(s)`); }
 c6.forEach(x => fail.push(`C6 marqueur d'autorité en baisse : ${x}`));
