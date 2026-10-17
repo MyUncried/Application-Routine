@@ -1899,7 +1899,7 @@ Le nom d’Exercice est dynamique ; `Squats assistés` est uniquement la donnée
 - `Reprendre la séance`, action primaire bleue
 - `Arrêter la séance`, action destructive rouge
 
-Les deux boutons `147 × 48` sont alignés sur une ligne avec un écart de `12`. Les libellés sont centrés horizontalement et verticalement. La dernière ligne du message et les actions sont séparées par `spacing/16`.
+*Texte identique à celui de la section [« Confirmation — Réinitialisation de l’Exercice »](#confirmation--réinitialisation-de-lexercice) ; il n’est pas recopié ici.*
 
 #### Reprendre la séance
 

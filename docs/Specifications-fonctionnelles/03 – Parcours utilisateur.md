@@ -1,6 +1,6 @@
 # Objectif de cette note
 
-> Planification à plusieurs contenus (08/10) : les règles antérieures d’archivage supprimant les Routines associées restent décrites pour le cas à contenu unique. Leur extension à une Routine contenant d’autres contenus est **non définie** ; ne pas supprimer ces autres planifications par généralisation. Voir la chapitre 08, Planification.
+> *Texte identique à celui de la section [« Processus métier et règles métier transverses »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#processus-métier-et-règles-métier-transverses) ; il n’est pas recopié ici.*
 
 Décrire, du point de vue de l'utilisateur, les principaux parcours permettant de créer, planifier, exécuter et suivre ses séances dans l'application.
 
@@ -505,7 +505,7 @@ Référence : `../CONCEPTION-EXECUTION-MEDIA.md`.
 
 ## Planifier un Parcours — cible future
 
-**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
+Contenu identique à la section [« Créer et exécuter un Parcours — hors MVP, conception partielle »](#créer-et-exécuter-un-parcours--hors-mvp-conception-partielle) : il n’est pas recopié ici.
 
 ## Parcours consolidés — 26 septembre 2026
 

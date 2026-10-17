@@ -181,7 +181,7 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 - Ajouter cette référence à plusieurs Séances sous forme de copies indépendantes qui n’encombrent pas le catalogue.
 - Associer `0..n` photos ou vidéos à un Exercice, les réordonner et les consulter hors ligne.
 - Ancienne cible de Parcours autonome retirée par D-328 ; voir la planification multi-contenus du 08/10.
-- Ancienne cible de Parcours autonome retirée par D-328 ; voir la planification multi-contenus du 08/10.
+- *Texte identique à celui de la section [« 8. Besoins validés pour les évolutions »](#8-besoins-validés-pour-les-évolutions) ; il n’est pas recopié ici.*
 - Exécuter dès le MVP un Exercice `À l’échec` avec le même geste `Suivant` que le mode Répétitions.
 - Configurer un Exercice ou un Circuit en unilatéral, droite-gauche ou gauche-droite, sans créer de zones corporelles latéralisées (au niveau du Circuit : besoin d’évolution potentiel, explicitement hors du périmètre actuel, D-209, D-395, RM-146).
 - Comprendre le côté courant pendant l’Exécution grâce au sous-titre `Côté droit` ou `Côté gauche`, sans compteur supplémentaire.
@@ -237,9 +237,7 @@ Pour un entraînement ou une rééducation, prescrire un intervalle entre répé
 
 ## Conception de planification du 08/10/2026
 
-Choisir une ou plusieurs Séances/Exercices par cases → Ajouter n éléments → Programme facultatif, Début, Répétition, contenus ordonnés si plusieurs, Rappel → Enregistrer. Chaque contenu filtre les occurrences du créneau par son motif x fois sur n. Les modalités ouvertes ne sont pas considérées livrées. Voir la [spécification](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), les contrats CE-UI-04/05/11 et le [DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md).
-
-<a id="formats-besoins"></a>
+Contenu identique à la section [« Conception de planification du 08/10/2026 »](01%20%E2%80%93%20Vision%20G%C3%A9n%C3%A9rale.md#conception-de-planification-du-08102026) : il n’est pas recopié ici.
 
 ## Besoins couverts par les formats
 

@@ -357,8 +357,8 @@ Le passage en arrière-plan ou le verrouillage ne met pas automatiquement l’Ex
 
 Le moteur applique une pause de sécurité en l’absence d’interaction :
 
-- 30 minutes après la fin théorique d’un Exercice chronométré ou la fin nominale recalculée d’une Série cadencée ;
-- 2 heures après le démarrage d’un Exercice en Répétitions sans cadence ou À l’échec.
+- *Texte identique à celui de la section [« Arrière-plan et verrouillage »](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#arrière-plan-et-verrouillage) ; il n’est pas recopié ici.*
+- *Texte identique à celui de la section [« Arrière-plan et verrouillage »](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#arrière-plan-et-verrouillage) ; il n’est pas recopié ici.*
 
 Cette pause est déterminée à partir des horodatages et ne suppose pas qu’un timer JavaScript reste actif en permanence en arrière-plan.
 
@@ -1436,7 +1436,7 @@ Cette cible reste post-MVP tant qu’une tranche d’implémentation n’est pas
 
 ## 12.35 Source polymorphe des Routines — D-206
 
-La Routine porte le créneau et une liste ordonnée de références, non les contenus d’entraînement eux-mêmes. Chaque entrée référence une Séance active ou un Exercice persistant actif du même utilisateur. Le type et l’identifiant de source appartiennent désormais à **chaque entrée**, pas à un unique couple sur la Routine.
+*Texte identique à celui de la section [« 09.3 Entité Routine »](09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#093-entité-routine) ; il n’est pas recopié ici.*
 
 | Donnée fonctionnelle | Porteur | Règle |
 |---|---|---|
@@ -1452,9 +1452,9 @@ La Routine porte le créneau et une liste ordonnée de références, non les con
 | Type de borne | Routine | jusqu’au/date ou pendant/nombre d’unités ; conversion ouverte |
 | Rappel activé, délai | Routine |0..1 ; permission système requise pour activation |
 
-Le schéma physique, les identifiants d’entrée et les liens aux exécutions devront être spécifiés avant développement. Ces noms fonctionnels ne sont pas un schéma SQL livré. Les occurrences futures restent dérivées ; aucun stockage de phrase récapitulative comme vérité métier. Une mise à jour ne réécrit pas les exécutions/instantanés passés. Les règles mono-source d’archivage ou suppression ne sont pas généralisées à une liste sans préciser l’effet sur les autres entrées.
+*Texte identique à celui de la section [« 09.3 Entité Routine »](09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#093-entité-routine) ; il n’est pas recopié ici.*
 
-Voir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
+*Texte identique à celui de la section [« 09.3 Entité Routine »](09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#093-entité-routine) ; il n’est pas recopié ici.*
 
 Un seul service génère les occurrences du créneau puis applique les filtres par entrée. Les sources restent discriminées SESSION/ACTIVITY. Aucun CircuitRepository ou CircuitExecutionService ne doit être ajouté pour un objet Parcours ; les éventuels noms techniques historiques ne sont pas supprimés sans analyse d’implémentation.
 
@@ -1487,13 +1487,13 @@ L’implémentation de la navigation et des composants visuels respecte D-224 à
 ### Référence DSF V2 détaillée — clôture 28 septembre 2026
 
 - **Navigation basse** : pilule `322 × 62 px`, `#F9FAFC`, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur/rayon 10 offset `0,2`; token `color/navigation/pill`. Icône Profil selon D-233/D-236 dans boîte 32×32 ; actif `#0508E5`, inactif `#595E66`. Cadre actif `76 × 50 px`, bleu `#0508E5` à 10 %. Boîtes d’icônes aux abscisses 68/146/224/302 dans la référence 402 px, soit 28 px entre bord de pilule et boîte extrême et 78 px entre centres. Intégration écran : 16 px sous la pilule, bande opaque 16 px puis dégradé transparent→fond sur 40 px ; ces bandes appartiennent à l’écran.
-- **Fond / contexte** : écran ordinaire `#FFFFFF`; Splash `#0006F1`; média plein écran `#0A0A0C`. Zone de contexte `#EAEAFF`→transparent sur les 20 % inférieurs pour Catalogues, Composition, Calendrier, Suivi, Profil et Ajout d’exercice. Le séparateur 1 px n’est retiré que si ce dégradé assure la séparation.
+- *Texte identique à celui de la section [« Référence DSF V2 détaillée — clôture 28 septembre 2026 »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#référence-dsf-v2-détaillée--clôture-28-septembre-2026) ; il n’est pas recopié ici.*
 - **Halo et action circulaire** : halo Annuler/Retour blanc opaque `59,28 px`, placé devant la zone de contexte et hors du conteneur clippé ; bouton circulaire clair `32 × 32`, `#FCFCFE`, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur 10 offset `0,2`.
-- **Stepper / valeur** : variante lavande `#F2F2FF` pour Profil/paramètres, variante blanche pour Tours de Composition ; `−/+` ronds bleus, 12 px autour de la valeur centrale. Le stepper remplace la valeur sur la même ligne sans étirer le groupe ; un seul stepper actif à la fois. Badge replié `#F5F7FA (surface ; ancienne valeur historique #F4F4F8)`, texte bleu Semi Bold 13 px, rayon 6, marges 8 px horizontales et 2 px verticales ; contour bleu 1,5 px lorsque le contrôle est ouvert (DSF V2 lot 3, T4). Le nombre de semaines utilise la pilule de stepper rayon 18.
-- **Point d’arrêt** : bouton rond blanc opaque, icône Pause, contour 1 px `#0508E5`; l’action complète porte le contour. Les occurrences de Composition utilisent cette référence commune.
-- **Ressenti** : ne pas confondre contrôle de choix et pictogramme de résultat. Résultats : vert Bien, orange Neutre, rouge Mal ; rouge source `#EF4444`. Aucun état actif Figma ne prouve un contrôle « Mal sélectionné ».
-- **Profil** : titres de section Semi Bold 16 px ; `Modifier` en `#0508E5`; groupes blancs 126 px ; zone de contexte 115 px ; ouverture d’un stepper sans étirement du groupe.
-- **Exécution** : sur les cinq écrans portant `Zone — Progression et suite`, début `y=449`, hauteur `305 px`. Dans la variante haute avec texte, conserver 95 px avant la zone. Variante média : `Série X/3 • Tour X/3` en Roboto Condensed Medium 24 px.
+- *Texte identique à celui de la section [« Référence DSF V2 détaillée — clôture 28 septembre 2026 »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#référence-dsf-v2-détaillée--clôture-28-septembre-2026) ; il n’est pas recopié ici.*
+- *Texte identique à celui de la section [« Référence DSF V2 détaillée — clôture 28 septembre 2026 »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#référence-dsf-v2-détaillée--clôture-28-septembre-2026) ; il n’est pas recopié ici.*
+- *Texte identique à celui de la section [« Référence DSF V2 détaillée — clôture 28 septembre 2026 »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#référence-dsf-v2-détaillée--clôture-28-septembre-2026) ; il n’est pas recopié ici.*
+- *Texte identique à celui de la section [« Référence DSF V2 détaillée — clôture 28 septembre 2026 »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#référence-dsf-v2-détaillée--clôture-28-septembre-2026) ; il n’est pas recopié ici.*
+- *Texte identique à celui de la section [« Référence DSF V2 détaillée — clôture 28 septembre 2026 »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#référence-dsf-v2-détaillée--clôture-28-septembre-2026) ; il n’est pas recopié ici.*
 - **Cartes d’Exercice** : D-260/D-261 remplacent l’ancien état média déployé ; gouttière permanente au Catalogue et dans les choix d’exercices, photo ou icône de nature ; aucun Déployer. Aucune photo sur Séance, dans les listes mixtes, le Calendrier ou le Suivi. Les variantes média d’Exécution conservent leur fonctionnement propre.
 
 ### Générateur et validation des paramètres v13
@@ -1522,9 +1522,9 @@ Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilata
 
 > **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v13 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
 
-### Saisie des paramètres — D-246
+### Saisie des paramètres d’exécution
 
-La référence active est [Paramètres en modale v13](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice), contrats CE-T03-04/CE-UI-10. Elle intègre Séries variables, Ordre des côtés, pauses terminales et récupération de l’occurrence. Feuille transactionnelle : ✕ annule, ✓ applique au parent, Terminer persiste. Les calculs et comportements sont normatifs dans les spécifications ; Figma définit le layout seulement. Les anciens textes v11 sont historiques.
+Contenu identique à la section [« Saisie des paramètres d’exécution »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#saisie-des-paramètres-dexécution) : il n’est pas recopié ici.
 
 ## Moteur Cadence — cible technique du06/10/2026
 
@@ -1554,11 +1554,7 @@ Conserver les shells. Composition : sous-brouillon isolé pour placement multipl
 
 ## Contrat technique de phrase
 
-La [spécification de phrase](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases) gouverne le générateur pur : paramètres métier + résultat de durée + locale française → `Array<{texte: string, gras: boolean}>`. Retour vide `[]` si aucune phrase applicable. Aucun calcul depuis Excel, aucune chaîne à redécouper pour trouver les valeurs en gras. React Native utilise des Text imbriqués ; le découpage est émis par le gabarit, y compris si une valeur se répète.
-
-Aucune colonne phrase ni sérialisation des segments dans définition/occurrence/snapshot. Génération à chaque affichage depuis les paramètres ; ✓ applique le brouillon, ne persiste pas le texte. Un changement rédactionnel est visible au prochain rendu des objets existants. Paramètres historiques et temps réalisés préservés.
-
-Français uniquement au MVP. Internationalisation ultérieure : gabarits et règles de pluriel/genre/ordre par locale, avec recette dédiée ; prévoir la réécriture de la grammaire française, pas une traduction des segments isolés. Corpus276 utilisé uniquement pour les phrases, valeurs totales injectées par le calcul métier.
+Contenu identique à la section [« Contrat technique de phrase »](09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#contrat-technique-de-phrase) : il n’est pas recopié ici.
 
 ## Transmission au développement — évolutions v15
 

@@ -1,0 +1,52 @@
+# Étape 6D — étapes cumulées : 6C,6D
+Base : cefc9b99851a847a8c404a024dc2ad79e6768171 ; HEAD avant l'étape : 444e58229b4f1cac4318339f9c9db84f28eeb3c5
+
+étapes=6C,6D fichiers=13 liens_réécrits=0 autres_docs_modifiés=0
+{"6D-ligne-ignoree":15,"6D-ligne":53,"6C-tableau":13,"6C-inventaire":1,"6C-registre":1,"6D-section":20,"6D-titre":7}
+
+## C1–C7 contre la base
+référence=cefc9b99851a847a8c404a024dc2ad79e6768171 fichiers_ref=13 fichiers_cible=13
+C1 identifiants : 782 de référence, 782 dans la cible
+C2 lignes distinctes : 7015 ; N1=7015 N2=0 justifiées=0 absentes=0
+C3 lignes dont les occurrences diminuent : 50 (informatif)
+C4 décisions au texte modifié : 0 sur 393
+C5 lignes dont la portée change : 0
+C6 marqueurs d'autorité en baisse : 0
+C7 références perdues ou orphelines : 0 (identifiants cités : 750)
+CONSERVATION VÉRIFIÉE
+
+## C1–C7 contre HEAD
+référence=HEAD fichiers_ref=13 fichiers_cible=13
+C1 identifiants : 782 de référence, 782 dans la cible
+C2 lignes distinctes : 7024 ; N1=7024 N2=0 justifiées=0 absentes=0
+C3 lignes dont les occurrences diminuent : 50 (informatif)
+C4 décisions au texte modifié : 0 sur 393
+C5 lignes dont la portée change : 0
+C6 marqueurs d'autorité en baisse : 0
+C7 références perdues ou orphelines : 0 (identifiants cités : 750)
+CONSERVATION VÉRIFIÉE
+
+## C8 place des sections
+étapes=—,6C,6D sections_contrôlées=611 conformes=611 non_conformes=0 renvois_de_ligne=11
+
+## C9 liens
+MENTION_REMOVED_SPEC	docs/DSF-V2-MOTIFS-LOT-3.md:4	Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md
+MENTION_REMOVED_SPEC	docs/RAPPORT-RECONCILIATION-DOCUMENTAIRE-247-271.md:89	docs/Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v10.2.md
+files=78 issues=2
+
+## K1 design tokens (ch. 12)
+rangs base=85 actuels=85
+
+## K2 fichiers des chapitres
+manquants=0
+
+## C12 OpenSpec
+Change 'revision-documentation-kodjo' is valid
+
+## Périmètre du diff
+     12 "docs/Specifications-fonctionnelles
+      1 openspec/changes/revision-documentation-kodjo/lot6
+      3 openspec/changes/revision-documentation-kodjo/lot6/execution
+      1 openspec/changes/revision-documentation-kodjo/outils
+
+Résultat : base=0 head=0 place=0 liens=0 tokens=0 fichiers=0 openspec=0

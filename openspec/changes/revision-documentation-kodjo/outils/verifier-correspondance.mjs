@@ -17,7 +17,7 @@ const refLines = Object.fromEntries(git('ls-tree', '--name-only', ref, DIR + '/'
 const tgtDir = opt.cible || path.join(repo, DIR);
 const tgt = {}; for (const f of fs.readdirSync(tgtDir)) if (f.endsWith('.md')) tgt[f.startsWith('Annexe') ? f.split(' – ')[0] + ' – ' + f.split(' – ')[1].replace(/\.md$/, '') : f.slice(0, 2)] = new Set(fs.readFileSync(path.join(tgtDir, f), 'utf8').split(/\r?\n/).map(l => norm(l)));
 function norm(l) { return l.replace(/\]\([^)]*\)/g, ']()').replace(/\s+/g, ' ').trim(); }
-const key = name => name.startsWith('Annexe') ? name : name.slice(0, 2);
+const key = name => name.startsWith('Annexe') ? name.replace(/.md$/, '') : name.slice(0, 2);
 const rows = fs.readFileSync(corf, 'utf8').trim().split('\n').slice(1).map(l => l.split('\t'));
 const byId = new Map(rows.map(r => [r[0], r]));
 const inv = new Map(fs.readFileSync(path.join(path.dirname(corf), 'inventaire-sections.tsv'), 'utf8').trim().split('\n').slice(1).map(l => { const c = l.split('\t'); return [c[0], c]; }));
@@ -26,7 +26,7 @@ let ok = 0, ko = 0, rl = 0; const fails = [];
 for (const r of rows) {
   if (!etapes.has(r[10])) continue;
   const c = inv.get(r[0]); const body = refLines[c[1]].slice(+c[5], +c[6]).map(norm).filter(l => l && !/^\|?\s*:?-{3,}/.test(l) && !/^#{1,6} /.test(l) && !/^<a id=/.test(l));
-  const dest = r[7] === 'RENVOI' ? key(byId.get(r[12])[8]) : key(r[8]);
+  const rc = r[7] === 'RENVOI' ? byId.get(r[12]) : r; const dest = key(rc[21] || rc[8]); // fichier_actuel (matrice actualisée) s'il existe
   const set = tgt[dest]; const absentes = set ? body.filter(l => !set.has(l)) : body; const missing = absentes.filter(l => !tous.has(l)); rl += absentes.length - missing.length;
   if (!set || missing.length) { ko++; fails.push(`${r[0]} (${r[7]} → ${dest}) : ${set ? missing.length + ' ligne(s) absente(s), ex. « ' + missing[0].slice(0, 60) + ' »' : 'fichier cible absent'}`); } else ok++;
 }
