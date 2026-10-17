@@ -1,5 +1,24 @@
 # Vision et glossaire
 
+## Sommaire
+
+- [L’idée en une phrase](#lidée-en-une-phrase)
+- [Identité du produit](#identité-du-produit)
+- [Le problème rencontré](#le-problème-rencontré)
+- [La réponse proposée](#la-réponse-proposée)
+- [Périmètre fonctionnel du MVP](#périmètre-fonctionnel-du-mvp)
+- [Ambition après le MVP](#ambition-après-le-mvp)
+- [1. Utilisateur individuel — cible du MVP — Problèmes rencontrés](#1-utilisateur-individuel--cible-du-mvp--problèmes-rencontrés)
+- [Principes de conception](#principes-de-conception)
+- [Objectif de conception](#objectif-de-conception)
+  - [Rapidité de création](#rapidité-de-création)
+- [Cible fonctionnelle confirmée](#cible-fonctionnelle-confirmée)
+  - [Parcours — post-MVP](#parcours--post-mvp)
+- [Vision de la bilatéralité](#vision-de-la-bilatéralité)
+- [Concepts de composition](#concepts-de-composition)
+  - [Saisie des paramètres d’exécution](#saisie-des-paramètres-dexécution)
+- [Glossaire](#glossaire)
+
 ## L’idée en une phrase
 
 KODJO est une application mobile qui permet à une personne de créer, organiser, planifier, exécuter et suivre ses séances grâce à un guidage visuel, sonore et vocal.

@@ -113,6 +113,11 @@ if (has('6D')) for (const s of S) {
   if (/^Saisie des paramètres — D-246$/.test(s.titre)) { s.titreD246 = 'Saisie des paramètres d’exécution'; note(s.id, '6D-titre', 'D-246'); }
 }
 
+// ── 4 bis. Étape 6H : décision D-402 (restructuration validée par Hermann, QR-1 à QR-9) ajoutée au registre ─────────
+if (has('6H')) { const s = S.find(x => x.ch === '07' && x.bodyO.some(it => it.t.startsWith('| D-401 |'))); const i = s.bodyO.findIndex(it => it.t.startsWith('| D-401 |'));
+  s.bodyO.splice(i + 1, 0, ...['', '<a id="arbitrages-20261017-c"></a>', '### Décision de Hermann du 17 octobre 2026 — restructuration documentaire (QR-1 à QR-9)', '', '| ID | Décision | Statut | Portée et décisions concernées |', '|---|---|---|---|',
+    "| D-402 | La documentation est restructurée selon l’option C révisée du lot 6A (QR-1) : les noms des fichiers de chapitres sont conservés ; le chapitre 08 décrit la conception par fonctionnalité et cite les règles du chapitre 10 sans les énoncer ; les conventions d’interface communes, dont les règles communes de l’ancien chapitre 13 §4, sont au chapitre 06 (QR-2, QR-3) ; les passages historiques non normatifs sont conservés dans une annexe (QR-4) ; les sections modifiées par une PR ouverte restent dans leur fichier (QR-5) ; `PRODUCT.md` est une synthèse sans ordre de référence propre (QR-6) ; seuls des identifiants B-xxx des besoins sont créés (QR-7) ; la restructuration est immédiate, sans attendre PRE-4 ni PRE-5 (QR-8) ; les divergences nouvellement relevées sont regroupées pour arbitrage (QR-9). | Validée, Hermann 17/10/2026 (QR-1 à QR-9) | Documentaire ; aucune règle produit modifiée ; D-376 inchangée (aucune priorité automatique entre les chapitres 08 et 13). |"].map(t => ({ t, ch: '07', bi: -1, neu: true }))); note(s.id, '6H-registre', 'D-402'); }
+
 // ── 5. Destination de chaque section ─────────────────────────────────────────────────────────────────────────────
 const deplacee = s => { const c = C(s.id); return ['DÉPLACER', 'ARCHIVER'].includes(c[7]) && has(c[10]) && has('6E'); };
 for (const s of S) s.dest = deplacee(s) ? cle(C(s.id)[8]) : s.ch;
@@ -263,6 +268,12 @@ function reecrire(t, origineCh, dansFichierK, prefixeDoc) { let fence = false; r
   const av = `${p}#${h}`; if (nu === av || (p && decodeURIComponent(nu.split('#')[0]) === pd && nu.split('#')[1] === h)) return m; liensReecrits++; return `](${nu}${titre})`; }); }
 for (const [k, lines] of Object.entries(R)) { let fence = false; for (const o of lines) { if (/^```/.test(o.t)) { fence = !fence; continue; } if (!fence && !o.neu && o.t.includes('](')) o.t = reecrire(o.t, o.ch || k, k, null); } }
 
+// ── 8 bis. Étape 6G : identifiants B-xxx des besoins du ch. 02 (QR-7) : chaque puce placée sous un titre « Besoin(s) » reçoit un
+// préfixe « **B-nnn** — », dans l'ordre du chapitre ; le texte de la puce est inchangé.
+if (has('6G') && R['02']) { let n = 0; const st = []; for (const o of R['02']) { const m = o.t.match(/^(#{1,6}) (.*)$/); if (m) { while (st.length && st[st.length - 1].lvl >= m[1].length) st.pop(); st.push({ lvl: m[1].length, t: m[2] }); continue; }
+  if (!o.neu && /^- (?!\*\*B-\d{3}\*\*)/.test(o.t) && st.some(x => /^Besoin|\bBesoins?\b/.test(x.t) && !/^Sommaire$/.test(x.t))) { n++; o.t = o.t.replace(/^- /, `- **B-${String(n).padStart(3, '0')}** — `); } }
+  note('S02', '6G-besoins', `${n} besoins identifiés`); }
+
 // ── 9. Étape 6G : sommaires, annexes ─────────────────────────────────────────────────────────────────────────────────
 const annexes = {};
 if (has('6G')) {
@@ -276,7 +287,7 @@ if (has('6G')) {
   for (const s of S) { if (s.lvl === 0) continue; const n = titreSection[s.id]; const op = s.renvoi ? 'renvoi vers la copie conservée' : s.dest !== s.ch ? (s.dest === 'HIST' ? 'annexe historique' : `déplacée au ch. ${s.dest}`) : 'même chapitre';
     corr.push(`| ${s.ch} | ${s.titre.replace(/\|/g, '\\|')} | ${n ? `[${n.titre.replace(/\|/g, '\\|').replace(/[[\]]/g, '')}](${lienDoc(n.k, n.slug)})` : '—'} | ${op} |`); }
   annexes[NOM_CORR] = corr;
-  const ID_DEF = [/^\| (D-\d{3}) \|/, /^\| (RM-\d{3}[a-z]?) \|/, /^#{2,6} (RM-FMT-\d+)\s*$/, /^#{2,6} (CE-[A-Z0-9-]+?)(?: —|$)/, /^\| (REC-\d+) \|/, /^\| (CIR-\d+) \|/, /^\| (DM-\d+) \|/, /^\| `?(API-[A-Z]+-\d+(?:\.\.\d+)?)`? \|/];
+  const ID_DEF = [/^- \*\*(B-\d{3})\*\* — /, /^\| (D-\d{3}) \|/, /^\| (RM-\d{3}[a-z]?) \|/, /^#{2,6} (RM-FMT-\d+)\s*$/, /^#{2,6} (CE-[A-Z0-9-]+?)(?: —|$)/, /^\| (REC-\d+) \|/, /^\| (CIR-\d+) \|/, /^\| (DM-\d+) \|/, /^\| `?(API-[A-Z]+-\d+(?:\.\.\d+)?)`? \|/];
   const idx = ['# Annexe — Index des identifiants', '', 'Document non normatif, généré. Il indique où chaque identifiant est défini. La définition fait foi.', '', '## Identifiants définis', '', '| Identifiant | Chapitre | Section |', '|---|---|---|'];
   const defs = []; for (const [k, lines] of Object.entries(R)) { let cur = null; let fence = false; for (const o of lines) { if (/^```/.test(o.t)) fence = !fence; if (o.slug) cur = o; if (fence) continue; for (const re of ID_DEF) { const m = o.t.match(re); if (m && cur) defs.push([m[1], k, cur]); } } }
   const ord = x => x.replace(/\d+/g, d => d.padStart(5, '0')); defs.sort((a, b) => ord(a[0]).localeCompare(ord(b[0])));
@@ -303,6 +314,10 @@ if (!opt.cible) { const docs = path.join(repo, 'docs'); const L = []; (function 
       let nd = nom; try { nd = decodeURIComponent(nom); } catch {} const ch = nomVersCh[nd]; if (!ch || !h) return m; const n = cibleNouvelle(ch, h.slice(1)); if (!n) return m;
       const nu = `](${pre}${encodeURIComponent(fichierDe(n.k))}#${n.slug})`; if (n.k === ch && n.slug === (() => { try { return decodeURIComponent(h.slice(1)); } catch { return h.slice(1); } })()) return m; liensReecrits++; return nu; }); }).join('\n');
     if (nt !== t) { const crlf = fs.readFileSync(f, 'utf8').includes('\r\n'); fs.writeFileSync(f, crlf ? nt.replace(/\n/g, '\r\n') : nt); docsModifies++; } } }
+if (!opt.cible && has('6G')) fs.writeFileSync(path.join(repo, 'docs', 'INDEX.md'), fs.readFileSync(path.join(L6, 'modeles', 'INDEX.md'), 'utf8').replace(/\r?\n/g, '\n'));
+if (!opt.cible && has('6H')) { const f = path.join(repo, 'docs', 'PRODUCT.md'); let t = fs.readFileSync(f, 'utf8'); const crlf = t.includes('\r\n'); t = t.replace(/\r\n/g, '\n');
+  const a = t.indexOf('En cas de contradiction, l’ordre de référence est :'), b = t.indexOf('Pour T03, les références explicites');
+  if (a > 0 && b > a) { t = t.slice(0, a) + fs.readFileSync(path.join(L6, 'modeles', 'PRODUCT-gouvernance.md'), 'utf8').replace(/\r?\n/g, '\n').trim() + '\n\n' + t.slice(b); fs.writeFileSync(f, crlf ? t.replace(/\n/g, '\r\n') : t); note('PRODUCT', '6H-Q-C', 'ordre de référence remplacé par un renvoi'); } }
 if (opt.rapport) fs.writeFileSync(opt.rapport, rapport.join('\n') + '\n');
 // Matrice de correspondance actualisée : mêmes colonnes que correspondance.tsv, fichier_cible = fichier réellement atteint,
 // plus le titre et l'ancre actuels et l'état d'exécution de la section.

@@ -37,7 +37,7 @@ const ID_CITE = /\b(?:D-\d{3}|RM-FMT-\d+|RM-\d{3}[a-z]?|CE-[A-Z0-9]+(?:-[A-Z0-9]
 const PORTEE = [['HORS-MVP', /hors MVP|post-MVP|cible future|\bfutur|ultérieure|\bV[2-4]\b|évolution/i], ['HISTORIQUE', /historique|\bancien|retiré|archiv/i]];
 const MARQUEURS = [['A-CLARIFIER', /À CLARIFIER/], ['REMPLACE', /remplacée? par|supersédée?|\bsupersède/i], ['PRECISE', /précisée? sur ce point|précise D-\d{3}/i], ['PREVAUT', /\bprévaut\b|\bprévalent\b/i], ['VALIDEE', /\bValidée\b/], ['NON-DECIDE', /non décidé|aucun n’est décidé|non tranché/i]];
 const n1 = s => s.replace(/\s+/g, ' ').trim();
-const n2 = s => n1(s.replace(/\]\([^)]*\)/g, ']()').replace(/\b(?:ch\.|chap\.|chapitres?)\s*\d{2}\b/gi, '§CH').replace(/§\s*[\d.]+(?: bis(?:\.\d+)?)?/g, '§').replace(/\bl\.\s*\d+(?:\s*[–-]\s*\d+)?/g, 'l.'));
+const n2 = s => n1(s.replace(/^(\s*- )\*\*B-\d{3}\*\* — /, '$1').replace(/\]\([^)]*\)/g, ']()').replace(/\b(?:ch\.|chap\.|chapitres?)\s*\d{2}\b/gi, '§CH').replace(/§\s*[\d.]+(?: bis(?:\.\d+)?)?/g, '§').replace(/\bl\.\s*\d+(?:\s*[–-]\s*\d+)?/g, 'l.'));
 const h = s => crypto.createHash('sha1').update(s).digest('hex').slice(0, 16);
 // Lignes générées par la restructuration (renvois, sommaires, annexes d'index et de correspondance) : navigation, hors contrôle.
 const GENEREE = /il n’est pas recopié ici\.\*?$/;

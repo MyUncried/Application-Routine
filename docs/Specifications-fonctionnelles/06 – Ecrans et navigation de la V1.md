@@ -4,6 +4,49 @@ Ce chapitre décrit l’interface dans son ensemble : navigation, inventaire des
 
 **Évolutions v15 du07/10 :**36captations vérifiées, dont15PNG changés depuis main72d1bf4. , [DSF phrases](../DSF-PHRASES-V15-2026-10-07.md). Vue longue renommée224caractères ; les calculs déjà décidés sont conservés.
 
+## Sommaire
+
+- [Objet et organisation](#objet-et-organisation)
+  - [Organisation et lecture](#organisation-et-lecture)
+  - [Couverture du Prototype MVP et exclusions justifiées](#couverture-du-prototype-mvp-et-exclusions-justifiées)
+  - [Références transverses des cartes et appuis](#références-transverses-des-cartes-et-appuis)
+  - [HISTORIQUE — Catalogue Séances — ancien arbre Créer — supersédé D-187](#historique--catalogue-séances--ancien-arbre-créer--supersédé-d-187)
+  - [Règles générales d’interface](#règles-générales-dinterface)
+  - [Évolution des vues de composition](#évolution-des-vues-de-composition)
+- [Navigation, écrans et captures](#navigation-écrans-et-captures)
+  - [Navigation principale et articulation des écrans](#navigation-principale-et-articulation-des-écrans)
+  - [Vues principales et états intégrés](#vues-principales-et-états-intégrés)
+  - [Profil](#profil)
+  - [Catalogue des séances](#catalogue-des-séances)
+  - [Vues principales et états intégrés](#vues-principales-et-états-intégrés-3)
+  - [Modales, panneaux et confirmations](#modales-panneaux-et-confirmations-1)
+  - [Composer une séance / Modifier une séance](#composer-une-séance--modifier-une-séance)
+  - [Créer ou modifier un exercice](#créer-ou-modifier-un-exercice)
+  - [Calendrier](#calendrier)
+  - [États de référence actuels](#états-de-référence-actuels)
+  - [Exécution — séance ou exercice](#exécution--séance-ou-exercice)
+  - [Synthèse — séance ou exercice](#synthèse--séance-ou-exercice)
+  - [Suivi — Séances](#suivi--séances)
+  - [Formats de séances — inventaire et captures](#formats-de-séances--inventaire-et-captures)
+- [Conventions d’interface communes](#conventions-dinterface-communes)
+  - [Contrat d’affichage commun aux écrans du MVP](#contrat-daffichage-commun-aux-écrans-du-mvp)
+  - [Composant transverse `Status / Badge`](#composant-transverse-status--badge)
+  - [Conventions communes d’interface](#conventions-communes-dinterface)
+  - [Titres affichés](#titres-affichés)
+  - [Principes d’expérience](#principes-dexpérience)
+  - [Parcours prévus pour une phase ultérieure — Parcours visuels des cartes](#parcours-prévus-pour-une-phase-ultérieure--parcours-visuels-des-cartes)
+  - [MVP T03 — Exercice directement exécutable — Précision MVP T03 — Carte d’Exercice et vignette média](#mvp-t03--exercice-directement-exécutable--précision-mvp-t03--carte-dexercice-et-vignette-média)
+  - [Conventions communes d’interface](#conventions-communes-dinterface-1)
+  - [Placement des récupérations et des points d’arrêt — Contenu et trait de démarcation](#placement-des-récupérations-et-des-points-darrêt--contenu-et-trait-de-démarcation)
+  - [Champs et comportements des fonctionnalités — Planifier une Séance ou un Exercice](#champs-et-comportements-des-fonctionnalités--planifier-une-séance-ou-un-exercice)
+  - [Champs et comportements des fonctionnalités — Dialogues de confirmation](#champs-et-comportements-des-fonctionnalités--dialogues-de-confirmation)
+  - [Champs et comportements des fonctionnalités — Conventions communes d’interface](#champs-et-comportements-des-fonctionnalités--conventions-communes-dinterface)
+  - [Migration T03 — Catalogue des Exercices — Impacts de données de la revue des cartes](#migration-t03--catalogue-des-exercices--impacts-de-données-de-la-revue-des-cartes)
+  - [RG des cartes](#rg-des-cartes)
+  - [Impact API de la revue des cartes](#impact-api-de-la-revue-des-cartes)
+  - [Cartes, grille des volumes et interactions de composition](#cartes-grille-des-volumes-et-interactions-de-composition)
+  - [Implantation du bip et comportement des steppers](#implantation-du-bip-et-comportement-des-steppers)
+
 ## Objet et organisation
 
 ### Organisation et lecture

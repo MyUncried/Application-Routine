@@ -2,6 +2,38 @@
 
 Ce chapitre décrit, fonctionnalité par fonctionnalité, les enchaînements, états et transitions. Les règles testables sont énoncées au chapitre 10 et citées ici par leur identifiant ; les champs et contrôles d’écran sont définis par les contrats du chapitre 13.
 
+## Sommaire
+
+- [Objet et organisation du chapitre](#objet-et-organisation-du-chapitre)
+  - [Principes généraux](#principes-généraux)
+- [Séances](#séances)
+  - [Cycle de vie d'une séance](#cycle-de-vie-dune-séance)
+- [Exercices](#exercices)
+  - [Catalogue des Exercices — cycle de vie d’un Exercice persistant — MVP T03](#catalogue-des-exercices--cycle-de-vie-dun-exercice-persistant--mvp-t03)
+  - [Champs et comportements des fonctionnalités](#champs-et-comportements-des-fonctionnalités)
+- [Composition des séances](#composition-des-séances)
+  - [Composition d'une séance](#composition-dune-séance)
+- [Exécution](#exécution)
+  - [Exécution d'une séance](#exécution-dune-séance-2)
+  - [Déroulement d'une séance](#déroulement-dune-séance)
+  - [Guidage de l'utilisateur](#guidage-de-lutilisateur)
+  - [Navigation principale et articulation des écrans — Navigation pendant une Exécution](#navigation-principale-et-articulation-des-écrans--navigation-pendant-une-exécution)
+  - [Exécution — séance ou exercice — Exercice défini par une durée](#exécution--séance-ou-exercice--exercice-défini-par-une-durée)
+  - [Exécution — séance ou exercice — Exercice défini par un nombre de répétitions](#exécution--séance-ou-exercice--exercice-défini-par-un-nombre-de-répétitions)
+  - [Exécution — séance ou exercice — Réinitialiser l’Exercice](#exécution--séance-ou-exercice--réinitialiser-lexercice)
+  - [Exécution — séance ou exercice — Mise en pause](#exécution--séance-ou-exercice--mise-en-pause)
+  - [Exécution — séance ou exercice — Exercice suivant](#exécution--séance-ou-exercice--exercice-suivant)
+  - [Exécution — séance ou exercice — Navigation pendant l’Exécution](#exécution--séance-ou-exercice--navigation-pendant-lexécution)
+  - [Exécution — séance ou exercice — Guidage sonore](#exécution--séance-ou-exercice--guidage-sonore)
+  - [Exécution — séance ou exercice — Arrière-plan et verrouillage](#exécution--séance-ou-exercice--arrière-plan-et-verrouillage)
+  - [Exécution — séance ou exercice — Fin de l’Exécution](#exécution--séance-ou-exercice--fin-de-lexécution)
+  - [Exécution — séance ou exercice — Exercice lancé directement depuis le catalogue](#exécution--séance-ou-exercice--exercice-lancé-directement-depuis-le-catalogue)
+- [Suivi et synthèse](#suivi-et-synthèse)
+  - [Suivi et historique des séances](#suivi-et-historique-des-séances)
+- [Interface transverse](#interface-transverse)
+  - [Navigation principale et articulation des écrans — Retour et fermeture](#navigation-principale-et-articulation-des-écrans--retour-et-fermeture)
+  - [Navigation principale et articulation des écrans — Conservation du contexte](#navigation-principale-et-articulation-des-écrans--conservation-du-contexte)
+
 ## Objet et organisation du chapitre
 
 ### Principes généraux

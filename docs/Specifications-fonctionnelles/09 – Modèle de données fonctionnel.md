@@ -1,5 +1,45 @@
 # Modèle de données fonctionnel
 
+## Sommaire
+
+- [Séances](#séances)
+  - [Entité Séance](#entité-séance)
+  - [Règles d’intégrité et de copie](#règles-dintégrité-et-de-copie)
+- [Exercices](#exercices)
+  - [Entité Exercice](#entité-exercice)
+  - [Entité Média](#entité-média)
+  - [Extension du modèle — Exercices, Médias et Parcours](#extension-du-modèle--exercices-médias-et-parcours)
+- [Paramètres d’exécution](#paramètres-dexécution)
+  - [Migration T03 — Catalogue des Exercices](#migration-t03--catalogue-des-exercices)
+  - [Saisie des paramètres d’exécution](#saisie-des-paramètres-dexécution)
+  - [Extension validée du modèle — Paramètres de Série et Ordre des côtés — D-247 à D-254](#extension-validée-du-modèle--paramètres-de-série-et-ordre-des-côtés--d-247-à-d-254)
+  - [Extension validée du modèle — Extension Cadence du modèle de Série](#extension-validée-du-modèle--extension-cadence-du-modèle-de-série)
+- [Composition des séances](#composition-des-séances)
+  - [Extension validée du modèle — Pauses et symboles](#extension-validée-du-modèle--pauses-et-symboles)
+- [Exécution](#exécution)
+  - [Entité Exécution](#entité-exécution)
+  - [Résultat d’Exercice exécuté](#résultat-dexercice-exécuté)
+  - [Structures internes du moteur d'exécution](#structures-internes-du-moteur-dexécution)
+  - [Cycles de vie](#cycles-de-vie)
+- [Planification](#planification)
+  - [Entité Routine](#entité-routine)
+  - [Règles de planification](#règles-de-planification)
+  - [Entité Occurrence planifiée](#entité-occurrence-planifiée)
+- [Suivi et synthèse](#suivi-et-synthèse)
+  - [Cycle de vie d'une séance — Historique](#cycle-de-vie-dune-séance--historique)
+  - [Exécution d'une séance — Historique d'exécution](#exécution-dune-séance--historique-dexécution)
+  - [Suivi et historique des séances — Création d'un historique](#suivi-et-historique-des-séances--création-dun-historique)
+  - [Suivi et historique des séances — Informations enregistrées](#suivi-et-historique-des-séances--informations-enregistrées)
+- [Profil et préférences](#profil-et-préférences)
+  - [Entité Utilisateur](#entité-utilisateur)
+  - [Entité Préférences globales](#entité-préférences-globales)
+- [Référentiels](#référentiels)
+  - [Entité Étiquette](#entité-étiquette)
+  - [Entité Catégorie](#entité-catégorie)
+  - [Entité Zone corporelle](#entité-zone-corporelle)
+- [Sujets transverses](#sujets-transverses)
+  - [Vue d'ensemble](#vue-densemble)
+
 ## Séances
 
 ### Entité Séance

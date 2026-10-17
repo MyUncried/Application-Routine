@@ -1,5 +1,36 @@
 # Parcours utilisateur
 
+## Sommaire
+
+- [Objet et organisation du chapitre](#objet-et-organisation-du-chapitre)
+  - [Objectif de cette note](#objectif-de-cette-note)
+  - [Synthèse des parcours du MVP](#synthèse-des-parcours-du-mvp)
+- [Séances](#séances)
+  - [Parcours complémentaire 1 — Créer une séance à partir d'une référence](#parcours-complémentaire-1--créer-une-séance-à-partir-dune-référence)
+  - [Parcours complémentaire 3 — Archiver puis supprimer une Séance](#parcours-complémentaire-3--archiver-puis-supprimer-une-séance)
+  - [Navigation principale et articulation des écrans — Parcours de création d’une Séance](#navigation-principale-et-articulation-des-écrans--parcours-de-création-dune-séance)
+  - [Navigation principale et articulation des écrans — Parcours d’ouverture et de modification d’une Séance](#navigation-principale-et-articulation-des-écrans--parcours-douverture-et-de-modification-dune-séance)
+- [Exercices](#exercices)
+  - [Parcours MVP T03 — Catalogue des Exercices](#parcours-mvp-t03--catalogue-des-exercices)
+  - [Navigation principale et articulation des écrans — Parcours du Catalogue des Exercices — MVP T03](#navigation-principale-et-articulation-des-écrans--parcours-du-catalogue-des-exercices--mvp-t03)
+- [Paramètres d’exécution](#paramètres-dexécution)
+  - [Paramètres d’exécution — complément](#paramètres-dexécution--complément)
+- [Composition des séances](#composition-des-séances)
+  - [Parcours principal — Créer et exécuter une séance](#parcours-principal--créer-et-exécuter-une-séance)
+- [Exécution](#exécution)
+  - [Parcours complémentaire 3 — Gérer une séance interrompue ou partiellement réalisée](#parcours-complémentaire-3--gérer-une-séance-interrompue-ou-partiellement-réalisée)
+  - [Navigation principale et articulation des écrans — Parcours d’Exécution](#navigation-principale-et-articulation-des-écrans--parcours-dexécution)
+- [Planification](#planification)
+  - [Parcours complémentaire 2 — Gérer les routines](#parcours-complémentaire-2--gérer-les-routines)
+  - [Conception de planification](#conception-de-planification)
+- [Suivi et synthèse](#suivi-et-synthèse)
+  - [Parcours complémentaire 4 — Consulter le suivi des séances](#parcours-complémentaire-4--consulter-le-suivi-des-séances)
+  - [Navigation principale et articulation des écrans — Parcours de consultation du Suivi](#navigation-principale-et-articulation-des-écrans--parcours-de-consultation-du-suivi)
+- [Référentiels](#référentiels)
+  - [Parcours](#parcours-5)
+- [Parcours](#parcours-6)
+  - [Parcours prévus pour une phase ultérieure](#parcours-prévus-pour-une-phase-ultérieure)
+
 ## Objet et organisation du chapitre
 
 ### Objectif de cette note

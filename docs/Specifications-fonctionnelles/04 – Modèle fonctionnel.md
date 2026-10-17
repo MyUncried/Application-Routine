@@ -1,5 +1,37 @@
 # Modèle fonctionnel
 
+## Sommaire
+
+- [Objet et organisation du chapitre](#objet-et-organisation-du-chapitre)
+  - [Objectif](#objectif)
+  - [Navigation principale et articulation des écrans — Cohérence des libellés](#navigation-principale-et-articulation-des-écrans--cohérence-des-libellés)
+- [Séances](#séances)
+  - [Composer une séance / Modifier une séance — Objectif](#composer-une-séance--modifier-une-séance--objectif)
+  - [Cycle de vie d'une séance — Principe général](#cycle-de-vie-dune-séance--principe-général)
+  - [Cycle de vie d'une séance — État persistant et qualificatifs d'une séance](#cycle-de-vie-dune-séance--état-persistant-et-qualificatifs-dune-séance)
+- [Exercices](#exercices)
+  - [Concepts métier](#concepts-métier)
+  - [Structure d'un Exercice](#structure-dun-exercice)
+  - [Composition d'une séance — Les exercices](#composition-dune-séance--les-exercices)
+- [Paramètres d’exécution](#paramètres-dexécution)
+  - [Paramètres et brouillon d’un exercice — Modèle et terminologie](#paramètres-et-brouillon-dun-exercice--modèle-et-terminologie)
+  - [Composition d'une séance — Modes et récupération d’un Exercice](#composition-dune-séance--modes-et-récupération-dun-exercice)
+- [Composition des séances](#composition-des-séances)
+  - [Structure d'une séance](#structure-dune-séance)
+  - [Composer une séance / Modifier une séance — Structure affichée](#composer-une-séance--modifier-une-séance--structure-affichée)
+  - [Composition d'une séance — Principe général](#composition-dune-séance--principe-général)
+  - [Composition d'une séance — Structure d'une séance](#composition-dune-séance--structure-dune-séance)
+  - [Placement des récupérations et des points d’arrêt — Pause de Composition : deux types, un parcours](#placement-des-récupérations-et-des-points-darrêt--pause-de-composition--deux-types-un-parcours)
+- [Formats de séances](#formats-de-séances)
+  - [Extension validée du modèle](#extension-validée-du-modèle)
+- [Planification](#planification)
+  - [Planification des créneaux et de leurs contenus — Le concept central : un créneau peut porter plusieurs contenus](#planification-des-créneaux-et-de-leurs-contenus--le-concept-central--un-créneau-peut-porter-plusieurs-contenus)
+  - [Planification des créneaux et de leurs contenus — Le Programme](#planification-des-créneaux-et-de-leurs-contenus--le-programme)
+- [Suivi et synthèse](#suivi-et-synthèse)
+  - [Suivi et historique des séances — Principe général](#suivi-et-historique-des-séances--principe-général)
+- [Référentiels](#référentiels)
+  - [Gestion des référentiels utilisateur](#gestion-des-référentiels-utilisateur)
+
 ## Objet et organisation du chapitre
 
 ### Objectif
