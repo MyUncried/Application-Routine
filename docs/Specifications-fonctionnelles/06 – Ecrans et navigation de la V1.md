@@ -1963,6 +1963,8 @@ Step simple=1 unité. Maintien après environ 500 ms : répétition au pas1 ; ap
 
 L’accélération est désactivée pour Bip, Compte à rebours et Fin d’exercice ; ils restent au pas1 pendant tout maintien. Les steppers de plus grande plage utilisent les paliers ; aucune accélération appliquée aux roulettes. La règle remplace l’ancienne grille de pas des steppers de pauses dépendante de la valeur. Aucun arrondi au chargement ou à l’ouverture, uniquement lors d’un geste accéléré. Bornes des champs inchangées hors Bip 0..10.
 
+Seul le bouton touché s’anime ; nombre, fond et bouton opposé immobiles. Dilatation/retour et réduction des animations selon DSF existant. Action sans attente de fin du ressort ; un maintien ne doit pas provoquer un second tap au relâchement. Cibles tactiles44 minimum, boutons séparés, nom du champ et valeur annoncés au lecteur d’écran. (transféré du [DSF — Bip de cadence et steppers du 07/10/2026](../DSF-BIP-CADENCE-2026-10-07.md), § « Composant Stepper », G4.)
+
 ### Cartes d’Exercice — règles RG-1 à RG-13
 
 Règles de gestion transférées sans modification depuis le [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md) (§ « État avec photo/vidéo et RG-1 à RG-13 »), conformément à G4 et D-402. Le DSF renvoie désormais ici.

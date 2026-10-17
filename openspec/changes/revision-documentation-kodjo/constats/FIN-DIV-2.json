@@ -1,0 +1,383 @@
+{
+  "description": "DIV-2 — examen des paires 69 à 136 de lot6/divergences.tsv : alignements minimaux tranchés par une décision existante (FONCT-ARBITRÉ) et retraits de copies (DOC). Les points sans décision figurent dans lot6/finalisation/divergences-examen-2.tsv (colonne question_si_arbitrage).",
+  "corrections": [
+    {
+      "id": "DIV2-001",
+      "ref": "paire 70 (S06-0254/S08-0445) ; D-023 ; RM-008 ; constat S-03",
+      "motif": "CORRECTION-DECIDEE:D-023",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-023",
+      "file": "@10 – Processus métier et règles métier transverses.md",
+      "ancien": "La suppression demande toujours une confirmation explicite. Si des Routines utilisent la Séance, le message précise qu’elles seront également supprimées.",
+      "nouveau": "La suppression demande toujours une confirmation explicite. Les Routines associées ont déjà été supprimées lors de l’archivage (D-023)."
+    },
+    {
+      "id": "DIV2-002",
+      "ref": "paire 70 (S06-0254/S08-0445) ; D-023 ; RM-008",
+      "motif": "CORRECTION-DECIDEE:D-023",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-023",
+      "file": "@10 – Processus métier et règles métier transverses.md",
+      "ancien": "- la Séance est supprimée ;\r\n- toutes les Routines qui la référencent sont supprimées ;",
+      "nouveau": "- la Séance est supprimée ;"
+    },
+    {
+      "id": "DIV2-003",
+      "ref": "paire 73 (S06-0269) ; doublon interne de la même section (« Le chiffre du compteur ouvre les boutons −/+ »)",
+      "motif": "COPIE-RETIREE",
+      "classe": "DOC",
+      "file": "@06 – Ecrans et navigation de la V1.md",
+      "ancien": "Le nombre se règle via ± révélés par appui sur le chiffre. La diminution est sans message",
+      "nouveau": "La diminution est sans message"
+    },
+    {
+      "id": "DIV2-004",
+      "ref": "paires 74 et 78 (S06-0273, S06-0278 / S08-0546) ; D-217 ; D-303 (remplace l’affichage imposant Récupération 0 s ; statut de D-208 : « affichage … remplacés par D-302–D-307 »)",
+      "motif": "CORRECTION-DECIDEE:D-303",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-303",
+      "file": "@13 – Contrats d’écran.md",
+      "ancien": "Selon D-208, la ligne `Récupération {durée}` est systématique pour toute occurrence, y compris à `0 s`; le groupe d’actions couvre donc le bloc complet occurrence + ligne de récupération.",
+      "nouveau": "Selon D-217, la ligne structurelle de récupération est présente pour toute occurrence ; absente ou à `0 s`, elle n’affiche aucune information de récupération et seul le trait demeure (D-303) ; le groupe d’actions couvre donc le bloc complet occurrence + ligne de récupération."
+    },
+    {
+      "id": "DIV2-005",
+      "ref": "paire 78 (S06-0278) ; D-253 « Libellé Pause entre les côtés dans tout le produit » ; D-198",
+      "motif": "CORRECTION-DECIDEE:D-253",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-253",
+      "file": "@10 – Processus métier et règles métier transverses.md",
+      "ancien": "L’éditeur conserve `Récupération entre côtés`,",
+      "nouveau": "L’éditeur conserve `Pause entre les côtés`,"
+    },
+    {
+      "id": "DIV2-006",
+      "ref": "paire 77 (S06-0277/S13-0955) ; D-388 (A1)",
+      "motif": "CORRECTION-DECIDEE:D-388",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-388",
+      "file": "@10 – Processus métier et règles métier transverses.md",
+      "ancien": "Les modifications internes sont conservées au fur et à mesure, sous réserve des validations explicites prévues par les écrans d’édition.",
+      "nouveau": "Les modifications internes sont conservées au fur et à mesure dans le brouillon de la Composition, sous réserve des validations explicites prévues par les écrans d’édition ; seule l’action `Continuer` les enregistre (D-388)."
+    },
+    {
+      "id": "DIV2-007",
+      "ref": "paires 79 et 80 (S06-0279/S13-0954, S06-0363) ; D-228 « Sélection multiple de Composition : cases à cocher, CTA `Sélectionner` »",
+      "motif": "CORRECTION-DECIDEE:D-228",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-228",
+      "file": "@13 – Contrats d’écran.md",
+      "ancien": "Les boutons fixes sont `Annuler` à gauche et `Ajouter N exercice(s)` à droite.",
+      "nouveau": "Les boutons fixes sont `Annuler` à gauche et `Sélectionner` à droite (D-228)."
+    },
+    {
+      "id": "DIV2-008",
+      "ref": "paires 79 et 80 ; même point au ch. 03 ; D-228",
+      "motif": "CORRECTION-DECIDEE:D-228",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-228",
+      "file": "@03 – Parcours utilisateur.md",
+      "ancien": "4. Valider avec `Ajouter N exercice(s)`.",
+      "nouveau": "4. Valider avec `Sélectionner` (D-228)."
+    },
+    {
+      "id": "DIV2-009",
+      "ref": "paires 79 et 80 ; même point au ch. 03 ; D-228 ; CE-T03-07 (compteur)",
+      "motif": "CORRECTION-DECIDEE:D-228",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-228",
+      "file": "@03 – Parcours utilisateur.md",
+      "ancien": "4. Vérifier le nombre indiqué par `Ajouter N exercice(s)`.",
+      "nouveau": "4. Vérifier le nombre indiqué par le compteur de sélection."
+    },
+    {
+      "id": "DIV2-010",
+      "ref": "paires 79 et 80 ; même point au ch. 03 ; D-228",
+      "motif": "CORRECTION-DECIDEE:D-228",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-228",
+      "file": "@03 – Parcours utilisateur.md",
+      "ancien": "5. Appuyer sur `Ajouter N exercice(s)`.",
+      "nouveau": "5. Appuyer sur `Sélectionner` (D-228)."
+    },
+    {
+      "id": "DIV2-011",
+      "ref": "paire 81 (S06-0282/S13-0946 §4.10) ; D-355",
+      "motif": "CORRECTION-DECIDEE:D-355",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-355",
+      "file": "@13 – Contrats d’écran.md",
+      "ancien": "- sélectionner une Étiquette ferme le choix et affiche son libellé sous le nom de la Séance ; sa couleur devient la couleur de la Séance ;",
+      "nouveau": "- toucher une Étiquette la marque sans fermer ; ✓ applique le choix et ferme la modale, puis son libellé s’affiche sous le nom de la Séance ; sa couleur devient la couleur de la Séance (D-355) ;"
+    },
+    {
+      "id": "DIV2-012",
+      "ref": "paire 85 (S06-0295/S13-0976 CE-UI-09 §12) ; D-343 « Remplace, pour la Catégorie de l’Exercice, le choix « validé au toucher » »",
+      "motif": "CORRECTION-DECIDEE:D-343",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-343",
+      "file": "@13 – Contrats d’écran.md",
+      "ancien": "Catégorie tap valide/ferme ;",
+      "nouveau": "Catégorie tap marque sans fermer, ✓ confirme et ferme (D-343) ;"
+    },
+    {
+      "id": "DIV2-013",
+      "ref": "paires 86 à 88 (S06-0302/S13-0970, S06-0306, S06-0363) ; D-222 révisée le 08/10 « remplace la sélection exclusive immédiate en planification »",
+      "motif": "CORRECTION-DECIDEE:D-222",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-222",
+      "file": "@13 – Contrats d’écran.md",
+      "ancien": "`+ Planifier` ouvre le bottom sheet `Choisir une séance`. La liste y défile si nécessaire ; toucher une Séance valide le choix et ferme la modale sans CTA bas (D-222).",
+      "nouveau": "`+ Planifier` ouvre la modale de sélection à cases à cocher, titrée « Choisir des séances » ou « Choisir des exercices » selon le segment. La liste y défile si nécessaire ; toucher un contenu bascule sa case sans fermer la modale ; la validation se fait par « Ajouter 1 élément » ou « Ajouter n éléments » (D-222 révisée)."
+    },
+    {
+      "id": "DIV2-014",
+      "ref": "paires 89 et 90 (S06-0318/S08-0505, S06-0374) ; D-029 ; D-150 ; RM-062",
+      "motif": "CORRECTION-DECIDEE:D-029",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-029",
+      "file": "@08 – Conception fonctionnelle détaillée.md",
+      "ancien": "- la Série / Exercice courant recommence depuis son état initial ;",
+      "nouveau": "- en unilatéral, la Série courante recommence depuis son état initial ; en bilatéral, le bloc du côté courant recommence depuis sa première Série (D-029, D-150) ;"
+    },
+    {
+      "id": "DIV2-015",
+      "ref": "paire 96 (S06-0326/S08-0505) ; D-029 ; RM-062",
+      "motif": "CORRECTION-DECIDEE:D-029",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-029",
+      "file": "@13 – Contrats d’écran.md",
+      "ancien": "Permettre de recommencer l’Exercice / Série en cours depuis son état initial sans revenir en arrière dans la Séance.",
+      "nouveau": "Permettre de recommencer depuis son état initial le périmètre courant (Série courante en unilatéral, bloc du côté courant en bilatéral, phase courante pendant une récupération, D-029) sans revenir en arrière dans la Séance."
+    },
+    {
+      "id": "DIV2-016",
+      "ref": "paire 130 (S08-0505/S08-0556) ; D-029 ; RM-062",
+      "motif": "CORRECTION-DECIDEE:D-029",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-029",
+      "file": "@13 – Contrats d’écran.md",
+      "ancien": "| Réinitialisation | Demande confirmation et remet l’Exercice courant à son état initial sans revenir à un Exercice antérieur. |",
+      "nouveau": "| Réinitialisation | Demande confirmation et remet à son état initial le périmètre courant (Série courante en unilatéral, bloc du côté courant en bilatéral, phase courante pendant une récupération, D-029) sans revenir à un Exercice antérieur. |"
+    },
+    {
+      "id": "DIV2-017",
+      "ref": "paires 94 et 95 (S06-0325/S13-0956, S03-0114) ; D-208 « aucune Récupération en direct » ; D-172 révisée par D-208 ; RM-211",
+      "motif": "CORRECTION-DECIDEE:D-208",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-208",
+      "file": "@08 – Conception fonctionnelle détaillée.md",
+      "ancien": "Il développe Séries, Pauses, côtés et Récupération, sans structure de Séance artificielle",
+      "nouveau": "Il développe Séries, Pauses et côtés, sans Récupération après exercice (D-208), sans structure de Séance artificielle"
+    },
+    {
+      "id": "DIV2-018",
+      "ref": "paire 97 (S06-0336/S08-0533) ; D-379",
+      "motif": "CORRECTION-DECIDEE:D-379",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-379",
+      "file": "@10 – Processus métier et règles métier transverses.md",
+      "ancien": "Une Exécution terminant normalement son Plan peut être `Terminée` ou `Partielle` selon les Exercices réellement réalisés.",
+      "nouveau": "Une Exécution terminant normalement son Plan peut être `Terminée` ou `Partielle` ; elle est `Partielle` lorsqu’au moins un Résultat d’Exercice est `Partielle`, une récupération écourtée ne suffisant pas (D-379)."
+    },
+    {
+      "id": "DIV2-019",
+      "ref": "paires 98, 134 et 135 (S08-0534) ; D-031 « Filtrer et Trier … désactivées dans le MVP » ; RM-082",
+      "motif": "CORRECTION-DECIDEE:D-031",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-031",
+      "file": "@08 – Conception fonctionnelle détaillée.md",
+      "ancien": "- modifier l’ordre chronologique d’affichage.",
+      "nouveau": "- modifier l’ordre chronologique d’affichage, hors MVP : dans le MVP, `Trier` est visible mais désactivé (D-031)."
+    },
+    {
+      "id": "DIV2-020",
+      "ref": "paire 99 (S06-0347/S08-0537) ; D-031 ; RM-082",
+      "motif": "CORRECTION-DECIDEE:D-031",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-031",
+      "file": "@08 – Conception fonctionnelle détaillée.md",
+      "ancien": "Le Suivi permet d’inverser l’ordre chronologique des Exécutions :",
+      "nouveau": "Hors MVP, le Suivi permettra d’inverser l’ordre chronologique des Exécutions ; dans le MVP, `Trier` est visible mais désactivé (D-031) :"
+    },
+    {
+      "id": "DIV2-021",
+      "ref": "paire 101 (S06-0351/S13-0946 §4.10) ; D-259 ; D-354",
+      "motif": "CORRECTION-DECIDEE:D-259",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-259",
+      "file": "@10 – Processus métier et règles métier transverses.md",
+      "ancien": "Cette famille de modales est ouverte par appui long sur une option dans les sélecteurs `Étiquettes`, `Catégorie` ou `Zones corporelles`.",
+      "nouveau": "Cette famille de modales est ouverte par l’action `Supprimer` du dialogue d’appui long (`Modifier` / `Supprimer`, D-259, D-354) sur une option dans les sélecteurs `Étiquettes`, `Catégorie` ou `Zones corporelles`."
+    },
+    {
+      "id": "DIV2-022",
+      "ref": "paire 104 (S06-0353/S08-0552) ; D-111 (statut : « supersédée le 13/10 par EC-01/02 … À l’échec, désormais cible de Série dans les deux modes ») ; RM-033",
+      "motif": "CORRECTION-DECIDEE:D-111",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-111",
+      "file": "@10 – Processus métier et règles métier transverses.md",
+      "ancien": "| Mode À l’échec    | N’affiche aucune cible chiffrée ;",
+      "nouveau": "| Cible À l’échec   | Cible de Série et non troisième mode (D-111) ; n’affiche aucune cible chiffrée ;"
+    },
+    {
+      "id": "DIV2-023",
+      "ref": "paire 129 (S08-0465/S10-0733) ; D-111 ; RM-033",
+      "motif": "CORRECTION-DECIDEE:D-111",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-111",
+      "file": "@04 – Modèle fonctionnel.md",
+      "ancien": "- jusqu’à l’échec, sans durée ni nombre de répétitions cibles.",
+      "nouveau": "- dans l’un ou l’autre de ces modes, avec une cible À l’échec par Série, sans durée ni nombre de répétitions cibles ; À l’échec n’est pas un troisième mode (D-111)."
+    },
+    {
+      "id": "DIV2-024",
+      "ref": "paire 106 (S06-0363/S08-0583) ; D-222 révisée le 08/10",
+      "motif": "CORRECTION-DECIDEE:D-222",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-222",
+      "file": "@06 – Ecrans et navigation de la V1.md",
+      "ancien": "D-222 distingue sélection simple auto-validée et sélection multiple avec validation explicite.",
+      "nouveau": "D-222, révisée le 08/10, impose en planification la modale à cases à cocher validée par « Ajouter 1 élément » ou « Ajouter n éléments », même pour un seul contenu ; les contrats de Composition et de référentiels conservent leurs règles propres."
+    },
+    {
+      "id": "DIV2-025",
+      "ref": "paire 108 (S06-0378/S08-0551) ; D-325",
+      "motif": "CORRECTION-DECIDEE:D-325",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-325",
+      "file": "@08 – Conception fonctionnelle détaillée.md",
+      "ancien": "\"Ajouter une activité\"",
+      "nouveau": "\"Créer un exercice\""
+    },
+    {
+      "id": "DIV2-026",
+      "ref": "paire 108 (S06-0378/S08-0551) ; D-325",
+      "motif": "CORRECTION-DECIDEE:D-325",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-325",
+      "file": "@08 – Conception fonctionnelle détaillée.md",
+      "ancien": "En modification : \"Modifier une activité\"",
+      "nouveau": "En modification : \"Modifier un exercice\""
+    },
+    {
+      "id": "DIV2-027",
+      "ref": "paire 110 (S07-0396/S12-0917) ; D-203 (« périmètre MVP confirmé le 28/09/2026 ») ; constat P-05",
+      "motif": "CORRECTION-DECIDEE:D-203",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-203",
+      "file": "@12 – Architecture technique.md",
+      "ancien": "Cette cible reste post-MVP tant qu’une tranche d’implémentation n’est pas décidée.",
+      "nouveau": "Cette cible fait partie du périmètre MVP (D-203, confirmation du 28/09/2026)."
+    },
+    {
+      "id": "DIV2-028",
+      "ref": "paires 112, 114 et 116 (S07-0401, S07-0421 / S12-0898) ; D-330 « options Aucune/Aucun supprimées » ; D-229 révisée le 08/10",
+      "motif": "CORRECTION-DECIDEE:D-330",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-330",
+      "file": "@12 – Architecture technique.md",
+      "ancien": "- Le sélecteur de rappel utilise trois zones sœurs : option fixe `Aucun`, `ScrollView` horizontal pour les choix rapides, option fixe `Personnalisé`. Le défilement ne déplace pas les options fixes et accepte l’ajout de délais rapides sans modifier la structure du composant.",
+      "nouveau": "- Le Rappel est activé par un interrupteur ; l’option `Aucun` est supprimée (D-330). Le sélecteur de rappel présente ensuite cinq options de largeur égale, dont `Autre` (D-229, révision du 08/10)."
+    },
+    {
+      "id": "DIV2-029",
+      "ref": "paire 118 (S07-0423/S11-0819) ; D-344 (palette de création de Catégorie, 12 couleurs de D-026)",
+      "motif": "CORRECTION-DECIDEE:D-344",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-344",
+      "file": "@11 – API fonctionnelles.md",
+      "ancien": "| API-REF-02 | Créer une catégorie           | Nom                              | Nouvelle catégorie                          | Respect des contraintes d’unicité ; icône KODJO et couleur blanche DSF attribuées automatiquement et non modifiables dans le MVP ;",
+      "nouveau": "| API-REF-02 | Créer une catégorie           | Nom, couleur                     | Nouvelle catégorie                          | Respect des contraintes d’unicité ; icône KODJO attribuée automatiquement et non modifiable dans le MVP ; couleur choisie dans la palette de création (12 couleurs de D-026, D-344) ;"
+    },
+    {
+      "id": "DIV2-030",
+      "ref": "paire 115 (S07-0408/S11-0819) ; D-259 (« Modifier (renommer ; couleur pour Catégorie et Étiquette) »)",
+      "motif": "CORRECTION-DECIDEE:D-259",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-259",
+      "file": "@11 – API fonctionnelles.md",
+      "ancien": "| API-REF-03 | Modifier une catégorie        | ID Catégorie, nouveau nom        | Catégorie mise à jour                       | La Catégorie doit exister ; l’icône et la couleur ne sont pas modifiables dans le MVP |",
+      "nouveau": "| API-REF-03 | Modifier une catégorie        | ID Catégorie, nouveau nom, couleur éventuelle | Catégorie mise à jour                       | La Catégorie doit exister ; l’icône n’est pas modifiable dans le MVP ; la couleur est modifiable (D-259) |"
+    },
+    {
+      "id": "DIV2-031",
+      "ref": "paires 124 à 126 (S08-0451/S10-0744, S13-0949, S08-0583) ; D-221 ; RM-221",
+      "motif": "CORRECTION-DECIDEE:D-221",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-221",
+      "file": "@08 – Conception fonctionnelle détaillée.md",
+      "ancien": "La liste des Exercices conserve recherche, filtres, tri et position de défilement",
+      "nouveau": "La liste des Exercices conserve filtres, tri et position de défilement"
+    },
+    {
+      "id": "DIV2-032",
+      "ref": "paires 124 à 126, même passage ; D-261 « Aucun chevron ni déploiement accessible sur les cartes d’Exercice, avec ou sans média » ; D-260 ; CE-T03-02 §12",
+      "motif": "CORRECTION-DECIDEE:D-261",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-261",
+      "file": "@08 – Conception fonctionnelle détaillée.md",
+      "ancien": "Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé.",
+      "nouveau": "Aucun contrôle `Déployer` n’est accessible sur la carte d’Exercice ; le média associé est présenté dans la gouttière permanente de la carte (D-260, D-261)."
+    },
+    {
+      "id": "DIV2-033",
+      "ref": "paires 124 à 126, même point dans RM-162 ; D-261 ; D-260",
+      "motif": "CORRECTION-DECIDEE:D-261",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-261",
+      "file": "@10 – Processus métier et règles métier transverses.md",
+      "ancien": "`Déployer` affiche/masque le média associé.",
+      "nouveau": "Aucun contrôle `Déployer` n’est accessible sur la carte ; le média associé est présenté dans la gouttière permanente (D-260, D-261)."
+    },
+    {
+      "id": "DIV2-034",
+      "ref": "paires 127 et 128 (S08-0456/S10-0733, S08-0459) ; D-247 ; RM-037",
+      "motif": "CORRECTION-DECIDEE:D-247",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-247",
+      "file": "@10 – Processus métier et règles métier transverses.md",
+      "ancien": "Un Exercice bilatéral exécute toutes les Séries du premier côté puis toutes celles du second.",
+      "nouveau": "Un Exercice bilatéral exécute ses Séries selon son Ordre des côtés : avec `Un côté après l’autre` (défaut), toutes les Séries du premier côté puis toutes celles du second ; avec `Les deux côtés à chaque série`, les deux côtés à chaque Série (D-247)."
+    },
+    {
+      "id": "DIV2-035",
+      "ref": "paire 133 (S01-0029) ; D-208 (PC intrinsèque ; aucune Récupération en direct) ; D-247 (Ordre des côtés)",
+      "motif": "CORRECTION-DECIDEE:D-208",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-208",
+      "file": "@01 – Vision Générale.md",
+      "ancien": "Exercice exécutant toutes ses Séries du premier côté, puis toutes ses Séries du second côté. Aucune Pause n’est ajoutée spécifiquement entre les côtés ; la Récupération intervient une fois après le second côté.",
+      "nouveau": "Exercice exécutant ses Séries selon son Ordre des côtés (D-247) ; la Pause entre les côtés éventuelle s’exécute selon cet ordre ; aucune Récupération après exercice n’est exécutée en direct (D-208)."
+    },
+    {
+      "id": "DIV2-036",
+      "ref": "paire 133 (S01-0029) ; D-208 (« R contextuelle à l’occurrence ») ; glossaire ch. 01, entrée Exercice",
+      "motif": "CORRECTION-DECIDEE:D-208",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-208",
+      "file": "@01 – Vision Générale.md",
+      "ancien": "incluant sa Pause et sa Récupération éventuelles.",
+      "nouveau": "incluant ses Pauses et sa Pause entre les côtés éventuelle ; une `ActivityDefinition` ne porte jamais de Récupération après exercice (D-208)."
+    },
+    {
+      "id": "DIV2-037",
+      "ref": "paire 133 (S01-0029) ; ligne de tableau de champs (ch. 08) copiée dans le tableau « Terme | Définition unique » du glossaire, déjà présente dans 00 – Glossaire (7a89220f^, l. 202) ; la définition reste portée par la ligne « Bip de cadence | Signal sonore périodique … »",
+      "motif": "COPIE-RETIREE",
+      "classe": "DOC",
+      "file": "@01 – Vision Générale.md",
+      "ancien": "| Bip de cadence | Stepper | Trois modes, réglage commun | Non | Aucun (0) | Entier0..10 s | Série | ± dans le brouillon ;0 retire le bip | Propagation à toutes les Séries ; conservation au changement de mode |\r\n",
+      "nouveau": ""
+    },
+    {
+      "id": "DIV2-038",
+      "ref": "paire 133 et paires 84, 103, 108 (S08-0551) ; D-313 « … dans deux modes »",
+      "motif": "CORRECTION-DECIDEE:D-313",
+      "classe": "FONCT-ARBITRÉ",
+      "decision": "D-313",
+      "file": "@08 – Conception fonctionnelle détaillée.md",
+      "ancien": "| Bip de cadence | Stepper | Trois modes, réglage commun |",
+      "nouveau": "| Bip de cadence | Stepper | Deux modes, réglage commun (D-313) |"
+    }
+  ]
+}

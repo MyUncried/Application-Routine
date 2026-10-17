@@ -1,0 +1,14 @@
+{
+ "description": "Complément de DSF-001 : la règle des steppers retirée du DSF Bip par DSF-002 est ajoutée au ch. 06, à l’identique (l’ancrage de DSF-001 avait été modifié par QUA-049). — sous-ensemble appliqué (voir FIN-DSF-complement-ecartees.tsv)",
+ "corrections": [
+  {
+   "id": "DSF-001b",
+   "ref": "DSF-BIP-CADENCE-2026-10-07.md (753f4dd2) § Composant Stepper ; D-312, D-237 ; G4",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "L’accélération est désactivée pour Bip, Compte à rebours et Fin d’exercice ; ils restent au pas1 pendant tout maintien. Les steppers de plus grande plage utilisent les paliers ; aucune accélération appliquée aux roulettes. La règle remplace l’ancienne grille de pas des steppers de pauses dépendante de la valeur. Aucun arrondi au chargement ou à l’ouverture, uniquement lors d’un geste accéléré. Bornes des champs inchangées hors Bip 0..10.",
+   "nouveau": "L’accélération est désactivée pour Bip, Compte à rebours et Fin d’exercice ; ils restent au pas1 pendant tout maintien. Les steppers de plus grande plage utilisent les paliers ; aucune accélération appliquée aux roulettes. La règle remplace l’ancienne grille de pas des steppers de pauses dépendante de la valeur. Aucun arrondi au chargement ou à l’ouverture, uniquement lors d’un geste accéléré. Bornes des champs inchangées hors Bip 0..10.\r\n\r\nSeul le bouton touché s’anime ; nombre, fond et bouton opposé immobiles. Dilatation/retour et réduction des animations selon DSF existant. Action sans attente de fin du ressort ; un maintien ne doit pas provoquer un second tap au relâchement. Cibles tactiles44 minimum, boutons séparés, nom du champ et valeur annoncés au lecteur d’écran. (transféré du [DSF — Bip de cadence et steppers du 07/10/2026](../DSF-BIP-CADENCE-2026-10-07.md), § « Composant Stepper », G4.)"
+  }
+ ]
+}
