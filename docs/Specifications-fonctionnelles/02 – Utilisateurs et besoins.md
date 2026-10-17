@@ -183,10 +183,10 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 - Ancienne cible de Parcours autonome retirée par D-328 ; voir la planification multi-contenus du 08/10.
 - Ancienne cible de Parcours autonome retirée par D-328 ; voir la planification multi-contenus du 08/10.
 - Exécuter dès le MVP un Exercice `À l’échec` avec le même geste `Suivant` que le mode Répétitions.
-- Configurer un Exercice ou un Circuit en unilatéral, droite-gauche ou gauche-droite, sans créer de zones corporelles latéralisées (au niveau du Circuit : besoin d’évolution, non retenu dans la version actuelle, D-209, RM-146).
+- Configurer un Exercice ou un Circuit en unilatéral, droite-gauche ou gauche-droite, sans créer de zones corporelles latéralisées (au niveau du Circuit : besoin d’évolution potentiel, explicitement hors du périmètre actuel, D-209, D-395, RM-146).
 - Comprendre le côté courant pendant l’Exécution grâce au sous-titre `Côté droit` ou `Côté gauche`, sans compteur supplémentaire.
 - Conserver séparément les résultats du côté droit et du côté gauche, y compris lorsqu’un seul côté est partiellement réalisé.
-- Activer la bilatéralité d’un Circuit après confirmation ; toutes ses Exercices héritent alors du Circuit et leur contrôle propre devient unilatéral désactivé (besoin d’évolution, non retenu dans la version actuelle : D-209, RM-145 à RM-147).
+- Activer la bilatéralité d’un Circuit après confirmation ; toutes ses Exercices héritent alors du Circuit et leur contrôle propre devient unilatéral désactivé (besoin d’évolution potentiel, explicitement hors du périmètre actuel, non validé pour la version actuelle : D-209, D-395, RM-145 à RM-147).
 
 ## 9. Besoins MVP T03 — Catalogue des Exercices et Exécution directe
 

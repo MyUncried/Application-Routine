@@ -1,0 +1,257 @@
+{
+ "description": "Arbitrages A1 à A9 de Hermann du 17/10/2026 (D-388 à D-396) — corrections documentaires. Dossiers P1 (A1-A3), P2 (A4-A6), P3 (A7-A9), revus ; fusion A3-05 + A51 (statut de D-091).",
+ "corrections": [
+  {
+   "id": "A1-01",
+   "ref": "D-388 : seule l’action Continuer enregistre la Composition ; résout l’À CLARIFIER du §3.10 (contradiction avec CE-T03-08 §15).",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "- les modifications sont enregistrées automatiquement (`À CLARIFIER` : contradiction avec CE-T03-08 §15, « Continuer seul persiste » ; D-376) ;",
+   "nouveau": "- les modifications de la Composition restent dans le brouillon jusqu’à l’action `Continuer`, seule action qui les enregistre ; les règles d’annulation et de restitution applicables sont conservées (D-388) ;"
+  },
+  {
+   "id": "A2-01",
+   "ref": "D-389 : forme du signalement d’un contrôle obligatoire incomplet ; résout exactement l’À CLARIFIER du §3.8 (signalement porté par le contrôle, pas par la carte, cohérent avec CIR-09).",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "Les exercices incomplètes sont signalées à l'utilisateur (`À CLARIFIER` : forme du signalement non définie ; CIR-09 exclut tout marqueur d’incomplétude sur la carte de composition).",
+   "nouveau": "Lorsqu’un contrôle obligatoire ne possède aucune valeur renseignée, son fond habituellement gris devient rouge pâle ; pour un stepper, les cercles des boutons − et + conservent strictement leurs couleurs normales ; la valeur absente reste représentée par « — ». Un champ obligatoire vide suit le même principe. Le fond redevient normal lorsque le contrôle possède une valeur valide ; les champs facultatifs vides ne sont pas concernés. Le signalement concerne le contrôle, pas la carte entière (CIR-09 : aucun marqueur d’incomplétude sur la carte) ; aucun message d’erreur supplémentaire n’est affiché (D-389)."
+  },
+  {
+   "id": "A2-02",
+   "ref": "D-389 : le nom de la Séance est un champ déclaré obligatoire (ch. 08, 1 à 80 caractères) ; vide, il suit le même principe.",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "| Nom de la séance | Champ obligatoire de 1 à 80 caractères. |",
+   "nouveau": "| Nom de la séance | Champ obligatoire de 1 à 80 caractères. Vide, il est signalé par un fond rouge pâle, sans message supplémentaire (D-389). |"
+  },
+  {
+   "id": "A2-03",
+   "ref": "D-389 : éditeur d’Exercice, champs/contrôles déclarés obligatoires (Nom, Catégorie, Zones, mode, cible — ligne Bouton Terminer) ; seule la forme du signalement est ajoutée.",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "| Validation        | Impossible tant que les champs obligatoires ne sont pas renseignés.",
+   "nouveau": "| Validation        | Impossible tant que les champs obligatoires ne sont pas renseignés. Un contrôle ou champ obligatoire sans valeur est signalé par son fond rouge pâle, qui redevient normal dès qu’une valeur valide est renseignée ; aucun message supplémentaire (D-389)."
+  },
+  {
+   "id": "A2-04",
+   "ref": "D-389 : feuille Paramètres, cible obligatoire sans valeur ; le contour de D-337 n’est pas retiré faute de décision (voir À ISOLER I-02).",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "aucun message en ligne (D-337, 12/10 : remplace le message nommant la Série à renseigner). Pause0 valide.",
+   "nouveau": "aucun message en ligne (D-337, 12/10 : remplace le message nommant la Série à renseigner). Une cible obligatoire sans valeur, représentée par « — », reçoit un fond rouge pâle ; sur un stepper, les cercles − et + conservent leurs couleurs normales ; le fond redevient normal dès qu’une valeur valide est saisie (D-389 ; `À CLARIFIER` : maintien ou retrait, dans ce cas, du contour de D-337, non tranché). Pause0 valide."
+  },
+  {
+   "id": "A2-05",
+   "ref": "D-389 : CE-T03-08, Continuer désactivé tant qu’une cible obligatoire manque (D-380, D-123) ; ajout de la forme du signalement.",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "comporte une cible obligatoire non renseignée (D-380, D-123). Récupération0..300s",
+   "nouveau": "comporte une cible obligatoire non renseignée (D-380, D-123). Le contrôle ou champ obligatoire sans valeur est signalé par son fond rouge pâle, pas la carte entière, sans message supplémentaire (D-389). Récupération0..300s"
+  },
+  {
+   "id": "A2-06",
+   "ref": "D-389 : règle métier RM-017 de validation de la Composition.",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "une telle Séance ne peut pas être enregistrée (D-380, D-123). L’Étiquette est facultative ;",
+   "nouveau": "une telle Séance ne peut pas être enregistrée (D-380, D-123). Un contrôle ou champ obligatoire sans valeur est signalé par son fond rouge pâle, qui redevient normal dès qu’une valeur valide est renseignée ; le signalement concerne le contrôle, pas la carte entière, et aucun message d’erreur supplémentaire n’est affiché (D-389). L’Étiquette est facultative ;"
+  },
+  {
+   "id": "A2-07",
+   "ref": "D-389 : écran Composition (ch. 06), même règle que RM-017.",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "qu’un de ses Exercices comporte une cible obligatoire non renseignée (D-380, D-123). L’Étiquette est facultative ;",
+   "nouveau": "qu’un de ses Exercices comporte une cible obligatoire non renseignée (D-380, D-123). Le contrôle ou champ obligatoire sans valeur est signalé par son fond rouge pâle, sans message supplémentaire (D-389). L’Étiquette est facultative ;"
+  },
+  {
+   "id": "A2-08",
+   "ref": "Statut historique : D-389 précise D-123.",
+   "file": "@07 – Registre des décisions de conception.md",
+   "ancien": "son libellé ne varie jamais. | Validée | Oui |",
+   "nouveau": "son libellé ne varie jamais. | Validée ; précisée sur ce point (signalement d’un contrôle obligatoire incomplet) par D-389 (17/10/2026) | Oui |"
+  },
+  {
+   "id": "A2-09",
+   "ref": "Statut historique : D-389 précise D-337 (fond d’un contrôle obligatoire sans valeur) ; contour non tranché.",
+   "file": "@07 – Registre des décisions de conception.md",
+   "ancien": "| Validée, Hermann 12/10 ; remplace le message en ligne de chapitre 08, paramètres d’exercice |",
+   "nouveau": "| Validée, Hermann 12/10 ; remplace le message en ligne de chapitre 08, paramètres d’exercice ; précisée sur ce point (fond rouge pâle d’un contrôle obligatoire sans valeur) par D-389 (17/10/2026) |"
+  },
+  {
+   "id": "A2-10",
+   "ref": "Statut historique : D-389 précise D-380.",
+   "file": "@07 – Registre des décisions de conception.md",
+   "ancien": "| Validée, Hermann 16/10/2026 (Q-H) |",
+   "nouveau": "| Validée, Hermann 16/10/2026 (Q-H) ; précisée sur ce point (signalement d’un contrôle obligatoire incomplet) par D-389 (17/10/2026) |"
+  },
+  {
+   "id": "A3-01",
+   "ref": "D-390 : sous le titre du Circuit, seule la durée de ce Circuit ; retire « N exercice(s) » et résout exactement l’À CLARIFIER sur le périmètre de ce nombre.",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "| Résumé | `N exercice(s) · durée des Exercices`, placé dans l’en-tête du conteneur Circuit immédiatement sous `Nombre de tours`. Le nombre porte sur les Exercices seulement (`À CLARIFIER` : périmètre de ce nombre non tranché par D-382, et nombre absent des captures et du DSF Circuits du 12/10) ; la durée concerne exclusivement ce Circuit (D-382)",
+   "nouveau": "| Résumé | Durée de ce Circuit seule, placée dans l’en-tête du conteneur Circuit immédiatement sous `Nombre de tours` ; « N exercice(s) » n’est pas affiché à cet emplacement (D-390). La durée concerne exclusivement ce Circuit (D-382)"
+  },
+  {
+   "id": "A3-02",
+   "ref": "D-390 : l’état vide de cet emplacement n’affiche plus « 0 exercice » ; le libellé de durée à vide n’est pas fixé ici (voir À ISOLER I-04).",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "À l'état vide, affiche exactement `0 exercice · 0 min`, au singulier — exception locale à cet écran (D-091). |",
+   "nouveau": "À l'état vide, le nombre `0 exercice` de D-091 n’est pas affiché à cet emplacement ; seule la durée l’est (D-390). |"
+  },
+  {
+   "id": "A3-03",
+   "ref": "D-390 : en-tête de la Composition (ch. 06).",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "- le résumé `N exercice(s) · durée des Exercices`, intégré sous `Nombre de tours` dans le conteneur Circuit.",
+   "nouveau": "- la durée de ce Circuit, intégrée sous `Nombre de tours` dans le conteneur Circuit ; « N exercice(s) » n’est pas affiché à cet emplacement (D-390)."
+  },
+  {
+   "id": "A3-04",
+   "ref": "Statut historique : D-390 remplace, pour cet emplacement, « N exercice(s) » de D-100.",
+   "file": "@07 – Registre des décisions de conception.md",
+   "ancien": "| Validée post-Figma ; précisée sur ce point (total sous le titre du Circuit : ce Circuit seul) par D-382 | Oui |",
+   "nouveau": "| Validée post-Figma ; précisée sur ce point (total sous le titre du Circuit : ce Circuit seul) par D-382 ; remplacée sur ce point (« N exercice(s) » non affiché sous le titre du Circuit) par D-390 (17/10/2026) | Oui |"
+  },
+  {
+   "id": "A3-05+A51",
+   "ref": "D-390 (« N exercice(s) » non affiché sous le titre du Circuit) et D-392 (carte de Séance vide : 0 exercice) — mentions fusionnées sur le statut de D-091",
+   "file": "@07 – Registre des décisions de conception.md",
+   "ancien": "qui reste `0 exercices`. | Validée | Oui |",
+   "nouveau": "qui reste `0 exercices`. | Validée ; remplacée sur ce point (« 0 exercice » non affiché sous le titre du Circuit) par D-390 (17/10/2026) ; précisée sur ce point par D-392 (17/10/2026) : la carte d’une Séance sans Exercice affiche `0 exercice`, le libellé `0 exercices` ne s’applique plus à cette carte | Oui |"
+  },
+  {
+   "id": "A41",
+   "ref": "D-391 — RM-159 : l’arrondi Math.ceil est remplacé par minutes et secondes sans arrondi ; la phrase Q20 (≥) est conservée telle quelle",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "elle est convertie en minutes par arrondi à la minute supérieure (`Math.ceil`).",
+   "nouveau": "elle est affichée en minutes et secondes, sans arrondi à la minute supérieure, selon le [format d'affichage des durées](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases) (D-391)."
+  },
+  {
+   "id": "A42",
+   "ref": "D-391 — statut de la décision historique D-090 (texte non réécrit)",
+   "file": "@07 – Registre des décisions de conception.md",
+   "ancien": "renumérotation du 14/09/2026, `83634178`) |",
+   "nouveau": "renumérotation du 14/09/2026, `83634178`) ; remplacée sur ce point (arrondi à la minute supérieure, `Math.ceil`) par D-391 (17/10/2026) |"
+  },
+  {
+   "id": "A43",
+   "ref": "D-391 — ch. 08 §Durée synthétique : renvoi au format existant « Format d'affichage des durées » du même chapitre, ≥ conservé",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "`postActivityRecoverySeconds` des occurrences selon leur développement dans le Circuit. Elle exclut toujours le Compte à rebours initial et la Fin de séance.",
+   "nouveau": "`postActivityRecoverySeconds` des occurrences selon leur développement dans le Circuit. Elle exclut toujours le Compte à rebours initial et la Fin de séance. Sur les cartes Catalogue et Composition, les durées exactes et estimées sont affichées en minutes et secondes, sans arrondi à la minute supérieure, selon le [format d'affichage des durées](#phrases) ; les règles des durées partielles `≥` sont conservées (D-391)."
+  },
+  {
+   "id": "A44",
+   "ref": "D-391 — DSF normatif de la durée des cartes Catalogue (renvoyé par CE-T03-01/02/05) : format sans arrondi",
+   "file": "DSF-CARTES-DUREE-2026-10-07.md",
+   "ancien": "Durée en lecture seule, aucune cible interactive créée.",
+   "nouveau": "Durée en lecture seule, aucune cible interactive créée. Les durées exactes et estimées sont affichées en minutes et secondes, sans arrondi à la minute supérieure, selon le [format d'affichage des durées](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases) ; les règles des durées partielles `≥` sont conservées (D-391)."
+  },
+  {
+   "id": "A52",
+   "ref": "D-392 — CE-T03-01 §8 : résout exactement le marquage À CLARIFIER du 17/10 (Q32 contre D-091)",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "(Séance sans Exercice : « 0 exercice » selon la décision PRE-4 Q32, « 0 exercices » selon D-091 — À CLARIFIER)",
+   "nouveau": "(Séance sans Exercice : « 0 exercice », au singulier, selon la décision PRE-4 Q32 et D-392)"
+  },
+  {
+   "id": "A53",
+   "ref": "D-392 — ch. 06 carte Séance du Catalogue : cas de la Séance sans Exercice",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "Ligne des valeurs : `N exercices` et `N tours`, icônes nues 16.",
+   "nouveau": "Ligne des valeurs : `N exercices` et `N tours`, icônes nues 16 ; Séance sans Exercice : `0 exercice`, au singulier (D-392)."
+  },
+  {
+   "id": "A54",
+   "ref": "D-392 — ch. 08 Catalogue de séances, champ Nombre d’Exercices de la carte",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "| Nombre d’Exercices / durée | Texte | Toujours | Nombre d’Exercices et durée",
+   "nouveau": "| Nombre d’Exercices / durée | Texte | Toujours | Nombre d’Exercices (`0 exercice`, au singulier, pour une Séance sans Exercice, D-392) et durée"
+  },
+  {
+   "id": "A61",
+   "ref": "D-393 — ch. 08 : lecteur natif de la plateforme dans l’éditeur (iOS sur iPhone, Android sur Android)",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "une vidéo est lue en plein écran par le lecteur natif, sans lecture automatique",
+   "nouveau": "une vidéo est lue en plein écran par le lecteur natif de la plateforme (iOS sur iPhone, Android sur Android), sans lecture automatique"
+  },
+  {
+   "id": "A62",
+   "ref": "D-393 — ch. 08 : résout exactement le marquage À CLARIFIER du 17/10 sur Android",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "; Q27 nomme le lecteur natif iOS, le comportement sous Android est À CLARIFIER)",
+   "nouveau": "; Q27, qui nommait le lecteur natif iOS, est précisée pour Android par D-393)"
+  },
+  {
+   "id": "A63",
+   "ref": "D-393 — CE-T03-04, tuile Média : lecteur natif de la plateforme",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "vidéo lue en plein écran par le lecteur natif, sans lecture automatique",
+   "nouveau": "vidéo lue en plein écran par le lecteur natif de la plateforme (iOS sur iPhone, Android sur Android, D-393), sans lecture automatique"
+  },
+  {
+   "id": "A64",
+   "ref": "D-393 — PRODUCT : consultation dans l’éditeur d’Exercice",
+   "file": "PRODUCT.md",
+   "ancien": "(lecture vidéo et plein écran par le lecteur natif, sans lecture automatique ; décision PRE-4 Q27 du 16/10, D-385)",
+   "nouveau": "(lecture vidéo et plein écran par le lecteur natif de la plateforme, iOS sur iPhone et Android sur Android, sans lecture automatique ; décision PRE-4 Q27 du 16/10, D-385, précisée par D-393)"
+  },
+  {
+   "id": "A71",
+   "ref": "D-394 — moment (fin de migration), contenu (nombre d’Exercices non récupérés), action Compris, rien si aucun écarté, pas à chaque mise à jour ; libellé non fixé par la décision : À CLARIFIER restreint au libellé",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "et le nombre d’Exercices écartés est signalé (forme du signalement — texte, moment, action — À CLARIFIER)",
+   "nouveau": "et le nombre d’Exercices écartés est signalé : à la fin de la migration, un message récapitulatif indique le nombre d’Exercices non récupérés et propose l’action `Compris` pour le fermer ; rien n’est affiché si aucun Exercice n’a été écarté, et ce message n’est pas affiché à chaque mise à jour de l’application (D-394 ; libellé exact du message — À CLARIFIER)"
+  },
+  {
+   "id": "A72",
+   "ref": "D-394 — le dénombrement de la migration atomique alimente le message de fin de migration, affiché seulement si au moins un Exercice est écarté, non réaffiché",
+   "file": "@12 – Architecture technique.md",
+   "ancien": "sont écartés et dénombrés (décisions PRE-4 Q19 et Q28 du 16/10, D-385 ; chapitre 09, Migration et compatibilité)",
+   "nouveau": "sont écartés et dénombrés ; ce nombre est restitué par le message récapitulatif de fin de migration, affiché seulement si au moins un Exercice a été écarté et non réaffiché aux mises à jour suivantes (décisions PRE-4 Q19 et Q28 du 16/10, D-385 ; D-394 ; chapitre 09, Migration et compatibilité)"
+  },
+  {
+   "id": "A81",
+   "ref": "D-395 — bilatéralité de Circuit = besoin d’évolution potentiel, hors périmètre actuel ; rattachement de la qualification du 17/10",
+   "file": "@02 – Utilisateurs et besoins.md",
+   "ancien": "(au niveau du Circuit : besoin d’évolution, non retenu dans la version actuelle, D-209, RM-146)",
+   "nouveau": "(au niveau du Circuit : besoin d’évolution potentiel, explicitement hors du périmètre actuel, D-209, D-395, RM-146)"
+  },
+  {
+   "id": "A82",
+   "ref": "D-395 — idem pour l’activation de la bilatéralité d’un Circuit ; aucune conception ajoutée",
+   "file": "@02 – Utilisateurs et besoins.md",
+   "ancien": "(besoin d’évolution, non retenu dans la version actuelle : D-209, RM-145 à RM-147)",
+   "nouveau": "(besoin d’évolution potentiel, explicitement hors du périmètre actuel, non validé pour la version actuelle : D-209, D-395, RM-145 à RM-147)"
+  },
+  {
+   "id": "A91",
+   "ref": "D-396 — résout exactement le À CLARIFIER sur la présence de la ligne Total dans la feuille (Durée/Répétitions, N = 1 compris, « — » si cible manquante) ; le résumé n’est pas modifié",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "la ligne Total reste présente dans la feuille en Durée/Répétitions (renvoi historique D-246 non démontré — À CLARIFIER)",
+   "nouveau": "la ligne Total reste présente dans la feuille en Durée/Répétitions, y compris à N = 1 ; elle affiche « — » lorsqu’une cible nécessaire au calcul manque (D-396, D-384)"
+  },
+  {
+   "id": "A92",
+   "ref": "D-396 — ligne Total de la feuille affichée à N = 1 (référentiel CE-UI-10)",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "cible nécessaire au calcul manquante : ligne affichée avec « — » (D-384) |",
+   "nouveau": "cible nécessaire au calcul manquante : ligne affichée avec « — » (D-384) ; ligne affichée à N = 1 comme à N > 1 (D-396) |"
+  },
+  {
+   "id": "A93",
+   "ref": "D-396 — ligne Total de la feuille affichée à N = 1",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "ligne affichée avec « — » lorsqu’une cible nécessaire au calcul manque (D-384) ;",
+   "nouveau": "ligne affichée, y compris à N = 1 (D-396), avec « — » lorsqu’une cible nécessaire au calcul manque (D-384) ;"
+  },
+  {
+   "id": "A94",
+   "ref": "D-396 — ligne Total de la feuille affichée à N = 1",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "ligne Total affichée avec « — » lorsqu’une cible nécessaire au calcul manque (D-384)",
+   "nouveau": "ligne Total affichée, y compris à N = 1 (D-396), avec « — » lorsqu’une cible nécessaire au calcul manque (D-384)"
+  },
+  {
+   "id": "A95",
+   "ref": "D-396 précise D-384 (statut complété, texte historique inchangé)",
+   "file": "@07 – Registre des décisions de conception.md",
+   "ancien": "la ligne Total est affichée avec « — ». | Validée, Hermann 16/10/2026 (Q-K2) |",
+   "nouveau": "la ligne Total est affichée avec « — ». | Validée, Hermann 16/10/2026 (Q-K2) ; précisée sur ce point par D-396 (17/10/2026) : ligne toujours affichée dans la feuille Paramètres, y compris à N = 1 |"
+  }
+ ]
+}
