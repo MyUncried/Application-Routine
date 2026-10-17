@@ -27,7 +27,7 @@ Séries variables/cible/Pause sous Séries et Ordre/PC sous Changement de côté
 
 Exemples : + depuis13 au palier5 →15 puis20 ; − depuis13 →10 puis5 ; + depuis23 au palier10 →30. L’arrondi se fait seulement lors du geste accéléré. Aucune modification à la simple ouverture d’une valeur héritée. Fréquence technique de répétition150ms conservée ; les seuils remplacent l’ancien démarrage450ms. Les roulettes ne sont pas concernées.
 
-Seul le bouton touché s’anime ; nombre, fond et bouton opposé immobiles. Dilatation/retour et réduction des animations selon DSF existant. Action sans attente de fin du ressort ; un maintien ne doit pas provoquer un second tap au relâchement. Cibles tactiles44 minimum, boutons séparés, nom du champ et valeur annoncés au lecteur d’écran.
+Les règles d’animation, d’action et d’accessibilité des steppers de ce paragraphe sont désormais énoncées au [chapitre 06, « Interface et steppers »](Specifications-fonctionnelles/06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#interface-et-steppers) (transfert G4). Leur texte n’a pas changé ; la version antérieure reste consultable dans Git (commit `e8afc61b`).
 
 ## Contrôle et état Figma
 

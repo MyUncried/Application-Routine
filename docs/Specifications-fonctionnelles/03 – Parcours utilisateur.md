@@ -194,7 +194,7 @@ Les paramètres métier restent identiques entre création et modification ; seu
 4. Valider avec `Ajouter N exercice(s)`.
 5. Les copies sont insérées dans la Composition et deviennent indépendantes de leur `ActivityDefinition` source.
 
-La capacité existante de créer directement un Exercice locale à la Séance, non enregistrée dans le Catalogue, reste fonctionnellement et techniquement conservée mais n’est pas exposée dans cet enchaînement d’écrans du MVP courant.
+La capacité existante de créer directement un Exercice local à la Séance, non enregistrée dans le Catalogue, reste fonctionnellement et techniquement conservée mais n’est pas exposée dans cet enchaînement d’écrans du MVP courant.
 
 #### Utiliser un Exercice de référence
 
@@ -248,7 +248,7 @@ Le bouton Lecture reste réservé à l’Exécution directe. La carte d’Exerci
 5. Appuyer sur `Ajouter N exercice(s)`.
 6. Retrouver la Composition avec les copies insérées selon l’ordre de présentation qu’avaient les Exercices dans la liste filtrée au moment de la validation.
 
-`Annuler` ferme le panneau sans insertion et restaure la Composition, sa position de défilement et ses valeurs déjà saisies. Le mécanisme existant de création directe d’un Exercice locale à la Séance reste conservé fonctionnellement et techniquement, mais il n’est pas exposé dans cet enchaînement d’écrans du MVP courant.
+`Annuler` ferme le panneau sans insertion et restaure la Composition, sa position de défilement et ses valeurs déjà saisies. Le mécanisme existant de création directe d’un Exercice local à la Séance reste conservé fonctionnellement et techniquement, mais il n’est pas exposé dans cet enchaînement d’écrans du MVP courant.
 
 ### Navigation principale et articulation des écrans — Parcours du Catalogue des Exercices — MVP T03
 
@@ -363,11 +363,11 @@ La séance peut avoir été lancée directement ou à partir d'une routine plani
 3. En cas d'interruption volontaire, l'application lui propose :
     - de reprendre immédiatement ;
     - d'arrêter définitivement la séance.
-4. Si la séance est reprise, l'exécution reprend à le dernier exercice enregistrée.
+4. Si la séance est reprise, l'exécution reprend au dernier exercice enregistré.
 5. Lorsque la séance est terminée ou abandonnée, l'application présente un récapitulatif indiquant notamment :
-    - les exercices réalisées ;
-    - les exercices partiellement réalisées ;
-    - les exercices non commencées ;
+    - les exercices réalisés ;
+    - les exercices partiellement réalisés ;
+    - les exercices non commencés ;
     - la durée réelle de la séance ;
     - son statut.
 6. Lorsque l'écran de Synthèse est présenté, l'utilisateur doit renseigner un ressenti et peut ajouter un commentaire facultatif de **200 caractères maximum**. En cas d'interruption technique sans passage par la Synthèse, le ressenti peut être absent.

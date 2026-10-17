@@ -36,7 +36,7 @@ La ligne Séries regroupe le libellé, le régime identiques/variables, le chevr
 | Groupe ± du pied | x254/y6, 88 × 36 | Conserver paliers et bornes du champ, définis par la spécification |
 | Icône retirer | `8129:31604`, 24 × 24, trait 14 px | Maître existant ; les copies exportées montrent encore une croix : existence ne vaut pas propagation |
 
-Les dimensions du dessin ne définissent pas à elles seules la cible accessible. Garder des zones sans chevauchement et les règles d’accessibilité communes. Le tableau n’a pas de défilement vertical indépendant du corps. Un seul champ est actif ; toucher ailleurs ferme le réglage sans déclencher une suppression située sous ce toucher.
+Les dimensions du dessin ne définissent pas à elles seules la cible accessible. Garder des zones sans chevauchement et les règles d’accessibilité communes. La règle de défilement du tableau est désormais énoncée au [chapitre 13, CE-UI-10, « 10. Responsive, Safe Areas, texte, scroll et clavier »](Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#10-responsive-safe-areas-texte-scroll-et-clavier-5) (transfert G4). Un seul champ est actif ; toucher ailleurs ferme le réglage sans déclencher une suppression située sous ce toucher.
 
 Les feuilles courantes sont illustrées notamment par Durée variable `8328:38632`, Répétitions `8328:38741`, À l’échec `8328:38848`, repli `8328:39181`, déplacement `8328:39279` et régime `8328:39390`. La cible À l’échec n’est pas un nombre modifiable. Ne pas transposer le ✓ de la grille des volumes à tous les champs sans référence correspondante.
 

@@ -6,7 +6,7 @@
 import { execFileSync } from 'child_process'; import fs from 'fs'; import path from 'path'; import { fileURLToPath } from 'url';
 const [repo, ref, list] = process.argv.slice(2);
 const here = path.dirname(fileURLToPath(import.meta.url));
-const norm = s => s.replace(/\r\n/g, '\n');
+const norm = s => s.replace(/\r/g, ''); // retours chariot ignorés : un « ancien » peut se terminer par un \r isolé
 const files = new Map();
 const relOf = f => f.startsWith('@') ? `docs/Specifications-fonctionnelles/${f.slice(1)}` : `docs/${f}`;
 let n = 0, ko = [];

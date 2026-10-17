@@ -15,7 +15,7 @@ R="$(pwd -W 2>/dev/null || pwd)"; mkdir -p "$X"; OUT="$X/$NOM.txt"; J="$X/$NOM-j
 LISTE=$(printf '%s,' "${JSONS[@]##*/}"); LISTE="${LISTE%,}"
 {
 echo "# Contrôles $NOM — référence $(git rev-parse --short "$REF") — corrections : $LISTE"
-node $O/justifier-corrections.mjs "$J" "${JSONS[@]}"
+node $O/justifier-corrections.mjs "$R" "$REF" "$J" "${JSONS[@]}"
 echo; echo "## Rejeu des corrections"; RJ=$(node $O/verifier-corrections-json.mjs "$R" "$REF" "$LISTE"); echo "$RJ" | head -12; echo "$RJ" | grep -q "^OK" ; E0=$?
 echo "## Fichiers modifiés hors corrections déclarées"; HORS=$(git -c core.quotepath=false diff --name-only "$REF" -- docs | while IFS= read -r f; do b="${f#docs/}"; b="${b#Specifications-fonctionnelles/}"; grep -lqF "\"$b\"" "${JSONS[@]}" 2>/dev/null || grep -lqF "\"@$b\"" "${JSONS[@]}" 2>/dev/null || echo "$f"; done); echo "${HORS:-aucun}"; [ -z "$HORS" ] || E0=1
 echo; echo "## C1–C7"; node $O/verifier-conservation.mjs "$R" "$REF" "$J" --detail="$X/$NOM-detail.tsv"; E1=$?

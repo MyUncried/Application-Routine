@@ -1,0 +1,59 @@
+{
+  "description": "Finalisation lot 6 — examen des DSF (docs/*DSF*.md, 17 fichiers) : transferts G4 règle par règle des seules règles exclusives au DSF, validées et à domicile établi ; chaque transfert est accompagné du renvoi dans le DSF, à appliquer dans le même commit.",
+  "corrections": [
+    {
+      "id": "DSF-001",
+      "ref": "DSF-BIP-CADENCE-2026-10-07.md:30 ; D-312, D-237 (D-386) ; G4 ; plan §4.5 (conventions d’interface → ch. 06)",
+      "motif": "RENVOI",
+      "classe": "DOC",
+      "file": "@06 – Ecrans et navigation de la V1.md",
+      "ancien": "L’accélération est désactivée pour Bip, Compte à rebours et Fin d’exercice conformément au prompt ; ils restent au pas1 pendant tout maintien. Les steppers de plus grande plage utilisent les paliers ; aucune accélération appliquée aux roulettes. La règle remplace l’ancienne grille de pas des steppers de pauses dépendante de la valeur. Aucun arrondi au chargement ou à l’ouverture, uniquement lors d’un geste accéléré. Bornes des champs inchangées hors Bip0..10.\r",
+      "nouveau": "L’accélération est désactivée pour Bip, Compte à rebours et Fin d’exercice conformément au prompt ; ils restent au pas1 pendant tout maintien. Les steppers de plus grande plage utilisent les paliers ; aucune accélération appliquée aux roulettes. La règle remplace l’ancienne grille de pas des steppers de pauses dépendante de la valeur. Aucun arrondi au chargement ou à l’ouverture, uniquement lors d’un geste accéléré. Bornes des champs inchangées hors Bip0..10.\r\n\nSeul le bouton touché s’anime ; nombre, fond et bouton opposé immobiles. Dilatation/retour et réduction des animations selon DSF existant. Action sans attente de fin du ressort ; un maintien ne doit pas provoquer un second tap au relâchement. Cibles tactiles44 minimum, boutons séparés, nom du champ et valeur annoncés au lecteur d’écran.\r (transféré du [DSF — Bip de cadence et steppers du 07/10/2026](../DSF-BIP-CADENCE-2026-10-07.md), § « Composant Stepper », G4.)"
+    },
+    {
+      "id": "DSF-002",
+      "ref": "Transfert DSF-001 (même commit, G4)",
+      "motif": "RENVOI",
+      "classe": "DOC",
+      "file": "DSF-BIP-CADENCE-2026-10-07.md",
+      "ancien": "Seul le bouton touché s’anime ; nombre, fond et bouton opposé immobiles. Dilatation/retour et réduction des animations selon DSF existant. Action sans attente de fin du ressort ; un maintien ne doit pas provoquer un second tap au relâchement. Cibles tactiles44 minimum, boutons séparés, nom du champ et valeur annoncés au lecteur d’écran.\r",
+      "nouveau": "Les règles d’animation, d’action et d’accessibilité des steppers de ce paragraphe sont désormais énoncées au [chapitre 06, « Interface et steppers »](Specifications-fonctionnelles/06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#interface-et-steppers) (transfert G4). Leur texte n’a pas changé ; la version antérieure reste consultable dans Git (commit `e8afc61b`)."
+    },
+    {
+      "id": "DSF-003",
+      "ref": "DSF-CIRCUITS-CONTROLES-2026-10-12.md:39 ; D-377 (DSF Circuits du 12/10 validé) ; G4 ; plan §4.5 (écran précis → contrat ch. 13, CE-UI-10)",
+      "motif": "RENVOI",
+      "classe": "DOC",
+      "file": "@13 – Contrats d’écran.md",
+      "ancien": "360/402/440, Safe Areas, texte agrandi et scroll ; en-tête reste accessible. Tableau replié conserve données et erreurs ; feuille sans total conserve accès au Bip et aux actions. Aucune hauteur fixe ne doit rogner le texte ou les steppers.\r",
+      "nouveau": "360/402/440, Safe Areas, texte agrandi et scroll ; en-tête reste accessible. Tableau replié conserve données et erreurs ; feuille sans total conserve accès au Bip et aux actions. Aucune hauteur fixe ne doit rogner le texte ou les steppers.\r\n\nLe tableau n’a pas de défilement vertical indépendant du corps. (transféré du [DSF — Circuits, volumes et contrôles de séries du 12/10/2026](../DSF-CIRCUITS-CONTROLES-2026-10-12.md), § « Modalités d’exécution et tableau variable », G4.)"
+    },
+    {
+      "id": "DSF-004",
+      "ref": "Transfert DSF-003 (même commit, G4)",
+      "motif": "RENVOI",
+      "classe": "DOC",
+      "file": "DSF-CIRCUITS-CONTROLES-2026-10-12.md",
+      "ancien": "Le tableau n’a pas de défilement vertical indépendant du corps.",
+      "nouveau": "La règle de défilement du tableau est désormais énoncée au [chapitre 13, CE-UI-10, « 10. Responsive, Safe Areas, texte, scroll et clavier »](Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#10-responsive-safe-areas-texte-scroll-et-clavier-5) (transfert G4)."
+    },
+    {
+      "id": "DSF-005",
+      "ref": "DSF-DEUX-MODES-ECHEC-2026-10-13.md:55 ; D-377 (DSF Deux modes du 13/10 validé) ; G4 ; plan §4.5 (règle testable → ch. 10)",
+      "motif": "RENVOI",
+      "classe": "DOC",
+      "file": "@10 – Processus métier et règles métier transverses.md",
+      "ancien": "- À l’échec : `✓` dans chaque cellule existante, `À l’échec` en dernière colonne. Dans cette vue de composition, le symbole signifie série prévue, jamais résultat réalisé. Libellé accessible : « Série N, à l’échec ».\r",
+      "nouveau": "- À l’échec : `✓` dans chaque cellule existante, `À l’échec` en dernière colonne. Dans cette vue de composition, le symbole signifie série prévue, jamais résultat réalisé. Libellé accessible : « Série N, à l’échec ».\r\n- La grille Volumes devra conserver l’unité du mode pour les cibles mixtes. (transféré du [DSF — Deux modes et cible À l’échec du 13/10/2026](../DSF-DEUX-MODES-ECHEC-2026-10-13.md), § « Accessibilité et limites », G4.)"
+    },
+    {
+      "id": "DSF-006",
+      "ref": "Transfert DSF-005 (même commit, G4)",
+      "motif": "RENVOI",
+      "classe": "DOC",
+      "file": "DSF-DEUX-MODES-ECHEC-2026-10-13.md",
+      "ancien": "La grille Volumes devra conserver l’unité du mode pour les cibles mixtes ;",
+      "nouveau": "La règle d’unité de la grille Volumes pour les cibles mixtes est désormais énoncée au [chapitre 10, « Grille des volumes »](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#grille-des-volumes) (transfert G4) ;"
+    }
+  ]
+}

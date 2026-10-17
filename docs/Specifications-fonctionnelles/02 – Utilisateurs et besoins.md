@@ -210,7 +210,7 @@ L’utilisateur doit pouvoir :
 - **B-078** — créer, consulter et modifier un Exercice persistant ;
 - **B-079** — distinguer l’ouverture de la carte du bouton Lecture réservé à l’Exécution directe ;
 - **B-080** — utiliser `Créer` comme action contextuelle : dans chaque Catalogue, ouvrir directement la création de l’objet correspondant au Catalogue courant, sans écran ni arbre intermédiaire ;
-- **B-081** — depuis une Composition, choisir entre une nouvelle Exercice, une ou plusieurs Exercices existants et l’annulation ;
+- **B-081** — depuis une Composition, choisir entre un nouvel Exercice, un ou plusieurs Exercices existants et l’annulation ;
 - **B-082** — lancer un Exercice persistant, disposer de `5 s` pour se préparer et être guidé selon tous ses paramètres ;
 - **B-083** — renseigner le Ressenti obligatoire dans la Synthèse ;
 - **B-084** — retrouver l’Exécution dans le Suivi général sous le type Exercice ;
@@ -226,7 +226,7 @@ Le besoin détaillé est consolidé dans `../CONCEPTION-EXECUTION-MEDIA.md`.
 
 #### Planifier un Parcours — cible post-MVP
 
-**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
+*Texte identique à celui de la section [« Parcours — post-MVP »](01%20%E2%80%93%20Vision%20G%C3%A9n%C3%A9rale.md#parcours--post-mvp) ; il n’est pas recopié ici.*
 
 #### Régler les récupérations
 
@@ -234,7 +234,7 @@ Le besoin détaillé est consolidé dans `../CONCEPTION-EXECUTION-MEDIA.md`.
 - **B-087** — Dans l’éditeur d’Exercice, n’exposer la Pause entre les côtés que lorsque le Changement de côté vaut `D→G` ou `G→D`.
 - **B-088** — Dans la Composition, ajouter explicitement une récupération, en modifier la durée et la retirer. À 0 s ou en son absence, aucune information de récupération ; le trait reste indépendant du contenu (D-303).
 - **B-089** — Conserver cette récupération avec l’occurrence lors d’un déplacement ou d’une duplication ; la supprimer avec l’occurrence.
-- **B-090** — Exécuter la récupération de la dernier Exercice avant la Fin de séance, et celle de la dernier Exercice du Circuit à chaque Tour.
+- **B-090** — Exécuter la récupération du dernier Exercice avant la Fin de séance, et celle du dernier Exercice du Circuit à chaque Tour.
 - **B-091** — Ne pas ajouter de récupération post-exercice lors de l’Exécution directe depuis le Catalogue.
 
 ## Besoins consolidés

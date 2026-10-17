@@ -114,7 +114,7 @@ Dans le MVP, le Cycle contient :
 - sa position, égale à 1 ;
 - son nombre de répétitions, imposé à 1 ;
 - un Circuit unique ;
-- les Exercices positionnées avant ou après le Circuit ;
+- les Exercices positionnés avant ou après le Circuit ;
 
 Dans le MVP, le Circuit contient :
 - son identifiant ;
@@ -238,7 +238,7 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 #### Duplication d'un exercice
 
 - Nouvelle exercice avec un nouvel identifiant.
-- Nom `{nom d’origine} (copie)`, puis `{nom d’origine} (copie 2)`, `(copie 3)`, etc., en utilisant le premier suffixe disponible.
+- *Texte identique à celui de la section [« Duplication d'une séance »](09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#duplication-dune-séance) ; il n’est pas recopié ici.*
 - Copie de toutes les propriétés, notamment Catégorie, Zones corporelles, mode/cible, Séries, Pause, Récupération, Changement de côté, Compte à rebours d’Exercice, Fin d’exercice et Description. Les associations média suivent leur règle de copie propre.
 - Aucun Exercice secondaire n’est créée pour la Récupération : sa durée est copiée avec l’Exercice.
 - La copie est insérée immédiatement après la source dans la même zone fonctionnelle avant/dans/après Circuit (valeurs techniques historiques `Avant Tour`, `Dans Tour`, `Après Tour`). Elle reste une copie de Séance indépendante et ne crée aucun Exercice dans le catalogue.
@@ -291,7 +291,7 @@ Une **Exercice** est la plus petite unité exécutable d'une séance.
 
 Dans le MVP, cette entité est une `SessionActivity` appartenant à une seule Séance. Dans le MVP T03, une `ActivityDefinition` autonome peut être copiée dans plusieurs Séances sans lien de propagation.
 
-Le nom « Récupération » n’a aucune sémantique technique : un Exercice ainsi nommée reste un Exercice ordinaire. Les phases `SIDE_RECOVERY` et `POST_ACTIVITY_RECOVERY` sont dérivées respectivement de `sideRecoverySeconds` et `postActivityRecoverySeconds` ; aucune n’est un type d’Exercice.
+Le nom « Récupération » n’a aucune sémantique technique : un Exercice ainsi nommé reste un Exercice ordinaire. Les phases `SIDE_RECOVERY` et `POST_ACTIVITY_RECOVERY` sont dérivées respectivement de `sideRecoverySeconds` et `postActivityRecoverySeconds` ; aucune n’est un type d’Exercice.
 
 #### Périmètre
 
@@ -391,7 +391,7 @@ Un `MediaAsset` possède son identité et ses informations techniques. Les liens
 - Un fichier média peut être référencé par plusieurs associations appartenant chacune à un Exercice.
 - Un exercice peut ne posséder aucun média.
 - Un exercice possède zéro à plusieurs associations média ordonnées.
-- La duplication d’un Exercice ou d’une Séance crée une nouvelle association/entité Média pour l’Exercice dupliquée ; cette association peut référencer le même fichier physique local.
+- La duplication d’un Exercice ou d’une Séance crée une nouvelle association/entité Média pour l’Exercice dupliqué ; cette association peut référencer le même fichier physique local.
 - Retirer un média d’un Exercice supprime uniquement son association. Le fichier physique est supprimé seulement lorsqu’aucun Exercice ni aucun instantané ne le référence.
 
 ### Extension du modèle — Exercices, Médias et Parcours
@@ -407,7 +407,7 @@ Un `MediaAsset` possède son identité et ses informations techniques. Les liens
 
 #### Contraintes d’Exercice
 
-`executionMode ∈ {DURATION, REPETITIONS}`. Chaque série possède un type de cible explicite : chiffrée (durée ou répétitions selon le mode) ou À l’échec (aucun nombre prescrit). Valeur invalide/absente distincte de l’échec. L’ancien TO_FAILURE est lu/migré vers REPETITIONS avec toutes les cibles À l’échec, sans inventer de relevé historique. Pause, nombre de Séries et Récupération restent disponibles dans les deux modes. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Bip entier0..10 par Série, réglage commun valide dans les deux modes. La phrase elle-même n’est pas persistée comme source de vérité (RM-232).
+`executionMode ∈ {DURATION, REPETITIONS}`. Chaque série possède un type de cible explicite : chiffrée (durée ou répétitions selon le mode) ou À l’échec (aucun nombre prescrit). Valeur invalide/absente distincte de l’échec. L’ancien TO_FAILURE est lu/migré vers REPETITIONS avec toutes les cibles À l’échec, sans inventer de relevé historique. Pause, nombre de Séries et Récupération restent disponibles dans les deux modes. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Bip entier 0..10 par Série, réglage commun valide dans les deux modes. La phrase elle-même n’est pas persistée comme source de vérité (RM-232).
 
 L’ajout d’une définition copie nom, description, zones corporelles, mode, durée ou répétitions, Séries, Pause, Récupération et associations média. La copie n’a plus de lien fonctionnel avec la définition. La position `BEFORE_TOUR`, `IN_TOUR` ou `AFTER_TOUR` n’existe que sur `SessionActivity`.
 
@@ -478,7 +478,7 @@ La face et l’index ne sont pas persistés entre séances, ne sont pas copiés 
 
 #### Extension future de Routine — source Parcours
 
-**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
+*Texte identique à celui de la section [« Parcours — post-MVP »](01%20%E2%80%93%20Vision%20G%C3%A9n%C3%A9rale.md#parcours--post-mvp) ; il n’est pas recopié ici.*
 
 #### Données D-208 — récupérations
 
@@ -506,7 +506,7 @@ Le plan distingue au minimum la phase de Pause entre les côtés de la phase de 
 
 La phrase de synthèse des paramètres d’exécution est une **valeur dérivée non persistée**. Elle est régénérée depuis `executionMode`, nombre de Séries, état uniforme/variable, cible/Pause communes ou collection ordonnée, `sideMode`, Ordre des côtés et `sideRecoverySeconds`. Aucun champ de stockage autonome de la phrase n’est requis (RM-232).
 
-Bornes de validation D-232 : `seriesCount ∈ [1,99]`, répétitions par Série `∈ [1,100]`, durée par Série `∈ [5,3535] s`, pauses inter-Séries et inter-côtés `∈ [0,300] s`. Une valeur héritée hors bornes, non modifiée, peut être conservée ; toute nouvelle saisie ou modification doit respecter ces bornes (D-383). Le pas UI n’est pas une contrainte de stockage : tap1 s, maintien accéléré1/5/10 selon DSF Bip ; aucun arrondi à la lecture.
+Bornes de validation D-232 : `seriesCount ∈ [1,99]`, répétitions par Série `∈ [1,100]`, durée par Série `∈ [5,3535] s`, pauses inter-Séries et inter-côtés `∈ [0,300] s`. Une valeur héritée hors bornes, non modifiée, peut être conservée ; toute nouvelle saisie ou modification doit respecter ces bornes (D-383). Le pas UI n’est pas une contrainte de stockage : tap 1 s, maintien accéléré 1/5/10 selon DSF Bip ; aucun arrondi à la lecture.
 
 #### Paramètres de Série et Ordre des côtés — D-247 à D-254
 
@@ -516,7 +516,7 @@ Contenu identique à la section [« Extension validée du modèle — Paramètre
 
 | Support | Donnée / contrainte |
 |---|---|
-| Série effective | `cadenceBeepIntervalSeconds` entier0..10, deux modes,0=Aucun ; cible répétitions et pause restent indépendantes |
+| Série effective | `cadenceBeepIntervalSeconds` entier 0..10, deux modes,0=Aucun ; cible répétitions et pause restent indépendantes |
 | Brouillon uniforme/variable | Cadence commune facultative ; propagée aux lignes. Alternatives de mode mémorisées jusqu’à✓ seulement ; aucune surcharge commune persistée |
 | ActivityDefinition / SessionActivity | Transport de la collection ordonnée complète ; occurrence ajoute R contextuelle ; copie indépendante et duplication conservent les cadences |
 | Instantané versionné | Prescription cible/cadence de chaque Série et côté, immuable après démarrage ; absent dans ancien snapshot=non cadencé |
@@ -528,11 +528,11 @@ Migration : ancien objet sans champ initialisé à 0 ; conserver valeurs et hist
 
 #### Pauses et symboles
 
-Modèle logique : pause explicite avec identifiant stable, type recovery ou breakpoint et position ; recovery référence son occurrence source et sa durée. postActivityRecoverySeconds est une projection pour les calculs, pas une seconde source persistée. Absent, présent0 et présent positif restent distinguables. Snapshot copie les objets effectifs ; suppression d’occurrence emporte recovery. Le schéma physique et la migration restent à implémenter ; aucune reprise des anciennes séances demandée.
+Modèle logique : pause explicite avec identifiant stable, type recovery ou breakpoint et position ; recovery référence son occurrence source et sa durée. postActivityRecoverySeconds est une projection pour les calculs, pas une seconde source persistée. Absent, présent 0 et présent positif restent distinguables. Snapshot copie les objets effectifs ; suppression d’occurrence emporte recovery. Le schéma physique et la migration restent à implémenter ; aucune reprise des anciennes séances demandée.
 
 #### Bip de cadence
 
-cadenceBeepIntervalSeconds entier0..10 dans les deux modes ;0=Aucun, défaut0. Même champ sur les Séries effectives et snapshots, réglage commun sans surcharge. Aucune suppression lors d’une bascule de mode. Résultat temporel exact/estimated/lowerBound/omitted ; omitted sans montant, validation erronée séparée. LowerBound autorisé à l’Exercice mixte calculable, ainsi qu’aux agrégats Circuit/Séance. SeriesParameters et pauses explicites doivent être intégrés au schéma avant ce champ ; numérotation de migration à planifier.
+cadenceBeepIntervalSeconds entier 0..10 dans les deux modes ; 0=Aucun, défaut 0. Même champ sur les Séries effectives et snapshots, réglage commun sans surcharge. Aucune suppression lors d’une bascule de mode. Résultat temporel exact/estimated/lowerBound/omitted ; omitted sans montant, validation erronée séparée. LowerBound autorisé à l’Exercice mixte calculable, ainsi qu’aux agrégats Circuit/Séance. SeriesParameters et pauses explicites doivent être intégrés au schéma avant ce champ ; numérotation de migration à planifier.
 
 #### Précision de modèle — source, v15
 
@@ -545,7 +545,7 @@ Une récupération explicite de 0 s est un objet conservé, distinct de l’abse
 | Donnée | Contrat fonctionnel |
 |---|---|
 | Nature du circuit | tours / séries ; tours par défaut pour les objets existants sans nature |
-| Compte | Entier1..99 ; interprété selon nature, sans deuxième compte concurrent faisant autorité |
+| Compte | Entier 1..99 ; interprété selon nature, sans deuxième compte concurrent faisant autorité |
 | Nombre effectif par exercice | En séries, égal au compte du circuit ; invariant validé atomiquement |
 | Régime de l’exercice | Identiques/variables explicite ; collection ordonnée cible/Pause en variable, paramètres communs en identiques |
 | Réserve après diminution au compteur du circuit | Brouillon de séance seulement, paramètres et ordre ; restaurée avant copie de la dernière ligne ; purgée à enregistrement |
@@ -558,7 +558,7 @@ Les noms physiques, éventuel renommage de tourRepeatCount et migration sont à 
 
 La cible typée appartient à chaque Série effective et à chaque copie/snapshot ; le mode appartient à l’Exercice. Interdire simultanéité cible numérique/échec et interdire zéro comme cible. La valeur relevée est facultative, distincte de la prescription, rattachée à exécution/occurrence/série/côté/passage/tentative. Unité, origine et qualification (chronométrée, estimée, déclarée, absente) sont conservées. Garder la proposition source en cas de correction. Aucun relevé absent transformé en zéro. Les paramètres et résultats historiques ne sont pas réécrits par la régénération d’une phrase.
 
-Migration de l’ancien TO_FAILURE : REPETITIONS + cibles échec, valeurs et comportement conservés ; lecture versionnée des snapshots historiques, aucune répétition rétrocalculée. La donnée dernière tentative doit être distinguée du cumul :20 s reset35 s →55 s cumulé,35 s relevé. Voir chapitre 09, Cibles typées, et chapitre 08, Relevés d’exécution ; schéma physique à réaliser, non livré par la documentation.
+Migration de l’ancien TO_FAILURE : REPETITIONS + cibles échec, valeurs et comportement conservés ; lecture versionnée des snapshots historiques, aucune répétition rétrocalculée. La donnée dernière tentative doit être distinguée du cumul :20 s reset 35 s →55 s cumulé,35 s relevé. Voir chapitre 09, Cibles typées, et chapitre 08, Relevés d’exécution ; schéma physique à réaliser, non livré par la documentation.
 
 <a id="formats-donnees"></a>
 #### Formats — données fonctionnelles et invariants
@@ -644,15 +644,15 @@ Copie Catalogue→Séance, duplication et nouvel instantané conservent tout cet
 
 ### Extension validée du modèle — Extension Cadence du modèle de Série
 
-La Série porte `cadenceBeepIntervalSeconds` (entier0..10,0 par défaut), applicable aux deux modes. L’édition commune est une projection de brouillon, pas une seconde vérité persistée au-dessus de la collection variable. Activation, modification, suppression et déplacement conservent l’intégrité de la collection. Définition, copie de Séance et instantané transportent la même propriété.
+La Série porte `cadenceBeepIntervalSeconds` (entier 0..10,0 par défaut), applicable aux deux modes. L’édition commune est une projection de brouillon, pas une seconde vérité persistée au-dessus de la collection variable. Activation, modification, suppression et déplacement conservent l’intégrité de la collection. Définition, copie de Séance et instantané transportent la même propriété.
 
-Une durée prévisionnelle déterminable ne signifie pas une fin automatique : Ri×Ci fournit le poids temporel et la fin nominale, Suivant l’achèvement. L’accumulateur réel inclut tentatives réinitialisées et intervalles abandonnés ; il est distinct de la progression et du chronomètre courant. Aucun nouvel objet Répétition. Voir Bip v2 et modèle09.
+Une durée prévisionnelle déterminable ne signifie pas une fin automatique : Ri×Ci fournit le poids temporel et la fin nominale, Suivant l’achèvement. L’accumulateur réel inclut tentatives réinitialisées et intervalles abandonnés ; il est distinct de la progression et du chronomètre courant. Aucun nouvel objet Répétition. Voir Bip v2 et modèle 09.
 
 ## Composition des séances
 
 ### Extension validée du modèle — Pauses et symboles
 
-La Composition possède des pauses explicites recovery et breakpoint. recovery appartient à une occurrence ; breakpoint conserve une position structurelle. Une projection R=0 pour absence ne crée pas d’objet. La présence et la durée0 sont distinctes, les phases0 s ne sont pas générées.
+La Composition possède des pauses explicites recovery et breakpoint. recovery appartient à une occurrence ; breakpoint conserve une position structurelle. Une projection R=0 pour absence ne crée pas d’objet. La présence et la durée 0 sont distinctes, les phases 0 s ne sont pas générées.
 
 ## Exécution
 
@@ -660,7 +660,7 @@ La Composition possède des pauses explicites recovery et breakpoint. recovery a
 
 #### Définition
 
-Une **Exécution** représente la réalisation effective d’une source exécutable. Dans le MVP, son origine vaut `SESSION` ou, à partir de T03, `ACTIVITY` pour un Exercice lancée depuis le Catalogue des Exercices.
+Une **Exécution** représente la réalisation effective d’une source exécutable. Dans le MVP, son origine vaut `SESSION` ou, à partir de T03, `ACTIVITY` pour un Exercice lancé depuis le Catalogue des Exercices.
 
 Elle est créée uniquement au démarrage et reste indépendante des modifications ou de la suppression ultérieures de sa source.
 
@@ -817,7 +817,7 @@ Le Compte à rebours initial structurellement présent, éventuellement instanta
 - Le plan d'exécution est généré automatiquement au démarrage de chaque exécution de séance.
 - Il est construit exclusivement à partir de l'instantané de séance.
 - Toute modification ultérieure de la séance ou de la routine est sans effet.
-- La fin de le dernier Exercice active `SESSION_END`. L’Exécution n’est terminée qu’après l’achèvement de cette dernière étape ; une durée de `0 s` l’achève immédiatement.
+- La fin du dernier Exercice active `SESSION_END`. L’Exécution n’est terminée qu’après l’achèvement de cette dernière étape ; une durée de `0 s` l’achève immédiatement.
 - Les comptes bornés sont résolus lors de la génération. Pour AMRAP/Death by, les passages sont générés progressivement ; rang temporel et acquisition de résultat sont distincts.
 - Chaque Série produit une phase `ACTIVITY`. Une phase `SERIES_PAUSE` existe après chaque Série quand sa pause est positive, dernière comprise, sauf substitution terminale par une récupération positive suivant les règles de l’occurrence. `SIDE_RECOVERY` est insérée entre les côtés si nécessaire ; `POST_ACTIVITY_RECOVERY` est insérée après chaque occurrence de Séance si sa durée contextuelle est positive.
 - La conception T04 à compte borné développe Séries, Tours et côtés avant démarrage. Pour les formats ouverts, l’instantané fige la prescription et la règle de génération, pas un nombre arbitraire de fenêtres futures.
@@ -1135,8 +1135,8 @@ Elles ne contiennent pas directement :
 | Texte vocal du compte à rebours initial par défaut | Texte vocal proposé pour le compte à rebours initial d'une nouvelle séance | Facultatif  | Valeur initiale : `Préparez-vous`                                        |
 | Durée de la fin de séance par défaut               | Durée proposée pour la fin de séance d'une nouvelle séance                 | Obligatoire | Valeur initiale : `5 s`                                                  |
 | Texte vocal de la fin de séance par défaut         | Texte vocal proposé pour la fin de séance d'une nouvelle séance            | Facultatif  | Valeur initiale : `Séance terminée, bravo`                               |
-| Durée du compte à rebours d’Exercice par défaut    | Durée proposée pour le Compte à rebours propre d’une nouvelle Exercice     | Obligatoire | Valeur proposée par le Profil                                             |
-| Durée de la Fin d’exercice par défaut              | Durée proposée pour la Fin propre d’une nouvelle Exercice                  | Obligatoire | Valeur proposée par le Profil                                             |
+| Durée du compte à rebours d’Exercice par défaut    | Durée proposée pour le Compte à rebours propre d’un nouvel Exercice     | Obligatoire | Valeur proposée par le Profil                                             |
+| Durée de la Fin d’exercice par défaut              | Durée proposée pour la Fin propre d’un nouvel Exercice                  | Obligatoire | Valeur proposée par le Profil                                             |
 #### Règles métier
 
 La Pause après chaque série n’est pas un défaut du Profil ; elle est initialisée à `0 s` dans la feuille de création (chapitre 08, paramètres d’exercice, CE-UI-10 §3). L’ancien attribut global est historique et ne doit pas être ajouté au modèle cible. Les valeurs déjà propres aux Exercices restent conservées.
@@ -1149,7 +1149,7 @@ La Pause après chaque série n’est pas un défaut du Profil ; elle est initia
 - Une modification des préférences ne modifie jamais une exécution déjà en cours.
 - Les préférences sont enregistrées automatiquement après chaque modification.
 - Les valeurs par défaut du Compte à rebours initial et de la Fin de séance sont copiées dans la Séance lors de sa création.
-- Les valeurs par défaut du Compte à rebours d’Exercice et de la Fin d’exercice sont proposées lors de la création d’une nouvelle Exercice.
+- Les valeurs par défaut du Compte à rebours d’Exercice et de la Fin d’exercice sont proposées lors de la création d’un nouvel Exercice.
 - Une modification ultérieure des Préférences globales ne modifie pas les séances déjà créées
 
 ## Référentiels

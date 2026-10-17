@@ -1,0 +1,14 @@
+{
+  "description": "R06-A — examen des lignes A_EXAMINER de R-06 pour le chapitre 10 (95 lignes) : un seul effacement mécanique résiduel (incise RM-FMT de RM-071), les autres identifiants sont présents.",
+  "corrections": [
+    {
+      "id": "R06A-001",
+      "ref": "R-06-restauration-identifiants.tsv ligne 200 ; 7a89220f^ ch.10 l.142 ; LOT-3a-restaurations.tsv l.117-120 (même incise restaurée dans RM-072/075/125/126)",
+      "motif": "RESTAURATION:7a89220f^",
+      "classe": "DOC",
+      "file": "@10 – Processus métier et règles métier transverses.md",
+      "ancien": "| RM-071 | Hors règles propres des formats (RM-et RM-), La Durée estimée",
+      "nouveau": "| RM-071 | Hors règles propres des formats (RM-FMT-20–27 et RM-FMT-33–38), La Durée estimée"
+    }
+  ]
+}
