@@ -514,7 +514,7 @@ Jusqu'ici, planifier revenait à poser **une** séance ou **un** exercice sur un
 
 > **Le créneau produit les occurrences ; le contenu ne fait que les filtrer.**
 
-Aucun contenu ne peut créer une occurrence que le créneau n'a pas produite. Cet invariant commande tout le reste, en particulier le modèle de fréquence (§ 2).
+Aucun contenu ne peut créer une occurrence que le créneau n'a pas produite. Cet invariant commande tout le reste, en particulier le modèle de fréquence ([Planification des créneaux et de leurs contenus — La fréquence d'un contenu : « x fois sur n »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#planification-des-créneaux-et-de-leurs-contenus--la-fréquence-dun-contenu---x-fois-sur-n-)).
 
 #### « Parcours » : un mot, pas un objet
 
@@ -522,7 +522,7 @@ Le mot **parcours** réapparaît dans l'interface, mais **uniquement comme vocab
 
 > Le parcours n'est pas une entité du modèle. Il n'a ni identité, ni persistance propre, ni écran de détail, ni rattachement. Il désigne **ce que produit** la planification de plusieurs contenus liés sur un même créneau. C'est un résultat nommé, pas une classe.
 
-À distinguer soigneusement du **Programme**, qui est, lui, un conteneur réel (§ 4).
+À distinguer soigneusement du **Programme**, qui est, lui, un conteneur réel ([Planification des créneaux et de leurs contenus — Le Programme](04%20%E2%80%93%20Mod%C3%A8le%20fonctionnel.md#planification-des-créneaux-et-de-leurs-contenus--le-programme)).
 
 L’ancien usage de **circuit** pour cet objet autonome est supprimé. Le **Circuit interne à une Séance** reste conservé : un Tour en est une répétition . Ne pas supprimer ni renommer les identifiants techniques historiques dans cette mission documentaire.
 

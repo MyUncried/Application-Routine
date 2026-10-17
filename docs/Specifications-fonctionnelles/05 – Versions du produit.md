@@ -309,7 +309,7 @@ Contenu identique à la section [« Paramètres d’exécution — complément �
 
 ## Évolution Cadence — statut
 
-Cible documentée, non déclarée livrée : Bip de cadence 0..10 dans deux modes, steppers et calculs Bip v2. Dépendances : SeriesParameters, pauses explicites, migration, ordonnanceur audio périodique, snapshots et qualification mobile. L’écran de roulette est supprimé ; les cinq modales modifiées sont reprises ; les autres modes restent à compléter visuellement. Le layout d’exécution est conservé. Le guidage de cadence pendant l’Exécution appartient au MVP (D-378).
+Cible documentée, non déclarée livrée : Bip de cadence 0..10 dans deux modes, steppers et calculs selon [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit). Dépendances : SeriesParameters, pauses explicites, migration, ordonnanceur audio périodique, snapshots et qualification mobile. L’écran de roulette est supprimé ; les cinq modales modifiées sont reprises ; les autres modes restent à compléter visuellement. Le layout d’exécution est conservé. Le guidage de cadence pendant l’Exécution appartient au MVP (D-378).
 
 ## Conception de planification
 
@@ -318,7 +318,7 @@ Contenu identique à la section [« Conception de planification »](03%20%E2%80%
 <a id="formats-perimetre"></a>
 ## Formats — conception cible et livraison
 
-Cette évolution documente les six formats et les départs rapides selon [spécification Formats du 14/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#formats-conception). Les six formats d’entraînement et les départs rapides appartiennent au MVP (D-378). La présence d’un écran sur Prototype MVP ne constitue ni son admission dans une tranche ni sa livraison applicative. Le moteur n’est pas encore développé ; le lot courant est exclusivement documentaire. Les preuves et périmètres PRE-3/PRE-4 restent figés. Rapports, classement, charge additionnelle, tempo et entrée Pyramide ne sont pas ajoutés au périmètre.
+Cette évolution documente les six formats et les départs rapides selon [Formats de séances — comportements consolidés](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#formats-de-séances--comportements-consolidés). Les six formats d’entraînement et les départs rapides appartiennent au MVP (D-378). La présence d’un écran sur Prototype MVP ne constitue ni son admission dans une tranche ni sa livraison applicative. Le moteur n’est pas encore développé ; le lot courant est exclusivement documentaire. Les preuves et périmètres PRE-3/PRE-4 restent figés. Rapports, classement, charge additionnelle, tempo et entrée Pyramide ne sont pas ajoutés au périmètre.
 
 ## Utilisateur prioritaire du MVP
 
@@ -373,7 +373,7 @@ Cette consultation est incluse au MVP (D-203, confirmation du 28/09/2026). Voir 
 
 ## Cadence facultative — cible documentaire
 
-Le guidage de cadence pendant l’Exécution appartient au MVP (D-378). Les deux modes peuvent émettre un Bip de cadence, intervalle 0..10 s,0=Aucun, sans quatrième mode. Chronomètre croissant et signaux guident l’utilisateur ; Suivant conserve la fin normale de Série, même après la fin nominale. KODJO ne détecte pas les mouvements. Pour une cible À l’échec en Répétitions, le relevé facultatif peut être déclaré ; avec bip, une estimation est proposée et conservée tant qu’elle n’est pas explicitement confirmée ou corrigée. Référence : [Règles détaillées](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#resultats-temporels).
+Le guidage de cadence pendant l’Exécution appartient au MVP (D-378). Les deux modes peuvent émettre un Bip de cadence, intervalle 0..10 s,0=Aucun, sans quatrième mode. Chronomètre croissant et signaux guident l’utilisateur ; Suivant conserve la fin normale de Série, même après la fin nominale. KODJO ne détecte pas les mouvements. Pour une cible À l’échec en Répétitions, le relevé facultatif peut être déclaré ; avec bip, une estimation est proposée et conservée tant qu’elle n’est pas explicitement confirmée ou corrigée. Référence : [Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité).
 
 <a id="formats-vision"></a>
 ## Formats et création rapide
@@ -456,10 +456,10 @@ Ces points ne remettent pas en question les décisions consignées. Ils ne const
 
 ## Planification des créneaux et de leurs contenus — Points ouverts, à consigner comme tels
 
-1. **x : plafond ou résultat ?** Le premier stepper et le nombre de pastilles cochées expriment la même information (§ 2.6).
-2. **La rangée L M M J V S D sous les unités Jour et Mois** — masquée ou remplacée (§ 3.5).
-3. **Les trois écrans du parcours Programme** : création, proposition de rattachement, avertissement hors période (§ 4.4).
-4. **La conversion `jusqu'au` ↔ `pendant`** dans les deux sens, quand l'utilisateur bascule le paramètre (§ 3.4).
+1. **x : plafond ou résultat ?** Le premier stepper et le nombre de pastilles cochées expriment la même information ([Point ouvert à consigner comme tel](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#point-ouvert-à-consigner-comme-tel)).
+2. **La rangée L M M J V S D sous les unités Jour et Mois** — masquée ou remplacée ([Les jours de la semaine](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#les-jours-de-la-semaine)).
+3. **Les trois écrans du parcours Programme** : création, proposition de rattachement, avertissement hors période ([Ce qui reste à concevoir](04%20%E2%80%93%20Mod%C3%A8le%20fonctionnel.md#ce-qui-reste-à-concevoir)).
+4. **La conversion `jusqu'au` ↔ `pendant`** dans les deux sens, quand l'utilisateur bascule le paramètre ([`jusqu'au` / `pendant` : un paramètre, pas un mot fixe](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#jusquau--pendant--un-paramètre-pas-un-mot-fixe)).
 5. **Le décalage de 3 px du carré de Disclosure** dans les variantes `Cadre=Oui`, soit 196 instances annoncées par le brief (DSF général, § 8.1).
 
 ---

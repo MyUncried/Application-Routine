@@ -610,7 +610,7 @@ Surface carte → `CE-T03-04`; Lecture → `CE-T03-09`; `Créer` → règle cont
 
 Source : `ActivityDefinitionRepository` / `API-CAT-01`. Défaut : non archivées, `updatedAt DESC`. Exécuter ne modifie pas `updatedAt`. Le Catalogue n’affiche aucune récupération post-exercice, car elle n’existe pas sur `ActivityDefinition`; seule la Pause entre les côtés éventuelle relève de la définition.
 
-Exercice variable : indicateur N séries variables et total intrinsèque selon v13 ; pas de détail exhaustif des cibles sur la carte.
+Exercice variable : indicateur N séries variables et total intrinsèque selon [Calculs des durées et ordre des phases](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calculs-des-durées-et-ordre-des-phases) ; pas de détail exhaustif des cibles sur la carte.
 
 *Texte identique à celui de la section [« CE-T03-01 — Catalogue des séances — état T03 »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-01--catalogue-des-séances--état-t03) ; il n’est pas recopié ici.*
 
@@ -630,7 +630,7 @@ Pastille Catégorie colorée, Zones corporelles, titre et badge durée ; synthè
 
 *Texte identique à celui de la section [« CE-T03-01 — Catalogue des séances — état T03 »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-01--catalogue-des-séances--état-t03) ; il n’est pas recopié ici.*
 
-Cartes standard : largeur 354 sur écran 402, rayon 8, fond #F9FAFC, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Repliée 354 × 91. Gouttière permanente d’exercice : carré 64 à 12 du bord, photo si média ou icône de nature sinon, centrée et recadrée sans déformation (couverture vidéo), texte x88 ; titre250 en Catalogue replié/archivé, lignes basses207 ; Choix conserve sa largeur liée au contrôle ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Durée Catalogue sans cadre, Inter Semi Bold12 #141414 à 16px du bord droit, présence selon Bip v2 ; heure selon contexte, catégorie conservée, pictogramme de zone conservé ; Déployer absent. Séance sans vignette (D-260). Commandes 34/dessins 20/gaps 12/cibles 44. La référence Exercice Déployé est historique hors MVP, sans chemin d’accès.
+Cartes standard : largeur 354 sur écran 402, rayon 8, fond #F9FAFC, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Repliée 354 × 91. Gouttière permanente d’exercice : carré 64 à 12 du bord, photo si média ou icône de nature sinon, centrée et recadrée sans déformation (couverture vidéo), texte x88 ; titre250 en Catalogue replié/archivé, lignes basses207 ; Choix conserve sa largeur liée au contrôle ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Durée Catalogue sans cadre, Inter Semi Bold12 #141414 à 16px du bord droit, présence selon [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) ; heure selon contexte, catégorie conservée, pictogramme de zone conservé ; Déployer absent. Séance sans vignette (D-260). Commandes 34/dessins 20/gaps 12/cibles 44. La référence Exercice Déployé est historique hors MVP, sans chemin d’accès.
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -728,7 +728,7 @@ En-tête fixe → nom et accès Catégorie/Zones → carte Paramètres avec phra
 
 #### 8. Éléments obligatoires
 
-Carte vide initiale ; après✓, une phrase unique avec valeurs en gras, énumération jusqu’à 3 puis min/max selon Phrase v1. La zone entière ouvre CE-UI-10 ; aucun segment/raccourci autonome dans la phrase. Compte à rebours et Fin restent des lignes séparées.
+Carte vide initiale ; après✓, une phrase unique avec valeurs en gras, énumération jusqu’à 3 puis min/max selon [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres). La zone entière ouvre CE-UI-10 ; aucun segment/raccourci autonome dans la phrase. Compte à rebours et Fin restent des lignes séparées.
 
 #### 9. Layout déterministe
 
@@ -784,7 +784,7 @@ Un focus pour la zone de phrase, label Modifier les paramètres d’exécution, 
 
 #### 19. Invariants
 
-Aucune édition inline de la phrase. Mode/nom exclus de la phrase intrinsèque ; pas de total À l’échec. Calculs v13, D-248 ; D-242 supersédée ; import de médias livré dans PRE-3 selon D-333, sans anticiper le moteur de lecture en exécution. Aucun enregistrement à la simple fermeture de feuille.
+Aucune édition inline de la phrase. Mode/nom exclus de la phrase intrinsèque ; pas de total À l’échec. Calculs selon [Calculs des durées et ordre des phases](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calculs-des-durées-et-ordre-des-phases), D-248 ; D-242 supersédée ; import de médias livré dans PRE-3 selon D-333, sans anticiper le moteur de lecture en exécution. Aucun enregistrement à la simple fermeture de feuille.
 
 #### 20. Recette déterministe
 
@@ -929,7 +929,7 @@ Saisir/éditer mode, Séries uniformes/variables, cibles, Pauses, côtés, Bip d
 
 #### 3. Contexte d’entrée
 
-Ouverture depuis la zone Paramètres d’exécution. Copie du parent ; Bip initial 0=Aucun, reprendre valeur existante 0..10 en édition. Aucun tempo implicite. Création : N1,Pause 0,cibles et mode selon v13 ; absence de cible requise distincte de Bip 0.
+Ouverture depuis la zone Paramètres d’exécution. Copie du parent ; Bip initial 0=Aucun, reprendre valeur existante 0..10 en édition. Aucun tempo implicite. Création : N1,Pause 0,cibles et mode selon [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice) ; absence de cible requise distincte de Bip 0.
 
 #### 4. Contexte de sortie / destinations
 
@@ -941,7 +941,7 @@ Ouverture depuis la zone Paramètres d’exécution. Copie du parent ; Bip initi
 
 *Texte identique à celui de la section [« CE-T03-04 — Éditeur Exercice — créer / modifier »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-04--éditeur-exercice--créer--modifier) ; il n’est pas recopié ici.*
 
-Collection effective des Séries, cible/Pause/bip, mode, direction, ordre,PC,Compte à rebours/Fin. Bip commun à toutes les lignes,0..10 dans deux modes ; aucune surcharge persistée. Calcul typé fourni par Bip v2 ; phrase et montants Figma ne pilotent aucune donnée.
+Collection effective des Séries, cible/Pause/bip, mode, direction, ordre,PC,Compte à rebours/Fin. Bip commun à toutes les lignes,0..10 dans deux modes ; aucune surcharge persistée. Calcul typé fourni par [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) ; phrase et montants Figma ne pilotent aucune donnée.
 
 #### 6. Classification des valeurs Figma
 
@@ -989,8 +989,8 @@ Deux modes seulement. Cible chiffrée et À l’échec mutuellement exclusives ;
 
 - ± modifie Bip par 1, bornes 0..10, sans accélération.
 - Autres steppers : DSF Bip (maintien≈500 ms, paliers 1/5/10 selon durée du maintien et champ).
-- Bascule de mode conserve Bip même à ✓ ; cibles numériques incompatibles remplacées par — et restaurées dans le brouillon selon v13.
-- Variable copie les valeurs uniformes ; retour uniforme reprend première ligne ; réduction/augmentation/restauration et déplacement selon v13.
+- Bascule de mode conserve Bip même à ✓ ; cibles numériques incompatibles remplacées par — et restaurées dans le brouillon selon [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice).
+- Variable copie les valeurs uniformes ; retour uniforme reprend première ligne ; réduction/augmentation/restauration et déplacement selon [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice).
 - Une seule roulette/segmenté ouvert pour les autres champs.
 - Le total Durée uniforme entièrement chiffré garde son inversion seulement si N est libre ; sous N imposé par un circuit de séries, tout total affichable est en lecture seule.
 - omitted reste absent.
@@ -1298,7 +1298,7 @@ Exercice → éditeur de copie locale ; Ajouter un exercice → CE-T03-07 ; Éti
 
 **Complément cible 12/10 :** Nature, compte et régime explicites. N imposé en circuit de séries ; durées agrégées exact/≈/≥, sans lire les chiffres Figma.
 
-Brouillon Session indépendant, nom, Étiquette 0..1, compte à rebours/Fin, Circuit unique, nature tours/séries, compte 1..99, exclusion systématique des Compte à rebours/Fin propres selon D-214 révisée, sans booléen et sans effacer leurs valeurs. Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). Chaque occurrence conserve ses séries/cadences ; To=T−PN+R si R>0, sinon To=T pour un travail calculable. Total développé selon la nature du Circuit ; exact/estimated/lowerBound selon Bip v2 et spécification Circuits du 12/10. Point d’arrêt sans durée prévue.
+Brouillon Session indépendant, nom, Étiquette 0..1, compte à rebours/Fin, Circuit unique, nature tours/séries, compte 1..99, exclusion systématique des Compte à rebours/Fin propres selon D-214 révisée, sans booléen et sans effacer leurs valeurs. Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). Chaque occurrence conserve ses séries/cadences ; To=T−PN+R si R>0, sinon To=T pour un travail calculable. Total développé selon la nature du Circuit ; exact/estimated/lowerBound selon [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) et spécification Circuits du 12/10. Point d’arrêt sans durée prévue.
 
 #### 6. Classification des valeurs Figma
 
@@ -1457,7 +1457,7 @@ Chaque carte de choix Composition mesure 354 × 91, rayon 8, titre 15, case arro
 
 Le placement est un état de la Composition, représenté par 7167:13503. Chaque position autorisée propose Récupération et Point d’arrêt côte à côte ; plusieurs ajouts peuvent être confirmés ensemble. Récupération ouvre immédiatement la modale de durée 7173:13521. Le bouton indique « Confirmer N pauses ajoutées » ; Annuler restitue le brouillon antérieur au placement. Les frontières autorisées restent propres à chaque type.
 
-Le retrait utilise une bulle contextuelle : « Retirer la récupération » (7296:13696) ou « Retirer le point d’arrêt » (5301:5443). Toucher hors bulle ferme sans mutation. Il ne s’agit pas de modales de confirmation. Les règles, transactions, états à zéro et critères de recette sont détaillés dans CE-T03-08 et la spécification Pauses et symboles. L’ancien état 4893:6675 est remplacé.
+Le retrait utilise une bulle contextuelle : « Retirer la récupération » (7296:13696) ou « Retirer le point d’arrêt » (5301:5443). Toucher hors bulle ferme sans mutation. Il ne s’agit pas de modales de confirmation. Les règles, transactions, états à zéro et critères de recette sont détaillés dans CE-T03-08 et [Placement des récupérations et des points d’arrêt](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#placement-des-récupérations-et-des-points-darrêt). L’ancien état 4893:6675 est remplacé.
 
 ### Composer une séance / Modifier une séance — Confirmation — Abandonner la création d’une séance
 
@@ -2326,7 +2326,7 @@ Shell Execution + nom + sous-titre côté + information Série/mode + commandes.
 
 #### 8. Éléments obligatoires
 
-Sous-titre côté ; aucun `1/2`/`2/2`; même rang logique Activity entre côtés ; Pauses suivant v13, Pause terminale comprise ; Pause entre les côtés éventuelle avant le second passage.
+Sous-titre côté ; aucun `1/2`/`2/2`; même rang logique Activity entre côtés ; Pauses suivant [Ordres d’exécution et pauses](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ordres-dexécution-et-pauses), Pause terminale comprise ; Pause entre les côtés éventuelle avant le second passage.
 
 *Texte identique à celui de la section [« CE-T03-09 — Lancement direct et préparation fixe 5 s »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-09--lancement-direct-et-préparation-fixe-5-s) ; il n’est pas recopié ici.*
 
@@ -2344,7 +2344,7 @@ Premier côté ; Pause intra-côté ; Pause entre les côtés éventuelle ; seco
 
 #### 12. Contrôles et interactions
 
-Ordre D→G/G→D strict. Réinitialiser ne touche que le côté courant et conserve l’autre résultat. Saut confirmé du premier côté chronométré : résultat partiel conservé, second côté selon D-150 ; transition selon la succession du plan v13 (§6 R-03).
+Ordre D→G/G→D strict. Réinitialiser ne touche que le côté courant et conserve l’autre résultat. Saut confirmé du premier côté chronométré : résultat partiel conservé, second côté selon D-150 ; transition selon la succession du plan ([Ordres d’exécution et pauses](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ordres-dexécution-et-pauses) ; [R-03 — Transition, reset et suspension](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-03--transition-reset-et-suspension)).
 
 *Texte identique à celui de la section [« CE-T03-09 — Lancement direct et préparation fixe 5 s »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-09--lancement-direct-et-préparation-fixe-5-s) ; il n’est pas recopié ici.*
 
@@ -2412,7 +2412,7 @@ Après préparation fixe 5 s → compte à rebours propre applicable → premiè
 
 Snapshot ActivityDefinition, nom, préparation 5. `preparation=5` est règle système, pas propriété de la définition.
 
-Paramètres de la Série courante issus de l’instantané variable/uniforme ; ordres v13. En direct : total intrinsèque, Pause terminale normale, aucune récupération contextuelle.
+Paramètres de la Série courante issus de l’instantané variable/uniforme ; ordres selon [Ordres d’exécution et pauses](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ordres-dexécution-et-pauses). En direct : total intrinsèque, Pause terminale normale, aucune récupération contextuelle.
 
 Cadence éventuelle issue de la Série de l’instantané, jamais du Profil ou des chiffres Figma. Temps réellement dépensé cumulatif distinct du chrono de tentative ; bip applicable aux deux modes, sans modifier leur terminaison propre.
 
@@ -2446,7 +2446,7 @@ Initial 5 ; 4..1 ; 0/transit ; erreur initialisation.
 
 Pause suspend le décompte, Reprendre reprend le restant ; Arrêter depuis Pause suit confirmation. Aucun tap ne crée de Session ni une seconde Exécution. Commandes propres à une Série ne sont pas des commandes de la préparation.
 
-Si la Série est en Répétitions avec bip, appliquer Bip v2 : nominal sans transition, Suivant normal ; dans les deux autres modes, le bip est périodique sans changer leur terminaison ; Pause/Reprise sur intervalle complet ; reset de portée existante avec temps réel conservé. En préparation/phase chronométrée, conserver le décompte propre. Média/retournement ne déclenchent pas Pause.
+Si la Série est en Répétitions avec bip, appliquer [Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité) : nominal sans transition, Suivant normal ; dans les deux autres modes, le bip est périodique sans changer leur terminaison ; Pause/Reprise sur intervalle complet ; reset de portée existante avec temps réel conservé. En préparation/phase chronométrée, conserver le décompte propre. Média/retournement ne déclenchent pas Pause.
 
 #### 13. Gestes
 
@@ -2866,7 +2866,7 @@ Tap commandes ; confirmation explicite avant action destructive ; gestes média 
 
 #### 14. Validation
 
-Séance contenant≥1Exercice valide ; pas de double démarrage. Points aux positions D-217 seulement. Phases 0 s instantanées. Hors fenêtres et formats à borne ouverte, progression hybride selon la formule §6 R-01, calculée sur toutes les étapes contributives du plan.
+Séance contenant≥1Exercice valide ; pas de double démarrage. Points aux positions D-217 seulement. Phases 0 s instantanées. Hors fenêtres et formats à borne ouverte, progression hybride selon la formule de [R-01 — Progression et estimation](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-01--progression-et-estimation), calculée sur toutes les étapes contributives du plan.
 
 #### 15. Brouillon et persistance
 
@@ -2878,7 +2878,7 @@ Reprise technique restaure phase/Série/côté/Tour sans relire source ni dupliq
 
 #### 17. Erreurs et cas limites
 
-Source supprimée après départ sans effet sur instantané ; interruption technique conserve résultats ; attente de point hors durée ; reprise après arrière-plan par horodatage. Gardes 30 min/2 h selon modèle, sans réponse, rester suspendu sans arrêt automatique (§6 R-03).
+Source supprimée après départ sans effet sur instantané ; interruption technique conserve résultats ; attente de point hors durée ; reprise après arrière-plan par horodatage. Gardes 30 min/2 h selon modèle, sans réponse, rester suspendu sans arrêt automatique ([R-03 — Transition, reset et suspension](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-03--transition-reset-et-suspension)).
 
 #### 18. Accessibilité
 
@@ -2896,7 +2896,7 @@ Bip v2 remplace D-302/D-305 sur portée, signaux et symboles ; durées réelles 
 
 *Texte identique à celui de la section [« CE-T03-10 — Exécution directe — Durée chiffrée unilatérale »](#ce-t03-10--exécution-directe--durée-chiffrée-unilatérale) ; il n’est pas recopié ici.*
 
-Séance avec avant/dans/après Circuit, Tours 1/2, unilatéral/bilatéral, deux modes ; D-214 révisée : absence des phases propres quelle que soit la valeur d’un éventuel ancien champ ; toutes phases 0/>0 ; dernière récupération avant Fin ; points frontières/intérieur ; pause/reset/saut/arrêt confirmés/annulés ; source modifiée pendant run ; reprise ; médias ; vérifier poids §6 R-01 et transitions §6 R-03 ; aucun résultat de test applicatif n’est revendiqué ici.
+Séance avec avant/dans/après Circuit, Tours 1/2, unilatéral/bilatéral, deux modes ; D-214 révisée : absence des phases propres quelle que soit la valeur d’un éventuel ancien champ ; toutes phases 0/>0 ; dernière récupération avant Fin ; points frontières/intérieur ; pause/reset/saut/arrêt confirmés/annulés ; source modifiée pendant run ; reprise ; médias ; vérifier poids [R-01 — Progression et estimation](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-01--progression-et-estimation) et transitions [R-03 — Transition, reset et suspension](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-03--transition-reset-et-suspension) ; aucun résultat de test applicatif n’est revendiqué ici.
 
 Ordres D→G/G→D, A–F, N1, R0/positif et dernière occurrence/chaque Tour ; jamais cumul PN+R ni récupération ajoutée deux fois.
 
@@ -3482,7 +3482,7 @@ Unique : Annuler/Confirmer suppression. Périodique : Seulement cette occurrence
 
 #### 15. Brouillon et persistance
 
-Recalcul des occurrences après validation de Routine. Suppression unitaire doit rester exclue après relance et retirer sa notification ; le modèle/API doit persister l’exclusion par Routine et date/heure d’origine (§6 R-04), pas de simulation d’une suppression seulement visuelle. Duplication reste brouillon jusqu’à Enregistrer.
+Recalcul des occurrences après validation de Routine. Suppression unitaire doit rester exclue après relance et retirer sa notification ; le modèle/API doit persister l’exclusion par Routine et date/heure d’origine ([R-04 — Suppression d’une occurrence périodique](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-04--suppression-dune-occurrence-périodique)), pas de simulation d’une suppression seulement visuelle. Duplication reste brouillon jusqu’à Enregistrer.
 
 #### 16. Navigation et conservation d’état
 
@@ -3772,7 +3772,7 @@ Le formulaire applique les règles communes de blocs du présent chapitre. Deux 
 - le bloc **Créneau** — ligne Programme + ligne Début le, séparées par un filet. Le titre « Créneau » a été écrit puis retiré ;
 - le bloc des **éléments planifiés** (§ 5.3).
 
-Dans la section Répétition, les deux blocs successifs sont séparés par l'écart standard entre deux cartes, **12 px** (§ 0.1).
+Dans la section Répétition, les deux blocs successifs sont séparés par l'écart standard entre deux cartes, **12 px** ([DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md), § 0.1).
 
 ##### Ordre des sections du formulaire
 
@@ -4383,7 +4383,7 @@ Tap bascule ; stepper incrément immédiat, maintien≈500 ms, répétition 150 
 
 #### 14. Validation
 
-Valeurs non négatives ; pauses côté/récupération 0..300 s, tap 1 s puis maintien accéléré selon DSF Bip. Compte à rebours d’exercice et Fin d’exercice : 0..60 s, pas 1 s (D-256). Compte à rebours initial et Fin de séance (valeurs par défaut) : 0..60 s, pas 1 s (D-265) ; une valeur enregistrée au-delà est conservée sans plafonnement : « + » inactif, « − » ramène d’abord à 60 s. Pas de maximum déduit d’un exemple. Les bornes partagées sont consolidées au §6 R-02.
+Valeurs non négatives ; pauses côté/récupération 0..300 s, tap 1 s puis maintien accéléré selon DSF Bip. Compte à rebours d’exercice et Fin d’exercice : 0..60 s, pas 1 s (D-256). Compte à rebours initial et Fin de séance (valeurs par défaut) : 0..60 s, pas 1 s (D-265) ; une valeur enregistrée au-delà est conservée sans plafonnement : « + » inactif, « − » ramène d’abord à 60 s. Pas de maximum déduit d’un exemple. Les bornes partagées sont consolidées dans [R-02 — Validation des contrôles existants](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-02--validation-des-contrôles-existants).
 
 #### 15. Brouillon et persistance
 
@@ -4618,7 +4618,7 @@ Libellés de tous les segmentés : `KODJO / Section title`, Inter Semi Bold 16/2
 
 Titres affichés : CE-T03-04 `Créer un exercice` / `Modifier un exercice` ; CE-T03-08 `Composer une séance` / `Modifier une séance`. `Créer une activité` reste inchangé. Les noms techniques de frames et annotations historiques peuvent différer : les IDs et chemins restent stables. Un libellé d’action `Ajouter` ne devient pas automatiquement `Créer` ; depuis Composition, `Ajouter un exercice` conserve la destination CE-T03-07. Aucun arbre de création retiré n’est réintroduit.
 
-[DSF détaillé et écarts de propagation](../DSF-SEGMENTES-TITRES-2026-10-07.md) ; .
+[DSF détaillé et écarts de propagation](../DSF-SEGMENTES-TITRES-2026-10-07.md) ; [traçabilité et captures](../MATRICE-COMPLEMENTS-2026-10-07.md).
 
 #### 4.6 Roulettes de durée et steppers
 
@@ -4672,7 +4672,7 @@ Le moteur possède la source de vérité temporelle. En exécution autonome uniq
 
 | Origine | Séquence normale |
 |---|---|
-| ACTIVITY | Préparation système 5 s → compte à rebours propre applicable → toutes Séries/pauses du premier côté → transition SIDE_RECOVERY de durée q si bilatéral (§6 R-03) → toutes Séries/pauses du second côté → Fin propre applicable → signal de fin → Synthèse |
+| ACTIVITY | Préparation système 5 s → compte à rebours propre applicable → toutes Séries/pauses du premier côté → transition SIDE_RECOVERY de durée q si bilatéral ([R-03 — Transition, reset et suspension](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-03--transition-reset-et-suspension)) → toutes Séries/pauses du second côté → Fin propre applicable → signal de fin → Synthèse |
 | SESSION | Compte à rebours initial → plan avant Circuit → Circuit répété par Tours → plan après Circuit → Fin de séance → Synthèse |
 | Occurrence SESSION | Exercice intrinsèque (Séries/côtés/pauses) → POST_ACTIVITY_RECOVERY positive éventuelle → point d’arrêt éventuel → suite ; aucun Compte à rebours/Fin propre |
 
@@ -4681,10 +4681,10 @@ Le moteur possède la source de vérité temporelle. En exécution autonome uniq
 | Action/phase | Effet déterminé | Conservation |
 |---|---|---|
 | Réinitialiser Série unilatérale | Confirmation ; durée cible initiale en Durée, chrono 00:00 en Répétitions/échec | Cible de répétitions, temps global déjà écoulé et autres résultats conservés |
-| Réinitialiser Exercice bilatéral | Portée bloc du côté courant conformément D-150, pas l’autre côté | Résultat autre côté, temps global, Tour/Cycle conservés ; reprise à la première Série du côté (§6 R-03) |
+| Réinitialiser Exercice bilatéral | Portée bloc du côté courant conformément D-150, pas l’autre côté | Résultat autre côté, temps global, Tour/Cycle conservés ; reprise à la première Série du côté ([R-03 — Transition, reset et suspension](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-03--transition-reset-et-suspension)) |
 | Réinitialiser récupération | Recommencer uniquement phase de récupération courante | Exercice terminé reste terminé |
 | Suivant en Répétitions/échec | Terminer normalement Série courante sans confirmation de saut anticipé | Transitions prévues par le plan |
-| Suivant chronométré avant terme | Confirmation ; résultat partiel si confirmé | Ne pas effacer résultats précédents ; saut du premier côté selon D-150, transition §6 R-03 |
+| Suivant chronométré avant terme | Confirmation ; résultat partiel si confirmé | Ne pas effacer résultats précédents ; saut du premier côté selon D-150, transition [R-03 — Transition, reset et suspension](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-03--transition-reset-et-suspension) |
 | Suivant pendant récupération | Confirmation ; récupération partielle, Exercice terminé conservé | Pas de réexécution de l’Exercice |
 | Pause / Reprendre | Suspendre / reprendre horloges actives | Position de plan et temps antérieur conservés |
 | Arrêter depuis Pause | Confirmation ; clôture Interrompue et Synthèse si présentable | Instantané et résultats atteints conservés |
@@ -4697,11 +4697,11 @@ Une frame présente peut montrer un état ancien ou incomplet. Chaque contrat di
 
 #### 4.14 Cadence et DSF — consolidation du06/10/2026
 
-Les références actives sont [paramètres v13](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice), [Règles détaillées](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#resultats-temporels), [Phrase v1](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases) et [DSF courant](../DSF-CADENCE-2026-10-06.md). Figma fournit le layout ; Excel uniquement les formulations. Les titres de cartes approuvées restent 15, compactCardTitle15/18, cardTitle16 hors de cette famille ; pas de changement de hauteur induit par le média. Danger#D92D20 pour les confirmations destructives ; séparateur#E0E3E8 et iconNeutral#595E66. Safe Areas natives, aucune barre d’état9:41 codée en dur.
+Les références actives sont [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice), [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit), [Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité), [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres) et [DSF courant](../DSF-CADENCE-2026-10-06.md). Figma fournit le layout ; Excel uniquement les formulations. Les titres de cartes approuvées restent 15, compactCardTitle15/18, cardTitle16 hors de cette famille ; pas de changement de hauteur induit par le média. Danger#D92D20 pour les confirmations destructives ; séparateur#E0E3E8 et iconNeutral#595E66. Safe Areas natives, aucune barre d’état9:41 codée en dur.
 
 Les durées des contrats Catalogue/Composition/Calendrier utilisent leur périmètre défini : intrinsèque pour ACTIVITY, occurrences avec substitution de PN pour SESSION. Incertitude sans symbole/≈/≥ issue du calcul ; aucune formule locale ni nombre Figma recopié. Suivi/Synthèse affichent le réalisé issu de l’instantané et des accumulateurs, pas une estimation.
 
-Bip de cadence : shell et préférences Profil conservés ; stepper 0..10 dans les deux modes,0=Aucun. États d’exécution sans nouveau layout ; Bip v2 gouverne les signaux périodiques, nominal, Pause/Reprise et sécurité. L’ancien écran 7061:13383 de roulette est supprimé.
+Bip de cadence : shell et préférences Profil conservés ; stepper 0..10 dans les deux modes,0=Aucun. États d’exécution sans nouveau layout ; [Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité) gouverne les signaux périodiques, nominal, Pause/Reprise et sécurité. L’ancien écran 7061:13383 de roulette est supprimé.
 
 #### 4.15 Interface générale du 08/10/2026
 

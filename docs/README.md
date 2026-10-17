@@ -59,9 +59,9 @@ Le dossier `node_modules` est local et ne doit jamais être ajouté à GitHub.
 
 ## Références actives — Cadence et documentation du06/10/2026
 
-1. [Règles détaillées](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice) — pauses/côtés conservés, cadence et symboles.
-2. [Règles détaillées](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#resultats-temporels) — calculs, exécution, données et recette.
-3. [Phrase v1](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases) — grammaire et rendu ; Excel exclusivement rédactionnel.
+1. [Paramètres et brouillon d’un exercice](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice) — pauses/côtés conservés, cadence et symboles.
+2. [Résultats temporels et agrégation du circuit](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit), [Exécution d'une séance — Bip de cadence, progression et sécurité](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité) et [Paramètre de bip et validation des données](Specifications-fonctionnelles/09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#paramètre-de-bip-et-validation-des-données) — calculs, exécution, données et recette.
+3. [Phrase de synthèse des paramètres](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres) — grammaire et rendu ; Excel exclusivement rédactionnel.
 4. [DSF Cadence du 06/10](DSF-CADENCE-2026-10-06.md), actualisé le 13/10 par le [DSF Deux modes](DSF-DEUX-MODES-ECHEC-2026-10-13.md) ; [matrice Figma Cadence du 06/10](MATRICE-CADENCE-FIGMA-2026-10-06.md), inventaire historique (voir la [matrice du 07/10](MATRICE-FIGMA-2026-10-07.md)).
 5. Chapitre06 : captures centralisées ; chapitre13 :40 contrats actifs (chapitre 13 § 1) dont CE-UI-10, 20 rubriques canoniques chacun, états et limites graphiques explicites.
 

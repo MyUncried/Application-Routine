@@ -59,13 +59,13 @@ Les familles sont identifiées par leur **titre**, sans numérotation d’écran
 - **Bulle contextuelle** : action attachée à un élément précis, sans nouvelle page ;
 - **Variantes Information et Média** : rangées dans Exécution, avec leur statut de livraison propre.
 
-Une frame Figma de 402 × 874 peut représenter une modale et son arrière-plan ; sa taille n’en fait pas un écran autonome. Les captures sont intégrées en Markdown standard, affichables hors Obsidian. La  sert d’inventaire ; les images se trouvent dans les familles ci-dessous, sans seconde galerie en fin de chapitre.
+Une frame Figma de 402 × 874 peut représenter une modale et son arrière-plan ; sa taille n’en fait pas un écran autonome. Les captures sont intégrées en Markdown standard, affichables hors Obsidian. La [matrice de couverture](../MATRICE-COUVERTURE-FIGMA-CHAPITRE-06.md) sert d’inventaire ; les images se trouvent dans les familles ci-dessous, sans seconde galerie en fin de chapitre.
 
 #### Mise à jour Cadence et DSF
 
 Baseline documentaire 6d03f5be579f2d0e2e7602b6abf1c2b46f4c740b ; 133 frames courantes de Prototype MVP recensées et captures renouvelées sans retouche.  : chaque frame, fichier et contrat hôte. Les références datées précédentes restent des preuves historiques, notamment les états retirés ou horsMVP.
 
-Cadence et phrase relèvent de [paramètres v13](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice), [Règles détaillées](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#resultats-temporels) et [Phrase v1](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases). Figma fournit le rendu ; Excel seulement les formulations. Aucun chiffre de capture ne constitue une règle de durée. DSF, couleurs, composants, police et Safe Areas : [référence courante](../DSF-CADENCE-2026-10-06.md).
+Cadence et phrase relèvent de [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice), [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit), [Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité) et [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres). Figma fournit le rendu ; Excel seulement les formulations. Aucun chiffre de capture ne constitue une règle de durée. DSF, couleurs, composants, police et Safe Areas : [référence courante](../DSF-CADENCE-2026-10-06.md).
 
 ### Couverture du Prototype MVP et exclusions justifiées
 #### Périmètre intégré
@@ -90,7 +90,7 @@ Dans la Composition actuelle, aucun contrôle de changement de côté n’est af
 
 Aucune confirmation d’activation bilatérale du Circuit n’est exposée dans la version actuelle. Le support technique historique du côté Tour reste conservé pour non-régression, fixé à `UNILATERAL` et non modifiable.
 
-Dans une carte d’Exercice, l’indicateur propre affiche `D→G` ou `G→D` lorsque l’Exercice est bilatéral ; il est absent avec `Aucun`. La phrase complète de l’éditeur suit Phrase v1/corpusv15 : cible, Pause, côtés puis total applicable. La carte de Composition utilise son indicateur compact distinct. Les références géométriques suivent le Figma courant.
+Dans une carte d’Exercice, l’indicateur propre affiche `D→G` ou `G→D` lorsque l’Exercice est bilatéral ; il est absent avec `Aucun`. La phrase complète de l’éditeur suit [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres)/corpusv15 : cible, Pause, côtés puis total applicable. La carte de Composition utilise son indicateur compact distinct. Les références géométriques suivent le Figma courant.
 
 Dans la famille Exécution — séance ou exercice, un Exercice effectivement bilatéral affiche `Côté droit` ou `Côté gauche` sous son nom. Les indicateurs de progression gardent leur sémantique ; aucun compteur de côté n’est ajouté. Les frames d’Exécution existantes restent inchangées.
 
@@ -124,7 +124,7 @@ Référence hors prototype actif — Figma `3841:8375` ; ne vaut pas activation 
 
 ![HISTORIQUE — Catalogue Séances — ancien arbre Créer — supersédé D-187](images/ecran-13a-catalogue-seances-creer-arbre.png)
 
-> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v13 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre 13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
+> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248 et [Ordres d’exécution et pauses](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ordres-dexécution-et-pauses) (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre 13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
 
 ### Règles générales d’interface
 
@@ -560,7 +560,7 @@ Références courantes du 12/10, complétées le 13/10 :32 captures du parcours 
 
 Formulaire : conserver les shells et l’ordre visible dans les captures. Toute la zone de phrase ouvre la feuille. Feuille : en-tête fixe ✕ / Modalités d’exécution / ✓ ; corps défilant Mode → Séries (régime, chevron indépendant, nombre) → cible/Pause uniformes ou tableau variable → Changement de côté et Ordre/PC si applicables → Bip de cadence → Total applicable → Compte à rebours → Fin.
 
-Le tableau variable comporte poignée, numéro, cellules cible/Pause et retrait ; une seule cellule active et un pied de réglage commun. Le régime identiques/variables, le mode et les choix de côtés utilisent les popovers représentés. Les roulettes Durée et Total restent des états intégrés. [DSF courant et mesures](../DSF-CIRCUITS-CONTROLES-2026-10-12.md). Les règles et bornes restent celles de v13 et de la spécification Circuits. Sous nombre hérité, nombre et total affichable sont en lecture seule ; aucun écran dédié identifié ne fixe encore l’emplacement de la mention discrète.
+Le tableau variable comporte poignée, numéro, cellules cible/Pause et retrait ; une seule cellule active et un pied de réglage commun. Le régime identiques/variables, le mode et les choix de côtés utilisent les popovers représentés. Les roulettes Durée et Total restent des états intégrés. [DSF courant et mesures](../DSF-CIRCUITS-CONTROLES-2026-10-12.md). Les règles et bornes restent celles de v13 et de [Composition d'une séance — Circuits de tours et de séries](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#composition-dune-séance--circuits-de-tours-et-de-séries). Sous nombre hérité, nombre et total affichable sont en lecture seule ; aucun écran dédié identifié ne fixe encore l’emplacement de la mention discrète.
 
 #### Formulaire — vues principales et résumé
 
@@ -682,7 +682,7 @@ Ces 19 frames sont des états de CE-UI-10, pas 19 pages applicatives. Quatre ré
 
 ![Création exercice — Paramètres (modale) — Séries variables à l’échec](images/echec-2026-10-13/8328-38848.png)
 
-Cette capture reflète le layout actuel. Le texte de fond énumérant les pauses variables reste un écart rédactionnel avec Phrase v1 ; voir la matrice Deux modes.
+Cette capture reflète le layout actuel. Le texte de fond énumérant les pauses variables reste un écart rédactionnel avec [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres) ; voir la matrice Deux modes.
 
 ##### Modalités d’exécution — Séries variables, cas mixte
 
@@ -1520,7 +1520,7 @@ L’absence ou la substitution d’un logo, d’une icône, d’un texte ou d’
 
 #### Révision écran par écran
 
-Les descriptions locales ci-dessous et les contrats CE-T03/CE-UI du chapitre 13 intègrent les décisions closes D-233 à D-239. La  relie chaque frame concernée à son contrat et à ses critères. Contrôle exhaustif du 30 septembre 2026 : 113 frames du prototype et les 6 références complémentaires du rapport utilisateur, soit 119 captures Figma. Les 84 écrans du rapport sont couverts (78 dans le prototype). 74 fichiers existants sont actualisés et 45 copies documentaires complètent des écrans déjà présents dans Figma ; aucun écran applicatif ou Figma créé. La  donne les sources et les empreintes ; les captures du chapitre 06 sont regroupées par famille, près de leurs règles.
+Les descriptions locales ci-dessous et les contrats CE-T03/CE-UI du chapitre 13 intègrent les décisions closes D-233 à D-239. La [matrice courante des écrans](../MATRICE-ECRANS-CARTES-2026-09-30.md) relie chaque frame concernée à son contrat et à ses critères. Contrôle exhaustif du 30 septembre 2026 : 113 frames du prototype et les 6 références complémentaires du rapport utilisateur, soit 119 captures Figma. Les 84 écrans du rapport sont couverts (78 dans le prototype). 74 fichiers existants sont actualisés et 45 copies documentaires complètent des écrans déjà présents dans Figma ; aucun écran applicatif ou Figma créé. La [matrice exhaustive](../MATRICE-COUVERTURE-FIGMA-CHAPITRE-06.md) donne les sources et les empreintes ; les captures du chapitre 06 sont regroupées par famille, près de leurs règles.
 
 Sur tous les écrans concernés, les appuis suivent D-237 : dilatation au contact, retour et action immédiate au relâchement ; sortie de cible sans action ; réduction des animations par opacité. Les contrôles désactivés ne deviennent pas actifs par l’animation. L’inventaire des 27 icônes de sélection ne recolore ni visages, ni statuts, ni boutons à fond coloré. Navigation présente : composant 6298:12462, traits 2, dessins≤24 ; état sélectionné bleu, autre gris.
 
@@ -1643,7 +1643,7 @@ Ces insets sont des règles de composition du contenu et ne doivent pas être re
 | Splash | Logo et textes sont centrés dans la zone sûre ; le logo conserve ses proportions et ne doit jamais être étiré. Aucun défilement n’est prévu. |
 | Catalogue, Calendrier, Suivi, Profil | En-tête et navigation basse fixes ; seule la zone centrale défile. Les listes conservent un espace final d’au moins `16` points avant la séparation ou la navigation, en plus de l’inset inférieur applicable. |
 | Composition, Exercice, Planification | En-tête et action finale fixes ; le formulaire central défile. Avec le clavier ouvert, l’action reste atteignable sans recouvrir le champ actif. |
-| Exercice | Aucun contrôle de type n’est affiché. Les accès `Catégorie` et `Zones corporelles`, le `Mode d’exécution` et la zone Média suivent le Figma courant. L’import/ajout de médias est actif au MVP dans PRE-3 (D-333) ; les états système et règles d’import non représentés restent à clarifier. Le popover de mode propose Durée et Répétitions ; À l’échec se sélectionne dans la cible de chaque Série. Le résumé et la feuille de paramètres suivent D-247 à D-255/v13 et CE-T03-04/CE-UI-10 ; aucune ancienne double rangée fixe de synthèse. L’action `Terminer` reste accessible avec le clavier et le texte agrandi. |
+| Exercice | Aucun contrôle de type n’est affiché. Les accès `Catégorie` et `Zones corporelles`, le `Mode d’exécution` et la zone Média suivent le Figma courant. L’import/ajout de médias est actif au MVP dans PRE-3 (D-333) ; les états système et règles d’import non représentés restent à clarifier. Le popover de mode propose Durée et Répétitions ; À l’échec se sélectionne dans la cible de chaque Série. Le résumé et la feuille de paramètres suivent D-247 à D-255, [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice) et CE-T03-04/CE-UI-10 ; aucune ancienne double rangée fixe de synthèse. L’action `Terminer` reste accessible avec le clavier et le texte agrandi. |
 | Planification | Rappel par interrupteur, options égales ; récapitulatif protégé et pied fixe. Voir CE-UI-05 et spécification 08/10. |
 | Calendrier Semaine | La barre des jours reste lisible sur la largeur compacte ; les sept jours se répartissent la largeur disponible sans défilement horizontal. La liste journalière défile verticalement, utilise `8` points entre ses cartes et s’arrête `16` points avant la séparation de navigation. |
 | Calendrier Mois | Les sept colonnes se répartissent la largeur disponible ; une cellule peut grandir verticalement mais ne défile pas horizontalement. |
@@ -1695,7 +1695,7 @@ Les preuves d’usage sont distinctes de la preuve du composant et ne s’y subs
 
 #### Paramètres — référence courante
 
-La [spécification v13](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice) remplace le champ éditable v10.2. Les anciennes captures d’éditeur ne constituent plus des écarts à corriger vers la phrase inline. Les limites actuelles sont celles de la feuille (câblage incomplet et données de démonstration), décrites dans la section Créer ou modifier un exercice et CE-UI-10.
+La section [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice) remplace le champ éditable v10.2. Les anciennes captures d’éditeur ne constituent plus des écarts à corriger vers la phrase inline. Les limites actuelles sont celles de la feuille (câblage incomplet et données de démonstration), décrites dans la section Créer ou modifier un exercice et CE-UI-10.
 
 ### Titres affichés
 
@@ -1788,7 +1788,7 @@ Contrat de donnée : ajouter au Profil la préférence facultative `silhouette`,
 
 Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.
 
-> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v13 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre 13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
+> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248 et [Ordres d’exécution et pauses](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ordres-dexécution-et-pauses) (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre 13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
 
 ### RG des cartes
 
@@ -1835,7 +1835,7 @@ Un bouton œil, posé **sur la ligne du titre de l'en-tête de circuit**, ouvre 
 
 - une colonne `Exercice` ;
 - une colonne par série, `S 1` … `S n` ;
-- une **dernière colonne d’unité ou de mode**, à droite : `rép.`, `min:ss` ou `À l’échec`. Les rendus complétés sont définis au §9.5.
+- une **dernière colonne d’unité ou de mode**, à droite : `rép.`, `min:ss` ou `À l’échec`. Les rendus complétés sont définis dans [Grille des volumes](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#grille-des-volumes).
 
 **Pas de pauses, pas de récupérations.** On y lit des volumes, pas un déroulé.
 
@@ -1924,7 +1924,7 @@ C'est ce qui distingue ce modèle du popover de roulette, qui a besoin d'une val
 
 **L'appui qui range l'outil ne doit pas activer ce qu'il touche lorsque la cible est destructive.** Sinon on supprime une série en croyant terminer un réglage. Pour une cible inoffensive — une autre valeur, un chevron — l'appui peut faire les deux.
 
-Ranger l’outil ne revient pas sur les appuis ±. Ils restent cependant dans le brouillon transactionnel : ✕ annule l’ouverture de la feuille, ✓ applique au parent. **La suppression manuelle par croix est immédiate, sans confirmation, avec une action « Annuler » restaurant position et paramètres** (§9.6).
+Ranger l’outil ne revient pas sur les appuis ±. Ils restent cependant dans le brouillon transactionnel : ✕ annule l’ouverture de la feuille, ✓ applique au parent. **La suppression manuelle par croix est immédiate, sans confirmation, avec une action « Annuler » restaurant position et paramètres** ([Suppression et interactions](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#suppression-et-interactions)).
 
 ##### La cellule active a deux coordonnées
 
