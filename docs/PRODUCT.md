@@ -436,17 +436,9 @@ La tranche bilatéralité `V2-BILAT-01` reste un incrément préparatoire antér
 
 `PRODUCT.md` est une synthèse. Il ne remplace pas les spécifications détaillées.
 
-En cas de contradiction, l’ordre de référence est :
+Ce document n’établit pas d’ordre de référence propre : les règles d’autorité décidées sont réunies dans [INDEX.md, « Autorité documentaire — ce qui est décidé »](INDEX.md#autorité-documentaire--ce-qui-est-décidé) (D-402, QR-6). Une décision n’en remplace une autre que si elle le dit explicitement.
 
-1. registre des décisions de conception et arbitrages explicitement supersédants ;
-2. glossaire, modèle fonctionnel et modèle de données ;
-3. conception fonctionnelle détaillée ;
-4. écrans et navigation ;
-5. contrats d’écran du chapitre 13 ;
-6. versions du produit et vision générale ;
-7. documents de travail, historiques et revues externes.
-
-Cet ordre n’établit aucune priorité automatique entre la conception fonctionnelle détaillée (chapitre 08) et les contrats d’écran (chapitre 13) : une contradiction entre eux qui n’est pas résolue par une décision explicite reste `À CLARIFIER` (D-376).
+Aucune priorité automatique n’existe entre la conception fonctionnelle (chapitre 08) et les contrats d’écran (chapitre 13) : une contradiction entre eux qui n’est pas résolue par une décision explicite reste `À CLARIFIER` (D-376).
 
 Pour T03, les références explicites de cette mise à jour sont :
 - `06 – Ecrans et navigation de la V1.md`, qui intègre directement les corrections UX T03 ;

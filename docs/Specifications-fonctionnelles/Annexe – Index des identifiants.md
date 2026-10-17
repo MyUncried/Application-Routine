@@ -607,6 +607,7 @@ Document non normatif, généré. Il indique où chaque identifiant est défini.
 | [D-399](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#précisions-de-hermann-du-17-octobre-2026-b1-à-b5) | 07 | Précisions de Hermann du 17 octobre 2026 (B1 à B5) |
 | [D-400](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#précisions-de-hermann-du-17-octobre-2026-b1-à-b5) | 07 | Précisions de Hermann du 17 octobre 2026 (B1 à B5) |
 | [D-401](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#précisions-de-hermann-du-17-octobre-2026-b1-à-b5) | 07 | Précisions de Hermann du 17 octobre 2026 (B1 à B5) |
+| [D-402](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#décision-de-hermann-du-17-octobre-2026--restructuration-documentaire-qr-1-à-qr-9) | 07 | Décision de Hermann du 17 octobre 2026 — restructuration documentaire (QR-1 à QR-9) |
 | [DM-001](09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#décisions-structurantes-du-modèle) | 09 | Décisions structurantes du modèle |
 | [DM-002](09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#décisions-structurantes-du-modèle) | 09 | Décisions structurantes du modèle |
 | [DM-003](09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#décisions-structurantes-du-modèle) | 09 | Décisions structurantes du modèle |

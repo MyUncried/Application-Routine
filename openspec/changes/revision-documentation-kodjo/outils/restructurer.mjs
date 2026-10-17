@@ -331,6 +331,7 @@ if (opt.correspondance) { const head = fs.readFileSync(path.join(L6, 'correspond
 if (opt.justifications) { const crypto = await import('crypto'); const n1 = x => x.replace(/\s+/g, ' ').trim(); const J = ['empreinte\tmotif\tsection'];
   for (const s of S) if (s.dest === 'HIST') for (const it of s.bodyO) { const t = n1(it.t); if (!t || /^\|?\s*:?-{3,}/.test(t) || /^#{1,6} /.test(t) || /^<a id=/.test(t) || t === '---') continue;
     J.push(`${crypto.createHash('sha1').update(t).digest('hex').slice(0, 16)}\tHISTORIQUE-ARCHIVE\t${s.id}`); }
+  if (has('6H')) J.push('D-402\tCORRECTION-DECIDEE:D-402\tS07 (décision nouvelle de Hermann, QR-1 à QR-9)');
   fs.writeFileSync(opt.justifications, J.join('\n') + '\n'); }
 const ev = {}; rapport.slice(1).forEach(l => { const e = l.split('\t')[1]; ev[e] = (ev[e] || 0) + 1; });
 console.log(`étapes=${[...ET].join(',')} fichiers=${Object.keys(R).length + Object.keys(annexes).length} liens_réécrits=${liensReecrits} autres_docs_modifiés=${docsModifies}`);

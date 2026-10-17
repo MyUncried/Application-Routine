@@ -662,6 +662,13 @@ Numérotation D-388 à D-396, disponible au 17/10 : aucune proposition de docume
 | D-400 | Sur Android, l’alternative accessible au menu de la tuile Média utilise les actions d’accessibilité natives TalkBack, équivalentes aux actions VoiceOver sur iOS. | Validée, Hermann 17/10/2026 (B4) | Précise la décision PRE-4 Q31 et D-393. |
 | D-401 | Message récapitulatif de migration (D-394) : titre « Certains exercices n’ont pas été récupérés » ; texte « La mise à jour de vos données est terminée. {N} exercice(s) n’ont pas pu être récupérés car leurs données étaient illisibles. », avec accord au singulier ou au pluriel ; bouton « Compris ». | Validée, Hermann 17/10/2026 (B5) | Précise D-394. `{N}` désigne le nombre d’Exercices non récupérés exigé par D-394 (marque absente du texte transmis, restituée ici). |
 
+<a id="arbitrages-20261017-c"></a>
+### Décision de Hermann du 17 octobre 2026 — restructuration documentaire (QR-1 à QR-9)
+
+| ID | Décision | Statut | Portée et décisions concernées |
+|---|---|---|---|
+| D-402 | La documentation est restructurée selon l’option C révisée du lot 6A (QR-1) : les noms des fichiers de chapitres sont conservés ; le chapitre 08 décrit la conception par fonctionnalité et cite les règles du chapitre 10 sans les énoncer ; les conventions d’interface communes, dont les règles communes de l’ancien chapitre 13 §4, sont au chapitre 06 (QR-2, QR-3) ; les passages historiques non normatifs sont conservés dans une annexe (QR-4) ; les sections modifiées par une PR ouverte restent dans leur fichier (QR-5) ; `PRODUCT.md` est une synthèse sans ordre de référence propre (QR-6) ; seuls des identifiants B-xxx des besoins sont créés (QR-7) ; la restructuration est immédiate, sans attendre PRE-4 ni PRE-5 (QR-8) ; les divergences nouvellement relevées sont regroupées pour arbitrage (QR-9). | Validée, Hermann 17/10/2026 (QR-1 à QR-9) | Documentaire ; aucune règle produit modifiée ; D-376 inchangée (aucune priorité automatique entre les chapitres 08 et 13). |
+
 <a id="formats-decisions"></a>
 ## Formats de séances — décisions du 14 octobre 2026
 
