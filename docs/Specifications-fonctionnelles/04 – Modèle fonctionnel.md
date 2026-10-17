@@ -306,7 +306,7 @@ Les bornes fonctionnelles D-232 sont : Séries `1..99`, Répétitions par Série
 
 #### Présentation des objets
 
-Contenu identique à la section [« RG des cartes »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rg-des-cartes) : il n’est pas recopié ici.
+Contenu identique à la section [« RG des cartes »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#rg-des-cartes) : il n’est pas recopié ici.
 
 ##### Saisie des paramètres d’exécution
 

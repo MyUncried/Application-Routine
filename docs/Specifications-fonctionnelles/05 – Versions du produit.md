@@ -235,10 +235,6 @@ T04 développe ensuite le Plan d’Exécution par Séries, Tours et côtés port
 
 La première version fonctionnelle du Catalogue des Exercices inclut l’exécution directe d’une référence persistante : action sur la carte, préparation fixe de `5 s`, moteur commun, Synthèse, Suivi général typé et statistiques compatibles. Cette capacité appartient désormais au MVP T03. Le MVP n’est donc plus centré exclusivement sur les Séances : un Exercice persistante valide constitue aussi une source exécutable.
 
-### Précision MVP T03 — Carte d’Exercice et vignette média
-
-Dans le Catalogue des Exercices, l’appui sur la carte ouvre la consultation ou la modification et le bouton Lecture lance l’Exécution directe. L’état Photo affiche la vignette sans contrôle Déployer et sans agrandissement dû à la seule photo (D-238). L’acquisition/import n’est pas activé par cette règle.
-
 ## Évolution conçue — consultation média pendant l’Exécution
 
 La consultation des médias pendant l’Exécution fait partie du MVP, conformément à la confirmation du 28/09/2026 (D-203, états `4997:6113` et `5009:6069`).
@@ -254,10 +250,6 @@ Contenu identique à la section [« Références transverses des cartes et appui
 ## Consolidation avant planification
 
 D-209 à D-218 décrivent la cible fonctionnelle à prendre en compte lors de la définition de la prochaine tranche. Leur inscription dans la documentation ne vaut pas inclusion automatique dans T03/T04 : le découpage de livraison sera arbitré après l’audit final. Les impacts de modèle de données à considérer en priorité sont les cardinalités Catégorie/Zones corporelles, le retrait logique des référentiels, le Circuit/Tours, les propriétés de récupération déjà définies par D-208. D-214 révisée le 12/10 retire le booléen des phases propres : aucune propriété de Séance n’est à créer pour leur activation.
-
-## Conventions communes d’interface
-
-D-221 : le MVP n’inclut aucune recherche globale ni recherche locale dans les Catalogues. Les écrans de recherche globale sont archivés ; la recherche pourra être reconçue dans une version ultérieure. La navigation active reste limitée à `Catalogues`, `Calendrier`, `Suivi`, `Profil`. Les règles D-222 à D-230 précisent les comportements de sélection/planification et les contraintes DSF sans étendre le périmètre fonctionnel du MVP.
 
 ## Paramètres d’exécution — complément
 

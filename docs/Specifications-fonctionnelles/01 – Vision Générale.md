@@ -100,17 +100,6 @@ Le Profil MVP permet de gérer une photo et un nom d’affichage. Les Préféren
 
 Les Sons, les Annonces vocales et les Vibrations fonctionnelles sont indépendants. Le feedback haptique léger des roulettes numériques reste systématique dans le MVP et n’est pas piloté par le réglage `Vibration`.
 
-## Principes d’expérience
-
-- interface mobile en portrait, compatible avec les Safe Areas du système ;
-- navigation principale fixe : `Catalogues`, `Calendrier`, `Suivi`, `Profil` ;
-- l’espace `Catalogues` utilise les titres contextuels `Catalogue des séances` et `Catalogue des exercices` ;
-- libellé affiché uniquement sous l’onglet actif ;
-- actions contextuelles cohérentes entre les listes ;
-- sauvegarde immédiate des Préférences ;
-- confirmation explicite avant toute suppression définitive ou abandon de création ;
-- vocabulaire fonctionnel uniforme dans tous les écrans.
-
 ## Ambition après le MVP
 
 KODJO a vocation à devenir un assistant personnel de planification et de suivi pour la rééducation, la mobilité, l’exercice physique, la santé quotidienne et les habitudes personnelles.
