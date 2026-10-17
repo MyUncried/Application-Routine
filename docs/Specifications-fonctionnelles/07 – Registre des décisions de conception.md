@@ -612,7 +612,6 @@ Choix visuels : cinquième variante de roulette8452:13297, deux popovers de mode
 Source reçue dans le §4.2 du prompt complété. Roue manipulable même grisée ; tourner sélectionne le nombre, toucher le libellé sélectionne l’échec et neutralise la roue à00:00. Exactement une sélection, pas de coche ;45% sur le bloc numérique non sélectionné. R01 close. R06 close après correction explicite du propriétaire :58min55s=3535s maximum ;5999s était une coquille. Sélecteur dès5s, par pas5s. D-232, RM-234 et les contrats sont corrigés.
 
 <a id="arbitrages-20261016"></a>
-
 ## Arbitrages de Hermann du 16 octobre 2026 — révision documentaire
 
 Décisions prises par Hermann à l’issue de la révision documentaire OpenSpec (change `revision-documentation-kodjo`, `arbitrages.md`).
@@ -636,7 +635,6 @@ Décisions prises par Hermann à l’issue de la révision documentaire OpenSpec
 | D-387 | Les terminologies historiques obsolètes Circuit/Tour sont corrigées selon D-209, sans supprimer implicitement les besoins futurs. | Validée, Hermann 16/10/2026 | Terminologie ; précise D-032 et D-077. |
 
 <a id="arbitrages-20261017"></a>
-
 ### Arbitrages complémentaires de Hermann du 17 octobre 2026 (A1 à A9)
 
 Numérotation D-388 à D-396, disponible au 17/10 : aucune proposition de documentation en cours n’emploie ces numéros.
@@ -654,7 +652,6 @@ Numérotation D-388 à D-396, disponible au 17/10 : aucune proposition de docume
 | D-396 | Dans la feuille Paramètres, la ligne Total est toujours affichée, en modes Durée et Répétitions, y compris pour une seule série (`N = 1`) ; elle affiche « — » lorsqu’une cible nécessaire au calcul manque (D-384). | Validée, Hermann 17/10/2026 (A9) ; précisée par D-397 (17/10/2026) : masquée lorsqu’aucune durée totale n’est calculée (Répétitions sans bip, toutes cibles À l’échec) | Feuille Paramètres uniquement ; ne concerne pas les autres affichages de total (Composition, cartes). |
 
 <a id="arbitrages-20261017-b"></a>
-
 ### Précisions de Hermann du 17 octobre 2026 (B1 à B5)
 
 | ID | Décision | Statut | Portée et décisions concernées |
@@ -666,7 +663,6 @@ Numérotation D-388 à D-396, disponible au 17/10 : aucune proposition de docume
 | D-401 | Message récapitulatif de migration (D-394) : titre « Certains exercices n’ont pas été récupérés » ; texte « La mise à jour de vos données est terminée. {N} exercice(s) n’ont pas pu être récupérés car leurs données étaient illisibles. », avec accord au singulier ou au pluriel ; bouton « Compris ». | Validée, Hermann 17/10/2026 (B5) | Précise D-394. `{N}` désigne le nombre d’Exercices non récupérés exigé par D-394 (marque absente du texte transmis, restituée ici). |
 
 <a id="formats-decisions"></a>
-
 ## Formats de séances — décisions du 14 octobre 2026
 
 | ID | Décision / provenance | Statut | Portée |

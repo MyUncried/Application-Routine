@@ -1,0 +1,125 @@
+section	evenement	detail
+S08-0571	6D-ligne-ignoree	l. 1729 (ligne de tableau)
+S09-0655	6D-ligne-ignoree	l. 728 (ligne de tableau)
+S09-0655	6D-ligne-ignoree	l. 729 (ligne de tableau)
+S12-0918	6D-ligne-ignoree	l. 1443 (ligne de tableau)
+S12-0918	6D-ligne-ignoree	l. 1444 (ligne de tableau)
+S12-0918	6D-ligne-ignoree	l. 1445 (ligne de tableau)
+S12-0918	6D-ligne-ignoree	l. 1446 (ligne de tableau)
+S12-0918	6D-ligne-ignoree	l. 1447 (ligne de tableau)
+S12-0918	6D-ligne-ignoree	l. 1449 (ligne de tableau)
+S12-0918	6D-ligne-ignoree	l. 1450 (ligne de tableau)
+S12-0918	6D-ligne-ignoree	l. 1451 (ligne de tableau)
+S12-0918	6D-ligne-ignoree	l. 1452 (ligne de tableau)
+S12-0918	6D-ligne-ignoree	l. 1453 (ligne de tableau)
+S09-0665	6D-ligne-ignoree	l. 797 (ligne de tableau)
+S12-0850	6D-ligne-ignoree	l. 120 (ligne de tableau)
+S04-0145	6D-ligne	l. 126 → S09-0613
+S09-0614	6D-ligne	l. 347 → S09-0613
+S11-0812	6D-ligne	l. 97 → S09-0613
+S12-0918	6D-ligne	l. 1439 → S09-0613
+S12-0918	6D-ligne	l. 1455 → S09-0613
+S12-0918	6D-ligne	l. 1457 → S09-0613
+S02-0046	6D-ligne	l. 184 → S02-0046
+S03-0054	6D-ligne	l. 3 → S10-0728
+S11-0807	6D-ligne	l. 3 → S10-0728
+S13-0942	6D-ligne	l. 3 → S10-0728
+S08-0464	6D-ligne	l. 300 → S04-0150
+S09-0624	6D-ligne	l. 457 → S04-0150
+S06-0328	6D-ligne	l. 1902 → S06-0326
+S12-0923	6D-ligne	l. 1490 → S06-0364
+S12-0923	6D-ligne	l. 1492 → S06-0364
+S12-0923	6D-ligne	l. 1493 → S06-0364
+S12-0923	6D-ligne	l. 1494 → S06-0364
+S12-0923	6D-ligne	l. 1495 → S06-0364
+S12-0923	6D-ligne	l. 1496 → S06-0364
+S08-0472	6D-ligne	l. 384 → S08-0471
+S08-0506	6D-ligne	l. 914 → S08-0500
+S08-0510	6D-ligne	l. 956 → S08-0500
+S12-0865	6D-ligne	l. 360 → S08-0509
+S12-0865	6D-ligne	l. 361 → S08-0509
+S09-0694	6D-ligne	l. 1004 → S09-0637
+S13-0957	6D-ligne	l. 1142 → S13-0956
+S13-0957	6D-ligne	l. 1144 → S13-0956
+S13-0957	6D-ligne	l. 1158 → S13-0956
+S13-0957	6D-ligne	l. 1176 → S13-0956
+S13-0957	6D-ligne	l. 1214 → S13-0956
+S13-0957	6D-ligne	l. 1216 → S13-0956
+S13-0958	6D-ligne	l. 1238 → S13-0957
+S13-0958	6D-ligne	l. 1242 → S13-0956
+S13-0958	6D-ligne	l. 1258 → S13-0956
+S13-0958	6D-ligne	l. 1324 → S13-0957
+S13-0958	6D-ligne	l. 1328 → S13-0956
+S13-0960	6D-ligne	l. 1452 → S13-0956
+S13-0960	6D-ligne	l. 1454 → S13-0956
+S13-0960	6D-ligne	l. 1468 → S13-0956
+S13-0960	6D-ligne	l. 1486 → S13-0956
+S13-0960	6D-ligne	l. 1522 → S13-0956
+S13-0960	6D-ligne	l. 1524 → S13-0956
+S13-0974	6D-ligne	l. 2693 → S13-0956
+S13-0974	6D-ligne	l. 2727 → S13-0956
+S13-0974	6D-ligne	l. 2763 → S13-0957
+S13-0974	6D-ligne	l. 2769 → S13-0956
+S13-0962	6D-ligne	l. 1634 → S13-0961
+S13-0962	6D-ligne	l. 1638 → S13-0961
+S13-0962	6D-ligne	l. 1704 → S13-0961
+S13-0975	6D-ligne	l. 2793 → S13-0961
+S13-0975	6D-ligne	l. 2797 → S13-0961
+S13-0975	6D-ligne	l. 2859 → S13-0961
+S13-0969	6D-ligne	l. 2265 → S13-0968
+S09-0608	6C-tableau	note replacée après le tableau
+S09-0618	6C-tableau	note replacée après le tableau
+S09-0633	6C-tableau	note replacée après le tableau
+S09-0643	6C-tableau	note replacée après le tableau
+S10-0743	6C-tableau	rangs rejoints
+S10-0743	6C-tableau	en-tête ajouté
+S10-0744	6C-tableau	rangs rejoints
+S10-0744	6C-tableau	rangs rejoints
+S10-0744	6C-tableau	rangs rejoints
+S11-0832	6C-tableau	rangs rejoints
+S11-0832	6C-tableau	en-tête ajouté
+S08-0553	6C-tableau	3 rang(s) rattaché(s) à S08-0552
+S12-0878	6C-tableau	2 rang(s) rattaché(s) à S12-0877
+S13-0947	6C-inventaire	CE-CIR-01 CE-CIR-02 CE-CIR-03 CE-FMT-01 CE-FMT-02 CE-FMT-03 CE-FMT-04 CE-FMT-05 CE-FMT-06
+S07-0386	6C-registre	D-046 et D-047 rangées après D-045
+S01-0025	6D-section	→ S10-0746
+S01-0025	6D-titre	D-246
+S02-0052	6D-section	→ S01-0027
+S03-0125	6D-section	→ S03-0112
+S04-0164	6D-section	→ S10-0745
+S04-0165	6D-section	→ S10-0746
+S04-0165	6D-titre	D-246
+S05-0196	6D-section	→ S06-0362
+S05-0199	6D-section	→ S02-0050
+S05-0201	6D-section	→ S01-0027
+S08-0433	6D-section	→ S10-0728
+S08-0586	6D-section	→ S06-0362
+S08-0588	6D-section	→ S10-0746
+S08-0588	6D-titre	D-246
+S09-0593	6D-section	→ S10-0728
+S09-0711	6D-section	→ S10-0746
+S09-0711	6D-titre	D-246
+S09-0712	6D-section	→ S04-0166
+S10-0746	6D-titre	D-246
+S10-0749	6D-section	→ S09-0614
+S11-0829	6D-section	→ S03-0112
+S11-0833	6D-section	→ S10-0746
+S11-0833	6D-titre	D-246
+S11-0837	6D-section	→ S09-0716
+S12-0926	6D-section	→ S10-0746
+S12-0926	6D-titre	D-246
+S12-0931	6D-section	→ S09-0716
+S12-0922	6E-integre	après S12-0907
+S12-0925	6E-integre	après S12-0907
+S12-0927	6E-integre	après S12-0909
+S12-0928	6E-integre	après S12-0907
+S12-0929	6E-integre	après S12-0920
+S12-0932	6E-integre	après S12-0931
+S12-0933	6E-integre	après S12-0907
+S12-0934	6E-integre	après S12-0907
+S12-0935	6E-integre	après S12-0907
+S12-0937	6E-integre	après S12-0909
+S02-0049	6E-integre	après S02-0048
+S02-0051	6E-integre	après S02-0050
+S05-0191	6E-integre	après S05-0185
+S05-0200	6E-integre	après S05-0199

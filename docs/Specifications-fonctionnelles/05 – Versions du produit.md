@@ -1,3 +1,5 @@
+# Versions et périmètre
+
 ## V1 – KODJO MVP : séance structurée et exécution locale
 
 > Mise à jour du 24 septembre 2026 : Étiquette = classification/couleur de Séance ; Catégorie = classification/couleur d’Exercice ; Point d’arrêt ; Compte à rebours et Fin propres à l’Exercice ; changement de côté non exposé au niveau Circuit ; roulettes en modale basse ; média en gouttière permanente dans le Catalogue des Exercices depuis D-260/D-261 du03/10/2026.
@@ -183,7 +185,7 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 - Gestion des séances actives et archivées.
 - Gestion des Routines de planification pour les Séances **et les Exercices persistants**.
 
-## Répartition validée — 6 septembre 2026
+## Répartition validée
 
 ### MVP
 
@@ -214,7 +216,7 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 
 - Ancienne cible de Parcours autonome retirée par D-328 ; voir la planification multi-contenus du 08/10.
 
-## Roadmap des tranches MVP après arbitrage du 14 septembre 2026
+## Roadmap des tranches MVP après arbitrage
 
 | Tranche | Périmètre |
 |---|---|
@@ -245,11 +247,11 @@ La cible comprend la bascule Information/Média, la galerie ordonnée, la vidéo
 
 Spécification de synthèse : `../CONCEPTION-EXECUTION-MEDIA.md`.
 
-## Portée de la revue des cartes — 30 septembre 2026
+## Portée de la revue des cartes
 
-Contenu identique à la section [« Références transverses des cartes et appuis — 30 septembre 2026 »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#références-transverses-des-cartes-et-appuis--30-septembre-2026) : il n’est pas recopié ici.
+Contenu identique à la section [« Références transverses des cartes et appuis »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#références-transverses-des-cartes-et-appuis) : il n’est pas recopié ici.
 
-## Consolidation avant planification — 26 septembre 2026
+## Consolidation avant planification
 
 D-209 à D-218 décrivent la cible fonctionnelle à prendre en compte lors de la définition de la prochaine tranche. Leur inscription dans la documentation ne vaut pas inclusion automatique dans T03/T04 : le découpage de livraison sera arbitré après l’audit final. Les impacts de modèle de données à considérer en priorité sont les cardinalités Catégorie/Zones corporelles, le retrait logique des référentiels, le Circuit/Tours, les propriétés de récupération déjà définies par D-208. D-214 révisée le 12/10 retire le booléen des phases propres : aucune propriété de Séance n’est à créer pour leur activation.
 
@@ -257,18 +259,19 @@ D-209 à D-218 décrivent la cible fonctionnelle à prendre en compte lors de la
 
 D-221 : le MVP n’inclut aucune recherche globale ni recherche locale dans les Catalogues. Les écrans de recherche globale sont archivés ; la recherche pourra être reconçue dans une version ultérieure. La navigation active reste limitée à `Catalogues`, `Calendrier`, `Suivi`, `Profil`. Les règles D-222 à D-230 précisent les comportements de sélection/planification et les contraintes DSF sans étendre le périmètre fonctionnel du MVP.
 
-## Paramètres d’exécution — complément du02/10/2026
+## Paramètres d’exécution — complément
 
-Contenu identique à la section [« Paramètres d’exécution — complément du02/10/2026 »](02%20%E2%80%93%20Utilisateurs%20et%20besoins.md#paramètres-dexécution--complément-du02102026) : il n’est pas recopié ici.
+Contenu identique à la section [« Paramètres d’exécution — complément »](02%20%E2%80%93%20Utilisateurs%20et%20besoins.md#paramètres-dexécution--complément) : il n’est pas recopié ici.
 
-## Évolution Cadence — statut au06/10/2026
+## Évolution Cadence — statut
 
 Cible documentée, non déclarée livrée : Bip de cadence0..10 dans deux modes, steppers et calculs Bip v2. Dépendances : SeriesParameters, pauses explicites, migration, ordonnanceur audio périodique, snapshots et qualification mobile. L’écran de roulette est supprimé ; les cinq modales modifiées sont reprises ; les autres modes restent à compléter visuellement. Le layout d’exécution est conservé. Le guidage de cadence pendant l’Exécution appartient au MVP (D-378).
 
-## Conception de planification du 08/10/2026
+## Conception de planification
 
-Contenu identique à la section [« Conception de planification du 08/10/2026 »](01%20%E2%80%93%20Vision%20G%C3%A9n%C3%A9rale.md#conception-de-planification-du-08102026) : il n’est pas recopié ici.
+Contenu identique à la section [« Conception de planification »](01%20%E2%80%93%20Vision%20G%C3%A9n%C3%A9rale.md#conception-de-planification) : il n’est pas recopié ici.
 
+<a id="formats-perimetre"></a>
 ## Formats — conception cible et livraison
 
 Cette évolution documente les six formats et les départs rapides selon [spécification Formats du 14/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#formats-conception). Les six formats d’entraînement et les départs rapides appartiennent au MVP (D-378). La présence d’un écran sur Prototype MVP ne constitue ni son admission dans une tranche ni sa livraison applicative. Le moteur n’est pas encore développé ; le lot courant est exclusivement documentaire. Les preuves et périmètres PRE-3/PRE-4 restent figés. Rapports, classement, charge additionnelle, tempo et entrée Pyramide ne sont pas ajoutés au périmètre.

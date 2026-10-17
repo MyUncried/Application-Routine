@@ -223,11 +223,11 @@ Le besoin détaillé est consolidé dans `../CONCEPTION-EXECUTION-MEDIA.md`.
 - Exécuter la récupération de la dernier Exercice avant la Fin de séance, et celle de la dernier Exercice du Circuit à chaque Tour.
 - Ne pas ajouter de récupération post-exercice lors de l’Exécution directe depuis le Catalogue.
 
-## Besoins consolidés — 26 septembre 2026
+## Besoins consolidés
 
 L’utilisateur doit pouvoir classer chaque nouvel Exercice avec exactement une Catégorie et une ou plusieurs Zones corporelles, sans que ces métadonnées conditionnent son exécution. Il peut retirer des valeurs des référentiels sans casser les objets existants. Dans une Séance, les Compte à rebours d’exercice et Fin d’exercice ne sont jamais exécutés ; seuls le Compte à rebours initial et la Fin de séance s’appliquent, une fois, par substitution. Aucun booléen ni contrôle d’activation n’existe à cet effet. Les valeurs propres restent conservées pour l’exécution de l’Exercice seul. Les Points d’arrêt restent positionnables dans la séquence selon D-217 et sont rejoués à chaque Tour lorsqu’ils appartiennent au Circuit.
 
-## Paramètres d’exécution — complément du02/10/2026
+## Paramètres d’exécution — complément
 
 Le parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série. La direction et l’Ordre des côtés sont indépendants. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [v13](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice), CE-T03-04 et CE-UI-10.
 
@@ -235,10 +235,11 @@ Le parcours existant permet maintenant des Séries variables dans la même feuil
 
 Pour un entraînement ou une rééducation, prescrire un intervalle entre répétitions et disposer de signaux réguliers, tout en gardant la maîtrise de la fin de Série. La cadence est facultative ; aucune mesure automatique des répétitions ni preuve de mouvement effectué n’est promise. La Synthèse conserve le temps actif réel et la prescription de l’instantané.
 
-## Conception de planification du 08/10/2026
+## Conception de planification
 
-Contenu identique à la section [« Conception de planification du 08/10/2026 »](01%20%E2%80%93%20Vision%20G%C3%A9n%C3%A9rale.md#conception-de-planification-du-08102026) : il n’est pas recopié ici.
+Contenu identique à la section [« Conception de planification »](01%20%E2%80%93%20Vision%20G%C3%A9n%C3%A9rale.md#conception-de-planification) : il n’est pas recopié ici.
 
+<a id="formats-besoins"></a>
 ## Besoins couverts par les formats
 
 Composer un protocole sans ressaisir ses constantes ; choisir l’organisation lorsqu’elle est autorisée ; connaître la durée calculable avant départ ; conserver un résultat fidèle aux conditions réellement exécutées. Une séance libre reste libre, y compris après préremplissage. Le Death by restitue tours acquis et répétitions partielles ; aucune comparaison entre individus ni aucun classement n’est ajouté.

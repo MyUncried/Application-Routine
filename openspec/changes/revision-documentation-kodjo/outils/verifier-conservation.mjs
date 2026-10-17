@@ -39,7 +39,12 @@ const MARQUEURS = [['A-CLARIFIER', /À CLARIFIER/], ['REMPLACE', /remplacée? pa
 const n1 = s => s.replace(/\s+/g, ' ').trim();
 const n2 = s => n1(s.replace(/\]\([^)]*\)/g, ']()').replace(/\b(?:ch\.|chap\.|chapitres?)\s*\d{2}\b/gi, '§CH').replace(/§\s*[\d.]+(?: bis(?:\.\d+)?)?/g, '§').replace(/\bl\.\s*\d+(?:\s*[–-]\s*\d+)?/g, 'l.'));
 const h = s => crypto.createHash('sha1').update(s).digest('hex').slice(0, 16);
-const content = l => { const t = n1(l); return t && !/^\|?\s*:?-{3,}/.test(t) && !/^#{1,6} /.test(t) && !/^<a id=/.test(t) && t !== '---' ? t : null; };
+// Lignes générées par la restructuration (renvois, sommaires, annexes d'index et de correspondance) : navigation, hors contrôle.
+const GENEREE = /il n’est pas recopié ici\.\*?$/;
+const content = l => { const t = n1(l); return t && !/^\|?\s*:?-{3,}/.test(t) && !/^#{1,6} /.test(t) && !/^<a id=/.test(t) && t !== '---' && !GENEREE.test(t) ? t : null; };
+const ANNEXE_GENEREE = n => /^Annexe – (Correspondance|Index)/.test(path.basename(n));
+function sansSommaire(lines) { let som = false; return lines.map(l => { const m = l.match(/^(#{1,6}) (.*)$/); if (m && m[1].length <= 2) som = m[1].length === 2 && m[2].trim() === 'Sommaire'; return som ? '' : l; }); }
+for (const d of [...refDocs, ...tgtDocs]) d.lines = ANNEXE_GENEREE(d.name) ? [] : sansSommaire(d.lines);
 function scan(docs) {
   const ids = new Map(), c1 = new Map(), c2 = new Map(), dec = new Map(), por = new Map(), cites = new Map(), marq = {};
   for (const d of docs) { let fence = false; const stack = []; const annexe = /^Annexe/i.test(path.basename(d.name));
