@@ -470,7 +470,7 @@ Bornes de validation D-232 : `seriesCount ∈ [1,99]`, répétitions par Série 
 
 #### Paramètres de Série et Ordre des côtés — D-247 à D-254
 
-Contenu identique à la section [« Paramètres de Série et Ordre des côtés — D-247 à D-254 »](04%20%E2%80%93%20Mod%C3%A8le%20fonctionnel.md#paramètres-de-série-et-ordre-des-côtés--d-247-à-d-254) : il n’est pas recopié ici.
+Contenu identique à la section [« Extension validée du modèle — Paramètres de Série et Ordre des côtés — D-247 à D-254 »](#extension-validée-du-modèle--paramètres-de-série-et-ordre-des-côtés--d-247-à-d-254) : il n’est pas recopié ici.
 
 #### Extension normative de données — Cadence
 
@@ -493,14 +493,6 @@ Modèle logique : pause explicite avec identifiant stable, type recovery ou brea
 #### Bip de cadence
 
 cadenceBeepIntervalSeconds entier0..10 dans les deux modes ;0=Aucun, défaut0. Même champ sur les Séries effectives et snapshots, réglage commun sans surcharge. Aucune suppression lors d’une bascule de mode. Résultat temporel exact/estimated/lowerBound/omitted ; omitted sans montant, validation erronée séparée. LowerBound autorisé à l’Exercice mixte calculable, ainsi qu’aux agrégats Circuit/Séance. SeriesParameters et pauses explicites doivent être intégrés au schéma avant ce champ ; numérotation de migration à planifier.
-
-#### Contrat technique de phrase
-
-La [spécification de phrase](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases) gouverne le générateur pur : paramètres métier + résultat de durée + locale française → `Array<{texte: string, gras: boolean}>`. Retour vide `[]` si aucune phrase applicable. Aucun calcul depuis Excel, aucune chaîne à redécouper pour trouver les valeurs en gras. React Native utilise des Text imbriqués ; le découpage est émis par le gabarit, y compris si une valeur se répète.
-
-Aucune colonne phrase ni sérialisation des segments dans définition/occurrence/snapshot. Génération à chaque affichage depuis les paramètres ; ✓ applique le brouillon, ne persiste pas le texte. Un changement rédactionnel est visible au prochain rendu des objets existants. Paramètres historiques et temps réalisés préservés.
-
-Français uniquement au MVP. Internationalisation ultérieure : gabarits et règles de pluriel/genre/ordre par locale, avec recette dédiée ; prévoir la réécriture de la grammaire française, pas une traduction des segments isolés. Corpus276 utilisé uniquement pour les phrases, valeurs totales injectées par le calcul métier.
 
 #### Précision de modèle — source, v15
 
@@ -603,6 +595,24 @@ Le prérequis SeriesParameters et les objets de pause doit être planifié avant
 ### Saisie des paramètres d’exécution
 
 Contenu identique à la section [« Saisie des paramètres d’exécution »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#saisie-des-paramètres-dexécution) : il n’est pas recopié ici.
+
+### Extension validée du modèle — Paramètres de Série et Ordre des côtés — D-247 à D-254
+
+Le mode d’exécution est commun à l’Exercice. Le stockage distingue explicitement uniforme et variable, même si les valeurs sont identiques. En variable, conserver N lignes ordonnées avec cible (Durée/Répétitions) et Pause ; aucune cible numérique À l’échec. Les mêmes lignes s’appliquent aux deux côtés. Direction et Ordre des côtés sont deux propriétés distinctes. N=1 est normalisé uniforme/Un côté après l’autre dès le brouillon.
+
+Copie Catalogue→Séance, duplication et nouvel instantané conservent tout cet état. Les données sans nouveaux attributs sont uniformes/Un côté après l’autre. Les calculs actuels s’appliquent aussi aux Exercices existants ; résultats historiques immuables. Les valeurs temporaires de restauration et le repli visuel ne sont jamais persistés. Voir chapitre 08, paramètres d’exercice et8 pour le contrat complet.
+
+### Extension validée du modèle — Extension Cadence du modèle de Série
+
+La Série porte `cadenceBeepIntervalSeconds` (entier0..10,0 par défaut), applicable aux deux modes. L’édition commune est une projection de brouillon, pas une seconde vérité persistée au-dessus de la collection variable. Activation, modification, suppression et déplacement conservent l’intégrité de la collection. Définition, copie de Séance et instantané transportent la même propriété.
+
+Une durée prévisionnelle déterminable ne signifie pas une fin automatique : Ri×Ci fournit le poids temporel et la fin nominale, Suivant l’achèvement. L’accumulateur réel inclut tentatives réinitialisées et intervalles abandonnés ; il est distinct de la progression et du chronomètre courant. Aucun nouvel objet Répétition. Voir Bip v2 et modèle09.
+
+## Composition des séances
+
+### Extension validée du modèle — Pauses et symboles
+
+La Composition possède des pauses explicites recovery et breakpoint. recovery appartient à une occurrence ; breakpoint conserve une position structurelle. Une projection R=0 pour absence ne crée pas d’objet. La présence et la durée0 sont distinctes, les phases0s ne sont pas générées.
 
 ## Exécution
 

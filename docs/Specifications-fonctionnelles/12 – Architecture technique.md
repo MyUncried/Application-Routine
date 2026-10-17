@@ -1580,7 +1580,7 @@ Les défauts Profil sont lus à la création uniquement : aucune synchronisation
 
 ## Contrat technique de phrase
 
-Contenu identique à la section [« Contrat technique de phrase »](09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#contrat-technique-de-phrase) : il n’est pas recopié ici.
+Contenu identique à la section [« Migration T03 — Catalogue des Exercices — Contrat technique de phrase »](11%20%E2%80%93%20API%20fonctionnelles.md#migration-t03--catalogue-des-exercices--contrat-technique-de-phrase) : il n’est pas recopié ici.
 
 ## Transmission au développement — évolutions v15
 
@@ -1604,6 +1604,30 @@ Les plans à compte fini peuvent être déroulés ; AMRAP/Death by doivent gén�
 L’instantané porte la prescription et les paramètres effectifs. Le résultat Death by conserve séparément rang, tours acquis, répétitions partielles déclarées, motif et achèvement incomplet. Les données nécessaires au Suivi prolongent les structures générales ; aucun moteur de classement ni service distant n’est ajouté.
 
 Avant développement : inventaire du schéma et des consommateurs réels, raccordement des règles de Pause/Reprendre/reset/points d’arrêt et de bilatéralité aux fenêtres, vérification de la déclinaison Death by multi-exercice et de la progression d’un plan à nombre inconnu. Ne pas généraliser aux formats ouverts les poids figés d’un plan fini. Ces limites sont listées dans la revue transverse ; les fonctions métier manquantes ne sont pas réputées livrées.
+
+## Contrats internes et découpage des services
+
+Les API fonctionnelles définies dans ce chapitre constituent les contrats internes de l’application. Elles ne préjugent pas d’une exposition sous forme d’API réseau.
+
+Dans le MVP :
+- les opérations sont mises en œuvre par des services applicatifs internes ;
+- les échanges entre composants utilisent des objets typés dérivés du modèle de données fonctionnel ;
+- aucun protocole réseau ni format d’API externe n’est imposé pour les échanges internes ;
+- les protocoles réseau, formats d’échange et contrats d’intégration seront définis lorsqu’une fonction nécessitera effectivement un backend ou un service externe.
+
+Le découpage logique initial des services est le suivant :
+
+| Service | Responsabilité |
+|---|---|
+| `SessionService` | Gestion des Séances et de leur cycle de vie |
+| `CompositionService` | Gestion des Cycles, Tours et Exercices |
+| `PlanningService` | Gestion des Routines et calcul des occurrences |
+| `ExecutionService` | Plan d’exécution, progression et commandes d’exécution |
+| `HistoryService` | Exécutions, Instantanés et historique |
+| `PreferencesService` | Préférences globales |
+| `ReferenceDataService` | Catégories et Zones corporelles |
+
+Ce découpage représente des responsabilités logiques au sein de l’application et n’implique pas la création de services réseau ou de serveurs distincts.
 
 <a id="generateur-phrase"></a>
 ## Internationalisation et vérification du générateur

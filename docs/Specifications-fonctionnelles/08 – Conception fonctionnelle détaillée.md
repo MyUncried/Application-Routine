@@ -432,6 +432,169 @@ Les exercices restants ne sont pas exécutées.
 <a id="planification"></a>
 #### Planification des créneaux et de leurs contenus
 
+### Déroulement d'une séance
+
+Lorsqu'une Séance est démarrée :
+
+1. un instantané de la Séance est créé ;
+2. le moteur construit le Plan d’Exécution ;
+3. les Exercices sont exécutés dans l'ordre prévu ;
+4. les informations d'Exécution sont enregistrées ;
+5. les résultats sont sauvegardés.
+
+Le Plan d’Exécution constitue une structure interne générée automatiquement au démarrage de chaque Séance. Il n'est jamais manipulé directement par l'utilisateur.
+
+### Guidage de l'utilisateur
+
+Pendant une Exécution, l'application accompagne l'utilisateur grâce à différents mécanismes de guidage.
+
+Elle affiche notamment :
+- l'Exercice en cours ;
+- l'Exercice suivant ;
+- le temps restant ou écoulé ;
+- la progression ;
+- les informations de Série et de Tour pertinentes, sans exposer le Cycle.
+
+Le guidage sonore peut comprendre :
+- une annonce vocale du nom de chaque Exercice au début de son exécution ;
+- l’annonce du côté lorsque la direction effective est bilatérale ;
+- un bip grave pendant les exercices chronométrés ;
+- un bip aigu pendant les trois dernières secondes de toute étape chronométrée.
+
+Les annonces vocales, les bips et les vibrations fonctionnelles de séance peuvent être activés ou désactivés indépendamment selon les préférences de l'utilisateur. Le retour haptique d'interface produit par les roulettes numériques est distinct : il est systématique et n'est pas piloté par la préférence `Vibrations`.
+
+### Navigation principale et articulation des écrans — Navigation pendant une Exécution
+
+Pendant l’Exécution, la navigation principale n’est pas affichée.
+
+L’utilisateur dispose de trois commandes principales :
+
+- `Réinitialiser l’exercice` ;
+- `Pause` ;
+- `Exercice suivant`.
+
+Il n’existe pas de bouton `Quitter` ou `Arrêter` directement sur l’écran d’Exécution. L’action `Arrêter la séance` est accessible uniquement depuis la modale de pause.
+
+L’utilisateur ne peut pas revenir à un Exercice déjà exécuté.
+
+### Exécution — séance ou exercice — Exercice défini par une durée
+
+Pour un Exercice en mode Durée ou une phase de Récupération, le temps est présenté sous forme de compte à rebours.
+
+Lorsque le compte à rebours atteint zéro, l’Exercice se termine normalement et l’Exécution passe à la suite.
+
+Si l’utilisateur appuie sur `Exercice suivant` avant zéro, une confirmation est demandée. Après confirmation, l’Exercice est enregistré avec le statut métier `Partielle` et l’Exécution continue.
+
+### Exécution — séance ou exercice — Exercice défini par un nombre de répétitions
+
+Pour un Exercice défini par un nombre de répétitions, l’écran conserve le même layout que pour un Exercice chronométré.
+
+Le temps actif est affiché par un chronomètre croissant à partir de00:00. Sans cadence, aucune durée prescrite ; avec cadence, Ri×Ci définit une fin nominale, sans fin automatique de Série.
+
+Sans cadence, le cercle du minuteur effectue une rotation complète par minute :
+
+- une rotation complète représente 60 secondes ;
+- à `01:00`, il recommence une nouvelle rotation ;
+- le chronomètre continue à croître (`01:01`, `01:02`, etc.).
+
+Bip positif : signal périodique dans les deux modes pendant Série, y compris après le nominal Répétitions ; aucun dernier signal nominal distinct ni bip minute superposé. Bip0 : règles antérieures de signal minute conservées pour les modes concernés. Fin Durée chiffrée au minuteur ; Répétitions et toute cible À l’échec manuelles. Même shell, pas de nouvel écran.
+
+`Pause` suspend le chronomètre et la rotation du cercle. `Reprendre` les relance depuis l’état exact où ils ont été suspendus.
+
+L’utilisateur termine normalement chaque Série avec `Suivant`. Cette action ne crée pas un Exercice au statut Partielle : elle valide la fin normale de la Série en mode Répétitions ou À l’échec.
+
+### Exécution — séance ou exercice — Réinitialiser l’Exercice
+
+L’action ouvre la modale de confirmation.
+
+Après confirmation :
+
+- la Série / Exercice courant recommence depuis son état initial ;
+- pour un Exercice chronométré, le compte à rebours retrouve sa durée initiale ;
+- pour un Exercice en Répétitions ou À l’échec, le chronomètre d’Exercice revient à `00:00` ;
+- la cible de répétitions n’est pas modifiée ;
+- le temps total déjà écoulé dans la Séance reste conservé ;
+- la position dans la séance et la répétition en cours restent inchangées.
+
+Pendant `SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY`, la confirmation réinitialise uniquement le compte à rebours de la phase de récupération courante. Elle ne rejoue aucune Série déjà acquise et ne modifie pas les résultats antérieurs.
+
+### Exécution — séance ou exercice — Mise en pause
+
+Toucher `Pause` suspend immédiatement l’Exécution et ouvre la modale `Séance en pause`.
+
+La pause suspend :
+
+- le compte à rebours ou le chronomètre d’Exercice ;
+- l’enchaînement automatique ;
+- le temps actif ;
+- les bips et annonces liés à la progression ;
+- les animations de progression.
+
+La modale propose :
+
+- `Reprendre la séance` ;
+- `Arrêter la séance`.
+
+`Reprendre la séance` restaure l’état exact de l’Exercice.
+
+`Arrêter la séance` termine l’Exécution avec le statut `Interrompue`. Dans T04, il ouvre l’écran de fin minimale ; l’ouverture de la Synthèse appartient à la tranche qui livre cette dernière.
+
+Il n’existe pas de commande directe d’arrêt depuis l’écran principal d’Exécution.
+
+### Exécution — séance ou exercice — Exercice suivant
+
+Le comportement dépend de la phase courante :
+
+- **Exercice en Répétitions ou À l’échec** : termine normalement la Série courante et passe à la pause, à la Série suivante ou à l’Exercice suivant selon le plan ;
+- **Exercice chronométré avant zéro** : ouvre la modale de confirmation ; après confirmation, l’Exercice est enregistré avec le statut `Partielle`, puis l’Exécution continue ;
+- **Phase de récupération avant zéro** : ouvre la même confirmation ; après confirmation, la durée partielle de la phase courante (`SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY`) est conservée et le Plan poursuit vers son étape suivante ;
+- **Exercice chronométré arrivé à zéro** : la transition est automatique.
+
+### Exécution — séance ou exercice — Navigation pendant l’Exécution
+
+L’ordre d’Exécution est déterminé par le Plan d’Exécution.
+
+L’utilisateur ne peut pas sélectionner librement un autre Exercice ni revenir à un Exercice déjà terminé.
+
+### Exécution — séance ou exercice — Guidage sonore
+
+Dans T04, Sons et Annonces vocales sont activés par défaut au début de chaque Exécution. Leur état peut être changé pendant l’Exécution, mais cette tranche ne lit ni n’enregistre encore de préférence utilisateur correspondante ; leur configuration depuis le Profil appartient à une tranche ultérieure.
+
+Au début d’un Exercice, son nom peut être annoncé vocalement lorsque les Annonces vocales sont actives. Au début d’une phase de récupération chronométrée (`SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY`), l’annonce est `Récupération`.
+
+Pour les Exercices chronométrés, les signaux sonores de fin de compte à rebours sont appliqués conformément aux règles métier définies pour le MVP.
+
+Répétitions sans bip/À l’échec sans bip : aucun signal de fin de compte à rebours, bip minute. À l’échec avec bip : périodique sans bip minute superposé. Répétitions cadencées : signal périodique maintenu après nominal sans signal final distinct, sans transition automatique ni bip minute ; chronomètre toujours croissant.
+
+### Exécution — séance ou exercice — Arrière-plan et verrouillage
+
+Si l’application passe en arrière-plan ou si l’écran se verrouille :
+
+- le Plan d’Exécution continue selon ses horodatages de référence ;
+- l’Exercice chronométré ne se fige pas ;
+- au retour, l’application reconstitue l’Exercice et la position temporelle qui auraient dû être atteintes, plutôt que de reprendre le compteur à l’endroit où l’interface a été suspendue ;
+- les sons et annonces sont maintenus dans la mesure permise par iOS et Android.
+
+Une mise en pause de sécurité est appliquée en cas d’inexercice prolongée :
+
+- pour un Exercice chronométré, si aucune interaction n’a eu lieu 30 minutes après sa fin théorique ;
+- pour une Série Répétitions cadencée,30min après la fin nominale recalculée sans interaction ;
+- pour un Exercice en Répétitions sans cadence ou À l’échec,2h sans interaction depuis son démarrage.
+
+Le comportement précis fait l’objet du spike technique prévu avant le développement complet du moteur d’Exécution.
+
+### Exécution — séance ou exercice — Fin de l’Exécution
+
+Lorsque le Plan d’Exécution arrive à son terme, l’Exécution est enregistrée et l’écran `Synthèse de séance` est affiché.
+
+La Séance source et la Routine éventuelle ne sont jamais modifiées par l’Exécution.
+
+### Exécution — séance ou exercice — Exercice lancé directement depuis le catalogue
+
+L’Exécution directe conserve une préparation système fixe de `5 s`. Cette durée n’est pas un attribut de l’Exercice. Les anciennes captures dédiées sont retirées de ce parcours ; les variantes actuelles sont présentées ci-dessous.
+
+L’écran réutilise le moteur et le Shell d’Exécution. Il développe Séries, Pauses, côtés et Récupération, sans structure de Séance artificielle ni phase `SESSION_END`. Après la dernière phase, un signal ouvre immédiatement la Synthèse.
+
 ## Suivi et synthèse
 
 ### Suivi et historique des séances
@@ -473,3 +636,24 @@ Par défaut, les Exécutions sont triées de la plus récente à la plus ancienn
 Chaque Exécution peut être déployée individuellement dans le MVP afin d’afficher son détail directement dans la carte.
 
 Aucun bouton **Déployer tout / Replier tout** n'est affiché ; le déploiement est géré carte par carte.
+
+## Interface transverse
+
+### Navigation principale et articulation des écrans — Retour et fermeture
+
+En dehors d’une Exécution en cours, revenir à l’écran précédent ne nécessite pas de confirmation lorsque les modifications ont déjà été enregistrées ou lorsqu’aucune donnée temporaire ne risque d’être perdue.
+
+La modale `Abandonner la création d’une séance` concerne la création en cours dans l’écran `Composer une séance`.
+
+Pendant une Exécution, aucune sortie directe vers la navigation principale n’est proposée. L’arrêt de la Séance est accessible uniquement après mise en pause.
+
+### Navigation principale et articulation des écrans — Conservation du contexte
+
+L’application conserve autant que possible le contexte de l’utilisateur :
+
+- la Séance précédemment consultée ;
+- l’état déployé ou replié d’une carte tant que l’utilisateur reste dans la vue concernée ;
+- l’Exercice et la Série en cours pendant une Exécution ;
+- la position dans le Suivi.
+
+Après la fermeture d’une modale, l’utilisateur retrouve le contexte depuis lequel elle a été ouverte.

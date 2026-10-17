@@ -259,7 +259,7 @@ D-209 à D-218 décrivent la cible fonctionnelle à prendre en compte lors de la
 
 ## Paramètres d’exécution — complément
 
-Contenu identique à la section [« Paramètres d’exécution — complément »](02%20%E2%80%93%20Utilisateurs%20et%20besoins.md#paramètres-dexécution--complément) : il n’est pas recopié ici.
+Contenu identique à la section [« Paramètres d’exécution — complément »](03%20%E2%80%93%20Parcours%20utilisateur.md#paramètres-dexécution--complément) : il n’est pas recopié ici.
 
 ## Évolution Cadence — statut
 
@@ -267,12 +267,124 @@ Cible documentée, non déclarée livrée : Bip de cadence0..10 dans deux modes,
 
 ## Conception de planification
 
-Contenu identique à la section [« Conception de planification »](01%20%E2%80%93%20Vision%20G%C3%A9n%C3%A9rale.md#conception-de-planification) : il n’est pas recopié ici.
+Contenu identique à la section [« Conception de planification »](03%20%E2%80%93%20Parcours%20utilisateur.md#conception-de-planification) : il n’est pas recopié ici.
 
 <a id="formats-perimetre"></a>
 ## Formats — conception cible et livraison
 
 Cette évolution documente les six formats et les départs rapides selon [spécification Formats du 14/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#formats-conception). Les six formats d’entraînement et les départs rapides appartiennent au MVP (D-378). La présence d’un écran sur Prototype MVP ne constitue ni son admission dans une tranche ni sa livraison applicative. Le moteur n’est pas encore développé ; le lot courant est exclusivement documentaire. Les preuves et périmètres PRE-3/PRE-4 restent figés. Rapports, classement, charge additionnelle, tempo et entrée Pyramide ne sont pas ajoutés au périmètre.
+
+## Utilisateur prioritaire du MVP
+
+Le MVP s’adresse en priorité à une personne qui crée ses propres Séances et Exercices, planifie directement ses Séances **ou ses Exercices**, les exécute et consulte leur historique sur son appareil.
+
+Il fonctionne :
+
+- sans compte utilisateur obligatoire ;
+- sans synchronisation entre appareils ;
+- sans partage avec un professionnel ou un groupe ;
+- uniquement en français à l’écran.
+
+L’architecture textuelle repose néanmoins sur un lexique centralisé et des clés de traduction, afin de pouvoir modifier un terme partout dans l’application et ajouter ultérieurement d’autres langues sans réécrire les écrans.
+
+## Périmètre fonctionnel du MVP — Catalogue des séances
+
+Le `Catalogue des séances` est l’état par défaut de l’espace `Catalogues` après le splash et après une relance complète. Il permet d’ouvrir sa carte en modification, de la planifier, de la dupliquer ou de l’archiver. Une Séance active ne peut pas être supprimée directement : elle doit d’abord être archivée. Depuis la liste des Séances archivées, elle peut être restaurée ou supprimée après confirmation.
+
+## Périmètre fonctionnel du MVP — Catalogue des exercices — T03
+
+T03 rend le segment `Exercices` fonctionnel. Il permet de créer, consulter, modifier, archiver, restaurer et supprimer définitivement un Exercice persistant, de l’ajouter à une Séance par copie indépendante, de l’exécuter directement **et de la planifier directement** au même titre qu’une Séance. Le segment `Parcours` est absent du Catalogue et des sélecteurs de type de contenu au MVP.
+
+Un Exercice créé uniquement dans une Séance ne rejoint pas automatiquement le Catalogue. Une Exécution directe d’Exercice utilise l’origine `ACTIVITY`, un instantané autonome et une préparation fixe de `5 s`, sans Séance artificielle ni `SESSION_END`.
+
+## Périmètre fonctionnel du MVP — Planification et calendrier
+
+Une Séance peut être planifiée une seule fois ou périodiquement. Le Calendrier propose les vues Jour, Semaine et Mois dans le MVP. Les rappels sont facultatifs. La demande d’autorisation système des notifications n’est déclenchée que lorsque l’utilisateur active pour la première fois un rappel pendant une planification.
+
+## Périmètre fonctionnel du MVP — Profil et Préférences
+
+Le Profil MVP permet de gérer une photo et un nom d’affichage. Les Préférences sont : Sons, Annonces vocales, Vibration, Compte à rebours initial, Fin de séance et Notifications.
+
+Les Sons, les Annonces vocales et les Vibrations fonctionnelles sont indépendants. Le feedback haptique léger des roulettes numériques reste systématique dans le MVP et n’est pas piloté par le réglage `Vibration`.
+
+## Cible fonctionnelle confirmée — Catalogue multi-type
+
+Le Catalogue constitue l’accès central aux contenus. Il distingue `Exercices` et `Séances`. `Séances` est sélectionné par défaut à l’ouverture initiale et après relance complète ; `Exercices` est fonctionnel à partir de T03 ; `Parcours` est absent du sélecteur. L’ancien objet autonome Parcours est retiré (D-328).
+
+## Cible fonctionnelle confirmée — Catalogue des exercices — MVP T03
+
+La tranche MVP T03 apporte un Catalogue d’Exercices persistants. Le Catalogue des exercices permet de créer, consulter, modifier, archiver/restaurer et exécuter directement un Exercice de référence. Dès T03, depuis la Composition d’une Séance, l’utilisateur peut également sélectionner plusieurs Exercices existants ; chacun est copié dans la Séance et devient indépendante de sa référence.
+
+Un Exercice créé uniquement dans une Séance ne rejoint pas automatiquement le Catalogue. Cette capacité locale reste conservée mais n’est pas exposée dans le parcours courant de composition, qui propose la sélection depuis le Catalogue. Dans le MVP, le média associé est affiché dans la gouttière permanente de la carte d’Exercice du Catalogue, sans déploiement ; cette règle n’ajoute pas implicitement de mécanisme d’import ou de capture (D-260/D-261).
+
+L’Exécution directe réutilise le sous-ensemble moteur autonome avec une origine `ACTIVITY`, commence par une préparation standard de `5 s`, n’ajoute ni Séance artificielle ni phase `SESSION_END`, puis affiche une Synthèse avec Ressenti obligatoire. Le Suivi identifie cette Exécution comme un Exercice et applique les statistiques compatibles sans compter une Séance.
+
+## Vision cible — médias pendant l’Exécution
+
+Le MVP permet de consulter les médias de l’Exercice sans quitter l’Exécution ni interrompre son moteur. L’utilisateur peut retourner la zone d’information vers une face Média, parcourir une galerie ordonnée, lancer une vidéo à la demande et ouvrir le média en plein écran. Le plein écran conserve un cadre flottant de suivi et de commande de l’Exécution.
+
+Cette consultation est incluse au MVP (D-203, confirmation du 28/09/2026). Voir `../CONCEPTION-EXECUTION-MEDIA.md`.
+
+## Cadence facultative — cible documentaire
+
+Le guidage de cadence pendant l’Exécution appartient au MVP (D-378). Les deux modes peuvent émettre un Bip de cadence, intervalle0..10s,0=Aucun, sans quatrième mode. Chronomètre croissant et signaux guident l’utilisateur ; Suivant conserve la fin normale de Série, même après la fin nominale. KODJO ne détecte pas les mouvements. Pour une cible À l’échec en Répétitions, le relevé facultatif peut être déclaré ; avec bip, une estimation est proposée et conservée tant qu’elle n’est pas explicitement confirmée ou corrigée. Référence : [Règles détaillées](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#resultats-temporels).
+
+<a id="formats-vision"></a>
+## Formats et création rapide
+
+Les six formats proposent des contraintes d’exécution, tandis que les six autres entrées accélèrent la création d’une séance libre. Les six formats et ces départs rapides appartiennent au MVP (D-378). L’utilisateur peut modifier les réglages autorisés du format après composition, sans modifier ses constantes ni changer son identité. Les calculs et synthèses suivent la configuration effective. Les rapports comparatifs, charge additionnelle et tempo restent hors de cette évolution.
+
+## Périmètre du MVP
+
+Le MVP permet notamment :
+- créer, modifier, dupliquer, archiver, restaurer et supprimer définitivement des Séances selon leur cycle de vie ;
+- créer, modifier et supprimer des Routines de planification ;
+- créer et modifier des Exercices de Séance ;
+- à partir de T03, gérer le cycle de vie complet des `ActivityDefinition` persistantes ;
+- ajouter plusieurs Exercices existants à une Séance par copies indépendantes ;
+- organiser les Exercices avant, dans ou après le Circuit et définir le nombre de Tours du Circuit ;
+- conserver le Cycle technique unique à une répétition fixe, sans l’exposer ;
+- associer éventuellement une Étiquette à une Séance ;
+- associer une Catégorie et des Zones corporelles aux Exercices ;
+- exécuter directement un Exercice persistant à partir de T03 ;
+- exécuter une Séance dans T04 et les tranches associées du MVP ;
+- suspendre puis reprendre une Exécution lorsque le parcours concerné le prévoit ;
+- consulter l'historique ;
+- personnaliser les préférences globales.
+
+Ne sont pas inclus dans le MVP :
+- synchronisation cloud ;
+- partage ;
+- communautés ;
+- comptes multi-utilisateurs ;
+- relation avec un professionnel de santé ;
+- exceptions de planification ;
+- notifications avancées ;
+- intelligence artificielle ;
+- Ancienne cible de Parcours autonome retirée par D-328 ;
+- médias multiples fonctionnels.
+
+## Exécution — séance ou exercice — Lecture des variantes avec média
+
+Les vues avec cercle et texte, bascule basse avec média, bascule haute avec texte ou média, et média plein écran appartiennent à cette même famille. Les règles de bascule, de lecture et de continuité de l’exécution sont définies dans [Médias pendant l’Exécution](../CONCEPTION-EXECUTION-MEDIA.md), décision D-203. **Périmètre MVP : les états média représentés sont inclus (D-203 corrigée dans #247), sans ajout implicite de parcours d’import.**
+
+## Suivi — Séances — Filtres avancés
+
+Dans le Suivi, les filtres avancés restent hors du MVP. Cette règle est distincte des filtres fonctionnels des Catalogues, qui sont actifs et contextuels.
+
+## Suivi — Séances — Tri
+
+La fonction de tri est reportée à une version ultérieure. La commande `Trier` reste visible mais désactivée. L’ordre d’affichage initial reste chronologique, du plus récent au plus ancien.
+
+## Archives et références hors prototype actif — Objectif
+
+Présenter à terme des indicateurs synthétiques de progression et d’exercice.
+
+Cette vue n’est pas fonctionnelle dans le MVP.
+
+## Archives et références hors prototype actif — Présence dans le MVP
+
+La vue et ses graphiques sont abandonnés pour le MVP et seront conçus ultérieurement. Les anciennes maquettes de cette vue ne sont pas des écrans à développer ; aucune commande d’accès n’est requise par cette référence.
 
 ## Principes généraux — Évolutivité
 

@@ -23,40 +23,6 @@ Baseline documentaire6d03f5be579f2d0e2e7602b6abf1c2b46f4c740b ;133 frames couran
 
 Cadence et phrase relèvent de [paramètres v13](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice), [Règles détaillées](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#resultats-temporels) et [Phrase v1](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases). Figma fournit le rendu ; Excel seulement les formulations. Aucun chiffre de capture ne constitue une règle de durée. DSF, couleurs, composants, police et Safe Areas : [référence courante](../DSF-CADENCE-2026-10-06.md).
 
-### Objectif de conception
-L’interface du produit fini doit être principalement visuelle, intuitive et utilisable avec le moins de touchers possible.
-
-L’utilisateur doit notamment pouvoir ouvrir rapidement une séance, comprendre immédiatement l’action attendue pendant une Exécution et accéder facilement aux fonctions courantes.
-
-Pendant l’Exécution, le guidage visuel est complété par des signaux sonores et des annonces vocales afin que l’utilisateur puisse suivre la séance sans regarder constamment l’écran.
-
-La conception du MVP respecte les principes suivants :
-
-- limiter le nombre d’écrans et d’étapes intermédiaires ;
-- donner un accès direct aux actions les plus fréquentes ;
-- privilégier les icônes et les indicateurs visuels ;
-- limiter les textes affichés pendant l’Exécution ;
-- hiérarchiser clairement les informations selon leur importance pendant l’effort ;
-- enregistrer automatiquement les modifications lorsque la validation explicite d’un formulaire n’est pas nécessaire ;
-- éviter les confirmations inutiles ;
-- afficher clairement l’action principale de chaque écran ;
-- rendre les commandes essentielles facilement accessibles avec le pouce ;
-- placer les paramètres moins fréquents dans un niveau secondaire.
-
-#### Rapidité de création
-
-La création d’une Séance ou d’un Exercice, y compris son éventuelle durée de Récupération, doit pouvoir être réalisée en quelques secondes, avec un minimum de saisies et de touchers.
-
-L’application privilégie :
-
-- des valeurs par défaut immédiatement utilisables ;
-- l’affichage initial des seuls paramètres indispensables ;
-- l’ajout direct d’un élément à l’endroit choisi dans la Séance ;
-- la possibilité de modifier ou d’enrichir ultérieurement chaque élément ;
-- une Description facultative et une sélection obligatoire d’au moins une Zone corporelle.
-
-La création rapide constitue le parcours principal. La Description reste facultative ; un nouvel Exercice exige une Catégorie et au moins une Zone corporelle (D-211).
-
 ### Couverture du Prototype MVP et exclusions justifiées
 #### Périmètre intégré
 
@@ -118,58 +84,37 @@ Dans l’éditeur d’Exercice, le contrôle générique `Récupération` est re
 
 **Contexte d’Exécution (D-220).** La ligne immédiatement sous le nom de l’Exercice est toujours renseignée : nom de Séance et Catégorie de l’Exercice lors d’une Exécution de Séance, Catégorie de l’Exercice seule en Exécution directe. L’indication du côté courant, lorsqu’elle existe, reste distincte.
 
-### Archives et références hors prototype actif
-
-L’écran/arbre intermédiaire `Une nouvelle exercice / Une séance / Un parcours / Annuler` est supprimé par D-187.
-
-Dans chaque Catalogue, `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant :
-- `Catalogue des Exercices` → création d’un Exercice persistant ;
-- `Catalogue des Séances` → création d’une Séance ;
-- `Catalogue des Parcours` → création d’un Parcours lorsque ce Catalogue devient fonctionnel.
-
-Cette règle n’active pas les Parcours dans T03/MVP. Les anciennes frames Figma `3787:5148` et `3841:8375`, ainsi que leurs captures physiques, sont conservées uniquement pour traçabilité et ne constituent plus des états fonctionnels à implémenter.
-
-#### Objectif
-
-Présenter à terme des indicateurs synthétiques de progression et d’exercice.
-
-Cette vue n’est pas fonctionnelle dans le MVP.
-
-#### Présence dans le MVP
-
-La vue et ses graphiques sont abandonnés pour le MVP et seront conçus ultérieurement. Les anciennes maquettes de cette vue ne sont pas des écrans à développer ; aucune commande d’accès n’est requise par cette référence.
-
-#### Profil — Cible post-MVP
+### Profil — Cible post-MVP (historique)
 
 Référence hors prototype actif — Figma `1354:182` ; ne vaut pas activation MVP.
 
 ![Profil — Cible post-MVP](images/figma-1354-182.png)
 
-#### Référence historique hors MVP — Suivi — Séances — Vue déployée
+### Référence historique hors MVP — Suivi — Séances — Vue déployée
 
 Référence hors prototype actif — Figma `1842:2` ; ne vaut pas activation MVP.
 
 ![Suivi — Séances — Vue déployée](images/figma-1842-2.png)
 
-#### Suivi — Vue d’ensemble
+### Suivi — Vue d’ensemble (historique)
 
 Référence hors prototype actif — Figma `3401:86` ; ne vaut pas activation MVP.
 
 ![Suivi — Vue d’ensemble](images/figma-3401-86.png)
 
-#### Recherche globale — Champ déployé
+### Recherche globale — Champ déployé (historique)
 
 Référence hors prototype actif — Figma `1992:10129` ; ne vaut pas activation MVP.
 
 ![Recherche globale — Champ déployé](images/ecran-2c-recherche-globale-champ.png)
 
-#### Recherche globale — Résultats affichés
+### Recherche globale — Résultats affichés (historique)
 
 Référence hors prototype actif — Figma `1992:10320` ; ne vaut pas activation MVP.
 
 ![Recherche globale — Résultats affichés](images/ecran-2a-recherche-globale-resultats.png)
 
-#### HISTORIQUE — Catalogue Séances — ancien arbre Créer — supersédé D-187
+### HISTORIQUE — Catalogue Séances — ancien arbre Créer — supersédé D-187
 
 Référence hors prototype actif — Figma `3841:8375` ; ne vaut pas activation MVP.
 
@@ -177,19 +122,19 @@ Référence hors prototype actif — Figma `3841:8375` ; ne vaut pas activation 
 
 > **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v13 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
 
-#### Référence de composant — Stepper — Séries (interactif)
+### Référence de composant — Stepper — Séries (interactif) (historique)
 
 Ensemble6426:10149, export06/10 ; pas un écran autonome.
 
 ![Stepper — Séries (interactif)](images/figma-6426-10149.png)
 
-#### Référence de composant — Cadre bas — retournement
+### Référence de composant — Cadre bas — retournement (historique)
 
 Ensemble6446:10103, export06/10 ; pas un écran autonome.
 
 ![Cadre bas — retournement](images/figma-6446-10103.png)
 
-#### Référence de composant — Zone d’exécution — retournements
+### Référence de composant — Zone d’exécution — retournements (historique)
 
 Ensemble6451:10942, export06/10 ; pas un écran autonome.
 
@@ -198,10 +143,6 @@ Ensemble6451:10942, export06/10 ; pas un écran autonome.
 ### Règles générales d’interface
 
 Les espaces de contexte et de section, les pieds d’action et les surfaces de modales/blocs suivent le [DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md). Les captures hors de la galerie de planification n’ont pas été réexportées dans cette passe : leurs mesures antérieures ne remplacent pas ces règles.
-
-#### Clarification — Préparation et fin dans une Séance
-
-Dans une Séance, les Compte à rebours d’exercice et Fin d’exercice ne sont jamais exécutés ; seuls le Compte à rebours initial et la Fin de séance s’appliquent, une fois, par substitution. Aucun booléen ni contrôle d’activation n’existe à cet effet. Les valeurs propres restent conservées pour l’exécution de l’Exercice seul. Aucun contrôle correspondant n’est à ajouter à la Composition ou à l’Exécution. Figma est confirmé aligné par le propriétaire ; cette correction documentaire ne demande aucune nouvelle maquette.
 
 ### Évolution des vues de composition
 
@@ -229,114 +170,9 @@ L’onglet `Profil` permet d’accéder aux informations utilisateur et aux Pré
 
 La barre de navigation principale utilise le composant DSF canonique décrit plus haut. L’onglet actif est matérialisé par la variante active correspondante ; aucune substitution par glyphe ou emoji système n’est autorisée.
 
-#### Parcours de création d’une Séance
-
-Depuis `Catalogues`, segment `Séances`, l’utilisateur peut créer une Séance.
-
-La création suit le parcours suivant :
-
-1. saisie du nom et construction de la Composition dans l’écran unique `Composer une séance` ;
-2. sélection facultative de l’Étiquette de Séance dans la modale intégrée ; la couleur de l’Étiquette devient la couleur de la Séance ;
-3. ajout d’au moins un Exercice valide ;
-4. action `Continuer` pour valider et enregistrer ;
-5. retour au `Catalogue des séances`, segment `Séances`.
-
-Aucune Routine n’est créée automatiquement. La transition canonique d’avancement fait entrer l’écran cible depuis la droite et sortir l’écran courant vers la gauche.
-
-#### Parcours du Catalogue des Exercices — MVP T03
-
-Depuis le Catalogue, l’utilisateur sélectionne `Exercices` pour consulter la bibliothèque persistante. La surface d’une carte ouvre l’Exercice en consultation ou modification ; son bouton Lecture lance l’Exécution directe. L’action `Créer` est contextuelle : dans le Catalogue des Exercices, elle ouvre directement la création d’un Exercice persistant, sans écran ni arbre intermédiaire.
-
-La rangée commune de commandes d’entrée est `Créer / Filtrer / Trier`. Le contrôle Filtrer démarre replié et blanc sans filtre. Un appui l’étend et affiche `Filtres / Aucun` sans modifier la liste ; un filtre sélectionné est conservé pendant la session courante, puis réinitialisé à `Aucun` au relaunch. La référence courante utilise des boutons contextuels visibles de `34 pt`, pictogrammes `20 pt`, gaps `12 pt` et cibles d’au moins `44 × 44 pt` sans chevauchement ; les pilules étendues ont une hauteur de `34 pt`. Pour `Exercices`, les critères contextuels sont statut (`Actives` / `Archivées`), Catégories et Zones corporelles. Pour `Séances`, le filtre couvre le statut et les Étiquettes. `Trier` reste visible mais désactivé et le tri appliqué reste `updatedAt DESC`. Filtre appliqué, tri implicite et scroll sont conservés pendant la session courante ; au relaunch, le filtre revient à `Aucun`.
-
-Aucune recherche globale ou locale de Catalogue n’est active au MVP (D-221).
-
-Depuis la Composition d’une Séance, `Ajouter un exercice` ouvre directement la sélection multiple du Catalogue des Exercices. La validation copie les Exercices dans leur ordre visible et restaure la Composition. La capacité historique de création directe d’un Exercice local à la Séance reste conservée fonctionnellement et techniquement mais n’est pas exposée dans ce parcours courant.
-
-#### Parcours d’ouverture et de modification d’une Séance
-
-Dans le `Catalogue des séances`, toucher la zone principale d’une carte active ouvre directement la Séance en mode modification dans `Modifier une séance`. Cette action est disponible que la carte soit condensée ou déployée.
-
-Le déploiement de la carte est facultatif et sert uniquement à consulter rapidement son contenu.
-
-Le chevron déploie ou replie la carte. La zone `Démarrer` lance le parcours d’Exécution. Ces zones tactiles conservent chacune leur comportement propre.
-
-#### Parcours d’Exécution
-
-Le bouton `Démarrer` d’une Séance dans le Catalogue, ou celui d’une occurrence de Routine, ouvre l’écran d’Exécution. La surface principale d’une carte Catalogue ouvre la Composition en modification.
-
-L’ouverture de cet écran ne démarre pas immédiatement le premier Exercice.
-
-L’utilisateur déclenche l’Exécution depuis l’écran lui-même. Le Compte à rebours initial est alors exécuté, s’il est configuré avec une durée supérieure à zéro, puis le premier Exercice commence.
-
-Lorsque la Séance se termine, l’écran de synthèse est affiché. L’action `Enregistrer` finalise le Ressenti et le Commentaire puis ouvre le `Suivi` (CE-UI-08).
-
-#### Parcours de consultation du Suivi
-
-Dans le MVP, le `Suivi` affiche la liste des Exécutions enregistrées.
-
-La future `Vue d’ensemble` reste visible dans le sélecteur mais elle est grisée et inactive. Elle est prévue pour une version ultérieure.
-
-Chaque carte peut être déployée individuellement pour consulter le détail de l’Exécution directement dans la liste.
-
-Les commandes `Filtrer` et `Trier` restent visibles mais désactivées dans le MVP ; la Vue d’ensemble est abandonnée pour le MVP et ne constitue plus un écran à développer. Cette règle du Suivi est distincte du Catalogue T03, où `Filtrer` est fonctionnel pour `Archivées` sur Exercices.
-
 #### Familles de vues
 
 Les familles sont identifiées par leur titre : Profil, Catalogues, Composition, éditeur d’exercice, Calendrier, Planification, Exécution, Synthèse et Suivi. Les sélections, confirmations et réglages ouverts restent rattachés à leur famille ; ils ne reçoivent pas de numéro d’écran autonome. L’exécution directe est une variante de l’Exécution.
-
-#### Retour et fermeture
-
-En dehors d’une Exécution en cours, revenir à l’écran précédent ne nécessite pas de confirmation lorsque les modifications ont déjà été enregistrées ou lorsqu’aucune donnée temporaire ne risque d’être perdue.
-
-La modale `Abandonner la création d’une séance` concerne la création en cours dans l’écran `Composer une séance`.
-
-Pendant une Exécution, aucune sortie directe vers la navigation principale n’est proposée. L’arrêt de la Séance est accessible uniquement après mise en pause.
-
-#### Conservation du contexte
-
-L’application conserve autant que possible le contexte de l’utilisateur :
-
-- la Séance précédemment consultée ;
-- l’état déployé ou replié d’une carte tant que l’utilisateur reste dans la vue concernée ;
-- l’Exercice et la Série en cours pendant une Exécution ;
-- la position dans le Suivi.
-
-Après la fermeture d’une modale, l’utilisateur retrouve le contexte depuis lequel elle a été ouverte.
-
-#### Enregistrement automatique
-
-Les modifications d’objets existants sont enregistrées automatiquement lorsque l’écran ne prévoit pas explicitement une action `Continuer`, `Valider`, `Terminer` ou `Enregistrer` ; la Composition conserve toujours un brouillon jusqu’à `Continuer` (CE-T03-08).
-
-Les écrans de création ou les modales comportant une action explicite ne valident les données qu’après cette action.
-
-#### Navigation pendant une Exécution
-
-Pendant l’Exécution, la navigation principale n’est pas affichée.
-
-L’utilisateur dispose de trois commandes principales :
-
-- `Réinitialiser l’exercice` ;
-- `Pause` ;
-- `Exercice suivant`.
-
-Il n’existe pas de bouton `Quitter` ou `Arrêter` directement sur l’écran d’Exécution. L’action `Arrêter la séance` est accessible uniquement depuis la modale de pause.
-
-L’utilisateur ne peut pas revenir à un Exercice déjà exécuté.
-
-#### Cohérence des libellés
-
-Les mêmes termes sont utilisés dans toute l’application :
-
-- `Séance` : contenu complet d’un entraînement ;
-- `Routine` : créneau portant une liste ordonnée de Séances et/ou Exercices persistants ;
-- `Exercice` : action élémentaire exécutée en mode Durée ou Répétitions, avec cible chiffrée ou À l’échec par série, avec Pause après chaque série et, en bilatéral, Pause entre les côtés éventuelle ;
-- `Pause entre les côtés` : durée intrinsèque facultative d’un Exercice bilatéral, exécutée selon l’Ordre des côtés ;
-- `Récupération après exercice` : durée contextuelle portée par chaque occurrence d’Exercice dans une Séance, non affichée sur les cartes (D-238) et exécutée après l’occurrence lorsqu’elle est positive ;
-- `Série` : répétition propre à un Exercice ;
-- `Circuit` : groupe ordonné d’Exercices exécuté intégralement un nombre défini de fois ;
-- `Cycle` : structure technique unique, fixée à une répétition et jamais affichée dans le MVP ; elle ordonne les Exercices placés avant le Circuit, le Circuit et les Exercices placés après le Circuit ;
-- `Exécution de séance` : réalisation effective d’une Séance.
 
 ### Vues principales et états intégrés
 
@@ -413,44 +249,6 @@ Carte standard 354 × 90 px à largeur de référence 402, rayon 8, titre 15 Sem
 Aucune prochaine planification ni ligne de pause/récupération sur la carte. Les séances restent sans vignette, définitivement (D-260). Les listes de catégories utilisent ` · ` puis `…` si nécessaire ; la donnée complète est conservée. Les cartes archivées utilisent fond `color/surface #F5F7FA` (ancienne prescription `#F6F6F6` historique ; référence couleur centralisée au chapitre12) et bord #D9D9D9 ; Restaurer remplace Lecture.
 
 Ces règles s’appliquent aux listes, filtres actifs/inactifs, recherches, états restaurés, actions glissées et arrière-plans de modales. Les actions révélées suivent la hauteur réelle de la carte. Les séances restent triées par dernière modification décroissante ; exécuter ne change pas cet ordre.
-
-#### Suppression d’une Séance
-
-Une Séance non archivée ne peut pas être supprimée. Elle doit d’abord être archivée.
-
-Depuis le résultat du filtre `Archivées`, un glissement gauche déplace la carte et révèle l’action `Supprimer` placée derrière. L’action ouvre une modale de confirmation sur le fond de la liste archivée.
-
-La suppression demande toujours une confirmation explicite. Si des Routines utilisent la Séance, le message précise qu’elles seront également supprimées.
-
-Après confirmation :
-
-- la Séance est supprimée ;
-- toutes les Routines qui la référencent sont supprimées ;
-- les occurrences futures cessent d’être calculées ;
-- les Exécutions déjà enregistrées restent conservées dans le Suivi grâce à leur Instantané.
-
-#### Archivage
-
-L’archivage retire la Séance de la liste principale.
-
-Si aucune Routine n’est associée, l’archivage est immédiat et ne demande pas de confirmation. Un snackbar `Séance archivée` est affiché avec l’action `Annuler`. `Annuler` restaure immédiatement la Séance dans la liste active.
-
-Si la Séance est utilisée par une ou plusieurs Routines, une confirmation explicite est demandée avant l’archivage ; après confirmation, toutes les Routines associées sont supprimées. Dans ce cas, aucun snackbar `Séance archivée` avec `Annuler` n’est affiché.
-
-La restauration d’une Séance archivée ne restaure aucune ancienne Routine.
-
-Une Séance archivée est consultable mais ne peut être ni modifiée, ni exécutée, ni planifiée. Elle peut être restaurée ou supprimée depuis le résultat du filtre `Archivées`.
-
-#### Séance vide
-
-Le MVP ne comporte pas de statut `Brouillon`.
-
-Une Séance existe dès validation de son nom et de sa couleur.
-
-Tant qu’elle ne contient aucun Exercice :
-
-- elle peut être modifiée, archivée ou supprimée ;
-- elle ne peut pas être exécutée.
 
 #### Vues principales et états intégrés
 
@@ -606,22 +404,6 @@ Modale de filtres contextuels Séances : statut et Étiquettes
 
 ### Composer une séance / Modifier une séance
 
-#### Structure affichée
-
-La Composition est présentée comme une structure hiérarchique ordonnée et non comme un parcours de type niveaux.
-
-Elle comprend dans le MVP :
-
-- un `Compte à rebours initial` ;
-- zéro, un ou plusieurs Exercices placés avant le Circuit ;
-- un `Circuit` unique, qui peut lui-même contenir des Exercices ;
-- zéro, un ou plusieurs Exercices placés après le Circuit ;
-- une `Fin de séance`.
-
-Le Compte à rebours initial et la Fin de séance sont des éléments structurels obligatoires et ne constituent pas des Exercices. Ils sont non déplaçables : aucun appui long ni aucune poignée de déplacement ne leur est associé.
-
-Le modèle conserve un Cycle technique unique dont le nombre de répétitions vaut toujours 1. Il n’est jamais affiché ni modifiable dans le MVP.
-
 #### Paramètres du Circuit
 
 L’icône affichée à gauche de `Nombre de tours` est exclusivement une instance de `Icon / Tour` (`3066:4685`). Son dessin canonique est celui validé dans `Composition séance — Nom saisi` (`2028:12003`) ; l’ancienne sous-référence graphique supprimée n’est plus utilisée comme preuve active : cadre visuel `18 × 18`, quatre tracés, trait `1,35`, couleur `color.textPrimary` (`#141414`). Les copies vectorielles locales et l’ancien pictogramme Tour ne sont pas autorisés. L’actif exportable correspondant est uniquement `assets/icons/icon-tour.svg`, clé de registre `icon.tour`.
@@ -634,35 +416,7 @@ La synthèse n’est plus affichée isolément au bas de l’écran. Elle est re
 
 Le nombre se règle via ± révélés par appui sur le chiffre. La diminution est sans message ; une conversion de nature entraînant une perte exige une confirmation atomique. Les modifications appartiennent au brouillon de Composition jusqu’à son enregistrement ; bornes 1–99 et valeur initiale 1 inchangées.
 
-#### Retour haptique des roulettes
-
-Toute roulette numérique de l’application produit un retour haptique léger et bref à chaque franchissement effectif d’un cran, c’est-à-dire à chaque changement de la valeur sélectionnée. Un seul retour haptique est déclenché par changement de valeur. Ce retour est systématique et indépendant du réglage `Vibration` du Profil, qui ne pilote que les vibrations fonctionnelles de séance.
-
 #### Composition — ligne de Série variable — références
-
-#### Validation de la Composition
-
-L’écran ne comporte pas de bouton `Démarrer`.
-
-L’action `Continuer` valide la Composition. Elle reste désactivée tant que le nom n’est pas renseigné, que la Composition ne contient pas au moins un Exercice valide ou qu’un de ses Exercices comporte une cible obligatoire non renseignée (D-380, D-123). Le contrôle ou champ obligatoire sans valeur est signalé par son fond rouge pâle, sans message supplémentaire (D-389). L’Étiquette est facultative ; lorsqu’elle est sélectionnée, sa couleur devient celle de la Séance.
-
-En création comme en modification, l’Étiquette de la Séance est gérée depuis la Composition par la modale `Étiquettes`. L’Étiquette sélectionnée est affichée sous le nom de la Séance et porte sa couleur.
-
-La Séance n’est exécutable que si elle contient au moins un Exercice valide.
-
-#### Enregistrement
-
-Les modifications internes sont conservées au fur et à mesure, sous réserve des validations explicites prévues par les écrans d’édition.
-
-#### Composition — Récupération après exercice — D-208 révisée sur l’affichage
-
-Les cartes ne présentent plus la ligne `Récupération {durée}`, y compris pour une valeur non nulle. La donnée reste solidaire de chaque occurrence lors du déplacement, de la duplication et de la suppression. Son exécution après l’occurrence (y compris fin de Tour/Séance) et les calculs restent ceux de D-208. La disparition de l’affichage ne supprime ni phase ni valeur.
-
-L’éditeur conserve `Récupération entre côtés`, exposée uniquement en D→G/G→D ; aucune récupération post-exercice n’est ajoutée à la synthèse intrinsèque.
-
-#### Objectif
-
-Permettre de sélectionner ou créer l’Étiquette de la Séance. L’Étiquette porte la couleur affichée de la Séance ; il n’existe pas de couleur de Séance indépendante de l’Étiquette.
 
 #### Captures courantes — relevé
 
@@ -819,12 +573,6 @@ CE-CIR-01/02/03. La confirmation est conditionnée à la perte de valeurs, pas �
 ### Créer ou modifier un exercice
 
 Références courantes du12/10, complétées le13/10 :32 captures du parcours de création et de ses états de Modalités d’exécution, issues de Prototype MVP. Contrats CE-T03-04, CE-UI-09 et CE-UI-10. Les anciens relevés du 03/10 et du 06/10 restent historiques pour les états remplacés ; .
-
-#### Parcours, données et validation
-
-Créer depuis Catalogue ouvre le formulaire ; Modifier reprend les données existantes. Nom, une Catégorie et au moins une Zone sont requis pour un nouvel Exercice. Carte Paramètres → feuille transactionnelle ; ✕/retour annule son brouillon, ✓ applique au parent ; Terminer seul persiste. Abandon du formulaire modifié ouvre la confirmation existante. Ouvrir un référentiel conserve les paramètres, même variables.
-
-Spécification [v13](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice) : mode unique, N séries par côté, cibles/Pauses propres à chaque ligne en variable, direction et Ordre des côtés indépendants. N=1 effectif uniforme/Un côté après l’autre ; restauration temporaire avant✓. Déplacement cible/Pause conjoint ; nouvelle première reprise à désactivation, nouvelle dernière Pause stockée et exécutée, sauf substitution par récupération positive. Total variable readonly ; ligne Total affichée, y compris à N = 1 (D-396), avec « — » lorsqu’une cible nécessaire au calcul manque (D-384) ; Répétitions : ≈ avec cadence, omission sans bip à l’Exercice ; À l’échec aucun total.
 
 #### Placement et contrôles
 
@@ -991,52 +739,6 @@ Cette capture reflète le layout actuel. Le texte de fond énumérant les pauses
 [Source Figma — `8328:39390`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-39390)
 
 ![Création exercice — Paramètres (modale) — Mode des séries (popover)](images/circuits-2026-10-12/8328-39390.png)
-
-#### Sélections, créations de référentiels et confirmation d’abandon
-
-Catégorie marquée au toucher puis confirmée par ✓ ; ✕ conserve la Catégorie précédente (D-343, 12/10, remplace pour la Catégorie la validation au toucher de D-222) ; Zones multiples avec✓. Création avec clavier et suppression avec confirmation préservent le brouillon d’Exercice. Abandon Annuler conserve le formulaire ; Confirmer le quitte sans sauvegarder.
-
-##### Ajouter un exercice — Catégories
-
-[Source Figma — `8328:35810`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-35810)
-
-![Ajouter un exercice — Catégories](images/circuits-2026-10-12/8328-35810.png)
-
-##### Ajouter un exercice — Catégorie — Appui long — Confirmation suppression
-
-[Source Figma — `8328:35932`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-35932)
-
-![Ajouter un exercice — Catégorie — Appui long — Confirmation suppression](images/circuits-2026-10-12/8328-35932.png)
-
-##### Ajouter un exercice — Nouvelle catégorie
-
-[Source Figma — `8328:36056`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36056)
-
-![Ajouter un exercice — Nouvelle catégorie](images/circuits-2026-10-12/8328-36056.png)
-
-##### Ajouter un exercice — Zones corporelles
-
-[Source Figma — `8328:36348`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36348)
-
-![Ajouter un exercice — Zones corporelles](images/circuits-2026-10-12/8328-36348.png)
-
-##### Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression
-
-[Source Figma — `8328:36441`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36441)
-
-![Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression](images/circuits-2026-10-12/8328-36441.png)
-
-##### Ajouter un exercice — Nouvelle zone corporelle
-
-[Source Figma — `8328:36536`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36536)
-
-![Ajouter un exercice — Nouvelle zone corporelle](images/circuits-2026-10-12/8328-36536.png)
-
-##### Création exercice — Abandon (confirmation)
-
-[Source Figma — `8328:36781`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36781)
-
-![Création exercice — Abandon (confirmation)](images/circuits-2026-10-12/8328-36781.png)
 
 #### Couverture et limites
 
@@ -1250,145 +952,6 @@ Le vocabulaire d’interface attendu est **Exercice** (glossaire : anciennement 
 
 **Circuit et Tour — D-209** : le Circuit est le conteneur ordonné d’exercices ; un Tour est une exécution de ce Circuit. Le nombre de Tours règle ses répétitions. Le mot parcours ne désigne plus un objet autonome (D-328). Les 17 occurrences du libellé de Composition ont été corrigées en « Circuit » le 05/10/2026 (journal, §8). Les anciens états archivés restent historiques ; le libellé parcours suit désormais D-328.
 
-#### Exercice défini par une durée
-
-Pour un Exercice en mode Durée ou une phase de Récupération, le temps est présenté sous forme de compte à rebours.
-
-Lorsque le compte à rebours atteint zéro, l’Exercice se termine normalement et l’Exécution passe à la suite.
-
-Si l’utilisateur appuie sur `Exercice suivant` avant zéro, une confirmation est demandée. Après confirmation, l’Exercice est enregistré avec le statut métier `Partielle` et l’Exécution continue.
-
-#### Exercice défini par un nombre de répétitions
-
-Pour un Exercice défini par un nombre de répétitions, l’écran conserve le même layout que pour un Exercice chronométré.
-
-Le temps actif est affiché par un chronomètre croissant à partir de00:00. Sans cadence, aucune durée prescrite ; avec cadence, Ri×Ci définit une fin nominale, sans fin automatique de Série.
-
-Sans cadence, le cercle du minuteur effectue une rotation complète par minute :
-
-- une rotation complète représente 60 secondes ;
-- à `01:00`, il recommence une nouvelle rotation ;
-- le chronomètre continue à croître (`01:01`, `01:02`, etc.).
-
-Bip positif : signal périodique dans les deux modes pendant Série, y compris après le nominal Répétitions ; aucun dernier signal nominal distinct ni bip minute superposé. Bip0 : règles antérieures de signal minute conservées pour les modes concernés. Fin Durée chiffrée au minuteur ; Répétitions et toute cible À l’échec manuelles. Même shell, pas de nouvel écran.
-
-`Pause` suspend le chronomètre et la rotation du cercle. `Reprendre` les relance depuis l’état exact où ils ont été suspendus.
-
-L’utilisateur termine normalement chaque Série avec `Suivant`. Cette action ne crée pas un Exercice au statut Partielle : elle valide la fin normale de la Série en mode Répétitions ou À l’échec.
-
-#### Séries
-
-Lorsqu’un Exercice possède plusieurs Séries :
-
-- `Série x/y` indique la Série en cours ;
-- chaque Série exécute la durée cible, les répétitions cibles ou se poursuit jusqu’à l’échec selon le mode ;
-- Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : chapitre 10, Calculs des durées et ordre des phases.
-- si l’Exercice est bilatéral, la Pause entre les côtés éventuelle est exécutée selon l’Ordre des côtés.
-
-T04 développe toutes les Séries, les répétitions de Tour et les passages de côté dans le Plan d’Exécution avant le démarrage.
-
-#### Récupérations
-
-Deux phases distinctes peuvent exister. `SIDE_RECOVERY` matérialise la Pause entre les côtés d’un Exercice bilatéral et intervient entre le premier et le second côté. `POST_ACTIVITY_RECOVERY` matérialise la Récupération après exercice portée par l’occurrence de Séance ; elle intervient après l’occurrence, y compris après le dernier Exercice avant `SESSION_END` et après chaque passage dans le Circuit à chaque Tour.
-
-La valeur `postActivityRecoverySeconds = 0` ne crée pas de phase chronométrée positive. Les récupérations ne sont plus affichées sur les cartes de Composition (D-238), quelle que soit leur valeur. La zone `À suivre` prépare l’élément qui succède à la phase courante. Les données de résultat distinguent la Pause entre les côtés de la récupération après occurrence.
-
-#### Réinitialiser l’Exercice
-
-L’action ouvre la modale de confirmation.
-
-Après confirmation :
-
-- la Série / Exercice courant recommence depuis son état initial ;
-- pour un Exercice chronométré, le compte à rebours retrouve sa durée initiale ;
-- pour un Exercice en Répétitions ou À l’échec, le chronomètre d’Exercice revient à `00:00` ;
-- la cible de répétitions n’est pas modifiée ;
-- le temps total déjà écoulé dans la Séance reste conservé ;
-- la position dans la séance et la répétition en cours restent inchangées.
-
-Pendant `SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY`, la confirmation réinitialise uniquement le compte à rebours de la phase de récupération courante. Elle ne rejoue aucune Série déjà acquise et ne modifie pas les résultats antérieurs.
-
-#### Mise en pause
-
-Toucher `Pause` suspend immédiatement l’Exécution et ouvre la modale `Séance en pause`.
-
-La pause suspend :
-
-- le compte à rebours ou le chronomètre d’Exercice ;
-- l’enchaînement automatique ;
-- le temps actif ;
-- les bips et annonces liés à la progression ;
-- les animations de progression.
-
-La modale propose :
-
-- `Reprendre la séance` ;
-- `Arrêter la séance`.
-
-`Reprendre la séance` restaure l’état exact de l’Exercice.
-
-`Arrêter la séance` termine l’Exécution avec le statut `Interrompue`. Dans T04, il ouvre l’écran de fin minimale ; l’ouverture de la Synthèse appartient à la tranche qui livre cette dernière.
-
-Il n’existe pas de commande directe d’arrêt depuis l’écran principal d’Exécution.
-
-#### Exercice suivant
-
-Le comportement dépend de la phase courante :
-
-- **Exercice en Répétitions ou À l’échec** : termine normalement la Série courante et passe à la pause, à la Série suivante ou à l’Exercice suivant selon le plan ;
-- **Exercice chronométré avant zéro** : ouvre la modale de confirmation ; après confirmation, l’Exercice est enregistré avec le statut `Partielle`, puis l’Exécution continue ;
-- **Phase de récupération avant zéro** : ouvre la même confirmation ; après confirmation, la durée partielle de la phase courante (`SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY`) est conservée et le Plan poursuit vers son étape suivante ;
-- **Exercice chronométré arrivé à zéro** : la transition est automatique.
-
-#### Navigation pendant l’Exécution
-
-L’ordre d’Exécution est déterminé par le Plan d’Exécution.
-
-L’utilisateur ne peut pas sélectionner librement un autre Exercice ni revenir à un Exercice déjà terminé.
-
-#### Guidage sonore
-
-Dans T04, Sons et Annonces vocales sont activés par défaut au début de chaque Exécution. Leur état peut être changé pendant l’Exécution, mais cette tranche ne lit ni n’enregistre encore de préférence utilisateur correspondante ; leur configuration depuis le Profil appartient à une tranche ultérieure.
-
-Au début d’un Exercice, son nom peut être annoncé vocalement lorsque les Annonces vocales sont actives. Au début d’une phase de récupération chronométrée (`SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY`), l’annonce est `Récupération`.
-
-Pour les Exercices chronométrés, les signaux sonores de fin de compte à rebours sont appliqués conformément aux règles métier définies pour le MVP.
-
-Répétitions sans bip/À l’échec sans bip : aucun signal de fin de compte à rebours, bip minute. À l’échec avec bip : périodique sans bip minute superposé. Répétitions cadencées : signal périodique maintenu après nominal sans signal final distinct, sans transition automatique ni bip minute ; chronomètre toujours croissant.
-
-#### Arrière-plan et verrouillage
-
-Si l’application passe en arrière-plan ou si l’écran se verrouille :
-
-- le Plan d’Exécution continue selon ses horodatages de référence ;
-- l’Exercice chronométré ne se fige pas ;
-- au retour, l’application reconstitue l’Exercice et la position temporelle qui auraient dû être atteintes, plutôt que de reprendre le compteur à l’endroit où l’interface a été suspendue ;
-- les sons et annonces sont maintenus dans la mesure permise par iOS et Android.
-
-Une mise en pause de sécurité est appliquée en cas d’inexercice prolongée :
-
-- pour un Exercice chronométré, si aucune interaction n’a eu lieu 30 minutes après sa fin théorique ;
-- pour une Série Répétitions cadencée,30min après la fin nominale recalculée sans interaction ;
-- pour un Exercice en Répétitions sans cadence ou À l’échec,2h sans interaction depuis son démarrage.
-
-Le comportement précis fait l’objet du spike technique prévu avant le développement complet du moteur d’Exécution.
-
-#### Fin de l’Exécution
-
-Lorsque le Plan d’Exécution arrive à son terme, l’Exécution est enregistrée et l’écran `Synthèse de séance` est affiché.
-
-La Séance source et la Routine éventuelle ne sont jamais modifiées par l’Exécution.
-
-#### Exercice lancé directement depuis le catalogue
-
-L’Exécution directe conserve une préparation système fixe de `5 s`. Cette durée n’est pas un attribut de l’Exercice. Les anciennes captures dédiées sont retirées de ce parcours ; les variantes actuelles sont présentées ci-dessous.
-
-L’écran réutilise le moteur et le Shell d’Exécution. Il développe Séries, Pauses, côtés et Récupération, sans structure de Séance artificielle ni phase `SESSION_END`. Après la dernière phase, un signal ouvre immédiatement la Synthèse.
-
-#### Lecture des variantes avec média
-
-Les vues avec cercle et texte, bascule basse avec média, bascule haute avec texte ou média, et média plein écran appartiennent à cette même famille. Les règles de bascule, de lecture et de continuité de l’exécution sont définies dans [Médias pendant l’Exécution](../CONCEPTION-EXECUTION-MEDIA.md), décision D-203. **Périmètre MVP : les états média représentés sont inclus (D-203 corrigée dans #247), sans ajout implicite de parcours d’import.**
-
 #### Vues principales et états intégrés
 
 ##### Exécution d'une séance — Démarrée
@@ -1478,12 +1041,6 @@ Variantes partielles illustrées ci-dessous, couvertes par CE-UI-08 :
 - `4760:6448 — Synthèse de séance — Partielle — Évaluation initiale` ;
 - `4760:6500 — Synthèse de séance — Partielle — Ressenti sélectionné`.
 
-#### Statut
-
-Une Exécution terminant normalement son Plan peut être `Terminée` ou `Partielle` selon les Exercices réellement réalisés.
-
-Une Exécution arrêtée volontairement depuis la modale de pause est enregistrée avec le statut `Interrompue`.
-
 #### Navigation
 
 `Enregistrer` enregistre le ressenti et le Commentaire puis ouvre le `Suivi`.
@@ -1543,14 +1100,6 @@ Chaque carte affiche au minimum :
 
 Présentation commune aux cartes Séance/Exercice : largeur354, hauteur67 à taille standard, titre15, aucune barre verticale ni photo. Ligne1 : nature26, titre, statut76 à droite (x262/y9). Ligne2 : durée réelle, catégorie, indicateur Ressenti20 × 20 à droite (x318/y39). Pas de chevron, heure, zones corporelles ni étiquettes. Les instantanés et résultats complets restent conservés même si la source a disparu. Aucun miroir Catalogue/choix ajouté au Suivi. Filtrer/Trier : boutons34, dessins20, gap12, cibles44 ; état vide et navigation conservés. Contrat CE-T03-15, D-262.
 
-#### Filtres avancés
-
-Dans le Suivi, les filtres avancés restent hors du MVP. Cette règle est distincte des filtres fonctionnels des Catalogues, qui sont actifs et contextuels.
-
-#### Tri
-
-La fonction de tri est reportée à une version ultérieure. La commande `Trier` reste visible mais désactivée. L’ordre d’affichage initial reste chronologique, du plus récent au plus ancien.
-
 #### Vues principales et états intégrés
 
 ##### Suivi — Séances — Liste condensée
@@ -1576,36 +1125,6 @@ La fonction de tri est reportée à une version ultérieure. La commande `Trier`
 [Source Figma — `2117:190`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2117-190)
 
 ![Suivi — Séances — État vide](images/ecran-11b-suivi-vide.png)
-
-### Règles communes aux sélections et réglages
-
-#### Supprimer une valeur de référentiel
-Cette famille de modales est ouverte par appui long sur une option dans les sélecteurs `Étiquettes`, `Catégorie` ou `Zones corporelles`.
-
-Références Figma :
-- Étiquette : `4861:6145 — Composition séance — Étiquettes — Appui long — Confirmation suppression` ;
-- Catégorie : `4861:6259 — Ajouter un exercice — Catégorie — Appui long — Confirmation suppression` ;
-- Zone corporelle : `4861:6348 — Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression`.
-
-Le dialogue utilise la variante destructive à deux actions de `Overlay / Decision Dialog`. Le titre reprend la valeur concernée sous la forme `Supprimer « {nom} » ?`. Le message précise, lorsque la valeur est utilisée, qu’elle disparaît des nouveaux choix mais reste attachée aux objets existants, avec son nom et sa dernière couleur éventuelle ; l’historique reste inchangé.
-
-Actions :
-- `Annuler` : ferme la confirmation sans modifier le référentiel ni la sélection ;
-- `Supprimer` : retire la valeur des nouveaux choix et conserve ses affectations existantes, son nom et sa dernière couleur, puis restitue la modale de sélection actualisée.
-
-Cette règle s’applique aux valeurs initiales comme aux valeurs créées ensuite par l’utilisateur.
-
-#### Contrôles à roulette – Compte à rebours et fins
-Les anciennes modales basses de durée restent des références historiques. Dans la feuille v13, les roulettes s’ouvrent inline sous la ligne active ; dans le Profil, les durées utilisent les steppers validés. Les autres contextes suivent leur contrat propre. Les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent des steppers inline conformément à D-219 ; la cible `Nombre de répétitions` utilise une roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385). Les sélections d’objets utilisent leurs modales dédiées.
-
-Dans le Profil, les contrôles `Compte à rebours initial`, `Fin de séance`, `Compte à rebours d’exercice` (ancien nœud `4179:9550`, historique supprimé ; le contrôle fonctionnel reste prescrit) et `Fin d’exercice` (ancien nœud `4179:9556`, historique supprimé ; le contrôle fonctionnel reste prescrit) servent de préférences proposées à la création de nouveaux contenus. Ces valeurs suivent la validation des contrôles du Profil (CE-UI-07), sans importer la confirmation des anciennes roulettes.
-
-Les valeurs initiales de l’application sont `10 s` pour le Compte à rebours initial et `5 s` pour la Fin de séance. Une durée de `0 s`, lorsqu’elle est choisie par l’utilisateur, rend la phase instantanée sans supprimer l’élément structurel.
-
-### Règles transverses de l’éditeur d’Exercice
-Les écrans Exercice placent le champ Nom en premier dans la zone bleue et suppriment le contexte de Séance. Aucun type d’Exercice n’est affiché. Le mode d’exécution propose `Durée` et `Répétitions`. `À l’échec` est un type de cible de série, sélectionné dans le contrôle de cible, et non un troisième mode. Dans le MVP, la zone Média suit les frames courantes et la carte d’Exercice du Catalogue conserve sa gouttière permanente avec premier média ou icône de nature, sans déploiement . Les capacités d’import/capture restent régies par leur périmètre propre. Les accès `Catégorie` et `Zones corporelles` utilisent une icône `+` séparée de leur libellé.
-
-La frame historique `3561:7802` illustrait l’état À l’échec : ordre `Séries` → cadre informatif `à l’échec` → `Pause`, seconde rangée `Changement de côté / Récupération / Durée totale >=`, sans cible chiffrée. Cette ancienne disposition ne définit plus l’éditeur actif : la feuille v13 utilise les contrôles de CE-UI-10 et aucun total d’Exercice en À l’échec. Les roulettes de cette feuille restent inline ; les contrôles de durée du Profil sont des steppers. Dans les états renseignés, `Renforcement du genou` est une donnée de démonstration ; seul `3943:6064` conserve `Nom de l’exercice` comme placeholder de l’état vide.
 
 <a id="formats-galerie"></a>
 ### Formats de séances — inventaire et captures
@@ -2125,19 +1644,6 @@ Tous les écrans et états représentés dans la page Figma `Prototype MVP` util
 Les modales basses utilisent le gabarit DSF commun : en-tête de `60` points, zone utile de `378` points dans une largeur de référence `402`, avec `12` points de marge latérale de chaque côté. Le premier élément fonctionnel visible du contenu est placé à `spacing/modal-content-top-inset = 16` points sous l’en-tête. Le dernier élément fonctionnel visible conserve `spacing/modal-bottom-inset = 22` points avant le bas de la modale.
 
 Ces insets sont des règles de composition du contenu et ne doivent pas être recalculés depuis la taille des zones tactiles. Lorsqu’un contrôle compact possède une cible tactile `48 × 48` plus grande que sa représentation visible, l’espacement vertical ou horizontal avec le contrôle voisin est mesuré entre les boîtes visuelles ; la zone tactile transparente ne constitue pas une marge supplémentaire. La hauteur de la modale suit son contenu et n’ajoute pas de vide structurel au-delà de ces insets, sous réserve de la limite maximale de hauteur de la famille.
-
-#### Gestion des référentiels dans les modales de sélection
-
-Les modales `Étiquettes`, `Catégorie` et `Zones corporelles` utilisent la même règle de gestion :
-
-- appui court sur une option : sélectionner ou désélectionner selon le contexte ;
-- appui long sur une option : ne pas modifier sa sélection et ouvrir une modale de confirmation de suppression ;
-- toutes les options sont supprimables, y compris celles fournies initialement par KODJO ;
-- la modale de confirmation affiche le nom de l’option et propose `Annuler` à gauche et `Supprimer` à droite dans le ton destructif ;
-- si l’option est utilisée, le message indique qu’elle disparaît des nouveaux choix mais reste attachée aux objets existants, avec son nom et sa dernière couleur éventuelle ; l’historique reste inchangé ;
-- `Annuler` ferme la confirmation et restitue la modale de sélection sans changement ;
-- `Supprimer` retire la valeur des nouveaux choix, conserve les affectations existantes ainsi que son nom et sa dernière couleur, puis restitue la modale de sélection actualisée ;
-- aucune restauration automatique d’une valeur initiale supprimée n’est effectuée.
 
 #### Dialogues d’action et modales plein écran
 

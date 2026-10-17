@@ -31,6 +31,73 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-013 | **Supersédée par D-221.** Aucune recherche globale ni recherche locale de Catalogue n’est incluse dans le MVP. |
 | RM-014 | L’état vide du Catalogue permet de lancer la création de la première Séance. |
 
+### Parcours principal — Créer et exécuter une séance — Points d'attention
+
+- Une séance décrit uniquement son contenu.
+- Une séance peut être exécutée immédiatement, sans être planifiée.
+- Les modifications d'une séance n'altèrent jamais les exécutions déjà enregistrées.
+- La planification des séances est gérée par les routines, décrites dans le parcours dédié.
+### Parcours complémentaire 1 — Créer une séance à partir d'une référence — Points d'attention
+
+- La séance créée est totalement indépendante de la séance d'origine.
+- Les modifications apportées à l'une n'ont aucun impact sur l'autre.
+- La duplication reprend l'intégralité de la structure de la séance et de ses paramètres.
+### Parcours complémentaire 3 — Archiver puis supprimer une Séance — Points d'attention
+
+- Une Routine ne modifie jamais le contenu de sa source.
+- Une Séance ou un Exercice persistant peut être associé à plusieurs Routines.
+- La suppression d'une Routine ne supprime jamais sa source.
+- Les exécutions déjà réalisées sont toujours conservées.
+- L'archivage d'une Séance supprime toutes les Routines qui lui sont associées. Cette suppression ne demande une confirmation que lorsqu’au moins une Routine est effectivement associée ; sans Routine associée, l’archivage est immédiat et un snackbar `Séance archivée` avec `Annuler` permet de revenir sur l’action. Après une confirmation ayant entraîné la suppression de Routines, aucun snackbar d’annulation n’est affiché. Leur restauration n'est pas automatique si la Séance est ensuite restaurée.
+### Catalogue des séances — Suppression d’une Séance
+
+Une Séance non archivée ne peut pas être supprimée. Elle doit d’abord être archivée.
+
+Depuis le résultat du filtre `Archivées`, un glissement gauche déplace la carte et révèle l’action `Supprimer` placée derrière. L’action ouvre une modale de confirmation sur le fond de la liste archivée.
+
+La suppression demande toujours une confirmation explicite. Si des Routines utilisent la Séance, le message précise qu’elles seront également supprimées.
+
+Après confirmation :
+
+- la Séance est supprimée ;
+- toutes les Routines qui la référencent sont supprimées ;
+- les occurrences futures cessent d’être calculées ;
+- les Exécutions déjà enregistrées restent conservées dans le Suivi grâce à leur Instantané.
+
+### Catalogue des séances — Archivage
+
+L’archivage retire la Séance de la liste principale.
+
+Si aucune Routine n’est associée, l’archivage est immédiat et ne demande pas de confirmation. Un snackbar `Séance archivée` est affiché avec l’action `Annuler`. `Annuler` restaure immédiatement la Séance dans la liste active.
+
+Si la Séance est utilisée par une ou plusieurs Routines, une confirmation explicite est demandée avant l’archivage ; après confirmation, toutes les Routines associées sont supprimées. Dans ce cas, aucun snackbar `Séance archivée` avec `Annuler` n’est affiché.
+
+La restauration d’une Séance archivée ne restaure aucune ancienne Routine.
+
+Une Séance archivée est consultable mais ne peut être ni modifiée, ni exécutée, ni planifiée. Elle peut être restaurée ou supprimée depuis le résultat du filtre `Archivées`.
+
+### Catalogue des séances — Séance vide
+
+Le MVP ne comporte pas de statut `Brouillon`.
+
+Une Séance existe dès validation de son nom et de sa couleur.
+
+Tant qu’elle ne contient aucun Exercice :
+
+- elle peut être modifiée, archivée ou supprimée ;
+- elle ne peut pas être exécutée.
+
+### Archives et références hors prototype actif
+
+L’écran/arbre intermédiaire `Une nouvelle exercice / Une séance / Un parcours / Annuler` est supprimé par D-187.
+
+Dans chaque Catalogue, `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant :
+- `Catalogue des Exercices` → création d’un Exercice persistant ;
+- `Catalogue des Séances` → création d’une Séance ;
+- `Catalogue des Parcours` → création d’un Parcours lorsque ce Catalogue devient fonctionnel.
+
+Cette règle n’active pas les Parcours dans T03/MVP. Les anciennes frames Figma `3787:5148` et `3841:8375`, ainsi que leurs captures physiques, sont conservées uniquement pour traçabilité et ne constituent plus des états fonctionnels à implémenter.
+
 ### Cycle de vie d'une séance — Suppression d'une séance
 
 Une séance active ne peut pas être supprimée : elle doit d'abord être archivée, puis supprimée depuis le résultat du filtre `Archivées` (RM-007, D-121).
@@ -72,6 +139,17 @@ Les exécutions déjà enregistrées restent conservées dans l'historique.
 | RM-130 | En Durée uniforme seulement, saisie Tv recalcule N1..99 au plus proche, égalité vers le haut, avec normalisation N=1 ; réafficher T(N), message si différent. En variable aucune inversion ; chapitre 08, paramètres d’exercice. |
 | RM-131 | La ligne active de roulette/segmenté porte le contour ; les steppers restent permanents sans contour pilote. Le total variable/Répétitions est en lecture seule ; aucun état pilote persisté. |
 | RM-132 | Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. |
+
+### Créer ou modifier un exercice — Parcours, données et validation
+
+Créer depuis Catalogue ouvre le formulaire ; Modifier reprend les données existantes. Nom, une Catégorie et au moins une Zone sont requis pour un nouvel Exercice. Carte Paramètres → feuille transactionnelle ; ✕/retour annule son brouillon, ✓ applique au parent ; Terminer seul persiste. Abandon du formulaire modifié ouvre la confirmation existante. Ouvrir un référentiel conserve les paramètres, même variables.
+
+Spécification [v13](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice) : mode unique, N séries par côté, cibles/Pauses propres à chaque ligne en variable, direction et Ordre des côtés indépendants. N=1 effectif uniforme/Un côté après l’autre ; restauration temporaire avant✓. Déplacement cible/Pause conjoint ; nouvelle première reprise à désactivation, nouvelle dernière Pause stockée et exécutée, sauf substitution par récupération positive. Total variable readonly ; ligne Total affichée, y compris à N = 1 (D-396), avec « — » lorsqu’une cible nécessaire au calcul manque (D-384) ; Répétitions : ≈ avec cadence, omission sans bip à l’Exercice ; À l’échec aucun total.
+
+### Règles transverses de l’éditeur d’Exercice
+Les écrans Exercice placent le champ Nom en premier dans la zone bleue et suppriment le contexte de Séance. Aucun type d’Exercice n’est affiché. Le mode d’exécution propose `Durée` et `Répétitions`. `À l’échec` est un type de cible de série, sélectionné dans le contrôle de cible, et non un troisième mode. Dans le MVP, la zone Média suit les frames courantes et la carte d’Exercice du Catalogue conserve sa gouttière permanente avec premier média ou icône de nature, sans déploiement . Les capacités d’import/capture restent régies par leur périmètre propre. Les accès `Catégorie` et `Zones corporelles` utilisent une icône `+` séparée de leur libellé.
+
+La frame historique `3561:7802` illustrait l’état À l’échec : ordre `Séries` → cadre informatif `à l’échec` → `Pause`, seconde rangée `Changement de côté / Récupération / Durée totale >=`, sans cible chiffrée. Cette ancienne disposition ne définit plus l’éditeur actif : la feuille v13 utilise les contrôles de CE-UI-10 et aucun total d’Exercice en À l’échec. Les roulettes de cette feuille restent inline ; les contrôles de durée du Profil sont des steppers. Dans les états renseignés, `Renforcement du genou` est une donnée de démonstration ; seul `3943:6064` conserve `Nom de l’exercice` comme placeholder de l’état vide.
 
 ### Exercice — Règles fonctionnelles
 
@@ -156,6 +234,18 @@ Dès qu’une cible est À l’échec, aucun calcul inverse depuis un total sais
 
 Ces recettes sont des obligations de la future réalisation, pas des tests exécutés sur l’application.
 
+### Créer ou modifier un Exercice — Déroulement d’un Exercice
+
+Lorsqu’elle est exécutée, l’Exercice suit son propre enchaînement intrinsèque : Compte à rebours d’Exercice éventuel → Séries du premier côté → Pause entre les côtés éventuelle → Séries du second côté → Fin d’exercice éventuelle. Les Pauses n’existent qu’entre Séries successives d’un même côté. Dans une Séance, la Récupération après exercice de l’occurrence est exécutée ensuite ; en Exécution directe, elle n’existe pas.
+
+### Déroulement d’un Exercice
+
+L’ordre d’exécution vient du paramètre Ordre des côtés : Un côté après l’autre (défaut) ou Les deux côtés à chaque série. En bilatéral N est toujours par côté, paramètres communs aux deux côtés. Les successions et pauses sont celles de chapitre 08, paramètres d’exercice ; aucun repli de PC vers la Pause. Les cibles et Pauses variables proviennent de la ligne courante.
+
+Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : chapitre 10, Calculs des durées et ordre des phases.
+
+Le Compte à rebours propre précède les passages et la Fin propre reste unique à l’Exercice complet. En Durée chiffrée, Ti est chronométrée ; en Répétitions et pour toute cible À l’échec, Suivant termine la Série. Construire le plan depuis les paramètres effectifs de chaque Série. Les phases terminales sont substituées avant sommation ; ne jamais ajouter une récupération déjà comprise dans To. Le plan de Séance conserve ses phases structurelles et ses Points d’arrêt.
+
 ### Phrase de synthèse des paramètres — Grammaire française v15
 
 Ordre : nombre de séries → contenu → pause → côtés → durée applicable. Ponctuation et accords conformes aux276 cas ; série/séries, menée/menées. Les espaces et unités font partie du texte. Mode affiché à part, absent du début de phrase.
@@ -226,6 +316,52 @@ Séries : stepper `1..99`. Répétitions : roulette native à une colonne, « Au
 
 Lorsque deux Exercices consécutifs n’ont ni pause effective de transition ni Récupération positive après son occurrence, la Composition affiche l’avertissement non bloquant : « Attention, les exercices vont s’enchaîner sans pause. » Il concerne l’enchaînement entre Exercices ; aucun avertissement distinct entre Séries n’est ajouté. Il n’empêche ni l’enregistrement ni l’exécution et ne modifie aucun paramètre. La condition concerne la frontière entre deux Exercices dans leur ordre d’exécution, y compris aux transitions du Circuit ; elle utilise les paramètres de l’occurrence, sans modifier les règles de substitution R/PN de v13.
 
+### Périmètre fonctionnel du MVP — Création et composition
+
+La création est réalisée dans un écran unique `Composer une séance`. Une Séance possède obligatoirement un nom et une couleur choisie dans une palette prédéfinie de 12 couleurs. Elle devient validable lorsqu’elle contient au moins un Exercice valide et qu’aucun de ses Exercices ne comporte de cible obligatoire non renseignée (D-380).
+
+Une Séance contient :
+
+1. un Compte à rebours initial ;
+2. des Exercices éventuellement placées avant le Circuit ;
+3. un Circuit unique, visible et répétable de 1 à 99 Tours ;
+4. des Exercices éventuellement placées après le Circuit ;
+5. une Fin de séance.
+
+Un Exercice peut également porter son propre Compte à rebours et sa propre Fin d’exercice. La Composition peut contenir un Point d’arrêt déplaçable ; son attente n’est pas comptabilisée dans la durée d’exécution.
+
+Le Cycle est conservé uniquement dans le modèle technique pour l’évolutivité. Dans le MVP, sa répétition vaut toujours 1, n’est pas modifiable et n’est jamais affichée à l’utilisateur.
+
+Un Exercice est une action exécutée en mode Durée ou Répétitions, avec cible chiffrée ou À l’échec par série. Elle comprend au moins une Série et peut inclure une Pause après chaque série. Un Exercice bilatéral peut en outre définir une **Pause entre les côtés**, exécutée selon l’Ordre des côtés. La **Récupération après exercice** n’est pas intrinsèque à l’Exercice : elle appartient à son occurrence lorsqu’elle est placée dans une Séance.
+
+Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
+
+Les valeurs initiales de l’application sont de 10 secondes pour le Compte à rebours initial et de 5 secondes pour la Fin de séance. L’utilisateur peut choisir 0 seconde, ce qui rend la phase instantanée sans la supprimer du modèle. Ces deux cartes structurelles ne sont pas déplaçables.
+
+### Extension du contenu planifiable — Parcours — Récupération après exercice portée par l’occurrence
+
+Une `SessionActivity` porte toujours `postActivityRecoverySeconds`. La valeur `0 s` est une valeur valide et n’efface pas la propriété. La récupération suit l’occurrence lors des déplacements, duplications et suppressions. Dans le Circuit, elle est exécutée après chaque occurrence, y compris la dernière, à chaque Tour. Hors Circuit, elle est exécutée après l’occurrence ; si celle-ci est la dernière de la Séance, elle précède `SESSION_END`.
+
+### Composer une séance / Modifier une séance — Validation de la Composition
+
+L’écran ne comporte pas de bouton `Démarrer`.
+
+L’action `Continuer` valide la Composition. Elle reste désactivée tant que le nom n’est pas renseigné, que la Composition ne contient pas au moins un Exercice valide ou qu’un de ses Exercices comporte une cible obligatoire non renseignée (D-380, D-123). Le contrôle ou champ obligatoire sans valeur est signalé par son fond rouge pâle, sans message supplémentaire (D-389). L’Étiquette est facultative ; lorsqu’elle est sélectionnée, sa couleur devient celle de la Séance.
+
+En création comme en modification, l’Étiquette de la Séance est gérée depuis la Composition par la modale `Étiquettes`. L’Étiquette sélectionnée est affichée sous le nom de la Séance et porte sa couleur.
+
+La Séance n’est exécutable que si elle contient au moins un Exercice valide.
+
+### Composer une séance / Modifier une séance — Enregistrement
+
+Les modifications internes sont conservées au fur et à mesure, sous réserve des validations explicites prévues par les écrans d’édition.
+
+### Composer une séance / Modifier une séance — Composition — Récupération après exercice — D-208 révisée sur l’affichage
+
+Les cartes ne présentent plus la ligne `Récupération {durée}`, y compris pour une valeur non nulle. La donnée reste solidaire de chaque occurrence lors du déplacement, de la duplication et de la suppression. Son exécution après l’occurrence (y compris fin de Tour/Séance) et les calculs restent ceux de D-208. La disparition de l’affichage ne supprime ni phase ni valeur.
+
+L’éditeur conserve `Récupération entre côtés`, exposée uniquement en D→G/G→D ; aucune récupération post-exercice n’est ajoutée à la synthèse intrinsèque.
+
 ### Composition d'une séance — Validation
 
 Une séance est considérée comme valide lorsqu'elle contient au minimum un Exercice.
@@ -280,6 +416,14 @@ Aucune récupération automatique à la création d’une occurrence. Une récup
 - Préparation/fin : séance uniquement en SESSION, exercice uniquement en autonome ; aucun booléen.
 - Points/récupérations internes répétés ; externes non répétés. R0 ne supprime pas Pi. Ne jamais compter une récupération deux fois.
 - Durée et progression suivent le plan effectif. lowerBound prime sur estimated, qui prime sur exact dans les agrégats ; omitted reste propre à l’exercice concerné.
+
+### Extension validée du modèle — Développement des circuits
+
+Un circuit par composition MVP. Tours : répéter N fois le bloc contenant toutes les séries de chaque exercice. Séries : pour i=1..N, exécuter série i de A, série i de B, etc. A/B à3 séries et compte3 : 18 occurrences en tours,6 en séries, avant côtés et pauses.
+
+Le régime n’est pas contraint par le circuit. Conversion vers séries adapte chaque copie locale à N, avec confirmation uniquement si des valeurs sont perdues ; retour tours conserve les valeurs actives. Le nombre hérité et le total affichable sont en lecture seule dans l’exercice. La sortie du circuit conserve N et les paramètres actifs. Ajout catalogue et déplacement/sortie ne modifient jamais la définition source.
+
+Les récupérations et points internes sont développés à chaque passage à leur position ; extérieurs au circuit, ils ne se répètent pas. Compte à rebours/Fin propres exclus en SESSION sans booléen. Bilatéral dans un circuit de séries : premier côté → PC → second côté → Pi ; récupération positive remplace seulement Pi terminale.
 
 ### Composition d'une séance — Circuit et compte
 
@@ -869,6 +1013,44 @@ Un Exercice bilatéral exécute toutes les Séries du premier côté puis toutes
 | RM-192 | Le parcours de composition exposé sélectionne les Exercices dans le Catalogue ; la création locale de SessionActivity reste techniquement et fonctionnellement disponible mais non exposée dans cet enchaînement. |
 | RM-164 | Lorsqu’une roulette est ouverte, le voile grisé bloque l’arrière-plan. Le bouton principal fixe inférieur reste visuellement inchangé mais devient fonctionnellement désactivé et non déclenchable via VoiceOver/TalkBack jusqu’à fermeture de la roulette. |
 
+### Périmètre fonctionnel du MVP — Exécution guidée
+
+L’Exécution d’une Séance présente l’Exercice en cours, la Série, le Tour, l’Exercice suivant, le temps et la progression. Le Cycle n’est jamais exposé.
+
+L’Exécution continue à progresser lorsque l’application passe en arrière-plan ou que l’écran se verrouille. Au retour, l’état est recalculé à partir d’horodatages de référence. Une pause de sécurité intervient après 30 minutes sans interaction au-delà de la fin théorique d’un Exercice chronométré ou de la fin nominale recalculée d’une Série cadencée, ou après 2 heures sans interaction pour un Exercice en Répétitions sans cadence ou À l’échec.
+
+### Parcours complémentaire 3 — Gérer une séance interrompue ou partiellement réalisée — Points d'attention
+
+- Une fermeture accidentelle de l'application ne doit pas faire perdre la séance en cours. Au retour dans l’application, si une Exécution était `En cours`, l’utilisateur doit choisir **Reprendre la séance** ou **Arrêter la séance** avant de pouvoir démarrer une nouvelle Exécution.
+- Les données déjà enregistrées doivent pouvoir être restaurées.
+- L'application ne doit pas obliger l'utilisateur à justifier chaque exercice passé avant son terme.
+- La différence entre une séance suspendue, terminée et abandonnée doit rester compréhensible.
+- La règle permettant de reprendre une séance après une très longue interruption est définie comme suit :
+	- Si une Séance reste en pause pendant au moins 30 minutes consécutives, l'application demande à l'utilisateur s'il souhaite reprendre son Exécution.
+	- Si l'utilisateur confirme, la séance reprend à l'exercice où elle avait été interrompue.
+	- En l’absence de réponse, la Séance reste suspendue avec son état conservé ; aucun arrêt automatique supplémentaire (chapitre13 R-03).
+	- Dans une version ultérieure, cette durée maximale pourra être configurée dans les préférences utilisateur.
+### Exécution — séance ou exercice — Séries
+
+Lorsqu’un Exercice possède plusieurs Séries :
+
+- `Série x/y` indique la Série en cours ;
+- chaque Série exécute la durée cible, les répétitions cibles ou se poursuit jusqu’à l’échec selon le mode ;
+- Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : chapitre 10, Calculs des durées et ordre des phases.
+- si l’Exercice est bilatéral, la Pause entre les côtés éventuelle est exécutée selon l’Ordre des côtés.
+
+T04 développe toutes les Séries, les répétitions de Tour et les passages de côté dans le Plan d’Exécution avant le démarrage.
+
+### Exécution — séance ou exercice — Récupérations
+
+Deux phases distinctes peuvent exister. `SIDE_RECOVERY` matérialise la Pause entre les côtés d’un Exercice bilatéral et intervient entre le premier et le second côté. `POST_ACTIVITY_RECOVERY` matérialise la Récupération après exercice portée par l’occurrence de Séance ; elle intervient après l’occurrence, y compris après le dernier Exercice avant `SESSION_END` et après chaque passage dans le Circuit à chaque Tour.
+
+La valeur `postActivityRecoverySeconds = 0` ne crée pas de phase chronométrée positive. Les récupérations ne sont plus affichées sur les cartes de Composition (D-238), quelle que soit leur valeur. La zone `À suivre` prépare l’élément qui succède à la phase courante. Les données de résultat distinguent la Pause entre les côtés de la récupération après occurrence.
+
+### Règles générales d’interface — Clarification — Préparation et fin dans une Séance
+
+Dans une Séance, les Compte à rebours d’exercice et Fin d’exercice ne sont jamais exécutés ; seuls le Compte à rebours initial et la Fin de séance s’appliquent, une fois, par substitution. Aucun booléen ni contrôle d’activation n’existe à cet effet. Les valeurs propres restent conservées pour l’exécution de l’Exercice seul. Aucun contrôle correspondant n’est à ajouter à la Composition ou à l’Exécution. Figma est confirmé aligné par le propriétaire ; cette correction documentaire ne demande aucune nouvelle maquette.
+
 ### Informations affichées — Temps écoulé et durée réelle
 
 Le **temps total écoulé** correspond au temps actif réellement passé dans l'Exécution depuis son démarrage effectif, en excluant les périodes pendant lesquelles l'utilisateur a placé la Séance en Pause.
@@ -1131,6 +1313,20 @@ Ces règles relèvent du périmètre MVP (D-203, confirmation du 28/09/2026).
 
 Contenu identique à la section [« Règles de planification »](09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#règles-de-planification) : il n’est pas recopié ici.
 
+### Vision cible — médias pendant l’Exécution — Cible de planification commune
+
+Une Routine planifie une liste ordonnée de Séances et/ou Exercices persistants. Les contenus filtrent les occurrences du créneau ; parcours est un libellé sans entité autonome (D-328).
+
+### Synthèse des parcours du MVP — Principes communs
+
+- Une Séance ou un Exercice persistant définit un contenu pouvant être exécuté directement.
+- Une Routine porte une liste ordonnée de références SESSION/ACTIVITY ; API-ROU définit le contrat cible multi-contenus (D-328).
+- Une Exécution conserve le déroulement réel de la source exécutée.
+- Une Séance ou un Exercice persistant peut être exécuté sans être planifié.
+- Une Séance ou un Exercice persistant peut être associé à plusieurs Routines.
+- La modification de la source planifiée ou d'une Routine n'altère jamais les Exécutions déjà enregistrées.
+- La suppression d'une Routine ne supprime jamais sa source associée ni les Exécutions déjà enregistrées.
+- Les données du MVP sont conservées localement sur l'appareil de l'utilisateur.
 ### Cycle de vie d'une séance — Planification d’un contenu
 
 Une Séance **ou un Exercice persistant** peut être associée à zéro, une ou plusieurs Routines.
@@ -1285,6 +1481,34 @@ Le préfixe s'accorde à l'unité : « **toutes les** 2 semaines », « **tous l
 | RM-083 | Chaque Résultat d’Exercice conserve les informations nécessaires à sa restitution, notamment sa position, ses indices de Série et de Tour, son statut et sa durée réelle. Le Cycle technique peut être conservé dans les données mais n’est jamais affiché. |
 | RM-084 | Toute modification, archivage ou suppression ultérieure de la Séance source est sans effet sur les Instantanés existants. |
 
+### Périmètre fonctionnel du MVP — Suivi
+
+Le Suivi conserve les Exécutions terminées, partielles et interrompues. Chaque Exécution repose sur un instantané immuable de sa source au démarrage afin que l’historique demeure fidèle après une modification, un archivage ou une suppression de la source.
+
+Les commandes `Vue d’ensemble`, `Filtrer` et `Trier` sont visibles mais désactivées dans le MVP ; leurs fonctions sont prévues après le MVP.
+
+### Parcours complémentaire 4 — Consulter le suivi des séances — Points d'attention
+
+- Le Suivi présente uniquement les Exécutions enregistrées ; les occurrences planifiées passées non exécutées n'y apparaissent pas.
+- Les informations affichées correspondent toujours à la version de la Séance utilisée lors de son Exécution.
+- Une modification ultérieure d'une Séance ou d'une Routine n'altère jamais les informations enregistrées dans le Suivi.
+- La structure des données doit permettre d'ajouter ultérieurement une vue détaillée, des tableaux de bord, graphiques et indicateurs de progression sans modifier le modèle métier.
+### Historisation
+
+L'application distingue systématiquement la définition d’un contenu et son Exécution réelle.
+
+Chaque Exécution conserve son propre instantané immuable correspondant à son origine. Ainsi :
+- une modification d'une source ou d'une Routine n'affecte jamais les Exécutions passées ;
+- les données prévues restent distinctes des données réellement exécutées ;
+- l'historique demeure fidèle à ce qui s'est réellement déroulé ;
+- la suppression définitive d’une `ActivityDefinition` ne supprime jamais les Exécutions d’Exercice historiques.
+
+### Synthèse — séance ou exercice — Statut
+
+Une Exécution terminant normalement son Plan peut être `Terminée` ou `Partielle` selon les Exercices réellement réalisés.
+
+Une Exécution arrêtée volontairement depuis la modale de pause est enregistrée avec le statut `Interrompue`.
+
 ### Suivi et historique des séances — Statut d'une exécution
 
 **Portée formats :** les fenêtres EMOM/Death by, la borne AMRAP et la clôture Death by suivent la [section Formats](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#formats-conception). La transition générique et le statut ci-dessous ne les remplacent pas.
@@ -1372,6 +1596,90 @@ La couleur affichée dans le Suivi est celle enregistrée dans l’instantané d
 | Retour                   | Quitter l'écran ne demande aucune confirmation, les modifications étant enregistrées automatiquement.                                    |
 
 ## Référentiels
+
+### Contrat d’affichage commun aux écrans du MVP — Gestion des référentiels dans les modales de sélection
+
+Les modales `Étiquettes`, `Catégorie` et `Zones corporelles` utilisent la même règle de gestion :
+
+- appui court sur une option : sélectionner ou désélectionner selon le contexte ;
+- appui long sur une option : ne pas modifier sa sélection et ouvrir une modale de confirmation de suppression ;
+- toutes les options sont supprimables, y compris celles fournies initialement par KODJO ;
+- la modale de confirmation affiche le nom de l’option et propose `Annuler` à gauche et `Supprimer` à droite dans le ton destructif ;
+- si l’option est utilisée, le message indique qu’elle disparaît des nouveaux choix mais reste attachée aux objets existants, avec son nom et sa dernière couleur éventuelle ; l’historique reste inchangé ;
+- `Annuler` ferme la confirmation et restitue la modale de sélection sans changement ;
+- `Supprimer` retire la valeur des nouveaux choix, conserve les affectations existantes ainsi que son nom et sa dernière couleur, puis restitue la modale de sélection actualisée ;
+- aucune restauration automatique d’une valeur initiale supprimée n’est effectuée.
+
+### Créer ou modifier un exercice — Sélections, créations de référentiels et confirmation d’abandon
+
+Catégorie marquée au toucher puis confirmée par ✓ ; ✕ conserve la Catégorie précédente (D-343, 12/10, remplace pour la Catégorie la validation au toucher de D-222) ; Zones multiples avec✓. Création avec clavier et suppression avec confirmation préservent le brouillon d’Exercice. Abandon Annuler conserve le formulaire ; Confirmer le quitte sans sauvegarder.
+
+#### Ajouter un exercice — Catégories
+
+[Source Figma — `8328:35810`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-35810)
+
+![Ajouter un exercice — Catégories](images/circuits-2026-10-12/8328-35810.png)
+
+#### Ajouter un exercice — Catégorie — Appui long — Confirmation suppression
+
+[Source Figma — `8328:35932`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-35932)
+
+![Ajouter un exercice — Catégorie — Appui long — Confirmation suppression](images/circuits-2026-10-12/8328-35932.png)
+
+#### Ajouter un exercice — Nouvelle catégorie
+
+[Source Figma — `8328:36056`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36056)
+
+![Ajouter un exercice — Nouvelle catégorie](images/circuits-2026-10-12/8328-36056.png)
+
+#### Ajouter un exercice — Zones corporelles
+
+[Source Figma — `8328:36348`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36348)
+
+![Ajouter un exercice — Zones corporelles](images/circuits-2026-10-12/8328-36348.png)
+
+#### Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression
+
+[Source Figma — `8328:36441`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36441)
+
+![Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression](images/circuits-2026-10-12/8328-36441.png)
+
+#### Ajouter un exercice — Nouvelle zone corporelle
+
+[Source Figma — `8328:36536`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36536)
+
+![Ajouter un exercice — Nouvelle zone corporelle](images/circuits-2026-10-12/8328-36536.png)
+
+#### Création exercice — Abandon (confirmation)
+
+[Source Figma — `8328:36781`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36781)
+
+![Création exercice — Abandon (confirmation)](images/circuits-2026-10-12/8328-36781.png)
+
+### Règles communes aux sélections et réglages
+
+#### Supprimer une valeur de référentiel
+Cette famille de modales est ouverte par appui long sur une option dans les sélecteurs `Étiquettes`, `Catégorie` ou `Zones corporelles`.
+
+Références Figma :
+- Étiquette : `4861:6145 — Composition séance — Étiquettes — Appui long — Confirmation suppression` ;
+- Catégorie : `4861:6259 — Ajouter un exercice — Catégorie — Appui long — Confirmation suppression` ;
+- Zone corporelle : `4861:6348 — Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression`.
+
+Le dialogue utilise la variante destructive à deux actions de `Overlay / Decision Dialog`. Le titre reprend la valeur concernée sous la forme `Supprimer « {nom} » ?`. Le message précise, lorsque la valeur est utilisée, qu’elle disparaît des nouveaux choix mais reste attachée aux objets existants, avec son nom et sa dernière couleur éventuelle ; l’historique reste inchangé.
+
+Actions :
+- `Annuler` : ferme la confirmation sans modifier le référentiel ni la sélection ;
+- `Supprimer` : retire la valeur des nouveaux choix et conserve ses affectations existantes, son nom et sa dernière couleur, puis restitue la modale de sélection actualisée.
+
+Cette règle s’applique aux valeurs initiales comme aux valeurs créées ensuite par l’utilisateur.
+
+#### Contrôles à roulette – Compte à rebours et fins
+Les anciennes modales basses de durée restent des références historiques. Dans la feuille v13, les roulettes s’ouvrent inline sous la ligne active ; dans le Profil, les durées utilisent les steppers validés. Les autres contextes suivent leur contrat propre. Les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent des steppers inline conformément à D-219 ; la cible `Nombre de répétitions` utilise une roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385). Les sélections d’objets utilisent leurs modales dédiées.
+
+Dans le Profil, les contrôles `Compte à rebours initial`, `Fin de séance`, `Compte à rebours d’exercice` (ancien nœud `4179:9550`, historique supprimé ; le contrôle fonctionnel reste prescrit) et `Fin d’exercice` (ancien nœud `4179:9556`, historique supprimé ; le contrôle fonctionnel reste prescrit) servent de préférences proposées à la création de nouveaux contenus. Ces valeurs suivent la validation des contrôles du Profil (CE-UI-07), sans importer la confirmation des anciennes roulettes.
+
+Les valeurs initiales de l’application sont `10 s` pour le Compte à rebours initial et `5 s` pour la Fin de séance. Une durée de `0 s`, lorsqu’elle est choisie par l’utilisateur, rend la phase instantanée sans supprimer l’élément structurel.
 
 ### Exercice — Gestion commune des référentiels de classification
 
@@ -1551,6 +1859,18 @@ Une durée x, en secondes, s'écrit :
 
 Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 
+## Interface transverse
+
+### Navigation principale et articulation des écrans — Enregistrement automatique
+
+Les modifications d’objets existants sont enregistrées automatiquement lorsque l’écran ne prévoit pas explicitement une action `Continuer`, `Valider`, `Terminer` ou `Enregistrer` ; la Composition conserve toujours un brouillon jusqu’à `Continuer` (CE-T03-08).
+
+Les écrans de création ou les modales comportant une action explicite ne valident les données qu’après cette action.
+
+### Composer une séance / Modifier une séance — Retour haptique des roulettes
+
+Toute roulette numérique de l’application produit un retour haptique léger et bref à chaque franchissement effectif d’un cran, c’est-à-dire à chaque changement de la valeur sélectionnée. Un seul retour haptique est déclenché par changement de valeur. Ce retour est systématique et indépendant du réglage `Vibration` du Profil, qui ne pilote que les vibrations fonctionnelles de séance.
+
 ## Sujets transverses
 
 ### Langue, terminologie et accessibilité structurelle
@@ -1618,6 +1938,22 @@ Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 
 | RM-232 | Phrase v1 étendue : segments {texte, gras}, sans persistance. Cibles variables énumérées jusqu’à3 ; au-delà, mélange compacté « de 10 rép. à l’échec » / « de 1 min 30 s à l’échec » selon minimum numérique. Tout échec : formulation existante. Total fourni par le calcul, ≥ pour mélange calculable ; sans bip en Répétitions ou tout échec : omis. Pauses variables non énumérées. Compte à rebours/Fin hors phrase. Excel exclusivement rédactionnel. Voir chapitre 08, Phrase de synthèse. |
 | RM-233 | Au changement de mode, conserver les paramètres communs et, pendant l’édition, la dernière valeur spécifique de chaque mode. Après la première sélection, aucun retour à l’état « aucun mode » ; `Terminer` reste désactivé avant cette première sélection. |
 | RM-234 | Séries `1..99`; Répétitions `1..100`; Durée par Série `5..3535 s`; pauses inter-Séries/inter-côtés `0..300 s`. Une valeur héritée hors bornes, non modifiée, peut être conservée ; toute nouvelle saisie ou modification doit respecter ces bornes (D-383). Les deux pauses utilisent un stepper : tap1s, maintien accéléré1/5/10 selon DSF Bip. |
+
+### Extension validée du modèle — Consolidation du modèle — D-209 à D-217
+
+Une Séance contient un **Circuit** ordonné ; un **Tour** est une répétition de ce Circuit. `parcours` désigne seulement plusieurs contenus liés sur un créneau, sans entité autonome. Un Exercice valide possède exactement une Catégorie et une ou plusieurs Zones corporelles ; une Séance possède zéro ou une Étiquette. Ces référentiels sont classificatoires et n’influencent pas le Plan d’Exécution.
+
+La suppression d’une valeur de référentiel la rend inactive pour les nouvelles affectations mais conserve les références existantes. Les couleurs d’Étiquette/Catégorie restent portées par le référentiel et toute modification de couleur se reflète sur les objets associés.
+
+Les préférences du Profil initialisent les nouveaux objets puis sont découplées. Dans une Séance, les Compte à rebours d’exercice et Fin d’exercice ne sont jamais exécutés ; seuls le Compte à rebours initial et la Fin de séance s’appliquent, une fois, par substitution. Aucun booléen ni contrôle d’activation n’existe à cet effet. Les valeurs propres restent conservées pour l’exécution de l’Exercice seul.
+
+Le Point d’arrêt reste un élément structurel distinct de la Récupération. Lorsqu’ils coexistent après un Exercice, la récupération est exécutée avant le Point d’arrêt. Aucun Point d’arrêt n’est permis juste après le Compte à rebours initial ni juste avant la Fin de séance. Un Point d’arrêt interne au Circuit est rejoué à chaque Tour.
+
+#### Phrase de synthèse des paramètres d’exécution
+
+La phrase est une donnée dérivée, recalculée à chaque modification. Sans mode sélectionné elle est vide ; le mode est affiché séparément. Elle concatène dans l’ordre : nombre de Séries, valeur par Série ou `jusqu'à l'échec`, Pause après chaque série si applicable, changement de côté, puis Durée totale lorsqu’elle s’applique. Le nom de l’Exercice, le Compte à rebours, la Fin d’exercice et la Récupération post-activité n’entrent pas dans cette phrase. Source normative : chapitre 08, paramètres d’exercice, D-247 à D-255 ; classeur v10 historique.
+
+Les bornes fonctionnelles D-232 sont : Séries `1..99`, Répétitions par Série `1..100`, Durée par Série `5 s..58 min 55 s`, Pause après chaque série et Pause entre les côtés `0..5 min`. Dans le Profil, les réglages de durée utilisent un stepper ; dans la feuille de paramètres d’un Exercice, les pauses sont réglées par stepper. Les steppers de pauses utilisent tap1s puis maintien accéléré1/5/10 selon DSF Bip ; ancienne grille dépendante de la valeur abandonnée. La Pause entre les côtés est copiée depuis le Profil lorsqu’elle devient applicable.
 
 ### Champs et comportements des fonctionnalités — Règles communes — D-209 à D-217
 

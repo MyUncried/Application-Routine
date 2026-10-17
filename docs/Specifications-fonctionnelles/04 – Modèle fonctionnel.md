@@ -10,48 +10,25 @@ Il décrit le fonctionnement général de l'application du point de vue de l'uti
 
 Les structures de données, attributs et relations entre les objets sont décrits dans le chapitre **09 – Modèle de données fonctionnel**.
 
-### Principes de conception
+### Navigation principale et articulation des écrans — Cohérence des libellés
 
-Le modèle fonctionnel repose sur les principes suivants :
+Les mêmes termes sont utilisés dans toute l’application :
 
-- permettre la création rapide d'une séance simple ;
-- conserver une grande souplesse pour construire des séances plus élaborées ;
-- distinguer clairement la séance (contenu), la routine (planification) et l'exécution ;
-- garantir la conservation fidèle de l'historique ;
-- privilégier des concepts simples et peu nombreux ;
-- préparer l'évolution vers des fonctionnalités collaboratives sans remettre en cause le modèle existant.
-
-### Périmètre du MVP
-
-Le MVP permet notamment :
-- créer, modifier, dupliquer, archiver, restaurer et supprimer définitivement des Séances selon leur cycle de vie ;
-- créer, modifier et supprimer des Routines de planification ;
-- créer et modifier des Exercices de Séance ;
-- à partir de T03, gérer le cycle de vie complet des `ActivityDefinition` persistantes ;
-- ajouter plusieurs Exercices existants à une Séance par copies indépendantes ;
-- organiser les Exercices avant, dans ou après le Circuit et définir le nombre de Tours du Circuit ;
-- conserver le Cycle technique unique à une répétition fixe, sans l’exposer ;
-- associer éventuellement une Étiquette à une Séance ;
-- associer une Catégorie et des Zones corporelles aux Exercices ;
-- exécuter directement un Exercice persistant à partir de T03 ;
-- exécuter une Séance dans T04 et les tranches associées du MVP ;
-- suspendre puis reprendre une Exécution lorsque le parcours concerné le prévoit ;
-- consulter l'historique ;
-- personnaliser les préférences globales.
-
-Ne sont pas inclus dans le MVP :
-- synchronisation cloud ;
-- partage ;
-- communautés ;
-- comptes multi-utilisateurs ;
-- relation avec un professionnel de santé ;
-- exceptions de planification ;
-- notifications avancées ;
-- intelligence artificielle ;
-- Ancienne cible de Parcours autonome retirée par D-328 ;
-- médias multiples fonctionnels.
+- `Séance` : contenu complet d’un entraînement ;
+- `Routine` : créneau portant une liste ordonnée de Séances et/ou Exercices persistants ;
+- `Exercice` : action élémentaire exécutée en mode Durée ou Répétitions, avec cible chiffrée ou À l’échec par série, avec Pause après chaque série et, en bilatéral, Pause entre les côtés éventuelle ;
+- `Pause entre les côtés` : durée intrinsèque facultative d’un Exercice bilatéral, exécutée selon l’Ordre des côtés ;
+- `Récupération après exercice` : durée contextuelle portée par chaque occurrence d’Exercice dans une Séance, non affichée sur les cartes (D-238) et exécutée après l’occurrence lorsqu’elle est positive ;
+- `Série` : répétition propre à un Exercice ;
+- `Circuit` : groupe ordonné d’Exercices exécuté intégralement un nombre défini de fois ;
+- `Cycle` : structure technique unique, fixée à une répétition et jamais affichée dans le MVP ; elle ordonne les Exercices placés avant le Circuit, le Circuit et les Exercices placés après le Circuit ;
+- `Exécution de séance` : réalisation effective d’une Séance.
 
 ## Séances
+
+### Composer une séance / Modifier une séance — Objectif
+
+Permettre de sélectionner ou créer l’Étiquette de la Séance. L’Étiquette porte la couleur affichée de la Séance ; il n’existe pas de couleur de Séance indépendante de l’Étiquette.
 
 ### Cycle de vie d'une séance — Principe général
 
@@ -278,124 +255,6 @@ Les exercices sont exécutés dans l'ordre où elles apparaissent dans la séanc
 
 ## Paramètres d’exécution
 
-### Déroulement d’un Exercice
-
-L’ordre d’exécution vient du paramètre Ordre des côtés : Un côté après l’autre (défaut) ou Les deux côtés à chaque série. En bilatéral N est toujours par côté, paramètres communs aux deux côtés. Les successions et pauses sont celles de chapitre 08, paramètres d’exercice ; aucun repli de PC vers la Pause. Les cibles et Pauses variables proviennent de la ligne courante.
-
-Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : chapitre 10, Calculs des durées et ordre des phases.
-
-Le Compte à rebours propre précède les passages et la Fin propre reste unique à l’Exercice complet. En Durée chiffrée, Ti est chronométrée ; en Répétitions et pour toute cible À l’échec, Suivant termine la Série. Construire le plan depuis les paramètres effectifs de chaque Série. Les phases terminales sont substituées avant sommation ; ne jamais ajouter une récupération déjà comprise dans To. Le plan de Séance conserve ses phases structurelles et ses Points d’arrêt.
-
-### Extension validée du modèle
-
-L’Exercice possède deux formes distinctes dans le MVP T03 : la **référence autonome** du Catalogue et la **copie de Séance**. L’ajout d’une référence copie toutes ses propriétés métier applicables ; la position avant, dans ou après le Circuit appartient uniquement à la copie. Aucune modification ne se propage ensuite entre ces objets.
-
-Un Exercice accepte Durée ou Répétitions. Chaque Série porte une cible chiffrée ou À l’échec ; cette dernière ne prescrit aucun nombre. La Récupération éventuelle reste une phase chronométrée indépendante du mode.
-
-L’Exécution directe d’Exercice T03 développe uniquement le sous-ensemble autonome nécessaire aux Séries, Pauses, côtés et Récupération. T04 porte l’orchestration complète des Séances, notamment les Tours du Circuit et les passages bilatéraux décrits dans le Plan d’Exécution.
-
-Le Média est un actif local associé à un Exercice. Dans le MVP, le Catalogue affiche le média associé dans la gouttière permanente de la carte d’Exercice, sans déploiement (D-260/D-261). L’import/ajout local et la gestion des associations ordonnées sont inclus dans PRE-3 au MVP (D-333). La capture caméra n’est pas implicitement activée.
-
-Le modèle autonome Parcours est retiré (D-328). Le mot parcours désigne plusieurs contenus liés sur un créneau, sans objet propre ; le Circuit interne à une Séance reste conservé.
-
-#### Modèle fonctionnel de bilatéralité
-
-Un Exercice persistant et son occurrence copiée dans une Séance portent un `sideMode` parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, avec `UNILATERAL` par défaut. La copie à l’insertion et la duplication conservent la valeur ; la copie devient ensuite indépendante de sa source. Le champ technique historique équivalent du Tour peut être conservé pour compatibilité et non-régression, mais il reste fixé à `UNILATERAL` et n’est pas exposé ni modifiable dans la version actuelle.
-
-La direction effective exposée est celle de l’Exercice. Le Circuit ne remplace ni ne neutralise les réglages de côté de ses Exercices dans la version actuelle.
-
-Le Plan d’Exécution mémorise la direction effective et le côté courant. Chaque Résultat d’Exercice porte `executionSide = RIGHT | LEFT | NONE`. Le statut global est dérivé des résultats des passages : tous terminés produit `Terminée`, au moins un résultat partiel ou un côté manquant après avancement produit `Partielle`, et aucun passage commencé produit `Non commencée` au niveau de l’Exercice concernée.
-
-#### Exécution directe d’un Exercice — MVP T03
-
-Une `ActivityDefinition` valide constitue un contenu exécutable. Son lancement produit une Exécution d’origine `ACTIVITY` fondée sur un instantané autonome. Cet instantané contient toutes les données nécessaires à l’exécution, mais aucune structure de Séance, aucun Tour artificiel et aucune phase `SESSION_END`.
-
-La préparation de `5 s` appartient au contexte d’Exécution, pas à l’Exercice. Les règles propres aux modes, Séries, Pauses, côtés et Récupération sont identiques à celles déjà validées pour un Exercice autonome. Le signal de fin conduit à la Synthèse ; le Ressenti est obligatoire lorsqu’elle est présentée et le Commentaire reste facultatif.
-
-#### Modèle cible — média pendant l’Exécution
-
-La conception post-MVP distingue :
-- la collection ordonnée de Médias appartenant à l’Exercice ;
-- l’état durable de l’Exercice et de son Instantané ;
-- un état UI transitoire propre à la séance d’Exécution courante.
-
-Cet état UI porte la face courante et le média courant. Il ne modifie ni l’Exercice, ni l’Instantané, ni le Plan d’Exécution, ni les résultats historiques. Le moteur d’Exécution continue de progresser lorsque la face Média ou le plein écran est affiché.
-
-Voir `../CONCEPTION-EXECUTION-MEDIA.md`.
-
-#### Extension du contenu planifiable — Parcours
-
-**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
-
-##### Récupération après exercice portée par l’occurrence
-
-Une `SessionActivity` porte toujours `postActivityRecoverySeconds`. La valeur `0 s` est une valeur valide et n’efface pas la propriété. La récupération suit l’occurrence lors des déplacements, duplications et suppressions. Dans le Circuit, elle est exécutée après chaque occurrence, y compris la dernière, à chaque Tour. Hors Circuit, elle est exécutée après l’occurrence ; si celle-ci est la dernière de la Séance, elle précède `SESSION_END`.
-
-#### Consolidation du modèle — D-209 à D-217
-
-Une Séance contient un **Circuit** ordonné ; un **Tour** est une répétition de ce Circuit. `parcours` désigne seulement plusieurs contenus liés sur un créneau, sans entité autonome. Un Exercice valide possède exactement une Catégorie et une ou plusieurs Zones corporelles ; une Séance possède zéro ou une Étiquette. Ces référentiels sont classificatoires et n’influencent pas le Plan d’Exécution.
-
-La suppression d’une valeur de référentiel la rend inactive pour les nouvelles affectations mais conserve les références existantes. Les couleurs d’Étiquette/Catégorie restent portées par le référentiel et toute modification de couleur se reflète sur les objets associés.
-
-Les préférences du Profil initialisent les nouveaux objets puis sont découplées. Dans une Séance, les Compte à rebours d’exercice et Fin d’exercice ne sont jamais exécutés ; seuls le Compte à rebours initial et la Fin de séance s’appliquent, une fois, par substitution. Aucun booléen ni contrôle d’activation n’existe à cet effet. Les valeurs propres restent conservées pour l’exécution de l’Exercice seul.
-
-Le Point d’arrêt reste un élément structurel distinct de la Récupération. Lorsqu’ils coexistent après un Exercice, la récupération est exécutée avant le Point d’arrêt. Aucun Point d’arrêt n’est permis juste après le Compte à rebours initial ni juste avant la Fin de séance. Un Point d’arrêt interne au Circuit est rejoué à chaque Tour.
-
-##### Phrase de synthèse des paramètres d’exécution
-
-La phrase est une donnée dérivée, recalculée à chaque modification. Sans mode sélectionné elle est vide ; le mode est affiché séparément. Elle concatène dans l’ordre : nombre de Séries, valeur par Série ou `jusqu'à l'échec`, Pause après chaque série si applicable, changement de côté, puis Durée totale lorsqu’elle s’applique. Le nom de l’Exercice, le Compte à rebours, la Fin d’exercice et la Récupération post-activité n’entrent pas dans cette phrase. Source normative : chapitre 08, paramètres d’exercice, D-247 à D-255 ; classeur v10 historique.
-
-Les bornes fonctionnelles D-232 sont : Séries `1..99`, Répétitions par Série `1..100`, Durée par Série `5 s..58 min 55 s`, Pause après chaque série et Pause entre les côtés `0..5 min`. Dans le Profil, les réglages de durée utilisent un stepper ; dans la feuille de paramètres d’un Exercice, les pauses sont réglées par stepper. Les steppers de pauses utilisent tap1s puis maintien accéléré1/5/10 selon DSF Bip ; ancienne grille dépendante de la valeur abandonnée. La Pause entre les côtés est copiée depuis le Profil lorsqu’elle devient applicable.
-
-#### Présentation des objets
-
-Contenu identique à la section [« RG des cartes »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#rg-des-cartes) : il n’est pas recopié ici.
-
-##### Saisie des paramètres d’exécution
-
-Contenu identique à la section [« Saisie des paramètres d’exécution »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#saisie-des-paramètres-dexécution) : il n’est pas recopié ici.
-
-#### Paramètres de Série et Ordre des côtés — D-247 à D-254
-
-Le mode d’exécution est commun à l’Exercice. Le stockage distingue explicitement uniforme et variable, même si les valeurs sont identiques. En variable, conserver N lignes ordonnées avec cible (Durée/Répétitions) et Pause ; aucune cible numérique À l’échec. Les mêmes lignes s’appliquent aux deux côtés. Direction et Ordre des côtés sont deux propriétés distinctes. N=1 est normalisé uniforme/Un côté après l’autre dès le brouillon.
-
-Copie Catalogue→Séance, duplication et nouvel instantané conservent tout cet état. Les données sans nouveaux attributs sont uniformes/Un côté après l’autre. Les calculs actuels s’appliquent aussi aux Exercices existants ; résultats historiques immuables. Les valeurs temporaires de restauration et le repli visuel ne sont jamais persistés. Voir chapitre 08, paramètres d’exercice et8 pour le contrat complet.
-
-#### Extension Cadence du modèle de Série
-
-La Série porte `cadenceBeepIntervalSeconds` (entier0..10,0 par défaut), applicable aux deux modes. L’édition commune est une projection de brouillon, pas une seconde vérité persistée au-dessus de la collection variable. Activation, modification, suppression et déplacement conservent l’intégrité de la collection. Définition, copie de Séance et instantané transportent la même propriété.
-
-Une durée prévisionnelle déterminable ne signifie pas une fin automatique : Ri×Ci fournit le poids temporel et la fin nominale, Suivant l’achèvement. L’accumulateur réel inclut tentatives réinitialisées et intervalles abandonnés ; il est distinct de la progression et du chronomètre courant. Aucun nouvel objet Répétition. Voir Bip v2 et modèle09.
-
-#### Pauses et symboles
-
-La Composition possède des pauses explicites recovery et breakpoint. recovery appartient à une occurrence ; breakpoint conserve une position structurelle. Une projection R=0 pour absence ne crée pas d’objet. La présence et la durée0 sont distinctes, les phases0s ne sont pas générées.
-
-#### Développement des circuits
-
-Un circuit par composition MVP. Tours : répéter N fois le bloc contenant toutes les séries de chaque exercice. Séries : pour i=1..N, exécuter série i de A, série i de B, etc. A/B à3 séries et compte3 : 18 occurrences en tours,6 en séries, avant côtés et pauses.
-
-Le régime n’est pas contraint par le circuit. Conversion vers séries adapte chaque copie locale à N, avec confirmation uniquement si des valeurs sont perdues ; retour tours conserve les valeurs actives. Le nombre hérité et le total affichable sont en lecture seule dans l’exercice. La sortie du circuit conserve N et les paramètres actifs. Ajout catalogue et déplacement/sortie ne modifient jamais la définition source.
-
-Les récupérations et points internes sont développés à chaque passage à leur position ; extérieurs au circuit, ils ne se répètent pas. Compte à rebours/Fin propres exclus en SESSION sans booléen. Bilatéral dans un circuit de séries : premier côté → PC → second côté → Pi ; récupération positive remplace seulement Pi terminale.
-
-<a id="formats-modele"></a>
-#### Formats — modèle fonctionnel
-
-Le format appliqué, l’origine de création et les paramètres du format sont trois informations distinctes de Séance. Les constantes sont imposées ; les réglages autorisés restent éditables ; les valeurs dérivées sont recalculées. Une modification n’altère jamais les instantanés passés.
-
-| Format / origine | Organisation et borne | Indexation |
-|---|---|---|
-| Tabata | Par exercice ou alternance ; huit séries de 20 s et pause 10 s par exercice | Série ; un tour d’ensemble dans la copie par exercice |
-| Intervalles 30/30 | Compte réglable, jamais durée globale saisie | Occurrences de 30 s + 30 s |
-| EMOM | Organisation réglable ; compte et fenêtre réglables | N passages de chaque exercice ; durée N × E × W |
-| AMRAP | Répétition jusqu’à la durée imposée | Tours réalisés, nombre non fixé au départ |
-| For time | Travail prescrit jusqu’à son accomplissement ; pas de choix d’organisation | Volume par tour, pas séries locales successives |
-| Death by | Fenêtres cadencées à objectif croissant ; arrêt déclaré | Rang par horloge ; tour acquis par objectif confirmé |
-| Départs rapides | Valeurs préremplies, librement modifiables | Progression : répétitions par série, y compris en alternance |
-
-Le résultat Death by distingue rang, tours acquis, répétitions partielles, motif et état incomplet. La cible À l’échec reste celle de la série définie le 13/10. Aucun nouveau mode d’exercice n’est créé. Les côtés demeurent propres à l’exercice ; les raccordements non démontrés avec les fenêtres restent explicités dans la chapitre 08, Combinaisons dont la règle reste à préciser.
-
 ### Paramètres et brouillon d’un exercice — Modèle et terminologie
 
 Un Exercice possède un mode unique : Durée ou Répétitions, avec cible chiffrée ou À l’échec par série. Une Série est une définition subordonnée à l’Exercice, numérotée 1..N : une cible éventuelle et une Pause. Elle n’est pas une entité autonome, ni un groupe d’exercices. En bilatéral, N signifie N Séries **par côté**, avec les mêmes paramètres pour les deux côtés.
@@ -488,6 +347,22 @@ Cette organisation permet de construire des séances simples ou plus élaborées
 
 Dans l’interface de Composition, un appui long sur la carte d’une **Exercice** amorce son déplacement. L’état soulevé est transitoire et ne modifie aucune donnée ; seule la dépose à une position valide déclenche la mise à jour de la position structurelle et de l’ordre. Un toucher court conserve l’ouverture de l’Exercice en modification. Cette règle ne s’applique ni au Compte à rebours initial ni à la Fin de séance.
 
+### Composer une séance / Modifier une séance — Structure affichée
+
+La Composition est présentée comme une structure hiérarchique ordonnée et non comme un parcours de type niveaux.
+
+Elle comprend dans le MVP :
+
+- un `Compte à rebours initial` ;
+- zéro, un ou plusieurs Exercices placés avant le Circuit ;
+- un `Circuit` unique, qui peut lui-même contenir des Exercices ;
+- zéro, un ou plusieurs Exercices placés après le Circuit ;
+- une `Fin de séance`.
+
+Le Compte à rebours initial et la Fin de séance sont des éléments structurels obligatoires et ne constituent pas des Exercices. Ils sont non déplaçables : aucun appui long ni aucune poignée de déplacement ne leur est associé.
+
+Le modèle conserve un Cycle technique unique dont le nombre de répétitions vaut toujours 1. Il n’est jamais affiché ni modifiable dans le MVP.
+
 ### Composition d'une séance — Principe général
 
 Une séance est constituée d'un ensemble d'exercices organisées dans un ordre d'exécution précis.
@@ -525,38 +400,73 @@ Une nouvelle occurrence ne crée aucune récupération. Le bouton Pause ouvre le
 
 Sélectionner Récupération ouvre immédiatement la modale de durée. La valeur proposée provient du défaut Profil de récupération, initialement 0min30s. Cette règle dérivée conserve le réglage existant en déplaçant son application de la création d’occurrence à l’ajout explicite. Une modification ultérieure du Profil n’altère pas les pauses déjà ajoutées.
 
-## Exécution
+## Formats de séances
 
-### Déroulement d'une séance
+### Extension validée du modèle
 
-Lorsqu'une Séance est démarrée :
+L’Exercice possède deux formes distinctes dans le MVP T03 : la **référence autonome** du Catalogue et la **copie de Séance**. L’ajout d’une référence copie toutes ses propriétés métier applicables ; la position avant, dans ou après le Circuit appartient uniquement à la copie. Aucune modification ne se propage ensuite entre ces objets.
 
-1. un instantané de la Séance est créé ;
-2. le moteur construit le Plan d’Exécution ;
-3. les Exercices sont exécutés dans l'ordre prévu ;
-4. les informations d'Exécution sont enregistrées ;
-5. les résultats sont sauvegardés.
+Un Exercice accepte Durée ou Répétitions. Chaque Série porte une cible chiffrée ou À l’échec ; cette dernière ne prescrit aucun nombre. La Récupération éventuelle reste une phase chronométrée indépendante du mode.
 
-Le Plan d’Exécution constitue une structure interne générée automatiquement au démarrage de chaque Séance. Il n'est jamais manipulé directement par l'utilisateur.
+L’Exécution directe d’Exercice T03 développe uniquement le sous-ensemble autonome nécessaire aux Séries, Pauses, côtés et Récupération. T04 porte l’orchestration complète des Séances, notamment les Tours du Circuit et les passages bilatéraux décrits dans le Plan d’Exécution.
 
-### Guidage de l'utilisateur
+Le Média est un actif local associé à un Exercice. Dans le MVP, le Catalogue affiche le média associé dans la gouttière permanente de la carte d’Exercice, sans déploiement (D-260/D-261). L’import/ajout local et la gestion des associations ordonnées sont inclus dans PRE-3 au MVP (D-333). La capture caméra n’est pas implicitement activée.
 
-Pendant une Exécution, l'application accompagne l'utilisateur grâce à différents mécanismes de guidage.
+Le modèle autonome Parcours est retiré (D-328). Le mot parcours désigne plusieurs contenus liés sur un créneau, sans objet propre ; le Circuit interne à une Séance reste conservé.
 
-Elle affiche notamment :
-- l'Exercice en cours ;
-- l'Exercice suivant ;
-- le temps restant ou écoulé ;
-- la progression ;
-- les informations de Série et de Tour pertinentes, sans exposer le Cycle.
+#### Modèle fonctionnel de bilatéralité
 
-Le guidage sonore peut comprendre :
-- une annonce vocale du nom de chaque Exercice au début de son exécution ;
-- l’annonce du côté lorsque la direction effective est bilatérale ;
-- un bip grave pendant les exercices chronométrés ;
-- un bip aigu pendant les trois dernières secondes de toute étape chronométrée.
+Un Exercice persistant et son occurrence copiée dans une Séance portent un `sideMode` parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, avec `UNILATERAL` par défaut. La copie à l’insertion et la duplication conservent la valeur ; la copie devient ensuite indépendante de sa source. Le champ technique historique équivalent du Tour peut être conservé pour compatibilité et non-régression, mais il reste fixé à `UNILATERAL` et n’est pas exposé ni modifiable dans la version actuelle.
 
-Les annonces vocales, les bips et les vibrations fonctionnelles de séance peuvent être activés ou désactivés indépendamment selon les préférences de l'utilisateur. Le retour haptique d'interface produit par les roulettes numériques est distinct : il est systématique et n'est pas piloté par la préférence `Vibrations`.
+La direction effective exposée est celle de l’Exercice. Le Circuit ne remplace ni ne neutralise les réglages de côté de ses Exercices dans la version actuelle.
+
+Le Plan d’Exécution mémorise la direction effective et le côté courant. Chaque Résultat d’Exercice porte `executionSide = RIGHT | LEFT | NONE`. Le statut global est dérivé des résultats des passages : tous terminés produit `Terminée`, au moins un résultat partiel ou un côté manquant après avancement produit `Partielle`, et aucun passage commencé produit `Non commencée` au niveau de l’Exercice concernée.
+
+#### Exécution directe d’un Exercice — MVP T03
+
+Une `ActivityDefinition` valide constitue un contenu exécutable. Son lancement produit une Exécution d’origine `ACTIVITY` fondée sur un instantané autonome. Cet instantané contient toutes les données nécessaires à l’exécution, mais aucune structure de Séance, aucun Tour artificiel et aucune phase `SESSION_END`.
+
+La préparation de `5 s` appartient au contexte d’Exécution, pas à l’Exercice. Les règles propres aux modes, Séries, Pauses, côtés et Récupération sont identiques à celles déjà validées pour un Exercice autonome. Le signal de fin conduit à la Synthèse ; le Ressenti est obligatoire lorsqu’elle est présentée et le Commentaire reste facultatif.
+
+#### Modèle cible — média pendant l’Exécution
+
+La conception post-MVP distingue :
+- la collection ordonnée de Médias appartenant à l’Exercice ;
+- l’état durable de l’Exercice et de son Instantané ;
+- un état UI transitoire propre à la séance d’Exécution courante.
+
+Cet état UI porte la face courante et le média courant. Il ne modifie ni l’Exercice, ni l’Instantané, ni le Plan d’Exécution, ni les résultats historiques. Le moteur d’Exécution continue de progresser lorsque la face Média ou le plein écran est affiché.
+
+Voir `../CONCEPTION-EXECUTION-MEDIA.md`.
+
+#### Extension du contenu planifiable — Parcours
+
+**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
+
+#### Présentation des objets
+
+Contenu identique à la section [« RG des cartes »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#rg-des-cartes) : il n’est pas recopié ici.
+
+##### Saisie des paramètres d’exécution
+
+Contenu identique à la section [« Saisie des paramètres d’exécution »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#saisie-des-paramètres-dexécution) : il n’est pas recopié ici.
+
+<a id="formats-modele"></a>
+#### Formats — modèle fonctionnel
+
+Le format appliqué, l’origine de création et les paramètres du format sont trois informations distinctes de Séance. Les constantes sont imposées ; les réglages autorisés restent éditables ; les valeurs dérivées sont recalculées. Une modification n’altère jamais les instantanés passés.
+
+| Format / origine | Organisation et borne | Indexation |
+|---|---|---|
+| Tabata | Par exercice ou alternance ; huit séries de 20 s et pause 10 s par exercice | Série ; un tour d’ensemble dans la copie par exercice |
+| Intervalles 30/30 | Compte réglable, jamais durée globale saisie | Occurrences de 30 s + 30 s |
+| EMOM | Organisation réglable ; compte et fenêtre réglables | N passages de chaque exercice ; durée N × E × W |
+| AMRAP | Répétition jusqu’à la durée imposée | Tours réalisés, nombre non fixé au départ |
+| For time | Travail prescrit jusqu’à son accomplissement ; pas de choix d’organisation | Volume par tour, pas séries locales successives |
+| Death by | Fenêtres cadencées à objectif croissant ; arrêt déclaré | Rang par horloge ; tour acquis par objectif confirmé |
+| Départs rapides | Valeurs préremplies, librement modifiables | Progression : répétitions par série, y compris en alternance |
+
+Le résultat Death by distingue rang, tours acquis, répétitions partielles, motif et état incomplet. La cible À l’échec reste celle de la série définie le 13/10. Aucun nouveau mode d’exercice n’est créé. Les côtés demeurent propres à l’exercice ; les raccordements non démontrés avec les fenêtres restent explicités dans la chapitre 08, Combinaisons dont la règle reste à préciser.
 
 ## Planification
 
@@ -620,16 +530,6 @@ Trois écrans du parcours Programme n'existent pas encore et doivent être signa
 
 ## Suivi et synthèse
 
-### Historisation
-
-L'application distingue systématiquement la définition d’un contenu et son Exécution réelle.
-
-Chaque Exécution conserve son propre instantané immuable correspondant à son origine. Ainsi :
-- une modification d'une source ou d'une Routine n'affecte jamais les Exécutions passées ;
-- les données prévues restent distinctes des données réellement exécutées ;
-- l'historique demeure fidèle à ce qui s'est réellement déroulé ;
-- la suppression définitive d’une `ActivityDefinition` ne supprime jamais les Exécutions d’Exercice historiques.
-
 ### Suivi et historique des séances — Principe général
 
 Chaque exécution d'une séance crée un nouvel enregistrement dans l'historique.
@@ -637,3 +537,26 @@ Chaque exécution d'une séance crée un nouvel enregistrement dans l'historique
 Le suivi permet à l'utilisateur de consulter les séances déjà réalisées, leur déroulement et leur résultat.
 
 Chaque exécution est indépendante des autres et reste conservée même si la séance d'origine est ensuite modifiée ou supprimée.
+
+## Référentiels
+
+### Gestion des référentiels utilisateur
+
+Les référentiels utilisés dans le MVP sont de deux natures :
+- les **Étiquettes de Séances**, qui qualifient la Séance et portent sa couleur ;
+- les **Catégories d’Exercices**, qui qualifient les Exercices et portent leur couleur ;
+- les **Zones corporelles**, issues d’un référentiel utilisateur distinct des Catégories et initialisé avec des valeurs par défaut.
+
+#### Gestion des Étiquettes et des Catégories
+
+Les Étiquettes classent les Séances et portent leur couleur. Les Catégories classent les Exercices et portent leur couleur sémantique. Les Zones corporelles restent un référentiel distinct.
+Une Séance utilise son Étiquette pour son classement et sa couleur. Un Exercice utilise sa Catégorie ; les Zones corporelles restent indépendantes. La gestion détaillée de ces référentiels suit les écrans et contrats actifs.
+
+L'utilisateur peut consulter et sélectionner les Étiquettes de Séance et les Catégories d’Exercice selon le contexte d’écran.
+
+#### Référentiel des zones corporelles
+
+Les zones corporelles permettent de caractériser les exercices selon les parties du corps principalement sollicitées.
+Un Exercice valide possède une ou plusieurs Zones corporelles ; la sélection reste multiple.
+
+Dans le MVP, les Zones corporelles constituent un référentiel utilisateur administrable, initialisé avec dix valeurs par défaut. L’utilisateur peut consulter et sélectionner plusieurs Zones corporelles lors de la création ou de la modification d’un Exercice. Il peut également créer une nouvelle Zone corporelle, renommer une Zone existante et supprimer une Zone. Lorsqu’une Zone supprimée est utilisée par des Exercices courants, ses associations aux objets existants sont conservées après confirmation ; les Instantanés et Exécutions historiques restent inchangés.

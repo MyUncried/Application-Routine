@@ -87,7 +87,7 @@ Les erreurs utilisent les catégories existantes de validation et INVALID_STATE,
 
 ### Contrat technique de phrase
 
-Contenu identique à la section [« Contrat technique de phrase »](09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#contrat-technique-de-phrase) : il n’est pas recopié ici.
+Contenu identique à la section [« Migration T03 — Catalogue des Exercices — Contrat technique de phrase »](#migration-t03--catalogue-des-exercices--contrat-technique-de-phrase) : il n’est pas recopié ici.
 
 ### Contrats de service — cibles typées et relevés
 
@@ -107,6 +107,14 @@ Exemple de début : `[{texte:"3",gras:true},{texte:" séries de ",gras:false},{t
 **Aucune phrase ni aucun segment n’est stocké en base**, dans la définition, l’occurrence ou l’instantané. Seuls les paramètres métier sont persistés ; la phrase se régénère **à chaque affichage**, notamment après validation ✓. ✕ annule le brouillon ; ✓ applique atomiquement au parent ; Terminer persiste ses paramètres. Le retour sur une séance existante utilise la grammaire courante, pas une phrase figée avant correction. Les paramètres et durées réelles historiques restent immuables.
 
 Pendant un brouillon incomplet, aucune cible inventée : conserver les règles de champs manquants/validation et interdire✓. Compte à rebours et Fin sont des lignes séparées, exclus du texte et du total intrinsèque.
+
+### Migration T03 — Catalogue des Exercices — Contrat technique de phrase
+
+La [spécification de phrase](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases) gouverne le générateur pur : paramètres métier + résultat de durée + locale française → `Array<{texte: string, gras: boolean}>`. Retour vide `[]` si aucune phrase applicable. Aucun calcul depuis Excel, aucune chaîne à redécouper pour trouver les valeurs en gras. React Native utilise des Text imbriqués ; le découpage est émis par le gabarit, y compris si une valeur se répète.
+
+Aucune colonne phrase ni sérialisation des segments dans définition/occurrence/snapshot. Génération à chaque affichage depuis les paramètres ; ✓ applique le brouillon, ne persiste pas le texte. Un changement rédactionnel est visible au prochain rendu des objets existants. Paramètres historiques et temps réalisés préservés.
+
+Français uniquement au MVP. Internationalisation ultérieure : gabarits et règles de pluriel/genre/ordre par locale, avec recette dédiée ; prévoir la réécriture de la grammaire française, pas une traduction des segments isolés. Corpus276 utilisé uniquement pour les phrases, valeurs totales injectées par le calcul métier.
 
 ## Composition des séances
 
@@ -392,30 +400,6 @@ Les codes d’erreur suivent une convention lisible et stable, par exemple :
 La liste exhaustive des codes d’erreur est établie au cours de l’implémentation à partir des règles fonctionnelles définies dans la documentation.
 
 Les détails techniques de représentation des erreurs, notamment les exceptions, objets de résultat, codes de transport ou mécanismes de journalisation, sont définis dans le chapitre `12 – Architecture technique`.
-
-### Contrats internes et découpage des services
-
-Les API fonctionnelles définies dans ce chapitre constituent les contrats internes de l’application. Elles ne préjugent pas d’une exposition sous forme d’API réseau.
-
-Dans le MVP :
-- les opérations sont mises en œuvre par des services applicatifs internes ;
-- les échanges entre composants utilisent des objets typés dérivés du modèle de données fonctionnel ;
-- aucun protocole réseau ni format d’API externe n’est imposé pour les échanges internes ;
-- les protocoles réseau, formats d’échange et contrats d’intégration seront définis lorsqu’une fonction nécessitera effectivement un backend ou un service externe.
-
-Le découpage logique initial des services est le suivant :
-
-| Service | Responsabilité |
-|---|---|
-| `SessionService` | Gestion des Séances et de leur cycle de vie |
-| `CompositionService` | Gestion des Cycles, Tours et Exercices |
-| `PlanningService` | Gestion des Routines et calcul des occurrences |
-| `ExecutionService` | Plan d’exécution, progression et commandes d’exécution |
-| `HistoryService` | Exécutions, Instantanés et historique |
-| `PreferencesService` | Préférences globales |
-| `ReferenceDataService` | Catégories et Zones corporelles |
-
-Ce découpage représente des responsabilités logiques au sein de l’application et n’implique pas la création de services réseau ou de serveurs distincts.
 
 ### API externes et évolutions futures
 

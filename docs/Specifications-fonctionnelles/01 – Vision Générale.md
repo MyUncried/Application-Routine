@@ -31,74 +31,7 @@ La classification est dissociée : une **Étiquette** qualifie la Séance et por
 - un Suivi des Exécutions terminées, partielles ou interrompues ;
 - des Préférences globales simples.
 
-## Utilisateur prioritaire du MVP
-
-Le MVP s’adresse en priorité à une personne qui crée ses propres Séances et Exercices, planifie directement ses Séances **ou ses Exercices**, les exécute et consulte leur historique sur son appareil.
-
-Il fonctionne :
-
-- sans compte utilisateur obligatoire ;
-- sans synchronisation entre appareils ;
-- sans partage avec un professionnel ou un groupe ;
-- uniquement en français à l’écran.
-
-L’architecture textuelle repose néanmoins sur un lexique centralisé et des clés de traduction, afin de pouvoir modifier un terme partout dans l’application et ajouter ultérieurement d’autres langues sans réécrire les écrans.
-
 ## Périmètre fonctionnel du MVP
-
-### Catalogue des séances
-
-Le `Catalogue des séances` est l’état par défaut de l’espace `Catalogues` après le splash et après une relance complète. Il permet d’ouvrir sa carte en modification, de la planifier, de la dupliquer ou de l’archiver. Une Séance active ne peut pas être supprimée directement : elle doit d’abord être archivée. Depuis la liste des Séances archivées, elle peut être restaurée ou supprimée après confirmation.
-
-### Catalogue des exercices — T03
-
-T03 rend le segment `Exercices` fonctionnel. Il permet de créer, consulter, modifier, archiver, restaurer et supprimer définitivement un Exercice persistant, de l’ajouter à une Séance par copie indépendante, de l’exécuter directement **et de la planifier directement** au même titre qu’une Séance. Le segment `Parcours` est absent du Catalogue et des sélecteurs de type de contenu au MVP.
-
-Un Exercice créé uniquement dans une Séance ne rejoint pas automatiquement le Catalogue. Une Exécution directe d’Exercice utilise l’origine `ACTIVITY`, un instantané autonome et une préparation fixe de `5 s`, sans Séance artificielle ni `SESSION_END`.
-
-### Création et composition
-
-La création est réalisée dans un écran unique `Composer une séance`. Une Séance possède obligatoirement un nom et une couleur choisie dans une palette prédéfinie de 12 couleurs. Elle devient validable lorsqu’elle contient au moins un Exercice valide et qu’aucun de ses Exercices ne comporte de cible obligatoire non renseignée (D-380).
-
-Une Séance contient :
-
-1. un Compte à rebours initial ;
-2. des Exercices éventuellement placées avant le Circuit ;
-3. un Circuit unique, visible et répétable de 1 à 99 Tours ;
-4. des Exercices éventuellement placées après le Circuit ;
-5. une Fin de séance.
-
-Un Exercice peut également porter son propre Compte à rebours et sa propre Fin d’exercice. La Composition peut contenir un Point d’arrêt déplaçable ; son attente n’est pas comptabilisée dans la durée d’exécution.
-
-Le Cycle est conservé uniquement dans le modèle technique pour l’évolutivité. Dans le MVP, sa répétition vaut toujours 1, n’est pas modifiable et n’est jamais affichée à l’utilisateur.
-
-Un Exercice est une action exécutée en mode Durée ou Répétitions, avec cible chiffrée ou À l’échec par série. Elle comprend au moins une Série et peut inclure une Pause après chaque série. Un Exercice bilatéral peut en outre définir une **Pause entre les côtés**, exécutée selon l’Ordre des côtés. La **Récupération après exercice** n’est pas intrinsèque à l’Exercice : elle appartient à son occurrence lorsqu’elle est placée dans une Séance.
-
-Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
-
-Les valeurs initiales de l’application sont de 10 secondes pour le Compte à rebours initial et de 5 secondes pour la Fin de séance. L’utilisateur peut choisir 0 seconde, ce qui rend la phase instantanée sans la supprimer du modèle. Ces deux cartes structurelles ne sont pas déplaçables.
-
-### Planification et calendrier
-
-Une Séance peut être planifiée une seule fois ou périodiquement. Le Calendrier propose les vues Jour, Semaine et Mois dans le MVP. Les rappels sont facultatifs. La demande d’autorisation système des notifications n’est déclenchée que lorsque l’utilisateur active pour la première fois un rappel pendant une planification.
-
-### Exécution guidée
-
-L’Exécution d’une Séance présente l’Exercice en cours, la Série, le Tour, l’Exercice suivant, le temps et la progression. Le Cycle n’est jamais exposé.
-
-L’Exécution continue à progresser lorsque l’application passe en arrière-plan ou que l’écran se verrouille. Au retour, l’état est recalculé à partir d’horodatages de référence. Une pause de sécurité intervient après 30 minutes sans interaction au-delà de la fin théorique d’un Exercice chronométré ou de la fin nominale recalculée d’une Série cadencée, ou après 2 heures sans interaction pour un Exercice en Répétitions sans cadence ou À l’échec.
-
-### Suivi
-
-Le Suivi conserve les Exécutions terminées, partielles et interrompues. Chaque Exécution repose sur un instantané immuable de sa source au démarrage afin que l’historique demeure fidèle après une modification, un archivage ou une suppression de la source.
-
-Les commandes `Vue d’ensemble`, `Filtrer` et `Trier` sont visibles mais désactivées dans le MVP ; leurs fonctions sont prévues après le MVP.
-
-### Profil et Préférences
-
-Le Profil MVP permet de gérer une photo et un nom d’affichage. Les Préférences sont : Sons, Annonces vocales, Vibration, Compte à rebours initial, Fin de séance et Notifications.
-
-Les Sons, les Annonces vocales et les Vibrations fonctionnelles sont indépendants. Le feedback haptique léger des roulettes numériques reste systématique dans le MVP et n’est pas piloté par le réglage `Vibration`.
 
 ## Ambition après le MVP
 
@@ -115,19 +48,62 @@ Les évolutions envisagées comprennent notamment :
 
 Ces perspectives orientent l’architecture, mais ne doivent pas être présentées comme des fonctions disponibles dans le MVP.
 
+## 1. Utilisateur individuel — cible du MVP — Problèmes rencontrés
+
+- Les consignes sont dispersées entre la mémoire, des notes, des messages et différents médias.
+- Plusieurs outils sont nécessaires pour organiser, planifier, chronométrer et suivre une séance.
+- Il est difficile de respecter un ordre d’exécution, des durées, des répétitions, des Séries et des temps de récupération.
+- Pendant un exercice, l’utilisateur ne peut pas toujours regarder l’écran.
+- Les contenus planifiés, Séances comme Exercices, peuvent être oubliés.
+- L’utilisateur dispose de peu de visibilité sur ce qu’il a réellement exécuté.
+- Une modification de la Séance peut rendre son historique difficile à comprendre.
+
+## Principes de conception
+
+Le modèle fonctionnel repose sur les principes suivants :
+
+- permettre la création rapide d'une séance simple ;
+- conserver une grande souplesse pour construire des séances plus élaborées ;
+- distinguer clairement la séance (contenu), la routine (planification) et l'exécution ;
+- garantir la conservation fidèle de l'historique ;
+- privilégier des concepts simples et peu nombreux ;
+- préparer l'évolution vers des fonctionnalités collaboratives sans remettre en cause le modèle existant.
+
+## Objectif de conception
+L’interface du produit fini doit être principalement visuelle, intuitive et utilisable avec le moins de touchers possible.
+
+L’utilisateur doit notamment pouvoir ouvrir rapidement une séance, comprendre immédiatement l’action attendue pendant une Exécution et accéder facilement aux fonctions courantes.
+
+Pendant l’Exécution, le guidage visuel est complété par des signaux sonores et des annonces vocales afin que l’utilisateur puisse suivre la séance sans regarder constamment l’écran.
+
+La conception du MVP respecte les principes suivants :
+
+- limiter le nombre d’écrans et d’étapes intermédiaires ;
+- donner un accès direct aux actions les plus fréquentes ;
+- privilégier les icônes et les indicateurs visuels ;
+- limiter les textes affichés pendant l’Exécution ;
+- hiérarchiser clairement les informations selon leur importance pendant l’effort ;
+- enregistrer automatiquement les modifications lorsque la validation explicite d’un formulaire n’est pas nécessaire ;
+- éviter les confirmations inutiles ;
+- afficher clairement l’action principale de chaque écran ;
+- rendre les commandes essentielles facilement accessibles avec le pouce ;
+- placer les paramètres moins fréquents dans un niveau secondaire.
+
+### Rapidité de création
+
+La création d’une Séance ou d’un Exercice, y compris son éventuelle durée de Récupération, doit pouvoir être réalisée en quelques secondes, avec un minimum de saisies et de touchers.
+
+L’application privilégie :
+
+- des valeurs par défaut immédiatement utilisables ;
+- l’affichage initial des seuls paramètres indispensables ;
+- l’ajout direct d’un élément à l’endroit choisi dans la Séance ;
+- la possibilité de modifier ou d’enrichir ultérieurement chaque élément ;
+- une Description facultative et une sélection obligatoire d’au moins une Zone corporelle.
+
+La création rapide constitue le parcours principal. La Description reste facultative ; un nouvel Exercice exige une Catégorie et au moins une Zone corporelle (D-211).
+
 ## Cible fonctionnelle confirmée
-
-### Catalogue multi-type
-
-Le Catalogue constitue l’accès central aux contenus. Il distingue `Exercices` et `Séances`. `Séances` est sélectionné par défaut à l’ouverture initiale et après relance complète ; `Exercices` est fonctionnel à partir de T03 ; `Parcours` est absent du sélecteur. L’ancien objet autonome Parcours est retiré (D-328).
-
-### Catalogue des exercices — MVP T03
-
-La tranche MVP T03 apporte un Catalogue d’Exercices persistants. Le Catalogue des exercices permet de créer, consulter, modifier, archiver/restaurer et exécuter directement un Exercice de référence. Dès T03, depuis la Composition d’une Séance, l’utilisateur peut également sélectionner plusieurs Exercices existants ; chacun est copié dans la Séance et devient indépendante de sa référence.
-
-Un Exercice créé uniquement dans une Séance ne rejoint pas automatiquement le Catalogue. Cette capacité locale reste conservée mais n’est pas exposée dans le parcours courant de composition, qui propose la sélection depuis le Catalogue. Dans le MVP, le média associé est affiché dans la gouttière permanente de la carte d’Exercice du Catalogue, sans déploiement ; cette règle n’ajoute pas implicitement de mécanisme d’import ou de capture (D-260/D-261).
-
-L’Exécution directe réutilise le sous-ensemble moteur autonome avec une origine `ACTIVITY`, commence par une préparation standard de `5 s`, n’ajoute ni Séance artificielle ni phase `SESSION_END`, puis affiche une Synthèse avec Ressenti obligatoire. Le Suivi identifie cette Exécution comme un Exercice et applique les statistiques compatibles sans compter une Séance.
 
 ### Parcours — post-MVP
 
@@ -136,16 +112,6 @@ L’Exécution directe réutilise le sous-ensemble moteur autonome avec une orig
 ## Vision de la bilatéralité
 
 La configuration permet de choisir `Aucun`, droite puis gauche, ou gauche puis droite sur un Exercice. Dans la version actuelle, le changement de côté n’est pas exposé au niveau du Circuit ; le Circuit n’a pas de bilatéralité fonctionnelle. L’Exécution rend le côté courant explicite sans alourdir la progression, au moyen du sous-titre `Côté droit` ou `Côté gauche` sous le nom de l’Exercice. Les résultats restent distinguables par côté et l’historique demeure fondé sur un instantané immuable.
-
-## Vision cible — médias pendant l’Exécution
-
-Le MVP permet de consulter les médias de l’Exercice sans quitter l’Exécution ni interrompre son moteur. L’utilisateur peut retourner la zone d’information vers une face Média, parcourir une galerie ordonnée, lancer une vidéo à la demande et ouvrir le média en plein écran. Le plein écran conserve un cadre flottant de suivi et de commande de l’Exécution.
-
-Cette consultation est incluse au MVP (D-203, confirmation du 28/09/2026). Voir `../CONCEPTION-EXECUTION-MEDIA.md`.
-
-### Cible de planification commune
-
-Une Routine planifie une liste ordonnée de Séances et/ou Exercices persistants. Les contenus filtrent les occurrences du créneau ; parcours est un libellé sans entité autonome (D-328).
 
 ## Concepts de composition
 
@@ -156,19 +122,6 @@ La terminologie cible distingue **parcours** (libellé de planification à plusi
 ### Saisie des paramètres d’exécution
 
 Contenu identique à la section [« Saisie des paramètres d’exécution »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#saisie-des-paramètres-dexécution) : il n’est pas recopié ici.
-
-## Cadence facultative — cible documentaire
-
-Le guidage de cadence pendant l’Exécution appartient au MVP (D-378). Les deux modes peuvent émettre un Bip de cadence, intervalle0..10s,0=Aucun, sans quatrième mode. Chronomètre croissant et signaux guident l’utilisateur ; Suivant conserve la fin normale de Série, même après la fin nominale. KODJO ne détecte pas les mouvements. Pour une cible À l’échec en Répétitions, le relevé facultatif peut être déclaré ; avec bip, une estimation est proposée et conservée tant qu’elle n’est pas explicitement confirmée ou corrigée. Référence : [Règles détaillées](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#resultats-temporels).
-
-## Conception de planification
-
-Choisir une ou plusieurs Séances/Exercices par cases → Ajouter n éléments → Programme facultatif, Début, Répétition, contenus ordonnés si plusieurs, Rappel → Enregistrer. Chaque contenu filtre les occurrences du créneau par son motif x fois sur n. Les modalités ouvertes ne sont pas considérées livrées. Voir la [spécification](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), les contrats CE-UI-04/05/11 et le [DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md).
-
-<a id="formats-vision"></a>
-## Formats et création rapide
-
-Les six formats proposent des contraintes d’exécution, tandis que les six autres entrées accélèrent la création d’une séance libre. Les six formats et ces départs rapides appartiennent au MVP (D-378). L’utilisateur peut modifier les réglages autorisés du format après composition, sans modifier ses constantes ni changer son identité. Les calculs et synthèses suivent la configuration effective. Les rapports comparatifs, charge additionnelle et tempo restent hors de cette évolution.
 
 <a id="glossaire"></a>
 ## Glossaire
