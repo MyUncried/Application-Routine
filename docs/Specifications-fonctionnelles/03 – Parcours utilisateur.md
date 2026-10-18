@@ -98,8 +98,8 @@ Il préfère la dupliquer plutôt que recréer entièrement son contenu.
 1. L'utilisateur ouvre le catalogue des séances.
 2. Il sélectionne la séance qu'il souhaite utiliser comme référence.
 3. Il choisit **Dupliquer**.
-4. Il saisit le nom de la nouvelle séance.
-5. La nouvelle séance est créée.
+4. Une nouvelle Séance indépendante est créée avec le premier nom disponible : `{nom} (copie)`, puis `{nom} (copie 2)`, etc. ; aucun nom ne doit être saisi pour déclencher la duplication (API-SEA-05).
+5. La nouvelle Séance est disponible pour modification, y compris de son nom.
 6. L'utilisateur peut modifier librement son contenu.
 7. Il enregistre la séance.
 #### Résultat attendu
@@ -110,7 +110,7 @@ L'utilisateur crée rapidement une nouvelle séance en s'appuyant sur une séanc
 1. Depuis la vue `Séances` non archivée, révéler les actions d’une Séance active par glissement gauche.
 2. Choisir `Archiver` ; aucune suppression directe n’est proposée dans ces vues.
    - Si aucune Routine n’est associée, l’archivage est immédiat et ne demande pas de confirmation. Un snackbar `Séance archivée` propose temporairement `Annuler` ; cette action annule l’archivage et replace la Séance dans la liste active.
-   - Si une ou plusieurs Routines sont associées, une confirmation explicite est demandée avant l’archivage ; après confirmation, ces Routines sont supprimées. Aucun snackbar d’annulation n’est alors affiché.
+   - Si au moins une Routine est associée, une confirmation explicite est demandée avant l’archivage. Après confirmation, les Routines dont cette Séance est l’unique contenu sont supprimées, sans snackbar d’annulation. Pour les Routines à plusieurs contenus, l’effet de l’archivage reste `À CLARIFIER` : ne pas généraliser la suppression des autres planifications (D-023, D-328).
 3. Activer le filtre `Archivées` depuis le contrôle `Filtrer`.
 4. Glisser la carte vers la gauche : la carte se déplace avec le geste et révèle l’action `Supprimer` placée derrière.
 5. Choisir `Supprimer`, puis confirmer dans la modale. `Annuler` revient à la liste `Archivées`.
@@ -456,9 +456,9 @@ Il souhaite consulter son historique afin de retrouver une séance, vérifier so
 
 1. L'utilisateur ouvre le menu **Suivi**.
 2. Il consulte la liste chronologique de ses Exécutions enregistrées.
-3. Il peut rechercher une Exécution ; l’ordre chronologique d’affichage, du plus récent au plus ancien, n’est pas modifiable dans le MVP, `Trier` étant désactivé (D-031).
+3. Il parcourt la liste chronologique du plus récent au plus ancien ; aucune recherche d’Exécution n’est disponible dans le Suivi MVP, et `Trier` est désactivé (CE-T03-15).
 4. Il consulte les groupes de dates et, sur chaque carte, la nature, le titre, le statut, la durée réelle, la catégorie et le ressenti lorsqu’il existe ; aucune heure n’est affichée dans la carte (D-262).
-5. Il peut sélectionner une autre Exécution ou modifier sa recherche.
+5. Il peut sélectionner une autre Exécution dans la liste.
 
 La vue détaillée déployée d'une Exécution est reportée à une version ultérieure.
 
