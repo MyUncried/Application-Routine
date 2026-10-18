@@ -1,0 +1,130 @@
+# Corrections issues de la seconde passe de contrôle indépendante (18/10/2026) sur le lot V3-11.
+# 1 : la place de la mention de charge n'est pas fixée par D-414 (lecture proposée, Q-V3-19) ; 2 : série à zéro dans la liste (Q-V3-20) ;
+# 3 : D-417 et les passages « aucun stepper dans les cellules » ; 4 : deux renvois Répétitions (D-418) ; 5 : Q-V3-16 rouverte ;
+# 6 : statut de D-219 ; 7 : ellipse de la grammaire v15 ; 8 : D-415 remplace un point de D-250 ; 9 : fourchettes et portée de D-421 ; 10 : renvoi du registre.
+
+=== V3-K-001 | @10 – Processus métier et règles métier transverses.md | CORRECTION-DECIDEE:D-414 | seconde passe 1, Q-V3-01, Q-V3-19
+--- ancien
+Lorsque la charge est active et valide, la phrase de synthèse inclut une mention de charge entre parenthèses, placée après la valeur par Série (D-414) :
+--- nouveau
+Lorsque la charge est active et valide, la phrase de synthèse inclut une mention de charge entre parenthèses, dans les formes de D-414 :
+
+=== V3-K-002 | @10 – Processus métier et règles métier transverses.md | CORRECTION-DECIDEE:D-414 | seconde passe 1 et 2, Q-V3-19, Q-V3-20
+--- ancien
+Les valeurs sont celles des séries, dans leur ordre, avec le séparateur décimal de la langue ; une charge unique n’est jamais présentée comme commune si les séries ont des charges différentes. Aucune autre règle de compaction ou de calcul n’est appliquée.
+--- nouveau
+Les valeurs sont celles des séries, dans leur ordre, avec le séparateur décimal de la langue ; une charge unique n’est jamais présentée comme commune si les séries ont des charges différentes. Aucune autre règle de compaction ou de calcul n’est appliquée. Deux points ne sont pas fixés par D-414 : la place de la mention dans la phrase (lecture proposée, non arbitrée : après la valeur par Série, la parenthèse qualifiant les séries) et la présentation, dans la liste, d’une série à zéro (sans charge pour cette série, RM-239) ; ils sont soumis à Hermann.
+
+=== V3-K-003 | @10 – Processus métier et règles métier transverses.md | CORRECTION-DECIDEE:D-414 | seconde passe 1, Q-V3-19
+--- ancien
+Ordre : nombre de séries → contenu → mention de charge éventuelle (RM-240, D-414) → pause → côtés → durée applicable.
+--- nouveau
+Ordre : nombre de séries → contenu → pause → côtés → durée applicable. La mention de charge (RM-240, D-414) s’y ajoute ; sa place n’est pas arbitrée (lecture proposée : après le contenu).
+
+=== V3-K-004 | @10 – Processus métier et règles métier transverses.md | CORRECTION-DECIDEE:D-414 | seconde passe 1, Q-V3-19
+--- ancien
+| Charge active | Accoler au contenu `(charge : {c} kg)` en séries identiques, `(charges : {c1}, {c2}, {c3} kg)` jusqu’à trois séries variables, `(charges : {c1}, {c2} kg, ...)` au-delà ; rien sans charge (RM-240, D-414) |
+--- nouveau
+| Charge active | `(charge : {c} kg)` en séries identiques, `(charges : {c1}, {c2}, {c3} kg)` jusqu’à trois séries variables, `(charges : {c1}, {c2} kg, ...)` au-delà ; rien sans charge (RM-240, D-414) ; place dans la phrase non arbitrée (lecture proposée : accolée au contenu) |
+
+=== V3-K-005 | @10 – Processus métier et règles métier transverses.md | CORRECTION-DECIDEE:D-414 | seconde passe 7
+--- ancien
+Aucune ellipse après les trois premières valeurs.
+--- nouveau
+Aucune ellipse après les trois premières valeurs des cibles ; la mention de charge suit ses propres formes, ellipse comprise (D-414).
+
+=== V3-K-006 | @10 – Processus métier et règles métier transverses.md | CORRECTION-DECIDEE:D-414 | seconde passe 1, Q-V3-19
+--- ancien
+Une charge active y est mentionnée selon RM-240, entre parenthèses après la valeur par Série (D-414).
+--- nouveau
+Une charge active y est mentionnée selon RM-240, entre parenthèses dans les formes de D-414 ; sa place n’est pas arbitrée (lecture proposée : après la valeur par Série).
+
+=== V3-K-007 | @10 – Processus métier et règles métier transverses.md | CORRECTION-DECIDEE:D-414 | seconde passe 9
+--- ancien
+Décisions D-403 à D-413 du [registre](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#parametres-execution-20261018).
+--- nouveau
+Décisions D-403 à D-421 du [registre](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#parametres-execution-20261018).
+
+=== V3-K-008 | @10 – Processus métier et règles métier transverses.md | CORRECTION-DECIDEE:D-418 | seconde passe 4, Q-V3-06
+--- ancien
+la cible `Nombre de répétitions` utilise une roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385). Les sélections d’objets utilisent leurs modales dédiées.
+--- nouveau
+la cible `Nombre de répétitions` utilise une roulette native à une colonne, 1 à 100, avec « Aucune répétition, à l’échec » en tête dans une cellule de séries variables seulement (décision PRE-4 Q8 du 16/10, D-385 ; retirée en séries identiques par D-418). Les sélections d’objets utilisent leurs modales dédiées.
+
+=== V3-K-010 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-414 | seconde passe 1, Q-V3-19
+--- ancien
+La mention de charge `(charge : 20 kg)` ou `(charges : 20, 12, 13 kg)` suit le même rendu en segments, après la valeur par Série (RM-240, D-414).
+--- nouveau
+La mention de charge `(charge : 20 kg)` ou `(charges : 20, 12, 13 kg)` suit le même rendu en segments (RM-240, D-414) ; sa place dans la phrase n’est pas arbitrée (lecture proposée : après la valeur par Série).
+
+=== V3-K-011 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-417 | seconde passe 3, Q-V3-05
+--- ancien
+Une cellule active ; aucun stepper dans les cellules.
+--- nouveau
+Une cellule active ; aucun stepper permanent dans les cellules : la cellule active utilise le sélecteur existant de son champ (D-417).
+
+=== V3-K-012 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-417 | seconde passe 3, Q-V3-05
+--- ancien
+ainsi que le pied commun ± et les steppers de cellules du tableau variable ; D-339 n’a plus d’objet pour ces lignes.
+--- nouveau
+ainsi que le pied commun ± et les steppers permanents de cellules du tableau variable, chaque cellule utilisant le sélecteur existant de son champ (D-417) ; D-339 n’a plus d’objet pour ces lignes.
+
+=== V3-K-013 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-417 | seconde passe 3, Q-V3-05
+--- ancien
+Les cellules du tableau variable n’ont pas de stepper (D-413).
+--- nouveau
+Les cellules du tableau variable n’ont pas de stepper permanent (D-413) ; la cellule Pause active ouvre le stepper de Pause existant pour cette seule cellule (D-417).
+
+=== V3-K-014 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-418 | seconde passe 4, Q-V3-06
+--- ancien
+La cible `Nombre de répétitions` utilise une roulette native à une colonne : « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385). Les anciennes représentations contraires ne constituent plus une référence active.
+--- nouveau
+La cible `Nombre de répétitions` utilise une roulette native à une colonne, 1 à 100, avec « Aucune répétition, à l’échec » en tête dans une cellule de séries variables seulement (décision PRE-4 Q8 du 16/10, D-385 ; retirée en séries identiques par D-418). Les anciennes représentations contraires ne constituent plus une référence active.
+
+=== V3-K-015 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-411 | seconde passe 5, Q-V3-16
+--- ancien
+La Condition d’arrêt qui résulte d’une cible chiffrée imposée est À la cible, valeur réelle non modifiable (RM-247) ; la présence de la ligne dans la feuille d’un format suit sa frame de référence.
+--- nouveau
+La Condition d’arrêt qui résulte d’une cible chiffrée imposée est À la cible (D-411) ; sa présentation dans la feuille d’un format (valeur grisée ou ligne masquée) n’est pas arbitrée et est soumise à Hermann.
+
+=== V3-K-020 | @07 – Registre des décisions de conception.md | CORRECTION-DECIDEE:D-414 | seconde passe 10
+--- ancien
+- D-414 à D-421 : réponses de Hermann du 18/10/2026 aux questions de l’intégration (dossier `questions-hermann.md` du change), Q-V3-01, Q-V3-03 à Q-V3-08 et Q-V3-15.
+--- nouveau
+- D-414 à D-421 : réponses de Hermann du 18/10/2026 aux questions de l’intégration Q-V3-01, Q-V3-03 à Q-V3-08 et Q-V3-15.
+
+=== V3-K-021 | @07 – Registre des décisions de conception.md | CORRECTION-DECIDEE:D-414 | seconde passe 1 et 2
+--- ancien
+Les valeurs sont celles des séries, dans leur ordre ; aucune autre règle de compaction ou de calcul. Règle : RM-240. | Validée, Hermann 18/10/2026 (Q-V3-01) | Précise D-403 et RM-240 (forme de la mention) ; valeurs par série, activation, conservation, zéro et non-persistance de la phrase inchangés. |
+--- nouveau
+Les valeurs sont celles des séries, dans leur ordre ; aucune autre règle de compaction ou de calcul. Règle : RM-240. | Validée, Hermann 18/10/2026 (Q-V3-01) | Précise D-403 et RM-240 (forme de la mention) ; valeurs par série, activation, conservation, zéro et non-persistance de la phrase inchangés. Ne fixe ni la place de la mention dans la phrase ni la présentation d’une série à zéro dans la liste (questions Q-V3-19 et Q-V3-20). |
+
+=== V3-K-022 | @07 – Registre des décisions de conception.md | CORRECTION-DECIDEE:D-415 | seconde passe 8
+--- ancien
+| Précise D-250 (Ordre des côtés grisé à N = 1 : la ligne n’est plus affichée) ;
+--- nouveau
+| Remplace sur ce point D-250 (Ordre des côtés grisé à N = 1 : la ligne n’est plus affichée) ;
+
+=== V3-K-023 | @07 – Registre des décisions de conception.md | CORRECTION-DECIDEE:D-415 | seconde passe 8
+--- ancien
+| Validée ; précisée sur ce point par D-415 (18/10/2026) : à N = 1, la ligne Enchainement (Ordre des côtés) n’est pas affichée, et le changement de côté Avec / Sans reste disponible |
+--- nouveau
+| Validée ; remplacée sur ce point par D-415 (18/10/2026) : à N = 1, la ligne Enchainement (Ordre des côtés) n’est plus grisée mais non affichée, et le changement de côté Avec / Sans reste disponible |
+
+=== V3-K-024 | @07 – Registre des décisions de conception.md | CORRECTION-DECIDEE:D-417 | seconde passe 3
+--- ancien
+| D-417 | Chaque cellule du tableau de séries variables utilise le sélecteur existant de son champ, adapté à cette seule cellule : roulette de durée, roulette Répétitions, stepper de Pause, clavier décimal pour la charge. Règle : RM-250. | Validée, Hermann 18/10/2026 (Q-V3-05) | Précise D-413 (pied commun ± et steppers permanents de cellules retirés) ; aucun nouveau contrôle. |
+--- nouveau
+| D-417 | Chaque cellule du tableau de séries variables utilise le sélecteur existant de son champ, adapté à cette seule cellule. Règle : RM-250. | Validée, Hermann 18/10/2026 (Q-V3-05) | Précise D-413, qui retire le pied commun ± et les steppers de cellules du tableau ; aucun nouveau contrôle. Sélecteurs existants, d’après les règles en vigueur : roulette de durée et roulette Répétitions (D-219, D-385), stepper de Pause (RM-234), clavier décimal de la charge (D-405). |
+
+=== V3-K-025 | @07 – Registre des décisions de conception.md | CORRECTION-DECIDEE:D-421 | seconde passe 9
+--- ancien
+| Version de livraison (chapitre 05) ; ne déclare aucune réalisation. |
+--- nouveau
+| Version de livraison (chapitre 05) ; ne déclare aucune réalisation. Les points propres aux phases d’exercice (D-410, D-412, D-413) suivent la proposition en cours qui introduit les phases. |
+
+=== V3-K-026 | @07 – Registre des décisions de conception.md | CORRECTION-DECIDEE:D-418 | seconde passe 6
+--- ancien
+roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis 1 à 100 ; précisée par D-405 (18/10/2026) : la charge, seule, se saisit au clavier numérique |
+--- nouveau
+roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis 1 à 100 ; précisée par D-405 (18/10/2026) : la charge, seule, se saisit au clavier numérique ; remplacée pour les séries identiques par D-418 (18/10/2026) : l’option « Aucune répétition, à l’échec » n’y figure plus, elle reste dans une cellule de séries variables |

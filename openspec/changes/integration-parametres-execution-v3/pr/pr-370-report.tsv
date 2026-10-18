@@ -5,8 +5,8 @@ fichier_pr	bloc	lignes_retirees	lignes_ajoutees	statut	fichier_actuel	ligne_actu
 04 – Modèle fonctionnel.md	1	0	6	REPORTE	04 – Modèle fonctionnel.md	279		04 – Modèle fonctionnel.md|1|1
 05 – Versions du produit.md	1	0	4	REPORTE-MANUEL	05 – Versions du produit.md	128	contexte ambigu (deux séparateurs) ; inséré avant « ## Complément intégré au MVP », position de la PR	05 – Versions du produit.md|1|1
 06 – Ecrans et navigation de la V1.md	1	0	8	REPORTE	06 – Ecrans et navigation de la V1.md	603		06 – Ecrans et navigation de la V1.md|1|1
-07 – Registre des décisions de conception.md	1	0	13	REPORTE	07 – Registre des décisions de conception.md	715		07 – Registre des décisions de conception.md|1|1
-08 – Conception fonctionnelle détaillée.md	1	0	118	REPORTE	08 – Conception fonctionnelle détaillée.md	224		08 – Conception fonctionnelle détaillée.md|1|1
+07 – Registre des décisions de conception.md	1	0	13	REPORTE	07 – Registre des décisions de conception.md	724		07 – Registre des décisions de conception.md|1|1
+08 – Conception fonctionnelle détaillée.md	1	0	118	REPORTE-MANUEL	08 – Conception fonctionnelle détaillée.md	222	paragraphe N=1 réécrit par D-415 (ligne Enchainement non affichée à N = 1) ; section des phases insérée après ce paragraphe, position de la PR	08 – Conception fonctionnelle détaillée.md|1|1
 09 – Modèle de données fonctionnel.md	1	0	12	REPORTE	09 – Modèle de données fonctionnel.md	370		09 – Modèle de données fonctionnel.md|1|1
 10 – Processus métier et règles métier transverses.md	1	0	20	REPORTE	10 – Processus métier et règles métier transverses.md	271		10 – Processus métier et règles métier transverses.md|1|1
 11 – API fonctionnelles.md	1	0	13	REPORTE	11 – API fonctionnelles.md	107		11 – API fonctionnelles.md|1|1

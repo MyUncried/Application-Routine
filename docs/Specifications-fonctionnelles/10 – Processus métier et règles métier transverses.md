@@ -311,7 +311,7 @@ CAD-01 à CAD-30 sont transcrites sans doublon dans D-268 à D-297 ; appliquer [
 
 ### Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026
 
-Décisions D-403 à D-413 du [registre](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#parametres-execution-20261018). Les règles existantes de saisie, de validation, de séries identiques et variables, de pauses, d’enchaînement, de cadence et de calcul s’appliquent sans changement lorsqu’elles ne sont pas nommées ci-dessous ; les valeurs des captures Figma sont illustratives.
+Décisions D-403 à D-421 du [registre](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#parametres-execution-20261018). Les règles existantes de saisie, de validation, de séries identiques et variables, de pauses, d’enchaînement, de cadence et de calcul s’appliquent sans changement lorsqu’elles ne sont pas nommées ci-dessous ; les valeurs des captures Figma sont illustratives.
 
 #### RM-235 — Charge : nature
 
@@ -340,7 +340,16 @@ La ligne Charge (Avec / Sans) reste sous le tableau. Avec affiche la colonne Cha
 
 #### RM-240 — Charge : phrase de synthèse
 
-Lorsque la charge est active et valide, la phrase de synthèse inclut « avec une charge de {valeur} kg », par exemple « avec une charge de 10 kg » ; avec Sans, aucune mention de charge. En séries variables, chaque charge reste associée à sa série selon la grammaire des séries variables ; une charge unique n’est jamais présentée comme commune si les séries ont des charges différentes. La phrase reste produite en segments structurés (valeurs en gras), recalculée depuis les paramètres et non persistée. La charge ne change ni le statut des durées ni leurs symboles. La place exacte du groupe de mots dans la grammaire v15 et sa forme en séries variables ne sont pas encore fixées : voir le dossier de questions du change d’intégration (D-403).
+Lorsque la charge est active et valide, la phrase de synthèse inclut une mention de charge entre parenthèses, dans les formes de D-414 :
+
+| Cas | Mention |
+|---|---|
+| Charge commune (séries identiques) | `(charge : 20 kg)` |
+| Charges variables, jusqu’à trois séries | `(charges : 20, 12, 13 kg)` |
+| Charges variables, plus de trois séries | `(charges : 20, 12 kg, ...)` |
+| Sans charge | Aucune mention |
+
+Les valeurs sont celles des séries, dans leur ordre, avec le séparateur décimal de la langue ; une charge unique n’est jamais présentée comme commune si les séries ont des charges différentes. Aucune autre règle de compaction ou de calcul n’est appliquée. Deux points ne sont pas fixés par D-414 : la place de la mention dans la phrase (lecture proposée, non arbitrée : après la valeur par Série, la parenthèse qualifiant les séries) et la présentation, dans la liste, d’une série à zéro (sans charge pour cette série, RM-239) ; ils sont soumis à Hermann. La phrase reste produite en segments structurés (valeurs en gras), recalculée depuis les paramètres et non persistée. La charge ne change ni le statut des durées ni leurs symboles (D-403, D-414).
 
 #### RM-241 — Charge : exécution
 
@@ -348,7 +357,7 @@ Lorsque la charge est active, l’exécution affiche la charge de la série cour
 
 #### RM-242 — Changement de côté : Avec / Sans
 
-Le contrôle Changement de côté présente Avec à gauche et Sans à droite. L’utilisateur choisit lui-même le côté par lequel il commence ; Kodjo ne le qualifie pas anatomiquement. Avec rend disponibles Enchainement, avec les deux stratégies existantes (un côté après l’autre, les deux côtés à chaque série, RM-037), et Pause entre les côtés ; le chevron intérieur à Avec replie ou déploie ces lignes (RM-247). Sans masque ces lignes selon le comportement existant. Avec / Sans ne crée aucune restriction selon le nombre de séries : les règles d’éligibilité et de normalisation à N = 1 existantes s’appliquent (D-250). La désignation du côté de départ et l’enchaînement des séries sont deux informations distinctes ; seule la première est supprimée (D-406).
+Le contrôle Changement de côté présente Avec à gauche et Sans à droite. L’utilisateur choisit lui-même le côté par lequel il commence ; Kodjo ne le qualifie pas anatomiquement. Avec rend disponibles Enchainement, avec les deux stratégies existantes (un côté après l’autre, les deux côtés à chaque série, RM-037), et Pause entre les côtés ; le chevron intérieur à Avec replie ou déploie ces lignes (RM-247). Sans masque ces lignes selon le comportement existant. Avec / Sans ne crée aucune restriction selon le nombre de séries et reste disponible à N = 1. À N = 1, la ligne Enchainement n’est pas affichée ; la normalisation existante (un côté après l’autre effectif) s’applique (D-250, D-415). La désignation du côté de départ et l’enchaînement des séries sont deux informations distinctes ; seule la première est supprimée (D-406).
 
 #### RM-243 — Côtés : désignation neutre
 
@@ -360,7 +369,7 @@ Une donnée historique qui encode Droite puis gauche ou Gauche puis droite (`RIG
 
 #### RM-245 — Cadence : choix rapides
 
-La ligne Cadence propose, dans cet ordre, Autre, 5 s, 2 s, 1 s et Sans. 5 s, 2 s et 1 s fixent directement l’intervalle du bip ; Sans désactive la cadence (valeur 0) ; Autre permet de saisir une autre valeur avec le mécanisme numérique existant du paramètre, dans les bornes et au pas existants (0..10 s, pas de 1 s, D-308, D-312). L’option sélectionnée reflète la valeur courante. Le modèle reste la valeur de cadence et son activation : aucun champ par raccourci. L’affichage de la valeur personnalisée suit le contrôle existant ou sa référence Figma, sans nouvel état. Les règles de bip, son influence selon les modes, la durée estimée et la condition d’arrêt sont inchangées (D-408).
+La ligne Cadence propose, dans cet ordre, Autre, 5 s, 2 s, 1 s et Sans. 5 s, 2 s et 1 s fixent directement l’intervalle du bip ; Sans désactive la cadence (valeur 0) ; Autre permet de saisir une autre valeur avec le mécanisme numérique existant du paramètre, dans les bornes et au pas existants (0..10 s, pas de 1 s, D-308, D-312). L’option sélectionnée reflète la valeur courante. Le modèle reste la valeur de cadence et son activation : aucun champ par raccourci. L’affichage de la valeur personnalisée suit le contrôle existant ou sa référence Figma, sans nouvel état. Aucune valeur personnalisée n’est mémorisée en plus de la valeur courante : Sans puis Autre ne restaure pas une valeur personnalisée antérieure (D-420). Les règles de bip, son influence selon les modes, la durée estimée et la condition d’arrêt sont inchangées (D-408).
 
 #### RM-246 — Durée de l’exercice et signaux
 
@@ -372,7 +381,7 @@ Le chevron du tableau de séries variables est à l’intérieur de l’option V
 
 #### RM-248 — Condition d’arrêt : séries identiques
 
-La ligne Condition d’arrêt propose « À l’échec » (à gauche) et « À la cible » (à droite). En séries identiques, les deux options sont sélectionnables et le choix s’applique à toutes les séries, selon le mode de l’Exercice : À la cible donne une cible chiffrée commune (durée ou répétitions), À l’échec une cible À l’échec commune, sans nombre prescrit. La condition n’est pas définie à un second endroit (RM-250). Le type de cible par série reste la seule donnée (D-411).
+La ligne Condition d’arrêt propose « À l’échec » (à gauche) et « À la cible » (à droite). En séries identiques, les deux options sont sélectionnables et le choix s’applique à toutes les séries, selon le mode de l’Exercice : À la cible donne une cible chiffrée commune (durée ou répétitions), À l’échec une cible À l’échec commune, sans nombre prescrit. La condition n’est pas définie à un second endroit (RM-250). À la création, la Condition d’arrêt vaut À la cible (D-416). Lorsque la condition commune est À l’échec, la saisie de la durée numérique (Durée d’une série) est masquée (D-419) ; aucune cible chiffrée n’est affichée, selon la règle existante de la cible À l’échec. Le type de cible par série reste la seule donnée (D-411).
 
 #### RM-249 — Condition d’arrêt : séries variables
 
@@ -388,7 +397,8 @@ Trois résultats possibles, jamais trois boutons ni un choix manuel Mixte ; dès
 
 #### RM-250 — Roulettes de durée selon le type de série
 
-- **Séries identiques** : la roulette Durée d’une série propose uniquement une durée numérique ; À l’échec se règle par la Condition d’arrêt. L’accès à la durée suit la condition d’arrêt sélectionnée.
+- **Séries identiques** : la roulette Durée d’une série propose uniquement une durée numérique et la roulette Répétitions ne propose plus « Aucune répétition, à l’échec » (D-418) ; À l’échec se règle par la Condition d’arrêt. Lorsque celle-ci vaut À l’échec, la saisie de la durée numérique est masquée (D-419).
+- **Cellules du tableau de séries variables** : chaque cellule utilise le sélecteur existant de son champ, pour cette seule cellule : roulette de durée, roulette Répétitions (avec « Aucune répétition, à l’échec » en tête), stepper de Pause, clavier décimal de la charge (RM-239) ; aucun pied commun ± ni stepper permanent (D-413, D-417).
 - **Séries variables, mode Durée** : la roulette ouverte depuis une cellule propose une durée numérique ou « À l’échec », pour la seule série éditée ; le tableau affiche alors « à l’échec ». À l’échec n’est pas une durée nulle : il n’a pas de cible temporelle et 00:00 n’en est jamais le code. Chaque modification d’une cellule actualise immédiatement la Condition d’arrêt (RM-249), sans modifier les pauses ni les autres paramètres de la série.
 - **Retour d’À l’échec vers une durée** : conventions existantes de conservation et de saisie des valeurs ; aucune borne ni durée par défaut supplémentaire.
 - La roulette propre à une phase d’exercice n’est pas modifiée par cette règle. Les calculs des séries à l’échec sont inchangés (D-412).
@@ -461,7 +471,7 @@ Le Compte à rebours propre précède les passages et la Fin propre reste unique
 
 ### Phrase de synthèse des paramètres — Grammaire française v15
 
-Ordre : nombre de séries → contenu → pause → côtés → durée applicable. Ponctuation et accords conformes aux 276 cas ; série/séries, menée/menées. Les espaces et unités font partie du texte. Mode affiché à part, absent du début de phrase.
+Ordre : nombre de séries → contenu → pause → côtés → durée applicable. La mention de charge (RM-240, D-414) s’y ajoute ; sa place n’est pas arbitrée (lecture proposée : après le contenu). Ponctuation et accords conformes aux 276 cas ; série/séries, menée/menées. Les espaces et unités font partie du texte. Mode affiché à part, absent du début de phrase.
 
 | Cas | Forme |
 |---|---|
@@ -477,8 +487,9 @@ Ordre : nombre de séries → contenu → pause → côtés → durée applicabl
 | Uniforme, pause nulle, N>1 | `, enchaînées sans pause` |
 | Uniforme, pause nulle, N=1 | Aucune clause de pause |
 | Séries variables, tous modes | Clause de pause omise conformément aux 276 cas, même À l’échec ; aucune liste de pauses ajoutée |
+| Charge active | `(charge : {c} kg)` en séries identiques, `(charges : {c1}, {c2}, {c3} kg)` jusqu’à trois séries variables, `(charges : {c1}, {c2} kg, ...)` au-delà ; rien sans charge (RM-240, D-414) ; place dans la phrase non arbitrée (lecture proposée : accolée au contenu) |
 
-N=1 est normalisé uniforme avant génération. Les min/max viennent des cibles actives, pas de la première et dernière ligne. Aucune ellipse après les trois premières valeurs. L’omission rédactionnelle des pauses variables ne les retire jamais du plan ni du calcul. La grammaire du classeur dit « la pause figure dans l’énumération », mais ses 276 phrases variables n’énumèrent pas les pauses : conserver exactement leurs formulations, sans inventer cette énumération.
+N=1 est normalisé uniforme avant génération. Les min/max viennent des cibles actives, pas de la première et dernière ligne. Aucune ellipse après les trois premières valeurs des cibles ; la mention de charge suit ses propres formes, ellipse comprise (D-414). L’omission rédactionnelle des pauses variables ne les retire jamais du plan ni du calcul. La grammaire du classeur dit « la pause figure dans l’énumération », mais ses 276 phrases variables n’énumèrent pas les pauses : conserver exactement leurs formulations, sans inventer cette énumération.
 
 En Durée et À l’échec, le bip n’ajoute aucune clause. En Répétitions, le suffixe cadencé n’existe que pour b>0. Le texte n’explique pas les règles audio.
 
@@ -492,7 +503,7 @@ La pause après chaque série, dernière comprise, fait partie du calcul intrins
 
 ### Conventions communes d’interface — Contrôles et bornes v13
 
-Séries : stepper `1..99`. Répétitions : roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis `1..100` (décision PRE-4 Q8 du 16/10, D-385). Durée par Série : roulette `5 s..58 min 55 s` ; en séries identiques, durée numérique seule, À l’échec se réglant par la Condition d’arrêt ; dans une cellule de séries variables en mode Durée, durée numérique ou « À l’échec » (RM-250, D-412). Pause après chaque série et Pause entre les côtés : stepper dans la feuille Exercice, `0..5 min`, tap 1 s et maintien accéléré 1/5/10 selon DSF Bip (D-313) ; stepper pour les réglages du Profil. Cadence : choix Autre, 5 s, 2 s, 1 s et Sans, Autre conservant les bornes et le pas existants (RM-245, D-408). La Pause après chaque série est initialisée à `0 s` dans la feuille ; la Pause entre les côtés copie la valeur courante du Profil. Au changement de mode, les paramètres communs et les dernières valeurs spécifiques de chaque mode sont conservés pendant l’édition. Après la première sélection, le mode ne peut plus revenir à l’état vide. `Terminer` est désactivé avant cette première sélection.
+Séries : stepper `1..99`. Répétitions : roulette native à une colonne, `1..100` ; « Aucune répétition, à l’échec » en tête dans une cellule de séries variables seulement (décision PRE-4 Q8 du 16/10, D-385 ; retirée en séries identiques par D-418). Dans le tableau de séries variables, chaque cellule utilise le sélecteur de son champ, pour cette seule cellule (D-417). Durée par Série : roulette `5 s..58 min 55 s` ; en séries identiques, durée numérique seule, À l’échec se réglant par la Condition d’arrêt ; dans une cellule de séries variables en mode Durée, durée numérique ou « À l’échec » (RM-250, D-412). Pause après chaque série et Pause entre les côtés : stepper dans la feuille Exercice, `0..5 min`, tap 1 s et maintien accéléré 1/5/10 selon DSF Bip (D-313) ; stepper pour les réglages du Profil. Cadence : choix Autre, 5 s, 2 s, 1 s et Sans, Autre conservant les bornes et le pas existants (RM-245, D-408). La Pause après chaque série est initialisée à `0 s` dans la feuille ; la Pause entre les côtés copie la valeur courante du Profil. Au changement de mode, les paramètres communs et les dernières valeurs spécifiques de chaque mode sont conservés pendant l’édition. Après la première sélection, le mode ne peut plus revenir à l’état vide. `Terminer` est désactivé avant cette première sélection.
 
 ## Composition des séances
 
@@ -1890,7 +1901,7 @@ Actions :
 Cette règle s’applique aux valeurs initiales comme aux valeurs créées ensuite par l’utilisateur.
 
 #### Contrôles à roulette – Compte à rebours et fins
-Les anciennes modales basses de durée restent des références historiques. Dans la feuille ([Feuille et contrôles](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#feuille-et-contrôles)), les roulettes s’ouvrent inline sous la ligne active ; dans le Profil, les durées utilisent les steppers validés. Les autres contextes suivent leur contrat propre. Les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent des steppers inline conformément à D-219 ; la cible `Nombre de répétitions` utilise une roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385). Les sélections d’objets utilisent leurs modales dédiées.
+Les anciennes modales basses de durée restent des références historiques. Dans la feuille ([Feuille et contrôles](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#feuille-et-contrôles)), les roulettes s’ouvrent inline sous la ligne active ; dans le Profil, les durées utilisent les steppers validés. Les autres contextes suivent leur contrat propre. Les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent des steppers inline conformément à D-219 ; la cible `Nombre de répétitions` utilise une roulette native à une colonne, 1 à 100, avec « Aucune répétition, à l’échec » en tête dans une cellule de séries variables seulement (décision PRE-4 Q8 du 16/10, D-385 ; retirée en séries identiques par D-418). Les sélections d’objets utilisent leurs modales dédiées.
 
 Dans le Profil, les contrôles `Compte à rebours initial`, `Fin de séance`, `Compte à rebours d’exercice` (ancien nœud `4179:9550`, historique supprimé ; le contrôle fonctionnel reste prescrit) et `Fin d’exercice` (ancien nœud `4179:9556`, historique supprimé ; le contrôle fonctionnel reste prescrit) servent de préférences proposées à la création de nouveaux contenus. Ces valeurs suivent la validation des contrôles du Profil (CE-UI-07), sans importer la confirmation des anciennes roulettes.
 
@@ -2166,7 +2177,7 @@ Le Point d’arrêt reste un élément structurel distinct de la Récupération.
 
 #### Phrase de synthèse des paramètres d’exécution
 
-La phrase est une donnée dérivée, recalculée à chaque modification. Sans mode sélectionné elle est vide ; le mode est affiché séparément. Elle concatène dans l’ordre : nombre de Séries, valeur par Série ou `jusqu'à l'échec`, Pause après chaque série si applicable, changement de côté, puis Durée totale lorsqu’elle s’applique. Le nom de l’Exercice, le Compte à rebours, la Fin d’exercice et la Récupération post-activité n’entrent pas dans cette phrase. Une charge active y est mentionnée selon RM-240, dont la place dans la phrase n’est pas encore fixée. Source normative : chapitre 08, paramètres d’exercice, D-247 à D-255 ; classeur v10 historique.
+La phrase est une donnée dérivée, recalculée à chaque modification. Sans mode sélectionné elle est vide ; le mode est affiché séparément. Elle concatène dans l’ordre : nombre de Séries, valeur par Série ou `jusqu'à l'échec`, Pause après chaque série si applicable, changement de côté, puis Durée totale lorsqu’elle s’applique. Le nom de l’Exercice, le Compte à rebours, la Fin d’exercice et la Récupération post-activité n’entrent pas dans cette phrase. Une charge active y est mentionnée selon RM-240, entre parenthèses dans les formes de D-414 ; sa place n’est pas arbitrée (lecture proposée : après la valeur par Série). Source normative : chapitre 08, paramètres d’exercice, D-247 à D-255 ; classeur v10 historique.
 
 Les bornes fonctionnelles D-232 sont : Séries `1..99`, Répétitions par Série `1..100`, Durée par Série `5 s..58 min 55 s`, Pause après chaque série et Pause entre les côtés `0..5 min`. Dans le Profil, les réglages de durée utilisent un stepper ; dans la feuille de paramètres d’un Exercice, les pauses sont réglées par stepper. Les steppers de pauses utilisent tap 1 s puis maintien accéléré 1/5/10 selon DSF Bip ; ancienne grille dépendante de la valeur abandonnée. La Pause entre les côtés est copiée depuis le Profil lorsqu’elle devient applicable.
 

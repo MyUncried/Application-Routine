@@ -201,7 +201,7 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 - **B-074** — Comprendre le côté courant pendant l’Exécution grâce au sous-titre `Côté 1` ou `Côté 2`, sans compteur supplémentaire (D-407).
 - **B-075** — Conserver séparément les résultats du côté 1 et du côté 2, y compris lorsqu’un seul côté est partiellement réalisé.
 - **B-076** — Activer la bilatéralité d’un Circuit après confirmation ; toutes ses Exercices héritent alors du Circuit et leur contrôle propre devient unilatéral désactivé (besoin d’évolution potentiel, explicitement hors du périmètre actuel, non validé pour la version actuelle : D-209, D-395, RM-145 à RM-147).
-- **B-092** — Renseigner facultativement une charge informative en kilogrammes pour un Exercice, commune aux Séries identiques ou propre à chaque Série variable, et la retrouver pendant l’Exécution (D-403, RM-235 à RM-241).
+- **B-092** — Renseigner facultativement, dès le MVP (D-421), une charge informative en kilogrammes pour un Exercice, commune aux Séries identiques ou propre à chaque Série variable, et la retrouver pendant l’Exécution (D-403, RM-235 à RM-241).
 
 ## 9. Besoins MVP T03 — Catalogue des Exercices et Exécution directe
 

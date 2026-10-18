@@ -9,3 +9,11 @@
 - **Hors périmètre** : Figma, code, copies figées PRE-4/PRE-5, BMAD, VNext, workflows, PR ouvertes, fusion dans `main`, archivage du change.
 - **Fichiers modifiés** : 25 fichiers de `docs/` (ch. 01 à 13, 10 DSF, PRODUCT, INDEX) et l’annexe « Index des identifiants », plus 20 captures ajoutées ; dossier du change `openspec/changes/integration-parametres-execution-v3/`.
 - **Commit final et état Git** : communiqués en fin de session ; poussé sur `docs/openspec-revision` uniquement. Les archives `.zip` non suivies de `openspec/changes/` restent hors commit.
+
+## Seconde version — arbitrages de Hermann (18/10/2026)
+
+- **Départ** : `69c45e4e`.
+- **Fait** : décisions D-414 à D-421 (Q-V3-01, Q-V3-03 à Q-V3-08, Q-V3-15) enregistrées et propagées (lot `V3-11`, 40 corrections) ; dix questions traitées par les décisions existantes ; seconde passe de contrôle indépendante, 10 écarts corrigés (lot `V3-12`, 21 corrections) ; seconde passe Figma en lecture seule, nouveaux écarts signalés ; correctifs des PR recalculés.
+- **Hypothèse signalée** : place de la mention de charge (lecture proposée, non arbitrée, Q-V3-19).
+- **Restant pour Hermann** : Q-V3-16, Q-V3-19, Q-V3-20 ; coordinations Q-V3-02, Q-V3-10, Q-V3-17.
+- **Contrôles** : [controles/FINAL-3.txt](controles/FINAL-3.txt), tous réussis depuis `b6ca2321`.

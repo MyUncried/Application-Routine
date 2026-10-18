@@ -24,7 +24,7 @@ Référence courante pour les composants ci-dessous, en complément du [DSF Circ
 | Roulette numérique | 330×150, y31 | Structure numérique conservée |
 | Popover hôte de cible | 354×249 | Hauteur automatique ; ancien216 |
 
-[remplacé par D-412 le 18/10/2026 pour la durée commune des séries identiques : option absente ; conservée pour une cellule de série variable en mode Durée, RM-250] Libellé : **Aucune durée, à l’échec** / **Aucune répétition, à l’échec**, selon le mode. Option en tête ; pas de coche. Le contrôle ouvre la cible courante ; validation par ✓ de la feuille, annulation par ✕. La sélection numérique et l’échec s’excluent mutuellement.
+[remplacé par D-412 et D-418 le 18/10/2026 pour les roulettes Durée et Répétitions des séries identiques : option absente ; conservée pour une cellule de série variable, RM-250] Libellé : **Aucune durée, à l’échec** / **Aucune répétition, à l’échec**, selon le mode. Option en tête ; pas de coche. Le contrôle ouvre la cible courante ; validation par ✓ de la feuille, annulation par ✕. La sélection numérique et l’échec s’excluent mutuellement.
 
 Toutes les lignes numériques ont le remplissage `#1a1a1f`. Le dégradé dépend de **l’opacité du remplissage**, pas d’une nouvelle couleur :
 

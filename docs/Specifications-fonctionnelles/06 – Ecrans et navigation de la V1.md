@@ -610,7 +610,7 @@ Ces 20 frames sont des états de CE-UI-10, pas 20 pages applicatives. Relevé et
 
 ![Création activité — Paramètres (modale) — Champs vides](images/parametres-2026-10-18/8328-36923.png)
 
-Valider désactivé ; Durée de l’exercice affichée avec « — » (D-384, D-396).
+Valider désactivé ; Durée de l’exercice affichée avec « — » (D-384, D-396). Écart Figma : aucune Condition d’arrêt n’y est sélectionnée, alors qu’elle vaut À la cible par défaut (D-416).
 
 ##### Création activité — Paramètres (modale) — Mode d’exécution (sélection segmentée)
 
@@ -722,7 +722,7 @@ Roulette ouverte depuis une cellule de séries variables en mode Durée, avec l�
 
 ![Création activité — Paramètres (modale) — Une seule série](images/parametres-2026-10-18/8328-39072.png)
 
-Une seule série, Sans sélectionné. Écart à confronter : Avec y est désactivé, alors que les règles existantes n’interdisent pas le changement de côté à N = 1 (RM-242, D-250) ; l’état n’est pas généralisé.
+Une seule série, Sans sélectionné. Écart Figma : Avec y est désactivé ; selon D-415, à N = 1 seule la ligne Enchainement n’apparaît pas et le changement de côté Avec / Sans reste disponible (RM-242).
 
 ##### Création activité — Paramètres (modale) — Séries variables (déplacement)
 
@@ -770,7 +770,7 @@ Les états hérités (N et total non modifiables), validation incomplète, douze
 
 Le corpus de phrases et les spécifications déterminent les textes dynamiques, le gras et les calculs ; les valeurs derrière les voiles ne sont pas des recettes. Les captures sont des exports sans retouche.
 
-Références visuelles manquantes au 18/10/2026 (spécification v3.0) : état de saisie de la charge en séries identiques ; affichage de la charge pendant l’Exécution ; clavier décimal (le clavier illustré n’a pas de séparateur). Les états Avec et Sans de la charge, du changement de côté et de la Durée de l’exercice sont illustrés par les frames ci-dessus. Les liens de prototype retirés dans Figma n’abolissent aucune navigation de l’application.
+Références visuelles manquantes au 18/10/2026 (spécification v3.0) : état de saisie de la charge en séries identiques ; affichage de la charge pendant l’Exécution ; clavier décimal (le clavier illustré n’a pas de séparateur) ; séries identiques à l’échec, saisie de durée masquée (D-419) ; roulette Répétitions des séries identiques sans À l’échec (D-418) ; une seule série avec Avec sélectionné et sans ligne Enchainement (D-415) ; phrase avec mention de charge (D-414). Les états Avec et Sans de la charge, du changement de côté et de la Durée de l’exercice sont illustrés par les frames ci-dessus. Les liens de prototype retirés dans Figma n’abolissent aucune navigation de l’application.
 
 ### Calendrier
 
@@ -1663,7 +1663,7 @@ Tous les écrans et états représentés dans la page Figma `Prototype MVP` util
 - La barre d’actions place Annuler à gauche et Confirmer à droite. Chaque action possède une cible tactile de `48 × 48` points ; sa représentation est un cercle de `38 × 38`, gris neutre avec une croix sombre pour Annuler, bleu primaire avec une coche blanche pour Confirmer, contenant une icône `24 × 24`. Le conteneur de mise en page peut mesurer `48 × 53` pour conserver `7,5` points de respiration verticale autour du cercle : cette hauteur ne redéfinit pas la cible tactile, qui reste `48 × 48`. La barre est placée en haut conformément aux usages iOS : les actions sont identifiées avant le défilement et restent éloignées de l’indicateur d’accueil.
 - La roulette conserve deux zones de sélection grises distinctes, une par colonne numérique. Chaque zone mesure `56 × 34` points, avec un rayon de `17`, et couvre uniquement les chiffres centrés. Les unités `min`, `s` ou `h` restent hors de ces zones, en gras, rapprochées de leur colonne et alignées verticalement sur la valeur centrée. Aucun cadre gris continu ni cadre bleu supplémentaire ne doit apparaître.
 - Toucher une valeur ou la zone de sélection ne ferme pas la roulette. Le défilement modifie uniquement un brouillon local. Annuler ferme sans enregistrer ; Confirmer enregistre exactement les valeurs centrées puis ferme. Toute carte ou synthèse liée reste inchangée pendant le défilement et n’est actualisée qu’après confirmation. Une réouverture restitue la dernière valeur confirmée.
-- Les durées utilisent la variante de roulette en modale basse du DSF. Conformément à D-219, les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent un stepper inline et n’ouvrent aucune roulette. La cible `Nombre de répétitions` utilise une roulette native à une colonne : « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385).
+- Les durées utilisent la variante de roulette en modale basse du DSF. Conformément à D-219, les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent un stepper inline et n’ouvrent aucune roulette. La cible `Nombre de répétitions` utilise une roulette native à une colonne, 1 à 100, avec « Aucune répétition, à l’échec » en tête dans une cellule de séries variables seulement (décision PRE-4 Q8 du 16/10, D-385 ; retirée en séries identiques par D-418).
 
 #### Modales basses / bottom sheets
 

@@ -1,0 +1,366 @@
+{
+ "description": "Intégration de la spécification v3.0 — V3-11-arbitrages-hermann.txt",
+ "corrections": [
+  {
+   "id": "V3-H-001",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "CORRECTION-DECIDEE:D-414",
+   "ref": "Q-V3-01, Q-V3-03 à Q-V3-08, Q-V3-15",
+   "ancien": "- Les décisions remplacées gardent leur texte ; leur statut indique le remplacement.",
+   "nouveau": "- Les décisions remplacées gardent leur texte ; leur statut indique le remplacement.\r\n- D-414 à D-421 : réponses de Hermann du 18/10/2026 aux questions de l’intégration (dossier `questions-hermann.md` du change), Q-V3-01, Q-V3-03 à Q-V3-08 et Q-V3-15.",
+   "commentaire": "Arbitrages de Hermann du 18/10/2026 sur le dossier de questions : Q-V3-01, Q-V3-03 à Q-V3-08, Q-V3-15. / Décisions D-414 à D-421 (registre), propagées dans les règles, contrats, recettes et DSF concernés.",
+   "decision": "D-414"
+  },
+  {
+   "id": "V3-H-002",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "CORRECTION-DECIDEE:D-414",
+   "ref": "Q-V3-01, Q-V3-03 à Q-V3-08, Q-V3-15",
+   "ancien": "\r\n<a id=\"formats-decisions\"></a>",
+   "nouveau": "| D-414 | Phrase de synthèse, mention de charge : charge commune `(charge : 20 kg)` ; charges variables jusqu’à trois séries `(charges : 20, 12, 13 kg)` ; plus de trois séries `(charges : 20, 12 kg, ...)` ; sans charge, aucune mention. Les valeurs sont celles des séries, dans leur ordre ; aucune autre règle de compaction ou de calcul. Règle : RM-240. | Validée, Hermann 18/10/2026 (Q-V3-01) | Précise D-403 et RM-240 (forme de la mention) ; valeurs par série, activation, conservation, zéro et non-persistance de la phrase inchangés. |\r\n| D-415 | Lorsque le nombre de séries vaut 1, la ligne Enchainement n’apparaît pas. Le changement de côté Avec / Sans reste disponible ; les comportements validés de la bilatéralité et des séries multiples sont conservés. Règle : RM-242. | Validée, Hermann 18/10/2026 (Q-V3-04) | Précise D-250 (Ordre des côtés grisé à N = 1 : la ligne n’est plus affichée) ; la normalisation N1 (un côté après l’autre effectif) est conservée. L’état Figma « Avec désactivé » de la frame `8328:39072` n’est pas une règle. |\r\n| D-416 | La Condition d’arrêt vaut À la cible par défaut. Règle : RM-248. | Validée, Hermann 18/10/2026 (Q-V3-03) | Précise D-411. |\r\n| D-417 | Chaque cellule du tableau de séries variables utilise le sélecteur existant de son champ, adapté à cette seule cellule : roulette de durée, roulette Répétitions, stepper de Pause, clavier décimal pour la charge. Règle : RM-250. | Validée, Hermann 18/10/2026 (Q-V3-05) | Précise D-413 (pied commun ± et steppers permanents de cellules retirés) ; aucun nouveau contrôle. |\r\n| D-418 | En séries identiques, la roulette Répétitions ne propose plus « Aucune répétition, à l’échec » ; À l’échec se règle par la Condition d’arrêt. Dans une cellule de séries variables, l’option est conservée. Règle : RM-250. | Validée, Hermann 18/10/2026 (Q-V3-06) | Remplace, pour les séries identiques, l’option en tête de la roulette Répétitions (décision PRE-4 Q8 du 16/10, D-385) ; complète D-412. |\r\n| D-419 | Lorsque la condition commune des séries identiques est À l’échec, la saisie de la durée numérique (Durée d’une série) est masquée. Règle : RM-248. | Validée, Hermann 18/10/2026 (Q-V3-07) | Précise RM-250 (« l’accès à la durée suit la condition d’arrêt sélectionnée »). |\r\n| D-420 | Cadence : aucune mémorisation d’une valeur personnalisée en plus de la valeur courante ; Sans puis Autre ne restaure pas une valeur personnalisée antérieure. Règle : RM-245. | Validée, Hermann 18/10/2026 (Q-V3-08) | Précise D-408. |\r\n| D-421 | Les évolutions de la spécification v3.0 (D-403 à D-420) sont incluses dans le MVP. | Validée, Hermann 18/10/2026 (Q-V3-15) | Version de livraison (chapitre 05) ; ne déclare aucune réalisation. |\r\n\r\n<a id=\"formats-decisions\"></a>",
+   "decision": "D-414"
+  },
+  {
+   "id": "V3-H-003",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "CORRECTION-DECIDEE:D-418",
+   "ref": "Q-V3-06",
+   "ancien": "La roulette Répétitions (décision PRE-4 Q8, D-385) n’est pas visée par la spécification : voir le dossier de questions du change. |",
+   "nouveau": "La roulette Répétitions (décision PRE-4 Q8, D-385) n’est pas visée par la spécification ; précisée par D-418 (18/10/2026) : l’option « Aucune répétition, à l’échec » est retirée en séries identiques et conservée dans une cellule de séries variables. |",
+   "decision": "D-418"
+  },
+  {
+   "id": "V3-H-004",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "CORRECTION-DECIDEE:D-415",
+   "ref": "Q-V3-04",
+   "ancien": "options grisées, interrupteur visuellement désactivé. Ancien état conservé seulement pour retour N≥2 avant ✓ ; normalisation persistée à ✓. | Validée |",
+   "nouveau": "options grisées, interrupteur visuellement désactivé. Ancien état conservé seulement pour retour N≥2 avant ✓ ; normalisation persistée à ✓. | Validée ; précisée sur ce point par D-415 (18/10/2026) : à N = 1, la ligne Enchainement (Ordre des côtés) n’est pas affichée, et le changement de côté Avec / Sans reste disponible |",
+   "decision": "D-415"
+  },
+  {
+   "id": "V3-H-010",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-414",
+   "ref": "Q-V3-01, CH-08",
+   "ancien": "Lorsque la charge est active et valide, la phrase de synthèse inclut « avec une charge de {valeur} kg », par exemple « avec une charge de 10 kg » ; avec Sans, aucune mention de charge. En séries variables, chaque charge reste associée à sa série selon la grammaire des séries variables ; une charge unique n’est jamais présentée comme commune si les séries ont des charges différentes. La phrase reste produite en segments structurés (valeurs en gras), recalculée depuis les paramètres et non persistée. La charge ne change ni le statut des durées ni leurs symboles. La place exacte du groupe de mots dans la grammaire v15 et sa forme en séries variables ne sont pas encore fixées : voir le dossier de questions du change d’intégration (D-403).",
+   "nouveau": "Lorsque la charge est active et valide, la phrase de synthèse inclut une mention de charge entre parenthèses, placée après la valeur par Série (D-414) :\r\n\r\n| Cas | Mention |\r\n|---|---|\r\n| Charge commune (séries identiques) | `(charge : 20 kg)` |\r\n| Charges variables, jusqu’à trois séries | `(charges : 20, 12, 13 kg)` |\r\n| Charges variables, plus de trois séries | `(charges : 20, 12 kg, ...)` |\r\n| Sans charge | Aucune mention |\r\n\r\nLes valeurs sont celles des séries, dans leur ordre, avec le séparateur décimal de la langue ; une charge unique n’est jamais présentée comme commune si les séries ont des charges différentes. Aucune autre règle de compaction ou de calcul n’est appliquée. La phrase reste produite en segments structurés (valeurs en gras), recalculée depuis les paramètres et non persistée. La charge ne change ni le statut des durées ni leurs symboles (D-403, D-414).",
+   "decision": "D-414"
+  },
+  {
+   "id": "V3-H-011",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-414",
+   "ref": "Q-V3-01",
+   "ancien": "Une charge active y est mentionnée selon RM-240, dont la place dans la phrase n’est pas encore fixée.",
+   "nouveau": "Une charge active y est mentionnée selon RM-240, entre parenthèses après la valeur par Série (D-414).",
+   "decision": "D-414"
+  },
+  {
+   "id": "V3-H-012",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-414",
+   "ref": "Q-V3-01",
+   "ancien": "Ordre : nombre de séries → contenu → pause → côtés → durée applicable.",
+   "nouveau": "Ordre : nombre de séries → contenu → mention de charge éventuelle (RM-240, D-414) → pause → côtés → durée applicable.",
+   "decision": "D-414"
+  },
+  {
+   "id": "V3-H-013",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-414",
+   "ref": "Q-V3-01",
+   "ancien": "| Séries variables, tous modes | Clause de pause omise conformément aux 276 cas, même À l’échec ; aucune liste de pauses ajoutée |",
+   "nouveau": "| Séries variables, tous modes | Clause de pause omise conformément aux 276 cas, même À l’échec ; aucune liste de pauses ajoutée |\r\n| Charge active | Accoler au contenu `(charge : {c} kg)` en séries identiques, `(charges : {c1}, {c2}, {c3} kg)` jusqu’à trois séries variables, `(charges : {c1}, {c2} kg, ...)` au-delà ; rien sans charge (RM-240, D-414) |",
+   "decision": "D-414"
+  },
+  {
+   "id": "V3-H-014",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-415",
+   "ref": "Q-V3-04, CO-01",
+   "ancien": "Avec / Sans ne crée aucune restriction selon le nombre de séries : les règles d’éligibilité et de normalisation à N = 1 existantes s’appliquent (D-250).",
+   "nouveau": "Avec / Sans ne crée aucune restriction selon le nombre de séries et reste disponible à N = 1. À N = 1, la ligne Enchainement n’est pas affichée ; la normalisation existante (un côté après l’autre effectif) s’applique (D-250, D-415).",
+   "decision": "D-415"
+  },
+  {
+   "id": "V3-H-015",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-420",
+   "ref": "Q-V3-08, CA-01",
+   "ancien": "L’affichage de la valeur personnalisée suit le contrôle existant ou sa référence Figma, sans nouvel état. Les règles de bip, son influence selon les modes, la durée estimée et la condition d’arrêt sont inchangées (D-408).",
+   "nouveau": "L’affichage de la valeur personnalisée suit le contrôle existant ou sa référence Figma, sans nouvel état. Aucune valeur personnalisée n’est mémorisée en plus de la valeur courante : Sans puis Autre ne restaure pas une valeur personnalisée antérieure (D-420). Les règles de bip, son influence selon les modes, la durée estimée et la condition d’arrêt sont inchangées (D-408).",
+   "decision": "D-420"
+  },
+  {
+   "id": "V3-H-016",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-416",
+   "ref": "Q-V3-03, Q-V3-07, AR-01",
+   "ancien": "La condition n’est pas définie à un second endroit (RM-250). Le type de cible par série reste la seule donnée (D-411).",
+   "nouveau": "La condition n’est pas définie à un second endroit (RM-250). À la création, la Condition d’arrêt vaut À la cible (D-416). Lorsque la condition commune est À l’échec, la saisie de la durée numérique (Durée d’une série) est masquée (D-419) ; aucune cible chiffrée n’est affichée, selon la règle existante de la cible À l’échec. Le type de cible par série reste la seule donnée (D-411).",
+   "decision": "D-416"
+  },
+  {
+   "id": "V3-H-017",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-418",
+   "ref": "Q-V3-05, Q-V3-06, Q-V3-07, RO-01",
+   "ancien": "- **Séries identiques** : la roulette Durée d’une série propose uniquement une durée numérique ; À l’échec se règle par la Condition d’arrêt. L’accès à la durée suit la condition d’arrêt sélectionnée.",
+   "nouveau": "- **Séries identiques** : la roulette Durée d’une série propose uniquement une durée numérique et la roulette Répétitions ne propose plus « Aucune répétition, à l’échec » (D-418) ; À l’échec se règle par la Condition d’arrêt. Lorsque celle-ci vaut À l’échec, la saisie de la durée numérique est masquée (D-419).\r\n- **Cellules du tableau de séries variables** : chaque cellule utilise le sélecteur existant de son champ, pour cette seule cellule : roulette de durée, roulette Répétitions (avec « Aucune répétition, à l’échec » en tête), stepper de Pause, clavier décimal de la charge (RM-239) ; aucun pied commun ± ni stepper permanent (D-413, D-417).",
+   "decision": "D-418"
+  },
+  {
+   "id": "V3-H-018",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-418",
+   "ref": "Q-V3-05, Q-V3-06",
+   "ancien": "Séries : stepper `1..99`. Répétitions : roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis `1..100` (décision PRE-4 Q8 du 16/10, D-385).",
+   "nouveau": "Séries : stepper `1..99`. Répétitions : roulette native à une colonne, `1..100` ; « Aucune répétition, à l’échec » en tête dans une cellule de séries variables seulement (décision PRE-4 Q8 du 16/10, D-385 ; retirée en séries identiques par D-418). Dans le tableau de séries variables, chaque cellule utilise le sélecteur de son champ, pour cette seule cellule (D-417).",
+   "decision": "D-418"
+  },
+  {
+   "id": "V3-H-020",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "motif": "CORRECTION-DECIDEE:D-415",
+   "ref": "Q-V3-04",
+   "ancien": "Champ de régime non modifiable, selon la normalisation N1 existante ; Ordre des côtés grisé lorsqu’il est visible en bilatéral ; aucun texte explicatif.",
+   "nouveau": "Champ de régime non modifiable, selon la normalisation N1 existante ; ligne Enchainement (Ordre des côtés) non affichée, le changement de côté Avec / Sans restant disponible (D-415) ; aucun texte explicatif.",
+   "decision": "D-415"
+  },
+  {
+   "id": "V3-H-021",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "motif": "CORRECTION-DECIDEE:D-418",
+   "ref": "Q-V3-06",
+   "ancien": "| Exercice | Sélection      | « Aucune répétition, à l’échec » en tête, puis 1 à 100, dans la feuille CE-UI-10 (décision PRE-4 Q8 du 16/10, D-385) |",
+   "nouveau": "| Exercice | Sélection      | 1 à 100 dans la feuille CE-UI-10 ; « Aucune répétition, à l’échec » en tête dans une cellule de séries variables seulement (décision PRE-4 Q8 du 16/10, D-385 ; retirée en séries identiques par D-418) |",
+   "decision": "D-418"
+  },
+  {
+   "id": "V3-H-022",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "motif": "CORRECTION-DECIDEE:D-417",
+   "ref": "Q-V3-05",
+   "ancien": "la cellule du tableau variable n’a ni stepper ni pied commun ± (D-413) |",
+   "nouveau": "la cellule Pause du tableau variable ouvre le stepper de Pause pour cette seule cellule, sans pied commun ± (D-413, D-417) |",
+   "decision": "D-417"
+  },
+  {
+   "id": "V3-H-023",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "motif": "CORRECTION-DECIDEE:D-415",
+   "ref": "Q-V3-04",
+   "ancien": "| Exercice | Sélectionner | Grisé à N = 1 ([Paramètres et brouillon d’un exercice](#parametres-exercice)) ; indépendant du côté de départ |",
+   "nouveau": "| Exercice | Sélectionner | Non affiché à N = 1 (D-415, [Paramètres et brouillon d’un exercice](#parametres-exercice)) ; indépendant du côté de départ |",
+   "decision": "D-415"
+  },
+  {
+   "id": "V3-H-024",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "motif": "CORRECTION-DECIDEE:D-416",
+   "ref": "Q-V3-03",
+   "ancien": "| — | Dérivée des cibles des séries |",
+   "nouveau": "| — | À la cible à la création (D-416) ; dérivée des cibles des séries en séries variables |",
+   "decision": "D-416"
+  },
+  {
+   "id": "V3-H-025",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "motif": "CORRECTION-DECIDEE:D-417",
+   "ref": "Q-V3-05, Q-V3-06, Q-V3-07",
+   "ancien": "Le tableau de séries variables n’a ni pied commun ± ni stepper de cellule (D-413).",
+   "nouveau": "Le tableau de séries variables n’a ni pied commun ± ni stepper permanent de cellule (D-413) ; chaque cellule utilise le sélecteur existant de son champ (D-417). En séries identiques, la roulette Répétitions n’a plus d’option À l’échec (D-418) et la saisie de durée est masquée lorsque la condition commune est À l’échec (D-419) ; la Condition d’arrêt vaut À la cible par défaut (D-416) ; à N = 1, la ligne Enchainement n’est pas affichée (D-415).",
+   "decision": "D-417"
+  },
+  {
+   "id": "V3-H-030",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-418",
+   "ref": "Q-V3-06, Q-V3-07",
+   "ancien": "Le sort de « Aucune répétition, à l’échec » dans la roulette Répétitions des séries identiques n’est pas tranché par la spécification v3.0 (D-412) : dossier de questions du change.",
+   "nouveau": "En séries identiques, la roulette Répétitions ne propose plus « Aucune répétition, à l’échec » (D-418) et la saisie de durée est masquée lorsque la condition commune est À l’échec (D-419) ; dans une cellule de séries variables, la roulette Répétitions garde cette option en tête.",
+   "decision": "D-418"
+  },
+  {
+   "id": "V3-H-031",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-416",
+   "ref": "Q-V3-03",
+   "ancien": "| 2 | Condition d’arrêt | Cadre 1. À l’échec (à gauche) / À la cible (à droite). Identiques : sélectionnable, le choix vaut pour toutes les séries (RM-248).",
+   "nouveau": "| 2 | Condition d’arrêt | Cadre 1. À l’échec (à gauche) / À la cible (à droite) ; À la cible par défaut (D-416). Identiques : sélectionnable, le choix vaut pour toutes les séries (RM-248) ; À l’échec masque la saisie de durée (D-419).",
+   "decision": "D-416"
+  },
+  {
+   "id": "V3-H-032",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-417",
+   "ref": "Q-V3-05, Q-V3-06",
+   "ancien": "roulette Durée d’une série numérique seule, À l’échec choisi par la Condition d’arrêt, sans nombre prescrit (RM-248, RM-250). Variables : tableau rattaché à Type de série, ligne numérotée, poignée, colonnes Durée ou Répétitions, Pause et, si la charge est active, Charge ; lignes de 36 px, sans pied ± ni stepper de cellule (D-413) ; en Durée, la roulette d’une cellule propose une durée ou « À l’échec » pour cette seule série (RM-250) |",
+   "nouveau": "roulettes Durée d’une série et Répétitions sans option À l’échec (D-418), À l’échec choisi par la Condition d’arrêt, sans nombre prescrit (RM-248, RM-250). Variables : tableau rattaché à Type de série, ligne numérotée, poignée, colonnes Durée ou Répétitions, Pause et, si la charge est active, Charge ; lignes de 36 px, sans pied ± ni stepper permanent (D-413) ; chaque cellule utilise le sélecteur existant de son champ, pour cette seule cellule : roulette de durée ou Répétitions avec « À l’échec », stepper de Pause, clavier de charge (D-417, RM-250) |",
+   "decision": "D-417"
+  },
+  {
+   "id": "V3-H-033",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-415",
+   "ref": "Q-V3-04",
+   "ancien": "| 8 | Enchainement | Ordre des côtés. Avec uniquement, deux options à la notation Figma (RM-243) ; grisé à 1 |",
+   "nouveau": "| 8 | Enchainement | Ordre des côtés. Avec uniquement, deux options à la notation Figma (RM-243) ; non affiché à N = 1, Avec / Sans restant disponible (D-415) |",
+   "decision": "D-415"
+  },
+  {
+   "id": "V3-H-034",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-418",
+   "ref": "Q-V3-06",
+   "ancien": "La roulette Répétitions n’est pas visée par D-412 : dossier de questions du change.",
+   "nouveau": "La roulette Répétitions suit D-418 : sans option À l’échec en séries identiques, avec « Aucune répétition, à l’échec » en tête dans une cellule de séries variables.",
+   "decision": "D-418"
+  },
+  {
+   "id": "V3-H-035",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-414",
+   "ref": "Q-V3-01",
+   "ancien": "Le groupe « avec une charge de … kg » suit le même rendu en segments ; sa place dans la grammaire n’est pas encore fixée (RM-240).",
+   "nouveau": "La mention de charge `(charge : 20 kg)` ou `(charges : 20, 12, 13 kg)` suit le même rendu en segments, après la valeur par Série (RM-240, D-414).",
+   "decision": "D-414"
+  },
+  {
+   "id": "V3-H-036",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-416",
+   "ref": "Q-V3-03",
+   "ancien": "Création : mode/durée/côté non renseignés —, Série 1, Pause 0 s, charge Sans (RM-236)",
+   "nouveau": "Création : mode/durée/côté non renseignés —, Série 1, Pause 0 s, charge Sans (RM-236), Condition d’arrêt À la cible (D-416)",
+   "decision": "D-416"
+  },
+  {
+   "id": "V3-H-037",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-414",
+   "ref": "Q-V3-01, Q-V3-03 à Q-V3-08",
+   "ancien": "Recette applicative non exécutée par cette mise à jour documentaire.",
+   "nouveau": "Compléments du 18/10 (D-414 à D-420) : phrase « (charge : 20 kg) », « (charges : 20, 25, 30 kg) » et, pour quatre séries, « (charges : 20, 12 kg, ...) », aucune mention avec Sans ; N = 1 avec Avec : ligne Enchainement absente, Avec / Sans modifiable ; création avec Condition d’arrêt À la cible ; À l’échec commun : saisie de durée masquée ; roulette Répétitions des séries identiques sans À l’échec, cellule variable avec ; cellule Pause ouvrant son stepper ; Sans puis Autre sans restauration d’une valeur personnalisée. Recette applicative non exécutée par cette mise à jour documentaire.",
+   "decision": "D-414"
+  },
+  {
+   "id": "V3-H-038",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-414",
+   "ref": "Q-V3-01",
+   "ancien": "Phrase avec charge : charge commune 10 kg et 1,25 kg, charges différentes par série restant associées à leur série, Sans sans mention, Sans puis Avec restaurant la valeur (RM-240, RM-236).",
+   "nouveau": "Phrase avec charge : « (charge : 10 kg) » et « (charge : 1,25 kg) », « (charges : 20, 12, 13 kg) », « (charges : 20, 12 kg, ...) » au-delà de trois séries, Sans sans mention, Sans puis Avec restaurant la valeur (RM-240, D-414, RM-236).",
+   "decision": "D-414"
+  },
+  {
+   "id": "V3-H-040",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "motif": "CORRECTION-DECIDEE:D-415",
+   "ref": "Q-V3-04",
+   "ancien": "Une seule série, Sans sélectionné. Écart à confronter : Avec y est désactivé, alors que les règles existantes n’interdisent pas le changement de côté à N = 1 (RM-242, D-250) ; l’état n’est pas généralisé.",
+   "nouveau": "Une seule série, Sans sélectionné. Écart Figma : Avec y est désactivé ; selon D-415, à N = 1 seule la ligne Enchainement n’apparaît pas et le changement de côté Avec / Sans reste disponible (RM-242).",
+   "decision": "D-415"
+  },
+  {
+   "id": "V3-H-041",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "motif": "CORRECTION-DECIDEE:D-416",
+   "ref": "Q-V3-03",
+   "ancien": "Valider désactivé ; Durée de l’exercice affichée avec « — » (D-384, D-396).",
+   "nouveau": "Valider désactivé ; Durée de l’exercice affichée avec « — » (D-384, D-396). Écart Figma : aucune Condition d’arrêt n’y est sélectionnée, alors qu’elle vaut À la cible par défaut (D-416).",
+   "decision": "D-416"
+  },
+  {
+   "id": "V3-H-042",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "motif": "CORRECTION-DECIDEE:D-418",
+   "ref": "Q-V3-06",
+   "ancien": "La cible `Nombre de répétitions` utilise une roulette native à une colonne : « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385).",
+   "nouveau": "La cible `Nombre de répétitions` utilise une roulette native à une colonne, 1 à 100, avec « Aucune répétition, à l’échec » en tête dans une cellule de séries variables seulement (décision PRE-4 Q8 du 16/10, D-385 ; retirée en séries identiques par D-418).",
+   "decision": "D-418"
+  },
+  {
+   "id": "V3-H-043",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "motif": "CORRECTION-DECIDEE:D-416",
+   "ref": "§4, Q-V3-03, Q-V3-04",
+   "ancien": "Références visuelles manquantes au 18/10/2026 (spécification v3.0) : état de saisie de la charge en séries identiques ; affichage de la charge pendant l’Exécution ; clavier décimal (le clavier illustré n’a pas de séparateur).",
+   "nouveau": "Références visuelles manquantes au 18/10/2026 (spécification v3.0) : état de saisie de la charge en séries identiques ; affichage de la charge pendant l’Exécution ; clavier décimal (le clavier illustré n’a pas de séparateur) ; séries identiques à l’échec, saisie de durée masquée (D-419) ; roulette Répétitions des séries identiques sans À l’échec (D-418) ; une seule série avec Avec sélectionné et sans ligne Enchainement (D-415) ; phrase avec mention de charge (D-414).",
+   "decision": "D-416"
+  },
+  {
+   "id": "V3-H-050",
+   "file": "@12 – Architecture technique.md",
+   "motif": "CORRECTION-DECIDEE:D-418",
+   "ref": "Q-V3-06",
+   "ancien": "La cible Répétitions utilise une roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385) |",
+   "nouveau": "La cible Répétitions utilise une roulette native à une colonne, 1 à 100, avec « Aucune répétition, à l’échec » en tête dans une cellule de séries variables seulement (décision PRE-4 Q8 du 16/10, D-385 ; retirée en séries identiques par D-418) |",
+   "decision": "D-418"
+  },
+  {
+   "id": "V3-H-051",
+   "file": "@12 – Architecture technique.md",
+   "motif": "CORRECTION-DECIDEE:D-418",
+   "ref": "Q-V3-06",
+   "ancien": "la cible `Nombre de répétitions` utilise une roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385). L’implémentation",
+   "nouveau": "la cible `Nombre de répétitions` utilise une roulette native à une colonne, 1 à 100, avec « Aucune répétition, à l’échec » en tête dans une cellule de séries variables seulement (décision PRE-4 Q8 du 16/10, D-385 ; retirée en séries identiques par D-418). L’implémentation",
+   "decision": "D-418"
+  },
+  {
+   "id": "V3-H-060",
+   "file": "PRODUCT.md",
+   "motif": "CORRECTION-DECIDEE:D-418",
+   "ref": "Q-V3-06",
+   "ancien": "la cible `Nombre de répétitions` utilise une roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385).",
+   "nouveau": "la cible `Nombre de répétitions` utilise une roulette native à une colonne, 1 à 100, avec « Aucune répétition, à l’échec » en tête dans une cellule de séries variables seulement (décision PRE-4 Q8 du 16/10, D-385 ; retirée en séries identiques par D-418).",
+   "decision": "D-418"
+  },
+  {
+   "id": "V3-H-061",
+   "file": "DSF-DEUX-MODES-ECHEC-2026-10-13.md",
+   "motif": "CORRECTION-DECIDEE:D-418",
+   "ref": "Q-V3-06",
+   "ancien": "[remplacé par D-412 le 18/10/2026 pour la durée commune des séries identiques : option absente ; conservée pour une cellule de série variable en mode Durée, RM-250]",
+   "nouveau": "[remplacé par D-412 et D-418 le 18/10/2026 pour les roulettes Durée et Répétitions des séries identiques : option absente ; conservée pour une cellule de série variable, RM-250]",
+   "decision": "D-418"
+  },
+  {
+   "id": "V3-H-062",
+   "file": "DSF-CIRCUITS-CONTROLES-2026-10-12.md",
+   "motif": "CORRECTION-DECIDEE:D-417",
+   "ref": "Q-V3-05",
+   "ancien": "**Mise à jour du 18/10/2026 — spécification v3.0 :**",
+   "nouveau": "**Mise à jour du 18/10/2026 — spécification v3.0 :**\r\n- Arbitrages de Hermann du 18/10/2026 : chaque cellule du tableau variable utilise le sélecteur existant de son champ, pour cette seule cellule (D-417) ; à une seule série, la ligne Enchainement n’apparaît pas (D-415).",
+   "decision": "D-417"
+  },
+  {
+   "id": "V3-H-070",
+   "file": "@05 – Versions du produit.md",
+   "motif": "CORRECTION-DECIDEE:D-421",
+   "ref": "Q-V3-15",
+   "ancien": "## Champs et comportements des fonctionnalités — Suivi - Vue d'ensemble",
+   "nouveau": "### MVP — complément paramètres d’exécution du 18/10/2026 (D-421)\r\n\r\n- charge informative facultative, commune ou par série (RM-235 à RM-241) ;\r\n- changement de côté Avec / Sans sans désignation anatomique, désignation côté 1 / côté 2 (RM-242 à RM-244) ;\r\n- cadence à choix rapides (RM-245), Durée de l’exercice et repli des signaux (RM-246), chevrons intégrés (RM-247) ;\r\n- Condition d’arrêt saisie ou dérivée, roulettes selon le type de série (RM-248 à RM-250) ;\r\n- présentation de la feuille en quatre cadres (D-413).\r\n\r\nCes évolutions sont des cibles documentées du MVP ; aucune réalisation n’est déclarée.\r\n\r\n## Champs et comportements des fonctionnalités — Suivi - Vue d'ensemble",
+   "decision": "D-421"
+  },
+  {
+   "id": "V3-H-071",
+   "file": "@02 – Utilisateurs et besoins.md",
+   "motif": "CORRECTION-DECIDEE:D-421",
+   "ref": "Q-V3-15",
+   "ancien": "- **B-092** — Renseigner facultativement une charge informative en kilogrammes pour un Exercice, commune aux Séries identiques ou propre à chaque Série variable, et la retrouver pendant l’Exécution (D-403, RM-235 à RM-241).",
+   "nouveau": "- **B-092** — Renseigner facultativement, dès le MVP (D-421), une charge informative en kilogrammes pour un Exercice, commune aux Séries identiques ou propre à chaque Série variable, et la retrouver pendant l’Exécution (D-403, RM-235 à RM-241).",
+   "decision": "D-421"
+  },
+  {
+   "id": "V3-H-080",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-411",
+   "ref": "Q-V3-16 (décisions existantes : CE-FMT-04, D-360, RM-247)",
+   "ancien": "Tabata affiche Durée/8/20 s/10 s grisées et non modifiables, avec raison. Ne pas appliquer à cet état le tiret d’une valeur sans effet.",
+   "nouveau": "Tabata affiche Durée/8/20 s/10 s grisées et non modifiables, avec raison. Ne pas appliquer à cet état le tiret d’une valeur sans effet. La Condition d’arrêt qui résulte d’une cible chiffrée imposée est À la cible, valeur réelle non modifiable (RM-247) ; la présence de la ligne dans la feuille d’un format suit sa frame de référence.",
+   "decision": "D-411"
+  }
+ ]
+}

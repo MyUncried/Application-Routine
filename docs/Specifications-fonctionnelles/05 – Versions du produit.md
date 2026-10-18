@@ -262,6 +262,16 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 - ajout dans une Séance par copie indépendante et sélection multiple ; pas d’action `Enregistrer dans mes exercices` dans la première livraison ;
 - Exécution directe avec préparation fixe de `5 s`, Synthèse à Ressenti obligatoire, Suivi général et statistiques compatibles.
 
+### MVP — complément paramètres d’exécution du 18/10/2026 (D-421)
+
+- charge informative facultative, commune ou par série (RM-235 à RM-241) ;
+- changement de côté Avec / Sans sans désignation anatomique, désignation côté 1 / côté 2 (RM-242 à RM-244) ;
+- cadence à choix rapides (RM-245), Durée de l’exercice et repli des signaux (RM-246), chevrons intégrés (RM-247) ;
+- Condition d’arrêt saisie ou dérivée, roulettes selon le type de série (RM-248 à RM-250) ;
+- présentation de la feuille en quatre cadres (D-413).
+
+Ces évolutions sont des cibles documentées du MVP ; aucune réalisation n’est déclarée.
+
 ## Champs et comportements des fonctionnalités — Suivi - Vue d'ensemble
 
 ### Règles liées à la couleur

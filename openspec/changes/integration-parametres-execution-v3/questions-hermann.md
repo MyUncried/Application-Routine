@@ -1,29 +1,33 @@
 # Questions pour Hermann — intégration de la spécification v3.0 (18/10/2026)
 
-La spécification déclare ses arbitrages clos. Les points ci-dessous ne sont pas tranchés par son texte ni par une règle existante ; la documentation énonce ce qui est décidé et renvoie ici, sans inventer de règle. Aucun ne bloque la relecture de l’intégration.
+Questions ouvertes par l’intégration, puis arbitrées par Hermann le 18/10/2026. La seconde passe de contrôle indépendante a fait apparaître trois points que les arbitrages ne fixent pas : Q-V3-16 (rouverte), Q-V3-19 et Q-V3-20. Q-V3-10 (tokens) et Q-V3-17 (phases, PR #370) restent des coordinations avec d’autres chantiers.
 
-## Questions ouvertes
+## Statut des questions (arbitrages de Hermann du 18/10/2026)
 
-| ID | Sujet | Constat | Ce que dit la documentation aujourd’hui | Emplacements |
+Hermann a clos Q-V3-01 et Q-V3-04, et validé Q-V3-03, 05, 06, 07, 08 et 15 : décisions D-414 à D-421 du registre, propagées dans les règles, contrats, recettes et DSF. Pour les dix autres questions, les décisions existantes sont appliquées et les vérifications ou coordinations déjà identifiées sont suivies.
+
+| ID | Sujet | Statut | Décision ou traitement | Emplacements |
 |---|---|---|---|---|
-| Q-V3-01 | Charge dans la phrase de synthèse | CH-08 laisse « à intégrer » la place du groupe « avec une charge de 10 kg » dans la grammaire v15, ainsi que sa forme en séries variables (énumération, compaction au-delà de trois valeurs, séries à zéro) | Mention incluse si la charge est active, associée à chaque série, segments en gras, non persistée ; place et forme variables non fixées | RM-240 ; CE-UI-10 « Rendu et accessibilité de la phrase » |
-| Q-V3-02 | Phrase des côtés | Les formes neutres « en faisant le côté 1 puis le côté 2 », « en alternant le côté 1 puis le côté 2 à chaque série », « en faisant d’abord toutes les séries du côté 1, puis du côté 2 » remplacent des textes du corpus v15 (276 cas) | Formes neutres appliquées (D-407) ; le corpus de recette n’est pas réécrit | ch. 10 « Phrase de synthèse — Côtés et durée » |
-| Q-V3-03 | Condition d’arrêt à la création | Aucune valeur initiale n’est donnée (la frame 9289:17849 montre À la cible, à titre d’exemple) | Aucune sélection initiale écrite | RM-248 ; CE-UI-10 « Règles communes » |
-| Q-V3-04 | Changement de côté à une seule série | La frame 8328:39072 montre Avec désactivé à N = 1 ; aucune règle existante n’interdit le changement de côté à N = 1 (seul l’Enchainement est grisé, D-250). CO-01 demande de confronter avant de généraliser | Règle existante conservée ; état Figma signalé, non généralisé | RM-242 ; ch. 06 capture 8328:39072 |
-| Q-V3-05 | Réglage des cellules du tableau variable | D-413 retire le pied commun ± et les steppers de cellules ; seule la roulette d’une cellule Durée est décrite (RM-250). Le contrôle d’une cellule Pause ou Répétitions n’est pas spécifié | Aucun contrôle inventé | CE-UI-10 rubrique 9 ; ch. 08 éléments affichés ; ch. 10 conventions v13 |
-| Q-V3-06 | Roulette Répétitions en séries identiques | RO-01 ne vise que la durée ; AR-01 demande de ne pas définir la condition à deux endroits. La roulette Répétitions garde « Aucune répétition, à l’échec » en tête (décision PRE-4 Q8, D-385) | Option conservée ; D-412 renvoie ici | D-412 ; CE-UI-10 « Sélecteur de cible » ; ch. 06 et 08 |
-| Q-V3-07 | Ligne de durée en séries identiques à l’échec | RO-01 : « l’accès au champ de durée suit l’applicabilité déjà définie », mais aucune n’est définie pour l’état À l’échec commun (ligne masquée, « — », ou cadre informatif « à l’échec » du ch. 10) | Non précisé | RM-248, RM-250 ; ch. 10 « Exercice — Règles fonctionnelles » |
-| Q-V3-08 | Cadence : Sans puis Autre | Rien n’indique si Autre restaure une valeur personnalisée antérieure après Sans, ni comment s’affiche la valeur personnalisée (CA-01 renvoie au contrôle existant ou à Figma) | Valeur 0 = Sans ; Autre utilise le stepper existant 0..10, pas 1 s | RM-245 |
-| Q-V3-09 | Notation d’Enchainement dans Figma | La notation conservée (PR-05, §9.3) affiche « (D1 → D2) → (G1 → G2) », avec les lettres D et G, alors que CO-01 retire toute désignation anatomique | Notation Figma conservée, sans nouvelle notation | RM-243 ; ch. 06 capture 8328:38193 |
-| Q-V3-10 | Tokens de la feuille | PR-03 et GR-01 demandent de relever les valeurs dans Figma avant de publier le DSF. Plusieurs tokens du ch. 12 décrivent l’ancienne présentation : `color.parametersSegmentedBorder`, `color.parametersSegmentedOption`, `color.variableSeriesGroupSurface`, `color.selectionSubtitle`, `type.segmentedCompactLabel`, `type.segmentedLabel` (tailles 13 et 14/11 des popovers) | Tokens inchangés (aucune valeur relevée) ; blocs du 18/10 des DSF : « valeurs à relever » | ch. 12, design tokens ; DSF |
-| Q-V3-11 | Historique des côtés | Les valeurs historiques `RIGHT` / `LEFT` des résultats correspondent à côté 1 ou côté 2 selon le sens historique (`RIGHT_LEFT` ou `LEFT_RIGHT`) ; RM-244 exige seulement qu’elles restent lisibles | Lisibilité exigée, correspondance non fixée | RM-244 ; ch. 09 |
-| Q-V3-12 | Carte Paramètres du formulaire | CE-T03-04 affiche Compte à rebours et Fin sous la phrase de la carte parent ; DU-01 vise la feuille. Ces lignes de la carte restent-elles toujours visibles ? | Non modifié | CE-T03-04 ; ch. 08 « Implantation des contrôles » |
-| Q-V3-13 | Texte « Durée totale : » de la phrase | DU-01 renomme la ligne de la feuille ; la phrase de synthèse affiche encore « Durée totale : {total}. » (corpus v15, capture 8328:37022) | Texte de la phrase inchangé | ch. 10 « Phrase — Côtés et durée » ; PRODUCT |
-| Q-V3-14 | Contrôles segmentés au lieu des popovers | GR-01, PR-03 et le scénario « Mode d’exécution (sélection segmentée) » décrivent des contrôles segmentés ; D-413 l’écrit et nomme D-377 comme remplacée pour Mode, Type de série et Changement de côté. Lecture à confirmer | D-413 appliquée | D-413 ; CE-UI-10 |
-| Q-V3-15 | Version de livraison | La spécification ne dit pas dans quelle version du produit (ch. 05) ces évolutions sont livrées ; B-092 est rangé parmi les « besoins validés pour les évolutions » | Aucune version attribuée | ch. 02, ch. 05 |
-| Q-V3-16 | Formats imposés | CE-FMT-04 : avec les constantes Tabata (Durée, 8, 20 s, 10 s), la Condition d’arrêt est-elle une valeur imposée grisée (À la cible) ou masquée ? | Non modifié au-delà du renvoi à D-413 | CE-FMT-04 |
-| Q-V3-17 | Phases (PR #370) | #370 rend les phases incompatibles avec une cible À l’échec ; RO-01 demande de ne pas retirer l’option À l’échec de la roulette d’une phase. #370 décrit aussi « Aucune » sans chevron et un tableau avec son pied ; CV-01 et D-413 demandent Avec / Sans, chevron intérieur, sans pied | Points phases décidés au registre (D-410, D-412, D-413), à appliquer par le chantier #370 | [dependances-pr.md](dependances-pr.md) |
-| Q-V3-18 | Terminologie résiduelle | « Direction effective » (glossaire, ch. 04), « bilatéralité par miroir » (cartes), le mot « popover » de la règle d’Annuler (décision PRE-4 Q29), « charge additionnelle » des formats (ch. 10, Progression : exclusion propre aux formats ou levée par D-403 ?) | Termes conservés | ch. 01, 04, 10, 12 |
+| Q-V3-01 | Charge dans la phrase de synthèse | Close | D-414 : `(charge : 20 kg)` ; `(charges : 20, 12, 13 kg)` jusqu’à trois séries ; `(charges : 20, 12 kg, ...)` au-delà ; aucune mention sans charge. La place de la mention n’est pas fixée : voir Q-V3-19 | RM-240 ; ch. 10 grammaire v15 ; CE-UI-10 ; CE-T03-04 |
+| Q-V3-02 | Phrase des côtés | Close par décision existante | D-407 (côté 1 / côté 2) appliquée ; mise à jour du corpus de recette v15 à coordonner avec le chantier de la phrase | ch. 10 « Côtés et durée » |
+| Q-V3-03 | Condition d’arrêt à la création | Close | D-416 : À la cible par défaut | RM-248 ; CE-UI-10 ; ch. 08 |
+| Q-V3-04 | Changement de côté à une seule série | Close | D-415 : à N = 1, la ligne Enchainement n’apparaît pas ; Avec / Sans reste disponible ; normalisation N1 conservée | RM-242 ; D-250 (statut) ; ch. 08 ; CE-UI-10 |
+| Q-V3-05 | Réglage des cellules du tableau variable | Close | D-417 : chaque cellule utilise le sélecteur existant de son champ ; d’après les règles en vigueur : roulettes de durée et Répétitions (D-219, D-385), stepper de Pause (RM-234), clavier de charge (D-405) | RM-250 ; CE-UI-10 ; ch. 08, ch. 10 |
+| Q-V3-06 | Roulette Répétitions en séries identiques | Close | D-418 : option À l’échec retirée en séries identiques, conservée dans une cellule variable | RM-250 ; ch. 06, 08, 10, 12 ; PRODUCT ; DSF Deux modes |
+| Q-V3-07 | Durée en séries identiques à l’échec | Close | D-419 : saisie de durée numérique masquée | RM-248, RM-250 ; CE-UI-10 |
+| Q-V3-08 | Cadence : Sans puis Autre | Close | D-420 : aucune mémorisation personnalisée supplémentaire | RM-245 |
+| Q-V3-09 | Notation d’Enchainement dans Figma | Close par décision existante | Notation Figma conservée (PR-05, §9.3, RM-243) ; lettres D/G signalées comme écart Figma au chantier de conception | Écarts Figma ci-dessous |
+| Q-V3-10 | Tokens de la feuille | Vérification faite, coordination ouverte | Variables liées relevées dans Figma le 18/10/2026 sur `9290:17953` : surface `#F5F7FA`, bordure et séparateur `#E0E3E8`, texte secondaire `#595E66`, observé `#FCFCFE`, désactivé `#BEC2CC`, primaire `#0508E5`, valeur de paramètre Inter Semi Bold 13, libellé Inter Regular 14. Le gris des cadres et le violet de sélection ne sont liés à aucune variable. Les tokens du ch. 12 restent inchangés ; leur retrait ou réaffectation relève du chantier DSF | ch. 12 ; DSF |
+| Q-V3-11 | Historique des côtés | Close par décision existante | RM-244 : lisibilité exigée ; la correspondance technique suit le schéma réel (spécification §9, CO-01, « stratégie technique à adapter ») | RM-244 ; ch. 09 |
+| Q-V3-12 | Carte Paramètres du formulaire | Close par décision existante | D-409 vise la feuille ; la carte parent de CE-T03-04 reste inchangée | CE-T03-04 |
+| Q-V3-13 | Texte « Durée totale : » de la phrase | Close par décision existante | D-409 vise la ligne de la feuille ; le texte du corpus v15 reste inchangé | ch. 10 |
+| Q-V3-14 | Contrôles segmentés | Close par décision existante | D-413 (GR-01, PR-03, scénario §11.2 « sélection segmentée ») | D-413 ; CE-UI-10 |
+| Q-V3-15 | Version de livraison | Close | D-421 : évolutions v3.0 incluses dans le MVP | ch. 05 ; B-092 |
+| Q-V3-16 | Formats imposés | **Ouverte** | La Condition d’arrêt qui résulte d’une cible chiffrée imposée est À la cible (D-411). Sa présentation dans la feuille d’un format, valeur grisée ou ligne masquée, n’est fixée par aucune décision ; la frame `8598:30059` ne la montre pas mais omet aussi des valeurs imposées que CE-FMT-04 exige | CE-UI-10 (complément Formats) |
+| Q-V3-17 | Phases (PR #370) | Coordination | Points phases décidés (D-410, D-412, D-413) ; adaptation par le chantier #370 | dependances-pr.md |
+| Q-V3-19 | Place de la mention de charge dans la phrase | **Ouverte** | D-414 fixe les formes, pas la place. Lecture proposée dans la documentation, marquée « non arbitrée » : après la valeur par Série, avant la clause de pause (la parenthèse qualifie les séries) | RM-240 ; ch. 10 grammaire v15 ; CE-UI-10 |
+| Q-V3-20 | Série à zéro dans la liste des charges | **Ouverte** | Une série à zéro est sans charge (RM-239) et n’affiche pas de charge en exécution (RM-241). D-414 ne dit pas si la liste l’écrit (« (charges : 0, 10, 15 kg) ») ou l’omet | RM-240 |
+| Q-V3-18 | Terminologie résiduelle | Close par décisions existantes | Termes conservés comme noms de concepts ; « charge additionnelle » des formats reste une exclusion propre aux formats (D-403 ne lève que l’exclusion du ch. 04) | ch. 01, 04, 10, 12 |
 
 ## Points tranchés sans nouvelle décision
 
@@ -47,7 +51,10 @@ La spécification déclare ses arbitrages clos. Les points ci-dessous ne sont pa
 | `9292:18077` | Clavier sans séparateur décimal ; cellule en surbrillance = Durée de la série 1, pas une cellule Charge | CH-05, PR-04, §4 écart 1 |
 | `9232:44646` | Nom de phase (« Durée d’une phase ») sur une roulette ouverte depuis une cellule de séries variables (phases à Sans) | RO-01 |
 | `8328:37092` | Valider actif alors qu’une cible manque | D-337 |
-| `8328:39072` | Avec désactivé à une seule série | Q-V3-04 |
+| `8328:39072` | Avec désactivé à une seule série ; selon D-415, seule la ligne Enchainement disparaît à N = 1 | D-415 |
+| `8328:36923` | Champs vides : aucune Condition d’arrêt sélectionnée ; la valeur par défaut est À la cible | D-416 |
+| `8598:30059` | Tabata par exercice : Nombre de séries (8) et Pause (10 s) imposés non affichés, alors que CE-FMT-04 les présente grisés ; pas de ligne Condition d’arrêt | CE-FMT-04, D-360 |
+| — | Aucune frame pour : séries identiques à l’échec (durée masquée), roulette Répétitions des séries identiques, une seule série avec Avec sans ligne Enchainement, phrase avec mention de charge | D-415, D-418, D-419, D-414 |
 | 16 frames d’exécution | « Côté droit » affiché (calque « Côté courant — Côté droit ») | CO-01, D-407 |
 | — | Aucune frame d’exécution avec charge ; aucun état de saisie de la charge en séries identiques | §4 écarts 2 et 4 |
 | `9207:18817` | Nom hors convention (« Proposition 3 ») et barre bleue résiduelle | #370 |

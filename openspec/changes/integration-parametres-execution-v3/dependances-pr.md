@@ -9,7 +9,7 @@
 | PR | Blocs | Reportés automatiquement | Reportés par résolution déclarée | Sans objet | Effet de l’intégration v3 |
 |---|---|---|---|---|---|
 | #363 (captures) | 5 | 5 | 0 | 0 | Aucun conflit : les captures de la feuille ne sont pas concernées par #363 |
-| #370 (phases) | 36 | 19 | 16 | 1 | 12 blocs de CE-UI-10 et 1 du ch. 01 suivaient des lignes réécrites ; ils sont placés après les lignes réécrites, dans la même rubrique. Le bloc qui réécrit l’ordre de la feuille est sans objet (voir ci-dessous) |
+| #370 (phases) | 36 | 18 | 17 | 1 | 12 blocs de CE-UI-10, 1 du ch. 01 et, depuis D-415, la section des phases du ch. 08 (après le paragraphe N=1) suivaient des lignes réécrites ; ils sont placés après les lignes réécrites, à la même position. Le bloc qui réécrit l’ordre de la feuille est sans objet (voir ci-dessous) |
 | #371 (paramètres) | 22 | 12 | 3 | 7 | 3 nouveaux blocs sans objet au ch. 06 : la ligne de la feuille et le cas mixte portent déjà « Paramètres d’exécution » ou le nom de frame actuel ; 1 bloc placé après la révision du 13/10 réécrite |
 
 Résolutions déclarées : [pr/resolutions-manuelles-370.json](pr/resolutions-manuelles-370.json) et [pr/resolutions-manuelles-371.json](pr/resolutions-manuelles-371.json), qui reprennent celles du lot 6 et ajoutent les cas de l’intégration v3 (raison écrite pour chacun).

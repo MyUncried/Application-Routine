@@ -93,7 +93,7 @@ diff --git a/docs/Specifications-fonctionnelles/06 – Ecrans et navigation de l
 diff --git a/docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md b/docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md
 --- a/docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md
 +++ b/docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md
-@@ -712,3 +712,16 @@ Arbitrages clos par le propriétaire dans la spécification « Évolution des pa
+@@ -721,3 +721,16 @@ Arbitrages clos par le propriétaire dans la spécification « Évolution des pa
  | D-369 | DEC-13 — État de développement. 17:15 : le moteur n’a pas encore été développé | Validée le 14/10/2026 par Hermann ; voir preuve source de la spécification | §10 et §14 |
  
  La V2 est amendée par ces décisions, notamment : réglages éditables ; organisation Tabata/EMOM/Progression ; For time indexé par tour sans choix d’organisation ; Death by cadencé, tours acquis par appui, résultat partiel et état toujours incomplet. Les décisions ne valent pas livraison applicative ni clôture des raccordements explicitement signalés.
@@ -115,7 +115,7 @@ diff --git a/docs/Specifications-fonctionnelles/08 – Conception fonctionnelle 
 +++ b/docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md
 @@ -221,6 +221,124 @@ Changement de mode : conserver N et les Pauses ; remplacer les cibles incompatib
  
- **N=1 — arbitrage explicite** : état effectif uniforme et Ordre des côtés effectif Un côté après l’autre **dès le brouillon et son calcul**, pas seulement à la sauvegarde. Champ de régime non modifiable, selon la normalisation N1 existante ; Ordre des côtés grisé lorsqu’il est visible en bilatéral ; aucun texte explicatif. Conserver temporairement l’ancien état variable, ses lignes et l’ancien ordre des côtés pour les restaurer si N remonte à 2+ avant ✓. Valider à 1 ne conserve qu’une série uniforme et l’ordre par défaut. Hors circuit de séries, les deux formules bilatérales ne sont pas déclarées équivalentes à N=1 : la normalisation choisit explicitement la première. Dans un circuit de séries, le passage suit toujours premier côté → PC → second côté → Pi, y compris pour compte 1 ; aucun Pi supplémentaire avant PC.
+ **N=1 — arbitrage explicite** : état effectif uniforme et Ordre des côtés effectif Un côté après l’autre **dès le brouillon et son calcul**, pas seulement à la sauvegarde. Champ de régime non modifiable, selon la normalisation N1 existante ; ligne Enchainement (Ordre des côtés) non affichée, le changement de côté Avec / Sans restant disponible (D-415) ; aucun texte explicatif. Conserver temporairement l’ancien état variable, ses lignes et l’ancien ordre des côtés pour les restaurer si N remonte à 2+ avant ✓. Valider à 1 ne conserve qu’une série uniforme et l’ordre par défaut. Hors circuit de séries, les deux formules bilatérales ne sont pas déclarées équivalentes à N=1 : la normalisation choisit explicitement la première. Dans un circuit de séries, le passage suit toujours premier côté → PC → second côté → Pi, y compris pour compte 1 ; aucun Pi supplémentaire avant PC.
  
 +<a id="phases-exercice"></a>
 +

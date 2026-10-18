@@ -14,7 +14,7 @@
 | Propagation | 341 corrections dans 25 fichiers : ch. 01 à 13, 10 DSF, PRODUCT, INDEX. Les autres chapitres citent les RM et D par identifiant | [corrections/](corrections/), [constats/](constats/) |
 | Captures | 20 frames actuelles de la feuille exportées sans retouche (402 × 874) dans `images/parametres-2026-10-18/` ; elles remplacent au ch. 06 les 19 états du 12/10 et du 13/10 (4 frames n’existent plus ; anciennes images conservées pour les matrices datées) | ch. 06 |
 | Index | B-092, D-403 à D-413, RM-235 à RM-250 ajoutés à l’annexe générée « Index des identifiants » ([outils/completer-index.mjs](outils/completer-index.mjs)) | annexe |
-| Couverture | 90 éléments : 67 intégrés, 9 partiels, 1 restant, 9 exclus (§11.3), 4 écarts Figma signalés | [matrice-couverture.md](matrice-couverture.md) |
+| Couverture | 98 éléments (après les arbitrages du §5) : 77 intégrés, 7 partiels (phases #370, tokens, place de la mention de charge), 1 restant (#370), 9 exclus (§11.3), 4 écarts Figma signalés | [matrice-couverture.md](matrice-couverture.md) |
 
 ### Choix d’intégration
 
@@ -52,6 +52,33 @@ Résultat complet : [controles/FINAL.txt](controles/FINAL.txt), lancé par [outi
 
 ## 4. Points résiduels
 
-- **Questions Q-V3-01 à Q-V3-18** pour Hermann, dont les plus structurantes : place de la charge dans la phrase (Q-V3-01), formulations côté 1 / côté 2 (Q-V3-02), contrôle des cellules Pause/Répétitions sans pied ± (Q-V3-05), roulette Répétitions en séries identiques (Q-V3-06), lecture « segmentés » de D-413 (Q-V3-14).
+- **Questions** : arbitrées le 18/10/2026 (§5), sauf trois points non fixés par les arbitrages : place de la mention de charge (Q-V3-19), série à zéro dans la liste (Q-V3-20), présentation de la Condition d’arrêt dans un format (Q-V3-16). Coordinations : tokens avec le chantier DSF (Q-V3-10), phases avec le chantier #370 (Q-V3-17), corpus de recette v15 des phrases (Q-V3-02).
 - **PR #370** : passages des phases à adapter à D-410, D-412 et D-413 lors du report ; **PR #371** : deux phrases sur le pied commun à retirer.
 - **Revue indépendante ChatGPT** avant toute fusion ; fusion dans `main` sur décision de Hermann.
+
+## 5. Arbitrages de Hermann du 18/10/2026 (seconde version)
+
+| Question | Décision | Effet documentaire |
+|---|---|---|
+| Q-V3-01 | D-414 : `(charge : 20 kg)`, `(charges : 20, 12, 13 kg)`, `(charges : 20, 12 kg, ...)`, aucune mention sans charge | RM-240 réécrite ; grammaire v15 (ordre et ligne de tableau) ; CE-UI-10 rendu de la phrase ; recettes CE-UI-10 et CE-T03-04 |
+| Q-V3-04 | D-415 : à N = 1, ligne Enchainement absente ; Avec / Sans disponible | RM-242 ; statut de D-250 ; ch. 08 (N=1, tableau) ; CE-UI-10 (ligne 8) ; note de la capture `8328:39072` |
+| Q-V3-03 | D-416 : Condition d’arrêt À la cible par défaut | RM-248 ; ch. 08 ; CE-UI-10 (ligne 2, création) |
+| Q-V3-05 | D-417 : sélecteur existant de chaque champ pour chaque cellule | RM-250 ; ch. 08, 10 ; CE-UI-10 (ligne 5) ; DSF Circuits |
+| Q-V3-06 | D-418 : roulette Répétitions sans À l’échec en séries identiques | RM-250 ; conventions v13 ; ch. 06, 08, 12 ; PRODUCT ; DSF Deux modes ; portée de D-412 |
+| Q-V3-07 | D-419 : durée numérique masquée à l’échec commun | RM-248, RM-250 ; CE-UI-10 |
+| Q-V3-08 | D-420 : aucune mémorisation personnalisée de la cadence | RM-245 |
+| Q-V3-15 | D-421 : évolutions v3.0 incluses dans le MVP | ch. 05 (complément MVP) ; B-092 |
+| Dix autres | Décisions existantes appliquées ; Q-V3-16 rouverte par la seconde passe (présentation de la Condition d’arrêt dans un format) | [questions-hermann.md](questions-hermann.md) |
+
+**Seconde passe de contrôle indépendante** (lecture seule, 10 écarts) : corrigés par le lot `V3-12-seconde-passe` (21 corrections) :
+- la place de la mention de charge était attribuée à D-414, qui ne la fixe pas : elle est désormais présentée comme lecture proposée, non arbitrée (Q-V3-19) ; la présentation d’une série à zéro dans la liste est soumise à Hermann (Q-V3-20) ;
+- « aucun stepper dans les cellules » (CE-UI-10) aligné sur D-417 ; D-417 cite D-413 exactement et nomme la source de chaque sélecteur existant (D-219, D-385, RM-234, D-405) ;
+- deux renvois à la roulette Répétitions alignés sur D-418 (ch. 10, ch. 13 §4.6) ; statut de D-219 complété ;
+- la règle ajoutée pour CE-FMT-04 s’appuyait sur RM-247 et sur une frame en écart : retirée, Q-V3-16 rouverte ;
+- D-415 « remplace sur ce point » D-250 ; la règle d’ellipse de la grammaire v15 est limitée aux cibles ; fourchette D-403 à D-421 ; portée de D-421 pour les phases ; le registre ne renvoie plus à un fichier du change.
+
+B-073 et B-074 ne reçoivent pas la mention MVP : B-073 vise aussi le Circuit et le chapitre 05 porte la version (D-421).
+
+**Contrôles** ([controles/FINAL-3.txt](controles/FINAL-3.txt), depuis `b6ca2321`) : rejeu exact des 402 corrections (341 + 40 + 21) ; conservation vérifiée ; C4 à C7 à 0 ; liens, K1, K2, OpenSpec `--strict` réussis. Correctifs des PR recalculés : #370 compte un bloc de plus résolu par déclaration (section des phases du ch. 08 après le paragraphe N=1) ; `git apply --check` réussi, seuls et en séquence.
+
+**Seconde passe Figma** (lecture seule) : nouveaux écarts — `8328:36923` sans Condition d’arrêt sélectionnée (D-416) ; `8328:39072` Avec désactivé (D-415) ; `8598:30059` (Tabata) sans Nombre de séries, Pause ni Condition d’arrêt ; aucune frame pour les états de D-414, D-415, D-418, D-419. Variables liées relevées pour Q-V3-10.
