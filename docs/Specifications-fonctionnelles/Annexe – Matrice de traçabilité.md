@@ -1,6 +1,6 @@
 # Annexe — Matrice de traçabilité
 
-Document non normatif, généré par `openspec/changes/revision-documentation-kodjo/outils/tracabilite.mjs`. Une référence n’y figure que si elle est **écrite** dans le texte : identifiant cité, ou règle qui cite un contrat. Aucune correspondance n’est déduite du sens ; une case vide signifie « aucune référence écrite », pas « aucun rapport ».
+Document non normatif, généré par `openspec/changes/archive/2026-10-18-revision-documentation-kodjo/outils/tracabilite.mjs` (change archivé le 18/10/2026 ; règles RM-235 à RM-250 et phases du 18/10 non encore reprises ici). Une référence n’y figure que si elle est **écrite** dans le texte : identifiant cité, ou règle qui cite un contrat. Aucune correspondance n’est déduite du sens ; une case vide signifie « aucune référence écrite », pas « aucun rapport ».
 
 ## Besoins → identifiants cités
 
