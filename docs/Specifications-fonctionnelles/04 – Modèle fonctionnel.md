@@ -266,7 +266,7 @@ Les propriétés intrinsèques communes portent notamment :
 
 Une `ActivityDefinition` ne possède **aucune Récupération après exercice**.
 
-Une `SessionActivity` reprend les propriétés intrinsèques applicables de la définition puis porte en plus une propriété contextuelle `postActivityRecoverySeconds`. Cette valeur est une projection des récupérations explicitement ajoutées ; aucune récupération n’est créée avec l’occurrence. Elle se déplace, se duplique et se supprime avec l’occurrence.
+Une `SessionActivity` reprend les propriétés intrinsèques applicables de la définition et expose la projection contextuelle `postActivityRecoverySeconds` calculée depuis l’objet `recovery` explicitement ajouté, ou 0 en son absence. Cette projection n’est pas une source de persistance indépendante ; aucune récupération n’est créée avec l’occurrence. Elle se déplace, se duplique et se supprime avec l’occurrence.
 
 Le Compte à rebours d’Exercice et la Fin d’exercice appartiennent à l’Exercice. Ils sont distincts du Compte à rebours initial et de la Fin de séance, qui restent des éléments structurels de la Séance.
 
@@ -328,7 +328,7 @@ Elle peut être définie :
 
 Elle peut être associée à une ou plusieurs zones corporelles.
 
-Le modèle distingue deux récupérations. La **Pause entre les côtés** (`sideRecoverySeconds`) est une propriété intrinsèque facultative, uniquement pertinente pour un Exercice bilatéral ; lorsqu’elle est positive, `SIDE_RECOVERY` intervient selon l’Ordre des côtés (une fois par Exercice ou une fois par Série). La **Récupération après exercice** (`postActivityRecoverySeconds`) est contextuelle à chaque occurrence de Séance, existe y compris à `0 s` et, lorsqu’elle est positive, produit `POST_ACTIVITY_RECOVERY` après l’occurrence. Une `ActivityDefinition` n’en possède jamais.
+Le modèle distingue deux récupérations. La **Pause entre les côtés** (`sideRecoverySeconds`) est une propriété intrinsèque facultative, uniquement pertinente pour un Exercice bilatéral ; lorsqu’elle est positive, `SIDE_RECOVERY` intervient selon l’Ordre des côtés (une fois par Exercice ou une fois par Série). La **Récupération après exercice** est un objet contextuel explicitement ajouté à l’occurrence de Séance. Sa projection `postActivityRecoverySeconds` vaut 0 en son absence ou pour une récupération à 0 s ; lorsqu’elle est positive, elle produit `POST_ACTIVITY_RECOVERY` après l’occurrence. L’absence et l’objet explicite à 0 s restent distincts. Une `ActivityDefinition` n’en possède jamais.
 
 Un Exercice dont le nom ou l’intention fonctionnelle est « Récupération » reste possible : il utilise le même modèle et les mêmes modes que tout autre Exercice ; aucun traitement particulier n’est associé à son nom.
 
