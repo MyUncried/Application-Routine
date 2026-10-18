@@ -183,7 +183,7 @@ Les Cycles et les Tours ne sont pas réutilisables ou partageables entre plusieu
 - La duplication copie la structure, les Exercices, l’Étiquette et les paramètres de la Séance, mais ne copie ni les Routines, ni les Exécutions passées.
 - L’archivage conserve intégralement la séance et ses exécutions historiques.
 - Une séance archivée ne peut plus être utilisée pour créer une nouvelle routine ou démarrer une nouvelle exécution tant qu’elle n’est pas restaurée.
-- La suppression d’une Séance archivée demande toujours confirmation. Les Routines associées ont déjà été supprimées lors de l’archivage.
+- La suppression d’une Séance archivée demande toujours confirmation. Les Routines à contenu unique associées ont déjà été supprimées lors de l’archivage (D-023) ; pour une Routine à plusieurs contenus, l’effet reste `À CLARIFIER` (chapitre 10, planification à plusieurs contenus).
 - La suppression d’une séance ne supprime jamais les exécutions déjà enregistrées ni leurs instantanés.
 - Une modification de la séance n’altère jamais les exécutions déjà présentes dans le suivi.
 - Le cycle et le Circuit ne peuvent pas être supprimés.
@@ -272,7 +272,7 @@ La restauration d'une Séance :
 - nécessite la création de nouvelles Routines si l'utilisateur souhaite la planifier de nouveau.
 ##### Suppression d'une séance
 
-- Supprime définitivement la séance archivée ; ses routines ont déjà été supprimées lors de l’archivage (D-023, D-121).
+- Supprime définitivement la séance archivée ; ses routines à contenu unique ont déjà été supprimées lors de l’archivage (D-023, D-121) ; le cas des Routines à plusieurs contenus reste `À CLARIFIER`.
 - Ne supprime jamais les exécutions de séance ni leurs instantanés.
 
 #### Historique

@@ -172,7 +172,7 @@ Dans T03/MVP, le segment `Parcours` est supprimé : aucune troisième option, m�
 2. Renseigner le nom de l’Exercice.
 3. Sélectionner sa **Catégorie** et au moins une **Zone corporelle** (D-211).
 4. Définir les paramètres d’exécution :
-   - mode `Durée`, `Répétitions` ou `À l’échec` ;
+   - mode `Durée` ou `Répétitions`, chaque Série pouvant avoir une cible `À l’échec` (D-111) ;
    - cible du mode lorsqu’elle existe ;
    - nombre de Séries ;
    - Pause après chaque série ;

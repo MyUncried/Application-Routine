@@ -219,11 +219,11 @@ Elles comprennent :
 - la durée par défaut de la fin de séance ;
 - le texte vocal par défaut de la fin de séance.
 
-**Préférences de création d’un Exercice et d’une occurrence (D-240, D-213) :**
+**Valeurs par défaut proposées (D-240, D-213, D-307) :**
 - la Pause entre les côtés par défaut ;
 - le Compte à rebours d’un exercice par défaut ;
 - la Fin d’exercice par défaut ;
-- la Récupération après exercice par défaut.
+- la Récupération après exercice par défaut, proposée lors de l’ajout explicite d’une récupération (D-307).
 
 **Préférences de planification :**
 - les paramètres par défaut des rappels associés aux routines.

@@ -183,7 +183,7 @@ Une Séance non archivée ne peut pas être supprimée. Elle doit d’abord êtr
 
 Depuis le résultat du filtre `Archivées`, un glissement gauche déplace la carte et révèle l’action `Supprimer` placée derrière. L’action ouvre une modale de confirmation sur le fond de la liste archivée.
 
-La suppression demande toujours une confirmation explicite. Les Routines associées ont déjà été supprimées lors de l’archivage (D-023).
+La suppression demande toujours une confirmation explicite. Les Routines à contenu unique associées ont déjà été supprimées lors de l’archivage ; pour une Routine à plusieurs contenus, l’effet de l’archivage reste `À CLARIFIER` (avertissement en tête de chapitre) (D-023).
 
 Après confirmation :
 
@@ -363,7 +363,7 @@ Ces recettes sont des obligations de la future réalisation, pas des tests exéc
 
 ### Créer ou modifier un Exercice — Déroulement d’un Exercice
 
-Lorsqu’elle est exécutée, l’Exercice suit son propre enchaînement intrinsèque : Compte à rebours d’Exercice éventuel → Séries et Pause entre les côtés éventuelle selon l’Ordre des côtés (D-247) → Fin d’exercice éventuelle. La Pause est exécutée après chaque Série, dernière comprise ; à la frontière des côtés successifs, PN puis PC se cumulent (D-248). Dans une Séance, la Récupération après exercice de l’occurrence est exécutée ensuite ; en Exécution directe, elle n’existe pas.
+Lorsqu’elle est exécutée, l’Exercice suit son propre enchaînement intrinsèque : Compte à rebours d’Exercice éventuel → Séries et Pause entre les côtés éventuelle selon l’Ordre des côtés (D-247) → Fin d’exercice éventuelle. La Pause est exécutée après chaque Série, dernière comprise ; à la frontière des côtés successifs, PN puis PC se cumulent ; dans une occurrence de Séance, seule la dernière Pause est remplacée par une Récupération après exercice positive (D-248). Dans une Séance, la Récupération après exercice de l’occurrence est exécutée ensuite ; en Exécution directe, elle n’existe pas.
 
 ### Déroulement d’un Exercice
 

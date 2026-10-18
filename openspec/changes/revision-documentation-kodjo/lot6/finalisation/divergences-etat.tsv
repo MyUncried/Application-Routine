@@ -1,0 +1,205 @@
+num	section_a	section_b	qualification	etat	corrections	question
+1	S01-0014	S13-0973	CONTRADICTION-REELLE	ARBITRAGE		La liste de référence des réglages du Profil est-elle celle de CE-UI-07 §5 (quatre interrupteurs + six défauts, proposée par P-15) ? Si oui : compléter ch. 05 l. 352, glossaire l. 185, RM-085, le tableau Profil (ch. 13 l. 4446-4451) et Profil — Contenu ; et les « textes vocaux par défaut » et « paramètres par défaut des rappels » du ch. 04 l. 214-228 sont-ils retirés ou maintenus ?
+2	S01-0014	S04-0147	CONTRADICTION-REELLE	ARBITRAGE		La liste de référence des réglages du Profil est-elle celle de CE-UI-07 §5 (quatre interrupteurs + six défauts, proposée par P-15) ? Si oui : compléter ch. 05 l. 352, glossaire l. 185, RM-085, le tableau Profil (ch. 13 l. 4446-4451) et Profil — Contenu ; et les « textes vocaux par défaut » et « paramètres par défaut des rappels » du ch. 04 l. 214-228 sont-ils retirés ou maintenus ?
+3	S01-0022	S04-0159	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-001	
+4	S01-0029	S09-0616	COMPLEMENT	CORRECTION-REJETEE→ARBITRAGE	DIV1-021	
+5	S01-0029	S09-0626	COMPLEMENT	SANS-ACTION (COMPLEMENT)		
+6	S01-0029	S04-0140	CONTRADICTION-REELLE	CORRECTION-REJETEE→ARBITRAGE	DIV1-009	
+7	S01-0029	S04-0145	FAUX-POSITIF	SANS-ACTION (FAUX-POSITIF)		
+8	S01-0029	S04-0147	CONTRADICTION-REELLE	ARBITRAGE		La liste de référence des réglages du Profil est-elle celle de CE-UI-07 §5 (quatre interrupteurs + six défauts, proposée par P-15) ? Si oui : compléter ch. 05 l. 352, glossaire l. 185, RM-085, le tableau Profil (ch. 13 l. 4446-4451) et Profil — Contenu ; et les « textes vocaux par défaut » et « paramètres par défaut des rappels » du ch. 04 l. 214-228 sont-ils retirés ou maintenus ?
+9	S01-0029	S04-0150	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-002	Voir paire 24 (cardinalité des Zones corporelles).
+10	S01-0029	S04-0157	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-004	
+11	S02-0046	S04-0157	DEJA-RESOLUE	RESOLUE-PAR-DECISION	DIV1-003	
+12	S02-0046	S04-0144	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-002 DIV1-003	
+13	S03-0068	S10-0796	CONTRADICTION-REELLE	ARBITRAGE		La création d’une Séance comporte-t-elle une étape Étiquette distincte après la Composition (ch. 08 §2.2) ou l’Étiquette est-elle choisie dans la modale intégrée à la Composition (ch. 03, CE-T03-16) ? La couleur est-elle choisie dans une palette (ch. 08 l. 109, RM-016) ou toujours issue de l’Étiquette (RM-001, D-212) ? || Le parcours du ch. 03 l. 297 doit-il être restreint à la Durée uniforme avec nombre de séries libre (RM-130, CIR-04) et reprendre le libellé exact du message du ch. 10 l. 1858 (« séries » en minuscule, action Annuler) ?
+14	S03-0068	S08-0442	CONTRADICTION-REELLE	ARBITRAGE		La création d’une Séance comporte-t-elle une étape Étiquette distincte après la Composition (ch. 08 §2.2) ou l’Étiquette est-elle choisie dans la modale intégrée à la Composition (ch. 03, CE-T03-16) ? La couleur est-elle choisie dans une palette (ch. 08 l. 109, RM-016) ou toujours issue de l’Étiquette (RM-001, D-212) ?
+15	S03-0080	S08-0444	CONTRADICTION-REELLE	ARBITRAGE		À la duplication d’une Séance, l’utilisateur saisit-il le nom (ch. 03) ou la copie est-elle nommée automatiquement avec le suffixe « (copie) » puis numéroté (ch. 08, ch. 09, API-SEA-05) ?
+16	S03-0095	S08-0533	DEJA-RESOLUE	SANS-ACTION (DEJA-RESOLUE)		
+17	S03-0101	S10-0739	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-023 DIV1-024	Le Suivi du MVP comporte-t-il une recherche d’Exécution (ch. 03 l. 452) ou aucune (CE-T03-15, ch. 13 §4.3) ? D-221 ne vise que les Catalogues.
+18	S03-0105	S08-0451	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-016 DIV1-017 DIV1-018	
+19	S03-0107	S08-0452	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-019 DIV1-020	
+20	S03-0108	S04-0151	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-006 DIV1-007 DIV1-008	
+21	S03-0108	S10-0733	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-006 DIV1-007 DIV1-008	
+22	S03-0113	S04-0166	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-004 DIV1-005	
+23	S03-0115	S10-0742	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-016 DIV1-017 DIV1-018	
+24	S04-0143	S04-0150	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-006 DIV1-007 DIV1-008	« Zéro à plusieurs » (ch. 04 §4.5, ch. 09, API-ACT-05) désigne-t-il la cardinalité stockée admise pour les Exercices historiques, ou faut-il aligner ces passages sur « une ou plusieurs » (D-211) pour tout Exercice ?
+25	S01-0029	S04-0144	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-002	
+26	S04-0146	S09-0631	COMPLEMENT	SANS-ACTION (COMPLEMENT)		
+27	S04-0147	S10-0740	CONTRADICTION-REELLE	ARBITRAGE		La liste de référence des réglages du Profil est-elle celle de CE-UI-07 §5 (quatre interrupteurs + six défauts, proposée par P-15) ? Si oui : compléter ch. 05 l. 352, glossaire l. 185, RM-085, le tableau Profil (ch. 13 l. 4446-4451) et Profil — Contenu ; et les « textes vocaux par défaut » et « paramètres par défaut des rappels » du ch. 04 l. 214-228 sont-ils retirés ou maintenus ?
+28	S04-0147	S13-0973	CONTRADICTION-REELLE	ARBITRAGE		La liste de référence des réglages du Profil est-elle celle de CE-UI-07 §5 (quatre interrupteurs + six défauts, proposée par P-15) ? Si oui : compléter ch. 05 l. 352, glossaire l. 185, RM-085, le tableau Profil (ch. 13 l. 4446-4451) et Profil — Contenu ; et les « textes vocaux par défaut » et « paramètres par défaut des rappels » du ch. 04 l. 214-228 sont-ils retirés ou maintenus ?
+29	S04-0155	S05-0187	CONTRADICTION-REELLE	CORRECTION-REJETEE→ARBITRAGE	DIV1-015	
+30	S04-0156	S08-0454	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-012 DIV1-013 DIV1-014	
+31	S04-0158	S08-0454	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-012 DIV1-013 DIV1-014	
+32	S04-0158	S10-0743	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-012 DIV1-013 DIV1-014	
+33	S04-0159	S10-0743	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-001	
+34	S04-0159	S05-0195	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-001	
+35	S04-0161	S04-0168	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-010 DIV1-011	
+36	S04-0161	S09-0714	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-010 DIV1-011	
+37	S04-0149	S05-0177	PERIMETRE	RESOLUE-PAR-DECISION	DIV1-008	
+38	S04-0144	S05-0186	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-010 DIV1-011	
+39	S05-0194	S10-0742	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-016 DIV1-017 DIV1-018	
+40	S06-0209	S06-0356	COMPLEMENT	SANS-ACTION (COMPLEMENT)		
+41	S06-0213	S13-0946	COMPLEMENT	SANS-ACTION (COMPLEMENT)		
+42	S06-0215	S13-0946	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-025 DIV1-026	
+43	S06-0215	S06-0227	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-025 DIV1-026	
+44	S06-0215	S06-0248	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-025 DIV1-026	
+45	S06-0219	S08-0551	CONTRADICTION-REELLE	CORRECTION-REJETEE→ARBITRAGE	DIV1-022	Les roulettes de durée de la feuille Paramètres (CE-UI-10) s’ouvrent-elles inline sous leur ligne, en exception à D-193/RM-189, et les modales basses de durée hors CE-UI-10 restent-elles actives (ch. 06, ch. 13 §4.6) ou historiques (ch. 10 l. 1806) ?
+46	S06-0219	S06-0352	CONTRADICTION-REELLE	CORRECTION-REJETEE→ARBITRAGE	DIV1-022	Les roulettes de durée de la feuille Paramètres (CE-UI-10) s’ouvrent-elles inline sous leur ligne, en exception à D-193/RM-189, et les modales basses de durée hors CE-UI-10 restent-elles actives (ch. 06, ch. 13 §4.6) ou historiques (ch. 10 l. 1806) ?
+47	S06-0221	S13-0946	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-027 DIV1-028 DIV1-029 DIV1-030 DIV1-031	
+48	S06-0221	S13-0963	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-027 DIV1-028 DIV1-029 DIV1-030 DIV1-031	
+49	S06-0221	S13-0976	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-027 DIV1-028 DIV1-029 DIV1-030 DIV1-031	
+50	S06-0221	S08-0553	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-027 DIV1-028 DIV1-029 DIV1-030 DIV1-031	
+51	S06-0221	S06-0295	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-027 DIV1-028 DIV1-029 DIV1-030 DIV1-031	
+52	S06-0226	S08-0442	CONTRADICTION-REELLE	ARBITRAGE		La création d’une Séance comporte-t-elle une étape Étiquette distincte après la Composition (ch. 08 §2.2) ou l’Étiquette est-elle choisie dans la modale intégrée à la Composition (ch. 03, CE-T03-16) ? La couleur est-elle choisie dans une palette (ch. 08 l. 109, RM-016) ou toujours issue de l’Étiquette (RM-001, D-212) ?
+53	S06-0227	S08-0543	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-032 DIV1-033	Le filtre du Catalogue des séances propose-t-il les valeurs Toutes / Planifiées / Non planifiées / Archivées (ch. 13 l. 539-542, glossaire) ou le statut (actives / archivées) et les Étiquettes (ch. 03 l. 257) ? La carte affiche-t-elle « Dernière Exécution » (ch. 13 l. 549), absente de la carte décrite au ch. 06 l. 233 ?
+54	S06-0229	S06-0311	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-034	
+55	S06-0230	S08-0540	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-035	Dans le Suivi du MVP, le contrôle `Vue d’ensemble` reste-t-il visible et désactivé (D-031, D-056, RM-082, ch. 03 l. 466, CE-T03-15 §11) ou disparaît-il (ch. 13 l. 4195, CE-T03-15 §8, lecture de D-239) ?
+56	S06-0230	S13-0962	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-035	Dans le Suivi du MVP, le contrôle `Vue d’ensemble` reste-t-il visible et désactivé (D-031, D-056, RM-082, ch. 03 l. 466, CE-T03-15 §11) ou disparaît-il (ch. 13 l. 4195, CE-T03-15 §8, lecture de D-239) ?
+57	S06-0230	S06-0343	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-035	Dans le Suivi du MVP, le contrôle `Vue d’ensemble` reste-t-il visible et désactivé (D-031, D-056, RM-082, ch. 03 l. 466, CE-T03-15 §11) ou disparaît-il (ch. 13 l. 4195, CE-T03-15 §8, lecture de D-239) ?
+58	S06-0230	S06-0344	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-035	Dans le Suivi du MVP, le contrôle `Vue d’ensemble` reste-t-il visible et désactivé (D-031, D-056, RM-082, ch. 03 l. 466, CE-T03-15 §11) ou disparaît-il (ch. 13 l. 4195, CE-T03-15 §8, lecture de D-239) ?
+59	S06-0234	S08-0474	DEJA-RESOLUE	SANS-ACTION (DEJA-RESOLUE)		
+60	S06-0234	S06-0277	DEJA-RESOLUE	SANS-ACTION (DEJA-RESOLUE)		
+61	S06-0237	S13-0972	CONTRADICTION-REELLE	ARBITRAGE		Le Splash dure-t-il 2,5 s avec une transition DISSOLVE de 0,3 s (ch. 13 l. 4872) ou le temps nécessaire à l’initialisation, sans durée codée (CE-UI-06) ?
+62	S06-0241	S13-0973	CONTRADICTION-REELLE	ARBITRAGE		La liste de référence des réglages du Profil est-elle celle de CE-UI-07 §5 (quatre interrupteurs + six défauts, proposée par P-15) ? Si oui : compléter ch. 05 l. 352, glossaire l. 185, RM-085, le tableau Profil (ch. 13 l. 4446-4451) et Profil — Contenu ; et les « textes vocaux par défaut » et « paramètres par défaut des rappels » du ch. 04 l. 214-228 sont-ils retirés ou maintenus ?
+63	S06-0241	S08-0562	CONTRADICTION-REELLE	ARBITRAGE		La liste de référence des réglages du Profil est-elle celle de CE-UI-07 §5 (quatre interrupteurs + six défauts, proposée par P-15) ? Si oui : compléter ch. 05 l. 352, glossaire l. 185, RM-085, le tableau Profil (ch. 13 l. 4446-4451) et Profil — Contenu ; et les « textes vocaux par défaut » et « paramètres par défaut des rappels » du ch. 04 l. 214-228 sont-ils retirés ou maintenus ?
+64	S01-0014	S06-0241	CONTRADICTION-REELLE	ARBITRAGE		La liste de référence des réglages du Profil est-elle celle de CE-UI-07 §5 (quatre interrupteurs + six défauts, proposée par P-15) ? Si oui : compléter ch. 05 l. 352, glossaire l. 185, RM-085, le tableau Profil (ch. 13 l. 4446-4451) et Profil — Contenu ; et les « textes vocaux par défaut » et « paramètres par défaut des rappels » du ch. 04 l. 214-228 sont-ils retirés ou maintenus ?
+65	S06-0245	S06-0361	HISTORIQUE	SANS-ACTION (HISTORIQUE)		Faut-il retirer du ch. 06 la capture 2139:86 (doublon selon CE-UI-07 §1, annoncée retirée par l’annexe) ou corriger la mention de l’annexe ?
+66	S06-0248	S08-0543	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-032 DIV1-033	Le filtre du Catalogue des séances propose-t-il les valeurs Toutes / Planifiées / Non planifiées / Archivées (ch. 13 l. 539-542, glossaire) ou le statut (actives / archivées) et les Étiquettes (ch. 03 l. 257) ? La carte affiche-t-elle « Dernière Exécution » (ch. 13 l. 549), absente de la carte décrite au ch. 06 l. 233 ?
+67	S06-0248	S08-0544	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-032 DIV1-033	Le filtre du Catalogue des séances propose-t-il les valeurs Toutes / Planifiées / Non planifiées / Archivées (ch. 13 l. 539-542, glossaire) ou le statut (actives / archivées) et les Étiquettes (ch. 03 l. 257) ? La carte affiche-t-elle « Dernière Exécution » (ch. 13 l. 549), absente de la carte décrite au ch. 06 l. 233 ?
+68	S06-0249	S08-0543	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-032 DIV1-033	Le filtre du Catalogue des séances propose-t-il les valeurs Toutes / Planifiées / Non planifiées / Archivées (ch. 13 l. 539-542, glossaire) ou le statut (actives / archivées) et les Étiquettes (ch. 03 l. 257) ? La carte affiche-t-elle « Dernière Exécution » (ch. 13 l. 549), absente de la carte décrite au ch. 06 l. 233 ?
+69	S06-0251	S08-0543	COMPLEMENT	SANS-ACTION (COMPLEMENT)		
+70	S06-0254	S08-0445	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-001 DIV2-002	
+71	S06-0256	S06-0281	CONTRADICTION-REELLE	ARBITRAGE		« Une Séance existe dès validation de son nom et de sa couleur » (10:211) / « L’Étiquette porte la couleur affichée de la Séance ; il n’existe pas de couleur de Séance indépendante de l’Étiquette » (04:63). D-188 remplace-t-elle la couleur de Séance exigée par D-026 ? Quelle couleur affiche une Séance sans Étiquette (D-355 permet l’absence d’Étiquette) ? La Séance existe-t-elle à la validation du nom ou au premier `Continuer` (D-388) ?
+72	S06-0257	S06-0260	CONTRADICTION-REELLE	ARBITRAGE		« Ces deux états sont fonctionnellement requis mais ne possèdent pas de frame dédiée dans le `Prototype MVP` » (13:495) / « Catalogue des séances — État vide — Source Figma `2117:86` » (06:289). À vérifier dans Figma : `2117:86` couvre-t-il l’état vide initial, et existe-t-il une frame pour l’état vide du filtre `Archivées` ?
+73	S06-0269	S06-0359	COMPLEMENT	RESOLUE-PAR-DECISION	DIV2-003	
+74	S06-0273	S08-0546	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-004	
+75	S06-0274	S06-0278	FAUX-POSITIF	SANS-ACTION (FAUX-POSITIF)		
+76	S06-0275	S06-0278	FAUX-POSITIF	SANS-ACTION (FAUX-POSITIF)		
+77	S06-0277	S13-0955	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-006	
+78	S06-0278	S08-0546	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-005 DIV2-004	
+79	S06-0279	S13-0954	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-007 DIV2-008 DIV2-009 DIV2-010	
+80	S06-0279	S06-0363	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-007	
+81	S06-0282	S13-0946	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-011	
+82	S06-0292	S13-0977	DEJA-RESOLUE	SANS-ACTION (DEJA-RESOLUE)		
+83	S06-0292	S13-0994	DEJA-RESOLUE	SANS-ACTION (DEJA-RESOLUE)		
+84	S06-0292	S08-0551	CONTRADICTION-REELLE	ARBITRAGE		« Commandes − / valeur / + permanentes dans la feuille CE-UI-10 » (08:241) / « appui révèle ± si N libre » (13:1043) et « les boutons ± apparaissent à l’appui sur une valeur numérique » (13:1054). Les ± de la feuille Paramètres sont-ils permanents ou révélés à l’appui ? (D-376 : sans décision, la contradiction ch. 08 / ch. 13 reste À CLARIFIER.)
+85	S06-0295	S13-0976	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-012	
+86	S06-0302	S13-0970	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-013	
+87	S06-0302	S06-0306	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-013	
+88	S06-0302	S06-0363	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-013	
+89	S06-0318	S08-0505	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-014	
+90	S06-0318	S06-0374	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-014	
+91	S06-0319	S06-0328	PERIMETRE	SANS-ACTION (PERIMETRE)		
+92	S06-0322	S08-0555	PERIMETRE	SANS-ACTION (PERIMETRE)		
+93	S06-0322	S13-0973	PERIMETRE	SANS-ACTION (PERIMETRE)		
+94	S06-0325	S13-0956	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-017	
+95	S03-0114	S06-0325	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-017	
+96	S06-0326	S08-0505	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-015	
+97	S06-0336	S08-0533	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-018	
+98	S06-0344	S08-0534	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-019	« Pour les Exécutions enregistrées, l’utilisateur peut : rechercher une Exécution » (08:643) / « aucune Recherche » (CE-T03-15, 13:4042). La recherche dans le Suivi est-elle exclue du MVP ? (D-221 ne vise que les Catalogues ; D-031 ne cite pas la recherche.)
+99	S06-0347	S08-0537	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-020	
+100	S06-0349	S06-0370	HISTORIQUE	SANS-ACTION (HISTORIQUE)		
+101	S06-0351	S13-0946	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-021	
+102	S06-0352	S13-0977	CONTRADICTION-REELLE	ARBITRAGE		« Dans la feuille v13, les roulettes s’ouvrent inline sous la ligne active » (10:1806) / « Roulette cible : popover354×249 … Le total conserve … son popover354×216 » (CE-UI-10 §9). Les roulettes de cible et de Durée totale s’ouvrent-elles sous leur ligne ou en popover ? (Signalé sans correction : PRE-4 Q41 du 17/10 prescrit un panneau sans flèche sous le champ, hors Q1–Q32 et sans D-nnn.)
+103	S06-0352	S08-0551	CONTRADICTION-REELLE	ARBITRAGE		Voir la paire 102.
+104	S06-0353	S08-0552	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-022	« Mode À l’échec | … conserve l’ordre `Séries` → cadre informatif transparent bordé `à l’échec` → `Pause` » (10:288) / « Cette ancienne disposition ne définit plus l’éditeur actif » (10:280). La disposition de la frame `3561:7802` est-elle encore prescrite ?
+105	S06-0360	S06-0372	HISTORIQUE	SANS-ACTION (HISTORIQUE)		
+106	S06-0363	S08-0583	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-024 DIV2-007	
+107	S06-0364	S13-0973	CONTRADICTION-REELLE	ARBITRAGE		« groupes blancs 126 px » (06:1692) / « Groupes selon DSF T5/T6 : fond#F9FAFC, liseré blanc 1 » (13:4355). Quel fond les groupes du Profil utilisent-ils ? (Rendu : à vérifier dans Figma.)
+108	S06-0378	S08-0551	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-025 DIV2-026	
+109	S07-0388	S12-0897	CONTRADICTION-REELLE	ARBITRAGE		« Les valeurs historiques `10`, `14` … ne sont pas des tokens » (D-085) / « Les espacements `10`, `14`, `20` et rayons `14`, `17` sont des tokens courants (journal §3) » (12:1142). L’espacement 14 et les rayons 14 et 17 sont-ils des tokens ?
+110	S07-0396	S12-0917	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-027	
+111	S07-0396	S11-0828	PERIMETRE	SANS-ACTION (PERIMETRE)		
+112	S07-0401	S12-0923	PERIMETRE	RESOLUE-PAR-DECISION	DIV2-028	
+113	S07-0401	S12-0897	DEJA-RESOLUE	SANS-ACTION (DEJA-RESOLUE)		
+114	S07-0401	S12-0898	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-028	
+115	S07-0408	S11-0819	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-030	
+116	S07-0421	S12-0898	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-028	
+117	S07-0422	S12-0910	PERIMETRE	SANS-ACTION (PERIMETRE)		« PRE-3 importe les photos et vidéos depuis la photothèque seule. … la capture caméra ne font pas partie du parcours retenu » (D-334) / « Les médias de la cible post-T05 utilisent capture ou photothèque » (12:1550). La capture caméra reste-t-elle dans la cible post-T05 ?
+118	S07-0423	S11-0819	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-029	
+119	S08-0442	S10-0731	CONTRADICTION-REELLE	ARBITRAGE		« La création d’une séance se déroule en quatre étapes successives : 1. saisie du nom, sélection de la couleur … 2. sélection de l’Étiquette de Séance ; 3. retour au Catalogue » (08:107-111) / « Étiquette et couleur de Séance désignent la même classification visuelle : il n’existe pas de couleur indépendante de l’Étiquette » (10:243). Voir la question de la paire 71 ; le décompte « quatre » est à corriger avec la réécriture.
+120	S08-0442	S13-0955	CONTRADICTION-REELLE	ARBITRAGE		Voir les paires 71 et 119.
+121	S08-0442	S08-0549	CONTRADICTION-REELLE	ARBITRAGE		Voir les paires 71 et 119.
+122	S08-0443	S08-0549	CONTRADICTION-REELLE	ARBITRAGE		Voir la paire 71.
+123	S08-0446	S08-0499	COMPLEMENT	SANS-ACTION (COMPLEMENT)		
+124	S08-0451	S10-0744	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-031 DIV2-032 DIV2-033	
+125	S08-0451	S13-0949	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-031 DIV2-032	
+126	S08-0451	S08-0583	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-031	
+127	S08-0456	S10-0733	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-034	
+128	S08-0456	S08-0459	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-034	
+129	S08-0465	S10-0733	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-023	
+130	S08-0505	S08-0556	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-016	
+131	S08-0509	S08-0518	FAUX-POSITIF	SANS-ACTION (FAUX-POSITIF)		
+132	S08-0512	S08-0533	COMPLEMENT	SANS-ACTION (COMPLEMENT)		
+133	S01-0029	S08-0525	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-035 DIV2-036 DIV2-037 DIV2-038	
+134	S08-0534	S10-0739	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-019	Voir la paire 98 (recherche).
+135	S08-0534	S13-0962	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-019	Voir la paire 98 (recherche).
+136	S08-0535	S13-0962	CONTRADICTION-REELLE	ARBITRAGE		« La recherche est effectuée sur : le nom de la Séance ; les Étiquettes de Séance ; les Catégories et Zones corporelles » (08:650-654) / « Vue d’ensemble/Filtrer/Trier visibles désactivés, aucune recherche » (13:4006). Le Suivi du MVP comporte-t-il une recherche ? Sinon, §6.6 est-il hors MVP ?
+137	S08-0537	S10-0739	CONTRADICTION-REELLE	ARBITRAGE		Au MVP, le Suivi permet-il d’inverser l’ordre chronologique et de rechercher une Exécution, et par quel contrôle, alors que `Trier` est désactivé (D-031, RM-082) et que le ch. 05 reporte la fonction de tri ? Si non : ch. 08 « Tri » et la puce « rechercher / modifier l’ordre » de « Consultation de l’historique » passent hors MVP.
+138	S08-0537	S08-0540	CONTRADICTION-REELLE	ARBITRAGE		Au MVP, le Suivi permet-il d’inverser l’ordre chronologique et de rechercher une Exécution, et par quel contrôle, alors que `Trier` est désactivé (D-031, RM-082) et que le ch. 05 reporte la fonction de tri ? Si non : ch. 08 « Tri » et la puce « rechercher / modifier l’ordre » de « Consultation de l’historique » passent hors MVP.
+139	S08-0534	S08-0538	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-001 DIV3-002	
+140	S08-0538	S08-0540	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-001 DIV3-002	
+141	S08-0538	S10-0745	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-001 DIV3-002	
+142	S08-0538	S08-0586	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-001 DIV3-002	
+143	S08-0543	S13-0948	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-003 DIV1-032	
+144	S08-0543	S10-0744	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-003 DIV1-032	
+145	S08-0543	S08-0583	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-003 DIV1-032	
+146	S08-0549	S10-0731	CONTRADICTION-REELLE	ARBITRAGE		Une Séance sans Étiquette a-t-elle une couleur propre choisie dans la palette de 12 couleurs (RM-016, D-026), ou sa couleur provient-elle exclusivement de son Étiquette (ch. 10 Étiquettes, ch. 09 l. 177 « Une Séance ne possède pas de couleur métier indépendante ») ? Dans le second cas, quelle couleur affiche une Séance sans Étiquette ?
+147	S08-0552	S10-0796	COMPLEMENT	RESOLUE-PAR-DECISION	DIV3-004 DIV3-005 DIV2-022	
+148	S08-0562	S13-0973	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-006 DIV3-007 DIV3-008 DIV3-009	
+149	S04-0142	S09-0595	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-011 DIV3-017	
+150	S01-0029	S09-0595	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-004 DIV2-035 DIV1-002 DIV2-036 DIV1-021 DIV2-037 DIV3-010	
+151	S01-0029	S09-0597	COMPLEMENT	RESOLUE-PAR-DECISION	DIV3-013	
+152	S04-0142	S09-0597	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-011 DIV3-017	
+153	S04-0139	S09-0599	COMPLEMENT	SANS-ACTION (COMPLEMENT)		
+154	S04-0139	S09-0602	CONTRADICTION-REELLE	ARBITRAGE		Les Exercices persistants (`ActivityDefinition`) sont-ils possédés directement par l’Utilisateur (ch. 04) ? Si oui, la phrase du ch. 09 Périmètre de l’Utilisateur « Il ne contient pas directement les exercices » doit-elle viser seulement les copies de Séance (`SessionActivity`) ?
+155	S04-0140	S09-0607	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-009 DIV3-014 DIV3-015	
+156	S09-0612	S10-0731	CONTRADICTION-REELLE	ARBITRAGE		La règle du ch. 09 « Une séance vide peut être conservée et modifiée, mais elle ne peut pas être exécutée » vise-t-elle seulement les Séances vidées par une migration (Q32, D-392), RM-017 interdisant d’enregistrer depuis la Composition une Séance sans Exercice valide ?
+157	S04-0140	S09-0612	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-009 DIV3-014 DIV3-015	
+158	S04-0143	S09-0623	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-018 DIV3-019 DIV1-007	
+159	S09-0623	S10-0744	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-018 DIV3-019 DIV1-007	
+160	S09-0623	S09-0666	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-018 DIV3-019 DIV1-007	
+161	S09-0623	S09-0671	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-018 DIV3-019 DIV1-007	
+162	S09-0628	S09-0641	COMPLEMENT	SANS-ACTION (COMPLEMENT)		
+163	S04-0147	S09-0654	COMPLEMENT	RESOLUE-PAR-DECISION	DIV3-008	
+164	S09-0655	S10-0740	CONTRADICTION-REELLE	ARBITRAGE		Les préférences « Écran maintenu actif », « Durée par défaut d’un exercice » (attribut hérité du type Exercice/Récupération), « Texte vocal du compte à rebours initial / de la fin de séance par défaut » et « paramètres par défaut des rappels » font-elles partie du MVP (à ajouter à RM-085 et CE-UI-07) ou doivent-elles être retirées ou marquées hors MVP au ch. 04 et au ch. 09 ?
+165	S01-0029	S09-0655	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-006 DIV3-007 DIV3-008 DIV3-009	
+166	S04-0147	S09-0655	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-006 DIV3-007 DIV3-008 DIV3-009	
+167	S08-0562	S09-0655	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-006 DIV3-007 DIV3-008 DIV3-009	
+168	S09-0665	S10-0731	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-026 DIV2-029 DIV2-030	
+169	S09-0665	S11-0819	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-026 DIV2-029 DIV2-030	
+170	S09-0666	S10-0731	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-026 DIV2-029 DIV2-030	
+171	S09-0632	S09-0677	CONTRADICTION-REELLE	ARBITRAGE		Faut-il lire la règle de cohérence « Toute Exécution référence exactement une source selon son origine » comme « au plus une source persistante, l’instantané étant toujours présent », puisque la source peut être supprimée (D-121, RM-011) ?
+172	S09-0633	S09-0677	CONTRADICTION-REELLE	ARBITRAGE		Faut-il lire la règle de cohérence « Toute Exécution référence exactement une source selon son origine » comme « au plus une source persistante, l’instantané étant toujours présent », puisque la source peut être supprimée (D-121, RM-011) ?
+173	S09-0623	S09-0677	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-018 DIV3-019 DIV1-007	
+174	S09-0625	S09-0681	HISTORIQUE	RESOLUE-PAR-DECISION	DIV3-020	
+175	S08-0445	S09-0684	DEJA-RESOLUE	RESOLUE-PAR-DECISION	DIV3-022	
+176	S09-0612	S09-0684	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-022	
+177	S09-0685	S09-0700	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-023	
+178	S09-0689	S10-0731	FAUX-POSITIF	SANS-ACTION (FAUX-POSITIF)		
+179	S09-0693	S10-0736	FAUX-POSITIF	SANS-ACTION (FAUX-POSITIF)		
+180	S09-0700	S10-0743	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-024	
+181	S08-0476	S10-0732	COMPLEMENT	RESOLUE-PAR-DECISION	DIV3-030	
+182	S08-0503	S10-0738	CONTRADICTION-REELLE	ARBITRAGE		Confirmez-vous le remplacement de la paraphrase du calcul de progression (ch. 10, Informations affichées — Barre de progression globale, 3e paragraphe) par un renvoi à RM-077, conformément à la section « Décisions Deux modes — 13/10/2026 » du registre, qui n’a pas d’identifiant D-nnn ?
+183	S08-0456	S10-0741	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-034 DIV3-025	
+184	S10-0741	S10-0742	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-018 DIV2-033	
+185	S10-0741	S10-0743	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-025	
+186	S11-0819	S11-0832	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-026 DIV2-029 DIV2-030	
+187	S11-0821	S12-0850	COMPLEMENT	SANS-ACTION (COMPLEMENT)		
+188	S09-0700	S11-0826	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-024	
+189	S11-0830	S11-0842	CONTRADICTION-REELLE	ARBITRAGE		La récupération après exercice est-elle persistée comme objet `recovery` explicite, `postActivityRecoverySeconds` n’étant qu’une projection (ch. 11, Modèle fonctionnel et API), ou comme champ obligatoire `post_activity_recovery_seconds` pouvant valoir 0 (ch. 12 §12.37, Contraintes T04, API-COM-REC-02 à 04) ?
+190	S11-0842	S12-0920	CONTRADICTION-REELLE	ARBITRAGE		La récupération après exercice est-elle persistée comme objet `recovery` explicite, `postActivityRecoverySeconds` n’étant qu’une projection (ch. 11, Modèle fonctionnel et API), ou comme champ obligatoire `post_activity_recovery_seconds` pouvant valoir 0 (ch. 12 §12.37, Contraintes T04, API-COM-REC-02 à 04) ?
+191	S12-0855	S12-0867	CONTRADICTION-REELLE	CORRECTION-REJETEE→ARBITRAGE	DIV3-021	
+192	S12-0878	S12-0901	CONTRADICTION-REELLE	ARBITRAGE		Le spike obligatoire de D-039 / RT-001 est-il réputé satisfait par le contrôle technique intégré au premier lot T04 et par les tests sur appareils du second lot, ou la contrainte T04 « aucun spike séparé » est-elle à marquer historique ?
+193	S11-0842	S12-0878	CONTRADICTION-REELLE	ARBITRAGE		La récupération après exercice est-elle persistée comme objet `recovery` explicite, `postActivityRecoverySeconds` n’étant qu’une projection (ch. 11, Modèle fonctionnel et API), ou comme champ obligatoire `post_activity_recovery_seconds` pouvant valoir 0 (ch. 12 §12.37, Contraintes T04, API-COM-REC-02 à 04) ?
+194	S12-0897	S12-0898	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV3-027 DIV3-028 DIV3-029	
+195	S10-0742	S13-0946	CONTRADICTION-REELLE	ARBITRAGE		RM-189 doit-elle exclure la roulette inline de la feuille Paramètres (CE-UI-10), conformément à §4.6 et à la décision PRE-4 Q12, une fois la PR #371 fusionnée ?
+196	S10-0742	S13-0949	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-018 DIV2-033	
+197	S10-0742	S13-0956	CONTRADICTION-REELLE	CORRECTION-REJETEE→ARBITRAGE	DIV1-014	
+198	S06-0282	S13-0963	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-011 DIV1-031	
+199	S06-0351	S13-0963	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-021	
+200	S06-0311	S13-0974	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV1-034	
+201	S06-0351	S13-0976	CONTRADICTION-REELLE	RESOLUE-PAR-DECISION	DIV2-021 DIV1-030 DIV2-012	
+202	S13-0977	S13-0994	DEJA-RESOLUE	SANS-ACTION (DEJA-RESOLUE)		
+203	S13-0977	S13-0996	CONTRADICTION-REELLE	ARBITRAGE		Dans la feuille Paramètres, les sous-lignes Séries variables, cible, Pause, Ordre des côtés et Pause entre les côtés restent-elles indentées à x52 (ch. 06) ou sont-elles remplacées par la grille à cellules du DSF du 12/10 (CE-UI-10 §9) ? À vérifier dans Figma.
+204	S13-0986	S13-0995	CONTRADICTION-REELLE	ARBITRAGE		Dans la grille des volumes, quelle unité porte la dernière colonne pour un Exercice tout À l’échec en Durée, en Répétitions, et pour un mélange (X-14) ? Et quelle est la cible du renvoi « §9.5 » ?

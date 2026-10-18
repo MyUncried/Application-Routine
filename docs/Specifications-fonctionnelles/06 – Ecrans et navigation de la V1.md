@@ -1577,7 +1577,7 @@ Tous les écrans et états représentés dans la page Figma `Prototype MVP` util
 #### Boutons et zones tactiles
 
 - Un bouton principal occupe la largeur utile, possède une hauteur minimale de `48` points et un rayon de `24` points.
-- Un bouton secondaire compact peut avoir une hauteur visuelle de `32` points et un rayon de `16` points, mais il est placé dans une cible tactile d’au moins `44 × 44` points logiques sur toutes les plateformes du MVP ; les dimensions spécifiques de `48 × 48` restent conservées (D-087, D-234).
+- Un bouton secondaire compact peut avoir une hauteur visuelle de `32` points et un rayon de `16` points, mais il est placé dans une cible tactile de `48 × 48` points logiques, dimension spécifique conservée au-dessus du minimum commun de `44 × 44` (D-087, D-234).
 - Une icône seule possède la même cible tactile minimale, même si son dessin est plus petit.
 - Un champ, un contrôle segmenté ou une autre commande visuelle de `32` à `42` points conserve sa hauteur visuelle lorsqu’elle est intentionnelle. Son composant interactif utilise néanmoins un conteneur tactile ou un `hitSlop` portant sa cible effective à `44 × 44` au minimum (D-087, D-234), sans chevauchement avec une cible voisine.
 - Deux actions adjacentes conservent au moins `8` points entre leurs cibles. Si elles ne tiennent plus, elles passent verticalement plutôt que de réduire leur surface tactile.

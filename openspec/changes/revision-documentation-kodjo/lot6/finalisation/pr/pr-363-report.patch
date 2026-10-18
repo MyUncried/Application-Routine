@@ -1,7 +1,7 @@
 diff --git a/docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md b/docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md
 --- a/docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md
 +++ b/docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md
-@@ -454,6 +454,12 @@ Le nombre se règle via ± révélés par appui sur le chiffre. La diminution es
+@@ -454,6 +454,12 @@ La diminution est sans message ; une conversion de nature entraînant une perte
  
  ![Composition séance — Standard — Séries variables](images/circuits-2026-10-12/8328-34520.png)
  

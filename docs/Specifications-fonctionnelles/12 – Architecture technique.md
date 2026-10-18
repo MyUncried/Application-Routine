@@ -1196,7 +1196,7 @@ Les valeurs historiques `9`, `9,4` et `18,8` utilisées comme rayons fixes ont �
 | Région d’en-tête du gabarit historique | `92` (référence ancienne ; token courant 95) ; zone utile `48` et réserve système de référence, remplacée par l’inset supérieur réel |
 | Action finale d’écran | Région de référence `84` (`790–874`) ; bouton de `48` dans un conteneur intégrant marges et inset inférieur réel |
 | Action finale de modale plein écran | Région de référence `70` (`752–822`) ; bouton `354 × 48` et espace inférieur de référence `22` |
-| Région de navigation du gabarit | `77` (`797–874`) ; contient la barre principale visuelle de `66` et la réserve d’inset inférieur |
+| Région de navigation du gabarit | `77` (`797–874`) ; contient la pilule de navigation de `62` (D-225) et la réserve d’inset inférieur |
 | Navigation principale | Pilule DSF `322 × 62` (D-225), positionnée avec l’inset inférieur réel |
 | Destination active | Hauteur visuelle `56`, rayon `28` |
 | Carte standard | Nouvelles cartes Catalogue/choix/Semaine/Suivi : largeur 354 sur référence 402, rayon 8 ; les cartes structurelles hors famille conservent leur variante propre |
