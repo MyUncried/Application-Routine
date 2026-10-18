@@ -338,7 +338,6 @@ Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTE
 
 | Terme | Définition unique |
 |---|---|
-| Bip de cadence | Stepper | Deux modes, réglage commun (D-308) | Non | Aucun (0) | Entier 0..10 s | Série | ± dans le brouillon ; 0 retire le bip | Propagation à toutes les Séries ; conservation au changement de mode |
 | Intervalle de cadence | Fenêtre temporelle de Ci secondes ; première répétition commence immédiatement. Une fraction abandonnée par Pause n’est pas acquise pour la progression. |
 | Fin nominale | Instant auquel Ri intervalles prescrits ont été acquis ; signal distinct, Série encore active jusqu’à Suivant. Décalée après interruption d’intervalle. |
 | Temps actif cumulé | Temps réellement dépensé, incluant fractions abandonnées et tentatives réinitialisées ; distinct du chronomètre de la tentative courante. |

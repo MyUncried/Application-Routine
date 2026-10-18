@@ -15,6 +15,7 @@ for (const f of fichiers) { const j = JSON.parse(fs.readFileSync(f, 'utf8'));
     const s = txt.get(r), a = c.ancien.replace(/\r/g, ''), b = c.nouveau.replace(/\r/g, ''); const i = s.indexOf(a); if (i < 0) { ko++; continue; }
     const d = s.lastIndexOf('\n', i - 1) + 1; let e = s.indexOf('\n', i + a.length); if (e < 0) e = s.length;
     const avant = s.slice(d, e).split('\n'); const apres = (s.slice(d, i) + b + s.slice(i + a.length, e)).split('\n'); const garde = new Set(apres.map(n1));
-    for (const l of avant) { const t = n1(l); if (t && !garde.has(t)) { J.push(`${h(t)}\t${motif}\t${c.id}`); n++; } }
+    // « justifier_toutes » : la correction déplace des lignes (changement de contexte voulu) ; toutes ses lignes sont justifiées.
+    for (const l of avant) { const t = n1(l); if (t && (c.justifier_toutes || !garde.has(t))) { J.push(`${h(t)}\t${motif}\t${c.id}`); n++; } }
     txt.set(r, s.slice(0, i) + b + s.slice(i + a.length)); } }
 fs.writeFileSync(out, J.join('\n') + '\n'); console.log(`justifications=${n} fichiers=${fichiers.length}${ko ? ` non_rejouées=${ko}` : ''}`);

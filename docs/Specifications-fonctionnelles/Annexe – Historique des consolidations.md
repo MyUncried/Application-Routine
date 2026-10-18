@@ -2,118 +2,118 @@
 
 Document non normatif. Il conserve à l’identique des passages historiques retirés des chapitres lors de la restructuration du lot 6 (journaux, preuves datées, transmissions, anciennes cibles). Ils ne prescrivent rien ; la règle applicable est dans les chapitres.
 
-*Ancien emplacement : chapitre 03, « Créer et exécuter un Parcours — hors MVP, conception partielle ».*
-
 ## Parcours MVP T03 — Catalogue des Exercices — Créer et exécuter un Parcours — hors MVP, conception partielle
 
-**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
+*Ancien emplacement : chapitre 03, « Créer et exécuter un Parcours — hors MVP, conception partielle ».*
 
-*Ancien emplacement : chapitre 04, « Extension du contenu planifiable — Parcours ».*
+**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
 
 ## Extension validée du modèle — Extension du contenu planifiable — Parcours
 
+*Ancien emplacement : chapitre 04, « Extension du contenu planifiable — Parcours ».*
+
 **Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
 
-*Ancien emplacement : chapitre 05, « V2 ».*
-
 ## Répartition validée — V2
+
+*Ancien emplacement : chapitre 05, « V2 ».*
 
 - Ancienne cible de Parcours autonome retirée par D-328 ; voir la planification multi-contenus du 08/10.
 - Ancienne transition de Parcours autonome retirée avec D-119/D-328 ; l’enchaînement multi-contenus reste à spécifier.
 
-*Ancien emplacement : chapitre 05, « V3 ».*
-
 ## Répartition validée — V3
+
+*Ancien emplacement : chapitre 05, « V3 ».*
 
 - Ancienne cible de Parcours autonome retirée par D-328 ; voir la planification multi-contenus du 08/10.
 
-*Ancien emplacement : chapitre 06, « Captures courantes — relevé du 12/10/2026 ».*
-
 ## Composer une séance / Modifier une séance — Captures courantes — relevé du 12/10/2026
+
+*Ancien emplacement : chapitre 06, « Captures courantes — relevé du 12/10/2026 ».*
 
 Exports directs des 23 états de Composition retrouvés dans Prototype MVP. Les overlays restent classés avec leur parcours parent. . Les nombres illustrent la mise en page et ne définissent aucun calcul.
 
-*Ancien emplacement : chapitre 06, « Évidences Figma T03 — état courant du 16 septembre 2026 ».*
-
 ## Couverture du Prototype MVP et exclusions justifiées — Évidences Figma T03 — état courant du 16 septembre 2026
+
+*Ancien emplacement : chapitre 06, « Évidences Figma T03 — état courant du 16 septembre 2026 ».*
 
 Les contrôles d’entrée `Créer / Filtrer / Trier` restent conçus et vérifiables dans Figma pour leur rendu. Les références courantes principales sont `3786:5093` (Catalogue Exercices), `1992:9910` (Catalogue Séances), `1992:10129` (Recherche globale — Champ déployé), `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064` (éditeur Exercice), `2537:1033` (Déployer) et `6298:12462` (Navigation Bottom). Les anciennes frames d’arbre `3787:5148` et `3841:8375` sont supersédées fonctionnellement par D-187.
 
 L’ancienne référence `3787:5209 — Catalogue — action contextuelle directe` n’existe plus dans le Figma courant et ne constitue plus une évidence active. Les panneaux ouverts de `Filtrer` sont désormais conçus et vérifiables dans Figma ; `Trier` reste disabled T03.
 
-*Ancien emplacement : chapitre 06, « Résolutions postérieures au contrôle visuel du 16 septembre 2026 ».*
-
 ## Couverture du Prototype MVP et exclusions justifiées — Résolutions postérieures au contrôle visuel du 16 septembre 2026
+
+*Ancien emplacement : chapitre 06, « Résolutions postérieures au contrôle visuel du 16 septembre 2026 ».*
 
 Les points suivants ont été résolus depuis ce contrôle : la modale d’abandon de création d’Exercice est représentée par `4714:6241`; les panneaux ouverts de `Filtrer` sont conçus ; l’affichage média en gouttière permanente du Catalogue des Exercices appartient au MVP, sans déploiement (D-260/D-261) ; l’ancien arbre `Créer` reste historique ; la création inline d’une Zone corporelle dans `4683:6336` est désormais cohérente avec D-199. Le contrôle de l’état `2139:86` a confirmé qu’il est redondant avec `1992:684` (`Vibration activée`) ; il n’est plus présenté comme un état d’écran distinct dans le chapitre 06.
 
-*Ancien emplacement : chapitre 06, « Profil — Cible post-MVP ».*
-
 ## Archives et références hors prototype actif — Profil — Cible post-MVP
+
+*Ancien emplacement : chapitre 06, « Profil — Cible post-MVP ».*
 
 Référence hors prototype actif — Figma `1354:182` ; ne vaut pas activation MVP.
 
 ![Profil — Cible post-MVP](images/figma-1354-182.png)
 
-*Ancien emplacement : chapitre 06, « Référence historique hors MVP — Suivi — Séances — Vue déployée ».*
-
 ## Archives et références hors prototype actif — Référence historique hors MVP — Suivi — Séances — Vue déployée
+
+*Ancien emplacement : chapitre 06, « Référence historique hors MVP — Suivi — Séances — Vue déployée ».*
 
 Référence hors prototype actif — Figma `1842:2` ; ne vaut pas activation MVP.
 
 ![Suivi — Séances — Vue déployée](images/figma-1842-2.png)
 
-*Ancien emplacement : chapitre 06, « Suivi — Vue d’ensemble ».*
-
 ## Archives et références hors prototype actif — Suivi — Vue d’ensemble
+
+*Ancien emplacement : chapitre 06, « Suivi — Vue d’ensemble ».*
 
 Référence hors prototype actif — Figma `3401:86` ; ne vaut pas activation MVP.
 
 ![Suivi — Vue d’ensemble](images/figma-3401-86.png)
 
-*Ancien emplacement : chapitre 06, « Recherche globale — Champ déployé ».*
-
 ## Archives et références hors prototype actif — Recherche globale — Champ déployé
+
+*Ancien emplacement : chapitre 06, « Recherche globale — Champ déployé ».*
 
 Référence hors prototype actif — Figma `1992:10129` ; ne vaut pas activation MVP.
 
 ![Recherche globale — Champ déployé](images/ecran-2c-recherche-globale-champ.png)
 
-*Ancien emplacement : chapitre 06, « Recherche globale — Résultats affichés ».*
-
 ## Archives et références hors prototype actif — Recherche globale — Résultats affichés
+
+*Ancien emplacement : chapitre 06, « Recherche globale — Résultats affichés ».*
 
 Référence hors prototype actif — Figma `1992:10320` ; ne vaut pas activation MVP.
 
 ![Recherche globale — Résultats affichés](images/ecran-2a-recherche-globale-resultats.png)
 
-*Ancien emplacement : chapitre 06, « Référence de composant — Stepper — Séries (interactif) ».*
-
 ## Archives et références hors prototype actif — Référence de composant — Stepper — Séries (interactif)
+
+*Ancien emplacement : chapitre 06, « Référence de composant — Stepper — Séries (interactif) ».*
 
 Ensemble6426:10149, export06/10 ; pas un écran autonome.
 
 ![Stepper — Séries (interactif)](images/figma-6426-10149.png)
 
-*Ancien emplacement : chapitre 06, « Référence de composant — Cadre bas — retournement ».*
-
 ## Archives et références hors prototype actif — Référence de composant — Cadre bas — retournement
+
+*Ancien emplacement : chapitre 06, « Référence de composant — Cadre bas — retournement ».*
 
 Ensemble6446:10103, export06/10 ; pas un écran autonome.
 
 ![Cadre bas — retournement](images/figma-6446-10103.png)
 
-*Ancien emplacement : chapitre 06, « Référence de composant — Zone d’exécution — retournements ».*
-
 ## Archives et références hors prototype actif — Référence de composant — Zone d’exécution — retournements
+
+*Ancien emplacement : chapitre 06, « Référence de composant — Zone d’exécution — retournements ».*
 
 Ensemble6451:10942, export06/10 ; pas un écran autonome.
 
 ![Zone d’exécution — retournements](images/figma-6451-10942.png)
 
-*Ancien emplacement : chapitre 13, « 5. État des preuves visuelles ».*
-
 ## 5. État des preuves visuelles
+
+*Ancien emplacement : chapitre 13, « 5. État des preuves visuelles ».*
 
 | ID | Écart ou limite | Contrat / traitement |
 |---|---|---|
@@ -132,8 +132,8 @@ Ensemble6451:10942, export06/10 ; pas un écran autonome.
 
 Les captures courantes sont centralisées au chapitre06 ; l’état des lieux du03/10 distingue42références du parcours, leurs contrats et les copies historiques remplacées. La matrice donne l’inventaire, dont les références hors prototype qui ne deviennent pas des écrans MVP. Les matrices ci-jointes donnent les rattachements ; la présence de chaque capture a été vérifiée lors de l’audit, pas son fonctionnement interactif.
 
-*Ancien emplacement : chapitre 13, « Mise à jour des références visuelles — 07/10, corrections rédactionnelles ».*
-
 ## Mise à jour des références visuelles — 07/10, corrections rédactionnelles
+
+*Ancien emplacement : chapitre 13, « Mise à jour des références visuelles — 07/10, corrections rédactionnelles ».*
 
 Les références de CE-T03-02 (catalogue), CE-T03-04 (éditeur et abandon), CE-UI-09 (zones corporelles) et CE-UI-10 (paramètres) ont été recapturées après correction du libellé de carte et des19 phrases. [Inventaire exact](../CLOTURE-CAPTURES-PHRASES-2026-10-07.md). Les comportements, champs et règles métier de ces contrats restent ceux déjà validés ; aucune nouvelle décision de conception.

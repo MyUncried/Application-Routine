@@ -1,0 +1,44 @@
+{
+ "description": "Réserves de la seconde vérification (fonctionnel-2.tsv) sur F6 et F7.",
+ "corrections": [
+  {
+   "id": "RV2-001",
+   "ref": "réserve RES-002 (fonctionnel-2.tsv)",
+   "motif": "CORRECTION-DECIDEE:D-087",
+   "classe": "FONCT-ARBITRÉ",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "- Une icône seule possède la même cible tactile minimale, même si son dessin est plus petit.",
+   "nouveau": "- Une icône seule possède la cible tactile minimale commune de `44 × 44`, même si son dessin est plus petit (D-087).",
+   "decision": "D-087"
+  },
+  {
+   "id": "RV2-002",
+   "ref": "réserve RES-012 : ligne de tableau du ch. 08 (éléments affichés) recopiée dans le glossaire à 2 colonnes ; le ch. 08 la porte (Deux modes, D-313)",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@01 – Vision Générale.md",
+   "ancien": "| Bip de cadence | Stepper | Deux modes, réglage commun (D-308) | Non | Aucun (0) | Entier 0..10 s | Série | ± dans le brouillon ; 0 retire le bip | Propagation à toutes les Séries ; conservation au changement de mode |\r\n",
+   "nouveau": ""
+  },
+  {
+   "id": "RV2-003",
+   "ref": "réserve ACT-004 : source exacte de la projection",
+   "motif": "CORRECTION-DECIDEE:D-304",
+   "classe": "FONCT-ARBITRÉ",
+   "file": "PRODUCT.md",
+   "ancien": "0 en son absence (D-303, RM-209)",
+   "nouveau": "0 en son absence (D-304, D-307, RM-209)",
+   "decision": "D-304"
+  },
+  {
+   "id": "RV2-004",
+   "ref": "réserve ACT-015 : rattachement de la fin de phrase",
+   "motif": "CORRECTION-DECIDEE:D-241",
+   "classe": "FONCT-ARBITRÉ",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "les occurrences en Répétitions ou à cible À l’échec suivent la pondération hybride de RM-077, sauf les Répétitions chiffrées cadencées, qui suivent la progression temporelle sans fin automatique (RM-126, D-241) et leur part est acquise lorsque l’utilisateur touche `Suivant`.",
+   "nouveau": "les occurrences en Répétitions non cadencées ou à cible À l’échec suivent la pondération de RM-077 et leur part est acquise lorsque l’utilisateur touche `Suivant` ; les Répétitions chiffrées cadencées progressent continûment sans fin automatique, `Suivant` n’acquérant que leur reste (RM-077, RM-126, D-241).",
+   "decision": "D-241"
+  }
+ ]
+}

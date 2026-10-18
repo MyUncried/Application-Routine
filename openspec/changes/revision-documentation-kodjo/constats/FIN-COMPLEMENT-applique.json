@@ -1,0 +1,15 @@
+{
+ "description": "Complément : ligne « Prochaine occurrence » du tableau Catalogue des séances retirée selon D-238 (D-260 à D-262 ne la révisent pas) ; cohérent avec RM-207 et PRODUCT.md (FIN-ACTIVES). — sous-ensemble appliqué (voir FIN-COMPLEMENT-ecartees.tsv)",
+ "corrections": [
+  {
+   "id": "CPL-001",
+   "ref": "DIV1-033 rejetée à la relecture faute de certitude sur le statut de D-238 ; levée : D-260/D-261/D-262 ne traitent pas la prochaine planification",
+   "motif": "CORRECTION-DECIDEE:D-238",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-238",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "| Dernière Exécution | Texte | Si disponible | Date relative | Aucune |\r\n| Prochaine occurrence | Texte | Si planifiée | Date / heure relative | Aucune |\r\n",
+   "nouveau": "| Dernière Exécution | Texte | Si disponible | Date relative | Aucune |\r\n"
+  }
+ ]
+}

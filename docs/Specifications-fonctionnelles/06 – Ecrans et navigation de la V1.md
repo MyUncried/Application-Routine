@@ -2,7 +2,7 @@
 
 Ce chapitre décrit l’interface dans son ensemble : navigation, inventaire des écrans et de leurs contrats, captures, et conventions d’interface communes à plusieurs écrans. Le comportement propre à chaque écran est défini par son contrat au chapitre 13 ; le rendu visuel par Figma.
 
-**Évolutions v15 du 07/10 :**36captations vérifiées, dont 15PNG changés depuis main 72d1bf4. , [DSF phrases](../DSF-PHRASES-V15-2026-10-07.md). Vue longue renommée 224caractères ; les calculs déjà décidés sont conservés.
+**Évolutions v15 du 07/10 :**36captations vérifiées, dont 15PNG changés depuis main 72d1bf4. [Inventaire et preuves](../MATRICE-EVOLUTIONS-V15-2026-10-07.md), [DSF phrases](../DSF-PHRASES-V15-2026-10-07.md). Vue longue renommée 224caractères ; les calculs déjà décidés sont conservés.
 
 ## Sommaire
 
@@ -1578,7 +1578,7 @@ Tous les écrans et états représentés dans la page Figma `Prototype MVP` util
 
 - Un bouton principal occupe la largeur utile, possède une hauteur minimale de `48` points et un rayon de `24` points.
 - Un bouton secondaire compact peut avoir une hauteur visuelle de `32` points et un rayon de `16` points, mais il est placé dans une cible tactile de `48 × 48` points logiques, dimension spécifique conservée au-dessus du minimum commun de `44 × 44` (D-087, D-234).
-- Une icône seule possède la même cible tactile minimale, même si son dessin est plus petit.
+- Une icône seule possède la cible tactile minimale commune de `44 × 44`, même si son dessin est plus petit (D-087).
 - Un champ, un contrôle segmenté ou une autre commande visuelle de `32` à `42` points conserve sa hauteur visuelle lorsqu’elle est intentionnelle. Son composant interactif utilise néanmoins un conteneur tactile ou un `hitSlop` portant sa cible effective à `44 × 44` au minimum (D-087, D-234), sans chevauchement avec une cible voisine.
 - Deux actions adjacentes conservent au moins `8` points entre leurs cibles. Si elles ne tiennent plus, elles passent verticalement plutôt que de réduire leur surface tactile.
 - Les états actif, pressé, désactivé, sélectionné et destructif utilisent les tokens sémantiques ; leur signification ne repose jamais uniquement sur la couleur.

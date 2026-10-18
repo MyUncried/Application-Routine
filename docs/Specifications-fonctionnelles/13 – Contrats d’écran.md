@@ -549,7 +549,6 @@ La validation de la Séance reste portée par l’action `Continuer` de la Compo
 | Nombre d’Exercices / durée | Texte | Toujours | Nombre d’Exercices (`0 exercice`, au singulier, pour une Séance sans Exercice, D-392) et durée synthétique des Exercices calculés ; Compte à rebours initial et Fin de séance exclus | Aucune |
 | Circuit | Conteneur unique ; nature tours/séries, compte 1..99 défaut 1. Chiffre → ± ; pastille d’unité → choix de nature ; œil permanent → grille des volumes. Total exact/≈/≥ calculé sur les passages réels, hors préparation/fin de Séance. Géométrie à aligner ensuite dans Figma/DSF. |
 | Dernière Exécution | Texte | Si disponible | Date relative | Aucune |
-| Prochaine occurrence | Texte | Si planifiée | Date / heure relative | Aucune |
 | Liste des Exercices | Liste | Carte déployée | Ordre de la Séance | Aucune |
 | Résumé d’Exercice | Texte | Carte déployée | À droite : `durée/reps · xN` en uniforme ; en variable volumes séparés par points médians, unité finale, maximum trois valeurs selon place puis ellipse | Aucune |
 

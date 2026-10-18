@@ -1,0 +1,184 @@
+{
+ "description": "Réserves de la vérification de structure : lien restauré dans l’introduction du ch. 06 ; notes d’origine de l’annexe historique placées sous le titre de leur section.",
+ "corrections": [
+  {
+   "id": "STR-001",
+   "ref": "vérification structure (intro ch. 06) ; 7a89220f^ (lien supprimé par la consolidation)",
+   "motif": "RESTAURATION:7a89220f^",
+   "classe": "DOC",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "dont 15PNG changés depuis main 72d1bf4. , [DSF phrases]",
+   "nouveau": "dont 15PNG changés depuis main 72d1bf4. [Inventaire et preuves](../MATRICE-EVOLUTIONS-V15-2026-10-07.md), [DSF phrases]"
+  },
+  {
+   "id": "STR-101",
+   "ref": "vérification structure : note « Ancien emplacement » placée avant le titre de sa section",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@Annexe – Historique des consolidations.md",
+   "ancien": "*Ancien emplacement : chapitre 03, « Créer et exécuter un Parcours — hors MVP, conception partielle ».*\r\n\r\n## Parcours MVP T03 — Catalogue des Exercices — Créer et exécuter un Parcours — hors MVP, conception partielle",
+   "nouveau": "## Parcours MVP T03 — Catalogue des Exercices — Créer et exécuter un Parcours — hors MVP, conception partielle\r\n\r\n*Ancien emplacement : chapitre 03, « Créer et exécuter un Parcours — hors MVP, conception partielle ».*",
+   "justifier_toutes": true
+  },
+  {
+   "id": "STR-102",
+   "ref": "vérification structure : note « Ancien emplacement » placée avant le titre de sa section",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@Annexe – Historique des consolidations.md",
+   "ancien": "*Ancien emplacement : chapitre 04, « Extension du contenu planifiable — Parcours ».*\r\n\r\n## Extension validée du modèle — Extension du contenu planifiable — Parcours",
+   "nouveau": "## Extension validée du modèle — Extension du contenu planifiable — Parcours\r\n\r\n*Ancien emplacement : chapitre 04, « Extension du contenu planifiable — Parcours ».*",
+   "justifier_toutes": true
+  },
+  {
+   "id": "STR-103",
+   "ref": "vérification structure : note « Ancien emplacement » placée avant le titre de sa section",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@Annexe – Historique des consolidations.md",
+   "ancien": "*Ancien emplacement : chapitre 05, « V2 ».*\r\n\r\n## Répartition validée — V2",
+   "nouveau": "## Répartition validée — V2\r\n\r\n*Ancien emplacement : chapitre 05, « V2 ».*",
+   "justifier_toutes": true
+  },
+  {
+   "id": "STR-104",
+   "ref": "vérification structure : note « Ancien emplacement » placée avant le titre de sa section",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@Annexe – Historique des consolidations.md",
+   "ancien": "*Ancien emplacement : chapitre 05, « V3 ».*\r\n\r\n## Répartition validée — V3",
+   "nouveau": "## Répartition validée — V3\r\n\r\n*Ancien emplacement : chapitre 05, « V3 ».*",
+   "justifier_toutes": true
+  },
+  {
+   "id": "STR-105",
+   "ref": "vérification structure : note « Ancien emplacement » placée avant le titre de sa section",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@Annexe – Historique des consolidations.md",
+   "ancien": "*Ancien emplacement : chapitre 06, « Captures courantes — relevé du 12/10/2026 ».*\r\n\r\n## Composer une séance / Modifier une séance — Captures courantes — relevé du 12/10/2026",
+   "nouveau": "## Composer une séance / Modifier une séance — Captures courantes — relevé du 12/10/2026\r\n\r\n*Ancien emplacement : chapitre 06, « Captures courantes — relevé du 12/10/2026 ».*",
+   "justifier_toutes": true
+  },
+  {
+   "id": "STR-106",
+   "ref": "vérification structure : note « Ancien emplacement » placée avant le titre de sa section",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@Annexe – Historique des consolidations.md",
+   "ancien": "*Ancien emplacement : chapitre 06, « Évidences Figma T03 — état courant du 16 septembre 2026 ».*\r\n\r\n## Couverture du Prototype MVP et exclusions justifiées — Évidences Figma T03 — état courant du 16 septembre 2026",
+   "nouveau": "## Couverture du Prototype MVP et exclusions justifiées — Évidences Figma T03 — état courant du 16 septembre 2026\r\n\r\n*Ancien emplacement : chapitre 06, « Évidences Figma T03 — état courant du 16 septembre 2026 ».*",
+   "justifier_toutes": true
+  },
+  {
+   "id": "STR-107",
+   "ref": "vérification structure : note « Ancien emplacement » placée avant le titre de sa section",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@Annexe – Historique des consolidations.md",
+   "ancien": "*Ancien emplacement : chapitre 06, « Résolutions postérieures au contrôle visuel du 16 septembre 2026 ».*\r\n\r\n## Couverture du Prototype MVP et exclusions justifiées — Résolutions postérieures au contrôle visuel du 16 septembre 2026",
+   "nouveau": "## Couverture du Prototype MVP et exclusions justifiées — Résolutions postérieures au contrôle visuel du 16 septembre 2026\r\n\r\n*Ancien emplacement : chapitre 06, « Résolutions postérieures au contrôle visuel du 16 septembre 2026 ».*",
+   "justifier_toutes": true
+  },
+  {
+   "id": "STR-108",
+   "ref": "vérification structure : note « Ancien emplacement » placée avant le titre de sa section",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@Annexe – Historique des consolidations.md",
+   "ancien": "*Ancien emplacement : chapitre 06, « Profil — Cible post-MVP ».*\r\n\r\n## Archives et références hors prototype actif — Profil — Cible post-MVP",
+   "nouveau": "## Archives et références hors prototype actif — Profil — Cible post-MVP\r\n\r\n*Ancien emplacement : chapitre 06, « Profil — Cible post-MVP ».*",
+   "justifier_toutes": true
+  },
+  {
+   "id": "STR-109",
+   "ref": "vérification structure : note « Ancien emplacement » placée avant le titre de sa section",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@Annexe – Historique des consolidations.md",
+   "ancien": "*Ancien emplacement : chapitre 06, « Référence historique hors MVP — Suivi — Séances — Vue déployée ».*\r\n\r\n## Archives et références hors prototype actif — Référence historique hors MVP — Suivi — Séances — Vue déployée",
+   "nouveau": "## Archives et références hors prototype actif — Référence historique hors MVP — Suivi — Séances — Vue déployée\r\n\r\n*Ancien emplacement : chapitre 06, « Référence historique hors MVP — Suivi — Séances — Vue déployée ».*",
+   "justifier_toutes": true
+  },
+  {
+   "id": "STR-110",
+   "ref": "vérification structure : note « Ancien emplacement » placée avant le titre de sa section",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@Annexe – Historique des consolidations.md",
+   "ancien": "*Ancien emplacement : chapitre 06, « Suivi — Vue d’ensemble ».*\r\n\r\n## Archives et références hors prototype actif — Suivi — Vue d’ensemble",
+   "nouveau": "## Archives et références hors prototype actif — Suivi — Vue d’ensemble\r\n\r\n*Ancien emplacement : chapitre 06, « Suivi — Vue d’ensemble ».*",
+   "justifier_toutes": true
+  },
+  {
+   "id": "STR-111",
+   "ref": "vérification structure : note « Ancien emplacement » placée avant le titre de sa section",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@Annexe – Historique des consolidations.md",
+   "ancien": "*Ancien emplacement : chapitre 06, « Recherche globale — Champ déployé ».*\r\n\r\n## Archives et références hors prototype actif — Recherche globale — Champ déployé",
+   "nouveau": "## Archives et références hors prototype actif — Recherche globale — Champ déployé\r\n\r\n*Ancien emplacement : chapitre 06, « Recherche globale — Champ déployé ».*",
+   "justifier_toutes": true
+  },
+  {
+   "id": "STR-112",
+   "ref": "vérification structure : note « Ancien emplacement » placée avant le titre de sa section",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@Annexe – Historique des consolidations.md",
+   "ancien": "*Ancien emplacement : chapitre 06, « Recherche globale — Résultats affichés ».*\r\n\r\n## Archives et références hors prototype actif — Recherche globale — Résultats affichés",
+   "nouveau": "## Archives et références hors prototype actif — Recherche globale — Résultats affichés\r\n\r\n*Ancien emplacement : chapitre 06, « Recherche globale — Résultats affichés ».*",
+   "justifier_toutes": true
+  },
+  {
+   "id": "STR-113",
+   "ref": "vérification structure : note « Ancien emplacement » placée avant le titre de sa section",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@Annexe – Historique des consolidations.md",
+   "ancien": "*Ancien emplacement : chapitre 06, « Référence de composant — Stepper — Séries (interactif) ».*\r\n\r\n## Archives et références hors prototype actif — Référence de composant — Stepper — Séries (interactif)",
+   "nouveau": "## Archives et références hors prototype actif — Référence de composant — Stepper — Séries (interactif)\r\n\r\n*Ancien emplacement : chapitre 06, « Référence de composant — Stepper — Séries (interactif) ».*",
+   "justifier_toutes": true
+  },
+  {
+   "id": "STR-114",
+   "ref": "vérification structure : note « Ancien emplacement » placée avant le titre de sa section",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@Annexe – Historique des consolidations.md",
+   "ancien": "*Ancien emplacement : chapitre 06, « Référence de composant — Cadre bas — retournement ».*\r\n\r\n## Archives et références hors prototype actif — Référence de composant — Cadre bas — retournement",
+   "nouveau": "## Archives et références hors prototype actif — Référence de composant — Cadre bas — retournement\r\n\r\n*Ancien emplacement : chapitre 06, « Référence de composant — Cadre bas — retournement ».*",
+   "justifier_toutes": true
+  },
+  {
+   "id": "STR-115",
+   "ref": "vérification structure : note « Ancien emplacement » placée avant le titre de sa section",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@Annexe – Historique des consolidations.md",
+   "ancien": "*Ancien emplacement : chapitre 06, « Référence de composant — Zone d’exécution — retournements ».*\r\n\r\n## Archives et références hors prototype actif — Référence de composant — Zone d’exécution — retournements",
+   "nouveau": "## Archives et références hors prototype actif — Référence de composant — Zone d’exécution — retournements\r\n\r\n*Ancien emplacement : chapitre 06, « Référence de composant — Zone d’exécution — retournements ».*",
+   "justifier_toutes": true
+  },
+  {
+   "id": "STR-116",
+   "ref": "vérification structure : note « Ancien emplacement » placée avant le titre de sa section",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@Annexe – Historique des consolidations.md",
+   "ancien": "*Ancien emplacement : chapitre 13, « 5. État des preuves visuelles ».*\r\n\r\n## 5. État des preuves visuelles",
+   "nouveau": "## 5. État des preuves visuelles\r\n\r\n*Ancien emplacement : chapitre 13, « 5. État des preuves visuelles ».*",
+   "justifier_toutes": true
+  },
+  {
+   "id": "STR-117",
+   "ref": "vérification structure : note « Ancien emplacement » placée avant le titre de sa section",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@Annexe – Historique des consolidations.md",
+   "ancien": "*Ancien emplacement : chapitre 13, « Mise à jour des références visuelles — 07/10, corrections rédactionnelles ».*\r\n\r\n## Mise à jour des références visuelles — 07/10, corrections rédactionnelles",
+   "nouveau": "## Mise à jour des références visuelles — 07/10, corrections rédactionnelles\r\n\r\n*Ancien emplacement : chapitre 13, « Mise à jour des références visuelles — 07/10, corrections rédactionnelles ».*",
+   "justifier_toutes": true
+  }
+ ]
+}

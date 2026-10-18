@@ -1195,7 +1195,7 @@ La **durée réelle** enregistrée à la fin de l'Exécution suit la même règl
 
 ### Informations affichées — Barre de progression globale
 
-La barre couvre le Plan d’Exécution complet : le Compte à rebours initial et la Fin de séance `SESSION_END` participent à son avancement. Elle ne peut atteindre `100 %` qu’à l’achèvement de `SESSION_END`. Dans T04, les étapes chronométrées sont pondérées proportionnellement à leur durée planifiée ; les occurrences en Répétitions ou à cible À l’échec suivent la pondération hybride de RM-077, sauf les Répétitions chiffrées cadencées, qui suivent la progression temporelle sans fin automatique (RM-126, D-241) et leur part est acquise lorsque l’utilisateur touche `Suivant`. Les Pauses manuelles n’augmentent pas le remplissage.
+La barre couvre le Plan d’Exécution complet : le Compte à rebours initial et la Fin de séance `SESSION_END` participent à son avancement. Elle ne peut atteindre `100 %` qu’à l’achèvement de `SESSION_END`. Dans T04, les étapes chronométrées sont pondérées proportionnellement à leur durée planifiée ; les occurrences en Répétitions non cadencées ou à cible À l’échec suivent la pondération de RM-077 et leur part est acquise lorsque l’utilisateur touche `Suivant` ; les Répétitions chiffrées cadencées progressent continûment sans fin automatique, `Suivant` n’acquérant que leur reste (RM-077, RM-126, D-241). Les Pauses manuelles n’augmentent pas le remplissage.
 
 La progression mathématique de la barre est continue. Sa piste est toutefois structurée visuellement par Tours conformément au prototype Figma. Ces séparations sont uniquement des repères de lecture et ne modifient ni les poids ni le calcul de l’avancement global.
 
