@@ -572,11 +572,11 @@ Le tableau variable comporte poignée, numéro, cellules cible/Pause, colonne Ch
 
 #### Formulaire — vues principales et résumé
 
-##### Création exercice — Avant Paramètres d'exécution
+##### Création exercice — Avant Paramètres d'exécution (historique)
 
-[Source Figma — `8328:36711`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36711)
+Cet état correspond au formulaire actuel `8328:36853`, après renseignement des informations générales et avant définition des paramètres d'exécution. L'ancien node `8328:36711` n'est plus présent sur la page Figma active ; sa capture est conservée comme trace historique. La référence visuelle courante est `8328:36853`, présentée ci-dessous.
 
-![Création exercice — Avant Paramètres d'exécution](images/circuits-2026-10-12/8328-36711.png)
+![HISTORIQUE — Création exercice — Avant Paramètres d'exécution](images/circuits-2026-10-12/8328-36711.png)
 
 ##### Création exercice — Paramètres — Champ vide
 
@@ -607,6 +607,50 @@ Le tableau variable comporte poignée, numéro, cellules cible/Pause, colonne Ch
 [Source Figma — `8328:36278`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36278)
 
 ![Ajouter un exercice — Catégorie renseignée](images/circuits-2026-10-12/8328-36278.png)
+
+#### États complémentaires — Catégories, zones corporelles et abandon
+
+##### Ajouter un exercice — Catégories
+
+[Source Figma — `8328:35810`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-35810)
+
+![Ajouter un exercice — Catégories](images/figma-8328-35810.png)
+
+##### Ajouter un exercice — Catégorie — Appui long — Confirmation suppression
+
+[Source Figma — `8328:35932`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-35932)
+
+![Ajouter un exercice — Catégorie — Appui long — Confirmation suppression](images/figma-8328-35932.png)
+
+##### Ajouter un exercice — Nouvelle catégorie
+
+[Source Figma — `8328:36056`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36056)
+
+![Ajouter un exercice — Nouvelle catégorie](images/figma-8328-36056.png)
+
+##### Ajouter un exercice — Zones corporelles
+
+[Source Figma — `8328:36348`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36348)
+
+![Ajouter un exercice — Zones corporelles](images/figma-8328-36348.png)
+
+##### Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression
+
+[Source Figma — `8328:36441`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36441)
+
+![Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression](images/figma-8328-36441.png)
+
+##### Ajouter un exercice — Nouvelle zone corporelle
+
+[Source Figma — `8328:36536`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36536)
+
+![Ajouter un exercice — Nouvelle zone corporelle](images/figma-8328-36536.png)
+
+##### Création activité — Abandon (confirmation)
+
+[Source Figma — `8328:36781`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36781)
+
+![Création activité — Abandon (confirmation)](images/figma-8328-36781.png)
 
 #### Modifier un exercice
 
