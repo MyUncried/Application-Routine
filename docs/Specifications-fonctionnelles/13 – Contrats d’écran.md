@@ -278,7 +278,7 @@ Segment Exercices → CE-T03-02 ; Séances reste ; Créer → CE-T03-08 nouveau 
 
 Séances enregistrées du dépôt local, non archivées par défaut, tri updatedAt décroissant. Étiquette facultative ; en son absence, catégories issues des Exercices. Aucun champ Catégorie propre à la Séance. Les objets historiques incomplets restent consultables mais Démarrer est désactivé tant qu’ils ne sont pas exécutables.
 
-Durée et symbole viennent du calcul commun : Durée exacte, Répétitions avec bip ≈, sans bip et À l’échec omis à l’Exercice ; ≥ seulement à la Séance avec travail inconnu ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
+Durée et symbole viennent du calcul commun : Durée exacte si toutes les cibles sont chiffrées, Répétitions avec bip ≈ si toutes sont chiffrées ; ≥ à l’Exercice pour un mélange chiffré/échec calculable, prioritaire sur ≈. Répétitions sans bip ou toutes cibles À l’échec : durée omise à l’Exercice. Séance/Circuit : ≥ si travail inconnu ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Le résumé des séries n’affiche jamais « 0 s » ni « 0 rép. » pour une cible à l’échec (décision PRE-4 Q17, D-385). Ne rien ajouter dans les choix où la durée est masquée.
 
 #### 6. Classification des valeurs Figma
 
@@ -705,7 +705,7 @@ Créer depuis Catalogue ou modifier une définition existante ; nouveau brouillo
 
 #### 4. Contexte de sortie / destinations
 
-Terminer valide et persiste puis retourne au contexte appelant. Carte Paramètres → CE-UI-10. Retour avec modifications → confirmation d’abandon existante.
+Terminer valide et persiste puis retourne au contexte appelant. Carte Paramètres → CE-UI-10. Retour avec modifications → confirmation d’abandon existante. Création : « Abandonner la création ? » / « Les informations saisies seront perdues et l’exercice ne sera pas créé. ». Modification : « Abandonner les modifications ? » / « Les modifications apportées à cet exercice seront perdues. ». Annuler conserve le brouillon ; Confirmer abandonne les changements.
 
 #### 5. Données affichées et source de vérité
 
@@ -806,6 +806,9 @@ Bip 0/1/10, supprimer puis annuler/confirmer, phrase à 3/4cibles, singulier et 
 Vérifier état repos/activé à ouverture/fermeture du panneau et symbole du total selon D-305.
 
 Corpus v15 :276gabarits, total métier injecté ; aucun changement grammatical vs v14. Tester virgule jamais isolée en début de ligne, cas 144 long et ordre des cibles après déplacement. Les cas de brouillon incomplet restent hors des 276sorties validées.
+
+Recette phases : création/repli ; ajout libre6→6+6 ; format20→20+0→12+8 ; suppression5+7+8→5+15 ; déplacement sans modification du total ; dernière supprimée→durée simple ; six phases ; libellé20/vide ; zéro retiré ; annulation complète ; adaptation15+15→10+10 et6+3→13+7 avec message ; total3×(6+3+15)=72s ; ancien objet inchangé. Recette applicative non exécutée par la présente mise à jour documentaire.
+
 
 ### CE-T03-05 — ActivityDefinition — archiver / restaurer / supprimer
 
@@ -930,19 +933,27 @@ L’ancienne référence Figma `3787:5209 — Catalogue — action contextuelle 
 
 Feuille Paramètres d’exécution de CE-T03-04. Références courantes (relevé du 18/10/2026, D-403 à D-413) : 9289:17849 (charge commune), 9290:17953 (séries variables avec charge), 9292:18077 (séries variables avec charge, clavier numérique), 9307:18208 (Durée de l’exercice déployée), 8328:37862 (Durée d’une série, roulette numérique seule), 9232:44646, 8470:13303 (séries variables, cas mixte), 8328:36923 (champs vides), 8328:37092 (Mode, sélection segmentée), 8328:37972 (Changement de côté replié), 8328:38193 (Changement de côté déployé), 8328:39072 (une seule série), 8328:38084 (roulette de la ligne Durée de l’exercice), 8328:38632 (séries variables en Répétitions avec cadence), 8328:38741 (séries variables en Répétitions sans cadence), 8328:38848 (tableau replié), 8982:15172 (séries variables toutes à l’échec, sans ligne Durée de l’exercice), 8328:39279 (déplacement d’une série). La frame 9232:44646, nommée « Durée d’une phase (roulette) », illustre malgré son nom la roulette d’une cellule de séries variables en mode Durée (RM-250) ; aucun contrat de phase n’en est déduit. Captures et écarts Figma au chapitre 06 ; les valeurs des captures sont illustratives. Les états du 12/10 et de la matrice Deux modes du 13/10 remplacés par ces frames, ainsi que les références 6419/6665/7059/7069 du 07/10, sont historiques.
 
+**Phases — MVP :** cette même feuille porte la création et l’édition des phases ; aucun contrat de page autonome supplémentaire. Les trois états dédiés du rapport Figma du15/10 ne sont pas encore recapturés au chapitre06.
+
 Règles applicables : RM-033, RM-035, RM-036, RM-058, RM-095, RM-129, RM-130, RM-132, RM-232, RM-233, RM-234, RM-235 à RM-250, RM-FMT-10, RM-FMT-17 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »). RM-235 à RM-250 : [Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026) (décisions D-403 à D-413).
 
 #### 2. Finalité fonctionnelle
 
 Saisir/éditer Mode, Condition d’arrêt, Nombre de séries, Type de série (identiques/variables), cibles, Pauses, Charge, Changement de côté, Enchainement et Pause entre les côtés, Cadence (Bip de cadence), Compte à rebours et Fin d’exercice (D-413) ; appliquer au brouillon parent et régénérer la phrase sans sauvegarde prématurée.
 
+Définir jusqu’à six phases de travail sans créer d’autres exercices ; maintenir les contraintes du format et calculer la durée de série.
+
 #### 3. Contexte d’entrée
 
 Ouverture depuis la zone Paramètres d’exécution. Copie du parent ; Bip initial 0, présenté Sans dans la ligne Cadence (RM-245), reprendre valeur existante 0..10 en édition. Aucun tempo implicite. Charge initiale Sans ; un Exercice qui ne porte pas la charge est lu Sans, jamais avec 0 kg (RM-236). Création : N1,Pause 0,cibles et mode selon [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice) ; absence de cible requise distincte de Bip 0.
 
+Phases absentes sur les anciens exercices. En édition, reprendre la liste effective de la définition ou de la copie de séance, jamais une référence mutable vers le Catalogue.
+
 #### 4. Contexte de sortie / destinations
 
 ✕/retour système annule l’ouverture ; ✓ applique état actif valide au parent ; Terminer du parent persiste. Même feuille pour création/modification et copie d’Exercice dans Séance.
+
+Les phases suivent la même frontière ✓/✕/Terminer ; aucune confirmation supplémentaire n’est ajoutée pour les adaptations validées.
 
 #### 5. Données affichées et source de vérité
 
@@ -952,15 +963,19 @@ Ouverture depuis la zone Paramètres d’exécution. Copie du parent ; Bip initi
 
 Collection effective des Séries, cible/Pause/charge par série/bip, mode, activation et charge commune (valeurs conservées sous Sans, RM-236), changement de côté Avec / Sans sans direction (D-406 ; données historiques D→G et G→D lues Avec, RM-244), ordre,PC,Compte à rebours/Fin. La Condition d’arrêt en séries variables est dérivée des cibles des séries, jamais persistée à part (RM-249). Bip commun à toutes les lignes,0..10 dans deux modes ; aucune surcharge persistée. Calcul typé fourni par [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) ; phrase et montants Figma ne pilotent aucune donnée.
 
+Avec phases : liste ordonnée de libellés/durées, durée de série égale à leur somme ; dernière durée calculée sous format. Le corpus historique de phrases ne couvre pas cette extension ; les nouveaux textes restent à valider.
+
 #### 6. Classification des valeurs Figma
 
 Titres/règles statiques ; valeurs de champs dynamiques ; exemples Figma démonstratifs. exact/estimated/lowerBound/omitted à l’Exercice ; lowerBound réservé au mélange calculable. Une erreur de cible n’est pas une durée omitted et bloque ✓ sans inventer un montant.
+
+Phase 1 et Phase n sont des libellés initiaux ; les libellés personnalisés et durées sont des données. Les chiffres des maquettes ne déterminent aucun calcul.
 
 #### 7. Structure de l’écran
 
 **Complément cible 12/10, présentation remplacée par D-410 :** contrôle Type de série (Variables / Identiques) ; chevron à l’intérieur de l’option Variables, centré verticalement avec le texte (RM-247) ; identiques sans chevron. Tableau variable visible ou replié.
 
-En-tête fixe ✕/titre/✓ ; corps défilant en quatre cadres successifs (D-413) : 1 Exécution — Mode, Condition d’arrêt ; 2 Séries — Nombre de séries, Type de série, puis Durée ou Répétitions et Pause (identiques) ou tableau de séries variables, puis Charge ; 3 Côtés — Changement de côté, puis Enchainement et Pause entre les côtés lorsque Avec est déployé ; 4 Cadence et durée — Cadence, Durée de l’exercice, puis Compte à rebours et Fin d’exercice lorsque déployés et applicables, ou directement visibles si la ligne Durée de l’exercice est absente (RM-246). Cadence commune hors tableau, présente dans les deux modes. N1 normalisé uniforme et ordre par côté.
+En-tête fixe ✕/titre/✓ ; corps défilant en quatre cadres successifs (D-413) : 1 Exécution — Mode, Condition d’arrêt ; 2 Séries — Phases de l’exercice (Avec / Sans, chevron intérieur à Avec, tableau Libellé/Durée lorsqu’il est déployé), Nombre de séries, Type de série, puis Durée ou Répétitions et Pause (identiques) ou tableau de séries variables, puis Charge ; 3 Côtés — Changement de côté, puis Enchainement et Pause entre les côtés lorsque Avec est déployé ; 4 Cadence et durée — Cadence, Durée de l’exercice, puis Compte à rebours et Fin d’exercice lorsque déployés et applicables, ou directement visibles si la ligne Durée de l’exercice est absente (RM-246). Cadence commune hors tableau, présente dans les deux modes. N1 normalisé uniforme et ordre par côté.
 
 #### 8. Éléments obligatoires
 
@@ -968,9 +983,13 @@ En-tête fixe ✕/titre/✓ ; corps défilant en quatre cadres successifs (D-413
 
 Cadence : contrôle segmenté Autre | 5 s | 2 s | 1 s | Sans (RM-245) ; Sans vaut 0 ; Autre permet une autre valeur avec le mécanisme numérique existant du Bip (0..10, pas 1 s) ; l’option sélectionnée reflète la valeur courante ; contrôle actif même à 0. Aucun interrupteur ou roulette Bip. Total absent en Répétitions sans bip et toutes cibles À l’échec ; exact en Durée toute chiffrée, ≈ en Répétitions toute chiffrée avec bip, ≥ en mélange calculable. Condition d’arrêt : À l’échec / À la cible, sélectionnable en identiques, résultat dérivé en variables (RM-248, RM-249). Charge : ligne Avec / Sans, Sans par défaut (RM-237, RM-238). Pause entre les côtés seulement avec changement de côté (Avec). Compte à rebours/Fin conservés ; repliés par défaut sous Durée de l’exercice, sans être désactivés (RM-246).
 
+Libellés limités à20 caractères, ajout limité à6 phases. Durée de série calculée visible. Mode incompatible, cible À l’échec et régime variable indisponibles tant que les phases existent.
+
 #### 9. Layout déterministe
 
 **Révision 13/10, amendée le 18/10 :** le popover Mode 184×99 est remplacé par le contrôle segmenté Mode, aligné à droite, sans enveloppe blanche (D-413). Roulette cible : popover 354×249 avec maître 8452:13297 (330×181), option en tête 330×30, séparateur 1px, roulette numérique 150px ; cette variante à option À l’échec ne s’ouvre plus, en mode Durée, que depuis une cellule de série variable (9232:44646) ; la roulette Durée d’une série des séries identiques est numérique seule (8328:37862 ; D-412, RM-250). Le total conserve le maître 5544:5118 (330×150) et son popover 354×216. Ligne de série à deux colonnes cible/Pause maintenue, même tout échec, complétée par la colonne Charge lorsqu’elle est affichée (RM-238) ; aucune variante à une colonne. Voir DSF Deux modes pour tailles et opacités.
+
+Toucher une cellule cible du tableau variable ouvre sa roulette sur la cible courante (numérique ou À l’échec) ; seule cette cellule est modifiée. Le pied commun est retiré (D-413) ; chaque cellule utilise le sélecteur de son champ (D-417).
 
 **Alignement DSF du 12/10, amendé le 18/10 :** ligne variable `8129:31593`, 334 × 36 ; cellules cible/Pause 76 × 24. Le pied commun `8129:31601` (354 × 48, ± à droite) est retiré, sans réintroduction de lignes de boutons +/− (D-413). Tableau à fond blanc sans contour extérieur, séparateurs internes, lignes de 36 px ; l’espace sous la dernière ligne vaut une hauteur de ligne ; valeurs Durée ou Répétitions, Pause et Charge alignées sur leurs en-têtes ; numéros de série rapprochés des poignées. Une cellule active ; aucun stepper permanent dans les cellules : la cellule active utilise le sélecteur existant de son champ (D-417). Les états de la feuille sont illustrés au chapitre 06. Seul le placement de la mention/astérisque du nombre hérité reste sans référence visuelle identifiée.
 
@@ -978,21 +997,27 @@ Cadence : contrôle segmenté Autre | 5 s | 2 s | 1 s | Sans (RM-245) ; Sans vau
 
 Référence longue 7119:27855 :224caractères, cinq lignes/100px à largeur 324, carte 193px en AUTO. Contenu et contrôles suivants suivent la hauteur intrinsèque, sans plafond.
 
+Réutiliser la ligne de tableau à deux colonnes, sans pied ni boutons +/− (D-413), le repli par le chevron intérieur à Avec (D-410) et les états existants. Distinguer valeur calculée lisible, valeur imposée effective et option indisponible. Fond gris et hauteur suivent le contenu ; DSF Deux modes, section Phases.
+
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
 360/402/440, Safe Areas, texte agrandi et scroll ; en-tête reste accessible. Tableau replié conserve données et erreurs ; feuille sans ligne Durée de l’exercice conserve l’accès à la Cadence, à Compte à rebours et Fin d’exercice, directement visibles lorsqu’applicables (RM-246), et aux actions. Aucune hauteur fixe ne doit rogner le texte ou les steppers ; la feuille s’adapte au contenu visible (D-413). Saisie de la charge : clavier numérique avec séparateur décimal, directement dans le champ ou la cellule, sans fenêtre intermédiaire ; le tableau reste entièrement visible au-dessus du clavier (marge de 12 px dans 9292:18077) (D-405, RM-239).
 
-Le tableau n’a pas de défilement vertical indépendant du corps. (transféré du [DSF — Circuits, volumes et contrôles de séries du 12/10/2026](../DSF-CIRCUITS-CONTROLES-2026-10-12.md), § « Modalités d’exécution et tableau variable », G4.)
+Le clavier du libellé ne masque ni le champ actif ni les actions. Jusqu’à six phases : corps défilant, en-tête accessible, repli sans perte des valeurs ; aucune hauteur fixée à l’exemple de deux phases.
+
+Le tableau n’a pas de défilement vertical indépendant du corps. (transféré du [DSF — Circuits, volumes et contrôles de séries du 12/10/2026](../DSF-CIRCUITS-CONTROLES-2026-10-12.md), § « Paramètres d’exécution et tableau variable », G4.)
 
 #### 11. États de l’écran
 
-Cible chiffrée / À l’échec / mélange ; ouverture sur la cible courante. Option sélectionnée 100%, sinon 45% du remplissage #1a1a1f. À l’échec sélectionné : partie numérique neutre 00:00 et grisée ; ce zéro n’est pas une cible valide. Aucun écran uniforme supplémentaire : un changement de valeur seul ne crée pas un nouveau contrat.
+Cible chiffrée / À l’échec / mélange ; ouverture sur la cible courante. Option sélectionnée100%, sinon45% du remplissage #1a1a1f. À l’échec sélectionné : partie numérique neutre00:00 et grisée en mode Durée ; ce zéro n’est pas une cible valide. Aucun écran uniforme supplémentaire : un changement de valeur seul ne crée pas un nouveau contrat.
 
 Cadence Sans / 5 s / 2 s / 1 s / Autre avec valeur personnalisée, dans chacun des deux modes (RM-245) ; cible valide/incomplète ; uniforme/variable ;N1 ; Changement de côté Sans / Avec replié / Avec déployé et deux enchaînements (RM-242, RM-247) ; tableau ouvert/replié par le chevron de Variables ; option non modifiable avec sa valeur réelle (RM-247) ; Condition d’arrêt sélectionnable en identiques, résultat À la cible / À l’échec / « À la cible et à l’échec » en variables, tableau incomplet (RM-248, RM-249) ; Durée de l’exercice repliée / déployée, ligne absente avec signaux directement visibles (RM-246) ; charge Sans / valeur commune / colonne par série / saisie au clavier / zéro / valeurs conservées sous Sans (RM-236 à RM-239) ; steppers au minimum/maximum et maintenus ; validation/annulation. Plus aucun état roulette de cadence. Les états À l’échec de la roulette de cible décrits ci-dessus ne concernent plus la Durée d’une série des séries identiques, roulette numérique seule (RM-250).
 
+Sans phases ; phases ouvertes/repliées ; incompatibilité ; une/six phases ; zéro temporaire ; dernière durée imposée calculée ; libellé vide ; adaptation avec message. Un état non illustré reste spécifié par ce contrat.
+
 #### 12. Contrôles et interactions
 
-Deux modes seulement. Cible chiffrée et À l’échec mutuellement exclusives ; libellé « Aucune durée, à l’échec » ou « Aucune répétition, à l’échec ». Aucune coche dans la liste ; ✓ de la feuille applique. Conserver le type À l’échec lors d’une bascule de mode. À tout instant, exactement une cible est sélectionnée. À l’ouverture : cible numérique → roulette active sur la valeur courante et libellé échec à 45% ; cible échec → libellé actif et bloc numérique grisé à 45%, affiché à 00:00. Faire tourner la roulette sélectionne la valeur numérique et grise le libellé. Toucher le libellé sélectionne l’échec et ramène la roulette grisée à 00:00. Le grisé exprime la non-sélection, pas une interdiction de manipuler la roulette. Aucun geste supplémentaire de déverrouillage, aucune coche. Validation par le bouton de la feuille ; annulation selon le brouillon existant.00:00 n’est jamais une cible valide ; pause 0 reste valide.
+Deux modes seulement. Cible chiffrée et À l’échec mutuellement exclusives ; libellé « Aucune durée, à l’échec » ou « Aucune répétition, à l’échec ». En Répétitions, « Aucune répétition, à l’échec » est la ligne de tête de la roulette à une colonne ; aucun bloc horaire 00:00 n’y est transposé. Aucune coche dans la liste ; ✓ de la roulette applique la sélection au brouillon de la feuille ; ✕ de la roulette restaure la valeur à son ouverture. ✓ de la feuille applique l’ensemble au parent ; ✕ de la feuille annule toutes les modifications depuis son ouverture, y compris celles validées dans une roulette. Aucune persistance définitive à la validation de la roulette. Conserver le type À l’échec lors d’une bascule de mode. À tout instant, exactement une cible est sélectionnée. À l’ouverture : cible numérique → roulette active sur la valeur courante et libellé échec à45% ; cible échec → libellé actif et bloc numérique grisé à45%, affiché à00:00 en mode Durée uniquement. Faire tourner la roulette sélectionne la valeur numérique et grise le libellé. Toucher le libellé sélectionne l’échec et ramène le bloc numérique grisé à00:00 en mode Durée. Le grisé exprime la non-sélection, pas une interdiction de manipuler la roulette. Aucun geste supplémentaire de déverrouillage, aucune coche. ✓ de la roulette applique la sélection au brouillon de la feuille ; ✕ de la roulette restaure la valeur à son ouverture. ✓ de la feuille applique l’ensemble au parent ; ✕ de la feuille annule toutes les modifications depuis son ouverture, y compris celles validées dans une roulette. Aucune persistance définitive à la validation de la roulette.00:00 n’est jamais une cible valide ; pause0 reste valide.
 
 **Révision 18/10 (D-411, D-412) :** en séries identiques, la Condition d’arrêt choisit À l’échec ou À la cible pour toutes les séries (RM-248) ; la roulette Durée d’une série ne propose plus « Aucune durée, à l’échec » (RM-250). L’option en tête « Aucune durée, à l’échec » et les règles ci-dessus de sélection, de grisé et de 00:00 valent pour la roulette d’une cellule de série variable en mode Durée, pour cette seule série ; chaque modification actualise la Condition d’arrêt, sans modifier les pauses (RM-249, RM-250). À l’échec n’est pas une durée nulle. En séries identiques, la roulette Répétitions ne propose plus « Aucune répétition, à l’échec » (D-418) et la saisie de durée est masquée lorsque la condition commune est À l’échec (D-419) ; dans une cellule de séries variables, la roulette Répétitions garde cette option en tête.
 
@@ -1009,13 +1034,21 @@ Deux modes seulement. Cible chiffrée et À l’échec mutuellement exclusives ;
 - Le total Durée uniforme entièrement chiffré garde son inversion seulement si N est libre ; sous N imposé par un circuit de séries, tout total affichable est en lecture seule.
 - omitted reste absent.
 
+Avec crée Phase1 à la durée actuelle (D-410). Ajout libre copie la dernière durée ; ajout sous format crée0 et rend la précédente modifiable. La dernière reçoit le restant. Déplacement conserve valeurs et transfère le calcul à la dernière position. Suppression sous format transfère le temps libéré à la dernière restante ; supprimer l’unique phase conserve sa durée comme durée simple. Message informatif lors de l’adaptation proportionnelle à l’intégration, catalogue intact.
+
+Avec phases et N libre, Durée totale conserve le calcul inverse de R-02 : seul N est ajusté, les durées des phases restent inchangées. N imposé : total en lecture seule.
+
 #### 13. Gestes
 
 Tap et maintien sur steppers, arrêt au relâchement/sortie de cible, pas supplémentaire de relâchement interdit après répétition. Glisser la poignée réordonne cible/Pause/charge/bip ensemble et recalcule la dernière ligne (RM-238). Alternatives accessibles sans geste fin.
 
+Poignée : déplacer le libellé et sa durée ensemble. Tap libellé : saisie texte ; tap durée éditable : contrôle durée. La dernière calculée n’ouvre pas de saisie. Les gestes et alternatives accessibles du tableau existant sont conservés.
+
 #### 14. Validation
 
 Mode et cibles typées actives requis ; une cible À l’échec est valide sans nombre. R06 close : maximum 58 min 55 s (3535 s) confirmé ; roulette de cible par pas5 s dès 5 s. Cibles chiffrées : N1..99,Ri1..100,Ti5..3535 s,Pauses 0..300 s,Bip entier 0..10 dans deux modes. −1,11,fraction invalides, aucune correction silencieuse. Exception propre à la charge (D-405) : valeur positive hors pas arrondie au multiple de 0,25 kg supérieur, sans message, à la sortie du champ ou à la validation ; valeur négative refusée ; zéro = sans charge (RM-239). La Condition d’arrêt dérivée n’est pas validée à part (RM-249). Repli ne contourne pas validation ; erreur nommant la Série.0 (Sans) reste valide. Nom/Catégorie/Zones contrôlés au parent.
+
+À ✓, phases de saisie à0 retirées silencieusement, libellés vides remplacés par Phase n. Les phases persistées sont positives. La somme calculée de6+3=9s n’est pas arrondie au pas5s du sélecteur de série. Les bornes/pas spécifiques, le cas initial sans durée et les arrondis extrêmes restent à préciser au chapitre08 ; ne pas choisir une nouvelle borne implicitement.
 
 #### 15. Brouillon et persistance
 
@@ -1023,13 +1056,19 @@ Mode et cibles typées actives requis ; une cible À l’échec est valide sans 
 
 Brouillon isolé ; ✓ atomique au parent ; ✕ restaure totalité avant ouverture. Bip persiste quel que soit le mode. Les variantes cachées de cibles/tableaux ne sont pas persistées hors état actif ; exception : les valeurs de charge désactivées par Sans ou masquées avec la colonne sont conservées et enregistrées avec l’activation (D-403, RM-236). Duplication/copie/snapshot incluent Bip, l’activation et les valeurs de charge ; aucune mutation partielle.
 
+Conserver les zéros temporaires uniquement en brouillon. Annuler restaure l’ordre, les libellés et toutes les durées, y compris le restant recalculé. Copie, duplication et instantané conservent la liste ; aucun total ni phrase en base.
+
 #### 16. Navigation et conservation d’état
 
 Retour au parent même position et contenu, phrase régénérée à chaque affichage depuis les paramètres appliqués, notamment après✓ valide. Une bascule de mode seule ne sauvegarde rien. Pas de navigation vers un écran de cadence ni de nouvelle route.
 
+Même retour au parent ; le repli n’est pas une sortie. Les modifications de la copie de séance n’affectent pas le Catalogue.
+
 #### 17. Erreurs et cas limites
 
 Cible manquante, valeur hors borne, double validation, interruption ou erreur de persistance : aucun état partiel. Mode sans durée propre : ligne absente même si pauses positives ; Compte à rebours et Fin d’exercice restent alors directement visibles lorsqu’applicables (RM-246). Historique non modifié ; données héritées hors plage conservées tant qu’elles ne sont pas modifiées, toute nouvelle saisie ou modification respectant les bornes (D-383) ; jamais tronquées silencieusement.
+
+Pas de septième phase, de durée restante négative ou d’effacement des phases à travers un ancien DTO. Les arrondis à zéro lors d’une adaptation ne sont pas assimilés sans arbitrage à des zéros de saisie.
 
 #### 18. Accessibilité
 
@@ -1037,9 +1076,13 @@ Cible manquante, valeur hors borne, double validation, interruption ou erreur de
 
 Nom accessible Cadence (Bip de cadence) ; options Autre, 5 s, 2 s, 1 s et Sans annoncées avec la sélection courante ; valeur Sans ou intervalle en secondes ; pour Autre, boutons augmenter/diminuer et limites annoncées (RM-245). Condition d’arrêt : sélectionnable en identiques ; en variables, annoncée comme valeur déterminée par les séries, non modifiable (RM-249). Charge : valeur en kg ou Sans. Total ≈ annoncé estimation ; ≥ annoncé total prévisionnel partiel. Option À l’échec annoncée sélectionnée/non sélectionnée ; le grisé n’est pas le seul indicateur accessible. Focus modal contenu, retour à la zone Paramètres. Texte agrandi, cibles 44 minimum, alternatives au maintien/glisser.
 
+Annoncer position, libellé, durée et état calculé/non modifiable ; raison de l’indisponibilité accessible, pas uniquement grise. Ordre de focus cohérent après ajout, suppression et déplacement ; texte20 caractères sans réduire les cibles tactiles.
+
 #### 19. Invariants
 
 Bip sonore uniquement pendant Série, aucune transition automatique. Les intervalles logiques peuvent proposer un relevé estimé en Répétitions à l’échec. Son ne transforme pas À l’échec en durée connue. Aucune estimation forfaitaire ; ≥ seulement pour mélange calculable à l’Exercice. Pause après chaque série, y compris la dernière ; récupération contextuelle positive remplaçant seulement la dernière Pause. La charge ne modifie ni minuteurs, ni cibles, ni cadence, ni pauses, ni ordre, ni calculs (RM-235). Un repli ne modifie ni valeurs, ni mode, ni durée affichée (RM-246, RM-247). Les images ne gouvernent ni calculs ni persistance.
+
+Une série = un motif complet ; phases seulement Durée chiffrée et identiques. Pauses et côtés inchangés. Aucun comportement ne découle d’un exemple chiffré Figma.
 
 #### 20. Recette déterministe
 
@@ -1064,6 +1107,7 @@ Recette v3.0 (D-403 à D-413), scénarios de la spécification du 18/10/2026 (§
 |---|---|---|
 | 1 | Mode | Cadre 1 Exécution. Contrôle segmenté Répétitions / Durée, sans popover (D-413) |
 | 2 | Condition d’arrêt | Cadre 1. À l’échec (à gauche) / À la cible (à droite) ; À la cible par défaut (D-416). Identiques : sélectionnable, le choix vaut pour toutes les séries (RM-248) ; À l’échec masque la saisie de durée (D-419). Variables : résultat dérivé non modifiable, deux options avec sélection automatique ou une seule option « À la cible et à l’échec » ; tableau incomplet selon D-384 (RM-249) |
+| 2b | Phases de l’exercice | Cadre 2 Séries, en tête. Contrôle segmenté Avec / Sans ; chevron à l’intérieur de l’option Avec (D-410) ; tableau Libellé/Durée sans boutons +/− (D-413) ; durée de série calculée ; disponible en Durée chiffrée et séries identiques seulement (D-370 à D-375, ch. 08 « Phases d’exercice ») |
 | 3 | Nombre de séries | Cadre 2 Séries. Valeur numérique, défaut 1 ; appui révèle ± si N libre ; valeur réelle en lecture seule avec origine si N hérité du circuit |
 | 4 | Type de série | Contrôle segmenté Variables / Identiques ; chevron à l’intérieur de l’option Variables, haut si le tableau est déployé, bas s’il est replié (D-410, RM-247) ; identiques sans chevron ; normalisation N1 existante conservée, option non modifiable avec sa valeur réelle |
 | 5 | Cible et Pause | Identiques : lignes Durée/Répétitions et Pause après chaque série ; roulettes Durée d’une série et Répétitions sans option À l’échec (D-418), À l’échec choisi par la Condition d’arrêt, sans nombre prescrit (RM-248, RM-250). Variables : tableau rattaché à Type de série, ligne numérotée, poignée, colonnes Durée ou Répétitions, Pause et, si la charge est active, Charge ; lignes de 36 px, sans pied ± ni stepper permanent (D-413) ; chaque cellule utilise le sélecteur existant de son champ, pour cette seule cellule : roulette de durée ou Répétitions avec « À l’échec », stepper de Pause, clavier de charge (D-417, RM-250) |
@@ -1098,9 +1142,9 @@ Steppers : tap 1 ; maintien≈500 ms, puis paliers 5 après≈2 s et 10 après�
 
 Portée depuis le 18/10 (D-412) : ce sélecteur à option À l’échec est celui d’une cellule de série variable en mode Durée, pour cette seule série ; la roulette Durée d’une série des séries identiques est numérique seule et À l’échec s’y règle par la Condition d’arrêt (RM-248, RM-250). La roulette Répétitions suit D-418 : sans option À l’échec en séries identiques, avec « Aucune répétition, à l’échec » en tête dans une cellule de séries variables.
 
-À tout instant, exactement une cible est sélectionnée. À l’ouverture : cible numérique → roulette active sur la valeur courante et libellé échec à 45% ; cible échec → libellé actif et bloc numérique grisé à 45%, affiché à 00:00. Faire tourner la roulette sélectionne la valeur numérique et grise le libellé. Toucher le libellé sélectionne l’échec et ramène la roulette grisée à 00:00. Le grisé exprime la non-sélection, pas une interdiction de manipuler la roulette. Aucun geste supplémentaire de déverrouillage, aucune coche. Validation par le bouton de la feuille ; annulation selon le brouillon existant.00:00 n’est jamais une cible valide ; pause 0 reste valide.
+À tout instant, exactement une cible est sélectionnée. À l’ouverture : cible numérique → roulette active sur la valeur courante et libellé échec à45% ; cible échec → libellé actif et bloc numérique grisé à45%, affiché à00:00 en mode Durée uniquement. Faire tourner la roulette sélectionne la valeur numérique et grise le libellé. Toucher le libellé sélectionne l’échec et ramène le bloc numérique grisé à00:00 en mode Durée. Le grisé exprime la non-sélection, pas une interdiction de manipuler la roulette. Aucun geste supplémentaire de déverrouillage, aucune coche. ✓ de la roulette applique la sélection au brouillon de la feuille ; ✕ de la roulette restaure la valeur à son ouverture. ✓ de la feuille applique l’ensemble au parent ; ✕ de la feuille annule toutes les modifications depuis son ouverture, y compris celles validées dans une roulette. Aucune persistance définitive à la validation de la roulette.00:00 n’est jamais une cible valide ; pause0 reste valide.
 
-**Bornes confirmées le 13/10 :** cible Durée de 00:05 à 58:55 (5–3535 s), sélecteur par pas de 5 s. Hermann corrige explicitement la borne maximale :58 min 55 s ; 5999 s était une coquille. Répétitions : entiers 1–100.00:00 reste réservé à la représentation neutre de l’échec, jamais une cible. Les valeurs historiques ne sont pas arrondies silencieusement à la lecture ; les contrôles de pauses et de Durée totale conservent leurs règles propres.
+**Bornes confirmées le13/10 :** cible Durée de00:05 à58:55 (5–3535s), sélecteur par pas de5s. Hermann corrige explicitement la borne maximale :58min55s ;5999s était une coquille. Répétitions : entiers1–100.00:00 reste réservé à la représentation neutre de l’échec, jamais une cible. Les valeurs historiques ne sont pas arrondies silencieusement à la lecture ; les contrôles de pauses et de Durée totale conservent leurs règles propres. Valeur historique hors grille : conserver et afficher exactement la valeur tant que l’utilisateur ne la modifie pas, sans arrondi ni plafonnement à la lecture ou à l’ouverture. La roulette propose les valeurs de 5 à 3535 s par pas de 5 s ; une sélection explicite remplace la valeur historique. La cible Durée utilise un pas de 5 s, dans les bornes autorisées, sans pied ± (retiré par D-413) ; ne pas confondre ce pas avec celui des pauses ou des phases. 00:00 ne peut pas être validé comme cible numérique et ne sélectionne jamais implicitement À l’échec. 5999 s n’est pas une borne autorisée.
 
 <a id="formats-raccordement"></a>
 
@@ -2127,6 +2171,8 @@ Imposé effectif ; éditable ; erreur de saisie. Ne pas confondre avec indisponi
 
 Tap sur constante n’ouvre pas un éditeur. Changement autorisé actualise la phrase et les calculs sans écraser la définition catalogue.
 
+Phases éligibles : dernière durée calculée, contraintes assurées pendant la saisie. À l’intégration, adaptation proportionnelle dans la copie seulement si total différent, à la hausse comme à la baisse, avec message informatif sans confirmation. Durée de fenêtre EMOM et durée d’effort restent distinctes. Les règles détaillées de CE-UI-10 s’appliquent.
+
 #### 13. Gestes
 
 Fermeture et interactions existantes de modale ; pas d’appui long requis pour comprendre la raison.
@@ -2158,6 +2204,9 @@ FMT-17, 19, 30–32, 42 ; les constantes restent effectives dans le moteur futur
 #### 20. Recette déterministe
 
 REC-08, 18 ; vérifier absence d’éditeur sur les quatre constantes et absence de tiret ; contrôle des segments et de l’unité tour.
+
+Vérifier les exemples20s du contrat CE-UI-10, le message d’adaptation, l’indépendance du catalogue et l’absence de conversion vers un mode incompatible. Les modales Figma de format n’illustrent pas encore les phases selon le rapport du15/10.
+
 
 ### CE-FMT-05 — Exécution des fenêtres et formats à borne ouverte
 <a id="ce-fmt-05"></a>
@@ -4775,6 +4824,12 @@ Le moteur possède la source de vérité temporelle. En exécution autonome uniq
 | Arrêter depuis Pause | Confirmation ; clôture Interrompue et Synthèse si présentable | Instantané et résultats atteints conservés |
 
 Instantané immuable au départ, résultats moteur clôturés une fois, puis finalisation Ressenti/Commentaire distincte et atomique. Le bouton courant de Synthèse est Enregistrer ; Terminer reste le bouton de l’éditeur Exercice. SESSION finalisé ouvre Suivi ; ACTIVITY restaure son appelant Catalogue/Calendrier. Une interruption technique sans Synthèse peut ne pas avoir de Ressenti ; une Synthèse présentée l’exige. Ni consultation média, ni paramètres de lecteur vidéo ne modifient le plan.
+
+#### Phases internes de travail — complément commun
+
+Les contrats ACTIVITY et SESSION appliquent les phases sous la série : enchaînement automatique sans repos, cadence continue, libellé annoncé au début si voix activée, sans retard du temps ; nouvelle annonce interrompt la précédente. Transition prioritaire en cas de coïncidence sonore. Pause conserve phase et restant ; réinitialisation repart de la première phase du périmètre de série/côté existant ; Suivant ne devient pas une commande de phase. Une subdivision ne modifie pas le poids global de la série.
+
+Vérifier6+3 avec bip4 : bips à4 et8 ; annonces courtes/longues, voix désactivée, pause/reprise, reset et saut, deux côtés et circuit de séries. La position du libellé de phase et le choix du temps affiché sur le cadran restent à préciser ; aucun layout de référence n’est déclaré qualifié pour ces nouveaux éléments.
 
 #### 4.13 Usage des références et portée des recettes
 

@@ -367,6 +367,18 @@ Elle ne contient pas directement :
 - Les exercices peuvent être ajoutées, déplacées, dupliquées et supprimées.
 - Leur ordre est conservé à l’intérieur de leur position structurelle. Un Exercice peut être déplacée manuellement d’une position structurelle à une autre.
 
+## Phases de l’exercice
+
+<a id="donnees-phases"></a>
+
+La définition Catalogue et sa copie de Séance transportent une liste ordonnée facultative de phases, commune à toutes les séries identiques. Chaque phase porte une identité stable, un libellé de 1 à 20 caractères après normalisation et une durée positive. La liste validée contient 0 à 6 éléments ; absence ou liste vide signifie sans phases. Les zéros temporaires restent dans le brouillon, jamais dans les données validées. Les bornes et pas spécifiques restent à préciser au chapitre 08.
+
+La durée de série est dérivée de la somme ; une éventuelle projection historique est recalculée et ne constitue pas une autre source de vérité. Le total et les phrases ne sont pas persistés. La séquence n’est pas dupliquée N fois dans la définition : le moteur développe séries, côtés et passages.
+
+L’adaptation au format ne modifie que les durées de la copie de séance. Duplication et copie conservent ordre, libellés et valeurs ; les copies restent indépendantes. L’instantané d’exécution fige les phases effectives après adaptation ; la reprise conserve leur position et le temps restant. Les anciennes définitions sans phases restent inchangées, sans réécriture des résultats historiques.
+
+La collection doit être intégrée au contrat canonique versionné et à ses sérialiseurs/parseurs. La version ancienne reste lisible ; une version inconnue ne doit jamais être rabattue silencieusement sur une durée scalaire qui ferait perdre les phases.
+
 ### Entité Média
 
 > **Périmètre :** consultation des médias pendant l’Exécution incluse au MVP (D-203). L’ajout/import et le stockage local sont inclus au MVP dans PRE-3, avant le moteur d’exécution (D-333). Les règles de partage des fichiers et de conservation de D-066/D-068 sont conservées ; seul leur report post-MVP est remplacé.

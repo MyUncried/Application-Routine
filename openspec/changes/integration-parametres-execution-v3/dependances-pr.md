@@ -1,4 +1,6 @@
-# Dépendances avec les PR ouvertes — intégration v3.0
+# Dépendances avec les PR — intégration v3.0
+
+> **Mise à jour du 18/10/2026 : les trois PR sont intégrées** à `docs/openspec-revision` (lots `V3-14` à `V3-21`) et fermées sans fusion. Traitement détaillé : [pr/traitement-pr.md](pr/traitement-pr.md). Le texte ci-dessous décrit l’état préparatoire.
 
 - **État au 18/10/2026** : PR inchangées et ouvertes — #363 `d2386c8d`, #370 `6cf3634a`, #371 `2c050d0e` (brouillon) ; `main` = `6656fefc`. Ce chantier ne les a ni modifiées, ni commentées, ni fusionnées.
 - **Outil** : `revision-documentation-kodjo/outils/reporter-pr.mjs`, relancé sur l’état intégré. Il produit [pr/pr-363-report.patch](pr/pr-363-report.patch), [pr/pr-370-report.patch](pr/pr-370-report.patch), [pr/pr-371-report.patch](pr/pr-371-report.patch) et leurs tableaux `.tsv`. Ces correctifs ne sont **pas appliqués** : ils sont destinés aux chantiers propriétaires et remplacent ceux du lot 6.

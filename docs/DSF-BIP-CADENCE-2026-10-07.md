@@ -35,6 +35,10 @@ Exemples : + depuis13 au palier5 →15 puis20 ; − depuis13 →10 puis5 ; + dep
 
 Les règles d’animation, d’action et d’accessibilité des steppers de ce paragraphe sont désormais énoncées au [chapitre 06, « Interface et steppers »](Specifications-fonctionnelles/06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#interface-et-steppers) (transfert G4). Leur texte n’a pas changé ; la version antérieure reste consultable dans Git (commit `e8afc61b`).
 
+## Guidage avec phases d’exercice
+
+Le bip reste commun à la série et ne redémarre pas au changement de phase. Transition prioritaire s’il coïncide avec son signal. Si voix activée, annoncer chaque libellé au début, première phase comprise ; le chronométrage ne l’attend pas et la nouvelle annonce interrompt la précédente. Aucune file d’annonces périmées. Les réglages sons/voix existants gardent leur portée. Placement du libellé sur le cadran et articulation avec les annonces exercice/côté à compléter dans le contrat d’exécution, sans inventer de nouveau shell.
+
 ## Contrôle et état Figma
 
 Les24 frames portant le libellé Bip ont été relues et recapturées ; les19 modales auparavant signalées sont maintenant couvertes.7061:13383 reste supprimé. Voir la [matrice courante](MATRICE-CARTES-PHRASES-2026-10-07.md), avec captures et écarts résiduels de texte ; présence du champ ne vaut pas qualification du comportement.

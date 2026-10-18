@@ -1,0 +1,13 @@
+# Renvois au titre de section du DSF Circuits renommé par la PR #371 (PRE-4 Q11 : « Paramètres d’exécution »).
+
+=== V3-N-001 | @13 – Contrats d’écran.md | INTEGRATION-PR:#371 | PR #371, PRE-4 Q11 (titre renommé)
+--- ancien
+§ « Modalités d’exécution et tableau variable », G4.)
+--- nouveau
+§ « Paramètres d’exécution et tableau variable », G4.)
+
+=== V3-N-002 | DSF-CIRCUITS-CONTROLES-2026-10-12.md | INTEGRATION-PR:#371 | PR #371, PRE-4 Q11 (titre renommé)
+--- ancien
+dans « Modalités d’exécution et tableau variable », la ligne Séries
+--- nouveau
+dans « Paramètres d’exécution et tableau variable », la ligne Séries

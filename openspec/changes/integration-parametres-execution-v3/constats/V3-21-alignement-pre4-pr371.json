@@ -1,0 +1,51 @@
+{
+ "description": "Intégration de la spécification v3.0 — V3-21-alignement-pre4-pr371.txt",
+ "corrections": [
+  {
+   "id": "V3-P-001",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-385",
+   "ref": "PRE-4 Q18 (signalement X-06)",
+   "ancien": "Création : « Abandonner la création ? » / « L’exercice ne sera pas créé. »",
+   "nouveau": "Création : « Abandonner la création ? » / « Les informations saisies seront perdues et l’exercice ne sera pas créé. »",
+   "commentaire": "Alignement du contenu intégré de la PR #371 sur les décisions PRE-4 du 16/10/2026 (portée générale, D-385), d’après le / signalement non publié `revision-documentation-kodjo/signalement-PR371-X06-X07.md` : Q18 (X-06), Q8 (X-07), Q17, Q25. / Textes des décisions lus dans la copie figée PRE-4 (questions-ouvertes.md, lecture seule). Q21 n’est pas traitée ici : / elle est remplacée en partie par Q36 (17/10), qui appartient aux décisions Q33 à Q44 non intégrées (limite consignée).",
+   "decision": "D-385"
+  },
+  {
+   "id": "V3-P-002",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "CORRECTION-DECIDEE:D-385",
+   "ref": "PRE-4 Q18 (signalement X-06)",
+   "ancien": "en création, titre `Abandonner la création ?`, message `L’exercice ne sera pas créé.` ;",
+   "nouveau": "en création, titre `Abandonner la création ?`, message `Les informations saisies seront perdues et l’exercice ne sera pas créé.` ;",
+   "decision": "D-385"
+  },
+  {
+   "id": "V3-P-003",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "motif": "CORRECTION-DECIDEE:D-385",
+   "ref": "PRE-4 Q8 (signalement X-07), D-418",
+   "ancien": "Séries `1..99` et Répétitions `1..100` utilisent des steppers",
+   "nouveau": "Séries `1..99` utilise un stepper ; la cible Répétitions `1..100` utilise une roulette native à une colonne (décision PRE-4 Q8, D-385 ; option À l’échec selon D-418)",
+   "decision": "D-385"
+  },
+  {
+   "id": "V3-P-004",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-385",
+   "ref": "PRE-4 Q17",
+   "ancien": "Séance/Circuit : ≥ si travail inconnu ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.",
+   "nouveau": "Séance/Circuit : ≥ si travail inconnu ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Le résumé des séries n’affiche jamais « 0 s » ni « 0 rép. » pour une cible à l’échec (décision PRE-4 Q17, D-385). Ne rien ajouter dans les choix où la durée est masquée.",
+   "decision": "D-385"
+  },
+  {
+   "id": "V3-P-005",
+   "file": "DSF-DEUX-MODES-ECHEC-2026-10-13.md",
+   "motif": "CORRECTION-DECIDEE:D-385",
+   "ref": "PRE-4 Q25",
+   "ancien": "Aucune persistance définitive à la validation de la roulette.00:00",
+   "nouveau": "Aucune persistance définitive à la validation de la roulette. Cible à renseigner (« — ») : la roulette s’ouvre sur la plus petite valeur valide, sélectionnée (00:05 en Durée, 1 en Répétitions) ; rien n’est appliqué avant le ✓ ; ✕ laisse la cible à renseigner (décision PRE-4 Q25, D-385).00:00",
+   "decision": "D-385"
+  }
+ ]
+}

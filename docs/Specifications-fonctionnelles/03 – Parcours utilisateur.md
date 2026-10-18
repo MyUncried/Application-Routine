@@ -187,6 +187,12 @@ Dans T03/MVP, le segment `Parcours` est supprimé : aucune troisième option, m�
 
 Les paramètres métier restent identiques entre création et modification ; seule l’organisation de l’écran et le contexte de retour diffèrent.
 
+### Définir les phases d’un exercice — MVP
+
+Dans la feuille Paramètres d’exécution, la ligne Phases de l’exercice ouvre le cadre Séries (D-413). Sur un exercice en Durée chiffrée et séries identiques, choisir Avec crée une première phase reprenant la durée actuelle de série. Ajouter, nommer, régler et déplacer jusqu’à six phases ; leur somme devient la durée de série. Le chevron, à l’intérieur de l’option Avec, n’existe que lorsque la liste existe (D-410). ✓ applique au brouillon parent ; ✕ annule ; l’enregistrement reste celui du parent.
+
+Dans un format imposant une durée de travail, la dernière phase reçoit le temps restant. L’intégration d’un exercice dont la somme diffère adapte proportionnellement sa copie dans la séance et affiche un message informatif ; la définition Catalogue reste intacte. Règles détaillées et cas encore à préciser : [Phases d’exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
+
 #### Ajouter un Exercice depuis une Composition
 
 1. Appuyer sur `Ajouter un exercice`.

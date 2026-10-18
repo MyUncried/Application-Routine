@@ -31,6 +31,26 @@
 - `[PRE4]` : fichier figé par PRE-4 (`caa2a5cf`). Toute modification exige l'accord explicite **A-PRE4** (voir [arbitrages.md](arbitrages.md)).
 - `[PR370]`, `[PR371]` : fichier également modifié par la PR ouverte indiquée.
 
+## Clôture du 18/10/2026
+
+Le change est archivé le 18/10/2026 après l’intégration des PR #363, #370 et #371 dans `docs/openspec-revision` (change `integration-parametres-execution-v3`). Les tâches ci-dessous ne sont **pas** réalisées ; elles restent des limites connues, sans nouveau chantier ouvert :
+
+- 0.7b Réponses de Hermann aux autres questions d'[arbitrages.md §2](arbitrages.md) (questions 2 à 11) : en attente
+- 0.12d Validation de C1 (texte de D-401 avec `{N}` et forme au singulier) ; vérifications Figma (teinte, boutons-icônes, V1)
+- 0.13 Revue indépendante de la livraison des arbitrages, préalable au lot 6
+- 0.14 Revue indépendante des livraisons A1–A9 et B1–B5, préalable à la planification du lot 6
+- 3.6 REPORTÉE au lot 6 (non autorisé). Les 214 lignes À EXAMINER ne sont pas restaurées automatiquement. Elles sont examinées par fichier au lot 6 ; certaines correspondent à des suppressions annoncées…
+- 4.2 ISOLÉE — arbitrage Q-A (question 2 d’arbitrages.md) : modifier ces passages trancherait le rang ch. 08 / ch. 13 ou la borne D-255 ; non autorisé sans décision. Énoncé initial : Aligner PRODUCT.md:…
+- 4.3 ISOLÉE — Q-A : ch. 07:559 vise des « présentations », et non des décisions ; sa reformulation reste une recommandation. Énoncé initial : Ch. 07:559 (critère de récence) : reformuler conformément à…
+- 5.2 ISOLÉE (portée générale des décisions PRE-4 non confirmée : question 10 d’arbitrages.md ; PRE-4 contient désormais Q1 à Q31, dont Q31 qui amende D-335). Énoncé initial : Décisions de Hermann prise…
+- 6H, reste :
+- 6I, reste : autres DSF, règle par règle
+- 6K, reste : pronoms, termes proscrits, découpage des règles longues, au cas par cas
+- 6J Décisions produit, en une liste groupée : [arbitrages-lot6.md](lot6/arbitrages-lot6.md) (204 divergences, copies à rapprocher, décisions de qualité)
+- Revue indépendante finale (ChatGPT)
+- Décisions de Hermann : AR-01 à AR-26 (AR-23 résolu en F9) ; points documentaires AD-01 à AD-13 ([arbitrages-lot6.md](lot6/arbitrages-lot6.md))
+- 6L Revue indépendante de la restructuration, puis résolution des dépendances Git avec les PR #363, #370 et #371 avant toute fusion dans `main`
+
 ## 0. Préparation
 
 - [x] 0.1 Clone, branche `docs/openspec-revision`, OpenSpec 1.14.2, séparation des instructions
@@ -44,17 +64,17 @@
 - [x] 0.7a Décision de Hermann (16/10) : **A-PRE4 AUTORISÉE pour le lot 1 uniquement.**
   - Fichier autorisé : `docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md`.
   - Toute autre modification de règle produit, tout changement de statut non prévu, toute résolution de contradiction fonctionnelle et toute intervention sur un autre clone restent interdits sans nouvel arbitrage.
-- [ ] 0.7b Réponses de Hermann aux autres questions d'[arbitrages.md §2](arbitrages.md) (questions 2 à 11) : en attente
+- **Non réalisé à la clôture (limite consignée) :** 0.7b Réponses de Hermann aux autres questions d'[arbitrages.md §2](arbitrages.md) (questions 2 à 11) : en attente
 - [x] 0.8 Revue indépendante ciblée des réserves des lots 1 à 5 (16/10) : **PARTIELLEMENT CONFORME**, consignée telle quelle ([KODJO_revue_reserves_lots1-5_2026-10-16.md](KODJO_revue_reserves_lots1-5_2026-10-16.md)). Avis de la revue : les résultats de contrôle rapportés par Claude ne sont pas tous rejoués indépendamment, et les lots ne doivent pas être qualifiés de « certifiés ».
 - [x] 0.9 Traitement des réserves documentaires de la revue (journal ci-dessous) et [rapport de conformité par axe](conformite-lots1-5.md)
-- [ ] 0.10 Décision de Hermann sur la publication du [signalement à la PR #371](signalement-PR371-X06-X07.md) (commentaire GitHub ou transmission directe)
+- [x] 0.10 Décision de Hermann sur la publication du [signalement à la PR #371](signalement-PR371-X06-X07.md) (commentaire GitHub ou transmission directe) — sans objet le 18/10/2026 : les écarts signalés (Q8, Q17, Q18, Q25) sont corrigés dans la branche consolidée lors de l’intégration de #371 (`V3-21`) ; signalement non publié
 - [x] 0.11 Arbitrages de Hermann du 16/10 intégrés : registre D-376 à D-387 et 113 corrections documentaires (`e8d98309`, `948665ef` et commit du rapport). Voir [rapport-arbitrages-2026-10-16.md](rapport-arbitrages-2026-10-16.md). Soumis à revue indépendante, non déclaré clos.
 - [x] 0.12 Clôture des 14 réserves (17/10, départ `0a8d6656`) : 31 corrections démontrées et marquages `À CLARIFIER` (`2ccd9fc5`) ; [rapport-cloture-reserves-2026-10-17.md](rapport-cloture-reserves-2026-10-17.md). Résolues : #1, #3, #7, #13. En partie : #4, #11, #12, #14. À arbitrer : A1 à A9. À vérifier dans Figma : V1.
 - [x] 0.12b Décisions de Hermann sur A1 à A9 (17/10) : registre D-388 à D-396 et 36 corrections (`57dfd336`) ; [rapport-conformite-A1-A9-2026-10-17.md](rapport-conformite-A1-A9-2026-10-17.md). Conformité vérifiée pour A1, A3, A4, A5, A6, A8 ; partielle pour A2, A7, A9. Soumis à revue indépendante.
 - [x] 0.12c Points B1 à B5 tranchés par Hermann (17/10) ; portée de B1 confirmée ; registre D-397 à D-401 et 12 corrections (`6912acc5`) ; [rapport-conformite-B1-B5-2026-10-17.md](rapport-conformite-B1-B5-2026-10-17.md)
-- [ ] 0.12d Validation de C1 (texte de D-401 avec `{N}` et forme au singulier) ; vérifications Figma (teinte, boutons-icônes, V1)
-- [ ] 0.13 Revue indépendante de la livraison des arbitrages, préalable au lot 6
-- [ ] 0.14 Revue indépendante des livraisons A1–A9 et B1–B5, préalable à la planification du lot 6
+- **Non réalisé à la clôture (limite consignée) :** 0.12d Validation de C1 (texte de D-401 avec `{N}` et forme au singulier) ; vérifications Figma (teinte, boutons-icônes, V1)
+- **Non réalisé à la clôture (limite consignée) :** 0.13 Revue indépendante de la livraison des arbitrages, préalable au lot 6
+- **Non réalisé à la clôture (limite consignée) :** 0.14 Revue indépendante des livraisons A1–A9 et B1–B5, préalable à la planification du lot 6
 - [x] 0.15 Revue indépendante du lot 6A (révision 1, `1122bb9d`) : **PARTIELLEMENT CONFORME** ; 4 réserves et 4 réexamens traités en révision 2 ([plan, tableau de réponse](lot6/plan-restructuration.md))
 - [x] 0.15b Revue indépendante de la révision 2 du lot 6A : corrections ciblées sur les affectations de défauts structurels demandées. Le rapport n'est pas dans le dépôt ; les affectations ont été réexaminées à l'exécution (rapport de conservation, « Affectations corrigées »).
 - [x] 0.16 Décisions de Hermann sur QR-1 à QR-9 (17/10) : validées selon les recommandations, avec QR-8 « restructuration immédiate » ; consignées en D-402. Voir ([plan-restructuration.md §11](lot6/plan-restructuration.md)), valant autorisation globale des étapes DOC (plan §8.3)
@@ -114,7 +134,7 @@
   - `outils/comparer-registre.mjs <racine> 7a89220f^ HEAD` ne montre plus d'écart pour G2 et G3, hors D-029, D-248, D-337 et D-338 ;
   - `outils/links.mjs` est rejoué ;
   - le nombre de décisions passe de 365 à 367 (G4), sans autre ajout ni suppression.
-- [ ] 1.8 **Coordination — PARTIELLEMENT RÉALISÉE.** Les PR #370 et #371 ajoutent ou modifient d'autres lignes du ch. 07 (D-370 à D-375 ; D-094, D-309). Aucune des lignes du lot 1 n'est modifiée par elles (vérifié).
+- [x] 1.8 **Coordination — PARTIELLEMENT RÉALISÉE.** Les PR #370 et #371 ajoutent ou modifient d'autres lignes du ch. 07 (D-370 à D-375 ; D-094, D-309). Aucune des lignes du lot 1 n'est modifiée par elles (vérifié). — réalisé le 18/10/2026 : PR #370 et #371 intégrées (D-370 à D-375 ; D-094 et D-309 complétés au statut)
   - *Fait :* fusions simulées (`git merge-tree`) du lot 1 avec #363, #370 et #371 : **0 conflit**. Après fusion : 373 décisions uniques avec #370, 367 avec #371 ; les lignes du lot 1 sont conservées.
   - *Reste ouvert :* l'ordre de fusion (question 10 d'[arbitrages.md](arbitrages.md)). Les lignes D-370 à D-375 de la PR #370 sont dans un tableau à 2 colonnes, sans Statut : à signaler à la PR, sans la modifier depuis ce change.
   - Après le lot 1, le tableau des décisions du 14/10 a de nouveau 4 colonnes ; la PR #370 ajoute le sien, distinct. Il n'y a pas de collision.
@@ -266,7 +286,7 @@ Inventaire exact des lignes ajoutées :
 Ces lignes citent D-232 sur des points qu'elle déclare elle-même conservés (« Bornes conservées : … répétitions 1..100 »), ou sans modifier la prescription de la ligne. Le renvoi rétablit la citation d'origine et ne réactive aucun point remplacé. La désignation du remplaçant pour les points supersédés reste ouverte (H-11).
 
 - [x] 3.5 `[PRE4]` **Renvois D-nnn effacés dans les chapitres** (EXACT, environ 210 occurrences dans les 13 chapitres) : **soumis à Q-O**. La PR #360 annonce le retrait des « rubriques de traçabilité des contrats ». Les 244 lignes EXACT portent toutes une trace d'effacement mécanique (espace orpheline avant ponctuation, parenthèse vide, libellé vide), ce qui suggère une suppression non éditoriale. L'intention reste à confirmer.
-- [ ] 3.6 **REPORTÉE au lot 6 (non autorisé).** Les 214 lignes À EXAMINER **ne sont pas restaurées automatiquement**. Elles sont examinées par fichier au lot 6 ; certaines correspondent à des suppressions annoncées par la PR #360.
+- **Non réalisé à la clôture (limite consignée) :** 3.6 **REPORTÉE au lot 6 (non autorisé).** Les 214 lignes À EXAMINER **ne sont pas restaurées automatiquement**. Elles sont examinées par fichier au lot 6 ; certaines correspondent à des suppressions annoncées par la PR #360.
 - [x] 3.7 **Fait :** écart par rapport à `7a89220f^` après les lots 3a et 3b : D-nnn −142 (au lieu de −360), FMT −59 (au lieu de −162), RM-FMT −2 (au lieu de −52), REC +28 ; le reste correspond aux lignes reformulées (3.6). Énoncé initial : Contrôle : `outils/compter-identifiants.mjs <racine> 7a89220f^ HEAD` montre le retour des familles RM-FMT, FMT et REC (D-nnn selon Q-O). `git diff --word-diff` ne contient que des identifiants.
 
 ## 4. Lot 4 — Clarification de l'autorité documentaire
@@ -274,15 +294,15 @@ Ces lignes citent D-232 sur des points qu'elle déclare elle-même conservés (�
 **Classe :** `DOC-AUTORITÉ`. Ce lot dépend de Q-A, Q-B et Q-C.
 
 - [x] 4.1 **Fait en partie (16/10) :** `docs/INDEX.md`, section « Autorité documentaire — ce qui est décidé ». Elle regroupe sans ajout ce qui est explicitement décidé (D-255, D-300, ch. 13 « Clarification d’autorité », rang 1 des décisions explicitement supersédantes) et signale deux points non arbitrés (rang ch. 08 / ch. 13 ; borne « jusqu’à D-255 »). Aucun ordre nouveau, aucune règle modifiée. Énoncé initial : Écrire **une** formulation de l'autorité, en un seul endroit, et la citer ailleurs. Elle reprend ce qui est déjà acquis (documentation = comportements et calculs ; Figma = rendu ; décisions explicites ; DSF jusqu'au transfert) et le point tranché en Q-A.
-- [ ] 4.2 **ISOLÉE — arbitrage Q-A (question 2 d’arbitrages.md)** : modifier ces passages trancherait le rang ch. 08 / ch. 13 ou la borne D-255 ; non autorisé sans décision. Énoncé initial : Aligner PRODUCT.md:434–442, ch. 13:19 et ch. 08:33 sur cette formulation, en les remplaçant par un renvoi, ou en retirer la borne « jusqu'à D-255 » selon Q-A `[PRE4]`.
-- [ ] 4.3 **ISOLÉE — Q-A** : ch. 07:559 vise des « présentations », et non des décisions ; sa reformulation reste une recommandation. Énoncé initial : Ch. 07:559 (critère de récence) : reformuler conformément à design G3, selon Q-A `[PRE4]`.
+- **Non réalisé à la clôture (limite consignée) :** 4.2 **ISOLÉE — arbitrage Q-A (question 2 d’arbitrages.md)** : modifier ces passages trancherait le rang ch. 08 / ch. 13 ou la borne D-255 ; non autorisé sans décision. Énoncé initial : Aligner PRODUCT.md:434–442, ch. 13:19 et ch. 08:33 sur cette formulation, en les remplaçant par un renvoi, ou en retirer la borne « jusqu'à D-255 » selon Q-A `[PRE4]`.
+- **Non réalisé à la clôture (limite consignée) :** 4.3 **ISOLÉE — Q-A** : ch. 07:559 vise des « présentations », et non des décisions ; sa reformulation reste une recommandation. Énoncé initial : Ch. 07:559 (critère de récence) : reformuler conformément à design G3, selon Q-A `[PRE4]`.
 
 ## 5. Lot 5 — Contradictions fonctionnelles déjà arbitrées
 
 **Classe :** `FONCT-ARBITRÉ`. Chaque tâche cite la décision et sa portée. **Aucune n'est exécutée avant la résolution de Q-L**, qui fixe l'ordre avec les PR #370 et #371. Le détail figure dans [arbitrages.md](arbitrages.md).
 
 - [x] 5.1 **Fait en partie (voir le journal du lot 5).** Énoncé initial : Décisions générales déjà prises mais non reportées partout : D-209 (Tour, constats S-06, S-08, P-08), D-343 et D-355 (appui court, H-10), D-092 et la borne 1..100 (X-08), D-337 et D-251 (H-09).
-- [ ] 5.2 **ISOLÉE** (portée générale des décisions PRE-4 non confirmée : question 10 d’arbitrages.md ; PRE-4 contient désormais Q1 à Q31, dont Q31 qui amende D-335). Énoncé initial : Décisions de Hermann prises pour PRE-4 (Q8, Q11 à Q26 de la préparation PRE-4 BMAD) : à reporter dans la documentation **seulement pour celles dont la portée générale est confirmée** (voir Q-L). Q11 à Q18 sont déjà portées par la PR #371, à corriger sur X-06 et X-07.
+- **Non réalisé à la clôture (limite consignée) :** 5.2 **ISOLÉE** (portée générale des décisions PRE-4 non confirmée : question 10 d’arbitrages.md ; PRE-4 contient désormais Q1 à Q31, dont Q31 qui amende D-335). Énoncé initial : Décisions de Hermann prises pour PRE-4 (Q8, Q11 à Q26 de la préparation PRE-4 BMAD) : à reporter dans la documentation **seulement pour celles dont la portée générale est confirmée** (voir Q-L). Q11 à Q18 sont déjà portées par la PR #371, à corriger sur X-06 et X-07.
 - [x] 5.3 **Q-E et Q-G appliquées** (décisions explicites D-203, RM-007/D-121 trouvées au réexamen) ; Q-F, Q-H, Q-I, Q-J et Q-K restent isolées. Énoncé initial : Hors de ce lot, en attente de décision produit : Q-E à Q-K, selon [arbitrages.md](arbitrages.md).
 
 ### Journal d'exécution du lot 5 (16/10/2026)
@@ -407,16 +427,16 @@ Voir le [rapport de conservation](lot6/rapport-conservation-lot6.md), la [matric
 - [x] 6H En partie — `ff9fd738` :
   - D-402 au registre ;
   - ordre de référence de PRODUCT.md remplacé par un renvoi (Q-C).
-- [ ] 6H, reste :
+- **Non réalisé à la clôture (limite consignée) :** 6H, reste :
   - 214 lignes « à examiner » de R-06 ;
   - alias de version ;
   - RM-131 (après #370) ;
   - ch. 08 l. 1573 (après #371).
 - [x] 6I RG-1 à RG-13 transférées au ch. 06, avec renvoi dans le DSF Cartes, icônes et appuis — `4d6d9722`
-- [ ] 6I, reste : autres DSF, règle par règle
+- **Non réalisé à la clôture (limite consignée) :** 6I, reste : autres DSF, règle par règle
 - [x] 6K En partie : 157 lignes d'espaces manquantes, C10 sans écart — `aa9cd0bd`
-- [ ] 6K, reste : pronoms, termes proscrits, découpage des règles longues, au cas par cas
-- [ ] 6J Décisions produit, en une liste groupée : [arbitrages-lot6.md](lot6/arbitrages-lot6.md) (204 divergences, copies à rapprocher, décisions de qualité)
+- **Non réalisé à la clôture (limite consignée) :** 6K, reste : pronoms, termes proscrits, découpage des règles longues, au cas par cas
+- **Non réalisé à la clôture (limite consignée) :** 6J Décisions produit, en une liste groupée : [arbitrages-lot6.md](lot6/arbitrages-lot6.md) (204 divergences, copies à rapprocher, décisions de qualité)
 ### Finalisation (17–18/10/2026, départ `e8afc61b`)
 
 Corrections appliquées sur l'état actuel, sans reconstruction depuis une ancienne base. Chaque lot est contrôlé par `outils/controler-finalisation.sh` (journaux : `lot6/finalisation/controles/`).
@@ -447,11 +467,11 @@ Corrections appliquées sur l'état actuel, sans reconstruction depuis une ancie
   - matrice de correspondance et index des titres régénérés.
 
   Contrôles : `RESIDUEL`, `FINAL-depuis-e8afc61b` (629 corrections), `BOUT-EN-BOUT` réussis.
-- [ ] Revue indépendante finale (ChatGPT)
-- [ ] Décisions de Hermann : AR-01 à AR-26 (AR-23 résolu en F9) ; points documentaires AD-01 à AD-13 ([arbitrages-lot6.md](lot6/arbitrages-lot6.md))
-- [ ] Report des PR #363, #370, #371 sur la documentation restructurée, par leurs chantiers : correctifs prêts et complets (63 blocs), vérifiés par `git apply --check` ([dependances-git.md](lot6/finalisation/pr/dependances-git.md))
+- **Non réalisé à la clôture (limite consignée) :** Revue indépendante finale (ChatGPT)
+- **Non réalisé à la clôture (limite consignée) :** Décisions de Hermann : AR-01 à AR-26 (AR-23 résolu en F9) ; points documentaires AD-01 à AD-13 ([arbitrages-lot6.md](lot6/arbitrages-lot6.md))
+- [x] Report des PR #363, #370, #371 sur la documentation restructurée, par leurs chantiers : correctifs prêts et complets (63 blocs), vérifiés par `git apply --check` ([dependances-git.md](lot6/finalisation/pr/dependances-git.md)) — réalisé le 18/10/2026 : PR intégrées dans `docs/openspec-revision` et fermées sans fusion (`integration-parametres-execution-v3/pr/traitement-pr.md`)
 
-- [ ] 6L Revue indépendante de la restructuration, puis résolution des dépendances Git avec les PR #363, #370 et #371 avant toute fusion dans `main`
+- **Non réalisé à la clôture (limite consignée) :** 6L Revue indépendante de la restructuration, puis résolution des dépendances Git avec les PR #363, #370 et #371 avant toute fusion dans `main`
 
 ## Ce qui n'est pas proposé
 

@@ -454,6 +454,12 @@ La diminution est sans message ; une conversion de nature entraînant une perte 
 
 ![Composition séance — Standard — Séries variables](images/circuits-2026-10-12/8328-34520.png)
 
+#### Modification d'une séance
+
+[Source Figma — `5271:5455`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=5271-5455)
+
+![Modification d'une séance](images/figma-5271-5455.png)
+
 #### Placement, réglage et retrait des pauses
 
 ##### Composition séance — Placement d’une pause
@@ -554,11 +560,11 @@ CE-CIR-01/02/03. La confirmation est conditionnée à la perte de valeurs, pas �
 
 ### Créer ou modifier un exercice
 
-Références courantes du 12/10, complétées le 13/10 :32 captures du parcours de création et de ses états de Modalités d’exécution, issues de Prototype MVP. Contrats CE-T03-04, CE-UI-09 et CE-UI-10. Les anciens relevés du 03/10 et du 06/10 restent historiques pour les états remplacés ; [matrice actuelle](../MATRICE-DSF-CIRCUITS-2026-10-12.md).
+Références courantes du 12/10, complétées le 13/10 :32 captures du parcours de création et de ses états de Paramètres d’exécution, issues de Prototype MVP. Contrats CE-T03-04, CE-UI-09 et CE-UI-10. Les anciens relevés du 03/10 et du 06/10 restent historiques pour les états remplacés ; [matrice actuelle](../MATRICE-DSF-CIRCUITS-2026-10-12.md).
 
 #### Placement et contrôles
 
-Formulaire : conserver les shells et l’ordre visible dans les captures. Toute la zone de phrase ouvre la feuille. Feuille : en-tête fixe ✕ / Paramètres d’exécution / ✓ ; corps défilant en quatre cadres (D-413) : Exécution (Mode, Condition d’arrêt) → Séries (Nombre de séries, Type de série avec chevron intérieur à Variables, Durée ou Répétitions et Pause ou tableau de séries variables, Charge) → Côtés (Changement de côté, puis Enchainement et Pause entre les côtés lorsque déployés) → Cadence et durée (Cadence, Durée de l’exercice avec son chevron, puis Compte à rebours et Fin d’exercice lorsque déployés et applicables). Sans ligne Durée de l’exercice, Compte à rebours et Fin d’exercice sont directement visibles (RM-246).
+Formulaire : conserver les shells et l’ordre visible dans les captures. Toute la zone de phrase ouvre la feuille. Feuille : en-tête fixe ✕ / Paramètres d’exécution / ✓ ; corps défilant en quatre cadres (D-413) : Exécution (Mode, Condition d’arrêt) → Séries (Phases de l’exercice avec chevron intérieur à Avec et tableau éventuel, Nombre de séries, Type de série avec chevron intérieur à Variables, Durée ou Répétitions et Pause ou tableau de séries variables, Charge) → Côtés (Changement de côté, puis Enchainement et Pause entre les côtés lorsque déployés) → Cadence et durée (Cadence, Durée de l’exercice avec son chevron, puis Compte à rebours et Fin d’exercice lorsque déployés et applicables). Sans ligne Durée de l’exercice, Compte à rebours et Fin d’exercice sont directement visibles (RM-246).
 
 Le tableau variable comporte poignée, numéro, cellules cible/Pause, colonne Charge lorsque la charge est active (RM-238) et retrait ; une seule cellule active ; fond blanc sans contour, lignes de 36 px, sans lignes de boutons +/− (D-413). Mode, Condition d’arrêt, Type de série, Charge, Changement de côté et Cadence sont des contrôles segmentés ; les popovers du 12/10 ne sont plus la présentation de ces lignes (D-413). Les roulettes Durée et Durée de l’exercice restent des états intégrés, avec voile et fenêtre de saisie ; la charge se saisit directement au clavier, le tableau restant visible au-dessus (RM-239). [DSF courant et mesures](../DSF-CIRCUITS-CONTROLES-2026-10-12.md), à lire avec sa mise à jour du 18/10/2026. Les règles et bornes restent celles de v13 et de [Composition d'une séance — Circuits de tours et de séries](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#composition-dune-séance--circuits-de-tours-et-de-séries). Sous nombre hérité, nombre et total affichable sont en lecture seule ; aucun écran dédié identifié ne fixe encore l’emplacement de la mention discrète.
 
@@ -600,9 +606,39 @@ Le tableau variable comporte poignée, numéro, cellules cible/Pause, colonne Ch
 
 ![Ajouter un exercice — Catégorie renseignée](images/circuits-2026-10-12/8328-36278.png)
 
-#### Feuille Modalités d’exécution — états intégrés
+#### Modifier un exercice
 
-Ces 20 frames sont des états de CE-UI-10, pas 20 pages applicatives. Relevé et export du 18/10/2026 dans Prototype MVP (spécification v3.0, D-403 à D-413) ; ils remplacent les captures du 12/10 et du 13/10, qui restent dans le dépôt comme références historiques. Les frames `8328:38301`, `8328:38953`, `8328:39181` et `8328:39390` n’existent plus. Toutes les frames montrent aussi la ligne Phases de l’exercice : elle relève de la proposition en cours sur les phases d’exercice (D-370 à D-375 réservés) et n’est pas décrite par ce chapitre. Les valeurs affichées sont illustratives. Sur toutes les frames, « À la cible » est affiché sans accent (« A la cible ») : le libellé décidé est « À la cible » (D-411).
+[Source Figma — `4734:6342`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4734-6342)
+
+![Modifier un exercice](images/figma-4734-6342.png)
+
+### Présentation des phases d’exercice
+
+La ligne Phases de l’exercice (Avec / Sans) ouvre le cadre Séries, après le cadre Exécution (D-413). Avec crée la première phase ; le chevron, à l’intérieur de l’option Avec, replie ou déploie le tableau Libellé/Durée (D-410) ; Sans signifie qu’il n’y a aucune phase. La durée de série devient calculée. Les états incompatibles sont non modifiables, sans transformer une valeur effective calculée en tiret. Contrat CE-UI-10 et [règles métier](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
+
+Le rapport Figma V2 du 15/10 décrit trois écrans dédiés sur Conception — Hors MVP : « Phases (aucune) », « Phases (définies) » et « Phases verrouillées (séries variables) ». Il décrit aussi la ligne ajoutée sur 19 écrans de Prototype MVP et 19 de Conception. Ces nombres sont ceux du rapport fourni, pas un nouvel inventaire direct. Les seize modales de format n’ont pas encore reçu cette ligne selon ce rapport.
+
+Les frames relevées le 18/10/2026 ci-dessous montrent la ligne Phases de l’exercice ; deux d’entre elles illustrent des phases. Le report des trois écrans dédiés reste à effectuer ; aucune capture n’est fabriquée ou retouchée. Le cadran et la carte de composition attendent leur précision de présentation.
+
+#### Création activité — Paramètres (modale) — Phases verrouillées (séries variables)
+
+[Source Figma — `8982:15172`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-15172)
+
+![Création activité — Paramètres (modale) — Phases verrouillées (séries variables)](images/parametres-2026-10-18/8982-15172.png)
+
+Séries variables, trois séries à l’échec : Phases de l’exercice non modifiable ; Condition d’arrêt À l’échec déterminée automatiquement (RM-249) ; aucune ligne Durée de l’exercice (D-397).
+
+#### Création exercice — Paramètres — Proposition 3 — Tableau de 3 phases
+
+[Source Figma — `9207:18817`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9207-18817)
+
+![Création exercice — Paramètres — Proposition 3 — Tableau de 3 phases](images/parametres-2026-10-18/9207-18817.png)
+
+Tableau de trois phases sous l’option Avec déployée (chevron vers le haut), sans boutons +/− ; Variables non modifiable ; Durée de l’exercice en texte simple. Écarts Figma : nom de frame hors convention (« Proposition 3 ») et barre bleue résiduelle à gauche de la ligne 1.
+
+### Feuille Paramètres d’exécution — états intégrés
+
+Ces 20 frames sont des états de CE-UI-10, pas 20 pages applicatives. Relevé et export du 18/10/2026 dans Prototype MVP (spécification v3.0, D-403 à D-413) ; ils remplacent les captures du 12/10 et du 13/10, qui restent dans le dépôt comme références historiques. Les frames `8328:38301`, `8328:38953`, `8328:39181` et `8328:39390` n’existent plus. Toutes les frames montrent aussi la ligne Phases de l’exercice, décrite à la section « Présentation des phases d’exercice » ci-dessus (D-370 à D-375). Les valeurs affichées sont illustratives. Sur toutes les frames, « À la cible » est affiché sans accent (« A la cible ») : le libellé décidé est « À la cible » (D-411).
 
 ##### Création activité — Paramètres (modale) — Champs vides
 
@@ -766,7 +802,7 @@ Seul exemple déployé : chevron vers le haut, Compte à rebours et Fin d’exer
 
 #### Couverture et limites
 
-Les états hérités (N et total non modifiables), validation incomplète, douze séries avec défilement, phrase longue et plusieurs résumés spécialisés ne disposent pas d’une nouvelle frame identifiée dans ce relevé. Leurs règles restent requises. Les anciennes captures ne sont pas présentées comme des preuves actuelles de ces états. L’écran Modifier un exercice `4734:6342` et la modification de séance `5271:5455` sont hors réexport de ce lot ; leurs contrats restent applicables.
+Les états hérités (N et total non modifiables), validation incomplète, douze séries avec défilement, phrase longue et plusieurs résumés spécialisés ne disposent pas d’une nouvelle frame identifiée dans ce relevé. Leurs règles restent requises. Les anciennes captures ne sont pas présentées comme des preuves actuelles de ces états. Les captures de Modifier un exercice `4734:6342` et de Modification d’une séance `5271:5455` sont intégrées ci-dessus dans leur famille d’écran respective ; leurs contrats restent applicables.
 
 Le corpus de phrases et les spécifications déterminent les textes dynamiques, le gras et les calculs ; les valeurs derrière les voiles ne sont pas des recettes. Les captures sont des exports sans retouche.
 
@@ -921,6 +957,20 @@ Frame `1992:6838` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?
 Frame `7599:14197` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7599-14197).
 
 ![Modal — Planifier une séance — Sélectionner une séance](images/figma-7599-14197.png)
+
+Les deux captures « Liste longue » ci-dessous ont été exportées le 15/10/2026. Elles illustrent la présentation des listes, mais montrent encore une sélection unique sans CTA « Ajouter ». Elles ne remplacent pas le contrat CE-UI-04 : sélection à cases et CTA « Ajouter 1 élément » / « Ajouter n éléments ».
+
+#### Modal — Choisir une séance — Planification — Liste longue
+
+[Source Figma — `1992:6249`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6249)
+
+![Modal — Choisir une séance — Planification — Liste longue](images/figma-1992-6249.png)
+
+#### Modal — Choisir un exercice — Planification — Liste longue
+
+[Source Figma — `5451:4272`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=5451-4272)
+
+![Modal — Choisir un exercice — Planification — Liste longue](images/figma-5451-4272.png)
 
 #### Planifier une séance — Sélecteur de date ouvert
 
@@ -1530,6 +1580,7 @@ Nœud [8747:14451](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 Nœud [8795:14588](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8795-14588) · Contrat [CE-FMT-04](13%20–%20Contrats%20d’écran.md#ce-fmt-04). Capture du layout courant ; données illustratives.
 
 ![Modification activité — Paramètres (modale) — Exercice EMOM — Par exercice](images/formats-2026-10-14/figma-8795-14588.png)
+
 
 ## Conventions d’interface communes
 

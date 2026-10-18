@@ -1,0 +1,22 @@
+{
+ "description": "Intégration de la spécification v3.0 — V3-20-renvois-pr.txt",
+ "corrections": [
+  {
+   "id": "V3-N-001",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "INTEGRATION-PR:#371",
+   "ref": "PR #371, PRE-4 Q11 (titre renommé)",
+   "ancien": "§ « Modalités d’exécution et tableau variable », G4.)",
+   "nouveau": "§ « Paramètres d’exécution et tableau variable », G4.)",
+   "commentaire": "Renvois au titre de section du DSF Circuits renommé par la PR #371 (PRE-4 Q11 : « Paramètres d’exécution »)."
+  },
+  {
+   "id": "V3-N-002",
+   "file": "DSF-CIRCUITS-CONTROLES-2026-10-12.md",
+   "motif": "INTEGRATION-PR:#371",
+   "ref": "PR #371, PRE-4 Q11 (titre renommé)",
+   "ancien": "dans « Modalités d’exécution et tableau variable », la ligne Séries",
+   "nouveau": "dans « Paramètres d’exécution et tableau variable », la ligne Séries"
+  }
+ ]
+}

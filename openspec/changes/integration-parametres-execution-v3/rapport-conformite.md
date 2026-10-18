@@ -14,7 +14,7 @@
 | Propagation | 341 corrections dans 25 fichiers : ch. 01 à 13, 10 DSF, PRODUCT, INDEX. Les autres chapitres citent les RM et D par identifiant | [corrections/](corrections/), [constats/](constats/) |
 | Captures | 20 frames actuelles de la feuille exportées sans retouche (402 × 874) dans `images/parametres-2026-10-18/` ; elles remplacent au ch. 06 les 19 états du 12/10 et du 13/10 (4 frames n’existent plus ; anciennes images conservées pour les matrices datées) | ch. 06 |
 | Index | B-092, D-403 à D-413, RM-235 à RM-250 ajoutés à l’annexe générée « Index des identifiants » ([outils/completer-index.mjs](outils/completer-index.mjs)) | annexe |
-| Couverture | 101 éléments (après les arbitrages du §5 et du §6) : 81 intégrés, 6 partiels (phases #370, tokens), 1 restant (#370), 9 exclus (§11.3), 4 écarts Figma signalés | [matrice-couverture.md](matrice-couverture.md) |
+| Couverture | 101 éléments (après les §5 à §7) : 86 intégrés, 2 partiels (tokens de la feuille, chantier DSF), 9 exclus (§11.3), 4 écarts Figma signalés | [matrice-couverture.md](matrice-couverture.md) |
 
 ### Choix d’intégration
 
@@ -53,7 +53,7 @@ Résultat complet : [controles/FINAL.txt](controles/FINAL.txt), lancé par [outi
 ## 4. Points résiduels
 
 - **Questions** : toutes arbitrées le 18/10/2026 (§5 et §6). Coordinations : tokens avec le chantier DSF (Q-V3-10), phases avec le chantier #370 (Q-V3-17), corpus de recette v15 des phrases (Q-V3-02).
-- **PR #370** : passages des phases à adapter à D-410, D-412 et D-413 lors du report ; **PR #371** : deux phrases sur le pied commun à retirer.
+- **PR #363, #370, #371** : intégrées et fermées (§7).
 - **Revue indépendante ChatGPT** avant toute fusion ; fusion dans `main` sur décision de Hermann.
 
 ## 5. Arbitrages de Hermann du 18/10/2026 (seconde version)
@@ -92,3 +92,11 @@ B-073 et B-074 ne reçoivent pas la mention MVP : B-073 vise aussi le Circuit et
 | Q-V3-16 | D-424 : Condition d’arrêt À la cible présentée grisée dans un format à cible chiffrée imposée | CE-UI-10, complément Formats ; écart Figma `8598:30059` |
 
 Lot `V3-13-arbitrages-hermann-2` (11 corrections) ; les mentions « non arbitrée » de la seconde passe sont remplacées. Contrôles : [controles/FINAL-4.txt](controles/FINAL-4.txt).
+
+## 7. Intégration des PR #363, #370 et #371 (18/10/2026)
+
+- Têtes inchangées depuis les 15 et 16/10 (`d2386c8d`, `6cf3634a`, `2c050d0e`). Contenu reporté par corrections tracées (motif `INTEGRATION-PR:#n`), sans fusion de branche : #363 5 blocs et 4 images ; #370 25 blocs (chapitres et DSF) ; #371 16 blocs. Adaptations aux décisions D-403 à D-424 et à la gouvernance : 28 corrections (`V3-19`), 2 renvois (`V3-20`). Alignement de #371 sur les décisions PRE-4 Q8, Q17, Q18 et Q25 du 16/10 (signalement X-06/X-07 jusque-là non publié) : 5 corrections (`V3-21`).
+- Complétude : toutes les lignes ajoutées par les PR sont présentes, ou adaptées et justifiées dans [pr/traitement-pr.md](pr/traitement-pr.md) (#363 : 0 ; #370 : 13 ; #371 : 11).
+- Phases d’exercice : D-370 à D-375 au registre ; ligne « Phases de l’exercice » intégrée aux quatre cadres (CE-UI-10, ch. 06) ; deux captures de phases ajoutées.
+- Contrôles ([controles/FINAL-6.txt](controles/FINAL-6.txt), depuis `b6ca2321`) : rejeu exact, conservation vérifiée, liens, K1, K2, OpenSpec.
+- Limite : PRE-4 Q21/Q36 (pas de la cible Durée) non intégrée, décision Q33 à Q44 déjà consignée hors périmètre.

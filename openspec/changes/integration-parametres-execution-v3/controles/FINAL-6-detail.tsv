@@ -21,6 +21,12 @@ C1	D-421	JUSTIFIE	nouveau 07 – Registre des décisions de conception.md:702
 C1	D-422	JUSTIFIE	nouveau 07 – Registre des décisions de conception.md:703
 C1	D-423	JUSTIFIE	nouveau 07 – Registre des décisions de conception.md:704
 C1	D-424	JUSTIFIE	nouveau 07 – Registre des décisions de conception.md:705
+C1	D-370	JUSTIFIE	nouveau 07 – Registre des décisions de conception.md:732
+C1	D-371	JUSTIFIE	nouveau 07 – Registre des décisions de conception.md:733
+C1	D-372	JUSTIFIE	nouveau 07 – Registre des décisions de conception.md:734
+C1	D-373	JUSTIFIE	nouveau 07 – Registre des décisions de conception.md:735
+C1	D-374	JUSTIFIE	nouveau 07 – Registre des décisions de conception.md:736
+C1	D-375	JUSTIFIE	nouveau 07 – Registre des décisions de conception.md:737
 C2	f99db3cfa6ec0b82	JUSTIFIE	CORRECTION-DECIDEE:D-406 01 – Vision Générale.md:133
 C2	b050c108ae564353	JUSTIFIE	CORRECTION-DECIDEE:D-403 01 – Vision Générale.md:166
 C2	3931b02b92fda613	JUSTIFIE	CORRECTION-DECIDEE:D-406 01 – Vision Générale.md:172
@@ -72,6 +78,7 @@ C2	325366012f3eb8b6	JUSTIFIE	CORRECTION-DECIDEE:D-406 06 – Ecrans et navigatio
 C2	a92e26453868029e	JUSTIFIE	CORRECTION-DECIDEE:D-407 06 – Ecrans et navigation de la V1.md:93
 C2	64634910f4173805	JUSTIFIE	CORRECTION-DECIDEE:D-407 06 – Ecrans et navigation de la V1.md:95
 C2	5499bf27eb6307a6	JUSTIFIE	CORRECTION-DECIDEE:D-406 06 – Ecrans et navigation de la V1.md:115
+C2	7e1b55cadf2ccec5	JUSTIFIE	INTEGRATION-PR:#371 06 – Ecrans et navigation de la V1.md:557
 C2	fc615ee2c09f1ffa	JUSTIFIE	CORRECTION-DECIDEE:D-413 06 – Ecrans et navigation de la V1.md:561
 C2	083509092816006e	JUSTIFIE	CORRECTION-DECIDEE:D-413 06 – Ecrans et navigation de la V1.md:563
 C2	79071bf9cbfeeb7e	JUSTIFIE	CORRECTION-DECIDEE:D-413 06 – Ecrans et navigation de la V1.md:605
@@ -100,10 +107,12 @@ C2	86225643bdb7c103	JUSTIFIE	CORRECTION-DECIDEE:D-413 06 – Ecrans et navigatio
 C2	4753ac5fe99113fe	JUSTIFIE	CORRECTION-DECIDEE:D-413 06 – Ecrans et navigation de la V1.md:717
 C2	c6745236bec19760	JUSTIFIE	CORRECTION-DECIDEE:D-413 06 – Ecrans et navigation de la V1.md:721
 C2	b6b6a17ebc276ac3	JUSTIFIE	CORRECTION-DECIDEE:D-413 06 – Ecrans et navigation de la V1.md:723
+C2	e02b6685768fedb5	JUSTIFIE	INTEGRATION-PR:#363 06 – Ecrans et navigation de la V1.md:727
 C2	03079d236d16c8ca	JUSTIFIE	CORRECTION-DECIDEE:D-418 06 – Ecrans et navigation de la V1.md:1622
 C2	6a270c4bbec15036	JUSTIFIE	CORRECTION-DECIDEE:D-411 06 – Ecrans et navigation de la V1.md:1646
 C2	543f1dd086850074	JUSTIFIE	CORRECTION-DECIDEE:D-407 06 – Ecrans et navigation de la V1.md:1857
 C2	637927861ae0a9a8	JUSTIFIE	CORRECTION-DECIDEE:D-413 06 – Ecrans et navigation de la V1.md:1940
+C2	95e0107e4835c609	JUSTIFIE	INTEGRATION-PR:#371 07 – Registre des décisions de conception.md:128
 C2	3cd45924f926e2f7	JUSTIFIE	CORRECTION-DECIDEE:D-406 07 – Registre des décisions de conception.md:175
 C2	fec91a60d059a38f	JUSTIFIE	CORRECTION-DECIDEE:D-407 07 – Registre des décisions de conception.md:180
 C2	d32f3c02069da981	JUSTIFIE	CORRECTION-DECIDEE:D-407 07 – Registre des décisions de conception.md:181
@@ -115,6 +124,7 @@ C2	b7d25474322ec873	JUSTIFIE	CORRECTION-DECIDEE:D-404 07 – Registre des décis
 C2	28001ca00c616b63	JUSTIFIE	CORRECTION-DECIDEE:D-415 07 – Registre des décisions de conception.md:373
 C2	c3394b1792a5dab1	JUSTIFIE	CORRECTION-DECIDEE:D-410 07 – Registre des décisions de conception.md:374
 C2	bb216cd770a6d3f2	JUSTIFIE	CORRECTION-DECIDEE:D-408 07 – Registre des décisions de conception.md:481
+C2	301f65860ca54bf6	JUSTIFIE	INTEGRATION-PR:#371 07 – Registre des décisions de conception.md:482
 C2	f8e9cb896c06692b	JUSTIFIE	CORRECTION-DECIDEE:D-407 07 – Registre des décisions de conception.md:506
 C2	aa92f91575df40a2	JUSTIFIE	CORRECTION-DECIDEE:D-413 07 – Registre des décisions de conception.md:552
 C2	8fe6eb2cb0478698	JUSTIFIE	CORRECTION-DECIDEE:D-413 07 – Registre des décisions de conception.md:554
@@ -136,6 +146,8 @@ C2	82fd02a0a0a6a54b	JUSTIFIE	CORRECTION-DECIDEE:D-406 08 – Conception fonction
 C2	db54e5e4356d2ae7	JUSTIFIE	CORRECTION-DECIDEE:D-406 08 – Conception fonctionnelle détaillée.md:244
 C2	d8dcffe1013d145d	JUSTIFIE	CORRECTION-DECIDEE:D-408 08 – Conception fonctionnelle détaillée.md:245
 C2	3f4a3dbc57b9d39e	JUSTIFIE	CORRECTION-DECIDEE:D-409 08 – Conception fonctionnelle détaillée.md:246
+C2	7fe3819d1da4ee4d	JUSTIFIE	INTEGRATION-PR:#371 08 – Conception fonctionnelle détaillée.md:254
+C2	16557853467dc289	JUSTIFIE	INTEGRATION-PR:#371 08 – Conception fonctionnelle détaillée.md:344
 C2	de819b7747e10ef7	JUSTIFIE	CORRECTION-DECIDEE:D-403 08 – Conception fonctionnelle détaillée.md:355
 C2	3a4558412cdea673	JUSTIFIE	CORRECTION-DECIDEE:D-407 08 – Conception fonctionnelle détaillée.md:493
 C2	cd3fdc9db32f999c	JUSTIFIE	CORRECTION-DECIDEE:D-407 08 – Conception fonctionnelle détaillée.md:596
@@ -234,9 +246,11 @@ C2	09daa5eafc7f9b1d	JUSTIFIE	RENVOI 12 – Architecture technique.md:1676
 C2	4c167b3d7a84c76c	JUSTIFIE	CORRECTION-DECIDEE:D-407 12 – Architecture technique.md:1742
 C2	ca6ed918dc1b8937	JUSTIFIE	CORRECTION-DECIDEE:D-403 13 – Contrats d’écran.md:161
 C2	3a3f1388d4e09ee5	JUSTIFIE	CORRECTION-DECIDEE:D-407 13 – Contrats d’écran.md:163
+C2	c5f8298a6de1b36f	JUSTIFIE	INTEGRATION-PR:#371 13 – Contrats d’écran.md:281
 C2	deb2c461a9781de1	JUSTIFIE	RENVOI 13 – Contrats d’écran.md:596
 C2	331c2351d51172ae	JUSTIFIE	RENVOI 13 – Contrats d’écran.md:630
 C2	66d2193d45aa7914	JUSTIFIE	RENVOI 13 – Contrats d’écran.md:696
+C2	68a6c9e20de089a3	JUSTIFIE	INTEGRATION-PR:#371 13 – Contrats d’écran.md:708
 C2	757750010b01d2ca	JUSTIFIE	CORRECTION-DECIDEE:D-403 13 – Contrats d’écran.md:714
 C2	2ee2799b57126140	JUSTIFIE	CORRECTION-DECIDEE:D-406 13 – Contrats d’écran.md:718
 C2	52dade94fbe26c1b	JUSTIFIE	CORRECTION-DECIDEE:D-413 13 – Contrats d’écran.md:728
@@ -256,7 +270,10 @@ C2	dd9f9e6dafd31ed1	JUSTIFIE	CORRECTION-DECIDEE:D-412 13 – Contrats d’écran
 C2	06ee72e727a2a1e5	JUSTIFIE	CORRECTION-DECIDEE:D-413 13 – Contrats d’écran.md:975
 C2	f77025d55f080407	JUSTIFIE	CORRECTION-DECIDEE:D-413 13 – Contrats d’écran.md:977
 C2	1615bd5aee83b5bb	JUSTIFIE	CORRECTION-DECIDEE:D-405 13 – Contrats d’écran.md:983
+C2	41f58eddf26b7529	JUSTIFIE	INTEGRATION-PR:#371 13 – Contrats d’écran.md:985
+C2	44cdba38ac0165ce	JUSTIFIE	INTEGRATION-PR:#371 13 – Contrats d’écran.md:989
 C2	831d6104d29a84ac	JUSTIFIE	CORRECTION-DECIDEE:D-413 13 – Contrats d’écran.md:991
+C2	346804c70ab38a36	JUSTIFIE	INTEGRATION-PR:#371 13 – Contrats d’écran.md:995
 C2	405a5d3ec8792010	JUSTIFIE	CORRECTION-DECIDEE:D-408 13 – Contrats d’écran.md:999
 C2	08d550db719236e3	JUSTIFIE	CORRECTION-DECIDEE:D-404 13 – Contrats d’écran.md:1002
 C2	ba268310f6ac57ba	JUSTIFIE	CORRECTION-DECIDEE:D-413 13 – Contrats d’écran.md:1003
@@ -284,6 +301,8 @@ C2	13bdbed5253ef7b2	JUSTIFIE	CORRECTION-DECIDEE:D-413 13 – Contrats d’écran
 C2	49e684a247974393	JUSTIFIE	CORRECTION-DECIDEE:D-405 13 – Contrats d’écran.md:1080
 C2	a3ec3ac49c65cdea	JUSTIFIE	CORRECTION-DECIDEE:D-405 13 – Contrats d’écran.md:1083
 C2	65f8842354fd9881	JUSTIFIE	CORRECTION-DECIDEE:D-405 13 – Contrats d’écran.md:1085
+C2	8fcaa4c89f6a8421	JUSTIFIE	INTEGRATION-PR:#371 13 – Contrats d’écran.md:1089
+C2	a3ff33c37efc862c	JUSTIFIE	INTEGRATION-PR:#371 13 – Contrats d’écran.md:1091
 C2	6e13aca692d84bd7	JUSTIFIE	RENVOI 13 – Contrats d’écran.md:1108
 C2	a1e9b3c85a9c945e	JUSTIFIE	RENVOI 13 – Contrats d’écran.md:1298
 C2	044a2d4db8b7c3e7	JUSTIFIE	CORRECTION-DECIDEE:D-407 13 – Contrats d’écran.md:1388

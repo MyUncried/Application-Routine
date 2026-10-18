@@ -2,7 +2,7 @@
 
 Document de traçabilité du change, **non normatif** : les règles font foi dans les chapitres cités. Générée par `outils/matrice-couverture.mjs` ; les emplacements modifiés sont comptés depuis les références des corrections appliquées (`constats/*-applique.json`). Statuts : intégré, partiel (la raison est donnée), restant, exclu (§11.3), signalé (écart Figma).
 
-Totaux : intégré 81 ; partiel 6 ; restant 1 ; exclu 9 ; signalé 4 — 101 éléments.
+Totaux : intégré 86 ; partiel 2 ; exclu 9 ; signalé 4 — 101 éléments.
 
 | Élément | Intitulé | Décision | Emplacement normatif | Emplacements modifiés (corrections) | Statut | Remarque |
 |---|---|---|---|---|---|---|
@@ -18,12 +18,12 @@ Totaux : intégré 81 ; partiel 6 ; restant 1 ; exclu 9 ; signalé 4 — 101 él
 | CO-01 | Changement de côté Avec / Sans, côté 1 / côté 2, compatibilité | D-406, D-407 | RM-242, RM-243, RM-244 | DSF-CADENCE (2), DSF-CARTES-ICONES-APPUIS (2), DSF-CIRCUITS-CONTROLES (3), DSF-PHRASES-V15 (2), DSF-SEGMENTES-TITRES (2), DSF-SERIES-VARIABLES (2), PRODUCT (9), ch. 01 (7), ch. 02 (4), ch. 03 (6), ch. 04 (9), ch. 05 (2), ch. 06 (5), ch. 07 (7), ch. 08 (5), ch. 09 (11), ch. 10 (20), ch. 11 (6), ch. 12 (7), ch. 13 (36) | intégré | N = 1 : ligne Enchainement absente (D-415) ; frames d’exécution encore « Côté droit » (écart Figma) |
 | CA-01 | Cadence Autre | 5 s | 2 s | 1 s | Sans | D-408, D-420 | RM-245 | DSF-BIP-CADENCE (2), DSF-CADENCE (2), DSF-PHRASES-V15 (2), PRODUCT (1), ch. 01 (1), ch. 03 (1), ch. 05 (2), ch. 06 (1), ch. 07 (1), ch. 08 (2), ch. 10 (7), ch. 12 (1), ch. 13 (10) | intégré | Aucune mémorisation personnalisée (D-420) |
 | DU-01 | Durée de l’exercice, chevron des signaux, absence de ligne | D-409 | RM-246 | DSF-BIP-CADENCE (2), DSF-CADENCE (2), DSF-SERIES-VARIABLES (2), ch. 01 (2), ch. 03 (2), ch. 05 (1), ch. 06 (2), ch. 07 (3), ch. 08 (2), ch. 10 (3), ch. 13 (13) | intégré | Texte « Durée totale : » de la phrase inchangé (Q-V3-13) |
-| CV-01 | Chevrons intégrés (Variables, Avec, phases) | D-410 | RM-247 | DSF-CIRCUITS-CONTROLES (2), DSF-SERIES-VARIABLES (2), ch. 06 (1), ch. 07 (1), ch. 08 (2), ch. 10 (9), ch. 13 (7) | partiel | Option Avec des phases : dépend de #370 (dependances-pr.md) |
+| CV-01 | Chevrons intégrés (Variables, Avec, phases) | D-410 | RM-247 | DSF-CIRCUITS-CONTROLES (2), DSF-SERIES-VARIABLES (2), ch. 06 (1), ch. 07 (1), ch. 08 (2), ch. 10 (9), ch. 13 (8) | intégré | Phases intégrées depuis la PR #370 (pr/traitement-pr.md) |
 | AR-01 | Condition d’arrêt : saisie en identiques, résultat dérivé en variables | D-411, D-416, D-419 | RM-248, RM-249 | DSF-DEUX-MODES-ECHEC (3), ch. 01 (1), ch. 03 (1), ch. 04 (1), ch. 06 (1), ch. 08 (4), ch. 09 (1), ch. 10 (4), ch. 11 (1), ch. 13 (10) | intégré | À la cible par défaut ; durée masquée à l’échec commun ; libellé mixte Figma erroné |
-| GR-01 | Quatre groupes, ordre, tableaux, modale adaptée | D-413 | CE-UI-10, ch. 06, DSF | DSF-BIP-CADENCE (2), DSF-CADENCE (3), DSF-CIRCUITS-CONTROLES (5), DSF-DEUX-MODES-ECHEC (2), DSF-INTERFACE-GENERALE (3), DSF-PARAMETRES-MODALE (1), DSF-PHRASES-V15 (2), DSF-SEGMENTES-TITRES (2), DSF-SERIES-VARIABLES (4), INDEX (1), ch. 06 (4), ch. 07 (4), ch. 08 (5), ch. 10 (4), ch. 13 (16) | partiel | Ligne Phases du groupe 2 : dépend de #370 ; tokens : Q-V3-10 |
-| RO-01 | Roulettes : durée seule en identiques, durée ou échec par cellule variable | D-412, D-418 | RM-250 | DSF-DEUX-MODES-ECHEC (3), ch. 06 (1), ch. 08 (3), ch. 10 (5), ch. 13 (9) | partiel | Roulette Répétitions des séries identiques sans À l’échec (D-418) ; roulette de phase : #370 |
-| PR-01 | Libellés et contrôles | D-413 | CE-UI-10, ch. 01, ch. 06, ch. 08 | DSF-CIRCUITS-CONTROLES (2), DSF-DEUX-MODES-ECHEC (2), DSF-PARAMETRES-MODALE (1), DSF-PHRASES-V15 (2), DSF-SEGMENTES-TITRES (3), DSF-SERIES-VARIABLES (1), INDEX (1), ch. 01 (6), ch. 03 (7), ch. 04 (2), ch. 05 (1), ch. 06 (3), ch. 07 (4), ch. 08 (5), ch. 10 (2), ch. 13 (9) | intégré | « Phases de l’exercice » : #370 |
-| PR-02 | Tableaux (36 px, sans +/−, fond blanc) | D-413 | CE-UI-10, DSF Circuits | DSF-CIRCUITS-CONTROLES (6), DSF-DEUX-MODES-ECHEC (2), DSF-PARAMETRES-MODALE (1), DSF-SERIES-VARIABLES (2), ch. 06 (3), ch. 07 (1), ch. 08 (2), ch. 13 (4) | intégré |  |
+| GR-01 | Quatre groupes, ordre, tableaux, modale adaptée | D-413 | CE-UI-10, ch. 06, DSF | DSF-BIP-CADENCE (2), DSF-CADENCE (3), DSF-CIRCUITS-CONTROLES (5), DSF-DEUX-MODES-ECHEC (2), DSF-INTERFACE-GENERALE (3), DSF-PARAMETRES-MODALE (1), DSF-PHRASES-V15 (2), DSF-SEGMENTES-TITRES (2), DSF-SERIES-VARIABLES (4), INDEX (1), ch. 06 (5), ch. 07 (4), ch. 08 (5), ch. 10 (4), ch. 13 (17) | partiel | Phases intégrées (PR #370) ; tokens : Q-V3-10 (chantier DSF) |
+| RO-01 | Roulettes : durée seule en identiques, durée ou échec par cellule variable | D-412, D-418 | RM-250 | DSF-DEUX-MODES-ECHEC (3), ch. 06 (1), ch. 08 (3), ch. 10 (5), ch. 13 (9) | intégré | Roulette Répétitions des séries identiques sans À l’échec (D-418) ; roulette de phase inchangée |
+| PR-01 | Libellés et contrôles | D-413 | CE-UI-10, ch. 01, ch. 06, ch. 08 | DSF-CIRCUITS-CONTROLES (2), DSF-DEUX-MODES-ECHEC (2), DSF-PARAMETRES-MODALE (1), DSF-PHRASES-V15 (2), DSF-SEGMENTES-TITRES (3), DSF-SERIES-VARIABLES (1), INDEX (1), ch. 01 (6), ch. 03 (7), ch. 04 (2), ch. 05 (1), ch. 06 (3), ch. 07 (4), ch. 08 (5), ch. 10 (2), ch. 13 (9) | intégré | « Phases de l’exercice » appliqué au contenu de #370 |
+| PR-02 | Tableaux (36 px, sans +/−, fond blanc) | D-413 | CE-UI-10, DSF Circuits | DSF-CIRCUITS-CONTROLES (6), DSF-DEUX-MODES-ECHEC (2), DSF-PARAMETRES-MODALE (1), DSF-SERIES-VARIABLES (2), ch. 06 (3), ch. 07 (1), ch. 08 (3), ch. 13 (5) | intégré |  |
 | PR-03 | Traitement des contrôles | D-413 | DSF (blocs du 18/10) | DSF-BIP-CADENCE (1), DSF-CADENCE (2), DSF-CIRCUITS-CONTROLES (1), DSF-DEUX-MODES-ECHEC (1), DSF-INTERFACE-GENERALE (2), DSF-PARAMETRES-MODALE (1), DSF-SEGMENTES-TITRES (3), DSF-SERIES-VARIABLES (3), ch. 06 (2), ch. 07 (1), ch. 08 (1), ch. 10 (1), ch. 13 (2) | partiel | Variables liées relevées (Q-V3-10) ; gris des cadres et violet non liés ; retrait ou réaffectation des tokens : chantier DSF |
 | PR-04 | Modale et clavier | D-405, D-413 | CE-UI-10 rubrique 10, RM-239 | DSF-BIP-CADENCE (1), DSF-CIRCUITS-CONTROLES (1), DSF-DEUX-MODES-ECHEC (1), DSF-PARAMETRES-MODALE (1), DSF-SERIES-VARIABLES (1), PRODUCT (1), ch. 06 (3), ch. 07 (1), ch. 08 (1), ch. 12 (1), ch. 13 (3) | intégré |  |
 | PR-05 | Enchaînement des côtés : notation Figma conservée | D-406 | RM-243 | DSF-SEGMENTES-TITRES (1), ch. 01 (1), ch. 03 (1), ch. 04 (2), ch. 06 (1), ch. 08 (1), ch. 10 (2), ch. 13 (1) | intégré | Notation Figma à lettres D/G : Q-V3-09 |
@@ -44,7 +44,7 @@ Totaux : intégré 81 ; partiel 6 ; restant 1 ; exclu 9 ; signalé 4 — 101 él
 | AC-15 | Cadence rapide | D-408 | RM-245 | DSF-BIP-CADENCE (2), PRODUCT (1), ch. 03 (1), ch. 05 (1), ch. 07 (1), ch. 08 (1), ch. 10 (1), ch. 13 (5) | intégré |  |
 | AC-16 | Repli des signaux | D-409 | RM-246 | ch. 08 (1), ch. 13 (4) | intégré |  |
 | AC-17 | Exercice ouvert depuis une séance | D-409 | RM-246, RM-218 | ch. 08 (1), ch. 13 (3) | intégré |  |
-| AC-18 | Chevrons intérieurs | D-410 | RM-247 | ch. 10 (1), ch. 13 (3) | partiel | Phases : #370 |
+| AC-18 | Chevrons intérieurs | D-410 | RM-247 | ch. 10 (1), ch. 13 (3) | intégré |  |
 | AC-19 | Identiques : deux conditions sélectionnables | D-411 | RM-248 | ch. 08 (1), ch. 09 (1), ch. 10 (1), ch. 13 (2) | intégré |  |
 | AC-20 | Variables homogènes | D-411 | RM-249 | ch. 08 (1), ch. 09 (1), ch. 13 (1) | intégré |  |
 | AC-21 | Variables mixtes | D-411 | RM-249 | DSF-DEUX-MODES-ECHEC (1), ch. 08 (1), ch. 09 (1), ch. 13 (1) | intégré |  |
@@ -62,9 +62,9 @@ Totaux : intégré 81 ; partiel 6 ; restant 1 ; exclu 9 ; signalé 4 — 101 él
 | §11.2 9232:44646 | Durée d’une phase (roulette) | D-413 | ch. 06 (capture), CE-UI-10 rubrique 1 | ch. 06, ch. 13 | intégré | Nom de frame de phase sur une cellule variable : signalé, aucun contrat de phase déduit |
 | §11.2 8328:38632 | Séries variables en Répétition Avec Cadence | D-413 | ch. 06 (capture), CE-UI-10 rubrique 1 | ch. 06, ch. 13 | intégré |  |
 | §11.2 8328:38848 | Séries variables (tableau replié) | D-413 | ch. 06 (capture), CE-UI-10 rubrique 1 | ch. 06, ch. 13 | intégré |  |
-| §11.2 8982:15172 | Phases verrouillées (séries variables) | D-413 | ch. 06 (capture), CE-UI-10 rubrique 1 | ch. 06, ch. 13 | partiel | Cité au contrat CE-UI-10 ; capture laissée au report de #370 |
+| §11.2 8982:15172 | Phases verrouillées (séries variables) | D-413 | ch. 06 (capture), CE-UI-10 rubrique 1 | ch. 06, ch. 13 | intégré | Capture ajoutée au ch. 06 (phases) |
 | §11.2 8470:13303 | Séries variables, cas mixte | D-413 | ch. 06 (capture), CE-UI-10 rubrique 1 | ch. 06, ch. 13 | intégré | Écart : « A la cible età l’échec » |
-| §11.2 9207:18817 | Tableau de 3 phases | D-413 | ch. 06 (capture), CE-UI-10 rubrique 1 | ch. 06, ch. 13 | restant | Dépend de #370 |
+| §11.2 9207:18817 | Tableau de 3 phases | D-413 | ch. 06 (capture), CE-UI-10 rubrique 1 | ch. 06, ch. 13 | intégré | Capture ajoutée au ch. 06 ; écarts : nom « Proposition 3 », barre bleue |
 | §11.2 9289:17849 | Charge | D-413 | ch. 06 (capture), CE-UI-10 rubrique 1 | ch. 06, ch. 13 | intégré |  |
 | §11.2 9290:17953 | Séries variables avec charge | D-413 | ch. 06 (capture), CE-UI-10 rubrique 1 | ch. 06, ch. 13 | intégré |  |
 | §11.2 9292:18077 | Séries variables avec charge — Clavier numérique | D-413 | ch. 06 (capture), CE-UI-10 rubrique 1 | ch. 06, ch. 13 | intégré | Écarts : pas de séparateur ; cellule Durée en surbrillance |

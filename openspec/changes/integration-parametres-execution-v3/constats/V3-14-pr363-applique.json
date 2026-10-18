@@ -1,0 +1,46 @@
+{
+ "description": "Intégration de la spécification v3.0 — V3-14-pr363.txt — sous-ensemble appliqué",
+ "corrections": [
+  {
+   "id": "P363-001",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "motif": "INTEGRATION-PR:#363",
+   "ref": "PR #363, captures Figma restantes",
+   "ancien": "![Composition séance — Standard — Séries variables](images/circuits-2026-10-12/8328-34520.png)\r\n\r\n#### Placement, réglage et retrait des pauses\r\n\r\n##### Composition séance — Placement d’une pause",
+   "nouveau": "![Composition séance — Standard — Séries variables](images/circuits-2026-10-12/8328-34520.png)\r\n\r\n#### Modification d'une séance\r\n\r\n[Source Figma — `5271:5455`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=5271-5455)\r\n\r\n![Modification d'une séance](images/figma-5271-5455.png)\r\n\r\n#### Placement, réglage et retrait des pauses\r\n\r\n##### Composition séance — Placement d’une pause",
+   "commentaire": "Généré par patch-vers-corrections.mjs depuis openspec/changes/integration-parametres-execution-v3/pr/pr-363-report.patch"
+  },
+  {
+   "id": "P363-002",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "motif": "INTEGRATION-PR:#363",
+   "ref": "PR #363, captures Figma restantes",
+   "ancien": "![Ajouter un exercice — Catégorie renseignée](images/circuits-2026-10-12/8328-36278.png)\r\n\r\n#### Feuille Modalités d’exécution — états intégrés\r\n\r\nCes 20 frames sont des états de CE-UI-10, pas 20 pages applicatives. Relevé et export du 18/10/2026 dans Prototype MVP (spécification v3.0, D-403 à D-413) ; ils remplacent les captures du 12/10 et du 13/10, qui restent dans le dépôt comme références historiques. Les frames `8328:38301`, `8328:38953`, `8328:39181` et `8328:39390` n’existent plus. Toutes les frames montrent aussi la ligne Phases de l’exercice : elle relève de la proposition en cours sur les phases d’exercice (D-370 à D-375 réservés) et n’est pas décrite par ce chapitre. Les valeurs affichées sont illustratives. Sur toutes les frames, « À la cible » est affiché sans accent (« A la cible ») : le libellé décidé est « À la cible » (D-411).",
+   "nouveau": "![Ajouter un exercice — Catégorie renseignée](images/circuits-2026-10-12/8328-36278.png)\r\n\r\n#### Modifier un exercice\r\n\r\n[Source Figma — `4734:6342`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4734-6342)\r\n\r\n![Modifier un exercice](images/figma-4734-6342.png)\r\n\r\n#### Feuille Modalités d’exécution — états intégrés\r\n\r\nCes 20 frames sont des états de CE-UI-10, pas 20 pages applicatives. Relevé et export du 18/10/2026 dans Prototype MVP (spécification v3.0, D-403 à D-413) ; ils remplacent les captures du 12/10 et du 13/10, qui restent dans le dépôt comme références historiques. Les frames `8328:38301`, `8328:38953`, `8328:39181` et `8328:39390` n’existent plus. Toutes les frames montrent aussi la ligne Phases de l’exercice : elle relève de la proposition en cours sur les phases d’exercice (D-370 à D-375 réservés) et n’est pas décrite par ce chapitre. Les valeurs affichées sont illustratives. Sur toutes les frames, « À la cible » est affiché sans accent (« A la cible ») : le libellé décidé est « À la cible » (D-411)."
+  },
+  {
+   "id": "P363-003",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "motif": "INTEGRATION-PR:#363",
+   "ref": "PR #363, captures Figma restantes",
+   "ancien": "#### Couverture et limites\r\n\r\nLes états hérités (N et total non modifiables), validation incomplète, douze séries avec défilement, phrase longue et plusieurs résumés spécialisés ne disposent pas d’une nouvelle frame identifiée dans ce relevé. Leurs règles restent requises. Les anciennes captures ne sont pas présentées comme des preuves actuelles de ces états. L’écran Modifier un exercice `4734:6342` et la modification de séance `5271:5455` sont hors réexport de ce lot ; leurs contrats restent applicables.\r\n\r\nLe corpus de phrases et les spécifications déterminent les textes dynamiques, le gras et les calculs ; les valeurs derrière les voiles ne sont pas des recettes. Les captures sont des exports sans retouche.",
+   "nouveau": "#### Couverture et limites\r\n\r\nLes états hérités (N et total non modifiables), validation incomplète, douze séries avec défilement, phrase longue et plusieurs résumés spécialisés ne disposent pas d’une nouvelle frame identifiée dans ce relevé. Leurs règles restent requises. Les anciennes captures ne sont pas présentées comme des preuves actuelles de ces états. Les captures de Modifier un exercice `4734:6342` et de Modification d’une séance `5271:5455` sont intégrées ci-dessus dans leur famille d’écran respective ; leurs contrats restent applicables.\r\n\r\nLe corpus de phrases et les spécifications déterminent les textes dynamiques, le gras et les calculs ; les valeurs derrière les voiles ne sont pas des recettes. Les captures sont des exports sans retouche."
+  },
+  {
+   "id": "P363-004",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "motif": "INTEGRATION-PR:#363",
+   "ref": "PR #363, captures Figma restantes",
+   "ancien": "![Modal — Planifier une séance — Sélectionner une séance](images/figma-7599-14197.png)\r\n\r\n#### Planifier une séance — Sélecteur de date ouvert\r\n\r\nFrame `1992:6622` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6622).",
+   "nouveau": "![Modal — Planifier une séance — Sélectionner une séance](images/figma-7599-14197.png)\r\n\r\nLes deux captures « Liste longue » ci-dessous ont été exportées le 15/10/2026. Elles illustrent la présentation des listes, mais montrent encore une sélection unique sans CTA « Ajouter ». Elles ne remplacent pas le contrat CE-UI-04 : sélection à cases et CTA « Ajouter 1 élément » / « Ajouter n éléments ».\r\n\r\n#### Modal — Choisir une séance — Planification — Liste longue\r\n\r\n[Source Figma — `1992:6249`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6249)\r\n\r\n![Modal — Choisir une séance — Planification — Liste longue](images/figma-1992-6249.png)\r\n\r\n#### Modal — Choisir un exercice — Planification — Liste longue\r\n\r\n[Source Figma — `5451:4272`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=5451-4272)\r\n\r\n![Modal — Choisir un exercice — Planification — Liste longue](images/figma-5451-4272.png)\r\n\r\n#### Planifier une séance — Sélecteur de date ouvert\r\n\r\nFrame `1992:6622` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6622)."
+  },
+  {
+   "id": "P363-005",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "motif": "INTEGRATION-PR:#363",
+   "ref": "PR #363, captures Figma restantes",
+   "ancien": "![Modification activité — Paramètres (modale) — Exercice EMOM — Par exercice](images/formats-2026-10-14/figma-8795-14588.png)\r\n\r\n## Conventions d’interface communes\r\n\r\n### Contrat d’affichage commun aux écrans du MVP",
+   "nouveau": "![Modification activité — Paramètres (modale) — Exercice EMOM — Par exercice](images/formats-2026-10-14/figma-8795-14588.png)\r\n\r\n\r\n## Conventions d’interface communes\r\n\r\n### Contrat d’affichage commun aux écrans du MVP"
+  }
+ ]
+}

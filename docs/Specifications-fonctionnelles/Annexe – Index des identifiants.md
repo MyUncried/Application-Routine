@@ -582,6 +582,12 @@ Document non normatif, généré. Il indique où chaque identifiant est défini.
 | [D-367](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#formats-de-séances--décisions-du-14-octobre-2026) | 07 | Formats de séances — décisions du 14 octobre 2026 |
 | [D-368](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#formats-de-séances--décisions-du-14-octobre-2026) | 07 | Formats de séances — décisions du 14 octobre 2026 |
 | [D-369](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#formats-de-séances--décisions-du-14-octobre-2026) | 07 | Formats de séances — décisions du 14 octobre 2026 |
+| [D-370](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#phases-dexercice--décisions-du-15-octobre-2026) | 07 | Phases d’exercice — décisions du 15 octobre 2026 |
+| [D-371](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#phases-dexercice--décisions-du-15-octobre-2026) | 07 | Phases d’exercice — décisions du 15 octobre 2026 |
+| [D-372](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#phases-dexercice--décisions-du-15-octobre-2026) | 07 | Phases d’exercice — décisions du 15 octobre 2026 |
+| [D-373](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#phases-dexercice--décisions-du-15-octobre-2026) | 07 | Phases d’exercice — décisions du 15 octobre 2026 |
+| [D-374](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#phases-dexercice--décisions-du-15-octobre-2026) | 07 | Phases d’exercice — décisions du 15 octobre 2026 |
+| [D-375](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#phases-dexercice--décisions-du-15-octobre-2026) | 07 | Phases d’exercice — décisions du 15 octobre 2026 |
 | [D-376](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#arbitrages-de-hermann-du-16-octobre-2026--révision-documentaire) | 07 | Arbitrages de Hermann du 16 octobre 2026 — révision documentaire |
 | [D-377](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#arbitrages-de-hermann-du-16-octobre-2026--révision-documentaire) | 07 | Arbitrages de Hermann du 16 octobre 2026 — révision documentaire |
 | [D-378](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#arbitrages-de-hermann-du-16-octobre-2026--révision-documentaire) | 07 | Arbitrages de Hermann du 16 octobre 2026 — révision documentaire |

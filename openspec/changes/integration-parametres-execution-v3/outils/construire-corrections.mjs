@@ -32,7 +32,8 @@ for (const c of corr) {
   const crlf = textes.get(abs).includes('\r\n');
   if (crlf) { c.ancien = c.ancien.replace(/\n/g, '\r\n'); c.nouveau = c.nouveau.replace(/\n/g, '\r\n'); }
   const m = c.motif.match(/^CORRECTION-DECIDEE:(D-\d{3})$/); if (m) c.decision = m[1];
-  if (!/^(CORRECTION-DECIDEE:D-\d{3}|RENVOI|REDACTION)$/.test(c.motif)) erreurs.push(`${c.id} : motif invalide ${c.motif}`);
+  // INTEGRATION-PR:#n : contenu d'une PR documentaire validée, reporté sur la branche consolidée.
+  if (!/^(CORRECTION-DECIDEE:D-\d{3}|RENVOI|REDACTION|INTEGRATION-PR:#\d+)$/.test(c.motif)) erreurs.push(`${c.id} : motif invalide ${c.motif}`);
   if (!c.ancien) erreurs.push(`${c.id} : ancien vide`);
 }
 const ids = corr.map(c => c.id); const dbl = ids.filter((x, i) => ids.indexOf(x) !== i); if (dbl.length) erreurs.push('identifiants en double : ' + dbl.join(' '));

@@ -125,6 +125,10 @@ Le modèle de données de la V1 repose sur la hiérarchie Séance → Cycle → 
 
 ---
 
+### Phases d’exercice — périmètre MVP
+
+Le MVP inclut jusqu’à six phases chronométrées et nommées par exercice, en Durée chiffrée et séries identiques : édition, copies, calcul, adaptation aux formats compatibles et guidage d’exécution. Les phases en Répétitions ou À l’échec restent exclues. Cette décision ne vaut pas livraison dans une tranche déjà qualifiée et ne modifie pas rétroactivement son périmètre de recette. Le placement sur le cadran et les cartes reste à compléter dans les contrats concernés ; la personnalisation libre du cadran n’est pas incluse.
+
 ## Complément intégré au MVP
 
 - D-200 intègre directement au MVP la suppression des Étiquettes, Catégories et Zones corporelles depuis leurs modales de sélection par appui long puis confirmation ; toutes les valeurs, initiales comme personnalisées, sont concernées.

@@ -208,6 +208,10 @@ Une **entité métier** possède une identité propre et peut être représenté
 - Le Circuit et ses Tours ne portent aucun changement de côté. Une bilatéralité éventuelle est définie au niveau de l’Exercice.
 - Pour un Exercice bilatéral hors de toute règle de Circuit, un Exercice proprement bilatérale affiche dans le petit indicateur de sa carte un indicateur de changement de côté, sans direction, rendu selon Figma (D-407, RM-243) ; seul le texte de la Synthèse des écrans Créer un exercice / Modifier un exercice développe le changement de côté en désignant les côtés selon RM-243 (côté 1, côté 2 ou changement de côté).
 
+#### Phases d’un exercice
+
+Une **phase d’exercice** est une action chronométrée et nommée au sein d’une série. Une séquence de 1 à 6 phases est rejouée à chaque série, sans pause entre phases. Cette capacité appartient au MVP, uniquement en Durée chiffrée avec séries identiques. Elle ne crée ni exercice de catalogue ni compteur de cycles supplémentaire. Le terme se distingue des phases structurelles du plan (préparation, récupération, fin).
+
 #### 4. Concepts de planification
 
 | Terme | Définition |

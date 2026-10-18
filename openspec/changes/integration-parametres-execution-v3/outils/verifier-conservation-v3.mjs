@@ -1,5 +1,6 @@
 // Copie de revision-documentation-kodjo/outils/verifier-conservation.mjs pour le change integration-parametres-execution-v3.
 // Seule différence : C4 compare la colonne Décision du registre, pas la ligne entière (le statut d’une décision remplacée reçoit la mention du remplacement).
+// Deuxième différence : motif INTEGRATION-PR:#n accepté pour le contenu des PR documentaires reporté sur la branche consolidée.
 // Lot 6 — contrôle de conservation d'une restructuration (LECTURE SEULE).
 // Usage : node verifier-conservation.mjs <racine> <commit-de-reference> [justifications.tsv] [--detail=<sortie.tsv>] [--cible=<dossier>]
 //
@@ -69,7 +70,7 @@ function scan(docs) {
 const R = scan(refDocs), T = scan(tgtDocs);
 const fail = []; const detail = ['controle\tcle\tetat\tinfo'];
 // Justifications
-const J = new Map(); const MOTIF = /^(COPIE-RETIREE|RENVOI|FUSION-TITRE|HISTORIQUE-ARCHIVE|REDACTION|RESTAURATION:[0-9a-f]{7,40}\^?|CORRECTION-DECIDEE:(D-\d{3}))$/;
+const J = new Map(); const MOTIF = /^(COPIE-RETIREE|RENVOI|FUSION-TITRE|HISTORIQUE-ARCHIVE|REDACTION|RESTAURATION:[0-9a-f]{7,40}\^?|CORRECTION-DECIDEE:(D-\d{3})|INTEGRATION-PR:#\d+)$/; // INTEGRATION-PR (v3) : contenu d'une PR documentaire reporté
 if (justif && fs.existsSync(justif)) for (const l of fs.readFileSync(justif, 'utf8').split(/\r?\n/).slice(1)) { const c = l.split('\t'); if (!c[0]) continue;
   const m = (c[1] || '').match(MOTIF); if (!m) fail.push(`JUSTIF motif invalide pour ${c[0]} : « ${c[1]} »`); else if (m[2] && !T.ids.has(m[2])) fail.push(`JUSTIF ${c[0]} cite ${m[2]}, absente du registre`); J.set(c[0], c[1]); }
 // C1
