@@ -1050,6 +1050,8 @@ Ces informations restent définitivement associées à cette exécution.
 
 ## Profil et préférences
 
+*Préférence facultative `silhouette` du Profil : contrat de donnée énoncé à la section [« Migration T03 — Catalogue des Exercices — Impacts de données de la revue des cartes »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#migration-t03--catalogue-des-exercices--impacts-de-données-de-la-revue-des-cartes) ; il n’est pas recopié ici.*
+
 ### Entité Utilisateur
 
 #### Définition

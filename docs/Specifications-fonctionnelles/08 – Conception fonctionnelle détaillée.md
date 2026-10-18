@@ -76,13 +76,13 @@ Chaque sujet est décrit dans un document unique afin d'éviter toute redondance
 
 | Sujet                                     | Document de référence                              |
 | ----------------------------------------- | -------------------------------------------------- |
-| Vision du produit                         | 01 – Vision générale                               |
+| Vision du produit et glossaire            | 01 – Vision et glossaire                           |
 | Utilisateurs et besoins                   | 02 – Utilisateurs et besoins                       |
 | Parcours utilisateur                      | 03 – Parcours utilisateur                          |
-| Fonctionnalités                           | 04 – Modèle fonctionnel                            |
+| Concepts, structures et relations         | 04 – Modèle fonctionnel                            |
 | Versions du produit                       | 05 – Versions et périmètre                         |
 | Navigation, écrans et conventions communes | 06 – Interface : navigation, écrans et conventions communes |
-| Décisions de conception                   | 07 – Registre des décisions                        |
+| Décisions de conception                   | 07 – Registre des décisions de conception          |
 | Enchaînements, états et transitions des fonctionnalités | 08 – Conception fonctionnelle par fonctionnalité |
 | Modèle de données                         | 09 – Modèle de données fonctionnel                 |
 | Règles métier testables et calculs        | 10 – Règles métier et calculs                      |
@@ -225,7 +225,7 @@ L’Étiquette est gérée directement dans la Composition via une modale basse.
 
 #### Exercice
 
-##### Eléments affichés
+##### Éléments affichés
 
 | Élément affiché           | Type              | Visible                            | Obligatoire | Valeur par défaut              | Contraintes                                    | Source   | Action         | Remarques                                                                                                                                                                                                                              |
 | ------------------------- | ----------------- | ---------------------------------- | ----------- | ------------------------------ | ---------------------------------------------- | -------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

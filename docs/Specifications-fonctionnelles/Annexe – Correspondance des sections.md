@@ -553,7 +553,7 @@ Document non normatif. Il indique, pour chaque section des chapitres avant la re
 | 08 | Éléments affichés | [Étiquettes de la séance — Éléments affichés](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#étiquettes-de-la-séance--éléments-affichés) | déplacée au ch. 13 |
 | 08 | Règles fonctionnelles | [Étiquettes de la séance — Règles fonctionnelles](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#étiquettes-de-la-séance--règles-fonctionnelles) | déplacée au ch. 10 |
 | 08 | Exercice | [Exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#exercice) | même chapitre |
-| 08 | Eléments affichés | [Eléments affichés](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#eléments-affichés) | même chapitre |
+| 08 | Eléments affichés | [Éléments affichés](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#éléments-affichés) | même chapitre |
 | 08 | Règles fonctionnelles | [Exercice — Règles fonctionnelles](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exercice--règles-fonctionnelles) | déplacée au ch. 10 |
 | 08 | Gestion commune des référentiels de classification | [Exercice — Gestion commune des référentiels de classification](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exercice--gestion-commune-des-référentiels-de-classification) | déplacée au ch. 10 |
 | 08 | Exécution d'une séance | [Exécution d'une séance](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#exécution-dune-séance-1) | même chapitre |
@@ -561,10 +561,10 @@ Document non normatif. Il indique, pour chaque section des chapitres avant la re
 | 08 | Règles fonctionnelles | [Exécution d'une séance — Règles fonctionnelles](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#exécution-dune-séance--règles-fonctionnelles) | déplacée au ch. 13 |
 | 08 | Sons et annonces | [Exécution d'une séance — Sons et annonces](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--sons-et-annonces) | déplacée au ch. 10 |
 | 08 | Synthèse de séance | [Synthèse de séance](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#synthèse-de-séance) | même chapitre |
-| 08 | Eléments affichés | [Synthèse de séance — Eléments affichés](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#synthèse-de-séance--eléments-affichés) | déplacée au ch. 13 |
+| 08 | Eléments affichés | [Synthèse de séance — Éléments affichés](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#synthèse-de-séance--éléments-affichés) | déplacée au ch. 13 |
 | 08 | Règles fonctionnelles | [Synthèse de séance — Règles fonctionnelles](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#synthèse-de-séance--règles-fonctionnelles) | déplacée au ch. 10 |
 | 08 | Profil | [Profil](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#profil) | même chapitre |
-| 08 | Eléments affichés | [Profil — Eléments affichés](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#profil--eléments-affichés) | déplacée au ch. 13 |
+| 08 | Eléments affichés | [Profil — Éléments affichés](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#profil--éléments-affichés) | déplacée au ch. 13 |
 | 08 | Règles fonctionnelles | [Profil — Règles fonctionnelles](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#profil--règles-fonctionnelles) | déplacée au ch. 10 |
 | 08 | Calendrier | [Champs et comportements des fonctionnalités — Calendrier](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#champs-et-comportements-des-fonctionnalités--calendrier) | déplacée au ch. 10 |
 | 08 | Règles liées à la couleur | [Règles liées à la couleur](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#règles-liées-à-la-couleur) | déplacée au ch. 10 |

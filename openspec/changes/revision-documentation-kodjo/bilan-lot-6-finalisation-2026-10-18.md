@@ -10,7 +10,7 @@ Terminer la fiabilisation de la documentation restructurée au lot 6, après la 
 - **Départ :** `e8afc61b` (= `origin/docs/openspec-revision`, vérifié).
 - **`main` :** `6656fefc`, inchangé ; aucun merge.
 - **PR :** #363 `d2386c8d`, #370 `6cf3634a`, #371 `2c050d0e` (brouillon), toutes ouvertes et inchangées ; aucune n'a été modifiée ni commentée.
-- **Commits :** voir [rapport final](lot6/finalisation/rapport-final-conformite.md) §1 (F1 à F8, puis le commit de ce bilan). Le SHA final est communiqué en fin de session.
+- **Commits :** voir [rapport final](lot6/finalisation/rapport-final-conformite.md) §1 : F1 à F8, `9d018def` (bilan), puis F9, la passe résiduelle partie de `9d018def` (§7). Le SHA final est communiqué en fin de session.
 - **Reprise :**
   - corrections : `constats/FIN-*-applique.json` (dans l'ordre du §4 du rapport) ;
   - écarts : `lot6/finalisation/ecarts/` ;
@@ -36,13 +36,19 @@ Terminer la fiabilisation de la documentation restructurée au lot 6, après la 
 - **Conservation :**
   - de bout en bout depuis `cefc9b99`, vérifiée : identifiants, lignes, registre, portée, autorité, références ;
   - depuis `e8afc61b` : les 578 corrections sont rejouées exactement.
+- **Passe résiduelle F9 :**
+  - 51 corrections ;
+  - 262 sections déplacées sur 262 vérifiées ;
+  - 146 rattachements sur 146 réexaminés ;
+  - 11 blocs de PR résolus ;
+  - conservation de bout en bout vérifiée de nouveau.
 - **Liens et noms Unicode :** liens conformes (2 mentions historiques connues) ; noms Unicode conservés ; OpenSpec `--strict` réussi.
 
 ## Hypothèses non démontrées
 
-- La vérification sémantique repose sur des agents en lecture seule. Elle couvre l'ensemble des alignements fonctionnels (127), mais seulement un échantillon des déplacements (40 sur 262).
+- La vérification sémantique repose sur des agents en lecture seule. Elle couvre l'ensemble des alignements fonctionnels (127) et des déplacements (262).
 - La recherche des contradictions actives procède par mots-clés : elle n'est pas exhaustive.
-- Les rattachements PROBABLE ne sont pas confirmés.
+- Les rattachements CERTAIN reposent sur des extraits vérifiés mot pour mot, mais l'équivalence de sens reste un jugement de lecture.
 
 ## Modifications
 
@@ -53,13 +59,14 @@ Terminer la fiabilisation de la documentation restructurée au lot 6, après la 
   - `lot6/correspondance-actualisee.tsv`, colonne `finalisation` ;
   - `lot6/finalisation/**` ;
   - `constats/FIN-*` ;
+  - F9 : `constats/FIN-RESIDUS`, `FIN-STRUCTURE-2`, `FIN-INTRO-2`, `FIN-TRACE-2` ; `pr/resolutions-manuelles-*.json` ; `titres-actuels.tsv` ;
   - outils : `appliquer-finalisation`, `annuler-corrections`, `controler-finalisation`, `justifier-corrections`, `justifier-transitif`, `verifier-hors-chapitres`, `reporter-pr`, `tracabilite` ;
   - corrections de `verifier-conservation`, `verifier-corrections-json` et `verifier-redaction`.
 
 ## En attente
 
 - Revue indépendante finale.
-- Arbitrages AR-01 à AR-26 et points AD-01 à AD-10.
-- Report des PR : 11 blocs à reporter à la main.
+- Arbitrages AR-01 à AR-26 (AR-23 résolu) et points AD-01 à AD-13.
+- Report des PR par leurs chantiers : correctifs complets prêts (aucun bloc manuel restant).
 - Coordination du signalement à la PR #371.
 - Fusion dans `main` : sur décision de Hermann, après revue et résolution des dépendances Git.

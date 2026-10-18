@@ -379,6 +379,8 @@ Le choix du format et du mode de persistance de cet instantané relève du chapi
 
 ## Profil et préférences
 
+*Préférence facultative `silhouette` du Profil : contrat de service énoncé à la section [« Impact API de la revue des cartes »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#impact-api-de-la-revue-des-cartes) ; il n’est pas recopié ici.*
+
 ### API Préférences globales
 
 | ID         | Opération                         | Entrées principales | Résultat                                            | Règles / validations                                                                                                                                     | Objets impactés               |

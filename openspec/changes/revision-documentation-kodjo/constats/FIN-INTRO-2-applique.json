@@ -1,0 +1,35 @@
+{
+ "description": "Finalisation du lot 6 — table « Documents de référence » de l’introduction du ch. 08 alignée sur les titres actuels et les rôles décidés par D-402 (contrôle fonctionnel-3, NON-CONFORME). Aucune règle produit. — sous-ensemble appliqué (voir FIN-INTRO-2-ecartees.tsv)",
+ "corrections": [
+  {
+   "id": "INT-101",
+   "ref": "titre actuel du ch. 01 (« # Vision et glossaire »)",
+   "motif": "CORRECTION-DECIDEE:D-402",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-402",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "| Vision du produit                         | 01 – Vision générale                               |",
+   "nouveau": "| Vision du produit et glossaire            | 01 – Vision et glossaire                           |"
+  },
+  {
+   "id": "INT-102",
+   "ref": "D-402 : rôle du ch. 04 (plan-restructuration, table des chapitres : « Concepts, structures et relations ») ; les fonctionnalités sont au ch. 08",
+   "motif": "CORRECTION-DECIDEE:D-402",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-402",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "| Fonctionnalités                           | 04 – Modèle fonctionnel                            |",
+   "nouveau": "| Concepts, structures et relations         | 04 – Modèle fonctionnel                            |"
+  },
+  {
+   "id": "INT-103",
+   "ref": "nom actuel du ch. 07",
+   "motif": "CORRECTION-DECIDEE:D-402",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-402",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "| Décisions de conception                   | 07 – Registre des décisions                        |",
+   "nouveau": "| Décisions de conception                   | 07 – Registre des décisions de conception          |"
+  }
+ ]
+}

@@ -8,7 +8,12 @@
 // actuel) et <dossier>/pr-<n>-report.tsv (un bloc par ligne : où il a été reporté, ou pourquoi il ne l'a pas été).
 // Rien n'est écrit dans docs/ : le correctif est destiné au chantier propriétaire de la PR.
 import fs from 'fs'; import path from 'path'; import os from 'os'; import { execFileSync } from 'child_process';
-const [repo, tete, num, out] = process.argv.slice(2);
+const [repo, tete, num, out] = process.argv.slice(2).filter(a => !a.startsWith('--'));
+// --manuel=<fichier.json> : résolutions déclarées des groupes non reportés automatiquement, clé « fichier|bloc|rang » :
+//   { "ancre": "sous-chaîne d'une ligne actuelle unique", "mode": "apres" | "avant" | "remplacer" | "substituer" (avec "de", "vers") | "ignorer", "raison": "…" }
+//   Les résolutions sont appliquées avant le calcul du correctif.
+const manuelF = (process.argv.find(a => a.startsWith('--manuel=')) || '').slice(9); const manuel = manuelF ? JSON.parse(fs.readFileSync(manuelF, 'utf8')) : {};
+const rang = {}; const enAttente = [];
 const git = (...a) => execFileSync('git', ['-c', 'core.quotepath=false', '-C', repo, ...a], { encoding: 'utf8', maxBuffer: 1 << 28 });
 const SF = 'docs/Specifications-fonctionnelles';
 const base = git('merge-base', tete, 'origin/main').trim();
@@ -25,7 +30,7 @@ function departager(pos, titreBase, ceBase) { if (pos.length < 2) return pos;
 const cur = {}; for (const f of fs.readdirSync(path.join(repo, SF))) if (f.endsWith('.md')) cur[f] = fs.readFileSync(path.join(repo, SF, f), 'utf8').split(/\r?\n/);
 const orig = Object.fromEntries(Object.entries(cur).map(([f, l]) => [f, l.slice()]));
 const files = git('diff', '--name-only', base, tete, '--', SF + '/').split('\n').filter(x => /^docs\/Specifications-fonctionnelles\/[^/]+\.md$/.test(x)); // chapitres seulement (pas les images)
-const rows = ['fichier_pr\tbloc\tlignes_retirees\tlignes_ajoutees\tstatut\tfichier_actuel\tligne_actuelle\tdetail'];
+const rows = ['fichier_pr\tbloc\tlignes_retirees\tlignes_ajoutees\tstatut\tfichier_actuel\tligne_actuelle\tdetail\tcle'];
 function trouver(lignes) { // lignes : tableau de textes ; renvoie [{f, i}] des positions où la séquence apparaît (normalisée)
   const cible = lignes.map(n); const res = [];
   for (const [f, L] of Object.entries(cur)) for (let i = 0; i + cible.length <= L.length; i++) { let ok = true; for (let j = 0; j < cible.length; j++) if (n(L[i + j]) !== cible[j]) { ok = false; break; } if (ok) res.push({ f, i }); }
@@ -47,10 +52,25 @@ for (const fp of files) {
       else { const pos = ctx !== null && n(ctx) ? departager(trouver([ctx]), tb, ce) : [];
         if (pos.length === 1) { const { f, i: p } = pos[0]; cur[f].splice(p + 1 + vides, 0, ...plus); st = 'REPORTE'; fa = f; la = p + 2 + vides; }
         else { st = pos.length ? 'AMBIGU' : 'INTROUVABLE'; det = `contexte trouvé ${pos.length} fois : « ${n(ctx || '').slice(0, 60)} »`; } }
-      rows.push([nom, b, moins.length, plus.length, st, fa, la, det].join('\t')); }
+      const cle = `${nom}|${b}|${(rang[`${nom}|${b}`] = (rang[`${nom}|${b}`] || 0) + 1)}`;
+      if (st !== 'REPORTE') enAttente.push({ cle, moins, plus, idx: rows.length });
+      rows.push([nom, b, moins.length, plus.length, st, fa, la, det, cle].join('\t')); }
     k = j - 1; } }
 // Correctif : diff des fichiers modifiés contre l'état actuel.
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pr-')); let patch = '';
+// Résolutions manuelles déclarées.
+for (const g of enAttente) { const m = manuel[g.cle]; if (!m) continue; const r = rows[g.idx].split('\t');
+  if (m.mode === 'ignorer') { r[4] = 'IGNORE-MANUEL'; r[7] = m.raison; rows[g.idx] = r.join('\t'); continue; }
+  const pos = []; for (const [f2, L] of Object.entries(cur)) L.forEach((l, i) => { if (l.includes(m.ancre)) pos.push({ f: f2, i }); });
+  if (pos.length !== 1) { r[4] = 'MANUEL-ECHEC'; r[7] = `ancre trouvée ${pos.length} fois`; rows[g.idx] = r.join('\t'); continue; }
+  const { f: f2, i } = pos[0];
+  if (m.mode === 'apres') { // après le bloc Markdown qui contient l’ancre (fin de liste, puis ligne vide)
+    let j = i; const L2 = cur[f2]; if (/^- /.test(L2[j])) while (j + 1 < L2.length && /^- /.test(L2[j + 1])) j++;
+    if (j + 1 < L2.length && L2[j + 1].trim() === '') j++; L2.splice(j + 1, 0, ...g.plus); }
+  else if (m.mode === 'avant') cur[f2].splice(i, 0, ...g.plus);
+  else if (m.mode === 'substituer') { if (cur[f2][i].split(m.de).length !== 2) { r[4] = 'MANUEL-ECHEC'; r[7] = 'sous-chaîne à substituer non unique'; rows[g.idx] = r.join('\t'); continue; } cur[f2][i] = cur[f2][i].replace(m.de, m.vers); }
+  else cur[f2].splice(i, 1, ...g.plus);
+  r[4] = 'REPORTE-MANUEL'; r[5] = f2; r[6] = i + 1; r[7] = m.raison; rows[g.idx] = r.join('\t'); }
 for (const [f, L] of Object.entries(cur)) { if (L.join('\n') === orig[f].join('\n')) continue;
   const a = path.join(tmp, 'a.md'), b2 = path.join(tmp, 'b.md'); const eol = fs.readFileSync(path.join(repo, SF, f), 'utf8').includes('\r\n') ? '\r\n' : '\n';
   fs.writeFileSync(a, orig[f].join(eol)); fs.writeFileSync(b2, L.join(eol));

@@ -434,9 +434,9 @@ La vue et ses graphiques sont abandonnés pour le MVP et seront conçus ultérie
 
 ## Principes généraux — Évolutivité
 
-Les comportements décrits correspondent au périmètre du MVP.
+Les comportements décrits au chapitre **08 – Conception fonctionnelle par fonctionnalité** correspondent au périmètre du MVP.
 
-Les évolutions prévues pour les versions ultérieures sont décrites dans le chapitre **05 – Versions du produit** et ne sont pas détaillées dans ce document, sauf lorsqu'elles sont nécessaires pour justifier un choix de conception du MVP.
+Les évolutions prévues pour les versions ultérieures sont décrites dans le présent chapitre et ne sont pas détaillées au chapitre 08, sauf lorsqu'elles sont nécessaires pour justifier un choix de conception du MVP.
 
 ## Catalogue des Exercices — cycle de vie d’un Exercice persistant — MVP T03 — Limite Parcours
 

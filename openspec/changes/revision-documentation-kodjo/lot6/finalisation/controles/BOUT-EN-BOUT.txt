@@ -1,6 +1,6 @@
 référence=cefc9b99 fichiers_ref=13 fichiers_cible=17
 C1 identifiants : 782 de référence, 783 dans la cible
-C2 lignes distinctes : 7015 ; N1=6461 N2=286 justifiées=268 absentes=0
+C2 lignes distinctes : 7015 ; N1=6455 N2=286 justifiées=274 absentes=0
 C3 lignes dont les occurrences diminuent : 57 (informatif)
 C4 décisions au texte modifié : 0 sur 393
 C5 lignes dont la portée change : 0

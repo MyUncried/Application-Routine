@@ -10,22 +10,26 @@
 
 ## Synthèse
 
-| PR | Fichiers en conflit (fusion simulée `git merge-tree`) | Blocs modifiés | Reportés automatiquement | À reporter à la main |
-|---|---|---|---|---|
-| #363 | ch. 06 | 5 (chapitres) + images PNG | 5 | 0 |
-| #370 | ch. 03, 04, 06, 08, 09, 10, 11, 13 | 36 | 31 | 5 |
-| #371 | ch. 06, 08, 13 | 22 | 16 | 6 |
+| PR | Fichiers en conflit (fusion simulée `git merge-tree`) | Blocs modifiés | Reportés automatiquement | Reportés par résolution déclarée | Sans objet |
+|---|---|---|---|---|---|
+| #363 | ch. 06 | 5 (chapitres) + images PNG | 5 | 0 | 0 |
+| #370 | ch. 03, 04, 06, 08, 09, 10, 11, 13 | 36 | 31 | 5 | 0 |
+| #371 | ch. 06, 08, 13 | 22 | 16 | 2 | 4 |
 
-Les conflits viennent de la réorganisation des fichiers (lot 6) : les lignes modifiées par les PR ont changé de place. Leur texte, lui, est presque toujours conservé. Le correctif repositionné remplace donc la résolution manuelle de ces conflits, sauf pour les blocs listés ci-dessous.
+Les conflits viennent de la réorganisation des fichiers (lot 6) : les lignes modifiées par les PR ont changé de place. Leur texte, lui, est presque toujours conservé. Le correctif repositionné remplace donc la résolution manuelle de ces conflits.
 
-## Blocs à reporter à la main
+Les trois correctifs couvrent désormais **tous** les blocs des PR. `git apply --check` réussit sur le HEAD final pour chacun, ainsi qu'en séquence (#363 → #370 → #371, et #371 → #370).
 
-| PR | Bloc | Raison | Résolution proposée |
+## Blocs résolus par déclaration (`--manuel`)
+
+Les blocs que l'outil ne pouvait pas placer seul sont résolus par une déclaration explicite : `resolutions-manuelles-370.json` et `resolutions-manuelles-371.json` (clé `fichier|bloc|rang`, ancre unique, mode, raison). Les résolutions sont appliquées avant le calcul du correctif. Le statut apparaît dans `pr-<n>-report.tsv` : `REPORTE-MANUEL` ou `IGNORE-MANUEL`.
+
+| PR | Bloc | Raison | Résolution appliquée |
 |---|---|---|---|
-| #370 | ch. 05, bloc 1 (4 lignes ajoutées) | Contexte « --- » présent 15 fois | Placer l'ajout après le séparateur qui suit la section visée par la PR (voir le diff de la PR) |
-| #370 | ch. 13, blocs 2, 3, 6 (deux groupes) | Lignes de contexte modifiées par la finalisation : QUA-157 et QUA-168 (accords, espaces), et texte du contrat CE-UI-10 retouché | Ajouter les lignes de la PR à la même place dans CE-UI-10 ; le texte ajouté par la PR n'entre pas en conflit avec les corrections |
-| #371 | ch. 06, bloc 1 | Ligne restaurée par R06B-001 (lien vers la matrice des circuits, `7a89220f^`) | Appliquer la modification de la PR à la ligne restaurée, en gardant le lien |
-| #371 | ch. 13, blocs 2, 4, 5, 6, 7 | La PR modifie la même phrase « Durée et symbole viennent du calcul commun… » dans 5 contrats. La finalisation a remplacé ces 5 copies identiques par un renvoi vers l'occurrence conservée (COP-017, 027, 029, 048, 051 ; ch. 13 l. 281) | Appliquer la modification une seule fois, à l'occurrence conservée : les 5 renvois la suivent |
+| #370 | ch. 05, bloc 1 (4 lignes ajoutées) | Contexte « --- » présent 15 fois | Insertion avant « ## Complément intégré au MVP », position de la PR (mode `avant`) |
+| #370 | ch. 13, blocs 2, 3, 6 (deux groupes) | Lignes de contexte modifiées par la finalisation : QUA-157 et QUA-168 (accords, espaces), et texte du contrat CE-UI-10 retouché | Insertion après le paragraphe conservé de CE-UI-10 (mode `apres`) ; pour le bloc 6/1, après la liste « ± modifie Bip… », qui est l'ancien paragraphe scindé par la finalisation. Le texte de la PR est inchangé |
+| #371 | ch. 06, bloc 1 | Ligne restaurée par R06B-001 (lien vers la matrice des circuits, `7a89220f^`) | Substitution ciblée « états de Modalités d'exécution » → « états de Paramètres d'exécution » (mode `substituer`) ; le lien restauré est conservé |
+| #371 | ch. 13, blocs 2, 4, 5, 6, 7 | La PR modifie la même phrase « Durée et symbole viennent du calcul commun… » dans 5 contrats, avec un nouveau texte identique. La finalisation a remplacé 4 de ces copies par un renvoi vers l'occurrence conservée (COP-017, 027, 029, 048, 051 ; ch. 13 l. 281) | Bloc 2 : remplacement de l'occurrence conservée, dont le texte actuel est identique à l'ancien texte de la PR hors espaces typographiques. Blocs 4 à 7 : sans objet, les renvois suivent l'occurrence conservée |
 
 ## Points de coordination avec les chantiers propriétaires (non publiés)
 
@@ -38,7 +42,6 @@ Les conflits viennent de la réorganisation des fichiers (lot 6) : les lignes mo
 1. Revue indépendante finale de `docs/openspec-revision`.
 2. Pour chaque PR :
    - rebase sur la branche restructurée, ou application du correctif `pr-<n>-report.patch` ;
-   - report manuel des blocs ci-dessus ;
    - contrôles du change (`outils/controler-finalisation.sh`) ;
    - revue par le chantier propriétaire.
 3. Fusion dans `main`, sur décision de Hermann seulement.

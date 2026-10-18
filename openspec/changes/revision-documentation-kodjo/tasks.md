@@ -438,9 +438,18 @@ Corrections appliquées sur l'état actuel, sans reconstruction depuis une ancie
 
   Commits `82841dfd`, `4592ae85`, `114c3b5b`.
 - [x] Contrôle de bout en bout depuis `cefc9b99` : conservation vérifiée (`lot6/finalisation/controles/BOUT-EN-BOUT.txt`)
+- [x] F9 Passe résiduelle (départ `9d018def`) — commit de ce lot :
+  - résidus : 76 éléments, 12 corrections ;
+  - 222 sections déplacées restantes vérifiées, 3 non-conformités corrigées (références de position) ;
+  - troisième passe : 30 corrections conformes, introduction du ch. 08 corrigée ;
+  - 146 rattachements PROBABLE réexaminés : 53 CERTAIN ajoutés aux contrats ;
+  - 11 blocs de PR reportés par résolution déclarée ou sans objet ;
+  - matrice de correspondance et index des titres régénérés.
+
+  Contrôles : `RESIDUEL`, `FINAL-depuis-e8afc61b` (629 corrections), `BOUT-EN-BOUT` réussis.
 - [ ] Revue indépendante finale (ChatGPT)
-- [ ] Décisions de Hermann : AR-01 à AR-26 ; points documentaires AD-01 à AD-10 ([arbitrages-lot6.md](lot6/arbitrages-lot6.md))
-- [ ] Report des PR #363, #370, #371 sur la documentation restructurée : correctifs prêts, 11 blocs à reporter à la main ([dependances-git.md](lot6/finalisation/pr/dependances-git.md))
+- [ ] Décisions de Hermann : AR-01 à AR-26 (AR-23 résolu en F9) ; points documentaires AD-01 à AD-13 ([arbitrages-lot6.md](lot6/arbitrages-lot6.md))
+- [ ] Report des PR #363, #370, #371 sur la documentation restructurée, par leurs chantiers : correctifs prêts et complets (63 blocs), vérifiés par `git apply --check` ([dependances-git.md](lot6/finalisation/pr/dependances-git.md))
 
 - [ ] 6L Revue indépendante de la restructuration, puis résolution des dépendances Git avec les PR #363, #370 et #371 avant toute fusion dans `main`
 

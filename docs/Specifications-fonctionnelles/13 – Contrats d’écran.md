@@ -109,7 +109,7 @@
   - [Suivi — Séances — Objectif](#suivi--séances--objectif)
   - [Suivi — Séances — Contenu](#suivi--séances--contenu)
   - [Suivi — Séances — État vide](#suivi--séances--état-vide)
-  - [Synthèse de séance — Eléments affichés](#synthèse-de-séance--eléments-affichés)
+  - [Synthèse de séance — Éléments affichés](#synthèse-de-séance--éléments-affichés)
   - [Suivi - Séances — Élément affiché lié à la couleur](#suivi---séances--élément-affiché-lié-à-la-couleur)
 - [Profil et préférences](#profil-et-préférences)
   - [CE-UI-01 — Profil — préférence silhouette](#ce-ui-01--profil--préférence-silhouette)
@@ -117,7 +117,7 @@
   - [Profil — Objectif](#profil--objectif)
   - [Profil — Contenu](#profil--contenu)
   - [Profil — Comportement](#profil--comportement)
-  - [Profil — Eléments affichés](#profil--eléments-affichés)
+  - [Profil — Éléments affichés](#profil--éléments-affichés)
 - [Référentiels](#référentiels)
   - [CE-UI-09 — Référentiels d’Exercice — Catégorie et Zones corporelles](#ce-ui-09--référentiels-dexercice--catégorie-et-zones-corporelles)
 - [Interface transverse](#interface-transverse)
@@ -260,7 +260,7 @@ Aucun de ces constats ne suspend globalement la création/composition. Seule une
 | Frames | `2117:86`, `1992:9910` |
 | Shell | `Shell / Screen`, Context On, Bottom Navigation |
 | Nature | Écran existant modifié |
-| Règles applicables | RM-003, RM-004, RM-007, RM-008, RM-011, RM-072, RM-095, RM-109, RM-110, RM-112, RM-188, RM-221 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité ») |
+| Règles applicables | RM-001, RM-003, RM-004, RM-007, RM-008, RM-011, RM-015, RM-072, RM-095, RM-109, RM-110, RM-112, RM-159, RM-188, RM-221 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité ») |
 
 #### 2. Finalité fonctionnelle
 
@@ -352,7 +352,7 @@ Comparer sources Durée, Répétitions avec/sans cadence et À l’échec dans l
 
 Modale de Composition 2028:11204, sélection 4581:6404, création 4640:6308, suppression 4861:6145. Remplace le contrat obsolète de page finale Catégories ; ID conservé pour traçabilité.
 
-Règles applicables : RM-001, RM-017, RM-200, RM-215, RM-216 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-001, RM-017, RM-022, RM-200, RM-215, RM-216 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -679,7 +679,7 @@ Lecture indépendante ; aucune poignée ; carte à gouttière permanente sans D�
 
 *Texte identique à celui de la section [« CE-T03-01 — Catalogue des séances — état T03 »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-01--catalogue-des-séances--état-t03) ; il n’est pas recopié ici.*
 
-Tester zéro/N cartes, active/archivée, avec/sans photo/vidéo, chargement/erreur, texte alternatif, troncature, sélection indépendante et absence de zone Déployer avec ou sans média. Vérifier formats des deux modes, miroir pour bilatéral et absence des textes retirés. Puis filtres, actions glissées, retour d’état et responsive. Critères CAR/MED/ICO/CTX/ANI du complément.
+Tester zéro/N cartes, active/archivée, avec/sans photo/vidéo, chargement/erreur, texte alternatif, troncature, sélection indépendante et absence de zone Déployer avec ou sans média. Vérifier formats des deux modes, miroir pour bilatéral et absence des textes retirés. Puis filtres, actions glissées, retour d’état et responsive. Critères CAR/MED/ICO/CTX/ANI du complément ([DSF — Cartes, icônes et animations d’appui](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md#critères-dacceptation-atomiques)).
 
 Vérifier aussi les cartes variables dans les deux modes et la durée intrinsèque sans récupération contextuelle.
 
@@ -693,7 +693,7 @@ Formulaire créer/modifier :3943:6064,4217:6980,5088:6398,3542:4656,4734:6342. C
 
 Phrase longue 7119:27855 et Bip 7059:13302 ; 7061:13383 supprimé ; copies 9b/10b7069:13464/13573. Relevé 06/10, captures dans chapitre 06.
 
-Règles applicables : RM-033, RM-039, RM-041, RM-042, RM-112, RM-113, RM-131, RM-132, RM-152, RM-214, RM-215, RM-232 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-033, RM-039, RM-041, RM-042, RM-058, RM-112, RM-113, RM-129, RM-131, RM-132, RM-152, RM-214, RM-215, RM-232 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -813,7 +813,7 @@ Corpus v15 :276gabarits, total métier injecté ; aucun changement grammatical v
 
 Cycle de vie Exercice ; carte archivée du composant 6214:7278, panneau 4168:11262. Patrons de Séance 2234:88 et 1992:10848 illustrent les actions, sans constituer une frame archive Exercice.2234:189 ne prouve pas son dialogue de suppression.
 
-Règles applicables : RM-095, RM-188, RM-206 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-095, RM-120, RM-162, RM-188, RM-206 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -930,7 +930,7 @@ L’ancienne référence Figma `3787:5209 — Catalogue — action contextuelle 
 
 Feuille Paramètres d’exécution de CE-T03-04. Références courantes :8328:37092,8328:37862,8328:38513,8328:38848 et nouveau 8470:13303 ; les autres états du 12/10 restent applicables. Captures au chapitre 06 ; matrice Deux modes du 13/10. Les références 6419/6665/7059/7069 du 07/10 sont historiques.
 
-Règles applicables : RM-033, RM-035, RM-058, RM-095, RM-129, RM-130, RM-132, RM-232, RM-233, RM-234, RM-FMT-17 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-033, RM-035, RM-036, RM-058, RM-095, RM-129, RM-130, RM-132, RM-232, RM-233, RM-234, RM-FMT-10, RM-FMT-17 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -1295,7 +1295,7 @@ Liste A/B : sélectionner B puis A → insertion A/B ; désélection, 0/1/N, fer
 
 Composition 2028:11137/11700/11808/12003,3518:4576,5271:5455. Placement unifié 7167:13503 ; durée 7173:13521 ; retrait récupération 7296:13696 ; point présent 3722:5061/retrait5301:5443. Ancien 4893:6675 supprimé, historique seulement. Étiquettes CE-T03-16, sélection CE-T03-07. Réglages 2028:11375/11457.
 
-Règles applicables : RM-001, RM-015, RM-017, RM-018, RM-021, RM-025, RM-026, RM-027, RM-028, RM-029, RM-030, RM-038, RM-095, RM-129, RM-143, RM-151, RM-152, RM-159, RM-191, RM-209, RM-210, RM-213, RM-215, RM-218, RM-219, RM-220, RM-FMT-03, RM-FMT-04, RM-FMT-05 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-001, RM-015, RM-017, RM-018, RM-021, RM-025, RM-026, RM-027, RM-028, RM-029, RM-030, RM-036, RM-038, RM-095, RM-129, RM-143, RM-147, RM-151, RM-152, RM-159, RM-191, RM-209, RM-210, RM-213, RM-215, RM-218, RM-219, RM-220, RM-FMT-03, RM-FMT-04, RM-FMT-05, RM-FMT-09, RM-FMT-41 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -1553,7 +1553,7 @@ Carte : régime identiques → forme N×valeur ; variables → valeurs séparée
 
 Popover de CE-T03-08, déclenché uniquement par la pastille tours/séries. Référence Prototype MVP `8328:34662`, capture au chapitre 06 ; DSF Circuits du 12/10.
 
-Règles applicables : RM-FMT-09 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-025, RM-FMT-03, RM-FMT-09, RM-FMT-31 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -1639,7 +1639,7 @@ Tours→séries avec exercices<N,=N,>N ; séries→tours ; Annuler après perte 
 
 Dialogue décision existant appelé par conversion ou ajout catalogue dans un circuit de séries ; frame à rattacher ensuite.
 
-Règles applicables : RM-FMT-03, RM-FMT-31 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-113, RM-FMT-03, RM-FMT-31 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -1725,7 +1725,7 @@ Confirmer/Annuler conversions et ajouts ; comparaison complète avant/après ; t
 
 Fenêtre de lecture seule ouverte par œil sur la ligne du titre de circuit ; frame à rattacher ensuite.
 
-Règles applicables : RM-FMT-29, RM-FMT-30 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-033, RM-FMT-08, RM-FMT-29, RM-FMT-30 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -1984,7 +1984,7 @@ REC-02, 04–05, 09–11, 14, 16–18, 28 ; vérifier même volume avant/après 
 
 Famille des compositions préremplies ; notamment Tabata 8747:14320, EMOM 8795:14449, Progression 8795:14681. Complète CE-T03-08.
 
-Règles applicables : RM-FMT-03, RM-FMT-04, RM-FMT-05, RM-FMT-06, RM-FMT-12, RM-FMT-16, RM-FMT-18, RM-FMT-22, RM-FMT-29, RM-FMT-40, RM-FMT-41, RM-FMT-42 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-218, RM-FMT-03, RM-FMT-04, RM-FMT-05, RM-FMT-06, RM-FMT-07, RM-FMT-12, RM-FMT-16, RM-FMT-18, RM-FMT-22, RM-FMT-29, RM-FMT-40, RM-FMT-41, RM-FMT-42 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -2154,7 +2154,7 @@ REC-08, 18 ; vérifier absence d’éditeur sur les quatre constantes et absence
 
 Complément fonctionnel CE-EXEC-SESSION-01. Aucun écran d’exécution spécifique qualifié dans les 46 captures ; layout non clôturé.
 
-Règles applicables : RM-FMT-23, RM-FMT-24, RM-FMT-25, RM-FMT-26, RM-FMT-33, RM-FMT-36 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-055, RM-FMT-23, RM-FMT-24, RM-FMT-25, RM-FMT-26, RM-FMT-33, RM-FMT-35, RM-FMT-36 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -2329,7 +2329,7 @@ REC-20–24 ; 12 tours confirmés +5 déclarées ; zéro validé conservé comme
 
 Bloc B5 ; états S59–S62 ; T03-E E40–E41 ; Shell Execution ; sous-titre côté validé D-149.
 
-Règles applicables : RM-036, RM-037, RM-058, RM-062, RM-148, RM-149, RM-150, RM-211 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-036, RM-037, RM-058, RM-059, RM-062, RM-077, RM-099, RM-129, RM-148, RM-149, RM-150, RM-211 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -2431,7 +2431,7 @@ D→G/G→D, C=1/2/99, pause inter-Séries 0/>0, SIDE_RECOVERY0/>0, reset second
 
 Préparation de l’Exécution ACTIVITY, état du shell partagé ; aucune ancienne page autonome « écran 16 ». Frame courante 4968:8188 pour la structure, pas une preuve de préparation 5 s.
 
-Règles applicables : RM-096, RM-097, RM-098, RM-099 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-096, RM-097, RM-098, RM-099, RM-162, RM-190, RM-218 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -2529,7 +2529,7 @@ Vérifier passage entre préparation, Série cadencée, pauses programmées et f
 
 Exécution ACTIVITY en Durée unilatérale ; frame 4968:8188, contexte de données unilatéral ; pas d’ancien écran 17 autonome.
 
-Règles applicables : RM-036, RM-060, RM-061, RM-062, RM-099, RM-211 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-036, RM-060, RM-061, RM-062, RM-099, RM-190, RM-211 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -2631,7 +2631,7 @@ Durée 1 s et plusieurs Séries avec pause 0/>0 ; fin naturelle, saut anticipé 
 
 Bloc B5 ; états S57/S58 ; T03-E E40/E43 ; Shell Execution partagé.
 
-Règles applicables : RM-033, RM-058, RM-059, RM-062, RM-069, RM-077, RM-099, RM-111, RM-211 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-033, RM-058, RM-059, RM-062, RM-067, RM-069, RM-077, RM-099, RM-111, RM-211 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -2747,7 +2747,7 @@ Deux modes, N=1/N>1, cible 1/100, reset après temps écoulé, Suivant sans dial
 
 Bloc B5 ; états S63–S65 ; T03-E E43, E44, E49.
 
-Règles applicables : RM-078, RM-099, RM-100, RM-102 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-078, RM-099, RM-100, RM-101, RM-102, RM-190 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -2847,7 +2847,7 @@ Fin 0/>0 ; plan terminé/partiel ; arrêt depuis Pause confirmé/annulé ; inter
 
 Famille SESSION :1992:8132/8530/8626 ; dialogues 1992:8224/8326/8428 ; médias CE-MEDIA-EXEC-01/02. ACTIVITY reste CE-T03-09..13.
 
-Règles applicables : RM-026, RM-028, RM-030, RM-038, RM-055, RM-056, RM-059, RM-060, RM-061, RM-063, RM-067, RM-084, RM-145, RM-147, RM-191, RM-209, RM-213, RM-218, RM-219, RM-220, RM-FMT-41 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-026, RM-028, RM-029, RM-030, RM-038, RM-055, RM-056, RM-059, RM-060, RM-061, RM-062, RM-063, RM-067, RM-077, RM-084, RM-145, RM-147, RM-191, RM-209, RM-213, RM-218, RM-219, RM-220, RM-FMT-41 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -3193,6 +3193,8 @@ La notion d'« étape » n'est pas affichée comme indicateur de progression dan
 
 Variantes intégrées de l’Exécution SESSION ou ACTIVITY : 5021:5994,5581:4257,4997:6113,5588:4363. Source de comportement : CONCEPTION-EXECUTION-MEDIA ; aucune acquisition média.
 
+Règles applicables : RM-058, RM-099 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+
 #### 2. Finalité fonctionnelle
 
 Consulter les médias déjà associés à l’Exercice courant pendant que le moteur poursuit normalement l’Exécution.
@@ -3282,6 +3284,8 @@ Tester 0/1/N médias, mélange image/vidéo, premier/dernier, un swipe=un média
 #### 1. Identification
 
 Frame 5009:6069 Exécution d’un exercice — Média plein écran ; variante de CE-MEDIA-EXEC-01. Le nom historique de test Séance ne borne pas l’origine de données.
+
+Règles applicables : RM-058 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -3467,7 +3471,7 @@ Jour vide/1/N, deux types de source, tap surface distinct de Lecture, glissement
 
 Calendrier ; frames 1992:5101,2252:86,1992:6389,1992:5962,2094:86,2074:86 ; Mois 1992:5237 ; suppressions 1992:5365/6102.
 
-Règles applicables : RM-046, RM-050, RM-072, RM-112, RM-123 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-045, RM-046, RM-050, RM-072, RM-112, RM-123 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -3561,7 +3565,7 @@ Semaine vide/N, deux origines, déploiement/récurrence, synchronisation jour/sc
 
 CE-UI-04 ; sélection de contenus pour planification. Frames MVP 7599:14197 et 7594:34809 ; homologues communautaires 7599:14753 et 7600:14108. Un seul composant de choix avec des états de décompte différents.
 
-Règles applicables : RM-208, RM-222, RM-223 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-206, RM-208, RM-222, RM-223 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -3645,7 +3649,7 @@ Tester 0/1/2, mêmes types et mixte, bascule de segment sans perte, cocher/déco
 
 CE-UI-05 ; formulaire de Routine à un ou plusieurs contenus. Frames 1992:6838/6622/7187/7369/7537/7716 et 7594:34531 ; fréquence CE-UI-11 ; sélection CE-UI-04.
 
-Règles applicables : RM-043, RM-047, RM-052, RM-053, RM-054a, RM-223 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-043, RM-044, RM-047, RM-052, RM-053, RM-054a, RM-223 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -3935,7 +3939,7 @@ Règles métier, validations et points ouverts : [spécification du 08/10](08%20
 
 Synthèse ACTIVITY : 4968:8055 (initial),4968:8105 (Ressenti sélectionné). Pour SESSION voir CE-UI-08 ; ne pas utiliser les frames Séance comme seule preuve directe.
 
-Règles applicables : RM-078, RM-079, RM-101, RM-102, RM-103 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-062, RM-078, RM-079, RM-101, RM-102, RM-103 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -4025,7 +4029,7 @@ Statuts Terminée/Partielle/Interrompue ; sans Ressenti bouton désactivé ; cha
 
 Suivi général ; frame courante 1992:8843 et état vide 2117:190. Carte ACTIVITY à deux lignes ; 1992:8996 est historique hors MVP. Copies exclusivement au chapitre 06.
 
-Règles applicables : RM-078, RM-082, RM-084, RM-102 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-011, RM-078, RM-082, RM-084, RM-102 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -4121,7 +4125,7 @@ SESSION/ACTIVITY, statuts, source modifiée/supprimée, instantané conservé, a
 
 SESSION terminée 1992:8718/8780, partielle 4760:6448/6500 ; ACTIVITY distinct CE-T03-14.
 
-Règles applicables : RM-076, RM-078, RM-079, RM-080, RM-081, RM-083, RM-084, RM-FMT-38 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-028, RM-076, RM-078, RM-079, RM-080, RM-081, RM-083, RM-084, RM-FMT-38 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -4272,7 +4276,7 @@ Si aucune Exécution ne correspond à la recherche, l’écran affiche un messag
 
 Si aucune Exécution n’existe encore, l’écran affiche : `Vous verrez ici vos séances exécutées dès que vous aurez terminé votre première séance.`
 
-### Synthèse de séance — Eléments affichés
+### Synthèse de séance — Éléments affichés
 
 | Élément affiché       | Type             |  Visible | Obligatoire | Valeur par défaut                                    | Contraintes                 | Source      | Action         | Remarques                            |
 | --------------------- | ---------------- | -------: | ----------: | ---------------------------------------------------- | --------------------------- | ----------- | -------------- | ------------------------------------ |
@@ -4512,7 +4516,7 @@ Les préférences ne modifient pas rétroactivement les Séances existantes ni u
 
 Les notifications ne sont pas autorisées par défaut. La demande d’autorisation du système d’exploitation est présentée lorsque l’utilisateur active pour la première fois un rappel lors d’une planification. En cas de refus, le rappel n’est pas activé et l’application indique que l’autorisation peut être modifiée dans les réglages du système.
 
-### Profil — Eléments affichés
+### Profil — Éléments affichés
 | Élément affiché                     | Type            |  Visible | Obligatoire | Valeur par défaut          | Contraintes                     | Source      | Action               | Remarques                                            |
 | ----------------------------------- | --------------- | -------: | ----------: | -------------------------- | ------------------------------- | ----------- | -------------------- | ---------------------------------------------------- |
 | Titre de l'écran                    | Texte           | Toujours |         Oui | Profil                     | Texte fixe                      | Statique    | Aucune               |                                                      |
@@ -4536,7 +4540,7 @@ Les valeurs par défaut Pause entre les côtés, Compte à rebours d’un exerci
 
 Catégorie 4332:7095, création 4474:7157 ; Zones 4478:7209, création 4683:6336 ; suppressions 4861:6259/6348. Étiquettes de Séance :CE-T03-16.
 
-Règles applicables : RM-023, RM-039, RM-040, RM-200, RM-214, RM-215, RM-216 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-023, RM-039, RM-040, RM-042, RM-200, RM-214, RM-215, RM-216 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -4782,7 +4786,7 @@ La suppression du titre des contenus de planification est confirmée par le prop
 
 Bloc B8/B9 ; états S78–S82 ; T03-E E05–E06 ; composant `6298:12462`.
 
-Règles applicables : RM-109 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-094, RM-109 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -4873,7 +4877,7 @@ Tester les quatre destinations, labels accessibles, état actif, dimensions et S
 
 Splash actif 1992:469 ; unique exception aux Screen Shells standards. Anciennes propositions graphiques hors cible.
 
-Règles applicables : RM-002 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-002, RM-109 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -4965,7 +4969,7 @@ Le splash affiche exactement `KODJO`, `Keep On. Do Just One.` et `Votre assistan
 
 Contrat d’action, sans écran intermédiaire. Bouton Créer dans les Catalogues 1992:9910 et 3786:5093. Les arbres historiques 3787:5148/3841:8375 ne sont pas des destinations.
 
-Règles applicables : RM-109, RM-FMT-02 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-015, RM-109, RM-FMT-02 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 

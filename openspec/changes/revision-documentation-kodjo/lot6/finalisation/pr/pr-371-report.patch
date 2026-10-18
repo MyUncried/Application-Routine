@@ -1,7 +1,12 @@
 diff --git a/docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md b/docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md
 --- a/docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md
 +++ b/docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md
-@@ -558,7 +558,7 @@ Références courantes du 12/10, complétées le 13/10 :32 captures du parcours
+@@ -554,11 +554,11 @@ CE-CIR-01/02/03. La confirmation est conditionnée à la perte de valeurs, pas 
+ 
+ ### Créer ou modifier un exercice
+ 
+-Références courantes du 12/10, complétées le 13/10 :32 captures du parcours de création et de ses états de Modalités d’exécution, issues de Prototype MVP. Contrats CE-T03-04, CE-UI-09 et CE-UI-10. Les anciens relevés du 03/10 et du 06/10 restent historiques pour les états remplacés ; [matrice actuelle](../MATRICE-DSF-CIRCUITS-2026-10-12.md).
++Références courantes du 12/10, complétées le 13/10 :32 captures du parcours de création et de ses états de Paramètres d’exécution, issues de Prototype MVP. Contrats CE-T03-04, CE-UI-09 et CE-UI-10. Les anciens relevés du 03/10 et du 06/10 restent historiques pour les états remplacés ; [matrice actuelle](../MATRICE-DSF-CIRCUITS-2026-10-12.md).
  
  #### Placement et contrôles
  

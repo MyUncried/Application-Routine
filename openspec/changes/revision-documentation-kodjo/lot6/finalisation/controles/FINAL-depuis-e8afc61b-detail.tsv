@@ -15,6 +15,10 @@ C2	4a773e5e8afd215c	JUSTIFIE	REDACTION 01 – Vision Générale.md:277
 C2	5401a78b31bfc17f	JUSTIFIE	REDACTION 01 – Vision Générale.md:296
 C2	29c7aea89a1a20a7	JUSTIFIE	REDACTION 01 – Vision Générale.md:304
 C2	28c8369438d94cf1	JUSTIFIE	RESTAURATION:7a89220f^ 01 – Vision Générale.md:320
+C3	97326e69c0a22d9a	MOINS	7→4 01 – Vision Générale.md:322
+C3	aef55f9ef8ccc8ed	MOINS	7→4 01 – Vision Générale.md:324
+C3	d7ff6ecbf28a7b15	MOINS	7→4 01 – Vision Générale.md:326
+C3	6675000aaabdcbb4	MOINS	7→3 01 – Vision Générale.md:330
 C2	b5cb7a4e426f38c0	JUSTIFIE	REDACTION 01 – Vision Générale.md:341
 C2	cdf9303e95fb7cf5	JUSTIFIE	REDACTION 01 – Vision Générale.md:358
 C3	b07278b24b469f05	MOINS	2→1 01 – Vision Générale.md:369
@@ -60,6 +64,8 @@ C2	01d0667f7978a121	JUSTIFIE	REDACTION 05 – Versions du produit.md:288
 C2	ff9d1957e234655e	JUSTIFIE	REDACTION 05 – Versions du produit.md:312
 C2	13ed6659db39016e	JUSTIFIE	RENVOI 05 – Versions du produit.md:321
 C2	2f0ea794a7f73dbe	JUSTIFIE	REDACTION 05 – Versions du produit.md:376
+C2	fd3833b7d0a9fc18	JUSTIFIE	CORRECTION-DECIDEE:D-402 05 – Versions du produit.md:437
+C2	e68d2055bcce2833	JUSTIFIE	CORRECTION-DECIDEE:D-402 05 – Versions du produit.md:439
 C2	9458ae98134d733c	JUSTIFIE	RENVOI 05 – Versions du produit.md:459
 C2	97bd0488547bc11c	JUSTIFIE	RENVOI 05 – Versions du produit.md:460
 C2	a9e768540471a121	JUSTIFIE	RENVOI 05 – Versions du produit.md:461
@@ -69,6 +75,7 @@ C2	aefe9b0ad7dda9a0	JUSTIFIE	RENVOI 06 – Ecrans et navigation de la V1.md:62
 C2	5cd930a1e23cc931	JUSTIFIE	REDACTION 06 – Ecrans et navigation de la V1.md:66
 C2	456a67f2c02a27ad	JUSTIFIE	RENVOI 06 – Ecrans et navigation de la V1.md:68
 C2	199ce184e6067a1e	JUSTIFIE	RENVOI 06 – Ecrans et navigation de la V1.md:93
+C3	9f362a6c8f4174fc	MOINS	6→4 06 – Ecrans et navigation de la V1.md:98
 C2	c214c8ac24c0af42	N2	06 – Ecrans et navigation de la V1.md:108
 C2	0cb5a70ddc21c00f	N2	06 – Ecrans et navigation de la V1.md:135
 C2	474ae9ab56750188	N2	06 – Ecrans et navigation de la V1.md:235
@@ -104,8 +111,11 @@ C2	e49b31abf7de0f24	N2	06 – Ecrans et navigation de la V1.md:1979
 C2	5fa0b76b3ef2c667	JUSTIFIE	CORRECTION-DECIDEE:D-402 08 – Conception fonctionnelle détaillée.md:55
 C2	0b512eaeaf64bae6	JUSTIFIE	CORRECTION-DECIDEE:D-402 08 – Conception fonctionnelle détaillée.md:61
 C2	5c72f0324e89d013	JUSTIFIE	CORRECTION-DECIDEE:D-402 08 – Conception fonctionnelle détaillée.md:70
+C2	2b95754ec8f3b468	JUSTIFIE	CORRECTION-DECIDEE:D-402 08 – Conception fonctionnelle détaillée.md:79
+C2	4689e9d1cfe6534c	JUSTIFIE	CORRECTION-DECIDEE:D-402 08 – Conception fonctionnelle détaillée.md:82
 C2	c6723c5df35ea4c3	JUSTIFIE	CORRECTION-DECIDEE:D-402 08 – Conception fonctionnelle détaillée.md:83
 C2	a8df8c8634b3c6c6	JUSTIFIE	CORRECTION-DECIDEE:D-402 08 – Conception fonctionnelle détaillée.md:84
+C2	5149baf5edebe461	JUSTIFIE	CORRECTION-DECIDEE:D-402 08 – Conception fonctionnelle détaillée.md:85
 C2	c69d63389762d36b	JUSTIFIE	CORRECTION-DECIDEE:D-402 08 – Conception fonctionnelle détaillée.md:86
 C2	63ffefaced53b9b9	JUSTIFIE	CORRECTION-DECIDEE:D-402 08 – Conception fonctionnelle détaillée.md:88
 C2	fea03e577c9caf49	JUSTIFIE	RENVOI 08 – Conception fonctionnelle détaillée.md:94
@@ -309,6 +319,7 @@ C2	82c4cd405fd3a7c8	N2	13 – Contrats d’écran.md:548
 C2	e058a68657b7f8ea	JUSTIFIE	CORRECTION-DECIDEE:D-238 13 – Contrats d’écran.md:550
 C2	4891c4c207875bf2	JUSTIFIE	RENVOI 13 – Contrats d’écran.md:614
 C2	dda52b62d5b1ac04	JUSTIFIE	RENVOI 13 – Contrats d’écran.md:634
+C2	642510697f8ce898	JUSTIFIE	RENVOI 13 – Contrats d’écran.md:680
 C2	bbd64f9023dc0e7b	N2	13 – Contrats d’écran.md:690
 C2	899c88fc820d9d69	JUSTIFIE	REDACTION 13 – Contrats d’écran.md:692
 C3	757750010b01d2ca	MOINS	2→1 13 – Contrats d’écran.md:710
