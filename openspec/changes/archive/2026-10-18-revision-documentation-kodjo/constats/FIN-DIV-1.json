@@ -1,0 +1,355 @@
+{
+ "description": "FIN-DIV-1 — examen des paires de divergences 1 à 68 (lot6/divergences.tsv) : corrections FONCT-ARBITRÉ limitées aux contradictions tranchées par une décision explicite du registre (ch. 07). Les points sans décision sont dans lot6/finalisation/divergences-examen-1.tsv (qualification, question). Aucune modification de docs/.",
+ "corrections": [
+  {
+   "id": "DIV1-001",
+   "ref": "Paires 3, 33, 34 — « La conception post-MVP » (ch. 04 l. 465) contredit l’inclusion au MVP de la consultation média pendant l’Exécution (D-203 ; RM-203 « Ces règles relèvent du périmètre MVP (D-203…) » ; ch. 05 l. 292 et l. 372 ; arbitrages.md Q-E RÉSOLUE).",
+   "motif": "CORRECTION-DECIDEE:D-203",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-203",
+   "file": "@04 – Modèle fonctionnel.md",
+   "ancien": "La conception post-MVP distingue :",
+   "nouveau": "La conception de la consultation média incluse au MVP (D-203) distingue :"
+  },
+  {
+   "id": "DIV1-002",
+   "ref": "Paires 9, 25 — glossaire « Exercice de référence … incluant sa Pause et sa Récupération éventuelles » (ch. 01 l. 277) contre « Une ActivityDefinition ne porte jamais de Récupération après exercice » (ch. 01 l. 166) et ch. 04 l. 259 ; D-208 « PC intrinsèque à l’Exercice ; R contextuelle à l’occurrence ; aucune Récupération en direct ».",
+   "motif": "CORRECTION-DECIDEE:D-208",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-208",
+   "file": "@01 – Vision Générale.md",
+   "ancien": "sert aussi de source à des copies indépendantes, incluant sa Pause et sa Récupération éventuelles.",
+   "nouveau": "sert aussi de source à des copies indépendantes, incluant sa Pause éventuelle ; la Récupération après exercice appartient à l’occurrence de Séance, jamais à l’Exercice de référence (D-208)."
+  },
+  {
+   "id": "DIV1-003",
+   "ref": "Paires 11, 12 — B-068 « avec sa Pause et sa Récupération éventuelles » (ch. 02 l. 194) contre D-208 (R contextuelle à l’occurrence) et ch. 04 l. 259 « Une ActivityDefinition ne possède aucune Récupération après exercice ».",
+   "motif": "CORRECTION-DECIDEE:D-208",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-208",
+   "file": "@02 – Utilisateurs et besoins.md",
+   "ancien": "indépendamment d’une Séance, avec sa Pause et sa Récupération éventuelles.",
+   "nouveau": "indépendamment d’une Séance, avec sa Pause éventuelle ; la Récupération après exercice appartient à chaque occurrence de Séance (D-208)."
+  },
+  {
+   "id": "DIV1-004",
+   "ref": "Paires 4–10, 25 — glossaire « Exercice bilatérale autonome … Aucune Pause n’est ajoutée spécifiquement entre les côtés » (ch. 01 l. 296) contre « Pause entre les côtés » (ch. 01 l. 172), D-208 (PC intrinsèque), D-247 (Ordre des côtés : Un côté après l’autre par défaut / Les deux côtés à chaque série).",
+   "motif": "CORRECTION-DECIDEE:D-247",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-247, D-208",
+   "file": "@01 – Vision Générale.md",
+   "ancien": "Exercice exécutant toutes ses Séries du premier côté, puis toutes ses Séries du second côté. Aucune Pause n’est ajoutée spécifiquement entre les côtés ; la Récupération intervient une fois après le second côté.",
+   "nouveau": "Exercice exécutant ses Séries des deux côtés selon l’Ordre des côtés : toutes ses Séries du premier côté puis toutes celles du second (défaut), ou les deux côtés à chaque série (D-247). Sa Pause entre les côtés éventuelle, intrinsèque, s’applique selon cet ordre ; la Récupération après exercice éventuelle appartient à l’occurrence de Séance et intervient après l’Exercice complet (D-208)."
+  },
+  {
+   "id": "DIV1-005",
+   "ref": "Paire 22 — étape 5 du parcours bilatéral (ch. 03 l. 219) ne décrit que l’ordre « Un côté après l’autre » ; D-247 : « Direction et Ordre des côtés indépendants ; Un côté après l’autre par défaut / Les deux côtés à chaque série ».",
+   "motif": "CORRECTION-DECIDEE:D-247",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-247",
+   "file": "@03 – Parcours utilisateur.md",
+   "ancien": "5. Un Exercice bilatéral termine toutes ses Séries du premier côté puis toutes celles du second.",
+   "nouveau": "5. Un Exercice bilatéral exécute ses Séries selon l’Ordre des côtés : toutes ses Séries du premier côté puis toutes celles du second (défaut), ou les deux côtés à chaque série (D-247)."
+  },
+  {
+   "id": "DIV1-006",
+   "ref": "Paires 20, 21 — « Les Pauses n’existent qu’entre Séries successives d’un même côté » (ch. 10 l. 367) contre D-248 « Pause après chaque série, dernière comprise ; PN puis PC à la frontière des côtés successifs » (confirmée par D-314) et RM-036 ; la séquence ignore l’Ordre des côtés (D-247, RM-037).",
+   "motif": "CORRECTION-DECIDEE:D-248",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-248, D-247",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "Compte à rebours d’Exercice éventuel → Séries du premier côté → Pause entre les côtés éventuelle → Séries du second côté → Fin d’exercice éventuelle. Les Pauses n’existent qu’entre Séries successives d’un même côté.",
+   "nouveau": "Compte à rebours d’Exercice éventuel → Séries et Pause entre les côtés éventuelle selon l’Ordre des côtés (D-247) → Fin d’exercice éventuelle. La Pause est exécutée après chaque Série, dernière comprise ; à la frontière des côtés successifs, PN puis PC se cumulent (D-248)."
+  },
+  {
+   "id": "DIV1-007",
+   "ref": "Paire 24 — « une Pause facultative entre Séries successives » (ch. 04 l. 164) contre D-248 (Pause après chaque série, dernière comprise) et ch. 04 l. 155 « Elle porte une cible éventuelle et une Pause, terminale comprise ».",
+   "motif": "CORRECTION-DECIDEE:D-248",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-248",
+   "file": "@04 – Modèle fonctionnel.md",
+   "ancien": "- une Pause facultative entre Séries successives ;",
+   "nouveau": "- une Pause facultative après chaque Série, dernière comprise (D-248) ;"
+  },
+  {
+   "id": "DIV1-008",
+   "ref": "Paire 37 (même point que DIV1-007) — « une Pause facultative entre Séries » (ch. 04 l. 345) contre D-248.",
+   "motif": "CORRECTION-DECIDEE:D-248",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-248",
+   "file": "@04 – Modèle fonctionnel.md",
+   "ancien": "un nombre de Séries propre, une Pause facultative entre Séries et,",
+   "nouveau": "un nombre de Séries propre, une Pause facultative après chaque Série, dernière comprise (D-248), et,"
+  },
+  {
+   "id": "DIV1-009",
+   "ref": "Paire 6 — la Séance définit « ses catégories » (ch. 04 l. 120) ; D-188 « Une Étiquette qualifie la Séance et porte sa couleur … Supersède D-015 et les formulations « Catégorie de Séance » » ; D-211 « zéro ou une Étiquette » ; CE-T03-16 §8 « aucune Catégorie de Séance ».",
+   "motif": "CORRECTION-DECIDEE:D-188",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-188",
+   "file": "@04 – Modèle fonctionnel.md",
+   "ancien": "- sa couleur ;\r\n- ses catégories ;\r\n- sa structure",
+   "nouveau": "- sa couleur ;\r\n- son Étiquette éventuelle (D-188, D-211) ;\r\n- sa structure"
+  },
+  {
+   "id": "DIV1-010",
+   "ref": "Paire 38 — « chaque occurrence de Séance porte sa récupération après exercice, y compris à `0 s` » (ch. 05 l. 252) contre D-304 « Aucune récupération automatique » et D-307 « aucune création automatique » ; le statut de D-208 indique ce remplacement (« initialisation … remplacés par D-302–D-307 ») ; ch. 04 l. 181, RM-209.",
+   "motif": "CORRECTION-DECIDEE:D-304",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-304, D-307",
+   "file": "@05 – Versions du produit.md",
+   "ancien": "chaque occurrence de Séance porte sa récupération après exercice, y compris à `0 s`, exécutée après l’occurrence et exclue de la durée intrinsèque de l’Exercice.",
+   "nouveau": "une occurrence de Séance peut porter une récupération après exercice ajoutée explicitement, jamais créée automatiquement (D-304, D-307) ; positive, elle est exécutée après l’occurrence et exclue de la durée intrinsèque de l’Exercice."
+  },
+  {
+   "id": "DIV1-011",
+   "ref": "Paires 35, 36 — « Une `SessionActivity` porte toujours `postActivityRecoverySeconds`. La valeur `0 s` … n’efface pas la propriété » (ch. 10 l. 471) contre D-304/D-307 (aucune récupération automatique), RM-209 (projection de calcul, 0 en l’absence) et ch. 09 l. 531 (« absent, présent 0 et présent positif restent distinguables »).",
+   "motif": "CORRECTION-DECIDEE:D-304",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-304, D-307",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "Une `SessionActivity` porte toujours `postActivityRecoverySeconds`. La valeur `0 s` est une valeur valide et n’efface pas la propriété.",
+   "nouveau": "La récupération après exercice d’une `SessionActivity` est ajoutée explicitement, jamais créée automatiquement ; `postActivityRecoverySeconds` en est la projection de calcul, 0 en l’absence de récupération (D-304, D-307, RM-209)."
+  },
+  {
+   "id": "DIV1-012",
+   "ref": "Paire 30 — l’Exécution directe T03 « développe … Séries, Pauses, côtés et Récupération » (ch. 04 l. 443) contre D-208 « aucune Récupération en direct », D-248 et RM-211.",
+   "motif": "CORRECTION-DECIDEE:D-208",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-208",
+   "file": "@04 – Modèle fonctionnel.md",
+   "ancien": "développe uniquement le sous-ensemble autonome nécessaire aux Séries, Pauses, côtés et Récupération.",
+   "nouveau": "développe uniquement le sous-ensemble autonome nécessaire aux Séries, Pauses et côtés, sans Récupération après exercice (D-208, RM-211)."
+  },
+  {
+   "id": "DIV1-013",
+   "ref": "Paires 31, 32 — « Les règles propres aux modes, Séries, Pauses, côtés et Récupération sont identiques » (ch. 04 l. 461) contre D-208 (aucune Récupération en direct) et RM-211.",
+   "motif": "CORRECTION-DECIDEE:D-208",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-208",
+   "file": "@04 – Modèle fonctionnel.md",
+   "ancien": "Les règles propres aux modes, Séries, Pauses, côtés et Récupération sont identiques à celles déjà validées pour un Exercice autonome.",
+   "nouveau": "Les règles propres aux modes, Séries, Pauses et côtés sont identiques à celles déjà validées pour un Exercice autonome ; aucune Récupération après exercice n’est exécutée en direct (D-208, RM-211)."
+  },
+  {
+   "id": "DIV1-014",
+   "ref": "Paires 23, 39 (même point que DIV1-013) — RM-099 « Le plan applique les règles communes de mode, Séries, Pauses, bilatéralité et Récupération » (ch. 10 l. 1130) contre D-208 et RM-211 du même chapitre.",
+   "motif": "CORRECTION-DECIDEE:D-208",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-208",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "Le plan applique les règles communes de mode, Séries, Pauses, bilatéralité et Récupération, sans Tour,",
+   "nouveau": "Le plan applique les règles communes de mode, Séries, Pauses et bilatéralité, sans Récupération après exercice (D-208, RM-211), sans Tour,"
+  },
+  {
+   "id": "DIV1-015",
+   "ref": "Paire 29 — « médias multiples fonctionnels » exclus du MVP (ch. 05 l. 411) contre D-333 (import/ajout de 0..n médias ordonnés inclus au MVP, PRE-3) ; statut de D-183 : « exclusion médias remplacée par D-333 » ; ch. 05 l. 256.",
+   "motif": "CORRECTION-DECIDEE:D-333",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-333",
+   "file": "@05 – Versions du produit.md",
+   "ancien": "- Ancienne cible de Parcours autonome retirée par D-328 ;\r\n- médias multiples fonctionnels.",
+   "nouveau": "- Ancienne cible de Parcours autonome retirée par D-328."
+  },
+  {
+   "id": "DIV1-016",
+   "ref": "Paire 18 — « La liste des Exercices conserve recherche, filtres, tri … » (ch. 08 l. 171) contre D-221 « aucune recherche globale ni recherche locale dans les Catalogues … Supersède D-163 et D-168 pour toute mention de recherche » ; ch. 03 l. 157.",
+   "motif": "CORRECTION-DECIDEE:D-221",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-221",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "La liste des Exercices conserve recherche, filtres, tri et position de défilement dans l’état de navigation.",
+   "nouveau": "La liste des Exercices conserve filtres, tri et position de défilement dans l’état de navigation ; aucune recherche Catalogue n’existe au MVP (D-221)."
+  },
+  {
+   "id": "DIV1-017",
+   "ref": "Paire 18 (même point que DIV1-018) — « Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé » (ch. 08 l. 171) contre D-261 « Aucun chevron ni déploiement accessible sur les cartes d’Exercice, avec ou sans média … Supersède D-195 ».",
+   "motif": "CORRECTION-DECIDEE:D-261",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-261",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé.",
+   "nouveau": "Aucun contrôle `Déployer` n’est accessible, avec ou sans média ; le média associé est présenté dans la gouttière permanente de la carte (D-260, D-261)."
+  },
+  {
+   "id": "DIV1-018",
+   "ref": "Paires 23, 39 — RM-162 « `Déployer` affiche/masque le média associé » (ch. 10 l. 1135) contre D-261 (aucun déploiement des cartes d’Exercice, avec ou sans média ; supersède D-195) ; ch. 03 l. 240.",
+   "motif": "CORRECTION-DECIDEE:D-261",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-261",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "`Déployer` affiche/masque le média associé.",
+   "nouveau": "Aucun `Déployer` n’est accessible, avec ou sans média ; le média associé est affiché dans la gouttière permanente de la carte (D-260, D-261)."
+  },
+  {
+   "id": "DIV1-019",
+   "ref": "Paire 19 — « Sélectionner sa Catégorie et, si nécessaire, ses Zones corporelles » (ch. 03 l. 173) contre D-211 « Un nouvel Exercice valide possède exactement une Catégorie et une ou plusieurs Zones corporelles » ; RM-039, RM-214.",
+   "motif": "CORRECTION-DECIDEE:D-211",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-211",
+   "file": "@03 – Parcours utilisateur.md",
+   "ancien": "3. Sélectionner sa **Catégorie** et, si nécessaire, ses **Zones corporelles**.",
+   "nouveau": "3. Sélectionner sa **Catégorie** et au moins une **Zone corporelle** (D-211)."
+  },
+  {
+   "id": "DIV1-020",
+   "ref": "Paire 19 — « mode `Durée`, `Répétitions` ou `À l’échec` » (ch. 03 l. 175) contre le statut de D-111 au registre (« supersédée le 13/10 … le MVP ajoutait le mode À l’échec, désormais cible de Série dans les deux modes ») et la section « Décisions Deux modes — 13/10/2026 » (« remplacent la création d’un troisième mode de D-111 ») ; RM-033.",
+   "motif": "CORRECTION-DECIDEE:D-111",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-111 (statut au registre ; Décisions Deux modes du 13/10/2026)",
+   "file": "@03 – Parcours utilisateur.md",
+   "ancien": "   - mode `Durée`, `Répétitions` ou `À l’échec` ;",
+   "nouveau": "   - mode `Durée` ou `Répétitions`, chaque Série portant une cible chiffrée ou `À l’échec` ;"
+  },
+  {
+   "id": "DIV1-021",
+   "ref": "Paires 4–10, 25 (Bip de cadence défini deux fois) — ligne « Bip de cadence | Stepper | Trois modes, réglage commun » (ch. 01 l. 341) contre « Décisions Deux modes — 13/10/2026 » : « D-308/D-313 portent désormais sur deux modes » ; glossaire l. 358 « pendant les Séries des deux modes ».",
+   "motif": "CORRECTION-DECIDEE:D-308",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-308 (Décisions Deux modes du 13/10/2026)",
+   "file": "@01 – Vision Générale.md",
+   "ancien": "| Bip de cadence | Stepper | Trois modes, réglage commun |",
+   "nouveau": "| Bip de cadence | Stepper | Deux modes, réglage commun |"
+  },
+  {
+   "id": "DIV1-022",
+   "ref": "Paire 45 (même point que DIV1-021) — même ligne « Trois modes, réglage commun » au tableau des éléments affichés (ch. 08 l. 245) ; ligne distincte de celle réécrite par la PR #371 (l. 254).",
+   "motif": "CORRECTION-DECIDEE:D-308",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-308 (Décisions Deux modes du 13/10/2026)",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "| Bip de cadence | Stepper | Trois modes, réglage commun |",
+   "nouveau": "| Bip de cadence | Stepper | Deux modes, réglage commun |"
+  },
+  {
+   "id": "DIV1-023",
+   "ref": "Paire 17 — « modifier l’ordre chronologique d’affichage, du plus récent au plus ancien ou inversement » (ch. 03 l. 452) contre D-031 (« Filtrer et Trier … désactivées dans le MVP », disposition conservée) et RM-082. La recherche du Suivi reste un point d’arbitrage (voir TSV).",
+   "motif": "CORRECTION-DECIDEE:D-031",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-031",
+   "file": "@03 – Parcours utilisateur.md",
+   "ancien": "3. Il peut rechercher une Exécution et modifier l’ordre chronologique d’affichage, du plus récent au plus ancien ou inversement.",
+   "nouveau": "3. Il peut rechercher une Exécution ; l’ordre chronologique d’affichage, du plus récent au plus ancien, n’est pas modifiable dans le MVP, `Trier` étant désactivé (D-031)."
+  },
+  {
+   "id": "DIV1-024",
+   "ref": "Paire 17 (suite de DIV1-023) — étape 5 « ou inverser l’ordre chronologique d’affichage » (ch. 03 l. 454) contre D-031 et RM-082.",
+   "motif": "CORRECTION-DECIDEE:D-031",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-031",
+   "file": "@03 – Parcours utilisateur.md",
+   "ancien": "5. Il peut sélectionner une autre Exécution, modifier sa recherche ou inverser l’ordre chronologique d’affichage.",
+   "nouveau": "5. Il peut sélectionner une autre Exécution ou modifier sa recherche."
+  },
+  {
+   "id": "DIV1-025",
+   "ref": "Paires 42, 43, 44 — cible tactile d’au moins `48 × 48` pour un bouton secondaire compact « sur toutes les plateformes du MVP » (ch. 06 l. 1580) contre D-087 « cible tactile commune minimale de 44 × 44 … Les dimensions spécifiques de 48 × 48 restent conservées » et D-234 (RG-7, « Révise D-087/RM-095 sur le minimum commun ») ; ch. 13 l. 4566.",
+   "motif": "CORRECTION-DECIDEE:D-234",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-234, D-087",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "il est placé dans une cible tactile d’au moins `48 × 48` points logiques sur toutes les plateformes du MVP.",
+   "nouveau": "il est placé dans une cible tactile d’au moins `44 × 44` points logiques sur toutes les plateformes du MVP ; les dimensions spécifiques de `48 × 48` restent conservées (D-087, D-234)."
+  },
+  {
+   "id": "DIV1-026",
+   "ref": "Paires 42, 43, 44 (suite de DIV1-025) — « portant sa cible effective à `48 × 48` au minimum » (ch. 06 l. 1582) contre D-087 et D-234 (minimum commun 44 × 44).",
+   "motif": "CORRECTION-DECIDEE:D-234",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-234, D-087",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "portant sa cible effective à `48 × 48` au minimum",
+   "nouveau": "portant sa cible effective à `44 × 44` au minimum (D-087, D-234)"
+  },
+  {
+   "id": "DIV1-027",
+   "ref": "Paires 47–51 — l’appui long « ouvr[e] une modale de confirmation de suppression » (ch. 10 l. 1733) contre D-259 (« Dialogue d’appui long des référentiels : actions `Modifier` … et `Supprimer` ») et D-354 (« ✕ rond … à la place d’« Annuler » ; « Modifier » puis « Supprimer » ») ; ch. 13 §4.10 l. 4635. Le texte de D-200 (« modale de confirmation `Annuler / Supprimer` ») n’est pas marqué révisé au registre : à signaler, non modifié.",
+   "motif": "CORRECTION-DECIDEE:D-259",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-259, D-354",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "- appui long sur une option : ne pas modifier sa sélection et ouvrir une modale de confirmation de suppression ;",
+   "nouveau": "- appui long sur une option : ne pas modifier sa sélection et ouvrir le dialogue `Modifier` / `Supprimer` (D-259, D-354) ; `Supprimer` ouvre la confirmation de suppression ;"
+  },
+  {
+   "id": "DIV1-028",
+   "ref": "Paires 47–51 (même point que DIV1-027) — RM-200 « l’appui long ouvre une confirmation de suppression sans modifier la sélection » (ch. 10 l. 263) contre D-259 et D-354.",
+   "motif": "CORRECTION-DECIDEE:D-259",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-259, D-354",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "l’appui long ouvre une confirmation de suppression sans modifier la sélection.",
+   "nouveau": "l’appui long ouvre, sans modifier la sélection, le dialogue `Modifier` / `Supprimer` (D-259, D-354), `Supprimer` demandant une confirmation de suppression."
+  },
+  {
+   "id": "DIV1-029",
+   "ref": "Paire 50 (même point que DIV1-027) — « Un appui long ouvre une confirmation destructrice sans modifier la sélection » (ch. 10 l. 1814) contre D-259 et D-354.",
+   "motif": "CORRECTION-DECIDEE:D-259",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-259, D-354",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "Un appui long ouvre une confirmation destructrice sans modifier la sélection.",
+   "nouveau": "Un appui long ouvre, sans modifier la sélection, le dialogue `Modifier` / `Supprimer` (D-259, D-354) ; `Supprimer` ouvre une confirmation destructrice."
+  },
+  {
+   "id": "DIV1-030",
+   "ref": "Paire 49 — CE-UI-09 §12 « Catégorie tap valide/ferme » (ch. 13 l. 4509) contre D-343 (« Toucher une Catégorie la marque sans fermer … ✓ confirme l’affectation et ferme … Remplace … le choix « validé au toucher » de D-222 et D-228 ») et CE-UI-09 §4 l. 4471.",
+   "motif": "CORRECTION-DECIDEE:D-343",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-343",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Catégorie tap valide/ferme ; Zones tap toggle puis confirmer.",
+   "nouveau": "Catégorie tap marque sans fermer, ✓ confirme et ferme (D-343) ; Zones tap toggle puis confirmer."
+  },
+  {
+   "id": "DIV1-031",
+   "ref": "Paire 48 — CE-T03-16 §12 « Tap valide une sélection simple » (ch. 13 l. 400) contre D-355 (« Toucher marque l’Étiquette sans fermer … ✓ applique le choix ou le retrait et ferme … remplace pour l’Étiquette le choix au toucher ») et CE-T03-16 §4 l. 364.",
+   "motif": "CORRECTION-DECIDEE:D-355",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-355",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Tap valide une sélection simple ; appui long",
+   "nouveau": "Tap marque ou démarque l’Étiquette sans fermer, ✓ applique le choix (D-355) ; appui long"
+  },
+  {
+   "id": "DIV1-032",
+   "ref": "Paires 53, 66 — ligne « Champ Recherche | … | Recherche instantanée sur le nom » (ch. 13 l. 538) contre D-221 (« aucune recherche globale ni recherche locale dans les Catalogues … révise les contrats Catalogue/navigation concernés ») ; ch. 13 l. 446.",
+   "motif": "CORRECTION-DECIDEE:D-221",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-221",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "| Champ Recherche | Champ texte | Toujours | Recherche instantanée sur le nom | Filtrer |\r\n",
+   "nouveau": ""
+  },
+  {
+   "id": "DIV1-033",
+   "ref": "Paires 53, 68 — ligne « Prochaine occurrence | … | Si planifiée » (ch. 13 l. 550) contre D-238 (« prochaine planification absente des Catalogues » ; « Révise … l’affichage de D-206 ») ; ch. 06 l. 235 ; ch. 13 §4.11 l. 4652. Incertitude : le statut de D-238 déclare « ancienne règle d’affichage ci-contre historique » sans préciser laquelle ; Hermann doit confirmer que la disposition « prochaine planification absente » est conservée.",
+   "motif": "CORRECTION-DECIDEE:D-238",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-238",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "| Prochaine occurrence | Texte | Si planifiée | Date / heure relative | Aucune |\r\n",
+   "nouveau": ""
+  },
+  {
+   "id": "DIV1-034",
+   "ref": "Paire 54 — l’écran d’Exécution peut être ouvert « depuis la zone principale d’une carte du Catalogue » (ch. 13 l. 2904) contre D-049 (« La zone principale ouvre la modification … la zone `Démarrer` ouvre l’Exécution ») ; RM-004, RM-162 ; ch. 03 l. 384.",
+   "motif": "CORRECTION-DECIDEE:D-049",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-049",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "- depuis la zone principale d’une carte du Catalogue ;",
+   "nouveau": "- depuis la zone `Démarrer` d’une carte de Séance ou le bouton Lecture d’une carte d’Exercice du Catalogue (D-049, RM-162) ;"
+  },
+  {
+   "id": "DIV1-035",
+   "ref": "Paires 55–58 — « Chaque carte peut être déployée individuellement » (ch. 03 l. 468) contre D-262 (« Carte du Suivi à deux lignes … Variantes Suivi Déployé historiques, hors MVP … Supersède l’affichage déployé de D-027/D-031/D-056 ») ; ch. 13 l. 4181 et 4193 ; ch. 10 l. 1675.",
+   "motif": "CORRECTION-DECIDEE:D-262",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-262",
+   "file": "@03 – Parcours utilisateur.md",
+   "ancien": "Chaque carte peut être déployée individuellement pour consulter le détail de l’Exécution directement dans la liste.",
+   "nouveau": "Chaque carte présente deux lignes, sans déploiement (D-262) ; le détail de l’Exécution reste conservé dans l’instantané et les résultats."
+  }
+ ]
+}

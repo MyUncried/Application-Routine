@@ -2,6 +2,12 @@
 
 **Actualisation du 12/10 :** [DSF Circuits et contrôles du 12/10](DSF-CIRCUITS-CONTROLES-2026-10-12.md) fait autorité sur les nouveaux contrôles de séries, la nature du circuit, les volumes et la lecture seule héritée. Les mesures datées ci-dessous ne décrivent pas les états remplacés. Les règles communes sans rapport avec ces éléments restent applicables.
 
+**Mise à jour du 18/10/2026 — spécification v3.0 :**
+- Remplacé pour la présentation : au §0.1, la relation bloc → bloc de 12 px, et au §0.4, le fond #F9FAFC des blocs de section, pour les seuls quatre cadres de la feuille des paramètres (D-413 : 8 px entre cadres ; fond gris légèrement teinté, plus soutenu, à relever dans Figma). Les autres règles de portée fichier sont inchangées.
+- Comportements : règles RM-235 à RM-250 du chapitre 10, [Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026) (décisions D-403 à D-413 du [registre](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#parametres-execution-20261018)) ; ce DSF n’en reprend pas l’énoncé. Les valeurs des captures restent illustratives.
+- Présentation nouvelle de la feuille des paramètres (D-413 ; spécification v3.0, GR-01 et PR-01 à PR-04 ; référence 402 × 874) : quatre cadres successifs espacés de 8 px, dans l’ordre de D-413 ; contrôles segmentés alignés à droite, titres à gauche, sans enveloppe blanche ; tableaux à fond blanc sans contour, lignes de 36 px, sans boutons +/− de tableau ; Cadence en 12 px ; labels Regular, plus petits que les valeurs ; options inactives en texte gris Regular sur le fond des champs variables ; option sélectionnée selon le traitement violet existant ; saisie de la charge au clavier décimal, tableau visible au-dessus du clavier avec une marge de 12 px (D-405) ; chevrons à l’intérieur des options Variables (Type de série) et Avec (Changement de côté) (D-410) ; Durée de l’exercice avec son chevron à 12 px du libellé (D-409).
+- Tokens : les valeurs correspondantes sont à relever dans Figma avant publication ; aucun nouveau token n’est défini ici.
+
 
 Source : [brief propriétaire](archives/planification-2026-10-08/demande-source.md). Décision D-327. Ces règles sont générales et ne sont pas limitées à la planification. Elles modifient le rendu ; les règles métier restent portées par les spécifications.
 
@@ -20,7 +26,7 @@ Les comptages 111/49/173/196/25/41 sont ceux du brief ; ils ne sont pas des rés
 | bas de la zone de contexte → première ligne de texte | **18 px** |
 | dernier élément d'un bloc → titre de la section suivante | **20 px** |
 | titre de section → son bloc | **13 px** |
-| bloc → bloc, sans titre entre eux | **12 px** |
+| [exception D-413 le 18/10/2026 : 8 px entre les quatre cadres de la feuille des paramètres] bloc → bloc, sans titre entre eux | **12 px** |
 
 **Portée et ampleur du redressement**, à consigner car elle mesure l'incohérence corrigée :
 
@@ -55,7 +61,7 @@ Corollaire : un bloc de section posé dans une modale est **gris** sur **fond bl
 
 ### 0.4 Blocs de section
 
-Spécification unique, valable partout où un groupe de lignes est encadré — Profil, planification, et tout écran futur :
+[exception D-413 le 18/10/2026 : les quatre cadres de la feuille des paramètres ont leur propre fond gris, à relever dans Figma] Spécification unique, valable partout où un groupe de lignes est encadré — Profil, planification, et tout écran futur :
 
 | propriété | valeur |
 |---|---|

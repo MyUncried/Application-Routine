@@ -1,0 +1,53 @@
+diff --git a/docs/DSF-BIP-CADENCE-2026-10-07.md b/docs/DSF-BIP-CADENCE-2026-10-07.md
+index 649e150e..f8ad4a9a 100644
+--- a/docs/DSF-BIP-CADENCE-2026-10-07.md
++++ b/docs/DSF-BIP-CADENCE-2026-10-07.md
+@@ -29,6 +29,10 @@ Exemples : + depuis13 au palier5 →15 puis20 ; − depuis13 →10 puis5 ; + dep
+ 
+ Seul le bouton touché s’anime ; nombre, fond et bouton opposé immobiles. Dilatation/retour et réduction des animations selon DSF existant. Action sans attente de fin du ressort ; un maintien ne doit pas provoquer un second tap au relâchement. Cibles tactiles44 minimum, boutons séparés, nom du champ et valeur annoncés au lecteur d’écran.
+ 
++## Guidage avec phases d’exercice
++
++Le bip reste commun à la série et ne redémarre pas au changement de phase. Transition prioritaire s’il coïncide avec son signal. Si voix activée, annoncer chaque libellé au début, première phase comprise ; le chronométrage ne l’attend pas et la nouvelle annonce interrompt la précédente. Aucune file d’annonces périmées. Les réglages sons/voix existants gardent leur portée. Placement du libellé sur le cadran et articulation avec les annonces exercice/côté à compléter dans le contrat d’exécution, sans inventer de nouveau shell.
++
+ ## Contrôle et état Figma
+ 
+ Les24 frames portant le libellé Bip ont été relues et recapturées ; les19 modales auparavant signalées sont maintenant couvertes.7061:13383 reste supprimé. Voir la [matrice courante](MATRICE-CARTES-PHRASES-2026-10-07.md), avec captures et écarts résiduels de texte ; présence du champ ne vaut pas qualification du comportement.
+diff --git a/docs/DSF-DEUX-MODES-ECHEC-2026-10-13.md b/docs/DSF-DEUX-MODES-ECHEC-2026-10-13.md
+index df94401a..a28ce68f 100644
+--- a/docs/DSF-DEUX-MODES-ECHEC-2026-10-13.md
++++ b/docs/DSF-DEUX-MODES-ECHEC-2026-10-13.md
+@@ -48,6 +48,16 @@ Le cas mixte `8470:13303` illustre30s/45s/échec, pauses10s/20s/30s, ≥2min15 e
+ 
+ Aucun écran uniforme « Série à l’échec » supplémentaire : la frame créée puis supprimée ne doit pas revenir dans l’inventaire. Les huit cartes catalogue, ses filtres, les roulettes de total et les layouts d’exécution/synthèse/suivi sont conservés dans cette passe.
+ 
++## Phases d’exercice — état des contrôles
++
++La ligne Phases suit Mode d’exécution et précède Séries. Aucune est éditable uniquement en Durée chiffrée avec séries identiques ; aucun chevron sans tableau. Appui sur Aucune : création de la première phase. Liste existante : chevron de repli, tableau Libellé/Durée à deux colonnes, poignée, suppression et pied commun. Maximum6 phases, libellé20 caractères ; saisie texte pour le libellé, contrôle de durée pour une valeur éditable.
++
++La durée de série calculée et la dernière durée sous format restent lisibles et non modifiables, sans tiret. La ligne Phases indisponible n’a pas le sens d’une valeur calculée ni d’une valeur imposée mais effective. Réutiliser les styles existants, sans déclarer qu’un nouveau maître a été créé. La raison d’indisponibilité doit être accessible ; le seul gris ne porte pas la règle.
++
++Le rapport Figma du15/10 indique une insertion de42px, un fond gris se terminant16px après la dernière ligne et une marge basse de24px ; les feuilles suivent la hauteur de leur contenu et le chevron Séries reste aligné sur son libellé. Ces mesures sont celles du rapport, à vérifier au relevé des frames ; elles ne deviennent pas des hauteurs fixes sur tous les appareils. Corps défilant, clavier et Safe Areas selon le shell existant.
++
++La roulette de cible chiffrée ci-dessus ne détermine pas les bornes de phase : un exemple6+3 est valide dans la conception. Pas/bornes spécifiques et cas extrêmes restent localisés au chapitre08. États et interactions complets : CE-UI-10. Les captures des phases ne sont pas actualisées dans cette consolidation.
++
+ ## Accessibilité et limites
+ 
+ Adapter les géométries à360/402/440 et au texte agrandi ; conserver focus modal, défilement du corps et actions accessibles. Annoncer l’option sélectionnée et le caractère non éditable du total ; ne pas transmettre l’état uniquement par le gris. Les cibles tactiles suivent le DSF général, indépendamment de la hauteur dessinée30px.
+diff --git a/docs/DSF-FORMATS-SEANCES-2026-10-14.md b/docs/DSF-FORMATS-SEANCES-2026-10-14.md
+index bea91dc6..24bb903c 100644
+--- a/docs/DSF-FORMATS-SEANCES-2026-10-14.md
++++ b/docs/DSF-FORMATS-SEANCES-2026-10-14.md
+@@ -30,6 +30,12 @@ EMOM par exercice : garder le compte global de passages distinct de la représen
+ 
+ Les phrases sont rendues en segments `{texte, gras}`, issus des paramètres, non stockées. Le texte For time normatif est conservé dans le corpus Formats associé. Un calcul illustratif faux dans Figma n’est pas une nouvelle règle ; les écarts de libellé/unité/constante sont suivis séparément.
+ 
++## Phases dans les modales de format
++
++Pour un exercice éligible et une durée de travail imposée, la dernière phase affiche le restant calculé. Les précédentes sont modifiables dans ce budget. Ajout à0 ; réorganisation conservant les valeurs ; suppression reportant le temps sur la dernière restante. Le style calculé reste distinct d’une option sans effet. Réutiliser le tableau décrit dans le DSF Deux modes et les contrats CE-UI-10/CE-FMT-04.
++
++L’intégration d’un exercice de durée différente affiche le message informatif d’adaptation proportionnelle ; aucune confirmation supplémentaire ni nouveau dialogue bloquant. Le placement du message réutilise la notification existante. Une fenêtre EMOM ne vaut pas automatiquement durée de travail imposée. Les seize modales de format restent sans ligne Phases selon le rapport Figma du15/10 ; aucune capture n’est annoncée conforme à cet ajout.
++
+ ## 5. Preuves et limites
+ 
+ 46 captures et leurs empreintes dans `Specifications-fonctionnelles/images/formats-2026-10-14/manifest.json`. Les écarts F-01…04 sont dans la revue transverse. Aucun layout spécifique de confirmation/résultat Death by n’est qualifié par cette galerie. La couverture des captures ne détermine pas à elle seule la possibilité de développer : appliquer la clarification de portée ci-dessous.

@@ -1,0 +1,37 @@
+fichier_pr	bloc	lignes_retirees	lignes_ajoutees	statut	fichier_actuel	ligne_actuelle	detail	cle
+01 – Vision Générale.md	1	0	4	REPORTE	01 – Vision Générale.md	210		01 – Vision Générale.md|1|1
+02 – Utilisateurs et besoins.md	1	0	4	REPORTE	02 – Utilisateurs et besoins.md	75		02 – Utilisateurs et besoins.md|1|1
+03 – Parcours utilisateur.md	1	0	6	REPORTE	03 – Parcours utilisateur.md	189		03 – Parcours utilisateur.md|1|1
+04 – Modèle fonctionnel.md	1	0	6	REPORTE	04 – Modèle fonctionnel.md	277		04 – Modèle fonctionnel.md|1|1
+05 – Versions du produit.md	1	0	4	REPORTE-MANUEL	05 – Versions du produit.md	128	contexte ambigu (deux séparateurs) ; inséré avant « ## Complément intégré au MVP », position de la PR	05 – Versions du produit.md|1|1
+06 – Ecrans et navigation de la V1.md	1	0	8	REPORTE	06 – Ecrans et navigation de la V1.md	603		06 – Ecrans et navigation de la V1.md|1|1
+07 – Registre des décisions de conception.md	1	0	13	REPORTE	07 – Registre des décisions de conception.md	692		07 – Registre des décisions de conception.md|1|1
+08 – Conception fonctionnelle détaillée.md	1	0	118	REPORTE	08 – Conception fonctionnelle détaillée.md	220		08 – Conception fonctionnelle détaillée.md|1|1
+09 – Modèle de données fonctionnel.md	1	0	12	REPORTE	09 – Modèle de données fonctionnel.md	364		09 – Modèle de données fonctionnel.md|1|1
+10 – Processus métier et règles métier transverses.md	1	0	20	REPORTE	10 – Processus métier et règles métier transverses.md	270		10 – Processus métier et règles métier transverses.md|1|1
+11 – API fonctionnelles.md	1	0	13	REPORTE	11 – API fonctionnelles.md	107		11 – API fonctionnelles.md|1|1
+12 – Architecture technique.md	1	0	8	REPORTE	12 – Architecture technique.md	314		12 – Architecture technique.md|1|1
+12 – Architecture technique.md	2	0	8	REPORTE	12 – Architecture technique.md	418		12 – Architecture technique.md|2|1
+13 – Contrats d’écran.md	1	0	6	REPORTE	13 – Contrats d’écran.md	4765		13 – Contrats d’écran.md|1|1
+13 – Contrats d’écran.md	2	0	2	REPORTE	13 – Contrats d’écran.md	933		13 – Contrats d’écran.md|2|1
+13 – Contrats d’écran.md	2	0	2	REPORTE	13 – Contrats d’écran.md	941		13 – Contrats d’écran.md|2|2
+13 – Contrats d’écran.md	2	0	2	REPORTE-MANUEL	13 – Contrats d’écran.md	948	contexte modifié par la finalisation ; inséré après la ligne d’ouverture conservée	13 – Contrats d’écran.md|2|3
+13 – Contrats d’écran.md	2	0	2	REPORTE	13 – Contrats d’écran.md	951		13 – Contrats d’écran.md|2|4
+13 – Contrats d’écran.md	3	0	2	REPORTE-MANUEL	13 – Contrats d’écran.md	964	contexte modifié par la finalisation ; inséré après la ligne conservée	13 – Contrats d’écran.md|3|1
+13 – Contrats d’écran.md	3	0	2	REPORTE	13 – Contrats d’écran.md	965		13 – Contrats d’écran.md|3|2
+13 – Contrats d’écran.md	3	1	3	REPORTE	13 – Contrats d’écran.md	971		13 – Contrats d’écran.md|3|3
+13 – Contrats d’écran.md	4	0	2	REPORTE	13 – Contrats d’écran.md	981		13 – Contrats d’écran.md|4|1
+13 – Contrats d’écran.md	5	0	2	REPORTE	13 – Contrats d’écran.md	993		13 – Contrats d’écran.md|5|1
+13 – Contrats d’écran.md	5	0	2	REPORTE	13 – Contrats d’écran.md	999		13 – Contrats d’écran.md|5|2
+13 – Contrats d’écran.md	5	0	2	REPORTE	13 – Contrats d’écran.md	1009		13 – Contrats d’écran.md|5|3
+13 – Contrats d’écran.md	6	0	4	REPORTE-MANUEL	13 – Contrats d’écran.md	1024	ligne scindée en liste par la finalisation (QUA) ; inséré après l’élément correspondant	13 – Contrats d’écran.md|6|1
+13 – Contrats d’écran.md	6	0	2	REPORTE	13 – Contrats d’écran.md	1029		13 – Contrats d’écran.md|6|2
+13 – Contrats d’écran.md	6	0	2	REPORTE	13 – Contrats d’écran.md	1035		13 – Contrats d’écran.md|6|3
+13 – Contrats d’écran.md	6	0	2	REPORTE	13 – Contrats d’écran.md	1043		13 – Contrats d’écran.md|6|4
+13 – Contrats d’écran.md	6	0	2	REPORTE	13 – Contrats d’écran.md	1049		13 – Contrats d’écran.md|6|5
+13 – Contrats d’écran.md	6	0	2	REPORTE-MANUEL	13 – Contrats d’écran.md	1064	contexte modifié par la finalisation ; inséré après la ligne conservée	13 – Contrats d’écran.md|6|6
+13 – Contrats d’écran.md	6	0	2	REPORTE	13 – Contrats d’écran.md	1061		13 – Contrats d’écran.md|6|7
+13 – Contrats d’écran.md	6	0	2	REPORTE	13 – Contrats d’écran.md	1067		13 – Contrats d’écran.md|6|8
+13 – Contrats d’écran.md	7	0	3	REPORTE	13 – Contrats d’écran.md	810		13 – Contrats d’écran.md|7|1
+13 – Contrats d’écran.md	8	0	2	REPORTE	13 – Contrats d’écran.md	2151		13 – Contrats d’écran.md|8|1
+13 – Contrats d’écran.md	9	0	3	REPORTE	13 – Contrats d’écran.md	2185		13 – Contrats d’écran.md|9|1

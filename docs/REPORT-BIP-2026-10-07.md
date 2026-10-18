@@ -8,7 +8,7 @@ Base vérifiée : PR323 ouverte en brouillon, tête4365c0cd913c6dfb6d89fd27f156d
 
 [Prompt original archivé](archives/bip-cadence-2026-10-07/prompt-source.md). Bip0..10 transverse, stepper,0=Aucun ; six cas mode×bip ; plus d’estimation forfaitaire ; omission des durées d’Exercice sans terme ; ≥ seulement en Séance. Q-07 clos.
 
-Nouvelle référence [Bip v2](Specifications-fonctionnelles/SPECIFICATION-BIP-CADENCE-v2.md), paramètres v13 et Phrase v1 mis à jour ; ancien chemin Cadence v1 remplacé par un renvoi. Chapitres, modèles/API, règles, glossaire, DSF et contrats concernés propagés. Les archives et rapports antérieurs restent historiques, pas sources actives.
+Nouvelle référence [Bip v2](https://github.com/MyUncried/Application-Routine/blob/3623466af5a6dcf44dfe676f0ae8019b9c56bf76/docs/Specifications-fonctionnelles/SPECIFICATION-BIP-CADENCE-v2.md), paramètres v13 et Phrase v1 mis à jour ; ancien chemin Cadence v1 remplacé par un renvoi. Chapitres, modèles/API, règles, glossaire, DSF et contrats concernés propagés. Les archives et rapports antérieurs restent historiques, pas sources actives.
 
 ## Conséquences vérifiées
 

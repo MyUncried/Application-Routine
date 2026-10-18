@@ -1,0 +1,291 @@
+{
+ "description": "DIV-3 — examen des paires 137 à 204 de lot6/divergences.tsv : alignements sur décisions explicites (D-nnn), renvois et une restauration ; les contradictions sans décision sont posées en arbitrage dans lot6/finalisation/divergences-examen-3.tsv. — sous-ensemble appliqué (voir FIN-DIV-3-ecartees.tsv)",
+ "corrections": [
+  {
+   "id": "DIV3-001",
+   "ref": "paires 139-142 ; S-15 ; D-262 (ch. 07 l. 396 : « Variantes Suivi Déployé historiques, hors MVP » ; supersède l’affichage déployé de D-027/D-031/D-056) ; ch. 08 l. 646 et ch. 10 l. 1675 déjà alignés",
+   "motif": "CORRECTION-DECIDEE:D-262",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-262",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "Chaque Exécution peut être déployée individuellement dans le MVP afin d’afficher son détail directement dans la carte.",
+   "nouveau": "Dans le MVP, une Exécution du Suivi n’est pas déployée : sa présentation déployée est hors MVP ; le détail d’Exécution demeure enregistré dans l’instantané et les résultats (D-262)."
+  },
+  {
+   "id": "DIV3-002",
+   "ref": "paires 139-142 ; D-262 (aucun déploiement de carte du Suivi au MVP)",
+   "motif": "CORRECTION-DECIDEE:D-262",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-262",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "Aucun bouton **Déployer tout / Replier tout** n'est affiché ; le déploiement est géré carte par carte.",
+   "nouveau": "Aucun bouton **Déployer tout / Replier tout** n'est affiché."
+  },
+  {
+   "id": "DIV3-003",
+   "ref": "paires 143-145 ; D-187 (ch. 07 l. 234 : `Créer` contextuel, ouvre la création d’une Séance depuis `Séances`) ; D-184 (rangée `Créer / Filtrer / Trier`) ; CE-T03-01 §2, §7",
+   "motif": "CORRECTION-DECIDEE:D-187",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-187",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "| Bouton Ajouter (+) | Bouton | Toujours | Visible | Créer une Séance |",
+   "nouveau": "| Commande `Créer` | Bouton | Toujours | Visible | Créer une Séance (D-187) |"
+  },
+  {
+   "id": "DIV3-004",
+   "ref": "paire 147 ; la ligne recopie RM-129 depuis 117bedcb (03/10) ; contenu d’origine (117bedcb^ ch. 08 l. 988) = calcul inverse, aujourd’hui RM-130 et « Durées, affichage et inversion »",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "| Durée totale pilotée | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. |",
+   "nouveau": "| Durée totale pilotée | Voir RM-130 (calcul inverse en Durée uniforme) et [Durées, affichage et inversion](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#durées-affichage-et-inversion). |"
+  },
+  {
+   "id": "DIV3-005",
+   "ref": "paire 147 ; la ligne recopie RM-129 depuis 117bedcb (03/10) ; contenu d’origine (117bedcb^ ch. 08 l. 990) = totaux des modes non chronométrés, aujourd’hui RM-129",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "| Modes non chronométrés | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. |",
+   "nouveau": "| Modes non chronométrés | Voir RM-129 et [Durées, affichage et inversion](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#durées-affichage-et-inversion). |"
+  },
+  {
+   "id": "DIV3-006",
+   "ref": "paires 148, 164, 167 ; P-15 ; D-240 (ch. 07 l. 354 : « Le Profil fixe les valeurs par défaut propres à l’Exercice … Elles complètent les défauts déjà spécifiés (Pause entre les côtés `10 s`, récupération post-exercice `30 s`) ») ; D-213 ; CE-UI-07 §5",
+   "motif": "CORRECTION-DECIDEE:D-240",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-240",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "| RM-085 | Les Préférences MVP sont Sons, Annonces vocales, Vibration, Compte à rebours initial, Fin de séance et Notifications. |",
+   "nouveau": "| RM-085 | Les Préférences MVP sont Sons, Annonces vocales, Vibration, Compte à rebours initial, Fin de séance et Notifications, ainsi que les valeurs par défaut Pause entre les côtés, Compte à rebours d’un exercice, Fin d’exercice et Récupération après exercice (D-240). |"
+  },
+  {
+   "id": "DIV3-007",
+   "ref": "paire 165 ; P-15 ; D-240 ; D-213 ; CE-UI-07 §5",
+   "motif": "CORRECTION-DECIDEE:D-240",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-240",
+   "file": "@01 – Vision Générale.md",
+   "ancien": "| **Préférences** | Réglages globaux de l’application : Sons, Annonces vocales, Vibration, Compte à rebours initial, Fin de séance et Notifications. | Fin de séance : 5 s |",
+   "nouveau": "| **Préférences** | Réglages globaux de l’application : Sons, Annonces vocales, Vibration, Compte à rebours initial, Fin de séance et Notifications, ainsi que les valeurs par défaut Pause entre les côtés, Compte à rebours d’un exercice, Fin d’exercice et Récupération après exercice (D-240). | Fin de séance : 5 s |"
+  },
+  {
+   "id": "DIV3-008",
+   "ref": "paires 163, 166 ; P-15 ; D-240 ; D-213 (ch. 07 l. 288 : Pause entre les côtés, Compte à rebours d’exercice, Fin d’exercice et Récupération après exercice initialisés depuis le Profil)",
+   "motif": "CORRECTION-DECIDEE:D-240",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-240",
+   "file": "@04 – Modèle fonctionnel.md",
+   "ancien": "**Préférences de planification :**",
+   "nouveau": "**Préférences de création d’un Exercice et d’une occurrence (D-240, D-213) :**\r\n- la Pause entre les côtés par défaut ;\r\n- le Compte à rebours d’un exercice par défaut ;\r\n- la Fin d’exercice par défaut ;\r\n- la Récupération après exercice par défaut.\r\n\r\n**Préférences de planification :**"
+  },
+  {
+   "id": "DIV3-009",
+   "ref": "paires 148, 167 ; P-15 ; D-240 ; CE-UI-07 §5 et §8 (« Six défauts distincts »)",
+   "motif": "CORRECTION-DECIDEE:D-240",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-240",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "| Notifications                       | Interrupteur    | Toujours |         Oui | Non autorisées             | Booléen                         | Préférences | Activer / Désactiver | Demande système lors de la première activation d’un rappel |",
+   "nouveau": "| Notifications                       | Interrupteur    | Toujours |         Oui | Non autorisées             | Booléen                         | Préférences | Activer / Désactiver | Demande système lors de la première activation d’un rappel |\r\n\r\nLes valeurs par défaut Pause entre les côtés, Compte à rebours d’un exercice, Fin d’exercice et Récupération après exercice figurent aussi au Profil (D-240) : voir [CE-UI-07 — Profil — préférences et défauts d’exécution](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-ui-07--profil--préférences-et-défauts-dexécution)."
+  },
+  {
+   "id": "DIV3-010",
+   "ref": "paires 150-151 (note : ligne des cartes sans « (D-264) ») ; 7a89220f^:docs/Specifications-fonctionnelles/00 – Glossaire.md:180 « elle utilise son image de couverture (D-264). » ; absent de R-06 pour le ch. 01",
+   "motif": "RESTAURATION:7a89220f^",
+   "classe": "DOC",
+   "file": "@01 – Vision Générale.md",
+   "ancien": "elle utilise son image de couverture . Les Séances",
+   "nouveau": "elle utilise son image de couverture (D-264). Les Séances"
+  },
+  {
+   "id": "DIV3-011",
+   "ref": "paires 149, 152, 155 ; D-387 (ch. 07 l. 635 : terminologies Circuit/Tour corrigées selon D-209) ; D-209 (ch. 07 l. 284) ; D-032 (statut : « le conteneur nommé ici « Tour » est le Circuit … nom technique `Tour` non renommé ») ; ch. 04 Circuit et Tour ; S09-0623 (« Tour (technique) »)",
+   "motif": "CORRECTION-DECIDEE:D-387",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-387",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "- Un cycle contient un **Tour**.",
+   "nouveau": "- Un cycle contient un **Circuit** (conteneur technique `Tour`)."
+  },
+  {
+   "id": "DIV3-012",
+   "ref": "paires 149, 152, 155 ; D-387 (ch. 07 l. 635 : terminologies Circuit/Tour corrigées selon D-209) ; D-209 (ch. 07 l. 284) ; D-032 (statut : « le conteneur nommé ici « Tour » est le Circuit … nom technique `Tour` non renommé ») ; ch. 04 Circuit et Tour ; S09-0623 (« Tour (technique) »)",
+   "motif": "CORRECTION-DECIDEE:D-387",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-387",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "- Le cycle et le Tour possèdent chacun un nombre de répétitions.",
+   "nouveau": "- Le cycle et le Circuit possèdent chacun un nombre de répétitions."
+  },
+  {
+   "id": "DIV3-013",
+   "ref": "paires 149, 152, 155 ; D-387 (ch. 07 l. 635 : terminologies Circuit/Tour corrigées selon D-209) ; D-209 (ch. 07 l. 284) ; D-032 (statut : « le conteneur nommé ici « Tour » est le Circuit … nom technique `Tour` non renommé ») ; ch. 04 Circuit et Tour ; S09-0623 (« Tour (technique) »)",
+   "motif": "CORRECTION-DECIDEE:D-387",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-387",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "| Tour | Conteneur ordonné d'exercices portant son propre nombre de répétitions | Structure interne de séance |",
+   "nouveau": "| Circuit (conteneur technique `Tour`) | Conteneur ordonné d'exercices portant son propre nombre de répétitions | Structure interne de séance |"
+  },
+  {
+   "id": "DIV3-014",
+   "ref": "paires 149, 152, 155 ; D-387 (ch. 07 l. 635 : terminologies Circuit/Tour corrigées selon D-209) ; D-209 (ch. 07 l. 284) ; D-032 (statut : « le conteneur nommé ici « Tour » est le Circuit … nom technique `Tour` non renommé ») ; ch. 04 Circuit et Tour ; S09-0623 (« Tour (technique) »)",
+   "motif": "CORRECTION-DECIDEE:D-387",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-387",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "- un Tour contenu dans le cycle ;",
+   "nouveau": "- un Circuit (conteneur technique `Tour`) contenu dans le cycle ;"
+  },
+  {
+   "id": "DIV3-015",
+   "ref": "paires 149, 152, 155 ; D-387 (ch. 07 l. 635 : terminologies Circuit/Tour corrigées selon D-209) ; D-209 (ch. 07 l. 284) ; D-032 (statut : « le conteneur nommé ici « Tour » est le Circuit … nom technique `Tour` non renommé ») ; ch. 04 Circuit et Tour ; S09-0623 (« Tour (technique) »)",
+   "motif": "CORRECTION-DECIDEE:D-387",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-387",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "- le paramètre de répétition de son Tour ; le Cycle vaut toujours 1 dans le MVP.",
+   "nouveau": "- le paramètre de répétition de son Circuit ; le Cycle vaut toujours 1 dans le MVP."
+  },
+  {
+   "id": "DIV3-016",
+   "ref": "paires 149, 152, 155 ; D-387 (ch. 07 l. 635 : terminologies Circuit/Tour corrigées selon D-209) ; D-209 (ch. 07 l. 284) ; D-032 (statut : « le conteneur nommé ici « Tour » est le Circuit … nom technique `Tour` non renommé ») ; ch. 04 Circuit et Tour ; S09-0623 (« Tour (technique) ») ; paire 157",
+   "motif": "CORRECTION-DECIDEE:D-387",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-387",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "- Le cycle et le Tour ne peuvent pas être supprimés.",
+   "nouveau": "- Le cycle et le Circuit ne peuvent pas être supprimés."
+  },
+  {
+   "id": "DIV3-017",
+   "ref": "paires 149, 152, 155 ; D-387 (ch. 07 l. 635 : terminologies Circuit/Tour corrigées selon D-209) ; D-209 (ch. 07 l. 284) ; D-032 (statut : « le conteneur nommé ici « Tour » est le Circuit … nom technique `Tour` non renommé ») ; ch. 04 Circuit et Tour ; S09-0623 (« Tour (technique) ») ; paire 153",
+   "motif": "CORRECTION-DECIDEE:D-387",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-387",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "│       │      ├── contient 1 TOUR",
+   "nouveau": "│       │      ├── contient 1 CIRCUIT (conteneur technique TOUR)"
+  },
+  {
+   "id": "DIV3-018",
+   "ref": "paires 159-161, 170, 173 ; D-211 (ch. 07 l. 286 : « Un nouvel Exercice valide possède exactement une Catégorie et une ou plusieurs Zones corporelles ») ; RM-214 ; ch. 09 l. 1211, 1247, 220",
+   "motif": "CORRECTION-DECIDEE:D-211",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-211",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "| Catégorie                  | Classification de l’Exercice                    |        Facultatif         | Porte la couleur sémantique de l’Exercice                                      |",
+   "nouveau": "| Catégorie                  | Classification de l’Exercice                    | Obligatoire (nouvel Exercice) | Exactement une pour un nouvel Exercice valide (D-211) ; porte la couleur sémantique de l’Exercice                                      |"
+  },
+  {
+   "id": "DIV3-019",
+   "ref": "paires 158-161 ; D-211 ; D-042 (« Supersédée par D-211 sur l’obligation d’au moins une Zone corporelle ») ; ch. 04 l. 161",
+   "motif": "CORRECTION-DECIDEE:D-211",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-211",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "| Zones corporelles          | Zones sollicitées                               |        Facultatif         | Zéro à plusieurs                                                              |",
+   "nouveau": "| Zones corporelles          | Zones sollicitées                               | Obligatoire (nouvel Exercice) | Une ou plusieurs pour un nouvel Exercice valide (D-211)                                                              |"
+  },
+  {
+   "id": "DIV3-020",
+   "ref": "paire 174 ; D-333 (ch. 07 l. 539 : import/ajout inclus au MVP, « Remplace le report post-MVP de D-066/D-068 ») ; bandeau de l’Entité Média (ch. 09 l. 366)",
+   "motif": "CORRECTION-DECIDEE:D-333",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-333",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "Les règles suivantes sont préparatoires et ne s’appliquent qu’après l’introduction des médias :",
+   "nouveau": "Les règles suivantes s’appliquent aux médias, dont l’import/ajout est inclus au MVP (D-333) :"
+  },
+  {
+   "id": "DIV3-022",
+   "ref": "paires 175-176 ; D-023 (ch. 07 l. 41 : « L’archivage d’une Séance supprime toutes les Routines qui lui sont associées ») ; D-121 (suppression définitive depuis les archives) ; RM-007, RM-008 ; ch. 09 l. 186",
+   "motif": "CORRECTION-DECIDEE:D-023",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-023",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "- Supprime la séance et les routines qui la référencent.",
+   "nouveau": "- Supprime définitivement la séance archivée ; ses routines ont déjà été supprimées lors de l’archivage (D-023, D-121)."
+  },
+  {
+   "id": "DIV3-023",
+   "ref": "paire 177 ; D-161 (ch. 07 l. 198 : « L’Exécution directe figure dans le Suivi général avec l’origine `ACTIVITY` ») ; ch. 09 Exécution directe (l. 458) ; RM-102",
+   "motif": "CORRECTION-DECIDEE:D-161",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-161",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "- L'historique est constitué exclusivement des exécutions de séance.\r\n- Chaque exécution possède son propre instantané de séance.",
+   "nouveau": "- L'historique est constitué des exécutions de séance (origine `SESSION`) et des Exécutions directes d’Exercice (origine `ACTIVITY`, D-161).\r\n- Chaque exécution possède son propre instantané de sa source (Séance ou Exercice)."
+  },
+  {
+   "id": "DIV3-024",
+   "ref": "paires 180, 188 ; D-248 (« aucune récupération contextuelle en direct ») ; D-208 (« aucune Récupération en direct ») ; RM-211 ; API-ACT-EXE-03 ; CE-T03-09 §5",
+   "motif": "CORRECTION-DECIDEE:D-248",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-248",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "- exécute ensuite les phases propres de l’Exercice, y compris son Compte à rebours éventuel, ses Séries, Pauses, côtés, Récupération et Fin d’exercice éventuelle ;",
+   "nouveau": "- exécute ensuite les phases propres de l’Exercice, y compris son Compte à rebours éventuel, ses Séries, Pauses, côtés (dont la Pause entre les côtés éventuelle) et Fin d’exercice éventuelle, sans Récupération après exercice (D-248) ;"
+  },
+  {
+   "id": "DIV3-025",
+   "ref": "paires 183, 185 ; D-248 (« PN puis PC à la frontière des côtés successifs. Seule la dernière Pause est remplacée par R positive dans une occurrence ; aucune récupération contextuelle en direct ») ; D-247 ; RM-037, RM-211",
+   "motif": "CORRECTION-DECIDEE:D-248",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-248",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "| RM-144 | Un Exercice autonome bilatéral exécute toutes ses Séries par côté, sans Pause entre côtés, puis une seule Récupération. |",
+   "nouveau": "| RM-144 | Un Exercice autonome bilatéral exécute ses Séries par côté selon l’Ordre des côtés (D-247) ; à la frontière des côtés, la Pause de Série est suivie de la Pause entre les côtés (D-248) ; dans une occurrence de Séance, une seule Récupération positive éventuelle remplace la dernière Pause ; aucune Récupération en Exécution directe (D-248, RM-211). |"
+  },
+  {
+   "id": "DIV3-026",
+   "ref": "paires 168, 170 ; D-344 (ch. 07 l. 557, Hermann 12/10 : « Palette de création de Catégorie … avec les 12 couleurs de D-026 ») ; D-259 (l. 382 : `Modifier` « couleur pour Catégorie et Étiquette ») ; D-212 ; D-257 ; RM-124 date du 06/09 (258ef358), antérieure à ces décisions",
+   "motif": "CORRECTION-DECIDEE:D-344",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-344",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "| RM-124 | Dans le MVP, la création d’une Catégorie personnalisée attribue automatiquement l’icône officielle KODJO et la couleur blanche issue du token sémantique `color.background` (`#FFFFFF`) du Design System. Ces deux valeurs sont persistées mais non modifiables par l’utilisateur. La couleur de la Séance reste choisie indépendamment de ses Catégories. |",
+   "nouveau": "| RM-124 | Dans le MVP, la création d’une Catégorie personnalisée attribue automatiquement l’icône officielle KODJO, persistée et non modifiable par l’utilisateur. Sa couleur est choisie dans la palette de 12 couleurs à la création (D-344) et reste modifiable par l’action `Modifier` (D-259). La couleur de la Séance reste choisie indépendamment de ses Catégories. |"
+  },
+  {
+   "id": "DIV3-027",
+   "ref": "paire 194 ; D-087 (ch. 07 l. 71 : « cible tactile commune minimale de `44 × 44` … Les dimensions spécifiques de `48 × 48` restent conservées ») ; RM-095 ; ch. 12 Règles de dimensionnement",
+   "motif": "CORRECTION-DECIDEE:D-087",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-087",
+   "file": "@12 – Architecture technique.md",
+   "ancien": "| Cible tactile commune | Minimum `48 × 48` points logiques sur iOS et Android |",
+   "nouveau": "| Cible tactile commune | Minimum `44 × 44` points logiques sur iOS et Android ; dimensions spécifiques de `48 × 48` conservées (D-087) |"
+  },
+  {
+   "id": "DIV3-028",
+   "ref": "paire 194 ; D-087",
+   "motif": "CORRECTION-DECIDEE:D-087",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-087",
+   "file": "@12 – Architecture technique.md",
+   "ancien": "| Minimum natif iOS | `44 × 44` points ; le MVP retient volontairement la règle commune plus exigeante de `48 × 48` |",
+   "nouveau": "| Minimum natif iOS | `44 × 44` points ; le MVP retient la cible commune de `44 × 44` (D-087) |"
+  },
+  {
+   "id": "DIV3-029",
+   "ref": "paire 194 ; D-225 (ch. 07 l. 305 : « La pilule DSF mesure `322 × 62` ») ; la valeur `66`/rayon `33` est antérieure",
+   "motif": "CORRECTION-DECIDEE:D-225",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-225",
+   "file": "@12 – Architecture technique.md",
+   "ancien": "| Navigation principale | Hauteur visuelle `66`, rayon `33`, positionnée avec l’inset inférieur réel |",
+   "nouveau": "| Navigation principale | Pilule DSF `322 × 62` (D-225), positionnée avec l’inset inférieur réel |"
+  },
+  {
+   "id": "DIV3-030",
+   "ref": "paire 181 ; la section « Le contrôle » est désormais au ch. 10 (titres-actuels l. 584) ; lien de titres-actuels.tsv",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "| RM-027 | Le nombre de Tours est modifié avec un contrôle compact affichant uniquement `N`, sans préfixe `x` ni signe `×`, et ouvrant un sélecteur. Son bord droit est aligné avec celui des cartes d’Exercice. Les boutons `+ / −` et le chevron de repli ne font pas partie de l’UX de référence. **Remplacée le 12/10/2026 pour la commande du compteur (CIR-10 ; chapitre 08, « Le contrôle ») : appuyer sur le chiffre révèle les boutons `−` et `+` ; l’ancienne cible unique sur toute la valeur ne s’applique plus.** |",
+   "nouveau": "| RM-027 | Le nombre de Tours est modifié avec un contrôle compact affichant uniquement `N`, sans préfixe `x` ni signe `×`, et ouvrant un sélecteur. Son bord droit est aligné avec celui des cartes d’Exercice. Les boutons `+ / −` et le chevron de repli ne font pas partie de l’UX de référence. **Remplacée le 12/10/2026 pour la commande du compteur (CIR-10 ; [« Le contrôle »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#le-contrôle)) : appuyer sur le chiffre révèle les boutons `−` et `+` ; l’ancienne cible unique sur toute la valeur ne s’applique plus.** |"
+  }
+ ]
+}

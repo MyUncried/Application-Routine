@@ -1,3 +1,106 @@
+# Architecture technique
+
+## Sommaire
+
+- [12.0 Objet et périmètre](#120-objet-et-périmètre)
+- [12.1 Principes d’architecture](#121-principes-darchitecture)
+  - [Internationalisation](#internationalisation)
+- [12.2 Architecture logique générale](#122-architecture-logique-générale)
+- [12.3 Interface utilisateur](#123-interface-utilisateur)
+- [12.4 Services applicatifs](#124-services-applicatifs)
+- [12.5 Domaine métier](#125-domaine-métier)
+- [12.6 Persistance et stockage local](#126-persistance-et-stockage-local)
+  - [Principe](#principe)
+  - [Données persistées](#données-persistées)
+  - [Repositories](#repositories)
+- [12.7 Identité utilisateur](#127-identité-utilisateur)
+  - [MVP](#mvp)
+  - [Évolution future](#évolution-future)
+- [12.8 Gestion de l’état](#128-gestion-de-létat)
+  - [État persistant](#état-persistant)
+  - [État temporaire](#état-temporaire)
+- [12.9 Architecture du moteur d’exécution](#129-architecture-du-moteur-dexécution)
+- [12.10 Gestion du temps](#1210-gestion-du-temps)
+- [12.11 Audio, voix et vibrations](#1211-audio-voix-et-vibrations)
+- [12.12 Fonctionnement en arrière-plan](#1212-fonctionnement-en-arrière-plan)
+- [12.13 Notifications locales](#1213-notifications-locales)
+- [12.14 Médias](#1214-médias)
+- [12.15 Instantanés et historique](#1215-instantanés-et-historique)
+- [12.16 Transactions et intégrité](#1216-transactions-et-intégrité)
+- [12.17 Gestion technique des erreurs](#1217-gestion-technique-des-erreurs)
+- [12.18 Tests automatisés](#1218-tests-automatisés)
+- [12.19 Crash reporting et observabilité](#1219-crash-reporting-et-observabilité)
+- [12.20 Sécurité et données personnelles](#1220-sécurité-et-données-personnelles)
+- [12.21 Synchronisation future](#1221-synchronisation-future)
+- [12.22 Intégrations externes futures](#1222-intégrations-externes-futures)
+- [12.23 Critères de choix technologiques](#1223-critères-de-choix-technologiques)
+- [12.24 Choix technologiques retenus](#1224-choix-technologiques-retenus)
+  - [Contraintes techniques propres à T04](#contraintes-techniques-propres-à-t04)
+- [12.25 Justification des principaux choix](#1225-justification-des-principaux-choix)
+  - [React Native + Expo](#react-native--expo)
+  - [TypeScript strict](#typescript-strict)
+  - [SQLite](#sqlite)
+  - [Accès direct à `expo-sqlite`](#accès-direct-à-expo-sqlite)
+  - [Gestion d’état](#gestion-détat)
+  - [Moteur d’exécution](#moteur-dexécution)
+  - [Gestion du temps](#gestion-du-temps)
+  - [Notifications](#notifications)
+  - [Médias — MVP PRE-3](#médias--mvp-pre-3)
+  - [Tests](#tests)
+- [12.26 Mise en page adaptative et bornes sûres](#1226-mise-en-page-adaptative-et-bornes-sûres)
+  - [Unités d’implémentation](#unités-dimplémentation)
+  - [Paliers de largeur du MVP](#paliers-de-largeur-du-mvp)
+  - [Architecture canonique de spécification UI](#architecture-canonique-de-spécification-ui)
+  - [Screen Shells](#screen-shells)
+  - [Composants et contrôles réutilisables](#composants-et-contrôles-réutilisables)
+  - [Règles de réutilisation et de contrôle](#règles-de-réutilisation-et-de-contrôle)
+  - [Design tokens canoniques](#design-tokens-canoniques)
+  - [Règles de dimensionnement des composants](#règles-de-dimensionnement-des-composants)
+  - [Matrice de validation responsive](#matrice-de-validation-responsive)
+- [12.27 Risques techniques et validations préalables](#1227-risques-techniques-et-validations-préalables)
+  - [RT-001 — Timer, audio et arrière-plan](#rt-001--timer-audio-et-arrière-plan)
+  - [RT-002 — Drizzle ORM / Expo](#rt-002--drizzle-orm--expo)
+  - [RT-003 — Comportement audio réel](#rt-003--comportement-audio-réel)
+- [12.28 Distribution](#1228-distribution)
+- [12.29 Évolutivité](#1229-évolutivité)
+- [12.30 Organisation du code](#1230-organisation-du-code)
+- [12.31 Architecture UI, accessibilité et responsive](#1231-architecture-ui-accessibilité-et-responsive)
+- [Interface générale — règles](#interface-générale--règles)
+- [Écart d’implémentation constaté lors de la fusion documentaire](#écart-dimplémentation-constaté-lors-de-la-fusion-documentaire)
+- [Segmentés — complément](#segmentés--complément)
+- [Cohérence des couleurs après rationalisation — H-13](#cohérence-des-couleurs-après-rationalisation--h-13)
+- [DSF courant — Cartes, icônes et animations d’appui](#dsf-courant--cartes-icônes-et-animations-dappui)
+  - [Saisie des paramètres d’exécution](#saisie-des-paramètres-dexécution)
+- [contraintes DSF avant développement](#contraintes-dsf-avant-développement)
+  - [Référence DSF V2 détaillée — clôture](#référence-dsf-v2-détaillée--clôture)
+  - [Générateur et validation des paramètres v13](#générateur-et-validation-des-paramètres-v13)
+- [12.32 Stratégie de développement incrémental](#1232-stratégie-de-développement-incrémental)
+- [12.33 Réconciliation après interruption technique](#1233-réconciliation-après-interruption-technique)
+- [Adaptation moteur et persistance](#adaptation-moteur-et-persistance)
+- [Moteur Cadence — cible technique](#moteur-cadence--cible-technique)
+- [12.34 Architecture cible — Exercices, Médias et Parcours](#1234-architecture-cible--exercices-médias-et-parcours)
+  - [Sources de données du Catalogue](#sources-de-données-du-catalogue)
+  - [Composants et tokens Figma](#composants-et-tokens-figma)
+- [Architecture de la bilatéralité](#architecture-de-la-bilatéralité)
+- [Architecture MVP T03 — Catalogue des Exercices et moteur multi-origine](#architecture-mvp-t03--catalogue-des-exercices-et-moteur-multi-origine)
+  - [Moteur d’Exécution multi-origine](#moteur-dexécution-multi-origine)
+  - [Icônes vectorielles de sélection multiple](#icônes-vectorielles-de-sélection-multiple)
+- [Architecture cible — média pendant l’Exécution](#architecture-cible--média-pendant-lexécution)
+- [12.35 Source polymorphe des Routines — D-206](#1235-source-polymorphe-des-routines--d-206)
+- [12.36 Extensibilité de la source Routine — Parcours](#1236-extensibilité-de-la-source-routine--parcours)
+- [12.37 Schéma cible des récupérations — D-208](#1237-schéma-cible-des-récupérations--d-208)
+- [Pauses et symboles](#pauses-et-symboles)
+- [12.38 Impacts techniques de la consolidation D-209 à D-217](#1238-impacts-techniques-de-la-consolidation-d-209-à-d-217)
+- [Vérification de l’existant pour Bip de cadence](#vérification-de-lexistant-pour-bip-de-cadence)
+- [Contrat technique de phrase](#contrat-technique-de-phrase)
+- [Transmission au développement — évolutions v15](#transmission-au-développement--évolutions-v15)
+- [Architecture — circuits](#architecture--circuits)
+- [Formats — architecture cible du moteur à construire](#formats--architecture-cible-du-moteur-à-construire)
+- [Contrats internes et découpage des services](#contrats-internes-et-découpage-des-services)
+- [Internationalisation et vérification du générateur](#internationalisation-et-vérification-du-générateur)
+  - [Internationalisation — décision et dette explicites](#internationalisation--décision-et-dette-explicites)
+  - [Recette de développement](#recette-de-développement)
+
 ## 12.0 Objet et périmètre
 
 Ce chapitre définit l’architecture technique du MVP.
@@ -35,7 +138,7 @@ Les principes suivants sont retenus :
 | Backend | Aucun backend requis pour le MVP |
 | Synchronisation cloud | Hors MVP, mais anticipée dans l’architecture |
 | Notifications | Notifications locales |
-| Médias | Consultation des médias associés incluse au MVP  ; acquisition et stockage selon D-066/D-068 ; galerie ordonnée |
+| Médias | Consultation des médias associés incluse au MVP (D-203) ; acquisition et stockage selon D-066/D-068 ; galerie ordonnée |
 | Calendriers externes | Hors MVP |
 | Tests | Tests automatisés de la logique métier et des parcours critiques |
 | Distribution initiale | Versions de test privées avant publication sur les stores |
@@ -208,6 +311,14 @@ La technologie cloud et la stratégie précise de synchronisation ne sont pas ch
 
 Après le MVP, les médias ne seront pas stockés comme blobs dans SQLite : la base conservera leurs métadonnées et leurs références locales ou distantes.
 
+### Évolution des paramètres canoniques pour les phases
+
+Étendre le contrat versionné ExecutionParameters, les brouillons, validateurs, projections, copies, sérialiseurs et parseurs. La persistance locale dispose déjà d’un champ execution_parameters pour le Catalogue ; une nouvelle table n’est pas imposée par le concept. Vérifier aussi les chemins de Séance et d’instantané avant de choisir la migration physique.
+
+Les anciennes définitions restent sans phases. La nouvelle écriture et sa lecture compatible doivent être livrées ensemble ; préserver le refus explicite d’une version inconnue, sans repli scalaire destructeur. Les totaux et phrases restent dérivés. Le choix des noms techniques et du numéro de version relève de la réalisation, pas de Figma.
+
+L’impact est transversal mais additif : éditeur, calcul, données et moteur cible doivent évoluer ensemble. Aucun nouveau besoin d’hébergement n’est identifié. Les bornes de durée actuelles du code divergent de RM-234 ; la correction doit suivre la spécification et être rattachée au lot approprié, sans migration silencieuse des anciennes valeurs.
+
 ## 12.7 Identité utilisateur
 
 ### MVP
@@ -287,7 +398,7 @@ Le moteur gère ensuite :
 - l’étape courante ;
 - les répétitions du Circuit, c’est-à-dire les Tours, et le Cycle technique fixé à une répétition ;
 - les Séries propres à chaque Exercice ;
-- Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : chapitre 10, Calculs des durées et ordre des phases.
+- *Texte identique à celui de la section [« Structure d'un Exercice »](04%20%E2%80%93%20Mod%C3%A8le%20fonctionnel.md#structure-dun-exercice) ; il n’est pas recopié ici.*
 - l’insertion éventuelle d’une phase `SIDE_RECOVERY` entre les deux côtés lorsque `sideRecoverySeconds > 0` ;
 - l’insertion d’une phase `POST_ACTIVITY_RECOVERY` après chaque occurrence de Séance lorsque `postActivityRecoverySeconds > 0` ;
 - la progression dans le Circuit au cours du Tour courant ;
@@ -300,9 +411,17 @@ Le moteur gère ensuite :
 - l’arrêt anticipé ;
 - la terminaison normale.
 
-Le Plan distingue les phases `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `SIDE_RECOVERY`, `POST_ACTIVITY_RECOVERY` et `SESSION_END`. Ces valeurs qualifient une phase d’exécution et non un type d’Exercice. `SIDE_RECOVERY` conserve la référence de l’Exercice bilatéral ; `POST_ACTIVITY_RECOVERY` conserve la référence de l’occurrence. Leurs métriques planifiées/écoulées sont distinctes. Après la dernier Exercice et sa récupération post-exercice éventuelle, `ExecutionService` active `SESSION_END` et continue le calcul du temps écoulé. Il ne persiste la clôture normale qu’à l’achèvement de cette étape ; `0 s` provoque la transition immédiatement. Le routeur ouvre ensuite la fin minimale dans T04, ou la Synthèse dans la tranche qui la livre. Un arrêt antérieur suit le chemin d’interruption et produit le statut `Interrompue`.
+Le Plan distingue les phases `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `SIDE_RECOVERY`, `POST_ACTIVITY_RECOVERY` et `SESSION_END`. Ces valeurs qualifient une phase d’exécution et non un type d’Exercice. `SIDE_RECOVERY` conserve la référence de l’Exercice bilatéral ; `POST_ACTIVITY_RECOVERY` conserve la référence de l’occurrence. Leurs métriques planifiées/écoulées sont distinctes. Après le dernier Exercice et sa récupération post-exercice éventuelle, `ExecutionService` active `SESSION_END` et continue le calcul du temps écoulé. Il ne persiste la clôture normale qu’à l’achèvement de cette étape ; `0 s` provoque la transition immédiatement. Le routeur ouvre ensuite la fin minimale dans T04, ou la Synthèse dans la tranche qui la livre. Un arrêt antérieur suit le chemin d’interruption et produit le statut `Interrompue`.
 
 La logique du moteur doit être indépendante des composants graphiques afin de pouvoir être testée automatiquement.
+
+### Phases internes aux séries
+
+Les phases s’insèrent sous le passage de travail de la série, sans changer les frontières des pauses, côtés, circuits ou résultats. Un changement de phase ne clôt pas la série et ne redémarre pas le bip périodique. Le moteur temporel demeure la source de vérité ; le guidage vocal ne retarde jamais la transition. Une annonce de phase remplace la précédente encore active.
+
+La reprise technique conserve l’identité de l’occurrence, de la série, du côté et de la phase, ainsi que son temps restant. Réinitialiser et Suivant gardent leur portée métier existante. Pour la progression globale, subdiviser un travail de 9 s en 6 + 3 ne change pas son poids, notamment avec des séries non déterminables ailleurs dans le plan.
+
+Les données de phases sont figées dans l’instantané, pas relues depuis le catalogue. Leur définition reste une liste unique ; le plan développe ses occurrences. Aucun stockage de phrase, aucune boucle supplémentaire ni service distant ne découle de cette évolution.
 
 ## 12.10 Gestion du temps
 
@@ -357,8 +476,8 @@ Le passage en arrière-plan ou le verrouillage ne met pas automatiquement l’Ex
 
 Le moteur applique une pause de sécurité en l’absence d’interaction :
 
-- 30 minutes après la fin théorique d’un Exercice chronométré ou la fin nominale recalculée d’une Série cadencée ;
-- 2 heures après le démarrage d’un Exercice en Répétitions sans cadence ou À l’échec.
+- *Texte identique à celui de la section [« Arrière-plan et verrouillage »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#arrière-plan-et-verrouillage) ; il n’est pas recopié ici.*
+- *Texte identique à celui de la section [« Arrière-plan et verrouillage »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#arrière-plan-et-verrouillage) ; il n’est pas recopié ici.*
 
 Cette pause est déterminée à partir des horodatages et ne suppose pas qu’un timer JavaScript reste actif en permanence en arrière-plan.
 
@@ -388,9 +507,9 @@ L’application ne demande pas l’autorisation de notification au lancement. El
 
 ## 12.14 Médias
 
-L’import/ajout de photos ou vidéos locales et leur association aux Exercices sont inclus au MVP dans PRE-3, avant le moteur d’exécution .
+L’import/ajout de photos ou vidéos locales et leur association aux Exercices sont inclus au MVP dans PRE-3, avant le moteur d’exécution (D-333).
 
-L’architecture doit permettre `0..n` associations média ordonnées par Exercice au MVP dans PRE-3 . La copie d’un Exercice ou d’une Séance ne duplique pas le fichier physique : plusieurs associations peuvent référencer le même fichier local immuable.
+L’architecture doit permettre `0..n` associations média ordonnées par Exercice au MVP dans PRE-3 (D-333). La copie d’un Exercice ou d’une Séance ne duplique pas le fichier physique : plusieurs associations peuvent référencer le même fichier local immuable.
 
 Le stockage local privilégie la **non-duplication des données volumineuses**. Les fichiers médias ne seront pas intégrés physiquement aux Instantanés historiques ; leurs associations ordonnées et références stables le seront.
 
@@ -590,6 +709,8 @@ Les technologies du MVP sont évaluées selon les critères suivants :
 | Tests end-to-end | **Maestro** | Automatisation des parcours mobiles critiques après stabilisation |
 | Builds / distribution | **Expo EAS** | Builds et distribution privée iOS/Android, adaptés à un environnement de développement Windows |
 | Crash reporting | **Sentry** | Diagnostic des crashs et erreurs lors des tests distribués |
+| Backend | **Aucun dans le MVP** | Architecture local-first et réduction de la complexité |
+| Authentification | **Aucune dans le MVP ; Apple/Google préparés** | Évite la complexité des comptes tout en préservant l’évolution future |
 
 ### Contraintes techniques propres à T04
 
@@ -597,11 +718,9 @@ Les technologies du MVP sont évaluées selon les critères suivants :
 - Les tests audio sur appareils physiques iOS et Android sont réalisés dans le second lot T04.
 - L’ajout de `expo-audio`, `expo-speech` et de leur configuration native impose la production d’un nouveau development build iOS et Android ; Expo Go ne constitue pas la preuve finale pour ces comportements natifs.
 - T02-S02 et sa migration `004` constituent désormais un **état historique** supersédé sur la récupération par D-208. Le schéma cible n’utilise plus une récupération générique attachée à l’Exercice.
-- Pour D-208, la base de développement peut être **réinitialisée** : le schéma cible doit être créé directement avec `side_recovery_seconds` sur l’Exercice et `post_activity_recovery_seconds` sur l’occurrence de Séance. Aucune exigence de migration utilisateur de l’ancien `recovery_seconds` n’est portée par cette conception.
+- Pour D-208, la base de développement peut être **réinitialisée** : le schéma cible doit représenter `side_recovery_seconds` sur l’Exercice et un objet `recovery` explicite lié à l’occurrence de Séance ; `post_activity_recovery_seconds` peut être une projection technique dérivée, jamais une seconde source autoritaire de récupération (RM-209). Aucune exigence de migration utilisateur de l’ancien `recovery_seconds` n’est portée par cette conception.
 - Les migrations `005`/`006` restent des traces de l’état technique antérieur et des évolutions déjà réalisées ; elles ne doivent pas être interprétées comme le scénario cible de migration D-208. Lors de l’implémentation de D-208, la version de schéma et les éventuels scripts techniques doivent être recalés sur la baseline de base réinitialisée.
 - L’archivage, la restauration et la suppression restent hors du périmètre de livraison T04 ; leur modèle existant n’est pas supprimé.
-| Backend | **Aucun dans le MVP** | Architecture local-first et réduction de la complexité |
-| Authentification | **Aucune dans le MVP ; Apple/Google préparés** | Évite la complexité des comptes tout en préservant l’évolution future |
 
 ## 12.25 Justification des principaux choix
 
@@ -689,7 +808,7 @@ Les rappels utilisent des notifications locales afin de :
 
 ### Médias — MVP PRE-3
 
-La consultation des médias déjà associés pendant l’Exécution est incluse au MVP . L’import/ajout et le stockage local sont inclus au MVP dans PRE-3  ; les règles de D-066/D-068 sont conservées. Les fichiers restent dans le système de fichiers et SQLite conserve uniquement leur référence et leurs métadonnées nécessaires.
+La consultation des médias déjà associés pendant l’Exécution est incluse au MVP (D-203). L’import/ajout et le stockage local sont inclus au MVP dans PRE-3 (D-333) ; les règles de D-066/D-068 sont conservées. Les fichiers restent dans le système de fichiers et SQLite conserve uniquement leur référence et leurs métadonnées nécessaires.
 
 ### Tests
 
@@ -799,15 +918,15 @@ Le catalogue courant et les exceptions sont détaillés dans [DSF-CADENCE](../DS
 | Fermer et valider | DSF / Actions / Fermer et valider `5544:4541` | Fermer / Valider |
 | Son | DSF / Controls / Son `5544:4770` | Activé / Désactivé |
 | Voix | DSF / Controls / Voix `5544:4790` | Activée / Désactivée |
-| Indicateur de côté | DSF / Status & Tags / Indicateur de côté `5544:6944` | Droite → Gauche / Gauche → Droite |
+| Indicateur de côté | DSF / Status & Tags / Indicateur de côté `5544:6944` | Changement de côté, sans direction (D-407, RM-243) ; variantes selon le DSF Figma courant (les anciennes variantes Droite → Gauche / Gauche → Droite ne sont plus des références) |
 | Confirmation | DSF / Overlays / Confirmation `5544:6095` | Primaire / Destructive / Trois actions / Abandon ; 6 dialogues longs conservés dans la primitive ancienne |
 | Bouton primaire | DSF / Actions / Bouton primaire `5544:4522` | Actif / Désactivé |
-| Segmenté | DSF / Controls / Segmenté `5548:9818` | 8 variantes : les 6 existantes conservées, plus Deux options — 1 sélectionné `7388:13779` et Deux options — 2 sélectionné `7388:13786` ; références courantes du Catalogue (DSF Segmentés/Titres du07/10) |
+| Segmenté | DSF / Controls / Segmenté `5548:9818` | 8 variantes : les 6 existantes conservées, plus Deux options — 1 sélectionné `7388:13779` et Deux options — 2 sélectionné `7388:13786` ; références courantes du Catalogue (DSF Segmentés/Titres du 07/10) |
 | Nom | DSF / Forms / Nom `5544:4821` | Exercice / Profil / Séance / Étiquette / Nom exercice champ vide |
 | Catégorie sélectionnable | DSF / Status & Tags / Catégorie sélectionnable `5548:10518` | Sélectionnée / Non sélectionnée × standard / Libellé seul |
 | Statut d’exécution | DSF / Status & Tags / Statut d’exécution `5544:6902` | Catalogue / Planifiée / Exécutée / Archivée / Partielle / Terminée / Interrompue |
 | Cartes | DSF / Cards / Séance `6214:7276`, Exercice `6214:7278` | Contextes et états activés selon contrats Catalogue, choix, Calendrier Semaine, Suivi ; présence ne signifie pas activation MVP |
-| Paramètres | Valeur modifiable `6944:26423`, Roulette `5544:5146` | Valeur modifiable :4 variantes ; Roulette :5 depuis le13/10, dont Minutes secondes avec échec8452:13297 ; DSF Deux modes |
+| Paramètres | Valeur modifiable `6944:26423`, Roulette `5544:5146` | Valeur modifiable :4 variantes ; Roulette :5 depuis le 13/10, dont Minutes secondes avec échec 8452:13297 ; DSF Deux modes |
 | Composition / Média / Pickers | Primitives et compositions conservées | Références par contrat ; exceptions historiques ne sont pas de nouvelles règles métier |
 
 Les contraintes de contexte déjà validées restent applicables ; les noms ci-dessous sont des repères de provenance historique, avec correspondance courante dans DSF §7.
@@ -819,18 +938,18 @@ Les contraintes de contexte déjà validées restent applicables ; les noms ci-d
 | Sélection | Référence conservée par contrat ; ancien nom de provenance : `Forms / Select Field — Source exact` | `Size=Full/Compact/Compact narrow`, hauteur `42` |
 | Pickers | Référence conservée par contrat ; ancien nom de provenance : `Picker / Popover — Source exact` (`2537:1174`) | `Type=Duration` (`2537:1110`), `Type=Numeric wheel` (`3210:49`), `Type=Time` (`2884:4415`) ou Date selon contrat ; les variantes numériques ouvertes sont rendues dans un overlay d’écran centré, jamais dans le flux ou le `ScrollView` hôte |
 | Nom de séance | Référence conservée par contrat ; ancien nom de provenance : `Session / Name Field — Source exact` (`2537:1480`) | `354 × 42`, fond transparent, sans liseré (D-352 ; liseré blanc `1` historique) |
-| Catalogue | Famille Cartes courante (voir ci-dessus) ; Ressenti selon contrat | Contexte=Catalogue ; Séance Replié/Archivé/Déployé, Exercice Replié/Archivé ; variante Exercice Déployé historique hors MVP ; classement en pastilles, valeurs nues ; gouttière Exercice permanente  |
+| Catalogue | Famille Cartes courante (voir ci-dessus) ; Ressenti selon contrat | Contexte=Catalogue ; Séance Replié/Archivé/Déployé, Exercice Replié/Archivé ; variante Exercice Déployé historique hors MVP ; classement en pastilles, valeurs nues ; gouttière Exercice permanente (D-260/D-261) |
 | Calendrier | Famille Cartes courante (voir ci-dessus) ; Ressenti selon contrat | Contexte=Calendrier Semaine ; états réellement présents selon inventaire du complément |
-| Suivi | Famille Cartes courante (voir ci-dessus) ; Ressenti selon contrat | Contexte=Suivi ; carte 67 px à deux lignes, statut en haut à droite, Ressenti indicateur 20 × 20 en bas à droite ; aucun déploiement  |
+| Suivi | Famille Cartes courante (voir ci-dessus) ; Ressenti selon contrat | Contexte=Suivi ; carte 67 px à deux lignes, statut en haut à droite, Ressenti indicateur 20 × 20 en bas à droite ; aucun déploiement (D-262) |
 | Composition | Référence conservée par contrat ; ancien nom de provenance : `Composition / Activity Row with Recovery` (`3572:64`) | bloc `354 × 93` lorsque Récupération > 0 ; carte principale puis sous-carte attachée `Récupération X min Y s` ; Nom / Zones corporelles / Synthèse ; déplacement, duplication et suppression portent sur le bloc entier |
 | Composition | Référence conservée par contrat ; ancien nom de provenance : `Composition / Tour Section — Source exact` | section Tour, synthèse calculée des exercices et répétition contextuelle |
 | Composition | Référence conservée par contrat ; ancien nom de provenance : `Composition / Boundary Activity — Source exact` | `Type=Initial countdown/End session` |
 | Exercice | Référence conservée par contrat ; ancien nom de provenance : États de calcul (`3580:4733`, `3580:4845`, `3580:4957`) | respectivement Séries pilote, Durée totale pilote et durée cible ajustée ; le pilote confirmé reçoit un contour lié à `color/selection` |
-| Média | Référence conservée par contrat ; ancien nom de provenance : `Action / Add Media — Source exact` (`3382:60`) | actif pour l’import/ajout au MVP dans PRE-3  ; icône vectorielle `icon/ajouter` (`3382:61`) en `16 × 16`, jamais un caractère typographique `+` |
+| Média | Référence conservée par contrat ; ancien nom de provenance : `Action / Add Media — Source exact` (`3382:60`) | actif pour l’import/ajout au MVP dans PRE-3 (D-333) ; icône vectorielle `icon/ajouter` (`3382:61`) en `16 × 16`, jamais un caractère typographique `+` |
 | Média | Référence conservée par contrat ; ancien nom de provenance : `Media / Preview` (`3382:59`) | aperçu Photo ou Vidéo |
 | Média | Référence conservée par contrat ; ancien nom de provenance : `Media / Gallery — Source exact` (`3382:64`) | liste horizontale ordonnée avec aperçu suivant tronqué |
-| Média | Référence conservée par contrat ; ancien nom de provenance : `Media / Section — Source exact` (`3382:71`) | section média visible au MVP ; associations ordonnées importables dans PRE-3  |
-| Stepper entier simple | Référence conservée par contrat ; ancien nom de provenance : Composant standard/DSF compatible React Native/Expo | Stepper permanent pour Séries/Répétitions dans CE-UI-10 et Tours dans Composition ; bornes métier appliquées ; pas de roulette entière |
+| Média | Référence conservée par contrat ; ancien nom de provenance : `Media / Section — Source exact` (`3382:71`) | section média visible au MVP ; associations ordonnées importables dans PRE-3 (D-333) |
+| Stepper entier simple | Référence conservée par contrat ; ancien nom de provenance : Composant standard/DSF compatible React Native/Expo | Stepper permanent pour Séries dans CE-UI-10 et Tours dans Composition ; bornes métier appliquées ; pas de roulette pour ces entiers. La cible Répétitions utilise une roulette native à une colonne, 1 à 100, avec « Aucune répétition, à l’échec » en tête dans une cellule de séries variables seulement (décision PRE-4 Q8 du 16/10, D-385 ; retirée en séries identiques par D-418) |
 
 Disclosure `5544:4650` : six variantes État(Replié/Déployé/Désactivé) × Cadre(Oui/Non), Oui par défaut ; cibles `48 × 48` relues le 08/10. Cadre interne 28×28, habillage retiré avec Cadre Non . Les anciennes variantes 2537:1033/1038 sont archivées. Réutiliser le master courant, sans copie graphique locale ; les destinations relèvent du contrat hôte.
 
@@ -847,9 +966,9 @@ Disclosure `5544:4650` : six variantes État(Replié/Déployé/Désactivé) × C
 
 ### Design tokens canoniques
 
-Le Figma contient les collections locales `KODJO / Primitives`, `KODJO / Sémantiques` et `KODJO / Responsive`. Au relevé direct du06/10/2026, elles contiennent respectivement350,432 et4 variables ;51 styles de texte. Les anciens comptes59/62/4 et9styles sont historiques. La collection Responsive possède les modes `Compact 360`, `Standard 402` et `Grand téléphone 440`. Ils sont documentés dans la page `Design system — Fondations`. La page `Référence responsive — Cible` présente ces modes pour huit familles structurantes, déclinées en neuf groupes d’écrans puisque le Calendrier est contrôlé séparément en vues Semaine et Mois, soit vingt-sept écrans de travail.
+Le Figma contient les collections locales `KODJO / Primitives`, `KODJO / Sémantiques` et `KODJO / Responsive`. Au relevé direct du 06/10/2026, elles contiennent respectivement 350,432 et 4 variables ; 51 styles de texte. Les anciens comptes 59/62/4 et 9styles sont historiques. La collection Responsive possède les modes `Compact 360`, `Standard 402` et `Grand téléphone 440`. Ils sont documentés dans la page `Design system — Fondations`. La page `Référence responsive — Cible` présente ces modes pour huit familles structurantes, déclinées en neuf groupes d’écrans puisque le Calendrier est contrôlé séparément en vues Semaine et Mois, soit vingt-sept écrans de travail.
 
-Le journal du05/10 documente la liaison et la rationalisation du Prototype MVP ; le relevé courant ne revendique pas un audit exhaustif de chaque liaison. Les valeurs sont rapprochées par rôle, avec exceptions explicites, selon DSF-CADENCE-2026-10-06 ; ne pas réutiliser le constat du04/09 comme état courant. Une valeur brute telle que `13,16`, `16,92`, `18,8` ou `9,4` ne doit pas être créée comme token : elle est ramenée au niveau canonique correspondant.
+Le journal du 05/10 documente la liaison et la rationalisation du Prototype MVP ; le relevé courant ne revendique pas un audit exhaustif de chaque liaison. Les valeurs sont rapprochées par rôle, avec exceptions explicites, selon DSF-CADENCE-2026-10-06 ; ne pas réutiliser le constat du 04/09 comme état courant. Une valeur brute telle que `13,16`, `16,92`, `18,8` ou `9,4` ne doit pas être créée comme token : elle est ramenée au niveau canonique correspondant.
 
 Les noms avec barre oblique, par exemple `color/primary`, sont les noms physiques des variables Figma. Les noms avec point employés dans le code, par exemple `color.primary`, sont leurs identifiants d’implémentation. La correspondance distingue les rôles ; les alias explicitement conservés (divider/border, iconNeutral/textSecondary, etc.) sont documentés et ne justifient pas une duplication silencieuse.
 
@@ -894,9 +1013,9 @@ Les noms avec barre oblique, par exemple `color/primary`, sont les noms physique
 | `color.stepperSurface` | `#F2F2FF` | Fond lavande du stepper ouvert (`DSF / Controls / Stepper / Profil` `5544:4732`) ; variable Figma observée `color/observed/f2f2ff`, sans token sémantique |
 | `color.segmentedSurface` | `rgba(255, 255, 255, 0.5)` | Cadre du contrôle segmenté standard : `color/background` (`2290:54`) avec opacité de remplissage 0,5, jamais une opacité de conteneur (`DSF / Controls / Segmenté` `7388:13779`) |
 | `color.segmentedInactiveSurface` | `#EAEAFF` | Fond des options inactives du contrôle segmenté standard, rayon 10 ; peinture locale du maître `7388:13779`, sans variable Figma |
-| `color.parametersSegmentedBorder` | `#DBDEE3` | Contour 1 du cadre segmenté de la feuille Paramètres (Mode, Côté, Ordre) ; figés `6407-9805` et `6665-26185` ; D-341 |
-| `color.parametersSegmentedOption` | `#FCFCFE` | Options inactives du segmenté de la feuille Paramètres, contour blanc 1 ; figé `6407-9805` ; D-341 |
-| `color.selectionSubtitle` | `#E0E3FF` | Sous-titre de l’option sélectionnée (Ordre des côtés) ; figé `6665-26185` ; D-341 |
+| `color.parametersSegmentedBorder` | `#DBDEE3` | Contour 1 du cadre segmenté de la feuille Paramètres (Mode, Côté, Ordre) ; figés `6407-9805` et `6665-26185` ; D-341, présentation remplacée par les DSF validés (D-377) |
+| `color.parametersSegmentedOption` | `#FCFCFE` | Options inactives du segmenté de la feuille Paramètres, contour blanc 1 ; figé `6407-9805` ; D-341, présentation remplacée par les DSF validés (D-377) |
+| `color.selectionSubtitle` | `#E0E3FF` | Sous-titre de l’option sélectionnée (Ordre des côtés) ; figé `6665-26185` ; D-341, présentation remplacée par les DSF validés (D-377) |
 | `color.exerciseEditorContextBand` | `#EAEAFF` | Zone de contexte de Créer/Modifier un exercice, opaque jusqu’à 80 % puis fondu vers le fond (« Zone bleue » figée `3542:4656`) ; distincte de `exerciseContextBandBackground` (Composition) ; extension X-3 du 12/10 |
 | `color.variableSeriesGroupSurface` | `#F3F3F6` | Fond du groupe Séries variables déployé, contour `color.selection` 1,5 (figé `6665:24616`) ; extension X-3 du 12/10 |
 
@@ -924,7 +1043,7 @@ Les tokens d’usage ci-dessous existent dans `src/shared/ui/tokens.ts` pour exp
 | `color.disclosureBorderCollapsed` | `#D6D9E3` | Valeur observée conservée (`color/observed/d6d9e3` sur `5544:4650`) ; non ramenée à `color.divider` |
 | `color.disclosureBorderExpanded` | `#8283F2` | `color.primarySoft` |
 | `color.disclosureChevronCollapsed` | `#8282F2` | Valeur observée conservée (`color/observed/8282f2` sur `5544:4650`) |
-| `color.compositionDraggedCardBorder` | `#D1D1D6` | Valeur propre conservée  ; la variante Figma `4916:6844` ne porte pas de contour au premier niveau — à reconfirmer |
+| `color.compositionDraggedCardBorder` | `#D1D1D6` | Valeur propre conservée (D-129) ; la variante Figma `4916:6844` ne porte pas de contour au premier niveau — à reconfirmer |
 
 Les couleurs de statut sont toujours accompagnées d’un libellé, d’une icône ou des deux. Les rares variantes historiques de noir ou de gris présentes dans les frames sont normalisées vers les tokens ci-dessus lors du développement, sauf différence visuelle explicitement documentée.
 
@@ -934,11 +1053,11 @@ L’ancienne valeur `#8283F2` ne doit plus servir de fond à un texte blanc de t
 
 Les textes d’interface utilisent Inter ; chronomètres et compteurs concernés utilisent volontairement Roboto Condensed. Ces deux familles doivent être chargées ; Roboto Condensed utilise Medium, SemiBold et Bold. Les rendus Auto Inter sont explicités par la règle D2 ; les interlignes explicites sont conservés. Les métriques Auto Roboto se mesurent par rôle, sans leur appliquer le facteur Inter.
 
-Le relevé du06/10 comporte51 styles. La correspondance code/Figma se fait par rôle et contexte, jamais par égalité de corps. Les styles historiques subsistent ; DSF / Card title17 est obsolète, et le chrono secondaire5017:6051 utilise le style neutre Inter Semi Bold17.
+Le relevé du 06/10 comporte 51 styles. La correspondance code/Figma se fait par rôle et contexte, jamais par égalité de corps. Les styles historiques subsistent ; DSF / Card title17 est obsolète, et le chrono secondaire 5017:6051 utilise le style neutre Inter Semi Bold 17.
 
 | Token | Graisse | Taille | Hauteur de ligne | Usage |
 | --- | --- | ---: | ---: | --- |
-| Temps principal d’Exécution — rôle à mapper | Roboto Condensed Bold | `100` | Rendu Auto Figma à mesurer par rôle, ne pas réutiliser64 | Témoin DSF / Timer ; ancien type.timerPrimary Inter58/64 non conforme |
+| Temps principal d’Exécution — rôle à mapper | Roboto Condensed Bold | `100` | Rendu Auto Figma à mesurer par rôle, ne pas réutiliser 64 | Témoin DSF / Timer ; ancien type.timerPrimary Inter 58/64 non conforme |
 | Grand chronomètre — rôle contextuel | Roboto Condensed Bold | `158` | Auto Figma, à mesurer par rôle | 6 occurrences selon brief, ne pas généraliser à tous les chronomètres |
 | Compteurs | Roboto Condensed Bold / SemiBold | `30` | Interligne propre au contexte Figma | Compteurs de tours / répétitions |
 | Indication média | Roboto Condensed Medium | `24` | Interligne propre au contexte Figma | Indication média |
@@ -956,7 +1075,7 @@ Le relevé du06/10 comporte51 styles. La correspondance code/Figma se fait par r
 | `type.cardTitle` | Semi Bold | `16` | `19` Auto ;20 si style explicite | Titres hors famille Cartes du 30 septembre |
 | `type.listCardTitle` | Semi Bold | `15` | `18` | Titre des nouvelles cartes (rôle distinct de `type.cardTitle`) : Catalogue, choix, Calendrier Semaine et Suivi ; exception documentée à D-083 |
 | `type.cardDuration` | Semi Bold | `12` | `15` | Durée des cartes, sans cadre, `color.textPrimary`, calée à droite à 16 du bord (D11) |
-| `type.segmentedCompactLabel` | Regular | `13` | `16` | Options du segmenté « Changement de côté » de la feuille Paramètres, sur deux lignes, centrées (D-341, 12/10) |
+| `type.segmentedCompactLabel` | Regular | `13` | `16` | Options du segmenté « Changement de côté » de la feuille Paramètres, sur deux lignes, centrées (D-341, 12/10 ; présentation remplacée par les DSF validés, D-377) |
 | `type.editableValue` | Semi Bold | `13` | `16` | `DSF / Forms / Valeur modifiable` `Texte=13` et valeur du stepper ; état `Grisé` = texte `color.disabled`, jamais une opacité de conteneur |
 | `type.compactCardTitle` | Semi Bold | `15` | `18` | Titre d’une carte compacte imbriquée, notamment dans une Composition |
 | `type.body` | Regular | `14` | `17` Auto ;20 si style explicite | Texte courant |
@@ -1086,15 +1205,15 @@ Les valeurs historiques `9`, `9,4` et `18,8` utilisées comme rayons fixes ont �
 | `size/modal-width` / `size/modal-height` | `378` / `822`, gabarit de référence |
 | Bouton principal | Hauteur minimale `48`, rayon `24`, largeur utile complète |
 | Bouton secondaire compact | Hauteur visuelle `32`, rayon `16`, dans une cible tactile de `48 × 48` minimum |
-| Cible tactile commune | Minimum `48 × 48` points logiques sur iOS et Android |
-| Minimum natif iOS | `44 × 44` points ; le MVP retient volontairement la règle commune plus exigeante de `48 × 48` |
+| Cible tactile commune | Minimum `44 × 44` points logiques sur iOS et Android ; dimensions spécifiques de `48 × 48` conservées (D-087) |
+| Minimum natif iOS | `44 × 44` points ; le MVP retient la cible commune de `44 × 44` (D-087) |
 | Minimum natif Android | `48 × 48 dp` |
 | En-tête | Hauteur de contenu `48` + inset supérieur dynamique |
 | Région d’en-tête du gabarit historique | `92` (référence ancienne ; token courant 95) ; zone utile `48` et réserve système de référence, remplacée par l’inset supérieur réel |
 | Action finale d’écran | Région de référence `84` (`790–874`) ; bouton de `48` dans un conteneur intégrant marges et inset inférieur réel |
 | Action finale de modale plein écran | Région de référence `70` (`752–822`) ; bouton `354 × 48` et espace inférieur de référence `22` |
-| Région de navigation du gabarit | `77` (`797–874`) ; contient la barre principale visuelle de `66` et la réserve d’inset inférieur |
-| Navigation principale | Hauteur visuelle `66`, rayon `33`, positionnée avec l’inset inférieur réel |
+| Région de navigation du gabarit | `77` (`797–874`) ; contient la pilule de navigation de `62` (D-225) et la réserve d’inset inférieur |
+| Navigation principale | Pilule DSF `322 × 62` (D-225), positionnée avec l’inset inférieur réel |
 | Destination active | Hauteur visuelle `56`, rayon `28` |
 | Carte standard | Nouvelles cartes Catalogue/choix/Semaine/Suivi : largeur 354 sur référence 402, rayon 8 ; les cartes structurelles hors famille conservent leur variante propre |
 | Roulette compacte à deux colonnes — `Type=Duration` | Contenu de roulette rendu dans la modale basse canonique ; barre d’actions `Annuler / Confirmer`, contenu natif et dimensions internes selon Figma/DSF actifs. Aucun overlay centré ad hoc. |
@@ -1102,16 +1221,16 @@ Les valeurs historiques `9`, `9,4` et `18,8` utilisées comme rayons fixes ont �
 | Action de roulette | Cible tactile `48 × 48` ; cercle visuel `38 × 38` ; icône `24 × 24` ; Annuler à gauche et Confirmer à droite dans la barre supérieure ; cadre de mise en page `48 × 53` autorisé pour les marges, sans modification de la cible tactile |
 | Sélection de roulette à deux colonnes | Deux cadres gris séparés de `56 × 34`, rayon `17`, couvrant uniquement les chiffres ; unités hors cadres |
 | Dialogue de décision | Largeur `354`, rayon `18`, centré ; actions `147 × 48` avec écart horizontal `12`; variante trois choix avec `Annuler` `306 × 48` sur une seconde ligne, écart vertical `12` |
-| Champ Nom de la séance | `354 × 42`, fond transparent, sans liseré  ; zone de contexte avec courbe sous Retour et fondu inférieur  |
+| Champ Nom de la séance | `354 × 42`, fond transparent, sans liseré (D-352) ; zone de contexte avec courbe sous Retour et fondu inférieur (D-352) |
 | Bandeau contextuel Exercice | `402 × 115`, accolé à la ligne basse de l’en-tête ; contexte Inter Regular `14/17` ; padding supérieur `spacing/12`, espacement contexte/champ `spacing/24`, padding inférieur `spacing/16` explicitement porté par le shell |
-| Champ Nom de l’Exercice | Largeur utile `354`, hauteur visuelle `46`, fond transparent, sans liseré  ; valeur en token canonique `KODJO / Screen title` (`20/24`, Semi Bold), identique au champ `Nom de la séance` |
+| Champ Nom de l’Exercice | Largeur utile `354`, hauteur visuelle `46`, fond transparent, sans liseré (D-348) ; valeur en token canonique `KODJO / Screen title` (`20/24`, Semi Bold), identique au champ `Nom de la séance` |
 | Synthèse de l’Exercice | Largeur utile `354`, texte `KODJO / Body` (`14/20`), cadre extensible ; espacement vertical `spacing/24` avant l’action finale |
 | Tag de Catégorie | Composant DSF `DSF / Status & Tags / Catégorie sélectionnable` (`5548:10518`) (`3302:4166`) ; `State=Unselected/Selected` ; cible tactile de hauteur `48`, pilule visuelle de hauteur `30` centrée dans la cible, rayon `15`, libellé Inter Regular `12/15`; rangées espacées sur un pas minimal de `48` afin que les cibles ne se chevauchent pas ; largeur adaptée au libellé dans la largeur utile |
 | Conteneur Circuit | Largeur `374` ; hauteur `54` fermé ou `175` déployé ; en-tête intérieur `354 × 34` avec marges externes de `10` |
 | Stepper du nombre de Tours | Contrôle inline ; valeur de `1..99` sans ouverture de modale ; alignement et dimensions suivent le Figma actif ; aucun chevron de repli |
 | Icône Tour | composant DSF `DSF / Primitives / Icône de tour` (`3066:4685`) ; dessin `18 × 18` ; trait `1,35` ; `color.textPrimary` (`#141414`) ; actif `assets/icons/icon-tour.svg` ; clé `icon.tour` |
 
-Dans `Composition / Circuit Section`, le groupe `Nombre de tours` + synthèse mesure `33` points de haut et est centré verticalement face au sélecteur. La synthèse utilise `type.caption` (`11/13`), `color.textSecondary` et un espacement vertical de `4` points sous le titre. Son calcul consomme la Durée synthétique des Exercices et exclut toujours le `Compte à rebours initial` et la `Fin de séance`, éléments structurels hors Circuit. Ces valeurs réemploient les tokens existants ; aucun nouveau token n’est créé. Les variantes `State=Collapsed` et `State=Expanded` partagent strictement cet en-tête.
+Dans `Composition / Circuit Section`, le groupe `Nombre de tours` + synthèse mesure `33` points de haut et est centré verticalement face au sélecteur. La synthèse utilise `type.caption` (`11/13`), `color.textSecondary` et un espacement vertical de `4` points sous le titre. Son calcul consomme la Durée synthétique des Exercices de ce seul Circuit (D-382) et exclut toujours le `Compte à rebours initial` et la `Fin de séance`, éléments structurels hors Circuit. Ces valeurs réemploient les tokens existants ; aucun nouveau token n’est créé. Les variantes `State=Collapsed` et `State=Expanded` partagent strictement cet en-tête.
 
 ##### Source canonique de l’icône Tour
 
@@ -1151,11 +1270,11 @@ Les tokens Figma associés sont `component/wheel/compact-height`, `component/whe
 - Les formulaires utilisent un mécanisme de Keyboard Avoiding adapté à la plateforme et permettent de faire défiler le champ actif au-dessus du clavier.
 - Les modales basses limitent leur hauteur à `85 %` de la hauteur sûre et rendent leur contenu interne défilant au-delà.
 - Un contrôle segmenté est un conteneur horizontal dont chaque option utilise `flex: 1`. Le fond sélectionné appartient au segment et non à l’écran ; texte et fond sont centrés dans la même zone.
-- La navigation basse du MVP est un composant unique à quatre destinations `Catalogues / Calendrier / Suivi / Profil`, sans contrôle Recherche .
+- La navigation basse du MVP est un composant unique à quatre destinations `Catalogues / Calendrier / Suivi / Profil`, sans contrôle Recherche (D-221/D-225).
 - Les actions situées à droite d’une carte sont regroupées dans un conteneur `row` aligné en fin de carte. Le groupe possède une marge droite interne de `6` et un espacement fixe entre actions ; aucune action n’utilise une coordonnée calculée depuis la largeur de l’écran.
 - Les cadres de synthèse utilisent `width: '100%'`, un padding horizontal canonique et une hauteur minimale. Le texte est multi-ligne et détermine la hauteur finale ; `numberOfLines` et une hauteur fixe ne doivent pas masquer ou faire dépasser le contenu.
 - Dans le formulaire Exercice, le récapitulatif est un frère du groupe de paramètres et non son enfant. Le layout principal utilise un espace flexible entre les paramètres et ce récapitulatif pour maintenir ce dernier au-dessus de l’action finale. Le code ne doit pas reproduire les coordonnées absolues du gabarit.
-- Le sélecteur de rappel utilise trois zones sœurs : option fixe `Aucun`, `ScrollView` horizontal pour les choix rapides, option fixe `Personnalisé`. Le défilement ne déplace pas les options fixes et accepte l’ajout de délais rapides sans modifier la structure du composant.
+- Le Rappel est activé par un interrupteur ; l’option `Aucun` est supprimée (D-330). Le sélecteur de rappel présente ensuite cinq options de largeur égale, dont `Autre` (D-229, révision du 08/10).
 - La barre de jours du Calendrier utilise `width: '100%'` et sept cellules de même poids (`flex: 1`). Les espacements sont inclus dans la largeur disponible : aucune cellule ne conserve la largeur ou la position du gabarit `402`.
 - Le groupe `Série / Tour` de l’Exécution comporte deux zones flexibles symétriques et un séparateur central fixe. Il ne repose sur aucune coordonnée absolue et reste sur une ligne à partir de `360` points avec le texte à `100 %` ou `135 %` ; à une taille d’accessibilité supérieure, son conteneur peut grandir verticalement sans rendre les valeurs ambiguës.
 - La progression par Tours est contenue dans un parent de largeur utile avec débordement masqué. Pour `n` Tours, la largeur de chaque segment est calculée à partir de la largeur disponible après déduction des `n - 1` espacements ; aucune largeur de segment provenant du Figma n’est codée en dur.
@@ -1327,6 +1446,80 @@ L’interface est responsive pour les principales tailles d’écran iOS et Andr
 
 Une interface spécifique tablette et le mode sombre sont hors MVP. Une revue d’accessibilité est réalisée avant livraison, sans reporter à cette étape l’application des règles de base.
 
+## Interface générale — règles
+
+La référence générale est le [DSF du 08/10](../DSF-INTERFACE-GENERALE-2026-10-08.md). Elle remplace les anciens écarts de contexte/sections, positions de CTA et habillages de blocs incompatibles. Elle ne remplace pas les espacements internes des composants. Fond blanc de modale et voile 34 % sont distincts. Le registre des tokens de code ne vaut pas preuve que la nouvelle grille a été implémentée : cette mission est documentaire.
+
+La planification applique [sa spécification](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification) et les contrats CE-UI-04/05/11. L’ordre et les coordonnées observés ne fournissent aucune formule de récurrence.
+
+*Texte identique à celui de la section [« Précision de modèle — source, v15 »](09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#précision-de-modèle--source-v15) ; il n’est pas recopié ici.*
+
+## Écart d’implémentation constaté lors de la fusion documentaire
+
+La cible normative de `color.overlayScrim` est `rgba(31, 33, 41, 0.34)`, conformément au brief de voile appliqué et au relevé Figma de cette mission. La mention « cible à arbitrer » de la PR #326 est dépassée. Le code de `src/shared/ui/tokens.ts` au commit `a0a07602` conserve `rgba(20, 20, 20, 0.5)` : son alignement reste à réaliser dans une intervention de développement. Le test `tokensSpecification.test.ts`, qui compare le code au présent registre, signalera cet écart tant que le code ne sera pas aligné. Cette fusion documentaire ne modifie pas le code et ne clôture pas cet écart d’implémentation.
+
+## Segmentés — complément
+
+[Contrat DSF courant](../DSF-SEGMENTES-TITRES-2026-10-07.md) : deux choix Exercices/Séances pour les catalogues et sélecteurs de type ; rendu standard 354×42, options 171×34, padding/gap4, radius 14/10, fond blanc 50%, inactive#EAEAFF, libellés 16/20. Calendrier et modes conservent leurs trois choix. Exceptions de texte 13 et 14/11 pour côtés ; géométries de feuille conservées et écarts mesurés explicités dans le DSF. Lors d’une liaison de peinture au token, restaurer l’alpha0,5 du **remplissage** ; ne pas appliquer 0,5 au nœud entier, ce qui atténuerait textes et options.
+
+La suppression du troisième segment est une évolution fonctionnelle [FUNC-SEG-02](../BACKLOG-SEGMENTS-CATALOGUE-2026-10-07.md), distincte de l’alignement visuel. Elle ne supprime aucune entité ni table Circuit/Parcours et ne modifie pas l’Exécution.
+
+## Cohérence des couleurs après rationalisation — H-13
+
+| Élément | Valeur de référence | État observé / provenance |
+|---|---|---|
+| Pilule de navigation | `color/navigation/pill #F9FAFC` | L’ancienne prescription `#FCFCFE` des chapitres 06/07 est historique ; la valeur du token est la référence courante. |
+| Surface de carte archivée | `color/surface #F5F7FA` | Le composant Cartes / Exercice Archivé est lié à ce token (relevé Claude du 06/10). `#F6F6F6` figure dans l’ancienne documentation ; cela ne prouve pas à lui seul la valeur historique du token supprimé `color/cards/archive-surface`. |
+| Fond circulaire Retour | `#FCFCFE` observé dans Figma | Selon Claude, 85 calques de Prototype MVP restent liés à des primitives `color/observed/…`, sans token sémantique. Ne pas leur attribuer `color/navigation/pill` par analogie. Le rendu existant est conservé. |
+
+Les faibles écarts de couleurs relèvent des fusions déjà acceptées dans le journal §5.3. Les chapitres 06/07/13 renvoient ici pour éviter deux prescriptions concurrentes ; aucun token de code ni asset n’est modifié. Les anciennes valeurs sont des preuves datées, pas des cibles simultanées.
+
+## DSF courant — Cartes, icônes et animations d’appui
+
+Décisions finales du propriétaire : les 17 points du 30/09 sont clos. Révision des cartes du 03/10/2026 (D-260 à D-264) : un seul format de carte d’Exercice, avec une gouttière permanente de 64 px dans le Catalogue et les listes de sélection d’exercices ; photo si média associé, icône de nature sinon. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Les Séances ne portent jamais de visuel. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi. Aucun déploiement d’Exercice ni de carte du Suivi ; le déploiement des Séances reste accessible dans le Catalogue et le Calendrier Semaine. Le Suivi présente deux lignes : nature/titre/statut, puis durée/catégorie/ressenti ; sans heure, zones corporelles ni étiquettes. Le Ressenti y est un indicateur sans action, distinct de sa saisie obligatoire en Synthèse. Les variantes déployées d’Exercice et du Suivi sont historiques, hors MVP. Pauses/récupérations et prochaine planification restent absentes des cartes concernées. Les données, instantanés, calculs et fonctions de planification sont conservés.
+
+Synthèses : « N séries de X », « N séries de N rép. », « N séries à l’échec » ; bilatéralité par miroir dans les variantes concernées. Heure Semaine « 08:00 » ; aucune heure dans la carte du Suivi. Séance sans étiquette : catégories de ses exercices ; listes de catégories/zones séparées par un point médian et tronquées avec « … ». Choix sans badge durée ; récurrence du Calendrier Semaine dans la carte déployée seulement.
+
+RG-10 : le Profil porte une préférence silhouette facultative, homme/femme ; absence = homme affiché. Elle ne pilote que l’icône de zone corporelle, sans filtre, recherche ou effet métier. RG-11 à RG-13 : vignette 64 centrée et recadrée sans déformation (couverture pour une vidéo), place réservée pendant chargement/erreur, texte alternatif égal au nom de l’exercice.
+
+D-239 : Calendrier Jour est une exception compacte (séance 298 × 46, exercice 298 × 48, x=80, hauteur d’instance adaptée à l’événement), avec barre colorée 4, nature 26, titre 13 gras, heure/durée 11, lecture 26 et aucun Déployer. Les deux sets comportent 10 variantes chacun. Suivi — Vue d’ensemble est hors MVP. Les boutons Calendrier Aujourd’hui/Planifier restent à 32, sans cible 44 ajoutée : situation acceptée, à revoir et développer après T04. Les nouvelles icônes sont nommées icon/<nom>, les anciennes ne sont pas renommées ; target est réservé au Programme, pulse aux rapports/Suivi.
+
+Implémentation attendue : conserver la préférence dans le mécanisme persistant du Profil existant ; résoudre le défaut homme dans la présentation ; réutiliser les médias déjà associés, sans import supplémentaire. Les composants canoniques DSF conservent leurs identifiants ; les variantes déployées d’Exercice et du Suivi sont historiques hors MVP (D-261/D-262).
+
+Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.
+
+*Texte identique à celui de la section [« Références transverses des cartes et appuis »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#références-transverses-des-cartes-et-appuis) ; il n’est pas recopié ici.*
+
+> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248 et [Ordres d’exécution et pauses](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ordres-dexécution-et-pauses) (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre 13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
+
+### Saisie des paramètres d’exécution
+
+Contenu identique à la section [« Saisie des paramètres d’exécution »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#saisie-des-paramètres-dexécution) : il n’est pas recopié ici.
+
+## Contraintes DSF avant développement
+
+L’implémentation de la navigation et des composants visuels respecte D-224 à D-230 : fonds, dégradés de contexte, navigation 322×62 et intégration écran, halos/actions circulaires, steppers/badges, clipping des listes et gabarits de modales/roulettes. Ces valeurs sont centralisées dans les tokens/composants du Design System plutôt que dupliquées écran par écran. Aucun composant ni route de Recherche globale/Catalogue n’est requis pour le MVP (D-221).
+
+### Référence DSF V2 détaillée — clôture
+
+- **Navigation basse** : pilule `322 × 62 px`, `#F9FAFC`, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur/rayon 10 offset `0,2`; token `color/navigation/pill`. Icône Profil selon D-233/D-236 dans boîte 32×32 ; actif `#0508E5`, inactif `#595E66`. Cadre actif `76 × 50 px`, bleu `#0508E5` à 10 %. Boîtes d’icônes aux abscisses 68/146/224/302 dans la référence 402 px, soit 28 px entre bord de pilule et boîte extrême et 78 px entre centres. Intégration écran : 16 px sous la pilule, bande opaque 16 px puis dégradé transparent→fond sur 40 px ; ces bandes appartiennent à l’écran.
+- *Texte identique à celui de la section [« Référence DSF V2 détaillée — clôture »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#référence-dsf-v2-détaillée--clôture) ; il n’est pas recopié ici.*
+- **Halo et action circulaire** : halo Annuler/Retour blanc opaque `59,28 px`, placé devant la zone de contexte et hors du conteneur clippé ; bouton circulaire clair `32 × 32`, `#FCFCFE`, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur 10 offset `0,2`.
+- *Texte identique à celui de la section [« Référence DSF V2 détaillée — clôture »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#référence-dsf-v2-détaillée--clôture) ; il n’est pas recopié ici.*
+- *Texte identique à celui de la section [« Référence DSF V2 détaillée — clôture »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#référence-dsf-v2-détaillée--clôture) ; il n’est pas recopié ici.*
+- *Texte identique à celui de la section [« Référence DSF V2 détaillée — clôture »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#référence-dsf-v2-détaillée--clôture) ; il n’est pas recopié ici.*
+- *Texte identique à celui de la section [« Référence DSF V2 détaillée — clôture »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#référence-dsf-v2-détaillée--clôture) ; il n’est pas recopié ici.*
+- *Texte identique à celui de la section [« Référence DSF V2 détaillée — clôture »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#référence-dsf-v2-détaillée--clôture) ; il n’est pas recopié ici.*
+- **Cartes d’Exercice** : D-260/D-261 remplacent l’ancien état média déployé ; gouttière permanente au Catalogue et dans les choix d’exercices, photo ou icône de nature ; aucun Déployer. Aucune photo sur Séance, dans les listes mixtes, le Calendrier ou le Suivi. Les variantes média d’Exécution conservent leur fonctionnement propre.
+
+### Générateur et validation des paramètres v13
+
+Fonctions pures communes de calcul, résumé et construction des phases : chapitre 08, paramètres d’exercice, D-247 à D-255. Fournir explicitement le contexte intrinsèque/occurrence. Ne pas extraire de données métier du texte du résumé ni des valeurs Figma. Le tableau ordonné est la source des paramètres variables. Le total est dérivé, jamais éditable en variable.
+
+Bornes : N1..99, répétitions 1..100, durée 5..3535 s, pauses 0..300 s. Steppers : tap 1 ; maintien avec paliers 1/5/10 et arrondi directionnel selon DSF Bip ; Bip/Compte à rebours/Fin sans accélération. Les valeurs stockées ne sont pas arrondies à l’ouverture. PC reprend le défaut Profil (10 s). Aucune estimation forfaitaire de répétition ; [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) gouverne le total. La Cadence est présentée par choix rapides ; Autre réutilise le mécanisme numérique existant (RM-245). La charge est saisie au clavier numérique décimal (RM-239, D-405), sans extension aux autres paramètres numériques.
+
+Prévoir la représentation versionnée uniforme/variable, Ordre des côtés et charge (activation, valeur commune, valeurs par Série, valeurs conservées sous Sans ; RM-236) dans les définitions, copies et instantanés. Les données anciennes sont lues uniforme/Un côté après l’autre et sans charge, jamais 0 kg ; la nouvelle politique des pauses s’applique aux nouvelles exécutions de ces données. Les résultats historiques restent immuables. La migration physique doit être planifiée avec l’implémentation ; aucune réinitialisation de base n’est autorisée par cette mise à jour documentaire. PRE-1 reste fermé. Les anciens jeux v10 sont des preuves historiques ; la recette cible est chapitre 08, paramètres d’exercice et la matrice du 02/10.
+
 ## 12.32 Stratégie de développement incrémental
 
 Le MVP est développé et validé progressivement. Les premières versions de développement ne reproduisent volontairement pas l’intégralité des écrans et fonctions Figma ; elles servent à valider les briques fonctionnelles et techniques avant d’ajouter la complexité suivante.
@@ -1337,7 +1530,7 @@ Ordre de développement retenu :
 2. **Spike technique critique** : timer, arrière-plan, écran verrouillé, audio, voix et vibrations sur iOS et Android.
 3. **Séance simple** : création et modification d’une Séance avec quelques Exercices et un Cycle technique déjà fixé à 1.
 4. **Premier moteur d’Exécution bout-en-bout** : démarrage, timer, pause, Exercice suivant, arrêt et fin.
-5. **Structure complète du MVP** : Tour et ses répétitions, Cycle technique masqué, Récupération, Compte à rebours initial et Fin de Séance.
+5. **Structure complète du MVP** : Circuit et ses Tours, Cycle technique masqué, Récupération, Compte à rebours initial et Fin de Séance.
 6. **Exécution complète** : règles, sons, annonces, confirmations, interruptions et Instantané.
 7. **Historique / Suivi**.
 8. **Planification / Agenda / notifications locales**.
@@ -1350,26 +1543,40 @@ Chaque étape doit être fonctionnelle et testée avant de servir de base à la 
 
 Si l’application est interrompue alors qu’une Exécution est `En cours`, celle-ci n’est pas clôturée automatiquement. Au retour au premier plan ou au prochain démarrage, l’état sauvegardé est détecté et l’utilisateur doit choisir entre **Reprendre la séance** et **Arrêter la séance**. Tant que ce choix n’est pas effectué, le démarrage d’une nouvelle Exécution est bloqué. `Arrêter la séance` clôt l’Exécution au statut `Interrompue` et ouvre la fin minimale dans T04 ; la Synthèse appartient à la tranche qui la livre.
 
+## Adaptation moteur et persistance
+
+Classifier chaque phase par mode ET nature de cible ; DURATION seul ne garantit plus une fin automatique. Les formules de poids sont conservées, les prédicats changent : cible échec inconnue et fin Suivant, même avec bip. Reprendre les intervalles logiques pour la proposition de répétitions, indépendamment de l’audibilité ; ne pas diviser le temps global cumulé par l’intervalle après des pauses/reset. Persister séparément cumul et dernière tentative, identité par occurrence/côté, et qualification du relevé. Confirmer/corriger ne commande pas l’avancement.
+
+Migration versionnée et atomique de l’ancien mode, copies/snapshots compris ; une erreur structurelle annule toute la migration, tandis que les Exercices aux paramètres illisibles, valeurs négatives ou non entières comprises, sont écartés et dénombrés ; ce nombre est restitué par le message récapitulatif de fin de migration, affiché seulement si au moins un Exercice a été écarté et non réaffiché aux mises à jour suivantes (décisions PRE-4 Q19 et Q28 du 16/10, D-385 ; D-394 ; chapitre 09, Migration et compatibilité) ; compatibilité/reprise à qualifier sur le schéma réel. Le §4.5 reçu impose une roulette grisée mais manipulable : son mouvement sélectionne une cible numérique. Ne pas traduire cet état par disabled bloquant les gestes. Qualification des interactions, du rendu 45% du bloc et de l’accessibilité sur chaque plateforme à réaliser. Aucun coût nul ni capacité déjà livrée n’est revendiqué.
+
+## Moteur Cadence — cible technique
+
+Séparer `durationDeterminable` de `autoComplete` dans l’adaptateur du plan : Répétitions cadencées fournissent Ri×Ci mais attendent Suivant. La phase Série porte cadence/cible ; pas une phase par répétition. Les Séries sans cadence et À l’échec gardent leur poids à validation ; les cadencées entrent dans le groupe temporel R-01 (chapitre 13).
+
+Scheduler fondé sur ancres monotones, nombre d’intervalles acquis, début du courant, nominal atteint ; état persistable et transitions idempotentes. Le compteur de tentative est distinct de l’accumulateur actif réel : fraction abandonnée par Pause et temps avant reset restent dans le résultat par Série/côté. Reprise avec intervalle complet ; arrière-plan avec recalcul et sans rejeu des sons manqués. Le seuil 30 min est ancré sur la fin nominale recalculée. Aucun100% global avant finalisation.
+
+Ordre de développement : représentation variable effective, migration absence de cadence, snapshot versionné, calcul/incertitude, ordonnanceur/progression/audio, restitution/phrase, tests sur appareils. Les modules audio en arrière-plan, interruptions système, verrouillage et reprise doivent être qualifiés iOS/Android ; aucune réussite de test n’est revendiquée ici. Les sons concrets et leur adaptation aux préférences existantes restent du travail d’implémentation, pas un nouveau réglage Profil.
+
 ## 12.34 Architecture cible — Exercices, Médias et Parcours
 
 SQLite porte les définitions d’Exercices, les copies de Séance, les associations ordonnées et les métadonnées média ; la cible de Routine multi-contenus est décrite ci-dessous, sans entité Parcours. Les photos et vidéos résident dans le stockage interne de l’application sous URI stable ; aucun binaire n’est enregistré en base. Un service de références compte les usages actifs et historiques avant tout nettoyage physique.
 
-Le domaine sépare `ActivityDefinitionRepository`, `SessionActivityRepository`, `MediaAssetRepository`. `CompositionService` orchestre la copie complète d’une définition dans une Séance. L’ancien service d’Exécution de Parcours n’est plus une cible à introduire .
+Le domaine sépare `ActivityDefinitionRepository`, `SessionActivityRepository`, `MediaAssetRepository`. `CompositionService` orchestre la copie complète d’une définition dans une Séance. L’ancien service d’Exécution de Parcours n’est plus une cible à introduire (D-328).
 
-Le schéma d’`ActivityDefinition` utilise `executionMode ∈ {DURATION, REPETITIONS}` avec cible typée chiffrée/À l’échec par Série ; TO_FAILURE est un format historique à migrer. Il persiste le nombre de Séries canonique, la Pause après chaque série, `sideRecoverySeconds` et `sideMode`. `SessionActivity` ajoute `postActivityRecoverySeconds`. La Durée totale et le pilote Séries/Durée totale restent dérivés. Les Résultats distinguent les métriques des phases `SIDE_RECOVERY` et `POST_ACTIVITY_RECOVERY`. Les migrations conservent les Exercices MVP comme `SessionActivity`; elles ne créent pas silencieusement de références de catalogue. Les médias de la cible post-T05 utilisent capture ou photothèque, copie locale, miniature vidéo et lecture manuelle. La synchronisation distante reste séparée.
+Le schéma d’`ActivityDefinition` utilise `executionMode ∈ {DURATION, REPETITIONS}` avec cible typée chiffrée/À l’échec par Série ; TO_FAILURE est un format historique à migrer. Il persiste le nombre de Séries canonique, la Pause après chaque série, `sideRecoverySeconds`, `sideMode` et la charge : activation, valeur commune ou valeurs par Série, numériques en kg, décimales acceptées préservées, noms techniques laissés à l’implémentation (RM-235, RM-236, RM-239). `SessionActivity` expose `postActivityRecoverySeconds` comme projection de calcul de son éventuel objet `recovery`, et non comme une seconde récupération persistée (RM-209). La Durée totale et le pilote Séries/Durée totale restent dérivés. Les Résultats distinguent les métriques des phases `SIDE_RECOVERY` et `POST_ACTIVITY_RECOVERY`. Les migrations conservent les Exercices MVP comme `SessionActivity`; elles ne créent pas silencieusement de références de catalogue. Les médias de la cible post-T05 utilisent capture ou photothèque, copie locale, miniature vidéo et lecture manuelle. La synchronisation distante reste séparée.
 
 ### Sources de données du Catalogue
 
 | Segment | MVP | V2 |
 |---|---|---|
-| Exercices | désactivé, aucune requête | `ActivityDefinitionRepository` |
+| Exercices | `ActivityDefinitionRepository`, à partir de T03 (D-166, D-183, RM-109) | `ActivityDefinitionRepository` |
 | Séances | `SessionRepository` | `SessionRepository` |
 
 Le filtrage et le tri sont des paramètres de requête indépendants du segment. L’ordre par défaut est `updatedAt DESC`; l’exécution d’une Séance ne modifie jamais `updatedAt`.
 
 ### Composants et tokens Figma
 
-Les composants d’éditeur et de Composition restent la base visuelle, mais le composant historique `Composition / Activity Row with Recovery` (`3572:64`) est **supersédé sur la sémantique récupération par D-208** : la récupération post-activité est ajoutée explicitement ; D-238 retire les informations de pause/récupération du corps des cartes ; le trait reste hors placement, indépendamment du contenu . L’éditeur utilise une récupération entre côtés conditionnelle. Les états d’écran de calcul sont `3580:4733` (Séries pilote), `3580:4845` (Durée totale pilote) et `3580:4957` (durée ajustée).
+Les composants d’éditeur et de Composition restent la base visuelle, mais le composant historique `Composition / Activity Row with Recovery` (`3572:64`) est **supersédé sur la sémantique récupération par D-208** : la récupération post-activité est ajoutée explicitement ; D-238 retire les informations de pause/récupération du corps des cartes ; le trait reste hors placement, indépendamment du contenu (D-303). L’éditeur utilise une récupération entre côtés conditionnelle. Les états d’écran de calcul sont `3580:4733` (Séries pilote), `3580:4845` (Durée totale pilote) et `3580:4957` (durée ajustée).
 
 Les alias Figma sont bijectifs et explicites :
 
@@ -1384,21 +1591,21 @@ Toutes les modales utilisent le voile `overlayScrim` (`color/overlay/scrim`, #1F
 
 ## Architecture de la bilatéralité
 
-Le domaine expose `sideMode` avec les valeurs exactes `UNILATERAL`, `RIGHT_LEFT`, `LEFT_RIGHT`, et `executionSide` avec `NONE`, `RIGHT`, `LEFT`. Les repositories persistants conservent `side_mode` sur l’Exercice de catalogue et l’occurrence de Séance. Le champ historique équivalent du Tour est conservé pour compatibilité/non-régression, reste `UNILATERAL` et n’est pas exposé à la mutation utilisateur dans la version actuelle. Les nœuds d’instantané conservent la direction effective de l’Exercice ; les résultats conservent le côté.
+Le domaine expose le changement de côté Sans / Avec (`sideMode`, RM-242) et le côté d’exécution sans côté / côté 1 / côté 2 (`executionSide`, RM-243). Les valeurs historiques `UNILATERAL`, `RIGHT_LEFT`, `LEFT_RIGHT` et `NONE`, `RIGHT`, `LEFT` restent lisibles ; `RIGHT_LEFT` et `LEFT_RIGHT` valent Avec, sans réinterprétation de l’Ordre des côtés (RM-244). La représentation technique de Avec et de côté 1 / côté 2 est laissée à l’implémentation. Les repositories persistants conservent `side_mode` sur l’Exercice de catalogue et l’occurrence de Séance. Le champ historique équivalent du Tour est conservé pour compatibilité/non-régression, reste `UNILATERAL` et n’est pas exposé à la mutation utilisateur dans la version actuelle. Les nœuds d’instantané conservent le changement de côté effectif de l’Exercice ; les résultats conservent le côté.
 
-Le générateur de Plan est l’unique composant autorisé à développer les passages. Dans la version actuelle, il ne développe aucune bilatéralité portée par le Tour : le Tour est traité fonctionnellement `UNILATERAL`. La capacité technique historique est conservée sans être exposée ni modifiée par l’utilisateur. Il applique la priorité du Tour, empêche tout double multiplicateur et produit des identifiants stables incluant répétition de Tour, Exercice, Série et côté. La commande d’activation recherche d’abord les enfants propres `RIGHT_LEFT` ou `LEFT_RIGHT`. Sans enfant concerné, elle met directement le Tour à jour. Avec enfant concerné et confirmation, une transaction met à jour le parent et remet uniquement ces enfants à `UNILATERAL`; une annulation n’écrit rien. La migration affecte `UNILATERAL` et `NONE` aux données historiques sans créer de duplicata.
+Le générateur de Plan est l’unique composant autorisé à développer les passages. Dans la version actuelle, il ne développe aucune bilatéralité portée par le Tour : le Tour est traité fonctionnellement `UNILATERAL`. La capacité technique historique est conservée sans être exposée ni modifiée par l’utilisateur. Il applique la priorité du Tour, empêche tout double multiplicateur et produit des identifiants stables incluant répétition de Tour, Exercice, Série et côté. La commande d’activation recherche d’abord les enfants propres avec changement de côté (Avec, valeurs historiques `RIGHT_LEFT` ou `LEFT_RIGHT` comprises). Sans enfant concerné, elle met directement le Tour à jour. Avec enfant concerné et confirmation, une transaction met à jour le parent et remet uniquement ces enfants à `UNILATERAL`; une annulation n’écrit rien. La migration affecte `UNILATERAL` et `NONE` aux données historiques sans créer de duplicata.
 
-Les services de calcul utilisent des fonctions pures couvrant les deux valeurs de `L`, l’arrondi `.5` vers le haut, les bornes et le recalcul. Les tests combinent deux modes × trois réglages × Exercice/Tour × Séries × Pauses/Récupérations × interruptions. Les tests d’intégration vérifient l’ordre `D→G` et `G→D`, l’idempotence des résultats, la reprise, la progression monotone, les annonces uniques et la préservation du premier côté lors d’une réinitialisation du second.
+Les services de calcul utilisent des fonctions pures couvrant les deux valeurs de `L`, l’arrondi `.5` vers le haut, les bornes et le recalcul. Les tests combinent deux modes × réglages de côté (Sans, Avec et valeurs historiques lues Avec) × Exercice/Tour × Séries × Pauses/Récupérations × interruptions. Les tests d’intégration vérifient les deux Ordres des côtés avec changement de côté, la lecture Avec des valeurs historiques `RIGHT_LEFT` et `LEFT_RIGHT` (RM-244), l’idempotence des résultats, la reprise, la progression monotone, les annonces uniques et la préservation du côté 1 lors d’une réinitialisation du côté 2.
 
 Le DSF normalise `Controls / Sides — Source exact` (`3704:5021`) à `74 × 42 pt` pour toutes ses variantes ; il est déjà placé ligne 2, colonne 1 sous `Séries`. `Controls / Tour Sides — Source exact` (`3705:5021`) reste `42 × 34 pt`, avec `8 pt` après le cadre numérique `66 × 34 pt` dans `2028:11743`. `DSF / Status & Tags / Indicateur de côté` (`5544:6944`) remplace l’ancienne référence `3706:5020`, historiquement `42 × 20 pt` dans les informations secondaires de carte. Les descriptions DSF portent les libellés accessibles, les conditions de désactivation et de confirmation. Cette rectification ne crée aucun token, champ, enum ou calcul.
 
-Le Shell d’Exécution affiche un texte secondaire centré de 16 points sous le nom de l’Exercice pour le côté courant. Les écrans unilatéraux le masquent. Cette présentation réutilise les couleurs et la typographie existantes ; aucun nouveau token n’est requis.
+Le Shell d’Exécution affiche un texte secondaire centré de 16 points sous le nom de l’Exercice pour le côté courant, désigné « Côté 1 » ou « Côté 2 » (RM-243). Les écrans unilatéraux le masquent. Cette présentation réutilise les couleurs et la typographie existantes ; aucun nouveau token n’est requis. Lorsque la charge est active, la charge de la Série courante est affichée (RM-241) ; son emplacement et son traitement relèvent de Figma, qui ne les illustre pas encore.
 
 ## Architecture MVP T03 — Catalogue des Exercices et moteur multi-origine
 
 T03 livre le Catalogue des Exercices et le sous-ensemble du moteur nécessaire à l’Exécution directe d’un Exercice. T04 étend ensuite ce moteur partagé à l’Exécution structurée des Séances, sans dupliquer la machine à états. Le Catalogue des Exercices réutilise le Shell du Catalogue et sépare les responsabilités existantes : lecture et cycle de vie des `ActivityDefinition`, copie ordonnée par `CompositionService`, lancement par `ExecutionService` et retour d’état de navigation par la couche de présentation. Aucun service réseau ni stockage parallèle n’est introduit.
 
-Pour la couche de présentation du Catalogue et de l’éditeur autonome, `src/features/activities/` est le périmètre feature dédié : écrans, composants et adaptateurs UI propres aux Exercices persistantes y résident. Le domaine reste dans `src/domain/activities/` et l’accès SQLite dans `src/infrastructure/database/`; aucune règle métier ni persistance n’est dupliquée dans la feature. Les composants réellement partagés avec la Composition ou les autres écrans restent dans les espaces partagés existants. Cette séparation justifie l’introduction de `src/features/activities/` sans créer un second domaine.
+Pour la couche de présentation du Catalogue et de l’éditeur autonome, `src/features/activities/` est le périmètre feature dédié : écrans, composants et adaptateurs UI propres aux Exercices persistants y résident. Le domaine reste dans `src/domain/activities/` et l’accès SQLite dans `src/infrastructure/database/`; aucune règle métier ni persistance n’est dupliquée dans la feature. Les composants réellement partagés avec la Composition ou les autres écrans restent dans les espaces partagés existants. Cette séparation justifie l’introduction de `src/features/activities/` sans créer un second domaine.
 
 ### Moteur d’Exécution multi-origine
 
@@ -1406,7 +1613,7 @@ Le moteur d’Exécution reçoit un `ExecutionSource` discriminé : `SessionSnap
 
 L’adaptateur `ACTIVITY` ajoute `DIRECT_PREPARE(5 s)`, développe l’Exercice, puis clôt sans `SESSION_END`. La persistance stocke l’origine et l’instantané autonome. Les agrégateurs sélectionnent uniquement les métriques compatibles et n’incrémentent pas le compteur de Séances.
 
-La navigation conserve un état de retour sérialisable du Catalogue. Les tests couvrent au minimum : les deux modes, Séries multiples, Pause nulle/non nulle, Récupération, trois directions, interruption/reprise, suppression de la source, Synthèse obligatoire, Suivi et non-comptage d’une Séance.
+La navigation conserve un état de retour sérialisable du Catalogue. Les tests couvrent au minimum : les deux modes, Séries multiples, Pause nulle/non nulle, Récupération, sans et avec changement de côté (valeurs historiques comprises), interruption/reprise, suppression de la source, Synthèse obligatoire, Suivi et non-comptage d’une Séance.
 
 ### Icônes vectorielles de sélection multiple
 
@@ -1415,9 +1622,9 @@ Les pictogrammes de `CE-COMP-SEL-01` proviennent des composants locaux DSF du fi
 | Usage | Composant Figma | ID / clé | Tokens liés |
 |---|---|---|---|
 | Recherche dans le panneau | `DSF / Primitives / Icône de recherche` | `3847:5508` / `8468835f0e5ce8676ea419e838c19dccddac0d71` | trait `color/icon-neutral` — `VariableID:2290:59` |
-| Exercice sélectionné — choix Composition | `DSF / Cards / Exercice`, variante `Contexte=Choix composition, État=Sélectionné` | carte `6214:4425` ; case `6214:4423` ; coche `6214:4424` | case `#0508E5` liée à `color/blue/primary-0508E5` (`VariableID:2290:2`), rayon6 ; coche blanche (`VariableID:2290:5`) |
+| Exercice sélectionné — choix Composition | `DSF / Cards / Exercice`, variante `Contexte=Choix composition, État=Sélectionné` | carte `6214:4425` ; case `6214:4423` ; coche `6214:4424` | case `#0508E5` liée à `color/blue/primary-0508E5` (`VariableID:2290:2`), rayon 6 ; coche blanche (`VariableID:2290:5`) |
 
-L’ancien composant autonome `Icon / Selection Check` (`3847:5512`) est absent. La référence actuelle est vérifiée dans la frame `3789:5349`, instances sélectionnées `6221:3519` et `6221:3586`, issues de la carte `6214:4425`. La case mesure20 ×20, rayon6, sans stroke ; la coche source est un glyphe Inter14 Semi Bold dans un calque20 ×20. Son export SVG vectorisé exact est [selection-check.svg](../../assets/icons/selection-check.svg), `viewBox 0 0 10 8` : dimensions du tracé exporté, pas du slot. Aucun glyphe de police n’est requis côté code. Le calque de coche se place 1px au-dessus de la case ; le tracé visible a un décalage d’environ5,236px horizontal et5,598px vertical dans la case selon ses bounds Figma. Ne pas agrandir le tracé10 ×8 à20 ×20. Le fond et son rayon appartiennent au contrôle hôte, pas à cet asset. L’ancien fond `color/selection #5F60EE` et le cadre24 ×24 sont historiques pour cet usage. [Provenance](../../assets/icons/figma-current-exports.json). L’implémentation réutilise l’asset exporté ou son équivalent code connecté au composant, sans caractère Unicode, emoji, glyphe de police, icône système ni redessin approximatif. La cible tactile appartient au contrôle hôte et reste au minimum `48 × 48 pt`.
+L’ancien composant autonome `Icon / Selection Check` (`3847:5512`) est absent. La référence actuelle est vérifiée dans la frame `3789:5349`, instances sélectionnées `6221:3519` et `6221:3586`, issues de la carte `6214:4425`. La case mesure 20 ×20, rayon 6, sans stroke ; la coche source est un glyphe Inter 14 Semi Bold dans un calque 20 ×20. Son export SVG vectorisé exact est [selection-check.svg](../../assets/icons/selection-check.svg), `viewBox 0 0 10 8` : dimensions du tracé exporté, pas du slot. Aucun glyphe de police n’est requis côté code. Le calque de coche se place 1px au-dessus de la case ; le tracé visible a un décalage d’environ5,236px horizontal et 5,598px vertical dans la case selon ses bounds Figma. Ne pas agrandir le tracé 10 ×8 à 20 ×20. Le fond et son rayon appartiennent au contrôle hôte, pas à cet asset. L’ancien fond `color/selection #5F60EE` et le cadre 24 ×24 sont historiques pour cet usage. [Provenance](../../assets/icons/figma-current-exports.json). L’implémentation réutilise l’asset exporté ou son équivalent code connecté au composant, sans caractère Unicode, emoji, glyphe de police, icône système ni redessin approximatif. La cible tactile appartient au contrôle hôte et reste au minimum `48 × 48 pt`.
 
 ## Architecture cible — média pendant l’Exécution
 
@@ -1432,11 +1639,11 @@ La conception D-203 impose des propriétés techniques observables sans imposer 
 - une transition de fin d’Exercice ferme tout média de l’Exercice terminé avant d’afficher l’étape suivante ;
 - une erreur de chargement média reste confinée au média concerné.
 
-Cette cible reste post-MVP tant qu’une tranche d’implémentation n’est pas décidée.
+Cette cible fait partie du périmètre MVP (D-203, confirmation du 28/09/2026).
 
 ## 12.35 Source polymorphe des Routines — D-206
 
-La Routine porte le créneau et une liste ordonnée de références, non les contenus d’entraînement eux-mêmes. Chaque entrée référence une Séance active ou un Exercice persistant actif du même utilisateur. Le type et l’identifiant de source appartiennent désormais à **chaque entrée**, pas à un unique couple sur la Routine.
+*Texte identique à celui de la section [« Entité Routine »](09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#entité-routine) ; il n’est pas recopié ici.*
 
 | Donnée fonctionnelle | Porteur | Règle |
 |---|---|---|
@@ -1452,9 +1659,9 @@ La Routine porte le créneau et une liste ordonnée de références, non les con
 | Type de borne | Routine | jusqu’au/date ou pendant/nombre d’unités ; conversion ouverte |
 | Rappel activé, délai | Routine |0..1 ; permission système requise pour activation |
 
-Le schéma physique, les identifiants d’entrée et les liens aux exécutions devront être spécifiés avant développement. Ces noms fonctionnels ne sont pas un schéma SQL livré. Les occurrences futures restent dérivées ; aucun stockage de phrase récapitulative comme vérité métier. Une mise à jour ne réécrit pas les exécutions/instantanés passés. Les règles mono-source d’archivage ou suppression ne sont pas généralisées à une liste sans préciser l’effet sur les autres entrées.
+*Texte identique à celui de la section [« Entité Routine »](09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#entité-routine) ; il n’est pas recopié ici.*
 
-Voir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
+*Texte identique à celui de la section [« Entité Routine »](09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#entité-routine) ; il n’est pas recopié ici.*
 
 Un seul service génère les occurrences du créneau puis applique les filtres par entrée. Les sources restent discriminées SESSION/ACTIVITY. Aucun CircuitRepository ou CircuitExecutionService ne doit être ajouté pour un objet Parcours ; les éventuels noms techniques historiques ne sont pas supprimés sans analyse d’implémentation.
 
@@ -1466,11 +1673,15 @@ Un seul service génère les occurrences du créneau puis applique les filtres p
 
 Le champ historique générique `recovery_seconds` ne constitue plus le schéma cible. La persistance cible sépare :
 - `ActivityDefinition.side_recovery_seconds` — récupération intrinsèque entre côtés, pertinente uniquement en bilatéral ;
-- `SessionActivity.post_activity_recovery_seconds` — récupération contextuelle après occurrence, valeur obligatoire pouvant être `0`.
+- objet `recovery` explicitement attaché à `SessionActivity` — unique source persistée de la récupération contextuelle, dont l’absence reste distincte d’une récupération présente à 0 s ; une projection `post_activity_recovery_seconds` peut être matérialisée pour le calcul ou la compatibilité, avec 0 en l’absence d’objet, mais ne devient pas une seconde source autoritaire (RM-209).
 
 La base étant réinitialisable pour cette évolution, aucune migration utilisateur n’est exigée dans la documentation cible ; l’implémentation doit néanmoins produire directement le schéma cible.
 
 Le moteur ne déduit jamais une récupération post-exercice à partir de l’adjacence. Il lit la valeur portée par l’occurrence. Une Exécution directe d’`ActivityDefinition` ignore toute récupération post-exercice et ne peut produire que `SIDE_RECOVERY` lorsqu’elle est bilatérale.
+
+## Pauses et symboles
+
+Conserver les shells. Composition : sous-brouillon isolé pour placement multiple et roulette ; commit parent avant sauvegarde finale. Modèle de pauses explicites et projection R unique pour calcul/snapshot. Moteur : phases de récupération et d’attente existantes, cadence sonore et ancres temporelles inchangées. Rendu de durée discriminé (exact/estimated/lowerBound/omitted), sans formater omitted en 0. Pas de migration numérotée ni de version de dépendance prescrite sans lecture du code. DSF et assets : voir ../DSF-PAUSES-ICONES-2026-10-07.md.
 
 ## 12.38 Impacts techniques de la consolidation D-209 à D-217
 
@@ -1478,126 +1689,29 @@ Le schéma cible doit pouvoir représenter : (1) le Circuit interne et son nombr
 
 Les défauts Profil sont lus à la création uniquement : aucune synchronisation réactive ni indicateur d’héritage n’est requis. Le générateur de Plan développe les Points d’arrêt internes au Circuit à chaque Tour et ordonne, après un Exercice, `POST_ACTIVITY_RECOVERY` avant le Point d’arrêt. Les identifiants techniques historiques peuvent rester inchangés jusqu’à une refactorisation explicitement planifiée.
 
-**D-219 — composants de saisie.** Les durées conservent les pickers/roulettes en modale basse. Les entiers simples `Nombre de Séries`, `Nombre de répétitions` et `Nombre de Tours` utilisent un stepper inline. L’implémentation réutilise en priorité un composant standard/DSF compatible React Native/Expo ; un contrôle ad hoc équivalent ne doit pas être recréé sans contrainte technique documentée.
-
-## 28 septembre 2026 — contraintes DSF avant développement
-
-L’implémentation de la navigation et des composants visuels respecte D-224 à D-230 : fonds, dégradés de contexte, navigation 322×62 et intégration écran, halos/actions circulaires, steppers/badges, clipping des listes et gabarits de modales/roulettes. Ces valeurs sont centralisées dans les tokens/composants du Design System plutôt que dupliquées écran par écran. Aucun composant ni route de Recherche globale/Catalogue n’est requis pour le MVP .
-
-### Référence DSF V2 détaillée — clôture 28 septembre 2026
-
-- **Navigation basse** : pilule `322 × 62 px`, `#F9FAFC`, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur/rayon 10 offset `0,2`; token `color/navigation/pill`. Icône Profil selon D-233/D-236 dans boîte 32×32 ; actif `#0508E5`, inactif `#595E66`. Cadre actif `76 × 50 px`, bleu `#0508E5` à 10 %. Boîtes d’icônes aux abscisses 68/146/224/302 dans la référence 402 px, soit 28 px entre bord de pilule et boîte extrême et 78 px entre centres. Intégration écran : 16 px sous la pilule, bande opaque 16 px puis dégradé transparent→fond sur 40 px ; ces bandes appartiennent à l’écran.
-- **Fond / contexte** : écran ordinaire `#FFFFFF`; Splash `#0006F1`; média plein écran `#0A0A0C`. Zone de contexte `#EAEAFF`→transparent sur les 20 % inférieurs pour Catalogues, Composition, Calendrier, Suivi, Profil et Ajout d’exercice. Le séparateur 1 px n’est retiré que si ce dégradé assure la séparation.
-- **Halo et action circulaire** : halo Annuler/Retour blanc opaque `59,28 px`, placé devant la zone de contexte et hors du conteneur clippé ; bouton circulaire clair `32 × 32`, `#FCFCFE`, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur 10 offset `0,2`.
-- **Stepper / valeur** : variante lavande `#F2F2FF` pour Profil/paramètres, variante blanche pour Tours de Composition ; `−/+` ronds bleus, 12 px autour de la valeur centrale. Le stepper remplace la valeur sur la même ligne sans étirer le groupe ; un seul stepper actif à la fois. Badge replié `#F5F7FA (surface ; ancienne valeur historique #F4F4F8)`, texte bleu Semi Bold 13 px, rayon 6, marges 8 px horizontales et 2 px verticales ; contour bleu 1,5 px lorsque le contrôle est ouvert (DSF V2 lot 3, T4). Le nombre de semaines utilise la pilule de stepper rayon 18.
-- **Point d’arrêt** : bouton rond blanc opaque, icône Pause, contour 1 px `#0508E5`; l’action complète porte le contour. Les occurrences de Composition utilisent cette référence commune.
-- **Ressenti** : ne pas confondre contrôle de choix et pictogramme de résultat. Résultats : vert Bien, orange Neutre, rouge Mal ; rouge source `#EF4444`. Aucun état actif Figma ne prouve un contrôle « Mal sélectionné ».
-- **Profil** : titres de section Semi Bold 16 px ; `Modifier` en `#0508E5`; groupes blancs 126 px ; zone de contexte 115 px ; ouverture d’un stepper sans étirement du groupe.
-- **Exécution** : sur les cinq écrans portant `Zone — Progression et suite`, début `y=449`, hauteur `305 px`. Dans la variante haute avec texte, conserver 95 px avant la zone. Variante média : `Série X/3 • Tour X/3` en Roboto Condensed Medium 24 px.
-- **Cartes d’Exercice** : D-260/D-261 remplacent l’ancien état média déployé ; gouttière permanente au Catalogue et dans les choix d’exercices, photo ou icône de nature ; aucun Déployer. Aucune photo sur Séance, dans les listes mixtes, le Calendrier ou le Suivi. Les variantes média d’Exécution conservent leur fonctionnement propre.
-
-### Générateur et validation des paramètres v13
-
-Fonctions pures communes de calcul, résumé et construction des phases : chapitre 08, paramètres d’exercice, D-247 à D-255. Fournir explicitement le contexte intrinsèque/occurrence. Ne pas extraire de données métier du texte du résumé ni des valeurs Figma. Le tableau ordonné est la source des paramètres variables. Le total est dérivé, jamais éditable en variable.
-
-Bornes : N1..99, répétitions1..100, durée5..3535s, pauses0..300s. Steppers : tap1 ; maintien avec paliers1/5/10 et arrondi directionnel selon DSF Bip ; Bip/Compte à rebours/Fin sans accélération. Les valeurs stockées ne sont pas arrondies à l’ouverture. PC reprend le défaut Profil (10s). Aucune estimation forfaitaire de répétition ; Bip v2 gouverne le total.
-
-Prévoir la représentation versionnée uniforme/variable et Ordre des côtés dans les définitions, copies et instantanés. Les données anciennes sont lues uniforme/Un côté après l’autre ; la nouvelle politique des pauses s’applique aux nouvelles exécutions de ces données. Les résultats historiques restent immuables. La migration physique doit être planifiée avec l’implémentation ; aucune réinitialisation de base n’est autorisée par cette mise à jour documentaire. PRE-1 reste fermé. Les anciens jeux v10 sont des preuves historiques ; la recette cible est chapitre 08, paramètres d’exercice et la matrice du02/10.
-
-## DSF courant — Cartes, icônes et animations d’appui (30 septembre 2026)
-
-Décisions finales du propriétaire : les 17 points du 30/09 sont clos. Révision des cartes du 03/10/2026 (D-260 à D-264) : un seul format de carte d’Exercice, avec une gouttière permanente de 64 px dans le Catalogue et les listes de sélection d’exercices ; photo si média associé, icône de nature sinon. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture . Les Séances ne portent jamais de visuel. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi. Aucun déploiement d’Exercice ni de carte du Suivi ; le déploiement des Séances reste accessible dans le Catalogue et le Calendrier Semaine. Le Suivi présente deux lignes : nature/titre/statut, puis durée/catégorie/ressenti ; sans heure, zones corporelles ni étiquettes. Le Ressenti y est un indicateur sans action, distinct de sa saisie obligatoire en Synthèse. Les variantes déployées d’Exercice et du Suivi sont historiques, hors MVP. Pauses/récupérations et prochaine planification restent absentes des cartes concernées. Les données, instantanés, calculs et fonctions de planification sont conservés.
-
-Synthèses : « N séries de X », « N séries de N rép. », « N séries à l’échec » ; bilatéralité par miroir dans les variantes concernées. Heure Semaine « 08:00 » ; aucune heure dans la carte du Suivi. Séance sans étiquette : catégories de ses exercices ; listes de catégories/zones séparées par un point médian et tronquées avec « … ». Choix sans badge durée ; récurrence du Calendrier Semaine dans la carte déployée seulement.
-
-RG-10 : le Profil porte une préférence silhouette facultative, homme/femme ; absence = homme affiché. Elle ne pilote que l’icône de zone corporelle, sans filtre, recherche ou effet métier. RG-11 à RG-13 : vignette 64 centrée et recadrée sans déformation (couverture pour une vidéo), place réservée pendant chargement/erreur, texte alternatif égal au nom de l’exercice.
-
-D-239 : Calendrier Jour est une exception compacte (séance 298 × 46, exercice 298 × 48, x=80, hauteur d’instance adaptée à l’événement), avec barre colorée 4, nature 26, titre 13 gras, heure/durée 11, lecture 26 et aucun Déployer. Les deux sets comportent 10 variantes chacun. Suivi — Vue d’ensemble est hors MVP. Les boutons Calendrier Aujourd’hui/Planifier restent à 32, sans cible 44 ajoutée : situation acceptée, à revoir et développer après T04. Les nouvelles icônes sont nommées icon/<nom>, les anciennes ne sont pas renommées ; target est réservé au Programme, pulse aux rapports/Suivi.
-
-Implémentation attendue : conserver la préférence dans le mécanisme persistant du Profil existant ; résoudre le défaut homme dans la présentation ; réutiliser les médias déjà associés, sans import supplémentaire. Les composants canoniques DSF conservent leurs identifiants ; les variantes déployées d’Exercice et du Suivi sont historiques hors MVP .
-
-Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.
-
-Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper selon DSF Bip (maintien≈500ms, répétition150ms, paliers1/5/10) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.
-
-> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v13 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
-
-### Saisie des paramètres — D-246
-
-La référence active est [Paramètres en modale v13](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice), contrats CE-T03-04/CE-UI-10. Elle intègre Séries variables, Ordre des côtés, pauses terminales et récupération de l’occurrence. Feuille transactionnelle : ✕ annule, ✓ applique au parent, Terminer persiste. Les calculs et comportements sont normatifs dans les spécifications ; Figma définit le layout seulement. Les anciens textes v11 sont historiques.
-
-## Moteur Cadence — cible technique du06/10/2026
-
-Séparer `durationDeterminable` de `autoComplete` dans l’adaptateur du plan : Répétitions cadencées fournissent Ri×Ci mais attendent Suivant. La phase Série porte cadence/cible ; pas une phase par répétition. Les Séries sans cadence et À l’échec gardent leur poids à validation ; les cadencées entrent dans le groupe temporel R-01 (chapitre13).
-
-Scheduler fondé sur ancres monotones, nombre d’intervalles acquis, début du courant, nominal atteint ; état persistable et transitions idempotentes. Le compteur de tentative est distinct de l’accumulateur actif réel : fraction abandonnée par Pause et temps avant reset restent dans le résultat par Série/côté. Reprise avec intervalle complet ; arrière-plan avec recalcul et sans rejeu des sons manqués. Le seuil30min est ancré sur la fin nominale recalculée. Aucun100% global avant finalisation.
-
-Ordre de développement : représentation variable effective, migration absence de cadence, snapshot versionné, calcul/incertitude, ordonnanceur/progression/audio, restitution/phrase, tests sur appareils. Les modules audio en arrière-plan, interruptions système, verrouillage et reprise doivent être qualifiés iOS/Android ; aucune réussite de test n’est revendiquée ici. Les sons concrets et leur adaptation aux préférences existantes restent du travail d’implémentation, pas un nouveau réglage Profil.
-
-## Cohérence des couleurs après rationalisation — H-13, 06/10/2026
-
-| Élément | Valeur de référence | État observé / provenance |
-|---|---|---|
-| Pilule de navigation | `color/navigation/pill #F9FAFC` | L’ancienne prescription `#FCFCFE` des chapitres06/07 est historique ; la valeur du token est la référence courante. |
-| Surface de carte archivée | `color/surface #F5F7FA` | Le composant Cartes / Exercice Archivé est lié à ce token (relevé Claude du 06/10). `#F6F6F6` figure dans l’ancienne documentation ; cela ne prouve pas à lui seul la valeur historique du token supprimé `color/cards/archive-surface`. |
-| Fond circulaire Retour | `#FCFCFE` observé dans Figma | Selon Claude, 85 calques de Prototype MVP restent liés à des primitives `color/observed/…`, sans token sémantique. Ne pas leur attribuer `color/navigation/pill` par analogie. Le rendu existant est conservé. |
-
-Les faibles écarts de couleurs relèvent des fusions déjà acceptées dans le journal §5.3. Les chapitres06/07/13 renvoient ici pour éviter deux prescriptions concurrentes ; aucun token de code ni asset n’est modifié. Les anciennes valeurs sont des preuves datées, pas des cibles simultanées.
-
-## Pauses et symboles
-
-Conserver les shells. Composition : sous-brouillon isolé pour placement multiple et roulette ; commit parent avant sauvegarde finale. Modèle de pauses explicites et projection R unique pour calcul/snapshot. Moteur : phases de récupération et d’attente existantes, cadence sonore et ancres temporelles inchangées. Rendu de durée discriminé (exact/estimated/lowerBound/omitted), sans formater omitted en0. Pas de migration numérotée ni de version de dépendance prescrite sans lecture du code. DSF et assets : voir ../DSF-PAUSES-ICONES-2026-10-07.md.
+**D-219 — composants de saisie.** Les durées conservent les pickers/roulettes en modale basse. Les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent un stepper inline ; la cible `Nombre de répétitions` utilise une roulette native à une colonne, 1 à 100, avec « Aucune répétition, à l’échec » en tête dans une cellule de séries variables seulement (décision PRE-4 Q8 du 16/10, D-385 ; retirée en séries identiques par D-418). L’implémentation réutilise en priorité un composant standard/DSF compatible React Native/Expo ; un contrôle ad hoc équivalent ne doit pas être recréé sans contrainte technique documentée. La charge fait exception : saisie directe au clavier numérique décimal (D-405, RM-239).
 
 ## Vérification de l’existant pour Bip de cadence
 
-À la tête4365c0c de la PR323 (base main6d03f5be), l’arbre contient migrations001 à008 ; ActivityDefinition.ts expose encore repetitionCount,seriesCount,pauseSeconds scalaires, sans champ de bip. Ceci confirme le prérequis de refonte SeriesParameters/pauses ; cela ne réserve pas un numéro de migration. Bip v2 exige un ordonnanceur périodique récupérable et une qualification sur appareil (arrière-plan, verrouillage, suspension, interruptions audio), sans annoncer le comportement natif déjà livré. Aucun code n’est modifié par ce lot.
+À la tête 4365c0c de la PR323 (base main 6d03f5be), l’arbre contient migrations 001 à 008 ; ActivityDefinition.ts expose encore repetitionCount,seriesCount,pauseSeconds scalaires, sans champ de bip. Ceci confirme le prérequis de refonte SeriesParameters/pauses ; cela ne réserve pas un numéro de migration. [Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité) exige un ordonnanceur périodique récupérable et une qualification sur appareil (arrière-plan, verrouillage, suspension, interruptions audio), sans annoncer le comportement natif déjà livré. Aucun code n’est modifié par ce lot.
 
 ## Contrat technique de phrase
 
-La [spécification de phrase](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases) gouverne le générateur pur : paramètres métier + résultat de durée + locale française → `Array<{texte: string, gras: boolean}>`. Retour vide `[]` si aucune phrase applicable. Aucun calcul depuis Excel, aucune chaîne à redécouper pour trouver les valeurs en gras. React Native utilise des Text imbriqués ; le découpage est émis par le gabarit, y compris si une valeur se répète.
-
-Aucune colonne phrase ni sérialisation des segments dans définition/occurrence/snapshot. Génération à chaque affichage depuis les paramètres ; ✓ applique le brouillon, ne persiste pas le texte. Un changement rédactionnel est visible au prochain rendu des objets existants. Paramètres historiques et temps réalisés préservés.
-
-Français uniquement au MVP. Internationalisation ultérieure : gabarits et règles de pluriel/genre/ordre par locale, avec recette dédiée ; prévoir la réécriture de la grammaire française, pas une traduction des segments isolés. Corpus276 utilisé uniquement pour les phrases, valeurs totales injectées par le calcul métier.
+Contenu identique à la section [« Migration T03 — Catalogue des Exercices — Contrat technique de phrase »](11%20%E2%80%93%20API%20fonctionnelles.md#migration-t03--catalogue-des-exercices--contrat-technique-de-phrase) : il n’est pas recopié ici.
 
 ## Transmission au développement — évolutions v15
 
-Contrôle du main72d1bf47add0a80b4241f9706e3d2f8913a484ff : migrations001..008 présentes ;009 est le prochain numéro observé, à revalider avant création. Aucune reprise fonctionnelle des anciennes séances demandée dans le lot de conception ; contrôler les données réellement présentes avant livraison applicative. La collection SeriesParameters conserve Pi ; Pause de Composition est distincte. Voir [consolidation et dépendancesF-0 àF-8](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calculs-durees).
+Contrôle du main 72d1bf47add0a80b4241f9706e3d2f8913a484ff : migrations 001..008 présentes ; 009 est le prochain numéro observé, à revalider avant création. Aucune reprise fonctionnelle des anciennes séances demandée dans le lot de conception ; contrôler les données réellement présentes avant livraison applicative. La collection SeriesParameters conserve Pi ; Pause de Composition est distincte. Voir [consolidation et dépendancesF-0 àF-8](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calculs-durees).
 
-Le jeu de276phrasesv15 teste le générateur avec un total injecté ; la feuille Calcul des durées ne teste pas le moteur. Rendu RN en Text imbriqués, aucune phrase persistée ; recette de césure et cas224caractères. Qualification audio/appareils séparée.
+Le jeu de 276phrasesv15 teste le générateur avec un total injecté ; la feuille Calcul des durées ne teste pas le moteur. Rendu RN en Text imbriqués, aucune phrase persistée ; recette de césure et cas 224caractères. Qualification audio/appareils séparée.
 
-## Segmentés — complément du07/10
-
-[Contrat DSF courant](../DSF-SEGMENTES-TITRES-2026-10-07.md) : deux choix Exercices/Séances pour les catalogues et sélecteurs de type ; rendu standard354×42, options171×34, padding/gap4, radius14/10, fond blanc50%, inactive#EAEAFF, libellés16/20. Calendrier et modes conservent leurs trois choix. Exceptions de texte13 et14/11 pour côtés ; géométries de feuille conservées et écarts mesurés explicités dans le DSF. Lors d’une liaison de peinture au token, restaurer l’alpha0,5 du **remplissage** ; ne pas appliquer0,5 au nœud entier, ce qui atténuerait textes et options.
-
-La suppression du troisième segment est une évolution fonctionnelle [FUNC-SEG-02](../BACKLOG-SEGMENTS-CATALOGUE-2026-10-07.md), distincte de l’alignement visuel. Elle ne supprime aucune entité ni table Circuit/Parcours et ne modifie pas l’Exécution.
-
-## Écart d’implémentation constaté lors de la fusion documentaire
-
-La cible normative de `color.overlayScrim` est `rgba(31, 33, 41, 0.34)`, conformément au brief de voile appliqué et au relevé Figma de cette mission. La mention « cible à arbitrer » de la PR #326 est dépassée. Le code de `src/shared/ui/tokens.ts` au commit `a0a07602` conserve `rgba(20, 20, 20, 0.5)` : son alignement reste à réaliser dans une intervention de développement. Le test `tokensSpecification.test.ts`, qui compare le code au présent registre, signalera cet écart tant que le code ne sera pas aligné. Cette fusion documentaire ne modifie pas le code et ne clôture pas cet écart d’implémentation.
-
-## Interface générale — règles du 08/10/2026
-
-La référence générale est le [DSF du 08/10](../DSF-INTERFACE-GENERALE-2026-10-08.md). Elle remplace les anciens écarts de contexte/sections, positions de CTA et habillages de blocs incompatibles. Elle ne remplace pas les espacements internes des composants. Fond blanc de modale et voile 34 % sont distincts. Le registre des tokens de code ne vaut pas preuve que la nouvelle grille a été implémentée : cette mission est documentaire.
-
-La planification applique [sa spécification](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification) et les contrats CE-UI-04/05/11. L’ordre et les coordonnées observés ne fournissent aucune formule de récurrence.
-
-**Compatibilité D-214 — 12/10/2026.** Si un ancien champ d’activation est déjà persisté, il est obsolète et ne peut réactiver les phases propres lors de la construction d’un nouveau plan SESSION, quelle que soit sa valeur. L’inventaire du schéma réel détermine sa migration physique ; aucune suppression SQL n’est livrée par cette correction documentaire. Conserver les paramètres propres des Exercices et les instantanés/résultats historiques, sans réécriture des temps réalisés.
-
-## Architecture — circuits du12/10/2026
+## Architecture — circuits
 
 Séparer paramètres persistés, brouillon avec réserves temporaires, développement du plan, agrégation typée et formatage visuel. Pour les plans finis à compte borné, le plan est développé une fois selon la nature ; calcul et progression consomment les occurrences effectives sans multiplication supplémentaire. AMRAP/Death by ajoutent une génération progressive depuis l’instantané ; ils ne nécessitent pas de précréer un nombre arbitraire de passages. Le retour arrière/réinitialisation conserve sa portée existante et les résultats acquis ; le raccordement doit utiliser les identifiants d’occurrence, sans rejouer implicitement un exercice intermédiaire déjà terminé.
 
 Prévoir transactions de conversion et adaptation, compatibilité tours par défaut, invariants aux frontières API/persistance et instantanés immuables. La formalisation technique des reprises sera vérifiée avant qualification ; aucune livraison du moteur ni migration n’est revendiquée ici. Les nouveaux états visuels réutilisent les shells existants ; mesures DSF et captures différées par demande utilisateur.
 
-## Adaptation moteur et persistance —13/10
-
-Classifier chaque phase par mode ET nature de cible ; DURATION seul ne garantit plus une fin automatique. Les formules de poids sont conservées, les prédicats changent : cible échec inconnue et fin Suivant, même avec bip. Reprendre les intervalles logiques pour la proposition de répétitions, indépendamment de l’audibilité ; ne pas diviser le temps global cumulé par l’intervalle après des pauses/reset. Persister séparément cumul et dernière tentative, identité par occurrence/côté, et qualification du relevé. Confirmer/corriger ne commande pas l’avancement.
-
-Migration versionnée et atomique de l’ancien mode, copies/snapshots compris ; compatibilité/reprise à qualifier sur le schéma réel. Le §4.5 reçu impose une roulette grisée mais manipulable : son mouvement sélectionne une cible numérique. Ne pas traduire cet état par disabled bloquant les gestes. Qualification des interactions, du rendu45% du bloc et de l’accessibilité sur chaque plateforme à réaliser. Aucun coût nul ni capacité déjà livrée n’est revendiqué.
-
 <a id="formats-architecture"></a>
-
 ## Formats — architecture cible du moteur à construire
 
 Séparer prescription versionnée, paramètres contextuels, développement des occurrences, horloge, acquisition de résultat et formatage UI. Réutiliser les circuits de tours/séries ; porter l’unité d’indexation afin qu’un volume par tour ne soit pas interprété comme des séries successives.
@@ -1608,8 +1722,31 @@ L’instantané porte la prescription et les paramètres effectifs. Le résultat
 
 Avant développement : inventaire du schéma et des consommateurs réels, raccordement des règles de Pause/Reprendre/reset/points d’arrêt et de bilatéralité aux fenêtres, vérification de la déclinaison Death by multi-exercice et de la progression d’un plan à nombre inconnu. Ne pas généraliser aux formats ouverts les poids figés d’un plan fini. Ces limites sont listées dans la revue transverse ; les fonctions métier manquantes ne sont pas réputées livrées.
 
-<a id="generateur-phrase"></a>
+## Contrats internes et découpage des services
 
+Les API fonctionnelles définies dans ce chapitre constituent les contrats internes de l’application. Elles ne préjugent pas d’une exposition sous forme d’API réseau.
+
+Dans le MVP :
+- les opérations sont mises en œuvre par des services applicatifs internes ;
+- les échanges entre composants utilisent des objets typés dérivés du modèle de données fonctionnel ;
+- aucun protocole réseau ni format d’API externe n’est imposé pour les échanges internes ;
+- les protocoles réseau, formats d’échange et contrats d’intégration seront définis lorsqu’une fonction nécessitera effectivement un backend ou un service externe.
+
+Le découpage logique initial des services est le suivant :
+
+| Service | Responsabilité |
+|---|---|
+| `SessionService` | Gestion des Séances et de leur cycle de vie |
+| `CompositionService` | Gestion des Cycles, Tours et Exercices |
+| `PlanningService` | Gestion des Routines et calcul des occurrences |
+| `ExecutionService` | Plan d’exécution, progression et commandes d’exécution |
+| `HistoryService` | Exécutions, Instantanés et historique |
+| `PreferencesService` | Préférences globales |
+| `ReferenceDataService` | Catégories et Zones corporelles |
+
+Ce découpage représente des responsabilités logiques au sein de l’application et n’implique pas la création de services réseau ou de serveurs distincts.
+
+<a id="generateur-phrase"></a>
 ## Internationalisation et vérification du générateur
 
 ### Internationalisation — décision et dette explicites
@@ -1618,6 +1755,6 @@ Le générateur livré pour le MVP est **francophone uniquement**. Les segments 
 
 ### Recette de développement
 
-276 cas historiques conservés sans altération, complétés par les cibles mixtes du13/10 ; injecter le total métier de test à la place du montant d’exemple avant comparaison. Vérifier texte/ponctuation exacts et absence de clause ajoutée aux cas variables. Vérifier singulier, côtés inversés, deux/trois/plus de trois cibles, min=max, bip0/positif dans deux modes, pause0/positive, N1 avec/sans pause et PC0/positive. Les cas complémentaires ne remplacent pas le corpus.
+276 cas historiques conservés sans altération, complétés par les cibles mixtes du 13/10 ; injecter le total métier de test à la place du montant d’exemple avant comparaison. Vérifier texte/ponctuation exacts et absence de clause ajoutée aux cas variables. Vérifier singulier, côtés désignés côté 1 / côté 2 (RM-243), mention de charge active ou absente (RM-240), deux/trois/plus de trois cibles, min=max, bip 0/positif dans deux modes, pause 0/positive, N1 avec/sans pause et PC0/positive. Les cas complémentaires ne remplacent pas le corpus.
 
-Contrôler les segments et le gras, notamment deux valeurs identiques à des positions différentes ; concaténation égale au texte attendu. Relire un objet ancien après modification de grammaire : nouvelle phrase, aucune migration de chaîne. Vérifier absence de champ persistant phrase/segments et génération au rendu, annulation/validation, accès clavier/lecteur d’écran et absence de troncature à360/402/440 avec texte agrandi. Il s’agit de recette prescrite, pas d’une implémentation ou de tests applicatifs exécutés dans ce lot documentaire.
+Contrôler les segments et le gras, notamment deux valeurs identiques à des positions différentes ; concaténation égale au texte attendu. Relire un objet ancien après modification de grammaire : nouvelle phrase, aucune migration de chaîne. Vérifier absence de champ persistant phrase/segments et génération au rendu, annulation/validation, accès clavier/lecteur d’écran et absence de troncature à 360/402/440 avec texte agrandi. Il s’agit de recette prescrite, pas d’une implémentation ou de tests applicatifs exécutés dans ce lot documentaire.

@@ -1,0 +1,205 @@
+{
+ "description": "Règles remplacées encore présentées comme actives (seconde passe indépendante, verification/contradictions.tsv), alignées sur la décision explicite qui les remplace. — sous-ensemble appliqué (voir FIN-ACTIVES-ecartees.tsv)",
+ "corrections": [
+  {
+   "id": "ACT-001",
+   "ref": "vérification indépendante, contradictions.tsv : règle remplacée encore présentée comme active",
+   "motif": "CORRECTION-DECIDEE:D-238",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-238",
+   "file": "PRODUCT.md",
+   "ancien": "- afficher sur la carte la **prochaine planification** lorsqu’une occurrence future existe, sans réserver de ligne lorsqu’il n’y en a aucune.",
+   "nouveau": "- ne pas afficher la prochaine planification sur la carte : elle est absente des Catalogues (D-238 ; données et calculs de D-206 conservés)."
+  },
+  {
+   "id": "ACT-002",
+   "ref": "vérification indépendante, contradictions.tsv : règle remplacée encore présentée comme active",
+   "motif": "CORRECTION-DECIDEE:D-238",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-238",
+   "file": "PRODUCT.md",
+   "ancien": "- afficher sur la carte la **prochaine planification** lorsqu’une occurrence future existe, sans réserver de ligne lorsqu’il n’y en a aucune ;",
+   "nouveau": "- ne pas afficher la prochaine planification sur la carte, absente des Catalogues (D-238 ; données et calculs de D-206 conservés) ;"
+  },
+  {
+   "id": "ACT-003",
+   "ref": "vérification indépendante, contradictions.tsv : règle remplacée encore présentée comme active",
+   "motif": "CORRECTION-DECIDEE:D-238",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-238",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "| RM-207 | Dans les Catalogues des Séances et des Exercices, une carte affiche la prochaine occurrence future de sa source lorsqu’elle existe. En l’absence d’occurrence future, la ligne de prochaine planification est absente et ne réserve aucun espace. |",
+   "nouveau": "| RM-207 | Dans les Catalogues des Séances et des Exercices, la prochaine planification n’est pas affichée sur les cartes (D-238) ; la prochaine occurrence future reste calculée et conservée dans les données (D-206). |"
+  },
+  {
+   "id": "ACT-004",
+   "ref": "vérification indépendante, contradictions.tsv : règle remplacée encore présentée comme active",
+   "motif": "CORRECTION-DECIDEE:D-304",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-304",
+   "file": "PRODUCT.md",
+   "ancien": "porte explicitement une **Récupération après exercice** (`postActivityRecoverySeconds`), y compris avec la valeur `0 s`.",
+   "nouveau": "peut porter une **Récupération après exercice** ajoutée explicitement, jamais créée automatiquement (D-304) ; `postActivityRecoverySeconds` en est la projection de calcul, 0 en son absence (D-303, RM-209)."
+  },
+  {
+   "id": "ACT-005",
+   "ref": "vérification indépendante, contradictions.tsv : règle remplacée encore présentée comme active",
+   "motif": "CORRECTION-DECIDEE:D-325",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-325",
+   "file": "PRODUCT.md",
+   "ancien": "Dans l’écran Ajouter/Modifier un Exercice, la phrase suit D-298",
+   "nouveau": "Dans l’écran Créer un exercice ou Modifier un exercice (D-325), la phrase suit D-298"
+  },
+  {
+   "id": "ACT-006",
+   "ref": "vérification indépendante, contradictions.tsv : règle remplacée encore présentée comme active",
+   "motif": "CORRECTION-DECIDEE:D-325",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-325",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "| RM-152 | Dans l’écran Ajouter/Modifier un Exercice,",
+   "nouveau": "| RM-152 | Dans l’écran Créer un exercice ou Modifier un exercice (D-325),"
+  },
+  {
+   "id": "ACT-007",
+   "ref": "vérification indépendante, contradictions.tsv : règle remplacée encore présentée comme active",
+   "motif": "CORRECTION-DECIDEE:D-111",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-111",
+   "file": "PRODUCT.md",
+   "ancien": "Pour un Exercice en mode Répétitions ou À l’échec, le bouton `Suivant`",
+   "nouveau": "Pour une Série en mode Répétitions ou à cible À l’échec (D-111), le bouton `Suivant`"
+  },
+  {
+   "id": "ACT-008",
+   "ref": "vérification indépendante, contradictions.tsv : règle remplacée encore présentée comme active",
+   "motif": "CORRECTION-DECIDEE:D-247",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-247",
+   "file": "PRODUCT.md",
+   "ancien": "Un Exercice bilatéral exécute toutes ses Séries du premier côté puis toutes celles du second.",
+   "nouveau": "Un Exercice bilatéral exécute ses Séries selon son Ordre des côtés : toutes les Séries du premier côté puis celles du second (défaut), ou les deux côtés à chaque Série (D-247)."
+  },
+  {
+   "id": "ACT-009",
+   "ref": "vérification indépendante, contradictions.tsv : règle remplacée encore présentée comme active",
+   "motif": "CORRECTION-DECIDEE:D-241",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-241",
+   "file": "PRODUCT.md",
+   "ancien": "La barre de progression utilise une pondération hybride :\r\n- les Exercices chronométrés sont pondérées proportionnellement à leur durée ;\r\n- chaque occurrence d’Exercice en mode Répétitions ou À l’échec reçoit un poids `1/N`, où `N` est le Nombre total d’Exercices à exécuter ;\r\n- la part restante est répartie entre les Exercices chronométrés proportionnellement à leur durée.",
+   "nouveau": "La barre de progression couvre toutes les étapes du Plan d’Exécution : les poids des étapes non chronométrées sont réservés, puis le solde est réparti proportionnellement entre les phases chronométrées (D-241 ; règle détaillée : RM-077, RM-126)."
+  },
+  {
+   "id": "ACT-010",
+   "ref": "vérification indépendante, contradictions.tsv : règle remplacée encore présentée comme active",
+   "motif": "CORRECTION-DECIDEE:D-208",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-208",
+   "file": "PRODUCT.md",
+   "ancien": "développe Séries, Pauses, côtés et Récupération selon les règles existantes",
+   "nouveau": "développe Séries, Pauses et côtés selon les règles existantes, sans Récupération après exercice (D-208, RM-211)"
+  },
+  {
+   "id": "ACT-011",
+   "ref": "vérification indépendante, contradictions.tsv : règle remplacée encore présentée comme active",
+   "motif": "CORRECTION-DECIDEE:D-111",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-111",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "pour un Exercice en mode Répétitions ou À l’échec, fin normale de la Série sans confirmation",
+   "nouveau": "pour une Série en mode Répétitions ou à cible À l’échec (D-111), fin normale de la Série sans confirmation"
+  },
+  {
+   "id": "ACT-012",
+   "ref": "vérification indépendante, contradictions.tsv : règle remplacée encore présentée comme active",
+   "motif": "CORRECTION-DECIDEE:D-111",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-111",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "elle valide la fin normale de la Série en mode Répétitions ou À l’échec.",
+   "nouveau": "elle valide la fin normale de la Série en mode Répétitions ou à cible À l’échec (D-111)."
+  },
+  {
+   "id": "ACT-013",
+   "ref": "vérification indépendante, contradictions.tsv : règle remplacée encore présentée comme active",
+   "motif": "CORRECTION-DECIDEE:D-111",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-111",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "- le temps réellement passé dans les Exercices en mode Répétitions ou À l’échec ;",
+   "nouveau": "- le temps réellement passé dans les Séries en mode Répétitions ou à cible À l’échec (D-111) ;"
+  },
+  {
+   "id": "ACT-014",
+   "ref": "vérification indépendante, contradictions.tsv : règle remplacée encore présentée comme active",
+   "motif": "CORRECTION-DECIDEE:D-111",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-111",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "- pour un Exercice en mode Répétitions ou À l’échec, l’action constitue la fin normale",
+   "nouveau": "- pour une Série en mode Répétitions ou à cible À l’échec (D-111), l’action constitue la fin normale"
+  },
+  {
+   "id": "ACT-015",
+   "ref": "vérification indépendante, contradictions.tsv : règle remplacée encore présentée comme active",
+   "motif": "CORRECTION-DECIDEE:D-241",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-241",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "les occurrences en Répétitions ou À l’échec suivent la pondération hybride de RM-077",
+   "nouveau": "les occurrences en Répétitions ou à cible À l’échec suivent la pondération hybride de RM-077, sauf les Répétitions chiffrées cadencées, qui suivent la progression temporelle sans fin automatique (RM-126, D-241)"
+  },
+  {
+   "id": "ACT-016",
+   "ref": "vérification indépendante, contradictions.tsv : règle remplacée encore présentée comme active",
+   "motif": "CORRECTION-DECIDEE:D-208",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-208",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "L’ajout d’une définition copie nom, description, zones corporelles, mode, durée ou répétitions, Séries, Pause, Récupération et associations média.",
+   "nouveau": "L’ajout d’une définition copie nom, description, zones corporelles, mode, durée ou répétitions, Séries, Pause, Pause entre les côtés (`sideRecoverySeconds`) et associations média ; la Récupération après exercice n’est pas copiée : elle appartient à l’occurrence et n’est jamais créée automatiquement (D-171 révisée par D-208, D-304)."
+  },
+  {
+   "id": "ACT-017",
+   "ref": "vérification indépendante, contradictions.tsv : règle remplacée encore présentée comme active",
+   "motif": "CORRECTION-DECIDEE:D-211",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-211",
+   "file": "@11 – API fonctionnelles.md",
+   "ancien": "|Zones corporelles mises à jour|Zéro à plusieurs zones du référentiel utilisateur courant|",
+   "nouveau": "|Zones corporelles mises à jour|Une ou plusieurs zones du référentiel utilisateur courant pour un Exercice valide (D-211)|"
+  },
+  {
+   "id": "ACT-018",
+   "ref": "vérification indépendante, contradictions.tsv : règle remplacée encore présentée comme active",
+   "motif": "CORRECTION-DECIDEE:D-328",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-328",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "- `Catalogue des Parcours` → création d’un Parcours lorsque ce Catalogue devient fonctionnel.",
+   "nouveau": "- `Catalogue des Parcours` : ancienne cible retirée (D-328) ; le segment Parcours n’existe plus (D-324)."
+  },
+  {
+   "id": "ACT-019",
+   "ref": "vérification indépendante, contradictions.tsv : règle remplacée encore présentée comme active",
+   "motif": "CORRECTION-DECIDEE:D-330",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-330",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Aucun désactive le rappel ; zéro ne crée pas une deuxième manière de désactiver le champ.",
+   "nouveau": "L’interrupteur Rappel désactive le rappel, l’option Aucun étant supprimée (D-330) ; zéro ne crée pas une deuxième manière de désactiver le champ."
+  },
+  {
+   "id": "ACT-020",
+   "ref": "vérification indépendante, contradictions.tsv",
+   "motif": "CORRECTION-DECIDEE:D-208",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-208",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "Pause, nombre de Séries et Récupération restent disponibles dans les deux modes.",
+   "nouveau": "Pause, nombre de Séries et Pause entre les côtés restent disponibles dans les deux modes ; la Récupération après exercice appartient à l’occurrence de Séance (D-208)."
+  }
+ ]
+}

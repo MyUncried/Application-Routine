@@ -1,0 +1,92 @@
+{
+  "05 – Versions du produit.md|1|1": {
+    "ancre": "## Complément intégré au MVP",
+    "mode": "avant",
+    "raison": "contexte ambigu (deux séparateurs) ; inséré avant « ## Complément intégré au MVP », position de la PR"
+  },
+  "13 – Contrats d’écran.md|2|3": {
+    "ancre": "Ouverture depuis la zone Paramètres d’exécution",
+    "mode": "apres",
+    "raison": "contexte modifié par la finalisation ; inséré après la ligne d’ouverture conservée"
+  },
+  "13 – Contrats d’écran.md|3|1": {
+    "ancre": "Collection effective des Séries",
+    "mode": "apres",
+    "raison": "contexte modifié par la finalisation ; inséré après la ligne conservée"
+  },
+  "13 – Contrats d’écran.md|6|1": {
+    "ancre": "- Cadence : 5 s, 2 s, 1 s et Sans sélectionnent directement la valeur",
+    "mode": "apres",
+    "raison": "ligne de contexte réécrite par l’intégration v3 (D-403 à D-413) ; inséré après la ligne réécrite, même rubrique (ancienne ancre « ± modifie Bip par 1 »)"
+  },
+  "13 – Contrats d’écran.md|6|6": {
+    "ancre": "Cible manquante, valeur hors borne",
+    "mode": "apres",
+    "raison": "contexte modifié par la finalisation ; inséré après la ligne conservée"
+  },
+  "01 – Vision Générale.md|1|1": {
+    "ancre": "- Pour un Exercice bilatéral hors de toute règle de Circuit",
+    "mode": "apres",
+    "raison": "ligne de contexte réécrite par l’intégration v3 (D-403 à D-413) ; inséré après la ligne réécrite, même rubrique"
+  },
+  "13 – Contrats d’écran.md|2|1": {
+    "ancre": "Feuille Paramètres d’exécution de CE-T03-04. Références courantes",
+    "mode": "apres",
+    "raison": "ligne de contexte réécrite par l’intégration v3 (D-403 à D-413) ; inséré après la ligne réécrite, même rubrique"
+  },
+  "13 – Contrats d’écran.md|2|2": {
+    "ancre": "Saisir/éditer Mode, Condition d’arrêt",
+    "mode": "apres",
+    "raison": "ligne de contexte réécrite par l’intégration v3 (D-403 à D-413) ; inséré après la ligne réécrite, même rubrique"
+  },
+  "13 – Contrats d’écran.md|3|3": {
+    "ancre": "",
+    "mode": "ignorer",
+    "raison": "remplacement de la ligne d’ordre de la feuille par « Mode → Phases → Séries → régime … chevron indépendant … Bip de cadence → Total » : contredit par D-413 (quatre cadres, Phases en tête du cadre Séries) et D-410 (chevron intérieur à l’option Avec des phases) ; à réécrire par le chantier #370 selon dependances-pr.md"
+  },
+  "13 – Contrats d’écran.md|4|1": {
+    "ancre": "Cadence : contrôle segmenté Autre | 5 s | 2 s | 1 s | Sans (RM-245)",
+    "mode": "apres",
+    "raison": "ligne de contexte réécrite par l’intégration v3 (D-403 à D-413) ; inséré après la ligne réécrite, même rubrique"
+  },
+  "13 – Contrats d’écran.md|5|2": {
+    "ancre": "360/402/440, Safe Areas, texte agrandi et scroll",
+    "mode": "apres",
+    "raison": "ligne de contexte réécrite par l’intégration v3 (D-403 à D-413) ; inséré après la ligne réécrite, même rubrique ; le texte inséré cite encore « son pied », retiré par D-413 : à adapter par le chantier #370"
+  },
+  "13 – Contrats d’écran.md|5|3": {
+    "ancre": "Cadence Sans / 5 s / 2 s / 1 s / Autre avec valeur personnalisée",
+    "mode": "apres",
+    "raison": "ligne de contexte réécrite par l’intégration v3 (D-403 à D-413) ; inséré après la ligne réécrite, même rubrique"
+  },
+  "13 – Contrats d’écran.md|6|2": {
+    "ancre": "Tap et maintien sur steppers",
+    "mode": "apres",
+    "raison": "ligne de contexte réécrite par l’intégration v3 (D-403 à D-413) ; inséré après la ligne réécrite, même rubrique"
+  },
+  "13 – Contrats d’écran.md|6|3": {
+    "ancre": "Mode et cibles typées actives requis",
+    "mode": "apres",
+    "raison": "ligne de contexte réécrite par l’intégration v3 (D-403 à D-413) ; inséré après la ligne réécrite, même rubrique"
+  },
+  "13 – Contrats d’écran.md|6|4": {
+    "ancre": "Brouillon isolé ; ✓ atomique au parent",
+    "mode": "apres",
+    "raison": "ligne de contexte réécrite par l’intégration v3 (D-403 à D-413) ; inséré après la ligne réécrite, même rubrique"
+  },
+  "13 – Contrats d’écran.md|6|7": {
+    "ancre": "Nom accessible Cadence (Bip de cadence)",
+    "mode": "apres",
+    "raison": "ligne de contexte réécrite par l’intégration v3 (D-403 à D-413) ; inséré après la ligne réécrite, même rubrique"
+  },
+  "13 – Contrats d’écran.md|6|8": {
+    "ancre": "Bip sonore uniquement pendant Série",
+    "mode": "apres",
+    "raison": "ligne de contexte réécrite par l’intégration v3 (D-403 à D-413) ; inséré après la ligne réécrite, même rubrique"
+  },
+  "08 – Conception fonctionnelle détaillée.md|1|1": {
+    "ancre": "**N=1 — arbitrage explicite**",
+    "mode": "apres",
+    "raison": "paragraphe N=1 réécrit par D-415 (ligne Enchainement non affichée à N = 1) ; section des phases insérée après ce paragraphe, position de la PR"
+  }
+}

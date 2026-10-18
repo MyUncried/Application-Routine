@@ -1,0 +1,95 @@
+{
+ "description": "Intégration de la spécification v3.0 — V3-09-ch06-texte.txt",
+ "corrections": [
+  {
+   "id": "V3-G-001",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "motif": "CORRECTION-DECIDEE:D-406",
+   "ref": "CO-01, PR-01",
+   "ancien": "Le contrôle Exercice porte le libellé `Changement de côté` et propose `Aucun`, `D→G`, `G→D`. Sa géométrie suit le Figma courant et le DSF actif. Aucun contrôle de changement de côté n’est exposé au niveau du Circuit.",
+   "nouveau": "Le contrôle Exercice porte le libellé `Changement de côté` et propose `Avec` et `Sans` (D-406, RM-242) ; il ne propose plus de côté de départ anatomique. Sa géométrie suit le Figma courant et le DSF actif. Aucun contrôle de changement de côté n’est exposé au niveau du Circuit.",
+   "decision": "D-406"
+  },
+  {
+   "id": "V3-G-002",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "motif": "CORRECTION-DECIDEE:D-407",
+   "ref": "CO-01, AC-23",
+   "ancien": "Dans une carte d’Exercice, l’indicateur propre affiche `D→G` ou `G→D` lorsque l’Exercice est bilatéral ; il est absent avec `Aucun`. La phrase complète de l’éditeur suit [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres)/corpusv15 : cible, Pause, côtés puis total applicable. La carte de Composition utilise son indicateur compact distinct. Les références géométriques suivent le Figma courant.",
+   "nouveau": "Dans une carte d’Exercice, l’indicateur propre signale le changement de côté lorsque l’Exercice est bilatéral, sans direction (D-407, RM-243) ; il est absent avec Sans. La phrase complète de l’éditeur suit [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres)/corpusv15 : cible, Pause, côtés puis total applicable. La carte de Composition utilise son indicateur compact distinct. Les références géométriques suivent le Figma courant.",
+   "decision": "D-407"
+  },
+  {
+   "id": "V3-G-003",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "motif": "CORRECTION-DECIDEE:D-407",
+   "ref": "CO-01, AC-23",
+   "ancien": "Dans la famille Exécution — séance ou exercice, un Exercice effectivement bilatéral affiche `Côté droit` ou `Côté gauche` sous son nom. Les indicateurs de progression gardent leur sémantique ; aucun compteur de côté n’est ajouté. Les frames d’Exécution existantes restent inchangées.",
+   "nouveau": "Dans la famille Exécution — séance ou exercice, un Exercice effectivement bilatéral affiche `Côté 1` ou `Côté 2` sous son nom (D-407, RM-243). Les indicateurs de progression gardent leur sémantique ; aucun compteur de côté n’est ajouté. Écart Figma relevé le 18/10/2026 : les frames d’Exécution affichent encore `Côté droit` (calque « Côté courant — Côté droit ») ; elles ne sont pas modifiées par cette documentation. Lorsque la charge est active, l’Exécution affiche la charge de la série courante (RM-241) ; aucune frame ne l’illustre encore et son emplacement relève de Figma.",
+   "decision": "D-407"
+  },
+  {
+   "id": "V3-G-004",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "motif": "CORRECTION-DECIDEE:D-406",
+   "ref": "CO-01",
+   "ancien": "Dans l’éditeur d’Exercice, le contrôle générique `Récupération` est remplacé par `Pause entre les côtés` et n’est exposé que lorsque `Changement de côté` vaut `D→G` ou `G→D`. La récupération après exercice ne figure ni dans l’éditeur ni dans la synthèse intrinsèque de l’Exercice.",
+   "nouveau": "Dans l’éditeur d’Exercice, le contrôle générique `Récupération` est remplacé par `Pause entre les côtés` et n’est exposé que lorsque `Changement de côté` vaut `Avec` (D-406). La récupération après exercice ne figure ni dans l’éditeur ni dans la synthèse intrinsèque de l’Exercice.",
+   "decision": "D-406"
+  },
+  {
+   "id": "V3-G-005",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-01 à PR-04, CV-01, DU-01",
+   "ancien": "Formulaire : conserver les shells et l’ordre visible dans les captures. Toute la zone de phrase ouvre la feuille. Feuille : en-tête fixe ✕ / Modalités d’exécution / ✓ ; corps défilant Mode → Séries (régime, chevron indépendant, nombre) → cible/Pause uniformes ou tableau variable → Changement de côté et Ordre/PC si applicables → Bip de cadence → Total applicable → Compte à rebours → Fin.",
+   "nouveau": "Formulaire : conserver les shells et l’ordre visible dans les captures. Toute la zone de phrase ouvre la feuille. Feuille : en-tête fixe ✕ / Paramètres d’exécution / ✓ ; corps défilant en quatre cadres (D-413) : Exécution (Mode, Condition d’arrêt) → Séries (Nombre de séries, Type de série avec chevron intérieur à Variables, Durée ou Répétitions et Pause ou tableau de séries variables, Charge) → Côtés (Changement de côté, puis Enchainement et Pause entre les côtés lorsque déployés) → Cadence et durée (Cadence, Durée de l’exercice avec son chevron, puis Compte à rebours et Fin d’exercice lorsque déployés et applicables). Sans ligne Durée de l’exercice, Compte à rebours et Fin d’exercice sont directement visibles (RM-246).",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-G-006",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-02, PR-04, CH-04",
+   "ancien": "Le tableau variable comporte poignée, numéro, cellules cible/Pause et retrait ; une seule cellule active et un pied de réglage commun. Le régime identiques/variables, le mode et les choix de côtés utilisent les popovers représentés. Les roulettes Durée et Total restent des états intégrés. [DSF courant et mesures](../DSF-CIRCUITS-CONTROLES-2026-10-12.md). Les règles et bornes restent celles de v13 et de [Composition d'une séance — Circuits de tours et de séries](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#composition-dune-séance--circuits-de-tours-et-de-séries). Sous nombre hérité, nombre et total affichable sont en lecture seule ; aucun écran dédié identifié ne fixe encore l’emplacement de la mention discrète.",
+   "nouveau": "Le tableau variable comporte poignée, numéro, cellules cible/Pause, colonne Charge lorsque la charge est active (RM-238) et retrait ; une seule cellule active ; fond blanc sans contour, lignes de 36 px, sans lignes de boutons +/− (D-413). Mode, Condition d’arrêt, Type de série, Charge, Changement de côté et Cadence sont des contrôles segmentés ; les popovers du 12/10 ne sont plus la présentation de ces lignes (D-413). Les roulettes Durée et Durée de l’exercice restent des états intégrés, avec voile et fenêtre de saisie ; la charge se saisit directement au clavier, le tableau restant visible au-dessus (RM-239). [DSF courant et mesures](../DSF-CIRCUITS-CONTROLES-2026-10-12.md), à lire avec sa mise à jour du 18/10/2026. Les règles et bornes restent celles de v13 et de [Composition d'une séance — Circuits de tours et de séries](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#composition-dune-séance--circuits-de-tours-et-de-séries). Sous nombre hérité, nombre et total affichable sont en lecture seule ; aucun écran dédié identifié ne fixe encore l’emplacement de la mention discrète.",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-G-007",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "§4, §11.2",
+   "ancien": "Le corpus de phrases et les spécifications déterminent les textes dynamiques, le gras et les calculs ; les valeurs derrière les voiles ne sont pas des recettes. Les captures sont des exports sans retouche.",
+   "nouveau": "Le corpus de phrases et les spécifications déterminent les textes dynamiques, le gras et les calculs ; les valeurs derrière les voiles ne sont pas des recettes. Les captures sont des exports sans retouche.\r\n\r\nRéférences visuelles manquantes au 18/10/2026 (spécification v3.0) : état de saisie de la charge en séries identiques ; affichage de la charge pendant l’Exécution ; clavier décimal (le clavier illustré n’a pas de séparateur). Les états Avec et Sans de la charge, du changement de côté et de la Durée de l’exercice sont illustrés par les frames ci-dessus. Les liens de prototype retirés dans Figma n’abolissent aucune navigation de l’application.",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-G-008",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "motif": "CORRECTION-DECIDEE:D-411",
+   "ref": "AR-01, RO-01",
+   "ancien": "Le popover de mode propose Durée et Répétitions ; À l’échec se sélectionne dans la cible de chaque Série.",
+   "nouveau": "Le contrôle segmenté Mode propose Répétitions et Durée (D-413) ; À l’échec se règle par la Condition d’arrêt en séries identiques et dans la cible de chaque série en séries variables (RM-248 à RM-250).",
+   "decision": "D-411"
+  },
+  {
+   "id": "V3-G-009",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "motif": "CORRECTION-DECIDEE:D-407",
+   "ref": "CO-01, AC-23",
+   "ancien": "| bilatéral | `3 × 10 rép.` + pastille `D→G` | inchangé |",
+   "nouveau": "| bilatéral | `3 × 10 rép.` + pastille de changement de côté, sans direction (D-407) | inchangé |",
+   "decision": "D-407"
+  },
+  {
+   "id": "V3-G-011",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, CA-01, DU-01",
+   "ancien": "Bip au premier niveau x36 sur référence 402, séparateur 330px ; juste avant Durée totale, ou à sa position lorsque le total est omis, avant Compte à rebours/Fin. Les sous-lignes Séries variables/cible/Pause et Ordre/PC restent indentées x52, séparateurs 314px. La feuille se raccourcit de 42px par le haut lorsque le total disparaît, en restant ancrée en bas ; texte agrandi et petits écrans : contenu défilant, aucun rognage.",
+   "nouveau": "Placement remplacé le 18/10/2026 par D-413 : la ligne Cadence (Autre | 5 s | 2 s | 1 s | Sans, RM-245) ouvre le cadre Cadence et durée, avant Durée de l’exercice ; sans ligne de durée, Compte à rebours et Fin d’exercice suivent directement (RM-246) ; la feuille s’adapte au contenu visible, sans hauteur vide. Texte d’origine : « Bip au premier niveau x36 sur référence 402, séparateur 330px ; juste avant Durée totale, ou à sa position lorsque le total est omis, avant Compte à rebours/Fin. Les sous-lignes Séries variables/cible/Pause et Ordre/PC restent indentées x52, séparateurs 314px. La feuille se raccourcit de 42px par le haut lorsque le total disparaît, en restant ancrée en bas ; texte agrandi et petits écrans : contenu défilant, aucun rognage. » Le comportement des steppers ci-dessous reste applicable, notamment au stepper de la cadence personnalisée (Autre).",
+   "decision": "D-413"
+  }
+ ]
+}

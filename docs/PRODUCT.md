@@ -49,7 +49,7 @@ Voir [la spécification](Specifications-fonctionnelles/08%20%E2%80%93%20Concepti
 
 Un Exercice est une définition d’Exercice. Dans le MVP, elle existe comme copie intégrée à une Séance et, à partir de T03, comme référence persistante autonome dans le Catalogue des exercices ; son ajout à une Séance crée une copie indépendante.
 
-Un Exercice utilise l’un des trois modes `Durée`, `Répétitions` ou `À l’échec`. Elle porte un `Changement de côté` parmi `Aucun` (`UNILATERAL`), `D→G` (`RIGHT_LEFT`) et `G→D` (`LEFT_RIGHT`), avec `Aucun` par défaut. Elle définit une Pause après chaque série et peut définir une **Pause entre les côtés** (`sideRecoverySeconds`) uniquement lorsqu’elle est bilatérale. Une `ActivityDefinition` ne porte jamais de récupération après exercice. `Récupération` n’est plus un type d’Exercice.
+Un Exercice utilise l’un des deux modes `Durée` ou `Répétitions` ; chaque Série porte une cible chiffrée ou À l’échec. Elle porte un `Changement de côté` `Avec` ou `Sans`, `Sans` par défaut ; les valeurs historiques `RIGHT_LEFT` et `LEFT_RIGHT` valent `Avec` (D-406, RM-242, RM-244). Elle définit une Pause après chaque série et peut définir une **Pause entre les côtés** (`sideRecoverySeconds`) uniquement lorsqu’elle est bilatérale. Elle peut porter une charge facultative en kg, informative, désactivée par défaut, commune aux séries identiques ou propre à chaque série variable (D-403, RM-235 à RM-241). Une `ActivityDefinition` ne porte jamais de récupération après exercice. `Récupération` n’est plus un type d’Exercice.
 
 Un Exercice peut être placée avant le Circuit, dans le Circuit ou après le Circuit et peut être réordonnée entre ces zones.
 
@@ -59,9 +59,9 @@ Une Série désigne la répétition d’un même Exercice.
 
 Le Nombre de Séries est un paramètre de l’Exercice et ne constitue pas un conteneur structurel de la Séance.
 
-Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : Bip v2§3 et paramètres v13§§4–5.
+Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : [Calcul, pauses et périmètres](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calcul-pauses-et-périmètres) et [Calculs des durées et ordre des phases](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calculs-des-durées-et-ordre-des-phases).
 
-Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé aux agrégats Séance/Circuit contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
+Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon [Résultats temporels et agrégation du circuit](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) et [Calculs des durées et ordre des phases](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calculs-des-durées-et-ordre-des-phases) : Durée exacte si toutes les cibles sont chiffrées ; Répétitions avec bip estimées ≈ si toutes les cibles sont chiffrées ; mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈ ; Répétitions sans bip, ou toutes les cibles À l’échec : omitted au niveau Exercice. Séance/Circuit : ≥ si travail inconnu (RM-132). Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 
 ### Circuit, Tours et Cycle
 
@@ -77,7 +77,7 @@ Une Exécution est la réalisation effective d’un contenu exécutable d’orig
 
 Chaque Exécution repose au démarrage sur un instantané JSON immuable de sa source : Séance ou Exercice persistant. Cet instantané garantit que l’historique reste lisible même si la source est ensuite modifiée ou supprimée.
 
-Pour un plan bilatéral, cet instantané conserve la direction effective et chaque Résultat d’Exercice conserve son côté. L’interface affiche uniquement `Côté droit` ou `Côté gauche` sous le nom de l’Exercice pendant le passage concerné, sans compteur `1/2` ou `2/2`.
+Pour un plan bilatéral, cet instantané conserve le changement de côté effectif et chaque Résultat d’Exercice conserve son côté. L’interface affiche uniquement `Côté 1` ou `Côté 2` (RM-243) sous le nom de l’Exercice pendant le passage concerné, sans compteur `1/2` ou `2/2`.
 
 ## 4. Périmètre du MVP
 
@@ -91,7 +91,7 @@ Le MVP permet de :
 - dupliquer et archiver une Séance active ;
 - restaurer ou supprimer une Séance archivée, la suppression exigeant donc un archivage préalable ;
 - empêcher l’exécution d’une Séance invalide ou vide ;
-- afficher sur la carte la **prochaine planification** lorsqu’une occurrence future existe, sans réserver de ligne lorsqu’il n’y en a aucune.
+- ne pas afficher la prochaine planification sur la carte : elle est absente des Catalogues (D-238 ; données et calculs de D-206 conservés).
 
 ### Catalogue des exercices — T03
 
@@ -103,13 +103,13 @@ Le MVP permet de :
 - ajouter une ou plusieurs Exercices existants à une Composition par copie indépendante ;
 - exécuter directement un Exercice valide depuis son bouton Lecture ;
 - planifier directement un Exercice persistant depuis son action `Planifier`, avec le même mécanisme de Routine que pour une Séance ;
-- afficher sur la carte la **prochaine planification** lorsqu’une occurrence future existe, sans réserver de ligne lorsqu’il n’y en a aucune ;
+- ne pas afficher la prochaine planification sur la carte, absente des Catalogues (D-238 ; données et calculs de D-206 conservés) ;
 - préserver filtres, tri implicite et position de défilement pendant l’aller-retour courant, sans les persister après relance complète ;
 - afficher `Trier` comme contrôle commun visible mais désactivé en T03 ; le tri appliqué reste la dernière modification décroissante.
 
 La rangée de commandes Catalogue est commune aux écrans représentés `Séances` et `Exercices` : `Créer`, `Filtrer` et `Trier` utilisent les boutons contextuels du DSF, cercles visibles de `34 pt`, pictogrammes de `20 pt`, écart visuel de `12 pt`, cibles tactiles d’au moins `44 × 44 pt` sans chevauchement. Une pilule étendue conserve une hauteur de `34 pt`. La géométrie est une contrainte de rendu responsive, pas une instruction de coordonnées absolues React Native. `Trier` reste visible disabled T03. `Filtrer` est actif là où le comportement est défini.
 
-`Filtrer` et `Trier` sont des contrôles communs aux trois Catalogues. Les options de filtre sont contextuelles et les panneaux ouverts sont définis dans Figma. Pour `Exercices`, le filtre couvre le statut (`Actives` / `Archivées`), les Catégories et les Zones corporelles. Pour `Séances`, il couvre le statut des Séances et les Étiquettes. `Trier` reste visible mais désactivé dans le périmètre T03.
+`Filtrer` et `Trier` sont des contrôles communs aux deux Catalogues. Les options de filtre sont contextuelles et les panneaux ouverts sont définis dans Figma. Pour `Exercices`, le filtre couvre le statut (`Actives` / `Archivées`), les Catégories et les Zones corporelles. Pour `Séances`, il couvre le statut des Séances et les Étiquettes. `Trier` reste visible mais désactivé dans le périmètre T03.
 
 `Créer` est contextuel au Catalogue affiché : il ouvre directement la création de l’objet correspondant, sans écran ni arbre intermédiaire. Le MVP ne comporte aucune recherche, globale ou locale dans les Catalogues ; une recherche pourra être reconçue dans une version ultérieure.
 
@@ -136,17 +136,21 @@ Le Cycle technique unique enveloppe ce plan avec une répétition fixée à `1`.
 
 Une Séance est exécutable lorsqu’elle contient au moins un Exercice valide.
 
-Chaque occurrence d’Exercice dans une Séance porte explicitement une **Récupération après exercice** (`postActivityRecoverySeconds`), y compris avec la valeur `0 s`. Cette donnée appartient à l’occurrence, pas à l’`ActivityDefinition`. Lorsqu’elle est positive, elle est exécutée après l’occurrence, y compris après le dernier Exercice d’un Tour et après le dernier Exercice de la Séance avant `SESSION_END`; lorsque l’occurrence appartient au Circuit, elle est exécutée à chaque passage. Elle se déplace, se duplique et se supprime avec l’occurrence sans recalcul lié à l’adjacence.
+Chaque occurrence d’Exercice dans une Séance peut porter une **Récupération après exercice** ajoutée explicitement, jamais créée automatiquement (D-304) ; `postActivityRecoverySeconds` en est la projection de calcul, 0 en son absence (D-304, D-307, RM-209). Cette donnée appartient à l’occurrence, pas à l’`ActivityDefinition`. Lorsqu’elle est positive, elle est exécutée après l’occurrence, y compris après le dernier Exercice d’un Tour et après le dernier Exercice de la Séance avant `SESSION_END`; lorsque l’occurrence appartient au Circuit, elle est exécutée à chaque passage. Elle se déplace, se duplique et se supprime avec l’occurrence sans recalcul lié à l’adjacence.
 
-Le contrôle utilisateur `Changement de côté` d’un Exercice propose `Aucun`, `D→G` et `G→D`. Aucun contrôle de changement de côté n’est exposé sur le Circuit dans la version actuelle ; le support technique historique correspondant reste conservé mais fixé à `UNILATERAL` et non modifiable.
+Le contrôle utilisateur `Changement de côté` d’un Exercice propose `Avec` et `Sans` (D-406, RM-242). Aucun contrôle de changement de côté n’est exposé sur le Circuit dans la version actuelle ; le support technique historique correspondant reste conservé mais fixé à `UNILATERAL` et non modifiable.
 
-Dans la Composition, une carte affiche `D→G` ou `G→D` dans son indicateur secondaire si sa direction propre est bilatérale ; elle n’affiche rien avec `Aucun`. L’indicateur respecte la géométrie Figma validée. Le texte de la carte ne développe jamais la direction : l’indicateur `D→G` ou `G→D` la porte seul. Dans l’écran Ajouter/Modifier un Exercice, la phrase suit D-298 : Série/cible/cadence, puis Pause et côtés selon leur contexte. Elle distingue l’ordre par paire de l’ordre par côté et inverse droite/gauche selon la direction. Le nom reste hors de la phrase intrinsèque ; les valeurs des paramètres sont en gras dans le texte courant.
+Dans la Composition, une carte affiche dans son indicateur secondaire un indicateur de changement de côté, sans direction, si son changement de côté propre est `Avec` ; elle n’affiche rien avec `Sans` (D-407, RM-243). L’indicateur respecte la géométrie Figma validée. Le texte de la carte ne développe jamais le changement de côté : l’indicateur le porte seul. Dans l’écran Créer un exercice ou Modifier un exercice (D-325), la phrase suit D-298 : Série/cible/cadence, puis Pause et côtés selon leur contexte. Elle distingue l’ordre par paire de l’ordre par côté et désigne les côtés par côté 1 et côté 2 (RM-243). Le nom reste hors de la phrase intrinsèque ; les valeurs des paramètres sont en gras dans le texte courant.
 
-Dans la phrase de synthèse des paramètres d’exécution, le mode est affiché séparément et la phrase commence par le nombre de Séries. Tant qu’aucun mode n’est sélectionné, le champ est vide. Le total intrinsèque fourni par le calcul est affiché sauf en À l’échec ou lorsqu’il est réellement redondant en Durée unilatérale à une Série. En Répétitions, Ti=Ri×Ci avec cadence, avec ≈ ; sans bip, total d’Exercice omis selon Bip v2. La phrase est régénérée lors de ✓ de la feuille valide ; ✕ conserve la phrase précédente. Elle suit D-298 et Phrase v1.
+Dans la phrase de synthèse des paramètres d’exécution, le mode est affiché séparément et la phrase commence par le nombre de Séries. Tant qu’aucun mode n’est sélectionné, le champ est vide. Le total intrinsèque fourni par le calcul est affiché sauf en À l’échec ou lorsqu’il est réellement redondant en Durée unilatérale à une Série. En Répétitions, Ti=Ri×Ci avec cadence, avec ≈ ; sans bip, total d’Exercice omis selon [Résultats temporels et agrégation du circuit](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit). Lorsque la charge est active, la phrase la mentionne selon RM-240. La phrase est régénérée lors de ✓ de la feuille valide ; ✕ conserve la phrase précédente. Elle suit D-298 et [Phrase de synthèse des paramètres](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres).
 
 Le Compte à rebours initial et la Fin de séance sont structurels et non déplaçables : aucun appui long ni aucune poignée de déplacement ne leur est associé.
 
-Dans le MVP, les médias déjà associés à un Exercice peuvent être consultés dans le Catalogue et pendant l’Exécution. Pendant l’Exécution, la galerie ordonnée, la pagination et le plein écran suivent D-203. L’ajout/import de photos ou vidéos locales, leurs associations ordonnées et leur persistance sont inclus au MVP dans PRE-3, avant le moteur d’exécution (D-333). Les règles de stockage et de non-duplication de D-066/D-068 sont conservées.
+Dans le MVP, les médias déjà associés à un Exercice peuvent être consultés dans le Catalogue, dans l’éditeur d’Exercice (lecture vidéo et plein écran par le lecteur natif de la plateforme, iOS sur iPhone et Android sur Android, sans lecture automatique ; décision PRE-4 Q27 du 16/10, D-385, précisée par D-393) et pendant l’Exécution. Pendant l’Exécution, la galerie ordonnée, la pagination et le plein écran suivent D-203. L’ajout/import de photos ou vidéos locales, leurs associations ordonnées et leur persistance sont inclus au MVP dans PRE-3, avant le moteur d’exécution (D-333). Les règles de stockage et de non-duplication de D-066/D-068 sont conservées.
+
+### Formats et départs rapides
+
+Les six formats d’entraînement (Tabata, Intervalles 30/30, EMOM, AMRAP, For time, Death by) et les départs rapides appartiennent au MVP (D-378). Leurs règles sont au chapitre 08, section Formats de séances ; le moteur n’est pas encore développé (D-369).
 
 ### Exécution d’une Séance
 
@@ -155,7 +159,8 @@ Le MVP permet de :
 - construire le plan d’Exécution à partir de l’instantané ;
 - afficher l’Exercice en cours, l’Exercice suivant, le temps et la progression ;
 - afficher les informations de Série et de Tour, sans jamais exposer le Cycle ;
-- afficher le côté courant sous le nom de l’Exercice lorsque la direction effective est bilatérale ;
+- afficher le côté courant sous le nom de l’Exercice lorsque l’Exercice est effectivement bilatéral (`Côté 1` / `Côté 2`, RM-243) ;
+- afficher la charge de la Série courante lorsque la charge est active (RM-241) ;
 - réinitialiser l’Exercice courant ;
 - mettre la Séance en Pause et la reprendre ;
 - passer à l’Exercice suivant ;
@@ -164,9 +169,9 @@ Le MVP permet de :
 
 Pour un Exercice chronométré passée avant son terme, une confirmation est demandée et le Résultat d’Exercice est enregistré `Partielle` si le passage est confirmé.
 
-Pour un Exercice en mode Répétitions ou À l’échec, le bouton `Suivant` termine normalement la Série courante et ne demande pas de confirmation.
+Pour une Série en mode Répétitions ou à cible À l’échec (D-111), le bouton `Suivant` termine normalement la Série courante et ne demande pas de confirmation.
 
-Un Exercice bilatéral exécute toutes ses Séries du premier côté puis toutes celles du second. La modale générique de passage anticipé reste inchangée : depuis le premier côté, confirmer conserve le résultat partiel de ce côté et conduit au second. Une réinitialisation ne concerne que le côté courant et préserve le résultat de l’autre côté.
+Un Exercice bilatéral exécute ses Séries selon son Ordre des côtés : toutes les Séries du premier côté puis celles du second (défaut), ou les deux côtés à chaque Série (D-247). La modale générique de passage anticipé reste inchangée : depuis le premier côté, confirmer conserve le résultat partiel de ce côté et conduit au second. Une réinitialisation ne concerne que le côté courant et préserve le résultat de l’autre côté.
 
 Le moteur distingue deux phases de récupération. `SIDE_RECOVERY`, lorsqu’elle existe, intervient selon l’Ordre des côtés (une fois par Exercice ou une fois par Série) d’un Exercice bilatéral. `POST_ACTIVITY_RECOVERY`, lorsqu’elle existe, intervient après l’occurrence d’Exercice dans une Séance. Une phase de récupération chronométrée annonce `Récupération`, se termine automatiquement à zéro et peut être quittée avec `Exercice suivant` après confirmation ; l’Exercice reste alors terminé et la récupération est enregistrée partiellement. `Réinitialiser la récupération` recommence uniquement la phase courante. Un arrêt pendant une phase de récupération produit une Exécution `Interrompue`.
 
@@ -176,7 +181,7 @@ Aucun retour à l’Exercice précédente n’est inclus dans le MVP.
 
 ### Exécution directe d’un Exercice — T03
 
-Le bouton Lecture d’une carte d’Exercice valide lance une Exécution d’origine `ACTIVITY` sans créer de Séance artificielle. L’Exécution repose sur un instantané autonome, commence par une préparation système fixe de `5 s`, applique les Séries, les Pauses et les directions `UNILATERAL | RIGHT_LEFT | LEFT_RIGHT`. Si l’Exercice est bilatéral, sa Pause entre les côtés éventuelle est exécutée selon l’Ordre des côtés. **Aucune Récupération après exercice n’est ajoutée en Exécution directe.** Le signal de fin ouvre ensuite la Synthèse.
+Le bouton Lecture d’une carte d’Exercice valide lance une Exécution d’origine `ACTIVITY` sans créer de Séance artificielle. L’Exécution repose sur un instantané autonome, commence par une préparation système fixe de `5 s`, applique les Séries, les Pauses et le changement de côté `Sans` / `Avec` (valeurs historiques `RIGHT_LEFT` et `LEFT_RIGHT` lues `Avec`, RM-244). Si l’Exercice est bilatéral, sa Pause entre les côtés éventuelle est exécutée selon l’Ordre des côtés. **Aucune Récupération après exercice n’est ajoutée en Exécution directe.** Le signal de fin ouvre ensuite la Synthèse.
 
 Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentaire reste facultatif. L’Exécution rejoint le Suivi général sous le type Exercice et alimente les statistiques compatibles sans augmenter le nombre de Séances. T03 ne développe que ce sous-ensemble autonome réutilisable du moteur ; l’orchestration complète de Séance relève de T04.
 
@@ -184,7 +189,7 @@ Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentair
 
 La Durée estimée est calculée à partir de toutes les durées déterminables du plan d’Exécution développé, passages bilatéraux et Récupérations d’Exercice compris.
 
-Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé aux agrégats Séance/Circuit contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
+Durées selon [Résultats temporels et agrégation du circuit](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) et [Calculs des durées et ordre des phases](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calculs-des-durées-et-ordre-des-phases) : Durée exacte si toutes les cibles sont chiffrées ; Répétitions avec bip estimées ≈ si toutes les cibles sont chiffrées ; mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈ ; Répétitions sans bip, ou toutes les cibles À l’échec : omitted au niveau Exercice. Séance/Circuit : ≥ si travail inconnu (RM-132). Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 
 Le temps total écoulé et la Durée réelle excluent les périodes de Pause utilisateur.
 
@@ -193,10 +198,7 @@ Trois indicateurs d’Exercices sont distingués :
 - Nombre total d’Exercices à exécuter ;
 - Nombre d’Exercices exécutés.
 
-La barre de progression utilise une pondération hybride :
-- les Exercices chronométrés sont pondérées proportionnellement à leur durée ;
-- chaque occurrence d’Exercice en mode Répétitions ou À l’échec reçoit un poids `1/N`, où `N` est le Nombre total d’Exercices à exécuter ;
-- la part restante est répartie entre les Exercices chronométrés proportionnellement à leur durée.
+La barre de progression couvre toutes les étapes du Plan d’Exécution : les poids des étapes non chronométrées sont réservés, puis le solde est réparti proportionnellement entre les phases chronométrées (D-241 ; règle détaillée : RM-077, RM-126).
 
 La barre est visuellement continue, sans frontière de segment visible.
 
@@ -209,6 +211,7 @@ Le guidage comprend :
 - l’annonce du côté au début du premier passage et une seule fois lors du passage au second côté ;
 - les sons prévus pendant les Exercices chronométrés, dont le bip grave de rythme ;
 - le signal des trois dernières secondes ;
+- le guidage de cadence pendant l’Exécution (D-378) ;
 - un réglage global des sons dans le MVP ;
 - un réglage séparé des annonces vocales ;
 - les vibrations fonctionnelles de séance selon les préférences définies ;
@@ -270,7 +273,7 @@ Le MVP comporte quatre destinations principales :
 - `Suivi` ;
 - `Profil`.
 
-`Catalogues` est le libellé permanent de navigation. Dans cet espace, les titres contextuels sont `Catalogue des séances`, `Catalogue des exercices` et `Catalogue des parcours`. Le Catalogue s’ouvre et se réinitialise après relance complète sur le segment `Séances`.
+`Catalogues` est le libellé permanent de navigation. Dans cet espace, les titres contextuels sont `Catalogue des séances` et `Catalogue des exercices`. Le Catalogue s’ouvre et se réinitialise après relance complète sur le segment `Séances`.
 
 Le composant DSF canonique de navigation est `Navigation / Bottom` (`6298:12462`). Les dessins des quatre destinations ont une dimension maximale de `24 pt`, sont centrés dans leur boîte optique `32 × 32 pt` et conservent une cible tactile conforme aux règles communes.
 
@@ -286,7 +289,7 @@ Le composant DSF canonique de navigation est `Navigation / Bottom` (`6298:12462`
 - signalement détaillé de douleur ou de gêne ;
 - intelligence artificielle ;
 - Séances imbriquées ;
-- structures comportant plusieurs Tours ou plusieurs Cycles ;
+- structures comportant plusieurs Circuits ou plusieurs Cycles ;
 - modification individuelle d’une occurrence de Calendrier ;
 - Parcours fonctionnels ;
 - options avancées de filtre/tri Catalogue non encore arbitrées.
@@ -301,14 +304,14 @@ Le composant DSF canonique de navigation est `Navigation / Bottom` (`6298:12462`
 6. La suppression d’une Séance supprime ses Routines mais conserve les Exécutions passées.
 7. La suppression définitive d’une `ActivityDefinition` n’altère ni les copies de Séance ni les Instantanés/Exécutions historiques.
 8. Les Étiquettes qualifient les Séances et portent leur couleur.
-9. Les Étiquettes, Catégories et Zones corporelles sont des référentiels utilisateur administrables. Toutes leurs valeurs, y compris celles fournies initialement par KODJO, peuvent être supprimées. Dans une modale de sélection, un appui court valide et ferme une sélection simple ou sélectionne/désélectionne une valeur en sélection multiple (D-222) ; un appui long ouvre une confirmation de suppression. La suppression retire la valeur des choix futurs mais conserve ses affectations sur les objets existants ainsi que les Instantanés/Exécutions historiques.
+9. Les Étiquettes, Catégories et Zones corporelles sont des référentiels utilisateur administrables. Toutes leurs valeurs, y compris celles fournies initialement par KODJO, peuvent être supprimées. Dans une modale de sélection, en sélection simple (Catégorie, Étiquette), un appui court marque la valeur sans fermer et ✓ confirme (D-343, D-355) ; en sélection multiple, il sélectionne/désélectionne une valeur ; un appui long ouvre une confirmation de suppression. La suppression retire la valeur des choix futurs mais conserve ses affectations sur les objets existants ainsi que les Instantanés/Exécutions historiques.
 10. La couleur affichée d’une Séance est celle de son Étiquette et est reprise par ses Routines.
 11. Le plan d’Exécution est calculé au démarrage et n’est pas manipulé directement par l’utilisateur.
 12. Le Compte à rebours initial et la Fin de séance sont structurellement présents ; `0 s` signifie phase instantanée.
 13. Les occurrences du Calendrier sont calculées dynamiquement.
 14. Toutes les données du MVP sont stockées localement sur l’appareil.
 15. Les règles de calcul fonctionnelles sont déterministes et centralisées dans les spécifications.
-16. Dans la version actuelle, la direction bilatérale active est portée par l’Exercice ; aucun changement de côté n’est exposé au niveau du Circuit.
+16. Dans la version actuelle, le changement de côté actif est porté par l’Exercice ; aucun changement de côté n’est exposé au niveau du Circuit.
 17. Les Résultats bilatéraux sont séparés par côté ; un seul côté partiellement réalisé rend l’Exercice globale partielle.
 
 ## 8. Écrans de référence
@@ -380,13 +383,13 @@ Les versions futures pourront notamment introduire :
 
 Le Catalogue conserve un seul espace mais distingue `Exercices` et `Séances`. `Séances` est le segment sélectionné par défaut ; `Exercices` devient fonctionnel en T03 ; `Parcours` est absent du sélecteur. Une fermeture/reprise complète ne mémorise pas le dernier segment et revient à `Séances`.
 
-`Créer`, `Filtrer` et `Trier` constituent la rangée commune de commandes d’entrée. La référence courante utilise des boutons contextuels visibles de `34 pt`, des pictogrammes de `20 pt`, des gaps de `12 pt` et des cibles ≥ `44 × 44 pt` sans chevauchement. `Filtrer` et `Trier` sont communs aux trois contextes de Catalogue ; le contenu des options peut dépendre du segment actif. Pour T03 / Exercices, `Filtrer` est fonctionnel au minimum pour `Archivées`, `Trier` est visible mais désactivé, et le tri appliqué reste la dernière modification décroissante. Toute autre option est hors contrat tant qu’elle n’est pas arbitrée.
+`Créer`, `Filtrer` et `Trier` constituent la rangée commune de commandes d’entrée. La référence courante utilise des boutons contextuels visibles de `34 pt`, des pictogrammes de `20 pt`, des gaps de `12 pt` et des cibles ≥ `44 × 44 pt` sans chevauchement. `Filtrer` et `Trier` sont communs aux deux contextes de Catalogue ; le contenu des options peut dépendre du segment actif. Pour T03 / Exercices, `Filtrer` est fonctionnel au minimum pour `Archivées`, `Trier` est visible mais désactivé, et le tri appliqué reste la dernière modification décroissante. Toute autre option est hors contrat tant qu’elle n’est pas arbitrée.
 
 ### Exercices persistants — MVP T03
 
 Un Exercice de Catalogue est une référence persistante `ActivityDefinition`. L’utilisateur peut la créer, la consulter, la modifier, l’archiver, accéder aux archives par `Filtrer > Archivées`, la restaurer, la supprimer définitivement depuis les archives, l’exécuter directement ou la sélectionner depuis une Composition.
 
-Son insertion dans une Séance copie toutes les propriétés métier applicables au moment de l’insertion — nom, Description, mode/cible, Séries, Pause, Récupération, Zones corporelles, direction propre et autres champs persistants applicables. La `SessionActivity` appartient ensuite à la Séance et évolue indépendamment. Un Exercice créé dans une Séance ne rejoint pas automatiquement le Catalogue. La migration T03 ne transforme pas les `SessionActivity` historiques en `ActivityDefinition`.
+Son insertion dans une Séance copie toutes les propriétés métier applicables au moment de l’insertion — nom, Description, mode/cible, Séries, Pause, Récupération, Zones corporelles, changement de côté propre, charge (activation et valeurs, RM-236) et autres champs persistants applicables. La `SessionActivity` appartient ensuite à la Séance et évolue indépendamment. Un Exercice créé dans une Séance ne rejoint pas automatiquement le Catalogue. La migration T03 ne transforme pas les `SessionActivity` historiques en `ActivityDefinition`.
 
 Dans les Catalogues, `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant : Exercice persistant depuis `Exercices`, Séance depuis `Séances` ; aucun Catalogue Parcours. Aucun écran ni arbre intermédiaire n’est affiché. Cette règle n’active pas les Parcours dans T03/MVP. Depuis `Ajouter un exercice` dans une Composition, le parcours actuellement exposé ouvre la sélection d’Exercices du Catalogue. La capacité existante de création directe d’un Exercice local à la Séance reste conservée fonctionnellement et techniquement mais n’est pas exposée dans cet enchaînement. La sélection multiple insère les Exercices selon leur ordre visible dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers.
 
@@ -394,7 +397,7 @@ Les cartes du Catalogue des exercices portent la couleur de leur Catégorie. La 
 
 ### Exécution directe d’un Exercice — MVP T03
 
-Une Exécution directe d’origine `ACTIVITY` crée un instantané autonome et immuable, applique une préparation fixe de `5 s`, développe Séries, Pauses, côtés et Récupération selon les règles existantes puis se termine sans `SESSION_END`. Le signal de fin ouvre immédiatement la Synthèse.
+Une Exécution directe d’origine `ACTIVITY` crée un instantané autonome et immuable, applique une préparation fixe de `5 s`, développe Séries, Pauses et côtés selon les règles existantes, sans Récupération après exercice (D-208, RM-211) puis se termine sans `SESSION_END`. Le signal de fin ouvre immédiatement la Synthèse.
 
 Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentaire est facultatif. L’Exécution rejoint le Suivi général sous le type Exercice et alimente toutes les statistiques compatibles sans augmenter le nombre de Séances. `Terminer` restaure l’état du Catalogue des exercices du parcours courant. Cet état n’est pas conservé après relance complète.
 
@@ -431,15 +434,9 @@ La tranche bilatéralité `V2-BILAT-01` reste un incrément préparatoire antér
 
 `PRODUCT.md` est une synthèse. Il ne remplace pas les spécifications détaillées.
 
-En cas de contradiction, l’ordre de référence est :
+Ce document n’établit pas d’ordre de référence propre : les règles d’autorité décidées sont réunies dans [INDEX.md, « Autorité documentaire — ce qui est décidé »](INDEX.md#autorité-documentaire--ce-qui-est-décidé) (D-402, QR-6). Une décision n’en remplace une autre que si elle le dit explicitement.
 
-1. registre des décisions de conception et arbitrages explicitement supersédants ;
-2. glossaire, modèle fonctionnel et modèle de données ;
-3. conception fonctionnelle détaillée ;
-4. écrans et navigation ;
-5. contrats d’écran du chapitre 13 ;
-6. versions du produit et vision générale ;
-7. documents de travail, historiques et revues externes.
+Aucune priorité automatique n’existe entre la conception fonctionnelle (chapitre 08) et les contrats d’écran (chapitre 13) : une contradiction entre eux qui n’est pas résolue par une décision explicite reste `À CLARIFIER` (D-376).
 
 Pour T03, les références explicites de cette mise à jour sont :
 - `06 – Ecrans et navigation de la V1.md`, qui intègre directement les corrections UX T03 ;
@@ -467,7 +464,7 @@ Référence de conception : [CONCEPTION-EXECUTION-MEDIA.md](./CONCEPTION-EXECUTI
 
 Une récupération est ajoutée explicitement après une occurrence et reste distincte de la définition d’Exercice. Absente par défaut, elle se déplace et se duplique avec l’occurrence ; sa suppression rétablit la Pause terminale configurée. Une valeur positive est exécutée après l’occurrence, y compris en fin de Séance, et à chaque Tour si elle appartient au Circuit. Le défaut Profil est proposé à l’ajout explicite, sans effet rétroactif. postActivityRecoverySeconds est une projection de calcul, égale à 0 en son absence. À 0 s, aucune information ni phase de récupération ; le trait reste visible hors placement (D-303 à D-307).
 
-**Valeur initiale :** lors du passage de `Aucun` à `D→G` ou `G→D`, `sideRecoverySeconds` reprend le défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence). Cette valeur est proposée à la création de l’Exercice et reste modifiable dans l’éditeur.
+**Valeur initiale :** lors du passage du Changement de côté de `Sans` à `Avec` (D-406), `sideRecoverySeconds` reprend le défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence). Cette valeur est proposée à la création de l’Exercice et reste modifiable dans l’éditeur.
 
 ## Consolidation fonctionnelle — 26 septembre 2026
 
@@ -482,7 +479,7 @@ Une récupération est ajoutée explicitement après une occurrence et reste dis
 - Média d’Exécution compact : le bouton Lecture central disparaît pendant la lecture vidéo ; le retour à Information met la vidéo en pause ; le plein écran n’interrompt pas l’Exécution.
 
 
-**Convention de saisie D-219.** Les durées utilisent les roulettes en modale basse ; les sélections d’objets/référentiels utilisent leurs modales dédiées ; les entiers simples `Nombre de Séries`, `Nombre de répétitions` et `Nombre de Tours` utilisent des steppers inline sans roulette. Les dialogues de confirmation restent centrés.
+**Convention de saisie D-219.** Les durées utilisent les roulettes en modale basse ; les sélections d’objets/référentiels utilisent leurs modales dédiées ; les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent des steppers inline sans roulette ; la cible `Nombre de répétitions` utilise une roulette native à une colonne, 1 à 100, avec « Aucune répétition, à l’échec » en tête dans une cellule de séries variables seulement (décision PRE-4 Q8 du 16/10, D-385 ; retirée en séries identiques par D-418). La charge fait exception : saisie directe au clavier numérique décimal (D-405, RM-239). Les dialogues de confirmation restent centrés.
 
 
 **Contexte d’Exécution (D-220).** La ligne immédiatement sous le nom de l’Exercice est toujours renseignée : nom de Séance et Catégorie de l’Exercice lors d’une Exécution de Séance, Catégorie de l’Exercice seule en Exécution directe. L’indication du côté courant, lorsqu’elle existe, reste distincte.
@@ -497,7 +494,7 @@ Les fondations visuelles et composants communs suivent DSF V2 : fonds et zones d
 
 ### Générateur de phrase — référence active v1 (06/10/2026)
 
-Le générateur suit v13 §7. Le résumé omet le total uniquement lorsqu’il égale réellement la cible ; une Pause positive à N=1 rend ces valeurs différentes. En variable : énumération jusqu’à3 puis plage min/max, total en lecture seule. Compte à rebours et Fin d'exercice restent hors phrase et hors calcul de Durée totale. Les pauses d’Exercice utilisent les steppers de la feuille sur0..300s ; les réglages de durée du Profil utilisent des steppers. Les steppers de pauses utilisent tap1s puis maintien accéléré1/5/10 selon DSF Bip ; ancienne grille dépendante de la valeur abandonnée. Séries = `1..99`, Répétitions = `1..100`, Durée par Série = `1 s..99 min 59 s`.
+Le générateur suit v13 §7. Le résumé omet le total uniquement lorsqu’il égale réellement la cible ; une Pause positive à N=1 rend ces valeurs différentes. En variable : énumération jusqu’à3 puis plage min/max, total en lecture seule. Compte à rebours et Fin d'exercice restent hors phrase et hors calcul de Durée totale. Les pauses d’Exercice utilisent les steppers de la feuille sur0..300s ; les réglages de durée du Profil utilisent des steppers. Les steppers de pauses utilisent tap1s puis maintien accéléré1/5/10 selon DSF Bip ; ancienne grille dépendante de la valeur abandonnée. Séries = `1..99`, Répétitions = `1..100`, Durée par Série = `5 s..58 min 55 s`.
 
 ## Mise à jour visuelle du 30 septembre 2026
 
@@ -505,7 +502,7 @@ Le générateur suit v13 §7. Le résumé omet le total uniquement lorsqu’il �
 
 ## Paramètres — consolidation du02/10/2026
 
-Référence courante : [v13](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice), [DSF](DSF-SERIES-VARIABLES-2026-10-02.md), [matrice](MATRICE-SERIES-VARIABLES-2026-10-02.md) et [rapport](RAPPORT-MISE-A-JOUR-SERIES-VARIABLES-2026-10-02.md). D-247 à D-255 remplacent les anciennes formules et descriptions uniformes sur ce périmètre. Les règles de cartes sans rapport avec les paramètres restent conservées. Les nouvelles copies fournissent le layout ; elles ne prouvent ni intégration DSF ni conformité du moteur.
+Référence courante : [Paramètres et brouillon d’un exercice](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice), [DSF](DSF-SERIES-VARIABLES-2026-10-02.md), [matrice](MATRICE-SERIES-VARIABLES-2026-10-02.md) et [rapport](RAPPORT-MISE-A-JOUR-SERIES-VARIABLES-2026-10-02.md). D-247 à D-255 remplacent les anciennes formules et descriptions uniformes sur ce périmètre. Les règles de cartes sans rapport avec les paramètres restent conservées. Les nouvelles copies fournissent le layout ; elles ne prouvent ni intégration DSF ni conformité du moteur.
 
 ## Inventaire courant du parcours Créer un exercice — 03/10/2026
 
@@ -513,9 +510,9 @@ Référence courante : [v13](Specifications-fonctionnelles/08%20%E2%80%93%20Conc
 
 ## Cadence et DSF — cible documentaire06/10/2026
 
-Les trois modes acceptent Bip de cadence0..10s,0=Aucun par défaut. Répétitions/À l’échec gardent le chronomètre croissant et la fin manuelle ; Durée garde son minuteur. Le bip ne modifie pas ces terminaisons. La phrase de paramètres est unique, valeurs en gras, issue des paramètres validés et d’un total calculé par la spécification. Exercice : exact en Durée, ≈ en Répétitions avec bip, omitted en Répétitions sans bip et À l’échec. Séance : exact si tout exact, ≈ avec estimation sans inconnu, ≥ avec travail inconnu. Bip v2 gouverne calculs et périmètres.
+Les deux modes acceptent Bip de cadence0..10s,0=Aucun par défaut ; la ligne Cadence le présente par Autre | 5 s | 2 s | 1 s | Sans (D-408, RM-245). Répétitions/À l’échec gardent le chronomètre croissant et la fin manuelle ; Durée garde son minuteur. Le bip ne modifie pas ces terminaisons. La phrase de paramètres est unique, valeurs en gras, issue des paramètres validés et d’un total calculé par la spécification. Exercice : exact en Durée, ≈ en Répétitions avec bip, omitted en Répétitions sans bip et À l’échec. Séance : exact si tout exact, ≈ avec estimation sans inconnu, ≥ avec travail inconnu. [Résultats temporels et agrégation du circuit](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) gouverne calculs et périmètres.
 
-Références actives : paramètres v13, Bip v2, Phrase v1, chapitre13 et DSF-CADENCE-2026-10-06. Cible à implémenter/qualifier ; aucune annonce de livraison. Les règles photos, Circuit/Tour, pauses et récupération restent conservées. Le classeur v13 est exclusivement rédactionnel.
+Références actives : [Paramètres et brouillon d’un exercice](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice), [Résultats temporels et agrégation du circuit](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit), [Exécution d'une séance — Bip de cadence, progression et sécurité](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité), [Phrase de synthèse des paramètres](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres), chapitre13 et DSF-CADENCE-2026-10-06, actualisé le 13/10 par DSF-DEUX-MODES-ECHEC-2026-10-13. Cible à implémenter/qualifier ; aucune annonce de livraison. Les règles photos, Circuit/Tour, pauses et récupération restent conservées. Le classeur v13 est exclusivement rédactionnel.
 
 
 
@@ -523,4 +520,4 @@ Références actives : paramètres v13, Bip v2, Phrase v1, chapitre13 et DSF-CAD
 
 ## Circuits de tours et de séries —12/10/2026
 
-[Spécification normative](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#circuits) : décisions consolidées, propagation fonctionnelle et contrats CE-CIR-01/02/03. Un circuit MVP ; nature, conversions, héritage, volumes, calcul et bilatéralité définis. Captures et DSF à aligner dans une étape ultérieure ; aucun développement applicatif livré.
+[Spécification normative](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#circuits) : décisions consolidées, propagation fonctionnelle et contrats CE-CIR-01/02/03. Un circuit MVP ; nature, conversions, héritage, volumes, calcul et bilatéralité définis. Captures et DSF à aligner dans une étape ultérieure ; aucun développement applicatif livré.

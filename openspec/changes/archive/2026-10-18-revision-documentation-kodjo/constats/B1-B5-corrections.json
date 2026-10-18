@@ -1,0 +1,45 @@
+{
+  "description": "Précisions B1 à B5 de Hermann du 17/10/2026 (D-397 à D-401) — corrections documentaires. Portée de B1 confirmée par Hermann : cas sans durée totale calculée seulement.",
+  "corrections": [
+    { "id": "B1-01", "ref": "D-397 : ligne masquée lorsqu’aucune durée totale n’est calculée (Répétitions sans bip, toutes cibles À l’échec)", "file": "@13 – Contrats d’écran.md",
+      "ancien": "la ligne Total reste présente dans la feuille en Durée/Répétitions, y compris à N = 1 ; elle affiche « — » lorsqu’une cible nécessaire au calcul manque (D-396, D-384).",
+      "nouveau": "la ligne Total reste présente dans la feuille en Durée/Répétitions, y compris à N = 1 ; elle affiche « — » lorsqu’une cible nécessaire au calcul manque (D-396, D-384) ; elle est masquée lorsqu’aucune durée totale n’est calculée, en Répétitions sans bip et quand toutes les cibles sont À l’échec (D-397)." },
+    { "id": "B1-02", "ref": "D-397", "file": "@08 – Conception fonctionnelle détaillée.md",
+      "ancien": "Répétitions chiffrées avec bip≈ ; sans bip absente ; mélange calculable≥ ; tout échec absent |",
+      "nouveau": "Répétitions chiffrées avec bip≈ ; sans bip absente ; mélange calculable≥ ; tout échec absent (ligne masquée faute de durée totale calculée, D-397) |" },
+    { "id": "B1-03", "ref": "D-397", "file": "@07 – Registre des décisions de conception.md",
+      "ancien": "précisée sur ce point par D-396 (17/10/2026) : ligne toujours affichée dans la feuille Paramètres, y compris à N = 1 |",
+      "nouveau": "précisée sur ce point par D-396 (17/10/2026) : ligne toujours affichée dans la feuille Paramètres, y compris à N = 1, sauf lorsqu’aucune durée totale n’est calculée (Répétitions sans bip, toutes cibles À l’échec), où elle est masquée (D-397) |" },
+
+    { "id": "B2-01", "ref": "D-398 : valeur obligatoire absente = fond rouge pâle, sans contour orange ; valeurs invalides : règles existantes", "file": "@13 – Contrats d’écran.md",
+      "ancien": "le fond redevient normal dès qu’une valeur valide est saisie (D-389 ; `À CLARIFIER` : maintien ou retrait, dans ce cas, du contour de D-337, non tranché).",
+      "nouveau": "le fond redevient normal dès qu’une valeur valide est saisie ; aucun contour orange n’est appliqué dans ce cas (D-389, D-398). Une valeur renseignée mais invalide suit les règles existantes (D-398)." },
+    { "id": "B2-02", "ref": "D-398", "file": "@08 – Conception fonctionnelle détaillée.md",
+      "ancien": "pour un stepper, les cercles des boutons − et + conservent strictement leurs couleurs normales ; la valeur absente reste représentée par « — ».",
+      "nouveau": "pour un stepper, les cercles des boutons − et + conservent strictement leurs couleurs normales ; aucun contour orange n’est appliqué (D-398) ; la valeur absente reste représentée par « — »." },
+    { "id": "B2-03", "ref": "D-398 remplace, pour une valeur obligatoire absente, le contour orange de D-337", "file": "@07 – Registre des décisions de conception.md",
+      "ancien": "précisée sur ce point (fond rouge pâle d’un contrôle obligatoire sans valeur) par D-389 (17/10/2026) | CE-UI-10, chapitre 08, Paramètres et brouillon |",
+      "nouveau": "précisée sur ce point (fond rouge pâle d’un contrôle obligatoire sans valeur) par D-389 (17/10/2026) ; contour orange remplacé, pour une valeur obligatoire absente, par le seul fond rouge pâle (D-398, 17/10/2026) ; règles des valeurs invalides inchangées | CE-UI-10, chapitre 08, Paramètres et brouillon |" },
+
+    { "id": "B3-01", "ref": "D-399 : Circuit vide « — min » ; aucun nombre d’Exercices sous le titre", "file": "@08 – Conception fonctionnelle détaillée.md",
+      "ancien": "À l'état vide, le nombre `0 exercice` de D-091 n’est pas affiché à cet emplacement ; seule la durée l’est (D-390). |",
+      "nouveau": "À l'état vide, le nombre `0 exercice` de D-091 n’est pas affiché à cet emplacement ; seule la durée l’est, sous la forme « — min » (D-390, D-399). |" },
+    { "id": "B3-02", "ref": "D-399 remplace, pour le Circuit vide, le `0 min` de D-091", "file": "@07 – Registre des décisions de conception.md",
+      "ancien": "le libellé `0 exercices` ne s’applique plus à cette carte | Oui |",
+      "nouveau": "le libellé `0 exercices` ne s’applique plus à cette carte ; Circuit vide : « — min » au lieu de `0 min` (D-399, 17/10/2026) | Oui |" },
+
+    { "id": "B4-01", "ref": "D-400 : actions d’accessibilité natives TalkBack sur Android", "file": "@08 – Conception fonctionnelle détaillée.md",
+      "ancien": "avec une alternative accessible (actions VoiceOver), sans bouton ajouté sur la tuile (décisions PRE-4 Q27 et Q31 du 16/10, D-385 ;",
+      "nouveau": "avec une alternative accessible (actions VoiceOver sur iOS, actions d’accessibilité natives TalkBack sur Android, D-400), sans bouton ajouté sur la tuile (décisions PRE-4 Q27 et Q31 du 16/10, D-385 ;" },
+    { "id": "B4-02", "ref": "D-400", "file": "@13 – Contrats d’écran.md",
+      "ancien": "menu contextuel natif Retirer / Monter / Descendre, avec actions VoiceOver équivalentes ;",
+      "nouveau": "menu contextuel natif Retirer / Monter / Descendre, avec actions VoiceOver équivalentes sur iOS et actions d’accessibilité natives TalkBack sur Android (D-400) ;" },
+    { "id": "B4-03", "ref": "D-400 (statut de D-335, amendée par Q31)", "file": "@07 – Registre des décisions de conception.md",
+      "ancien": "avec une alternative accessible (actions VoiceOver), sans bouton ajouté sur la tuile |",
+      "nouveau": "avec une alternative accessible (actions VoiceOver ; sur Android, actions d’accessibilité natives TalkBack, D-400), sans bouton ajouté sur la tuile |" },
+
+    { "id": "B5-01", "ref": "D-401 : titre, texte avec accord, bouton « Compris »", "file": "@09 – Modèle de données fonctionnel.md",
+      "ancien": "(D-394 ; libellé exact du message — À CLARIFIER)",
+      "nouveau": "(D-394). Titre : « Certains exercices n’ont pas été récupérés » ; texte : « La mise à jour de vos données est terminée. {N} exercice(s) n’ont pas pu être récupérés car leurs données étaient illisibles. », accordé au singulier ou au pluriel selon {N}, nombre d’Exercices non récupérés ; bouton « Compris » (D-401)" }
+  ]
+}

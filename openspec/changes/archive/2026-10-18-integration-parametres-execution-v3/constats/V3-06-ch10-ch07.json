@@ -1,0 +1,493 @@
+{
+ "description": "Intégration de la spécification v3.0 — V3-06-ch10-ch07.txt",
+ "corrections": [
+  {
+   "id": "V3-E-001",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "CORRECTION-DECIDEE:D-408",
+   "ref": "CA-01, AC-15",
+   "ancien": "| D-308 | Bip de cadence transverse aux deux modes, stepper0..10,0=Aucun, aucun effacement à bascule de mode. | Explicite | Prompt Bip§§1–2,6 |",
+   "nouveau": "| D-308 | Bip de cadence transverse aux deux modes, stepper0..10,0=Aucun, aucun effacement à bascule de mode. | Explicite ; remplacée sur ce point par D-408 (18/10/2026) : présentation par les choix Autre, 5 s, 2 s, 1 s et Sans au lieu du stepper seul, 0 présenté Sans ; bornes 0..10 s et pas de 1 s inchangés (RM-245) | Prompt Bip§§1–2,6 |",
+   "commentaire": "Intégration v3.0 — propagation au chapitre 10 (hors section RM-235 à RM-250) et statuts du registre (chapitre 07, hors section D-403 à D-413). / Les commentaires sont regroupés ici : le convertisseur rattache toute ligne placée entre deux blocs au « nouveau » du bloc précédent. / CONFLIT-PR #371 — bloc V3-E-001 (D-308) : la ligne D-308 est une ligne de contexte du correctif PR #371 (qui modifie D-309) ; la compléter fera échouer l’application de ce correctif tel quel, sans conflit de fond. / Dépendance : le renvoi de V3-E-008 vise l’ancre du titre renommé par V3-10-titres.txt (V3-T-004). / QUESTIONS / Q : 10 – Processus métier…:486 — les formes « en faisant le côté 1 puis le côté 2 », « en alternant le côté 1 puis le côté 2 à chaque série », « en faisant d’abord toutes les séries du côté 1, puis du côté 2 » (V3-E-010) changent des textes du corpus v15 des 276 cas (D-315, D-321) : formulations exactes à confirmer par Hermann, ainsi que la mise à jour du corpus lui-même. / Q : 10 – Processus métier…:494 et :1893 — la roulette Répétitions conserve « Aucune répétition, à l’échec » en tête (décision PRE-4 Q8, D-385, D-219) ; D-412 ne la vise pas, alors que RM-248 indique que la condition n’est pas définie à un second endroit en séries identiques. Faut-il retirer cette option de la roulette commune des séries identiques ? Non modifié. / Q : 10 – Processus métier…:288 (Cible À l’échec, « Séries → cadre informatif à l’échec → Pause ») — avec la Condition d’arrêt À l’échec en séries identiques, la ligne de durée/répétitions est-elle remplacée par ce cadre informatif ou masquée (RM-250 : « l’accès à la durée suit la condition d’arrêt ») ? Non modifié. / Q : 10 – Processus métier…:494, :2153 (RM-234), :2169 — « Pause … stepper dans la feuille Exercice » : D-413 retire les steppers de cellules du tableau variable ; quel contrôle règle la Pause d’une cellule de séries variables ? Non modifié. / Q : 10 – Processus métier…:793 — « seules l’ouverture et la fermeture d’un popover ou du sélecteur » (Annuler, D-385 Q29) : les popovers Mode / Type de série / Changement de côté n’existent plus (D-413) ; faut-il réduire à « du sélecteur » ? Non modifié (décision PRE-4). / Q : 10 – Processus métier…:1137 — « La charge additionnelle et une entrée Pyramide distincte restent hors périmètre » (formats, Progression) : s’agit-il d’une charge progressive propre aux formats, toujours exclue, ou de l’exclusion générale levée par D-403 ? Non modifié. / Q : 10 – Processus métier…:879 et :1095 (FMT-15, « après Durée totale ») — ligne d’un bloc Paramètres de format de séance, distinct de la feuille d’Exercice : le libellé Durée de l’exercice (D-409) ne paraît pas s’y appliquer. Non modifié. / Q : 07 – Registre…:596 (CIR-06 « direction conservée ») et prose « Réception du §4.5 — sélecteur de cible » (:610, option à l’échec de la roulette commune remplacée par D-412) — tableau sans colonne de statut / paragraphe sans statut : aucune complétion possible sans toucher au texte. Non modifié. / Q : 07 – Registre…:518 (D-326, « exceptions Changement de côté13 et Ordre14/11 ») — typographie de la ligne Ordre, libellé visible Enchainement (D-413) : précision de statut utile ? Non modifié.",
+   "decision": "D-408"
+  },
+  {
+   "id": "V3-E-002",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-406",
+   "ref": "CO-01, CH-01 à CH-09",
+   "ancien": "Section [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice) : mode unique, N séries par côté, cibles/Pauses propres à chaque ligne en variable, direction et Ordre des côtés indépendants. N=1 effectif uniforme/Un côté après l’autre ; restauration temporaire avant✓. Déplacement cible/Pause conjoint ; nouvelle première reprise à désactivation, nouvelle dernière Pause stockée et exécutée, sauf substitution par récupération positive. Total variable readonly ; ligne Total affichée, y compris à N = 1 (D-396), avec « — » lorsqu’une cible nécessaire au calcul manque (D-384) ; Répétitions : ≈ avec cadence, omission sans bip à l’Exercice ; À l’échec aucun total.",
+   "nouveau": "Section [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice) : mode unique, N séries par côté, cibles/Pauses propres à chaque ligne en variable, Changement de côté (Avec / Sans) et Ordre des côtés (D-406), charge facultative (RM-235 à RM-241). N=1 effectif uniforme/Un côté après l’autre ; restauration temporaire avant✓. Déplacement cible/Pause conjoint ; nouvelle première reprise à désactivation, nouvelle dernière Pause stockée et exécutée, sauf substitution par récupération positive. Total variable readonly ; ligne Durée de l’exercice (D-409) affichée, y compris à N = 1 (D-396), avec « — » lorsqu’une cible nécessaire au calcul manque (D-384) ; Répétitions : ≈ avec cadence, omission sans bip à l’Exercice ; À l’échec aucun total.",
+   "decision": "D-406"
+  },
+  {
+   "id": "V3-E-003",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-411",
+   "ref": "AR-01, RO-01, AC-19, AC-24",
+   "ancien": "Les écrans Exercice placent le champ Nom en premier dans la zone bleue et suppriment le contexte de Séance. Aucun type d’Exercice n’est affiché. Le mode d’exécution propose `Durée` et `Répétitions`. `À l’échec` est un type de cible de série, sélectionné dans le contrôle de cible, et non un troisième mode. Dans le MVP, la zone Média suit les frames courantes et la carte d’Exercice du Catalogue conserve sa gouttière permanente avec premier média ou icône de nature, sans déploiement (D-260/D-261/D-264). Les capacités d’import/capture restent régies par leur périmètre propre. Les accès `Catégorie` et `Zones corporelles` utilisent une icône `+` séparée de leur libellé.",
+   "nouveau": "Les écrans Exercice placent le champ Nom en premier dans la zone bleue et suppriment le contexte de Séance. Aucun type d’Exercice n’est affiché. Le mode d’exécution propose `Durée` et `Répétitions`. `À l’échec` est un type de cible de série, choisi par la Condition d’arrêt en séries identiques et dans la cellule du tableau en séries variables (RM-248 à RM-250), et non un troisième mode. Dans le MVP, la zone Média suit les frames courantes et la carte d’Exercice du Catalogue conserve sa gouttière permanente avec premier média ou icône de nature, sans déploiement (D-260/D-261/D-264). Les capacités d’import/capture restent régies par leur périmètre propre. Les accès `Catégorie` et `Zones corporelles` utilisent une icône `+` séparée de leur libellé.",
+   "decision": "D-411"
+  },
+  {
+   "id": "V3-E-004",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-406",
+   "ref": "CO-01, AC-13, AC-14",
+   "ancien": "| Changement de côté | Réglage propre `Aucun` (`UNILATERAL`), `D→G` (`RIGHT_LEFT`) ou `G→D` (`LEFT_RIGHT`). Aucun réglage de côté n’est exposé au niveau Circuit. |",
+   "nouveau": "| Changement de côté | Réglage propre Avec / Sans (RM-242, D-406) ; `UNILATERAL` correspond à Sans, les valeurs historiques `RIGHT_LEFT` et `LEFT_RIGHT` sont lues Avec (RM-244). Aucun réglage de côté n’est exposé au niveau Circuit. |",
+   "decision": "D-406"
+  },
+  {
+   "id": "V3-E-005",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "RENVOI",
+   "ref": "CH-01 à CH-09",
+   "ancien": "| Pause entre les côtés | Durée intrinsèque facultative `sideRecoverySeconds`, uniquement en bilatéral. Elle intervient selon l’Ordre des côtés. Sa valeur initiale lors de l’activation bilatérale provient du défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice. |",
+   "nouveau": "| Pause entre les côtés | Durée intrinsèque facultative `sideRecoverySeconds`, uniquement en bilatéral. Elle intervient selon l’Ordre des côtés. Sa valeur initiale lors de l’activation bilatérale provient du défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice. |\r\n| Charge | Paramètre facultatif et informatif en kilogrammes, Avec / Sans, commun aux séries identiques ou propre à chaque série variable : RM-235 à RM-241 (D-403 à D-405). |"
+  },
+  {
+   "id": "V3-E-006",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-01",
+   "ancien": "| Sélection de ligne | Dans CE-UI-10, le contour désigne uniquement la ligne de roulette/segmenté activée (`À CLARIFIER` : application aux lignes à popover qui remplacent les segmentés selon les DSF validés, D-377 ; rendu à vérifier dans Figma). Aucun contour sur Séries/stepper. Si T(N)≠Tv, message sous Total ; sinon aucun message. |",
+   "nouveau": "| Sélection de ligne | Dans CE-UI-10, le contour désigne uniquement la ligne de roulette/segmenté activée (les lignes Mode, Type de série et Changement de côté sont des contrôles segmentés, les popovers de D-377 étant remplacés par D-413 ; rendu à vérifier dans Figma). Aucun contour sur Séries/stepper. Si T(N)≠Tv, message sous Durée de l’exercice (D-409) ; sinon aucun message. |",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-E-007",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "RENVOI",
+   "ref": "CH-08",
+   "ancien": "| Synthèse          | Cadre immuable, indépendant du déploiement des sections et placé en bas du contenu à `spacing/24` de l’action finale. Style `KODJO / Body` (`14/20`). La phrase commence par le nombre de Séries et ne répète pas le mode. Sans mode sélectionné, elle est vide. Elle suit les fragments conditionnels de la [phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases) (RM-232, D-298), se régénère à chaque modification et exclut nom d’Exercice, Compte à rebours, Fin d’exercice et Récupération post-activité.",
+   "nouveau": "| Synthèse          | Cadre immuable, indépendant du déploiement des sections et placé en bas du contenu à `spacing/24` de l’action finale. Style `KODJO / Body` (`14/20`). La phrase commence par le nombre de Séries et ne répète pas le mode. Sans mode sélectionné, elle est vide. Elle suit les fragments conditionnels de la [phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases) (RM-232, D-298), inclut la mention de charge selon RM-240, se régénère à chaque modification et exclut nom d’Exercice, Compte à rebours, Fin d’exercice et Récupération post-activité."
+  },
+  {
+   "id": "V3-E-008",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "RENVOI",
+   "ref": "CH-01 à CH-09, CO-01, CA-01, DU-01, CV-01, AR-01, GR-01, RO-01",
+   "ancien": "La référence active est [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice), contrats CE-T03-04/CE-UI-10. Elle intègre Séries variables, Ordre des côtés, pauses terminales et récupération de l’occurrence. Feuille transactionnelle : ✕ annule, ✓ applique au parent, Terminer persiste. Les calculs et comportements sont normatifs dans les spécifications ; Figma définit le layout seulement. Les anciens textes v11 sont historiques.",
+   "nouveau": "La référence active est [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice), contrats CE-T03-04/CE-UI-10. Elle intègre Séries variables, Ordre des côtés, pauses terminales et récupération de l’occurrence. Feuille transactionnelle : ✕ annule, ✓ applique au parent, Terminer persiste. Les calculs et comportements sont normatifs dans les spécifications ; Figma définit le layout seulement. Les anciens textes v11 sont historiques. Charge, Changement de côté, Cadence, Durée de l’exercice, chevrons, Condition d’arrêt et roulettes de durée : [RM-235 à RM-250](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026) ci-dessous (D-403 à D-413)."
+  },
+  {
+   "id": "V3-E-009",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "RENVOI",
+   "ref": "CA-01",
+   "ancien": "CAD-01 à CAD-30 sont transcrites sans doublon dans D-268 à D-297 ; appliquer [Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité). Intervalles sonores et progression sont distincts de la fin métier. Pause abandonne la fraction pour progression seulement ; reset n’efface pas le temps réel. Arrière-plan n’est pas Pause, aucun rejeu de signal manqué. Cadence commune à toutes les Séries dans l’éditeur, aucun défaut ni préférence Profil. Les formules de pauses/Récupération de RM-129 restent inchangées hors Ti.",
+   "nouveau": "CAD-01 à CAD-30 sont transcrites sans doublon dans D-268 à D-297 ; appliquer [Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité). Intervalles sonores et progression sont distincts de la fin métier. Pause abandonne la fraction pour progression seulement ; reset n’efface pas le temps réel. Arrière-plan n’est pas Pause, aucun rejeu de signal manqué. Cadence commune à toutes les Séries dans l’éditeur, aucun défaut ni préférence Profil ; choix Autre, 5 s, 2 s, 1 s et Sans selon RM-245. Les formules de pauses/Récupération de RM-129 restent inchangées hors Ti."
+  },
+  {
+   "id": "V3-E-010",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-407",
+   "ref": "CO-01, AC-23, PR-05",
+   "ancien": "Sans changement : aucune clause. N=1 bilatéral : « en faisant le côté droit puis le gauche ». N>1 par paire : « en alternant le côté droit puis le gauche à chaque série ». N>1 par côté : « en faisant d’abord toutes les séries à droite, puis à gauche ». Inverser les directions pour un départ gauche. PC>0 ajoute « , avec {PC} de pause au changement de côté » ; PC=0 omet le suffixe. Les modèles exacts de ponctuation sont ceux des 276 cas.",
+   "nouveau": "Sans changement de côté : aucune clause. N=1 bilatéral : « en faisant le côté 1 puis le côté 2 ». N>1 par paire : « en alternant le côté 1 puis le côté 2 à chaque série ». N>1 par côté : « en faisant d’abord toutes les séries du côté 1, puis du côté 2 ». Le côté 1 est celui par lequel l’utilisateur commence ; aucune clause ne désigne un côté anatomique (RM-243, D-407). PC>0 ajoute « , avec {PC} de pause au changement de côté » ; PC=0 omet le suffixe. Les modèles exacts de ponctuation sont ceux des 276 cas.",
+   "decision": "D-407"
+  },
+  {
+   "id": "V3-E-011",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-412",
+   "ref": "RO-01, CA-01, AC-24, AC-25",
+   "ancien": "Séries : stepper `1..99`. Répétitions : roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis `1..100` (décision PRE-4 Q8 du 16/10, D-385). Durée par Série : roulette `5 s..58 min 55 s`. Pause après chaque série et Pause entre les côtés : stepper dans la feuille Exercice, `0..5 min`, tap 1 s et maintien accéléré 1/5/10 selon DSF Bip (D-313) ; stepper pour les réglages du Profil. La Pause après chaque série est initialisée à `0 s` dans la feuille ; la Pause entre les côtés copie la valeur courante du Profil. Au changement de mode, les paramètres communs et les dernières valeurs spécifiques de chaque mode sont conservés pendant l’édition. Après la première sélection, le mode ne peut plus revenir à l’état vide. `Terminer` est désactivé avant cette première sélection.",
+   "nouveau": "Séries : stepper `1..99`. Répétitions : roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis `1..100` (décision PRE-4 Q8 du 16/10, D-385). Durée par Série : roulette `5 s..58 min 55 s` ; en séries identiques, durée numérique seule, À l’échec se réglant par la Condition d’arrêt ; dans une cellule de séries variables en mode Durée, durée numérique ou « À l’échec » (RM-250, D-412). Pause après chaque série et Pause entre les côtés : stepper dans la feuille Exercice, `0..5 min`, tap 1 s et maintien accéléré 1/5/10 selon DSF Bip (D-313) ; stepper pour les réglages du Profil. Cadence : choix Autre, 5 s, 2 s, 1 s et Sans, Autre conservant les bornes et le pas existants (RM-245, D-408). La Pause après chaque série est initialisée à `0 s` dans la feuille ; la Pause entre les côtés copie la valeur courante du Profil. Au changement de mode, les paramètres communs et les dernières valeurs spécifiques de chaque mode sont conservés pendant l’édition. Après la première sélection, le mode ne peut plus revenir à l’état vide. `Terminer` est désactivé avant cette première sélection.",
+   "decision": "D-412"
+  },
+  {
+   "id": "V3-E-012",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-406",
+   "ref": "CO-01",
+   "ancien": "L’éditeur conserve `Pause entre les côtés`, exposée uniquement en D→G/G→D ; aucune récupération post-exercice n’est ajoutée à la synthèse intrinsèque.",
+   "nouveau": "L’éditeur conserve `Pause entre les côtés`, exposée uniquement avec changement de côté (Avec, D-406) ; aucune récupération post-exercice n’est ajoutée à la synthèse intrinsèque.",
+   "decision": "D-406"
+  },
+  {
+   "id": "V3-E-013",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-406",
+   "ref": "CO-01, AC-14",
+   "ancien": "L’éditeur d’Exercice porte `sideRecoverySeconds` uniquement pour un Exercice bilatéral. Le passage à `Aucun` rend ce paramètre sans objet. Lors du passage de `Aucun` à une direction bilatérale, la valeur initiale provient du défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice.",
+   "nouveau": "L’éditeur d’Exercice porte `sideRecoverySeconds` uniquement pour un Exercice bilatéral. Le passage du Changement de côté à Sans rend ce paramètre sans objet. Lors du passage de Sans à Avec (D-406), la valeur initiale provient du défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice.",
+   "decision": "D-406"
+  },
+  {
+   "id": "V3-E-014",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-01",
+   "ancien": "**Le circuit contraint le nombre de séries, jamais leur régime.** Le régime — séries identiques ou séries variables — est un réglage propre à chaque exercice, et il existe déjà dans les écrans (ligne « Séries » de la modale des modalités d'exécution). Basculer de tours à séries ne change que le compte.",
+   "nouveau": "**Le circuit contraint le nombre de séries, jamais leur régime.** Le régime — séries identiques ou séries variables — est un réglage propre à chaque exercice, et il existe déjà dans les écrans (contrôle « Type de série » de la modale des modalités d'exécution, D-413). Basculer de tours à séries ne change que le compte.",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-E-015",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, CV-01",
+   "ancien": "Le réglage est porté par un champ de la ligne « Séries », et le choix se fait par popover à deux entrées.",
+   "nouveau": "Le réglage est porté par le contrôle segmenté « Type de série » (Variables / Identiques), qui remplace le champ de la ligne « Séries » et son popover à deux entrées (D-413).",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-E-016",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-410",
+   "ref": "CV-01, AC-18",
+   "ancien": "Le régime et le repli de la liste sont **deux informations distinctes**, portées par deux contrôles distincts : le champ pour le régime, un chevron pour le repli.",
+   "nouveau": "Le régime et le repli de la liste sont **deux informations distinctes**, portées par l’option sélectionnée du contrôle Type de série pour le régime et par le chevron intégré à l’option Variables pour le repli (RM-247, D-410).",
+   "decision": "D-410"
+  },
+  {
+   "id": "V3-E-017",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-410",
+   "ref": "CV-01",
+   "ancien": "| état | champ | chevron |",
+   "nouveau": "| état | Type de série | chevron intégré à Variables |",
+   "decision": "D-410"
+  },
+  {
+   "id": "V3-E-018",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-410",
+   "ref": "CV-01",
+   "ancien": "| séries identiques | `identiques` | **absent** — il n'y a pas de liste |",
+   "nouveau": "| séries identiques | `Identiques` | **absent** — il n'y a pas de liste |",
+   "decision": "D-410"
+  },
+  {
+   "id": "V3-E-019",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-410",
+   "ref": "CV-01",
+   "ancien": "| variables, liste visible | `variables` | déployé |",
+   "nouveau": "| variables, liste visible | `Variables` | déployé (vers le haut) |",
+   "decision": "D-410"
+  },
+  {
+   "id": "V3-E-020",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-410",
+   "ref": "CV-01",
+   "ancien": "| variables, liste masquée | `variables` | replié |",
+   "nouveau": "| variables, liste masquée | `Variables` | replié (vers le bas) |",
+   "decision": "D-410"
+  },
+  {
+   "id": "V3-E-021",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-410",
+   "ref": "CV-01",
+   "ancien": "La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#le-contrôle) corrigé). Le régime et le chevron de repli restent distincts. Leur position, la couleur de la suppression et l’indication de lecture seule sont des finitions DSF/Figma, pas de nouveaux choix métier.",
+   "nouveau": "La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#le-contrôle) corrigé). Le régime et le repli restent deux informations distinctes ; le chevron est intégré à l’option Variables (RM-247, D-410). Leur position, la couleur de la suppression et l’indication de lecture seule sont des finitions DSF/Figma, pas de nouveaux choix métier.",
+   "decision": "D-410"
+  },
+  {
+   "id": "V3-E-022",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "RENVOI",
+   "ref": "CO-01, AC-12, AC-14",
+   "ancien": "`sideMode` est indépendant du mode Durée ou Répétitions, avec cible chiffrée ou À l’échec par série. Un Exercice de référence et sa copie portent chacune leur valeur. L’insertion et la duplication copient cette valeur, puis les objets évoluent indépendamment.",
+   "nouveau": "`sideMode` (changement de côté Avec / Sans ; valeurs historiques : RM-244) est indépendant du mode Durée ou Répétitions, avec cible chiffrée ou À l’échec par série. Un Exercice de référence et sa copie portent chacune leur valeur. L’insertion et la duplication copient cette valeur, puis les objets évoluent indépendamment. La charge et son activation suivent le même mécanisme de copie (RM-236)."
+  },
+  {
+   "id": "V3-E-023",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-408",
+   "ref": "CA-01",
+   "ancien": "| RM-058 | Bip commun entier 0..10 dans les deux modes,0=Aucun. Périodique pendant Série ; ne termine aucune Série. Durée chiffrée : minuteur ; Répétitions et toute cible À l’échec : Suivant. Aucun nominal pour une cible À l’échec. En Répétitions à l’échec, nombre de bips logiques proposé comme relevé estimé, confirmé/corrigé explicitement pour devenir déclaré. |",
+   "nouveau": "| RM-058 | Bip commun entier 0..10 dans les deux modes, 0 = Sans (RM-245). Périodique pendant Série ; ne termine aucune Série. Durée chiffrée : minuteur ; Répétitions et toute cible À l’échec : Suivant. Aucun nominal pour une cible À l’échec. En Répétitions à l’échec, nombre de bips logiques proposé comme relevé estimé, confirmé/corrigé explicitement pour devenir déclaré. |",
+   "decision": "D-408"
+  },
+  {
+   "id": "V3-E-024",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "RENVOI",
+   "ref": "CH-09, AC-09",
+   "ancien": "- si l’Exercice est bilatéral, la Pause entre les côtés éventuelle est exécutée selon l’Ordre des côtés.",
+   "nouveau": "- si l’Exercice est bilatéral, la Pause entre les côtés éventuelle est exécutée selon l’Ordre des côtés.\r\n- si la charge est active, la charge de la Série courante est affichée, sans acquittement (RM-241)."
+  },
+  {
+   "id": "V3-E-025",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-408",
+   "ref": "CA-01, AC-15, PR-03",
+   "ancien": "**Bip de cadence** : signal périodique pendant une Série, en Durée ou Répétitions, avec cible chiffrée ou À l’échec par série. Intervalle entier de 0 à 10 secondes, défaut 0, affiché **Aucun** ; 1..10 affiche la valeur et l’unité s. Stepper, sans interrupteur ni roulette. Aucun nouveau réglage Profil. Zéro est une valeur valide, pas une erreur ou une cible manquante.",
+   "nouveau": "**Bip de cadence** : signal périodique pendant une Série, en Durée ou Répétitions, avec cible chiffrée ou À l’échec par série. Intervalle entier de 0 à 10 secondes, défaut 0, présenté **Sans** ; 1..10 affiche la valeur et l’unité s. Libellé visible : Cadence. Présentation : choix Autre, 5 s, 2 s, 1 s et Sans ; Autre saisit les autres valeurs avec le mécanisme numérique existant, dans ces bornes et au pas de 1 s ; sans interrupteur (RM-245, D-408, qui remplace la présentation par stepper seul). Aucun nouveau réglage Profil. Zéro est une valeur valide, pas une erreur ou une cible manquante.",
+   "decision": "D-408"
+  },
+  {
+   "id": "V3-E-026",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "RENVOI",
+   "ref": "CH-09",
+   "ancien": "Les règles existantes de Pause/Reprendre, Retour, réinitialisation, abandon et arrière-plan restent applicables. Chaque phase effective connaît le mode, la nature de cible, l’occurrence de série, le côté, le passage et le circuit éventuel.",
+   "nouveau": "Les règles existantes de Pause/Reprendre, Retour, réinitialisation, abandon et arrière-plan restent applicables. Chaque phase effective connaît le mode, la nature de cible, l’occurrence de série, le côté, le passage, le circuit éventuel et, lorsqu’elle est active, la charge de la série (RM-241)."
+  },
+  {
+   "id": "V3-E-027",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-406",
+   "ref": "CO-01",
+   "ancien": "| RM-212 | `sideRecoverySeconds` est initialisé depuis le défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) lorsqu’un Exercice passe de `Aucun` à `D→G` ou `G→D`; la valeur reste modifiable dans l’éditeur de l’Exercice. |",
+   "nouveau": "| RM-212 | `sideRecoverySeconds` est initialisé depuis le défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) lorsque le Changement de côté d’un Exercice passe de Sans à Avec (D-406) ; la valeur reste modifiable dans l’éditeur de l’Exercice. |",
+   "decision": "D-406"
+  },
+  {
+   "id": "V3-E-028",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-407",
+   "ref": "CO-01, PR-05, §9.3",
+   "ancien": "La section [Calcul, pauses et périmètres](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calcul-pauses-et-périmètres) définit la succession des phases. Sans côté : S1→P1→S2→P2→S3→P3. Par côté : D1→P1→D2→P2→D3→PN→PC→G1→P1→G2→P2→G3→P3. Par paire : D1→PC→G1→P1→D2→PC→G2→P2→D3→PC→G3→P3. Inverser D/G si départ gauche.",
+   "nouveau": "La section [Calcul, pauses et périmètres](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calcul-pauses-et-périmètres) définit la succession des phases. Sans côté : S1→P1→S2→P2→S3→P3. Par côté : côté 1 : S1→P1→S2→P2→S3→PN, puis PC, puis côté 2 : S1→P1→S2→P2→S3→P3. Par paire : série 1 au côté 1→PC→série 1 au côté 2→P1, puis série 2 au côté 1→PC→série 2 au côté 2→P2, puis série 3 au côté 1→PC→série 3 au côté 2→P3. Le côté 1 est celui par lequel l’utilisateur commence (RM-243, D-407).",
+   "decision": "D-407"
+  },
+  {
+   "id": "V3-E-029",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-409",
+   "ref": "DU-01",
+   "ancien": "Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Séance : exact si tout exact, ≈ si au moins une estimation et aucun inconnu, ≥ si au moins un inconnu. Erreur de cible : validation distincte, aucune fausse valeur. Une Copie en Séance dont une Cible ancienne est à renseigner contribue au total de Séance par son travail connu et ses Pauses, comme un mélange avec échec, et le total de Séance est partiel (≥) : pour 30 s, —, 45 s et des Pauses de 10 s, 30 + 45 + 30 = 105 s (décision PRE-4 Q30 du 16/10, D-385). Cette Copie n’affiche elle-même aucun total (Q30) ; dans la feuille Paramètres, la ligne Total est affichée avec « — » (D-384).",
+   "nouveau": "Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Séance : exact si tout exact, ≈ si au moins une estimation et aucun inconnu, ≥ si au moins un inconnu. Erreur de cible : validation distincte, aucune fausse valeur. Une Copie en Séance dont une Cible ancienne est à renseigner contribue au total de Séance par son travail connu et ses Pauses, comme un mélange avec échec, et le total de Séance est partiel (≥) : pour 30 s, —, 45 s et des Pauses de 10 s, 30 + 45 + 30 = 105 s (décision PRE-4 Q30 du 16/10, D-385). Cette Copie n’affiche elle-même aucun total (Q30) ; dans la feuille Paramètres, la ligne Durée de l’exercice (D-409) est affichée avec « — » (D-384).",
+   "decision": "D-409"
+  },
+  {
+   "id": "V3-E-030",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-406",
+   "ref": "CO-01, AC-13",
+   "ancien": "Tester les deux directions/ordres, p0/PC0 sans repli, R0/positive, N1/99, bascules/annulation/restauration, nouvelle dernière ligne après déplacement, copie et snapshot. Inversion et résultats dérivés de la spécification, pas des exemples Figma ni d’Excel.",
+   "nouveau": "Tester les deux Ordres des côtés (D-406), p0/PC0 sans repli, R0/positive, N1/99, bascules/annulation/restauration, nouvelle dernière ligne après déplacement, copie et snapshot. Inversion et résultats dérivés de la spécification, pas des exemples Figma ni d’Excel.",
+   "decision": "D-406"
+  },
+  {
+   "id": "V3-E-031",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-407",
+   "ref": "CO-01, §9.3",
+   "ancien": "| Configuration | Total intrinsèque, si travail calculable | Succession N=3, départ D |",
+   "nouveau": "| Configuration | Total intrinsèque, si travail calculable | Succession N=3 |",
+   "decision": "D-407"
+  },
+  {
+   "id": "V3-E-032",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-407",
+   "ref": "CO-01, §9.3",
+   "ancien": "| Un côté après l’autre | 2Σ(Ti+Pi)+PC | D1→P1→D2→P2→D3→P3→PC→G1→P1→G2→P2→G3→P3 |",
+   "nouveau": "| Un côté après l’autre | 2Σ(Ti+Pi)+PC | côté 1 : S1→P1→S2→P2→S3→P3, puis PC, puis côté 2 : S1→P1→S2→P2→S3→P3 |",
+   "decision": "D-407"
+  },
+  {
+   "id": "V3-E-033",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-407",
+   "ref": "CO-01, §9.3",
+   "ancien": "| Les deux côtés à chaque série, N≥2 | 2ΣTi+ΣPi+N×PC | D1→PC→G1→P1→D2→PC→G2→P2→D3→PC→G3→P3 |",
+   "nouveau": "| Les deux côtés à chaque série, N≥2 | 2ΣTi+ΣPi+N×PC | série 1 au côté 1→PC→série 1 au côté 2→P1, puis série 2 au côté 1→PC→série 2 au côté 2→P2, puis série 3 au côté 1→PC→série 3 au côté 2→P3 |",
+   "decision": "D-407"
+  },
+  {
+   "id": "V3-E-034",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-406",
+   "ref": "CO-01, AC-13, AC-14",
+   "ancien": "| RM-143 | Le `Changement de côté` d’un Exercice propose `Aucun` (`UNILATERAL`), `D→G` (`RIGHT_LEFT`) et `G→D` (`LEFT_RIGHT`). Aucun réglage de côté n’est exposé au niveau Circuit dans la version actuelle. |",
+   "nouveau": "| RM-143 | Le `Changement de côté` d’un Exercice propose Avec et Sans (RM-242, D-406) ; `UNILATERAL` correspond à Sans, les valeurs historiques `RIGHT_LEFT` et `LEFT_RIGHT` sont lues Avec (RM-244). Aucun réglage de côté n’est exposé au niveau Circuit dans la version actuelle. |",
+   "decision": "D-406"
+  },
+  {
+   "id": "V3-E-035",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-406",
+   "ref": "CO-01",
+   "ancien": "| RM-146 | La direction effective exposée provient de l’Exercice ; le Circuit n’impose aucune direction à ses Exercices dans la version actuelle. |",
+   "nouveau": "| RM-146 | Le changement de côté effectif provient de l’Exercice ; le Circuit n’impose aucun changement de côté à ses Exercices dans la version actuelle (D-406). |",
+   "decision": "D-406"
+  },
+  {
+   "id": "V3-E-036",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-407",
+   "ref": "CO-01, AC-23",
+   "ancien": "| RM-148 | L’Exécution affiche `Côté droit` ou `Côté gauche` sous le nom de l’Exercice, sans compteur de côté. La progression `Exercice X/Y` ne change pas de rang entre les deux passages. |",
+   "nouveau": "| RM-148 | L’Exécution affiche `Côté 1` ou `Côté 2` (D-407, RM-243) sous le nom de l’Exercice, sans compteur de côté. La progression `Exercice X/Y` ne change pas de rang entre les deux passages. |",
+   "decision": "D-407"
+  },
+  {
+   "id": "V3-E-037",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-407",
+   "ref": "CO-01, AC-23",
+   "ancien": "| RM-151 | Dans la Composition, une carte affiche sa direction propre `D→G` ou `G→D` lorsqu’elle est bilatérale ; aucune indication avec `Aucun`. Le Circuit ne porte pas de direction exposée. |",
+   "nouveau": "| RM-151 | Dans la Composition, une carte affiche un indicateur de changement de côté, sans direction et rendu selon Figma, lorsqu’elle est bilatérale ; aucune indication avec Sans. Le Circuit ne porte pas de changement de côté exposé (D-407). |",
+   "decision": "D-407"
+  },
+  {
+   "id": "V3-E-038",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "CORRECTION-DECIDEE:D-407",
+   "ref": "CO-01, AC-23",
+   "ancien": "| RM-152 | Dans l’écran Créer un exercice ou Modifier un exercice (D-325), la phrase unique suit RM-232/D-298 : cible/cadence, Pause, puis côtés selon le contexte ; deux directions et deux ordres distingués. La clause de côté est absente avec `Aucun`. Dans une carte de Composition, le petit indicateur `D→G` ou `G→D` porte seul la direction. |",
+   "nouveau": "| RM-152 | Dans l’écran Créer un exercice ou Modifier un exercice (D-325), la phrase unique suit RM-232/D-298 : cible/cadence, Pause, puis côtés selon le contexte ; deux ordres distingués, côtés désignés côté 1 / côté 2 (D-407, RM-243). La clause de côté est absente avec Sans. Dans une carte de Composition, le petit indicateur de changement de côté, sans direction, porte seul cette information (D-407). |",
+   "decision": "D-407"
+  },
+  {
+   "id": "V3-E-039",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "motif": "RENVOI",
+   "ref": "CH-08",
+   "ancien": "La phrase est une donnée dérivée, recalculée à chaque modification. Sans mode sélectionné elle est vide ; le mode est affiché séparément. Elle concatène dans l’ordre : nombre de Séries, valeur par Série ou `jusqu'à l'échec`, Pause après chaque série si applicable, changement de côté, puis Durée totale lorsqu’elle s’applique. Le nom de l’Exercice, le Compte à rebours, la Fin d’exercice et la Récupération post-activité n’entrent pas dans cette phrase. Source normative : chapitre 08, paramètres d’exercice, D-247 à D-255 ; classeur v10 historique.",
+   "nouveau": "La phrase est une donnée dérivée, recalculée à chaque modification. Sans mode sélectionné elle est vide ; le mode est affiché séparément. Elle concatène dans l’ordre : nombre de Séries, valeur par Série ou `jusqu'à l'échec`, Pause après chaque série si applicable, changement de côté, puis Durée totale lorsqu’elle s’applique. Le nom de l’Exercice, le Compte à rebours, la Fin d’exercice et la Récupération post-activité n’entrent pas dans cette phrase. Une charge active y est mentionnée selon RM-240, dont la place dans la phrase n’est pas encore fixée. Source normative : chapitre 08, paramètres d’exercice, D-247 à D-255 ; classeur v10 historique."
+  },
+  {
+   "id": "V3-E-040",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "CORRECTION-DECIDEE:D-406",
+   "ref": "CO-01, AC-13, AC-14, AC-23",
+   "ancien": "| D-143 | Le réglage technique de côté utilise `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`. Unilatéral est la valeur initiale et de migration. Le libellé court est absent en état unilatéral ; les états bilatéraux affichent `D→G` et `G→D`; les libellés accessibles développent complètement la direction. | Validée | Oui |",
+   "nouveau": "| D-143 | Le réglage technique de côté utilise `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`. Unilatéral est la valeur initiale et de migration. Le libellé court est absent en état unilatéral ; les états bilatéraux affichent `D→G` et `G→D`; les libellés accessibles développent complètement la direction. | Validée ; remplacée sur ce point par D-406 (18/10/2026) : réglage Changement de côté Avec / Sans, `RIGHT_LEFT` et `LEFT_RIGHT` lus Avec (RM-244) ; remplacée sur ce point par D-407 (18/10/2026) : indicateur et libellés sans direction | Oui |",
+   "decision": "D-406"
+  },
+  {
+   "id": "V3-E-041",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "CORRECTION-DECIDEE:D-407",
+   "ref": "CO-01, AC-23",
+   "ancien": "| D-148 | Le Plan d’Exécution résout et fige la direction effective et le côté courant. Les résultats sont séparés par `RIGHT`, `LEFT` ou `NONE`; un seul côté partiel rend l’Exercice globale partielle. | Validée | Oui |",
+   "nouveau": "| D-148 | Le Plan d’Exécution résout et fige la direction effective et le côté courant. Les résultats sont séparés par `RIGHT`, `LEFT` ou `NONE`; un seul côté partiel rend l’Exercice globale partielle. | Validée ; remplacée sur ce point par D-407 (18/10/2026) : côté courant et résultats désignés côté 1 / côté 2 au lieu de `RIGHT` / `LEFT`, sans direction anatomique ; séparation des résultats par côté conservée | Oui |",
+   "decision": "D-407"
+  },
+  {
+   "id": "V3-E-042",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "CORRECTION-DECIDEE:D-407",
+   "ref": "CO-01, AC-23",
+   "ancien": "| D-149 | L’écran d’Exécution affiche uniquement `Côté droit` ou `Côté gauche` sous le nom de l’Exercice lorsque la direction effective est bilatérale. Aucun compteur `1/2` ou `2/2` n’est affiché et `Exercice X/Y` conserve le rang logique. | Validée post-Figma | Oui |",
+   "nouveau": "| D-149 | L’écran d’Exécution affiche uniquement `Côté droit` ou `Côté gauche` sous le nom de l’Exercice lorsque la direction effective est bilatérale. Aucun compteur `1/2` ou `2/2` n’est affiché et `Exercice X/Y` conserve le rang logique. | Validée post-Figma ; remplacée sur ce point par D-407 (18/10/2026) : `Côté 1` / `Côté 2` au lieu de `Côté droit` / `Côté gauche` | Oui |",
+   "decision": "D-407"
+  },
+  {
+   "id": "V3-E-043",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "CORRECTION-DECIDEE:D-407",
+   "ref": "CO-01, AC-23",
+   "ancien": "| D-151 | La configuration et la persistance bilatérales forment une tranche préalable. T04 est révisée pour exécuter Séries, Tours et côtés, pondérer la progression, annoncer les côtés et conserver les résultats séparés. | Validée | Oui |",
+   "nouveau": "| D-151 | La configuration et la persistance bilatérales forment une tranche préalable. T04 est révisée pour exécuter Séries, Tours et côtés, pondérer la progression, annoncer les côtés et conserver les résultats séparés. | Validée ; précisée par D-407 (18/10/2026) : annonces de côté neutres (côté 1 / côté 2) | Oui |",
+   "decision": "D-407"
+  },
+  {
+   "id": "V3-E-044",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "CORRECTION-DECIDEE:D-406",
+   "ref": "CO-01",
+   "ancien": "| D-154 | Ancienne règle incluant l’héritage de direction depuis le Tour. | Révisée par D-189/D-198 : direction propre de l’Exercice uniquement | Oui |",
+   "nouveau": "| D-154 | Ancienne règle incluant l’héritage de direction depuis le Tour. | Révisée par D-189/D-198 : direction propre de l’Exercice uniquement ; remplacée sur ce point par D-406 (18/10/2026) : l’Exercice porte un changement de côté Avec / Sans, sans direction | Oui |",
+   "decision": "D-406"
+  },
+  {
+   "id": "V3-E-045",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "CORRECTION-DECIDEE:D-405",
+   "ref": "CH-05, PR-04",
+   "ancien": "| D-219 | Convention de saisie : les **durées** utilisent les roulettes dans une modale basse ; les **sélections d’objets/référentiels** utilisent les modales de sélection ; les **entiers simples et courts** de l’éditeur/Composition (`Nombre de Séries`, `Nombre de répétitions`, `Nombre de Tours`) utilisent un **stepper inline** et n’ouvrent pas de roulette/modale. Les dialogues de confirmation restent centrés. L’implémentation doit réutiliser les composants standard/DSF compatibles React Native/Expo lorsqu’ils existent plutôt que recréer un contrôle équivalent sans nécessité. | Validée — 26/09/2026 ; **révisée pour la cible `Nombre de répétitions` par la décision PRE-4 Q8 du 16/10/2026 (D-385)** : roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis 1 à 100 | Révise D-098/D-130 et les contrats qui décrivaient encore des roulettes numériques pour ces entiers. |",
+   "nouveau": "| D-219 | Convention de saisie : les **durées** utilisent les roulettes dans une modale basse ; les **sélections d’objets/référentiels** utilisent les modales de sélection ; les **entiers simples et courts** de l’éditeur/Composition (`Nombre de Séries`, `Nombre de répétitions`, `Nombre de Tours`) utilisent un **stepper inline** et n’ouvrent pas de roulette/modale. Les dialogues de confirmation restent centrés. L’implémentation doit réutiliser les composants standard/DSF compatibles React Native/Expo lorsqu’ils existent plutôt que recréer un contrôle équivalent sans nécessité. | Validée — 26/09/2026 ; **révisée pour la cible `Nombre de répétitions` par la décision PRE-4 Q8 du 16/10/2026 (D-385)** : roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis 1 à 100 ; précisée par D-405 (18/10/2026) : la charge, seule, se saisit au clavier numérique | Révise D-098/D-130 et les contrats qui décrivaient encore des roulettes numériques pour ces entiers. |",
+   "decision": "D-405"
+  },
+  {
+   "id": "V3-E-046",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "CORRECTION-DECIDEE:D-406",
+   "ref": "CO-01, CH-04, PR-01",
+   "ancien": "| D-247 | Séries variables explicites, mode unique et N Séries par côté ; collection ordonnée cible/Pause, aucune surcharge commune. Direction et Ordre des côtés indépendants ; Un côté après l’autre par défaut / Les deux côtés à chaque série. | Validée | C1/C4–6/C8/C11/C19–20, prompt§4.1–4.2 |",
+   "nouveau": "| D-247 | Séries variables explicites, mode unique et N Séries par côté ; collection ordonnée cible/Pause, aucune surcharge commune. Direction et Ordre des côtés indépendants ; Un côté après l’autre par défaut / Les deux côtés à chaque série. | Validée ; remplacée sur ce point par D-406 (18/10/2026) : direction supprimée, Changement de côté Avec / Sans ; Ordre des côtés conservé, libellé visible Enchainement (D-413) ; précisée par D-404 (18/10/2026) : colonne Charge | C1/C4–6/C8/C11/C19–20, prompt§4.1–4.2 |",
+   "decision": "D-406"
+  },
+  {
+   "id": "V3-E-047",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "CORRECTION-DECIDEE:D-404",
+   "ref": "CH-04, CH-06, CH-07",
+   "ancien": "| D-249 | Brouillon transactionnel, bascules uniforme/variable, restauration des cibles par mode et lignes retirées ; déplacement conjoint cible/Pause, nouvelle dernière Pause stockée et exécutée, sauf substitution par récupération positive et nouvelle première ligne reprise à désactivation. Ordre relatif des lignes retirées conservé à restauration. | Validée | C2/C7/C9 et arbitrage déplacement02/10 |",
+   "nouveau": "| D-249 | Brouillon transactionnel, bascules uniforme/variable, restauration des cibles par mode et lignes retirées ; déplacement conjoint cible/Pause, nouvelle dernière Pause stockée et exécutée, sauf substitution par récupération positive et nouvelle première ligne reprise à désactivation. Ordre relatif des lignes retirées conservé à restauration. | Validée ; précisée par D-404 (18/10/2026) : la charge suit ces règles comme valeur de la série ; conservation des valeurs désactivées propre à la charge (D-403) | C2/C7/C9 et arbitrage déplacement02/10 |",
+   "decision": "D-404"
+  },
+  {
+   "id": "V3-E-048",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "CORRECTION-DECIDEE:D-410",
+   "ref": "CV-01, GR-01, PR-02",
+   "ancien": "| D-251 | Feuille scrollable, en-tête fixe, tableau rattaché au champ de régime, steppers directs et chevron de repli sans effet métier. Cible incomplète : total—, ✓ grisé, cellule et message en ligne. Durée totale variable non éditable. | Validée ; message en ligne remplacé par D-337 (12/10) | C10/C13/C15/C22, prompt§4.3–4.4 |",
+   "nouveau": "| D-251 | Feuille scrollable, en-tête fixe, tableau rattaché au champ de régime, steppers directs et chevron de repli sans effet métier. Cible incomplète : total—, ✓ grisé, cellule et message en ligne. Durée totale variable non éditable. | Validée ; message en ligne remplacé par D-337 (12/10) ; remplacée sur ce point par D-410 (18/10/2026) : chevron intégré à l’option Variables du contrôle Type de série ; remplacée sur ce point par D-413 (18/10/2026) : steppers de cellules et pied commun ± retirés du tableau variable | C10/C13/C15/C22, prompt§4.3–4.4 |",
+   "decision": "D-410"
+  },
+  {
+   "id": "V3-E-049",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "CORRECTION-DECIDEE:D-407",
+   "ref": "CO-01, AC-23",
+   "ancien": "| D-321 | v15 remplace v14 comme corpus des276phrases ; aucun gabarit changé,36montants d’exemple changés. Excel reste exclusivement rédactionnel. | Demande propriétaire et comparaison des sources | Actualise la référence deD-315 ; calculs inchangés |",
+   "nouveau": "| D-321 | v15 remplace v14 comme corpus des276phrases ; aucun gabarit changé,36montants d’exemple changés. Excel reste exclusivement rédactionnel. | Demande propriétaire et comparaison des sources | Actualise la référence deD-315 ; calculs inchangés ; précisée par D-407 (18/10/2026) : clauses de côté en côté 1 / côté 2, sans désignation anatomique |",
+   "decision": "D-407"
+  },
+  {
+   "id": "V3-E-050",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-01",
+   "ancien": "| D-339 | Sélecteurs Mode, Côté et Ordre : après un choix, la valeur est appliquée immédiatement, reste visible, puis le sélecteur se referme progressivement (conventions d’animation existantes) ; « Réduire les animations » d’iOS respecté (fermeture immédiate). | Validée, Hermann 12/10 ; comportement de fermeture maintenu, popovers compris (D-377) | CE-UI-10 |",
+   "nouveau": "| D-339 | Sélecteurs Mode, Côté et Ordre : après un choix, la valeur est appliquée immédiatement, reste visible, puis le sélecteur se referme progressivement (conventions d’animation existantes) ; « Réduire les animations » d’iOS respecté (fermeture immédiate). | Validée, Hermann 12/10 ; comportement de fermeture maintenu, popovers compris (D-377) ; remplacée sur ce point par D-413 (18/10/2026) : sans objet pour les lignes Mode et Changement de côté, présentées en contrôles segmentés | CE-UI-10 |",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-E-051",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-01, PR-03",
+   "ancien": "| D-341 | Options des sélecteurs Mode, Côté et Ordre : textes plus petits, en Regular, centrés horizontalement et verticalement, sans débordement ; les titres des lignes ne changent pas. Valeurs exactes validées le 12/10 : voir registre de recette §9. | Validée ; valeurs validées par Hermann le 12/10 (registre de recette §9) ; présentation remplacée par les DSF validés (Circuits du 12/10, Deux modes du 13/10) (D-377) | CE-UI-10, DSF segmentés (variante Paramètres) |",
+   "nouveau": "| D-341 | Options des sélecteurs Mode, Côté et Ordre : textes plus petits, en Regular, centrés horizontalement et verticalement, sans débordement ; les titres des lignes ne changent pas. Valeurs exactes validées le 12/10 : voir registre de recette §9. | Validée ; valeurs validées par Hermann le 12/10 (registre de recette §9) ; présentation remplacée par les DSF validés (Circuits du 12/10, Deux modes du 13/10) (D-377) ; remplacée sur ce point par D-413 (18/10/2026) : lignes Mode et Changement de côté en contrôles segmentés sans popover, libellés des lignes fixés par D-413 | CE-UI-10, DSF segmentés (variante Paramètres) |",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-E-052",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-01",
+   "ancien": "| D-377 | D-339 conserve son comportement de fermeture après sélection, y compris dans les popovers ; la présentation de D-341 est remplacée par les DSF validés (Circuits du 12/10 et Deux modes du 13/10). | Validée, Hermann 16/10/2026 (Q-B) | Maintient D-339 ; remplace D-341 pour la présentation. |",
+   "nouveau": "| D-377 | D-339 conserve son comportement de fermeture après sélection, y compris dans les popovers ; la présentation de D-341 est remplacée par les DSF validés (Circuits du 12/10 et Deux modes du 13/10). | Validée, Hermann 16/10/2026 (Q-B) ; remplacée sur ce point par D-413 (18/10/2026) : popovers des lignes Mode, Type de série et Changement de côté remplacés par des contrôles segmentés | Maintient D-339 ; remplace D-341 pour la présentation. |",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-E-053",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "CORRECTION-DECIDEE:D-409",
+   "ref": "DU-01",
+   "ancien": "| D-384 | Lorsqu’une cible nécessaire au calcul manque, la ligne Total est affichée avec « — ». | Validée, Hermann 16/10/2026 (Q-K2) ; précisée sur ce point par D-396 (17/10/2026) : ligne toujours affichée dans la feuille Paramètres, y compris à N = 1, sauf lorsqu’aucune durée totale n’est calculée (Répétitions sans bip, toutes cibles À l’échec), où elle est masquée (D-397) | Feuille Paramètres et totaux. |",
+   "nouveau": "| D-384 | Lorsqu’une cible nécessaire au calcul manque, la ligne Total est affichée avec « — ». | Validée, Hermann 16/10/2026 (Q-K2) ; précisée sur ce point par D-396 (17/10/2026) : ligne toujours affichée dans la feuille Paramètres, y compris à N = 1, sauf lorsqu’aucune durée totale n’est calculée (Répétitions sans bip, toutes cibles À l’échec), où elle est masquée (D-397) ; précisée par D-409 (18/10/2026) : libellé visible de la ligne Durée de l’exercice, règle d’affichage inchangée | Feuille Paramètres et totaux. |",
+   "decision": "D-409"
+  },
+  {
+   "id": "V3-E-054",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "CORRECTION-DECIDEE:D-409",
+   "ref": "DU-01",
+   "ancien": "| D-396 | Dans la feuille Paramètres, la ligne Total est toujours affichée, en modes Durée et Répétitions, y compris pour une seule série (`N = 1`) ; elle affiche « — » lorsqu’une cible nécessaire au calcul manque (D-384). | Validée, Hermann 17/10/2026 (A9) ; précisée par D-397 (17/10/2026) : masquée lorsqu’aucune durée totale n’est calculée (Répétitions sans bip, toutes cibles À l’échec) | Feuille Paramètres uniquement ; ne concerne pas les autres affichages de total (Composition, cartes). |",
+   "nouveau": "| D-396 | Dans la feuille Paramètres, la ligne Total est toujours affichée, en modes Durée et Répétitions, y compris pour une seule série (`N = 1`) ; elle affiche « — » lorsqu’une cible nécessaire au calcul manque (D-384). | Validée, Hermann 17/10/2026 (A9) ; précisée par D-397 (17/10/2026) : masquée lorsqu’aucune durée totale n’est calculée (Répétitions sans bip, toutes cibles À l’échec) ; précisée par D-409 (18/10/2026) : libellé visible de la ligne Durée de l’exercice, règle d’affichage inchangée | Feuille Paramètres uniquement ; ne concerne pas les autres affichages de total (Composition, cartes). |",
+   "decision": "D-409"
+  },
+  {
+   "id": "V3-E-055",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "CORRECTION-DECIDEE:D-409",
+   "ref": "DU-01, §12",
+   "ancien": "| D-397 | Dans la feuille Paramètres, la ligne Durée totale est affichée uniquement lorsqu’une durée totale est calculée ; sinon, elle est masquée. Cette règle vise les cas où aucune durée totale n’est calculée — Répétitions sans bip, toutes cibles À l’échec ; lorsqu’une cible nécessaire au calcul manque, la ligne reste affichée avec « — » (D-384, D-396). | Validée, Hermann 17/10/2026 (B1) ; portée confirmée par Hermann le 17/10/2026 | Précise D-396 (« toujours affichée ») pour ces cas. |",
+   "nouveau": "| D-397 | Dans la feuille Paramètres, la ligne Durée totale est affichée uniquement lorsqu’une durée totale est calculée ; sinon, elle est masquée. Cette règle vise les cas où aucune durée totale n’est calculée — Répétitions sans bip, toutes cibles À l’échec ; lorsqu’une cible nécessaire au calcul manque, la ligne reste affichée avec « — » (D-384, D-396). | Validée, Hermann 17/10/2026 (B1) ; portée confirmée par Hermann le 17/10/2026 ; précisée par D-409 (18/10/2026) : libellé visible Durée de l’exercice ; sans cette ligne, Compte à rebours et Fin d’exercice restent directement visibles lorsqu’ils sont applicables | Précise D-396 (« toujours affichée ») pour ces cas. |",
+   "decision": "D-409"
+  }
+ ]
+}

@@ -1,0 +1,860 @@
+{
+ "description": "Finalisation du lot 6 — tâche ALIAS : remplacement des alias de documents supprimés (Bip v2, v13, Phrase v1, spécifications Formats, Circuits, Planification, Pauses, Glossaire) et des renvois internes rompus ou vides par un renvoi vers la section actuelle (lien de titres-actuels.tsv) ou par la restitution exacte du lien retiré par 7a89220f. Aucune règle n'est modifiée. Examen complet : lot6/finalisation/alias-examen.tsv. État de départ : HEAD 753f4dd2. — sous-ensemble appliqué (voir FIN-ALIAS-ecartees.tsv)",
+ "corrections": [
+  {
+   "id": "ALI-001",
+   "ref": "01 – Vision Générale.md:139 « v13 » — bloc « Clôture des contrats — 01/10/2026 » (normatif : « s’appliquent ») ; v13 §4 « Ordres d’exécution et pauses » → ch. 10 « Ordres d’exécution et pauses » (localisation HEAD)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@01 – Vision Générale.md",
+   "ancien": "selon D-248/v13 (ancien",
+   "nouveau": "selon D-248 et [Ordres d’exécution et pauses](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ordres-dexécution-et-pauses) (ancien"
+  },
+  {
+   "id": "ALI-002",
+   "ref": "01 – Vision Générale.md:236 « Bip v2 » — Bip v2 §2–3 → ch. 10 « Résultats de durée » / « Calcul, pauses et périmètres » (localisation HEAD) ; 7a89220f a remplacé les liens Bip v2 par #resultats-temporels",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@01 – Vision Générale.md",
+   "ancien": "Bip v2 gouverne calculs et périmètres.",
+   "nouveau": "[Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) gouverne calculs et périmètres."
+  },
+  {
+   "id": "ALI-003",
+   "ref": "03 – Parcours utilisateur.md:267 « v13 » — v13 → ch. 08 #parametres-exercice (7a89220f, 20 liens) ; v13 §3 « Brouillon, bascules et normalisation » localisé ch. 08 (6/6)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@03 – Parcours utilisateur.md",
+   "ancien": "## Paramètres d’exécution\r\n\r\n### Paramètres d’exécution — complément\r\n\r\nLe parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série. La direction et l’Ordre des côtés sont indépendants. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [v13](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice)",
+   "nouveau": "## Paramètres d’exécution\r\n\r\n### Paramètres d’exécution — complément\r\n\r\nLe parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série. La direction et l’Ordre des côtés sont indépendants. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice)"
+  },
+  {
+   "id": "ALI-004",
+   "ref": "03 – Parcours utilisateur.md:560 « v13 » — v13 → ch. 08 #parametres-exercice (7a89220f, 20 liens) ; v13 §3 « Brouillon, bascules et normalisation » localisé ch. 08 (6/6)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@03 – Parcours utilisateur.md",
+   "ancien": "#### Paramètres d’exécution — complément\r\n\r\nLe parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série. La direction et l’Ordre des côtés sont indépendants. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [v13](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice)",
+   "nouveau": "#### Paramètres d’exécution — complément\r\n\r\nLe parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série. La direction et l’Ordre des côtés sont indépendants. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice)"
+  },
+  {
+   "id": "ALI-005",
+   "ref": "04 – Modèle fonctionnel.md:511 « § 2 » — spécification Planification §2 → ch. 10 « Planification des créneaux et de leurs contenus — La fréquence d'un contenu : « x fois sur n » » (localisation HEAD ; 3623466a SPECIFICATION-PLANIFICATION)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@04 – Modèle fonctionnel.md",
+   "ancien": "le modèle de fréquence (§ 2).",
+   "nouveau": "le modèle de fréquence ([Planification des créneaux et de leurs contenus — La fréquence d'un contenu : « x fois sur n »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#planification-des-créneaux-et-de-leurs-contenus--la-fréquence-dun-contenu---x-fois-sur-n-))."
+  },
+  {
+   "id": "ALI-006",
+   "ref": "04 – Modèle fonctionnel.md:519 « § 4 » — spécification Planification §4 → ch. 04 « Planification des créneaux et de leurs contenus — Le Programme » (localisation HEAD ; 3623466a SPECIFICATION-PLANIFICATION)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@04 – Modèle fonctionnel.md",
+   "ancien": "un conteneur réel (§ 4).",
+   "nouveau": "un conteneur réel ([Planification des créneaux et de leurs contenus — Le Programme](04%20%E2%80%93%20Mod%C3%A8le%20fonctionnel.md#planification-des-créneaux-et-de-leurs-contenus--le-programme))."
+  },
+  {
+   "id": "ALI-007",
+   "ref": "05 – Versions du produit.md:312 « Bip v2 » — Bip v2 §2–3 → ch. 10 « Résultats de durée » / « Calcul, pauses et périmètres » (localisation HEAD) ; 7a89220f a remplacé les liens Bip v2 par #resultats-temporels",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@05 – Versions du produit.md",
+   "ancien": "steppers et calculs Bip v2.",
+   "nouveau": "steppers et calculs selon [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit)."
+  },
+  {
+   "id": "ALI-008",
+   "ref": "05 – Versions du produit.md:321 « spécification Formats du 14/10 » — 7a89220f : lien SPECIFICATION-FORMATS-SEANCES → #formats-conception ; correspondance-alias.md (ch. 08 #formats-conception)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@05 – Versions du produit.md",
+   "ancien": "selon [spécification Formats du 14/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#formats-conception)",
+   "nouveau": "selon [Formats de séances — comportements consolidés](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#formats-de-séances--comportements-consolidés)"
+  },
+  {
+   "id": "ALI-009",
+   "ref": "05 – Versions du produit.md:376 « [Règles détaillées] (ex-Bip v2) » — 7a89220f^ ch. 01 : « Référence : [Bip v2](SPECIFICATION-BIP-CADENCE-v2.md) », libellé remplacé par « Règles détaillées » ; Bip v2 §4–5 (Exécution et son ; Progression, sécurité et arrière-plan) → ch. 10 « Exécution d’une séance — Bip de cadence, progression et sécurité » (localisation HEAD : 4/4 et 4/4 lignes)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@05 – Versions du produit.md",
+   "ancien": "Référence : [Règles détaillées](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#resultats-temporels).",
+   "nouveau": "Référence : [Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité)."
+  },
+  {
+   "id": "ALI-010",
+   "ref": "05 – Versions du produit.md:459 « § 2.6 » — spécification Planification §2.6 → ch. 10 « Point ouvert à consigner comme tel » (localisation HEAD ; 3623466a SPECIFICATION-PLANIFICATION) ; liste identique 3623466a l. 351",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@05 – Versions du produit.md",
+   "ancien": "(§ 2.6).",
+   "nouveau": "([Point ouvert à consigner comme tel](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#point-ouvert-à-consigner-comme-tel))."
+  },
+  {
+   "id": "ALI-011",
+   "ref": "05 – Versions du produit.md:460 « § 3.5 » — spécification Planification §3.5 → ch. 10 « Les jours de la semaine » (localisation HEAD ; 3623466a SPECIFICATION-PLANIFICATION)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@05 – Versions du produit.md",
+   "ancien": "(§ 3.5).",
+   "nouveau": "([Les jours de la semaine](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#les-jours-de-la-semaine))."
+  },
+  {
+   "id": "ALI-012",
+   "ref": "05 – Versions du produit.md:461 « § 4.4 » — spécification Planification §4.4 → ch. 04 « Ce qui reste à concevoir » (localisation HEAD ; 3623466a SPECIFICATION-PLANIFICATION)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@05 – Versions du produit.md",
+   "ancien": "(§ 4.4).",
+   "nouveau": "([Ce qui reste à concevoir](04%20%E2%80%93%20Mod%C3%A8le%20fonctionnel.md#ce-qui-reste-à-concevoir))."
+  },
+  {
+   "id": "ALI-013",
+   "ref": "05 – Versions du produit.md:462 « § 3.4 » — spécification Planification §3.4 → ch. 10 « `jusqu'au` / `pendant` : un paramètre, pas un mot fixe » (localisation HEAD ; 3623466a SPECIFICATION-PLANIFICATION)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@05 – Versions du produit.md",
+   "ancien": "(§ 3.4).",
+   "nouveau": "([`jusqu'au` / `pendant` : un paramètre, pas un mot fixe](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#jusquau--pendant--un-paramètre-pas-un-mot-fixe))."
+  },
+  {
+   "id": "ALI-014",
+   "ref": "06 – Ecrans et navigation de la V1.md:62 « renvoi vide « La  sert d’inventaire » » — 7a89220f^ : « La [matrice de couverture](../MATRICE-COUVERTURE-FIGMA-CHAPITRE-06.md) sert d’inventaire » ; lien retiré par 7a89220f, fichier docs/MATRICE-COUVERTURE-FIGMA-CHAPITRE-06.md toujours présent",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "La  sert d’inventaire",
+   "nouveau": "La [matrice de couverture](../MATRICE-COUVERTURE-FIGMA-CHAPITRE-06.md) sert d’inventaire"
+  },
+  {
+   "id": "ALI-015",
+   "ref": "06 – Ecrans et navigation de la V1.md:68 « paramètres v13 » — v13 → ch. 08 #parametres-exercice (7a89220f, 20 liens) ; v13 §3 « Brouillon, bascules et normalisation » localisé ch. 08 (6/6)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "relèvent de [paramètres v13](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice), [Règles détaillées](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#resultats-temporels) et [Phrase v1](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases).",
+   "nouveau": "relèvent de [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice), [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit), [Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité) et [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres)."
+  },
+  {
+   "id": "ALI-016",
+   "ref": "06 – Ecrans et navigation de la V1.md:93 « Phrase v1 » — Phrase v1 → ch. 08 #phrases (7a89220f) ; correspondance-alias.md",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "suit Phrase v1/corpusv15",
+   "nouveau": "suit [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres)/corpusv15"
+  },
+  {
+   "id": "ALI-017",
+   "ref": "06 – Ecrans et navigation de la V1.md:127 « v13 » — bloc « Clôture des contrats — 01/10/2026 » (normatif : « s’appliquent ») ; v13 §4 « Ordres d’exécution et pauses » → ch. 10 « Ordres d’exécution et pauses » (localisation HEAD)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "![HISTORIQUE — Catalogue Séances — ancien arbre Créer — supersédé D-187](images/ecran-13a-catalogue-seances-creer-arbre.png)\r\n\r\n> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v13 (ancien",
+   "nouveau": "![HISTORIQUE — Catalogue Séances — ancien arbre Créer — supersédé D-187](images/ecran-13a-catalogue-seances-creer-arbre.png)\r\n\r\n> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248 et [Ordres d’exécution et pauses](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ordres-dexécution-et-pauses) (ancien"
+  },
+  {
+   "id": "ALI-018",
+   "ref": "06 – Ecrans et navigation de la V1.md:563 « spécification Circuits » — 7a89220f : liens SPECIFICATION-CIRCUITS → #circuits (ch. 10) ; correspondance-alias.md ; localisation actuelle (outils/localiser-specifications-integrees.mjs, HEAD) : §1–§2 et §9 au ch. 10 sous « Circuits de tours et de séries »",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "et de la spécification Circuits.",
+   "nouveau": "et de [Composition d'une séance — Circuits de tours et de séries](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#composition-dune-séance--circuits-de-tours-et-de-séries)."
+  },
+  {
+   "id": "ALI-019",
+   "ref": "06 – Ecrans et navigation de la V1.md:685 « Phrase v1 » — Phrase v1 → ch. 08 #phrases (7a89220f) ; correspondance-alias.md",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "écart rédactionnel avec Phrase v1 ;",
+   "nouveau": "écart rédactionnel avec [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres) ;"
+  },
+  {
+   "id": "ALI-020",
+   "ref": "06 – Ecrans et navigation de la V1.md:1523 « renvoi vide « La  relie » » — 7a89220f^ : « La [matrice courante des écrans](../MATRICE-ECRANS-CARTES-2026-09-30.md) relie chaque frame » ; lien retiré par 7a89220f, fichier docs/MATRICE-ECRANS-CARTES-2026-09-30.md toujours présent",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "La  relie chaque frame",
+   "nouveau": "La [matrice courante des écrans](../MATRICE-ECRANS-CARTES-2026-09-30.md) relie chaque frame"
+  },
+  {
+   "id": "ALI-021",
+   "ref": "06 – Ecrans et navigation de la V1.md:1523 « renvoi vide « La  donne » » — 7a89220f^ : « La [matrice exhaustive](../MATRICE-COUVERTURE-FIGMA-CHAPITRE-06.md) donne les sources » ; lien retiré par 7a89220f, fichier docs/MATRICE-COUVERTURE-FIGMA-CHAPITRE-06.md toujours présent",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "La  donne les sources",
+   "nouveau": "La [matrice exhaustive](../MATRICE-COUVERTURE-FIGMA-CHAPITRE-06.md) donne les sources"
+  },
+  {
+   "id": "ALI-022",
+   "ref": "06 – Ecrans et navigation de la V1.md:1646 « v13 » — v13 → ch. 08 #parametres-exercice (7a89220f, 20 liens) ; v13 §3 « Brouillon, bascules et normalisation » localisé ch. 08 (6/6)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "suivent D-247 à D-255/v13 et",
+   "nouveau": "suivent D-247 à D-255, [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice) et"
+  },
+  {
+   "id": "ALI-023",
+   "ref": "06 – Ecrans et navigation de la V1.md:1698 « spécification v13 » — v13 → ch. 08 #parametres-exercice (7a89220f, 20 liens) ; v13 §3 « Brouillon, bascules et normalisation » localisé ch. 08 (6/6)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "La [spécification v13](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice)",
+   "nouveau": "La section [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice)"
+  },
+  {
+   "id": "ALI-024",
+   "ref": "06 – Ecrans et navigation de la V1.md:1791 « v13 » — bloc « Clôture des contrats — 01/10/2026 » (normatif : « s’appliquent ») ; v13 §4 « Ordres d’exécution et pauses » → ch. 10 « Ordres d’exécution et pauses » (localisation HEAD)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.\r\n\r\n> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v13 (ancien",
+   "nouveau": "Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.\r\n\r\n> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248 et [Ordres d’exécution et pauses](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ordres-dexécution-et-pauses) (ancien"
+  },
+  {
+   "id": "ALI-026",
+   "ref": "06 – Ecrans et navigation de la V1.md:1838 « §9.5 » — spécification Circuits du 12/10 §9.5 → ch. 10 « Grille des volumes » (localisation HEAD) ; texte d’origine identique (3623466a) ; phrase d’origine 3623466a SPECIFICATION-CIRCUITS l. 128",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "sont définis au §9.5.",
+   "nouveau": "sont définis dans [Grille des volumes](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#grille-des-volumes)."
+  },
+  {
+   "id": "ALI-027",
+   "ref": "06 – Ecrans et navigation de la V1.md:1927 « §9.6 » — spécification Circuits du 12/10 §9.6 → ch. 10 « Suppression et interactions » (localisation HEAD) ; texte d’origine identique (3623466a) ; l. 263 d’origine",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "position et paramètres** (§9.6).",
+   "nouveau": "position et paramètres** ([Suppression et interactions](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#suppression-et-interactions))."
+  },
+  {
+   "id": "ALI-028",
+   "ref": "08 – Conception fonctionnelle détaillée.md:95 « Glossaire (ancien chapitre 00) » — 7a89220f : « 00 – Glossaire.md » supprimé, intégré au ch. 01 #glossaire (136/139 lignes, correspondance-alias.md)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "définis dans le **Glossaire**.",
+   "nouveau": "définis dans le **[Glossaire](01%20%E2%80%93%20Vision%20G%C3%A9n%C3%A9rale.md#glossaire)**."
+  },
+  {
+   "id": "ALI-029",
+   "ref": "08 – Conception fonctionnelle détaillée.md:299 « v13 » — bloc « Clôture des contrats — 01/10/2026 » (normatif : « s’appliquent ») ; v13 §4 « Ordres d’exécution et pauses » → ch. 10 « Ordres d’exécution et pauses » (localisation HEAD)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "selon D-248/v13 (ancien",
+   "nouveau": "selon D-248 et [Ordres d’exécution et pauses](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ordres-dexécution-et-pauses) (ancien"
+  },
+  {
+   "id": "ALI-030",
+   "ref": "08 – Conception fonctionnelle détaillée.md:307 « [Règles détaillées] (ex-spécification Bip v2) » — 7a89220f^ : « La [spécification Bip v2](SPECIFICATION-BIP-CADENCE-v2.md) fait autorité sur les signaux, Pause/Reprise, reset, temps réel, arrière-plan et seuil de sécurité » ; Bip v2 §4–5 (Exécution et son ; Progression, sécurité et arrière-plan) → ch. 10 « Exécution d’une séance — Bip de cadence, progression et sécurité » (localisation HEAD : 4/4 et 4/4 lignes)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "La [Règles détaillées](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#resultats-temporels) fait autorité",
+   "nouveau": "La section [Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité) fait autorité"
+  },
+  {
+   "id": "ALI-031",
+   "ref": "08 – Conception fonctionnelle détaillée.md:307 « paramètres v13 » — v13 §4 « Ordres d’exécution et pauses » (pauses, côtés, substitution par la Récupération) → ch. 10 (localisation HEAD)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "paramètres v13 pour pauses/côtés/Récupération",
+   "nouveau": "[Ordres d’exécution et pauses](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ordres-dexécution-et-pauses) pour pauses/côtés/Récupération"
+  },
+  {
+   "id": "ALI-032",
+   "ref": "08 – Conception fonctionnelle détaillée.md:307 « phrase v1 » — Phrase v1 → ch. 08 #phrases (7a89220f) ; correspondance-alias.md",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "phrase v1 pour le texte",
+   "nouveau": "[Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres) pour le texte"
+  },
+  {
+   "id": "ALI-033",
+   "ref": "09 – Modèle de données fonctionnel.md:561 « « chapitre 09, Cibles typées » / « chapitre 08, Relevés d’exécution » » — classification.tsv S09-0719 (renvoi vers le même chapitre) ; relevés d’exécution déplacés au ch. 10 #releves-execution (ch. 10:1304)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "Voir chapitre 09, Cibles typées, et chapitre 08, Relevés d’exécution ;",
+   "nouveau": "Voir [Cibles typées et migration des anciennes définitions](09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#cibles-typées-et-migration-des-anciennes-définitions) et [Exécution d'une séance — Cibles et relevés d’exécution](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--cibles-et-relevés-dexécution) ;"
+  },
+  {
+   "id": "ALI-034",
+   "ref": "10 – Processus métier et règles métier transverses.md:275 « v13 » — v13 → ch. 08 #parametres-exercice (7a89220f, 20 liens) ; v13 §3 « Brouillon, bascules et normalisation » localisé ch. 08 (6/6)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "Spécification [v13](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice) :",
+   "nouveau": "Section [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice) :"
+  },
+  {
+   "id": "ALI-035",
+   "ref": "10 – Processus métier et règles métier transverses.md:280 « feuille v13 » — v13 §6 « Feuille et contrôles » → ch. 13 « Feuille et contrôles » (localisation HEAD 8/11)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "la feuille v13 utilise",
+   "nouveau": "la feuille ([Feuille et contrôles](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#feuille-et-contrôles)) utilise"
+  },
+  {
+   "id": "ALI-036",
+   "ref": "10 – Processus métier et règles métier transverses.md:289 « Bip v2 » — Bip v2 §3 (3623466a) : « Pause après chaque série, dernière comprise » → ch. 10 « Calcul, pauses et périmètres » (localisation HEAD 8/9)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "selon les successions de Bip v2,",
+   "nouveau": "selon les successions de [Calcul, pauses et périmètres](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calcul-pauses-et-périmètres),"
+  },
+  {
+   "id": "ALI-037",
+   "ref": "10 – Processus métier et règles métier transverses.md:305 « Paramètres en modale v13 » — v13 → ch. 08 #parametres-exercice (7a89220f, 20 liens) ; v13 §3 « Brouillon, bascules et normalisation » localisé ch. 08 (6/6)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "[Paramètres en modale v13](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice)",
+   "nouveau": "[Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice)"
+  },
+  {
+   "id": "ALI-038",
+   "ref": "10 – Processus métier et règles métier transverses.md:309 « spécification Bip v2 » — Bip v2 §4–5 (Exécution et son ; Progression, sécurité et arrière-plan) → ch. 10 « Exécution d’une séance — Bip de cadence, progression et sécurité » (localisation HEAD : 4/4 et 4/4 lignes) ; la phrase suivante cite intervalles sonores, Pause, arrière-plan",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "appliquer la spécification Bip v2.",
+   "nouveau": "appliquer [Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité)."
+  },
+  {
+   "id": "ALI-039",
+   "ref": "10 – Processus métier et règles métier transverses.md:445 « v13 » — v13 §5 : « To=T−PN+R si R>0 » → ch. 10 « Calculs des durées et ordre des phases » (localisation HEAD)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "substitution R/PN de v13.",
+   "nouveau": "substitution R/PN de [Calculs des durées et ordre des phases](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calculs-des-durées-et-ordre-des-phases)."
+  },
+  {
+   "id": "ALI-040",
+   "ref": "10 – Processus métier et règles métier transverses.md:610 « §9.2 » — spécification Circuits du 12/10 §9.2 → ch. 10 « Nombre imposé et diminution » (localisation HEAD) ; texte d’origine identique (3623466a) ; l. 73 d’origine",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "définie au §9.2.",
+   "nouveau": "définie dans [Nombre imposé et diminution](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#nombre-imposé-et-diminution)."
+  },
+  {
+   "id": "ALI-041",
+   "ref": "10 – Processus métier et règles métier transverses.md:618 « §9.3 » — spécification Circuits du 12/10 §9.3 → ch. 10 « Ajout et sortie du circuit » (localisation HEAD) ; texte d’origine identique (3623466a) ; l. 81 d’origine",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "(voir §9.3)",
+   "nouveau": "(voir [Ajout et sortie du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ajout-et-sortie-du-circuit))"
+  },
+  {
+   "id": "ALI-042",
+   "ref": "10 – Processus métier et règles métier transverses.md:691 « v13 » — v13 §3 (changement de mode, conservation temporaire) → ch. 08 « Brouillon, bascules et normalisation » (6/6) ; v13 → ch. 08 #parametres-exercice (7a89220f, 20 liens) ; v13 §3 « Brouillon, bascules et normalisation » localisé ch. 08 (6/6)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "restent celles de v13.",
+   "nouveau": "restent celles de [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice)."
+  },
+  {
+   "id": "ALI-043",
+   "ref": "10 – Processus métier et règles métier transverses.md:714 « §1.2 » — spécification Circuits du 12/10 §1.2 → ch. 10 « Le contrôle » (localisation HEAD) ; texte d’origine identique (3623466a) ; l. 387 d’origine",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "(§1.2 corrigé)",
+   "nouveau": "([Le contrôle](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#le-contrôle) corrigé)"
+  },
+  {
+   "id": "ALI-044",
+   "ref": "10 – Processus métier et règles métier transverses.md:814 « SRC-01 » — 3623466a SPECIFICATION-FORMATS-SEANCES l. 24 : « | SRC-01 | [Formats de séance — analyse d’impacts V2](../sources/formats-2026-10-14/concept-V2.md) » ; fichier docs/sources/formats-2026-10-14/concept-V2.md présent ; table SRC non reprise dans les chapitres",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "#### RM-FMT-19\r\n\r\n**FMT-19.** Les constantes sont 30 secondes de travail et 30 secondes de pause. La borne réglée est un compte, jamais une durée totale saisie. La durée se déduit des occurrences effectivement prévues et de leurs phases. Les réglages de compte et la récupération éventuelle restent ceux du format décrit par SRC-01 ;",
+   "nouveau": "#### RM-FMT-19\r\n\r\n**FMT-19.** Les constantes sont 30 secondes de travail et 30 secondes de pause. La borne réglée est un compte, jamais une durée totale saisie. La durée se déduit des occurrences effectivement prévues et de leurs phases. Les réglages de compte et la récupération éventuelle restent ceux du format décrit par SRC-01 ([Formats de séance — analyse d’impacts V2](../sources/formats-2026-10-14/concept-V2.md)) ;"
+  },
+  {
+   "id": "ALI-045",
+   "ref": "10 – Processus métier et règles métier transverses.md:1021 « SRC-01 » — idem l. 814",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "- **FMT-19.** Les constantes sont 30 secondes de travail et 30 secondes de pause. La borne réglée est un compte, jamais une durée totale saisie. La durée se déduit des occurrences effectivement prévues et de leurs phases. Les réglages de compte et la récupération éventuelle restent ceux du format décrit par SRC-01 ;",
+   "nouveau": "- **FMT-19.** Les constantes sont 30 secondes de travail et 30 secondes de pause. La borne réglée est un compte, jamais une durée totale saisie. La durée se déduit des occurrences effectivement prévues et de leurs phases. Les réglages de compte et la récupération éventuelle restent ceux du format décrit par SRC-01 ([Formats de séance — analyse d’impacts V2](../sources/formats-2026-10-14/concept-V2.md)) ;"
+  },
+  {
+   "id": "ALI-046",
+   "ref": "10 – Processus métier et règles métier transverses.md:1045 « SRC-01 » — idem l. 814 ; classification.tsv S08-0495 (AUTRE:renvoi-SRC-01)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "SRC-01 exclut pour l’AMRAP",
+   "nouveau": "SRC-01 ([Formats de séance — analyse d’impacts V2](../sources/formats-2026-10-14/concept-V2.md)) exclut pour l’AMRAP"
+  },
+  {
+   "id": "ALI-047",
+   "ref": "10 – Processus métier et règles métier transverses.md:1221 « Cadence§4 » — 806536ad : « (Cadence§4) » = SPECIFICATION-CADENCE-REPETITIONS-v1 §4 « Progression, Pause et réinitialisation » ; 7a89220f^ : « La spécification Bip de cadence v2 remplace cette version le07/10/2026 » ; Bip v2 §5 « Pause abandonne la fraction … reprise sur un intervalle entier » → ch. 10 « Progression, sécurité et arrière-plan »",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "(Cadence§4).",
+   "nouveau": "([Progression, sécurité et arrière-plan](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#progression-sécurité-et-arrière-plan))."
+  },
+  {
+   "id": "ALI-048",
+   "ref": "10 – Processus métier et règles métier transverses.md:1542 « § 1.2 » — spécification Planification §1.2 → ch. 04 « L'invariant, qui ne bouge pas » (localisation HEAD ; 3623466a SPECIFICATION-PLANIFICATION)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "l'invariant du § 1.2.",
+   "nouveau": "l'invariant ([L'invariant, qui ne bouge pas](04%20%E2%80%93%20Mod%C3%A8le%20fonctionnel.md#linvariant-qui-ne-bouge-pas))."
+  },
+  {
+   "id": "ALI-049",
+   "ref": "10 – Processus métier et règles métier transverses.md:1556 « § 3.4 » — spécification Planification §3.4 → ch. 10 « `jusqu'au` / `pendant` : un paramètre, pas un mot fixe » (localisation HEAD ; 3623466a SPECIFICATION-PLANIFICATION) ; l. 129 d’origine",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "— voir § 3.4.",
+   "nouveau": "— voir [`jusqu'au` / `pendant` : un paramètre, pas un mot fixe](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#jusquau--pendant--un-paramètre-pas-un-mot-fixe)."
+  },
+  {
+   "id": "ALI-050",
+   "ref": "10 – Processus métier et règles métier transverses.md:1806 « feuille v13 » — v13 §6 « Feuille et contrôles » → ch. 13 (localisation HEAD 8/11)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "Dans la feuille v13,",
+   "nouveau": "Dans la feuille ([Feuille et contrôles](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#feuille-et-contrôles)),"
+  },
+  {
+   "id": "ALI-051",
+   "ref": "10 – Processus métier et règles métier transverses.md:1823 « Bip v2 » — Bip v2 §2–3 → ch. 10 « Résultats de durée » / « Calcul, pauses et périmètres » (localisation HEAD) ; 7a89220f a remplacé les liens Bip v2 par #resultats-temporels",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "RM-FMT-33–38), Exercice : exact en Durée, ≈ en Répétitions avec bip, omitted en Répétitions sans bip et À l’échec. Séance : exact si tout exact, ≈ avec estimation sans inconnu, ≥ avec travail inconnu. Bip v2 gouverne calculs et périmètres.",
+   "nouveau": "RM-FMT-33–38), Exercice : exact en Durée, ≈ en Répétitions avec bip, omitted en Répétitions sans bip et À l’échec. Séance : exact si tout exact, ≈ avec estimation sans inconnu, ≥ avec travail inconnu. [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) gouverne calculs et périmètres."
+  },
+  {
+   "id": "ALI-052",
+   "ref": "10 – Processus métier et règles métier transverses.md:1840 « [Règles détaillées] (ex-Bip v2, lien vers le même chapitre) » — 7a89220f^ (v13 §4) : « La spécification Bip v2 définit la succession des phases » ; Bip v2 §3 → ch. 10 « Calcul, pauses et périmètres » ; classification.tsv S10-0795 (renvoi vers soi)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "La spécification [Règles détaillées](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#resultats-temporels) définit",
+   "nouveau": "La section [Calcul, pauses et périmètres](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calcul-pauses-et-périmètres) définit"
+  },
+  {
+   "id": "ALI-053",
+   "ref": "10 – Processus métier et règles métier transverses.md:2028 « Bip v2 » — Bip v2 §2–3 → ch. 10 « Résultats de durée » / « Calcul, pauses et périmètres » (localisation HEAD) ; 7a89220f a remplacé les liens Bip v2 par #resultats-temporels",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "| Exercice : exact en Durée, ≈ en Répétitions avec bip, omitted en Répétitions sans bip et À l’échec. Séance : exact si tout exact, ≈ avec estimation sans inconnu, ≥ avec travail inconnu. Bip v2 gouverne calculs et périmètres.",
+   "nouveau": "| Exercice : exact en Durée, ≈ en Répétitions avec bip, omitted en Répétitions sans bip et À l’échec. Séance : exact si tout exact, ≈ avec estimation sans inconnu, ≥ avec travail inconnu. [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) gouverne calculs et périmètres."
+  },
+  {
+   "id": "ALI-054",
+   "ref": "10 – Processus métier et règles métier transverses.md:2066 « Phrase v1 » — Phrase v1 → ch. 08 #phrases (7a89220f) ; correspondance-alias.md ; l’extension deux modes est sous la même section (« Extension normative — deux modes et cibles mixtes »)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "| RM-232 | Phrase v1 étendue :",
+   "nouveau": "| RM-232 | [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres) étendue :"
+  },
+  {
+   "id": "ALI-055",
+   "ref": "11 – API fonctionnelles.md:497 « Phrase v1 » — Phrase v1 → ch. 08 #phrases (7a89220f) ; correspondance-alias.md",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@11 – API fonctionnelles.md",
+   "ancien": "Applique D-298 et Phrase v1 à partir",
+   "nouveau": "Applique D-298 et [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres) à partir"
+  },
+  {
+   "id": "ALI-056",
+   "ref": "11 – API fonctionnelles.md:500 « v13 » — bloc « Clôture des contrats — 01/10/2026 » (normatif : « s’appliquent ») ; v13 §4 « Ordres d’exécution et pauses » → ch. 10 « Ordres d’exécution et pauses » (localisation HEAD)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@11 – API fonctionnelles.md",
+   "ancien": "selon D-248/v13 (ancien",
+   "nouveau": "selon D-248 et [Ordres d’exécution et pauses](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ordres-dexécution-et-pauses) (ancien"
+  },
+  {
+   "id": "ALI-057",
+   "ref": "12 – Architecture technique.md:1477 « v13 » — bloc « Clôture des contrats — 01/10/2026 » (normatif : « s’appliquent ») ; v13 §4 « Ordres d’exécution et pauses » → ch. 10 « Ordres d’exécution et pauses » (localisation HEAD)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@12 – Architecture technique.md",
+   "ancien": "selon D-248/v13 (ancien",
+   "nouveau": "selon D-248 et [Ordres d’exécution et pauses](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ordres-dexécution-et-pauses) (ancien"
+  },
+  {
+   "id": "ALI-058",
+   "ref": "12 – Architecture technique.md:1503 « Bip v2 » — Bip v2 §2–3 → ch. 10 « Résultats de durée » / « Calcul, pauses et périmètres » (localisation HEAD) ; 7a89220f a remplacé les liens Bip v2 par #resultats-temporels ; Bip v2 §3 « Aucune estimation forfaitaire de répétition n’est utilisée »",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@12 – Architecture technique.md",
+   "ancien": "Bip v2 gouverne le total.",
+   "nouveau": "[Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) gouverne le total."
+  },
+  {
+   "id": "ALI-059",
+   "ref": "12 – Architecture technique.md:1680 « Bip v2 » — Bip v2 §4–5 (Exécution et son ; Progression, sécurité et arrière-plan) → ch. 10 « Exécution d’une séance — Bip de cadence, progression et sécurité » (localisation HEAD : 4/4 et 4/4 lignes) (« Ordonnancement par ancres temporelles … Qualifier le métronome »)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@12 – Architecture technique.md",
+   "ancien": "Bip v2 exige un ordonnanceur",
+   "nouveau": "[Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité) exige un ordonnanceur"
+  },
+  {
+   "id": "ALI-060",
+   "ref": "13 – Contrats d’écran.md:614 « v13 » — v13 §4–5 et §9 → ch. 10 « Calculs des durées et ordre des phases » (localisation HEAD)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "total intrinsèque selon v13 ;",
+   "nouveau": "total intrinsèque selon [Calculs des durées et ordre des phases](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calculs-des-durées-et-ordre-des-phases) ;"
+  },
+  {
+   "id": "ALI-061",
+   "ref": "13 – Contrats d’écran.md:634 « Bip v2 » — Bip v2 §2–3 → ch. 10 « Résultats de durée » / « Calcul, pauses et périmètres » (localisation HEAD) ; 7a89220f a remplacé les liens Bip v2 par #resultats-temporels (présence/absence de la ligne de durée : « Résultats de durée »)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "présence selon Bip v2 ;",
+   "nouveau": "présence selon [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) ;"
+  },
+  {
+   "id": "ALI-062",
+   "ref": "13 – Contrats d’écran.md:732 « Phrase v1 » — Phrase v1 → ch. 08 #phrases (7a89220f) ; correspondance-alias.md",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "min/max selon Phrase v1.",
+   "nouveau": "min/max selon [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres)."
+  },
+  {
+   "id": "ALI-063",
+   "ref": "13 – Contrats d’écran.md:788 « v13 » — v13 §4–5 et §9 → ch. 10 « Calculs des durées et ordre des phases » (localisation HEAD)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Calculs v13, D-248",
+   "nouveau": "Calculs selon [Calculs des durées et ordre des phases](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calculs-des-durées-et-ordre-des-phases), D-248"
+  },
+  {
+   "id": "ALI-064",
+   "ref": "13 – Contrats d’écran.md:933 « v13 » — v13 → ch. 08 #parametres-exercice (7a89220f, 20 liens) ; v13 §3 « Brouillon, bascules et normalisation » localisé ch. 08 (6/6)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "cibles et mode selon v13 ;",
+   "nouveau": "cibles et mode selon [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice) ;"
+  },
+  {
+   "id": "ALI-065",
+   "ref": "13 – Contrats d’écran.md:945 « Bip v2 » — Bip v2 §2–3 → ch. 10 « Résultats de durée » / « Calcul, pauses et périmètres » (localisation HEAD) ; 7a89220f a remplacé les liens Bip v2 par #resultats-temporels",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Calcul typé fourni par Bip v2 ;",
+   "nouveau": "Calcul typé fourni par [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) ;"
+  },
+  {
+   "id": "ALI-066",
+   "ref": "13 – Contrats d’écran.md:989 « v13 (restauration des cibles) » — ch. 08 « Brouillon, bascules et normalisation » : « Changement de mode … Revenir au mode précédent avant ✓ restaure » ; v13 → ch. 08 #parametres-exercice (7a89220f, 20 liens) ; v13 §3 « Brouillon, bascules et normalisation » localisé ch. 08 (6/6)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "restaurées dans le brouillon selon v13.",
+   "nouveau": "restaurées dans le brouillon selon [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice)."
+  },
+  {
+   "id": "ALI-067",
+   "ref": "13 – Contrats d’écran.md:989 « v13 (réduction, augmentation, déplacement) » — ch. 08 « Brouillon, bascules et normalisation » : « Augmentation de N … Réduction … Déplacement validé » ; v13 → ch. 08 #parametres-exercice (7a89220f, 20 liens) ; v13 §3 « Brouillon, bascules et normalisation » localisé ch. 08 (6/6)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "restauration et déplacement selon v13.",
+   "nouveau": "restauration et déplacement selon [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice)."
+  },
+  {
+   "id": "ALI-068",
+   "ref": "13 – Contrats d’écran.md:1294 « Bip v2 » — Bip v2 §2–3 → ch. 10 « Résultats de durée » / « Calcul, pauses et périmètres » (localisation HEAD) ; 7a89220f a remplacé les liens Bip v2 par #resultats-temporels ; « Extension normative — niveau Circuit » (Bip v2) sous la même section",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "selon Bip v2 et spécification Circuits du 12/10.",
+   "nouveau": "selon [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) et spécification Circuits du 12/10."
+  },
+  {
+   "id": "ALI-069",
+   "ref": "13 – Contrats d’écran.md:1453 « spécification Pauses et symboles » — 7a89220f^ : « [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md) » ; correspondance-alias.md : ch. 08 #pauses-composition ; Pauses §4 → ch. 08 (4/4)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "et la spécification Pauses et symboles.",
+   "nouveau": "et [Placement des récupérations et des points d’arrêt](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#placement-des-récupérations-et-des-points-darrêt)."
+  },
+  {
+   "id": "ALI-071",
+   "ref": "13 – Contrats d’écran.md:2318 « v13 » — v13 §4 → ch. 10 « Ordres d’exécution et pauses »",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Pauses suivant v13,",
+   "nouveau": "Pauses suivant [Ordres d’exécution et pauses](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ordres-dexécution-et-pauses),"
+  },
+  {
+   "id": "ALI-072",
+   "ref": "13 – Contrats d’écran.md:2336 « v13 + §6 R-03 » — v13 §4 → ch. 10 « Ordres d’exécution et pauses » ; « §6 » = ancien ch. 13 §6 « Clôture des réserves » (lien existant « chapitre 13, §6 » → #clôture-des-réserves-fonctionnelles-des-contrats) ; la section n’est plus numérotée et chaque contrat a désormais un §6 « Classification des valeurs Figma »",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "la succession du plan v13 (§6 R-03).",
+   "nouveau": "la succession du plan ([Ordres d’exécution et pauses](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ordres-dexécution-et-pauses) ; [R-03 — Transition, reset et suspension](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-03--transition-reset-et-suspension))."
+  },
+  {
+   "id": "ALI-074",
+   "ref": "13 – Contrats d’écran.md:2404 « ordres v13 » — v13 §4 → ch. 10",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Snapshot ActivityDefinition, nom, préparation 5. `preparation=5` est règle système, pas propriété de la définition.\r\n\r\nParamètres de la Série courante issus de l’instantané variable/uniforme ; ordres v13.",
+   "nouveau": "Snapshot ActivityDefinition, nom, préparation 5. `preparation=5` est règle système, pas propriété de la définition.\r\n\r\nParamètres de la Série courante issus de l’instantané variable/uniforme ; ordres selon [Ordres d’exécution et pauses](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ordres-dexécution-et-pauses)."
+  },
+  {
+   "id": "ALI-075",
+   "ref": "13 – Contrats d’écran.md:2438 « Bip v2 » — Bip v2 §4–5 (Exécution et son ; Progression, sécurité et arrière-plan) → ch. 10 « Exécution d’une séance — Bip de cadence, progression et sécurité » (localisation HEAD : 4/4 et 4/4 lignes)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Pause suspend le décompte, Reprendre reprend le restant ; Arrêter depuis Pause suit confirmation. Aucun tap ne crée de Session ni une seconde Exécution. Commandes propres à une Série ne sont pas des commandes de la préparation.\r\n\r\nSi la Série est en Répétitions avec bip, appliquer Bip v2 : nominal",
+   "nouveau": "Pause suspend le décompte, Reprendre reprend le restant ; Arrêter depuis Pause suit confirmation. Aucun tap ne crée de Session ni une seconde Exécution. Commandes propres à une Série ne sont pas des commandes de la préparation.\r\n\r\nSi la Série est en Répétitions avec bip, appliquer [Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité) : nominal"
+  },
+  {
+   "id": "ALI-076",
+   "ref": "13 – Contrats d’écran.md:2858 « §6 R-01 » — « §6 » = ancien ch. 13 §6 « Clôture des réserves » (lien existant « chapitre 13, §6 » → #clôture-des-réserves-fonctionnelles-des-contrats) ; la section n’est plus numérotée et chaque contrat a désormais un §6 « Classification des valeurs Figma »",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "selon la formule §6 R-01,",
+   "nouveau": "selon la formule de [R-01 — Progression et estimation](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-01--progression-et-estimation),"
+  },
+  {
+   "id": "ALI-077",
+   "ref": "13 – Contrats d’écran.md:2870 « §6 R-03 » — « §6 » = ancien ch. 13 §6 « Clôture des réserves » (lien existant « chapitre 13, §6 » → #clôture-des-réserves-fonctionnelles-des-contrats) ; la section n’est plus numérotée et chaque contrat a désormais un §6 « Classification des valeurs Figma »",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "arrêt automatique (§6 R-03).",
+   "nouveau": "arrêt automatique ([R-03 — Transition, reset et suspension](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-03--transition-reset-et-suspension))."
+  },
+  {
+   "id": "ALI-078",
+   "ref": "13 – Contrats d’écran.md:2888 « §6 R-01 + §6 R-03 » — « §6 » = ancien ch. 13 §6 « Clôture des réserves » (lien existant « chapitre 13, §6 » → #clôture-des-réserves-fonctionnelles-des-contrats) ; la section n’est plus numérotée et chaque contrat a désormais un §6 « Classification des valeurs Figma »",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "vérifier poids §6 R-01 et transitions §6 R-03 ;",
+   "nouveau": "vérifier poids [R-01 — Progression et estimation](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-01--progression-et-estimation) et transitions [R-03 — Transition, reset et suspension](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-03--transition-reset-et-suspension) ;"
+  },
+  {
+   "id": "ALI-081",
+   "ref": "13 – Contrats d’écran.md:3474 « §6 R-04 » — « §6 » = ancien ch. 13 §6 « Clôture des réserves » (lien existant « chapitre 13, §6 » → #clôture-des-réserves-fonctionnelles-des-contrats) ; la section n’est plus numérotée et chaque contrat a désormais un §6 « Classification des valeurs Figma »",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "date/heure d’origine (§6 R-04)",
+   "nouveau": "date/heure d’origine ([R-04 — Suppression d’une occurrence périodique](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-04--suppression-dune-occurrence-périodique))"
+  },
+  {
+   "id": "ALI-082",
+   "ref": "13 – Contrats d’écran.md:3764 « § 0.1 » — 3623466a SPECIFICATION-PLANIFICATION l. 5 : « Les renvois du brief au « §0 » désignent désormais le [DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md) » ; DSF-INTERFACE-GENERALE:16 « ### 0.1 Grille d’écartement vertical »",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "**12 px** (§ 0.1).",
+   "nouveau": "**12 px** ([DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md), § 0.1)."
+  },
+  {
+   "id": "ALI-083",
+   "ref": "13 – Contrats d’écran.md:4375 « §6 R-02 » — « §6 » = ancien ch. 13 §6 « Clôture des réserves » (lien existant « chapitre 13, §6 » → #clôture-des-réserves-fonctionnelles-des-contrats) ; la section n’est plus numérotée et chaque contrat a désormais un §6 « Classification des valeurs Figma »",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "consolidées au §6 R-02.",
+   "nouveau": "consolidées dans [R-02 — Validation des contrôles existants](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-02--validation-des-contrôles-existants)."
+  },
+  {
+   "id": "ALI-084",
+   "ref": "13 – Contrats d’écran.md:4608 « renvoi vide « ; . » » — 7a89220f^ : « DSF-SEGMENTES-TITRES-2026-10-07.md) ; [traçabilité et captures](../MATRICE-COMPLEMENTS-2026-10-07.md). » ; lien retiré par 7a89220f, fichier docs/MATRICE-COMPLEMENTS-2026-10-07.md toujours présent",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "(../DSF-SEGMENTES-TITRES-2026-10-07.md) ; .",
+   "nouveau": "(../DSF-SEGMENTES-TITRES-2026-10-07.md) ; [traçabilité et captures](../MATRICE-COMPLEMENTS-2026-10-07.md)."
+  },
+  {
+   "id": "ALI-085",
+   "ref": "13 – Contrats d’écran.md:4662 « §6 R-03 » — « §6 » = ancien ch. 13 §6 « Clôture des réserves » (lien existant « chapitre 13, §6 » → #clôture-des-réserves-fonctionnelles-des-contrats) ; la section n’est plus numérotée et chaque contrat a désormais un §6 « Classification des valeurs Figma »",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "si bilatéral (§6 R-03)",
+   "nouveau": "si bilatéral ([R-03 — Transition, reset et suspension](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-03--transition-reset-et-suspension))"
+  },
+  {
+   "id": "ALI-086",
+   "ref": "13 – Contrats d’écran.md:4671 « §6 R-03 » — « §6 » = ancien ch. 13 §6 « Clôture des réserves » (lien existant « chapitre 13, §6 » → #clôture-des-réserves-fonctionnelles-des-contrats) ; la section n’est plus numérotée et chaque contrat a désormais un §6 « Classification des valeurs Figma »",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Série du côté (§6 R-03)",
+   "nouveau": "Série du côté ([R-03 — Transition, reset et suspension](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-03--transition-reset-et-suspension))"
+  },
+  {
+   "id": "ALI-087",
+   "ref": "13 – Contrats d’écran.md:4674 « §6 R-03 » — « §6 » = ancien ch. 13 §6 « Clôture des réserves » (lien existant « chapitre 13, §6 » → #clôture-des-réserves-fonctionnelles-des-contrats) ; la section n’est plus numérotée et chaque contrat a désormais un §6 « Classification des valeurs Figma »",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "D-150, transition §6 R-03",
+   "nouveau": "D-150, transition [R-03 — Transition, reset et suspension](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-03--transition-reset-et-suspension)"
+  },
+  {
+   "id": "ALI-088",
+   "ref": "13 – Contrats d’écran.md:4687 « paramètres v13 » — v13 → ch. 08 #parametres-exercice (7a89220f, 20 liens) ; v13 §3 « Brouillon, bascules et normalisation » localisé ch. 08 (6/6)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "sont [paramètres v13](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice), [Règles détaillées](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#resultats-temporels), [Phrase v1](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases) et",
+   "nouveau": "sont [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice), [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit), [Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité), [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres) et"
+  },
+  {
+   "id": "ALI-089",
+   "ref": "13 – Contrats d’écran.md:4691 « Bip v2 » — Bip v2 §4–5 (Exécution et son ; Progression, sécurité et arrière-plan) → ch. 10 « Exécution d’une séance — Bip de cadence, progression et sécurité » (localisation HEAD : 4/4 et 4/4 lignes)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Bip v2 gouverne les signaux périodiques",
+   "nouveau": "[Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité) gouverne les signaux périodiques"
+  },
+  {
+   "id": "ALI-090",
+   "ref": "PRODUCT.md:62 « Bip v2§3 + paramètres v13§§4–5 » — Bip v2 §3 → ch. 10 « Calcul, pauses et périmètres » ; v13 §4–5 → ch. 10 « Ordres d’exécution et pauses », « Durées, affichage et inversion » (sous « Calculs des durées et ordre des phases ») ; localisation HEAD",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "PRODUCT.md",
+   "ancien": "Bip v2§3 et paramètres v13§§4–5.",
+   "nouveau": "[Calcul, pauses et périmètres](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calcul-pauses-et-périmètres) et [Calculs des durées et ordre des phases](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calculs-des-durées-et-ordre-des-phases)."
+  },
+  {
+   "id": "ALI-091",
+   "ref": "PRODUCT.md:64 « Bip v2 + paramètres v13 » — Bip v2 §2–3 → ch. 10 « Résultats de durée » / « Calcul, pauses et périmètres » (localisation HEAD) ; 7a89220f a remplacé les liens Bip v2 par #resultats-temporels ; v13 §4–5 et §9 → ch. 10 « Calculs des durées et ordre des phases » (localisation HEAD)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "PRODUCT.md",
+   "ancien": "To=T. Durées selon Bip v2 et paramètres v13 :",
+   "nouveau": "To=T. Durées selon [Résultats temporels et agrégation du circuit](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) et [Calculs des durées et ordre des phases](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calculs-des-durées-et-ordre-des-phases) :"
+  },
+  {
+   "id": "ALI-092",
+   "ref": "PRODUCT.md:145 « Bip v2 » — Bip v2 §2–3 → ch. 10 « Résultats de durée » / « Calcul, pauses et périmètres » (localisation HEAD) ; 7a89220f a remplacé les liens Bip v2 par #resultats-temporels",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "PRODUCT.md",
+   "ancien": "omis selon Bip v2.",
+   "nouveau": "omis selon [Résultats temporels et agrégation du circuit](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit)."
+  },
+  {
+   "id": "ALI-093",
+   "ref": "PRODUCT.md:145 « Phrase v1 » — Phrase v1 → ch. 08 #phrases (7a89220f) ; correspondance-alias.md",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "PRODUCT.md",
+   "ancien": "Elle suit D-298 et Phrase v1.",
+   "nouveau": "Elle suit D-298 et [Phrase de synthèse des paramètres](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres)."
+  },
+  {
+   "id": "ALI-094",
+   "ref": "PRODUCT.md:191 « Bip v2 + paramètres v13 » — Bip v2 §2–3 → ch. 10 « Résultats de durée » / « Calcul, pauses et périmètres » (localisation HEAD) ; 7a89220f a remplacé les liens Bip v2 par #resultats-temporels ; v13 §4–5 et §9 → ch. 10 « Calculs des durées et ordre des phases » (localisation HEAD)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "PRODUCT.md",
+   "ancien": "La Durée estimée est calculée à partir de toutes les durées déterminables du plan d’Exécution développé, passages bilatéraux et Récupérations d’Exercice compris.\r\n\r\nDurées selon Bip v2 et paramètres v13 :",
+   "nouveau": "La Durée estimée est calculée à partir de toutes les durées déterminables du plan d’Exécution développé, passages bilatéraux et Récupérations d’Exercice compris.\r\n\r\nDurées selon [Résultats temporels et agrégation du circuit](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) et [Calculs des durées et ordre des phases](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calculs-des-durées-et-ordre-des-phases) :"
+  },
+  {
+   "id": "ALI-095",
+   "ref": "PRODUCT.md:507 « v13 » — v13 → ch. 08 #parametres-exercice (7a89220f, 20 liens) ; v13 §3 « Brouillon, bascules et normalisation » localisé ch. 08 (6/6)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "PRODUCT.md",
+   "ancien": "Référence courante : [v13](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice)",
+   "nouveau": "Référence courante : [Paramètres et brouillon d’un exercice](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice)"
+  },
+  {
+   "id": "ALI-096",
+   "ref": "PRODUCT.md:515 « Bip v2 » — Bip v2 §2–3 → ch. 10 « Résultats de durée » / « Calcul, pauses et périmètres » (localisation HEAD) ; 7a89220f a remplacé les liens Bip v2 par #resultats-temporels",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "PRODUCT.md",
+   "ancien": "Bip v2 gouverne calculs et périmètres.",
+   "nouveau": "[Résultats temporels et agrégation du circuit](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) gouverne calculs et périmètres."
+  },
+  {
+   "id": "ALI-097",
+   "ref": "PRODUCT.md:517 « paramètres v13, Bip v2, Phrase v1 » — v13 → ch. 08 #parametres-exercice (7a89220f, 20 liens) ; v13 §3 « Brouillon, bascules et normalisation » localisé ch. 08 (6/6) ; Bip v2 §2–3 → ch. 10 « Résultats de durée » / « Calcul, pauses et périmètres » (localisation HEAD) ; 7a89220f a remplacé les liens Bip v2 par #resultats-temporels ; Bip v2 §4–5 (Exécution et son ; Progression, sécurité et arrière-plan) → ch. 10 « Exécution d’une séance — Bip de cadence, progression et sécurité » (localisation HEAD : 4/4 et 4/4 lignes) ; Phrase v1 → ch. 08 #phrases (7a89220f) ; correspondance-alias.md",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "PRODUCT.md",
+   "ancien": "Références actives : paramètres v13, Bip v2, Phrase v1, chapitre13",
+   "nouveau": "Références actives : [Paramètres et brouillon d’un exercice](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice), [Résultats temporels et agrégation du circuit](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit), [Exécution d'une séance — Bip de cadence, progression et sécurité](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité), [Phrase de synthèse des paramètres](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres), chapitre13"
+  },
+  {
+   "id": "ALI-098",
+   "ref": "README.md:62 « [Règles détaillées] (ex-Paramètres v13) » — 7a89220f : « [Paramètres v13](…SPECIFICATION-PARAMETRES-MODALE-v13.md) » → « [Règles détaillées](…#parametres-exercice) » ; v13 → ch. 08 #parametres-exercice (7a89220f, 20 liens) ; v13 §3 « Brouillon, bascules et normalisation » localisé ch. 08 (6/6)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "README.md",
+   "ancien": "1. [Règles détaillées](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#parametres-exercice)",
+   "nouveau": "1. [Paramètres et brouillon d’un exercice](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice)"
+  },
+  {
+   "id": "ALI-099",
+   "ref": "README.md:63 « [Règles détaillées] (ex-Bip v2) » — 7a89220f : « [Bip v2](…SPECIFICATION-BIP-CADENCE-v2.md) — calculs, exécution, données et recette » ; Bip v2 §2–3 → ch. 10 « Résultats de durée » / « Calcul, pauses et périmètres » (localisation HEAD) ; 7a89220f a remplacé les liens Bip v2 par #resultats-temporels ; Bip v2 §4–5 (Exécution et son ; Progression, sécurité et arrière-plan) → ch. 10 « Exécution d’une séance — Bip de cadence, progression et sécurité » (localisation HEAD : 4/4 et 4/4 lignes) ; Bip v2 §7 → ch. 09 « Données et livraison » (3/3)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "README.md",
+   "ancien": "2. [Règles détaillées](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#resultats-temporels) — calculs, exécution, données et recette.",
+   "nouveau": "2. [Résultats temporels et agrégation du circuit](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit), [Exécution d'une séance — Bip de cadence, progression et sécurité](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité) et [Paramètre de bip et validation des données](Specifications-fonctionnelles/09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#paramètre-de-bip-et-validation-des-données) — calculs, exécution, données et recette."
+  },
+  {
+   "id": "ALI-100",
+   "ref": "README.md:64 « Phrase v1 » — Phrase v1 → ch. 08 #phrases (7a89220f) ; correspondance-alias.md",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "README.md",
+   "ancien": "3. [Phrase v1](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases)",
+   "nouveau": "3. [Phrase de synthèse des paramètres](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres)"
+  }
+ ]
+}

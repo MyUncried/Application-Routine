@@ -1,0 +1,27 @@
+{
+  "05 – Versions du produit.md|1|1": {
+    "ancre": "## Complément intégré au MVP",
+    "mode": "avant",
+    "raison": "contexte ambigu (deux séparateurs) ; inséré avant « ## Complément intégré au MVP », position de la PR"
+  },
+  "13 – Contrats d’écran.md|2|3": {
+    "ancre": "Ouverture depuis la zone Paramètres d’exécution",
+    "mode": "apres",
+    "raison": "contexte modifié par la finalisation ; inséré après la ligne d’ouverture conservée"
+  },
+  "13 – Contrats d’écran.md|3|1": {
+    "ancre": "Collection effective des Séries",
+    "mode": "apres",
+    "raison": "contexte modifié par la finalisation ; inséré après la ligne conservée"
+  },
+  "13 – Contrats d’écran.md|6|1": {
+    "ancre": "- ± modifie Bip par 1, bornes 0..10, sans accélération.",
+    "mode": "apres",
+    "raison": "ligne scindée en liste par la finalisation (QUA) ; inséré après l’élément correspondant"
+  },
+  "13 – Contrats d’écran.md|6|6": {
+    "ancre": "Cible manquante, valeur hors borne",
+    "mode": "apres",
+    "raison": "contexte modifié par la finalisation ; inséré après la ligne conservée"
+  }
+}

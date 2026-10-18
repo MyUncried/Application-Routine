@@ -1,0 +1,33 @@
+{
+ "description": "Finalisation du lot 6 — introductions des ch. 08 et 10 harmonisées avec la répartition décidée par D-402 (QR-2, QR-3). Seuls les énoncés de rôle des chapitres changent ; aucune règle produit.",
+ "corrections": [
+  { "id": "INT-001", "ref": "D-402 (QR-2) : le ch. 08 cite les règles du ch. 10 sans les énoncer", "motif": "CORRECTION-DECIDEE:D-402", "classe": "FONCT-ARBITRÉ", "decision": "D-402",
+    "file": "@08 – Conception fonctionnelle détaillée.md",
+    "ancien": "- les règles propres à chaque fonctionnalité.",
+    "nouveau": "- les enchaînements, états et transitions propres à chaque fonctionnalité, en citant les règles du chapitre 10 qui s’y appliquent." },
+  { "id": "INT-002", "ref": "D-402 (QR-2)", "motif": "CORRECTION-DECIDEE:D-402", "classe": "FONCT-ARBITRÉ", "decision": "D-402",
+    "file": "@08 – Conception fonctionnelle détaillée.md",
+    "ancien": "- les règles métier transverses ;",
+    "nouveau": "- les règles métier testables, énoncées au chapitre 10 ;" },
+  { "id": "INT-003", "ref": "D-402 (QR-3) : écrans au ch. 13, navigation et conventions communes au ch. 06", "motif": "CORRECTION-DECIDEE:D-402", "classe": "FONCT-ARBITRÉ", "decision": "D-402",
+    "file": "@08 – Conception fonctionnelle détaillée.md",
+    "ancien": "Les caractéristiques propres à chaque écran restent décrites dans le chapitre **06 – Écrans et navigation de la V1**.\r\nLes champs, contrôles et comportements spécifiques des écrans sont définis au chapitre 13.",
+    "nouveau": "La navigation, l’inventaire des écrans et les conventions d’interface communes à plusieurs écrans sont décrits au chapitre **06 – Interface : navigation, écrans et conventions communes**.\r\nLes champs, contrôles et comportements spécifiques des écrans sont définis au chapitre 13." },
+  { "id": "INT-004", "ref": "D-402 : titres et rôles des chapitres (INDEX.md)", "motif": "CORRECTION-DECIDEE:D-402", "classe": "FONCT-ARBITRÉ", "decision": "D-402",
+    "file": "@08 – Conception fonctionnelle détaillée.md",
+    "ancien": "| Versions du produit                       | 05 – Versions du produit                           |\r\n| Navigation et écrans                      | 06 – Écrans et navigation de la V1                 |",
+    "nouveau": "| Versions du produit                       | 05 – Versions et périmètre                         |\r\n| Navigation, écrans et conventions communes | 06 – Interface : navigation, écrans et conventions communes |" },
+  { "id": "INT-005", "ref": "D-402", "motif": "CORRECTION-DECIDEE:D-402", "classe": "FONCT-ARBITRÉ", "decision": "D-402",
+    "file": "@08 – Conception fonctionnelle détaillée.md",
+    "ancien": "| Comportement détaillé des fonctionnalités | 08 – Conception fonctionnelle détaillée            |",
+    "nouveau": "| Enchaînements, états et transitions des fonctionnalités | 08 – Conception fonctionnelle par fonctionnalité |" },
+  { "id": "INT-006", "ref": "D-402 ; le ch. 13 manquait à la table", "motif": "CORRECTION-DECIDEE:D-402", "classe": "FONCT-ARBITRÉ", "decision": "D-402",
+    "file": "@08 – Conception fonctionnelle détaillée.md",
+    "ancien": "| Règles métier transverses                 | 10 – Processus métier et règles métier transverses |\r\n| API fonctionnelles                        | 11 – API fonctionnelles                            |\r\n| Architecture technique                    | 12 – Architecture technique                        |",
+    "nouveau": "| Règles métier testables et calculs        | 10 – Règles métier et calculs                      |\r\n| API fonctionnelles                        | 11 – API fonctionnelles                            |\r\n| Architecture technique                    | 12 – Architecture technique                        |\r\n| Comportement de chaque écran              | 13 – Contrats d’écran                              |" },
+  { "id": "INT-007", "ref": "D-402 (QR-3) : interactions écran par écran au ch. 13", "motif": "CORRECTION-DECIDEE:D-402", "classe": "FONCT-ARBITRÉ", "decision": "D-402",
+    "file": "@10 – Processus métier et règles métier transverses.md",
+    "ancien": "Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs écrans ou parcours. Le détail visuel et les interactions écran par écran restent définis dans le chapitre 06.",
+    "nouveau": "Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs écrans ou parcours. Les interactions écran par écran sont définies par les contrats du chapitre 13 ; la navigation et les conventions d’interface communes, par le chapitre 06 ; le rendu visuel, par Figma." }
+ ]
+}

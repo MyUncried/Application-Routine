@@ -1,0 +1,8 @@
+{
+  "description": "Complément de la clôture des réserves : référence obsolète de D-090 signalée par le dossier R2 (réserve #6). Texte de la décision non réécrit ; correspondance ajoutée au statut.",
+  "corrections": [
+    { "id": "R2-05", "ref": "Renumérotation RM-101 → RM-159 par le commit 83634178 (14/09/2026) : la règle d’arrondi citée par D-090 (27/08) est aujourd’hui RM-159 ; RM-101 porte sur le Ressenti", "file": "@07 – Registre des décisions de conception.md",
+      "ancien": "Elle exclut toujours le Compte à rebours initial et la Fin de séance (RM-101). | Révisée par D-131 |",
+      "nouveau": "Elle exclut toujours le Compte à rebours initial et la Fin de séance (RM-101). | Révisée par D-131 ; le renvoi RM-101 désigne aujourd’hui RM-159 (renumérotation du 14/09/2026, `83634178`) |" }
+  ]
+}

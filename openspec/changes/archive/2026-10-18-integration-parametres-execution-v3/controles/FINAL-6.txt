@@ -1,0 +1,70 @@
+# Contrôles FINAL-6 — référence b6ca2321 — corrections : 21 fichiers
+justifications=486 fichiers=21
+
+## Rejeu des corrections
+OK rejeu exact : 489 corrections, 26 fichiers
+## Fichiers modifiés hors corrections déclarées
+warning: in the working copy of 'docs/Specifications-fonctionnelles/Annexe – Correspondance des sections.md', LF will be replaced by CRLF the next time Git touches it
+aucun
+## Images ajoutées
+6
+
+## C1–C7
+référence=b6ca2321 fichiers_ref=17 fichiers_cible=17
+C1 identifiants : 783 de référence, 811 dans la cible
+C2 lignes distinctes : 7124 ; N1=6795 N2=0 justifiées=329 absentes=0
+C3 lignes dont les occurrences diminuent : 0 (informatif)
+C4 décisions au texte modifié : 0 sur 394
+C5 lignes dont la portée change : 0
+C6 marqueurs d'autorité en baisse : 0
+C7 références perdues ou orphelines : 0 (identifiants cités : 789)
+CONSERVATION VÉRIFIÉE
+
+## Documents hors chapitres (DSF, PRODUCT, INDEX…)
+warning: in the working copy of 'docs/Specifications-fonctionnelles/Annexe – Correspondance des sections.md', LF will be replaced by CRLF the next time Git touches it
+justifiée : docs/PRODUCT.md « 16. Dans la version actuelle, la direction bilatérale active est porté »
+justifiée : docs/PRODUCT.md « Son insertion dans une Séance copie toutes les propriétés métier appli »
+justifiée : docs/PRODUCT.md « **Valeur initiale :** lors du passage de `Aucun` à `D→G` ou `G→D`, `si »
+justifiée : docs/PRODUCT.md « **Convention de saisie D-219.** Les durées utilisent les roulettes en  »
+justifiée : docs/PRODUCT.md « Les deux modes acceptent Bip de cadence0..10s,0=Aucun par défaut. Répé »
+documents hors chapitres modifiés=13 lignes_perdues=0
+
+## C10
+corrections=3 non_redactionnelles=0
+corrections=1 non_redactionnelles=0
+corrections=10 non_redactionnelles=0
+corrections=4 non_redactionnelles=0
+corrections=55 non_redactionnelles=0
+corrections=50 non_redactionnelles=0
+corrections=64 non_redactionnelles=0
+corrections=34 non_redactionnelles=0
+corrections=65 non_redactionnelles=0
+corrections=55 non_redactionnelles=0
+corrections=40 non_redactionnelles=0
+corrections=21 non_redactionnelles=0
+corrections=11 non_redactionnelles=0
+corrections=5 non_redactionnelles=0
+corrections=22 non_redactionnelles=0
+corrections=2 non_redactionnelles=0
+corrections=10 non_redactionnelles=0
+corrections=2 non_redactionnelles=0
+corrections=28 non_redactionnelles=0
+corrections=2 non_redactionnelles=0
+corrections=5 non_redactionnelles=0
+
+## C9 liens
+MENTION_REMOVED_SPEC	docs/DSF-V2-MOTIFS-LOT-3.md:4	Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md
+MENTION_REMOVED_SPEC	docs/RAPPORT-RECONCILIATION-DOCUMENTAIRE-247-271.md:89	docs/Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v10.2.md
+files=82 issues=2
+
+## K1
+rangs identiques=oui
+
+## K2
+manquants=0
+
+## OpenSpec
+Change 'integration-parametres-execution-v3' is valid
+Change 'revision-documentation-kodjo' is valid
+
+Résultat : rejeu=0 conservation=0 redaction=0 liens=0 tokens=0 fichiers=0 openspec=0

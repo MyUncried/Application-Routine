@@ -1,0 +1,30 @@
+{
+  "06 – Ecrans et navigation de la V1.md|1|1": {
+    "ancre": "32 captures du parcours de création et de ses états de Modalités d’exécution",
+    "mode": "substituer",
+    "de": "états de Modalités d’exécution, issues",
+    "vers": "états de Paramètres d’exécution, issues",
+    "raison": "substitution ciblée du seul libellé renommé par la PR ; le lien restauré par R06B-001 est conservé"
+  },
+  "13 – Contrats d’écran.md|2|1": {
+    "ancre": "Durée et symbole viennent du calcul commun",
+    "mode": "remplacer",
+    "raison": "seule occurrence conservée (ch. 13) ; ligne actuelle identique à l’ancienne ligne de la PR hors espaces typographiques"
+  },
+  "13 – Contrats d’écran.md|4|1": {
+    "mode": "ignorer",
+    "raison": "copie remplacée par un renvoi (COP-017, 027, 029, 048, 051) ; texte identique reporté une seule fois via |2|1"
+  },
+  "13 – Contrats d’écran.md|5|1": {
+    "mode": "ignorer",
+    "raison": "copie remplacée par un renvoi (COP-017, 027, 029, 048, 051) ; texte identique reporté une seule fois via |2|1"
+  },
+  "13 – Contrats d’écran.md|7|1": {
+    "mode": "ignorer",
+    "raison": "copie remplacée par un renvoi (COP-017, 027, 029, 048, 051) ; texte identique reporté une seule fois via |2|1"
+  },
+  "13 – Contrats d’écran.md|6|1": {
+    "mode": "ignorer",
+    "raison": "copie remplacée par un renvoi (COP-017, 027, 029, 048, 051) ; texte identique reporté une seule fois via |2|1"
+  }
+}

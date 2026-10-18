@@ -1,0 +1,86 @@
+{
+ "description": "R06-B — examen des 119 lignes A_EXAMINER de R-06 hors ch. 10 (ch. 01 à 09, 11 à 13). Restaurations exactes du texte de 7a89220f^ (identifiants ou renvois effacés mécaniquement). Aucune correction dans le registre (ch. 07). Détail : lot6/finalisation/R06-examen-autres.tsv. — sous-ensemble appliqué (voir FIN-R06-autres-ecartees.tsv)",
+ "corrections": [
+  {
+   "id": "R06B-001",
+   "ref": "R-06 ligne 52 ; 7a89220f^:06 l. 1135",
+   "motif": "RESTAURATION:7a89220f^",
+   "classe": "DOC",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "pour les états remplacés ; .",
+   "nouveau": "pour les états remplacés ; [matrice actuelle](../MATRICE-DSF-CIRCUITS-2026-10-12.md)."
+  },
+  {
+   "id": "R06B-002",
+   "ref": "R-06 ligne 53 ; 7a89220f^:06 l. 1277",
+   "motif": "RESTAURATION:7a89220f^",
+   "classe": "DOC",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "(../DSF-DEUX-MODES-ECHEC-2026-10-13.md) ; .",
+   "nouveau": "(../DSF-DEUX-MODES-ECHEC-2026-10-13.md) ; [matrice de traçabilité](../MATRICE-DEUX-MODES-ECHEC-2026-10-13.md)."
+  },
+  {
+   "id": "R06B-003",
+   "ref": "R-06 ligne 59 ; 7a89220f^:06 l. 2230",
+   "motif": "RESTAURATION:7a89220f^",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "sans déploiement . Les capacités",
+   "nouveau": "sans déploiement (D-260/D-261/D-264). Les capacités"
+  },
+  {
+   "id": "R06B-004",
+   "ref": "R-06 ligne 374 ; 7a89220f^:13 l. 136",
+   "motif": "RESTAURATION:7a89220f^",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "carte déplacée. Voir .",
+   "nouveau": "carte déplacée. Voir [traçabilité et captures](../MATRICE-VOILE-MODAL-2026-10-07.md)."
+  },
+  {
+   "id": "R06B-005",
+   "ref": "R-06 ligne 398 ; 7a89220f^:13 l. 1035",
+   "motif": "RESTAURATION:7a89220f^",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "contrôles de placement . V-04",
+   "nouveau": "contrôles de placement (D-303). V-04"
+  },
+  {
+   "id": "R06B-006",
+   "ref": "R-06 ligne 455 ; 7a89220f^:13, CE-FMT-01 §19 Invariants",
+   "motif": "RESTAURATION:7a89220f^",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "pas de verrouillage pour un départ rapide.",
+   "nouveau": "FMT-01–03, 28, 40 ; pas de verrouillage pour un départ rapide."
+  },
+  {
+   "id": "R06B-007",
+   "ref": "R-06 ligne 457 ; 7a89220f^:13, CE-FMT-02 §19 Invariants",
+   "motif": "RESTAURATION:7a89220f^",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "pas de durée saisie pour les formats cadencés à compte.",
+   "nouveau": "FMT-04–05, 10–15, 19–22, 26–32 ; pas de durée saisie pour les formats cadencés à compte."
+  },
+  {
+   "id": "R06B-008",
+   "ref": "R-06 ligne 460 ; 7a89220f^:13, CE-FMT-04 §19 Invariants",
+   "motif": "RESTAURATION:7a89220f^",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "les constantes restent effectives dans le moteur futur.",
+   "nouveau": "FMT-17, 19, 30–32, 42 ; les constantes restent effectives dans le moteur futur."
+  },
+  {
+   "id": "R06B-009",
+   "ref": "R-06 ligne 462 ; 7a89220f^:13, CE-FMT-05 §19 Invariants",
+   "motif": "RESTAURATION:7a89220f^",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "repos inclus dans fenêtre ; pas de multiplicateur caché pour côtés.",
+   "nouveau": "FMT-20–27, 33–36, 39–41 ; repos inclus dans fenêtre ; pas de multiplicateur caché pour côtés."
+  }
+ ]
+}

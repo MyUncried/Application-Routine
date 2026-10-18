@@ -1,0 +1,79 @@
+# Contrôles FINAL-depuis-e8afc61b — référence e8afc61b — corrections : FIN-INTRO.json,FIN-R06-ch10-applique.json,FIN-R06-autres-applique.json,FIN-COPIES-applique.json,FIN-QUALITE-applique.json,FIN-DSF-applique.json,FIN-DSF-complement-applique.json,FIN-DIV-1-applique.json,FIN-DIV-2-applique.json,FIN-DIV-3-applique.json,FIN-ALIAS-applique.json,FIN-TRACE-applique.json,FIN-INDEX-applique.json,FIN-RESERVES-applique.json,FIN-ACTIVES-applique.json,FIN-COMPLEMENT-applique.json,FIN-STRUCTURE-applique.json,FIN-RESERVES-2-applique.json,FIN-RESIDUS-applique.json,FIN-STRUCTURE-2-applique.json,FIN-INTRO-2-applique.json,FIN-TRACE-2-applique.json
+justifications=643 fichiers=22
+
+## Rejeu des corrections
+629 corrections rejouées
+OK : le disque correspond exactement au rejeu
+## Fichiers modifiés hors corrections déclarées
+
+## C1–C7
+référence=e8afc61b fichiers_ref=16 fichiers_cible=17
+C1 identifiants : 783 de référence, 783 dans la cible
+C2 lignes distinctes : 7063 ; N1=6652 N2=137 justifiées=274 absentes=0
+C3 lignes dont les occurrences diminuent : 32 (informatif)
+C4 décisions au texte modifié : 0 sur 394
+C5 lignes dont la portée change : 0
+C6 marqueurs d'autorité en baisse : 0
+C7 références perdues ou orphelines : 0 (identifiants cités : 751)
+CONSERVATION VÉRIFIÉE
+
+## Documents hors chapitres (DSF, PRODUCT, INDEX…)
+justifiée : docs/PRODUCT.md « Les deux modes acceptent Bip de cadence0..10s,0=Aucun par défaut. Répé »
+justifiée : docs/PRODUCT.md « Références actives : paramètres v13, Bip v2, Phrase v1, chapitre13 et  »
+justifiée : docs/README.md « 1. [Règles détaillées] — pauses/côtés conservés, cadence et symboles. »
+justifiée : docs/README.md « 2. [Règles détaillées] — calculs, exécution, données et recette. »
+justifiée : docs/README.md « 3. [Phrase v1] — grammaire et rendu ; Excel exclusivement rédactionnel »
+documents hors chapitres modifiés=6 lignes_perdues=0
+
+## C10
+corrections=7 non_redactionnelles=0
+corrections=1 non_redactionnelles=0
+corrections=9 non_redactionnelles=0
+corrections=61 non_redactionnelles=0
+corrections=216 non_redactionnelles=0
+corrections=5 non_redactionnelles=0
+corrections=1 non_redactionnelles=0
+corrections=28 non_redactionnelles=0
+corrections=31 non_redactionnelles=0
+corrections=29 non_redactionnelles=0
+corrections=95 non_redactionnelles=0
+corrections=38 non_redactionnelles=0
+corrections=2 non_redactionnelles=0
+corrections=12 non_redactionnelles=0
+corrections=20 non_redactionnelles=0
+corrections=1 non_redactionnelles=0
+corrections=18 non_redactionnelles=0
+corrections=4 non_redactionnelles=0
+corrections=12 non_redactionnelles=0
+corrections=7 non_redactionnelles=0
+corrections=3 non_redactionnelles=0
+corrections=29 non_redactionnelles=0
+
+## C9 liens
+MENTION_REMOVED_SPEC	docs/DSF-V2-MOTIFS-LOT-3.md:4	Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md
+MENTION_REMOVED_SPEC	docs/RAPPORT-RECONCILIATION-DOCUMENTAIRE-247-271.md:89	docs/Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v10.2.md
+files=82 issues=2
+
+## K1
+rangs identiques=oui
+
+## K2
+manquants=0
+
+## OpenSpec
+Change 'revision-documentation-kodjo' is valid
+
+## Périmètre
+      8  M "docs/Specifications-fonctionnelles
+      2  M openspec/changes/revision-documentation-kodjo/lot6/finalisation
+      3  M openspec/changes/revision-documentation-kodjo/lot6/finalisation/controles
+      6  M openspec/changes/revision-documentation-kodjo/lot6/finalisation/pr
+      2  M openspec/changes/revision-documentation-kodjo/outils
+      8 ?? openspec/changes/revision-documentation-kodjo/constats
+      2 ?? openspec/changes/revision-documentation-kodjo/lot6/finalisation
+      3 ?? openspec/changes/revision-documentation-kodjo/lot6/finalisation/controles
+      4 ?? openspec/changes/revision-documentation-kodjo/lot6/finalisation/ecarts
+      2 ?? openspec/changes/revision-documentation-kodjo/lot6/finalisation/pr
+      3 ?? openspec/changes/revision-documentation-kodjo/lot6/finalisation/verification
+
+Résultat : rejeu=0 conservation=0 redaction=0 liens=0 tokens=0 fichiers=0 openspec=0

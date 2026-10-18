@@ -1,0 +1,501 @@
+{
+ "description": "Intégration de la spécification v3.0 — V3-07-dsf-docs.txt",
+ "corrections": [
+  {
+   "id": "V3-F-001",
+   "file": "DSF-CIRCUITS-CONTROLES-2026-10-12.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-01 à PR-04, CV-01, CO-01, CH-04, AC-22",
+   "ancien": "**Actualisation13/10 :** [DSF Deux modes et cible À l’échec](DSF-DEUX-MODES-ECHEC-2026-10-13.md) remplace les références à trois modes et complète les roulettes, cibles et totaux. Les dispositions non concernées restent applicables.",
+   "nouveau": "**Actualisation13/10 :** [DSF Deux modes et cible À l’échec](DSF-DEUX-MODES-ECHEC-2026-10-13.md) remplace les références à trois modes et complète les roulettes, cibles et totaux. Les dispositions non concernées restent applicables.\r\n\r\n**Mise à jour du 18/10/2026 — spécification v3.0 :**\r\n- Remplacé pour la présentation : dans « Modalités d’exécution et tableau variable », la ligne Séries (régime par popover, chevron de repli indépendant, nombre à droite) et les popovers de mode et de côtés (D-413, D-410, D-406 : lignes Nombre de séries, Type de série, Mode et Changement de côté en contrôles segmentés) ; le pied commun de réglage, son libellé actif et son groupe ± (D-413 : pas de boutons +/− de tableau) ; la position du numéro de série, rapproché de la poignée (D-413) ; la direction affichée près du nom dans la grille Volumes (D-407). La ligne de série reçoit une colonne Charge lorsque la charge est Avec (D-404). Bornes, paliers, déplacement, retrait et grille Volumes restent régis par leurs règles.\r\n- Comportements : règles RM-235 à RM-250 du chapitre 10, [Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026) (décisions D-403 à D-413 du [registre](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#parametres-execution-20261018)) ; ce DSF n’en reprend pas l’énoncé. Les valeurs des captures restent illustratives.\r\n- Présentation nouvelle de la feuille des paramètres (D-413 ; spécification v3.0, GR-01 et PR-01 à PR-04 ; référence 402 × 874) : quatre cadres successifs espacés de 8 px, dans l’ordre de D-413 ; contrôles segmentés alignés à droite, titres à gauche, sans enveloppe blanche ; tableaux à fond blanc sans contour, lignes de 36 px, sans boutons +/− de tableau ; Cadence en 12 px ; labels Regular, plus petits que les valeurs ; options inactives en texte gris Regular sur le fond des champs variables ; option sélectionnée selon le traitement violet existant ; saisie de la charge au clavier décimal, tableau visible au-dessus du clavier avec une marge de 12 px (D-405) ; chevrons à l’intérieur des options Variables (Type de série) et Avec (Changement de côté) (D-410) ; Durée de l’exercice avec son chevron à 12 px du libellé (D-409).\r\n- Tokens : les valeurs correspondantes sont à relever dans Figma avant publication ; aucun nouveau token n’est défini ici.",
+   "commentaire": "V3-07 — DSF et documents de docs/ hors chapitres : propagation de la spécification v3.0 (D-403 à D-413, RM-235 à RM-250). / Méthode : bloc daté « Mise à jour du 18/10/2026 — spécification v3.0 » en tête de chaque DSF concerné, puis marquage en tête des prescriptions contredites, sans suppression du texte (traçabilité). / Aucun fichier de docs/ n’est touché par les correctifs PR #370 / #371 : aucun conflit. / Non modifiés : DSF-CARTES-DUREE-2026-10-07.md (aucune prescription contredite) ; SOURCE-SAISIE-PARAMETRES-MODALE-2026-10-01.md et SOURCE-SERIES-VARIABLES-2026-10-02.md (sources historiques).",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-F-002",
+   "file": "DSF-CIRCUITS-CONTROLES-2026-10-12.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, CV-01, PR-01",
+   "ancien": "La ligne Séries regroupe le libellé, le régime identiques/variables, le chevron de repli indépendant en variable, puis le nombre à droite. Le régime ouvre son popover ; identiques n’a pas de chevron. Les modes d’exécution et choix de côtés reprennent les popovers exportés ; ne pas réintroduire les anciens segmentés dans ces emplacements.",
+   "nouveau": "[remplacé par D-413 et D-410 le 18/10/2026] La ligne Séries regroupe le libellé, le régime identiques/variables, le chevron de repli indépendant en variable, puis le nombre à droite. Le régime ouvre son popover ; identiques n’a pas de chevron. Les modes d’exécution et choix de côtés reprennent les popovers exportés ; ne pas réintroduire les anciens segmentés dans ces emplacements.",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-F-003",
+   "file": "DSF-CIRCUITS-CONTROLES-2026-10-12.md",
+   "motif": "CORRECTION-DECIDEE:D-404",
+   "ref": "CH-04, PR-02",
+   "ancien": "| Ligne à deux colonnes | `8129:31593`, 334 × 36 | Poignée, numéro, cible, Pause, retrait ; pas deux steppers permanents |",
+   "nouveau": "| [complété par D-404 le 18/10/2026 : colonne Charge lorsque la charge est Avec, RM-238] Ligne à deux colonnes | `8129:31593`, 334 × 36 | Poignée, numéro, cible, Pause, retrait ; pas deux steppers permanents |",
+   "decision": "D-404"
+  },
+  {
+   "id": "V3-F-004",
+   "file": "DSF-CIRCUITS-CONTROLES-2026-10-12.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "PR-02",
+   "ancien": "| Numéro | x24/y10, 24 × 17, texte 14 | Position de la série |",
+   "nouveau": "| [remplacé par D-413 le 18/10/2026 : numéro rapproché de la poignée, mesure à relever dans Figma] Numéro | x24/y10, 24 × 17, texte 14 | Position de la série |",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-F-005",
+   "file": "DSF-CIRCUITS-CONTROLES-2026-10-12.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-02",
+   "ancien": "| Pied commun de réglage | `8129:31601`, 354 × 48 | Nom de la cellule active à gauche, ± à droite ; agir uniquement sur cette cellule. Sans cellule active, le pied reste affiché et ses ± sont indisponibles (décision PRE-4 Q26 du 16/10, D-385). Sur une cellule active dont la cible est à renseigner, + donne la valeur minimale (5 s ou 1) et − est indisponible (Q26) |",
+   "nouveau": "| [remplacé par D-413 le 18/10/2026] Pied commun de réglage | `8129:31601`, 354 × 48 | Nom de la cellule active à gauche, ± à droite ; agir uniquement sur cette cellule. Sans cellule active, le pied reste affiché et ses ± sont indisponibles (décision PRE-4 Q26 du 16/10, D-385). Sur une cellule active dont la cible est à renseigner, + donne la valeur minimale (5 s ou 1) et − est indisponible (Q26) |",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-F-006",
+   "file": "DSF-CIRCUITS-CONTROLES-2026-10-12.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-02",
+   "ancien": "| Libellé actif du pied | x12/y17, texte 12 | Exemple « Série 1 · Durée » ; annoncer série et champ |",
+   "nouveau": "| [remplacé par D-413 le 18/10/2026] Libellé actif du pied | x12/y17, texte 12 | Exemple « Série 1 · Durée » ; annoncer série et champ |",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-F-007",
+   "file": "DSF-CIRCUITS-CONTROLES-2026-10-12.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-02",
+   "ancien": "| Groupe ± du pied | x254/y6, 88 × 36 | Conserver paliers et bornes du champ, définis par la spécification |",
+   "nouveau": "| [remplacé par D-413 le 18/10/2026] Groupe ± du pied | x254/y6, 88 × 36 | Conserver paliers et bornes du champ, définis par la spécification |",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-F-008",
+   "file": "DSF-CIRCUITS-CONTROLES-2026-10-12.md",
+   "motif": "CORRECTION-DECIDEE:D-407",
+   "ref": "CO-01, AC-23",
+   "ancien": "La hauteur suit le contenu disponible ; ne pas coder 190 comme plafond. Colonnes Exercice, S1…Smax, Unité ; première et dernière fixes lorsque les colonnes de séries défilent horizontalement. Défilement vertical de la liste. Répétitions : nombre + rép. en dernière colonne ; Durée : min:ss ; À l’échec : ✓ dans chaque cellule existante, « À l’échec » en dernière colonne. Série absente : tiret. Cible bilatérale par côté, direction près du nom. Ni pauses ni récupérations dans cette grille.",
+   "nouveau": "La hauteur suit le contenu disponible ; ne pas coder 190 comme plafond. Colonnes Exercice, S1…Smax, Unité ; première et dernière fixes lorsque les colonnes de séries défilent horizontalement. Défilement vertical de la liste. Répétitions : nombre + rép. en dernière colonne ; Durée : min:ss ; À l’échec : ✓ dans chaque cellule existante, « À l’échec » en dernière colonne. Série absente : tiret. Cible bilatérale par côté, [remplacé par D-407 le 18/10/2026 : sans direction, RM-243] direction près du nom. Ni pauses ni récupérations dans cette grille.",
+   "decision": "D-407"
+  },
+  {
+   "id": "V3-F-009",
+   "file": "DSF-CIRCUITS-CONTROLES-2026-10-12.md",
+   "motif": "CORRECTION-DECIDEE:D-407",
+   "ref": "CO-01, AC-23",
+   "ancien": "Écarts conservés dans les exports : cellule S3 vide pour Extension du genou dans la vue tours ; directions absentes des lignes de grille. Les exemples ne couvrent pas ✓, grand N, défilements, colonnes gelées ni texte agrandi. Ces comportements ne sont pas abandonnés : ils restent prescrits par CE-CIR-03, sans prétendre qu’une capture statique les démontre.",
+   "nouveau": "Écarts conservés dans les exports : cellule S3 vide pour Extension du genou dans la vue tours ; [sans objet depuis D-407 le 18/10/2026 : aucune direction à afficher] directions absentes des lignes de grille. Les exemples ne couvrent pas ✓, grand N, défilements, colonnes gelées ni texte agrandi. Ces comportements ne sont pas abandonnés : ils restent prescrits par CE-CIR-03, sans prétendre qu’une capture statique les démontre.",
+   "decision": "D-407"
+  },
+  {
+   "id": "V3-F-010",
+   "file": "DSF-DEUX-MODES-ECHEC-2026-10-13.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-01 à PR-04, AR-01, RO-01, CH-04, AC-24",
+   "ancien": "Référence courante pour les composants ci-dessous, en complément du [DSF Circuits](DSF-CIRCUITS-CONTROLES-2026-10-12.md). Source : prompt transmis et inspection directe des deux pages Figma et du set `5544:5146`. Les dates des fichiers désignent le lot source. Les règles métier sont dans la [spécification](Specifications-fonctionnelles/09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#cibles-typees), les interactions dans CE-UI-10 ; Figma détermine le layout.",
+   "nouveau": "Référence courante pour les composants ci-dessous, en complément du [DSF Circuits](DSF-CIRCUITS-CONTROLES-2026-10-12.md). Source : prompt transmis et inspection directe des deux pages Figma et du set `5544:5146`. Les dates des fichiers désignent le lot source. Les règles métier sont dans la [spécification](Specifications-fonctionnelles/09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#cibles-typees), les interactions dans CE-UI-10 ; Figma détermine le layout.\r\n\r\n**Mise à jour du 18/10/2026 — spécification v3.0 :**\r\n- Remplacé pour la présentation : « Popover de mode » (D-413 : ligne Mode en contrôle segmenté ; la condition d’arrêt a sa propre ligne, D-411) ; dans « Roulette de cible », l’option « Aucune durée, à l’échec » pour la durée commune des séries identiques (D-412 : roulette numérique seule ; option conservée pour une cellule de série variable en mode Durée). Le tableau variable est complété par la colonne Charge (D-404) et le cas mixte par le résultat non modifiable « À la cible et à l’échec » (D-411). La roulette Répétitions n’est pas visée par D-412. Géométrie, opacités, bornes et règle 00:00 de la variante avec échec sont inchangées.\r\n- Comportements : règles RM-235 à RM-250 du chapitre 10, [Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026) (décisions D-403 à D-413 du [registre](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#parametres-execution-20261018)) ; ce DSF n’en reprend pas l’énoncé. Les valeurs des captures restent illustratives.\r\n- Présentation nouvelle de la feuille des paramètres (D-413 ; spécification v3.0, GR-01 et PR-01 à PR-04 ; référence 402 × 874) : quatre cadres successifs espacés de 8 px, dans l’ordre de D-413 ; contrôles segmentés alignés à droite, titres à gauche, sans enveloppe blanche ; tableaux à fond blanc sans contour, lignes de 36 px, sans boutons +/− de tableau ; Cadence en 12 px ; labels Regular, plus petits que les valeurs ; options inactives en texte gris Regular sur le fond des champs variables ; option sélectionnée selon le traitement violet existant ; saisie de la charge au clavier décimal, tableau visible au-dessus du clavier avec une marge de 12 px (D-405) ; chevrons à l’intérieur des options Variables (Type de série) et Avec (Changement de côté) (D-410) ; Durée de l’exercice avec son chevron à 12 px du libellé (D-409).\r\n- Tokens : les valeurs correspondantes sont à relever dans Figma avant publication ; aucun nouveau token n’est défini ici.",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-F-011",
+   "file": "DSF-DEUX-MODES-ECHEC-2026-10-13.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-01, AR-01",
+   "ancien": "Deux options, Durée et Répétitions ; À l’échec quitte le choix de mode et devient une cible. Référence locale184×99, hauteur automatique (anciennement136). Même traitement en séries identiques/variables. Conserver shell, ancrage, voile et comportement de brouillon existants.",
+   "nouveau": "[présentation remplacée par D-413 le 18/10/2026 : ligne Mode en contrôle segmenté ; condition d’arrêt sur sa ligne propre, D-411] Deux options, Durée et Répétitions ; À l’échec quitte le choix de mode et devient une cible. Référence locale184×99, hauteur automatique (anciennement136). Même traitement en séries identiques/variables. Conserver shell, ancrage, voile et comportement de brouillon existants.",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-F-012",
+   "file": "DSF-DEUX-MODES-ECHEC-2026-10-13.md",
+   "motif": "CORRECTION-DECIDEE:D-412",
+   "ref": "RO-01, AC-24, AC-25",
+   "ancien": "Le set `DSF / Forms / Roulette` contient désormais cinq variantes. Les quatre numériques restent présentes : Secondes `5544:5101`, Minutes secondes `5544:5118`, Fin de séance `5826:4290`, Secondes avec unité `7130:13496`. La cinquième, `État=Minutes secondes avec échec`, est `8452:13297`.",
+   "nouveau": "[portée restreinte par D-412 le 18/10/2026 : en mode Durée, variante réservée à une cellule de série variable, RM-250] Le set `DSF / Forms / Roulette` contient désormais cinq variantes. Les quatre numériques restent présentes : Secondes `5544:5101`, Minutes secondes `5544:5118`, Fin de séance `5826:4290`, Secondes avec unité `7130:13496`. La cinquième, `État=Minutes secondes avec échec`, est `8452:13297`.",
+   "decision": "D-412"
+  },
+  {
+   "id": "V3-F-013",
+   "file": "DSF-DEUX-MODES-ECHEC-2026-10-13.md",
+   "motif": "CORRECTION-DECIDEE:D-412",
+   "ref": "RO-01, AC-24",
+   "ancien": "Libellé : **Aucune durée, à l’échec** / **Aucune répétition, à l’échec**, selon le mode. Option en tête ; pas de coche. Le contrôle ouvre la cible courante ; validation par ✓ de la feuille, annulation par ✕. La sélection numérique et l’échec s’excluent mutuellement.",
+   "nouveau": "[remplacé par D-412 le 18/10/2026 pour la durée commune des séries identiques : option absente ; conservée pour une cellule de série variable en mode Durée, RM-250] Libellé : **Aucune durée, à l’échec** / **Aucune répétition, à l’échec**, selon le mode. Option en tête ; pas de coche. Le contrôle ouvre la cible courante ; validation par ✓ de la feuille, annulation par ✕. La sélection numérique et l’échec s’excluent mutuellement.",
+   "decision": "D-412"
+  },
+  {
+   "id": "V3-F-014",
+   "file": "DSF-DEUX-MODES-ECHEC-2026-10-13.md",
+   "motif": "CORRECTION-DECIDEE:D-404",
+   "ref": "CH-04, PR-02",
+   "ancien": "Maître de ligne `8129:31593`, deux colonnes cible/Pause, même lorsque toutes les cibles sont À l’échec. La colonne de valeur avait disparu par anomalie d’instance ; il n’existe pas de variante métier à une colonne. En mode Durée, l’en-tête reste Durée ; les cellules peuvent afficher « à l’échec ».",
+   "nouveau": "[complété par D-404 le 18/10/2026 : colonne Charge lorsque la charge est Avec, RM-238] Maître de ligne `8129:31593`, deux colonnes cible/Pause, même lorsque toutes les cibles sont À l’échec. La colonne de valeur avait disparu par anomalie d’instance ; il n’existe pas de variante métier à une colonne. En mode Durée, l’en-tête reste Durée ; les cellules peuvent afficher « à l’échec ».",
+   "decision": "D-404"
+  },
+  {
+   "id": "V3-F-015",
+   "file": "DSF-DEUX-MODES-ECHEC-2026-10-13.md",
+   "motif": "CORRECTION-DECIDEE:D-411",
+   "ref": "AR-01, AC-21",
+   "ancien": "Le cas mixte `8470:13303` illustre30s/45s/échec, pauses10s/20s/30s, ≥2min15 en lecture seule. Les chiffres restent des données de démonstration ; le moteur détermine les montants. Tout échec : total absent. La règle d’interdiction du calcul inverse n’ajoute aucun nouveau composant : variable était déjà en lecture seule, identiques tout échec omet le total.",
+   "nouveau": "[complété par D-411 le 18/10/2026 : Condition d’arrêt présentée en résultat unique non modifiable « À la cible et à l’échec », RM-249] Le cas mixte `8470:13303` illustre30s/45s/échec, pauses10s/20s/30s, ≥2min15 en lecture seule. Les chiffres restent des données de démonstration ; le moteur détermine les montants. Tout échec : total absent. La règle d’interdiction du calcul inverse n’ajoute aucun nouveau composant : variable était déjà en lecture seule, identiques tout échec omet le total.",
+   "decision": "D-411"
+  },
+  {
+   "id": "V3-F-016",
+   "file": "DSF-SERIES-VARIABLES-2026-10-02.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-01 à PR-04, CV-01, CO-01, DU-01",
+   "ancien": "**État courant06/10 :** [DSF Cadence et corrections](DSF-CADENCE-2026-10-06.md), [matrice courante](MATRICE-CADENCE-FIGMA-2026-10-06.md). Les mesures/captures datées ci-dessous restent historiques lorsqu’elles sont remplacées ; règles cartes média conservées. Cadence commune REPS et phrase unique selon paramètres v13, Phrase v1.",
+   "nouveau": "**État courant06/10 :** [DSF Cadence et corrections](DSF-CADENCE-2026-10-06.md), [matrice courante](MATRICE-CADENCE-FIGMA-2026-10-06.md). Les mesures/captures datées ci-dessous restent historiques lorsqu’elles sont remplacées ; règles cartes média conservées. Cadence commune REPS et phrase unique selon paramètres v13, Phrase v1.\r\n\r\n**Mise à jour du 18/10/2026 — spécification v3.0 :**\r\n- Remplacé pour la présentation : les lignes Carte empilée (carte unique, contour blanc, libellés 14 px : quatre cadres de D-413), Valeur lecture seule (libellé visible Durée de l’exercice, D-409) et Segmenté en feuille (D-413), ainsi que la section « Tableau variable et Ordre des côtés — références remplacées le 12/10 » (régime par popover, chevron indépendant, pied commun de réglage, popovers de côtés : D-413, D-410, D-406). Feuille, voile, en-tête, roulette et message temporaire sont inchangés.\r\n- Comportements : règles RM-235 à RM-250 du chapitre 10, [Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026) (décisions D-403 à D-413 du [registre](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#parametres-execution-20261018)) ; ce DSF n’en reprend pas l’énoncé. Les valeurs des captures restent illustratives.\r\n- Présentation nouvelle de la feuille des paramètres (D-413 ; spécification v3.0, GR-01 et PR-01 à PR-04 ; référence 402 × 874) : quatre cadres successifs espacés de 8 px, dans l’ordre de D-413 ; contrôles segmentés alignés à droite, titres à gauche, sans enveloppe blanche ; tableaux à fond blanc sans contour, lignes de 36 px, sans boutons +/− de tableau ; Cadence en 12 px ; labels Regular, plus petits que les valeurs ; options inactives en texte gris Regular sur le fond des champs variables ; option sélectionnée selon le traitement violet existant ; saisie de la charge au clavier décimal, tableau visible au-dessus du clavier avec une marge de 12 px (D-405) ; chevrons à l’intérieur des options Variables (Type de série) et Avec (Changement de côté) (D-410) ; Durée de l’exercice avec son chevron à 12 px du libellé (D-409).\r\n- Tokens : les valeurs correspondantes sont à relever dans Figma avant publication ; aucun nouveau token n’est défini ici.",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-F-017",
+   "file": "DSF-SERIES-VARIABLES-2026-10-02.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-03",
+   "ancien": "| Carte empilée | Fond `surfaceSubtle` `#F9FAFC` (ancien `#FCFCFE`, historique avant la fusion du journal §5.3), contour blanc, lignes42 px à texte standard, séparateurs#DEDEE5 ; libellé14 px à gauche, valeur/contrôle à droite |",
+   "nouveau": "| [remplacé par D-413 le 18/10/2026] Carte empilée | Fond `surfaceSubtle` `#F9FAFC` (ancien `#FCFCFE`, historique avant la fusion du journal §5.3), contour blanc, lignes42 px à texte standard, séparateurs#DEDEE5 ; libellé14 px à gauche, valeur/contrôle à droite |",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-F-018",
+   "file": "DSF-SERIES-VARIABLES-2026-10-02.md",
+   "motif": "CORRECTION-DECIDEE:D-409",
+   "ref": "DU-01",
+   "ancien": "| Valeur lecture seule | Texte#141414,14 px, sans pastille/chevron/rôle bouton ; Durée totale ≈ en Répétitions avec bip ; absente sans bip et À l’échec |",
+   "nouveau": "| [libellé visible de la ligne : Durée de l’exercice, D-409 le 18/10/2026] Valeur lecture seule | Texte#141414,14 px, sans pastille/chevron/rôle bouton ; Durée totale ≈ en Répétitions avec bip ; absente sans bip et À l’échec |",
+   "decision": "D-409"
+  },
+  {
+   "id": "V3-F-019",
+   "file": "DSF-SERIES-VARIABLES-2026-10-02.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-03",
+   "ancien": "| Segmenté en feuille | Historique : remplacé par les popovers du DSF du 12/10 (D-377). Trois largeurs égales ; non sélectionné#FCFCFE, contour blanc ; Changement de côté13 px, centré sur deux lignes |",
+   "nouveau": "| [remplacé par D-413 le 18/10/2026 : contrôles segmentés sans enveloppe blanche ni contour] Segmenté en feuille | Historique : remplacé par les popovers du DSF du 12/10 (D-377). Trois largeurs égales ; non sélectionné#FCFCFE, contour blanc ; Changement de côté13 px, centré sur deux lignes |",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-F-020",
+   "file": "DSF-SERIES-VARIABLES-2026-10-02.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, CV-01, CO-01, PR-02",
+   "ancien": "Le régime se sélectionne par popover identiques/variables, avec chevron indépendant en variable. Le tableau utilise deux cellules et un pied de réglage commun, non deux steppers permanents par ligne. Les choix de côtés utilisent les popovers des captures actuelles. Les prescriptions, composants et mesures sont centralisés dans le [DSF du 12/10](DSF-CIRCUITS-CONTROLES-2026-10-12.md). Les mesures des anciennes frames 6665 restent consultables dans l’historique Git ; elles ne constituent plus la cible courante.",
+   "nouveau": "[remplacé par D-413, D-410 et D-406 le 18/10/2026] Le régime se sélectionne par popover identiques/variables, avec chevron indépendant en variable. Le tableau utilise deux cellules et un pied de réglage commun, non deux steppers permanents par ligne. Les choix de côtés utilisent les popovers des captures actuelles. Les prescriptions, composants et mesures sont centralisés dans le [DSF du 12/10](DSF-CIRCUITS-CONTROLES-2026-10-12.md). Les mesures des anciennes frames 6665 restent consultables dans l’historique Git ; elles ne constituent plus la cible courante.",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-F-021",
+   "file": "DSF-PARAMETRES-MODALE-2026-10-01.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-01 à PR-04",
+   "ancien": "**Remplacé pour les paramètres, les pauses et les côtés par la cible du 02/10/2026.** Aucun résultat de conformité ancien ne certifie cette nouvelle cible.",
+   "nouveau": "**Remplacé pour les paramètres, les pauses et les côtés par la cible du 02/10/2026.** Aucun résultat de conformité ancien ne certifie cette nouvelle cible.\r\n\r\n**Mise à jour du 18/10/2026 — spécification v3.0 :**\r\n- Remplacé pour la présentation : les présentations de la feuille des paramètres décrites par cette référence historique et par les DSF qui lui succèdent (D-413, avec D-406, D-408, D-409, D-410 et D-412 selon la ligne). Aucun contenu de l’original archivé n’est réactivé.\r\n- Comportements : règles RM-235 à RM-250 du chapitre 10, [Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026) (décisions D-403 à D-413 du [registre](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#parametres-execution-20261018)) ; ce DSF n’en reprend pas l’énoncé. Les valeurs des captures restent illustratives.\r\n- Présentation nouvelle de la feuille des paramètres (D-413 ; spécification v3.0, GR-01 et PR-01 à PR-04 ; référence 402 × 874) : quatre cadres successifs espacés de 8 px, dans l’ordre de D-413 ; contrôles segmentés alignés à droite, titres à gauche, sans enveloppe blanche ; tableaux à fond blanc sans contour, lignes de 36 px, sans boutons +/− de tableau ; Cadence en 12 px ; labels Regular, plus petits que les valeurs ; options inactives en texte gris Regular sur le fond des champs variables ; option sélectionnée selon le traitement violet existant ; saisie de la charge au clavier décimal, tableau visible au-dessus du clavier avec une marge de 12 px (D-405) ; chevrons à l’intérieur des options Variables (Type de série) et Avec (Changement de côté) (D-410) ; Durée de l’exercice avec son chevron à 12 px du libellé (D-409).\r\n- Tokens : les valeurs correspondantes sont à relever dans Figma avant publication ; aucun nouveau token n’est défini ici.",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-F-022",
+   "file": "DSF-BIP-CADENCE-2026-10-07.md",
+   "motif": "CORRECTION-DECIDEE:D-408",
+   "ref": "CA-01, DU-01, GR-01, PR-03, AC-15, AC-22",
+   "ancien": "**Actualisation du 12/10 :** [DSF Circuits et contrôles du 12/10](DSF-CIRCUITS-CONTROLES-2026-10-12.md) fait autorité sur les nouveaux contrôles de séries, la nature du circuit, les volumes et la lecture seule héritée. Les mesures datées ci-dessous ne décrivent pas les états remplacés. Les règles communes sans rapport avec ces éléments restent applicables.",
+   "nouveau": "**Actualisation du 12/10 :** [DSF Circuits et contrôles du 12/10](DSF-CIRCUITS-CONTROLES-2026-10-12.md) fait autorité sur les nouveaux contrôles de séries, la nature du circuit, les volumes et la lecture seule héritée. Les mesures datées ci-dessous ne décrivent pas les états remplacés. Les règles communes sans rapport avec ces éléments restent applicables.\r\n\r\n**Mise à jour du 18/10/2026 — spécification v3.0 :**\r\n- Remplacé pour la présentation : dans « Ligne Bip de cadence », le stepper 0..10 affiché Aucun comme présentation de la ligne (D-408 : ligne Cadence Autre | 5 s | 2 s | 1 s | Sans), sa position avant Durée totale ou avant Compte à rebours (D-409 et D-413 : groupe Cadence et durée), les indentations x36/x52, les séparateurs et le retrait de 42 px (D-413 : la feuille s’adapte au contenu visible). Le libellé visible Ordre des côtés devient Enchainement (D-413). Bornes 0..10 s et pas de 1 s inchangés ; le composant Stepper reste décrit pour les champs qui l’utilisent.\r\n- Comportements : règles RM-235 à RM-250 du chapitre 10, [Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026) (décisions D-403 à D-413 du [registre](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#parametres-execution-20261018)) ; ce DSF n’en reprend pas l’énoncé. Les valeurs des captures restent illustratives.\r\n- Présentation nouvelle de la feuille des paramètres (D-413 ; spécification v3.0, GR-01 et PR-01 à PR-04 ; référence 402 × 874) : quatre cadres successifs espacés de 8 px, dans l’ordre de D-413 ; contrôles segmentés alignés à droite, titres à gauche, sans enveloppe blanche ; tableaux à fond blanc sans contour, lignes de 36 px, sans boutons +/− de tableau ; Cadence en 12 px ; labels Regular, plus petits que les valeurs ; options inactives en texte gris Regular sur le fond des champs variables ; option sélectionnée selon le traitement violet existant ; saisie de la charge au clavier décimal, tableau visible au-dessus du clavier avec une marge de 12 px (D-405) ; chevrons à l’intérieur des options Variables (Type de série) et Avec (Changement de côté) (D-410) ; Durée de l’exercice avec son chevron à 12 px du libellé (D-409).\r\n- Tokens : les valeurs correspondantes sont à relever dans Figma avant publication ; aucun nouveau token n’est défini ici.",
+   "decision": "D-408"
+  },
+  {
+   "id": "V3-F-023",
+   "file": "DSF-BIP-CADENCE-2026-10-07.md",
+   "motif": "CORRECTION-DECIDEE:D-408",
+   "ref": "CA-01, DU-01, AC-15",
+   "ancien": "Stepper0..10,0 affiché Aucun, intervalle en secondes ; actif dans les deux modes. Premier niveau x36 à largeur402, séparateur330. Position immédiatement avant Durée totale ; lorsque total omis, avant Compte à rebours/Fin. La structure commune au tableau variable reste hors tableau. Supprimer l’ancienne indentation sous Répétitions et la roulette spécifique.",
+   "nouveau": "[remplacé par D-408, D-409 et D-413 le 18/10/2026] Stepper0..10,0 affiché Aucun, intervalle en secondes ; actif dans les deux modes. Premier niveau x36 à largeur402, séparateur330. Position immédiatement avant Durée totale ; lorsque total omis, avant Compte à rebours/Fin. La structure commune au tableau variable reste hors tableau. Supprimer l’ancienne indentation sous Répétitions et la roulette spécifique.",
+   "decision": "D-408"
+  },
+  {
+   "id": "V3-F-024",
+   "file": "DSF-BIP-CADENCE-2026-10-07.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-04, AC-22",
+   "ancien": "Séries variables/cible/Pause sous Séries et Ordre/PC sous Changement de côté conservent x52 et séparateurs314. La suppression de Durée totale retire42px par le haut, feuille ancrée en bas ; corps défilant si taille de police/espace utile l’exige. En-tête ✕/titre/✓ et marges du shell conservés. Aucun nouveau contrôle d’exécution requis.",
+   "nouveau": "[remplacé par D-413 le 18/10/2026] Séries variables/cible/Pause sous Séries et Ordre/PC sous Changement de côté conservent x52 et séparateurs314. La suppression de Durée totale retire42px par le haut, feuille ancrée en bas ; corps défilant si taille de police/espace utile l’exige. En-tête ✕/titre/✓ et marges du shell conservés. Aucun nouveau contrôle d’exécution requis.",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-F-025",
+   "file": "DSF-CADENCE-2026-10-06.md",
+   "motif": "CORRECTION-DECIDEE:D-408",
+   "ref": "CA-01, DU-01, GR-01, PR-03, CO-01",
+   "ancien": "**Actualisation13/10 :** [DSF Deux modes et cible À l’échec](DSF-DEUX-MODES-ECHEC-2026-10-13.md) remplace les références à trois modes et complète les roulettes, cibles et totaux. Les dispositions non concernées restent applicables.",
+   "nouveau": "**Actualisation13/10 :** [DSF Deux modes et cible À l’échec](DSF-DEUX-MODES-ECHEC-2026-10-13.md) remplace les références à trois modes et complète les roulettes, cibles et totaux. Les dispositions non concernées restent applicables.\r\n\r\n**Mise à jour du 18/10/2026 — spécification v3.0 :**\r\n- Remplacé pour la présentation : au §4, le paragraphe Bip de cadence (stepper, position avant le total, retrait de 42 px : D-408, D-409, D-413) ; au §2, le remplissage blanc 50 % du contrôle segmenté pour la seule feuille des paramètres (D-413 : sans enveloppe blanche) ; au §7, les variantes Droite → Gauche / Gauche → Droite de l’indicateur de côté (D-407 : indicateur sans direction). Le reste du document (inventaire, tokens, typographie, assets) est inchangé.\r\n- Comportements : règles RM-235 à RM-250 du chapitre 10, [Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026) (décisions D-403 à D-413 du [registre](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#parametres-execution-20261018)) ; ce DSF n’en reprend pas l’énoncé. Les valeurs des captures restent illustratives.\r\n- Présentation nouvelle de la feuille des paramètres (D-413 ; spécification v3.0, GR-01 et PR-01 à PR-04 ; référence 402 × 874) : quatre cadres successifs espacés de 8 px, dans l’ordre de D-413 ; contrôles segmentés alignés à droite, titres à gauche, sans enveloppe blanche ; tableaux à fond blanc sans contour, lignes de 36 px, sans boutons +/− de tableau ; Cadence en 12 px ; labels Regular, plus petits que les valeurs ; options inactives en texte gris Regular sur le fond des champs variables ; option sélectionnée selon le traitement violet existant ; saisie de la charge au clavier décimal, tableau visible au-dessus du clavier avec une marge de 12 px (D-405) ; chevrons à l’intérieur des options Variables (Type de série) et Avec (Changement de côté) (D-410) ; Durée de l’exercice avec son chevron à 12 px du libellé (D-409).\r\n- Tokens : les valeurs correspondantes sont à relever dans Figma avant publication ; aucun nouveau token n’est défini ici.",
+   "decision": "D-408"
+  },
+  {
+   "id": "V3-F-026",
+   "file": "DSF-CADENCE-2026-10-06.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-03",
+   "ancien": "| Contrôle segmenté | Blanc, remplissage 50 % | Surface du contrôle |",
+   "nouveau": "| [remplacé par D-413 le 18/10/2026 dans la feuille des paramètres : sans enveloppe blanche ; inchangé ailleurs] Contrôle segmenté | Blanc, remplissage 50 % | Surface du contrôle |",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-F-027",
+   "file": "DSF-CADENCE-2026-10-06.md",
+   "motif": "CORRECTION-DECIDEE:D-408",
+   "ref": "CA-01, DU-01, GR-01",
+   "ancien": "Bip de cadence : ligne commune aux trois modes,0..10s et0=Aucun, stepper au premier niveau x36, séparateur330 ; juste avant le total ou avant Compte à rebours lorsque total omis. Aucun éditeur par Série. Retrait du total : feuille raccourcie42px par le haut, bas ancré. Voir DSF Bip du07/10.",
+   "nouveau": "[remplacé par D-408, D-409 et D-413 le 18/10/2026] Bip de cadence : ligne commune aux trois modes,0..10s et0=Aucun, stepper au premier niveau x36, séparateur330 ; juste avant le total ou avant Compte à rebours lorsque total omis. Aucun éditeur par Série. Retrait du total : feuille raccourcie42px par le haut, bas ancré. Voir DSF Bip du07/10.",
+   "decision": "D-408"
+  },
+  {
+   "id": "V3-F-028",
+   "file": "DSF-CADENCE-2026-10-06.md",
+   "motif": "CORRECTION-DECIDEE:D-407",
+   "ref": "CO-01, AC-23",
+   "ancien": "| Indicator / Sides — Source exact | DSF / Status & Tags / Indicateur de côté | `5544:6944` | Droite → Gauche / Gauche → Droite |",
+   "nouveau": "| [remplacé par D-407 le 18/10/2026 : indicateur de changement de côté sans direction, variante à relever dans Figma] Indicator / Sides — Source exact | DSF / Status & Tags / Indicateur de côté | `5544:6944` | Droite → Gauche / Gauche → Droite |",
+   "decision": "D-407"
+  },
+  {
+   "id": "V3-F-029",
+   "file": "DSF-SEGMENTES-TITRES-2026-10-07.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-01, PR-03, CO-01",
+   "ancien": "[Source reçue](archives/complements-2026-10-07/demande-source.md) · [Traçabilité](MATRICE-COMPLEMENTS-2026-10-07.md) · décisions D-324 à D-326. Complément au DSF Cadence ; aucune refonte de shell.",
+   "nouveau": "[Source reçue](archives/complements-2026-10-07/demande-source.md) · [Traçabilité](MATRICE-COMPLEMENTS-2026-10-07.md) · décisions D-324 à D-326. Complément au DSF Cadence ; aucune refonte de shell.\r\n\r\n**Mise à jour du 18/10/2026 — spécification v3.0 :**\r\n- Remplacé pour la présentation : au §3, pour les contrôles de la feuille des paramètres, la typographie des libellés de segmentés (D-413 : options inactives en texte gris Regular) et les exceptions Changement de côté (options Avec / Sans, D-406) et Ordre des côtés (libellé visible Enchainement, notation à flèches de Figma, D-413) ; la description des cadres de paramètres existants (rayon 12, fond opaque, contour), remplacée par les quatre cadres de D-413. Le standard Catalogue Exercices / Séances, ses variantes et les titres d’écran sont inchangés.\r\n- Comportements : règles RM-235 à RM-250 du chapitre 10, [Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026) (décisions D-403 à D-413 du [registre](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#parametres-execution-20261018)) ; ce DSF n’en reprend pas l’énoncé. Les valeurs des captures restent illustratives.\r\n- Présentation nouvelle de la feuille des paramètres (D-413 ; spécification v3.0, GR-01 et PR-01 à PR-04 ; référence 402 × 874) : quatre cadres successifs espacés de 8 px, dans l’ordre de D-413 ; contrôles segmentés alignés à droite, titres à gauche, sans enveloppe blanche ; tableaux à fond blanc sans contour, lignes de 36 px, sans boutons +/− de tableau ; Cadence en 12 px ; labels Regular, plus petits que les valeurs ; options inactives en texte gris Regular sur le fond des champs variables ; option sélectionnée selon le traitement violet existant ; saisie de la charge au clavier décimal, tableau visible au-dessus du clavier avec une marge de 12 px (D-405) ; chevrons à l’intérieur des options Variables (Type de série) et Avec (Changement de côté) (D-410) ; Durée de l’exercice avec son chevron à 12 px du libellé (D-409).\r\n- Tokens : les valeurs correspondantes sont à relever dans Figma avant publication ; aucun nouveau token n’est défini ici.",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-F-030",
+   "file": "DSF-SEGMENTES-TITRES-2026-10-07.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "PR-03",
+   "ancien": "Libellés : style **KODJO / Section title**, Inter Semi Bold16, interligne20. Cela couvre Catalogue, Calendrier Jour/Semaine/Mois, Suivi, Mode, Mode d’exécution et Statut des séances. La prescription vise les libellés de segmenté, pas toutes les valeurs et lignes de paramètres.",
+   "nouveau": "[remplacé par D-413 le 18/10/2026 pour les contrôles de la feuille des paramètres : options inactives en gris Regular, tailles à relever dans Figma] Libellés : style **KODJO / Section title**, Inter Semi Bold16, interligne20. Cela couvre Catalogue, Calendrier Jour/Semaine/Mois, Suivi, Mode, Mode d’exécution et Statut des séances. La prescription vise les libellés de segmenté, pas toutes les valeurs et lignes de paramètres.",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-F-031",
+   "file": "DSF-SEGMENTES-TITRES-2026-10-07.md",
+   "motif": "CORRECTION-DECIDEE:D-406",
+   "ref": "CO-01, PR-01",
+   "ancien": "| Changement de côté |13px, libellés sur deux lignes |",
+   "nouveau": "| [remplacé par D-406 le 18/10/2026 : options Avec / Sans] Changement de côté |13px, libellés sur deux lignes |",
+   "decision": "D-406"
+  },
+  {
+   "id": "V3-F-032",
+   "file": "DSF-SEGMENTES-TITRES-2026-10-07.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "PR-01, PR-05",
+   "ancien": "| Ordre des côtés | Titre14px ; sous-titre11px |",
+   "nouveau": "| [libellé visible : Enchainement, D-413 le 18/10/2026 ; notation à flèches de Figma, RM-243] Ordre des côtés | Titre14px ; sous-titre11px |",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-F-033",
+   "file": "DSF-SEGMENTES-TITRES-2026-10-07.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-03",
+   "ancien": "Conserver leurs géométries de feuille et leur contenu. Le document reçu décrit le cadre standard ; l’inspection distingue les cadres de paramètres existants (rayon12, fond opaque, contour) du standard Catalogue (rayon14, blanc50%, sans contour). Aucun élargissement de la modification à ces cadres n’est déduit de l’harmonisation typographique.",
+   "nouveau": "Conserver leurs géométries de feuille et leur contenu. Le document reçu décrit le cadre standard ; l’inspection distingue les cadres de paramètres existants [remplacé par D-413 le 18/10/2026 : quatre cadres gris, sans contour] (rayon12, fond opaque, contour) du standard Catalogue (rayon14, blanc50%, sans contour). Aucun élargissement de la modification à ces cadres n’est déduit de l’harmonisation typographique.",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-F-034",
+   "file": "DSF-INTERFACE-GENERALE-2026-10-08.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-03, AC-22",
+   "ancien": "**Actualisation du 12/10 :** [DSF Circuits et contrôles du 12/10](DSF-CIRCUITS-CONTROLES-2026-10-12.md) fait autorité sur les nouveaux contrôles de séries, la nature du circuit, les volumes et la lecture seule héritée. Les mesures datées ci-dessous ne décrivent pas les états remplacés. Les règles communes sans rapport avec ces éléments restent applicables.",
+   "nouveau": "**Actualisation du 12/10 :** [DSF Circuits et contrôles du 12/10](DSF-CIRCUITS-CONTROLES-2026-10-12.md) fait autorité sur les nouveaux contrôles de séries, la nature du circuit, les volumes et la lecture seule héritée. Les mesures datées ci-dessous ne décrivent pas les états remplacés. Les règles communes sans rapport avec ces éléments restent applicables.\r\n\r\n**Mise à jour du 18/10/2026 — spécification v3.0 :**\r\n- Remplacé pour la présentation : au §0.1, la relation bloc → bloc de 12 px, et au §0.4, le fond #F9FAFC des blocs de section, pour les seuls quatre cadres de la feuille des paramètres (D-413 : 8 px entre cadres ; fond gris légèrement teinté, plus soutenu, à relever dans Figma). Les autres règles de portée fichier sont inchangées.\r\n- Comportements : règles RM-235 à RM-250 du chapitre 10, [Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026) (décisions D-403 à D-413 du [registre](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#parametres-execution-20261018)) ; ce DSF n’en reprend pas l’énoncé. Les valeurs des captures restent illustratives.\r\n- Présentation nouvelle de la feuille des paramètres (D-413 ; spécification v3.0, GR-01 et PR-01 à PR-04 ; référence 402 × 874) : quatre cadres successifs espacés de 8 px, dans l’ordre de D-413 ; contrôles segmentés alignés à droite, titres à gauche, sans enveloppe blanche ; tableaux à fond blanc sans contour, lignes de 36 px, sans boutons +/− de tableau ; Cadence en 12 px ; labels Regular, plus petits que les valeurs ; options inactives en texte gris Regular sur le fond des champs variables ; option sélectionnée selon le traitement violet existant ; saisie de la charge au clavier décimal, tableau visible au-dessus du clavier avec une marge de 12 px (D-405) ; chevrons à l’intérieur des options Variables (Type de série) et Avec (Changement de côté) (D-410) ; Durée de l’exercice avec son chevron à 12 px du libellé (D-409).\r\n- Tokens : les valeurs correspondantes sont à relever dans Figma avant publication ; aucun nouveau token n’est défini ici.",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-F-035",
+   "file": "DSF-INTERFACE-GENERALE-2026-10-08.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, AC-22",
+   "ancien": "| bloc → bloc, sans titre entre eux | **12 px** |",
+   "nouveau": "| [exception D-413 le 18/10/2026 : 8 px entre les quatre cadres de la feuille des paramètres] bloc → bloc, sans titre entre eux | **12 px** |",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-F-036",
+   "file": "DSF-INTERFACE-GENERALE-2026-10-08.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-03",
+   "ancien": "Spécification unique, valable partout où un groupe de lignes est encadré — Profil, planification, et tout écran futur :",
+   "nouveau": "[exception D-413 le 18/10/2026 : les quatre cadres de la feuille des paramètres ont leur propre fond gris, à relever dans Figma] Spécification unique, valable partout où un groupe de lignes est encadré — Profil, planification, et tout écran futur :",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-F-037",
+   "file": "DSF-CARTES-ICONES-APPUIS-2026-09-30.md",
+   "motif": "CORRECTION-DECIDEE:D-407",
+   "ref": "CO-01, AC-23",
+   "ancien": "**État courant06/10 :** [DSF Cadence et corrections](DSF-CADENCE-2026-10-06.md), [matrice courante](MATRICE-CADENCE-FIGMA-2026-10-06.md). Les mesures/captures datées ci-dessous restent historiques lorsqu’elles sont remplacées ; règles cartes média conservées. Cadence commune REPS et phrase unique selon paramètres v13, Phrase v1.",
+   "nouveau": "**État courant06/10 :** [DSF Cadence et corrections](DSF-CADENCE-2026-10-06.md), [matrice courante](MATRICE-CADENCE-FIGMA-2026-10-06.md). Les mesures/captures datées ci-dessous restent historiques lorsqu’elles sont remplacées ; règles cartes média conservées. Cadence commune REPS et phrase unique selon paramètres v13, Phrase v1.\r\n\r\n**Mise à jour du 18/10/2026 — spécification v3.0 :**\r\n- Remplacé pour la présentation : dans la description du booléen Bilatéral, la mention du paramètre métier de direction et de `Indicator / Sides` (`D→G/G→D`) (D-406, D-407). Le booléen Bilatéral et l’icône miroir sont inchangés.\r\n- Comportements : règles RM-242 à RM-244 du chapitre 10, [Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026) ; ce DSF n’en reprend pas l’énoncé.\r\n- Présentation nouvelle : l’indicateur d’un Exercice bilatéral signale le changement de côté sans direction, rendu selon Figma. La feuille des paramètres n’est pas décrite ici : voir l’en-tête du [DSF Circuits](DSF-CIRCUITS-CONTROLES-2026-10-12.md).\r\n- Tokens : les valeurs correspondantes sont à relever dans Figma avant publication ; aucun nouveau token n’est défini ici.",
+   "decision": "D-407"
+  },
+  {
+   "id": "V3-F-038",
+   "file": "DSF-CARTES-ICONES-APPUIS-2026-09-30.md",
+   "motif": "CORRECTION-DECIDEE:D-407",
+   "ref": "CO-01, AC-23",
+   "ancien": "Le booléen Figma `Bilatéral` est faux par défaut. Il est présent sur les variantes Catalogue et choix de l’exercice, absent en Semaine et Suivi. Il ne remplace ni le paramètre métier de direction ni `Indicator / Sides` (`D→G/G→D`). Il représente la bilatéralité à la place du texte « de chaque côté » sur les variantes concernées ; les données et les calculs ne changent pas.",
+   "nouveau": "Le booléen Figma `Bilatéral` est faux par défaut. Il est présent sur les variantes Catalogue et choix de l’exercice, absent en Semaine et Suivi. [remplacé par D-407 le 18/10/2026 : changement de côté Avec / Sans, indicateur sans direction] Il ne remplace ni le paramètre métier de direction ni `Indicator / Sides` (`D→G/G→D`). Il représente la bilatéralité à la place du texte « de chaque côté » sur les variantes concernées ; les données et les calculs ne changent pas.",
+   "decision": "D-407"
+  },
+  {
+   "id": "V3-F-039",
+   "file": "DSF-PHRASES-V15-2026-10-07.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-01, CA-01, CO-01, AC-23",
+   "ancien": "Complément ciblé à DSF Bip/Cartes/Pauses ; aucun nouveau shell. [Matrice et captures](MATRICE-EVOLUTIONS-V15-2026-10-07.md). Figma relu en lecture seule sur Prototype MVP510:101.",
+   "nouveau": "Complément ciblé à DSF Bip/Cartes/Pauses ; aucun nouveau shell. [Matrice et captures](MATRICE-EVOLUTIONS-V15-2026-10-07.md). Figma relu en lecture seule sur Prototype MVP510:101.\r\n\r\n**Mise à jour du 18/10/2026 — spécification v3.0 :**\r\n- Remplacé pour la présentation : au §« Textes de fond et mode », le choix du Mode « par son popover » (D-413 : contrôle segmenté) ; dans « Composants déjà intégrés », « le Bip, qui est un stepper » (D-408 : ligne Cadence) ; dans « Cartes compactes de Composition », la direction propre D→G/G→D (D-407 : indicateur sans direction). Phrase, conteneurs et règles de durée sont inchangés.\r\n- Comportements : règles RM-235 à RM-250 du chapitre 10, [Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026) (décisions D-403 à D-413 du [registre](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#parametres-execution-20261018)) ; ce DSF n’en reprend pas l’énoncé. Les valeurs des captures restent illustratives.\r\n- Présentation nouvelle de la feuille des paramètres (D-413 ; spécification v3.0, GR-01 et PR-01 à PR-04 ; référence 402 × 874) : quatre cadres successifs espacés de 8 px, dans l’ordre de D-413 ; contrôles segmentés alignés à droite, titres à gauche, sans enveloppe blanche ; tableaux à fond blanc sans contour, lignes de 36 px, sans boutons +/− de tableau ; Cadence en 12 px ; labels Regular, plus petits que les valeurs ; options inactives en texte gris Regular sur le fond des champs variables ; option sélectionnée selon le traitement violet existant ; saisie de la charge au clavier décimal, tableau visible au-dessus du clavier avec une marge de 12 px (D-405) ; chevrons à l’intérieur des options Variables (Type de série) et Avec (Changement de côté) (D-410) ; Durée de l’exercice avec son chevron à 12 px du libellé (D-409).\r\n- Tokens : les valeurs correspondantes sont à relever dans Figma avant publication ; aucun nouveau token n’est défini ici.",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-F-040",
+   "file": "DSF-PHRASES-V15-2026-10-07.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-01",
+   "ancien": "Aucun champ n’est affiché à droite de Paramètres d’exécution : le champ du **mode**, constaté sur7059:13302 et7119:27855, est retiré ; la carte forme une seule zone touchable qui ouvre la feuille, et le Mode reste visible dans la phrase et se choisit dans la feuille, par son popover (décision PRE-4 Q23 du 16/10, D-385). Après déplacement d’une Série, la phrase suit l’ordre effectif des cibles ; les résumés bilatéraux distinguent les clauses par paire et par côté. Une cible manquante n’est pas remplacée par un nombre de démonstration : état incomplet, validation interdite.",
+   "nouveau": "Aucun champ n’est affiché à droite de Paramètres d’exécution : le champ du **mode**, constaté sur7059:13302 et7119:27855, est retiré ; la carte forme une seule zone touchable qui ouvre la feuille, et le Mode reste visible dans la phrase et se choisit dans la feuille, [remplacé par D-413 le 18/10/2026 : contrôle segmenté] par son popover (décision PRE-4 Q23 du 16/10, D-385). Après déplacement d’une Série, la phrase suit l’ordre effectif des cibles ; les résumés bilatéraux distinguent les clauses par paire et par côté. Une cible manquante n’est pas remplacée par un nombre de démonstration : état incomplet, validation interdite.",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-F-041",
+   "file": "DSF-PHRASES-V15-2026-10-07.md",
+   "motif": "CORRECTION-DECIDEE:D-408",
+   "ref": "CA-01",
+   "ancien": "| Roulette Secondes avec unité7130:13496 | Variante de bibliothèque conservée ; pas utilisée pour le Bip, qui est un stepper |",
+   "nouveau": "| Roulette Secondes avec unité7130:13496 | Variante de bibliothèque conservée ; pas utilisée pour le Bip, [remplacé par D-408 le 18/10/2026 : ligne Cadence, RM-245] qui est un stepper |",
+   "decision": "D-408"
+  },
+  {
+   "id": "V3-F-042",
+   "file": "DSF-PHRASES-V15-2026-10-07.md",
+   "motif": "CORRECTION-DECIDEE:D-407",
+   "ref": "CO-01, AC-23",
+   "ancien": "Conserver RM-151/RM-152 : direction propre D→G/G→D, rien en unilatéral. La ligne de synthèse compacte conserve ses règles contextuelles ; aucune clause longue de la phrasev15 ni nouvelle ligne de pause n’y est injectée. Cette règle existante clôt CF3 sans inventer une nouvelle grammaire.",
+   "nouveau": "[remplacé par D-407 le 18/10/2026 : indicateur de changement de côté sans direction, RM-243] Conserver RM-151/RM-152 : direction propre D→G/G→D, rien en unilatéral. La ligne de synthèse compacte conserve ses règles contextuelles ; aucune clause longue de la phrasev15 ni nouvelle ligne de pause n’y est injectée. Cette règle existante clôt CF3 sans inventer une nouvelle grammaire.",
+   "decision": "D-407"
+  },
+  {
+   "id": "V3-F-043",
+   "file": "PRODUCT.md",
+   "motif": "CORRECTION-DECIDEE:D-406",
+   "ref": "CO-01, AC-14, CH-01 à CH-04",
+   "ancien": "Un Exercice utilise l’un des deux modes `Durée` ou `Répétitions` ; chaque Série porte une cible chiffrée ou À l’échec. Elle porte un `Changement de côté` parmi `Aucun` (`UNILATERAL`), `D→G` (`RIGHT_LEFT`) et `G→D` (`LEFT_RIGHT`), avec `Aucun` par défaut. Elle définit une Pause après chaque série et peut définir une **Pause entre les côtés** (`sideRecoverySeconds`) uniquement lorsqu’elle est bilatérale. Une `ActivityDefinition` ne porte jamais de récupération après exercice. `Récupération` n’est plus un type d’Exercice.",
+   "nouveau": "Un Exercice utilise l’un des deux modes `Durée` ou `Répétitions` ; chaque Série porte une cible chiffrée ou À l’échec. Elle porte un `Changement de côté` `Avec` ou `Sans`, `Sans` par défaut ; les valeurs historiques `RIGHT_LEFT` et `LEFT_RIGHT` valent `Avec` (D-406, RM-242, RM-244). Elle définit une Pause après chaque série et peut définir une **Pause entre les côtés** (`sideRecoverySeconds`) uniquement lorsqu’elle est bilatérale. Elle peut porter une charge facultative en kg, informative, désactivée par défaut, commune aux séries identiques ou propre à chaque série variable (D-403, RM-235 à RM-241). Une `ActivityDefinition` ne porte jamais de récupération après exercice. `Récupération` n’est plus un type d’Exercice.",
+   "decision": "D-406"
+  },
+  {
+   "id": "V3-F-044",
+   "file": "PRODUCT.md",
+   "motif": "CORRECTION-DECIDEE:D-407",
+   "ref": "CO-01, AC-23",
+   "ancien": "Pour un plan bilatéral, cet instantané conserve la direction effective et chaque Résultat d’Exercice conserve son côté. L’interface affiche uniquement `Côté droit` ou `Côté gauche` sous le nom de l’Exercice pendant le passage concerné, sans compteur `1/2` ou `2/2`.",
+   "nouveau": "Pour un plan bilatéral, cet instantané conserve le changement de côté effectif et chaque Résultat d’Exercice conserve son côté. L’interface affiche uniquement `Côté 1` ou `Côté 2` (RM-243) sous le nom de l’Exercice pendant le passage concerné, sans compteur `1/2` ou `2/2`.",
+   "decision": "D-407"
+  },
+  {
+   "id": "V3-F-045",
+   "file": "PRODUCT.md",
+   "motif": "CORRECTION-DECIDEE:D-406",
+   "ref": "CO-01, AC-13",
+   "ancien": "Le contrôle utilisateur `Changement de côté` d’un Exercice propose `Aucun`, `D→G` et `G→D`. Aucun contrôle de changement de côté n’est exposé sur le Circuit dans la version actuelle ; le support technique historique correspondant reste conservé mais fixé à `UNILATERAL` et non modifiable.",
+   "nouveau": "Le contrôle utilisateur `Changement de côté` d’un Exercice propose `Avec` et `Sans` (D-406, RM-242). Aucun contrôle de changement de côté n’est exposé sur le Circuit dans la version actuelle ; le support technique historique correspondant reste conservé mais fixé à `UNILATERAL` et non modifiable.",
+   "decision": "D-406"
+  },
+  {
+   "id": "V3-F-046",
+   "file": "PRODUCT.md",
+   "motif": "CORRECTION-DECIDEE:D-407",
+   "ref": "CO-01, AC-23",
+   "ancien": "Dans la Composition, une carte affiche `D→G` ou `G→D` dans son indicateur secondaire si sa direction propre est bilatérale ; elle n’affiche rien avec `Aucun`. L’indicateur respecte la géométrie Figma validée. Le texte de la carte ne développe jamais la direction : l’indicateur `D→G` ou `G→D` la porte seul. Dans l’écran Créer un exercice ou Modifier un exercice (D-325), la phrase suit D-298 : Série/cible/cadence, puis Pause et côtés selon leur contexte. Elle distingue l’ordre par paire de l’ordre par côté et inverse droite/gauche selon la direction. Le nom reste hors de la phrase intrinsèque ; les valeurs des paramètres sont en gras dans le texte courant.",
+   "nouveau": "Dans la Composition, une carte affiche dans son indicateur secondaire un indicateur de changement de côté, sans direction, si son changement de côté propre est `Avec` ; elle n’affiche rien avec `Sans` (D-407, RM-243). L’indicateur respecte la géométrie Figma validée. Le texte de la carte ne développe jamais le changement de côté : l’indicateur le porte seul. Dans l’écran Créer un exercice ou Modifier un exercice (D-325), la phrase suit D-298 : Série/cible/cadence, puis Pause et côtés selon leur contexte. Elle distingue l’ordre par paire de l’ordre par côté et désigne les côtés par côté 1 et côté 2 (RM-243). Le nom reste hors de la phrase intrinsèque ; les valeurs des paramètres sont en gras dans le texte courant.",
+   "decision": "D-407"
+  },
+  {
+   "id": "V3-F-047",
+   "file": "PRODUCT.md",
+   "motif": "CORRECTION-DECIDEE:D-403",
+   "ref": "CH-08, AC-08",
+   "ancien": "Dans la phrase de synthèse des paramètres d’exécution, le mode est affiché séparément et la phrase commence par le nombre de Séries. Tant qu’aucun mode n’est sélectionné, le champ est vide. Le total intrinsèque fourni par le calcul est affiché sauf en À l’échec ou lorsqu’il est réellement redondant en Durée unilatérale à une Série. En Répétitions, Ti=Ri×Ci avec cadence, avec ≈ ; sans bip, total d’Exercice omis selon [Résultats temporels et agrégation du circuit](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit). La phrase est régénérée lors de ✓ de la feuille valide ; ✕ conserve la phrase précédente. Elle suit D-298 et [Phrase de synthèse des paramètres](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres).",
+   "nouveau": "Dans la phrase de synthèse des paramètres d’exécution, le mode est affiché séparément et la phrase commence par le nombre de Séries. Tant qu’aucun mode n’est sélectionné, le champ est vide. Le total intrinsèque fourni par le calcul est affiché sauf en À l’échec ou lorsqu’il est réellement redondant en Durée unilatérale à une Série. En Répétitions, Ti=Ri×Ci avec cadence, avec ≈ ; sans bip, total d’Exercice omis selon [Résultats temporels et agrégation du circuit](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit). Lorsque la charge est active, la phrase la mentionne selon RM-240. La phrase est régénérée lors de ✓ de la feuille valide ; ✕ conserve la phrase précédente. Elle suit D-298 et [Phrase de synthèse des paramètres](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres).",
+   "decision": "D-403"
+  },
+  {
+   "id": "V3-F-048",
+   "file": "PRODUCT.md",
+   "motif": "CORRECTION-DECIDEE:D-407",
+   "ref": "CO-01, CH-09, AC-09, AC-23",
+   "ancien": "- afficher le côté courant sous le nom de l’Exercice lorsque la direction effective est bilatérale ;",
+   "nouveau": "- afficher le côté courant sous le nom de l’Exercice lorsque l’Exercice est effectivement bilatéral (`Côté 1` / `Côté 2`, RM-243) ;\r\n- afficher la charge de la Série courante lorsque la charge est active (RM-241) ;",
+   "decision": "D-407"
+  },
+  {
+   "id": "V3-F-049",
+   "file": "PRODUCT.md",
+   "motif": "CORRECTION-DECIDEE:D-406",
+   "ref": "CO-01, AC-14",
+   "ancien": "Le bouton Lecture d’une carte d’Exercice valide lance une Exécution d’origine `ACTIVITY` sans créer de Séance artificielle. L’Exécution repose sur un instantané autonome, commence par une préparation système fixe de `5 s`, applique les Séries, les Pauses et les directions `UNILATERAL | RIGHT_LEFT | LEFT_RIGHT`. Si l’Exercice est bilatéral, sa Pause entre les côtés éventuelle est exécutée selon l’Ordre des côtés. **Aucune Récupération après exercice n’est ajoutée en Exécution directe.** Le signal de fin ouvre ensuite la Synthèse.",
+   "nouveau": "Le bouton Lecture d’une carte d’Exercice valide lance une Exécution d’origine `ACTIVITY` sans créer de Séance artificielle. L’Exécution repose sur un instantané autonome, commence par une préparation système fixe de `5 s`, applique les Séries, les Pauses et le changement de côté `Sans` / `Avec` (valeurs historiques `RIGHT_LEFT` et `LEFT_RIGHT` lues `Avec`, RM-244). Si l’Exercice est bilatéral, sa Pause entre les côtés éventuelle est exécutée selon l’Ordre des côtés. **Aucune Récupération après exercice n’est ajoutée en Exécution directe.** Le signal de fin ouvre ensuite la Synthèse.",
+   "decision": "D-406"
+  },
+  {
+   "id": "V3-F-050",
+   "file": "PRODUCT.md",
+   "motif": "CORRECTION-DECIDEE:D-406",
+   "ref": "CO-01",
+   "ancien": "16. Dans la version actuelle, la direction bilatérale active est portée par l’Exercice ; aucun changement de côté n’est exposé au niveau du Circuit.",
+   "nouveau": "16. Dans la version actuelle, le changement de côté actif est porté par l’Exercice ; aucun changement de côté n’est exposé au niveau du Circuit.",
+   "decision": "D-406"
+  },
+  {
+   "id": "V3-F-051",
+   "file": "PRODUCT.md",
+   "motif": "CORRECTION-DECIDEE:D-403",
+   "ref": "CH-06, AC-12, CO-01",
+   "ancien": "Son insertion dans une Séance copie toutes les propriétés métier applicables au moment de l’insertion — nom, Description, mode/cible, Séries, Pause, Récupération, Zones corporelles, direction propre et autres champs persistants applicables. La `SessionActivity` appartient ensuite à la Séance et évolue indépendamment. Un Exercice créé dans une Séance ne rejoint pas automatiquement le Catalogue. La migration T03 ne transforme pas les `SessionActivity` historiques en `ActivityDefinition`.",
+   "nouveau": "Son insertion dans une Séance copie toutes les propriétés métier applicables au moment de l’insertion — nom, Description, mode/cible, Séries, Pause, Récupération, Zones corporelles, changement de côté propre, charge (activation et valeurs, RM-236) et autres champs persistants applicables. La `SessionActivity` appartient ensuite à la Séance et évolue indépendamment. Un Exercice créé dans une Séance ne rejoint pas automatiquement le Catalogue. La migration T03 ne transforme pas les `SessionActivity` historiques en `ActivityDefinition`.",
+   "decision": "D-403"
+  },
+  {
+   "id": "V3-F-052",
+   "file": "PRODUCT.md",
+   "motif": "CORRECTION-DECIDEE:D-406",
+   "ref": "CO-01",
+   "ancien": "**Valeur initiale :** lors du passage de `Aucun` à `D→G` ou `G→D`, `sideRecoverySeconds` reprend le défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence). Cette valeur est proposée à la création de l’Exercice et reste modifiable dans l’éditeur.",
+   "nouveau": "**Valeur initiale :** lors du passage du Changement de côté de `Sans` à `Avec` (D-406), `sideRecoverySeconds` reprend le défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence). Cette valeur est proposée à la création de l’Exercice et reste modifiable dans l’éditeur.",
+   "decision": "D-406"
+  },
+  {
+   "id": "V3-F-053",
+   "file": "PRODUCT.md",
+   "motif": "CORRECTION-DECIDEE:D-405",
+   "ref": "CH-05, PR-04",
+   "ancien": "**Convention de saisie D-219.** Les durées utilisent les roulettes en modale basse ; les sélections d’objets/référentiels utilisent leurs modales dédiées ; les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent des steppers inline sans roulette ; la cible `Nombre de répétitions` utilise une roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385). Les dialogues de confirmation restent centrés.",
+   "nouveau": "**Convention de saisie D-219.** Les durées utilisent les roulettes en modale basse ; les sélections d’objets/référentiels utilisent leurs modales dédiées ; les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent des steppers inline sans roulette ; la cible `Nombre de répétitions` utilise une roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385). La charge fait exception : saisie directe au clavier numérique décimal (D-405, RM-239). Les dialogues de confirmation restent centrés.",
+   "decision": "D-405"
+  },
+  {
+   "id": "V3-F-054",
+   "file": "PRODUCT.md",
+   "motif": "CORRECTION-DECIDEE:D-408",
+   "ref": "CA-01, AC-15",
+   "ancien": "Les deux modes acceptent Bip de cadence0..10s,0=Aucun par défaut. Répétitions/À l’échec gardent le chronomètre croissant et la fin manuelle ; Durée garde son minuteur. Le bip ne modifie pas ces terminaisons. La phrase de paramètres est unique, valeurs en gras, issue des paramètres validés et d’un total calculé par la spécification. Exercice : exact en Durée, ≈ en Répétitions avec bip, omitted en Répétitions sans bip et À l’échec. Séance : exact si tout exact, ≈ avec estimation sans inconnu, ≥ avec travail inconnu. [Résultats temporels et agrégation du circuit](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) gouverne calculs et périmètres.",
+   "nouveau": "Les deux modes acceptent Bip de cadence0..10s,0=Aucun par défaut ; la ligne Cadence le présente par Autre | 5 s | 2 s | 1 s | Sans (D-408, RM-245). Répétitions/À l’échec gardent le chronomètre croissant et la fin manuelle ; Durée garde son minuteur. Le bip ne modifie pas ces terminaisons. La phrase de paramètres est unique, valeurs en gras, issue des paramètres validés et d’un total calculé par la spécification. Exercice : exact en Durée, ≈ en Répétitions avec bip, omitted en Répétitions sans bip et À l’échec. Séance : exact si tout exact, ≈ avec estimation sans inconnu, ≥ avec travail inconnu. [Résultats temporels et agrégation du circuit](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) gouverne calculs et périmètres.",
+   "decision": "D-408"
+  },
+  {
+   "id": "V3-F-055",
+   "file": "INDEX.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-01",
+   "ancien": "- **DSF, D-339 et D-341.** « D-339 conserve son comportement de fermeture après sélection, y compris dans les popovers ; présentation D-341 remplacée par les DSF validés. » (D-377.)",
+   "nouveau": "- **DSF, D-339 et D-341.** « D-339 conserve son comportement de fermeture après sélection, y compris dans les popovers ; présentation D-341 remplacée par les DSF validés. » (D-377.) Pour les lignes Mode, Type de série et Changement de côté de la feuille des paramètres, la présentation par popovers est remplacée par des contrôles segmentés et D-339 n’y a plus d’objet ([D-413](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#parametres-execution-20261018)).",
+   "decision": "D-413"
+  }
+ ]
+}

@@ -1,0 +1,420 @@
+# Intégration v3.0 — chapitre 13, contrats hors zone CE-UI-10 (zone « ## Paramètres d’exécution » → ligne précédant « ## Composition des séances » exclue : traitée par un autre agent).
+# Règles normatives : chapitre 10, RM-235 à RM-250 (citées, non recopiées) ; décisions D-403 à D-413 (chapitre 07).
+# Numéros de ligne de référence : état du fichier au 18/10/2026 avant application (ch. 13 non décalé).
+#
+# CONFLITS PR : aucune ligne réécrite par pr-370-report.patch ou pr-371-report.patch n'est modifiée.
+#   Lignes volontairement non touchées : 281 (#371, symboles ≈/≥), 708 (#371, abandon), 807–809 (contexte de l'insertion #370 « Recette phases »),
+#   2115–2120 et 2147–2152 (contexte des insertions #370 CE-FMT-04), 4762–4767 (contexte de l'insertion #370 « Phases internes »).
+#   La correction de la ligne 804 (CE-T03-04 §20) est hors du contexte du hunk #370 @@ -807.
+#
+# VOLONTAIREMENT NON MODIFIÉ :
+#   - « Durée totale : … » de la phrase de synthèse et E52 (l. 5140) : point ouvert du brief.
+#   - CE-FMT-02 l. 1934 et 1946 (« Durée totale » des paramètres globaux de format) : ligne de la modale de format, pas la ligne de la feuille d'Exercice visée par D-409 (voir Q).
+#   - L. 694 (références Figma « Bip 7059:13302 ») : références datées, captures hors lot.
+#   - L. 722, 2454, 2656, 3962 (bip/cadence 0..10 de l'instantané) : donnée conservée par D-408.
+#   - L. 1384, 2344, 2378 (premier côté / second côté) : formulation déjà neutre.
+#   - L. 2870 et 2336 « Ordre des côtés » : concept conservé (seul un renvoi au libellé Enchainement est ajouté en 2336).
+#   - L. 4696 « Aucune répétition, à l’échec » (roulette Répétitions) : non visée par la spécification (D-412, dossier de questions du change).
+#   - Positions écran « à gauche / à droite » (cartes, swipe, Série/Tour) : hors sujet.
+#   - Hiérarchie ordonnée « de haut en bas » (l. 2973–2985) : aucune puce de charge insérée pour ne pas imposer d'emplacement ; phrase ajoutée après la liste (l. 2989).
+#
+# QUESTIONS
+# Q : 13 – Contrats d’écran.md:726, 732, 736 — CE-T03-04 place « Compte à rebours/Fin » sur la carte Paramètres du formulaire parent, en lignes séparées de la phrase. Le repli sous Durée de l’exercice (D-409, RM-246) concerne la feuille : la carte parent garde-t-elle ces deux lignes visibles en permanence ? Non modifié.
+# Q : 13 – Contrats d’écran.md:1934, 1946 — CE-FMT-02 : la ligne « Durée totale » des paramètres globaux de format doit-elle aussi prendre le libellé « Durée de l’exercice » ou garder son libellé (durée de séance de format) ? Non modifié.
+# Q : 13 – Contrats d’écran.md:2092, 2100 — CE-FMT-04 : avec les constantes Tabata (Durée, 8, 20 s, 10 s), la ligne Condition d’arrêt est-elle présentée comme une cinquième valeur imposée grisée (À la cible) ou masquée ? Le contrat ne parle que de « quatre valeurs » ; non modifié au-delà du renvoi D-413.
+# Q : 13 – Contrats d’écran.md:4688 — les tailles « Changement de côté 13 px sur deux lignes » et « Enchainement 14 px + sous-titre 11 px » décrivaient la présentation D-377 (popovers) ; restent-elles valables pour les contrôles segmentés de D-413 (PR-03 : labels regular plus petits, Cadence 12 px) ? Seuls le libellé et la mention de D-413 sont corrigés.
+# Q : 13 – Contrats d’écran.md:3164 — la ligne de tableau « Charge » ajoutée aux éléments affichés d'Exécution d'une séance indique « Visible : Série à charge active » ; confirmer qu'une série variable à zéro n'affiche rien (RM-241 le dit) et que le libellé exact de l'élément relèvera de Figma.
+#
+# RÉFÉRENCE VISUELLE MANQUANTE : affichage de la charge pendant l'exécution (spécification §4, écart 4) — signalé dans CE-T03-10, CE-T03-11, CE-EXEC-SESSION-01 et les sections descriptives d'exécution.
+
+=== V3-D-001 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-403 | CH-06, AC-12, CO-01, AC-14
+--- ancien
+Catalogue et exécution ACTIVITY : durée intrinsèque. Composition, détails de Séance, calendrier SESSION et exécution SESSION : durée d’occurrence avec récupération explicite, sans ajouter R deux fois. Les cartes de composition affichent les volumes variables selon la chapitre 13, Cartes et grille des volumes ; le détail complet est accessible dans la grille de volumes du circuit, en lecture seule, et dans CE-UI-10 pour édition. Copie/duplication et instantané conservent l’état variable explicite, les cibles/Pauses ordonnées et l’Ordre des côtés. Ces règles s’appliquent aux contrats hôtes, y compris CE-UI-01/02/03/05 et CE-T03-01/06/07/08. Les règles propres aux cartes et médias sont conservées.
+--- nouveau
+Catalogue et exécution ACTIVITY : durée intrinsèque. Composition, détails de Séance, calendrier SESSION et exécution SESSION : durée d’occurrence avec récupération explicite, sans ajouter R deux fois. Les cartes de composition affichent les volumes variables selon la chapitre 13, Cartes et grille des volumes ; le détail complet est accessible dans la grille de volumes du circuit, en lecture seule, et dans CE-UI-10 pour édition. Copie/duplication et instantané conservent l’état variable explicite, les cibles/Pauses ordonnées, le changement de côté et l’Ordre des côtés (D-406), ainsi que l’activation et les valeurs de la charge (RM-236). Ces règles s’appliquent aux contrats hôtes, y compris CE-UI-01/02/03/05 et CE-T03-01/06/07/08. Les règles propres aux cartes et médias sont conservées.
+
+=== V3-D-002 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-23
+--- ancien
+Réinitialiser conserve D-029/D-150 et RM-062 : recommencer la Série courante en unilatéral ; en bilatéral, recommencer le côté courant depuis sa première Série, préserver les résultats de l’autre côté et le temps total écoulé. Cette portée s’applique aussi à Les deux côtés à chaque série ; un passage déjà acquis de l’autre côté n’est pas rejoué. Exemple : gauche 2/3 → reprise gauche 1/3, résultats droits conservés. Pendant une récupération, RM-062 réinitialise seulement cette phase. Le saut confirmé d’un bloc chronométré conserve D-150 : côté courant partiel, poursuite des passages restant à exécuter de l’autre côté ; les résultats acquis ne sont pas effacés. Ces conséquences du périmètre existant ne constituent pas un nouvel arbitrage.
+--- nouveau
+Réinitialiser conserve D-029/D-150 et RM-062 : recommencer la Série courante en unilatéral ; en bilatéral, recommencer le côté courant depuis sa première Série, préserver les résultats de l’autre côté et le temps total écoulé. Cette portée s’applique aussi à Les deux côtés à chaque série ; un passage déjà acquis de l’autre côté n’est pas rejoué. Exemple : côté 2 en Série 2/3 → reprise du côté 2 en Série 1/3, résultats du côté 1 conservés (RM-243). Pendant une récupération, RM-062 réinitialise seulement cette phase. Le saut confirmé d’un bloc chronométré conserve D-150 : côté courant partiel, poursuite des passages restant à exécuter de l’autre côté ; les résultats acquis ne sont pas effacés. Ces conséquences du périmètre existant ne constituent pas un nouvel arbitrage.
+
+=== V3-D-003 | @13 – Contrats d’écran.md | RENVOI | CO-01, AC-23
+--- ancien
+| Règles applicables | RM-041, RM-072, RM-095, RM-096, RM-103, RM-109, RM-112, RM-114, RM-159, RM-162, RM-188, RM-221 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité ») |
+--- nouveau
+| Règles applicables | RM-041, RM-072, RM-095, RM-096, RM-103, RM-109, RM-112, RM-114, RM-159, RM-162, RM-188, RM-221, RM-243 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité ») |
+
+=== V3-D-004 | @13 – Contrats d’écran.md | RENVOI | CO-01, AC-23
+--- ancien
+Pastille Catégorie colorée, Zones corporelles, titre et badge durée ; synthèse `N séries de X` / `N séries de N rép.` / `N séries à l’échec`, miroir 16 si bilatéral. Aucune pause/récupération ni prochaine planification affichée. Lecture indépendante ; aucun Déployer, avec ou sans média. Aucune poignée. Créer/Filtrer actifs, Trier désactivé.
+--- nouveau
+Pastille Catégorie colorée, Zones corporelles, titre et badge durée ; synthèse `N séries de X` / `N séries de N rép.` / `N séries à l’échec`, miroir 16 si bilatéral, indicateur de changement de côté sans direction (RM-243). Aucune pause/récupération ni prochaine planification affichée. Lecture indépendante ; aucun Déployer, avec ou sans média. Aucune poignée. Créer/Filtrer actifs, Trier désactivé.
+
+=== V3-D-005 | @13 – Contrats d’écran.md | RENVOI | CH-06, CH-08, CO-01
+--- ancien
+Règles applicables : RM-033, RM-039, RM-041, RM-042, RM-058, RM-112, RM-113, RM-129, RM-131, RM-132, RM-152, RM-214, RM-215, RM-232 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+--- nouveau
+Règles applicables : RM-033, RM-039, RM-041, RM-042, RM-058, RM-112, RM-113, RM-129, RM-131, RM-132, RM-152, RM-214, RM-215, RM-232, RM-236, RM-240, RM-243 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+
+=== V3-D-006 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-403 | CH-08, AC-01, AC-08
+--- ancien
+Phrase selon les 276 cas v15, total fourni par le calcul métier. Générateur → segments ordonnés `{texte, gras}`, valeurs et unités en gras, aucun redécoupage de chaîne. Terme « pause après chaque série », y compris N=1 ; clause de pauses variables omise conformément au corpus.
+--- nouveau
+Phrase selon les 276 cas v15, total fourni par le calcul métier. Générateur → segments ordonnés `{texte, gras}`, valeurs et unités en gras, aucun redécoupage de chaîne. Terme « pause après chaque série », y compris N=1 ; clause de pauses variables omise conformément au corpus. Lorsque la charge est active, la phrase inclut sa mention selon RM-240 ; avec Sans, aucune mention de charge.
+
+=== V3-D-007 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-406 | CO-01, CH-06, AC-12
+--- ancien
+Paramètres étendus : uniforme/variable, liste ordonnée de cibles/Pauses, Ordre des côtés ; copie complète vers CE-UI-10.
+--- nouveau
+Paramètres étendus : uniforme/variable, liste ordonnée de cibles/Pauses, changement de côté (Avec / Sans, D-406) et Ordre des côtés, activation et valeurs de la charge (RM-236) ; copie complète vers CE-UI-10.
+
+=== V3-D-008 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-413 | GR-01, PR-01
+--- ancien
+Le champ du mode à droite du titre de la carte, visible sur 7059:13302 et 7119:27855, est retiré : la carte forme une seule zone touchable qui ouvre la feuille ; le Mode reste visible dans la phrase et se choisit dans la feuille, par son popover (décision PRE-4 Q23 du 16/10, D-385). La phrase reflète les paramètres appliqués ; les montants statiques des copies ne sont pas des valeurs par défaut.
+--- nouveau
+Le champ du mode à droite du titre de la carte, visible sur 7059:13302 et 7119:27855, est retiré : la carte forme une seule zone touchable qui ouvre la feuille ; le Mode reste visible dans la phrase et se choisit dans la feuille, par la ligne Mode (décision PRE-4 Q23 du 16/10, D-385 ; la présentation par popover est remplacée par D-413). La phrase reflète les paramètres appliqués ; les montants statiques des copies ne sont pas des valeurs par défaut.
+
+=== V3-D-009 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-403 | CH-02, CH-04, CH-08, AC-02, AC-05
+--- ancien
+Vide, nom seul, catégorie renseignée, nom/description/média renseignés, modification existante, résumé uniforme, résumé variable Durée/Répétitions/À l’échec, bilatéral et chacun des ordres, abandon confirmé/annulé, erreur de sauvegarde. Le résumé Répétitions est visible derrière 6665:24844 ; pas de vue parent dédiée actuellement. L’absence de capture ne retire pas cet état du contrat.
+--- nouveau
+Vide, nom seul, catégorie renseignée, nom/description/média renseignés, modification existante, résumé uniforme, résumé variable Durée/Répétitions/À l’échec, bilatéral et chacun des ordres, avec et sans charge (charge commune, charges par série, RM-240), abandon confirmé/annulé, erreur de sauvegarde. Le résumé Répétitions est visible derrière 6665:24844 ; pas de vue parent dédiée actuellement. L’absence de capture ne retire pas cet état du contrat.
+
+=== V3-D-010 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-403 | CH-08, AC-01, AC-03, AC-04, AC-08
+--- ancien
+Recette rédactionnelle :276 gabarits v15 avec total métier injecté, gras sur occurrences répétées d’une valeur, N1 avec pause mentionnée et total non redondant ; absence de troncature. Français au MVP ; i18n nécessite des gabarits et accords par locale, pas une traduction de fragments isolés.
+--- nouveau
+Recette rédactionnelle :276 gabarits v15 avec total métier injecté, gras sur occurrences répétées d’une valeur, N1 avec pause mentionnée et total non redondant ; absence de troncature. Français au MVP ; i18n nécessite des gabarits et accords par locale, pas une traduction de fragments isolés. Phrase avec charge : charge commune 10 kg et 1,25 kg, charges différentes par série restant associées à leur série, Sans sans mention, Sans puis Avec restaurant la valeur (RM-240, RM-236).
+
+=== V3-D-011 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-23
+--- ancien
+Bip 0/1/10, supprimer puis annuler/confirmer, phrase à 3/4cibles, singulier et deux directions, omission Répétitions sans bip/À l’échec ; redondance N1 Durée unilatérale, texte agrandi. Le classeur teste la formulation avec un total fourni, jamais les calculs.
+--- nouveau
+Bip 0/1/10, supprimer puis annuler/confirmer, phrase à 3/4cibles, singulier et changement de côté désigné côté 1 / côté 2, sans direction anatomique (RM-243), omission Répétitions sans bip/À l’échec ; redondance N1 Durée unilatérale, texte agrandi. Le classeur teste la formulation avec un total fourni, jamais les calculs.
+
+=== V3-D-012 | @13 – Contrats d’écran.md | RENVOI | CO-01, AC-23, CH-06
+--- ancien
+Règles applicables : RM-001, RM-015, RM-017, RM-018, RM-021, RM-025, RM-026, RM-027, RM-028, RM-029, RM-030, RM-036, RM-038, RM-095, RM-129, RM-143, RM-147, RM-151, RM-152, RM-159, RM-191, RM-209, RM-210, RM-213, RM-215, RM-218, RM-219, RM-220, RM-FMT-03, RM-FMT-04, RM-FMT-05, RM-FMT-09, RM-FMT-41 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+--- nouveau
+Règles applicables : RM-001, RM-015, RM-017, RM-018, RM-021, RM-025, RM-026, RM-027, RM-028, RM-029, RM-030, RM-036, RM-038, RM-095, RM-129, RM-143, RM-147, RM-151, RM-152, RM-159, RM-191, RM-209, RM-210, RM-213, RM-215, RM-218, RM-219, RM-220, RM-FMT-03, RM-FMT-04, RM-FMT-05, RM-FMT-09, RM-FMT-41, RM-236, RM-243 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+
+=== V3-D-013 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-23
+--- ancien
+CF3 déjà tranché par RM-151/RM-152 : indicateur compact D→G/G→D conservé, sans nouvelle ligne de pause ni phrase longue injectée dans les cartes.
+--- nouveau
+CF3 déjà tranché par RM-151/RM-152, amendées par D-407 : indicateur compact de changement de côté conservé, sans direction (RM-243), rendu selon Figma, sans nouvelle ligne de pause ni phrase longue injectée dans les cartes.
+
+=== V3-D-014 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-23
+--- ancien
+La bilatéralité est indiquée par le miroir dans les variantes concernées ; le paramètre de direction et `Indicator / Sides` ne sont pas supprimés du modèle. Le texte développé « à droite, puis à gauche » reste propre à l’éditeur. La Description est absente des cartes. Texte complet conservé derrière la troncature.
+--- nouveau
+La bilatéralité est indiquée par le miroir dans les variantes concernées ; le paramètre de changement de côté (Avec / Sans, D-406) et `Indicator / Sides` ne sont pas supprimés du modèle ; l’indicateur ne porte pas de direction (RM-243). Le texte développé du changement de côté (côté 1, puis côté 2) reste propre à l’éditeur. La Description est absente des cartes. Texte complet conservé derrière la troncature.
+
+=== V3-D-015 | @13 – Contrats d’écran.md | RENVOI | CO-01, AC-23
+--- ancien
+Règles applicables : RM-033, RM-FMT-08, RM-FMT-29, RM-FMT-30 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+--- nouveau
+Règles applicables : RM-033, RM-FMT-08, RM-FMT-29, RM-FMT-30, RM-243 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+
+=== V3-D-016 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-13
+--- ancien
+Exercices et séries actives du brouillon, régime, mode et direction ; aucune réserve de lignes retirées affichée.
+--- nouveau
+Exercices et séries actives du brouillon, régime, mode et changement de côté (D-406) ; aucune réserve de lignes retirées affichée.
+
+=== V3-D-017 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-23
+--- ancien
+Répétitions numériques + rép. ; durée min:ss ; échec ✓ + À l’échec en dernière colonne. Cibles bilatérales par côté, non doublées, direction près du nom.
+--- nouveau
+Répétitions numériques + rép. ; durée min:ss ; échec ✓ + À l’échec en dernière colonne. Cibles bilatérales par côté, non doublées, indicateur de changement de côté sans direction près du nom (RM-243).
+
+=== V3-D-018 | @13 – Contrats d’écran.md | RENVOI | GR-01, DU-01, AC-17
+--- ancien
+Règles applicables : RM-FMT-03, RM-FMT-04, RM-FMT-05, RM-FMT-10, RM-FMT-17, RM-FMT-19, RM-FMT-42 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+--- nouveau
+Règles applicables : RM-FMT-03, RM-FMT-04, RM-FMT-05, RM-FMT-10, RM-FMT-17, RM-FMT-19, RM-FMT-42, RM-246 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+
+=== V3-D-019 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-413 | GR-01, PR-01, DU-01, AC-17
+--- ancien
+Réutiliser tailles, alignements, voile et lignes de la modale de référence. Le grisé approuvé s’applique au contrôle/à la valeur ; garder les libellés et la raison lisibles. Aucun nouveau voile.
+--- nouveau
+Réutiliser tailles, alignements, voile et lignes de la modale de référence. Le grisé approuvé s’applique au contrôle/à la valeur ; garder les libellés et la raison lisibles. Aucun nouveau voile. Les lignes reprises de CE-UI-10 en gardent les libellés et les groupes (D-413), dont Mode et Condition d’arrêt ; les exceptions propres au format ne sont pas remplacées par des champs génériques supplémentaires. Ouverte depuis une Séance, la modale ne présente pas Compte à rebours ni Fin d’exercice propres (RM-246).
+
+=== V3-D-020 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-23
+--- ancien
+Bloc B5 ; états S59–S62 ; T03-E E40–E41 ; Shell Execution ; sous-titre côté validé D-149.
+--- nouveau
+Bloc B5 ; états S59–S62 ; T03-E E40–E41 ; Shell Execution ; sous-titre côté validé D-149, libellés Côté 1 / Côté 2 (D-407).
+
+=== V3-D-021 | @13 – Contrats d’écran.md | RENVOI | CO-01, AC-13, AC-14, AC-23, CH-09
+--- ancien
+Règles applicables : RM-036, RM-037, RM-058, RM-059, RM-062, RM-077, RM-099, RM-129, RM-148, RM-149, RM-150, RM-211 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+--- nouveau
+Règles applicables : RM-036, RM-037, RM-058, RM-059, RM-062, RM-077, RM-099, RM-129, RM-148, RM-149, RM-150, RM-211, RM-241, RM-242, RM-243, RM-244 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+
+=== V3-D-022 | @13 – Contrats d’écran.md | RENVOI | PR-01, PR-05
+--- ancien
+L’ordre d’exécution vient du paramètre Ordre des côtés : Un côté après l’autre (défaut) ou Les deux côtés à chaque série. En bilatéral N est toujours par côté, paramètres communs aux deux côtés. Les successions et pauses sont celles de chapitre 08, paramètres d’exercice ; aucun repli de PC vers la Pause. Les cibles et Pauses variables proviennent de la ligne courante. Aucune récupération post-exercice en ACTIVITY.
+--- nouveau
+L’ordre d’exécution vient du paramètre Ordre des côtés (libellé visible Enchainement, D-413) : Un côté après l’autre (défaut) ou Les deux côtés à chaque série. En bilatéral N est toujours par côté, paramètres communs aux deux côtés. Les successions et pauses sont celles de chapitre 08, paramètres d’exercice ; aucun repli de PC vers la Pause. Les cibles et Pauses variables proviennent de la ligne courante. Aucune récupération post-exercice en ACTIVITY.
+
+=== V3-D-023 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-14, CH-09
+--- ancien
+sideMode snapshot ; executionSide RIGHT/LEFT ; résultats séparés par côté.
+--- nouveau
+Changement de côté de l’instantané (Avec / Sans ; valeurs historiques `RIGHT_LEFT` et `LEFT_RIGHT` lues Avec, RM-244) ; côté courant côté 1 / côté 2, noms techniques laissés à l’implémentation, valeurs historiques `RIGHT` / `LEFT` lisibles (D-407) ; résultats séparés par côté ; charge de la série courante selon RM-241, sans valeur distincte par côté (RM-235).
+
+=== V3-D-024 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-23
+--- ancien
+`Côté droit/gauche` = libellés calculés ; ordre vient sideMode, jamais de la frame d’exemple.
+--- nouveau
+`Côté 1` / `Côté 2` = libellés calculés, le côté 1 étant celui par lequel l’utilisateur commence (RM-243) ; succession selon l’Ordre des côtés de l’instantané, jamais selon la frame d’exemple.
+
+=== V3-D-025 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-23
+--- ancien
+Nom puis Catégorie, et ligne Côté droit/gauche distincte du contexte ; aucun compteur 1/2 ou 2/2. Pas de Tour en direct ; dimensions du shell courant.
+--- nouveau
+Nom puis Catégorie, et ligne Côté 1 / Côté 2 distincte du contexte (RM-243) ; aucun compteur 1/2 ou 2/2. Pas de Tour en direct ; dimensions du shell courant.
+
+=== V3-D-026 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-23
+--- ancien
+Ordre D→G/G→D strict. Réinitialiser ne touche que le côté courant et conserve l’autre résultat. Saut confirmé du premier côté chronométré : résultat partiel conservé, second côté selon D-150 ; transition selon la succession du plan ([Ordres d’exécution et pauses](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ordres-dexécution-et-pauses) ; [R-03 — Transition, reset et suspension](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-03--transition-reset-et-suspension)).
+--- nouveau
+Ordre côté 1 puis côté 2 strict (RM-243). Réinitialiser ne touche que le côté courant et conserve l’autre résultat. Saut confirmé du premier côté chronométré : résultat partiel conservé, second côté selon D-150 ; transition selon la succession du plan ([Ordres d’exécution et pauses](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ordres-dexécution-et-pauses) ; [R-03 — Transition, reset et suspension](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-03--transition-reset-et-suspension)).
+
+=== V3-D-027 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-14
+--- ancien
+Résultats séparés par executionSide ; réinitialisation ne détruit pas résultat autre côté.
+--- nouveau
+Résultats séparés par côté (côté 1 / côté 2 ; résultats historiques par côté lisibles, RM-244) ; réinitialisation ne détruit pas résultat autre côté.
+
+=== V3-D-028 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-23
+--- ancien
+Annonce vocale côté au début et au changement selon règles ; label accessible développé même si UI courte ailleurs.
+--- nouveau
+Annonce vocale du côté (« Côté 1 » / « Côté 2 », RM-243) au début et au changement selon règles ; label accessible développé même si UI courte ailleurs.
+
+=== V3-D-029 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-13, AC-14
+--- ancien
+D→G/G→D, C=1/2/99, pause inter-Séries 0/>0, SIDE_RECOVERY0/>0, reset second préservant premier, interruption pendant SIDE_RECOVERY, absence de récupération après second. Tester saut anticipé avec pC>0 puis pC=0/pS>0 puis les deux à zéro ; respecter les cumuls Pi puis PC en ordre successif et la succession PC puis Pi après paire en ordre alterné.
+--- nouveau
+Changement de côté Avec dans chacun des deux enchaînements, donnée historique `RIGHT_LEFT` ou `LEFT_RIGHT` lue Avec sans perte de l’Ordre des côtés (RM-244), C=1/2/99, pause inter-Séries 0/>0, SIDE_RECOVERY0/>0, reset second préservant premier, interruption pendant SIDE_RECOVERY, absence de récupération après second. Tester saut anticipé avec pC>0 puis pC=0/pS>0 puis les deux à zéro ; respecter les cumuls Pi puis PC en ordre successif et la succession PC puis Pi après paire en ordre alterné.
+
+=== V3-D-030 | @13 – Contrats d’écran.md | RENVOI | CH-09
+--- ancien
+Règles applicables : RM-096, RM-097, RM-098, RM-099, RM-162, RM-190, RM-218 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+--- nouveau
+Règles applicables : RM-096, RM-097, RM-098, RM-099, RM-162, RM-190, RM-218, RM-241 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+
+=== V3-D-031 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-403 | CH-09
+--- ancien
+Paramètres de la Série courante issus de l’instantané variable/uniforme ; ordres selon [Ordres d’exécution et pauses](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ordres-dexécution-et-pauses). En direct : total intrinsèque, Pause terminale normale, aucune récupération contextuelle.
+--- nouveau
+Paramètres de la Série courante issus de l’instantané variable/uniforme, dont la charge selon RM-241 ; ordres selon [Ordres d’exécution et pauses](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ordres-dexécution-et-pauses). En direct : total intrinsèque, Pause terminale normale, aucune récupération contextuelle.
+
+=== V3-D-032 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-23
+--- ancien
+Vérifier les deux ordres et directions, valeurs variables, PC0 sans repli, Pause terminale et N1 normalisé. Ne pas déduire les transitions du câblage Figma.
+--- nouveau
+Vérifier les deux ordres avec changement de côté (côté 1 puis côté 2, RM-243), valeurs variables, PC0 sans repli, Pause terminale et N1 normalisé. Ne pas déduire les transitions du câblage Figma.
+
+=== V3-D-033 | @13 – Contrats d’écran.md | RENVOI | CH-09
+--- ancien
+Règles applicables : RM-036, RM-060, RM-061, RM-062, RM-099, RM-190, RM-211 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+--- nouveau
+Règles applicables : RM-036, RM-060, RM-061, RM-062, RM-099, RM-190, RM-211, RM-241 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+
+=== V3-D-034 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-406 | CO-01
+--- ancien
+Fin CE-T03-09 ; mode DURATION ; sideMode UNILATERAL.
+--- nouveau
+Fin CE-T03-09 ; mode DURATION ; changement de côté Sans (D-406).
+
+=== V3-D-035 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-403 | CH-09, AC-09
+--- ancien
+Snapshot uniquement ; série courante, cible temps, temps restant, progression locale.
+--- nouveau
+Snapshot uniquement ; série courante, cible temps, temps restant, progression locale ; charge de la série courante selon RM-241.
+
+=== V3-D-036 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-403 | CH-09, AC-09
+--- ancien
+Compte à rebours de Série ; numéro/total de Séries ; temps total actif ; Catégorie sous le nom ; commandes Réinitialiser, Pause, Suivant et son/vocal ; mode et unité non ambigus.
+--- nouveau
+Compte à rebours de Série ; numéro/total de Séries ; temps total actif ; Catégorie sous le nom ; commandes Réinitialiser, Pause, Suivant et son/vocal ; mode et unité non ambigus. Charge de la série courante lorsqu’elle est active, selon RM-241, sans acquittement.
+
+=== V3-D-037 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-403 | CH-09, §4 écart 4, §11.3
+--- ancien
+Réutiliser groupes visuels du Shell ; supprimer plutôt que remplacer par valeurs fictives les blocs Session-only.
+--- nouveau
+Réutiliser groupes visuels du Shell ; supprimer plutôt que remplacer par valeurs fictives les blocs Session-only. La charge de la série courante (RM-241) n’a pas encore de référence visuelle Figma : emplacement et traitement à fixer par Figma, aucun emplacement « à côté de la cible » n’est arrêté ; référence visuelle manquante.
+
+=== V3-D-038 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-406 | CO-01
+--- ancien
+Timer/commandes nommés ; aucun côté annoncé en UNILATERAL ; état pause annoncé.
+--- nouveau
+Timer/commandes nommés ; aucun côté annoncé sans changement de côté (D-406) ; état pause annoncé.
+
+=== V3-D-039 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-403 | CH-09, AC-09, AC-10
+--- ancien
+Durée 1 s et plusieurs Séries avec pause 0/>0 ; fin naturelle, saut anticipé confirmé/annulé, reset, pause/reprise/arrêt, Fin propre 0/>0 ; aucun Tour/Cycle/récupération post-occurrence. Vérifier Catégorie, chrono et conservation du temps global après reset.
+--- nouveau
+Durée 1 s et plusieurs Séries avec pause 0/>0 ; fin naturelle, saut anticipé confirmé/annulé, reset, pause/reprise/arrêt, Fin propre 0/>0 ; aucun Tour/Cycle/récupération post-occurrence. Vérifier Catégorie, chrono et conservation du temps global après reset. Charge active, Sans et série variable à zéro : affichage selon RM-241 ; minuteurs, pauses et transitions inchangés.
+
+=== V3-D-040 | @13 – Contrats d’écran.md | RENVOI | CH-09
+--- ancien
+Règles applicables : RM-033, RM-058, RM-059, RM-062, RM-067, RM-069, RM-077, RM-099, RM-111, RM-211 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+--- nouveau
+Règles applicables : RM-033, RM-058, RM-059, RM-062, RM-067, RM-069, RM-077, RM-099, RM-111, RM-211, RM-241 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+
+=== V3-D-041 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-403 | CH-09, AC-09
+--- ancien
+Shell Exécution : nom, Catégorie, côté si applicable, numéro de Série, cible de répétitions ou À l’échec, chronomètre croissant et commandes ; Tour/Cycle absents.
+--- nouveau
+Shell Exécution : nom, Catégorie, côté si applicable, numéro de Série, charge de la série courante selon RM-241, cible de répétitions ou À l’échec, chronomètre croissant et commandes ; Tour/Cycle absents.
+
+=== V3-D-042 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-403 | CH-09, §4 écart 4, §11.3
+--- ancien
+Conserver le shell et les commandes existantes. Les états cadencés sont spécifiés fonctionnellement ; placement d’un éventuel libellé de cadence/nominal non certifié faute de frame. Ne pas créer un indicateur par Série ou un nouveau design.
+--- nouveau
+Conserver le shell et les commandes existantes. Les états cadencés sont spécifiés fonctionnellement ; placement d’un éventuel libellé de cadence/nominal non certifié faute de frame. Ne pas créer un indicateur par Série ou un nouveau design. La charge de la série courante (RM-241) n’a pas encore de référence visuelle Figma : emplacement et traitement à fixer par Figma, aucun emplacement « à côté de la cible » n’est arrêté ; référence visuelle manquante.
+
+=== V3-D-043 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-408 | CA-01, AC-15
+--- ancien
+Chaque Série exige une cible typée : nombre valide ou À l’échec. Absence/invalide n’équivaut pas à l’échec. Bip 0..10 valide dans les deux modes, entier obligatoire,0=Aucun. Aucune estimation forfaitaire ni transition déclenchée par le bip.
+--- nouveau
+Chaque Série exige une cible typée : nombre valide ou À l’échec. Absence/invalide n’équivaut pas à l’échec. Bip 0..10 valide dans les deux modes, entier obligatoire,0 = Sans (RM-245). Aucune estimation forfaitaire ni transition déclenchée par le bip.
+
+=== V3-D-044 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-403 | CH-09, AC-09, AC-10
+--- ancien
+Deux modes, N=1/N>1, cible 1/100, reset après temps écoulé, Suivant sans dialogue, pauses 0/>0, changement de côté et Fin propre. Aucun total cible inventé pour À l’échec ; aucun Tour/Cycle ni récupération post-occurrence.
+--- nouveau
+Deux modes, N=1/N>1, cible 1/100, reset après temps écoulé, Suivant sans dialogue, pauses 0/>0, changement de côté et Fin propre. Aucun total cible inventé pour À l’échec ; aucun Tour/Cycle ni récupération post-occurrence. Charge active ou Sans : affichage selon RM-241, sans confirmation ; cibles, cadence et pauses inchangées.
+
+=== V3-D-045 | @13 – Contrats d’écran.md | RENVOI | CH-09, CO-01, AC-23
+--- ancien
+Règles applicables : RM-026, RM-028, RM-029, RM-030, RM-038, RM-055, RM-056, RM-059, RM-060, RM-061, RM-062, RM-063, RM-067, RM-077, RM-084, RM-145, RM-147, RM-191, RM-209, RM-213, RM-218, RM-219, RM-220, RM-FMT-41 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+--- nouveau
+Règles applicables : RM-026, RM-028, RM-029, RM-030, RM-038, RM-055, RM-056, RM-059, RM-060, RM-061, RM-062, RM-063, RM-067, RM-077, RM-084, RM-145, RM-147, RM-191, RM-209, RM-213, RM-218, RM-219, RM-220, RM-FMT-41, RM-241, RM-243 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+
+=== V3-D-046 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-403 | CH-09
+--- ancien
+Instantané Session au démarrage, occurrences développées, Série/côté/Tour courants, paramètres intrinsèques, exclusion inconditionnelle des Compte à rebours/Fin propres selon D-214 révisée, résultats et temps moteur ; aucune lecture réactive de la source modifiée.
+--- nouveau
+Instantané Session au démarrage, occurrences développées, Série/côté/Tour courants, paramètres intrinsèques dont la charge de la série courante selon RM-241, exclusion inconditionnelle des Compte à rebours/Fin propres selon D-214 révisée, résultats et temps moteur ; aucune lecture réactive de la source modifiée.
+
+=== V3-D-047 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-403 | CH-09, AC-09
+--- ancien
+Shell Execution ; nom Exercice puis contexte nom Séance + Catégorie, côté distinct ; chrono/Série/Tour/progression ; commandes ; état média conditionnel.
+--- nouveau
+Shell Execution ; nom Exercice puis contexte nom Séance + Catégorie, côté distinct ; charge de la série courante selon RM-241 ; chrono/Série/Tour/progression ; commandes ; état média conditionnel.
+
+=== V3-D-048 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-403 | CH-09, §4 écart 4, §11.3
+--- ancien
+Rendu du shell courant et D-197/D-220 ; Série/Tour 24 selonDSF T10 ; écart vertical 24 entre temps total et progression Tours ; dialogues centrés D-228, jamais nouvelles pages numérotées.
+--- nouveau
+Rendu du shell courant et D-197/D-220 ; Série/Tour 24 selonDSF T10 ; écart vertical 24 entre temps total et progression Tours ; dialogues centrés D-228, jamais nouvelles pages numérotées. La charge de la série courante (RM-241) n’a pas encore de référence visuelle Figma : emplacement et traitement à fixer par Figma, aucun emplacement « à côté de la cible » n’est arrêté ; référence visuelle manquante.
+
+=== V3-D-049 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-23
+--- ancien
+Annoncer phase, nom et côté au démarrage/changement ; commandes nommées selon phase, notamment Réinitialiser la récupération. Focus dans dialogue puis retour ; indicateurs non fondés uniquement sur couleur.
+--- nouveau
+Annoncer phase, nom et côté (« Côté 1 » / « Côté 2 », RM-243) au démarrage/changement ; commandes nommées selon phase, notamment Réinitialiser la récupération. Focus dans dialogue puis retour ; indicateurs non fondés uniquement sur couleur.
+
+=== V3-D-050 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-13, AC-23
+--- ancien
+Ordres D→G/G→D, A–F, N1, R0/positif et dernière occurrence/chaque Tour ; jamais cumul PN+R ni récupération ajoutée deux fois.
+--- nouveau
+Changement de côté Avec dans les deux enchaînements (côté 1 puis côté 2, RM-243), A–F, N1, R0/positif et dernière occurrence/chaque Tour ; jamais cumul PN+R ni récupération ajoutée deux fois.
+
+=== V3-D-051 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-403 | CH-09, §4 écart 4
+--- ancien
+Le moteur d’Exécution peut néanmoins conserver ces informations pour son fonctionnement interne.
+--- nouveau
+Le moteur d’Exécution peut néanmoins conserver ces informations pour son fonctionnement interne. La charge de la Série courante, lorsqu’elle est active, est aussi affichée (RM-241) ; sa place dans cette hiérarchie relève de Figma, qui ne l’illustre pas encore.
+
+=== V3-D-052 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-403 | CH-09
+--- ancien
+- la Série courante sous la forme `x/y` lorsqu'il s'agit d'un Exercice ;
+--- nouveau
+- la Série courante sous la forme `x/y` lorsqu'il s'agit d'un Exercice ;
+- la charge de la Série courante lorsqu’elle est active (RM-241), à l’emplacement défini par Figma ;
+
+=== V3-D-053 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-403 | CH-09, §4 écart 4
+--- ancien
+| Série | Texte | Exercice | Non | `x/y` | Plan d’Exécution | Aucune | Paramètre propre à l’Exercice |
+--- nouveau
+| Série | Texte | Exercice | Non | `x/y` | Plan d’Exécution | Aucune | Paramètre propre à l’Exercice |
+| Charge | Texte | Série à charge active | Non | Charge de la Série courante (RM-241) | Instantané | Aucune | Emplacement selon Figma, non encore illustré |
+
+=== V3-D-054 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-403 | CH-09, §11.3
+--- ancien
+| Présentation | Le nouveau layout regroupe chrono circulaire, côté courant, cible `Sur`, Série/Tour, progression segmentée et bloc `Temps écoulé / À suivre`. Le contenu d’Exécution utilise Roboto Condensed ; le titre supérieur de Séance et les dialogues utilisent Inter. |
+--- nouveau
+| Présentation | Le nouveau layout regroupe chrono circulaire, côté courant, cible `Sur`, Série/Tour, progression segmentée et bloc `Temps écoulé / À suivre`. Le contenu d’Exécution utilise Roboto Condensed ; le titre supérieur de Séance et les dialogues utilisent Inter. La charge de la Série courante n’a pas d’emplacement arrêté dans ce layout, notamment pas « à côté de la cible » (RM-241). |
+
+=== V3-D-055 | @13 – Contrats d’écran.md | RENVOI | CH-06, §2
+--- ancien
+Règles applicables : RM-062, RM-078, RM-079, RM-101, RM-102, RM-103 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+--- nouveau
+Règles applicables : RM-062, RM-078, RM-079, RM-101, RM-102, RM-103, RM-235, RM-236 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+
+=== V3-D-056 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-403 | §2, CH-06, §5 Historique
+--- ancien
+La cadence prescrite est conservée dans l’instantané ; durée affichée réelle, cumulant intervalles abandonnés et tentatives reset par Série/côté. Aucun nombre de répétitions réellement effectué n’est inféré. Aucun nouveau champ de saisie en Synthèse.
+--- nouveau
+La cadence prescrite est conservée dans l’instantané ; durée affichée réelle, cumulant intervalles abandonnés et tentatives reset par Série/côté. Aucun nombre de répétitions réellement effectué n’est inféré. Aucun nouveau champ de saisie en Synthèse. La charge prévue et son activation sont conservées dans l’instantané (RM-236) ; aucune charge réalisée n’est saisie ni inférée (RM-235).
+
+=== V3-D-057 | @13 – Contrats d’écran.md | RENVOI | §2
+--- ancien
+Règles applicables : RM-028, RM-076, RM-078, RM-079, RM-080, RM-081, RM-083, RM-084, RM-FMT-38 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+--- nouveau
+Règles applicables : RM-028, RM-076, RM-078, RM-079, RM-080, RM-081, RM-083, RM-084, RM-FMT-38, RM-235 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+
+=== V3-D-058 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-403 | §2
+--- ancien
+Instantané de Séance, statut, durée réelle et résultats atteints ; nombre exécuté inclut les partiels, nombre terminé les exclut. Ne pas étiqueter le premier comme Exercices terminés. Partiels affichés séparément si>0 ; aucun double comptage Série/côté.
+--- nouveau
+Instantané de Séance, statut, durée réelle et résultats atteints ; nombre exécuté inclut les partiels, nombre terminé les exclut. Ne pas étiqueter le premier comme Exercices terminés. Partiels affichés séparément si>0 ; aucun double comptage Série/côté. Aucune charge réalisée n’est saisie ni inférée (RM-235).
+
+=== V3-D-059 | @13 – Contrats d’écran.md | RENVOI | CO-01
+--- ancien
+Règles applicables : RM-031, RM-032, RM-051, RM-052, RM-085, RM-086, RM-089, RM-090, RM-209, RM-212, RM-217 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+--- nouveau
+Règles applicables : RM-031, RM-032, RM-051, RM-052, RM-085, RM-086, RM-089, RM-090, RM-209, RM-212, RM-217, RM-242 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+
+=== V3-D-060 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-13
+--- ancien
+Libellé unique Pause entre les côtés ; défaut 10 s ; pas des pauses selon D-312 (D-386). Les captures anciennes de Profil portant un ancien libellé sont historiques sur ce texte.
+--- nouveau
+Libellé unique Pause entre les côtés, inchangé (D-406) ; défaut 10 s, proposé lorsqu’un Exercice passe à Changement de côté Avec (RM-212, RM-242) ; pas des pauses selon D-312 (D-386). Les captures anciennes de Profil portant un ancien libellé sont historiques sur ce texte.
+
+=== V3-D-061 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-413 | GR-01, PR-01
+--- ancien
+Libellés de tous les segmentés : `KODJO / Section title`, Inter Semi Bold 16/20, notamment Catalogue, Calendrier Jour/Semaine/Mois, Suivi, Mode, Mode d’exécution et Statut. Exceptions historiques de la feuille Paramètres, dont la présentation D-341 est remplacée par les DSF validés (D-377) : Changement de côté 13 px sur deux lignes ; Ordre des côtés 14 px + sous-titre 11 px. Les Calendriers et modes à trois choix gardent leurs trois options. La typographie ne modifie ni les libellés, ni les règles de sélection, ni l’état actif/désactivé propre à leur contexte.
+--- nouveau
+Libellés de tous les segmentés : `KODJO / Section title`, Inter Semi Bold 16/20, notamment Catalogue, Calendrier Jour/Semaine/Mois, Suivi, Mode, Mode d’exécution et Statut. Exceptions historiques de la feuille Paramètres, dont la présentation D-341 est remplacée par les DSF validés (D-377), eux-mêmes remplacés par D-413 pour les lignes Mode, Type de série et Changement de côté : Changement de côté 13 px sur deux lignes ; Enchainement (concept Ordre des côtés) 14 px + sous-titre 11 px. Les Calendriers et modes à trois choix gardent leurs trois options. La typographie ne modifie ni les libellés, ni les règles de sélection, ni l’état actif/désactivé propre à leur contexte.
+
+=== V3-D-062 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-412 | RO-01, AC-24, AC-25
+--- ancien
+Toutes les roulettes de **durée** actives utilisent la famille de modales basses du DSF. Les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent un **stepper inline** et n’ouvrent aucune roulette. La cible `Nombre de répétitions` utilise une roulette native à une colonne : « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385). Les anciennes représentations contraires ne constituent plus une référence active.
+--- nouveau
+Toutes les roulettes de **durée** actives utilisent la famille de modales basses du DSF. Les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent un **stepper inline** et n’ouvrent aucune roulette. La cible `Nombre de répétitions` utilise une roulette native à une colonne : « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385). Les anciennes représentations contraires ne constituent plus une référence active. En séries identiques, la roulette Durée d’une série propose uniquement une durée numérique ; celle d’une cellule de série variable en mode Durée propose aussi « À l’échec » (RM-250).
+
+=== V3-D-063 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-408 | CA-01, AC-15
+--- ancien
+Bip de cadence : shell et préférences Profil conservés ; stepper 0..10 dans les deux modes,0=Aucun. États d’exécution sans nouveau layout ; [Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité) gouverne les signaux périodiques, nominal, Pause/Reprise et sécurité. L’ancien écran 7061:13383 de roulette est supprimé.
+--- nouveau
+Bip de cadence : shell et préférences Profil conservés ; valeur 0..10 dans les deux modes, 0 = Sans, choisie par la ligne Cadence Autre | 5 s | 2 s | 1 s | Sans (RM-245). États d’exécution sans nouveau layout ; [Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité) gouverne les signaux périodiques, nominal, Pause/Reprise et sécurité. L’ancien écran 7061:13383 de roulette est supprimé.
+
+=== V3-D-064 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-409 | DU-01, AC-16
+--- ancien
+- Durée totale : conserver le sélecteur minutes/secondes. La borne dérivée est T(1)..T(99) pour les paramètres courants, et non 58 min 55 s (borne par Série). La colonne minutes doit représenter T(99), sans nouvelle colonne ni nouveau contrôle. Granularité seconde ; le calcul inverse existant choisit N dans 1..99, arrondi .5 vers le haut, puis affiche T(N) et le message d’ajustement si nécessaire. En Durée uniforme, une diminution à N=1 ne masque le total du résumé que s’il égale effectivement la cible ; la ligne Total reste présente dans la feuille en Durée/Répétitions, y compris à N = 1 ; elle affiche « — » lorsqu’une cible nécessaire au calcul manque (D-396, D-384) ; elle est masquée lorsqu’aucune durée totale n’est calculée, en Répétitions sans bip et quand toutes les cibles sont À l’échec (D-397).
+--- nouveau
+- Durée de l’exercice (libellé visible de la ligne de durée totale, D-409) : conserver le sélecteur minutes/secondes. La borne dérivée est T(1)..T(99) pour les paramètres courants, et non 58 min 55 s (borne par Série). La colonne minutes doit représenter T(99), sans nouvelle colonne ni nouveau contrôle. Granularité seconde ; le calcul inverse existant choisit N dans 1..99, arrondi .5 vers le haut, puis affiche T(N) et le message d’ajustement si nécessaire. En Durée uniforme, une diminution à N=1 ne masque le total du résumé que s’il égale effectivement la cible ; la ligne Durée de l’exercice reste présente dans la feuille en Durée/Répétitions, y compris à N = 1 ; elle affiche « — » lorsqu’une cible nécessaire au calcul manque (D-396, D-384) ; elle est masquée lorsqu’aucune durée totale n’est calculée, en Répétitions sans bip et quand toutes les cibles sont À l’échec (D-397). Sans ligne Durée de l’exercice affichée, Compte à rebours et Fin d’exercice restent directement visibles lorsqu’ils sont applicables (RM-246).
+
+=== V3-D-065 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-23
+--- ancien
+| E53 | Pas texte direction développé cartes Composition |
+--- nouveau
+| E53 | Pas de texte développé du changement de côté sur les cartes Composition (D-407) |

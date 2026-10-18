@@ -1,0 +1,250 @@
+{
+ "description": "Intégration de la spécification v3.0 — V3-19-adaptations-pr.txt",
+ "corrections": [
+  {
+   "id": "V3-M-001",
+   "file": "DSF-BIP-CADENCE-2026-10-07.md",
+   "motif": "INTEGRATION-PR:#370",
+   "ref": "PR #370, bloc P370D-001 (contexte modifié par la mise à jour du 18/10)",
+   "ancien": "## Contrôle et état Figma",
+   "nouveau": "## Guidage avec phases d’exercice\r\n\r\nLe bip reste commun à la série et ne redémarre pas au changement de phase. Transition prioritaire s’il coïncide avec son signal. Si voix activée, annoncer chaque libellé au début, première phase comprise ; le chronométrage ne l’attend pas et la nouvelle annonce interrompt la précédente. Aucune file d’annonces périmées. Les réglages sons/voix existants gardent leur portée. Placement du libellé sur le cadran et articulation avec les annonces exercice/côté à compléter dans le contrat d’exécution, sans inventer de nouveau shell.\r\n\r\n## Contrôle et état Figma",
+   "commentaire": "Adaptation du contenu des PR #363, #370 et #371 aux décisions D-403 à D-424, et blocs dont le contexte a été modifié. / Traitement des passages remplacés : la décision récente est conservée ; le passage de la PR est réécrit en citant la décision, / et le traitement est consigné dans pr/traitement-pr.md."
+  },
+  {
+   "id": "V3-M-002",
+   "file": "DSF-CIRCUITS-CONTROLES-2026-10-12.md",
+   "motif": "INTEGRATION-PR:#371",
+   "ref": "PR #371, PRE-4 Q11, bloc P371D-001",
+   "ancien": "## Modalités d’exécution et tableau variable",
+   "nouveau": "## Paramètres d’exécution et tableau variable"
+  },
+  {
+   "id": "V3-M-003",
+   "file": "DSF-DEUX-MODES-ECHEC-2026-10-13.md",
+   "motif": "INTEGRATION-PR:#371",
+   "ref": "PR #371, PRE-4 Q12 et Q14, bloc P371D-003 (ligne marquée le 18/10)",
+   "ancien": "Libellé : **Aucune durée, à l’échec** / **Aucune répétition, à l’échec**, selon le mode. Option en tête ; pas de coche. Le contrôle ouvre la cible courante ; validation par ✓ de la feuille, annulation par ✕. La sélection numérique et l’échec s’excluent mutuellement.",
+   "nouveau": "Libellé : **Aucune durée, à l’échec** / **Aucune répétition, à l’échec**, selon le mode. Option en tête ; pas de coche. En Répétitions, cette option est la ligne de tête de la roulette à une colonne ; aucun bloc horaire 00:00 n’y est transposé. Le contrôle ouvre la cible courante ; ✓ de la roulette applique la sélection au brouillon de la feuille ; ✕ de la roulette restaure la valeur à son ouverture. ✓ de la feuille applique l’ensemble au parent ; ✕ de la feuille annule toutes les modifications depuis son ouverture, y compris celles validées dans une roulette. Aucune persistance définitive à la validation de la roulette. La sélection numérique et l’échec s’excluent mutuellement."
+  },
+  {
+   "id": "V3-M-004",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "motif": "INTEGRATION-PR:#370",
+   "ref": "PR #370, bloc P370-006 adapté à D-410 et D-413 ; PR #371, bloc P371-002",
+   "ancien": "#### Feuille Modalités d’exécution — états intégrés",
+   "nouveau": "### Présentation des phases d’exercice\r\n\r\nLa ligne Phases de l’exercice (Avec / Sans) ouvre le cadre Séries, après le cadre Exécution (D-413). Avec crée la première phase ; le chevron, à l’intérieur de l’option Avec, replie ou déploie le tableau Libellé/Durée (D-410) ; Sans signifie qu’il n’y a aucune phase. La durée de série devient calculée. Les états incompatibles sont non modifiables, sans transformer une valeur effective calculée en tiret. Contrat CE-UI-10 et [règles métier](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).\r\n\r\nLe rapport Figma V2 du 15/10 décrit trois écrans dédiés sur Conception — Hors MVP : « Phases (aucune) », « Phases (définies) » et « Phases verrouillées (séries variables) ». Il décrit aussi la ligne ajoutée sur 19 écrans de Prototype MVP et 19 de Conception. Ces nombres sont ceux du rapport fourni, pas un nouvel inventaire direct. Les seize modales de format n’ont pas encore reçu cette ligne selon ce rapport.\r\n\r\nLes frames relevées le 18/10/2026 ci-dessous montrent la ligne Phases de l’exercice ; deux d’entre elles illustrent des phases. Le report des trois écrans dédiés reste à effectuer ; aucune capture n’est fabriquée ou retouchée. Le cadran et la carte de composition attendent leur précision de présentation.\r\n\r\n#### Création activité — Paramètres (modale) — Phases verrouillées (séries variables)\r\n\r\n[Source Figma — `8982:15172`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-15172)\r\n\r\n![Création activité — Paramètres (modale) — Phases verrouillées (séries variables)](images/parametres-2026-10-18/8982-15172.png)\r\n\r\nSéries variables, trois séries à l’échec : Phases de l’exercice non modifiable ; Condition d’arrêt À l’échec déterminée automatiquement (RM-249) ; aucune ligne Durée de l’exercice (D-397).\r\n\r\n#### Création exercice — Paramètres — Proposition 3 — Tableau de 3 phases\r\n\r\n[Source Figma — `9207:18817`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9207-18817)\r\n\r\n![Création exercice — Paramètres — Proposition 3 — Tableau de 3 phases](images/parametres-2026-10-18/9207-18817.png)\r\n\r\nTableau de trois phases sous l’option Avec déployée (chevron vers le haut), sans boutons +/− ; Variables non modifiable ; Durée de l’exercice en texte simple. Écarts Figma : nom de frame hors convention (« Proposition 3 ») et barre bleue résiduelle à gauche de la ligne 1.\r\n\r\n### Feuille Paramètres d’exécution — états intégrés"
+  },
+  {
+   "id": "V3-M-005",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "phases intégrées (PR #370), GR-01",
+   "ancien": "→ Séries (Nombre de séries, Type de série avec chevron intérieur à Variables, Durée ou Répétitions et Pause ou tableau de séries variables, Charge) →",
+   "nouveau": "→ Séries (Phases de l’exercice avec chevron intérieur à Avec et tableau éventuel, Nombre de séries, Type de série avec chevron intérieur à Variables, Durée ou Répétitions et Pause ou tableau de séries variables, Charge) →",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-M-006",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "phases intégrées (PR #370)",
+   "ancien": "Toutes les frames montrent aussi la ligne Phases de l’exercice : elle relève de la proposition en cours sur les phases d’exercice (D-370 à D-375 réservés) et n’est pas décrite par ce chapitre.",
+   "nouveau": "Toutes les frames montrent aussi la ligne Phases de l’exercice, décrite à la section « Présentation des phases d’exercice » ci-dessus (D-370 à D-375).",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-M-010",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "phases intégrées (PR #370), GR-01 ; bloc #370 « ordre de la feuille » sans objet",
+   "ancien": "2 Séries — Nombre de séries, Type de série, puis Durée ou Répétitions et Pause (identiques) ou tableau de séries variables, puis Charge ;",
+   "nouveau": "2 Séries — Phases de l’exercice (Avec / Sans, chevron intérieur à Avec, tableau Libellé/Durée lorsqu’il est déployé), Nombre de séries, Type de série, puis Durée ou Répétitions et Pause (identiques) ou tableau de séries variables, puis Charge ;",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-M-011",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-410",
+   "ref": "phases intégrées (PR #370), CV-01",
+   "ancien": "| 3 | Nombre de séries | Cadre 2 Séries.",
+   "nouveau": "| 2b | Phases de l’exercice | Cadre 2 Séries, en tête. Contrôle segmenté Avec / Sans ; chevron à l’intérieur de l’option Avec (D-410) ; tableau Libellé/Durée sans boutons +/− (D-413) ; durée de série calculée ; disponible en Durée chiffrée et séries identiques seulement (D-370 à D-375, ch. 08 « Phases d’exercice ») |\r\n| 3 | Nombre de séries | Cadre 2 Séries.",
+   "decision": "D-410"
+  },
+  {
+   "id": "V3-M-012",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "PR #371 (PRE-4 Q13) adapté à D-413 et D-417",
+   "ancien": "Toucher une cellule cible du tableau variable ouvre sa roulette sur la cible courante (numérique ou À l’échec) ; seule cette cellule est modifiée. Le pied commun reste le réglage de la cellule active.",
+   "nouveau": "Toucher une cellule cible du tableau variable ouvre sa roulette sur la cible courante (numérique ou À l’échec) ; seule cette cellule est modifiée. Le pied commun est retiré (D-413) ; chaque cellule utilise le sélecteur de son champ (D-417).",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-M-013",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "PR #370 adapté à D-413 (PR-02)",
+   "ancien": "Réutiliser la ligne de tableau à deux colonnes et son pied, le repli et les états existants.",
+   "nouveau": "Réutiliser la ligne de tableau à deux colonnes, sans pied ni boutons +/− (D-413), le repli par le chevron intérieur à Avec (D-410) et les états existants.",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-M-014",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-410",
+   "ref": "PR #370 adapté à D-410 (libellés Avec / Sans)",
+   "ancien": "Aucune crée Phase1 à la durée actuelle.",
+   "nouveau": "Avec crée Phase1 à la durée actuelle (D-410).",
+   "decision": "D-410"
+  },
+  {
+   "id": "V3-M-015",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "PR #371 (PRE-4 Q15) adapté à D-413",
+   "ancien": "Le pied ± de cible Durée utilise un pas de 5 s, dans les bornes autorisées ; ne pas confondre ce pas avec celui des pauses ou des phases.",
+   "nouveau": "La cible Durée utilise un pas de 5 s, dans les bornes autorisées, sans pied ± (retiré par D-413) ; ne pas confondre ce pas avec celui des pauses ou des phases.",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-M-016",
+   "file": "DSF-DEUX-MODES-ECHEC-2026-10-13.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "PR #371 (PRE-4 Q15) adapté à D-413",
+   "ancien": "Le pied ± de cible Durée utilise un pas de 5 s, dans les bornes autorisées ; ne pas confondre ce pas avec celui des pauses ou des phases.",
+   "nouveau": "La cible Durée utilise un pas de 5 s, dans les bornes autorisées, sans pied ± (retiré par D-413) ; ne pas confondre ce pas avec celui des pauses ou des phases.",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-M-017",
+   "file": "DSF-CIRCUITS-CONTROLES-2026-10-12.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "PR #371 (PRE-4 Q13) adapté à D-413 et D-417",
+   "ancien": "Le pied commun conserve son rôle de réglage de la cellule active ; il ne constitue pas l’unique accès à la cible À l’échec.",
+   "nouveau": "Le pied commun est retiré (D-413) ; chaque cellule utilise le sélecteur de son champ (D-417).",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-M-018",
+   "file": "DSF-DEUX-MODES-ECHEC-2026-10-13.md",
+   "motif": "CORRECTION-DECIDEE:D-410",
+   "ref": "PR #370 adapté à D-410 et D-413",
+   "ancien": "La ligne Phases suit Mode d’exécution et précède Séries. Aucune est éditable uniquement en Durée chiffrée avec séries identiques ; aucun chevron sans tableau. Appui sur Aucune : création de la première phase. Liste existante : chevron de repli, tableau Libellé/Durée à deux colonnes, poignée, suppression et pied commun.",
+   "nouveau": "La ligne Phases de l’exercice (Avec / Sans) ouvre le cadre Séries, après le cadre Exécution (D-413). Elle n’est modifiable qu’en Durée chiffrée avec séries identiques ; le chevron n’existe qu’à l’intérieur de l’option Avec (D-410). Avec : création de la première phase. Liste existante : chevron de repli, tableau Libellé/Durée à deux colonnes, poignée et suppression, sans pied ni boutons +/− (D-413).",
+   "decision": "D-410"
+  },
+  {
+   "id": "V3-M-020",
+   "file": "@03 – Parcours utilisateur.md",
+   "motif": "CORRECTION-DECIDEE:D-410",
+   "ref": "PR #370 adapté à D-410 et D-413",
+   "ancien": "Dans Modalités d’exécution, la ligne Phases suit Mode d’exécution. Sur un exercice en Durée chiffrée et séries identiques, toucher Aucune crée une première phase reprenant la durée actuelle de série. Ajouter, nommer, régler et déplacer jusqu’à six phases ; leur somme devient la durée de série. Le chevron n’existe que lorsque la liste existe.",
+   "nouveau": "Dans la feuille Paramètres d’exécution, la ligne Phases de l’exercice ouvre le cadre Séries (D-413). Sur un exercice en Durée chiffrée et séries identiques, choisir Avec crée une première phase reprenant la durée actuelle de série. Ajouter, nommer, régler et déplacer jusqu’à six phases ; leur somme devient la durée de série. Le chevron, à l’intérieur de l’option Avec, n’existe que lorsque la liste existe (D-410).",
+   "decision": "D-410"
+  },
+  {
+   "id": "V3-M-021",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "motif": "CORRECTION-DECIDEE:D-410",
+   "ref": "PR #370 adapté à D-410",
+   "ancien": "- Un exercice contient zéro à six phases ordonnées. Zéro signifie « Aucune » ; une seule phase est autorisée.",
+   "nouveau": "- Un exercice contient zéro à six phases ordonnées. Zéro correspond à Phases de l’exercice Sans (D-410) ; une seule phase est autorisée.",
+   "decision": "D-410"
+  },
+  {
+   "id": "V3-M-022",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "motif": "CORRECTION-DECIDEE:D-410",
+   "ref": "PR #370 adapté à D-410 et D-413",
+   "ancien": "La ligne « Phases » se trouve entre « Mode d’exécution » et « Séries ». Sans phases, la valeur « Aucune » ne porte pas de chevron. Son appui crée la première phase, reprend la durée actuelle de la série et propose le libellé « Phase 1 ».",
+   "nouveau": "La ligne « Phases de l’exercice » (Avec / Sans) ouvre le cadre Séries, après le cadre Exécution (D-413). Sans phases, Sans est sélectionné et aucun chevron n’est affiché. Choisir Avec crée la première phase, reprend la durée actuelle de la série et propose le libellé « Phase 1 » ; le chevron est à l’intérieur de l’option Avec (D-410).",
+   "decision": "D-410"
+  },
+  {
+   "id": "V3-M-023",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "PR #370 adapté à D-413 (PR-02)",
+   "ancien": "déplacement, numéro, colonnes Libellé et Durée, suppression, ligne active et commandes d’ajout/retrait.",
+   "nouveau": "déplacement, numéro, colonnes Libellé et Durée, suppression et ligne active, sans pied ni boutons +/− (D-413).",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-M-024",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "motif": "CORRECTION-DECIDEE:D-410",
+   "ref": "PR #370 adapté à D-410",
+   "ancien": "Supprimer la dernière phase existante ramène la ligne à « Aucune »",
+   "nouveau": "Supprimer la dernière phase existante ramène la ligne à Sans (D-410)",
+   "decision": "D-410"
+  },
+  {
+   "id": "V3-M-025",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "motif": "CORRECTION-DECIDEE:D-409",
+   "ref": "PR #370 adapté à D-409",
+   "ancien": "C’est la valeur du champ Durée totale des paramètres.",
+   "nouveau": "C’est la valeur de la ligne Durée de l’exercice des paramètres (D-409).",
+   "decision": "D-409"
+  },
+  {
+   "id": "V3-M-030",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "CORRECTION-DECIDEE:D-410",
+   "ref": "phases intégrées (PR #370)",
+   "ancien": "- Les points qui portent sur les phases d’exercice s’appliqueront à la proposition de documentation en cours qui les introduit (D-370 à D-375 réservés) ; ils ne créent pas ces phases.",
+   "nouveau": "- Les points qui portent sur les phases d’exercice s’appliquent aux phases intégrées le 18/10/2026 depuis la PR #370 (D-370 à D-375).",
+   "decision": "D-410"
+  },
+  {
+   "id": "V3-M-031",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "CORRECTION-DECIDEE:D-421",
+   "ref": "phases intégrées (PR #370)",
+   "ancien": "Les points propres aux phases d’exercice (D-410, D-412, D-413) suivent la proposition en cours qui introduit les phases. |",
+   "nouveau": "Les points propres aux phases d’exercice (D-410, D-412, D-413) s’appliquent aux phases intégrées depuis la PR #370 (D-370 à D-375). |",
+   "decision": "D-421"
+  },
+  {
+   "id": "V3-M-032",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "CORRECTION-DECIDEE:D-410",
+   "ref": "PR #370, statut de D-371",
+   "ancien": "Les paramètres limites non arbitrés, les textes de synthèse et la présentation d’exécution restent localisés dans la section Phases du chapitre 08. Ces décisions ne remplacent ni les pauses et côtés existants ni leurs commandes.",
+   "nouveau": "Les paramètres limites non arbitrés, les textes de synthèse et la présentation d’exécution restent localisés dans la section Phases du chapitre 08. Ces décisions ne remplacent ni les pauses et côtés existants ni leurs commandes.\r\n\r\nIntégration du 18/10/2026 : D-371 est remplacée sur ce point par D-410 et D-413 — le contrôle Phases de l’exercice propose Avec / Sans (« Aucune » devient Sans ; Avec crée la première phase) et son chevron est à l’intérieur de l’option Avec ; le tableau des phases n’a ni pied ni boutons +/−. Le texte de D-371 est conservé.",
+   "decision": "D-410"
+  },
+  {
+   "id": "V3-M-033",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "INTEGRATION-PR:#371",
+   "ref": "PR #371, PRE-4 Q18 (validation du 16/10, D-385) ; texte de la décision conservé",
+   "ancien": "| D-094 | La confirmation des modifications non enregistrées de l’écran Exercice utilisait la frame historique `3224:4082` (supprimée, non exploitable comme cible courante) et conserve `Overlay / Decision Dialog`, variante danger/neutre à deux actions (`2590:2934`). En modification : titre `Abandonner les modifications ?`, message `Les modifications apportées à cet exercice seront perdues.` ; en création : titre `Abandonner la création ?`, message `L’exercice ne sera pas créé.` ; action non destructive `Annuler`, action destructive `Confirmer`. | Révisée post-Figma | Oui |",
+   "nouveau": "| D-094 | La confirmation des modifications non enregistrées de l’écran Exercice utilisait la frame historique `3224:4082` (supprimée, non exploitable comme cible courante) et conserve `Overlay / Decision Dialog`, variante danger/neutre à deux actions (`2590:2934`). Elle affiche : titre `Abandonner les modifications ?`, message `Les modifications apportées à cette exercice seront perdues.`, action non destructive `Annuler`, action destructive `Confirmer`. | Révisée post-Figma ; précisée par la décision PRE-4 Q18 du 16/10/2026 (D-385) : en modification, titre `Abandonner les modifications ?`, message `Les modifications apportées à cet exercice seront perdues.` ; en création, titre `Abandonner la création ?`, message `L’exercice ne sera pas créé.` ; actions `Annuler` (non destructive) et `Confirmer` (destructive) | Oui |"
+  },
+  {
+   "id": "V3-M-034",
+   "file": "@07 – Registre des décisions de conception.md",
+   "motif": "INTEGRATION-PR:#371",
+   "ref": "PR #371, PRE-4 Q17 (validation du 16/10, D-385) ; texte de la décision conservé",
+   "ancien": "| D-309 | Exercice : exact en Durée toute chiffrée ; ≈ en Répétitions toute chiffrée avec bip ; ≥ pour un mélange chiffré/échec calculable, prioritaire sur ≈ ; omitted en Répétitions sans bip ou toutes cibles À l’échec. Séance/Circuit : ≥ si travail inconnu, conformément à RM-129/RM-132. | Explicite | Prompt§3 |",
+   "nouveau": "| D-309 | Exercice : exact Durée, ≈ Répétitions avec bip, omitted sans bip/À l’échec ; ≥ seulement Séance. | Explicite ; précisée par la décision PRE-4 Q17 du 16/10/2026 (D-385) : à l’Exercice, exact en Durée toute chiffrée ; ≈ en Répétitions toute chiffrée avec bip ; ≥ pour un mélange chiffré/échec calculable, prioritaire sur ≈ ; omitted en Répétitions sans bip ou toutes cibles À l’échec ; Séance/Circuit : ≥ si travail inconnu, conformément à RM-129/RM-132 | Prompt§3 |"
+  },
+  {
+   "id": "V3-M-080",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "INTEGRATION-PR:#371",
+   "ref": "PR #371, PRE-4 Q12 et Q14 (bloc P371-011, contexte modifié par #370)",
+   "ancien": "Cible chiffrée / À l’échec / mélange ; ouverture sur la cible courante. Option sélectionnée 100%, sinon 45% du remplissage #1a1a1f. À l’échec sélectionné : partie numérique neutre 00:00 et grisée ; ce zéro n’est pas une cible valide. Aucun écran uniforme supplémentaire : un changement de valeur seul ne crée pas un nouveau contrat.",
+   "nouveau": "Cible chiffrée / À l’échec / mélange ; ouverture sur la cible courante. Option sélectionnée100%, sinon45% du remplissage #1a1a1f. À l’échec sélectionné : partie numérique neutre00:00 et grisée en mode Durée ; ce zéro n’est pas une cible valide. Aucun écran uniforme supplémentaire : un changement de valeur seul ne crée pas un nouveau contrat."
+  },
+  {
+   "id": "V3-M-081",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "INTEGRATION-PR:#371",
+   "ref": "PR #371, PRE-4 Q12 et Q14 (bloc P371-011, contexte modifié par #370)",
+   "ancien": "Deux modes seulement. Cible chiffrée et À l’échec mutuellement exclusives ; libellé « Aucune durée, à l’échec » ou « Aucune répétition, à l’échec ». Aucune coche dans la liste ; ✓ de la feuille applique. Conserver le type À l’échec lors d’une bascule de mode. À tout instant, exactement une cible est sélectionnée. À l’ouverture : cible numérique → roulette active sur la valeur courante et libellé échec à 45% ; cible échec → libellé actif et bloc numérique grisé à 45%, affiché à 00:00. Faire tourner la roulette sélectionne la valeur numérique et grise le libellé. Toucher le libellé sélectionne l’échec et ramène la roulette grisée à 00:00. Le grisé exprime la non-sélection, pas une interdiction de manipuler la roulette. Aucun geste supplémentaire de déverrouillage, aucune coche. Validation par le bouton de la feuille ; annulation selon le brouillon existant.00:00 n’est jamais une cible valide ; pause 0 reste valide.",
+   "nouveau": "Deux modes seulement. Cible chiffrée et À l’échec mutuellement exclusives ; libellé « Aucune durée, à l’échec » ou « Aucune répétition, à l’échec ». En Répétitions, « Aucune répétition, à l’échec » est la ligne de tête de la roulette à une colonne ; aucun bloc horaire 00:00 n’y est transposé. Aucune coche dans la liste ; ✓ de la roulette applique la sélection au brouillon de la feuille ; ✕ de la roulette restaure la valeur à son ouverture. ✓ de la feuille applique l’ensemble au parent ; ✕ de la feuille annule toutes les modifications depuis son ouverture, y compris celles validées dans une roulette. Aucune persistance définitive à la validation de la roulette. Conserver le type À l’échec lors d’une bascule de mode. À tout instant, exactement une cible est sélectionnée. À l’ouverture : cible numérique → roulette active sur la valeur courante et libellé échec à45% ; cible échec → libellé actif et bloc numérique grisé à45%, affiché à00:00 en mode Durée uniquement. Faire tourner la roulette sélectionne la valeur numérique et grise le libellé. Toucher le libellé sélectionne l’échec et ramène le bloc numérique grisé à00:00 en mode Durée. Le grisé exprime la non-sélection, pas une interdiction de manipuler la roulette. Aucun geste supplémentaire de déverrouillage, aucune coche. ✓ de la roulette applique la sélection au brouillon de la feuille ; ✕ de la roulette restaure la valeur à son ouverture. ✓ de la feuille applique l’ensemble au parent ; ✕ de la feuille annule toutes les modifications depuis son ouverture, y compris celles validées dans une roulette. Aucune persistance définitive à la validation de la roulette.00:00 n’est jamais une cible valide ; pause0 reste valide."
+  }
+ ]
+}

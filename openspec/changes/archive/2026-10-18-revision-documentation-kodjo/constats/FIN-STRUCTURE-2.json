@@ -1,0 +1,73 @@
+{
+ "description": "Finalisation du lot 6 — références de position (« ce document », « présent chapitre ») rétablies sur le chapitre d’origine des sections déplacées, et renvois de domaine (vérification structure-2b). Aucune règle produit modifiée.",
+ "corrections": [
+  {
+   "id": "STR-201",
+   "ref": "structure-2b S08-0439 NON-CONFORME : section venue du ch. 08 (« 1.6 Évolutivité ») ; « ce document » désignait le ch. 08 ; référents rétablis, sens inchangé",
+   "motif": "CORRECTION-DECIDEE:D-402",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-402",
+   "file": "@05 – Versions du produit.md",
+   "ancien": "Les comportements décrits correspondent au périmètre du MVP.\r\n\r\nLes évolutions prévues pour les versions ultérieures sont décrites dans le chapitre **05 – Versions du produit** et ne sont pas détaillées dans ce document, sauf lorsqu'elles sont nécessaires pour justifier un choix de conception du MVP.",
+   "nouveau": "Les comportements décrits au chapitre **08 – Conception fonctionnelle par fonctionnalité** correspondent au périmètre du MVP.\r\n\r\nLes évolutions prévues pour les versions ultérieures sont décrites dans le présent chapitre et ne sont pas détaillées au chapitre 08, sauf lorsqu'elles sont nécessaires pour justifier un choix de conception du MVP."
+  },
+  {
+   "id": "STR-202",
+   "ref": "structure-2b (même cas que S09-0710) : section S03-0128 venue du ch. 03 ; « présent chapitre » désignait le ch. 03",
+   "motif": "CORRECTION-DECIDEE:D-402",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-402",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.\r\n\r\n### MVP T03 — Exercice directement exécutable — Précision MVP T03 — Carte d’Exercice et vignette média",
+   "nouveau": "Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du chapitre 03 – Parcours utilisateur dans ce périmètre uniquement.\r\n\r\n### MVP T03 — Exercice directement exécutable — Précision MVP T03 — Carte d’Exercice et vignette média"
+  },
+  {
+   "id": "STR-203",
+   "ref": "structure-2b S09-0710 NON-CONFORME : section venue du ch. 09 ; « présent chapitre » désignait le ch. 09",
+   "motif": "CORRECTION-DECIDEE:D-402",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-402",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "Contrat de donnée : ajouter au Profil la préférence facultative `silhouette`, valeurs `homme` / `femme` ; absence ou null conserve le rendu homme, sans imposer de saisie aux profils existants. Ce champ ne représente pas un sexe. Les références média et les instantanés existants sont conservés.\r\n\r\nRéférence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.",
+   "nouveau": "Contrat de donnée : ajouter au Profil la préférence facultative `silhouette`, valeurs `homme` / `femme` ; absence ou null conserve le rendu homme, sans imposer de saisie aux profils existants. Ce champ ne représente pas un sexe. Les références média et les instantanés existants sont conservés.\r\n\r\nRéférence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du chapitre 09 – Modèle de données fonctionnel dans ce périmètre uniquement."
+  },
+  {
+   "id": "STR-204",
+   "ref": "structure-2b (même cas) : section S10-0745 venue du ch. 10 ; « présent chapitre » désignait le ch. 10",
+   "motif": "CORRECTION-DECIDEE:D-402",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-402",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "### RG des cartes\r\n\r\nRéférence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.",
+   "nouveau": "### RG des cartes\r\n\r\nRéférence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du chapitre 10 – Règles métier et calculs dans ce périmètre uniquement."
+  },
+  {
+   "id": "STR-205",
+   "ref": "structure-2b S11-0831 NON-CONFORME : section venue du ch. 11 ; « présent chapitre » désignait le ch. 11",
+   "motif": "CORRECTION-DECIDEE:D-402",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-402",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "Contrat Profil : la lecture et la mise à jour du Profil portent la préférence facultative `silhouette` (homme/femme). Champ absent : rendu homme ; lors d’une mise à jour partielle, omission = préférence conservée, null = préférence non renseignée. Aucun endpoint distinct ni nouveau mécanisme d’import média n’est requis.\r\n\r\nRéférence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.",
+   "nouveau": "Contrat Profil : la lecture et la mise à jour du Profil portent la préférence facultative `silhouette` (homme/femme). Champ absent : rendu homme ; lors d’une mise à jour partielle, omission = préférence conservée, null = préférence non renseignée. Aucun endpoint distinct ni nouveau mécanisme d’import média n’est requis.\r\n\r\nRéférence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du chapitre 11 – API fonctionnelles dans ce périmètre uniquement."
+  },
+  {
+   "id": "STR-206",
+   "ref": "structure-2b S09-0710 : le domaine Données (ch. 09) ne mentionnait plus la préférence `silhouette` ; renvoi seul, sans recopie",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "## Profil et préférences\r\n",
+   "nouveau": "## Profil et préférences\r\n\r\n*Préférence facultative `silhouette` du Profil : contrat de donnée énoncé à la section [« Migration T03 — Catalogue des Exercices — Impacts de données de la revue des cartes »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#migration-t03--catalogue-des-exercices--impacts-de-données-de-la-revue-des-cartes) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "STR-207",
+   "ref": "structure-2b S11-0831 : le domaine API (ch. 11) ne mentionnait plus la préférence `silhouette` ; renvoi seul, sans recopie",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@11 – API fonctionnelles.md",
+   "ancien": "## Profil et préférences\r\n",
+   "nouveau": "## Profil et préférences\r\n\r\n*Préférence facultative `silhouette` du Profil : contrat de service énoncé à la section [« Impact API de la revue des cartes »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#impact-api-de-la-revue-des-cartes) ; il n’est pas recopié ici.*\r\n"
+  }
+ ]
+}

@@ -1,0 +1,1104 @@
+{
+ "description": "Étape 6K — espaces manquantes (QS-14, QF-13, QF-17), corrections rédactionnelles",
+ "corrections": [
+  {
+   "id": "6K-10-257",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "Ordre : nombre de séries → contenu → pause → côtés → durée applicable. Ponctuation et accords conformes aux276 cas ; série/séries, menée/menées. Les espaces et unités font partie du texte. Mode affiché à part, absent du début de phrase.",
+   "nouveau": "Ordre : nombre de séries → contenu → pause → côtés → durée applicable. Ponctuation et accords conformes aux 276 cas ; série/séries, menée/menées. Les espaces et unités font partie du texte. Mode affiché à part, absent du début de phrase."
+  },
+  {
+   "id": "6K-10-262",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "| Durée variable, jusqu’à3 | `{N} séries de durée variable ({d1}, {d2} puis {d3})` ; à2, séparer par « puis » |",
+   "nouveau": "| Durée variable, jusqu’à 3 | `{N} séries de durée variable ({d1}, {d2} puis {d3})` ; à 2, séparer par « puis » |"
+  },
+  {
+   "id": "6K-10-263",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "| Durée variable, plus de3 | `{N} séries variables, de {min} à {max}` |",
+   "nouveau": "| Durée variable, plus de 3 | `{N} séries variables, de {min} à {max}` |"
+  },
+  {
+   "id": "6K-10-265",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "| Répétitions variables, jusqu’à3 | `{N} séries de {r1}, {r2} puis {r3} répétitions` |",
+   "nouveau": "| Répétitions variables, jusqu’à 3 | `{N} séries de {r1}, {r2} puis {r3} répétitions` |"
+  },
+  {
+   "id": "6K-10-266",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "| Répétitions variables, plus de3 | `{N} séries variables, de {min} à {max} répétitions` |",
+   "nouveau": "| Répétitions variables, plus de 3 | `{N} séries variables, de {min} à {max} répétitions` |"
+  },
+  {
+   "id": "6K-10-272",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "| Séries variables, tous modes | Clause de pause omise conformément aux276 cas, même À l’échec ; aucune liste de pauses ajoutée |",
+   "nouveau": "| Séries variables, tous modes | Clause de pause omise conformément aux 276 cas, même À l’échec ; aucune liste de pauses ajoutée |"
+  },
+  {
+   "id": "6K-10-280",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "Sans changement : aucune clause. N=1 bilatéral : « en faisant le côté droit puis le gauche ». N>1 par paire : « en alternant le côté droit puis le gauche à chaque série ». N>1 par côté : « en faisant d’abord toutes les séries à droite, puis à gauche ». Inverser les directions pour un départ gauche. PC>0 ajoute « , avec {PC} de pause au changement de côté » ; PC=0 omet le suffixe. Les modèles exacts de ponctuation sont ceux des276 cas.",
+   "nouveau": "Sans changement : aucune clause. N=1 bilatéral : « en faisant le côté droit puis le gauche ». N>1 par paire : « en alternant le côté droit puis le gauche à chaque série ». N>1 par côté : « en faisant d’abord toutes les séries à droite, puis à gauche ». Inverser les directions pour un départ gauche. PC>0 ajoute « , avec {PC} de pause au changement de côté » ; PC=0 omet le suffixe. Les modèles exacts de ponctuation sont ceux des 276 cas."
+  },
+  {
+   "id": "6K-10-288",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "Séries : stepper `1..99`. Répétitions : roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis `1..100` (décision PRE-4 Q8 du 16/10, D-385). Durée par Série : roulette `5 s..58 min 55 s`. Pause après chaque série et Pause entre les côtés : stepper dans la feuille Exercice, `0..5 min`, tap1s et maintien accéléré1/5/10 selon DSF Bip (D-313) ; stepper pour les réglages du Profil. La Pause après chaque série est initialisée à `0 s` dans la feuille ; la Pause entre les côtés copie la valeur courante du Profil. Au changement de mode, les paramètres communs et les dernières valeurs spécifiques de chaque mode sont conservés pendant l’édition. Après la première sélection, le mode ne peut plus revenir à l’état vide. `Terminer` est désactivé avant cette première sélection.",
+   "nouveau": "Séries : stepper `1..99`. Répétitions : roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis `1..100` (décision PRE-4 Q8 du 16/10, D-385). Durée par Série : roulette `5 s..58 min 55 s`. Pause après chaque série et Pause entre les côtés : stepper dans la feuille Exercice, `0..5 min`, tap1 s et maintien accéléré1/5/10 selon DSF Bip (D-313) ; stepper pour les réglages du Profil. La Pause après chaque série est initialisée à `0 s` dans la feuille ; la Pause entre les côtés copie la valeur courante du Profil. Au changement de mode, les paramètres communs et les dernières valeurs spécifiques de chaque mode sont conservés pendant l’édition. Après la première sélection, le mode ne peut plus revenir à l’état vide. `Terminer` est désactivé avant cette première sélection."
+  },
+  {
+   "id": "6K-10-433",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "Un circuit par composition MVP. Tours : répéter N fois le bloc contenant toutes les séries de chaque exercice. Séries : pour i=1..N, exécuter série i de A, série i de B, etc. A/B à3 séries et compte3 : 18 occurrences en tours,6 en séries, avant côtés et pauses.",
+   "nouveau": "Un circuit par composition MVP. Tours : répéter N fois le bloc contenant toutes les séries de chaque exercice. Séries : pour i=1..N, exécuter série i de A, série i de B, etc. A/B à 3 séries et compte3 : 18 occurrences en tours,6 en séries, avant côtés et pauses."
+  },
+  {
+   "id": "6K-10-549",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "**Préparation et fin :** un exercice seul utilise son Compte à rebours et sa Fin d’exercice une fois. Dans une séance, ces paramètres propres ne sont jamais exécutés : seuls ceux de la séance s’appliquent, par substitution, une fois aux frontières de la séance. Cette décision explicite remplace pour la cible de cette évolution les mentions contraires du référentiel (voir §10). Aucun compte à rebours supplémentaire à chaque série ou passage. **Clarification du12/10 à09h28 : aucun booléen de Séance, même désactivé par défaut, ni contrôle correspondant. La règle est inconditionnelle. Figma est confirmé aligné par le propriétaire.**",
+   "nouveau": "**Préparation et fin :** un exercice seul utilise son Compte à rebours et sa Fin d’exercice une fois. Dans une séance, ces paramètres propres ne sont jamais exécutés : seuls ceux de la séance s’appliquent, par substitution, une fois aux frontières de la séance. Cette décision explicite remplace pour la cible de cette évolution les mentions contraires du référentiel (voir §10). Aucun compte à rebours supplémentaire à chaque série ou passage. **Clarification du 12/10 à 09h28 : aucun booléen de Séance, même désactivé par défaut, ni contrôle correspondant. La règle est inconditionnelle. Figma est confirmé aligné par le propriétaire.**"
+  },
+  {
+   "id": "6K-10-1052",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "| RM-069 | Toute cible À l’échec, avec/sans bip et dans les deux modes, ainsi que Répétitions chiffrées sans bip : pause de sécurité après2h sans interaction. Répétitions chiffrées avec bip :30min après nominal recalculé. Durée chiffrée conserve ses transitions chronométrées. |",
+   "nouveau": "| RM-069 | Toute cible À l’échec, avec/sans bip et dans les deux modes, ainsi que Répétitions chiffrées sans bip : pause de sécurité après 2 h sans interaction. Répétitions chiffrées avec bip :30 min après nominal recalculé. Durée chiffrée conserve ses transitions chronométrées. |"
+  },
+  {
+   "id": "6K-10-1134",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "Le calcul porte sur le plan développé et conserve la piste existante. M compte les étapes contributives ; R compte les Séries Répétitions sans cadence et À l’échec ; T somme les durées des phases chronométrées positives et les Ri×Ci des Séries cadencées. Chaque Série sans durée déterminable pèse1/M ; chaque étape temporelle de durée d pèse(1−R/M)×d/T. Sans R, poids d/T ; sans T, poids1/M. Phases0s, Pause manuelle et attente de point n’ont aucun poids. Les non-cadencées/À l’échec acquièrent leur part à Suivant ; les Répétitions avec bip progressent continûment, Suivant acquiert leur reste. À fin nominale, part de Série100% mais Série active. Pause abandonne la fraction d’intervalle pour la progression, conserve le temps réel ; reprise sur intervalle complet. Aucun100% global publié avant finalisation du plan. Poids figés au départ ; reset remet à zéro son périmètre seulement. Aucun nouveau composant de progression par Série.",
+   "nouveau": "Le calcul porte sur le plan développé et conserve la piste existante. M compte les étapes contributives ; R compte les Séries Répétitions sans cadence et À l’échec ; T somme les durées des phases chronométrées positives et les Ri×Ci des Séries cadencées. Chaque Série sans durée déterminable pèse1/M ; chaque étape temporelle de durée d pèse(1−R/M)×d/T. Sans R, poids d/T ; sans T, poids1/M. Phases0 s, Pause manuelle et attente de point n’ont aucun poids. Les non-cadencées/À l’échec acquièrent leur part à Suivant ; les Répétitions avec bip progressent continûment, Suivant acquiert leur reste. À fin nominale, part de Série100% mais Série active. Pause abandonne la fraction d’intervalle pour la progression, conserve le temps réel ; reprise sur intervalle complet. Aucun100% global publié avant finalisation du plan. Poids figés au départ ; reset remet à zéro son périmètre seulement. Aucun nouveau composant de progression par Série."
+  },
+  {
+   "id": "6K-10-1221",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "Premier bip après un intervalle complet, puis périodiquement tant que la Série est active, dans les deux modes. Conséquence de la nouvelle définition : en Répétitions, le nominal Ri×b n’arrête plus le bip et n’émet plus un signal final distinct. À 10 répétitions et b=4s, bips à4,8,…40,44… jusqu’à fin/Pause. Le nominal est seulement une estimation. Le temps cible estimé utilise la ligne de temps existante ; pas de nouvelle maquette d’exécution dans ce lot. Pour Répétitions à l’échec, les intervalles logiques proposent un relevé estimé, jamais un comptage détecté de mouvements.",
+   "nouveau": "Premier bip après un intervalle complet, puis périodiquement tant que la Série est active, dans les deux modes. Conséquence de la nouvelle définition : en Répétitions, le nominal Ri×b n’arrête plus le bip et n’émet plus un signal final distinct. À 10 répétitions et b=4 s, bips à 4,8,…40,44… jusqu’à fin/Pause. Le nominal est seulement une estimation. Le temps cible estimé utilise la ligne de temps existante ; pas de nouvelle maquette d’exécution dans ce lot. Pour Répétitions à l’échec, les intervalles logiques proposent un relevé estimé, jamais un comptage détecté de mouvements."
+  },
+  {
+   "id": "6K-10-1235",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "Sécurité existante conservée là où elle a un sens : Répétitions chiffrées avec bip,30min après nominal recalculé ; Répétitions sans bip et toutes cibles À l’échec (les deux modes, avec ou sans bip),2h sans interaction ; Durée chiffrée conserve ses transitions chronométrées. Aucun arrêt définitif automatique si l’utilisateur ne répond pas à Reprendre/Arrêter.",
+   "nouveau": "Sécurité existante conservée là où elle a un sens : Répétitions chiffrées avec bip,30 min après nominal recalculé ; Répétitions sans bip et toutes cibles À l’échec (les deux modes, avec ou sans bip),2 h sans interaction ; Durée chiffrée conserve ses transitions chronométrées. Aucun arrêt définitif automatique si l’utilisateur ne répond pas à Reprendre/Arrêter."
+  },
+  {
+   "id": "6K-10-1767",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "| RM-077 | Pour les plans finis à compte borné hors fenêtres de formats, le calcul porte sur le plan développé et conserve la piste existante. M compte les étapes contributives ; R compte toutes les Séries à cible À l’échec et les Séries Répétitions chiffrées sans cadence ; T somme les durées des phases chronométrées positives et les Ri×Ci des Séries Répétitions à cible chiffrée cadencées. Chaque Série sans durée déterminable pèse1/M ; chaque étape temporelle de durée d pèse(1−R/M)×d/T. Sans R, poids d/T ; sans T, poids1/M. Phases0s, Pause manuelle et attente de point n’ont aucun poids. Les non-cadencées/À l’échec acquièrent leur part à Suivant ; les Répétitions chiffrées avec bip progressent continûment, Suivant acquiert leur reste. À fin nominale, part de Série100% mais Série active. Pause abandonne la fraction d’intervalle pour la progression, conserve le temps réel ; reprise sur intervalle complet. Aucun100% global publié avant finalisation du plan. Poids figés au départ ; reset remet à zéro son périmètre seulement. Aucun nouveau composant de progression par Série. |",
+   "nouveau": "| RM-077 | Pour les plans finis à compte borné hors fenêtres de formats, le calcul porte sur le plan développé et conserve la piste existante. M compte les étapes contributives ; R compte toutes les Séries à cible À l’échec et les Séries Répétitions chiffrées sans cadence ; T somme les durées des phases chronométrées positives et les Ri×Ci des Séries Répétitions à cible chiffrée cadencées. Chaque Série sans durée déterminable pèse1/M ; chaque étape temporelle de durée d pèse(1−R/M)×d/T. Sans R, poids d/T ; sans T, poids1/M. Phases0 s, Pause manuelle et attente de point n’ont aucun poids. Les non-cadencées/À l’échec acquièrent leur part à Suivant ; les Répétitions chiffrées avec bip progressent continûment, Suivant acquiert leur reste. À fin nominale, part de Série100% mais Série active. Pause abandonne la fraction d’intervalle pour la progression, conserve le temps réel ; reprise sur intervalle complet. Aucun100% global publié avant finalisation du plan. Poids figés au départ ; reset remet à zéro son périmètre seulement. Aucun nouveau composant de progression par Série. |"
+  },
+  {
+   "id": "6K-10-1803",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "| A | Unilatéral ; cibles30/45/60s ; Pauses10/20/30s | 135+10+20+30=195s =3min15s |",
+   "nouveau": "| A | Unilatéral ; cibles30/45/60 s ; Pauses10/20/30 s | 135+10+20+30=195 s =3 min 15 s |"
+  },
+  {
+   "id": "6K-10-1804",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "| B | A avec R120s | 195−30+120=285s =4min45s |",
+   "nouveau": "| B | A avec R120 s | 195−30+120=285 s =4 min 45 s |"
+  },
+  {
+   "id": "6K-10-1805",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "| C | A par côté ; PC15s | 270+120+15=405s =6min45s |",
+   "nouveau": "| C | A par côté ; PC15 s | 270+120+15=405 s =6 min 45 s |"
+  },
+  {
+   "id": "6K-10-1806",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "| D | A par paire ; PC15s | 270+60+45=375s =6min15s |",
+   "nouveau": "| D | A par paire ; PC15 s | 270+60+45=375 s =6 min 15 s |"
+  },
+  {
+   "id": "6K-10-1807",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "| E | Répétitions12/10/8 ; bip0 ; Pauses30/45/60s | omitted, aucune durée d’Exercice ;135s de pauses connues dans le plan |",
+   "nouveau": "| E | Répétitions12/10/8 ; bip0 ; Pauses30/45/60 s | omitted, aucune durée d’Exercice ;135 s de pauses connues dans le plan |"
+  },
+  {
+   "id": "6K-10-1808",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "| F | À l’échec ; bip0 ou4 ; Pauses30/45/60s | omitted, même avec bip |",
+   "nouveau": "| F | À l’échec ; bip0 ou4 ; Pauses30/45/60 s | omitted, même avec bip |"
+  },
+  {
+   "id": "6K-10-1809",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "| Uniforme | N3,d90s,p15s | 270+45=315s =5min15s |",
+   "nouveau": "| Uniforme | N3,d90 s,p15 s | 270+45=315 s =5 min 15 s |"
+  },
+  {
+   "id": "6K-10-1810",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "| Bilatéral | N3,d90s,p15s,PC10s | Par côté640s ; par paire615s |",
+   "nouveau": "| Bilatéral | N3,d90 s,p15 s,PC10 s | Par côté640 s ; par paire615 s |"
+  },
+  {
+   "id": "6K-10-1811",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "| N1 bilatéral | d90s,p15s,PC10s | Ordre par côté,220s ; R30s →235s |",
+   "nouveau": "| N1 bilatéral | d90 s,p15 s,PC10 s | Ordre par côté,220 s ; R30 s →235 s |"
+  },
+  {
+   "id": "6K-10-1812",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "| Douze séries | Total travail390s,Pause10s | 390+12×10=510s =8min30s |",
+   "nouveau": "| Douze séries | Total travail390 s,Pause10 s | 390+12×10=510 s =8 min 30 s |"
+  },
+  {
+   "id": "6K-10-1813",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "| Répétitions avec bip | N4,Ri15,b4s,p15s | 240+60=300s ; ≈5min |",
+   "nouveau": "| Répétitions avec bip | N4,Ri15,b4 s,p15 s | 240+60=300 s ; ≈5 min |"
+  },
+  {
+   "id": "6K-10-1814",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "| Durée avec bip | N4,Ti60s,b4s,p15s | 300s exact ; bip sans effet sur total |",
+   "nouveau": "| Durée avec bip | N4,Ti60 s,b4 s,p15 s | 300 s exact ; bip sans effet sur total |"
+  },
+  {
+   "id": "6K-10-1815",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "| Une Série unilatérale | Ti30s,p15s | 45s, dont15s de pause après chaque série |",
+   "nouveau": "| Une Série unilatérale | Ti30 s,p15 s | 45 s, dont15 s de pause après chaque série |"
+  },
+  {
+   "id": "6K-10-1858",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "**Clarification du12/10/2026 — D-214 :** Dans une Séance, les Compte à rebours d’exercice et Fin d’exercice ne sont jamais exécutés ; seuls le Compte à rebours initial et la Fin de séance s’appliquent, une fois, par substitution. Aucun booléen ni contrôle d’activation n’existe à cet effet. Les valeurs propres restent conservées pour l’exécution de l’Exercice seul. Ces phases propres ne contribuent donc ni au total prévu ni à la progression d’une Séance.",
+   "nouveau": "**Clarification du 12/10/2026 — D-214 :** Dans une Séance, les Compte à rebours d’exercice et Fin d’exercice ne sont jamais exécutés ; seuls le Compte à rebours initial et la Fin de séance s’appliquent, une fois, par substitution. Aucun booléen ni contrôle d’activation n’existe à cet effet. Les valeurs propres restent conservées pour l’exécution de l’Exercice seul. Ces phases propres ne contribuent donc ni au total prévu ni à la progression d’une Séance."
+  },
+  {
+   "id": "6K-10-1868",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "Développer d’abord la nature du circuit. En circuit de séries, un passage bilatéral calculable vaut 2Ti+PC+Pi, ou 2Ti+PC+R si R>0 le suit. Pas de Pi avant PC. Cette règle contextuelle unique s’applique aussi à un circuit de compte1 ; elle ne réécrit pas le réglage propre ni les formules de l’exercice autonome/circuit de tours. Unilatéral : Ti+Pi, ou Ti+R si R>0. Sommer les passages une seule fois. Attentes de points exclues du prévu. Tests normatifs : Ti30,Pi10,PC5 → passage bilatéral75s ; R20 →85s. Trois passages identiques →225s, ou255s avec R20 à chaque passage. PC0 ne supprime pas Pi.",
+   "nouveau": "Développer d’abord la nature du circuit. En circuit de séries, un passage bilatéral calculable vaut 2Ti+PC+Pi, ou 2Ti+PC+R si R>0 le suit. Pas de Pi avant PC. Cette règle contextuelle unique s’applique aussi à un circuit de compte1 ; elle ne réécrit pas le réglage propre ni les formules de l’exercice autonome/circuit de tours. Unilatéral : Ti+Pi, ou Ti+R si R>0. Sommer les passages une seule fois. Attentes de points exclues du prévu. Tests normatifs : Ti30,Pi10,PC5 → passage bilatéral75 s ; R20 →85 s. Trois passages identiques →225 s, ou255 s avec R20 à chaque passage. PC0 ne supprime pas Pi."
+  },
+  {
+   "id": "6K-10-2009",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "| RM-232 | Phrase v1 étendue : segments {texte, gras}, sans persistance. Cibles variables énumérées jusqu’à3 ; au-delà, mélange compacté « de 10 rép. à l’échec » / « de 1 min 30 s à l’échec » selon minimum numérique. Tout échec : formulation existante. Total fourni par le calcul, ≥ pour mélange calculable ; sans bip en Répétitions ou tout échec : omis. Pauses variables non énumérées. Compte à rebours/Fin hors phrase. Excel exclusivement rédactionnel. Voir chapitre 08, Phrase de synthèse. |",
+   "nouveau": "| RM-232 | Phrase v1 étendue : segments {texte, gras}, sans persistance. Cibles variables énumérées jusqu’à 3 ; au-delà, mélange compacté « de 10 rép. à l’échec » / « de 1 min 30 s à l’échec » selon minimum numérique. Tout échec : formulation existante. Total fourni par le calcul, ≥ pour mélange calculable ; sans bip en Répétitions ou tout échec : omis. Pauses variables non énumérées. Compte à rebours/Fin hors phrase. Excel exclusivement rédactionnel. Voir chapitre 08, Phrase de synthèse. |"
+  },
+  {
+   "id": "6K-10-2011",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "| RM-234 | Séries `1..99`; Répétitions `1..100`; Durée par Série `5..3535 s`; pauses inter-Séries/inter-côtés `0..300 s`. Une valeur héritée hors bornes, non modifiée, peut être conservée ; toute nouvelle saisie ou modification doit respecter ces bornes (D-383). Les deux pauses utilisent un stepper : tap1s, maintien accéléré1/5/10 selon DSF Bip. |",
+   "nouveau": "| RM-234 | Séries `1..99`; Répétitions `1..100`; Durée par Série `5..3535 s`; pauses inter-Séries/inter-côtés `0..300 s`. Une valeur héritée hors bornes, non modifiée, peut être conservée ; toute nouvelle saisie ou modification doit respecter ces bornes (D-383). Les deux pauses utilisent un stepper : tap1 s, maintien accéléré1/5/10 selon DSF Bip. |"
+  },
+  {
+   "id": "6K-10-2027",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "10 – Processus métier et règles métier transverses.md",
+   "ancien": "Les bornes fonctionnelles D-232 sont : Séries `1..99`, Répétitions par Série `1..100`, Durée par Série `5 s..58 min 55 s`, Pause après chaque série et Pause entre les côtés `0..5 min`. Dans le Profil, les réglages de durée utilisent un stepper ; dans la feuille de paramètres d’un Exercice, les pauses sont réglées par stepper. Les steppers de pauses utilisent tap1s puis maintien accéléré1/5/10 selon DSF Bip ; ancienne grille dépendante de la valeur abandonnée. La Pause entre les côtés est copiée depuis le Profil lorsqu’elle devient applicable.",
+   "nouveau": "Les bornes fonctionnelles D-232 sont : Séries `1..99`, Répétitions par Série `1..100`, Durée par Série `5 s..58 min 55 s`, Pause après chaque série et Pause entre les côtés `0..5 min`. Dans le Profil, les réglages de durée utilisent un stepper ; dans la feuille de paramètres d’un Exercice, les pauses sont réglées par stepper. Les steppers de pauses utilisent tap1 s puis maintien accéléré1/5/10 selon DSF Bip ; ancienne grille dépendante de la valeur abandonnée. La Pause entre les côtés est copiée depuis le Profil lorsqu’elle devient applicable."
+  },
+  {
+   "id": "6K-11-270",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "11 – API fonctionnelles.md",
+   "ancien": "| API-EXE-09 | Gérer une suspension prolongée     | ID Exécution, durée de suspension, réponse utilisateur éventuelle | Exécution reprise ou clôturée avec le statut `Interrompue` | à partir de30min consécutives en pause, proposer Reprendre/Arrêter ; sans réponse, rester suspendu. Reprise : plan conservé, intervalle complet si cadence, aucun effacement du temps actif | Exécution |",
+   "nouveau": "| API-EXE-09 | Gérer une suspension prolongée     | ID Exécution, durée de suspension, réponse utilisateur éventuelle | Exécution reprise ou clôturée avec le statut `Interrompue` | à partir de 30 min consécutives en pause, proposer Reprendre/Arrêter ; sans réponse, rester suspendu. Reprise : plan conservé, intervalle complet si cadence, aucun effacement du temps actif | Exécution |"
+  },
+  {
+   "id": "6K-12-807",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "12 – Architecture technique.md",
+   "ancien": "| Segmenté | DSF / Controls / Segmenté `5548:9818` | 8 variantes : les 6 existantes conservées, plus Deux options — 1 sélectionné `7388:13779` et Deux options — 2 sélectionné `7388:13786` ; références courantes du Catalogue (DSF Segmentés/Titres du07/10) |",
+   "nouveau": "| Segmenté | DSF / Controls / Segmenté `5548:9818` | 8 variantes : les 6 existantes conservées, plus Deux options — 1 sélectionné `7388:13779` et Deux options — 2 sélectionné `7388:13786` ; références courantes du Catalogue (DSF Segmentés/Titres du 07/10) |"
+  },
+  {
+   "id": "6K-12-812",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "12 – Architecture technique.md",
+   "ancien": "| Paramètres | Valeur modifiable `6944:26423`, Roulette `5544:5146` | Valeur modifiable :4 variantes ; Roulette :5 depuis le13/10, dont Minutes secondes avec échec8452:13297 ; DSF Deux modes |",
+   "nouveau": "| Paramètres | Valeur modifiable `6944:26423`, Roulette `5544:5146` | Valeur modifiable :4 variantes ; Roulette :5 depuis le 13/10, dont Minutes secondes avec échec8452:13297 ; DSF Deux modes |"
+  },
+  {
+   "id": "6K-12-852",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "12 – Architecture technique.md",
+   "ancien": "Le Figma contient les collections locales `KODJO / Primitives`, `KODJO / Sémantiques` et `KODJO / Responsive`. Au relevé direct du06/10/2026, elles contiennent respectivement350,432 et4 variables ;51 styles de texte. Les anciens comptes59/62/4 et9styles sont historiques. La collection Responsive possède les modes `Compact 360`, `Standard 402` et `Grand téléphone 440`. Ils sont documentés dans la page `Design system — Fondations`. La page `Référence responsive — Cible` présente ces modes pour huit familles structurantes, déclinées en neuf groupes d’écrans puisque le Calendrier est contrôlé séparément en vues Semaine et Mois, soit vingt-sept écrans de travail.",
+   "nouveau": "Le Figma contient les collections locales `KODJO / Primitives`, `KODJO / Sémantiques` et `KODJO / Responsive`. Au relevé direct du 06/10/2026, elles contiennent respectivement350,432 et 4 variables ;51 styles de texte. Les anciens comptes59/62/4 et 9styles sont historiques. La collection Responsive possède les modes `Compact 360`, `Standard 402` et `Grand téléphone 440`. Ils sont documentés dans la page `Design system — Fondations`. La page `Référence responsive — Cible` présente ces modes pour huit familles structurantes, déclinées en neuf groupes d’écrans puisque le Calendrier est contrôlé séparément en vues Semaine et Mois, soit vingt-sept écrans de travail."
+  },
+  {
+   "id": "6K-12-854",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "12 – Architecture technique.md",
+   "ancien": "Le journal du05/10 documente la liaison et la rationalisation du Prototype MVP ; le relevé courant ne revendique pas un audit exhaustif de chaque liaison. Les valeurs sont rapprochées par rôle, avec exceptions explicites, selon DSF-CADENCE-2026-10-06 ; ne pas réutiliser le constat du04/09 comme état courant. Une valeur brute telle que `13,16`, `16,92`, `18,8` ou `9,4` ne doit pas être créée comme token : elle est ramenée au niveau canonique correspondant.",
+   "nouveau": "Le journal du 05/10 documente la liaison et la rationalisation du Prototype MVP ; le relevé courant ne revendique pas un audit exhaustif de chaque liaison. Les valeurs sont rapprochées par rôle, avec exceptions explicites, selon DSF-CADENCE-2026-10-06 ; ne pas réutiliser le constat du 04/09 comme état courant. Une valeur brute telle que `13,16`, `16,92`, `18,8` ou `9,4` ne doit pas être créée comme token : elle est ramenée au niveau canonique correspondant."
+  },
+  {
+   "id": "6K-12-939",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "12 – Architecture technique.md",
+   "ancien": "Le relevé du06/10 comporte51 styles. La correspondance code/Figma se fait par rôle et contexte, jamais par égalité de corps. Les styles historiques subsistent ; DSF / Card title17 est obsolète, et le chrono secondaire5017:6051 utilise le style neutre Inter Semi Bold17.",
+   "nouveau": "Le relevé du 06/10 comporte51 styles. La correspondance code/Figma se fait par rôle et contexte, jamais par égalité de corps. Les styles historiques subsistent ; DSF / Card title17 est obsolète, et le chrono secondaire5017:6051 utilise le style neutre Inter Semi Bold17."
+  },
+  {
+   "id": "6K-12-1346",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "12 – Architecture technique.md",
+   "ancien": "[Contrat DSF courant](../DSF-SEGMENTES-TITRES-2026-10-07.md) : deux choix Exercices/Séances pour les catalogues et sélecteurs de type ; rendu standard354×42, options171×34, padding/gap4, radius14/10, fond blanc50%, inactive#EAEAFF, libellés16/20. Calendrier et modes conservent leurs trois choix. Exceptions de texte13 et14/11 pour côtés ; géométries de feuille conservées et écarts mesurés explicités dans le DSF. Lors d’une liaison de peinture au token, restaurer l’alpha0,5 du **remplissage** ; ne pas appliquer0,5 au nœud entier, ce qui atténuerait textes et options.",
+   "nouveau": "[Contrat DSF courant](../DSF-SEGMENTES-TITRES-2026-10-07.md) : deux choix Exercices/Séances pour les catalogues et sélecteurs de type ; rendu standard354×42, options171×34, padding/gap4, radius14/10, fond blanc50%, inactive#EAEAFF, libellés16/20. Calendrier et modes conservent leurs trois choix. Exceptions de texte13 et 14/11 pour côtés ; géométries de feuille conservées et écarts mesurés explicités dans le DSF. Lors d’une liaison de peinture au token, restaurer l’alpha0,5 du **remplissage** ; ne pas appliquer0,5 au nœud entier, ce qui atténuerait textes et options."
+  },
+  {
+   "id": "6K-12-1374",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "12 – Architecture technique.md",
+   "ancien": "Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper selon DSF Bip (maintien≈500ms, répétition150ms, paliers1/5/10) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.",
+   "nouveau": "Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper selon DSF Bip (maintien≈500 ms, répétition150 ms, paliers1/5/10) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF."
+  },
+  {
+   "id": "6K-12-1402",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "12 – Architecture technique.md",
+   "ancien": "Bornes : N1..99, répétitions1..100, durée5..3535s, pauses0..300s. Steppers : tap1 ; maintien avec paliers1/5/10 et arrondi directionnel selon DSF Bip ; Bip/Compte à rebours/Fin sans accélération. Les valeurs stockées ne sont pas arrondies à l’ouverture. PC reprend le défaut Profil (10s). Aucune estimation forfaitaire de répétition ; Bip v2 gouverne le total.",
+   "nouveau": "Bornes : N1..99, répétitions1..100, durée5..3535 s, pauses0..300 s. Steppers : tap1 ; maintien avec paliers1/5/10 et arrondi directionnel selon DSF Bip ; Bip/Compte à rebours/Fin sans accélération. Les valeurs stockées ne sont pas arrondies à l’ouverture. PC reprend le défaut Profil (10 s). Aucune estimation forfaitaire de répétition ; Bip v2 gouverne le total."
+  },
+  {
+   "id": "6K-12-1404",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "12 – Architecture technique.md",
+   "ancien": "Prévoir la représentation versionnée uniforme/variable et Ordre des côtés dans les définitions, copies et instantanés. Les données anciennes sont lues uniforme/Un côté après l’autre ; la nouvelle politique des pauses s’applique aux nouvelles exécutions de ces données. Les résultats historiques restent immuables. La migration physique doit être planifiée avec l’implémentation ; aucune réinitialisation de base n’est autorisée par cette mise à jour documentaire. PRE-1 reste fermé. Les anciens jeux v10 sont des preuves historiques ; la recette cible est chapitre 08, paramètres d’exercice et la matrice du02/10.",
+   "nouveau": "Prévoir la représentation versionnée uniforme/variable et Ordre des côtés dans les définitions, copies et instantanés. Les données anciennes sont lues uniforme/Un côté après l’autre ; la nouvelle politique des pauses s’applique aux nouvelles exécutions de ces données. Les résultats historiques restent immuables. La migration physique doit être planifiée avec l’implémentation ; aucune réinitialisation de base n’est autorisée par cette mise à jour documentaire. PRE-1 reste fermé. Les anciens jeux v10 sont des preuves historiques ; la recette cible est chapitre 08, paramètres d’exercice et la matrice du 02/10."
+  },
+  {
+   "id": "6K-12-1440",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "12 – Architecture technique.md",
+   "ancien": "Scheduler fondé sur ancres monotones, nombre d’intervalles acquis, début du courant, nominal atteint ; état persistable et transitions idempotentes. Le compteur de tentative est distinct de l’accumulateur actif réel : fraction abandonnée par Pause et temps avant reset restent dans le résultat par Série/côté. Reprise avec intervalle complet ; arrière-plan avec recalcul et sans rejeu des sons manqués. Le seuil30min est ancré sur la fin nominale recalculée. Aucun100% global avant finalisation.",
+   "nouveau": "Scheduler fondé sur ancres monotones, nombre d’intervalles acquis, début du courant, nominal atteint ; état persistable et transitions idempotentes. Le compteur de tentative est distinct de l’accumulateur actif réel : fraction abandonnée par Pause et temps avant reset restent dans le résultat par Série/côté. Reprise avec intervalle complet ; arrière-plan avec recalcul et sans rejeu des sons manqués. Le seuil30 min est ancré sur la fin nominale recalculée. Aucun100% global avant finalisation."
+  },
+  {
+   "id": "6K-12-1511",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "12 – Architecture technique.md",
+   "ancien": "L’ancien composant autonome `Icon / Selection Check` (`3847:5512`) est absent. La référence actuelle est vérifiée dans la frame `3789:5349`, instances sélectionnées `6221:3519` et `6221:3586`, issues de la carte `6214:4425`. La case mesure20 ×20, rayon6, sans stroke ; la coche source est un glyphe Inter14 Semi Bold dans un calque20 ×20. Son export SVG vectorisé exact est [selection-check.svg](../../assets/icons/selection-check.svg), `viewBox 0 0 10 8` : dimensions du tracé exporté, pas du slot. Aucun glyphe de police n’est requis côté code. Le calque de coche se place 1px au-dessus de la case ; le tracé visible a un décalage d’environ5,236px horizontal et5,598px vertical dans la case selon ses bounds Figma. Ne pas agrandir le tracé10 ×8 à20 ×20. Le fond et son rayon appartiennent au contrôle hôte, pas à cet asset. L’ancien fond `color/selection #5F60EE` et le cadre24 ×24 sont historiques pour cet usage. [Provenance](../../assets/icons/figma-current-exports.json). L’implémentation réutilise l’asset exporté ou son équivalent code connecté au composant, sans caractère Unicode, emoji, glyphe de police, icône système ni redessin approximatif. La cible tactile appartient au contrôle hôte et reste au minimum `48 × 48 pt`.",
+   "nouveau": "L’ancien composant autonome `Icon / Selection Check` (`3847:5512`) est absent. La référence actuelle est vérifiée dans la frame `3789:5349`, instances sélectionnées `6221:3519` et `6221:3586`, issues de la carte `6214:4425`. La case mesure20 ×20, rayon6, sans stroke ; la coche source est un glyphe Inter14 Semi Bold dans un calque20 ×20. Son export SVG vectorisé exact est [selection-check.svg](../../assets/icons/selection-check.svg), `viewBox 0 0 10 8` : dimensions du tracé exporté, pas du slot. Aucun glyphe de police n’est requis côté code. Le calque de coche se place 1px au-dessus de la case ; le tracé visible a un décalage d’environ5,236px horizontal et 5,598px vertical dans la case selon ses bounds Figma. Ne pas agrandir le tracé10 ×8 à 20 ×20. Le fond et son rayon appartiennent au contrôle hôte, pas à cet asset. L’ancien fond `color/selection #5F60EE` et le cadre24 ×24 sont historiques pour cet usage. [Provenance](../../assets/icons/figma-current-exports.json). L’implémentation réutilise l’asset exporté ou son équivalent code connecté au composant, sans caractère Unicode, emoji, glyphe de police, icône système ni redessin approximatif. La cible tactile appartient au contrôle hôte et reste au minimum `48 × 48 pt`."
+  },
+  {
+   "id": "6K-12-1580",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "12 – Architecture technique.md",
+   "ancien": "À la tête4365c0c de la PR323 (base main6d03f5be), l’arbre contient migrations001 à008 ; ActivityDefinition.ts expose encore repetitionCount,seriesCount,pauseSeconds scalaires, sans champ de bip. Ceci confirme le prérequis de refonte SeriesParameters/pauses ; cela ne réserve pas un numéro de migration. Bip v2 exige un ordonnanceur périodique récupérable et une qualification sur appareil (arrière-plan, verrouillage, suspension, interruptions audio), sans annoncer le comportement natif déjà livré. Aucun code n’est modifié par ce lot.",
+   "nouveau": "À la tête4365c0c de la PR323 (base main6d03f5be), l’arbre contient migrations001 à 008 ; ActivityDefinition.ts expose encore repetitionCount,seriesCount,pauseSeconds scalaires, sans champ de bip. Ceci confirme le prérequis de refonte SeriesParameters/pauses ; cela ne réserve pas un numéro de migration. Bip v2 exige un ordonnanceur périodique récupérable et une qualification sur appareil (arrière-plan, verrouillage, suspension, interruptions audio), sans annoncer le comportement natif déjà livré. Aucun code n’est modifié par ce lot."
+  },
+  {
+   "id": "6K-12-1590",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "12 – Architecture technique.md",
+   "ancien": "Le jeu de276phrasesv15 teste le générateur avec un total injecté ; la feuille Calcul des durées ne teste pas le moteur. Rendu RN en Text imbriqués, aucune phrase persistée ; recette de césure et cas224caractères. Qualification audio/appareils séparée.",
+   "nouveau": "Le jeu de 276phrasesv15 teste le générateur avec un total injecté ; la feuille Calcul des durées ne teste pas le moteur. Rendu RN en Text imbriqués, aucune phrase persistée ; recette de césure et cas224caractères. Qualification audio/appareils séparée."
+  },
+  {
+   "id": "6K-12-1643",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "12 – Architecture technique.md",
+   "ancien": "276 cas historiques conservés sans altération, complétés par les cibles mixtes du13/10 ; injecter le total métier de test à la place du montant d’exemple avant comparaison. Vérifier texte/ponctuation exacts et absence de clause ajoutée aux cas variables. Vérifier singulier, côtés inversés, deux/trois/plus de trois cibles, min=max, bip0/positif dans deux modes, pause0/positive, N1 avec/sans pause et PC0/positive. Les cas complémentaires ne remplacent pas le corpus.",
+   "nouveau": "276 cas historiques conservés sans altération, complétés par les cibles mixtes du 13/10 ; injecter le total métier de test à la place du montant d’exemple avant comparaison. Vérifier texte/ponctuation exacts et absence de clause ajoutée aux cas variables. Vérifier singulier, côtés inversés, deux/trois/plus de trois cibles, min=max, bip0/positif dans deux modes, pause0/positive, N1 avec/sans pause et PC0/positive. Les cas complémentaires ne remplacent pas le corpus."
+  },
+  {
+   "id": "6K-12-1645",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "12 – Architecture technique.md",
+   "ancien": "Contrôler les segments et le gras, notamment deux valeurs identiques à des positions différentes ; concaténation égale au texte attendu. Relire un objet ancien après modification de grammaire : nouvelle phrase, aucune migration de chaîne. Vérifier absence de champ persistant phrase/segments et génération au rendu, annulation/validation, accès clavier/lecteur d’écran et absence de troncature à360/402/440 avec texte agrandi. Il s’agit de recette prescrite, pas d’une implémentation ou de tests applicatifs exécutés dans ce lot documentaire.",
+   "nouveau": "Contrôler les segments et le gras, notamment deux valeurs identiques à des positions différentes ; concaténation égale au texte attendu. Relire un objet ancien après modification de grammaire : nouvelle phrase, aucune migration de chaîne. Vérifier absence de champ persistant phrase/segments et génération au rendu, annulation/validation, accès clavier/lecteur d’écran et absence de troncature à 360/402/440 avec texte agrandi. Il s’agit de recette prescrite, pas d’une implémentation ou de tests applicatifs exécutés dans ce lot documentaire."
+  },
+  {
+   "id": "6K-13-174",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Cartes Catalogue : [DSF Durée du07/10](../DSF-CARTES-DUREE-2026-10-07.md). Texte de durée sans fond/cadre/padding, Inter Semi Bold12 #141414, droite16px. Propriété booléenne Durée des sets6214:7276/7278 ; absence → aucun contenu de remplacement. Exercice replié/archivé : titre250px, lignes basses207px àx88 ; coupes60/69/145 fondées sur207. Gouttière12px conservée ; Séance16/16. La référence Exercice Déployé ne crée aucun accès MVP.",
+   "nouveau": "Cartes Catalogue : [DSF Durée du 07/10](../DSF-CARTES-DUREE-2026-10-07.md). Texte de durée sans fond/cadre/padding, Inter Semi Bold12 #141414, droite16px. Propriété booléenne Durée des sets6214:7276/7278 ; absence → aucun contenu de remplacement. Exercice replié/archivé : titre250px, lignes basses207px àx88 ; coupes60/69/145 fondées sur 207. Gouttière12px conservée ; Séance16/16. La référence Exercice Déployé ne crée aucun accès MVP."
+  },
+  {
+   "id": "6K-13-208",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Liste vide et archives vides : aucun contenu de démonstration. Suppression concurrente : rafraîchir sans ouvrir un objet absent. Archivage d’une Séance planifiée : confirmation avant mutation des Routines. Suppression définitive uniquement depuis les archives ; historique conservé. La capture2234:189 restaurée le01/10 montre le dialogue ; Annuler/Confirmer non câblés, preuve visuelle seulement.",
+   "nouveau": "Liste vide et archives vides : aucun contenu de démonstration. Suppression concurrente : rafraîchir sans ouvrir un objet absent. Archivage d’une Séance planifiée : confirmation avant mutation des Routines. Suppression définitive uniquement depuis les archives ; historique conservé. La capture2234:189 restaurée le 01/10 montre le dialogue ; Annuler/Confirmer non câblés, preuve visuelle seulement."
+  },
+  {
+   "id": "6K-13-511",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Cartes Catalogue : [DSF Durée du07/10](../DSF-CARTES-DUREE-2026-10-07.md). Texte de durée sans fond/cadre/padding, Inter Semi Bold12 #141414, droite16px. Propriété booléenne Durée des sets6214:7276/7278 ; absence → aucun contenu de remplacement. Exercice replié/archivé : titre250px, lignes basses207px àx88 ; coupes60/69/145 fondées sur207. Gouttière12px conservée ; Séance16/16. La référence Exercice Déployé ne crée aucun accès MVP.",
+   "nouveau": "Cartes Catalogue : [DSF Durée du 07/10](../DSF-CARTES-DUREE-2026-10-07.md). Texte de durée sans fond/cadre/padding, Inter Semi Bold12 #141414, droite16px. Propriété booléenne Durée des sets6214:7276/7278 ; absence → aucun contenu de remplacement. Exercice replié/archivé : titre250px, lignes basses207px àx88 ; coupes60/69/145 fondées sur 207. Gouttière12px conservée ; Séance16/16. La référence Exercice Déployé ne crée aucun accès MVP."
+  },
+  {
+   "id": "6K-13-513",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Cartes standard : largeur 354 sur écran 402, rayon 8, fond #F9FAFC, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Repliée 354 × 91. Gouttière permanente d’exercice : carré 64 à12 du bord, photo si média ou icône de nature sinon, centrée et recadrée sans déformation (couverture vidéo), texte x88 ; titre250 en Catalogue replié/archivé, lignes basses207 ; Choix conserve sa largeur liée au contrôle ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Durée Catalogue sans cadre, Inter Semi Bold12 #141414 à16px du bord droit, présence selon Bip v2 ; heure selon contexte, catégorie conservée, pictogramme de zone conservé ; Déployer absent. Séance sans vignette (D-260). Commandes 34/dessins 20/gaps 12/cibles 44. La référence Exercice Déployé est historique hors MVP, sans chemin d’accès.",
+   "nouveau": "Cartes standard : largeur 354 sur écran 402, rayon 8, fond #F9FAFC, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Repliée 354 × 91. Gouttière permanente d’exercice : carré 64 à 12 du bord, photo si média ou icône de nature sinon, centrée et recadrée sans déformation (couverture vidéo), texte x88 ; titre250 en Catalogue replié/archivé, lignes basses207 ; Choix conserve sa largeur liée au contrôle ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Durée Catalogue sans cadre, Inter Semi Bold12 #141414 à 16px du bord droit, présence selon Bip v2 ; heure selon contexte, catégorie conservée, pictogramme de zone conservé ; Déployer absent. Séance sans vignette (D-260). Commandes 34/dessins 20/gaps 12/cibles 44. La référence Exercice Déployé est historique hors MVP, sans chemin d’accès."
+  },
+  {
+   "id": "6K-13-569",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Formulaire créer/modifier :3943:6064,4217:6980,5088:6398,3542:4656,4734:6342. Carte vide6407:9458, résumé uniforme6407:9702, variables6665:27862/28050. Abandon4714:6241. Feuille CE-UI-10 et référentiels CE-UI-09 ; inventaire courant du03/10.",
+   "nouveau": "Formulaire créer/modifier :3943:6064,4217:6980,5088:6398,3542:4656,4734:6342. Carte vide6407:9458, résumé uniforme6407:9702, variables6665:27862/28050. Abandon4714:6241. Feuille CE-UI-10 et référentiels CE-UI-09 ; inventaire courant du 03/10."
+  },
+  {
+   "id": "6K-13-589",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Phrase selon les276 cas v15, total fourni par le calcul métier. Générateur → segments ordonnés `{texte, gras}`, valeurs et unités en gras, aucun redécoupage de chaîne. Terme « pause après chaque série », y compris N=1 ; clause de pauses variables omise conformément au corpus.",
+   "nouveau": "Phrase selon les 276 cas v15, total fourni par le calcul métier. Générateur → segments ordonnés `{texte, gras}`, valeurs et unités en gras, aucun redécoupage de chaîne. Terme « pause après chaque série », y compris N=1 ; clause de pauses variables omise conformément au corpus."
+  },
+  {
+   "id": "6K-13-603",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Le champ du mode à droite du titre de la carte, visible sur7059:13302 et7119:27855, est retiré : la carte forme une seule zone touchable qui ouvre la feuille ; le Mode reste visible dans la phrase et se choisit dans la feuille, par son popover (décision PRE-4 Q23 du 16/10, D-385). La phrase reflète les paramètres appliqués ; les montants statiques des copies ne sont pas des valeurs par défaut.",
+   "nouveau": "Le champ du mode à droite du titre de la carte, visible sur 7059:13302 et 7119:27855, est retiré : la carte forme une seule zone touchable qui ouvre la feuille ; le Mode reste visible dans la phrase et se choisit dans la feuille, par son popover (décision PRE-4 Q23 du 16/10, D-385). La phrase reflète les paramètres appliqués ; les montants statiques des copies ne sont pas des valeurs par défaut."
+  },
+  {
+   "id": "6K-13-611",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Carte vide initiale ; après✓, une phrase unique avec valeurs en gras, énumération jusqu’à3 puis min/max selon Phrase v1. La zone entière ouvre CE-UI-10 ; aucun segment/raccourci autonome dans la phrase. Compte à rebours et Fin restent des lignes séparées.",
+   "nouveau": "Carte vide initiale ; après✓, une phrase unique avec valeurs en gras, énumération jusqu’à 3 puis min/max selon Phrase v1. La zone entière ouvre CE-UI-10 ; aucun segment/raccourci autonome dans la phrase. Compte à rebours et Fin restent des lignes séparées."
+  },
+  {
+   "id": "6K-13-615",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Shell conservé : en-tête fixe, bandeau nom/référentiels, carte Paramètres, Description, Média, action Terminer. Références3943:6064/4734:6342/6407:9702 et6665:27862/28050. Les deux nouveaux résumés gardent cette implantation ; le texte peut grandir, sans déplacement arbitraire des contrôles. Feuille selon DSF-SERIES-VARIABLES-2026-10-02, actualisé le03/10.",
+   "nouveau": "Shell conservé : en-tête fixe, bandeau nom/référentiels, carte Paramètres, Description, Média, action Terminer. Références3943:6064/4734:6342/6407:9702 et 6665:27862/28050. Les deux nouveaux résumés gardent cette implantation ; le texte peut grandir, sans déplacement arbitraire des contrôles. Feuille selon DSF-SERIES-VARIABLES-2026-10-02, actualisé le 03/10."
+  },
+  {
+   "id": "6K-13-617",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Phrase : Inter13, interligne20, texte sombre et valeurs en gras ; largeur324/x39 dans la référence402. Hauteur auto et retour naturel ; le contenu inférieur suit la croissance. Aucune limite de198/211 caractères. Le layout du shell reste celui des frames du formulaire.",
+   "nouveau": "Phrase : Inter13, interligne20, texte sombre et valeurs en gras ; largeur324/x39 dans la référence402. Hauteur auto et retour naturel ; le contenu inférieur suit la croissance. Aucune limite de 198/211 caractères. Le layout du shell reste celui des frames du formulaire."
+  },
+  {
+   "id": "6K-13-631",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Avec/sans cadence ; phrase courte/longue, total déterminable/approximatif, suppression de cadence et retour de mode en brouillon. Les textes de démonstration de7059/7061/7119 sont antérieurs à la grammaire finale et ne la remplacent pas.",
+   "nouveau": "Avec/sans cadence ; phrase courte/longue, total déterminable/approximatif, suppression de cadence et retour de mode en brouillon. Les textes de démonstration de 7059/7061/7119 sont antérieurs à la grammaire finale et ne la remplacent pas."
+  },
+  {
+   "id": "6K-13-671",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Après✓ tester mélange chiffré/échec et ≥, puis annulation et édition d’une copie ; tout échec reste sans total. La formulation de fond divergente de8328:38848 est une réserve Figma, pas une autorité métier.",
+   "nouveau": "Après✓ tester mélange chiffré/échec et ≥, puis annulation et édition d’une copie ; tout échec reste sans total. La formulation de fond divergente de 8328:38848 est une réserve Figma, pas une autorité métier."
+  },
+  {
+   "id": "6K-13-679",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Bip0/1/10, supprimer puis annuler/confirmer, phrase à3/4cibles, singulier et deux directions, omission Répétitions sans bip/À l’échec ; redondance N1 Durée unilatérale, texte agrandi. Le classeur teste la formulation avec un total fourni, jamais les calculs.",
+   "nouveau": "Bip0/1/10, supprimer puis annuler/confirmer, phrase à 3/4cibles, singulier et deux directions, omission Répétitions sans bip/À l’échec ; redondance N1 Durée unilatérale, texte agrandi. Le classeur teste la formulation avec un total fourni, jamais les calculs."
+  },
+  {
+   "id": "6K-13-683",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Corpusv15 :276gabarits, total métier injecté ; aucun changement grammatical vs v14. Tester virgule jamais isolée en début de ligne, cas144 long et ordre des cibles après déplacement. Les cas de brouillon incomplet restent hors des276sorties validées.",
+   "nouveau": "Corpusv15 :276gabarits, total métier injecté ; aucun changement grammatical vs v14. Tester virgule jamais isolée en début de ligne, cas144 long et ordre des cibles après déplacement. Les cas de brouillon incomplet restent hors des 276sorties validées."
+  },
+  {
+   "id": "6K-13-721",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Cartes Catalogue : [DSF Durée du07/10](../DSF-CARTES-DUREE-2026-10-07.md). Texte de durée sans fond/cadre/padding, Inter Semi Bold12 #141414, droite16px. Propriété booléenne Durée des sets6214:7276/7278 ; absence → aucun contenu de remplacement. Exercice replié/archivé : titre250px, lignes basses207px àx88 ; coupes60/69/145 fondées sur207. Gouttière12px conservée ; Séance16/16. La référence Exercice Déployé ne crée aucun accès MVP.",
+   "nouveau": "Cartes Catalogue : [DSF Durée du 07/10](../DSF-CARTES-DUREE-2026-10-07.md). Texte de durée sans fond/cadre/padding, Inter Semi Bold12 #141414, droite16px. Propriété booléenne Durée des sets6214:7276/7278 ; absence → aucun contenu de remplacement. Exercice replié/archivé : titre250px, lignes basses207px àx88 ; coupes60/69/145 fondées sur 207. Gouttière12px conservée ; Séance16/16. La référence Exercice Déployé ne crée aucun accès MVP."
+  },
+  {
+   "id": "6K-13-723",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Variante archivée : fond `color/surface #F5F7FA` (ancienne prescription `#F6F6F6` historique ; référence couleur centralisée au chapitre12), bord #D9D9D9 à0,5, même rayon/ombre ; Restaurer remplace Lecture. Avec média, RG-4 et RG-11 à RG-13 s’appliquent ; aucune prochaine planification. L’état existe dans le composant sans écran d’archive d’exercice dédié ; ne pas déclarer un écran Figma créé.",
+   "nouveau": "Variante archivée : fond `color/surface #F5F7FA` (ancienne prescription `#F6F6F6` historique ; référence couleur centralisée au chapitre12), bord #D9D9D9 à 0,5, même rayon/ombre ; Restaurer remplace Lecture. Avec média, RG-4 et RG-11 à RG-13 s’appliquent ; aucune prochaine planification. L’état existe dans le composant sans écran d’archive d’exercice dédié ; ne pas déclarer un écran Figma créé."
+  },
+  {
+   "id": "6K-13-779",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Chaque carte utilise la nouvelle grammaire DSF : aucune barre verticale ; la couleur de Catégorie est portée par sa pastille dans le Catalogue. Sa surface principale ouvre la consultation ou la modification ; le bouton Lecture, dans une cible séparée, lance uniquement l’Exécution directe. La carte d’Exercice possède un seul format à gouttière permanente de64 px dans le Catalogue : photo associée ou icône de nature sans média. Aucun Déployer avec ou sans média ; Lecture reste indépendante. Chargement/erreur conservent la place réservée, texte alternatif = nom de l’exercice. Un glissement gauche expose `Planifier / Dupliquer / Archiver` sur les Exercices actifs et `Supprimer` dans les archives. Aucune poignée de déplacement n’est affichée.",
+   "nouveau": "Chaque carte utilise la nouvelle grammaire DSF : aucune barre verticale ; la couleur de Catégorie est portée par sa pastille dans le Catalogue. Sa surface principale ouvre la consultation ou la modification ; le bouton Lecture, dans une cible séparée, lance uniquement l’Exécution directe. La carte d’Exercice possède un seul format à gouttière permanente de 64 px dans le Catalogue : photo associée ou icône de nature sans média. Aucun Déployer avec ou sans média ; Lecture reste indépendante. Chargement/erreur conservent la place réservée, texte alternatif = nom de l’exercice. Un glissement gauche expose `Planifier / Dupliquer / Archiver` sur les Exercices actifs et `Supprimer` dans les archives. Aucune poignée de déplacement n’est affichée."
+  },
+  {
+   "id": "6K-13-781",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Titre15 Semi Bold, durée sans cadre en haut à droite, seulement si calculable, classement Catégorie puis Zones, valeurs16 et synthèse `N séries de X` / `N séries de N rép.` / `N séries à l’échec`. Bilatéralité par miroir16 à12 après la synthèse. Aucune pause/récupération ni prochaine planification affichée. Format unique : carte354 × 91, gouttière64 à12, titre x88/largeur250, lignes basses de largeur207, catégorie conservée et pictogramme de zone conservé. Variante archivée : fond `color/surface #F5F7FA` (ancienne prescription `#F6F6F6` historique ; référence couleur centralisée au chapitre12), bord #D9D9D9, Restaurer ; l’absence d’écran d’archive dédié est acceptée. Ces règles valent aussi derrière les panneaux de filtres et dans les états glissés ; les actions suivent la hauteur de la carte.",
+   "nouveau": "Titre15 Semi Bold, durée sans cadre en haut à droite, seulement si calculable, classement Catégorie puis Zones, valeurs16 et synthèse `N séries de X` / `N séries de N rép.` / `N séries à l’échec`. Bilatéralité par miroir16 à 12 après la synthèse. Aucune pause/récupération ni prochaine planification affichée. Format unique : carte354 × 91, gouttière64 à 12, titre x88/largeur250, lignes basses de largeur207, catégorie conservée et pictogramme de zone conservé. Variante archivée : fond `color/surface #F5F7FA` (ancienne prescription `#F6F6F6` historique ; référence couleur centralisée au chapitre12), bord #D9D9D9, Restaurer ; l’absence d’écran d’archive dédié est acceptée. Ces règles valent aussi derrière les panneaux de filtres et dans les états glissés ; les actions suivent la hauteur de la carte."
+  },
+  {
+   "id": "6K-13-805",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Feuille Paramètres d’exécution de CE-T03-04. Références courantes :8328:37092,8328:37862,8328:38513,8328:38848 et nouveau8470:13303 ; les autres états du12/10 restent applicables. Captures au chapitre06 ; matrice Deux modes du13/10. Les références6419/6665/7059/7069 du07/10 sont historiques.",
+   "nouveau": "Feuille Paramètres d’exécution de CE-T03-04. Références courantes :8328:37092,8328:37862,8328:38513,8328:38848 et nouveau8470:13303 ; les autres états du 12/10 restent applicables. Captures au chapitre06 ; matrice Deux modes du 13/10. Les références6419/6665/7059/7069 du 07/10 sont historiques."
+  },
+  {
+   "id": "6K-13-823",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Phrase selon les276 cas v15, total fourni par le calcul métier. Générateur → segments ordonnés `{texte, gras}`, valeurs et unités en gras, aucun redécoupage de chaîne. Terme « pause après chaque série », y compris N=1 ; clause de pauses variables omise conformément au corpus.",
+   "nouveau": "Phrase selon les 276 cas v15, total fourni par le calcul métier. Générateur → segments ordonnés `{texte, gras}`, valeurs et unités en gras, aucun redécoupage de chaîne. Terme « pause après chaque série », y compris N=1 ; clause de pauses variables omise conformément au corpus."
+  },
+  {
+   "id": "6K-13-841",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Bip0..10, boutons ± révélés par appui sur sa valeur,0 libellé Aucun ; contrôle actif même à0. Aucun interrupteur ou roulette Bip. Total absent en Répétitions sans bip et toutes cibles À l’échec ; exact en Durée toute chiffrée, ≈ en Répétitions toute chiffrée avec bip, ≥ en mélange calculable. Pause entre les côtés seulement en bilatéral. Compte à rebours/Fin conservés.",
+   "nouveau": "Bip0..10, boutons ± révélés par appui sur sa valeur,0 libellé Aucun ; contrôle actif même à 0. Aucun interrupteur ou roulette Bip. Total absent en Répétitions sans bip et toutes cibles À l’échec ; exact en Durée toute chiffrée, ≈ en Répétitions toute chiffrée avec bip, ≥ en mélange calculable. Pause entre les côtés seulement en bilatéral. Compte à rebours/Fin conservés."
+  },
+  {
+   "id": "6K-13-849",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "À402 : groupe à x24, largeur354 ; Bip au premier niveau x36. Les anciennes indentations systématiques x52 des contrôles variables sont remplacées par la grille à cellules décrite dans le DSF du 12/10. Bip juste au-dessus du total ou avant Compte à rebours si total absent. Retrait du total raccourcit la feuille de42px par le haut, bas ancré. Valeurs/steppers à droite ; marges adaptées, pas de coordonnées absolues sur toutes largeurs. Voile modal `overlayScrim` (`color/overlay/scrim`) #1F2129 à 34 %, distinct de `compositionDraggedCardShadow`, qui ne sert jamais de voile.",
+   "nouveau": "À402 : groupe à x24, largeur354 ; Bip au premier niveau x36. Les anciennes indentations systématiques x52 des contrôles variables sont remplacées par la grille à cellules décrite dans le DSF du 12/10. Bip juste au-dessus du total ou avant Compte à rebours si total absent. Retrait du total raccourcit la feuille de 42px par le haut, bas ancré. Valeurs/steppers à droite ; marges adaptées, pas de coordonnées absolues sur toutes largeurs. Voile modal `overlayScrim` (`color/overlay/scrim`) #1F2129 à 34 %, distinct de `compositionDraggedCardShadow`, qui ne sert jamais de voile."
+  },
+  {
+   "id": "6K-13-865",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Deux modes seulement. Cible chiffrée et À l’échec mutuellement exclusives ; libellé « Aucune durée, à l’échec » ou « Aucune répétition, à l’échec ». Aucune coche dans la liste ; ✓ de la feuille applique. Conserver le type À l’échec lors d’une bascule de mode. À tout instant, exactement une cible est sélectionnée. À l’ouverture : cible numérique → roulette active sur la valeur courante et libellé échec à45% ; cible échec → libellé actif et bloc numérique grisé à45%, affiché à00:00. Faire tourner la roulette sélectionne la valeur numérique et grise le libellé. Toucher le libellé sélectionne l’échec et ramène la roulette grisée à00:00. Le grisé exprime la non-sélection, pas une interdiction de manipuler la roulette. Aucun geste supplémentaire de déverrouillage, aucune coche. Validation par le bouton de la feuille ; annulation selon le brouillon existant.00:00 n’est jamais une cible valide ; pause0 reste valide.",
+   "nouveau": "Deux modes seulement. Cible chiffrée et À l’échec mutuellement exclusives ; libellé « Aucune durée, à l’échec » ou « Aucune répétition, à l’échec ». Aucune coche dans la liste ; ✓ de la feuille applique. Conserver le type À l’échec lors d’une bascule de mode. À tout instant, exactement une cible est sélectionnée. À l’ouverture : cible numérique → roulette active sur la valeur courante et libellé échec à 45% ; cible échec → libellé actif et bloc numérique grisé à 45%, affiché à 00:00. Faire tourner la roulette sélectionne la valeur numérique et grise le libellé. Toucher le libellé sélectionne l’échec et ramène la roulette grisée à 00:00. Le grisé exprime la non-sélection, pas une interdiction de manipuler la roulette. Aucun geste supplémentaire de déverrouillage, aucune coche. Validation par le bouton de la feuille ; annulation selon le brouillon existant.00:00 n’est jamais une cible valide ; pause0 reste valide."
+  },
+  {
+   "id": "6K-13-869",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "± modifie Bip par1, bornes0..10, sans accélération. Autres steppers : DSF Bip (maintien≈500ms, paliers1/5/10 selon durée du maintien et champ). Bascule de mode conserve Bip même à✓ ; cibles numériques incompatibles remplacées par— et restaurées dans le brouillon selon v13. Variable copie les valeurs uniformes ; retour uniforme reprend première ligne ; réduction/augmentation/restauration et déplacement selon v13. Une seule roulette/segmenté ouvert pour les autres champs. Le total Durée uniforme entièrement chiffré garde son inversion seulement si N est libre ; sous N imposé par un circuit de séries, tout total affichable est en lecture seule. omitted reste absent.",
+   "nouveau": "± modifie Bip par 1, bornes0..10, sans accélération. Autres steppers : DSF Bip (maintien≈500 ms, paliers1/5/10 selon durée du maintien et champ). Bascule de mode conserve Bip même à✓ ; cibles numériques incompatibles remplacées par— et restaurées dans le brouillon selon v13. Variable copie les valeurs uniformes ; retour uniforme reprend première ligne ; réduction/augmentation/restauration et déplacement selon v13. Une seule roulette/segmenté ouvert pour les autres champs. Le total Durée uniforme entièrement chiffré garde son inversion seulement si N est libre ; sous N imposé par un circuit de séries, tout total affichable est en lecture seule. omitted reste absent."
+  },
+  {
+   "id": "6K-13-877",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Mode et cibles typées actives requis ; une cible À l’échec est valide sans nombre. R06 close : maximum58min55s (3535s) confirmé ; roulette de cible par pas5s dès5s. Cibles chiffrées : N1..99,Ri1..100,Ti5..3535s,Pauses0..300s,Bip entier0..10 dans deux modes. −1,11,fraction invalides, aucune correction silencieuse. Repli ne contourne pas validation ; erreur nommant la Série.0=Aucun reste valide. Nom/Catégorie/Zones contrôlés au parent.",
+   "nouveau": "Mode et cibles typées actives requis ; une cible À l’échec est valide sans nombre. R06 close : maximum58 min 55 s (3535 s) confirmé ; roulette de cible par pas5 s dès 5 s. Cibles chiffrées : N1..99,Ri1..100,Ti5..3535 s,Pauses0..300 s,Bip entier0..10 dans deux modes. −1,11,fraction invalides, aucune correction silencieuse. Repli ne contourne pas validation ; erreur nommant la Série.0=Aucun reste valide. Nom/Catégorie/Zones contrôlés au parent."
+  },
+  {
+   "id": "6K-13-905",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Recette complémentaire : deux options, ouverture valeur/échec courant, exclusion mutuelle,00:00 cible refusée (pause0 valide), tout échec sans total, mixte30/45/échec avec pauses10/20/30 →≥2min15 en lecture seule, Répétitions sans bip sans total ; annuler/appliquer sans persistance anticipée. Tester30s → toucher échec →00:00 grisé → tourner vers30s → cible numérique ; réouverture fidèle et annulation/restauration. Le bloc grisé reste manipulable. Qualification native et accessible sur appareils à réaliser ; §4.5 reçu, réserve de source close.",
+   "nouveau": "Recette complémentaire : deux options, ouverture valeur/échec courant, exclusion mutuelle,00:00 cible refusée (pause0 valide), tout échec sans total, mixte30/45/échec avec pauses10/20/30 →≥2 min 15 en lecture seule, Répétitions sans bip sans total ; annuler/appliquer sans persistance anticipée. Tester30 s → toucher échec →00:00 grisé → tourner vers30 s → cible numérique ; réouverture fidèle et annulation/restauration. Le bloc grisé reste manipulable. Qualification native et accessible sur appareils à réaliser ; §4.5 reçu, réserve de source close."
+  },
+  {
+   "id": "6K-13-911",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Deux modes × deux types de cible × bip nul/positif ;0/1/10 et rejets−1/11/fraction ; conservation lors des bascules, annulation et duplication.4×15×4+4×15=300s≈ ; sans bip ligne absente. Tester N1,variable,repli,réordre de dernière Série,inversion Durée,deux côtés/R ; géométrie42px, texte agrandi et accessibilité. Phrase de pauses conforme aux276 formulations v15 ; Q-08 clos.",
+   "nouveau": "Deux modes × deux types de cible × bip nul/positif ;0/1/10 et rejets−1/11/fraction ; conservation lors des bascules, annulation et duplication.4×15×4+4×15=300 s≈ ; sans bip ligne absente. Tester N1,variable,repli,réordre de dernière Série,inversion Durée,deux côtés/R ; géométrie42px, texte agrandi et accessibilité. Phrase de pauses conforme aux 276 formulations v15 ; Q-08 clos."
+  },
+  {
+   "id": "6K-13-913",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Corpusv15 :276gabarits, total métier injecté ; aucun changement grammatical vs v14. Tester virgule jamais isolée en début de ligne, cas144 long et ordre des cibles après déplacement. Les cas de brouillon incomplet restent hors des276sorties validées.",
+   "nouveau": "Corpusv15 :276gabarits, total métier injecté ; aucun changement grammatical vs v14. Tester virgule jamais isolée en début de ligne, cas144 long et ordre des cibles après déplacement. Les cas de brouillon incomplet restent hors des 276sorties validées."
+  },
+  {
+   "id": "6K-13-927",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "| 6 | Ordre des côtés | Bilatéral uniquement, deux options ; grisé à1 |",
+   "nouveau": "| 6 | Ordre des côtés | Bilatéral uniquement, deux options ; grisé à 1 |"
+  },
+  {
+   "id": "6K-13-931",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "| 9 | Compte à rebours | Stepper ; défaut Profil10s |",
+   "nouveau": "| 9 | Compte à rebours | Stepper ; défaut Profil10 s |"
+  },
+  {
+   "id": "6K-13-932",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "| 10 | Fin d’exercice | Stepper ; défaut Profil5s |",
+   "nouveau": "| 10 | Fin d’exercice | Stepper ; défaut Profil5 s |"
+  },
+  {
+   "id": "6K-13-934",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Création : mode/durée/côté non renseignés —, Série1, Pause0s ; cible Répétitions uniforme initiale1 ; aucune cible implicite lors d’un changement de mode variable. Une cible à renseigner (—) ouvre la roulette sur la plus petite valeur valide, sélectionnée : 00:05 en Durée, 1 en Répétitions ; rien n’est appliqué avant le ✓ de la roulette ; ✕ laisse la cible à renseigner (décision PRE-4 Q25 du 16/10, D-385). Côté vide normalisé Sans changement à validation. La feuille entière défile sous un en-tête ✕/titre/✓ fixe. Ouverture : voile en fondu sur place, feuille montante depuis le bas ; « Réduire les animations » : feuille en place . Un seul popover/roulette ouvert ; les boutons ± apparaissent à l’appui sur une valeur numérique ; un seul champ est actif, sans modale supplémentaire. Glisser une Série : corps immobile et repère d’insertion entre les lignes . Le chevron masque le tableau sans modifier les données ni désactiver le mode variable.",
+   "nouveau": "Création : mode/durée/côté non renseignés —, Série1, Pause0 s ; cible Répétitions uniforme initiale1 ; aucune cible implicite lors d’un changement de mode variable. Une cible à renseigner (—) ouvre la roulette sur la plus petite valeur valide, sélectionnée : 00:05 en Durée, 1 en Répétitions ; rien n’est appliqué avant le ✓ de la roulette ; ✕ laisse la cible à renseigner (décision PRE-4 Q25 du 16/10, D-385). Côté vide normalisé Sans changement à validation. La feuille entière défile sous un en-tête ✕/titre/✓ fixe. Ouverture : voile en fondu sur place, feuille montante depuis le bas ; « Réduire les animations » : feuille en place . Un seul popover/roulette ouvert ; les boutons ± apparaissent à l’appui sur une valeur numérique ; un seul champ est actif, sans modale supplémentaire. Glisser une Série : corps immobile et repère d’insertion entre les lignes . Le chevron masque le tableau sans modifier les données ni désactiver le mode variable."
+  },
+  {
+   "id": "6K-13-936",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "État historique livré PRE-3 : sélecteurs segmentés et steppers permanents, avec fermeture progressive D-339 et typographie D-341. Le DSF du12/10 et Deux modes du13/10 remplacent la présentation D-341 pour la prochaine tranche (D-377) ; la fermeture après sélection de D-339 est conservée, y compris dans les popovers (D-377). Ces DSF ne prétendent pas être déjà réalisés.",
+   "nouveau": "État historique livré PRE-3 : sélecteurs segmentés et steppers permanents, avec fermeture progressive D-339 et typographie D-341. Le DSF du 12/10 et Deux modes du 13/10 remplacent la présentation D-341 pour la prochaine tranche (D-377) ; la fermeture après sélection de D-339 est conservée, y compris dans les popovers (D-377). Ces DSF ne prétendent pas être déjà réalisés."
+  },
+  {
+   "id": "6K-13-938",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "| Paramètre | Bornes | Granularité validée le02/10 |",
+   "nouveau": "| Paramètre | Bornes | Granularité validée le 02/10 |"
+  },
+  {
+   "id": "6K-13-942",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "| Durée par Série | 5..3535s | Roulette par pas de5s ;00:00 interdit comme cible |",
+   "nouveau": "| Durée par Série | 5..3535 s | Roulette par pas de 5 s ;00:00 interdit comme cible |"
+  },
+  {
+   "id": "6K-13-943",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "| Pause après chaque série / Pause entre les côtés | 0..300s | Tap1s ; maintien accéléré1/5/10 selon DSF Bip |",
+   "nouveau": "| Pause après chaque série / Pause entre les côtés | 0..300 s | Tap1 s ; maintien accéléré1/5/10 selon DSF Bip |"
+  },
+  {
+   "id": "6K-13-944",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "| Bip de cadence | 0..10s | 1s, aucune accélération |",
+   "nouveau": "| Bip de cadence | 0..10 s | 1 s, aucune accélération |"
+  },
+  {
+   "id": "6K-13-945",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "| Compte à rebours / Fin d’exercice | 0..60s | 1s  |",
+   "nouveau": "| Compte à rebours / Fin d’exercice | 0..60 s | 1 s  |"
+  },
+  {
+   "id": "6K-13-947",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Steppers : tap1 ; maintien≈500ms, puis paliers5 après≈2s et10 après≈4s, arrondi directionnel au multiple et saturation aux bornes. Bip/Compte à rebours/Fin restent au pas1. Relâchement arrête et rétablit le pas1 ; pas d’arrondi à l’ouverture. Voir DSF Bip. Les roulettes ne sont pas redéfinies par cette règle.",
+   "nouveau": "Steppers : tap1 ; maintien≈500 ms, puis paliers5 après≈2 s et 10 après≈4 s, arrondi directionnel au multiple et saturation aux bornes. Bip/Compte à rebours/Fin restent au pas1. Relâchement arrête et rétablit le pas1 ; pas d’arrondi à l’ouverture. Voir DSF Bip. Les roulettes ne sont pas redéfinies par cette règle."
+  },
+  {
+   "id": "6K-13-953",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "À tout instant, exactement une cible est sélectionnée. À l’ouverture : cible numérique → roulette active sur la valeur courante et libellé échec à45% ; cible échec → libellé actif et bloc numérique grisé à45%, affiché à00:00. Faire tourner la roulette sélectionne la valeur numérique et grise le libellé. Toucher le libellé sélectionne l’échec et ramène la roulette grisée à00:00. Le grisé exprime la non-sélection, pas une interdiction de manipuler la roulette. Aucun geste supplémentaire de déverrouillage, aucune coche. Validation par le bouton de la feuille ; annulation selon le brouillon existant.00:00 n’est jamais une cible valide ; pause0 reste valide.",
+   "nouveau": "À tout instant, exactement une cible est sélectionnée. À l’ouverture : cible numérique → roulette active sur la valeur courante et libellé échec à 45% ; cible échec → libellé actif et bloc numérique grisé à 45%, affiché à 00:00. Faire tourner la roulette sélectionne la valeur numérique et grise le libellé. Toucher le libellé sélectionne l’échec et ramène la roulette grisée à 00:00. Le grisé exprime la non-sélection, pas une interdiction de manipuler la roulette. Aucun geste supplémentaire de déverrouillage, aucune coche. Validation par le bouton de la feuille ; annulation selon le brouillon existant.00:00 n’est jamais une cible valide ; pause0 reste valide."
+  },
+  {
+   "id": "6K-13-955",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "**Bornes confirmées le13/10 :** cible Durée de00:05 à58:55 (5–3535s), sélecteur par pas de5s. Hermann corrige explicitement la borne maximale :58min55s ;5999s était une coquille. Répétitions : entiers1–100.00:00 reste réservé à la représentation neutre de l’échec, jamais une cible. Les valeurs historiques ne sont pas arrondies silencieusement à la lecture ; les contrôles de pauses et de Durée totale conservent leurs règles propres.",
+   "nouveau": "**Bornes confirmées le 13/10 :** cible Durée de 00:05 à 58:55 (5–3535 s), sélecteur par pas de 5 s. Hermann corrige explicitement la borne maximale :58 min 55 s ;5999 s était une coquille. Répétitions : entiers1–100.00:00 reste réservé à la représentation neutre de l’échec, jamais une cible. Les valeurs historiques ne sont pas arrondies silencieusement à la lecture ; les contrôles de pauses et de Durée totale conservent leurs règles propres."
+  },
+  {
+   "id": "6K-13-971",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "La référence7119:27855 est désormais « Phrase longue (224 caractères) », cas144 du corpusv15 : largeur324px, cinq lignes de20px, bloc100px, carte de paramètres193px à hauteur automatique. Ces mesures constatées ne deviennent pas des hauteurs fixes : agrandissement de texte et autres largeurs doivent étendre le contenu sans rogner Compte à rebours/Fin.",
+   "nouveau": "La référence7119:27855 est désormais « Phrase longue (224 caractères) », cas144 du corpusv15 : largeur324px, cinq lignes de 20px, bloc100px, carte de paramètres193px à hauteur automatique. Ces mesures constatées ne deviennent pas des hauteurs fixes : agrandissement de texte et autres largeurs doivent étendre le contenu sans rogner Compte à rebours/Fin."
+  },
+  {
+   "id": "6K-13-1099",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Case 20, titre 15, pastilles 20, valeurs 16, compteur et Sélectionner désactivé à0. Aucun badge durée/heure, Lecture ou Déployer. Fermeture accessible dans l’en-tête.",
+   "nouveau": "Case 20, titre 15, pastilles 20, valeurs 16, compteur et Sélectionner désactivé à 0. Aucun badge durée/heure, Lecture ou Déployer. Fermeture accessible dans l’en-tête."
+  },
+  {
+   "id": "6K-13-1103",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Composants actifs et propriété Durée : [DSF cartes du07/10](../DSF-CARTES-DUREE-2026-10-07.md). La suppression du cadre de durée Catalogue ne change pas le contrat de cette variante : sélecteurs sans durée, Suivi avec durée réelle, Calendrier avec données de planification. Ne pas injecter une durée à cause du défauttrue de la propriété Figma.",
+   "nouveau": "Composants actifs et propriété Durée : [DSF cartes du 07/10](../DSF-CARTES-DUREE-2026-10-07.md). La suppression du cadre de durée Catalogue ne change pas le contrat de cette variante : sélecteurs sans durée, Suivi avec durée réelle, Calendrier avec données de planification. Ne pas injecter une durée à cause du défauttrue de la propriété Figma."
+  },
+  {
+   "id": "6K-13-1105",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Cartes standard : largeur 354 sur écran 402, rayon 8, fond #F9FAFC, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Choix Composition 354 × 91 ; cadre des zones corporelles arrêté à8 px de la case, points de suspension en fin, liste seule défilante ; actions fixes. Gouttière permanente d’exercice : carré 64 à12 du bord, photo si média ou icône de nature sinon, centrée et recadrée sans déformation (couverture vidéo), texte x88 ; titre250 en Catalogue replié/archivé, lignes basses207 ; Choix conserve sa largeur liée au contrôle ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. Aucun badge durée/heure dans ce choix, catégorie conservée, pictogramme de zone conservé ; Déployer absent.",
+   "nouveau": "Cartes standard : largeur 354 sur écran 402, rayon 8, fond #F9FAFC, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Choix Composition 354 × 91 ; cadre des zones corporelles arrêté à 8 px de la case, points de suspension en fin, liste seule défilante ; actions fixes. Gouttière permanente d’exercice : carré 64 à 12 du bord, photo si média ou icône de nature sinon, centrée et recadrée sans déformation (couverture vidéo), texte x88 ; titre250 en Catalogue replié/archivé, lignes basses207 ; Choix conserve sa largeur liée au contrôle ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. Aucun badge durée/heure dans ce choix, catégorie conservée, pictogramme de zone conservé ; Déployer absent."
+  },
+  {
+   "id": "6K-13-1141",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Chaque ligne annonce nom/type et sélection ; cible case≥44 ; compteur annoncé après modification ; Sélectionner désactivé à0 ; focus captif dans modale, restitué au déclencheur à la fermeture.",
+   "nouveau": "Chaque ligne annonce nom/type et sélection ; cible case≥44 ; compteur annoncé après modification ; Sélectionner désactivé à 0 ; focus captif dans modale, restitué au déclencheur à la fermeture."
+  },
+  {
+   "id": "6K-13-1149",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Liste A/B : sélectionner B puis A → insertion A/B ; désélection, 0/1/N, fermeture sans effet, double tap, suppression de source avant validation, rollback total, modification indépendante des copies. Vérifier aucun badge/lecture/déploiement/création/recherche/filtre local ; vignette, texte long, cadre de coupe à8 px de la case, clavier non requis.",
+   "nouveau": "Liste A/B : sélectionner B puis A → insertion A/B ; désélection, 0/1/N, fermeture sans effet, double tap, suppression de source avant validation, rollback total, modification indépendante des copies. Vérifier aucun badge/lecture/déploiement/création/recherche/filtre local ; vignette, texte long, cadre de coupe à 8 px de la case, clavier non requis."
+  },
+  {
+   "id": "6K-13-1177",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Brouillon Session indépendant, nom, Étiquette0..1, compte à rebours/Fin, Circuit unique, nature tours/séries, compte1..99, exclusion systématique des Compte à rebours/Fin propres selon D-214 révisée, sans booléen et sans effacer leurs valeurs. Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). Chaque occurrence conserve ses séries/cadences ; To=T−PN+R si R>0, sinon To=T pour un travail calculable. Total développé selon la nature du Circuit ; exact/estimated/lowerBound selon Bip v2 et spécification Circuits du12/10. Point d’arrêt sans durée prévue.",
+   "nouveau": "Brouillon Session indépendant, nom, Étiquette0..1, compte à rebours/Fin, Circuit unique, nature tours/séries, compte1..99, exclusion systématique des Compte à rebours/Fin propres selon D-214 révisée, sans booléen et sans effacer leurs valeurs. Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). Chaque occurrence conserve ses séries/cadences ; To=T−PN+R si R>0, sinon To=T pour un travail calculable. Total développé selon la nature du Circuit ; exact/estimated/lowerBound selon Bip v2 et spécification Circuits du 12/10. Point d’arrêt sans durée prévue."
+  },
+  {
+   "id": "6K-13-1191",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Compte à rebours/Fin non déplaçables ; Appui sur le chiffre pour révéler ± ; pastille tours/séries pour choisir la nature ; œil permanent sur la ligne du titre ; aucun côté au Circuit. Carte sans texte de pause/récupération dans son corps. Ligne variable : volumes séparés par un point médian, unité finale ; trois valeurs au maximum selon place puis ellipse. Régime explicite, notation stable ; voir chapitre 13, Cartes et grille des volumes. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement . V-04 est clos par clarification du12/10 : aucun réglage global D-214 n’est requis ; aucune modification Figma nécessaire sur ce point, selon confirmation du propriétaire.",
+   "nouveau": "Compte à rebours/Fin non déplaçables ; Appui sur le chiffre pour révéler ± ; pastille tours/séries pour choisir la nature ; œil permanent sur la ligne du titre ; aucun côté au Circuit. Carte sans texte de pause/récupération dans son corps. Ligne variable : volumes séparés par un point médian, unité finale ; trois valeurs au maximum selon place puis ellipse. Régime explicite, notation stable ; voir chapitre 13, Cartes et grille des volumes. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement . V-04 est clos par clarification du 12/10 : aucun réglage global D-214 n’est requis ; aucune modification Figma nécessaire sur ce point, selon confirmation du propriétaire."
+  },
+  {
+   "id": "6K-13-1211",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Pause ouvre le sous-brouillon de placement. Sélection Point d’arrêt bascule l’ajout ; sélectionner Récupération ouvre immédiatement la durée proposée du Profil, initialement30s. Valider la roulette confirme au sous-brouillon, Annuler restitue l’état de cet emplacement. Confirmer N pauses ajoutées applique au parent ; Annuler le placement restitue tout l’état d’entrée. Décompte par objet nouvellement ajouté, récupération+point=2 ; désélection retranche, N0 sans confirmation active. Tap sur récupération positive ouvre son réglage ; appui long ouvre Retirer. L’avertissement D-301 reste « Attention, les exercices vont s’enchaîner sans pause. » si aucune Pause terminale ni Rpositive entre deux Exercices ; informatif, aucune mutation ni blocage.",
+   "nouveau": "Pause ouvre le sous-brouillon de placement. Sélection Point d’arrêt bascule l’ajout ; sélectionner Récupération ouvre immédiatement la durée proposée du Profil, initialement30 s. Valider la roulette confirme au sous-brouillon, Annuler restitue l’état de cet emplacement. Confirmer N pauses ajoutées applique au parent ; Annuler le placement restitue tout l’état d’entrée. Décompte par objet nouvellement ajouté, récupération+point=2 ; désélection retranche, N0 sans confirmation active. Tap sur récupération positive ouvre son réglage ; appui long ouvre Retirer. L’avertissement D-301 reste « Attention, les exercices vont s’enchaîner sans pause. » si aucune Pause terminale ni Rpositive entre deux Exercices ; informatif, aucune mutation ni blocage."
+  },
+  {
+   "id": "6K-13-1219",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Continuer exige nom et au moins un Exercice valide ; il reste désactivé, et la Séance n’est pas enregistrée, si un de ses Exercices comporte une cible obligatoire non renseignée (D-380, D-123). Le contrôle ou champ obligatoire sans valeur est signalé par son fond rouge pâle, pas la carte entière, sans message supplémentaire (D-389). Récupération0..300s, grille1s jusqu’à5,5s jusqu’à120,30s jusqu’à300 ; aucune durée requise pour point. Récupération après occurrence, dernière comprise ; pas avant première. Point interdit immédiatement après compte à rebours initial et avant Fin ; autorisé avant/après Circuit et entre ses Exercices. Un élément de chaque type au même emplacement ; pas de doublon du même type. Drop invalide restitue la position. Les affectations de référentiels retirées restent valides selon D-210.",
+   "nouveau": "Continuer exige nom et au moins un Exercice valide ; il reste désactivé, et la Séance n’est pas enregistrée, si un de ses Exercices comporte une cible obligatoire non renseignée (D-380, D-123). Le contrôle ou champ obligatoire sans valeur est signalé par son fond rouge pâle, pas la carte entière, sans message supplémentaire (D-389). Récupération0..300 s, grille1 s jusqu’à 5,5 s jusqu’à 120,30 s jusqu’à 300 ; aucune durée requise pour point. Récupération après occurrence, dernière comprise ; pas avant première. Point interdit immédiatement après compte à rebours initial et avant Fin ; autorisé avant/après Circuit et entre ses Exercices. Un élément de chaque type au même emplacement ; pas de doublon du même type. Drop invalide restitue la position. Les affectations de référentiels retirées restent valides selon D-210."
+  },
+  {
+   "id": "6K-13-1227",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Une récupération explicitement réglée à0 reste persistée ; seule l’action Retirer supprime l’objet. Elle ne produit aucune phase et ne remplace pasPN. Pause après chaque série et Pause de Composition sont deux données distinctes.",
+   "nouveau": "Une récupération explicitement réglée à 0 reste persistée ; seule l’action Retirer supprime l’objet. Elle ne produit aucune phase et ne remplace pasPN. Pause après chaque série et Pause de Composition sont deux données distinctes."
+  },
+  {
+   "id": "6K-13-1300",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "- À l’échec : libellé métier conservé sur la carte ; la grille Volumes utilise ✓ pour les cibles À l’échec. Le mode reste identifiable ; le rendu d’unité des lignes mixtes reste à aligner (matrice du13/10).",
+   "nouveau": "- À l’échec : libellé métier conservé sur la carte ; la grille Volumes utilise ✓ pour les cibles À l’échec. Le mode reste identifiable ; le rendu d’unité des lignes mixtes reste à aligner (matrice du 13/10)."
+  },
+  {
+   "id": "6K-13-1330",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Chaque carte de choix Composition mesure354 × 91, rayon8, titre15, case arrondie20 ; aucun badge durée ni Lecture/Déployer. Cadre des zones corporelles arrêté à8 px de la case, troncature finale par points de suspension (D-263). Catégorie/Zones en classement, synthèse et miroir selon bilatéralité. Gouttière permanente64 : photo associée centrée/recadrée, icône de nature sans média/pendant chargement/erreur, texte alternatif nom ; aucune hausse de hauteur. États sélectionné/non sélectionné/inactif suivent la palette #0508E5/#595E66 (iconNeutral/textSecondary ; ancien #5C636E historique)/#C2C4D1, sans remplacer le composant vectoriel par un glyphe. Les règles d’insertion et de validation à0 restent inchangées. Contrat CE-T03-07.",
+   "nouveau": "Chaque carte de choix Composition mesure354 × 91, rayon8, titre15, case arrondie20 ; aucun badge durée ni Lecture/Déployer. Cadre des zones corporelles arrêté à 8 px de la case, troncature finale par points de suspension (D-263). Catégorie/Zones en classement, synthèse et miroir selon bilatéralité. Gouttière permanente64 : photo associée centrée/recadrée, icône de nature sans média/pendant chargement/erreur, texte alternatif nom ; aucune hausse de hauteur. États sélectionné/non sélectionné/inactif suivent la palette #0508E5/#595E66 (iconNeutral/textSecondary ; ancien #5C636E historique)/#C2C4D1, sans remplacer le composant vectoriel par un glyphe. Les règles d’insertion et de validation à 0 restent inchangées. Contrat CE-T03-07."
+  },
+  {
+   "id": "6K-13-1662",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "A2/B4 avec tirets ;45s/60s/90s→0:45/1:00/1:30 ; échec✓ ; variables égales ; bilatéral10 affiché10 ; défilements ; aucune écriture.",
+   "nouveau": "A2/B4 avec tirets ;45 s/60 s/90 s→0:45/1:00/1:30 ; échec✓ ; variables égales ; bilatéral10 affiché10 ; défilements ; aucune écriture."
+  },
+  {
+   "id": "6K-13-2457",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Vérifier alternance chiffré/échec, sécurité2h sans nominal, progression des cibles inconnues à Suivant ; reset20s puis35s donne55s cumulé et35s relevé. Suivant ne confirme pas implicitement un nombre de bips estimé.",
+   "nouveau": "Vérifier alternance chiffré/échec, sécurité2 h sans nominal, progression des cibles inconnues à Suivant ; reset20 s puis35 s donne55 s cumulé et 35 s relevé. Suivant ne confirme pas implicitement un nombre de bips estimé."
+  },
+  {
+   "id": "6K-13-2553",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Arrière-plan continue par ancres, signaux manqués non rejoués ; seuil30min après nominal recalculé si cadence,2h sans cadence/À l’échec. Audio à qualifier sur appareil.",
+   "nouveau": "Arrière-plan continue par ancres, signaux manqués non rejoués ; seuil30 min après nominal recalculé si cadence,2 h sans cadence/À l’échec. Audio à qualifier sur appareil."
+  },
+  {
+   "id": "6K-13-2577",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "10×4s : début0, bips4..36, final40 ; Suivant20/45s normal ; Pause6s puis intervalle4s complet ; reset6s puis10s → réel16s. Arrière-plan sans rejeu ; après nominal aucun bip, Série active. Recette prescrite, non exécutée.",
+   "nouveau": "10×4 s : début0, bips4..36, final40 ; Suivant20/45 s normal ; Pause6 s puis intervalle4 s complet ; reset6 s puis10 s → réel16 s. Arrière-plan sans rejeu ; après nominal aucun bip, Série active. Recette prescrite, non exécutée."
+  },
+  {
+   "id": "6K-13-2757",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Source supprimée après départ sans effet sur instantané ; interruption technique conserve résultats ; attente de point hors durée ; reprise après arrière-plan par horodatage. Gardes 30 min/2h selon modèle, sans réponse, rester suspendu sans arrêt automatique (§6 R-03).",
+   "nouveau": "Source supprimée après départ sans effet sur instantané ; interruption technique conserve résultats ; attente de point hors durée ; reprise après arrière-plan par horodatage. Gardes 30 min/2 h selon modèle, sans réponse, rester suspendu sans arrêt automatique (§6 R-03)."
+  },
+  {
+   "id": "6K-13-3243",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Composants actifs et propriété Durée : [DSF cartes du07/10](../DSF-CARTES-DUREE-2026-10-07.md). La suppression du cadre de durée Catalogue ne change pas le contrat de cette variante : sélecteurs sans durée, Suivi avec durée réelle, Calendrier avec données de planification. Ne pas injecter une durée à cause du défauttrue de la propriété Figma.",
+   "nouveau": "Composants actifs et propriété Durée : [DSF cartes du 07/10](../DSF-CARTES-DUREE-2026-10-07.md). La suppression du cadre de durée Catalogue ne change pas le contrat de cette variante : sélecteurs sans durée, Suivi avec durée réelle, Calendrier avec données de planification. Ne pas injecter une durée à cause du défauttrue de la propriété Figma."
+  },
+  {
+   "id": "6K-13-3335",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Composants actifs et propriété Durée : [DSF cartes du07/10](../DSF-CARTES-DUREE-2026-10-07.md). La suppression du cadre de durée Catalogue ne change pas le contrat de cette variante : sélecteurs sans durée, Suivi avec durée réelle, Calendrier avec données de planification. Ne pas injecter une durée à cause du défauttrue de la propriété Figma.",
+   "nouveau": "Composants actifs et propriété Durée : [DSF cartes du 07/10](../DSF-CARTES-DUREE-2026-10-07.md). La suppression du cadre de durée Catalogue ne change pas le contrat de cette variante : sélecteurs sans durée, Suivi avec durée réelle, Calendrier avec données de planification. Ne pas injecter une durée à cause du défauttrue de la propriété Figma."
+  },
+  {
+   "id": "6K-13-3842",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "10×4s terminé avec Suivant20s : temps réel20s et fin normale ; reset6s puis10s : cumulé16s ; modifier la définition après exécution ne change pas prescription/résultat. Aucun symbole d’estimation collé au temps réel.",
+   "nouveau": "10×4 s terminé avec Suivant20 s : temps réel20 s et fin normale ; reset6 s puis10 s : cumulé16 s ; modifier la définition après exécution ne change pas prescription/résultat. Aucun symbole d’estimation collé au temps réel."
+  },
+  {
+   "id": "6K-13-3884",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Composants actifs et propriété Durée : [DSF cartes du07/10](../DSF-CARTES-DUREE-2026-10-07.md). La suppression du cadre de durée Catalogue ne change pas le contrat de cette variante : sélecteurs sans durée, Suivi avec durée réelle, Calendrier avec données de planification. Ne pas injecter une durée à cause du défauttrue de la propriété Figma.",
+   "nouveau": "Composants actifs et propriété Durée : [DSF cartes du 07/10](../DSF-CARTES-DUREE-2026-10-07.md). La suppression du cadre de durée Catalogue ne change pas le contrat de cette variante : sélecteurs sans durée, Suivi avec durée réelle, Calendrier avec données de planification. Ne pas injecter une durée à cause du défauttrue de la propriété Figma."
+  },
+  {
+   "id": "6K-13-4158",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Cercles 64 espacés 24, silhouettes 44. Sélection contour 2 et dessin#0508E5 ; non sélection contour#CCD1E0 à1, dessin#9499A8.",
+   "nouveau": "Cercles 64 espacés 24, silhouettes 44. Sélection contour 2 et dessin#0508E5 ; non sélection contour#CCD1E0 à 1, dessin#9499A8."
+  },
+  {
+   "id": "6K-13-4242",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Libellé unique Pause entre les côtés ; défaut10s ; pas des pauses selon D-312 (D-386). Les captures anciennes de Profil portant un ancien libellé sont historiques sur ce texte.",
+   "nouveau": "Libellé unique Pause entre les côtés ; défaut10 s ; pas des pauses selon D-312 (D-386). Les captures anciennes de Profil portant un ancien libellé sont historiques sur ce texte."
+  },
+  {
+   "id": "6K-13-4262",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Tap bascule ; stepper incrément immédiat, maintien≈500ms, répétition150ms et paliers1/5/10 selon DSF Bip, arrêt au relâchement ; action/animation D-237.",
+   "nouveau": "Tap bascule ; stepper incrément immédiat, maintien≈500 ms, répétition150 ms et paliers1/5/10 selon DSF Bip, arrêt au relâchement ; action/animation D-237."
+  },
+  {
+   "id": "6K-13-4266",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Valeurs non négatives ; pauses côté/récupération 0..300 s, tap1s puis maintien accéléré selon DSF Bip. Compte à rebours d’exercice et Fin d’exercice : 0..60 s, pas 1 s (D-256). Compte à rebours initial et Fin de séance (valeurs par défaut) : 0..60 s, pas 1 s (D-265) ; une valeur enregistrée au-delà est conservée sans plafonnement : « + » inactif, « − » ramène d’abord à 60 s. Pas de maximum déduit d’un exemple. Les bornes partagées sont consolidées au §6 R-02.",
+   "nouveau": "Valeurs non négatives ; pauses côté/récupération 0..300 s, tap1 s puis maintien accéléré selon DSF Bip. Compte à rebours d’exercice et Fin d’exercice : 0..60 s, pas 1 s (D-256). Compte à rebours initial et Fin de séance (valeurs par défaut) : 0..60 s, pas 1 s (D-265) ; une valeur enregistrée au-delà est conservée sans plafonnement : « + » inactif, « − » ramène d’abord à 60 s. Pas de maximum déduit d’un exemple. Les bornes partagées sont consolidées au §6 R-02."
+  },
+  {
+   "id": "6K-13-4546",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Commandes contextuelles 34/dessin 20/cible 44, gaps 12 ou 10 en Composition ; dimensions spécifiques 48 conservées. Jour compact 298×46/48, barre 4, nature 26, titre 13, valeurs 11, Lecture 26 ; pas de déploiement. Aujourd’hui/Planifier 32 restent l’exception acceptée aprèsT04. Action au relâchement, sans attendre le retour animé ; sortie de cible annule ; stepper : maintien≈500ms, répétition150ms et paliers1/5/10 selon DSF Bip ; réduction des animations par opacité sans dilatation. Les dimensions à402 ne sont pas des coordonnées absolues d’implémentation.",
+   "nouveau": "Commandes contextuelles 34/dessin 20/cible 44, gaps 12 ou 10 en Composition ; dimensions spécifiques 48 conservées. Jour compact 298×46/48, barre 4, nature 26, titre 13, valeurs 11, Lecture 26 ; pas de déploiement. Aujourd’hui/Planifier 32 restent l’exception acceptée aprèsT04. Action au relâchement, sans attendre le retour animé ; sortie de cible annule ; stepper : maintien≈500 ms, répétition150 ms et paliers1/5/10 selon DSF Bip ; réduction des animations par opacité sans dilatation. Les dimensions à 402 ne sont pas des coordonnées absolues d’implémentation."
+  },
+  {
+   "id": "6K-13-4550",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Le moteur possède la source de vérité temporelle. En exécution autonome uniquement, le Compte à rebours propre et la Fin propre entourent l’Exercice complet, une fois. Dans une Séance, les Compte à rebours d’exercice et Fin d’exercice ne sont jamais exécutés ; seuls le Compte à rebours initial et la Fin de séance s’appliquent, une fois, par substitution. Aucun booléen ni contrôle d’activation n’existe à cet effet. Les valeurs propres restent conservées pour l’exécution de l’Exercice seul. Référence : D-214 révisée le12/10/2026.",
+   "nouveau": "Le moteur possède la source de vérité temporelle. En exécution autonome uniquement, le Compte à rebours propre et la Fin propre entourent l’Exercice complet, une fois. Dans une Séance, les Compte à rebours d’exercice et Fin d’exercice ne sont jamais exécutés ; seuls le Compte à rebours initial et la Fin de séance s’appliquent, une fois, par substitution. Aucun booléen ni contrôle d’activation n’existe à cet effet. Les valeurs propres restent conservées pour l’exécution de l’Exercice seul. Référence : D-214 révisée le 12/10/2026."
+  },
+  {
+   "id": "6K-13-4861",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "13 – Contrats d’écran.md",
+   "ancien": "Le calcul porte sur le plan développé et conserve la piste existante. M compte les étapes contributives ; R compte les Séries Répétitions sans cadence et À l’échec ; T somme les durées des phases chronométrées positives et les Ri×Ci des Séries cadencées. Chaque Série sans durée déterminable pèse1/M ; chaque étape temporelle de durée d pèse(1−R/M)×d/T. Sans R, poids d/T ; sans T, poids1/M. Phases0s, Pause manuelle et attente de point n’ont aucun poids. Les non-cadencées/À l’échec acquièrent leur part à Suivant ; les Répétitions avec bip progressent continûment, Suivant acquiert leur reste. À fin nominale, part de Série100% mais Série active. Pause abandonne la fraction d’intervalle pour la progression, conserve le temps réel ; reprise sur intervalle complet. Aucun100% global publié avant finalisation du plan. Poids figés au départ ; reset remet à zéro son périmètre seulement. Aucun nouveau composant de progression par Série.",
+   "nouveau": "Le calcul porte sur le plan développé et conserve la piste existante. M compte les étapes contributives ; R compte les Séries Répétitions sans cadence et À l’échec ; T somme les durées des phases chronométrées positives et les Ri×Ci des Séries cadencées. Chaque Série sans durée déterminable pèse1/M ; chaque étape temporelle de durée d pèse(1−R/M)×d/T. Sans R, poids d/T ; sans T, poids1/M. Phases0 s, Pause manuelle et attente de point n’ont aucun poids. Les non-cadencées/À l’échec acquièrent leur part à Suivant ; les Répétitions avec bip progressent continûment, Suivant acquiert leur reste. À fin nominale, part de Série100% mais Série active. Pause abandonne la fraction d’intervalle pour la progression, conserve le temps réel ; reprise sur intervalle complet. Aucun100% global publié avant finalisation du plan. Poids figés au départ ; reset remet à zéro son périmètre seulement. Aucun nouveau composant de progression par Série."
+  },
+  {
+   "id": "6K-01-152",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "01 – Vision Générale.md",
+   "ancien": "| **Pause après chaque série** | Pi configurée et exécutée après chaque Série, dernière comprise, même à N=1. Seule la dernière Pause est remplacée par la récupération positive qui suit l’Exercice. Pause de série et pause de changement de côté se cumulent à leur frontière. | 15s après chaque Série |",
+   "nouveau": "| **Pause après chaque série** | Pi configurée et exécutée après chaque Série, dernière comprise, même à N=1. Seule la dernière Pause est remplacée par la récupération positive qui suit l’Exercice. Pause de série et pause de changement de côté se cumulent à leur frontière. | 15 s après chaque Série |"
+  },
+  {
+   "id": "6K-01-154",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "01 – Vision Générale.md",
+   "ancien": "| **Récupération après exercice** | Pause chronométrée ajoutée explicitement à une occurrence, absente par défaut ; jamais sur ActivityDefinition. Attachée à l’occurrence lors des opérations. À 0s : aucune information de récupération ni phase ; trait indépendant D-303. | Récupération30s ajoutée |",
+   "nouveau": "| **Récupération après exercice** | Pause chronométrée ajoutée explicitement à une occurrence, absente par défaut ; jamais sur ActivityDefinition. Attachée à l’occurrence lors des opérations. À 0 s : aucune information de récupération ni phase ; trait indépendant D-303. | Récupération30 s ajoutée |"
+  },
+  {
+   "id": "6K-01-322",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "01 – Vision Générale.md",
+   "ancien": "| Bip de cadence | Stepper | Trois modes, réglage commun | Non | Aucun (0) | Entier0..10s | Série | ± dans le brouillon ;0 retire le bip | Propagation à toutes les Séries ; conservation au changement de mode |",
+   "nouveau": "| Bip de cadence | Stepper | Trois modes, réglage commun | Non | Aucun (0) | Entier0..10 s | Série | ± dans le brouillon ;0 retire le bip | Propagation à toutes les Séries ; conservation au changement de mode |"
+  },
+  {
+   "id": "6K-01-339",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "01 – Vision Générale.md",
+   "ancien": "| Bip de cadence | Signal sonore périodique pendant les Séries des deux modes. Intervalle entier0..10s ;0=Aucun. Ne détecte pas les répétitions et ne termine pas la Série. Le nombre d’intervalles logiques peut proposer un relevé estimé en Répétitions à l’échec. |",
+   "nouveau": "| Bip de cadence | Signal sonore périodique pendant les Séries des deux modes. Intervalle entier0..10 s ;0=Aucun. Ne détecte pas les répétitions et ne termine pas la Série. Le nombre d’intervalles logiques peut proposer un relevé estimé en Répétitions à l’échec. |"
+  },
+  {
+   "id": "6K-04-117",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "04 – Modèle fonctionnel.md",
+   "ancien": "Un **Circuit** est le groupe ordonné d’Exercices contenu dans le Cycle technique unique du MVP. Un **Tour** est une exécution complète de ce Circuit. Pour une séance libre à compte borné, le compte est compris entre1 et99, défaut1 : nombre de tours pour la nature tours, nombre de séries imposé à chaque exercice pour la nature séries. Les formats ajoutent des bornes et indexations explicites ; leur détail figure dans la section Formats ci-dessous. D-209 est complétée par la spécification du12/10.",
+   "nouveau": "Un **Circuit** est le groupe ordonné d’Exercices contenu dans le Cycle technique unique du MVP. Un **Tour** est une exécution complète de ce Circuit. Pour une séance libre à compte borné, le compte est compris entre 1 et 99, défaut1 : nombre de tours pour la nature tours, nombre de séries imposé à chaque exercice pour la nature séries. Les formats ajoutent des bornes et indexations explicites ; leur détail figure dans la section Formats ci-dessous. D-209 est complétée par la spécification du 12/10."
+  },
+  {
+   "id": "6K-04-323",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "04 – Modèle fonctionnel.md",
+   "ancien": "- le compte du Circuit reste configurable de1 à99, avec sa nature tours/séries.",
+   "nouveau": "- le compte du Circuit reste configurable de 1 à 99, avec sa nature tours/séries."
+  },
+  {
+   "id": "6K-04-405",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "04 – Modèle fonctionnel.md",
+   "ancien": "Sélectionner Récupération ouvre immédiatement la modale de durée. La valeur proposée provient du défaut Profil de récupération, initialement 0min30s. Cette règle dérivée conserve le réglage existant en déplaçant son application de la création d’occurrence à l’ajout explicite. Une modification ultérieure du Profil n’altère pas les pauses déjà ajoutées.",
+   "nouveau": "Sélectionner Récupération ouvre immédiatement la modale de durée. La valeur proposée provient du défaut Profil de récupération, initialement 0 min 30 s. Cette règle dérivée conserve le réglage existant en déplaçant son application de la création d’occurrence à l’ajout explicite. Une modification ultérieure du Profil n’altère pas les pauses déjà ajoutées."
+  },
+  {
+   "id": "6K-05-5",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "05 – Versions du produit.md",
+   "ancien": "> Mise à jour du 24 septembre 2026 : Étiquette = classification/couleur de Séance ; Catégorie = classification/couleur d’Exercice ; Point d’arrêt ; Compte à rebours et Fin propres à l’Exercice ; changement de côté non exposé au niveau Circuit ; roulettes en modale basse ; média en gouttière permanente dans le Catalogue des Exercices depuis D-260/D-261 du03/10/2026.",
+   "nouveau": "> Mise à jour du 24 septembre 2026 : Étiquette = classification/couleur de Séance ; Catégorie = classification/couleur d’Exercice ; Point d’arrêt ; Compte à rebours et Fin propres à l’Exercice ; changement de côté non exposé au niveau Circuit ; roulettes en modale basse ; média en gouttière permanente dans le Catalogue des Exercices depuis D-260/D-261 du 03/10/2026."
+  },
+  {
+   "id": "6K-05-321",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "05 – Versions du produit.md",
+   "ancien": "Le guidage de cadence pendant l’Exécution appartient au MVP (D-378). Les deux modes peuvent émettre un Bip de cadence, intervalle0..10s,0=Aucun, sans quatrième mode. Chronomètre croissant et signaux guident l’utilisateur ; Suivant conserve la fin normale de Série, même après la fin nominale. KODJO ne détecte pas les mouvements. Pour une cible À l’échec en Répétitions, le relevé facultatif peut être déclaré ; avec bip, une estimation est proposée et conservée tant qu’elle n’est pas explicitement confirmée ou corrigée. Référence : [Règles détaillées](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#resultats-temporels).",
+   "nouveau": "Le guidage de cadence pendant l’Exécution appartient au MVP (D-378). Les deux modes peuvent émettre un Bip de cadence, intervalle0..10 s,0=Aucun, sans quatrième mode. Chronomètre croissant et signaux guident l’utilisateur ; Suivant conserve la fin normale de Série, même après la fin nominale. KODJO ne détecte pas les mouvements. Pour une cible À l’échec en Répétitions, le relevé facultatif peut être déclaré ; avec bip, une estimation est proposée et conservée tant qu’elle n’est pas explicitement confirmée ou corrigée. Référence : [Règles détaillées](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#resultats-temporels)."
+  },
+  {
+   "id": "6K-06-6",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "06 – Ecrans et navigation de la V1.md",
+   "ancien": "**Évolutions v15 du07/10 :**36captations vérifiées, dont15PNG changés depuis main72d1bf4. , [DSF phrases](../DSF-PHRASES-V15-2026-10-07.md). Vue longue renommée224caractères ; les calculs déjà décidés sont conservés.",
+   "nouveau": "**Évolutions v15 du 07/10 :**36captations vérifiées, dont15PNG changés depuis main72d1bf4. , [DSF phrases](../DSF-PHRASES-V15-2026-10-07.md). Vue longue renommée224caractères ; les calculs déjà décidés sont conservés."
+  },
+  {
+   "id": "6K-06-66",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "06 – Ecrans et navigation de la V1.md",
+   "ancien": "Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper selon DSF Bip (maintien≈500ms, répétition150ms, paliers1/5/10) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.",
+   "nouveau": "Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper selon DSF Bip (maintien≈500 ms, répétition150 ms, paliers1/5/10) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF."
+  },
+  {
+   "id": "6K-06-289",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "06 – Ecrans et navigation de la V1.md",
+   "ancien": "Fenêtre restaurée et réexportée le01/10/2026. Titre « Supprimer cette séance ? » ; message « Cette séance archivée sera définitivement supprimée. Cette action est irréversible. » ; Annuler gris#F3F4F6 / Confirmer#B1503C. Les deux actions ne sont pas recâblées dans le prototype ; leur comportement produit reste annuler sans mutation / supprimer définitivement après confirmation.",
+   "nouveau": "Fenêtre restaurée et réexportée le 01/10/2026. Titre « Supprimer cette séance ? » ; message « Cette séance archivée sera définitivement supprimée. Cette action est irréversible. » ; Annuler gris#F3F4F6 / Confirmer#B1503C. Les deux actions ne sont pas recâblées dans le prototype ; leur comportement produit reste annuler sans mutation / supprimer définitivement après confirmation."
+  },
+  {
+   "id": "6K-06-357",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "06 – Ecrans et navigation de la V1.md",
+   "ancien": "Le Circuit porte une nature tours (défaut) ou séries et un compte de1 à99, initialisé à1.",
+   "nouveau": "Le Circuit porte une nature tours (défaut) ou séries et un compte de 1 à 99, initialisé à 1."
+  },
+  {
+   "id": "6K-06-517",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "06 – Ecrans et navigation de la V1.md",
+   "ancien": "Références courantes du12/10, complétées le13/10 :32 captures du parcours de création et de ses états de Modalités d’exécution, issues de Prototype MVP. Contrats CE-T03-04, CE-UI-09 et CE-UI-10. Les anciens relevés du 03/10 et du 06/10 restent historiques pour les états remplacés ; .",
+   "nouveau": "Références courantes du 12/10, complétées le 13/10 :32 captures du parcours de création et de ses états de Modalités d’exécution, issues de Prototype MVP. Contrats CE-T03-04, CE-UI-09 et CE-UI-10. Les anciens relevés du 03/10 et du 06/10 restent historiques pour les états remplacés ; ."
+  },
+  {
+   "id": "6K-06-565",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "06 – Ecrans et navigation de la V1.md",
+   "ancien": "Ces 19 frames sont des états de CE-UI-10, pas 19 pages applicatives. Quatre références ont été recapturées et le cas mixte ajouté selon la matrice du13/10.",
+   "nouveau": "Ces 19 frames sont des états de CE-UI-10, pas 19 pages applicatives. Quatre références ont été recapturées et le cas mixte ajouté selon la matrice du 13/10."
+  },
+  {
+   "id": "6K-06-653",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "06 – Ecrans et navigation de la V1.md",
+   "ancien": "État de CE-UI-10 : mode Durée, cibles30s/45s/échec, pauses10s/20s/30s et total partiel ≥2min15, non modifiable. La cible échec conserve sa colonne ; le mode n’est pas « À l’échec ». [DSF et anatomie du sélecteur](../DSF-DEUX-MODES-ECHEC-2026-10-13.md) ; .",
+   "nouveau": "État de CE-UI-10 : mode Durée, cibles30 s/45 s/échec, pauses10 s/20 s/30 s et total partiel ≥2 min 15, non modifiable. La cible échec conserve sa colonne ; le mode n’est pas « À l’échec ». [DSF et anatomie du sélecteur](../DSF-DEUX-MODES-ECHEC-2026-10-13.md) ; ."
+  },
+  {
+   "id": "6K-06-709",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "06 – Ecrans et navigation de la V1.md",
+   "ancien": "Le segmenté Jour/Semaine/Mois mesure354 sur référence402 : padding4, gaps4, options112,67. Aujourd’hui et Planifier restent à32 sans cible44 ajoutée : exception acceptée, à revoir et développer après T04. La navigation utilise les quatre nouveaux dessins DSF. Ces règles ne déplacent pas les jalons fonctionnels existants.",
+   "nouveau": "Le segmenté Jour/Semaine/Mois mesure354 sur référence402 : padding4, gaps4, options112,67. Aujourd’hui et Planifier restent à 32 sans cible44 ajoutée : exception acceptée, à revoir et développer après T04. La navigation utilise les quatre nouveaux dessins DSF. Ces règles ne déplacent pas les jalons fonctionnels existants."
+  },
+  {
+   "id": "6K-06-1766",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "06 – Ecrans et navigation de la V1.md",
+   "ancien": "Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper selon DSF Bip (maintien≈500ms, répétition150ms, paliers1/5/10) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.",
+   "nouveau": "Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper selon DSF Bip (maintien≈500 ms, répétition150 ms, paliers1/5/10) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF."
+  },
+  {
+   "id": "6K-06-1922",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "06 – Ecrans et navigation de la V1.md",
+   "ancien": "Bip au premier niveau x36 sur référence402, séparateur330px ; juste avant Durée totale, ou à sa position lorsque le total est omis, avant Compte à rebours/Fin. Les sous-lignes Séries variables/cible/Pause et Ordre/PC restent indentées x52, séparateurs314px. La feuille se raccourcit de42px par le haut lorsque le total disparaît, en restant ancrée en bas ; texte agrandi et petits écrans : contenu défilant, aucun rognage.",
+   "nouveau": "Bip au premier niveau x36 sur référence402, séparateur330px ; juste avant Durée totale, ou à sa position lorsque le total est omis, avant Compte à rebours/Fin. Les sous-lignes Séries variables/cible/Pause et Ordre/PC restent indentées x52, séparateurs314px. La feuille se raccourcit de 42px par le haut lorsque le total disparaît, en restant ancrée en bas ; texte agrandi et petits écrans : contenu défilant, aucun rognage."
+  },
+  {
+   "id": "6K-06-1924",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "06 – Ecrans et navigation de la V1.md",
+   "ancien": "Step simple=1 unité. Maintien après environ500ms : répétition au pas1 ; après2s : pas5 vers le prochain multiple dans le sens du geste ; après4s : pas10 de même. Relâchement arrête immédiatement et rétablit le pas1, sans pas supplémentaire de fin de maintien. Cadence de répétition technique existante150ms conservée tant que le produit ne la révise pas. Exemple+ depuis13→15→20 ; − depuis13→10→5. Bornes saturées, pas de dépassement ni rebouclage.",
+   "nouveau": "Step simple=1 unité. Maintien après environ500 ms : répétition au pas1 ; après 2 s : pas5 vers le prochain multiple dans le sens du geste ; après 4 s : pas10 de même. Relâchement arrête immédiatement et rétablit le pas1, sans pas supplémentaire de fin de maintien. Cadence de répétition technique existante150 ms conservée tant que le produit ne la révise pas. Exemple+ depuis 13→15→20 ; − depuis 13→10→5. Bornes saturées, pas de dépassement ni rebouclage."
+  },
+  {
+   "id": "6K-08-182",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "08 – Conception fonctionnelle détaillée.md",
+   "ancien": "Augmentation de N : rétablir d’abord les lignes temporairement retirées ; au-delà des lignes récupérables, copier la dernière ligne active. Réduction : retirer les dernières lignes de la liste active, conserver temporairement leur cible/Pause et leur ordre pour une restauration avant ✓. Restaurer une tranche retirée dans son ordre relatif d’origine (par exemple réduire 5→3 puis revenir à5 restitue 4 puis5, pas5 puis4). Après ✓, les lignes retirées ne sont plus conservées.",
+   "nouveau": "Augmentation de N : rétablir d’abord les lignes temporairement retirées ; au-delà des lignes récupérables, copier la dernière ligne active. Réduction : retirer les dernières lignes de la liste active, conserver temporairement leur cible/Pause et leur ordre pour une restauration avant ✓. Restaurer une tranche retirée dans son ordre relatif d’origine (par exemple réduire 5→3 puis revenir à 5 restitue 4 puis5, pas5 puis4). Après ✓, les lignes retirées ne sont plus conservées."
+  },
+  {
+   "id": "6K-08-188",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "08 – Conception fonctionnelle détaillée.md",
+   "ancien": "**N=1 — arbitrage explicite** : état effectif uniforme et Ordre des côtés effectif Un côté après l’autre **dès le brouillon et son calcul**, pas seulement à la sauvegarde. Champ de régime non modifiable, selon la normalisation N1 existante ; Ordre des côtés grisé lorsqu’il est visible en bilatéral ; aucun texte explicatif. Conserver temporairement l’ancien état variable, ses lignes et l’ancien ordre des côtés pour les restaurer si N remonte à2+ avant ✓. Valider à1 ne conserve qu’une série uniforme et l’ordre par défaut. Hors circuit de séries, les deux formules bilatérales ne sont pas déclarées équivalentes à N=1 : la normalisation choisit explicitement la première. Dans un circuit de séries, le passage suit toujours premier côté → PC → second côté → Pi, y compris pour compte1 ; aucun Pi supplémentaire avant PC.",
+   "nouveau": "**N=1 — arbitrage explicite** : état effectif uniforme et Ordre des côtés effectif Un côté après l’autre **dès le brouillon et son calcul**, pas seulement à la sauvegarde. Champ de régime non modifiable, selon la normalisation N1 existante ; Ordre des côtés grisé lorsqu’il est visible en bilatéral ; aucun texte explicatif. Conserver temporairement l’ancien état variable, ses lignes et l’ancien ordre des côtés pour les restaurer si N remonte à 2+ avant ✓. Valider à 1 ne conserve qu’une série uniforme et l’ordre par défaut. Hors circuit de séries, les deux formules bilatérales ne sont pas déclarées équivalentes à N=1 : la normalisation choisit explicitement la première. Dans un circuit de séries, le passage suit toujours premier côté → PC → second côté → Pi, y compris pour compte1 ; aucun Pi supplémentaire avant PC."
+  },
+  {
+   "id": "6K-08-214",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "08 – Conception fonctionnelle détaillée.md",
+   "ancien": "| Pause entre les côtés | Stepper permanent CE-UI-10 | Visible uniquement en `D→G/G→D` | Non | Copie de la valeur courante du Profil (initialement 10 s) | 0..5min ; tap1s, maintien DSF Bip | Activité | Sélection | `sideRecoverySeconds`; une phase entre les côtés selon l’Ordre des côtés ; aucune récupération post-activité dans l’éditeur |",
+   "nouveau": "| Pause entre les côtés | Stepper permanent CE-UI-10 | Visible uniquement en `D→G/G→D` | Non | Copie de la valeur courante du Profil (initialement 10 s) | 0..5 min ; tap1 s, maintien DSF Bip | Activité | Sélection | `sideRecoverySeconds`; une phase entre les côtés selon l’Ordre des côtés ; aucune récupération post-activité dans l’éditeur |"
+  },
+  {
+   "id": "6K-08-215",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "08 – Conception fonctionnelle détaillée.md",
+   "ancien": "| Bip de cadence | Stepper | Trois modes, réglage commun | Non | Aucun (0) | Entier0..10s | Série | ± dans le brouillon ;0 retire le bip | Propagation à toutes les Séries ; conservation au changement de mode |",
+   "nouveau": "| Bip de cadence | Stepper | Trois modes, réglage commun | Non | Aucun (0) | Entier0..10 s | Série | ± dans le brouillon ;0 retire le bip | Propagation à toutes les Séries ; conservation au changement de mode |"
+  },
+  {
+   "id": "6K-08-308",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "08 – Conception fonctionnelle détaillée.md",
+   "ancien": "Les récupérations restent 0..300s avec la grille de pas déjà validée ; 0 est valide, ne produit pas de phase et n’affiche pas d’information de récupération. Un objet explicitement réglé à0 est conservé en base, distinct de l’absence ; seul son retrait explicite supprime l’objet. La valeur0 ne crée aucune phase et ne remplace pas la Pause finale de Série. Tester séparément présence de données et visibilité.",
+   "nouveau": "Les récupérations restent 0..300 s avec la grille de pas déjà validée ; 0 est valide, ne produit pas de phase et n’affiche pas d’information de récupération. Un objet explicitement réglé à 0 est conservé en base, distinct de l’absence ; seul son retrait explicite supprime l’objet. La valeur0 ne crée aucune phase et ne remplace pas la Pause finale de Série. Tester séparément présence de données et visibilité."
+  },
+  {
+   "id": "6K-08-321",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "08 – Conception fonctionnelle détaillée.md",
+   "ancien": "| Durée 30s,45s,échec | 3 séries de durée variable (30 s, 45 s puis jusqu’à l’échec) | ≥ si calculable |",
+   "nouveau": "| Durée 30 s,45 s,échec | 3 séries de durée variable (30 s, 45 s puis jusqu’à l’échec) | ≥ si calculable |"
+  },
+  {
+   "id": "6K-08-322",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "08 – Conception fonctionnelle détaillée.md",
+   "ancien": "| Durée 30s,45s,60s,échec | 4 séries variables, de 30 s à l’échec | ≥ |",
+   "nouveau": "| Durée 30 s,45 s,60 s,échec | 4 séries variables, de 30 s à l’échec | ≥ |"
+  },
+  {
+   "id": "6K-08-498",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "08 – Conception fonctionnelle détaillée.md",
+   "ancien": "Le temps actif est affiché par un chronomètre croissant à partir de00:00. Sans cadence, aucune durée prescrite ; avec cadence, Ri×Ci définit une fin nominale, sans fin automatique de Série.",
+   "nouveau": "Le temps actif est affiché par un chronomètre croissant à partir de 00:00. Sans cadence, aucune durée prescrite ; avec cadence, Ri×Ci définit une fin nominale, sans fin automatique de Série."
+  },
+  {
+   "id": "6K-08-587",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "08 – Conception fonctionnelle détaillée.md",
+   "ancien": "- pour une Série Répétitions cadencée,30min après la fin nominale recalculée sans interaction ;",
+   "nouveau": "- pour une Série Répétitions cadencée,30 min après la fin nominale recalculée sans interaction ;"
+  },
+  {
+   "id": "6K-08-588",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "08 – Conception fonctionnelle détaillée.md",
+   "ancien": "- pour un Exercice en Répétitions sans cadence ou À l’échec,2h sans interaction depuis son démarrage.",
+   "nouveau": "- pour un Exercice en Répétitions sans cadence ou À l’échec,2 h sans interaction depuis son démarrage."
+  },
+  {
+   "id": "6K-09-472",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "09 – Modèle de données fonctionnel.md",
+   "ancien": "Bornes de validation D-232 : `seriesCount ∈ [1,99]`, répétitions par Série `∈ [1,100]`, durée par Série `∈ [5,3535] s`, pauses inter-Séries et inter-côtés `∈ [0,300] s`. Une valeur héritée hors bornes, non modifiée, peut être conservée ; toute nouvelle saisie ou modification doit respecter ces bornes (D-383). Le pas UI n’est pas une contrainte de stockage : tap1s, maintien accéléré1/5/10 selon DSF Bip ; aucun arrondi à la lecture.",
+   "nouveau": "Bornes de validation D-232 : `seriesCount ∈ [1,99]`, répétitions par Série `∈ [1,100]`, durée par Série `∈ [5,3535] s`, pauses inter-Séries et inter-côtés `∈ [0,300] s`. Une valeur héritée hors bornes, non modifiée, peut être conservée ; toute nouvelle saisie ou modification doit respecter ces bornes (D-383). Le pas UI n’est pas une contrainte de stockage : tap1 s, maintien accéléré1/5/10 selon DSF Bip ; aucun arrondi à la lecture."
+  },
+  {
+   "id": "6K-09-490",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "09 – Modèle de données fonctionnel.md",
+   "ancien": "Migration : ancien objet sans champ initialisé à0 ; conserver valeurs et historique. Bip valide et conservé dans les deux modes après validation. Écriture atomique des paramètres et de la collection ; transitions moteur idempotentes. Le schéma physique et sa migration sont à implémenter, pas réputés présents du fait de cette cible.",
+   "nouveau": "Migration : ancien objet sans champ initialisé à 0 ; conserver valeurs et historique. Bip valide et conservé dans les deux modes après validation. Écriture atomique des paramètres et de la collection ; transitions moteur idempotentes. Le schéma physique et sa migration sont à implémenter, pas réputés présents du fait de cette cible."
+  },
+  {
+   "id": "6K-09-502",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "09 – Modèle de données fonctionnel.md",
+   "ancien": "Une récupération explicite de0s est un objet conservé, distinct de l’absence ; seul Retirer la supprime. Elle ne crée aucune phase positive ni suppression dePN. Le scalaire historique ActivityDefinition.pauseSeconds ne devient pas une récupération : sa valeur est portée dans SeriesParameters.pauseSeconds lors de la refonte. Les pauses recovery/breakpoint de Composition restent une collection distincte. Aucun schéma physique ou migration exécutée dans ce lot.",
+   "nouveau": "Une récupération explicite de 0 s est un objet conservé, distinct de l’absence ; seul Retirer la supprime. Elle ne crée aucune phase positive ni suppression dePN. Le scalaire historique ActivityDefinition.pauseSeconds ne devient pas une récupération : sa valeur est portée dans SeriesParameters.pauseSeconds lors de la refonte. Les pauses recovery/breakpoint de Composition restent une collection distincte. Aucun schéma physique ou migration exécutée dans ce lot."
+  },
+  {
+   "id": "6K-09-524",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "09 – Modèle de données fonctionnel.md",
+   "ancien": "Migration de l’ancien TO_FAILURE : REPETITIONS + cibles échec, valeurs et comportement conservés ; lecture versionnée des snapshots historiques, aucune répétition rétrocalculée. La donnée dernière tentative doit être distinguée du cumul :20s reset35s →55s cumulé,35s relevé. Voir chapitre 09, Cibles typées, et chapitre 08, Relevés d’exécution ; schéma physique à réaliser, non livré par la documentation.",
+   "nouveau": "Migration de l’ancien TO_FAILURE : REPETITIONS + cibles échec, valeurs et comportement conservés ; lecture versionnée des snapshots historiques, aucune répétition rétrocalculée. La donnée dernière tentative doit être distinguée du cumul :20 s reset35 s →55 s cumulé,35 s relevé. Voir chapitre 09, Cibles typées, et chapitre 08, Relevés d’exécution ; schéma physique à réaliser, non livré par la documentation."
+  },
+  {
+   "id": "6K-09-552",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "09 – Modèle de données fonctionnel.md",
+   "ancien": "Existant sans nouveaux attributs : uniforme, Un côté après l’autre. Quantité de travail, cibles, Pauses stockées et direction conservées. **Le changement de durée et de pauses exécutées est assumé pour les exercices existants**, confirmé le02/10. Les instantanés et résultats historiques restent immuables ; ne pas réécrire les durées réalisées.",
+   "nouveau": "Existant sans nouveaux attributs : uniforme, Un côté après l’autre. Quantité de travail, cibles, Pauses stockées et direction conservées. **Le changement de durée et de pauses exécutées est assumé pour les exercices existants**, confirmé le 02/10. Les instantanés et résultats historiques restent immuables ; ne pas réécrire les durées réalisées."
+  },
+  {
+   "id": "6K-09-554",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "09 – Modèle de données fonctionnel.md",
+   "ancien": "La clarification du07/10 conserve la Pause après chaque série, dernière comprise ; seule une récupération positive qui suit remplace la dernière Pause. Les snapshots existants demeurent immuables ; la migration physique doit être planifiée.",
+   "nouveau": "La clarification du 07/10 conserve la Pause après chaque série, dernière comprise ; seule une récupération positive qui suit remplace la dernière Pause. Les snapshots existants demeurent immuables ; la migration physique doit être planifiée."
+  },
+  {
+   "id": "6K-09-610",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "09 – Modèle de données fonctionnel.md",
+   "ancien": "Copie Catalogue→Séance, duplication et nouvel instantané conservent tout cet état. Les données sans nouveaux attributs sont uniformes/Un côté après l’autre. Les calculs actuels s’appliquent aussi aux Exercices existants ; résultats historiques immuables. Les valeurs temporaires de restauration et le repli visuel ne sont jamais persistés. Voir chapitre 08, paramètres d’exercice et8 pour le contrat complet.",
+   "nouveau": "Copie Catalogue→Séance, duplication et nouvel instantané conservent tout cet état. Les données sans nouveaux attributs sont uniformes/Un côté après l’autre. Les calculs actuels s’appliquent aussi aux Exercices existants ; résultats historiques immuables. Les valeurs temporaires de restauration et le repli visuel ne sont jamais persistés. Voir chapitre 08, paramètres d’exercice et 8 pour le contrat complet."
+  },
+  {
+   "id": "6K-09-623",
+   "ref": "QS-14, QF-13, QF-17",
+   "file": "09 – Modèle de données fonctionnel.md",
+   "ancien": "La Composition possède des pauses explicites recovery et breakpoint. recovery appartient à une occurrence ; breakpoint conserve une position structurelle. Une projection R=0 pour absence ne crée pas d’objet. La présence et la durée0 sont distinctes, les phases0s ne sont pas générées.",
+   "nouveau": "La Composition possède des pauses explicites recovery et breakpoint. recovery appartient à une occurrence ; breakpoint conserve une position structurelle. Une projection R=0 pour absence ne crée pas d’objet. La présence et la durée0 sont distinctes, les phases0 s ne sont pas générées."
+  }
+ ]
+}

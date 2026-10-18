@@ -1,0 +1,131 @@
+{
+ "description": "Finalisation du lot 6 — seconde revue des résidus INCERTAIN (alias, qualité, copies, R-06, ch. 06 l. 1777–1823). Corrections limitées aux cas démontrables : renvoi vers la seule source définissant les critères, retrait/renvoi de lignes identiques à une occurrence conservée de même portée, espaces et accent de titres sans lien entrant (liens de l’annexe corrigés). Rapport : lot6/finalisation/residus-examen.tsv.",
+ "corrections": [
+  {
+   "id": "RSD-001",
+   "ref": "alias-examen.tsv 13:680 (S13-0949) ; seule définition des critères CAR/MED/ICO/CTX/ANI : DSF-CARTES-ICONES-APPUIS-2026-09-30.md § Critères d’acceptation atomiques ; origine 37c59b26 13:239 « … ANI du complément DSF », 13:287 « complément Cartes du 30 septembre 2026 »",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Critères CAR/MED/ICO/CTX/ANI du complément.",
+   "nouveau": "Critères CAR/MED/ICO/CTX/ANI du complément ([DSF — Cartes, icônes et animations d’appui](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md#critères-dacceptation-atomiques))."
+  },
+  {
+   "id": "RSD-002",
+   "ref": "AD-06 ; verification/structure.tsv S10-0745 ; 06:1779,1781,1783,1785,1789 identiques à 06:98,100,102,104,106 (« Références transverses des cartes et appuis », même chapitre, portée courante) ; 06:1787 propre, conservée ; relecture : la ligne « Référence normative ciblée » est conservée (portée d’origine précisée par STR-203/205)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "Décisions finales du propriétaire : les 17 points du 30/09 sont clos. Révision des cartes du 03/10/2026 (D-260 à D-264) : un seul format de carte d’Exercice, avec une gouttière permanente de 64 px dans le Catalogue et les listes de sélection d’exercices ; photo si média associé, icône de nature sinon. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Les Séances ne portent jamais de visuel. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi. Aucun déploiement d’Exercice ni de carte du Suivi ; le déploiement des Séances reste accessible dans le Catalogue et le Calendrier Semaine. Le Suivi présente deux lignes : nature/titre/statut, puis durée/catégorie/ressenti ; sans heure, zones corporelles ni étiquettes. Le Ressenti y est un indicateur sans action, distinct de sa saisie obligatoire en Synthèse. Les variantes déployées d’Exercice et du Suivi sont historiques, hors MVP. Pauses/récupérations et prochaine planification restent absentes des cartes concernées. Les données, instantanés, calculs et fonctions de planification sont conservés.\r\n\r\nSynthèses : « N séries de X », « N séries de N rép. », « N séries à l’échec » ; bilatéralité par miroir dans les variantes concernées. Heure Semaine « 08:00 » ; aucune heure dans la carte du Suivi. Séance sans étiquette : catégories de ses exercices ; listes de catégories/zones séparées par un point médian et tronquées avec « … ». Choix sans badge durée ; récurrence du Calendrier Semaine dans la carte déployée seulement.\r\n\r\nRG-10 : le Profil porte une préférence silhouette facultative, homme/femme ; absence = homme affiché. Elle ne pilote que l’icône de zone corporelle, sans filtre, recherche ou effet métier. RG-11 à RG-13 : vignette 64 centrée et recadrée sans déformation (couverture pour une vidéo), place réservée pendant chargement/erreur, texte alternatif égal au nom de l’exercice.\r\n\r\nD-239 : Calendrier Jour est une exception compacte (séance 298 × 46, exercice 298 × 48, x=80, hauteur d’instance adaptée à l’événement), avec barre colorée 4, nature 26, titre 13 gras, heure/durée 11, lecture 26 et aucun Déployer. Les deux sets comportent 10 variantes chacun. Suivi — Vue d’ensemble est hors MVP. Les boutons Calendrier Aujourd’hui/Planifier restent à 32, sans cible 44 ajoutée : situation acceptée, à revoir et développer après T04. Les nouvelles icônes sont nommées icon/<nom>, les anciennes ne sont pas renommées ; target est réservé au Programme, pulse aux rapports/Suivi.\r\n\r\nContrat de donnée : ajouter au Profil la préférence facultative `silhouette`, valeurs `homme` / `femme` ; absence ou null conserve le rendu homme, sans imposer de saisie aux profils existants. Ce champ ne représente pas un sexe. Les références média et les instantanés existants sont conservés.\r\n\r\nRéférence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.",
+   "nouveau": "*Texte identique à celui de la section [« Références transverses des cartes et appuis »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#références-transverses-des-cartes-et-appuis) ; il n’est pas recopié ici.*\r\n\r\nContrat de donnée : ajouter au Profil la préférence facultative `silhouette`, valeurs `homme` / `femme` ; absence ou null conserve le rendu homme, sans imposer de saisie aux profils existants. Ce champ ne représente pas un sexe. Les références média et les instantanés existants sont conservés.\r\n\r\nRéférence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement."
+  },
+  {
+   "id": "RSD-003",
+   "ref": "AD-06 ; S10-0745 ; 06:1795–1803 identiques à 06:98–106 ; le renvoi 06:1805 vers la même section existe déjà ; relecture : la ligne « Référence normative ciblée » est conservée (portée d’origine ch. 10, précisée par STR-204)",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "Décisions finales du propriétaire : les 17 points du 30/09 sont clos. Révision des cartes du 03/10/2026 (D-260 à D-264) : un seul format de carte d’Exercice, avec une gouttière permanente de 64 px dans le Catalogue et les listes de sélection d’exercices ; photo si média associé, icône de nature sinon. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Les Séances ne portent jamais de visuel. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi. Aucun déploiement d’Exercice ni de carte du Suivi ; le déploiement des Séances reste accessible dans le Catalogue et le Calendrier Semaine. Le Suivi présente deux lignes : nature/titre/statut, puis durée/catégorie/ressenti ; sans heure, zones corporelles ni étiquettes. Le Ressenti y est un indicateur sans action, distinct de sa saisie obligatoire en Synthèse. Les variantes déployées d’Exercice et du Suivi sont historiques, hors MVP. Pauses/récupérations et prochaine planification restent absentes des cartes concernées. Les données, instantanés, calculs et fonctions de planification sont conservés.\r\n\r\nSynthèses : « N séries de X », « N séries de N rép. », « N séries à l’échec » ; bilatéralité par miroir dans les variantes concernées. Heure Semaine « 08:00 » ; aucune heure dans la carte du Suivi. Séance sans étiquette : catégories de ses exercices ; listes de catégories/zones séparées par un point médian et tronquées avec « … ». Choix sans badge durée ; récurrence du Calendrier Semaine dans la carte déployée seulement.\r\n\r\nRG-10 : le Profil porte une préférence silhouette facultative, homme/femme ; absence = homme affiché. Elle ne pilote que l’icône de zone corporelle, sans filtre, recherche ou effet métier. RG-11 à RG-13 : vignette 64 centrée et recadrée sans déformation (couverture pour une vidéo), place réservée pendant chargement/erreur, texte alternatif égal au nom de l’exercice.\r\n\r\nD-239 : Calendrier Jour est une exception compacte (séance 298 × 46, exercice 298 × 48, x=80, hauteur d’instance adaptée à l’événement), avec barre colorée 4, nature 26, titre 13 gras, heure/durée 11, lecture 26 et aucun Déployer. Les deux sets comportent 10 variantes chacun. Suivi — Vue d’ensemble est hors MVP. Les boutons Calendrier Aujourd’hui/Planifier restent à 32, sans cible 44 ajoutée : situation acceptée, à revoir et développer après T04. Les nouvelles icônes sont nommées icon/<nom>, les anciennes ne sont pas renommées ; target est réservé au Programme, pulse aux rapports/Suivi.\r\n\r\nRéférence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.\r\n\r\n*Texte identique à celui de la section [« Références transverses des cartes et appuis »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#références-transverses-des-cartes-et-appuis) ; il n’est pas recopié ici.*",
+   "nouveau": "Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.\r\n\r\n*Texte identique à celui de la section [« Références transverses des cartes et appuis »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#références-transverses-des-cartes-et-appuis) ; il n’est pas recopié ici.*"
+  },
+  {
+   "id": "RSD-004",
+   "ref": "AD-06 ; S10-0745 ; 06:1811,1813,1815,1817,1821 identiques à 06:98–106 ; 06:1819 propre, conservée ; relecture : la ligne « Référence normative ciblée » est conservée (portée d’origine précisée par STR-203/205)",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "Décisions finales du propriétaire : les 17 points du 30/09 sont clos. Révision des cartes du 03/10/2026 (D-260 à D-264) : un seul format de carte d’Exercice, avec une gouttière permanente de 64 px dans le Catalogue et les listes de sélection d’exercices ; photo si média associé, icône de nature sinon. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Les Séances ne portent jamais de visuel. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi. Aucun déploiement d’Exercice ni de carte du Suivi ; le déploiement des Séances reste accessible dans le Catalogue et le Calendrier Semaine. Le Suivi présente deux lignes : nature/titre/statut, puis durée/catégorie/ressenti ; sans heure, zones corporelles ni étiquettes. Le Ressenti y est un indicateur sans action, distinct de sa saisie obligatoire en Synthèse. Les variantes déployées d’Exercice et du Suivi sont historiques, hors MVP. Pauses/récupérations et prochaine planification restent absentes des cartes concernées. Les données, instantanés, calculs et fonctions de planification sont conservés.\r\n\r\nSynthèses : « N séries de X », « N séries de N rép. », « N séries à l’échec » ; bilatéralité par miroir dans les variantes concernées. Heure Semaine « 08:00 » ; aucune heure dans la carte du Suivi. Séance sans étiquette : catégories de ses exercices ; listes de catégories/zones séparées par un point médian et tronquées avec « … ». Choix sans badge durée ; récurrence du Calendrier Semaine dans la carte déployée seulement.\r\n\r\nRG-10 : le Profil porte une préférence silhouette facultative, homme/femme ; absence = homme affiché. Elle ne pilote que l’icône de zone corporelle, sans filtre, recherche ou effet métier. RG-11 à RG-13 : vignette 64 centrée et recadrée sans déformation (couverture pour une vidéo), place réservée pendant chargement/erreur, texte alternatif égal au nom de l’exercice.\r\n\r\nD-239 : Calendrier Jour est une exception compacte (séance 298 × 46, exercice 298 × 48, x=80, hauteur d’instance adaptée à l’événement), avec barre colorée 4, nature 26, titre 13 gras, heure/durée 11, lecture 26 et aucun Déployer. Les deux sets comportent 10 variantes chacun. Suivi — Vue d’ensemble est hors MVP. Les boutons Calendrier Aujourd’hui/Planifier restent à 32, sans cible 44 ajoutée : situation acceptée, à revoir et développer après T04. Les nouvelles icônes sont nommées icon/<nom>, les anciennes ne sont pas renommées ; target est réservé au Programme, pulse aux rapports/Suivi.\r\n\r\nContrat Profil : la lecture et la mise à jour du Profil portent la préférence facultative `silhouette` (homme/femme). Champ absent : rendu homme ; lors d’une mise à jour partielle, omission = préférence conservée, null = préférence non renseignée. Aucun endpoint distinct ni nouveau mécanisme d’import média n’est requis.\r\n\r\nRéférence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.",
+   "nouveau": "*Texte identique à celui de la section [« Références transverses des cartes et appuis »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#références-transverses-des-cartes-et-appuis) ; il n’est pas recopié ici.*\r\n\r\nContrat Profil : la lecture et la mise à jour du Profil portent la préférence facultative `silhouette` (homme/femme). Champ absent : rendu homme ; lors d’une mise à jour partielle, omission = préférence conservée, null = préférence non renseignée. Aucun endpoint distinct ni nouveau mécanisme d’import média n’est requis.\r\n\r\nRéférence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement."
+  },
+  {
+   "id": "RSD-009",
+   "ref": "qualite-examen.tsv QS-02 08:228 « Eléments affichés » ; seul lien entrant : Annexe – Correspondance des sections:556 (corrigé par RSD-010)",
+   "motif": "REDACTION",
+   "classe": "DOC",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "##### Eléments affichés\r\n",
+   "nouveau": "##### Éléments affichés\r\n"
+  },
+  {
+   "id": "RSD-010",
+   "ref": "suite de RSD-009 : ancre « eléments-affichés » → « éléments-affichés » ; la colonne de l’ancien titre est conservée",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@Annexe – Correspondance des sections.md",
+   "ancien": "[Eléments affichés](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#eléments-affichés)",
+   "nouveau": "[Éléments affichés](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#éléments-affichés)"
+  },
+  {
+   "id": "RSD-011",
+   "ref": "suite de RSD-009 (même titre, ch. 13)",
+   "motif": "REDACTION",
+   "classe": "REDACTION",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "### Synthèse de séance — Eléments affichés",
+   "nouveau": "### Synthèse de séance — Éléments affichés"
+  },
+  {
+   "id": "RSD-012",
+   "ref": "suite de RSD-009 (même titre, ch. 13)",
+   "motif": "REDACTION",
+   "classe": "REDACTION",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "### Profil — Eléments affichés",
+   "nouveau": "### Profil — Éléments affichés"
+  },
+  {
+   "id": "RSD-013",
+   "ref": "sommaire du ch. 13, suite de RSD-011",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "[Synthèse de séance — Eléments affichés](#synthèse-de-séance--eléments-affichés)",
+   "nouveau": "[Synthèse de séance — Éléments affichés](#synthèse-de-séance--éléments-affichés)"
+  },
+  {
+   "id": "RSD-014",
+   "ref": "sommaire du ch. 13, suite de RSD-012",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "[Profil — Eléments affichés](#profil--eléments-affichés)",
+   "nouveau": "[Profil — Éléments affichés](#profil--éléments-affichés)"
+  },
+  {
+   "id": "RSD-015",
+   "ref": "annexe de correspondance, suite de RSD-011/012 ; la colonne de l’ancien titre est conservée",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@Annexe – Correspondance des sections.md",
+   "ancien": "Synthèse de séance — Eléments affichés](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#synthèse-de-séance--eléments-affichés)",
+   "nouveau": "Synthèse de séance — Éléments affichés](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#synthèse-de-séance--éléments-affichés)"
+  },
+  {
+   "id": "RSD-016",
+   "ref": "annexe de correspondance, suite de RSD-011/012 ; la colonne de l’ancien titre est conservée",
+   "motif": "RENVOI",
+   "classe": "DOC",
+   "file": "@Annexe – Correspondance des sections.md",
+   "ancien": "Profil — Eléments affichés](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#profil--eléments-affichés)",
+   "nouveau": "Profil — Éléments affichés](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#profil--éléments-affichés)"
+  }
+ ],
+ "ecartees_a_la_relecture": [
+  {
+   "id": "RSD-005",
+   "raison": "espace manquante devant une date : défaut systématique (dizaines d’occurrences, dont le registre figé) ; correction partielle de 4 titres écartée, rattachée au point AD-08"
+  },
+  {
+   "id": "RSD-006",
+   "raison": "espace manquante devant une date : défaut systématique (dizaines d’occurrences, dont le registre figé) ; correction partielle de 4 titres écartée, rattachée au point AD-08"
+  },
+  {
+   "id": "RSD-007",
+   "raison": "espace manquante devant une date : défaut systématique (dizaines d’occurrences, dont le registre figé) ; correction partielle de 4 titres écartée, rattachée au point AD-08"
+  },
+  {
+   "id": "RSD-008",
+   "raison": "espace manquante devant une date : défaut systématique (dizaines d’occurrences, dont le registre figé) ; correction partielle de 4 titres écartée, rattachée au point AD-08"
+  }
+ ]
+}

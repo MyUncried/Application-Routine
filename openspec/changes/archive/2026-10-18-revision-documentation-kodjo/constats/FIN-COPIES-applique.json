@@ -1,0 +1,554 @@
+{
+ "description": "Finalisation du lot 6 — examen des copies (12 sections COPIE-PARTIELLE et 158 occurrences « à vérifier » de copies-lignes.tsv). Seules les occurrences EQUIVALENT (même règle, même portée, même autorité, sans déictique local) sont remplacées par un renvoi vers l’occurrence conservée ; aucune occurrence conservée, du registre ou de l’annexe historique n’est retirée. Rapport : lot6/finalisation/copies-examen.tsv. Portée lue dans les titres englobants actuels ; les portées HISTORIQUE issues du seul mot « archiver » ou « historique » désignant une fonction (CE-T03-05, « Archiver puis supprimer une Séance », « Suivi et historique ») sont des faux positifs du motif /archiv|historique/ de outils/correspondance-cible.mjs l. 84. Questions ouvertes (aucune correction) : Q-COP-A — redésigner l’occurrence conservée des groupes « cartes du 30/09 » (S03-0128, sous « Parcours prévus pour une phase ultérieure ») et « Clôture des contrats — 01/10/2026 » (S06-0374, sous un titre HISTORIQUE) au profit d’une occurrence COURANT (p. ex. S06-0362, 06:98–108) ? Q-COP-B — les sous-sections placées sous « Parcours prévus pour une phase ultérieure » (03:486 et 06:1722) sont-elles réellement hors MVP ? Dans la base cefc9b99, ce titre de niveau 1 (03:446) englobait aussi des sections « — MVP » ajoutées en fin de chapitre. Q-COP-C — S08-0590 (10:528) est un préfixe strict de S10-0748 (10:445) : renvoi « contenu complété » à décider. Observations hors périmètre : 02:198 renvoie vers sa propre section (« 8. Besoins validés pour les évolutions ») ; 01:341 est une ligne de 10 cellules dans un tableau de glossaire à 2 colonnes (déjà en base, 01:382). — sous-ensemble appliqué (voir FIN-COPIES-ecartees.tsv)",
+ "corrections": [
+  {
+   "id": "COP-001",
+   "ref": "S01-0029:01:420 = copie de S09-0613 (09:930) ; copies-lignes.tsv l.16 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@01 – Vision Générale.md",
+   "ancien": "\r\nVoir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.",
+   "nouveau": "\r\n*Texte identique à celui de la section [« Entité Routine »](09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#entité-routine) ; il n’est pas recopié ici.*"
+  },
+  {
+   "id": "COP-002",
+   "ref": "S02-0048:02:215 = copie de S01-0020 (01:129) ; copies-lignes.tsv l.3 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@02 – Utilisateurs et besoins.md",
+   "ancien": "**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.",
+   "nouveau": "*Texte identique à celui de la section [« Parcours — post-MVP »](01%20%E2%80%93%20Vision%20G%C3%A9n%C3%A9rale.md#parcours--post-mvp) ; il n’est pas recopié ici.*"
+  },
+  {
+   "id": "COP-003",
+   "ref": "S04-0143:04:104 = copie de S01-0010 (10:465) ; copies-lignes.tsv l.2 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@04 – Modèle fonctionnel.md",
+   "ancien": "Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.",
+   "nouveau": "*Texte identique à celui de la section [« Périmètre fonctionnel du MVP — Création et composition »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#périmètre-fonctionnel-du-mvp--création-et-composition) ; il n’est pas recopié ici.*"
+  },
+  {
+   "id": "COP-004",
+   "ref": "S05-0173:05:18 = copie de S04-0150 (04:251) ; copies-lignes.tsv l.23 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@05 – Versions du produit.md",
+   "ancien": "- Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : chapitre 10, Calculs des durées et ordre des phases.",
+   "nouveau": "- *Texte identique à celui de la section [« Structure d'un Exercice »](04%20%E2%80%93%20Mod%C3%A8le%20fonctionnel.md#structure-dun-exercice) ; il n’est pas recopié ici.*"
+  },
+  {
+   "id": "COP-005",
+   "ref": "S06-0378:06:2400 = copie de S01-0029 (01:369) ; copies-lignes.tsv l.15 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "Les noms de frames Figma et annotations restent des références techniques : ils peuvent conserver « Ajouter un exercice » ou « Composition d’une séance ». Ils ne prescrivent pas le titre affiché. Les actions Ajouter gardent leur sens et leur destination définis par le contrat ; aucun arbre de création supplémentaire. « Créer une activité » n’est pas concerné. D-325.",
+   "nouveau": "*Texte identique à celui de la section [« Titres affichés »](01%20%E2%80%93%20Vision%20G%C3%A9n%C3%A9rale.md#titres-affichés) ; il n’est pas recopié ici.*"
+  },
+  {
+   "id": "COP-006",
+   "ref": "S10-0745:10:295 = copie de S06-0362 (06:108) ; copies-lignes.tsv l.29 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.\r\n\r\nAppuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper selon DSF Bip (maintien≈500 ms, répétition150 ms, paliers1/5/10) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.\r\n\r\n> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v13 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.",
+   "nouveau": "Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.\r\n\r\n*Texte identique à celui de la section [« Références transverses des cartes et appuis »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#références-transverses-des-cartes-et-appuis) ; il n’est pas recopié ici.*\r\n\r\n> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v13 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran."
+  },
+  {
+   "id": "COP-007",
+   "ref": "S09-0680:09:906 = copie de S09-0679 (09:233) ; copies-lignes.tsv l.64 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "- Nouvelle exercice avec un nouvel identifiant.\r\n- Nom `{nom d’origine} (copie)`, puis `{nom d’origine} (copie 2)`, `(copie 3)`, etc., en utilisant le premier suffixe disponible.",
+   "nouveau": "- Nouvelle exercice avec un nouvel identifiant.\r\n- *Texte identique à celui de la section [« Duplication d'une séance »](09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#duplication-dune-séance) ; il n’est pas recopié ici.*"
+  },
+  {
+   "id": "COP-008",
+   "ref": "S09-0704:09:1088 = copie de S01-0020 (01:129) ; copies-lignes.tsv l.3 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "#### Extension future de Routine — source Parcours\r\n\r\n**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.\r\n",
+   "nouveau": "#### Extension future de Routine — source Parcours\r\n\r\n*Texte identique à celui de la section [« Parcours — post-MVP »](01%20%E2%80%93%20Vision%20G%C3%A9n%C3%A9rale.md#parcours--post-mvp) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-009",
+   "ref": "S03-0091:03:250 = copie de S03-0058 (10:1454) ; copies-lignes.tsv l.21 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "- Une Routine ne modifie jamais le contenu de sa source.\r\n- Une Séance ou un Exercice persistant peut être associé à plusieurs Routines.",
+   "nouveau": "- Une Routine ne modifie jamais le contenu de sa source.\r\n- *Texte identique à celui de la section [« Synthèse des parcours du MVP — Principes communs »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#synthèse-des-parcours-du-mvp--principes-communs) ; il n’est pas recopié ici.*"
+  },
+  {
+   "id": "COP-010",
+   "ref": "S06-0315:06:1665 = copie de S04-0150 (04:251) ; copies-lignes.tsv l.23 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "- Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : chapitre 10, Calculs des durées et ordre des phases.",
+   "nouveau": "- *Texte identique à celui de la section [« Structure d'un Exercice »](04%20%E2%80%93%20Mod%C3%A8le%20fonctionnel.md#structure-dun-exercice) ; il n’est pas recopié ici.*"
+  },
+  {
+   "id": "COP-011",
+   "ref": "S08-0584:08:1804 = copie de S01-0010 (10:465) ; copies-lignes.tsv l.2 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "### Conventions communes d’interface — Générateur de phrase de synthèse v13\r\n\r\nDurée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.\r\n",
+   "nouveau": "### Conventions communes d’interface — Générateur de phrase de synthèse v13\r\n\r\n*Texte identique à celui de la section [« Périmètre fonctionnel du MVP — Création et composition »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#périmètre-fonctionnel-du-mvp--création-et-composition) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-012",
+   "ref": "S11-0808:11:33 = copie de S03-0058 (10:1451) ; copies-lignes.tsv l.20 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@11 – API fonctionnelles.md",
+   "ancien": "- Une Routine porte une liste ordonnée de références SESSION/ACTIVITY ; API-ROU définit le contrat cible multi-contenus (D-328).",
+   "nouveau": "- *Texte identique à celui de la section [« Synthèse des parcours du MVP — Principes communs »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#synthèse-des-parcours-du-mvp--principes-communs) ; il n’est pas recopié ici.*"
+  },
+  {
+   "id": "COP-013",
+   "ref": "S12-0862:12:290 = copie de S04-0150 (04:251) ; copies-lignes.tsv l.23 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@12 – Architecture technique.md",
+   "ancien": "- Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : chapitre 10, Calculs des durées et ordre des phases.",
+   "nouveau": "- *Texte identique à celui de la section [« Structure d'un Exercice »](04%20%E2%80%93%20Mod%C3%A8le%20fonctionnel.md#structure-dun-exercice) ; il n’est pas recopié ici.*"
+  },
+  {
+   "id": "COP-014",
+   "ref": "S12-0935:12:1585 = copie de S09-0717 (09:541) ; copies-lignes.tsv l.68 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@12 – Architecture technique.md",
+   "ancien": "**Compatibilité D-214 — 12/10/2026.** Si un ancien champ d’activation est déjà persisté, il est obsolète et ne peut réactiver les phases propres lors de la construction d’un nouveau plan SESSION, quelle que soit sa valeur. L’inventaire du schéma réel détermine sa migration physique ; aucune suppression SQL n’est livrée par cette correction documentaire. Conserver les paramètres propres des Exercices et les instantanés/résultats historiques, sans réécriture des temps réalisés.",
+   "nouveau": "*Texte identique à celui de la section [« Précision de modèle — source, v15 »](09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#précision-de-modèle--source-v15) ; il n’est pas recopié ici.*"
+  },
+  {
+   "id": "COP-015",
+   "ref": "S12-0925:12:1521 = copie de S06-0362 (06:108) ; copies-lignes.tsv l.29 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@12 – Architecture technique.md",
+   "ancien": "Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper selon DSF Bip (maintien≈500 ms, répétition150 ms, paliers1/5/10) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.",
+   "nouveau": "*Texte identique à celui de la section [« Références transverses des cartes et appuis »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#références-transverses-des-cartes-et-appuis) ; il n’est pas recopié ici.*"
+  },
+  {
+   "id": "COP-016",
+   "ref": "S13-0963:13:1744 = copie de S13-0952 (13:846) ; copies-lignes.tsv l.81 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Modale DSF D-228 ; lignes/pastilles selon 2028:11204 ; palette 4640:6308 ; dialogue 354/rayon 18, deux actions Annuler/Supprimer. Ne pas réutiliser le panneau Catégorie de l’Exercice.\r\n\r\nActions destructives : token danger#D92D20 ; séparateurs#E0E3E8 et labels par rôle DSF. Aucune reprise des anciens rouges locaux.\r\n",
+   "nouveau": "Modale DSF D-228 ; lignes/pastilles selon 2028:11204 ; palette 4640:6308 ; dialogue 354/rayon 18, deux actions Annuler/Supprimer. Ne pas réutiliser le panneau Catégorie de l’Exercice.\r\n\r\n*Texte identique à celui de la section [« CE-T03-05 — ActivityDefinition — archiver / restaurer / supprimer »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-05--activitydefinition--archiver--restaurer--supprimer) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-017",
+   "ref": "S13-0949:13:380 = copie de S13-0948 (13:280) ; copies-lignes.tsv l.72 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Exercice variable : indicateur N séries variables et total intrinsèque selon v13 ; pas de détail exhaustif des cibles sur la carte.\r\n\r\nDurée et symbole viennent du calcul commun : Durée exacte, Répétitions avec bip ≈, sans bip et À l’échec omis à l’Exercice ; ≥ seulement à la Séance avec travail inconnu ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.\r\n",
+   "nouveau": "Exercice variable : indicateur N séries variables et total intrinsèque selon v13 ; pas de détail exhaustif des cibles sur la carte.\r\n\r\n*Texte identique à celui de la section [« CE-T03-01 — Catalogue des séances — état T03 »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-01--catalogue-des-séances--état-t03) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-018",
+   "ref": "S13-0949:13:396 = copie de S13-0948 (13:296) ; copies-lignes.tsv l.73 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "#### 9. Layout déterministe\r\n\r\nCartes Catalogue : [DSF Durée du 07/10](../DSF-CARTES-DUREE-2026-10-07.md). Texte de durée sans fond/cadre/padding, Inter Semi Bold12 #141414, droite16px. Propriété booléenne Durée des sets6214:7276/7278 ; absence → aucun contenu de remplacement. Exercice replié/archivé : titre250px, lignes basses207px àx88 ; coupes60/69/145 fondées sur 207. Gouttière12px conservée ; Séance16/16. La référence Exercice Déployé ne crée aucun accès MVP.\r\n\r\nCartes standard : largeur 354 sur écran 402, rayon 8, fond #F9FAFC, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Repliée 354 × 91. Gouttière permanente d’exercice : carré 64 à 12 du bord, photo si média ou icône de nature sinon, centrée et recadrée sans déformation (couverture vidéo), texte x88 ; titre250 en Catalogue replié/archivé, lignes basses207 ; Choix conserve sa largeur liée au contrôle ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Durée Catalogue sans cadre, Inter Semi Bold12 #141414 à 16px du bord droit, présence selon Bip v2 ; heure selon contexte, catégorie conservée, pictogramme de zone conservé ; Déployer absent. Séance sans vignette (D-260). Commandes 34/dessins 20/gaps 12/cibles 44. La référence Exercice Déployé est historique hors MVP, sans chemin d’accès.",
+   "nouveau": "#### 9. Layout déterministe\r\n\r\n*Texte identique à celui de la section [« CE-T03-01 — Catalogue des séances — état T03 »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-01--catalogue-des-séances--état-t03) ; il n’est pas recopié ici.*\r\n\r\nCartes standard : largeur 354 sur écran 402, rayon 8, fond #F9FAFC, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Repliée 354 × 91. Gouttière permanente d’exercice : carré 64 à 12 du bord, photo si média ou icône de nature sinon, centrée et recadrée sans déformation (couverture vidéo), texte x88 ; titre250 en Catalogue replié/archivé, lignes basses207 ; Choix conserve sa largeur liée au contrôle ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Durée Catalogue sans cadre, Inter Semi Bold12 #141414 à 16px du bord droit, présence selon Bip v2 ; heure selon contexte, catégorie conservée, pictogramme de zone conservé ; Déployer absent. Séance sans vignette (D-260). Commandes 34/dessins 20/gaps 12/cibles 44. La référence Exercice Déployé est historique hors MVP, sans chemin d’accès."
+  },
+  {
+   "id": "COP-019",
+   "ref": "S13-0949:13:442 = copie de S13-0948 (13:342) ; copies-lignes.tsv l.74 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "#### 20. Recette déterministe\r\n\r\nVérifier présence/absence puis retour de durée sans perdre titre/catégorie/zones ; aucun badge vide, aucun libellé « à l’échec » dans l’emplacement temporel. Texte long et agrandi : durée alignée à droite, titre sans collision. Durée exacte / Répétitions avec bip≈ / autres modes sans total ; ne pas tester les calculs sur les montants dessinés.\r\n\r\nTester zéro/N cartes, active/archivée, avec/sans photo/vidéo, chargement/erreur, texte alternatif, troncature, sélection indépendante et absence de zone Déployer avec ou sans média. Vérifier formats des deux modes, miroir pour bilatéral et absence des textes retirés. Puis filtres, actions glissées, retour d’état et responsive. Critères CAR/MED/ICO/CTX/ANI du complément.",
+   "nouveau": "#### 20. Recette déterministe\r\n\r\n*Texte identique à celui de la section [« CE-T03-01 — Catalogue des séances — état T03 »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-01--catalogue-des-séances--état-t03) ; il n’est pas recopié ici.*\r\n\r\nTester zéro/N cartes, active/archivée, avec/sans photo/vidéo, chargement/erreur, texte alternatif, troncature, sélection indépendante et absence de zone Déployer avec ou sans média. Vérifier formats des deux modes, miroir pour bilatéral et absence des textes retirés. Puis filtres, actions glissées, retour d’état et responsive. Critères CAR/MED/ICO/CTX/ANI du complément."
+  },
+  {
+   "id": "COP-020",
+   "ref": "S13-0949:13:448 = copie de S13-0948 (13:346) ; copies-lignes.tsv l.75 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Vérifier aussi les cartes variables dans les deux modes et la durée intrinsèque sans récupération contextuelle.\r\n\r\nComparer sources Durée, Répétitions avec/sans cadence et À l’échec dans les emplacements de durée existants ; conserver masquages des cartes de choix, aucune formule locale et aucune photo de Séance/liste mixte.\r\n",
+   "nouveau": "Vérifier aussi les cartes variables dans les deux modes et la durée intrinsèque sans récupération contextuelle.\r\n\r\n*Texte identique à celui de la section [« CE-T03-01 — Catalogue des séances — état T03 »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-01--catalogue-des-séances--état-t03) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-021",
+   "ref": "S13-0952:13:692 = copie de S13-0948 (13:296) ; copies-lignes.tsv l.73 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "#### 9. Layout déterministe\r\n\r\nCartes Catalogue : [DSF Durée du 07/10](../DSF-CARTES-DUREE-2026-10-07.md). Texte de durée sans fond/cadre/padding, Inter Semi Bold12 #141414, droite16px. Propriété booléenne Durée des sets6214:7276/7278 ; absence → aucun contenu de remplacement. Exercice replié/archivé : titre250px, lignes basses207px àx88 ; coupes60/69/145 fondées sur 207. Gouttière12px conservée ; Séance16/16. La référence Exercice Déployé ne crée aucun accès MVP.\r\n\r\nVariante archivée : fond `color/surface #F5F7FA` (ancienne prescription `#F6F6F6` historique ; référence couleur centralisée au chapitre12), bord #D9D9D9 à 0,5, même rayon/ombre ; Restaurer remplace Lecture. Avec média, RG-4 et RG-11 à RG-13 s’appliquent ; aucune prochaine planification. L’état existe dans le composant sans écran d’archive d’exercice dédié ; ne pas déclarer un écran Figma créé.",
+   "nouveau": "#### 9. Layout déterministe\r\n\r\n*Texte identique à celui de la section [« CE-T03-01 — Catalogue des séances — état T03 »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-01--catalogue-des-séances--état-t03) ; il n’est pas recopié ici.*\r\n\r\nVariante archivée : fond `color/surface #F5F7FA` (ancienne prescription `#F6F6F6` historique ; référence couleur centralisée au chapitre12), bord #D9D9D9 à 0,5, même rayon/ombre ; Restaurer remplace Lecture. Avec média, RG-4 et RG-11 à RG-13 s’appliquent ; aucune prochaine planification. L’état existe dans le composant sans écran d’archive d’exercice dédié ; ne pas déclarer un écran Figma créé."
+  },
+  {
+   "id": "COP-022",
+   "ref": "S13-0952:13:740 = copie de S13-0948 (13:342) ; copies-lignes.tsv l.74 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "#### 20. Recette déterministe\r\n\r\nVérifier présence/absence puis retour de durée sans perdre titre/catégorie/zones ; aucun badge vide, aucun libellé « à l’échec » dans l’emplacement temporel. Texte long et agrandi : durée alignée à droite, titre sans collision. Durée exacte / Répétitions avec bip≈ / autres modes sans total ; ne pas tester les calculs sur les montants dessinés.\r\n\r\nArchiver/restaurer/supprimer une définition non planifiée puis planifiée ; confirmer/annuler ; vérifier Routines futures retirées à l’archivage confirmé, copies et instantanés conservés. Restauration ne recrée pas les Routines supprimées. Vérifier double tap, échec atomique, filtre archives vide, absence Lecture dans l’état archivé.",
+   "nouveau": "#### 20. Recette déterministe\r\n\r\n*Texte identique à celui de la section [« CE-T03-01 — Catalogue des séances — état T03 »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-01--catalogue-des-séances--état-t03) ; il n’est pas recopié ici.*\r\n\r\nArchiver/restaurer/supprimer une définition non planifiée puis planifiée ; confirmer/annuler ; vérifier Routines futures retirées à l’archivage confirmé, copies et instantanés conservés. Restauration ne recrée pas les Routines supprimées. Vérifier double tap, échec atomique, filtre archives vide, absence Lecture dans l’état archivé."
+  },
+  {
+   "id": "COP-023",
+   "ref": "S13-0977:13:2975 = copie de S13-0951 (13:710) ; copies-lignes.tsv l.76 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "**Complément cible12/10 :** Contexte de l’occurrence et compte hérité ; total dérivé, jamais source de N dans ce contexte.\r\n\r\nPhrase selon les 276 cas v15, total fourni par le calcul métier. Générateur → segments ordonnés `{texte, gras}`, valeurs et unités en gras, aucun redécoupage de chaîne. Terme « pause après chaque série », y compris N=1 ; clause de pauses variables omise conformément au corpus.\r\n",
+   "nouveau": "**Complément cible12/10 :** Contexte de l’occurrence et compte hérité ; total dérivé, jamais source de N dans ce contexte.\r\n\r\n*Texte identique à celui de la section [« CE-T03-04 — Éditeur Exercice — créer / modifier »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-04--éditeur-exercice--créer--modifier) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-024",
+   "ref": "S13-0977:13:3033 = copie de S13-0951 (13:770) ; copies-lignes.tsv l.78 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "#### 15. Brouillon et persistance\r\n\r\nAucune phrase ni aucun segment en base, occurrence ou snapshot. Régénération à chaque affichage depuis les paramètres ; ✓ applique, ✕ annule, Terminer persiste les paramètres. Une règle rédactionnelle amendée s’applique au prochain affichage des objets existants.\r\n\r\nBrouillon isolé ; ✓ atomique au parent ; ✕ restaure totalité avant ouverture. Bip persiste quel que soit le mode. Les variantes cachées de cibles/tableaux ne sont pas persistées hors état actif. Duplication/copie/snapshot incluent Bip ; aucune mutation partielle.",
+   "nouveau": "#### 15. Brouillon et persistance\r\n\r\n*Texte identique à celui de la section [« CE-T03-04 — Éditeur Exercice — créer / modifier »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-04--éditeur-exercice--créer--modifier) ; il n’est pas recopié ici.*\r\n\r\nBrouillon isolé ; ✓ atomique au parent ; ✕ restaure totalité avant ouverture. Bip persiste quel que soit le mode. Les variantes cachées de cibles/tableaux ne sont pas persistées hors état actif. Duplication/copie/snapshot incluent Bip ; aucune mutation partielle."
+  },
+  {
+   "id": "COP-025",
+   "ref": "S13-0977:13:3061 = copie de S13-0951 (13:794) ; copies-lignes.tsv l.79 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "**Complément cible12/10 :** Vérifier N libre/hérité, total éditable/lecture seule/omitted, identiques/variables égales, repli, croix/Annuler, cible destructive pendant stepper actif ; conserver tests des modes et pauses.\r\n\r\nRecette rédactionnelle :276 gabarits v15 avec total métier injecté, gras sur occurrences répétées d’une valeur, N1 avec pause mentionnée et total non redondant ; absence de troncature. Français au MVP ; i18n nécessite des gabarits et accords par locale, pas une traduction de fragments isolés.\r\n",
+   "nouveau": "**Complément cible12/10 :** Vérifier N libre/hérité, total éditable/lecture seule/omitted, identiques/variables égales, repli, croix/Annuler, cible destructive pendant stepper actif ; conserver tests des modes et pauses.\r\n\r\n*Texte identique à celui de la section [« CE-T03-04 — Éditeur Exercice — créer / modifier »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-04--éditeur-exercice--créer--modifier) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-026",
+   "ref": "S13-0977:13:3065 = copie de S13-0951 (13:804) ; copies-lignes.tsv l.80 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Deux modes × deux types de cible × bip nul/positif ;0/1/10 et rejets−1/11/fraction ; conservation lors des bascules, annulation et duplication.4×15×4+4×15=300 s≈ ; sans bip ligne absente. Tester N1,variable,repli,réordre de dernière Série,inversion Durée,deux côtés/R ; géométrie42px, texte agrandi et accessibilité. Phrase de pauses conforme aux 276 formulations v15 ; Q-08 clos.\r\n\r\nCorpusv15 :276gabarits, total métier injecté ; aucun changement grammatical vs v14. Tester virgule jamais isolée en début de ligne, cas144 long et ordre des cibles après déplacement. Les cas de brouillon incomplet restent hors des 276sorties validées.\r\n",
+   "nouveau": "Deux modes × deux types de cible × bip nul/positif ;0/1/10 et rejets−1/11/fraction ; conservation lors des bascules, annulation et duplication.4×15×4+4×15=300 s≈ ; sans bip ligne absente. Tester N1,variable,repli,réordre de dernière Série,inversion Durée,deux côtés/R ; géométrie42px, texte agrandi et accessibilité. Phrase de pauses conforme aux 276 formulations v15 ; Q-08 clos.\r\n\r\n*Texte identique à celui de la section [« CE-T03-04 — Éditeur Exercice — créer / modifier »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-04--éditeur-exercice--créer--modifier) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-027",
+   "ref": "S13-0953:13:766 = copie de S13-0948 (13:280) ; copies-lignes.tsv l.72 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Aucune donnée métier n’est créée à l’ouverture. Le brouillon de Composition existant est conservé.\r\n\r\nDurée et symbole viennent du calcul commun : Durée exacte, Répétitions avec bip ≈, sans bip et À l’échec omis à l’Exercice ; ≥ seulement à la Séance avec travail inconnu ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.\r\n",
+   "nouveau": "Aucune donnée métier n’est créée à l’ouverture. Le brouillon de Composition existant est conservé.\r\n\r\n*Texte identique à celui de la section [« CE-T03-01 — Catalogue des séances — état T03 »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-01--catalogue-des-séances--état-t03) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-028",
+   "ref": "S13-0953:13:828 = copie de S13-0948 (13:346) ; copies-lignes.tsv l.75 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Ouvrir/fermer sans sélection ; sélectionner une puis plusieurs définitions ; vérifier brouillon et ordre d’insertion ; aucune création persistante de Session avant Continuer ; aucune création locale exposée par cet enchaînement.\r\n\r\nComparer sources Durée, Répétitions avec/sans cadence et À l’échec dans les emplacements de durée existants ; conserver masquages des cartes de choix, aucune formule locale et aucune photo de Séance/liste mixte.\r\n",
+   "nouveau": "Ouvrir/fermer sans sélection ; sélectionner une puis plusieurs définitions ; vérifier brouillon et ordre d’insertion ; aucune création persistante de Session avant Continuer ; aucune création locale exposée par cet enchaînement.\r\n\r\n*Texte identique à celui de la section [« CE-T03-01 — Catalogue des séances — état T03 »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-01--catalogue-des-séances--état-t03) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-029",
+   "ref": "S13-0954:13:852 = copie de S13-0948 (13:280) ; copies-lignes.tsv l.72 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Définitions actives et ensemble d’IDs sélectionnés en mémoire. Ordre de la liste affichée, stable pendant la sélection. Aucun filtre/recherche supplémentaire n’est exposé par cette modale de référence ; les règles de filtres Catalogue ne créent pas ici un contrôle. Il n’existe donc pas de sélection cachée par un filtre local.\r\n\r\nDurée et symbole viennent du calcul commun : Durée exacte, Répétitions avec bip ≈, sans bip et À l’échec omis à l’Exercice ; ≥ seulement à la Séance avec travail inconnu ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.\r\n",
+   "nouveau": "Définitions actives et ensemble d’IDs sélectionnés en mémoire. Ordre de la liste affichée, stable pendant la sélection. Aucun filtre/recherche supplémentaire n’est exposé par cette modale de référence ; les règles de filtres Catalogue ne créent pas ici un contrôle. Il n’existe donc pas de sélection cachée par un filtre local.\r\n\r\n*Texte identique à celui de la section [« CE-T03-01 — Catalogue des séances — état T03 »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-01--catalogue-des-séances--état-t03) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-030",
+   "ref": "S13-0954:13:916 = copie de S13-0948 (13:346) ; copies-lignes.tsv l.75 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Liste A/B : sélectionner B puis A → insertion A/B ; désélection, 0/1/N, fermeture sans effet, double tap, suppression de source avant validation, rollback total, modification indépendante des copies. Vérifier aucun badge/lecture/déploiement/création/recherche/filtre local ; vignette, texte long, cadre de coupe à 8 px de la case, clavier non requis.\r\n\r\nComparer sources Durée, Répétitions avec/sans cadence et À l’échec dans les emplacements de durée existants ; conserver masquages des cartes de choix, aucune formule locale et aucune photo de Séance/liste mixte.\r\n",
+   "nouveau": "Liste A/B : sélectionner B puis A → insertion A/B ; désélection, 0/1/N, fermeture sans effet, double tap, suppression de source avant validation, rollback total, modification indépendante des copies. Vérifier aucun badge/lecture/déploiement/création/recherche/filtre local ; vignette, texte long, cadre de coupe à 8 px de la case, clavier non requis.\r\n\r\n*Texte identique à celui de la section [« CE-T03-01 — Catalogue des séances — état T03 »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-01--catalogue-des-séances--état-t03) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-031",
+   "ref": "S13-0959:13:1354 = copie de S13-0956 (13:2404) ; copies-lignes.tsv l.84 ; copies-examen.tsv | S13-0959:13:1356 = copie de S13-0956 (13:2406) ; copies-lignes.tsv l.85 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "sideMode snapshot ; executionSide RIGHT/LEFT ; résultats séparés par côté.\r\n\r\nParamètres de la Série courante issus de l’instantané variable/uniforme ; ordres v13. En direct : total intrinsèque, Pause terminale normale, aucune récupération contextuelle.\r\n\r\nCadence éventuelle issue de la Série de l’instantané, jamais du Profil ou des chiffres Figma. Temps réellement dépensé cumulatif distinct du chrono de tentative ; bip applicable aux deux modes, sans modifier leur terminaison propre.\r\n\r\n#### 6. Classification des valeurs Figma\r\n",
+   "nouveau": "sideMode snapshot ; executionSide RIGHT/LEFT ; résultats séparés par côté.\r\n\r\n*Texte identique à celui de la section [« CE-T03-09 — Lancement direct et préparation fixe 5 s »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-09--lancement-direct-et-préparation-fixe-5-s) ; il n’est pas recopié ici.*\r\n\r\n*Texte identique à celui de la section [« CE-T03-09 — Lancement direct et préparation fixe 5 s »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-09--lancement-direct-et-préparation-fixe-5-s) ; il n’est pas recopié ici.*\r\n\r\n#### 6. Classification des valeurs Figma\r\n"
+  },
+  {
+   "id": "COP-032",
+   "ref": "S13-0959:13:1370 = copie de S13-0956 (13:2420) ; copies-lignes.tsv l.86 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Sous-titre côté ; aucun `1/2`/`2/2`; même rang logique Activity entre côtés ; Pauses suivant v13, Pause terminale comprise ; Pause entre les côtés éventuelle avant le second passage.\r\n\r\nSérie n/N ; côté courant distinct uniquement en bilatéral, absent en unilatéral ; aucune barre par Série. À suivre affiche la phase réelle : Pause (y compris terminale) ou, uniquement en bilatéral, Pause entre les côtés ; aucune Récupération en direct.\r\n",
+   "nouveau": "Sous-titre côté ; aucun `1/2`/`2/2`; même rang logique Activity entre côtés ; Pauses suivant v13, Pause terminale comprise ; Pause entre les côtés éventuelle avant le second passage.\r\n\r\n*Texte identique à celui de la section [« CE-T03-09 — Lancement direct et préparation fixe 5 s »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-09--lancement-direct-et-préparation-fixe-5-s) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-033",
+   "ref": "S13-0959:13:1388 = copie de S13-0956 (13:2438) ; copies-lignes.tsv l.87 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Ordre D→G/G→D strict. Réinitialiser ne touche que le côté courant et conserve l’autre résultat. Saut confirmé du premier côté chronométré : résultat partiel conservé, second côté selon D-150 ; transition selon la succession du plan v13 (§6 R-03).\r\n\r\nSi la Série est en Répétitions avec bip, appliquer Bip v2 : nominal sans transition, Suivant normal ; dans les deux autres modes, le bip est périodique sans changer leur terminaison ; Pause/Reprise sur intervalle complet ; reset de portée existante avec temps réel conservé. En préparation/phase chronométrée, conserver le décompte propre. Média/retournement ne déclenchent pas Pause.\r\n",
+   "nouveau": "Ordre D→G/G→D strict. Réinitialiser ne touche que le côté courant et conserve l’autre résultat. Saut confirmé du premier côté chronométré : résultat partiel conservé, second côté selon D-150 ; transition selon la succession du plan v13 (§6 R-03).\r\n\r\n*Texte identique à celui de la section [« CE-T03-09 — Lancement direct et préparation fixe 5 s »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-09--lancement-direct-et-préparation-fixe-5-s) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-034",
+   "ref": "S13-0959:13:1396 = copie de S04-0151 (10:373) ; copies-lignes.tsv l.25 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : chapitre 10, Calculs des durées et ordre des phases.",
+   "nouveau": "*Texte identique à celui de la section [« Déroulement d’un Exercice »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#déroulement-dun-exercice) ; il n’est pas recopié ici.*"
+  },
+  {
+   "id": "COP-035",
+   "ref": "S13-0959:13:1416 = copie de S13-0955 (13:1362) ; copies-lignes.tsv l.83 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "#### 19. Invariants\r\n\r\nPause après chaque série, dernière comprise, même N1. Hors circuit de séries, PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon paramètres d’exercice du chapitre 08. Dans un circuit de séries : premier côté → PC → second côté → Pi, déroulement unique ; R positive remplace Pi terminale. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.\r\n\r\nRespecter l’ordre effectif : successif, PC une fois ; par paire, PC à chaque Série. Pi et PC selon chapitre 08, paramètres d’exercice ; aucune Récupération contextuelle en ACTIVITY ; résultats séparés par côté ; rang logique Exercice inchangé.",
+   "nouveau": "#### 19. Invariants\r\n\r\n*Texte identique à celui de la section [« CE-T03-08 — Composer une séance / Modifier une séance — brouillon, Circuit, points d’arrêt et validation »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-08--composer-une-séance--modifier-une-séance--brouillon-circuit-points-darrêt-et-validation) ; il n’est pas recopié ici.*\r\n\r\nRespecter l’ordre effectif : successif, PC une fois ; par paire, PC à chaque Série. Pi et PC selon chapitre 08, paramètres d’exercice ; aucune Récupération contextuelle en ACTIVITY ; résultats séparés par côté ; rang logique Exercice inchangé."
+  },
+  {
+   "id": "COP-036",
+   "ref": "S13-0959:13:1426 = copie de S13-0956 (13:2474) ; copies-lignes.tsv l.88 ; copies-examen.tsv | S13-0959:13:1428 = copie de S13-0956 (13:2476) ; copies-lignes.tsv l.89 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "D→G/G→D, C=1/2/99, pause inter-Séries 0/>0, SIDE_RECOVERY0/>0, reset second préservant premier, interruption pendant SIDE_RECOVERY, absence de récupération après second. Tester saut anticipé avec pC>0 puis pC=0/pS>0 puis les deux à zéro ; respecter les cumuls Pi puis PC en ordre successif et la succession PC puis Pi après paire en ordre alterné.\r\n\r\nVérifier les deux ordres et directions, valeurs variables, PC0 sans repli, Pause terminale et N1 normalisé. Ne pas déduire les transitions du câblage Figma.\r\n\r\nVérifier passage entre préparation, Série cadencée, pauses programmées et fin ; deux côtés/deux ordres si applicables ; reset préservant autre côté et temps cumulé ; absence de double signal/transition. Bip valide dans les deux modes ; aucun signal hors phase Série.\r\n\r\n## Exécution",
+   "nouveau": "D→G/G→D, C=1/2/99, pause inter-Séries 0/>0, SIDE_RECOVERY0/>0, reset second préservant premier, interruption pendant SIDE_RECOVERY, absence de récupération après second. Tester saut anticipé avec pC>0 puis pC=0/pS>0 puis les deux à zéro ; respecter les cumuls Pi puis PC en ordre successif et la succession PC puis Pi après paire en ordre alterné.\r\n\r\n*Texte identique à celui de la section [« CE-T03-09 — Lancement direct et préparation fixe 5 s »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-09--lancement-direct-et-préparation-fixe-5-s) ; il n’est pas recopié ici.*\r\n\r\n*Texte identique à celui de la section [« CE-T03-09 — Lancement direct et préparation fixe 5 s »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-09--lancement-direct-et-préparation-fixe-5-s) ; il n’est pas recopié ici.*\r\n\r\n## Exécution"
+  },
+  {
+   "id": "COP-037",
+   "ref": "S13-0956:13:1106 = copie de S13-0955 (13:1362) ; copies-lignes.tsv l.83 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "#### 19. Invariants\r\n\r\nPause après chaque série, dernière comprise, même N1. Hors circuit de séries, PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon paramètres d’exercice du chapitre 08. Dans un circuit de séries : premier côté → PC → second côté → Pi, déroulement unique ; R positive remplace Pi terminale. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.\r\n\r\n5 s fixes ; origin ACTIVITY ; pas de Session artificielle ; pas SESSION_END.",
+   "nouveau": "#### 19. Invariants\r\n\r\n*Texte identique à celui de la section [« CE-T03-08 — Composer une séance / Modifier une séance — brouillon, Circuit, points d’arrêt et validation »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-08--composer-une-séance--modifier-une-séance--brouillon-circuit-points-darrêt-et-validation) ; il n’est pas recopié ici.*\r\n\r\n5 s fixes ; origin ACTIVITY ; pas de Session artificielle ; pas SESSION_END."
+  },
+  {
+   "id": "COP-038",
+   "ref": "S13-0957:13:1204 = copie de S13-0955 (13:1362) ; copies-lignes.tsv l.83 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "#### 19. Invariants\r\n\r\nPause après chaque série, dernière comprise, même N1. Hors circuit de séries, PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon paramètres d’exercice du chapitre 08. Dans un circuit de séries : premier côté → PC → second côté → Pi, déroulement unique ; R positive remplace Pi terminale. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.\r\n\r\nAucun Tour/Cycle/SESSION_END ; calculs existants inchangés.",
+   "nouveau": "#### 19. Invariants\r\n\r\n*Texte identique à celui de la section [« CE-T03-08 — Composer une séance / Modifier une séance — brouillon, Circuit, points d’arrêt et validation »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-08--composer-une-séance--modifier-une-séance--brouillon-circuit-points-darrêt-et-validation) ; il n’est pas recopié ici.*\r\n\r\nAucun Tour/Cycle/SESSION_END ; calculs existants inchangés."
+  },
+  {
+   "id": "COP-039",
+   "ref": "S13-0958:13:1316 = copie de S13-0955 (13:1362) ; copies-lignes.tsv l.83 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "#### 19. Invariants\r\n\r\nPause après chaque série, dernière comprise, même N1. Hors circuit de séries, PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon paramètres d’exercice du chapitre 08. Dans un circuit de séries : premier côté → PC → second côté → Pi, déroulement unique ; R positive remplace Pi terminale. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.\r\n\r\nFailure sans cible ; Suivant normal ; aucune confirmation chronométrée ; pas SESSION_END.",
+   "nouveau": "#### 19. Invariants\r\n\r\n*Texte identique à celui de la section [« CE-T03-08 — Composer une séance / Modifier une séance — brouillon, Circuit, points d’arrêt et validation »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-08--composer-une-séance--modifier-une-séance--brouillon-circuit-points-darrêt-et-validation) ; il n’est pas recopié ici.*\r\n\r\nFailure sans cible ; Suivant normal ; aucune confirmation chronométrée ; pas SESSION_END."
+  },
+  {
+   "id": "COP-040",
+   "ref": "S13-0960:13:1514 = copie de S13-0955 (13:1362) ; copies-lignes.tsv l.83 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "#### 19. Invariants\r\n\r\nPause après chaque série, dernière comprise, même N1. Hors circuit de séries, PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon paramètres d’exercice du chapitre 08. Dans un circuit de séries : premier côté → PC → second côté → Pi, déroulement unique ; R positive remplace Pi terminale. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.\r\n\r\nAucun SESSION_END ; aucun Session count ; origin ACTIVITY intact.",
+   "nouveau": "#### 19. Invariants\r\n\r\n*Texte identique à celui de la section [« CE-T03-08 — Composer une séance / Modifier une séance — brouillon, Circuit, points d’arrêt et validation »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-08--composer-une-séance--modifier-une-séance--brouillon-circuit-points-darrêt-et-validation) ; il n’est pas recopié ici.*\r\n\r\nAucun SESSION_END ; aucun Session count ; origin ACTIVITY intact."
+  },
+  {
+   "id": "COP-041",
+   "ref": "S13-0974:13:2755 = copie de S13-0955 (13:1362) ; copies-lignes.tsv l.83 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "#### 19. Invariants\r\n\r\nPause après chaque série, dernière comprise, même N1. Hors circuit de séries, PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon paramètres d’exercice du chapitre 08. Dans un circuit de séries : premier côté → PC → second côté → Pi, déroulement unique ; R positive remplace Pi terminale. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.\r\n\r\nSéance libre à compte borné : Circuit unilatéral, Tours 1..99 ; récupération après chaque occurrence y compris dernière et chaque Tour ; point interne répété chaque Tour ; attente hors durée ; pas de mutation de la source ; média indépendant du moteur.",
+   "nouveau": "#### 19. Invariants\r\n\r\n*Texte identique à celui de la section [« CE-T03-08 — Composer une séance / Modifier une séance — brouillon, Circuit, points d’arrêt et validation »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-08--composer-une-séance--modifier-une-séance--brouillon-circuit-points-darrêt-et-validation) ; il n’est pas recopié ici.*\r\n\r\nSéance libre à compte borné : Circuit unilatéral, Tours 1..99 ; récupération après chaque occurrence y compris dernière et chaque Tour ; point interne répété chaque Tour ; attente hors durée ; pas de mutation de la source ; média indépendant du moteur."
+  },
+  {
+   "id": "COP-042",
+   "ref": "S13-0965:13:1905 = copie de S13-0956 (13:2406) ; copies-lignes.tsv l.85 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Collection ordonnée de médias de l’Exercice de l’instantané ; index courant, face et état du lecteur transitoires. Chrono/Série/côté/Tour proviennent exclusivement du moteur ; Tour seulement pour SESSION.\r\n\r\nCadence éventuelle issue de la Série de l’instantané, jamais du Profil ou des chiffres Figma. Temps réellement dépensé cumulatif distinct du chrono de tentative ; bip applicable aux deux modes, sans modifier leur terminaison propre.\r\n",
+   "nouveau": "Collection ordonnée de médias de l’Exercice de l’instantané ; index courant, face et état du lecteur transitoires. Chrono/Série/côté/Tour proviennent exclusivement du moteur ; Tour seulement pour SESSION.\r\n\r\n*Texte identique à celui de la section [« CE-T03-09 — Lancement direct et préparation fixe 5 s »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-09--lancement-direct-et-préparation-fixe-5-s) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-043",
+   "ref": "S13-0965:13:1935 = copie de S13-0956 (13:2438) ; copies-lignes.tsv l.87 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Bouton retourne la face ; retour Information met vidéo en pause. Swipe change exactement un média et met la précédente vidéo en pause. Tap média ouvre plein écran ; Lecture lance explicitement vidéo. Son vidéo actif par défaut, abaissé pendant annonce KODJO puis restauré.\r\n\r\nSi la Série est en Répétitions avec bip, appliquer Bip v2 : nominal sans transition, Suivant normal ; dans les deux autres modes, le bip est périodique sans changer leur terminaison ; Pause/Reprise sur intervalle complet ; reset de portée existante avec temps réel conservé. En préparation/phase chronométrée, conserver le décompte propre. Média/retournement ne déclenchent pas Pause.\r\n",
+   "nouveau": "Bouton retourne la face ; retour Information met vidéo en pause. Swipe change exactement un média et met la précédente vidéo en pause. Tap média ouvre plein écran ; Lecture lance explicitement vidéo. Son vidéo actif par défaut, abaissé pendant annonce KODJO puis restauré.\r\n\r\n*Texte identique à celui de la section [« CE-T03-09 — Lancement direct et préparation fixe 5 s »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-09--lancement-direct-et-préparation-fixe-5-s) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-044",
+   "ref": "S13-0965:13:1971 = copie de S13-0956 (13:2476) ; copies-lignes.tsv l.89 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Tester 0/1/N médias, mélange image/vidéo, premier/dernier, un swipe=un média, retour Information pendant lecture, retour même Exercice et autre Tour, nouveau run, erreur média, ducking, plein écran, fin naturelle et saut d’Exercice. Vérifier réduction des animations et contrôles accessibles ; essais interactifs nécessaires.\r\n\r\nVérifier passage entre préparation, Série cadencée, pauses programmées et fin ; deux côtés/deux ordres si applicables ; reset préservant autre côté et temps cumulé ; absence de double signal/transition. Bip valide dans les deux modes ; aucun signal hors phase Série.\r\n",
+   "nouveau": "Tester 0/1/N médias, mélange image/vidéo, premier/dernier, un swipe=un média, retour Information pendant lecture, retour même Exercice et autre Tour, nouveau run, erreur média, ducking, plein écran, fin naturelle et saut d’Exercice. Vérifier réduction des animations et contrôles accessibles ; essais interactifs nécessaires.\r\n\r\n*Texte identique à celui de la section [« CE-T03-09 — Lancement direct et préparation fixe 5 s »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-09--lancement-direct-et-préparation-fixe-5-s) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-045",
+   "ref": "S13-0966:13:1995 = copie de S13-0956 (13:2406) ; copies-lignes.tsv l.85 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Même média et même moteur que la face compacte ; couche flottante alimentée par nom, côté, chrono, Série et Tour conditionnel ; aucune copie autonome du temps.\r\n\r\nCadence éventuelle issue de la Série de l’instantané, jamais du Profil ou des chiffres Figma. Temps réellement dépensé cumulatif distinct du chrono de tentative ; bip applicable aux deux modes, sans modifier leur terminaison propre.\r\n",
+   "nouveau": "Même média et même moteur que la face compacte ; couche flottante alimentée par nom, côté, chrono, Série et Tour conditionnel ; aucune copie autonome du temps.\r\n\r\n*Texte identique à celui de la section [« CE-T03-09 — Lancement direct et préparation fixe 5 s »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-09--lancement-direct-et-préparation-fixe-5-s) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-046",
+   "ref": "S13-0966:13:2025 = copie de S13-0956 (13:2438) ; copies-lignes.tsv l.87 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Fermer ne modifie ni index ni temps moteur. Lecture/Pause et barre vidéo pilotent uniquement le lecteur ; commandes flottantes pilotent le moteur selon§4.12. Son vidéo actif par défaut, ducking pendant les annonces.\r\n\r\nSi la Série est en Répétitions avec bip, appliquer Bip v2 : nominal sans transition, Suivant normal ; dans les deux autres modes, le bip est périodique sans changer leur terminaison ; Pause/Reprise sur intervalle complet ; reset de portée existante avec temps réel conservé. En préparation/phase chronométrée, conserver le décompte propre. Média/retournement ne déclenchent pas Pause.\r\n",
+   "nouveau": "Fermer ne modifie ni index ni temps moteur. Lecture/Pause et barre vidéo pilotent uniquement le lecteur ; commandes flottantes pilotent le moteur selon§4.12. Son vidéo actif par défaut, ducking pendant les annonces.\r\n\r\n*Texte identique à celui de la section [« CE-T03-09 — Lancement direct et préparation fixe 5 s »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-09--lancement-direct-et-préparation-fixe-5-s) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-047",
+   "ref": "S13-0966:13:2061 = copie de S13-0956 (13:2476) ; copies-lignes.tsv l.89 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Image/vidéo, portrait/paysage, fermer/revenir, pause vidéo sans pause moteur, pause moteur distincte, ducking, erreur, fin de Série puis changement d’Exercice, arrêt confirmé ; vérifier focus/texte agrandi et absence de Tour ACTIVITY.\r\n\r\nVérifier passage entre préparation, Série cadencée, pauses programmées et fin ; deux côtés/deux ordres si applicables ; reset préservant autre côté et temps cumulé ; absence de double signal/transition. Bip valide dans les deux modes ; aucun signal hors phase Série.\r\n",
+   "nouveau": "Image/vidéo, portrait/paysage, fermer/revenir, pause vidéo sans pause moteur, pause moteur distincte, ducking, erreur, fin de Série puis changement d’Exercice, arrêt confirmé ; vérifier focus/texte agrandi et absence de Tour ACTIVITY.\r\n\r\n*Texte identique à celui de la section [« CE-T03-09 — Lancement direct et préparation fixe 5 s »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-09--lancement-direct-et-préparation-fixe-5-s) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-048",
+   "ref": "S13-0968:13:2169 = copie de S13-0948 (13:280) ; copies-lignes.tsv l.72 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Occurrences futures Routine SESSION/ACTIVITY ; titre, heure, durée et couleur de l’événement. Nature issue du type de source.\r\n\r\nDurée et symbole viennent du calcul commun : Durée exacte, Répétitions avec bip ≈, sans bip et À l’échec omis à l’Exercice ; ≥ seulement à la Séance avec travail inconnu ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.\r\n",
+   "nouveau": "Occurrences futures Routine SESSION/ACTIVITY ; titre, heure, durée et couleur de l’événement. Nature issue du type de source.\r\n\r\n*Texte identique à celui de la section [« CE-T03-01 — Catalogue des séances — état T03 »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-01--catalogue-des-séances--état-t03) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-049",
+   "ref": "S13-0968:13:2189 = copie de S13-0962 (13:3998) ; copies-lignes.tsv l.95 ; copies-examen.tsv | S13-0968:13:2193 = copie de S13-0967 (13:4271) ; copies-lignes.tsv l.97 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Référence 402 : x80, largeur 298 ; séance 46 de haut, exercice 48. Hauteur d’instance adaptée à l’événement. Exemple heure/durée : 08 h · 13 min.\r\n\r\nDurée des cartes : chronomètre16×16, trait0,9, #9499A8 lié au rôle catégorie ; texte durée #595E66 et nature #14141A. Suivi = temps réalisé, sans symbole prévisionnel ; Calendrier = nature de calcul fournie.\r\n\r\n#### 10. Responsive, Safe Areas, texte, scroll et clavier\r\n\r\nRéférences 360/402/440, Safe Areas existantes ; texte agrandi sans réduction de police, scroll utile et contrôles accessibles. Les dimensions de référence 402 ne figent pas les coordonnées sur tous les appareils.\r\n\r\n#### 11. États de l’écran\r\n\r\nJour standard ; appui long ; créneau ; après planification ; jour suivant ; vide 2128:86.",
+   "nouveau": "Référence 402 : x80, largeur 298 ; séance 46 de haut, exercice 48. Hauteur d’instance adaptée à l’événement. Exemple heure/durée : 08 h · 13 min.\r\n\r\n*Texte identique à celui de la section [« CE-T03-15 — Suivi général — Exécution ACTIVITY »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-15--suivi-général--exécution-activity) ; il n’est pas recopié ici.*\r\n\r\n#### 10. Responsive, Safe Areas, texte, scroll et clavier\r\n\r\n*Texte identique à celui de la section [« CE-UI-01 — Profil — préférence silhouette »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-ui-01--profil--préférence-silhouette) ; il n’est pas recopié ici.*\r\n\r\n#### 11. États de l’écran\r\n\r\nJour standard ; appui long ; créneau ; après planification ; jour suivant ; vide 2128:86."
+  },
+  {
+   "id": "COP-050",
+   "ref": "S13-0968:13:2235 = copie de S13-0948 (13:346) ; copies-lignes.tsv l.75 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Jour vide/1/N, deux types de source, tap surface distinct de Lecture, glissements et chevrons, Aujourd’hui, sélection plage→date/heure préremplies, annulation et enregistrement, retour même date/scroll. Vérifier dimensions compactes, aucun Déployer, aucune action glissée ; chevauchements V-05 à qualifier.\r\n\r\nComparer sources Durée, Répétitions avec/sans cadence et À l’échec dans les emplacements de durée existants ; conserver masquages des cartes de choix, aucune formule locale et aucune photo de Séance/liste mixte.\r\n",
+   "nouveau": "Jour vide/1/N, deux types de source, tap surface distinct de Lecture, glissements et chevrons, Aujourd’hui, sélection plage→date/heure préremplies, annulation et enregistrement, retour même date/scroll. Vérifier dimensions compactes, aucun Déployer, aucune action glissée ; chevauchements V-05 à qualifier.\r\n\r\n*Texte identique à celui de la section [« CE-T03-01 — Catalogue des séances — état T03 »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-01--catalogue-des-séances--état-t03) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-051",
+   "ref": "S13-0969:13:2261 = copie de S13-0948 (13:280) ; copies-lignes.tsv l.72 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Sources SESSION : durées d’occurrence et total de Séance sans double ajout de R ; ACTIVITY : durée intrinsèque ; chapitre 08, paramètres d’exercice.\r\n\r\nDurée et symbole viennent du calcul commun : Durée exacte, Répétitions avec bip ≈, sans bip et À l’échec omis à l’Exercice ; ≥ seulement à la Séance avec travail inconnu ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.\r\n",
+   "nouveau": "Sources SESSION : durées d’occurrence et total de Séance sans double ajout de R ; ACTIVITY : durée intrinsèque ; chapitre 08, paramètres d’exercice.\r\n\r\n*Texte identique à celui de la section [« CE-T03-01 — Catalogue des séances — état T03 »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-01--catalogue-des-séances--état-t03) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-052",
+   "ref": "S13-0969:13:2281 = copie de S13-0962 (13:3998) ; copies-lignes.tsv l.95 ; copies-examen.tsv | S13-0969:13:2285 = copie de S13-0967 (13:4271) ; copies-lignes.tsv l.97 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Carte 354×95,5 repliée ; séance déployée 254,5. Segmenté 354/padding 4/gaps 4/options 112,67. Aucune barre de carte Semaine.\r\n\r\nDurée des cartes : chronomètre16×16, trait0,9, #9499A8 lié au rôle catégorie ; texte durée #595E66 et nature #14141A. Suivi = temps réalisé, sans symbole prévisionnel ; Calendrier = nature de calcul fournie.\r\n\r\n#### 10. Responsive, Safe Areas, texte, scroll et clavier\r\n\r\nRéférences 360/402/440, Safe Areas existantes ; texte agrandi sans réduction de police, scroll utile et contrôles accessibles. Les dimensions de référence 402 ne figent pas les coordonnées sur tous les appareils.\r\n\r\n#### 11. États de l’écran\r\n\r\nRepliée, séance déployée, jour sélectionné, actions glissées, après suppression ; Mois ; vide.",
+   "nouveau": "Carte 354×95,5 repliée ; séance déployée 254,5. Segmenté 354/padding 4/gaps 4/options 112,67. Aucune barre de carte Semaine.\r\n\r\n*Texte identique à celui de la section [« CE-T03-15 — Suivi général — Exécution ACTIVITY »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-15--suivi-général--exécution-activity) ; il n’est pas recopié ici.*\r\n\r\n#### 10. Responsive, Safe Areas, texte, scroll et clavier\r\n\r\n*Texte identique à celui de la section [« CE-UI-01 — Profil — préférence silhouette »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-ui-01--profil--préférence-silhouette) ; il n’est pas recopié ici.*\r\n\r\n#### 11. États de l’écran\r\n\r\nRepliée, séance déployée, jour sélectionné, actions glissées, après suppression ; Mois ; vide."
+  },
+  {
+   "id": "COP-053",
+   "ref": "S13-0969:13:2327 = copie de S13-0948 (13:346) ; copies-lignes.tsv l.75 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Semaine vide/N, deux origines, déploiement/récurrence, synchronisation jour/scroll, modification, duplication annulée/enregistrée. Suppression unique et deux choix périodiques confirmés/annulés, notifications/historique. Mois : sept colonnes, sélection, navigation de mois, retour Jour/Semaine même date, marqueurs actualisés. La recette de persistance unitaire est obligatoire ; cette documentation ne prétend pas l’avoir exécutée.\r\n\r\nComparer sources Durée, Répétitions avec/sans cadence et À l’échec dans les emplacements de durée existants ; conserver masquages des cartes de choix, aucune formule locale et aucune photo de Séance/liste mixte.\r\n",
+   "nouveau": "Semaine vide/N, deux origines, déploiement/récurrence, synchronisation jour/scroll, modification, duplication annulée/enregistrée. Suppression unique et deux choix périodiques confirmés/annulés, notifications/historique. Mois : sept colonnes, sélection, navigation de mois, retour Jour/Semaine même date, marqueurs actualisés. La recette de persistance unitaire est obligatoire ; cette documentation ne prétend pas l’avoir exécutée.\r\n\r\n*Texte identique à celui de la section [« CE-T03-01 — Catalogue des séances — état T03 »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-01--catalogue-des-séances--état-t03) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-054",
+   "ref": "S13-0967:13:2141 = copie de S13-0964 (13:4782) ; copies-lignes.tsv l.96 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Aucun effet sur recherche, catégories, calculs, exécutions ou données historiques.\r\n\r\nAucune préférence Cadence ajoutée au Profil ; sons selon réglages existants. Barre d’état native et Safe Areas, pas9:41/95px codés en dur. DSF courant§4.14.\r\n",
+   "nouveau": "Aucun effet sur recherche, catégories, calculs, exécutions ou données historiques.\r\n\r\n*Texte identique à celui de la section [« CE-T03-17 — Navigation principale — inventaire DSF »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-17--navigation-principale--inventaire-dsf) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-055",
+   "ref": "S13-0973:13:2657 = copie de S13-0964 (13:4782) ; copies-lignes.tsv l.96 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Pas de compte distant, pas de langue MVP, aucune rétroactivité ; Notifications non autorisées par défaut ; Vibration ne désactive pas l’haptique des roulettes.\r\n\r\nAucune préférence Cadence ajoutée au Profil ; sons selon réglages existants. Barre d’état native et Safe Areas, pas9:41/95px codés en dur. DSF courant§4.14.\r\n",
+   "nouveau": "Pas de compte distant, pas de langue MVP, aucune rétroactivité ; Notifications non autorisées par défaut ; Vibration ne désactive pas l’haptique des roulettes.\r\n\r\n*Texte identique à celui de la section [« CE-T03-17 — Navigation principale — inventaire DSF »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-17--navigation-principale--inventaire-dsf) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-056",
+   "ref": "S13-0976:13:2901 = copie de S13-0952 (13:846) ; copies-lignes.tsv l.81 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Modales D-228 ; pastille Catégorie colorée et nom ; Zones icône silhouette depuis Profil ; palette de 4474:7157 : barre de couleurs sous le champ, sans pastille séparée, 12 couleurs D-026 (D-344). Les Zones n’ont pas de palette.\r\n\r\nActions destructives : token danger#D92D20 ; séparateurs#E0E3E8 et labels par rôle DSF. Aucune reprise des anciens rouges locaux.\r\n",
+   "nouveau": "Modales D-228 ; pastille Catégorie colorée et nom ; Zones icône silhouette depuis Profil ; palette de 4474:7157 : barre de couleurs sous le champ, sans pastille séparée, 12 couleurs D-026 (D-344). Les Zones n’ont pas de palette.\r\n\r\n*Texte identique à celui de la section [« CE-T03-05 — ActivityDefinition — archiver / restaurer / supprimer »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-05--activitydefinition--archiver--restaurer--supprimer) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-057",
+   "ref": "S13-0946:13:181 = copie de S01-0010 (10:465) ; copies-lignes.tsv l.2 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "| Occurrence SESSION | Exercice intrinsèque (Séries/côtés/pauses) → POST_ACTIVITY_RECOVERY positive éventuelle → point d’arrêt éventuel → suite ; aucun Compte à rebours/Fin propre |\r\n\r\nDurée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.\r\n",
+   "nouveau": "| Occurrence SESSION | Exercice intrinsèque (Séries/côtés/pauses) → POST_ACTIVITY_RECOVERY positive éventuelle → point d’arrêt éventuel → suite ; aucun Compte à rebours/Fin propre |\r\n\r\n*Texte identique à celui de la section [« Périmètre fonctionnel du MVP — Création et composition »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#périmètre-fonctionnel-du-mvp--création-et-composition) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-058",
+   "ref": "S13-0979:13:3092 = copie de S08-0503 (10:1202) ; copies-lignes.tsv l.38 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Le calcul porte sur le plan développé et conserve la piste existante. M compte les étapes contributives ; R compte les Séries Répétitions sans cadence et À l’échec ; T somme les durées des phases chronométrées positives et les Ri×Ci des Séries cadencées. Chaque Série sans durée déterminable pèse1/M ; chaque étape temporelle de durée d pèse(1−R/M)×d/T. Sans R, poids d/T ; sans T, poids1/M. Phases0 s, Pause manuelle et attente de point n’ont aucun poids. Les non-cadencées/À l’échec acquièrent leur part à Suivant ; les Répétitions avec bip progressent continûment, Suivant acquiert leur reste. À fin nominale, part de Série100% mais Série active. Pause abandonne la fraction d’intervalle pour la progression, conserve le temps réel ; reprise sur intervalle complet. Aucun100% global publié avant finalisation du plan. Poids figés au départ ; reset remet à zéro son périmètre seulement. Aucun nouveau composant de progression par Série.",
+   "nouveau": "*Texte identique à celui de la section [« Informations affichées — Barre de progression globale »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#informations-affichées--barre-de-progression-globale) ; il n’est pas recopié ici.*"
+  },
+  {
+   "id": "COP-059",
+   "ref": "S13-0979:13:3094 = copie de S08-0471 (10:1956) ; copies-lignes.tsv l.36 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "\r\nDurée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.",
+   "nouveau": "\r\n*Texte identique à celui de la section [« Durée estimée d’exécution »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#durée-estimée-dexécution) ; il n’est pas recopié ici.*"
+  },
+  {
+   "id": "COP-060",
+   "ref": "S13-0979:13:3105 = copie de S04-0151 (10:371) ; copies-lignes.tsv l.24 ; copies-examen.tsv | S13-0979:13:3107 = copie de S01-0010 (10:465) ; copies-lignes.tsv l.2 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "\r\nL’ordre d’exécution vient du paramètre Ordre des côtés : Un côté après l’autre (défaut) ou Les deux côtés à chaque série. En bilatéral N est toujours par côté, paramètres communs aux deux côtés. Les successions et pauses sont celles de chapitre 08, paramètres d’exercice ; aucun repli de PC vers la Pause. Les cibles et Pauses variables proviennent de la ligne courante.\r\n\r\nDurée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.\r\n",
+   "nouveau": "\r\n*Texte identique à celui de la section [« Déroulement d’un Exercice »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#déroulement-dun-exercice) ; il n’est pas recopié ici.*\r\n\r\n*Texte identique à celui de la section [« Périmètre fonctionnel du MVP — Création et composition »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#périmètre-fonctionnel-du-mvp--création-et-composition) ; il n’est pas recopié ici.*\r\n"
+  },
+  {
+   "id": "COP-061",
+   "ref": "S13-0979:13:3111 = copie de S13-0944 (13:163) ; copies-lignes.tsv l.71 ; copies-examen.tsv",
+   "motif": "COPIE-RETIREE",
+   "classe": "DOC",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "La source active est chapitre 08, paramètres d’exercice ; D-242 est supersédée. Les tests PRE-1 restent figés sur leur source historique.\r\n\r\nRéinitialiser conserve D-029/D-150 et RM-062 : recommencer la Série courante en unilatéral ; en bilatéral, recommencer le côté courant depuis sa première Série, préserver les résultats de l’autre côté et le temps total écoulé. Cette portée s’applique aussi à Les deux côtés à chaque série ; un passage déjà acquis de l’autre côté n’est pas rejoué. Exemple : gauche2/3 → reprise gauche1/3, résultats droits conservés. Pendant une récupération, RM-062 réinitialise seulement cette phase. Le saut confirmé d’un bloc chronométré conserve D-150 : côté courant partiel, poursuite des passages restant à exécuter de l’autre côté ; les résultats acquis ne sont pas effacés. Ces conséquences du périmètre existant ne constituent pas un nouvel arbitrage.\r\n",
+   "nouveau": "La source active est chapitre 08, paramètres d’exercice ; D-242 est supersédée. Les tests PRE-1 restent figés sur leur source historique.\r\n\r\n*Texte identique à celui de la section [« Portée transverse des paramètres v13 »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#portée-transverse-des-paramètres-v13) ; il n’est pas recopié ici.*\r\n"
+  }
+ ]
+}

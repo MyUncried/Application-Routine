@@ -1,0 +1,125 @@
+{
+ "description": "Réserves de la vérification indépendante des alignements fonctionnels (verification/fonctionnel.tsv) et restes signalés : textes complétés ou précisés selon la décision citée.",
+ "corrections": [
+  {
+   "id": "RES-001",
+   "ref": "réserve DIV1-006 : texte complété selon D-248",
+   "motif": "CORRECTION-DECIDEE:D-248",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-248",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "PN puis PC se cumulent (D-248). Dans une Séance,",
+   "nouveau": "PN puis PC se cumulent ; dans une occurrence de Séance, seule la dernière Pause est remplacée par une Récupération après exercice positive (D-248). Dans une Séance,"
+  },
+  {
+   "id": "RES-002",
+   "ref": "réserve DIV1-025 : D-087 conserve les dimensions spécifiques de 48 ; cohérent avec le ch. 12",
+   "motif": "CORRECTION-DECIDEE:D-087",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-087",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "mais il est placé dans une cible tactile d’au moins `44 × 44` points logiques sur toutes les plateformes du MVP ; les dimensions spécifiques de `48 × 48` restent conservées (D-087, D-234).",
+   "nouveau": "mais il est placé dans une cible tactile de `48 × 48` points logiques, dimension spécifique conservée au-dessus du minimum commun de `44 × 44` (D-087, D-234)."
+  },
+  {
+   "id": "RES-003",
+   "ref": "réserve DIV1-031 : texte complet de D-355",
+   "motif": "CORRECTION-DECIDEE:D-355",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-355",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Tap marque ou démarque l’Étiquette sans fermer, ✓ applique le choix (D-355)",
+   "nouveau": "Tap marque ou démarque l’Étiquette sans fermer, ✓ applique le choix ou le retrait et ferme (D-355)"
+  },
+  {
+   "id": "RES-004",
+   "ref": "réserve DIV2-001 : D-023 vaut pour le contenu unique ; multi-contenus non défini (ch. 10, avertissement l. 5)",
+   "motif": "CORRECTION-DECIDEE:D-023",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-023",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "Les Routines associées ont déjà été supprimées lors de l’archivage (D",
+   "nouveau": "Les Routines à contenu unique associées ont déjà été supprimées lors de l’archivage ; pour une Routine à plusieurs contenus, l’effet de l’archivage reste `À CLARIFIER` (avertissement en tête de chapitre) (D"
+  },
+  {
+   "id": "RES-005",
+   "ref": "réserve DIV2-002/DIV3-022",
+   "motif": "CORRECTION-DECIDEE:D-023",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-023",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "Les Routines associées ont déjà été supprimées lors de l’archivage.",
+   "nouveau": "Les Routines à contenu unique associées ont déjà été supprimées lors de l’archivage (D-023) ; pour une Routine à plusieurs contenus, l’effet reste `À CLARIFIER` (chapitre 10, planification à plusieurs contenus)."
+  },
+  {
+   "id": "RES-006",
+   "ref": "réserve DIV3-022",
+   "motif": "CORRECTION-DECIDEE:D-023",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-023",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "ses routines ont déjà été supprimées lors de l’archivage (D-023, D-121).",
+   "nouveau": "ses routines à contenu unique ont déjà été supprimées lors de l’archivage (D-023, D-121) ; le cas des Routines à plusieurs contenus reste `À CLARIFIER`."
+  },
+  {
+   "id": "RES-007",
+   "ref": "réserve DIV2-004 : conditions complètes de D-303",
+   "motif": "CORRECTION-DECIDEE:D-303",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-303",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "absente ou à `0 s`, elle n’affiche aucune information de récupération et seul le trait demeure (D-303)",
+   "nouveau": "absente ou à `0 s` et en l’absence de point d’arrêt, elle n’affiche aucune information de récupération et seul le trait demeure, sauf pendant le placement où il est absent (D-303)"
+  },
+  {
+   "id": "RES-008",
+   "ref": "réserve DIV3-008 : la récupération par défaut est proposée à l’ajout explicite, non à la création d’occurrence (D-307)",
+   "motif": "CORRECTION-DECIDEE:D-307",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-307",
+   "file": "@04 – Modèle fonctionnel.md",
+   "ancien": "**Préférences de création d’un Exercice et d’une occurrence (D-240, D-213) :**",
+   "nouveau": "**Valeurs par défaut proposées (D-240, D-213, D-307) :**"
+  },
+  {
+   "id": "RES-009",
+   "ref": "réserve DIV3-008",
+   "motif": "CORRECTION-DECIDEE:D-307",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-307",
+   "file": "@04 – Modèle fonctionnel.md",
+   "ancien": "- la Récupération après exercice par défaut.",
+   "nouveau": "- la Récupération après exercice par défaut, proposée lors de l’ajout explicite d’une récupération (D-307)."
+  },
+  {
+   "id": "RES-010",
+   "ref": "réserve DIV3-029 : hauteur 66 contraire à la pilule 322 × 62 de D-225",
+   "motif": "CORRECTION-DECIDEE:D-225",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-225",
+   "file": "@12 – Architecture technique.md",
+   "ancien": "contient la barre principale visuelle de `66` et la réserve d’inset inférieur",
+   "nouveau": "contient la pilule de navigation de `62` (D-225) et la réserve d’inset inférieur"
+  },
+  {
+   "id": "RES-011",
+   "ref": "remarque de la vérification : statut de D-111 (« À l’échec, désormais cible de Série dans les deux modes »)",
+   "motif": "CORRECTION-DECIDEE:D-111",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-111",
+   "file": "@03 – Parcours utilisateur.md",
+   "ancien": "   - mode `Durée`, `Répétitions` ou `À l’échec` ;",
+   "nouveau": "   - mode `Durée` ou `Répétitions`, chaque Série pouvant avoir une cible `À l’échec` (D-111) ;"
+  },
+  {
+   "id": "RES-012",
+   "ref": "D-308 « Bip de cadence transverse aux deux modes » ; reste de DIV1-021/DIV2-037",
+   "motif": "CORRECTION-DECIDEE:D-308",
+   "classe": "FONCT-ARBITRÉ",
+   "decision": "D-308",
+   "file": "@01 – Vision Générale.md",
+   "ancien": "| Bip de cadence | Stepper | Trois modes, réglage commun |",
+   "nouveau": "| Bip de cadence | Stepper | Deux modes, réglage commun (D-308) |"
+  }
+ ]
+}

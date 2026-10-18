@@ -1,0 +1,355 @@
+# Intégration v3.0 — propagation dans les chapitres 01 à 05 (proposition, non appliquée).
+# Sources : spécification v3.0 du 18/10/2026 ; décisions D-403 à D-413 (ch. 07) ; règles RM-235 à RM-250 (ch. 10, seule source normative).
+# Les règles RM ne sont pas recopiées : les passages les citent. Concepts conservés : Ordre des côtés (libellé visible Enchainement),
+# Bip de cadence (libellé visible Cadence), Durée totale (concept de calcul ; seul le libellé de la ligne devient Durée de l’exercice).
+# Aucune version de livraison n’est attribuée à la charge (point ouvert) : le besoin B-092 est placé dans la liste « 8. Besoins validés
+# pour les évolutions », sans rattachement au MVP. B-092 : vérifié libre dans docs/ et dans les correctifs des PR #370 et #371.
+# PR #370 : seuls des blocs sont insérés dans les ch. 01 à 05 ; une seule ligne corrigée appartient au contexte d’un bloc (V3-A-001, placée en tête et signalée).
+# PR #371 : ne touche pas les ch. 01 à 05.
+# Note de format : les commentaires sont regroupés en tête, car l’outil de conversion rattache au bloc précédent toute ligne placée après un bloc.
+
+# ---------- Passages volontairement non modifiés ----------
+# 01:175, 04:169, 04:262, 05:77, 02:61 (B-012), 03:297 (« Durée totale cible Tv ») — « Durée totale » y désigne le concept de calcul (conservé).
+# 01:296, 03:211, 03:220, 04:52, 04:321 — « Ordre des côtés », « premier côté / second » : concept d’enchaînement neutre, conservé.
+# 01:297, 03:216, 04:349 — Circuit sans réglage de côté, champ technique fixé à `UNILATERAL` : inchangé par D-406.
+# 01:166, 01:48, 02:59 (B-010) et autres mentions « jusqu’à l’échec » / « À l’échec » : nature de cible inchangée (D-411 ne modifie que le lieu de saisie).
+# 01:322 « bilatéralité par miroir dans les variantes concernées » : aucune direction anatomique ; rendu de carte selon Figma (voir question).
+# 03:110, 03:115, 03:135, 03:426, 04:543 — « droite / gauche » décrivant un geste ou une position à l’écran : hors sujet.
+# 05:85-90, 05:150 — bip grave et bip aigu de rythme des secondes : sans rapport avec la ligne Cadence.
+
+# QUESTIONS
+# Q : 01 – Vision Générale.md:294 et 04 – Modèle fonctionnel.md:459, 461 — le terme « Direction effective » (glossaire) est conservé tel quel ; faut-il le renommer (par exemple « Changement de côté effectif ») maintenant que D-406 supprime toute direction, ou garder le terme comme nom de concept ?
+# Q : 01 – Vision Générale.md:322 — « bilatéralité par miroir » dans les synthèses de cartes : est-ce la forme de l’indicateur sans direction voulue par D-407 (rendu Figma), ou une ancienne variante à retirer ?
+# Q : 01 – Vision Générale.md:280 et 03 – Parcours utilisateur.md:297 — le contrôle pilote est désigné par `Nombre de séries` (libellé D-413) au lieu de `Séries` ; confirmer que le libellé de la ligne Séries de la feuille est bien « Nombre de séries » dans tous les modes.
+
+# ---------- Blocs (le premier porte le conflit PR #370) ----------
+
+# CONFLIT-PR #370 : cette ligne fait partie du contexte du bloc « Phases d’un exercice » que PR #370 insère après la section Direction propre ; la correction est indispensable (indicateur D→G/G→D et forme « à droite, puis à gauche » remplacés par D-407) — rejouer le correctif de PR #370 sur ce contexte modifié.
+=== V3-A-001 | @01 – Vision Générale.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-23
+--- ancien
+- Pour un Exercice bilatéral hors de toute règle de Circuit, un Exercice proprement bilatérale affiche `D→G` ou `G→D` dans le petit indicateur de sa carte ; seul le texte de la Synthèse des écrans Créer un exercice / Modifier un exercice développe `à droite, puis à gauche` ou `à gauche, puis à droite`.
+--- nouveau
+- Pour un Exercice bilatéral hors de toute règle de Circuit, un Exercice proprement bilatérale affiche dans le petit indicateur de sa carte un indicateur de changement de côté, sans direction, rendu selon Figma (D-407, RM-243) ; seul le texte de la Synthèse des écrans Créer un exercice / Modifier un exercice développe le changement de côté en désignant les côtés selon RM-243 (côté 1, côté 2 ou changement de côté).
+
+=== V3-A-002 | @01 – Vision Générale.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-13, AC-23
+--- ancien
+La configuration permet de choisir `Aucun`, droite puis gauche, ou gauche puis droite sur un Exercice. Dans la version actuelle, le changement de côté n’est pas exposé au niveau du Circuit ; le Circuit n’a pas de bilatéralité fonctionnelle. L’Exécution rend le côté courant explicite sans alourdir la progression, au moyen du sous-titre `Côté droit` ou `Côté gauche` sous le nom de l’Exercice. Les résultats restent distinguables par côté et l’historique demeure fondé sur un instantané immuable.
+--- nouveau
+La configuration permet de régler le `Changement de côté` d’un Exercice sur `Avec` ou `Sans` ; l’utilisateur choisit lui-même le côté par lequel il commence, que Kodjo ne désigne pas (D-406, RM-242). Dans la version actuelle, le changement de côté n’est pas exposé au niveau du Circuit ; le Circuit n’a pas de bilatéralité fonctionnelle. L’Exécution rend le côté courant explicite sans alourdir la progression, au moyen du sous-titre `Côté 1` ou `Côté 2` sous le nom de l’Exercice (D-407, RM-243). Les résultats restent distinguables par côté et l’historique demeure fondé sur un instantané immuable.
+
+=== V3-A-003 | @01 – Vision Générale.md | CORRECTION-DECIDEE:D-403 | CH-01, CH-02
+--- ancien
+| **Exercice** | Plus petite unité fonctionnelle définie par l’utilisateur. Elle est exécutée selon une Durée, un nombre de Répétitions ou jusqu’à l’échec. Elle porte une Pause après chaque série et peut porter une **Pause entre les côtés** lorsqu’elle est bilatérale. Une `ActivityDefinition` ne porte jamais de Récupération après exercice ; cette dernière appartient uniquement à l’occurrence contextualisée dans une Séance. Dans le MVP T03, l’Exercice existe soit comme `ActivityDefinition` persistante autonome du Catalogue, soit comme `SessionActivity` propre à une Séance. | 3 Séries de 12 squats |
+--- nouveau
+| **Exercice** | Plus petite unité fonctionnelle définie par l’utilisateur. Elle est exécutée selon une Durée, un nombre de Répétitions ou jusqu’à l’échec. Elle porte une Pause après chaque série et peut porter une **Pause entre les côtés** lorsqu’elle est bilatérale. Elle peut porter une **Charge** facultative et informative (RM-235 à RM-241). Une `ActivityDefinition` ne porte jamais de Récupération après exercice ; cette dernière appartient uniquement à l’occurrence contextualisée dans une Séance. Dans le MVP T03, l’Exercice existe soit comme `ActivityDefinition` persistante autonome du Catalogue, soit comme `SessionActivity` propre à une Séance. | 3 Séries de 12 squats |
+
+=== V3-A-004 | @01 – Vision Générale.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-13, PR-01
+--- ancien
+| **Pause entre les côtés** | Durée intrinsèque facultative d’un Exercice bilatéral, portée par `sideRecoverySeconds`. Elle n’a de sens qu’avec `D→G` ou `G→D`, s’exécute selon l’Ordre des côtés : une fois entre les blocs ou une fois à l’intérieur de chaque paire, et entre dans la durée intrinsèque de l’Exercice. Avec `Aucun`, elle est sans objet. Sa valeur initiale lors de l’activation bilatérale provient du défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice. | 30 s entre côté droit et côté gauche |
+--- nouveau
+| **Pause entre les côtés** | Durée intrinsèque facultative d’un Exercice bilatéral, portée par `sideRecoverySeconds`. Elle n’a de sens qu’avec un Changement de côté `Avec` (D-406), s’exécute selon l’Ordre des côtés (libellé visible `Enchainement`) : une fois entre les blocs ou une fois à l’intérieur de chaque paire, et entre dans la durée intrinsèque de l’Exercice. Avec `Sans`, elle est sans objet. Sa valeur initiale lors de l’activation bilatérale provient du défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice. | 30 s entre côté 1 et côté 2 |
+
+=== V3-A-005 | @01 – Vision Générale.md | CORRECTION-DECIDEE:D-409 | DU-01, PR-01
+--- ancien
+| **Durée totale de l’Exercice** | Total intrinsèque calculé suivant chapitre 08, paramètres d’exercice : exact en Durée, estimé ≈ avec cadence, borne omission sans bip à l’Exercice, omis À l’échec. Inclut les Pauses et PC applicables ; exclut R contextuelle, Compte à rebours et Fin propres. |  |
+--- nouveau
+| **Durée totale de l’Exercice** | Total intrinsèque calculé suivant chapitre 08, paramètres d’exercice : exact en Durée, estimé ≈ avec cadence, borne omission sans bip à l’Exercice, omis À l’échec. Inclut les Pauses et PC applicables ; exclut R contextuelle, Compte à rebours et Fin propres. |  |
+| **Durée de l’exercice** | Libellé visible de la ligne de la feuille des paramètres qui présente la Durée totale de l’Exercice ; un chevron à côté du libellé replie ou déploie Compte à rebours et Fin d’exercice. Règle : RM-246 (D-409). |  |
+
+=== V3-A-006 | @01 – Vision Générale.md | CORRECTION-DECIDEE:D-404 | CH-03, CH-04
+--- ancien
+| **Série** | Définition subordonnée à l’Exercice : cible éventuelle et Pause. N signifie N Séries par côté en bilatéral. Paramètres communs en uniforme, collection ordonnée propre à chaque Série en variable. Pas une entité autonome. |
+--- nouveau
+| **Série** | Définition subordonnée à l’Exercice : cible éventuelle et Pause, ainsi qu’une charge lorsque la charge est activée (RM-237, RM-238). N signifie N Séries par côté en bilatéral. Paramètres communs en uniforme, collection ordonnée propre à chaque Série en variable. Pas une entité autonome. |
+
+=== V3-A-007 | @01 – Vision Générale.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-14
+--- ancien
+- La **direction propre** est persistée sur l’Exercice : `UNILATERAL`, `RIGHT_LEFT` ou `LEFT_RIGHT`.
+--- nouveau
+- La **direction propre** est la donnée historique de côté persistée sur l’Exercice : `UNILATERAL`, `RIGHT_LEFT` ou `LEFT_RIGHT`. Elle se lit désormais comme le Changement de côté : `UNILATERAL` vaut `Sans` ; `RIGHT_LEFT` et `LEFT_RIGHT` valent `Avec`, sans être réinterprétées comme un enchaînement (D-406, RM-244). La représentation technique de `Avec` / `Sans` relève de l’implémentation.
+
+=== V3-A-008 | @01 – Vision Générale.md | CORRECTION-DECIDEE:D-411 | AR-01, PR-01
+--- ancien
+| **À l’échec** | Nature de cible d’une Série, disponible dans les modes Durée et Répétitions. Aucun nombre prescrit ; fin par Suivant. Relevé éventuel distinct de la prescription. |
+--- nouveau
+| **À l’échec** | Nature de cible d’une Série, disponible dans les modes Durée et Répétitions. Aucun nombre prescrit ; fin par Suivant. Relevé éventuel distinct de la prescription. |
+| **Condition d’arrêt** | Libellé visible de la ligne `À l’échec` / `À la cible` des paramètres d’un Exercice : choix commun en séries identiques, résultat dérivé et non modifiable en séries variables (« À la cible et à l’échec » en cas de mélange). Elle ne crée aucune nature de cible supplémentaire. Règles : RM-248, RM-249 (D-411). |
+
+=== V3-A-009 | @01 – Vision Générale.md | CORRECTION-DECIDEE:D-409 | DU-01, PR-01
+--- ancien
+| **Contrôle pilote** | Parmi `Séries` et `Durée totale`, contrôle dont la dernière valeur confirmée détermine le calcul de l’autre. Il reçoit un contour `color/selection` renforcé. Le choix n’est pas persisté. |
+--- nouveau
+| **Contrôle pilote** | Parmi `Nombre de séries` et `Durée de l’exercice` (libellés visibles, D-413 et D-409 ; concepts : nombre de Séries et Durée totale), contrôle dont la dernière valeur confirmée détermine le calcul de l’autre. Il reçoit un contour `color/selection` renforcé. Le choix n’est pas persisté. |
+
+=== V3-A-010 | @01 – Vision Générale.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-13, AC-14
+--- ancien
+| **Changement de côté** | Paramètre d’un Exercice parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, affiché à l’utilisateur comme `Aucun`, `D→G` ou `G→D`. Dans la version actuelle, aucun réglage de côté n’est exposé au niveau du Circuit ; un éventuel champ technique historique correspondant reste fixé à `UNILATERAL`. |
+--- nouveau
+| **Changement de côté** | Paramètre d’un Exercice présenté par le contrôle `Changement de côté` : `Avec` ou `Sans`. Avec `Avec`, l’Exercice est bilatéral et l’utilisateur choisit lui-même le côté par lequel il commence (D-406, RM-242). Les valeurs historiques `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT` se lisent selon RM-244. Dans la version actuelle, aucun réglage de côté n’est exposé au niveau du Circuit ; un éventuel champ technique historique correspondant reste fixé à `UNILATERAL`. |
+
+=== V3-A-011 | @01 – Vision Générale.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-23
+--- ancien
+| **Côté courant** | `RIGHT` ou `LEFT` pour le passage en cours. L’interface l’affiche sous le nom de l’Exercice par `Côté droit` ou `Côté gauche`. Aucun compteur `1/2` ou `2/2` n’est affiché. |
+--- nouveau
+| **Côté courant** | Côté 1 ou côté 2 pour le passage en cours ; le côté 1 est celui par lequel l’utilisateur commence (D-407, RM-243). L’interface l’affiche sous le nom de l’Exercice par `Côté 1` ou `Côté 2`. Les valeurs techniques historiques `RIGHT` et `LEFT` restent lisibles ; les noms techniques relèvent de l’implémentation (RM-244). Aucun compteur `1/2` ou `2/2` n’est affiché. |
+
+=== V3-A-012 | @01 – Vision Générale.md | CORRECTION-DECIDEE:D-404 | CH-01 à CH-04
+--- ancien
+| **Séries variables** | État explicite : chaque Série a ses propres cible et Pause, avec un mode commun à l’Exercice. |
+--- nouveau
+| **Séries variables** | État explicite : chaque Série a ses propres cible et Pause, et sa charge lorsque la charge est activée (RM-238), avec un mode commun à l’Exercice. |
+| **Charge** | Paramètre facultatif et informatif d’un Exercice, en kilogrammes, présenté par la ligne `Charge` (`Avec` / `Sans`, valeur affichée par exemple « 20 kg ») ; commune aux Séries identiques ou propre à chaque Série variable. Règles : RM-235 à RM-241 (D-403 à D-405). |
+
+=== V3-A-013 | @01 – Vision Générale.md | CORRECTION-DECIDEE:D-406 | CO-01, PR-01, PR-05
+--- ancien
+| **Ordre des côtés** | Un côté après l’autre (défaut) ou Les deux côtés à chaque série. Indépendant de la direction D→G/G→D ; normalisé au premier ordre à N=1. |
+--- nouveau
+| **Ordre des côtés** | Un côté après l’autre (défaut) ou Les deux côtés à chaque série ; libellé visible `Enchainement` (D-413), disponible avec un Changement de côté `Avec` (RM-242). Distinct du côté de départ, que Kodjo ne désigne pas (D-406) ; normalisé au premier ordre à N=1. |
+
+=== V3-A-014 | @01 – Vision Générale.md | CORRECTION-DECIDEE:D-408 | CA-01, PR-01
+--- ancien
+| Bip de cadence | Signal sonore périodique pendant les Séries des deux modes. Intervalle entier 0..10 s ; 0=Aucun. Ne détecte pas les répétitions et ne termine pas la Série. Le nombre d’intervalles logiques peut proposer un relevé estimé en Répétitions à l’échec. |
+--- nouveau
+| Bip de cadence | Signal sonore périodique pendant les Séries des deux modes. Intervalle entier 0..10 s ; 0 = Sans. Libellé visible de la ligne : `Cadence`, choix `Autre`, `5 s`, `2 s`, `1 s` et `Sans` (D-408, RM-245). Ne détecte pas les répétitions et ne termine pas la Série. Le nombre d’intervalles logiques peut proposer un relevé estimé en Répétitions à l’échec. |
+
+=== V3-A-015 | @02 – Utilisateurs et besoins.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-13, AC-23
+--- ancien
+- **B-015** — Régler le `Changement de côté` propre à un Exercice sur `Aucun`, `D→G` ou `G→D`, puis voir cette direction sur sa carte et dans sa synthèse.
+--- nouveau
+- **B-015** — Régler le `Changement de côté` propre à un Exercice sur `Avec` ou `Sans`, sans désignation du côté de départ, puis voir ce changement de côté sur sa carte et dans sa synthèse (D-406, D-407).
+
+=== V3-A-016 | @02 – Utilisateurs et besoins.md | CORRECTION-DECIDEE:D-406 | CO-01
+--- ancien
+- **B-073** — Configurer un Exercice ou un Circuit en unilatéral, droite-gauche ou gauche-droite, sans créer de zones corporelles latéralisées (au niveau du Circuit : besoin d’évolution potentiel, explicitement hors du périmètre actuel, D-209, D-395, RM-146).
+--- nouveau
+- **B-073** — Configurer un Exercice ou un Circuit sans ou avec changement de côté, sans désignation anatomique du côté de départ (D-406) et sans créer de zones corporelles latéralisées (au niveau du Circuit : besoin d’évolution potentiel, explicitement hors du périmètre actuel, D-209, D-395, RM-146).
+
+=== V3-A-017 | @02 – Utilisateurs et besoins.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-23
+--- ancien
+- **B-074** — Comprendre le côté courant pendant l’Exécution grâce au sous-titre `Côté droit` ou `Côté gauche`, sans compteur supplémentaire.
+- **B-075** — Conserver séparément les résultats du côté droit et du côté gauche, y compris lorsqu’un seul côté est partiellement réalisé.
+--- nouveau
+- **B-074** — Comprendre le côté courant pendant l’Exécution grâce au sous-titre `Côté 1` ou `Côté 2`, sans compteur supplémentaire (D-407).
+- **B-075** — Conserver séparément les résultats du côté 1 et du côté 2, y compris lorsqu’un seul côté est partiellement réalisé.
+
+=== V3-A-018 | @02 – Utilisateurs et besoins.md | CORRECTION-DECIDEE:D-403 | CH-01 à CH-09
+--- ancien
+- **B-076** — Activer la bilatéralité d’un Circuit après confirmation ; toutes ses Exercices héritent alors du Circuit et leur contrôle propre devient unilatéral désactivé (besoin d’évolution potentiel, explicitement hors du périmètre actuel, non validé pour la version actuelle : D-209, D-395, RM-145 à RM-147).
+--- nouveau
+- **B-076** — Activer la bilatéralité d’un Circuit après confirmation ; toutes ses Exercices héritent alors du Circuit et leur contrôle propre devient unilatéral désactivé (besoin d’évolution potentiel, explicitement hors du périmètre actuel, non validé pour la version actuelle : D-209, D-395, RM-145 à RM-147).
+- **B-092** — Renseigner facultativement une charge informative en kilogrammes pour un Exercice, commune aux Séries identiques ou propre à chaque Série variable, et la retrouver pendant l’Exécution (D-403, RM-235 à RM-241).
+
+=== V3-A-019 | @02 – Utilisateurs et besoins.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-13
+--- ancien
+- **B-087** — Dans l’éditeur d’Exercice, n’exposer la Pause entre les côtés que lorsque le Changement de côté vaut `D→G` ou `G→D`.
+--- nouveau
+- **B-087** — Dans l’éditeur d’Exercice, n’exposer la Pause entre les côtés que lorsque le Changement de côté vaut `Avec` (D-406).
+
+=== V3-A-020 | @03 – Parcours utilisateur.md | CORRECTION-DECIDEE:D-411 | AR-01, PR-01
+--- ancien
+   - mode `Durée` ou `Répétitions`, chaque Série pouvant avoir une cible `À l’échec` (D-111) ;
+--- nouveau
+   - mode `Durée` ou `Répétitions`, chaque Série pouvant avoir une cible `À l’échec` (D-111) ; la ligne `Condition d’arrêt` règle ce choix en séries identiques et le présente comme résultat en séries variables (RM-248, RM-249) ;
+
+=== V3-A-021 | @03 – Parcours utilisateur.md | CORRECTION-DECIDEE:D-404 | CH-02, CH-03, CH-04
+--- ancien
+   - Pause après chaque série ;
+--- nouveau
+   - Pause après chaque série ;
+   - `Charge` facultative : `Avec` ou `Sans` (RM-237, RM-238) ;
+
+=== V3-A-022 | @03 – Parcours utilisateur.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-13, PR-01
+--- ancien
+   - `Changement de côté` : `Aucun`, `D→G` ou `G→D` ;
+   - Pause entre les côtés, uniquement en `D→G` ou `G→D` ;
+--- nouveau
+   - `Changement de côté` : `Avec` ou `Sans` (D-406) ;
+   - `Enchainement` et Pause entre les côtés, uniquement avec changement de côté (`Avec`) ;
+
+=== V3-A-023 | @03 – Parcours utilisateur.md | CORRECTION-DECIDEE:D-409 | DU-01, PR-01
+--- ancien
+   - Durée totale dérivée ou pilotée selon le mode.
+--- nouveau
+   - Durée totale dérivée ou pilotée selon le mode, présentée sur la ligne `Durée de l’exercice` (D-409).
+
+=== V3-A-024 | @03 – Parcours utilisateur.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-13
+--- ancien
+1. Dans l’éditeur d’Exercice, `Changement de côté` propose `Aucun`, `D→G` ou `G→D`.
+--- nouveau
+1. Dans l’éditeur d’Exercice, `Changement de côté` propose `Avec` ou `Sans` ; l’utilisateur choisit lui-même le côté par lequel il commence (D-406, RM-242). `Avec` rend disponibles `Enchainement` et `Pause entre les côtés`.
+
+=== V3-A-025 | @03 – Parcours utilisateur.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-23
+--- ancien
+3. Une carte d’Exercice affiche sa direction propre `D→G` ou `G→D` lorsqu’elle est bilatérale ; elle n’affiche rien avec `Aucun`.
+4. À l’Exécution, `Côté droit` ou `Côté gauche` apparaît pour le passage concerné, sans compteur `1/2` ou `2/2`.
+--- nouveau
+3. Une carte d’Exercice bilatéral affiche un indicateur de changement de côté, sans direction, rendu selon Figma (D-407, RM-243) ; elle n’affiche rien sans changement de côté.
+4. À l’Exécution, `Côté 1` ou `Côté 2` apparaît pour le passage concerné, sans compteur `1/2` ou `2/2` (RM-243).
+
+=== V3-A-026 | @03 – Parcours utilisateur.md | CORRECTION-DECIDEE:D-413 | PR-01, PR-05
+--- ancien
+5. Un Exercice bilatéral exécute ses Séries selon l’Ordre des côtés : toutes ses Séries du premier côté puis toutes celles du second (défaut), ou les deux côtés à chaque série (D-247).
+--- nouveau
+5. Un Exercice bilatéral exécute ses Séries selon l’Ordre des côtés (libellé visible `Enchainement`) : toutes ses Séries du premier côté puis toutes celles du second (défaut), ou les deux côtés à chaque série (D-247).
+
+=== V3-A-027 | @03 – Parcours utilisateur.md | CORRECTION-DECIDEE:D-406 | CO-01, PR-01, CH-04
+--- ancien
+Le parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série. La direction et l’Ordre des côtés sont indépendants. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice), CE-T03-04 et CE-UI-10.
+
+## Composition des séances
+--- nouveau
+Le parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série, ainsi qu’une charge par Série lorsque la charge est activée (RM-238). Le `Changement de côté` se règle sur `Avec` ou `Sans`, sans désignation du côté de départ (D-406) ; l’Ordre des côtés, libellé visible `Enchainement`, reste un choix distinct. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice), CE-T03-04 et CE-UI-10.
+
+## Composition des séances
+
+=== V3-A-028 | @03 – Parcours utilisateur.md | CORRECTION-DECIDEE:D-403 | CH-02, CO-01
+--- ancien
+Pour chaque Exercice, un écran unique permet de renseigner le nom, la Catégorie, les Zones corporelles, le mode Durée ou Répétitions, avec cible chiffrée ou À l’échec par série, la cible éventuelle, le nombre de Séries, la Pause après chaque série, le Changement de côté, la **Pause entre les côtés** lorsque l’Exercice est bilatéral, le Compte à rebours propre et la Fin d’exercice propre. La Description reste facultative. L’action `Terminer` enregistre l’Exercice.
+--- nouveau
+Pour chaque Exercice, un écran unique permet de renseigner le nom, la Catégorie, les Zones corporelles, le mode Durée ou Répétitions, avec cible chiffrée ou À l’échec par série, la cible éventuelle, le nombre de Séries, la Pause après chaque série, la Charge facultative (RM-235 à RM-241), le Changement de côté (`Avec` / `Sans`, D-406), la **Pause entre les côtés** lorsque l’Exercice est bilatéral, le Compte à rebours propre et la Fin d’exercice propre. La Description reste facultative. L’action `Terminer` enregistre l’Exercice.
+
+=== V3-A-029 | @03 – Parcours utilisateur.md | CORRECTION-DECIDEE:D-409 | DU-01, PR-01
+--- ancien
+En mode Durée, l’utilisateur peut confirmer soit `Séries`, soit `Durée totale`. Le contrôle confirmé devient pilote ; l’autre est recalculé. Après saisie d'une Durée totale cible `Tv`, l’application arrondit au nombre entier de Séries le plus proche, avec `.5` vers le haut, puis recalcule `T(N)`. Si `T(N) ≠ Tv`, elle affiche temporairement « Durée ajustée à {T(N)} pour respecter un nombre entier de Séries. » ; si `T(N) = Tv`, elle n'affiche pas ce message.
+--- nouveau
+En mode Durée, l’utilisateur peut confirmer soit `Nombre de séries`, soit `Durée de l’exercice` (libellés D-413 et D-409). Le contrôle confirmé devient pilote ; l’autre est recalculé. Après saisie d'une Durée totale cible `Tv`, l’application arrondit au nombre entier de Séries le plus proche, avec `.5` vers le haut, puis recalcule `T(N)`. Si `T(N) ≠ Tv`, elle affiche temporairement « Durée ajustée à {T(N)} pour respecter un nombre entier de Séries. » ; si `T(N) = Tv`, elle n'affiche pas ce message.
+
+=== V3-A-030 | @03 – Parcours utilisateur.md | CORRECTION-DECIDEE:D-406 | CO-01, PR-01, CH-04
+--- ancien
+#### Paramètres d’exécution — complément
+
+Le parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série. La direction et l’Ordre des côtés sont indépendants. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice), CE-T03-04 et CE-UI-10.
+--- nouveau
+#### Paramètres d’exécution — complément
+
+Le parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série, ainsi qu’une charge par Série lorsque la charge est activée (RM-238). Le `Changement de côté` se règle sur `Avec` ou `Sans`, sans désignation du côté de départ (D-406) ; l’Ordre des côtés, libellé visible `Enchainement`, reste un choix distinct. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice), CE-T03-04 et CE-UI-10.
+
+=== V3-A-031 | @03 – Parcours utilisateur.md | CORRECTION-DECIDEE:D-408 | CA-01, AC-15
+--- ancien
+Dans créer/modifier un Exercice, ouvrir la zone Paramètres, choisir Répétitions puis renseigner éventuellement Cadence. Aucune reste valide ; suppression remet l’absence. En Séries variables, le réglage commun s’applique à toutes les lignes. ✓ actualise le parent et sa phrase ; ✕ annule ; Terminer enregistre.
+--- nouveau
+Dans créer/modifier un Exercice, ouvrir la zone Paramètres, choisir Répétitions puis régler éventuellement la ligne `Cadence` : `5 s`, `2 s` ou `1 s` fixent directement l’intervalle, `Autre` permet une autre valeur et `Sans`, qui reste valide, correspond à l’absence de cadence (D-408, RM-245). En Séries variables, le réglage commun s’applique à toutes les lignes. ✓ actualise le parent et sa phrase ; ✕ annule ; Terminer enregistre.
+
+=== V3-A-032 | @04 – Modèle fonctionnel.md | CORRECTION-DECIDEE:D-404 | CH-03, CH-04
+--- ancien
+Une Série est une réalisation de l’Exercice selon son mode unique. Elle porte une cible éventuelle et une Pause, terminale comprise. En variable, ces paramètres sont propres à chaque ligne ordonnée ; en uniforme ils sont communs. La Série n’est ni un conteneur de Séance ni une entité autonome.
+--- nouveau
+Une Série est une réalisation de l’Exercice selon son mode unique. Elle porte une cible éventuelle et une Pause, terminale comprise, ainsi qu’une charge lorsque la charge est activée (RM-237, RM-238). En variable, ces paramètres sont propres à chaque ligne ordonnée ; en uniforme ils sont communs. La Série n’est ni un conteneur de Séance ni une entité autonome.
+
+=== V3-A-033 | @04 – Modèle fonctionnel.md | CORRECTION-DECIDEE:D-403 | CH-01, CH-02, CH-06, §5
+--- ancien
+- une Pause facultative après chaque Série, dernière comprise (D-248) ;
+--- nouveau
+- une Pause facultative après chaque Série, dernière comprise (D-248) ;
+- une Charge facultative et informative, en kilogrammes, commune aux Séries identiques ou propre à chaque Série variable, dont l’activation (`Avec` / `Sans`) est distincte des valeurs conservées (D-403 ; RM-235 à RM-241) ;
+
+=== V3-A-034 | @04 – Modèle fonctionnel.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-13
+--- ancien
+- une `sideRecoverySeconds` facultative, pertinente uniquement pour `D→G` ou `G→D`, exécutée selon l’Ordre des côtés (une fois par Exercice ou une fois par Série) ;
+- un Changement de côté propre : `Aucun`, `D→G` ou `G→D` ;
+--- nouveau
+- une `sideRecoverySeconds` facultative, pertinente uniquement avec changement de côté (`Avec`), exécutée selon l’Ordre des côtés (une fois par Exercice ou une fois par Série) ;
+- un Changement de côté propre : `Avec` ou `Sans`, sans désignation du côté de départ (D-406, RM-242) ;
+
+=== V3-A-035 | @04 – Modèle fonctionnel.md | CORRECTION-DECIDEE:D-406 | CO-01
+--- ancien
+La Pause et la Pause entre les côtés sont indépendantes. Avec `Aucun`, `sideRecoverySeconds` est sans objet. En bilatéral, l’ordre est : successions définies par l’Ordre des côtés (chapitre 08, paramètres d’exercice).
+--- nouveau
+La Pause et la Pause entre les côtés sont indépendantes. Lorsque le Changement de côté vaut `Sans`, `sideRecoverySeconds` est sans objet. En bilatéral, l’ordre est : successions définies par l’Ordre des côtés (chapitre 08, paramètres d’exercice).
+
+=== V3-A-036 | @04 – Modèle fonctionnel.md | CORRECTION-DECIDEE:D-403 | CH-06, AC-12, CO-01
+--- ancien
+Une **Exercice de Séance** (`SessionActivity`) est une copie indépendante placée avant, dans ou après le Circuit d’une Séance. L’insertion depuis le Catalogue copie les propriétés intrinsèques applicables de la référence au moment de l’insertion, notamment nom, Description, mode/cible, Séries, Pause, `sideRecoverySeconds`, Zones corporelles et direction propre. Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). La copie devient ensuite indépendante : modifier, archiver ou supprimer la source ne modifie jamais la copie, et inversement.
+--- nouveau
+Une **Exercice de Séance** (`SessionActivity`) est une copie indépendante placée avant, dans ou après le Circuit d’une Séance. L’insertion depuis le Catalogue copie les propriétés intrinsèques applicables de la référence au moment de l’insertion, notamment nom, Description, mode/cible, Séries, Pause, `sideRecoverySeconds`, charge avec son activation et ses valeurs conservées (RM-236), Zones corporelles et Changement de côté (direction propre historique, RM-244). Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). La copie devient ensuite indépendante : modifier, archiver ou supprimer la source ne modifie jamais la copie, et inversement.
+
+=== V3-A-037 | @04 – Modèle fonctionnel.md | CORRECTION-DECIDEE:D-403 | CH-01 à CH-04
+--- ancien
+- Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : chapitre 10, Calculs des durées et ordre des phases.
+--- nouveau
+- Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : chapitre 10, Calculs des durées et ordre des phases.
+- une **Charge** facultative et informative, avec son activation (`Avec` / `Sans`) et ses valeurs, commune aux Séries identiques ou propre à chaque Série variable (RM-235 à RM-238) ;
+
+=== V3-A-038 | @04 – Modèle fonctionnel.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-13
+--- ancien
+- un **Changement de côté** propre : `Aucun`, `D→G` ou `G→D` ;
+- une **Pause entre les côtés** `sideRecoverySeconds` éventuelle, pertinente uniquement en `D→G/G→D` ;
+--- nouveau
+- un **Changement de côté** propre : `Avec` ou `Sans` (D-406) ;
+- une **Pause entre les côtés** `sideRecoverySeconds` éventuelle, pertinente uniquement avec changement de côté (`Avec`) ;
+
+=== V3-A-039 | @04 – Modèle fonctionnel.md | CORRECTION-DECIDEE:D-406 | CO-01, PR-05
+--- ancien
+Le détail ordonné des phases est défini par chapitre 08, paramètres d’exercice pour chacun des deux ordres et les deux directions.
+--- nouveau
+Le détail ordonné des phases est défini par chapitre 08, paramètres d’exercice pour chacun des deux ordres ; le côté de départ n’est pas désigné (D-406).
+
+=== V3-A-040 | @04 – Modèle fonctionnel.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-13
+--- ancien
+- une **Pause entre les côtés** facultative, visible uniquement en `D→G/G→D` et exécutée selon l’Ordre des côtés (une fois par Exercice ou une fois par Série) ;
+--- nouveau
+- une **Pause entre les côtés** facultative, visible uniquement avec changement de côté (`Avec`, D-406) et exécutée selon l’Ordre des côtés (une fois par Exercice ou une fois par Série) ;
+
+=== V3-A-041 | @04 – Modèle fonctionnel.md | CORRECTION-DECIDEE:D-411 | AR-01, PR-01
+--- ancien
+- **Séries variables** : état explicite, indépendant de l’égalité éventuelle des valeurs.
+--- nouveau
+- **Condition d’arrêt** : libellé visible de la ligne `À l’échec` / `À la cible` ; choix commun en séries identiques, résultat dérivé non modifiable en séries variables ; le type de cible par Série reste la seule donnée (D-411, RM-248, RM-249).
+- **Séries variables** : état explicite, indépendant de l’égalité éventuelle des valeurs.
+
+=== V3-A-042 | @04 – Modèle fonctionnel.md | CORRECTION-DECIDEE:D-403 | CH-01 à CH-06
+--- ancien
+- **Pause après chaque série** : libellé d’interface ; Pi est la Pause configurée de la Série i. Elle est exécutée après chaque Série, dernière comprise ; seule PN est remplacée par une récupération positive qui suit l’Exercice. Zéro signifie absence de phase positive.
+--- nouveau
+- **Pause après chaque série** : libellé d’interface ; Pi est la Pause configurée de la Série i. Elle est exécutée après chaque Série, dernière comprise ; seule PN est remplacée par une récupération positive qui suit l’Exercice. Zéro signifie absence de phase positive.
+- **Charge** : `Avec` / `Sans` ; valeur informative en kilogrammes, commune en séries identiques ou propre à chaque Série variable ; activation distincte des valeurs conservées (D-403, D-404 ; RM-235 à RM-241).
+
+=== V3-A-043 | @04 – Modèle fonctionnel.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-13, PR-01, PR-05
+--- ancien
+- **Changement de côté** : Sans changement / Droite puis gauche / Gauche puis droite ; détermine la bilatéralité et le départ.
+- **Ordre des côtés** : Un côté après l’autre (défaut) / Les deux côtés à chaque série. Sans objet en unilatéral.
+--- nouveau
+- **Changement de côté** : `Avec` / `Sans` ; détermine la bilatéralité ; le côté de départ est choisi par l’utilisateur et n’est pas désigné par Kodjo (D-406, RM-242).
+- **Ordre des côtés** : libellé visible `Enchainement` (D-413) ; Un côté après l’autre (défaut) / Les deux côtés à chaque série. Sans objet en unilatéral.
+
+=== V3-A-044 | @04 – Modèle fonctionnel.md | CORRECTION-DECIDEE:D-403 | §2, CH-01, CH-03, CH-04
+--- ancien
+En uniforme, une cible et une Pause communes sont effectives. En variable, la collection ordonnée des N cibles/Pauses est l’unique source de vérité : aucune combinaison valeur commune + surcharge. Dans les deux modes, chaque cible peut être chiffrée (Ti ou Ri) ou À l’échec ; une collection variable peut mélanger les deux. Cibles d’intensité (charge, RPE, etc.) hors périmètre.
+--- nouveau
+En uniforme, une cible et une Pause communes sont effectives. En variable, la collection ordonnée des N cibles/Pauses est l’unique source de vérité : aucune combinaison valeur commune + surcharge. Dans les deux modes, chaque cible peut être chiffrée (Ti ou Ri) ou À l’échec ; une collection variable peut mélanger les deux. La charge, information facultative et non une cible, suit la même répartition : commune en séries identiques, propre à chaque ligne en séries variables (D-403, RM-237, RM-238) ; les autres cibles d’intensité (RPE, etc.) restent hors périmètre.
+
+=== V3-A-045 | @04 – Modèle fonctionnel.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-14
+--- ancien
+Un Exercice persistant et son occurrence copiée dans une Séance portent un `sideMode` parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, avec `UNILATERAL` par défaut. La copie à l’insertion et la duplication conservent la valeur ; la copie devient ensuite indépendante de sa source. Le champ technique historique équivalent du Tour peut être conservé pour compatibilité et non-régression, mais il reste fixé à `UNILATERAL` et n’est pas exposé ni modifiable dans la version actuelle.
+--- nouveau
+Un Exercice persistant et son occurrence copiée dans une Séance portent un `sideMode` parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, avec `UNILATERAL` par défaut. La copie à l’insertion et la duplication conservent la valeur ; la copie devient ensuite indépendante de sa source. Le champ technique historique équivalent du Tour peut être conservé pour compatibilité et non-régression, mais il reste fixé à `UNILATERAL` et n’est pas exposé ni modifiable dans la version actuelle. Depuis D-406, `UNILATERAL` correspond au Changement de côté `Sans` ; `RIGHT_LEFT` et `LEFT_RIGHT` valent `Avec`, sans être réinterprétées comme un enchaînement ni réécrites (RM-244) ; la représentation technique de `Avec` / `Sans` relève de l’implémentation.
+
+=== V3-A-046 | @04 – Modèle fonctionnel.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-23
+--- ancien
+Le Plan d’Exécution mémorise la direction effective et le côté courant. Chaque Résultat d’Exercice porte `executionSide = RIGHT | LEFT | NONE`. Le statut global est dérivé des résultats des passages : tous terminés produit `Terminée`, au moins un résultat partiel ou un côté manquant après avancement produit `Partielle`, et aucun passage commencé produit `Non commencée` au niveau de l’Exercice concerné.
+--- nouveau
+Le Plan d’Exécution mémorise la direction effective et le côté courant, côté 1 ou côté 2 (D-407, RM-243). Chaque Résultat d’Exercice porte le côté exécuté : côté 1, côté 2 ou aucun (`executionSide`) ; les valeurs historiques `RIGHT`, `LEFT` et `NONE` restent lisibles, les noms techniques relevant de l’implémentation (RM-244). Le statut global est dérivé des résultats des passages : tous terminés produit `Terminée`, au moins un résultat partiel ou un côté manquant après avancement produit `Partielle`, et aucun passage commencé produit `Non commencée` au niveau de l’Exercice concerné.
+
+=== V3-A-047 | @05 – Versions du produit.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-13, DU-01
+--- ancien
+- nouvelle structure d’édition d’un Exercice : suppression du type, accès `Catégorie` et `Zones corporelles`, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Changement de côté / Pause entre les côtés / Durée totale`, la Pause entre les côtés étant conditionnelle à `D→G/G→D` ;
+--- nouveau
+- nouvelle structure d’édition d’un Exercice : suppression du type, accès `Catégorie` et `Zones corporelles`, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Changement de côté / Pause entre les côtés / Durée de l’exercice` (libellé D-409), la Pause entre les côtés étant conditionnelle au changement de côté `Avec` (D-406) ;
+
+=== V3-A-048 | @05 – Versions du produit.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-14
+--- ancien
+Une tranche spécifique précède l’Exécution T04. Elle livre la configuration et la persistance `UNILATERAL` / `RIGHT_LEFT` / `LEFT_RIGHT` au niveau Exercice, ainsi que la copie, la duplication, les calculs et les synthèses associés. Le support technique historique du côté au niveau Tour est conservé pour non-régression mais n’est pas exposé ni modifiable dans la version actuelle.
+--- nouveau
+Une tranche spécifique précède l’Exécution T04. Elle livre la configuration et la persistance `UNILATERAL` / `RIGHT_LEFT` / `LEFT_RIGHT` au niveau Exercice, ainsi que la copie, la duplication, les calculs et les synthèses associés. Le support technique historique du côté au niveau Tour est conservé pour non-régression mais n’est pas exposé ni modifiable dans la version actuelle. Depuis D-406, ces valeurs se lisent comme le Changement de côté : `UNILATERAL` vaut `Sans`, `RIGHT_LEFT` et `LEFT_RIGHT` valent `Avec` (RM-244).
+
+=== V3-A-049 | @05 – Versions du produit.md | CORRECTION-DECIDEE:D-408 | CA-01, AC-15
+--- ancien
+Cible documentée, non déclarée livrée : Bip de cadence 0..10 dans deux modes, steppers et calculs selon [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit). Dépendances : SeriesParameters, pauses explicites, migration, ordonnanceur audio périodique, snapshots et qualification mobile. L’écran de roulette est supprimé ; les cinq modales modifiées sont reprises ; les autres modes restent à compléter visuellement. Le layout d’exécution est conservé. Le guidage de cadence pendant l’Exécution appartient au MVP (D-378).
+--- nouveau
+Cible documentée, non déclarée livrée : Bip de cadence 0..10 dans deux modes, ligne `Cadence` à choix rapides (`Autre`, `5 s`, `2 s`, `1 s`, `Sans` ; D-408, RM-245) et calculs selon [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit). Dépendances : SeriesParameters, pauses explicites, migration, ordonnanceur audio périodique, snapshots et qualification mobile. L’écran de roulette est supprimé ; les cinq modales modifiées sont reprises ; les autres modes restent à compléter visuellement. Le layout d’exécution est conservé. Le guidage de cadence pendant l’Exécution appartient au MVP (D-378).
+
+=== V3-A-050 | @05 – Versions du produit.md | CORRECTION-DECIDEE:D-408 | CA-01, PR-01
+--- ancien
+Le guidage de cadence pendant l’Exécution appartient au MVP (D-378). Les deux modes peuvent émettre un Bip de cadence, intervalle 0..10 s,0=Aucun, sans quatrième mode. Chronomètre croissant et signaux guident l’utilisateur ; Suivant conserve la fin normale de Série, même après la fin nominale. KODJO ne détecte pas les mouvements. Pour une cible À l’échec en Répétitions, le relevé facultatif peut être déclaré ; avec bip, une estimation est proposée et conservée tant qu’elle n’est pas explicitement confirmée ou corrigée. Référence : [Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité).
+--- nouveau
+Le guidage de cadence pendant l’Exécution appartient au MVP (D-378). Les deux modes peuvent émettre un Bip de cadence, intervalle 0..10 s, 0 = Sans (ligne `Cadence`, RM-245), sans quatrième mode. Chronomètre croissant et signaux guident l’utilisateur ; Suivant conserve la fin normale de Série, même après la fin nominale. KODJO ne détecte pas les mouvements. Pour une cible À l’échec en Répétitions, le relevé facultatif peut être déclaré ; avec bip, une estimation est proposée et conservée tant qu’elle n’est pas explicitement confirmée ou corrigée. Référence : [Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité).

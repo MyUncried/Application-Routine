@@ -1,0 +1,215 @@
+{
+ "description": "Clôture des 14 réserves (17/10/2026) : corrections démontrées et marquages À CLARIFIER. Dossiers R1 (réserves 1 à 5), R2 (6 à 10), R3 (11 à 14), revus ; ajout R11d.",
+ "corrections": [
+  {
+   "id": "R11a",
+   "ref": "PRODUCT.md §13 rang 1 ; D-376 ; D-385 (formulation datée, cf. 117bedcb)",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "décisions validées dans le chapitre 07, jusqu’à D-255, avec priorité",
+   "nouveau": "décisions validées dans le chapitre 07, avec priorité"
+  },
+  {
+   "id": "R11b",
+   "ref": "idem R11a",
+   "file": "INDEX.md",
+   "ancien": " La borne « jusqu’à D-255 » du chapitre 13 § 2 n’est pas tranchée par cette décision.",
+   "nouveau": ""
+  },
+  {
+   "id": "R11c",
+   "ref": "idem R11a",
+   "file": "INDEX.md",
+   "ancien": "Points non arbitrés, signalés pour décision, sans effet sur les règles en vigueur :\r\n\r\n- **Borne « jusqu’à D-255 »** de l’ordre d’application du chapitre 13 § 2. Elle a été introduite le 03/10/2026, quand D-255 était la dernière décision du registre.\r\n\r\n",
+   "nouveau": ""
+  },
+  {
+   "id": "R11d",
+   "ref": "Conséquence de R11c : plus aucun point d’autorité non arbitré dans INDEX ; renvoi devenu sans objet",
+   "file": "INDEX.md",
+   "ancien": "Elle ne tranche aucun point d’autorité encore ouvert (voir les points non arbitrés ci-dessous).",
+   "nouveau": "Elle ne tranche par elle-même aucun point d’autorité."
+  },
+  {
+   "id": "R13a",
+   "ref": "D-028 ; D-053 ; D-055 ; RM-060 ; RM-063",
+   "file": "@03 – Parcours utilisateur.md",
+   "ancien": "    - ignorer un exercice ;\r\n",
+   "nouveau": ""
+  },
+  {
+   "id": "R13b",
+   "ref": "D-053 ; ch. 09 §09.7.1 (statut Terminée ou Partielle)",
+   "file": "@03 – Parcours utilisateur.md",
+   "ancien": "    - les exercices ignorées ;\r\n",
+   "nouveau": ""
+  },
+  {
+   "id": "R13c",
+   "ref": "D-053",
+   "file": "@03 – Parcours utilisateur.md",
+   "ancien": "justifier chaque exercice ignorée.",
+   "nouveau": "justifier chaque exercice passé avant son terme."
+  },
+  {
+   "id": "R14a",
+   "ref": "D-380 ; D-123",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "`Continuer` reste désactivé tant que le nom est vide ou qu’aucun Exercice valide n’est présent. Une Séance ne peut pas être enregistrée si un de ses Exercices comporte une cible obligatoire non renseignée (D-380).",
+   "nouveau": "`Continuer` reste désactivé tant que le nom est vide, qu’aucun Exercice valide n’est présent ou qu’un Exercice comporte une cible obligatoire non renseignée : une telle Séance ne peut pas être enregistrée (D-380, D-123)."
+  },
+  {
+   "id": "R14b",
+   "ref": "D-380 ; D-123",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "Continuer exige nom et au moins un Exercice valide ; la Séance n’est pas enregistrée si un de ses Exercices comporte une cible obligatoire non renseignée (D-380).",
+   "nouveau": "Continuer exige nom et au moins un Exercice valide ; il reste désactivé, et la Séance n’est pas enregistrée, si un de ses Exercices comporte une cible obligatoire non renseignée (D-380, D-123)."
+  },
+  {
+   "id": "R14c",
+   "ref": "D-380 ; D-123",
+   "file": "@06 – Ecrans et navigation de la V1.md",
+   "ancien": "Elle reste désactivée tant que le nom n’est pas renseigné ou que la Composition ne contient pas au moins un Exercice valide.",
+   "nouveau": "Elle reste désactivée tant que le nom n’est pas renseigné, que la Composition ne contient pas au moins un Exercice valide ou qu’un de ses Exercices comporte une cible obligatoire non renseignée (D-380, D-123)."
+  },
+  {
+   "id": "R14d",
+   "ref": "D-380 ; D-123",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "| Continuer | Désactivé lorsque le nom est vide ou qu’aucun Exercice valide n’est présent ;",
+   "nouveau": "| Continuer | Désactivé lorsque le nom est vide, qu’aucun Exercice valide n’est présent ou qu’un Exercice comporte une cible obligatoire non renseignée (D-380, D-123) ;"
+  },
+  {
+   "id": "R14e",
+   "ref": "D-380 ; D-123",
+   "file": "@03 – Parcours utilisateur.md",
+   "ancien": "`Continuer` reste désactivé tant que le nom n’est pas renseigné ou qu’aucun Exercice valide n’est présent.",
+   "nouveau": "`Continuer` reste désactivé tant que le nom n’est pas renseigné, qu’aucun Exercice valide n’est présent ou qu’un Exercice comporte une cible obligatoire non renseignée (D-380, D-123)."
+  },
+  {
+   "id": "R14f",
+   "ref": "marquage À CLARIFIER (aucune règle modifiée) ; D-380, CIR-09",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "Les exercices incomplètes sont signalées à l'utilisateur.",
+   "nouveau": "Les exercices incomplètes sont signalées à l'utilisateur (`À CLARIFIER` : forme du signalement non définie ; CIR-09 exclut tout marqueur d’incomplétude sur la carte de composition)."
+  },
+  {
+   "id": "R15a",
+   "ref": "marquage À CLARIFIER (aucune règle modifiée) ; D-100, D-382, DSF-CIRCUITS-CONTROLES",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "Le nombre porte sur les Exercices seulement ;",
+   "nouveau": "Le nombre porte sur les Exercices seulement (`À CLARIFIER` : périmètre de ce nombre non tranché par D-382, et nombre absent des captures et du DSF Circuits du 12/10) ;"
+  },
+  {
+   "id": "R2-01",
+   "ref": "D-384 (Q-K2, choisie contre pre4:H10) ; décision PRE-4 Q30 via D-385",
+   "file": "@10 – Processus métier et règles métier transverses.md",
+   "ancien": "30 + 45 + 30 = 105 s (décision PRE-4 Q30 du 16/10, D-385).",
+   "nouveau": "30 + 45 + 30 = 105 s (décision PRE-4 Q30 du 16/10, D-385). Cette Copie n’affiche elle-même aucun total (Q30) ; dans la feuille Paramètres, la ligne Total est affichée avec « — » (D-384)."
+  },
+  {
+   "id": "R2-02",
+   "ref": "Marquage À CLARIFIER (Q32 contre D-091), sans changement de règle",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "(catégories seules sans Étiquette), `N exercices` et `N tours`.",
+   "nouveau": "(catégories seules sans Étiquette), `N exercices` et `N tours` (Séance sans Exercice : « 0 exercice » selon la décision PRE-4 Q32, « 0 exercices » selon D-091 — À CLARIFIER)."
+  },
+  {
+   "id": "R2-03",
+   "ref": "Marquage À CLARIFIER (Q27, Android), sans changement de règle",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "sans bouton ajouté sur la tuile (décisions PRE-4 Q27 et Q31 du 16/10, D-385).",
+   "nouveau": "sans bouton ajouté sur la tuile (décisions PRE-4 Q27 et Q31 du 16/10, D-385 ; Q27 nomme le lecteur natif iOS, le comportement sous Android est À CLARIFIER)."
+  },
+  {
+   "id": "R2-04",
+   "ref": "Marquage À CLARIFIER (Q19, forme du signalement), sans changement de règle",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "et le nombre d’Exercices écartés est signalé.",
+   "nouveau": "et le nombre d’Exercices écartés est signalé (forme du signalement — texte, moment, action — À CLARIFIER)."
+  },
+  {
+   "id": "R3-01",
+   "ref": "D-377 (alignement sur color.parametersSegmentedBorder/Option, AR1-11/12)",
+   "file": "@12 – Architecture technique.md",
+   "ancien": "Sous-titre de l’option sélectionnée (Ordre des côtés) ; figé `6665-26185` ; D-341 |",
+   "nouveau": "Sous-titre de l’option sélectionnée (Ordre des côtés) ; figé `6665-26185` ; D-341, présentation remplacée par les DSF validés (D-377) |"
+  },
+  {
+   "id": "R3-02",
+   "ref": "D-377 ; DSF-CIRCUITS-CONTROLES l. 25 (marquage seul)",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "le contour désigne uniquement la ligne de roulette/segmenté activée.",
+   "nouveau": "le contour désigne uniquement la ligne de roulette/segmenté activée (`À CLARIFIER` : application aux lignes à popover qui remplacent les segmentés selon les DSF validés, D-377 ; rendu à vérifier dans Figma)."
+  },
+  {
+   "id": "R3-04",
+   "ref": "D-209, RM-146 ; D-387 (besoin futur conservé)",
+   "file": "@02 – Utilisateurs et besoins.md",
+   "ancien": "- Configurer un Exercice ou un Circuit en unilatéral, droite-gauche ou gauche-droite, sans créer de zones corporelles latéralisées.",
+   "nouveau": "- Configurer un Exercice ou un Circuit en unilatéral, droite-gauche ou gauche-droite, sans créer de zones corporelles latéralisées (au niveau du Circuit : besoin d’évolution, non retenu dans la version actuelle, D-209, RM-146)."
+  },
+  {
+   "id": "R3-05",
+   "ref": "D-209, RM-145 à RM-147 ; D-387 (besoin futur conservé)",
+   "file": "@02 – Utilisateurs et besoins.md",
+   "ancien": "leur contrôle propre devient unilatéral désactivé.",
+   "nouveau": "leur contrôle propre devient unilatéral désactivé (besoin d’évolution, non retenu dans la version actuelle : D-209, RM-145 à RM-147)."
+  },
+  {
+   "id": "R3-06",
+   "ref": "D-387, D-209 (« Révise les formulations historiques où Tour désignait le conteneur répété »)",
+   "file": "@07 – Registre des décisions de conception.md",
+   "ancien": "ne constituent pas des entités métier réutilisables de manière indépendante dans le MVP. | Validée | Oui |",
+   "nouveau": "ne constituent pas des entités métier réutilisables de manière indépendante dans le MVP. | Validée ; terminologie révisée par D-209 (D-387) : la structure nommée ici « Tour » est le Circuit, un Tour en est une répétition ; nom technique `Tour` non renommé | Oui |"
+  },
+  {
+   "id": "R3-07",
+   "ref": "D-387, D-209",
+   "file": "@07 – Registre des décisions de conception.md",
+   "ancien": "| D-048 | **Tour** est le terme et le concept métier de référence dans l'ensemble du projet. | Validée | Oui |",
+   "nouveau": "| D-048 | **Tour** est le terme et le concept métier de référence dans l'ensemble du projet. | Validée ; terminologie révisée par D-209 (D-387) : le conteneur nommé ici « Tour » est le Circuit, un Tour en est une répétition ; identifiants techniques `Tour` non renommés | Oui |"
+  },
+  {
+   "id": "R3-08",
+   "ref": "D-387, D-209",
+   "file": "@07 – Registre des décisions de conception.md",
+   "ancien": "Un seul bouton `+ Ajouter un exercice` est proposé. | Révisée par D-129 | Oui |",
+   "nouveau": "Un seul bouton `+ Ajouter un exercice` est proposé. | Révisée par D-129 ; terminologie révisée par D-209 (D-387) : le conteneur nommé ici « Tour » est le Circuit, un Tour en est une répétition | Oui |"
+  },
+  {
+   "id": "R3-09",
+   "ref": "RM-233",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "premier choix irréversible vers aucun mode (texte d’origine de D-232 du 30/09/2026, absent du texte actuel du registre — À CLARIFIER)",
+   "nouveau": "premier choix irréversible vers aucun mode (RM-233)"
+  },
+  {
+   "id": "R3-10",
+   "ref": "RM-232 (« sans persistance »)",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "La phrase elle-même n’est pas persistée comme source de vérité (renvoi historique D-232 non démontré — À CLARIFIER).",
+   "nouveau": "La phrase elle-même n’est pas persistée comme source de vérité (RM-232)."
+  },
+  {
+   "id": "R3-11",
+   "ref": "RM-232 (« sans persistance »)",
+   "file": "@09 – Modèle de données fonctionnel.md",
+   "ancien": "Aucun champ de stockage autonome de la phrase n’est requis (renvoi historique D-232 non démontré — À CLARIFIER).",
+   "nouveau": "Aucun champ de stockage autonome de la phrase n’est requis (RM-232)."
+  },
+  {
+   "id": "R3-12",
+   "ref": "RM-232, D-298 (D-232 amendée « voir D-268 à D-298 (… phrase) » ; D-253 « remplacé par D-298/Phrase v1 »)",
+   "file": "@08 – Conception fonctionnelle détaillée.md",
+   "ancien": "Elle suit les fragments conditionnels D-232, se régénère",
+   "nouveau": "Elle suit les fragments conditionnels de la [phrase de synthèse des paramètres](#phrases) (RM-232, D-298), se régénère"
+  },
+  {
+   "id": "R3-13",
+   "ref": "D-312, D-386 (« D-312 prévaut sur D-252 pour les steppers »)",
+   "file": "@13 – Contrats d’écran.md",
+   "ancien": "le contrôle et ses pas restent ceux du DSF et de D-232.",
+   "nouveau": "le contrôle et ses pas restent ceux du DSF et, pour les steppers, de D-312 (D-386)."
+  }
+ ]
+}

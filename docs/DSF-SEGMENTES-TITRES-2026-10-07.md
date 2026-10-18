@@ -2,6 +2,12 @@
 
 [Source reçue](archives/complements-2026-10-07/demande-source.md) · [Traçabilité](MATRICE-COMPLEMENTS-2026-10-07.md) · décisions D-324 à D-326. Complément au DSF Cadence ; aucune refonte de shell.
 
+**Mise à jour du 18/10/2026 — spécification v3.0 :**
+- Remplacé pour la présentation : au §3, pour les contrôles de la feuille des paramètres, la typographie des libellés de segmentés (D-413 : options inactives en texte gris Regular) et les exceptions Changement de côté (options Avec / Sans, D-406) et Ordre des côtés (libellé visible Enchainement, notation à flèches de Figma, D-413) ; la description des cadres de paramètres existants (rayon 12, fond opaque, contour), remplacée par les quatre cadres de D-413. Le standard Catalogue Exercices / Séances, ses variantes et les titres d’écran sont inchangés.
+- Comportements : règles RM-235 à RM-250 du chapitre 10, [Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026) (décisions D-403 à D-413 du [registre](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#parametres-execution-20261018)) ; ce DSF n’en reprend pas l’énoncé. Les valeurs des captures restent illustratives.
+- Présentation nouvelle de la feuille des paramètres (D-413 ; spécification v3.0, GR-01 et PR-01 à PR-04 ; référence 402 × 874) : quatre cadres successifs espacés de 8 px, dans l’ordre de D-413 ; contrôles segmentés alignés à droite, titres à gauche, sans enveloppe blanche ; tableaux à fond blanc sans contour, lignes de 36 px, sans boutons +/− de tableau ; Cadence en 12 px ; labels Regular, plus petits que les valeurs ; options inactives en texte gris Regular sur le fond des champs variables ; option sélectionnée selon le traitement violet existant ; saisie de la charge au clavier décimal, tableau visible au-dessus du clavier avec une marge de 12 px (D-405) ; chevrons à l’intérieur des options Variables (Type de série) et Avec (Changement de côté) (D-410) ; Durée de l’exercice avec son chevron à 12 px du libellé (D-409).
+- Tokens : les valeurs correspondantes sont à relever dans Figma avant publication ; aucun nouveau token n’est défini ici.
+
 ## 1. Portée fonctionnelle
 
 Le Catalogue et les modales de sélection de type de contenu proposent exactement **Exercices / Séances**. Parcours/Circuits n’est ni affiché, ni désactivé, ni réservé dans la largeur, ni présent dans l’arbre d’accessibilité. Séances reste le défaut du Catalogue. Les mécanismes de sélection et de retour existants sont conservés. Les sélecteurs Calendrier, Mode et Statut ne perdent aucune option par cette décision.
@@ -23,14 +29,14 @@ Circuit reste la structure interne à la Séance ; le concept autonome Parcours 
 
 ## 3. Typographie
 
-Libellés : style **KODJO / Section title**, Inter Semi Bold16, interligne20. Cela couvre Catalogue, Calendrier Jour/Semaine/Mois, Suivi, Mode, Mode d’exécution et Statut des séances. La prescription vise les libellés de segmenté, pas toutes les valeurs et lignes de paramètres.
+[remplacé par D-413 le 18/10/2026 pour les contrôles de la feuille des paramètres : options inactives en gris Regular, tailles à relever dans Figma] Libellés : style **KODJO / Section title**, Inter Semi Bold16, interligne20. Cela couvre Catalogue, Calendrier Jour/Semaine/Mois, Suivi, Mode, Mode d’exécution et Statut des séances. La prescription vise les libellés de segmenté, pas toutes les valeurs et lignes de paramètres.
 
 | Exception conservée | Typographie |
 |---|---|
-| Changement de côté |13px, libellés sur deux lignes |
-| Ordre des côtés | Titre14px ; sous-titre11px |
+| [remplacé par D-406 le 18/10/2026 : options Avec / Sans] Changement de côté |13px, libellés sur deux lignes |
+| [libellé visible : Enchainement, D-413 le 18/10/2026 ; notation à flèches de Figma, RM-243] Ordre des côtés | Titre14px ; sous-titre11px |
 
-Conserver leurs géométries de feuille et leur contenu. Le document reçu décrit le cadre standard ; l’inspection distingue les cadres de paramètres existants (rayon12, fond opaque, contour) du standard Catalogue (rayon14, blanc50%, sans contour). Aucun élargissement de la modification à ces cadres n’est déduit de l’harmonisation typographique.
+Conserver leurs géométries de feuille et leur contenu. Le document reçu décrit le cadre standard ; l’inspection distingue les cadres de paramètres existants [remplacé par D-413 le 18/10/2026 : quatre cadres gris, sans contour] (rayon12, fond opaque, contour) du standard Catalogue (rayon14, blanc50%, sans contour). Aucun élargissement de la modification à ces cadres n’est déduit de l’harmonisation typographique.
 
 ## 4. Variantes du set 5548:9818
 

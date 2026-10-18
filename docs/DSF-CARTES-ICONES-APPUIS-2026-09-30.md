@@ -5,6 +5,12 @@
 
 **État courant06/10 :** [DSF Cadence et corrections](DSF-CADENCE-2026-10-06.md), [matrice courante](MATRICE-CADENCE-FIGMA-2026-10-06.md). Les mesures/captures datées ci-dessous restent historiques lorsqu’elles sont remplacées ; règles cartes média conservées. Cadence commune REPS et phrase unique selon paramètres v13, Phrase v1.
 
+**Mise à jour du 18/10/2026 — spécification v3.0 :**
+- Remplacé pour la présentation : dans la description du booléen Bilatéral, la mention du paramètre métier de direction et de `Indicator / Sides` (`D→G/G→D`) (D-406, D-407). Le booléen Bilatéral et l’icône miroir sont inchangés.
+- Comportements : règles RM-242 à RM-244 du chapitre 10, [Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026) ; ce DSF n’en reprend pas l’énoncé.
+- Présentation nouvelle : l’indicateur d’un Exercice bilatéral signale le changement de côté sans direction, rendu selon Figma. La feuille des paramètres n’est pas décrite ici : voir l’en-tête du [DSF Circuits](DSF-CIRCUITS-CONTROLES-2026-10-12.md).
+- Tokens : les valeurs correspondantes sont à relever dans Figma avant publication ; aucun nouveau token n’est défini ici.
+
 ## Références et portée
 
 Mise à jour du 30 septembre 2026, issue de `prompt_maj_DSF_et_documentation_cartes_point fermés.md`, complété par les six corrections du propriétaire et de la précision du propriétaire sur les pages Figma. Base documentaire : `MyUncried/Application-Routine`, `main`, commit `48b444ededb735da47a42474c39e150224e92395`. Aucun ZIP ancien n’est réintégré.
@@ -77,7 +83,7 @@ Le cercle de nature est réservé aux cartes Semaine et Suivi : diamètre 26, ma
 | Étiquette | `cil:tag` |
 | Place réservée média | Phosphor `person-simple-tai-chi-light`, 24 ; gouttière 64 permanente dans Catalogue et choix d’exercices |
 
-Le booléen Figma `Bilatéral` est faux par défaut. Il est présent sur les variantes Catalogue et choix de l’exercice, absent en Semaine et Suivi. Il ne remplace ni le paramètre métier de direction ni `Indicator / Sides` (`D→G/G→D`). Il représente la bilatéralité à la place du texte « de chaque côté » sur les variantes concernées ; les données et les calculs ne changent pas.
+Le booléen Figma `Bilatéral` est faux par défaut. Il est présent sur les variantes Catalogue et choix de l’exercice, absent en Semaine et Suivi. [remplacé par D-407 le 18/10/2026 : changement de côté Avec / Sans, indicateur sans direction] Il ne remplace ni le paramètre métier de direction ni `Indicator / Sides` (`D→G/G→D`). Il représente la bilatéralité à la place du texte « de chaque côté » sur les variantes concernées ; les données et les calculs ne changent pas.
 
 | Objet | Couleur |
 |---|---|
@@ -109,21 +115,7 @@ Les trois composants canoniques sont désormais implantés dans Design system �
 
 ## État avec photo/vidéo et RG-1 à RG-13
 
-| ID | Règle et portée | Statut |
-|---|---|---|
-| RG-1 | Un seul format au Catalogue et dans les choix d’exercices : gouttière permanente 64, photo si média, icône de nature sinon. Aucun réglage utilisateur de format. | Validé — D-260 |
-| RG-2 | La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). | Validé par le propriétaire — 03/10/2026, D-264 |
-| RG-3 | Les Séances ne portent jamais de visuel ; aucune photo dans les listes mixtes, le Calendrier ou le Suivi. | Validé définitivement — D-260 |
-| RG-4 | Aucun déploiement accessible sur les cartes d’Exercice ou du Suivi, avec ou sans média. Déploiement des Séances conservé au Catalogue et au Calendrier Semaine. | Validé — D-261/D-262 |
-| RG-5 | Une seule famille d’icônes de zone corporelle dans toute l’application ; variante Homme/Femme suivant la préférence de Profil définie par RG-10. | Validé |
-| RG-6 | La gouttière permanente est 64 ; texte à x=88 ; Catalogue replié/archivé : titre250px et lignes basses207px ; Choix : largeur selon son contrôle de sélection. Le chargement du média ne change pas la hauteur. | Validé ; référence à taille standard |
-| RG-7 | Minimum tactile 44 × 44, sans chevauchement. Boutons contextuels visibles 34. Une cible existante de 48 reste conforme et ne doit pas être réduite sans nécessité. | Validé ; révise le minimum commun de D-087, conserve les dimensions spécifiques supérieures |
-| RG-8 | Zones des cartes d’Exercice : largeur du cadre = position du contrôle droit − début du texte − 8 px ; troncature finale, une ligne, sans scroll horizontal (D-263). Les Séances conservent leur minimum20. | Clarification validée par correction de l’audit du04/10/2026 ; aucune marge optique20 additionnelle pour ces zones |
-| RG-9 | Marges latérales 24 sur la référence écran 402, sauf retraits volontaires documentés. | Validé ; ne remplace pas les règles responsive |
-| RG-10 | Profil : champ silhouette facultatif, valeurs homme/femme ; absence = homme affiché. Effet limité à l’icône de zone corporelle, sans filtre, recherche ni autre effet métier. | Validé |
-| RG-11 | Image ou couverture vidéo centrée, remplissant le carré 64 sans déformation ; excédent recadré. | Validé |
-| RG-12 | Sans média, pendant le chargement ou si le média est indisponible, conserver la gouttière 64, son fond #EEF0F6 et l’icône de nature de l’exercice. | Validé — D-260 |
-| RG-13 | Texte alternatif de la vignette : nom de l’exercice. | Validé |
+Les règles RG-1 à RG-13 sont désormais énoncées au [chapitre 06, « Cartes d’Exercice — règles RG-1 à RG-13 »](Specifications-fonctionnelles/06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#cartes-dexercice--règles-rg-1-à-rg-13) (transfert G4, D-402). Leur texte n’a pas changé ; la version antérieure de ce tableau reste consultable dans Git (commit `cefc9b99`).
 
 Gouttière permanente : 64 × 64 à x=12, y=14 sur la carte Exercice 354 × 91, rayon 6, fond `#EEF0F6`, icône de nature 24 × 24 ; photo recadrée centrée, sans déformation. Le bloc texte est à x=88, largeur 207. La catégorie et les sélecteurs restent présents. Aucune photo sur les cartes de Calendrier Semaine/Jour ou du Suivi. Zones corporelles tronquées, sans défilement horizontal : cadre de coupe 60 px au Catalogue actif/archivé, 69 px dans les choix calendrier/planification/composition et 145 px en Calendrier Semaine ; calcul sur le contrôle droit réellement présent, avec 8 px entre le cadre de coupe et ce contrôle. La mesure porte sur le cadre de coupe, pas sur le dernier glyphe visible. La valeur145 en Semaine est arrondie depuis144,6 ; le développement calcule la largeur disponible, sans coder une largeur unique.
 

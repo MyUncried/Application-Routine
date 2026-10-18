@@ -1,0 +1,50 @@
+{
+  "06 – Ecrans et navigation de la V1.md|1|1": {
+    "ancre": "32 captures du parcours de création et de ses états de Modalités d’exécution",
+    "mode": "substituer",
+    "de": "états de Modalités d’exécution, issues",
+    "vers": "états de Paramètres d’exécution, issues",
+    "raison": "substitution ciblée du seul libellé renommé par la PR ; le lien restauré par R06B-001 est conservé"
+  },
+  "13 – Contrats d’écran.md|2|1": {
+    "ancre": "Durée et symbole viennent du calcul commun",
+    "mode": "remplacer",
+    "raison": "seule occurrence conservée (ch. 13) ; ligne actuelle identique à l’ancienne ligne de la PR hors espaces typographiques"
+  },
+  "13 – Contrats d’écran.md|4|1": {
+    "mode": "ignorer",
+    "raison": "copie remplacée par un renvoi (COP-017, 027, 029, 048, 051) ; texte identique reporté une seule fois via |2|1"
+  },
+  "13 – Contrats d’écran.md|5|1": {
+    "mode": "ignorer",
+    "raison": "copie remplacée par un renvoi (COP-017, 027, 029, 048, 051) ; texte identique reporté une seule fois via |2|1"
+  },
+  "13 – Contrats d’écran.md|7|1": {
+    "mode": "ignorer",
+    "raison": "copie remplacée par un renvoi (COP-017, 027, 029, 048, 051) ; texte identique reporté une seule fois via |2|1"
+  },
+  "13 – Contrats d’écran.md|6|1": {
+    "mode": "ignorer",
+    "raison": "copie remplacée par un renvoi (COP-017, 027, 029, 048, 051) ; texte identique reporté une seule fois via |2|1"
+  },
+  "06 – Ecrans et navigation de la V1.md|2|1": {
+    "ancre": "",
+    "mode": "ignorer",
+    "raison": "sans objet : la ligne « Feuille : en-tête fixe ✕ / … ✓ » est réécrite par l’intégration v3 (V3-G-005) et porte déjà « Paramètres d’exécution »"
+  },
+  "06 – Ecrans et navigation de la V1.md|4|1": {
+    "ancre": "",
+    "mode": "ignorer",
+    "raison": "sans objet : le titre « Modalités d’exécution — Séries variables, cas mixte » est remplacé par le nom de frame actuel « Création activité — Paramètres (modale) — Séries variables, cas mixte » (V3-G-010)"
+  },
+  "06 – Ecrans et navigation de la V1.md|4|2": {
+    "ancre": "",
+    "mode": "ignorer",
+    "raison": "sans objet : image du cas mixte remplacée par la capture du 18/10/2026 (V3-G-010)"
+  },
+  "13 – Contrats d’écran.md|8|1": {
+    "ancre": "**Révision 13/10, amendée le 18/10 :**",
+    "mode": "apres",
+    "raison": "ligne de contexte réécrite par l’intégration v3 (D-403 à D-413) ; inséré après la ligne réécrite, même rubrique ; la seconde phrase insérée (« Le pied commun reste le réglage de la cellule active ») est contredite par D-413 : à retirer par le chantier #371"
+  }
+}

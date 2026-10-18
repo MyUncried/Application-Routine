@@ -1,0 +1,449 @@
+# Intégration v3.0 — propagation aux chapitres 08, 09, 11 et 12 (corrections proposées, non appliquées).
+# Règles citées par identifiant (RM-235 à RM-250, chapitre 10) ; décisions D-403 à D-413 (chapitre 07).
+# Lignes laissées volontairement intactes pour ne pas réécrire le contexte des PR ouvertes :
+#   ch. 08 l. 218 (N=1, contexte PR #370 ; aucun ancien libellé visible à corriger : « Ordre des côtés » est le concept conservé),
+#   ch. 08 l. 252 et 254 (contexte et ligne modifiée par PR #371 ; couverts par le paragraphe ajouté après la l. 250),
+#   ch. 08 l. 344 et tableau l. 348-353 (PR #371), ch. 09 l. 361-363, ch. 11 l. 104-109 (dont API-ACT-07, contexte PR #370), ch. 12 l. 311-313 et 407-409 (PR #370).
+# Lignes de tokens du tableau des design tokens du ch. 12 non modifiées : voir # QUESTIONS.
+# QUESTIONS
+# Q : 12 – Architecture technique.md:1000 — `color.parametersSegmentedBorder` (« Contour 1 du cadre segmenté de la feuille Paramètres (Mode, Côté, Ordre) ») : D-413 prescrit des contrôles segmentés « sans enveloppe blanche » dans des cadres de groupes gris ; ce contour est-il encore utilisé, et faut-il retirer « Ordre » (ancien libellé) de sa description ?
+# Q : 12 – Architecture technique.md:1001 — `color.parametersSegmentedOption` (« Options inactives …, contour blanc 1 ») : PR-03 / D-413 demandent l’absence de contour blanc autour des segments et un même fond clair pour options inactives et champs variables ; la valeur `#FCFCFE` et le contour blanc sont-ils remplacés ? À relever dans Figma avant décision.
+# Q : 12 – Architecture technique.md:1004 — `color.variableSeriesGroupSurface` (« Fond du groupe Séries variables déployé, contour `color.selection` 1,5 ») : D-413 impose des tableaux à fond blanc sans contour dans des cadres gris ; ce token est-il obsolète ou réaffecté au cadre du groupe Séries ?
+# Q : 12 – Architecture technique.md:1062 — `type.segmentedCompactLabel` (« Options du segmenté « Changement de côté » …, sur deux lignes ») : avec Avec / Sans (D-406), les libellés sur deux lignes (anciens Sans changement / Droite puis gauche / Gauche puis droite) n’ont plus d’objet apparent ; token à retirer ou à réaffecter ?
+# Q : 12 – Architecture technique.md:1077 — `type.segmentedLabel` (Semi Bold 16, exceptions « Changement de côté (13) et Ordre des côtés (14/11) ») : PR-03 / D-413 indiquent des labels regular plus petits que les valeurs et une Cadence en 12 px ; quelles tailles et graisses retenir pour les options des nouveaux contrôles (Mode, Condition d’arrêt, Type de série, Changement de côté, Enchainement, Cadence, Charge) ?
+# Q : 12 – Architecture technique.md:1002 — `color.selectionSubtitle` (« Sous-titre de l’option sélectionnée (Ordre des côtés) ») : la notation Figma d’Enchainement à flèches (RM-243, PR-05) conserve-t-elle un sous-titre ? Token à confirmer.
+# Q : 08 – Conception fonctionnelle détaillée.md:210 — après ✓ en séries identiques, les charges par série du tableau variable caché sont-elles persistées (exception D-403 « valeurs désactivées ») ou suivent-elles la non-persistance des variantes cachées (D-249) ? D-403 limite l’exception aux valeurs désactivées par Sans ; la correction V3-B ne tranche pas ce cas.
+# Q : 08 – Conception fonctionnelle détaillée.md:240 — roulette Nombre de répétitions « « Aucune répétition, à l’échec » en tête » (décision PRE-4 Q8, D-385) : non modifiée, D-412 renvoyant ce point au dossier de questions du change ; même réserve pour 12 – Architecture technique.md:936 et 1676.
+# Q : 08 – Conception fonctionnelle détaillée.md:297 — « carte récapitulative ouvrant CE-UI-10, Compte à rebours/Fin, Description, Média, Terminer » : Compte à rebours et Fin d’exercice sont-ils encore des lignes de l’éditeur hors feuille, ou uniquement dans le groupe 4 de la feuille (D-413, RM-246) ? Non modifié faute de certitude.
+# Q : 09 – Modèle de données fonctionnel.md:890-891 — valeurs historiques `RIGHT` / `LEFT` des nœuds et résultats : leur correspondance avec côté 1 / côté 2 dépend du sens historique (`RIGHT_LEFT` ou `LEFT_RIGHT`) ; RM-244 exige seulement leur lisibilité. Faut-il documenter une règle de correspondance pour l’affichage de l’historique ?
+# Q : 09 – Modèle de données fonctionnel.md:620 — la liste des valeurs dont une valeur négative ou non entière fait écarter l’Exercice à la migration (D-394, PRE-4) n’inclut pas la charge (décimale par nature) ; aucun ajout proposé (référence PRE-4 figée) : la charge négative relève-t-elle de cette règle ?
+# Q : 12 – Architecture technique.md:1465 — « bilatéralité par miroir dans les variantes concernées » (synthèses de cartes) : sens incertain vis-à-vis de D-407 (indicateur sans direction) ; non modifié.
+
+=== V3-B-001 | @08 – Conception fonctionnelle détaillée.md | CORRECTION-DECIDEE:D-413 | GR-01, PR-01, AR-01, AC-22
+--- ancien
+La création d’un Exercice depuis le Catalogue réutilise l’éditeur unifié. Le champ Nom est le premier élément du bandeau bleu. Le Mode propose un popover à deux options : Durée et Répétitions. À l’échec est une cible de Série. La carte ouvre CE-UI-10 : Séries → Séries variables → cible/Pause communes ou tableau → Changement de côté → Ordre des côtés → Pause entre les côtés → Total applicable. Les sections Description, Zone corporelle, Mode et Médias suivent les contrats de l’Écran 4.
+--- nouveau
+La création d’un Exercice depuis le Catalogue réutilise l’éditeur unifié. Le champ Nom est le premier élément du bandeau bleu. Le Mode propose deux options, Durée et Répétitions, dans un contrôle segmenté de la feuille, sans popover (D-413). À l’échec est une cible de Série ; la Condition d’arrêt suit RM-248 et RM-249. La carte ouvre CE-UI-10, dont les groupes et l’ordre des lignes suivent D-413 : Exécution (Mode, Condition d’arrêt) → Séries (Nombre de séries, Type de série, cible/Pause communes ou tableau, Charge) → Côtés (Changement de côté, puis Enchainement et Pause entre les côtés) → Cadence et durée (Cadence, Durée de l’exercice applicable, Compte à rebours, Fin d’exercice). Les sections Description, Zone corporelle, Mode et Médias suivent les contrats de l’Écran 4.
+
+=== V3-B-002 | @08 – Conception fonctionnelle détaillée.md | RENVOI | AC-12, CH-06
+--- ancien
+La sélection multiple affiche le nombre `N`, désactive l’ajout pour `N = 0` et insère les copies selon l’ordre courant de présentation dans la liste filtrée au moment de la validation. L’ordre des touchers n’est pas conservé. Chaque copie reprend toutes les propriétés métier et associations média de la référence puis évolue indépendamment. Un Exercice créé dans une Séance n’est pas enregistrée automatiquement dans la bibliothèque.
+--- nouveau
+La sélection multiple affiche le nombre `N`, désactive l’ajout pour `N = 0` et insère les copies selon l’ordre courant de présentation dans la liste filtrée au moment de la validation. L’ordre des touchers n’est pas conservé. Chaque copie reprend toutes les propriétés métier, dont la charge et son activation, valeurs conservées sous Sans comprises (RM-236), et les associations média de la référence puis évolue indépendamment. Un Exercice créé dans une Séance n’est pas enregistrée automatiquement dans la bibliothèque.
+
+=== V3-B-003 | @08 – Conception fonctionnelle détaillée.md | RENVOI | CH-09, §5 Historique
+--- ancien
+L’action Lecture est disponible uniquement pour une référence valide. Le lancement fige la définition courante dans un instantané d’origine `ACTIVITY` et mémorise l’état du Catalogue.
+--- nouveau
+L’action Lecture est disponible uniquement pour une référence valide. Le lancement fige la définition courante, charge comprise (RM-236), dans un instantané d’origine `ACTIVITY` et mémorise l’état du Catalogue.
+
+=== V3-B-004 | @08 – Conception fonctionnelle détaillée.md | CORRECTION-DECIDEE:D-411 | AR-01, RO-01, AC-19 à AC-21, AC-25
+--- ancien
+La feuille travaille sur une copie des paramètres du parent. ✕/retour système annule toute l’ouverture. ✓ applique atomiquement l’état actif et valide au parent et régénère le résumé ; Terminer seul persiste l’Exercice. Les états alternatifs cachés servent au brouillon uniquement.
+--- nouveau
+La feuille travaille sur une copie des paramètres du parent. ✕/retour système annule toute l’ouverture. ✓ applique atomiquement l’état actif et valide au parent et régénère le résumé ; Terminer seul persiste l’Exercice. Les états alternatifs cachés servent au brouillon uniquement.
+
+**Condition d’arrêt dans le brouillon.** En séries identiques, la Condition d’arrêt choisie dans la feuille fixe le type de cible commun à toutes les séries (RM-248). En séries variables, elle est recalculée à chaque modification d’une cellule du tableau et n’est pas une valeur propre du brouillon ni de l’Exercice (RM-249, RM-250).
+
+=== V3-B-005 | @08 – Conception fonctionnelle détaillée.md | CORRECTION-DECIDEE:D-404 | CH-04, CH-07, AC-06
+--- ancien
+**Déplacement validé** : la cible, la Pause et la cadence éventuelle se déplacent ensemble ; les lignes sont renumérotées 1..N dans l’ordre obtenu ; la nouvelle dernière ligne porte PN. Les lignes actives déplacées conservent leur nouvel ordre lors de la restauration des lignes retirées, qui sont réinsérées en fin dans leur ordre conservé. La désactivation reprend la nouvelle première ligne. ✕ annule aussi les déplacements.
+--- nouveau
+**Déplacement validé** : la cible, la Pause, la cadence éventuelle et la charge éventuelle (RM-238) se déplacent ensemble ; les lignes sont renumérotées 1..N dans l’ordre obtenu ; la nouvelle dernière ligne porte PN. Les lignes actives déplacées conservent leur nouvel ordre lors de la restauration des lignes retirées, qui sont réinsérées en fin dans leur ordre conservé. La désactivation reprend la nouvelle première ligne. ✕ annule aussi les déplacements.
+
+=== V3-B-006 | @08 – Conception fonctionnelle détaillée.md | CORRECTION-DECIDEE:D-404 | CH-03 à CH-07, AC-04, AC-07
+--- ancien
+Changement de mode : conserver N et les Pauses ; remplacer les cibles incompatibles par —, sans conversion Durée/Répétitions. Revenir au mode précédent avant ✓ restaure ses dernières cibles. Une valeur — n’est jamais zéro.
+--- nouveau
+Changement de mode : conserver N et les Pauses ; remplacer les cibles incompatibles par —, sans conversion Durée/Répétitions. Revenir au mode précédent avant ✓ restaure ses dernières cibles. Une valeur — n’est jamais zéro.
+
+**Charge dans le brouillon.** La charge de chaque série suit les mêmes opérations de brouillon que sa cible et sa Pause (activation et désactivation des séries variables, augmentation et réduction de N, restauration, déplacement, ✓ et ✕), sans propagation propre (RM-238). Son activation, sa saisie, le zéro, la première activation et la réactivation suivent RM-237 et RM-239. Passer à Sans ne l’efface pas : ses valeurs restent dans le brouillon et ✓ les applique au parent (RM-236). Cette conservation est propre à la charge ; elle ne modifie pas la non-persistance des variantes cachées des autres paramètres (D-403).
+
+=== V3-B-007 | @08 – Conception fonctionnelle détaillée.md | CORRECTION-DECIDEE:D-413 | GR-01, PR-01, AR-01
+--- ancien
+| Mode d'exécution          | Ligne et popover dans CE-UI-10 | Toujours ; déployée par défaut | Oui | Aucun mode | Durée / Répétitions ; À l’échec comme cible par Série | Exercice | Déployer / sélectionner | Phrase vide et Terminer désactivé sans mode ; premier choix irréversible vers aucun mode (RM-233) |
+--- nouveau
+| Mode (mode d'exécution) | Contrôle segmenté dans CE-UI-10 (D-413) | Toujours ; groupe Exécution | Oui | Aucun mode | Durée / Répétitions ; À l’échec comme cible par Série | Exercice | Sélectionner | Phrase vide et Terminer désactivé sans mode ; premier choix irréversible vers aucun mode (RM-233) |
+| Condition d’arrêt | Contrôle segmenté À l’échec / À la cible, ou résultat non modifiable | Toujours ; groupe Exécution, après Mode (D-413) | — | Dérivée des cibles des séries | Séries identiques : deux options sélectionnables (RM-248) ; séries variables : résultat dérivé À la cible, À l’échec ou « À la cible et à l’échec » (RM-249) | Séries (type de cible) | Sélectionner en séries identiques ; aucune en séries variables | Aucune valeur propre persistée, aucun choix Mixte (RM-249) |
+
+=== V3-B-008 | @08 – Conception fonctionnelle détaillée.md | CORRECTION-DECIDEE:D-412 | RO-01, AC-24 à AC-26
+--- ancien
+| Durée                     | Roulette min/sec  | Étape 1, mode Durée                | Oui         | 1 min                           | 5 s à 58 min 55 s                              | Exercice | Sélection      | Deux colonnes : minutes et secondes |
+--- nouveau
+| Durée                     | Roulette min/sec  | Étape 1, mode Durée                | Oui         | 1 min                           | 5 s à 58 min 55 s                              | Exercice | Sélection      | Deux colonnes : minutes et secondes ; en séries identiques, durée numérique seule, sans option À l’échec ; dans une cellule de séries variables, durée ou « À l’échec » pour cette seule série (RM-250) |
+
+=== V3-B-009 | @08 – Conception fonctionnelle détaillée.md | CORRECTION-DECIDEE:D-413 | GR-01, PR-02
+--- ancien
+| Pause après chaque série | Stepper permanent | Uniforme ou par ligne variable CE-UI-10 | Non | 0 s | 0..300 s ; tap 1 et maintien DSF Bip | Exercice / Série | −/+ | Après chaque série, dernière comprise ; seule la dernière Pause est remplacée par R positive en occurrence |
+--- nouveau
+| Pause après chaque série | Stepper permanent en séries identiques | Uniforme ou cellule Pause du tableau variable CE-UI-10 | Non | 0 s | 0..300 s ; tap 1 et maintien DSF Bip | Exercice / Série | −/+ | Après chaque série, dernière comprise ; seule la dernière Pause est remplacée par R positive en occurrence ; la cellule du tableau variable n’a ni stepper ni pied commun ± (D-413) |
+
+=== V3-B-010 | @08 – Conception fonctionnelle détaillée.md | CORRECTION-DECIDEE:D-404 | CH-02 à CH-05, GR-01, CV-01, PR-01
+--- ancien
+| Nombre de Séries          | Stepper intégré | Mode déployé                  | Oui         | 1                              | Entier de 1 à 99 (D-092)                       | Exercice | Sélection      | Commandes − / valeur / + permanentes dans la feuille CE-UI-10 ; valeur canonique persistée |
+--- nouveau
+| Nombre de Séries          | Stepper intégré | Mode déployé ; groupe Séries, avant Type de série (D-413) | Oui         | 1                              | Entier de 1 à 99 (D-092)                       | Exercice | Sélection      | Commandes − / valeur / + permanentes dans la feuille CE-UI-10 ; valeur canonique persistée |
+| Type de série | Contrôle segmenté Variables / Identiques (D-413) | Mode déployé ; groupe Séries, après Nombre de séries | Oui | Identiques | Variables non modifiable à N = 1 | Exercice | Sélectionner ; chevron intérieur à Variables (RM-247) | Variables affiche le tableau des séries ; replier le tableau conserve ses valeurs et le mode actif ; brouillon : [Paramètres et brouillon d’un exercice](#parametres-exercice) |
+| Charge | Contrôle segmenté Avec / Sans ; saisie au clavier numérique décimal (D-405) | Groupe Séries : après la Pause en séries identiques, sous le tableau en séries variables (RM-237, RM-238) | Non | Sans | Valeur en kg ; pas, zéro, arrondi, première activation et réactivation : RM-239 | Exercice / Série | Sélectionner / saisir | Séries identiques : la valeur saisie remplace Avec (« 20 kg ») ; séries variables : Avec affiche la colonne Charge, Sans la masque en conservant les valeurs ; information sans effet sur les minuteurs, cibles, pauses ni calculs (RM-235, RM-236) |
+
+=== V3-B-011 | @08 – Conception fonctionnelle détaillée.md | CORRECTION-DECIDEE:D-406 | CO-01, PR-05, AC-13, AC-14, AC-23
+--- ancien
+| Changement de côté | Contrôle | Mode déployé | Non | `Aucun` (`UNILATERAL`) | `UNILATERAL`, `D→G`, `G→D` | Exercice | Déployer le contrôle sous sa ligne dans la feuille | Aucun réglage de côté n’est exposé au niveau Circuit |
+| Pause entre les côtés | Stepper permanent CE-UI-10 | Visible uniquement en `D→G/G→D` | Non | Copie de la valeur courante du Profil (initialement 10 s) | 0..5 min ; tap 1 s, maintien DSF Bip | Exercice | Sélection | `sideRecoverySeconds`; une phase entre les côtés selon l’Ordre des côtés ; aucune récupération post-exercice dans l’éditeur |
+--- nouveau
+| Changement de côté | Contrôle segmenté Avec / Sans (RM-242) | Mode déployé ; groupe Côtés (D-413) | Non | Sans | Avec / Sans ; aucun choix du côté de départ ; donnée historique Droite puis gauche ou Gauche puis droite lue Avec (RM-244) | Exercice | Sélectionner ; chevron intérieur à Avec pour replier ou déployer Enchainement et Pause entre les côtés (RM-247) | Aucun réglage de côté n’est exposé au niveau Circuit ; côtés désignés côté 1 / côté 2 (RM-243) |
+| Enchainement (Ordre des côtés) | Contrôle à deux options, notation Figma à flèches (RM-243) | Uniquement avec changement de côté (Avec), section déployée (RM-242) | Non | Un côté après l’autre | Un côté après l’autre / Les deux côtés à chaque série | Exercice | Sélectionner | Grisé à N = 1 ([Paramètres et brouillon d’un exercice](#parametres-exercice)) ; indépendant du côté de départ |
+| Pause entre les côtés | Stepper permanent CE-UI-10 | Visible uniquement avec changement de côté (Avec), section déployée (RM-242) | Non | Copie de la valeur courante du Profil (initialement 10 s) | 0..5 min ; tap 1 s, maintien DSF Bip | Exercice | Sélection | `sideRecoverySeconds`; une phase entre les côtés selon l’Ordre des côtés ; aucune récupération post-exercice dans l’éditeur |
+
+=== V3-B-012 | @08 – Conception fonctionnelle détaillée.md | CORRECTION-DECIDEE:D-408 | CA-01, AC-15, PR-01
+--- ancien
+| Bip de cadence | Stepper | Deux modes, réglage commun (D-313) | Non | Aucun (0) | Entier 0..10 s | Série | ± dans le brouillon ; 0 retire le bip | Propagation à toutes les Séries ; conservation au changement de mode |
+--- nouveau
+| Cadence (Bip de cadence) | Contrôle segmenté Autre / 5 s / 2 s / 1 s / Sans (RM-245) | Deux modes, réglage commun (D-313) ; groupe Cadence et durée (D-413) | Non | Sans (0) | Entier 0..10 s ; Autre : mécanisme numérique existant, mêmes bornes et pas (RM-245) | Série | Sélectionner dans le brouillon ; Sans (0) retire le bip | Propagation à toutes les Séries ; conservation au changement de mode |
+
+=== V3-B-013 | @08 – Conception fonctionnelle détaillée.md | CORRECTION-DECIDEE:D-409 | DU-01, AC-16, AC-17
+--- ancien
+| Durée totale | Valeur calculée | Durée/Répétitions | Non | Calculée | Formules chapitre 08, paramètres d’exercice | Calcul | Roulette en Durée uniforme seulement | Variable : lecture seule ; ligne affichée, y compris à N = 1 (D-396), avec « — » lorsqu’une cible nécessaire au calcul manque (D-384) ; Répétitions chiffrées avec bip≈ ; sans bip absente ; mélange calculable≥ ; tout échec absent (ligne masquée faute de durée totale calculée, D-397) |
+--- nouveau
+| Durée de l’exercice (Durée totale) | Valeur calculée ; chevron à côté du libellé (RM-246) | Durée/Répétitions | Non | Calculée | Formules chapitre 08, paramètres d’exercice | Calcul | Roulette en Durée uniforme seulement | Variable : lecture seule ; ligne affichée, y compris à N = 1 (D-396), avec « — » lorsqu’une cible nécessaire au calcul manque (D-384) ; Répétitions chiffrées avec bip≈ ; sans bip absente ; mélange calculable≥ ; tout échec absent (ligne masquée faute de durée totale calculée, D-397) ; le chevron replie (état initial) ou déploie Compte à rebours et Fin d’exercice sans les désactiver ni changer le calcul ; sans ligne affichée, ces signaux restent directement visibles lorsqu’ils sont applicables (RM-246) |
+
+=== V3-B-014 | @08 – Conception fonctionnelle détaillée.md | CORRECTION-DECIDEE:D-413 | GR-01, PR-01 à PR-04, CA-01, DU-01, CV-01, AR-01, RO-01
+--- ancien
+**Règle transverse des roulettes numériques :** chaque changement effectif de valeur déclenche un retour haptique léger et bref, une seule fois par cran. Ce feedback est systématique et indépendant de la préférence `Vibrations` du Profil.
+--- nouveau
+**Règle transverse des roulettes numériques :** chaque changement effectif de valeur déclenche un retour haptique léger et bref, une seule fois par cran. Ce feedback est systématique et indépendant de la préférence `Vibrations` du Profil.
+
+**Feuille des paramètres — évolution du 18/10/2026.** Les groupes, l’ordre et les libellés des lignes suivent D-413 ; Mode, Type de série et Changement de côté sont des contrôles segmentés, sans popover. Les chevrons sont intégrés aux options Variables et Avec (RM-247), la Cadence propose des choix rapides (RM-245), la ligne Durée de l’exercice replie ou déploie les signaux (RM-246), la Condition d’arrêt suit RM-248 et RM-249 et la roulette de durée commune des séries identiques ne propose plus À l’échec (RM-250). Le tableau de séries variables n’a ni pied commun ± ni stepper de cellule (D-413). La charge est saisie au clavier numérique, par exception propre à ce paramètre (RM-239, D-405). Les deux paragraphes suivants se lisent avec ces décisions.
+
+=== V3-B-015 | @08 – Conception fonctionnelle détaillée.md | CORRECTION-DECIDEE:D-403 | CH-08, AC-08, CO-01, AC-23
+--- ancien
+Ces fragments étendent les gabarits ; les autres clauses, segments gras et ponctuation suivent les sections précédentes. Couvrir aussi échec en première/deuxième position, bip 0/positif et les deux côtés. La capture 8328:38848 contient encore une énumération des pauses : écart rédactionnel visuel, pas une nouvelle règle.
+--- nouveau
+Ces fragments étendent les gabarits ; les autres clauses, segments gras et ponctuation suivent les sections précédentes. Couvrir aussi échec en première/deuxième position, bip 0/positif, les deux côtés, désignés côté 1 / côté 2 (RM-243), et la charge active ou absente. La mention de charge suit RM-240 ; sa place dans la grammaire et sa forme en séries variables ne sont pas fixées par cette section. La capture 8328:38848 contient encore une énumération des pauses : écart rédactionnel visuel, pas une nouvelle règle.
+
+=== V3-B-016 | @08 – Conception fonctionnelle détaillée.md | CORRECTION-DECIDEE:D-403 | CH-09, AC-09, CO-01
+--- ancien
+- les informations de Série et de Tour pertinentes, sans exposer le Cycle.
+--- nouveau
+- les informations de Série et de Tour pertinentes, sans exposer le Cycle.
+- le côté courant, désigné côté 1 ou côté 2 (RM-243) ;
+- la charge de la Série courante lorsque la charge est active (RM-241).
+
+=== V3-B-017 | @08 – Conception fonctionnelle détaillée.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-23
+--- ancien
+- l’annonce du côté lorsque la direction effective est bilatérale ;
+--- nouveau
+- l’annonce du côté, désigné côté 1 ou côté 2 (RM-243), lorsque l’Exercice comporte un changement de côté (Avec) ;
+
+=== V3-B-018 | @08 – Conception fonctionnelle détaillée.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-23
+--- ancien
+Au début d’un Exercice, son nom peut être annoncé vocalement lorsque les Annonces vocales sont actives. Au début d’une phase de récupération chronométrée (`SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY`), l’annonce est `Récupération`.
+--- nouveau
+Au début d’un Exercice, son nom peut être annoncé vocalement lorsque les Annonces vocales sont actives. Au début d’une phase de récupération chronométrée (`SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY`), l’annonce est `Récupération`. Une annonce de côté désigne « côté 1 » ou « côté 2 », jamais droite ou gauche (RM-243).
+
+=== V3-B-019 | @09 – Modèle de données fonctionnel.md | CORRECTION-DECIDEE:D-403 | AC-12, CH-06
+--- ancien
+- Copie de toutes les propriétés, notamment Catégorie, Zones corporelles, mode/cible, Séries, Pause, Récupération, Changement de côté, Compte à rebours d’Exercice, Fin d’exercice et Description. Les associations média suivent leur règle de copie propre.
+--- nouveau
+- Copie de toutes les propriétés, notamment Catégorie, Zones corporelles, mode/cible, Séries, Pause, Récupération, Changement de côté, Charge et son activation, valeurs conservées sous Sans comprises (RM-236), Compte à rebours d’Exercice, Fin d’exercice et Description. Les associations média suivent leur règle de copie propre.
+
+=== V3-B-020 | @09 – Modèle de données fonctionnel.md | CORRECTION-DECIDEE:D-403 | CH-01, CH-02, §5 Modèle, CO-01
+--- ancien
+- sa durée de Récupération, positionnée dans le Plan selon la direction effective ;
+--- nouveau
+- sa charge facultative et son activation, commune ou par Série (RM-235, RM-236) ;
+- sa durée de Récupération, positionnée dans le Plan selon le changement de côté effectif ;
+
+=== V3-B-021 | @09 – Modèle de données fonctionnel.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-13, AC-14
+--- ancien
+| Changement de côté        | `UNILATERAL`, `RIGHT_LEFT`, `LEFT_RIGHT`        |        Obligatoire        | Affiché `Aucun`, `D→G`, `G→D`; défaut `UNILATERAL`                             |
+--- nouveau
+| Changement de côté        | Sans / Avec (RM-242)        |        Obligatoire        | Défaut Sans ; valeurs historiques : `UNILATERAL` lue Sans, `RIGHT_LEFT` et `LEFT_RIGHT` lues Avec, sans réinterprétation de l’Ordre des côtés ni réécriture (RM-244) ; représentation technique laissée à l’implémentation |
+
+=== V3-B-022 | @09 – Modèle de données fonctionnel.md | CORRECTION-DECIDEE:D-404 | CH-02, CH-04, CH-06, §5 Modèle, AC-05, AC-06, CO-01
+--- ancien
+| Paramètres par Série | Collection ordonnée de N cibles/Pauses | Conditionnel | Source unique en variable ; cible absente À l’échec ; aucun brouillon caché persisté |
+| Ordre des côtés | Un côté après l’autre / Les deux côtés à chaque série | Bilatéral | Premier ordre par défaut et à N=1 ; indépendant de D→G/G→D |
+--- nouveau
+| Paramètres par Série | Collection ordonnée de N cibles/Pauses, avec la charge éventuelle de chaque Série | Conditionnel | Source unique en variable ; cible absente À l’échec ; la charge reste liée à sa Série (RM-238) ; aucun brouillon caché persisté (les charges conservées sous Sans ne sont pas un brouillon caché, RM-236) |
+| Charge activée | État Avec / Sans, distinct des valeurs | Facultatif | Sans par défaut ; absent sur un Exercice antérieur = Sans, jamais 0 kg ; Sans conserve les valeurs (RM-236) ; passage automatique à Sans lorsque toutes les valeurs valent zéro (RM-239) |
+| Charge commune | Valeur numérique en kg | Facultatif | Séries identiques ; unité d’affichage, non stockée dans le nombre ; pas, zéro et arrondi selon RM-239 ; conservée sous Sans (RM-236) |
+| Charge par série | Valeur numérique en kg liée à la Série | Facultatif | Séries variables ; élément des Paramètres par Série, suit sa Série (RM-238) ; zéro = sans charge pour cette seule Série (RM-239) ; aucune valeur par côté (RM-235) |
+| Ordre des côtés | Un côté après l’autre / Les deux côtés à chaque série | Bilatéral | Libellé visible Enchainement (D-413) ; premier ordre par défaut et à N=1 ; indépendant du côté de départ, que Kodjo ne désigne pas (RM-242) |
+| Condition d’arrêt | Valeur dérivée | Calculé | Non persistée ; dérivée du type de cible des Séries ; en séries identiques, la choisir fixe la cible commune (RM-248) ; aucune valeur Mixte (RM-249) |
+
+=== V3-B-023 | @09 – Modèle de données fonctionnel.md | RENVOI | CH-01, CH-09, AC-10
+--- ancien
+- Ni la Pause ni les récupérations ne créent une entité Exercice associé.
+--- nouveau
+- Ni la Pause ni les récupérations ne créent une entité Exercice associé.
+- La charge est informative : elle ne crée aucune phase et n’entre dans aucun calcul de durée, de pause ou de cadence (RM-235).
+
+=== V3-B-024 | @09 – Modèle de données fonctionnel.md | RENVOI | CH-01, §2
+--- ancien
+`executionMode ∈ {DURATION, REPETITIONS}`. Chaque série possède un type de cible explicite : chiffrée (durée ou répétitions selon le mode) ou À l’échec (aucun nombre prescrit). Valeur invalide/absente distincte de l’échec. L’ancien TO_FAILURE est lu/migré vers REPETITIONS avec toutes les cibles À l’échec, sans inventer de relevé historique. Pause, nombre de Séries et Pause entre les côtés restent disponibles dans les deux modes ; la Récupération après exercice appartient à l’occurrence de Séance (D-208). Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Bip entier 0..10 par Série, réglage commun valide dans les deux modes. La phrase elle-même n’est pas persistée comme source de vérité (RM-232).
+--- nouveau
+`executionMode ∈ {DURATION, REPETITIONS}`. Chaque série possède un type de cible explicite : chiffrée (durée ou répétitions selon le mode) ou À l’échec (aucun nombre prescrit). Valeur invalide/absente distincte de l’échec. L’ancien TO_FAILURE est lu/migré vers REPETITIONS avec toutes les cibles À l’échec, sans inventer de relevé historique. Pause, nombre de Séries et Pause entre les côtés restent disponibles dans les deux modes ; la Récupération après exercice appartient à l’occurrence de Séance (D-208). Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Bip entier 0..10 par Série, réglage commun valide dans les deux modes. La charge (activation, valeur commune ou valeurs par Série, en kg) est indépendante de `executionMode`, de la condition d’arrêt et du changement de côté (RM-235). La phrase elle-même n’est pas persistée comme source de vérité (RM-232).
+
+=== V3-B-025 | @09 – Modèle de données fonctionnel.md | CORRECTION-DECIDEE:D-403 | AC-12, CH-06
+--- ancien
+L’ajout d’une définition copie nom, description, zones corporelles, mode, durée ou répétitions, Séries, Pause, Pause entre les côtés (`sideRecoverySeconds`) et associations média ; la Récupération après exercice n’est pas copiée : elle appartient à l’occurrence et n’est jamais créée automatiquement (D-171 révisée par D-208, D-304). La copie n’a plus de lien fonctionnel avec la définition. La position `BEFORE_TOUR`, `IN_TOUR` ou `AFTER_TOUR` n’existe que sur `SessionActivity`.
+--- nouveau
+L’ajout d’une définition copie nom, description, zones corporelles, mode, durée ou répétitions, Séries, Pause, Pause entre les côtés (`sideRecoverySeconds`), changement de côté, charge et son activation, valeurs conservées sous Sans comprises (RM-236), et associations média ; la Récupération après exercice n’est pas copiée : elle appartient à l’occurrence et n’est jamais créée automatiquement (D-171 révisée par D-208, D-304). La copie n’a plus de lien fonctionnel avec la définition. La position `BEFORE_TOUR`, `IN_TOUR` ou `AFTER_TOUR` n’existe que sur `SessionActivity`.
+
+=== V3-B-026 | @09 – Modèle de données fonctionnel.md | CORRECTION-DECIDEE:D-403 | AC-12, CH-06
+--- ancien
+Lors d’une insertion depuis le Catalogue, la copie reprend les propriétés métier applicables au moment de la validation : nom, Description, Catégorie, Zones corporelles, mode et cible, nombre de Séries, Pause, Récupération, Changement de côté, Compte à rebours d’Exercice, Fin d’exercice et autres champs persistants applicables. Après insertion, aucune synchronisation ni propagation n’existe entre la définition et la copie.
+--- nouveau
+Lors d’une insertion depuis le Catalogue, la copie reprend les propriétés métier applicables au moment de la validation : nom, Description, Catégorie, Zones corporelles, mode et cible, nombre de Séries, Pause, Récupération, Changement de côté, charge et son activation (RM-236), Compte à rebours d’Exercice, Fin d’exercice et autres champs persistants applicables. Après insertion, aucune synchronisation ni propagation n’existe entre la définition et la copie.
+
+=== V3-B-027 | @09 – Modèle de données fonctionnel.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-14
+--- ancien
+`ActivityDefinition` ne contient aucun champ de récupération post-exercice. Il peut porter `sideRecoverySeconds`, pertinent uniquement pour `RIGHT_LEFT` ou `LEFT_RIGHT`.
+--- nouveau
+`ActivityDefinition` ne contient aucun champ de récupération post-exercice. Il peut porter `sideRecoverySeconds`, pertinent uniquement avec changement de côté (Avec ; valeurs historiques `RIGHT_LEFT` ou `LEFT_RIGHT`, RM-244).
+
+=== V3-B-028 | @09 – Modèle de données fonctionnel.md | RENVOI | CH-08, AC-08
+--- ancien
+La phrase de synthèse des paramètres d’exécution est une **valeur dérivée non persistée**. Elle est régénérée depuis `executionMode`, nombre de Séries, état uniforme/variable, cible/Pause communes ou collection ordonnée, `sideMode`, Ordre des côtés et `sideRecoverySeconds`. Aucun champ de stockage autonome de la phrase n’est requis (RM-232).
+--- nouveau
+La phrase de synthèse des paramètres d’exécution est une **valeur dérivée non persistée**. Elle est régénérée depuis `executionMode`, nombre de Séries, état uniforme/variable, cible/Pause communes ou collection ordonnée, `sideMode`, Ordre des côtés, `sideRecoverySeconds` et la charge active (RM-240). Aucun champ de stockage autonome de la phrase n’est requis (RM-232).
+
+=== V3-B-029 | @09 – Modèle de données fonctionnel.md | RENVOI | CH-05, §12
+--- ancien
+Bornes de validation D-232 : `seriesCount ∈ [1,99]`, répétitions par Série `∈ [1,100]`, durée par Série `∈ [5,3535] s`, pauses inter-Séries et inter-côtés `∈ [0,300] s`. Une valeur héritée hors bornes, non modifiée, peut être conservée ; toute nouvelle saisie ou modification doit respecter ces bornes (D-383). Le pas UI n’est pas une contrainte de stockage : tap 1 s, maintien accéléré 1/5/10 selon DSF Bip ; aucun arrondi à la lecture.
+--- nouveau
+Bornes de validation D-232 : `seriesCount ∈ [1,99]`, répétitions par Série `∈ [1,100]`, durée par Série `∈ [5,3535] s`, pauses inter-Séries et inter-côtés `∈ [0,300] s`. Une valeur héritée hors bornes, non modifiée, peut être conservée ; toute nouvelle saisie ou modification doit respecter ces bornes (D-383). Le pas UI n’est pas une contrainte de stockage : tap 1 s, maintien accéléré 1/5/10 selon DSF Bip ; aucun arrondi à la lecture. La charge suit ses propres règles de pas, de zéro et d’arrondi (RM-239, D-405) ; ces bornes D-232 ne s’y appliquent pas.
+
+=== V3-B-030 | @09 – Modèle de données fonctionnel.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-01, AC-14
+--- ancien
+Existant sans nouveaux attributs : uniforme, Un côté après l’autre. Quantité de travail, cibles, Pauses stockées et direction conservées. **Le changement de durée et de pauses exécutées est assumé pour les exercices existants**, confirmé le 02/10. Les instantanés et résultats historiques restent immuables ; ne pas réécrire les durées réalisées.
+--- nouveau
+Existant sans nouveaux attributs : uniforme, Un côté après l’autre. Quantité de travail, cibles, Pauses stockées et changement de côté conservés ; une direction historique vaut Avec (RM-244). Un Exercice sans charge est lu Sans, jamais 0 kg (RM-236). **Le changement de durée et de pauses exécutées est assumé pour les exercices existants**, confirmé le 02/10. Les instantanés et résultats historiques restent immuables ; ne pas réécrire les durées réalisées.
+
+=== V3-B-031 | @09 – Modèle de données fonctionnel.md | CORRECTION-DECIDEE:D-403 | AC-03, AC-12, CH-06, CO-01
+--- ancien
+Le modèle persistant et les copies/duplications doivent conserver le mode uniforme/variable explicite, N, la collection ordonnée cible/Pause lorsque variable, la direction, l’ordre des côtés, PC, Compte à rebours et Fin. R reste dans l’occurrence. Les paramètres variables remplacent les paramètres uniformes comme source effective, sans surcharges. Prévoir représentation et version d’instantané compatibles ; la structure SQL exacte et la migration relèvent de la planification technique, pas d’un nouveau choix Figma.
+--- nouveau
+Le modèle persistant et les copies/duplications doivent conserver le mode uniforme/variable explicite, N, la collection ordonnée cible/Pause lorsque variable, le changement de côté, l’ordre des côtés, PC, Compte à rebours et Fin, ainsi que la charge : activation, charge commune ou charges par Série, y compris les valeurs conservées sous Sans et les valeurs décimales acceptées (RM-236, RM-239). Cette conservation des valeurs désactivées est propre à la charge : la non-persistance des variantes cachées reste applicable aux autres paramètres (D-403). R reste dans l’occurrence. Les paramètres variables remplacent les paramètres uniformes comme source effective, sans surcharges. Prévoir représentation et version d’instantané compatibles ; la structure SQL exacte et la migration relèvent de la planification technique, pas d’un nouveau choix Figma.
+
+=== V3-B-032 | @09 – Modèle de données fonctionnel.md | CORRECTION-DECIDEE:D-411 | AR-01, AC-19 à AC-21
+--- ancien
+Le régime identiques/variables reste indépendant du mode. En identiques, toutes les séries ont la même cible, y compris À l’échec. En variable, la collection peut mélanger cibles numériques et À l’échec ; l’ordre est conservé. Des cibles momentanément égales ne changent pas automatiquement le régime. N=1 suit la normalisation déjà actée.
+--- nouveau
+Le régime identiques/variables reste indépendant du mode. En identiques, toutes les séries ont la même cible, y compris À l’échec. En variable, la collection peut mélanger cibles numériques et À l’échec ; l’ordre est conservé. Des cibles momentanément égales ne changent pas automatiquement le régime. N=1 suit la normalisation déjà actée. La Condition d’arrêt présentée est dérivée de ces cibles : aucune condition globale ni valeur Mixte n’est persistée (RM-248, RM-249).
+
+=== V3-B-033 | @09 – Modèle de données fonctionnel.md | RENVOI | CH-04, CH-07, AC-06, AC-07
+--- ancien
+Les mêmes prescriptions s’appliquent aux deux côtés ; leurs résultats sont distincts. Nombre hérité d’un circuit de séries, ajout, suppression, copie de dernière ligne, déplacement, retour au régime identique et restauration temporaire suivent les règles existantes. Copier une cible À l’échec copie son type et sa pause, sans inventer de nombre.
+--- nouveau
+Les mêmes prescriptions s’appliquent aux deux côtés ; leurs résultats sont distincts. Nombre hérité d’un circuit de séries, ajout, suppression, copie de dernière ligne, déplacement, retour au régime identique et restauration temporaire suivent les règles existantes. Copier une cible À l’échec copie son type et sa pause, sans inventer de nombre. La charge d’une Série suit les mêmes opérations que sa cible et sa Pause (RM-238) ; elle ne porte aucune valeur distincte par côté (RM-235).
+
+=== V3-B-034 | @09 – Modèle de données fonctionnel.md | CORRECTION-DECIDEE:D-406 | CO-01, CH-04
+--- ancien
+Le mode d’exécution est commun à l’Exercice. Le stockage distingue explicitement uniforme et variable, même si les valeurs sont identiques. En variable, conserver N lignes ordonnées avec cible (Durée/Répétitions) et Pause ; aucune cible numérique À l’échec. Les mêmes lignes s’appliquent aux deux côtés. Direction et Ordre des côtés sont deux propriétés distinctes. N=1 est normalisé uniforme/Un côté après l’autre dès le brouillon.
+--- nouveau
+Le mode d’exécution est commun à l’Exercice. Le stockage distingue explicitement uniforme et variable, même si les valeurs sont identiques. En variable, conserver N lignes ordonnées avec cible (Durée/Répétitions), Pause et charge éventuelle (RM-238) ; aucune cible numérique À l’échec. Les mêmes lignes s’appliquent aux deux côtés. Changement de côté (Sans / Avec, RM-242) et Ordre des côtés sont deux propriétés distinctes ; aucune direction anatomique n’est plus choisie (D-406). N=1 est normalisé uniforme/Un côté après l’autre dès le brouillon.
+
+=== V3-B-035 | @09 – Modèle de données fonctionnel.md | CORRECTION-DECIDEE:D-403 | AC-12, CH-06
+--- ancien
+Copie Catalogue→Séance, duplication et nouvel instantané conservent tout cet état. Les données sans nouveaux attributs sont uniformes/Un côté après l’autre. Les calculs actuels s’appliquent aussi aux Exercices existants ; résultats historiques immuables. Les valeurs temporaires de restauration et le repli visuel ne sont jamais persistés. Voir chapitre 08, paramètres d’exercice et 8 pour le contrat complet.
+--- nouveau
+Copie Catalogue→Séance, duplication et nouvel instantané conservent tout cet état. Les données sans nouveaux attributs sont uniformes/Un côté après l’autre. Les calculs actuels s’appliquent aussi aux Exercices existants ; résultats historiques immuables. Les valeurs temporaires de restauration et le repli visuel ne sont jamais persistés ; les charges conservées sous Sans ne sont pas des valeurs temporaires et sont persistées (RM-236, D-403). Voir chapitre 08, paramètres d’exercice et 8 pour le contrat complet.
+
+=== V3-B-036 | @09 – Modèle de données fonctionnel.md | CORRECTION-DECIDEE:D-403 | §5 Historique, AC-12, CO-01
+--- ancien
+| Exercice                | Identifiant source, nom, mode d’exécution, durée ou répétitions cibles lorsqu’elles existent, nombre de Séries, état uniforme/variable, cibles/Pauses ordonnées, direction, Ordre des côtés, PC, R contextuelle de l’occurrence uniquement, description, zones corporelles, associations média ordonnées et références stables dans la cible post-T05 |
+--- nouveau
+| Exercice                | Identifiant source, nom, mode d’exécution, durée ou répétitions cibles lorsqu’elles existent, nombre de Séries, état uniforme/variable, cibles/Pauses ordonnées, charge et son activation (commune ou par Série, valeurs conservées sous Sans comprises, RM-236), changement de côté, Ordre des côtés, PC, R contextuelle de l’occurrence uniquement, description, zones corporelles, associations média ordonnées et références stables dans la cible post-T05 |
+
+=== V3-B-037 | @09 – Modèle de données fonctionnel.md | RENVOI | CH-09, AC-09, AC-10
+--- ancien
+- Chaque Série produit une phase `ACTIVITY`. Une phase `SERIES_PAUSE` existe après chaque Série quand sa pause est positive, dernière comprise, sauf substitution terminale par une récupération positive suivant les règles de l’occurrence. `SIDE_RECOVERY` est insérée entre les côtés si nécessaire ; `POST_ACTIVITY_RECOVERY` est insérée après chaque occurrence de Séance si sa durée contextuelle est positive.
+--- nouveau
+- Chaque Série produit une phase `ACTIVITY`. Une phase `SERIES_PAUSE` existe après chaque Série quand sa pause est positive, dernière comprise, sauf substitution terminale par une récupération positive suivant les règles de l’occurrence. `SIDE_RECOVERY` est insérée entre les côtés si nécessaire ; `POST_ACTIVITY_RECOVERY` est insérée après chaque occurrence de Séance si sa durée contextuelle est positive.
+- La charge active de chaque Série, figée dans l’instantané, est l’information affichée pendant cette Série (RM-241) ; elle ne crée, ne modifie ni ne supprime aucune phase (RM-235).
+
+=== V3-B-038 | @09 – Modèle de données fonctionnel.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-14, AC-23
+--- ancien
+| `activity.sideMode` | `UNILATERAL | RIGHT_LEFT | LEFT_RIGHT`, non nul, défaut `UNILATERAL`; présent sur l’Exercice persistant et sur son occurrence de Séance. |
+| `tour.sideMode` | Champ technique historique conservé pour compatibilité et non-régression ; dans la version actuelle il reste fixé à `UNILATERAL` et n’est pas exposé ni modifiable. |
+| `executionPlanNode.effectiveSideMode` | Valeur figée dans l’instantané, résolue depuis l’Exercice dans la version actuelle. |
+| `executionPlanNode.executionSide` | `NONE | RIGHT | LEFT`; `NONE` uniquement pour une exécution unilatérale ou une phase structurelle sans côté. |
+| `activityResult.executionSide` | `NONE | RIGHT | LEFT`; participe à la clé logique d’idempotence avec l’Exercice, le Tour et la Série. |
+--- nouveau
+| `activity.sideMode` | Changement de côté Sans / Avec (RM-242), non nul, défaut Sans ; valeurs historiques `UNILATERAL` (Sans), `RIGHT_LEFT` et `LEFT_RIGHT` (lues Avec, sans réinterprétation de l’Ordre des côtés, RM-244) ; représentation technique laissée à l’implémentation ; présent sur l’Exercice persistant et sur son occurrence de Séance. |
+| `tour.sideMode` | Champ technique historique conservé pour compatibilité et non-régression ; dans la version actuelle il reste fixé à `UNILATERAL` et n’est pas exposé ni modifiable. |
+| `executionPlanNode.effectiveSideMode` | Valeur figée dans l’instantané, résolue depuis l’Exercice dans la version actuelle. |
+| `executionPlanNode.executionSide` | Sans côté, côté 1 (côté par lequel l’utilisateur commence) ou côté 2 (RM-243) ; noms techniques laissés à l’implémentation, valeurs historiques `NONE`, `RIGHT`, `LEFT` lisibles (RM-244) ; sans côté uniquement pour une exécution unilatérale ou une phase structurelle sans côté. |
+| `activityResult.executionSide` | Sans côté, côté 1 ou côté 2 (RM-243) ; résultats historiques `NONE`, `RIGHT`, `LEFT` lisibles sans réécriture (RM-244) ; participe à la clé logique d’idempotence avec l’Exercice, le Tour et la Série. |
+
+=== V3-B-039 | @09 – Modèle de données fonctionnel.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-14
+--- ancien
+La migration ajoute `UNILATERAL` comme valeur par défaut aux données de côté historiques sans dupliquer Exercice ni Résultat. Les résultats historiques reçoivent `NONE`. Le champ technique historique de côté du Tour est conservé pour compatibilité et non-régression, reste fixé à `UNILATERAL` et n’est pas exposé à la mutation utilisateur dans la version actuelle.
+--- nouveau
+La migration ajoute `UNILATERAL` comme valeur par défaut aux données de côté historiques sans dupliquer Exercice ni Résultat. Les résultats historiques reçoivent `NONE`. Les valeurs historiques `RIGHT_LEFT` et `LEFT_RIGHT` valent Avec et ne sont pas réécrites sans nécessité (RM-244). Le champ technique historique de côté du Tour est conservé pour compatibilité et non-régression, reste fixé à `UNILATERAL` et n’est pas exposé à la mutation utilisateur dans la version actuelle.
+
+=== V3-B-040 | @09 – Modèle de données fonctionnel.md | CORRECTION-DECIDEE:D-406 | CO-01
+--- ancien
+| Pause entre les côtés par défaut              | Valeur globale du Profil utilisée pour initialiser `sideRecoverySeconds` lors de l’activation `D→G` ou `G→D` d’un Exercice | Facultatif | `10 s` dans le Figma de référence ; valeur proposée à la création/activation bilatérale puis modifiable dans l’éditeur |
+--- nouveau
+| Pause entre les côtés par défaut              | Valeur globale du Profil utilisée pour initialiser `sideRecoverySeconds` lors de l’activation du changement de côté (Avec) d’un Exercice | Facultatif | `10 s` dans le Figma de référence ; valeur proposée à la création/activation bilatérale puis modifiable dans l’éditeur |
+
+=== V3-B-041 | @11 – API fonctionnelles.md | CORRECTION-DECIDEE:D-403 | CH-01 à CH-07, CO-01, §5 Persistance
+--- ancien
+| API-ACT-01 | Paramétrer un Exercice | Nom, référentiels, mode unique, N, uniforme/variable, cibles/Pauses/Bip0..10 ordonnés, direction, ordre des côtés, PC, CR/Fin | Exercice validé | Validation v13 ; N1 normalisé ; aucune R contextuelle sur ActivityDefinition ; écriture atomique | Exercice |
+--- nouveau
+| API-ACT-01 | Paramétrer un Exercice | Nom, référentiels, mode unique, N, uniforme/variable, cibles/Pauses/Bip0..10 ordonnés, charge (activation, valeur commune ou par Série), changement de côté Sans / Avec, ordre des côtés, PC, CR/Fin | Exercice validé | Validation v13 ; charge selon RM-239, valeurs conservées sous Sans transportées (RM-236) ; changement de côté selon RM-242 et RM-244 ; N1 normalisé ; aucune R contextuelle sur ActivityDefinition ; écriture atomique | Exercice |
+
+=== V3-B-042 | @11 – API fonctionnelles.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-10
+--- ancien
+| API-ACT-02 | Calculer les paramètres temporels | Mode, N, uniforme/variable, cibles/Pauses/Bip0..10 ordonnés, direction, ordre des côtés, PC, R contextuel éventuel, Tv en Durée uniforme | Total dérivé avec niveau d’incertitude, statut incomplet et N canonique si inversion | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. | Exercice / occurrence |
+--- nouveau
+| API-ACT-02 | Calculer les paramètres temporels | Mode, N, uniforme/variable, cibles/Pauses/Bip0..10 ordonnés, changement de côté, ordre des côtés, PC, R contextuel éventuel, Tv en Durée uniforme | Total dérivé avec niveau d’incertitude, statut incomplet et N canonique si inversion | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. La charge n’entre pas dans le calcul (RM-235). | Exercice / occurrence |
+
+=== V3-B-043 | @11 – API fonctionnelles.md | RENVOI | AC-12
+--- ancien
+| `API-ACT-COPY-01` | MVP T03 | ID référence, ID Séance, position | Crée une copie complète indépendante ; aucune association fonctionnelle durable à la référence. |
+--- nouveau
+| `API-ACT-COPY-01` | MVP T03 | ID référence, ID Séance, position | Crée une copie complète indépendante, charge et son activation comprises, valeurs conservées sous Sans incluses (RM-236) ; aucune association fonctionnelle durable à la référence. |
+
+=== V3-B-044 | @11 – API fonctionnelles.md | RENVOI | CH-01, §5 Persistance
+--- ancien
+`API-EXE-05` termine par Suivant toute Série Répétitions ou à cible À l’échec. Les DTO acceptent DURATION/REPETITIONS et une cible typée par Série ; TO_FAILURE est un format historique à migrer (chapitre 09). La confirmation du relevé est indépendante de la transition.
+--- nouveau
+`API-EXE-05` termine par Suivant toute Série Répétitions ou à cible À l’échec. Les DTO acceptent DURATION/REPETITIONS et une cible typée par Série, ainsi que la charge (activation, valeur commune ou par Série, RM-235 à RM-239) ; TO_FAILURE est un format historique à migrer (chapitre 09). La confirmation du relevé est indépendante de la transition.
+
+=== V3-B-045 | @11 – API fonctionnelles.md | CORRECTION-DECIDEE:D-403 | CH-05, CH-06, CH-08, AC-01, AC-03, AC-12
+--- ancien
+| Valider/appliquer paramètres | Brouillon mode, Séries ordonnées et Bip commun 0..10 | Normalise N1 ; propage cadence ; ✓ remplace le brouillon parent ; Terminer seul persiste | Bip−1/11/non entier : validation refusée et erreur champ ; 0 valide ; les deux modes conservent le Bip |
+| Calculer paramètres (API-ACT-02) | Collection effective, côtés, PC, R contextuelle éventuelle | Total intrinsèque/occurrence et niveau d’incertitude, ou incomplet ; Ri×b si bip positif en Répétitions, omitted sinon ; Durée chiffrée exacte ; mélange calculable lowerBound ; toutes cibles échec omitted | Pas d’inversion Répétitions ; ni Figma ni Excel en entrée de calcul |
+| Générer la phrase | Paramètres valides et résultat temporel fourni | Segments ordonnés `{texte, gras}` ; régénérés à chaque affichage | Aucun recalcul de pause/durée dans cette fonction ; aucune mutation métier |
+| Démarrer/copier/dupliquer | Définition ou occurrence avec cadences | Snapshot/collection complets ; début immédiat de première répétition ; aucune nouvelle phase Répétition | Ancien objet sans champ : Bip 0=Aucun ; aucun tempo implicite |
+--- nouveau
+| Valider/appliquer paramètres | Brouillon mode, Séries ordonnées, Bip commun 0..10 et charge (activation, valeur commune ou par Série) | Normalise N1 ; propage cadence ; ✓ remplace le brouillon parent ; Terminer seul persiste | Bip−1/11/non entier : validation refusée et erreur champ ; 0 valide ; les deux modes conservent le Bip ; charge : pas, arrondi, zéro et valeur négative selon RM-239 |
+| Calculer paramètres (API-ACT-02) | Collection effective, côtés, PC, R contextuelle éventuelle | Total intrinsèque/occurrence et niveau d’incertitude, ou incomplet ; Ri×b si bip positif en Répétitions, omitted sinon ; Durée chiffrée exacte ; mélange calculable lowerBound ; toutes cibles échec omitted | Pas d’inversion Répétitions ; ni Figma ni Excel en entrée de calcul |
+| Générer la phrase | Paramètres valides et résultat temporel fourni | Segments ordonnés `{texte, gras}`, mention de charge active selon RM-240 ; régénérés à chaque affichage | Aucun recalcul de pause/durée dans cette fonction ; aucune mutation métier |
+| Démarrer/copier/dupliquer | Définition ou occurrence avec cadences et charge | Snapshot/collection complets, charge et son activation comprises (RM-236) ; début immédiat de première répétition ; aucune nouvelle phase Répétition | Ancien objet sans champ : Bip 0=Aucun ; aucun tempo implicite ; sans charge : Sans, jamais 0 kg (RM-236) |
+
+=== V3-B-046 | @11 – API fonctionnelles.md | RENVOI | §5 Infrastructure, §9.1
+--- ancien
+Les erreurs utilisent les catégories existantes de validation et INVALID_STATE, avec champ/Série localisés ; aucune nouvelle API réseau ou nouvelle entité imposée. La nouvelle version d’instantané doit rester lisible avec les snapshots antérieurs ; qualification technique et mobile à réaliser.
+--- nouveau
+Les erreurs utilisent les catégories existantes de validation et INVALID_STATE, avec champ/Série localisés ; aucune nouvelle API réseau ou nouvelle entité imposée. La charge, le changement de côté Sans / Avec, les choix rapides de cadence et la Condition d’arrêt dérivée étendent les paramètres échangés par les opérations existantes, sans nouveau service (D-403 à D-413). La nouvelle version d’instantané doit rester lisible avec les snapshots antérieurs ; qualification technique et mobile à réaliser.
+
+=== V3-B-047 | @11 – API fonctionnelles.md | CORRECTION-DECIDEE:D-411 | AR-01, CH-06, AC-12
+--- ancien
+Validation/édition/copie/instantané transportent le mode commun et la cible typée de chaque Série. Le calcul retourne exact/estimated/lowerBound/omitted selon la chapitre 10, Calculs des cibles mixtes ; aucune valeur pour omitted, erreur distincte. Le générateur reçoit ce résultat et retourne des segments, jamais une phrase persistée.
+--- nouveau
+Validation/édition/copie/instantané transportent le mode commun, la cible typée de chaque Série et la charge, active ou conservée sous Sans (RM-236). La Condition d’arrêt n’est pas transportée comme valeur indépendante : en séries identiques, la choisir fixe la cible commune (RM-248) ; en séries variables, elle est dérivée des cibles (RM-249). Le calcul retourne exact/estimated/lowerBound/omitted selon la chapitre 10, Calculs des cibles mixtes ; aucune valeur pour omitted, erreur distincte. Le générateur reçoit ce résultat et retourne des segments, jamais une phrase persistée.
+
+=== V3-B-048 | @11 – API fonctionnelles.md | CORRECTION-DECIDEE:D-406 | CO-01
+--- ancien
+| Obtenir les volumes | Projection en lecture seule : cellules typées valeur/échec/absence, unité/mode, direction ; aucune mutation ni total inventé |
+--- nouveau
+| Obtenir les volumes | Projection en lecture seule : cellules typées valeur/échec/absence, unité/mode, changement de côté ; aucune mutation ni total inventé |
+
+=== V3-B-049 | @11 – API fonctionnelles.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-13, AC-14
+--- ancien
+| `API-SIDE-01` | Modifier le Changement de côté d’un Exercice | ID, `sideMode` | Valide `UNILATERAL`, `RIGHT_LEFT`, `LEFT_RIGHT` ; recalcule les durées et synthèses. |
+--- nouveau
+| `API-SIDE-01` | Modifier le Changement de côté d’un Exercice | ID, `sideMode` | Valide Sans / Avec (RM-242) ; aucune direction n’est plus choisie ; les valeurs historiques `UNILATERAL` (Sans), `RIGHT_LEFT` et `LEFT_RIGHT` (Avec) restent acceptées en lecture, sans réinterprétation de l’Ordre des côtés (RM-244) ; recalcule les durées et synthèses. |
+
+=== V3-B-050 | @11 – API fonctionnelles.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-14, AC-23
+--- ancien
+| `API-SIDE-03` | Dupliquer | ID Exercice ou Tour | Copie fidèlement `sideMode`, ainsi que le contenu dupliqué selon les règles existantes. |
+| `API-SIDE-04` | Insérer un Exercice persistant | ID source, ID Séance | Copie `sideMode` dans l’occurrence ; aucun lien dynamique ultérieur. |
+| `API-EXE-SIDE-01` | Générer le Plan | Instantané de Séance | Résout `effectiveSideMode`, développe côtés/Séries/Tours, insère `SIDE_RECOVERY` entre côtés et `POST_ACTIVITY_RECOVERY` après occurrences selon leurs valeurs, puis produit un ordre déterministe. |
+| `API-EXE-SIDE-02` | Enregistrer un passage | Nœud de plan, côté, résultat | Écriture idempotente séparée par `executionSide`; agrégation du statut global. |
+--- nouveau
+| `API-SIDE-03` | Dupliquer | ID Exercice ou Tour | Copie fidèlement `sideMode`, valeur historique comprise sans réécriture (RM-244), ainsi que le contenu dupliqué selon les règles existantes. |
+| `API-SIDE-04` | Insérer un Exercice persistant | ID source, ID Séance | Copie `sideMode` dans l’occurrence, valeur historique comprise (RM-244) ; aucun lien dynamique ultérieur. |
+| `API-EXE-SIDE-01` | Générer le Plan | Instantané de Séance | Résout `effectiveSideMode`, développe côtés (côté 1 puis côté 2, RM-243)/Séries/Tours, insère `SIDE_RECOVERY` entre côtés et `POST_ACTIVITY_RECOVERY` après occurrences selon leurs valeurs, puis produit un ordre déterministe. |
+| `API-EXE-SIDE-02` | Enregistrer un passage | Nœud de plan, côté, résultat | Écriture idempotente séparée par `executionSide` (côté 1 / côté 2 ; résultats historiques lisibles, RM-244) ; agrégation du statut global. |
+
+=== V3-B-051 | @11 – API fonctionnelles.md | RENVOI | CH-09, AC-09
+--- ancien
+| API-ACT-EXE-03 | Construire le plan | Instantané Exercice | Étapes développées | Séries, Pauses, côtés et `SIDE_RECOVERY` éventuelle ; aucune `POST_ACTIVITY_RECOVERY`, aucun Tour/Cycle ni `SESSION_END`. |
+--- nouveau
+| API-ACT-EXE-03 | Construire le plan | Instantané Exercice | Étapes développées | Séries, Pauses, côtés et `SIDE_RECOVERY` éventuelle ; charge active de chaque Série transmise pour l’affichage, sans effet sur les étapes (RM-241) ; aucune `POST_ACTIVITY_RECOVERY`, aucun Tour/Cycle ni `SESSION_END`. |
+
+=== V3-B-052 | @11 – API fonctionnelles.md | RENVOI | CH-05, CH-08, CO-01
+--- ancien
+| API-PHRASE-01 | Générer la phrase de synthèse | Paramètres courants de l’Exercice | Segments `{texte, gras}` ou tableau vide | Applique D-298 et [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres) à partir des paramètres et du résultat de calcul fourni (total et niveau d’incertitude) ; sans mode retourne un tableau vide. Ne recalcule aucune durée et ne persiste aucune phrase ni aucun segment, même en cache en base. | Exercice |
+| API-PARAM-01 | Valider les bornes des paramètres | Paramètres d’exécution | paramètres valides / erreur | Séries `1..99`; Répétitions `1..100`; durée par Série `5..3535 s`; pauses inter-Séries/inter-côtés `0..300 s`. Une valeur héritée hors bornes, non modifiée, est acceptée ; toute valeur saisie ou modifiée doit respecter ces bornes (D-383). | Exercice |
+--- nouveau
+| API-PHRASE-01 | Générer la phrase de synthèse | Paramètres courants de l’Exercice | Segments `{texte, gras}` ou tableau vide | Applique D-298 et [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres) à partir des paramètres et du résultat de calcul fourni (total et niveau d’incertitude) ; sans mode retourne un tableau vide. Mention de charge selon RM-240 ; côtés désignés côté 1 / côté 2 (RM-243). Ne recalcule aucune durée et ne persiste aucune phrase ni aucun segment, même en cache en base. | Exercice |
+| API-PARAM-01 | Valider les bornes des paramètres | Paramètres d’exécution | paramètres valides / erreur | Séries `1..99`; Répétitions `1..100`; durée par Série `5..3535 s`; pauses inter-Séries/inter-côtés `0..300 s`. Une valeur héritée hors bornes, non modifiée, est acceptée ; toute valeur saisie ou modifiée doit respecter ces bornes (D-383). Charge : RM-239 (D-405), hors de ces bornes. | Exercice |
+
+=== V3-B-053 | @11 – API fonctionnelles.md | CORRECTION-DECIDEE:D-403 | AC-12, CH-06
+--- ancien
+Validation, calcul, duplication, insertion dans une Séance et instantané partagent la représentation de chapitre 08, paramètres d’exercice. Le tableau ordonné cible/Pause et l’état variable explicite sont copiés intégralement. Les API de Séance calculent To avec récupération explicite, sans ajouter R deux fois. Les API de lecture ne réécrivent pas les résultats historiques. Aucun champ caché de brouillon ne traverse la persistance.
+--- nouveau
+Validation, calcul, duplication, insertion dans une Séance et instantané partagent la représentation de chapitre 08, paramètres d’exercice. Le tableau ordonné cible/Pause/charge et l’état variable explicite sont copiés intégralement, avec l’activation de la charge (RM-236). Les API de Séance calculent To avec récupération explicite, sans ajouter R deux fois. Les API de lecture ne réécrivent pas les résultats historiques. Aucun champ caché de brouillon ne traverse la persistance ; les charges conservées sous Sans ne sont pas un champ caché de brouillon et sont persistées (RM-236, D-403).
+
+=== V3-B-054 | @12 – Architecture technique.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-23
+--- ancien
+| Indicateur de côté | DSF / Status & Tags / Indicateur de côté `5544:6944` | Droite → Gauche / Gauche → Droite |
+--- nouveau
+| Indicateur de côté | DSF / Status & Tags / Indicateur de côté `5544:6944` | Changement de côté, sans direction (D-407, RM-243) ; variantes selon le DSF Figma courant (les anciennes variantes Droite → Gauche / Gauche → Droite ne sont plus des références) |
+
+=== V3-B-055 | @12 – Architecture technique.md | RENVOI | CA-01, CH-05
+--- ancien
+Bornes : N1..99, répétitions 1..100, durée 5..3535 s, pauses 0..300 s. Steppers : tap 1 ; maintien avec paliers 1/5/10 et arrondi directionnel selon DSF Bip ; Bip/Compte à rebours/Fin sans accélération. Les valeurs stockées ne sont pas arrondies à l’ouverture. PC reprend le défaut Profil (10 s). Aucune estimation forfaitaire de répétition ; [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) gouverne le total.
+--- nouveau
+Bornes : N1..99, répétitions 1..100, durée 5..3535 s, pauses 0..300 s. Steppers : tap 1 ; maintien avec paliers 1/5/10 et arrondi directionnel selon DSF Bip ; Bip/Compte à rebours/Fin sans accélération. Les valeurs stockées ne sont pas arrondies à l’ouverture. PC reprend le défaut Profil (10 s). Aucune estimation forfaitaire de répétition ; [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) gouverne le total. La Cadence est présentée par choix rapides ; Autre réutilise le mécanisme numérique existant (RM-245). La charge est saisie au clavier numérique décimal (RM-239, D-405), sans extension aux autres paramètres numériques.
+
+=== V3-B-056 | @12 – Architecture technique.md | CORRECTION-DECIDEE:D-403 | CH-02, CH-06, AC-01, AC-12
+--- ancien
+Prévoir la représentation versionnée uniforme/variable et Ordre des côtés dans les définitions, copies et instantanés. Les données anciennes sont lues uniforme/Un côté après l’autre ; la nouvelle politique des pauses s’applique aux nouvelles exécutions de ces données. Les résultats historiques restent immuables. La migration physique doit être planifiée avec l’implémentation ; aucune réinitialisation de base n’est autorisée par cette mise à jour documentaire. PRE-1 reste fermé. Les anciens jeux v10 sont des preuves historiques ; la recette cible est chapitre 08, paramètres d’exercice et la matrice du 02/10.
+--- nouveau
+Prévoir la représentation versionnée uniforme/variable, Ordre des côtés et charge (activation, valeur commune, valeurs par Série, valeurs conservées sous Sans ; RM-236) dans les définitions, copies et instantanés. Les données anciennes sont lues uniforme/Un côté après l’autre et sans charge, jamais 0 kg ; la nouvelle politique des pauses s’applique aux nouvelles exécutions de ces données. Les résultats historiques restent immuables. La migration physique doit être planifiée avec l’implémentation ; aucune réinitialisation de base n’est autorisée par cette mise à jour documentaire. PRE-1 reste fermé. Les anciens jeux v10 sont des preuves historiques ; la recette cible est chapitre 08, paramètres d’exercice et la matrice du 02/10.
+
+=== V3-B-057 | @12 – Architecture technique.md | CORRECTION-DECIDEE:D-403 | §5 Modèle, CH-01, CH-05
+--- ancien
+Le schéma d’`ActivityDefinition` utilise `executionMode ∈ {DURATION, REPETITIONS}` avec cible typée chiffrée/À l’échec par Série ; TO_FAILURE est un format historique à migrer. Il persiste le nombre de Séries canonique, la Pause après chaque série, `sideRecoverySeconds` et `sideMode`. `SessionActivity` ajoute `postActivityRecoverySeconds`. La Durée totale et le pilote Séries/Durée totale restent dérivés. Les Résultats distinguent les métriques des phases `SIDE_RECOVERY` et `POST_ACTIVITY_RECOVERY`. Les migrations conservent les Exercices MVP comme `SessionActivity`; elles ne créent pas silencieusement de références de catalogue. Les médias de la cible post-T05 utilisent capture ou photothèque, copie locale, miniature vidéo et lecture manuelle. La synchronisation distante reste séparée.
+--- nouveau
+Le schéma d’`ActivityDefinition` utilise `executionMode ∈ {DURATION, REPETITIONS}` avec cible typée chiffrée/À l’échec par Série ; TO_FAILURE est un format historique à migrer. Il persiste le nombre de Séries canonique, la Pause après chaque série, `sideRecoverySeconds`, `sideMode` et la charge : activation, valeur commune ou valeurs par Série, numériques en kg, décimales acceptées préservées, noms techniques laissés à l’implémentation (RM-235, RM-236, RM-239). `SessionActivity` ajoute `postActivityRecoverySeconds`. La Durée totale et le pilote Séries/Durée totale restent dérivés. Les Résultats distinguent les métriques des phases `SIDE_RECOVERY` et `POST_ACTIVITY_RECOVERY`. Les migrations conservent les Exercices MVP comme `SessionActivity`; elles ne créent pas silencieusement de références de catalogue. Les médias de la cible post-T05 utilisent capture ou photothèque, copie locale, miniature vidéo et lecture manuelle. La synchronisation distante reste séparée.
+
+=== V3-B-058 | @12 – Architecture technique.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-14, AC-23
+--- ancien
+Le domaine expose `sideMode` avec les valeurs exactes `UNILATERAL`, `RIGHT_LEFT`, `LEFT_RIGHT`, et `executionSide` avec `NONE`, `RIGHT`, `LEFT`. Les repositories persistants conservent `side_mode` sur l’Exercice de catalogue et l’occurrence de Séance. Le champ historique équivalent du Tour est conservé pour compatibilité/non-régression, reste `UNILATERAL` et n’est pas exposé à la mutation utilisateur dans la version actuelle. Les nœuds d’instantané conservent la direction effective de l’Exercice ; les résultats conservent le côté.
+--- nouveau
+Le domaine expose le changement de côté Sans / Avec (`sideMode`, RM-242) et le côté d’exécution sans côté / côté 1 / côté 2 (`executionSide`, RM-243). Les valeurs historiques `UNILATERAL`, `RIGHT_LEFT`, `LEFT_RIGHT` et `NONE`, `RIGHT`, `LEFT` restent lisibles ; `RIGHT_LEFT` et `LEFT_RIGHT` valent Avec, sans réinterprétation de l’Ordre des côtés (RM-244). La représentation technique de Avec et de côté 1 / côté 2 est laissée à l’implémentation. Les repositories persistants conservent `side_mode` sur l’Exercice de catalogue et l’occurrence de Séance. Le champ historique équivalent du Tour est conservé pour compatibilité/non-régression, reste `UNILATERAL` et n’est pas exposé à la mutation utilisateur dans la version actuelle. Les nœuds d’instantané conservent le changement de côté effectif de l’Exercice ; les résultats conservent le côté.
+
+=== V3-B-059 | @12 – Architecture technique.md | CORRECTION-DECIDEE:D-406 | CO-01
+--- ancien
+Le générateur de Plan est l’unique composant autorisé à développer les passages. Dans la version actuelle, il ne développe aucune bilatéralité portée par le Tour : le Tour est traité fonctionnellement `UNILATERAL`. La capacité technique historique est conservée sans être exposée ni modifiée par l’utilisateur. Il applique la priorité du Tour, empêche tout double multiplicateur et produit des identifiants stables incluant répétition de Tour, Exercice, Série et côté. La commande d’activation recherche d’abord les enfants propres `RIGHT_LEFT` ou `LEFT_RIGHT`. Sans enfant concerné, elle met directement le Tour à jour. Avec enfant concerné et confirmation, une transaction met à jour le parent et remet uniquement ces enfants à `UNILATERAL`; une annulation n’écrit rien. La migration affecte `UNILATERAL` et `NONE` aux données historiques sans créer de duplicata.
+--- nouveau
+Le générateur de Plan est l’unique composant autorisé à développer les passages. Dans la version actuelle, il ne développe aucune bilatéralité portée par le Tour : le Tour est traité fonctionnellement `UNILATERAL`. La capacité technique historique est conservée sans être exposée ni modifiée par l’utilisateur. Il applique la priorité du Tour, empêche tout double multiplicateur et produit des identifiants stables incluant répétition de Tour, Exercice, Série et côté. La commande d’activation recherche d’abord les enfants propres avec changement de côté (Avec, valeurs historiques `RIGHT_LEFT` ou `LEFT_RIGHT` comprises). Sans enfant concerné, elle met directement le Tour à jour. Avec enfant concerné et confirmation, une transaction met à jour le parent et remet uniquement ces enfants à `UNILATERAL`; une annulation n’écrit rien. La migration affecte `UNILATERAL` et `NONE` aux données historiques sans créer de duplicata.
+
+=== V3-B-060 | @12 – Architecture technique.md | CORRECTION-DECIDEE:D-407 | CO-01, AC-13, AC-14, AC-23
+--- ancien
+Les services de calcul utilisent des fonctions pures couvrant les deux valeurs de `L`, l’arrondi `.5` vers le haut, les bornes et le recalcul. Les tests combinent deux modes × trois réglages × Exercice/Tour × Séries × Pauses/Récupérations × interruptions. Les tests d’intégration vérifient l’ordre `D→G` et `G→D`, l’idempotence des résultats, la reprise, la progression monotone, les annonces uniques et la préservation du premier côté lors d’une réinitialisation du second.
+--- nouveau
+Les services de calcul utilisent des fonctions pures couvrant les deux valeurs de `L`, l’arrondi `.5` vers le haut, les bornes et le recalcul. Les tests combinent deux modes × réglages de côté (Sans, Avec et valeurs historiques lues Avec) × Exercice/Tour × Séries × Pauses/Récupérations × interruptions. Les tests d’intégration vérifient les deux Ordres des côtés avec changement de côté, la lecture Avec des valeurs historiques `RIGHT_LEFT` et `LEFT_RIGHT` (RM-244), l’idempotence des résultats, la reprise, la progression monotone, les annonces uniques et la préservation du côté 1 lors d’une réinitialisation du côté 2.
+
+=== V3-B-061 | @12 – Architecture technique.md | CORRECTION-DECIDEE:D-407 | CO-01, CH-09, AC-09, AC-23
+--- ancien
+Le Shell d’Exécution affiche un texte secondaire centré de 16 points sous le nom de l’Exercice pour le côté courant. Les écrans unilatéraux le masquent. Cette présentation réutilise les couleurs et la typographie existantes ; aucun nouveau token n’est requis.
+--- nouveau
+Le Shell d’Exécution affiche un texte secondaire centré de 16 points sous le nom de l’Exercice pour le côté courant, désigné « Côté 1 » ou « Côté 2 » (RM-243). Les écrans unilatéraux le masquent. Cette présentation réutilise les couleurs et la typographie existantes ; aucun nouveau token n’est requis. Lorsque la charge est active, la charge de la Série courante est affichée (RM-241) ; son emplacement et son traitement relèvent de Figma, qui ne les illustre pas encore.
+
+=== V3-B-062 | @12 – Architecture technique.md | CORRECTION-DECIDEE:D-406 | CO-01, AC-14
+--- ancien
+La navigation conserve un état de retour sérialisable du Catalogue. Les tests couvrent au minimum : les deux modes, Séries multiples, Pause nulle/non nulle, Récupération, trois directions, interruption/reprise, suppression de la source, Synthèse obligatoire, Suivi et non-comptage d’une Séance.
+--- nouveau
+La navigation conserve un état de retour sérialisable du Catalogue. Les tests couvrent au minimum : les deux modes, Séries multiples, Pause nulle/non nulle, Récupération, sans et avec changement de côté (valeurs historiques comprises), interruption/reprise, suppression de la source, Synthèse obligatoire, Suivi et non-comptage d’une Séance.
+
+=== V3-B-063 | @12 – Architecture technique.md | RENVOI | CH-05, PR-04
+--- ancien
+**D-219 — composants de saisie.** Les durées conservent les pickers/roulettes en modale basse. Les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent un stepper inline ; la cible `Nombre de répétitions` utilise une roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385). L’implémentation réutilise en priorité un composant standard/DSF compatible React Native/Expo ; un contrôle ad hoc équivalent ne doit pas être recréé sans contrainte technique documentée.
+--- nouveau
+**D-219 — composants de saisie.** Les durées conservent les pickers/roulettes en modale basse. Les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent un stepper inline ; la cible `Nombre de répétitions` utilise une roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385). L’implémentation réutilise en priorité un composant standard/DSF compatible React Native/Expo ; un contrôle ad hoc équivalent ne doit pas être recréé sans contrainte technique documentée. La charge fait exception : saisie directe au clavier numérique décimal (D-405, RM-239).
+
+=== V3-B-064 | @12 – Architecture technique.md | CORRECTION-DECIDEE:D-407 | CO-01, CH-08, AC-08, AC-23
+--- ancien
+276 cas historiques conservés sans altération, complétés par les cibles mixtes du 13/10 ; injecter le total métier de test à la place du montant d’exemple avant comparaison. Vérifier texte/ponctuation exacts et absence de clause ajoutée aux cas variables. Vérifier singulier, côtés inversés, deux/trois/plus de trois cibles, min=max, bip 0/positif dans deux modes, pause 0/positive, N1 avec/sans pause et PC0/positive. Les cas complémentaires ne remplacent pas le corpus.
+--- nouveau
+276 cas historiques conservés sans altération, complétés par les cibles mixtes du 13/10 ; injecter le total métier de test à la place du montant d’exemple avant comparaison. Vérifier texte/ponctuation exacts et absence de clause ajoutée aux cas variables. Vérifier singulier, côtés désignés côté 1 / côté 2 (RM-243), mention de charge active ou absente (RM-240), deux/trois/plus de trois cibles, min=max, bip 0/positif dans deux modes, pause 0/positive, N1 avec/sans pause et PC0/positive. Les cas complémentaires ne remplacent pas le corpus.
