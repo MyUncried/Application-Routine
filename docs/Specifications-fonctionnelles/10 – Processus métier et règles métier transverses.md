@@ -152,7 +152,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-005 | Le glissement sur une Séance active expose uniquement les actions prévues pour ce contexte : `Planifier`, `Dupliquer` et `Archiver`. |
 | RM-006 | La duplication crée une copie indépendante de la Séance et de sa Composition. Elle ne crée ni Routine ni Exécution. |
 | RM-007 | Une Séance active ne peut pas être supprimée. Elle doit d’abord être archivée, puis supprimée depuis le résultat du filtre `Archivées`. |
-| RM-008 | L’archivage supprime les Routines futures associées à la Séance, mais conserve les Exécutions et leurs Instantanés historiques. Sans Routine associée, l’archivage est immédiat et sans confirmation, puis un snackbar `Séance archivée` propose temporairement `Annuler`. Si au moins une Routine est associée, une confirmation explicite est requise avant l’archivage et leur suppression ; après confirmation, aucun snackbar d’annulation n’est affiché. |
+| RM-008 | L’archivage supprime les Routines futures dont la Séance est l’unique contenu (D-023) et conserve les Exécutions et leurs Instantanés historiques. Sans Routine associée, l’archivage est immédiat et sans confirmation, puis un snackbar `Séance archivée` propose temporairement `Annuler`. Si au moins une Routine est associée, une confirmation explicite est requise avant l’archivage ; après confirmation, aucun snackbar d’annulation n’est affiché. L’effet sur une Routine à plusieurs contenus reste `À CLARIFIER` (D-328) : ne pas généraliser la suppression à ses autres contenus. |
 | RM-009 | Une Séance archivée peut être restaurée. La restauration ne recrée aucune ancienne Routine. |
 | RM-010 | Après restauration, un message `Séance restaurée` propose temporairement `Annuler`. |
 | RM-011 | Une Séance archivée peut être supprimée définitivement après confirmation explicite. Cette suppression ne supprime pas ses Exécutions historiques. |
@@ -177,7 +177,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 - *Texte identique à celui de la section [« Synthèse des parcours du MVP — Principes communs »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#synthèse-des-parcours-du-mvp--principes-communs) ; il n’est pas recopié ici.*
 - La suppression d'une Routine ne supprime jamais sa source.
 - Les exécutions déjà réalisées sont toujours conservées.
-- L'archivage d'une Séance supprime toutes les Routines qui lui sont associées. Cette suppression ne demande une confirmation que lorsqu’au moins une Routine est effectivement associée ; sans Routine associée, l’archivage est immédiat et un snackbar `Séance archivée` avec `Annuler` permet de revenir sur l’action. Après une confirmation ayant entraîné la suppression de Routines, aucun snackbar d’annulation n’est affiché. Leur restauration n'est pas automatique si la Séance est ensuite restaurée.
+- L’archivage d’une Séance supprime les Routines dont elle est l’unique contenu. Une confirmation est requise lorsqu’au moins une Routine est associée ; sans Routine, l’archivage est immédiat avec snackbar `Séance archivée` et `Annuler`. Après une confirmation ayant entraîné une suppression de Routines à contenu unique, aucun snackbar d’annulation n’est affiché et leur restauration n’est pas automatique. Pour les Routines à plusieurs contenus, l’effet reste `À CLARIFIER` (RM-008) ; aucun autre contenu ne peut être supprimé par simple généralisation.
 ### Catalogue des séances — Suppression d’une Séance
 
 Une Séance non archivée ne peut pas être supprimée. Elle doit d’abord être archivée.
@@ -198,7 +198,7 @@ L’archivage retire la Séance de la liste principale.
 
 Si aucune Routine n’est associée, l’archivage est immédiat et ne demande pas de confirmation. Un snackbar `Séance archivée` est affiché avec l’action `Annuler`. `Annuler` restaure immédiatement la Séance dans la liste active.
 
-Si la Séance est utilisée par une ou plusieurs Routines, une confirmation explicite est demandée avant l’archivage ; après confirmation, toutes les Routines associées sont supprimées. Dans ce cas, aucun snackbar `Séance archivée` avec `Annuler` n’est affiché.
+Si au moins une Routine est associée, une confirmation explicite est demandée avant l’archivage ; après confirmation, les Routines à contenu unique dont elle est la seule source sont supprimées. Pour les Routines multicontenus, l’effet reste `À CLARIFIER` et aucune suppression de leurs autres contenus n’est déduite. Aucun snackbar `Séance archivée` avec `Annuler` n’est affiché après confirmation.
 
 La restauration d’une Séance archivée ne restaure aucune ancienne Routine.
 
@@ -208,12 +208,9 @@ Une Séance archivée est consultable mais ne peut être ni modifiée, ni exécu
 
 Le MVP ne comporte pas de statut `Brouillon`.
 
-Une Séance existe dès validation de son nom et de sa couleur.
+Une nouvelle Séance n’est enregistrable qu’avec un nom et au moins un Exercice valide ; l’Étiquette est facultative et porte seule la couleur affichée lorsqu’elle est choisie (RM-001, RM-017). Aucun statut `Brouillon` persistant n’est introduit.
 
-Tant qu’elle ne contient aucun Exercice :
-
-- elle peut être modifiée, archivée ou supprimée ;
-- elle ne peut pas être exécutée.
+Une Séance déjà enregistrée qui se retrouve sans Exercice reste conservée et peut être ouverte pour modification, archivée puis supprimée conformément au cycle de vie. Elle ne peut être ni exécutée ni enregistrée après modification tant qu’au moins un Exercice valide n’a pas été ajouté (RM-017).
 
 ### Archives et références hors prototype actif
 
@@ -234,7 +231,7 @@ La suppression est définitive.
 
 La suppression d'une séance archivée demande une confirmation explicite (RM-011).
 
-Les routines futures associées ont déjà été supprimées lors de l'archivage (RM-008).
+Les Routines à contenu unique associées ont déjà été supprimées lors de l’archivage (RM-008) ; le cas multicontenu reste `À CLARIFIER`.
 
 Les exécutions déjà enregistrées restent conservées dans l'historique.
 
