@@ -14,7 +14,7 @@
 | Propagation | 341 corrections dans 25 fichiers : ch. 01 à 13, 10 DSF, PRODUCT, INDEX. Les autres chapitres citent les RM et D par identifiant | [corrections/](corrections/), [constats/](constats/) |
 | Captures | 20 frames actuelles de la feuille exportées sans retouche (402 × 874) dans `images/parametres-2026-10-18/` ; elles remplacent au ch. 06 les 19 états du 12/10 et du 13/10 (4 frames n’existent plus ; anciennes images conservées pour les matrices datées) | ch. 06 |
 | Index | B-092, D-403 à D-413, RM-235 à RM-250 ajoutés à l’annexe générée « Index des identifiants » ([outils/completer-index.mjs](outils/completer-index.mjs)) | annexe |
-| Couverture | 98 éléments (après les arbitrages du §5) : 77 intégrés, 7 partiels (phases #370, tokens, place de la mention de charge), 1 restant (#370), 9 exclus (§11.3), 4 écarts Figma signalés | [matrice-couverture.md](matrice-couverture.md) |
+| Couverture | 101 éléments (après les arbitrages du §5 et du §6) : 81 intégrés, 6 partiels (phases #370, tokens), 1 restant (#370), 9 exclus (§11.3), 4 écarts Figma signalés | [matrice-couverture.md](matrice-couverture.md) |
 
 ### Choix d’intégration
 
@@ -52,7 +52,7 @@ Résultat complet : [controles/FINAL.txt](controles/FINAL.txt), lancé par [outi
 
 ## 4. Points résiduels
 
-- **Questions** : arbitrées le 18/10/2026 (§5), sauf trois points non fixés par les arbitrages : place de la mention de charge (Q-V3-19), série à zéro dans la liste (Q-V3-20), présentation de la Condition d’arrêt dans un format (Q-V3-16). Coordinations : tokens avec le chantier DSF (Q-V3-10), phases avec le chantier #370 (Q-V3-17), corpus de recette v15 des phrases (Q-V3-02).
+- **Questions** : toutes arbitrées le 18/10/2026 (§5 et §6). Coordinations : tokens avec le chantier DSF (Q-V3-10), phases avec le chantier #370 (Q-V3-17), corpus de recette v15 des phrases (Q-V3-02).
 - **PR #370** : passages des phases à adapter à D-410, D-412 et D-413 lors du report ; **PR #371** : deux phrases sur le pied commun à retirer.
 - **Revue indépendante ChatGPT** avant toute fusion ; fusion dans `main` sur décision de Hermann.
 
@@ -82,3 +82,13 @@ B-073 et B-074 ne reçoivent pas la mention MVP : B-073 vise aussi le Circuit et
 **Contrôles** ([controles/FINAL-3.txt](controles/FINAL-3.txt), depuis `b6ca2321`) : rejeu exact des 402 corrections (341 + 40 + 21) ; conservation vérifiée ; C4 à C7 à 0 ; liens, K1, K2, OpenSpec `--strict` réussis. Correctifs des PR recalculés : #370 compte un bloc de plus résolu par déclaration (section des phases du ch. 08 après le paragraphe N=1) ; `git apply --check` réussi, seuls et en séquence.
 
 **Seconde passe Figma** (lecture seule) : nouveaux écarts — `8328:36923` sans Condition d’arrêt sélectionnée (D-416) ; `8328:39072` Avec désactivé (D-415) ; `8598:30059` (Tabata) sans Nombre de séries, Pause ni Condition d’arrêt ; aucune frame pour les états de D-414, D-415, D-418, D-419. Variables liées relevées pour Q-V3-10.
+
+## 6. Derniers arbitrages de Hermann (18/10/2026)
+
+| Question | Décision | Effet documentaire |
+|---|---|---|
+| Q-V3-19 | D-422 : mention de charge après la valeur par série | RM-240 ; grammaire v15 (ordre et ligne de tableau) ; ch. 10 « Phrase de synthèse des paramètres d’exécution » ; CE-UI-10 rendu de la phrase |
+| Q-V3-20 | D-423 : une série à zéro apparaît avec 0, par exemple `(charges : 0, 10, 15 kg)` | RM-240 ; grammaire v15 ; recette CE-T03-04 |
+| Q-V3-16 | D-424 : Condition d’arrêt À la cible présentée grisée dans un format à cible chiffrée imposée | CE-UI-10, complément Formats ; écart Figma `8598:30059` |
+
+Lot `V3-13-arbitrages-hermann-2` (11 corrections) ; les mentions « non arbitrée » de la seconde passe sont remplacées. Contrôles : [controles/FINAL-4.txt](controles/FINAL-4.txt).

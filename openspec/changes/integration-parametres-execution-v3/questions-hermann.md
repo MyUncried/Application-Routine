@@ -1,6 +1,6 @@
 # Questions pour Hermann — intégration de la spécification v3.0 (18/10/2026)
 
-Questions ouvertes par l’intégration, puis arbitrées par Hermann le 18/10/2026. La seconde passe de contrôle indépendante a fait apparaître trois points que les arbitrages ne fixent pas : Q-V3-16 (rouverte), Q-V3-19 et Q-V3-20. Q-V3-10 (tokens) et Q-V3-17 (phases, PR #370) restent des coordinations avec d’autres chantiers.
+Questions ouvertes par l’intégration, puis arbitrées par Hermann le 18/10/2026. La seconde passe de contrôle indépendante a fait apparaître trois points que les premiers arbitrages ne fixaient pas : Q-V3-16, Q-V3-19 et Q-V3-20, tranchés ensuite par Hermann (D-422 à D-424). Il ne reste aucune question produit ouverte. Q-V3-10 (tokens) et Q-V3-17 (phases, PR #370) restent des coordinations avec d’autres chantiers.
 
 ## Statut des questions (arbitrages de Hermann du 18/10/2026)
 
@@ -8,7 +8,7 @@ Hermann a clos Q-V3-01 et Q-V3-04, et validé Q-V3-03, 05, 06, 07, 08 et 15 : d�
 
 | ID | Sujet | Statut | Décision ou traitement | Emplacements |
 |---|---|---|---|---|
-| Q-V3-01 | Charge dans la phrase de synthèse | Close | D-414 : `(charge : 20 kg)` ; `(charges : 20, 12, 13 kg)` jusqu’à trois séries ; `(charges : 20, 12 kg, ...)` au-delà ; aucune mention sans charge. La place de la mention n’est pas fixée : voir Q-V3-19 | RM-240 ; ch. 10 grammaire v15 ; CE-UI-10 ; CE-T03-04 |
+| Q-V3-01 | Charge dans la phrase de synthèse | Close | D-414 : `(charge : 20 kg)` ; `(charges : 20, 12, 13 kg)` jusqu’à trois séries ; `(charges : 20, 12 kg, ...)` au-delà ; aucune mention sans charge. Place : après la valeur par série (D-422, Q-V3-19) | RM-240 ; ch. 10 grammaire v15 ; CE-UI-10 ; CE-T03-04 |
 | Q-V3-02 | Phrase des côtés | Close par décision existante | D-407 (côté 1 / côté 2) appliquée ; mise à jour du corpus de recette v15 à coordonner avec le chantier de la phrase | ch. 10 « Côtés et durée » |
 | Q-V3-03 | Condition d’arrêt à la création | Close | D-416 : À la cible par défaut | RM-248 ; CE-UI-10 ; ch. 08 |
 | Q-V3-04 | Changement de côté à une seule série | Close | D-415 : à N = 1, la ligne Enchainement n’apparaît pas ; Avec / Sans reste disponible ; normalisation N1 conservée | RM-242 ; D-250 (statut) ; ch. 08 ; CE-UI-10 |
@@ -23,10 +23,10 @@ Hermann a clos Q-V3-01 et Q-V3-04, et validé Q-V3-03, 05, 06, 07, 08 et 15 : d�
 | Q-V3-13 | Texte « Durée totale : » de la phrase | Close par décision existante | D-409 vise la ligne de la feuille ; le texte du corpus v15 reste inchangé | ch. 10 |
 | Q-V3-14 | Contrôles segmentés | Close par décision existante | D-413 (GR-01, PR-03, scénario §11.2 « sélection segmentée ») | D-413 ; CE-UI-10 |
 | Q-V3-15 | Version de livraison | Close | D-421 : évolutions v3.0 incluses dans le MVP | ch. 05 ; B-092 |
-| Q-V3-16 | Formats imposés | **Ouverte** | La Condition d’arrêt qui résulte d’une cible chiffrée imposée est À la cible (D-411). Sa présentation dans la feuille d’un format, valeur grisée ou ligne masquée, n’est fixée par aucune décision ; la frame `8598:30059` ne la montre pas mais omet aussi des valeurs imposées que CE-FMT-04 exige | CE-UI-10 (complément Formats) |
+| Q-V3-16 | Formats imposés | Close | D-424 : Condition d’arrêt À la cible présentée grisée, comme les autres valeurs imposées ; la frame `8598:30059`, sans cette ligne, est en écart | CE-UI-10 (complément Formats) |
 | Q-V3-17 | Phases (PR #370) | Coordination | Points phases décidés (D-410, D-412, D-413) ; adaptation par le chantier #370 | dependances-pr.md |
-| Q-V3-19 | Place de la mention de charge dans la phrase | **Ouverte** | D-414 fixe les formes, pas la place. Lecture proposée dans la documentation, marquée « non arbitrée » : après la valeur par Série, avant la clause de pause (la parenthèse qualifie les séries) | RM-240 ; ch. 10 grammaire v15 ; CE-UI-10 |
-| Q-V3-20 | Série à zéro dans la liste des charges | **Ouverte** | Une série à zéro est sans charge (RM-239) et n’affiche pas de charge en exécution (RM-241). D-414 ne dit pas si la liste l’écrit (« (charges : 0, 10, 15 kg) ») ou l’omet | RM-240 |
+| Q-V3-19 | Place de la mention de charge dans la phrase | Close | D-422 : après la valeur par série | RM-240 ; ch. 10 grammaire v15 ; CE-UI-10 |
+| Q-V3-20 | Série à zéro dans la liste des charges | Close | D-423 : elle apparaît avec sa valeur 0, par exemple « (charges : 0, 10, 15 kg) » ; elle reste sans charge pour cette série (RM-239) | RM-240 |
 | Q-V3-18 | Terminologie résiduelle | Close par décisions existantes | Termes conservés comme noms de concepts ; « charge additionnelle » des formats reste une exclusion propre aux formats (D-403 ne lève que l’exclusion du ch. 04) | ch. 01, 04, 10, 12 |
 
 ## Points tranchés sans nouvelle décision
@@ -53,8 +53,8 @@ Hermann a clos Q-V3-01 et Q-V3-04, et validé Q-V3-03, 05, 06, 07, 08 et 15 : d�
 | `8328:37092` | Valider actif alors qu’une cible manque | D-337 |
 | `8328:39072` | Avec désactivé à une seule série ; selon D-415, seule la ligne Enchainement disparaît à N = 1 | D-415 |
 | `8328:36923` | Champs vides : aucune Condition d’arrêt sélectionnée ; la valeur par défaut est À la cible | D-416 |
-| `8598:30059` | Tabata par exercice : Nombre de séries (8) et Pause (10 s) imposés non affichés, alors que CE-FMT-04 les présente grisés ; pas de ligne Condition d’arrêt | CE-FMT-04, D-360 |
-| — | Aucune frame pour : séries identiques à l’échec (durée masquée), roulette Répétitions des séries identiques, une seule série avec Avec sans ligne Enchainement, phrase avec mention de charge | D-415, D-418, D-419, D-414 |
+| `8598:30059` | Tabata par exercice : Nombre de séries (8) et Pause (10 s) imposés non affichés, alors que CE-FMT-04 les présente grisés ; pas de ligne Condition d’arrêt, alors que D-424 la présente grisée | CE-FMT-04, D-360, D-424 |
+| — | Aucune frame pour : séries identiques à l’échec (durée masquée), roulette Répétitions des séries identiques, une seule série avec Avec sans ligne Enchainement, phrase avec mention de charge (dont série à zéro) | D-414, D-415, D-418, D-419, D-422, D-423 |
 | 16 frames d’exécution | « Côté droit » affiché (calque « Côté courant — Côté droit ») | CO-01, D-407 |
 | — | Aucune frame d’exécution avec charge ; aucun état de saisie de la charge en séries identiques | §4 écarts 2 et 4 |
 | `9207:18817` | Nom hors convention (« Proposition 3 ») et barre bleue résiduelle | #370 |

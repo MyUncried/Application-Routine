@@ -14,6 +14,6 @@
 
 - **Départ** : `69c45e4e`.
 - **Fait** : décisions D-414 à D-421 (Q-V3-01, Q-V3-03 à Q-V3-08, Q-V3-15) enregistrées et propagées (lot `V3-11`, 40 corrections) ; dix questions traitées par les décisions existantes ; seconde passe de contrôle indépendante, 10 écarts corrigés (lot `V3-12`, 21 corrections) ; seconde passe Figma en lecture seule, nouveaux écarts signalés ; correctifs des PR recalculés.
-- **Hypothèse signalée** : place de la mention de charge (lecture proposée, non arbitrée, Q-V3-19).
-- **Restant pour Hermann** : Q-V3-16, Q-V3-19, Q-V3-20 ; coordinations Q-V3-02, Q-V3-10, Q-V3-17.
-- **Contrôles** : [controles/FINAL-3.txt](controles/FINAL-3.txt), tous réussis depuis `b6ca2321`.
+- **Hypothèse signalée en seconde passe** : place de la mention de charge, tranchée ensuite par D-422.
+- **Derniers arbitrages** : Q-V3-19 (D-422, après la valeur par série), Q-V3-20 (D-423, série à zéro listée), Q-V3-16 (D-424, grisée) ; lot `V3-13`. Plus aucune question produit ouverte ; coordinations Q-V3-02, Q-V3-10, Q-V3-17.
+- **Contrôles** : [controles/FINAL-4.txt](controles/FINAL-4.txt), tous réussis depuis `b6ca2321`.

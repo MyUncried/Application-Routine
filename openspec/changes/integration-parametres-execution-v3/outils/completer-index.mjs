@@ -1,5 +1,5 @@
 // Intégration v3 — ajoute à l'annexe générée « Index des identifiants » les identifiants définis par l'intégration
-// (B-092, D-403 à D-421, RM-235 à RM-250), au format des lignes existantes. Le générateur du lot 6 (restructurer.mjs) n'est pas relancé.
+// (B-092, D-403 à D-424, RM-235 à RM-250), au format des lignes existantes. Le générateur du lot 6 (restructurer.mjs) n'est pas relancé.
 // Usage : node completer-index.mjs <racine>
 import fs from 'fs'; import path from 'path';
 const SF = path.join(process.argv[2], 'docs', 'Specifications-fonctionnelles');
@@ -15,6 +15,6 @@ const ins = (apres, lignes) => { const manq = lignes.filter(l => !s.includes(cle
   const i = s.indexOf(ancre); if (i < 0) throw new Error(ancre); const j = s.indexOf(nl, i) + nl.length; s = s.slice(0, j) + manq.join(nl) + nl + s.slice(j); };
 const t02 = titre(F02, /^## 8\. Besoins validés pour les évolutions/), t07 = titre(F07, /^## Paramètres d’exécution — décisions du 18 octobre 2026/);
 ins('| [B-091]', [ligne('B-092', F02, t02)]);
-ins('| [D-402]', Array.from({ length: 19 }, (_, k) => ligne(`D-${403 + k}`, F07, t07)));
+ins('| [D-402]', Array.from({ length: 22 }, (_, k) => ligne(`D-${403 + k}`, F07, t07)));
 ins('| [RM-234]', Array.from({ length: 16 }, (_, k) => { const id = `RM-${235 + k}`; return ligne(id, F10, titre(F10, new RegExp(`^#### ${id} —`))); }));
 fs.writeFileSync(f, s); console.log('index complété');

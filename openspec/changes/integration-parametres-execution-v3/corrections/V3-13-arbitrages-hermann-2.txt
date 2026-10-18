@@ -1,0 +1,73 @@
+# Arbitrages de Hermann du 18/10/2026 sur les trois points laissés ouverts par la seconde passe :
+# Q-V3-19 « après la valeur par série » ; Q-V3-20 « elle apparaît » ; Q-V3-16 « grisée ». Décisions D-422 à D-424.
+
+=== V3-L-001 | @07 – Registre des décisions de conception.md | CORRECTION-DECIDEE:D-422 | Q-V3-16, Q-V3-19, Q-V3-20
+--- ancien
+- D-414 à D-421 : réponses de Hermann du 18/10/2026 aux questions de l’intégration Q-V3-01, Q-V3-03 à Q-V3-08 et Q-V3-15.
+--- nouveau
+- D-414 à D-424 : réponses de Hermann du 18/10/2026 aux questions de l’intégration Q-V3-01, Q-V3-03 à Q-V3-08, Q-V3-15, Q-V3-16, Q-V3-19 et Q-V3-20.
+
+=== V3-L-002 | @07 – Registre des décisions de conception.md | CORRECTION-DECIDEE:D-422 | Q-V3-16, Q-V3-19, Q-V3-20
+--- ancien
+
+<a id="formats-decisions"></a>
+--- nouveau
+| D-422 | La mention de charge de la phrase de synthèse se place après la valeur par série. Règle : RM-240. | Validée, Hermann 18/10/2026 (Q-V3-19) | Précise D-414. |
+| D-423 | Une série à zéro apparaît dans la liste des charges, avec sa valeur 0 (par exemple `(charges : 0, 10, 15 kg)`). Règle : RM-240. | Validée, Hermann 18/10/2026 (Q-V3-20) | Précise D-414 ; zéro reste « sans charge » pour cette série (RM-239) et n’affiche pas de charge en exécution (RM-241). |
+| D-424 | Dans la feuille d’un format à cible chiffrée imposée, la Condition d’arrêt À la cible est présentée grisée, comme les autres valeurs imposées. | Validée, Hermann 18/10/2026 (Q-V3-16) | Précise D-411 et CE-FMT-04 ; la frame `8598:30059`, sans ligne Condition d’arrêt, est en écart. |
+
+<a id="formats-decisions"></a>
+
+=== V3-L-003 | @07 – Registre des décisions de conception.md | CORRECTION-DECIDEE:D-422 | Q-V3-19, Q-V3-20
+--- ancien
+ Ne fixe ni la place de la mention dans la phrase ni la présentation d’une série à zéro dans la liste (questions Q-V3-19 et Q-V3-20). |
+--- nouveau
+ Place de la mention et série à zéro : précisées par D-422 et D-423 (18/10/2026). |
+
+=== V3-L-010 | @10 – Processus métier et règles métier transverses.md | CORRECTION-DECIDEE:D-422 | Q-V3-19
+--- ancien
+Lorsque la charge est active et valide, la phrase de synthèse inclut une mention de charge entre parenthèses, dans les formes de D-414 :
+--- nouveau
+Lorsque la charge est active et valide, la phrase de synthèse inclut une mention de charge entre parenthèses, dans les formes de D-414, placée après la valeur par série (D-422) :
+
+=== V3-L-011 | @10 – Processus métier et règles métier transverses.md | CORRECTION-DECIDEE:D-423 | Q-V3-19, Q-V3-20
+--- ancien
+Deux points ne sont pas fixés par D-414 : la place de la mention dans la phrase (lecture proposée, non arbitrée : après la valeur par Série, la parenthèse qualifiant les séries) et la présentation, dans la liste, d’une série à zéro (sans charge pour cette série, RM-239) ; ils sont soumis à Hermann.
+--- nouveau
+Une série à zéro apparaît dans la liste avec sa valeur 0, par exemple `(charges : 0, 10, 15 kg)` (D-423) ; elle reste sans charge pour cette série (RM-239).
+
+=== V3-L-012 | @10 – Processus métier et règles métier transverses.md | CORRECTION-DECIDEE:D-422 | Q-V3-19
+--- ancien
+Ordre : nombre de séries → contenu → pause → côtés → durée applicable. La mention de charge (RM-240, D-414) s’y ajoute ; sa place n’est pas arbitrée (lecture proposée : après le contenu).
+--- nouveau
+Ordre : nombre de séries → contenu → mention de charge éventuelle, après la valeur par série (RM-240, D-422) → pause → côtés → durée applicable.
+
+=== V3-L-013 | @10 – Processus métier et règles métier transverses.md | CORRECTION-DECIDEE:D-422 | Q-V3-19, Q-V3-20
+--- ancien
+ ; rien sans charge (RM-240, D-414) ; place dans la phrase non arbitrée (lecture proposée : accolée au contenu) |
+--- nouveau
+ ; rien sans charge ; accolée à la valeur par série ; une série à zéro figure avec 0 (RM-240, D-414, D-422, D-423) |
+
+=== V3-L-014 | @10 – Processus métier et règles métier transverses.md | CORRECTION-DECIDEE:D-422 | Q-V3-19
+--- ancien
+Une charge active y est mentionnée selon RM-240, entre parenthèses dans les formes de D-414 ; sa place n’est pas arbitrée (lecture proposée : après la valeur par Série).
+--- nouveau
+Une charge active y est mentionnée selon RM-240, entre parenthèses dans les formes de D-414, après la valeur par série (D-422).
+
+=== V3-L-020 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-422 | Q-V3-19
+--- ancien
+ suit le même rendu en segments (RM-240, D-414) ; sa place dans la phrase n’est pas arbitrée (lecture proposée : après la valeur par Série).
+--- nouveau
+ suit le même rendu en segments, après la valeur par série (RM-240, D-414, D-422).
+
+=== V3-L-021 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-424 | Q-V3-16
+--- ancien
+La Condition d’arrêt qui résulte d’une cible chiffrée imposée est À la cible (D-411) ; sa présentation dans la feuille d’un format (valeur grisée ou ligne masquée) n’est pas arbitrée et est soumise à Hermann.
+--- nouveau
+La Condition d’arrêt qui résulte d’une cible chiffrée imposée est À la cible (D-411), présentée grisée comme les autres valeurs imposées (D-424).
+
+=== V3-L-022 | @13 – Contrats d’écran.md | CORRECTION-DECIDEE:D-423 | Q-V3-19, Q-V3-20
+--- ancien
+« (charges : 20, 12 kg, ...) » au-delà de trois séries, Sans sans mention,
+--- nouveau
+« (charges : 20, 12 kg, ...) » au-delà de trois séries, « (charges : 0, 10, 15 kg) » avec une série à zéro, mention après la valeur par série, Sans sans mention,

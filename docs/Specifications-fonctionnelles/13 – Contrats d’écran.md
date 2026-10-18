@@ -795,7 +795,7 @@ Aucune édition inline de la phrase. Mode/nom exclus de la phrase intrinsèque ;
 
 Après✓ tester mélange chiffré/échec et ≥, puis annulation et édition d’une copie ; tout échec reste sans total. La formulation de fond divergente de 8328:38848 est une réserve Figma, pas une autorité métier.
 
-Recette rédactionnelle :276 gabarits v15 avec total métier injecté, gras sur occurrences répétées d’une valeur, N1 avec pause mentionnée et total non redondant ; absence de troncature. Français au MVP ; i18n nécessite des gabarits et accords par locale, pas une traduction de fragments isolés. Phrase avec charge : « (charge : 10 kg) » et « (charge : 1,25 kg) », « (charges : 20, 12, 13 kg) », « (charges : 20, 12 kg, ...) » au-delà de trois séries, Sans sans mention, Sans puis Avec restaurant la valeur (RM-240, D-414, RM-236).
+Recette rédactionnelle :276 gabarits v15 avec total métier injecté, gras sur occurrences répétées d’une valeur, N1 avec pause mentionnée et total non redondant ; absence de troncature. Français au MVP ; i18n nécessite des gabarits et accords par locale, pas une traduction de fragments isolés. Phrase avec charge : « (charge : 10 kg) » et « (charge : 1,25 kg) », « (charges : 20, 12, 13 kg) », « (charges : 20, 12 kg, ...) » au-delà de trois séries, « (charges : 0, 10, 15 kg) » avec une série à zéro, mention après la valeur par série, Sans sans mention, Sans puis Avec restaurant la valeur (RM-240, D-414, RM-236).
 
 Tester vide→feuille→annuler sans changement ; feuille valide→résumé→Terminer ; zone de phrase entière ; modification annulée ; deux modes, deux ordres bilatéraux et PC=0 sans repli ; source disparue/erreurDB ; champs/référentiels requis ; lecture seule Total Répétitions. Vérifier différences entre exemple Figma et données recalculées.
 
@@ -924,7 +924,7 @@ L’ancienne référence Figma `3787:5209 — Catalogue — action contextuelle 
 
 ### CE-UI-10 — Paramètres d’exécution — feuille basse
 
-**Complément Formats du 14/10 :** Complément format : CE-FMT-04. Les valeurs imposées restent réelles et effectives ; Tabata affiche Durée/8/20 s/10 s grisées et non modifiables, avec raison. Ne pas appliquer à cet état le tiret d’une valeur sans effet. La Condition d’arrêt qui résulte d’une cible chiffrée imposée est À la cible (D-411) ; sa présentation dans la feuille d’un format (valeur grisée ou ligne masquée) n’est pas arbitrée et est soumise à Hermann.
+**Complément Formats du 14/10 :** Complément format : CE-FMT-04. Les valeurs imposées restent réelles et effectives ; Tabata affiche Durée/8/20 s/10 s grisées et non modifiables, avec raison. Ne pas appliquer à cet état le tiret d’une valeur sans effet. La Condition d’arrêt qui résulte d’une cible chiffrée imposée est À la cible (D-411), présentée grisée comme les autres valeurs imposées (D-424).
 
 #### 1. Identification
 
@@ -1117,7 +1117,7 @@ Zone cliquable unique, segments non interactifs. Inter 13 Regular, interligne 20
 
 La référence 7119:27855 est désormais « Phrase longue (224 caractères) », cas 144 du corpus v15 : largeur 324px, cinq lignes de 20px, bloc 100px, carte de paramètres 193px à hauteur automatique. Ces mesures constatées ne deviennent pas des hauteurs fixes : agrandissement de texte et autres largeurs doivent étendre le contenu sans rogner Compte à rebours/Fin.
 
-Une virgule reste attachée au mot qui la précède : aucune virgule isolée en début de ligne. Les segments sont rendus dans un même flux Text, sans espace ajouté avant la ponctuation ni segments disposés chacun comme une boîte indépendante. Le retour visuel avant Durée totale est une propriété de rendu, pas une modification du texte canonique utilisé par la recette. La mention de charge `(charge : 20 kg)` ou `(charges : 20, 12, 13 kg)` suit le même rendu en segments (RM-240, D-414) ; sa place dans la phrase n’est pas arbitrée (lecture proposée : après la valeur par Série).
+Une virgule reste attachée au mot qui la précède : aucune virgule isolée en début de ligne. Les segments sont rendus dans un même flux Text, sans espace ajouté avant la ponctuation ni segments disposés chacun comme une boîte indépendante. Le retour visuel avant Durée totale est une propriété de rendu, pas une modification du texte canonique utilisé par la recette. La mention de charge `(charge : 20 kg)` ou `(charges : 20, 12, 13 kg)` suit le même rendu en segments, après la valeur par série (RM-240, D-414, D-422).
 
 ## Composition des séances
 

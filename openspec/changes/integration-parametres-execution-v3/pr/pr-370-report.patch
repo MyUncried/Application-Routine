@@ -93,7 +93,7 @@ diff --git a/docs/Specifications-fonctionnelles/06 – Ecrans et navigation de l
 diff --git a/docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md b/docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md
 --- a/docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md
 +++ b/docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md
-@@ -721,3 +721,16 @@ Arbitrages clos par le propriétaire dans la spécification « Évolution des pa
+@@ -724,3 +724,16 @@ Arbitrages clos par le propriétaire dans la spécification « Évolution des pa
  | D-369 | DEC-13 — État de développement. 17:15 : le moteur n’a pas encore été développé | Validée le 14/10/2026 par Hermann ; voir preuve source de la spécification | §10 et §14 |
  
  La V2 est amendée par ces décisions, notamment : réglages éditables ; organisation Tabata/EMOM/Progression ; For time indexé par tour sans choix d’organisation ; Death by cadencé, tours acquis par appui, résultat partiel et état toujours incomplet. Les décisions ne valent pas livraison applicative ni clôture des raccordements explicitement signalés.

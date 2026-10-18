@@ -29,7 +29,7 @@
 - [x] 4.4 Matrice de couverture, dossier de questions, dépendances PR, rapport de conformité
 - [ ] 4.5 Revue indépendante ChatGPT
 - [x] 4.6 Réponses de Hermann (18/10/2026) : D-414 à D-421 enregistrées et propagées (40 corrections, `V3-11-arbitrages-hermann`) ; dix questions traitées par les décisions existantes ; seconde passe de contrôle indépendante, 10 écarts corrigés (21 corrections, `V3-12-seconde-passe`)
-- [ ] 4.10 Hermann : Q-V3-16, Q-V3-19 (place de la mention de charge), Q-V3-20 (série à zéro dans la liste)
+- [x] 4.10 Hermann : Q-V3-16, Q-V3-19, Q-V3-20 tranchées (D-422 à D-424, lot `V3-13`, 11 corrections)
 - [ ] 4.9 Coordinations : tokens de la feuille (chantier DSF, Q-V3-10) ; phases (chantier #370, Q-V3-17) ; corpus de recette v15 des phrases (Q-V3-02)
 - [ ] 4.7 Annexe « Matrice de traçabilité » : à régénérer quand l’outil reconnaîtra les règles écrites en titres (RM-235 à RM-250)
 - [ ] 4.8 Report des PR par leurs chantiers, puis fusion dans `main` sur décision de Hermann ; archivage du change ensuite

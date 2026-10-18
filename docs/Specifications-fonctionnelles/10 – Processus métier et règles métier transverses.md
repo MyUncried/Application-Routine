@@ -340,7 +340,7 @@ La ligne Charge (Avec / Sans) reste sous le tableau. Avec affiche la colonne Cha
 
 #### RM-240 — Charge : phrase de synthèse
 
-Lorsque la charge est active et valide, la phrase de synthèse inclut une mention de charge entre parenthèses, dans les formes de D-414 :
+Lorsque la charge est active et valide, la phrase de synthèse inclut une mention de charge entre parenthèses, dans les formes de D-414, placée après la valeur par série (D-422) :
 
 | Cas | Mention |
 |---|---|
@@ -349,7 +349,7 @@ Lorsque la charge est active et valide, la phrase de synthèse inclut une mentio
 | Charges variables, plus de trois séries | `(charges : 20, 12 kg, ...)` |
 | Sans charge | Aucune mention |
 
-Les valeurs sont celles des séries, dans leur ordre, avec le séparateur décimal de la langue ; une charge unique n’est jamais présentée comme commune si les séries ont des charges différentes. Aucune autre règle de compaction ou de calcul n’est appliquée. Deux points ne sont pas fixés par D-414 : la place de la mention dans la phrase (lecture proposée, non arbitrée : après la valeur par Série, la parenthèse qualifiant les séries) et la présentation, dans la liste, d’une série à zéro (sans charge pour cette série, RM-239) ; ils sont soumis à Hermann. La phrase reste produite en segments structurés (valeurs en gras), recalculée depuis les paramètres et non persistée. La charge ne change ni le statut des durées ni leurs symboles (D-403, D-414).
+Les valeurs sont celles des séries, dans leur ordre, avec le séparateur décimal de la langue ; une charge unique n’est jamais présentée comme commune si les séries ont des charges différentes. Aucune autre règle de compaction ou de calcul n’est appliquée. Une série à zéro apparaît dans la liste avec sa valeur 0, par exemple `(charges : 0, 10, 15 kg)` (D-423) ; elle reste sans charge pour cette série (RM-239). La phrase reste produite en segments structurés (valeurs en gras), recalculée depuis les paramètres et non persistée. La charge ne change ni le statut des durées ni leurs symboles (D-403, D-414).
 
 #### RM-241 — Charge : exécution
 
@@ -471,7 +471,7 @@ Le Compte à rebours propre précède les passages et la Fin propre reste unique
 
 ### Phrase de synthèse des paramètres — Grammaire française v15
 
-Ordre : nombre de séries → contenu → pause → côtés → durée applicable. La mention de charge (RM-240, D-414) s’y ajoute ; sa place n’est pas arbitrée (lecture proposée : après le contenu). Ponctuation et accords conformes aux 276 cas ; série/séries, menée/menées. Les espaces et unités font partie du texte. Mode affiché à part, absent du début de phrase.
+Ordre : nombre de séries → contenu → mention de charge éventuelle, après la valeur par série (RM-240, D-422) → pause → côtés → durée applicable. Ponctuation et accords conformes aux 276 cas ; série/séries, menée/menées. Les espaces et unités font partie du texte. Mode affiché à part, absent du début de phrase.
 
 | Cas | Forme |
 |---|---|
@@ -487,7 +487,7 @@ Ordre : nombre de séries → contenu → pause → côtés → durée applicabl
 | Uniforme, pause nulle, N>1 | `, enchaînées sans pause` |
 | Uniforme, pause nulle, N=1 | Aucune clause de pause |
 | Séries variables, tous modes | Clause de pause omise conformément aux 276 cas, même À l’échec ; aucune liste de pauses ajoutée |
-| Charge active | `(charge : {c} kg)` en séries identiques, `(charges : {c1}, {c2}, {c3} kg)` jusqu’à trois séries variables, `(charges : {c1}, {c2} kg, ...)` au-delà ; rien sans charge (RM-240, D-414) ; place dans la phrase non arbitrée (lecture proposée : accolée au contenu) |
+| Charge active | `(charge : {c} kg)` en séries identiques, `(charges : {c1}, {c2}, {c3} kg)` jusqu’à trois séries variables, `(charges : {c1}, {c2} kg, ...)` au-delà ; rien sans charge ; accolée à la valeur par série ; une série à zéro figure avec 0 (RM-240, D-414, D-422, D-423) |
 
 N=1 est normalisé uniforme avant génération. Les min/max viennent des cibles actives, pas de la première et dernière ligne. Aucune ellipse après les trois premières valeurs des cibles ; la mention de charge suit ses propres formes, ellipse comprise (D-414). L’omission rédactionnelle des pauses variables ne les retire jamais du plan ni du calcul. La grammaire du classeur dit « la pause figure dans l’énumération », mais ses 276 phrases variables n’énumèrent pas les pauses : conserver exactement leurs formulations, sans inventer cette énumération.
 
@@ -2177,7 +2177,7 @@ Le Point d’arrêt reste un élément structurel distinct de la Récupération.
 
 #### Phrase de synthèse des paramètres d’exécution
 
-La phrase est une donnée dérivée, recalculée à chaque modification. Sans mode sélectionné elle est vide ; le mode est affiché séparément. Elle concatène dans l’ordre : nombre de Séries, valeur par Série ou `jusqu'à l'échec`, Pause après chaque série si applicable, changement de côté, puis Durée totale lorsqu’elle s’applique. Le nom de l’Exercice, le Compte à rebours, la Fin d’exercice et la Récupération post-activité n’entrent pas dans cette phrase. Une charge active y est mentionnée selon RM-240, entre parenthèses dans les formes de D-414 ; sa place n’est pas arbitrée (lecture proposée : après la valeur par Série). Source normative : chapitre 08, paramètres d’exercice, D-247 à D-255 ; classeur v10 historique.
+La phrase est une donnée dérivée, recalculée à chaque modification. Sans mode sélectionné elle est vide ; le mode est affiché séparément. Elle concatène dans l’ordre : nombre de Séries, valeur par Série ou `jusqu'à l'échec`, Pause après chaque série si applicable, changement de côté, puis Durée totale lorsqu’elle s’applique. Le nom de l’Exercice, le Compte à rebours, la Fin d’exercice et la Récupération post-activité n’entrent pas dans cette phrase. Une charge active y est mentionnée selon RM-240, entre parenthèses dans les formes de D-414, après la valeur par série (D-422). Source normative : chapitre 08, paramètres d’exercice, D-247 à D-255 ; classeur v10 historique.
 
 Les bornes fonctionnelles D-232 sont : Séries `1..99`, Répétitions par Série `1..100`, Durée par Série `5 s..58 min 55 s`, Pause après chaque série et Pause entre les côtés `0..5 min`. Dans le Profil, les réglages de durée utilisent un stepper ; dans la feuille de paramètres d’un Exercice, les pauses sont réglées par stepper. Les steppers de pauses utilisent tap 1 s puis maintien accéléré 1/5/10 selon DSF Bip ; ancienne grille dépendante de la valeur abandonnée. La Pause entre les côtés est copiée depuis le Profil lorsqu’elle devient applicable.
 

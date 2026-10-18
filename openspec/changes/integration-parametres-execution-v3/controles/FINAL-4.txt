@@ -1,8 +1,8 @@
-# Contrôles FINAL-3 — référence b6ca2321 — corrections : 12 fichiers
-justifications=432 fichiers=12
+# Contrôles FINAL-4 — référence b6ca2321 — corrections : 13 fichiers
+justifications=442 fichiers=13
 
 ## Rejeu des corrections
-OK rejeu exact : 402 corrections, 25 fichiers
+OK rejeu exact : 413 corrections, 25 fichiers
 ## Fichiers modifiés hors corrections déclarées
 aucun
 ## Images ajoutées
@@ -10,7 +10,7 @@ aucun
 
 ## C1–C7
 référence=b6ca2321 fichiers_ref=17 fichiers_cible=17
-C1 identifiants : 783 de référence, 802 dans la cible
+C1 identifiants : 783 de référence, 805 dans la cible
 C2 lignes distinctes : 7124 ; N1=6808 N2=0 justifiées=316 absentes=0
 C3 lignes dont les occurrences diminuent : 0 (informatif)
 C4 décisions au texte modifié : 0 sur 394
@@ -40,6 +40,7 @@ corrections=65 non_redactionnelles=0
 corrections=55 non_redactionnelles=0
 corrections=40 non_redactionnelles=0
 corrections=21 non_redactionnelles=0
+corrections=11 non_redactionnelles=0
 
 ## C9 liens
 MENTION_REMOVED_SPEC	docs/DSF-V2-MOTIFS-LOT-3.md:4	Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md
