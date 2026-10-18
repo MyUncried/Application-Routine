@@ -247,7 +247,7 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 - cible À l’échec par Série dans les deux modes, terminée par Suivant ;
 - Catalogue affichant `Exercices / Séances` ; `Séances` est actif dès T01 et `Exercices` devient actif dans le MVP avec T03 ; `Parcours` est absent du sélecteur ;
 - carte d’Exercice à gouttière permanente au MVP, photo ou icône de nature, sans Déployer quel que soit le média (D-260/D-261) ; l’activation de cet affichage n’implique pas de nouveau mécanisme d’import ou de capture.
-- nouvelle structure d’édition d’un Exercice : suppression du type, accès `Catégorie` et `Zones corporelles`, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Changement de côté / Pause entre les côtés / Durée totale`, la Pause entre les côtés étant conditionnelle à `D→G/G→D` ;
+- nouvelle structure d’édition d’un Exercice : suppression du type, accès `Catégorie` et `Zones corporelles`, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Changement de côté / Pause entre les côtés / Durée de l’exercice` (libellé D-409), la Pause entre les côtés étant conditionnelle au changement de côté `Avec` (D-406) ;
 - référentiels Étiquettes / Catégories / Zones corporelles administrables dans le MVP : toutes les valeurs, initiales comme personnalisées, sont supprimables par appui long puis confirmation ; création et renommage suivent les parcours propres à chaque référentiel ;
 - modèle D-208 : `ActivityDefinition` porte seulement la Pause entre les côtés éventuelle ; une occurrence de Séance peut porter une récupération après exercice ajoutée explicitement, jamais créée automatiquement (D-304, D-307) ; positive, elle est exécutée après l’occurrence et exclue de la durée intrinsèque de l’Exercice.
 
@@ -279,7 +279,7 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 
 ## Tranche Bilatéralité et révision de T04
 
-Une tranche spécifique précède l’Exécution T04. Elle livre la configuration et la persistance `UNILATERAL` / `RIGHT_LEFT` / `LEFT_RIGHT` au niveau Exercice, ainsi que la copie, la duplication, les calculs et les synthèses associés. Le support technique historique du côté au niveau Tour est conservé pour non-régression mais n’est pas exposé ni modifiable dans la version actuelle.
+Une tranche spécifique précède l’Exécution T04. Elle livre la configuration et la persistance `UNILATERAL` / `RIGHT_LEFT` / `LEFT_RIGHT` au niveau Exercice, ainsi que la copie, la duplication, les calculs et les synthèses associés. Le support technique historique du côté au niveau Tour est conservé pour non-régression mais n’est pas exposé ni modifiable dans la version actuelle. Depuis D-406, ces valeurs se lisent comme le Changement de côté : `UNILATERAL` vaut `Sans`, `RIGHT_LEFT` et `LEFT_RIGHT` valent `Avec` (RM-244).
 
 T04 développe ensuite le Plan d’Exécution par Séries, Tours et côtés portés par les Exercices, affiche le côté courant, pondère la progression globale, émet les annonces vocales de côté, réinitialise uniquement le passage courant et persiste des résultats séparés par côté.
 
@@ -309,7 +309,7 @@ Contenu identique à la section [« Paramètres d’exécution — complément �
 
 ## Évolution Cadence — statut
 
-Cible documentée, non déclarée livrée : Bip de cadence 0..10 dans deux modes, steppers et calculs selon [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit). Dépendances : SeriesParameters, pauses explicites, migration, ordonnanceur audio périodique, snapshots et qualification mobile. L’écran de roulette est supprimé ; les cinq modales modifiées sont reprises ; les autres modes restent à compléter visuellement. Le layout d’exécution est conservé. Le guidage de cadence pendant l’Exécution appartient au MVP (D-378).
+Cible documentée, non déclarée livrée : Bip de cadence 0..10 dans deux modes, ligne `Cadence` à choix rapides (`Autre`, `5 s`, `2 s`, `1 s`, `Sans` ; D-408, RM-245) et calculs selon [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit). Dépendances : SeriesParameters, pauses explicites, migration, ordonnanceur audio périodique, snapshots et qualification mobile. L’écran de roulette est supprimé ; les cinq modales modifiées sont reprises ; les autres modes restent à compléter visuellement. Le layout d’exécution est conservé. Le guidage de cadence pendant l’Exécution appartient au MVP (D-378).
 
 ## Conception de planification
 
@@ -373,7 +373,7 @@ Cette consultation est incluse au MVP (D-203, confirmation du 28/09/2026). Voir 
 
 ## Cadence facultative — cible documentaire
 
-Le guidage de cadence pendant l’Exécution appartient au MVP (D-378). Les deux modes peuvent émettre un Bip de cadence, intervalle 0..10 s,0=Aucun, sans quatrième mode. Chronomètre croissant et signaux guident l’utilisateur ; Suivant conserve la fin normale de Série, même après la fin nominale. KODJO ne détecte pas les mouvements. Pour une cible À l’échec en Répétitions, le relevé facultatif peut être déclaré ; avec bip, une estimation est proposée et conservée tant qu’elle n’est pas explicitement confirmée ou corrigée. Référence : [Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité).
+Le guidage de cadence pendant l’Exécution appartient au MVP (D-378). Les deux modes peuvent émettre un Bip de cadence, intervalle 0..10 s, 0 = Sans (ligne `Cadence`, RM-245), sans quatrième mode. Chronomètre croissant et signaux guident l’utilisateur ; Suivant conserve la fin normale de Série, même après la fin nominale. KODJO ne détecte pas les mouvements. Pour une cible À l’échec en Répétitions, le relevé facultatif peut être déclaré ; avec bip, une estimation est proposée et conservée tant qu’elle n’est pas explicitement confirmée ou corrigée. Référence : [Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité).
 
 <a id="formats-vision"></a>
 ## Formats et création rapide

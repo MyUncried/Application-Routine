@@ -2,13 +2,19 @@
 
 Référence courante pour les composants ci-dessous, en complément du [DSF Circuits](DSF-CIRCUITS-CONTROLES-2026-10-12.md). Source : prompt transmis et inspection directe des deux pages Figma et du set `5544:5146`. Les dates des fichiers désignent le lot source. Les règles métier sont dans la [spécification](Specifications-fonctionnelles/09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#cibles-typees), les interactions dans CE-UI-10 ; Figma détermine le layout.
 
+**Mise à jour du 18/10/2026 — spécification v3.0 :**
+- Remplacé pour la présentation : « Popover de mode » (D-413 : ligne Mode en contrôle segmenté ; la condition d’arrêt a sa propre ligne, D-411) ; dans « Roulette de cible », l’option « Aucune durée, à l’échec » pour la durée commune des séries identiques (D-412 : roulette numérique seule ; option conservée pour une cellule de série variable en mode Durée). Le tableau variable est complété par la colonne Charge (D-404) et le cas mixte par le résultat non modifiable « À la cible et à l’échec » (D-411). La roulette Répétitions n’est pas visée par D-412. Géométrie, opacités, bornes et règle 00:00 de la variante avec échec sont inchangées.
+- Comportements : règles RM-235 à RM-250 du chapitre 10, [Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026) (décisions D-403 à D-413 du [registre](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#parametres-execution-20261018)) ; ce DSF n’en reprend pas l’énoncé. Les valeurs des captures restent illustratives.
+- Présentation nouvelle de la feuille des paramètres (D-413 ; spécification v3.0, GR-01 et PR-01 à PR-04 ; référence 402 × 874) : quatre cadres successifs espacés de 8 px, dans l’ordre de D-413 ; contrôles segmentés alignés à droite, titres à gauche, sans enveloppe blanche ; tableaux à fond blanc sans contour, lignes de 36 px, sans boutons +/− de tableau ; Cadence en 12 px ; labels Regular, plus petits que les valeurs ; options inactives en texte gris Regular sur le fond des champs variables ; option sélectionnée selon le traitement violet existant ; saisie de la charge au clavier décimal, tableau visible au-dessus du clavier avec une marge de 12 px (D-405) ; chevrons à l’intérieur des options Variables (Type de série) et Avec (Changement de côté) (D-410) ; Durée de l’exercice avec son chevron à 12 px du libellé (D-409).
+- Tokens : les valeurs correspondantes sont à relever dans Figma avant publication ; aucun nouveau token n’est défini ici.
+
 ## Popover de mode
 
-Deux options, Durée et Répétitions ; À l’échec quitte le choix de mode et devient une cible. Référence locale184×99, hauteur automatique (anciennement136). Même traitement en séries identiques/variables. Conserver shell, ancrage, voile et comportement de brouillon existants.
+[présentation remplacée par D-413 le 18/10/2026 : ligne Mode en contrôle segmenté ; condition d’arrêt sur sa ligne propre, D-411] Deux options, Durée et Répétitions ; À l’échec quitte le choix de mode et devient une cible. Référence locale184×99, hauteur automatique (anciennement136). Même traitement en séries identiques/variables. Conserver shell, ancrage, voile et comportement de brouillon existants.
 
 ## Roulette de cible
 
-Le set `DSF / Forms / Roulette` contient désormais cinq variantes. Les quatre numériques restent présentes : Secondes `5544:5101`, Minutes secondes `5544:5118`, Fin de séance `5826:4290`, Secondes avec unité `7130:13496`. La cinquième, `État=Minutes secondes avec échec`, est `8452:13297`.
+[portée restreinte par D-412 le 18/10/2026 : en mode Durée, variante réservée à une cellule de série variable, RM-250] Le set `DSF / Forms / Roulette` contient désormais cinq variantes. Les quatre numériques restent présentes : Secondes `5544:5101`, Minutes secondes `5544:5118`, Fin de séance `5826:4290`, Secondes avec unité `7130:13496`. La cinquième, `État=Minutes secondes avec échec`, est `8452:13297`.
 
 | Élément de la nouvelle variante | Géométrie locale | Rendu |
 |---|---|---|
@@ -18,7 +24,7 @@ Le set `DSF / Forms / Roulette` contient désormais cinq variantes. Les quatre n
 | Roulette numérique | 330×150, y31 | Structure numérique conservée |
 | Popover hôte de cible | 354×249 | Hauteur automatique ; ancien216 |
 
-Libellé : **Aucune durée, à l’échec** / **Aucune répétition, à l’échec**, selon le mode. Option en tête ; pas de coche. Le contrôle ouvre la cible courante ; validation par ✓ de la feuille, annulation par ✕. La sélection numérique et l’échec s’excluent mutuellement.
+[remplacé par D-412 le 18/10/2026 pour la durée commune des séries identiques : option absente ; conservée pour une cellule de série variable en mode Durée, RM-250] Libellé : **Aucune durée, à l’échec** / **Aucune répétition, à l’échec**, selon le mode. Option en tête ; pas de coche. Le contrôle ouvre la cible courante ; validation par ✓ de la feuille, annulation par ✕. La sélection numérique et l’échec s’excluent mutuellement.
 
 Toutes les lignes numériques ont le remplissage `#1a1a1f`. Le dégradé dépend de **l’opacité du remplissage**, pas d’une nouvelle couleur :
 
@@ -42,9 +48,9 @@ La roulette **Durée totale** reste sur `5544:5118`,330×150, popover354×216 : 
 
 ## Tableau variable et total
 
-Maître de ligne `8129:31593`, deux colonnes cible/Pause, même lorsque toutes les cibles sont À l’échec. La colonne de valeur avait disparu par anomalie d’instance ; il n’existe pas de variante métier à une colonne. En mode Durée, l’en-tête reste Durée ; les cellules peuvent afficher « à l’échec ».
+[complété par D-404 le 18/10/2026 : colonne Charge lorsque la charge est Avec, RM-238] Maître de ligne `8129:31593`, deux colonnes cible/Pause, même lorsque toutes les cibles sont À l’échec. La colonne de valeur avait disparu par anomalie d’instance ; il n’existe pas de variante métier à une colonne. En mode Durée, l’en-tête reste Durée ; les cellules peuvent afficher « à l’échec ».
 
-Le cas mixte `8470:13303` illustre30s/45s/échec, pauses10s/20s/30s, ≥2min15 en lecture seule. Les chiffres restent des données de démonstration ; le moteur détermine les montants. Tout échec : total absent. La règle d’interdiction du calcul inverse n’ajoute aucun nouveau composant : variable était déjà en lecture seule, identiques tout échec omet le total.
+[complété par D-411 le 18/10/2026 : Condition d’arrêt présentée en résultat unique non modifiable « À la cible et à l’échec », RM-249] Le cas mixte `8470:13303` illustre30s/45s/échec, pauses10s/20s/30s, ≥2min15 en lecture seule. Les chiffres restent des données de démonstration ; le moteur détermine les montants. Tout échec : total absent. La règle d’interdiction du calcul inverse n’ajoute aucun nouveau composant : variable était déjà en lecture seule, identiques tout échec omet le total.
 
 Aucun écran uniforme « Série à l’échec » supplémentaire : la frame créée puis supprimée ne doit pas revenir dans l’inventaire. Les huit cartes catalogue, ses filtres, les roulettes de total et les layouts d’exécution/synthèse/suivi sont conservés dans cette passe.
 

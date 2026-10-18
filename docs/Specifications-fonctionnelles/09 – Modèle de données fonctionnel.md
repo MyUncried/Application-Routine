@@ -239,7 +239,7 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 
 - Nouvelle exercice avec un nouvel identifiant.
 - *Texte identique à celui de la section [« Duplication d'une séance »](09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#duplication-dune-séance) ; il n’est pas recopié ici.*
-- Copie de toutes les propriétés, notamment Catégorie, Zones corporelles, mode/cible, Séries, Pause, Récupération, Changement de côté, Compte à rebours d’Exercice, Fin d’exercice et Description. Les associations média suivent leur règle de copie propre.
+- Copie de toutes les propriétés, notamment Catégorie, Zones corporelles, mode/cible, Séries, Pause, Récupération, Changement de côté, Charge et son activation, valeurs conservées sous Sans comprises (RM-236), Compte à rebours d’Exercice, Fin d’exercice et Description. Les associations média suivent leur règle de copie propre.
 - Aucun Exercice secondaire n’est créée pour la Récupération : sa durée est copiée avec l’Exercice.
 - La copie est insérée immédiatement après la source dans la même zone fonctionnelle avant/dans/après Circuit (valeurs techniques historiques `Avant Tour`, `Dans Tour`, `Après Tour`). Elle reste une copie de Séance indépendante et ne crée aucun Exercice dans le catalogue.
 
@@ -305,7 +305,8 @@ Un exercice possède directement :
 - sa durée cible, son nombre de répétitions cible ou l’absence de cible chiffrée pour une cible À l’échec ;
 - son nombre de Séries ;
 - sa Pause après chaque série ;
-- sa durée de Récupération, positionnée dans le Plan selon la direction effective ;
+- sa charge facultative et son activation, commune ou par Série (RM-235, RM-236) ;
+- sa durée de Récupération, positionnée dans le Plan selon le changement de côté effectif ;
 - son Changement de côté propre ;
 - son Compte à rebours d’Exercice propre lorsqu’il est utilisé ;
 - sa Fin d’exercice propre lorsqu’elle est utilisée ;
@@ -330,7 +331,7 @@ Elle ne contient pas directement :
 | Nom                        | Libellé affiché                                 |        Obligatoire        |                                                                               |
 | Description                | Instructions                                    |        Facultatif         |                                                                               |
 | Catégorie                  | Classification de l’Exercice                    | Obligatoire (nouvel Exercice) | Exactement une pour un nouvel Exercice valide (D-211) ; porte la couleur sémantique de l’Exercice                                      |
-| Changement de côté        | `UNILATERAL`, `RIGHT_LEFT`, `LEFT_RIGHT`        |        Obligatoire        | Affiché `Aucun`, `D→G`, `G→D`; défaut `UNILATERAL`                             |
+| Changement de côté        | Sans / Avec (RM-242)        |        Obligatoire        | Défaut Sans ; valeurs historiques : `UNILATERAL` lue Sans, `RIGHT_LEFT` et `LEFT_RIGHT` lues Avec, sans réinterprétation de l’Ordre des côtés ni réécriture (RM-244) ; représentation technique laissée à l’implémentation |
 | Compte à rebours d’Exercice | Durée propre précédant le travail              |        Facultatif         | Distinct du Compte à rebours initial de Séance                                 |
 | Fin d’exercice            | Durée propre suivant les phases de l’Exercice   |        Facultatif         | Distincte de la Fin de séance                                                   |
 | Mode d'exécution           | Durée ou Répétitions, avec cible chiffrée ou À l’échec par série                 |        Obligatoire        | À l’échec n’a ni durée ni répétitions cibles                                  |
@@ -340,8 +341,12 @@ Elle ne contient pas directement :
 | Pause après chaque série         | Durée                                           |        Obligatoire        | Valeur canonique `0 s` ; attachée à chaque Série, terminale comprise ; chapitre 08, paramètres d’exercice                     |
 | Pause entre les côtés   | Durée                                           |        Conditionnel       | `sideRecoverySeconds`; pertinente uniquement en bilatéral, phase `SIDE_RECOVERY` si > 0 |
 | Séries variables | Booléen explicite | Obligatoire | Faux par défaut ; faux à N=1 ; l’égalité des valeurs ne le détermine pas |
-| Paramètres par Série | Collection ordonnée de N cibles/Pauses | Conditionnel | Source unique en variable ; cible absente À l’échec ; aucun brouillon caché persisté |
-| Ordre des côtés | Un côté après l’autre / Les deux côtés à chaque série | Bilatéral | Premier ordre par défaut et à N=1 ; indépendant de D→G/G→D |
+| Paramètres par Série | Collection ordonnée de N cibles/Pauses, avec la charge éventuelle de chaque Série | Conditionnel | Source unique en variable ; cible absente À l’échec ; la charge reste liée à sa Série (RM-238) ; aucun brouillon caché persisté (les charges conservées sous Sans ne sont pas un brouillon caché, RM-236) |
+| Charge activée | État Avec / Sans, distinct des valeurs | Facultatif | Sans par défaut ; absent sur un Exercice antérieur = Sans, jamais 0 kg ; Sans conserve les valeurs (RM-236) ; passage automatique à Sans lorsque toutes les valeurs valent zéro (RM-239) |
+| Charge commune | Valeur numérique en kg | Facultatif | Séries identiques ; unité d’affichage, non stockée dans le nombre ; pas, zéro et arrondi selon RM-239 ; conservée sous Sans (RM-236) |
+| Charge par série | Valeur numérique en kg liée à la Série | Facultatif | Séries variables ; élément des Paramètres par Série, suit sa Série (RM-238) ; zéro = sans charge pour cette seule Série (RM-239) ; aucune valeur par côté (RM-235) |
+| Ordre des côtés | Un côté après l’autre / Les deux côtés à chaque série | Bilatéral | Libellé visible Enchainement (D-413) ; premier ordre par défaut et à N=1 ; indépendant du côté de départ, que Kodjo ne désigne pas (RM-242) |
+| Condition d’arrêt | Valeur dérivée | Calculé | Non persistée ; dérivée du type de cible des Séries ; en séries identiques, la choisir fixe la cible commune (RM-248) ; aucune valeur Mixte (RM-249) |
 | Durée totale               | Durée dérivée                                   |          Calculé          | Non persistée ; exacte en Durée, estimation ≈ avec cadence, borne omission sans bip à l’Exercice, absente À l’échec                            |
 | Zones corporelles          | Zones sollicitées                               | Obligatoire (nouvel Exercice) | Une ou plusieurs pour un nouvel Exercice valide (D-211)                                                              |
 | Médias                     | Média(s) associé(s)                             |        Selon périmètre    | Affichage du média associé dans la gouttière permanente de la carte Catalogue inclus au MVP, sans déploiement       |
@@ -355,6 +360,7 @@ Elle ne contient pas directement :
 - Une `ActivityDefinition` bilatérale peut porter `sideRecoverySeconds`, exécuté une fois par Exercice en Un côté après l’autre, ou une fois par paire en Les deux côtés à chaque série.
 - Toute `SessionActivity` porte `postActivityRecoverySeconds`, y compris avec la valeur `0`; une valeur positive crée une phase après l’occurrence et avant `SESSION_END` si elle est la dernière.
 - Ni la Pause ni les récupérations ne créent une entité Exercice associé.
+- La charge est informative : elle ne crée aucune phase et n’entre dans aucun calcul de durée, de pause ou de cadence (RM-235).
 - Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 - En Durée uniforme seulement, si l’utilisateur pilote par une Durée totale cible, le calcul inverse porte sur cette durée intrinsèque puis applique l’arrondi validé à `C`. Seul `C` est persisté comme valeur canonique de Séries.
 - Toutes les Exercices peuvent être associées à des zones corporelles.
@@ -407,9 +413,9 @@ Un `MediaAsset` possède son identité et ses informations techniques. Les liens
 
 #### Contraintes d’Exercice
 
-`executionMode ∈ {DURATION, REPETITIONS}`. Chaque série possède un type de cible explicite : chiffrée (durée ou répétitions selon le mode) ou À l’échec (aucun nombre prescrit). Valeur invalide/absente distincte de l’échec. L’ancien TO_FAILURE est lu/migré vers REPETITIONS avec toutes les cibles À l’échec, sans inventer de relevé historique. Pause, nombre de Séries et Pause entre les côtés restent disponibles dans les deux modes ; la Récupération après exercice appartient à l’occurrence de Séance (D-208). Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Bip entier 0..10 par Série, réglage commun valide dans les deux modes. La phrase elle-même n’est pas persistée comme source de vérité (RM-232).
+`executionMode ∈ {DURATION, REPETITIONS}`. Chaque série possède un type de cible explicite : chiffrée (durée ou répétitions selon le mode) ou À l’échec (aucun nombre prescrit). Valeur invalide/absente distincte de l’échec. L’ancien TO_FAILURE est lu/migré vers REPETITIONS avec toutes les cibles À l’échec, sans inventer de relevé historique. Pause, nombre de Séries et Pause entre les côtés restent disponibles dans les deux modes ; la Récupération après exercice appartient à l’occurrence de Séance (D-208). Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Bip entier 0..10 par Série, réglage commun valide dans les deux modes. La charge (activation, valeur commune ou valeurs par Série, en kg) est indépendante de `executionMode`, de la condition d’arrêt et du changement de côté (RM-235). La phrase elle-même n’est pas persistée comme source de vérité (RM-232).
 
-L’ajout d’une définition copie nom, description, zones corporelles, mode, durée ou répétitions, Séries, Pause, Pause entre les côtés (`sideRecoverySeconds`) et associations média ; la Récupération après exercice n’est pas copiée : elle appartient à l’occurrence et n’est jamais créée automatiquement (D-171 révisée par D-208, D-304). La copie n’a plus de lien fonctionnel avec la définition. La position `BEFORE_TOUR`, `IN_TOUR` ou `AFTER_TOUR` n’existe que sur `SessionActivity`.
+L’ajout d’une définition copie nom, description, zones corporelles, mode, durée ou répétitions, Séries, Pause, Pause entre les côtés (`sideRecoverySeconds`), changement de côté, charge et son activation, valeurs conservées sous Sans comprises (RM-236), et associations média ; la Récupération après exercice n’est pas copiée : elle appartient à l’occurrence et n’est jamais créée automatiquement (D-171 révisée par D-208, D-304). La copie n’a plus de lien fonctionnel avec la définition. La position `BEFORE_TOUR`, `IN_TOUR` ou `AFTER_TOUR` n’existe que sur `SessionActivity`.
 
 #### Contraintes Média
 
@@ -429,7 +435,7 @@ Cette section constitue l’unique référence du chapitre 09 pour la distinctio
 
 `ActivityDefinition` est la référence persistante autonome du Catalogue des Exercices. `SessionActivity` est une copie appartenant à une Séance.
 
-Lors d’une insertion depuis le Catalogue, la copie reprend les propriétés métier applicables au moment de la validation : nom, Description, Catégorie, Zones corporelles, mode et cible, nombre de Séries, Pause, Récupération, Changement de côté, Compte à rebours d’Exercice, Fin d’exercice et autres champs persistants applicables. Après insertion, aucune synchronisation ni propagation n’existe entre la définition et la copie.
+Lors d’une insertion depuis le Catalogue, la copie reprend les propriétés métier applicables au moment de la validation : nom, Description, Catégorie, Zones corporelles, mode et cible, nombre de Séries, Pause, Récupération, Changement de côté, charge et son activation (RM-236), Compte à rebours d’Exercice, Fin d’exercice et autres champs persistants applicables. Après insertion, aucune synchronisation ni propagation n’existe entre la définition et la copie.
 
 La capacité existante de créer directement une `SessionActivity` depuis une Composition ne crée jamais implicitement d’`ActivityDefinition`. Elle est conservée dans le modèle et l’architecture même lorsqu’elle n’est pas exposée dans le parcours utilisateur courant.
 
@@ -484,7 +490,7 @@ La face et l’index ne sont pas persistés entre séances, ne sont pas copiés 
 
 ##### ActivityDefinition
 
-`ActivityDefinition` ne contient aucun champ de récupération post-exercice. Il peut porter `sideRecoverySeconds`, pertinent uniquement pour `RIGHT_LEFT` ou `LEFT_RIGHT`.
+`ActivityDefinition` ne contient aucun champ de récupération post-exercice. Il peut porter `sideRecoverySeconds`, pertinent uniquement avec changement de côté (Avec ; valeurs historiques `RIGHT_LEFT` ou `LEFT_RIGHT`, RM-244).
 
 ##### SessionActivity
 
@@ -504,9 +510,9 @@ Le plan distingue au minimum la phase de Pause entre les côtés de la phase de 
 - `Session` ne porte aucun booléen de prise en compte des phases propres `Compte à rebours d’exercice + Fin d’exercice`. Ces phases sont toujours exclues du plan de Séance ; seuls le Compte à rebours initial et la Fin de séance s’appliquent. Les paramètres propres demeurent sur l’Exercice pour son exécution autonome.
 - Un Point d’arrêt placé dans le Circuit appartient au contenu répété et est donc développé à chaque Tour.
 
-La phrase de synthèse des paramètres d’exécution est une **valeur dérivée non persistée**. Elle est régénérée depuis `executionMode`, nombre de Séries, état uniforme/variable, cible/Pause communes ou collection ordonnée, `sideMode`, Ordre des côtés et `sideRecoverySeconds`. Aucun champ de stockage autonome de la phrase n’est requis (RM-232).
+La phrase de synthèse des paramètres d’exécution est une **valeur dérivée non persistée**. Elle est régénérée depuis `executionMode`, nombre de Séries, état uniforme/variable, cible/Pause communes ou collection ordonnée, `sideMode`, Ordre des côtés, `sideRecoverySeconds` et la charge active (RM-240). Aucun champ de stockage autonome de la phrase n’est requis (RM-232).
 
-Bornes de validation D-232 : `seriesCount ∈ [1,99]`, répétitions par Série `∈ [1,100]`, durée par Série `∈ [5,3535] s`, pauses inter-Séries et inter-côtés `∈ [0,300] s`. Une valeur héritée hors bornes, non modifiée, peut être conservée ; toute nouvelle saisie ou modification doit respecter ces bornes (D-383). Le pas UI n’est pas une contrainte de stockage : tap 1 s, maintien accéléré 1/5/10 selon DSF Bip ; aucun arrondi à la lecture.
+Bornes de validation D-232 : `seriesCount ∈ [1,99]`, répétitions par Série `∈ [1,100]`, durée par Série `∈ [5,3535] s`, pauses inter-Séries et inter-côtés `∈ [0,300] s`. Une valeur héritée hors bornes, non modifiée, peut être conservée ; toute nouvelle saisie ou modification doit respecter ces bornes (D-383). Le pas UI n’est pas une contrainte de stockage : tap 1 s, maintien accéléré 1/5/10 selon DSF Bip ; aucun arrondi à la lecture. La charge suit ses propres règles de pas, de zéro et d’arrondi (RM-239, D-405) ; ces bornes D-232 ne s’y appliquent pas.
 
 #### Paramètres de Série et Ordre des côtés — D-247 à D-254
 
@@ -584,11 +590,11 @@ Compatibilité : les anciennes séances sans format restent libres, leurs histor
 
 ##### Compatibilité, données, API et instantanés
 
-Existant sans nouveaux attributs : uniforme, Un côté après l’autre. Quantité de travail, cibles, Pauses stockées et direction conservées. **Le changement de durée et de pauses exécutées est assumé pour les exercices existants**, confirmé le 02/10. Les instantanés et résultats historiques restent immuables ; ne pas réécrire les durées réalisées.
+Existant sans nouveaux attributs : uniforme, Un côté après l’autre. Quantité de travail, cibles, Pauses stockées et changement de côté conservés ; une direction historique vaut Avec (RM-244). Un Exercice sans charge est lu Sans, jamais 0 kg (RM-236). **Le changement de durée et de pauses exécutées est assumé pour les exercices existants**, confirmé le 02/10. Les instantanés et résultats historiques restent immuables ; ne pas réécrire les durées réalisées.
 
 La clarification du 07/10 conserve la Pause après chaque série, dernière comprise ; seule une récupération positive qui suit remplace la dernière Pause. Les snapshots existants demeurent immuables ; la migration physique doit être planifiée.
 
-Le modèle persistant et les copies/duplications doivent conserver le mode uniforme/variable explicite, N, la collection ordonnée cible/Pause lorsque variable, la direction, l’ordre des côtés, PC, Compte à rebours et Fin. R reste dans l’occurrence. Les paramètres variables remplacent les paramètres uniformes comme source effective, sans surcharges. Prévoir représentation et version d’instantané compatibles ; la structure SQL exacte et la migration relèvent de la planification technique, pas d’un nouveau choix Figma.
+Le modèle persistant et les copies/duplications doivent conserver le mode uniforme/variable explicite, N, la collection ordonnée cible/Pause lorsque variable, le changement de côté, l’ordre des côtés, PC, Compte à rebours et Fin, ainsi que la charge : activation, charge commune ou charges par Série, y compris les valeurs conservées sous Sans et les valeurs décimales acceptées (RM-236, RM-239). Cette conservation des valeurs désactivées est propre à la charge : la non-persistance des variantes cachées reste applicable aux autres paramètres (D-403). R reste dans l’occurrence. Les paramètres variables remplacent les paramètres uniformes comme source effective, sans surcharges. Prévoir représentation et version d’instantané compatibles ; la structure SQL exacte et la migration relèvent de la planification technique, pas d’un nouveau choix Figma.
 
 API de validation/calcul/duplication et construction du plan doivent consommer la même représentation et les mêmes formules. Aucun résumé textuel ni total dérivé n’est une source persistée indépendante. Persistance atomique : aucune série partiellement écrite, aucune mutation d’ActivityDefinition par sa copie dans une Séance.
 
@@ -605,9 +611,9 @@ Le mode reste unique pour l’exercice. La cible devient une propriété de chaq
 
 Une représentation typée distinguera explicitement cible chiffrée et cible à l’échec. Ni `0`, ni une chaîne dans un champ numérique, ni un simple `null` ambigu ne doivent porter seuls cette distinction. Le nom physique des champs et le schéma de migration restent des choix d’implémentation.
 
-Le régime identiques/variables reste indépendant du mode. En identiques, toutes les séries ont la même cible, y compris À l’échec. En variable, la collection peut mélanger cibles numériques et À l’échec ; l’ordre est conservé. Des cibles momentanément égales ne changent pas automatiquement le régime. N=1 suit la normalisation déjà actée.
+Le régime identiques/variables reste indépendant du mode. En identiques, toutes les séries ont la même cible, y compris À l’échec. En variable, la collection peut mélanger cibles numériques et À l’échec ; l’ordre est conservé. Des cibles momentanément égales ne changent pas automatiquement le régime. N=1 suit la normalisation déjà actée. La Condition d’arrêt présentée est dérivée de ces cibles : aucune condition globale ni valeur Mixte n’est persistée (RM-248, RM-249).
 
-Les mêmes prescriptions s’appliquent aux deux côtés ; leurs résultats sont distincts. Nombre hérité d’un circuit de séries, ajout, suppression, copie de dernière ligne, déplacement, retour au régime identique et restauration temporaire suivent les règles existantes. Copier une cible À l’échec copie son type et sa pause, sans inventer de nombre.
+Les mêmes prescriptions s’appliquent aux deux côtés ; leurs résultats sont distincts. Nombre hérité d’un circuit de séries, ajout, suppression, copie de dernière ligne, déplacement, retour au régime identique et restauration temporaire suivent les règles existantes. Copier une cible À l’échec copie son type et sa pause, sans inventer de nombre. La charge d’une Série suit les mêmes opérations que sa cible et sa Pause (RM-238) ; elle ne porte aucune valeur distincte par côté (RM-235).
 
 Une bascule Durée/Répétitions conserve le caractère À l’échec, indépendant de l’unité. Les cibles numériques incompatibles suivent les mécanismes existants de brouillon, mise à renseigner et restauration ; aucune conversion secondes ↔ répétitions n’est introduite.
 
@@ -638,9 +644,9 @@ Contenu identique à la section [« Saisie des paramètres d’exécution »](10
 
 ### Extension validée du modèle — Paramètres de Série et Ordre des côtés — D-247 à D-254
 
-Le mode d’exécution est commun à l’Exercice. Le stockage distingue explicitement uniforme et variable, même si les valeurs sont identiques. En variable, conserver N lignes ordonnées avec cible (Durée/Répétitions) et Pause ; aucune cible numérique À l’échec. Les mêmes lignes s’appliquent aux deux côtés. Direction et Ordre des côtés sont deux propriétés distinctes. N=1 est normalisé uniforme/Un côté après l’autre dès le brouillon.
+Le mode d’exécution est commun à l’Exercice. Le stockage distingue explicitement uniforme et variable, même si les valeurs sont identiques. En variable, conserver N lignes ordonnées avec cible (Durée/Répétitions), Pause et charge éventuelle (RM-238) ; aucune cible numérique À l’échec. Les mêmes lignes s’appliquent aux deux côtés. Changement de côté (Sans / Avec, RM-242) et Ordre des côtés sont deux propriétés distinctes ; aucune direction anatomique n’est plus choisie (D-406). N=1 est normalisé uniforme/Un côté après l’autre dès le brouillon.
 
-Copie Catalogue→Séance, duplication et nouvel instantané conservent tout cet état. Les données sans nouveaux attributs sont uniformes/Un côté après l’autre. Les calculs actuels s’appliquent aussi aux Exercices existants ; résultats historiques immuables. Les valeurs temporaires de restauration et le repli visuel ne sont jamais persistés. Voir chapitre 08, paramètres d’exercice et 8 pour le contrat complet.
+Copie Catalogue→Séance, duplication et nouvel instantané conservent tout cet état. Les données sans nouveaux attributs sont uniformes/Un côté après l’autre. Les calculs actuels s’appliquent aussi aux Exercices existants ; résultats historiques immuables. Les valeurs temporaires de restauration et le repli visuel ne sont jamais persistés ; les charges conservées sous Sans ne sont pas des valeurs temporaires et sont persistées (RM-236, D-403). Voir chapitre 08, paramètres d’exercice et 8 pour le contrat complet.
 
 ### Extension validée du modèle — Extension Cadence du modèle de Série
 
@@ -716,7 +722,7 @@ Il ne contient pas de copie physique des médias associés aux Exercices.
 | Compte à rebours initial | Durée, texte vocal                                                                                             |
 | Cycle                    | Identifiant, position, nombre de répétitions                                                                   |
 | Tour                      | Identifiant, position, nombre de répétitions                                                                   |
-| Exercice                | Identifiant source, nom, mode d’exécution, durée ou répétitions cibles lorsqu’elles existent, nombre de Séries, état uniforme/variable, cibles/Pauses ordonnées, direction, Ordre des côtés, PC, R contextuelle de l’occurrence uniquement, description, zones corporelles, associations média ordonnées et références stables dans la cible post-T05 |
+| Exercice                | Identifiant source, nom, mode d’exécution, durée ou répétitions cibles lorsqu’elles existent, nombre de Séries, état uniforme/variable, cibles/Pauses ordonnées, charge et son activation (commune ou par Série, valeurs conservées sous Sans comprises, RM-236), changement de côté, Ordre des côtés, PC, R contextuelle de l’occurrence uniquement, description, zones corporelles, associations média ordonnées et références stables dans la cible post-T05 |
 | Durée totale             | Valeur recalculable, non canonique et non persistée comme source de vérité                                      |
 | Fin de séance            | Durée, texte vocal                                                                                             |
 | Structure                | Ordre exact des éléments et relations nécessaires au plan d’exécution                                          |
@@ -820,6 +826,7 @@ Le Compte à rebours initial structurellement présent, éventuellement instanta
 - La fin du dernier Exercice active `SESSION_END`. L’Exécution n’est terminée qu’après l’achèvement de cette dernière étape ; une durée de `0 s` l’achève immédiatement.
 - Les comptes bornés sont résolus lors de la génération. Pour AMRAP/Death by, les passages sont générés progressivement ; rang temporel et acquisition de résultat sont distincts.
 - Chaque Série produit une phase `ACTIVITY`. Une phase `SERIES_PAUSE` existe après chaque Série quand sa pause est positive, dernière comprise, sauf substitution terminale par une récupération positive suivant les règles de l’occurrence. `SIDE_RECOVERY` est insérée entre les côtés si nécessaire ; `POST_ACTIVITY_RECOVERY` est insérée après chaque occurrence de Séance si sa durée contextuelle est positive.
+- La charge active de chaque Série, figée dans l’instantané, est l’information affichée pendant cette Série (RM-241) ; elle ne crée, ne modifie ni ne supprime aucune phase (RM-235).
 - La conception T04 à compte borné développe Séries, Tours et côtés avant démarrage. Pour les formats ouverts, l’instantané fige la prescription et la règle de génération, pas un nombre arbitraire de fenêtres futures.
 - Les préférences globales sont appliquées pendant l'exécution sans modifier le plan.
 
@@ -884,13 +891,13 @@ Création → En cours → Suspendue → Reprise → Terminée, Partielle ou Int
 
 | Donnée | Type et règle |
 |---|---|
-| `activity.sideMode` | `UNILATERAL | RIGHT_LEFT | LEFT_RIGHT`, non nul, défaut `UNILATERAL`; présent sur l’Exercice persistant et sur son occurrence de Séance. |
+| `activity.sideMode` | Changement de côté Sans / Avec (RM-242), non nul, défaut Sans ; valeurs historiques `UNILATERAL` (Sans), `RIGHT_LEFT` et `LEFT_RIGHT` (lues Avec, sans réinterprétation de l’Ordre des côtés, RM-244) ; représentation technique laissée à l’implémentation ; présent sur l’Exercice persistant et sur son occurrence de Séance. |
 | `tour.sideMode` | Champ technique historique conservé pour compatibilité et non-régression ; dans la version actuelle il reste fixé à `UNILATERAL` et n’est pas exposé ni modifiable. |
 | `executionPlanNode.effectiveSideMode` | Valeur figée dans l’instantané, résolue depuis l’Exercice dans la version actuelle. |
-| `executionPlanNode.executionSide` | `NONE | RIGHT | LEFT`; `NONE` uniquement pour une exécution unilatérale ou une phase structurelle sans côté. |
-| `activityResult.executionSide` | `NONE | RIGHT | LEFT`; participe à la clé logique d’idempotence avec l’Exercice, le Tour et la Série. |
+| `executionPlanNode.executionSide` | Sans côté, côté 1 (côté par lequel l’utilisateur commence) ou côté 2 (RM-243) ; noms techniques laissés à l’implémentation, valeurs historiques `NONE`, `RIGHT`, `LEFT` lisibles (RM-244) ; sans côté uniquement pour une exécution unilatérale ou une phase structurelle sans côté. |
+| `activityResult.executionSide` | Sans côté, côté 1 ou côté 2 (RM-243) ; résultats historiques `NONE`, `RIGHT`, `LEFT` lisibles sans réécriture (RM-244) ; participe à la clé logique d’idempotence avec l’Exercice, le Tour et la Série. |
 
-La migration ajoute `UNILATERAL` comme valeur par défaut aux données de côté historiques sans dupliquer Exercice ni Résultat. Les résultats historiques reçoivent `NONE`. Le champ technique historique de côté du Tour est conservé pour compatibilité et non-régression, reste fixé à `UNILATERAL` et n’est pas exposé à la mutation utilisateur dans la version actuelle.
+La migration ajoute `UNILATERAL` comme valeur par défaut aux données de côté historiques sans dupliquer Exercice ni Résultat. Les résultats historiques reçoivent `NONE`. Les valeurs historiques `RIGHT_LEFT` et `LEFT_RIGHT` valent Avec et ne sont pas réécrites sans nécessité (RM-244). Le champ technique historique de côté du Tour est conservé pour compatibilité et non-régression, reste fixé à `UNILATERAL` et n’est pas exposé à la mutation utilisateur dans la version actuelle.
 
 #### Extension V2 — origine et instantané d’Exécution
 
@@ -1129,7 +1136,7 @@ Elles ne contiennent pas directement :
 | Vibration                                          | Active les vibrations fonctionnelles de séance                             | Facultatif  | Valeur initiale activée ; n'affecte pas le feedback haptique systématique des roulettes numériques |
 | Écran maintenu actif                               | Empêche la mise en veille pendant une exécution de séance                  | Facultatif  | Pendant l'exécution uniquement                                           |
 | Durée par défaut d'un exercice Exercice           | Valeur initiale proposée                                                   | Facultatif  | Création uniquement                                                      |
-| Pause entre les côtés par défaut              | Valeur globale du Profil utilisée pour initialiser `sideRecoverySeconds` lors de l’activation `D→G` ou `G→D` d’un Exercice | Facultatif | `10 s` dans le Figma de référence ; valeur proposée à la création/activation bilatérale puis modifiable dans l’éditeur |
+| Pause entre les côtés par défaut              | Valeur globale du Profil utilisée pour initialiser `sideRecoverySeconds` lors de l’activation du changement de côté (Avec) d’un Exercice | Facultatif | `10 s` dans le Figma de référence ; valeur proposée à la création/activation bilatérale puis modifiable dans l’éditeur |
 | Récupération après exercice par défaut              | Valeur proposée lors de l’ajout explicite d’une récupération | Facultatif | `30 s` dans le Figma de référence ; ajout explicite uniquement ; une modification ultérieure ne change pas les récupérations existantes |
 | Date de création                                   | Date de création                                                           | Obligatoire | Générée automatiquement                                                  |
 | Date de modification                               | Dernière modification                                                      | Obligatoire | Mise à jour automatiquement                                              |

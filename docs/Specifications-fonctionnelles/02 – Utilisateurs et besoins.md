@@ -61,7 +61,7 @@ Une personne qui souhaite créer, planifier, exécuter et suivre seule des Séan
 - **B-012** — Saisir soit le nombre de Séries, soit une Durée totale cible, puis comprendre immédiatement la valeur entière recalculée par l’application.
 - **B-013** — Organiser les Exercices avant le Circuit, dans le Circuit ou après le Circuit.
 - **B-014** — Exécuter le Circuit de 1 à 99 Tours ; aucun changement de côté n’est exposé au niveau du Circuit dans la version actuelle.
-- **B-015** — Régler le `Changement de côté` propre à un Exercice sur `Aucun`, `D→G` ou `G→D`, puis voir cette direction sur sa carte et dans sa synthèse.
+- **B-015** — Régler le `Changement de côté` propre à un Exercice sur `Avec` ou `Sans`, sans désignation du côté de départ, puis voir ce changement de côté sur sa carte et dans sa synthèse (D-406, D-407).
 - **B-016** — Réordonner manuellement les Exercices par glisser-déposer ; leur Récupération après exercice se déplace avec l’occurrence sans recalcul.
 - **B-017** — Régler le Compte à rebours initial et la Fin de séance.
 - **B-018** — Régler, lorsqu’ils sont utilisés, le Compte à rebours propre et la Fin propre d’un Exercice.
@@ -197,10 +197,11 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 - **B-071** — Ancienne cible de Parcours autonome retirée par D-328 ; voir la planification multi-contenus du 08/10.
 - *Texte identique à celui de la section [« 8. Besoins validés pour les évolutions »](#8-besoins-validés-pour-les-évolutions) ; il n’est pas recopié ici.*
 - **B-072** — Exécuter dès le MVP un Exercice `À l’échec` avec le même geste `Suivant` que le mode Répétitions.
-- **B-073** — Configurer un Exercice ou un Circuit en unilatéral, droite-gauche ou gauche-droite, sans créer de zones corporelles latéralisées (au niveau du Circuit : besoin d’évolution potentiel, explicitement hors du périmètre actuel, D-209, D-395, RM-146).
-- **B-074** — Comprendre le côté courant pendant l’Exécution grâce au sous-titre `Côté droit` ou `Côté gauche`, sans compteur supplémentaire.
-- **B-075** — Conserver séparément les résultats du côté droit et du côté gauche, y compris lorsqu’un seul côté est partiellement réalisé.
+- **B-073** — Configurer un Exercice ou un Circuit sans ou avec changement de côté, sans désignation anatomique du côté de départ (D-406) et sans créer de zones corporelles latéralisées (au niveau du Circuit : besoin d’évolution potentiel, explicitement hors du périmètre actuel, D-209, D-395, RM-146).
+- **B-074** — Comprendre le côté courant pendant l’Exécution grâce au sous-titre `Côté 1` ou `Côté 2`, sans compteur supplémentaire (D-407).
+- **B-075** — Conserver séparément les résultats du côté 1 et du côté 2, y compris lorsqu’un seul côté est partiellement réalisé.
 - **B-076** — Activer la bilatéralité d’un Circuit après confirmation ; toutes ses Exercices héritent alors du Circuit et leur contrôle propre devient unilatéral désactivé (besoin d’évolution potentiel, explicitement hors du périmètre actuel, non validé pour la version actuelle : D-209, D-395, RM-145 à RM-147).
+- **B-092** — Renseigner facultativement une charge informative en kilogrammes pour un Exercice, commune aux Séries identiques ou propre à chaque Série variable, et la retrouver pendant l’Exécution (D-403, RM-235 à RM-241).
 
 ## 9. Besoins MVP T03 — Catalogue des Exercices et Exécution directe
 
@@ -231,7 +232,7 @@ Le besoin détaillé est consolidé dans `../CONCEPTION-EXECUTION-MEDIA.md`.
 #### Régler les récupérations
 
 - **B-086** — Distinguer clairement la Pause après chaque série, la Pause entre les côtés et la Récupération après exercice.
-- **B-087** — Dans l’éditeur d’Exercice, n’exposer la Pause entre les côtés que lorsque le Changement de côté vaut `D→G` ou `G→D`.
+- **B-087** — Dans l’éditeur d’Exercice, n’exposer la Pause entre les côtés que lorsque le Changement de côté vaut `Avec` (D-406).
 - **B-088** — Dans la Composition, ajouter explicitement une récupération, en modifier la durée et la retirer. À 0 s ou en son absence, aucune information de récupération ; le trait reste indépendant du contenu (D-303).
 - **B-089** — Conserver cette récupération avec l’occurrence lors d’un déplacement ou d’une duplication ; la supprimer avec l’occurrence.
 - **B-090** — Exécuter la récupération du dernier Exercice avant la Fin de séance, et celle du dernier Exercice du Circuit à chaque Tour.

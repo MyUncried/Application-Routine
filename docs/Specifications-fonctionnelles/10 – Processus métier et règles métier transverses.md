@@ -27,6 +27,7 @@ Ce chapitre réunit les règles métier testables et les calculs, identifiés ou
 - [Paramètres d’exécution](#paramètres-dexécution)
   - [Saisie des paramètres d’exécution](#saisie-des-paramètres-dexécution)
   - [Cadence — règles transverses complémentaires](#cadence--règles-transverses-complémentaires)
+  - [Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026](#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026)
   - [Calculs et cas de recette des cibles mixtes](#calculs-et-cas-de-recette-des-cibles-mixtes)
   - [Créer ou modifier un Exercice — Déroulement d’un Exercice](#créer-ou-modifier-un-exercice--déroulement-dun-exercice)
   - [Déroulement d’un Exercice](#déroulement-dun-exercice)
@@ -271,10 +272,10 @@ Les exécutions déjà enregistrées restent conservées dans l'historique.
 
 Créer depuis Catalogue ouvre le formulaire ; Modifier reprend les données existantes. Nom, une Catégorie et au moins une Zone sont requis pour un nouvel Exercice. Carte Paramètres → feuille transactionnelle ; ✕/retour annule son brouillon, ✓ applique au parent ; Terminer seul persiste. Abandon du formulaire modifié ouvre la confirmation existante. Ouvrir un référentiel conserve les paramètres, même variables.
 
-Section [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice) : mode unique, N séries par côté, cibles/Pauses propres à chaque ligne en variable, direction et Ordre des côtés indépendants. N=1 effectif uniforme/Un côté après l’autre ; restauration temporaire avant✓. Déplacement cible/Pause conjoint ; nouvelle première reprise à désactivation, nouvelle dernière Pause stockée et exécutée, sauf substitution par récupération positive. Total variable readonly ; ligne Total affichée, y compris à N = 1 (D-396), avec « — » lorsqu’une cible nécessaire au calcul manque (D-384) ; Répétitions : ≈ avec cadence, omission sans bip à l’Exercice ; À l’échec aucun total.
+Section [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice) : mode unique, N séries par côté, cibles/Pauses propres à chaque ligne en variable, Changement de côté (Avec / Sans) et Ordre des côtés (D-406), charge facultative (RM-235 à RM-241). N=1 effectif uniforme/Un côté après l’autre ; restauration temporaire avant✓. Déplacement cible/Pause conjoint ; nouvelle première reprise à désactivation, nouvelle dernière Pause stockée et exécutée, sauf substitution par récupération positive. Total variable readonly ; ligne Durée de l’exercice (D-409) affichée, y compris à N = 1 (D-396), avec « — » lorsqu’une cible nécessaire au calcul manque (D-384) ; Répétitions : ≈ avec cadence, omission sans bip à l’Exercice ; À l’échec aucun total.
 
 ### Règles transverses de l’éditeur d’Exercice
-Les écrans Exercice placent le champ Nom en premier dans la zone bleue et suppriment le contexte de Séance. Aucun type d’Exercice n’est affiché. Le mode d’exécution propose `Durée` et `Répétitions`. `À l’échec` est un type de cible de série, sélectionné dans le contrôle de cible, et non un troisième mode. Dans le MVP, la zone Média suit les frames courantes et la carte d’Exercice du Catalogue conserve sa gouttière permanente avec premier média ou icône de nature, sans déploiement (D-260/D-261/D-264). Les capacités d’import/capture restent régies par leur périmètre propre. Les accès `Catégorie` et `Zones corporelles` utilisent une icône `+` séparée de leur libellé.
+Les écrans Exercice placent le champ Nom en premier dans la zone bleue et suppriment le contexte de Séance. Aucun type d’Exercice n’est affiché. Le mode d’exécution propose `Durée` et `Répétitions`. `À l’échec` est un type de cible de série, choisi par la Condition d’arrêt en séries identiques et dans la cellule du tableau en séries variables (RM-248 à RM-250), et non un troisième mode. Dans le MVP, la zone Média suit les frames courantes et la carte d’Exercice du Catalogue conserve sa gouttière permanente avec premier média ou icône de nature, sans déploiement (D-260/D-261/D-264). Les capacités d’import/capture restent régies par leur périmètre propre. Les accès `Catégorie` et `Zones corporelles` utilisent une icône `+` séparée de leur libellé.
 
 La frame historique `3561:7802` illustrait l’état À l’échec : ordre `Séries` → cadre informatif `à l’échec` → `Pause`, seconde rangée `Changement de côté / Récupération / Durée totale >=`, sans cible chiffrée. Cette ancienne disposition ne définit plus l’éditeur actif : la feuille ([Feuille et contrôles](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#feuille-et-contrôles)) utilise les contrôles de CE-UI-10 et aucun total d’Exercice en À l’échec. Les roulettes de cette feuille restent inline ; les contrôles de durée du Profil sont des steppers. Dans les états renseignés, `Renforcement du genou` est une donnée de démonstration ; seul `3943:6064` conserve `Nom de l’exercice` comme placeholder de l’état vide.
 
@@ -286,26 +287,111 @@ La frame historique `3561:7802` illustrait l’état À l’échec : ordre `Sér
 | Mode Répétitions  | Affiche le champ "Nombre de répétitions".                                                                                                                                                                                                                                                                                                                                                  |
 | Cible À l’échec   | Cible de Série et non troisième mode (D-111) ; n’affiche aucune cible chiffrée ; conserve l’ordre `Séries` → cadre informatif transparent bordé `à l’échec` → `Pause`. |
 | Séries            | Un Exercice possède un nombre de Séries propre, de 1 à 99 (D-092). En bilatéral autonome, ce nombre s’entend par côté. Une Série exécute la cible du mode ; chaque Série porte sa Pause, y compris la dernière, selon les successions de [Calcul, pauses et périmètres](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calcul-pauses-et-périmètres), Pause terminale comprise. |
-| Changement de côté | Réglage propre `Aucun` (`UNILATERAL`), `D→G` (`RIGHT_LEFT`) ou `G→D` (`LEFT_RIGHT`). Aucun réglage de côté n’est exposé au niveau Circuit. |
+| Changement de côté | Réglage propre Avec / Sans (RM-242, D-406) ; `UNILATERAL` correspond à Sans, les valeurs historiques `RIGHT_LEFT` et `LEFT_RIGHT` sont lues Avec (RM-244). Aucun réglage de côté n’est exposé au niveau Circuit. |
 | Pause entre les côtés | Durée intrinsèque facultative `sideRecoverySeconds`, uniquement en bilatéral. Elle intervient selon l’Ordre des côtés. Sa valeur initiale lors de l’activation bilatérale provient du défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice. |
+| Charge | Paramètre facultatif et informatif en kilogrammes, Avec / Sans, commun aux séries identiques ou propre à chaque série variable : RM-235 à RM-241 (D-403 à D-405). |
 | Durée totale calculée | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. |
 | Durée totale pilotée | Voir RM-130 (calcul inverse en Durée uniforme) et [Durées, affichage et inversion](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#durées-affichage-et-inversion). |
-| Sélection de ligne | Dans CE-UI-10, le contour désigne uniquement la ligne de roulette/segmenté activée (`À CLARIFIER` : application aux lignes à popover qui remplacent les segmentés selon les DSF validés, D-377 ; rendu à vérifier dans Figma). Aucun contour sur Séries/stepper. Si T(N)≠Tv, message sous Total ; sinon aucun message. |
+| Sélection de ligne | Dans CE-UI-10, le contour désigne uniquement la ligne de roulette/segmenté activée (les lignes Mode, Type de série et Changement de côté sont des contrôles segmentés, les popovers de D-377 étant remplacés par D-413 ; rendu à vérifier dans Figma). Aucun contour sur Séries/stepper. Si T(N)≠Tv, message sous Durée de l’exercice (D-409) ; sinon aucun message. |
 | Modes non chronométrés | Voir RM-129 et [Durées, affichage et inversion](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#durées-affichage-et-inversion). |
 | Zones corporelles | Sélection multiple dans un référentiel utilisateur administrable. Le référentiel est initialisé avec dix valeurs par défaut ; l’utilisateur peut créer, renommer et supprimer une Zone corporelle. Une suppression retire la valeur des choix futurs après confirmation et conserve les affectations existantes ainsi que l’historique. |
 | Validation        | Impossible tant que les champs obligatoires ne sont pas renseignés. Un contrôle ou champ obligatoire sans valeur est signalé par son fond rouge pâle, qui redevient normal dès qu’une valeur valide est renseignée ; aucun message supplémentaire (D-389).                                                                                                                                                                                                                                                                                                                        |
 | Retour            | Si des modifications non enregistrées existent, une confirmation est demandée.                                                                                                                                                                                                                                                                                                             |
-| Synthèse          | Cadre immuable, indépendant du déploiement des sections et placé en bas du contenu à `spacing/24` de l’action finale. Style `KODJO / Body` (`14/20`). La phrase commence par le nombre de Séries et ne répète pas le mode. Sans mode sélectionné, elle est vide. Elle suit les fragments conditionnels de la [phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases) (RM-232, D-298), se régénère à chaque modification et exclut nom d’Exercice, Compte à rebours, Fin d’exercice et Récupération post-activité.
+| Synthèse          | Cadre immuable, indépendant du déploiement des sections et placé en bas du contenu à `spacing/24` de l’action finale. Style `KODJO / Body` (`14/20`). La phrase commence par le nombre de Séries et ne répète pas le mode. Sans mode sélectionné, elle est vide. Elle suit les fragments conditionnels de la [phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases) (RM-232, D-298), inclut la mention de charge selon RM-240, se régénère à chaque modification et exclut nom d’Exercice, Compte à rebours, Fin d’exercice et Récupération post-activité.
 
 ## Paramètres d’exécution
 
 ### Saisie des paramètres d’exécution
 
-La référence active est [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice), contrats CE-T03-04/CE-UI-10. Elle intègre Séries variables, Ordre des côtés, pauses terminales et récupération de l’occurrence. Feuille transactionnelle : ✕ annule, ✓ applique au parent, Terminer persiste. Les calculs et comportements sont normatifs dans les spécifications ; Figma définit le layout seulement. Les anciens textes v11 sont historiques.
+La référence active est [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice), contrats CE-T03-04/CE-UI-10. Elle intègre Séries variables, Ordre des côtés, pauses terminales et récupération de l’occurrence. Feuille transactionnelle : ✕ annule, ✓ applique au parent, Terminer persiste. Les calculs et comportements sont normatifs dans les spécifications ; Figma définit le layout seulement. Les anciens textes v11 sont historiques. Charge, Changement de côté, Cadence, Durée de l’exercice, chevrons, Condition d’arrêt et roulettes de durée : [RM-235 à RM-250](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026) ci-dessous (D-403 à D-413).
 
 ### Cadence — règles transverses complémentaires
 
-CAD-01 à CAD-30 sont transcrites sans doublon dans D-268 à D-297 ; appliquer [Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité). Intervalles sonores et progression sont distincts de la fin métier. Pause abandonne la fraction pour progression seulement ; reset n’efface pas le temps réel. Arrière-plan n’est pas Pause, aucun rejeu de signal manqué. Cadence commune à toutes les Séries dans l’éditeur, aucun défaut ni préférence Profil. Les formules de pauses/Récupération de RM-129 restent inchangées hors Ti.
+CAD-01 à CAD-30 sont transcrites sans doublon dans D-268 à D-297 ; appliquer [Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité). Intervalles sonores et progression sont distincts de la fin métier. Pause abandonne la fraction pour progression seulement ; reset n’efface pas le temps réel. Arrière-plan n’est pas Pause, aucun rejeu de signal manqué. Cadence commune à toutes les Séries dans l’éditeur, aucun défaut ni préférence Profil ; choix Autre, 5 s, 2 s, 1 s et Sans selon RM-245. Les formules de pauses/Récupération de RM-129 restent inchangées hors Ti.
+
+### Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026
+
+Décisions D-403 à D-413 du [registre](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#parametres-execution-20261018). Les règles existantes de saisie, de validation, de séries identiques et variables, de pauses, d’enchaînement, de cadence et de calcul s’appliquent sans changement lorsqu’elles ne sont pas nommées ci-dessous ; les valeurs des captures Figma sont illustratives.
+
+#### RM-235 — Charge : nature
+
+La charge est une valeur numérique facultative en kilogrammes, informative. Elle représente exactement la valeur saisie : aucune convention liée au matériel, aucun doublement par côté ou par nombre d’haltères. Kodjo n’en déduit ni durée, ni performance, ni instruction de sécurité. Elle ne modifie ni minuteurs, ni répétitions cibles, ni cadence, ni pauses, ni ordre d’exécution, ni condition d’arrêt, ni calcul de durée, ni phases, ni formats de séance ; elle ne crée aucune combinaison interdite avec le mode, la condition d’arrêt ou le changement de côté. Aucune valeur distincte par côté. Hors périmètre : résistance d’élastique ou niveau de machine, autres unités, convention par haltère ou poids total, tonnage, estimation de force ou de calories, recommandations de charge, saisie d’une charge réalisée distincte de la charge prévue, nouveaux rapports de suivi (D-403).
+
+#### RM-236 — Charge : activation et conservation
+
+La charge est désactivée par défaut : Sans est sélectionné. Un Exercice qui ne porte pas ce paramètre, notamment s’il est antérieur à cette évolution, est lu sans charge ; il n’est jamais converti en charge de 0 kg. L’état activé et les valeurs sont distincts : Sans désactive la charge sans effacer la dernière valeur commune ni les dernières valeurs par série ; Avec les restaure (RM-239 pour les cas à zéro). Les valeurs conservées d’une charge désactivée ne sont ni une consigne d’exécution ni une mention de la synthèse. Elles suivent le cycle normal d’enregistrement des paramètres (brouillon de la feuille, ✓, Terminer), y compris après réouverture de l’Exercice enregistré ; la copie, la duplication et l’instantané transportent l’activation et ces valeurs (D-403).
+
+#### RM-237 — Charge : séries identiques
+
+Une seule charge s’applique aux séries identiques. La ligne Charge (Avec / Sans) suit la Pause dans le groupe Séries. Activer la charge ouvre directement sa saisie, sans écran préalable de choix de matériel ou de type de résistance. Après saisie, la valeur et son unité remplacent Avec, par exemple « 20 kg », et restent modifiables (D-404).
+
+#### RM-238 — Charge : séries variables
+
+La ligne Charge (Avec / Sans) reste sous le tableau. Avec affiche la colonne Charge, Sans la masque sans effacer ses valeurs ; le titre de colonne n’est pas interactif. Chaque série porte sa charge ; la charge est une valeur de la série au même titre que sa cible et sa Pause : elle la suit lors d’un déplacement et suit les règles communes de remplissage initial, de champ vide, d’ajout et de retrait, de suppression et de restauration et de passage identiques/variables ([Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice), D-249, D-389). Aucune autorisation particulière de cellule de charge vide ; aucune propagation automatique d’une nouvelle charge aux autres cellules hors de ces règles communes ; l’initialisation commune à 0,25 kg de RM-239 est le seul cas propre à la charge. Colonnes de référence : Durée ou Répétitions, Pause, Charge (D-404).
+
+#### RM-239 — Charge : saisie, pas et zéro
+
+- **Saisie** : clavier numérique avec séparateur décimal, saisie directe dans le champ ou la cellule, sans fenêtre intermédiaire ; le séparateur suit la langue de l’interface ; la valeur est normalisée avant enregistrement ; « kg » est une unité d’affichage, pas une partie du nombre enregistré. Cette saisie au clavier ne s’étend pas aux autres paramètres numériques (D-405).
+- **Pas** : 0,25 kg ; première valeur positive 0,25 kg ; aucun plafond métier. Une valeur positive hors pas est arrondie au multiple de 0,25 kg immédiatement supérieur, sans message, à la sortie du champ ou à la validation, jamais pendant la frappe : 1,3 → 1,5 ; 0,01 → 0,25 ; 1,25 et 2,5 inchangés ; 0 inchangé.
+- **Valeur négative** : ce n’est pas une charge valide ; le comportement standard des champs numériques s’applique (refus, sans correction silencieuse).
+- **Zéro** : sans charge. En séries identiques, zéro désactive la charge de l’Exercice. En séries variables, zéro vaut pour la seule série ; tant qu’une autre série a une charge positive, la charge reste activée ; si toutes les séries passent à zéro, l’Exercice passe automatiquement à Sans. Un zéro saisi n’est jamais remplacé par une ancienne charge positive. Exemple : [0 ; 10 ; 15] laisse la seule première série sans charge.
+- **Première activation**, sans valeur mémorisée : la charge commune, ou chaque série variable, est initialisée à 0,25 kg et la saisie s’ouvre directement.
+- **Réactivation après Sans** : les valeurs mémorisées sont restaurées telles quelles, zéros compris ([0 ; 10 ; 15] → Sans → Avec redonne [0 ; 10 ; 15]). Si toutes valent zéro, chaque série est initialisée à 0,25 kg ([0 ; 0 ; 0] passe à Sans, puis Avec donne [0,25 ; 0,25 ; 0,25]).
+
+#### RM-240 — Charge : phrase de synthèse
+
+Lorsque la charge est active et valide, la phrase de synthèse inclut « avec une charge de {valeur} kg », par exemple « avec une charge de 10 kg » ; avec Sans, aucune mention de charge. En séries variables, chaque charge reste associée à sa série selon la grammaire des séries variables ; une charge unique n’est jamais présentée comme commune si les séries ont des charges différentes. La phrase reste produite en segments structurés (valeurs en gras), recalculée depuis les paramètres et non persistée. La charge ne change ni le statut des durées ni leurs symboles. La place exacte du groupe de mots dans la grammaire v15 et sa forme en séries variables ne sont pas encore fixées : voir le dossier de questions du change d’intégration (D-403).
+
+#### RM-241 — Charge : exécution
+
+Lorsque la charge est active, l’exécution affiche la charge de la série courante : la valeur commune en séries identiques, la valeur de la série courante en séries variables ; une série à zéro n’affiche pas de charge. Aucun acquittement ni confirmation de charge n’est ajouté ; aucune modification de charge en cours d’exécution. L’emplacement et le traitement visuel relèvent de Figma ; aucun emplacement « à côté de la cible » n’est arrêté (D-403).
+
+#### RM-242 — Changement de côté : Avec / Sans
+
+Le contrôle Changement de côté présente Avec à gauche et Sans à droite. L’utilisateur choisit lui-même le côté par lequel il commence ; Kodjo ne le qualifie pas anatomiquement. Avec rend disponibles Enchainement, avec les deux stratégies existantes (un côté après l’autre, les deux côtés à chaque série, RM-037), et Pause entre les côtés ; le chevron intérieur à Avec replie ou déploie ces lignes (RM-247). Sans masque ces lignes selon le comportement existant. Avec / Sans ne crée aucune restriction selon le nombre de séries : les règles d’éligibilité et de normalisation à N = 1 existantes s’appliquent (D-250). La désignation du côté de départ et l’enchaînement des séries sont deux informations distinctes ; seule la première est supprimée (D-406).
+
+#### RM-243 — Côtés : désignation neutre
+
+Les descriptions, phrases de synthèse, instructions, affichages d’exécution et annonces vocales désignent les côtés par « côté 1 », le côté par lequel l’utilisateur commence, et « côté 2 », ou par « changement de côté » selon le contexte. Aucun texte n’impose un côté anatomique de départ. Aucune nouvelle notation de l’enchaînement n’est créée : les options d’Enchainement conservent leur notation Figma à flèches. L’indicateur de carte d’un Exercice bilatéral signale le changement de côté sans direction (D-407).
+
+#### RM-244 — Côtés : compatibilité des données
+
+Une donnée historique qui encode Droite puis gauche ou Gauche puis droite (`RIGHT_LEFT`, `LEFT_RIGHT`) vaut Avec. Elle n’est pas réinterprétée comme un choix d’enchaînement : l’Ordre des côtés enregistré est conservé, ainsi que la Pause entre les côtés. Les historiques ne sont pas réécrits sans nécessité ; les résultats déjà enregistrés par côté restent lisibles. La stratégie technique de compatibilité suit le schéma réel (D-406).
+
+#### RM-245 — Cadence : choix rapides
+
+La ligne Cadence propose, dans cet ordre, Autre, 5 s, 2 s, 1 s et Sans. 5 s, 2 s et 1 s fixent directement l’intervalle du bip ; Sans désactive la cadence (valeur 0) ; Autre permet de saisir une autre valeur avec le mécanisme numérique existant du paramètre, dans les bornes et au pas existants (0..10 s, pas de 1 s, D-308, D-312). L’option sélectionnée reflète la valeur courante. Le modèle reste la valeur de cadence et son activation : aucun champ par raccourci. L’affichage de la valeur personnalisée suit le contrôle existant ou sa référence Figma, sans nouvel état. Les règles de bip, son influence selon les modes, la durée estimée et la condition d’arrêt sont inchangées (D-408).
+
+#### RM-246 — Durée de l’exercice et signaux
+
+« Durée de l’exercice » est le libellé visible de la ligne de durée de la feuille des paramètres ; « Durée totale » n’y est pas rétabli. Un chevron placé à côté du libellé indique l’état de la section : replié (état initial), chevron vers le bas, Compte à rebours et Fin d’exercice masqués ; déployé, chevron vers le haut, deux lignes visibles. Masquer ne désactive pas : les valeurs et leur activation sont conservées. Ouvrir la section est indépendant de l’édition de la durée. La durée affichée conserve son périmètre de calcul et n’inclut pas les signaux du fait de leur position. Lorsqu’aucune ligne Durée de l’exercice n’est affichée (D-397), Compte à rebours et Fin d’exercice restent directement visibles lorsqu’ils sont applicables, sans faux total ni autre contrôle de repli. Dans un Exercice ouvert depuis une Séance, les signaux propres restent absents (RM-218) ; le chevron ne les réintroduit pas et ne crée aucun réglage d’activation (D-409).
+
+#### RM-247 — Chevrons intégrés aux options
+
+Le chevron du tableau de séries variables est à l’intérieur de l’option Variables du contrôle Type de série ; celui du changement de côté, à l’intérieur de l’option Avec ; pour les phases d’exercice, à l’intérieur de l’option Avec du contrôle Phases de l’exercice. Le chevron est vers le haut si le contenu est déployé, vers le bas s’il est replié. Replier un tableau conserve ses valeurs et son mode actif ; le chevron ne crée aucune étape de configuration. Les conditions d’activation et les incompatibilités existantes ne changent pas. Une option non modifiable conserve sa valeur réelle avec l’état visuel correspondant (D-410).
+
+#### RM-248 — Condition d’arrêt : séries identiques
+
+La ligne Condition d’arrêt propose « À l’échec » (à gauche) et « À la cible » (à droite). En séries identiques, les deux options sont sélectionnables et le choix s’applique à toutes les séries, selon le mode de l’Exercice : À la cible donne une cible chiffrée commune (durée ou répétitions), À l’échec une cible À l’échec commune, sans nombre prescrit. La condition n’est pas définie à un second endroit (RM-250). Le type de cible par série reste la seule donnée (D-411).
+
+#### RM-249 — Condition d’arrêt : séries variables
+
+En séries variables, la ligne Condition d’arrêt est un résultat dérivé des séries, actualisé à chaque modification et non modifiable à cet endroit :
+
+| Détail des séries | Résultat présenté |
+|---|---|
+| Toutes à cible chiffrée | Deux options visibles, À la cible sélectionnée automatiquement |
+| Toutes à l’échec | Deux options visibles, À l’échec sélectionnée automatiquement |
+| Au moins une série à cible chiffrée et une à l’échec | Une seule option : « À la cible et à l’échec » |
+
+Trois résultats possibles, jamais trois boutons ni un choix manuel Mixte ; dès que le détail redevient homogène, les deux options réapparaissent avec la sélection correspondante. Le résultat n’est pas un paramètre persisté et ne peut pas diverger des séries. Il est présenté comme une valeur déterminée par le détail, non modifiable, avec un libellé et une sémantique accessibles ; cette présentation ne signifie pas que la condition d’arrêt est sans effet. Tableau incomplet : une cellule vide n’est comptée ni à la cible ni à l’échec ; la convention des résultats calculés incomplets s’applique (D-384), sans validation supplémentaire (D-411).
+
+#### RM-250 — Roulettes de durée selon le type de série
+
+- **Séries identiques** : la roulette Durée d’une série propose uniquement une durée numérique ; À l’échec se règle par la Condition d’arrêt. L’accès à la durée suit la condition d’arrêt sélectionnée.
+- **Séries variables, mode Durée** : la roulette ouverte depuis une cellule propose une durée numérique ou « À l’échec », pour la seule série éditée ; le tableau affiche alors « à l’échec ». À l’échec n’est pas une durée nulle : il n’a pas de cible temporelle et 00:00 n’en est jamais le code. Chaque modification d’une cellule actualise immédiatement la Condition d’arrêt (RM-249), sans modifier les pauses ni les autres paramètres de la série.
+- **Retour d’À l’échec vers une durée** : conventions existantes de conservation et de saisie des valeurs ; aucune borne ni durée par défaut supplémentaire.
+- La roulette propre à une phase d’exercice n’est pas modifiée par cette règle. Les calculs des séries à l’échec sont inchangés (D-412).
 
 <a id="cibles-mixtes"></a>
 ### Calculs et cas de recette des cibles mixtes
@@ -398,7 +484,7 @@ En Durée et À l’échec, le bip n’ajoute aucune clause. En Répétitions, l
 
 ### Phrase de synthèse des paramètres — Côtés et durée
 
-Sans changement : aucune clause. N=1 bilatéral : « en faisant le côté droit puis le gauche ». N>1 par paire : « en alternant le côté droit puis le gauche à chaque série ». N>1 par côté : « en faisant d’abord toutes les séries à droite, puis à gauche ». Inverser les directions pour un départ gauche. PC>0 ajoute « , avec {PC} de pause au changement de côté » ; PC=0 omet le suffixe. Les modèles exacts de ponctuation sont ceux des 276 cas.
+Sans changement de côté : aucune clause. N=1 bilatéral : « en faisant le côté 1 puis le côté 2 ». N>1 par paire : « en alternant le côté 1 puis le côté 2 à chaque série ». N>1 par côté : « en faisant d’abord toutes les séries du côté 1, puis du côté 2 ». Le côté 1 est celui par lequel l’utilisateur commence ; aucune clause ne désigne un côté anatomique (RM-243, D-407). PC>0 ajoute « , avec {PC} de pause au changement de côté » ; PC=0 omet le suffixe. Les modèles exacts de ponctuation sont ceux des 276 cas.
 
 Après le point final, afficher « Durée totale : {total}. » sans symbole en Durée ; « Durée totale : ≈ {total}. » en Répétitions avec bip. Omettre intégralement en Répétitions sans bip et À l’échec. Le mélange de cibles chiffrées et À l’échec affiche ≥ lorsque sa durée partielle est calculable ; aucun zéro ni tiret de remplacement pour une durée omise. **Redondance : omettre le total seulement pour une Série Durée sans côté ET sans pause.** Avec une pause positive, même une seule Série possède son total affiché. Cette exception rédactionnelle ne masque pas la durée de la carte Catalogue.
 
@@ -406,7 +492,7 @@ La pause après chaque série, dernière comprise, fait partie du calcul intrins
 
 ### Conventions communes d’interface — Contrôles et bornes v13
 
-Séries : stepper `1..99`. Répétitions : roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis `1..100` (décision PRE-4 Q8 du 16/10, D-385). Durée par Série : roulette `5 s..58 min 55 s`. Pause après chaque série et Pause entre les côtés : stepper dans la feuille Exercice, `0..5 min`, tap 1 s et maintien accéléré 1/5/10 selon DSF Bip (D-313) ; stepper pour les réglages du Profil. La Pause après chaque série est initialisée à `0 s` dans la feuille ; la Pause entre les côtés copie la valeur courante du Profil. Au changement de mode, les paramètres communs et les dernières valeurs spécifiques de chaque mode sont conservés pendant l’édition. Après la première sélection, le mode ne peut plus revenir à l’état vide. `Terminer` est désactivé avant cette première sélection.
+Séries : stepper `1..99`. Répétitions : roulette native à une colonne, « Aucune répétition, à l’échec » en tête, puis `1..100` (décision PRE-4 Q8 du 16/10, D-385). Durée par Série : roulette `5 s..58 min 55 s` ; en séries identiques, durée numérique seule, À l’échec se réglant par la Condition d’arrêt ; dans une cellule de séries variables en mode Durée, durée numérique ou « À l’échec » (RM-250, D-412). Pause après chaque série et Pause entre les côtés : stepper dans la feuille Exercice, `0..5 min`, tap 1 s et maintien accéléré 1/5/10 selon DSF Bip (D-313) ; stepper pour les réglages du Profil. Cadence : choix Autre, 5 s, 2 s, 1 s et Sans, Autre conservant les bornes et le pas existants (RM-245, D-408). La Pause après chaque série est initialisée à `0 s` dans la feuille ; la Pause entre les côtés copie la valeur courante du Profil. Au changement de mode, les paramètres communs et les dernières valeurs spécifiques de chaque mode sont conservés pendant l’édition. Après la première sélection, le mode ne peut plus revenir à l’état vide. `Terminer` est désactivé avant cette première sélection.
 
 ## Composition des séances
 
@@ -487,7 +573,7 @@ Les modifications internes sont conservées au fur et à mesure dans le brouillo
 
 Les cartes ne présentent plus la ligne `Récupération {durée}`, y compris pour une valeur non nulle. La donnée reste solidaire de chaque occurrence lors du déplacement, de la duplication et de la suppression. Son exécution après l’occurrence (y compris fin de Tour/Séance) et les calculs restent ceux de D-208. La disparition de l’affichage ne supprime ni phase ni valeur.
 
-L’éditeur conserve `Pause entre les côtés`, exposée uniquement en D→G/G→D ; aucune récupération post-exercice n’est ajoutée à la synthèse intrinsèque.
+L’éditeur conserve `Pause entre les côtés`, exposée uniquement avec changement de côté (Avec, D-406) ; aucune récupération post-exercice n’est ajoutée à la synthèse intrinsèque.
 
 ### Composition d'une séance — Validation
 
@@ -518,7 +604,7 @@ Appui long sur la récupération existante ouvre la bulle Retirer la récupérat
 
 ### Consultation média pendant l’Exécution — MVP — Récupérations — conception détaillée D-208
 
-L’éditeur d’Exercice porte `sideRecoverySeconds` uniquement pour un Exercice bilatéral. Le passage à `Aucun` rend ce paramètre sans objet. Lors du passage de `Aucun` à une direction bilatérale, la valeur initiale provient du défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice.
+L’éditeur d’Exercice porte `sideRecoverySeconds` uniquement pour un Exercice bilatéral. Le passage du Changement de côté à Sans rend ce paramètre sans objet. Lors du passage de Sans à Avec (D-406), la valeur initiale provient du défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice.
 
 La Composition porte `postActivityRecoverySeconds` sur chaque occurrence. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). D-238 retire seulement les informations de pause/récupération dans le corps des cartes. Dans un Circuit répété, cette même valeur est exécutée à chaque Tour. Une Exécution directe ne possède jamais de récupération post-exercice.
 
@@ -612,7 +698,7 @@ Un exercice qui en gagne ne la déclenche pas : rien n'est détruit, et la valeu
 
 **Une correction d'une formulation antérieure.** La définition du circuit de séries a été écrite une première fois comme « les exercices ont des séries variables, leur nombre est identique d'un exercice à l'autre et il est hérité ». **Le mot « variables » n'a pas lieu d'y être.**
 
-**Le circuit contraint le nombre de séries, jamais leur régime.** Le régime — séries identiques ou séries variables — est un réglage propre à chaque exercice, et il existe déjà dans les écrans (ligne « Séries » de la modale des modalités d'exécution). Basculer de tours à séries ne change que le compte.
+**Le circuit contraint le nombre de séries, jamais leur régime.** Le régime — séries identiques ou séries variables — est un réglage propre à chaque exercice, et il existe déjà dans les écrans (contrôle « Type de série » de la modale des modalités d'exécution, D-413). Basculer de tours à séries ne change que le compte.
 
 **Le défaut d’un exercice nouvellement créé et ajouté à un circuit est « identiques ».** Un exercice existant provenant du catalogue conserve son régime (voir [Ajout et sortie du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ajout-et-sortie-du-circuit)). Il naît à une série ; le circuit porte son compte à N ; le préremplissage répète la même valeur. Sa carte lit alors « 3 × 30 s ».
 
@@ -627,17 +713,17 @@ Un exercice qui en gagne ne la déclenche pas : rien n'est détruit, et la valeu
 | **identiques** | toutes les séries ont la même valeur |
 | **variables** | chaque série a sa propre valeur |
 
-Le réglage est porté par un champ de la ligne « Séries », et le choix se fait par popover à deux entrées.
+Le réglage est porté par le contrôle segmenté « Type de série » (Variables / Identiques), qui remplace le champ de la ligne « Séries » et son popover à deux entrées (D-413).
 
 ##### Trois états d'affichage, pas deux
 
-Le régime et le repli de la liste sont **deux informations distinctes**, portées par deux contrôles distincts : le champ pour le régime, un chevron pour le repli.
+Le régime et le repli de la liste sont **deux informations distinctes**, portées par l’option sélectionnée du contrôle Type de série pour le régime et par le chevron intégré à l’option Variables pour le repli (RM-247, D-410).
 
-| état | champ | chevron |
+| état | Type de série | chevron intégré à Variables |
 |---|---|---|
-| séries identiques | `identiques` | **absent** — il n'y a pas de liste |
-| variables, liste visible | `variables` | déployé |
-| variables, liste masquée | `variables` | replié |
+| séries identiques | `Identiques` | **absent** — il n'y a pas de liste |
+| variables, liste visible | `Variables` | déployé (vers le haut) |
+| variables, liste masquée | `Variables` | replié (vers le bas) |
 
 ##### Le préremplissage, et la disparition du marqueur d'incomplétude
 
@@ -711,7 +797,7 @@ Dans un circuit de séries, le nombre se règle dans l’en-tête : pas de suppr
 
 Un appui extérieur sur une cible destructive range d’abord l’outil sans déclencher la destruction. Un appui sur une cible inoffensive peut fermer et agir en un seul geste.
 
-La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#le-contrôle) corrigé). Le régime et le chevron de repli restent distincts. Leur position, la couleur de la suppression et l’indication de lecture seule sont des finitions DSF/Figma, pas de nouveaux choix métier.
+La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#le-contrôle) corrigé). Le régime et le repli restent deux informations distinctes ; le chevron est intégré à l’option Variables (RM-247, D-410). Leur position, la couleur de la suppression et l’indication de lecture seule sont des finitions DSF/Figma, pas de nouveaux choix métier.
 
 ## Formats de séances
 
@@ -1087,7 +1173,7 @@ Le formulaire de répétitions partielles est propre à cette clôture Death by.
 
 ### Catalogue des Exercices — cycle de vie d’un Exercice persistant — MVP T03 — Bilatéralité
 
-`sideMode` est indépendant du mode Durée ou Répétitions, avec cible chiffrée ou À l’échec par série. Un Exercice de référence et sa copie portent chacune leur valeur. L’insertion et la duplication copient cette valeur, puis les objets évoluent indépendamment.
+`sideMode` (changement de côté Avec / Sans ; valeurs historiques : RM-244) est indépendant du mode Durée ou Répétitions, avec cible chiffrée ou À l’échec par série. Un Exercice de référence et sa copie portent chacune leur valeur. L’insertion et la duplication copient cette valeur, puis les objets évoluent indépendamment. La charge et son activation suivent le même mécanisme de copie (RM-236).
 
 Un Exercice bilatéral exécute ses Séries selon son Ordre des côtés : avec `Un côté après l’autre` (défaut), toutes les Séries du premier côté puis toutes celles du second ; avec `Les deux côtés à chaque série`, les deux côtés à chaque Série (D-247). Aucun changement de côté n’est exposé au niveau du Circuit dans la version actuelle. Les résultats restent séparés par côté.
 
@@ -1100,7 +1186,7 @@ Un Exercice bilatéral exécute ses Séries selon son Ordre des côtés : avec `
 | RM-055 | Chaque démarrage crée une Exécution distincte fondée sur un Instantané immuable de la Séance. |
 | RM-056 | L’entrée dans l’Exécution ne démarre pas immédiatement le décompte. L’utilisateur déclenche explicitement le démarrage. |
 | RM-057 | Une Exécution peut être `En cours`, `Suspendue`, `Terminée`, `Partielle` ou `Interrompue`. Le statut `Partielle` d’une Séance close découle d’au moins un Résultat d’Exercice `Partielle` ; une récupération écourtée ne suffit pas (D-379). |
-| RM-058 | Bip commun entier 0..10 dans les deux modes,0=Aucun. Périodique pendant Série ; ne termine aucune Série. Durée chiffrée : minuteur ; Répétitions et toute cible À l’échec : Suivant. Aucun nominal pour une cible À l’échec. En Répétitions à l’échec, nombre de bips logiques proposé comme relevé estimé, confirmé/corrigé explicitement pour devenir déclaré. |
+| RM-058 | Bip commun entier 0..10 dans les deux modes, 0 = Sans (RM-245). Périodique pendant Série ; ne termine aucune Série. Durée chiffrée : minuteur ; Répétitions et toute cible À l’échec : Suivant. Aucun nominal pour une cible À l’échec. En Répétitions à l’échec, nombre de bips logiques proposé comme relevé estimé, confirmé/corrigé explicitement pour devenir déclaré. |
 | RM-059 | Suivant termine normalement toute Série en Répétitions et toute Série à cible À l’échec, y compris en Durée, sans confirmation de fin. Il ne confirme pas implicitement un relevé estimé. |
 | RM-060 | Pour un Exercice chronométré non arrivée à zéro, `Exercice suivant` demande confirmation. Si elle est confirmée, le Résultat d’Exercice est `Partielle` et l’Exécution continue. |
 | RM-061 | Un Exercice chronométré arrivée à zéro se termine automatiquement. |
@@ -1166,6 +1252,7 @@ Lorsqu’un Exercice possède plusieurs Séries :
 - chaque Série exécute la durée cible, les répétitions cibles ou se poursuit jusqu’à l’échec selon le mode ;
 - *Texte identique à celui de la section [« Structure d'un Exercice »](04%20%E2%80%93%20Mod%C3%A8le%20fonctionnel.md#structure-dun-exercice) ; il n’est pas recopié ici.*
 - si l’Exercice est bilatéral, la Pause entre les côtés éventuelle est exécutée selon l’Ordre des côtés.
+- si la charge est active, la charge de la Série courante est affichée, sans acquittement (RM-241).
 
 T04 développe toutes les Séries, les répétitions de Tour et les passages de côté dans le Plan d’Exécution avant le démarrage.
 
@@ -1277,7 +1364,7 @@ L'exécution d'une séance repose sur les principes suivants :
 
 #### Paramètre commun aux deux modes
 
-**Bip de cadence** : signal périodique pendant une Série, en Durée ou Répétitions, avec cible chiffrée ou À l’échec par série. Intervalle entier de 0 à 10 secondes, défaut 0, affiché **Aucun** ; 1..10 affiche la valeur et l’unité s. Stepper, sans interrupteur ni roulette. Aucun nouveau réglage Profil. Zéro est une valeur valide, pas une erreur ou une cible manquante.
+**Bip de cadence** : signal périodique pendant une Série, en Durée ou Répétitions, avec cible chiffrée ou À l’échec par série. Intervalle entier de 0 à 10 secondes, défaut 0, présenté **Sans** ; 1..10 affiche la valeur et l’unité s. Libellé visible : Cadence. Présentation : choix Autre, 5 s, 2 s, 1 s et Sans ; Autre saisit les autres valeurs avec le mécanisme numérique existant, dans ces bornes et au pas de 1 s ; sans interrupteur (RM-245, D-408, qui remplace la présentation par stepper seul). Aucun nouveau réglage Profil. Zéro est une valeur valide, pas une erreur ou une cible manquante.
 
 Nom logique cible : `cadenceBeepIntervalSeconds`. L’ancien nom limité aux répétitions est abandonné. Le réglage reste commun à toutes les Séries de l’Exercice : il est copié/modifié sur toutes les entrées de la collection effective ; aucune édition indépendante par ligne ni surcharge concurrente. Les deux modes acceptent ce champ ; changer de mode ne le masque ni ne l’efface. ✓ applique atomiquement au brouillon parent ; ✕ annule ; Terminer persiste. Déplacement/duplication/copie/instantané le conservent. Ancien objet sans champ : 0, aucun tempo implicite.
 
@@ -1315,7 +1402,7 @@ Sécurité existante conservée là où elle a un sens : Répétitions chiffrée
 
 La cible À l’échec n’est pas une durée infinie ni une durée zéro. Elle n’a pas de fin nominale. L’appui sur Suivant termine l’effort prescrit ; il ne prouve pas à lui seul un échec physiologique détecté par l’application.
 
-Les règles existantes de Pause/Reprendre, Retour, réinitialisation, abandon et arrière-plan restent applicables. Chaque phase effective connaît le mode, la nature de cible, l’occurrence de série, le côté, le passage et le circuit éventuel.
+Les règles existantes de Pause/Reprendre, Retour, réinitialisation, abandon et arrière-plan restent applicables. Chaque phase effective connaît le mode, la nature de cible, l’occurrence de série, le côté, le passage, le circuit éventuel et, lorsqu’elle est active, la charge de la série (RM-241).
 
 ##### Pauses, côtés et circuits
 
@@ -1407,7 +1494,7 @@ Ces règles relèvent du périmètre MVP (D-203, confirmation du 28/09/2026).
 | RM-209 | Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). |
 | RM-210 | La récupération après exercice se déplace avec l’occurrence, est copiée lors de sa duplication et supprimée avec elle ; aucun recalcul ne dépend de l’adjacence. |
 | RM-211 | Une Exécution directe d’`ActivityDefinition` n’exécute jamais de récupération post-exercice ; elle peut uniquement exécuter la Pause entre les côtés si l’Exercice est bilatéral. |
-| RM-212 | `sideRecoverySeconds` est initialisé depuis le défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) lorsqu’un Exercice passe de `Aucun` à `D→G` ou `G→D`; la valeur reste modifiable dans l’éditeur de l’Exercice. |
+| RM-212 | `sideRecoverySeconds` est initialisé depuis le défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) lorsque le Changement de côté d’un Exercice passe de Sans à Avec (D-406) ; la valeur reste modifiable dans l’éditeur de l’Exercice. |
 
 ## Planification
 
@@ -1837,7 +1924,7 @@ Dans les modales de sélection `Étiquettes`, `Catégorie` et `Zones corporelles
 
 #### Ordres d’exécution et pauses
 
-La section [Calcul, pauses et périmètres](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calcul-pauses-et-périmètres) définit la succession des phases. Sans côté : S1→P1→S2→P2→S3→P3. Par côté : D1→P1→D2→P2→D3→PN→PC→G1→P1→G2→P2→G3→P3. Par paire : D1→PC→G1→P1→D2→PC→G2→P2→D3→PC→G3→P3. Inverser D/G si départ gauche.
+La section [Calcul, pauses et périmètres](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calcul-pauses-et-périmètres) définit la succession des phases. Sans côté : S1→P1→S2→P2→S3→P3. Par côté : côté 1 : S1→P1→S2→P2→S3→PN, puis PC, puis côté 2 : S1→P1→S2→P2→S3→P3. Par paire : série 1 au côté 1→PC→série 1 au côté 2→P1, puis série 2 au côté 1→PC→série 2 au côté 2→P2, puis série 3 au côté 1→PC→série 3 au côté 2→P3. Le côté 1 est celui par lequel l’utilisateur commence (RM-243, D-407).
 
 Pause terminale incluse, même avec une seule Série. À la frontière des deux côtés successifs, PN du premier côté puis PC restent exécutées selon la règle déjà validée. Par paire, Pi après chaque paire, dernière comprise et PC à l’intérieur de chaque paire. N=1 est normalisé par côté. Compte à rebours/Fin propres joués une fois pour l’Exercice complet en exécution autonome uniquement. Dans une Séance, ils ne sont jamais exécutés : seuls ceux de la Séance s’appliquent, sans booléen. Récupération explicite après l’occurrence seulement ; aucune en direct. Phases nulles franchies de façon idempotente.
 
@@ -1853,7 +1940,7 @@ N=Séries par côté ; Ti=travail calculable de la Série ; Pi=Pause configurée
 
 Occurrence calculable To=T−PN+R si R>0 ; sinon To=T. R remplace uniquement la toute dernière Pause et n’est pas ajouté deux fois. Les totaux de Séance développent les Tours et les phases réellement prévues. Même si le total d’Exercice est omitted, ses pauses connues contribuent au total partiel de Séance selon chapitre 10, résultats temporels. Périmètres Catalogue/Composition/plan complet inchangés ; Compte à rebours et Fin propres restent exclus du total intrinsèque ; ils sont inclus une fois dans le plan autonome de l’Exercice, jamais dans le plan de Séance. Seuls le Compte à rebours initial et la Fin de séance appartiennent au plan complet SESSION. Temps réalisé jamais réécrit.
 
-Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Séance : exact si tout exact, ≈ si au moins une estimation et aucun inconnu, ≥ si au moins un inconnu. Erreur de cible : validation distincte, aucune fausse valeur. Une Copie en Séance dont une Cible ancienne est à renseigner contribue au total de Séance par son travail connu et ses Pauses, comme un mélange avec échec, et le total de Séance est partiel (≥) : pour 30 s, —, 45 s et des Pauses de 10 s, 30 + 45 + 30 = 105 s (décision PRE-4 Q30 du 16/10, D-385). Cette Copie n’affiche elle-même aucun total (Q30) ; dans la feuille Paramètres, la ligne Total est affichée avec « — » (D-384).
+Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Séance : exact si tout exact, ≈ si au moins une estimation et aucun inconnu, ≥ si au moins un inconnu. Erreur de cible : validation distincte, aucune fausse valeur. Une Copie en Séance dont une Cible ancienne est à renseigner contribue au total de Séance par son travail connu et ses Pauses, comme un mélange avec échec, et le total de Séance est partiel (≥) : pour 30 s, —, 45 s et des Pauses de 10 s, 30 + 45 + 30 = 105 s (décision PRE-4 Q30 du 16/10, D-385). Cette Copie n’affiche elle-même aucun total (Q30) ; dans la feuille Paramètres, la ligne Durée de l’exercice (D-409) est affichée avec « — » (D-384).
 
 **Inversion réservée à Durée uniforme avec nombre de séries libre.** Sous compte hérité d’un circuit de séries, le total calculé est en lecture seule : aucune inversion ni ajustement implicite de la cible. N dans 1..99 au plus proche, égalité vers le haut. Candidats : unilatéral arrondi(Tv/(d+p)) ; succession des côtés arrondi((Tv−PC)/(2(d+p))) ; par paire arrondi(Tv/(2d+p+PC)). Comparer les candidats réalisables et N=1 calculé avec l’ordre normalisé par côté ; retenir le total le plus proche, égalité N le plus grand. Les bornes du sélecteur suivent les extrêmes réalisables. Si T(N)≠Tv : « Durée ajustée à {T(N)} pour respecter un nombre entier de séries. » Sinon aucun message. Le message porte « Annuler » dans un cadre plus clair que son fond : Annuler restaure les valeurs précédant l’ajustement ; toucher le reste du message le ferme sans annuler . Présentation d’Annuler : capsule sans contour, blanc transparent à 90 %, demi-cercles, marges droite/haut/bas égales . Total variable et Répétitions non éditable.
 
@@ -1875,7 +1962,7 @@ Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : �
 | Durée avec bip | N4,Ti60 s,b4 s,p15 s | 300 s exact ; bip sans effet sur total |
 | Une Série unilatérale | Ti30 s,p15 s | 45 s, dont 15 s de pause après chaque série |
 
-Tester les deux directions/ordres, p0/PC0 sans repli, R0/positive, N1/99, bascules/annulation/restauration, nouvelle dernière ligne après déplacement, copie et snapshot. Inversion et résultats dérivés de la spécification, pas des exemples Figma ni d’Excel.
+Tester les deux Ordres des côtés (D-406), p0/PC0 sans repli, R0/positive, N1/99, bascules/annulation/restauration, nouvelle dernière ligne après déplacement, copie et snapshot. Inversion et résultats dérivés de la spécification, pas des exemples Figma ni d’Excel.
 
 <a id="resultats-temporels"></a>
 ### Résultats temporels et agrégation du circuit
@@ -1903,11 +1990,11 @@ Pour une Série i : Durée chiffrée → Ti=durée prescrite ; Répétitions chi
 
 Le total intrinsèque exclut Compte à rebours et Fin d’exercice. **Pause après chaque série**, dernière comprise, même avec N=1 et même avec une Pause entre les côtés. Pi=0 ne crée pas de phase positive. Cette clarification explicite du propriétaire remplace les passages contraires du prompt précédent.
 
-| Configuration | Total intrinsèque, si travail calculable | Succession N=3, départ D |
+| Configuration | Total intrinsèque, si travail calculable | Succession N=3 |
 |---|---|---|
 | Unilatéral | Σ(Ti+Pi) | S1→P1→S2→P2→S3→P3 |
-| Un côté après l’autre | 2Σ(Ti+Pi)+PC | D1→P1→D2→P2→D3→P3→PC→G1→P1→G2→P2→G3→P3 |
-| Les deux côtés à chaque série, N≥2 | 2ΣTi+ΣPi+N×PC | D1→PC→G1→P1→D2→PC→G2→P2→D3→PC→G3→P3 |
+| Un côté après l’autre | 2Σ(Ti+Pi)+PC | côté 1 : S1→P1→S2→P2→S3→P3, puis PC, puis côté 2 : S1→P1→S2→P2→S3→P3 |
+| Les deux côtés à chaque série, N≥2 | 2ΣTi+ΣPi+N×PC | série 1 au côté 1→PC→série 1 au côté 2→P1, puis série 2 au côté 1→PC→série 2 au côté 2→P2, puis série 3 au côté 1→PC→série 3 au côté 2→P3 |
 
 N reste par côté. Au changement de côté en ordre successif, PN et PC se cumulent, même si PC>0. En ordre par paire, Pi suit la paire complète ; aucune PC supplémentaire au retour au premier côté. N=1 est normalisé Un côté après l’autre : T=2(d+p)+PC. PC=0 ne supprime ni ne remplace Pi.
 
@@ -2034,16 +2121,16 @@ Toute roulette numérique de l’application produit un retour haptique léger e
 | RM-118 | **Retirée de la cible par D-328 (08/10).** Ancienne règle autonome : Chaque Séance conserve son compte à rebours initial. Une fin intermédiaire est remplacée par la transition et seule la dernière étape ouvre la fin du Parcours. |
 | RM-119 | **Retirée de la cible par D-328 (08/10).** Ancienne règle autonome : L’Exécution de Parcours et ses Exécutions de Séance liées utilisent un instantané immuable ; un arrêt confirmé conserve l’exécution partielle et ne crée rien pour les étapes futures. |
 | RM-120 | Exercices et Séances peuvent être archivés ; ancien objet autonome Parcours retiré par D-328. Un élément archivé reste valable dans ses usages existants mais n’est plus proposé à un nouvel usage. |
-| RM-143 | Le `Changement de côté` d’un Exercice propose `Aucun` (`UNILATERAL`), `D→G` (`RIGHT_LEFT`) et `G→D` (`LEFT_RIGHT`). Aucun réglage de côté n’est exposé au niveau Circuit dans la version actuelle. |
+| RM-143 | Le `Changement de côté` d’un Exercice propose Avec et Sans (RM-242, D-406) ; `UNILATERAL` correspond à Sans, les valeurs historiques `RIGHT_LEFT` et `LEFT_RIGHT` sont lues Avec (RM-244). Aucun réglage de côté n’est exposé au niveau Circuit dans la version actuelle. |
 | RM-144 | Un Exercice autonome bilatéral exécute ses Séries par côté selon l’Ordre des côtés (D-247) ; à la frontière des côtés, la Pause de Série est suivie de la Pause entre les côtés (D-248) ; dans une occurrence de Séance, une seule Récupération positive éventuelle remplace la dernière Pause ; aucune Récupération en Exécution directe (D-248, RM-211). |
 | RM-145 | Le support technique historique de bilatéralité du Tour est conservé pour non-régression mais reste non exposé et contraint à `UNILATERAL` dans la version actuelle. |
-| RM-146 | La direction effective exposée provient de l’Exercice ; le Circuit n’impose aucune direction à ses Exercices dans la version actuelle. |
+| RM-146 | Le changement de côté effectif provient de l’Exercice ; le Circuit n’impose aucun changement de côté à ses Exercices dans la version actuelle (D-406). |
 | RM-147 | Aucun contrôle ni confirmation d’activation bilatérale du Circuit n’est exposé dans la version actuelle. |
-| RM-148 | L’Exécution affiche `Côté droit` ou `Côté gauche` sous le nom de l’Exercice, sans compteur de côté. La progression `Exercice X/Y` ne change pas de rang entre les deux passages. |
+| RM-148 | L’Exécution affiche `Côté 1` ou `Côté 2` (D-407, RM-243) sous le nom de l’Exercice, sans compteur de côté. La progression `Exercice X/Y` ne change pas de rang entre les deux passages. |
 | RM-149 | Réinitialiser ne touche que le côté courant. Confirmer la modale générique de passage anticipé sur le premier côté conserve un résultat partiel et ouvre le second côté. |
 | RM-150 | Les résultats sont séparés par côté ; l’état global est partiel dès qu’un côté est partiel ou manquant après avancement. |
-| RM-151 | Dans la Composition, une carte affiche sa direction propre `D→G` ou `G→D` lorsqu’elle est bilatérale ; aucune indication avec `Aucun`. Le Circuit ne porte pas de direction exposée. |
-| RM-152 | Dans l’écran Créer un exercice ou Modifier un exercice (D-325), la phrase unique suit RM-232/D-298 : cible/cadence, Pause, puis côtés selon le contexte ; deux directions et deux ordres distingués. La clause de côté est absente avec `Aucun`. Dans une carte de Composition, le petit indicateur `D→G` ou `G→D` porte seul la direction. |
+| RM-151 | Dans la Composition, une carte affiche un indicateur de changement de côté, sans direction et rendu selon Figma, lorsqu’elle est bilatérale ; aucune indication avec Sans. Le Circuit ne porte pas de changement de côté exposé (D-407). |
+| RM-152 | Dans l’écran Créer un exercice ou Modifier un exercice (D-325), la phrase unique suit RM-232/D-298 : cible/cadence, Pause, puis côtés selon le contexte ; deux ordres distingués, côtés désignés côté 1 / côté 2 (D-407, RM-243). La clause de côté est absente avec Sans. Dans une carte de Composition, le petit indicateur de changement de côté, sans direction, porte seul cette information (D-407). |
 | RM-153 | **Supersédée par RM-232 / D-298** pour la phrase active v1. |
 
 ### Règles RM-213 à RM-221 — consolidation
@@ -2079,7 +2166,7 @@ Le Point d’arrêt reste un élément structurel distinct de la Récupération.
 
 #### Phrase de synthèse des paramètres d’exécution
 
-La phrase est une donnée dérivée, recalculée à chaque modification. Sans mode sélectionné elle est vide ; le mode est affiché séparément. Elle concatène dans l’ordre : nombre de Séries, valeur par Série ou `jusqu'à l'échec`, Pause après chaque série si applicable, changement de côté, puis Durée totale lorsqu’elle s’applique. Le nom de l’Exercice, le Compte à rebours, la Fin d’exercice et la Récupération post-activité n’entrent pas dans cette phrase. Source normative : chapitre 08, paramètres d’exercice, D-247 à D-255 ; classeur v10 historique.
+La phrase est une donnée dérivée, recalculée à chaque modification. Sans mode sélectionné elle est vide ; le mode est affiché séparément. Elle concatène dans l’ordre : nombre de Séries, valeur par Série ou `jusqu'à l'échec`, Pause après chaque série si applicable, changement de côté, puis Durée totale lorsqu’elle s’applique. Le nom de l’Exercice, le Compte à rebours, la Fin d’exercice et la Récupération post-activité n’entrent pas dans cette phrase. Une charge active y est mentionnée selon RM-240, dont la place dans la phrase n’est pas encore fixée. Source normative : chapitre 08, paramètres d’exercice, D-247 à D-255 ; classeur v10 historique.
 
 Les bornes fonctionnelles D-232 sont : Séries `1..99`, Répétitions par Série `1..100`, Durée par Série `5 s..58 min 55 s`, Pause après chaque série et Pause entre les côtés `0..5 min`. Dans le Profil, les réglages de durée utilisent un stepper ; dans la feuille de paramètres d’un Exercice, les pauses sont réglées par stepper. Les steppers de pauses utilisent tap 1 s puis maintien accéléré 1/5/10 selon DSF Bip ; ancienne grille dépendante de la valeur abandonnée. La Pause entre les côtés est copiée depuis le Profil lorsqu’elle devient applicable.
 

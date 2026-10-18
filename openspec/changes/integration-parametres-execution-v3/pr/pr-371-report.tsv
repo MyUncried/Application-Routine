@@ -1,0 +1,23 @@
+fichier_pr	bloc	lignes_retirees	lignes_ajoutees	statut	fichier_actuel	ligne_actuelle	detail	cle
+06 – Ecrans et navigation de la V1.md	1	1	1	REPORTE-MANUEL	06 – Ecrans et navigation de la V1.md	557	substitution ciblée du seul libellé renommé par la PR ; le lien restauré par R06B-001 est conservé	06 – Ecrans et navigation de la V1.md|1|1
+06 – Ecrans et navigation de la V1.md	2	1	1	IGNORE-MANUEL			sans objet : la ligne « Feuille : en-tête fixe ✕ / … ✓ » est réécrite par l’intégration v3 (V3-G-005) et porte déjà « Paramètres d’exécution »	06 – Ecrans et navigation de la V1.md|2|1
+06 – Ecrans et navigation de la V1.md	3	1	1	REPORTE	06 – Ecrans et navigation de la V1.md	603		06 – Ecrans et navigation de la V1.md|3|1
+06 – Ecrans et navigation de la V1.md	4	1	1	IGNORE-MANUEL			sans objet : le titre « Modalités d’exécution — Séries variables, cas mixte » est remplacé par le nom de frame actuel « Création activité — Paramètres (modale) — Séries variables, cas mixte » (V3-G-010)	06 – Ecrans et navigation de la V1.md|4|1
+06 – Ecrans et navigation de la V1.md	4	1	1	IGNORE-MANUEL			sans objet : image du cas mixte remplacée par la capture du 18/10/2026 (V3-G-010)	06 – Ecrans et navigation de la V1.md|4|2
+07 – Registre des décisions de conception.md	1	1	1	REPORTE	07 – Registre des décisions de conception.md	128		07 – Registre des décisions de conception.md|1|1
+07 – Registre des décisions de conception.md	2	1	1	REPORTE	07 – Registre des décisions de conception.md	482		07 – Registre des décisions de conception.md|2|1
+08 – Conception fonctionnelle détaillée.md	1	1	1	REPORTE	08 – Conception fonctionnelle détaillée.md	354		08 – Conception fonctionnelle détaillée.md|1|1
+08 – Conception fonctionnelle détaillée.md	2	0	1	REPORTE	08 – Conception fonctionnelle détaillée.md	362		08 – Conception fonctionnelle détaillée.md|2|1
+08 – Conception fonctionnelle détaillée.md	3	1	1	REPORTE	08 – Conception fonctionnelle détaillée.md	264		08 – Conception fonctionnelle détaillée.md|3|1
+13 – Contrats d’écran.md	1	1	1	REPORTE	13 – Contrats d’écran.md	281		13 – Contrats d’écran.md|1|1
+13 – Contrats d’écran.md	2	1	1	REPORTE-MANUEL	13 – Contrats d’écran.md	281	seule occurrence conservée (ch. 13) ; ligne actuelle identique à l’ancienne ligne de la PR hors espaces typographiques	13 – Contrats d’écran.md|2|1
+13 – Contrats d’écran.md	3	1	1	REPORTE	13 – Contrats d’écran.md	708		13 – Contrats d’écran.md|3|1
+13 – Contrats d’écran.md	4	1	1	IGNORE-MANUEL			copie remplacée par un renvoi (COP-017, 027, 029, 048, 051) ; texte identique reporté une seule fois via |2|1	13 – Contrats d’écran.md|4|1
+13 – Contrats d’écran.md	5	1	1	IGNORE-MANUEL			copie remplacée par un renvoi (COP-017, 027, 029, 048, 051) ; texte identique reporté une seule fois via |2|1	13 – Contrats d’écran.md|5|1
+13 – Contrats d’écran.md	6	1	1	IGNORE-MANUEL			copie remplacée par un renvoi (COP-017, 027, 029, 048, 051) ; texte identique reporté une seule fois via |2|1	13 – Contrats d’écran.md|6|1
+13 – Contrats d’écran.md	7	1	1	IGNORE-MANUEL			copie remplacée par un renvoi (COP-017, 027, 029, 048, 051) ; texte identique reporté une seule fois via |2|1	13 – Contrats d’écran.md|7|1
+13 – Contrats d’écran.md	8	0	2	REPORTE-MANUEL	13 – Contrats d’écran.md	973	ligne de contexte réécrite par l’intégration v3 (D-403 à D-413) ; inséré après la ligne réécrite, même rubrique ; la seconde phrase insérée (« Le pied commun reste le réglage de la cellule active ») est contredite par D-413 : à retirer par le chantier #371	13 – Contrats d’écran.md|8|1
+13 – Contrats d’écran.md	9	1	1	REPORTE	13 – Contrats d’écran.md	989		13 – Contrats d’écran.md|9|1
+13 – Contrats d’écran.md	9	1	1	REPORTE	13 – Contrats d’écran.md	995		13 – Contrats d’écran.md|9|2
+13 – Contrats d’écran.md	10	1	1	REPORTE	13 – Contrats d’écran.md	1101		13 – Contrats d’écran.md|10|1
+13 – Contrats d’écran.md	10	1	1	REPORTE	13 – Contrats d’écran.md	1103		13 – Contrats d’écran.md|10|2

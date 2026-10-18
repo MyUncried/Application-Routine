@@ -2,6 +2,12 @@
 
 **Actualisation13/10 :** [DSF Deux modes et cible À l’échec](DSF-DEUX-MODES-ECHEC-2026-10-13.md) remplace les références à trois modes et complète les roulettes, cibles et totaux. Les dispositions non concernées restent applicables.
 
+**Mise à jour du 18/10/2026 — spécification v3.0 :**
+- Remplacé pour la présentation : au §4, le paragraphe Bip de cadence (stepper, position avant le total, retrait de 42 px : D-408, D-409, D-413) ; au §2, le remplissage blanc 50 % du contrôle segmenté pour la seule feuille des paramètres (D-413 : sans enveloppe blanche) ; au §7, les variantes Droite → Gauche / Gauche → Droite de l’indicateur de côté (D-407 : indicateur sans direction). Le reste du document (inventaire, tokens, typographie, assets) est inchangé.
+- Comportements : règles RM-235 à RM-250 du chapitre 10, [Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026) (décisions D-403 à D-413 du [registre](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#parametres-execution-20261018)) ; ce DSF n’en reprend pas l’énoncé. Les valeurs des captures restent illustratives.
+- Présentation nouvelle de la feuille des paramètres (D-413 ; spécification v3.0, GR-01 et PR-01 à PR-04 ; référence 402 × 874) : quatre cadres successifs espacés de 8 px, dans l’ordre de D-413 ; contrôles segmentés alignés à droite, titres à gauche, sans enveloppe blanche ; tableaux à fond blanc sans contour, lignes de 36 px, sans boutons +/− de tableau ; Cadence en 12 px ; labels Regular, plus petits que les valeurs ; options inactives en texte gris Regular sur le fond des champs variables ; option sélectionnée selon le traitement violet existant ; saisie de la charge au clavier décimal, tableau visible au-dessus du clavier avec une marge de 12 px (D-405) ; chevrons à l’intérieur des options Variables (Type de série) et Avec (Changement de côté) (D-410) ; Durée de l’exercice avec son chevron à 12 px du libellé (D-409).
+- Tokens : les valeurs correspondantes sont à relever dans Figma avant publication ; aucun nouveau token n’est défini ici.
+
 Référence de layout, tokens et qualification documentaire ; aucune règle de calcul issue de Figma. Baseline dépôt6d03f5be579f2d0e2e7602b6abf1c2b46f4c740b. Sources figées dans `archives/cadence-2026-10-06`, relevé courant de Figma `G6RY5Ebhgwb4AHIOYDwwvg`. D-299/D-300. Le présent état supersède les valeurs incompatibles des inventaires DSF antérieurs ; ceux-ci restent des preuves datées.
 
 ## 1. Inventaire direct du06/10
@@ -61,7 +67,7 @@ Valeurs du journal §7.1/§9 et du brief annexe H ; aucune nouvelle règle méti
 
 | Élément | Couleur / opacité | Portée |
 |---|---|---|
-| Contrôle segmenté | Blanc, remplissage 50 % | Surface du contrôle |
+| [remplacé par D-413 le 18/10/2026 dans la feuille des paramètres : sans enveloppe blanche ; inchangé ailleurs] Contrôle segmenté | Blanc, remplissage 50 % | Surface du contrôle |
 | Tri DSF | Blanc 72 % ; trait disabled #BEC2CC 75 % | Master 34 × 34, rayon 17 |
 | Rappel / Option | #FBFAF7, 82 % | Fond de l’option |
 | Repères principaux 3 h / 6 h / 9 h | disabled #BEC2CC, remplissage 62 % | Cible confirmée au nouveau contrôle du 06/10 : 171 repères à 62 % |
@@ -93,7 +99,7 @@ Ne pas remplacer toutes les tailles15/16/17 ensemble. `tokens.ts`, chargement de
 
 En-tête fixe : propriétés Titre et Démarcation ; barre d’état9:41 purement décorative Figma, rendue par le système sur appareil. Respecter les Safe Areas réelles, pas une constante d’en-tête95px. Poignée de modale et Progression par tours sont des composants DSF ; pas de réinvention du shell.
 
-Bip de cadence : ligne commune aux trois modes,0..10s et0=Aucun, stepper au premier niveau x36, séparateur330 ; juste avant le total ou avant Compte à rebours lorsque total omis. Aucun éditeur par Série. Retrait du total : feuille raccourcie42px par le haut, bas ancré. Voir DSF Bip du07/10.
+[remplacé par D-408, D-409 et D-413 le 18/10/2026] Bip de cadence : ligne commune aux trois modes,0..10s et0=Aucun, stepper au premier niveau x36, séparateur330 ; juste avant le total ou avant Compte à rebours lorsque total omis. Aucun éditeur par Série. Retrait du total : feuille raccourcie42px par le haut, bas ancré. Voir DSF Bip du07/10.
 
 Phrase unique Inter13/20, valeurs en gras ; zone entière cliquable ; aucun segment éditable. Les textes des frames13/14/phrase longue servent de témoins de layout ; Phrase v1 gouverne le texte généré et le calcul métier fournit le total. Leur harmonisation éditoriale Figma est facultative pour le développement tant que le layout ne change pas. Les états avant/après nominal et Pause/Reprise réemploient le layout d’exécution ; les spécifications suffisent, sans trois frames supplémentaires exigées.
 
@@ -170,7 +176,7 @@ Noms et identifiants relus directement dans Figma le 06/10. Les 659 migrations e
 | Modal / Header Action — Source exact | DSF / Actions / Fermer et valider | `5544:4541` | Fermer / Valider |
 | Header / Sound Control — Source exact | DSF / Controls / Son | `5544:4770` | Activé / Désactivé |
 | Header / Voice Control — Source exact | DSF / Controls / Voix | `5544:4790` | Activée / Désactivée |
-| Indicator / Sides — Source exact | DSF / Status & Tags / Indicateur de côté | `5544:6944` | Droite → Gauche / Gauche → Droite |
+| [remplacé par D-407 le 18/10/2026 : indicateur de changement de côté sans direction, variante à relever dans Figma] Indicator / Sides — Source exact | DSF / Status & Tags / Indicateur de côté | `5544:6944` | Droite → Gauche / Gauche → Droite |
 | Overlay / Decision Dialog | DSF / Overlays / Confirmation | `5544:6095` | Primaire / Destructive / Trois actions / Abandon ; 6 dialogues longs conservés dans la primitive ancienne |
 | Button / Primary — Source exact | DSF / Actions / Bouton primaire | `5544:4522` | Actif / Désactivé |
 | Button / Primary — Source exact/Disabled | DSF / Actions / Bouton primaire | `5544:4522` | Désactivé |

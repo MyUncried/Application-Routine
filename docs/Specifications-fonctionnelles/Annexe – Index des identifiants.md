@@ -162,6 +162,7 @@ Document non normatif, généré. Il indique où chaque identifiant est défini.
 | [B-089](02%20%E2%80%93%20Utilisateurs%20et%20besoins.md#régler-les-récupérations) | 02 | Régler les récupérations |
 | [B-090](02%20%E2%80%93%20Utilisateurs%20et%20besoins.md#régler-les-récupérations) | 02 | Régler les récupérations |
 | [B-091](02%20%E2%80%93%20Utilisateurs%20et%20besoins.md#régler-les-récupérations) | 02 | Régler les récupérations |
+| [B-092](02%20%E2%80%93%20Utilisateurs%20et%20besoins.md#8-besoins-validés-pour-les-évolutions) | 02 | 8. Besoins validés pour les évolutions |
 | [CE-CIR-01](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-cir-01--choix-de-nature-du-circuit) | 13 | CE-CIR-01 — Choix de nature du circuit |
 | [CE-CIR-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-cir-02--confirmation-dadaptation-avec-perte) | 13 | CE-CIR-02 — Confirmation d’adaptation avec perte |
 | [CE-CIR-03](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-cir-03--volumes-du-circuit) | 13 | CE-CIR-03 — Volumes du circuit |
@@ -608,6 +609,17 @@ Document non normatif, généré. Il indique où chaque identifiant est défini.
 | [D-400](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#précisions-de-hermann-du-17-octobre-2026-b1-à-b5) | 07 | Précisions de Hermann du 17 octobre 2026 (B1 à B5) |
 | [D-401](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#précisions-de-hermann-du-17-octobre-2026-b1-à-b5) | 07 | Précisions de Hermann du 17 octobre 2026 (B1 à B5) |
 | [D-402](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#décision-de-hermann-du-17-octobre-2026--restructuration-documentaire-qr-1-à-qr-9) | 07 | Décision de Hermann du 17 octobre 2026 — restructuration documentaire (QR-1 à QR-9) |
+| [D-403](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#paramètres-dexécution--décisions-du-18-octobre-2026) | 07 | Paramètres d’exécution — décisions du 18 octobre 2026 |
+| [D-404](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#paramètres-dexécution--décisions-du-18-octobre-2026) | 07 | Paramètres d’exécution — décisions du 18 octobre 2026 |
+| [D-405](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#paramètres-dexécution--décisions-du-18-octobre-2026) | 07 | Paramètres d’exécution — décisions du 18 octobre 2026 |
+| [D-406](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#paramètres-dexécution--décisions-du-18-octobre-2026) | 07 | Paramètres d’exécution — décisions du 18 octobre 2026 |
+| [D-407](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#paramètres-dexécution--décisions-du-18-octobre-2026) | 07 | Paramètres d’exécution — décisions du 18 octobre 2026 |
+| [D-408](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#paramètres-dexécution--décisions-du-18-octobre-2026) | 07 | Paramètres d’exécution — décisions du 18 octobre 2026 |
+| [D-409](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#paramètres-dexécution--décisions-du-18-octobre-2026) | 07 | Paramètres d’exécution — décisions du 18 octobre 2026 |
+| [D-410](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#paramètres-dexécution--décisions-du-18-octobre-2026) | 07 | Paramètres d’exécution — décisions du 18 octobre 2026 |
+| [D-411](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#paramètres-dexécution--décisions-du-18-octobre-2026) | 07 | Paramètres d’exécution — décisions du 18 octobre 2026 |
+| [D-412](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#paramètres-dexécution--décisions-du-18-octobre-2026) | 07 | Paramètres d’exécution — décisions du 18 octobre 2026 |
+| [D-413](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#paramètres-dexécution--décisions-du-18-octobre-2026) | 07 | Paramètres d’exécution — décisions du 18 octobre 2026 |
 | [DM-001](09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#décisions-structurantes-du-modèle) | 09 | Décisions structurantes du modèle |
 | [DM-002](09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#décisions-structurantes-du-modèle) | 09 | Décisions structurantes du modèle |
 | [DM-003](09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#décisions-structurantes-du-modèle) | 09 | Décisions structurantes du modèle |
@@ -838,6 +850,22 @@ Document non normatif, généré. Il indique où chaque identifiant est défini.
 | [RM-232](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#règles-rm-213-à-rm-221--consolidation) | 10 | Règles RM-213 à RM-221 — consolidation |
 | [RM-233](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#règles-rm-213-à-rm-221--consolidation) | 10 | Règles RM-213 à RM-221 — consolidation |
 | [RM-234](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#règles-rm-213-à-rm-221--consolidation) | 10 | Règles RM-213 à RM-221 — consolidation |
+| [RM-235](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-235--charge--nature) | 10 | RM-235 — Charge : nature |
+| [RM-236](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-236--charge--activation-et-conservation) | 10 | RM-236 — Charge : activation et conservation |
+| [RM-237](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-237--charge--séries-identiques) | 10 | RM-237 — Charge : séries identiques |
+| [RM-238](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-238--charge--séries-variables) | 10 | RM-238 — Charge : séries variables |
+| [RM-239](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-239--charge--saisie-pas-et-zéro) | 10 | RM-239 — Charge : saisie, pas et zéro |
+| [RM-240](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-240--charge--phrase-de-synthèse) | 10 | RM-240 — Charge : phrase de synthèse |
+| [RM-241](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-241--charge--exécution) | 10 | RM-241 — Charge : exécution |
+| [RM-242](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-242--changement-de-côté--avec--sans) | 10 | RM-242 — Changement de côté : Avec / Sans |
+| [RM-243](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-243--côtés--désignation-neutre) | 10 | RM-243 — Côtés : désignation neutre |
+| [RM-244](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-244--côtés--compatibilité-des-données) | 10 | RM-244 — Côtés : compatibilité des données |
+| [RM-245](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-245--cadence--choix-rapides) | 10 | RM-245 — Cadence : choix rapides |
+| [RM-246](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-246--durée-de-lexercice-et-signaux) | 10 | RM-246 — Durée de l’exercice et signaux |
+| [RM-247](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-247--chevrons-intégrés-aux-options) | 10 | RM-247 — Chevrons intégrés aux options |
+| [RM-248](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-248--condition-darrêt--séries-identiques) | 10 | RM-248 — Condition d’arrêt : séries identiques |
+| [RM-249](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-249--condition-darrêt--séries-variables) | 10 | RM-249 — Condition d’arrêt : séries variables |
+| [RM-250](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-250--roulettes-de-durée-selon-le-type-de-série) | 10 | RM-250 — Roulettes de durée selon le type de série |
 | [RM-FMT-01](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-fmt-01) | 10 | RM-FMT-01 |
 | [RM-FMT-02](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-fmt-02) | 10 | RM-FMT-02 |
 | [RM-FMT-03](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-fmt-03) | 10 | RM-FMT-03 |

@@ -130,7 +130,7 @@ La création rapide constitue le parcours principal. La Description reste facult
 
 ## Vision de la bilatéralité
 
-La configuration permet de choisir `Aucun`, droite puis gauche, ou gauche puis droite sur un Exercice. Dans la version actuelle, le changement de côté n’est pas exposé au niveau du Circuit ; le Circuit n’a pas de bilatéralité fonctionnelle. L’Exécution rend le côté courant explicite sans alourdir la progression, au moyen du sous-titre `Côté droit` ou `Côté gauche` sous le nom de l’Exercice. Les résultats restent distinguables par côté et l’historique demeure fondé sur un instantané immuable.
+La configuration permet de régler le `Changement de côté` d’un Exercice sur `Avec` ou `Sans` ; l’utilisateur choisit lui-même le côté par lequel il commence, que Kodjo ne désigne pas (D-406, RM-242). Dans la version actuelle, le changement de côté n’est pas exposé au niveau du Circuit ; le Circuit n’a pas de bilatéralité fonctionnelle. L’Exécution rend le côté courant explicite sans alourdir la progression, au moyen du sous-titre `Côté 1` ou `Côté 2` sous le nom de l’Exercice (D-407, RM-243). Les résultats restent distinguables par côté et l’historique demeure fondé sur un instantané immuable.
 
 ## Concepts de composition
 
@@ -163,16 +163,17 @@ Une **entité métier** possède une identité propre et peut être représenté
 | --- | --- | --- |
 | **Utilisateur** | Propriétaire local des données. Dans le MVP, un seul Utilisateur local existe, sans compte distant obligatoire. | Utilisateur de l’appareil |
 | **Séance** | Modèle de contenu exécutable. Elle possède un nom, une couleur et une Composition comprenant un Compte à rebours initial, des Exercices organisés avant, dans ou après un Circuit répété en Tours, et une Fin de séance. Elle peut être exécutée directement ou planifiée par une Routine. | `Renforcement du genou` |
-| **Exercice** | Plus petite unité fonctionnelle définie par l’utilisateur. Elle est exécutée selon une Durée, un nombre de Répétitions ou jusqu’à l’échec. Elle porte une Pause après chaque série et peut porter une **Pause entre les côtés** lorsqu’elle est bilatérale. Une `ActivityDefinition` ne porte jamais de Récupération après exercice ; cette dernière appartient uniquement à l’occurrence contextualisée dans une Séance. Dans le MVP T03, l’Exercice existe soit comme `ActivityDefinition` persistante autonome du Catalogue, soit comme `SessionActivity` propre à une Séance. | 3 Séries de 12 squats |
+| **Exercice** | Plus petite unité fonctionnelle définie par l’utilisateur. Elle est exécutée selon une Durée, un nombre de Répétitions ou jusqu’à l’échec. Elle porte une Pause après chaque série et peut porter une **Pause entre les côtés** lorsqu’elle est bilatérale. Elle peut porter une **Charge** facultative et informative (RM-235 à RM-241). Une `ActivityDefinition` ne porte jamais de Récupération après exercice ; cette dernière appartient uniquement à l’occurrence contextualisée dans une Séance. Dans le MVP T03, l’Exercice existe soit comme `ActivityDefinition` persistante autonome du Catalogue, soit comme `SessionActivity` propre à une Séance. | 3 Séries de 12 squats |
 | **Point d’arrêt** | Élément de Composition qui suspend l’enchaînement jusqu’à une reprise explicite, sans écran dédié. Le temps passé au Point d’arrêt n’entre pas dans la durée de la Séance. | |
 | **Compte à rebours d’Exercice** | Phase optionnelle propre à un Exercice, distincte du Compte à rebours initial de la Séance. | |
 | **Fin d’exercice** | Phase optionnelle propre à un Exercice, distincte de la Fin de séance. | |
 | **Plan d’Exécution** | Représentation des occurrences effectives issue de l’instantané. Développement fini pour les comptes bornés ; génération progressive pour AMRAP/Death by selon leur borne. Les fenêtres, séries, pauses et récupérations ne sont pas comptées deux fois. | |
 | **Pause après chaque série** | Pi configurée et exécutée après chaque Série, dernière comprise, même à N=1. Seule la dernière Pause est remplacée par la récupération positive qui suit l’Exercice. Pause de série et pause de changement de côté se cumulent à leur frontière. | 15 s après chaque Série |
-| **Pause entre les côtés** | Durée intrinsèque facultative d’un Exercice bilatéral, portée par `sideRecoverySeconds`. Elle n’a de sens qu’avec `D→G` ou `G→D`, s’exécute selon l’Ordre des côtés : une fois entre les blocs ou une fois à l’intérieur de chaque paire, et entre dans la durée intrinsèque de l’Exercice. Avec `Aucun`, elle est sans objet. Sa valeur initiale lors de l’activation bilatérale provient du défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice. | 30 s entre côté droit et côté gauche |
+| **Pause entre les côtés** | Durée intrinsèque facultative d’un Exercice bilatéral, portée par `sideRecoverySeconds`. Elle n’a de sens qu’avec un Changement de côté `Avec` (D-406), s’exécute selon l’Ordre des côtés (libellé visible `Enchainement`) : une fois entre les blocs ou une fois à l’intérieur de chaque paire, et entre dans la durée intrinsèque de l’Exercice. Avec `Sans`, elle est sans objet. Sa valeur initiale lors de l’activation bilatérale provient du défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice. | 30 s entre côté 1 et côté 2 |
 | **Récupération après exercice** | Pause chronométrée ajoutée explicitement à une occurrence, absente par défaut ; jamais sur ActivityDefinition. Attachée à l’occurrence lors des opérations. À 0 s : aucune information de récupération ni phase ; trait indépendant D-303. | Récupération 30 s ajoutée |
 | **Phase de récupération** | Phase d’Exécution positive matérialisée soit par `SIDE_RECOVERY`, entre les deux côtés d’un Exercice bilatéral, soit par `POST_ACTIVITY_RECOVERY`, après une occurrence de Séance. Elles ont des porteurs et positions distincts et ne sont pas comptées comme des Exercices. | |
 | **Durée totale de l’Exercice** | Total intrinsèque calculé suivant chapitre 08, paramètres d’exercice : exact en Durée, estimé ≈ avec cadence, borne omission sans bip à l’Exercice, omis À l’échec. Inclut les Pauses et PC applicables ; exclut R contextuelle, Compte à rebours et Fin propres. |  |
+| **Durée de l’exercice** | Libellé visible de la ligne de la feuille des paramètres qui présente la Durée totale de l’Exercice ; un chevron à côté du libellé replie ou déploie Compte à rebours et Fin d’exercice. Règle : RM-246 (D-409). |  |
 | **Cycle** | Structure technique unique qui enveloppe les Exercices placés avant le Circuit, le Circuit et les Exercices placés après le Circuit. Dans le MVP, sa répétition vaut toujours 1, n’est pas modifiable et n’est jamais affichée à l’utilisateur. | Cycle technique × 1 |
 | **Routine** | Créneau de planification portant une liste ordonnée de Séances et/ou Exercices persistants, une règle de récurrence éventuelle, un rappel facultatif et un Programme facultatif. |
 | **Occurrence planifiée** | Instance temporelle calculée à partir d’une Routine, pour une Séance ou un Exercice. Une occurrence future peut être exécutée en avance ; une occurrence passée sans Exécution disparaît de l’interface du MVP. | Exercice prévu mardi à 18 h |
@@ -195,7 +196,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Fin de séance** | Phase structurelle chronométrée suivant le dernier Exercice. Elle correspond au type d’étape `SESSION_END` du Plan d’Exécution d’une Séance. Sa valeur initiale est 5 s ; 0 s la rend instantanée. Son achèvement termine l’Exécution de Séance. Ce n’est pas un Exercice et elle n’est pas déplaçable. |
 | **Circuit** | Groupe ordonné d’Exercices placé dans la Composition d’une Séance et répété en Tours. Les Exercices peuvent aussi être placés avant le Circuit ou après celui-ci. Le Circuit est une structure interne à la Séance, pas un contenu autonome du Catalogue. |
 | **Tour** | Une répétition du Circuit. Le nombre de Tours indique combien de fois le groupe ordonné d’Exercices du Circuit est exécuté. Le Tour ne constitue pas une entité métier autonome. Exemple : Mobilité → gainage, répété 3 Tours. |
-| **Série** | Définition subordonnée à l’Exercice : cible éventuelle et Pause. N signifie N Séries par côté en bilatéral. Paramètres communs en uniforme, collection ordonnée propre à chaque Série en variable. Pas une entité autonome. |
+| **Série** | Définition subordonnée à l’Exercice : cible éventuelle et Pause, ainsi qu’une charge lorsque la charge est activée (RM-237, RM-238). N signifie N Séries par côté en bilatéral. Paramètres communs en uniforme, collection ordonnée propre à chaque Série en variable. Pas une entité autonome. |
 | **Répétition** | Unité quantitative d’un Exercice en mode Répétitions, avec ou sans cadence ; aucune mesure automatique de sa réalisation physique. Le pluriel `Répétitions` désigne également ce mode d’Exercice dans l’interface. |
 | **Exercice avant le Circuit** | Exercice exécuté une seule fois avant le premier Tour du Circuit. |
 | **Exercice dans le Circuit** | Exercice exécuté à chaque Tour du Circuit. |
@@ -203,9 +204,9 @@ Une **entité métier** possède une identité propre et peut être représenté
 
 ##### Direction propre
 
-- La **direction propre** est persistée sur l’Exercice : `UNILATERAL`, `RIGHT_LEFT` ou `LEFT_RIGHT`.
+- La **direction propre** est la donnée historique de côté persistée sur l’Exercice : `UNILATERAL`, `RIGHT_LEFT` ou `LEFT_RIGHT`. Elle se lit désormais comme le Changement de côté : `UNILATERAL` vaut `Sans` ; `RIGHT_LEFT` et `LEFT_RIGHT` valent `Avec`, sans être réinterprétées comme un enchaînement (D-406, RM-244). La représentation technique de `Avec` / `Sans` relève de l’implémentation.
 - Le Circuit et ses Tours ne portent aucun changement de côté. Une bilatéralité éventuelle est définie au niveau de l’Exercice.
-- Pour un Exercice bilatéral hors de toute règle de Circuit, un Exercice proprement bilatérale affiche `D→G` ou `G→D` dans le petit indicateur de sa carte ; seul le texte de la Synthèse des écrans Créer un exercice / Modifier un exercice développe `à droite, puis à gauche` ou `à gauche, puis à droite`.
+- Pour un Exercice bilatéral hors de toute règle de Circuit, un Exercice proprement bilatérale affiche dans le petit indicateur de sa carte un indicateur de changement de côté, sans direction, rendu selon Figma (D-407, RM-243) ; seul le texte de la Synthèse des écrans Créer un exercice / Modifier un exercice développe le changement de côté en désignant les côtés selon RM-243 (côté 1, côté 2 ou changement de côté).
 
 #### 4. Concepts de planification
 
@@ -277,7 +278,8 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Exercice de référence** | Exercice persistant autonome du Catalogue des exercices dans le MVP T03. Il est directement exécutable à partir d’un instantané autonome et sert aussi de source à des copies indépendantes, incluant sa Pause éventuelle ; la Récupération après exercice appartient à l’occurrence de Séance, jamais à l’Exercice de référence (D-208). |
 | **Exercice de Séance** | Copie indépendante d’un Exercice, intégrée et ordonnée dans une Séance. Elle est persistée avec la Séance mais n’apparaît jamais comme doublon dans le Catalogue des exercices. |
 | **À l’échec** | Nature de cible d’une Série, disponible dans les modes Durée et Répétitions. Aucun nombre prescrit ; fin par Suivant. Relevé éventuel distinct de la prescription. |
-| **Contrôle pilote** | Parmi `Séries` et `Durée totale`, contrôle dont la dernière valeur confirmée détermine le calcul de l’autre. Il reçoit un contour `color/selection` renforcé. Le choix n’est pas persisté. |
+| **Condition d’arrêt** | Libellé visible de la ligne `À l’échec` / `À la cible` des paramètres d’un Exercice : choix commun en séries identiques, résultat dérivé et non modifiable en séries variables (« À la cible et à l’échec » en cas de mélange). Elle ne crée aucune nature de cible supplémentaire. Règles : RM-248, RM-249 (D-411). |
+| **Contrôle pilote** | Parmi `Nombre de séries` et `Durée de l’exercice` (libellés visibles, D-413 et D-409 ; concepts : nombre de Séries et Durée totale), contrôle dont la dernière valeur confirmée détermine le calcul de l’autre. Il reçoit un contour `color/selection` renforcé. Le choix n’est pas persisté. |
 | **Contrôle calculé** | Contrôle dépendant recalculé depuis le contrôle pilote. Il conserve son apparence standard, reste tactile et peut devenir pilote après validation de sa roulette. |
 | **Média** | Photo ou vidéo déjà associée à un Exercice, consultable dans le MVP dans les présentations de carte applicables et pendant l’Exécution : galerie ordonnée, vidéo et plein écran . L’ajout/import dans l’éditeur n’est pas activé par D-203. La vignette de carte et la galerie d’Exécution sont deux présentations distinctes ; Photo retire Déployer selon D-238. |
 | **Parcours** | Libellé du résultat d’une planification à plusieurs contenus liés sur un même créneau ; aucune identité, persistance, fiche ou exécution autonome. |
@@ -290,9 +292,9 @@ Une **entité métier** possède une identité propre et peut être représenté
 
 | Terme | Définition canonique |
 |---|---|
-| **Changement de côté** | Paramètre d’un Exercice parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, affiché à l’utilisateur comme `Aucun`, `D→G` ou `G→D`. Dans la version actuelle, aucun réglage de côté n’est exposé au niveau du Circuit ; un éventuel champ technique historique correspondant reste fixé à `UNILATERAL`. |
+| **Changement de côté** | Paramètre d’un Exercice présenté par le contrôle `Changement de côté` : `Avec` ou `Sans`. Avec `Avec`, l’Exercice est bilatéral et l’utilisateur choisit lui-même le côté par lequel il commence (D-406, RM-242). Les valeurs historiques `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT` se lisent selon RM-244. Dans la version actuelle, aucun réglage de côté n’est exposé au niveau du Circuit ; un éventuel champ technique historique correspondant reste fixé à `UNILATERAL`. |
 | **Direction effective** | Réglage réellement utilisé par le Plan d’Exécution. Dans la version actuelle, il provient de l’Exercice ; le Circuit n’expose aucun changement de côté. |
-| **Côté courant** | `RIGHT` ou `LEFT` pour le passage en cours. L’interface l’affiche sous le nom de l’Exercice par `Côté droit` ou `Côté gauche`. Aucun compteur `1/2` ou `2/2` n’est affiché. |
+| **Côté courant** | Côté 1 ou côté 2 pour le passage en cours ; le côté 1 est celui par lequel l’utilisateur commence (D-407, RM-243). L’interface l’affiche sous le nom de l’Exercice par `Côté 1` ou `Côté 2`. Les valeurs techniques historiques `RIGHT` et `LEFT` restent lisibles ; les noms techniques relèvent de l’implémentation (RM-244). Aucun compteur `1/2` ou `2/2` n’est affiché. |
 | **Exercice bilatéral autonome** | Exercice exécutant ses Séries des deux côtés selon l’Ordre des côtés : toutes ses Séries du premier côté puis toutes celles du second (défaut), ou les deux côtés à chaque série (D-247). Sa Pause entre les côtés éventuelle, intrinsèque, s’applique selon cet ordre ; la Récupération après exercice éventuelle appartient à l’occurrence de Séance et intervient après l’Exercice complet (D-208). |
 | **Bilatéralité du Circuit** | Le Circuit et ses Tours n’ont pas de direction ni de réglage de côté. Le changement de côté est porté uniquement par l’Exercice. |
 
@@ -331,8 +333,9 @@ Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTE
 
 | Terme complémentaire | Définition |
 |---|---|
-| **Séries variables** | État explicite : chaque Série a ses propres cible et Pause, avec un mode commun à l’Exercice. |
-| **Ordre des côtés** | Un côté après l’autre (défaut) ou Les deux côtés à chaque série. Indépendant de la direction D→G/G→D ; normalisé au premier ordre à N=1. |
+| **Séries variables** | État explicite : chaque Série a ses propres cible et Pause, et sa charge lorsque la charge est activée (RM-238), avec un mode commun à l’Exercice. |
+| **Charge** | Paramètre facultatif et informatif d’un Exercice, en kilogrammes, présenté par la ligne `Charge` (`Avec` / `Sans`, valeur affichée par exemple « 20 kg ») ; commune aux Séries identiques ou propre à chaque Série variable. Règles : RM-235 à RM-241 (D-403 à D-405). |
+| **Ordre des côtés** | Un côté après l’autre (défaut) ou Les deux côtés à chaque série ; libellé visible `Enchainement` (D-413), disponible avec un Changement de côté `Avec` (RM-242). Distinct du côté de départ, que Kodjo ne désigne pas (D-406) ; normalisé au premier ordre à N=1. |
 
 #### Cadence et métriques — complément du06/10/2026
 
@@ -354,7 +357,7 @@ Références normatives : Bip v 2 et paramètres v 13. Circuit reste la structur
 
 | Terme | Définition |
 |---|---|
-| Bip de cadence | Signal sonore périodique pendant les Séries des deux modes. Intervalle entier 0..10 s ; 0=Aucun. Ne détecte pas les répétitions et ne termine pas la Série. Le nombre d’intervalles logiques peut proposer un relevé estimé en Répétitions à l’échec. |
+| Bip de cadence | Signal sonore périodique pendant les Séries des deux modes. Intervalle entier 0..10 s ; 0 = Sans. Libellé visible de la ligne : `Cadence`, choix `Autre`, `5 s`, `2 s`, `1 s` et `Sans` (D-408, RM-245). Ne détecte pas les répétitions et ne termine pas la Série. Le nombre d’intervalles logiques peut proposer un relevé estimé en Répétitions à l’échec. |
 
 #### Titres affichés
 

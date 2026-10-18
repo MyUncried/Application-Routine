@@ -1,0 +1,527 @@
+diff --git a/docs/Specifications-fonctionnelles/01 – Vision Générale.md b/docs/Specifications-fonctionnelles/01 – Vision Générale.md
+--- a/docs/Specifications-fonctionnelles/01 – Vision Générale.md
++++ b/docs/Specifications-fonctionnelles/01 – Vision Générale.md
+@@ -208,6 +208,10 @@ Une **entité métier** possède une identité propre et peut être représenté
+ - Le Circuit et ses Tours ne portent aucun changement de côté. Une bilatéralité éventuelle est définie au niveau de l’Exercice.
+ - Pour un Exercice bilatéral hors de toute règle de Circuit, un Exercice proprement bilatérale affiche dans le petit indicateur de sa carte un indicateur de changement de côté, sans direction, rendu selon Figma (D-407, RM-243) ; seul le texte de la Synthèse des écrans Créer un exercice / Modifier un exercice développe le changement de côté en désignant les côtés selon RM-243 (côté 1, côté 2 ou changement de côté).
+ 
++#### Phases d’un exercice
++
++Une **phase d’exercice** est une action chronométrée et nommée au sein d’une série. Une séquence de 1 à 6 phases est rejouée à chaque série, sans pause entre phases. Cette capacité appartient au MVP, uniquement en Durée chiffrée avec séries identiques. Elle ne crée ni exercice de catalogue ni compteur de cycles supplémentaire. Le terme se distingue des phases structurelles du plan (préparation, récupération, fin).
++
+ #### 4. Concepts de planification
+ 
+ | Terme | Définition |
+diff --git a/docs/Specifications-fonctionnelles/02 – Utilisateurs et besoins.md b/docs/Specifications-fonctionnelles/02 – Utilisateurs et besoins.md
+--- a/docs/Specifications-fonctionnelles/02 – Utilisateurs et besoins.md
++++ b/docs/Specifications-fonctionnelles/02 – Utilisateurs et besoins.md
+@@ -72,6 +72,10 @@ Une personne qui souhaite créer, planifier, exécuter et suivre seule des Séan
+ 
+ Le Cycle technique n’est ni manipulé ni affiché dans le MVP.
+ 
++#### Décomposer un exercice en phases
++
++Décrire plusieurs actions successives, par exemple 6 s puis 3 s, au sein d’un même exercice et les rejouer à chaque série. Le MVP permet jusqu’à six phases nommées, sans multiplier les exercices dans le catalogue ou les lignes dans la séance. Le guidage annonce l’action courante selon la préférence vocale.
++
+ #### Planifier une Séance ou un Exercice
+ 
+ - **B-023** — Visualiser le Calendrier en vues Jour, Semaine et Mois.
+diff --git a/docs/Specifications-fonctionnelles/03 – Parcours utilisateur.md b/docs/Specifications-fonctionnelles/03 – Parcours utilisateur.md
+--- a/docs/Specifications-fonctionnelles/03 – Parcours utilisateur.md
++++ b/docs/Specifications-fonctionnelles/03 – Parcours utilisateur.md
+@@ -187,6 +187,12 @@ Dans T03/MVP, le segment `Parcours` est supprimé : aucune troisième option, m
+ 
+ Les paramètres métier restent identiques entre création et modification ; seule l’organisation de l’écran et le contexte de retour diffèrent.
+ 
++### Définir les phases d’un exercice — MVP
++
++Dans Modalités d’exécution, la ligne Phases suit Mode d’exécution. Sur un exercice en Durée chiffrée et séries identiques, toucher Aucune crée une première phase reprenant la durée actuelle de série. Ajouter, nommer, régler et déplacer jusqu’à six phases ; leur somme devient la durée de série. Le chevron n’existe que lorsque la liste existe. ✓ applique au brouillon parent ; ✕ annule ; l’enregistrement reste celui du parent.
++
++Dans un format imposant une durée de travail, la dernière phase reçoit le temps restant. L’intégration d’un exercice dont la somme diffère adapte proportionnellement sa copie dans la séance et affiche un message informatif ; la définition Catalogue reste intacte. Règles détaillées et cas encore à préciser : [Phases d’exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
++
+ #### Ajouter un Exercice depuis une Composition
+ 
+ 1. Appuyer sur `Ajouter un exercice`.
+diff --git a/docs/Specifications-fonctionnelles/04 – Modèle fonctionnel.md b/docs/Specifications-fonctionnelles/04 – Modèle fonctionnel.md
+--- a/docs/Specifications-fonctionnelles/04 – Modèle fonctionnel.md
++++ b/docs/Specifications-fonctionnelles/04 – Modèle fonctionnel.md
+@@ -276,6 +276,12 @@ Le détail ordonné des phases est défini par chapitre 08, paramètres d’exer
+ 
+ Dans une occurrence, R>0 se substitue à la seule Pause terminale ; R reste une donnée contextuelle, hors définition intrinsèque.
+ 
++## Phases internes d’une série
++
++Un exercice peut porter une liste ordonnée de zéro à six phases, chacune avec un libellé de 20 caractères maximum et une durée. Elles sont communes aux séries identiques, uniquement en mode Durée à cible chiffrée. Une série exécute exactement une fois cette liste ; sa durée en est la somme, et non une seconde valeur indépendante. L’absence de phases conserve le comportement existant.
++
++Les phases s’enchaînent sans pause. Les pauses après série, les côtés, les circuits et la récupération contextuelle conservent leur portée. Chaque passage de travail d’un côté déroule le motif complet ; une phase ne devient pas un passage de circuit. Les phases de geste ne doivent pas être confondues avec les phases structurelles du plan. Voir [règles d’édition et de format](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
++
+ ### Composition d'une séance — Les exercices
+ 
+ Un exercice représente une étape élémentaire de la séance.
+diff --git a/docs/Specifications-fonctionnelles/05 – Versions du produit.md b/docs/Specifications-fonctionnelles/05 – Versions du produit.md
+--- a/docs/Specifications-fonctionnelles/05 – Versions du produit.md
++++ b/docs/Specifications-fonctionnelles/05 – Versions du produit.md
+@@ -125,6 +125,10 @@ Le modèle de données de la V1 repose sur la hiérarchie Séance → Cycle →
+ 
+ ---
+ 
++### Phases d’exercice — périmètre MVP
++
++Le MVP inclut jusqu’à six phases chronométrées et nommées par exercice, en Durée chiffrée et séries identiques : édition, copies, calcul, adaptation aux formats compatibles et guidage d’exécution. Les phases en Répétitions ou À l’échec restent exclues. Cette décision ne vaut pas livraison dans une tranche déjà qualifiée et ne modifie pas rétroactivement son périmètre de recette. Le placement sur le cadran et les cartes reste à compléter dans les contrats concernés ; la personnalisation libre du cadran n’est pas incluse.
++
+ ## Complément intégré au MVP
+ 
+ - D-200 intègre directement au MVP la suppression des Étiquettes, Catégories et Zones corporelles depuis leurs modales de sélection par appui long puis confirmation ; toutes les valeurs, initiales comme personnalisées, sont concernées.
+diff --git a/docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md b/docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md
+--- a/docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md
++++ b/docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md
+@@ -600,6 +600,14 @@ Le tableau variable comporte poignée, numéro, cellules cible/Pause, colonne Ch
+ 
+ ![Ajouter un exercice — Catégorie renseignée](images/circuits-2026-10-12/8328-36278.png)
+ 
++### Présentation des phases d’exercice
++
++La ligne Phases se place après Mode d’exécution et avant Séries. Aucune crée la première phase sans chevron ; la liste existante expose son repli et un tableau Libellé/Durée. La durée de série devient calculée. Les états incompatibles sont non modifiables, sans transformer une valeur effective calculée en tiret. Contrat CE-UI-10 et [règles métier](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
++
++Le rapport Figma V2 du 15/10 décrit trois écrans dédiés sur Conception — Hors MVP : « Phases (aucune) », « Phases (définies) » et « Phases verrouillées (séries variables) ». Il décrit aussi la ligne ajoutée sur 19 écrans de Prototype MVP et 19 de Conception. Ces nombres sont ceux du rapport fourni, pas un nouvel inventaire direct. Les seize modales de format n’ont pas encore reçu cette ligne selon ce rapport.
++
++Les captures existantes ci-dessous ne sont pas des preuves actualisées des phases. Les exports des états modifiés et le report des trois écrans dédiés restent à effectuer ; aucune capture n’est fabriquée ou retouchée dans cette consolidation. Le cadran et la carte de composition attendent leur précision de présentation. Les corrections collatérales du fond gris, des hauteurs de feuille et du chevron Séries doivent être conservées lors du prochain relevé.
++
+ #### Feuille Modalités d’exécution — états intégrés
+ 
+ Ces 20 frames sont des états de CE-UI-10, pas 20 pages applicatives. Relevé et export du 18/10/2026 dans Prototype MVP (spécification v3.0, D-403 à D-413) ; ils remplacent les captures du 12/10 et du 13/10, qui restent dans le dépôt comme références historiques. Les frames `8328:38301`, `8328:38953`, `8328:39181` et `8328:39390` n’existent plus. Toutes les frames montrent aussi la ligne Phases de l’exercice : elle relève de la proposition en cours sur les phases d’exercice (D-370 à D-375 réservés) et n’est pas décrite par ce chapitre. Les valeurs affichées sont illustratives. Sur toutes les frames, « À la cible » est affiché sans accent (« A la cible ») : le libellé décidé est « À la cible » (D-411).
+diff --git a/docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md b/docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md
+--- a/docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md
++++ b/docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md
+@@ -712,3 +712,16 @@ Arbitrages clos par le propriétaire dans la spécification « Évolution des pa
+ | D-369 | DEC-13 — État de développement. 17:15 : le moteur n’a pas encore été développé | Validée le 14/10/2026 par Hermann ; voir preuve source de la spécification | §10 et §14 |
+ 
+ La V2 est amendée par ces décisions, notamment : réglages éditables ; organisation Tabata/EMOM/Progression ; For time indexé par tour sans choix d’organisation ; Death by cadencé, tours acquis par appui, résultat partiel et état toujours incomplet. Les décisions ne valent pas livraison applicative ni clôture des raccordements explicitement signalés.
++
++### Phases d’exercice — décisions du 15 octobre 2026
++
++| ID | Décision |
++|---|---|
++| D-370 | Phases au MVP ; 0 à 6 phases ordonnées, libellé 20 caractères maximum ; Durée chiffrée et séries identiques uniquement ; une série joue une fois le motif sans pause interne. |
++| D-371 | Aucune crée une phase reprenant la durée de série ; chevron seulement avec phases. Ajout libre : copie de la dernière durée. Supprimer la dernière conserve sa durée comme durée de série. |
++| D-372 | Formats à durée de travail imposée : dernière phase calculée par différence ; ajout à 0, sans division ; réglages bornés pendant saisie, pas de blocage de validation pour dépassement. Déplacement conserve les durées et transfère le calcul à la dernière position ; suppression transfère le temps libéré à la dernière restante. |
++| D-373 | Validation : retrait silencieux des phases restées à 0 s ; libellé vide remplacé par Phase n. Zéro de saisie non persisté. Le cas des arrondis à zéro lors d’une adaptation proportionnelle reste distinct et à préciser. |
++| D-374 | À l’intégration dans un format, somme différente : adaptation proportionnelle dans la copie de séance, à la hausse comme à la baisse ; message informatif sans confirmation supplémentaire ; catalogue intact. |
++| D-375 | Bip continu sur la série, sans redémarrage au changement de phase ; transition prioritaire en cas de coïncidence. Annonce de chaque libellé, première phase comprise, si voix activée ; sans retarder le temps ; nouvelle annonce interrompt la précédente. |
++
++Les paramètres limites non arbitrés, les textes de synthèse et la présentation d’exécution restent localisés dans la section Phases du chapitre 08. Ces décisions ne remplacent ni les pauses et côtés existants ni leurs commandes.
+diff --git a/docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md b/docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md
+--- a/docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md
++++ b/docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md
+@@ -221,6 +221,124 @@ Changement de mode : conserver N et les Pauses ; remplacer les cibles incompatib
+ 
+ **N=1 — arbitrage explicite** : état effectif uniforme et Ordre des côtés effectif Un côté après l’autre **dès le brouillon et son calcul**, pas seulement à la sauvegarde. Champ de régime non modifiable, selon la normalisation N1 existante ; Ordre des côtés grisé lorsqu’il est visible en bilatéral ; aucun texte explicatif. Conserver temporairement l’ancien état variable, ses lignes et l’ancien ordre des côtés pour les restaurer si N remonte à 2+ avant ✓. Valider à 1 ne conserve qu’une série uniforme et l’ordre par défaut. Hors circuit de séries, les deux formules bilatérales ne sont pas déclarées équivalentes à N=1 : la normalisation choisit explicitement la première. Dans un circuit de séries, le passage suit toujours premier côté → PC → second côté → Pi, y compris pour compte 1 ; aucun Pi supplémentaire avant PC.
+ 
++<a id="phases-exercice"></a>
++
++## Phases d’un exercice — MVP
++
++Une phase est une subdivision d’un geste au sein d’une série, distincte des phases structurelles du plan. Les décisions D-370 à D-375 s’appliquent.
++
++### Structure, édition et calcul
++
++#### Structure et éligibilité
++
++- Un exercice contient zéro à six phases ordonnées. Zéro signifie « Aucune » ; une seule phase est autorisée.
++- Chaque phase porte un libellé de 20 caractères maximum et une durée.
++- Les phases sont réservées au mode Durée avec une cible chiffrée et des séries identiques.
++- Elles sont incompatibles avec le mode Répétitions, une cible À l’échec et les séries variables.
++- Si des phases existent, les choix incompatibles sont indisponibles. L’utilisateur supprime d’abord les phases ; aucune conversion destructive automatique n’est créée.
++- Avec des séries variables ou une cible À l’échec, la création de phases est indisponible. L’interface doit également respecter l’exclusion du mode Répétitions.
++- La séquence de phases est commune à toutes les séries de l’exercice. Elle ne définit ni exercice supplémentaire ni pause entre ses éléments.
++
++#### Création et édition
++
++La ligne « Phases » se trouve entre « Mode d’exécution » et « Séries ». Sans phases, la valeur « Aucune » ne porte pas de chevron. Son appui crée la première phase, reprend la durée actuelle de la série et propose le libellé « Phase 1 ».
++
++Lorsque des phases existent, le chevron permet de replier et déplier leur tableau. Celui-ci réutilise les conventions du tableau des séries : déplacement, numéro, colonnes Libellé et Durée, suppression, ligne active et commandes d’ajout/retrait. L’appui sur le libellé ouvre la saisie de texte ; l’appui sur une durée modifiable ouvre son contrôle de durée.
++
++Hors durée imposée, une phase ajoutée reprend la durée de la dernière phase et reçoit un libellé initial « Phase n ». Toutes les durées sont modifiables ; la durée de série est recalculée. L’ajout est indisponible après la sixième phase, sans créer de septième ligne.
++
++Un libellé laissé vide est remplacé par « Phase n » à la validation, suivant la position finale. Les libellés personnalisés restent attachés à leur phase lors d’un déplacement.
++
++Toute phase restée à 0 s est retirée automatiquement à la validation, sans message ni blocage. Zéro est un état temporaire de saisie, pas une phase exécutable persistée. La validation de la feuille applique les paramètres au brouillon parent ; l’enregistrement définitif suit la frontière existante de l’éditeur. Annuler restaure l’état antérieur de cette feuille.
++
++#### Suppression et retour sans phases
++
++Hors durée imposée, supprimer une phase retire sa contribution à la durée de série. Supprimer la dernière phase existante ramène la ligne à « Aucune » et conserve la durée qu’elle portait juste avant sa suppression comme durée de série. Cette durée redevient modifiable, sauf contrainte du format.
++
++Les conventions existantes de suppression et d’annulation doivent être réutilisées : restaurer une suppression restitue l’ordre, les libellés et les durées de l’état précédent, y compris les valeurs calculées affectées par cette suppression.
++
++#### Durée de série et durée totale
++
++Soit D la somme des durées des phases actives. La durée d’une série est D, affichée comme résultat calculé non modifiable. Une somme telle que 6 + 3 = 9 s n’est pas arrondie au pas de la roulette de durée saisie. Elle ne constitue pas une seconde prescription indépendante.
++
++Pour un exercice unilatéral de N séries identiques et une pause P après chaque série :
++
++`T intrinsèque = N × (D + P)`
++
++Le réglage inverse de Durée totale conserve la règle existante du chapitre 13, R-02 : il choisit N lorsque N est libre, sans modifier les durées des phases. Avec un nombre imposé, le total reste en lecture seule.
++
++Cette durée comprend la dernière pause et exclut le compte à rebours et la fin propres. Si une récupération de séance positive R suit l’occurrence, la substitution existante s’applique à sa pause terminale : `T occurrence = T intrinsèque − P + R`, dans ce cas unilatéral exécuté comme bloc complet. Dans un circuit de séries, appliquer la substitution au passage concerné conformément au plan existant, sans transposer aveuglément la formule de bloc.
++
++Exemple validé : phases 6 s et 3 s, trois séries, pause de 15 s : D = 9 s ; T = 3 × (9 + 15) = 72 s, soit 1 min 12 s. C’est la valeur du champ Durée totale des paramètres. Aucun compte à rebours ni fin n’y est ajouté.
++
++Les règles bilatérales, les deux ordres de côtés, les circuits, les récupérations et les points d’arrêt restent applicables. Chaque passage de travail d’un côté exécute la séquence complète avant la transition déjà prescrite. Les phases n’ajoutent aucune pause de côté ni pause de série.
++
++Une séquence chronométrée a une durée déterminée. Elle n’introduit pas à elle seule un symbole ≈ ou ≥. Le symbole de la séance reste déterminé par l’ensemble de ses contributions. Aucune estimation de 2 s par répétition n’est utilisée.
++
++### Formats imposant une durée de travail
++
++#### Réglage dans le format
++
++Les phases sont autorisées lorsque le format impose une durée de travail compatible avec l’éligibilité ci-dessus. Tabata constitue le cas validé : une série reste de 20 s.
++
++La dernière phase porte automatiquement le temps restant :
++
++`durée dernière phase = durée imposée − somme des phases précédentes`.
++
++Les durées précédentes sont modifiables dans les limites du budget restant ; aucune durée négative n’est produite et aucun blocage de validation pour dépassement n’est ajouté. La dernière phase est calculée et peut temporairement valoir zéro.
++
++| Action | Résultat attendu pour 20 s |
++| --- | --- |
++| Créer la première phase | Une phase calculée de 20 s |
++| Ajouter une deuxième phase | 20 s + 0 s ; aucune division automatique |
++| Régler la première à 12 s | 12 s + 8 s |
++| Ajouter une troisième | 12 s + 8 s + 0 s ; la deuxième devient modifiable |
++| Déplacer une phase | Les durées restent inchangées ; la nouvelle dernière devient calculée |
++| Supprimer 7 s dans 5 + 7 + 8 | 5 + 15 s |
++| Supprimer la dernière dans 5 + 7 + 8 | 5 + 15 s ; la précédente devient calculée |
++| Supprimer l’unique phase | Aucune phase ; série de 20 s toujours imposée |
++| Valider 20 + 0 | Retrait silencieux de la phase à zéro ; une phase de 20 s |
++
++#### Intégration d’un exercice déjà décomposé
++
++Si la somme des phases de l’exercice ajouté diffère de la durée imposée, adapter proportionnellement leurs durées dans la copie de séance, à la hausse comme à la baisse. Préserver l’ordre et les libellés. L’exercice source du catalogue reste inchangé.
++
++Avant arrondi, chaque durée est multipliée par le rapport `durée imposée / somme initiale`. Les arrondis sont absorbés par la dernière phase pour conserver exactement le total imposé. Les détails des très petites durées restent à fermer dans les compléments à préciser ci-dessous.
++
++Un message informatif explique l’adaptation, sans demander de confirmation supplémentaire. Exemple : « Les durées des phases ont été ajustées pour respecter les 20 s du format Tabata : 15 s + 15 s deviennent 10 s + 10 s. »
++
++Exemples validés : 15 + 15 devient 10 + 10 ; 6 + 3 devient 13 + 7. Lorsque les totaux sont déjà égaux, aucune adaptation n’est nécessaire. Cette adaptation à l’intégration ne remplace pas le calcul du temps restant pendant l’édition.
++
++#### Limite de généralisation
++
++Une durée globale de séance ou de fenêtre n’est pas nécessairement une durée de travail imposée à l’exercice. Ne pas transformer automatiquement une fenêtre EMOM en durée d’effort : son repos résiduel fait partie de sa définition. L’éligibilité dépend du mode et de la cible de travail réellement prescrits. Les formats prescrivant des répétitions restent incompatibles avec les phases dans cette version ; leurs règles ne sont pas converties pour permettre l’ajout.
++
++### Exécution, audio et progression
++
++Les phases s’enchaînent automatiquement à expiration de leur durée, sans pause ni attente d’une annonce. La fin de la dernière phase termine le passage de travail de la série ; le plan reprend ensuite la pause, le côté ou le passage suivant selon les règles existantes.
++
++Le bip de cadence reste continu à l’intérieur d’une série : un changement de phase ne réinitialise pas son intervalle. Exemple 6 s + 3 s, bip toutes les 4 s : bips à 4 s et 8 s. Les règles existantes de pause manuelle/reprise du bip restent applicables. Si un bip coïncide avec une transition, le signal de transition prime ; aucun double signal.
++
++Si les annonces vocales sont activées, le libellé est annoncé au début de chaque phase, première comprise. Le chronométrage ne l’attend pas. L’annonce de la nouvelle phase interrompt celle de la précédente si elle n’est pas terminée. Aucun empilement d’annonces de phases périmées.
++
++Les commandes gardent leur portée existante. Réinitialiser recommence la série courante en unilatéral, donc depuis sa première phase ; en bilatéral, le périmètre du côté courant reste celui déjà spécifié. Les résultats de l’autre côté et le temps réel cumulé sont conservés. Suivant ne devient pas implicitement une commande « phase suivante » : il garde le périmètre et les confirmations de la série ou du bloc existant.
++
++Pause/Reprendre et reprise technique doivent conserver la position dans la séquence et le temps restant, sans rejouer les phases déjà achevées du passage. L’exécution s’appuie sur son instantané figé, pas sur une relecture du catalogue.
++
++La progression ne doit pas dépendre artificiellement du nombre de subdivisions. Décomposer une série de 9 s en 6 + 3 ne change pas son poids global. Conserver l’unité contributive Série dans la pondération existante et répartir sa progression interne selon le temps ; ne pas augmenter mécaniquement M dans les plans mêlant durées connues et inconnues.
++
++Le placement exact du libellé de phase, le temps montré sur le cadran et la représentation sur les cartes restent à spécifier dans le chantier de présentation annoncé. Aucune nouvelle commande de navigation entre phases n’est créée par ce document.
++
++
++### Compléments à préciser avant les comportements concernés
++
++1. **Durées et arrondis extrêmes.** La durée minimale et le pas propres aux phases ne sont pas explicitement arbitrés. Une phase de 3 s est déjà prévue, donc il serait incorrect de lui appliquer mécaniquement la borne minimale documentaire de 5 s par série. Une réduction proportionnelle peut produire une durée arrondie à zéro : supprimer cette phase ferait perdre une action. Il faut préciser l’arrondi préservant les phases positives et le traitement d’un budget trop court pour leur nombre, sans inventer de suppression silencieuse à l’intégration. La suppression des zéros de saisie, déjà validée, ne suffit pas à régler ce cas.
++2. **Création sans durée préexistante et suppression de toutes les phases nulles.** La reprise de la durée actuelle est définie lorsqu’elle existe. Le brouillon initial sans cible et le retour après normalisation d’une liste entièrement nulle doivent suivre une règle explicite ; ne pas fabriquer une durée valide arbitraire.
++3. **Phrase et présentation.** Rédiger les nouvelles phrases et exemples du corpus, puis préciser le cadran et les cartes dans le chantier séparé. La structure des segments est actée, les textes et dispositions exacts ne le sont pas.
++4. **Écart préexistant de bornes.** RM-234 du chapitre 10 indique 5..3535 s par série, alors que le code canonique inspecté au commit 6656fefc autorise 1..5999 s. La spécification prime ; il faut rattacher la correction au bon lot de développement et ne pas faire de la valeur historique du code une nouvelle décision métier. Cette divergence n’est pas créée par les phases.
++
++Le message d’adaptation et son principe sont validés. Son placement réutilisera la convention de notification existante. L’articulation de l’annonce de première phase avec les annonces existantes de nom/côté doit être précisée à l’intégration audio, sans retarder le plan ni accumuler des annonces périmées.
++
+ ### Champs et comportements des fonctionnalités
+ 
+ #### Étiquettes de la séance
+diff --git a/docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md b/docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md
+--- a/docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md
++++ b/docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md
+@@ -367,6 +367,18 @@ Elle ne contient pas directement :
+ - Les exercices peuvent être ajoutées, déplacées, dupliquées et supprimées.
+ - Leur ordre est conservé à l’intérieur de leur position structurelle. Un Exercice peut être déplacée manuellement d’une position structurelle à une autre.
+ 
++## Phases de l’exercice
++
++<a id="donnees-phases"></a>
++
++La définition Catalogue et sa copie de Séance transportent une liste ordonnée facultative de phases, commune à toutes les séries identiques. Chaque phase porte une identité stable, un libellé de 1 à 20 caractères après normalisation et une durée positive. La liste validée contient 0 à 6 éléments ; absence ou liste vide signifie sans phases. Les zéros temporaires restent dans le brouillon, jamais dans les données validées. Les bornes et pas spécifiques restent à préciser au chapitre 08.
++
++La durée de série est dérivée de la somme ; une éventuelle projection historique est recalculée et ne constitue pas une autre source de vérité. Le total et les phrases ne sont pas persistés. La séquence n’est pas dupliquée N fois dans la définition : le moteur développe séries, côtés et passages.
++
++L’adaptation au format ne modifie que les durées de la copie de séance. Duplication et copie conservent ordre, libellés et valeurs ; les copies restent indépendantes. L’instantané d’exécution fige les phases effectives après adaptation ; la reprise conserve leur position et le temps restant. Les anciennes définitions sans phases restent inchangées, sans réécriture des résultats historiques.
++
++La collection doit être intégrée au contrat canonique versionné et à ses sérialiseurs/parseurs. La version ancienne reste lisible ; une version inconnue ne doit jamais être rabattue silencieusement sur une durée scalaire qui ferait perdre les phases.
++
+ ### Entité Média
+ 
+ > **Périmètre :** consultation des médias pendant l’Exécution incluse au MVP (D-203). L’ajout/import et le stockage local sont inclus au MVP dans PRE-3, avant le moteur d’exécution (D-333). Les règles de partage des fichiers et de conservation de D-066/D-068 sont conservées ; seul leur report post-MVP est remplacé.
+diff --git a/docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md b/docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md
+--- a/docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md
++++ b/docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md
+@@ -268,6 +268,26 @@ Les exécutions déjà enregistrées restent conservées dans l'historique.
+ | RM-131 | La ligne active de roulette/segmenté porte le contour ; les steppers restent permanents sans contour pilote. Le total variable/Répétitions est en lecture seule ; aucun état pilote persisté. |
+ | RM-132 | Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. |
+ 
++### Phases internes d’un exercice
++
++<a id="regles-phases"></a>
++
++Les [règles détaillées des phases](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice) appliquent D-370 à D-375. Elles ne créent pas un troisième mode ni un compteur de répétitions du motif.
++
++| Règle | Prescription |
++|---|---|
++| Éligibilité | Durée chiffrée, séries identiques, jusqu’à 6 phases, libellés de 20 caractères maximum. |
++| Séquence | Une série déroule une fois toutes les phases ; aucune pause entre phases. |
++| Durée | D = somme des phases ; unilatéral N × (D + P), dernière pause comprise. Préparation/fin exclues du total intrinsèque. |
++| Formats | Durée de travail imposée : dernière phase calculée ; ajout à zéro ; déplacement sans changement de valeurs ; temps supprimé repris par la dernière. |
++| Intégration au format | Adaptation proportionnelle si somme différente, dans les deux sens, copie de séance seule ; message informatif. Ne pas assimiler fenêtre EMOM et durée de travail. |
++| Normalisation | Zéros de saisie retirés à validation, libellés vides remplacés par Phase n ; aucune nouvelle confirmation. |
++| Guidage | Cadence continue ; transition prioritaire ; annonce au début sans attente, interruption de la précédente. |
++| Reprise et commandes | Périmètre de série/côté inchangé ; position de phase conservée en pause ; reset repart de la première phase du périmètre réinitialisé ; Suivant ne devient pas phase suivante. |
++| Progression | Une subdivision ne change pas le poids global de la série ; conserver son unité contributive dans les plans mixtes plutôt qu’augmenter M pour chaque phase. |
++
++Les zéros dus aux arrondis d’adaptation, les bornes spécifiques et les données initiales incomplètes restent les compléments explicités au chapitre 08. Les règles de Récupération positive, de pause terminale, de bilatéralité et de compte de circuit ne sont pas remplacées.
++
+ ### Créer ou modifier un exercice — Parcours, données et validation
+ 
+ Créer depuis Catalogue ouvre le formulaire ; Modifier reprend les données existantes. Nom, une Catégorie et au moins une Zone sont requis pour un nouvel Exercice. Carte Paramètres → feuille transactionnelle ; ✕/retour annule son brouillon, ✓ applique au parent ; Terminer seul persiste. Abandon du formulaire modifié ouvre la confirmation existante. Ouvrir un référentiel conserve les paramètres, même variables.
+diff --git a/docs/Specifications-fonctionnelles/11 – API fonctionnelles.md b/docs/Specifications-fonctionnelles/11 – API fonctionnelles.md
+--- a/docs/Specifications-fonctionnelles/11 – API fonctionnelles.md
++++ b/docs/Specifications-fonctionnelles/11 – API fonctionnelles.md
+@@ -104,6 +104,19 @@ Les intégrations avec des services externes, notamment les calendriers Apple, G
+ |API-ACT-05|Associer des zones corporelles|ID Exercice, zones corporelles|Zones corporelles mises à jour|Une ou plusieurs zones du référentiel utilisateur courant pour un Exercice valide (D-211)|Exercice, Zone corporelle|
+ |API-ACT-06|Définir le nombre de Séries|ID Exercice, nombre de Séries|Exercice mis à jour|Entier de 1 à 99 ; valeur par défaut 1 ; valeur canonique persistée ; ne crée aucune entité Série autonome|Exercice|
+ |API-ACT-07|Dupliquer un Exercice de Séance|ID Exercice source|Nouvelle Exercice de Séance indépendante|Nouvel identifiant ; copie des propriétés intrinsèques dont Pause et `sideRecoverySeconds`, ainsi que du `postActivityRecoverySeconds` contextuel de l’occurrence ; insertion immédiatement après la source dans la même zone ; aucune création dans le catalogue|Exercice, Composition, associations Média|
++### Contrats internes des phases d’exercice
++
++Les opérations de création, modification, copie et duplication transportent la liste ordonnée de phases avec les paramètres canoniques. Aucun endpoint ni service distant supplémentaire n’est requis. Contrat de données : chapitre 09, Phases de l’exercice ; comportement : [chapitre 08](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
++
++- Normalisation du brouillon : retire les phases de saisie à 0 s et remplace les libellés vides par Phase n ; résultat appliqué atomiquement à ✓, annulé à ✕.
++- Validation : éligibilité, six phases maximum, libellés 20 caractères, cohérence avec la durée imposée ; les données corrompues ne bénéficient pas d’un effacement silencieux.
++- Calcul : somme des phases comme durée de série ; projections et agrégats issus des mêmes paramètres, sans double comptage.
++- Adaptation au format : reçoit la liste et la durée de travail imposée ; renvoie la liste adaptée et les valeurs avant/après nécessaires au message informatif. Source Catalogue inchangée. Les arrondis extrêmes attendent la règle du chapitre 08.
++- Génération du plan : conserve la série comme unité logique et expose les sous-étapes chronométrées et leur identité à la reprise/audio.
++- Génération de phrase : segments `{texte, gras}` depuis les paramètres effectifs, sans chaîne persistée. Les formulations exactes avec phases restent à intégrer au corpus ; ne pas appliquer les seuls 276 cas historiques comme couverture de cette extension.
++
++Conserver les contrats d’annulation, copie indépendante et lecture d’anciennes versions ; ne pas supprimer une liste de phases lors d’un aller-retour par un DTO historique.
++
+ ### API du Catalogue des Exercices, des Médias et des Parcours
+ 
+ | API | Version | Entrée principale | Résultat / règle |
+diff --git a/docs/Specifications-fonctionnelles/12 – Architecture technique.md b/docs/Specifications-fonctionnelles/12 – Architecture technique.md
+--- a/docs/Specifications-fonctionnelles/12 – Architecture technique.md
++++ b/docs/Specifications-fonctionnelles/12 – Architecture technique.md
+@@ -311,6 +311,14 @@ La technologie cloud et la stratégie précise de synchronisation ne sont pas ch
+ 
+ Après le MVP, les médias ne seront pas stockés comme blobs dans SQLite : la base conservera leurs métadonnées et leurs références locales ou distantes.
+ 
++### Évolution des paramètres canoniques pour les phases
++
++Étendre le contrat versionné ExecutionParameters, les brouillons, validateurs, projections, copies, sérialiseurs et parseurs. La persistance locale dispose déjà d’un champ execution_parameters pour le Catalogue ; une nouvelle table n’est pas imposée par le concept. Vérifier aussi les chemins de Séance et d’instantané avant de choisir la migration physique.
++
++Les anciennes définitions restent sans phases. La nouvelle écriture et sa lecture compatible doivent être livrées ensemble ; préserver le refus explicite d’une version inconnue, sans repli scalaire destructeur. Les totaux et phrases restent dérivés. Le choix des noms techniques et du numéro de version relève de la réalisation, pas de Figma.
++
++L’impact est transversal mais additif : éditeur, calcul, données et moteur cible doivent évoluer ensemble. Aucun nouveau besoin d’hébergement n’est identifié. Les bornes de durée actuelles du code divergent de RM-234 ; la correction doit suivre la spécification et être rattachée au lot approprié, sans migration silencieuse des anciennes valeurs.
++
+ ## 12.7 Identité utilisateur
+ 
+ ### MVP
+@@ -407,6 +415,14 @@ Le Plan distingue les phases `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `S
+ 
+ La logique du moteur doit être indépendante des composants graphiques afin de pouvoir être testée automatiquement.
+ 
++### Phases internes aux séries
++
++Les phases s’insèrent sous le passage de travail de la série, sans changer les frontières des pauses, côtés, circuits ou résultats. Un changement de phase ne clôt pas la série et ne redémarre pas le bip périodique. Le moteur temporel demeure la source de vérité ; le guidage vocal ne retarde jamais la transition. Une annonce de phase remplace la précédente encore active.
++
++La reprise technique conserve l’identité de l’occurrence, de la série, du côté et de la phase, ainsi que son temps restant. Réinitialiser et Suivant gardent leur portée métier existante. Pour la progression globale, subdiviser un travail de 9 s en 6 + 3 ne change pas son poids, notamment avec des séries non déterminables ailleurs dans le plan.
++
++Les données de phases sont figées dans l’instantané, pas relues depuis le catalogue. Leur définition reste une liste unique ; le plan développe ses occurrences. Aucun stockage de phrase, aucune boucle supplémentaire ni service distant ne découle de cette évolution.
++
+ ## 12.10 Gestion du temps
+ 
+ Le moteur d’Exécution ne détermine jamais le temps réellement écoulé par comptage des ticks d’un timer JavaScript.
+diff --git a/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md b/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md
+--- a/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md
++++ b/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md
+@@ -807,6 +807,9 @@ Vérifier état repos/activé à ouverture/fermeture du panneau et symbole du to
+ 
+ Corpus v15 :276gabarits, total métier injecté ; aucun changement grammatical vs v14. Tester virgule jamais isolée en début de ligne, cas 144 long et ordre des cibles après déplacement. Les cas de brouillon incomplet restent hors des 276sorties validées.
+ 
++Recette phases : création/repli ; ajout libre6→6+6 ; format20→20+0→12+8 ; suppression5+7+8→5+15 ; déplacement sans modification du total ; dernière supprimée→durée simple ; six phases ; libellé20/vide ; zéro retiré ; annulation complète ; adaptation15+15→10+10 et6+3→13+7 avec message ; total3×(6+3+15)=72s ; ancien objet inchangé. Recette applicative non exécutée par la présente mise à jour documentaire.
++
++
+ ### CE-T03-05 — ActivityDefinition — archiver / restaurer / supprimer
+ 
+ #### 1. Identification
+@@ -930,20 +933,28 @@ L’ancienne référence Figma `3787:5209 — Catalogue — action contextuelle
+ 
+ Feuille Paramètres d’exécution de CE-T03-04. Références courantes (relevé du 18/10/2026, D-403 à D-413) : 9289:17849 (charge commune), 9290:17953 (séries variables avec charge), 9292:18077 (séries variables avec charge, clavier numérique), 9307:18208 (Durée de l’exercice déployée), 8328:37862 (Durée d’une série, roulette numérique seule), 9232:44646, 8470:13303 (séries variables, cas mixte), 8328:36923 (champs vides), 8328:37092 (Mode, sélection segmentée), 8328:37972 (Changement de côté replié), 8328:38193 (Changement de côté déployé), 8328:39072 (une seule série), 8328:38084 (roulette de la ligne Durée de l’exercice), 8328:38632 (séries variables en Répétitions avec cadence), 8328:38741 (séries variables en Répétitions sans cadence), 8328:38848 (tableau replié), 8982:15172 (séries variables toutes à l’échec, sans ligne Durée de l’exercice), 8328:39279 (déplacement d’une série). La frame 9232:44646, nommée « Durée d’une phase (roulette) », illustre malgré son nom la roulette d’une cellule de séries variables en mode Durée (RM-250) ; aucun contrat de phase n’en est déduit. Captures et écarts Figma au chapitre 06 ; les valeurs des captures sont illustratives. Les états du 12/10 et de la matrice Deux modes du 13/10 remplacés par ces frames, ainsi que les références 6419/6665/7059/7069 du 07/10, sont historiques.
+ 
++**Phases — MVP :** cette même feuille porte la création et l’édition des phases ; aucun contrat de page autonome supplémentaire. Les trois états dédiés du rapport Figma du15/10 ne sont pas encore recapturés au chapitre06.
++
+ Règles applicables : RM-033, RM-035, RM-036, RM-058, RM-095, RM-129, RM-130, RM-132, RM-232, RM-233, RM-234, RM-235 à RM-250, RM-FMT-10, RM-FMT-17 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »). RM-235 à RM-250 : [Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026) (décisions D-403 à D-413).
+ 
+ #### 2. Finalité fonctionnelle
+ 
+ Saisir/éditer Mode, Condition d’arrêt, Nombre de séries, Type de série (identiques/variables), cibles, Pauses, Charge, Changement de côté, Enchainement et Pause entre les côtés, Cadence (Bip de cadence), Compte à rebours et Fin d’exercice (D-413) ; appliquer au brouillon parent et régénérer la phrase sans sauvegarde prématurée.
+ 
++Définir jusqu’à six phases de travail sans créer d’autres exercices ; maintenir les contraintes du format et calculer la durée de série.
++
+ #### 3. Contexte d’entrée
+ 
+ Ouverture depuis la zone Paramètres d’exécution. Copie du parent ; Bip initial 0, présenté Sans dans la ligne Cadence (RM-245), reprendre valeur existante 0..10 en édition. Aucun tempo implicite. Charge initiale Sans ; un Exercice qui ne porte pas la charge est lu Sans, jamais avec 0 kg (RM-236). Création : N1,Pause 0,cibles et mode selon [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice) ; absence de cible requise distincte de Bip 0.
+ 
++Phases absentes sur les anciens exercices. En édition, reprendre la liste effective de la définition ou de la copie de séance, jamais une référence mutable vers le Catalogue.
++
+ #### 4. Contexte de sortie / destinations
+ 
+ ✕/retour système annule l’ouverture ; ✓ applique état actif valide au parent ; Terminer du parent persiste. Même feuille pour création/modification et copie d’Exercice dans Séance.
+ 
++Les phases suivent la même frontière ✓/✕/Terminer ; aucune confirmation supplémentaire n’est ajoutée pour les adaptations validées.
++
+ #### 5. Données affichées et source de vérité
+ 
+ **Complément cible 12/10 :** Contexte de l’occurrence et compte hérité ; total dérivé, jamais source de N dans ce contexte.
+@@ -952,10 +963,14 @@ Ouverture depuis la zone Paramètres d’exécution. Copie du parent ; Bip initi
+ 
+ Collection effective des Séries, cible/Pause/charge par série/bip, mode, activation et charge commune (valeurs conservées sous Sans, RM-236), changement de côté Avec / Sans sans direction (D-406 ; données historiques D→G et G→D lues Avec, RM-244), ordre,PC,Compte à rebours/Fin. La Condition d’arrêt en séries variables est dérivée des cibles des séries, jamais persistée à part (RM-249). Bip commun à toutes les lignes,0..10 dans deux modes ; aucune surcharge persistée. Calcul typé fourni par [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) ; phrase et montants Figma ne pilotent aucune donnée.
+ 
++Avec phases : liste ordonnée de libellés/durées, durée de série égale à leur somme ; dernière durée calculée sous format. Le corpus historique de phrases ne couvre pas cette extension ; les nouveaux textes restent à valider.
++
+ #### 6. Classification des valeurs Figma
+ 
+ Titres/règles statiques ; valeurs de champs dynamiques ; exemples Figma démonstratifs. exact/estimated/lowerBound/omitted à l’Exercice ; lowerBound réservé au mélange calculable. Une erreur de cible n’est pas une durée omitted et bloque ✓ sans inventer un montant.
+ 
++Phase 1 et Phase n sont des libellés initiaux ; les libellés personnalisés et durées sont des données. Les chiffres des maquettes ne déterminent aucun calcul.
++
+ #### 7. Structure de l’écran
+ 
+ **Complément cible 12/10, présentation remplacée par D-410 :** contrôle Type de série (Variables / Identiques) ; chevron à l’intérieur de l’option Variables, centré verticalement avec le texte (RM-247) ; identiques sans chevron. Tableau variable visible ou replié.
+@@ -968,6 +983,8 @@ En-tête fixe ✕/titre/✓ ; corps défilant en quatre cadres successifs (D-413
+ 
+ Cadence : contrôle segmenté Autre | 5 s | 2 s | 1 s | Sans (RM-245) ; Sans vaut 0 ; Autre permet une autre valeur avec le mécanisme numérique existant du Bip (0..10, pas 1 s) ; l’option sélectionnée reflète la valeur courante ; contrôle actif même à 0. Aucun interrupteur ou roulette Bip. Total absent en Répétitions sans bip et toutes cibles À l’échec ; exact en Durée toute chiffrée, ≈ en Répétitions toute chiffrée avec bip, ≥ en mélange calculable. Condition d’arrêt : À l’échec / À la cible, sélectionnable en identiques, résultat dérivé en variables (RM-248, RM-249). Charge : ligne Avec / Sans, Sans par défaut (RM-237, RM-238). Pause entre les côtés seulement avec changement de côté (Avec). Compte à rebours/Fin conservés ; repliés par défaut sous Durée de l’exercice, sans être désactivés (RM-246).
+ 
++Libellés limités à20 caractères, ajout limité à6 phases. Durée de série calculée visible. Mode incompatible, cible À l’échec et régime variable indisponibles tant que les phases existent.
++
+ #### 9. Layout déterministe
+ 
+ **Révision 13/10, amendée le 18/10 :** le popover Mode 184×99 est remplacé par le contrôle segmenté Mode, aligné à droite, sans enveloppe blanche (D-413). Roulette cible : popover 354×249 avec maître 8452:13297 (330×181), option en tête 330×30, séparateur 1px, roulette numérique 150px ; cette variante à option À l’échec ne s’ouvre plus, en mode Durée, que depuis une cellule de série variable (9232:44646) ; la roulette Durée d’une série des séries identiques est numérique seule (8328:37862 ; D-412, RM-250). Le total conserve le maître 5544:5118 (330×150) et son popover 354×216. Ligne de série à deux colonnes cible/Pause maintenue, même tout échec, complétée par la colonne Charge lorsqu’elle est affichée (RM-238) ; aucune variante à une colonne. Voir DSF Deux modes pour tailles et opacités.
+@@ -978,10 +995,14 @@ Cadence : contrôle segmenté Autre | 5 s | 2 s | 1 s | Sans (RM-245) ; Sans vau
+ 
+ Référence longue 7119:27855 :224caractères, cinq lignes/100px à largeur 324, carte 193px en AUTO. Contenu et contrôles suivants suivent la hauteur intrinsèque, sans plafond.
+ 
++Réutiliser la ligne de tableau à deux colonnes et son pied, le repli et les états existants. Distinguer valeur calculée lisible, valeur imposée effective et option indisponible. Fond gris et hauteur suivent le contenu ; DSF Deux modes, section Phases.
++
+ #### 10. Responsive, Safe Areas, texte, scroll et clavier
+ 
+ 360/402/440, Safe Areas, texte agrandi et scroll ; en-tête reste accessible. Tableau replié conserve données et erreurs ; feuille sans ligne Durée de l’exercice conserve l’accès à la Cadence, à Compte à rebours et Fin d’exercice, directement visibles lorsqu’applicables (RM-246), et aux actions. Aucune hauteur fixe ne doit rogner le texte ou les steppers ; la feuille s’adapte au contenu visible (D-413). Saisie de la charge : clavier numérique avec séparateur décimal, directement dans le champ ou la cellule, sans fenêtre intermédiaire ; le tableau reste entièrement visible au-dessus du clavier (marge de 12 px dans 9292:18077) (D-405, RM-239).
+ 
++Le clavier du libellé ne masque ni le champ actif ni les actions. Jusqu’à six phases : corps défilant, en-tête accessible, repli sans perte des valeurs ; aucune hauteur fixée à l’exemple de deux phases.
++
+ Le tableau n’a pas de défilement vertical indépendant du corps. (transféré du [DSF — Circuits, volumes et contrôles de séries du 12/10/2026](../DSF-CIRCUITS-CONTROLES-2026-10-12.md), § « Modalités d’exécution et tableau variable », G4.)
+ 
+ #### 11. États de l’écran
+@@ -990,6 +1011,8 @@ Cible chiffrée / À l’échec / mélange ; ouverture sur la cible courante. Op
+ 
+ Cadence Sans / 5 s / 2 s / 1 s / Autre avec valeur personnalisée, dans chacun des deux modes (RM-245) ; cible valide/incomplète ; uniforme/variable ;N1 ; Changement de côté Sans / Avec replié / Avec déployé et deux enchaînements (RM-242, RM-247) ; tableau ouvert/replié par le chevron de Variables ; option non modifiable avec sa valeur réelle (RM-247) ; Condition d’arrêt sélectionnable en identiques, résultat À la cible / À l’échec / « À la cible et à l’échec » en variables, tableau incomplet (RM-248, RM-249) ; Durée de l’exercice repliée / déployée, ligne absente avec signaux directement visibles (RM-246) ; charge Sans / valeur commune / colonne par série / saisie au clavier / zéro / valeurs conservées sous Sans (RM-236 à RM-239) ; steppers au minimum/maximum et maintenus ; validation/annulation. Plus aucun état roulette de cadence. Les états À l’échec de la roulette de cible décrits ci-dessus ne concernent plus la Durée d’une série des séries identiques, roulette numérique seule (RM-250).
+ 
++Sans phases ; phases ouvertes/repliées ; incompatibilité ; une/six phases ; zéro temporaire ; dernière durée imposée calculée ; libellé vide ; adaptation avec message. Un état non illustré reste spécifié par ce contrat.
++
+ #### 12. Contrôles et interactions
+ 
+ Deux modes seulement. Cible chiffrée et À l’échec mutuellement exclusives ; libellé « Aucune durée, à l’échec » ou « Aucune répétition, à l’échec ». Aucune coche dans la liste ; ✓ de la feuille applique. Conserver le type À l’échec lors d’une bascule de mode. À tout instant, exactement une cible est sélectionnée. À l’ouverture : cible numérique → roulette active sur la valeur courante et libellé échec à 45% ; cible échec → libellé actif et bloc numérique grisé à 45%, affiché à 00:00. Faire tourner la roulette sélectionne la valeur numérique et grise le libellé. Toucher le libellé sélectionne l’échec et ramène la roulette grisée à 00:00. Le grisé exprime la non-sélection, pas une interdiction de manipuler la roulette. Aucun geste supplémentaire de déverrouillage, aucune coche. Validation par le bouton de la feuille ; annulation selon le brouillon existant.00:00 n’est jamais une cible valide ; pause 0 reste valide.
+@@ -1009,38 +1032,56 @@ Deux modes seulement. Cible chiffrée et À l’échec mutuellement exclusives ;
+ - Le total Durée uniforme entièrement chiffré garde son inversion seulement si N est libre ; sous N imposé par un circuit de séries, tout total affichable est en lecture seule.
+ - omitted reste absent.
+ 
++Aucune crée Phase1 à la durée actuelle. Ajout libre copie la dernière durée ; ajout sous format crée0 et rend la précédente modifiable. La dernière reçoit le restant. Déplacement conserve valeurs et transfère le calcul à la dernière position. Suppression sous format transfère le temps libéré à la dernière restante ; supprimer l’unique phase conserve sa durée comme durée simple. Message informatif lors de l’adaptation proportionnelle à l’intégration, catalogue intact.
++
++Avec phases et N libre, Durée totale conserve le calcul inverse de R-02 : seul N est ajusté, les durées des phases restent inchangées. N imposé : total en lecture seule.
++
+ #### 13. Gestes
+ 
+ Tap et maintien sur steppers, arrêt au relâchement/sortie de cible, pas supplémentaire de relâchement interdit après répétition. Glisser la poignée réordonne cible/Pause/charge/bip ensemble et recalcule la dernière ligne (RM-238). Alternatives accessibles sans geste fin.
+ 
++Poignée : déplacer le libellé et sa durée ensemble. Tap libellé : saisie texte ; tap durée éditable : contrôle durée. La dernière calculée n’ouvre pas de saisie. Les gestes et alternatives accessibles du tableau existant sont conservés.
++
+ #### 14. Validation
+ 
+ Mode et cibles typées actives requis ; une cible À l’échec est valide sans nombre. R06 close : maximum 58 min 55 s (3535 s) confirmé ; roulette de cible par pas5 s dès 5 s. Cibles chiffrées : N1..99,Ri1..100,Ti5..3535 s,Pauses 0..300 s,Bip entier 0..10 dans deux modes. −1,11,fraction invalides, aucune correction silencieuse. Exception propre à la charge (D-405) : valeur positive hors pas arrondie au multiple de 0,25 kg supérieur, sans message, à la sortie du champ ou à la validation ; valeur négative refusée ; zéro = sans charge (RM-239). La Condition d’arrêt dérivée n’est pas validée à part (RM-249). Repli ne contourne pas validation ; erreur nommant la Série.0 (Sans) reste valide. Nom/Catégorie/Zones contrôlés au parent.
+ 
++À ✓, phases de saisie à0 retirées silencieusement, libellés vides remplacés par Phase n. Les phases persistées sont positives. La somme calculée de6+3=9s n’est pas arrondie au pas5s du sélecteur de série. Les bornes/pas spécifiques, le cas initial sans durée et les arrondis extrêmes restent à préciser au chapitre08 ; ne pas choisir une nouvelle borne implicitement.
++
+ #### 15. Brouillon et persistance
+ 
+ *Texte identique à celui de la section [« CE-T03-04 — Éditeur Exercice — créer / modifier »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-04--éditeur-exercice--créer--modifier) ; il n’est pas recopié ici.*
+ 
+ Brouillon isolé ; ✓ atomique au parent ; ✕ restaure totalité avant ouverture. Bip persiste quel que soit le mode. Les variantes cachées de cibles/tableaux ne sont pas persistées hors état actif ; exception : les valeurs de charge désactivées par Sans ou masquées avec la colonne sont conservées et enregistrées avec l’activation (D-403, RM-236). Duplication/copie/snapshot incluent Bip, l’activation et les valeurs de charge ; aucune mutation partielle.
+ 
++Conserver les zéros temporaires uniquement en brouillon. Annuler restaure l’ordre, les libellés et toutes les durées, y compris le restant recalculé. Copie, duplication et instantané conservent la liste ; aucun total ni phrase en base.
++
+ #### 16. Navigation et conservation d’état
+ 
+ Retour au parent même position et contenu, phrase régénérée à chaque affichage depuis les paramètres appliqués, notamment après✓ valide. Une bascule de mode seule ne sauvegarde rien. Pas de navigation vers un écran de cadence ni de nouvelle route.
+ 
++Même retour au parent ; le repli n’est pas une sortie. Les modifications de la copie de séance n’affectent pas le Catalogue.
++
+ #### 17. Erreurs et cas limites
+ 
+ Cible manquante, valeur hors borne, double validation, interruption ou erreur de persistance : aucun état partiel. Mode sans durée propre : ligne absente même si pauses positives ; Compte à rebours et Fin d’exercice restent alors directement visibles lorsqu’applicables (RM-246). Historique non modifié ; données héritées hors plage conservées tant qu’elles ne sont pas modifiées, toute nouvelle saisie ou modification respectant les bornes (D-383) ; jamais tronquées silencieusement.
+ 
++Pas de septième phase, de durée restante négative ou d’effacement des phases à travers un ancien DTO. Les arrondis à zéro lors d’une adaptation ne sont pas assimilés sans arbitrage à des zéros de saisie.
++
+ #### 18. Accessibilité
+ 
+ **Complément cible 12/10 :** Lecture seule annoncée avec valeur et origine ; ne pas remplacer par un tiret. Cellule active identifiée par ligne/colonne et texte Série i · Durée (ou autre champ, dont Série i · Charge), sans dépendre seulement de la couleur.
+ 
+ Nom accessible Cadence (Bip de cadence) ; options Autre, 5 s, 2 s, 1 s et Sans annoncées avec la sélection courante ; valeur Sans ou intervalle en secondes ; pour Autre, boutons augmenter/diminuer et limites annoncées (RM-245). Condition d’arrêt : sélectionnable en identiques ; en variables, annoncée comme valeur déterminée par les séries, non modifiable (RM-249). Charge : valeur en kg ou Sans. Total ≈ annoncé estimation ; ≥ annoncé total prévisionnel partiel. Option À l’échec annoncée sélectionnée/non sélectionnée ; le grisé n’est pas le seul indicateur accessible. Focus modal contenu, retour à la zone Paramètres. Texte agrandi, cibles 44 minimum, alternatives au maintien/glisser.
+ 
++Annoncer position, libellé, durée et état calculé/non modifiable ; raison de l’indisponibilité accessible, pas uniquement grise. Ordre de focus cohérent après ajout, suppression et déplacement ; texte20 caractères sans réduire les cibles tactiles.
++
+ #### 19. Invariants
+ 
+ Bip sonore uniquement pendant Série, aucune transition automatique. Les intervalles logiques peuvent proposer un relevé estimé en Répétitions à l’échec. Son ne transforme pas À l’échec en durée connue. Aucune estimation forfaitaire ; ≥ seulement pour mélange calculable à l’Exercice. Pause après chaque série, y compris la dernière ; récupération contextuelle positive remplaçant seulement la dernière Pause. La charge ne modifie ni minuteurs, ni cibles, ni cadence, ni pauses, ni ordre, ni calculs (RM-235). Un repli ne modifie ni valeurs, ni mode, ni durée affichée (RM-246, RM-247). Les images ne gouvernent ni calculs ni persistance.
+ 
++Une série = un motif complet ; phases seulement Durée chiffrée et identiques. Pauses et côtés inchangés. Aucun comportement ne découle d’un exemple chiffré Figma.
++
+ #### 20. Recette déterministe
+ 
+ Recette complémentaire (roulette de cible d’une cellule de série variable en mode Durée depuis le 18/10, RM-250) : deux options, ouverture valeur/échec courant, exclusion mutuelle,00:00 cible refusée (pause 0 valide), tout échec sans total, mixte 30/45/échec avec pauses 10/20/30 →≥2 min 15 en lecture seule, Répétitions sans bip sans total ; annuler/appliquer sans persistance anticipée. Tester 30 s → toucher échec →00:00 grisé → tourner vers 30 s → cible numérique ; réouverture fidèle et annulation/restauration. Le bloc grisé reste manipulable. Qualification native et accessible sur appareils à réaliser ; §4.5 reçu, réserve de source close.
+@@ -2127,6 +2168,8 @@ Imposé effectif ; éditable ; erreur de saisie. Ne pas confondre avec indisponi
+ 
+ Tap sur constante n’ouvre pas un éditeur. Changement autorisé actualise la phrase et les calculs sans écraser la définition catalogue.
+ 
++Phases éligibles : dernière durée calculée, contraintes assurées pendant la saisie. À l’intégration, adaptation proportionnelle dans la copie seulement si total différent, à la hausse comme à la baisse, avec message informatif sans confirmation. Durée de fenêtre EMOM et durée d’effort restent distinctes. Les règles détaillées de CE-UI-10 s’appliquent.
++
+ #### 13. Gestes
+ 
+ Fermeture et interactions existantes de modale ; pas d’appui long requis pour comprendre la raison.
+@@ -2159,6 +2202,9 @@ FMT-17, 19, 30–32, 42 ; les constantes restent effectives dans le moteur futur
+ 
+ REC-08, 18 ; vérifier absence d’éditeur sur les quatre constantes et absence de tiret ; contrôle des segments et de l’unité tour.
+ 
++Vérifier les exemples20s du contrat CE-UI-10, le message d’adaptation, l’indépendance du catalogue et l’absence de conversion vers un mode incompatible. Les modales Figma de format n’illustrent pas encore les phases selon le rapport du15/10.
++
++
+ ### CE-FMT-05 — Exécution des fenêtres et formats à borne ouverte
+ <a id="ce-fmt-05"></a>
+ 
+@@ -4776,6 +4822,12 @@ Le moteur possède la source de vérité temporelle. En exécution autonome uniq
+ 
+ Instantané immuable au départ, résultats moteur clôturés une fois, puis finalisation Ressenti/Commentaire distincte et atomique. Le bouton courant de Synthèse est Enregistrer ; Terminer reste le bouton de l’éditeur Exercice. SESSION finalisé ouvre Suivi ; ACTIVITY restaure son appelant Catalogue/Calendrier. Une interruption technique sans Synthèse peut ne pas avoir de Ressenti ; une Synthèse présentée l’exige. Ni consultation média, ni paramètres de lecteur vidéo ne modifient le plan.
+ 
++#### Phases internes de travail — complément commun
++
++Les contrats ACTIVITY et SESSION appliquent les phases sous la série : enchaînement automatique sans repos, cadence continue, libellé annoncé au début si voix activée, sans retard du temps ; nouvelle annonce interrompt la précédente. Transition prioritaire en cas de coïncidence sonore. Pause conserve phase et restant ; réinitialisation repart de la première phase du périmètre de série/côté existant ; Suivant ne devient pas une commande de phase. Une subdivision ne modifie pas le poids global de la série.
++
++Vérifier6+3 avec bip4 : bips à4 et8 ; annonces courtes/longues, voix désactivée, pause/reprise, reset et saut, deux côtés et circuit de séries. La position du libellé de phase et le choix du temps affiché sur le cadran restent à préciser ; aucun layout de référence n’est déclaré qualifié pour ces nouveaux éléments.
++
+ #### 4.13 Usage des références et portée des recettes
+ 
+ Une frame présente peut montrer un état ancien ou incomplet. Chaque contrat distingue comportement cible, preuve graphique et limite constatée. Les recettes décrivent ce qu’il faut vérifier ; cette documentation ne constitue pas une recette réussie de l’application ni du prototype interactif. Les règles communes sont héritées par renvoi précis ; une rubrique non applicable en explique la raison. Les identifiants techniques ActivityDefinition/ACTIVITY restent inchangés et ne sont pas des libellés utilisateur.

@@ -158,9 +158,9 @@ Figma ne transforme jamais une valeur de démonstration en règle métier. Inver
 
 #### Portée transverse des paramètres v13
 
-Catalogue et exécution ACTIVITY : durée intrinsèque. Composition, détails de Séance, calendrier SESSION et exécution SESSION : durée d’occurrence avec récupération explicite, sans ajouter R deux fois. Les cartes de composition affichent les volumes variables selon la chapitre 13, Cartes et grille des volumes ; le détail complet est accessible dans la grille de volumes du circuit, en lecture seule, et dans CE-UI-10 pour édition. Copie/duplication et instantané conservent l’état variable explicite, les cibles/Pauses ordonnées et l’Ordre des côtés. Ces règles s’appliquent aux contrats hôtes, y compris CE-UI-01/02/03/05 et CE-T03-01/06/07/08. Les règles propres aux cartes et médias sont conservées.
+Catalogue et exécution ACTIVITY : durée intrinsèque. Composition, détails de Séance, calendrier SESSION et exécution SESSION : durée d’occurrence avec récupération explicite, sans ajouter R deux fois. Les cartes de composition affichent les volumes variables selon la chapitre 13, Cartes et grille des volumes ; le détail complet est accessible dans la grille de volumes du circuit, en lecture seule, et dans CE-UI-10 pour édition. Copie/duplication et instantané conservent l’état variable explicite, les cibles/Pauses ordonnées, le changement de côté et l’Ordre des côtés (D-406), ainsi que l’activation et les valeurs de la charge (RM-236). Ces règles s’appliquent aux contrats hôtes, y compris CE-UI-01/02/03/05 et CE-T03-01/06/07/08. Les règles propres aux cartes et médias sont conservées.
 
-Réinitialiser conserve D-029/D-150 et RM-062 : recommencer la Série courante en unilatéral ; en bilatéral, recommencer le côté courant depuis sa première Série, préserver les résultats de l’autre côté et le temps total écoulé. Cette portée s’applique aussi à Les deux côtés à chaque série ; un passage déjà acquis de l’autre côté n’est pas rejoué. Exemple : gauche 2/3 → reprise gauche 1/3, résultats droits conservés. Pendant une récupération, RM-062 réinitialise seulement cette phase. Le saut confirmé d’un bloc chronométré conserve D-150 : côté courant partiel, poursuite des passages restant à exécuter de l’autre côté ; les résultats acquis ne sont pas effacés. Ces conséquences du périmètre existant ne constituent pas un nouvel arbitrage.
+Réinitialiser conserve D-029/D-150 et RM-062 : recommencer la Série courante en unilatéral ; en bilatéral, recommencer le côté courant depuis sa première Série, préserver les résultats de l’autre côté et le temps total écoulé. Cette portée s’applique aussi à Les deux côtés à chaque série ; un passage déjà acquis de l’autre côté n’est pas rejoué. Exemple : côté 2 en Série 2/3 → reprise du côté 2 en Série 1/3, résultats du côté 1 conservés (RM-243). Pendant une récupération, RM-062 réinitialise seulement cette phase. Le saut confirmé d’un bloc chronométré conserve D-150 : côté courant partiel, poursuite des passages restant à exécuter de l’autre côté ; les résultats acquis ne sont pas effacés. Ces conséquences du périmètre existant ne constituent pas un nouvel arbitrage.
 
 ### Structure canonique obligatoire
 
@@ -593,7 +593,7 @@ La validation de la Séance reste portée par l’action `Continuer` de la Compo
 | Frames | `3786:5093` |
 | Navigation | `6298:12462` |
 | Nature | Nouvel écran T03 |
-| Règles applicables | RM-041, RM-072, RM-095, RM-096, RM-103, RM-109, RM-112, RM-114, RM-159, RM-162, RM-188, RM-221 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité ») |
+| Règles applicables | RM-041, RM-072, RM-095, RM-096, RM-103, RM-109, RM-112, RM-114, RM-159, RM-162, RM-188, RM-221, RM-243 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité ») |
 
 L’ancienne référence `3787:5209` n’existe plus dans l’état Figma courant du 16 septembre 2026 et n’est plus une preuve active.
 
@@ -627,7 +627,7 @@ Header → segmenté → rangée commandes Catalogue (`Créer`, `Filtrer`, `Trie
 
 #### 8. Éléments obligatoires
 
-Pastille Catégorie colorée, Zones corporelles, titre et badge durée ; synthèse `N séries de X` / `N séries de N rép.` / `N séries à l’échec`, miroir 16 si bilatéral. Aucune pause/récupération ni prochaine planification affichée. Lecture indépendante ; aucun Déployer, avec ou sans média. Aucune poignée. Créer/Filtrer actifs, Trier désactivé.
+Pastille Catégorie colorée, Zones corporelles, titre et badge durée ; synthèse `N séries de X` / `N séries de N rép.` / `N séries à l’échec`, miroir 16 si bilatéral, indicateur de changement de côté sans direction (RM-243). Aucune pause/récupération ni prochaine planification affichée. Lecture indépendante ; aucun Déployer, avec ou sans média. Aucune poignée. Créer/Filtrer actifs, Trier désactivé.
 
 #### 9. Layout déterministe
 
@@ -693,7 +693,7 @@ Formulaire créer/modifier :3943:6064,4217:6980,5088:6398,3542:4656,4734:6342. C
 
 Phrase longue 7119:27855 et Bip 7059:13302 ; 7061:13383 supprimé ; copies 9b/10b7069:13464/13573. Relevé 06/10, captures dans chapitre 06.
 
-Règles applicables : RM-033, RM-039, RM-041, RM-042, RM-058, RM-112, RM-113, RM-129, RM-131, RM-132, RM-152, RM-214, RM-215, RM-232 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-033, RM-039, RM-041, RM-042, RM-058, RM-112, RM-113, RM-129, RM-131, RM-132, RM-152, RM-214, RM-215, RM-232, RM-236, RM-240, RM-243 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -711,11 +711,11 @@ Terminer valide et persiste puis retourne au contexte appelant. Carte Paramètre
 
 Deux modes communs, cible typée par Série et régime conservé. Phrase régénérée depuis les cibles mixtes, total issu du moteur (≥ si mélange calculable). Les huit cartes catalogue tout échec conservent leur formulation.
 
-Phrase selon les 276 cas v15, total fourni par le calcul métier. Générateur → segments ordonnés `{texte, gras}`, valeurs et unités en gras, aucun redécoupage de chaîne. Terme « pause après chaque série », y compris N=1 ; clause de pauses variables omise conformément au corpus.
+Phrase selon les 276 cas v15, total fourni par le calcul métier. Générateur → segments ordonnés `{texte, gras}`, valeurs et unités en gras, aucun redécoupage de chaîne. Terme « pause après chaque série », y compris N=1 ; clause de pauses variables omise conformément au corpus. Lorsque la charge est active, la phrase inclut sa mention selon RM-240 ; avec Sans, aucune mention de charge.
 
 Brouillon parent : nom, référentiels, description, paramètres validés par la feuille et associations médias ordonnées, existantes ou ajoutées dans PRE-3 (D-333). Aucun texte de démonstration codé en dur.
 
-Paramètres étendus : uniforme/variable, liste ordonnée de cibles/Pauses, Ordre des côtés ; copie complète vers CE-UI-10.
+Paramètres étendus : uniforme/variable, liste ordonnée de cibles/Pauses, changement de côté (Avec / Sans, D-406) et Ordre des côtés, activation et valeurs de la charge (RM-236) ; copie complète vers CE-UI-10.
 
 Import média : accès depuis la zone Média et sauvegarde avec l’Exercice. Tester import nominal/annulé/en erreur, conservation à la réouverture, ordre et copies indépendantes selon D-333. Sources système, formats, permissions et présentation des états non représentés : À CLARIFIER dans le plan, sans inventer de caméra ni de limite.
 
@@ -725,7 +725,7 @@ La collection inclut le bip commun 0..10 de chaque Série. Phrase dérivée des 
 
 Créer un exercice/Modifier un exercice, Paramètres d’exécution, Description de l’exercice, Terminer : statiques. Nom et résumé : dynamiques. Compte à rebours/Fin restent séparés de la phrase intrinsèque ; le Mode n’a pas de champ propre sur la carte et reste visible dans la phrase (décision PRE-4 Q23 du 16/10, D-385).
 
-Le champ du mode à droite du titre de la carte, visible sur 7059:13302 et 7119:27855, est retiré : la carte forme une seule zone touchable qui ouvre la feuille ; le Mode reste visible dans la phrase et se choisit dans la feuille, par son popover (décision PRE-4 Q23 du 16/10, D-385). La phrase reflète les paramètres appliqués ; les montants statiques des copies ne sont pas des valeurs par défaut.
+Le champ du mode à droite du titre de la carte, visible sur 7059:13302 et 7119:27855, est retiré : la carte forme une seule zone touchable qui ouvre la feuille ; le Mode reste visible dans la phrase et se choisit dans la feuille, par la ligne Mode (décision PRE-4 Q23 du 16/10, D-385 ; la présentation par popover est remplacée par D-413). La phrase reflète les paramètres appliqués ; les montants statiques des copies ne sont pas des valeurs par défaut.
 
 #### 7. Structure de l’écran
 
@@ -751,7 +751,7 @@ Référence longue 7119:27855 :224caractères, cinq lignes/100px à largeur 324,
 
 #### 11. États de l’écran
 
-Vide, nom seul, catégorie renseignée, nom/description/média renseignés, modification existante, résumé uniforme, résumé variable Durée/Répétitions/À l’échec, bilatéral et chacun des ordres, abandon confirmé/annulé, erreur de sauvegarde. Le résumé Répétitions est visible derrière 6665:24844 ; pas de vue parent dédiée actuellement. L’absence de capture ne retire pas cet état du contrat.
+Vide, nom seul, catégorie renseignée, nom/description/média renseignés, modification existante, résumé uniforme, résumé variable Durée/Répétitions/À l’échec, bilatéral et chacun des ordres, avec et sans charge (charge commune, charges par série, RM-240), abandon confirmé/annulé, erreur de sauvegarde. Le résumé Répétitions est visible derrière 6665:24844 ; pas de vue parent dédiée actuellement. L’absence de capture ne retire pas cet état du contrat.
 
 Avec/sans cadence ; phrase courte/longue, total déterminable/approximatif, suppression de cadence et retour de mode en brouillon. Les textes de démonstration de 7059/7061/7119 sont antérieurs à la grammaire finale et ne la remplacent pas.
 
@@ -795,13 +795,13 @@ Aucune édition inline de la phrase. Mode/nom exclus de la phrase intrinsèque ;
 
 Après✓ tester mélange chiffré/échec et ≥, puis annulation et édition d’une copie ; tout échec reste sans total. La formulation de fond divergente de 8328:38848 est une réserve Figma, pas une autorité métier.
 
-Recette rédactionnelle :276 gabarits v15 avec total métier injecté, gras sur occurrences répétées d’une valeur, N1 avec pause mentionnée et total non redondant ; absence de troncature. Français au MVP ; i18n nécessite des gabarits et accords par locale, pas une traduction de fragments isolés.
+Recette rédactionnelle :276 gabarits v15 avec total métier injecté, gras sur occurrences répétées d’une valeur, N1 avec pause mentionnée et total non redondant ; absence de troncature. Français au MVP ; i18n nécessite des gabarits et accords par locale, pas une traduction de fragments isolés. Phrase avec charge : charge commune 10 kg et 1,25 kg, charges différentes par série restant associées à leur série, Sans sans mention, Sans puis Avec restaurant la valeur (RM-240, RM-236).
 
 Tester vide→feuille→annuler sans changement ; feuille valide→résumé→Terminer ; zone de phrase entière ; modification annulée ; deux modes, deux ordres bilatéraux et PC=0 sans repli ; source disparue/erreurDB ; champs/référentiels requis ; lecture seule Total Répétitions. Vérifier différences entre exemple Figma et données recalculées.
 
 Sauvegarder/réouvrir après bascules, déplacement et N1 ; vérifier indépendance copie Catalogue/Séance et résumé v13.
 
-Bip 0/1/10, supprimer puis annuler/confirmer, phrase à 3/4cibles, singulier et deux directions, omission Répétitions sans bip/À l’échec ; redondance N1 Durée unilatérale, texte agrandi. Le classeur teste la formulation avec un total fourni, jamais les calculs.
+Bip 0/1/10, supprimer puis annuler/confirmer, phrase à 3/4cibles, singulier et changement de côté désigné côté 1 / côté 2, sans direction anatomique (RM-243), omission Répétitions sans bip/À l’échec ; redondance N1 Durée unilatérale, texte agrandi. Le classeur teste la formulation avec un total fourni, jamais les calculs.
 
 Vérifier état repos/activé à ouverture/fermeture du panneau et symbole du total selon D-305.
 
@@ -928,17 +928,17 @@ L’ancienne référence Figma `3787:5209 — Catalogue — action contextuelle 
 
 #### 1. Identification
 
-Feuille Paramètres d’exécution de CE-T03-04. Références courantes :8328:37092,8328:37862,8328:38513,8328:38848 et nouveau 8470:13303 ; les autres états du 12/10 restent applicables. Captures au chapitre 06 ; matrice Deux modes du 13/10. Les références 6419/6665/7059/7069 du 07/10 sont historiques.
+Feuille Paramètres d’exécution de CE-T03-04. Références courantes (relevé du 18/10/2026, D-403 à D-413) : 9289:17849 (charge commune), 9290:17953 (séries variables avec charge), 9292:18077 (séries variables avec charge, clavier numérique), 9307:18208 (Durée de l’exercice déployée), 8328:37862 (Durée d’une série, roulette numérique seule), 9232:44646, 8470:13303 (séries variables, cas mixte), 8328:36923 (champs vides), 8328:37092 (Mode, sélection segmentée), 8328:37972 (Changement de côté replié), 8328:38193 (Changement de côté déployé), 8328:39072 (une seule série), 8328:38084 (roulette de la ligne Durée de l’exercice), 8328:38632 (séries variables en Répétitions avec cadence), 8328:38741 (séries variables en Répétitions sans cadence), 8328:38848 (tableau replié), 8982:15172 (séries variables toutes à l’échec, sans ligne Durée de l’exercice), 8328:39279 (déplacement d’une série). La frame 9232:44646, nommée « Durée d’une phase (roulette) », illustre malgré son nom la roulette d’une cellule de séries variables en mode Durée (RM-250) ; aucun contrat de phase n’en est déduit. Captures et écarts Figma au chapitre 06 ; les valeurs des captures sont illustratives. Les états du 12/10 et de la matrice Deux modes du 13/10 remplacés par ces frames, ainsi que les références 6419/6665/7059/7069 du 07/10, sont historiques.
 
-Règles applicables : RM-033, RM-035, RM-036, RM-058, RM-095, RM-129, RM-130, RM-132, RM-232, RM-233, RM-234, RM-FMT-10, RM-FMT-17 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-033, RM-035, RM-036, RM-058, RM-095, RM-129, RM-130, RM-132, RM-232, RM-233, RM-234, RM-235 à RM-250, RM-FMT-10, RM-FMT-17 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »). RM-235 à RM-250 : [Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026) (décisions D-403 à D-413).
 
 #### 2. Finalité fonctionnelle
 
-Saisir/éditer mode, Séries uniformes/variables, cibles, Pauses, côtés, Bip de cadence, Compte à rebours et Fin ; appliquer au brouillon parent et régénérer la phrase sans sauvegarde prématurée.
+Saisir/éditer Mode, Condition d’arrêt, Nombre de séries, Type de série (identiques/variables), cibles, Pauses, Charge, Changement de côté, Enchainement et Pause entre les côtés, Cadence (Bip de cadence), Compte à rebours et Fin d’exercice (D-413) ; appliquer au brouillon parent et régénérer la phrase sans sauvegarde prématurée.
 
 #### 3. Contexte d’entrée
 
-Ouverture depuis la zone Paramètres d’exécution. Copie du parent ; Bip initial 0=Aucun, reprendre valeur existante 0..10 en édition. Aucun tempo implicite. Création : N1,Pause 0,cibles et mode selon [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice) ; absence de cible requise distincte de Bip 0.
+Ouverture depuis la zone Paramètres d’exécution. Copie du parent ; Bip initial 0, présenté Sans dans la ligne Cadence (RM-245), reprendre valeur existante 0..10 en édition. Aucun tempo implicite. Charge initiale Sans ; un Exercice qui ne porte pas la charge est lu Sans, jamais avec 0 kg (RM-236). Création : N1,Pause 0,cibles et mode selon [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice) ; absence de cible requise distincte de Bip 0.
 
 #### 4. Contexte de sortie / destinations
 
@@ -950,7 +950,7 @@ Ouverture depuis la zone Paramètres d’exécution. Copie du parent ; Bip initi
 
 *Texte identique à celui de la section [« CE-T03-04 — Éditeur Exercice — créer / modifier »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-04--éditeur-exercice--créer--modifier) ; il n’est pas recopié ici.*
 
-Collection effective des Séries, cible/Pause/bip, mode, direction, ordre,PC,Compte à rebours/Fin. Bip commun à toutes les lignes,0..10 dans deux modes ; aucune surcharge persistée. Calcul typé fourni par [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) ; phrase et montants Figma ne pilotent aucune donnée.
+Collection effective des Séries, cible/Pause/charge par série/bip, mode, activation et charge commune (valeurs conservées sous Sans, RM-236), changement de côté Avec / Sans sans direction (D-406 ; données historiques D→G et G→D lues Avec, RM-244), ordre,PC,Compte à rebours/Fin. La Condition d’arrêt en séries variables est dérivée des cibles des séries, jamais persistée à part (RM-249). Bip commun à toutes les lignes,0..10 dans deux modes ; aucune surcharge persistée. Calcul typé fourni par [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) ; phrase et montants Figma ne pilotent aucune donnée.
 
 #### 6. Classification des valeurs Figma
 
@@ -958,29 +958,29 @@ Titres/règles statiques ; valeurs de champs dynamiques ; exemples Figma démons
 
 #### 7. Structure de l’écran
 
-**Complément cible 12/10 :** Champ régime identiques/variables et chevron distinct ; identiques sans chevron. Tableau variable visible ou replié.
+**Complément cible 12/10, présentation remplacée par D-410 :** contrôle Type de série (Variables / Identiques) ; chevron à l’intérieur de l’option Variables, centré verticalement avec le texte (RM-247) ; identiques sans chevron. Tableau variable visible ou replié.
 
-En-tête fixe ✕/titre/✓ ; corps défilant Mode → Séries → régime identiques/variables avec chevron indépendant → cible/Pause uniformes ou tableau → Changement de côté → Ordre/PC si bilatéral → Bip de cadence → Total applicable → Compte à rebours → Fin. Bip commun hors tableau, présent dans les deux modes. N1 normalisé uniforme et ordre par côté.
+En-tête fixe ✕/titre/✓ ; corps défilant en quatre cadres successifs (D-413) : 1 Exécution — Mode, Condition d’arrêt ; 2 Séries — Nombre de séries, Type de série, puis Durée ou Répétitions et Pause (identiques) ou tableau de séries variables, puis Charge ; 3 Côtés — Changement de côté, puis Enchainement et Pause entre les côtés lorsque Avec est déployé ; 4 Cadence et durée — Cadence, Durée de l’exercice, puis Compte à rebours et Fin d’exercice lorsque déployés et applicables, ou directement visibles si la ligne Durée de l’exercice est absente (RM-246). Cadence commune hors tableau, présente dans les deux modes. N1 normalisé uniforme et ordre par côté.
 
 #### 8. Éléments obligatoires
 
 **Complément cible 12/10 :** Valeur numérique au repos, ± au toucher ; N hérité visible et non modifiable, origine discrète. Total affichable en lecture seule sous héritage.
 
-Bip 0..10, boutons ± révélés par appui sur sa valeur,0 libellé Aucun ; contrôle actif même à 0. Aucun interrupteur ou roulette Bip. Total absent en Répétitions sans bip et toutes cibles À l’échec ; exact en Durée toute chiffrée, ≈ en Répétitions toute chiffrée avec bip, ≥ en mélange calculable. Pause entre les côtés seulement en bilatéral. Compte à rebours/Fin conservés.
+Cadence : contrôle segmenté Autre | 5 s | 2 s | 1 s | Sans (RM-245) ; Sans vaut 0 ; Autre permet une autre valeur avec le mécanisme numérique existant du Bip (0..10, pas 1 s) ; l’option sélectionnée reflète la valeur courante ; contrôle actif même à 0. Aucun interrupteur ou roulette Bip. Total absent en Répétitions sans bip et toutes cibles À l’échec ; exact en Durée toute chiffrée, ≈ en Répétitions toute chiffrée avec bip, ≥ en mélange calculable. Condition d’arrêt : À l’échec / À la cible, sélectionnable en identiques, résultat dérivé en variables (RM-248, RM-249). Charge : ligne Avec / Sans, Sans par défaut (RM-237, RM-238). Pause entre les côtés seulement avec changement de côté (Avec). Compte à rebours/Fin conservés ; repliés par défaut sous Durée de l’exercice, sans être désactivés (RM-246).
 
 #### 9. Layout déterministe
 
-**Révision 13/10 :** popover Mode 184×99, hauteur automatique, deux options. Roulette cible : popover 354×249 avec maître 8452:13297 (330×181), option en tête 330×30, séparateur 1px, roulette numérique 150px. Le total conserve le maître 5544:5118 (330×150) et son popover 354×216. Ligne de série à deux colonnes maintenue, même tout échec ; aucune variante à une colonne. Voir DSF Deux modes pour tailles et opacités.
+**Révision 13/10, amendée le 18/10 :** le popover Mode 184×99 est remplacé par le contrôle segmenté Mode, aligné à droite, sans enveloppe blanche (D-413). Roulette cible : popover 354×249 avec maître 8452:13297 (330×181), option en tête 330×30, séparateur 1px, roulette numérique 150px ; cette variante à option À l’échec ne s’ouvre plus, en mode Durée, que depuis une cellule de série variable (9232:44646) ; la roulette Durée d’une série des séries identiques est numérique seule (8328:37862 ; D-412, RM-250). Le total conserve le maître 5544:5118 (330×150) et son popover 354×216. Ligne de série à deux colonnes cible/Pause maintenue, même tout échec, complétée par la colonne Charge lorsqu’elle est affichée (RM-238) ; aucune variante à une colonne. Voir DSF Deux modes pour tailles et opacités.
 
-**Alignement DSF du 12/10 :** ligne variable `8129:31593`, 334 × 36 ; cellules cible/Pause 76 × 24 ; pied commun `8129:31601`, 354 × 48, ± à droite. Une cellule active ; plus de steppers permanents dans chaque cellule. Les 19 états de la feuille sont illustrés au chapitre 06. Seul le placement de la mention/astérisque du nombre hérité reste sans référence visuelle identifiée.
+**Alignement DSF du 12/10, amendé le 18/10 :** ligne variable `8129:31593`, 334 × 36 ; cellules cible/Pause 76 × 24. Le pied commun `8129:31601` (354 × 48, ± à droite) est retiré, sans réintroduction de lignes de boutons +/− (D-413). Tableau à fond blanc sans contour extérieur, séparateurs internes, lignes de 36 px ; l’espace sous la dernière ligne vaut une hauteur de ligne ; valeurs Durée ou Répétitions, Pause et Charge alignées sur leurs en-têtes ; numéros de série rapprochés des poignées. Une cellule active ; aucun stepper dans les cellules. Les états de la feuille sont illustrés au chapitre 06. Seul le placement de la mention/astérisque du nombre hérité reste sans référence visuelle identifiée.
 
-À402 : groupe à x24, largeur 354 ; Bip au premier niveau x36. Les anciennes indentations systématiques x52 des contrôles variables sont remplacées par la grille à cellules décrite dans le DSF du 12/10. Bip juste au-dessus du total ou avant Compte à rebours si total absent. Retrait du total raccourcit la feuille de 42px par le haut, bas ancré. Valeurs/steppers à droite ; marges adaptées, pas de coordonnées absolues sur toutes largeurs. Voile modal `overlayScrim` (`color/overlay/scrim`) #1F2129 à 34 %, distinct de `compositionDraggedCardShadow`, qui ne sert jamais de voile.
+À402 : quatre cadres à x24, largeur 354, espacés de 8 px (D-413) ; titres à gauche, contrôles à droite ; Cadence dans le cadre 4, juste avant Durée de l’exercice ; chevron de Durée de l’exercice à 12 px du libellé (RM-246). Les anciennes indentations systématiques x52 des contrôles variables sont remplacées par la grille à cellules décrite dans le DSF du 12/10. Retrait du total raccourcit la feuille de 42px par le haut, bas ancré ; un repli ne laisse pas de hauteur vide (D-413). Valeurs/steppers à droite ; marges adaptées, pas de coordonnées absolues sur toutes largeurs. Voile modal `overlayScrim` (`color/overlay/scrim`) #1F2129 à 34 %, distinct de `compositionDraggedCardShadow`, qui ne sert jamais de voile.
 
 Référence longue 7119:27855 :224caractères, cinq lignes/100px à largeur 324, carte 193px en AUTO. Contenu et contrôles suivants suivent la hauteur intrinsèque, sans plafond.
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-360/402/440, Safe Areas, texte agrandi et scroll ; en-tête reste accessible. Tableau replié conserve données et erreurs ; feuille sans total conserve accès au Bip et aux actions. Aucune hauteur fixe ne doit rogner le texte ou les steppers.
+360/402/440, Safe Areas, texte agrandi et scroll ; en-tête reste accessible. Tableau replié conserve données et erreurs ; feuille sans ligne Durée de l’exercice conserve l’accès à la Cadence, à Compte à rebours et Fin d’exercice, directement visibles lorsqu’applicables (RM-246), et aux actions. Aucune hauteur fixe ne doit rogner le texte ou les steppers ; la feuille s’adapte au contenu visible (D-413). Saisie de la charge : clavier numérique avec séparateur décimal, directement dans le champ ou la cellule, sans fenêtre intermédiaire ; le tableau reste entièrement visible au-dessus du clavier (marge de 12 px dans 9292:18077) (D-405, RM-239).
 
 Le tableau n’a pas de défilement vertical indépendant du corps. (transféré du [DSF — Circuits, volumes et contrôles de séries du 12/10/2026](../DSF-CIRCUITS-CONTROLES-2026-10-12.md), § « Modalités d’exécution et tableau variable », G4.)
 
@@ -988,35 +988,40 @@ Le tableau n’a pas de défilement vertical indépendant du corps. (transféré
 
 Cible chiffrée / À l’échec / mélange ; ouverture sur la cible courante. Option sélectionnée 100%, sinon 45% du remplissage #1a1a1f. À l’échec sélectionné : partie numérique neutre 00:00 et grisée ; ce zéro n’est pas une cible valide. Aucun écran uniforme supplémentaire : un changement de valeur seul ne crée pas un nouveau contrat.
 
-Bip 0/positif dans chacun des deux modes ; cible valide/incomplète ; uniforme/variable ;N1 ; deux ordres/directions ; tableau ouvert/replié ; steppers au minimum/maximum et maintenus ; validation/annulation. Plus aucun état roulette de cadence.
+Cadence Sans / 5 s / 2 s / 1 s / Autre avec valeur personnalisée, dans chacun des deux modes (RM-245) ; cible valide/incomplète ; uniforme/variable ;N1 ; Changement de côté Sans / Avec replié / Avec déployé et deux enchaînements (RM-242, RM-247) ; tableau ouvert/replié par le chevron de Variables ; option non modifiable avec sa valeur réelle (RM-247) ; Condition d’arrêt sélectionnable en identiques, résultat À la cible / À l’échec / « À la cible et à l’échec » en variables, tableau incomplet (RM-248, RM-249) ; Durée de l’exercice repliée / déployée, ligne absente avec signaux directement visibles (RM-246) ; charge Sans / valeur commune / colonne par série / saisie au clavier / zéro / valeurs conservées sous Sans (RM-236 à RM-239) ; steppers au minimum/maximum et maintenus ; validation/annulation. Plus aucun état roulette de cadence. Les états À l’échec de la roulette de cible décrits ci-dessus ne concernent plus la Durée d’une série des séries identiques, roulette numérique seule (RM-250).
 
 #### 12. Contrôles et interactions
 
 Deux modes seulement. Cible chiffrée et À l’échec mutuellement exclusives ; libellé « Aucune durée, à l’échec » ou « Aucune répétition, à l’échec ». Aucune coche dans la liste ; ✓ de la feuille applique. Conserver le type À l’échec lors d’une bascule de mode. À tout instant, exactement une cible est sélectionnée. À l’ouverture : cible numérique → roulette active sur la valeur courante et libellé échec à 45% ; cible échec → libellé actif et bloc numérique grisé à 45%, affiché à 00:00. Faire tourner la roulette sélectionne la valeur numérique et grise le libellé. Toucher le libellé sélectionne l’échec et ramène la roulette grisée à 00:00. Le grisé exprime la non-sélection, pas une interdiction de manipuler la roulette. Aucun geste supplémentaire de déverrouillage, aucune coche. Validation par le bouton de la feuille ; annulation selon le brouillon existant.00:00 n’est jamais une cible valide ; pause 0 reste valide.
 
+**Révision 18/10 (D-411, D-412) :** en séries identiques, la Condition d’arrêt choisit À l’échec ou À la cible pour toutes les séries (RM-248) ; la roulette Durée d’une série ne propose plus « Aucune durée, à l’échec » (RM-250). L’option en tête « Aucune durée, à l’échec » et les règles ci-dessus de sélection, de grisé et de 00:00 valent pour la roulette d’une cellule de série variable en mode Durée, pour cette seule série ; chaque modification actualise la Condition d’arrêt, sans modifier les pauses (RM-249, RM-250). À l’échec n’est pas une durée nulle. Le sort de « Aucune répétition, à l’échec » dans la roulette Répétitions des séries identiques n’est pas tranché par la spécification v3.0 (D-412) : dossier de questions du change.
+
 **Complément cible 12/10 :** Un seul champ actif. Changer de champ ferme/ouvre en un geste. Pi et cible copiées depuis dernière ligne. Suppression immédiate + Annuler avec position et paramètres ; sous N hérité, suppression locale indisponible.
 
-- ± modifie Bip par 1, bornes 0..10, sans accélération.
+- Cadence : 5 s, 2 s, 1 s et Sans sélectionnent directement la valeur ; Autre utilise le mécanisme existant : ± modifie Bip par 1, bornes 0..10, sans accélération (RM-245).
 - Autres steppers : DSF Bip (maintien≈500 ms, paliers 1/5/10 selon durée du maintien et champ).
 - Bascule de mode conserve Bip même à ✓ ; cibles numériques incompatibles remplacées par — et restaurées dans le brouillon selon [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice).
-- Variable copie les valeurs uniformes ; retour uniforme reprend première ligne ; réduction/augmentation/restauration et déplacement selon [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice).
-- Une seule roulette/segmenté ouvert pour les autres champs.
+- Variable copie les valeurs uniformes, charge comprise ; retour uniforme reprend première ligne ; réduction/augmentation/restauration et déplacement selon [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice), qui s’appliquent aussi à la charge par série (RM-238).
+- Une seule roulette ouverte à la fois. Mode, Condition d’arrêt en identiques, Type de série, Changement de côté, Cadence et Charge Avec / Sans sont des contrôles segmentés sans popover (D-413).
+- Condition d’arrêt en séries variables : non modifiable à cet endroit ; elle suit les cibles des cellules (RM-249).
+- Charge : Avec ouvre directement la saisie (0,25 kg à la première activation), Sans conserve les valeurs ; saisie, pas, zéro et réactivation selon RM-239.
+- Chevrons de Variables et d’Avec : repli ou déploiement sans perte de valeurs ni changement de mode (RM-247). Chevron de Durée de l’exercice : replie ou déploie Compte à rebours et Fin d’exercice, indépendamment de l’édition de la durée (RM-246).
 - Le total Durée uniforme entièrement chiffré garde son inversion seulement si N est libre ; sous N imposé par un circuit de séries, tout total affichable est en lecture seule.
 - omitted reste absent.
 
 #### 13. Gestes
 
-Tap et maintien sur steppers, arrêt au relâchement/sortie de cible, pas supplémentaire de relâchement interdit après répétition. Glisser la poignée réordonne cible/Pause/bip ensemble et recalcule la dernière ligne. Alternatives accessibles sans geste fin.
+Tap et maintien sur steppers, arrêt au relâchement/sortie de cible, pas supplémentaire de relâchement interdit après répétition. Glisser la poignée réordonne cible/Pause/charge/bip ensemble et recalcule la dernière ligne (RM-238). Alternatives accessibles sans geste fin.
 
 #### 14. Validation
 
-Mode et cibles typées actives requis ; une cible À l’échec est valide sans nombre. R06 close : maximum 58 min 55 s (3535 s) confirmé ; roulette de cible par pas5 s dès 5 s. Cibles chiffrées : N1..99,Ri1..100,Ti5..3535 s,Pauses 0..300 s,Bip entier 0..10 dans deux modes. −1,11,fraction invalides, aucune correction silencieuse. Repli ne contourne pas validation ; erreur nommant la Série.0=Aucun reste valide. Nom/Catégorie/Zones contrôlés au parent.
+Mode et cibles typées actives requis ; une cible À l’échec est valide sans nombre. R06 close : maximum 58 min 55 s (3535 s) confirmé ; roulette de cible par pas5 s dès 5 s. Cibles chiffrées : N1..99,Ri1..100,Ti5..3535 s,Pauses 0..300 s,Bip entier 0..10 dans deux modes. −1,11,fraction invalides, aucune correction silencieuse. Exception propre à la charge (D-405) : valeur positive hors pas arrondie au multiple de 0,25 kg supérieur, sans message, à la sortie du champ ou à la validation ; valeur négative refusée ; zéro = sans charge (RM-239). La Condition d’arrêt dérivée n’est pas validée à part (RM-249). Repli ne contourne pas validation ; erreur nommant la Série.0 (Sans) reste valide. Nom/Catégorie/Zones contrôlés au parent.
 
 #### 15. Brouillon et persistance
 
 *Texte identique à celui de la section [« CE-T03-04 — Éditeur Exercice — créer / modifier »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-04--éditeur-exercice--créer--modifier) ; il n’est pas recopié ici.*
 
-Brouillon isolé ; ✓ atomique au parent ; ✕ restaure totalité avant ouverture. Bip persiste quel que soit le mode. Les variantes cachées de cibles/tableaux ne sont pas persistées hors état actif. Duplication/copie/snapshot incluent Bip ; aucune mutation partielle.
+Brouillon isolé ; ✓ atomique au parent ; ✕ restaure totalité avant ouverture. Bip persiste quel que soit le mode. Les variantes cachées de cibles/tableaux ne sont pas persistées hors état actif ; exception : les valeurs de charge désactivées par Sans ou masquées avec la colonne sont conservées et enregistrées avec l’activation (D-403, RM-236). Duplication/copie/snapshot incluent Bip, l’activation et les valeurs de charge ; aucune mutation partielle.
 
 #### 16. Navigation et conservation d’état
 
@@ -1024,27 +1029,29 @@ Retour au parent même position et contenu, phrase régénérée à chaque affic
 
 #### 17. Erreurs et cas limites
 
-Cible manquante, valeur hors borne, double validation, interruption ou erreur de persistance : aucun état partiel. Mode sans durée propre : ligne absente même si pauses positives. Historique non modifié ; données héritées hors plage conservées tant qu’elles ne sont pas modifiées, toute nouvelle saisie ou modification respectant les bornes (D-383) ; jamais tronquées silencieusement.
+Cible manquante, valeur hors borne, double validation, interruption ou erreur de persistance : aucun état partiel. Mode sans durée propre : ligne absente même si pauses positives ; Compte à rebours et Fin d’exercice restent alors directement visibles lorsqu’applicables (RM-246). Historique non modifié ; données héritées hors plage conservées tant qu’elles ne sont pas modifiées, toute nouvelle saisie ou modification respectant les bornes (D-383) ; jamais tronquées silencieusement.
 
 #### 18. Accessibilité
 
-**Complément cible 12/10 :** Lecture seule annoncée avec valeur et origine ; ne pas remplacer par un tiret. Cellule active identifiée par ligne/colonne et texte Série i · Durée (ou autre champ), sans dépendre seulement de la couleur.
+**Complément cible 12/10 :** Lecture seule annoncée avec valeur et origine ; ne pas remplacer par un tiret. Cellule active identifiée par ligne/colonne et texte Série i · Durée (ou autre champ, dont Série i · Charge), sans dépendre seulement de la couleur.
 
-Nom accessible Bip de cadence ; valeur Aucun ou intervalle en secondes ; boutons augmenter/diminuer et limites annoncées. Total ≈ annoncé estimation ; ≥ annoncé total prévisionnel partiel. Option À l’échec annoncée sélectionnée/non sélectionnée ; le grisé n’est pas le seul indicateur accessible. Focus modal contenu, retour à la zone Paramètres. Texte agrandi, cibles 44 minimum, alternatives au maintien/glisser.
+Nom accessible Cadence (Bip de cadence) ; options Autre, 5 s, 2 s, 1 s et Sans annoncées avec la sélection courante ; valeur Sans ou intervalle en secondes ; pour Autre, boutons augmenter/diminuer et limites annoncées (RM-245). Condition d’arrêt : sélectionnable en identiques ; en variables, annoncée comme valeur déterminée par les séries, non modifiable (RM-249). Charge : valeur en kg ou Sans. Total ≈ annoncé estimation ; ≥ annoncé total prévisionnel partiel. Option À l’échec annoncée sélectionnée/non sélectionnée ; le grisé n’est pas le seul indicateur accessible. Focus modal contenu, retour à la zone Paramètres. Texte agrandi, cibles 44 minimum, alternatives au maintien/glisser.
 
 #### 19. Invariants
 
-Bip sonore uniquement pendant Série, aucune transition automatique. Les intervalles logiques peuvent proposer un relevé estimé en Répétitions à l’échec. Son ne transforme pas À l’échec en durée connue. Aucune estimation forfaitaire ; ≥ seulement pour mélange calculable à l’Exercice. Pause après chaque série, y compris la dernière ; récupération contextuelle positive remplaçant seulement la dernière Pause. Les images ne gouvernent ni calculs ni persistance.
+Bip sonore uniquement pendant Série, aucune transition automatique. Les intervalles logiques peuvent proposer un relevé estimé en Répétitions à l’échec. Son ne transforme pas À l’échec en durée connue. Aucune estimation forfaitaire ; ≥ seulement pour mélange calculable à l’Exercice. Pause après chaque série, y compris la dernière ; récupération contextuelle positive remplaçant seulement la dernière Pause. La charge ne modifie ni minuteurs, ni cibles, ni cadence, ni pauses, ni ordre, ni calculs (RM-235). Un repli ne modifie ni valeurs, ni mode, ni durée affichée (RM-246, RM-247). Les images ne gouvernent ni calculs ni persistance.
 
 #### 20. Recette déterministe
 
-Recette complémentaire : deux options, ouverture valeur/échec courant, exclusion mutuelle,00:00 cible refusée (pause 0 valide), tout échec sans total, mixte 30/45/échec avec pauses 10/20/30 →≥2 min 15 en lecture seule, Répétitions sans bip sans total ; annuler/appliquer sans persistance anticipée. Tester 30 s → toucher échec →00:00 grisé → tourner vers 30 s → cible numérique ; réouverture fidèle et annulation/restauration. Le bloc grisé reste manipulable. Qualification native et accessible sur appareils à réaliser ; §4.5 reçu, réserve de source close.
+Recette complémentaire (roulette de cible d’une cellule de série variable en mode Durée depuis le 18/10, RM-250) : deux options, ouverture valeur/échec courant, exclusion mutuelle,00:00 cible refusée (pause 0 valide), tout échec sans total, mixte 30/45/échec avec pauses 10/20/30 →≥2 min 15 en lecture seule, Répétitions sans bip sans total ; annuler/appliquer sans persistance anticipée. Tester 30 s → toucher échec →00:00 grisé → tourner vers 30 s → cible numérique ; réouverture fidèle et annulation/restauration. Le bloc grisé reste manipulable. Qualification native et accessible sur appareils à réaliser ; §4.5 reçu, réserve de source close.
 
 **Complément cible 12/10 :** Vérifier N libre/hérité, total éditable/lecture seule/omitted, identiques/variables égales, repli, croix/Annuler, cible destructive pendant stepper actif ; conserver tests des modes et pauses.
 
 *Texte identique à celui de la section [« CE-T03-04 — Éditeur Exercice — créer / modifier »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-04--éditeur-exercice--créer--modifier) ; il n’est pas recopié ici.*
 
 Deux modes × deux types de cible × bip nul/positif ;0/1/10 et rejets−1/11/fraction ; conservation lors des bascules, annulation et duplication.4×15×4+4×15=300 s≈ ; sans bip ligne absente. Tester N1,variable,repli,réordre de dernière Série,inversion Durée,deux côtés/R ; géométrie42px, texte agrandi et accessibilité. Phrase de pauses conforme aux 276 formulations v15 ; Q-08 clos.
+
+Recette v3.0 (D-403 à D-413), scénarios de la spécification du 18/10/2026 (§6, §9.2, §12) : charge AC-01 à AC-12, dont 1,3 → 1,5 kg, 0,01 → 0,25 kg, 1,25 kg inchangé, [0 ; 10 ; 15] → Sans → Avec et [0 ; 0 ; 0] (RM-236 à RM-241) ; Changement de côté Avec / Sans et données historiques AC-13, AC-14, AC-23 (RM-242 à RM-244) ; Cadence AC-15, dont une valeur 5 s saisie par Autre reflétée par l’option 5 s (RM-245) ; Durée de l’exercice et signaux AC-16, AC-17, dont la feuille sans ligne Durée de l’exercice (RM-246) ; chevrons AC-18 (RM-247) ; Condition d’arrêt AC-19 à AC-21 (RM-248, RM-249) ; quatre cadres et replis sans espace vide AC-22 (D-413) ; roulettes AC-24 à AC-26 (RM-250). Recette applicative non exécutée par cette mise à jour documentaire.
 
 *Texte identique à celui de la section [« CE-T03-04 — Éditeur Exercice — créer / modifier »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-04--éditeur-exercice--créer--modifier) ; il n’est pas recopié ici.*
 
@@ -1055,21 +1062,23 @@ Deux modes × deux types de cible × bip nul/positif ;0/1/10 et rejets−1/11/fr
 
 | Ordre | Ligne | Contrôle / visibilité |
 |---|---|---|
-| 1 | Mode d’exécution | Valeur puis popover Durée/Répétitions, deux options |
-| 2 | Séries | Valeur numérique, défaut 1 ; appui révèle ± si N libre ; valeur réelle en lecture seule avec origine si N hérité du circuit |
-| 3 | Régime des séries | Valeur identiques/variables et popover ; chevron indépendant uniquement si variable ; normalisation N1 existante conservée |
-| 4 | Cible et Pause | Uniforme : lignes Durée/Répétitions et Pause après chaque série ; variable : tableau rattaché au champ de régime, ligne numérotée, poignée, cible et Pause par steppers ; À l’échec : cible textuelle sélectionnable, sans nombre prescrit |
-| 5 | Changement de côté | Popover, sans changement / D→G / G→D (DSF du 12/10, D-377) |
-| 6 | Ordre des côtés | Bilatéral uniquement, deux options ; grisé à 1 |
-| 7 | Pause entre les côtés | Bilatéral uniquement, stepper ; copie du Profil à activation |
-| 7b | Bip de cadence | Deux modes ; stepper 0..10,0=Aucun ; premier niveau, juste avant le total applicable ; commun hors tableau variable. |
-| 8 | Durée totale | Durée uniforme chiffrée avec N libre : roulette ; N hérité du circuit, variable/Répétitions avec bip : lecture seule ; Répétitions sans bip et toutes cibles À l’échec : absente ; mélange calculable : ≥ en lecture seule ; cible nécessaire au calcul manquante : ligne affichée avec « — » (D-384) ; ligne affichée à N = 1 comme à N > 1 (D-396) |
-| 9 | Compte à rebours | Stepper ; défaut Profil 10 s |
-| 10 | Fin d’exercice | Stepper ; défaut Profil 5 s |
+| 1 | Mode | Cadre 1 Exécution. Contrôle segmenté Répétitions / Durée, sans popover (D-413) |
+| 2 | Condition d’arrêt | Cadre 1. À l’échec (à gauche) / À la cible (à droite). Identiques : sélectionnable, le choix vaut pour toutes les séries (RM-248). Variables : résultat dérivé non modifiable, deux options avec sélection automatique ou une seule option « À la cible et à l’échec » ; tableau incomplet selon D-384 (RM-249) |
+| 3 | Nombre de séries | Cadre 2 Séries. Valeur numérique, défaut 1 ; appui révèle ± si N libre ; valeur réelle en lecture seule avec origine si N hérité du circuit |
+| 4 | Type de série | Contrôle segmenté Variables / Identiques ; chevron à l’intérieur de l’option Variables, haut si le tableau est déployé, bas s’il est replié (D-410, RM-247) ; identiques sans chevron ; normalisation N1 existante conservée, option non modifiable avec sa valeur réelle |
+| 5 | Cible et Pause | Identiques : lignes Durée/Répétitions et Pause après chaque série ; roulette Durée d’une série numérique seule, À l’échec choisi par la Condition d’arrêt, sans nombre prescrit (RM-248, RM-250). Variables : tableau rattaché à Type de série, ligne numérotée, poignée, colonnes Durée ou Répétitions, Pause et, si la charge est active, Charge ; lignes de 36 px, sans pied ± ni stepper de cellule (D-413) ; en Durée, la roulette d’une cellule propose une durée ou « À l’échec » pour cette seule série (RM-250) |
+| 6 | Charge | Identiques : ligne après la Pause, Avec / Sans, Sans par défaut ; Avec ouvre directement la saisie ; la valeur et son unité remplacent Avec, par exemple « 20 kg » (RM-237). Variables : ligne Avec / Sans sous le tableau ; Avec affiche la colonne Charge, Sans la masque en conservant les valeurs ; titre de colonne non interactif (RM-238). Saisie au clavier numérique décimal, sans fenêtre intermédiaire ; pas, zéro, conservation et réactivation selon RM-239 (D-404, D-405) |
+| 7 | Changement de côté | Cadre 3 Côtés. Contrôle segmenté Avec (à gauche) / Sans (à droite), sans choix de direction (D-406, RM-242) ; chevron à l’intérieur d’Avec, qui replie ou déploie les lignes 8 et 9 (RM-247) |
+| 8 | Enchainement | Ordre des côtés. Avec uniquement, deux options à la notation Figma (RM-243) ; grisé à 1 |
+| 9 | Pause entre les côtés | Avec uniquement, stepper ; copie du Profil à activation |
+| 10 | Cadence | Cadre 4 Cadence et durée. Bip de cadence, deux modes ; contrôle segmenté Autre / 5 s / 2 s / 1 s / Sans, Sans = 0 ; Autre : mécanisme numérique existant, 0..10, pas 1 s (D-408, RM-245) ; juste avant Durée de l’exercice ; commun hors tableau variable. |
+| 11 | Durée de l’exercice | Concept Durée totale ; chevron à côté du libellé, replié par défaut, qui replie ou déploie les lignes 12 et 13 sans les désactiver (D-409, RM-246). Durée uniforme chiffrée avec N libre : roulette ; N hérité du circuit, variable/Répétitions avec bip : lecture seule ; Répétitions sans bip et toutes cibles À l’échec : absente ; mélange calculable : ≥ en lecture seule ; cible nécessaire au calcul manquante : ligne affichée avec « — » (D-384) ; ligne affichée à N = 1 comme à N > 1 (D-396) |
+| 12 | Compte à rebours | Stepper ; défaut Profil 10 s ; masqué sous Durée de l’exercice repliée, directement visible si la ligne 11 est absente (RM-246) |
+| 13 | Fin d’exercice | Stepper ; défaut Profil 5 s ; même visibilité que la ligne 12 |
 
-Création : mode/durée/côté non renseignés —, Série 1, Pause 0 s ; cible Répétitions uniforme initiale 1 ; aucune cible implicite lors d’un changement de mode variable. Une cible à renseigner (—) ouvre la roulette sur la plus petite valeur valide, sélectionnée : 00:05 en Durée, 1 en Répétitions ; rien n’est appliqué avant le ✓ de la roulette ; ✕ laisse la cible à renseigner (décision PRE-4 Q25 du 16/10, D-385). Côté vide normalisé Sans changement à validation. La feuille entière défile sous un en-tête ✕/titre/✓ fixe. Ouverture : voile en fondu sur place, feuille montante depuis le bas ; « Réduire les animations » : feuille en place . Un seul popover/roulette ouvert ; les boutons ± apparaissent à l’appui sur une valeur numérique ; un seul champ est actif, sans modale supplémentaire. Glisser une Série : corps immobile et repère d’insertion entre les lignes . Le chevron masque le tableau sans modifier les données ni désactiver le mode variable.
+Création : mode/durée/côté non renseignés —, Série 1, Pause 0 s, charge Sans (RM-236) ; cible Répétitions uniforme initiale 1 ; aucune cible implicite lors d’un changement de mode variable. Une cible à renseigner (—) ouvre la roulette sur la plus petite valeur valide, sélectionnée : 00:05 en Durée, 1 en Répétitions ; rien n’est appliqué avant le ✓ de la roulette ; ✕ laisse la cible à renseigner (décision PRE-4 Q25 du 16/10, D-385). Côté vide normalisé Sans à validation (D-406). La feuille entière défile sous un en-tête ✕/titre/✓ fixe. Ouverture : voile en fondu sur place, feuille montante depuis le bas ; « Réduire les animations » : feuille en place . Une seule roulette ouverte ; les contrôles segmentés n’ouvrent pas de popover (D-413) ; les boutons ± apparaissent à l’appui sur une valeur numérique ; la charge se saisit au clavier (D-405) ; un seul champ est actif, sans modale supplémentaire. Glisser une Série : corps immobile et repère d’insertion entre les lignes . Le chevron de l’option Variables masque le tableau sans modifier les données ni désactiver le mode variable (RM-247).
 
-État historique livré PRE-3 : sélecteurs segmentés et steppers permanents, avec fermeture progressive D-339 et typographie D-341. Le DSF du 12/10 et Deux modes du 13/10 remplacent la présentation D-341 pour la prochaine tranche (D-377) ; la fermeture après sélection de D-339 est conservée, y compris dans les popovers (D-377). Ces DSF ne prétendent pas être déjà réalisés.
+État historique livré PRE-3 : sélecteurs segmentés et steppers permanents, avec fermeture progressive D-339 et typographie D-341. Le DSF du 12/10 et Deux modes du 13/10 remplacent la présentation D-341 pour la prochaine tranche (D-377) ; la fermeture après sélection de D-339 est conservée, y compris dans les popovers (D-377). Ces DSF ne prétendent pas être déjà réalisés. Depuis le 18/10, D-413 remplace la présentation par popovers de D-377 pour Mode, Type de série et Changement de côté (contrôles segmentés), ainsi que le pied commun ± et les steppers de cellules du tableau variable ; D-339 n’a plus d’objet pour ces lignes.
 
 | Paramètre | Bornes | Granularité validée le 02/10 |
 |---|---|---|
@@ -1077,14 +1086,17 @@ Création : mode/durée/côté non renseignés —, Série 1, Pause 0 s ; cible 
 | Répétitions par Série | 1..100 | 1 |
 | Durée par Série | 5..3535 s | Roulette par pas de 5 s ; 00:00 interdit comme cible |
 | Pause après chaque série / Pause entre les côtés | 0..300 s | Tap 1 s ; maintien accéléré 1/5/10 selon DSF Bip |
-| Bip de cadence | 0..10 s | 1 s, aucune accélération |
+| Bip de cadence (ligne Cadence) | 0..10 s | 1 s, aucune accélération ; 5 s, 2 s, 1 s et Sans sont des choix directs (RM-245) |
 | Compte à rebours / Fin d’exercice | 0..60 s | 1 s  |
+| Charge | ≥ 0 kg, aucun plafond métier | 0,25 kg, validé le 18/10 ; valeur positive hors pas arrondie au multiple supérieur sans message ; 0 = sans charge (D-405, RM-239) |
 
-Steppers : tap 1 ; maintien≈500 ms, puis paliers 5 après≈2 s et 10 après≈4 s, arrondi directionnel au multiple et saturation aux bornes. Bip/Compte à rebours/Fin restent au pas1. Relâchement arrête et rétablit le pas1 ; pas d’arrondi à l’ouverture. Voir DSF Bip. Les roulettes ne sont pas redéfinies par cette règle.
+Steppers : tap 1 ; maintien≈500 ms, puis paliers 5 après≈2 s et 10 après≈4 s, arrondi directionnel au multiple et saturation aux bornes. Bip/Compte à rebours/Fin restent au pas1. Relâchement arrête et rétablit le pas1 ; pas d’arrondi à l’ouverture. Voir DSF Bip. Les roulettes ne sont pas redéfinies par cette règle. La charge n’a pas de stepper : saisie au clavier (D-405). Les cellules du tableau variable n’ont pas de stepper (D-413).
 
-✓ grisé tant que le mode ou une cible active exigée est invalide ; cellule concernée signalée par son contour ; aucun message en ligne (D-337, 12/10 : remplace le message nommant la Série à renseigner). Une cible obligatoire sans valeur, représentée par « — », reçoit un fond rouge pâle ; sur un stepper, les cercles − et + conservent leurs couleurs normales ; le fond redevient normal dès qu’une valeur valide est saisie ; aucun contour orange n’est appliqué dans ce cas (D-389, D-398). Une valeur renseignée mais invalide suit les règles existantes (D-398). Pause 0 valide. Une valeur héritée hors bornes, non modifiée, reste valide ; toute nouvelle saisie ou modification respecte les bornes (D-383). Repli du tableau ne contourne jamais la validation. Nom, Catégorie et Zones restent validés dans le parent.
+✓ grisé tant que le mode ou une cible active exigée est invalide ; cellule concernée signalée par son contour ; aucun message en ligne (D-337, 12/10 : remplace le message nommant la Série à renseigner). Une cible obligatoire sans valeur, représentée par « — », reçoit un fond rouge pâle ; sur un stepper, les cercles − et + conservent leurs couleurs normales ; le fond redevient normal dès qu’une valeur valide est saisie ; aucun contour orange n’est appliqué dans ce cas (D-389, D-398). Une valeur renseignée mais invalide suit les règles existantes (D-398). Pause 0 valide. Une valeur héritée hors bornes, non modifiée, reste valide ; toute nouvelle saisie ou modification respecte les bornes (D-383). Repli du tableau ne contourne jamais la validation. Nom, Catégorie et Zones restent validés dans le parent. Charge : arrondi au pas de 0,25 kg sans message, exception propre à la charge (D-405, RM-239). Condition d’arrêt en séries variables : aucune validation supplémentaire ; une cellule vide n’est comptée ni à la cible ni à l’échec (RM-249).
 
 #### Sélecteur de cible — complément §4.5 du13/10
+
+Portée depuis le 18/10 (D-412) : ce sélecteur à option À l’échec est celui d’une cellule de série variable en mode Durée, pour cette seule série ; la roulette Durée d’une série des séries identiques est numérique seule et À l’échec s’y règle par la Condition d’arrêt (RM-248, RM-250). La roulette Répétitions n’est pas visée par D-412 : dossier de questions du change.
 
 À tout instant, exactement une cible est sélectionnée. À l’ouverture : cible numérique → roulette active sur la valeur courante et libellé échec à 45% ; cible échec → libellé actif et bloc numérique grisé à 45%, affiché à 00:00. Faire tourner la roulette sélectionne la valeur numérique et grise le libellé. Toucher le libellé sélectionne l’échec et ramène la roulette grisée à 00:00. Le grisé exprime la non-sélection, pas une interdiction de manipuler la roulette. Aucun geste supplémentaire de déverrouillage, aucune coche. Validation par le bouton de la feuille ; annulation selon le brouillon existant.00:00 n’est jamais une cible valide ; pause 0 reste valide.
 
@@ -1105,7 +1117,7 @@ Zone cliquable unique, segments non interactifs. Inter 13 Regular, interligne 20
 
 La référence 7119:27855 est désormais « Phrase longue (224 caractères) », cas 144 du corpus v15 : largeur 324px, cinq lignes de 20px, bloc 100px, carte de paramètres 193px à hauteur automatique. Ces mesures constatées ne deviennent pas des hauteurs fixes : agrandissement de texte et autres largeurs doivent étendre le contenu sans rogner Compte à rebours/Fin.
 
-Une virgule reste attachée au mot qui la précède : aucune virgule isolée en début de ligne. Les segments sont rendus dans un même flux Text, sans espace ajouté avant la ponctuation ni segments disposés chacun comme une boîte indépendante. Le retour visuel avant Durée totale est une propriété de rendu, pas une modification du texte canonique utilisé par la recette.
+Une virgule reste attachée au mot qui la précède : aucune virgule isolée en début de ligne. Les segments sont rendus dans un même flux Text, sans espace ajouté avant la ponctuation ni segments disposés chacun comme une boîte indépendante. Le retour visuel avant Durée totale est une propriété de rendu, pas une modification du texte canonique utilisé par la recette. Le groupe « avec une charge de … kg » suit le même rendu en segments ; sa place dans la grammaire n’est pas encore fixée (RM-240).
 
 ## Composition des séances
 
@@ -1295,7 +1307,7 @@ Liste A/B : sélectionner B puis A → insertion A/B ; désélection, 0/1/N, fer
 
 Composition 2028:11137/11700/11808/12003,3518:4576,5271:5455. Placement unifié 7167:13503 ; durée 7173:13521 ; retrait récupération 7296:13696 ; point présent 3722:5061/retrait5301:5443. Ancien 4893:6675 supprimé, historique seulement. Étiquettes CE-T03-16, sélection CE-T03-07. Réglages 2028:11375/11457.
 
-Règles applicables : RM-001, RM-015, RM-017, RM-018, RM-021, RM-025, RM-026, RM-027, RM-028, RM-029, RM-030, RM-036, RM-038, RM-095, RM-129, RM-143, RM-147, RM-151, RM-152, RM-159, RM-191, RM-209, RM-210, RM-213, RM-215, RM-218, RM-219, RM-220, RM-FMT-03, RM-FMT-04, RM-FMT-05, RM-FMT-09, RM-FMT-41 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-001, RM-015, RM-017, RM-018, RM-021, RM-025, RM-026, RM-027, RM-028, RM-029, RM-030, RM-036, RM-038, RM-095, RM-129, RM-143, RM-147, RM-151, RM-152, RM-159, RM-191, RM-209, RM-210, RM-213, RM-215, RM-218, RM-219, RM-220, RM-FMT-03, RM-FMT-04, RM-FMT-05, RM-FMT-09, RM-FMT-41, RM-236, RM-243 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -1385,7 +1397,7 @@ Pause après chaque série, dernière comprise, même N1. Hors circuit de série
 
 Circuit=groupe, Tour=répétition ; récupération positive avant point, attente exclue du prévu ; éléments internes répétés à chaque Tour. Aucune récupération automatique ni récupération directe ACTIVITY. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). D-248 confirmée sur pause terminale et substitution par R ; D-301 maintenu pour l’absence de pause effective entre Exercices ; aucune persistance avant Continuer.
 
-CF3 déjà tranché par RM-151/RM-152 : indicateur compact D→G/G→D conservé, sans nouvelle ligne de pause ni phrase longue injectée dans les cartes.
+CF3 déjà tranché par RM-151/RM-152, amendées par D-407 : indicateur compact de changement de côté conservé, sans direction (RM-243), rendu selon Figma, sans nouvelle ligne de pause ni phrase longue injectée dans les cartes.
 
 #### 20. Recette déterministe
 
@@ -1440,7 +1452,7 @@ La ligne présente le nom, la Catégorie puis les Zones corporelles sur une lign
 
 Le nom n’est pas répété, le mode n’est pas nommé. Aucun texte de pause/récupération dans le corps de la carte. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). Les valeurs et phases D-208 restent conservées, solidaires de l’occurrence lors des opérations et utilisées dans les calculs. Le réglage de récupération existant sur cette ligne est conservé.
 
-La bilatéralité est indiquée par le miroir dans les variantes concernées ; le paramètre de direction et `Indicator / Sides` ne sont pas supprimés du modèle. Le texte développé « à droite, puis à gauche » reste propre à l’éditeur. La Description est absente des cartes. Texte complet conservé derrière la troncature.
+La bilatéralité est indiquée par le miroir dans les variantes concernées ; le paramètre de changement de côté (Avec / Sans, D-406) et `Indicator / Sides` ne sont pas supprimés du modèle ; l’indicateur ne porte pas de direction (RM-243). Le texte développé du changement de côté (côté 1, puis côté 2) reste propre à l’éditeur. La Description est absente des cartes. Texte complet conservé derrière la troncature.
 
 Les commandes contextuelles de Composition font 34 px, dessins 20, gaps 10, cibles 44 sans chevauchement. La bande Durée + actions reste à 32 px : durée immobile, actions à droite et 6 px plus bas. Les états initial, nom saisi, étiquette sélectionnée, modale ouverte, déplacement et actions glissées héritent de cette règle.
 
@@ -1725,7 +1737,7 @@ Confirmer/Annuler conversions et ajouts ; comparaison complète avant/après ; t
 
 Fenêtre de lecture seule ouverte par œil sur la ligne du titre de circuit ; frame à rattacher ensuite.
 
-Règles applicables : RM-033, RM-FMT-08, RM-FMT-29, RM-FMT-30 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-033, RM-FMT-08, RM-FMT-29, RM-FMT-30, RM-243 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -1743,7 +1755,7 @@ Fermer restitue la composition sans modification.
 
 Le mode Durée/Répétitions reste identifiable dans les volumes mixtes ; ✓ désigne la cible À l’échec, jamais un accomplissement. Le libellé d’unité ancien « À l’échec » pour une ligne tout échec ne suffit plus à distinguer les deux modes. L’alignement visuel précis de cette unité est à fournir : aucune capture de grille mixte n’est livrée dans cette passe.
 
-Exercices et séries actives du brouillon, régime, mode et direction ; aucune réserve de lignes retirées affichée.
+Exercices et séries actives du brouillon, régime, mode et changement de côté (D-406) ; aucune réserve de lignes retirées affichée.
 
 #### 6. Classification des valeurs Figma
 
@@ -1799,7 +1811,7 @@ Annoncer exercice, numéro de série, cible/unité ; ✓ annoncé Série N à l�
 
 #### 19. Invariants
 
-Répétitions numériques + rép. ; durée min:ss ; échec ✓ + À l’échec en dernière colonne. Cibles bilatérales par côté, non doublées, direction près du nom.
+Répétitions numériques + rép. ; durée min:ss ; échec ✓ + À l’échec en dernière colonne. Cibles bilatérales par côté, non doublées, indicateur de changement de côté sans direction près du nom (RM-243).
 
 #### 20. Recette déterministe
 
@@ -2069,7 +2081,7 @@ REC-02–07, 11, 16–17, 25–26 ; vérifier le même résultat après sauvegar
 
 Famille des modales ; Tabata par exercice 8747:14451, EMOM par exercice 8795:14588 et autres nœuds CE-FMT-04 de la galerie. Complète CE-UI-10.
 
-Règles applicables : RM-FMT-03, RM-FMT-04, RM-FMT-05, RM-FMT-10, RM-FMT-17, RM-FMT-19, RM-FMT-42 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-FMT-03, RM-FMT-04, RM-FMT-05, RM-FMT-10, RM-FMT-17, RM-FMT-19, RM-FMT-42, RM-246 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -2101,7 +2113,7 @@ Quatre valeurs Tabata réelles grisées non modifiables et raison visible. Valeu
 
 #### 9. Layout déterministe
 
-Réutiliser tailles, alignements, voile et lignes de la modale de référence. Le grisé approuvé s’applique au contrôle/à la valeur ; garder les libellés et la raison lisibles. Aucun nouveau voile.
+Réutiliser tailles, alignements, voile et lignes de la modale de référence. Le grisé approuvé s’applique au contrôle/à la valeur ; garder les libellés et la raison lisibles. Aucun nouveau voile. Les lignes reprises de CE-UI-10 en gardent les libellés et les groupes (D-413), dont Mode et Condition d’arrêt ; les exceptions propres au format ne sont pas remplacées par des champs génériques supplémentaires. Ouverte depuis une Séance, la modale ne présente pas Compte à rebours ni Fin d’exercice propres (RM-246).
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -2327,13 +2339,13 @@ REC-20–24 ; 12 tours confirmés +5 déclarées ; zéro validé conservé comme
 
 #### 1. Identification
 
-Bloc B5 ; états S59–S62 ; T03-E E40–E41 ; Shell Execution ; sous-titre côté validé D-149.
+Bloc B5 ; états S59–S62 ; T03-E E40–E41 ; Shell Execution ; sous-titre côté validé D-149, libellés Côté 1 / Côté 2 (D-407).
 
-Règles applicables : RM-036, RM-037, RM-058, RM-059, RM-062, RM-077, RM-099, RM-129, RM-148, RM-149, RM-150, RM-211 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-036, RM-037, RM-058, RM-059, RM-062, RM-077, RM-099, RM-129, RM-148, RM-149, RM-150, RM-211, RM-241, RM-242, RM-243, RM-244 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
-L’ordre d’exécution vient du paramètre Ordre des côtés : Un côté après l’autre (défaut) ou Les deux côtés à chaque série. En bilatéral N est toujours par côté, paramètres communs aux deux côtés. Les successions et pauses sont celles de chapitre 08, paramètres d’exercice ; aucun repli de PC vers la Pause. Les cibles et Pauses variables proviennent de la ligne courante. Aucune récupération post-exercice en ACTIVITY.
+L’ordre d’exécution vient du paramètre Ordre des côtés (libellé visible Enchainement, D-413) : Un côté après l’autre (défaut) ou Les deux côtés à chaque série. En bilatéral N est toujours par côté, paramètres communs aux deux côtés. Les successions et pauses sont celles de chapitre 08, paramètres d’exercice ; aucun repli de PC vers la Pause. Les cibles et Pauses variables proviennent de la ligne courante. Aucune récupération post-exercice en ACTIVITY.
 
 #### 3. Contexte d’entrée
 
@@ -2345,7 +2357,7 @@ Séries/pauses premier côté → SIDE_RECOVERY si positive → Séries/pauses s
 
 #### 5. Données affichées et source de vérité
 
-sideMode snapshot ; executionSide RIGHT/LEFT ; résultats séparés par côté.
+Changement de côté de l’instantané (Avec / Sans ; valeurs historiques `RIGHT_LEFT` et `LEFT_RIGHT` lues Avec, RM-244) ; côté courant côté 1 / côté 2, noms techniques laissés à l’implémentation, valeurs historiques `RIGHT` / `LEFT` lisibles (D-407) ; résultats séparés par côté ; charge de la série courante selon RM-241, sans valeur distincte par côté (RM-235).
 
 *Texte identique à celui de la section [« CE-T03-09 — Lancement direct et préparation fixe 5 s »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-09--lancement-direct-et-préparation-fixe-5-s) ; il n’est pas recopié ici.*
 
@@ -2353,7 +2365,7 @@ sideMode snapshot ; executionSide RIGHT/LEFT ; résultats séparés par côté.
 
 #### 6. Classification des valeurs Figma
 
-`Côté droit/gauche` = libellés calculés ; ordre vient sideMode, jamais de la frame d’exemple.
+`Côté 1` / `Côté 2` = libellés calculés, le côté 1 étant celui par lequel l’utilisateur commence (RM-243) ; succession selon l’Ordre des côtés de l’instantané, jamais selon la frame d’exemple.
 
 #### 7. Structure de l’écran
 
@@ -2367,7 +2379,7 @@ Sous-titre côté ; aucun `1/2`/`2/2`; même rang logique Activity entre côtés
 
 #### 9. Layout déterministe
 
-Nom puis Catégorie, et ligne Côté droit/gauche distincte du contexte ; aucun compteur 1/2 ou 2/2. Pas de Tour en direct ; dimensions du shell courant.
+Nom puis Catégorie, et ligne Côté 1 / Côté 2 distincte du contexte (RM-243) ; aucun compteur 1/2 ou 2/2. Pas de Tour en direct ; dimensions du shell courant.
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -2379,7 +2391,7 @@ Premier côté ; Pause intra-côté ; Pause entre les côtés éventuelle ; seco
 
 #### 12. Contrôles et interactions
 
-Ordre D→G/G→D strict. Réinitialiser ne touche que le côté courant et conserve l’autre résultat. Saut confirmé du premier côté chronométré : résultat partiel conservé, second côté selon D-150 ; transition selon la succession du plan ([Ordres d’exécution et pauses](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ordres-dexécution-et-pauses) ; [R-03 — Transition, reset et suspension](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-03--transition-reset-et-suspension)).
+Ordre côté 1 puis côté 2 strict (RM-243). Réinitialiser ne touche que le côté courant et conserve l’autre résultat. Saut confirmé du premier côté chronométré : résultat partiel conservé, second côté selon D-150 ; transition selon la succession du plan ([Ordres d’exécution et pauses](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ordres-dexécution-et-pauses) ; [R-03 — Transition, reset et suspension](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-03--transition-reset-et-suspension)).
 
 *Texte identique à celui de la section [« CE-T03-09 — Lancement direct et préparation fixe 5 s »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-09--lancement-direct-et-préparation-fixe-5-s) ; il n’est pas recopié ici.*
 
@@ -2393,7 +2405,7 @@ Tap commandes uniquement.
 
 #### 15. Brouillon et persistance
 
-Résultats séparés par executionSide ; réinitialisation ne détruit pas résultat autre côté.
+Résultats séparés par côté (côté 1 / côté 2 ; résultats historiques par côté lisibles, RM-244) ; réinitialisation ne détruit pas résultat autre côté.
 
 #### 16. Navigation et conservation d’état
 
@@ -2405,7 +2417,7 @@ Interruption entre côtés ; reprise sur bon side ; side result déjà finalisé
 
 #### 18. Accessibilité
 
-Annonce vocale côté au début et au changement selon règles ; label accessible développé même si UI courte ailleurs.
+Annonce vocale du côté (« Côté 1 » / « Côté 2 », RM-243) au début et au changement selon règles ; label accessible développé même si UI courte ailleurs.
 
 #### 19. Invariants
 
@@ -2417,7 +2429,7 @@ L’ajout explicite de recovery concerne SESSION seulement ; aucune récupérati
 
 #### 20. Recette déterministe
 
-D→G/G→D, C=1/2/99, pause inter-Séries 0/>0, SIDE_RECOVERY0/>0, reset second préservant premier, interruption pendant SIDE_RECOVERY, absence de récupération après second. Tester saut anticipé avec pC>0 puis pC=0/pS>0 puis les deux à zéro ; respecter les cumuls Pi puis PC en ordre successif et la succession PC puis Pi après paire en ordre alterné.
+Changement de côté Avec dans chacun des deux enchaînements, donnée historique `RIGHT_LEFT` ou `LEFT_RIGHT` lue Avec sans perte de l’Ordre des côtés (RM-244), C=1/2/99, pause inter-Séries 0/>0, SIDE_RECOVERY0/>0, reset second préservant premier, interruption pendant SIDE_RECOVERY, absence de récupération après second. Tester saut anticipé avec pC>0 puis pC=0/pS>0 puis les deux à zéro ; respecter les cumuls Pi puis PC en ordre successif et la succession PC puis Pi après paire en ordre alterné.
 
 *Texte identique à celui de la section [« CE-T03-09 — Lancement direct et préparation fixe 5 s »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-09--lancement-direct-et-préparation-fixe-5-s) ; il n’est pas recopié ici.*
 
@@ -2431,7 +2443,7 @@ D→G/G→D, C=1/2/99, pause inter-Séries 0/>0, SIDE_RECOVERY0/>0, reset second
 
 Préparation de l’Exécution ACTIVITY, état du shell partagé ; aucune ancienne page autonome « écran 16 ». Frame courante 4968:8188 pour la structure, pas une preuve de préparation 5 s.
 
-Règles applicables : RM-096, RM-097, RM-098, RM-099, RM-162, RM-190, RM-218 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-096, RM-097, RM-098, RM-099, RM-162, RM-190, RM-218, RM-241 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -2449,7 +2461,7 @@ Après préparation fixe 5 s → compte à rebours propre applicable → premiè
 
 Snapshot ActivityDefinition, nom, préparation 5. `preparation=5` est règle système, pas propriété de la définition.
 
-Paramètres de la Série courante issus de l’instantané variable/uniforme ; ordres selon [Ordres d’exécution et pauses](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ordres-dexécution-et-pauses). En direct : total intrinsèque, Pause terminale normale, aucune récupération contextuelle.
+Paramètres de la Série courante issus de l’instantané variable/uniforme, dont la charge selon RM-241 ; ordres selon [Ordres d’exécution et pauses](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ordres-dexécution-et-pauses). En direct : total intrinsèque, Pause terminale normale, aucune récupération contextuelle.
 
 Cadence éventuelle issue de la Série de l’instantané, jamais du Profil ou des chiffres Figma. Temps réellement dépensé cumulatif distinct du chrono de tentative ; bip applicable aux deux modes, sans modifier leur terminaison propre.
 
@@ -2519,7 +2531,7 @@ Décompte annoncé selon guidage ; aucun label Tour/Séance ; nom accessible.
 
 Tester Catalogue et Calendrier, source invalide/disparue, préparation exactement 5 s, compte à rebours propre 0/>0, absence de Tour/Cycle/SESSION_END, interruption et double démarrage ; vérifier instantané immuable et rattachement d’occurrence.
 
-Vérifier les deux ordres et directions, valeurs variables, PC0 sans repli, Pause terminale et N1 normalisé. Ne pas déduire les transitions du câblage Figma.
+Vérifier les deux ordres avec changement de côté (côté 1 puis côté 2, RM-243), valeurs variables, PC0 sans repli, Pause terminale et N1 normalisé. Ne pas déduire les transitions du câblage Figma.
 
 Vérifier passage entre préparation, Série cadencée, pauses programmées et fin ; deux côtés/deux ordres si applicables ; reset préservant autre côté et temps cumulé ; absence de double signal/transition. Bip valide dans les deux modes ; aucun signal hors phase Série.
 
@@ -2529,7 +2541,7 @@ Vérifier passage entre préparation, Série cadencée, pauses programmées et f
 
 Exécution ACTIVITY en Durée unilatérale ; frame 4968:8188, contexte de données unilatéral ; pas d’ancien écran 17 autonome.
 
-Règles applicables : RM-036, RM-060, RM-061, RM-062, RM-099, RM-190, RM-211 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-036, RM-060, RM-061, RM-062, RM-099, RM-190, RM-211, RM-241 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -2537,7 +2549,7 @@ Exécuter une ActivityDefinition DURATION en autonomie avec Séries et Pauses, s
 
 #### 3. Contexte d’entrée
 
-Fin CE-T03-09 ; mode DURATION ; sideMode UNILATERAL.
+Fin CE-T03-09 ; mode DURATION ; changement de côté Sans (D-406).
 
 #### 4. Contexte de sortie / destinations
 
@@ -2547,7 +2559,7 @@ Fin Série → Pause si positive, y compris la Pause terminale après la derniè
 
 **Cible par Série (13/10) :** fin automatique seulement en Durée chiffrée ; Suivant pour Répétitions ou toute cible À l’échec. Pas de nominal pour l’échec, même avec bip. Relevé par occurrence/côté : durée de dernière tentative ou répétitions estimées/déclarées ; non bloquant. Voir chapitre 08, Cibles et relevés d’exécution. Aucun nouveau layout de saisie/restitution n’est livré dans cette passe.
 
-Snapshot uniquement ; série courante, cible temps, temps restant, progression locale.
+Snapshot uniquement ; série courante, cible temps, temps restant, progression locale ; charge de la série courante selon RM-241.
 
 *Texte identique à celui de la section [« CE-T03-09 — Lancement direct et préparation fixe 5 s »](#ce-t03-09--lancement-direct-et-préparation-fixe-5-s) ; il n’est pas recopié ici.*
 
@@ -2563,13 +2575,13 @@ Nom Exercice → Catégorie → chrono courant et Série → commandes du shell 
 
 #### 8. Éléments obligatoires
 
-Compte à rebours de Série ; numéro/total de Séries ; temps total actif ; Catégorie sous le nom ; commandes Réinitialiser, Pause, Suivant et son/vocal ; mode et unité non ambigus.
+Compte à rebours de Série ; numéro/total de Séries ; temps total actif ; Catégorie sous le nom ; commandes Réinitialiser, Pause, Suivant et son/vocal ; mode et unité non ambigus. Charge de la série courante lorsqu’elle est active, selon RM-241, sans acquittement.
 
 *Texte identique à celui de la section [« CE-T03-09 — Lancement direct et préparation fixe 5 s »](#ce-t03-09--lancement-direct-et-préparation-fixe-5-s) ; il n’est pas recopié ici.*
 
 #### 9. Layout déterministe
 
-Réutiliser groupes visuels du Shell ; supprimer plutôt que remplacer par valeurs fictives les blocs Session-only.
+Réutiliser groupes visuels du Shell ; supprimer plutôt que remplacer par valeurs fictives les blocs Session-only. La charge de la série courante (RM-241) n’a pas encore de référence visuelle Figma : emplacement et traitement à fixer par Figma, aucun emplacement « à côté de la cible » n’est arrêté ; référence visuelle manquante.
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -2607,7 +2619,7 @@ Background/reprise selon moteur commun ; interruption technique conserve snapsho
 
 #### 18. Accessibilité
 
-Timer/commandes nommés ; aucun côté annoncé en UNILATERAL ; état pause annoncé.
+Timer/commandes nommés ; aucun côté annoncé sans changement de côté (D-406) ; état pause annoncé.
 
 #### 19. Invariants
 
@@ -2619,7 +2631,7 @@ Aucun Tour/Cycle/SESSION_END ; calculs existants inchangés.
 
 Vérifier alternance chiffré/échec, sécurité 2 h sans nominal, progression des cibles inconnues à Suivant ; reset 20 s puis 35 s donne 55 s cumulé et 35 s relevé. Suivant ne confirme pas implicitement un nombre de bips estimé.
 
-Durée 1 s et plusieurs Séries avec pause 0/>0 ; fin naturelle, saut anticipé confirmé/annulé, reset, pause/reprise/arrêt, Fin propre 0/>0 ; aucun Tour/Cycle/récupération post-occurrence. Vérifier Catégorie, chrono et conservation du temps global après reset.
+Durée 1 s et plusieurs Séries avec pause 0/>0 ; fin naturelle, saut anticipé confirmé/annulé, reset, pause/reprise/arrêt, Fin propre 0/>0 ; aucun Tour/Cycle/récupération post-occurrence. Vérifier Catégorie, chrono et conservation du temps global après reset. Charge active, Sans et série variable à zéro : affichage selon RM-241 ; minuteurs, pauses et transitions inchangés.
 
 *Texte identique à celui de la section [« CE-T03-09 — Lancement direct et préparation fixe 5 s »](#ce-t03-09--lancement-direct-et-préparation-fixe-5-s) ; il n’est pas recopié ici.*
 
@@ -2631,7 +2643,7 @@ Durée 1 s et plusieurs Séries avec pause 0/>0 ; fin naturelle, saut anticipé 
 
 Bloc B5 ; états S57/S58 ; T03-E E40/E43 ; Shell Execution partagé.
 
-Règles applicables : RM-033, RM-058, RM-059, RM-062, RM-067, RM-069, RM-077, RM-099, RM-111, RM-211 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-033, RM-058, RM-059, RM-062, RM-067, RM-069, RM-077, RM-099, RM-111, RM-211, RM-241 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -2661,7 +2673,7 @@ Cibles REPETITIONS = dynamiques ; absence de cible Failure = règle métier ; ex
 
 #### 7. Structure de l’écran
 
-Shell Exécution : nom, Catégorie, côté si applicable, numéro de Série, cible de répétitions ou À l’échec, chronomètre croissant et commandes ; Tour/Cycle absents.
+Shell Exécution : nom, Catégorie, côté si applicable, numéro de Série, charge de la série courante selon RM-241, cible de répétitions ou À l’échec, chronomètre croissant et commandes ; Tour/Cycle absents.
 
 #### 8. Éléments obligatoires
 
@@ -2675,7 +2687,7 @@ Bip périodique positif : premier signal après un intervalle, puis jusqu’à f
 
 Même architecture visuelle que CE-T03-10 ; ne jamais combler un espace Failure par une durée ou répétition fictive.
 
-Conserver le shell et les commandes existantes. Les états cadencés sont spécifiés fonctionnellement ; placement d’un éventuel libellé de cadence/nominal non certifié faute de frame. Ne pas créer un indicateur par Série ou un nouveau design.
+Conserver le shell et les commandes existantes. Les états cadencés sont spécifiés fonctionnellement ; placement d’un éventuel libellé de cadence/nominal non certifié faute de frame. Ne pas créer un indicateur par Série ou un nouveau design. La charge de la série courante (RM-241) n’a pas encore de référence visuelle Figma : emplacement et traitement à fixer par Figma, aucun emplacement « à côté de la cible » n’est arrêté ; référence visuelle manquante.
 
 La durée cible Ri×Ci, lorsqu’affichée, utilise la ligne de temps existante et le style du compte à rebours, sans nouveau shell. Elle est une estimation ≈, aucun compteur automatique de répétitions.
 
@@ -2701,7 +2713,7 @@ Tap commandes uniquement.
 
 #### 14. Validation
 
-Chaque Série exige une cible typée : nombre valide ou À l’échec. Absence/invalide n’équivaut pas à l’échec. Bip 0..10 valide dans les deux modes, entier obligatoire,0=Aucun. Aucune estimation forfaitaire ni transition déclenchée par le bip.
+Chaque Série exige une cible typée : nombre valide ou À l’échec. Absence/invalide n’équivaut pas à l’échec. Bip 0..10 valide dans les deux modes, entier obligatoire,0 = Sans (RM-245). Aucune estimation forfaitaire ni transition déclenchée par le bip.
 
 #### 15. Brouillon et persistance
 
@@ -2735,7 +2747,7 @@ D-302 confirme tous les signaux et comportements de cadence ; ≈ ne signifie pa
 
 *Texte identique à celui de la section [« CE-T03-10 — Exécution directe — Durée chiffrée unilatérale »](#ce-t03-10--exécution-directe--durée-chiffrée-unilatérale) ; il n’est pas recopié ici.*
 
-Deux modes, N=1/N>1, cible 1/100, reset après temps écoulé, Suivant sans dialogue, pauses 0/>0, changement de côté et Fin propre. Aucun total cible inventé pour À l’échec ; aucun Tour/Cycle ni récupération post-occurrence.
+Deux modes, N=1/N>1, cible 1/100, reset après temps écoulé, Suivant sans dialogue, pauses 0/>0, changement de côté et Fin propre. Aucun total cible inventé pour À l’échec ; aucun Tour/Cycle ni récupération post-occurrence. Charge active ou Sans : affichage selon RM-241, sans confirmation ; cibles, cadence et pauses inchangées.
 
 *Texte identique à celui de la section [« CE-T03-09 — Lancement direct et préparation fixe 5 s »](#ce-t03-09--lancement-direct-et-préparation-fixe-5-s) ; il n’est pas recopié ici.*
 
@@ -2847,7 +2859,7 @@ Fin 0/>0 ; plan terminé/partiel ; arrêt depuis Pause confirmé/annulé ; inter
 
 Famille SESSION :1992:8132/8530/8626 ; dialogues 1992:8224/8326/8428 ; médias CE-MEDIA-EXEC-01/02. ACTIVITY reste CE-T03-09..13.
 
-Règles applicables : RM-026, RM-028, RM-029, RM-030, RM-038, RM-055, RM-056, RM-059, RM-060, RM-061, RM-062, RM-063, RM-067, RM-077, RM-084, RM-145, RM-147, RM-191, RM-209, RM-213, RM-218, RM-219, RM-220, RM-FMT-41 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-026, RM-028, RM-029, RM-030, RM-038, RM-055, RM-056, RM-059, RM-060, RM-061, RM-062, RM-063, RM-067, RM-077, RM-084, RM-145, RM-147, RM-191, RM-209, RM-213, RM-218, RM-219, RM-220, RM-FMT-41, RM-241, RM-243 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -2865,7 +2877,7 @@ Plan achevé → CE-UI-08 ; arrêt depuis Pause confirmé → CE-UI-08 Interromp
 
 **Cible par Série hors fenêtres de formats (13/10) :** fin automatique seulement en Durée chiffrée ; Suivant pour Répétitions ou toute cible À l’échec. Pas de nominal pour l’échec, même avec bip. Relevé par occurrence/côté : durée de dernière tentative ou répétitions estimées/déclarées ; non bloquant. Voir chapitre 08, Cibles et relevés d’exécution. Aucun nouveau layout de saisie/restitution n’est livré dans cette passe.
 
-Instantané Session au démarrage, occurrences développées, Série/côté/Tour courants, paramètres intrinsèques, exclusion inconditionnelle des Compte à rebours/Fin propres selon D-214 révisée, résultats et temps moteur ; aucune lecture réactive de la source modifiée.
+Instantané Session au démarrage, occurrences développées, Série/côté/Tour courants, paramètres intrinsèques dont la charge de la série courante selon RM-241, exclusion inconditionnelle des Compte à rebours/Fin propres selon D-214 révisée, résultats et temps moteur ; aucune lecture réactive de la source modifiée.
 
 Plan depuis les cibles/Pauses de chaque Série et l’Ordre des côtés de l’instantané ; R positive remplace seulement la dernière Pause de l’occurrence.
 
@@ -2879,7 +2891,7 @@ Noms/durées/compteurs calculés ; valeurs Figma démonstratives. Circuit=groupe
 
 #### 7. Structure de l’écran
 
-Shell Execution ; nom Exercice puis contexte nom Séance + Catégorie, côté distinct ; chrono/Série/Tour/progression ; commandes ; état média conditionnel.
+Shell Execution ; nom Exercice puis contexte nom Séance + Catégorie, côté distinct ; charge de la série courante selon RM-241 ; chrono/Série/Tour/progression ; commandes ; état média conditionnel.
 
 #### 8. Éléments obligatoires
 
@@ -2889,7 +2901,7 @@ Série n/N et côté séparés ; aucune barre par Série. À suivre : Pause / Pa
 
 #### 9. Layout déterministe
 
-Rendu du shell courant et D-197/D-220 ; Série/Tour 24 selonDSF T10 ; écart vertical 24 entre temps total et progression Tours ; dialogues centrés D-228, jamais nouvelles pages numérotées.
+Rendu du shell courant et D-197/D-220 ; Série/Tour 24 selonDSF T10 ; écart vertical 24 entre temps total et progression Tours ; dialogues centrés D-228, jamais nouvelles pages numérotées. La charge de la série courante (RM-241) n’a pas encore de référence visuelle Figma : emplacement et traitement à fixer par Figma, aucun emplacement « à côté de la cible » n’est arrêté ; référence visuelle manquante.
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -2927,7 +2939,7 @@ Source supprimée après départ sans effet sur instantané ; interruption techn
 
 #### 18. Accessibilité
 
-Annoncer phase, nom et côté au démarrage/changement ; commandes nommées selon phase, notamment Réinitialiser la récupération. Focus dans dialogue puis retour ; indicateurs non fondés uniquement sur couleur.
+Annoncer phase, nom et côté (« Côté 1 » / « Côté 2 », RM-243) au démarrage/changement ; commandes nommées selon phase, notamment Réinitialiser la récupération. Focus dans dialogue puis retour ; indicateurs non fondés uniquement sur couleur.
 
 #### 19. Invariants
 
@@ -2943,7 +2955,7 @@ Bip v2 remplace D-302/D-305 sur portée, signaux et symboles ; durées réelles 
 
 Séance avec avant/dans/après Circuit, Tours 1/2, unilatéral/bilatéral, deux modes ; D-214 révisée : absence des phases propres quelle que soit la valeur d’un éventuel ancien champ ; toutes phases 0/>0 ; dernière récupération avant Fin ; points frontières/intérieur ; pause/reset/saut/arrêt confirmés/annulés ; source modifiée pendant run ; reprise ; médias ; vérifier poids [R-01 — Progression et estimation](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-01--progression-et-estimation) et transitions [R-03 — Transition, reset et suspension](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#r-03--transition-reset-et-suspension) ; aucun résultat de test applicatif n’est revendiqué ici.
 
-Ordres D→G/G→D, A–F, N1, R0/positif et dernière occurrence/chaque Tour ; jamais cumul PN+R ni récupération ajoutée deux fois.
+Changement de côté Avec dans les deux enchaînements (côté 1 puis côté 2, RM-243), A–F, N1, R0/positif et dernière occurrence/chaque Tour ; jamais cumul PN+R ni récupération ajoutée deux fois.
 
 *Texte identique à celui de la section [« CE-T03-09 — Lancement direct et préparation fixe 5 s »](#ce-t03-09--lancement-direct-et-préparation-fixe-5-s) ; il n’est pas recopié ici.*
 
@@ -2986,7 +2998,7 @@ L’écran affiche, de haut en bas :
 
 Le Cycle n’est jamais affiché. Le nombre total d’étapes et la position sous la forme `x sur y` ne sont pas affichés dans le MVP.
 
-Le moteur d’Exécution peut néanmoins conserver ces informations pour son fonctionnement interne.
+Le moteur d’Exécution peut néanmoins conserver ces informations pour son fonctionnement interne. La charge de la Série courante, lorsqu’elle est active, est aussi affichée (RM-241) ; sa place dans cette hiérarchie relève de Figma, qui ne l’illustre pas encore.
 
 ### Exécution — séance ou exercice — Commandes principales
 
@@ -3147,6 +3159,7 @@ Pendant l'Exécution, l'écran affiche principalement :
 
 - le nom de l'Exercice en cours ;
 - la Série courante sous la forme `x/y` lorsqu'il s'agit d'un Exercice ;
+- la charge de la Série courante lorsqu’elle est active (RM-241), à l’emplacement défini par Figma ;
 - le temps de l’Exercice : compte à rebours pour un Exercice chronométré, chronomètre croissant pour un Exercice en Répétitions ou À l’échec ;
 - la Série et le Tour en cours ; le Cycle n’est jamais affiché ;
 - l'Exercice suivant et sa durée lorsqu'elle est connue ;
@@ -3162,6 +3175,7 @@ La notion d'« étape » n'est pas affichée comme indicateur de progression dan
 | Titre de la séance | Texte | Toujours | Oui | Nom de la séance | Séance | Aucune | En-tête |
 | Nom de l’Exercice courant | Texte | Toujours | Oui | Exercice courant | Plan d’Exécution | Aucune | |
 | Série | Texte | Exercice | Non | `x/y` | Plan d’Exécution | Aucune | Paramètre propre à l’Exercice |
+| Charge | Texte | Série à charge active | Non | Charge de la Série courante (RM-241) | Instantané | Aucune | Emplacement selon Figma, non encore illustré |
 | Temps de l’Exercice | Minuteur | Toujours | Oui | Compte à rebours si chronométrée ; chronomètre croissant si Répétition | Exécution | Aucune | |
 | Cercle du minuteur | Indicateur | Toujours | Oui | Progression temporelle | Exécution | Aucune | Répétitions sans cadence/À l’échec : rotation minute ; cadence : progression temporelle, voir spécification Cadence |
 | Série / Tour | Texte | Toujours | Oui | Série à gauche, Tour à droite ; aucun Cycle affiché | Plan d’Exécution | Aucune | |
@@ -3181,7 +3195,7 @@ La notion d'« étape » n'est pas affichée comme indicateur de progression dan
 | Exercice en Répétitions ou À l’échec | Chronomètre croissant ; sans cadence/À l’échec : rotation et bip minute. Avec cadence : intervalles sans signal nominal final, progression temporelle des seules cibles chiffrées sans fin automatique ; Pause/Reprise sur intervalle complet. Suivant termine normalement dans les deux cas. |
 | Réinitialisation | Demande confirmation et remet à son état initial le périmètre courant (Série courante en unilatéral, bloc du côté courant en bilatéral, phase courante pendant une récupération, D-029) sans revenir à un Exercice antérieur. |
 | Pause / arrêt | `Pause` ouvre la modale permettant `Reprendre la séance` ou `Arrêter la séance`. Aucun bouton Arrêter direct n’est présent sur l’écran. |
-| Présentation | Le nouveau layout regroupe chrono circulaire, côté courant, cible `Sur`, Série/Tour, progression segmentée et bloc `Temps écoulé / À suivre`. Le contenu d’Exécution utilise Roboto Condensed ; le titre supérieur de Séance et les dialogues utilisent Inter. |
+| Présentation | Le nouveau layout regroupe chrono circulaire, côté courant, cible `Sur`, Série/Tour, progression segmentée et bloc `Temps écoulé / À suivre`. Le contenu d’Exécution utilise Roboto Condensed ; le titre supérieur de Séance et les dialogues utilisent Inter. La charge de la Série courante n’a pas d’emplacement arrêté dans ce layout, notamment pas « à côté de la cible » (RM-241). |
 | Navigation | L’utilisateur ne revient pas à un Exercice déjà exécutée. |
 | Étapes | Aucun compteur d’« étapes » n’est affiché dans le MVP. |
 
@@ -3939,7 +3953,7 @@ Règles métier, validations et points ouverts : [spécification du 08/10](08%20
 
 Synthèse ACTIVITY : 4968:8055 (initial),4968:8105 (Ressenti sélectionné). Pour SESSION voir CE-UI-08 ; ne pas utiliser les frames Séance comme seule preuve directe.
 
-Règles applicables : RM-062, RM-078, RM-079, RM-101, RM-102, RM-103 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-062, RM-078, RM-079, RM-101, RM-102, RM-103, RM-235, RM-236 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -3959,7 +3973,7 @@ Le futur relevé À l’échec distingue chronométré, estimé, déclaré et no
 
 Instantané Exercice, statut et durée réelle issus de l’Exécution ACTIVITY ; Ressenti et Commentaire issus du brouillon de finalisation. Les statistiques ne comptent pas de Séance. Les résultats partiels sont conservés sans inventer un compteur de Tours.
 
-La cadence prescrite est conservée dans l’instantané ; durée affichée réelle, cumulant intervalles abandonnés et tentatives reset par Série/côté. Aucun nombre de répétitions réellement effectué n’est inféré. Aucun nouveau champ de saisie en Synthèse.
+La cadence prescrite est conservée dans l’instantané ; durée affichée réelle, cumulant intervalles abandonnés et tentatives reset par Série/côté. Aucun nombre de répétitions réellement effectué n’est inféré. Aucun nouveau champ de saisie en Synthèse. La charge prévue et son activation sont conservées dans l’instantané (RM-236) ; aucune charge réalisée n’est saisie ni inférée (RM-235).
 
 #### 6. Classification des valeurs Figma
 
@@ -4125,7 +4139,7 @@ SESSION/ACTIVITY, statuts, source modifiée/supprimée, instantané conservé, a
 
 SESSION terminée 1992:8718/8780, partielle 4760:6448/6500 ; ACTIVITY distinct CE-T03-14.
 
-Règles applicables : RM-028, RM-076, RM-078, RM-079, RM-080, RM-081, RM-083, RM-084, RM-FMT-38 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-028, RM-076, RM-078, RM-079, RM-080, RM-081, RM-083, RM-084, RM-FMT-38, RM-235 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -4143,7 +4157,7 @@ Enregistrer réussi → Suivi ; erreur reste sur Synthèse. Aucun Relancer ni so
 
 *Texte identique à celui de la section [« CE-T03-14 — Synthèse d’Exécution directe »](#ce-t03-14--synthèse-dexécution-directe) ; il n’est pas recopié ici.*
 
-Instantané de Séance, statut, durée réelle et résultats atteints ; nombre exécuté inclut les partiels, nombre terminé les exclut. Ne pas étiqueter le premier comme Exercices terminés. Partiels affichés séparément si>0 ; aucun double comptage Série/côté.
+Instantané de Séance, statut, durée réelle et résultats atteints ; nombre exécuté inclut les partiels, nombre terminé les exclut. Ne pas étiqueter le premier comme Exercices terminés. Partiels affichés séparément si>0 ; aucun double comptage Série/côté. Aucune charge réalisée n’est saisie ni inférée (RM-235).
 
 *Texte identique à celui de la section [« CE-T03-14 — Synthèse d’Exécution directe »](#ce-t03-14--synthèse-dexécution-directe) ; il n’est pas recopié ici.*
 
@@ -4396,7 +4410,7 @@ Nom 1/80/vide/81, photo absente/présente/indisponible ; silhouette absente→ho
 
 Profil principal 1992:375/474/579/684 et 2139:86 ; modification identité CE-UI-01.2139:86 est un doublon visuel, pas un parcours autonome.
 
-Règles applicables : RM-031, RM-032, RM-051, RM-052, RM-085, RM-086, RM-089, RM-090, RM-209, RM-212, RM-217 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-031, RM-032, RM-051, RM-052, RM-085, RM-086, RM-089, RM-090, RM-209, RM-212, RM-217, RM-242 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -4428,7 +4442,7 @@ Identité/Modifier, groupes Exercice et Séance de réglages, commandes son/voca
 
 Six défauts distincts ; aucune Pause inter-Séries globale ajoutée. La Pause après chaque série est initialisée à 0 s dans l’éditeur (chapitre 08, paramètres d’exercice, CE-UI-10 §3), sans défaut global du Profil. Silhouette ne se modifie que dans CE-UI-01.
 
-Libellé unique Pause entre les côtés ; défaut 10 s ; pas des pauses selon D-312 (D-386). Les captures anciennes de Profil portant un ancien libellé sont historiques sur ce texte.
+Libellé unique Pause entre les côtés, inchangé (D-406) ; défaut 10 s, proposé lorsqu’un Exercice passe à Changement de côté Avec (RM-212, RM-242) ; pas des pauses selon D-312 (D-386). Les captures anciennes de Profil portant un ancien libellé sont historiques sur ce texte.
 
 #### 9. Layout déterministe
 
@@ -4685,7 +4699,7 @@ Catalogues et sélecteurs de type de contenu dans les modales « Choisir une sé
 
 À largeur de référence 354 : cadre 354×42, padding 4, gap 4, deux options 171×34 ; rayon extérieur 14, fond blanc `VariableID:2290:54` à 50 %, sans contour. Rayon des options 10 ; sélection indigo, texte blanc ; inactive #EAEAFF, texte sombre, sans contour. Largeurs flexibles : répartir la largeur utile, sans figer 171 sur tous appareils.
 
-Libellés de tous les segmentés : `KODJO / Section title`, Inter Semi Bold 16/20, notamment Catalogue, Calendrier Jour/Semaine/Mois, Suivi, Mode, Mode d’exécution et Statut. Exceptions historiques de la feuille Paramètres, dont la présentation D-341 est remplacée par les DSF validés (D-377) : Changement de côté 13 px sur deux lignes ; Ordre des côtés 14 px + sous-titre 11 px. Les Calendriers et modes à trois choix gardent leurs trois options. La typographie ne modifie ni les libellés, ni les règles de sélection, ni l’état actif/désactivé propre à leur contexte.
+Libellés de tous les segmentés : `KODJO / Section title`, Inter Semi Bold 16/20, notamment Catalogue, Calendrier Jour/Semaine/Mois, Suivi, Mode, Mode d’exécution et Statut. Exceptions historiques de la feuille Paramètres, dont la présentation D-341 est remplacée par les DSF validés (D-377), eux-mêmes remplacés par D-413 pour les lignes Mode, Type de série et Changement de côté : Changement de côté 13 px sur deux lignes ; Enchainement (concept Ordre des côtés) 14 px + sous-titre 11 px. Les Calendriers et modes à trois choix gardent leurs trois options. La typographie ne modifie ni les libellés, ni les règles de sélection, ni l’état actif/désactivé propre à leur contexte.
 
 Titres affichés : CE-T03-04 `Créer un exercice` / `Modifier un exercice` ; CE-T03-08 `Composer une séance` / `Modifier une séance`. `Créer une activité` reste inchangé. Les noms techniques de frames et annotations historiques peuvent différer : les IDs et chemins restent stables. Un libellé d’action `Ajouter` ne devient pas automatiquement `Créer` ; depuis Composition, `Ajouter un exercice` conserve la destination CE-T03-07. Aucun arbre de création retiré n’est réintroduit.
 
@@ -4693,7 +4707,7 @@ Titres affichés : CE-T03-04 `Créer un exercice` / `Modifier un exercice` ; CE-
 
 #### 4.6 Roulettes de durée et steppers
 
-Toutes les roulettes de **durée** actives utilisent la famille de modales basses du DSF. Les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent un **stepper inline** et n’ouvrent aucune roulette. La cible `Nombre de répétitions` utilise une roulette native à une colonne : « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385). Les anciennes représentations contraires ne constituent plus une référence active.
+Toutes les roulettes de **durée** actives utilisent la famille de modales basses du DSF. Les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent un **stepper inline** et n’ouvrent aucune roulette. La cible `Nombre de répétitions` utilise une roulette native à une colonne : « Aucune répétition, à l’échec » en tête, puis 1 à 100 (décision PRE-4 Q8 du 16/10, D-385). Les anciennes représentations contraires ne constituent plus une référence active. En séries identiques, la roulette Durée d’une série propose uniquement une durée numérique ; celle d’une cellule de série variable en mode Durée propose aussi « À l’échec » (RM-250).
 
 Tous les voiles modaux utilisent exclusivement `overlayScrim` (`color/overlay/scrim`) = #1F2129 à 34 % : dialogues de décision, feuilles de sélection, roues, filtres, classification, catégorie, zones corporelles, calendrier ouvert, abandon/confirmation et CE-UI-10. Cette règle est commune à tous les contrats ci-dessous. L’exception de CE-UI-10 concerne uniquement la roulette inline, jamais la couleur ou l’opacité du voile. `compositionDraggedCardShadow` (`color/overlay-scrim`, #14171F) est réservé à l’ombre de la carte déplacée. Voir [traçabilité et captures](../MATRICE-VOILE-MODAL-2026-10-07.md).
 
@@ -4772,7 +4786,7 @@ Les références actives sont [Paramètres et brouillon d’un exercice](08%20%E
 
 Les durées des contrats Catalogue/Composition/Calendrier utilisent leur périmètre défini : intrinsèque pour ACTIVITY, occurrences avec substitution de PN pour SESSION. Incertitude sans symbole/≈/≥ issue du calcul ; aucune formule locale ni nombre Figma recopié. Suivi/Synthèse affichent le réalisé issu de l’instantané et des accumulateurs, pas une estimation.
 
-Bip de cadence : shell et préférences Profil conservés ; stepper 0..10 dans les deux modes,0=Aucun. États d’exécution sans nouveau layout ; [Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité) gouverne les signaux périodiques, nominal, Pause/Reprise et sécurité. L’ancien écran 7061:13383 de roulette est supprimé.
+Bip de cadence : shell et préférences Profil conservés ; valeur 0..10 dans les deux modes, 0 = Sans, choisie par la ligne Cadence Autre | 5 s | 2 s | 1 s | Sans (RM-245). États d’exécution sans nouveau layout ; [Exécution d'une séance — Bip de cadence, progression et sécurité](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance--bip-de-cadence-progression-et-sécurité) gouverne les signaux périodiques, nominal, Pause/Reprise et sécurité. L’ancien écran 7061:13383 de roulette est supprimé.
 
 #### 4.15 Interface générale du 08/10/2026
 
@@ -5063,7 +5077,7 @@ Les arbitrages des 30 septembre et 1er octobre 2026 ferment les points fonctionn
 
 - Planifier : fréquence entière de 1 à 12 semaines incluses ; − inactif à 1 et + inactif à 12 ; toute valeur extérieure est refusée à l’enregistrement.
 - Rappel Autre : délai strictement positif, maximum 24 h (1 440 minutes), avec les unités et le sélecteur existants. L’interrupteur Rappel désactive le rappel, l’option Aucun étant supprimée (D-330) ; zéro ne crée pas une deuxième manière de désactiver le champ. Une notification dont l’échéance est déjà passée n’est pas envoyée rétroactivement ; les futures occurrences conservent leur rappel.
-- Durée totale : conserver le sélecteur minutes/secondes. La borne dérivée est T(1)..T(99) pour les paramètres courants, et non 58 min 55 s (borne par Série). La colonne minutes doit représenter T(99), sans nouvelle colonne ni nouveau contrôle. Granularité seconde ; le calcul inverse existant choisit N dans 1..99, arrondi .5 vers le haut, puis affiche T(N) et le message d’ajustement si nécessaire. En Durée uniforme, une diminution à N=1 ne masque le total du résumé que s’il égale effectivement la cible ; la ligne Total reste présente dans la feuille en Durée/Répétitions, y compris à N = 1 ; elle affiche « — » lorsqu’une cible nécessaire au calcul manque (D-396, D-384) ; elle est masquée lorsqu’aucune durée totale n’est calculée, en Répétitions sans bip et quand toutes les cibles sont À l’échec (D-397).
+- Durée de l’exercice (libellé visible de la ligne de durée totale, D-409) : conserver le sélecteur minutes/secondes. La borne dérivée est T(1)..T(99) pour les paramètres courants, et non 58 min 55 s (borne par Série). La colonne minutes doit représenter T(99), sans nouvelle colonne ni nouveau contrôle. Granularité seconde ; le calcul inverse existant choisit N dans 1..99, arrondi .5 vers le haut, puis affiche T(N) et le message d’ajustement si nécessaire. En Durée uniforme, une diminution à N=1 ne masque le total du résumé que s’il égale effectivement la cible ; la ligne Durée de l’exercice reste présente dans la feuille en Durée/Répétitions, y compris à N = 1 ; elle affiche « — » lorsqu’une cible nécessaire au calcul manque (D-396, D-384) ; elle est masquée lorsqu’aucune durée totale n’est calculée, en Répétitions sans bip et quand toutes les cibles sont À l’échec (D-397). Sans ligne Durée de l’exercice affichée, Compte à rebours et Fin d’exercice restent directement visibles lorsqu’ils sont applicables (RM-246).
 - Profil : les paramètres identiques héritent des mêmes bornes que leur champ cible, sans maximum tiré des valeurs d’exemple, sauf D-265. Compte à rebours initial/Fin de séance : 0..3599 s pour les champs de la Séance (D-089), 0..60 s pas 1 s pour leurs valeurs par défaut du Profil (D-265) ; Compte à rebours d’exercice/Fin d’exercice : 0..60 s, pas 1 s (D-256) ; pauses et récupération : 0..300 s ; le contrôle et ses pas restent ceux du DSF et, pour les steppers, de D-312 (D-386). Les valeurs initiales déjà validées ne changent pas.
 
 #### R-03 — Transition, reset et suspension
@@ -5138,7 +5152,7 @@ Le comportement utilisateur est déjà fixé. L’exclusion d’une occurrence i
 | E50 | Résumé des paramètres sans nom ; valeurs dynamiques, saisie exclusivement CE-UI-10 |
 | E51 | Deux modes × deux types de cible × Bip nul/positif : exact Durée, ≈ Répétitions avec bip, omitted Répétitions sans bip et À l’échec ; ≥ pour mélange calculable à l’Exercice |
 | E52 | À l’échec : aucune Durée totale dans le texte éditable |
-| E53 | Pas texte direction développé cartes Composition |
+| E53 | Pas de texte développé du changement de côté sur les cartes Composition (D-407) |
 | E54 | Feuille de paramètres bloque arrière-plan ; roulette déployée sous sa ligne |
 | E55 | CTA visible normal mais fonctionnel/accessibilité disabled |
 | E56 | Annuler la feuille restaure tout le brouillon parent |

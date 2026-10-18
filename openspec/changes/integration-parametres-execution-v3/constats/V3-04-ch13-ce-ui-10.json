@@ -1,0 +1,314 @@
+{
+ "description": "Intégration de la spécification v3.0 — V3-04-ch13-ce-ui-10.txt",
+ "corrections": [
+  {
+   "id": "V3-C-101",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "§4, §11.2, RO-01, GR-01",
+   "ancien": "Feuille Paramètres d’exécution de CE-T03-04. Références courantes :8328:37092,8328:37862,8328:38513,8328:38848 et nouveau 8470:13303 ; les autres états du 12/10 restent applicables. Captures au chapitre 06 ; matrice Deux modes du 13/10. Les références 6419/6665/7059/7069 du 07/10 sont historiques.",
+   "nouveau": "Feuille Paramètres d’exécution de CE-T03-04. Références courantes (relevé du 18/10/2026, D-403 à D-413) : 9289:17849 (charge commune), 9290:17953 (séries variables avec charge), 9292:18077 (séries variables avec charge, clavier numérique), 9307:18208 (Durée de l’exercice déployée), 8328:37862 (Durée d’une série, roulette numérique seule), 9232:44646, 8470:13303 (séries variables, cas mixte), 8328:36923 (champs vides), 8328:37092 (Mode, sélection segmentée), 8328:37972 (Changement de côté replié), 8328:38193 (Changement de côté déployé), 8328:39072 (une seule série), 8328:38084 (roulette de la ligne Durée de l’exercice), 8328:38632 (séries variables en Répétitions avec cadence), 8328:38741 (séries variables en Répétitions sans cadence), 8328:38848 (tableau replié), 8982:15172 (séries variables toutes à l’échec, sans ligne Durée de l’exercice), 8328:39279 (déplacement d’une série). La frame 9232:44646, nommée « Durée d’une phase (roulette) », illustre malgré son nom la roulette d’une cellule de séries variables en mode Durée (RM-250) ; aucun contrat de phase n’en est déduit. Captures et écarts Figma au chapitre 06 ; les valeurs des captures sont illustratives. Les états du 12/10 et de la matrice Deux modes du 13/10 remplacés par ces frames, ainsi que les références 6419/6665/7059/7069 du 07/10, sont historiques.",
+   "commentaire": "Intégration v3.0 — chapitre 13, contrat CE-UI-10 « Paramètres d’exécution — feuille basse », règles communes de l’éditeur de paramètres et rendu de la phrase. / Zone traitée : de « ## Paramètres d’exécution » à la ligne précédant « ## Composition des séances ». / Règles citées, non recopiées : RM-235 à RM-250 (chapitre 10) ; décisions D-403 à D-413 (chapitre 07). / Conservés sans modification : bornes, validation des cibles, brouillon, calculs, symboles ≈ / ≥, références historiques, texte « Durée totale » de la phrase de synthèse. / PR #370 : seule la ligne d’ordre de la rubrique 7 est réécrite par #370 (V3-C-107). Les autres blocs ne modifient que des lignes de contexte de #370. / PR #371 : les paragraphes réécrits par #371 (rubrique 11 premier paragraphe, rubrique 12 premier paragraphe, « Sélecteur de cible », « Bornes confirmées ») sont laissés inchangés ; leur portée est restreinte par des paragraphes ajoutés à côté (V3-C-113, V3-C-114, V3-C-133).",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-C-102",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "RENVOI",
+   "ref": "CH-01 à CH-09, CO-01, CA-01, DU-01, CV-01, AR-01, GR-01, RO-01",
+   "ancien": "Règles applicables : RM-033, RM-035, RM-036, RM-058, RM-095, RM-129, RM-130, RM-132, RM-232, RM-233, RM-234, RM-FMT-10, RM-FMT-17 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)",
+   "nouveau": "Règles applicables : RM-033, RM-035, RM-036, RM-058, RM-095, RM-129, RM-130, RM-132, RM-232, RM-233, RM-234, RM-235 à RM-250, RM-FMT-10, RM-FMT-17 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »). RM-235 à RM-250 : [Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026) (décisions D-403 à D-413)."
+  },
+  {
+   "id": "V3-C-103",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "PR-01, GR-01, CH-03",
+   "ancien": "Saisir/éditer mode, Séries uniformes/variables, cibles, Pauses, côtés, Bip de cadence, Compte à rebours et Fin ; appliquer au brouillon parent et régénérer la phrase sans sauvegarde prématurée.",
+   "nouveau": "Saisir/éditer Mode, Condition d’arrêt, Nombre de séries, Type de série (identiques/variables), cibles, Pauses, Charge, Changement de côté, Enchainement et Pause entre les côtés, Cadence (Bip de cadence), Compte à rebours et Fin d’exercice (D-413) ; appliquer au brouillon parent et régénérer la phrase sans sauvegarde prématurée.",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-C-104",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-403",
+   "ref": "CH-02, CA-01, AC-01",
+   "ancien": "Ouverture depuis la zone Paramètres d’exécution. Copie du parent ; Bip initial 0=Aucun, reprendre valeur existante 0..10 en édition. Aucun tempo implicite. Création : N1,Pause 0,cibles et mode selon [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice) ; absence de cible requise distincte de Bip 0.",
+   "nouveau": "Ouverture depuis la zone Paramètres d’exécution. Copie du parent ; Bip initial 0, présenté Sans dans la ligne Cadence (RM-245), reprendre valeur existante 0..10 en édition. Aucun tempo implicite. Charge initiale Sans ; un Exercice qui ne porte pas la charge est lu Sans, jamais avec 0 kg (RM-236). Création : N1,Pause 0,cibles et mode selon [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice) ; absence de cible requise distincte de Bip 0.",
+   "decision": "D-403"
+  },
+  {
+   "id": "V3-C-105",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-406",
+   "ref": "CH-04, CH-06, CO-01, AR-01, AC-14",
+   "ancien": "Collection effective des Séries, cible/Pause/bip, mode, direction, ordre,PC,Compte à rebours/Fin. Bip commun à toutes les lignes,0..10 dans deux modes ; aucune surcharge persistée. Calcul typé fourni par [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) ; phrase et montants Figma ne pilotent aucune donnée.",
+   "nouveau": "Collection effective des Séries, cible/Pause/charge par série/bip, mode, activation et charge commune (valeurs conservées sous Sans, RM-236), changement de côté Avec / Sans sans direction (D-406 ; données historiques D→G et G→D lues Avec, RM-244), ordre,PC,Compte à rebours/Fin. La Condition d’arrêt en séries variables est dérivée des cibles des séries, jamais persistée à part (RM-249). Bip commun à toutes les lignes,0..10 dans deux modes ; aucune surcharge persistée. Calcul typé fourni par [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) ; phrase et montants Figma ne pilotent aucune donnée.",
+   "decision": "D-406"
+  },
+  {
+   "id": "V3-C-106",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-410",
+   "ref": "CV-01, PR-01, AC-18",
+   "ancien": "**Complément cible 12/10 :** Champ régime identiques/variables et chevron distinct ; identiques sans chevron. Tableau variable visible ou replié.",
+   "nouveau": "**Complément cible 12/10, présentation remplacée par D-410 :** contrôle Type de série (Variables / Identiques) ; chevron à l’intérieur de l’option Variables, centré verticalement avec le texte (RM-247) ; identiques sans chevron. Tableau variable visible ou replié.",
+   "decision": "D-410"
+  },
+  {
+   "id": "V3-C-107",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-01, AC-22, DU-01",
+   "ancien": "En-tête fixe ✕/titre/✓ ; corps défilant Mode → Séries → régime identiques/variables avec chevron indépendant → cible/Pause uniformes ou tableau → Changement de côté → Ordre/PC si bilatéral → Bip de cadence → Total applicable → Compte à rebours → Fin. Bip commun hors tableau, présent dans les deux modes. N1 normalisé uniforme et ordre par côté.",
+   "nouveau": "En-tête fixe ✕/titre/✓ ; corps défilant en quatre cadres successifs (D-413) : 1 Exécution — Mode, Condition d’arrêt ; 2 Séries — Nombre de séries, Type de série, puis Durée ou Répétitions et Pause (identiques) ou tableau de séries variables, puis Charge ; 3 Côtés — Changement de côté, puis Enchainement et Pause entre les côtés lorsque Avec est déployé ; 4 Cadence et durée — Cadence, Durée de l’exercice, puis Compte à rebours et Fin d’exercice lorsque déployés et applicables, ou directement visibles si la ligne Durée de l’exercice est absente (RM-246). Cadence commune hors tableau, présente dans les deux modes. N1 normalisé uniforme et ordre par côté.",
+   "commentaire": "CONFLIT-PR #370 : #370 réécrit cette ligne pour insérer « Phases » entre Mode et Séries ; après fusion, les phases ouvrent le cadre 2 Séries (D-413), avant Nombre de séries.",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-C-108",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-408",
+   "ref": "CA-01, DU-01, CH-02, AR-01, AC-15, AC-16",
+   "ancien": "Bip 0..10, boutons ± révélés par appui sur sa valeur,0 libellé Aucun ; contrôle actif même à 0. Aucun interrupteur ou roulette Bip. Total absent en Répétitions sans bip et toutes cibles À l’échec ; exact en Durée toute chiffrée, ≈ en Répétitions toute chiffrée avec bip, ≥ en mélange calculable. Pause entre les côtés seulement en bilatéral. Compte à rebours/Fin conservés.",
+   "nouveau": "Cadence : contrôle segmenté Autre | 5 s | 2 s | 1 s | Sans (RM-245) ; Sans vaut 0 ; Autre permet une autre valeur avec le mécanisme numérique existant du Bip (0..10, pas 1 s) ; l’option sélectionnée reflète la valeur courante ; contrôle actif même à 0. Aucun interrupteur ou roulette Bip. Total absent en Répétitions sans bip et toutes cibles À l’échec ; exact en Durée toute chiffrée, ≈ en Répétitions toute chiffrée avec bip, ≥ en mélange calculable. Condition d’arrêt : À l’échec / À la cible, sélectionnable en identiques, résultat dérivé en variables (RM-248, RM-249). Charge : ligne Avec / Sans, Sans par défaut (RM-237, RM-238). Pause entre les côtés seulement avec changement de côté (Avec). Compte à rebours/Fin conservés ; repliés par défaut sous Durée de l’exercice, sans être désactivés (RM-246).",
+   "decision": "D-408"
+  },
+  {
+   "id": "V3-C-109",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-412",
+   "ref": "RO-01, GR-01, AC-24, AC-25",
+   "ancien": "**Révision 13/10 :** popover Mode 184×99, hauteur automatique, deux options. Roulette cible : popover 354×249 avec maître 8452:13297 (330×181), option en tête 330×30, séparateur 1px, roulette numérique 150px. Le total conserve le maître 5544:5118 (330×150) et son popover 354×216. Ligne de série à deux colonnes maintenue, même tout échec ; aucune variante à une colonne. Voir DSF Deux modes pour tailles et opacités.",
+   "nouveau": "**Révision 13/10, amendée le 18/10 :** le popover Mode 184×99 est remplacé par le contrôle segmenté Mode, aligné à droite, sans enveloppe blanche (D-413). Roulette cible : popover 354×249 avec maître 8452:13297 (330×181), option en tête 330×30, séparateur 1px, roulette numérique 150px ; cette variante à option À l’échec ne s’ouvre plus, en mode Durée, que depuis une cellule de série variable (9232:44646) ; la roulette Durée d’une série des séries identiques est numérique seule (8328:37862 ; D-412, RM-250). Le total conserve le maître 5544:5118 (330×150) et son popover 354×216. Ligne de série à deux colonnes cible/Pause maintenue, même tout échec, complétée par la colonne Charge lorsqu’elle est affichée (RM-238) ; aucune variante à une colonne. Voir DSF Deux modes pour tailles et opacités.",
+   "commentaire": "CONFLIT-PR #371 : #371 insère après cette ligne « Toucher une cellule cible du tableau variable ouvre sa roulette… Le pied commun reste le réglage de la cellule active. » ; la seconde phrase est contredite par D-413 (pied commun retiré) et devra être retirée à la fusion ; la première reste compatible avec RM-250.",
+   "decision": "D-412"
+  },
+  {
+   "id": "V3-C-110",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "PR-02, GR-01, CH-04, AC-22",
+   "ancien": "**Alignement DSF du 12/10 :** ligne variable `8129:31593`, 334 × 36 ; cellules cible/Pause 76 × 24 ; pied commun `8129:31601`, 354 × 48, ± à droite. Une cellule active ; plus de steppers permanents dans chaque cellule. Les 19 états de la feuille sont illustrés au chapitre 06. Seul le placement de la mention/astérisque du nombre hérité reste sans référence visuelle identifiée.",
+   "nouveau": "**Alignement DSF du 12/10, amendé le 18/10 :** ligne variable `8129:31593`, 334 × 36 ; cellules cible/Pause 76 × 24. Le pied commun `8129:31601` (354 × 48, ± à droite) est retiré, sans réintroduction de lignes de boutons +/− (D-413). Tableau à fond blanc sans contour extérieur, séparateurs internes, lignes de 36 px ; l’espace sous la dernière ligne vaut une hauteur de ligne ; valeurs Durée ou Répétitions, Pause et Charge alignées sur leurs en-têtes ; numéros de série rapprochés des poignées. Une cellule active ; aucun stepper dans les cellules. Les états de la feuille sont illustrés au chapitre 06. Seul le placement de la mention/astérisque du nombre hérité reste sans référence visuelle identifiée.",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-C-111",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-03, DU-01",
+   "ancien": "À402 : groupe à x24, largeur 354 ; Bip au premier niveau x36. Les anciennes indentations systématiques x52 des contrôles variables sont remplacées par la grille à cellules décrite dans le DSF du 12/10. Bip juste au-dessus du total ou avant Compte à rebours si total absent. Retrait du total raccourcit la feuille de 42px par le haut, bas ancré. Valeurs/steppers à droite ; marges adaptées, pas de coordonnées absolues sur toutes largeurs. Voile modal `overlayScrim` (`color/overlay/scrim`) #1F2129 à 34 %, distinct de `compositionDraggedCardShadow`, qui ne sert jamais de voile.",
+   "nouveau": "À402 : quatre cadres à x24, largeur 354, espacés de 8 px (D-413) ; titres à gauche, contrôles à droite ; Cadence dans le cadre 4, juste avant Durée de l’exercice ; chevron de Durée de l’exercice à 12 px du libellé (RM-246). Les anciennes indentations systématiques x52 des contrôles variables sont remplacées par la grille à cellules décrite dans le DSF du 12/10. Retrait du total raccourcit la feuille de 42px par le haut, bas ancré ; un repli ne laisse pas de hauteur vide (D-413). Valeurs/steppers à droite ; marges adaptées, pas de coordonnées absolues sur toutes largeurs. Voile modal `overlayScrim` (`color/overlay/scrim`) #1F2129 à 34 %, distinct de `compositionDraggedCardShadow`, qui ne sert jamais de voile.",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-C-112",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-405",
+   "ref": "PR-04, DU-01, GR-01, AC-11, AC-22",
+   "ancien": "360/402/440, Safe Areas, texte agrandi et scroll ; en-tête reste accessible. Tableau replié conserve données et erreurs ; feuille sans total conserve accès au Bip et aux actions. Aucune hauteur fixe ne doit rogner le texte ou les steppers.",
+   "nouveau": "360/402/440, Safe Areas, texte agrandi et scroll ; en-tête reste accessible. Tableau replié conserve données et erreurs ; feuille sans ligne Durée de l’exercice conserve l’accès à la Cadence, à Compte à rebours et Fin d’exercice, directement visibles lorsqu’applicables (RM-246), et aux actions. Aucune hauteur fixe ne doit rogner le texte ou les steppers ; la feuille s’adapte au contenu visible (D-413). Saisie de la charge : clavier numérique avec séparateur décimal, directement dans le champ ou la cellule, sans fenêtre intermédiaire ; le tableau reste entièrement visible au-dessus du clavier (marge de 12 px dans 9292:18077) (D-405, RM-239).",
+   "decision": "D-405"
+  },
+  {
+   "id": "V3-C-113",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "CO-01, CA-01, DU-01, CV-01, AR-01, RO-01, CH-02 à CH-06, AC-18",
+   "ancien": "Bip 0/positif dans chacun des deux modes ; cible valide/incomplète ; uniforme/variable ;N1 ; deux ordres/directions ; tableau ouvert/replié ; steppers au minimum/maximum et maintenus ; validation/annulation. Plus aucun état roulette de cadence.",
+   "nouveau": "Cadence Sans / 5 s / 2 s / 1 s / Autre avec valeur personnalisée, dans chacun des deux modes (RM-245) ; cible valide/incomplète ; uniforme/variable ;N1 ; Changement de côté Sans / Avec replié / Avec déployé et deux enchaînements (RM-242, RM-247) ; tableau ouvert/replié par le chevron de Variables ; option non modifiable avec sa valeur réelle (RM-247) ; Condition d’arrêt sélectionnable en identiques, résultat À la cible / À l’échec / « À la cible et à l’échec » en variables, tableau incomplet (RM-248, RM-249) ; Durée de l’exercice repliée / déployée, ligne absente avec signaux directement visibles (RM-246) ; charge Sans / valeur commune / colonne par série / saisie au clavier / zéro / valeurs conservées sous Sans (RM-236 à RM-239) ; steppers au minimum/maximum et maintenus ; validation/annulation. Plus aucun état roulette de cadence. Les états À l’échec de la roulette de cible décrits ci-dessus ne concernent plus la Durée d’une série des séries identiques, roulette numérique seule (RM-250).",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-C-114",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-412",
+   "ref": "RO-01, AR-01, AC-19, AC-24, AC-25, AC-26",
+   "ancien": "**Complément cible 12/10 :** Un seul champ actif. Changer de champ ferme/ouvre en un geste. Pi et cible copiées depuis dernière ligne. Suppression immédiate + Annuler avec position et paramètres ; sous N hérité, suppression locale indisponible.",
+   "nouveau": "**Révision 18/10 (D-411, D-412) :** en séries identiques, la Condition d’arrêt choisit À l’échec ou À la cible pour toutes les séries (RM-248) ; la roulette Durée d’une série ne propose plus « Aucune durée, à l’échec » (RM-250). L’option en tête « Aucune durée, à l’échec » et les règles ci-dessus de sélection, de grisé et de 00:00 valent pour la roulette d’une cellule de série variable en mode Durée, pour cette seule série ; chaque modification actualise la Condition d’arrêt, sans modifier les pauses (RM-249, RM-250). À l’échec n’est pas une durée nulle. Le sort de « Aucune répétition, à l’échec » dans la roulette Répétitions des séries identiques n’est pas tranché par la spécification v3.0 (D-412) : dossier de questions du change.\r\n\r\n**Complément cible 12/10 :** Un seul champ actif. Changer de champ ferme/ouvre en un geste. Pi et cible copiées depuis dernière ligne. Suppression immédiate + Annuler avec position et paramètres ; sous N hérité, suppression locale indisponible.",
+   "commentaire": "CONFLIT-PR #371 : ajout d’un paragraphe entre le premier paragraphe de la rubrique 12, réécrit par #371 et laissé inchangé, et le « Complément cible 12/10 » (contexte du correctif) ; il restreint la portée de l’option en tête sans réécrire les phrases de #371.",
+   "decision": "D-412"
+  },
+  {
+   "id": "V3-C-115",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-408",
+   "ref": "CA-01, AC-15",
+   "ancien": "- ± modifie Bip par 1, bornes 0..10, sans accélération.",
+   "nouveau": "- Cadence : 5 s, 2 s, 1 s et Sans sélectionnent directement la valeur ; Autre utilise le mécanisme existant : ± modifie Bip par 1, bornes 0..10, sans accélération (RM-245).",
+   "decision": "D-408"
+  },
+  {
+   "id": "V3-C-116",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-404",
+   "ref": "CH-04, AC-07",
+   "ancien": "- Variable copie les valeurs uniformes ; retour uniforme reprend première ligne ; réduction/augmentation/restauration et déplacement selon [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice).",
+   "nouveau": "- Variable copie les valeurs uniformes, charge comprise ; retour uniforme reprend première ligne ; réduction/augmentation/restauration et déplacement selon [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice), qui s’appliquent aussi à la charge par série (RM-238).",
+   "decision": "D-404"
+  },
+  {
+   "id": "V3-C-117",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, CH-05, DU-01, CV-01, AR-01",
+   "ancien": "- Une seule roulette/segmenté ouvert pour les autres champs.",
+   "nouveau": "- Une seule roulette ouverte à la fois. Mode, Condition d’arrêt en identiques, Type de série, Changement de côté, Cadence et Charge Avec / Sans sont des contrôles segmentés sans popover (D-413).\r\n- Condition d’arrêt en séries variables : non modifiable à cet endroit ; elle suit les cibles des cellules (RM-249).\r\n- Charge : Avec ouvre directement la saisie (0,25 kg à la première activation), Sans conserve les valeurs ; saisie, pas, zéro et réactivation selon RM-239.\r\n- Chevrons de Variables et d’Avec : repli ou déploiement sans perte de valeurs ni changement de mode (RM-247). Chevron de Durée de l’exercice : replie ou déploie Compte à rebours et Fin d’exercice, indépendamment de l’édition de la durée (RM-246).",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-C-118",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-404",
+   "ref": "CH-04, AC-06",
+   "ancien": "Tap et maintien sur steppers, arrêt au relâchement/sortie de cible, pas supplémentaire de relâchement interdit après répétition. Glisser la poignée réordonne cible/Pause/bip ensemble et recalcule la dernière ligne. Alternatives accessibles sans geste fin.",
+   "nouveau": "Tap et maintien sur steppers, arrêt au relâchement/sortie de cible, pas supplémentaire de relâchement interdit après répétition. Glisser la poignée réordonne cible/Pause/charge/bip ensemble et recalcule la dernière ligne (RM-238). Alternatives accessibles sans geste fin.",
+   "decision": "D-404"
+  },
+  {
+   "id": "V3-C-119",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-405",
+   "ref": "CH-05, AR-01",
+   "ancien": "Mode et cibles typées actives requis ; une cible À l’échec est valide sans nombre. R06 close : maximum 58 min 55 s (3535 s) confirmé ; roulette de cible par pas5 s dès 5 s. Cibles chiffrées : N1..99,Ri1..100,Ti5..3535 s,Pauses 0..300 s,Bip entier 0..10 dans deux modes. −1,11,fraction invalides, aucune correction silencieuse. Repli ne contourne pas validation ; erreur nommant la Série.0=Aucun reste valide. Nom/Catégorie/Zones contrôlés au parent.",
+   "nouveau": "Mode et cibles typées actives requis ; une cible À l’échec est valide sans nombre. R06 close : maximum 58 min 55 s (3535 s) confirmé ; roulette de cible par pas5 s dès 5 s. Cibles chiffrées : N1..99,Ri1..100,Ti5..3535 s,Pauses 0..300 s,Bip entier 0..10 dans deux modes. −1,11,fraction invalides, aucune correction silencieuse. Exception propre à la charge (D-405) : valeur positive hors pas arrondie au multiple de 0,25 kg supérieur, sans message, à la sortie du champ ou à la validation ; valeur négative refusée ; zéro = sans charge (RM-239). La Condition d’arrêt dérivée n’est pas validée à part (RM-249). Repli ne contourne pas validation ; erreur nommant la Série.0 (Sans) reste valide. Nom/Catégorie/Zones contrôlés au parent.",
+   "decision": "D-405"
+  },
+  {
+   "id": "V3-C-120",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-403",
+   "ref": "CH-06, AC-04, AC-12",
+   "ancien": "Brouillon isolé ; ✓ atomique au parent ; ✕ restaure totalité avant ouverture. Bip persiste quel que soit le mode. Les variantes cachées de cibles/tableaux ne sont pas persistées hors état actif. Duplication/copie/snapshot incluent Bip ; aucune mutation partielle.",
+   "nouveau": "Brouillon isolé ; ✓ atomique au parent ; ✕ restaure totalité avant ouverture. Bip persiste quel que soit le mode. Les variantes cachées de cibles/tableaux ne sont pas persistées hors état actif ; exception : les valeurs de charge désactivées par Sans ou masquées avec la colonne sont conservées et enregistrées avec l’activation (D-403, RM-236). Duplication/copie/snapshot incluent Bip, l’activation et les valeurs de charge ; aucune mutation partielle.",
+   "decision": "D-403"
+  },
+  {
+   "id": "V3-C-121",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-409",
+   "ref": "DU-01, §9.3",
+   "ancien": "Cible manquante, valeur hors borne, double validation, interruption ou erreur de persistance : aucun état partiel. Mode sans durée propre : ligne absente même si pauses positives. Historique non modifié ; données héritées hors plage conservées tant qu’elles ne sont pas modifiées, toute nouvelle saisie ou modification respectant les bornes (D-383) ; jamais tronquées silencieusement.",
+   "nouveau": "Cible manquante, valeur hors borne, double validation, interruption ou erreur de persistance : aucun état partiel. Mode sans durée propre : ligne absente même si pauses positives ; Compte à rebours et Fin d’exercice restent alors directement visibles lorsqu’applicables (RM-246). Historique non modifié ; données héritées hors plage conservées tant qu’elles ne sont pas modifiées, toute nouvelle saisie ou modification respectant les bornes (D-383) ; jamais tronquées silencieusement.",
+   "decision": "D-409"
+  },
+  {
+   "id": "V3-C-122",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-404",
+   "ref": "CH-04",
+   "ancien": "**Complément cible 12/10 :** Lecture seule annoncée avec valeur et origine ; ne pas remplacer par un tiret. Cellule active identifiée par ligne/colonne et texte Série i · Durée (ou autre champ), sans dépendre seulement de la couleur.",
+   "nouveau": "**Complément cible 12/10 :** Lecture seule annoncée avec valeur et origine ; ne pas remplacer par un tiret. Cellule active identifiée par ligne/colonne et texte Série i · Durée (ou autre champ, dont Série i · Charge), sans dépendre seulement de la couleur.",
+   "decision": "D-404"
+  },
+  {
+   "id": "V3-C-123",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-408",
+   "ref": "CA-01, AR-01, PR-01",
+   "ancien": "Nom accessible Bip de cadence ; valeur Aucun ou intervalle en secondes ; boutons augmenter/diminuer et limites annoncées. Total ≈ annoncé estimation ; ≥ annoncé total prévisionnel partiel. Option À l’échec annoncée sélectionnée/non sélectionnée ; le grisé n’est pas le seul indicateur accessible. Focus modal contenu, retour à la zone Paramètres. Texte agrandi, cibles 44 minimum, alternatives au maintien/glisser.",
+   "nouveau": "Nom accessible Cadence (Bip de cadence) ; options Autre, 5 s, 2 s, 1 s et Sans annoncées avec la sélection courante ; valeur Sans ou intervalle en secondes ; pour Autre, boutons augmenter/diminuer et limites annoncées (RM-245). Condition d’arrêt : sélectionnable en identiques ; en variables, annoncée comme valeur déterminée par les séries, non modifiable (RM-249). Charge : valeur en kg ou Sans. Total ≈ annoncé estimation ; ≥ annoncé total prévisionnel partiel. Option À l’échec annoncée sélectionnée/non sélectionnée ; le grisé n’est pas le seul indicateur accessible. Focus modal contenu, retour à la zone Paramètres. Texte agrandi, cibles 44 minimum, alternatives au maintien/glisser.",
+   "decision": "D-408"
+  },
+  {
+   "id": "V3-C-124",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-403",
+   "ref": "CH-01, CH-09, DU-01, CV-01, AC-10, AC-16",
+   "ancien": "Bip sonore uniquement pendant Série, aucune transition automatique. Les intervalles logiques peuvent proposer un relevé estimé en Répétitions à l’échec. Son ne transforme pas À l’échec en durée connue. Aucune estimation forfaitaire ; ≥ seulement pour mélange calculable à l’Exercice. Pause après chaque série, y compris la dernière ; récupération contextuelle positive remplaçant seulement la dernière Pause. Les images ne gouvernent ni calculs ni persistance.",
+   "nouveau": "Bip sonore uniquement pendant Série, aucune transition automatique. Les intervalles logiques peuvent proposer un relevé estimé en Répétitions à l’échec. Son ne transforme pas À l’échec en durée connue. Aucune estimation forfaitaire ; ≥ seulement pour mélange calculable à l’Exercice. Pause après chaque série, y compris la dernière ; récupération contextuelle positive remplaçant seulement la dernière Pause. La charge ne modifie ni minuteurs, ni cibles, ni cadence, ni pauses, ni ordre, ni calculs (RM-235). Un repli ne modifie ni valeurs, ni mode, ni durée affichée (RM-246, RM-247). Les images ne gouvernent ni calculs ni persistance.",
+   "decision": "D-403"
+  },
+  {
+   "id": "V3-C-125",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-412",
+   "ref": "RO-01, AC-25, AC-26",
+   "ancien": "Recette complémentaire : deux options, ouverture valeur/échec courant, exclusion mutuelle,00:00 cible refusée (pause 0 valide), tout échec sans total, mixte 30/45/échec avec pauses 10/20/30 →≥2 min 15 en lecture seule, Répétitions sans bip sans total ; annuler/appliquer sans persistance anticipée. Tester 30 s → toucher échec →00:00 grisé → tourner vers 30 s → cible numérique ; réouverture fidèle et annulation/restauration. Le bloc grisé reste manipulable. Qualification native et accessible sur appareils à réaliser ; §4.5 reçu, réserve de source close.",
+   "nouveau": "Recette complémentaire (roulette de cible d’une cellule de série variable en mode Durée depuis le 18/10, RM-250) : deux options, ouverture valeur/échec courant, exclusion mutuelle,00:00 cible refusée (pause 0 valide), tout échec sans total, mixte 30/45/échec avec pauses 10/20/30 →≥2 min 15 en lecture seule, Répétitions sans bip sans total ; annuler/appliquer sans persistance anticipée. Tester 30 s → toucher échec →00:00 grisé → tourner vers 30 s → cible numérique ; réouverture fidèle et annulation/restauration. Le bloc grisé reste manipulable. Qualification native et accessible sur appareils à réaliser ; §4.5 reçu, réserve de source close.",
+   "decision": "D-412"
+  },
+  {
+   "id": "V3-C-126",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "AC-01 à AC-26",
+   "ancien": "Deux modes × deux types de cible × bip nul/positif ;0/1/10 et rejets−1/11/fraction ; conservation lors des bascules, annulation et duplication.4×15×4+4×15=300 s≈ ; sans bip ligne absente. Tester N1,variable,repli,réordre de dernière Série,inversion Durée,deux côtés/R ; géométrie42px, texte agrandi et accessibilité. Phrase de pauses conforme aux 276 formulations v15 ; Q-08 clos.",
+   "nouveau": "Deux modes × deux types de cible × bip nul/positif ;0/1/10 et rejets−1/11/fraction ; conservation lors des bascules, annulation et duplication.4×15×4+4×15=300 s≈ ; sans bip ligne absente. Tester N1,variable,repli,réordre de dernière Série,inversion Durée,deux côtés/R ; géométrie42px, texte agrandi et accessibilité. Phrase de pauses conforme aux 276 formulations v15 ; Q-08 clos.\r\n\r\nRecette v3.0 (D-403 à D-413), scénarios de la spécification du 18/10/2026 (§6, §9.2, §12) : charge AC-01 à AC-12, dont 1,3 → 1,5 kg, 0,01 → 0,25 kg, 1,25 kg inchangé, [0 ; 10 ; 15] → Sans → Avec et [0 ; 0 ; 0] (RM-236 à RM-241) ; Changement de côté Avec / Sans et données historiques AC-13, AC-14, AC-23 (RM-242 à RM-244) ; Cadence AC-15, dont une valeur 5 s saisie par Autre reflétée par l’option 5 s (RM-245) ; Durée de l’exercice et signaux AC-16, AC-17, dont la feuille sans ligne Durée de l’exercice (RM-246) ; chevrons AC-18 (RM-247) ; Condition d’arrêt AC-19 à AC-21 (RM-248, RM-249) ; quatre cadres et replis sans espace vide AC-22 (D-413) ; roulettes AC-24 à AC-26 (RM-250). Recette applicative non exécutée par cette mise à jour documentaire.",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-C-127",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-01 à PR-04, CO-01, CA-01, DU-01, CV-01, AR-01, RO-01, CH-03, CH-04",
+   "ancien": "| 1 | Mode d’exécution | Valeur puis popover Durée/Répétitions, deux options |\r\n| 2 | Séries | Valeur numérique, défaut 1 ; appui révèle ± si N libre ; valeur réelle en lecture seule avec origine si N hérité du circuit |\r\n| 3 | Régime des séries | Valeur identiques/variables et popover ; chevron indépendant uniquement si variable ; normalisation N1 existante conservée |\r\n| 4 | Cible et Pause | Uniforme : lignes Durée/Répétitions et Pause après chaque série ; variable : tableau rattaché au champ de régime, ligne numérotée, poignée, cible et Pause par steppers ; À l’échec : cible textuelle sélectionnable, sans nombre prescrit |\r\n| 5 | Changement de côté | Popover, sans changement / D→G / G→D (DSF du 12/10, D-377) |\r\n| 6 | Ordre des côtés | Bilatéral uniquement, deux options ; grisé à 1 |\r\n| 7 | Pause entre les côtés | Bilatéral uniquement, stepper ; copie du Profil à activation |\r\n| 7b | Bip de cadence | Deux modes ; stepper 0..10,0=Aucun ; premier niveau, juste avant le total applicable ; commun hors tableau variable. |\r\n| 8 | Durée totale | Durée uniforme chiffrée avec N libre : roulette ; N hérité du circuit, variable/Répétitions avec bip : lecture seule ; Répétitions sans bip et toutes cibles À l’échec : absente ; mélange calculable : ≥ en lecture seule ; cible nécessaire au calcul manquante : ligne affichée avec « — » (D-384) ; ligne affichée à N = 1 comme à N > 1 (D-396) |\r\n| 9 | Compte à rebours | Stepper ; défaut Profil 10 s |\r\n| 10 | Fin d’exercice | Stepper ; défaut Profil 5 s |",
+   "nouveau": "| 1 | Mode | Cadre 1 Exécution. Contrôle segmenté Répétitions / Durée, sans popover (D-413) |\r\n| 2 | Condition d’arrêt | Cadre 1. À l’échec (à gauche) / À la cible (à droite). Identiques : sélectionnable, le choix vaut pour toutes les séries (RM-248). Variables : résultat dérivé non modifiable, deux options avec sélection automatique ou une seule option « À la cible et à l’échec » ; tableau incomplet selon D-384 (RM-249) |\r\n| 3 | Nombre de séries | Cadre 2 Séries. Valeur numérique, défaut 1 ; appui révèle ± si N libre ; valeur réelle en lecture seule avec origine si N hérité du circuit |\r\n| 4 | Type de série | Contrôle segmenté Variables / Identiques ; chevron à l’intérieur de l’option Variables, haut si le tableau est déployé, bas s’il est replié (D-410, RM-247) ; identiques sans chevron ; normalisation N1 existante conservée, option non modifiable avec sa valeur réelle |\r\n| 5 | Cible et Pause | Identiques : lignes Durée/Répétitions et Pause après chaque série ; roulette Durée d’une série numérique seule, À l’échec choisi par la Condition d’arrêt, sans nombre prescrit (RM-248, RM-250). Variables : tableau rattaché à Type de série, ligne numérotée, poignée, colonnes Durée ou Répétitions, Pause et, si la charge est active, Charge ; lignes de 36 px, sans pied ± ni stepper de cellule (D-413) ; en Durée, la roulette d’une cellule propose une durée ou « À l’échec » pour cette seule série (RM-250) |\r\n| 6 | Charge | Identiques : ligne après la Pause, Avec / Sans, Sans par défaut ; Avec ouvre directement la saisie ; la valeur et son unité remplacent Avec, par exemple « 20 kg » (RM-237). Variables : ligne Avec / Sans sous le tableau ; Avec affiche la colonne Charge, Sans la masque en conservant les valeurs ; titre de colonne non interactif (RM-238). Saisie au clavier numérique décimal, sans fenêtre intermédiaire ; pas, zéro, conservation et réactivation selon RM-239 (D-404, D-405) |\r\n| 7 | Changement de côté | Cadre 3 Côtés. Contrôle segmenté Avec (à gauche) / Sans (à droite), sans choix de direction (D-406, RM-242) ; chevron à l’intérieur d’Avec, qui replie ou déploie les lignes 8 et 9 (RM-247) |\r\n| 8 | Enchainement | Ordre des côtés. Avec uniquement, deux options à la notation Figma (RM-243) ; grisé à 1 |\r\n| 9 | Pause entre les côtés | Avec uniquement, stepper ; copie du Profil à activation |\r\n| 10 | Cadence | Cadre 4 Cadence et durée. Bip de cadence, deux modes ; contrôle segmenté Autre / 5 s / 2 s / 1 s / Sans, Sans = 0 ; Autre : mécanisme numérique existant, 0..10, pas 1 s (D-408, RM-245) ; juste avant Durée de l’exercice ; commun hors tableau variable. |\r\n| 11 | Durée de l’exercice | Concept Durée totale ; chevron à côté du libellé, replié par défaut, qui replie ou déploie les lignes 12 et 13 sans les désactiver (D-409, RM-246). Durée uniforme chiffrée avec N libre : roulette ; N hérité du circuit, variable/Répétitions avec bip : lecture seule ; Répétitions sans bip et toutes cibles À l’échec : absente ; mélange calculable : ≥ en lecture seule ; cible nécessaire au calcul manquante : ligne affichée avec « — » (D-384) ; ligne affichée à N = 1 comme à N > 1 (D-396) |\r\n| 12 | Compte à rebours | Stepper ; défaut Profil 10 s ; masqué sous Durée de l’exercice repliée, directement visible si la ligne 11 est absente (RM-246) |\r\n| 13 | Fin d’exercice | Stepper ; défaut Profil 5 s ; même visibilité que la ligne 12 |",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-C-128",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, CO-01, CH-02, CV-01, PR-04, §11.2 « Champs vides »",
+   "ancien": "Création : mode/durée/côté non renseignés —, Série 1, Pause 0 s ; cible Répétitions uniforme initiale 1 ; aucune cible implicite lors d’un changement de mode variable. Une cible à renseigner (—) ouvre la roulette sur la plus petite valeur valide, sélectionnée : 00:05 en Durée, 1 en Répétitions ; rien n’est appliqué avant le ✓ de la roulette ; ✕ laisse la cible à renseigner (décision PRE-4 Q25 du 16/10, D-385). Côté vide normalisé Sans changement à validation. La feuille entière défile sous un en-tête ✕/titre/✓ fixe. Ouverture : voile en fondu sur place, feuille montante depuis le bas ; « Réduire les animations » : feuille en place . Un seul popover/roulette ouvert ; les boutons ± apparaissent à l’appui sur une valeur numérique ; un seul champ est actif, sans modale supplémentaire. Glisser une Série : corps immobile et repère d’insertion entre les lignes . Le chevron masque le tableau sans modifier les données ni désactiver le mode variable.",
+   "nouveau": "Création : mode/durée/côté non renseignés —, Série 1, Pause 0 s, charge Sans (RM-236) ; cible Répétitions uniforme initiale 1 ; aucune cible implicite lors d’un changement de mode variable. Une cible à renseigner (—) ouvre la roulette sur la plus petite valeur valide, sélectionnée : 00:05 en Durée, 1 en Répétitions ; rien n’est appliqué avant le ✓ de la roulette ; ✕ laisse la cible à renseigner (décision PRE-4 Q25 du 16/10, D-385). Côté vide normalisé Sans à validation (D-406). La feuille entière défile sous un en-tête ✕/titre/✓ fixe. Ouverture : voile en fondu sur place, feuille montante depuis le bas ; « Réduire les animations » : feuille en place . Une seule roulette ouverte ; les contrôles segmentés n’ouvrent pas de popover (D-413) ; les boutons ± apparaissent à l’appui sur une valeur numérique ; la charge se saisit au clavier (D-405) ; un seul champ est actif, sans modale supplémentaire. Glisser une Série : corps immobile et repère d’insertion entre les lignes . Le chevron de l’option Variables masque le tableau sans modifier les données ni désactiver le mode variable (RM-247).",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-C-129",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-413",
+   "ref": "GR-01, PR-02",
+   "ancien": "État historique livré PRE-3 : sélecteurs segmentés et steppers permanents, avec fermeture progressive D-339 et typographie D-341. Le DSF du 12/10 et Deux modes du 13/10 remplacent la présentation D-341 pour la prochaine tranche (D-377) ; la fermeture après sélection de D-339 est conservée, y compris dans les popovers (D-377). Ces DSF ne prétendent pas être déjà réalisés.",
+   "nouveau": "État historique livré PRE-3 : sélecteurs segmentés et steppers permanents, avec fermeture progressive D-339 et typographie D-341. Le DSF du 12/10 et Deux modes du 13/10 remplacent la présentation D-341 pour la prochaine tranche (D-377) ; la fermeture après sélection de D-339 est conservée, y compris dans les popovers (D-377). Ces DSF ne prétendent pas être déjà réalisés. Depuis le 18/10, D-413 remplace la présentation par popovers de D-377 pour Mode, Type de série et Changement de côté (contrôles segmentés), ainsi que le pied commun ± et les steppers de cellules du tableau variable ; D-339 n’a plus d’objet pour ces lignes.",
+   "decision": "D-413"
+  },
+  {
+   "id": "V3-C-130",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-405",
+   "ref": "CH-05, CA-01",
+   "ancien": "| Bip de cadence | 0..10 s | 1 s, aucune accélération |\r\n| Compte à rebours / Fin d’exercice | 0..60 s | 1 s  |",
+   "nouveau": "| Bip de cadence (ligne Cadence) | 0..10 s | 1 s, aucune accélération ; 5 s, 2 s, 1 s et Sans sont des choix directs (RM-245) |\r\n| Compte à rebours / Fin d’exercice | 0..60 s | 1 s  |\r\n| Charge | ≥ 0 kg, aucun plafond métier | 0,25 kg, validé le 18/10 ; valeur positive hors pas arrondie au multiple supérieur sans message ; 0 = sans charge (D-405, RM-239) |",
+   "decision": "D-405"
+  },
+  {
+   "id": "V3-C-131",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-405",
+   "ref": "CH-05, PR-02",
+   "ancien": "Steppers : tap 1 ; maintien≈500 ms, puis paliers 5 après≈2 s et 10 après≈4 s, arrondi directionnel au multiple et saturation aux bornes. Bip/Compte à rebours/Fin restent au pas1. Relâchement arrête et rétablit le pas1 ; pas d’arrondi à l’ouverture. Voir DSF Bip. Les roulettes ne sont pas redéfinies par cette règle.",
+   "nouveau": "Steppers : tap 1 ; maintien≈500 ms, puis paliers 5 après≈2 s et 10 après≈4 s, arrondi directionnel au multiple et saturation aux bornes. Bip/Compte à rebours/Fin restent au pas1. Relâchement arrête et rétablit le pas1 ; pas d’arrondi à l’ouverture. Voir DSF Bip. Les roulettes ne sont pas redéfinies par cette règle. La charge n’a pas de stepper : saisie au clavier (D-405). Les cellules du tableau variable n’ont pas de stepper (D-413).",
+   "decision": "D-405"
+  },
+  {
+   "id": "V3-C-132",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-405",
+   "ref": "CH-05, AR-01, AC-03",
+   "ancien": "✓ grisé tant que le mode ou une cible active exigée est invalide ; cellule concernée signalée par son contour ; aucun message en ligne (D-337, 12/10 : remplace le message nommant la Série à renseigner). Une cible obligatoire sans valeur, représentée par « — », reçoit un fond rouge pâle ; sur un stepper, les cercles − et + conservent leurs couleurs normales ; le fond redevient normal dès qu’une valeur valide est saisie ; aucun contour orange n’est appliqué dans ce cas (D-389, D-398). Une valeur renseignée mais invalide suit les règles existantes (D-398). Pause 0 valide. Une valeur héritée hors bornes, non modifiée, reste valide ; toute nouvelle saisie ou modification respecte les bornes (D-383). Repli du tableau ne contourne jamais la validation. Nom, Catégorie et Zones restent validés dans le parent.",
+   "nouveau": "✓ grisé tant que le mode ou une cible active exigée est invalide ; cellule concernée signalée par son contour ; aucun message en ligne (D-337, 12/10 : remplace le message nommant la Série à renseigner). Une cible obligatoire sans valeur, représentée par « — », reçoit un fond rouge pâle ; sur un stepper, les cercles − et + conservent leurs couleurs normales ; le fond redevient normal dès qu’une valeur valide est saisie ; aucun contour orange n’est appliqué dans ce cas (D-389, D-398). Une valeur renseignée mais invalide suit les règles existantes (D-398). Pause 0 valide. Une valeur héritée hors bornes, non modifiée, reste valide ; toute nouvelle saisie ou modification respecte les bornes (D-383). Repli du tableau ne contourne jamais la validation. Nom, Catégorie et Zones restent validés dans le parent. Charge : arrondi au pas de 0,25 kg sans message, exception propre à la charge (D-405, RM-239). Condition d’arrêt en séries variables : aucune validation supplémentaire ; une cellule vide n’est comptée ni à la cible ni à l’échec (RM-249).",
+   "decision": "D-405"
+  },
+  {
+   "id": "V3-C-133",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "CORRECTION-DECIDEE:D-412",
+   "ref": "RO-01, AC-24, AC-25",
+   "ancien": "#### Sélecteur de cible — complément §4.5 du13/10",
+   "nouveau": "#### Sélecteur de cible — complément §4.5 du13/10\r\n\r\nPortée depuis le 18/10 (D-412) : ce sélecteur à option À l’échec est celui d’une cellule de série variable en mode Durée, pour cette seule série ; la roulette Durée d’une série des séries identiques est numérique seule et À l’échec s’y règle par la Condition d’arrêt (RM-248, RM-250). La roulette Répétitions n’est pas visée par D-412 : dossier de questions du change.",
+   "commentaire": "CONFLIT-PR #371 : ajout après ce titre, qui sert de contexte au correctif #371 du paragraphe suivant ; les paragraphes « Sélecteur de cible » et « Bornes confirmées » réécrits par #371 sont laissés inchangés.",
+   "decision": "D-412"
+  },
+  {
+   "id": "V3-C-134",
+   "file": "@13 – Contrats d’écran.md",
+   "motif": "RENVOI",
+   "ref": "CH-08",
+   "ancien": "Une virgule reste attachée au mot qui la précède : aucune virgule isolée en début de ligne. Les segments sont rendus dans un même flux Text, sans espace ajouté avant la ponctuation ni segments disposés chacun comme une boîte indépendante. Le retour visuel avant Durée totale est une propriété de rendu, pas une modification du texte canonique utilisé par la recette.",
+   "nouveau": "Une virgule reste attachée au mot qui la précède : aucune virgule isolée en début de ligne. Les segments sont rendus dans un même flux Text, sans espace ajouté avant la ponctuation ni segments disposés chacun comme une boîte indépendante. Le retour visuel avant Durée totale est une propriété de rendu, pas une modification du texte canonique utilisé par la recette. Le groupe « avec une charge de … kg » suit le même rendu en segments ; sa place dans la grammaire n’est pas encore fixée (RM-240)."
+  }
+ ]
+}

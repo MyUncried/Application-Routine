@@ -97,8 +97,8 @@ Les intégrations avec des services externes, notamment les calendriers Apple, G
 
 |ID|Opération|Entrées principales|Résultat|Règles / validations|Objets impactés|
 |---|---|---|---|---|---|
-| API-ACT-01 | Paramétrer un Exercice | Nom, référentiels, mode unique, N, uniforme/variable, cibles/Pauses/Bip0..10 ordonnés, direction, ordre des côtés, PC, CR/Fin | Exercice validé | Validation v13 ; N1 normalisé ; aucune R contextuelle sur ActivityDefinition ; écriture atomique | Exercice |
-| API-ACT-02 | Calculer les paramètres temporels | Mode, N, uniforme/variable, cibles/Pauses/Bip0..10 ordonnés, direction, ordre des côtés, PC, R contextuel éventuel, Tv en Durée uniforme | Total dérivé avec niveau d’incertitude, statut incomplet et N canonique si inversion | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. | Exercice / occurrence |
+| API-ACT-01 | Paramétrer un Exercice | Nom, référentiels, mode unique, N, uniforme/variable, cibles/Pauses/Bip0..10 ordonnés, charge (activation, valeur commune ou par Série), changement de côté Sans / Avec, ordre des côtés, PC, CR/Fin | Exercice validé | Validation v13 ; charge selon RM-239, valeurs conservées sous Sans transportées (RM-236) ; changement de côté selon RM-242 et RM-244 ; N1 normalisé ; aucune R contextuelle sur ActivityDefinition ; écriture atomique | Exercice |
+| API-ACT-02 | Calculer les paramètres temporels | Mode, N, uniforme/variable, cibles/Pauses/Bip0..10 ordonnés, changement de côté, ordre des côtés, PC, R contextuel éventuel, Tv en Durée uniforme | Total dérivé avec niveau d’incertitude, statut incomplet et N canonique si inversion | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. La charge n’entre pas dans le calcul (RM-235). | Exercice / occurrence |
 | API-ACT-03 | Définir les pauses | Paramètres uniformes/variables, PC | Exercice validé | Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : chapitre 10, Calculs des durées et ordre des phases. | Exercice |
 |API-ACT-04|Lire/afficher les médias associés|ID Exercice|Média(s) associé(s) pour la gouttière permanente de la carte d’Exercice|L’affichage en gouttière, sans déploiement, fait partie du MVP (D-260/D-261) ; cette API fonctionnelle ne préjuge pas du mécanisme d’import/capture|Exercice, Média|
 |API-ACT-05|Associer des zones corporelles|ID Exercice, zones corporelles|Zones corporelles mises à jour|Une ou plusieurs zones du référentiel utilisateur courant pour un Exercice valide (D-211)|Exercice, Zone corporelle|
@@ -109,12 +109,12 @@ Les intégrations avec des services externes, notamment les calendriers Apple, G
 | API | Version | Entrée principale | Résultat / règle |
 |---|---|---|---|
 | `API-ACT-REF-01..05` | MVP T03 | définition d’Exercice | Créer, lire, lister, modifier, archiver/supprimer une référence autonome. Si des Routines ciblent l’Exercice, l’archivage arrête leurs occurrences futures selon la même règle que pour une Séance ; les occurrences historisées et Exécutions restent conservées. |
-| `API-ACT-COPY-01` | MVP T03 | ID référence, ID Séance, position | Crée une copie complète indépendante ; aucune association fonctionnelle durable à la référence. |
+| `API-ACT-COPY-01` | MVP T03 | ID référence, ID Séance, position | Crée une copie complète indépendante, charge et son activation comprises, valeurs conservées sous Sans incluses (RM-236) ; aucune association fonctionnelle durable à la référence. |
 | `API-MED-01..05` | MVP PRE-3 | exercice, fichier ou position | Importer/choisir, associer, lister, réordonner et retirer `0..n` médias locaux (D-333) ; nettoyage physique seulement sans référence. Capture caméra à clarifier, sans activation implicite. |
 | `API-CAT-01` | MVP T03 / V2 | type, filtre, tri | Avant T03, accepte uniquement `SESSION`; dans le MVP T03, accepte également `ACTIVITY`; l’ancien type autonome `CIRCUIT` n’est pas réintroduit par la planification multi-contenus. Défaut : non archivés, dernière modification décroissante. |
 | API-CIR (ancienne famille) | Retirée 08/10 | Sans nouvelle implémentation | L’objet autonome Parcours et son exécution globale ne font plus partie de la cible. |
 
-`API-EXE-05` termine par Suivant toute Série Répétitions ou à cible À l’échec. Les DTO acceptent DURATION/REPETITIONS et une cible typée par Série ; TO_FAILURE est un format historique à migrer (chapitre 09). La confirmation du relevé est indépendante de la transition.
+`API-EXE-05` termine par Suivant toute Série Répétitions ou à cible À l’échec. Les DTO acceptent DURATION/REPETITIONS et une cible typée par Série, ainsi que la charge (activation, valeur commune ou par Série, RM-235 à RM-239) ; TO_FAILURE est un format historique à migrer (chapitre 09). La confirmation du relevé est indépendante de la transition.
 
 ## Paramètres d’exécution
 
@@ -122,14 +122,14 @@ Les intégrations avec des services externes, notamment les calendriers Apple, G
 
 | Opération | Entrées | Sortie / effet atomique | Refus et compatibilité |
 |---|---|---|---|
-| Valider/appliquer paramètres | Brouillon mode, Séries ordonnées et Bip commun 0..10 | Normalise N1 ; propage cadence ; ✓ remplace le brouillon parent ; Terminer seul persiste | Bip−1/11/non entier : validation refusée et erreur champ ; 0 valide ; les deux modes conservent le Bip |
+| Valider/appliquer paramètres | Brouillon mode, Séries ordonnées, Bip commun 0..10 et charge (activation, valeur commune ou par Série) | Normalise N1 ; propage cadence ; ✓ remplace le brouillon parent ; Terminer seul persiste | Bip−1/11/non entier : validation refusée et erreur champ ; 0 valide ; les deux modes conservent le Bip ; charge : pas, arrondi, zéro et valeur négative selon RM-239 |
 | Calculer paramètres (API-ACT-02) | Collection effective, côtés, PC, R contextuelle éventuelle | Total intrinsèque/occurrence et niveau d’incertitude, ou incomplet ; Ri×b si bip positif en Répétitions, omitted sinon ; Durée chiffrée exacte ; mélange calculable lowerBound ; toutes cibles échec omitted | Pas d’inversion Répétitions ; ni Figma ni Excel en entrée de calcul |
-| Générer la phrase | Paramètres valides et résultat temporel fourni | Segments ordonnés `{texte, gras}` ; régénérés à chaque affichage | Aucun recalcul de pause/durée dans cette fonction ; aucune mutation métier |
-| Démarrer/copier/dupliquer | Définition ou occurrence avec cadences | Snapshot/collection complets ; début immédiat de première répétition ; aucune nouvelle phase Répétition | Ancien objet sans champ : Bip 0=Aucun ; aucun tempo implicite |
+| Générer la phrase | Paramètres valides et résultat temporel fourni | Segments ordonnés `{texte, gras}`, mention de charge active selon RM-240 ; régénérés à chaque affichage | Aucun recalcul de pause/durée dans cette fonction ; aucune mutation métier |
+| Démarrer/copier/dupliquer | Définition ou occurrence avec cadences et charge | Snapshot/collection complets, charge et son activation comprises (RM-236) ; début immédiat de première répétition ; aucune nouvelle phase Répétition | Ancien objet sans champ : Bip 0=Aucun ; aucun tempo implicite ; sans charge : Sans, jamais 0 kg (RM-236) |
 | Pause/Reprendre/Réinitialiser/Suivant | Exécution, identifiant de transition et horodatage monotone | État récupérable + temps actif cumulé ; intervalle complet après Pause, scope existant pour reset ; Suivant fin normale | Idempotence ; mauvais état refusé ; fin nominale ne déclenche pas Suivant |
 | Lire/finaliser résultats | Snapshot et accumulateurs par Série/côté | Prescription immuable et durées réelles, statut existant | Aucun compte de répétitions réalisées ; reset ne supprime pas le temps dépensé |
 
-Les erreurs utilisent les catégories existantes de validation et INVALID_STATE, avec champ/Série localisés ; aucune nouvelle API réseau ou nouvelle entité imposée. La nouvelle version d’instantané doit rester lisible avec les snapshots antérieurs ; qualification technique et mobile à réaliser.
+Les erreurs utilisent les catégories existantes de validation et INVALID_STATE, avec champ/Série localisés ; aucune nouvelle API réseau ou nouvelle entité imposée. La charge, le changement de côté Sans / Avec, les choix rapides de cadence et la Condition d’arrêt dérivée étendent les paramètres échangés par les opérations existantes, sans nouveau service (D-403 à D-413). La nouvelle version d’instantané doit rester lisible avec les snapshots antérieurs ; qualification technique et mobile à réaliser.
 
 ### Contrat technique de phrase
 
@@ -137,7 +137,7 @@ Contenu identique à la section [« Migration T03 — Catalogue des Exercices �
 
 ### Contrats de service — cibles typées et relevés
 
-Validation/édition/copie/instantané transportent le mode commun et la cible typée de chaque Série. Le calcul retourne exact/estimated/lowerBound/omitted selon la chapitre 10, Calculs des cibles mixtes ; aucune valeur pour omitted, erreur distincte. Le générateur reçoit ce résultat et retourne des segments, jamais une phrase persistée.
+Validation/édition/copie/instantané transportent le mode commun, la cible typée de chaque Série et la charge, active ou conservée sous Sans (RM-236). La Condition d’arrêt n’est pas transportée comme valeur indépendante : en séries identiques, la choisir fixe la cible commune (RM-248) ; en séries variables, elle est dérivée des cibles (RM-249). Le calcul retourne exact/estimated/lowerBound/omitted selon la chapitre 10, Calculs des cibles mixtes ; aucune valeur pour omitted, erreur distincte. Le générateur reçoit ce résultat et retourne des segments, jamais une phrase persistée.
 
 La fin de Série reste indépendante du relevé. Le service de relevé reçoit l’identité de l’occurrence/côté/tentative, valeur facultative, unité, origine et qualification ; une proposition issue du bip reste estimée jusqu’à confirmation/correction explicite. Événements idempotents, pas de doublons lors de reprise. Aucun endpoint réseau ni nouvelle API déjà implémentée n’est présumé par ce contrat fonctionnel.
 
@@ -247,7 +247,7 @@ Le scalaire historique `ActivityDefinition.pauseSeconds` représente la Pause ap
 | Appliquer une conversion | État préparé confirmé si perte ; appliquer nature, compte et lignes ensemble ; Annuler conserve tout |
 | Modifier le compte | Brouillon du circuit ; synchroniser tous les exercices en nature séries, avec réserve temporaire/restauration |
 | Ajouter/sortir un exercice | Copie locale indépendante ; confirmer adaptation destructrice à l’ajout ; sortie conserve état actif |
-| Obtenir les volumes | Projection en lecture seule : cellules typées valeur/échec/absence, unité/mode, direction ; aucune mutation ni total inventé |
+| Obtenir les volumes | Projection en lecture seule : cellules typées valeur/échec/absence, unité/mode, changement de côté ; aucune mutation ni total inventé |
 | Construire le plan | Même représentation que validation/calcul ; développement selon nature et phases contextuelles ; identifiants d’occurrences stables |
 | Calculer la durée du circuit | Somme des phases effectives, résultat exact/estimated/lowerBound ; aucune lecture du texte de carte |
 
@@ -278,12 +278,12 @@ La saisie du rang de fenêtre ou d’un nombre de tours à chaque passage n’es
 
 | ID | Commande | Entrée | Effet et garanties |
 |---|---|---|---|
-| `API-SIDE-01` | Modifier le Changement de côté d’un Exercice | ID, `sideMode` | Valide `UNILATERAL`, `RIGHT_LEFT`, `LEFT_RIGHT` ; recalcule les durées et synthèses. |
+| `API-SIDE-01` | Modifier le Changement de côté d’un Exercice | ID, `sideMode` | Valide Sans / Avec (RM-242) ; aucune direction n’est plus choisie ; les valeurs historiques `UNILATERAL` (Sans), `RIGHT_LEFT` et `LEFT_RIGHT` (Avec) restent acceptées en lecture, sans réinterprétation de l’Ordre des côtés (RM-244) ; recalcule les durées et synthèses. |
 | `API-SIDE-02` | Compatibilité technique du côté Tour | ID Tour | Aucune mutation utilisateur exposée dans la version actuelle ; le champ historique reste conservé et contraint à `UNILATERAL`. |
-| `API-SIDE-03` | Dupliquer | ID Exercice ou Tour | Copie fidèlement `sideMode`, ainsi que le contenu dupliqué selon les règles existantes. |
-| `API-SIDE-04` | Insérer un Exercice persistant | ID source, ID Séance | Copie `sideMode` dans l’occurrence ; aucun lien dynamique ultérieur. |
-| `API-EXE-SIDE-01` | Générer le Plan | Instantané de Séance | Résout `effectiveSideMode`, développe côtés/Séries/Tours, insère `SIDE_RECOVERY` entre côtés et `POST_ACTIVITY_RECOVERY` après occurrences selon leurs valeurs, puis produit un ordre déterministe. |
-| `API-EXE-SIDE-02` | Enregistrer un passage | Nœud de plan, côté, résultat | Écriture idempotente séparée par `executionSide`; agrégation du statut global. |
+| `API-SIDE-03` | Dupliquer | ID Exercice ou Tour | Copie fidèlement `sideMode`, valeur historique comprise sans réécriture (RM-244), ainsi que le contenu dupliqué selon les règles existantes. |
+| `API-SIDE-04` | Insérer un Exercice persistant | ID source, ID Séance | Copie `sideMode` dans l’occurrence, valeur historique comprise (RM-244) ; aucun lien dynamique ultérieur. |
+| `API-EXE-SIDE-01` | Générer le Plan | Instantané de Séance | Résout `effectiveSideMode`, développe côtés (côté 1 puis côté 2, RM-243)/Séries/Tours, insère `SIDE_RECOVERY` entre côtés et `POST_ACTIVITY_RECOVERY` après occurrences selon leurs valeurs, puis produit un ordre déterministe. |
+| `API-EXE-SIDE-02` | Enregistrer un passage | Nœud de plan, côté, résultat | Écriture idempotente séparée par `executionSide` (côté 1 / côté 2 ; résultats historiques lisibles, RM-244) ; agrégation du statut global. |
 | `API-EXE-SIDE-03` | Réinitialiser | Nœud et côté courant | Efface ou recommence uniquement le résultat du passage courant. |
 | `API-EXE-SIDE-04` | Passer à la suite | Nœud, confirmation éventuelle | Utilise la modale générique ; après le premier côté, ouvre le second avant l’Exercice logique suivant. |
 
@@ -328,7 +328,7 @@ Une étape terminée ou passée ne peut pas être rejouée au cours de la même 
 |---|---|---|---|---|
 | API-ACT-EXE-01 | Vérifier l’éligibilité | ID Exercice | Éligible ou erreurs | Validation complète de la définition. |
 | API-ACT-EXE-02 | Démarrer | ID Exercice, état de retour Catalogue | ID Exécution, plan | Instantané autonome, origine `ACTIVITY`, préparation `5 s`, aucune Séance créée. |
-| API-ACT-EXE-03 | Construire le plan | Instantané Exercice | Étapes développées | Séries, Pauses, côtés et `SIDE_RECOVERY` éventuelle ; aucune `POST_ACTIVITY_RECOVERY`, aucun Tour/Cycle ni `SESSION_END`. |
+| API-ACT-EXE-03 | Construire le plan | Instantané Exercice | Étapes développées | Séries, Pauses, côtés et `SIDE_RECOVERY` éventuelle ; charge active de chaque Série transmise pour l’affichage, sans effet sur les étapes (RM-241) ; aucune `POST_ACTIVITY_RECOVERY`, aucun Tour/Cycle ni `SESSION_END`. |
 | API-ACT-EXE-04 | Finaliser la Synthèse | ID Exécution, Ressenti, Commentaire éventuel | Exécution finalisée | Ressenti obligatoire si Synthèse présentée ; statistiques compatibles mises à jour. |
 | API-ACT-EXE-05 | Obtenir la destination de sortie | ID Exécution | État Catalogue | Filtres et position restaurés ; aucune recherche Catalogue dans le MVP (D-221). |
 
@@ -496,8 +496,8 @@ Les API fonctionnelles respectent les principes suivants :
 
 | ID | Opération | Entrées principales | Résultat | Règles / validations | Objets impactés |
 |---|---|---|---|---|---|
-| API-PHRASE-01 | Générer la phrase de synthèse | Paramètres courants de l’Exercice | Segments `{texte, gras}` ou tableau vide | Applique D-298 et [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres) à partir des paramètres et du résultat de calcul fourni (total et niveau d’incertitude) ; sans mode retourne un tableau vide. Ne recalcule aucune durée et ne persiste aucune phrase ni aucun segment, même en cache en base. | Exercice |
-| API-PARAM-01 | Valider les bornes des paramètres | Paramètres d’exécution | paramètres valides / erreur | Séries `1..99`; Répétitions `1..100`; durée par Série `5..3535 s`; pauses inter-Séries/inter-côtés `0..300 s`. Une valeur héritée hors bornes, non modifiée, est acceptée ; toute valeur saisie ou modifiée doit respecter ces bornes (D-383). | Exercice |
+| API-PHRASE-01 | Générer la phrase de synthèse | Paramètres courants de l’Exercice | Segments `{texte, gras}` ou tableau vide | Applique D-298 et [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres) à partir des paramètres et du résultat de calcul fourni (total et niveau d’incertitude) ; sans mode retourne un tableau vide. Mention de charge selon RM-240 ; côtés désignés côté 1 / côté 2 (RM-243). Ne recalcule aucune durée et ne persiste aucune phrase ni aucun segment, même en cache en base. | Exercice |
+| API-PARAM-01 | Valider les bornes des paramètres | Paramètres d’exécution | paramètres valides / erreur | Séries `1..99`; Répétitions `1..100`; durée par Série `5..3535 s`; pauses inter-Séries/inter-côtés `0..300 s`. Une valeur héritée hors bornes, non modifiée, est acceptée ; toute valeur saisie ou modifiée doit respecter ces bornes (D-383). Charge : RM-239 (D-405), hors de ces bornes. | Exercice |
 
 > **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248 et [Ordres d’exécution et pauses](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#ordres-dexécution-et-pauses) (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre 13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
 
@@ -507,4 +507,4 @@ Contenu identique à la section [« Saisie des paramètres d’exécution »](10
 
 #### Contrat transverse des paramètres v13
 
-Validation, calcul, duplication, insertion dans une Séance et instantané partagent la représentation de chapitre 08, paramètres d’exercice. Le tableau ordonné cible/Pause et l’état variable explicite sont copiés intégralement. Les API de Séance calculent To avec récupération explicite, sans ajouter R deux fois. Les API de lecture ne réécrivent pas les résultats historiques. Aucun champ caché de brouillon ne traverse la persistance.
+Validation, calcul, duplication, insertion dans une Séance et instantané partagent la représentation de chapitre 08, paramètres d’exercice. Le tableau ordonné cible/Pause/charge et l’état variable explicite sont copiés intégralement, avec l’activation de la charge (RM-236). Les API de Séance calculent To avec récupération explicite, sans ajouter R deux fois. Les API de lecture ne réécrivent pas les résultats historiques. Aucun champ caché de brouillon ne traverse la persistance ; les charges conservées sous Sans ne sont pas un champ caché de brouillon et sont persistées (RM-236, D-403).

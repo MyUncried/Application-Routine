@@ -84,15 +84,15 @@ Lorsqu’une nouvelle frame de premier niveau est ajoutée au `Prototype MVP`, e
 
 #### Mise à jour Bilatéralité — rectifiée
 
-Le contrôle Exercice porte le libellé `Changement de côté` et propose `Aucun`, `D→G`, `G→D`. Sa géométrie suit le Figma courant et le DSF actif. Aucun contrôle de changement de côté n’est exposé au niveau du Circuit.
+Le contrôle Exercice porte le libellé `Changement de côté` et propose `Avec` et `Sans` (D-406, RM-242) ; il ne propose plus de côté de départ anatomique. Sa géométrie suit le Figma courant et le DSF actif. Aucun contrôle de changement de côté n’est exposé au niveau du Circuit.
 
 Dans la Composition actuelle, aucun contrôle de changement de côté n’est affiché dans l’en-tête du Circuit. Le stepper `Nombre de tours` reste la seule commande numérique de ce groupe ; les anciennes références Figma de direction Tour sont historiques et ne constituent plus la cible active.
 
 Aucune confirmation d’activation bilatérale du Circuit n’est exposée dans la version actuelle. Le support technique historique du côté Tour reste conservé pour non-régression, fixé à `UNILATERAL` et non modifiable.
 
-Dans une carte d’Exercice, l’indicateur propre affiche `D→G` ou `G→D` lorsque l’Exercice est bilatéral ; il est absent avec `Aucun`. La phrase complète de l’éditeur suit [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres)/corpusv15 : cible, Pause, côtés puis total applicable. La carte de Composition utilise son indicateur compact distinct. Les références géométriques suivent le Figma courant.
+Dans une carte d’Exercice, l’indicateur propre signale le changement de côté lorsque l’Exercice est bilatéral, sans direction (D-407, RM-243) ; il est absent avec Sans. La phrase complète de l’éditeur suit [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres)/corpusv15 : cible, Pause, côtés puis total applicable. La carte de Composition utilise son indicateur compact distinct. Les références géométriques suivent le Figma courant.
 
-Dans la famille Exécution — séance ou exercice, un Exercice effectivement bilatéral affiche `Côté droit` ou `Côté gauche` sous son nom. Les indicateurs de progression gardent leur sémantique ; aucun compteur de côté n’est ajouté. Les frames d’Exécution existantes restent inchangées.
+Dans la famille Exécution — séance ou exercice, un Exercice effectivement bilatéral affiche `Côté 1` ou `Côté 2` sous son nom (D-407, RM-243). Les indicateurs de progression gardent leur sémantique ; aucun compteur de côté n’est ajouté. Écart Figma relevé le 18/10/2026 : les frames d’Exécution affichent encore `Côté droit` (calque « Côté courant — Côté droit ») ; elles ne sont pas modifiées par cette documentation. Lorsque la charge est active, l’Exécution affiche la charge de la série courante (RM-241) ; aucune frame ne l’illustre encore et son emplacement relève de Figma.
 
 ### Références transverses des cartes et appuis
 Décisions finales du propriétaire : les 17 points du 30/09 sont clos. Révision des cartes du 03/10/2026 (D-260 à D-264) : un seul format de carte d’Exercice, avec une gouttière permanente de 64 px dans le Catalogue et les listes de sélection d’exercices ; photo si média associé, icône de nature sinon. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Les Séances ne portent jamais de visuel. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi. Aucun déploiement d’Exercice ni de carte du Suivi ; le déploiement des Séances reste accessible dans le Catalogue et le Calendrier Semaine. Le Suivi présente deux lignes : nature/titre/statut, puis durée/catégorie/ressenti ; sans heure, zones corporelles ni étiquettes. Le Ressenti y est un indicateur sans action, distinct de sa saisie obligatoire en Synthèse. Les variantes déployées d’Exercice et du Suivi sont historiques, hors MVP. Pauses/récupérations et prochaine planification restent absentes des cartes concernées. Les données, instantanés, calculs et fonctions de planification sont conservés.
@@ -112,7 +112,7 @@ La règle vaut également :
 - à chaque Tour du Circuit ;
 - après le dernier Exercice de la Séance, avant la Fin de séance.
 
-Dans l’éditeur d’Exercice, le contrôle générique `Récupération` est remplacé par `Pause entre les côtés` et n’est exposé que lorsque `Changement de côté` vaut `D→G` ou `G→D`. La récupération après exercice ne figure ni dans l’éditeur ni dans la synthèse intrinsèque de l’Exercice.
+Dans l’éditeur d’Exercice, le contrôle générique `Récupération` est remplacé par `Pause entre les côtés` et n’est exposé que lorsque `Changement de côté` vaut `Avec` (D-406). La récupération après exercice ne figure ni dans l’éditeur ni dans la synthèse intrinsèque de l’Exercice.
 
 **Interaction Point d’arrêt (D-217).** L’action dédiée d’ajout affiche les positions autorisées dans la Composition ; l’utilisateur choisit la position et peut quitter ce mode via le snackbar d’annulation. Un appui long sur un Point d’arrêt existant ouvre une bulle de retrait ; un appui ailleurs referme la bulle sans modification. La Récupération après exercice reste exécutée mais n’est plus affichée sur la carte (D-238) ; le Point d’arrêt reste une action distincte.
 
@@ -558,9 +558,9 @@ Références courantes du 12/10, complétées le 13/10 :32 captures du parcours 
 
 #### Placement et contrôles
 
-Formulaire : conserver les shells et l’ordre visible dans les captures. Toute la zone de phrase ouvre la feuille. Feuille : en-tête fixe ✕ / Modalités d’exécution / ✓ ; corps défilant Mode → Séries (régime, chevron indépendant, nombre) → cible/Pause uniformes ou tableau variable → Changement de côté et Ordre/PC si applicables → Bip de cadence → Total applicable → Compte à rebours → Fin.
+Formulaire : conserver les shells et l’ordre visible dans les captures. Toute la zone de phrase ouvre la feuille. Feuille : en-tête fixe ✕ / Paramètres d’exécution / ✓ ; corps défilant en quatre cadres (D-413) : Exécution (Mode, Condition d’arrêt) → Séries (Nombre de séries, Type de série avec chevron intérieur à Variables, Durée ou Répétitions et Pause ou tableau de séries variables, Charge) → Côtés (Changement de côté, puis Enchainement et Pause entre les côtés lorsque déployés) → Cadence et durée (Cadence, Durée de l’exercice avec son chevron, puis Compte à rebours et Fin d’exercice lorsque déployés et applicables). Sans ligne Durée de l’exercice, Compte à rebours et Fin d’exercice sont directement visibles (RM-246).
 
-Le tableau variable comporte poignée, numéro, cellules cible/Pause et retrait ; une seule cellule active et un pied de réglage commun. Le régime identiques/variables, le mode et les choix de côtés utilisent les popovers représentés. Les roulettes Durée et Total restent des états intégrés. [DSF courant et mesures](../DSF-CIRCUITS-CONTROLES-2026-10-12.md). Les règles et bornes restent celles de v13 et de [Composition d'une séance — Circuits de tours et de séries](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#composition-dune-séance--circuits-de-tours-et-de-séries). Sous nombre hérité, nombre et total affichable sont en lecture seule ; aucun écran dédié identifié ne fixe encore l’emplacement de la mention discrète.
+Le tableau variable comporte poignée, numéro, cellules cible/Pause, colonne Charge lorsque la charge est active (RM-238) et retrait ; une seule cellule active ; fond blanc sans contour, lignes de 36 px, sans lignes de boutons +/− (D-413). Mode, Condition d’arrêt, Type de série, Charge, Changement de côté et Cadence sont des contrôles segmentés ; les popovers du 12/10 ne sont plus la présentation de ces lignes (D-413). Les roulettes Durée et Durée de l’exercice restent des états intégrés, avec voile et fenêtre de saisie ; la charge se saisit directement au clavier, le tableau restant visible au-dessus (RM-239). [DSF courant et mesures](../DSF-CIRCUITS-CONTROLES-2026-10-12.md), à lire avec sa mise à jour du 18/10/2026. Les règles et bornes restent celles de v13 et de [Composition d'une séance — Circuits de tours et de séries](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#composition-dune-séance--circuits-de-tours-et-de-séries). Sous nombre hérité, nombre et total affichable sont en lecture seule ; aucun écran dédié identifié ne fixe encore l’emplacement de la mention discrète.
 
 #### Formulaire — vues principales et résumé
 
@@ -602,131 +602,175 @@ Le tableau variable comporte poignée, numéro, cellules cible/Pause et retrait 
 
 #### Feuille Modalités d’exécution — états intégrés
 
-Ces 19 frames sont des états de CE-UI-10, pas 19 pages applicatives. Quatre références ont été recapturées et le cas mixte ajouté selon la matrice du 13/10.
+Ces 20 frames sont des états de CE-UI-10, pas 20 pages applicatives. Relevé et export du 18/10/2026 dans Prototype MVP (spécification v3.0, D-403 à D-413) ; ils remplacent les captures du 12/10 et du 13/10, qui restent dans le dépôt comme références historiques. Les frames `8328:38301`, `8328:38953`, `8328:39181` et `8328:39390` n’existent plus. Toutes les frames montrent aussi la ligne Phases de l’exercice : elle relève de la proposition en cours sur les phases d’exercice (D-370 à D-375 réservés) et n’est pas décrite par ce chapitre. Les valeurs affichées sont illustratives. Sur toutes les frames, « À la cible » est affiché sans accent (« A la cible ») : le libellé décidé est « À la cible » (D-411).
 
-##### Création exercice — Paramètres (modale) — Champs vides
+##### Création activité — Paramètres (modale) — Champs vides
 
 [Source Figma — `8328:36923`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36923)
 
-![Création exercice — Paramètres (modale) — Champs vides](images/circuits-2026-10-12/8328-36923.png)
+![Création activité — Paramètres (modale) — Champs vides](images/parametres-2026-10-18/8328-36923.png)
 
-##### Création exercice — Paramètres (modale) — Mode d’exécution (popover)
+Valider désactivé ; Durée de l’exercice affichée avec « — » (D-384, D-396).
+
+##### Création activité — Paramètres (modale) — Mode d’exécution (sélection segmentée)
 
 [Source Figma — `8328:37092`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-37092)
 
-![Création exercice — Paramètres (modale) — Mode d’exécution (popover)](images/echec-2026-10-13/8328-37092.png)
+![Création activité — Paramètres (modale) — Mode d’exécution (sélection segmentée)](images/parametres-2026-10-18/8328-37092.png)
 
-##### Création exercice — Paramètres (modale) — Série en durée
+Mode en contrôle segmenté ; Durée d’une série et Durée de l’exercice à « — ». Écart Figma : Valider y apparaît actif alors qu’une cible manque (D-337).
+
+##### Création activité — Paramètres (modale) — Série en durée
 
 [Source Figma — `8328:37760`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-37760)
 
-![Création exercice — Paramètres (modale) — Série en durée](images/circuits-2026-10-12/8328-37760.png)
+![Création activité — Paramètres (modale) — Série en durée](images/parametres-2026-10-18/8328-37760.png)
 
-##### Création exercice — Paramètres (modale) — Durée d’une série (roulette)
+Séries identiques en mode Durée ; signaux repliés sous Durée de l’exercice.
+
+##### Création activité — Paramètres (modale) — Durée d’une série (roulette)
 
 [Source Figma — `8328:37862`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-37862)
 
-![Création exercice — Paramètres (modale) — Durée d’une série (roulette)](images/echec-2026-10-13/8328-37862.png)
+![Création activité — Paramètres (modale) — Durée d’une série (roulette)](images/parametres-2026-10-18/8328-37862.png)
 
-##### Création exercice — Paramètres (modale) — Changement de côté (popover)
+Roulette de durée commune, durée numérique seule, sans option À l’échec (RM-250).
 
-[Source Figma — `8328:37972`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-37972)
-
-![Création exercice — Paramètres (modale) — Changement de côté (popover)](images/circuits-2026-10-12/8328-37972.png)
-
-##### Création exercice — Paramètres (modale) — Durée totale (roulette)
+##### Création activité — Paramètres (modale) — Durée totale (roulette)
 
 [Source Figma — `8328:38084`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38084)
 
-![Création exercice — Paramètres (modale) — Durée totale (roulette)](images/circuits-2026-10-12/8328-38084.png)
+![Création activité — Paramètres (modale) — Durée totale (roulette)](images/parametres-2026-10-18/8328-38084.png)
 
-##### Création exercice — Paramètres (modale) — Un côté après l’autre
+Roulette de la ligne Durée de l’exercice ; 5 min 30 s est une valeur illustrative, pas une règle (le nom de frame garde l’ancien libellé).
+
+##### Création activité — Paramètres (modale) — Changement de côté Replié
+
+[Source Figma — `8328:37972`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-37972)
+
+![Création activité — Paramètres (modale) — Changement de côté Replié](images/parametres-2026-10-18/8328-37972.png)
+
+Avec sélectionné, chevron intérieur vers le bas, Enchainement et Pause entre les côtés repliés (RM-242, RM-247).
+
+##### Création activité — Paramètres (modale) — Changement de côté déployé
 
 [Source Figma — `8328:38193`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38193)
 
-![Création exercice — Paramètres (modale) — Un côté après l’autre](images/circuits-2026-10-12/8328-38193.png)
+![Création activité — Paramètres (modale) — Changement de côté déployé](images/parametres-2026-10-18/8328-38193.png)
 
-##### Création exercice — Paramètres (modale) — Les deux côtés à chaque série
+Avec déployé : Enchainement (deux stratégies, notation Figma à flèches conservée, RM-243) et Pause entre les côtés.
 
-[Source Figma — `8328:38301`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38301)
-
-![Création exercice — Paramètres (modale) — Les deux côtés à chaque série](images/circuits-2026-10-12/8328-38301.png)
-
-##### Création exercice — Paramètres (modale) — Durée totale ajustée (message)
+##### Création activité — Paramètres (modale) — Durée totale ajustée (message)
 
 [Source Figma — `8328:38409`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38409)
 
-![Création exercice — Paramètres (modale) — Durée totale ajustée (message)](images/circuits-2026-10-12/8328-38409.png)
+![Création activité — Paramètres (modale) — Durée totale ajustée (message)](images/parametres-2026-10-18/8328-38409.png)
 
-##### Création exercice — Paramètres (modale) — Mode d’exécution (popover) — séries variables
+Message d’ajustement de la durée (D-340) ; le nom de frame garde l’ancien libellé de la ligne.
+
+##### Création activité — Paramètres (modale) — Mode d’exécution (sélection segmentée) — séries variables
 
 [Source Figma — `8328:38513`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38513)
 
-![Création exercice — Paramètres (modale) — Mode d’exécution (popover) — séries variables](images/echec-2026-10-13/8328-38513.png)
+![Création activité — Paramètres (modale) — Mode d’exécution (sélection segmentée) — séries variables](images/parametres-2026-10-18/8328-38513.png)
 
-##### Création exercice — Paramètres (modale) — Séries variables en durée
+Mode segmenté au-dessus d’un tableau de séries variables.
+
+##### Création activité — Paramètres (modale) — Séries variables en Répétition Avec Cadence
 
 [Source Figma — `8328:38632`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38632)
 
-![Création exercice — Paramètres (modale) — Séries variables en durée](images/circuits-2026-10-12/8328-38632.png)
+![Création activité — Paramètres (modale) — Séries variables en Répétition Avec Cadence](images/parametres-2026-10-18/8328-38632.png)
 
-##### Création exercice — Paramètres (modale) — Séries variables en répétitions
+Répétitions, cadence 1 s ; Condition d’arrêt déterminée automatiquement (RM-249).
+
+##### Création activité — Paramètres (modale) — Séries variables en répétitions Sans Cadence
 
 [Source Figma — `8328:38741`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38741)
 
-![Création exercice — Paramètres (modale) — Séries variables en répétitions](images/circuits-2026-10-12/8328-38741.png)
+![Création activité — Paramètres (modale) — Séries variables en répétitions Sans Cadence](images/parametres-2026-10-18/8328-38741.png)
 
-##### Création exercice — Paramètres (modale) — Séries variables à l’échec
+Répétitions sans cadence : aucune ligne Durée de l’exercice (D-397) ; Compte à rebours et Fin d’exercice directement visibles (RM-246).
+
+##### Création activité — Paramètres (modale) — Séries variables (tableau replié)
 
 [Source Figma — `8328:38848`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38848)
 
-![Création exercice — Paramètres (modale) — Séries variables à l’échec](images/echec-2026-10-13/8328-38848.png)
+![Création activité — Paramètres (modale) — Séries variables (tableau replié)](images/parametres-2026-10-18/8328-38848.png)
 
-Cette capture reflète le layout actuel. Le texte de fond énumérant les pauses variables reste un écart rédactionnel avec [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres) ; voir la matrice Deux modes.
+Chevron intérieur à Variables vers le bas, tableau replié sans perte (RM-247) ; Condition d’arrêt À la cible déterminée automatiquement.
 
-##### Modalités d’exécution — Séries variables, cas mixte
+##### Création activité — Paramètres (modale) — Séries variables, cas mixte
 
 [Source Figma — `8470:13303`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8470-13303)
 
-![Modalités d’exécution — Séries variables, cas mixte](images/echec-2026-10-13/8470-13303.png)
+![Création activité — Paramètres (modale) — Séries variables, cas mixte](images/parametres-2026-10-18/8470-13303.png)
 
-État de CE-UI-10 : mode Durée, cibles30 s/45 s/échec, pauses10 s/20 s/30 s et total partiel ≥2 min 15, non modifiable. La cible échec conserve sa colonne ; le mode n’est pas « À l’échec ». [DSF et anatomie du sélecteur](../DSF-DEUX-MODES-ECHEC-2026-10-13.md) ; [matrice de traçabilité](../MATRICE-DEUX-MODES-ECHEC-2026-10-13.md).
+Résultat unique de la Condition d’arrêt pour un mélange de cibles (RM-249) ; total partiel ≥ 2 min 15 s. Écart Figma : le texte affiché est « A la cible età l’échec » ; le libellé décidé est « À la cible et à l’échec ».
 
-##### Création exercice — Paramètres (modale) — Ordre des côtés (popover)
+##### Création activité — Paramètres (modale) — Durée d’une phase (roulette)
 
-[Source Figma — `8328:38953`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38953)
+[Source Figma — `9232:44646`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9232-44646)
 
-![Création exercice — Paramètres (modale) — Ordre des côtés (popover)](images/circuits-2026-10-12/8328-38953.png)
+![Création activité — Paramètres (modale) — Durée d’une phase (roulette)](images/parametres-2026-10-18/9232-44646.png)
 
-##### Création exercice — Paramètres (modale) — Une seule série
+Roulette ouverte depuis une cellule de séries variables en mode Durée, avec l’option « Aucune durée, à l’échec » (RM-250). Malgré son nom, cette frame n’illustre pas une roulette de phase : les phases y sont à Sans ; le contrat de phase n’en est pas déduit.
+
+##### Création activité — Paramètres (modale) — Une seule série
 
 [Source Figma — `8328:39072`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-39072)
 
-![Création exercice — Paramètres (modale) — Une seule série](images/circuits-2026-10-12/8328-39072.png)
+![Création activité — Paramètres (modale) — Une seule série](images/parametres-2026-10-18/8328-39072.png)
 
-##### Création exercice — Paramètres (modale) — Séries variables (tableau replié)
+Une seule série, Sans sélectionné. Écart à confronter : Avec y est désactivé, alors que les règles existantes n’interdisent pas le changement de côté à N = 1 (RM-242, D-250) ; l’état n’est pas généralisé.
 
-[Source Figma — `8328:39181`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-39181)
-
-![Création exercice — Paramètres (modale) — Séries variables (tableau replié)](images/circuits-2026-10-12/8328-39181.png)
-
-##### Création exercice — Paramètres (modale) — Séries variables (déplacement)
+##### Création activité — Paramètres (modale) — Séries variables (déplacement)
 
 [Source Figma — `8328:39279`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-39279)
 
-![Création exercice — Paramètres (modale) — Séries variables (déplacement)](images/circuits-2026-10-12/8328-39279.png)
+![Création activité — Paramètres (modale) — Séries variables (déplacement)](images/parametres-2026-10-18/8328-39279.png)
 
-##### Création exercice — Paramètres (modale) — Mode des séries (popover)
+Déplacement d’une ligne : cible, Pause et charge éventuelle suivent la série (D-249, RM-238).
 
-[Source Figma — `8328:39390`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-39390)
+##### Création activité — Paramètres (modale) — Charge
 
-![Création exercice — Paramètres (modale) — Mode des séries (popover)](images/circuits-2026-10-12/8328-39390.png)
+[Source Figma — `9289:17849`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9289-17849)
+
+![Création activité — Paramètres (modale) — Charge](images/parametres-2026-10-18/9289-17849.png)
+
+Charge commune de séries identiques : « 20 kg » à la place d’Avec, Sans à droite (RM-237). L’état de saisie lui-même n’est pas dessiné.
+
+##### Création activité — Paramètres (modale) — Séries variables avec charge
+
+[Source Figma — `9290:17953`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9290-17953)
+
+![Création activité — Paramètres (modale) — Séries variables avec charge](images/parametres-2026-10-18/9290-17953.png)
+
+Colonnes Durée, Pause, Charge (20, 25, 30 kg illustratifs) ; ligne Charge Avec / Sans sous le tableau (RM-238).
+
+##### Création activité — Paramètres (modale) — Séries variables avec charge — Clavier numérique
+
+[Source Figma — `9292:18077`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9292-18077)
+
+![Création activité — Paramètres (modale) — Séries variables avec charge — Clavier numérique](images/parametres-2026-10-18/9292-18077.png)
+
+Saisie directe au clavier, tableau visible au-dessus (RM-239, D-413). Écarts Figma : le clavier illustré n’a pas de séparateur décimal ; la cellule mise en évidence est la Durée de la série 1, pas une cellule Charge. La ligne Charge Avec / Sans est volontairement absente de cet état ; le réglage reste disponible hors saisie.
+
+##### Création activité — Paramètres (modale) — Série en durée — Durée de l’exercice déployée
+
+[Source Figma — `9307:18208`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9307-18208)
+
+![Création activité — Paramètres (modale) — Série en durée — Durée de l’exercice déployée](images/parametres-2026-10-18/9307-18208.png)
+
+Seul exemple déployé : chevron vers le haut, Compte à rebours et Fin d’exercice visibles (RM-246).
 
 #### Couverture et limites
 
 Les états hérités (N et total non modifiables), validation incomplète, douze séries avec défilement, phrase longue et plusieurs résumés spécialisés ne disposent pas d’une nouvelle frame identifiée dans ce relevé. Leurs règles restent requises. Les anciennes captures ne sont pas présentées comme des preuves actuelles de ces états. L’écran Modifier un exercice `4734:6342` et la modification de séance `5271:5455` sont hors réexport de ce lot ; leurs contrats restent applicables.
 
 Le corpus de phrases et les spécifications déterminent les textes dynamiques, le gras et les calculs ; les valeurs derrière les voiles ne sont pas des recettes. Les captures sont des exports sans retouche.
+
+Références visuelles manquantes au 18/10/2026 (spécification v3.0) : état de saisie de la charge en séries identiques ; affichage de la charge pendant l’Exécution ; clavier décimal (le clavier illustré n’a pas de séparateur). Les états Avec et Sans de la charge, du changement de côté et de la Durée de l’exercice sont illustrés par les frames ci-dessus. Les liens de prototype retirés dans Figma n’abolissent aucune navigation de l’application.
 
 ### Calendrier
 
@@ -1643,7 +1687,7 @@ Ces insets sont des règles de composition du contenu et ne doivent pas être re
 | Splash | Logo et textes sont centrés dans la zone sûre ; le logo conserve ses proportions et ne doit jamais être étiré. Aucun défilement n’est prévu. |
 | Catalogue, Calendrier, Suivi, Profil | En-tête et navigation basse fixes ; seule la zone centrale défile. Les listes conservent un espace final d’au moins `16` points avant la séparation ou la navigation, en plus de l’inset inférieur applicable. |
 | Composition, Exercice, Planification | En-tête et action finale fixes ; le formulaire central défile. Avec le clavier ouvert, l’action reste atteignable sans recouvrir le champ actif. |
-| Exercice | Aucun contrôle de type n’est affiché. Les accès `Catégorie` et `Zones corporelles`, le `Mode d’exécution` et la zone Média suivent le Figma courant. L’import/ajout de médias est actif au MVP dans PRE-3 (D-333) ; les états système et règles d’import non représentés restent à clarifier. Le popover de mode propose Durée et Répétitions ; À l’échec se sélectionne dans la cible de chaque Série. Le résumé et la feuille de paramètres suivent D-247 à D-255, [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice) et CE-T03-04/CE-UI-10 ; aucune ancienne double rangée fixe de synthèse. L’action `Terminer` reste accessible avec le clavier et le texte agrandi. |
+| Exercice | Aucun contrôle de type n’est affiché. Les accès `Catégorie` et `Zones corporelles`, le `Mode d’exécution` et la zone Média suivent le Figma courant. L’import/ajout de médias est actif au MVP dans PRE-3 (D-333) ; les états système et règles d’import non représentés restent à clarifier. Le contrôle segmenté Mode propose Répétitions et Durée (D-413) ; À l’échec se règle par la Condition d’arrêt en séries identiques et dans la cible de chaque série en séries variables (RM-248 à RM-250). Le résumé et la feuille de paramètres suivent D-247 à D-255, [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice) et CE-T03-04/CE-UI-10 ; aucune ancienne double rangée fixe de synthèse. L’action `Terminer` reste accessible avec le clavier et le texte agrandi. |
 | Planification | Rappel par interrupteur, options égales ; récapitulatif protégé et pied fixe. Voir CE-UI-05 et spécification 08/10. |
 | Calendrier Semaine | La barre des jours reste lisible sur la largeur compacte ; les sept jours se répartissent la largeur disponible sans défilement horizontal. La liste journalière défile verticalement, utilise `8` points entre ses cartes et s’arrête `16` points avant la séparation de navigation. |
 | Calendrier Mois | Les sept colonnes se répartissent la largeur disponible ; une cellule peut grandir verticalement mais ne défile pas horizontalement. |
@@ -1854,7 +1898,7 @@ Si l'on veut guider la lecture : coloriser une colonne sur deux, ou une ligne su
 | trois séries identiques, durée | `3 × 45 s` | inchangé |
 | trois séries variables, répétitions | **`10 · 12 · 14 rép.`** | **nouveau** — remplaçait « 3 séries variables » |
 | trois séries, durée composée | `3 × 1 min 30` | inchangé |
-| bilatéral | `3 × 10 rép.` + pastille `D→G` | inchangé |
+| bilatéral | `3 × 10 rép.` + pastille de changement de côté, sans direction (D-407) | inchangé |
 | à l'échec | `3 séries à l'échec` | inchangé |
 | douze séries variables | **`10 · 12 · … rép.`** | **nouveau** — remplaçait « 12 séries variables » |
 
@@ -1937,7 +1981,7 @@ Le cas d'application est l'en-tête de circuit : « 3 **tours** », où seul le 
 
 #### Interface et steppers
 
-Bip au premier niveau x36 sur référence 402, séparateur 330px ; juste avant Durée totale, ou à sa position lorsque le total est omis, avant Compte à rebours/Fin. Les sous-lignes Séries variables/cible/Pause et Ordre/PC restent indentées x52, séparateurs 314px. La feuille se raccourcit de 42px par le haut lorsque le total disparaît, en restant ancrée en bas ; texte agrandi et petits écrans : contenu défilant, aucun rognage.
+Placement remplacé le 18/10/2026 par D-413 : la ligne Cadence (Autre | 5 s | 2 s | 1 s | Sans, RM-245) ouvre le cadre Cadence et durée, avant Durée de l’exercice ; sans ligne de durée, Compte à rebours et Fin d’exercice suivent directement (RM-246) ; la feuille s’adapte au contenu visible, sans hauteur vide. Texte d’origine : « Bip au premier niveau x36 sur référence 402, séparateur 330px ; juste avant Durée totale, ou à sa position lorsque le total est omis, avant Compte à rebours/Fin. Les sous-lignes Séries variables/cible/Pause et Ordre/PC restent indentées x52, séparateurs 314px. La feuille se raccourcit de 42px par le haut lorsque le total disparaît, en restant ancrée en bas ; texte agrandi et petits écrans : contenu défilant, aucun rognage. » Le comportement des steppers ci-dessous reste applicable, notamment au stepper de la cadence personnalisée (Autre).
 
 Step simple=1 unité. Maintien après environ 500 ms : répétition au pas1 ; après 2 s : pas5 vers le prochain multiple dans le sens du geste ; après 4 s : pas10 de même. Relâchement arrête immédiatement et rétablit le pas1, sans pas supplémentaire de fin de maintien. Cadence de répétition technique existante 150 ms conservée tant que le produit ne la révise pas. Exemple+ depuis 13→15→20 ; − depuis 13→10→5. Bornes saturées, pas de dépassement ni rebouclage.
 

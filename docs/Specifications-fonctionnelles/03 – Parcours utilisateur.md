@@ -172,15 +172,16 @@ Dans T03/MVP, le segment `Parcours` est supprimé : aucune troisième option, m�
 2. Renseigner le nom de l’Exercice.
 3. Sélectionner sa **Catégorie** et au moins une **Zone corporelle** (D-211).
 4. Définir les paramètres d’exécution :
-   - mode `Durée` ou `Répétitions`, chaque Série pouvant avoir une cible `À l’échec` (D-111) ;
+   - mode `Durée` ou `Répétitions`, chaque Série pouvant avoir une cible `À l’échec` (D-111) ; la ligne `Condition d’arrêt` règle ce choix en séries identiques et le présente comme résultat en séries variables (RM-248, RM-249) ;
    - cible du mode lorsqu’elle existe ;
    - nombre de Séries ;
    - Pause après chaque série ;
-   - `Changement de côté` : `Aucun`, `D→G` ou `G→D` ;
-   - Pause entre les côtés, uniquement en `D→G` ou `G→D` ;
+   - `Charge` facultative : `Avec` ou `Sans` (RM-237, RM-238) ;
+   - `Changement de côté` : `Avec` ou `Sans` (D-406) ;
+   - `Enchainement` et Pause entre les côtés, uniquement avec changement de côté (`Avec`) ;
    - Compte à rebours propre de l’Exercice lorsqu’il est utilisé ;
    - Fin d’exercice propre lorsqu’elle est utilisée ;
-   - Durée totale dérivée ou pilotée selon le mode.
+   - Durée totale dérivée ou pilotée selon le mode, présentée sur la ligne `Durée de l’exercice` (D-409).
 5. Ajouter ou consulter le média selon le périmètre disponible.
 6. Valider avec `Terminer`.
 
@@ -212,11 +213,11 @@ L’utilisateur démarre une Série sans objectif temporel ni nombre de répéti
 
 #### Parcours bilatéral
 
-1. Dans l’éditeur d’Exercice, `Changement de côté` propose `Aucun`, `D→G` ou `G→D`.
+1. Dans l’éditeur d’Exercice, `Changement de côté` propose `Avec` ou `Sans` ; l’utilisateur choisit lui-même le côté par lequel il commence (D-406, RM-242). `Avec` rend disponibles `Enchainement` et `Pause entre les côtés`.
 2. Aucun réglage de côté n’est exposé au niveau du Circuit dans la version actuelle ; le support technique historique est conservé mais reste fixé à `UNILATERAL` et non modifiable.
-3. Une carte d’Exercice affiche sa direction propre `D→G` ou `G→D` lorsqu’elle est bilatérale ; elle n’affiche rien avec `Aucun`.
-4. À l’Exécution, `Côté droit` ou `Côté gauche` apparaît pour le passage concerné, sans compteur `1/2` ou `2/2`.
-5. Un Exercice bilatéral exécute ses Séries selon l’Ordre des côtés : toutes ses Séries du premier côté puis toutes celles du second (défaut), ou les deux côtés à chaque série (D-247).
+3. Une carte d’Exercice bilatéral affiche un indicateur de changement de côté, sans direction, rendu selon Figma (D-407, RM-243) ; elle n’affiche rien sans changement de côté.
+4. À l’Exécution, `Côté 1` ou `Côté 2` apparaît pour le passage concerné, sans compteur `1/2` ou `2/2` (RM-243).
+5. Un Exercice bilatéral exécute ses Séries selon l’Ordre des côtés (libellé visible `Enchainement`) : toutes ses Séries du premier côté puis toutes celles du second (défaut), ou les deux côtés à chaque série (D-247).
 6. La modale générique de passage à l’Exercice suivant reste inchangée. Confirmée pendant le premier côté, elle enregistre ce côté comme partiel et ouvre le second côté ; confirmée pendant le second, elle poursuit le Plan d’Exécution.
 
 #### Exécuter directement un Exercice — MVP T03
@@ -264,7 +265,7 @@ Depuis la Composition d’une Séance, `Ajouter un exercice` ouvre directement l
 
 ### Paramètres d’exécution — complément
 
-Le parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série. La direction et l’Ordre des côtés sont indépendants. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice), CE-T03-04 et CE-UI-10.
+Le parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série, ainsi qu’une charge par Série lorsque la charge est activée (RM-238). Le `Changement de côté` se règle sur `Avec` ou `Sans`, sans désignation du côté de départ (D-406) ; l’Ordre des côtés, libellé visible `Enchainement`, reste un choix distinct. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice), CE-T03-04 et CE-UI-10.
 
 ## Composition des séances
 
@@ -292,9 +293,9 @@ L'utilisateur crée une nouvelle séance depuis le Catalogue.
 
 Dans l’écran unique `Composer une séance`, il renseigne son nom, sélectionne éventuellement son Étiquette — dont la couleur devient la couleur affichée de la Séance — puis construit progressivement la Composition. La Composition peut contenir un Point d’arrêt déplaçable ; son attente ne compte pas dans la durée. Un Exercice peut définir son propre Compte à rebours et sa propre Fin d’exercice, distincts des phases structurelles de la Séance. Les Exercices peuvent être placées avant le Circuit, dans le Circuit ou après le Circuit. Le premier Exercice ajouté est inséré après le Compte à rebours initial et avant le Circuit. Le Cycle technique reste fixé à 1 et n’est jamais affiché.
 
-Pour chaque Exercice, un écran unique permet de renseigner le nom, la Catégorie, les Zones corporelles, le mode Durée ou Répétitions, avec cible chiffrée ou À l’échec par série, la cible éventuelle, le nombre de Séries, la Pause après chaque série, le Changement de côté, la **Pause entre les côtés** lorsque l’Exercice est bilatéral, le Compte à rebours propre et la Fin d’exercice propre. La Description reste facultative. L’action `Terminer` enregistre l’Exercice.
+Pour chaque Exercice, un écran unique permet de renseigner le nom, la Catégorie, les Zones corporelles, le mode Durée ou Répétitions, avec cible chiffrée ou À l’échec par série, la cible éventuelle, le nombre de Séries, la Pause après chaque série, la Charge facultative (RM-235 à RM-241), le Changement de côté (`Avec` / `Sans`, D-406), la **Pause entre les côtés** lorsque l’Exercice est bilatéral, le Compte à rebours propre et la Fin d’exercice propre. La Description reste facultative. L’action `Terminer` enregistre l’Exercice.
 
-En mode Durée, l’utilisateur peut confirmer soit `Séries`, soit `Durée totale`. Le contrôle confirmé devient pilote ; l’autre est recalculé. Après saisie d'une Durée totale cible `Tv`, l’application arrondit au nombre entier de Séries le plus proche, avec `.5` vers le haut, puis recalcule `T(N)`. Si `T(N) ≠ Tv`, elle affiche temporairement « Durée ajustée à {T(N)} pour respecter un nombre entier de Séries. » ; si `T(N) = Tv`, elle n'affiche pas ce message.
+En mode Durée, l’utilisateur peut confirmer soit `Nombre de séries`, soit `Durée de l’exercice` (libellés D-413 et D-409). Le contrôle confirmé devient pilote ; l’autre est recalculé. Après saisie d'une Durée totale cible `Tv`, l’application arrondit au nombre entier de Séries le plus proche, avec `.5` vers le haut, puis recalcule `T(N)`. Si `T(N) ≠ Tv`, elle affiche temporairement « Durée ajustée à {T(N)} pour respecter un nombre entier de Séries. » ; si `T(N) = Tv`, elle n'affiche pas ce message.
 
 `Continuer` reste désactivé tant que le nom n’est pas renseigné, qu’aucun Exercice valide n’est présent ou qu’un Exercice comporte une cible obligatoire non renseignée (D-380, D-123). L’Étiquette éventuelle est déjà gérée dans la Composition ; `Continuer` valide et enregistre la Séance avec sa Composition et son Étiquette.
 ##### Réorganiser une séance
@@ -557,11 +558,11 @@ Le MVP ne comporte aucune recherche globale ni recherche locale dans les Catalog
 
 #### Paramètres d’exécution — complément
 
-Le parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série. La direction et l’Ordre des côtés sont indépendants. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice), CE-T03-04 et CE-UI-10.
+Le parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série, ainsi qu’une charge par Série lorsque la charge est activée (RM-238). Le `Changement de côté` se règle sur `Avec` ou `Sans`, sans désignation du côté de départ (D-406) ; l’Ordre des côtés, libellé visible `Enchainement`, reste un choix distinct. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice), CE-T03-04 et CE-UI-10.
 
 #### Parcours Répétitions avec cadence
 
-Dans créer/modifier un Exercice, ouvrir la zone Paramètres, choisir Répétitions puis renseigner éventuellement Cadence. Aucune reste valide ; suppression remet l’absence. En Séries variables, le réglage commun s’applique à toutes les lignes. ✓ actualise le parent et sa phrase ; ✕ annule ; Terminer enregistre.
+Dans créer/modifier un Exercice, ouvrir la zone Paramètres, choisir Répétitions puis régler éventuellement la ligne `Cadence` : `5 s`, `2 s` ou `1 s` fixent directement l’intervalle, `Autre` permet une autre valeur et `Sans`, qui reste valide, correspond à l’absence de cadence (D-408, RM-245). En Séries variables, le réglage commun s’applique à toutes les lignes. ✓ actualise le parent et sa phrase ; ✕ annule ; Terminer enregistre.
 
 En direct comme en Séance, la première répétition commence immédiatement, puis les signaux rythment les intervalles. Le signal final nominal ne change pas de Série ; Suivant le fait normalement. Pause abandonne l’intervalle incomplet pour la progression et Reprendre lance un intervalle complet ; le temps actif est conservé. Réinitialiser suit le périmètre existant. La Synthèse restitue le temps réellement passé sans demander de compte de répétitions. Le Profil n’ajoute aucun réglage Cadence.
 

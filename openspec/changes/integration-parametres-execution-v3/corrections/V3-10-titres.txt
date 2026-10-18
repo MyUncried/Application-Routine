@@ -1,0 +1,25 @@
+# Titres des sections ajoutées : « Évolution » se lit comme une portée hors MVP (contrôle C5) ; ces règles s'appliquent à la feuille courante.
+
+=== V3-T-001 | @07 – Registre des décisions de conception.md | CORRECTION-DECIDEE:D-403 | titre de section
+--- ancien
+## Évolution des paramètres d’exécution — décisions du 18 octobre 2026
+--- nouveau
+## Paramètres d’exécution — décisions du 18 octobre 2026
+
+=== V3-T-002 | @07 – Registre des décisions de conception.md | CORRECTION-DECIDEE:D-403 | lien vers le chapitre 10
+--- ancien
+- Les règles détaillées sont au chapitre 10, [Évolution des paramètres d’exécution du 18/10/2026](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#évolution-des-paramètres-dexécution-du-18102026), RM-235 à RM-250 ; l’effet à l’écran est au contrat CE-UI-10.
+--- nouveau
+- Les règles détaillées sont au chapitre 10, [Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026), RM-235 à RM-250 ; l’effet à l’écran est au contrat CE-UI-10.
+
+=== V3-T-003 | @10 – Processus métier et règles métier transverses.md | CORRECTION-DECIDEE:D-403 | sommaire
+--- ancien
+  - [Évolution des paramètres d’exécution du 18/10/2026](#évolution-des-paramètres-dexécution-du-18102026)
+--- nouveau
+  - [Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026](#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026)
+
+=== V3-T-004 | @10 – Processus métier et règles métier transverses.md | CORRECTION-DECIDEE:D-403 | titre de section
+--- ancien
+### Évolution des paramètres d’exécution du 18/10/2026
+--- nouveau
+### Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026

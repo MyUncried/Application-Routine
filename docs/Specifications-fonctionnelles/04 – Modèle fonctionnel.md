@@ -152,7 +152,7 @@ Un **Exercice** représente un Exercice élémentaire défini par l’utilisateu
 
 Un Exercice possède un nombre de **Séries** propre, entier et supérieur ou égal à 1.
 
-Une Série est une réalisation de l’Exercice selon son mode unique. Elle porte une cible éventuelle et une Pause, terminale comprise. En variable, ces paramètres sont propres à chaque ligne ordonnée ; en uniforme ils sont communs. La Série n’est ni un conteneur de Séance ni une entité autonome.
+Une Série est une réalisation de l’Exercice selon son mode unique. Elle porte une cible éventuelle et une Pause, terminale comprise, ainsi qu’une charge lorsque la charge est activée (RM-237, RM-238). En variable, ces paramètres sont propres à chaque ligne ordonnée ; en uniforme ils sont communs. La Série n’est ni un conteneur de Séance ni une entité autonome.
 
 Chaque Exercice possède notamment :
 - un nom ;
@@ -162,15 +162,16 @@ Chaque Exercice possède notamment :
 - une durée cible, un nombre de répétitions cible ou aucune cible chiffrée pour une cible À l’échec ;
 - un nombre de Séries ;
 - une Pause facultative après chaque Série, dernière comprise (D-248) ;
-- une `sideRecoverySeconds` facultative, pertinente uniquement pour `D→G` ou `G→D`, exécutée selon l’Ordre des côtés (une fois par Exercice ou une fois par Série) ;
-- un Changement de côté propre : `Aucun`, `D→G` ou `G→D` ;
+- une Charge facultative et informative, en kilogrammes, commune aux Séries identiques ou propre à chaque Série variable, dont l’activation (`Avec` / `Sans`) est distincte des valeurs conservées (D-403 ; RM-235 à RM-241) ;
+- une `sideRecoverySeconds` facultative, pertinente uniquement avec changement de côté (`Avec`), exécutée selon l’Ordre des côtés (une fois par Exercice ou une fois par Série) ;
+- un Changement de côté propre : `Avec` ou `Sans`, sans désignation du côté de départ (D-406, RM-242) ;
 - un Compte à rebours d’Exercice facultatif ;
 - une Fin d’exercice facultative ;
 - une Durée totale calculée ou estimée ;
 - une consigne facultative ;
 - un média associé est affiché dans la gouttière permanente de la carte du Catalogue dans le MVP, sans déploiement ; l’import/ajout local et les associations ordonnées sont inclus dans PRE-3 au MVP (D-333), sans activation implicite de la caméra.
 
-La Pause et la Pause entre les côtés sont indépendantes. Avec `Aucun`, `sideRecoverySeconds` est sans objet. En bilatéral, l’ordre est : successions définies par l’Ordre des côtés (chapitre 08, paramètres d’exercice).
+La Pause et la Pause entre les côtés sont indépendantes. Lorsque le Changement de côté vaut `Sans`, `sideRecoverySeconds` est sans objet. En bilatéral, l’ordre est : successions définies par l’Ordre des côtés (chapitre 08, paramètres d’exercice).
 
 *Texte identique à celui de la section [« Périmètre fonctionnel du MVP — Création et composition »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#périmètre-fonctionnel-du-mvp--création-et-composition) ; il n’est pas recopié ici.*
 
@@ -178,7 +179,7 @@ La Pause et la Pause entre les côtés sont indépendantes. Avec `Aucun`, `sideR
 
 Dans le MVP T03, une **Exercice de référence** (`ActivityDefinition`) est une définition persistante autonome du Catalogue des exercices. Son cycle de vie comprend création, consultation/modification, archivage, restauration et suppression définitive depuis les archives. Elle peut être exécutée directement lorsqu’elle est valide.
 
-Une **Exercice de Séance** (`SessionActivity`) est une copie indépendante placée avant, dans ou après le Circuit d’une Séance. L’insertion depuis le Catalogue copie les propriétés intrinsèques applicables de la référence au moment de l’insertion, notamment nom, Description, mode/cible, Séries, Pause, `sideRecoverySeconds`, Zones corporelles et direction propre. Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). La copie devient ensuite indépendante : modifier, archiver ou supprimer la source ne modifie jamais la copie, et inversement.
+Une **Exercice de Séance** (`SessionActivity`) est une copie indépendante placée avant, dans ou après le Circuit d’une Séance. L’insertion depuis le Catalogue copie les propriétés intrinsèques applicables de la référence au moment de l’insertion, notamment nom, Description, mode/cible, Séries, Pause, `sideRecoverySeconds`, charge avec son activation et ses valeurs conservées (RM-236), Zones corporelles et Changement de côté (direction propre historique, RM-244). Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). La copie devient ensuite indépendante : modifier, archiver ou supprimer la source ne modifie jamais la copie, et inversement.
 
 Un Exercice créé directement dans une Séance ne devient pas automatiquement une référence de Catalogue. La migration T03 ne promeut pas les `SessionActivity` historiques en `ActivityDefinition`.
 
@@ -255,8 +256,9 @@ Les propriétés intrinsèques communes portent notamment :
 - la cible du mode lorsqu’elle existe ;
 - un nombre de **Séries** ;
 - Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : chapitre 10, Calculs des durées et ordre des phases.
-- un **Changement de côté** propre : `Aucun`, `D→G` ou `G→D` ;
-- une **Pause entre les côtés** `sideRecoverySeconds` éventuelle, pertinente uniquement en `D→G/G→D` ;
+- une **Charge** facultative et informative, avec son activation (`Avec` / `Sans`) et ses valeurs, commune aux Séries identiques ou propre à chaque Série variable (RM-235 à RM-238) ;
+- un **Changement de côté** propre : `Avec` ou `Sans` (D-406) ;
+- une **Pause entre les côtés** `sideRecoverySeconds` éventuelle, pertinente uniquement avec changement de côté (`Avec`) ;
 - un **Compte à rebours d’Exercice** propre lorsqu’il est utilisé ;
 - une **Fin d’exercice** propre lorsqu’elle est utilisée ;
 - une Durée totale intrinsèque dérivée ou estimée selon le mode ;
@@ -270,7 +272,7 @@ Le Compte à rebours d’Exercice et la Fin d’exercice appartiennent à l’Ex
 
 La structure intrinsèque d’un Exercice peut être représentée ainsi :
 
-Le détail ordonné des phases est défini par chapitre 08, paramètres d’exercice pour chacun des deux ordres et les deux directions.
+Le détail ordonné des phases est défini par chapitre 08, paramètres d’exercice pour chacun des deux ordres ; le côté de départ n’est pas désigné (D-406).
 
 Dans une occurrence, R>0 se substitue à la seule Pause terminale ; R reste une donnée contextuelle, hors définition intrinsèque.
 
@@ -285,7 +287,7 @@ Un exercice possède notamment :
 - un nom ;
 - une durée cible, un nombre de répétitions cible ou une cible À l’échec sans nombre prescrit ;
 - *Texte identique à celui de la section [« Structure d'un Exercice »](#structure-dun-exercice) ; il n’est pas recopié ici.*
-- une **Pause entre les côtés** facultative, visible uniquement en `D→G/G→D` et exécutée selon l’Ordre des côtés (une fois par Exercice ou une fois par Série) ;
+- une **Pause entre les côtés** facultative, visible uniquement avec changement de côté (`Avec`, D-406) et exécutée selon l’Ordre des côtés (une fois par Exercice ou une fois par Série) ;
 - une Description facultative et une ou plusieurs Zones corporelles obligatoires ;
 - un média associé est affiché dans la gouttière permanente de la carte du Catalogue dans le MVP, sans déploiement ; l’import/ajout local et les associations ordonnées sont inclus au MVP dans PRE-3 (D-333), sans activation implicite de la caméra.
 
@@ -297,14 +299,16 @@ Les exercices sont exécutés dans l'ordre où elles apparaissent dans la séanc
 
 Un Exercice possède un mode unique : Durée ou Répétitions, avec cible chiffrée ou À l’échec par série. Une Série est une définition subordonnée à l’Exercice, numérotée 1..N : une cible éventuelle et une Pause. Elle n’est pas une entité autonome, ni un groupe d’exercices. En bilatéral, N signifie N Séries **par côté**, avec les mêmes paramètres pour les deux côtés.
 
+- **Condition d’arrêt** : libellé visible de la ligne `À l’échec` / `À la cible` ; choix commun en séries identiques, résultat dérivé non modifiable en séries variables ; le type de cible par Série reste la seule donnée (D-411, RM-248, RM-249).
 - **Séries variables** : état explicite, indépendant de l’égalité éventuelle des valeurs.
 - **Pause après chaque série** : libellé d’interface ; Pi est la Pause configurée de la Série i. Elle est exécutée après chaque Série, dernière comprise ; seule PN est remplacée par une récupération positive qui suit l’Exercice. Zéro signifie absence de phase positive.
-- **Changement de côté** : Sans changement / Droite puis gauche / Gauche puis droite ; détermine la bilatéralité et le départ.
-- **Ordre des côtés** : Un côté après l’autre (défaut) / Les deux côtés à chaque série. Sans objet en unilatéral.
+- **Charge** : `Avec` / `Sans` ; valeur informative en kilogrammes, commune en séries identiques ou propre à chaque Série variable ; activation distincte des valeurs conservées (D-403, D-404 ; RM-235 à RM-241).
+- **Changement de côté** : `Avec` / `Sans` ; détermine la bilatéralité ; le côté de départ est choisi par l’utilisateur et n’est pas désigné par Kodjo (D-406, RM-242).
+- **Ordre des côtés** : libellé visible `Enchainement` (D-413) ; Un côté après l’autre (défaut) / Les deux côtés à chaque série. Sans objet en unilatéral.
 - **Pause entre les côtés** : PC, libellé unique y compris dans le Profil ; initialisée depuis le Profil (défaut 10 s). Le nom technique existant `sideRecoverySeconds` peut être conservé.
 - **Récupération après exercice** : R, ajoutée explicitement et portée uniquement par l’occurrence de Séance (`postActivityRecoverySeconds`), jamais par ActivityDefinition.
 
-En uniforme, une cible et une Pause communes sont effectives. En variable, la collection ordonnée des N cibles/Pauses est l’unique source de vérité : aucune combinaison valeur commune + surcharge. Dans les deux modes, chaque cible peut être chiffrée (Ti ou Ri) ou À l’échec ; une collection variable peut mélanger les deux. Cibles d’intensité (charge, RPE, etc.) hors périmètre.
+En uniforme, une cible et une Pause communes sont effectives. En variable, la collection ordonnée des N cibles/Pauses est l’unique source de vérité : aucune combinaison valeur commune + surcharge. Dans les deux modes, chaque cible peut être chiffrée (Ti ou Ri) ou À l’échec ; une collection variable peut mélanger les deux. La charge, information facultative et non une cible, suit la même répartition : commune en séries identiques, propre à chaque ligne en séries variables (D-403, RM-237, RM-238) ; les autres cibles d’intensité (RPE, etc.) restent hors périmètre.
 
 ### Composition d'une séance — Modes et récupération d’un Exercice
 
@@ -454,11 +458,11 @@ Le modèle autonome Parcours est retiré (D-328). Le mot parcours désigne plusi
 
 #### Modèle fonctionnel de bilatéralité
 
-Un Exercice persistant et son occurrence copiée dans une Séance portent un `sideMode` parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, avec `UNILATERAL` par défaut. La copie à l’insertion et la duplication conservent la valeur ; la copie devient ensuite indépendante de sa source. Le champ technique historique équivalent du Tour peut être conservé pour compatibilité et non-régression, mais il reste fixé à `UNILATERAL` et n’est pas exposé ni modifiable dans la version actuelle.
+Un Exercice persistant et son occurrence copiée dans une Séance portent un `sideMode` parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, avec `UNILATERAL` par défaut. La copie à l’insertion et la duplication conservent la valeur ; la copie devient ensuite indépendante de sa source. Le champ technique historique équivalent du Tour peut être conservé pour compatibilité et non-régression, mais il reste fixé à `UNILATERAL` et n’est pas exposé ni modifiable dans la version actuelle. Depuis D-406, `UNILATERAL` correspond au Changement de côté `Sans` ; `RIGHT_LEFT` et `LEFT_RIGHT` valent `Avec`, sans être réinterprétées comme un enchaînement ni réécrites (RM-244) ; la représentation technique de `Avec` / `Sans` relève de l’implémentation.
 
 La direction effective exposée est celle de l’Exercice. Le Circuit ne remplace ni ne neutralise les réglages de côté de ses Exercices dans la version actuelle.
 
-Le Plan d’Exécution mémorise la direction effective et le côté courant. Chaque Résultat d’Exercice porte `executionSide = RIGHT | LEFT | NONE`. Le statut global est dérivé des résultats des passages : tous terminés produit `Terminée`, au moins un résultat partiel ou un côté manquant après avancement produit `Partielle`, et aucun passage commencé produit `Non commencée` au niveau de l’Exercice concerné.
+Le Plan d’Exécution mémorise la direction effective et le côté courant, côté 1 ou côté 2 (D-407, RM-243). Chaque Résultat d’Exercice porte le côté exécuté : côté 1, côté 2 ou aucun (`executionSide`) ; les valeurs historiques `RIGHT`, `LEFT` et `NONE` restent lisibles, les noms techniques relevant de l’implémentation (RM-244). Le statut global est dérivé des résultats des passages : tous terminés produit `Terminée`, au moins un résultat partiel ou un côté manquant après avancement produit `Partielle`, et aucun passage commencé produit `Non commencée` au niveau de l’Exercice concerné.
 
 #### Exécution directe d’un Exercice — MVP T03
 

@@ -5,6 +5,12 @@
 
 **État courant06/10 :** [DSF Cadence et corrections](DSF-CADENCE-2026-10-06.md), [matrice courante](MATRICE-CADENCE-FIGMA-2026-10-06.md). Les mesures/captures datées ci-dessous restent historiques lorsqu’elles sont remplacées ; règles cartes média conservées. Cadence commune REPS et phrase unique selon paramètres v13, Phrase v1.
 
+**Mise à jour du 18/10/2026 — spécification v3.0 :**
+- Remplacé pour la présentation : dans la description du booléen Bilatéral, la mention du paramètre métier de direction et de `Indicator / Sides` (`D→G/G→D`) (D-406, D-407). Le booléen Bilatéral et l’icône miroir sont inchangés.
+- Comportements : règles RM-242 à RM-244 du chapitre 10, [Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026) ; ce DSF n’en reprend pas l’énoncé.
+- Présentation nouvelle : l’indicateur d’un Exercice bilatéral signale le changement de côté sans direction, rendu selon Figma. La feuille des paramètres n’est pas décrite ici : voir l’en-tête du [DSF Circuits](DSF-CIRCUITS-CONTROLES-2026-10-12.md).
+- Tokens : les valeurs correspondantes sont à relever dans Figma avant publication ; aucun nouveau token n’est défini ici.
+
 ## Références et portée
 
 Mise à jour du 30 septembre 2026, issue de `prompt_maj_DSF_et_documentation_cartes_point fermés.md`, complété par les six corrections du propriétaire et de la précision du propriétaire sur les pages Figma. Base documentaire : `MyUncried/Application-Routine`, `main`, commit `48b444ededb735da47a42474c39e150224e92395`. Aucun ZIP ancien n’est réintégré.
@@ -77,7 +83,7 @@ Le cercle de nature est réservé aux cartes Semaine et Suivi : diamètre 26, ma
 | Étiquette | `cil:tag` |
 | Place réservée média | Phosphor `person-simple-tai-chi-light`, 24 ; gouttière 64 permanente dans Catalogue et choix d’exercices |
 
-Le booléen Figma `Bilatéral` est faux par défaut. Il est présent sur les variantes Catalogue et choix de l’exercice, absent en Semaine et Suivi. Il ne remplace ni le paramètre métier de direction ni `Indicator / Sides` (`D→G/G→D`). Il représente la bilatéralité à la place du texte « de chaque côté » sur les variantes concernées ; les données et les calculs ne changent pas.
+Le booléen Figma `Bilatéral` est faux par défaut. Il est présent sur les variantes Catalogue et choix de l’exercice, absent en Semaine et Suivi. [remplacé par D-407 le 18/10/2026 : changement de côté Avec / Sans, indicateur sans direction] Il ne remplace ni le paramètre métier de direction ni `Indicator / Sides` (`D→G/G→D`). Il représente la bilatéralité à la place du texte « de chaque côté » sur les variantes concernées ; les données et les calculs ne changent pas.
 
 | Objet | Couleur |
 |---|---|
