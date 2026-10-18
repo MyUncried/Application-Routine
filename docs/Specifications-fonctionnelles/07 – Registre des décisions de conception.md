@@ -609,7 +609,7 @@ Choix visuels : cinquième variante de roulette8452:13297, deux popovers de mode
 
 ### Réception du §4.5 — sélecteur de cible
 
-Source reçue dans le §4.2 du prompt complété. Roue manipulable même grisée ; tourner sélectionne le nombre, toucher le libellé sélectionne l’échec et neutralise la roue à00:00. Exactement une sélection, pas de coche ;45% sur le bloc numérique non sélectionné. R01 close. R06 close après correction explicite du propriétaire :58min55s=3535s maximum ;5999s était une coquille. Sélecteur dès5s, par pas5s. D-232, RM-234 et les contrats sont corrigés.
+Source reçue dans le §4.2 du prompt complété. Roue manipulable même grisée ; tourner sélectionne le nombre, toucher le libellé sélectionne l’échec et neutralise la roue à00:00. Exactement une sélection, pas de coche ;45% sur le bloc numérique non sélectionné. R01 close. R06 close après correction explicite du propriétaire :58min55s=3535s maximum ;5999s était une coquille. Sélecteur dès 5 s ; granularité actuelle de 1 s (PRE-4 Q36). D-232, RM-234 et les contrats sont corrigés.
 
 <a id="arbitrages-20261016"></a>
 ## Arbitrages de Hermann du 16 octobre 2026 — révision documentaire
