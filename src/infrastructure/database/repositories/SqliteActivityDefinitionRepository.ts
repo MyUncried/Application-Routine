@@ -9,15 +9,13 @@ import type {
   UpdateActivityDefinitionInput,
 } from "@/domain/activities";
 import {
-  legacyExecutionParameters,
-  parseExecutionParameters,
-  projectLegacyScalars,
-  serializeExecutionParameters,
+  ExecutionParametersValidationError,
+  projectScalars,
+  readV2,
+  serializeV2,
+  validateForSave,
   type ExecutionParameters,
 } from "@/domain/activities/ExecutionParameters";
-import { DEFAULT_SIDE_MODE } from "@/domain/sessions/defaults";
-import type { ExerciseExecutionMode } from "@/domain/sessions/Session";
-import type { SideMode } from "@/domain/sessions/sideMode";
 import type { Database } from "@/infrastructure/database/Database";
 import type {
   ActivityDefinitionBodyZoneRow,
@@ -51,24 +49,18 @@ const SELECT_COLUMNS = `
 `;
 
 /**
- * PRE-3 : valeurs scalaires écrites. Quand des paramètres canoniques font
- * autorité, les colonnes historiques reçoivent UNIQUEMENT leurs projections
- * (respect des `CHECK`, compatibilité des anciens DTO) — jamais une écriture
- * indépendante concurrente.
+ * PRE-4 (story 1.1, AD-3, AD-13) : défense du repository — les paramètres
+ * sont contrôlés au niveau structurel (`validateForSave(…, "STORAGE")`) AVANT
+ * toute écriture (un troisième Mode ou une Cible `UNSET` est refusé, AC19),
+ * puis les colonnes historiques reçoivent UNIQUEMENT la projection scalaire
+ * unique (`projectScalars`) — jamais une écriture indépendante concurrente.
  */
-function scalarValues(input: CreateActivityDefinitionInput, canonical: ExecutionParameters | null) {
-  if (!canonical) {
-    return {
-      executionMode: input.executionMode,
-      durationSeconds: input.durationSeconds,
-      repetitionCount: input.repetitionCount,
-      seriesCount: input.seriesCount,
-      pauseSeconds: input.pauseSeconds,
-      sideMode: input.sideMode ?? DEFAULT_SIDE_MODE,
-      sideRecoverySeconds: input.sideRecoverySeconds,
-    };
+function validatedParameters(input: CreateActivityDefinitionInput): ExecutionParameters {
+  const validated = validateForSave(input.executionParameters, "STORAGE");
+  if (!validated.ok) {
+    throw new ExecutionParametersValidationError(validated.violations);
   }
-  return projectLegacyScalars(canonical);
+  return validated.value;
 }
 
 /**
@@ -96,7 +88,20 @@ async function resolveCategoryId(
       throw new Error("Referenced category does not exist.");
     }
     if (row.is_active === 0 && row.id !== currentCategoryId) {
-      throw new RetiredCategoryError();
+      // PRE-4, décision Q53 (8) : à la création, une Catégorie retirée déjà affectée à une Définition ou une
+      // occurrence est acceptée (Catégorie conservée par l'Éditeur après sa suppression depuis
+      // la feuille, ou héritée) ; affectée nulle part, elle reste refusée (D-210).
+      const used = await transaction.getFirstAsync<{ id: string }>(
+        `SELECT id FROM activities WHERE category_id = ?
+         UNION ALL
+         SELECT id FROM activity_definitions WHERE category_id = ?
+         LIMIT 1`,
+        [row.id, row.id],
+      );
+      // Création seulement : une modification ne garde que sa propre Catégorie.
+      if (!used || currentCategoryId !== null) {
+        throw new RetiredCategoryError();
+      }
     }
     return row.id;
   }
@@ -134,10 +139,10 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
   ) {}
 
   async create(input: CreateActivityDefinitionInput): Promise<ActivityDefinition> {
+    const canonical = validatedParameters(input);
+    const values = projectScalars(canonical);
     const id = this.uuidFactory();
     const timestamp = this.now();
-    const canonical = input.executionParameters ?? null;
-    const values = scalarValues(input, canonical);
 
     // PRE-3 : asset(s) importé(s) + définition + liens ordonnés dans UNE
     // transaction (Terminer Catalogue) — aucune écriture partielle.
@@ -161,7 +166,7 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
           categoryId,
           values.sideMode,
           values.sideRecoverySeconds,
-          canonical ? serializeExecutionParameters(canonical) : null,
+          serializeV2(canonical),
           timestamp,
           timestamp,
         ],
@@ -181,6 +186,8 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
     id: string,
     input: UpdateActivityDefinitionInput,
   ): Promise<ActivityDefinition | null> {
+    const canonical = validatedParameters(input);
+    const values = projectScalars(canonical);
     const timestamp = this.now();
     let updated = false;
 
@@ -189,18 +196,10 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
         id: string;
         created_at: string;
         category_id: string;
-        execution_parameters: string | null;
-      }>("SELECT id, created_at, category_id, execution_parameters FROM activity_definitions WHERE id = ?", [id]);
+      }>("SELECT id, created_at, category_id FROM activity_definitions WHERE id = ?", [id]);
       if (!existing) {
         return;
       }
-      // PRE-3 : sans paramètres canoniques fournis (ancien appelant), un JSON
-      // déjà persisté reste l'autorité — ses projections sont réécrites,
-      // jamais des scalaires divergents.
-      const canonical =
-        input.executionParameters ??
-        (existing.execution_parameters !== null ? parseExecutionParameters(existing.execution_parameters) : null);
-      const values = scalarValues(input, canonical);
       const categoryId = await resolveCategoryId(
         transaction,
         input.category,
@@ -227,7 +226,7 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
           categoryId,
           values.sideMode,
           values.sideRecoverySeconds,
-          canonical ? serializeExecutionParameters(canonical) : null,
+          serializeV2(canonical),
           timestamp,
           id,
         ],
@@ -317,43 +316,28 @@ async function getBodyZoneIds(
 }
 
 /**
- * Projection d'une ligne. PRE-3 : le JSON canonique fait autorité ; corrompu
- * ou de version inconnue, il lève une `ExecutionParametersDataError` —
- * jamais un repli silencieux sur les scalaires. Sans JSON (ancien objet),
- * l'adaptateur conservateur s'applique (aucune lecture du Profil).
+ * Projection d'une ligne. PRE-4 (story 1.1, AD-3) : `readV2` est le seul
+ * lecteur ; NULL, JSON corrompu, v1 ou version inconnue lèvent une
+ * `ExecutionParametersDataError` — jamais un repli sur les scalaires, qui ne
+ * sont ni relus ni exposés. Le côté et la Pause entre les côtés exposés sont
+ * ceux des paramètres.
  */
 function mapActivityDefinitionRow(
   row: ActivityDefinitionRow,
   bodyZoneIds: readonly string[],
   media: ActivityDefinition["media"] = [],
 ): ActivityDefinition {
-  const executionParameters =
-    row.execution_parameters !== null && row.execution_parameters !== undefined
-      ? parseExecutionParameters(row.execution_parameters)
-      : legacyExecutionParameters({
-          executionMode: row.execution_mode as ExerciseExecutionMode,
-          durationSeconds: row.duration_seconds,
-          repetitionCount: row.repetition_count,
-          seriesCount: row.series_count,
-          pauseSeconds: row.pause_seconds,
-          sideMode: row.side_mode as SideMode,
-          sideRecoverySeconds: row.side_recovery_seconds,
-        });
+  const executionParameters = readV2(row.execution_parameters);
   return {
     executionParameters,
     media,
     id: row.id,
     name: row.name,
     description: row.description,
-    executionMode: row.execution_mode as ExerciseExecutionMode,
-    durationSeconds: row.duration_seconds,
-    repetitionCount: row.repetition_count,
-    seriesCount: row.series_count,
-    pauseSeconds: row.pause_seconds,
     categoryId: row.category_id,
     bodyZoneIds,
-    sideMode: row.side_mode as SideMode,
-    sideRecoverySeconds: row.side_recovery_seconds,
+    sideMode: executionParameters.sideMode,
+    sideRecoverySeconds: executionParameters.sideRecoverySeconds,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

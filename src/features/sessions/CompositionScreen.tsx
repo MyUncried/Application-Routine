@@ -1,6 +1,6 @@
 import * as Crypto from "expo-crypto";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
   Keyboard,
@@ -56,6 +56,7 @@ import {
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
+import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
 import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
 import { strings } from "@/shared/i18n";
@@ -293,6 +294,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // Étiquette ou dont l'Étiquette n'est pas encore chargée.
   const sessionLabel = labelsReferential.find((label) => label.id === draft.labelId) ?? null;
   const sessionColor = sessionLabel?.color ?? DEFAULT_SESSION_COLOR;
+  // Q53 (9), décision de Hermann du 2026-10-18 : aucun avis textuel ni annonce VoiceOver pour
+  // une Étiquette retirée encore affectée ; la pastille et la feuille restent inchangées.
   const [openOverlay, setOpenOverlay] = useState<OverlayKind | null>(null);
   // V2-CAT-01 (plan §4.4) : arbre `Ajouter une activité` — `Une nouvelle
   // activité` / `Une activité existante` / `Annuler`.
@@ -325,13 +328,66 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // quelque chose a changé) ; en création, V2-PRE-2 (T18) la compare au
   // brouillon RÉELLEMENT créé (valeurs du Profil au moment de la création),
   // jamais aux seules constantes du Domaine si le Profil en diffère.
-  const shouldBlockExit = hydratedBaseline
-    ? !sessionDraftsEqual(draft, hydratedBaseline)
-    : isSessionDraftDirty(draft, creationBaseline);
+  // PRE-4, décision Q54 de Hermann (2026-10-18) : « Enregistrer la séance » enregistre depuis
+  // la Composition (l'écran « Catégories de la séance », vestige, est supprimé). Le service est
+  // lu sans exigence de fournisseur : sans lui, l'enregistrement échoue avec le message D-107.
+  const sessionService = useContext(SessionServiceContext);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "error">("idle");
+  const isSavingRef = useRef(false);
+  // Enregistrement réussi : la garde de sortie est levée avant la fermeture (effet ci-dessous),
+  // pour que `dismissTo` ne soit jamais intercepté comme un abandon.
+  const [hasSaved, setHasSaved] = useState(false);
+  const shouldBlockExit =
+    !hasSaved &&
+    (hydratedBaseline ? !sessionDraftsEqual(draft, hydratedBaseline) : isSessionDraftDirty(draft, creationBaseline));
   const { isPendingExit, cancelExit, confirmExit } = useCompositionExitGuard(
     shouldBlockExit,
     resetDraft,
   );
+
+  useEffect(() => {
+    if (!hasSaved) return;
+    // V2-CAT-01 (UI-CAT-R-005/006) : la cible est déterministement `Catalogue des séances` /
+    // segment `Séances` — `catalogueSegment` est un signal PONCTUEL, consommé une seule fois
+    // par `CatalogueScreen` (`useFocusEffect`), jamais persisté.
+    router.dismissTo({ pathname: "/", params: { catalogueSegment: "sessions" } });
+  }, [hasSaved, router]);
+
+  /**
+   * Q54 : enregistrement de la Séance, repris de l'ancien `CategoriesScreen.handleSave` —
+   * `updateSession` sur la Séance source d'un brouillon réhydraté (T01-S10, plan §7.3), jamais
+   * une seconde Séance ; `createSession` sinon. Un seul enregistrement à la fois. Tout échec
+   * (validation résiduelle, `NOT_FOUND`, `ARCHIVED`, technique) : brouillon conservé, écran
+   * affiché, message D-107, action réactivée (D-107 / CE-T01-S10-09).
+   */
+  async function handleSave() {
+    if (isSavingRef.current) {
+      return;
+    }
+    isSavingRef.current = true;
+    setSaveState("saving");
+    try {
+      if (!sessionService) {
+        throw new Error("SessionService indisponible.");
+      }
+      const sourceSessionId = draft.sourceSessionId ?? null;
+      const saved =
+        sourceSessionId !== null
+          ? (await sessionService.updateSession(sourceSessionId, draft)).status === "UPDATED"
+          : (await sessionService.createSession(draft)).ok;
+      if (!saved) {
+        isSavingRef.current = false;
+        setSaveState("error");
+        return;
+      }
+      setHasSaved(true);
+      resetDraft();
+    } catch (error) {
+      console.error("La séance n'a pas pu être enregistrée.", error);
+      isSavingRef.current = false;
+      setSaveState("error");
+    }
+  }
 
   const closeOverlay = useCallback(() => setOpenOverlay(null), []);
 
@@ -823,22 +879,26 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         style={[styles.bottomAction, { marginBottom: insets.bottom + spacing[16] }]}
       >
         {/*
-         * `Continuer` (CE-T01-04, résolu T01-S09) : activation conditionnelle
-         * — une Composition valide (Nom + toutes les Activités, voir
-         * `isCompositionValid` ci-dessus) ouvre désormais réellement l'écran
-         * `Catégories de la séance` (`/categories`, CE-T01-11). Le brouillon
-         * partagé (`SessionDraftProvider`) survit à cette navigation, comme à
-         * toute autre navigation entre écrans de ce même `Stack`.
+         * PRE-4, décision Q54 de Hermann (2026-10-18) : `Enregistrer la séance` remplace
+         * `Continuer`, qui ouvrait l'écran vestige `Catégories de la séance` (supprimé).
+         * Activation conditionnelle inchangée (Composition valide, `isCompositionValid`),
+         * inactif pendant l'enregistrement ; échec : message D-107 au-dessus de l'action.
          */}
+        {saveState === "error" ? (
+          <Text style={styles.saveErrorText} accessibilityLiveRegion="polite" testID="composition-save-error">
+            {composition.saveError}
+          </Text>
+        ) : null}
         <Pressable
-          disabled={!isCompositionValid}
-          onPress={() => router.push("/categories")}
+          disabled={!isCompositionValid || saveState === "saving"}
+          onPress={handleSave}
           accessibilityRole="button"
-          accessibilityState={{ disabled: !isCompositionValid }}
-          accessibilityLabel={composition.continueAction}
-          style={[styles.continueAction, !isCompositionValid ? null : styles.continueActionEnabled]}
+          accessibilityState={{ disabled: !isCompositionValid || saveState === "saving" }}
+          accessibilityLabel={composition.saveAction}
+          style={[styles.continueAction, !isCompositionValid || saveState === "saving" ? null : styles.continueActionEnabled]}
+          testID="composition-save-action"
         >
-          <Text style={styles.continueLabel}>{composition.continueAction}</Text>
+          <Text style={styles.continueLabel}>{composition.saveAction}</Text>
         </Pressable>
       </View>
 
@@ -989,6 +1049,10 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         <LabelPickerModal
           selectedId={draft.labelId}
           onSelect={(labelId) => updateDraft({ labelId })}
+          // Q53 (8) : l'Étiquette supprimée depuis la feuille de cette Séance quitte son Brouillon.
+          onLabelRetired={(labelId) => {
+            if (draft.labelId === labelId) updateDraft({ labelId: null });
+          }}
           onClose={() => {
             setIsLabelPickerOpen(false);
             setLabelsLoadToken((current) => current + 1);
@@ -2866,6 +2930,12 @@ const styles = StyleSheet.create({
   // fond désactivé par défaut).
   continueActionEnabled: {
     backgroundColor: colors.primary,
+  },
+  // Q54 : style de l'ancien message d'échec de `CategoriesScreen` (D-107).
+  saveErrorText: {
+    ...type.body,
+    color: colors.danger,
+    textAlign: "center",
   },
   continueLabel: {
     ...type.button,

@@ -8,18 +8,28 @@
  * aucune mutation de la définition, de l'occurrence ou du Profil ne peut
  * l'atteindre. Aucune phrase, aucun segment, aucun total dérivé n'y est
  * stocké — ils se régénèrent depuis les paramètres à l'affichage.
+ *
+ * PRE-4 (story 1.1, AD-3) : un nouvel Instantané est en version 2 (paramètres
+ * typés, `serializeV2`/`readV2`). Une enveloppe v1 existante est relue par
+ * `readV1`, selon sa version, sans réécriture (la vérification de bout en
+ * bout des Instantanés relève de la story 1.3).
  */
 
 import type { MediaAsset } from "@/domain/media/MediaAsset";
 
 import {
   cloneExecutionParameters,
-  parseExecutionParameters,
-  serializeExecutionParameters,
+  ExecutionParametersDataError,
+  readV2,
+  serializeV2,
   type ExecutionParameters,
 } from "./ExecutionParameters";
+import { readV1 } from "./readV1";
 
-export const EXERCISE_SNAPSHOT_VERSION = 1 as const;
+export const EXERCISE_SNAPSHOT_VERSION = 2 as const;
+
+/** Versions d'enveloppe lisibles : la v1 (PRE-3) n'est jamais réécrite. */
+export type ExerciseSnapshotVersion = 1 | typeof EXERCISE_SNAPSHOT_VERSION;
 
 export type ExerciseSnapshotMedia = {
   readonly position: number;
@@ -27,7 +37,7 @@ export type ExerciseSnapshotMedia = {
 };
 
 export type ExerciseSnapshot = {
-  readonly snapshotVersion: typeof EXERCISE_SNAPSHOT_VERSION;
+  readonly snapshotVersion: ExerciseSnapshotVersion;
   readonly name: string;
   readonly categoryId: string | null;
   readonly bodyZoneIds: readonly string[];
@@ -73,14 +83,18 @@ export function createExerciseSnapshot(source: ExerciseSnapshotSource): Exercise
   });
 }
 
-/** Sérialisation versionnée : paramètres canoniques, aucun champ de phrase/segment/total. */
+/**
+ * Sérialisation versionnée : paramètres canoniques, aucun champ de phrase/segment/total.
+ * Toujours en version courante (v2) : les paramètres écrits sont v2, y compris
+ * pour un Instantané relu depuis une enveloppe v1 (sinon illisible ensuite).
+ */
 export function serializeExerciseSnapshot(snapshot: ExerciseSnapshot): string {
   return JSON.stringify({
-    snapshotVersion: snapshot.snapshotVersion,
+    snapshotVersion: EXERCISE_SNAPSHOT_VERSION,
     name: snapshot.name,
     categoryId: snapshot.categoryId,
     bodyZoneIds: snapshot.bodyZoneIds,
-    executionParameters: JSON.parse(serializeExecutionParameters(snapshot.executionParameters)),
+    executionParameters: JSON.parse(serializeV2(snapshot.executionParameters)),
     recoverySeconds: snapshot.recoverySeconds,
     media: snapshot.media,
     actualDurationSeconds: snapshot.actualDurationSeconds,
@@ -106,16 +120,31 @@ export function parseExerciseSnapshot(json: string): ExerciseSnapshot {
   } catch {
     throw new ExerciseSnapshotDataError("Exercise snapshot JSON is malformed.");
   }
-  if (raw === null || typeof raw !== "object" || raw.snapshotVersion !== EXERCISE_SNAPSHOT_VERSION) {
+  if (raw === null || typeof raw !== "object" || (raw.snapshotVersion !== 1 && raw.snapshotVersion !== EXERCISE_SNAPSHOT_VERSION)) {
     throw new ExerciseSnapshotDataError("Unknown exercise snapshot version.");
   }
+  const snapshotVersion = raw.snapshotVersion as ExerciseSnapshotVersion;
+  const parametersJson = JSON.stringify(raw.executionParameters ?? null);
   const media = Array.isArray(raw.media) ? (raw.media as ExerciseSnapshotMedia[]) : [];
+  // Lecture selon la version de l'enveloppe (AD-3) : v1 par `readV1`, v2 par `readV2`.
+  // Story 1.3 (AC9) : un v1 sans clé Bip (ou à `null`) est lu non cadencé (Bip 0), jamais illisible.
+  // Des paramètres illisibles sont signalés comme une erreur de l'Instantané (message d'origine conservé).
+  let executionParameters: ExecutionParameters;
+  try {
+    executionParameters =
+      snapshotVersion === 1 ? readV1(parametersJson, { absentBeepAsZero: true }) : readV2(parametersJson);
+  } catch (error) {
+    if (error instanceof ExecutionParametersDataError) {
+      throw new ExerciseSnapshotDataError(error.message);
+    }
+    throw error;
+  }
   return deepFreeze({
-    snapshotVersion: EXERCISE_SNAPSHOT_VERSION,
+    snapshotVersion,
     name: String(raw.name),
     categoryId: typeof raw.categoryId === "string" ? raw.categoryId : null,
     bodyZoneIds: Array.isArray(raw.bodyZoneIds) ? (raw.bodyZoneIds as string[]).map(String) : [],
-    executionParameters: parseExecutionParameters(JSON.stringify(raw.executionParameters)),
+    executionParameters,
     recoverySeconds: typeof raw.recoverySeconds === "number" ? raw.recoverySeconds : 0,
     media: media.map((item, position) => ({ position, asset: { ...item.asset } })),
     actualDurationSeconds: typeof raw.actualDurationSeconds === "number" ? raw.actualDurationSeconds : null,

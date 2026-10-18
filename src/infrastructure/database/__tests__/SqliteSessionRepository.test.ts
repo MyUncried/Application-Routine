@@ -21,23 +21,36 @@ import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import {
   assembleSession,
   SqliteSessionRepository,
+ RetiredBodyZoneError,
+ RetiredLabelError,
  RetiredOccurrenceCategoryError } from "@/infrastructure/database/repositories/SqliteSessionRepository";
+import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
-import type { SessionAggregateRow } from "@/infrastructure/database/types/DatabaseRows";
+import type { SessionAggregateQueryRow, SessionAggregateRow } from "@/infrastructure/database/types/DatabaseRows";
 import { rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import {
+  EXECUTION_PARAMETERS_VERSION,
   ExecutionParametersDataError,
-  resolveExecutionParameters,
+  numberTarget,
+  serializeV2,
   type ExecutionParameters,
 } from "@/domain/activities/ExecutionParameters";
+import {
+  allFailureParameters,
+  durationParameters,
+  repetitionParameters,
+  toTarget,
+  uniformParameters,
+  variableParameters,
+} from "@/domain/activities/testing/executionParametersFixtures";
 import type { MediaAsset } from "@/domain/media/MediaAsset";
 import { toSessionDurationResult } from "@/domain/sessions/calculations";
 import { duplicateActivity } from "@/domain/sessions/composition";
 
-import { toSessionDraft, toUpdateSessionInput, type SessionDraft } from "@/domain/sessions/SessionDraft";
+import { isSessionDraftDirty, sessionDraftsEqual, toSessionDraft, toUpdateSessionInput, type SessionDraft } from "@/domain/sessions/SessionDraft";
 
 import { SqliteMediaRepository } from "@/infrastructure/database/repositories/SqliteMediaRepository";
 // Exceptionnellement, ce fichier d'infrastructure importe un composant de
@@ -104,13 +117,9 @@ describe("SqliteSessionRepository", () => {
     expect(created.cycle.tour.exercises[0]).toMatchObject({
       id: IDS[3],
       type: "EXERCISE",
-      executionMode: "DURATION",
       structuralPosition: "IN_TOUR",
       position: 0,
-      durationSeconds: 30,
-      repetitionCount: null,
-      seriesCount: 1,
-      pauseSeconds: 0,
+      executionParameters: durationParameters(30),
       postActivityRecoverySeconds: 0,
       bodyZoneIds: [],
     });
@@ -184,7 +193,7 @@ describe("SqliteSessionRepository", () => {
           id: "stretch",
           name: "Étirements",
           structuralPosition: "AFTER_TOUR",
-          durationSeconds: 45,
+          executionParameters: durationParameters(45),
           postActivityRecoverySeconds: 30,
         },
       ],
@@ -199,8 +208,7 @@ describe("SqliteSessionRepository", () => {
     expect(created.cycle.afterTour?.map((activity) => activity.id)).toEqual(["stretch"]);
     expect(created.cycle.afterTour?.[0]).toMatchObject({
       type: "EXERCISE",
-      executionMode: "DURATION",
-      durationSeconds: 45,
+      executionParameters: durationParameters(45),
       postActivityRecoverySeconds: 30,
     });
 
@@ -289,7 +297,7 @@ describe("SqliteSessionRepository", () => {
     await expect(
       repository.create({
         ...validInput(),
-        exercises: [{ ...anExercise(), durationSeconds: 0 }],
+        exercises: [{ ...anExercise(), executionParameters: uniformParameters({ target: "UNSET" }) }],
       }),
     ).rejects.toBeInstanceOf(SessionValidationError);
 
@@ -367,13 +375,11 @@ describe("SqliteSessionRepository", () => {
       const created = await repository.create({
         ...validInput(),
         exercises: [
-          { ...anExercise(), name: "Gainage", durationSeconds: 30, seriesCount: 2, pauseSeconds: 5 },
+          { ...anExercise(), name: "Gainage", executionParameters: durationParameters(30, 2, 5) },
           {
             ...anExercise(),
             name: "Squats",
-            executionMode: "REPETITIONS",
-            durationSeconds: null,
-            repetitionCount: 12,
+            executionParameters: repetitionParameters(12),
             instruction: "Descendre lentement",
             bodyZoneIds: ["cuisses", "genoux"],
           },
@@ -387,9 +393,7 @@ describe("SqliteSessionRepository", () => {
       ]);
       expect(created.cycle.tour.exercises.map((exercise) => exercise.position)).toEqual([0, 1]);
       expect(created.cycle.tour.exercises[1]).toMatchObject({
-        executionMode: "REPETITIONS",
-        durationSeconds: null,
-        repetitionCount: 12,
+        executionParameters: repetitionParameters(12),
         instruction: "Descendre lentement",
         bodyZoneIds: ["cuisses", "genoux"],
       });
@@ -603,9 +607,9 @@ describe("SqliteSessionRepository", () => {
           id, session_id, cycle_id, tour_id, type, structural_position,
           position, name, execution_mode, duration_seconds,
           repetition_count, series_count, pause_seconds, instruction,
-          created_at, updated_at
-        ) VALUES (?, ?, ?, ?, 'EXERCISE', 'IN_TOUR', 0, ?, 'DURATION', 30, NULL, 1, 0, NULL, ?, ?)`,
-        [activityId, sessionId, cycleId, tourId, "Gainage historique", timestamp, timestamp],
+          created_at, updated_at, execution_parameters
+        ) VALUES (?, ?, ?, ?, 'EXERCISE', 'IN_TOUR', 0, ?, 'DURATION', 30, NULL, 1, 0, NULL, ?, ?, ?)`,
+        [activityId, sessionId, cycleId, tourId, "Gainage historique", timestamp, timestamp, serializeV2(durationParameters(30))],
       );
 
       const repository = new SqliteSessionRepository(database, uuidFactory());
@@ -632,7 +636,7 @@ describe("SqliteSessionRepository", () => {
       await repository.create({
         ...validInput(),
         exercises: [
-          { ...anExercise(), executionMode: "REPETITIONS", durationSeconds: null, repetitionCount: 12 },
+          { ...anExercise(), executionParameters: repetitionParameters(12) },
         ],
       });
 
@@ -647,8 +651,8 @@ describe("SqliteSessionRepository", () => {
         initialCountdownSeconds: 10,
         finalPhaseSeconds: 5,
         exercises: [
-          { ...anExercise(), name: "Un", durationSeconds: 30, seriesCount: 2, pauseSeconds: 5 },
-          { ...anExercise(), name: "Deux", durationSeconds: 20, seriesCount: 1, pauseSeconds: 0 },
+          { ...anExercise(), name: "Un", executionParameters: durationParameters(30, 2, 5) },
+          { ...anExercise(), name: "Deux", executionParameters: durationParameters(20, 1, 0) },
         ],
       });
 
@@ -674,7 +678,7 @@ describe("SqliteSessionRepository", () => {
         ...validInput(),
         name: "Sans récupération",
         exercises: [
-          { ...anExercise(), durationSeconds: 30, seriesCount: 3, pauseSeconds: 10 },
+          { ...anExercise(), executionParameters: durationParameters(30, 3, 10) },
         ],
       });
       const withRecoveryRepository = new SqliteSessionRepository(
@@ -687,9 +691,7 @@ describe("SqliteSessionRepository", () => {
         exercises: [
           {
             ...anExercise(),
-            durationSeconds: 30,
-            seriesCount: 3,
-            pauseSeconds: 10,
+            executionParameters: durationParameters(30, 3, 10),
             postActivityRecoverySeconds: 10,
           },
         ],
@@ -716,9 +718,7 @@ describe("SqliteSessionRepository", () => {
           {
             ...anExercise(),
             name: "Un",
-            durationSeconds: 30,
-            seriesCount: 3,
-            pauseSeconds: 15,
+            executionParameters: durationParameters(30, 3, 15),
             postActivityRecoverySeconds: 20,
           },
         ],
@@ -738,11 +738,7 @@ describe("SqliteSessionRepository", () => {
           {
             ...anExercise(),
             name: "Squats",
-            executionMode: "REPETITIONS",
-            durationSeconds: null,
-            repetitionCount: 12,
-            seriesCount: 4,
-            pauseSeconds: 10,
+            executionParameters: repetitionParameters(12, 4, 10),
             postActivityRecoverySeconds: 25,
           },
         ],
@@ -768,14 +764,14 @@ describe("SqliteSessionRepository", () => {
             ...anExercise(),
             name: "Échauffement",
             structuralPosition: "BEFORE_TOUR",
-            durationSeconds: 10,
+            executionParameters: durationParameters(10),
           },
-          { ...anExercise(), name: "Gainage", structuralPosition: "IN_TOUR", durationSeconds: 20 },
+          { ...anExercise(), name: "Gainage", structuralPosition: "IN_TOUR", executionParameters: durationParameters(20) },
           {
             ...anExercise(),
             name: "Étirements",
             structuralPosition: "AFTER_TOUR",
-            durationSeconds: 5,
+            executionParameters: durationParameters(5),
           },
         ],
       });
@@ -963,7 +959,7 @@ describe("SqliteSessionRepository", () => {
         anUpdateInput({
           sourceSessionId: created.id,
           name: "Nom modifié",
-          activities: [anUpdateActivity({ id: keptId, name: "Gainage renforcé", durationSeconds: 45 })],
+          activities: [anUpdateActivity({ id: keptId, name: "Gainage renforcé", executionParameters: durationParameters(45) })],
         }),
       );
 
@@ -977,7 +973,7 @@ describe("SqliteSessionRepository", () => {
       expect(outcome.session.cycle.tour.exercises[0]).toMatchObject({
         id: keptId,
         name: "Gainage renforcé",
-        durationSeconds: 45,
+        executionParameters: durationParameters(45),
       });
 
       const reopened = await repository.findById(created.id);
@@ -1114,7 +1110,7 @@ describe("SqliteSessionRepository", () => {
       });
     });
 
-    it("persists a TO_FAILURE Activity (no target) and rereads it; the estimate becomes a lower bound", async () => {
+    it("persists an all-failure Repetitions Activity (former third mode, PRE-4) and rereads it; the estimate becomes a lower bound", async () => {
       const repository = new SqliteSessionRepository(database, uuidFactory());
       const created = await repository.create(validInput());
       const keptId = created.cycle.tour.exercises[0]!.id;
@@ -1127,10 +1123,7 @@ describe("SqliteSessionRepository", () => {
             anUpdateActivity({
               id: keptId,
               name: "Tractions",
-              executionMode: "TO_FAILURE",
-              durationSeconds: null,
-              repetitionCount: null,
-              seriesCount: 4,
+              executionParameters: allFailureParameters(4),
             }),
           ],
         }),
@@ -1140,11 +1133,13 @@ describe("SqliteSessionRepository", () => {
       if (outcome.status !== "UPDATED") throw new Error("expected UPDATED");
       const reopened = await repository.findById(created.id);
       expect(reopened?.cycle.tour.exercises[0]).toMatchObject({
-        executionMode: "TO_FAILURE",
-        durationSeconds: null,
-        repetitionCount: null,
-        seriesCount: 4,
+        executionParameters: allFailureParameters(4),
       });
+      const row = await database.getFirstAsync<Record<string, unknown>>(
+        "SELECT execution_mode, duration_seconds, repetition_count, series_count FROM activities WHERE id = ?",
+        [keptId],
+      );
+      expect(row).toEqual({ execution_mode: "REPETITIONS", duration_seconds: null, repetition_count: null, series_count: 4 });
       const summaries = await repository.listActive();
       expect(summaries.find((s) => s.id === created.id)?.isEstimatedDurationApproximate).toBe(true);
     });
@@ -1315,8 +1310,8 @@ describe("SqliteSessionRepository", () => {
         initialCountdownSeconds: 10,
         finalPhaseSeconds: 5,
         exercises: [
-          { ...anExercise(), name: "Gainage", durationSeconds: 30, bodyZoneIds: ["dos"] },
-          { ...anExercise(), name: "Squats", durationSeconds: 40 },
+          { ...anExercise(), name: "Gainage", executionParameters: durationParameters(30), bodyZoneIds: ["dos"] },
+          { ...anExercise(), name: "Squats", executionParameters: durationParameters(40) },
         ],
       });
       const keptId = created.cycle.tour.exercises[0]!.id;
@@ -1368,7 +1363,7 @@ describe("SqliteSessionRepository", () => {
               anUpdateActivity({
                 id: keptId,
                 name: "Gainage renforcé",
-                durationSeconds: 45,
+                executionParameters: durationParameters(45),
                 position: 0,
                 bodyZoneIds: ["epaules"],
               }),
@@ -1570,6 +1565,179 @@ describe("SqliteSessionRepository", () => {
     });
   });
 
+  /**
+   * PRE-4, décision Q53 de Hermann (2026-10-18) : une Zone retirée déjà affectée à un
+   * Exercice ne bloque ni la Copie de cet Exercice dans une Séance, ni l'enregistrement de
+   * la Séance ; la Copie garde l'affectation. Une Zone retirée affectée nulle part, ou
+   * ajoutée à une occurrence existante qui ne l'avait pas, reste refusée (D-210).
+   */
+  describe("PRE4-Q53 — Zone retirée héritée de la source", () => {
+    let sequence = 0;
+    const ids = (prefix: string) => () => `${prefix}-${++sequence}`;
+    async function definitionWithZones(bodyZoneIds: readonly string[]): Promise<void> {
+      const definitions = new SqliteActivityDefinitionRepository(database, () => "def-q53");
+      await definitions.create({
+        name: "Squat",
+        description: null,
+        category: { kind: "EXISTING", categoryId: "cardio" },
+        bodyZoneIds,
+        executionParameters: durationParameters(30),
+      });
+    }
+
+    it("PRE4-Q53/create-copy — nouvelle Séance avec la Copie d'un Exercice dont une Zone a été retirée : enregistrée, affectation conservée", async () => {
+      await definitionWithZones(["cuisses", "dos"]);
+      await database.runAsync(`UPDATE body_zones SET is_active = 0 WHERE id = 'cuisses'`);
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+
+      const created = await repository.create({
+        ...validInput(),
+        exercises: [{ ...anExercise({ name: "Squat" }), bodyZoneIds: ["cuisses", "dos"] }],
+      });
+
+      expect(created.cycle.tour.exercises[0]?.bodyZoneIds).toEqual(["cuisses", "dos"]);
+      const reopened = await repository.findById(created.id);
+      expect(reopened?.cycle.tour.exercises[0]?.bodyZoneIds).toEqual(["cuisses", "dos"]);
+    });
+
+    it("PRE4-Q53/create-duplicate — deux Copies de la même source dans une Séance, puis une Copie d'une occurrence existante : toutes enregistrées", async () => {
+      const repository = new SqliteSessionRepository(database, ids("ses"));
+      const first = await repository.create({
+        ...validInput(),
+        exercises: [{ ...anExercise(), bodyZoneIds: ["cuisses"] }],
+      });
+      await database.runAsync(`UPDATE body_zones SET is_active = 0 WHERE id = 'cuisses'`);
+
+      // Source : l'occurrence de la première Séance (aucune Définition ne porte la Zone).
+      const second = await repository.create({
+        ...validInput(),
+        exercises: [
+          { ...anExercise(), bodyZoneIds: ["cuisses"] },
+          { ...anExercise({ name: "Gainage bis" }), bodyZoneIds: ["cuisses"] },
+        ],
+      });
+
+      expect(second.cycle.tour.exercises.map((activity) => activity.bodyZoneIds)).toEqual([["cuisses"], ["cuisses"]]);
+      expect(first.id).not.toBe(second.id);
+    });
+
+    it("PRE4-Q53/update-new-copy — Séance existante : une Copie ajoutée garde la Zone retirée de sa source ; l'occurrence existante qui l'avait la garde", async () => {
+      await definitionWithZones(["cuisses"]);
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({
+        ...validInput(),
+        exercises: [{ ...anExercise(), bodyZoneIds: ["cuisses"] }],
+      });
+      const keptId = created.cycle.tour.exercises[0]!.id;
+      await database.runAsync(`UPDATE body_zones SET is_active = 0 WHERE id = 'cuisses'`);
+
+      const outcome = await repository.update(
+        created.id,
+        anUpdateInput({
+          sourceSessionId: created.id,
+          activities: [
+            anUpdateActivity({ id: keptId, bodyZoneIds: ["cuisses"] }),
+            anUpdateActivity({ id: "occ-q53-new", position: 1, name: "Squat", bodyZoneIds: ["cuisses", "dos"] }),
+          ],
+        }),
+      );
+
+      expect(outcome.status).toBe("UPDATED");
+      if (outcome.status !== "UPDATED") throw new Error("expected UPDATED");
+      expect(outcome.session.cycle.tour.exercises.map((activity) => activity.bodyZoneIds)).toEqual([
+        ["cuisses"],
+        ["cuisses", "dos"],
+      ]);
+    });
+
+    it("PRE4-Q53/refuse-first-assignment — Zone retirée affectée nulle part : refusée à la création ; Zone retirée ajoutée à une occurrence existante qui ne l'avait pas : refusée, même affectée ailleurs", async () => {
+      await database.runAsync(`UPDATE body_zones SET is_active = 0 WHERE id = 'epaules'`);
+      const repository = new SqliteSessionRepository(database, ids("ses"));
+      await expect(
+        repository.create({ ...validInput(), exercises: [{ ...anExercise(), bodyZoneIds: ["epaules"] }] }),
+      ).rejects.toThrow(RetiredBodyZoneError);
+
+      await definitionWithZones(["cuisses"]);
+      const created = await repository.create({
+        ...validInput(),
+        exercises: [{ ...anExercise(), bodyZoneIds: ["dos"] }],
+      });
+      const keptId = created.cycle.tour.exercises[0]!.id;
+      await database.runAsync(`UPDATE body_zones SET is_active = 0 WHERE id = 'cuisses'`);
+      await expect(
+        repository.update(
+          created.id,
+          anUpdateInput({
+            sourceSessionId: created.id,
+            activities: [anUpdateActivity({ id: keptId, bodyZoneIds: ["dos", "cuisses"] })],
+          }),
+        ),
+      ).rejects.toThrow(RetiredBodyZoneError);
+      const reopened = await repository.findById(created.id);
+      expect(reopened?.cycle.tour.exercises[0]?.bodyZoneIds).toEqual(["dos"]);
+    });
+  });
+
+  /**
+   * PRE-4, décision Q53 (8) de Hermann (2026-10-18) : même règle pour la Catégorie d'une
+   * Copie et l'Étiquette d'une Séance — une Copie ou une Séance NOUVELLE garde une valeur
+   * retirée déjà affectée ailleurs ; affectée nulle part, ou nouvelle sur un objet existant,
+   * elle reste refusée (D-210).
+   */
+  describe("PRE4-Q53 (8) — Catégorie et Étiquette retirées héritées", () => {
+    it("PRE4-Q53/category-copy — nouvelle Séance avec la Copie d'une Définition dont la Catégorie a été retirée : enregistrée ; occurrence existante passant à une autre Catégorie retirée : refusée", async () => {
+      const definitions = new SqliteActivityDefinitionRepository(database, () => "def-q53-cat");
+      await definitions.create({
+        name: "Squat",
+        description: null,
+        category: { kind: "EXISTING", categoryId: "cardio" },
+        bodyZoneIds: ["cuisses"],
+        executionParameters: durationParameters(30),
+      });
+      await database.runAsync("UPDATE categories SET is_active = 0 WHERE id IN ('cardio', 'mobilite')");
+      const repository = new SqliteSessionRepository(database, () => `q53c-${randomUUID()}`);
+      const created = await repository.create({
+        ...validInput(),
+        exercises: [{ ...anExercise({ name: "Squat" }), categoryId: "cardio", bodyZoneIds: ["cuisses"] }],
+      });
+      expect(created.cycle.tour.exercises[0]?.categoryId).toBe("cardio");
+      const keptId = created.cycle.tour.exercises[0]!.id;
+      await expect(
+        repository.update(
+          created.id,
+          anUpdateInput({
+            sourceSessionId: created.id,
+            activities: [anUpdateActivity({ id: keptId, categoryId: "mobilite", bodyZoneIds: ["cuisses"] })],
+          }),
+        ),
+      ).rejects.toThrow(RetiredOccurrenceCategoryError);
+      await expect(
+        repository.create({ ...validInput(), exercises: [{ ...anExercise(), categoryId: "mobilite" }] }),
+      ).rejects.toThrow(RetiredOccurrenceCategoryError);
+    });
+
+    it("PRE4-Q53/label-duplicate — Séance nouvelle (duplication) avec l'Étiquette retirée d'une autre Séance : enregistrée ; Étiquette retirée affectée nulle part : refusée ; modification vers une Étiquette retirée : refusée", async () => {
+      await database.runAsync(
+        `INSERT INTO labels (id, name, canonical_key, color, is_active, created_at) VALUES
+         ('label-a', 'Sport', 'sport', '#2E9B62', 1, '2026-01-01T00:00:00.000Z'),
+         ('label-b', 'Yoga', 'yoga', '#3B82F6', 1, '2026-01-01T00:00:00.000Z')`,
+      );
+      const repository = new SqliteSessionRepository(database, () => `q53-${randomUUID()}`);
+      const source = await repository.create({ ...validInput(), labelId: "label-a" });
+      await database.runAsync("UPDATE labels SET is_active = 0");
+      const copy = await repository.create({ ...validInput(), name: "Copie", labelId: "label-a" });
+      expect(copy.labelId).toBe("label-a");
+      await expect(repository.create({ ...validInput(), labelId: "label-b" })).rejects.toThrow(RetiredLabelError);
+      const keptId = source.cycle.tour.exercises[0]!.id;
+      await expect(
+        repository.update(
+          source.id,
+          anUpdateInput({ sourceSessionId: source.id, labelId: "label-b", activities: [anUpdateActivity({ id: keptId })] }),
+        ),
+      ).rejects.toThrow(RetiredLabelError);
+    });
+  });
+
   describe("findSessionStatus (T01-S10)", () => {
     it("returns ACTIVE for an active session, ARCHIVED for an archived one, null for an unknown id", async () => {
       const repository = new SqliteSessionRepository(database, uuidFactory());
@@ -1600,7 +1768,8 @@ describe("SqliteSessionRepository", () => {
       const repository = new SqliteSessionRepository(database, uuidFactory());
       const created = await repository.create({
         ...validInput(),
-        exercises: [{ ...anExercise(), sideMode: "RIGHT_LEFT" }],
+        // PRE-4 (AD-3) : la direction écrite et relue est celle des paramètres.
+        exercises: [{ ...anExercise(), sideMode: "RIGHT_LEFT", executionParameters: durationParameters(30, 1, 0, { sideMode: "RIGHT_LEFT" }) }],
       });
 
       expect(created.cycle.tour.exercises[0]?.sideMode).toBe("RIGHT_LEFT");
@@ -1625,7 +1794,13 @@ describe("SqliteSessionRepository", () => {
         created.id,
         anUpdateInput({
           sourceSessionId: created.id,
-          activities: [anUpdateActivity({ id: activityId, sideMode: "LEFT_RIGHT" })],
+          activities: [
+            anUpdateActivity({
+              id: activityId,
+              sideMode: "LEFT_RIGHT",
+              executionParameters: durationParameters(30, 1, 0, { sideMode: "LEFT_RIGHT" }),
+            }),
+          ],
         }),
       );
 
@@ -1648,9 +1823,7 @@ describe("SqliteSessionRepository", () => {
         exercises: [
           {
             ...anExercise(),
-            durationSeconds: 30,
-            seriesCount: 3,
-            pauseSeconds: 15,
+            executionParameters: durationParameters(30, 3, 15, { sideMode: "RIGHT_LEFT" }),
             postActivityRecoverySeconds: 20,
             sideMode: "RIGHT_LEFT",
           },
@@ -1673,17 +1846,13 @@ describe("SqliteSessionRepository", () => {
             ...anExercise(),
             id: "warmup",
             structuralPosition: "BEFORE_TOUR",
-            durationSeconds: 10,
-            seriesCount: 1,
-            pauseSeconds: 0,
+            executionParameters: durationParameters(10),
           },
           {
             ...anExercise(),
             id: "core",
             structuralPosition: "IN_TOUR",
-            durationSeconds: 10,
-            seriesCount: 1,
-            pauseSeconds: 0,
+            executionParameters: durationParameters(10, 1, 0, { sideMode: "RIGHT_LEFT" }),
             sideMode: "RIGHT_LEFT",
           },
         ],
@@ -1726,11 +1895,7 @@ function anExercise(overrides: Partial<CreateSessionExerciseInput> = {}): Create
     type: "EXERCISE",
     structuralPosition: "IN_TOUR",
     name: "Gainage",
-    executionMode: "DURATION",
-    durationSeconds: 30,
-    repetitionCount: null,
-    seriesCount: 1,
-    pauseSeconds: 0,
+    executionParameters: durationParameters(30),
     postActivityRecoverySeconds: 0,
     instruction: null,
     bodyZoneIds: [],
@@ -1748,11 +1913,7 @@ function anUpdateActivity(
     structuralPosition: "IN_TOUR",
     position: 0,
     name: "Gainage",
-    executionMode: "DURATION",
-    durationSeconds: 30,
-    repetitionCount: null,
-    seriesCount: 1,
-    pauseSeconds: 0,
+    executionParameters: durationParameters(30),
     postActivityRecoverySeconds: 0,
     instruction: null,
     bodyZoneIds: [],
@@ -1905,8 +2066,8 @@ function validRow(): SessionAggregateRow {
     instruction: null,
     // V2-BILAT-01 : direction propre de l'Activité (`migration005`, défaut `'UNILATERAL'`).
     activity_side_mode: "UNILATERAL",
-    // PRE-3 (`migration009`) : ancienne occurrence — aucun JSON canonique ni Catégorie.
-    activity_execution_parameters: null,
+    // PRE-4 : JSON v2 obligatoire pour un Exercice (lu par `readV2`).
+    activity_execution_parameters: serializeV2(durationParameters(30)),
     activity_category_id: null,
   };
 }
@@ -1945,14 +2106,14 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
 
   function parameters(overrides: Partial<ExecutionParameters> = {}): ExecutionParameters {
     return {
-      version: 1,
+      version: EXECUTION_PARAMETERS_VERSION,
       mode: "DURATION",
       series: {
         kind: "VARIABLE",
         rows: [
-          { target: 30, pauseSeconds: 10 },
-          { target: 45, pauseSeconds: 20 },
-          { target: 60, pauseSeconds: 30 },
+          { target: numberTarget(30), pauseSeconds: 10 },
+          { target: numberTarget(45), pauseSeconds: 20 },
+          { target: numberTarget(60), pauseSeconds: 30 },
         ],
       },
       sideMode: "RIGHT_LEFT",
@@ -1970,11 +2131,6 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
       type: "EXERCISE",
       structuralPosition: "IN_TOUR",
       name: "Fentes",
-      executionMode: "DURATION",
-      durationSeconds: 30,
-      repetitionCount: null,
-      seriesCount: 3,
-      pauseSeconds: 10,
       postActivityRecoverySeconds: 0,
       bodyZoneIds: ["cuisses"],
       executionParameters: parameters(),
@@ -2031,6 +2187,55 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
     expect(definitions?.count).toBe(0);
   });
 
+  it("PRE4-4.1/AC13 — occurrence existante supprimée entre l'ouverture et l'enregistrement : ACTIVITY_NOT_FOUND, base inchangée ; occurrence nouvelle du Brouillon : insérée", async () => {
+    const repository = new SqliteSessionRepository(database, ids("ses"));
+    const created = await repository.create(sessionInput([occurrence(), occurrence({ name: "Squats" })]));
+    const [kept, deleted] = created.cycle.tour.exercises;
+    const fresh = { ...toSessionDraft(created).exercises[0]!, id: "occ-new", name: "Pompes" };
+    const input = updateFromDraft(created, (draft) => ({
+      ...draft,
+      name: "Jambes modifiées",
+      exercises: [...draft.exercises.map((exercise) => ({ ...exercise, name: `${exercise.name} bis` })), fresh],
+    }));
+    expect(input.persistedActivityIds).toEqual([kept!.id, deleted!.id]);
+
+    await database.runAsync("DELETE FROM activities WHERE id = ?", [deleted!.id]);
+    const snapshot = async () => {
+      const result: Record<string, unknown[]> = {};
+      const tables = await database.getAllAsync<{ name: string }>("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'");
+      for (const { name } of tables) {
+        result[name] = (await database.getAllAsync(`SELECT * FROM "${name}"`)).map((row) => JSON.stringify(row)).sort();
+      }
+      return result;
+    };
+    const before = await snapshot();
+
+    expect(await repository.update(created.id, input)).toEqual({ status: "ACTIVITY_NOT_FOUND" });
+    expect(await snapshot()).toEqual(before);
+
+    // Sans l'occurrence supprimée, la même modification passe : l'occurrence nouvelle est insérée.
+    const withoutDeleted = { ...input, activities: input.activities.filter((activity) => activity.id !== deleted!.id) };
+    const outcome = await repository.update(created.id, withoutDeleted);
+    expect(outcome.status).toBe("UPDATED");
+    const names = (await database.getAllAsync<{ id: string; name: string }>("SELECT id, name FROM activities ORDER BY position"))
+      .map((row) => [row.id, row.name]);
+    expect(names).toEqual([
+      [kept!.id, "Fentes bis"],
+      ["occ-new", "Pompes"],
+    ]);
+  });
+
+  it("PRE4-4.1/AC13 — la marque des occurrences chargées n'entre pas dans l'égalité du Brouillon ni dans la base", async () => {
+    const repository = new SqliteSessionRepository(database, ids("ses"));
+    const created = await repository.create(sessionInput([occurrence()]));
+    const draft = toSessionDraft(created);
+    expect(draft.persistedExerciseIds).toEqual([created.cycle.tour.exercises[0]!.id]);
+    expect(sessionDraftsEqual(draft, { ...draft, persistedExerciseIds: [] })).toBe(true);
+    expect(isSessionDraftDirty({ ...draft, persistedExerciseIds: undefined }, draft)).toBe(false);
+    const columns = await database.getAllAsync<{ name: string }>("PRAGMA table_info(activities)");
+    expect(columns.map((column) => column.name).filter((name) => /persist/i.test(name))).toEqual([]);
+  });
+
   it("P3-03/reference-retired — Catégorie et Zone retirées conservées ; nouvelle affectation retirée refusée", async () => {
     const repository = new SqliteSessionRepository(database, ids("ses"));
     const created = await repository.create(sessionInput([occurrence()]));
@@ -2043,38 +2248,68 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
     const activity = kept.status === "UPDATED" ? kept.session.cycle.tour.exercises[0]! : null;
     expect(activity?.categoryId).toBe("cardio");
     expect(activity?.bodyZoneIds).toEqual(["cuisses"]);
+    // PRE-4 Q53 (8) : « cardio » est encore affectée à l'occurrence ci-dessus — une Copie
+    // nouvelle en hérite ; une Catégorie retirée affectée nulle part reste refusée.
+    const copy = await repository.create(sessionInput([occurrence({ categoryId: "cardio", bodyZoneIds: ["dos"], media: [] })]));
+    expect(copy.cycle.tour.exercises[0]?.categoryId).toBe("cardio");
+    await database.runAsync("UPDATE categories SET is_active = 0 WHERE id = 'mobilite'");
+    const unused = await database.getFirstAsync<{ n: number }>(
+      "SELECT (SELECT COUNT(*) FROM activities WHERE category_id = 'mobilite') + (SELECT COUNT(*) FROM activity_definitions WHERE category_id = 'mobilite') AS n",
+    );
+    expect(unused?.n).toBe(0);
     await expect(
-      repository.create(sessionInput([occurrence({ categoryId: "cardio", bodyZoneIds: ["dos"], media: [] })])),
+      repository.create(sessionInput([occurrence({ categoryId: "mobilite", bodyZoneIds: ["dos"], media: [] })])),
     ).rejects.toThrow(RetiredOccurrenceCategoryError);
   });
 
-  it("P3-10/legacy-neutral-proposal et P3-17/corrupt-version — ancienne occurrence sans JSON lue telle quelle ; JSON corrompu : erreur explicite", async () => {
+  /**
+   * PRE-4 (story 1.1, AD-3) : après `migration010`, une occurrence porte
+   * toujours un JSON v2 ; `readV2` est le seul lecteur. Sans JSON, en v1, de
+   * version inconnue ou corrompu : erreur de donnée explicite, jamais un
+   * repli sur les scalaires (la conversion des anciennes occurrences est
+   * celle de `migration010`).
+   */
+  it("P3-17/corrupt-version (PRE-4 AD-3) — occurrence sans JSON, v1, version inconnue ou corrompue : erreur explicite, jamais un repli scalaire", async () => {
     const repository = new SqliteSessionRepository(database, ids("ses"));
-    const created = await repository.create(
-      sessionInput([occurrence({ executionParameters: undefined, categoryId: undefined, media: undefined, pauseSeconds: 40 })]),
-    );
-    await database.runAsync("UPDATE profiles SET exercise_countdown_seconds_default = 60");
+    const created = await repository.create(sessionInput([occurrence({ categoryId: undefined, media: undefined })]));
     const legacy = (await repository.findById(created.id))!.cycle.tour.exercises[0]!;
-    expect(legacy.executionParameters).toBeUndefined();
     expect(legacy.categoryId).toBeNull();
-    expect(resolveExecutionParameters(legacy)).toEqual(
-      expect.objectContaining({ countdownSeconds: 0, endSeconds: 0, series: { kind: "UNIFORM", count: 3, target: 30, pauseSeconds: 40 } }),
-    );
-    await database.runAsync("UPDATE activities SET execution_parameters = 'oops'");
-    await expect(repository.findById(created.id)).rejects.toThrow(ExecutionParametersDataError);
+    const v1 = JSON.stringify({
+      version: 1,
+      mode: "DURATION",
+      series: { kind: "UNIFORM", count: 3, target: 30, pauseSeconds: 40 },
+      sideMode: "UNILATERAL",
+      sideOrder: "BY_SIDE",
+      sideRecoverySeconds: 0,
+      cadenceBeepIntervalSeconds: 0,
+      countdownSeconds: 0,
+      endSeconds: 0,
+    });
+    for (const corrupt of [null, v1, '{"version":7}', "oops"]) {
+      await database.runAsync("UPDATE activities SET execution_parameters = ?", [corrupt]);
+      await expect(repository.findById(created.id)).rejects.toThrow(ExecutionParametersDataError);
+      await expect(repository.listActive()).rejects.toThrow(ExecutionParametersDataError);
+    }
   });
 
   it("P3-13/tours-cycles-list — total de liste = lecture complète par l'autorité unique ; avant/dans/après Circuit, Tours 99, ≈ et ≥", async () => {
     const repository = new SqliteSessionRepository(database, ids("ses"));
     const estimated = parameters({
       mode: "REPETITIONS",
-      series: { kind: "UNIFORM", count: 4, target: 15, pauseSeconds: 15 },
+      series: { kind: "UNIFORM", count: 4, target: numberTarget(15), pauseSeconds: 15 },
       sideMode: "UNILATERAL",
       cadenceBeepIntervalSeconds: 4,
     });
     const unknown = parameters({
-      mode: "TO_FAILURE",
-      series: { kind: "VARIABLE", rows: [{ target: null, pauseSeconds: 30 }, { target: null, pauseSeconds: 45 }, { target: null, pauseSeconds: 60 }] },
+      mode: "REPETITIONS",
+      series: {
+        kind: "VARIABLE",
+        rows: [
+          { target: toTarget("FAILURE"), pauseSeconds: 30 },
+          { target: toTarget("FAILURE"), pauseSeconds: 45 },
+          { target: toTarget("FAILURE"), pauseSeconds: 60 },
+        ],
+      },
       sideMode: "UNILATERAL",
     });
     const created = await repository.create(
@@ -2162,7 +2397,7 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
       await migrateDatabase(fileDatabase);
       const extremes = parameters({
         mode: "REPETITIONS",
-        series: { kind: "VARIABLE", rows: [{ target: 100, pauseSeconds: 300 }, { target: 1, pauseSeconds: 0 }] },
+        series: { kind: "VARIABLE", rows: [{ target: numberTarget(100), pauseSeconds: 300 }, { target: numberTarget(1), pauseSeconds: 0 }] },
         sideOrder: "BY_SERIES",
         cadenceBeepIntervalSeconds: 10,
       });
@@ -2174,8 +2409,10 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
       try {
         const activity = (await new SqliteSessionRepository(reopened, ids("ses")).findById(created.id))!.cycle.tour.exercises[0]!;
         expect(activity.executionParameters).toEqual(extremes);
-        expect(activity.repetitionCount).toBe(100);
-        expect(activity.seriesCount).toBe(2);
+        // Projection scalaire (jamais relue comme source) : première Cible, N.
+        expect(
+          await reopened.getFirstAsync("SELECT repetition_count, series_count FROM activities WHERE id = ?", [activity.id]),
+        ).toEqual({ repetition_count: 100, series_count: 2 });
         expect(activity.categoryId).toBe("cardio");
         expect(activity.media?.map((item) => item.asset)).toEqual([asset("v1", "VIDEO"), asset("p1")]);
       } finally {
@@ -2237,5 +2474,321 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
     // Asset sans référence : conservé (aucune purge globale), toujours lisible.
     expect(await media.findAsset("p1")).toEqual(asset("p1"));
     expect(await media.findAsset("v1")).toEqual(asset("v1", "VIDEO"));
+  });
+});
+
+/**
+ * PRE-4 (story 1.1) — Copies en Séance : format v2, projection scalaire
+ * unique, aller-retour exact et refus sans écriture, sur SQLite RÉELLE
+ * (AD-3, AD-4, AD-10, AD-13).
+ */
+describe("SqliteSessionRepository — PRE-4 story 1.1 (NodeSqliteDatabase REAL)", () => {
+  let database: NodeSqliteDatabase;
+  let sequence = 0;
+  const ids = (prefix: string) => () => `${prefix}-${++sequence}`;
+
+  beforeEach(async () => {
+    database = NodeSqliteDatabase.openInMemory();
+    await migrateDatabase(database);
+  });
+
+  afterEach(() => {
+    database.close();
+  });
+
+  const asset = (id: string): MediaAsset => ({
+    id,
+    uri: `kodjo-media/${id}.jpg`,
+    createdAt: "2026-10-16T10:00:00.000Z",
+    kind: "PHOTO",
+    mimeType: "image/jpeg",
+    fileName: null,
+    sizeBytes: 10,
+    durationMs: null,
+    width: 1,
+    height: 1,
+  });
+
+  function copy(parameters: ExecutionParameters, overrides: Partial<CreateSessionActivityInput> = {}): CreateSessionActivityInput {
+    return {
+      type: "EXERCISE",
+      structuralPosition: "IN_TOUR",
+      name: "Copie",
+      postActivityRecoverySeconds: 0,
+      bodyZoneIds: ["cuisses"],
+      executionParameters: parameters,
+      categoryId: "cardio",
+      ...overrides,
+    };
+  }
+
+  function sessionOf(exercises: readonly CreateSessionActivityInput[]): CreateSessionInput {
+    return { name: "Séance PRE-4", initialCountdownSeconds: 10, finalPhaseSeconds: 5, tourRepeatCount: 1, exercises };
+  }
+
+  async function dump(target: Database = database): Promise<Record<string, unknown[]>> {
+    const result: Record<string, unknown[]> = {};
+    for (const table of [
+      "sessions",
+      "cycles",
+      "tours",
+      "activities",
+      "activity_body_zones",
+      "session_activity_media",
+      "media_assets",
+      "categories",
+      "session_stop_points",
+    ]) {
+      result[table] = await target.getAllAsync(`SELECT * FROM ${table} ORDER BY rowid`);
+    }
+    return result;
+  }
+
+  /** Fait échouer la N-ième écriture d'une transaction (motif de `migrateDatabase.test.ts`). */
+  class FailingDatabase implements Database {
+    writes = 0;
+    constructor(
+      private readonly inner: Database,
+      private readonly failAt: number,
+    ) {}
+    execAsync(source: string) {
+      return this.inner.execAsync(source);
+    }
+    async runAsync(source: string, parameters?: SqlParameters) {
+      this.writes += 1;
+      if (this.writes === this.failAt) {
+        throw new Error(`Injected failure at write ${this.failAt}`);
+      }
+      return this.inner.runAsync(source, parameters);
+    }
+    getFirstAsync<T>(source: string, parameters?: SqlParameters) {
+      return this.inner.getFirstAsync<T>(source, parameters);
+    }
+    getAllAsync<T>(source: string, parameters?: SqlParameters) {
+      return this.inner.getAllAsync<T>(source, parameters);
+    }
+    withExclusiveTransactionAsync(task: (transaction: Database) => Promise<void>) {
+      return this.inner.withExclusiveTransactionAsync(() => task(this));
+    }
+  }
+
+  it("PRE4-1.1/AC16 — projection unique d'une Copie : première Cible FAILURE → duration_seconds NULL (jamais 30) ; Répétitions 12 × 3 ; paramètres relus typés", async () => {
+    const repository = new SqliteSessionRepository(database, ids("ses"));
+    const mixed = variableParameters({ mode: "DURATION", rows: [["FAILURE", 10], [30, 10]] });
+    const reps = uniformParameters({ mode: "REPETITIONS", count: 3, target: 12 });
+    const created = await repository.create(sessionOf([copy(mixed, { id: "mixed" }), copy(reps, { id: "reps" })]));
+    const rows = await database.getAllAsync<Record<string, unknown>>(
+      `SELECT id, execution_mode, duration_seconds, repetition_count, series_count, pause_seconds
+       FROM activities ORDER BY position`,
+    );
+    expect(rows).toEqual([
+      { id: "mixed", execution_mode: "DURATION", duration_seconds: null, repetition_count: null, series_count: 2, pause_seconds: 10 },
+      { id: "reps", execution_mode: "REPETITIONS", duration_seconds: null, repetition_count: 12, series_count: 3, pause_seconds: 0 },
+    ]);
+    const stored = await database.getFirstAsync<{ execution_parameters: string }>(
+      "SELECT execution_parameters FROM activities WHERE id = 'mixed'",
+    );
+    expect(stored?.execution_parameters).toBe(serializeV2(mixed));
+    const reread = (await repository.findById(created.id))!.cycle.tour.exercises;
+    expect(reread.map((activity) => activity.executionParameters)).toEqual([mixed, reps]);
+    for (const scalar of ["executionMode", "durationSeconds", "repetitionCount", "seriesCount", "pauseSeconds"]) {
+      expect(reread[0]).not.toHaveProperty(scalar);
+    }
+  });
+
+  it("PRE4-1.1/AC18 — aller-retour exact des Copies sur base fichier fermée puis rouverte : Durée/Répétitions × identiques/variables, Cibles numériques, à l'échec et mixtes, Récupération exacte", async () => {
+    const path = join(tmpdir(), `kodjo-pre4-session-${Date.now()}-${Math.random().toString(16).slice(2)}.db`);
+    const common = {
+      sideMode: "LEFT_RIGHT" as const,
+      sideOrder: "BY_SERIES" as const,
+      sideRecoverySeconds: 8,
+      cadenceBeepIntervalSeconds: 3,
+      countdownSeconds: 5,
+      endSeconds: 6,
+    };
+    const cases: readonly ExecutionParameters[] = [
+      uniformParameters({ ...common, mode: "DURATION", count: 3, target: 30, pauseSeconds: 10 }),
+      uniformParameters({ ...common, mode: "REPETITIONS", count: 4, target: 12, pauseSeconds: 15 }),
+      allFailureParameters(3, 10, common),
+      uniformParameters({ ...common, mode: "DURATION", count: 2, target: "FAILURE", pauseSeconds: 5 }),
+      variableParameters({ ...common, mode: "DURATION", rows: [[30, 10], [45, 20], [60, 30]] }),
+      variableParameters({ ...common, mode: "REPETITIONS", rows: [[12, 10], [12, 10], [12, 10]] }),
+      variableParameters({ ...common, mode: "REPETITIONS", rows: [[10, 5], [12, 5], ["FAILURE", 5]] }),
+      variableParameters({ ...common, mode: "DURATION", rows: [["FAILURE", 5], [40, 5], [50, 5]] }),
+      variableParameters({ ...common, mode: "REPETITIONS", rows: [[8, 5], ["FAILURE", 5], [6, 5]] }),
+      variableParameters({ ...common, mode: "DURATION", rows: [["FAILURE", 0], ["FAILURE", 20]] }),
+    ];
+    const fileDatabase = NodeSqliteDatabase.openFile(path);
+    try {
+      await migrateDatabase(fileDatabase);
+      const created = await new SqliteSessionRepository(fileDatabase, ids("ses")).create(
+        sessionOf(
+          cases.map((parameters, index) =>
+            copy(parameters, {
+              id: `copy-${index}`,
+              name: `Copie ${index}`,
+              instruction: `Description ${index}`,
+              sideMode: common.sideMode,
+              postActivityRecoverySeconds: index * 7,
+              bodyZoneIds: ["dos", "cuisses"],
+              media: [
+                { assetId: `b-${index}`, asset: asset(`b-${index}`) },
+                { assetId: `a-${index}`, asset: asset(`a-${index}`) },
+              ],
+            }),
+          ),
+        ),
+      );
+      fileDatabase.close();
+      const reopened = NodeSqliteDatabase.openFile(path);
+      try {
+        const reread = await new SqliteSessionRepository(reopened, ids("ses")).findById(created.id);
+        expect(reread).toEqual(created);
+        const exercises = reread!.cycle.tour.exercises;
+        expect(exercises.map((activity) => activity.id)).toEqual(cases.map((_, index) => `copy-${index}`));
+        for (const [index, activity] of exercises.entries()) {
+          expect(activity.executionParameters).toEqual(cases[index]);
+          expect(activity.executionParameters.series.kind).toBe(cases[index]!.series.kind);
+          expect(activity.postActivityRecoverySeconds).toBe(index * 7);
+          expect(activity.name).toBe(`Copie ${index}`);
+          expect(activity.instruction).toBe(`Description ${index}`);
+          expect(activity.categoryId).toBe("cardio");
+          expect(activity.bodyZoneIds.slice().sort()).toEqual(["cuisses", "dos"]);
+          expect(activity.media?.map((item) => item.assetId)).toEqual([`b-${index}`, `a-${index}`]);
+          expect(activity.executionParameters.cadenceBeepIntervalSeconds).toBe(3);
+        }
+      } finally {
+        reopened.close();
+      }
+    } finally {
+      rmSync(path, { force: true });
+      rmSync(`${path}-wal`, { force: true });
+      rmSync(`${path}-shm`, { force: true });
+    }
+  });
+
+  it("PRE4-1.1/AC18 — un échec injecté à chaque écriture de l'enregistrement d'une Séance laisse la base dans son état précédent, sans lien orphelin", async () => {
+    const input = sessionOf([
+      copy(variableParameters({ mode: "REPETITIONS", rows: [[10, 5], ["FAILURE", 5]] }), {
+        bodyZoneIds: ["dos", "cuisses"],
+        media: [{ assetId: "p1", asset: asset("p1") }],
+      }),
+      copy(allFailureParameters(3, 10), { structuralPosition: "AFTER_TOUR", media: [{ assetId: "p1" }] }),
+    ]);
+    // Nombre d'écritures d'un enregistrement réussi, mesuré sur une base jetable.
+    const probeDatabase = NodeSqliteDatabase.openInMemory();
+    await migrateDatabase(probeDatabase);
+    const probe = new FailingDatabase(probeDatabase, Number.POSITIVE_INFINITY);
+    await new SqliteSessionRepository(probe, ids("probe")).create(input);
+    probeDatabase.close();
+    const writes = probe.writes;
+    expect(writes).toBeGreaterThanOrEqual(8);
+    const before = await dump();
+    for (let failAt = 1; failAt <= writes; failAt += 1) {
+      await expect(
+        new SqliteSessionRepository(new FailingDatabase(database, failAt), ids("fail")).create(input),
+      ).rejects.toThrow(`Injected failure at write ${failAt}`);
+      expect(await dump()).toEqual(before);
+    }
+    expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual([]);
+  });
+
+  it("PRE4-1.1/AC8 — une Copie refusée (Cible UNSET) ne laisse aucune ligne, Zone, Catégorie ni Média ajouté ou modifié", async () => {
+    const repository = new SqliteSessionRepository(database, ids("ses"));
+    const created = await repository.create(sessionOf([copy(durationParameters(30, 2, 10))]));
+    const before = await dump();
+    const refused = copy(uniformParameters({ mode: "REPETITIONS", count: 2, target: "UNSET" }), {
+      bodyZoneIds: ["genoux"],
+      media: [{ assetId: "refused", asset: asset("refused") }],
+    });
+    await expect(repository.create(sessionOf([refused]))).rejects.toBeInstanceOf(SessionValidationError);
+    await expect(
+      repository.update(
+        created.id,
+        anUpdateInput({
+          sourceSessionId: created.id,
+          activities: [{ ...anUpdateActivity({ id: created.cycle.tour.exercises[0]!.id }), ...refused, position: 0, id: created.cycle.tour.exercises[0]!.id }],
+        }),
+      ),
+    ).rejects.toBeInstanceOf(SessionValidationError);
+    expect(await dump()).toEqual(before);
+  });
+
+  it("PRE4-1.1/AC5 — une Copie dont la Cible Durée de première ligne vaut 6000 s (structurellement valide) est refusée par le CHECK reflété, sans écriture", async () => {
+    const repository = new SqliteSessionRepository(database, ids("ses"));
+    const created = await repository.create(sessionOf([copy(durationParameters(30))]));
+    const before = await dump();
+    const tooLong = durationParameters(6000, 2, 10);
+    await expect(
+      repository.create(sessionOf([copy(tooLong, { media: [{ assetId: "x1", asset: asset("x1") }] })])),
+    ).rejects.toThrow("does not satisfy");
+    await expect(
+      repository.update(
+        created.id,
+        anUpdateInput({
+          sourceSessionId: created.id,
+          activities: [anUpdateActivity({ id: created.cycle.tour.exercises[0]!.id, executionParameters: tooLong })],
+        }),
+      ),
+    ).rejects.toThrow("does not satisfy");
+    // Une Pause de première ligne au-delà de 5999 s est refusée de même.
+    await expect(
+      repository.create(sessionOf([copy(durationParameters(30, 2, 6000))])),
+    ).rejects.toThrow("does not satisfy");
+    expect(await dump()).toEqual(before);
+  });
+});
+
+/**
+ * PRE-4 (story 1.2, P39) : ligne d'en-tête seule d'une Séance sans
+ * occurrence (`LEFT JOIN activities` sans correspondance) — colonnes
+ * d'occurrence toutes `NULL`.
+ */
+function headerOnlyRow(): SessionAggregateQueryRow {
+  return {
+    ...validRow(),
+    activity_id: null,
+    activity_type: null,
+    activity_name: null,
+    structural_position: null,
+    activity_position: null,
+    execution_mode: null,
+    duration_seconds: null,
+    repetition_count: null,
+    series_count: null,
+    pause_seconds: null,
+    post_activity_recovery_seconds: null,
+    instruction: null,
+    activity_side_mode: null,
+    activity_execution_parameters: null,
+    activity_category_id: null,
+  };
+}
+
+describe("PRE4-1.2/AC7 — assembleSession sur une ligne d'en-tête seule", () => {
+  it("assemble une Séance vide avec ses paramètres et une composition vide", () => {
+    const session = assembleSession([{ ...headerOnlyRow(), tour_repeat_count: 2 }], new Map());
+    expect(session.cycle.tour).toEqual({ id: IDS[2]!, position: 1, repeatCount: 2, exercises: [] });
+    expect(session.cycle.beforeTour).toBeUndefined();
+    expect(session.cycle.afterTour).toBeUndefined();
+    expect(session).toMatchObject({ id: IDS[0]!, name: "Séance", initialCountdownSeconds: 10, finalPhaseSeconds: 5 });
+  });
+
+  it.each([
+    ["status ARCHIVED", { status: "ARCHIVED" }],
+    ["tour_side_mode invalide", { tour_side_mode: "SIDEWAYS" }],
+    ["tour_repeat_count 0", { tour_repeat_count: 0 }],
+  ])("lève sur une ligne d'en-tête seule invalide : %s", (_label, override) => {
+    const row = { ...headerOnlyRow(), ...override } as unknown as SessionAggregateQueryRow;
+    expect(() => assembleSession([row], new Map())).toThrow("does not satisfy");
+  });
+
+  it("lève sur un mélange d'une ligne d'en-tête seule et d'une ligne d'occurrence, dans les deux ordres", () => {
+    expect(() => assembleSession([validRow(), headerOnlyRow()], new Map())).toThrow("does not satisfy");
+    expect(() => assembleSession([headerOnlyRow(), validRow()], new Map())).toThrow("does not satisfy");
+  });
+
+  it("lève sur un agrégat sans aucune ligne", () => {
+    expect(() => assembleSession([], new Map())).toThrow();
   });
 });

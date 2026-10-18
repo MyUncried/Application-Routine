@@ -22,7 +22,10 @@
 
 import {
   cloneExecutionParameters,
+  EXECUTION_PARAMETERS_VERSION,
   executionParametersEqual,
+  numberTarget,
+  type ExecutionParameters,
   type ExecutionParametersInput,
 } from "@/domain/activities/ExecutionParameters";
 import { draftMediaEqual, toDraftMediaItems, type DraftMediaItem } from "@/domain/media/ActivityMedia";
@@ -56,11 +59,35 @@ import type { SideMode } from "./sideMode";
 import { validateCreateSessionInput, validateUpdateSessionInput } from "./validation";
 
 /**
- * Mode d'exécution d'un Exercice dans un brouillon (T01-S08 ; T01-S10 :
- * `TO_FAILURE` ajouté, D-111) : une durée cible, un nombre de répétitions
- * cible, ou « à l'échec » (aucune cible).
+ * Mode d'exécution d'un Exercice dans un brouillon : celui du domaine des
+ * paramètres (PRE-4, AD-1), `DURATION` ou `REPETITIONS`.
  */
 export type SessionDraftExerciseExecutionMode = ExerciseExecutionMode;
+
+/**
+ * Paramètres par défaut d'un nouveau brouillon d'Exercice (T01-S08, valeurs
+ * canoniques du Domaine) : mode Durée, une Série de
+ * `DEFAULT_EXERCISE_DURATION_SECONDS`, sans Pause, sans changement de côté,
+ * sans Bip, Compte à rebours ni Fin. Une Cible typée `NUMBER` (PRE-4, AD-1).
+ */
+export function defaultExerciseExecutionParameters(): ExecutionParameters {
+  return {
+    version: EXECUTION_PARAMETERS_VERSION,
+    mode: DEFAULT_EXECUTION_MODE,
+    series: {
+      kind: "UNIFORM",
+      count: DEFAULT_SERIES_COUNT,
+      target: numberTarget(DEFAULT_EXERCISE_DURATION_SECONDS),
+      pauseSeconds: DEFAULT_PAUSE_SECONDS,
+    },
+    sideMode: DEFAULT_SIDE_MODE,
+    sideOrder: "BY_SIDE",
+    sideRecoverySeconds: 0,
+    cadenceBeepIntervalSeconds: 0,
+    countdownSeconds: 0,
+    endSeconds: 0,
+  };
+}
 
 export type SessionDraftExercise = {
   /**
@@ -78,24 +105,20 @@ export type SessionDraftExercise = {
   /**
    * T01-S10 (D-061) : type de l'Activité. Le parcours de création T01-S09
    * ne produit que des Exercices (`"EXERCISE"`) ; la modification bout en
-   * bout d'une Séance persistée peut réhydrater une Récupération. Un
-   * brouillon de Récupération conserve `executionMode`/`seriesCount` à
-   * leurs valeurs par défaut mais elles sont ignorées à la conversion
-   * (`toUpdateSessionInput`).
+   * bout d'une Séance persistée peut réhydrater une ancienne Récupération,
+   * dont la durée est portée par l'unique Série de ses paramètres.
    */
   readonly type: ActivityType;
   /** T01-S10 (D-061) : position structurelle — avant, dans, ou après le Circuit. Reste `"IN_TOUR"` pour tout brouillon créé avant S10. */
   readonly structuralPosition: StructuralPosition;
   readonly name: string;
-  readonly executionMode: SessionDraftExerciseExecutionMode;
-  /** Non nul uniquement en mode `DURATION` — ou porte la durée d'une Récupération (RM-034 ; T01-S10). */
-  readonly durationSeconds: number | null;
-  /** Non nul uniquement en mode `REPETITIONS` (RM-034). */
-  readonly repetitionCount: number | null;
-  /** Toujours entier ≥ 1 (RM-035), borné à 99 en interface (D-092). */
-  readonly seriesCount: number;
-  /** Pause après Série, en secondes (RM-037) — exécutée `max(Séries − 1, 0)` fois (T02-S02, RM-129). */
-  readonly pauseSeconds: number;
+  /**
+   * PRE-4 (story 1.1, AD-3) : paramètres d'exécution typés de l'occurrence,
+   * OBLIGATOIRES — éventuellement incomplets pendant l'édition (mode « — »,
+   * Cible `UNSET`). Seule source du Mode, des Cibles, de N et des Pauses :
+   * le brouillon ne porte plus aucun champ scalaire.
+   */
+  readonly executionParameters: ExecutionParametersInput;
   /**
    * V2-PRE-1 (plan §3.2) : récupération post-exercice de l'occurrence, en
    * secondes — exécutée une seule fois après toutes les Séries. `0` = aucune
@@ -106,15 +129,8 @@ export type SessionDraftExercise = {
   readonly instruction: string | null;
   /** Identifiants stables du référentiel de Zones corporelles persistant (T01-S08, D-093) — sélection multiple, ordre indifférent. */
   readonly bodyZoneIds: readonly string[];
-  /** V2-BILAT-01 : direction propre de cette Activité (`sideMode.ts`) — `DEFAULT_SIDE_MODE` (`UNILATERAL`) pour un nouveau brouillon (`createExerciseDraft`). */
+  /** V2-BILAT-01 : direction propre de cette Activité (`sideMode.ts`), alignée sur `executionParameters.sideMode` — `DEFAULT_SIDE_MODE` (`UNILATERAL`) pour un nouveau brouillon (`createExerciseDraft`). */
   readonly sideMode: SideMode;
-  /**
-   * PRE-3 : paramètres canoniques de l'occurrence — éventuellement
-   * incomplets pendant l'édition (mode « — »). Absents pour une occurrence
-   * antérieure à PRE-3 jamais rééditée : elle reste sur son chemin
-   * historique, sans nouvelle validation imposée.
-   */
-  readonly executionParameters?: ExecutionParametersInput;
   /** PRE-3 : Catégorie transportée par la copie (`null` = aucune). */
   readonly categoryId?: string | null;
   /** PRE-3 : médias ordonnés de l'occurrence (assets partagés, liens propres). */
@@ -154,6 +170,16 @@ export type SessionDraft = {
    * périmètre de S08/S09 (poignée indicative uniquement, COMP-01).
    */
   readonly exercises: readonly SessionDraftExercise[];
+  /**
+   * PRE-4 story 4.1 (AC13, FR-01-10) : identifiants des occurrences CHARGÉES
+   * depuis la base à l'ouverture de la Séance (`toSessionDraft`). Champ de
+   * transport, jamais persisté ni comparé (`sessionDraftsEqual` l'ignore) :
+   * il permet à l'enregistrement de distinguer une occurrence EXISTANTE,
+   * supprimée entre-temps (échec, rien recréé), d'une occurrence NOUVELLE
+   * du Brouillon (création en Séance, duplication, ajout depuis le Catalogue),
+   * insérée. Absent : aucune occurrence n'est tenue pour existante.
+   */
+  readonly persistedExerciseIds?: readonly string[];
 };
 
 /**
@@ -212,11 +238,7 @@ export function createExerciseDraft(
     type: DEFAULT_ACTIVITY_TYPE,
     structuralPosition: DEFAULT_STRUCTURAL_POSITION,
     name: "",
-    executionMode: DEFAULT_EXECUTION_MODE,
-    durationSeconds: DEFAULT_EXERCISE_DURATION_SECONDS,
-    repetitionCount: null,
-    seriesCount: DEFAULT_SERIES_COUNT,
-    pauseSeconds: DEFAULT_PAUSE_SECONDS,
+    executionParameters: defaultExerciseExecutionParameters(),
     postActivityRecoverySeconds,
     instruction: null,
     bodyZoneIds: [],
@@ -259,16 +281,16 @@ export function toSessionDraft(session: Session): SessionDraft {
     finalPhaseSeconds: session.finalPhaseSeconds,
     tourRepeatCount: session.cycle.tour.repeatCount,
     exercises: structuralActivities.map((activity) => activityToDraftExercise(activity)),
+    persistedExerciseIds: structuralActivities.map((activity) => activity.id),
   };
 }
 
 /**
  * Projette une `Activity` persistée vers un `SessionDraftExercise` (T01-S10).
- * Une Récupération (`type === "RECOVERY"`) conserve son type et sa position
- * mais reprend les valeurs par défaut d'Exercice pour `executionMode`/
- * `seriesCount` (ignorées à la conversion `toUpdateSessionInput`, qui relit
- * `type`). L'ordre d'affichage suit `structuralActivities` (avant, dans,
- * après le Circuit) — jamais `position` seul, qui n'est unique que par zone.
+ * Une Récupération (`type === "RECOVERY"`) conserve son type et sa position.
+ * Les paramètres typés sont clonés en profondeur (AD-9). L'ordre d'affichage
+ * suit `structuralActivities` (avant, dans, après le Circuit) — jamais
+ * `position` seul, qui n'est unique que par zone.
  */
 function activityToDraftExercise(activity: Activity): SessionDraftExercise {
   return {
@@ -276,22 +298,16 @@ function activityToDraftExercise(activity: Activity): SessionDraftExercise {
     type: activity.type,
     structuralPosition: activity.structuralPosition,
     name: activity.name,
-    executionMode: activity.executionMode ?? DEFAULT_EXECUTION_MODE,
-    durationSeconds: activity.durationSeconds,
-    repetitionCount: activity.repetitionCount,
-    seriesCount: activity.seriesCount ?? DEFAULT_SERIES_COUNT,
-    pauseSeconds: activity.pauseSeconds,
+    executionParameters: cloneExecutionParameters(activity.executionParameters),
     postActivityRecoverySeconds: activity.postActivityRecoverySeconds ?? 0,
     instruction: activity.instruction,
-    bodyZoneIds: activity.bodyZoneIds,
+    // PRE-4 (story 1.3, AD-9) : nouvelle collection, jamais partagée avec la Séance relue.
+    bodyZoneIds: [...activity.bodyZoneIds],
     // V2-BILAT-01 : `Activity.sideMode` est un champ optionnel de transition
     // (même convention que `cycle.beforeTour`/`afterTour`) — `??
     // DEFAULT_SIDE_MODE` couvre une Séance persistée avant cette tranche.
     sideMode: activity.sideMode ?? DEFAULT_SIDE_MODE,
     // PRE-3 : transport complet et indépendant (copies profondes).
-    ...(activity.executionParameters
-      ? { executionParameters: cloneExecutionParameters(activity.executionParameters) }
-      : {}),
     ...(activity.categoryId !== undefined ? { categoryId: activity.categoryId } : {}),
     ...(activity.media ? { media: toDraftMediaItems(activity.media) } : {}),
   };
@@ -328,11 +344,6 @@ export function exerciseEquals(
     a.type === b.type &&
     a.structuralPosition === b.structuralPosition &&
     a.name === b.name &&
-    a.executionMode === b.executionMode &&
-    a.durationSeconds === b.durationSeconds &&
-    a.repetitionCount === b.repetitionCount &&
-    a.seriesCount === b.seriesCount &&
-    a.pauseSeconds === b.pauseSeconds &&
     a.postActivityRecoverySeconds === b.postActivityRecoverySeconds &&
     a.instruction === b.instruction &&
     bodyZoneIdSetsEqual(a.bodyZoneIds, b.bodyZoneIds) &&
@@ -405,19 +416,15 @@ export function sessionDraftsEqual(a: SessionDraft, b: SessionDraft): boolean {
  * Exercice, perdant toute Récupération du brouillon).
  *
  * Une Récupération (`type === "RECOVERY"`, D-041) est toujours chronométrée :
- * elle est émise sans mode d'Exercice, sans Séries, sans pause et sans Zones
- * corporelles — les valeurs par défaut d'Exercice que son brouillon conserve
- * (`executionMode`/`seriesCount`, voir `SessionDraftExercise`) sont ignorées.
+ * elle est émise sans Récupération attachée et sans Zones corporelles ; sa
+ * durée voyage dans ses paramètres (la validation refuse de toute façon une
+ * nouvelle Récupération autonome, `validateCreatableActivityType`).
  */
 function toDraftActivityParameters(exercise: SessionDraftExercise) {
   if (exercise.type === "RECOVERY") {
     return {
       type: "RECOVERY" as const,
-      executionMode: null,
-      durationSeconds: exercise.durationSeconds,
-      repetitionCount: null,
-      seriesCount: null,
-      pauseSeconds: 0,
+      executionParameters: cloneExecutionParameters(exercise.executionParameters),
       postActivityRecoverySeconds: 0,
       instruction: exercise.instruction,
       bodyZoneIds: [] as readonly string[],
@@ -426,22 +433,18 @@ function toDraftActivityParameters(exercise: SessionDraftExercise) {
   }
   return {
     type: "EXERCISE" as const,
-    executionMode: exercise.executionMode,
-    durationSeconds: exercise.durationSeconds,
-    repetitionCount: exercise.repetitionCount,
-    seriesCount: exercise.seriesCount,
-    pauseSeconds: exercise.pauseSeconds,
+    // PRE-4 : paramètres typés (seule source du Mode, des Cibles, de N et des
+    // Pauses), Catégorie et médias ordonnés voyagent jusqu'à la transaction
+    // de Séance (Continuer) — jamais persistés avant. Story 1.3 (AD-9) : clonés.
+    executionParameters: cloneExecutionParameters(exercise.executionParameters),
     postActivityRecoverySeconds: exercise.postActivityRecoverySeconds,
     instruction: exercise.instruction,
-    bodyZoneIds: exercise.bodyZoneIds,
+    bodyZoneIds: [...exercise.bodyZoneIds],
     sideMode: exercise.sideMode,
-    // PRE-3 : l'autorité canonique, la Catégorie et les médias ordonnés
-    // voyagent jusqu'à la transaction de Séance (Continuer) — jamais
-    // persistés avant.
-    ...(exercise.executionParameters ? { executionParameters: exercise.executionParameters } : {}),
     ...(exercise.categoryId !== undefined ? { categoryId: exercise.categoryId } : {}),
     ...(exercise.media
-      ? { media: exercise.media.map((item) => ({ assetId: item.assetId, asset: item.asset })) }
+      ? // PRE-4 (story 1.3, AD-9) : actif cloné, le brouillon et l'entrée persistable ne partagent rien.
+        { media: exercise.media.map((item) => ({ assetId: item.assetId, asset: { ...item.asset } })) }
       : {}),
   };
 }
@@ -526,5 +529,6 @@ export function toUpdateSessionInput(
     finalPhaseSeconds: draft.finalPhaseSeconds,
     tourRepeatCount: draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
     activities,
+    ...(draft.persistedExerciseIds !== undefined ? { persistedActivityIds: [...draft.persistedExerciseIds] } : {}),
   });
 }

@@ -8,6 +8,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useCallback, useEffect, useState } from "react";
 import { Animated, StyleSheet, View } from "react-native";
 
+import { MigrationNoticeGate } from "@/features/migration/MigrationNoticeGate";
 import { SessionServiceProvider } from "@/features/sessions/SessionServiceProvider";
 import { KodjoSplash } from "@/shared/ui/KodjoSplash";
 import { RootErrorBoundary } from "@/shared/ui/RootErrorBoundary";
@@ -54,6 +55,13 @@ void SplashScreen.preventAutoHideAsync().catch((error: unknown) => {
  * le geste, pour revenir de `(creation)` vers `(tabs)`. Désactiver l'option
  * uniquement sur l'enfant ne pouvait donc pas neutraliser le geste ; les deux
  * niveaux doivent la porter.
+ *
+ * **PRE-4 (story 1.2, AD-12, H24)** — `MigrationNoticeGate`, unique lecteur
+ * de l’avis de migration, est monté ici une seule fois, à l’intérieur de
+ * `SessionServiceProvider` (dont il lit le repository des avis) et donc
+ * jamais en `children` de `SQLiteProvider`. Il n’est monté qu’une fois la
+ * base prête et le splash applicatif retiré, pour que l’`Alert` native ne
+ * s’affiche pas par-dessus le splash.
  *
  * `(tabs)` conserve son comportement de navigation par défaut : seul le
  * parcours de création est concerné. Aucune navigation EXPLICITE n'est
@@ -129,6 +137,7 @@ export default function RootLayout() {
               <Stack.Screen name="profile-edit" />
             </Stack>
           ) : null}
+          {databaseReady && !showAppSplash ? <MigrationNoticeGate /> : null}
           {showAppSplash ? (
             <KodjoSplash opacity={splashOpacity} onLayout={handleSplashLayout} />
           ) : null}

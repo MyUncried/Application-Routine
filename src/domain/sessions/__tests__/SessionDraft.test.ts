@@ -28,6 +28,12 @@ import {
 } from "@/domain/sessions/defaults";
 import { activityDefinitionToDraftExercise, type ActivityDefinition } from "@/domain/activities/ActivityDefinition";
 import type { ExecutionParameters } from "@/domain/activities/ExecutionParameters";
+import {
+  allFailureParameters,
+  durationParameters,
+  uniformParameters,
+  variableParameters,
+} from "@/domain/activities/testing/executionParametersFixtures";
 import type { MediaAsset } from "@/domain/media/MediaAsset";
 import { duplicateActivity } from "@/domain/sessions/composition";
 
@@ -52,11 +58,13 @@ describe("createExerciseDraft", () => {
       type: DEFAULT_ACTIVITY_TYPE,
       structuralPosition: DEFAULT_STRUCTURAL_POSITION,
       name: "",
-      executionMode: DEFAULT_EXECUTION_MODE,
-      durationSeconds: DEFAULT_EXERCISE_DURATION_SECONDS,
-      repetitionCount: null,
-      seriesCount: DEFAULT_SERIES_COUNT,
-      pauseSeconds: DEFAULT_PAUSE_SECONDS,
+      // PRE-4 (story 1.1, AD-3) : paramètres typés, Cible `NUMBER` par défaut.
+      executionParameters: uniformParameters({
+        mode: DEFAULT_EXECUTION_MODE,
+        count: DEFAULT_SERIES_COUNT,
+        target: DEFAULT_EXERCISE_DURATION_SECONDS,
+        pauseSeconds: DEFAULT_PAUSE_SECONDS,
+      }),
       // T02-S02 : la Récupération ATTACHÉE naît neutre (`0`) — jamais la
       // durée par défaut de l'ancienne Activité `RECOVERY` autonome, qui
       // aurait ajouté une récupération non demandée à chaque Activité.
@@ -107,14 +115,10 @@ function anActivity(overrides: Partial<Activity> = {}): Activity {
   return {
     id: "activity-1",
     type: "EXERCISE",
-    executionMode: "DURATION",
     structuralPosition: "IN_TOUR",
     position: 0,
     name: "Gainage",
-    durationSeconds: 30,
-    repetitionCount: null,
-    seriesCount: 1,
-    pauseSeconds: 0,
+    executionParameters: durationParameters(30),
     postActivityRecoverySeconds: 0,
     instruction: null,
     bodyZoneIds: [],
@@ -164,11 +168,7 @@ describe("toSessionDraft", () => {
           type: "EXERCISE",
           structuralPosition: "IN_TOUR",
           name: "Gainage",
-          executionMode: "DURATION",
-          durationSeconds: 30,
-          repetitionCount: null,
-          seriesCount: 1,
-          pauseSeconds: 0,
+          executionParameters: durationParameters(30),
           // T02-S02 : la Récupération attachée traverse la réhydratation du
           // brouillon comme n'importe quel autre paramètre.
           postActivityRecoverySeconds: 0,
@@ -180,6 +180,8 @@ describe("toSessionDraft", () => {
           sideMode: DEFAULT_SIDE_MODE,
         },
       ],
+      // PRE-4 story 4.1 (AC13) : occurrences chargées, champ de transport non comparé.
+      persistedExerciseIds: ["activity-1"],
     });
   });
 
@@ -276,11 +278,7 @@ describe("toSessionDraft", () => {
             type: "EXERCISE",
             structuralPosition: "IN_TOUR",
             name: "Gainage",
-            executionMode: "DURATION",
-            durationSeconds: 30,
-            repetitionCount: null,
-            seriesCount: 1,
-            pauseSeconds: 0,
+            executionParameters: durationParameters(30),
             postActivityRecoverySeconds: 0,
             instruction: null,
             bodyZoneIds: [],
@@ -298,7 +296,7 @@ describe("sessionDraftsEqual (T01-S10, CE-T01-S10-06 — garde de sortie en modi
       ...createEmptyDraft(),
       name: "Séance",
       tourRepeatCount: 2,
-      exercises: [{ ...createExerciseDraft("keep-1"), name: "Gainage", durationSeconds: 30 }],
+      exercises: [{ ...createExerciseDraft("keep-1"), name: "Gainage", executionParameters: durationParameters(30) }],
       ...overrides,
     };
   }
@@ -316,7 +314,7 @@ describe("sessionDraftsEqual (T01-S10, CE-T01-S10-06 — garde de sortie en modi
     expect(sessionDraftsEqual(aDraft(), aDraft({ name: "Autre" }))).toBe(false);
     expect(sessionDraftsEqual(aDraft(), aDraft({ tourRepeatCount: 5 }))).toBe(false);
     expect(
-      sessionDraftsEqual(aDraft(), aDraft({ exercises: [{ ...createExerciseDraft("keep-1"), name: "X", durationSeconds: 30 }] })),
+      sessionDraftsEqual(aDraft(), aDraft({ exercises: [{ ...createExerciseDraft("keep-1"), name: "X", executionParameters: durationParameters(30) }] })),
     ).toBe(false);
     expect(sessionDraftsEqual(aDraft(), aDraft({ labelId: "focus" }))).toBe(false);
   });
@@ -398,7 +396,7 @@ describe("toCreateSessionInput (T01-S09, multi-exercise)", () => {
       labelId: null,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
-      exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 30 }],
+      exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(30) }],
     };
   }
 
@@ -430,11 +428,7 @@ describe("toCreateSessionInput (T01-S09, multi-exercise)", () => {
             type: DEFAULT_ACTIVITY_TYPE,
             structuralPosition: DEFAULT_STRUCTURAL_POSITION,
             name: "Gainage",
-            executionMode: "DURATION",
-            durationSeconds: 30,
-            repetitionCount: null,
-            seriesCount: 1,
-            pauseSeconds: 0,
+            executionParameters: durationParameters(30),
             postActivityRecoverySeconds: 0,
             instruction: null,
             bodyZoneIds: [],
@@ -461,20 +455,20 @@ describe("toCreateSessionInput (T01-S09, multi-exercise)", () => {
         {
           ...createExerciseDraft("warmup"),
           name: "Échauffement",
-          durationSeconds: 60,
+          executionParameters: durationParameters(60),
           structuralPosition: "BEFORE_TOUR",
         },
         {
           ...createExerciseDraft("core"),
           name: "Gainage",
-          durationSeconds: 30,
+          executionParameters: durationParameters(30),
           structuralPosition: "IN_TOUR",
           postActivityRecoverySeconds: 45,
         },
         {
           ...createExerciseDraft("stretch"),
           name: "Étirements",
-          durationSeconds: 45,
+          executionParameters: durationParameters(45),
           structuralPosition: "AFTER_TOUR",
           bodyZoneIds: ["dos"],
         },
@@ -518,7 +512,7 @@ describe("toCreateSessionInput (T01-S09, multi-exercise)", () => {
           ...createExerciseDraft("rec"),
           name: "Récupération",
           type: "RECOVERY",
-          durationSeconds: 45,
+          executionParameters: durationParameters(45),
         },
       ],
     };
@@ -536,8 +530,8 @@ describe("toCreateSessionInput (T01-S09, multi-exercise)", () => {
     const draft: SessionDraft = {
       ...completeDraft(),
       exercises: [
-        { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 30 },
-        { ...createExerciseDraft("ex-2"), name: "Squats", durationSeconds: 45, seriesCount: 3 },
+        { ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(30) },
+        { ...createExerciseDraft("ex-2"), name: "Squats", executionParameters: durationParameters(45, 3) },
       ],
     };
     const result = toCreateSessionInput(draft);
@@ -545,7 +539,7 @@ describe("toCreateSessionInput (T01-S09, multi-exercise)", () => {
     if (result.ok) {
       expect(result.value.exercises).toHaveLength(2);
       expect(result.value.exercises.map((exercise) => exercise.name)).toEqual(["Gainage", "Squats"]);
-      expect(result.value.exercises[1]).toMatchObject({ name: "Squats", durationSeconds: 45, seriesCount: 3 });
+      expect(result.value.exercises[1]).toMatchObject({ name: "Squats", executionParameters: durationParameters(45, 3) });
     }
   });
 
@@ -578,11 +572,7 @@ describe("toSessionDraft — Récupération, positions structurelles et répéti
             type: "RECOVERY",
             structuralPosition: "AFTER_TOUR",
             position: 0,
-            executionMode: null,
-            durationSeconds: 45,
-            repetitionCount: null,
-            seriesCount: null,
-            pauseSeconds: 0,
+            executionParameters: durationParameters(45),
             bodyZoneIds: [],
           }),
         ],
@@ -605,7 +595,7 @@ describe("toSessionDraft — Récupération, positions structurelles et répéti
       "IN_TOUR",
       "AFTER_TOUR",
     ]);
-    expect(draft.exercises[2]).toMatchObject({ type: "RECOVERY", durationSeconds: 45 });
+    expect(draft.exercises[2]).toMatchObject({ type: "RECOVERY", executionParameters: durationParameters(45) });
   });
 });
 
@@ -617,7 +607,7 @@ describe("toUpdateSessionInput (T01-S10, Q3-A — jamais toCreateSessionInput)",
       name: "Séance à modifier",
       tourRepeatCount: 3,
       exercises: [
-        { ...createExerciseDraft("act-1"), name: "Gainage", durationSeconds: 30 },
+        { ...createExerciseDraft("act-1"), name: "Gainage", executionParameters: durationParameters(30) },
       ],
       ...overrides,
     };
@@ -635,8 +625,8 @@ describe("toUpdateSessionInput (T01-S10, Q3-A — jamais toCreateSessionInput)",
     const result = toUpdateSessionInput(
       editDraft({
         exercises: [
-          { ...createExerciseDraft("keep-1"), name: "Gainage", durationSeconds: 30 },
-          { ...createExerciseDraft("keep-2"), name: "Squats", durationSeconds: 40, seriesCount: 3 },
+          { ...createExerciseDraft("keep-1"), name: "Gainage", executionParameters: durationParameters(30) },
+          { ...createExerciseDraft("keep-2"), name: "Squats", executionParameters: durationParameters(40, 3) },
         ],
       }),
     );
@@ -652,29 +642,21 @@ describe("toUpdateSessionInput (T01-S10, Q3-A — jamais toCreateSessionInput)",
     }
   });
 
-  it("emits a TO_FAILURE Activity without any duration or repetition target", () => {
+  it("emits an all-FAILURE Activity (former failure mode, migrated) as Repetitions with typed FAILURE targets, no numeric target", () => {
     const result = toUpdateSessionInput(
       editDraft({
         exercises: [
           {
             ...createExerciseDraft("fail-1"),
             name: "Tractions",
-            executionMode: "TO_FAILURE",
-            durationSeconds: null,
-            repetitionCount: null,
-            seriesCount: 4,
+            executionParameters: allFailureParameters(4),
           },
         ],
       }),
     );
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.activities[0]).toMatchObject({
-        executionMode: "TO_FAILURE",
-        durationSeconds: null,
-        repetitionCount: null,
-        seriesCount: 4,
-      });
+      expect(result.value.activities[0]).toMatchObject({ executionParameters: allFailureParameters(4) });
     }
   });
 
@@ -682,7 +664,7 @@ describe("toUpdateSessionInput (T01-S10, Q3-A — jamais toCreateSessionInput)",
     const result = toUpdateSessionInput(
       editDraft({
         exercises: [
-          { ...createExerciseDraft("act-1"), name: "Gainage", durationSeconds: 30, postActivityRecoverySeconds: 60 },
+          { ...createExerciseDraft("act-1"), name: "Gainage", executionParameters: durationParameters(30), postActivityRecoverySeconds: 60 },
         ],
       }),
     );
@@ -696,7 +678,7 @@ describe("toUpdateSessionInput (T01-S10, Q3-A — jamais toCreateSessionInput)",
     const result = toUpdateSessionInput(
       editDraft({
         exercises: [
-          { ...createExerciseDraft("act-1"), name: "Récupération", type: "RECOVERY", durationSeconds: 30 },
+          { ...createExerciseDraft("act-1"), name: "Récupération", type: "RECOVERY", executionParameters: durationParameters(30) },
         ],
       }),
     );
@@ -731,7 +713,7 @@ describe("side mode across the draft (V2-BILAT-01, portée exclusivement par l'E
           id: "tour-1",
           position: 1,
           repeatCount: 1,
-          exercises: [anActivity({ sideMode: "LEFT_RIGHT" })],
+          exercises: [anActivity({ sideMode: "LEFT_RIGHT", executionParameters: durationParameters(30, 1, 0, { sideMode: "LEFT_RIGHT" }) })],
         },
       },
     };
@@ -750,7 +732,13 @@ describe("side mode across the draft (V2-BILAT-01, portée exclusivement par l'E
 
   it("toCreateSessionInput / toUpdateSessionInput carry each Activity's own side mode", () => {
     const exercises = [
-      { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 30, sideMode: "RIGHT_LEFT" as const },
+      // PRE-4 : la direction écrite est celle des paramètres (`executionParameters.sideMode`).
+      {
+        ...createExerciseDraft("ex-1"),
+        name: "Gainage",
+        executionParameters: durationParameters(30, 1, 0, { sideMode: "RIGHT_LEFT" }),
+        sideMode: "RIGHT_LEFT" as const,
+      },
     ];
 
     const created = toCreateSessionInput({
@@ -780,34 +768,25 @@ describe("side mode across the draft (V2-BILAT-01, portée exclusivement par l'E
  * PRE-3 — copies complètes et isolation (P3-01/copy-isolation, P3-18/copy-complete).
  */
 describe("PRE-3 — copie Catalogue → Séance et duplication (paramètres, Catégorie, médias)", () => {
-  const parameters: ExecutionParameters = {
-    version: 1,
+  const parameters: ExecutionParameters = variableParameters({
     mode: "DURATION",
-    series: {
-      kind: "VARIABLE",
-      rows: [
-        { target: 30, pauseSeconds: 10 },
-        { target: 45, pauseSeconds: 20 },
-      ],
-    },
+    rows: [
+      [30, 10],
+      [45, 20],
+    ],
     sideMode: "RIGHT_LEFT",
     sideOrder: "BY_SERIES",
     sideRecoverySeconds: 15,
     cadenceBeepIntervalSeconds: 4,
     countdownSeconds: 10,
     endSeconds: 5,
-  };
+  });
   const photo: MediaAsset = { id: "p1", uri: "kodjo-media/p1.jpg", createdAt: "now", kind: "PHOTO" };
   const video: MediaAsset = { id: "v1", uri: "kodjo-media/v1.mov", createdAt: "now", kind: "VIDEO", durationMs: 1000 };
   const definition: ActivityDefinition = {
     id: "def-1",
     name: "Fentes",
     description: null,
-    executionMode: "DURATION",
-    durationSeconds: 30,
-    repetitionCount: null,
-    seriesCount: 2,
-    pauseSeconds: 10,
     categoryId: "cardio",
     bodyZoneIds: ["cuisses"],
     sideMode: "RIGHT_LEFT",
@@ -848,7 +827,8 @@ describe("PRE-3 — copie Catalogue → Séance et duplication (paramètres, Cat
     const first = activityDefinitionToDraftExercise(definition, "occ-1", 0);
     const second = activityDefinitionToDraftExercise(definition, "occ-2", 0);
     const duplicated = duplicateActivity([first, second], "occ-1", "occ-3");
-    (first.executionParameters!.series as unknown as { rows: { target: number | null }[] }).rows[0]!.target = 999;
+    // AD-9 : clonage profond jusqu'à la Cible typée elle-même.
+    (first.executionParameters.series as unknown as { rows: { target: { value: number } }[] }).rows[0]!.target.value = 999;
     (first.media as unknown as { assetId: string }[]).splice(0, 1);
     expect(second.executionParameters).toEqual(parameters);
     expect(second.media).toHaveLength(2);
@@ -872,14 +852,9 @@ describe("PRE-3 — copie Catalogue → Séance et duplication (paramètres, Cat
     const activity: Activity = {
       id: "occ-9",
       type: "EXERCISE",
-      executionMode: "DURATION",
       structuralPosition: "IN_TOUR",
       position: 0,
       name: "Fentes",
-      durationSeconds: 30,
-      repetitionCount: null,
-      seriesCount: 2,
-      pauseSeconds: 10,
       postActivityRecoverySeconds: 30,
       instruction: null,
       bodyZoneIds: ["cuisses"],
@@ -910,5 +885,174 @@ describe("PRE-3 — copie Catalogue → Séance et duplication (paramètres, Cat
         postActivityRecoverySeconds: 30,
       }),
     );
+  });
+});
+
+/**
+ * PRE-4 story 1.3 — clonage profond des copies (AD-9) : aucune collection
+ * mutable partagée entre une Définition, ses copies, leurs duplications, la
+ * Séance relue et l'entrée persistable.
+ */
+describe("PRE-4 story 1.3 — copies et duplications à Cibles typées (domaine)", () => {
+  const photo: MediaAsset = { id: "p1", uri: "kodjo-media/p1.jpg", createdAt: "now", kind: "PHOTO" };
+  const video: MediaAsset = { id: "v1", uri: "kodjo-media/v1.mov", createdAt: "now", kind: "VIDEO", durationMs: 1000 };
+  const third: MediaAsset = { id: "p2", uri: "kodjo-media/p2.jpg", createdAt: "now", kind: "PHOTO" };
+  const typedRows = (): ExecutionParameters =>
+    variableParameters({
+      mode: "DURATION",
+      rows: [
+        [30, 10],
+        [45, 10],
+        ["FAILURE", 10],
+      ],
+      sideMode: "RIGHT_LEFT",
+      sideOrder: "BY_SERIES",
+      sideRecoverySeconds: 5,
+      cadenceBeepIntervalSeconds: 0,
+      countdownSeconds: 3,
+      endSeconds: 4,
+    });
+  const definition: ActivityDefinition = {
+    id: "def-1",
+    name: "Fentes",
+    description: "Buste droit",
+    categoryId: "cardio",
+    bodyZoneIds: ["cuisses", "jambes"],
+    sideMode: "RIGHT_LEFT",
+    sideRecoverySeconds: 5,
+    executionParameters: typedRows(),
+    media: [
+      { id: "l1", activityDefinitionId: "def-1", assetId: "v1", position: 0, asset: video },
+      { id: "l2", activityDefinitionId: "def-1", assetId: "p1", position: 1, asset: photo },
+      { id: "l3", activityDefinitionId: "def-1", assetId: "p2", position: 2, asset: third },
+    ],
+    createdAt: "now",
+    updatedAt: "now",
+  };
+
+  function sessionWith(activity: Activity): Session {
+    return {
+      id: "s",
+      ownerId: "o",
+      name: "S",
+      color: DEFAULT_SESSION_COLOR,
+      status: "ACTIVE",
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      createdAt: "now",
+      updatedAt: "now",
+      cycle: { id: "c", position: 1, repeatCount: 1, tour: { id: "t", position: 1, repeatCount: 1, exercises: [activity] } },
+    };
+  }
+
+  it("PRE4-1.3/AC1 — la copie porte nom, description, Catégorie, Zones, Médias ordonnés et paramètres égaux champ par champ ; Récupération 0", () => {
+    const copy = activityDefinitionToDraftExercise(definition, "occ-1", 0);
+    expect(copy).toMatchObject({ name: "Fentes", instruction: "Buste droit", categoryId: "cardio", postActivityRecoverySeconds: 0 });
+    expect(copy.bodyZoneIds).toEqual(["cuisses", "jambes"]);
+    expect(copy.media?.map((item) => item.assetId)).toEqual(["v1", "p1", "p2"]);
+    expect(copy.executionParameters).toEqual(typedRows());
+    // La Définition ne porte ni position de Séance ni Récupération.
+    expect(definition).not.toHaveProperty("structuralPosition");
+    expect(definition).not.toHaveProperty("postActivityRecoverySeconds");
+  });
+
+  it("PRE4-1.3/AC2 — aucune collection partagée : Définition → copie, Séance relue → brouillon, brouillon → entrée persistable", () => {
+    const copy = activityDefinitionToDraftExercise(definition, "occ-1", 0);
+    expect(copy.bodyZoneIds).not.toBe(definition.bodyZoneIds);
+    expect(copy.media).not.toBe(definition.media);
+    copy.media?.forEach((item, index) => expect(item.asset).not.toBe(definition.media![index]!.asset));
+    // Muter la copie (Cible de la ligne 1, ordre des lignes, Zones, Médias) ne touche jamais la source.
+    const rows = (copy.executionParameters.series as unknown as { rows: { target: unknown }[] }).rows;
+    rows[0]!.target = { kind: "NUMBER", value: 99 };
+    rows.reverse();
+    (copy.bodyZoneIds as string[]).push("dos");
+    (copy.media as unknown as unknown[]).splice(0, 1);
+    expect(definition.executionParameters).toEqual(typedRows());
+    expect(definition.bodyZoneIds).toEqual(["cuisses", "jambes"]);
+    expect(definition.media?.map((item) => item.assetId)).toEqual(["v1", "p1", "p2"]);
+
+    // Réouverture d'une Séance relue : le brouillon ne partage ni Zones, ni paramètres, ni Médias.
+    const activity: Activity = {
+      id: "occ-9",
+      type: "EXERCISE",
+      structuralPosition: "IN_TOUR",
+      position: 0,
+      name: "Fentes",
+      postActivityRecoverySeconds: 30,
+      instruction: null,
+      bodyZoneIds: ["cuisses"],
+      sideMode: "RIGHT_LEFT",
+      executionParameters: typedRows(),
+      categoryId: "cardio",
+      media: [{ id: "sl1", activityId: "occ-9", assetId: "v1", position: 0, asset: video }],
+    };
+    const reopened = toSessionDraft(sessionWith(activity)).exercises[0]!;
+    expect(reopened.bodyZoneIds).toEqual(activity.bodyZoneIds);
+    expect(reopened.bodyZoneIds).not.toBe(activity.bodyZoneIds);
+    expect(reopened.executionParameters).not.toBe(activity.executionParameters);
+    expect(reopened.media![0]!.asset).not.toBe(activity.media![0]!.asset);
+
+    // Brouillon → entrée persistable (Continuer) : Zones et actifs clonés.
+    const draft = toSessionDraft(sessionWith(activity));
+    const update = toUpdateSessionInput(draft);
+    expect(update.ok).toBe(true);
+    const emitted = update.ok ? update.value.activities[0]! : null;
+    expect(emitted?.media?.[0]?.asset).toEqual(video);
+    expect(emitted?.media?.[0]?.asset).not.toBe(draft.exercises[0]!.media![0]!.asset);
+    expect(emitted?.bodyZoneIds).not.toBe(draft.exercises[0]!.bodyZoneIds);
+    expect(emitted?.executionParameters).toEqual(draft.exercises[0]!.executionParameters);
+    expect(emitted?.executionParameters).not.toBe(draft.exercises[0]!.executionParameters);
+    const draftCopy = activityDefinitionToDraftExercise(definition, "occ-2", 0);
+    const created = toCreateSessionInput({ ...createEmptyDraft(), name: "S", exercises: [draftCopy] });
+    expect(created.ok).toBe(true);
+    const createdActivity = created.ok ? created.value.exercises[0]! : null;
+    expect(createdActivity?.bodyZoneIds).not.toBe(draftCopy.bodyZoneIds);
+    expect(createdActivity?.executionParameters).toEqual(draftCopy.executionParameters);
+    expect(createdActivity?.executionParameters).not.toBe(draftCopy.executionParameters);
+    expect(createdActivity?.media).toHaveLength(3);
+    createdActivity?.media?.forEach((item, index) => expect(item.asset).not.toBe(draftCopy.media![index]!.asset));
+  });
+
+  it("PRE4-1.3/AC4 — Cible héritée UNSET : copiée UNSET (jamais FAILURE) dans le brouillon ; Continuer la refuse", () => {
+    const unset = { ...definition, executionParameters: variableParameters({ mode: "REPETITIONS", rows: [["UNSET", 10], [12, 10]] }) };
+    const copy = activityDefinitionToDraftExercise(unset, "occ-1", 0);
+    expect(copy.executionParameters.series).toEqual({
+      kind: "VARIABLE",
+      rows: [
+        { target: { kind: "UNSET" }, pauseSeconds: 10 },
+        { target: { kind: "NUMBER", value: 12 }, pauseSeconds: 10 },
+      ],
+    });
+    expect(JSON.stringify(copy.executionParameters)).not.toContain("FAILURE");
+    const continued = toCreateSessionInput({ ...createEmptyDraft(), name: "S", exercises: [copy] });
+    expect(continued.ok).toBe(false);
+  });
+
+  it("PRE4-1.3/AC5 — duplication : nouvel identifiant juste après la source, paramètres typés, Récupération, Catégorie, Zones et Médias égaux ; indépendance", () => {
+    const repetitions = () => variableParameters({ mode: "REPETITIONS", rows: [[10, 10], [12, 10], ["FAILURE", 10]] });
+    const source: SessionDraftExercise = {
+      ...activityDefinitionToDraftExercise({ ...definition, executionParameters: repetitions() }, "occ-1", 40),
+      media: [
+        { assetId: "v1", asset: video },
+        { assetId: "p1", asset: photo },
+      ],
+    };
+    const other = createExerciseDraft("occ-2");
+    const next = duplicateActivity([source, other], "occ-1", "occ-3");
+    expect(next.map((exercise) => exercise.id)).toEqual(["occ-1", "occ-3", "occ-2"]);
+    const copy = next[1]!;
+    expect(copy.executionParameters).toEqual(repetitions());
+    expect(copy.postActivityRecoverySeconds).toBe(40);
+    expect(copy.categoryId).toBe("cardio");
+    expect(copy.bodyZoneIds).toEqual(source.bodyZoneIds);
+    expect(copy.media?.map((item) => item.assetId)).toEqual(["v1", "p1"]);
+    // Modifier l'une ne modifie pas l'autre.
+    (copy.executionParameters.series as unknown as { rows: { target: unknown }[] }).rows[2]!.target = { kind: "NUMBER", value: 5 };
+    (copy.bodyZoneIds as string[]).push("dos");
+    (copy.media as unknown as unknown[]).reverse();
+    expect(source.executionParameters).toEqual(repetitions());
+    expect(source.bodyZoneIds).toEqual(["cuisses", "jambes"]);
+    expect(source.media?.map((item) => item.assetId)).toEqual(["v1", "p1"]);
+    expect(copy.media![1]!.asset).not.toBe(source.media![0]!.asset);
   });
 });

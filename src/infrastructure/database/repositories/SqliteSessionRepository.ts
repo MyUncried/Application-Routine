@@ -1,8 +1,13 @@
 import * as Crypto from "expo-crypto";
 
 import {
-  parseExecutionParameters,
-  serializeExecutionParameters,
+  ACTIVITY_STORAGE_BOUNDS,
+  EXECUTION_PARAMETERS_VERSION,
+  numberTarget,
+  projectScalars,
+  readV2,
+  serializeV2,
+  unsetTarget,
   type ExecutionParameters,
 } from "@/domain/activities/ExecutionParameters";
 import type { MediaLinkInput } from "@/domain/media/ActivityMedia";
@@ -20,7 +25,6 @@ import {
   type CreateSessionActivityInput,
   type CreateSessionInput,
   type CreateStopPointInput,
-  type ExerciseExecutionMode,
   type Session,
   type SessionColor,
   type SessionSummary,
@@ -43,6 +47,7 @@ import { LOCAL_USER_SINGLETON_KEY } from "@/infrastructure/database/constants";
 import type { Database } from "@/infrastructure/database/Database";
 import type {
   ActivityBodyZoneRow,
+  SessionAggregateQueryRow,
   SessionAggregateRow,
   SessionSummaryRow,
 } from "@/infrastructure/database/types/DatabaseRows";
@@ -79,10 +84,18 @@ export class RetiredOccurrenceCategoryError extends Error {
   }
 }
 
+/**
+ * PRE-4, décision Q53 (8) de Hermann (2026-10-18) : même règle que les Zones — une
+ * occurrence NOUVELLE (`inheritable`) garde une Catégorie retirée déjà affectée à au moins
+ * une Définition ou une occurrence (affectation héritée de sa source) ; une Catégorie
+ * retirée affectée nulle part reste refusée (D-210). Occurrence conservée : seule sa propre
+ * affectation compte.
+ */
 async function assertOccurrenceCategoryAssignable(
   transaction: Database,
   categoryId: string | null | undefined,
   currentCategoryId: string | null,
+  inheritable = false,
 ): Promise<void> {
   if (categoryId === undefined || categoryId === null || categoryId === currentCategoryId) {
     return;
@@ -95,6 +108,9 @@ async function assertOccurrenceCategoryAssignable(
     throw new Error("Referenced category does not exist.");
   }
   if (row.is_active === 0) {
+    if (inheritable && (await isCategoryAssignedAnywhere(transaction, row.id))) {
+      return;
+    }
     throw new RetiredOccurrenceCategoryError();
   }
 }
@@ -119,6 +135,12 @@ async function assertLabelAssignable(
   transaction: Database,
   labelId: string | null,
   currentLabelId: string | null,
+  /**
+   * Q53 (8) : vrai pour une Séance NOUVELLE (création, duplication) — une Étiquette retirée
+   * déjà affectée à une autre Séance est héritée de sa source et acceptée ; affectée nulle
+   * part, elle reste refusée (D-210). Modification : seule l'affectation déjà en place compte.
+   */
+  inheritable = false,
 ): Promise<void> {
   if (labelId === null || labelId === currentLabelId) {
     return;
@@ -131,6 +153,13 @@ async function assertLabelAssignable(
     throw new Error("Referenced label does not exist.");
   }
   if (row.is_active === 0) {
+    if (inheritable) {
+      const used = await transaction.getFirstAsync<{ id: string }>(
+        "SELECT id FROM sessions WHERE label_id = ? LIMIT 1",
+        [row.id],
+      );
+      if (used) return;
+    }
     throw new RetiredLabelError();
   }
 }
@@ -139,13 +168,27 @@ async function assertLabelAssignable(
  * Refuse une NOUVELLE affectation de Zone corporelle vers une entrée
  * RETIRÉE — `currentBodyZoneIds` porte les Zones déjà affectées à CETTE
  * Activité avant la modification (ensemble vide pour une Activité
- * nouvellement créée, où aucune affectation existante ne peut être
- * "conservée").
+ * nouvellement créée).
+ *
+ * PRE-4, décision Q53 de Hermann (2026-10-18, remplace Q49 b pour les
+ * Zones) : une Zone retirée ne bloque pas l'utilisation d'un Exercice auquel
+ * elle est déjà affectée — la Copie d'une Définition (ou la duplication d'une
+ * occurrence) conserve l'affectation. Une occurrence nouvellement créée n'a
+ * aucun lien persistant vers sa source : `inheritedBodyZoneIds` porte donc les
+ * Zones déjà affectées, AVANT l'écriture, à au moins une Définition ou une
+ * occurrence existante. Une Zone retirée y figurant est acceptée pour une
+ * occurrence NOUVELLE (affectation héritée de sa source) ; une Zone retirée
+ * affectée nulle part reste refusée (D-210). L'interface ne propose jamais une
+ * Zone retirée pour une nouvelle affectation (`BodyZonePickerModal` : seules
+ * les Zones retirées déjà affectées à CET Exercice y figurent), ce qui ferme
+ * le cas résiduel d'une Zone retirée affectée ailleurs. Pour une occurrence
+ * CONSERVÉE, seule sa propre affectation compte (`inheritedBodyZoneIds` vide).
  */
 async function assertBodyZonesAssignable(
   transaction: Database,
   bodyZoneIds: readonly string[],
   currentBodyZoneIds: ReadonlySet<string>,
+  inheritedBodyZoneIds: ReadonlySet<string> = new Set(),
 ): Promise<void> {
   const newIds = bodyZoneIds.filter((id) => !currentBodyZoneIds.has(id));
   if (newIds.length === 0) {
@@ -162,9 +205,35 @@ async function assertBodyZonesAssignable(
       throw new Error("Referenced body zone does not exist.");
     }
   }
-  if (rows.some((row) => row.is_active === 0)) {
+  if (rows.some((row) => row.is_active === 0 && !inheritedBodyZoneIds.has(row.id))) {
     throw new RetiredBodyZoneError();
   }
+}
+
+/** Q53 (8) : la Catégorie est-elle affectée à au moins une Définition ou une occurrence ? */
+async function isCategoryAssignedAnywhere(transaction: Database, categoryId: string): Promise<boolean> {
+  const row = await transaction.getFirstAsync<{ id: string }>(
+    `SELECT id FROM activities WHERE category_id = ?
+     UNION ALL
+     SELECT id FROM activity_definitions WHERE category_id = ?
+     LIMIT 1`,
+    [categoryId, categoryId],
+  );
+  return row !== null && row !== undefined;
+}
+
+/**
+ * Q53 : Zones affectées à au moins une Définition du Catalogue ou une
+ * occurrence de Séance, lues AVANT toute écriture de la transaction (voir
+ * `assertBodyZonesAssignable`).
+ */
+async function getInheritableBodyZoneIds(transaction: Database): Promise<ReadonlySet<string>> {
+  const rows = await transaction.getAllAsync<{ body_zone_id: string }>(
+    `SELECT body_zone_id FROM activity_body_zones
+     UNION
+     SELECT body_zone_id FROM activity_definition_body_zones`,
+  );
+  return new Set(rows.map((row) => row.body_zone_id));
 }
 
 /** Ordre canonique de restitution des zones structurelles (D-061). */
@@ -229,7 +298,7 @@ FROM sessions
 LEFT JOIN labels ON labels.id = sessions.label_id
 JOIN cycles ON cycles.session_id = sessions.id
 JOIN tours ON tours.cycle_id = cycles.id AND tours.session_id = sessions.id
-JOIN activities
+LEFT JOIN activities
   ON activities.session_id = sessions.id
   AND activities.cycle_id = cycles.id
 WHERE sessions.id = ? AND sessions.owner_id = ?
@@ -288,7 +357,7 @@ export class SqliteSessionRepository implements SessionRepository {
       const timestamp = this.now();
       const user = await getLocalUser(transaction);
 
-      await assertLabelAssignable(transaction, normalized.labelId ?? null, null);
+      await assertLabelAssignable(transaction, normalized.labelId ?? null, null, true);
 
       await transaction.runAsync(
         `INSERT INTO sessions (
@@ -369,16 +438,28 @@ export class SqliteSessionRepository implements SessionRepository {
       const timestamp = this.now();
       const user = await getLocalUser(transaction);
 
-      const existingRows = await transaction.getAllAsync<SessionAggregateRow>(AGGREGATE_QUERY, [
+      const aggregateRows = await transaction.getAllAsync<SessionAggregateQueryRow>(AGGREGATE_QUERY, [
         sessionId,
         user.id,
       ]);
-      if (existingRows.length === 0) {
+      if (aggregateRows.length === 0) {
         return;
       }
-      const existingRow = existingRows[0]!;
+      const existingRow = aggregateRows[0]!;
+      // PRE-4 (story 1.2, P39) : une Séance sans occurrence n'a qu'une ligne
+      // d'en-tête, sans aucune Activité existante à fusionner.
+      const existingRows = aggregateRows.filter(isSessionOccurrenceRow);
       if (existingRow.status !== "ACTIVE") {
         outcome = { status: "ARCHIVED" };
+        return;
+      }
+      // PRE-4 story 4.1 (AC13, FR-01-10) : une Activité chargée à l'ouverture
+      // et supprimée depuis n'est jamais recréée. Vérifié AVANT toute
+      // écriture : la transaction se termine sans rien modifier.
+      const existingIds = new Set(existingRows.map((row) => row.activity_id));
+      const persistedIds = new Set(normalized.persistedActivityIds ?? []);
+      if (normalized.activities.some((activity) => persistedIds.has(activity.id) && !existingIds.has(activity.id))) {
+        outcome = { status: "ACTIVITY_NOT_FOUND" };
         return;
       }
 
@@ -469,7 +550,7 @@ export class SqliteSessionRepository implements SessionRepository {
       LEFT JOIN labels ON labels.id = sessions.label_id
       JOIN cycles ON cycles.session_id = sessions.id
       JOIN tours ON tours.cycle_id = cycles.id AND tours.session_id = sessions.id
-      JOIN activities
+      LEFT JOIN activities
         ON activities.session_id = sessions.id
         AND activities.cycle_id = cycles.id
       WHERE sessions.owner_id = ? AND sessions.status = 'ACTIVE'
@@ -533,6 +614,8 @@ async function insertActivities(
   timestamp: string,
 ): Promise<void> {
   const positionByZone = new Map<StructuralPosition, number>();
+  // Q53 : Zones héritables, relevées avant la première insertion.
+  const inheritedBodyZoneIds = await getInheritableBodyZoneIds(transaction);
 
   for (const activity of activities) {
     const zone = activity.structuralPosition;
@@ -541,13 +624,14 @@ async function insertActivities(
 
     const activityId = activity.id ?? uuidFactory();
     const activityTourId = activityTourIdFor(zone, tourId);
-    const { executionMode, seriesCount, pauseSeconds, postActivityRecoverySeconds, bodyZoneIds, sideMode } =
-      toActivitySqlValues(activity);
+    const values = toActivitySqlValues(activity);
+    const { bodyZoneIds } = values;
 
     // T16 (D-210) : une Activité nouvellement créée n'a aucune affectation
-    // existante à conserver — chaque Zone demandée doit être active.
-    await assertBodyZonesAssignable(transaction, bodyZoneIds, new Set());
-    await assertOccurrenceCategoryAssignable(transaction, activity.categoryId, null);
+    // propre à conserver — chaque Zone demandée doit être active, sauf une
+    // Zone retirée héritée de sa source (Q53).
+    await assertBodyZonesAssignable(transaction, bodyZoneIds, new Set(), inheritedBodyZoneIds);
+    await assertOccurrenceCategoryAssignable(transaction, activity.categoryId, null, true);
 
     await transaction.runAsync(
       `INSERT INTO activities (${ACTIVITY_ROW_COLUMNS})
@@ -561,17 +645,17 @@ async function insertActivities(
         zone,
         position,
         activity.name,
-        executionMode,
-        activity.durationSeconds,
-        activity.repetitionCount,
-        seriesCount,
-        pauseSeconds,
-        postActivityRecoverySeconds,
+        values.executionMode,
+        values.durationSeconds,
+        values.repetitionCount,
+        values.seriesCount,
+        values.pauseSeconds,
+        values.postActivityRecoverySeconds,
         activity.instruction ?? null,
         timestamp,
         timestamp,
-        sideMode,
-        executionParametersJson(activity.executionParameters),
+        values.sideMode,
+        values.executionParameters,
         activity.categoryId ?? null,
       ],
     );
@@ -585,14 +669,6 @@ async function insertActivities(
     // PRE-3 : liens ordonnés propres à cette occurrence (mêmes fichiers).
     await replaceOccurrenceMedia(transaction, activityId, activity.media, uuidFactory);
   }
-}
-
-/**
- * PRE-3 : JSON canonique validé d'une occurrence (la validation de Séance a
- * déjà normalisé et contrôlé les bornes) — `NULL` pour le chemin historique.
- */
-function executionParametersJson(parameters: CreateSessionActivityInput["executionParameters"]): string | null {
-  return parameters ? serializeExecutionParameters(parameters as ExecutionParameters) : null;
 }
 
 async function replaceOccurrenceMedia(
@@ -655,41 +731,104 @@ function activityTourIdFor(structuralPosition: string, tourId: string): string |
   return structuralPosition === "IN_TOUR" ? tourId : null;
 }
 
-/**
- * Valeurs SQL d'une Activité, à la création comme à la modification (T01-S10 ;
- * T02-S01 : partagée avec `insertActivities`). `execution_mode` est une
- * colonne `NOT NULL` : une Récupération y stocke `'DURATION'` (imposé par le
- * `CHECK` de `migration001`), tandis que le Domaine réexpose `null`. Une
- * Récupération n'a ni Séries, ni pause, ni Zones corporelles (D-041).
- */
-function toActivitySqlValues(activity: {
-  readonly type: ActivityType;
-  readonly executionMode: ExerciseExecutionMode | null;
+/** Valeurs SQL d'une Activité (colonnes du CHECK composite d'`activities` et JSON). */
+type ActivitySqlValues = {
+  readonly executionMode: SessionAggregateRow["execution_mode"];
+  readonly durationSeconds: number | null;
+  readonly repetitionCount: number | null;
   readonly seriesCount: number | null;
   readonly pauseSeconds: number;
   readonly postActivityRecoverySeconds: number;
   readonly bodyZoneIds: readonly string[];
-  readonly sideMode?: SideMode;
-}): {
-  executionMode: string;
-  seriesCount: number | null;
-  pauseSeconds: number;
-  postActivityRecoverySeconds: number;
-  bodyZoneIds: readonly string[];
-  sideMode: SideMode;
-} {
-  const isRecovery = activity.type === "RECOVERY";
+  readonly sideMode: SideMode;
+  readonly executionParameters: string | null;
+};
+
+/**
+ * Ancienne Récupération autonome (D-041, convertie par `migration004`, plus
+ * jamais produite) : lue défensivement comme une seule Série chronométrée de
+ * sa durée, sans Pause — sa colonne `duration_seconds` est sa seule donnée.
+ */
+function recoveryExecutionParameters(durationSeconds: number | null): ExecutionParameters {
   return {
-    executionMode: isRecovery ? "DURATION" : (activity.executionMode ?? "DURATION"),
-    seriesCount: isRecovery ? null : activity.seriesCount,
-    pauseSeconds: isRecovery ? 0 : activity.pauseSeconds,
-    postActivityRecoverySeconds: isRecovery ? 0 : activity.postActivityRecoverySeconds,
-    bodyZoneIds: isRecovery ? [] : activity.bodyZoneIds,
-    // V2-BILAT-01 : une Activité `RECOVERY` (défense en profondeur, jamais
-    // produite par le Domaine — D-041) n'est jamais elle-même côtée : sa
-    // direction reste `UNILATERAL`, quelle que soit la valeur transportée.
-    sideMode: isRecovery ? "UNILATERAL" : (activity.sideMode ?? "UNILATERAL"),
+    version: EXECUTION_PARAMETERS_VERSION,
+    mode: "DURATION",
+    series: {
+      kind: "UNIFORM",
+      count: 1,
+      target: durationSeconds !== null && durationSeconds >= 1 ? numberTarget(durationSeconds) : unsetTarget(),
+      pauseSeconds: 0,
+    },
+    sideMode: "UNILATERAL",
+    sideOrder: "BY_SIDE",
+    sideRecoverySeconds: 0,
+    cadenceBeepIntervalSeconds: 0,
+    countdownSeconds: 0,
+    endSeconds: 0,
   };
+}
+
+/**
+ * Valeurs SQL d'une Activité, à la création comme à la modification
+ * (T01-S10 ; T02-S01 : partagée avec `insertActivities`).
+ *
+ * PRE-4 (story 1.1, AD-3) : les paramètres ont déjà été validés au niveau
+ * structurel par `validateCreateSessionInput`/`validateUpdateSessionInput` ;
+ * les colonnes historiques reçoivent la projection scalaire UNIQUE
+ * (`projectScalars`) et `execution_parameters` le JSON v2. Les colonnes du
+ * CHECK composite sont contrôlées AVANT l'écriture (`assertActivityColumns`,
+ * miroir du CHECK de `migration010`) : une Copie dont la projection violerait
+ * le CHECK est refusée sans écriture (AC5).
+ *
+ * Une ancienne Récupération autonome (défense en profondeur, jamais produite
+ * par le Domaine — D-041) garde `execution_mode = 'DURATION'`, sans Séries,
+ * pause, Récupération attachée, Zone ni JSON, et n'est jamais côtée.
+ */
+function toActivitySqlValues(activity: {
+  readonly type: ActivityType;
+  readonly executionParameters: CreateSessionActivityInput["executionParameters"];
+  readonly postActivityRecoverySeconds: number;
+  readonly bodyZoneIds: readonly string[];
+}): ActivitySqlValues {
+  const parameters = activity.executionParameters as ExecutionParameters;
+  let values: ActivitySqlValues;
+  if (activity.type === "RECOVERY") {
+    const first = parameters.series.kind === "UNIFORM" ? parameters.series.target : parameters.series.rows[0]!.target;
+    values = {
+      executionMode: "DURATION",
+      durationSeconds: first.kind === "NUMBER" ? first.value : null,
+      repetitionCount: null,
+      seriesCount: null,
+      pauseSeconds: 0,
+      postActivityRecoverySeconds: 0,
+      bodyZoneIds: [],
+      sideMode: "UNILATERAL",
+      executionParameters: null,
+    };
+  } else {
+    const projection = projectScalars(parameters);
+    values = {
+      executionMode: projection.executionMode,
+      durationSeconds: projection.durationSeconds,
+      repetitionCount: projection.repetitionCount,
+      seriesCount: projection.seriesCount,
+      pauseSeconds: projection.pauseSeconds,
+      postActivityRecoverySeconds: activity.postActivityRecoverySeconds,
+      bodyZoneIds: activity.bodyZoneIds,
+      sideMode: projection.sideMode,
+      executionParameters: serializeV2(parameters),
+    };
+  }
+  assertActivityColumns({
+    activity_type: activity.type,
+    execution_mode: values.executionMode,
+    duration_seconds: values.durationSeconds,
+    repetition_count: values.repetitionCount,
+    series_count: values.seriesCount,
+    pause_seconds: values.pauseSeconds,
+    post_activity_recovery_seconds: values.postActivityRecoverySeconds,
+  });
+  return values;
 }
 
 /**
@@ -727,6 +866,9 @@ async function mergeActivities(
     transaction,
     existingActivityIds,
   );
+  // Q53 : relevées avant toute suppression — une occurrence NOUVELLE peut
+  // garder une Zone retirée héritée de sa source.
+  const inheritedBodyZoneIds = await getInheritableBodyZoneIds(transaction);
 
   for (const id of existingActivityIds) {
     if (!incoming.has(id)) {
@@ -756,48 +898,52 @@ async function mergeActivities(
     positionByZone.set(zone, position + 1);
 
     const activityTourId = activityTourIdFor(zone, tourId);
-    const { executionMode, seriesCount, pauseSeconds, postActivityRecoverySeconds, bodyZoneIds, sideMode } =
-      toActivitySqlValues(activity);
+    const values = toActivitySqlValues(activity);
+    const { bodyZoneIds } = values;
     const instruction = activity.instruction ?? null;
 
     await assertBodyZonesAssignable(
       transaction,
       bodyZoneIds,
       currentBodyZoneIdsByActivity.get(activity.id) ?? new Set(),
+      existing.has(activity.id) ? new Set() : inheritedBodyZoneIds,
     );
     const currentCategoryId = currentCategoryByActivity.get(activity.id) ?? null;
-    await assertOccurrenceCategoryAssignable(transaction, activity.categoryId, currentCategoryId);
+    await assertOccurrenceCategoryAssignable(
+      transaction,
+      activity.categoryId,
+      currentCategoryId,
+      !existing.has(activity.id),
+    );
 
     if (existing.has(activity.id)) {
-      // PRE-3 : une occurrence existante rééditée reçoit son JSON canonique ;
-      // sans paramètres canoniques (ancienne occurrence non rééditée), ses
-      // colonnes restent sur le chemin historique et son JSON éventuel est
-      // conservé. Catégorie `undefined` = conservée.
+      // PRE-4 : une occurrence existante reçoit son JSON v2 et la projection
+      // scalaire unique (AD-3). Catégorie `undefined` = conservée.
       await transaction.runAsync(
         `UPDATE activities SET
            type = ?, structural_position = ?, position = ?, name = ?,
            execution_mode = ?, duration_seconds = ?, repetition_count = ?,
            series_count = ?, pause_seconds = ?, post_activity_recovery_seconds = ?, instruction = ?,
            tour_id = ?, cycle_id = ?, updated_at = ?, side_mode = ?,
-           execution_parameters = COALESCE(?, execution_parameters), category_id = ?
+           execution_parameters = ?, category_id = ?
          WHERE id = ? AND session_id = ?`,
         [
           activity.type,
           zone,
           position,
           activity.name,
-          executionMode,
-          activity.durationSeconds,
-          activity.repetitionCount,
-          seriesCount,
-          pauseSeconds,
-          postActivityRecoverySeconds,
+          values.executionMode,
+          values.durationSeconds,
+          values.repetitionCount,
+          values.seriesCount,
+          values.pauseSeconds,
+          values.postActivityRecoverySeconds,
           instruction,
           activityTourId,
           cycleId,
           timestamp,
-          sideMode,
-          executionParametersJson(activity.executionParameters),
+          values.sideMode,
+          values.executionParameters,
           activity.categoryId === undefined ? currentCategoryId : activity.categoryId,
           activity.id,
           sessionId,
@@ -819,17 +965,17 @@ async function mergeActivities(
           zone,
           position,
           activity.name,
-          executionMode,
-          activity.durationSeconds,
-          activity.repetitionCount,
-          seriesCount,
-          pauseSeconds,
-          postActivityRecoverySeconds,
+          values.executionMode,
+          values.durationSeconds,
+          values.repetitionCount,
+          values.seriesCount,
+          values.pauseSeconds,
+          values.postActivityRecoverySeconds,
           instruction,
           timestamp,
           timestamp,
-          sideMode,
-          executionParametersJson(activity.executionParameters),
+          values.sideMode,
+          values.executionParameters,
           activity.categoryId ?? null,
         ],
       );
@@ -858,7 +1004,7 @@ async function readSession(
   sessionId: string,
   ownerId: string,
 ): Promise<Session | null> {
-  const rows = await database.getAllAsync<SessionAggregateRow>(AGGREGATE_QUERY, [
+  const rows = await database.getAllAsync<SessionAggregateQueryRow>(AGGREGATE_QUERY, [
     sessionId,
     ownerId,
   ]);
@@ -866,7 +1012,8 @@ async function readSession(
     return null;
   }
 
-  const activityIds = rows.map((row) => row.activity_id);
+  // PRE-4 (story 1.2, P39) : une Séance sans occurrence n'a aucune Activité à relire.
+  const activityIds = rows.filter(isSessionOccurrenceRow).map((row) => row.activity_id);
   const bodyZoneRows = await getBodyZonesForActivities(database, activityIds);
   const bodyZonesByActivity = new Map<string, string[]>();
   for (const zoneRow of bodyZoneRows) {
@@ -974,66 +1121,92 @@ async function getBodyZoneNamesBySession(
   return namesBySession;
 }
 
+/**
+ * PRE-4 (story 1.1, AD-3) : paramètres d'une ligne d'occurrence. `readV2` est
+ * le seul lecteur d'un Exercice (NULL, JSON corrompu, v1 ou version inconnue
+ * → `ExecutionParametersDataError`, jamais un repli sur les scalaires) ; une
+ * ancienne Récupération autonome est lue défensivement depuis sa durée.
+ */
+function rowExecutionParameters(
+  type: ActivityType,
+  json: string | null,
+  durationSeconds: number | null,
+): ExecutionParameters {
+  return type === "RECOVERY" ? recoveryExecutionParameters(durationSeconds) : readV2(json);
+}
+
 function toActivity(
   row: SessionAggregateRow,
   bodyZonesByActivity: ReadonlyMap<string, readonly string[]>,
   mediaByActivity: ReadonlyMap<string, NonNullable<Activity["media"]>> = new Map(),
 ): Activity {
   const isRecovery = row.activity_type === "RECOVERY";
-  // PRE-3 : JSON canonique de l'occurrence. Corrompu ou de version inconnue
-  // → erreur de données explicite (jamais un repli scalaire). Absent : la
-  // lecture historique reste inchangée (adaptée par le Domaine au calcul).
-  const executionParameters =
-    !isRecovery && row.activity_execution_parameters
-      ? parseExecutionParameters(row.activity_execution_parameters)
-      : undefined;
+  const executionParameters = rowExecutionParameters(
+    row.activity_type,
+    row.activity_execution_parameters,
+    row.duration_seconds,
+  );
   return {
-    ...(executionParameters ? { executionParameters } : {}),
+    executionParameters,
     ...(row.activity_category_id !== undefined ? { categoryId: row.activity_category_id } : {}),
     ...(isRecovery ? {} : { media: mediaByActivity.get(row.activity_id) ?? [] }),
     id: row.activity_id,
     type: row.activity_type,
-    // Une Récupération stocke `execution_mode = 'DURATION'` en base
-    // (contrainte SQL) mais n'expose aucun mode d'Exercice (T01-S10, D-041).
-    executionMode: isRecovery ? null : row.execution_mode,
     structuralPosition: row.structural_position,
     position: row.activity_position,
     name: row.activity_name,
-    durationSeconds: row.duration_seconds,
-    repetitionCount: row.repetition_count,
-    seriesCount: isRecovery ? null : row.series_count,
-    pauseSeconds: row.pause_seconds,
-    // V2-PRE-1 : récupération post-exercice de l'occurrence (`migration007`,
-    // colonne renommée depuis `recovery_seconds`). Une ancienne ligne
-    // `RECOVERY` n'en porte jamais (`CHECK` SQL) — le `?? 0` couvre la seule
-    // autre origine possible d'une valeur absente, une projection partielle
-    // de test antérieure à cette colonne.
+    // V2-PRE-1 : récupération post-exercice de l'occurrence (`migration007`).
+    // Une ancienne ligne `RECOVERY` n'en porte jamais (`CHECK` SQL) — le
+    // `?? 0` couvre une projection partielle de test antérieure à cette colonne.
     postActivityRecoverySeconds: isRecovery ? 0 : (row.post_activity_recovery_seconds ?? 0),
     instruction: row.instruction,
     bodyZoneIds: isRecovery ? [] : (bodyZonesByActivity.get(row.activity_id) ?? []),
-    // V2-BILAT-01 : une Récupération n'est jamais elle-même côtée (D-041) ;
-    // `?? "UNILATERAL"` couvre la même défense que `postActivityRecoverySeconds`
-    // ci-dessus (colonne `NOT NULL`, filet pour une projection partielle de
-    // test antérieure à cette colonne).
-    sideMode: isRecovery ? "UNILATERAL" : (row.activity_side_mode ?? "UNILATERAL"),
+    // V2-BILAT-01 : direction relue des paramètres (AD-3) ; une Récupération
+    // n'est jamais elle-même côtée (D-041).
+    sideMode: executionParameters.sideMode,
   };
 }
 
+/**
+ * PRE-4 (story 1.2, P39) : vrai pour une ligne portant une occurrence ; faux
+ * pour la ligne d'en-tête seule d'une Séance sans occurrence (`LEFT JOIN`).
+ */
+export function isSessionOccurrenceRow(row: SessionAggregateQueryRow): row is SessionAggregateRow {
+  return row.activity_id !== null;
+}
+
+/**
+ * Assemble une Séance à partir de ses lignes d'agrégat. PRE-4 (story 1.2,
+ * P39, FR-18-20 sixième conséquence) : une Séance dont toutes les Copies ont
+ * été écartées arrive sous la forme d'UNE ligne d'en-tête aux colonnes
+ * d'occurrence nulles ; elle est assemblée avec une composition vide, ses
+ * paramètres (nom, Étiquette, Compte à rebours, Fin, répétitions du Tour,
+ * Points d'arrêt) étant conservés.
+ */
 export function assembleSession(
-  rows: readonly SessionAggregateRow[],
+  rows: readonly SessionAggregateQueryRow[],
   bodyZonesByActivity: ReadonlyMap<string, readonly string[]>,
   stopPoints: readonly StopPoint[] = [],
   mediaByActivity: ReadonlyMap<string, NonNullable<Activity["media"]>> = new Map(),
 ): Session {
-  for (const row of rows) {
+  const first = rows[0];
+  if (!first) {
+    throw new Error("A session aggregate needs at least one row.");
+  }
+  const occurrenceRows = rows.filter(isSessionOccurrenceRow);
+  // Une ligne sans occurrence n'est admise que seule (`LEFT JOIN` sans correspondance).
+  if (occurrenceRows.length !== rows.length && rows.length !== 1) {
+    throw new Error("Persisted session does not satisfy the aggregate contract.");
+  }
+  assertSessionHeaderRow(first);
+  for (const row of occurrenceRows) {
     assertSessionAggregateRow(row);
   }
-  const first = rows[0]!;
 
   const beforeTour: Activity[] = [];
   const inTour: Activity[] = [];
   const afterTour: Activity[] = [];
-  for (const row of rows) {
+  for (const row of occurrenceRows) {
     const activity = toActivity(row, bodyZonesByActivity, mediaByActivity);
     if (activity.structuralPosition === "BEFORE_TOUR") {
       beforeTour.push(activity);
@@ -1087,13 +1260,8 @@ type DurationFactsRow = {
   session_id: string;
   type: ActivityType;
   structural_position: StructuralPosition;
-  execution_mode: ExerciseExecutionMode;
   duration_seconds: number | null;
-  repetition_count: number | null;
-  series_count: number | null;
-  pause_seconds: number;
   post_activity_recovery_seconds: number;
-  side_mode: SideMode;
   execution_parameters: string | null;
 };
 
@@ -1109,6 +1277,7 @@ const EMPTY_ZONES: SessionZones = { beforeTour: [], inTour: [], afterTour: [] };
  * PRE-3 : paramètres de durée de TOUTES les occurrences des Séances listées,
  * en UNE requête groupée — total ensuite calculé par l'autorité unique du
  * Domaine, identique à la lecture complète (P3-13/tours-cycles-list).
+ * PRE-4 (story 1.1, AD-3) : `readV2` seul, aucun fait scalaire.
  */
 async function getDurationFactsBySession(
   database: Database,
@@ -1120,9 +1289,8 @@ async function getDurationFactsBySession(
   // `sessionIds` provient de lignes déjà relues depuis SQLite.
   const placeholders = sessionIds.map(() => "?").join(", ");
   const rows = await database.getAllAsync<DurationFactsRow>(
-    `SELECT session_id, type, structural_position, execution_mode, duration_seconds,
-            repetition_count, series_count, pause_seconds, post_activity_recovery_seconds,
-            side_mode, execution_parameters
+    `SELECT session_id, type, structural_position, duration_seconds,
+            post_activity_recovery_seconds, execution_parameters
      FROM activities
      WHERE session_id IN (${placeholders})
      ORDER BY ${STRUCTURAL_ORDER_SQL} ASC, position ASC`,
@@ -1132,18 +1300,12 @@ async function getDurationFactsBySession(
   for (const row of rows) {
     const zones = bySession.get(row.session_id) ?? { beforeTour: [], inTour: [], afterTour: [] };
     const isRecovery = row.type === "RECOVERY";
+    const executionParameters = rowExecutionParameters(row.type, row.execution_parameters, row.duration_seconds);
     const facts: ActivityDurationFacts = {
       type: row.type,
-      executionMode: isRecovery ? null : row.execution_mode,
-      durationSeconds: row.duration_seconds,
-      repetitionCount: row.repetition_count,
-      seriesCount: isRecovery ? null : row.series_count,
-      pauseSeconds: row.pause_seconds,
+      executionParameters,
       postActivityRecoverySeconds: isRecovery ? 0 : row.post_activity_recovery_seconds,
-      sideMode: isRecovery ? "UNILATERAL" : row.side_mode,
-      ...(!isRecovery && row.execution_parameters
-        ? { executionParameters: parseExecutionParameters(row.execution_parameters) }
-        : {}),
+      sideMode: executionParameters.sideMode,
     };
     if (row.structural_position === "BEFORE_TOUR") {
       zones.beforeTour.push(facts);
@@ -1195,14 +1357,77 @@ function mapSummaryRow(
 
 const STRUCTURAL_POSITIONS: readonly string[] = ["BEFORE_TOUR", "IN_TOUR", "AFTER_TOUR"];
 
+/** Colonnes du CHECK composite d'`activities` (type, Mode et scalaires projetés). */
+export type ActivityCheckColumns = {
+  readonly activity_type: string;
+  readonly execution_mode: string;
+  readonly duration_seconds: number | null;
+  readonly repetition_count: number | null;
+  readonly series_count: number | null;
+  readonly pause_seconds: number;
+  readonly post_activity_recovery_seconds: number;
+};
+
+function between(value: number | null, min: number, max: number): boolean {
+  return value !== null && value >= min && value <= max;
+}
+
 /**
- * Défense en profondeur au ré-assemblage (T01-S10) : reflète les `CHECK` de
- * `migration001`/`migration003`. Le Cycle reste unique (`position`/
- * `repeat_count` = 1) ; le Tour est `1..99` ; la position structurelle est
- * l'une des trois ; un Exercice porte une cible cohérente avec son mode
- * (aucune en `TO_FAILURE`) ; une Récupération est chronométrée, sans Séries.
+ * Miroir exact du CHECK composite d'`activities` posé par `migration010`
+ * (PRE-4, story 1.1, AD-4) : bornes de `migration004` reprises à l'identique
+ * (Durée 1..5999, Répétitions ≥ 1, Pauses et Récupération 0..5999, N ≥ 1),
+ * deux Modes seulement, cible scalaire NULL admise en Durée et en
+ * Répétitions, jamais les deux cibles non nulles ; branche `RECOVERY`
+ * inchangée. Sa parité avec le CHECK réel est vérifiée par un test
+ * (`node:sqlite`).
  */
-function assertSessionAggregateRow(row: SessionAggregateRow): void {
+export function satisfiesActivityCheck(row: ActivityCheckColumns): boolean {
+  const pause = ACTIVITY_STORAGE_BOUNDS.pauseSeconds;
+  const recovery = ACTIVITY_STORAGE_BOUNDS.postActivityRecoverySeconds;
+  const duration = ACTIVITY_STORAGE_BOUNDS.durationTarget;
+  if (row.activity_type === "EXERCISE") {
+    if (row.series_count === null || row.series_count < ACTIVITY_STORAGE_BOUNDS.seriesCountMin) {
+      return false;
+    }
+    if (!between(row.pause_seconds, pause.min, pause.max) || !between(row.post_activity_recovery_seconds, recovery.min, recovery.max)) {
+      return false;
+    }
+    if (row.execution_mode === "DURATION") {
+      return row.repetition_count === null && (row.duration_seconds === null || between(row.duration_seconds, duration.min, duration.max));
+    }
+    if (row.execution_mode === "REPETITIONS") {
+      return (
+        row.duration_seconds === null &&
+        (row.repetition_count === null || row.repetition_count >= ACTIVITY_STORAGE_BOUNDS.repetitionTargetMin)
+      );
+    }
+    return false;
+  }
+  if (row.activity_type === "RECOVERY") {
+    return (
+      row.execution_mode === "DURATION" &&
+      between(row.duration_seconds, duration.min, duration.max) &&
+      row.repetition_count === null &&
+      row.series_count === null &&
+      row.pause_seconds === 0 &&
+      row.post_activity_recovery_seconds === 0
+    );
+  }
+  return false;
+}
+
+/** Contrôle avant écriture : une Activité dont les colonnes violeraient le CHECK est refusée (AC5, P44). */
+function assertActivityColumns(row: ActivityCheckColumns): void {
+  if (!satisfiesActivityCheck(row)) {
+    throw new Error("Persisted session does not satisfy the aggregate contract.");
+  }
+}
+
+/**
+ * PRE-4 (story 1.2, P39) : contrat de l'en-tête (Séance, Cycle, Tour) seul,
+ * applicable aussi à la ligne d'une Séance sans occurrence.
+ */
+function assertSessionHeaderRow(row: SessionAggregateQueryRow): void {
   if (
     row.status !== "ACTIVE" ||
     row.cycle_position !== 1 ||
@@ -1210,41 +1435,30 @@ function assertSessionAggregateRow(row: SessionAggregateRow): void {
     row.tour_position !== 1 ||
     row.tour_repeat_count < 1 ||
     row.tour_repeat_count > 99 ||
+    // V2-BILAT-01 : reflète le `CHECK` de `migration005` sur `tours.side_mode`.
+    !SIDE_MODES.includes(row.tour_side_mode)
+  ) {
+    throw new Error("Persisted session does not satisfy the aggregate contract.");
+  }
+}
+
+/**
+ * Défense en profondeur au ré-assemblage (T01-S10) et avant écriture
+ * (PRE-4) : reflète les `CHECK` de `migration001`/`migration003`/
+ * `migration005` et le CHECK composite de `migration010`. Le Cycle reste
+ * unique (`position`/`repeat_count` = 1) ; le Tour est `1..99` ; la position
+ * structurelle est l'une des trois ; la direction est connue ; les colonnes
+ * de l'Activité satisfont le CHECK composite (`satisfiesActivityCheck`).
+ * Exportée pour le test de parité avec le CHECK réel.
+ */
+export function assertSessionAggregateRow(row: SessionAggregateRow): void {
+  assertSessionHeaderRow(row);
+  if (
     !STRUCTURAL_POSITIONS.includes(row.structural_position) ||
-    // V2-BILAT-01 : reflète le `CHECK` de `migration005` sur `tours.side_mode`/`activities.side_mode`.
-    !SIDE_MODES.includes(row.tour_side_mode) ||
+    // V2-BILAT-01 : reflète le `CHECK` de `migration005` sur `activities.side_mode`.
     !SIDE_MODES.includes(row.activity_side_mode)
   ) {
     throw new Error("Persisted session does not satisfy the aggregate contract.");
   }
-
-  if (row.activity_type === "RECOVERY") {
-    if (
-      row.duration_seconds === null ||
-      row.repetition_count !== null ||
-      row.series_count !== null
-    ) {
-      throw new Error("Persisted session does not satisfy the aggregate contract.");
-    }
-    return;
-  }
-
-  if (row.series_count === null || row.series_count < 1) {
-    throw new Error("Persisted session does not satisfy the aggregate contract.");
-  }
-  if (row.execution_mode === "DURATION") {
-    if (row.duration_seconds === null || row.repetition_count !== null) {
-      throw new Error("Persisted session does not satisfy the aggregate contract.");
-    }
-  } else if (row.execution_mode === "REPETITIONS") {
-    if (row.repetition_count === null || row.duration_seconds !== null) {
-      throw new Error("Persisted session does not satisfy the aggregate contract.");
-    }
-  } else if (row.execution_mode === "TO_FAILURE") {
-    if (row.duration_seconds !== null || row.repetition_count !== null) {
-      throw new Error("Persisted session does not satisfy the aggregate contract.");
-    }
-  } else {
-    throw new Error("Persisted session does not satisfy the aggregate contract.");
-  }
+  assertActivityColumns(row);
 }

@@ -32,7 +32,7 @@ function renderProps(overrides: Partial<Parameters<typeof DurationWheelPicker>[0
     cancelAccessibilityLabel: CANCEL_LABEL,
     validateAccessibilityLabel: VALIDATE_LABEL,
     ...overrides,
-  };
+  } as Parameters<typeof DurationWheelPicker>[0] & { onValidate: jest.Mock; onCancel: jest.Mock };
 }
 
 beforeEach(() => {
@@ -647,5 +647,438 @@ describe("DurationWheelPicker — PRE-3 R-1 (roulette en place de la feuille Par
     fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 59 } });
     fireEvent.press(screen.getByTestId("duration-wheel-validate"));
     expect(props.onValidate).toHaveBeenCalledWith(5999);
+  });
+});
+
+/**
+ * PRE-4 story 3.4 (AD-7, Q36, Q41) — Sélecteur de cible en Durée : props optionnelles
+ * `targetBounds` et `failureOption`, `validateDisabled` de `PickerToolbar`. Le rendu
+ * natif (niveaux de la roue, ✓ indisponible) reste à juger sur iPhone (NFR-04, P33).
+ */
+describe("PRE4-3.4 — DurationWheelPicker : option échec, bornes de Cible, ✓ indisponible", () => {
+  const BOUNDS = { min: 5, max: 3535 } as const;
+  let originalPlatformOS: typeof Platform.OS;
+
+  afterEach(() => {
+    Platform.OS = originalPlatformOS;
+  });
+
+  function setPlatform(os: typeof Platform.OS) {
+    originalPlatformOS = Platform.OS;
+    Platform.OS = os;
+  }
+
+  function targetProps(initiallySelected = false, totalSeconds = 30) {
+    const onValidateFailure = jest.fn();
+    return {
+      ...renderProps({
+        totalSeconds,
+        targetBounds: BOUNDS,
+        failureOption: {
+          label: "Aucune durée, à l’échec",
+          initiallySelected,
+          onValidateFailure,
+        },
+      }),
+      onValidateFailure,
+    };
+  }
+
+  const opacityOf = (testID: string) => StyleSheet.flatten(screen.getByTestId(testID).props.style)?.opacity ?? 1;
+  const nativeChange = (testID: string, selection: number) =>
+    fireEvent(screen.getByTestId(testID), "selectionChange", { nativeEvent: { selection } });
+  /** Valeurs proposées par une colonne native (modificateur `tag` de chaque `SwiftUIText`). */
+  const nativeValues = (testID: string) =>
+    screen
+      .getByTestId(testID)
+      .findAll((node) => typeof node.type === "string" && Array.isArray(node.props.modifiers))
+      .flatMap((node) => (node.props.modifiers as { $type: string; tag?: number }[]).filter((modifier) => modifier.$type === "tag"))
+      .map((modifier) => modifier.tag);
+  const validateButton = () => screen.getByTestId("duration-wheel-validate");
+
+  describe("iOS (roue native)", () => {
+    beforeEach(() => setPlatform("ios"));
+
+    it("PRE4-3.4/AC2 — de haut en bas : ✕/✓, « Aucune durée, à l’échec », un filet, la roue ; minutes 00..58 sans 59 ; secondes au pas de 1, 00 puis 05..59 à 0 min, 00..59 ailleurs, 00..55 à 58 min", () => {
+      render(<DurationWheelPicker {...targetProps()} />);
+      expect(screen.getByTestId("duration-wheel-failure-option-text").props.children).toBe("Aucune durée, à l’échec");
+      // Ordre de rendu dans la surface : barre, option, filet, bloc de la roue.
+      const ids = screen
+        .getByTestId("duration-wheel-picker")
+        .findAll((node) => typeof node.type === "string" && typeof node.props.testID === "string")
+        .map((node) => node.props.testID as string);
+      const at = (id: string) => ids.indexOf(id);
+      expect(at("duration-wheel-toolbar")).toBeGreaterThanOrEqual(0);
+      expect(at("duration-wheel-toolbar")).toBeLessThan(at("duration-wheel-failure-option"));
+      expect(at("duration-wheel-failure-option")).toBeLessThan(at("duration-wheel-failure-option-rule"));
+      expect(at("duration-wheel-failure-option-rule")).toBeLessThan(at("duration-wheel-block"));
+      expect(nativeValues("duration-wheel-minutes")).toEqual(Array.from({ length: 59 }, (_, index) => index));
+      expect(nativeValues("duration-wheel-seconds")).toEqual([0, ...Array.from({ length: 55 }, (_, index) => index + 5)]);
+      nativeChange("duration-wheel-minutes", 10);
+      expect(nativeValues("duration-wheel-seconds")).toEqual(Array.from({ length: 60 }, (_, index) => index));
+      nativeChange("duration-wheel-minutes", 58);
+      expect(nativeValues("duration-wheel-seconds")).toEqual(Array.from({ length: 56 }, (_, index) => index));
+    });
+
+    it("PRE4-3.4/AC2 — à 58 min, une seconde au-delà de 55 rejoint 55 ; ✓ applique 3535 au plus (58:55)", () => {
+      const props = targetProps(false, 57 * 60 + 58);
+      render(<DurationWheelPicker {...props} />);
+      nativeChange("duration-wheel-minutes", 58);
+      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(55);
+      fireEvent.press(validateButton());
+      expect(props.onValidate).toHaveBeenCalledWith(3535);
+    });
+
+    it("PRE4-3.4/AC3 — Cible 30 s : roue sur 00:30, active, option à 45 % ; Cible échec : option à 100 %, 00:00 atténué à 45 %", () => {
+      const view = render(<DurationWheelPicker {...targetProps(false, 30)} />);
+      expect(screen.getByTestId("duration-wheel-minutes").props.selection).toBe(0);
+      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(30);
+      expect(opacityOf("duration-wheel-failure-option")).toBe(0.45);
+      expect(opacityOf("duration-wheel-block")).toBe(1);
+      view.unmount();
+      render(<DurationWheelPicker {...targetProps(true, 0)} />);
+      expect(opacityOf("duration-wheel-failure-option")).toBe(1);
+      expect(opacityOf("duration-wheel-block")).toBe(0.45);
+      expect(screen.getByTestId("duration-wheel-minutes").props.selection).toBe(0);
+      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(0);
+      // ✓ disponible sur l'échec.
+      expect(validateButton().props.accessibilityState?.disabled).not.toBe(true);
+    });
+
+    it("PRE4-3.4/AC5 — toucher l'option : 100 %, roue à 00:00 atténuée ; ✓ émet une SeriesTarget FAILURE, jamais un nombre", () => {
+      const props = targetProps(false, 30);
+      render(<DurationWheelPicker {...props} />);
+      fireEvent.press(screen.getByTestId("duration-wheel-failure-option"));
+      expect(opacityOf("duration-wheel-failure-option")).toBe(1);
+      expect(opacityOf("duration-wheel-block")).toBe(0.45);
+      expect(screen.getByTestId("duration-wheel-minutes").props.selection).toBe(0);
+      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(0);
+      // Aucune haptique ajoutée.
+      expect(Haptics.selectionAsync).not.toHaveBeenCalled();
+      fireEvent.press(validateButton());
+      expect(props.onValidateFailure).toHaveBeenCalledWith({ kind: "FAILURE" });
+      expect(props.onValidate).not.toHaveBeenCalled();
+    });
+
+    it("PRE4-3.4/AC6 — échec choisi, tourner la roue jusqu'à 00:30 revient au numérique sans déverrouillage ; jamais de disabled sur la roue", () => {
+      const props = targetProps(true, 0);
+      const { UNSAFE_root } = render(<DurationWheelPicker {...props} />);
+      for (const testID of ["duration-wheel-block", "duration-wheel-minutes", "duration-wheel-seconds"]) {
+        expect(screen.getByTestId(testID).props.disabled).toBeUndefined();
+      }
+      nativeChange("duration-wheel-seconds", 30);
+      expect(opacityOf("duration-wheel-failure-option")).toBe(0.45);
+      expect(opacityOf("duration-wheel-block")).toBe(1);
+      fireEvent.press(validateButton());
+      expect(props.onValidate).toHaveBeenCalledWith(30);
+      expect(props.onValidateFailure).not.toHaveBeenCalled();
+      expect(UNSAFE_root.findAllByType(ScrollView)).toHaveLength(0);
+    });
+
+    it("PRE4-3.4/AC7 — sélection numérique amenée sur 00:00 : ✓ indisponible (disabled, état d'accessibilité, 0,45), un appui n'appelle rien ; ✕ disponible ; pas d'échec", () => {
+      const props = targetProps(false, 30);
+      render(<DurationWheelPicker {...props} />);
+      expect(validateButton().props.accessibilityState?.disabled).not.toBe(true);
+      nativeChange("duration-wheel-seconds", 0);
+      expect(validateButton().props.accessibilityState).toMatchObject({ disabled: true });
+      expect(opacityOf("duration-wheel-validate")).toBe(0.45);
+      fireEvent.press(validateButton());
+      expect(props.onValidate).not.toHaveBeenCalled();
+      expect(props.onValidateFailure).not.toHaveBeenCalled();
+      expect(opacityOf("duration-wheel-failure-option")).toBe(0.45);
+      expect(opacityOf("duration-wheel-block")).toBe(1);
+      fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
+      expect(props.onCancel).toHaveBeenCalledTimes(1);
+      // Revenir à 00:05 rend le ✓.
+      nativeChange("duration-wheel-seconds", 5);
+      fireEvent.press(validateButton());
+      expect(props.onValidate).toHaveBeenCalledWith(5);
+    });
+
+    it("PRE4-3.4/AC11 — option annoncée par son état natif selected (un seul canal), libellé du lexique ; cible tactile ≥ 44 pour 30 de haut", () => {
+      render(<DurationWheelPicker {...targetProps(false, 30)} />);
+      const option = () => screen.getByTestId("duration-wheel-failure-option");
+      expect(option().props.accessibilityLabel).toBe("Aucune durée, à l’échec");
+      // Un seul canal d'annonce : l'état natif « sélectionné » (pas de valeur textuelle en double).
+      expect(option().props.accessibilityValue?.text).toBeUndefined();
+      expect(option().props.accessibilityState).toMatchObject({ selected: false });
+      const style = StyleSheet.flatten(option().props.style);
+      expect(style.height).toBe(30);
+      const hitSlop = option().props.hitSlop as { top: number; bottom: number };
+      expect((style.height as number) + hitSlop.top + hitSlop.bottom).toBeGreaterThanOrEqual(44);
+      fireEvent.press(option());
+      expect(option().props.accessibilityState).toMatchObject({ selected: true });
+    });
+
+    it("PRE4-3.4/AC12 — sans les props, comportement inchangé : ni option ni bloc, ✓ disponible sur 00:00, minutes 00..59, secondes 00..59", () => {
+      const props = renderProps({ totalSeconds: 0 });
+      render(<DurationWheelPicker {...props} />);
+      expect(screen.queryByTestId("duration-wheel-failure-option")).toBeNull();
+      expect(screen.queryByTestId("duration-wheel-block")).toBeNull();
+      expect(validateButton().props.accessibilityState?.disabled).not.toBe(true);
+      expect(StyleSheet.flatten(validateButton().props.style).opacity).toBeUndefined();
+      expect(nativeValues("duration-wheel-minutes")).toHaveLength(60);
+      expect(nativeValues("duration-wheel-seconds")).toEqual(Array.from({ length: 60 }, (_, index) => index));
+      fireEvent.press(validateButton());
+      expect(props.onValidate).toHaveBeenCalledWith(0);
+    });
+  });
+
+  describe("Android/web (roulette Legacy, parité)", () => {
+    beforeEach(() => setPlatform("android"));
+
+    it("PRE4-3.4/AC12 — Legacy : même option et mêmes transitions : échec → 00:00 atténué → FAILURE émise ; tourner → numérique ; 00:00 → ✓ indisponible", () => {
+      const props = targetProps(false, 30);
+      render(<DurationWheelPicker {...props} />);
+      expect(opacityOf("duration-wheel-failure-option")).toBe(0.45);
+      expect(opacityOf("duration-wheel-block")).toBe(1);
+      // Secondes à 0 min : 00 puis 05..59 (index 26 = 30 s).
+      expect(screen.queryByTestId("duration-wheel-seconds-item-3")).toBeNull();
+      expect(screen.getByTestId("duration-wheel-seconds-item-5")).toBeTruthy();
+
+      fireEvent.press(screen.getByTestId("duration-wheel-failure-option"));
+      expect(opacityOf("duration-wheel-failure-option")).toBe(1);
+      expect(opacityOf("duration-wheel-block")).toBe(0.45);
+      fireEvent.press(validateButton());
+      expect(props.onValidateFailure).toHaveBeenCalledWith({ kind: "FAILURE" });
+      expect(props.onValidate).not.toHaveBeenCalled();
+
+      scrollTo(screen.getByTestId("duration-wheel-seconds"), ITEM_HEIGHT * 26);
+      expect(opacityOf("duration-wheel-failure-option")).toBe(0.45);
+      expect(opacityOf("duration-wheel-block")).toBe(1);
+      fireEvent.press(validateButton());
+      expect(props.onValidate).toHaveBeenCalledWith(30);
+
+      scrollTo(screen.getByTestId("duration-wheel-seconds"), 0);
+      expect(validateButton().props.accessibilityState).toMatchObject({ disabled: true });
+      fireEvent.press(validateButton());
+      expect(props.onValidate).toHaveBeenCalledTimes(1);
+      expect(props.onValidateFailure).toHaveBeenCalledTimes(1);
+    });
+
+    it("PRE4-3.4/AC2 — Legacy : minutes 00..58, à 58 min les secondes s'arrêtent à 55 ; ✓ applique 3535", () => {
+      const props = targetProps(false, 30);
+      render(<DurationWheelPicker {...props} />);
+      expect(screen.getByTestId("duration-wheel-minutes-item-58")).toBeTruthy();
+      expect(screen.queryByTestId("duration-wheel-minutes-item-59")).toBeNull();
+      scrollTo(screen.getByTestId("duration-wheel-minutes"), ITEM_HEIGHT * 58);
+      expect(screen.getByTestId("duration-wheel-seconds-item-55")).toBeTruthy();
+      expect(screen.queryByTestId("duration-wheel-seconds-item-56")).toBeNull();
+      scrollTo(screen.getByTestId("duration-wheel-seconds"), ITEM_HEIGHT * 80);
+      fireEvent.press(validateButton());
+      expect(props.onValidate).toHaveBeenCalledWith(3535);
+    });
+  });
+});
+
+/** PRE-4 story 3.4 — revue : recalage des secondes, accessibilité Legacy, union de props. */
+describe("PRE4-3.4 — DurationWheelPicker : recalage et parité (revue)", () => {
+  const BOUNDS = { min: 5, max: 3535 } as const;
+  let originalPlatformOS: typeof Platform.OS;
+
+  afterEach(() => {
+    Platform.OS = originalPlatformOS;
+  });
+
+  function setPlatform(os: typeof Platform.OS) {
+    originalPlatformOS = Platform.OS;
+    Platform.OS = os;
+  }
+
+  function boundedProps(totalSeconds: number) {
+    const onValidateFailure = jest.fn();
+    return {
+      ...renderProps({
+        totalSeconds,
+        targetBounds: BOUNDS,
+        failureOption: { label: "Aucune durée, à l’échec", initiallySelected: false, onValidateFailure },
+      }),
+      onValidateFailure,
+    };
+  }
+
+  const nativeChange = (testID: string, selection: number) =>
+    fireEvent(screen.getByTestId(testID), "selectionChange", { nativeEvent: { selection } });
+  const validateButton = () => screen.getByTestId("duration-wheel-validate");
+
+  it("PRE4-3.4/AC12 — union de props : failureOption exige targetBounds (vérifié par le typage)", () => {
+    setPlatform("ios");
+    const props = renderProps({ totalSeconds: 30 });
+    // @ts-expect-error — `failureOption` sans `targetBounds` : 00:00 resterait validable.
+    const invalid = <DurationWheelPicker {...props} failureOption={{ label: "x", initiallySelected: false, onValidateFailure: jest.fn() }} />;
+    expect(invalid).toBeTruthy();
+  });
+
+  describe("iOS", () => {
+    beforeEach(() => setPlatform("ios"));
+
+    it("PRE4-3.4/AC2 — une seconde native absente de la liste (57 reçu à 58 min) est ramenée à 55 : brouillon = valeur affichée, ✓ → 3535", () => {
+      const props = boundedProps(58 * 60);
+      render(<DurationWheelPicker {...props} />);
+      nativeChange("duration-wheel-seconds", 57);
+      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(55);
+      fireEvent.press(validateButton());
+      expect(props.onValidate).toHaveBeenCalledWith(3535);
+    });
+
+    it("PRE4-3.4/AC7 — 01:02 descendu à 0 min : recalage sur 00:05, jamais 00:00 ; ✓ disponible → 5", () => {
+      const props = boundedProps(62);
+      render(<DurationWheelPicker {...props} />);
+      nativeChange("duration-wheel-minutes", 0);
+      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(5);
+      expect(validateButton().props.accessibilityState?.disabled).not.toBe(true);
+      fireEvent.press(validateButton());
+      expect(props.onValidate).toHaveBeenCalledWith(5);
+    });
+  });
+
+  describe("Android/web (Legacy)", () => {
+    beforeEach(() => setPlatform("android"));
+
+    it("PRE4-3.4/AC7 — Legacy : 01:02 descendu à 0 min : recalage sur 00:05, jamais 00:00 ; ✓ → 5", () => {
+      const props = boundedProps(62);
+      render(<DurationWheelPicker {...props} />);
+      scrollTo(screen.getByTestId("duration-wheel-minutes"), 0);
+      expect(screen.getByTestId("duration-wheel-seconds").props.accessibilityValue.now).toBe(5);
+      expect(validateButton().props.accessibilityState?.disabled).not.toBe(true);
+      fireEvent.press(validateButton());
+      expect(props.onValidate).toHaveBeenCalledWith(5);
+    });
+
+    it("PRE4-3.4/AC2 — Legacy : index des secondes remappé au changement de minute : 00:30 → minutes seules à 1 → ✓ 90 ; 57:58 → minutes seules à 58 → ✓ 3535", () => {
+      const first = boundedProps(30);
+      const view = render(<DurationWheelPicker {...first} />);
+      scrollTo(screen.getByTestId("duration-wheel-minutes"), ITEM_HEIGHT);
+      fireEvent.press(validateButton());
+      expect(first.onValidate).toHaveBeenCalledWith(90);
+      view.unmount();
+
+      const second = boundedProps(57 * 60 + 58);
+      render(<DurationWheelPicker {...second} />);
+      scrollTo(screen.getByTestId("duration-wheel-minutes"), ITEM_HEIGHT * 58);
+      expect(screen.getByTestId("duration-wheel-seconds").props.accessibilityValue).toMatchObject({ now: 55, max: 55 });
+      fireEvent.press(validateButton());
+      expect(second.onValidate).toHaveBeenCalledWith(3535);
+    });
+
+    it("PRE4-3.4/AC11 — Legacy : accessibilityValue.now suit la valeur courante ; l'action increment part de 00:30 → ✓ 31", () => {
+      const props = boundedProps(30);
+      render(<DurationWheelPicker {...props} />);
+      const seconds = () => screen.getByTestId("duration-wheel-seconds");
+      expect(seconds().props.accessibilityValue).toMatchObject({ now: 30 });
+      fireEvent(seconds(), "accessibilityAction", { nativeEvent: { actionName: "increment" } });
+      expect(seconds().props.accessibilityValue).toMatchObject({ now: 31 });
+      fireEvent.press(validateButton());
+      expect(props.onValidate).toHaveBeenCalledWith(31);
+      // Après l'option échec, la valeur annoncée est celle de la roue (00:00).
+      fireEvent.press(screen.getByTestId("duration-wheel-failure-option"));
+      expect(seconds().props.accessibilityValue).toMatchObject({ now: 0 });
+      expect(screen.getByTestId("duration-wheel-minutes").props.accessibilityValue).toMatchObject({ now: 0 });
+    });
+  });
+});
+
+/**
+ * PRE-4 story 3.7 (FR-14-03, H8 ; revue) — bornes génériques sous `targetBounds` : la
+ * colonne des minutes commence à `floor(min / 60)` dès que `min ≥ 60`, sans aucune minute
+ * dont la liste de secondes serait vide (iOS et Legacy). Sous 60 s, story 3.4 inchangée.
+ */
+describe("PRE4-3.7 — DurationWheelPicker : bornes de Durée totale (borne basse ≥ 60 s)", () => {
+  let originalPlatformOS: typeof Platform.OS;
+  afterEach(() => {
+    Platform.OS = originalPlatformOS;
+  });
+  function setPlatform(os: typeof Platform.OS) {
+    originalPlatformOS = Platform.OS;
+    Platform.OS = os;
+  }
+  const range = (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, index) => from + index);
+  const nativeValues = (testID: string) =>
+    screen
+      .getByTestId(testID)
+      .findAll((node) => typeof node.type === "string" && Array.isArray(node.props.modifiers))
+      .flatMap((node) => (node.props.modifiers as { $type: string; tag?: number }[]).filter((modifier) => modifier.$type === "tag"))
+      .map((modifier) => modifier.tag);
+  const nativeChange = (testID: string, selection: number) =>
+    fireEvent(screen.getByTestId(testID), "selectionChange", { nativeEvent: { selection } });
+  // d = 60 s, p = 10 s : T(1) = 70 s ; T(99) = 6 930 s plafonné à 5 999 s.
+  const T1_70 = { min: 1 * (60 + 10), max: 5999 } as const;
+  // Bilatéral un côté après l'autre, d = 25 s, p = 5 s, PC = 7 s : T(N) = 2N(d + p) + PC.
+  const BILATERAL = { min: 2 * 1 * 30 + 7, max: 2 * 99 * 30 + 7 } as const;
+
+  it("PRE4-3.7/AC4 — iOS : T(1) = 70 s — minutes 01..99, secondes 10..59 à 1 min ; ouverture exacte (03:30) ; ✓ applique la valeur choisie", () => {
+    setPlatform("ios");
+    const props = renderProps({ totalSeconds: 3 * 70, targetBounds: T1_70 });
+    render(<DurationWheelPicker {...props} />);
+    expect(nativeValues("duration-wheel-minutes")).toEqual(range(1, 99));
+    expect(screen.getByTestId("duration-wheel-minutes").props.selection).toBe(3);
+    expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(30);
+    nativeChange("duration-wheel-minutes", 1);
+    expect(nativeValues("duration-wheel-seconds")).toEqual(range(10, 59));
+    expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(30);
+    nativeChange("duration-wheel-seconds", 10);
+    fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+    expect(props.onValidate).toHaveBeenCalledWith(70);
+  });
+
+  it("PRE4-3.7/AC4 — iOS : bilatéral 67..5947 — secondes 07..59 à 1 min, 00..07 à 99 min ; 99:30 → 99:07", () => {
+    setPlatform("ios");
+    const props = renderProps({ totalSeconds: 4 * 2 * 30 + 7, targetBounds: BILATERAL });
+    render(<DurationWheelPicker {...props} />);
+    expect(nativeValues("duration-wheel-minutes")).toEqual(range(1, 99));
+    nativeChange("duration-wheel-minutes", 1);
+    expect(nativeValues("duration-wheel-seconds")).toEqual(range(7, 59));
+    nativeChange("duration-wheel-seconds", 30);
+    nativeChange("duration-wheel-minutes", 99);
+    expect(nativeValues("duration-wheel-seconds")).toEqual(range(0, 7));
+    expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(7);
+    fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+    expect(props.onValidate).toHaveBeenCalledWith(5947);
+  });
+
+  it("PRE4-3.7/AC4 — Legacy : T(1) = 70 s — première minute 01 (aucune 00), index remappé ; ✓ 70 puis 5999", () => {
+    setPlatform("android");
+    const props = renderProps({ totalSeconds: 3 * 70, targetBounds: T1_70 });
+    const view = render(<DurationWheelPicker {...props} />);
+    expect(screen.queryByTestId("duration-wheel-minutes-item-0")).toBeNull();
+    expect(screen.getByTestId("duration-wheel-minutes-item-1")).toBeTruthy();
+    expect(screen.getByTestId("duration-wheel-minutes-item-99")).toBeTruthy();
+    expect(screen.getByTestId("duration-wheel-minutes").props.accessibilityValue).toMatchObject({ now: 3, max: 99 });
+    // Index 0 de la colonne = minute 1 ; secondes 10..59 (30 conservée).
+    scrollTo(screen.getByTestId("duration-wheel-minutes"), 0);
+    expect(screen.getByTestId("duration-wheel-minutes").props.accessibilityValue).toMatchObject({ now: 1 });
+    expect(screen.queryByTestId("duration-wheel-seconds-item-9")).toBeNull();
+    expect(screen.getByTestId("duration-wheel-seconds-item-10")).toBeTruthy();
+    expect(screen.getByTestId("duration-wheel-seconds").props.accessibilityValue).toMatchObject({ now: 30 });
+    // Secondes en tête de liste : index 0 = 10 s → 1:10 = 70 s.
+    scrollTo(screen.getByTestId("duration-wheel-seconds"), 0);
+    fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+    expect(props.onValidate).toHaveBeenCalledWith(70);
+    view.unmount();
+    const top = renderProps({ totalSeconds: 3 * 70, targetBounds: T1_70 });
+    render(<DurationWheelPicker {...top} />);
+    scrollTo(screen.getByTestId("duration-wheel-minutes"), ITEM_HEIGHT * 98);
+    scrollTo(screen.getByTestId("duration-wheel-seconds"), ITEM_HEIGHT * 80);
+    fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+    expect(top.onValidate).toHaveBeenCalledWith(5999);
+  });
+
+  it("PRE4-3.7/AC4 — Legacy : bilatéral 67..5947 — à 99 min, secondes 00..07 ; ✓ 5947", () => {
+    setPlatform("android");
+    const props = renderProps({ totalSeconds: 4 * 2 * 30 + 7, targetBounds: BILATERAL });
+    render(<DurationWheelPicker {...props} />);
+    scrollTo(screen.getByTestId("duration-wheel-minutes"), ITEM_HEIGHT * 98);
+    expect(screen.getByTestId("duration-wheel-seconds-item-7")).toBeTruthy();
+    expect(screen.queryByTestId("duration-wheel-seconds-item-8")).toBeNull();
+    scrollTo(screen.getByTestId("duration-wheel-seconds"), ITEM_HEIGHT * 80);
+    fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+    expect(props.onValidate).toHaveBeenCalledWith(5947);
+  });
+
+  it("PRE4-3.7 — non-régression 3.4 (5..3535) : minutes 00..58 avec la minute 0, `00` puis 05..59", () => {
+    setPlatform("ios");
+    render(<DurationWheelPicker {...renderProps({ totalSeconds: 30, targetBounds: { min: 5, max: 3535 } })} />);
+    expect(nativeValues("duration-wheel-minutes")).toEqual(range(0, 58));
+    expect(nativeValues("duration-wheel-seconds")).toEqual([0, ...range(5, 59)]);
   });
 });

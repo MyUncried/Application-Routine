@@ -235,9 +235,7 @@ export function duplicateActivity(
     // canoniques clonés en profondeur, Catégorie, médias dans le même ordre
     // (mêmes fichiers physiques ; de nouveaux liens seront créés pour la
     // copie à l'enregistrement). La Récupération existante est conservée.
-    ...(source.executionParameters
-      ? { executionParameters: cloneExecutionParameters(source.executionParameters) }
-      : {}),
+    executionParameters: cloneExecutionParameters(source.executionParameters),
     ...(source.media ? { media: source.media.map((item) => ({ assetId: item.assetId, asset: { ...item.asset } })) } : {}),
   };
 

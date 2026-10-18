@@ -1,11 +1,13 @@
+import { Image } from "expo-image";
 import { useContext, useEffect, useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { resolveDefinitionExecutionParameters, type ActivityDefinition } from "@/domain/activities";
+import type { ActivityDefinition } from "@/domain/activities";
 import { computeIntrinsicDuration } from "@/domain/activities/executionCalculations";
-import { formatPhraseDuration } from "@/domain/activities/executionPhrase";
+import { totalClauseAmount } from "@/domain/activities/executionPhrase";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
+import { useCatalogueVideoCover } from "@/features/activities/catalogueVideoCover";
 import {
   formatExerciseBodyZones,
   formatExerciseRowSummary,
@@ -98,26 +100,27 @@ export type ActivityCardProps = {
  *   est retiré : Figma ne le porte plus sur aucune carte d'Exercice ;
  * - titre Inter Semi Bold 15 (`CardTitleLine`, colonne de texte sans
  *   gouttière : 16 de chaque côté) ; PRE-3 : la durée intrinsèque y est
- *   renseignée selon `catalogueDuration` (exacte, ≈ ou absente) ;
+ *   renseignée selon `catalogueDuration` (exacte, ≈, ≥ ou absente) ;
  * - Lecture reste visible et désactivée, en bas à droite ;
  * - conteneur : fond `color/surface-subtle`, contour 0,5
  *   `color/cards/border`, rayon 8.
- * La gouttière photo/icône de nature (64 × 64) n'est pas ajoutée : elle
- * dépend de la vignette du premier média (D-264), non implémentée.
+ * PRE-4 story 4.4 (D-264, FR-21-02, ch. 13 §4.11) : vignette du PREMIER
+ * Média dans l'ordre de la galerie (couverture d'une vidéo par le générateur
+ * d'affiche existant, en cache : `catalogueVideoCover.ts`), carré 64 recadré sans déformation,
+ * texte à 88 du bord ; sans Média, la carte reste celle du départ (aucune
+ * gouttière ni icône de nature : spec 4.4, Spec Change Log).
  */
 /**
  * PRE-3 (DSF cartes-durée 07/10, phrase v1 §4) : durée INTRINSÈQUE de la
  * définition, par l'autorité Domaine — exacte sans symbole, « ≈ » si
- * estimée (Répétitions avec bip), absente si omise (Répétitions sans bip,
- * À l'échec) : jamais un zéro, un tiret ou un libellé de remplacement.
+ * estimée (Répétitions avec bip), « ≥ » si partielle (mélange de Cibles
+ * numériques et à l'échec, story 2.1), absente si omise (Répétitions sans
+ * bip, tout à l'échec) ou à renseigner : jamais un zéro, un tiret ou un libellé
+ * de remplacement. PRE-4 : lit les paramètres typés obligatoires (AD-3).
  */
 export function catalogueDuration(definition: ActivityDefinition): string | null {
-  const result = computeIntrinsicDuration(resolveDefinitionExecutionParameters(definition));
-  if (result.seconds === undefined) {
-    return null;
-  }
-  const amount = formatPhraseDuration(result.seconds);
-  return result.kind === "estimated" ? `≈ ${amount}` : amount;
+  // Story 2.1 (AC9) : même montant et même symbole que la clause de la Phrase sans arrondi (Q20).
+  return totalClauseAmount(computeIntrinsicDuration(definition.executionParameters));
 }
 
 export function ActivityCard({ definition, onOpen }: ActivityCardProps) {
@@ -126,13 +129,23 @@ export function ActivityCard({ definition, onOpen }: ActivityCardProps) {
   const bodyZones = formatExerciseBodyZones(definition.bodyZoneIds, bodyZonesReferential);
   const summary = formatExerciseRowSummary(definition);
   const duration = catalogueDuration(definition);
+  const firstMedia = definition.media?.[0];
+  const resolveUri = useMediaUriResolver();
 
   return (
     <View style={styles.container} testID={`activity-card-${definition.id}`}>
       <View style={styles.colorBar} testID={`activity-card-color-bar-${definition.id}`} />
+      {firstMedia ? (
+        <CardThumbnail
+          definitionId={definition.id}
+          isVideo={firstMedia.asset.kind === "VIDEO"}
+          uri={resolveUri(firstMedia.asset.uri)}
+          onOpen={onOpen}
+        />
+      ) : null}
       <View style={styles.body}>
         <View style={styles.mainRow}>
-          <ActivityCardMainArea onOpen={onOpen}>
+          <ActivityCardMainArea onOpen={onOpen} hasThumbnail={firstMedia !== undefined}>
             <CardTitleLine title={definition.name} duration={duration} testID={`activity-card-${definition.id}`} />
             {bodyZones !== null ? (
               <Text
@@ -168,28 +181,130 @@ export function ActivityCard({ definition, onOpen }: ActivityCardProps) {
   );
 }
 
+/**
+ * Story 4.4 — vignette du premier Média. Décision de Claude (Q50 e) : elle fait
+ * partie de la surface « Modifier l'exercice » (son toucher appelle `onOpen`,
+ * comme le reste de la carte) et elle est DÉCORATIVE pour VoiceOver (masquée :
+ * aucun arrêt en double du nom, la surface principale porte déjà l'action).
+ * Photo illisible (`onError`), couverture vidéo absente, en échec ou en cours :
+ * repli neutre (`colors.surface`), jamais un carré vide présenté comme image.
+ */
+function CardThumbnail({
+  definitionId,
+  isVideo,
+  uri,
+  onOpen,
+}: {
+  definitionId: string;
+  isVideo: boolean;
+  uri: string;
+  onOpen?: () => void;
+}) {
+  // Échec rattaché à l'URI : une autre photo en tête repart sans repli, sans effet de remise à zéro.
+  const [failedUri, setFailedUri] = useState<string | null>(null);
+  const photoFailed = failedUri === uri;
+  const cover = useCatalogueVideoCover(isVideo ? uri : null);
+  const fallback = (
+    <View style={[styles.thumbnailImage, styles.thumbnailFallback]} testID={`activity-card-thumbnail-fallback-${definitionId}`} />
+  );
+  let content: ReactNode;
+  if (isVideo) {
+    content =
+      cover.status === "ready" ? (
+        <Image
+          source={cover.image as never}
+          style={styles.thumbnailImage}
+          contentFit="cover"
+          accessible={false}
+          testID={`activity-card-thumbnail-image-${definitionId}`}
+        />
+      ) : (
+        fallback
+      );
+  } else {
+    content = photoFailed ? (
+      fallback
+    ) : (
+      <Image
+        source={{ uri }}
+        style={styles.thumbnailImage}
+        contentFit="cover"
+        accessible={false}
+        onError={() => setFailedUri(uri)}
+        testID={`activity-card-thumbnail-image-${definitionId}`}
+      />
+    );
+  }
+  const hidden = {
+    accessible: false,
+    accessibilityElementsHidden: true,
+    importantForAccessibility: "no-hide-descendants" as const,
+  };
+  const square = (
+    <View style={styles.thumbnail} testID={`activity-card-thumbnail-${definitionId}`}>
+      {content}
+    </View>
+  );
+  return onOpen ? (
+    <Pressable
+      onPress={onOpen}
+      {...hidden}
+      style={styles.thumbnailSlot}
+      testID={`activity-card-thumbnail-slot-${definitionId}`}
+    >
+      {square}
+    </Pressable>
+  ) : (
+    <View {...hidden} style={styles.thumbnailSlot} testID={`activity-card-thumbnail-slot-${definitionId}`}>
+      {square}
+    </View>
+  );
+}
+
+/**
+ * Résolution d'URI d'affichage d'un Média (URI interne relative → absolue) par
+ * `ActivityDefinitionService.resolveMediaUri`, même service et même dégradation
+ * silencieuse que `useBodyZonesReferential` (service absent ou partiel : URI
+ * inchangée, jamais d'exception).
+ */
+function useMediaUriResolver(): (uri: string) => string {
+  const activityDefinitionService = useContext(ActivityDefinitionServiceContext);
+  if (!activityDefinitionService || typeof activityDefinitionService.resolveMediaUri !== "function") {
+    return (uri) => uri;
+  }
+  return (uri) => activityDefinitionService.resolveMediaUri(uri);
+}
+
 function ActivityCardMainArea({
   onOpen,
+  hasThumbnail,
   children,
 }: {
   onOpen?: () => void;
+  hasThumbnail: boolean;
   children: ReactNode;
 }) {
+  const style = hasThumbnail ? [styles.content, styles.contentAfterThumbnail] : styles.content;
   if (!onOpen) {
-    return <View style={styles.content}>{children}</View>;
+    return <View style={style}>{children}</View>;
   }
   return (
     <Pressable
       onPress={onOpen}
       accessibilityRole="button"
       accessibilityLabel={strings.screens.activities.card.openAccessibilityLabel}
-      style={styles.content}
+      style={style}
       testID="activity-card-open"
     >
       {children}
     </Pressable>
   );
 }
+
+/** Hauteur repliée de la variante Figma (91), commune à la rangée et à la vignette. */
+const CARD_MIN_HEIGHT = 91;
+/** Story 4.4 : vignette carrée de 64 (ch. 13 l. 396, « Photo — cadre carré »). */
+const THUMBNAIL_SIZE = 64;
 
 const styles = StyleSheet.create({
   container: {
@@ -220,12 +335,41 @@ const styles = StyleSheet.create({
   // `minHeight` : hauteur de la variante Figma (91) ; Lecture (48, ancrée
   // en bas à droite) ne recouvre jamais la ligne de titre.
   mainRow: {
-    minHeight: 91,
+    minHeight: CARD_MIN_HEIGHT,
   },
   content: {
     paddingVertical: spacing[12],
     paddingHorizontal: spacing[16],
     gap: spacing[4],
+  },
+  // Story 4.4 (ch. 13 l. 396) : texte à 88 du bord = barre 4 + 8 + vignette 64 + 12.
+  contentAfterThumbnail: {
+    paddingLeft: spacing[12],
+  },
+  // Story 4.4 (ch. 13 §4.11, l. 396 ; `6354:16964`) : carré 64 à 12 du bord
+  // (barre 4 + 8), centré dans la hauteur REPLIÉE (91) même quand la carte
+  // grandit (texte sur deux lignes) : emplacement de hauteur fixe ancré en haut ; recadré sans déformation (`cover`). Rayon non
+  // lisible dans Figma : `fixedRadii[6]`, plus petit rayon existant (E-V22).
+  thumbnailSlot: {
+    alignSelf: "flex-start",
+    height: CARD_MIN_HEIGHT,
+    justifyContent: "center",
+    marginLeft: spacing[8],
+  },
+  thumbnail: {
+    width: THUMBNAIL_SIZE,
+    height: THUMBNAIL_SIZE,
+    borderRadius: fixedRadii[6],
+    overflow: "hidden",
+    backgroundColor: colors.surface,
+  },
+  thumbnailImage: {
+    width: "100%",
+    height: "100%",
+  },
+  // Repli neutre (chargement, photo illisible, couverture en échec), même fond que la vignette vidéo de la galerie.
+  thumbnailFallback: {
+    backgroundColor: colors.surface,
   },
   // Alignement DSF 07/10 : métadonnées en Inter Regular 12
   // (`type.supporting`) ; les lignes basses s'arrêtent avant Lecture.

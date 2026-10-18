@@ -2,6 +2,7 @@ import { act, fireEvent, renderRouter, screen } from "expo-router/testing-librar
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import type { ReactNode } from "react";
 
+import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import type { Category } from "@/domain/categories/Category";
 import type { CategoryRepository } from "@/domain/categories/CategoryRepository";
 import { DEFAULT_SESSION_COLOR } from "@/domain/sessions/Session";
@@ -122,14 +123,10 @@ const PERSISTED_SESSION: Session = {
         {
           id: "act-1",
           type: "EXERCISE",
-          executionMode: "DURATION",
           structuralPosition: "IN_TOUR",
           position: 0,
           name: "Gainage persisté",
-          durationSeconds: 90,
-          repetitionCount: null,
-          seriesCount: 3,
-          pauseSeconds: 15,
+          executionParameters: durationParameters(90, 3, 15),
           recoverySeconds: 0,
           instruction: null,
           // Ordre de persistance inverse de l'ordre du référentiel — la ligne
@@ -319,7 +316,7 @@ describe("Parcours Catalogue → Composition en modification (vrai navigateur, v
     // Aucun élément ni aucune valeur par défaut du parcours de CRÉATION.
     expect(screen.queryByLabelText(composition.name)).toBeNull();
     expect(screen.queryByLabelText(composition.addActivity)).toBeNull();
-    expect(screen.queryByLabelText(composition.continueAction)).toBeNull();
+    expect(screen.queryByLabelText(composition.saveAction)).toBeNull();
     expect(screen.queryByText("00 min 10 s")).toBeNull();
     expect(screen.queryByText("00 min 05 s")).toBeNull();
     expect(screen.queryByText(composition.summary.empty)).toBeNull();

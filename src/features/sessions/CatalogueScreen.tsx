@@ -1,5 +1,5 @@
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useState, type ReactNode } from "react";
+import { useCallback, useRef, useState, type ReactNode } from "react";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { SessionSummary } from "@/domain/sessions/Session";
@@ -45,7 +45,7 @@ export type CatalogueContentType = "activities" | "sessions" | "circuits";
 export function CatalogueScreen() {
   const router = useRouter();
   // V2-CAT-01 (UI-CAT-R-005/006) : signal PONCTUEL, jamais persistant,
-  // envoyé exclusivement par `CategoriesScreen.handleSave` (`dismissTo`)
+  // envoyé exclusivement par `CompositionScreen.handleSave` (ex-`CategoriesScreen`, supprimé par Q54) (`dismissTo`)
   // après un enregistrement réussi — force le retour déterministe sur
   // `Séances`, indépendamment du segment actif avant l'ouverture du
   // parcours de création. Absent de tout autre appelant : la restauration
@@ -58,12 +58,20 @@ export function CatalogueScreen() {
   // l'ouverture et après relance complète — aucun segment n'est persisté.
   const [activeSegment, setActiveSegment] = useState<CatalogueContentType>("sessions");
   const [isCreateTreeOpen, setIsCreateTreeOpen] = useState(false);
+  // PRE-4 story 4.1 (AC1) : verrou synchrone contre le double appui sur
+  // l'ouverture de l'Éditeur, en création (`Créer`, option `Un nouvel
+  // exercice`) comme en modification (carte Exercice). Armé au premier appui,
+  // avant tout rendu ; réarmé au focus suivant de l'écran (retour de
+  // l'Éditeur), jamais au blur : deux appuis rapprochés, même sur deux
+  // points d'entrée différents, n'empilent qu'un seul Éditeur.
+  const isOpeningEditorRef = useRef(false);
 
   const { reload: reloadSessions, cancelPending: cancelPendingSessions } = sessionCatalogue;
   const { reload: reloadActivities, cancelPending: cancelPendingActivities } = activityCatalogue;
   const catalogueSegmentParam = params.catalogueSegment;
   useFocusEffect(
     useCallback(() => {
+      isOpeningEditorRef.current = false;
       reloadSessions();
       reloadActivities();
       // Consommé une seule fois : `setParams` l'efface immédiatement, pour
@@ -99,6 +107,31 @@ export function CatalogueScreen() {
       : activeSegment === "circuits"
         ? t.circuitsTitle
         : t.title;
+
+  // Navigation unique vers l'Éditeur au Catalogue (CC, MC) : `"new"` pour la
+  // branche directe de `Créer` (segment Exercices, Q33) et l'option `Un nouvel
+  // exercice`, l'identifiant de la Définition pour une carte ; même verrou.
+  const openExerciseEditor = (catalogueDefinitionId: string) => {
+    if (isOpeningEditorRef.current) {
+      return;
+    }
+    isOpeningEditorRef.current = true;
+    router.push({ pathname: "/exercise", params: { catalogueDefinitionId } });
+  };
+
+  // PRE-4 story 4.1 (AC1, décision Q33 de Hermann du 2026-10-17) : sur le
+  // segment Exercices, `Créer` ouvre directement l'Éditeur, sans liste
+  // d'options, sans voile ni `Annuler` intermédiaire. Sur les autres segments,
+  // la liste d'options `CatalogueCreateOptions` reste le comportement de
+  // départ, inchangé. Le Catalogue reste monté sous l'Éditeur (pile) : au
+  // retour, le segment et la position de défilement sont ceux de l'aller.
+  const handleCreatePress = () => {
+    if (activeSegment === "activities") {
+      openExerciseEditor("new");
+      return;
+    }
+    setIsCreateTreeOpen(true);
+  };
 
   return (
     <ScreenShell>
@@ -142,7 +175,7 @@ export function CatalogueScreen() {
           <CommandAction
             label={t.createAction}
             icon="action-add"
-            onPress={() => setIsCreateTreeOpen(true)}
+            onPress={handleCreatePress}
             testID="catalogue-create-action"
           />
           <CommandAction
@@ -164,7 +197,7 @@ export function CatalogueScreen() {
         visible={isCreateTreeOpen}
         onSelectNewActivity={() => {
           setIsCreateTreeOpen(false);
-          router.push({ pathname: "/exercise", params: { catalogueDefinitionId: "new" } });
+          openExerciseEditor("new");
         }}
         onSelectNewSession={() => {
           setIsCreateTreeOpen(false);
@@ -213,9 +246,7 @@ export function CatalogueScreen() {
           <ActivityCatalogueList
             state={activityCatalogue.state}
             onRetry={activityCatalogue.reload}
-            onOpenDefinition={(definitionId) =>
-              router.push({ pathname: "/exercise", params: { catalogueDefinitionId: definitionId } })
-            }
+            onOpenDefinition={openExerciseEditor}
           />
         ) : null}
       </View>

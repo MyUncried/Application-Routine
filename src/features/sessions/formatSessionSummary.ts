@@ -13,10 +13,15 @@ import { strings } from "@/shared/i18n";
  * d'assemblage et d'arrondi.
  */
 
-/** `1 activité` / `N activités`. */
+/**
+ * `0 exercice` / `1 exercice` / `N exercices`. PRE-4 (story 1.2, décision
+ * Q32 de Hermann du 2026-10-16) : zéro prend le singulier, comme le résumé
+ * vide de Composition — une Séance vidée par la migration affiche
+ * « 0 exercice · 2 tours » sur sa carte.
+ */
 export function formatActivityCount(count: number): string {
   const label =
-    count === 1
+    count === 0 || count === 1
       ? strings.screens.sessions.card.activitySingular
       : strings.screens.sessions.card.activityPlural;
   return `${count} ${label}`;
@@ -57,10 +62,13 @@ export function formatEstimatedDuration(
 ): string {
   const minutes = Math.ceil(seconds / 60);
   const formatted = `${minutes} ${strings.screens.sessions.card.durationUnit}`;
+  // PRE-4 (story 2.2, AC6, NFR-08) : les symboles viennent du lexique ;
+  // arrondi, unité et forme restent ceux de PRE-3 (P41).
+  const { estimatedPrefix, lowerBoundPrefix } = strings.shared.durationNature;
   if (kind === "estimated") {
-    return `≈ ${formatted}`;
+    return `${estimatedPrefix}${formatted}`;
   }
-  return kind === true || kind === "lowerBound" ? `≥ ${formatted}` : formatted;
+  return kind === true || kind === "lowerBound" ? `${lowerBoundPrefix}${formatted}` : formatted;
 }
 
 /**

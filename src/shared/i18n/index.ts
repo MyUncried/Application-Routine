@@ -10,7 +10,9 @@ import { fr } from "./resources/fr";
 const executionParameters = {
   card: {
     title: "Paramètres d’exécution",
-    chooseMode: "Choisir un mode",
+    // PRE-4 story 4.2 (Q23, AC14) : `chooseMode` (« Choisir un mode ») est retiré
+    // avec le bouton de Mode à droite du titre de la Carte.
+    // E-21 (décision de Hermann du 2026-10-18) : l'invite H22 de la Carte vide est retirée.
     descriptionPlaceholder: "Décrivez ce qu’il faut faire, comment, et avec quoi",
     // Recette 3 (N-05) : action ↑ du champ Description.
     descriptionSubmitAccessibilityLabel: "Valider la description",
@@ -24,16 +26,33 @@ const executionParameters = {
     cancelAccessibilityLabel: "Annuler les paramètres",
     validateAccessibilityLabel: "Valider les paramètres",
     mode: "Mode d’exécution",
-    modes: { DURATION: "Durée", REPETITIONS: "Répétitions", TO_FAILURE: "À l’échec" },
+    // PRE-4 (story 1.1, AC22, FR-05-01) : deux Modes seulement ; « à l’échec »
+    // désigne une Cible, jamais un Mode (FR-05-04) : voir `failureTarget`.
+    modes: { DURATION: "Durée", REPETITIONS: "Répétitions" },
     unset: "—",
+    // PRE-4 story 3.8 (AC2, AC4, FR-22-08, H23) : annonce VoiceOver d’une valeur affichée
+    // « — » (Mode, Changement de côté, Cible non renseignés) : jamais lue « tiret ».
+    unsetSpoken: "aucune valeur",
     series: "Séries",
     seriesSingular: "série",
     seriesPlural: "séries",
-    variable: "Séries variables",
+    // PRE-4 story 3.3 (FR-04-01, FR-03-09) : champ de Régime de la ligne « Séries »,
+    // qui remplace l’interrupteur « Séries variables » ; sous-titres de référence (P33).
+    regime: "Régime des séries",
+    regimes: { UNIFORM: "identiques", VARIABLE: "variables" },
+    regimeSubtitles: {
+      UNIFORM: "toutes les séries ont la même valeur",
+      VARIABLE: "chaque série a sa propre valeur",
+    },
     showTable: "Afficher le tableau des séries",
     hideTable: "Masquer le tableau des séries",
+    // PRE-4 story 3.3 (AC8) : action accessible qui range un champ ± ouvert.
+    closeField: "Fermer",
     durationTarget: "Durée d’une série",
-    repetitionsTarget: "Répétitions",
+    // PRE-4 story 3.5 (H14, décision de Claude du 2026-10-17, révisable par Hermann) :
+    // ligne de la Cible commune, symétrique de « Durée d’une série ». Seule la Feuille
+    // l’emploie ; l’en-tête de colonne du tableau reste `columns.REPETITIONS`.
+    repetitionsTarget: "Nombre de répétitions",
     repetitionsUnit: "rép.",
     pause: "Pause après chaque série",
     columns: { DURATION: "Durée", REPETITIONS: "Répétitions", pause: "Pause" },
@@ -43,6 +62,11 @@ const executionParameters = {
     moveUp: "Monter la série {n}",
     moveDown: "Descendre la série {n}",
     moveHandle: "Déplacer la série {n}",
+    // PRE-4 story 3.6 (FR-12-05, AC9, AC13) : croix de retrait et message de retrait.
+    removeRow: "Supprimer la série {n}",
+    seriesRemoved: "Série supprimée",
+    // Croix non active (un champ ou un sélecteur est ouvert) : l'appui le ferme sans retirer.
+    removeRowClosesFieldHint: "Ferme d’abord le champ ouvert, sans supprimer la série",
     sideMode: "Changement de côté",
     sideModes: {
       UNILATERAL: "Sans changement",
@@ -64,6 +88,15 @@ const executionParameters = {
     total: "Durée totale",
     totalEstimated: "Durée totale ≈",
     totalEditAccessibilityLabel: "Durée totale, ajuster le nombre de séries",
+    // PRE-4 story 3.7 (AC7, FR-14-05, AD-11) : annonces VoiceOver de la ligne Durée totale
+    // en lecture seule — nature du total (≈ « estimation », ≥ « total prévisionnel
+    // partiel ») et caractère non modifiable ; le symbole n'est jamais lu, ni un tiret.
+    totalEstimatedSpoken: "estimation",
+    totalLowerBoundSpoken: "total prévisionnel partiel",
+    totalReadOnlySpoken: "non modifiable",
+    // Revue de la story 3.7 : ligne affichée « — » (saisie invalide hors Cible à
+    // renseigner) ; annoncée après la nature quand elle est connue, jamais par le tiret.
+    totalInvalidSpoken: "montant indisponible tant qu’une valeur est invalide",
     countdown: "Compte à rebours",
     end: "Fin d’exercice",
     secondsUnit: "secondes",
@@ -76,9 +109,22 @@ const executionParameters = {
       DURATION: "Renseignez la durée d’une série.",
       REPETITIONS: "Renseignez les répétitions.",
     },
+    // PRE-4 (story 1.1) : indice choisi selon la violation — Cible à renseigner
+    // (« Valeur à renseigner ») ou valeur hors des valeurs admises.
     invalidHint: "Valeur à renseigner",
-    validateUnavailableSuffix: "indisponible tant qu’une valeur requise manque",
-    failureTarget: "À l’échec",
+    invalidValueHint: "Valeur non admise",
+    validateUnavailableSuffix: "indisponible tant qu’une valeur est invalide",
+    // PRE-4 (story 1.1, AC22) : texte d'une Cible à l'échec, affiché en lecture
+    // dans la Cible commune et dans chaque cellule du tableau.
+    failureTarget: "à l’échec",
+    // PRE-4 story 3.4 (FR-07-02) : option échec du Sélecteur de cible en Durée ; son
+    // état est annoncé par l’état natif « sélectionné » (FR-07-08).
+    durationFailureOption: "Aucune durée, à l’échec",
+    // PRE-4 story 3.5 (Q14, FR-07-08) : ligne de tête de la roue en Répétitions, et
+    // annonce d’un nombre de la roue avec son unité (H13) ; « rép. » reste l’affichage.
+    repetitionsFailureOption: "Aucune répétition, à l’échec",
+    repetitionsSpokenSingular: "{n} répétition",
+    repetitionsSpokenPlural: "{n} répétitions",
     adjusted: "Durée ajustée à {duration} pour respecter un nombre entier de séries.",
     disabledSuffix: "sans effet pour une seule série",
   },
@@ -96,7 +142,15 @@ const executionParameters = {
     menuMoveUp: "Monter",
     menuMoveDown: "Descendre",
     menuCancel: "Annuler",
-    menuHint: "Ouvre les actions Retirer, Monter et Descendre",
+    // PRE-4 story 4.5 (Q31, H23, Q51 b) : le toucher consulte ; le menu du Média s’ouvre par
+    // l’appui long ou, avec VoiceOver, par les actions de la tuile. Aucune option n’est
+    // listée : elles dépendent de la position (bornes exclues). « Lire la vidéo » /
+    // « Agrandir le média » par analogie du ch. 13 l. 1957.
+    videoHint: "Lire la vidéo. Menu du média par appui long ou par les actions",
+    photoHint: "Agrandir le média. Menu du média par appui long ou par les actions",
+    closeConsultation: "Fermer",
+    // Story 4.5 (FR-21-58, AC6) : erreur locale de consultation, lien du Média conservé.
+    unavailable: "Média indisponible.",
     retry: "Réessayer",
     retryAccessibilityLabel: "Réessayer l’import de {item}",
     errors: {

@@ -16,6 +16,16 @@ export const fr = {
       message: "Impossible d'afficher KODJO. Fermez puis relancez l'application.",
     },
   },
+  // PRE-4 (story 1.2, H24, AD-12, RM-092) : avis unique des Exercices
+  // illisibles écartés par `migration010` (Q19). Le pluriel est l'exemple
+  // de H24 ; le singulier n'a pas de source et sera validé par Hermann à la
+  // recette (AC4). `{n}` reçoit le nombre écarté, jamais un nom ni un
+  // identifiant. Le libellé du bouton unique n'a pas de source non plus.
+  migrationNotice: {
+    unreadableExercisesDroppedSingular: "1 exercice illisible n’a pas pu être repris.",
+    unreadableExercisesDroppedPlural: "{n} exercices illisibles n’ont pas pu être repris.",
+    dismissAction: "OK",
+  },
   // V2-BILAT-01 : textes PARTAGÉS entre plusieurs écrans — `SideModeControl`
   // (`sideMode.ts`) est consommé aussi bien par `ExerciseScreen` (contrôle
   // `Côté` d'une Activité) que par `CompositionScreen` (contrôle `Direction
@@ -79,6 +89,14 @@ export const fr = {
           LEFT_RIGHT: "G→D",
         },
       },
+    },
+    // PRE-4 (story 2.2, AC6, NFR-08, AD-11) : préfixes uniques de la nature
+    // d'une durée affichée hors du domaine — `estimated` (≈) et `lowerBound`
+    // (≥), suivis d'une espace simple (rendu PRE-3 inchangé).
+    // La Phrase et les formateurs du domaine en sont exemptés (AD-11).
+    durationNature: {
+      estimatedPrefix: "≈ ",
+      lowerBoundPrefix: "≥ ",
     },
   },
   nav: {
@@ -308,7 +326,10 @@ export const fr = {
       },
       // V2-PRE-1 (critère UI-D35DA2C4F266) : « exercice » remplace « activité ».
       addActivity: "Ajouter un exercice",
-      continueAction: "Continuer",
+      // PRE-4, décision Q54 : l'action finale de la Composition enregistre la Séance (repris de
+      // l'écran « Catégories de la séance », supprimé). D-107 : message d'échec mot pour mot.
+      saveAction: "Enregistrer la séance",
+      saveError: "La séance n’a pas pu être enregistrée. Réessayez.",
       summary: {
         empty: "0 exercice · 0 min",
       },
@@ -371,13 +392,13 @@ export const fr = {
         seriesPlural: "séries",
         repetitionSingular: "répétition",
         repetitionPlural: "répétitions",
-        durationUnitMinutes: "min",
-        durationUnitSeconds: "s",
         of: "de",
         withPause: "avec",
         pauseSuffix: "de pause par série",
-        // T01-S10 (D-111) : fragment des synthèses du mode « À l'échec ».
-        toFailure: "jusqu’à l’échec",
+        // PRE-4 (story 1.1, Q24, FR-05-05) : résumé de carte d'un Exercice dont
+        // toutes les Cibles sont à l'échec — « {N} séries à l’échec » (P3) ;
+        // remplace « {N} séries jusqu’à l’échec » de PRE-3.
+        toFailure: "à l’échec",
         // V2-BILAT-01 (plan `## UI`, « Composition cards and summaries ») :
         // clause de côté d'une carte Activité dont la direction PROPRE est
         // bilatérale (jamais héritée du Tour) — insérée immédiatement après
@@ -473,9 +494,8 @@ export const fr = {
         // (`repetitionCount.accessibilityLabel` = « Nombre de répétitions »),
         // aucune requête d'accessibilité ne devient donc ambiguë.
         repetitions: "Répétitions",
-        // T01-S10 (D-111, frame `3369:4236`) : troisième option de mode
-        // d'Exercice, de même largeur — masque Durée et Répétitions cibles.
-        toFailure: "À l’échec",
+        // PRE-4 (story 1.1, FR-05-01) : deux Modes seulement — l'ancienne
+        // troisième option « À l’échec » est retirée (une Cible, FR-05-04).
       },
       duration: {
         // Déjà conforme au libellé compact Figma (« Durée ») — aucun
@@ -605,6 +625,17 @@ export const fr = {
       bodyZones: {
         label: "Zones corporelles",
         accessibilityLabel: "Zones corporelles",
+        // PRE-4 story 4.3 (FR-02-05, P35) : libellé visible de l'accès non
+        // renseigné et séparateur des Zones choisies dans le bandeau, tels que
+        // montrés par les captures `8328:35698` et `8328:37022` (texte
+        // « Cuisses . Fessier ») ; le point médian reste la règle des cartes
+        // consommatrices, hors bandeau (FR-02-05, notes).
+        unsetLabel: "Zone corporelle",
+        // Revue 4.3 (WCAG 2.5.3) : nom accessible de l'accès non renseigné, qui contient
+        // le libellé visible, sur le modèle de `category.unsetAccessibilityLabel`.
+        unsetAccessibilityLabel: "Zone corporelle — non renseignée",
+        // Q49 (a) : valeur en attente de Hermann (« . » de la capture ou point médian).
+        bandSeparator: " . ",
       },
       // T01-S10 (doc13 §8, frame `1992:9132`) : bouton centré, VISIBLE mais
       // DÉSACTIVÉ dans le MVP — aucune section Médias, aucun import/galerie/
@@ -631,35 +662,23 @@ export const fr = {
         // même correction que REWORK10 sur `composition.abandonModal`.
         continueEditing: "Annuler",
         abandon: "Confirmer",
+        // PRE-4 story 4.2 (Q18, AC12) : textes du dialogue en CRÉATION (CC, CS) ;
+        // `title` / `message` ci-dessus restent ceux de la MODIFICATION (MC, MS).
+        // Le texte de la capture `8328:36781` (« l'activité ne sera pas créé »)
+        // n'est pas repris.
+        createTitle: "Abandonner la création ?",
+        createMessage: "Les informations saisies seront perdues et l’exercice ne sera pas créé.",
       },
     },
     // T01-S09 (CE-T01-11/CE-T01-12, D-106/D-107) : aucun texte introductif
     // supplémentaire n'est affiché sur cet écran — le titre de section
     // (`sectionLabel`) et les tags suffisent, conformément à D-106.
+    // Q54 : l'écran « Catégories de la séance » est supprimé ; seul reste le suffixe d'état des
+    // options des feuilles de Catégorie et d'Étiquette (identifiant historique conservé).
     categories: {
-      title: "Catégories de la séance",
-      backAccessibilityLabel: "Retour",
-      sectionLabel: "Catégories",
-      createAction: "Créer une catégorie",
       tagAccessibility: {
         selectedSuffix: "sélectionnée",
       },
-      newCategory: {
-        placeholder: "Nom de la catégorie",
-        cancelAccessibilityLabel: "Annuler",
-        addAccessibilityLabel: "Ajouter",
-      },
-      loading: {
-        accessibilityLabel: "Chargement des catégories en cours",
-      },
-      error: {
-        message: "Impossible de charger vos catégories.",
-        retry: "Réessayer",
-      },
-      saveAction: "Enregistrer la séance",
-      // D-107 : message exact, reproduit mot pour mot — n'importe quelle
-      // reformulation locale serait non conforme.
-      saveError: "La séance n’a pas pu être enregistrée. Réessayez.",
     },
     calendar: {
       title: "Calendrier",
@@ -770,6 +789,9 @@ export const fr = {
       confirmAction: "Confirmer",
       closeAccessibilityLabel: "Fermer",
       atLeastOneRequired: "Au moins une Zone doit rester sélectionnée.",
+      // Q53 : nom accessible d'une Zone retirée encore affectée à l'Exercice — l'état n'est pas
+      // porté par la seule couleur de fond (aucune mention visible, décision de Hermann).
+      retiredAccessibilityLabel: "{name}, retirée de la liste des choix",
     },
     label: {
       title: "Étiquettes",
@@ -791,6 +813,10 @@ export const fr = {
       cancel: "Annuler",
       modify: "Modifier",
       delete: "Supprimer",
+      // PRE-4 story 4.6 (FR-22-09, AC8) : action accessible d'une Catégorie ou d'une Zone,
+      // équivalente à l'appui long ; elle ouvre ce même menu. Texte nouveau, à valider par
+      // Hermann (H23).
+      accessibilityAction: "Modifier ou supprimer",
     },
     // §4.10 L134/L135/L138/L139 : titre exact et messages différenciés
     // utilisé/non utilisé, partagés par Catégorie/Zone/Étiquette.
@@ -800,6 +826,13 @@ export const fr = {
       usedMessage:
         "Elle disparaîtra des nouveaux choix mais restera attachée aux objets qui l’utilisent déjà, avec son nom et sa couleur actuels.",
       unusedMessage: "Cette valeur sera retirée des choix proposés.",
+      // PRE-4 story 4.3 (FR-20-09, AC11 ; captures `8328:35932`, `8328:36441`) :
+      // messages distincts d'une Catégorie et d'une Zone utilisées. `usedMessage`
+      // reste celui de l'Étiquette (hors story) ; `unusedMessage` est inchangé (P34).
+      categoryUsedMessage:
+        "Cette catégorie ne sera plus proposée. Les exercices qui l’utilisent actuellement la conserveront.",
+      bodyZoneUsedMessage:
+        "Cette zone corporelle ne sera plus proposée. Les exercices qui l’utilisent actuellement la conserveront.",
       confirm: "Supprimer",
       cancel: "Annuler",
     },
@@ -812,6 +845,9 @@ export const fr = {
       duplicateError: "Ce nom existe déjà.",
     },
     retiredValueMessage: "Cette valeur a été retirée. Choisissez-en une autre.",
+    // Q53 (8) : nom accessible d'une Catégorie ou d'une Étiquette retirée encore affectée
+    // (fond rouge clair, aucune mention visible).
+    retiredEntryAccessibilityLabel: "{name}, retirée de la liste des choix",
     // §4.10 L136 ; CE-UI-09 L2812, L2836 ; CE-T03-16 L1665, L1673 : échec
     // d'écriture d'une opération de référentiel, partagé par Catégorie/
     // Zone/Étiquette — message, modale conservée ouverte, aucune

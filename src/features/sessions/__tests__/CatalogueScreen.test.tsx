@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react-n
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { StyleSheet } from "react-native";
 
+import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import type { ActivityDefinition } from "@/domain/activities";
 import type { SessionSummary } from "@/domain/sessions/Session";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
@@ -29,7 +30,7 @@ const focusEffectHarness: { effect: (() => (() => void) | void) | null } = { eff
 const mockPush = jest.fn();
 /**
  * V2-CAT-01 (UI-CAT-R-005/006) : signal PONCTUEL `catalogueSegment`, tel que
- * transmis par `CategoriesScreen.handleSave` (`dismissTo`) — `{}` par défaut
+ * transmis par `CompositionScreen.handleSave` (ex-`CategoriesScreen`, supprimé par Q54) (`dismissTo`) — `{}` par défaut
  * (aucun test existant n'en a besoin), réglé explicitement par les tests qui
  * l'exercent, puis réinitialisé par `beforeEach`.
  */
@@ -85,11 +86,7 @@ function aDefinition(id: string): ActivityDefinition {
     id,
     name: `Activité ${id}`,
     description: null,
-    executionMode: "DURATION",
-    durationSeconds: 30,
-    repetitionCount: null,
-    seriesCount: 1,
-    pauseSeconds: 0,
+    executionParameters: durationParameters(30, 1, 0),
     recoverySeconds: 0,
     bodyZoneIds: [],
     sideMode: "UNILATERAL",
@@ -369,7 +366,7 @@ describe("CatalogueScreen — cadre commun", () => {
 
   /**
    * V2-CAT-01 (UI-CAT-R-005/006) : le signal PONCTUEL `catalogueSegment`,
-   * transmis par `CategoriesScreen.handleSave` via `dismissTo`, force le
+   * transmis par `CompositionScreen.handleSave` (ex-`CategoriesScreen`, supprimé par Q54) via `dismissTo`, force le
    * retour déterministe sur `Séances` — INDÉPENDAMMENT du segment actif
    * avant l'ouverture du parcours de création — puis est consommé
    * exactement une fois (`router.setParams` l'efface).

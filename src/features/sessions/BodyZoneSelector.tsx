@@ -2,7 +2,9 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Silhouette } from "@/domain/preferences/Profile";
+import { strings } from "@/shared/i18n";
 import { BodyZoneIcon } from "@/shared/ui/BodyZoneIcon";
+import { ENTRY_MENU_ACTION } from "@/shared/ui/entryMenuAction";
 import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -35,6 +37,12 @@ export type BodyZoneSelectorProps = {
   silhouette?: Silhouette | null;
   /** V2-PRE-2 (D4/D-259) : appui long sur une Zone — modale de référentiel uniquement, `undefined` sinon (aucun appui long, comportement inchangé). */
   onLongPressZone?: (zone: BodyZone) => void;
+  /**
+   * PRE-4 story 4.6 (FR-22-09, AC8) : action accessible « Modifier ou supprimer », alternative
+   * à l'appui long — feuille de référentiel uniquement (l'appelant y applique ses gardes),
+   * `undefined` sinon (aucune action).
+   */
+  onEntryMenuAction?: (zone: BodyZone) => void;
 };
 
 /**
@@ -60,21 +68,47 @@ export function BodyZoneSelector({
   accessibilityLabel,
   silhouette,
   onLongPressZone,
+  onEntryMenuAction,
 }: BodyZoneSelectorProps) {
   return (
     <View style={styles.container} accessibilityLabel={accessibilityLabel} testID="body-zone-selector">
       {zones.map((zone) => {
         const isSelected = selectedIds.includes(zone.id);
+        // PRE-4, décision Q53 : une Zone retirée n'est listée par l'appelant que si elle est
+        // affectée à l'Exercice. Fond `dangerSurface`, sans mention visible ; le nom accessible
+        // porte l'état (jamais la couleur seule) ; ni appui long ni action « Modifier ou
+        // supprimer » : elle se garde, se remplace ou se retire, elle ne se modifie plus.
+        const isRetired = !zone.isActive;
+        const entryMenuAction = isRetired ? undefined : onEntryMenuAction;
         return (
           <Pressable
             key={zone.id}
             onPress={() => onToggle(zone.id)}
-            onLongPress={onLongPressZone ? () => onLongPressZone(zone) : undefined}
+            onLongPress={onLongPressZone && !isRetired ? () => onLongPressZone(zone) : undefined}
             accessibilityRole="checkbox"
             accessibilityState={{ checked: isSelected }}
-            accessibilityLabel={zone.name}
+            accessibilityLabel={
+              isRetired
+                ? strings.referenceData.bodyZone.retiredAccessibilityLabel.replace("{name}", () => zone.name)
+                : zone.name
+            }
+            // PRE-4 story 4.6 (FR-22-09, AC8) : avec `onEntryMenuAction` (feuille de référentiel
+            // seulement), une action accessible ouvre le menu de l'appui long, sans maintien.
+            // Sans lui, aucune action : rendu et comportement inchangés.
+            accessibilityActions={
+              entryMenuAction
+                ? [{ name: ENTRY_MENU_ACTION, label: strings.referenceData.longPressDialog.accessibilityAction }]
+                : undefined
+            }
+            onAccessibilityAction={
+              entryMenuAction
+                ? (event) => {
+                    if (event.nativeEvent.actionName === ENTRY_MENU_ACTION) entryMenuAction(zone);
+                  }
+                : undefined
+            }
             hitSlop={TAG_HIT_SLOP}
-            style={[styles.tag, isSelected ? styles.tagSelected : null]}
+            style={[styles.tag, isSelected ? styles.tagSelected : null, isRetired ? styles.tagRetired : null]}
             testID={`body-zone-selector-tag-${zone.id}`}
           >
             {silhouette !== undefined ? (
@@ -107,6 +141,11 @@ const styles = StyleSheet.create({
   tagSelected: {
     borderColor: colors.selection,
     backgroundColor: colors.selectionSurface,
+  },
+  // Q53 : fond rouge clair d'une Zone retirée affectée, cochée ou non ; bordure et texte
+  // suivent l'état coché comme pour toute Zone.
+  tagRetired: {
+    backgroundColor: colors.dangerSurface,
   },
   tagLabel: {
     ...type.body,

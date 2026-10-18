@@ -11,6 +11,7 @@ import {
 } from "@/domain/sessions/composition";
 import { createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import type { StructuralPosition } from "@/domain/sessions/Session";
+import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 
 /**
  * Opérations métier pures de réorganisation de la Composition (T02-S01,
@@ -111,9 +112,7 @@ describe("moveActivity (AC-04)", () => {
   it("keeps the identifier and every parameter of the moved Activity", () => {
     const source = anActivity("in-1", "IN_TOUR", {
       name: "Gainage",
-      durationSeconds: 90,
-      seriesCount: 3,
-      pauseSeconds: 15,
+      executionParameters: durationParameters(90, 3, 15),
       instruction: "Dos droit",
       bodyZoneIds: ["dos", "abdominaux"],
     });
@@ -298,9 +297,7 @@ describe("appendActivityAfterLastDisplayed", () => {
   it("copies every other parameter of the added Activity unchanged", () => {
     const added = anActivity("new-1", "BEFORE_TOUR", {
       name: "Squats",
-      durationSeconds: 45,
-      seriesCount: 3,
-      pauseSeconds: 15,
+      executionParameters: durationParameters(45, 3, 15),
     });
 
     const next = appendActivityAfterLastDisplayed(composed, added);
@@ -317,9 +314,7 @@ describe("duplicateActivity (AC-06 ; T02-S02, D-138)", () => {
     anActivity("before-1", "BEFORE_TOUR", { name: "Échauffement" }),
     anActivity("in-1", "IN_TOUR", {
       name: "Gainage",
-      durationSeconds: 45,
-      seriesCount: 3,
-      pauseSeconds: 20,
+      executionParameters: durationParameters(45, 3, 20),
       postActivityRecoverySeconds: 90,
       instruction: "Dos droit",
       bodyZoneIds: ["dos"],
@@ -353,7 +348,9 @@ describe("duplicateActivity (AC-06 ; T02-S02, D-138)", () => {
     const next = duplicateActivity(activities, "in-1", "copy-1");
     expect(next[2]).toEqual({ ...activities[1], id: "copy-1" });
     expect(next[2]?.postActivityRecoverySeconds).toBe(90);
-    expect(next[2]?.pauseSeconds).toBe(20);
+    expect(next[2]?.executionParameters).toEqual(durationParameters(45, 3, 20));
+    // AD-9 : clonage profond — aucune référence partagée des paramètres.
+    expect(next[2]?.executionParameters).not.toBe(activities[1]?.executionParameters);
   });
 
   it("makes the copy independent: its body zones never share the source's array", () => {

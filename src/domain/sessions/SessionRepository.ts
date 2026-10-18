@@ -17,7 +17,13 @@ import type {
 export type UpdateSessionOutcome =
   | { readonly status: "UPDATED"; readonly session: Session }
   | { readonly status: "NOT_FOUND" }
-  | { readonly status: "ARCHIVED" };
+  | { readonly status: "ARCHIVED" }
+  /**
+   * PRE-4 story 4.1 (AC13, FR-01-10) : une Activité déjà persistée à
+   * l'ouverture (`persistedActivityIds`) a disparu de la Séance entre-temps.
+   * Aucune écriture : rien n'est recréé implicitement.
+   */
+  | { readonly status: "ACTIVITY_NOT_FOUND" };
 
 /** Statut de persistance d'une Séance, indépendamment de son agrégat (T01-S10). */
 export type SessionStatus = "ACTIVE" | "ARCHIVED";

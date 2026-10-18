@@ -462,3 +462,231 @@ describe("BodyZonePickerModal — recette 3 (N-01, dernier écart : clavier sans
   });
 });
 
+
+/**
+ * PRE-4 story 4.3 — feuille des Zones : seul le message d'une Zone utilisée change
+ * (bilan §4.3). Suppression depuis la feuille : décision Q53 (7) de Hermann (2026-10-18) —
+ * la Zone quitte la feuille et la sélection de l'Exercice courant (PRE-3) ; les autres
+ * Exercices qui l'avaient la gardent, en rouge dans leur feuille.
+ */
+describe("BodyZonePickerModal — PRE-4 story 4.3", () => {
+  async function deleteZone(id: string) {
+    const target = await screen.findByTestId(`body-zone-selector-tag-${id}`);
+    await act(async () => {
+      fireEvent(target, "longPress");
+    });
+    fireEvent.press(screen.getByTestId("body-zone-picker-long-press-delete"));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("body-zone-picker-long-press-delete-confirm-confirm"));
+    });
+  }
+
+  it("PRE4-4.3/AC11 — entrée utilisée : message propre à la Zone corporelle ; non utilisée : texte du code de départ (P34)", async () => {
+    for (const [used, message] of [
+      [true, "Cette zone corporelle ne sera plus proposée. Les exercices qui l’utilisent actuellement la conserveront."],
+      [false, "Cette valeur sera retirée des choix proposés."],
+    ] as const) {
+      const view = renderModal(fakeReferentialService({ isBodyZoneUsed: jest.fn(async () => used) }));
+      const target = await screen.findByTestId("body-zone-selector-tag-cou");
+      await act(async () => {
+        fireEvent(target, "longPress");
+      });
+      fireEvent.press(screen.getByTestId("body-zone-picker-long-press-delete"));
+      expect(screen.getByText("Supprimer « Cou » ?")).toBeTruthy();
+      expect(screen.getByText(message)).toBeTruthy();
+      view.unmount();
+    }
+  });
+
+  // Q53 (7), précision de Hermann du 2026-10-18 : la Zone supprimée depuis la feuille de
+  // l'Exercice courant en disparaît (liste et sélection) ; un AUTRE Exercice qui l'avait la
+  // garde, cochée sur fond rouge clair dans sa propre feuille.
+  it("PRE4-Q53/delete-current-vs-other — supprimée depuis l'Exercice courant : quitte sa liste et sa sélection (et celle de l'Exercice) ; dans la feuille d'un autre Exercice qui l'avait : cochée, fond rouge clair", async () => {
+    const retired = new Set<string>();
+    const zones = () =>
+      [aZone(), aZone({ id: "epaules", name: "Épaules", canonicalKey: "epaules" })].map((zone) => ({
+        ...zone,
+        isActive: !retired.has(zone.id),
+      }));
+    const service = fakeReferentialService({
+      listBodyZones: jest.fn(async () => zones()),
+      isBodyZoneUsed: jest.fn(async () => true),
+      retireBodyZone: jest.fn(async (id: string) => {
+        retired.add(id);
+        return { status: "OK" as const, value: aZone({ id, isActive: false }) };
+      }),
+    });
+    const onConfirm = jest.fn();
+    const onClose = jest.fn();
+    const onZoneRetired = jest.fn();
+    const current = renderModal(service, { selectedIds: ["cou", "epaules"], onConfirm, onClose, onZoneRetired });
+    await deleteZone("cou");
+    expect(service.retireBodyZone).toHaveBeenCalledWith("cou");
+    expect(screen.queryByTestId("body-zone-selector-tag-cou")).toBeNull();
+    expect(onZoneRetired).toHaveBeenCalledWith("cou");
+    expect(screen.getByTestId("body-zone-picker-sheet")).toBeTruthy();
+    expect(onClose).not.toHaveBeenCalled();
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("body-zone-picker-confirm"));
+    });
+    expect(onConfirm).toHaveBeenCalledWith(["epaules"]);
+    current.unmount();
+
+    // Autre Exercice auquel « Cou » était déjà affectée : affectation conservée, fond rouge.
+    renderModal(service, { selectedIds: ["cou"] });
+    const cou = await screen.findByTestId("body-zone-selector-tag-cou");
+    expect(cou.props.accessibilityState).toEqual({ checked: true });
+    expect(StyleSheet.flatten(cou.props.style).backgroundColor).toBe("#FFF1F0");
+    expect(cou.props.accessibilityLabel).toBe("Cou, retirée de la liste des choix");
+  });
+
+  it("PRE4-Q53/delete-not-proposed — une Zone supprimée n'est plus proposée à un Exercice qui ne l'a pas", async () => {
+    const service = fakeReferentialService({
+      listBodyZones: jest.fn(async () => [aZone({ isActive: false }), aZone({ id: "epaules", name: "Épaules", canonicalKey: "epaules" })]),
+    });
+    renderModal(service, { selectedIds: ["epaules"] });
+    await screen.findByTestId("body-zone-selector-tag-epaules");
+    expect(screen.queryByTestId("body-zone-selector-tag-cou")).toBeNull();
+  });
+
+  it("PRE4-Q53/delete-only-zone — seule Zone de l'Exercice supprimée : elle quitte la feuille, avis « au moins une Zone », sans erreur ; ✓ applique une sélection vide (Terminer inactif côté Éditeur)", async () => {
+    const retired = new Set<string>();
+    const service = fakeReferentialService({
+      listBodyZones: jest.fn(async () =>
+        [aZone(), aZone({ id: "epaules", name: "Épaules", canonicalKey: "epaules" })].map((zone) => ({
+          ...zone,
+          isActive: !retired.has(zone.id),
+        })),
+      ),
+      isBodyZoneUsed: jest.fn(async () => true),
+      retireBodyZone: jest.fn(async (id: string) => {
+        retired.add(id);
+        return { status: "OK" as const, value: aZone({ id, isActive: false }) };
+      }),
+    });
+    const onConfirm = jest.fn();
+    renderModal(service, { selectedIds: ["cou"], onConfirm });
+    await deleteZone("cou");
+    expect(screen.queryByTestId("body-zone-selector-tag-cou")).toBeNull();
+    expect(screen.getByTestId("body-zone-picker-at-least-one-notice").props.children).toBe(
+      "Au moins une Zone doit rester sélectionnée.",
+    );
+    expect(screen.queryByTestId("body-zone-picker-write-error")).toBeNull();
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("body-zone-picker-confirm"));
+    });
+    expect(onConfirm).toHaveBeenCalledWith([]);
+  });
+
+  it("PRE4-4.3/AC11 — annuler la suppression laisse la sélection intacte", async () => {
+    const onConfirm = jest.fn();
+    const service = fakeReferentialService({ isBodyZoneUsed: jest.fn(async () => true) });
+    renderModal(service, { selectedIds: ["cou"], onConfirm });
+    const target = await screen.findByTestId("body-zone-selector-tag-cou");
+    await act(async () => {
+      fireEvent(target, "longPress");
+    });
+    fireEvent.press(screen.getByTestId("body-zone-picker-long-press-delete"));
+    fireEvent.press(screen.getByTestId("body-zone-picker-long-press-delete-confirm-cancel"));
+    expect(service.retireBodyZone).not.toHaveBeenCalled();
+    expect(screen.getByTestId("body-zone-selector-tag-cou").props.accessibilityState).toEqual({ checked: true });
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("body-zone-picker-confirm"));
+    });
+    expect(onConfirm).toHaveBeenCalledWith(["cou"]);
+  });
+
+  it("PRE4-4.3/AC12 — échec de suppression : message du code de départ, feuille ouverte, sélection intacte ; une simple sélection ne supprime jamais", async () => {
+    const consoleError = jest.spyOn(console, "error").mockImplementation(() => undefined);
+    const service = fakeReferentialService({
+      retireBodyZone: jest.fn(async () => {
+        throw new Error("disque plein");
+      }),
+    });
+    const onConfirm = jest.fn();
+    renderModal(service, { selectedIds: ["cou"], onConfirm });
+    fireEvent.press(await screen.findByTestId("body-zone-selector-tag-epaules"));
+    expect(service.retireBodyZone).not.toHaveBeenCalled();
+    await deleteZone("cou");
+    expect(screen.getByTestId("body-zone-picker-write-error").props.children).toBe(
+      "La modification n’a pas pu être enregistrée. Réessayez.",
+    );
+    expect(screen.getByTestId("body-zone-selector-tag-cou").props.accessibilityState).toEqual({ checked: true });
+    expect(onConfirm).not.toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+});
+
+/**
+ * PRE-4, décision Q53 de Hermann (2026-10-18, remplace Q49 b pour les Zones) : une Zone
+ * retirée affectée à l'Exercice reste visible, cochée et interactive, sur fond rouge clair,
+ * sans mention visible ; jamais proposée à un Exercice qui ne l'a pas.
+ */
+describe("BodyZonePickerModal — PRE-4 Q53 (Zone retirée encore affectée)", () => {
+  const withRetiredLegs = () =>
+    fakeReferentialService({
+      listBodyZones: jest.fn(async () => [
+        aZone(),
+        aZone({ id: "jambes", name: "Jambes", canonicalKey: "jambes", isActive: false }),
+        aZone({ id: "old", name: "Ancienne", canonicalKey: "ancienne", isActive: false }),
+      ]),
+    });
+
+  it("PRE4-Q53/picker-visible — Zone retirée affectée : listée, cochée, fond #FFF1F0, aucun texte « Retirée », état annoncé par son nom accessible ; Zone retirée non affectée absente", async () => {
+    renderModal(withRetiredLegs(), { selectedIds: ["jambes"] });
+    const legs = await screen.findByTestId("body-zone-selector-tag-jambes");
+    expect(legs.props.accessibilityState).toEqual({ checked: true });
+    expect(legs.props.accessibilityRole).toBe("checkbox");
+    expect(legs.props.accessibilityLabel).toBe("Jambes, retirée de la liste des choix");
+    expect(StyleSheet.flatten(legs.props.style).backgroundColor).toBe("#FFF1F0");
+    expect(screen.getByText("Jambes")).toBeTruthy();
+    expect(screen.queryByText(/retirée/i)).toBeNull();
+    expect(screen.queryByTestId("body-zone-selector-tag-old")).toBeNull();
+    // Zone active : ni fond rouge ni libellé d'état.
+    const cou = screen.getByTestId("body-zone-selector-tag-cou");
+    expect(StyleSheet.flatten(cou.props.style).backgroundColor).not.toBe("#FFF1F0");
+    expect(cou.props.accessibilityLabel).toBe("Cou");
+  });
+
+  it("PRE4-Q53/picker-last-zone — dernière Zone : non décochable, message « au moins une Zone » existant", async () => {
+    const onConfirm = jest.fn();
+    renderModal(withRetiredLegs(), { selectedIds: ["jambes"], onConfirm });
+    fireEvent.press(await screen.findByTestId("body-zone-selector-tag-jambes"));
+    expect(screen.getByTestId("body-zone-picker-at-least-one-notice").props.children).toBe(
+      "Au moins une Zone doit rester sélectionnée.",
+    );
+    expect(screen.getByTestId("body-zone-selector-tag-jambes").props.accessibilityState).toEqual({ checked: true });
+    fireEvent.press(screen.getByTestId("body-zone-picker-confirm"));
+    expect(onConfirm).toHaveBeenCalledWith(["jambes"]);
+  });
+
+  it("PRE4-Q53/picker-replace — remplacer : cocher une autre Zone puis décocher la Zone retirée, qui reste listée (décochée) jusqu'à la fermeture ; ✓ applique", async () => {
+    const onConfirm = jest.fn();
+    renderModal(withRetiredLegs(), { selectedIds: ["jambes"], onConfirm });
+    fireEvent.press(await screen.findByTestId("body-zone-selector-tag-cou"));
+    fireEvent.press(screen.getByTestId("body-zone-selector-tag-jambes"));
+    const legs = screen.getByTestId("body-zone-selector-tag-jambes");
+    expect(legs.props.accessibilityState).toEqual({ checked: false });
+    expect(StyleSheet.flatten(legs.props.style).backgroundColor).toBe("#FFF1F0");
+    // Elle peut être recochée tant que la feuille est ouverte (conserver).
+    fireEvent.press(legs);
+    expect(screen.getByTestId("body-zone-selector-tag-jambes").props.accessibilityState).toEqual({ checked: true });
+    fireEvent.press(screen.getByTestId("body-zone-selector-tag-jambes"));
+    fireEvent.press(screen.getByTestId("body-zone-picker-confirm"));
+    expect(onConfirm).toHaveBeenCalledWith(["cou"]);
+  });
+
+  it("PRE4-Q53/picker-no-menu — Zone retirée : ni menu d'appui long, ni action « Modifier ou supprimer »", async () => {
+    const service = withRetiredLegs();
+    renderModal(service, { selectedIds: ["jambes", "cou"] });
+    const legs = await screen.findByTestId("body-zone-selector-tag-jambes");
+    expect(legs.props.accessibilityActions).toBeUndefined();
+    await act(async () => {
+      fireEvent(legs, "longPress");
+    });
+    expect(screen.queryByTestId("body-zone-picker-long-press-cancel")).toBeNull();
+    expect(service.isBodyZoneUsed).not.toHaveBeenCalled();
+    // La Zone active garde son menu PRE-3.
+    expect(screen.getByTestId("body-zone-selector-tag-cou").props.accessibilityActions).toHaveLength(1);
+  });
+});

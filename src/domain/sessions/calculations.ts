@@ -21,26 +21,25 @@
  * §2–3) : la durée d'une occurrence n'est plus une formule scalaire locale
  * (ancienne substitution `C − 1`, multiplicateur de côté sans Pause entre
  * les côtés, convention de borne minimale à l'Exercice) mais le résultat
- * typé de `executionCalculations.ts`, à partir des paramètres canoniques de
- * l'occurrence (ou de l'adaptateur conservateur d'un ancien objet) et de sa
+ * typé de `executionCalculations.ts`, à partir des paramètres typés de
+ * l'occurrence (PRE-4 : obligatoires, aucun chemin scalaire) et de sa
  * Récupération explicite, qui remplace UNIQUEMENT la Pause terminale. Une
  * zone porte la somme des contributions connues et la nature du total
  * (exact / ≈ / ≥) ; la projection SQL de liste ne recalcule plus rien.
  */
 
-import {
-  resolveExecutionParameters,
-  type ExecutionParametersInput,
-} from "@/domain/activities/ExecutionParameters";
+import type { ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
 import {
   aggregateSessionDuration,
+  computeIntrinsicDuration,
   computeOccurrenceDuration,
+  isPartialContribution,
   type ExerciseDurationResult,
   type SessionDurationContribution,
   type SessionDurationResult,
 } from "@/domain/activities/executionCalculations";
 
-import type { Activity, ActivityType, ExerciseExecutionMode, Session } from "./Session";
+import type { Activity, ActivityType, Session } from "./Session";
 import type { SideMode } from "./sideMode";
 
 /**
@@ -51,40 +50,29 @@ import type { SideMode } from "./sideMode";
  */
 export type ActivityDurationFacts = {
   readonly type: ActivityType;
-  readonly executionMode: ExerciseExecutionMode | null;
-  readonly durationSeconds: number | null;
-  readonly repetitionCount?: number | null;
-  readonly seriesCount: number | null;
-  readonly pauseSeconds: number;
+  /** PRE-4 (story 1.1, AD-3) : paramètres typés obligatoires — aucun fait scalaire. */
+  readonly executionParameters: ExecutionParametersInput;
   /** Récupération explicite de l'occurrence (`0` = aucune) — remplace la seule Pause terminale. */
   readonly postActivityRecoverySeconds?: number;
   readonly sideMode?: SideMode;
-  /** PRE-3 : paramètres canoniques — autorité quand présents. */
-  readonly executionParameters?: ExecutionParametersInput;
 };
 
 /**
  * Résultat typé de la durée d'UNE occurrence (`exact | estimated |
- * omitted`), contributions connues comprises. Une ancienne Activité
+ * lowerBound | omitted | incomplete`, story 2.1), contributions connues
+ * comprises. Un Mode inconnu (`null`) reste `omitted`. Une ancienne Activité
  * `RECOVERY` autonome (convertie par `migration004`, plus jamais produite)
  * reste lue défensivement comme une durée exacte.
  */
 export function computeActivityDurationResult(activity: ActivityDurationFacts): ExerciseDurationResult {
-  if (activity.type === "RECOVERY") {
-    const seconds = activity.durationSeconds ?? 0;
-    return { kind: "exact", knownSeconds: seconds, events: [], seconds };
-  }
-  const parameters = resolveExecutionParameters({
-    executionMode: activity.executionMode,
-    durationSeconds: activity.durationSeconds,
-    repetitionCount: activity.repetitionCount ?? null,
-    seriesCount: activity.seriesCount,
-    pauseSeconds: activity.pauseSeconds,
-    sideMode: activity.sideMode,
-    executionParameters: activity.executionParameters,
-  });
+  const parameters = activity.executionParameters;
   if (parameters.mode === null) {
     return { kind: "omitted", knownSeconds: 0, events: [] };
+  }
+  if (activity.type === "RECOVERY") {
+    // Ancienne Récupération autonome : une Série chronométrée de sa durée,
+    // sans Récupération attachée (lecture défensive, D-041).
+    return computeIntrinsicDuration(parameters);
   }
   return computeOccurrenceDuration(parameters, activity.postActivityRecoverySeconds ?? 0);
 }
@@ -180,7 +168,7 @@ export function computeZoneDurationFacts(
   for (const activity of activities) {
     const result = computeActivityDurationResult(activity);
     seconds += result.knownSeconds;
-    isLowerBoundEstimate = isLowerBoundEstimate || result.kind === "omitted";
+    isLowerBoundEstimate = isLowerBoundEstimate || isPartialContribution(result.kind);
     isEstimated = isEstimated || result.kind === "estimated";
   }
   return isEstimated ? { seconds, isLowerBoundEstimate, isEstimated } : { seconds, isLowerBoundEstimate };
@@ -216,12 +204,48 @@ export function computeStructuredSessionDuration<T extends ActivityDurationFacts
 
 /** Total typé d'une Séance persistée (lecture complète). */
 export function toSessionDurationResult(session: Session): SessionDurationResult {
-  return computeStructuredSessionDuration({
+  return computeStructuredSessionDuration(toStructuredActivities(session));
+}
+
+function toStructuredActivities(session: Session): StructuredActivities<Activity> {
+  return {
     beforeTour: session.cycle.beforeTour ?? [],
     inTour: session.cycle.tour.exercises,
     afterTour: session.cycle.afterTour ?? [],
     tourRepeatCount: session.cycle.tour.repeatCount,
-  });
+  };
+}
+
+/** Phases propres au plan de la Séance (P31) : jamais celles d'un Exercice. */
+export type SessionPlanPhases = {
+  readonly initialCountdownSeconds: number;
+  readonly finalPhaseSeconds: number;
+};
+
+/**
+ * PRE-4 (story 2.2, AC5, P31, FR-15-05) : Durée estimée d'exécution de la
+ * Séance — plan complet. Montant = total d'occurrence de la Séance
+ * (`computeStructuredSessionDuration` : Récupérations et répétitions du
+ * Circuit comprises) + Compte à rebours initial + Fin de séance ; nature =
+ * celle de l'agrégat, qu'aucune phase chronométrée ne change. Le Compte à
+ * rebours et la Fin propres d'un Exercice ne sont jamais comptés. Mesure
+ * distincte des mesures intrinsèque et d'occurrence, qui excluent ces deux
+ * phases. Domaine seul : aucun consommateur d'interface en PRE-4.
+ */
+export function computeSessionExecutionDuration<T extends ActivityDurationFacts>(
+  structure: StructuredActivities<T>,
+  phases: SessionPlanPhases,
+): SessionDurationResult {
+  const occurrence = computeStructuredSessionDuration(structure);
+  return {
+    kind: occurrence.kind,
+    seconds: occurrence.seconds + phases.initialCountdownSeconds + phases.finalPhaseSeconds,
+  };
+}
+
+/** Durée estimée d'exécution (P31) d'une Séance persistée. */
+export function toSessionExecutionDurationResult(session: Session): SessionDurationResult {
+  return computeSessionExecutionDuration(toStructuredActivities(session), session);
 }
 
 function zoneDurationSeconds(activities: readonly Activity[]): ZoneDurationFacts {

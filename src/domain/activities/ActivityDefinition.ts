@@ -16,95 +16,71 @@
  * `bodyZoneIds` doit être non vide et sans doublon.
  *
  * Fonctions pures, indépendantes de React et SQLite (même politique que
- * `@/domain/sessions`). Réutilise les validateurs déjà exportés par
- * `@/domain/sessions/validation` (mêmes bornes que l'Activité de Séance :
- * nom `1..80`, description `..1000`, durée/pause `..5999`, répétitions/
- * séries `1..99`) plutôt que de les dupliquer.
+ * `@/domain/sessions`). Réutilise les validateurs de nom et de description
+ * de `@/domain/sessions/validation` plutôt que de les dupliquer.
+ *
+ * **PRE-4 (story 1.1, AD-3, AD-13)** : une définition ne porte plus aucun
+ * Mode, Cible, N ni Pause scalaire ; ses paramètres d'exécution typés sont
+ * obligatoires et contrôlés par la seule validation `validateForSave`.
  */
 
 import { validateCategoryColor, type CreateCategoryInput } from "@/domain/categories/Category";
 import type { ActivityMediaWithAsset, DraftMediaItem } from "@/domain/media/ActivityMedia";
 import { isValidNewMediaAsset, type MediaAsset } from "@/domain/media/MediaAsset";
 import { validateCategoryName } from "@/domain/categories/validation";
-import {
-  createExerciseDraft,
-  type SessionDraftExercise,
-} from "@/domain/sessions/SessionDraft";
-import type { ExerciseExecutionMode } from "@/domain/sessions/Session";
-import {
-  DEFAULT_ACTIVITY_TYPE,
-  DEFAULT_SIDE_MODE,
-  DEFAULT_STRUCTURAL_POSITION,
-} from "@/domain/sessions/defaults";
-import { isSideMode, type SideMode } from "@/domain/sessions/sideMode";
-import {
-  validateExerciseDurationSeconds,
-  validateExerciseName,
-  validateInstruction,
-  validatePauseSeconds,
-  validateRepetitionCount,
-  validateSeriesCount,
-} from "@/domain/sessions/validation";
+import { defaultExerciseExecutionParameters, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
+import { DEFAULT_ACTIVITY_TYPE, DEFAULT_STRUCTURAL_POSITION } from "@/domain/sessions/defaults";
+import type { SideMode } from "@/domain/sessions/sideMode";
+import { validateExerciseName, validateInstruction } from "@/domain/sessions/validation";
 
 import {
   cloneExecutionParameters,
-  legacyExecutionParameters,
-  projectLegacyScalars,
-  validateExecutionParameters,
+  validateForSave,
+  type ExecutionMode,
   type ExecutionParameters,
   type ExecutionParametersViolation,
 } from "./ExecutionParameters";
 
-export type ActivityDefinitionExecutionMode = ExerciseExecutionMode;
+/** Mode d'une définition : celui du domaine des paramètres (AD-1), deux valeurs. */
+export type ActivityDefinitionExecutionMode = ExecutionMode;
 
 /** Une `ActivityDefinition` persistée (Catalogue des exercices). */
 export type ActivityDefinition = {
   readonly id: string;
   readonly name: string;
   readonly description: string | null;
-  readonly executionMode: ActivityDefinitionExecutionMode;
-  /** Non nul uniquement en mode `DURATION`. */
-  readonly durationSeconds: number | null;
-  /** Non nul uniquement en mode `REPETITIONS`. */
-  readonly repetitionCount: number | null;
-  readonly seriesCount: number;
-  readonly pauseSeconds: number;
+  /**
+   * PRE-4 (story 1.1, AD-3) : paramètres d'exécution TYPÉS, OBLIGATOIRES,
+   * relus par `readV2` — seule source du Mode, des Cibles, de N et des
+   * Pauses. Aucun champ scalaire n'est exposé (inventaire des lecteurs de
+   * scalaires de la spine).
+   */
+  readonly executionParameters: ExecutionParameters;
   /**
    * V2-PRE-1 (D-211) : Catégorie exactement une, TOUJOURS obligatoire à
-   * l'écriture (`CreateActivityDefinitionInput.category`, validé,
-   * jamais optionnel). Champ OPTIONNEL uniquement sur ce type LU, pour la
-   * compatibilité structurelle de fixtures hors périmètre d'écriture
-   * (`ActivityCatalogueList.test.tsx`, `useActivityCatalogue.test.ts`,
-   * `CatalogueScreen.test.tsx`, `scope_allow`) qui construisent encore ce
-   * type sans Catégorie — toujours défini en pratique par le Repository.
+   * l'écriture (`CreateActivityDefinitionInput.category`, validé, jamais
+   * optionnel). Champ OPTIONNEL uniquement sur ce type LU, pour la
+   * compatibilité structurelle de fixtures qui construisent encore ce type
+   * sans Catégorie — toujours défini en pratique par le Repository.
    */
   readonly categoryId?: string;
   /** Zones corporelles — collection non vide, distincte (plan §4). */
   readonly bodyZoneIds: readonly string[];
+  /** Direction de l'Exercice, égale à `executionParameters.sideMode` (relue des paramètres). */
   readonly sideMode: SideMode;
-  /** V2-PRE-1 (plan §3.1) : pause de changement de côté propre à l'Exercice — utilisée uniquement lorsque `sideMode` est bilatéral. Optionnelle sur ce type LU pour la même raison de compatibilité que `categoryId` ci-dessus. */
+  /** Pause entre les côtés, égale à `executionParameters.sideRecoverySeconds` (relue des paramètres). Optionnelle sur ce type LU (fixtures). */
   readonly sideRecoverySeconds?: number;
-  /** @deprecated V2-PRE-1 : la récupération post-exercice n'appartient plus jamais à la définition (plan §3.1) — conservé uniquement pour la compatibilité structurelle de fixtures hors périmètre d'écriture (`ActivityCatalogueList.test.tsx`, `useActivityCatalogue.test.ts`, `CatalogueScreen.test.tsx`) qui l'utilisent encore ; jamais lu par le Domaine, les mappings ou la persistance. */
+  /** @deprecated V2-PRE-1 : la récupération post-exercice n'appartient plus jamais à la définition (plan §3.1) — conservé uniquement pour la compatibilité structurelle de fixtures ; jamais lu par le Domaine, les mappings ou la persistance. */
   readonly recoverySeconds?: number;
-  /**
-   * PRE-3 : paramètres canoniques versionnés — AUTORITÉ quand présents, les
-   * scalaires ci-dessus n'en étant que des projections. Toujours renseigné
-   * par le Repository (JSON persisté, ou adaptateur conservateur d'un
-   * ancien objet) ; optionnel sur ce type LU pour les fixtures hors
-   * périmètre d'écriture qui le construisent encore sans lui.
-   */
-  readonly executionParameters?: ExecutionParameters;
-  /** PRE-3 : médias ordonnés hydratés par le Repository (même convention optionnelle). */
+  /** PRE-3 : médias ordonnés hydratés par le Repository (convention optionnelle sur ce type LU). */
   readonly media?: readonly ActivityMediaWithAsset[];
   readonly createdAt: string;
   readonly updatedAt: string;
 };
 
 /**
- * Référence d'un `MediaAsset` déjà persisté à associer à l'Exercice
- * (V2-PRE-1, plan §3.3/§13, REQ-001108DC7F67664C) — jamais la création de
- * l'asset lui-même (hors périmètre de cette tranche, aucun écran ne la
- * déclenche). L'ORDRE du tableau est la position stable persistée
+ * Référence d'un `MediaAsset` à associer à l'Exercice (V2-PRE-1, plan
+ * §3.3/§13). L'ORDRE du tableau est la position stable persistée
  * (0-indexée) : jamais un champ `position` séparé que l'appelant pourrait
  * faire diverger de l'ordre réel du tableau.
  */
@@ -122,32 +98,18 @@ export type CreateActivityMediaInput = {
 export type CreateActivityDefinitionInput = {
   readonly name: string;
   readonly description: string | null;
-  readonly executionMode: ActivityDefinitionExecutionMode;
-  readonly durationSeconds: number | null;
-  readonly repetitionCount: number | null;
-  readonly seriesCount: number;
-  readonly pauseSeconds: number;
   /** Référence de Catégorie à résoudre (existante ou nouvelle) — voir `@/domain/categories/Category`. */
   readonly category: CreateCategoryInput;
   readonly bodyZoneIds: readonly string[];
-  readonly sideMode?: SideMode;
-  readonly sideRecoverySeconds: number;
-  /**
-   * Médias ORDONNÉS de l'Exercice (V2-PRE-1, plan §3.3/§13,
-   * REQ-001108DC7F67664C) — optionnel, `[]` par défaut : aucun écran
-   * n'alimente encore ce champ (`+ Ajouter un média` reste désactivé, plan
-   * §4.1), mais le contrat de persistance doit déjà transporter une
-   * collection ordonnée sans perdre sa position lorsqu'un appelant futur la
-   * fournira.
-   */
+  /** Médias ORDONNÉS de l'Exercice — optionnel ; `undefined` à la modification conserve les liens persistés. */
   readonly media?: readonly CreateActivityMediaInput[];
   /**
-   * PRE-3 : paramètres canoniques. Quand présents, ils font AUTORITÉ : la
-   * validation les contrôle (bornes PRE-3) et réécrit les scalaires
-   * historiques ci-dessus comme simples projections. Absents : chemin
-   * historique inchangé.
+   * PRE-4 (story 1.1, AD-3, AD-13) : paramètres typés OBLIGATOIRES, validés
+   * au niveau structurel (`validateForSave(…, "STORAGE")`). Le repository en
+   * projette les colonnes scalaires (Mode, Cible, N, Pause, côté, Pause entre
+   * les côtés) : aucun scalaire n'est transporté par l'entrée.
    */
-  readonly executionParameters?: ExecutionParameters;
+  readonly executionParameters: ExecutionParameters;
 };
 
 export type UpdateActivityDefinitionInput = CreateActivityDefinitionInput;
@@ -166,15 +128,9 @@ export type ActivityDefinitionValidationCode =
 export type ActivityDefinitionValidationField =
   | "activityDefinition.name"
   | "activityDefinition.description"
-  | "activityDefinition.executionMode"
-  | "activityDefinition.durationSeconds"
-  | "activityDefinition.repetitionCount"
-  | "activityDefinition.seriesCount"
-  | "activityDefinition.pauseSeconds"
   | "activityDefinition.category"
   | "activityDefinition.bodyZoneIds"
-  | "activityDefinition.sideRecoverySeconds"
-  /** PRE-3 : paramètres canoniques invalides (détail dans `executionViolations`). */
+  /** Paramètres d'exécution invalides (détail dans `executionViolations`). */
   | "activityDefinition.executionParameters"
   /** PRE-3 : asset de média importé invalide. */
   | "activityDefinition.media";
@@ -183,19 +139,13 @@ export type ActivityDefinitionValidationViolation = {
   readonly code: ActivityDefinitionValidationCode;
   readonly field: ActivityDefinitionValidationField;
   readonly details?: { readonly min?: number; readonly max?: number };
-  /** PRE-3 : violations détaillées des paramètres canoniques (champ et Série). */
+  /** Violations détaillées des paramètres d'exécution (champ, niveau et Série). */
   readonly executionViolations?: readonly ExecutionParametersViolation[];
 };
 
 export type ActivityDefinitionValidationResult<T> =
   | { readonly ok: true; readonly value: T }
   | { readonly ok: false; readonly violations: readonly ActivityDefinitionValidationViolation[] };
-
-const EXECUTION_MODES: readonly ActivityDefinitionExecutionMode[] = [
-  "DURATION",
-  "REPETITIONS",
-  "TO_FAILURE",
-];
 
 /** Zones corporelles non vides et distinctes (plan §4 : « Catégorie exactement unique et Zones non vides, distinctes et valides »). */
 function validateBodyZoneIds(bodyZoneIds: readonly string[]): {
@@ -236,41 +186,25 @@ function validateCategoryInput(
 /**
  * Valide et normalise une entrée de création/modification d'une
  * `ActivityDefinition`. Agrège toutes les violations déterminables (jamais
- * seulement la première) et ne lève jamais d'exception — même contrat que
- * `validateCreateSessionInput` (`@/domain/sessions/SessionDraft`).
+ * seulement la première) et ne lève jamais d'exception.
+ *
+ * PRE-4 (story 1.1, AD-13) : les paramètres d'exécution sont contrôlés par la
+ * seule validation `validateForSave(…, "STORAGE")` (niveau structurel ; les
+ * bornes de saisie sont appliquées par le ✓ de la Feuille et `Terminer`, avec
+ * la ligne de base). L'ancien chemin de validation scalaire est supprimé.
  */
 export function validateActivityDefinitionInput(
-  rawInput: CreateActivityDefinitionInput,
+  input: CreateActivityDefinitionInput,
 ): ActivityDefinitionValidationResult<CreateActivityDefinitionInput> {
   const violations: ActivityDefinitionValidationViolation[] = [];
 
-  // PRE-3 : paramètres canoniques = autorité. Validés avec les bornes PRE-3,
-  // puis projetés vers les scalaires historiques (jamais écrits
-  // indépendamment).
-  let executionParameters: ExecutionParameters | undefined;
-  let input = rawInput;
-  if (rawInput.executionParameters !== undefined) {
-    const canonical = validateExecutionParameters(rawInput.executionParameters);
-    if (canonical.ok) {
-      executionParameters = canonical.value;
-      const projection = projectLegacyScalars(canonical.value);
-      input = {
-        ...rawInput,
-        executionMode: projection.executionMode,
-        durationSeconds: projection.durationSeconds,
-        repetitionCount: projection.repetitionCount,
-        seriesCount: projection.seriesCount,
-        pauseSeconds: projection.pauseSeconds,
-        sideMode: projection.sideMode,
-        sideRecoverySeconds: projection.sideRecoverySeconds,
-      };
-    } else {
-      violations.push({
-        code: "OUT_OF_RANGE",
-        field: "activityDefinition.executionParameters",
-        executionViolations: canonical.violations,
-      });
-    }
+  const parameters = validateForSave(input.executionParameters, "STORAGE");
+  if (!parameters.ok) {
+    violations.push({
+      code: "OUT_OF_RANGE",
+      field: "activityDefinition.executionParameters",
+      executionViolations: parameters.violations,
+    });
   }
 
   const nameResult = validateExerciseName(input.name);
@@ -285,73 +219,12 @@ export function validateActivityDefinitionInput(
     violations.push({ code: "TOO_LONG", field: "activityDefinition.description" });
   }
 
-  if (!EXECUTION_MODES.includes(input.executionMode)) {
-    violations.push({ code: "UNRECOGNIZED", field: "activityDefinition.executionMode" });
-  }
-
-  let durationSeconds: number | null = null;
-  let repetitionCount: number | null = null;
-
-  if (input.executionMode === "DURATION") {
-    if (input.durationSeconds === null) {
-      violations.push({ code: "REQUIRED", field: "activityDefinition.durationSeconds" });
-    } else {
-      const durationResult = validateExerciseDurationSeconds(input.durationSeconds);
-      if (durationResult.ok) {
-        durationSeconds = durationResult.value;
-      } else {
-        violations.push({ code: "OUT_OF_RANGE", field: "activityDefinition.durationSeconds" });
-      }
-    }
-    if (input.repetitionCount !== null) {
-      violations.push({ code: "MUST_BE_ABSENT", field: "activityDefinition.repetitionCount" });
-    }
-  } else if (input.executionMode === "REPETITIONS") {
-    if (input.repetitionCount === null) {
-      violations.push({ code: "REQUIRED", field: "activityDefinition.repetitionCount" });
-    } else if (executionParameters) {
-      // Borne PRE-3 (1..100) déjà vérifiée par la validation canonique.
-      repetitionCount = input.repetitionCount;
-    } else {
-      const repetitionResult = validateRepetitionCount(input.repetitionCount);
-      if (repetitionResult.ok) {
-        repetitionCount = repetitionResult.value;
-      } else {
-        violations.push({ code: "OUT_OF_RANGE", field: "activityDefinition.repetitionCount" });
-      }
-    }
-    if (input.durationSeconds !== null) {
-      violations.push({ code: "MUST_BE_ABSENT", field: "activityDefinition.durationSeconds" });
-    }
-  } else if (input.executionMode === "TO_FAILURE") {
-    if (input.durationSeconds !== null) {
-      violations.push({ code: "MUST_BE_ABSENT", field: "activityDefinition.durationSeconds" });
-    }
-    if (input.repetitionCount !== null) {
-      violations.push({ code: "MUST_BE_ABSENT", field: "activityDefinition.repetitionCount" });
-    }
-  }
-
-  const seriesResult = validateSeriesCount(input.seriesCount);
-  if (!seriesResult.ok) {
-    violations.push({ code: "OUT_OF_RANGE", field: "activityDefinition.seriesCount" });
-  }
-
-  const pauseResult = validatePauseSeconds(input.pauseSeconds);
   for (const item of input.media ?? []) {
     const invalidAsset = item.asset !== undefined && (item.asset.id !== item.assetId || !isValidNewMediaAsset(item.asset));
     if (item.assetId.trim().length === 0 || invalidAsset) {
       violations.push({ code: "REQUIRED", field: "activityDefinition.media" });
       break;
     }
-  }
-  if (!pauseResult.ok) {
-    violations.push({ code: "OUT_OF_RANGE", field: "activityDefinition.pauseSeconds" });
-  }
-
-  const sideRecoveryResult = validatePauseSeconds(input.sideRecoverySeconds);
-  if (!sideRecoveryResult.ok) {
-    violations.push({ code: "OUT_OF_RANGE", field: "activityDefinition.sideRecoverySeconds" });
   }
 
   const bodyZonesResult = validateBodyZoneIds(input.bodyZoneIds);
@@ -364,7 +237,7 @@ export function validateActivityDefinitionInput(
 
   const category = validateCategoryInput(input.category, violations);
 
-  if (violations.length > 0) {
+  if (violations.length > 0 || !parameters.ok) {
     return { ok: false, violations };
   }
 
@@ -373,96 +246,46 @@ export function validateActivityDefinitionInput(
     value: {
       name: name as string,
       description,
-      executionMode: input.executionMode,
-      durationSeconds,
-      repetitionCount,
-      seriesCount: seriesResult.ok ? seriesResult.value : input.seriesCount,
-      pauseSeconds: pauseResult.ok ? pauseResult.value : input.pauseSeconds,
       category: category as CreateCategoryInput,
       bodyZoneIds: input.bodyZoneIds,
-      sideMode: isSideMode(input.sideMode) ? input.sideMode : DEFAULT_SIDE_MODE,
-      sideRecoverySeconds: sideRecoveryResult.ok
-        ? sideRecoveryResult.value
-        : input.sideRecoverySeconds,
       // V2-PRE-1 (plan §3.3/§13) : transmis tel quel, position stable =
-      // ordre du tableau — jamais retrié, jamais une validation dupliquée
-      // (l'intégrité référentielle de `assetId` reste à la charge du
-      // Repository, même patron que `category`/`bodyZoneIds`).
+      // ordre du tableau — l'intégrité référentielle de `assetId` reste à la
+      // charge du Repository (`ActivityDefinitionService` conserve les liens
+      // persistés quand une modification n'envoie aucun média).
       media: input.media ?? [],
-      ...(executionParameters ? { executionParameters } : {}),
+      executionParameters: parameters.value,
     },
   };
 }
 
 /**
- * Brouillon d'`ActivityDefinition` vide, destiné à l'écran de création du
- * Catalogue — mêmes valeurs par défaut que `createExerciseDraft` (Composition),
- * sans `id`/`type`/`structuralPosition` (non applicables à une définition).
- * Aucune Catégorie n'est présélectionnée (plan §12 : « sans affectation
- * automatique ») — l'appelant doit fournir une sélection explicite avant
- * `Terminer` (contrat UX `08` l.978 / `13` §4.10).
+ * Brouillon d'`ActivityDefinition` vide — mêmes paramètres par défaut que
+ * `createExerciseDraft` (Composition). Aucune Catégorie n'est présélectionnée
+ * (plan §12 : « sans affectation automatique »).
  */
 export function createEmptyActivityDefinitionDraft(): Omit<CreateActivityDefinitionInput, "category"> {
-  const exerciseDraft = createExerciseDraft("draft");
   return {
-    name: exerciseDraft.name,
-    description: exerciseDraft.instruction,
-    executionMode: exerciseDraft.executionMode,
-    durationSeconds: exerciseDraft.durationSeconds,
-    repetitionCount: exerciseDraft.repetitionCount,
-    seriesCount: exerciseDraft.seriesCount,
-    pauseSeconds: exerciseDraft.pauseSeconds,
-    bodyZoneIds: exerciseDraft.bodyZoneIds,
-    sideMode: exerciseDraft.sideMode,
-    sideRecoverySeconds: 0,
+    name: "",
+    description: null,
+    bodyZoneIds: [],
+    executionParameters: defaultExerciseExecutionParameters(),
   };
 }
 
 /** Projette une `ActivityDefinition` persistée vers l'entrée éditable de l'éditeur (préremplissage exact, modification). */
-export function activityDefinitionToInput(
-  definition: ActivityDefinition,
-): CreateActivityDefinitionInput {
+export function activityDefinitionToInput(definition: ActivityDefinition): CreateActivityDefinitionInput {
   return {
     name: definition.name,
     description: definition.description,
-    executionMode: definition.executionMode,
-    durationSeconds: definition.durationSeconds,
-    repetitionCount: definition.repetitionCount,
-    seriesCount: definition.seriesCount,
-    pauseSeconds: definition.pauseSeconds,
     category: { kind: "EXISTING", categoryId: definition.categoryId ?? "" },
     bodyZoneIds: definition.bodyZoneIds,
-    sideMode: definition.sideMode,
-    sideRecoverySeconds: definition.sideRecoverySeconds ?? 0,
-    // PRE-3 : la réouverture conserve TOUS les paramètres et les liens
-    // ordonnés — la modification d'un seul champ ne les perd jamais.
-    ...(definition.executionParameters
-      ? { executionParameters: cloneExecutionParameters(definition.executionParameters) }
-      : {}),
+    // La réouverture conserve TOUS les paramètres (Cibles typées comprises)
+    // et les liens ordonnés — la modification d'un seul champ ne les perd jamais.
+    executionParameters: cloneExecutionParameters(definition.executionParameters),
     ...(definition.media
       ? { media: definition.media.map((item) => ({ assetId: item.assetId, asset: { ...item.asset } })) }
       : {}),
   };
-}
-
-/**
- * PRE-3 : paramètres canoniques EFFECTIFS d'une définition — le JSON
- * persisté, ou l'adaptateur conservateur d'un ancien objet (jamais le
- * Profil courant).
- */
-export function resolveDefinitionExecutionParameters(definition: ActivityDefinition): ExecutionParameters {
-  return (
-    definition.executionParameters ??
-    legacyExecutionParameters({
-      executionMode: definition.executionMode,
-      durationSeconds: definition.durationSeconds,
-      repetitionCount: definition.repetitionCount,
-      seriesCount: definition.seriesCount,
-      pauseSeconds: definition.pauseSeconds,
-      sideMode: definition.sideMode,
-      sideRecoverySeconds: definition.sideRecoverySeconds ?? 0,
-    })
-  );
 }
 
 /**
@@ -518,29 +341,25 @@ export function activityDefinitionToDraftExercise(
   newId: string,
   postActivityRecoverySeconds: number,
 ): SessionDraftExercise {
-  // PRE-3 (P3-18) : copie COMPLÈTE et indépendante — paramètres canoniques
-  // clonés, Catégorie, médias ordonnés (mêmes fichiers physiques, nouveaux
-  // liens créés à l'enregistrement de la Séance). Aucune référence partagée.
+  // PRE-3 (P3-18) / PRE-4 (AD-9) : copie COMPLÈTE et indépendante — paramètres
+  // typés clonés en profondeur (Cibles `FAILURE` et `UNSET` comprises),
+  // Catégorie, médias ordonnés (mêmes fichiers physiques, nouveaux liens
+  // créés à l'enregistrement de la Séance). Aucune référence partagée.
   const media: readonly DraftMediaItem[] = (definition.media ?? []).map((item) => ({
     assetId: item.assetId,
     asset: { ...item.asset },
   }));
   return {
-    executionParameters: cloneExecutionParameters(resolveDefinitionExecutionParameters(definition)),
+    executionParameters: cloneExecutionParameters(definition.executionParameters),
     categoryId: definition.categoryId ?? null,
     media,
     id: newId,
     type: DEFAULT_ACTIVITY_TYPE,
     structuralPosition: DEFAULT_STRUCTURAL_POSITION,
     name: definition.name,
-    executionMode: definition.executionMode,
-    durationSeconds: definition.durationSeconds,
-    repetitionCount: definition.repetitionCount,
-    seriesCount: definition.seriesCount,
-    pauseSeconds: definition.pauseSeconds,
     postActivityRecoverySeconds,
     instruction: definition.description,
     bodyZoneIds: [...definition.bodyZoneIds],
-    sideMode: definition.sideMode,
+    sideMode: definition.executionParameters.sideMode,
   };
 }

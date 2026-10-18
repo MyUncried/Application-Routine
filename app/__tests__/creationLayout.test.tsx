@@ -65,7 +65,8 @@ describe("CreationLayout — geste horizontal natif de changement d'écran (T02-
    * `screenOptions` hérité — aucune route du parcours n'est laissée avec le
    * geste natif.
    */
-  it("covers composition, exercise, categories AND activity-selection — no route of the flow is left with the native gesture", () => {
+  // PRE-4, décision Q54 : la route `categories` est supprimée.
+  it("covers composition, exercise AND activity-selection — no route of the flow is left with the native gesture", () => {
     stackCalls.length = 0;
     screenCalls.length = 0;
     render(<CreationLayout />);
@@ -73,7 +74,6 @@ describe("CreationLayout — geste horizontal natif de changement d'écran (T02-
     expect(screenCalls.map((call) => call.name)).toEqual([
       "composition",
       "exercise",
-      "categories",
       "activity-selection",
     ]);
     // Aucune route ne RÉACTIVE le geste par une option locale : la

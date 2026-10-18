@@ -21,24 +21,12 @@ import { SessionDraftProvider } from "@/features/sessions/SessionDraftProvider";
  * `exercise` ajoutée en T01-S08, sous le même `Stack` et le même Provider,
  * sans restructuration — confirmant la prédiction du commentaire ci-dessus.
  *
- * `categories` ajoutée en T01-S09 (CE-T01-11), même patron — `Enregistrer
- * la séance` réinitialise le brouillon partagé (`resetDraft`) puis quitte
- * ce `Stack` entièrement (`router.dismissTo(...)`) vers le Catalogue,
- * segment `Séances` (UI-CAT-R-005/006, signal `catalogueSegment` consommé
- * par `CatalogueScreen`).
- *
- * VISUAL_CORRECTION (revue indépendante 5753653735, point 4) : une
- * tentative antérieure posait `animation: "slide_from_left"` sur
- * `categories` pour que la SORTIE (`Enregistrer la séance`) glisse vers la
- * gauche — mais l'option d'un écran de `Stack` régit SYMÉTRIQUEMENT son
- * ENTRÉE et sa SORTIE (native-stack ne distingue pas les deux) : elle
- * dégradait donc l'ENTRÉE (`Continuer`, composition → catégories), qui
- * glissait alors, à tort, depuis la gauche au lieu de la droite. Retirée :
- * `categories` reprend la transition STANDARD de la pile (`Continuer`
- * entre depuis la droite ; `Retour` en ressort vers la droite), déjà
- * contractuelle et correcte pour les deux transitions, sans régression de
- * l'une pour corriger l'autre. La destination et les règles métier de
- * `router.dismissTo` restent inchangées.
+ * PRE-4, décision Q54 de Hermann (2026-10-18) : la route `categories` (écran
+ * « Catégories de la séance », ajouté en T01-S09) est supprimée, vestige d'un parcours
+ * disparu. `Enregistrer la séance` est désormais l'action finale de la Composition : elle
+ * enregistre, réinitialise le brouillon partagé (`resetDraft`) puis quitte ce `Stack`
+ * entièrement (`router.dismissTo(...)`) vers le Catalogue, segment `Séances`
+ * (UI-CAT-R-005/006, signal `catalogueSegment` consommé par `CatalogueScreen`).
  *
  * `gestureEnabled: false` (correctif T02, 2026-09-08, point 3 ; **étendu à
  * TOUT le parcours par T02-S02, continuation après recette visuelle**) — le
@@ -49,7 +37,7 @@ import { SessionDraftProvider } from "@/features/sessions/SessionDraftProvider";
  * d'Activité, `SWIPE_REVEAL_DISTANCE`).
  *
  * L'option n'était posée que sur `composition`. La recette a montré que cela
- * ne suffit pas : `exercise` et `categories` appartiennent au même parcours
+ * ne suffit pas : `exercise` (et, jusqu'à Q54, `categories`) appartiennent au même parcours
  * de création, portent eux aussi des gestes horizontaux (roulettes,
  * sélections) et un brouillon non enregistré — un retour natif déclenché par
  * inadvertance y contourne la garde de sortie, qui n'est armée que sur une
@@ -58,7 +46,7 @@ import { SessionDraftProvider } from "@/features/sessions/SessionDraftProvider";
  * qu'il faille penser à la déclarer.
  *
  * **La navigation explicite reste entière** : `Retour` de l'en-tête,
- * `Terminer`, `Continuer`, `Enregistrer la séance` et `router.dismissTo`
+ * `Terminer`, `Enregistrer la séance` et `router.dismissTo`
  * fonctionnent à l'identique — seul le geste natif de bord d'écran est
  * neutralisé.
  */
@@ -68,7 +56,6 @@ export default function CreationLayout() {
       <Stack screenOptions={{ headerShown: false, gestureEnabled: false }}>
         <Stack.Screen name="composition" />
         <Stack.Screen name="exercise" />
-        <Stack.Screen name="categories" />
         <Stack.Screen name="activity-selection" />
       </Stack>
     </SessionDraftProvider>

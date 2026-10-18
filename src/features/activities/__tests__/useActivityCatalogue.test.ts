@@ -3,6 +3,7 @@ import { describe, expect, it, jest } from "@jest/globals";
 import { createElement, type ReactNode } from "react";
 
 import type { ActivityDefinition } from "@/domain/activities";
+import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { useActivityCatalogue } from "@/features/activities/useActivityCatalogue";
@@ -16,11 +17,7 @@ function makeDefinition(id: string): ActivityDefinition {
     id,
     name: `Activité ${id}`,
     description: null,
-    executionMode: "DURATION",
-    durationSeconds: 30,
-    repetitionCount: null,
-    seriesCount: 1,
-    pauseSeconds: 0,
+    executionParameters: durationParameters(30),
     recoverySeconds: 0,
     bodyZoneIds: [],
     sideMode: "UNILATERAL",

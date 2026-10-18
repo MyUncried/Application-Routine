@@ -45,7 +45,11 @@ export function useActivityCatalogue(): UseActivityCatalogueResult {
 
   const reload = useCallback(() => {
     const requestId = ++requestIdRef.current;
-    setState({ status: "loading" });
+    // PRE-4 story 4.1 (AC1, AC2) : un rechargement au retour sur le Catalogue
+    // garde la liste déjà affichée jusqu’à la réponse, au lieu de repasser par
+    // l’indicateur de chargement : la liste n’est pas démontée, sa position de
+    // défilement est restituée. Le premier chargement reste « loading ».
+    setState((current) => (current.status === "ready" ? current : { status: "loading" }));
 
     activityDefinitionService.listActivityDefinitions().then(
       (definitions) => {

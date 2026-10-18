@@ -1,9 +1,12 @@
-import type {
-  ActivityType,
-  ExerciseExecutionMode,
-  StructuralPosition,
-} from "@/domain/sessions/Session";
+import type { ActivityType, StructuralPosition } from "@/domain/sessions/Session";
 import type { SideMode } from "@/domain/sessions/sideMode";
+
+/**
+ * Valeurs historiques de la colonne `execution_mode` (AD-1) : type de ligne
+ * SQL déclaré localement, comme dans `migration010` — jamais importé du lecteur
+ * v1 (garde de cantonnement, AC4).
+ */
+export type LegacyExecutionMode = "DURATION" | "REPETITIONS" | "TO_FAILURE";
 
 /**
  * Une ligne par Activité (T01-S09 ; T01-S10 : toutes zones structurelles) :
@@ -48,8 +51,12 @@ export type SessionAggregateRow = {
   /** T01-S10 : `'BEFORE_TOUR'` / `'IN_TOUR'` / `'AFTER_TOUR'` (D-061). */
   structural_position: StructuralPosition;
   activity_position: number;
-  /** T01-S10 : `'DURATION'` / `'REPETITIONS'` / `'TO_FAILURE'` — jamais `null` en base. */
-  execution_mode: ExerciseExecutionMode;
+  /**
+   * Colonne historique projetée, jamais relue comme source (AD-3) :
+   * `'DURATION'` ou `'REPETITIONS'` après `migration010` ; le type de ligne
+   * garde les valeurs historiques (`LegacyExecutionMode`, AD-1).
+   */
+  execution_mode: LegacyExecutionMode;
   duration_seconds: number | null;
   repetition_count: number | null;
   /** `null` pour une Récupération (T01-S10). */
@@ -60,11 +67,42 @@ export type SessionAggregateRow = {
   instruction: string | null;
   /** V2-BILAT-01 : direction propre de cette Activité (`Activity.sideMode`, `migration005`, défaut `'UNILATERAL'`). */
   activity_side_mode: SideMode;
-  /** PRE-3 (`migration009`) : JSON canonique versionné — `NULL` pour une ancienne occurrence. */
+  /** JSON canonique (v2 après `migration010`, lu par `readV2`) — `NULL` seulement pour une ancienne ligne `RECOVERY`. */
   activity_execution_parameters: string | null;
   /** PRE-3 : Catégorie de la copie — `NULL` pour une ancienne copie. */
   activity_category_id: string | null;
 };
+
+/** PRE-4 (story 1.2, P39) : colonnes propres à une occurrence dans `SessionAggregateRow`. */
+export type SessionAggregateOccurrenceColumn =
+  | "activity_id"
+  | "activity_type"
+  | "activity_name"
+  | "structural_position"
+  | "activity_position"
+  | "execution_mode"
+  | "duration_seconds"
+  | "repetition_count"
+  | "series_count"
+  | "pause_seconds"
+  | "post_activity_recovery_seconds"
+  | "instruction"
+  | "activity_side_mode"
+  | "activity_execution_parameters"
+  | "activity_category_id";
+
+/**
+ * PRE-4 (story 1.2, FR-18-20 sixième conséquence, P39) : ligne de la lecture
+ * d'agrégat, qui fait un `LEFT JOIN activities`. Une Séance sans occurrence
+ * (toutes ses Copies écartées par `migration010`) produit UNE ligne dont les
+ * colonnes d'occurrence sont toutes `NULL` ; elle ne porte que l'en-tête
+ * (Séance, Cycle, Tour). `isSessionOccurrenceRow` distingue les deux formes.
+ */
+export type SessionAggregateQueryRow =
+  | SessionAggregateRow
+  | (Omit<SessionAggregateRow, SessionAggregateOccurrenceColumn> & {
+      [K in SessionAggregateOccurrenceColumn]: null;
+    });
 
 export type ActivityBodyZoneRow = {
   activity_id: string;
@@ -99,7 +137,8 @@ export type ActivityDefinitionRow = {
   id: string;
   name: string;
   description: string | null;
-  execution_mode: ExerciseExecutionMode;
+  /** Colonne historique projetée (AD-3), jamais relue comme source. */
+  execution_mode: LegacyExecutionMode;
   duration_seconds: number | null;
   repetition_count: number | null;
   series_count: number;
@@ -109,7 +148,7 @@ export type ActivityDefinitionRow = {
   side_mode: SideMode;
   /** V2-PRE-1 : pause de changement de côté propre à l'Exercice. */
   side_recovery_seconds: number;
-  /** PRE-3 (`migration009`) : JSON canonique versionné — `NULL` pour un ancien objet. */
+  /** JSON canonique v2 (`migration010`), lu par `readV2` ; jamais NULL après la migration. */
   execution_parameters: string | null;
   created_at: string;
   updated_at: string;
@@ -217,4 +256,13 @@ export type SessionSummaryRow = {
    */
   tour_repeat_count: number;
   updated_at: string;
+};
+
+/** PRE-4 (`migration010`, AD-12) : un avis de migration — aucun identifiant ni contenu d'Exercice écarté. */
+export type MigrationNoticeRow = {
+  id: number;
+  kind: string;
+  count: number;
+  created_at: string;
+  acknowledged_at: string | null;
 };

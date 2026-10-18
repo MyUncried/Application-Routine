@@ -1,8 +1,9 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { useCallback, useMemo, useState } from "react";
-import { Keyboard, Platform, ScrollView, StyleSheet } from "react-native";
+import { AccessibilityInfo, Keyboard, Platform, ScrollView, StyleSheet } from "react-native";
 
+import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Label } from "@/domain/labels/Label";
 import { createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
@@ -18,6 +19,8 @@ import { CompositionScreen } from "@/features/sessions/CompositionScreen";
 import type { SessionDraftContextValue } from "@/features/sessions/SessionDraftContext";
 import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import { SessionDraftProvider } from "@/features/sessions/SessionDraftProvider";
+import type { SessionService } from "@/features/sessions/SessionService";
+import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
@@ -64,11 +67,13 @@ jest.mock("expo-crypto", () => ({ randomUUID: jest.fn(() => "generated-copy-id")
  */
 const mockPush = jest.fn();
 const mockBack = jest.fn();
+// PRE-4 Q54 : `Enregistrer la séance` ferme le parcours depuis la Composition.
+const mockDismissTo = jest.fn();
 jest.mock("expo-router", () => {
   const actual = jest.requireActual("expo-router") as object;
   return {
     ...actual,
-    useRouter: () => ({ push: mockPush, back: mockBack }),
+    useRouter: () => ({ push: mockPush, back: mockBack, dismissTo: mockDismissTo }),
   };
 });
 
@@ -248,6 +253,7 @@ beforeEach(() => {
   mockExitGuard.mockReturnValue(defaultExitGuardResult());
   mockPush.mockReset();
   mockBack.mockReset();
+  mockDismissTo.mockReset();
 });
 
 describe("CompositionScreen — état initial", () => {
@@ -267,7 +273,7 @@ describe("CompositionScreen — état initial", () => {
     expect(screen.getByText("1")).toBeTruthy();
     expect(screen.queryByText("×1")).toBeNull();
 
-    const continueAction = screen.getByLabelText(composition.continueAction);
+    const continueAction = screen.getByLabelText(composition.saveAction);
     expect(continueAction.props.accessibilityState).toMatchObject({ disabled: true });
   });
 
@@ -421,7 +427,7 @@ describe("CompositionScreen — état initial", () => {
     expect(StyleSheet.flatten(scrim.props.style).backgroundColor).toBe(colors.overlayScrim);
   });
 
-  it("shows the exact local empty summary '0 exercice · 0 min' (V2), never formatActivityCount(0)'s plural", () => {
+  it("shows the exact local empty summary '0 exercice · 0 min' (V2), never a plural « 0 exercices »", () => {
     renderScreen();
 
     // REWORK09 : la ligne de synthèse basse est supprimée (redondante
@@ -692,7 +698,7 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
    * Activité existait, modèle à Exercice unique).
    */
   it("keeps '+ Ajouter une activité' visible AND shows the Exercise row once an Activity is set (COMP-03 — never hidden any more)", () => {
-    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }]);
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
     expect(screen.getByLabelText(composition.addActivity)).toBeTruthy();
     expect(screen.getByLabelText(composition.addActivity).props.accessibilityState).toMatchObject({
@@ -712,7 +718,7 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
    * bloc Tour, voir COMP-02 ci-dessous) ni de second slot à droite.
    */
   it("REWORK12 (COMP-01) — shows only the composition-reorder structure icon on the Exercise row, never composition-main-content nor a right-side icon", () => {
-    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }]);
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
     const row = screen.getByTestId("composition-exercise-row-ex-1");
     expect(within(row).getByTestId("composition-boundary-handle-icon")).toBeTruthy();
@@ -721,7 +727,7 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
   });
 
   it("REWORK12 (COMP-01) — the Exercise row's structure icon displays the canonical 20×20 glyph at opacity 0.5, same as the Compte à rebours/Fin de séance cards (same shared component, by construction)", () => {
-    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }]);
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
     const row = screen.getByTestId("composition-exercise-row-ex-1");
     const reorderIcon = within(row).getByTestId("composition-boundary-handle-icon");
@@ -732,7 +738,7 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
   });
 
   it("REWORK12 (COMP-01) — the Exercise row reuses the exact same card anatomy (fond, liseré, rayon) as the Compte à rebours initial card, by construction (same limitCardBase/boundaryRow styles)", () => {
-    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }]);
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
     const exerciseRow = screen.getByTestId("composition-exercise-row-ex-1");
     const exerciseCardStyle = StyleSheet.flatten(exerciseRow.props.style);
@@ -749,9 +755,7 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
       {
         ...createExerciseDraft("ex-1"),
         name: "Gainage",
-        durationSeconds: 90,
-        seriesCount: 3,
-        pauseSeconds: 15,
+        executionParameters: durationParameters(90, 3, 15),
         instruction: "Ne pas creuser le dos",
       },
     ]);
@@ -762,7 +766,7 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
   });
 
   it("pressing the Exercise row navigates to /exercise with its own exerciseId (reopen for editing, complétion REWORK12 — édition ciblée par identifiant)", () => {
-    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }]);
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
     fireEvent.press(screen.getByLabelText(composition.exerciseRow.editAccessibilityLabel));
     expect(mockPush).toHaveBeenCalledWith({
@@ -785,8 +789,8 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
    */
   it("REWORK12 (« Plusieurs activités ») — renders one row per Activity, in collection order, each navigating to /exercise with its own exerciseId, button still usable", () => {
     renderScreenWithDraft([
-      { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 },
-      { ...createExerciseDraft("ex-2"), name: "Squats", durationSeconds: 30 },
+      { ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) },
+      { ...createExerciseDraft("ex-2"), name: "Squats", executionParameters: durationParameters(30) },
     ]);
 
     expect(screen.getByTestId("composition-exercise-row-ex-1")).toBeTruthy();
@@ -838,7 +842,7 @@ describe("CompositionScreen — ordre structurel (UI-COMP-001/002/003, cycle de 
   });
 
   it("order once an Activity exists: Compte à rebours initial, then the created Activity, then Tour, then Fin de séance (UI-COMP-003) — never after Tour", () => {
-    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }]);
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
     const order = testIdOrder(screen.toJSON(), [
       "composition-row-icon-composition-initial-countdown",
@@ -1080,7 +1084,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     // IN_TOUR — `createExerciseDraft` positionne par défaut `BEFORE_TOUR`,
     // d'où l'override explicite (sans quoi la synthèse serait vide).
     renderScreenWithDraft([
-      { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45, structuralPosition: "IN_TOUR" },
+      { ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45), structuralPosition: "IN_TOUR" },
     ]);
 
     const tourSummary = within(screen.getByTestId("composition-tour-card")).getByTestId(
@@ -1099,7 +1103,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
   it("REWORK13 (R13-02) — confirming Compte à rebours initial or Fin de séance updates only their own card, never the Tour summary", () => {
     // Correctif T02 (2026-09-08) : voir le test précédent.
     renderScreenWithDraft([
-      { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45, structuralPosition: "IN_TOUR" },
+      { ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45), structuralPosition: "IN_TOUR" },
     ]);
 
     const tourSummaryBefore = within(screen.getByTestId("composition-tour-card")).getByTestId(
@@ -1131,8 +1135,8 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
   it("REWORK13 (R13-02) — adding a second Activity updates the Tour summary accordingly (count and duration both recomputed)", () => {
     // Correctif T02 (2026-09-08) : voir le premier test de ce bloc.
     renderScreenWithDraft([
-      { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45, structuralPosition: "IN_TOUR" },
-      { ...createExerciseDraft("ex-2"), name: "Squats", durationSeconds: 30, structuralPosition: "IN_TOUR" },
+      { ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45), structuralPosition: "IN_TOUR" },
+      { ...createExerciseDraft("ex-2"), name: "Squats", executionParameters: durationParameters(30), structuralPosition: "IN_TOUR" },
     ]);
 
     const tourSummary = within(screen.getByTestId("composition-tour-card")).getByTestId(
@@ -1162,7 +1166,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
 
     const bottomAction = screen.getByTestId("composition-bottom-action");
     expect(within(bottomAction).queryByText("0 exercice · 0 min")).toBeNull();
-    expect(within(bottomAction).getByLabelText(composition.continueAction)).toBeTruthy();
+    expect(within(bottomAction).getByLabelText(composition.saveAction)).toBeTruthy();
     // La synthèse reste bien affichée ailleurs (sous « Nombre de tours »),
     // jamais silencieusement perdue.
     expect(screen.getByTestId("composition-tour-summary")).toBeTruthy();
@@ -1303,7 +1307,7 @@ describe("CompositionScreen — REWORK04 (`[ChatGPT] REWORK04 IMPLEMENTATION AUT
   });
 
   it("REWORK12 (COMP-02) — the Tour icon's source is the same asset as the Exercise row's structure icon, matching the source verified directly on the current Figma node (2028:11742), never the previous icon-tour.svg", () => {
-    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }]);
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
     const tourIcon = screen.getByTestId("composition-tour-icon");
     const exerciseRow = screen.getByTestId("composition-exercise-row-ex-1");
@@ -1487,24 +1491,86 @@ describe("CompositionScreen — Continuer (T01-S09, CE-T01-04/CE-T01-11)", () =>
   it("stays disabled while the Composition is invalid (no Activity yet, even with a name)", () => {
     renderScreenWithDraft([]);
 
-    const continueAction = screen.getByLabelText(composition.continueAction);
+    const continueAction = screen.getByLabelText(composition.saveAction);
     expect(continueAction.props.accessibilityState).toMatchObject({ disabled: true });
   });
 
-  it("enables once the Composition is fully valid (name + at least one valid Activity) and navigates to /categories on press", () => {
-    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 }]);
+  // PRE-4, décision Q54 : plus d'écran « Catégories de la séance » — l'action enregistre et
+  // ferme le parcours depuis la Composition.
+  it("PRE4-Q54/save — enables once the Composition is fully valid, saves from the Composition (one write on double tap) and dismisses to the Catalogue, never to /categories", async () => {
+    let resolveCreate: (value: { ok: true; value: unknown }) => void = () => undefined;
+    const createSession = jest.fn(
+      () =>
+        new Promise<{ ok: true; value: unknown }>((resolve) => {
+          resolveCreate = resolve;
+        }),
+    );
+    const service = { createSession, updateSession: jest.fn() } as unknown as SessionService;
+    render(
+      <SessionServiceContext.Provider value={service}>
+        <TestSafeAreaProvider>
+          <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
+            <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+              <StatefulDraftWrapper
+                initialExercises={[{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]}
+              >
+                <CompositionScreen />
+              </StatefulDraftWrapper>
+            </ReferentialServiceContext.Provider>
+          </ActivityDefinitionServiceContext.Provider>
+        </TestSafeAreaProvider>
+      </SessionServiceContext.Provider>,
+    );
 
-    const continueAction = screen.getByLabelText(composition.continueAction);
-    expect(continueAction.props.accessibilityState).toMatchObject({ disabled: false });
+    const saveAction = screen.getByLabelText(composition.saveAction);
+    expect(saveAction.props.accessibilityState).toMatchObject({ disabled: false });
+    expect(screen.getByText("Enregistrer la séance")).toBeTruthy();
 
-    fireEvent.press(continueAction);
-    expect(mockPush).toHaveBeenCalledWith("/categories");
+    fireEvent.press(saveAction);
+    fireEvent.press(saveAction);
+    expect(createSession).toHaveBeenCalledTimes(1);
+    expect(screen.getByLabelText(composition.saveAction).props.accessibilityState).toMatchObject({ disabled: true });
+    await act(async () => {
+      resolveCreate({ ok: true, value: {} });
+    });
+    await waitFor(() =>
+      expect(mockDismissTo).toHaveBeenCalledWith({ pathname: "/", params: { catalogueSegment: "sessions" } }),
+    );
+    expect(mockPush).not.toHaveBeenCalledWith("/categories");
+  });
+
+  it("PRE4-Q54/save-failure — échec : message D-107 sur la Composition, action réactivée, aucune fermeture", async () => {
+    const service = {
+      createSession: jest.fn(async () => ({ ok: false, error: { violations: [] } })),
+      updateSession: jest.fn(),
+    } as unknown as SessionService;
+    render(
+      <SessionServiceContext.Provider value={service}>
+        <TestSafeAreaProvider>
+          <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
+            <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+              <StatefulDraftWrapper
+                initialExercises={[{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]}
+              >
+                <CompositionScreen />
+              </StatefulDraftWrapper>
+            </ReferentialServiceContext.Provider>
+          </ActivityDefinitionServiceContext.Provider>
+        </TestSafeAreaProvider>
+      </SessionServiceContext.Provider>,
+    );
+    await act(async () => {
+      fireEvent.press(screen.getByLabelText(composition.saveAction));
+    });
+    expect(screen.getByTestId("composition-save-error").props.children).toBe("La séance n’a pas pu être enregistrée. Réessayez.");
+    expect(screen.getByLabelText(composition.saveAction).props.accessibilityState).toMatchObject({ disabled: false });
+    expect(mockDismissTo).not.toHaveBeenCalled();
   });
 
   it("stays disabled again if the only Activity becomes invalid (defense in depth, mirrors toCreateSessionInput)", () => {
-    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "", durationSeconds: 45 }]);
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "", executionParameters: durationParameters(45) }]);
 
-    expect(screen.getByLabelText(composition.continueAction).props.accessibilityState).toMatchObject({
+    expect(screen.getByLabelText(composition.saveAction).props.accessibilityState).toMatchObject({
       disabled: true,
     });
   });
@@ -1554,7 +1620,7 @@ describe("CompositionScreen — états de réhydratation en modification (T01-S1
 
     expect(screen.getByLabelText(t.loadingAccessibilityLabel)).toBeTruthy();
     expect(screen.queryByLabelText(composition.name)).toBeNull();
-    expect(screen.queryByLabelText(composition.continueAction)).toBeNull();
+    expect(screen.queryByLabelText(composition.saveAction)).toBeNull();
   });
 
   it("shows the NOT_FOUND message and a safe return to the Catalogue, never default creation values", () => {
@@ -1586,7 +1652,7 @@ describe("CompositionScreen — états de réhydratation en modification (T01-S1
       draft: {
         ...emptyEditDraft(),
         name: "Séance persistée",
-        exercises: [{ ...createExerciseDraft("keep-1"), name: "Gainage", durationSeconds: 30 }],
+        exercises: [{ ...createExerciseDraft("keep-1"), name: "Gainage", executionParameters: durationParameters(30) }],
       },
     });
 
@@ -1598,7 +1664,7 @@ describe("CompositionScreen — états de réhydratation en modification (T01-S1
     const rehydrated = {
       ...emptyEditDraft(),
       name: "Séance persistée",
-      exercises: [{ ...createExerciseDraft("keep-1"), name: "Gainage", durationSeconds: 30 }],
+      exercises: [{ ...createExerciseDraft("keep-1"), name: "Gainage", executionParameters: durationParameters(30) }],
     };
     mockExitGuard.mockReturnValue(defaultExitGuardResult());
     renderWithEditStatus("ready", { draft: rehydrated, hydratedBaseline: rehydrated });
@@ -1635,7 +1701,7 @@ describe("CompositionScreen — états de réhydratation en modification (T01-S1
 
       expect(screen.queryByLabelText(composition.name)).toBeNull();
       expect(screen.queryByLabelText(composition.addActivity)).toBeNull();
-      expect(screen.queryByLabelText(composition.continueAction)).toBeNull();
+      expect(screen.queryByLabelText(composition.saveAction)).toBeNull();
       // Valeurs par défaut EXACTES du parcours de création — aucune ne doit
       // apparaître ne serait-ce qu'un rendu.
       expect(screen.queryByText("00 min 10 s")).toBeNull();
@@ -1655,7 +1721,7 @@ describe("CompositionScreen — états de réhydratation en modification (T01-S1
       const rehydrated = {
         ...emptyEditDraft(),
         name: "Séance persistée",
-        exercises: [{ ...createExerciseDraft("keep-1"), name: "Gainage", durationSeconds: 30 }],
+        exercises: [{ ...createExerciseDraft("keep-1"), name: "Gainage", executionParameters: durationParameters(30) }],
       };
       renderWithEditStatus("ready", { draft: rehydrated }, "session-42");
 
@@ -1682,8 +1748,8 @@ describe("CompositionScreen — états de réhydratation en modification (T01-S1
  */
 describe("CompositionScreen — espacement Activité/Activité (LOT_3_OF_3, révisé T02-S02)", () => {
   const twoActivities = [
-    { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 },
-    { ...createExerciseDraft("ex-2"), name: "Squats", durationSeconds: 30 },
+    { ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) },
+    { ...createExerciseDraft("ex-2"), name: "Squats", executionParameters: durationParameters(30) },
   ];
 
   it("reduces the gap between two consecutive Activity cards to 6pt, carried by their own dedicated container", () => {
@@ -1770,9 +1836,7 @@ describe("CompositionScreen — Zones corporelles de la ligne Activité (correct
   const activityWithZones = {
     ...createExerciseDraft("ex-1"),
     name: "Gainage",
-    durationSeconds: 90,
-    seriesCount: 3,
-    pauseSeconds: 15,
+    executionParameters: durationParameters(90, 3, 15),
     // Ordre de SÉLECTION volontairement inverse de l'ordre du référentiel
     // (`epaules` order 1, `dos` order 4) — prouve que l'affichage suit le
     // référentiel, jamais l'ordre de sélection de l'utilisateur.
@@ -1819,7 +1883,7 @@ describe("CompositionScreen — Zones corporelles de la ligne Activité (correct
 
   it("omits the line entirely when the Activity has no body zone — never an empty Text still taking its line height", () => {
     renderScreenWithDraft([
-      { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 },
+      { ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) },
     ]);
 
     const row = screen.getByTestId("composition-exercise-row-ex-1");
@@ -1864,7 +1928,7 @@ function anActivity(
   return {
     ...createExerciseDraft(id),
     name: id,
-    durationSeconds: 30,
+    executionParameters: durationParameters(30),
     structuralPosition,
     ...overrides,
   };
@@ -2552,7 +2616,7 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
   ]);
 
   expect(
-    screen.getByLabelText(composition.continueAction).props.accessibilityState,
+    screen.getByLabelText(composition.saveAction).props.accessibilityState,
   ).toMatchObject({ disabled: false });
 
   fireSwipeLeft("ex-1");
@@ -2560,7 +2624,7 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
 
   expect(screen.queryByTestId("composition-exercise-row-ex-1")).toBeNull();
   expect(
-    screen.getByLabelText(composition.continueAction).props.accessibilityState,
+    screen.getByLabelText(composition.saveAction).props.accessibilityState,
   ).toMatchObject({ disabled: true });
 });
 });
@@ -2965,9 +3029,9 @@ describe("CompositionScreen — sous-carte Récupération et géométries condit
 describe("CompositionScreen — recalcul immédiat des métriques du Tour (T02-S02)", () => {
   it("counts and totals ONLY the IN_TOUR Activities, then multiplies that zone by tourRepeatCount", () => {
     renderScreenWithDraft([
-      anActivity("warmup", "BEFORE_TOUR", { name: "Échauffement", durationSeconds: 600 }),
-      anActivity("core", "IN_TOUR", { name: "Gainage", durationSeconds: 60 }),
-      anActivity("stretch", "AFTER_TOUR", { name: "Étirements", durationSeconds: 600 }),
+      anActivity("warmup", "BEFORE_TOUR", { name: "Échauffement", executionParameters: durationParameters(600) }),
+      anActivity("core", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60) }),
+      anActivity("stretch", "AFTER_TOUR", { name: "Étirements", executionParameters: durationParameters(600) }),
     ]);
 
     // Hors Tour : `600 + 600 = 20 min` volontairement énormes — ils ne
@@ -2983,7 +3047,7 @@ describe("CompositionScreen — recalcul immédiat des métriques du Tour (T02-S
   });
 
   it("recomputes immediately after a DUPLICATION", () => {
-    renderScreenWithDraft([anActivity("core", "IN_TOUR", { name: "Gainage", durationSeconds: 60 })]);
+    renderScreenWithDraft([anActivity("core", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60) })]);
     expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 exercice · 1 min");
 
     fireSwipeLeft("core");
@@ -2996,8 +3060,8 @@ describe("CompositionScreen — recalcul immédiat des métriques du Tour (T02-S
 
   it("recomputes immediately after a DELETION", () => {
     renderScreenWithDraft([
-      anActivity("core-1", "IN_TOUR", { name: "Gainage", durationSeconds: 60 }),
-      anActivity("core-2", "IN_TOUR", { name: "Squats", durationSeconds: 60 }),
+      anActivity("core-1", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60) }),
+      anActivity("core-2", "IN_TOUR", { name: "Squats", executionParameters: durationParameters(60) }),
     ]);
     expect(screen.getByTestId("composition-tour-summary").props.children).toBe(
       "2 exercices · 2 min",
@@ -3010,7 +3074,7 @@ describe("CompositionScreen — recalcul immédiat des métriques du Tour (T02-S
   });
 
   it("recomputes immediately after a MOVE out of the Tour", () => {
-    renderScreenWithDraft([anActivity("core", "IN_TOUR", { name: "Gainage", durationSeconds: 60 })]);
+    renderScreenWithDraft([anActivity("core", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60) })]);
     expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 exercice · 1 min");
 
     // Structure Tour `230–400` ; liste `IN_TOUR` à `y = 20` DANS cette
@@ -3033,7 +3097,7 @@ describe("CompositionScreen — recalcul immédiat des métriques du Tour (T02-S
 });
 
 describe("CompositionScreen — contrôle Nombre de tours (T02-S01, AC-08/AC-09)", () => {
-  const oneActivity = [anActivity("ex-1", "IN_TOUR", { name: "Gainage", durationSeconds: 60 })];
+  const oneActivity = [anActivity("ex-1", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60) })];
 
   it("AC-09 — pressing the control opens the canonical numeric wheel inside the blocking DSF overlay", () => {
     renderScreenWithDraft(oneActivity);
@@ -3096,8 +3160,8 @@ describe("CompositionScreen — contrôle Nombre de tours (T02-S01, AC-08/AC-09)
     // IN_TOUR (60 s) contribue, multipliée par `tourRepeatCount`.
     renderScreenWithDraft(
       [
-        anActivity("ex-1", "BEFORE_TOUR", { name: "Échauffement", durationSeconds: 600 }),
-        anActivity("ex-2", "IN_TOUR", { name: "Squats", durationSeconds: 60 }),
+        anActivity("ex-1", "BEFORE_TOUR", { name: "Échauffement", executionParameters: durationParameters(600) }),
+        anActivity("ex-2", "IN_TOUR", { name: "Squats", executionParameters: durationParameters(60) }),
       ],
       { tourRepeatCount: 5 },
     );
@@ -3203,9 +3267,7 @@ describe("CompositionScreen — indicateur de direction propre et clause de synt
         ...createExerciseDraft("ex-1"),
         name: "Fentes",
         structuralPosition: "BEFORE_TOUR",
-        durationSeconds: 90,
-        seriesCount: 3,
-        pauseSeconds: 15,
+        executionParameters: durationParameters(90, 3, 15),
         sideMode: "RIGHT_LEFT",
       },
     ]);
@@ -3223,9 +3285,7 @@ describe("CompositionScreen — indicateur de direction propre et clause de synt
         ...createExerciseDraft("ex-1"),
         name: "Fentes",
         structuralPosition: "IN_TOUR",
-        durationSeconds: 90,
-        seriesCount: 3,
-        pauseSeconds: 15,
+        executionParameters: durationParameters(90, 3, 15),
         sideMode: "UNILATERAL",
       },
     ]);
@@ -3281,5 +3341,38 @@ describe("CompositionScreen — recette 3 (T-49, EXT-R3-2 : zone de contexte)", 
     expect(screen.getByTestId("composition-session-color-trigger")).toBeTruthy();
     // D-353 (retour de Hermann) : aucun trait gris au-dessus de la zone de contexte.
     expect(screen.queryByTestId("screen-header-separator")).toBeNull();
+  });
+});
+
+describe("CompositionScreen — PRE-4 Q53 (8) (Étiquette retirée encore affectée)", () => {
+  // Q53 (9), décision de Hermann du 2026-10-18 : l'avis textuel de l'Étiquette retirée est retiré
+  // (« ce n'est pas un besoin ») ; la pilule garde l'Étiquette.
+  it("PRE4-Q53/label-composition-no-notice — la Séance garde son Étiquette retirée (pilule), sans avis textuel ni annonce ; Étiquette active : idem", async () => {
+    const retiredLabels: readonly Label[] = LABEL_FIXTURES.map((label) => ({ ...label, isActive: false }));
+    const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibilityWithOptions").mockImplementation(() => undefined);
+    render(
+      <TestSafeAreaProvider>
+        <ActivityDefinitionServiceContext.Provider
+          value={fakeActivityDefinitionService({
+            listLabels: jest.fn<ActivityDefinitionService["listLabels"]>().mockResolvedValue(retiredLabels),
+          })}
+        >
+          <ReferentialServiceContext.Provider value={fakeReferentialService({ listLabels: jest.fn(async () => retiredLabels) })}>
+            <StatefulDraftWrapper initialExercises={[]} draftOverrides={{ labelId: "label-sport" }}>
+              <CompositionScreen />
+            </StatefulDraftWrapper>
+          </ReferentialServiceContext.Provider>
+        </ActivityDefinitionServiceContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+    await waitFor(() => expect(screen.getByTestId("composition-session-label-name").props.children).toBe("Sport"));
+    expect(screen.queryByTestId("composition-retired-label-notice")).toBeNull();
+    expect(screen.queryByText(/a été retirée|reste associée/)).toBeNull();
+    expect(announce).not.toHaveBeenCalled();
+    screen.unmount();
+    renderScreenWithDraft([], { labelId: "label-sport" });
+    await waitFor(() => expect(screen.getByTestId("composition-session-label-name").props.children).toBe("Sport"));
+    expect(screen.queryByTestId("composition-retired-label-notice")).toBeNull();
+    announce.mockRestore();
   });
 });

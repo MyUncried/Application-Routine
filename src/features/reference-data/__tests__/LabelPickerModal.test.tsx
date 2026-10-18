@@ -364,3 +364,54 @@ describe("LabelPickerModal — recette 3 (N-01, dernier écart : clavier sans in
   });
 });
 
+
+/** PRE-4, décision Q53 (8) de Hermann (2026-10-18) : même distinction pour l'Étiquette de Séance. */
+describe("LabelPickerModal — PRE-4 Q53 (8)", () => {
+  it("PRE4-Q53/label-other-session — Étiquette retirée avant l'ouverture et affectée : listée, choisie, fond #FFF1F0, sans menu ; démarquable ; non affectée : absente", async () => {
+    const service = fakeReferentialService({
+      listLabels: jest.fn(async () => [
+        aLabel({ isActive: false }),
+        aLabel({ id: "sport", name: "Sport", canonicalKey: "sport" }),
+        aLabel({ id: "old", name: "Ancienne", canonicalKey: "ancienne", isActive: false }),
+      ]),
+    });
+    const onSelect = jest.fn();
+    renderModal(service, { selectedId: "focus", onSelect });
+    const focus = await screen.findByTestId("label-picker-tag-focus");
+    expect(focus.props.accessibilityState).toMatchObject({ selected: true });
+    expect(StyleSheet.flatten(focus.props.style).backgroundColor).toBe("#FFF1F0");
+    expect(focus.props.accessibilityLabel).toContain("Focus, retirée de la liste des choix");
+    await act(async () => {
+      fireEvent(focus, "longPress");
+    });
+    expect(screen.queryByTestId("label-picker-long-press-delete")).toBeNull();
+    expect(screen.queryByTestId("label-picker-tag-old")).toBeNull();
+    fireEvent.press(focus);
+    expect(screen.getByTestId("label-picker-tag-focus").props.accessibilityState).toMatchObject({ selected: false });
+  });
+
+  it("PRE4-Q53/label-delete-current — supprimée depuis la Séance courante : quitte la liste et la sélection (feuille et Brouillon)", async () => {
+    const retired = new Set<string>();
+    const onLabelRetired = jest.fn();
+    const service = fakeReferentialService({
+      listLabels: jest.fn(async () => [aLabel()].map((label) => ({ ...label, isActive: !retired.has(label.id) }))),
+      isLabelUsed: jest.fn(async () => true),
+      retireLabel: jest.fn(async (id: string) => {
+        retired.add(id);
+        return { status: "OK" as const, value: aLabel({ id, isActive: false }) };
+      }),
+    });
+    const onSelect = jest.fn();
+    renderModal(service, { selectedId: "focus", onSelect, onLabelRetired });
+    const focus = await screen.findByTestId("label-picker-tag-focus");
+    await act(async () => {
+      fireEvent(focus, "longPress");
+    });
+    fireEvent.press(screen.getByTestId("label-picker-long-press-delete"));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("label-picker-long-press-delete-confirm-confirm"));
+    });
+    expect(screen.queryByTestId("label-picker-tag-focus")).toBeNull();
+    expect(onLabelRetired).toHaveBeenCalledWith("focus");
+  });
+});

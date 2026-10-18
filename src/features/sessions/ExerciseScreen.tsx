@@ -1,16 +1,13 @@
 import * as Crypto from "expo-crypto";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 
-import { resolveDefinitionExecutionParameters } from "@/domain/activities";
 import {
   cloneExecutionParameters,
   createEmptyExecutionParameters,
   executionParametersEqual,
-  projectLegacyScalars,
-  resolveExecutionParameters,
-  validateExecutionParameters,
+  validateForSave,
   type ExecutionParametersInput,
 } from "@/domain/activities/ExecutionParameters";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
@@ -26,6 +23,7 @@ import { appendActivityAfterLastDisplayed } from "@/domain/sessions/composition"
 import { createExerciseDraft, exerciseEquals, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import {
   ActivityEditorForm,
+  editorSideMargin,
   isActivityEditorFormValid,
   type ActivityEditorFormValue,
   type EditorCategory,
@@ -35,6 +33,7 @@ import { useActivityDefinitionService } from "@/features/activities/ActivityDefi
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
 import { CategoryPickerModal } from "@/features/reference-data/CategoryPickerModal";
 import { useReferentialService } from "@/features/reference-data/ReferentialServiceContext";
+import { useReferenceSheet } from "@/features/reference-data/useReferenceSheet";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { ExerciseExitConfirmModal } from "@/features/sessions/ExerciseExitConfirmModal";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
@@ -144,6 +143,8 @@ function useProfileDefaults() {
 function toEditorCategory(categoryId: string | null, categories: readonly Category[]): EditorCategory {
   if (!categoryId) return null;
   const found = categories.find((candidate) => candidate.id === categoryId);
+  // Q53 (8) : une Catégorie retirée encore affectée reste affichée (nom et pastille) ; Q53 (9) :
+  // sans avis textuel dans l'Éditeur.
   return found ? { name: found.name, color: found.color } : null;
 }
 
@@ -167,6 +168,25 @@ function createEmptyFormValue(): ActivityEditorFormValue {
  */
 function withProfilePhases(parameters: ExecutionParametersInput, countdown: number, end: number): ExecutionParametersInput {
   return { ...parameters, countdownSeconds: countdown, endSeconds: end };
+}
+
+/**
+ * PRE-4 story 4.2 (FR-02-03, FR-02-04 ; AC4, AC5) : en-tête fixe de l'Éditeur —
+ * ✕ circulaire par la prop locale `closeIcon` de `FixedHeader` (composant partagé,
+ * autres écrans inchangés) et marge latérale de l'Éditeur (24, ou 16 sous 390).
+ * Libellé accessible : celui du code de départ (`Retour`), inchangé.
+ */
+function EditorHeader({ title, onClose, accessibilityLabel }: { title: string; onClose: () => void; accessibilityLabel: string }) {
+  const { width } = useWindowDimensions();
+  return (
+    <FixedHeader
+      title={title}
+      onBack={onClose}
+      backAccessibilityLabel={accessibilityLabel}
+      closeIcon
+      horizontalPadding={editorSideMargin(width)}
+    />
+  );
 }
 
 function formValueEquals(left: ActivityEditorFormValue, right: ActivityEditorFormValue): boolean {
@@ -194,6 +214,13 @@ function formValueEquals(left: ActivityEditorFormValue, right: ActivityEditorFor
  * (aucune écriture) ; garde d'abandon (Annuler conserve tout, Confirmer
  * abandonne et nettoie uniquement les copies préparées non référencées) ;
  * une seule opération en vol ; aucune Récupération automatique.
+ *
+ * PRE-4 (story 1.1, AD-13) : le ✓ de la Feuille et `Terminer` appellent la
+ * validation unique `validateForSave` avec la ligne de base relue à
+ * l'ouverture de l'Éditeur (aucune en création) : une valeur héritée hors
+ * bornes non modifiée reste enregistrable (H25), une Cible `UNSET` bloque.
+ * Les paramètres typés sont la seule donnée transmise (aucune projection
+ * scalaire dans l'écran).
  */
 export function ExerciseScreen() {
   const params = useLocalSearchParams<{ exerciseId?: string; catalogueDefinitionId?: string }>();
@@ -215,16 +242,22 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
   const { categories, reload: reloadCategories } = useCategories();
   const profile = useProfileDefaults();
   const isEditingExisting = definitionId !== null;
+  // Story 4.2 (FR-02-04) : l'écran d'erreur de chargement suit la marge de l'Éditeur.
+  const sideMargin = editorSideMargin(useWindowDimensions().width);
   const [mediaDraftId] = useState(() => `definition:${definitionId ?? Crypto.randomUUID()}`);
 
   const [initial, setInitial] = useState<ActivityEditorFormValue | null>(() =>
     definitionId === null ? createEmptyFormValue() : null,
   );
+  // PRE-4 (AD-13) : ligne de base des paramètres relue à l'ouverture (aucune en création).
+  const [baselineParameters, setBaselineParameters] = useState<ExecutionParametersInput | null>(null);
   const [value, setValue] = useState<ActivityEditorFormValue | null>(initial);
   const [profileApplied, setProfileApplied] = useState(definitionId !== null);
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [initialCategoryId, setInitialCategoryId] = useState<string | null>(null);
-  const [isCategoryPickerOpen, setIsCategoryPickerOpen] = useState(false);
+  // Story 4.6 (FR-22-10, AC9) : feuille de Catégorie, focus rendu à l'accès après sa fermeture.
+  const categoryAccessRef = useRef<View>(null);
+  const categorySheet = useReferenceSheet(categoryAccessRef);
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
     definitionId === null ? "ready" : "loading",
   );
@@ -251,10 +284,11 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
           const loaded: ActivityEditorFormValue = {
             name: definition.name,
             instruction: definition.description,
-            executionParameters: cloneExecutionParameters(resolveDefinitionExecutionParameters(definition)),
+            executionParameters: cloneExecutionParameters(definition.executionParameters),
             bodyZoneIds: [...definition.bodyZoneIds],
             media: toDraftMediaItems(definition.media ?? []),
           };
+          setBaselineParameters(cloneExecutionParameters(definition.executionParameters));
           setInitial(loaded);
           setValue(loaded);
           setCategoryId(definition.categoryId ?? null);
@@ -313,7 +347,7 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
     if (isSavingRef.current || value === null) {
       return;
     }
-    const validated = validateExecutionParameters(value.executionParameters);
+    const validated = validateForSave(value.executionParameters, baselineParameters);
     if (!validated.ok) {
       setSaveError(true);
       return;
@@ -321,19 +355,11 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
     isSavingRef.current = true;
     setIsSaving(true);
     setSaveError(false);
-    const scalars = projectLegacyScalars(validated.value);
     const definitionInput = {
       name: value.name,
       description: value.instruction,
-      executionMode: scalars.executionMode,
-      durationSeconds: scalars.durationSeconds,
-      repetitionCount: scalars.repetitionCount,
-      seriesCount: scalars.seriesCount,
-      pauseSeconds: scalars.pauseSeconds,
       category: { kind: "EXISTING" as const, categoryId: categoryId ?? "" },
       bodyZoneIds: value.bodyZoneIds,
-      sideMode: scalars.sideMode,
-      sideRecoverySeconds: scalars.sideRecoverySeconds,
       executionParameters: validated.value,
       media: value.media.map((item) => ({ assetId: item.assetId, asset: item.asset })),
     };
@@ -362,17 +388,21 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
 
   const isValid =
     value !== null &&
-    isActivityEditorFormValid(value, { requireReferences: true, hasCategory: categoryId !== null && categoryId !== "" });
+    isActivityEditorFormValid(value, {
+      requireReferences: true,
+      hasCategory: categoryId !== null && categoryId !== "",
+      baseline: baselineParameters,
+    });
 
   return (
     <ScreenShell>
-      <FixedHeader
+      <EditorHeader
         title={isEditingExisting ? t.titleEdit : t.titleAdd}
-        onBack={() => router.back()}
-        backAccessibilityLabel={t.backAccessibilityLabel}
+        onClose={() => router.back()}
+        accessibilityLabel={t.backAccessibilityLabel}
       />
       {loadState === "error" ? (
-        <View style={styles.loadErrorBody} testID="activity-editor-load-error">
+        <View style={[styles.loadErrorBody, { paddingHorizontal: sideMargin }]} testID="activity-editor-load-error">
           <Text style={styles.loadErrorMessage}>{loadErrorStrings.message}</Text>
           <Pressable
             onPress={() => {
@@ -398,9 +428,12 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
           category={toEditorCategory(categoryId, categories)}
           onOpenCategory={() => {
             setSaveError(false);
-            setIsCategoryPickerOpen(true);
+            categorySheet.open();
           }}
+          isCategoryPickerOpen={categorySheet.isOpen}
+          categoryAccessRef={categoryAccessRef}
           profileSideRecoverySecondsDefault={profile.sideRecovery}
+          baselineParameters={baselineParameters}
           mediaService={activityDefinitionService}
           mediaDraftId={mediaDraftId}
           finishLabel={t.finishAction}
@@ -413,33 +446,28 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
         />
       ) : null}
 
-      {isCategoryPickerOpen ? (
+      {categorySheet.isMounted ? (
         <CategoryPickerModal
+          key={categorySheet.generation}
+          visible={categorySheet.isOpen}
+          onDismissed={categorySheet.dismissed}
           selectedId={categoryId}
           onSelect={(id) => setCategoryId(id)}
+          // Q53 (8) : Catégorie supprimée depuis la feuille de cet Exercice : elle quitte le Brouillon.
+          onCategoryRetired={(id) => setCategoryId((current) => (current === id ? null : current))}
           onClose={() => {
-            setIsCategoryPickerOpen(false);
+            categorySheet.close();
             reloadCategories();
           }}
         />
       ) : null}
 
-      {isPendingExit ? <ExerciseExitConfirmModal onCancel={cancelExit} onConfirm={confirmExit} /> : null}
+      {/* Q18 (FR-02-12) : textes de création en CC, de modification en MC. */}
+      {isPendingExit ? (
+        <ExerciseExitConfirmModal isCreation={!isEditingExisting} onCancel={cancelExit} onConfirm={confirmExit} />
+      ) : null}
     </ScreenShell>
   );
-}
-
-/** Paramètres canoniques d'une occurrence (adaptateur conservateur pour une ancienne occurrence). */
-function occurrenceParameters(exercise: SessionDraftExercise): ExecutionParametersInput {
-  return resolveExecutionParameters({
-    executionMode: exercise.executionMode,
-    durationSeconds: exercise.durationSeconds,
-    repetitionCount: exercise.repetitionCount,
-    seriesCount: exercise.seriesCount,
-    pauseSeconds: exercise.pauseSeconds,
-    sideMode: exercise.sideMode,
-    executionParameters: exercise.executionParameters,
-  });
 }
 
 /**
@@ -464,10 +492,19 @@ function CompositionExerciseEditor() {
       ? (draft.exercises.find((exercise) => exercise.id === requestedExerciseId) ?? null)
       : null;
   const isEditingExisting = existingExercise !== null;
+  // Story 4.2 (Q18, revue) : le texte du dialogue d'abandon suit l'INTENTION de la
+  // route — création seulement sans `exerciseId` (ou `new`) ; un `exerciseId` absent
+  // du Brouillon reste une modification et n'annonce jamais « ne sera pas créé ».
+  const isCreationRoute = typeof requestedExerciseId !== "string" || requestedExerciseId === "new";
 
+  // PRE-4 (AD-13) : ligne de base des paramètres d'une occurrence existante,
+  // relue à l'ouverture ; aucune pour une nouvelle occurrence.
+  const [baselineParameters] = useState<ExecutionParametersInput | null>(() =>
+    existingExercise ? cloneExecutionParameters(existingExercise.executionParameters) : null,
+  );
   const [initialSnapshot, setInitialSnapshot] = useState<SessionDraftExercise>(() =>
     existingExercise
-      ? { ...existingExercise, executionParameters: occurrenceParameters(existingExercise) }
+      ? existingExercise
       : {
           // Nouvelle occurrence : AUCUNE Récupération automatique (R = 0).
           ...createExerciseDraft(Crypto.randomUUID(), 0),
@@ -477,9 +514,13 @@ function CompositionExerciseEditor() {
         },
   );
   const [local, setLocal] = useState<SessionDraftExercise | null>(initialSnapshot);
+  // Q53 (8) : la Catégorie de cette Copie a été supprimée depuis sa feuille.
+  const [categoryClearedByDeletion, setCategoryClearedByDeletion] = useState(false);
   const [profileApplied, setProfileApplied] = useState(isEditingExisting);
   const [mediaDraftId] = useState(() => `occurrence:${existingExercise?.id ?? Crypto.randomUUID()}`);
-  const [isCategoryPickerOpen, setIsCategoryPickerOpen] = useState(false);
+  // Story 4.6 (FR-22-10, AC9) : feuille de Catégorie, focus rendu à l'accès après sa fermeture.
+  const categoryAccessRef = useRef<View>(null);
+  const categorySheet = useReferenceSheet(categoryAccessRef);
   const [isFinishing, setIsFinishing] = useState(false);
   const finishingRef = useRef(false);
 
@@ -490,11 +531,7 @@ function CompositionExerciseEditor() {
     if (exerciseEquals(local, initialSnapshot)) {
       const created = {
         ...initialSnapshot,
-        executionParameters: withProfilePhases(
-          initialSnapshot.executionParameters ?? occurrenceParameters(initialSnapshot),
-          profile.countdown,
-          profile.end,
-        ),
+        executionParameters: withProfilePhases(initialSnapshot.executionParameters, profile.countdown, profile.end),
       };
       setInitialSnapshot(created);
       setLocal(created);
@@ -525,21 +562,16 @@ function CompositionExerciseEditor() {
       if (next.executionParameters === undefined) {
         return merged;
       }
-      // ✓ de la feuille : paramètres valides ; projections scalaires DÉRIVÉES.
-      const validated = validateExecutionParameters(next.executionParameters);
+      // ✓ de la feuille : paramètres validés avec la ligne de base (AD-13) ;
+      // la direction de l'occurrence suit celle des paramètres.
+      const validated = validateForSave(next.executionParameters, baselineParameters);
       if (!validated.ok) {
         return { ...merged, executionParameters: next.executionParameters };
       }
-      const scalars = projectLegacyScalars(validated.value);
       return {
         ...merged,
         executionParameters: validated.value,
-        executionMode: scalars.executionMode,
-        durationSeconds: scalars.durationSeconds,
-        repetitionCount: scalars.repetitionCount,
-        seriesCount: scalars.seriesCount,
-        pauseSeconds: scalars.pauseSeconds,
-        sideMode: scalars.sideMode,
+        sideMode: validated.value.sideMode,
       };
     });
   }
@@ -565,24 +597,28 @@ function CompositionExerciseEditor() {
     ? {
         name: local.name,
         instruction: local.instruction,
-        executionParameters: local.executionParameters ?? occurrenceParameters(local),
+        executionParameters: local.executionParameters,
         bodyZoneIds: local.bodyZoneIds,
         media: local.media ?? [],
       }
     : null;
+  // Q53 (8) : une Copie existante n'exige pas de Catégorie (données antérieures), sauf si la
+  // sienne vient d'être supprimée depuis sa feuille : il faut alors en choisir une autre.
   const isValid =
     value !== null &&
     isActivityEditorFormValid(value, {
       requireReferences: !isEditingExisting,
       hasCategory: Boolean(local?.categoryId),
-    });
+      baseline: baselineParameters,
+    }) &&
+    !(categoryClearedByDeletion && !local?.categoryId);
 
   return (
     <ScreenShell>
-      <FixedHeader
+      <EditorHeader
         title={isEditingExisting ? t.titleEdit : t.titleAdd}
-        onBack={() => router.back()}
-        backAccessibilityLabel={t.backAccessibilityLabel}
+        onClose={() => router.back()}
+        accessibilityLabel={t.backAccessibilityLabel}
       />
 
       {value !== null ? (
@@ -593,8 +629,11 @@ function CompositionExerciseEditor() {
           onBodyZonesPickerClose={() => setBodyZonesLoadToken((current) => current + 1)}
           silhouette={profile.silhouette}
           category={toEditorCategory(local?.categoryId ?? null, categories)}
-          onOpenCategory={() => setIsCategoryPickerOpen(true)}
+          onOpenCategory={() => categorySheet.open()}
+          isCategoryPickerOpen={categorySheet.isOpen}
+          categoryAccessRef={categoryAccessRef}
           profileSideRecoverySecondsDefault={profile.sideRecovery}
+          baselineParameters={baselineParameters}
           mediaService={activityDefinitionService}
           mediaDraftId={mediaDraftId}
           finishLabel={t.finishAction}
@@ -605,18 +644,30 @@ function CompositionExerciseEditor() {
         />
       ) : null}
 
-      {isCategoryPickerOpen ? (
+      {categorySheet.isMounted ? (
         <CategoryPickerModal
+          key={categorySheet.generation}
+          visible={categorySheet.isOpen}
+          onDismissed={categorySheet.dismissed}
           selectedId={local?.categoryId ?? null}
           onSelect={(id) => setLocal((current) => (current ? { ...current, categoryId: id } : current))}
+          // Q53 (8) : Catégorie de la Copie supprimée depuis sa feuille : elle quitte le Brouillon,
+          // et `Terminer` reste inactif tant qu'aucune Catégorie n'est choisie.
+          onCategoryRetired={(id) => {
+            if (local?.categoryId === id) setCategoryClearedByDeletion(true);
+            setLocal((current) => (current && current.categoryId === id ? { ...current, categoryId: null } : current));
+          }}
           onClose={() => {
-            setIsCategoryPickerOpen(false);
+            categorySheet.close();
             reloadCategories();
           }}
         />
       ) : null}
 
-      {isPendingExit ? <ExerciseExitConfirmModal onCancel={cancelExit} onConfirm={confirmExit} /> : null}
+      {/* Q18 (FR-02-12) : textes de création en CS, de modification en MS (intention de la route). */}
+      {isPendingExit ? (
+        <ExerciseExitConfirmModal isCreation={isCreationRoute} onCancel={cancelExit} onConfirm={confirmExit} />
+      ) : null}
     </ScreenShell>
   );
 }
@@ -626,7 +677,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: spacing[24],
+    // Marge latérale appliquée au rendu (`editorSideMargin`, story 4.2).
     gap: spacing[16],
   },
   loadErrorMessage: {

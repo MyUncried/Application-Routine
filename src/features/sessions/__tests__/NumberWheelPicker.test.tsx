@@ -2,7 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { Platform, ScrollView, StyleSheet } from "react-native";
 
-import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
+import { NumberWheelPicker, PickerToolbar } from "@/features/sessions/NumberWheelPicker";
+import { WHEEL_NUMBER_MAX, WHEEL_NUMBER_MIN } from "@/features/sessions/wheelPickerMath";
 import { colors } from "@/shared/ui/tokens";
 
 jest.mock("expo-haptics", () => ({
@@ -31,7 +32,7 @@ function renderProps(overrides: Partial<Parameters<typeof NumberWheelPicker>[0]>
     cancelAccessibilityLabel: CANCEL_LABEL,
     validateAccessibilityLabel: VALIDATE_LABEL,
     ...overrides,
-  };
+  } as Parameters<typeof NumberWheelPicker>[0] & { onValidate: jest.Mock; onCancel: jest.Mock };
 }
 
 beforeEach(() => {
@@ -384,6 +385,343 @@ describe("NumberWheelPicker — chemin iOS natif (NativeAppleNumberWheelPicker, 
       expect(screen.getByTestId("number-wheel-validate-icon")).toBeTruthy();
       expect(screen.queryByText("✕")).toBeNull();
       expect(screen.queryByText("✓")).toBeNull();
+    });
+  });
+});
+
+/** PRE-4 story 3.4 (AD-7) — seule prop ajoutée à la copie de `PickerToolbar` : `validateDisabled`. */
+describe("PRE4-3.4 — PickerToolbar (copie de NumberWheelPicker) : validateDisabled", () => {
+  it("PRE4-3.4/AC7 — validateDisabled : ✓ désactivé, état d'accessibilité, opacité 0,45, onValidate non appelé ; ✕ disponible", () => {
+    const onValidate = jest.fn();
+    const onCancel = jest.fn();
+    render(
+      <PickerToolbar
+        onCancel={onCancel}
+        onValidate={onValidate}
+        cancelAccessibilityLabel={CANCEL_LABEL}
+        validateAccessibilityLabel={VALIDATE_LABEL}
+        validateDisabled
+      />,
+    );
+    const validate = screen.getByTestId("number-wheel-validate");
+    expect(validate.props.accessibilityState).toMatchObject({ disabled: true });
+    expect(StyleSheet.flatten(validate.props.style).opacity).toBe(0.45);
+    fireEvent.press(validate);
+    expect(onValidate).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId("number-wheel-cancel"));
+    expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it("PRE4-3.4/AC7 — sans la prop : ✓ disponible, sans opacité ajoutée, onValidate appelé (inchangé)", () => {
+    const onValidate = jest.fn();
+    render(
+      <PickerToolbar
+        onCancel={jest.fn()}
+        onValidate={onValidate}
+        cancelAccessibilityLabel={CANCEL_LABEL}
+        validateAccessibilityLabel={VALIDATE_LABEL}
+      />,
+    );
+    const validate = screen.getByTestId("number-wheel-validate");
+    expect(validate.props.accessibilityState?.disabled).not.toBe(true);
+    expect(StyleSheet.flatten(validate.props.style).opacity).toBeUndefined();
+    fireEvent.press(validate);
+    expect(onValidate).toHaveBeenCalledTimes(1);
+  });
+});
+
+/**
+ * PRE-4 story 3.5 (AD-7, Q8, Q14) — props optionnelles de la Cible en Répétitions :
+ * `targetBounds` (1..100), `failureOption` (ligne de tête dans la colonne unique) et
+ * `valueAccessibilityLabel`. Sans elles, comportement inchangé (tests ci-dessus).
+ * Seule la couche JS est exercée ; le rendu natif de la ligne de tête est
+ * `NON VÉRIFIABLE` ici et se juge sur iPhone (R-3.5-01 à 04).
+ */
+describe("PRE4-3.5 — NumberWheelPicker : bornes de Cible et ligne de tête « à l’échec »", () => {
+  const FAILURE_LABEL = "Aucune répétition, à l’échec";
+  const BOUNDS = { min: 1, max: 100 };
+  const spoken = (value: number) => `${value} ${value === 1 ? "répétition" : "répétitions"}`;
+
+  function failureProps(overrides: { value?: number; initiallySelected?: boolean } = {}) {
+    const onValidateFailure = jest.fn();
+    const props = renderProps({
+      value: overrides.value ?? 10,
+      targetBounds: BOUNDS,
+      valueAccessibilityLabel: spoken,
+      failureOption: { label: FAILURE_LABEL, initiallySelected: overrides.initiallySelected ?? false, onValidateFailure },
+    });
+    return { props, onValidateFailure };
+  }
+
+  /** Éléments SwiftUI de la colonne native (`Text` + `tag`), dans l'ordre de la roue. */
+  function nativeItems() {
+    return screen
+      .getByTestId("number-wheel-column")
+      .findAll((node) => typeof node.type === "string" && typeof node.props.text === "string")
+      .map((node) => {
+        const modifiers = node.props.modifiers as { $type: string; tag?: unknown; label?: string; width?: number }[];
+        return {
+          text: node.props.text as string,
+          tag: modifiers.find((modifier) => modifier.$type === "tag")?.tag,
+          label: modifiers.find((modifier) => modifier.$type === "accessibilityLabel")?.label,
+        };
+      });
+  }
+
+  function nativeChange(selection: number | string) {
+    fireEvent(screen.getByTestId("number-wheel-column"), "selectionChange", { nativeEvent: { selection } });
+  }
+
+  describe("iOS (roue native SwiftUI)", () => {
+    let originalPlatformOS: typeof Platform.OS;
+
+    beforeEach(() => {
+      originalPlatformOS = Platform.OS;
+      Platform.OS = "ios";
+    });
+
+    afterEach(() => {
+      Platform.OS = originalPlatformOS;
+    });
+
+    it("PRE4-3.5/AC2 — une seule colonne : ligne de tête puis 1..100, croissants ; tag de tête non numérique ; aucun grisé ajouté", () => {
+      const { props } = failureProps();
+      const { UNSAFE_root } = render(<NumberWheelPicker {...props} />);
+
+      const items = nativeItems();
+      expect(items.map((item) => item.text)).toEqual([FAILURE_LABEL, ...Array.from({ length: 100 }, (_, index) => String(index + 1))]);
+      expect(typeof items[0]!.tag).toBe("string");
+      expect(items.slice(1).every((item, index) => item.tag === index + 1)).toBe(true);
+      expect(UNSAFE_root.findAll((node) => typeof node.type === "string" && node.props.testID === "number-wheel-column")).toHaveLength(1);
+      expect(StyleSheet.flatten(screen.getByTestId("number-wheel-picker").props.style).opacity).toBeUndefined();
+      expect(UNSAFE_root.findAllByType(ScrollView)).toHaveLength(0);
+    });
+
+    it("PRE4-3.5/AC3 — ligne de tête → 12 → ✓ : onValidate(12) ; retour sur la ligne de tête → ✓ : onValidateFailure({ kind: \"FAILURE\" }) seul", () => {
+      const first = failureProps({ initiallySelected: true });
+      const view = render(<NumberWheelPicker {...first.props} />);
+      nativeChange(12);
+      fireEvent.press(screen.getByLabelText(VALIDATE_LABEL));
+      expect(first.props.onValidate).toHaveBeenCalledWith(12);
+      expect(first.onValidateFailure).not.toHaveBeenCalled();
+      view.unmount();
+
+      const second = failureProps({ initiallySelected: true });
+      render(<NumberWheelPicker {...second.props} />);
+      nativeChange(12);
+      expect(screen.getByTestId("number-wheel-column").props.selection).toBe(12);
+      const headTag = nativeItems()[0]!.tag as string;
+      nativeChange(headTag);
+      expect(screen.getByTestId("number-wheel-column").props.selection).toBe(headTag);
+      fireEvent.press(screen.getByLabelText(VALIDATE_LABEL));
+      expect(second.onValidateFailure).toHaveBeenCalledTimes(1);
+      expect(second.onValidateFailure).toHaveBeenCalledWith({ kind: "FAILURE" });
+      expect(second.props.onValidate).not.toHaveBeenCalled();
+    });
+
+    it("PRE4-3.5/AC4 — ouverture : 12 → 12 ; ligne de tête si initiallySelected ; 150 → 100 ; Annuler n'appelle aucun rappel", () => {
+      const twelve = render(<NumberWheelPicker {...failureProps({ value: 12 }).props} />);
+      expect(screen.getByTestId("number-wheel-column").props.selection).toBe(12);
+      twelve.unmount();
+
+      const failure = render(<NumberWheelPicker {...failureProps({ initiallySelected: true }).props} />);
+      expect(screen.getByTestId("number-wheel-column").props.selection).toBe(nativeItems()[0]!.tag);
+      failure.unmount();
+
+      const { props, onValidateFailure } = failureProps({ value: 150 });
+      render(<NumberWheelPicker {...props} />);
+      expect(screen.getByTestId("number-wheel-column").props.selection).toBe(100);
+      fireEvent.press(screen.getByLabelText(CANCEL_LABEL));
+      expect(props.onCancel).toHaveBeenCalledTimes(1);
+      expect(props.onValidate).not.toHaveBeenCalled();
+      expect(onValidateFailure).not.toHaveBeenCalled();
+    });
+
+    it("PRE4-3.5/AC5 — 1 et 100 atteignables ; 0, 101 et 12,4 reçus de la roue ne sortent jamais tels quels", () => {
+      const cases: [number, number][] = [
+        [1, 1],
+        [100, 100],
+        [0, 1],
+        [101, 100],
+        [12.4, 12],
+      ];
+      for (const [received, expected] of cases) {
+        const { props } = failureProps();
+        const view = render(<NumberWheelPicker {...props} />);
+        nativeChange(received);
+        fireEvent.press(screen.getByLabelText(VALIDATE_LABEL));
+        expect(props.onValidate).toHaveBeenCalledWith(expected);
+        view.unmount();
+      }
+    });
+
+    it("PRE4-3.5/AC7 — libellés d'accessibilité : ligne de tête, puis chaque nombre avec son unité", () => {
+      render(<NumberWheelPicker {...failureProps().props} />);
+      const items = nativeItems();
+      expect(items[0]!.label).toBe(FAILURE_LABEL);
+      expect(items[1]!.label).toBe("1 répétition");
+      expect(items[12]!.label).toBe("12 répétitions");
+      expect(items[100]!.label).toBe("100 répétitions");
+    });
+
+    it("PRE4-3.5/AC7 (P33), AC8 — largeur EXPLICITE de la colonne native conservée (96 sans ligne de tête, élargie à 306 avec, surface 330) : libellé de tête non tronqué ; Host inchangé", () => {
+      const columnWidth = () =>
+        (screen.getByTestId("number-wheel-column").props.modifiers as { $type: string; width?: number }[]).find(
+          (modifier) => modifier.$type === "frame",
+        )?.width;
+      const plain = render(<NumberWheelPicker {...renderProps()} />);
+      expect(columnWidth()).toBe(96);
+      expect(StyleSheet.flatten(screen.getByTestId("number-wheel-picker").props.style).width).toBe(144);
+      plain.unmount();
+
+      render(<NumberWheelPicker {...failureProps().props} />);
+      expect(columnWidth()).toBe(306);
+      expect(StyleSheet.flatten(screen.getByTestId("number-wheel-picker").props.style).width).toBe(330);
+    });
+
+    it("PRE4-3.5/AC8 — sans les nouvelles props : 99 valeurs (1..99, WHEEL_NUMBER_MAX inchangé), ni ligne de tête ni libellé d'unité", () => {
+      render(<NumberWheelPicker {...renderProps({ value: 150 })} />);
+      const items = nativeItems();
+      expect(items).toHaveLength(99);
+      expect(items[0]).toMatchObject({ text: "1", tag: 1, label: undefined });
+      expect(items[98]).toMatchObject({ text: "99", tag: 99 });
+      expect(WHEEL_NUMBER_MAX).toBe(99);
+      expect(screen.getByTestId("number-wheel-column").props.selection).toBe(99);
+      nativeChange("failure");
+      expect(screen.getByTestId("number-wheel-column").props.selection).toBe(99);
+    });
+
+    it("PRE4-3.5/AC8 — sans les nouvelles props : une tête reçue est ignorée, ✓ valide 99, jamais une chaîne", () => {
+      const props = renderProps({ value: 150 });
+      render(<NumberWheelPicker {...props} />);
+      nativeChange("failure");
+      fireEvent.press(screen.getByLabelText(VALIDATE_LABEL));
+      expect(props.onValidate).toHaveBeenCalledTimes(1);
+      expect(props.onValidate).toHaveBeenCalledWith(99);
+      expect(props.onValidate.mock.calls.every(([value]) => typeof value === "number")).toBe(true);
+    });
+
+    it("PRE4-3.5/AC4 — entrées invalides : valeur non finie → borne basse ; bornes non entières ou min > max → erreur", () => {
+      for (const value of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+        const view = render(<NumberWheelPicker {...failureProps({ value }).props} />);
+        expect(screen.getByTestId("number-wheel-column").props.selection).toBe(1);
+        view.unmount();
+      }
+      const silence = jest.spyOn(console, "error").mockImplementation(() => {});
+      try {
+        for (const targetBounds of [{ min: 1.5, max: 100 }, { min: 1, max: 99.5 }, { min: 10, max: 1 }]) {
+          expect(() => render(<NumberWheelPicker {...renderProps({ targetBounds })} />)).toThrow(RangeError);
+        }
+      } finally {
+        silence.mockRestore();
+      }
+    });
+  });
+
+  describe("Android/web (roulette Legacy, parité)", () => {
+    let originalPlatformOS: typeof Platform.OS;
+
+    beforeEach(() => {
+      originalPlatformOS = Platform.OS;
+      Platform.OS = "android";
+    });
+
+    afterEach(() => {
+      Platform.OS = originalPlatformOS;
+    });
+
+    it("PRE4-3.5/AC2, AC8 — Legacy : même colonne (ligne de tête, puis 1..100), aucun 0 ni 101", () => {
+      render(<NumberWheelPicker {...failureProps().props} />);
+      expect(screen.getByTestId("number-wheel-column-item-failure")).toBeTruthy();
+      expect(screen.getByTestId("number-wheel-column-item-1")).toBeTruthy();
+      expect(screen.getByTestId("number-wheel-column-item-100")).toBeTruthy();
+      expect(screen.queryByTestId("number-wheel-column-item-0")).toBeNull();
+      expect(screen.queryByTestId("number-wheel-column-item-101")).toBeNull();
+      expect(screen.getByText(FAILURE_LABEL)).toBeTruthy();
+    });
+
+    it("PRE4-3.5/AC7 (P33) — Legacy : surface élargie à 330 avec la ligne de tête, libellé sur une ligne sans rétrécissement ; sans elle, aucune largeur imposée", () => {
+      const withHead = render(<NumberWheelPicker {...failureProps().props} />);
+      expect(StyleSheet.flatten(screen.getByTestId("number-wheel-picker").props.style).width).toBe(330);
+      const label = screen.getByText(FAILURE_LABEL);
+      expect(label.props.adjustsFontSizeToFit).toBeUndefined();
+      expect(label.props.numberOfLines).toBe(1);
+      withHead.unmount();
+
+      render(<NumberWheelPicker {...renderProps()} />);
+      expect(StyleSheet.flatten(screen.getByTestId("number-wheel-picker").props.style).width).toBeUndefined();
+    });
+
+    it("PRE4-3.5/AC8 — Legacy sans les nouvelles props : 1..99, aucune ligne de tête, accessibilityValue figée à l'ouverture, onValidate(WHEEL_NUMBER_MIN + index)", () => {
+      const props = renderProps({ value: 12 });
+      render(<NumberWheelPicker {...props} />);
+      expect(screen.getByTestId("number-wheel-column-item-1")).toBeTruthy();
+      expect(screen.getByTestId("number-wheel-column-item-99")).toBeTruthy();
+      expect(screen.queryByTestId("number-wheel-column-item-100")).toBeNull();
+      expect(screen.queryByTestId("number-wheel-column-item-failure")).toBeNull();
+      expect(screen.getByTestId("number-wheel-column-item-12").props.accessibilityLabel).toBe("12");
+      const opening = { min: 1, max: 99, now: 12 };
+      expect(screen.getByTestId("number-wheel-column").props.accessibilityValue).toEqual(opening);
+      scrollTo(screen.getByTestId("number-wheel-column"), ITEM_HEIGHT * 4); // index 4
+      expect(screen.getByTestId("number-wheel-column").props.accessibilityValue).toEqual(opening);
+      fireEvent.press(screen.getByLabelText(VALIDATE_LABEL));
+      expect(props.onValidate).toHaveBeenCalledWith(WHEEL_NUMBER_MIN + 4);
+    });
+
+    it("PRE4-3.5/AC3, AC8 — Legacy : mêmes transitions — 12 par défilement puis ✓ ; retour sur la ligne de tête (index 0) puis ✓ : FAILURE seule", () => {
+      const first = failureProps({ initiallySelected: true });
+      const view = render(<NumberWheelPicker {...first.props} />);
+      scrollTo(screen.getByTestId("number-wheel-column"), ITEM_HEIGHT * 12); // index 12 -> 12 (index 0 = ligne de tête)
+      fireEvent.press(screen.getByLabelText(VALIDATE_LABEL));
+      expect(first.props.onValidate).toHaveBeenCalledWith(12);
+      expect(first.onValidateFailure).not.toHaveBeenCalled();
+      view.unmount();
+
+      const second = failureProps({ value: 12 });
+      render(<NumberWheelPicker {...second.props} />);
+      scrollTo(screen.getByTestId("number-wheel-column"), 0);
+      fireEvent.press(screen.getByLabelText(VALIDATE_LABEL));
+      expect(second.onValidateFailure).toHaveBeenCalledWith({ kind: "FAILURE" });
+      expect(second.props.onValidate).not.toHaveBeenCalled();
+    });
+
+    it("PRE4-3.5/AC4, AC5 — Legacy : ouverture sur 12, sur la ligne de tête, 150 → 100 ; débordements bornés à 100 et à la ligne de tête", () => {
+      const twelve = render(<NumberWheelPicker {...failureProps({ value: 12 }).props} />);
+      expect(screen.getByTestId("number-wheel-column").props.accessibilityValue).toMatchObject({ min: 1, max: 100, now: 12 });
+      twelve.unmount();
+
+      const failure = render(<NumberWheelPicker {...failureProps({ initiallySelected: true }).props} />);
+      expect(screen.getByTestId("number-wheel-column").props.accessibilityValue).toEqual({ text: FAILURE_LABEL });
+      failure.unmount();
+
+      const { props } = failureProps({ value: 150 });
+      const old = render(<NumberWheelPicker {...props} />);
+      expect(screen.getByTestId("number-wheel-column").props.accessibilityValue).toMatchObject({ now: 100 });
+      scrollTo(screen.getByTestId("number-wheel-column"), ITEM_HEIGHT * 999);
+      fireEvent.press(screen.getByLabelText(VALIDATE_LABEL));
+      expect(props.onValidate).toHaveBeenCalledWith(100);
+      old.unmount();
+
+      const low = failureProps();
+      render(<NumberWheelPicker {...low.props} />);
+      scrollTo(screen.getByTestId("number-wheel-column"), -999);
+      fireEvent.press(screen.getByLabelText(VALIDATE_LABEL));
+      expect(low.onValidateFailure).toHaveBeenCalledWith({ kind: "FAILURE" });
+      expect(low.props.onValidate).not.toHaveBeenCalled();
+    });
+
+    it("PRE4-3.5/AC7 — Legacy : ligne de tête annoncée avec son état sélectionné ou non ; valeur courante annoncée avec son unité", () => {
+      render(<NumberWheelPicker {...failureProps({ value: 12 }).props} />);
+      const column = () => screen.getByTestId("number-wheel-column");
+      expect(screen.getByTestId("number-wheel-column-item-failure").props.accessibilityState).toEqual({ selected: false });
+      expect(column().props.accessibilityValue).toEqual({ min: 1, max: 100, now: 12, text: "12 répétitions" });
+      expect(screen.getByTestId("number-wheel-column-item-12").props.accessibilityLabel).toBe("12 répétitions");
+      fireEvent.press(screen.getByTestId("number-wheel-column-item-failure"));
+      expect(screen.getByTestId("number-wheel-column-item-failure").props.accessibilityState).toEqual({ selected: true });
+      expect(column().props.accessibilityValue).toEqual({ text: FAILURE_LABEL });
+      fireEvent(column(), "accessibilityAction", { nativeEvent: { actionName: "increment" } });
+      expect(column().props.accessibilityValue).toEqual({ min: 1, max: 100, now: 1, text: "1 répétition" });
+      expect(screen.getByTestId("number-wheel-column-item-failure").props.accessibilityState).toEqual({ selected: false });
     });
   });
 });

@@ -1,0 +1,6 @@
+# features/activities/testing
+
+Outils de test des écrans d'Activités. Le code de production ne les importe jamais.
+
+- `mediaMenu.ts` (PRE-4, story 4.4) : `openMediaMenu(rang)` ouvre le menu Retirer / Monter / Descendre d'une tuile de la galerie, intercepte le menu natif (feuille d'actions iOS, `Alert` ailleurs) et rend `title`, `options` (sans `Annuler`), `choose(libellé)` et `cancel()`. Le geste est isolé dans `performMenuGesture` (toucher dans le code de départ ; appui long en 4.5, Q31) et l'interception dans `interceptMenu` (espions toujours restaurés ; erreur si aucun menu ou aucune option `Annuler`) : les tests de non-régression des trois actions ne dépendent ni de l'un ni de l'autre. 4.5 devra adapter l'interception au menu contextuel natif, pas seulement le geste. Une option absente lève une erreur qui liste les options présentes, sur iOS comme ailleurs.
+- `executionSheetActions.ts` (PRE-4, story 3.1) : `chooseExecutionMode(label)` choisit le Mode dans la Feuille Paramètres d'exécution, par le popover natif sur iOS ou par le segmenté sur Android et le web. Un libellé inconnu lève une erreur. Il sert aux tests de la Feuille et aux tests d'intégration de l'Éditeur et de Composition.

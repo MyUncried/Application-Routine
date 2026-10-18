@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "@jest/globals";
 
+import { initializeDatabase } from "@/infrastructure/database/initializeDatabase";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteCategoryRepository } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
@@ -215,5 +216,26 @@ describe("SqliteCategoryRepository", () => {
       const repository = new SqliteCategoryRepository(database, makeUuidFactory("cat"));
       expect(await repository.isUsed("cardio")).toBe(true);
     });
+  });
+
+  // PRE-4 story 4.3 (FR-20-07, AC9 ; D-200, D-257) : seule une création explicite du même nom
+  // réactive une Catégorie supprimée — ni le démarrage ni une migration rejouée.
+  it("PRE4-4.3/AC9 — ni le démarrage ni une migration ne réactivent ou ne recréent une Catégorie supprimée, prédéfinie ou personnelle", async () => {
+    const repository = new SqliteCategoryRepository(database, makeUuidFactory("cat"));
+    const created = await repository.create({ name: "Escalade", color: "#3B82F6" });
+    expect(created.status).toBe("OK");
+    const customId = created.status === "OK" ? created.value.id : "";
+    await repository.retire("cardio");
+    await repository.retire(customId);
+
+    await initializeDatabase(database);
+    await migrateDatabase(database);
+
+    const all = await repository.listAll();
+    expect(all).toHaveLength(11);
+    expect(all.find((category) => category.id === "cardio")?.isActive).toBe(false);
+    expect(all.find((category) => category.id === customId)?.isActive).toBe(false);
+    expect(all.filter((category) => category.canonicalKey === "cardio")).toHaveLength(1);
+    expect(all.filter((category) => category.canonicalKey === "escalade")).toHaveLength(1);
   });
 });

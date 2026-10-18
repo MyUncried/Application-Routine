@@ -6,4 +6,6 @@ module.exports = {
   // Deux workers gardent la suite rapide sans provoquer de faux timeouts à 30 s.
   maxWorkers: 2,
   testTimeout: 30000,
+  // PRE-4 Q39 : simulacres officiels de Reanimated et Worklets (animations de mise en page de la Feuille).
+  setupFiles: ["<rootDir>/jest.setup.js"],
 };

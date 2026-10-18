@@ -11,15 +11,18 @@ import { useEffect, useRef, useState } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
 
+import type { FailureSeriesTarget } from "@/domain/activities/ExecutionParameters";
 import {
   WHEEL_NUMBER_MAX,
   WHEEL_NUMBER_MIN,
   clampIndex,
   indexToOffset,
   offsetToIndex,
+  type WheelTargetBounds,
 } from "@/features/sessions/wheelPickerMath";
 import { WheelSelectionOverlay } from "@/features/sessions/WheelSelectionOverlay";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
 import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -62,6 +65,13 @@ import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
  * pendant le défilement) ; `onCancel` ferme sans rien modifier. Toucher la
  * roulette, la zone sélectionnée ou arrêter le défilement ne ferme jamais le
  * sélecteur (seules Annuler/Confirmer ferment).
+ *
+ * **PRE-4 story 3.5 (AD-7, Q8, Q14)** : Sélecteur de cible en Répétitions par
+ * props optionnelles — `targetBounds` (1..100), `failureOption` (ligne de tête
+ * « Aucune répétition, à l’échec » DANS la colonne unique, avant les nombres) et
+ * `valueAccessibilityLabel` (nombre annoncé avec son unité). Même primitive, même
+ * barre ✕ / ✓ ; l'échec sort par `onValidateFailure({ kind: "FAILURE" })`. Sans
+ * ces props, 1..99 (`WHEEL_NUMBER_MAX`, non modifié) et rendu inchangés.
  */
 
 const ITEM_HEIGHT = 40;
@@ -85,7 +95,27 @@ const WHEEL_ACTION_HIT_SLOP = (WHEEL_ACTION_TOUCH_TARGET - WHEEL_ACTION_VISUAL_C
  */
 const WHEEL_NUMERIC_WIDTH = dimensions.wheelPicker.numericWidth;
 
-export type NumberWheelPickerProps = {
+/**
+ * PRE-4 story 3.5 (AC7, P33) : avec la ligne de tête, la surface prend la largeur du
+ * Sélecteur de cible en Durée (`330`, même panneau `AnchoredPanel`, Q41) et la colonne
+ * native garde une largeur EXPLICITE (`frame`), élargie à la surface moins ses marges,
+ * pour que « Aucune répétition, à l’échec » ne soit pas tronqué. Valeurs d'intégration
+ * (aucun jeton modifié, aucun relevé Figma : ligne de tête `NON VÉRIFIABLE`). Sans
+ * `failureOption`, `144` / `96` inchangés.
+ */
+const WHEEL_FAILURE_WIDTH = dimensions.wheelPicker.durationWidth;
+const NATIVE_COLUMN_WIDTH = 96;
+const NATIVE_FAILURE_COLUMN_WIDTH = WHEEL_FAILURE_WIDTH - 2 * spacing[12];
+
+/**
+ * Story 3.5 (Q14, AD-7) : tag SwiftUI de la ligne de tête — chaîne, donc jamais
+ * confondue avec un nombre de la colonne (le `Picker` natif accepte des tags `String`
+ * et `Double` dans la même liste). Interne au composant : il ne sort jamais.
+ */
+const FAILURE_TAG = "failure";
+const FAILURE_TARGET: FailureSeriesTarget = { kind: "FAILURE" };
+
+type NumberWheelPickerBaseProps = {
   value: number;
   /** Valide exactement la valeur actuellement centrée — jamais appelé pendant le défilement, ni par Annuler. */
   onValidate: (value: number) => void;
@@ -95,7 +125,67 @@ export type NumberWheelPickerProps = {
   cancelAccessibilityLabel: string;
   validateAccessibilityLabel: string;
   testID?: string;
+  /**
+   * PRE-4 story 3.5 (AC7, FR-07-08) — libellé d'accessibilité d'un nombre, avec son
+   * unité (lexique, « 12 répétitions »). Sans elle, inchangé (le nombre seul).
+   */
+  valueAccessibilityLabel?: (value: number) => string;
 };
+
+/**
+ * PRE-4 story 3.5 (AD-7, AC8) : props optionnelles seulement. `targetBounds` remplace
+ * `WHEEL_NUMBER_MIN..WHEEL_NUMBER_MAX` (1..99, inchangés) par les bornes de Cible
+ * (1..100) ; `failureOption` exige `targetBounds` (union de props, même patron que
+ * `DurationWheelPicker`). Sans elles, comportement actuel strictement inchangé
+ * (Composition, roulette des tours, Profil).
+ */
+export type NumberWheelPickerProps = NumberWheelPickerBaseProps &
+  (
+    | { targetBounds?: WheelTargetBounds; failureOption?: undefined }
+    | { targetBounds: WheelTargetBounds; failureOption: NumberWheelFailureOption }
+  );
+
+/**
+ * Story 3.5 (Q8, Q14) — ligne de tête « Aucune répétition, à l’échec », PREMIÈRE ligne
+ * de la colonne unique, puis les entiers des bornes : ni grisé, ni filet, ni bloc
+ * séparé, la sélection est rendue par la roue elle-même. Placée sur la ligne de tête,
+ * la roue choisit l'échec : le ✓ émet une `SeriesTarget` `FAILURE` par
+ * `onValidateFailure`, jamais un nombre ni une sentinelle (`onValidate` n'est jamais
+ * appelé pour l'échec). Aucune haptique ajoutée. Contrat d'usage : la présence de
+ * `failureOption` est fixée au montage (la Feuille démonte le panneau au changement de
+ * Mode) ; la retirer ou l'ajouter ensuite n'est pas pris en charge (garde au ✓ seulement).
+ */
+export type NumberWheelFailureOption = {
+  /** « Aucune répétition, à l’échec » (lexique). */
+  label: string;
+  /** Position d'ouverture : la ligne de tête (vrai) ou la valeur numérique `value`. */
+  initiallySelected: boolean;
+  onValidateFailure: (target: FailureSeriesTarget) => void;
+};
+
+/** Bornes effectives et liste des nombres de la colonne (liste partagée sans `targetBounds`). */
+function wheelRange(targetBounds: WheelTargetBounds | undefined): {
+  min: number;
+  max: number;
+  values: readonly number[];
+} {
+  if (targetBounds === undefined) {
+    return { min: WHEEL_NUMBER_MIN, max: WHEEL_NUMBER_MAX, values: VALUES };
+  }
+  const { min, max } = targetBounds;
+  // Convention du projet : seule une entrée invalide lève (bornes de Cible du domaine, entières).
+  if (!Number.isInteger(min) || !Number.isInteger(max) || min > max) {
+    throw new RangeError(`NumberWheelPicker : bornes de Cible invalides (${min}..${max})`);
+  }
+  return { min, max, values: Array.from({ length: max - min + 1 }, (_, index) => min + index) };
+}
+
+/** Nombre ramené dans les bornes (entier) — aucune valeur hors bornes ni fractionnaire ne sort (AC5). */
+function clampToRange(value: number, min: number, max: number): number {
+  // Story 3.5 : une valeur non finie (NaN, ±∞) ouvre sur la borne basse, même garde que `handleChange`.
+  if (!Number.isFinite(value)) return min;
+  return min + clampIndex(Math.round(value) - min, max - min);
+}
 
 export function NumberWheelPicker(props: NumberWheelPickerProps) {
   if (Platform.OS === "ios") {
@@ -129,15 +219,33 @@ function NativeAppleNumberWheelPicker({
   cancelAccessibilityLabel,
   validateAccessibilityLabel,
   testID = "number-wheel-picker",
+  valueAccessibilityLabel,
+  targetBounds,
+  failureOption,
 }: NumberWheelPickerProps) {
+  const range = wheelRange(targetBounds);
   // `useState(() => ...)` : initialisé UNE SEULE FOIS au montage — jamais
   // recalculé depuis `value` à un rendu ultérieur (brouillon local), même
-  // patron que `DurationWheelPicker`.
-  const [initial] = useState(() => WHEEL_NUMBER_MIN + clampIndex(value - WHEEL_NUMBER_MIN, WHEEL_NUMBER_MAX - WHEEL_NUMBER_MIN));
+  // patron que `DurationWheelPicker`. Story 3.5 : la ligne de tête est une
+  // position d'ouverture possible (`initiallySelected`).
+  const [initial] = useState<number | typeof FAILURE_TAG>(() =>
+    failureOption?.initiallySelected === true ? FAILURE_TAG : clampToRange(value, range.min, range.max),
+  );
   const [draft, setDraft] = useState(initial);
   const draftRef = useRef(initial);
 
-  function handleChange(next: number) {
+  function handleChange(received: number | string) {
+    // Story 3.5 (AC5) : seule la ligne de tête (avec `failureOption`) ou un nombre des
+    // bornes devient le brouillon ; toute autre valeur native est ignorée ou bornée.
+    let next: number | typeof FAILURE_TAG;
+    if (received === FAILURE_TAG) {
+      if (!failureOption) return;
+      next = FAILURE_TAG;
+    } else if (typeof received === "number" && Number.isFinite(received)) {
+      next = clampToRange(received, range.min, range.max);
+    } else {
+      return;
+    }
     if (next === draftRef.current) {
       return;
     }
@@ -147,11 +255,31 @@ function NativeAppleNumberWheelPicker({
   }
 
   function handleValidate() {
-    onValidate(draftRef.current);
+    const current = draftRef.current;
+    if (current === FAILURE_TAG) {
+      // Le parent monte la roue avec une `failureOption` stable : le panneau de la Feuille
+      // est démonté au changement de Mode. Garde seulement : sans elle, la tête ne peut
+      // pas sortir comme échec, le ✓ valide la borne basse (jamais une chaîne).
+      if (failureOption) {
+        failureOption.onValidateFailure(FAILURE_TARGET);
+      } else {
+        onValidate(range.min);
+      }
+      return;
+    }
+    onValidate(current);
   }
 
+  // AC7 (H13) : sur iOS, la primitive annonce la ligne courante ; les éléments ne portent
+  // qu'un libellé (nombre avec son unité) — sans `valueAccessibilityLabel`, inchangés.
+  const itemModifiers = (item: number) =>
+    valueAccessibilityLabel
+      ? [tag(item), foregroundStyle(colors.textPrimary), accessibilityLabelModifier(valueAccessibilityLabel(item))]
+      : [tag(item), foregroundStyle(colors.textPrimary)];
+  const columnWidth = failureOption ? NATIVE_FAILURE_COLUMN_WIDTH : NATIVE_COLUMN_WIDTH;
+
   return (
-    <View style={styles.nativeSurface} testID={testID}>
+    <View style={failureOption ? [styles.nativeSurface, styles.nativeSurfaceWithFailure] : styles.nativeSurface} testID={testID}>
       <PickerToolbar
         onCancel={onCancel}
         onValidate={handleValidate}
@@ -162,11 +290,20 @@ function NativeAppleNumberWheelPicker({
         <SwiftUIPicker
           selection={draft}
           onSelectionChange={handleChange}
-          modifiers={[pickerStyle("wheel"), frame({ width: 96 }), accessibilityLabelModifier(accessibilityLabel)]}
+          modifiers={[pickerStyle("wheel"), frame({ width: columnWidth }), accessibilityLabelModifier(accessibilityLabel)]}
           testID="number-wheel-column"
         >
-          {VALUES.map((item) => (
-            <SwiftUIText key={item} modifiers={[tag(item), foregroundStyle(colors.textPrimary)]}>
+          {/* Story 3.5 (Q14) : ligne de tête, premier élément de la même colonne native. */}
+          {failureOption ? (
+            <SwiftUIText
+              key={FAILURE_TAG}
+              modifiers={[tag(FAILURE_TAG), foregroundStyle(colors.textPrimary), accessibilityLabelModifier(failureOption.label)]}
+            >
+              {failureOption.label}
+            </SwiftUIText>
+          ) : null}
+          {range.values.map((item) => (
+            <SwiftUIText key={item} modifiers={itemModifiers(item)}>
               {String(item)}
             </SwiftUIText>
           ))}
@@ -176,17 +313,23 @@ function NativeAppleNumberWheelPicker({
   );
 }
 
-/** Même patron que `PickerToolbar` de `DurationWheelPicker.tsx` — voir la note de tête pour la justification de la duplication locale. */
-function PickerToolbar({
+/**
+ * Même patron que `PickerToolbar` de `DurationWheelPicker.tsx` — voir la note de tête pour la justification de la duplication locale.
+ * Exportée pour les tests seulement (prop `validateDisabled`, story 3.4) ; aucun autre consommateur.
+ */
+export function PickerToolbar({
   onCancel,
   onValidate,
   cancelAccessibilityLabel,
   validateAccessibilityLabel,
+  validateDisabled,
 }: {
   onCancel: () => void;
   onValidate: () => void;
   cancelAccessibilityLabel: string;
   validateAccessibilityLabel: string;
+  /** PRE-4 story 3.4 (AD-7) : même prop, à l'identique, que la copie de `DurationWheelPicker.tsx`. */
+  validateDisabled?: boolean;
 }) {
   return (
     <View style={styles.toolbar} testID="number-wheel-toolbar">
@@ -209,7 +352,8 @@ function PickerToolbar({
         accessibilityRole="button"
         accessibilityLabel={validateAccessibilityLabel}
         hitSlop={WHEEL_ACTION_HIT_SLOP}
-        style={styles.actionValidate}
+        style={validateDisabled ? [styles.actionValidate, styles.validateDisabled] : styles.actionValidate}
+        {...(validateDisabled ? { disabled: true, accessibilityState: { disabled: true } } : {})}
         testID="number-wheel-validate"
       >
         <KodjoIcon
@@ -236,11 +380,26 @@ function LegacyNumberWheelPicker({
   cancelAccessibilityLabel,
   validateAccessibilityLabel,
   testID = "number-wheel-picker",
+  valueAccessibilityLabel,
+  targetBounds,
+  failureOption,
 }: NumberWheelPickerProps) {
-  const initialIndex = clampIndex(value - WHEEL_NUMBER_MIN, WHEEL_NUMBER_MAX - WHEEL_NUMBER_MIN);
-  const [initial] = useState(() => initialIndex);
+  const range = wheelRange(targetBounds);
+  // Story 3.5 (Q14) : avec `failureOption`, l'index 0 est la ligne de tête et les
+  // nombres commencent à l'index 1 (même ordre que la colonne native).
+  const headCount = failureOption ? 1 : 0;
+  const lastIndex = headCount + range.values.length - 1;
+  const [initial] = useState(() =>
+    failureOption?.initiallySelected === true
+      ? 0
+      : headCount + clampToRange(value, range.min, range.max) - range.min,
+  );
   const indexRef = useRef(initial);
   const scrollRef = useRef<ScrollView>(null);
+  // Story 3.5 (AC7) : index courant pour l'état d'accessibilité, seulement avec les
+  // nouvelles props — sans elles, `accessibilityValue` reste celle de l'ouverture (inchangé).
+  const [currentIndex, setCurrentIndex] = useState(initial);
+  const tracksCurrent = targetBounds !== undefined;
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ y: indexToOffset(initial, ITEM_HEIGHT), animated: false });
@@ -252,15 +411,12 @@ function LegacyNumberWheelPicker({
       return;
     }
     indexRef.current = index;
+    if (tracksCurrent) setCurrentIndex(index);
     Haptics.selectionAsync().catch(() => {});
   }
 
   function handleScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
-    const index = offsetToIndex(
-      event.nativeEvent.contentOffset.y,
-      ITEM_HEIGHT,
-      WHEEL_NUMBER_MAX - WHEEL_NUMBER_MIN,
-    );
+    const index = offsetToIndex(event.nativeEvent.contentOffset.y, ITEM_HEIGHT, lastIndex);
     applyIndex(index);
   }
 
@@ -273,12 +429,27 @@ function LegacyNumberWheelPicker({
     align();
   }
 
+  /** Nombre à l'index `index` de la colonne (hors ligne de tête). */
+  const numberAt = (index: number) => range.values[index - headCount] ?? range.min;
+
   function handleValidate() {
-    onValidate(WHEEL_NUMBER_MIN + indexRef.current);
+    if (failureOption && indexRef.current === 0) {
+      failureOption.onValidateFailure(FAILURE_TARGET);
+      return;
+    }
+    onValidate(numberAt(indexRef.current));
   }
 
+  const itemLabel = (item: number) => (valueAccessibilityLabel ? valueAccessibilityLabel(item) : String(item));
+  // AC7 (H13) : valeur courante annoncée en texte (ligne de tête, ou nombre avec son unité).
+  const accessibilityValue = !tracksCurrent
+    ? { min: WHEEL_NUMBER_MIN, max: WHEEL_NUMBER_MAX, now: WHEEL_NUMBER_MIN + initial }
+    : failureOption && currentIndex === 0
+      ? { text: failureOption.label }
+      : { min: range.min, max: range.max, now: numberAt(currentIndex), text: itemLabel(numberAt(currentIndex)) };
+
   return (
-    <View style={styles.legacySurface} testID={testID}>
+    <View style={failureOption ? [styles.legacySurface, styles.legacySurfaceWithFailure] : styles.legacySurface} testID={testID}>
       <PickerToolbar
         onCancel={onCancel}
         onValidate={handleValidate}
@@ -299,27 +470,41 @@ function LegacyNumberWheelPicker({
           onScrollEndDrag={align}
           accessibilityRole="adjustable"
           accessibilityLabel={accessibilityLabel}
-          accessibilityValue={{
-            min: WHEEL_NUMBER_MIN,
-            max: WHEEL_NUMBER_MAX,
-            now: WHEEL_NUMBER_MIN + initial,
-          }}
+          accessibilityValue={accessibilityValue}
           onAccessibilityAction={(event) => {
             if (event.nativeEvent.actionName === "increment") {
-              handleItemPress(Math.min(indexRef.current + 1, VALUES.length - 1));
+              handleItemPress(Math.min(indexRef.current + 1, lastIndex));
             } else if (event.nativeEvent.actionName === "decrement") {
               handleItemPress(Math.max(indexRef.current - 1, 0));
             }
           }}
           accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
         >
-          {VALUES.map((item, index) => (
+          {/* Story 3.5 (Q14) : ligne de tête, premier élément de la même colonne ; son état
+              sélectionné ou non est annoncé (AC7, H13), sans grisé ni filet. */}
+          {failureOption ? (
+            <Pressable
+              key={FAILURE_TAG}
+              style={styles.item}
+              onPress={() => handleItemPress(0)}
+              accessibilityRole="button"
+              accessibilityLabel={failureOption.label}
+              accessibilityState={{ selected: currentIndex === 0 }}
+              testID="number-wheel-column-item-failure"
+            >
+              {/* P33 : aucun rétrécissement silencieux du libellé ; la surface est élargie. */}
+              <Text style={styles.failureItemLabel} numberOfLines={1}>
+                {failureOption.label}
+              </Text>
+            </Pressable>
+          ) : null}
+          {range.values.map((item, valueIndex) => (
             <Pressable
               key={item}
               style={styles.item}
-              onPress={() => handleItemPress(index)}
+              onPress={() => handleItemPress(headCount + valueIndex)}
               accessibilityRole="button"
-              accessibilityLabel={String(item)}
+              accessibilityLabel={itemLabel(item)}
               testID={`number-wheel-column-item-${item}`}
             >
               <Text style={styles.itemLabel}>{item}</Text>
@@ -346,6 +531,14 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     paddingHorizontal: spacing[12],
     paddingBottom: spacing[8],
+  },
+  // Story 3.5 (AC7) : largeur de la surface avec la ligne de tête (voir `WHEEL_FAILURE_WIDTH`).
+  nativeSurfaceWithFailure: {
+    width: WHEEL_FAILURE_WIDTH,
+  },
+  // Story 3.5 (AC7, P33) : même largeur qu'iOS avec la ligne de tête, libellé non tronqué.
+  legacySurfaceWithFailure: {
+    width: WHEEL_FAILURE_WIDTH,
   },
   legacySurface: {
     backgroundColor: colors.background,
@@ -382,6 +575,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  // PRE-4 story 3.4 (AC7) : ✓ indisponible.
+  validateDisabled: {
+    opacity: UNSELECTED_OPACITY,
+  },
   nativeHost: {
     alignSelf: "center",
     minHeight: WHEEL_CONTENT_MIN_HEIGHT,
@@ -399,6 +596,11 @@ const styles = StyleSheet.create({
   },
   itemLabel: {
     ...type.metricPrimary,
+    color: colors.textPrimary,
+  },
+  // Story 3.5 : ligne de tête en texte courant (Legacy), même couleur que les nombres.
+  failureItemLabel: {
+    ...type.body,
     color: colors.textPrimary,
   },
 });

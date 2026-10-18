@@ -1,0 +1,199 @@
+{
+  "file_key": "G6RY5Ebhgwb4AHIOYDwwvg",
+  "page_id": "510:101",
+  "baseline": "96a191a975a5de03ed3194568cb991196908fc67",
+  "frames": [
+    {
+      "frame_id": "8328:36711",
+      "name": "Création exercice — Avant Paramètres d'exécution",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-36711.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:36853",
+      "name": "Création exercice — Paramètres — Champ vide",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-36853.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:37022",
+      "name": "Création exercice — Paramètres — Résumé affiché",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-37022.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:35698",
+      "name": "Ajouter un exercice — Initial",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-35698.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:35740",
+      "name": "Ajouter un exercice — Nom Description Media",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-35740.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:36278",
+      "name": "Ajouter un exercice — Catégorie renseignée",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-36278.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:36923",
+      "name": "Création exercice — Paramètres (modale) — Champs vides",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-36923.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:37092",
+      "name": "Création exercice — Paramètres (modale) — Mode d’exécution (popover)",
+      "capture_path": "docs/Specifications-fonctionnelles/images/echec-2026-10-13/8328-37092.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:37760",
+      "name": "Création exercice — Paramètres (modale) — Série en durée",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-37760.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:37862",
+      "name": "Création exercice — Paramètres (modale) — Durée d’une série (roulette)",
+      "capture_path": "docs/Specifications-fonctionnelles/images/echec-2026-10-13/8328-37862.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:37972",
+      "name": "Création exercice — Paramètres (modale) — Changement de côté (popover)",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-37972.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:38084",
+      "name": "Création exercice — Paramètres (modale) — Durée totale (roulette)",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-38084.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:38193",
+      "name": "Création exercice — Paramètres (modale) — Un côté après l’autre",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-38193.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:38301",
+      "name": "Création exercice — Paramètres (modale) — Les deux côtés à chaque série",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-38301.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:38409",
+      "name": "Création exercice — Paramètres (modale) — Durée totale ajustée (message)",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-38409.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:38513",
+      "name": "Création exercice — Paramètres (modale) — Mode d’exécution (popover) — séries variables",
+      "capture_path": "docs/Specifications-fonctionnelles/images/echec-2026-10-13/8328-38513.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:38632",
+      "name": "Création exercice — Paramètres (modale) — Séries variables en durée",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-38632.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:38741",
+      "name": "Création exercice — Paramètres (modale) — Séries variables en répétitions",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-38741.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:38848",
+      "name": "Création exercice — Paramètres (modale) — Séries variables à l’échec",
+      "capture_path": "docs/Specifications-fonctionnelles/images/echec-2026-10-13/8328-38848.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8470:13303",
+      "name": "Modalités d’exécution — Séries variables, cas mixte",
+      "capture_path": "docs/Specifications-fonctionnelles/images/echec-2026-10-13/8470-13303.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:38953",
+      "name": "Création exercice — Paramètres (modale) — Ordre des côtés (popover)",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-38953.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:39072",
+      "name": "Création exercice — Paramètres (modale) — Une seule série",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-39072.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:39181",
+      "name": "Création exercice — Paramètres (modale) — Séries variables (tableau replié)",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-39181.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:39279",
+      "name": "Création exercice — Paramètres (modale) — Séries variables (déplacement)",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-39279.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:39390",
+      "name": "Création exercice — Paramètres (modale) — Mode des séries (popover)",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-39390.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:35810",
+      "name": "Ajouter un exercice — Catégories",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-35810.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:35932",
+      "name": "Ajouter un exercice — Catégorie — Appui long — Confirmation suppression",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-35932.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:36056",
+      "name": "Ajouter un exercice — Nouvelle catégorie",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-36056.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:36348",
+      "name": "Ajouter un exercice — Zones corporelles",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-36348.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:36441",
+      "name": "Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-36441.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:36536",
+      "name": "Ajouter un exercice — Nouvelle zone corporelle",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-36536.png",
+      "capture_present": true
+    },
+    {
+      "frame_id": "8328:36781",
+      "name": "Création exercice — Abandon (confirmation)",
+      "capture_path": "docs/Specifications-fonctionnelles/images/circuits-2026-10-12/8328-36781.png",
+      "capture_present": true
+    }
+  ]
+}

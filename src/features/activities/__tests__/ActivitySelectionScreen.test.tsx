@@ -3,6 +3,13 @@ import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { StyleSheet } from "react-native";
 
 import type { ActivityDefinition } from "@/domain/activities";
+import * as Crypto from "expo-crypto";
+
+import {
+  allFailureParameters,
+  durationParameters,
+  variableParameters,
+} from "@/domain/activities/testing/executionParametersFixtures";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { createDefaultProfile } from "@/domain/preferences/Profile";
 import { createEmptyDraft, type SessionDraft } from "@/domain/sessions/SessionDraft";
@@ -82,11 +89,7 @@ function makeDefinition(
     id,
     name,
     description: null,
-    executionMode: "DURATION",
-    durationSeconds: 30,
-    repetitionCount: null,
-    seriesCount: 2,
-    pauseSeconds: 5,
+    executionParameters: durationParameters(30, 2, 5),
     categoryId: "cardio",
     bodyZoneIds: ["cuisses"],
     sideMode: "UNILATERAL",
@@ -193,7 +196,7 @@ describe("ActivitySelectionScreen", () => {
    * VISUAL_CORRECTION (revue indépendante 5753653735, point 2) : carte
    * alignée sur la carte canonique `ActivityCard.tsx` — barre gauche,
    * contour sélectionné conforme au patron DSF déjà établi
-   * (`CategoriesScreen.tagSelected`). V2-PRE-1 (plan §3.1,
+   * (`CategoriesScreen.tagSelected`, écran supprimé par Q54). V2-PRE-1 (plan §3.1,
    * UI-9C227EDDE427) : aucune sous-carte Récupération — une
    * `ActivityDefinition` ne porte plus cette notion.
    */
@@ -355,9 +358,74 @@ describe("ActivitySelectionScreen", () => {
     const exercises = updateDraft.mock.calls[0][0].exercises ?? [];
     expect(exercises[0]?.postActivityRecoverySeconds).toBe(0);
     expect(exercises[0]?.executionParameters).toEqual(
-      expect.objectContaining({ version: 1, mode: exercises[0]?.executionMode }),
+      expect.objectContaining({ version: 2, mode: "DURATION" }),
     );
+    // AD-9 : copie profonde des paramètres typés, jamais la référence de la définition.
+    expect(exercises[0]?.executionParameters).toEqual(durationParameters(30, 2, 5));
     expect(exercises[0]).toHaveProperty("categoryId");
     expect(exercises[0]?.media).toEqual([]);
+  });
+});
+
+/**
+ * PRE-4 story 1.3 (FR-19-05) — copie groupée atomique et ordonnée, Cibles
+ * typées comprises. L'écran n'a pas de filtre : l'ordre de présentation est
+ * celui de `listActivityDefinitions` (aucun filtre inventé).
+ */
+describe("ActivitySelectionScreen — PRE-4 story 1.3", () => {
+  const typed = [
+    makeDefinition("a", "Squat", { executionParameters: variableParameters({ mode: "REPETITIONS", rows: [[10, 10], ["FAILURE", 20]] }) }),
+    makeDefinition("b", "Fentes", { executionParameters: allFailureParameters(3, 15) }),
+    makeDefinition("c", "Gainage", { executionParameters: durationParameters(45, 2, 10) }),
+  ];
+
+  beforeEach(() => {
+    mockBack.mockClear();
+  });
+
+  it("PRE4-1.3/AC3 — trois Définitions : copies dans l'ordre de la liste, chacune avec ses Cibles typées, en un seul updateDraft", async () => {
+    const { updateDraft } = renderScreen(typed);
+    await waitFor(() => expect(screen.getByTestId("activity-selection-row-c")).toBeTruthy());
+    fireEvent.press(screen.getByTestId("activity-selection-row-c"));
+    fireEvent.press(screen.getByTestId("activity-selection-row-a"));
+    fireEvent.press(screen.getByTestId("activity-selection-row-b"));
+    fireEvent.press(screen.getByTestId("activity-selection-add"));
+
+    expect(updateDraft).toHaveBeenCalledTimes(1);
+    const exercises = updateDraft.mock.calls[0]![0].exercises ?? [];
+    expect(exercises.map((exercise) => exercise.name)).toEqual(["Squat", "Fentes", "Gainage"]);
+    expect(exercises.map((exercise) => exercise.executionParameters)).toEqual(typed.map((definition) => definition.executionParameters));
+    exercises.forEach((exercise, index) => expect(exercise.executionParameters).not.toBe(typed[index]!.executionParameters));
+  });
+
+  it("PRE4-1.3/AC3 — échec pendant la copie groupée : Composition inchangée, aucun sous-ensemble inséré", async () => {
+    const { updateDraft } = renderScreen(typed);
+    await waitFor(() => expect(screen.getByTestId("activity-selection-row-c")).toBeTruthy());
+    fireEvent.press(screen.getByTestId("activity-selection-row-a"));
+    fireEvent.press(screen.getByTestId("activity-selection-row-b"));
+    fireEvent.press(screen.getByTestId("activity-selection-row-c"));
+    // Échec provoqué à la deuxième copie (identifiant indisponible).
+    const randomUUID = jest.mocked(Crypto.randomUUID);
+    const original = randomUUID.getMockImplementation();
+    randomUUID
+      .mockImplementationOnce(() => "copy-1" as ReturnType<typeof Crypto.randomUUID>)
+      .mockImplementationOnce(() => {
+        throw new Error("Injected failure");
+      });
+    let thrown: unknown = null;
+    try {
+      fireEvent.press(screen.getByTestId("activity-selection-add"));
+    } catch (error) {
+      thrown = error;
+    } finally {
+      // Aucune implémentation « une fois » ne doit fuir vers les tests suivants.
+      randomUUID.mockReset();
+      if (original) {
+        randomUUID.mockImplementation(original);
+      }
+    }
+    expect(thrown).toEqual(new Error("Injected failure"));
+    expect(updateDraft).not.toHaveBeenCalled();
+    expect(mockBack).not.toHaveBeenCalled();
   });
 });

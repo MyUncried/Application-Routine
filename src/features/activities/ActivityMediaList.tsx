@@ -1,6 +1,9 @@
+import { Button as SwiftUIButton, ContextMenu, Host, RNHostView, Section } from "@expo/ui/swift-ui";
+import { contentShape, shapes } from "@expo/ui/swift-ui/modifiers";
 import { Image } from "expo-image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type ReactElement } from "react";
 import {
+  AccessibilityInfo,
   ActionSheetIOS,
   ActivityIndicator,
   Alert,
@@ -15,6 +18,7 @@ import {
 
 import type { DraftMediaItem } from "@/domain/media/ActivityMedia";
 import type { ImportItem } from "@/domain/media/ActivityMediaImportService";
+import { PhotoConsultation, VideoConsultation } from "@/features/activities/MediaConsultation";
 import { generateVideoPoster, type VideoPosterHandle } from "@/infrastructure/media/VideoPoster";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
@@ -41,7 +45,24 @@ export type ActivityMediaListProps = {
   readonly onRemove: (index: number) => void;
   readonly onMove: (from: number, to: number) => void;
   readonly onRetry: (item: ImportItem) => void;
+  /**
+   * Story 4.5 (AD-17) : menu de l'appui long sur iOS. Par défaut
+   * `IOS_LONG_PRESS_MENU` ; prop réservée aux tests du repli.
+   */
+  readonly iosLongPressMenu?: IosLongPressMenu;
 };
+
+/**
+ * Story 4.5 (AD-17, AC9) — menu ouvert par l'appui long sur iOS :
+ * `"contextMenu"` = menu contextuel natif `ContextMenu` d'`@expo/ui`
+ * (voie retenue, à valider sur iPhone par R-4.5-00) ; `"actionSheet"` = REPLI
+ * d'AD-17 si l'essai échoue : la feuille d'actions native existante
+ * (`ActionSheetIOS`), ouverte par `onLongPress`. Le repli s'active en
+ * changeant cette seule constante ; le toucher (consultation), les options,
+ * leurs effets et les actions VoiceOver sont identiques dans les deux voies.
+ */
+export type IosLongPressMenu = "contextMenu" | "actionSheet";
+export const IOS_LONG_PRESS_MENU: IosLongPressMenu = "contextMenu";
 
 const m = strings.executionParameters.media;
 
@@ -62,6 +83,7 @@ export function ActivityMediaList({
   onRemove,
   onMove,
   onRetry,
+  iosLongPressMenu = IOS_LONG_PRESS_MENU,
 }: ActivityMediaListProps) {
   const total = media.length;
   const visiblePending = pending.filter((item) => item.state !== "READY");
@@ -87,6 +109,7 @@ export function ActivityMediaList({
               uri={resolveUri(item.asset.uri)}
               onRemove={() => onRemove(index)}
               onMove={(to) => onMove(index, to)}
+              iosLongPressMenu={iosLongPressMenu}
             />
           );
         })}
@@ -153,6 +176,7 @@ export function ActivityMediaList({
               }}
               accessibilityRole="button"
               accessibilityLabel={m.openSettings}
+              hitSlop={OPEN_SETTINGS_HIT_SLOP}
               testID="media-open-settings"
             >
               <Text style={styles.retryLabel}>{m.openSettings}</Text>
@@ -165,10 +189,17 @@ export function ActivityMediaList({
 }
 
 /**
- * Aperçu d'un média (D-335 : menu par média Retirer / Monter / Descendre).
- * Un appui ouvre le menu natif (feuille d'actions iOS, alerte ailleurs) ;
- * VoiceOver expose les mêmes actions nommées pour CE média, bornes
- * exclues. Aucun bouton supplémentaire n'est dessiné sur la galerie.
+ * Aperçu d'un média (D-335 amendée par Q31, story 4.5, AD-17). Le TOUCHER de
+ * la tuile consulte le Média (vidéo lue en plein écran natif, photo en plein
+ * écran : `MediaConsultation.tsx`) ; l'APPUI LONG ouvre le menu Retirer /
+ * Monter / Descendre, bornes exclues : menu contextuel natif sur iOS
+ * (`NativeTileContextMenu`, ou repli `IOS_LONG_PRESS_MENU`), alerte ailleurs.
+ * VoiceOver : l'activation consulte, l'indication annonce la consultation
+ * puis l'appui long, et les actions nommées Retirer / Monter / Descendre pour
+ * CE média restent l'alternative à l'appui long (FR-22-09). Aucun bouton
+ * supplémentaire n'est dessiné sur la galerie ; la tuile entière est la cible.
+ * Média illisible ou introuvable (FR-21-58) : erreur locale dans la tuile,
+ * lien conservé ; un nouveau toucher réessaie.
  */
 function MediaTile({
   item,
@@ -178,6 +209,7 @@ function MediaTile({
   uri,
   onRemove,
   onMove,
+  iosLongPressMenu,
 }: {
   item: DraftMediaItem;
   index: number;
@@ -186,14 +218,64 @@ function MediaTile({
   uri: string;
   onRemove: () => void;
   onMove: (to: number) => void;
+  iosLongPressMenu: IosLongPressMenu;
 }) {
+  const [consulting, setConsulting] = useState(false);
+  // Photo : la présentation reste montée, masquée, jusqu'à son retrait complet (iOS : `onDismiss`).
+  const [photoVisible, setPhotoVisible] = useState(false);
+  const [unavailable, setUnavailable] = useState(false);
+  const errorToAnnounce = useRef(false);
+  const tileRef = useRef<View>(null);
+  const isVideo = item.asset.kind === "VIDEO";
+  const isIOS = Platform.OS === "ios";
+  // Voie du menu calculée au rendu et réutilisée telle quelle par les rappels (jamais relue à l'appui).
+  const nativeContextMenu = isIOS && iosLongPressMenu === "contextMenu";
+  function consult() {
+    setUnavailable(false);
+    errorToAnnounce.current = false;
+    setConsulting(true);
+    if (!isVideo) setPhotoVisible(true);
+  }
+  /**
+   * Fin de consultation, plein écran retiré : focus VoiceOver rendu à la tuile
+   * (H13), puis, s'il y a lieu, l'erreur annoncée en file, après ce retour,
+   * pour qu'iOS ne la perde pas pendant la fermeture.
+   */
+  function finishConsultation() {
+    setConsulting(false);
+    if (tileRef.current) AccessibilityInfo.sendAccessibilityEvent(tileRef.current, "focus");
+    if (errorToAnnounce.current) {
+      errorToAnnounce.current = false;
+      AccessibilityInfo.announceForAccessibilityWithOptions(m.unavailable, { queue: true });
+    }
+  }
+  function closeVideo() {
+    setUnavailable(false);
+    finishConsultation();
+  }
+  /** Vidéo : appelé une fois le plein écran quitté (`MediaConsultation.tsx`). */
+  function failVideo() {
+    setUnavailable(true);
+    errorToAnnounce.current = true;
+    finishConsultation();
+  }
+  /** Photo : masque la présentation ; sur iOS, la fin attend `onDismiss`, ailleurs elle est immédiate. */
+  function closePhoto() {
+    setPhotoVisible(false);
+    if (!isIOS) finishConsultation();
+  }
+  function failPhoto() {
+    setUnavailable(true);
+    errorToAnnounce.current = true;
+    closePhoto();
+  }
   const options = [
     { key: "remove", label: m.menuRemove, run: onRemove, destructive: true },
     ...(index > 0 ? [{ key: "moveUp", label: m.menuMoveUp, run: () => onMove(index - 1), destructive: false }] : []),
     ...(index < total - 1 ? [{ key: "moveDown", label: m.menuMoveDown, run: () => onMove(index + 1), destructive: false }] : []),
   ];
   function openMenu() {
-    if (Platform.OS === "ios") {
+    if (isIOS) {
       ActionSheetIOS.showActionSheetWithOptions(
         {
           title: label,
@@ -219,12 +301,20 @@ function MediaTile({
     moveUp: m.moveUp.replace("{item}", label),
     moveDown: m.moveDown.replace("{item}", label),
   };
-  return (
+  const tile = (
     <Pressable
-      onPress={openMenu}
+      ref={tileRef}
+      onPress={consult}
+      // Menu contextuel natif : SwiftUI gère l'appui long ; ce rappel vide empêche seulement
+      // le relâché d'un appui long de déclencher aussi `onPress` (aucune consultation, AC8).
+      onLongPress={() => {
+        if (nativeContextMenu) return;
+        openMenu();
+      }}
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityHint={m.menuHint}
+      accessibilityHint={isVideo ? m.videoHint : m.photoHint}
+      accessibilityValue={unavailable ? { text: m.unavailable } : undefined}
       accessibilityActions={options.map((option) => ({ name: option.key, label: actionLabels[option.key] }))}
       onAccessibilityAction={(event) => options.find((option) => option.key === event.nativeEvent.actionName)?.run()}
       style={styles.preview}
@@ -241,8 +331,101 @@ function MediaTile({
           testID={`media-item-${index + 1}-image`}
         />
       )}
+      {unavailable ? (
+        <View style={styles.unavailable} testID={`media-item-${index + 1}-unavailable`}>
+          <Text style={styles.errorText}>{m.unavailable}</Text>
+        </View>
+      ) : null}
+      {/* Badge rendu après le voile d'erreur : la nature du Média reste visible. */}
       {item.asset.kind === "VIDEO" ? <Text style={styles.kindBadge}>{m.video}</Text> : null}
     </Pressable>
+  );
+  const consultationTestID = `media-item-${index + 1}-consultation`;
+  return (
+    <View style={styles.tileFrame}>
+      {nativeContextMenu ? (
+        <NativeTileContextMenu label={label} options={options} testID={`media-item-${index + 1}-context-menu`}>
+          {tile}
+        </NativeTileContextMenu>
+      ) : (
+        tile
+      )}
+      {consulting && isVideo ? (
+        <VideoConsultation uri={uri} onClose={closeVideo} onError={failVideo} testID={consultationTestID} />
+      ) : null}
+      {consulting && !isVideo ? (
+        <PhotoConsultation
+          uri={uri}
+          label={label}
+          visible={photoVisible}
+          onClose={closePhoto}
+          onDismissed={finishConsultation}
+          onError={failPhoto}
+          testID={consultationTestID}
+        />
+      ) : null}
+    </View>
+  );
+}
+
+/**
+ * PRE-4 story 4.5 (AC8, AC9, AD-17 `[ASSUMPTION]`), iOS seulement, si
+ * `IOS_LONG_PRESS_MENU` vaut `"contextMenu"` : menu contextuel natif `ContextMenu` d'`@expo/ui` 57.0.13
+ * (SwiftUI `contextMenu`, API relue dans la documentation versionnée SDK 57)
+ * enveloppant la tuile React Native existante.
+ *
+ * Voie d'intégration : `Host` (taille de la tuile) → `ContextMenu` →
+ * `ContextMenu.Trigger` → `RNHostView matchContents` → `Pressable` de la tuile,
+ * inchangé (toucher, libellé, indication, actions VoiceOver). `RNHostView` est
+ * le mécanisme documenté pour héberger une vue React Native dans une vue
+ * SwiftUI. Aucun `ContextMenu.Preview` : iOS soulève la tuile elle-même comme
+ * aperçu, aux coins de la tuile (`contentShape` de type `contextMenuPreview`).
+ * `ContextMenu.Items` reprend les options de la tuile (mêmes libellés, ordre et
+ * rappels que la feuille d'actions, bornes exclues), sous une `Section` titrée
+ * du libellé du Média ; aucune option nouvelle, aucun `Annuler` (l'appui
+ * extérieur ferme le menu natif).
+ *
+ * Le toucher simple consulte le Média (phase B) ; l'appui long ouvre CE menu.
+ * À constater sur iPhone (R-4.5-00), sans
+ * conclusion tirée de Jest : menu et aperçu à l'appui long, toucher simple
+ * reçu par le `Pressable` à travers `RNHostView` (une première version du
+ * popover de Mode, story 3.1, ne le recevait pas), défilement horizontal de la
+ * galerie intact. En cas d'échec : repli d'AD-17 (`IOS_LONG_PRESS_MENU =
+ * "actionSheet"` : appui long → feuille d'actions native existante), signalé à
+ * Hermann ; jamais de menu réimplémenté.
+ */
+function NativeTileContextMenu({
+  label,
+  options,
+  testID,
+  children,
+}: {
+  label: string;
+  options: readonly { key: string; label: string; run: () => void; destructive: boolean }[];
+  testID: string;
+  children: ReactElement;
+}) {
+  return (
+    <Host style={styles.contextMenuHost} testID={testID}>
+      <ContextMenu modifiers={[contentShape(shapes.roundedRectangle({ cornerRadius: fixedRadii[12] }), "contextMenuPreview")]}>
+        <ContextMenu.Items>
+          <Section title={label}>
+            {options.map((option) => (
+              <SwiftUIButton
+                key={option.key}
+                label={option.label}
+                role={option.destructive ? "destructive" : "default"}
+                onPress={option.run}
+                testID={`${testID}-${option.key}`}
+              />
+            ))}
+          </Section>
+        </ContextMenu.Items>
+        <ContextMenu.Trigger>
+          <RNHostView matchContents>{children}</RNHostView>
+        </ContextMenu.Trigger>
+      </ContextMenu>
+    </Host>
   );
 }
 
@@ -278,6 +461,16 @@ function VideoPreview({ uri }: { uri: string }) {
 const PREVIEW_WIDTH = 260;
 const PREVIEW_HEIGHT = 213;
 
+/**
+ * PRE-4 story 4.6 (FR-22-04, AC4 ; revue) : `Ouvrir les réglages` n'est qu'un libellé de 17 de
+ * haut (`type.button`), dernier élément de l'avis, lui-même dernier bloc du défilement. Sur
+ * iOS, un `hitSlop` qui sort des limites du parent ne reçoit pas le toucher : le débord n'est
+ * donc pris qu'en haut, sur le texte de l'avis (au moins 17 + écart 4, qui n'est pas une
+ * cible ; la galerie reste à plus de 8). Cible portée à 31 (17 + 14), sans changer le rendu
+ * PRE-3 ; les 44 ne sont pas atteints sans agrandir le lien ou l'avis : écart consigné (Q52).
+ */
+export const OPEN_SETTINGS_HIT_SLOP = { top: 14, bottom: 0, left: 0, right: 0 } as const;
+
 const styles = StyleSheet.create({
   container: {
     gap: spacing[8],
@@ -304,6 +497,28 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
+  },
+  /** Story 4.5 : `Host` du menu contextuel natif, à la taille exacte de la tuile, sans habillage propre. */
+  contextMenuHost: {
+    width: PREVIEW_WIDTH,
+    height: PREVIEW_HEIGHT,
+  },
+  /** Story 4.5 : cadre de la tuile, porteur de la surface du plein écran vidéo superposée. */
+  tileFrame: {
+    width: PREVIEW_WIDTH,
+    height: PREVIEW_HEIGHT,
+  },
+  /** Story 4.5 (FR-21-58) : erreur locale à la place du Média (rendu NON VÉRIFIABLE, sans frame). */
+  unavailable: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: colors.background,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: spacing[12],
   },
   previewPending: {
     gap: spacing[8],

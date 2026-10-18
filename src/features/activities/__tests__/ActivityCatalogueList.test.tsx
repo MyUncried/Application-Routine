@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react-native";
 import { describe, expect, it, jest } from "@jest/globals";
 
 import type { ActivityDefinition } from "@/domain/activities";
+import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { ActivityCatalogueList } from "@/features/activities/ActivityCatalogueList";
 
 function makeDefinition(id: string): ActivityDefinition {
@@ -9,11 +10,7 @@ function makeDefinition(id: string): ActivityDefinition {
     id,
     name: `Activité ${id}`,
     description: null,
-    executionMode: "DURATION",
-    durationSeconds: 30,
-    repetitionCount: null,
-    seriesCount: 1,
-    pauseSeconds: 0,
+    executionParameters: durationParameters(30),
     recoverySeconds: 0,
     bodyZoneIds: [],
     sideMode: "UNILATERAL",

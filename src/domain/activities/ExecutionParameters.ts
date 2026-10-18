@@ -1,36 +1,91 @@
 /**
- * PRE-3 — représentation canonique versionnée des paramètres d'exécution
- * d'un Exercice (`SPECIFICATION-PARAMETRES-MODALE-v13.md`, Bip v2,
- * `schema-et-ecritures.md` §« Représentation canonique »).
+ * PRE-4 (story 1.1, AD-1, AD-3, AD-13) — représentation canonique des
+ * paramètres d'exécution d'un Exercice : DEUX Modes (`DURATION`,
+ * `REPETITIONS`) et une Cible TYPÉE par Série (`SeriesTarget`).
  *
- * Une seule source de vérité pour la définition Catalogue ET l'occurrence de
- * Séance : le mode, l'état uniforme/variable EXPLICITE (jamais déduit de
- * l'égalité des valeurs), N par côté, la collection ordonnée cible/Pause,
- * la direction, l'ordre des côtés, la Pause entre les côtés, le bip commun,
- * le Compte à rebours et la Fin propres. La Récupération (R) n'en fait
- * JAMAIS partie : elle reste portée par l'occurrence.
+ * Ce module est le seul à définir le Mode, la Cible, leurs bornes, leur
+ * validation d'enregistrement (`validateForSave`), leur sérialisation
+ * (`serializeV2`), leur lecture (`readV2`) et la projection scalaire unique
+ * (`projectScalars`). L'ancien troisième mode et la lecture des formes v1
+ * (JSON PRE-3 ou scalaires seuls) sont cantonnés à `readV1.ts` (AD-3) et à
+ * `migration010` ; aucun autre module ne les connaît.
+ *
+ * Une Cible n'est jamais `null` ni une valeur numérique sentinelle (AD-1) :
+ * `NUMBER` porte une valeur, `FAILURE` désigne une Série menée jusqu'à
+ * l'échec, `UNSET` une Cible à renseigner (brouillon, ou héritée d'une donnée
+ * ancienne sans valeur, H7). La Récupération (R) n'en fait jamais partie :
+ * elle reste portée par l'occurrence.
  *
  * Fonctions pures — sans React, SQLite, Expo, Profil implicite ni horloge.
- * Les scalaires historiques (`durationSeconds`, `seriesCount`…) ne sont que
- * des PROJECTIONS dérivées de cette représentation (`projectLegacyScalars`),
- * jamais une seconde écriture indépendante.
  */
 
-import type { ExerciseExecutionMode } from "@/domain/sessions/Session";
 import { isSideMode, type SideMode } from "@/domain/sessions/sideMode";
 
-export const EXECUTION_PARAMETERS_VERSION = 1 as const;
+/** Version du JSON canonique (AD-3). La forme v2 est figée par `migration010`. */
+export const EXECUTION_PARAMETERS_VERSION = 2 as const;
 
-export type ExecutionMode = ExerciseExecutionMode;
+/** Mode d'un Exercice : deux valeurs seulement (FR-05-01, AD-1). */
+export type ExecutionMode = "DURATION" | "REPETITIONS";
 export type SideOrder = "BY_SIDE" | "BY_SERIES";
 
-export const EXECUTION_MODES: readonly ExecutionMode[] = ["DURATION", "REPETITIONS", "TO_FAILURE"];
+export const EXECUTION_MODES: readonly ExecutionMode[] = ["DURATION", "REPETITIONS"];
 export const SIDE_ORDERS: readonly SideOrder[] = ["BY_SIDE", "BY_SERIES"];
 
-/** Bornes PRE-3 (v13 §6, Bip v2 §1) — appliquées aux NOUVELLES saisies ; une ancienne valeur hors bornes reste lue sans clamp. */
+/**
+ * Cible d'une Série (AD-1, FR-18-01, FR-06-02). Seul type de Cible de
+ * l'application : jamais `number | null`.
+ */
+export type SeriesTarget =
+  | { readonly kind: "NUMBER"; readonly value: number }
+  | { readonly kind: "FAILURE" }
+  | { readonly kind: "UNSET" };
+
+export type SeriesTargetKind = SeriesTarget["kind"];
+
+const TARGET_KINDS: readonly SeriesTargetKind[] = ["NUMBER", "FAILURE", "UNSET"];
+
+export function numberTarget(value: number): SeriesTarget {
+  return { kind: "NUMBER", value };
+}
+
+export function failureTarget(): SeriesTarget {
+  return { kind: "FAILURE" };
+}
+
+export function unsetTarget(): SeriesTarget {
+  return { kind: "UNSET" };
+}
+
+export function isNumberTarget(target: SeriesTarget): target is { readonly kind: "NUMBER"; readonly value: number } {
+  return target.kind === "NUMBER";
+}
+
+/** Égalité par `kind` et `value` — jamais par référence (piège de l'ancien `===`). */
+export function targetsEqual(a: SeriesTarget, b: SeriesTarget): boolean {
+  if (a.kind !== b.kind) {
+    return false;
+  }
+  return a.kind !== "NUMBER" || a.value === (b as { readonly value: number }).value;
+}
+
+function cloneTarget(target: SeriesTarget): SeriesTarget {
+  return target.kind === "NUMBER" ? { kind: "NUMBER", value: target.value } : { kind: target.kind };
+}
+
+/**
+ * Bornes du NIVEAU SAISIE (AD-13, FR-09-01 à FR-09-03) : appliquées aux
+ * seules valeurs nouvelles ou modifiées. Une valeur héritée positive hors de
+ * ces bornes, non modifiée, reste enregistrable (H25).
+ */
 export const EXECUTION_BOUNDS = {
   seriesCount: { min: 1, max: 99 },
-  durationTarget: { min: 1, max: 5999 },
+  /**
+   * Cible Durée : 5 s à 58 min 55 s, à la seconde. Décision Q36 de Hermann du
+   * 2026-10-17 (recette iPhone) : une durée n'est pas obligatoirement un
+   * multiple de 5 s ; le pas de 5 s de Q15 et P21 est levé, les bornes sont
+   * inchangées.
+   */
+  durationTarget: { min: 5, max: 3535 },
   repetitionTarget: { min: 1, max: 100 },
   pauseSeconds: { min: 0, max: 300 },
   sideRecoverySeconds: { min: 0, max: 300 },
@@ -39,20 +94,33 @@ export const EXECUTION_BOUNDS = {
   endSeconds: { min: 0, max: 60 },
 } as const;
 
-/** Une Série : cible du mode (secondes Durée, nombre Répétitions, `null` À l'échec) et sa Pause après Série. */
+/**
+ * Bornes du CHECK composite d'`activities` (bornes de `migration004`
+ * reprises à l'identique par `migration010`, AD-4) : contrainte de la base,
+ * appliquée par le repository des Séances, jamais par le niveau structurel.
+ */
+export const ACTIVITY_STORAGE_BOUNDS = {
+  durationTarget: { min: 1, max: 5999 },
+  repetitionTargetMin: 1,
+  pauseSeconds: { min: 0, max: 5999 },
+  postActivityRecoverySeconds: { min: 0, max: 5999 },
+  seriesCountMin: 1,
+} as const;
+
+/** Une Série : sa Cible typée et sa Pause après Série. */
 export type SeriesRow = {
-  readonly target: number | null;
+  readonly target: SeriesTarget;
   readonly pauseSeconds: number;
 };
 
 export type UniformSeries = {
   readonly kind: "UNIFORM";
   readonly count: number;
-  readonly target: number | null;
+  readonly target: SeriesTarget;
   readonly pauseSeconds: number;
 };
 
-/** État variable explicite : la longueur de `rows` est N. Aucune valeur commune concurrente. */
+/** Régime variables explicite : la longueur de `rows` est N. Aucune valeur commune concurrente. */
 export type VariableSeries = {
   readonly kind: "VARIABLE";
   readonly rows: readonly SeriesRow[];
@@ -60,7 +128,7 @@ export type VariableSeries = {
 
 export type ExecutionSeries = UniformSeries | VariableSeries;
 
-/** Paramètres persistables, complets et valides. */
+/** Paramètres complets (Mode et côté renseignés). */
 export type ExecutionParameters = {
   readonly version: typeof EXECUTION_PARAMETERS_VERSION;
   readonly mode: ExecutionMode;
@@ -68,16 +136,16 @@ export type ExecutionParameters = {
   readonly sideMode: SideMode;
   readonly sideOrder: SideOrder;
   readonly sideRecoverySeconds: number;
+  /** Bip unique au niveau de l'Exercice, aucun Bip par Série (P22). */
   readonly cadenceBeepIntervalSeconds: number;
   readonly countdownSeconds: number;
   readonly endSeconds: number;
 };
 
 /**
- * Brouillon de paramètres porté par le parent (éditeur) : identique à
- * `ExecutionParameters` mais le mode et le côté peuvent rester non renseignés
- * (« — », v13 §6 « Création : mode/durée/côté non renseignés »). Jamais
- * persisté tel quel : `validateExecutionParameters` le transforme.
+ * Brouillon de paramètres porté par l'Éditeur : le Mode et le côté peuvent
+ * rester non renseignés (« — »). Jamais persisté tel quel : `validateForSave`
+ * le contrôle et le normalise.
  */
 export type ExecutionParametersInput = Omit<ExecutionParameters, "mode" | "sideMode"> & {
   readonly mode: ExecutionMode | null;
@@ -87,6 +155,7 @@ export type ExecutionParametersInput = Omit<ExecutionParameters, "mode" | "sideM
 export type ExecutionParametersField =
   | "version"
   | "mode"
+  | "series"
   | "seriesCount"
   | "target"
   | "pauseSeconds"
@@ -97,23 +166,43 @@ export type ExecutionParametersField =
   | "countdownSeconds"
   | "endSeconds";
 
+/** Niveau de la règle violée (AD-13) : forme et types, ou bornes de saisie. */
+export type ExecutionValidationLevel = "STRUCTURE" | "INPUT";
+
 export type ExecutionParametersViolation = {
-  readonly code: "REQUIRED" | "OUT_OF_RANGE" | "NOT_INTEGER" | "UNRECOGNIZED" | "MUST_BE_ABSENT";
+  readonly code: "REQUIRED" | "OUT_OF_RANGE" | "NOT_INTEGER" | "UNRECOGNIZED";
   readonly field: ExecutionParametersField;
-  /** Rang 1-indexé de la Série concernée, pour les messages « Série n » (v13 §6). */
+  readonly level: ExecutionValidationLevel;
+  /** Rang 1-indexé de la Série concernée (Régime variables), pour signaler la cellule. */
   readonly seriesNumber?: number;
-  readonly details?: { readonly min: number; readonly max: number };
+  readonly details?: { readonly min: number; readonly max: number; readonly step?: number };
 };
 
 export type ExecutionParametersResult =
   | { readonly ok: true; readonly value: ExecutionParameters }
   | { readonly ok: false; readonly violations: readonly ExecutionParametersViolation[] };
 
-/** Erreur de DONNÉES persistées (JSON corrompu, version inconnue) — jamais convertie silencieusement en scalaires. */
+/** Erreur de DONNÉES persistées (NULL, JSON corrompu, version inconnue) — jamais convertie silencieusement. */
 export class ExecutionParametersDataError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "ExecutionParametersDataError";
+  }
+}
+
+/**
+ * Refus d'enregistrement levé par un repository (défense, AD-13) quand
+ * `validateForSave(params, "STORAGE")` échoue : l'entrée est invalide, aucune
+ * écriture n'a lieu. Le domaine lui-même ne lève jamais : il retourne les
+ * violations.
+ */
+export class ExecutionParametersValidationError extends Error {
+  readonly violations: readonly ExecutionParametersViolation[];
+
+  constructor(violations: readonly ExecutionParametersViolation[]) {
+    super("EXECUTION_PARAMETERS_VALIDATION_FAILED");
+    this.name = "ExecutionParametersValidationError";
+    this.violations = violations;
   }
 }
 
@@ -133,29 +222,129 @@ export function seriesRowsOf(parameters: { readonly series: ExecutionSeries }): 
   }));
 }
 
+/** Vrai si toutes les Cibles effectives sont à l'échec (gabarit « tout échec », P26). */
+export function allTargetsFailure(parameters: { readonly series: ExecutionSeries }): boolean {
+  return seriesRowsOf(parameters).every((row) => row.target.kind === "FAILURE");
+}
+
+/** Vrai si au moins une Cible effective est à l'échec : le total de l'Exercice est alors omis (story 1.1). */
+export function hasFailureTarget(parameters: { readonly series: ExecutionSeries }): boolean {
+  return seriesRowsOf(parameters).some((row) => row.target.kind === "FAILURE");
+}
+
+/** Vrai si au moins une Cible effective est à renseigner. */
+export function hasUnsetTarget(parameters: { readonly series: ExecutionSeries }): boolean {
+  return seriesRowsOf(parameters).some((row) => row.target.kind === "UNSET");
+}
+
 export function isBilateral(sideMode: SideMode | null): boolean {
   return sideMode === "RIGHT_LEFT" || sideMode === "LEFT_RIGHT";
+}
+
+/** Cible à l'échec, seule Cible non numérique qu'un Sélecteur de cible émet (AD-7). */
+export type FailureSeriesTarget = Extract<SeriesTarget, { readonly kind: "FAILURE" }>;
+
+/** Position d'ouverture d'un Sélecteur de cible : une valeur de la roue, ou l'option échec. */
+export type SelectorOpeningPosition = Exclude<SeriesTarget, { readonly kind: "UNSET" }>;
+
+/**
+ * Story 3.4 (AD-16, FR-07-04, FR-09-05) — valeur valide la plus proche d'une Cible
+ * numérique, pour la position d'ouverture d'un Sélecteur. Nom gardé d'AD-16, mais il
+ * n'y a plus de grille : depuis Q36 (Hermann, 2026-10-17), c'est un simple BORNAGE,
+ * 5..3535 s en Durée, 1..100 en Répétitions, sans multiple de 5 (Q21 adaptée :
+ * 5999 → 3535, 4 → 5, 7 → 7, 150 → 100). Une valeur non entière est arrondie à
+ * l'entier le plus proche (7,4 → 7 ; 7,5 → 8) ; +∞ → borne haute ; −∞ et NaN → borne basse.
+ */
+export function nearestGridValue(mode: ExecutionMode, value: number): number {
+  const bounds = targetBounds(mode);
+  if (Number.isNaN(value)) {
+    return bounds.min;
+  }
+  // ±∞ restent infinis après `Math.round` et sont ramenés à la borne de leur côté.
+  return Math.min(bounds.max, Math.max(bounds.min, Math.round(value)));
+}
+
+/**
+ * Story 3.4 (AD-16, FR-07-04, Q25) — position d'ouverture d'un Sélecteur de cible :
+ * `NUMBER` → `nearestGridValue` ; `FAILURE` → l'option échec ; `UNSET` (« — ») → la
+ * plus petite valeur valide, 5 s en Durée, 1 en Répétitions. Rien n'est appliqué
+ * au Brouillon par cette position : seul le ✓ du Sélecteur applique (Q12).
+ */
+export function selectorOpeningPosition(mode: ExecutionMode, target: SeriesTarget): SelectorOpeningPosition {
+  if (target.kind === "FAILURE") {
+    return { kind: "FAILURE" };
+  }
+  if (target.kind === "UNSET") {
+    return { kind: "NUMBER", value: targetBounds(mode).min };
+  }
+  return { kind: "NUMBER", value: nearestGridValue(mode, target.value) };
+}
+
+/** Sens d'un pas ± : `1` pour +, `-1` pour −. */
+export type StepDirection = 1 | -1;
+
+/**
+ * Story 3.6 (AD-16, P38, Q36) — pas ± borné, en multiples DIRECTIONNELS du pas
+ * (au pas 5 : 37 monte à 40 et descend à 35 ; au pas 1 : ±1), puis ramené dans
+ * `[min, max]`. Correction de l'écart d'AD-16 : le résultat n'est JAMAIS en deçà
+ * de la valeur courante pour + ni au-delà pour − ; dans ce cas, la valeur
+ * courante est renvoyée (le bouton est indisponible). Ainsi, depuis 5999 au-dessus
+ * de la borne 3535, + rend 5999 (indisponible) et − rend 3535 ; depuis 2 sous la
+ * borne 5, − rend 2 (indisponible) et + rend 5. Source unique de `steppedValue`
+ * (`ProfileStepper.tsx`) et de `stepTarget`.
+ */
+export function stepWithinBounds(current: number, direction: StepDirection, stepSize: number, min: number, max: number): number {
+  const next =
+    stepSize <= 1
+      ? current + direction
+      : direction === 1
+        ? Math.floor(current / stepSize) * stepSize + stepSize
+        : Math.ceil(current / stepSize) * stepSize - stepSize;
+  const bounded = Math.min(max, Math.max(min, next));
+  if (direction === 1 ? bounded < current : bounded > current) {
+    return current;
+  }
+  return bounded;
+}
+
+/** Résultat d'un pas ± sur une Cible : nouvelle Cible numérique, ou bouton indisponible. */
+export type StepTargetResult = Extract<SeriesTarget, { readonly kind: "NUMBER" }> | "unavailable";
+
+/**
+ * Story 3.6 (AD-16, FR-09-05, Q13, Q21, Q26, Q36, P38 ; Q44) — pas ± sur une Cible, pour
+ * les ± des cellules du tableau et de la Cible commune :
+ * - `NUMBER` → valeur voisine dans le sens du geste, dans les bornes de saisie
+ *   (5..3535 s, à la seconde, ou 1..100), ou `unavailable` si aucune n'existe
+ *   (7 s → 8 / 6 ; 5999 s → + `unavailable`, − 3535 ; 150 → + `unavailable`, − 100) ;
+ * - `UNSET` → + donne la valeur minimale (5 s, 1), − `unavailable` (Q26) ;
+ * - `FAILURE` → `unavailable` dans les deux sens (Q13).
+ * `stepSize` (défaut 1) porte les paliers du maintien (`EXECUTION_ACCELERATED_HOLD_POLICY`,
+ * Q36, H19) ; il ne change jamais la valeur d'une Cible `UNSET`.
+ */
+export function stepTarget(mode: ExecutionMode, target: SeriesTarget, direction: StepDirection, stepSize = 1): StepTargetResult {
+  const bounds = targetBounds(mode);
+  if (target.kind === "FAILURE") {
+    return "unavailable";
+  }
+  if (target.kind === "UNSET") {
+    return direction === 1 ? { kind: "NUMBER", value: bounds.min } : "unavailable";
+  }
+  const next = stepWithinBounds(target.value, direction, stepSize, bounds.min, bounds.max);
+  return next === target.value ? "unavailable" : { kind: "NUMBER", value: next };
 }
 
 /**
  * Normalisation EFFECTIVE (v13 §3, arbitrage N=1) : à N=1 l'état est
  * uniforme sur la première ligne courante et l'ordre des côtés est « Un côté
- * après l'autre », dès le brouillon et son calcul. À l'échec ne porte aucune
- * cible numérique. Les réserves temporaires du brouillon ne sont jamais ici.
+ * après l'autre ». Les Cibles typées sont conservées telles quelles
+ * (`FAILURE` compris). Les réserves temporaires du brouillon ne sont jamais ici.
  */
 export function normalizeEffective<T extends ExecutionParametersInput>(parameters: T): T {
   const count = seriesCountOf(parameters);
-  const failure = parameters.mode === "TO_FAILURE";
   let series = parameters.series;
   if (count === 1 && series.kind === "VARIABLE") {
     const first = series.rows[0]!;
     series = { kind: "UNIFORM", count: 1, target: first.target, pauseSeconds: first.pauseSeconds };
-  }
-  if (failure) {
-    series =
-      series.kind === "UNIFORM"
-        ? { ...series, target: null }
-        : { kind: "VARIABLE", rows: series.rows.map((row) => ({ ...row, target: null })) };
   }
   return {
     ...parameters,
@@ -164,121 +353,382 @@ export function normalizeEffective<T extends ExecutionParametersInput>(parameter
   };
 }
 
-function checkInteger(
+// --- Validation d'enregistrement unique (AD-13) ------------------------------
+
+/**
+ * Ligne de base d'une validation : paramètres relus à l'ouverture de
+ * l'Éditeur (modification), `null` en création (aucune base : les bornes de
+ * saisie s'appliquent partout), ou `"STORAGE"` (validation de Séance au
+ * `Continuer` et repositories : niveau structurel seul).
+ */
+export type ExecutionValidationBaseline = ExecutionParametersInput | null | "STORAGE";
+
+/**
+ * Alignement optionnel des Séries sur la ligne de base (story 3.2, AC12) :
+ * pour chaque Série de l'entrée, dans son ordre, le rang 0-indexé de sa
+ * ligne dans `seriesRowsOf(baseline)`, ou `null` pour une ligne nouvelle
+ * (aucune base). Absent : alignement par valeur puis par rang
+ * (`alignRowsToBaseline`).
+ *
+ * Garde : une liste dont la longueur diffère du nombre de Séries de l'entrée
+ * est ignorée en entier (aucune Série n'a de base) ; une entrée non entière,
+ * hors des rangs de la base ou présente plusieurs fois est ignorée pour
+ * chaque Série qui la porte (pas de base pour ces Séries).
+ */
+export type ExecutionValidationOptions = {
+  readonly baselineRowIndexes?: readonly (number | null)[];
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+/** Égalité de valeur d'une ligne quelconque (éventuellement malformée) avec une ligne de base. */
+function sameRowValue(row: unknown, base: SeriesRow): boolean {
+  if (typeof row !== "object" || row === null) {
+    return false;
+  }
+  const candidate = row as { target?: unknown; pauseSeconds?: unknown };
+  const target = candidate.target;
+  if (candidate.pauseSeconds !== base.pauseSeconds || !isRecord(target)) {
+    return false;
+  }
+  return target.kind === base.target.kind && (base.target.kind !== "NUMBER" || target.value === base.target.value);
+}
+
+/**
+ * Alignement des Séries sur la ligne de base quand aucune identité de ligne
+ * n'est disponible (AD-13, H25 ; Éditeur, `Terminer`, Catalogue) :
+ *
+ * 1. chaque Série, dans l'ordre, est appariée à la première ligne de base
+ *    encore libre de MÊME valeur (Cible typée et Pause égales) ; chaque ligne
+ *    de base sert au plus une fois ;
+ * 2. à défaut, la Série garde la ligne de base de même rang (comportement
+ *    historique). Avec `exclusive`, ce repli n'est retenu que si cette ligne
+ *    n'est pas déjà appariée, afin que l'alignement reste injectif.
+ *
+ * Une Série au-delà des lignes de base n'a pas de base (`null`).
+ */
+export function alignRowsToBaseline(
+  rows: readonly unknown[],
+  baseRows: readonly SeriesRow[],
+  options: { readonly exclusive?: boolean } = {},
+): (number | null)[] {
+  const used = new Set<number>();
+  const matched = rows.map((row) => {
+    const index = baseRows.findIndex((base, candidate) => !used.has(candidate) && sameRowValue(row, base));
+    if (index < 0) {
+      return null;
+    }
+    used.add(index);
+    return index;
+  });
+  return matched.map((index, rank) => {
+    if (index !== null) {
+      return index;
+    }
+    if (rank >= baseRows.length || (options.exclusive === true && used.has(rank))) {
+      return null;
+    }
+    return rank;
+  });
+}
+
+/** Applique la garde d'`ExecutionValidationOptions.baselineRowIndexes`. */
+function guardedBaselineIndexes(
+  indexes: readonly unknown[],
+  rowCount: number,
+  baseCount: number,
+): (number | null)[] {
+  if (indexes.length !== rowCount) {
+    return Array.from({ length: rowCount }, () => null);
+  }
+  const valid = (value: unknown): value is number =>
+    typeof value === "number" && Number.isInteger(value) && value >= 0 && value < baseCount;
+  const occurrences = new Map<number, number>();
+  indexes.forEach((value) => {
+    if (valid(value)) {
+      occurrences.set(value, (occurrences.get(value) ?? 0) + 1);
+    }
+  });
+  return indexes.map((value) => (valid(value) && occurrences.get(value) === 1 ? value : null));
+}
+
+type Bounds = { readonly min: number; readonly max: number; readonly step?: number };
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+/** Niveau structurel d'un nombre : entier non négatif (Q28), sans borne haute. */
+function checkStructuralNumber(
   value: unknown,
   field: ExecutionParametersField,
-  bounds: { readonly min: number; readonly max: number },
   violations: ExecutionParametersViolation[],
-  seriesNumber?: number,
-): boolean {
-  if (typeof value !== "number" || !Number.isFinite(value)) {
-    violations.push({ code: "REQUIRED", field, ...(seriesNumber ? { seriesNumber } : {}) });
+  options: { readonly min?: number; readonly seriesNumber?: number } = {},
+): value is number {
+  const min = options.min ?? 0;
+  const seriesNumber = options.seriesNumber !== undefined ? { seriesNumber: options.seriesNumber } : {};
+  if (value === null || value === undefined) {
+    violations.push({ code: "REQUIRED", field, level: "STRUCTURE", ...seriesNumber });
     return false;
   }
-  if (!Number.isInteger(value)) {
-    violations.push({ code: "NOT_INTEGER", field, ...(seriesNumber ? { seriesNumber } : {}) });
+  if (!isFiniteNumber(value) || !Number.isInteger(value)) {
+    violations.push({ code: "NOT_INTEGER", field, level: "STRUCTURE", ...seriesNumber });
     return false;
   }
-  if (value < bounds.min || value > bounds.max) {
-    violations.push({
-      code: "OUT_OF_RANGE",
-      field,
-      details: { min: bounds.min, max: bounds.max },
-      ...(seriesNumber ? { seriesNumber } : {}),
-    });
+  if (value < min) {
+    // Aucune borne haute au niveau structurel (P44 amendée par Q28) : pas de `details`.
+    violations.push({ code: "OUT_OF_RANGE", field, level: "STRUCTURE", ...seriesNumber });
     return false;
   }
   return true;
 }
 
-function targetBounds(mode: ExecutionMode) {
+/**
+ * Niveau saisie d'un nombre structurellement valide : bornes, et pas s'il est
+ * défini (aucune borne d'`EXECUTION_BOUNDS` n'en porte depuis Q36).
+ */
+function checkInputBounds(
+  value: number,
+  field: ExecutionParametersField,
+  bounds: Bounds,
+  violations: ExecutionParametersViolation[],
+  seriesNumber?: number,
+): void {
+  const offGrid = bounds.step !== undefined && (value - bounds.min) % bounds.step !== 0;
+  if (value < bounds.min || value > bounds.max || offGrid) {
+    violations.push({
+      code: "OUT_OF_RANGE",
+      field,
+      level: "INPUT",
+      details: { min: bounds.min, max: bounds.max, ...(bounds.step !== undefined ? { step: bounds.step } : {}) },
+      ...(seriesNumber !== undefined ? { seriesNumber } : {}),
+    });
+  }
+}
+
+function targetBounds(mode: ExecutionMode): Bounds {
   return mode === "DURATION" ? EXECUTION_BOUNDS.durationTarget : EXECUTION_BOUNDS.repetitionTarget;
 }
 
+/** Contrôle structurel d'une Cible : `kind` connu, `NUMBER` entier ≥ 1, `UNSET` interdit (H25). */
+function checkStructuralTarget(
+  value: unknown,
+  violations: ExecutionParametersViolation[],
+  seriesNumber?: number,
+): value is SeriesTarget {
+  const withSeries = seriesNumber !== undefined ? { seriesNumber } : {};
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    violations.push({ code: "UNRECOGNIZED", field: "target", level: "STRUCTURE", ...withSeries });
+    return false;
+  }
+  const kind = (value as { kind?: unknown }).kind;
+  if (!TARGET_KINDS.includes(kind as SeriesTargetKind)) {
+    violations.push({ code: "UNRECOGNIZED", field: "target", level: "STRUCTURE", ...withSeries });
+    return false;
+  }
+  if (kind === "UNSET") {
+    // Cible à renseigner, héritée comprise : bloque ✓ et `Terminer` (H25, AC7).
+    violations.push({ code: "REQUIRED", field: "target", level: "STRUCTURE", ...withSeries });
+    return false;
+  }
+  if (kind === "NUMBER") {
+    return checkStructuralNumber((value as { value?: unknown }).value, "target", violations, {
+      min: 1,
+      ...(seriesNumber !== undefined ? { seriesNumber } : {}),
+    });
+  }
+  return true;
+}
+
+function baselineOf(baseline: ExecutionValidationBaseline): ExecutionParametersInput | null {
+  return baseline === "STORAGE" ? null : baseline;
+}
+
 /**
- * Seule validation des nouveaux paramètres (P3-04/bounds) : agrège TOUTES
- * les violations, identifie le champ et la Série, ne lève jamais. Un mode ou
- * une cible active non renseignée est une erreur (« incomplet »), jamais un
- * zéro ni un résultat temporel omis. Un côté non renseigné est normalisé
- * « Sans changement » (v13 §6). Retourne la valeur EFFECTIVE normalisée.
+ * Validation d'enregistrement UNIQUE (AD-13, FR-18-03) : ✓ de la Feuille et
+ * `Terminer` avec la ligne de base relue à l'ouverture de l'Éditeur (`null`
+ * en création) ; `Continuer` de Séance et repositories avec `"STORAGE"`.
+ * Agrège toutes les violations, ne lève jamais.
+ *
+ * - Niveau structurel, toujours appliqué : forme et types, nombres entiers
+ *   non négatifs (Q28), Mode à deux valeurs, `kind` connus, au moins une
+ *   Série, aucune Cible `UNSET`. Aucune borne haute (P44 amendée par Q28).
+ * - Niveau saisie (hors `"STORAGE"`) : bornes d'`EXECUTION_BOUNDS`,
+ *   appliquées champ par champ aux seules valeurs différentes de la ligne de
+ *   base ; une Cible n'est tolérée que si le Mode est celui de la base (H25).
+ *   Sans `options.baselineRowIndexes` (Éditeur, `Terminer`, Catalogue), les
+ *   Séries sont alignées par VALEUR puis par rang (`alignRowsToBaseline`) :
+ *   une ligne historique déplacée sans modification reste tolérée. Story 3.2
+ *   (AC12, AD-13) : le Brouillon de la Feuille fournit, pour chaque Série
+ *   effective, le rang de sa ligne de base selon l'IDENTITÉ de la ligne
+ *   (`null` : ligne nouvelle, sans base, les bornes s'y appliquent).
+ *
+ * Succès : paramètres EFFECTIFS normalisés (N=1, côté non renseigné →
+ * `UNILATERAL`).
  */
-export function validateExecutionParameters(input: ExecutionParametersInput): ExecutionParametersResult {
+export function validateForSave(
+  input: ExecutionParametersInput,
+  baseline: ExecutionValidationBaseline,
+  options: ExecutionValidationOptions = {},
+): ExecutionParametersResult {
   const violations: ExecutionParametersViolation[] = [];
+  // Entrée absente ou non objet : violation structurelle, jamais une exception (contrat AD-13).
+  if (typeof input !== "object" || input === null || Array.isArray(input)) {
+    return { ok: false, violations: [{ code: "REQUIRED", field: "mode", level: "STRUCTURE" }] };
+  }
+  const raw = input as unknown as Record<string, unknown>;
+  const checkInput = baseline !== "STORAGE";
+  const base = baselineOf(baseline);
 
-  if (input.version !== EXECUTION_PARAMETERS_VERSION) {
-    violations.push({ code: "UNRECOGNIZED", field: "version" });
+  if (raw.version !== EXECUTION_PARAMETERS_VERSION) {
+    violations.push({ code: "UNRECOGNIZED", field: "version", level: "STRUCTURE" });
   }
-  const mode = input.mode;
-  if (mode === null) {
-    violations.push({ code: "REQUIRED", field: "mode" });
-  } else if (!EXECUTION_MODES.includes(mode)) {
-    violations.push({ code: "UNRECOGNIZED", field: "mode" });
+  const mode = raw.mode;
+  const modeValid = EXECUTION_MODES.includes(mode as ExecutionMode);
+  if (mode === null || mode === undefined) {
+    violations.push({ code: "REQUIRED", field: "mode", level: "STRUCTURE" });
+  } else if (!modeValid) {
+    violations.push({ code: "UNRECOGNIZED", field: "mode", level: "STRUCTURE" });
   }
-  const sideMode = input.sideMode ?? "UNILATERAL";
+  const sideMode = raw.sideMode === null || raw.sideMode === undefined ? "UNILATERAL" : raw.sideMode;
   if (!isSideMode(sideMode)) {
-    violations.push({ code: "UNRECOGNIZED", field: "sideMode" });
+    violations.push({ code: "UNRECOGNIZED", field: "sideMode", level: "STRUCTURE" });
   }
-  if (!SIDE_ORDERS.includes(input.sideOrder)) {
-    violations.push({ code: "UNRECOGNIZED", field: "sideOrder" });
+  if (!SIDE_ORDERS.includes(raw.sideOrder as SideOrder)) {
+    violations.push({ code: "UNRECOGNIZED", field: "sideOrder", level: "STRUCTURE" });
   }
 
-  const count = seriesCountOf(input);
-  checkInteger(count, "seriesCount", EXECUTION_BOUNDS.seriesCount, violations);
-  const rows = seriesRowsOf(input);
-  const uniform = input.series.kind === "UNIFORM";
-  rows.forEach((row, index) => {
-    // En uniforme, une seule cible/Pause commune : ne la signaler qu'une fois.
-    if (uniform && index > 0) {
+  // Champs communs : structure, puis bornes de saisie si la valeur diffère de la base.
+  const commonFields = [
+    ["sideRecoverySeconds", EXECUTION_BOUNDS.sideRecoverySeconds],
+    ["cadenceBeepIntervalSeconds", EXECUTION_BOUNDS.cadenceBeepIntervalSeconds],
+    ["countdownSeconds", EXECUTION_BOUNDS.countdownSeconds],
+    ["endSeconds", EXECUTION_BOUNDS.endSeconds],
+  ] as const;
+  for (const [field, bounds] of commonFields) {
+    const value = raw[field];
+    if (checkStructuralNumber(value, field, violations) && checkInput) {
+      const baseValue = base ? (base as Record<string, unknown>)[field] : undefined;
+      if (baseValue !== value) {
+        checkInputBounds(value, field, bounds, violations);
+      }
+    }
+  }
+
+  // Séries.
+  const series = raw.series as Record<string, unknown> | null | undefined;
+  const baseRows = base && isWellFormedSeries(base.series) ? seriesRowsOf(base) : [];
+  const baseCount = base && isWellFormedSeries(base.series) ? seriesCountOf(base) : null;
+  const targetToleratedMode = base !== null && base.mode === mode;
+  // Rang de la ligne de base de chaque Série : identité fournie par la Feuille (gardée), sinon valeur puis rang.
+  const alignmentFor = (rows: readonly unknown[]): readonly (number | null)[] =>
+    options.baselineRowIndexes !== undefined
+      ? guardedBaselineIndexes(options.baselineRowIndexes, rows.length, baseRows.length)
+      : alignRowsToBaseline(rows, baseRows);
+
+  const checkRow = (rowValue: unknown, baseIndex: number | null, seriesNumber: number | undefined) => {
+    if (typeof rowValue !== "object" || rowValue === null || Array.isArray(rowValue)) {
+      violations.push({
+        code: "UNRECOGNIZED",
+        field: "series",
+        level: "STRUCTURE",
+        ...(seriesNumber !== undefined ? { seriesNumber } : {}),
+      });
       return;
     }
-    const seriesNumber = uniform ? undefined : index + 1;
-    if (mode === "TO_FAILURE") {
-      if (row.target !== null) {
-        violations.push({ code: "MUST_BE_ABSENT", field: "target", ...(seriesNumber ? { seriesNumber } : {}) });
-      }
-    } else if (mode === "DURATION" || mode === "REPETITIONS") {
-      if (row.target === null) {
-        violations.push({ code: "REQUIRED", field: "target", ...(seriesNumber ? { seriesNumber } : {}) });
-      } else {
-        checkInteger(row.target, "target", targetBounds(mode), violations, seriesNumber);
+    const row = rowValue as { target?: unknown; pauseSeconds?: unknown };
+    const baseRow = baseIndex === null ? undefined : baseRows[baseIndex];
+    if (checkStructuralTarget(row.target, violations, seriesNumber) && checkInput && modeValid) {
+      const target = row.target as SeriesTarget;
+      const tolerated = targetToleratedMode && baseRow !== undefined && targetsEqual(baseRow.target, target);
+      if (target.kind === "NUMBER" && !tolerated) {
+        checkInputBounds(target.value, "target", targetBounds(mode as ExecutionMode), violations, seriesNumber);
       }
     }
-    checkInteger(row.pauseSeconds, "pauseSeconds", EXECUTION_BOUNDS.pauseSeconds, violations, seriesNumber);
-  });
+    if (
+      checkStructuralNumber(row.pauseSeconds, "pauseSeconds", violations, {
+        ...(seriesNumber !== undefined ? { seriesNumber } : {}),
+      }) &&
+      checkInput
+    ) {
+      if (baseRow === undefined || baseRow.pauseSeconds !== row.pauseSeconds) {
+        checkInputBounds(row.pauseSeconds as number, "pauseSeconds", EXECUTION_BOUNDS.pauseSeconds, violations, seriesNumber);
+      }
+    }
+  };
 
-  checkInteger(input.sideRecoverySeconds, "sideRecoverySeconds", EXECUTION_BOUNDS.sideRecoverySeconds, violations);
-  checkInteger(
-    input.cadenceBeepIntervalSeconds,
-    "cadenceBeepIntervalSeconds",
-    EXECUTION_BOUNDS.cadenceBeepIntervalSeconds,
-    violations,
-  );
-  checkInteger(input.countdownSeconds, "countdownSeconds", EXECUTION_BOUNDS.countdownSeconds, violations);
-  checkInteger(input.endSeconds, "endSeconds", EXECUTION_BOUNDS.endSeconds, violations);
+  let count: number | null = null;
+  if (typeof series !== "object" || series === null || Array.isArray(series)) {
+    violations.push({ code: "UNRECOGNIZED", field: "series", level: "STRUCTURE" });
+  } else if (series.kind === "UNIFORM") {
+    if (checkStructuralNumber(series.count, "seriesCount", violations, { min: 1 })) {
+      count = series.count as number;
+    }
+    // En uniforme, une seule Cible et une seule Pause communes : signalées une fois.
+    const common = { target: series.target, pauseSeconds: series.pauseSeconds };
+    checkRow(common, alignmentFor([common])[0] ?? null, undefined);
+  } else if (series.kind === "VARIABLE") {
+    if (!Array.isArray(series.rows) || series.rows.length === 0) {
+      violations.push({ code: "REQUIRED", field: "series", level: "STRUCTURE" });
+    } else {
+      count = series.rows.length;
+      const alignment = alignmentFor(series.rows);
+      series.rows.forEach((row: unknown, index: number) => checkRow(row, alignment[index] ?? null, index + 1));
+    }
+  } else {
+    violations.push({ code: "UNRECOGNIZED", field: "series", level: "STRUCTURE" });
+  }
+  if (count !== null && checkInput && count !== baseCount) {
+    checkInputBounds(count, "seriesCount", EXECUTION_BOUNDS.seriesCount, violations);
+  }
 
   if (violations.length > 0) {
     return { ok: false, violations };
   }
-  const normalized = normalizeEffective({ ...input, sideMode });
-  return { ok: true, value: { ...normalized, mode: mode as ExecutionMode, sideMode } };
+  const normalized = normalizeEffective({ ...input, sideMode: sideMode as SideMode });
+  return { ok: true, value: { ...normalized, mode: mode as ExecutionMode, sideMode: sideMode as SideMode } };
 }
 
-/** Sérialisation canonique : ordre de clés fixe, aucune phrase, aucun total, aucun segment. */
-export function serializeExecutionParameters(parameters: ExecutionParameters): string {
+function isWellFormedSeries(series: unknown): series is ExecutionSeries {
+  if (typeof series !== "object" || series === null) {
+    return false;
+  }
+  const value = series as { kind?: unknown; rows?: unknown; count?: unknown };
+  return (
+    (value.kind === "UNIFORM" && typeof value.count === "number" && value.count >= 1) ||
+    (value.kind === "VARIABLE" && Array.isArray(value.rows))
+  );
+}
+
+// --- Format canonique v2 (AD-3) ----------------------------------------------
+
+function encodeTarget(target: SeriesTarget): Record<string, unknown> {
+  return target.kind === "NUMBER" ? { kind: "NUMBER", value: target.value } : { kind: target.kind };
+}
+
+/**
+ * Sérialisation canonique v2 (AD-3, FR-18-02) : mêmes clés et même ordre que
+ * le sérialiseur v1 de PRE-3, `JSON.stringify` sans espace ; seuls `version`
+ * et l'encodage de la Cible changent. Aucune identité de ligne, Réserve,
+ * mémoire de Mode, phrase ni total ; aucun Bip par Série (P22).
+ */
+export function serializeV2(parameters: ExecutionParameters): string {
   const series =
     parameters.series.kind === "UNIFORM"
       ? {
           kind: "UNIFORM",
           count: parameters.series.count,
-          target: parameters.series.target,
+          target: encodeTarget(parameters.series.target),
           pauseSeconds: parameters.series.pauseSeconds,
         }
       : {
           kind: "VARIABLE",
-          rows: parameters.series.rows.map((row) => ({ target: row.target, pauseSeconds: row.pauseSeconds })),
+          rows: parameters.series.rows.map((row) => ({ target: encodeTarget(row.target), pauseSeconds: row.pauseSeconds })),
         };
   return JSON.stringify({
-    version: parameters.version,
+    version: EXECUTION_PARAMETERS_VERSION,
     mode: parameters.mode,
     series,
     sideMode: parameters.sideMode,
@@ -294,38 +744,48 @@ function isNonNegativeInteger(value: unknown): value is number {
   return typeof value === "number" && Number.isInteger(value) && value >= 0;
 }
 
-function parseRow(value: unknown, mode: ExecutionMode): SeriesRow {
-  if (typeof value !== "object" || value === null) {
+function readTarget(value: unknown): SeriesTarget {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new ExecutionParametersDataError("Malformed series target.");
+  }
+  const target = value as { kind?: unknown; value?: unknown };
+  if (target.kind === "FAILURE" || target.kind === "UNSET") {
+    return { kind: target.kind };
+  }
+  if (target.kind === "NUMBER" && isNonNegativeInteger(target.value) && target.value >= 1) {
+    return { kind: "NUMBER", value: target.value };
+  }
+  throw new ExecutionParametersDataError("Malformed series target.");
+}
+
+function readRow(value: unknown): SeriesRow {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new ExecutionParametersDataError("Malformed series row.");
   }
   const row = value as { target?: unknown; pauseSeconds?: unknown };
-  const target = row.target === null ? null : row.target;
-  if (target !== null && !isNonNegativeInteger(target)) {
-    throw new ExecutionParametersDataError("Malformed series target.");
-  }
-  if (mode === "TO_FAILURE" ? target !== null : target === null) {
-    throw new ExecutionParametersDataError("Series target inconsistent with mode.");
-  }
   if (!isNonNegativeInteger(row.pauseSeconds)) {
     throw new ExecutionParametersDataError("Malformed series pause.");
   }
-  return { target, pauseSeconds: row.pauseSeconds };
+  return { target: readTarget(row.target), pauseSeconds: row.pauseSeconds };
 }
 
 /**
- * Lecture d'un JSON persisté. Corrompu ou version inconnue → erreur de
- * données explicite (P3-17/corrupt-version), JAMAIS un repli sur les
- * scalaires. Les bornes PRE-3 ne sont pas réappliquées : une donnée écrite
- * valide reste lisible telle quelle, sans clamp.
+ * Seul lecteur des repositories (AD-3) : NULL, JSON corrompu, v1 ou version
+ * inconnue → `ExecutionParametersDataError`, jamais un repli sur les
+ * scalaires. Les bornes de saisie ne sont pas réappliquées : une valeur
+ * héritée positive hors bornes reste lue telle quelle (H25).
  */
-export function parseExecutionParameters(json: string): ExecutionParameters {
+export function readV2(json: string | null | undefined): ExecutionParameters {
+  if (json === null || json === undefined) {
+    throw new ExecutionParametersDataError("Execution parameters are missing.");
+  }
   let raw: unknown;
   try {
     raw = JSON.parse(json);
   } catch {
     throw new ExecutionParametersDataError("Execution parameters JSON is malformed.");
   }
-  if (typeof raw !== "object" || raw === null) {
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
     throw new ExecutionParametersDataError("Execution parameters JSON is malformed.");
   }
   const value = raw as Record<string, unknown>;
@@ -345,7 +805,7 @@ export function parseExecutionParameters(json: string): ExecutionParameters {
     }
   }
   const seriesValue = value.series as Record<string, unknown> | null;
-  if (typeof seriesValue !== "object" || seriesValue === null) {
+  if (typeof seriesValue !== "object" || seriesValue === null || Array.isArray(seriesValue)) {
     throw new ExecutionParametersDataError("Malformed series.");
   }
   let series: ExecutionSeries;
@@ -353,10 +813,10 @@ export function parseExecutionParameters(json: string): ExecutionParameters {
     if (!isNonNegativeInteger(seriesValue.count) || seriesValue.count < 1) {
       throw new ExecutionParametersDataError("Malformed series count.");
     }
-    const row = parseRow({ target: seriesValue.target, pauseSeconds: seriesValue.pauseSeconds }, mode);
+    const row = readRow({ target: seriesValue.target, pauseSeconds: seriesValue.pauseSeconds });
     series = { kind: "UNIFORM", count: seriesValue.count, target: row.target, pauseSeconds: row.pauseSeconds };
   } else if (seriesValue.kind === "VARIABLE" && Array.isArray(seriesValue.rows) && seriesValue.rows.length >= 1) {
-    series = { kind: "VARIABLE", rows: seriesValue.rows.map((row) => parseRow(row, mode)) };
+    series = { kind: "VARIABLE", rows: seriesValue.rows.map(readRow) };
   } else {
     throw new ExecutionParametersDataError("Unknown series kind.");
   }
@@ -364,7 +824,7 @@ export function parseExecutionParameters(json: string): ExecutionParameters {
     version: EXECUTION_PARAMETERS_VERSION,
     mode,
     series,
-    sideMode: value.sideMode as SideMode,
+    sideMode: value.sideMode,
     sideOrder: value.sideOrder as SideOrder,
     sideRecoverySeconds: value.sideRecoverySeconds as number,
     cadenceBeepIntervalSeconds: value.cadenceBeepIntervalSeconds as number,
@@ -373,60 +833,10 @@ export function parseExecutionParameters(json: string): ExecutionParameters {
   };
 }
 
-/** Scalaires historiques d'un objet antérieur à PRE-3. */
-export type LegacyExecutionScalars = {
-  readonly executionMode: ExecutionMode | null;
-  readonly durationSeconds: number | null;
-  readonly repetitionCount: number | null;
-  readonly seriesCount: number | null;
-  readonly pauseSeconds: number;
-  readonly sideMode?: SideMode;
-  /** Absent d'une copie de Séance historique (aucune colonne PC) : l'absence reste explicite, 0. */
-  readonly sideRecoverySeconds?: number;
-};
+// --- Projection scalaire unique (AD-3) ---------------------------------------
 
-/**
- * Adaptateur conservateur d'un ancien objet sans JSON (v13 §8,
- * `schema-et-ecritures.md`) : uniforme, Un côté après l'autre, bip 0 ;
- * cibles, N, Pause et direction CONSERVÉES ; CR/Fin à la compatibilité
- * neutre 0 (proposition approuvée avec le plan) — jamais une lecture du
- * Profil courant, jamais un clamp aux nouvelles bornes.
- */
-export function legacyExecutionParameters(scalars: LegacyExecutionScalars): ExecutionParameters {
-  const mode: ExecutionMode = scalars.executionMode ?? "DURATION";
-  const target =
-    mode === "DURATION" ? scalars.durationSeconds : mode === "REPETITIONS" ? scalars.repetitionCount : null;
-  return {
-    version: EXECUTION_PARAMETERS_VERSION,
-    mode,
-    series: {
-      kind: "UNIFORM",
-      count: Math.max(scalars.seriesCount ?? 1, 1),
-      target,
-      pauseSeconds: scalars.pauseSeconds,
-    },
-    sideMode: scalars.sideMode ?? "UNILATERAL",
-    sideOrder: "BY_SIDE",
-    sideRecoverySeconds: scalars.sideRecoverySeconds ?? 0,
-    cadenceBeepIntervalSeconds: 0,
-    countdownSeconds: 0,
-    endSeconds: 0,
-  };
-}
-
-/**
- * Paramètres EFFECTIFS d'un objet (définition, occurrence, brouillon) : ses
- * paramètres canoniques s'ils existent, sinon l'adaptateur conservateur de
- * ses scalaires historiques. Seul point de résolution partagé par le calcul,
- * la phrase et l'éditeur.
- */
-export function resolveExecutionParameters(
-  source: LegacyExecutionScalars & { readonly executionParameters?: ExecutionParametersInput },
-): ExecutionParametersInput {
-  return source.executionParameters ?? legacyExecutionParameters(source);
-}
-
-export type LegacyScalarProjection = {
+/** Colonnes scalaires historiques d'un Exercice, dérivées des paramètres. */
+export type ScalarProjection = {
   readonly executionMode: ExecutionMode;
   readonly durationSeconds: number | null;
   readonly repetitionCount: number | null;
@@ -437,23 +847,28 @@ export type LegacyScalarProjection = {
 };
 
 /**
- * Projections d'écriture vers les colonnes historiques (CHECK SQL, anciens
- * DTO) : première cible/Pause EFFECTIVE, N, mode, direction. Jamais une
- * moyenne ni une somme ; jamais relues comme source quand le JSON existe.
+ * Projection scalaire UNIQUE (AD-3), appliquée par le mapping d'écriture des
+ * repositories juste avant `INSERT`/`UPDATE` (et reproduite telle quelle,
+ * figée, par `migration010`) : Cible de la PREMIÈRE ligne effective si elle
+ * est `NUMBER`, sinon NULL — on ne cherche jamais la Cible numérique
+ * suivante. Les colonnes scalaires ne sont jamais relues comme source.
  */
-export function projectLegacyScalars(parameters: ExecutionParameters): LegacyScalarProjection {
+export function projectScalars(parameters: ExecutionParameters): ScalarProjection {
   const effective = normalizeEffective(parameters);
   const first = seriesRowsOf(effective)[0]!;
+  const value = first.target.kind === "NUMBER" ? first.target.value : null;
   return {
     executionMode: effective.mode,
-    durationSeconds: effective.mode === "DURATION" ? first.target : null,
-    repetitionCount: effective.mode === "REPETITIONS" ? first.target : null,
+    durationSeconds: effective.mode === "DURATION" ? value : null,
+    repetitionCount: effective.mode === "REPETITIONS" ? value : null,
     seriesCount: seriesCountOf(effective),
     pauseSeconds: first.pauseSeconds,
     sideMode: effective.sideMode,
     sideRecoverySeconds: effective.sideRecoverySeconds,
   };
 }
+
+// --- Brouillon, égalité, copie -------------------------------------------------
 
 /** Défauts Profil copiés au moment réel de la création (P3-10) — jamais relus ensuite. */
 export type ExecutionProfileDefaults = {
@@ -462,14 +877,15 @@ export type ExecutionProfileDefaults = {
 };
 
 /**
- * Brouillon de création (v13 §6) : mode et côté non renseignés, Série 1,
- * Pause 0 s, bip 0 ; CR/Fin copiés du Profil. Aucune cible inventée.
+ * Brouillon de création (v13 §6) : Mode et côté non renseignés, Série 1 à
+ * Cible à renseigner, Pause 0 s, Bip 0 ; Compte à rebours et Fin copiés du
+ * Profil. Aucune Cible inventée.
  */
 export function createEmptyExecutionParameters(defaults: ExecutionProfileDefaults): ExecutionParametersInput {
   return {
     version: EXECUTION_PARAMETERS_VERSION,
     mode: null,
-    series: { kind: "UNIFORM", count: 1, target: null, pauseSeconds: 0 },
+    series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0 },
     sideMode: null,
     sideOrder: "BY_SIDE",
     sideRecoverySeconds: 0,
@@ -479,7 +895,7 @@ export function createEmptyExecutionParameters(defaults: ExecutionProfileDefault
   };
 }
 
-/** Comparaison structurelle exacte (garde d'abandon, copie, égalité de brouillon). */
+/** Comparaison structurelle exacte (garde d'abandon, copie, égalité de brouillon), Cibles comparées par `kind`/`value`. */
 export function executionParametersEqual(
   a: ExecutionParametersInput | null | undefined,
   b: ExecutionParametersInput | null | undefined,
@@ -503,7 +919,7 @@ export function executionParametersEqual(
   if (a.series.kind === "UNIFORM" && b.series.kind === "UNIFORM") {
     return (
       a.series.count === b.series.count &&
-      a.series.target === b.series.target &&
+      targetsEqual(a.series.target, b.series.target) &&
       a.series.pauseSeconds === b.series.pauseSeconds
     );
   }
@@ -511,17 +927,22 @@ export function executionParametersEqual(
   const rowsB = seriesRowsOf(b);
   return (
     rowsA.length === rowsB.length &&
-    rowsA.every((row, index) => row.target === rowsB[index]!.target && row.pauseSeconds === rowsB[index]!.pauseSeconds)
+    rowsA.every(
+      (row, index) => targetsEqual(row.target, rowsB[index]!.target) && row.pauseSeconds === rowsB[index]!.pauseSeconds,
+    )
   );
 }
 
-/** Copie profonde immuable : aucune référence partagée entre une définition et sa copie. */
+/** Copie profonde : aucune référence partagée (Cibles comprises) entre une source et sa copie (AD-9). */
 export function cloneExecutionParameters<T extends ExecutionParametersInput>(parameters: T): T {
   return {
     ...parameters,
     series:
       parameters.series.kind === "UNIFORM"
-        ? { ...parameters.series }
-        : { kind: "VARIABLE", rows: parameters.series.rows.map((row) => ({ ...row })) },
+        ? { ...parameters.series, target: cloneTarget(parameters.series.target) }
+        : {
+            kind: "VARIABLE",
+            rows: parameters.series.rows.map((row) => ({ target: cloneTarget(row.target), pauseSeconds: row.pauseSeconds })),
+          },
   };
 }

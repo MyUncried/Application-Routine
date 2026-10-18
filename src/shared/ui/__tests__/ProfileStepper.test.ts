@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 
+import { numberTarget, stepTarget, type ExecutionMode, type SeriesTarget } from "@/domain/activities/ExecutionParameters";
 import {
   createHoldRepeater,
   EXECUTION_ACCELERATED_HOLD_POLICY,
@@ -122,5 +123,88 @@ describe("Politique de maintien PRE-3 (ProfileStepper.tsx, option)", () => {
     const deltas = profile.values.map((value, index) => value - (index === 0 ? 10 : profile.values[index - 1]!));
     expect(new Set(deltas)).toEqual(new Set([1]));
     expect(EXECUTION_ACCELERATED_HOLD_POLICY).not.toBe(PROFILE_HOLD_POLICY);
+  });
+});
+
+/** Story 3.6 : maintien sur un ± de Cible (cellules du tableau et Cible commune ; règle du pas : `stepTarget` du domaine). */
+function simulateTarget(mode: ExecutionMode, start: number) {
+  let clock = 0;
+  let target: SeriesTarget = numberTarget(start);
+  const values: number[] = [];
+  const repeater = createHoldRepeater(
+    EXECUTION_ACCELERATED_HOLD_POLICY,
+    (direction, stepSize) => {
+      const next = stepTarget(mode, target, direction, stepSize);
+      if (next === "unavailable") return;
+      target = next;
+      values.push(next.value);
+    },
+    () => clock,
+  );
+  return {
+    values,
+    repeater,
+    advance(ms: number) {
+      for (let elapsed = 0; elapsed < ms; elapsed += 10) {
+        clock += 10;
+        jest.advanceTimersByTime(10);
+      }
+    },
+  };
+}
+
+describe("PRE4-3.6 — ± des cellules du tableau et de la Cible commune : `steppedValue` corrigé et maintien (AD-16, Q36)", () => {
+  it("PRE4-3.6/AC5 — `steppedValue` ne recule jamais avec + ni n'avance avec − ; valeurs dans les bornes inchangées", () => {
+    // Écart d'AD-16 : `steppedValue(5999, +1, 5, 5, 3535)` renvoyait 3535.
+    expect(steppedValue(5999, 1, 5, 5, 3535)).toBe(5999);
+    expect(steppedValue(5999, 1, 1, 5, 3535)).toBe(5999);
+    expect(steppedValue(5999, -1, 1, 5, 3535)).toBe(3535);
+    expect(steppedValue(150, 1, 1, 1, 100)).toBe(150);
+    expect(steppedValue(150, -1, 1, 1, 100)).toBe(100);
+    // Sous la borne basse : − n'avance jamais, + ramène à la borne.
+    expect(steppedValue(2, -1, 1, 5, 3535)).toBe(2);
+    expect(steppedValue(2, 1, 1, 5, 3535)).toBe(5);
+    // Dans les bornes : résultats d'avant la correction (Profil inchangé).
+    expect(steppedValue(37, 1, 1, 0, 300)).toBe(38);
+    expect(steppedValue(37, -1, 5, 0, 300)).toBe(35);
+    expect(steppedValue(300, 1, 10, 0, 300)).toBe(300);
+    expect(PROFILE_HOLD_POLICY.stepAfter(10_000)).toBe(1);
+  });
+
+  it("PRE4-3.6/AC6 — Cible Durée à 30 s maintenue : pas 1, puis paliers 5 et 10 arrondis dans le sens du geste, saturation à 3535 sans rebouclage ; relâchement sans pas", () => {
+    const hold = simulateTarget("DURATION", 30);
+    hold.repeater.start(1);
+    expect(hold.values).toEqual([31]);
+    hold.advance(500);
+    expect(hold.values).toEqual([31, 32]);
+    hold.advance(1500); // 2 s : paliers de 5, au multiple supérieur
+    hold.advance(150);
+    const five = hold.values.slice(-2);
+    expect(five[1]! % 5).toBe(0);
+    expect(five[1]! - five[0]!).toBeLessThanOrEqual(5);
+    hold.advance(2000); // 4 s : paliers de 10
+    hold.advance(150);
+    expect(hold.values[hold.values.length - 1]! % 10).toBe(0);
+    hold.advance(120_000);
+    expect(hold.values[hold.values.length - 1]).toBe(3535);
+    expect(Math.max(...hold.values)).toBe(3535);
+    // Aucune valeur ne recule pendant le maintien (pas de rebouclage).
+    expect(hold.values.every((value, index) => index === 0 || value >= hold.values[index - 1]!)).toBe(true);
+    hold.repeater.stop();
+    const frozen = hold.values.length;
+    hold.advance(2000);
+    expect(hold.values.length).toBe(frozen);
+    expect(EXECUTION_ACCELERATED_HOLD_POLICY.stepAfter(0)).toBe(1);
+  });
+
+  it("PRE4-3.6/AC6 — Cible Répétitions à 10 maintenue : même politique existante, saturation à 100 sans rebouclage", () => {
+    const hold = simulateTarget("REPETITIONS", 10);
+    hold.repeater.start(1);
+    hold.advance(500);
+    expect(hold.values.slice(0, 2)).toEqual([11, 12]);
+    hold.advance(30_000);
+    expect(hold.values[hold.values.length - 1]).toBe(100);
+    expect(hold.values.every((value, index) => index === 0 || value >= hold.values[index - 1]!)).toBe(true);
+    hold.repeater.stop();
   });
 });
