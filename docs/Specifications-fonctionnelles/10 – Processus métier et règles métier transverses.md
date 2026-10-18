@@ -221,7 +221,7 @@ L’écran/arbre intermédiaire `Une nouvelle exercice / Une séance / Un parcou
 Dans chaque Catalogue, `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant :
 - `Catalogue des Exercices` → création d’un Exercice persistant ;
 - `Catalogue des Séances` → création d’une Séance ;
-- `Catalogue des Parcours` → création d’un Parcours lorsque ce Catalogue devient fonctionnel.
+- `Catalogue des Parcours` : ancienne cible retirée (D-328) ; le segment Parcours n’existe plus (D-324).
 
 Cette règle n’active pas les Parcours dans T03/MVP. Les anciennes frames Figma `3787:5148` et `3841:8375`, ainsi que leurs captures physiques, sont conservées uniquement pour traçabilité et ne constituent plus des états fonctionnels à implémenter.
 
@@ -1185,7 +1185,7 @@ Le **temps total écoulé** correspond au temps actif réellement passé dans l'
 
 Il inclut notamment :
 
-- le temps réellement passé dans les Exercices en mode Répétitions ou À l’échec ;
+- le temps réellement passé dans les Séries en mode Répétitions ou à cible À l’échec (D-111) ;
 - les Exercices chronométrés ;
 - les Pauses entre Séries effectivement exécutées ;
 - les phases `SIDE_RECOVERY` et `POST_ACTIVITY_RECOVERY` effectivement exécutées ;
@@ -1195,7 +1195,7 @@ La **durée réelle** enregistrée à la fin de l'Exécution suit la même règl
 
 ### Informations affichées — Barre de progression globale
 
-La barre couvre le Plan d’Exécution complet : le Compte à rebours initial et la Fin de séance `SESSION_END` participent à son avancement. Elle ne peut atteindre `100 %` qu’à l’achèvement de `SESSION_END`. Dans T04, les étapes chronométrées sont pondérées proportionnellement à leur durée planifiée ; les occurrences en Répétitions ou À l’échec suivent la pondération hybride de RM-077 et leur part est acquise lorsque l’utilisateur touche `Suivant`. Les Pauses manuelles n’augmentent pas le remplissage.
+La barre couvre le Plan d’Exécution complet : le Compte à rebours initial et la Fin de séance `SESSION_END` participent à son avancement. Elle ne peut atteindre `100 %` qu’à l’achèvement de `SESSION_END`. Dans T04, les étapes chronométrées sont pondérées proportionnellement à leur durée planifiée ; les occurrences en Répétitions ou à cible À l’échec suivent la pondération hybride de RM-077, sauf les Répétitions chiffrées cadencées, qui suivent la progression temporelle sans fin automatique (RM-126, D-241) et leur part est acquise lorsque l’utilisateur touche `Suivant`. Les Pauses manuelles n’augmentent pas le remplissage.
 
 La progression mathématique de la barre est continue. Sa piste est toutefois structurée visuellement par Tours conformément au prototype Figma. Ces séparations sont uniquement des repères de lecture et ne modifient ni les poids ni le calcul de l’avancement global.
 
@@ -1212,7 +1212,7 @@ Répétitions et À l’échec : chronomètre croissant ; sans bip périodique, 
 L’action **Suivant** a deux comportements selon le mode de l’Exercice :
 
 - pour un Exercice chronométré utilisée avant son terme, une confirmation est demandée ; après confirmation, l'Exercice est enregistrée avec le statut **Partielle** ;
-- pour un Exercice en mode Répétitions ou À l’échec, l’action constitue la fin normale de la Série courante et ne crée pas de statut Partielle.
+- pour une Série en mode Répétitions ou à cible À l’échec (D-111), l’action constitue la fin normale de la Série courante et ne crée pas de statut Partielle.
 
 Dans les deux cas, l'Exécution poursuit ensuite le plan normal.
 
@@ -1425,7 +1425,7 @@ Ces règles relèvent du périmètre MVP (D-203, confirmation du 28/09/2026).
 | RM-050 | Supprimer une Routine demande une confirmation et ne supprime ni sa source planifiée ni les Exécutions historiques. |
 | RM-123 | Dupliquer une Routine prépare un brouillon avec la liste ordonnée des contenus, leurs motifs et les paramètres ; aucune persistance avant Enregistrer. |
 | RM-206 | Un Exercice persistant actif peut être planifié directement. Son archivage met fin aux occurrences futures de ses Routines selon la même règle de conservation historique que pour une Séance : les occurrences historisées, Exécutions et Instantanés restent conservés. Sa restauration ne recrée pas automatiquement les anciennes Routines. |
-| RM-207 | Dans les Catalogues des Séances et des Exercices, une carte affiche la prochaine occurrence future de sa source lorsqu’elle existe. En l’absence d’occurrence future, la ligne de prochaine planification est absente et ne réserve aucun espace. |
+| RM-207 | Dans les Catalogues des Séances et des Exercices, la prochaine planification n’est pas affichée sur les cartes (D-238) ; la prochaine occurrence future reste calculée et conservée dans les données (D-206). |
 
 ### Notifications et rappels
 
@@ -2043,7 +2043,7 @@ Toute roulette numérique de l’application produit un retour haptique léger e
 | RM-149 | Réinitialiser ne touche que le côté courant. Confirmer la modale générique de passage anticipé sur le premier côté conserve un résultat partiel et ouvre le second côté. |
 | RM-150 | Les résultats sont séparés par côté ; l’état global est partiel dès qu’un côté est partiel ou manquant après avancement. |
 | RM-151 | Dans la Composition, une carte affiche sa direction propre `D→G` ou `G→D` lorsqu’elle est bilatérale ; aucune indication avec `Aucun`. Le Circuit ne porte pas de direction exposée. |
-| RM-152 | Dans l’écran Ajouter/Modifier un Exercice, la phrase unique suit RM-232/D-298 : cible/cadence, Pause, puis côtés selon le contexte ; deux directions et deux ordres distingués. La clause de côté est absente avec `Aucun`. Dans une carte de Composition, le petit indicateur `D→G` ou `G→D` porte seul la direction. |
+| RM-152 | Dans l’écran Créer un exercice ou Modifier un exercice (D-325), la phrase unique suit RM-232/D-298 : cible/cadence, Pause, puis côtés selon le contexte ; deux directions et deux ordres distingués. La clause de côté est absente avec `Aucun`. Dans une carte de Composition, le petit indicateur `D→G` ou `G→D` porte seul la direction. |
 | RM-153 | **Supersédée par RM-232 / D-298** pour la phrase active v1. |
 
 ### Règles RM-213 à RM-221 — consolidation

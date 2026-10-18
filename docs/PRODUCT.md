@@ -91,7 +91,7 @@ Le MVP permet de :
 - dupliquer et archiver une Séance active ;
 - restaurer ou supprimer une Séance archivée, la suppression exigeant donc un archivage préalable ;
 - empêcher l’exécution d’une Séance invalide ou vide ;
-- afficher sur la carte la **prochaine planification** lorsqu’une occurrence future existe, sans réserver de ligne lorsqu’il n’y en a aucune.
+- ne pas afficher la prochaine planification sur la carte : elle est absente des Catalogues (D-238 ; données et calculs de D-206 conservés).
 
 ### Catalogue des exercices — T03
 
@@ -103,7 +103,7 @@ Le MVP permet de :
 - ajouter une ou plusieurs Exercices existants à une Composition par copie indépendante ;
 - exécuter directement un Exercice valide depuis son bouton Lecture ;
 - planifier directement un Exercice persistant depuis son action `Planifier`, avec le même mécanisme de Routine que pour une Séance ;
-- afficher sur la carte la **prochaine planification** lorsqu’une occurrence future existe, sans réserver de ligne lorsqu’il n’y en a aucune ;
+- ne pas afficher la prochaine planification sur la carte, absente des Catalogues (D-238 ; données et calculs de D-206 conservés) ;
 - préserver filtres, tri implicite et position de défilement pendant l’aller-retour courant, sans les persister après relance complète ;
 - afficher `Trier` comme contrôle commun visible mais désactivé en T03 ; le tri appliqué reste la dernière modification décroissante.
 
@@ -136,11 +136,11 @@ Le Cycle technique unique enveloppe ce plan avec une répétition fixée à `1`.
 
 Une Séance est exécutable lorsqu’elle contient au moins un Exercice valide.
 
-Chaque occurrence d’Exercice dans une Séance porte explicitement une **Récupération après exercice** (`postActivityRecoverySeconds`), y compris avec la valeur `0 s`. Cette donnée appartient à l’occurrence, pas à l’`ActivityDefinition`. Lorsqu’elle est positive, elle est exécutée après l’occurrence, y compris après le dernier Exercice d’un Tour et après le dernier Exercice de la Séance avant `SESSION_END`; lorsque l’occurrence appartient au Circuit, elle est exécutée à chaque passage. Elle se déplace, se duplique et se supprime avec l’occurrence sans recalcul lié à l’adjacence.
+Chaque occurrence d’Exercice dans une Séance peut porter une **Récupération après exercice** ajoutée explicitement, jamais créée automatiquement (D-304) ; `postActivityRecoverySeconds` en est la projection de calcul, 0 en son absence (D-303, RM-209). Cette donnée appartient à l’occurrence, pas à l’`ActivityDefinition`. Lorsqu’elle est positive, elle est exécutée après l’occurrence, y compris après le dernier Exercice d’un Tour et après le dernier Exercice de la Séance avant `SESSION_END`; lorsque l’occurrence appartient au Circuit, elle est exécutée à chaque passage. Elle se déplace, se duplique et se supprime avec l’occurrence sans recalcul lié à l’adjacence.
 
 Le contrôle utilisateur `Changement de côté` d’un Exercice propose `Aucun`, `D→G` et `G→D`. Aucun contrôle de changement de côté n’est exposé sur le Circuit dans la version actuelle ; le support technique historique correspondant reste conservé mais fixé à `UNILATERAL` et non modifiable.
 
-Dans la Composition, une carte affiche `D→G` ou `G→D` dans son indicateur secondaire si sa direction propre est bilatérale ; elle n’affiche rien avec `Aucun`. L’indicateur respecte la géométrie Figma validée. Le texte de la carte ne développe jamais la direction : l’indicateur `D→G` ou `G→D` la porte seul. Dans l’écran Ajouter/Modifier un Exercice, la phrase suit D-298 : Série/cible/cadence, puis Pause et côtés selon leur contexte. Elle distingue l’ordre par paire de l’ordre par côté et inverse droite/gauche selon la direction. Le nom reste hors de la phrase intrinsèque ; les valeurs des paramètres sont en gras dans le texte courant.
+Dans la Composition, une carte affiche `D→G` ou `G→D` dans son indicateur secondaire si sa direction propre est bilatérale ; elle n’affiche rien avec `Aucun`. L’indicateur respecte la géométrie Figma validée. Le texte de la carte ne développe jamais la direction : l’indicateur `D→G` ou `G→D` la porte seul. Dans l’écran Créer un exercice ou Modifier un exercice (D-325), la phrase suit D-298 : Série/cible/cadence, puis Pause et côtés selon leur contexte. Elle distingue l’ordre par paire de l’ordre par côté et inverse droite/gauche selon la direction. Le nom reste hors de la phrase intrinsèque ; les valeurs des paramètres sont en gras dans le texte courant.
 
 Dans la phrase de synthèse des paramètres d’exécution, le mode est affiché séparément et la phrase commence par le nombre de Séries. Tant qu’aucun mode n’est sélectionné, le champ est vide. Le total intrinsèque fourni par le calcul est affiché sauf en À l’échec ou lorsqu’il est réellement redondant en Durée unilatérale à une Série. En Répétitions, Ti=Ri×Ci avec cadence, avec ≈ ; sans bip, total d’Exercice omis selon [Résultats temporels et agrégation du circuit](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit). La phrase est régénérée lors de ✓ de la feuille valide ; ✕ conserve la phrase précédente. Elle suit D-298 et [Phrase de synthèse des paramètres](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres).
 
@@ -168,9 +168,9 @@ Le MVP permet de :
 
 Pour un Exercice chronométré passée avant son terme, une confirmation est demandée et le Résultat d’Exercice est enregistré `Partielle` si le passage est confirmé.
 
-Pour un Exercice en mode Répétitions ou À l’échec, le bouton `Suivant` termine normalement la Série courante et ne demande pas de confirmation.
+Pour une Série en mode Répétitions ou à cible À l’échec (D-111), le bouton `Suivant` termine normalement la Série courante et ne demande pas de confirmation.
 
-Un Exercice bilatéral exécute toutes ses Séries du premier côté puis toutes celles du second. La modale générique de passage anticipé reste inchangée : depuis le premier côté, confirmer conserve le résultat partiel de ce côté et conduit au second. Une réinitialisation ne concerne que le côté courant et préserve le résultat de l’autre côté.
+Un Exercice bilatéral exécute ses Séries selon son Ordre des côtés : toutes les Séries du premier côté puis celles du second (défaut), ou les deux côtés à chaque Série (D-247). La modale générique de passage anticipé reste inchangée : depuis le premier côté, confirmer conserve le résultat partiel de ce côté et conduit au second. Une réinitialisation ne concerne que le côté courant et préserve le résultat de l’autre côté.
 
 Le moteur distingue deux phases de récupération. `SIDE_RECOVERY`, lorsqu’elle existe, intervient selon l’Ordre des côtés (une fois par Exercice ou une fois par Série) d’un Exercice bilatéral. `POST_ACTIVITY_RECOVERY`, lorsqu’elle existe, intervient après l’occurrence d’Exercice dans une Séance. Une phase de récupération chronométrée annonce `Récupération`, se termine automatiquement à zéro et peut être quittée avec `Exercice suivant` après confirmation ; l’Exercice reste alors terminé et la récupération est enregistrée partiellement. `Réinitialiser la récupération` recommence uniquement la phase courante. Un arrêt pendant une phase de récupération produit une Exécution `Interrompue`.
 
@@ -197,10 +197,7 @@ Trois indicateurs d’Exercices sont distingués :
 - Nombre total d’Exercices à exécuter ;
 - Nombre d’Exercices exécutés.
 
-La barre de progression utilise une pondération hybride :
-- les Exercices chronométrés sont pondérées proportionnellement à leur durée ;
-- chaque occurrence d’Exercice en mode Répétitions ou À l’échec reçoit un poids `1/N`, où `N` est le Nombre total d’Exercices à exécuter ;
-- la part restante est répartie entre les Exercices chronométrés proportionnellement à leur durée.
+La barre de progression couvre toutes les étapes du Plan d’Exécution : les poids des étapes non chronométrées sont réservés, puis le solde est réparti proportionnellement entre les phases chronométrées (D-241 ; règle détaillée : RM-077, RM-126).
 
 La barre est visuellement continue, sans frontière de segment visible.
 
@@ -399,7 +396,7 @@ Les cartes du Catalogue des exercices portent la couleur de leur Catégorie. La 
 
 ### Exécution directe d’un Exercice — MVP T03
 
-Une Exécution directe d’origine `ACTIVITY` crée un instantané autonome et immuable, applique une préparation fixe de `5 s`, développe Séries, Pauses, côtés et Récupération selon les règles existantes puis se termine sans `SESSION_END`. Le signal de fin ouvre immédiatement la Synthèse.
+Une Exécution directe d’origine `ACTIVITY` crée un instantané autonome et immuable, applique une préparation fixe de `5 s`, développe Séries, Pauses et côtés selon les règles existantes, sans Récupération après exercice (D-208, RM-211) puis se termine sans `SESSION_END`. Le signal de fin ouvre immédiatement la Synthèse.
 
 Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentaire est facultatif. L’Exécution rejoint le Suivi général sous le type Exercice et alimente toutes les statistiques compatibles sans augmenter le nombre de Séances. `Terminer` restaure l’état du Catalogue des exercices du parcours courant. Cet état n’est pas conservé après relance complète.
 

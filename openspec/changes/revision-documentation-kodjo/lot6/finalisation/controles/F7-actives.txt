@@ -1,0 +1,54 @@
+# Contrôles F7-actives — référence 82841dfd — corrections : FIN-ACTIVES-applique.json
+justifications=23 fichiers=1
+
+## Rejeu des corrections
+20 corrections rejouées
+OK : le disque correspond exactement au rejeu
+## Fichiers modifiés hors corrections déclarées
+aucun
+
+## C1–C7
+référence=HEAD fichiers_ref=17 fichiers_cible=17
+C1 identifiants : 783 de référence, 783 dans la cible
+C2 lignes distinctes : 7120 ; N1=7108 N2=0 justifiées=12 absentes=0
+C3 lignes dont les occurrences diminuent : 0 (informatif)
+C4 décisions au texte modifié : 0 sur 394
+C5 lignes dont la portée change : 0
+C6 marqueurs d'autorité en baisse : 0
+C7 références perdues ou orphelines : 0 (identifiants cités : 787)
+CONSERVATION VÉRIFIÉE
+
+## Documents hors chapitres (DSF, PRODUCT, INDEX…)
+justifiée : docs/PRODUCT.md « La barre de progression utilise une pondération hybride : »
+justifiée : docs/PRODUCT.md « - les Exercices chronométrés sont pondérées proportionnellement à leur »
+justifiée : docs/PRODUCT.md « - chaque occurrence d’Exercice en mode Répétitions ou À l’échec reçoit »
+justifiée : docs/PRODUCT.md « - la part restante est répartie entre les Exercices chronométrés propo »
+justifiée : docs/PRODUCT.md « Une Exécution directe d’origine `ACTIVITY` crée un instantané autonome »
+documents hors chapitres modifiés=1 lignes_perdues=0
+
+## C10
+corrections=20 non_redactionnelles=0
+
+## C9 liens
+MENTION_REMOVED_SPEC	docs/DSF-V2-MOTIFS-LOT-3.md:4	Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md
+MENTION_REMOVED_SPEC	docs/RAPPORT-RECONCILIATION-DOCUMENTAIRE-247-271.md:89	docs/Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v10.2.md
+files=82 issues=2
+
+## K1
+rangs identiques=oui
+
+## K2
+manquants=0
+
+## OpenSpec
+Change 'revision-documentation-kodjo' is valid
+
+## Périmètre
+      5  M "docs/Specifications-fonctionnelles
+      1  M docs
+      2 ?? openspec/changes/revision-documentation-kodjo/constats
+      3 ?? openspec/changes/revision-documentation-kodjo/lot6/finalisation/controles
+      1 ?? openspec/changes/revision-documentation-kodjo/lot6/finalisation/ecarts
+      1 ?? openspec/changes/revision-documentation-kodjo/lot6/finalisation/verification
+
+Résultat : rejeu=0 conservation=0 redaction=0 liens=0 tokens=0 fichiers=0 openspec=0

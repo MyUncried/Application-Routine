@@ -426,7 +426,7 @@ Si l'utilisateur annule, aucun reset n’est appliqué. Les règles de confirmat
 Les confirmations appliquées pendant l'Exécution suivent la règle suivante :
 
 - **Réinitialiser** → confirmation, afin d'éviter une perte involontaire de progression sur l'Exercice ;
-- **Suivant** → pour un Exercice chronométré avant son terme, confirmation afin d’éviter un passage involontaire et enregistrement `Partielle` si confirmé ; pour un Exercice en mode Répétitions ou À l’échec, fin normale de la Série sans confirmation ;
+- **Suivant** → pour un Exercice chronométré avant son terme, confirmation afin d’éviter un passage involontaire et enregistrement `Partielle` si confirmé ; pour une Série en mode Répétitions ou à cible À l’échec (D-111), fin normale de la Série sans confirmation ;
 - **Pause** → aucune confirmation, l'action étant réversible ;
 - **Arrêter la séance** → confirmation via le modal de pause.
 
@@ -534,7 +534,7 @@ Bip positif : signal périodique dans les deux modes pendant Série, y compris a
 
 `Pause` suspend le chronomètre et la rotation du cercle. `Reprendre` les relance depuis l’état exact où ils ont été suspendus.
 
-L’utilisateur termine normalement chaque Série avec `Suivant`. Cette action ne crée pas un Exercice au statut Partielle : elle valide la fin normale de la Série en mode Répétitions ou À l’échec.
+L’utilisateur termine normalement chaque Série avec `Suivant`. Cette action ne crée pas un Exercice au statut Partielle : elle valide la fin normale de la Série en mode Répétitions ou à cible À l’échec (D-111).
 
 ### Exécution — séance ou exercice — Réinitialiser l’Exercice
 
