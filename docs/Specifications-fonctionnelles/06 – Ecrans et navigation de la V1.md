@@ -1856,7 +1856,7 @@ Les sélecteurs ouverts `Heure` et `Rappel personnalisé` conservent la géomét
 | ------------------------------------------------ | ----------------- | ----------------------- | ---------------------------------------------------------------------- |
 | Supprimer une séance archivée                    | Oui               | Annuler / Confirmer | Dialogue centré ; disponible uniquement via le filtre `Archivées` ; conserve les Exécutions |
 | Arrêter une séance en cours                      | Oui               | Reprendre la séance / Arrêter la séance | Dialogue centré ; enregistre une exécution interrompue |
-| Archiver une séance                              | Conditionnelle : oui si ≥ 1 Routine associée ; sinon non | Sans Routine : snackbar `Séance archivée` + `Annuler` ; avec Routine(s) : dialogue de confirmation, puis aucun snackbar d’annulation | Archive la Séance ; si des Routines sont associées, elles sont supprimées après confirmation |
+| Archiver une séance                              | Conditionnelle : oui si ≥ 1 Routine associée ; sinon non | Sans Routine : snackbar `Séance archivée` + `Annuler` ; avec Routine(s) : dialogue de confirmation, puis aucun snackbar d’annulation | Archive la Séance ; suppression établie pour les seules Routines à contenu unique ; effet sur les Routines multicontenus `À CLARIFIER` (RM-008) |
 | Restaurer une séance                             | Non               | Snackbar + Annuler      | Replace la séance dans le catalogue                                    |
 | Supprimer une valeur de référentiel (`Étiquette`, `Catégorie`, `Zone corporelle`) | Oui | Annuler / Supprimer | Appui long sur l’option ; toutes les valeurs sont supprimables. Retire la valeur des choix futurs, conserve les affectations existantes et les Instantanés/Exécutions historiques |
 | Réinitialiser les préférences                    | Oui               | Annuler / Réinitialiser | Restaure les préférences par défaut                                    |
@@ -1977,11 +1977,11 @@ La raison est la **stabilité à l'édition** : sous une règle qui regarderait 
 
 #### Le modèle d'interaction des valeurs réglables
 
-Cette section décrit un modèle d'interaction général, appliqué à toutes les valeurs numériques de la modale des modalités d'exécution et aux réglages de composition de séance.
+Cette section décrit les contrôles numériques à boutons contextuels, lorsque ce comportement est applicable. Elle ne remplace pas les steppers permanents explicitement prévus pour Nombre de séries ou Pauses, les roulettes ni le sélecteur propre à chaque cellule de séries variables (D-413, D-417).
 
 ##### Au repos, seule la valeur est visible
 
-Les boutons `−` et `+` n'apparaissent **qu'à l'appui sur la valeur**. Au repos, la ligne ne porte qu'un libellé à gauche et une valeur à droite.
+Pour les contrôles numériques contextuels uniquement, les boutons `−` et `+` n'apparaissent **qu'à l'appui sur la valeur**. Au repos, la ligne ne porte qu'un libellé à gauche et une valeur à droite. Cette convention n’impose pas la disparition des boutons d’un stepper permanent explicitement défini par son contrat.
 
 Les boutons apparaissent **à droite de la valeur**, qui recule d'une translation constante. Les mettre à gauche ferait couvrir le chiffre par la main pendant qu'il change.
 
@@ -2003,7 +2003,7 @@ Ranger l’outil ne revient pas sur les appuis ±. Ils restent cependant dans le
 
 ##### La cellule active a deux coordonnées
 
-Dans un tableau où les boutons sont communs à toutes les lignes, ils ne disent plus sur quoi ils agissent. La cellule visée est donc désignée **trois fois** : une barre d'accent sur la ligne, un fond coloré sur la colonne, et **la mention textuelle de la cellule dans le pied du tableau** — « Série 1 · Durée ».
+Dans le tableau des séries variables de CE-UI-10, aucun pied commun de boutons ± n’est conservé (D-413). La cellule sélectionnée utilise le contrôle existant de son champ et ne modifie qu’elle-même (D-417). La notion de cellule active n’impose donc plus un libellé dans un pied commun.
 
 ---
 
