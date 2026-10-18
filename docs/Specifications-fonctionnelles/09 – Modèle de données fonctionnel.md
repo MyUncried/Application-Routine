@@ -175,7 +175,7 @@ Les Cycles et les Tours ne sont pas réutilisables ou partageables entre plusieu
 - Le nom est obligatoire pour créer une séance.
 - Deux séances peuvent porter le même nom.
 - Une Séance ne possède pas de couleur métier indépendante : sa couleur affichée est celle de son Étiquette lorsqu’elle est renseignée.
-- Une séance vide peut être conservée et modifiée, mais elle ne peut pas être exécutée.
+- Une Séance déjà enregistrée qui se retrouve sans Exercice peut être conservée et ouverte en modification, mais ne peut être ni exécutée ni enregistrée après modification tant qu’elle ne comporte pas au moins un Exercice valide (RM-017). La création d’une nouvelle Séance vide est interdite ; aucun statut `Brouillon` persistant n’est introduit.
 - Une séance est exécutable dès qu’elle contient au moins un Exercice valide.
 - Une séance peut être modifiée, dupliquée, archivée ou restaurée. Elle ne peut être supprimée qu’après archivage.
 - La duplication crée une nouvelle séance indépendante avec un nouvel identifiant.
@@ -215,7 +215,7 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 - Tout Tour appartient à un seul cycle.
 - Tout cycle appartient à une seule séance.
 - Toute Routine porte une liste ordonnée de références SESSION/ACTIVITY (D-328).
-- Toute Exécution référence exactement une source selon son origine.
+- Toute Exécution conserve son origine `SESSION` ou `ACTIVITY` et son Instantané immuable. La référence à l’objet source persistant n’est résoluble que tant que cet objet existe ; sa suppression ne supprime pas l’Exécution (règles détaillées ci-dessous).
 - Toute Étiquette et toute Catégorie appartient au référentiel de l’Utilisateur local ; l’origine initiale ou personnalisée n’affecte pas les droits de suppression.
 - Une Séance référence au plus une Étiquette ; un nouvel Exercice valide référence exactement une Catégorie.
 - La couleur affichée d’une Séance dérive uniquement de son Étiquette. La couleur sémantique d’un Exercice dérive uniquement de sa Catégorie.
@@ -260,7 +260,7 @@ L'archivage d'une Séance :
 - conserve la Séance ;
 - ne demande pas de confirmation si aucune Routine ne lui est associée ;
 - demande une confirmation explicite si au moins une Routine lui est associée ;
-- après cette confirmation, supprime toutes les Routines qui lui sont associées ;
+- après cette confirmation, supprime les Routines à contenu unique dont la Séance est l’unique contenu ; l’effet sur les Routines à plusieurs contenus reste `À CLARIFIER` et ne doit pas être inféré ;
 - met donc fin au calcul de leurs occurrences futures ;
 - conserve les occurrences déjà historisées ;
 - conserve toutes les Exécutions et leurs instantanés ;
@@ -358,7 +358,7 @@ Elle ne contient pas directement :
 - Un Exercice possède un nombre de Séries entier de 1 à 99 (D-092) ; la valeur par défaut à la création est 1.
 - *Texte identique à celui de la section [« Structure d'un Exercice »](04%20%E2%80%93%20Mod%C3%A8le%20fonctionnel.md#structure-dun-exercice) ; il n’est pas recopié ici.*
 - Une `ActivityDefinition` bilatérale peut porter `sideRecoverySeconds`, exécuté une fois par Exercice en Un côté après l’autre, ou une fois par paire en Les deux côtés à chaque série.
-- Toute `SessionActivity` porte `postActivityRecoverySeconds`, y compris avec la valeur `0`; une valeur positive crée une phase après l’occurrence et avant `SESSION_END` si elle est la dernière.
+- Toute `SessionActivity` expose une projection `postActivityRecoverySeconds`, égale à la durée de l’objet `recovery` explicite s’il existe et à `0` sinon ; cette projection n’est pas une seconde source de vérité persistée (RM-209). Une récupération positive crée une phase après l’occurrence et avant `SESSION_END` si elle est la dernière.
 - Ni la Pause ni les récupérations ne créent une entité Exercice associé.
 - La charge est informative : elle ne crée aucune phase et n’entre dans aucun calcul de durée, de pause ou de cadence (RM-235).
 - Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
