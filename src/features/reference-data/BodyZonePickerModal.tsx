@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  AccessibilityInfo,
   Keyboard,
   KeyboardAvoidingView,
   Modal,
@@ -37,6 +38,20 @@ export type BodyZonePickerModalProps = {
    * jamais répétée dans chaque option — prop conservée pour les appelants.
    */
   silhouette?: Silhouette | null;
+  /**
+   * PRE-4 story 4.6 (FR-22-10, AC9) : présentation de la feuille, vraie par défaut (rendu
+   * PRE-3). L'appelant qui rend le focus à son déclencheur APRÈS la fermeture garde la feuille
+   * montée, passe `visible={false}` et attend `onDismissed` (`useReferenceSheet`).
+   */
+  visible?: boolean;
+  /** `onDismiss` du `Modal` : fin de la fermeture animée (iOS). */
+  onDismissed?: () => void;
+  /**
+   * Q53 (7) : une Zone supprimée depuis cette feuille quitte immédiatement la sélection de
+   * l'Exercice courant, sans attendre ✓ — l'appelant la retire de son Brouillon. `undefined` :
+   * seule la sélection de la feuille change (comportement PRE-3).
+   */
+  onZoneRetired?: (zoneId: string) => void;
 };
 
 /**
@@ -50,6 +65,9 @@ export function BodyZonePickerModal({
   selectedIds,
   onConfirm,
   onClose,
+  visible = true,
+  onDismissed,
+  onZoneRetired,
 }: BodyZonePickerModalProps) {
   const referentialService = useReferentialService();
   const [zones, setZones] = useState<readonly BodyZone[] | null>(null);
@@ -94,10 +112,25 @@ export function BodyZonePickerModal({
   // R10 (CE-UI-09 L2840) : le focus d'accessibilité revient explicitement
   // à cette liste après Annuler/Supprimer confirmé (jamais après Modifier).
   const listRef = useRef<View>(null);
+  // Story 4.6 : entrée visée par le menu ouvert (résultats asynchrones périmés ignorés) et
+  // champ du formulaire (focus après `Modifier`).
+  const menuTargetIdRef = useRef<string | null>(null);
+  const entryInputRef = useRef<TextInput>(null);
   const t = strings.referenceData.bodyZone;
 
+  // Q53 : Zones DÉJÀ retirées à l'ouverture de la feuille et affectées à cet Exercice —
+  // relevées à la première lecture du référentiel, jamais recalculées. Une Zone supprimée
+  // depuis cette feuille n'en fait jamais partie (Q53 (7)).
+  const [retiredAtOpeningIds, setRetiredAtOpeningIds] = useState<readonly string[] | null>(null);
+
   function reload() {
-    referentialService.listBodyZones().then(setZones);
+    referentialService.listBodyZones().then((list) => {
+      setZones(list);
+      setRetiredAtOpeningIds(
+        (current) =>
+          current ?? list.filter((zone) => !isBodyZoneAssignable(zone) && selectedIds.includes(zone.id)).map((zone) => zone.id),
+      );
+    });
   }
 
   useEffect(() => {
@@ -114,7 +147,15 @@ export function BodyZonePickerModal({
     notifyBodyZonesReferentialChanged();
   }
 
-  const activeZones = (zones ?? []).filter(isBodyZoneAssignable);
+  // PRE-4, décision Q53 de Hermann (2026-10-18, remplace Q49 b pour les Zones) : une Zone
+  // retirée AVANT l'ouverture (depuis un autre Exercice) et affectée à CET Exercice reste
+  // listée, cochée et interactive (fond rouge clair, `BodyZoneSelector`) pour être conservée,
+  // remplacée ou décochée ; décochée, elle reste listée jusqu'à la fermeture. Une Zone retirée
+  // non affectée à cet Exercice n'est jamais proposée (D-210), ni une Zone supprimée depuis
+  // cette feuille (Q53 (7)).
+  const visibleZones = (zones ?? []).filter(
+    (zone) => isBodyZoneAssignable(zone) || (retiredAtOpeningIds ?? []).includes(zone.id),
+  );
   const canAddZone = validateBodyZoneName(newName).ok;
   const canSaveEdit = validateBodyZoneName(editName).ok;
 
@@ -207,8 +248,36 @@ export function BodyZonePickerModal({
 
   async function openDeleteConfirm(zone: BodyZone) {
     const used = await referentialService.isBodyZoneUsed(zone.id);
+    // Revue 4.6 : un résultat arrivé après le changement de cible (autre entrée) est périmé.
+    if (menuTargetIdRef.current !== zone.id) return;
     setDeleteTargetUsed(used);
   }
+
+  /** Menu d'appui long D-354, ouvert par l'appui long ou par son action accessible (story 4.6, AC8). */
+  function openEntryMenu(zone: BodyZone) {
+    recordKeyboardJournal(`Zones : appui long « ${zone.name} »`);
+    menuTargetIdRef.current = zone.id;
+    setDeleteTargetUsed(false);
+    setLongPressTarget(zone);
+    void openDeleteConfirm(zone);
+  }
+
+  /**
+   * Story 4.6 (FR-22-09, AC8) : action accessible « Modifier ou supprimer », ignorée tant que
+   * le formulaire de création ou de modification est ouvert, ou qu'un menu l'est déjà ;
+   * l'appui long PRE-3 n'est pas concerné.
+   */
+  function runEntryMenuAction(zone: BodyZone) {
+    if (isEntryFormOpen || longPressTarget !== null) return;
+    openEntryMenu(zone);
+  }
+
+  // Story 4.6 (FR-22-10, AC9) : après `Modifier`, le focus VoiceOver va au champ de nom.
+  useEffect(() => {
+    if (editTarget !== null && entryInputRef.current) {
+      AccessibilityInfo.sendAccessibilityEvent(entryInputRef.current, "focus");
+    }
+  }, [editTarget]);
 
   async function handleDelete() {
     if (!longPressTarget) {
@@ -217,7 +286,18 @@ export function BodyZonePickerModal({
     try {
       await referentialService.retireBodyZone(longPressTarget.id);
       reloadAndNotify();
-      setWorking((current) => current.filter((id) => id !== longPressTarget.id));
+      // Q53 (7), précision de Hermann du 2026-10-18 : dans l'Exercice depuis lequel la
+      // suppression est faite, la Zone disparaît immédiatement de la liste et de la sélection
+      // (comportement PRE-3), et de la sélection de l'Exercice (`onZoneRetired`). Les AUTRES
+      // Exercices qui l'avaient la gardent, affichée en rouge dans leur feuille. Sélection
+      // vidée : avis « au moins une Zone » (règle existante) ; `Terminer` reste inactif.
+      const retiredId = longPressTarget.id;
+      const remaining = working.filter((id) => id !== retiredId);
+      setWorking(remaining);
+      if (remaining.length === 0 && working.length > 0) {
+        setAtLeastOneNotice(true);
+      }
+      onZoneRetired?.(retiredId);
       setLongPressTarget(null);
     } catch (error) {
       console.error("La Zone n'a pas pu être supprimée.", error);
@@ -227,7 +307,7 @@ export function BodyZonePickerModal({
   }
 
   return (
-    <Modal transparent visible animationType="fade" onRequestClose={onClose}>
+    <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose} onDismiss={onDismissed}>
       {/* Recette 1 (F-03) : le clavier ne recouvre jamais la feuille ; le champ actif
           et ses actions restent visibles (spéc. 06 : « le champ actif et l'action finale
           restent accessibles »). */}
@@ -283,17 +363,16 @@ export function BodyZonePickerModal({
             </Text>
           ) : null}
 
-          <View ref={listRef}>
+          {/* Story 4.6 (FR-22-10, AC9) : menu ouvert, la liste est retirée de l'accessibilité sur
+              Android (sur iOS, `accessibilityViewIsModal` du calque suffit). */}
+          <View ref={listRef} importantForAccessibility={longPressTarget ? "no-hide-descendants" : "auto"}>
             <BodyZoneSelector
-              zones={activeZones}
+              zones={visibleZones}
               selectedIds={working}
               onToggle={handleToggle}
               accessibilityLabel={t.title}
-              onLongPressZone={(zone) => {
-                recordKeyboardJournal(`Zones : appui long « ${zone.name} »`);
-                    setLongPressTarget(zone);
-                void openDeleteConfirm(zone);
-              }}
+              onLongPressZone={openEntryMenu}
+              onEntryMenuAction={runEntryMenuAction}
             />
           </View>
 
@@ -306,6 +385,7 @@ export function BodyZonePickerModal({
             <View style={styles.newEntryContainer} testID={editTarget ? "body-zone-picker-edit-row" : "body-zone-picker-new-row"}>
               <View style={styles.inlineField}>
                 <TextInput
+                  ref={entryInputRef}
                   value={editTarget ? editName : newName}
                   onChangeText={(text) => {
                     if (editTarget) {
@@ -380,6 +460,7 @@ export function BodyZonePickerModal({
               onPress={() => setIsCreating(true)}
               accessibilityRole="button"
               accessibilityLabel={t.createAction}
+              hitSlop={CREATE_ACTION_HIT_SLOP}
               style={styles.createAction}
               testID="body-zone-picker-create-action"
             >
@@ -394,8 +475,14 @@ export function BodyZonePickerModal({
 
       {longPressTarget ? (
         <ReferenceValueDialog
+          // Revue 4.6 : une autre entrée remonte le dialogue (jamais l'étape `delete` d'une autre).
+          key={longPressTarget.id}
+          focusOnOpen
           name={longPressTarget.name}
           isUsed={deleteTargetUsed}
+          // PRE-4 story 4.3 (FR-20-09, bilan §4.3) : message propre à une Zone utilisée ;
+          // le reste de la suppression garde le comportement PRE-3 validé.
+          usedMessage={strings.referenceData.deleteConfirm.bodyZoneUsedMessage}
           onCancel={() => setLongPressTarget(null)}
           onModify={() => openEdit(longPressTarget)}
           onDelete={handleDelete}
@@ -409,6 +496,14 @@ export function BodyZonePickerModal({
 
 /** Action « Envoyer » figée (4683:6336) : cercle 32, marge interne droite 8. */
 const INLINE_SEND_SIZE = 32;
+
+/**
+ * PRE-4 story 4.6 (FR-22-04, AC4) : cible de `Créer une zone corporelle` portée à 44 de haut
+ * sans agrandir la pilule de 32 (rendu PRE-3 inchangé) — 12 sous la pilule, dans la marge
+ * basse de 24 du contenu ; rien au-dessus : la cible des Zones (`hitSlop` 8) déborde déjà
+ * dans l'écart de 16, et 8 restent entre les deux cibles.
+ */
+const CREATE_ACTION_HIT_SLOP = { top: 0, bottom: 12, left: 0, right: 0 } as const;
 
 const styles = StyleSheet.create({
   backdrop: {

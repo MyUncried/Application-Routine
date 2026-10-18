@@ -1,4 +1,4 @@
-import { act, fireEvent, renderRouter, screen, waitFor, within } from "expo-router/testing-library";
+import { act, fireEvent, renderRouter, screen, waitFor } from "expo-router/testing-library";
 import { describe, expect, it, jest } from "@jest/globals";
 import type { ReactNode } from "react";
 
@@ -21,6 +21,7 @@ import { ReferentialServiceContext } from "@/features/reference-data/Referential
 import { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { strings } from "@/shared/i18n";
+import { chooseExecutionMode, pressInExecutionSheet } from "@/features/activities/testing/executionSheetActions";
 
 /**
  * Intégration bout-en-bout du parcours Activité (UI-ACT-001, cycle de
@@ -36,9 +37,9 @@ import { strings } from "@/shared/i18n";
  * attendus : `Terminer` enregistre atomiquement l'Activité ; elle s'insère
  * entre Compte à rebours et Tour ; le retour ramène sur Composition ; le
  * résumé `N activité(s) · durée` est recalculé ; un double-appui sur
- * `Terminer` ne crée pas de doublon ; le bouton `Continuer` reste désactivé
- * tant que le Nom de la séance est vide, et s'active/navigue réellement vers
- * `/categories` une fois la Composition complète (T01-S09, résolution de
+ * `Terminer` ne crée pas de doublon ; le bouton `Enregistrer la séance` (ex-`Continuer`,
+ * PRE-4 Q54) reste désactivé tant que le Nom de la séance est vide, et s'active puis
+ * enregistre depuis la Composition une fois celle-ci complète (T01-S09, résolution de
  * l'ARBITRAGE précédemment documenté par l'audit).
  *
  * **T02-S02 (D-137)** : l'écran Activité est UNIFIÉ — l'étape intermédiaire
@@ -66,12 +67,11 @@ const composition = strings.screens.composition;
 const exercise = strings.screens.exercise;
 
 /**
- * `/categories` (T01-S09) rend `CategoriesScreen`, qui appelle
- * `useSessionService()` dès le montage (`listCategories`) — un contexte
- * factice minimal (aucune dépendance SQLite réelle) est donc nécessaire
- * pour que le test n°8 ci-dessous puisse simplement PROUVER LA NAVIGATION
- * réelle vers cet écran, sans re-tester ici son propre comportement
- * (couvert par `CategoriesScreen.test.tsx`).
+ * Contexte `SessionService` factice minimal (aucune dépendance SQLite réelle). PRE-4, décision
+ * Q54 : `Enregistrer la séance` enregistre depuis la Composition (écran « Catégories de la
+ * séance » supprimé) ; ce dépôt refuse toute écriture, ce qui permet au test n°8 de prouver
+ * l'appel et le traitement d'un échec sans quitter la Composition. L'enregistrement réel est
+ * prouvé sur SQLite par `CompositionSaveFlow.integration.test.tsx`.
  */
 class NoopSessionRepository implements SessionRepository {
   create(): Promise<Session> {
@@ -245,11 +245,11 @@ async function fillNewExercise(name: string) {
     fireEvent.press(screen.getByTestId("body-zone-picker-confirm"));
   });
   fireEvent.press(screen.getByTestId("exercise-parameters-card"));
-  fireEvent.press(screen.getByTestId("execution-sheet-mode-value"));
-  fireEvent.press(within(screen.getByTestId("execution-sheet-mode-control")).getByText("Durée"));
+  // PRE-4 story 3.1 : popover natif sur iOS, segmenté ailleurs.
+  chooseExecutionMode("Durée");
   fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
   fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 45 } });
-  fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+  pressInExecutionSheet(screen.getByTestId("duration-wheel-validate"));
   fireEvent.press(screen.getByTestId("execution-sheet-validate"));
 }
 
@@ -263,8 +263,6 @@ function renderCreationRouter() {
       "(creation)/composition": require("../../../../app/(creation)/composition").default,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       "(creation)/exercise": require("../../../../app/(creation)/exercise").default,
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      "(creation)/categories": require("../../../../app/(creation)/categories").default,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       "(creation)/activity-selection": require("../../../../app/(creation)/activity-selection")
         .default,
@@ -375,12 +373,13 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
     await fillNewExercise("Pompes");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
-    expect(screen.getByLabelText(composition.continueAction).props.accessibilityState).toMatchObject(
+    expect(screen.getByLabelText(composition.saveAction).props.accessibilityState).toMatchObject(
       { disabled: true },
     );
   });
 
-  it("8. Continuer s'active pour une Composition complète (Nom + Activité valide) et ouvre réellement Catégories de la séance (T01-S09, CE-T01-11)", async () => {
+  it("8. Q54 — Enregistrer la séance s'active pour une Composition complète (Nom + Activité valide) et enregistre depuis la Composition, sans écran intermédiaire ; échec : message D-107, Composition conservée", async () => {
+    const consoleError = jest.spyOn(console, "error").mockImplementation(() => undefined);
     const router = renderCreationRouter();
 
     fireEvent.changeText(screen.getByLabelText(composition.name), "Séance du soir");
@@ -389,11 +388,16 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
     await fillNewExercise("Pompes");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
-    const continueAction = screen.getByLabelText(composition.continueAction);
-    expect(continueAction.props.accessibilityState).toMatchObject({ disabled: false });
+    const saveAction = screen.getByLabelText(composition.saveAction);
+    expect(saveAction.props.accessibilityState).toMatchObject({ disabled: false });
 
-    fireEvent.press(continueAction);
-    expect(router.getPathname()).toBe("/categories");
+    await act(async () => {
+      fireEvent.press(saveAction);
+    });
+    expect(router.getPathname()).toBe("/composition");
+    expect(screen.getByTestId("composition-save-error").props.children).toBe(composition.saveError);
+    expect(screen.getByLabelText(composition.name).props.value).toBe("Séance du soir");
+    consoleError.mockRestore();
   });
 });
 

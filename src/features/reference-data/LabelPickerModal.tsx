@@ -36,6 +36,11 @@ export type LabelPickerModalProps = {
    */
   onSelect: (id: string | null) => void;
   onClose: () => void;
+  /**
+   * Q53 (8) : une Étiquette supprimée depuis cette feuille quitte immédiatement la sélection
+   * de la Séance courante — l'appelant la retire de son Brouillon.
+   */
+  onLabelRetired?: (labelId: string) => void;
 };
 
 /**
@@ -49,7 +54,7 @@ export type LabelPickerModalProps = {
  * Étiquette créée reste au référentiel. Administration par appui long
  * (modification, suppression logique, D4/D-259), réactivation D2.
  */
-export function LabelPickerModal({ selectedId, onSelect, onClose }: LabelPickerModalProps) {
+export function LabelPickerModal({ selectedId, onSelect, onClose, onLabelRetired }: LabelPickerModalProps) {
   const referentialService = useReferentialService();
   const [labels, setLabels] = useState<readonly Label[] | null>(null);
   const [chosenId, setChosenId] = useState<string | null>(selectedId);
@@ -97,8 +102,18 @@ export function LabelPickerModal({ selectedId, onSelect, onClose }: LabelPickerM
     return () => subscription.remove();
   }, [isEntryFormOpen]);
 
+  // Q53 (8) : Étiquette DÉJÀ retirée à l'ouverture (depuis une autre Séance) et affectée à
+  // cette Séance — relevée à la première lecture ; une Étiquette supprimée depuis cette feuille
+  // n'en fait jamais partie.
+  const [retiredAtOpeningId, setRetiredAtOpeningId] = useState<string | null | undefined>(undefined);
+
   function reload() {
-    referentialService.listLabels().then(setLabels);
+    referentialService.listLabels().then((list) => {
+      setLabels(list);
+      setRetiredAtOpeningId((current) =>
+        current !== undefined ? current : (list.find((label) => !isLabelAssignable(label) && label.id === selectedId)?.id ?? null),
+      );
+    });
   }
 
   useEffect(() => {
@@ -106,7 +121,9 @@ export function LabelPickerModal({ selectedId, onSelect, onClose }: LabelPickerM
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [referentialService]);
 
-  const activeLabels = (labels ?? []).filter(isLabelAssignable);
+  // Q53 (8) : Étiquettes actives, plus l'Étiquette retirée avant l'ouverture et affectée à cette
+  // Séance (fond rouge clair, sans menu) ; jamais une Étiquette retirée non affectée (D-210).
+  const activeLabels = (labels ?? []).filter((label) => isLabelAssignable(label) || label.id === retiredAtOpeningId);
   const canAddLabel = validateLabelName(newName).ok;
   const canSaveEdit = validateLabelName(editName).ok;
 
@@ -217,12 +234,19 @@ export function LabelPickerModal({ selectedId, onSelect, onClose }: LabelPickerM
     }
     const wasSelected = selectedId === longPressTarget.id;
     const wasChosen = chosenId === longPressTarget.id;
+    const retiredId = longPressTarget.id;
     try {
-      await referentialService.retireLabel(longPressTarget.id);
+      await referentialService.retireLabel(retiredId);
       reload();
       setLongPressTarget(null);
-      // Un choix non confirmé qui disparaît revient à l'affectation actuelle de la Séance.
-      if (wasChosen && !wasSelected) {
+      // Q53 (8), même règle que les Zones : dans la Séance depuis laquelle la suppression est
+      // faite, l'Étiquette disparaît de la liste et de la sélection (feuille et Brouillon) ;
+      // les AUTRES Séances qui l'avaient la gardent, en rouge dans leur feuille.
+      if (wasSelected) {
+        setChosenId((current) => (current === retiredId ? null : current));
+        onLabelRetired?.(retiredId);
+      } else if (wasChosen) {
+        // Un choix non confirmé qui disparaît revient à l'affectation actuelle de la Séance.
         setChosenId(selectedId);
       }
     } catch (error) {
@@ -293,20 +317,30 @@ export function LabelPickerModal({ selectedId, onSelect, onClose }: LabelPickerM
             <View ref={tagRowRef} style={styles.tagRow} testID="label-picker-tag-row">
               {activeLabels.map((label) => {
                 const isSelected = label.id === chosenId;
+                // Q53 (8) : Étiquette retirée encore affectée — fond rouge clair, sans mention
+                // visible, état porté par le nom accessible, sans appui long.
+                const isRetired = !isLabelAssignable(label);
+                const name = isRetired
+                  ? strings.referenceData.retiredEntryAccessibilityLabel.replace("{name}", () => label.name)
+                  : label.name;
                 return (
                   <Pressable
                     key={label.id}
                     onPress={() => handlePress(label)}
-                    onLongPress={() => {
-                      recordKeyboardJournal(`Étiquette : appui long « ${label.name} »`);
-                    setLongPressTarget(label);
-                      void openDeleteConfirm(label);
-                    }}
+                    onLongPress={
+                      isRetired
+                        ? undefined
+                        : () => {
+                            recordKeyboardJournal(`Étiquette : appui long « ${label.name} »`);
+                            setLongPressTarget(label);
+                            void openDeleteConfirm(label);
+                          }
+                    }
                     accessibilityRole="button"
-                    accessibilityLabel={`${label.name}${isSelected ? ` — ${strings.screens.categories.tagAccessibility.selectedSuffix}` : ""}`}
+                    accessibilityLabel={`${name}${isSelected ? ` — ${strings.screens.categories.tagAccessibility.selectedSuffix}` : ""}`}
                     accessibilityHint={isSelected ? t.retireActionHint : t.chooseActionHint}
                     accessibilityState={{ selected: isSelected }}
-                    style={[styles.tag, isSelected ? styles.tagSelected : null]}
+                    style={[styles.tag, isSelected ? styles.tagSelected : null, isRetired ? styles.tagRetired : null]}
                     testID={`label-picker-tag-${label.id}`}
                   >
                     <View style={[styles.swatch, { backgroundColor: label.color }]} testID={`label-picker-tag-${label.id}-swatch`} />
@@ -524,6 +558,10 @@ const styles = StyleSheet.create({
     borderWidth: TAG_BORDER_WIDTH,
     borderColor: colors.border,
     backgroundColor: colors.surfaceSubtle,
+  },
+  // Q53 (8) : fond d'une Étiquette retirée encore affectée (choisie ou non).
+  tagRetired: {
+    backgroundColor: colors.dangerSurface,
   },
   tagSelected: {
     borderColor: colors.primarySoft,

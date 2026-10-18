@@ -1,10 +1,12 @@
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
-import type { ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
 import {
-  computeActivityDurationResult,
-  computeEstimatedDurationSeconds,
-  computeZoneDurationFacts,
-} from "@/domain/sessions/calculations";
+  allTargetsFailure,
+  hasUnsetTarget,
+  seriesCountOf,
+  type ExecutionParametersInput,
+} from "@/domain/activities/ExecutionParameters";
+import { formatPhraseDuration } from "@/domain/activities/durationFormat";
+import { computeEstimatedDurationSeconds, computeZoneDurationFacts } from "@/domain/sessions/calculations";
 import { DEFAULT_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
 import type { SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import type { SideMode } from "@/domain/sessions/sideMode";
@@ -52,10 +54,11 @@ export type CompositionSummaryFacts = {
  * ne sont pas concernées par ce changement : elles décrivent un total
  * différent, jamais cette synthèse locale.
  *
- * État vide (`exercises.length === 0`) : chaîne locale et complète
- * `"0 activité · 0 min"` (arbitrage V2) — n'appelle jamais
- * `formatActivityCount(0)`, qui produit délibérément `"0 activités"`
- * (pluriel) pour le Catalogue et reste inchangé.
+ * État vide (aucun Exercice dans le Tour) : chaîne locale et complète
+ * `"0 exercice · 0 min"` (arbitrage V2) — n'appelle jamais
+ * `formatActivityCount(0)`, qui produisait alors le pluriel pour le
+ * Catalogue. Depuis PRE-4 (story 1.2, décision Q32), zéro y prend aussi le
+ * singulier (« 0 exercice »).
  *
  * État non vide : chaque Activité contribue sa propre durée estimée, SOMMÉE
  * — mode Durée (RM-036/RM-037/RM-071), une Série répète la durée de
@@ -71,7 +74,11 @@ export type CompositionSummaryFacts = {
  * si d'autres Activités de la même Composition sont en mode Durée). Arrondi
  * à la minute supérieure via `formatEstimatedDuration` (`Math.ceil`,
  * RM-101, inchangé), appliqué une seule fois à la somme totale des
- * Activités.
+ * Activités. **PRE-4 (story 2.4, AC5, Q20, P41)** : cet arrondi ne vaut
+ * plus que pour les natures `exact` et `estimated` ; une borne minimale
+ * (`lowerBound`) s'écrit « ≥ » (lexique) suivi des minutes et secondes du
+ * formateur du domaine (`formatPhraseDuration`), sans arrondi — sauf une
+ * borne de 0 s, qui garde « ≥ 0 min » (P47).
  *
  * **T02-S01 (CE-T02-01 « Calculs », AC-10/AC-11)**, puis **correctif T02
  * post-test-utilisateur** (2026-09-08) — quatre évolutions, la formule par
@@ -130,11 +137,18 @@ export function formatCompositionSummary(facts: CompositionSummaryFacts): string
 
   // PRE-3 : symbole issu de l'autorité Domaine — « ≥ » si un travail est
   // inconnu, « ≈ » si une contribution est estimée (Répétitions avec bip),
-  // aucun symbole sinon.
-  const durationLabel = formatEstimatedDuration(
-    totalSeconds,
-    inTourOccurrence.isLowerBoundEstimate ? "lowerBound" : inTourOccurrence.isEstimated ? "estimated" : "exact",
-  );
+  // aucun symbole sinon. PRE-4 (story 2.4, AC5) : la borne minimale garde
+  // ses secondes (105 s → « ≥ 1 min 45 s ») ; `exact` et `estimated` gardent
+  // `formatEstimatedDuration` et son arrondi à la minute supérieure (P41).
+  // Une borne de 0 s garde le rendu PRE-3 « ≥ 0 min », jamais « 0 s »
+  // (règle P47, `docs/preparation/PRE-4/bmad/questions-ouvertes.md`).
+  const durationLabel =
+    inTourOccurrence.isLowerBoundEstimate && totalSeconds > 0
+      ? `${strings.shared.durationNature.lowerBoundPrefix}${formatPhraseDuration(totalSeconds)}`
+      : formatEstimatedDuration(
+          totalSeconds,
+          inTourOccurrence.isLowerBoundEstimate ? "lowerBound" : inTourOccurrence.isEstimated ? "estimated" : "exact",
+        );
 
   return `${formatActivityCount(inTourExercises.length)}${COMPACT_LIST_SEPARATOR}${durationLabel}`;
 }
@@ -155,37 +169,26 @@ export function formatDurationRowValue(
 }
 
 export type ExerciseRowSummaryFacts = {
-  readonly executionMode: SessionDraftExercise["executionMode"];
-  readonly durationSeconds: number | null;
-  readonly repetitionCount: number | null;
-  readonly seriesCount: number;
-  readonly pauseSeconds: number;
+  /**
+   * PRE-4 (story 1.1, AD-3, AD-6) : paramètres typés de l'Exercice — seule
+   * source du Mode, des Cibles, de N et des Pauses (aucun scalaire, aucun
+   * `?? 0`). Une `ActivityDefinition` ou un `SessionDraftExercise` les portent.
+   */
+  readonly executionParameters: ExecutionParametersInput;
   /**
    * V2-BILAT-01 (plan `## UI`, « Composition cards and summaries ») :
    * direction PROPRE de l'Activité — champ OPTIONNEL, `UNILATERAL` par
-   * défaut (même convention que les autres champs optionnels de cette
-   * famille de Facts) : un appelant qui ne la transmet pas produit
-   * exactement le résumé d'avant cette tranche.
+   * défaut : un appelant qui ne la transmet pas produit exactement le résumé
+   * d'avant cette tranche.
    */
   readonly sideMode?: SideMode;
   /**
    * V2-BILAT-01 : `true` lorsque la direction EFFECTIVEMENT appliquée à
-   * cette Activité provient du Tour (Activité `IN_TOUR` d'un Tour bilatéral)
-   * plutôt que de sa propre configuration — jamais dérivé ici à partir de
-   * `structuralPosition`/`tourSideMode` (ce module reste indépendant de la
-   * structure du Tour) : l'appelant (`CompositionScreen.tsx`) le calcule via
-   * `resolveEffectiveSideMode`/la zone structurelle. Aucune clause de
-   * direction n'est jamais affichée pour une direction héritée — « own
-   * bilateral base » exige explicitement une direction PROPRE.
+   * cette Activité provient du Tour plutôt que de sa propre configuration —
+   * jamais dérivé ici. Aucune clause de direction n'est jamais affichée pour
+   * une direction héritée.
    */
   readonly isSideModeInherited?: boolean;
-  /**
-   * PRE-3 : paramètres canoniques de l'Exercice. Optionnels : absents, la
-   * synthèse est celle des scalaires (identique à avant PRE-3). Des Séries
-   * VARIABLES produisent l'indicateur compact « {N} séries variables », sans
-   * détail des valeurs (v13 §7, DSF Séries variables « Ligne de Séance »).
-   */
-  readonly executionParameters?: ExecutionParametersInput | null;
 };
 
 /**
@@ -196,21 +199,13 @@ export type ExerciseRowSummaryFacts = {
  * ci-dessous — demande CHANGES_REQUESTED T01-S08 (commentaire GitHub
  * 5442860439), format non issu de la documentation fonctionnelle
  * préexistante.
+ *
+ * PRE-4 (story 2.2, AC1, AD-5) : converge sur le formateur unique du
+ * domaine (`durationFormat.ts`), sans borne de roulette : sorties
+ * inchangées.
  */
 export function formatCompactDuration(totalSeconds: number): string {
-  const exerciseRow = strings.screens.composition.exerciseRow;
-  // Décomposition directe (pas `fromTotalSeconds`, qui borne à
-  // `WHEEL_TOTAL_SECONDS_MAX` par défaut) : ce résumé n'est pas issu d'une
-  // roulette et ne doit appliquer aucune borne d'affichage arbitraire.
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  if (minutes === 0) {
-    return `${seconds} ${exerciseRow.durationUnitSeconds}`;
-  }
-  if (seconds === 0) {
-    return `${minutes} ${exerciseRow.durationUnitMinutes}`;
-  }
-  return `${minutes} ${exerciseRow.durationUnitMinutes} ${seconds} ${exerciseRow.durationUnitSeconds}`;
+  return formatPhraseDuration(totalSeconds);
 }
 
 function formatCountWithUnit(count: number, singular: string, plural: string): string {
@@ -218,248 +213,82 @@ function formatCountWithUnit(count: number, singular: string, plural: string): s
 }
 
 /**
- * Résumé détaillé de la ligne Exercice dans Composition (T01-S08,
- * CHANGES_REQUESTED — commentaire GitHub 5442860439, décision D-095).
+ * Résumé détaillé de la ligne Exercice dans Composition et sur la carte
+ * Catalogue (T01-S08, CHANGES_REQUESTED — commentaire GitHub 5442860439,
+ * décision D-095).
  *
  * Mode Durée : `N série(s) de X min Y s avec Z min Y s de pause par série`.
  * Mode Répétitions : `N série(s) de X répétition(s) avec Z min Y s de pause
- * par série`. La clause de pause est entièrement omise lorsque
- * `pauseSeconds === 0` — jamais affichée comme `"avec 0 s de pause"`. La
- * Consigne et les Zones corporelles ne figurent jamais dans ce résumé
- * (demande explicite).
+ * par série`. La clause de pause est entièrement omise lorsque la Pause vaut
+ * 0 — jamais affichée comme `"avec 0 s de pause"`. La Consigne et les Zones
+ * corporelles ne figurent jamais dans ce résumé.
  *
- * **V2-BILAT-01 (plan de correction bornée, `## 4.4`/`## 4.5`)** : lorsque
- * `facts.sideMode` est bilatéral ET PROPRE à l'Activité (jamais
- * `facts.isSideModeInherited`), la clause `exerciseRow.perSide` (« par
- * côté ») s'insère immédiatement après « {N} série(s) » — c'est la SEULE
- * marque de bilatéralité que porte la carte. Le suffixe de direction
- * développé (`sideDirectionSuffixRightLeft`/`sideDirectionSuffixLeftRight`,
- * « à droite, puis à gauche »/« à gauche, puis à droite ») n'est JAMAIS
- * ajouté ici — « the card must never contain [it] » — il reste réservé à
- * `formatExerciseRecap` (synthèse Ajouter/Modifier une Activité) ; la carte
- * expose sa propre direction via l'indicateur court `D→G`/`G→D`
- * (`CompositionScreen.tsx`), jamais un texte développé. Une Activité
- * unilatérale ou dont la direction est héritée d'un Tour bilatéral ne reçoit
- * JAMAIS `perSide` — le résumé reste alors rigoureusement identique à celui
- * d'avant cette tranche.
+ * **V2-BILAT-01** : lorsque la direction est bilatérale ET PROPRE à
+ * l'Activité (jamais `facts.isSideModeInherited`), la clause
+ * `exerciseRow.perSide` (« par côté ») s'insère immédiatement après
+ * « {N} série(s) » — seule marque de bilatéralité de la carte.
+ *
+ * **PRE-4 (story 1.1, AD-6, Q24, Q17, H28)** : lecture des Cibles TYPÉES,
+ * jamais des scalaires ni d'un `?? 0` :
+ * - toutes les Cibles `FAILURE` (ancien mode « à l'échec » migré), en Régime
+ *   identiques comme variables : « {N} séries à l’échec » (clause de Pause
+ *   commune conservée en identiques) — jamais « 0 s » ni « 0 rép. » ;
+ * - Régime variables : indicateur compact « {N} séries variables » (v13 §7) ;
+ * - Mode non renseigné ou Cible à renseigner (`UNSET`, héritée) : le texte
+ *   existant « Paramètres à compléter. », sans aucune valeur inventée.
  */
 export function formatExerciseRowSummary(facts: ExerciseRowSummaryFacts): string {
   const exerciseRow = strings.screens.composition.exerciseRow;
   const recap = strings.screens.exercise.recap;
+  const parameters = facts.executionParameters;
 
   const isOwnBilateral = (facts.sideMode ?? "UNILATERAL") !== "UNILATERAL" && !facts.isSideModeInherited;
-
-  const parameters = facts.executionParameters;
-  if (parameters && parameters.series.kind === "VARIABLE") {
-    const summary = strings.executionParameters.summary;
-    const count = parameters.series.rows.length;
-    const base = (isOwnBilateral ? summary.variableSeriesPerSide : summary.variableSeries).replace(
-      "{n}",
-      String(count),
-    );
-    return base;
-  }
-
+  const count = seriesCountOf(parameters);
   const seriesLabel = `${formatCountWithUnit(
-    facts.seriesCount,
+    count,
     exerciseRow.seriesSingular,
     exerciseRow.seriesPlural,
   )}${isOwnBilateral ? ` ${exerciseRow.perSide}` : ""}`;
 
-  // T01-S10 (D-111/D-112) : mode « À l'échec » — aucune cible ; le nom n'est
-  // jamais répété dans la synthèse compacte. Clause de pause omise à `0 s` ou
+  // Tout échec : aucune Cible numérique ; le nom n'est jamais répété dans la
+  // synthèse compacte. Clause de Pause omise à 0 s, en Régime variables, ou
   // lorsqu'une seule Série ne crée aucun intervalle.
-  if (facts.executionMode === "TO_FAILURE") {
+  if (allTargetsFailure(parameters)) {
     const base = `${seriesLabel} ${exerciseRow.toFailure}`;
-    if (facts.pauseSeconds <= 0 || facts.seriesCount <= 1) {
+    const series = parameters.series;
+    if (series.kind !== "UNIFORM" || series.pauseSeconds <= 0 || count <= 1) {
       return base;
     }
-    return `${base}, ${exerciseRow.withPause} ${formatCompactDuration(facts.pauseSeconds)} ${recap.pauseLabel} ${recap.pauseSuffix}`;
+    return `${base}, ${exerciseRow.withPause} ${formatCompactDuration(series.pauseSeconds)} ${recap.pauseLabel} ${recap.pauseSuffix}`;
+  }
+
+  if (parameters.mode === null || hasUnsetTarget(parameters)) {
+    return strings.executionParameters.card.incomplete;
+  }
+
+  if (parameters.series.kind === "VARIABLE") {
+    const summary = strings.executionParameters.summary;
+    return (isOwnBilateral ? summary.variableSeriesPerSide : summary.variableSeries).replace("{n}", String(count));
+  }
+
+  const target = parameters.series.target;
+  if (target.kind !== "NUMBER") {
+    return strings.executionParameters.card.incomplete;
   }
 
   const activityLabel =
-    facts.executionMode === "DURATION"
-      ? formatCompactDuration(facts.durationSeconds ?? 0)
-      : formatCountWithUnit(
-          facts.repetitionCount ?? 0,
-          exerciseRow.repetitionSingular,
-          exerciseRow.repetitionPlural,
-        );
+    parameters.mode === "DURATION"
+      ? formatCompactDuration(target.value)
+      : formatCountWithUnit(target.value, exerciseRow.repetitionSingular, exerciseRow.repetitionPlural);
 
   const base = `${seriesLabel} ${exerciseRow.of} ${activityLabel}`;
+  const pauseSeconds = parameters.series.pauseSeconds;
 
-  if (facts.pauseSeconds <= 0) {
+  if (pauseSeconds <= 0) {
     return base;
   }
 
-  return `${base} ${exerciseRow.withPause} ${formatCompactDuration(facts.pauseSeconds)} ${exerciseRow.pauseSuffix}`;
-}
-
-export type ExerciseRecapFacts = ExerciseRowSummaryFacts & {
-  /** Nom de l'Activité en cours d'édition, intégré au récapitulatif (complétion REWORK12) — jamais un littéral figé. */
-  readonly name: string;
-  /**
-   * T02-S02 : Récupération attachée — `0` omet entièrement la proposition
-   * `, puis … de récupération`.
-   *
-   * Champ OPTIONNEL, `0` par défaut — même convention que
-   * `CompositionSummaryFacts.tourRepeatCount` : la valeur neutre produit
-   * exactement la synthèse d'avant cette tranche, un appelant qui ne
-   * modélise pas encore la Récupération reste donc valide et correct.
-   * `ExerciseScreen` transmet toujours la valeur réelle du brouillon.
-   */
-  readonly postActivityRecoverySeconds?: number;
-};
-
-/**
- * Récapitulatif calculé de l'écran `Création d'une Activité — Paramètres
- * essentiels` (CE-T01-13, cadre ancré en bas du formulaire) — REWORK09
- * (mission directe utilisateur, 2026-09-04, point 8), **reformulé par la
- * complétion REWORK12** (`[ChatGPT] Applique impérativement le protocole
- * KODJO actif...`, 2026-09-04) après mise à jour Figma/documentaire (D-105,
- * `06 – Ecrans et navigation de la V1.md` §« Étape 1 »).
- *
- * Format exact vérifié directement sur les nœuds Figma actuels
- * (`3261:4157`/`3261:4166`, frames `1992:9132`/`1992:9212`) :
- * `"3 séries de squat sautés de 1 min 30 s, avec 15 s de pause entre les
- * séries."` (Durée) / `"3 séries de 12 squat sautés, avec 15 s de pause
- * entre les séries."` (Répétitions) — plus jamais de préfixe `Exercice ·
- * Mode X ·` (supprimé, REWORK09's `exercise.type.exercise`/
- * `exercise.recap.modePrefix` désormais sans consommateur). `entre les
- * séries` n'est ajouté que lorsque `seriesCount > 1` (implicite dans les
- * deux exemples Figma, `3 séries` ; règle explicite posée par la
- * documentation mise à jour pour le cas `1 série`, non illustré sur Figma).
- * Jamais une valeur figée : recalculé à chaque changement du brouillon
- * d'Activité (`ExerciseScreen.tsx`, `local`).
- *
- * Réutilise `formatCompactDuration`/`formatCountWithUnit` déjà établis
- * pour `formatExerciseRowSummary` ci-dessus (mêmes unités/pluriels/« de »/
- * « avec », `strings.screens.composition.exerciseRow`) — la clause de
- * pause est entièrement omise lorsque `pauseSeconds === 0`, comme
- * `formatExerciseRowSummary` (D-095) ; `exercise.recap.pauseSuffix`
- * (« entre les séries ») reste distinct de `exerciseRow.pauseSuffix`
- * (« de pause par série »), désormais appliqué CONDITIONNELLEMENT (au
- * pluriel uniquement) plutôt que systématiquement.
- *
- * **V2-BILAT-01 (plan de correction bornée, `## 4.5` « Synthèse
- * Ajouter/Modifier une Activité »)** : base `{N} série(s) par côté …` pour
- * une direction PROPRE bilatérale (jamais `facts.isSideModeInherited`),
- * suivie du suffixe développé exact
- * (`sideDirectionSuffixRightLeft`/`sideDirectionSuffixLeftRight`), placé
- * (1) après la cible (ou après `toFailure`), (2) donc toujours AVANT la
- * clause de Pause. Absent en `UNILATERAL` ou sous héritage — cette
- * synthèse RESTE la seule à porter la direction développée : la carte de
- * Composition (`formatExerciseRowSummary` ci-dessus) ne la reçoit jamais.
- */
-export function formatExerciseRecap(facts: ExerciseRecapFacts): string {
-  const exercise = strings.screens.exercise;
-  const exerciseRow = strings.screens.composition.exerciseRow;
-
-  const isOwnBilateral = (facts.sideMode ?? "UNILATERAL") !== "UNILATERAL" && !facts.isSideModeInherited;
-  const directionSuffix = !isOwnBilateral
-    ? ""
-    : facts.sideMode === "RIGHT_LEFT"
-      ? exerciseRow.sideDirectionSuffixRightLeft
-      : exerciseRow.sideDirectionSuffixLeftRight;
-
-  const seriesLabel = `${formatCountWithUnit(
-    facts.seriesCount,
-    exerciseRow.seriesSingular,
-    exerciseRow.seriesPlural,
-  )}${isOwnBilateral ? ` ${exerciseRow.perSide}` : ""}`;
-
-  // T01-S10 (D-111/D-112) : synthèse complète du mode « À l'échec » —
-  // `{N} série(s) de {nom}, jusqu'à l'échec[, avec {pause} de pause entre les
-  // séries].` La clause de pause est omise à `0 s` ou lorsqu'une seule Série
-  // ne crée aucun intervalle.
-  if (facts.executionMode === "TO_FAILURE") {
-    const failureBase = `${seriesLabel} ${exerciseRow.of} ${facts.name}, ${exerciseRow.toFailure}${directionSuffix}`;
-    if (facts.pauseSeconds <= 0 || facts.seriesCount <= 1) {
-      return `${failureBase}${formatRecoveryClause(facts.postActivityRecoverySeconds ?? 0)}.`;
-    }
-    return `${failureBase}, ${exerciseRow.withPause} ${formatCompactDuration(facts.pauseSeconds)} ${exercise.recap.pauseLabel} ${exercise.recap.pauseSuffix}${formatRecoveryClause(facts.postActivityRecoverySeconds ?? 0)}.`;
-  }
-
-  const activityLabel =
-    facts.executionMode === "DURATION"
-      ? `${facts.name} ${exerciseRow.of} ${formatCompactDuration(facts.durationSeconds ?? 0)}`
-      : `${facts.repetitionCount ?? 0} ${facts.name}`;
-
-  const base = `${seriesLabel} ${exerciseRow.of} ${activityLabel}${directionSuffix}`;
-
-  if (facts.pauseSeconds <= 0) {
-    return `${base}${formatRecoveryClause(facts.postActivityRecoverySeconds ?? 0)}.`;
-  }
-
-  const pauseSuffix = facts.seriesCount > 1 ? ` ${exercise.recap.pauseSuffix}` : "";
-
-  return `${base}, ${exerciseRow.withPause} ${formatCompactDuration(facts.pauseSeconds)} ${exercise.recap.pauseLabel}${pauseSuffix}${formatRecoveryClause(facts.postActivityRecoverySeconds ?? 0)}.`;
-}
-
-/**
- * Proposition `, puis {récupération} de récupération` du récapitulatif
- * (T02-S02, `06 – Ecrans et navigation de la V1.md`, Écran 4 : « Lorsque la
- * Récupération est non nulle, ajouter `, puis {récupération} de
- * récupération` »).
- *
- * Chaîne VIDE — jamais une proposition vide — lorsque la Récupération est
- * nulle : elle se compose alors sans laisser de virgule orpheline avant le
- * point final, dans les trois modes. Ajoutée avant la ponctuation finale,
- * toujours après l'éventuelle clause de Pause : la Récupération s'exécute
- * après TOUTES les Séries, donc après les Pauses.
- */
-function formatRecoveryClause(postActivityRecoverySeconds: number): string {
-  if (postActivityRecoverySeconds <= 0) {
-    return "";
-  }
-  const recap = strings.screens.exercise.recap;
-  return `, ${recap.recoveryPrefix} ${formatCompactDuration(postActivityRecoverySeconds)} ${recap.recoveryLabel}`;
-}
-
-/**
- * Seconde ligne de la synthèse d'Activité (T02-S02, `06` Écran 4) :
- *
- * - mode Durée : `Durée totale : {D}`, `D` suivant la formule canonique
- *   CONDITIONNELLE de `calculations.ts` (`C × B` sans Récupération,
- *   `(C − 1) × B + R` avec) — la valeur DÉRIVÉE, jamais une donnée persistée
- *   (DM-015) ;
- * - modes Répétitions et « À l'échec » : `Durée totale : ≥ {durée connue}`,
- *   borne composée des seules parts déterminables — Pauses entre Séries et
- *   Récupération (RM-132). Aucune durée conventionnelle n'est inventée pour
- *   l'Exercice lui-même.
- *
- * **V2-BILAT-01 (plan `## Calculs`, BIL-068)** : « le libellé visible reste
- * `Durée totale` dans les TROIS modes » — remplace l'ancien libellé distinct
- * `Durée minimale` des modes non chronométrés, supprimé (`fr.ts`). Seul le
- * préfixe `≥` continue de signaler la borne inférieure ; il n'est jamais
- * retiré du champ éditeur ni de cette ligne (décision T02-S02 conservée).
- *
- * La même fonction du Domaine (`computeTotalDurationSeconds`) sert les deux
- * cas : en mode non chronométré, `A` vaut `0`, ce qui EST exactement la
- * définition de la borne minimale — jamais une seconde formule parallèle.
- */
-export function formatExerciseDurationLine(facts: ExerciseRecapFacts): string | null {
-  // PRE-3 : délégation à l'autorité Domaine unique (registre d'événements) —
-  // exact sans symbole, estimé « ≈ », omis → aucune ligne (ni zéro, ni « ≥ »).
-  const exercise = strings.screens.exercise;
-  const result = computeActivityDurationResult({
-    type: "EXERCISE",
-    executionMode: facts.executionMode,
-    durationSeconds: facts.durationSeconds,
-    repetitionCount: facts.repetitionCount,
-    seriesCount: facts.seriesCount,
-    pauseSeconds: facts.pauseSeconds,
-    postActivityRecoverySeconds: facts.postActivityRecoverySeconds ?? 0,
-    sideMode: facts.sideMode ?? "UNILATERAL",
-    executionParameters: facts.executionParameters ?? undefined,
-  });
-  if (result.seconds === undefined) {
-    return null;
-  }
-  const formatted = formatCompactDuration(result.seconds);
-  return result.kind === "estimated"
-    ? `${exercise.recap.totalDurationLabel} : ≈ ${formatted}`
-    : `${exercise.recap.totalDurationLabel} : ${formatted}`;
+  return `${base} ${exerciseRow.withPause} ${formatCompactDuration(pauseSeconds)} ${exerciseRow.pauseSuffix}`;
 }
 
 /**

@@ -1,0 +1,70 @@
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created, ready for development
+#   - in-progress: Developer actively working on implementation
+#   - review: Implementation complete, ready for review
+#   - done: Story completed
+
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+
+# Action Item Status:
+#   - open: Committed during a retrospective, not yet addressed
+#   - in-progress: Actively being worked on
+#   - done: Completed
+
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when its first story starts (via build's sprint sync)
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates the next story after the previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+# - Retrospective appends its action items to action_items; the status view surfaces open ones
+generated: 10-16-2026 17:31
+last_updated: 10-17-2026 23:30
+project: kodjo-pre4
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+development_status:
+  epic-1: done
+  1-1-socle-cible-typée-format-v2-et-migration-010: done
+  1-2-avis-des-exercices-écartés-et-séance-vide-visible: done
+  1-3-copies-duplications-et-instantanés-à-cibles-typées: done
+  1-4-preuve-de-préservation-sur-une-base-antérieure-réelle: done
+  epic-1-retrospective: optional
+
+  epic-2: done
+  2-1-nature-et-montant-de-la-durée-totale-d-un-exercice: done
+  2-2-format-des-durées-et-agrégation-de-séance: done
+  2-3-phrase-des-paramètres-pour-les-cibles-mixtes-et-corpus: done
+  2-4-durées-et-résumés-sur-les-cartes-catalogue-et-composition: done
+  epic-2-retrospective: optional
+
+  epic-3: done
+  3-1-faisabilité-sur-iphone-du-popover-natif-dans-la-feuille-s0: done
+  3-2-brouillon-de-feuille-cibles-typées-régime-mémoire-par-mode-r: done
+  3-3-popovers-mode-changement-de-côté-ordre-des-côtés-et-régime: done
+  3-4-sélecteur-de-cible-en-durée-option-échec-et-grisé-manipulabl: done
+  3-5-sélecteur-de-cible-en-répétitions-à-une-colonne: done
+  3-6-tableau-des-séries-variables-cellule-active-pied-commun-retr: done
+  3-7-ligne-durée-totale-et-inversion-dans-la-feuille: done
+  3-8-accessibilité-et-recette-de-la-feuille: done
+  epic-3-retrospective: optional
+
+  epic-4: done
+  4-1-quatre-parcours-d-édition-terminer-et-retour: done
+  4-2-écran-principal-conforme-aux-références: done
+  4-3-catégorie-et-zones-corporelles-depuis-l-éditeur: done
+  4-4-médias-dans-l-éditeur-sans-perte: done
+  4-5-consulter-un-média-dans-l-éditeur-lecteur-natif: done
+  4-6-fidélité-accessibilité-et-recette-finale-de-l-éditeur: done
+  epic-4-retrospective: optional

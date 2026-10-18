@@ -28,6 +28,18 @@ export type FixedHeaderProps = {
   /** Action Retour — omise (aucun cercle rendu) sur les écrans racines de la navigation basse (Catalogue). */
   onBack?: () => void;
   backAccessibilityLabel?: string;
+  /**
+   * PRE-4 story 4.2 (FR-02-03, AC4) : l'action de gauche affiche le ✕ de
+   * `Action / Fermer` (`icon/fermer`, `6959:15825`) au lieu du chevron Retour.
+   * Prop LOCALE, `false` par défaut : seul l'Éditeur d'Exercice la passe ; le
+   * cercle, la cible 48 et le `hitSlop` sont inchangés, les autres écrans aussi.
+   */
+  closeIcon?: boolean;
+  /**
+   * PRE-4 story 4.2 (FR-02-04, AC5) : marge latérale de l'en-tête — 24 par
+   * défaut (inchangé) ; l'Éditeur d'Exercice passe 16 sous la largeur 390.
+   */
+  horizontalPadding?: number;
 };
 
 /**
@@ -51,7 +63,13 @@ export type FixedHeaderProps = {
  * mécanisme de `hitSlop` ne sont touchés (`hitSlop` se réduit
  * mécaniquement de `10` à `5`, la cible restant exactement `48`).
  */
-export function FixedHeader({ title, onBack, backAccessibilityLabel }: FixedHeaderProps) {
+export function FixedHeader({
+  title,
+  onBack,
+  backAccessibilityLabel,
+  closeIcon = false,
+  horizontalPadding,
+}: FixedHeaderProps) {
   const insets = useSafeAreaInsets();
   const backHitSlop = (minTouchTarget - dimensions.backAction.visualCircle) / 2;
 
@@ -63,6 +81,7 @@ export function FixedHeader({ title, onBack, backAccessibilityLabel }: FixedHead
         // X-4 (recette PRE-3, 12/10) : hauteur MINIMALE — identique à taille normale,
         // elle grandit avec le texte agrandi au lieu de rogner le titre.
         { paddingTop: insets.top, minHeight: insets.top + dimensions.header.contentHeight },
+        horizontalPadding === undefined ? null : { paddingHorizontal: horizontalPadding },
       ]}
     >
       {onBack ? (
@@ -75,7 +94,7 @@ export function FixedHeader({ title, onBack, backAccessibilityLabel }: FixedHead
           testID="screen-header-back"
         >
           <KodjoIcon
-            name="control-back"
+            name={closeIcon ? "control-close" : "control-back"}
             size={dimensions.backAction.icon}
             testID="screen-header-back-icon"
           />

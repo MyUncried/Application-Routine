@@ -1,5 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 
+import { totalClauseAmount } from "@/domain/activities/executionPhrase";
 import { strings } from "@/shared/i18n";
 
 describe("strings", () => {
@@ -84,6 +85,8 @@ describe("strings", () => {
       cancel: "Annuler",
       modify: "Modifier",
       delete: "Supprimer",
+      // PRE-4 story 4.6 (FR-22-09, AC8) : action accessible équivalente à l'appui long (ajout).
+      accessibilityAction: "Modifier ou supprimer",
     });
   });
 
@@ -196,10 +199,12 @@ describe("strings", () => {
       validateAccessibilityLabel: "Valider",
     });
     expect(strings.screens.composition.addActivity).toBe("Ajouter un exercice");
-    expect(strings.screens.composition.continueAction).toBe("Continuer");
+    // PRE-4 Q54 : l’action finale de la Composition enregistre la Séance.
+    expect(strings.screens.composition.saveAction).toBe("Enregistrer la séance");
+    expect(strings.screens.composition.saveError).toBe("La séance n’a pas pu être enregistrée. Réessayez.");
   });
 
-  it("exposes the exact local Composition empty-summary label (V2 — singular, distinct from formatActivityCount(0))", () => {
+  it("exposes the exact local Composition empty-summary label (V2 — singular, like formatActivityCount(0) since Q32)", () => {
     expect(strings.screens.composition.summary.empty).toBe("0 exercice · 0 min");
   });
 
@@ -225,12 +230,11 @@ describe("strings", () => {
       seriesPlural: "séries",
       repetitionSingular: "répétition",
       repetitionPlural: "répétitions",
-      durationUnitMinutes: "min",
-      durationUnitSeconds: "s",
       of: "de",
       withPause: "avec",
       pauseSuffix: "de pause par série",
-      toFailure: "jusqu’à l’échec",
+      // PRE-4 (story 1.1, Q24) : « {N} séries à l’échec ».
+      toFailure: "à l’échec",
       // V2-BILAT-01 (plan `## UI`, « Composition cards and summaries ») :
       // clause de côté d'une carte Activité à direction PROPRE bilatérale.
       perSide: "par côté",
@@ -260,7 +264,6 @@ describe("strings", () => {
       label: "Mode d’exécution",
       duration: "Durée",
       repetitions: "Répétitions",
-      toFailure: "À l’échec",
     });
     expect(strings.screens.exercise.wheelPicker).toEqual({
       minutesAccessibilityLabel: "Minutes",
@@ -418,6 +421,9 @@ describe("strings", () => {
       message: "Les modifications apportées à cet exercice seront perdues.",
       continueEditing: "Annuler",
       abandon: "Confirmer",
+      // PRE-4 story 4.2 (Q18) : textes du dialogue en création.
+      createTitle: "Abandonner la création ?",
+      createMessage: "Les informations saisies seront perdues et l’exercice ne sera pas créé.",
     });
   });
 
@@ -489,7 +495,9 @@ describe("strings — PRE-3", () => {
   it("P3-20/contract-i18n — libellés PRE-3 des surfaces, modes et erreurs ; groupes existants conservés", () => {
     const pre3 = strings.executionParameters;
     expect(pre3.sheet.title).toBe("Paramètres d’exécution");
-    expect(pre3.sheet.modes).toEqual({ DURATION: "Durée", REPETITIONS: "Répétitions", TO_FAILURE: "À l’échec" });
+    // PRE-4 (story 1.1, AC22) : deux Modes seulement ; « à l’échec » reste le texte d’une Cible.
+    expect(pre3.sheet.modes).toEqual({ DURATION: "Durée", REPETITIONS: "Répétitions" });
+    expect(pre3.sheet.failureTarget).toBe("à l’échec");
     expect(pre3.sheet.sideModes).toEqual({
       UNILATERAL: "Sans changement",
       RIGHT_LEFT: "Droite puis gauche",
@@ -505,10 +513,41 @@ describe("strings — PRE-3", () => {
     expect(pre3.sheet.incompleteSeries.DURATION.replace("{n}", "2")).toBe("Série 2 : renseignez la durée.");
     expect(pre3.sheet.adjusted).toContain("{duration}");
     expect(Object.keys(pre3.media.errors).sort()).toEqual(["COPY_FAILED", "ERROR", "INCOMPATIBLE", "STORAGE_FULL"]);
-    expect(pre3.card.chooseMode).toBe("Choisir un mode");
+    // PRE-4 story 4.2 (Q23, AC14) : clé du bouton de Mode retirée ; E-21 : invite H22 retirée.
+    expect("chooseMode" in pre3.card).toBe(false);
+    expect("emptyPrompt" in pre3.card).toBe(false);
     // Groupes existants conservés à l'identique.
     expect(strings.nav.sessions).toBe("Séances");
     expect(strings.screens.activities.editor.titleAdd).toBe("Créer un exercice");
     expect(strings.screens.exercise.finishAction).toBe("Terminer");
+  });
+});
+
+describe("strings — PRE-4 story 1.1", () => {
+  it("PRE4-1.1/AC22 — liste des Modes à deux entrées, ordre Durée puis Répétitions ; « à l’échec » reste le texte d’une Cible ; résumé tout échec « à l’échec » (Q24)", () => {
+    expect(Object.keys(strings.executionParameters.sheet.modes)).toEqual(["DURATION", "REPETITIONS"]);
+    expect(Object.values(strings.executionParameters.sheet.modes)).not.toContain("À l’échec");
+    expect(strings.executionParameters.sheet.failureTarget).toBe("à l’échec");
+    expect(Object.keys(strings.screens.exercise.executionMode)).not.toContain("toFailure");
+    expect(strings.screens.composition.exerciseRow.toFailure).toBe("à l’échec");
+  });
+
+  it("PRE4-1.1/AC24 — indices de validation neutres : « à renseigner » seulement pour une valeur manquante", () => {
+    expect(strings.executionParameters.sheet.invalidHint).toBe("Valeur à renseigner");
+    expect(strings.executionParameters.sheet.invalidValueHint).toBe("Valeur non admise");
+    expect(strings.executionParameters.sheet.validateUnavailableSuffix).toBe("indisponible tant qu’une valeur est invalide");
+  });
+});
+
+describe("strings — PRE-4 story 2.2", () => {
+  it("PRE4-2.2/AC6 — préfixes uniques de la nature d'une durée : « ≈ » estimée, « ≥ » borne minimale (NFR-08)", () => {
+    expect(strings.shared.durationNature).toEqual({ estimatedPrefix: "≈ ", lowerBoundPrefix: "≥ " });
+  });
+
+  it("PRE4-2.2/AC6 — les préfixes du domaine (`totalClauseAmount`, exempté du lexique, AD-11) sont identiques aux clés du lexique", () => {
+    const { estimatedPrefix, lowerBoundPrefix } = strings.shared.durationNature;
+    const result = (kind: "estimated" | "lowerBound") => ({ kind, seconds: 90, knownSeconds: 90, events: [] });
+    expect(totalClauseAmount(result("estimated"))).toBe(`${estimatedPrefix}1 min 30 s`);
+    expect(totalClauseAmount(result("lowerBound"))).toBe(`${lowerBoundPrefix}1 min 30 s`);
   });
 });

@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
 import { describe, expect, it } from "@jest/globals";
 
 import {
@@ -12,14 +15,21 @@ import {
   computeStructuredSessionDuration,
   type ActivityDurationFacts,
 } from "@/domain/sessions/calculations";
+import {
+  allFailureParameters,
+  durationParameters,
+  repetitionParameters,
+  variableParameters,
+} from "@/domain/activities/testing/executionParametersFixtures";
+import { strings } from "@/shared/i18n";
 
 describe("formatActivityCount", () => {
   it("uses the singular form for exactly one activity", () => {
     expect(formatActivityCount(1)).toBe("1 exercice");
   });
 
-  it("uses the plural form for zero activities", () => {
-    expect(formatActivityCount(0)).toBe("0 exercices");
+  it("PRE4-1.2/AC6 — uses the singular form for zero activities (décision Q32)", () => {
+    expect(formatActivityCount(0)).toBe("0 exercice");
   });
 
   it("uses the plural form for more than one activity", () => {
@@ -128,11 +138,7 @@ describe("formatSessionTagLine (T01-S09, correction VISUAL tentative 2, point B 
 describe("formatEstimatedDuration — PRE-3 (P3-13/tours-cycles-list)", () => {
   const exercise = (overrides: Partial<ActivityDurationFacts>): ActivityDurationFacts => ({
     type: "EXERCISE",
-    executionMode: "DURATION",
-    durationSeconds: 60,
-    repetitionCount: null,
-    seriesCount: 2,
-    pauseSeconds: 15,
+    executionParameters: durationParameters(60, 2, 15),
     postActivityRecoverySeconds: 0,
     sideMode: "UNILATERAL",
     ...overrides,
@@ -153,21 +159,11 @@ describe("formatEstimatedDuration — PRE-3 (P3-13/tours-cycles-list)", () => {
       beforeTour: [],
       inTour: [
         exercise({
-          executionMode: "REPETITIONS",
-          durationSeconds: null,
-          repetitionCount: 15,
-          seriesCount: 4,
-          executionParameters: {
-            version: 1,
-            mode: "REPETITIONS",
-            series: { kind: "UNIFORM", count: 4, target: 15, pauseSeconds: 15 },
-            sideMode: "UNILATERAL",
-            sideOrder: "BY_SIDE",
-            sideRecoverySeconds: 0,
+          executionParameters: repetitionParameters(15, 4, 15, {
             cadenceBeepIntervalSeconds: 4,
             countdownSeconds: 10,
             endSeconds: 5,
-          },
+          }),
         }),
       ],
       afterTour: [],
@@ -177,7 +173,8 @@ describe("formatEstimatedDuration — PRE-3 (P3-13/tours-cycles-list)", () => {
     expect(formatEstimatedDuration(estimated.seconds, estimated.kind)).toBe("≈ 5 min");
 
     const lowerBound = computeStructuredSessionDuration({
-      beforeTour: [exercise({ executionMode: "TO_FAILURE", durationSeconds: null })],
+      // PRE-4 (story 1.1) : ancien Exercice « à l'échec » migré — Répétitions, toutes Cibles à l'échec.
+      beforeTour: [exercise({ executionParameters: allFailureParameters(2, 15) })],
       inTour: [],
       afterTour: [],
       tourRepeatCount: 1,
@@ -188,5 +185,45 @@ describe("formatEstimatedDuration — PRE-3 (P3-13/tours-cycles-list)", () => {
     // Appelants existants : le booléen garde son sens historique.
     expect(formatEstimatedDuration(30, true)).toBe("≥ 1 min");
     expect(formatEstimatedDuration(30)).toBe("1 min");
+  });
+});
+
+describe("PRE-4 story 2.2 — AC6 carte de Séance inchangée dans sa forme (AD-5, P41)", () => {
+  const exercise = (executionParameters: ActivityDurationFacts["executionParameters"]): ActivityDurationFacts => ({
+    type: "EXERCISE",
+    executionParameters,
+    postActivityRecoverySeconds: 0,
+  });
+  const exact165 = exercise(variableParameters({ rows: [[30, 10], [45, 10], [60, 10]] }));
+
+  it("PRE4-2.2/AC6 — Séance `lowerBound` à cause d'un Exercice partiel, omis ou à Cible à renseigner : « ≥ N min », arrondi à la minute supérieure", () => {
+    const causes = [
+      // Partiel : 30 / 45 / échec → 165 + 105 = 270 s → 5 min.
+      { other: exercise(variableParameters({ rows: [[30, 10], [45, 10], ["FAILURE", 10]] })), seconds: 270 },
+      // Omis : tout à l'échec, Pauses 10 × 3 → 165 + 30 = 195 s → 4 min.
+      { other: exercise(allFailureParameters(3, 10)), seconds: 195 },
+      // À renseigner : 30 / — / 45 → 165 + 105 = 270 s → 5 min.
+      { other: exercise(variableParameters({ rows: [[30, 10], ["UNSET", 10], [45, 10]] })), seconds: 270 },
+    ];
+    for (const { other, seconds } of causes) {
+      const total = computeStructuredSessionDuration({ beforeTour: [], inTour: [exact165, other], afterTour: [], tourRepeatCount: 1 });
+      expect(total).toEqual({ kind: "lowerBound", seconds });
+      expect(formatEstimatedDuration(total.seconds, total.kind)).toBe(`≥ ${Math.ceil(seconds / 60)} min`);
+    }
+  });
+
+  it("PRE4-2.2/AC6 — forme inchangée pour chaque nature ; symboles issus du lexique", () => {
+    const { estimatedPrefix, lowerBoundPrefix } = strings.shared.durationNature;
+    expect(formatEstimatedDuration(165, "exact")).toBe("3 min");
+    expect(formatEstimatedDuration(104, "estimated")).toBe("≈ 2 min");
+    expect(formatEstimatedDuration(104, "estimated")).toBe(`${estimatedPrefix}2 min`);
+    expect(formatEstimatedDuration(270, "lowerBound")).toBe("≥ 5 min");
+    expect(formatEstimatedDuration(270, "lowerBound")).toBe(`${lowerBoundPrefix}5 min`);
+    expect(formatEstimatedDuration(270, true)).toBe(`${lowerBoundPrefix}5 min`);
+    // Aucun symbole codé en dur dans le code du formateur (commentaires exclus).
+    const code = readFileSync(path.resolve(__dirname, "../formatSessionSummary.ts"), "utf8")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/\/\/.*$/gm, "");
+    expect(code).not.toMatch(/[≈≥]/);
   });
 });

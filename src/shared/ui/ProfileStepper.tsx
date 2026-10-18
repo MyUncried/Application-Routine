@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { stepWithinBounds } from "@/domain/activities/ExecutionParameters";
 import { nextGridValue, previousGridValue } from "@/domain/preferences/Profile";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
@@ -16,6 +17,11 @@ import { colors, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/t
 const STEP_CIRCLE = 28;
 const STEPPER_HEIGHT = 36;
 const STEPPER_VALUE_WIDTH = 50;
+/**
+ * Story 3.6 (NFR-09) : valeur tactile d'une cellule (texte Semi Bold 13, environ 16 de
+ * haut) portée à au moins 44 de haut, sans changer le dessin.
+ */
+const VALUE_HIT_SLOP = { top: 14, bottom: 14 };
 
 /** Maintien : immédiat, puis 450 ms, puis toutes les 150 ms (T5, ANI-06, CE-UI-07 L2549). */
 const INITIAL_REPEAT_DELAY_MS = 450;
@@ -62,15 +68,16 @@ export const EXECUTION_UNIT_HOLD_POLICY: StepperHoldPolicy = {
 /**
  * Valeur suivante en multiples DIRECTIONNELS du pas, bornée : au pas 5, 37
  * monte à 40 et descend à 35 ; au pas 1, ±1.
+ *
+ * PRE-4 story 3.6 (AD-16, P38) : délègue à `stepWithinBounds` du domaine, qui ne
+ * renvoie JAMAIS une valeur inférieure à la courante pour + ni supérieure pour −
+ * (correction de `steppedValue(5999, +1, 5, 5, 3535)`, qui renvoyait 3535) : la
+ * valeur courante est alors renvoyée, et le pas est sans effet. Les valeurs dans
+ * les bornes (Profil compris, `PROFILE_HOLD_POLICY` inchangée) ne changent pas de
+ * résultat.
  */
 export function steppedValue(current: number, direction: 1 | -1, stepSize: number, min: number, max: number): number {
-  const next =
-    stepSize <= 1
-      ? current + direction
-      : direction === 1
-        ? Math.floor(current / stepSize) * stepSize + stepSize
-        : Math.ceil(current / stepSize) * stepSize - stepSize;
-  return Math.min(max, Math.max(min, next));
+  return stepWithinBounds(current, direction, stepSize, min, max);
 }
 
 export type HoldRepeater = {
@@ -159,6 +166,34 @@ export type InlineStepperProps = {
   readonly width?: number;
   /** Cellule signalée (cible active requise non renseignée, v13 §6). */
   readonly invalid?: boolean;
+  /** Indice annoncé quand `invalid` (PRE-4) ; par défaut « Valeur à renseigner ». */
+  readonly invalidHint?: string;
+  /**
+   * PRE-4 story 3.6 (AD-16, Q13, Q26, P38) — règle de pas fournie par l'appelant (la
+   * règle du domaine `stepTarget` pour une Cible) : valeur après un pas de `stepSize`
+   * dans le sens `direction`, ou `"unavailable"` (bouton indisponible, aucun pas). Les
+   * ± sont indisponibles quand le pas de 1 l'est. Absente : comportement inchangé
+   * (`steppedValue`, `emptyStart`, bornes `min` / `max`).
+   */
+  readonly stepRule?: (value: number | null, direction: 1 | -1, stepSize: number) => number | "unavailable";
+  /**
+   * PRE-4 story 3.6 (FR-10-03, Q13) — toucher la VALEUR (entre − et +) ouvre une autre
+   * surface (le Sélecteur de la Cible de la ligne). Aussi offert à VoiceOver par
+   * l'action « activer » du réglage. Absente : la valeur n'est pas tactile.
+   */
+  readonly onValuePress?: () => void;
+  /**
+   * PRE-4 story 3.8 (AC2, FR-22-08) — texte ANNONCÉ de la valeur, quand il diffère du
+   * texte affiché (« — » annoncé « aucune valeur »). Absente : la valeur est annoncée
+   * telle qu'affichée (`formatValue`).
+   */
+  readonly spokenValue?: (value: number | null) => string;
+  /**
+   * PRE-4 story 3.8 (AC2, ch. 13 §18 « limites annoncées ») — opt-in explicite de la
+   * Feuille : une valeur DANS les bornes et à une borne est annoncée avec « minimum
+   * atteint » et/ou « maximum atteint ». Absente : valeur annoncée sans suffixe.
+   */
+  readonly announceLimits?: boolean;
   readonly testID: string;
 };
 
@@ -181,6 +216,11 @@ export function InlineStepper({
   emptyStart,
   width,
   invalid = false,
+  invalidHint = strings.executionParameters.sheet.invalidHint,
+  stepRule,
+  onValuePress,
+  spokenValue,
+  announceLimits = false,
   testID,
 }: InlineStepperProps) {
   const t = strings.screens.profile.stepper;
@@ -190,22 +230,29 @@ export function InlineStepper({
   // fonction de pas de ce rendu. Bornes et valeur de départ sont donc relues ici,
   // à jour à chaque rendu : après un changement de mode, une ligne vide démarre
   // à la valeur du NOUVEAU mode (1 rép.), jamais à celle de l'ancien (30 s).
-  const configRef = useRef({ min, max, emptyStart });
+  // Story 3.6 : la règle de pas de l'appelant est relue de même.
+  const configRef = useRef({ min, max, emptyStart, stepRule });
   useEffect(() => {
     valueRef.current = value;
     onChangeRef.current = onChange;
-    configRef.current = { min, max, emptyStart };
+    configRef.current = { min, max, emptyStart, stepRule };
   });
   const repeaterRef = useRef<HoldRepeater | null>(null);
   const repeaterPolicyRef = useRef(policy);
 
   function applyStep(direction: 1 | -1, stepSize: number) {
-    const { min, max, emptyStart } = configRef.current;
+    const { min, max, emptyStart, stepRule } = configRef.current;
     const current = valueRef.current;
+    const ruled = stepRule ? stepRule(current, direction, stepSize) : null;
+    if (ruled === "unavailable") {
+      return;
+    }
     const next =
-      current === null
-        ? Math.min(max, Math.max(min, emptyStart ?? min))
-        : steppedValue(current, direction, stepSize, min, max);
+      ruled !== null
+        ? ruled
+        : current === null
+          ? Math.min(max, Math.max(min, emptyStart ?? min))
+          : steppedValue(current, direction, stepSize, min, max);
     if (next === current) {
       return;
     }
@@ -225,9 +272,30 @@ export function InlineStepper({
 
   useEffect(() => () => repeaterRef.current?.stop(), []);
 
-  const atMin = disabled || (value !== null && value <= min);
-  const atMax = disabled || (value !== null && value >= max);
+  // Story 3.6 : avec une règle de pas, un bouton est indisponible quand le pas de 1 l'est
+  // (Cible à l'échec, − sur une Cible à renseigner, + au-delà de la borne haute).
+  const atMin = disabled || (stepRule ? stepRule(value, -1, 1) === "unavailable" : value !== null && value <= min);
+  const atMax = disabled || (stepRule ? stepRule(value, 1, 1) === "unavailable" : value !== null && value >= max);
   const display = formatValue(value);
+  // Story 3.6 (AC13) : avec une règle de pas, VoiceOver ne propose que les pas disponibles
+  // (aucun à l'échec, aucun + au-delà de la borne) ; sans règle, les deux actions comme avant.
+  // L'action « activer » ouvre la surface de la valeur, sauf réglage désactivé.
+  const valuePressable = onValuePress !== undefined && !disabled;
+  const stepActions = stepRule
+    ? [...(atMax ? [] : [{ name: "increment" }]), ...(atMin ? [] : [{ name: "decrement" }])]
+    : [{ name: "increment" }, { name: "decrement" }];
+  // PRE-4 story 3.8 (AC2, FR-22-08, ch. 13 §18 « limites annoncées »), sur opt-in
+  // `announceLimits` : une valeur numérique DANS les bornes et à une borne est annoncée
+  // avec « minimum atteint » et/ou « maximum atteint » (les deux si min = max ; clés
+  // existantes du stepper du Profil). Une valeur hors bornes (ancienne 4 s, 5999 s), une
+  // valeur sans nombre (« — », « à l’échec ») ou un réglage désactivé : aucun suffixe.
+  const spoken = spokenValue ? spokenValue(value) : display;
+  const inBounds = value !== null && value >= min && value <= max;
+  const limits =
+    announceLimits && inBounds && !disabled
+      ? [...(atMin ? [t.minimumReachedSuffix] : []), ...(atMax ? [t.maximumReachedSuffix] : [])]
+      : [];
+  const valueText = [spoken, ...limits].join(", ");
 
   return (
     <View
@@ -240,14 +308,15 @@ export function InlineStepper({
       accessible
       accessibilityRole="adjustable"
       accessibilityLabel={accessibilityLabel}
-      accessibilityValue={value === null ? { text: display } : { min, max, now: value, text: display }}
+      accessibilityValue={value === null ? { text: valueText } : { min, max, now: value, text: valueText }}
       accessibilityState={{ disabled }}
-      accessibilityHint={invalid ? strings.executionParameters.sheet.invalidHint : undefined}
-      accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
+      accessibilityHint={invalid ? invalidHint : undefined}
+      accessibilityActions={[...stepActions, ...(valuePressable ? [{ name: "activate" }] : [])]}
       onAccessibilityAction={(event) => {
         if (disabled) return;
-        if (event.nativeEvent.actionName === "increment") applyStep(1, 1);
-        if (event.nativeEvent.actionName === "decrement") applyStep(-1, 1);
+        if (event.nativeEvent.actionName === "increment" && !atMax) applyStep(1, 1);
+        if (event.nativeEvent.actionName === "decrement" && !atMin) applyStep(-1, 1);
+        if (event.nativeEvent.actionName === "activate" && valuePressable) onValuePress?.();
       }}
       testID={testID}
     >
@@ -266,9 +335,25 @@ export function InlineStepper({
       >
         <KodjoIcon name="stepper-minus" tintColor={atMin ? colors.disabled : colors.primary} />
       </Pressable>
-      <Text style={styles.openValue} testID={`${testID}-value`}>
-        {display}
-      </Text>
+      {onValuePress ? (
+        // Story 3.6 : la valeur seule est tactile ; 44 de haut par `hitSlop`, sans agrandir le dessin.
+        // Réglage désactivé : la valeur n'ouvre rien. Des ± indisponibles par la règle de pas
+        // (échec, borne) ne désactivent pas la valeur, qui reste touchable.
+        <Pressable
+          onPress={onValuePress}
+          disabled={!valuePressable}
+          hitSlop={VALUE_HIT_SLOP}
+          testID={`${testID}-value-press`}
+        >
+          <Text style={styles.openValue} testID={`${testID}-value`}>
+            {display}
+          </Text>
+        </Pressable>
+      ) : (
+        <Text style={styles.openValue} testID={`${testID}-value`}>
+          {display}
+        </Text>
+      )}
       <Pressable
         disabled={atMax}
         onPressIn={() => repeater().start(1)}
@@ -508,11 +593,11 @@ const styles = StyleSheet.create({
   controlsDisabled: {
     opacity: 0.45,
   },
-  // Cellule à renseigner : contour d’avertissement figé (6665:27232, « Stepper — Cible »
-  // #FF8D28, 1,5) — recette 1, A-02/A-07 ; jamais le rouge danger.
+  // Cellule à renseigner : fond rouge léger, sans liseré (décision Q35 de Hermann du
+  // 2026-10-17, recette iPhone PRE-4 ; remplace le contour figé #FF8D28 de la recette 1,
+  // A-02/A-07). Jeton existant `color.dangerSurface` (#FFF1F0, ch. 12).
   controlsInvalid: {
-    borderWidth: 1.5,
-    borderColor: colors.warning,
+    backgroundColor: colors.dangerSurface,
   },
   controls: {
     flexDirection: "row",

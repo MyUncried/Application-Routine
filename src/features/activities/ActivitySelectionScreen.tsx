@@ -251,7 +251,7 @@ export function ActivitySelectionScreen() {
  * aucune sous-carte Récupération — une `ActivityDefinition` ne porte plus
  * cette notion (exclusive de l'occurrence). Contour et fond sélectionnés
  * conformes au patron DSF déjà
- * établi (`CategoriesScreen.tagSelected` : `colors.selection`/
+ * établi (`CategoriesScreen.tagSelected`, écran supprimé par Q54 : `colors.selection`/
  * `colors.selectionSurface`). La checkbox reste un cadre vectoriel TOUJOURS
  * visible (coché/décoché), jamais une icône apparaissant seulement à la
  * sélection.
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     minHeight: minTouchTarget,
   },
   // Patron DSF déjà établi pour un contour sélectionné
-  // (`CategoriesScreen.tagSelected`) — jamais une couleur locale inventée.
+  // (`CategoriesScreen.tagSelected`, écran supprimé par Q54) — jamais une couleur locale inventée.
   rowSelected: {
     borderColor: colors.selection,
     backgroundColor: colors.selectionSurface,
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  // Patron DSF déjà établi (`CategoriesScreen.tagSelected`), jamais
+  // Patron DSF déjà établi (`CategoriesScreen.tagSelected`, écran supprimé par Q54), jamais
   // `colors.primary` inventé localement pour ce contour.
   checkboxSelected: {
     borderColor: colors.selection,

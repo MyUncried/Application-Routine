@@ -1,5 +1,6 @@
 import * as SQLite from "expo-sqlite";
 
+import { EXECUTION_PARAMETERS_VERSION, numberTarget } from "@/domain/activities/ExecutionParameters";
 import { ExpoDatabase, openExpoDatabase } from "@/infrastructure/database/ExpoDatabase";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
@@ -23,11 +24,18 @@ export async function runNativeDatabaseIntegrationCheck(): Promise<void> {
           type: "EXERCISE",
           structuralPosition: "IN_TOUR",
           name: "Exercice chronométré",
-          executionMode: "DURATION",
-          durationSeconds: 30,
-          repetitionCount: null,
-          seriesCount: 3,
-          pauseSeconds: 15,
+          // PRE-4 (story 1.1) : paramètres typés obligatoires (AD-3).
+          executionParameters: {
+            version: EXECUTION_PARAMETERS_VERSION,
+            mode: "DURATION",
+            series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 15 },
+            sideMode: "UNILATERAL",
+            sideOrder: "BY_SIDE",
+            sideRecoverySeconds: 0,
+            cadenceBeepIntervalSeconds: 0,
+            countdownSeconds: 0,
+            endSeconds: 0,
+          },
           // T02-S02 / V2-PRE-1 : la récupération post-exercice traverse le
           // contrôle natif — colonne `post_activity_recovery_seconds`
           // (renommée depuis `recovery_seconds`, `migration007`).
@@ -51,7 +59,12 @@ export async function runNativeDatabaseIntegrationCheck(): Promise<void> {
     // contrôle natif qui ne relirait que l'identifiant ne prouverait ni la
     // nouvelle colonne, ni la suppression de la Pause finale.
     const roundTripped = reopened.cycle.tour.exercises[0]!;
-    if (roundTripped.postActivityRecoverySeconds !== 20 || roundTripped.pauseSeconds !== 15) {
+    const roundTrippedSeries = roundTripped.executionParameters.series;
+    if (
+      roundTripped.postActivityRecoverySeconds !== 20 ||
+      roundTrippedSeries.kind !== "UNIFORM" ||
+      roundTrippedSeries.pauseSeconds !== 15
+    ) {
       throw new Error("Attached recovery was not persisted natively.");
     }
     if (listed[0].estimatedDurationSeconds !== 140) {

@@ -1,5 +1,13 @@
 import { describe, expect, it } from "@jest/globals";
 
+import type { ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
+import {
+  allFailureParameters,
+  durationParameters,
+  repetitionParameters,
+  uniformParameters,
+  variableParameters,
+} from "@/domain/activities/testing/executionParametersFixtures";
 import type { UpdateSessionActivityInput, UpdateSessionInput } from "@/domain/sessions/Session";
 import {
   normalizeInstruction,
@@ -280,19 +288,16 @@ describe("validateInitialCountdownSeconds / validateFinalPhaseSeconds", () => {
 describe("validateCreateSessionInput (aggregated structured result, T01-S09)", () => {
   // T02-S01 : le DTO de création porte désormais le type et la position
   // structurelle réels de l'Activité (`CreateSessionActivityInput`).
-  function durationExercise() {
+  function durationExercise(parameters: ExecutionParametersInput = durationParameters(30)) {
     return {
       type: "EXERCISE" as const,
       structuralPosition: "IN_TOUR" as const,
       name: "Gainage",
-      executionMode: "DURATION" as const,
-      durationSeconds: 30,
-      repetitionCount: null,
-      seriesCount: 1,
-      pauseSeconds: 0,
+      // PRE-4 (story 1.1, AD-3) : paramètres typés obligatoires, aucun champ scalaire.
+      executionParameters: parameters,
       postActivityRecoverySeconds: 0,
       instruction: null,
-      bodyZoneIds: [],
+      bodyZoneIds: [] as string[],
       // V2-BILAT-01 : `sideMode` OMIS délibérément — la direction neutre
       // (`UNILATERAL`, explicite ou par défaut) reste ABSENTE de l'agrégat
       // validé (`normalizeSideMode`), pour que ce fixture, structurellement
@@ -357,7 +362,7 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
           ...durationExercise(),
           structuralPosition: "AFTER_TOUR" as const,
           name: "Étirements",
-          durationSeconds: 45,
+          executionParameters: durationParameters(45),
         },
       ],
     });
@@ -391,9 +396,7 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
           ...durationExercise(),
           type: "RECOVERY" as const,
           name: "Récupération",
-          executionMode: null,
-          durationSeconds: 45,
-          seriesCount: null,
+          executionParameters: durationParameters(45),
         },
       ],
     });
@@ -439,20 +442,8 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
   it("accepts a Récupération in every execution mode — it is attached to the Activity, not to the Durée mode (T02-S02)", () => {
     for (const exercise of [
       { ...durationExercise(), postActivityRecoverySeconds: 30 },
-      {
-        ...durationExercise(),
-        executionMode: "REPETITIONS" as const,
-        durationSeconds: null,
-        repetitionCount: 12,
-        postActivityRecoverySeconds: 30,
-      },
-      {
-        ...durationExercise(),
-        executionMode: "TO_FAILURE" as const,
-        durationSeconds: null,
-        repetitionCount: null,
-        postActivityRecoverySeconds: 30,
-      },
+      { ...durationExercise(repetitionParameters(12)), postActivityRecoverySeconds: 30 },
+      { ...durationExercise(allFailureParameters()), postActivityRecoverySeconds: 30 },
     ]) {
       const result = validateCreateSessionInput({ ...validInput(), exercises: [exercise] });
       expect(result.ok).toBe(true);
@@ -518,11 +509,8 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
 
   it("validates and assembles every exercise of the collection, in order, never only the first", () => {
     const second = {
-      ...durationExercise(),
+      ...durationExercise(durationParameters(45, 3, 15)),
       name: "Squats",
-      durationSeconds: 45,
-      seriesCount: 3,
-      pauseSeconds: 15,
     };
     const result = validateCreateSessionInput({
       ...validInput(),
@@ -537,23 +525,16 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
     });
   });
 
-  it("validates a REPETITIONS-mode exercise (no durationSeconds required, repetitionCount required instead)", () => {
-    const repetitionExercise = {
-      ...durationExercise(),
-      executionMode: "REPETITIONS" as const,
-      durationSeconds: null,
-      repetitionCount: 12,
-    };
+  it("validates a REPETITIONS-mode exercise (a typed NUMBER repetitions target)", () => {
+    const repetitionExercise = durationExercise(repetitionParameters(12));
     const result = validateCreateSessionInput({ ...validInput(), exercises: [repetitionExercise] });
     expect(result).toEqual({ ok: true, value: { ...validInput(), exercises: [repetitionExercise] } });
   });
 
-  it("requires repetitionCount in REPETITIONS mode", () => {
+  it("requires a target in REPETITIONS mode (a UNSET target is reported on exercise.repetitionCount)", () => {
     const result = validateCreateSessionInput({
       ...validInput(),
-      exercises: [
-        { ...durationExercise(), executionMode: "REPETITIONS", durationSeconds: null, repetitionCount: null },
-      ],
+      exercises: [durationExercise(repetitionParameters("UNSET"))],
     });
     expect(result).toEqual({
       ok: false,
@@ -566,19 +547,20 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
       ...validInput(),
       exercises: [
         { ...durationExercise(), name: "" },
-        { ...durationExercise(), name: "", durationSeconds: 0 },
+        { ...durationExercise(durationParameters(0)), name: "" },
       ],
     });
     expect(result.ok).toBe(false);
     if (!result.ok) {
+      // PRE-4 (AD-13) : niveau structurel — une Cible NUMBER doit valoir au
+      // moins 1 ; aucune borne haute à ce niveau.
       expect(result.violations).toEqual([
         { code: "REQUIRED", field: "exercise.name" },
         { code: "REQUIRED", field: "exercise.name" },
-        {
+        expect.objectContaining({
           code: "OUT_OF_RANGE",
           field: "exercise.durationSeconds",
-          details: { min: 1, max: 5999 },
-        },
+        }),
       ]);
     }
   });
@@ -587,7 +569,7 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
     const result = validateCreateSessionInput({
       ...validInput(),
       name: "   ",
-      exercises: [{ ...durationExercise(), name: "Exercice", durationSeconds: 0 }],
+      exercises: [{ ...durationExercise(durationParameters(0)), name: "Exercice" }],
     });
 
     expect(result.ok).toBe(false);
@@ -595,11 +577,7 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
       expect(result.violations).toEqual(
         expect.arrayContaining([
           { code: "REQUIRED", field: "session.name" },
-          {
-            code: "OUT_OF_RANGE",
-            field: "exercise.durationSeconds",
-            details: { min: 1, max: 5999 },
-          },
+          expect.objectContaining({ code: "OUT_OF_RANGE", field: "exercise.durationSeconds" }),
         ]),
       );
       expect(result.violations).toHaveLength(2);
@@ -614,7 +592,7 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
         finalPhaseSeconds: -1,
         tourRepeatCount: 0,
         exercises: [
-          { ...durationExercise(), name: "", durationSeconds: 0, instruction: "A".repeat(1001) },
+          { ...durationExercise(durationParameters(0)), name: "", instruction: "A".repeat(1001) },
         ],
       }),
     ).not.toThrow();
@@ -656,19 +634,22 @@ describe("normalizeSideMode (V2-BILAT-01)", () => {
 });
 
 describe("validateCreateSessionInput / validateUpdateSessionInput — side mode (V2-BILAT-01, V2-PRE-1)", () => {
+  /**
+   * PRE-4 (AD-3) : la direction écrite est celle des paramètres. Une
+   * direction bilatérale valide y est donc portée ; une direction neutre ou
+   * hors énumération laisse les paramètres `UNILATERAL` et ne vit que dans
+   * le champ de transition `sideMode` de l'entrée.
+   */
   function durationExercise(sideMode?: unknown) {
+    const bilateral = sideMode === "RIGHT_LEFT" || sideMode === "LEFT_RIGHT";
     return {
       type: "EXERCISE" as const,
       structuralPosition: "IN_TOUR" as const,
       name: "Gainage",
-      executionMode: "DURATION" as const,
-      durationSeconds: 30,
-      repetitionCount: null,
-      seriesCount: 1,
-      pauseSeconds: 0,
+      executionParameters: durationParameters(30, 1, 0, bilateral ? { sideMode } : {}),
       postActivityRecoverySeconds: 0,
       instruction: null,
-      bodyZoneIds: [],
+      bodyZoneIds: [] as string[],
       sideMode: sideMode as never,
     };
   }
@@ -779,11 +760,7 @@ describe("validateCreateSessionInput / validateUpdateSessionInput — side mode 
             type: "EXERCISE",
             structuralPosition: "IN_TOUR",
             name: "Gainage",
-            executionMode: "DURATION",
-            durationSeconds: 30,
-            repetitionCount: null,
-            seriesCount: 1,
-            pauseSeconds: 0,
+            executionParameters: durationParameters(30),
             postActivityRecoverySeconds: 0,
             instruction: null,
             bodyZoneIds: [],
@@ -871,11 +848,10 @@ describe("validateCreatableActivityType (T02-S02) — verrou d'écriture du type
   });
 });
 
-describe("validateExecutionMode (T01-S10, D-111)", () => {
-  it("accepts the three MVP modes", () => {
+describe("validateExecutionMode (PRE-4, AD-1 : deux Modes)", () => {
+  it("accepts the two Modes of the domain", () => {
     expect(validateExecutionMode("DURATION")).toEqual({ ok: true, value: "DURATION" });
     expect(validateExecutionMode("REPETITIONS")).toEqual({ ok: true, value: "REPETITIONS" });
-    expect(validateExecutionMode("TO_FAILURE")).toEqual({ ok: true, value: "TO_FAILURE" });
   });
 
   it("rejects an unknown mode with UNRECOGNIZED", () => {
@@ -886,17 +862,13 @@ describe("validateExecutionMode (T01-S10, D-111)", () => {
   });
 });
 
-describe("validateCreateSessionInput — mode À l'échec (T01-S10, D-111)", () => {
+describe("validateCreateSessionInput — Cibles à l'échec (PRE-4, ancien mode « à l'échec » migré)", () => {
   function toFailureExercise() {
     return {
       type: "EXERCISE" as const,
       structuralPosition: "IN_TOUR" as const,
       name: "Tractions",
-      executionMode: "TO_FAILURE" as const,
-      durationSeconds: null,
-      repetitionCount: null,
-      seriesCount: 3,
-      pauseSeconds: 30,
+      executionParameters: allFailureParameters(3, 30),
       postActivityRecoverySeconds: 0,
       instruction: null,
       bodyZoneIds: [],
@@ -917,24 +889,102 @@ describe("validateCreateSessionInput — mode À l'échec (T01-S10, D-111)", () 
     };
   }
 
-  it("accepts a TO_FAILURE exercise with no duration nor repetition target", () => {
+  it("accepts a Repetitions exercise whose targets are all FAILURE, with no numeric target", () => {
     expect(validateCreateSessionInput(validInput())).toEqual({
       ok: true,
       value: { ...validInput(), exercises: [toFailureExercise()] },
     });
   });
+});
 
-  it("rejects a TO_FAILURE exercise carrying a duration or a repetition target (MUST_BE_ABSENT)", () => {
-    const result = validateCreateSessionInput({
-      ...validInput(),
-      exercises: [{ ...toFailureExercise(), durationSeconds: 30, repetitionCount: 12 }],
-    });
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.violations).toEqual([
-        { code: "MUST_BE_ABSENT", field: "exercise.durationSeconds" },
-        { code: "MUST_BE_ABSENT", field: "exercise.repetitionCount" },
-      ]);
+/**
+ * PRE-4 (story 1.1, AD-13) — validation de Séance au `Continuer` : niveau
+ * STRUCTUREL seul (`validateForSave(…, "STORAGE")`), sans les bornes de saisie.
+ */
+describe("PRE4-1.1 — validation de Séance au Continuer (niveau structurel)", () => {
+  function copy(parameters: ExecutionParametersInput) {
+    return {
+      type: "EXERCISE" as const,
+      structuralPosition: "IN_TOUR" as const,
+      name: "Copie",
+      executionParameters: parameters,
+      postActivityRecoverySeconds: 0,
+      instruction: null,
+      bodyZoneIds: [] as string[],
+    };
+  }
+  const session = (parameters: ExecutionParametersInput) => ({
+    name: "Séance",
+    labelId: null,
+    initialCountdownSeconds: 10,
+    finalPhaseSeconds: 5,
+    tourRepeatCount: 1,
+    exercises: [copy(parameters)],
+  });
+  const update = (parameters: ExecutionParametersInput) => ({
+    sourceSessionId: "session-1",
+    name: "Séance",
+    labelId: null,
+    initialCountdownSeconds: 10,
+    finalPhaseSeconds: 5,
+    tourRepeatCount: 1,
+    activities: [{ ...copy(parameters), id: "act-1", position: 0 }],
+  });
+
+  it("PRE4-1.1/AC8 — le Continuer (création et modification) refuse une Copie dont une Cible est UNSET, un kind inconnu, une valeur négative ou non entière", () => {
+    const refused: readonly [ExecutionParametersInput, object][] = [
+      [variableParameters({ rows: [[30, 10], ["UNSET", 10]] }), { code: "REQUIRED", field: "exercise.durationSeconds" }],
+      [
+        uniformParameters({ target: { kind: "MAYBE" } as never }),
+        { code: "UNRECOGNIZED", field: "exercise.durationSeconds" },
+      ],
+      [durationParameters(7.5), { code: "NOT_INTEGER", field: "exercise.durationSeconds" }],
+      [repetitionParameters(-3), expect.objectContaining({ code: "OUT_OF_RANGE", field: "exercise.repetitionCount" })],
+      [durationParameters(30, 2, -5), expect.objectContaining({ code: "OUT_OF_RANGE", field: "exercise.pauseSeconds" })],
+      [durationParameters(30, 2, 2.5), { code: "NOT_INTEGER", field: "exercise.pauseSeconds" }],
+      [
+        durationParameters(30, 1, 0, { cadenceBeepIntervalSeconds: -1 }),
+        expect.objectContaining({ code: "OUT_OF_RANGE", field: "exercise.executionMode" }),
+      ],
+      [{ ...durationParameters(30), mode: "SPRINT" as never }, { code: "UNRECOGNIZED", field: "exercise.executionMode" }],
+    ];
+    for (const [parameters, violation] of refused) {
+      const created = validateCreateSessionInput(session(parameters));
+      expect(created.ok).toBe(false);
+      if (!created.ok) {
+        expect(created.violations).toContainEqual(violation);
+      }
+      const updated = validateUpdateSessionInput(update(parameters));
+      expect(updated.ok).toBe(false);
+      if (!updated.ok) {
+        expect(updated.violations).toContainEqual(violation);
+      }
+    }
+  });
+
+  it("PRE4-1.1/AC5 — le niveau structurel accepte les valeurs héritées positives hors bornes de saisie (Durée 5999, Répétitions 150, Bip 11, Pause 400)", () => {
+    for (const parameters of [
+      durationParameters(5999),
+      repetitionParameters(150),
+      repetitionParameters(12, 3, 10, { cadenceBeepIntervalSeconds: 11 }),
+      durationParameters(30, 3, 400),
+    ]) {
+      const created = validateCreateSessionInput(session(parameters));
+      expect(created.ok).toBe(true);
+      if (created.ok) {
+        expect(created.value.exercises[0]?.executionParameters).toEqual(parameters);
+      }
+      expect(validateUpdateSessionInput(update(parameters)).ok).toBe(true);
+    }
+  });
+
+  it("PRE4-1.1/AC20 — une Copie tout à l'échec (ancien mode migré) passe le Continuer telle quelle, Cibles typées conservées", () => {
+    const result = validateCreateSessionInput(session(allFailureParameters(3, 10, { cadenceBeepIntervalSeconds: 2 })));
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.exercises[0]?.executionParameters).toEqual(
+        allFailureParameters(3, 10, { cadenceBeepIntervalSeconds: 2 }),
+      );
     }
   });
 });
@@ -949,11 +999,7 @@ describe("validateUpdateSessionInput (T01-S10, plan §6.2)", () => {
       structuralPosition: "IN_TOUR",
       position: 0,
       name: "Gainage",
-      executionMode: "DURATION",
-      durationSeconds: 30,
-      repetitionCount: null,
-      seriesCount: 1,
-      pauseSeconds: 0,
+      executionParameters: durationParameters(30),
       postActivityRecoverySeconds: 0,
       instruction: null,
       bodyZoneIds: [],
@@ -1032,11 +1078,7 @@ describe("validateUpdateSessionInput (T01-S10, plan §6.2)", () => {
             id: "rec-1",
             type: "RECOVERY",
             name: "Récupération",
-            executionMode: null,
-            durationSeconds: 60,
-            repetitionCount: null,
-            seriesCount: null,
-            pauseSeconds: 0,
+            executionParameters: durationParameters(60),
             bodyZoneIds: [],
           }),
         ],

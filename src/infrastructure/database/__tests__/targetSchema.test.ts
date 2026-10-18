@@ -27,11 +27,25 @@ const HISTORICAL_MIGRATION_SOURCE_SHA256: Readonly<Record<string, string>> = {
   "migration004.ts": "6dc82ef7ebe6162f48b37d252241b28a8836afed20644975f41ce7760b907ddf",
   "migration005.ts": "4bc041becc7298d8a472a98810fa289d7c8abd18322beac1b7a1b963991eb778",
   "migration006.ts": "a9aee02f3447666854750e558a65ea737bc7c8433abe3413f3121cbe059be5b2",
+  // PRE-4 (story 1.1, AC15) : 007..009 gelées à leur tour, empreintes LF du
+  // code de départ (`d07a3817`) — `migration010` ne les modifie pas.
+  "migration007.ts": "1126dbff866459d286d4914d2ff3561ac342f3cd9aa791165597d9530f7b96db",
+  "migration008.ts": "2e008e798eea0a831c33ca9e4aa902613cc882c5a930f3d3cecb5f72322ca72e",
+  "migration009.ts": "e07082bff40a31015bda906ee46defd9eab03186ace38465fc82409c48365081",
 };
 
-function sha256OfFile(fileName: string): string {
-  const content = readFileSync(join(MIGRATIONS_DIR, fileName), "utf8");
-  return createHash("sha256").update(content).digest("hex");
+/**
+ * Empreintes du texte source tel que lu et normalisé en LF. Un checkout
+ * Windows (`core.autocrlf=true`) réécrit les fins de ligne en CRLF sans
+ * changer le contenu, et `migration005.ts` est lui-même stocké en CRLF dans
+ * le dépôt : l'empreinte figée vaut donc tantôt pour la forme LF, tantôt pour
+ * la forme brute. Le gel accepte l'une ou l'autre (décision de Hermann du
+ * 2026-10-16, PRE-4 BMAD) ; toute modification du texte fait toujours échouer.
+ */
+function sha256sOfFile(fileName: string): readonly string[] {
+  const raw = readFileSync(join(MIGRATIONS_DIR, fileName), "utf8");
+  const digest = (text: string) => createHash("sha256").update(text).digest("hex");
+  return [digest(raw), digest(raw.replace(/\r/g, ""))];
 }
 
 /**
@@ -613,9 +627,9 @@ const HISTORICAL_MIGRATION_SQL_BASELINE: readonly (readonly [string, string, str
  * `activities.recovery_seconds` en `post_activity_recovery_seconds`.
  */
 describe("targetSchema — préservation historique et référentiels additifs (V2-PRE-1)", () => {
-  it("freezes migration001..006's source text byte-for-byte against the baseline snapshot (FILE_UNCHANGED)", () => {
+  it("freezes migration001..009's source text byte-for-byte against the baseline snapshot (FILE_UNCHANGED ; PRE4-1.1/AC15)", () => {
     for (const [fileName, expectedSha256] of Object.entries(HISTORICAL_MIGRATION_SOURCE_SHA256)) {
-      expect(sha256OfFile(fileName)).toBe(expectedSha256);
+      expect(sha256sOfFile(fileName)).toContain(expectedSha256);
     }
   });
 
@@ -699,6 +713,8 @@ describe("targetSchema — préservation historique et référentiels additifs (
           "media_assets",
           "activity_media",
           "session_stop_points",
+          // PRE-4 (story 1.1, AD-12) : avis de `migration010`.
+          "migration_notices",
         ]) {
           expect(tableNames).toContain(expected);
         }

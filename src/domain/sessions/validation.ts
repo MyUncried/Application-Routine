@@ -25,8 +25,8 @@ import {
   type ValidationViolation,
 } from "./errors";
 import {
-  projectLegacyScalars,
-  validateExecutionParameters,
+  EXECUTION_MODES,
+  validateForSave,
   type ExecutionParameters,
   type ExecutionParametersInput,
   type ExecutionParametersViolation,
@@ -66,11 +66,6 @@ const TOUR_REPEAT_COUNT_MAX = 99;
 const RECOVERY_DURATION_MIN_SECONDS = 1;
 const RECOVERY_DURATION_MAX_SECONDS = 5999;
 
-const EXERCISE_EXECUTION_MODES: readonly ExerciseExecutionMode[] = [
-  "DURATION",
-  "REPETITIONS",
-  "TO_FAILURE",
-];
 const ACTIVITY_TYPES: readonly ActivityType[] = ["EXERCISE", "RECOVERY"];
 const STRUCTURAL_POSITIONS: readonly StructuralPosition[] = [
   "BEFORE_TOUR",
@@ -255,9 +250,9 @@ export function validateRecoveryDurationSeconds(raw: number): ValidationResult<n
   return ok(raw);
 }
 
-/** T01-S10 : mode d'exécution reconnu (`DURATION` / `REPETITIONS` / `TO_FAILURE`, D-111). */
+/** Mode d'exécution reconnu : les deux Modes du domaine (PRE-4, AD-1 : `DURATION` / `REPETITIONS`). */
 export function validateExecutionMode(raw: string): ValidationResult<ExerciseExecutionMode> {
-  if (!EXERCISE_EXECUTION_MODES.includes(raw as ExerciseExecutionMode)) {
+  if (!EXECUTION_MODES.includes(raw as ExerciseExecutionMode)) {
     return fail([{ code: "UNRECOGNIZED", field: "exercise.executionMode" }]);
   }
   return ok(raw as ExerciseExecutionMode);
@@ -386,10 +381,10 @@ export function validateInstruction(
 }
 
 /**
- * PRE-3 : rattache une violation des paramètres canoniques au champ de
- * violation de Séance le plus proche (le registre `ValidationField` est
- * partagé avec PRE-1/PRE-2) — défense en profondeur, la feuille Paramètres
- * n'applique jamais au parent des paramètres invalides.
+ * Rattache une violation des paramètres d'exécution au champ de violation de
+ * Séance le plus proche (le registre `ValidationField` est partagé avec
+ * PRE-1/PRE-2) — défense en profondeur, la Feuille n'applique jamais au
+ * parent des paramètres invalides.
  */
 function toSessionViolation(
   violation: ExecutionParametersViolation,
@@ -405,7 +400,11 @@ function toSessionViolation(
         : violation.field === "pauseSeconds"
           ? "exercise.pauseSeconds"
           : "exercise.executionMode";
-  return { code: violation.code, field, ...(violation.details ? { details: violation.details } : {}) };
+  return {
+    code: violation.code,
+    field,
+    ...(violation.details ? { details: { min: violation.details.min, max: violation.details.max } } : {}),
+  };
 }
 
 function unwrap<T>(
@@ -426,48 +425,38 @@ function unwrap<T>(
  * (`UpdateSessionActivityInput`).
  */
 type ActivityParameterInput = {
-  readonly executionMode: ExerciseExecutionMode | null;
-  readonly durationSeconds: number | null;
-  readonly repetitionCount: number | null;
-  readonly seriesCount: number | null;
-  readonly pauseSeconds: number;
   /** V2-PRE-1 : récupération post-exercice de l'occurrence (`0..5999`). */
   readonly postActivityRecoverySeconds: number;
   readonly bodyZoneIds: readonly string[];
-  /** PRE-3 : autorité canonique, quand présente. */
-  readonly executionParameters?: ExecutionParametersInput;
+  /** PRE-4 (story 1.1) : paramètres typés obligatoires — seule source du Mode, des Cibles, de N et des Pauses. */
+  readonly executionParameters: ExecutionParametersInput;
 };
 
 type ActivityParameterValues = {
-  readonly executionMode: ExerciseExecutionMode | null;
-  readonly durationSeconds: number | null;
-  readonly repetitionCount: number | null;
-  readonly seriesCount: number | null;
-  readonly pauseSeconds: number;
   readonly postActivityRecoverySeconds: number;
   readonly bodyZoneIds: readonly string[];
-  /** PRE-3 : paramètres canoniques validés et normalisés (N=1 effectif). */
+  /** Paramètres validés au niveau structurel et normalisés (N=1 effectif) ; absents si invalides. */
   readonly executionParameters?: ExecutionParameters;
-  /** PRE-3 : direction projetée depuis les paramètres canoniques. */
-  readonly sideMode?: SideMode;
 };
 
 /**
  * Valide et normalise les paramètres d'exécution d'une Activité selon son
- * type (T02-S01 — extraction commune : jusqu'ici la création et la
- * modification portaient deux copies divergentes de ces mêmes règles, la
- * copie de création ignorant purement et simplement les Récupérations).
+ * type (T02-S01 — extraction commune à la création et à la modification).
  *
- * Un Exercice porte un mode (durée XOR répétitions XOR aucune cible,
- * RM-034/D-111), un nombre de Séries (D-092), une pause après Série
- * (`08` l.925) et ses Zones corporelles. Une Récupération (D-041) est
- * toujours chronométrée et n'expose ni mode d'Exercice, ni Séries, ni pause,
- * ni Zones.
+ * PRE-4 (story 1.1, AD-13) : un Exercice est contrôlé par la seule validation
+ * `validateForSave(params, "STORAGE")` (niveau structurel : Mode à deux
+ * valeurs, Cibles typées sans `UNSET`, entiers non négatifs). L'ancien chemin
+ * scalaire (Mode, cible, N et Pause en champs séparés) est supprimé. Les
+ * contraintes de la base (CHECK d'`activities`) restent appliquées par le
+ * repository (`assertSessionAggregateRow`).
+ *
+ * Une Récupération autonome (D-041) n'est plus créable
+ * (`validateCreatableActivityType`) ; sa branche de lecture défensive reste :
+ * aucune Récupération attachée, aucune Zone, une seule Série chronométrée.
  *
  * `bodyZoneIds` n'est jamais revalidée ici (référentiel `bodyZones.ts`, hors
- * Domaine Séance — voir la note de tête de `SessionDraft.toCreateSessionInput`
- * pour la justification complète) : elle est reprise telle quelle pour un
- * Exercice, vidée pour une Récupération.
+ * Domaine Séance) : elle est reprise telle quelle pour un Exercice, vidée
+ * pour une Récupération.
  *
  * `type` peut être `undefined` lorsque le type lui-même a déjà échoué à la
  * validation : aucune règle de paramètre n'est alors applicable, et la
@@ -478,157 +467,49 @@ function validateActivityParameters(
   activity: ActivityParameterInput,
   violations: ValidationViolation[],
 ): ActivityParameterValues {
-  let executionMode: ExerciseExecutionMode | null = null;
-  let durationSeconds: number | null = null;
-  let repetitionCount: number | null = null;
-  let seriesCount: number | null = null;
-  let pauseSeconds = 0;
-  let postActivityRecoverySeconds = 0;
-  let bodyZoneIds: readonly string[] = [];
-
   if (type === "RECOVERY") {
-    if (activity.executionMode !== null) {
-      violations.push({ code: "MUST_BE_ABSENT", field: "exercise.executionMode" });
-    }
-    if (activity.repetitionCount !== null) {
-      violations.push({ code: "MUST_BE_ABSENT", field: "exercise.repetitionCount" });
-    }
-    if (activity.seriesCount !== null) {
-      violations.push({ code: "MUST_BE_ABSENT", field: "exercise.seriesCount" });
-    }
-    if (activity.pauseSeconds !== 0) {
-      violations.push({ code: "MUST_BE_ABSENT", field: "exercise.pauseSeconds" });
-    }
-    // T02-S02 : une ancienne Activité `RECOVERY` ne peut pas porter elle-même
-    // une récupération post-exercice — elle EST la Récupération (chemin de
-    // lecture défensif uniquement : `validateCreatableActivityType` en
-    // interdit déjà toute création).
     if (activity.postActivityRecoverySeconds !== 0) {
       violations.push({ code: "MUST_BE_ABSENT", field: "exercise.postActivityRecoverySeconds" });
     }
     if (activity.bodyZoneIds.length > 0) {
       violations.push({ code: "MUST_BE_ABSENT", field: "activity.bodyZoneIds" });
     }
-    if (activity.durationSeconds === null) {
+    const recovery = validateForSave(activity.executionParameters, "STORAGE");
+    if (!recovery.ok) {
       violations.push({ code: "REQUIRED", field: "recovery.durationSeconds" });
-    } else {
-      durationSeconds =
-        unwrap(validateRecoveryDurationSeconds(activity.durationSeconds), violations) ?? null;
     }
     return {
-      executionMode,
-      durationSeconds,
-      repetitionCount,
-      seriesCount,
-      pauseSeconds,
-      postActivityRecoverySeconds,
-      bodyZoneIds,
+      postActivityRecoverySeconds: 0,
+      bodyZoneIds: [],
+      ...(recovery.ok ? { executionParameters: recovery.value } : {}),
     };
   }
 
   if (type !== "EXERCISE") {
-    return {
-      executionMode,
-      durationSeconds,
-      repetitionCount,
-      seriesCount,
-      pauseSeconds,
-      postActivityRecoverySeconds,
-      bodyZoneIds,
-    };
+    return { postActivityRecoverySeconds: 0, bodyZoneIds: [] };
   }
 
-  bodyZoneIds = activity.bodyZoneIds;
+  // V2-PRE-1 : la récupération post-exercice est portée par l'occurrence,
+  // jamais par les paramètres d'exécution — validée à part.
+  const postActivityRecoverySeconds =
+    unwrap(validatePostActivityRecoverySeconds(activity.postActivityRecoverySeconds), violations) ?? 0;
 
-  // PRE-3 : paramètres canoniques = autorité (bornes PRE-3) ; les colonnes
-  // historiques ne reçoivent que leurs projections. Récupération inchangée :
-  // portée par l'occurrence, jamais par les paramètres.
-  if (activity.executionParameters !== undefined) {
-    const canonical = validateExecutionParameters(activity.executionParameters);
-    postActivityRecoverySeconds =
-      unwrap(validatePostActivityRecoverySeconds(activity.postActivityRecoverySeconds), violations) ?? 0;
-    if (!canonical.ok) {
-      violations.push(
-        ...canonical.violations.map((violation) =>
-          toSessionViolation(violation, activity.executionParameters?.mode ?? null),
-        ),
-      );
-      return {
-        executionMode,
-        durationSeconds,
-        repetitionCount,
-        seriesCount,
-        pauseSeconds,
-        postActivityRecoverySeconds,
-        bodyZoneIds,
-      };
-    }
-    const projection = projectLegacyScalars(canonical.value);
-    return {
-      executionMode: projection.executionMode,
-      durationSeconds: projection.durationSeconds,
-      repetitionCount: projection.repetitionCount,
-      seriesCount: projection.seriesCount,
-      pauseSeconds: projection.pauseSeconds,
-      postActivityRecoverySeconds,
-      bodyZoneIds,
-      executionParameters: canonical.value,
-      sideMode: projection.sideMode,
-    };
+  const parameters = validateForSave(activity.executionParameters, "STORAGE");
+  if (!parameters.ok) {
+    // Le Mode n'oriente que le champ de violation ; une entrée non objet n'en porte pas.
+    const input: unknown = activity.executionParameters;
+    const mode = typeof input === "object" && input !== null ? (input as { readonly mode?: unknown }).mode : undefined;
+    violations.push(
+      ...parameters.violations.map((violation) =>
+        toSessionViolation(violation, mode === "DURATION" || mode === "REPETITIONS" ? mode : null),
+      ),
+    );
+    return { postActivityRecoverySeconds, bodyZoneIds: activity.bodyZoneIds };
   }
-
-  if (activity.executionMode === null) {
-    violations.push({ code: "REQUIRED", field: "exercise.executionMode" });
-  } else {
-    executionMode = unwrap(validateExecutionMode(activity.executionMode), violations) ?? null;
-  }
-
-  if (executionMode === "DURATION") {
-    if (activity.durationSeconds === null) {
-      violations.push({ code: "REQUIRED", field: "exercise.durationSeconds" });
-    } else {
-      durationSeconds =
-        unwrap(validateExerciseDurationSeconds(activity.durationSeconds), violations) ?? null;
-    }
-  } else if (executionMode === "REPETITIONS") {
-    if (activity.repetitionCount === null) {
-      violations.push({ code: "REQUIRED", field: "exercise.repetitionCount" });
-    } else {
-      repetitionCount =
-        unwrap(validateRepetitionCount(activity.repetitionCount), violations) ?? null;
-    }
-  } else if (executionMode === "TO_FAILURE") {
-    // « À l'échec » (D-111) : aucune cible de durée ni de répétitions.
-    if (activity.durationSeconds !== null) {
-      violations.push({ code: "MUST_BE_ABSENT", field: "exercise.durationSeconds" });
-    }
-    if (activity.repetitionCount !== null) {
-      violations.push({ code: "MUST_BE_ABSENT", field: "exercise.repetitionCount" });
-    }
-  }
-
-  if (activity.seriesCount === null) {
-    violations.push({ code: "REQUIRED", field: "exercise.seriesCount" });
-  } else {
-    seriesCount = unwrap(validateSeriesCount(activity.seriesCount), violations) ?? null;
-  }
-  pauseSeconds = unwrap(validatePauseSeconds(activity.pauseSeconds), violations) ?? 0;
-  // V2-PRE-1 : la récupération post-exercice est disponible dans LES TROIS
-  // modes (`09 – Modèle de données fonctionnel.md` : « Pause, nombre de
-  // Séries et Récupération restent disponibles dans les trois modes ») —
-  // validée ici, hors du bloc conditionnel de mode.
-  postActivityRecoverySeconds =
-    unwrap(validatePostActivityRecoverySeconds(activity.postActivityRecoverySeconds), violations) ??
-    0;
-
   return {
-    executionMode,
-    durationSeconds,
-    repetitionCount,
-    seriesCount,
-    pauseSeconds,
     postActivityRecoverySeconds,
-    bodyZoneIds,
+    bodyZoneIds: activity.bodyZoneIds,
+    executionParameters: parameters.value,
   };
 }
 
@@ -675,33 +556,27 @@ function validateSessionActivityInput(
     type: type as ActivityType,
     structuralPosition: structuralPosition as StructuralPosition,
     name: name as string,
-    executionMode: parameters.executionMode,
-    durationSeconds: parameters.durationSeconds,
-    repetitionCount: parameters.repetitionCount,
-    seriesCount: parameters.seriesCount,
-    pauseSeconds: parameters.pauseSeconds,
+    executionParameters: parameters.executionParameters as ExecutionParameters,
     postActivityRecoverySeconds: parameters.postActivityRecoverySeconds,
     instruction: instruction === undefined ? null : instruction,
     bodyZoneIds: parameters.bodyZoneIds,
-    sideMode: parameters.sideMode ?? normalizeSideMode(activity.sideMode),
-    ...pre3Transport(activity, parameters),
+    sideMode: normalizeSideMode(parameters.executionParameters?.sideMode ?? activity.sideMode),
+    ...pre3Transport(activity),
   });
 }
 
 /**
- * PRE-3 : champs transportés tels quels après validation — paramètres
- * canoniques normalisés, Catégorie (`""` normalisée en `null`), médias
- * ordonnés (l'intégrité référentielle reste au Repository : FK réelle).
+ * PRE-3 : champs transportés tels quels après validation — Catégorie (`""`
+ * normalisée en `null`), médias ordonnés (l'intégrité référentielle reste au
+ * Repository : FK réelle).
  */
 function pre3Transport(
   activity: {
     readonly categoryId?: string | null;
     readonly media?: CreateSessionActivityInput["media"];
   },
-  parameters: ActivityParameterValues,
 ) {
   return {
-    ...(parameters.executionParameters ? { executionParameters: parameters.executionParameters } : {}),
     ...(activity.categoryId !== undefined
       ? { categoryId: activity.categoryId && activity.categoryId.trim().length > 0 ? activity.categoryId : null }
       : {}),
@@ -792,10 +667,9 @@ export function validateCreateSessionInput(
 
 /**
  * Valide et normalise une seule Activité d'un `UpdateSessionInput.activities`
- * (T01-S10). Un Exercice suit les mêmes règles de mode que
- * `validateSessionActivityInput` (durée / répétitions / à l'échec) ; une
- * Récupération est toujours chronométrée (D-041) et n'expose ni mode
- * d'Exercice, ni Séries, ni pause, ni Zones corporelles.
+ * (T01-S10). Un Exercice suit les mêmes règles de paramètres que
+ * `validateSessionActivityInput` (`validateForSave(…, "STORAGE")`, PRE-4) ;
+ * une nouvelle Récupération autonome reste refusée.
  */
 export function validateUpdateSessionActivityInput(
   activity: UpdateSessionActivityInput,
@@ -832,16 +706,12 @@ export function validateUpdateSessionActivityInput(
     structuralPosition: structuralPosition as StructuralPosition,
     position: position as number,
     name: name as string,
-    executionMode: parameters.executionMode,
-    durationSeconds: parameters.durationSeconds,
-    repetitionCount: parameters.repetitionCount,
-    seriesCount: parameters.seriesCount,
-    pauseSeconds: parameters.pauseSeconds,
+    executionParameters: parameters.executionParameters as ExecutionParameters,
     postActivityRecoverySeconds: parameters.postActivityRecoverySeconds,
     instruction: instruction === undefined ? null : instruction,
     bodyZoneIds: parameters.bodyZoneIds,
-    sideMode: parameters.sideMode ?? normalizeSideMode(activity.sideMode),
-    ...pre3Transport(activity, parameters),
+    sideMode: normalizeSideMode(parameters.executionParameters?.sideMode ?? activity.sideMode),
+    ...pre3Transport(activity),
   });
 }
 
@@ -906,5 +776,6 @@ export function validateUpdateSessionInput(
     tourRepeatCount: tourRepeatCount as number,
     activities,
     stopPoints: input.stopPoints ?? [],
+    ...(input.persistedActivityIds !== undefined ? { persistedActivityIds: [...input.persistedActivityIds] } : {}),
   });
 }

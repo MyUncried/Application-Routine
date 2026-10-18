@@ -1,4 +1,4 @@
-import { useEffect, useState, type RefObject } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { AccessibilityInfo, findNodeHandle, Keyboard, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { recordKeyboardJournal } from "@/features/diagnostics/keyboardJournal";
@@ -11,6 +11,13 @@ export type ReferenceValueDialogProps = {
   name: string;
   /** Détermine le message de suppression (§4.10 L135) : utilisée ou non par des objets existants. */
   isUsed: boolean;
+  /**
+   * PRE-4 story 4.3 (FR-20-09, AC11) : message d'une valeur UTILISÉE propre au
+   * référentiel appelant (Catégorie, Zone corporelle). Absent : message commun
+   * du code de départ (Étiquette, inchangée). Le message d'une valeur non
+   * utilisée reste toujours celui du code de départ (P34).
+   */
+  usedMessage?: string;
   /** ✕ du menu, ou « Annuler » de la confirmation — ferme sans rien modifier. */
   onCancel: () => void;
   /** « Modifier » — ferme ce dialogue et délègue l'édition (nom, couleur) à l'appelant (D4). */
@@ -26,6 +33,12 @@ export type ReferenceValueDialogProps = {
    * `autoFocus`. Optionnel : `undefined` préserve le comportement existant.
    */
   returnFocusRef?: RefObject<View | null>;
+  /**
+   * PRE-4 story 4.6 (FR-22-10, AC9), opt-in passé par les seules feuilles Catégorie et Zones :
+   * le focus VoiceOver va au nom de l'entrée à l'ouverture, puis au titre de la confirmation.
+   * Absent (Étiquette, Composition) : aucun focus envoyé, comportement PRE-3 inchangé.
+   */
+  focusOnOpen?: boolean;
 };
 
 /**
@@ -50,11 +63,13 @@ export type ReferenceValueDialogProps = {
 export function ReferenceValueDialog({
   name,
   isUsed,
+  usedMessage,
   onCancel,
   onModify,
   onDelete,
   testIDPrefix,
   returnFocusRef,
+  focusOnOpen = false,
 }: ReferenceValueDialogProps) {
   const [step, setStep] = useState<"actions" | "delete">("actions");
   const keyboardHeight = useKeyboardHeight();
@@ -65,6 +80,21 @@ export function ReferenceValueDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const t = strings.referenceData;
+  // PRE-4 story 4.6 (FR-22-10, AC9), sur opt-in (`focusOnOpen`) : le focus VoiceOver va au
+  // dialogue à son ouverture (nom de l'entrée, en tête du menu), puis au titre de la
+  // confirmation quand elle le remplace. Le dialogue est un calque sans animation, rendu dans
+  // la fenêtre de la feuille déjà présentée : son montage EST sa présentation, il n'y a pas de
+  // fin d'animation à attendre. `sendAccessibilityEvent` seul : `setAccessibilityFocus` reste
+  // réservé au retour à la liste (R10), inchangé. L'effet réel se juge sur iPhone (R-48).
+  // L'appelant monte ce dialogue avec `key` = identifiant de l'entrée : une autre entrée
+  // repart toujours de l'étape `actions`.
+  const menuTitleRef = useRef<Text>(null);
+  const confirmTitleRef = useRef<Text>(null);
+  useEffect(() => {
+    if (!focusOnOpen) return;
+    const title = step === "delete" ? confirmTitleRef.current : menuTitleRef.current;
+    if (title) AccessibilityInfo.sendAccessibilityEvent(title, "focus");
+  }, [step, focusOnOpen]);
 
   function returnFocusToList() {
     if (!returnFocusRef) {
@@ -94,8 +124,8 @@ export function ReferenceValueDialog({
     >
       {step === "delete" ? (
         <View style={styles.card} accessibilityRole="alert" testID={`${testIDPrefix}-delete-confirm-card`}>
-          <Text style={styles.title}>{`${t.deleteConfirm.titlePrefix}${name}${t.deleteConfirm.titleSuffix}`}</Text>
-          <Text style={styles.message}>{isUsed ? t.deleteConfirm.usedMessage : t.deleteConfirm.unusedMessage}</Text>
+          <Text ref={confirmTitleRef} style={styles.title}>{`${t.deleteConfirm.titlePrefix}${name}${t.deleteConfirm.titleSuffix}`}</Text>
+          <Text style={styles.message}>{isUsed ? (usedMessage ?? t.deleteConfirm.usedMessage) : t.deleteConfirm.unusedMessage}</Text>
           <View style={styles.actions} testID={`${testIDPrefix}-delete-confirm-actions`}>
             <Pressable
               onPress={handleCancel}
@@ -130,7 +160,7 @@ export function ReferenceValueDialog({
             >
               <KodjoIcon name="wheel-action-cancel" />
             </Pressable>
-            <Text style={styles.headerTitle} numberOfLines={2}>
+            <Text ref={menuTitleRef} style={styles.headerTitle} numberOfLines={2}>
               {name}
             </Text>
             {/* Contrepoids du ✕ : le nom reste centré dans le dialogue. */}

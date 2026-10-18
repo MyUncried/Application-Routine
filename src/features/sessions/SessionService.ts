@@ -39,7 +39,9 @@ export type UpdateSessionResult =
   | { readonly status: "UPDATED"; readonly session: Session }
   | { readonly status: "INVALID"; readonly violations: readonly ValidationViolation[] }
   | { readonly status: "NOT_FOUND" }
-  | { readonly status: "ARCHIVED" };
+  | { readonly status: "ARCHIVED" }
+  /** PRE-4 story 4.1 (AC13) : Activité existante supprimée entre-temps — voir `UpdateSessionOutcome`. */
+  | { readonly status: "ACTIVITY_NOT_FOUND" };
 
 /**
  * Résultat de l'ouverture d'une Séance en MODIFICATION (T01-S10). Une Séance

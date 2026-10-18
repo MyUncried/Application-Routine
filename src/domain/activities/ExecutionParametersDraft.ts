@@ -15,29 +15,76 @@
  * IDENTITÉ volatile ; leurs cibles sont mémorisées PAR MODE et par identité.
  * Une réserve créée dans un mode ne fournit donc jamais de cible active
  * dans un autre mode (« — », jamais une conversion), quel que soit le
- * chemin (variable ↔ uniforme, N, déplacement, À l'échec) ; revenir au mode
- * précédent avant ✓ restaure ses dernières cibles.
+ * chemin (variable ↔ uniforme, N, déplacement) ; revenir au mode précédent
+ * avant ✓ restaure ses dernières cibles.
+ *
+ * PRE-4 (story 1.1, adaptation mécanique) : les Cibles sont typées
+ * (`SeriesTarget`) ; une Cible à renseigner est `UNSET` (jamais `null`). Une
+ * Cible `FAILURE` est conservée au changement de Mode et recopiée quand N
+ * augmente depuis une dernière ligne à l'échec. Réserves et identités de
+ * ligne : étendues par la story 3.2 (ci-dessous).
+ *
+ * PRE-4 (story 3.2, AD-2, AD-13) : extension sans réécriture.
+ * - Retrait d'une ligne (`removeRow`) et son instantané d'annulation
+ *   (`pendingRemoval`, `undoRemoval`). TOUTE transition qui modifie le
+ *   Brouillon l'invalide (Q29 : Cible, Pause, N, Mode, Régime, Bip, Pause
+ *   commune, réordonnancement, autre retrait, et les autres réglages). Le
+ *   Brouillon n'expose aucune transition d'ouverture ou de fermeture de
+ *   surface : ces gestes, sans application, ne l'invalident donc jamais.
+ *   Seules les transitions sans effet déjà existantes (même Mode, même
+ *   Régime, déplacement sur place ou hors bornes) rendent le Brouillon
+ *   inchangé, annulation comprise.
+ * - Ligne de base alignée par identité (`originById`) : chaque identité
+ *   issue du parent garde le rang de sa ligne d'origine dans les paramètres
+ *   ouverts (`openedRows`) ; une ligne ajoutée par N n'en a pas. Au ✓,
+ *   `commitSheetDraft` rapproche ces rangs de la ligne de base par valeur
+ *   (`alignRowsToBaseline`), puis transmet l'alignement à `validateForSave`.
+ *   Index de ligne hors bornes ou annulation devenue incohérente : Brouillon
+ *   inchangé.
+ * - Indicateur « N hérité » (`inheritedSeriesCount`, P42) : entrée
+ *   d'ouverture, jamais persistée ni transmise ; il ne rend indisponible
+ *   que l'Inversion du total.
  */
 
 import {
+  alignRowsToBaseline,
   cloneExecutionParameters,
   EXECUTION_BOUNDS,
+  EXECUTION_PARAMETERS_VERSION,
   normalizeEffective,
+  numberTarget,
   seriesCountOf,
   seriesRowsOf,
-  validateExecutionParameters,
+  unsetTarget,
+  validateForSave,
   type ExecutionMode,
   type ExecutionParameters,
   type ExecutionParametersInput,
   type ExecutionParametersViolation,
   type SeriesRow,
+  type SeriesTarget,
   type SideOrder,
 } from "./ExecutionParameters";
 import { invertTotalDuration, isTotalDurationInvertible, type TotalDurationInversion } from "./executionCalculations";
 import type { SideMode } from "@/domain/sessions/sideMode";
 
 /** Cibles mémorisées d'une identité de ligne, par mode visité pendant l'ouverture. */
-type TargetsByMode = Readonly<Partial<Record<ExecutionMode, number | null>>>;
+type TargetsByMode = Readonly<Partial<Record<ExecutionMode, SeriesTarget>>>;
+
+/**
+ * Instantané d'annulation d'un retrait (story 3.2, AC10) : la ligne retirée,
+ * son identité et sa position 0-indexée dans l'ordre d'alors.
+ */
+export type PendingRemoval = {
+  readonly index: number;
+  readonly row: SeriesRow;
+  readonly rowId: number;
+};
+
+export type OpenSheetDraftOptions = {
+  /** N marqué hérité d'un circuit de séries (P42) : entrée seulement, jamais persistée. */
+  readonly inheritedSeriesCount?: boolean;
+};
 
 export type ExecutionSheetDraft = {
   readonly mode: ExecutionMode | null;
@@ -60,7 +107,18 @@ export type ExecutionSheetDraft = {
   readonly uniformId: number;
   /** Cibles par identité et par mode (le mode courant est relu des lignes elles-mêmes). */
   readonly targetsById: Readonly<Record<number, TargetsByMode>>;
+  /**
+   * Rang 0-indexé, dans les paramètres ouverts, de la ligne d'origine de
+   * chaque identité (AD-13). Absent : ligne nouvelle, sans ligne de base.
+   */
+  readonly originById: Readonly<Record<number, number>>;
+  /** Lignes des paramètres ouverts (uniforme développé), pour rapprocher `originById` de la ligne de base au ✓. */
+  readonly openedRows: readonly SeriesRow[];
   readonly nextId: number;
+  /** Annulation du dernier retrait, `null` si aucune ou invalidée (Q29). */
+  readonly pendingRemoval: PendingRemoval | null;
+  /** N hérité (P42) : rend l'Inversion du total indisponible ; aucune autre règle. */
+  readonly inheritedSeriesCount: boolean;
   readonly sideMode: SideMode | null;
   /** Ordre DEMANDÉ — l'ordre effectif est « Un côté après l'autre » à N=1. */
   readonly sideOrder: SideOrder;
@@ -71,15 +129,20 @@ export type ExecutionSheetDraft = {
 };
 
 /** Copie des paramètres du parent à l'ouverture — aucune réserve héritée. */
-export function openSheetDraft(parent: ExecutionParametersInput): ExecutionSheetDraft {
+export function openSheetDraft(parent: ExecutionParametersInput, options: OpenSheetDraftOptions = {}): ExecutionSheetDraft {
   const parameters = cloneExecutionParameters(parent);
   const rows = seriesRowsOf(parameters).map((row) => ({ ...row }));
   const variable = parameters.series.kind === "VARIABLE";
   const activeRows = variable ? rows : [];
   const rowIds = activeRows.map((_, index) => index + 1);
   const uniformId = rowIds.length + 1;
+  // AD-13 : chaque ligne ouverte a pour base la ligne de même rang du parent ;
+  // la valeur uniforme est celle de la première ligne.
+  const originById: Record<number, number> = { [uniformId]: 0 };
+  rowIds.forEach((id, index) => (originById[id] = index));
   const targetsById: Record<number, TargetsByMode> = {};
-  const uniform = { target: rows[0]?.target ?? null, pauseSeconds: rows[0]?.pauseSeconds ?? 0 };
+  const first = rows[0];
+  const uniform = first ? { target: first.target, pauseSeconds: first.pauseSeconds } : { target: unsetTarget(), pauseSeconds: 0 };
   if (parameters.mode !== null) {
     activeRows.forEach((row, index) => (targetsById[rowIds[index]!] = { [parameters.mode!]: row.target }));
     targetsById[uniformId] = { [parameters.mode]: uniform.target };
@@ -97,7 +160,11 @@ export function openSheetDraft(parent: ExecutionParametersInput): ExecutionSheet
     savedIds: null,
     uniformId,
     targetsById,
+    originById,
+    openedRows: rows.map((row) => ({ target: row.target, pauseSeconds: row.pauseSeconds })),
     nextId: uniformId + 1,
+    pendingRemoval: null,
+    inheritedSeriesCount: options.inheritedSeriesCount ?? false,
     sideMode: parameters.sideMode,
     sideOrder: parameters.sideOrder,
     sideRecoverySeconds: parameters.sideRecoverySeconds,
@@ -113,7 +180,7 @@ const plain = (row: SeriesRow): SeriesRow => ({ target: row.target, pauseSeconds
 /** Paramètres DEMANDÉS (avant normalisation N=1), état variable/ordre compris. */
 function requestedParameters(draft: ExecutionSheetDraft): ExecutionParametersInput {
   return {
-    version: 1,
+    version: EXECUTION_PARAMETERS_VERSION,
     mode: draft.mode,
     series: draft.variable
       ? { kind: "VARIABLE", rows: draft.rows.map(plain) }
@@ -136,7 +203,10 @@ export function effectiveParameters(draft: ExecutionSheetDraft): ExecutionParame
   return normalizeEffective(requestedParameters(draft));
 }
 
-/** Contrôles « sans effet » à N=1 : interrupteur variable et Ordre des côtés grisés. */
+/**
+ * Contrôles « sans effet » à N=1 : interrupteur variable grisé ; Ordre des côtés
+ * masqué (Q38), sa valeur `sideOrder` restant conservée dans le Brouillon.
+ */
 export function isSingleSeries(draft: ExecutionSheetDraft): boolean {
   return draft.count === 1;
 }
@@ -145,17 +215,33 @@ function clampCount(count: number): number {
   return Math.min(Math.max(Math.trunc(count), EXECUTION_BOUNDS.seriesCount.min), EXECUTION_BOUNDS.seriesCount.max);
 }
 
+/** Q29 : toute modification du Brouillon invalide l'annulation d'un retrait. */
+function modified(draft: ExecutionSheetDraft): ExecutionSheetDraft {
+  return draft.pendingRemoval === null ? draft : { ...draft, pendingRemoval: null };
+}
+
+/**
+ * Une identité qui COPIE une valeur existante sans la modifier (passage de
+ * Régime) garde la ligne de base de sa source (AD-13, H25).
+ */
+function inheritOrigin(originById: Record<number, number>, id: number, sourceId: number): void {
+  const origin = originById[sourceId];
+  if (origin !== undefined) {
+    originById[id] = origin;
+  }
+}
+
 /**
  * Mémorise, pour le mode courant, la cible affichée de chaque identité
  * (lignes actives, retirées, réservées, uniforme) avant une transition.
  */
 function rememberCurrentTargets(draft: ExecutionSheetDraft): Record<number, TargetsByMode> {
   const targetsById: Record<number, TargetsByMode> = { ...draft.targetsById };
-  if (draft.mode === null || draft.mode === "TO_FAILURE") {
+  if (draft.mode === null) {
     return targetsById;
   }
   const mode = draft.mode;
-  const remember = (id: number, target: number | null) => {
+  const remember = (id: number, target: SeriesTarget) => {
     targetsById[id] = { ...targetsById[id], [mode]: target };
   };
   draft.rows.forEach((row, index) => remember(draft.rowIds[index]!, row.target));
@@ -183,7 +269,7 @@ function cloneIdentity(
 export function setSeriesCount(draft: ExecutionSheetDraft, requested: number): ExecutionSheetDraft {
   const count = clampCount(requested);
   if (!draft.variable) {
-    return { ...draft, count };
+    return modified({ ...draft, count });
   }
   const targetsById = rememberCurrentTargets(draft);
   let nextId = draft.nextId;
@@ -201,18 +287,22 @@ export function setSeriesCount(draft: ExecutionSheetDraft, requested: number): E
       const restored = hiddenRows.shift();
       const restoredId = hiddenIds.shift();
       if (restored && restoredId !== undefined) {
-        rows.push({ ...restored });
+        rows.push({ ...restored, target: { ...restored.target } });
         rowIds.push(restoredId);
       } else {
         const sourceId = rowIds[rowIds.length - 1] ?? draft.uniformId;
         const clone = cloneIdentity(targetsById, sourceId, nextId);
         nextId = clone.nextId;
-        rows.push({ ...(rows[rows.length - 1] ?? draft.uniform) });
+        // Story 1.3 (AD-9) : la ligne ajoutée copie la dernière (Cible `FAILURE`
+        // et Pause comprises) sans partager l'objet de sa Cible.
+        const last = rows[rows.length - 1] ?? draft.uniform;
+        rows.push({ ...last, target: { ...last.target } });
         rowIds.push(clone.id);
       }
     }
   }
-  return { ...draft, count, rows, rowIds, hiddenRows, hiddenIds, targetsById, nextId };
+  // Une ligne ajoutée par N est NOUVELLE : aucune ligne de base (AD-13).
+  return { ...draft, count, rows, rowIds, hiddenRows, hiddenIds, targetsById, nextId, pendingRemoval: null };
 }
 
 /**
@@ -227,13 +317,17 @@ export function setVariable(draft: ExecutionSheetDraft, variable: boolean): Exec
     return draft;
   }
   const targetsById = rememberCurrentTargets(draft);
+  const originById: Record<number, number> = { ...draft.originById };
   let nextId = draft.nextId;
   if (!variable) {
     const first = draft.rows[0] ?? draft.uniform;
     const firstId = draft.rowIds[0] ?? draft.uniformId;
     const uniform = cloneIdentity(targetsById, firstId, nextId);
+    inheritOrigin(originById, uniform.id, firstId);
     return {
       ...draft,
+      pendingRemoval: null,
+      originById,
       variable: false,
       uniform: { ...first },
       uniformId: uniform.id,
@@ -267,36 +361,59 @@ export function setVariable(draft: ExecutionSheetDraft, variable: boolean): Exec
   } else {
     for (let index = 0; index < draft.count; index += 1) {
       const clone = cloneIdentity(targetsById, draft.uniformId, nextId);
+      // Sans tableau réservé, l'uniforme est celui ouvert : la k-ième copie a pour
+      // origine la k-ième ligne développée du parent (origines distinctes) ; au-delà, aucune.
+      if (draft.originById[draft.uniformId] !== undefined && index < draft.openedRows.length) {
+        originById[clone.id] = index;
+      }
       nextId = clone.nextId;
       rows.push({ ...draft.uniform });
       rowIds.push(clone.id);
     }
   }
-  return { ...draft, variable: true, rows, rowIds, hiddenRows, hiddenIds, targetsById, nextId };
+  return {
+    ...draft,
+    variable: true,
+    rows,
+    rowIds,
+    hiddenRows,
+    hiddenIds,
+    targetsById,
+    originById,
+    nextId,
+    pendingRemoval: null,
+  };
 }
 
 /**
  * Change de mode (P3-04) : N, Pauses, bip, côtés conservés ; cibles
- * incompatibles « — » (null, jamais zéro) ; retour à un mode déjà visité
+ * incompatibles « — » (`UNSET`, jamais zéro) ; retour à un mode déjà visité
  * pendant cette ouverture → ses cibles sont restaurées, identité par
  * identité (lignes actives, retirées et réservées). Création (mode jusqu'ici
- * non renseigné) en Répétitions uniforme : cible initiale 1.
+ * non renseigné) en Répétitions uniforme : cible initiale 1. PRE-4 : une
+ * Cible `FAILURE` est conservée telle quelle (AC22, H27).
  */
 export function setMode(draft: ExecutionSheetDraft, mode: ExecutionMode): ExecutionSheetDraft {
   if (mode === draft.mode) {
     return draft;
   }
   const targetsById = rememberCurrentTargets(draft);
-  const targetFor = (id: number): number | null => (mode === "TO_FAILURE" ? null : (targetsById[id]?.[mode] ?? null));
+  const targetFor = (id: number, current: SeriesTarget): SeriesTarget =>
+    current.kind === "FAILURE" ? current : (targetsById[id]?.[mode] ?? unsetTarget());
   const retarget = (rows: readonly SeriesRow[], ids: readonly number[]) =>
-    rows.map((row, index) => ({ ...row, target: targetFor(ids[index]!) }));
-  const initialUniform = draft.mode === null && mode === "REPETITIONS" && !draft.variable ? 1 : null;
-  const uniformTarget = targetsById[draft.uniformId]?.[mode] !== undefined ? targetFor(draft.uniformId) : initialUniform;
+    rows.map((row, index) => ({ ...row, target: targetFor(ids[index]!, row.target) }));
+  const initialUniform =
+    draft.mode === null && mode === "REPETITIONS" && !draft.variable ? numberTarget(1) : unsetTarget();
+  const uniformTarget =
+    draft.uniform.target.kind === "FAILURE" || targetsById[draft.uniformId]?.[mode] !== undefined
+      ? targetFor(draft.uniformId, draft.uniform.target)
+      : initialUniform;
   return {
     ...draft,
+    pendingRemoval: null,
     mode,
     targetsById,
-    uniform: { ...draft.uniform, target: mode === "TO_FAILURE" ? null : uniformTarget },
+    uniform: { ...draft.uniform, target: uniformTarget },
     rows: retarget(draft.rows, draft.rowIds),
     hiddenRows: retarget(draft.hiddenRows, draft.hiddenIds),
     savedVariableRows: draft.savedVariableRows ? retarget(draft.savedVariableRows, draft.savedIds!) : null,
@@ -308,23 +425,38 @@ export function setMode(draft: ExecutionSheetDraft, mode: ExecutionMode): Execut
  * uniforme sur la première ligne : le réglage affiché modifie donc cette
  * ligne (aucun contrôle actif sans effet, REV-02), et la valeur uniforme.
  */
-export function setUniformTarget(draft: ExecutionSheetDraft, target: number | null): ExecutionSheetDraft {
+export function setUniformTarget(draft: ExecutionSheetDraft, target: SeriesTarget): ExecutionSheetDraft {
   const rows = draft.variable && draft.rows.length > 0 ? draft.rows.map((row, index) => (index === 0 ? { ...row, target } : row)) : draft.rows;
-  return { ...draft, rows, uniform: { ...draft.uniform, target } };
+  return { ...draft, pendingRemoval: null, rows, uniform: { ...draft.uniform, target } };
 }
 
 export function setUniformPause(draft: ExecutionSheetDraft, pauseSeconds: number): ExecutionSheetDraft {
   const rows =
     draft.variable && draft.rows.length > 0 ? draft.rows.map((row, index) => (index === 0 ? { ...row, pauseSeconds } : row)) : draft.rows;
-  return { ...draft, rows, uniform: { ...draft.uniform, pauseSeconds } };
+  return { ...draft, pendingRemoval: null, rows, uniform: { ...draft.uniform, pauseSeconds } };
 }
 
-export function setRowTarget(draft: ExecutionSheetDraft, index: number, target: number | null): ExecutionSheetDraft {
-  return { ...draft, rows: draft.rows.map((row, current) => (current === index ? { ...row, target } : row)) };
+const isRowIndex = (draft: ExecutionSheetDraft, index: number): boolean =>
+  Number.isInteger(index) && index >= 0 && index < draft.rows.length;
+
+/** Index hors bornes : aucune modification, Brouillon inchangé (annulation comprise). */
+export function setRowTarget(draft: ExecutionSheetDraft, index: number, target: SeriesTarget): ExecutionSheetDraft {
+  if (!isRowIndex(draft, index)) {
+    return draft;
+  }
+  return { ...draft, pendingRemoval: null, rows: draft.rows.map((row, current) => (current === index ? { ...row, target } : row)) };
 }
 
+/** Index hors bornes : aucune modification, Brouillon inchangé (annulation comprise). */
 export function setRowPause(draft: ExecutionSheetDraft, index: number, pauseSeconds: number): ExecutionSheetDraft {
-  return { ...draft, rows: draft.rows.map((row, current) => (current === index ? { ...row, pauseSeconds } : row)) };
+  if (!isRowIndex(draft, index)) {
+    return draft;
+  }
+  return {
+    ...draft,
+    pendingRemoval: null,
+    rows: draft.rows.map((row, current) => (current === index ? { ...row, pauseSeconds } : row)),
+  };
 }
 
 /**
@@ -342,7 +474,51 @@ export function moveRow(draft: ExecutionSheetDraft, from: number, to: number): E
   const [movedId] = rowIds.splice(from, 1);
   rows.splice(to, 0, moved!);
   rowIds.splice(to, 0, movedId!);
-  return { ...draft, rows, rowIds };
+  return { ...draft, pendingRemoval: null, rows, rowIds };
+}
+
+/**
+ * Retire une ligne du Tableau des séries variables par sa croix (story 3.2,
+ * AC10, FR-12-05, H5 confirmée par Q29) : la ligne part avec sa Cible et sa
+ * Pause, N diminue de 1 et les lignes suivantes sont renumérotées par leur
+ * position. Un instantané d'annulation (`pendingRemoval`) est exposé ; il
+ * remplace celui d'un retrait précédent (« autre retrait », Q29). Refusé
+ * (Brouillon inchangé) à N = 1, hors Régime `variables` ou hors bornes. Un
+ * retrait qui ramène N à 1 laisse la normalisation effective d'AC9 opérer.
+ */
+export function removeRow(draft: ExecutionSheetDraft, index: number): ExecutionSheetDraft {
+  if (!draft.variable || draft.rows.length <= 1 || !Number.isInteger(index) || index < 0 || index >= draft.rows.length) {
+    return draft;
+  }
+  const rows = [...draft.rows];
+  const rowIds = [...draft.rowIds];
+  const [removed] = rows.splice(index, 1);
+  const [removedId] = rowIds.splice(index, 1);
+  return {
+    ...draft,
+    count: rows.length,
+    rows,
+    rowIds,
+    pendingRemoval: { index, row: removed!, rowId: removedId! },
+  };
+}
+
+/**
+ * Annule le dernier retrait encore valide (AC10) : la ligne revient à sa
+ * position, avec sa Cible, sa Pause et son identité (donc sa mémoire par
+ * Mode et sa ligne de base). Sans annulation valide, ou si sa position
+ * n'existe plus (état incohérent), Brouillon inchangé, sans recalage.
+ */
+export function undoRemoval(draft: ExecutionSheetDraft): ExecutionSheetDraft {
+  const pending = draft.pendingRemoval;
+  if (pending === null || !draft.variable || !Number.isInteger(pending.index) || pending.index < 0 || pending.index > draft.rows.length) {
+    return draft;
+  }
+  const rows = [...draft.rows];
+  const rowIds = [...draft.rowIds];
+  rows.splice(pending.index, 0, pending.row);
+  rowIds.splice(pending.index, 0, pending.rowId);
+  return { ...draft, count: rows.length, rows, rowIds, pendingRemoval: null };
 }
 
 export function setSideMode(
@@ -353,6 +529,7 @@ export function setSideMode(
   const activating = (draft.sideMode === null || draft.sideMode === "UNILATERAL") && sideMode !== "UNILATERAL";
   return {
     ...draft,
+    pendingRemoval: null,
     sideMode,
     // P3-10 : la Pause entre les côtés est copiée du Profil à l'activation, jamais relue ensuite.
     sideRecoverySeconds: activating ? profileSideRecoverySecondsDefault : draft.sideRecoverySeconds,
@@ -360,28 +537,31 @@ export function setSideMode(
 }
 
 export function setSideOrder(draft: ExecutionSheetDraft, sideOrder: SideOrder): ExecutionSheetDraft {
-  return { ...draft, sideOrder };
+  return { ...draft, pendingRemoval: null, sideOrder };
 }
 
 export function setSideRecovery(draft: ExecutionSheetDraft, sideRecoverySeconds: number): ExecutionSheetDraft {
-  return { ...draft, sideRecoverySeconds };
+  return { ...draft, pendingRemoval: null, sideRecoverySeconds };
 }
 
 export function setCadenceBeep(draft: ExecutionSheetDraft, cadenceBeepIntervalSeconds: number): ExecutionSheetDraft {
-  return { ...draft, cadenceBeepIntervalSeconds };
+  return { ...draft, pendingRemoval: null, cadenceBeepIntervalSeconds };
 }
 
 export function setCountdown(draft: ExecutionSheetDraft, countdownSeconds: number): ExecutionSheetDraft {
-  return { ...draft, countdownSeconds };
+  return { ...draft, pendingRemoval: null, countdownSeconds };
 }
 
 export function setEnd(draft: ExecutionSheetDraft, endSeconds: number): ExecutionSheetDraft {
-  return { ...draft, endSeconds };
+  return { ...draft, pendingRemoval: null, endSeconds };
 }
 
-/** Le total est éditable (roulette d'inversion) exactement quand l'état EFFECTIF est Durée uniforme renseignée. */
+/**
+ * Le total est éditable (roulette d'inversion) exactement quand l'état
+ * EFFECTIF est Durée uniforme renseignée et que N n'est pas hérité (P42).
+ */
 export function isRequestedTotalEditable(draft: ExecutionSheetDraft): boolean {
-  return isTotalDurationInvertible(effectiveParameters(draft));
+  return isTotalDurationInvertible(effectiveParameters(draft), draft.inheritedSeriesCount);
 }
 
 /**
@@ -390,19 +570,20 @@ export function isRequestedTotalEditable(draft: ExecutionSheetDraft): boolean {
  * (effectif uniforme sur la première ligne), l'inversion s'applique aussi ;
  * le brouillon passe en uniforme sur cette première ligne — exactement la
  * base du calcul affiché — et le tableau reste réservé (réactivation avant ✓
- * le restitue). Le total réalisé est donc toujours celui annoncé.
+ * le restitue). Le total réalisé est donc toujours celui annoncé. Story 3.2
+ * (AC14, P42) : indisponible sous N hérité.
  */
 export function applyRequestedTotal(
   draft: ExecutionSheetDraft,
   requestedSeconds: number,
 ): { readonly draft: ExecutionSheetDraft; readonly inversion: TotalDurationInversion } | null {
   const parameters = effectiveParameters(draft);
-  if (!isTotalDurationInvertible(parameters)) {
+  if (!isTotalDurationInvertible(parameters, draft.inheritedSeriesCount)) {
     return null;
   }
-  const inversion = invertTotalDuration(parameters, requestedSeconds);
+  const inversion = invertTotalDuration(parameters, requestedSeconds, draft.inheritedSeriesCount);
   const uniform = draft.variable ? setVariable(draft, false) : draft;
-  return { draft: { ...uniform, count: inversion.seriesCount }, inversion };
+  return { draft: modified({ ...uniform, count: inversion.seriesCount }), inversion };
 }
 
 export type SheetCommitResult =
@@ -410,12 +591,41 @@ export type SheetCommitResult =
   | { readonly ok: false; readonly violations: readonly ExecutionParametersViolation[] };
 
 /**
- * ✓ (P3-16) : valide l'état EFFECTIF (repli du tableau sans effet) ; succès
- * → paramètres normalisés à appliquer atomiquement au parent, réserves
- * abandonnées ; échec → aucune application, violations nommant la Série.
+ * Rang de la ligne de base de chaque Série EFFECTIVE, par identité (AD-13,
+ * story 3.2 AC12) ; `null` pour une ligne nouvelle.
  */
-export function commitSheetDraft(draft: ExecutionSheetDraft): SheetCommitResult {
-  return validateExecutionParameters(effectiveParameters(draft));
+function baselineRowIndexes(draft: ExecutionSheetDraft, baseline: ExecutionParametersInput): readonly (number | null)[] {
+  // Le parent ouvert peut différer de la base (Feuille rouverte après un ✓ qui a
+  // réordonné) : ses rangs sont rapprochés de la base par valeur, puis par rang
+  // libre (alignement injectif).
+  const parentToBase = alignRowsToBaseline(draft.openedRows, seriesRowsOf(baseline), { exclusive: true });
+  const originOf = (id: number | undefined): number | null => {
+    const origin = id === undefined ? undefined : draft.originById[id];
+    return origin === undefined ? null : (parentToBase[origin] ?? null);
+  };
+  if (draft.variable && draft.rows.length > 0) {
+    // À N = 1, l'état effectif est uniforme sur la première ligne : sa base est celle de cette ligne.
+    return draft.rows.length === 1 ? [originOf(draft.rowIds[0])] : draft.rowIds.map(originOf);
+  }
+  return [originOf(draft.uniformId)];
+}
+
+/**
+ * ✓ (P3-16) : valide l'état EFFECTIF (repli du tableau sans effet) par la
+ * validation unique (AD-13), avec la ligne de base relue à l'ouverture de
+ * l'Éditeur (`null` en création), alignée par IDENTITÉ de ligne (story 3.2,
+ * AC12) ; succès → paramètres normalisés à appliquer atomiquement au parent,
+ * sans identité, Réserve, mémoire par Mode, `pendingRemoval` ni indicateur
+ * d'héritage ; échec → aucune application, violations nommant la Série.
+ */
+export function commitSheetDraft(
+  draft: ExecutionSheetDraft,
+  baseline: ExecutionParametersInput | null = null,
+): SheetCommitResult {
+  const parameters = effectiveParameters(draft);
+  return baseline === null
+    ? validateForSave(parameters, null)
+    : validateForSave(parameters, baseline, { baselineRowIndexes: baselineRowIndexes(draft, baseline) });
 }
 
 /** Première Série incomplète (message « Série n », v13 §6), ou `null`. */

@@ -43,7 +43,14 @@ export const DATABASE_NAME = "kodjo.db";
  * copies, métadonnées natives des médias et liens ordonnés des occurrences
  * (`session_activity_media`) — migration additive, 001..008 inchangées.
  */
-export const DATABASE_VERSION = 9;
+/**
+ * **PRE-4 (version 10, `migration010`, story 1.1)** : deux Modes et Cible
+ * typée par Série — JSON v2 dans `activity_definitions` et `activities`,
+ * écart dénombré des Exercices illisibles, reconstruction d'`activities`
+ * (CHECK sans l'ancien troisième mode, cible scalaire NULL admise) et table
+ * `migration_notices` ; 001..009 inchangées.
+ */
+export const DATABASE_VERSION = 10;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

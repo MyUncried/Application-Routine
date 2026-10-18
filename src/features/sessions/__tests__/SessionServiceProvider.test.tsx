@@ -3,7 +3,11 @@ import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals
 import { useContext, useEffect, type ReactNode } from "react";
 import { Text } from "react-native";
 
+import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { SessionServiceProvider } from "@/features/sessions/SessionServiceProvider";
+import { MigrationNoticeRepositoryContext } from "@/features/sessions/MigrationNoticeRepositoryContext";
+import type { MigrationNoticeRepository } from "@/domain/migration/MigrationNotice";
+import { SqliteMigrationNoticeRepository } from "@/infrastructure/database/repositories/SqliteMigrationNoticeRepository";
 import { SessionServiceContext, useSessionService } from "@/features/sessions/SessionServiceContext";
 import { SessionService } from "@/features/sessions/SessionService";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
@@ -598,15 +602,9 @@ describe("SessionServiceProvider — câblage réel des Zones corporelles et des
     const createResult = await activityDefinitionService.createActivityDefinition({
       name: "Pompes",
       description: null,
-      executionMode: "DURATION",
-      durationSeconds: 30,
-      repetitionCount: null,
-      seriesCount: 3,
-      pauseSeconds: 10,
+      executionParameters: durationParameters(30, 3, 10),
       category: { kind: "NEW", name: "Nouvelle catégorie", color: "#3B82F6" },
       bodyZoneIds: [dos!.id],
-      sideMode: "UNILATERAL",
-      sideRecoverySeconds: 0,
     });
     expect(createResult.ok).toBe(true);
     if (!createResult.ok) {
@@ -729,15 +727,10 @@ describe("SessionServiceProvider — câblage réel des Zones corporelles et des
     const updateResult = await service.updateActivityDefinition("legacy-def-1", {
       name: "Fentes historiques modifiées",
       description: beforeEdit!.description,
-      executionMode: beforeEdit!.executionMode,
-      durationSeconds: beforeEdit!.durationSeconds,
-      repetitionCount: beforeEdit!.repetitionCount,
-      seriesCount: beforeEdit!.seriesCount,
-      pauseSeconds: beforeEdit!.pauseSeconds,
+      // PRE-4 (story 1.1) : paramètres typés relus (convertis par `migration010`).
+      executionParameters: beforeEdit!.executionParameters,
       category: { kind: "EXISTING", categoryId: "autre" },
       bodyZoneIds: beforeEdit!.bodyZoneIds,
-      sideMode: beforeEdit!.sideMode,
-      sideRecoverySeconds: 0,
     });
     expect(updateResult.status).toBe("UPDATED");
 
@@ -831,5 +824,47 @@ describe("SessionServiceProvider — câblage réel des Étiquettes pour la coul
     const sessionWithoutLabelColor =
       labels.find((label) => label.id === sessionWithoutLabelId)?.color ?? DEFAULT_SESSION_COLOR;
     expect(sessionWithoutLabelColor).toBe(DEFAULT_SESSION_COLOR);
+  }, 20000);
+});
+
+/**
+ * PRE-4 (story 1.1, AD-12, AC13) : le repository des avis de migration est
+ * construit sur la MÊME connexion et exposé par le contexte de services de
+ * `SessionServiceProvider` — sans aucun lecteur d'interface dans cette story.
+ */
+describe("SessionServiceProvider — repository des avis de migration (PRE-4, story 1.1)", () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it("PRE4-1.1/AC13 — le repository des avis est exposé par le contexte de SessionServiceProvider", async () => {
+    const onReady = jest.fn();
+    let repository: MigrationNoticeRepository | null = null;
+
+    function NoticeConsumer() {
+      const value = useContext(MigrationNoticeRepositoryContext);
+      useEffect(() => {
+        repository = value;
+      });
+      return <Text>notice-consumer</Text>;
+    }
+
+    function Harness({ showContent }: { showContent: boolean }) {
+      return <SessionServiceProvider onReady={onReady}>{showContent ? <NoticeConsumer /> : null}</SessionServiceProvider>;
+    }
+
+    const { rerender } = render(<Harness showContent={false} />);
+    await waitFor(() => expect(onReady).toHaveBeenCalledTimes(1));
+    act(() => {
+      rerender(<Harness showContent={true} />);
+    });
+    await waitFor(() => expect(repository).not.toBeNull());
+    expect(repository).toBeInstanceOf(SqliteMigrationNoticeRepository);
+    // Base neuve migrée jusqu'à 010 : `migration_notices` existe et ne contient aucun avis.
+    await expect(repository!.findUnacknowledged()).resolves.toBeNull();
   }, 20000);
 });

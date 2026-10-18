@@ -7,6 +7,13 @@ export type ExerciseExitConfirmModalProps = {
   onCancel: () => void;
   /** « Confirmer » — abandonne la copie de travail locale puis rejoue la navigation initialement bloquée. */
   onConfirm: () => void;
+  /**
+   * PRE-4 story 4.2 (Q18, FR-02-12) : `true` en création (CC, CS) — titre
+   * « Abandonner la création ? » et son message ; `false` par défaut
+   * (modification, MC et MS) — textes PRE-3 inchangés. Seuls les textes
+   * changent : rendu, actions et comportement restent ceux du composant accepté.
+   */
+  isCreation?: boolean;
 };
 
 /**
@@ -52,14 +59,14 @@ export type ExerciseExitConfirmModalProps = {
  * `onRequestClose` (bouton matériel Android) traité comme Annuler par
  * `DecisionDialog` — comportement inchangé.
  */
-export function ExerciseExitConfirmModal({ onCancel, onConfirm }: ExerciseExitConfirmModalProps) {
+export function ExerciseExitConfirmModal({ onCancel, onConfirm, isCreation = false }: ExerciseExitConfirmModalProps) {
   const modalStrings = strings.screens.exercise.exitConfirmModal;
 
   return (
     <DecisionDialog
-      title={modalStrings.title}
+      title={isCreation ? modalStrings.createTitle : modalStrings.title}
       titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText }}
-      message={modalStrings.message}
+      message={isCreation ? modalStrings.createMessage : modalStrings.message}
       messageStyle={{ ...type.body, color: colors.textSecondary }}
       cancelLabel={modalStrings.continueEditing}
       cancelLabelStyle={{ ...type.button, color: colors.dialogTitleText }}

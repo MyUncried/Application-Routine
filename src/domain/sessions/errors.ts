@@ -20,7 +20,7 @@ export type ValidationErrorCode =
   | "INVALID_COLOR"
   /** T01-S10 : valeur d'énumération non reconnue (mode d'exécution, type d'Activité, position structurelle). */
   | "UNRECOGNIZED"
-  /** T01-S10 : champ qui doit rester absent pour le mode/type courant (une cible Durée ou Répétitions en `TO_FAILURE`, des Zones corporelles sur une Récupération). */
+  /** T01-S10 : champ qui doit rester absent pour le type courant (des Zones corporelles ou une Récupération attachée sur une ancienne Récupération autonome). */
   | "MUST_BE_ABSENT"
   /** T01-S10 : identifiant d'Activité en doublon dans un même agrégat de modification. */
   | "DUPLICATE";
@@ -41,7 +41,7 @@ export type ValidationField =
   | "exercise.pauseSeconds"
   /** V2-PRE-1 (plan §3.2) : récupération post-exercice de l'occurrence, obligatoire et indépendante de la définition (`0..5999` s). Remplace l'ancien champ historique `exercise.recoverySeconds`. */
   | "exercise.postActivityRecoverySeconds"
-  /** T01-S10 : mode d'exécution d'un Exercice (`DURATION` / `REPETITIONS` / `TO_FAILURE`). */
+  /** Mode d'exécution d'un Exercice (`DURATION` / `REPETITIONS`, PRE-4 AD-1) et, par défaut, tout autre paramètre d'exécution invalide. */
   | "exercise.executionMode"
   /** T01-S10 : type d'une Activité (`EXERCISE` / `RECOVERY`). */
   | "activity.type"

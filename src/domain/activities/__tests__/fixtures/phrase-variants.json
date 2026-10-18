@@ -1,0 +1,565 @@
+{
+  "schema": "kodjo.pre4.phrase-variants.v1",
+  "purpose": "PRE-4 story 2.3, AC14 (FR-17-04) — variantes des cas nouveaux de la Phrase des paramètres. Attendus littéraux écrits à la main, jamais produits par le générateur ni par executionCalculations. Le total de chaque variante est recalculé par formule dans le test (variantFormulaTotal) et comparé à expectedTotalSeconds.",
+  "inputPolicy": "targets : nombre (Cible NUMBER, secondes en Durée, répétitions en Répétitions) ou \"FAILURE\". pauses : une Pause par Série. bip : intervalle du Bip en secondes. side : UNILATERAL, RIGHT_LEFT ou LEFT_RIGHT. order : BY_SIDE ou BY_SERIES. pc : Pause au changement de côté. snapshotV1 : paramètres d'un Instantané v1 (PRE-3), relus par parseExerciseSnapshot.",
+  "variants": [
+    {
+      "id": "mix-duration-2",
+      "covers": "AC8 — Durée, 2 Cibles, échec en position 2, total ≥",
+      "input": { "mode": "DURATION", "series": "VARIABLE", "targets": [30, "FAILURE"], "pauses": [10, 10], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "2 séries de durée variable (30 s puis jusqu’à l’échec). Durée totale : ≥ 50 s.",
+      "expectedBold": ["2 séries", "30 s", "≥ 50 s"],
+      "expectedTotalSeconds": 50
+    },
+    {
+      "id": "mix-duration-3-failure-first",
+      "covers": "AC8 — Durée, 3 Cibles, échec en position 1",
+      "input": { "mode": "DURATION", "series": "VARIABLE", "targets": ["FAILURE", 30, 45], "pauses": [10, 10, 10], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "3 séries de durée variable (jusqu’à l’échec, 30 s puis 45 s). Durée totale : ≥ 1 min 45 s.",
+      "expectedBold": ["3 séries", "30 s", "45 s", "≥ 1 min 45 s"],
+      "expectedTotalSeconds": 105
+    },
+    {
+      "id": "mix-duration-3-failure-middle",
+      "covers": "AC8 — Durée, 3 Cibles, échec en position 2",
+      "input": { "mode": "DURATION", "series": "VARIABLE", "targets": [30, "FAILURE", 45], "pauses": [10, 10, 10], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "3 séries de durée variable (30 s, jusqu’à l’échec puis 45 s). Durée totale : ≥ 1 min 45 s.",
+      "expectedBold": ["3 séries", "30 s", "45 s", "≥ 1 min 45 s"],
+      "expectedTotalSeconds": 105
+    },
+    {
+      "id": "mix-duration-3-failure-last",
+      "covers": "AC8 — Durée, 3 Cibles, échec en position 3 (R01)",
+      "input": { "mode": "DURATION", "series": "VARIABLE", "targets": [30, 45, "FAILURE"], "pauses": [10, 10, 10], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "3 séries de durée variable (30 s, 45 s puis jusqu’à l’échec). Durée totale : ≥ 1 min 45 s.",
+      "expectedBold": ["3 séries", "30 s", "45 s", "≥ 1 min 45 s"],
+      "expectedTotalSeconds": 105
+    },
+    {
+      "id": "mix-duration-3-figma",
+      "covers": "AC8, AC10 — mixte Figma, Pauses variables non énumérées (P1)",
+      "input": { "mode": "DURATION", "series": "VARIABLE", "targets": [30, 45, "FAILURE"], "pauses": [10, 20, 30], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "3 séries de durée variable (30 s, 45 s puis jusqu’à l’échec). Durée totale : ≥ 2 min 15 s.",
+      "expectedBold": ["3 séries", "30 s", "45 s", "≥ 2 min 15 s"],
+      "expectedTotalSeconds": 135
+    },
+    {
+      "id": "mix-duration-bip",
+      "covers": "AC4 — Durée avec Bip : aucune clause de cadence",
+      "input": { "mode": "DURATION", "series": "VARIABLE", "targets": [30, 45, "FAILURE"], "pauses": [10, 10, 10], "bip": 4, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "3 séries de durée variable (30 s, 45 s puis jusqu’à l’échec). Durée totale : ≥ 1 min 45 s.",
+      "expectedBold": ["3 séries", "30 s", "45 s", "≥ 1 min 45 s"],
+      "expectedTotalSeconds": 105
+    },
+    {
+      "id": "mix-duration-4",
+      "covers": "AC9 — Durée, plus de 3 Cibles, compaction et ≥",
+      "input": { "mode": "DURATION", "series": "VARIABLE", "targets": [30, 45, 60, "FAILURE"], "pauses": [10, 10, 10, 10], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "4 séries variables, de 30 s à l’échec. Durée totale : ≥ 2 min 55 s.",
+      "expectedBold": ["4 séries", "30 s", "≥ 2 min 55 s"],
+      "expectedTotalSeconds": 175
+    },
+    {
+      "id": "mix-duration-4-minimum-not-first",
+      "covers": "AC9 — minimum des Cibles NUMBER formaté",
+      "input": { "mode": "DURATION", "series": "VARIABLE", "targets": [120, 90, "FAILURE", 150], "pauses": [10, 10, 10, 10], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "4 séries variables, de 1 min 30 s à l’échec. Durée totale : ≥ 6 min 40 s.",
+      "expectedBold": ["4 séries", "1 min 30 s", "≥ 6 min 40 s"],
+      "expectedTotalSeconds": 400
+    },
+    {
+      "id": "mix-duration-8",
+      "covers": "AC14 — N > 6, mélange en Durée",
+      "input": { "mode": "DURATION", "series": "VARIABLE", "targets": [45, 30, 60, "FAILURE", 30, 45, 60, 90], "pauses": [15, 15, 15, 15, 15, 15, 15, 15], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "8 séries variables, de 30 s à l’échec. Durée totale : ≥ 8 min.",
+      "expectedBold": ["8 séries", "30 s", "≥ 8 min"],
+      "expectedTotalSeconds": 480
+    },
+    {
+      "id": "mix-repetitions-2-bip0",
+      "covers": "AC8 — Répétitions, 2 Cibles, Bip 0, aucun total",
+      "input": { "mode": "REPETITIONS", "series": "VARIABLE", "targets": [10, "FAILURE"], "pauses": [10, 10], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "2 séries de répétitions variables (10 puis jusqu’à l’échec).",
+      "expectedBold": ["2 séries", "10"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "mix-repetitions-3-failure-first-bip0",
+      "covers": "AC8 — Répétitions, échec en position 1, Bip 0",
+      "input": { "mode": "REPETITIONS", "series": "VARIABLE", "targets": ["FAILURE", 10, 12], "pauses": [10, 10, 10], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "3 séries de répétitions variables (jusqu’à l’échec, 10 puis 12).",
+      "expectedBold": ["3 séries", "10", "12"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "mix-repetitions-3-failure-middle-bip0",
+      "covers": "AC8 — Répétitions, échec en position 2, Bip 0",
+      "input": { "mode": "REPETITIONS", "series": "VARIABLE", "targets": [10, "FAILURE", 12], "pauses": [10, 10, 10], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "3 séries de répétitions variables (10, jusqu’à l’échec puis 12).",
+      "expectedBold": ["3 séries", "10", "12"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "mix-repetitions-3-failure-middle-bip2",
+      "covers": "AC8, AC4 — Répétitions, échec en position 2, Bip 2 s, total ≥",
+      "input": { "mode": "REPETITIONS", "series": "VARIABLE", "targets": [10, "FAILURE", 12], "pauses": [10, 10, 10], "bip": 2, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "3 séries de répétitions variables (10, jusqu’à l’échec puis 12), cadencées toutes les 2 s. Durée totale : ≥ 1 min 14 s.",
+      "expectedBold": ["3 séries", "10", "12", "2 s", "≥ 1 min 14 s"],
+      "expectedTotalSeconds": 74
+    },
+    {
+      "id": "mix-repetitions-3-failure-last-bip0",
+      "covers": "AC8 — Répétitions, échec en position 3, Bip 0",
+      "input": { "mode": "REPETITIONS", "series": "VARIABLE", "targets": [10, 12, "FAILURE"], "pauses": [10, 10, 10], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "3 séries de répétitions variables (10, 12 puis jusqu’à l’échec).",
+      "expectedBold": ["3 séries", "10", "12"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "mix-repetitions-3-failure-last-bip2",
+      "covers": "AC8 — Répétitions, échec en position 3, Bip 2 s (R02)",
+      "input": { "mode": "REPETITIONS", "series": "VARIABLE", "targets": [10, 12, "FAILURE"], "pauses": [10, 10, 10], "bip": 2, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "3 séries de répétitions variables (10, 12 puis jusqu’à l’échec), cadencées toutes les 2 s. Durée totale : ≥ 1 min 14 s.",
+      "expectedBold": ["3 séries", "10", "12", "2 s", "≥ 1 min 14 s"],
+      "expectedTotalSeconds": 74
+    },
+    {
+      "id": "mix-repetitions-4-bip0",
+      "covers": "AC9 — Répétitions, plus de 3 Cibles, Bip 0, aucun total",
+      "input": { "mode": "REPETITIONS", "series": "VARIABLE", "targets": [10, 12, 15, "FAILURE"], "pauses": [10, 10, 10, 10], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "4 séries variables, de 10 rép. à l’échec.",
+      "expectedBold": ["4 séries", "10 rép."],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "mix-repetitions-4-bip2",
+      "covers": "AC9, AC4 — Répétitions, plus de 3 Cibles, Bip 2 s (H16)",
+      "input": { "mode": "REPETITIONS", "series": "VARIABLE", "targets": [10, 12, 15, "FAILURE"], "pauses": [10, 10, 10, 10], "bip": 2, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "4 séries variables, de 10 rép. à l’échec, cadencées toutes les 2 s. Durée totale : ≥ 1 min 54 s.",
+      "expectedBold": ["4 séries", "10 rép.", "2 s", "≥ 1 min 54 s"],
+      "expectedTotalSeconds": 114
+    },
+    {
+      "id": "mix-repetitions-4-minimum-not-first",
+      "covers": "AC9 — minimum des Cibles NUMBER, pas la première valeur",
+      "input": { "mode": "REPETITIONS", "series": "VARIABLE", "targets": [12, "FAILURE", 10, 20], "pauses": [10, 10, 10, 10], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "4 séries variables, de 10 rép. à l’échec.",
+      "expectedBold": ["4 séries", "10 rép."],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "failure-duration-uniform-pause",
+      "covers": "AC7 — tout à l'échec, Durée, Régime identiques, Pause 15 s",
+      "input": { "mode": "DURATION", "series": "UNIFORM", "targets": ["FAILURE"], "pauses": [15, 15, 15], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "3 séries menées jusqu’à l’échec, avec 15 s de pause après chaque série.",
+      "expectedBold": ["3 séries", "15 s"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "failure-repetitions-uniform-pause-bip4",
+      "covers": "AC7 — tout à l'échec, Répétitions, Régime identiques, Pause 15 s, Bip 4 s",
+      "input": { "mode": "REPETITIONS", "series": "UNIFORM", "targets": ["FAILURE"], "pauses": [15, 15, 15], "bip": 4, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "3 séries menées jusqu’à l’échec, avec 15 s de pause après chaque série.",
+      "expectedBold": ["3 séries", "15 s"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "failure-duration-uniform-no-pause-bilateral",
+      "covers": "AC7 — tout à l'échec, sans Pause, un côté après l'autre, PC 5 s",
+      "input": { "mode": "DURATION", "series": "UNIFORM", "targets": ["FAILURE"], "pauses": [0, 0, 0], "bip": 4, "side": "RIGHT_LEFT", "order": "BY_SIDE", "pc": 5 },
+      "expectedText": "3 séries menées jusqu’à l’échec, enchaînées sans pause, en faisant d’abord toutes les séries à droite, puis à gauche, avec 5 s de pause au changement de côté.",
+      "expectedBold": ["3 séries", "droite", "gauche", "5 s"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "failure-duration-variable",
+      "covers": "AC7, AC5 — tout à l'échec, Durée, Régime variables, Pauses variables non énumérées",
+      "input": { "mode": "DURATION", "series": "VARIABLE", "targets": ["FAILURE", "FAILURE", "FAILURE"], "pauses": [10, 20, 30], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "3 séries menées jusqu’à l’échec.",
+      "expectedBold": ["3 séries"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "failure-repetitions-variable-bip4",
+      "covers": "AC7 — tout à l'échec, Répétitions, Régime variables, Bip 4 s",
+      "input": { "mode": "REPETITIONS", "series": "VARIABLE", "targets": ["FAILURE", "FAILURE", "FAILURE"], "pauses": [10, 20, 30], "bip": 4, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "3 séries menées jusqu’à l’échec.",
+      "expectedBold": ["3 séries"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "failure-one-series",
+      "covers": "AC7 — tout à l'échec, N = 1",
+      "input": { "mode": "DURATION", "series": "UNIFORM", "targets": ["FAILURE"], "pauses": [0], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "1 série menée jusqu’à l’échec.",
+      "expectedBold": ["1 série"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "n1-normalized-pause",
+      "covers": "AC3, AC10 — N = 1 issu d'un Régime variables, normalisé ; avec Pause : total affiché",
+      "input": { "mode": "DURATION", "series": "VARIABLE", "targets": [90], "pauses": [15], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "1 série de 1 min 30 s, avec 15 s de pause après chaque série. Durée totale : 1 min 45 s.",
+      "expectedBold": ["1 série", "1 min 30 s", "15 s", "1 min 45 s"],
+      "expectedTotalSeconds": 105
+    },
+    {
+      "id": "n1-redundant",
+      "covers": "AC10 — redondance : Durée, N = 1, unilatéral, Pause 0 : total omis ; Bip 4 s sans clause en Durée",
+      "input": { "mode": "DURATION", "series": "UNIFORM", "targets": [90], "pauses": [0], "bip": 4, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "1 série de 1 min 30 s.",
+      "expectedBold": ["1 série", "1 min 30 s"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "n1-bilateral",
+      "covers": "AC6, AC10 — Durée, N = 1, bilatéral : total affiché",
+      "input": { "mode": "DURATION", "series": "UNIFORM", "targets": [90], "pauses": [0], "bip": 0, "side": "RIGHT_LEFT", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "1 série de 1 min 30 s, en faisant le côté droit puis le gauche. Durée totale : 3 min.",
+      "expectedBold": ["1 série", "1 min 30 s", "gauche", "3 min"],
+      "expectedTotalSeconds": 180
+    },
+    {
+      "id": "n1-left-normalized-order",
+      "covers": "AC6 — départ gauche à N = 1 (Ordre normalisé), PC 5 s",
+      "input": { "mode": "DURATION", "series": "UNIFORM", "targets": [90], "pauses": [0], "bip": 0, "side": "LEFT_RIGHT", "order": "BY_SERIES", "pc": 5 },
+      "expectedText": "1 série de 1 min 30 s, en faisant le côté gauche puis le droit, avec 5 s de pause au changement de côté. Durée totale : 3 min 5 s.",
+      "expectedBold": ["1 série", "1 min 30 s", "droit", "5 s", "3 min 5 s"],
+      "expectedTotalSeconds": 185
+    },
+    {
+      "id": "n2-no-pause",
+      "covers": "AC5 — N = 2, Pause 0 : enchaînées sans pause, jamais « 0 s »",
+      "input": { "mode": "DURATION", "series": "UNIFORM", "targets": [45], "pauses": [0, 0], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "2 séries de 45 s, enchaînées sans pause. Durée totale : 1 min 30 s.",
+      "expectedBold": ["2 séries", "45 s", "1 min 30 s"],
+      "expectedTotalSeconds": 90
+    },
+    {
+      "id": "duration-uniform-bip",
+      "covers": "AC4 — Durée, Bip 4 s : aucune clause de cadence, total exact",
+      "input": { "mode": "DURATION", "series": "UNIFORM", "targets": [60], "pauses": [15, 15, 15], "bip": 4, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "3 séries de 1 min, avec 15 s de pause après chaque série. Durée totale : 3 min 45 s.",
+      "expectedBold": ["3 séries", "1 min", "15 s", "3 min 45 s"],
+      "expectedTotalSeconds": 225
+    },
+    {
+      "id": "repetitions-uniform-bip0",
+      "covers": "AC3, AC10 — Répétitions, Bip 0 : aucun total",
+      "input": { "mode": "REPETITIONS", "series": "UNIFORM", "targets": [12], "pauses": [0, 0, 0], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "3 séries de 12 répétitions, enchaînées sans pause.",
+      "expectedBold": ["3 séries", "12 répétitions"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "mix-left-by-side",
+      "covers": "AC6 — départ gauche, un côté après l'autre, PC 5 s, mélange en Durée",
+      "input": { "mode": "DURATION", "series": "VARIABLE", "targets": [30, "FAILURE", 45], "pauses": [10, 10, 10], "bip": 0, "side": "LEFT_RIGHT", "order": "BY_SIDE", "pc": 5 },
+      "expectedText": "3 séries de durée variable (30 s, jusqu’à l’échec puis 45 s), en faisant d’abord toutes les séries à gauche, puis à droite, avec 5 s de pause au changement de côté. Durée totale : ≥ 3 min 35 s.",
+      "expectedBold": ["3 séries", "30 s", "45 s", "gauche", "droite", "5 s", "≥ 3 min 35 s"],
+      "expectedTotalSeconds": 215
+    },
+    {
+      "id": "mix-left-by-series",
+      "covers": "AC6 — départ gauche, les deux côtés à chaque série, PC 0, mélange en Répétitions avec Bip",
+      "input": { "mode": "REPETITIONS", "series": "VARIABLE", "targets": [10, "FAILURE", 12], "pauses": [10, 10, 10], "bip": 2, "side": "LEFT_RIGHT", "order": "BY_SERIES", "pc": 0 },
+      "expectedText": "3 séries de répétitions variables (10, jusqu’à l’échec puis 12), cadencées toutes les 2 s, en alternant le côté gauche puis le droit à chaque série. Durée totale : ≥ 1 min 58 s.",
+      "expectedBold": ["3 séries", "10", "12", "2 s", "droit", "≥ 1 min 58 s"],
+      "expectedTotalSeconds": 118
+    },
+    {
+      "id": "segments-identical-duration",
+      "covers": "AC1, AC2 — deux valeurs identiques à des positions différentes, segment « jusqu’à l’échec » non gras",
+      "input": { "mode": "DURATION", "series": "VARIABLE", "targets": [30, "FAILURE", 30], "pauses": [10, 10, 10], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "3 séries de durée variable (30 s, jusqu’à l’échec puis 30 s). Durée totale : ≥ 1 min 30 s.",
+      "expectedBold": ["3 séries", "30 s", "30 s", "≥ 1 min 30 s"],
+      "expectedTotalSeconds": 90
+    },
+    {
+      "id": "segments-identical-repetitions",
+      "covers": "AC1, AC2 — valeurs nues identiques en Répétitions, chacune en gras",
+      "input": { "mode": "REPETITIONS", "series": "VARIABLE", "targets": [10, 10, "FAILURE"], "pauses": [10, 10, 10], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "3 séries de répétitions variables (10, 10 puis jusqu’à l’échec).",
+      "expectedBold": ["3 séries", "10", "10"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "all-equal-six",
+      "covers": "AC9 — plus de 3 Cibles toutes NUMBER et égales : gabarit actuel conservé (H17)",
+      "input": { "mode": "DURATION", "series": "VARIABLE", "targets": [30, 30, 30, 30, 30, 30], "pauses": [0, 0, 0, 0, 0, 0], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "6 séries variables, de 30 s à 30 s. Durée totale : 3 min.",
+      "expectedBold": ["6 séries", "30 s", "30 s", "3 min"],
+      "expectedTotalSeconds": 180
+    },
+    {
+      "id": "hour-or-more",
+      "covers": "AC14 — total d'une heure ou plus, minutes sans heures (H8)",
+      "input": { "mode": "DURATION", "series": "UNIFORM", "targets": [55], "pauses": [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "61 séries de 55 s, avec 5 s de pause après chaque série. Durée totale : 61 min.",
+      "expectedBold": ["61 séries", "55 s", "5 s", "61 min"],
+      "expectedTotalSeconds": 3660
+    },
+    {
+      "id": "snapshot-v1-duration-variable",
+      "covers": "AC1, AC14 — ancien Exercice relu d'un Instantané v1 : grammaire courante",
+      "snapshotV1": { "version": 1, "mode": "DURATION", "series": { "kind": "VARIABLE", "rows": [{ "target": 30, "pauseSeconds": 10 }, { "target": 45, "pauseSeconds": 10 }] }, "sideMode": "UNILATERAL", "sideOrder": "BY_SIDE", "sideRecoverySeconds": 0, "cadenceBeepIntervalSeconds": 0, "countdownSeconds": 10, "endSeconds": 5 },
+      "expectedText": "2 séries de durée variable (30 s puis 45 s). Durée totale : 1 min 35 s.",
+      "expectedBold": ["2 séries", "30 s", "45 s", "1 min 35 s"],
+      "expectedTotalSeconds": 95
+    },
+    {
+      "id": "snapshot-v1-repetitions-without-beep",
+      "covers": "AC14 — Instantané v1 sans clé Bip, relu non cadencé : aucun total",
+      "snapshotV1": { "version": 1, "mode": "REPETITIONS", "series": { "kind": "UNIFORM", "count": 3, "target": 12, "pauseSeconds": 10 }, "sideMode": "UNILATERAL", "sideOrder": "BY_SIDE", "sideRecoverySeconds": 0, "countdownSeconds": 0, "endSeconds": 0 },
+      "expectedText": "3 séries de 12 répétitions, avec 10 s de pause après chaque série.",
+      "expectedBold": ["3 séries", "12 répétitions", "10 s"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "failure-duration-uniform-pause-bip4",
+      "covers": "AC7 — tout à l'échec, Durée, Régime identiques, Pause 15 s, Bip 4 s",
+      "input": {
+        "bip": 4,
+        "side": "UNILATERAL",
+        "order": "BY_SIDE",
+        "pc": 0,
+        "mode": "DURATION",
+        "series": "UNIFORM",
+        "targets": ["FAILURE"],
+        "pauses": [15, 15, 15]
+      },
+      "expectedText": "3 séries menées jusqu’à l’échec, avec 15 s de pause après chaque série.",
+      "expectedBold": ["3 séries", "15 s"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "failure-repetitions-uniform-pause-bip0",
+      "covers": "AC7 — tout à l'échec, Répétitions, Régime identiques, Pause 15 s, Bip 0",
+      "input": {
+        "bip": 0,
+        "side": "UNILATERAL",
+        "order": "BY_SIDE",
+        "pc": 0,
+        "mode": "REPETITIONS",
+        "series": "UNIFORM",
+        "targets": ["FAILURE"],
+        "pauses": [15, 15, 15]
+      },
+      "expectedText": "3 séries menées jusqu’à l’échec, avec 15 s de pause après chaque série.",
+      "expectedBold": ["3 séries", "15 s"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "failure-repetitions-uniform-no-pause-bip0",
+      "covers": "AC7 — tout à l'échec, Répétitions, Régime identiques, sans Pause, Bip 0",
+      "input": {
+        "bip": 0,
+        "side": "UNILATERAL",
+        "order": "BY_SIDE",
+        "pc": 0,
+        "mode": "REPETITIONS",
+        "series": "UNIFORM",
+        "targets": ["FAILURE"],
+        "pauses": [0, 0, 0]
+      },
+      "expectedText": "3 séries menées jusqu’à l’échec, enchaînées sans pause.",
+      "expectedBold": ["3 séries"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "failure-repetitions-uniform-no-pause-bip4",
+      "covers": "AC7 — tout à l'échec, Répétitions, Régime identiques, sans Pause, Bip 4 s",
+      "input": {
+        "bip": 4,
+        "side": "UNILATERAL",
+        "order": "BY_SIDE",
+        "pc": 0,
+        "mode": "REPETITIONS",
+        "series": "UNIFORM",
+        "targets": ["FAILURE"],
+        "pauses": [0, 0, 0]
+      },
+      "expectedText": "3 séries menées jusqu’à l’échec, enchaînées sans pause.",
+      "expectedBold": ["3 séries"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "failure-duration-variable-bip4",
+      "covers": "AC7 — tout à l'échec, Durée, Régime variables, Pauses positives, Bip 4 s",
+      "input": {
+        "bip": 4,
+        "side": "UNILATERAL",
+        "order": "BY_SIDE",
+        "pc": 0,
+        "mode": "DURATION",
+        "series": "VARIABLE",
+        "targets": ["FAILURE", "FAILURE", "FAILURE"],
+        "pauses": [10, 20, 30]
+      },
+      "expectedText": "3 séries menées jusqu’à l’échec.",
+      "expectedBold": ["3 séries"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "failure-duration-variable-no-pause-bip0",
+      "covers": "AC7 — tout à l'échec, Durée, Régime variables, sans Pause, Bip 0",
+      "input": {
+        "bip": 0,
+        "side": "UNILATERAL",
+        "order": "BY_SIDE",
+        "pc": 0,
+        "mode": "DURATION",
+        "series": "VARIABLE",
+        "targets": ["FAILURE", "FAILURE", "FAILURE"],
+        "pauses": [0, 0, 0]
+      },
+      "expectedText": "3 séries menées jusqu’à l’échec.",
+      "expectedBold": ["3 séries"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "failure-duration-variable-no-pause-bip4",
+      "covers": "AC7 — tout à l'échec, Durée, Régime variables, sans Pause, Bip 4 s",
+      "input": {
+        "bip": 4,
+        "side": "UNILATERAL",
+        "order": "BY_SIDE",
+        "pc": 0,
+        "mode": "DURATION",
+        "series": "VARIABLE",
+        "targets": ["FAILURE", "FAILURE", "FAILURE"],
+        "pauses": [0, 0, 0]
+      },
+      "expectedText": "3 séries menées jusqu’à l’échec.",
+      "expectedBold": ["3 séries"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "failure-repetitions-variable-bip0",
+      "covers": "AC7 — tout à l'échec, Répétitions, Régime variables, Pauses positives, Bip 0",
+      "input": {
+        "bip": 0,
+        "side": "UNILATERAL",
+        "order": "BY_SIDE",
+        "pc": 0,
+        "mode": "REPETITIONS",
+        "series": "VARIABLE",
+        "targets": ["FAILURE", "FAILURE", "FAILURE"],
+        "pauses": [10, 20, 30]
+      },
+      "expectedText": "3 séries menées jusqu’à l’échec.",
+      "expectedBold": ["3 séries"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "failure-repetitions-variable-no-pause-bip0",
+      "covers": "AC7 — tout à l'échec, Répétitions, Régime variables, sans Pause, Bip 0",
+      "input": {
+        "bip": 0,
+        "side": "UNILATERAL",
+        "order": "BY_SIDE",
+        "pc": 0,
+        "mode": "REPETITIONS",
+        "series": "VARIABLE",
+        "targets": ["FAILURE", "FAILURE", "FAILURE"],
+        "pauses": [0, 0, 0]
+      },
+      "expectedText": "3 séries menées jusqu’à l’échec.",
+      "expectedBold": ["3 séries"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "failure-repetitions-variable-no-pause-bip4",
+      "covers": "AC7 — tout à l'échec, Répétitions, Régime variables, sans Pause, Bip 4 s",
+      "input": {
+        "bip": 4,
+        "side": "UNILATERAL",
+        "order": "BY_SIDE",
+        "pc": 0,
+        "mode": "REPETITIONS",
+        "series": "VARIABLE",
+        "targets": ["FAILURE", "FAILURE", "FAILURE"],
+        "pauses": [0, 0, 0]
+      },
+      "expectedText": "3 séries menées jusqu’à l’échec.",
+      "expectedBold": ["3 séries"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "failure-repetitions-one-series-pause",
+      "covers": "AC7 — tout à l'échec, Répétitions, N = 1 avec Pause",
+      "input": {
+        "bip": 0,
+        "side": "UNILATERAL",
+        "order": "BY_SIDE",
+        "pc": 0,
+        "mode": "REPETITIONS",
+        "series": "UNIFORM",
+        "targets": ["FAILURE"],
+        "pauses": [15]
+      },
+      "expectedText": "1 série menée jusqu’à l’échec, avec 15 s de pause après chaque série.",
+      "expectedBold": ["1 série", "15 s"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "n1-repetitions-pause-bip4",
+      "covers": "AC10 — Répétitions, N = 1 avec Pause, Bip 4 s : total ≈",
+      "input": {
+        "bip": 4,
+        "side": "UNILATERAL",
+        "order": "BY_SIDE",
+        "pc": 0,
+        "mode": "REPETITIONS",
+        "series": "UNIFORM",
+        "targets": [12],
+        "pauses": [15]
+      },
+      "expectedText": "1 série de 12 répétitions cadencées toutes les 4 s, avec 15 s de pause après chaque série. Durée totale : ≈ 1 min 3 s.",
+      "expectedBold": ["1 série", "12 répétitions", "4 s", "15 s", "≈ 1 min 3 s"],
+      "expectedTotalSeconds": 63
+    },
+    {
+      "id": "n1-repetitions-no-pause-bip0",
+      "covers": "AC10 — Répétitions, N = 1 sans Pause, Bip 0 : aucun total",
+      "input": {
+        "bip": 0,
+        "side": "UNILATERAL",
+        "order": "BY_SIDE",
+        "pc": 0,
+        "mode": "REPETITIONS",
+        "series": "UNIFORM",
+        "targets": [12],
+        "pauses": [0]
+      },
+      "expectedText": "1 série de 12 répétitions.",
+      "expectedBold": ["1 série", "12 répétitions"],
+      "expectedTotalSeconds": null
+    },
+    {
+      "id": "mix-duration-two-failures",
+      "covers": "AC8, Q16 — deux Cibles à l'échec, chaque Cible décrite dans l'ordre",
+      "input": {
+        "bip": 0,
+        "side": "UNILATERAL",
+        "order": "BY_SIDE",
+        "pc": 0,
+        "mode": "DURATION",
+        "series": "VARIABLE",
+        "targets": ["FAILURE", "FAILURE", 30],
+        "pauses": [10, 10, 10]
+      },
+      "expectedText": "3 séries de durée variable (jusqu’à l’échec, jusqu’à l’échec puis 30 s). Durée totale : ≥ 1 min.",
+      "expectedBold": ["3 séries", "30 s", "≥ 1 min"],
+      "expectedTotalSeconds": 60
+    },
+    {
+      "id": "failure-duration-uniform-no-pause-bip0",
+      "covers": "AC7 — tout à l'échec, Durée, Régime identiques, sans Pause, Bip 0",
+      "input": { "mode": "DURATION", "series": "UNIFORM", "targets": ["FAILURE"], "pauses": [0, 0, 0], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0 },
+      "expectedText": "3 séries menées jusqu’à l’échec, enchaînées sans pause.",
+      "expectedBold": ["3 séries"],
+      "expectedTotalSeconds": null
+    }
+  ]
+}

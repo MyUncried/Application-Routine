@@ -9,6 +9,9 @@ const sources = {
   // même tracé que l'ancien `control-back.svg` (`2884:4426`, supprimé de
   // Figma), trait `#141414` au lieu de `#1F2023`.
   "control-back": require("../../../assets/icons/icon-retour.svg"),
+  // PRE-4 story 4.2 (FR-02-03, AC4) : export exact de `icon/fermer` (`6959:15825`,
+  // déposé le 2026-10-06), ✕ de l'en-tête de l'Éditeur d'Exercice (`Action / Fermer`).
+  "control-close": require("../../../assets/icons/icon-fermer.svg"),
   "control-chevron-down": require("../../../assets/icons/control-chevron-down.svg"),
   "control-chevron-up": require("../../../assets/icons/control-chevron-up.svg"),
   "navigation-sessions-active": require("../../../assets/icons/navigation-sessions.svg"),
@@ -29,6 +32,13 @@ const sources = {
   // vérifiée contre l’extraction figée du 08/10 ; preuve
   // `docs/preparation/PRE-3/planification/execution/preuves/x2-icone-categorie/`.
   "icon-categorie": require("../../../assets/icons/icon-categorie.svg"),
+  // PRE-4 story 4.3 (FR-02-05 ; ch. 13 l. 588) : états « plein » de la planche
+  // `7245:13718` (lecture seule MCP, 2026-10-18) — même tracé que les maîtres
+  // contour (`6296:10530`, `6322:10874`, `6322:10877`), affiché pendant
+  // l'ouverture de la feuille ; le contour reste le maître déjà accepté.
+  "icon-categorie-plein": require("../../../assets/icons/icon-categorie-plein.svg"),
+  "body-zone-homme-plein": require("../../../assets/icons/body-zone-homme-plein.svg"),
+  "body-zone-femme-plein": require("../../../assets/icons/body-zone-femme-plein.svg"),
   "wheel-action-cancel": require("../../../assets/icons/wheel-action-cancel.svg"),
   "wheel-action-validate": require("../../../assets/icons/wheel-action-validate.svg"),
   "select-field-chevron": require("../../../assets/icons/select-field-chevron.svg"),
@@ -72,6 +82,8 @@ const sizes = {
   // fichier de cet écran n'est modifié, seul le rendu de l'icône change,
   // effet inhérent à la correction d'un token DSF réellement partagé.
   "control-back": [24, 24],
+  // Cadre 24 × 24 du `viewBox` exact ; cercle 38 et cible 48 portés par `dimensions.backAction`.
+  "control-close": [24, 24],
   "control-chevron-down": [24, 24],
   "control-chevron-up": [24, 24],
   "navigation-sessions-active": [30, 20],
@@ -123,6 +135,12 @@ const sizes = {
   // entrée pour cette icône.
   "icon-tour": [18, 18],
   "icon-categorie": [24, 24],
+  // Boîtes intrinsèques des exports de la planche (22 et 26) : le tracé y est
+  // celui du maître à l'échelle 22/24 et 26/24 — à taille d'affichage égale à
+  // celle du contour, le glyphe plein se superpose exactement (story 4.3).
+  "icon-categorie-plein": [22, 22],
+  "body-zone-homme-plein": [26, 26],
+  "body-zone-femme-plein": [26, 26],
   // REWORK07B (`[ChatGPT] PLAN_APPROVED — REWORK07B — contrôles canoniques
   // + structure Tour`, 2026-09-04) : actifs SVG canoniques `wheel-action-
   // cancel.svg`/`wheel-action-validate.svg` (`3089:81`/`3089:83`),

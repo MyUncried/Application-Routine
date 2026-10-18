@@ -115,3 +115,78 @@ describe("canonical T01 visual assets", () => {
     }
   });
 });
+
+/**
+ * PRE-4 story 4.3 (FR-02-05 ; planche `7245:13718`) : chaque état plein est le même
+ * tracé que son maître contour (« un changement de forme au basculement se voit comme
+ * un clignotement »). Silhouettes : mêmes commandes et mêmes sommets, à l'échelle 26/24.
+ * Catégorie : trois rectangles arrondis et trois traits du maître (24) retrouvés à
+ * l'échelle 22/24 — rectangles pleins, traits épaissis à l'épaisseur du trait du maître.
+ */
+describe("PRE-4 story 4.3 — icônes pleines superposables aux contours", () => {
+  const pathData = (file: string) =>
+    [...readFileSync(path.join(iconDirectory, file), "utf8").matchAll(/ d="([^"]+)"/g)].map((match) => match[1]!).join(" ");
+  const numbers = (data: string) => (data.match(/-?\d*\.?\d+/g) ?? []).map(Number);
+
+  it("PRE4-4.3/AC2 — silhouettes homme et femme : mêmes commandes, chaque sommet à moins de 0,01 du maître × 26/24", () => {
+    for (const silhouette of ["homme", "femme"]) {
+      const contour = pathData(`body-zone-${silhouette}.svg`);
+      const filled = pathData(`body-zone-${silhouette}-plein.svg`);
+      expect(filled.replace(/[^A-Za-z]/g, "")).toBe(contour.replace(/[^A-Za-z]/g, ""));
+      const a = numbers(contour);
+      const b = numbers(filled);
+      expect(b).toHaveLength(a.length);
+      a.forEach((value, index) => expect(Math.abs((value * 26) / 24 - b[index]!)).toBeLessThan(0.01));
+    }
+  });
+
+  it("PRE4-4.3/AC2 — Catégorie : rectangles et traits du maître retrouvés à l'échelle 22/24 dans l'état plein", () => {
+    const k = 22 / 24;
+    const filled = pathData("icon-categorie-plein.svg");
+    const subpaths = filled.split(/Z/).filter((part) => part.trim() !== "");
+    // Lecture des commandes absolues M, L, H, V, C de l'export (points et points de contrôle).
+    const boxes = subpaths.map((part) => {
+      const xs: number[] = [];
+      const ys: number[] = [];
+      let x = 0;
+      let y = 0;
+      for (const [, command, args] of part.matchAll(/([MLHVC])([^MLHVC]*)/g)) {
+        const values = numbers(args!);
+        if (command === "H") values.forEach((value) => xs.push((x = value)));
+        else if (command === "V") values.forEach((value) => ys.push((y = value)));
+        else
+          for (let index = 0; index + 1 < values.length; index += 2) {
+            xs.push((x = values[index]!));
+            ys.push((y = values[index + 1]!));
+          }
+        xs.push(x);
+        ys.push(y);
+      }
+      return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)].map((value) => Number((value / k).toFixed(2)));
+    });
+    const half = 1.125 / 2;
+    // Maître `icon/categorie` (24) : rectangles (5..19 × 2,5..7,5), (11..19 × 10,5..14,5), (11..19 × 18..22) ;
+    // traits x = 7,5 de 7,5 à 20, y = 12,5 et y = 20 de 7,5 à 11, trait 1,125.
+    expect(boxes).toEqual([
+      [5, 2.5, 19, 7.5],
+      [11, 10.5, 19, 14.5],
+      [11, 18, 19, 22],
+      [7.5 - half, 7.5 - half, 7.5 + half, 20 + half],
+      [7.5 - half, 12.5 - half, 11 + half, 12.5 + half],
+      [7.5 - half, 20 - half, 11 + half, 20 + half],
+    ].map((box) => box.map((value) => Number(value.toFixed(2)))));
+    const master = readFileSync(path.join(iconDirectory, "icon-categorie.svg"), "utf8");
+    expect(master).toContain("M17.2 2.5H6.8");
+    expect(master).toContain("M7.5 7.5V20H11M7.5 12.5H11");
+    expect(master).toContain('stroke-width="1.125"');
+  });
+
+  it("PRE4-4.3/AC2 — exports pleins sans attributs de rendu étrangers aux autres icônes, identifiants lisibles", () => {
+    for (const file of ["icon-categorie-plein.svg", "body-zone-homme-plein.svg", "body-zone-femme-plein.svg"]) {
+      const svg = readFileSync(path.join(iconDirectory, file), "utf8");
+      expect(svg).not.toMatch(/preserveAspectRatio|overflow=|style=/);
+      expect(svg).not.toMatch(/&#195;/);
+      expect(svg).toContain('fill="#0508E5"');
+    }
+  });
+});

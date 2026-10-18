@@ -6,6 +6,7 @@ import type {
   CreateActivityDefinitionInput,
 } from "@/domain/activities";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
+import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { ActivityMediaImportService } from "@/domain/media/ActivityMediaImportService";
 import { MediaDraftLeases } from "@/domain/media/MediaDraftLeases";
 
@@ -14,11 +15,7 @@ function makeDefinition(overrides: Partial<ActivityDefinition> = {}): ActivityDe
     id: "def-1",
     name: "Squat",
     description: null,
-    executionMode: "DURATION",
-    durationSeconds: 30,
-    repetitionCount: null,
-    seriesCount: 3,
-    pauseSeconds: 10,
+    executionParameters: durationParameters(30, 3, 10),
     categoryId: "cardio",
     bodyZoneIds: ["cuisses"],
     sideMode: "UNILATERAL",
@@ -33,14 +30,9 @@ function validInput(): CreateActivityDefinitionInput {
   return {
     name: "Squat",
     description: null,
-    executionMode: "DURATION",
-    durationSeconds: 30,
-    repetitionCount: null,
-    seriesCount: 3,
-    pauseSeconds: 10,
     category: { kind: "EXISTING", categoryId: "cardio" },
     bodyZoneIds: ["cuisses"],
-    sideRecoverySeconds: 0,
+    executionParameters: durationParameters(30, 3, 10),
   };
 }
 

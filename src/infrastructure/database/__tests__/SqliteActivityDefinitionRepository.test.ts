@@ -13,7 +13,21 @@ import {
   validateActivityDefinitionInput,
   type CreateActivityDefinitionInput,
 } from "@/domain/activities/ActivityDefinition";
-import { ExecutionParametersDataError, type ExecutionParameters } from "@/domain/activities/ExecutionParameters";
+import {
+  EXECUTION_PARAMETERS_VERSION,
+  ExecutionParametersDataError,
+  ExecutionParametersValidationError,
+  numberTarget,
+  unsetTarget,
+  type ExecutionParameters,
+} from "@/domain/activities/ExecutionParameters";
+import {
+  allFailureParameters,
+  durationParameters,
+  toTarget,
+  uniformParameters,
+  variableParameters,
+} from "@/domain/activities/testing/executionParametersFixtures";
 import type { MediaAsset } from "@/domain/media/MediaAsset";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 
@@ -47,14 +61,9 @@ describe("SqliteActivityDefinitionRepository", () => {
     return {
       name: "Squat",
       description: "Descente lente",
-      executionMode: "DURATION" as const,
-      durationSeconds: 30,
-      repetitionCount: null,
-      seriesCount: 3,
-      pauseSeconds: 10,
       category: { kind: "EXISTING" as const, categoryId: "cardio" },
-      sideRecoverySeconds: 5,
       bodyZoneIds: ["cuisses", "genoux"],
+      executionParameters: durationParameters(30, 3, 10, { sideRecoverySeconds: 5 }),
     };
   }
 
@@ -373,14 +382,14 @@ describe("SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL)
 
   function canonical(overrides: Partial<ExecutionParameters> = {}): ExecutionParameters {
     return {
-      version: 1,
+      version: EXECUTION_PARAMETERS_VERSION,
       mode: "DURATION",
       series: {
         kind: "VARIABLE",
         rows: [
-          { target: 30, pauseSeconds: 10 },
-          { target: 45, pauseSeconds: 20 },
-          { target: 60, pauseSeconds: 30 },
+          { target: numberTarget(30), pauseSeconds: 10 },
+          { target: numberTarget(45), pauseSeconds: 20 },
+          { target: numberTarget(60), pauseSeconds: 30 },
         ],
       },
       sideMode: "RIGHT_LEFT",
@@ -417,14 +426,8 @@ describe("SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL)
     return {
       name: "Fentes",
       description: null,
-      executionMode: parameters.mode,
-      durationSeconds: null,
-      repetitionCount: null,
-      seriesCount: 1,
-      pauseSeconds: 0,
       category: { kind: "EXISTING", categoryId: "cardio" },
       bodyZoneIds: ["cuisses"],
-      sideRecoverySeconds: 0,
       executionParameters: parameters,
       ...overrides,
     };
@@ -488,11 +491,6 @@ describe("SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL)
           type: "EXERCISE",
           structuralPosition: "IN_TOUR",
           name: copy.name,
-          executionMode: copy.executionMode,
-          durationSeconds: copy.durationSeconds,
-          repetitionCount: copy.repetitionCount,
-          seriesCount: copy.seriesCount,
-          pauseSeconds: copy.pauseSeconds,
           postActivityRecoverySeconds: 0,
           bodyZoneIds: copy.bodyZoneIds,
           executionParameters: canonical({ cadenceBeepIntervalSeconds: 1 }),
@@ -520,19 +518,19 @@ describe("SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL)
   it("P3-05/equal-variable, P3-06/commit-hidden, P3-08/restoration-N1 — l'état validé est exactement relu", async () => {
     const repository = new SqliteActivityDefinitionRepository(database, ids("def"));
     const equal = canonical({
-      series: { kind: "VARIABLE", rows: [1, 2, 3].map(() => ({ target: 30, pauseSeconds: 10 })) },
+      series: { kind: "VARIABLE", rows: [1, 2, 3].map(() => ({ target: numberTarget(30), pauseSeconds: 10 })) },
     });
     expect((await repository.findById((await save(repository, input(equal))).id))?.executionParameters?.series).toEqual(equal.series);
 
     const shrunk = canonical({
-      series: { kind: "VARIABLE", rows: [{ target: 10, pauseSeconds: 1 }, { target: 20, pauseSeconds: 2 }] },
+      series: { kind: "VARIABLE", rows: [{ target: numberTarget(10), pauseSeconds: 1 }, { target: numberTarget(20), pauseSeconds: 2 }] },
     });
     const reread = await repository.findById((await save(repository, input(shrunk))).id);
     expect(reread?.executionParameters?.series).toEqual(shrunk.series);
 
-    const n1 = canonical({ series: { kind: "UNIFORM", count: 1, target: 90, pauseSeconds: 15 }, sideOrder: "BY_SIDE" });
+    const n1 = canonical({ series: { kind: "UNIFORM", count: 1, target: numberTarget(90), pauseSeconds: 15 }, sideOrder: "BY_SIDE" });
     const single = await repository.findById((await save(repository, input(n1))).id);
-    expect(single?.executionParameters?.series).toEqual({ kind: "UNIFORM", count: 1, target: 90, pauseSeconds: 15 });
+    expect(single?.executionParameters?.series).toEqual({ kind: "UNIFORM", count: 1, target: numberTarget(90), pauseSeconds: 15 });
     expect(single?.executionParameters?.sideOrder).toBe("BY_SIDE");
   });
 
@@ -548,17 +546,22 @@ describe("SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL)
     );
   });
 
-  it("P3-10/legacy-neutral-proposal et P3-17/corrupt-version — ancien objet sans JSON : neutre 0 sans Profil ; JSON corrompu : erreur explicite", async () => {
-    await database.runAsync(
-      "UPDATE profiles SET exercise_countdown_seconds_default = 60, exercise_end_seconds_default = 60",
-    );
+  /**
+   * PRE-4 (story 1.1, AD-3) : après `migration010`, toute définition porte un
+   * JSON v2 ; `readV2` est le seul lecteur. Une ligne sans JSON, en v1 ou de
+   * version inconnue n'est plus adaptée depuis ses scalaires : erreur de
+   * donnée explicite (la conversion des anciennes lignes est celle de
+   * `migration010`, testée dans `migrateDatabase`/`migration010`).
+   */
+  it("P3-17/corrupt-version (PRE-4 AD-3) — sans JSON, v1 ou version inconnue : erreur de donnée explicite, jamais un repli scalaire", async () => {
     await database.runAsync(
       `INSERT INTO activity_definitions (id, name, description, execution_mode, duration_seconds, repetition_count,
         series_count, pause_seconds, side_mode, created_at, updated_at, category_id, side_recovery_seconds)
        VALUES ('legacy', 'Ancien', NULL, 'REPETITIONS', NULL, 12, 3, 45, 'LEFT_RIGHT', 'now', 'now', 'cardio', 9)`,
     );
     const repository = new SqliteActivityDefinitionRepository(database, ids("def"));
-    expect((await repository.findById("legacy"))?.executionParameters).toEqual({
+    await expect(repository.findById("legacy")).rejects.toThrow(ExecutionParametersDataError);
+    const v1 = JSON.stringify({
       version: 1,
       mode: "REPETITIONS",
       series: { kind: "UNIFORM", count: 3, target: 12, pauseSeconds: 45 },
@@ -569,21 +572,24 @@ describe("SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL)
       countdownSeconds: 0,
       endSeconds: 0,
     });
-    await database.runAsync("UPDATE activity_definitions SET execution_parameters = '{\"version\":7}' WHERE id = 'legacy'");
-    await expect(repository.findById("legacy")).rejects.toThrow(ExecutionParametersDataError);
+    for (const corrupt of [v1, '{"version":7}']) {
+      await database.runAsync("UPDATE activity_definitions SET execution_parameters = ? WHERE id = 'legacy'", [corrupt]);
+      await expect(repository.findById("legacy")).rejects.toThrow(ExecutionParametersDataError);
+      await expect(repository.listAll()).rejects.toThrow(ExecutionParametersDataError);
+    }
   });
 
-  it("P3-11/all-modes-bip — le même bip valide est relu dans les trois modes", async () => {
+  it("P3-11/all-modes-bip — le même bip valide est relu en Durée, Répétitions et Répétitions tout à l'échec", async () => {
     const repository = new SqliteActivityDefinitionRepository(database, ids("def"));
     for (const [mode, target] of [
       ["DURATION", 30],
       ["REPETITIONS", 12],
-      ["TO_FAILURE", null],
+      ["REPETITIONS", "FAILURE"],
     ] as const) {
       for (const beep of [0, 1, 10]) {
         const parameters = canonical({
           mode,
-          series: { kind: "UNIFORM", count: 2, target, pauseSeconds: 5 },
+          series: { kind: "UNIFORM", count: 2, target: toTarget(target), pauseSeconds: 5 },
           cadenceBeepIntervalSeconds: beep,
         });
         const created = await save(repository, input(parameters));
@@ -636,9 +642,9 @@ describe("SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL)
       await migrateDatabase(fileDatabase);
       const repository = new SqliteActivityDefinitionRepository(fileDatabase, ids("def"));
       const extremes = [
-        canonical({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 99, target: 100, pauseSeconds: 300 } }),
-        canonical({ mode: "TO_FAILURE", series: { kind: "VARIABLE", rows: [{ target: null, pauseSeconds: 0 }, { target: null, pauseSeconds: 300 }] } }),
-        canonical({ mode: "DURATION", series: { kind: "UNIFORM", count: 1, target: 5999, pauseSeconds: 0 }, sideOrder: "BY_SIDE" }),
+        canonical({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 99, target: numberTarget(100), pauseSeconds: 300 } }),
+        canonical({ mode: "REPETITIONS", series: { kind: "VARIABLE", rows: [{ target: toTarget("FAILURE"), pauseSeconds: 0 }, { target: toTarget("FAILURE"), pauseSeconds: 300 }] } }),
+        canonical({ mode: "DURATION", series: { kind: "UNIFORM", count: 1, target: numberTarget(5999), pauseSeconds: 0 }, sideOrder: "BY_SIDE" }),
       ];
       const media = [
         { assetId: "p1", asset: photo("p1") },
@@ -669,25 +675,224 @@ describe("SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL)
     }
   });
 
-  it("un ancien appelant sans médias ni paramètres canoniques ne perd ni les liens ni le JSON existant", async () => {
+  it("un appelant sans médias ne perd pas les liens existants ; paramètres relus tels qu'écrits", async () => {
     const repository = new SqliteActivityDefinitionRepository(database, ids("def"));
     const created = await save(repository, input(canonical(), { media: [{ assetId: "p1", asset: photo("p1") }] }));
-    const legacyCaller = {
+    const withoutMedia = {
       name: "Renommé",
       description: null,
-      executionMode: "DURATION" as const,
-      durationSeconds: 99,
-      repetitionCount: null,
-      seriesCount: 9,
-      pauseSeconds: 9,
       category: { kind: "EXISTING" as const, categoryId: "cardio" },
       bodyZoneIds: ["cuisses"],
-      sideRecoverySeconds: 0,
+      executionParameters: canonical(),
     };
-    const updated = await repository.update(created.id, legacyCaller);
+    const updated = await repository.update(created.id, withoutMedia);
     expect(updated?.name).toBe("Renommé");
     expect(updated?.executionParameters).toEqual(canonical());
-    expect(updated?.seriesCount).toBe(3);
     expect(updated?.media?.map((item) => item.assetId)).toEqual(["p1"]);
+  });
+});
+
+/**
+ * PRE-4 (story 1.1) — format v2, projection scalaire unique et aller-retour
+ * des définitions sur SQLite RÉELLE (AD-3, AD-10, AD-13).
+ */
+describe("SqliteActivityDefinitionRepository — PRE-4 story 1.1 (NodeSqliteDatabase REAL)", () => {
+  let database: NodeSqliteDatabase;
+  let sequence = 0;
+  const ids = (prefix: string) => () => `${prefix}-${++sequence}`;
+
+  beforeEach(async () => {
+    database = NodeSqliteDatabase.openInMemory();
+    await migrateDatabase(database);
+  });
+
+  afterEach(() => {
+    database.close();
+  });
+
+  function definitionInput(parameters: ExecutionParameters, overrides: Partial<CreateActivityDefinitionInput> = {}): CreateActivityDefinitionInput {
+    return {
+      name: "Gainage",
+      description: "Dos plat",
+      category: { kind: "EXISTING", categoryId: "cardio" },
+      bodyZoneIds: ["dos", "cuisses"],
+      executionParameters: parameters,
+      ...overrides,
+    };
+  }
+
+  async function scalarRow(id: string) {
+    return database.getFirstAsync<Record<string, unknown>>(
+      `SELECT execution_mode, duration_seconds, repetition_count, series_count, pause_seconds, execution_parameters
+       FROM activity_definitions WHERE id = ?`,
+      [id],
+    );
+  }
+
+  async function dump() {
+    const result: Record<string, unknown[]> = {};
+    for (const table of ["activity_definitions", "activity_definition_body_zones", "activity_media", "media_assets", "categories"]) {
+      result[table] = await database.getAllAsync(`SELECT * FROM ${table} ORDER BY rowid`);
+    }
+    return result;
+  }
+
+  function asset(id: string): MediaAsset {
+    return {
+      id,
+      uri: `kodjo-media/${id}.jpg`,
+      createdAt: "2026-10-16T10:00:00.000Z",
+      kind: "PHOTO",
+      mimeType: "image/jpeg",
+      fileName: null,
+      sizeBytes: 10,
+      durationMs: null,
+      width: 1,
+      height: 1,
+    };
+  }
+
+  it("PRE4-1.1/AC16 — projection unique : première Cible FAILURE → cible scalaire NULL (jamais la suivante) ; Répétitions 12 × 3 projetées ; paramètres relus typés", async () => {
+    const repository = new SqliteActivityDefinitionRepository(database, ids("def"));
+    const mixed = variableParameters({ mode: "DURATION", rows: [["FAILURE", 10], [30, 10]] });
+    const created = await repository.create(definitionInput(mixed));
+    const row = await scalarRow(created.id);
+    expect(row).toMatchObject({
+      execution_mode: "DURATION",
+      duration_seconds: null,
+      repetition_count: null,
+      series_count: 2,
+      pause_seconds: 10,
+    });
+    expect(JSON.parse(row!.execution_parameters as string).version).toBe(2);
+
+    const reps = await repository.create(definitionInput(uniformParameters({ mode: "REPETITIONS", count: 3, target: 12 })));
+    expect(await scalarRow(reps.id)).toMatchObject({
+      execution_mode: "REPETITIONS",
+      duration_seconds: null,
+      repetition_count: 12,
+      series_count: 3,
+    });
+
+    // Paramètres analysés (type du domaine), jamais la chaîne JSON ni les scalaires.
+    const reread = await repository.findById(created.id);
+    expect(reread?.executionParameters).toEqual(mixed);
+    for (const scalar of ["executionMode", "durationSeconds", "repetitionCount", "seriesCount", "pauseSeconds"]) {
+      expect(reread).not.toHaveProperty(scalar);
+    }
+    expect(typeof reread?.executionParameters).toBe("object");
+  });
+
+  it("PRE4-1.1/AC18 — aller-retour exact sur base fichier fermée puis rouverte : Durée/Répétitions × identiques/variables, Cibles numériques, à l'échec et mixtes", async () => {
+    const path = join(tmpdir(), `kodjo-pre4-def-${Date.now()}-${Math.random().toString(16).slice(2)}.db`);
+    const common = {
+      sideMode: "RIGHT_LEFT" as const,
+      sideOrder: "BY_SERIES" as const,
+      sideRecoverySeconds: 6,
+      cadenceBeepIntervalSeconds: 2,
+      countdownSeconds: 3,
+      endSeconds: 4,
+    };
+    const cases: readonly ExecutionParameters[] = [
+      uniformParameters({ ...common, mode: "DURATION", count: 3, target: 30, pauseSeconds: 10 }),
+      uniformParameters({ ...common, mode: "REPETITIONS", count: 4, target: 12, pauseSeconds: 15 }),
+      allFailureParameters(3, 10, common),
+      uniformParameters({ ...common, mode: "DURATION", count: 2, target: "FAILURE", pauseSeconds: 5 }),
+      variableParameters({ ...common, mode: "DURATION", rows: [[30, 10], [45, 20], [60, 30]] }),
+      variableParameters({ ...common, mode: "DURATION", rows: [[30, 10], [30, 10], [30, 10]] }),
+      variableParameters({ ...common, mode: "REPETITIONS", rows: [[10, 5], [12, 5], ["FAILURE", 5]] }),
+      variableParameters({ ...common, mode: "REPETITIONS", rows: [["FAILURE", 5], [12, 5], [8, 5]] }),
+      variableParameters({ ...common, mode: "DURATION", rows: [[30, 5], ["FAILURE", 5], [40, 5]] }),
+      variableParameters({ ...common, mode: "REPETITIONS", rows: [["FAILURE", 0], ["FAILURE", 20]] }),
+    ];
+    const fileDatabase = NodeSqliteDatabase.openFile(path);
+    try {
+      await migrateDatabase(fileDatabase);
+      const repository = new SqliteActivityDefinitionRepository(fileDatabase, ids("def"));
+      const written = [];
+      for (const [index, parameters] of cases.entries()) {
+        written.push(
+          await repository.create(
+            definitionInput(parameters, {
+              name: `Exercice ${index}`,
+              media: [
+                { assetId: `b-${index}`, asset: asset(`b-${index}`) },
+                { assetId: `a-${index}`, asset: asset(`a-${index}`) },
+              ],
+            }),
+          ),
+        );
+      }
+      fileDatabase.close();
+      const reopenedDatabase = NodeSqliteDatabase.openFile(path);
+      try {
+        const reopened = new SqliteActivityDefinitionRepository(reopenedDatabase, ids("def"));
+        for (const [index, original] of written.entries()) {
+          const definition = await reopened.findById(original.id);
+          expect(definition).toEqual(original);
+          expect(definition?.executionParameters).toEqual(cases[index]);
+          expect(definition?.executionParameters.series.kind).toBe(cases[index]!.series.kind);
+          expect(definition?.name).toBe(`Exercice ${index}`);
+          expect(definition?.description).toBe("Dos plat");
+          expect(definition?.categoryId).toBe("cardio");
+          expect(definition?.bodyZoneIds.slice().sort()).toEqual(["cuisses", "dos"]);
+          expect(definition?.media?.map((item) => item.assetId)).toEqual([`b-${index}`, `a-${index}`]);
+          // Bip unique au niveau de l'Exercice (P22).
+          expect(definition?.executionParameters.cadenceBeepIntervalSeconds).toBe(2);
+        }
+      } finally {
+        reopenedDatabase.close();
+      }
+    } finally {
+      rmSync(path, { force: true });
+      rmSync(`${path}-wal`, { force: true });
+      rmSync(`${path}-shm`, { force: true });
+    }
+  });
+
+  it("PRE4-1.1/AC8 — un enregistrement refusé par le repository (Cible UNSET) ne laisse aucune ligne, Zone, Catégorie ni Média ajouté ou modifié", async () => {
+    const repository = new SqliteActivityDefinitionRepository(database, ids("def"));
+    const created = await repository.create(definitionInput(durationParameters(30, 2, 10)));
+    const before = await dump();
+    const unset = uniformParameters({ mode: "REPETITIONS", count: 2, target: unsetTarget() });
+    const refused = definitionInput(unset, {
+      category: { kind: "NEW", name: "Nouvelle", color: "#E5484D" },
+      bodyZoneIds: ["genoux"],
+      media: [{ assetId: "refused-asset", asset: asset("refused-asset") }],
+    });
+    await expect(repository.create(refused)).rejects.toThrow(ExecutionParametersValidationError);
+    await expect(repository.update(created.id, refused)).rejects.toThrow(ExecutionParametersValidationError);
+    expect(await dump()).toEqual(before);
+  });
+});
+
+describe("SqliteActivityDefinitionRepository — PRE-4 Q53 (8)", () => {
+  let database: NodeSqliteDatabase;
+  beforeEach(async () => {
+    database = NodeSqliteDatabase.openInMemory();
+    await migrateDatabase(database);
+  });
+  afterEach(() => {
+    database.close();
+  });
+  const input = (categoryId: string) => ({
+    name: "Squat",
+    description: null,
+    category: { kind: "EXISTING" as const, categoryId },
+    bodyZoneIds: ["cuisses"],
+    executionParameters: durationParameters(30),
+  });
+
+  it("PRE4-Q53/category-definition — création avec une Catégorie retirée déjà affectée ailleurs : acceptée ; affectée nulle part : refusée ; modification vers une autre Catégorie retirée : refusée", async () => {
+    const repository = new SqliteActivityDefinitionRepository(database, makeUuidFactory("def"), makeClock("2026-01-01T00:00:00.000Z"));
+    const first = await repository.create(input("cardio"));
+    await database.runAsync("UPDATE categories SET is_active = 0 WHERE id IN ('cardio', 'mobilite')");
+    const second = await repository.create(input("cardio"));
+    expect(second.categoryId).toBe("cardio");
+    await expect(repository.create(input("mobilite"))).rejects.toThrow(/retired/i);
+    // Modification : seule la Catégorie déjà affectée à cette Définition est conservable.
+    const other = await repository.create({ ...input("renforcement"), name: "Fentes" });
+    await expect(repository.update(other.id, { ...input("cardio"), name: "Fentes" })).rejects.toThrow(/retired/i);
+    expect((await repository.update(first.id, { ...input("cardio"), name: "Squat lent" }))?.categoryId).toBe("cardio");
   });
 });

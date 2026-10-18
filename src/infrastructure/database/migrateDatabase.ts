@@ -11,6 +11,7 @@ import { MIGRATION_006 } from "./migrations/migration006";
 import { MIGRATION_007 } from "./migrations/migration007";
 import { MIGRATION_008_COLUMNS, MIGRATION_008_FINALIZE } from "./migrations/migration008";
 import { MIGRATION_009 } from "./migrations/migration009";
+import { applyMigration010 } from "./migrations/migration010";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -40,7 +41,11 @@ type NamedRow = { id: string; name: string };
  * pendant ce run et laisse `user_version` inchangé (aucun état intermédiaire
  * persisté, aucune Récupération à moitié convertie).
  */
-export async function migrateDatabase(database: Database): Promise<void> {
+export async function migrateDatabase(
+  database: Database,
+  /** Horloge de l'avis de `migration010` (ISO 8601 UTC) — injectable pour les tests. */
+  now: () => string = () => new Date().toISOString(),
+): Promise<void> {
   const versionRow = await database.getFirstAsync<UserVersionRow>("PRAGMA user_version");
   const currentVersion = versionRow?.user_version ?? 0;
 
@@ -132,6 +137,15 @@ export async function migrateDatabase(database: Database): Promise<void> {
     if (version === 8) {
       await transaction.execAsync(MIGRATION_009);
       version = 9;
+    }
+
+    // PRE-4 (story 1.1, AD-4) : deux Modes et Cible typée — étape JavaScript
+    // (classement, écart des illisibles, conversion v2, reconstruction
+    // d'`activities`, avis), dans CETTE transaction : toute erreur
+    // structurelle annule l'ensemble et laisse `user_version` inchangé (H6).
+    if (version === 9) {
+      await applyMigration010(transaction, now);
+      version = 10;
     }
 
     const userCount = await transaction.getFirstAsync<CountRow>(

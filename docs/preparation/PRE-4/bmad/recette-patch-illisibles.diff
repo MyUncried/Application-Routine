@@ -1,0 +1,44 @@
+diff --git a/src/infrastructure/database/initializeDatabase.ts b/src/infrastructure/database/initializeDatabase.ts
+index 423cddec..feafbc62 100644
+--- a/src/infrastructure/database/initializeDatabase.ts
++++ b/src/infrastructure/database/initializeDatabase.ts
+@@ -16,4 +16,39 @@ export async function initializeDatabase(database: Database): Promise<void> {
+     await database.execAsync(pragma);
+   }
+   await migrateDatabase(database);
++  await corruptRecetteExercises(database);
++}
++
++/**
++ * PATCH TEMPORAIRE DE RECETTE PRE-4 (story 1.4, Q19) — JAMAIS COMMITÉ.
++ * À chaque démarrage, tant que la base est en version 9 (idempotent : les
++ * deux lignes visées reçoivent toujours le même texte), rend illisibles la
++ * Définition nommée « Exercice illisible » et l'unique Copie de la Séance
++ * « Séance vidée ». Compte d'abord les lignes visées : n'écrit que si elles
++ * valent exactement 1 et 1, sinon ne modifie rien. Aucune autre donnée
++ * n'est touchée.
++ */
++async function corruptRecetteExercises(database: Database): Promise<void> {
++  const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
++  if (version?.user_version !== 9) {
++    return;
++  }
++  const definitionFilter = "FROM activity_definitions WHERE name = 'Exercice illisible'";
++  const copyFilter =
++    "FROM activities WHERE type = 'EXERCISE' AND session_id IN (SELECT id FROM sessions WHERE name = 'Séance vidée')";
++  const definitions = (await database.getFirstAsync<{ count: number }>(`SELECT COUNT(*) AS count ${definitionFilter}`))?.count ?? 0;
++  const copies = (await database.getFirstAsync<{ count: number }>(`SELECT COUNT(*) AS count ${copyFilter}`))?.count ?? 0;
++  if (definitions !== 1 || copies !== 1) {
++    console.warn(`[recette PRE-4] aucune modification : Définitions ${definitions} ; Copies ${copies}`);
++    return;
++  }
++  await database.withExclusiveTransactionAsync(async (transaction) => {
++    await transaction.runAsync(
++      "UPDATE activity_definitions SET execution_parameters = '{not json' WHERE name = 'Exercice illisible'",
++    );
++    await transaction.runAsync(
++      "UPDATE activities SET execution_parameters = '{not json' WHERE type = 'EXERCISE' AND session_id IN (SELECT id FROM sessions WHERE name = 'Séance vidée')",
++    );
++  });
++  console.warn("[recette PRE-4] Définitions rendues illisibles : 1 ; Copies : 1");
+ }

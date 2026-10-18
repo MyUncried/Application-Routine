@@ -1,3 +1,7 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { gunzipSync } from "node:zlib";
+
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { describe, expect, it, jest } from "@jest/globals";
 
@@ -5,7 +9,9 @@ import type { Category } from "@/domain/categories/Category";
 import { CategoryPickerModal } from "@/features/reference-data/CategoryPickerModal";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
-import { Modal, StyleSheet } from "react-native";
+import { SESSION_COLORS } from "@/domain/sessions/Session";
+import { strings } from "@/shared/i18n";
+import { AccessibilityInfo, Modal, ScrollView, StyleSheet } from "react-native";
 
 function aCategory(overrides: Partial<Category> = {}): Category {
   return {
@@ -179,7 +185,12 @@ describe("CategoryPickerModal — long-press menu and deletion (D4, §4.10)", ()
       fireEvent.press(screen.getByTestId("category-picker-long-press-delete"));
     });
 
-    expect(screen.getByText(/objets/)).toBeTruthy();
+    // PRE-4 story 4.3 (FR-20-09, AC11) : message propre à la Catégorie, qui remplace
+    // le message commun du départ (« … attachée aux objets … »).
+    expect(
+      screen.getByText("Cette catégorie ne sera plus proposée. Les exercices qui l’utilisent actuellement la conserveront."),
+    ).toBeTruthy();
+    expect(screen.queryByText(/objets/)).toBeNull();
   });
 
   it("after confirming deletion, the modal stays open and the value is absent from the list (§4.10 L138)", async () => {
@@ -610,3 +621,259 @@ describe("CategoryPickerModal — recette 3 (N-01, dernier écart : clavier sans
   });
 });
 
+
+/**
+ * PRE-4 story 4.3 — feuille de Catégorie : relevé AC1 contrôlé sur les arbres
+ * Figma, ordre (AC4), liste longue (AC7), suppression (AC11), échecs (AC12).
+ * Les autres critères sont prouvés par les tests PRE-3 cités dans la spec 4.3.
+ */
+describe("CategoryPickerModal — PRE-4 story 4.3", () => {
+  type FigmaNode = {
+    id: string;
+    type: string;
+    name: string;
+    properties?: { characters?: string; visible?: boolean; fills?: { color?: { r: number; g: number; b: number } }[] };
+  };
+  function frameNodes(frameId: string): FigmaNode[] {
+    const file = path.join(__dirname, "../../../../docs/preparation/PRE-4/figma", `${frameId.replace(":", "-")}.json.gz`);
+    return (JSON.parse(gunzipSync(readFileSync(file)).toString("utf8")) as { nodes: FigmaNode[] }).nodes;
+  }
+  const texts = (nodes: FigmaNode[]) => nodes.filter((node) => node.type === "TEXT").map((node) => node.properties?.characters ?? "");
+  const SHEET_FRAMES = ["8328:35810", "8328:35932", "8328:36056", "8328:36348", "8328:36441", "8328:36536"];
+
+  it("PRE4-4.3/AC1 — relevé : six feuilles avec séparateur d'en-tête ; menu D-354 absent (NON VÉRIFIABLE) ; dialogues I et L aux messages distincts, poignée masquée ; barre de 16 cases contre 12 couleurs (D-026)", async () => {
+    for (const frameId of SHEET_FRAMES) {
+      const nodes = frameNodes(frameId);
+      expect(nodes.some((node) => node.name === "Divider / Modal Header — 1px" && node.properties?.visible !== false)).toBe(true);
+      // D-354 (✕ / Modifier / Supprimer) n'apparaît dans aucune frame : relevé NON VÉRIFIABLE.
+      expect(texts(nodes)).not.toContain("Modifier");
+    }
+    const messages = ["8328:35932", "8328:36441"].map((frameId) => {
+      const nodes = frameNodes(frameId);
+      expect(nodes.find((node) => node.name === "Poignée" && node.type === "RECTANGLE")?.properties?.visible).toBe(false);
+      return nodes.find((node) => node.name === "Message — Confirmation")?.properties?.characters?.replace(/'/g, "’");
+    });
+    expect(messages).toEqual([
+      strings.referenceData.deleteConfirm.categoryUsedMessage,
+      strings.referenceData.deleteConfirm.bodyZoneUsedMessage,
+    ]);
+    const band = frameNodes("8328:36056").filter((node) => node.name.startsWith("Segment — "));
+    expect(band).toHaveLength(16);
+    expect(SESSION_COLORS).toHaveLength(12);
+    renderModal(fakeReferentialService());
+    fireEvent.press(await screen.findByTestId("category-picker-create-action"));
+    expect(screen.getByTestId("category-picker-new-color-band").props.children).toHaveLength(12);
+  });
+
+  it("PRE4-4.3/AC4 — ordre du référentiel conservé (prédéfinies puis personnelles, ordre du Repository) ; marquer une Catégorie ne le change pas", async () => {
+    const ordered = [
+      aCategory({ id: "renforcement", name: "Renforcement", displayOrder: 0 }),
+      aCategory({ id: "cardio", name: "Cardio", displayOrder: 1 }),
+      aCategory({ id: "danse", name: "Danse", isPredefined: false, displayOrder: 0, createdAt: "2026-02-01T00:00:00.000Z" }),
+      aCategory({ id: "yoga", name: "Yoga", isPredefined: false, displayOrder: 0, createdAt: "2026-03-01T00:00:00.000Z" }),
+    ];
+    renderModal(fakeReferentialService({ listCategories: jest.fn(async () => ordered) }));
+    await screen.findByTestId("category-picker-tag-yoga");
+    const order = () =>
+      within(screen.getByTestId("category-picker-tag-row"))
+        .getAllByRole("button")
+        .map((tag) => tag.props.testID as string);
+    const expected = ordered.map((category) => `category-picker-tag-${category.id}`);
+    expect(order()).toEqual(expected);
+    fireEvent.press(screen.getByTestId("category-picker-tag-yoga"));
+    expect(screen.getByTestId("category-picker-tag-yoga").props.accessibilityState).toEqual({ selected: true });
+    expect(order()).toEqual(expected);
+    expect(screen.getByTestId("category-picker-sheet")).toBeTruthy();
+  });
+
+  it("PRE4-4.3/AC7 — trente Catégories : feuille bornée (90 %), liste défilante, en-tête ✕ / ✓ hors de la liste (visible clavier ouvert) ; nom long lisible en entier", async () => {
+    const longName = "Renforcement musculaire du tronc, gainage et respiration";
+    const many = Array.from({ length: 30 }, (_, index) =>
+      aCategory({ id: `c${index}`, name: index === 29 ? longName : `Catégorie ${index}`, displayOrder: index }),
+    );
+    renderModal(fakeReferentialService({ listCategories: jest.fn(async () => many) }), { selectedId: "c0" });
+    await screen.findByTestId("category-picker-tag-c29");
+    expect(StyleSheet.flatten(screen.getByTestId("category-picker-sheet").props.style).maxHeight).toBe("90%");
+    expect(screen.UNSAFE_getByType(ScrollView).props.testID).toBe("category-picker-card");
+    // Clavier ouvert (formulaire de création) : ✕ et ✓ restent dans l'en-tête, hors de la zone défilante.
+    fireEvent.press(screen.getByTestId("category-picker-create-action"));
+    const list = screen.getByTestId("category-picker-card");
+    expect(within(list).queryByTestId("category-picker-confirm")).toBeNull();
+    expect(within(screen.getByTestId("category-picker-header")).getByTestId("category-picker-confirm")).toBeTruthy();
+    expect(within(screen.getByTestId("category-picker-header")).getByTestId("category-picker-close")).toBeTruthy();
+    const tag = screen.getByTestId("category-picker-tag-c29");
+    expect(tag.props.accessibilityLabel).toBe(longName);
+    expect(within(tag).getByText(longName).props.numberOfLines).toBeUndefined();
+  });
+
+  it("PRE4-4.3/AC11 — entrée utilisée : message propre à la Catégorie ; non utilisée : texte du code de départ (P34) ; titre « Supprimer « {nom} » ? »", async () => {
+    for (const [used, message] of [
+      [true, "Cette catégorie ne sera plus proposée. Les exercices qui l’utilisent actuellement la conserveront."],
+      [false, "Cette valeur sera retirée des choix proposés."],
+    ] as const) {
+      const view = renderModal(fakeReferentialService({ isCategoryUsed: jest.fn(async () => used) }));
+      const target = await screen.findByTestId("category-picker-tag-cardio");
+      await act(async () => {
+        fireEvent(target, "longPress");
+      });
+      fireEvent.press(screen.getByTestId("category-picker-long-press-delete"));
+      expect(screen.getByText("Supprimer « Cardio » ?")).toBeTruthy();
+      expect(screen.getByText(message)).toBeTruthy();
+      view.unmount();
+    }
+  });
+
+  // Q53 (8), règle de Hermann (2026-10-18) : la Catégorie affectée supprimée depuis la feuille
+  // de l'Exercice quitte aussi sa sélection — ✓ applique une autre Catégorie choisie ensuite.
+  it("PRE4-4.3/AC11 — après suppression confirmée de la Catégorie affectée : feuille ouverte sans l'entrée ; Q53 (8) : elle quitte la sélection, ✓ applique la Catégorie choisie ensuite", async () => {
+    const reduceMotion = jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true);
+    let active = true;
+    const service = fakeReferentialService({
+      listCategories: jest.fn(async () => [aCategory({ isActive: active }), aCategory({ id: "yoga", name: "Yoga", canonicalKey: "yoga" })]),
+      isCategoryUsed: jest.fn(async () => true),
+      retireCategory: jest.fn(async () => {
+        active = false;
+        return { status: "OK" as const, value: aCategory({ isActive: false }) };
+      }),
+    });
+    const onSelect = jest.fn();
+    const onClose = jest.fn();
+    renderModal(service, { selectedId: "cardio", onSelect, onClose });
+    const target = await screen.findByTestId("category-picker-tag-cardio");
+    await act(async () => {
+      fireEvent(target, "longPress");
+    });
+    fireEvent.press(screen.getByTestId("category-picker-long-press-delete"));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("category-picker-long-press-delete-confirm-confirm"));
+    });
+    expect(service.retireCategory).toHaveBeenCalledWith("cardio");
+    expect(screen.queryByTestId("category-picker-tag-cardio")).toBeNull();
+    expect(screen.getByTestId("category-picker-sheet")).toBeTruthy();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByTestId("category-picker-confirm").props.accessibilityState).toMatchObject({ disabled: true });
+    fireEvent.press(screen.getByTestId("category-picker-tag-yoga"));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("category-picker-confirm"));
+    });
+    expect(onSelect).toHaveBeenCalledWith("yoga");
+    reduceMotion.mockRestore();
+  });
+
+  it("PRE4-4.3/AC12 — échec de suppression : message du code de départ, feuille ouverte, affectation intacte  ; aucune action destructive par simple sélection", async () => {
+    const service = fakeReferentialService({
+      retireCategory: jest.fn(async () => {
+        throw new Error("disque plein");
+      }),
+    });
+    const onSelect = jest.fn();
+    const onClose = jest.fn();
+    const consoleError = jest.spyOn(console, "error").mockImplementation(() => undefined);
+    renderModal(service, { selectedId: "cardio", onSelect, onClose });
+    const tag = await screen.findByTestId("category-picker-tag-cardio");
+    // Simple sélection : jamais de suppression.
+    fireEvent.press(tag);
+    expect(service.retireCategory).not.toHaveBeenCalled();
+    await act(async () => {
+      fireEvent(tag, "longPress");
+    });
+    fireEvent.press(screen.getByTestId("category-picker-long-press-delete"));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("category-picker-long-press-delete-confirm-confirm"));
+    });
+    expect(screen.getByTestId("category-picker-write-error").props.children).toBe(
+      "La modification n’a pas pu être enregistrée. Réessayez.",
+    );
+    expect(screen.getByTestId("category-picker-tag-cardio")).toBeTruthy();
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+});
+
+/**
+ * PRE-4, décision Q53 (8) de Hermann (2026-10-18) : Catégorie supprimée — elle quitte la liste
+ * de l'Exercice depuis lequel la suppression est faite ; les autres Exercices qui l'ont la
+ * montrent choisie, sur fond rouge clair, sans menu.
+ */
+describe("CategoryPickerModal — PRE-4 Q53 (8)", () => {
+  async function deleteCategory(id: string) {
+    const target = await screen.findByTestId(`category-picker-tag-${id}`);
+    await act(async () => {
+      fireEvent(target, "longPress");
+    });
+    fireEvent.press(screen.getByTestId("category-picker-long-press-delete"));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("category-picker-long-press-delete-confirm-confirm"));
+    });
+  }
+  function retiringService(used: boolean) {
+    const retired = new Set<string>();
+    return fakeReferentialService({
+      listCategories: jest.fn(async () =>
+        [aCategory(), aCategory({ id: "force", name: "Force", canonicalKey: "force", displayOrder: 2 })].map((category) => ({
+          ...category,
+          isActive: !retired.has(category.id),
+        })),
+      ),
+      isCategoryUsed: jest.fn(async () => used),
+      retireCategory: jest.fn(async (id: string) => {
+        retired.add(id);
+        return { status: "OK" as const, value: aCategory({ id, isActive: false }) };
+      }),
+    });
+  }
+
+  it("PRE4-Q53/category-other-exercise — Catégorie retirée avant l'ouverture et affectée : listée, choisie, fond #FFF1F0, état dans le nom accessible, sans menu ; non affectée : absente", async () => {
+    const service = fakeReferentialService({
+      listCategories: jest.fn(async () => [
+        aCategory({ isActive: false }),
+        aCategory({ id: "force", name: "Force", canonicalKey: "force", displayOrder: 2 }),
+        aCategory({ id: "yoga", name: "Yoga", canonicalKey: "yoga", displayOrder: 3, isActive: false }),
+      ]),
+    });
+    renderModal(service, { selectedId: "cardio" });
+    const cardio = await screen.findByTestId("category-picker-tag-cardio");
+    expect(cardio.props.accessibilityState).toMatchObject({ selected: true });
+    expect(StyleSheet.flatten(cardio.props.style).backgroundColor).toBe("#FFF1F0");
+    expect(cardio.props.accessibilityLabel).toContain("Cardio, retirée de la liste des choix");
+    expect(cardio.props.accessibilityActions).toBeUndefined();
+    await act(async () => {
+      fireEvent(cardio, "longPress");
+    });
+    expect(screen.queryByTestId("category-picker-long-press-delete")).toBeNull();
+    expect(screen.queryByTestId("category-picker-tag-yoga")).toBeNull();
+    expect(screen.queryByText(/retirée/i)).toBeNull();
+    // Remplacer : une autre Catégorie se choisit ; la Catégorie retirée reste listée.
+    fireEvent.press(screen.getByTestId("category-picker-tag-force"));
+    expect(screen.getByTestId("category-picker-tag-cardio").props.accessibilityState).toMatchObject({ selected: false });
+  });
+
+  // Règle de Hermann : dans l'Exercice d'où la suppression est faite, la Catégorie disparaît du
+  // sélecteur et de la sélection, même si d'autres objets l'utilisent ; une autre se choisit.
+  it("PRE4-Q53/category-delete-current-used — supprimée depuis l'Exercice courant, utilisée ailleurs : quitte aussi la liste et la sélection, ✓ inactif, « Choisissez-en une autre » ; une autre Catégorie se choisit", async () => {
+    const onCategoryRetired = jest.fn();
+    renderModal(retiringService(true), { selectedId: "cardio", onCategoryRetired });
+    await deleteCategory("cardio");
+    expect(screen.queryByTestId("category-picker-tag-cardio")).toBeNull();
+    expect(onCategoryRetired).toHaveBeenCalledWith("cardio");
+    expect(screen.getByTestId("category-picker-retired-notice").props.children).toBe(
+      "Cette valeur a été retirée. Choisissez-en une autre.",
+    );
+    expect(screen.getByTestId("category-picker-confirm").props.accessibilityState).toMatchObject({ disabled: true });
+    fireEvent.press(screen.getByTestId("category-picker-tag-force"));
+    expect(screen.getByTestId("category-picker-confirm").props.accessibilityState).toMatchObject({ disabled: false });
+  });
+
+  it("PRE4-Q53/category-delete-current-unused — supprimée depuis l'Exercice courant, utilisée nulle part : quitte la liste et la sélection, ✓ inactif, « Choisissez-en une autre »", async () => {
+    const onCategoryRetired = jest.fn();
+    renderModal(retiringService(false), { selectedId: "cardio", onCategoryRetired });
+    await deleteCategory("cardio");
+    expect(screen.queryByTestId("category-picker-tag-cardio")).toBeNull();
+    expect(onCategoryRetired).toHaveBeenCalledWith("cardio");
+    expect(screen.getByTestId("category-picker-retired-notice").props.children).toBe(
+      "Cette valeur a été retirée. Choisissez-en une autre.",
+    );
+    expect(screen.getByTestId("category-picker-confirm").props.accessibilityState).toMatchObject({ disabled: true });
+  });
+});

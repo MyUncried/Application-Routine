@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { describe, expect, it, jest } from "@jest/globals";
 
-import { ProfileStepper } from "@/shared/ui/ProfileStepper";
+import { EXECUTION_ACCELERATED_HOLD_POLICY, InlineStepper, ProfileStepper } from "@/shared/ui/ProfileStepper";
 
 describe("ProfileStepper — closed state (D-227)", () => {
   it("shows the label and the confirmed value, replacing nothing until opened", () => {
@@ -271,5 +271,138 @@ describe("ProfileStepper — interaction (T5/T6, CE-UI-07 L2549/L2545/L2557/L256
     );
     fireEvent(screen.getByTestId("stepper-increment"), "pressIn");
     expect(screen.getByTestId("stepper-value").props.children).toBe("10 s");
+  });
+});
+
+/**
+ * PRE-4 story 3.6 — props optionnelles d'`InlineStepper` : `stepRule` (règle de pas de
+ * l'appelant) et `onValuePress` (valeur tactile). Un réglage désactivé n'ouvre rien ;
+ * des ± indisponibles par la règle (échec, borne) laissent la valeur touchable.
+ */
+describe("PRE4-3.6 — InlineStepper : valeur tactile et règle de pas", () => {
+  const renderStepper = (props: { disabled?: boolean; value?: number | null; stepRule?: (value: number | null, direction: 1 | -1) => number | "unavailable" }) => {
+    const onValuePress = jest.fn();
+    const onChange = jest.fn();
+    render(
+      <InlineStepper
+        value={props.value === undefined ? 30 : props.value}
+        min={5}
+        max={3535}
+        policy={EXECUTION_ACCELERATED_HOLD_POLICY}
+        formatValue={(value) => (value === null ? "à l’échec" : `${value} s`)}
+        onChange={onChange}
+        accessibilityLabel="Série 1, Durée"
+        disabled={props.disabled}
+        stepRule={props.stepRule}
+        onValuePress={onValuePress}
+        testID="cell"
+      />,
+    );
+    return { onValuePress, onChange };
+  };
+  const unavailable = () => "unavailable" as const;
+
+  it("PRE4-3.6/AC3 — réglage désactivé : toucher la valeur n'ouvre rien ; l'action « activer » n'est pas proposée", () => {
+    const { onValuePress } = renderStepper({ disabled: true });
+    fireEvent.press(screen.getByTestId("cell-value-press"));
+    expect(onValuePress).not.toHaveBeenCalled();
+    const actions = (screen.getByTestId("cell").props.accessibilityActions as { name: string }[]).map((action) => action.name);
+    expect(actions).not.toContain("activate");
+  });
+
+  it("PRE4-3.6/AC3 — ± indisponibles par la règle de pas (échec) : la valeur reste touchable et « activer » l'ouvre", () => {
+    const { onValuePress, onChange } = renderStepper({ value: null, stepRule: unavailable });
+    expect(screen.getByTestId("cell-increment").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.getByTestId("cell-decrement").props.accessibilityState).toMatchObject({ disabled: true });
+    fireEvent.press(screen.getByTestId("cell-value-press"));
+    expect(onValuePress).toHaveBeenCalledTimes(1);
+    fireEvent(screen.getByTestId("cell"), "accessibilityAction", { nativeEvent: { actionName: "activate" } });
+    expect(onValuePress).toHaveBeenCalledTimes(2);
+    fireEvent(screen.getByTestId("cell"), "accessibilityAction", { nativeEvent: { actionName: "increment" } });
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("PRE4-3.6/AC13 — avec une règle de pas, VoiceOver ne propose que les pas disponibles ; valeur annoncée telle qu'affichée", () => {
+    renderStepper({ value: null, stepRule: unavailable });
+    const node = screen.getByTestId("cell");
+    expect(node.props.accessibilityActions).toEqual([{ name: "activate" }]);
+    expect(node.props.accessibilityValue).toEqual({ text: "à l’échec" });
+  });
+
+  it("PRE4-3.6/AC5 — borne haute par la règle : seul − est proposé ; sans règle, les deux actions restent (comportement inchangé)", () => {
+    const view = render(
+      <InlineStepper
+        value={5999}
+        min={5}
+        max={3535}
+        policy={EXECUTION_ACCELERATED_HOLD_POLICY}
+        formatValue={(value) => `${value} s`}
+        onChange={() => undefined}
+        accessibilityLabel="Série 1, Durée"
+        stepRule={(_value, direction) => (direction === 1 ? "unavailable" : 3535)}
+        testID="bound"
+      />,
+    );
+    expect(screen.getByTestId("bound").props.accessibilityActions).toEqual([{ name: "decrement" }]);
+    view.unmount();
+    render(
+      <InlineStepper
+        value={30}
+        min={5}
+        max={3535}
+        policy={EXECUTION_ACCELERATED_HOLD_POLICY}
+        formatValue={(value) => `${value} s`}
+        onChange={() => undefined}
+        accessibilityLabel="Pause"
+        testID="plain"
+      />,
+    );
+    expect(screen.getByTestId("plain").props.accessibilityActions).toEqual([{ name: "increment" }, { name: "decrement" }]);
+    expect(screen.queryByTestId("plain-value-press")).toBeNull();
+  });
+});
+
+/**
+ * PRE-4 story 3.8 (AC2, ch. 13 §18 « limites annoncées ») — suffixe de limite d'`InlineStepper`,
+ * sur opt-in explicite (`announceLimits`, passé par la Feuille seule) : annoncé seulement pour une
+ * valeur DANS les bornes ; les deux suffixes si min = max. Sans l'opt-in, valeur seule (aucun
+ * autre écran ne reçoit le suffixe ; `ProfileStepper` du Profil garde sa propre annonce, sans suffixe).
+ */
+describe("PRE4-3.8 — InlineStepper : limites annoncées sur opt-in", () => {
+  const spoken = (props: { value: number | null; min?: number; max?: number; announceLimits?: boolean }) => {
+    const view = render(
+      <InlineStepper
+        value={props.value}
+        min={props.min ?? 5}
+        max={props.max ?? 3535}
+        policy={EXECUTION_ACCELERATED_HOLD_POLICY}
+        formatValue={(value) => (value === null ? "—" : `${value} s`)}
+        onChange={jest.fn()}
+        accessibilityLabel="Réglage"
+        announceLimits={props.announceLimits}
+        testID="limits"
+      />,
+    );
+    const text = (screen.getByTestId("limits").props.accessibilityValue as { text: string }).text;
+    view.unmount();
+    return text;
+  };
+
+  it("PRE4-3.8/AC2 — sans opt-in : valeur seule, même à une borne", () => {
+    expect(spoken({ value: 5 })).toBe("5 s");
+    expect(spoken({ value: 3535 })).toBe("3535 s");
+  });
+
+  it("PRE4-3.8/AC2 — avec opt-in : borne basse, borne haute, les deux si min = max ; mi-course sans suffixe", () => {
+    expect(spoken({ value: 5, announceLimits: true })).toBe("5 s, minimum atteint");
+    expect(spoken({ value: 3535, announceLimits: true })).toBe("3535 s, maximum atteint");
+    expect(spoken({ value: 30, announceLimits: true })).toBe("30 s");
+    expect(spoken({ value: 7, min: 7, max: 7, announceLimits: true })).toBe("7 s, minimum atteint, maximum atteint");
+  });
+
+  it("PRE4-3.8/AC2 — avec opt-in : valeur ancienne hors bornes (4 s, 5999 s) ou sans nombre : aucun suffixe", () => {
+    expect(spoken({ value: 4, announceLimits: true })).toBe("4 s");
+    expect(spoken({ value: 5999, announceLimits: true })).toBe("5999 s");
+    expect(spoken({ value: null, announceLimits: true })).toBe("—");
   });
 });

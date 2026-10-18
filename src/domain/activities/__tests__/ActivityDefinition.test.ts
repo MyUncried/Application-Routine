@@ -9,19 +9,20 @@ import {
   type ActivityDefinition,
   type CreateActivityDefinitionInput,
 } from "@/domain/activities/ActivityDefinition";
+import { unsetTarget, type ExecutionParameters } from "@/domain/activities/ExecutionParameters";
+import {
+  allFailureParameters,
+  durationParameters,
+  uniformParameters,
+} from "@/domain/activities/testing/executionParametersFixtures";
 
 function baseInput(): CreateActivityDefinitionInput {
   return {
     name: "Squat",
     description: "Descente lente",
-    executionMode: "DURATION",
-    durationSeconds: 30,
-    repetitionCount: null,
-    seriesCount: 3,
-    pauseSeconds: 10,
+    executionParameters: durationParameters(30, 3, 10),
     category: { kind: "EXISTING", categoryId: "cardio" },
     bodyZoneIds: ["cuisses"],
-    sideRecoverySeconds: 0,
   };
 }
 
@@ -29,11 +30,7 @@ const PERSISTED: ActivityDefinition = {
   id: "def-1",
   name: "Squat",
   description: "Descente lente",
-  executionMode: "DURATION",
-  durationSeconds: 30,
-  repetitionCount: null,
-  seriesCount: 3,
-  pauseSeconds: 10,
+  executionParameters: durationParameters(30, 3, 10),
   categoryId: "cardio",
   bodyZoneIds: ["cuisses"],
   sideMode: "UNILATERAL",
@@ -84,31 +81,19 @@ describe("validateActivityDefinitionInput", () => {
     }
   });
 
-  it("requires durationSeconds in DURATION mode", () => {
-    const result = validateActivityDefinitionInput({
-      ...baseInput(),
-      durationSeconds: null,
-    });
+  it("refuse une Cible à renseigner (UNSET) en mode Durée", () => {
+    const parameters: ExecutionParameters = { ...durationParameters(30, 3, 10), series: { kind: "UNIFORM", count: 3, target: unsetTarget(), pauseSeconds: 10 } };
+    const result = validateActivityDefinitionInput({ ...baseInput(), executionParameters: parameters });
     expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.violations).toContainEqual(
+        expect.objectContaining({ code: "OUT_OF_RANGE", field: "activityDefinition.executionParameters" }),
+      );
+    }
   });
 
-  it("rejects durationSeconds present in REPETITIONS mode", () => {
-    const result = validateActivityDefinitionInput({
-      ...baseInput(),
-      executionMode: "REPETITIONS",
-      durationSeconds: 30,
-      repetitionCount: 10,
-    });
-    expect(result.ok).toBe(false);
-  });
-
-  it("accepts TO_FAILURE without any target", () => {
-    const result = validateActivityDefinitionInput({
-      ...baseInput(),
-      executionMode: "TO_FAILURE",
-      durationSeconds: null,
-      repetitionCount: null,
-    });
+  it("accepte un Exercice en Répétitions dont toutes les Cibles sont à l'échec", () => {
+    const result = validateActivityDefinitionInput({ ...baseInput(), executionParameters: allFailureParameters(3, 10) });
     expect(result.ok).toBe(true);
   });
 
@@ -116,7 +101,7 @@ describe("validateActivityDefinitionInput", () => {
     const result = validateActivityDefinitionInput({
       ...baseInput(),
       name: "",
-      seriesCount: 0,
+      executionParameters: uniformParameters({ count: 0, target: 30 }),
     });
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -181,8 +166,11 @@ describe("validateActivityDefinitionInput", () => {
     }
   });
 
-  it("validates sideRecoverySeconds within 0..5999", () => {
-    const result = validateActivityDefinitionInput({ ...baseInput(), sideRecoverySeconds: -1 });
+  it("refuse une Pause entre les côtés négative (niveau structurel, Q28)", () => {
+    const result = validateActivityDefinitionInput({
+      ...baseInput(),
+      executionParameters: durationParameters(30, 3, 10, { sideMode: "RIGHT_LEFT", sideRecoverySeconds: -1 }),
+    });
     expect(result.ok).toBe(false);
   });
 });
@@ -191,7 +179,9 @@ describe("createEmptyActivityDefinitionDraft", () => {
   it("produces a valid draft with defaults, without any Category preselected", () => {
     const draft = createEmptyActivityDefinitionDraft();
     expect(draft.name).toBe("");
-    expect(draft.seriesCount).toBeGreaterThanOrEqual(1);
+    expect(draft.executionParameters.series).toEqual(
+      expect.objectContaining({ kind: "UNIFORM", count: 1, target: { kind: "NUMBER", value: 30 } }),
+    );
     expect(draft.bodyZoneIds).toEqual([]);
     expect(draft).not.toHaveProperty("category");
   });
@@ -203,16 +193,11 @@ describe("activityDefinitionToInput", () => {
     expect(input).toEqual({
       name: PERSISTED.name,
       description: PERSISTED.description,
-      executionMode: PERSISTED.executionMode,
-      durationSeconds: PERSISTED.durationSeconds,
-      repetitionCount: PERSISTED.repetitionCount,
-      seriesCount: PERSISTED.seriesCount,
-      pauseSeconds: PERSISTED.pauseSeconds,
       category: { kind: "EXISTING", categoryId: PERSISTED.categoryId },
       bodyZoneIds: PERSISTED.bodyZoneIds,
-      sideMode: PERSISTED.sideMode,
-      sideRecoverySeconds: PERSISTED.sideRecoverySeconds,
+      executionParameters: PERSISTED.executionParameters,
     });
+    expect(input.executionParameters).not.toBe(PERSISTED.executionParameters);
   });
 });
 
@@ -222,9 +207,8 @@ describe("activityDefinitionToDraftExercise", () => {
     expect(copy.id).toBe("new-id");
     expect(copy.name).toBe(PERSISTED.name);
     expect(copy.instruction).toBe(PERSISTED.description);
-    expect(copy.durationSeconds).toBe(PERSISTED.durationSeconds);
-    expect(copy.seriesCount).toBe(PERSISTED.seriesCount);
-    expect(copy.pauseSeconds).toBe(PERSISTED.pauseSeconds);
+    expect(copy.executionParameters).toEqual(PERSISTED.executionParameters);
+    expect(copy.executionParameters).not.toBe(PERSISTED.executionParameters);
     // V2-PRE-1 (plan §3.1/§3.2) : ActivityDefinition ne porte plus aucune
     // récupération — la valeur de l'occurrence est un paramètre EXPLICITE,
     // jamais dérivé de la définition source.

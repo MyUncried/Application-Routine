@@ -11,13 +11,19 @@ import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqlite
 import { MIGRATION_006 } from "@/infrastructure/database/migrations/migration006";
 import { MIGRATION_007 } from "@/infrastructure/database/migrations/migration007";
 import { MIGRATION_008_COLUMNS, MIGRATION_008_FINALIZE } from "@/infrastructure/database/migrations/migration008";
+import { MIGRATION_009 } from "@/infrastructure/database/migrations/migration009";
 import { canonicalBodyZoneKey } from "@/domain/body-zones/BodyZone";
 import { canonicalLabelKey } from "@/domain/labels/Label";
 import {
   ExecutionParametersDataError,
-  validateExecutionParameters,
+  validateForSave,
   type ExecutionParameters,
 } from "@/domain/activities/ExecutionParameters";
+import {
+  durationParameters,
+  uniformParameters,
+  variableParameters,
+} from "@/domain/activities/testing/executionParametersFixtures";
 import type { Database } from "@/infrastructure/database/Database";
 import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
@@ -56,18 +62,19 @@ describe("migrateDatabase", () => {
   // couleurs n'existe donc plus sur cette colonne. Seules les règles
   // NULL-safe de `activities` (inchangées depuis migration001) restent
   // couvertes ici.
-  it("enforces the NULL-safe duration rules", async () => {
+  // PRE-4 (story 1.1, AD-4) : le CHECK de `migration010` admet une cible
+  // scalaire NULL (Cible à l'échec ou à renseigner) ; il refuse toujours les
+  // deux cibles non nulles.
+  it("enforces the NULL-safe duration rules (PRE-4 : cible scalaire NULL admise, jamais les deux cibles)", async () => {
     await migrateDatabase(database);
     await seedStructure(database);
 
-    await expect(
-      insertActivity(database, {
-        id: "activity-invalid-null",
-        executionMode: "DURATION",
-        durationSeconds: null,
-        repetitionCount: null,
-      }),
-    ).rejects.toThrow();
+    await insertActivity(database, {
+      id: "activity-null-target",
+      executionMode: "DURATION",
+      durationSeconds: null,
+      repetitionCount: null,
+    });
 
     await expect(
       insertActivity(database, {
@@ -232,13 +239,11 @@ describe("migrateDatabase", () => {
         ["old-duration", "dos"],
       );
 
-      await migrateDatabase(database);
-
-      const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
-      // PRE-3 : la chaîne complète mène désormais à la version 9
-      // (`migration009`) — jamais à une version intermédiaire.
-      expect(version?.user_version).toBe(DATABASE_VERSION);
-      expect(DATABASE_VERSION).toBe(9);
+      // PRE-4 : la chaîne complète mène désormais à la version 10, dont le
+      // CHECK retire l'ancien mode ; `migration003` (inchangée) est donc
+      // éprouvée ISOLÉMENT, telle qu'elle s'exécute dans la chaîne.
+      await database.execAsync(MIGRATION_003);
+      await database.execAsync("PRAGMA user_version = 3");
 
       // La contrainte historique DURATION+repetition reste rejetée.
       await expect(
@@ -383,26 +388,39 @@ describe("migrateDatabase", () => {
       expect(after).toEqual(before);
     });
 
-    it("a fresh database reaches the current version directly and accepts TO_FAILURE", async () => {
+    it("PRE4-1.1/AC15 — a fresh database reaches version 10 directly : TO_FAILURE is refused, REPETITIONS without target is admitted", async () => {
       await migrateDatabase(database);
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
       expect(version?.user_version).toBe(DATABASE_VERSION);
+      expect(DATABASE_VERSION).toBe(10);
 
       await seedStructure(database);
+      await expect(
+        database.runAsync(
+          `INSERT INTO activities (
+            id, session_id, cycle_id, tour_id, type, structural_position,
+            position, name, execution_mode, duration_seconds, repetition_count,
+            series_count, pause_seconds, instruction, created_at, updated_at
+          ) VALUES (
+            'fresh-fail', 'session-a', 'cycle-a', 'tour-a', 'EXERCISE', 'IN_TOUR',
+            0, 'Tractions', 'TO_FAILURE', NULL, NULL, 2, 0, NULL, 'now', 'now'
+          )`,
+        ),
+      ).rejects.toThrow();
       await database.runAsync(
         `INSERT INTO activities (
           id, session_id, cycle_id, tour_id, type, structural_position,
           position, name, execution_mode, duration_seconds, repetition_count,
           series_count, pause_seconds, instruction, created_at, updated_at
         ) VALUES (
-          'fresh-fail', 'session-a', 'cycle-a', 'tour-a', 'EXERCISE', 'IN_TOUR',
-          0, 'Tractions', 'TO_FAILURE', NULL, NULL, 2, 0, NULL, 'now', 'now'
+          'fresh-failure-target', 'session-a', 'cycle-a', 'tour-a', 'EXERCISE', 'IN_TOUR',
+          0, 'Tractions', 'REPETITIONS', NULL, NULL, 2, 0, NULL, 'now', 'now'
         )`,
       );
       const row = await database.getFirstAsync<{ id: string }>(
-        "SELECT id FROM activities WHERE id = 'fresh-fail'",
+        "SELECT id FROM activities WHERE id = 'fresh-failure-target'",
       );
-      expect(row?.id).toBe("fresh-fail");
+      expect(row?.id).toBe("fresh-failure-target");
     });
   });
 
@@ -742,6 +760,8 @@ describe("migrateDatabase", () => {
         "session_stop_points",
         // PRE-3 (`migration009`) : liens ordonnés des médias d'occurrence.
         "session_activity_media",
+        // PRE-4 (`migration010`, AD-12) : avis de migration.
+        "migration_notices",
       ].sort();
       expect(after.map((row) => row.name)).toEqual(expectedNames);
     });
@@ -773,7 +793,7 @@ describe("migrateDatabase", () => {
 
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
       expect(version?.user_version).toBe(DATABASE_VERSION);
-      expect(DATABASE_VERSION).toBe(9);
+      expect(DATABASE_VERSION).toBe(10);
 
       const tables = await database.getAllAsync<{ name: string }>(
         "SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'activity_definition%'",
@@ -1166,15 +1186,15 @@ describe("migrateDatabase", () => {
       ).rejects.toThrow();
     });
 
-    it("a fresh installation (v0) reaches the current version directly (8 then 9 in the same run), with every canonical_key already populated", async () => {
+    it("a fresh installation (v0) reaches the current version directly (8, 9 then 10 in the same run), with every canonical_key already populated", async () => {
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
       expect(version?.user_version ?? 0).toBe(0);
 
       await migrateDatabase(database);
 
       const after = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
-      // PRE-3 : la même exécution enchaîne `migration008` puis `migration009`.
-      expect(after?.user_version).toBe(9);
+      // PRE-3 / PRE-4 : la même exécution enchaîne `migration008`, `migration009` puis `migration010`.
+      expect(after?.user_version).toBe(10);
       const zones = await database.getAllAsync<{ canonical_key: string }>(
         "SELECT canonical_key FROM body_zones",
       );
@@ -1339,6 +1359,20 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
     await database.runAsync("INSERT INTO activity_body_zones (activity_id, body_zone_id) VALUES ('occ-legacy', 'dos')");
   }
 
+  /**
+   * `migration009` ÉPROUVÉE ISOLÉMENT (PRE-4) : la chaîne complète va
+   * désormais jusqu'à `migration010`, qui convertit les paramètres ; les
+   * propriétés propres à 009 (aucun backfill, colonnes additives) se vérifient
+   * donc sur une base portée de 8 à 9 seulement, dans une transaction comme le
+   * runner.
+   */
+  async function migrateVersion8To9(): Promise<void> {
+    await database.withExclusiveTransactionAsync(async (transaction) => {
+      await transaction.execAsync(MIGRATION_009);
+      await transaction.execAsync("PRAGMA user_version = 9");
+    });
+  }
+
   async function dump(): Promise<Record<string, unknown[]>> {
     const tables = [
       "activity_definitions",
@@ -1383,10 +1417,10 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
     );
   }
 
-  it("P3-17/migration/fresh-v9 — base vide : 001..009 appliquées, version 9, tables et contraintes disponibles", async () => {
+  it("P3-17/migration/fresh-v9 — base vide : 001..010 appliquées, version courante, tables et contraintes de 009 disponibles", async () => {
     await migrateDatabase(database);
     const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
-    expect(version?.user_version).toBe(9);
+    expect(version?.user_version).toBe(DATABASE_VERSION);
     const definitionColumns = await database.getAllAsync<{ name: string }>("PRAGMA table_info(activity_definitions)");
     expect(definitionColumns.map((column) => column.name)).toContain("execution_parameters");
     const activityColumns = (await database.getAllAsync<{ name: string }>("PRAGMA table_info(activities)")).map(
@@ -1412,7 +1446,7 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
     await populateVersion8();
     const before = await dump();
 
-    await migrateDatabase(database);
+    await migrateVersion8To9();
 
     const after = await dump();
     for (const table of Object.keys(before)) {
@@ -1496,23 +1530,19 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
   });
 
   function variableRepetitions(): ExecutionParameters {
-    return {
-      version: 1,
+    return variableParameters({
       mode: "REPETITIONS",
-      series: {
-        kind: "VARIABLE",
-        rows: [
-          { target: 100, pauseSeconds: 20 },
-          { target: 8, pauseSeconds: 40 },
-        ],
-      },
+      rows: [
+        [100, 20],
+        [8, 40],
+      ],
       sideMode: "LEFT_RIGHT",
       sideOrder: "BY_SERIES",
       sideRecoverySeconds: 12,
       cadenceBeepIntervalSeconds: 4,
       countdownSeconds: 6,
       endSeconds: 3,
-    };
+    });
   }
 
   it("P3-17/migration/scalar-projection — JSON et projections concordants ; le JSON fait autorité ; relecture Catalogue et Séance identique", async () => {
@@ -1523,15 +1553,8 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
     const definition = await definitions.create({
       name: "Fentes",
       description: null,
-      executionMode: "REPETITIONS",
-      durationSeconds: null,
-      repetitionCount: 100,
-      seriesCount: 2,
-      pauseSeconds: 20,
       category: { kind: "EXISTING", categoryId: "cardio" },
       bodyZoneIds: ["cuisses"],
-      sideMode: "LEFT_RIGHT",
-      sideRecoverySeconds: 12,
       executionParameters: canonical,
     });
     const session = await sessions.create({
@@ -1544,11 +1567,6 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
           type: "EXERCISE",
           structuralPosition: "IN_TOUR",
           name: "Fentes",
-          executionMode: "REPETITIONS",
-          durationSeconds: null,
-          repetitionCount: 100,
-          seriesCount: 2,
-          pauseSeconds: 20,
           postActivityRecoverySeconds: 0,
           bodyZoneIds: ["cuisses"],
           executionParameters: canonical,
@@ -1582,25 +1600,24 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
     await populateVersion8();
     await migrateDatabase(database);
     const definition = await new SqliteActivityDefinitionRepository(database, ids("def")).findById("def-legacy");
-    expect(definition?.executionParameters).toEqual({
-      version: 1,
-      mode: "DURATION",
-      series: { kind: "UNIFORM", count: 4, target: 45, pauseSeconds: 900 },
-      sideMode: "RIGHT_LEFT",
-      sideOrder: "BY_SIDE",
-      sideRecoverySeconds: 7,
-      cadenceBeepIntervalSeconds: 0,
-      countdownSeconds: 0,
-      endSeconds: 0,
-    });
+    // PRE-4 (`migration010`, AC14) : convertie par l'adaptateur historique,
+    // valeurs positives hors bornes recopiées telles quelles en v2.
+    expect(definition?.executionParameters).toEqual(
+      durationParameters(45, 4, 900, { sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE", sideRecoverySeconds: 7 }),
+    );
     const occurrence = (await new SqliteSessionRepository(database, ids("ses")).findById("session-legacy"))?.cycle.tour.exercises[0];
-    expect(occurrence?.pauseSeconds).toBe(600);
+    expect(occurrence?.executionParameters).toEqual(
+      uniformParameters({ mode: "REPETITIONS", count: 3, target: 12, pauseSeconds: 600, sideMode: "RIGHT_LEFT" }),
+    );
     expect(occurrence?.postActivityRecoverySeconds).toBe(30);
-    const revalidated = validateExecutionParameters(definition!.executionParameters!);
+    // Saisie nouvelle (aucune ligne de base) : les bornes s'appliquent ; valeur
+    // héritée non modifiée (ligne de base) : tolérée (H25).
+    const revalidated = validateForSave(definition!.executionParameters, null);
     expect(revalidated.ok).toBe(false);
     expect(!revalidated.ok && revalidated.violations).toEqual([
       expect.objectContaining({ field: "pauseSeconds", code: "OUT_OF_RANGE" }),
     ]);
+    expect(validateForSave(definition!.executionParameters, definition!.executionParameters).ok).toBe(true);
   });
 
   /** Fait échouer la N-ième instruction d'écriture d'une transaction (rollback réel). */
@@ -1654,14 +1671,9 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
     const definitionInput = {
       name: "Burpees",
       description: null,
-      executionMode: "DURATION" as const,
-      durationSeconds: 30,
-      repetitionCount: null,
-      seriesCount: 3,
-      pauseSeconds: 10,
       category: { kind: "EXISTING" as const, categoryId: "cardio" },
       bodyZoneIds: ["cuisses", "dos"],
-      sideRecoverySeconds: 0,
+      executionParameters: durationParameters(30, 3, 10),
       media,
     };
     const counts = async () =>
@@ -1710,11 +1722,7 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
           type: "EXERCISE" as const,
           structuralPosition: "IN_TOUR" as const,
           name: "Burpees",
-          executionMode: "DURATION" as const,
-          durationSeconds: 30,
-          repetitionCount: null,
-          seriesCount: 3,
-          pauseSeconds: 10,
+          executionParameters: durationParameters(30, 3, 10),
           postActivityRecoverySeconds: 0,
           bodyZoneIds: ["cuisses"],
           categoryId: "cardio",

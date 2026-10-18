@@ -11,6 +11,16 @@
         "APP_VARIANT": "development"
       }
     },
+    "development-bmad": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "ios": {
+        "simulator": false
+      },
+      "env": {
+        "APP_VARIANT": "bmad"
+      }
+    },
     "preview": {
       "distribution": "internal",
       "channel": "stable",

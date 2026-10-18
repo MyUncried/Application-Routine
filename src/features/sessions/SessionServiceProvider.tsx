@@ -10,6 +10,7 @@ import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories
 import { SqliteCategoryRepository } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
 import { SqliteLabelRepository } from "@/infrastructure/database/repositories/SqliteLabelRepository";
 import { SqliteMediaRepository } from "@/infrastructure/database/repositories/SqliteMediaRepository";
+import { SqliteMigrationNoticeRepository } from "@/infrastructure/database/repositories/SqliteMigrationNoticeRepository";
 import { SqliteProfileRepository } from "@/infrastructure/database/repositories/SqliteProfileRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
@@ -18,9 +19,11 @@ import { ProfileService } from "@/features/preferences/ProfileService";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
+import { MigrationNoticeRepositoryContext } from "@/features/sessions/MigrationNoticeRepositoryContext";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { SessionService } from "@/features/sessions/SessionService";
 import { ActivityMediaImportService } from "@/domain/media/ActivityMediaImportService";
+import type { MigrationNoticeRepository } from "@/domain/migration/MigrationNotice";
 import { getLocalMediaStore } from "@/infrastructure/media/LocalMediaStore";
 import { PhotoLibraryPicker } from "@/infrastructure/media/PhotoLibraryPicker";
 
@@ -90,6 +93,8 @@ type SessionServiceInitializerProps = {
   onProfileServiceReady: (service: ProfileService) => void;
   /** V2-PRE-2 : remonte `ReferentialService`, même connexion SQLite. */
   onReferentialServiceReady: (service: ReferentialService) => void;
+  /** PRE-4 (story 1.1, AD-12) : remonte le repository des avis de migration, même connexion SQLite. */
+  onMigrationNoticeRepositoryReady: (repository: MigrationNoticeRepository) => void;
 };
 
 /**
@@ -106,6 +111,7 @@ function SessionServiceInitializer({
   onActivityDefinitionServiceReady,
   onProfileServiceReady,
   onReferentialServiceReady,
+  onMigrationNoticeRepositoryReady,
 }: SessionServiceInitializerProps) {
   const nativeDatabase = useSQLiteContext();
 
@@ -154,9 +160,20 @@ function SessionServiceInitializer({
     );
   }, [nativeDatabase]);
 
+  // PRE-4 (story 1.1, AD-12) : repository des avis de `migration010`, sur la
+  // MÊME connexion. Lu par le seul `MigrationNoticeGate` (story 1.2).
+  const migrationNoticeRepository = useMemo(
+    () => new SqliteMigrationNoticeRepository(new ExpoDatabase(nativeDatabase)),
+    [nativeDatabase],
+  );
+
   useEffect(() => {
     onServiceReady(sessionService);
   }, [sessionService, onServiceReady]);
+
+  useEffect(() => {
+    onMigrationNoticeRepositoryReady(migrationNoticeRepository);
+  }, [migrationNoticeRepository, onMigrationNoticeRepositoryReady]);
 
   useEffect(() => {
     onActivityDefinitionServiceReady(activityDefinitionService);
@@ -187,6 +204,7 @@ export function SessionServiceProvider({ children, onReady }: SessionServiceProv
     useState<ActivityDefinitionService | null>(null);
   const [profileService, setProfileService] = useState<ProfileService | null>(null);
   const [referentialService, setReferentialService] = useState<ReferentialService | null>(null);
+  const [migrationNoticeRepository, setMigrationNoticeRepository] = useState<MigrationNoticeRepository | null>(null);
   // V2-PRE-2 (plan §6.3) : `onReady` attend aussi le CHARGEMENT du Profil
   // (pas seulement la construction de `ProfileService`) — un échec de
   // lecture suit le traitement d'erreur déjà établi ailleurs dans le projet
@@ -220,6 +238,10 @@ export function SessionServiceProvider({ children, onReady }: SessionServiceProv
     setReferentialService(service);
   }, []);
 
+  const handleMigrationNoticeRepositoryReady = useCallback((repository: MigrationNoticeRepository) => {
+    setMigrationNoticeRepository(repository);
+  }, []);
+
   // V2-PRE-2 (plan §6.3) : un seul signal `onReady`, une fois `SessionService`,
   // `ProfileService`, `ReferentialService` ET le Profil chargé — jamais dès
   // que `SessionService` seul est construit. Aucun écran n'est donc jamais
@@ -238,13 +260,16 @@ export function SessionServiceProvider({ children, onReady }: SessionServiceProv
           onActivityDefinitionServiceReady={handleActivityDefinitionServiceReady}
           onProfileServiceReady={handleProfileServiceReady}
           onReferentialServiceReady={handleReferentialServiceReady}
+          onMigrationNoticeRepositoryReady={handleMigrationNoticeRepositoryReady}
         />
       </SQLiteProvider>
       <SessionServiceContext.Provider value={sessionService}>
         <ActivityDefinitionServiceProvider service={activityDefinitionService}>
           <ProfileServiceContext.Provider value={profileService}>
             <ReferentialServiceContext.Provider value={referentialService}>
-              {children}
+              <MigrationNoticeRepositoryContext.Provider value={migrationNoticeRepository}>
+                {children}
+              </MigrationNoticeRepositoryContext.Provider>
             </ReferentialServiceContext.Provider>
           </ProfileServiceContext.Provider>
         </ActivityDefinitionServiceProvider>

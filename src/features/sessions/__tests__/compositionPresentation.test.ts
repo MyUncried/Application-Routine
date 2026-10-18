@@ -1,19 +1,27 @@
 import { describe, expect, it } from "@jest/globals";
 
+import {
+  variableParameters,
+  durationParameters,
+  repetitionParameters,
+  allFailureParameters,
+  uniformParameters,
+} from "@/domain/activities/testing/executionParametersFixtures";
+import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import {
   COMPACT_LIST_SEPARATOR,
   formatActivityRecoveryLabel,
+  formatCompactDuration,
   formatCompositionSummary,
   formatDurationRowValue,
   formatExerciseBodyZones,
-  formatExerciseDurationLine,
-  formatExerciseRecap,
   formatExerciseRowSummary,
 } from "@/features/sessions/compositionPresentation";
 import { BODY_ZONES } from "@/features/reference-data/bodyZones";
 import type { ExecutionParameters } from "@/domain/activities/ExecutionParameters";
+import { strings } from "@/shared/i18n";
 
 /**
  * V2-PRE-1 (plan §3.1, UI-CDBCCFD16078) : `formatExerciseBodyZones` reçoit
@@ -60,10 +68,22 @@ describe("formatCompositionSummary", () => {
     expect(formatCompositionSummary({ exercises: [] })).toBe("0 exercice · 0 min");
   });
 
+  it("PRE4-1.2/AC6 (Q32) — zéro Exercice dans le Tour, d'autres hors Tour : « 0 exercice · 0 min », au singulier", () => {
+    const summary = formatCompositionSummary({
+      exercises: [
+        { ...createExerciseDraft("before"), name: "Échauffement", structuralPosition: "BEFORE_TOUR", executionParameters: durationParameters(60) },
+        { ...createExerciseDraft("after"), name: "Étirements", structuralPosition: "AFTER_TOUR", executionParameters: durationParameters(90) },
+      ],
+      tourRepeatCount: 2,
+    });
+    expect(summary).toBe("0 exercice · 0 min");
+    expect(summary).not.toContain("exercices");
+  });
+
   it("formats a single 45s Activity (1 série, sans pause) as '1 exercice · 1 min'", () => {
     expect(
       formatCompositionSummary({
-        exercises: [{ ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45 }],
+        exercises: [{ ...inTourExercise("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }],
       }),
     ).toBe("1 exercice · 1 min");
   });
@@ -71,7 +91,7 @@ describe("formatCompositionSummary", () => {
   it("rounds a non-exact minute up (61s) to '1 exercice · 2 min' (Math.ceil, never underestimating)", () => {
     expect(
       formatCompositionSummary({
-        exercises: [{ ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 61 }],
+        exercises: [{ ...inTourExercise("ex-1"), name: "Gainage", executionParameters: durationParameters(61) }],
       }),
     ).toBe("1 exercice · 2 min");
   });
@@ -81,9 +101,9 @@ describe("formatCompositionSummary", () => {
   it("treats a null exercise duration as unknown work (lower bound), never as an exact 0", () => {
     expect(
       formatCompositionSummary({
-        exercises: [{ ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: null }],
+        exercises: [{ ...inTourExercise("ex-1"), name: "Gainage", executionParameters: durationParameters("UNSET") }],
       }),
-    ).toBe("1 exercice · ≥ 0 min");
+    ).toBe("1 exercice · ≥ 0 min"); // PRE-4 (P47) : une borne de 0 s garde le rendu PRE-3
   });
 
   /**
@@ -96,7 +116,7 @@ describe("formatCompositionSummary", () => {
    * produisent toujours exactement la même chaîne.
    */
   it("REWORK13 (R13-02) — the summary is fully determined by the Activities collection alone (CompositionSummaryFacts exposes only 'exercises')", () => {
-    const exercises = [{ ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45 }];
+    const exercises = [{ ...inTourExercise("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }];
     expect(formatCompositionSummary({ exercises })).toBe(formatCompositionSummary({ exercises }));
   });
 
@@ -112,36 +132,32 @@ describe("formatCompositionSummary", () => {
       return {
         ...inTourExercise("ex-1"),
         name: "Fentes",
-        executionMode: "REPETITIONS" as const,
-        durationSeconds: null,
-        repetitionCount,
-        seriesCount: 2,
-        pauseSeconds,
+        executionParameters: repetitionParameters(repetitionCount, 2, pauseSeconds),
       };
     }
 
     it("prefixes the duration with '≥' and ignores the exercise's own duration entirely (only the pause contributes)", () => {
       expect(
         formatCompositionSummary({ exercises: [repetitionExercise(12, 20)] }),
-      ).toBe("1 exercice · ≥ 1 min"); // 2 Séries × 20 s = 40 s -> ceil(40/60) = 1 min
+      ).toBe("1 exercice · ≥ 40 s"); // 2 Séries × 20 s = 40 s ; PRE-4 (story 2.4, AC5) : borne sans arrondi
     });
 
-    it("still applies Math.ceil to the pause sum alone", () => {
+    it("PRE-4 (story 2.4, AC5) — the lower bound keeps its seconds: no Math.ceil on the pause sum alone", () => {
       expect(
         formatCompositionSummary({ exercises: [repetitionExercise(20, 65)] }),
-      ).toBe("1 exercice · ≥ 3 min"); // 2 Séries × 65 s = 130 s -> ceil(130/60) = 3 min
+      ).toBe("1 exercice · ≥ 2 min 10 s"); // 2 Séries × 65 s = 130 s, sans arrondi (auparavant « ≥ 3 min »)
     });
 
     it("never underestimates: a repetition count change alone never changes the displayed minimum", () => {
       const first = formatCompositionSummary({ exercises: [repetitionExercise(5, 20)] });
       const second = formatCompositionSummary({ exercises: [repetitionExercise(50, 20)] });
       expect(first).toBe(second);
-      expect(first).toBe("1 exercice · ≥ 1 min");
+      expect(first).toBe("1 exercice · ≥ 40 s");
     });
 
     it("never shows the '≥' prefix in Duration mode", () => {
       const result = formatCompositionSummary({
-        exercises: [{ ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45 }],
+        exercises: [{ ...inTourExercise("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }],
       });
       expect(result).not.toContain("≥");
     });
@@ -155,9 +171,7 @@ describe("formatCompositionSummary", () => {
             {
               ...inTourExercise("ex-1"),
               name: "Gainage",
-              durationSeconds: 90,
-              seriesCount: 3,
-              pauseSeconds: 15,
+              executionParameters: durationParameters(90, 3, 15),
             },
           ],
         }),
@@ -171,9 +185,7 @@ describe("formatCompositionSummary", () => {
             {
               ...inTourExercise("ex-1"),
               name: "Gainage",
-              durationSeconds: 90,
-              seriesCount: 3,
-              pauseSeconds: 15,
+              executionParameters: durationParameters(90, 3, 15),
               postActivityRecoverySeconds: 15,
             },
           ],
@@ -190,9 +202,7 @@ describe("formatCompositionSummary", () => {
             {
               ...inTourExercise("ex-1"),
               name: "Gainage",
-              durationSeconds: 90,
-              seriesCount: 3,
-              pauseSeconds: 15,
+              executionParameters: durationParameters(90, 3, 15),
               postActivityRecoverySeconds: 75,
             },
           ],
@@ -208,11 +218,7 @@ describe("formatCompositionSummary", () => {
             {
               ...inTourExercise("ex-1"),
               name: "Fentes",
-              executionMode: "REPETITIONS",
-              durationSeconds: null,
-              repetitionCount: 12,
-              seriesCount: 3,
-              pauseSeconds: 20,
+              executionParameters: repetitionParameters(12, 3, 20),
             },
           ],
         }),
@@ -226,9 +232,7 @@ describe("formatCompositionSummary", () => {
             {
               ...inTourExercise("ex-1"),
               name: "Gainage",
-              durationSeconds: 45,
-              seriesCount: 4,
-              pauseSeconds: 0,
+              executionParameters: durationParameters(45, 4, 0),
             },
           ],
         }),
@@ -242,9 +246,7 @@ describe("formatCompositionSummary", () => {
             {
               ...inTourExercise("ex-1"),
               name: "Gainage",
-              durationSeconds: 45,
-              seriesCount: 1,
-              pauseSeconds: 0,
+              executionParameters: durationParameters(45, 1, 0),
             },
           ],
         }),
@@ -254,12 +256,12 @@ describe("formatCompositionSummary", () => {
     it("fait varier seriesCount seul : le résultat change en conséquence", () => {
       const oneSeries = formatCompositionSummary({
         exercises: [
-          { ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45, seriesCount: 1 },
+          { ...inTourExercise("ex-1"), name: "Gainage", executionParameters: durationParameters(45, 1) },
         ],
       });
       const threeSeries = formatCompositionSummary({
         exercises: [
-          { ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45, seriesCount: 3 },
+          { ...inTourExercise("ex-1"), name: "Gainage", executionParameters: durationParameters(45, 3) },
         ],
       });
       expect(oneSeries).toBe("1 exercice · 1 min"); // 45s
@@ -273,9 +275,7 @@ describe("formatCompositionSummary", () => {
           {
             ...inTourExercise("ex-1"),
             name: "Gainage",
-            durationSeconds: 45,
-            seriesCount: 2,
-            pauseSeconds: 0,
+            executionParameters: durationParameters(45, 2, 0),
           },
         ],
       });
@@ -284,9 +284,7 @@ describe("formatCompositionSummary", () => {
           {
             ...inTourExercise("ex-1"),
             name: "Gainage",
-            durationSeconds: 45,
-            seriesCount: 2,
-            pauseSeconds: 60,
+            executionParameters: durationParameters(45, 2, 60),
           },
         ],
       });
@@ -308,39 +306,36 @@ describe("formatCompositionSummary", () => {
     it("counts every Activity in the collection (never hardcoded to 1)", () => {
       const result = formatCompositionSummary({
         exercises: [
-          { ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45 },
-          { ...inTourExercise("ex-2"), name: "Squats", durationSeconds: 30 },
+          { ...inTourExercise("ex-1"), name: "Gainage", executionParameters: durationParameters(45) },
+          { ...inTourExercise("ex-2"), name: "Squats", executionParameters: durationParameters(30) },
         ],
       });
       expect(result).toBe("2 exercices · 2 min"); // 45 + 30 = 75s -> ceil(75/60) = 2 min
     });
 
-    it("sums every Activity's own estimated duration (Durée + Répétitions mixed), once Math.ceil at the very end", () => {
+    it("sums every Activity's own estimated duration (Durée + Répétitions mixed), once, at the very end", () => {
       const result = formatCompositionSummary({
         exercises: [
-          { ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 90 },
+          { ...inTourExercise("ex-1"), name: "Gainage", executionParameters: durationParameters(90) },
           {
             ...inTourExercise("ex-2"),
             name: "Fentes",
-            executionMode: "REPETITIONS",
-            durationSeconds: null,
-            repetitionCount: 12,
-            pauseSeconds: 20,
+            executionParameters: repetitionParameters(12, 1, 20),
           },
         ],
       });
-      // 90 + (0 + 1*20) = 110s -> ceil(110/60) = 2 min — la seconde Activité
+      // 90 + (0 + 1*20) = 110 s (borne : plus d’arrondi depuis PRE-4 2.4) — la seconde Activité
       // n'a qu'UNE Série, mais aucune Récupération ne remplace sa Pause :
       // celle-ci est donc bien exécutée. Au moins une Activité en mode
       // Répétitions -> préfixe '≥' même si l'autre est en mode Durée.
-      expect(result).toBe("2 exercices · ≥ 2 min");
+      expect(result).toBe("2 exercices · ≥ 1 min 50 s"); // PRE-4 (story 2.4, AC5) : 110 s, sans arrondi
     });
 
     it("never prefixes with '≥' when every Activity is in Durée mode, even with several Activities", () => {
       const result = formatCompositionSummary({
         exercises: [
-          { ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45 },
-          { ...inTourExercise("ex-2"), name: "Squats", durationSeconds: 45 },
+          { ...inTourExercise("ex-1"), name: "Gainage", executionParameters: durationParameters(45) },
+          { ...inTourExercise("ex-2"), name: "Squats", executionParameters: durationParameters(45) },
         ],
       });
       expect(result).not.toContain("≥");
@@ -362,7 +357,7 @@ describe("formatCompositionSummary", () => {
       structuralPosition: SessionDraftExercise["structuralPosition"],
       durationSeconds: number,
     ): SessionDraftExercise {
-      return { ...createExerciseDraft(id), name: id, structuralPosition, durationSeconds };
+      return { ...createExerciseDraft(id), name: id, structuralPosition, executionParameters: durationParameters(durationSeconds) };
     }
 
     // Deux Activités IN_TOUR (60s chacune) entourées d'une Activité
@@ -416,11 +411,7 @@ describe("formatCompositionSummary", () => {
       const toFailure: SessionDraftExercise = {
         ...inTourExercise("ex-1"),
         name: "Tractions",
-        executionMode: "TO_FAILURE",
-        durationSeconds: null,
-        repetitionCount: null,
-        seriesCount: 3,
-        pauseSeconds: 20,
+        executionParameters: allFailureParameters(3, 20),
       };
       // Aucune durée conventionnelle : seules les pauses comptent — et sans
       // Récupération, la Pause suit chacune des 3 Séries, soit 60 s.
@@ -431,9 +422,7 @@ describe("formatCompositionSummary", () => {
       const withRecovery: SessionDraftExercise = {
         ...inTourExercise("ex-1"),
         name: "Gainage",
-        durationSeconds: 30,
-        seriesCount: 3,
-        pauseSeconds: 15,
+        executionParameters: durationParameters(30, 3, 15),
         postActivityRecoverySeconds: 20,
       };
       // 3×30 + 2×15 + 20 = 140 s -> ceil(140/60) = 3 min.
@@ -445,9 +434,9 @@ describe("formatCompositionSummary", () => {
         ...inTourExercise("rec"),
         name: "Récupération",
         type: "RECOVERY",
-        durationSeconds: 90,
-        seriesCount: 3,
-        pauseSeconds: 30,
+        // PRE-4 : une ancienne Récupération autonome est représentée par une seule
+        // Série chronométrée de sa durée, sans Pause (lecture défensive).
+        executionParameters: durationParameters(90),
       };
       // 90 s exactement (jamais 3×90 + 3×30) -> ceil(90/60) = 2 min.
       expect(formatCompositionSummary({ exercises: [recovery] })).toBe("1 exercice · 2 min");
@@ -487,11 +476,7 @@ describe("formatExerciseRowSummary (T01-S08, CHANGES_REQUESTED — commentaire G
   it("mode Durée avec minutes et secondes, plusieurs Séries, pause non nulle — exemple exact 'Gainage'", () => {
     expect(
       formatExerciseRowSummary({
-        executionMode: "DURATION",
-        durationSeconds: 90,
-        repetitionCount: null,
-        seriesCount: 3,
-        pauseSeconds: 15,
+        executionParameters: durationParameters(90, 3, 15),
       }),
     ).toBe("3 séries de 1 min 30 s avec 15 s de pause par série");
   });
@@ -499,11 +484,7 @@ describe("formatExerciseRowSummary (T01-S08, CHANGES_REQUESTED — commentaire G
   it("mode Répétitions, plusieurs Séries, pause non nulle — exemple exact 'Squats'", () => {
     expect(
       formatExerciseRowSummary({
-        executionMode: "REPETITIONS",
-        durationSeconds: null,
-        repetitionCount: 12,
-        seriesCount: 3,
-        pauseSeconds: 20,
+        executionParameters: repetitionParameters(12, 3, 20),
       }),
     ).toBe("3 séries de 12 répétitions avec 20 s de pause par série");
   });
@@ -511,22 +492,14 @@ describe("formatExerciseRowSummary (T01-S08, CHANGES_REQUESTED — commentaire G
   it("une seule Série, durée inférieure à une minute, pause nulle — exemple exact 'Étirement'", () => {
     expect(
       formatExerciseRowSummary({
-        executionMode: "DURATION",
-        durationSeconds: 45,
-        repetitionCount: null,
-        seriesCount: 1,
-        pauseSeconds: 0,
+        executionParameters: durationParameters(45, 1, 0),
       }),
     ).toBe("1 série de 45 s");
   });
 
   it("durée inférieure à une minute (0 minute) : n'affiche jamais '0 min'", () => {
     const result = formatExerciseRowSummary({
-      executionMode: "DURATION",
-      durationSeconds: 45,
-      repetitionCount: null,
-      seriesCount: 2,
-      pauseSeconds: 0,
+      executionParameters: durationParameters(45, 2, 0),
     });
     expect(result).not.toContain("0 min");
     expect(result).toBe("2 séries de 45 s");
@@ -534,11 +507,7 @@ describe("formatExerciseRowSummary (T01-S08, CHANGES_REQUESTED — commentaire G
 
   it("durée exactement sur une minute (secondes nulles) : n'affiche jamais '0 s'", () => {
     const result = formatExerciseRowSummary({
-      executionMode: "DURATION",
-      durationSeconds: 120,
-      repetitionCount: null,
-      seriesCount: 1,
-      pauseSeconds: 0,
+      executionParameters: durationParameters(120, 1, 0),
     });
     expect(result).not.toContain("0 s");
     expect(result).toBe("1 série de 2 min");
@@ -546,18 +515,10 @@ describe("formatExerciseRowSummary (T01-S08, CHANGES_REQUESTED — commentaire G
 
   it("singulier de Série (1) distinct du pluriel (2+)", () => {
     const singular = formatExerciseRowSummary({
-      executionMode: "DURATION",
-      durationSeconds: 30,
-      repetitionCount: null,
-      seriesCount: 1,
-      pauseSeconds: 0,
+      executionParameters: durationParameters(30, 1, 0),
     });
     const plural = formatExerciseRowSummary({
-      executionMode: "DURATION",
-      durationSeconds: 30,
-      repetitionCount: null,
-      seriesCount: 2,
-      pauseSeconds: 0,
+      executionParameters: durationParameters(30, 2, 0),
     });
     expect(singular).toContain("1 série de");
     expect(singular).not.toContain("1 séries");
@@ -566,18 +527,10 @@ describe("formatExerciseRowSummary (T01-S08, CHANGES_REQUESTED — commentaire G
 
   it("singulier de Répétition (1) distinct du pluriel (2+)", () => {
     const singular = formatExerciseRowSummary({
-      executionMode: "REPETITIONS",
-      durationSeconds: null,
-      repetitionCount: 1,
-      seriesCount: 1,
-      pauseSeconds: 0,
+      executionParameters: repetitionParameters(1, 1, 0),
     });
     const plural = formatExerciseRowSummary({
-      executionMode: "REPETITIONS",
-      durationSeconds: null,
-      repetitionCount: 5,
-      seriesCount: 1,
-      pauseSeconds: 0,
+      executionParameters: repetitionParameters(5, 1, 0),
     });
     expect(singular).toBe("1 série de 1 répétition");
     expect(singular).not.toContain("1 répétitions");
@@ -586,11 +539,7 @@ describe("formatExerciseRowSummary (T01-S08, CHANGES_REQUESTED — commentaire G
 
   it("pause nulle : la clause de pause est entièrement absente, jamais 'avec 0 s de pause'", () => {
     const result = formatExerciseRowSummary({
-      executionMode: "DURATION",
-      durationSeconds: 30,
-      repetitionCount: null,
-      seriesCount: 1,
-      pauseSeconds: 0,
+      executionParameters: durationParameters(30, 1, 0),
     });
     expect(result).not.toContain("avec");
     expect(result).not.toContain("pause");
@@ -598,33 +547,21 @@ describe("formatExerciseRowSummary (T01-S08, CHANGES_REQUESTED — commentaire G
 
   it("pause non nulle inférieure à une minute : affichée en secondes seules", () => {
     const result = formatExerciseRowSummary({
-      executionMode: "DURATION",
-      durationSeconds: 30,
-      repetitionCount: null,
-      seriesCount: 1,
-      pauseSeconds: 10,
+      executionParameters: durationParameters(30, 1, 10),
     });
     expect(result).toBe("1 série de 30 s avec 10 s de pause par série");
   });
 
   it("pause non nulle avec minutes et secondes : affichée complètement", () => {
     const result = formatExerciseRowSummary({
-      executionMode: "DURATION",
-      durationSeconds: 30,
-      repetitionCount: null,
-      seriesCount: 1,
-      pauseSeconds: 75,
+      executionParameters: durationParameters(30, 1, 75),
     });
     expect(result).toBe("1 série de 30 s avec 1 min 15 s de pause par série");
   });
 
   it("ne mentionne jamais la Consigne ni les Zones corporelles", () => {
     const result = formatExerciseRowSummary({
-      executionMode: "DURATION",
-      durationSeconds: 90,
-      repetitionCount: null,
-      seriesCount: 3,
-      pauseSeconds: 15,
+      executionParameters: durationParameters(90, 3, 15),
     });
     expect(result.toLowerCase()).not.toContain("consigne");
     expect(result.toLowerCase()).not.toContain("zone");
@@ -634,427 +571,30 @@ describe("formatExerciseRowSummary (T01-S08, CHANGES_REQUESTED — commentaire G
     it("synthèse compacte : {N} série(s) jusqu'à l'échec, avec {pause} de pause entre les séries — jamais de cible, jamais de nom", () => {
       expect(
         formatExerciseRowSummary({
-          executionMode: "TO_FAILURE",
-          durationSeconds: null,
-          repetitionCount: null,
-          seriesCount: 3,
-          pauseSeconds: 15,
+          executionParameters: allFailureParameters(3, 15),
         }),
-      ).toBe("3 séries jusqu’à l’échec, avec 15 s de pause entre les séries");
+      ).toBe("3 séries à l’échec, avec 15 s de pause entre les séries");
     });
 
     it("omet entièrement la clause de pause à 0 s", () => {
       expect(
         formatExerciseRowSummary({
-          executionMode: "TO_FAILURE",
-          durationSeconds: null,
-          repetitionCount: null,
-          seriesCount: 4,
-          pauseSeconds: 0,
+          executionParameters: allFailureParameters(4, 0),
         }),
-      ).toBe("4 séries jusqu’à l’échec");
+      ).toBe("4 séries à l’échec");
     });
 
     it("omet la clause de pause quand une seule Série ne crée aucun intervalle", () => {
       expect(
         formatExerciseRowSummary({
-          executionMode: "TO_FAILURE",
-          durationSeconds: null,
-          repetitionCount: null,
-          seriesCount: 1,
-          pauseSeconds: 30,
+          executionParameters: allFailureParameters(1, 30),
         }),
-      ).toBe("1 série jusqu’à l’échec");
+      ).toBe("1 série à l’échec");
     });
   });
 });
 
-/**
- * REWORK09 (mission directe utilisateur, 2026-09-04, point 8 — cadre
- * récapitulatif de CE-T01-13), **reformulé par la complétion REWORK12**
- * (`[ChatGPT] Applique impérativement le protocole KODJO actif...`,
- * 2026-09-04, D-105) après mise à jour Figma/documentaire : plus de préfixe
- * `Exercice · Mode X ·`, le nom de l'Activité est désormais intégré au
- * texte, et la clause `entre les séries` ne s'ajoute que pour plusieurs
- * Séries — vérifié directement sur les nœuds Figma actuels
- * (`3261:4157`/`3261:4166`).
- */
-describe("formatExerciseRecap (reformulé — complétion REWORK12)", () => {
-  it("matches the exact Figma example, mode Durée, plusieurs Séries (nœud 3261:4157)", () => {
-    const result = formatExerciseRecap({
-      name: "squat sautés",
-      executionMode: "DURATION",
-      durationSeconds: 90,
-      repetitionCount: null,
-      seriesCount: 3,
-      pauseSeconds: 15,
-    });
-    expect(result).toBe("3 séries de squat sautés de 1 min 30 s, avec 15 s de pause entre les séries.");
-  });
 
-  it("matches the exact Figma example, mode Répétition, plusieurs Séries (nœud 3261:4166)", () => {
-    const result = formatExerciseRecap({
-      name: "squat sautés",
-      executionMode: "REPETITIONS",
-      durationSeconds: null,
-      repetitionCount: 12,
-      seriesCount: 3,
-      pauseSeconds: 15,
-    });
-    expect(result).toBe("3 séries de 12 squat sautés, avec 15 s de pause entre les séries.");
-  });
-
-  it("mode Durée, une seule Série : never appends 'entre les séries' (documented rule, not illustrated on Figma — both examples use 3 séries)", () => {
-    const result = formatExerciseRecap({
-      name: "squat sautés",
-      executionMode: "DURATION",
-      durationSeconds: 150,
-      repetitionCount: null,
-      seriesCount: 1,
-      pauseSeconds: 15,
-    });
-    expect(result).toBe("1 série de squat sautés de 2 min 30 s, avec 15 s de pause.");
-    expect(result).not.toContain("entre les séries");
-  });
-
-  it("mode Répétitions, une seule Série : never appends 'entre les séries' either", () => {
-    const result = formatExerciseRecap({
-      name: "squat sautés",
-      executionMode: "REPETITIONS",
-      durationSeconds: null,
-      repetitionCount: 12,
-      seriesCount: 1,
-      pauseSeconds: 15,
-    });
-    expect(result).toBe("1 série de 12 squat sautés, avec 15 s de pause.");
-    expect(result).not.toContain("entre les séries");
-  });
-
-  it("omits the pause clause entirely when pauseSeconds is 0, never 'avec 0 s de pause'", () => {
-    const result = formatExerciseRecap({
-      name: "Gainage",
-      executionMode: "DURATION",
-      durationSeconds: 30,
-      repetitionCount: null,
-      seriesCount: 1,
-      pauseSeconds: 0,
-    });
-    expect(result).toBe("1 série de Gainage de 30 s.");
-    expect(result.toLowerCase()).not.toContain("pause");
-  });
-
-  it("uses the exact singular for a single série, never '1 séries'", () => {
-    const result = formatExerciseRecap({
-      name: "Gainage",
-      executionMode: "DURATION",
-      durationSeconds: 45,
-      repetitionCount: null,
-      seriesCount: 1,
-      pauseSeconds: 0,
-    });
-    expect(result).toContain("1 série de");
-    expect(result).not.toContain("1 séries");
-  });
-
-  it("never prefixes with 'Exercice · Mode X ·' any more — modePrefix removed", () => {
-    const result = formatExerciseRecap({
-      name: "Gainage",
-      executionMode: "DURATION",
-      durationSeconds: 30,
-      repetitionCount: null,
-      seriesCount: 1,
-      pauseSeconds: 0,
-    });
-    expect(result).not.toContain("Exercice");
-    expect(result).not.toContain("Mode");
-  });
-
-  it("integrates the Activity's own name, never a static Figma placeholder like 'squat sautés' when a different name is given", () => {
-    const result = formatExerciseRecap({
-      name: "Fentes avant",
-      executionMode: "DURATION",
-      durationSeconds: 30,
-      repetitionCount: null,
-      seriesCount: 1,
-      pauseSeconds: 0,
-    });
-    expect(result).toContain("Fentes avant");
-    expect(result).not.toContain("squat sautés");
-  });
-
-  it("uses a pause label ('de pause') distinct from formatExerciseRowSummary's own suffix ('de pause par série') — two different Figma screens, never conflated", () => {
-    const recap = formatExerciseRecap({
-      name: "Gainage",
-      executionMode: "DURATION",
-      durationSeconds: 30,
-      repetitionCount: null,
-      seriesCount: 1,
-      pauseSeconds: 15,
-    });
-    const rowSummary = formatExerciseRowSummary({
-      executionMode: "DURATION",
-      durationSeconds: 30,
-      repetitionCount: null,
-      seriesCount: 1,
-      pauseSeconds: 15,
-    });
-    expect(recap).toContain("de pause");
-    expect(rowSummary).toContain("de pause par série");
-    expect(recap).not.toContain("de pause par série");
-  });
-
-  it("recomputes fully from the given facts — never a static Figma placeholder value", () => {
-    const first = formatExerciseRecap({
-      name: "Gainage",
-      executionMode: "DURATION",
-      durationSeconds: 30,
-      repetitionCount: null,
-      seriesCount: 1,
-      pauseSeconds: 0,
-    });
-    const second = formatExerciseRecap({
-      name: "Gainage",
-      executionMode: "DURATION",
-      durationSeconds: 120,
-      repetitionCount: null,
-      seriesCount: 1,
-      pauseSeconds: 0,
-    });
-    expect(first).not.toBe(second);
-    expect(second).toContain("2 min");
-  });
-
-  describe("mode À l'échec (T01-S10, D-111/D-112)", () => {
-    it("synthèse complète : {N} série(s) de {nom}, jusqu'à l'échec, avec {pause} de pause entre les séries. — jamais de durée ni de répétitions cible", () => {
-      const result = formatExerciseRecap({
-        name: "tractions",
-        executionMode: "TO_FAILURE",
-        durationSeconds: null,
-        repetitionCount: null,
-        seriesCount: 3,
-        pauseSeconds: 15,
-      });
-      expect(result).toBe("3 séries de tractions, jusqu’à l’échec, avec 15 s de pause entre les séries.");
-      expect(result).not.toContain("min");
-    });
-
-    it("omet la clause de pause à 0 s", () => {
-      expect(
-        formatExerciseRecap({
-          name: "tractions",
-          executionMode: "TO_FAILURE",
-          durationSeconds: null,
-          repetitionCount: null,
-          seriesCount: 3,
-          pauseSeconds: 0,
-        }),
-      ).toBe("3 séries de tractions, jusqu’à l’échec.");
-    });
-
-    it("omet la clause de pause quand une seule Série ne crée aucun intervalle", () => {
-      expect(
-        formatExerciseRecap({
-          name: "tractions",
-          executionMode: "TO_FAILURE",
-          durationSeconds: null,
-          repetitionCount: null,
-          seriesCount: 1,
-          pauseSeconds: 30,
-        }),
-      ).toBe("1 série de tractions, jusqu’à l’échec.");
-    });
-  });
-
-  /**
-   * T02-S02 (`06` Écran 4) : « Lorsque la Récupération est non nulle, ajouter
-   * `, puis {récupération} de récupération` ». La proposition se place
-   * TOUJOURS en dernier, après l'éventuelle clause de Pause — la Récupération
-   * s'exécute après toutes les Séries, donc après toutes les Pauses.
-   */
-  describe("Récupération attachée (T02-S02)", () => {
-    it("appends ', puis {durée} de récupération' after the pause clause, before the final period", () => {
-      expect(
-        formatExerciseRecap({
-          name: "squat sautés",
-          executionMode: "DURATION",
-          durationSeconds: 90,
-          repetitionCount: null,
-          seriesCount: 3,
-          pauseSeconds: 15,
-          postActivityRecoverySeconds: 60,
-        }),
-      ).toBe(
-        "3 séries de squat sautés de 1 min 30 s, avec 15 s de pause entre les séries, puis 1 min de récupération.",
-      );
-    });
-
-    it("appends it even when there is no pause clause at all", () => {
-      expect(
-        formatExerciseRecap({
-          name: "Gainage",
-          executionMode: "DURATION",
-          durationSeconds: 30,
-          repetitionCount: null,
-          seriesCount: 1,
-          pauseSeconds: 0,
-          postActivityRecoverySeconds: 20,
-        }),
-      ).toBe("1 série de Gainage de 30 s, puis 20 s de récupération.");
-    });
-
-    it("appends it in the À l'échec mode too", () => {
-      expect(
-        formatExerciseRecap({
-          name: "tractions",
-          executionMode: "TO_FAILURE",
-          durationSeconds: null,
-          repetitionCount: null,
-          seriesCount: 3,
-          pauseSeconds: 0,
-          postActivityRecoverySeconds: 45,
-        }),
-      ).toBe("3 séries de tractions, jusqu’à l’échec, puis 45 s de récupération.");
-    });
-
-    it("omits the clause entirely at 0 s, and behaves identically when the field is simply absent", () => {
-      const zero = formatExerciseRecap({
-        name: "Gainage",
-        executionMode: "DURATION",
-        durationSeconds: 30,
-        repetitionCount: null,
-        seriesCount: 1,
-        pauseSeconds: 0,
-        postActivityRecoverySeconds: 0,
-      });
-      const absent = formatExerciseRecap({
-        name: "Gainage",
-        executionMode: "DURATION",
-        durationSeconds: 30,
-        repetitionCount: null,
-        seriesCount: 1,
-        pauseSeconds: 0,
-      });
-      expect(zero).toBe("1 série de Gainage de 30 s.");
-      expect(zero.toLowerCase()).not.toContain("récupération");
-      expect(absent).toBe(zero);
-    });
-  });
-});
-
-/**
- * T02-S02 (`06` Écran 4) — seconde ligne de la synthèse fixe : la durée
- * TOTALE en mode Durée (valeur exacte, RM-129), une BORNE MINIMALE dans les
- * modes non chronométrés (RM-132). Jamais une donnée persistée
- * (DM-015/DM-016) : toujours recalculée depuis les paramètres affichés.
- *
- * V2-BILAT-01 (BIL-068) : le libellé visible reste `Durée totale` dans les
- * trois modes — le préfixe `≥` reste le seul signal de la borne inférieure.
- */
-describe("formatExerciseDurationLine (T02-S02)", () => {
-  it("shows the exact total in Durée mode, applying the conditional canonical formula", () => {
-    expect(
-      formatExerciseDurationLine({
-        name: "Gainage",
-        executionMode: "DURATION",
-        durationSeconds: 30,
-        repetitionCount: null,
-        seriesCount: 3,
-        pauseSeconds: 15,
-        postActivityRecoverySeconds: 20,
-      }),
-      // Récupération présente : elle remplace la dernière Pause —
-      // 3×30 + 2×15 + 20 = 140 s.
-    ).toBe("Durée totale : 2 min 20 s");
-  });
-
-  // PRE-3 (P3-12, périmètre §6) : Répétitions sans bip et À l'échec → durée
-  // d'Exercice OMISE dans l'éditeur (aucune ligne, ni zéro, ni « ≥ ») ; les
-  // pauses connues restent comptées au niveau Séance (borne « ≥ »).
-  it("omits the line in Répétitions mode without beep (no value, no zero, no '≥')", () => {
-    expect(
-      formatExerciseDurationLine({
-        name: "Squats",
-        executionMode: "REPETITIONS",
-        durationSeconds: null,
-        repetitionCount: 12,
-        seriesCount: 4,
-        pauseSeconds: 10,
-        postActivityRecoverySeconds: 25,
-      }),
-    ).toBeNull();
-  });
-
-  it("omits the line in Répétitions mode without beep, even without Récupération", () => {
-    expect(
-      formatExerciseDurationLine({
-        name: "Squats",
-        executionMode: "REPETITIONS",
-        durationSeconds: null,
-        repetitionCount: 12,
-        seriesCount: 4,
-        pauseSeconds: 10,
-        postActivityRecoverySeconds: 0,
-      }),
-    ).toBeNull();
-  });
-
-  it("omits the line in À l'échec mode as well", () => {
-    expect(
-      formatExerciseDurationLine({
-        name: "Tractions",
-        executionMode: "TO_FAILURE",
-        durationSeconds: null,
-        repetitionCount: null,
-        seriesCount: 2,
-        pauseSeconds: 30,
-        postActivityRecoverySeconds: 0,
-      }),
-    ).toBeNull();
-  });
-
-  it("never invents a conventional duration for the Exercise itself in a non-timed mode", () => {
-    // Deux nombres de répétitions différents, tout le reste identique : la
-    // borne affichée ne bouge pas — elle ne dépend que des parts connues.
-    const twelve = formatExerciseDurationLine({
-      name: "Squats",
-      executionMode: "REPETITIONS",
-      durationSeconds: null,
-      repetitionCount: 12,
-      seriesCount: 3,
-      pauseSeconds: 10,
-    });
-    const fifty = formatExerciseDurationLine({
-      name: "Squats",
-      executionMode: "REPETITIONS",
-      durationSeconds: null,
-      repetitionCount: 50,
-      seriesCount: 3,
-      pauseSeconds: 10,
-    });
-    expect(twelve).toBe(fifty);
-  });
-
-  it("recomputes from the facts, never from a persisted total (DM-015/DM-016)", () => {
-    const before = formatExerciseDurationLine({
-      name: "Gainage",
-      executionMode: "DURATION",
-      durationSeconds: 30,
-      repetitionCount: null,
-      seriesCount: 2,
-      pauseSeconds: 0,
-    });
-    const after = formatExerciseDurationLine({
-      name: "Gainage",
-      executionMode: "DURATION",
-      durationSeconds: 30,
-      repetitionCount: null,
-      seriesCount: 5,
-      pauseSeconds: 0,
-    });
-    expect(before).toBe("Durée totale : 1 min");
-    expect(after).toBe("Durée totale : 2 min 30 s");
-  });
-});
 
 /**
  * **Correction compacte LOT_3_OF_3 — Zones corporelles d'une Activité.**
@@ -1143,9 +683,9 @@ describe("formatActivityRecoveryLabel (V2-PRE-1)", () => {
 describe("V2-BILAT-01 / V2-PRE-1 — side mode in the Tour summary and the exercise duration line", () => {
   describe("formatCompositionSummary — direction propre à chaque Activité (V2-PRE-1, plan §3.3)", () => {
     it("doubles the Tour occurrence duration when an IN_TOUR Activity is itself bilateral", () => {
-      const unilateral = [{ ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45 }];
+      const unilateral = [{ ...inTourExercise("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }];
       const bilateral = [
-        { ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45, sideMode: "RIGHT_LEFT" as const },
+        { ...inTourExercise("ex-1"), name: "Gainage", executionParameters: durationParameters(45, 1, 0, { sideMode: "RIGHT_LEFT" }), sideMode: "RIGHT_LEFT" as const },
       ];
       // Unilatéral : 45 s -> ceil(45/60) = 1 min. Bilatéral : 90 s -> 2 min.
       expect(formatCompositionSummary({ exercises: unilateral })).toBe("1 exercice · 1 min");
@@ -1157,62 +697,22 @@ describe("V2-BILAT-01 / V2-PRE-1 — side mode in the Tour summary and the exerc
         {
           ...inTourExercise("ex-1"),
           name: "Gainage",
-          durationSeconds: 45,
+          executionParameters: durationParameters(45),
           sideMode: "LEFT_RIGHT" as const,
         },
-        { ...inTourExercise("ex-2"), name: "Squats", durationSeconds: 30 },
+        { ...inTourExercise("ex-2"), name: "Squats", executionParameters: durationParameters(30) },
       ];
       const summary = formatCompositionSummary({ exercises });
       expect(summary.startsWith("2 exercices")).toBe(true);
     });
   });
 
-  describe("formatExerciseDurationLine — sideMode (autonome, jamais la Récupération)", () => {
-    it("is unaffected by an UNILATERAL side mode (non-regression)", () => {
-      const facts = {
-        name: "Gainage",
-        executionMode: "DURATION" as const,
-        durationSeconds: 30,
-        repetitionCount: null,
-        seriesCount: 3,
-        pauseSeconds: 15,
-        postActivityRecoverySeconds: 20,
-      };
-      expect(formatExerciseDurationLine({ ...facts, sideMode: "UNILATERAL" })).toBe(
-        formatExerciseDurationLine(facts),
-      );
-    });
-
-    it("doubles the Series + Pauses part but never the Récupération", () => {
-      // PRE-3 (registre d'événements, « un côté après l'autre ») : chaque côté
-      // porte ses Séries ET leurs Pauses : 2 × (3×30 + 3×15) = 270 ; la
-      // Récupération (20, jamais doublée) remplace la seule Pause terminale :
-      // 270 − 15 + 20 = 275 s (l'ancienne formule omettait la Pause finale
-      // du premier côté).
-      expect(
-        formatExerciseDurationLine({
-          name: "Gainage",
-          executionMode: "DURATION",
-          durationSeconds: 30,
-          repetitionCount: null,
-          seriesCount: 3,
-          pauseSeconds: 15,
-          postActivityRecoverySeconds: 20,
-          sideMode: "RIGHT_LEFT",
-        }),
-      ).toBe("Durée totale : 4 min 35 s");
-    });
-  });
 
   describe("formatExerciseRowSummary — carte de Composition (correction bornée, plan `## 4.4`)", () => {
     it("mode Durée, direction PROPRE RIGHT_LEFT : « par côté » après {N} série(s), MAIS jamais la direction développée", () => {
       expect(
         formatExerciseRowSummary({
-          executionMode: "DURATION",
-          durationSeconds: 90,
-          repetitionCount: null,
-          seriesCount: 3,
-          pauseSeconds: 15,
+          executionParameters: durationParameters(90, 3, 15),
           sideMode: "RIGHT_LEFT",
         }),
       ).toBe("3 séries par côté de 1 min 30 s avec 15 s de pause par série");
@@ -1221,11 +721,7 @@ describe("V2-BILAT-01 / V2-PRE-1 — side mode in the Tour summary and the exerc
     it("mode Répétitions, direction PROPRE LEFT_RIGHT : « par côté » présent, aucun suffixe développé", () => {
       expect(
         formatExerciseRowSummary({
-          executionMode: "REPETITIONS",
-          durationSeconds: null,
-          repetitionCount: 12,
-          seriesCount: 3,
-          pauseSeconds: 0,
+          executionParameters: repetitionParameters(12, 3, 0),
           sideMode: "LEFT_RIGHT",
         }),
       ).toBe("3 séries par côté de 12 répétitions");
@@ -1234,31 +730,19 @@ describe("V2-BILAT-01 / V2-PRE-1 — side mode in the Tour summary and the exerc
     it("mode À l'échec, direction PROPRE RIGHT_LEFT : « par côté » présent, aucun suffixe développé", () => {
       expect(
         formatExerciseRowSummary({
-          executionMode: "TO_FAILURE",
-          durationSeconds: null,
-          repetitionCount: null,
-          seriesCount: 3,
-          pauseSeconds: 15,
+          executionParameters: allFailureParameters(3, 15),
           sideMode: "RIGHT_LEFT",
         }),
-      ).toBe("3 séries par côté jusqu’à l’échec, avec 15 s de pause entre les séries");
+      ).toBe("3 séries par côté à l’échec, avec 15 s de pause entre les séries");
     });
 
     it("la carte ne contient JAMAIS les suffixes développés « à droite, puis à gauche » / « à gauche, puis à droite » (plan `## 4.4`)", () => {
       const rightLeft = formatExerciseRowSummary({
-        executionMode: "DURATION",
-        durationSeconds: 90,
-        repetitionCount: null,
-        seriesCount: 3,
-        pauseSeconds: 15,
+        executionParameters: durationParameters(90, 3, 15),
         sideMode: "RIGHT_LEFT",
       });
       const leftRight = formatExerciseRowSummary({
-        executionMode: "REPETITIONS",
-        durationSeconds: null,
-        repetitionCount: 12,
-        seriesCount: 3,
-        pauseSeconds: 0,
+        executionParameters: repetitionParameters(12, 3, 0),
         sideMode: "LEFT_RIGHT",
       });
       expect(rightLeft).not.toContain("à droite, puis à gauche");
@@ -1267,11 +751,7 @@ describe("V2-BILAT-01 / V2-PRE-1 — side mode in the Tour summary and the exerc
 
     it("Activité unilatérale (sideMode omis ou UNILATERAL) : aucune clause « par côté » — non-régression exacte", () => {
       const facts = {
-        executionMode: "DURATION" as const,
-        durationSeconds: 90,
-        repetitionCount: null,
-        seriesCount: 3,
-        pauseSeconds: 15,
+        executionParameters: durationParameters(90, 3, 15),
       };
       expect(formatExerciseRowSummary(facts)).toBe(formatExerciseRowSummary({ ...facts, sideMode: "UNILATERAL" }));
       expect(formatExerciseRowSummary(facts)).not.toContain("par côté");
@@ -1279,125 +759,43 @@ describe("V2-BILAT-01 / V2-PRE-1 — side mode in the Tour summary and the exerc
 
     it("direction bilatérale HÉRITÉE du Tour (`isSideModeInherited`) : aucune clause « par côté », comme une Activité unilatérale", () => {
       const inherited = formatExerciseRowSummary({
-        executionMode: "DURATION",
-        durationSeconds: 90,
-        repetitionCount: null,
-        seriesCount: 3,
-        pauseSeconds: 15,
+        executionParameters: durationParameters(90, 3, 15),
         sideMode: "RIGHT_LEFT",
         isSideModeInherited: true,
       });
       expect(inherited).toBe(
         formatExerciseRowSummary({
-          executionMode: "DURATION",
-          durationSeconds: 90,
-          repetitionCount: null,
-          seriesCount: 3,
-          pauseSeconds: 15,
+          executionParameters: durationParameters(90, 3, 15),
         }),
       );
       expect(inherited).not.toContain("par côté");
     });
   });
 
-  describe("formatExerciseRecap — direction développée (correction bornée, plan `## 4.5`)", () => {
-    const base = {
-      name: "Gainage",
-      executionMode: "DURATION" as const,
-      durationSeconds: 90,
-      repetitionCount: null,
-      seriesCount: 3,
-      pauseSeconds: 15,
-      postActivityRecoverySeconds: 0,
-    };
-
-    it("mode Durée, direction PROPRE RIGHT_LEFT : base « {N} série(s) par côté … », suffixe après la cible, avant la Pause", () => {
-      expect(formatExerciseRecap({ ...base, sideMode: "RIGHT_LEFT" })).toBe(
-        "3 séries par côté de Gainage de 1 min 30 s, à droite, puis à gauche, avec 15 s de pause entre les séries.",
-      );
-    });
-
-    it("mode Répétitions, direction PROPRE LEFT_RIGHT : suffixe exact « , à gauche, puis à droite »", () => {
-      expect(
-        formatExerciseRecap({
-          name: "Squats",
-          executionMode: "REPETITIONS",
-          durationSeconds: null,
-          repetitionCount: 12,
-          seriesCount: 3,
-          pauseSeconds: 0,
-          postActivityRecoverySeconds: 0,
-          sideMode: "LEFT_RIGHT",
-        }),
-      ).toBe("3 séries par côté de 12 Squats, à gauche, puis à droite.");
-    });
-
-    it("mode À l'échec, direction PROPRE RIGHT_LEFT : suffixe après `jusqu'à l'échec`, avant la Pause", () => {
-      expect(
-        formatExerciseRecap({
-          name: "Gainage",
-          executionMode: "TO_FAILURE",
-          durationSeconds: null,
-          repetitionCount: null,
-          seriesCount: 3,
-          pauseSeconds: 15,
-          postActivityRecoverySeconds: 0,
-          sideMode: "RIGHT_LEFT",
-        }),
-      ).toBe(
-        "3 séries par côté de Gainage, jusqu’à l’échec, à droite, puis à gauche, avec 15 s de pause entre les séries.",
-      );
-    });
-
-    it("Activité unilatérale (sideMode omis ou UNILATERAL) : aucune clause « par côté » ni suffixe — non-régression exacte", () => {
-      expect(formatExerciseRecap(base)).toBe(formatExerciseRecap({ ...base, sideMode: "UNILATERAL" }));
-      expect(formatExerciseRecap(base)).not.toContain("par côté");
-      expect(formatExerciseRecap(base)).not.toContain("à droite");
-      expect(formatExerciseRecap(base)).not.toContain("à gauche");
-    });
-
-    it("direction bilatérale HÉRITÉE du Tour (`isSideModeInherited`) : aucune clause « par côté » ni suffixe — l'éditeur omet la direction du Tour", () => {
-      const inherited = formatExerciseRecap({ ...base, sideMode: "RIGHT_LEFT", isSideModeInherited: true });
-      expect(inherited).toBe(formatExerciseRecap(base));
-      expect(inherited).not.toContain("par côté");
-      expect(inherited).not.toContain("à droite");
-    });
-  });
 });
 
 /**
  * PRE-3 — adaptations minimales des consommateurs partagés (P3-22).
  */
 describe("PRE-3 — synthèses de Composition (adaptation minimale, P3-22)", () => {
-  const canonical = (overrides: Partial<ExecutionParameters> = {}): ExecutionParameters => ({
-    version: 1,
-    mode: "DURATION",
-    series: {
-      kind: "VARIABLE",
+  const canonical = (overrides: Partial<ExecutionParameters> = {}): ExecutionParameters =>
+    variableParameters({
+      mode: "DURATION",
       rows: [
-        { target: 30, pauseSeconds: 10 },
-        { target: 45, pauseSeconds: 20 },
-        { target: 60, pauseSeconds: 30 },
+        [30, 10],
+        [45, 20],
+        [60, 30],
       ],
-    },
-    sideMode: "UNILATERAL",
-    sideOrder: "BY_SIDE",
-    sideRecoverySeconds: 0,
-    cadenceBeepIntervalSeconds: 0,
-    countdownSeconds: 10,
-    endSeconds: 5,
-    ...overrides,
-  });
+      countdownSeconds: 10,
+      endSeconds: 5,
+      ...overrides,
+    });
 
-  it("P3-22/scope-regression — carte : indicateur « N séries variables » sans détail des valeurs (v13 §7) ; scalaires inchangés sans paramètres canoniques ; ≈ pour un travail estimé", () => {
+  it("P3-22/scope-regression — carte : indicateur « N séries variables » sans détail des valeurs (v13 §7) ; Régime identiques inchangé ; ≈ pour un travail estimé", () => {
     const base = {
-      executionMode: "DURATION" as const,
-      durationSeconds: 30,
-      repetitionCount: null,
-      seriesCount: 3,
-      pauseSeconds: 10,
+      executionParameters: durationParameters(30, 3, 10),
     };
-    // Sans paramètres canoniques : synthèse historique rigoureusement inchangée.
+    // Régime identiques : synthèse historique rigoureusement inchangée.
     expect(formatExerciseRowSummary(base)).toBe("3 séries de 30 s avec 10 s de pause par série");
     expect(formatExerciseRowSummary({ ...base, executionParameters: canonical() })).toBe("3 séries variables");
     expect(
@@ -1407,30 +805,26 @@ describe("PRE-3 — synthèses de Composition (adaptation minimale, P3-22)", () 
         executionParameters: canonical({ sideMode: "RIGHT_LEFT" }),
       }),
     ).toBe("3 séries variables par côté");
+    // PRE-4 (story 1.1, Q24, H20) : Régime variables dont toutes les Cibles sont
+    // à l'échec (ancien mode migré) → « N séries à l’échec » (auparavant « N
+    // séries variables »).
     expect(
       formatExerciseRowSummary({
         ...base,
-        executionMode: "TO_FAILURE",
-        executionParameters: canonical({
-          mode: "TO_FAILURE",
-          series: { kind: "VARIABLE", rows: [{ target: null, pauseSeconds: 10 }, { target: null, pauseSeconds: 20 }] },
+        executionParameters: variableParameters({
+          mode: "REPETITIONS",
+          rows: [
+            ["FAILURE", 10],
+            ["FAILURE", 20],
+          ],
         }),
       }),
-    ).toBe("2 séries variables");
+    ).toBe("2 séries à l’échec");
 
     // Répétitions avec bip : contribution ESTIMÉE (≈) ; sans bip : borne (≥).
     const reps = {
       ...inTourExercise("ex-r"),
-      executionMode: "REPETITIONS" as const,
-      durationSeconds: null,
-      repetitionCount: 15,
-      seriesCount: 4,
-      pauseSeconds: 15,
-      executionParameters: canonical({
-        mode: "REPETITIONS",
-        series: { kind: "UNIFORM", count: 4, target: 15, pauseSeconds: 15 },
-        cadenceBeepIntervalSeconds: 4,
-      }),
+      executionParameters: repetitionParameters(15, 4, 15, { cadenceBeepIntervalSeconds: 4, countdownSeconds: 10, endSeconds: 5 }),
     };
     expect(formatCompositionSummary({ exercises: [reps] })).toBe("1 exercice · ≈ 5 min");
     expect(
@@ -1438,7 +832,250 @@ describe("PRE-3 — synthèses de Composition (adaptation minimale, P3-22)", () 
         exercises: [{ ...reps, executionParameters: { ...reps.executionParameters, cadenceBeepIntervalSeconds: 0 } }],
       }),
     ).toBe("1 exercice · ≥ 1 min");
-    // Ligne de durée : délégation à l'autorité Domaine (≈ 300 s).
-    expect(formatExerciseDurationLine({ ...reps, name: "Squats" })).toBe("Durée totale : ≈ 5 min");
+  });
+
+  it("PRE4-1.1/AC21 — tout échec : « N séries à l’échec », jamais « 0 s » ni « 0 rép. » ; Cible à renseigner : « Paramètres à compléter. »", () => {
+    const failure = formatExerciseRowSummary({ executionParameters: allFailureParameters(3, 10, { cadenceBeepIntervalSeconds: 2 }) });
+    expect(failure).toBe("3 séries à l’échec, avec 10 s de pause entre les séries");
+    expect(failure).not.toMatch(/(^|[^0-9])0 s|0 rép/);
+    expect(formatExerciseRowSummary({ executionParameters: repetitionParameters("UNSET", 3, 10) })).toBe(
+      "Paramètres à compléter.",
+    );
+  });
+});
+
+describe("PRE-4 story 2.2 — AC1 `formatCompactDuration` converge sur le formateur du domaine", () => {
+  it("PRE4-2.2/AC1 — mêmes sorties « 45 s », « 1 min », « 1 min 30 s », et valeurs de l'AC1", () => {
+    const cases: readonly (readonly [number, string])[] = [
+      [0, "0 s"],
+      [15, "15 s"],
+      [45, "45 s"],
+      [60, "1 min"],
+      [90, "1 min 30 s"],
+      [1265, "21 min 5 s"],
+      [3665, "61 min 5 s"],
+      [3960, "66 min"],
+      [4500, "75 min"],
+    ];
+    for (const [seconds, expected] of cases) {
+      expect(formatCompactDuration(seconds)).toBe(expected);
+      expect(formatCompactDuration(seconds)).toBe(formatPhraseDuration(seconds));
+    }
+  });
+});
+
+/**
+ * PRE-4 story 2.4 — résumé de Composition (AC5, AC6) et résumé compact des
+ * Séries (AC3, AC4). Attendus écrits en constantes ou en formules dans le
+ * test (AD-10), jamais recalculés par le code testé.
+ */
+describe("PRE-4 story 2.4 — durées et résumés des cartes", () => {
+  // R01 : Durée, Régime variables, 30 s / 45 s / à l’échec, Pauses 10 s × 3.
+  const r01 = (): ExecutionParameters =>
+    variableParameters({
+      rows: [
+        [30, 10],
+        [45, 10],
+        ["FAILURE", 10],
+      ],
+    });
+  const r01InTour = (): SessionDraftExercise => ({
+    ...inTourExercise("r01"),
+    name: "R01",
+    postActivityRecoverySeconds: 0,
+    executionParameters: r01(),
+  });
+
+  it("PRE4-2.4/AC5 — Composition `lowerBound` : « ≥ » en min s sans arrondi ; Circuit ×1 → ≥ 1 min 45 s, ×2 → ≥ 3 min 30 s", () => {
+    // (30 + 45) + 3 × 10 = 105 s ; × 2 = 210 s.
+    expect(formatCompositionSummary({ exercises: [r01InTour()], tourRepeatCount: 1 })).toBe("1 exercice · ≥ 1 min 45 s");
+    expect(formatCompositionSummary({ exercises: [r01InTour()], tourRepeatCount: 2 })).toBe("1 exercice · ≥ 3 min 30 s");
+  });
+
+  it("PRE4-2.4/AC5 — Composition : Cible à renseigner (Q30) et Exercice omis contribuent leurs secondes connues, en « ≥ » sans arrondi", () => {
+    // Copie Durée 30 s / UNSET / 45 s, Pauses 10 s × 3 : (30 + 45) + 30 = 105 s.
+    expect(
+      formatCompositionSummary({
+        exercises: [
+          {
+            ...r01InTour(),
+            executionParameters: variableParameters({ rows: [[30, 10], ["UNSET", 10], [45, 10]] }),
+          },
+        ],
+      }),
+    ).toBe("1 exercice · ≥ 1 min 45 s");
+    // Omis : Répétitions Bip 0, Pauses 10 s × 3 = 30 s.
+    expect(
+      formatCompositionSummary({
+        exercises: [{ ...r01InTour(), executionParameters: repetitionParameters(12, 3, 10) }],
+      }),
+    ).toBe("1 exercice · ≥ 30 s");
+  });
+
+  it("PRE4-2.4/AC5 — Composition `exact` et `estimated` : rendu actuel inchangé (arrondi à la minute supérieure, P41)", () => {
+    // exact : 3 × 55 s = 165 s → ceil = 3 min.
+    expect(
+      formatCompositionSummary({
+        exercises: [{ ...inTourExercise("e"), postActivityRecoverySeconds: 0, executionParameters: durationParameters(55, 3, 0) }],
+      }),
+    ).toBe("1 exercice · 3 min");
+    // exact : 2 × 60 s = 120 s → 2 min.
+    expect(
+      formatCompositionSummary({
+        exercises: [{ ...inTourExercise("e"), postActivityRecoverySeconds: 0, executionParameters: durationParameters(60, 2, 0) }],
+      }),
+    ).toBe("1 exercice · 2 min");
+    // estimé : 2 × 13 rép. × 4 s = 104 s → ≈ 2 min.
+    expect(
+      formatCompositionSummary({
+        exercises: [
+          {
+            ...inTourExercise("e"),
+            postActivityRecoverySeconds: 0,
+            executionParameters: repetitionParameters(13, 2, 0, { cadenceBeepIntervalSeconds: 4 }),
+          },
+        ],
+      }),
+    ).toBe("1 exercice · ≈ 2 min");
+  });
+
+  it("PRE4-2.4/AC5 — la ligne Exercice de Composition n’acquiert aucune durée propre (Q4)", () => {
+    const row = formatExerciseRowSummary({ executionParameters: r01() });
+    expect(row).toBe("3 séries variables");
+  });
+
+  it("PRE4-2.4/AC6 — symbole « ≥ » issu du lexique, montant issu du formateur du domaine, aucune Phrase", () => {
+    expect(strings.shared.durationNature.lowerBoundPrefix).toBe("≥ ");
+    const summary = formatCompositionSummary({ exercises: [r01InTour()] });
+    expect(summary).toBe("1 exercice · ≥ 1 min 45 s");
+  });
+
+  it("PRE4-2.4/AC3 — Cible à renseigner : « Paramètres à compléter. », aucune valeur ni durée", () => {
+    expect(strings.executionParameters.card.incomplete).toBe("Paramètres à compléter.");
+    for (const executionParameters of [
+      durationParameters("UNSET", 3, 10),
+      repetitionParameters("UNSET", 3, 10),
+      variableParameters({ rows: [[30, 10], ["UNSET", 10], [45, 10]] }),
+      variableParameters({ mode: "REPETITIONS", rows: [[12, 10], ["UNSET", 10], ["FAILURE", 10]] }),
+    ]) {
+      expect(formatExerciseRowSummary({ executionParameters })).toBe("Paramètres à compléter.");
+    }
+  });
+
+  /**
+   * AC4 : matrice Mode × Régime × position de l’échec × bilatéralité (propre
+   * ou héritée), avec ou sans Pause et Bip, y compris des Cibles `UNSET`.
+   * Jamais « 0 s », « 0 min » ni « 0 rép. ».
+   */
+  it("PRE4-2.4/AC4 — matrice Mode × Régime × position de l’échec × bilatéral : jamais « 0 s » ni « 0 rép. »", () => {
+    const ZERO = /(^|[^0-9])0 (s|min|rép\.)/u;
+    const INCOMPLETE = "Paramètres à compléter.";
+    const modes = ["DURATION", "REPETITIONS"] as const;
+    const failurePositions = ["none", "first", "middle", "last", "all", "unset", "unsetAndFailure"] as const;
+    // Bilatéralité héritée : les paramètres propres de l’Exercice restent UNILATERAL.
+    const sides = [
+      { sideMode: "UNILATERAL", ownSideMode: "UNILATERAL", inherited: false, perSide: "" },
+      { sideMode: "RIGHT_LEFT", ownSideMode: "RIGHT_LEFT", inherited: false, perSide: " par côté" },
+      { sideMode: "RIGHT_LEFT", ownSideMode: "UNILATERAL", inherited: true, perSide: "" },
+    ] as const;
+    const pauses = [0, 10] as const;
+    const beeps = [0, 2] as const;
+    const numberFor = (mode: (typeof modes)[number], index: number): number =>
+      mode === "DURATION" ? [30, 45, 60][index]! : [12, 10, 8][index]!;
+    let cases = 0;
+
+    for (const mode of modes) {
+      for (const position of failurePositions) {
+        for (const side of sides) {
+          for (const pause of pauses) {
+            for (const beep of beeps) {
+              const targets = [0, 1, 2].map((index) => {
+                if ((position === "unset" || position === "unsetAndFailure") && index === 1) {
+                  return "UNSET" as const;
+                }
+                const isFailure =
+                  position === "all" ||
+                  ((position === "first" || position === "unsetAndFailure") && index === 0) ||
+                  (position === "middle" && index === 1) ||
+                  (position === "last" && index === 2);
+                return isFailure ? ("FAILURE" as const) : numberFor(mode, index);
+              });
+              const options = { sideMode: side.ownSideMode, cadenceBeepIntervalSeconds: beep };
+              const isUnset = position === "unset" || position === "unsetAndFailure";
+
+              // Régime variables : toutes les positions.
+              const variable = formatExerciseRowSummary({
+                executionParameters: variableParameters({
+                  ...options,
+                  mode,
+                  rows: targets.map((target) => [target, pause] as const),
+                }),
+                sideMode: side.sideMode,
+                isSideModeInherited: side.inherited,
+              });
+              expect(variable).not.toMatch(ZERO);
+              expect(variable).toBe(
+                isUnset
+                  ? INCOMPLETE
+                  : position === "all"
+                    ? `3 séries${side.perSide} à l’échec`
+                    : `3 séries variables${side.perSide}`,
+              );
+              cases += 1;
+
+              // Régime identiques : l’échec n’y est que « aucun » ou « toutes » ; Cible `UNSET`.
+              if (position === "unset") {
+                const unset = formatExerciseRowSummary({
+                  executionParameters: uniformParameters({ ...options, mode, count: 3, target: "UNSET", pauseSeconds: pause }),
+                  sideMode: side.sideMode,
+                  isSideModeInherited: side.inherited,
+                });
+                expect(unset).toBe(INCOMPLETE);
+                cases += 1;
+              }
+              if (position === "none" || position === "all") {
+                const target = position === "all" ? ("FAILURE" as const) : numberFor(mode, 0);
+                const uniform = formatExerciseRowSummary({
+                  executionParameters: uniformParameters({ ...options, mode, count: 3, target, pauseSeconds: pause }),
+                  sideMode: side.sideMode,
+                  isSideModeInherited: side.inherited,
+                });
+                expect(uniform).not.toMatch(ZERO);
+                const pauseClause =
+                  pause === 0 ? "" : position === "all" ? ", avec 10 s de pause entre les séries" : " avec 10 s de pause par série";
+                const work = mode === "DURATION" ? "30 s" : "12 répétitions";
+                expect(uniform).toBe(
+                  position === "all"
+                    ? `3 séries${side.perSide} à l’échec${pauseClause}`
+                    : `3 séries${side.perSide} de ${work}${pauseClause}`,
+                );
+                cases += 1;
+              }
+            }
+          }
+        }
+      }
+    }
+    // Variables : 2 Modes × 7 positions × 3 bilatéralités × 2 Pauses × 2 Bips = 168 ;
+    // identiques : 2 × 3 (aucun, toutes, `UNSET`) × 3 × 2 × 2 = 72.
+    expect(cases).toBe(168 + 72);
+  });
+
+  it("PRE4-2.4/AC4 — Cibles mixtes : « 3 séries variables » ; tout échec : « 3 séries à l’échec » dans les deux Régimes et les deux Modes", () => {
+    expect(formatExerciseRowSummary({ executionParameters: r01() })).toBe("3 séries variables");
+    for (const mode of ["DURATION", "REPETITIONS"] as const) {
+      expect(
+        formatExerciseRowSummary({
+          executionParameters: variableParameters({ mode, rows: [["FAILURE", 10], ["FAILURE", 20], ["FAILURE", 30]] }),
+        }),
+      ).toBe("3 séries à l’échec");
+      expect(formatExerciseRowSummary({ executionParameters: uniformParameters({ mode, count: 3, target: "FAILURE" }) })).toBe(
+        "3 séries à l’échec",
+      );
+    }
+    // Cibles numériques : formateur du domaine, mêmes sorties que le code de départ.
+    expect(formatExerciseRowSummary({ executionParameters: durationParameters(90, 3, 75) })).toBe(
+      "3 séries de 1 min 30 s avec 1 min 15 s de pause par série",
+    );
   });
 });

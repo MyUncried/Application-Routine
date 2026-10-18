@@ -9,14 +9,18 @@ import {
   WHEEL_SECONDS_MAX_INDEX,
   WHEEL_SECONDS_STEP,
   WHEEL_TOTAL_SECONDS_MAX,
+  boundedMinutesValues,
+  boundedSecondsValues,
   clampIndex,
   formatTwoDigits,
   fromTotalSeconds,
   indexToOffset,
   minutesMaxIndexFor,
+  nearestWheelValue,
   offsetToIndex,
   secondsIndexToValue,
   secondsValueToIndex,
+  snapBoundedSeconds,
   toTotalSeconds,
 } from "@/features/sessions/wheelPickerMath";
 
@@ -209,5 +213,70 @@ describe("WHEEL_NUMBER_MIN/WHEEL_NUMBER_MAX (Répétitions/Séries, D-092)", () 
   it("are exactly 1 and 99", () => {
     expect(WHEEL_NUMBER_MIN).toBe(1);
     expect(WHEEL_NUMBER_MAX).toBe(99);
+  });
+});
+
+/** PRE-4 story 3.4 (AC2, Q36) — secondes proposées sous bornes de Cible et recalage. */
+describe("PRE4-3.4 — boundedSecondsValues, nearestWheelValue, snapBoundedSeconds", () => {
+  const range = (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, index) => from + index);
+  const TARGET = { min: 5, max: 3535 } as const;
+
+  it("PRE4-3.4/AC2 — les bornes sont à la seconde : la liste suppose le pas de 1 de WHEEL_SECONDS_STEP (Q36)", () => {
+    expect(WHEEL_SECONDS_STEP).toBe(1);
+  });
+
+  it("PRE4-3.4/AC2 — 5..3535 : 00 puis 05..59 à 0 min ; 00..59 de 1 à 57 min ; 00..55 à 58 min", () => {
+    expect(boundedSecondsValues(0, TARGET)).toEqual([0, ...range(5, 59)]);
+    expect(boundedSecondsValues(1, TARGET)).toEqual(range(0, 59));
+    expect(boundedSecondsValues(57, TARGET)).toEqual(range(0, 59));
+    expect(boundedSecondsValues(58, TARGET)).toEqual(range(0, 55));
+  });
+
+  it("PRE4-3.4/AC2 — bornes dérivées par minute : max < 60 (5..40) ; min au-delà de la minute 0 (90..3535)", () => {
+    expect(boundedSecondsValues(0, { min: 5, max: 40 })).toEqual([0, ...range(5, 40)]);
+    expect(boundedSecondsValues(0, { min: 90, max: 3535 })).toEqual([0]);
+    expect(boundedSecondsValues(1, { min: 90, max: 3535 })).toEqual(range(30, 59));
+    expect(boundedSecondsValues(2, { min: 90, max: 3535 })).toEqual(range(0, 59));
+  });
+
+  it("PRE4-3.7/AC4 — boundedMinutesValues : 0..58 sous 5..3535 (3.4 inchangée) ; dès min ≥ 60, à partir de floor(min / 60) ; aucune minute proposée sans seconde", () => {
+    expect(boundedMinutesValues(TARGET)).toEqual(range(0, 58));
+    // Durée totale, d = 60 s, p = 10 s : T(1) = 70 s, T(99) plafonné à 5999 s.
+    const t1 = 1 * (60 + 10);
+    expect(boundedMinutesValues({ min: t1, max: 5999 })).toEqual(range(1, 99));
+    expect(boundedSecondsValues(1, { min: t1, max: 5999 })).toEqual(range(10, 59));
+    expect(boundedSecondsValues(99, { min: t1, max: 5999 })).toEqual(range(0, 59));
+    // Bilatéral un côté après l'autre, d = 25 s, p = 5 s, PC = 7 s : T(N) = 2N(d + p) + PC.
+    const bilateral = { min: 2 * 1 * 30 + 7, max: 2 * 99 * 30 + 7 };
+    expect(bilateral).toEqual({ min: 67, max: 5947 });
+    expect(boundedMinutesValues(bilateral)).toEqual(range(1, 99));
+    expect(boundedSecondsValues(1, bilateral)).toEqual(range(7, 59));
+    expect(boundedSecondsValues(99, bilateral)).toEqual(range(0, 7));
+    for (const bounds of [TARGET, { min: t1, max: 5999 }, bilateral, { min: 40, max: 3960 }, { min: 120, max: 125 }]) {
+      for (const minute of boundedMinutesValues(bounds)) {
+        expect(boundedSecondsValues(minute, bounds).length).toBeGreaterThan(0);
+      }
+    }
+    // Sous 60 s : minute 0 et position `00:00` conservées (40..3960 : 00 puis 40..59).
+    expect(boundedMinutesValues({ min: 40, max: 3960 })).toEqual(range(0, 66));
+    expect(boundedSecondsValues(0, { min: 40, max: 3960 })).toEqual([0, ...range(40, 59)]);
+  });
+
+  it("PRE4-3.4 — nearestWheelValue : valeur présente gardée ; sinon la plus proche ; à égalité, la plus grande", () => {
+    expect(nearestWheelValue(30, range(0, 59))).toBe(30);
+    expect(nearestWheelValue(57, range(0, 55))).toBe(55);
+    expect(nearestWheelValue(5, [4, 6])).toBe(6);
+    expect(nearestWheelValue(1, [0, 5])).toBe(0);
+    expect(nearestWheelValue(-3, [0, 5])).toBe(0);
+  });
+
+  it("PRE4-3.4/AC2 — snapBoundedSeconds : 58:57 → 58:55 ; 01:02 descendu à 0 min → 00:05, jamais 00:00 ; 00:00 et valeurs présentes gardées", () => {
+    expect(snapBoundedSeconds(57, 58, TARGET)).toBe(55);
+    expect(snapBoundedSeconds(2, 0, TARGET)).toBe(5);
+    expect(snapBoundedSeconds(1, 0, TARGET)).toBe(5);
+    expect(snapBoundedSeconds(0, 0, TARGET)).toBe(0);
+    expect(snapBoundedSeconds(30, 0, TARGET)).toBe(30);
+    expect(snapBoundedSeconds(30, 1, TARGET)).toBe(30);
+    expect(snapBoundedSeconds(3, 0, { min: 90, max: 3535 })).toBe(0);
   });
 });

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  AccessibilityInfo,
   Animated,
   Easing,
   Keyboard,
@@ -26,6 +27,7 @@ import { ReferenceValueDialog } from "@/features/reference-data/ReferenceValueDi
 import { useReduceMotion } from "@/features/activities/ExecutionParametersSheet";
 import { useReferentialService } from "@/features/reference-data/ReferentialServiceContext";
 import { strings } from "@/shared/i18n";
+import { ENTRY_MENU_ACTION } from "@/shared/ui/entryMenuAction";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
@@ -38,6 +40,21 @@ export type CategoryPickerModalProps = {
    */
   onSelect: (id: string) => void;
   onClose: () => void;
+  /**
+   * PRE-4 story 4.6 (FR-22-10, AC9) : présentation de la feuille, vraie par défaut (rendu
+   * PRE-3). L'appelant qui veut rendre le focus à son déclencheur APRÈS la fermeture garde la
+   * feuille montée, passe `visible={false}` à la fermeture et attend `onDismissed`
+   * (`useReferenceSheet`).
+   */
+  visible?: boolean;
+  /** `onDismiss` du `Modal` : fin de la fermeture animée (iOS). */
+  onDismissed?: () => void;
+  /**
+   * Q53 (8) : la Catégorie de l'Exercice courant a été supprimée depuis cette feuille — elle
+   * quitte immédiatement la sélection : l'appelant la retire de son Brouillon (`Terminer` reste
+   * inactif tant qu'aucune Catégorie n'est choisie).
+   */
+  onCategoryRetired?: (categoryId: string) => void;
 };
 
 /**
@@ -48,7 +65,14 @@ export type CategoryPickerModalProps = {
  * administrables exactement comme les Catégories créées (§4.10 L137 :
  * aucune garde sur `isPredefined`).
  */
-export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryPickerModalProps) {
+export function CategoryPickerModal({
+  selectedId,
+  onSelect,
+  onClose,
+  visible = true,
+  onDismissed,
+  onCategoryRetired,
+}: CategoryPickerModalProps) {
   const referentialService = useReferentialService();
   const [categories, setCategories] = useState<readonly Category[] | null>(null);
   // D-8 : le toucher (ou ↑ en création) MARQUE le choix, sans fermer ; ✓ confirme
@@ -100,10 +124,26 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
   // à cette liste après Annuler/Supprimer confirmé dans le dialogue d'appui
   // long (jamais après Modifier, cf. `ReferenceValueDialog`).
   const tagRowRef = useRef<View>(null);
+  // Story 4.6 : entrée visée par le menu ouvert (résultats asynchrones périmés ignorés) et
+  // champ du formulaire (focus après `Modifier`).
+  const menuTargetIdRef = useRef<string | null>(null);
+  const entryInputRef = useRef<TextInput>(null);
   const t = strings.referenceData.category;
 
+  // Q53 (8) : Catégorie DÉJÀ retirée à l'ouverture (depuis un autre Exercice) et affectée à
+  // cet Exercice — relevée à la première lecture, jamais recalculée ; une Catégorie supprimée
+  // depuis cette feuille n'en fait jamais partie.
+  const [retiredAtOpeningId, setRetiredAtOpeningId] = useState<string | null | undefined>(undefined);
+
   function reload() {
-    referentialService.listCategories().then(setCategories);
+    referentialService.listCategories().then((list) => {
+      setCategories(list);
+      setRetiredAtOpeningId((current) =>
+        current !== undefined
+          ? current
+          : (list.find((category) => !isCategoryAssignable(category) && category.id === selectedId)?.id ?? null),
+      );
+    });
   }
 
   useEffect(() => {
@@ -111,7 +151,12 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [referentialService]);
 
-  const activeCategories = (categories ?? []).filter(isCategoryAssignable);
+  // Q53 (8) : Catégories actives, plus la Catégorie retirée avant l'ouverture et affectée à cet
+  // Exercice (choisie, fond rouge clair, sans menu) ; une Catégorie retirée non affectée, ou
+  // supprimée depuis cette feuille, n'est jamais proposée (D-210).
+  const activeCategories = (categories ?? []).filter(
+    (category) => isCategoryAssignable(category) || category.id === retiredAtOpeningId,
+  );
   const canAddCategory = validateCategoryName(newName).ok;
   const canSaveEdit = validateCategoryName(editName).ok;
 
@@ -186,6 +231,15 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
     setLongPressTarget(null);
   }
 
+  // Story 4.6 (FR-22-10, AC9) : après `Modifier`, le menu disparaît ; le focus VoiceOver va au
+  // champ de nom du formulaire d'édition (le clavier, lui, suit l'`autoFocus` PRE-3 ou reste
+  // sur le champ déjà affiché).
+  useEffect(() => {
+    if (editTarget !== null && entryInputRef.current) {
+      AccessibilityInfo.sendAccessibilityEvent(entryInputRef.current, "focus");
+    }
+  }, [editTarget]);
+
   async function handleSaveEdit() {
     recordKeyboardJournal("Catégorie : Enregistrer");
     if (!editTarget) {
@@ -214,7 +268,30 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
 
   async function openDeleteConfirm(category: Category) {
     const used = await referentialService.isCategoryUsed(category.id);
+    // Revue 4.6 : un résultat arrivé après le changement de cible (autre entrée) est périmé.
+    if (menuTargetIdRef.current !== category.id) return;
     setDeleteTargetUsed(used);
+  }
+
+  /** Menu d'appui long D-354, ouvert par l'appui long ou par son action accessible (story 4.6, AC8). */
+  function openEntryMenu(category: Category) {
+    recordKeyboardJournal(`Catégorie : appui long « ${category.name} »`);
+    // Revue 4.6 : l'usage de l'entrée précédente ne vaut jamais pour celle-ci, le temps que
+    // la lecture asynchrone réponde.
+    menuTargetIdRef.current = category.id;
+    setDeleteTargetUsed(false);
+    setLongPressTarget(category);
+    void openDeleteConfirm(category);
+  }
+
+  /**
+   * Story 4.6 (FR-22-09, AC8) : action accessible « Modifier ou supprimer ». Ignorée tant
+   * que le formulaire de création ou de modification est ouvert, ou qu'un menu l'est déjà
+   * (la liste est alors masquée à l'accessibilité) ; l'appui long PRE-3 n'est pas concerné.
+   */
+  function runEntryMenuAction(category: Category) {
+    if (isEntryFormOpen || longPressTarget !== null) return;
+    openEntryMenu(category);
   }
 
   async function handleDelete() {
@@ -223,12 +300,20 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
     }
     const wasSelected = selectedId === longPressTarget.id;
     const wasChosen = chosenId === longPressTarget.id;
+    const target = longPressTarget;
     try {
-      await referentialService.retireCategory(longPressTarget.id);
+      await referentialService.retireCategory(target.id);
       reload();
       setLongPressTarget(null);
       if (wasSelected) {
+        // Q53 (8), règle de Hermann : dans l'Exercice depuis lequel la suppression est faite, la
+        // Catégorie disparaît immédiatement du sélecteur et de la sélection (feuille et Brouillon,
+        // `onCategoryRetired`), qu'elle soit utilisée ailleurs ou non ; « Choisissez-en une
+        // autre » est alors exact, et `Terminer` reste inactif tant qu'aucune n'est choisie. Les
+        // AUTRES Exercices qui l'avaient la gardent, en rouge dans leur feuille.
         setRetiredNotice(true);
+        setChosenId((current) => (current === target.id ? null : current));
+        onCategoryRetired?.(target.id);
       }
       // Un choix non confirmé qui disparaît revient à l’affectation actuelle de l’Exercice
       // (une affectation existante retirée reste conservable, CE-UI-09 §5).
@@ -243,7 +328,7 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
   }
 
   return (
-    <Modal transparent visible animationType="fade" onRequestClose={onClose}>
+    <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose} onDismiss={onDismissed}>
       {/* Recette 1 (F-03) : le clavier ne recouvre jamais la feuille ; le champ actif
           et ses actions restent visibles (spéc. 06 : « le champ actif et l'action finale
           restent accessibles »). */}
@@ -312,22 +397,44 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
             </Text>
           ) : null}
 
-          <View ref={tagRowRef} style={styles.tagRow} testID="category-picker-tag-row">
+          {/* Story 4.6 (FR-22-10, AC9) : menu ouvert, la liste est retirée de l'accessibilité sur
+              Android (sur iOS, `accessibilityViewIsModal` du calque suffit). */}
+          <View
+            ref={tagRowRef}
+            style={styles.tagRow}
+            importantForAccessibility={longPressTarget ? "no-hide-descendants" : "auto"}
+            testID="category-picker-tag-row"
+          >
             {activeCategories.map((category) => {
               const isSelected = category.id === chosenId;
+              // Q53 (8) : Catégorie retirée encore affectée — fond rouge clair, sans mention
+              // visible, état porté par le nom accessible, ni appui long ni action de menu.
+              const isRetired = !isCategoryAssignable(category);
+              const name = isRetired
+                ? strings.referenceData.retiredEntryAccessibilityLabel.replace("{name}", () => category.name)
+                : category.name;
               return (
                 <Pressable
                   key={category.id}
                   onPress={() => handleSelect(category)}
-                  onLongPress={() => {
-                    recordKeyboardJournal(`Catégorie : appui long « ${category.name} »`);
-                    setLongPressTarget(category);
-                    void openDeleteConfirm(category);
-                  }}
+                  onLongPress={isRetired ? undefined : () => openEntryMenu(category)}
                   accessibilityRole="button"
-                  accessibilityLabel={`${category.name}${isSelected ? ` ${strings.screens.categories.tagAccessibility.selectedSuffix}` : ""}`}
+                  accessibilityLabel={`${name}${isSelected ? ` ${strings.screens.categories.tagAccessibility.selectedSuffix}` : ""}`}
                   accessibilityState={{ selected: isSelected }}
-                  style={[styles.tag, isSelected ? styles.tagSelected : null]}
+                  // PRE-4 story 4.6 (FR-22-09, AC8) : alternative accessible à l'appui long —
+                  // le même menu ✕ / Modifier / Supprimer, sans glisser ni maintien. Ajout
+                  // seul : le toucher (marquer) et l'appui long PRE-3 sont inchangés.
+                  accessibilityActions={
+                    isRetired ? undefined : [{ name: ENTRY_MENU_ACTION, label: strings.referenceData.longPressDialog.accessibilityAction }]
+                  }
+                  onAccessibilityAction={
+                    isRetired
+                      ? undefined
+                      : (event) => {
+                          if (event.nativeEvent.actionName === ENTRY_MENU_ACTION) runEntryMenuAction(category);
+                        }
+                  }
+                  style={[styles.tag, isSelected ? styles.tagSelected : null, isRetired ? styles.tagRetired : null]}
                   testID={`category-picker-tag-${category.id}`}
                 >
                   <View style={[styles.swatch, { backgroundColor: category.color }]} />
@@ -346,6 +453,7 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
             <View style={styles.newEntryContainer} testID={editTarget ? "category-picker-edit-row" : "category-picker-new-row"}>
               <View style={styles.inlineField}>
                 <TextInput
+                  ref={entryInputRef}
                   value={editTarget ? editName : newName}
                   onChangeText={(text) => {
                     if (editTarget) {
@@ -425,6 +533,7 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
               onPress={() => setIsCreating(true)}
               accessibilityRole="button"
               accessibilityLabel={t.createAction}
+              hitSlop={CREATE_ACTION_HIT_SLOP}
               style={styles.createAction}
               testID="category-picker-create-action"
             >
@@ -439,8 +548,12 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
 
       {longPressTarget ? (
         <ReferenceValueDialog
+          // Revue 4.6 : une autre entrée remonte le dialogue (jamais l'étape `delete` d'une autre).
+          key={longPressTarget.id}
+          focusOnOpen
           name={longPressTarget.name}
           isUsed={deleteTargetUsed}
+          usedMessage={strings.referenceData.deleteConfirm.categoryUsedMessage}
           onCancel={() => setLongPressTarget(null)}
           onModify={() => openEdit(longPressTarget)}
           onDelete={handleDelete}
@@ -458,6 +571,13 @@ const CONFIRM_CLOSE_OFFSET = 48;
 
 /** Action « Envoyer » figée (4474:7157) : cercle 32, marge interne droite 8. */
 const INLINE_SEND_SIZE = 32;
+
+/**
+ * PRE-4 story 4.6 (FR-22-04, AC4) : cible de `Créer une catégorie` portée à 44 de haut
+ * sans agrandir la pilule de 32 (rendu PRE-3 inchangé) — 12 sous la pilule, dans la
+ * marge basse de 24 du contenu ; rien au-dessus, pour garder au moins 8 avec la liste.
+ */
+const CREATE_ACTION_HIT_SLOP = { top: 0, bottom: 12, left: 0, right: 0 } as const;
 
 /**
  * Recette 1 (T-34/T-59) — « Nuancier — Bandeau couleurs de catégorie » figé
@@ -592,6 +712,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surfaceSubtle,
+  },
+  // Q53 (8) : fond d'une Catégorie retirée encore affectée (choisie ou non).
+  tagRetired: {
+    backgroundColor: colors.dangerSurface,
   },
   tagSelected: {
     borderColor: colors.primarySoft,

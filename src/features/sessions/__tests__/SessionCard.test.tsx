@@ -190,3 +190,80 @@ describe("SessionCard", () => {
     expect(screen.getByText("1 exercice · 1 tour")).toBeTruthy();
   });
 });
+
+describe("PRE4-1.2/AC6 — carte d'une Séance sans occurrence (Séance vidée par la migration)", () => {
+  // Décision Q32 (Hermann, 2026-10-16) : zéro prend le singulier ; le format
+  // de la carte ne change pas par ailleurs. Une suite verte ne vaut pas
+  // recette visuelle (R-1.2-02, NFR-04).
+  const emptySession = aSummary({
+    activityCount: 0,
+    estimatedDurationSeconds: 0,
+    isEstimatedDurationApproximate: false,
+    durationKind: "exact",
+    tourRepeatCount: 2,
+  });
+
+  it("affiche « 0 exercice · 2 tours » et « 0 min » sur la ligne de titre, sans ≥ ni ≈, sans ligne d'étiquette", () => {
+    render(<SessionCard session={emptySession} />);
+
+    expect(screen.getByText("Renforcement du genou")).toBeTruthy();
+    expect(screen.getByText("0 exercice · 2 tours")).toBeTruthy();
+    expect(screen.queryByText("0 exercices · 2 tours")).toBeNull();
+    const duration = screen.getByTestId("session-card-duration").props.children;
+    expect(duration).toBe("0 min");
+    expect(duration).not.toMatch(/[≥≈]/);
+    expect(screen.queryByTestId("session-card-tag-line")).toBeNull();
+  });
+
+  it("le chevron et Démarrer s'actionnent sans erreur ; l'ouverture appelle onOpen une fois", () => {
+    const onOpen = jest.fn();
+    render(<SessionCard session={emptySession} onOpen={onOpen} />);
+
+    const chevron = screen.getByLabelText(strings.screens.sessions.card.expandAccessibilityLabel);
+    const start = screen.getByLabelText(strings.screens.sessions.card.startAccessibilityLabel);
+    expect(() => fireEvent.press(chevron)).not.toThrow();
+    expect(() => fireEvent.press(start)).not.toThrow();
+    expect(onOpen).not.toHaveBeenCalled();
+
+    fireEvent.press(screen.getByLabelText(strings.screens.sessions.card.openAccessibilityLabel));
+    expect(onOpen).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("0 exercice · 2 tours")).toBeTruthy();
+  });
+});
+
+describe("PRE4-2.2/AC6 — carte de Séance inchangée dans sa forme pour chaque nature (P41)", () => {
+  // 270 s : Séance d'un Exercice exact de 165 s et d'un Exercice partiel de
+  // 105 s (story 2.2, AC4) ; arrondi à la minute supérieure → 5 min.
+  it("PRE4-2.2/AC6 — exact « 5 min », estimé « ≈ 5 min », borne minimale « ≥ 5 min », symboles du lexique", () => {
+    const { estimatedPrefix, lowerBoundPrefix } = strings.shared.durationNature;
+    const cases = [
+      { durationKind: "exact", expected: "5 min" },
+      { durationKind: "estimated", expected: `${estimatedPrefix}5 min` },
+      { durationKind: "lowerBound", expected: `${lowerBoundPrefix}5 min` },
+    ] as const;
+    for (const { durationKind, expected } of cases) {
+      const { unmount } = render(
+        <SessionCard
+          session={aSummary({
+            estimatedDurationSeconds: 270,
+            isEstimatedDurationApproximate: durationKind === "lowerBound",
+            durationKind,
+          })}
+        />,
+      );
+      expect(screen.getByTestId("session-card-duration").props.children).toBe(expected);
+      unmount();
+    }
+    expect(`${estimatedPrefix}5 min`).toBe("≈ 5 min");
+    expect(`${lowerBoundPrefix}5 min`).toBe("≥ 5 min");
+  });
+
+  it("PRE4-2.2/AC6 — `durationKind` prime sur le drapeau historique : « estimated » avec drapeau vrai → « ≈ 5 min »", () => {
+    render(
+      <SessionCard
+        session={aSummary({ estimatedDurationSeconds: 270, isEstimatedDurationApproximate: true, durationKind: "estimated" })}
+      />,
+    );
+    expect(screen.getByTestId("session-card-duration").props.children).toBe("≈ 5 min");
+  });
+});

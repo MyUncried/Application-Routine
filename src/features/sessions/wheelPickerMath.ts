@@ -179,6 +179,74 @@ export function minutesMaxIndexFor(maxTotalSeconds: number): number {
   return Math.floor(maxTotalSeconds / 60);
 }
 
+/**
+ * PRE-4 story 3.4 (Q36, P21, H15) — bornes d'une roulette de Cible Durée, en
+ * secondes (5..3535). La position `00:00` reste présente dans la roue, mais n'est
+ * jamais une Cible (Q15, FR-08-04) : le ✓ y est indisponible.
+ */
+export type WheelTargetBounds = { readonly min: number; readonly max: number };
+
+/**
+ * Story 3.4 (AC2, Q36) — secondes proposées pour une minute donnée, sous des bornes
+ * de Cible : toute seconde dont le total `minutes × 60 + secondes` est dans
+ * `[bounds.min, bounds.max]`, plus la position `00` à 0 minute (`00:00`, jamais
+ * une Cible). Pour 5..3535 : `00` puis 05..59 à 0 min, 00..59 de 1 à 57 min, 00..55
+ * à 58 min. Les bornes sont à la seconde : cette liste suppose le pas de 1 de
+ * `WHEEL_SECONDS_STEP` (R4-05, Q36), vérifié par `wheelPickerMath.test.ts`.
+ */
+export function boundedSecondsValues(minutes: number, bounds: WheelTargetBounds): number[] {
+  const values: number[] = [];
+  for (let seconds = 0; seconds <= WHEEL_SECONDS_MAX_INDEX * WHEEL_SECONDS_STEP; seconds += WHEEL_SECONDS_STEP) {
+    const total = minutes * 60 + seconds;
+    if ((minutes === 0 && seconds === 0) || (total >= bounds.min && total <= bounds.max)) {
+      values.push(seconds);
+    }
+  }
+  return values;
+}
+
+/**
+ * PRE-4 story 3.7 (FR-14-03, H8) — minutes proposées sous des bornes : de 0 si
+ * `bounds.min < 60` (position `00:00` conservée, comportement de la story 3.4
+ * inchangé), sinon de `floor(min / 60)`, jusqu'à `floor(max / 60)`. Chaque minute
+ * proposée a au moins une seconde dans `boundedSecondsValues` (secondes ≥ `min % 60` à
+ * la première minute, ≤ `max % 60` à la dernière) : aucune liste vide. Ex. Durée totale
+ * 70..6930 (d = 60 s, p = 10 s) : minutes 1..99, secondes 10..59 à 1 min.
+ */
+export function boundedMinutesValues(bounds: WheelTargetBounds): number[] {
+  const first = bounds.min < 60 ? 0 : Math.floor(bounds.min / 60);
+  const last = minutesMaxIndexFor(bounds.max);
+  return Array.from({ length: Math.max(last - first + 1, 0) }, (_, index) => first + index);
+}
+
+/**
+ * Story 3.4 — recalage d'une seconde absente de la liste de sa minute (changement de
+ * minute, ou valeur native hors liste) : la plus proche valeur proposée, en sélection
+ * numérique. À 0 minute, le recalage vise une Cible valide (00:05 pour 5..3535),
+ * jamais `00:00` : cette position n'est atteinte que par la roue elle-même ou par
+ * l'option échec. Une seconde présente dans la liste est gardée telle quelle.
+ */
+export function snapBoundedSeconds(seconds: number, minutes: number, bounds: WheelTargetBounds): number {
+  const values = boundedSecondsValues(minutes, bounds);
+  if (values.includes(seconds)) {
+    return seconds;
+  }
+  const candidates = minutes === 0 ? values.filter((value) => value !== 0) : values;
+  return candidates.length === 0 ? 0 : nearestWheelValue(seconds, candidates);
+}
+
+/** Valeur de `values` la plus proche de `value` (elle-même si présente ; à égalité, la plus grande). */
+export function nearestWheelValue(value: number, values: readonly number[]): number {
+  if (values.includes(value)) {
+    return value;
+  }
+  return values.reduce((best, candidate) => {
+    const gap = Math.abs(candidate - value);
+    const bestGap = Math.abs(best - value);
+    return gap < bestGap || (gap === bestGap && candidate > best) ? candidate : best;
+  }, values[0] ?? 0);
+}
+
 /** Affichage à deux chiffres (`0` → `"00"`, `59` → `"59"`). */
 export function formatTwoDigits(value: number): string {
   return value.toString().padStart(2, "0");

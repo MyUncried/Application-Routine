@@ -3,6 +3,7 @@ import { describe, expect, it, jest } from "@jest/globals";
 import { useEffect, type ReactNode } from "react";
 import { Text } from "react-native";
 
+import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { createDefaultProfile, type Profile } from "@/domain/preferences/Profile";
 import type { Session } from "@/domain/sessions/Session";
 import { DEFAULT_SESSION_COLOR } from "@/domain/sessions/Session";
@@ -70,7 +71,7 @@ describe("SessionDraftProvider", () => {
         color: "#E5484D",
         initialCountdownSeconds: 20,
         finalPhaseSeconds: 15,
-        exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 30 }],
+        exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(30) }],
       });
     });
     expect(captured.draft.name).toBe("Séance simple");
@@ -162,14 +163,10 @@ describe("SessionDraftProvider — mode modification (T01-S10)", () => {
             {
               id: "act-1",
               type: "EXERCISE",
-              executionMode: "DURATION",
               structuralPosition: "IN_TOUR",
               position: 0,
               name: "Gainage",
-              durationSeconds: 30,
-              repetitionCount: null,
-              seriesCount: 1,
-              pauseSeconds: 0,
+              executionParameters: durationParameters(30, 1, 0),
               recoverySeconds: 0,
               instruction: null,
               bodyZoneIds: [],

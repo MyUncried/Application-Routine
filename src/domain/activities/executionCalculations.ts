@@ -8,8 +8,15 @@
  * terminale par une Récupération positive. Durée → Ti = cible ; Répétitions
  * avec bip b>0 → Ti = Ri×b ; sinon travail inconnu (aucune convention 2 s).
  *
- * Résultat typé `exact | estimated | omitted` à l'Exercice — `omitted` ne
- * porte aucun montant, mais les contributions connues (pauses) restent
+ * PRE-4 (story 2.1, AD-5) : résultat typé à cinq issues, par priorité —
+ * `incomplete` dès qu'une Cible est `UNSET` (H10, Q30 ; jamais lue comme 0
+ * ni convertie en `FAILURE`) ; `exact` (Durée) ou `estimated` (Répétitions
+ * avec Bip) si tout travail est connu ou estimable ; `omitted` en
+ * Répétitions avec Bip 0 ou si toutes les Cibles sont `FAILURE` (RM-072) ;
+ * sinon `lowerBound` (mélange de travail connu et de `FAILURE`, RM-129,
+ * RM-132, P25 : ≥ prime sur ≈), qui porte le montant connu. `omitted` et
+ * `incomplete` ne portent aucun montant, mais leurs contributions connues
+ * (`knownSeconds` : travail connu, toutes les Pauses et PC) restent
  * disponibles pour l'agrégation de Séance (`lowerBound`). Compte à rebours
  * et Fin propres sont exclus du total intrinsèque.
  */
@@ -21,6 +28,7 @@ import {
   seriesRowsOf,
   type ExecutionParameters,
   type ExecutionParametersInput,
+  type SeriesTarget,
 } from "./ExecutionParameters";
 
 export type LedgerSide = "NONE" | "RIGHT" | "LEFT";
@@ -31,16 +39,57 @@ export type LedgerEvent =
   | { readonly kind: "SIDE_PAUSE"; readonly series: number | null; readonly seconds: number }
   | { readonly kind: "RECOVERY"; readonly seconds: number };
 
-export type ExerciseDurationKind = "exact" | "estimated" | "omitted";
+export type ExerciseDurationKind = "exact" | "estimated" | "lowerBound" | "omitted" | "incomplete";
 
 export type ExerciseDurationResult = {
   readonly kind: ExerciseDurationKind;
   /** Somme des contributions chronométrées connues (pauses, travaux calculables). */
   readonly knownSeconds: number;
   readonly events: readonly LedgerEvent[];
-  /** Absent si `omitted` : aucune valeur, aucun zéro. */
+  /**
+   * Montant de la Durée totale : présent pour `exact`, `estimated` et
+   * `lowerBound` (montant connu) ; absent pour `omitted` et `incomplete` :
+   * aucune valeur, aucun zéro.
+   */
   readonly seconds?: number;
 };
+
+/**
+ * Vrai si la contribution rend un agrégat partiel (≥) : travail inconnu
+ * (`lowerBound`, `omitted`) ou Cible à renseigner (`incomplete`, Q30).
+ */
+export function isPartialContribution(kind: ExerciseDurationKind): boolean {
+  switch (kind) {
+    case "exact":
+    case "estimated":
+      return false;
+    case "lowerBound":
+    case "omitted":
+    case "incomplete":
+      return true;
+    default: {
+      const exhaustive: never = kind;
+      return exhaustive;
+    }
+  }
+}
+
+/** Vrai si la nature porte un montant de Durée totale affichable (`seconds`). */
+export function hasDurationAmount(kind: ExerciseDurationKind): boolean {
+  switch (kind) {
+    case "exact":
+    case "estimated":
+    case "lowerBound":
+      return true;
+    case "omitted":
+    case "incomplete":
+      return false;
+    default: {
+      const exhaustive: never = kind;
+      return exhaustive;
+    }
+  }
+}
 
 /** Paramètres dont le mode est connu : seuls calculables. */
 type CalculableParameters = ExecutionParametersInput & { readonly mode: NonNullable<ExecutionParametersInput["mode"]> };
@@ -52,12 +101,21 @@ function requireMode(parameters: ExecutionParametersInput): CalculableParameters
   return parameters as CalculableParameters;
 }
 
-function workSeconds(parameters: CalculableParameters, target: number | null): number | null {
-  if (parameters.mode === "DURATION") {
-    return target;
+/**
+ * Travail d'une Série. PRE-4 (story 1.1) : seule une Cible `NUMBER` porte un
+ * travail connu ; une Cible `FAILURE` ou `UNSET` a un travail inconnu, même
+ * avec un Bip (l'ancien mode « à l'échec » n'était jamais estimé). La
+ * nature est qualifiée par `summarize` (story 2.1).
+ */
+function workSeconds(parameters: CalculableParameters, target: SeriesTarget): number | null {
+  if (target.kind !== "NUMBER") {
+    return null;
   }
-  if (parameters.mode === "REPETITIONS" && parameters.cadenceBeepIntervalSeconds > 0 && target !== null) {
-    return target * parameters.cadenceBeepIntervalSeconds;
+  if (parameters.mode === "DURATION") {
+    return target.value;
+  }
+  if (parameters.mode === "REPETITIONS" && parameters.cadenceBeepIntervalSeconds > 0) {
+    return target.value * parameters.cadenceBeepIntervalSeconds;
   }
   return null;
 }
@@ -112,7 +170,14 @@ export function buildExecutionLedger(
   return events;
 }
 
-function summarize(mode: CalculableParameters["mode"], events: readonly LedgerEvent[]): ExerciseDurationResult {
+/**
+ * Qualifie la nature (story 2.1, AC2, AC5) à partir des Cibles effectives et
+ * du registre, sans recalculer aucun montant : `knownSeconds` est toujours
+ * la somme des phases connues du registre (Récupération substituée comprise).
+ */
+function summarize(input: ExecutionParametersInput, events: readonly LedgerEvent[]): ExerciseDurationResult {
+  const parameters = normalizeEffective(requireMode(input));
+  const targets = seriesRowsOf(parameters).map((row) => row.target);
   let knownSeconds = 0;
   let unknown = false;
   for (const event of events) {
@@ -122,13 +187,25 @@ function summarize(mode: CalculableParameters["mode"], events: readonly LedgerEv
       knownSeconds += event.seconds;
     }
   }
-  const kind: ExerciseDurationKind = unknown ? "omitted" : mode === "REPETITIONS" ? "estimated" : "exact";
-  return unknown ? { kind, knownSeconds, events } : { kind, knownSeconds, events, seconds: knownSeconds };
+  let kind: ExerciseDurationKind;
+  if (targets.some((target) => target.kind === "UNSET")) {
+    kind = "incomplete";
+  } else if (!unknown) {
+    kind = parameters.mode === "REPETITIONS" ? "estimated" : "exact";
+  } else if (
+    (parameters.mode === "REPETITIONS" && parameters.cadenceBeepIntervalSeconds === 0) ||
+    targets.every((target) => target.kind === "FAILURE")
+  ) {
+    kind = "omitted";
+  } else {
+    kind = "lowerBound";
+  }
+  return hasDurationAmount(kind) ? { kind, knownSeconds, events, seconds: knownSeconds } : { kind, knownSeconds, events };
 }
 
 /** Total intrinsèque d'un Exercice (hors R, hors Compte à rebours/Fin). */
 export function computeIntrinsicDuration(parameters: ExecutionParametersInput): ExerciseDurationResult {
-  return summarize(requireMode(parameters).mode, buildExecutionLedger(parameters));
+  return summarize(parameters, buildExecutionLedger(parameters));
 }
 
 /** Durée d'occurrence : To = T − PN + R si R > 0, sinon To = T. */
@@ -136,7 +213,7 @@ export function computeOccurrenceDuration(
   parameters: ExecutionParametersInput,
   recoverySeconds: number,
 ): ExerciseDurationResult {
-  return summarize(requireMode(parameters).mode, buildExecutionLedger(parameters, recoverySeconds));
+  return summarize(parameters, buildExecutionLedger(parameters, recoverySeconds));
 }
 
 /** Vrai si le mode est connu (aucun calcul n'est possible sur un mode « — »). */
@@ -149,10 +226,21 @@ export function isCalculable(parameters: ExecutionParametersInput): parameters i
 export const INVERSION_SERIES_MIN = 1;
 export const INVERSION_SERIES_MAX = 99;
 
-/** Vrai uniquement en Durée uniforme avec une cible renseignée. */
-export function isTotalDurationInvertible(parameters: ExecutionParametersInput): boolean {
+/**
+ * Vrai si et seulement si Mode Durée, Régime identiques, Cible numérique
+ * (`NUMBER`) et N non hérité (story 2.1, AC6, P42). `inheritedSeriesCount`
+ * n'est qu'une entrée : PRE-4 ne produit ni ne persiste aucun N hérité
+ * (repris par la story 3.2, AC14) ; `false` par défaut.
+ */
+export function isTotalDurationInvertible(
+  parameters: ExecutionParametersInput,
+  inheritedSeriesCount: boolean = false,
+): boolean {
   return (
-    parameters.mode === "DURATION" && parameters.series.kind === "UNIFORM" && parameters.series.target !== null
+    !inheritedSeriesCount &&
+    parameters.mode === "DURATION" &&
+    parameters.series.kind === "UNIFORM" &&
+    parameters.series.target.kind === "NUMBER"
   );
 }
 
@@ -183,7 +271,11 @@ export type TotalDurationInversion = {
 export function invertTotalDuration(
   parameters: ExecutionParametersInput,
   requestedSeconds: number,
+  inheritedSeriesCount: boolean = false,
 ): TotalDurationInversion {
+  if (inheritedSeriesCount) {
+    throw new Error("Total duration inversion is unavailable for an inherited series count.");
+  }
   if (!isTotalDurationInvertible(parameters)) {
     throw new Error("Total duration inversion is reserved to uniform Duration mode.");
   }
@@ -246,9 +338,10 @@ export type SessionDurationContribution = {
 
 /**
  * Total de Séance : exact si tout est exact ; ≈ si au moins une estimation
- * et aucun inconnu ; ≥ (contributions connues) si au moins un inconnu. Les
- * pauses connues d'un Exercice `omitted` sont incluses, jamais un travail
- * inventé.
+ * et aucun inconnu ; ≥ (contributions connues) si au moins une contribution
+ * est `lowerBound`, `omitted` ou `incomplete` (story 2.1, AC9). Les pauses
+ * connues d'un Exercice `omitted` ou `incomplete` sont incluses, jamais un
+ * travail inventé.
  */
 export function aggregateSessionDuration(
   contributions: readonly SessionDurationContribution[],
@@ -260,7 +353,7 @@ export function aggregateSessionDuration(
     seconds += result.knownSeconds * multiplicity;
     if (multiplicity > 0) {
       estimated = estimated || result.kind === "estimated";
-      unknown = unknown || result.kind === "omitted";
+      unknown = unknown || isPartialContribution(result.kind);
     }
   }
   return { kind: unknown ? "lowerBound" : estimated ? "estimated" : "exact", seconds };

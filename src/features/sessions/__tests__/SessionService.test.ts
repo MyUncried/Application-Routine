@@ -21,6 +21,7 @@ import {
   DEFAULT_STRUCTURAL_POSITION,
   DEFAULT_TOUR_REPEAT_COUNT,
 } from "@/domain/sessions/defaults";
+import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { SessionValidationError } from "@/domain/sessions/errors";
 import type {
   SessionRepository,
@@ -45,14 +46,10 @@ function anActivity(overrides: Partial<Activity> = {}): Activity {
   return {
     id: "activity-1",
     type: "EXERCISE",
-    executionMode: "DURATION",
     structuralPosition: "IN_TOUR",
     position: 0,
     name: "Gainage",
-    durationSeconds: 30,
-    repetitionCount: null,
-    seriesCount: 1,
-    pauseSeconds: 0,
+    executionParameters: durationParameters(30, 1, 0),
     postActivityRecoverySeconds: 0,
     instruction: null,
     bodyZoneIds: [],
@@ -104,11 +101,7 @@ function normalizedExercise() {
     type: DEFAULT_ACTIVITY_TYPE,
     structuralPosition: DEFAULT_STRUCTURAL_POSITION,
     name: "Gainage",
-    executionMode: "DURATION" as const,
-    durationSeconds: 30,
-    repetitionCount: null,
-    seriesCount: 1,
-    pauseSeconds: 0,
+    executionParameters: durationParameters(30, 1, 0),
     postActivityRecoverySeconds: 0,
     instruction: null,
     bodyZoneIds: [],
@@ -183,7 +176,7 @@ describe("SessionService.createSession", () => {
       ...aValidDraft(),
       exercises: [
         { ...createExerciseDraft("ex-1"), name: "Gainage" },
-        { ...createExerciseDraft("ex-2"), name: "Squats", durationSeconds: 45 },
+        { ...createExerciseDraft("ex-2"), name: "Squats", executionParameters: durationParameters(45) },
       ],
       labelId: "label-1",
     };
@@ -192,7 +185,7 @@ describe("SessionService.createSession", () => {
 
     expect(repository.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        exercises: [normalizedExercise(), expect.objectContaining({ name: "Squats", durationSeconds: 45 })],
+        exercises: [normalizedExercise(), expect.objectContaining({ name: "Squats", executionParameters: durationParameters(45) })],
         labelId: "label-1",
       }),
     );
@@ -235,7 +228,8 @@ describe("SessionService.createSession", () => {
       expect.objectContaining({
         initialCountdownSeconds: DEFAULT_INITIAL_COUNTDOWN_SECONDS,
         finalPhaseSeconds: DEFAULT_FINAL_PHASE_SECONDS,
-        exercises: [expect.objectContaining({ durationSeconds: DEFAULT_EXERCISE_DURATION_SECONDS })],
+        // PRE-4 (story 1.1) : la durée canonique voyage dans les paramètres typés.
+        exercises: [expect.objectContaining({ executionParameters: durationParameters(DEFAULT_EXERCISE_DURATION_SECONDS) })],
       }),
     );
   });
@@ -305,11 +299,7 @@ describe("SessionService.updateSession (T01-S10, Q3-A — toUpdateSessionInput)"
           structuralPosition: "BEFORE_TOUR",
           position: 0,
           name: "Gainage",
-          executionMode: "DURATION",
-          durationSeconds: 30,
-          repetitionCount: null,
-          seriesCount: 1,
-          pauseSeconds: 0,
+          executionParameters: durationParameters(30, 1, 0),
           postActivityRecoverySeconds: 0,
           instruction: null,
           bodyZoneIds: [],

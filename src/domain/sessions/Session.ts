@@ -1,4 +1,8 @@
-import type { ExecutionParameters, ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
+import type {
+  ExecutionMode,
+  ExecutionParameters,
+  ExecutionParametersInput,
+} from "@/domain/activities/ExecutionParameters";
 import type { SessionDurationKind } from "@/domain/activities/executionCalculations";
 import type { MediaLinkInput, SessionActivityMediaWithAsset } from "@/domain/media/ActivityMedia";
 
@@ -56,28 +60,28 @@ export type ActivityType = "EXERCISE" | "RECOVERY";
 export type StructuralPosition = "BEFORE_TOUR" | "IN_TOUR" | "AFTER_TOUR";
 
 /**
- * Mode d'exécution d'un Exercice (T01-S10, D-111/RM-034) : une durée cible,
- * un nombre de répétitions cible, ou « à l'échec » (aucune cible). `TO_FAILURE`
- * partage l'exécution et le résultat de `REPETITIONS` (D-111) ; sa durée
- * n'entre dans aucun calcul comme valeur exacte (borne minimale `≥`, D-112).
+ * Mode d'exécution d'un Exercice : `DURATION` ou `REPETITIONS` (PRE-4,
+ * story 1.1, AD-1, FR-05-01). Défini par le seul domaine des paramètres
+ * (`ExecutionParameters.ts`) et réexporté ici sous son nom historique. Une
+ * Série menée jusqu'à l'échec est une Cible (`SeriesTarget` `FAILURE`),
+ * jamais un Mode (FR-05-04).
  */
-export type ExerciseExecutionMode = "DURATION" | "REPETITIONS" | "TO_FAILURE";
+export type ExerciseExecutionMode = ExecutionMode;
 
 /**
  * Activité persistée — une OCCURRENCE d'Exercice dans une Séance (T01-S09,
- * complétion REWORK12 ; T01-S10 : Récupération, positions structurelles et
- * mode `TO_FAILURE` ; V2-PRE-1 : `postActivityRecoverySeconds` obligatoire,
- * indépendant de la définition source, plan §3.2).
+ * complétion REWORK12 ; T01-S10 : Récupération, positions structurelles ;
+ * V2-PRE-1 : `postActivityRecoverySeconds` obligatoire, indépendant de la
+ * définition source, plan §3.2 ; PRE-4 : paramètres typés obligatoires).
  *
- * Un Exercice porte : soit une durée, soit un nombre de répétitions, soit
- * aucune cible (`TO_FAILURE`) — jamais deux à la fois (RM-034) — un nombre
- * de Séries et une pause après Série propres (D-092/RM-035/RM-037), une
- * Consigne optionnelle et une sélection de Zones corporelles (D-093).
+ * Un Exercice porte ses paramètres d'exécution typés (Mode, Cibles par
+ * Série, N, Pauses, côtés, Bip, Compte à rebours, Fin — AD-1, AD-3), une
+ * Consigne optionnelle et une sélection de Zones corporelles (D-093). Aucun
+ * Mode, Cible, N ni Pause scalaire n'est exposé.
  *
- * Une Récupération (`type === "RECOVERY"`, T01-S10, D-041) est toujours
- * chronométrée : `executionMode` et `seriesCount` valent `null`,
- * `durationSeconds` est renseigné, `repetitionCount` vaut `null`,
- * `pauseSeconds` vaut `0` et `bodyZoneIds` est vide.
+ * Une Récupération autonome (`type === "RECOVERY"`, ancienne ligne, D-041)
+ * est lue défensivement : une seule Série chronométrée de sa durée, sans
+ * Pause ni Zone.
  *
  * Historique : `Session.cycle.tour.exercises` reste la collection ordonnée
  * des Activités `IN_TOUR` (T01-S09). Les Activités `BEFORE_TOUR`/`AFTER_TOUR`
@@ -87,19 +91,17 @@ export type ExerciseExecutionMode = "DURATION" | "REPETITIONS" | "TO_FAILURE";
 export type Activity = {
   id: string;
   type: ActivityType;
-  /** `null` uniquement pour une Récupération (T01-S10). */
-  executionMode: ExerciseExecutionMode | null;
   structuralPosition: StructuralPosition;
   /** Rang 0-indexé de l'Activité dans sa zone structurelle — ordre d'exécution ET d'affichage. */
   position: number;
   name: string;
-  /** Non nul en mode `DURATION` et pour toute Récupération ; nul sinon (RM-034). */
-  durationSeconds: number | null;
-  /** Non nul uniquement en mode `REPETITIONS` (RM-034). */
-  repetitionCount: number | null;
-  /** `null` uniquement pour une Récupération (T01-S10) ; entier ≥ 1 sinon. */
-  seriesCount: number | null;
-  pauseSeconds: number;
+  /**
+   * PRE-4 (story 1.1, AD-3) : paramètres d'exécution TYPÉS de l'occurrence,
+   * lus par `readV2` — seule source de son Mode, de ses Cibles, de N et de
+   * ses Pauses. Les colonnes scalaires n'en sont que des projections
+   * d'écriture, jamais exposées ni relues.
+   */
+  executionParameters: ExecutionParameters;
   /**
    * V2-PRE-1 (plan §3.2) : récupération post-exercice de l'OCCURRENCE,
    * copiée depuis le Profil au moment de l'insertion et INDÉPENDANTE de la
@@ -134,13 +136,6 @@ export type Activity = {
    * sont retirés du Domaine).
    */
   sideMode?: SideMode;
-  /**
-   * PRE-3 : paramètres canoniques de l'OCCURRENCE (JSON persisté). Absent
-   * pour une occurrence antérieure à PRE-3 : le consommateur applique
-   * l'adaptateur conservateur (`resolveActivityExecutionParameters`), jamais
-   * le Profil courant. Optionnel sur ce type LU (fixtures hors périmètre).
-   */
-  executionParameters?: ExecutionParameters;
   /** PRE-3 : Catégorie transportée par la copie (`null` pour une ancienne copie sans Catégorie). */
   categoryId?: string | null;
   /** PRE-3 : médias ordonnés de l'occurrence (liens propres, fichiers partagés). */
@@ -233,35 +228,24 @@ export type Session = {
  * recalcule lui aussi les positions par zone plutôt que de recopier le champ
  * `position` de `UpdateSessionActivityInput`.
  *
- * Récupération (`type === "RECOVERY"`, D-041) : `executionMode` et
- * `seriesCount` valent `null`, `durationSeconds` est renseigné,
- * `repetitionCount` vaut `null`, `pauseSeconds` vaut `0`, `bodyZoneIds` est
- * vide — mêmes règles que `UpdateSessionActivityInput`, une seule
- * implémentation de validation partagée (`validation.ts`).
+ * PRE-4 (story 1.1, AD-3, AD-13) : `executionParameters` est OBLIGATOIRE et
+ * seule source du Mode, des Cibles, de N et des Pauses ; aucun champ
+ * scalaire n'est transporté. Mêmes règles que `UpdateSessionActivityInput`,
+ * une seule implémentation de validation partagée (`validation.ts`).
  */
 export type CreateSessionActivityInput = {
   readonly id?: string;
   readonly type: ActivityType;
   readonly structuralPosition: StructuralPosition;
   readonly name: string;
-  /**
-   * T01-S10 : `TO_FAILURE` accepté en plus de `DURATION`/`REPETITIONS`.
-   * T02-S01 : `null` pour une Récupération (D-041).
-   */
-  readonly executionMode: ExerciseExecutionMode | null;
-  readonly durationSeconds: number | null;
-  readonly repetitionCount: number | null;
-  /** `null` uniquement pour une Récupération (D-041) ; entier `1..99` sinon. */
-  readonly seriesCount: number | null;
-  readonly pauseSeconds: number;
+  /** Paramètres typés, validés au niveau structurel (`validateForSave(…, "STORAGE")`). */
+  readonly executionParameters: ExecutionParametersInput;
   /** V2-PRE-1 : récupération post-exercice de l'occurrence, `0..5999` s — `0` = aucune (voir `Activity.postActivityRecoverySeconds`). */
   readonly postActivityRecoverySeconds: number;
   readonly instruction?: string | null;
   readonly bodyZoneIds: readonly string[];
   /** V2-BILAT-01 : direction propre de cette Activité (`Activity.sideMode`) — optionnel, `DEFAULT_SIDE_MODE` si absent. */
   readonly sideMode?: SideMode;
-  /** PRE-3 : paramètres canoniques — autorité, scalaires projetés par la validation. */
-  readonly executionParameters?: ExecutionParametersInput;
   /** PRE-3 : Catégorie de la copie (`null` = aucune). */
   readonly categoryId?: string | null;
   /** PRE-3 : médias ordonnés ; l'ordre du tableau est la position. */
@@ -325,9 +309,8 @@ export type CreateSessionInput = {
  * inchangée`, plan §6.4). `position` est un rang 0-indexé DANS la zone
  * structurelle `structuralPosition`.
  *
- * Récupération (`type === "RECOVERY"`) : `executionMode` et `seriesCount`
- * valent `null`, `durationSeconds` est renseigné, `repetitionCount` vaut
- * `null`, `pauseSeconds` vaut `0`, `bodyZoneIds` est vide (D-041).
+ * PRE-4 : `executionParameters` obligatoire, aucun champ scalaire (voir
+ * `CreateSessionActivityInput`).
  */
 export type UpdateSessionActivityInput = {
   readonly id: string;
@@ -335,19 +318,14 @@ export type UpdateSessionActivityInput = {
   readonly structuralPosition: StructuralPosition;
   readonly position: number;
   readonly name: string;
-  readonly executionMode: ExerciseExecutionMode | null;
-  readonly durationSeconds: number | null;
-  readonly repetitionCount: number | null;
-  readonly seriesCount: number | null;
-  readonly pauseSeconds: number;
+  /** PRE-4 : paramètres typés obligatoires (voir `CreateSessionActivityInput.executionParameters`). */
+  readonly executionParameters: ExecutionParametersInput;
   /** V2-PRE-1 : récupération post-exercice de l'occurrence, `0..5999` s — `0` = aucune (voir `Activity.postActivityRecoverySeconds`). */
   readonly postActivityRecoverySeconds: number;
   readonly instruction?: string | null;
   readonly bodyZoneIds: readonly string[];
   /** V2-BILAT-01 : direction propre de cette Activité (`Activity.sideMode`) — optionnel, `DEFAULT_SIDE_MODE` si absent. */
   readonly sideMode?: SideMode;
-  /** PRE-3 : voir `CreateSessionActivityInput.executionParameters`. */
-  readonly executionParameters?: ExecutionParametersInput;
   /** PRE-3 : `undefined` conserve la Catégorie persistée d'une occurrence existante. */
   readonly categoryId?: string | null;
   /** PRE-3 : `undefined` conserve les liens persistés ; `[]` explicite les retire (jamais l'asset). */
@@ -374,6 +352,14 @@ export type UpdateSessionInput = {
   readonly activities: readonly UpdateSessionActivityInput[];
   /** V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : voir `CreateSessionInput.stopPoints`. */
   readonly stopPoints?: readonly CreateStopPointInput[];
+  /**
+   * PRE-4 story 4.1 (AC13, FR-01-10) : identifiants des Activités déjà
+   * persistées à l'ouverture (`SessionDraft.persistedExerciseIds`). Une
+   * Activité listée ici et absente de la base à l'enregistrement n'est
+   * jamais recréée : la modification échoue (`ACTIVITY_NOT_FOUND`). Les
+   * autres identifiants inconnus restent des Activités nouvelles, insérées.
+   */
+  readonly persistedActivityIds?: readonly string[];
 };
 
 export type SessionSummary = {
