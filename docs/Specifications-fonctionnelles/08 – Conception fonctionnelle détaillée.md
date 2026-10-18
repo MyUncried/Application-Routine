@@ -119,15 +119,14 @@ Aucune routine n'est créée automatiquement.
 
 Une séance peut être modifiée à tout moment depuis le catalogue des séances.
 
-La modification d’une Séance ouvre directement l’écran unique `Modifier une séance`, prérempli avec le nom, la couleur et les Exercices. Les modifications sont enregistrées selon les validations explicites prévues par les écrans.
+La modification d’une Séance ouvre directement l’écran unique `Modifier une séance`, prérempli avec le nom, l’Étiquette facultative (qui porte la couleur affichée) et les Exercices. Les modifications sont enregistrées selon les validations explicites prévues par les écrans.
 
 L'utilisateur peut notamment modifier :
 
 - son nom ;
-- sa couleur ;
 - sa composition ;
 - ses exercices ;
-- son Étiquette.
+- son Étiquette, qui détermine la couleur affichée de la Séance.
 
 Les modifications sont immédiatement visibles dans le catalogue.
 
