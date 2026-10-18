@@ -1628,6 +1628,106 @@ Nœud [8795:14588](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 ![Modification activité — Paramètres (modale) — Exercice EMOM — Par exercice](images/formats-2026-10-14/figma-8795-14588.png)
 
 
+### États complémentaires observés — Douleur, résultats et exécution des formats
+
+Ces captures documentent les frames présentes dans `Prototype MVP` ; elles ne créent aucune règle métier ni ne valident à elles seules le statut MVP de la fonctionnalité. Les spécifications fonctionnelles et décisions restent les références du comportement.
+
+#### Avant la séance — Douleur
+
+[Source Figma — `8921:35275`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8921-35275)
+
+![Avant la séance — Douleur](images/figma-8921-35275.png)
+
+#### Synthèse de séance — Effort et douleur — Douleur renseignée
+
+[Source Figma — `8921:35340`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8921-35340)
+
+![Synthèse de séance — Effort et douleur — Douleur renseignée](images/figma-8921-35340.png)
+
+#### Synthèse de séance — Effort et douleur — Douleur repliée
+
+[Source Figma — `8925:15593`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8925-15593)
+
+![Synthèse de séance — Effort et douleur — Douleur repliée](images/figma-8925-15593.png)
+
+#### Modale — Répétitions partielles
+
+[Source Figma — `8928:15098`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8928-15098)
+
+![Modale — Répétitions partielles](images/figma-8928-15098.png)
+
+#### Modale — Résultat de série
+
+[Source Figma — `8937:35362`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8937-35362)
+
+![Modale — Résultat de série](images/figma-8937-35362.png)
+
+#### Exécution d'une séance — Tabata — Par alternance
+
+[Source Figma — `8982:15383`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-15383)
+
+![Exécution d'une séance — Tabata — Par alternance](images/figma-8982-15383.png)
+
+#### Exécution d'une séance — Tabata — Par exercice
+
+[Source Figma — `8982:15448`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-15448)
+
+![Exécution d'une séance — Tabata — Par exercice](images/figma-8982-15448.png)
+
+#### Exécution d'une séance — Intervalles 30/30 — Par alternance
+
+[Source Figma — `8982:15513`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-15513)
+
+![Exécution d'une séance — Intervalles 30/30 — Par alternance](images/figma-8982-15513.png)
+
+#### Exécution d'une séance — Intervalles 30/30 — Par exercice
+
+[Source Figma — `8982:15578`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-15578)
+
+![Exécution d'une séance — Intervalles 30/30 — Par exercice](images/figma-8982-15578.png)
+
+#### Exécution d'une séance — EMOM
+
+[Source Figma — `8982:15643`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-15643)
+
+![Exécution d'une séance — EMOM](images/figma-8982-15643.png)
+
+#### Exécution d'une séance — EMOM — repos déclaré
+
+[Source Figma — `8982:15709`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-15709)
+
+![Exécution d'une séance — EMOM — repos déclaré](images/figma-8982-15709.png)
+
+#### Exécution d'une séance — AMRAP
+
+[Source Figma — `8982:15775`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-15775)
+
+![Exécution d'une séance — AMRAP](images/figma-8982-15775.png)
+
+#### Exécution d'une séance — For time
+
+[Source Figma — `8982:15849`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-15849)
+
+![Exécution d'une séance — For time](images/figma-8982-15849.png)
+
+#### Exécution d'une séance — Death by
+
+[Source Figma — `8982:15917`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-15917)
+
+![Exécution d'une séance — Death by](images/figma-8982-15917.png)
+
+#### Exécution d'une séance — Progression — Série en cours
+
+[Source Figma — `8982:15983`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-15983)
+
+![Exécution d'une séance — Progression — Série en cours](images/figma-8982-15983.png)
+
+#### Exécution d'une séance — Progression — Récupération
+
+[Source Figma — `8982:16049`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-16049)
+
+![Exécution d'une séance — Progression — Récupération](images/figma-8982-16049.png)
+
 ## Conventions d’interface communes
 
 ### Contrat d’affichage commun aux écrans du MVP
