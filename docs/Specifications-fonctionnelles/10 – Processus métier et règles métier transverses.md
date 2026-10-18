@@ -529,7 +529,7 @@ Séries : stepper `1..99`. Répétitions : roulette native à une colonne, `1..1
 | ID | Règle |
 | --- | --- |
 | RM-015 | La création s’effectue dans un écran unique `Composer une séance` ; il n’existe plus d’écran préalable réservé au nom. |
-| RM-016 | Une couleur est proposée par défaut et peut être choisie dans une palette prédéfinie de 12 couleurs organisée en 4 × 3. |
+| RM-016 | La palette de 12 couleurs organisée en 4 × 3 sert au choix de la couleur d’une Étiquette. La Séance ne possède pas de couleur indépendante : son Étiquette est facultative et fournit sa couleur affichée lorsqu’elle est renseignée (D-188, D-212, RM-001, RM-022). |
 | RM-017 | `Continuer` reste désactivé tant que le nom est vide, qu’aucun Exercice valide n’est présent ou qu’un Exercice comporte une cible obligatoire non renseignée : une telle Séance ne peut pas être enregistrée (D-380, D-123). Un contrôle ou champ obligatoire sans valeur est signalé par son fond rouge pâle, qui redevient normal dès qu’une valeur valide est renseignée ; le signalement concerne le contrôle, pas la carte entière, et aucun message d’erreur supplémentaire n’est affiché (D-389). L’Étiquette est facultative ; lorsqu’elle est renseignée, sa couleur devient celle de la Séance. |
 | RM-018 | Retour pendant une création commencée ouvre un dialogue flottant centré. `Annuler`, action neutre, conserve les données ; `Confirmer`, action destructive rouge, supprime le brouillon et revient au Catalogue. |
 | RM-019 | La Composition expose un seul bouton global `+ Ajouter un exercice`. |
@@ -634,7 +634,7 @@ Appui long sur la récupération existante ouvre la bulle Retirer la récupérat
 
 L’éditeur d’Exercice porte `sideRecoverySeconds` uniquement pour un Exercice bilatéral. Le passage du Changement de côté à Sans rend ce paramètre sans objet. Lors du passage de Sans à Avec (D-406), la valeur initiale provient du défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice.
 
-La Composition porte `postActivityRecoverySeconds` sur chaque occurrence. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). D-238 retire seulement les informations de pause/récupération dans le corps des cartes. Dans un Circuit répété, cette même valeur est exécutée à chaque Tour. Une Exécution directe ne possède jamais de récupération post-exercice.
+La Composition expose pour chaque occurrence `postActivityRecoverySeconds`, projection dérivée de la récupération explicite `recovery` lorsqu’elle existe et égale à 0 sinon ; ce n’est pas une seconde source persistée (RM-209). Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). D-238 retire seulement les informations de pause/récupération dans le corps des cartes. Dans un Circuit répété, cette même valeur est exécutée à chaque Tour. Une Exécution directe ne possède jamais de récupération post-exercice.
 
 ### Cadence — comportements communs complémentaires — Avertissement d’enchaînement sans pause (D-301)
 
