@@ -280,7 +280,7 @@ diff --git a/docs/Specifications-fonctionnelles/11 – API fonctionnelles.md b/d
 --- a/docs/Specifications-fonctionnelles/11 – API fonctionnelles.md
 +++ b/docs/Specifications-fonctionnelles/11 – API fonctionnelles.md
 @@ -104,6 +104,19 @@ Les intégrations avec des services externes, notamment les calendriers Apple, G
- |API-ACT-05|Associer des zones corporelles|ID Exercice, zones corporelles|Zones corporelles mises à jour|Zéro à plusieurs zones du référentiel utilisateur courant|Exercice, Zone corporelle|
+ |API-ACT-05|Associer des zones corporelles|ID Exercice, zones corporelles|Zones corporelles mises à jour|Une ou plusieurs zones du référentiel utilisateur courant pour un Exercice valide (D-211)|Exercice, Zone corporelle|
  |API-ACT-06|Définir le nombre de Séries|ID Exercice, nombre de Séries|Exercice mis à jour|Entier de 1 à 99 ; valeur par défaut 1 ; valeur canonique persistée ; ne crée aucune entité Série autonome|Exercice|
  |API-ACT-07|Dupliquer un Exercice de Séance|ID Exercice source|Nouvelle Exercice de Séance indépendante|Nouvel identifiant ; copie des propriétés intrinsèques dont Pause et `sideRecoverySeconds`, ainsi que du `postActivityRecoverySeconds` contextuel de l’occurrence ; insertion immédiatement après la source dans la même zone ; aucune création dans le catalogue|Exercice, Composition, associations Média|
 +### Contrats internes des phases d’exercice
@@ -335,7 +335,7 @@ diff --git a/docs/Specifications-fonctionnelles/12 – Architecture technique.md
 diff --git a/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md b/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md
 --- a/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md
 +++ b/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md
-@@ -808,6 +808,9 @@ Vérifier état repos/activé à ouverture/fermeture du panneau et symbole du to
+@@ -807,6 +807,9 @@ Vérifier état repos/activé à ouverture/fermeture du panneau et symbole du to
  
  Corpus v15 :276gabarits, total métier injecté ; aucun changement grammatical vs v14. Tester virgule jamais isolée en début de ligne, cas 144 long et ordre des cibles après déplacement. Les cas de brouillon incomplet restent hors des 276sorties validées.
  
@@ -345,7 +345,7 @@ diff --git a/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md b/
  ### CE-T03-05 — ActivityDefinition — archiver / restaurer / supprimer
  
  #### 1. Identification
-@@ -931,12 +934,16 @@ L’ancienne référence Figma `3787:5209 — Catalogue — action contextuelle
+@@ -930,12 +933,16 @@ L’ancienne référence Figma `3787:5209 — Catalogue — action contextuelle
  
  Feuille Paramètres d’exécution de CE-T03-04. Références courantes :8328:37092,8328:37862,8328:38513,8328:38848 et nouveau 8470:13303 ; les autres états du 12/10 restent applicables. Captures au chapitre 06 ; matrice Deux modes du 13/10. Les références 6419/6665/7059/7069 du 07/10 sont historiques.
  
@@ -362,7 +362,7 @@ diff --git a/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md b/
  #### 3. Contexte d’entrée
  
  Ouverture depuis la zone Paramètres d’exécution. Copie du parent ; Bip initial 0=Aucun, reprendre valeur existante 0..10 en édition. Aucun tempo implicite. Création : N1,Pause 0,cibles et mode selon [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice) ; absence de cible requise distincte de Bip 0.
-@@ -945,6 +952,8 @@ Ouverture depuis la zone Paramètres d’exécution. Copie du parent ; Bip initi
+@@ -944,6 +951,8 @@ Ouverture depuis la zone Paramètres d’exécution. Copie du parent ; Bip initi
  
  ✕/retour système annule l’ouverture ; ✓ applique état actif valide au parent ; Terminer du parent persiste. Même feuille pour création/modification et copie d’Exercice dans Séance.
  
@@ -371,7 +371,7 @@ diff --git a/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md b/
  #### 5. Données affichées et source de vérité
  
  **Complément cible 12/10 :** Contexte de l’occurrence et compte hérité ; total dérivé, jamais source de N dans ce contexte.
-@@ -957,11 +966,15 @@ Collection effective des Séries, cible/Pause/bip, mode, direction, ordre,PC,Com
+@@ -956,11 +965,15 @@ Collection effective des Séries, cible/Pause/bip, mode, direction, ordre,PC,Com
  
  Titres/règles statiques ; valeurs de champs dynamiques ; exemples Figma démonstratifs. exact/estimated/lowerBound/omitted à l’Exercice ; lowerBound réservé au mélange calculable. Une erreur de cible n’est pas une durée omitted et bloque ✓ sans inventer un montant.
  
@@ -388,7 +388,7 @@ diff --git a/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md b/
  
  #### 8. Éléments obligatoires
  
-@@ -969,6 +982,8 @@ En-tête fixe ✕/titre/✓ ; corps défilant Mode → Séries → régime ident
+@@ -968,6 +981,8 @@ En-tête fixe ✕/titre/✓ ; corps défilant Mode → Séries → régime ident
  
  Bip 0..10, boutons ± révélés par appui sur sa valeur,0 libellé Aucun ; contrôle actif même à 0. Aucun interrupteur ou roulette Bip. Total absent en Répétitions sans bip et toutes cibles À l’échec ; exact en Durée toute chiffrée, ≈ en Répétitions toute chiffrée avec bip, ≥ en mélange calculable. Pause entre les côtés seulement en bilatéral. Compte à rebours/Fin conservés.
  
@@ -397,7 +397,7 @@ diff --git a/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md b/
  #### 9. Layout déterministe
  
  **Révision 13/10 :** popover Mode 184×99, hauteur automatique, deux options. Roulette cible : popover 354×249 avec maître 8452:13297 (330×181), option en tête 330×30, séparateur 1px, roulette numérique 150px. Le total conserve le maître 5544:5118 (330×150) et son popover 354×216. Ligne de série à deux colonnes maintenue, même tout échec ; aucune variante à une colonne. Voir DSF Deux modes pour tailles et opacités.
-@@ -979,10 +994,14 @@ Bip 0..10, boutons ± révélés par appui sur sa valeur,0 libellé Aucun ; cont
+@@ -978,10 +993,14 @@ Bip 0..10, boutons ± révélés par appui sur sa valeur,0 libellé Aucun ; cont
  
  Référence longue 7119:27855 :224caractères, cinq lignes/100px à largeur 324, carte 193px en AUTO. Contenu et contrôles suivants suivent la hauteur intrinsèque, sans plafond.
  
@@ -412,7 +412,7 @@ diff --git a/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md b/
  Le tableau n’a pas de défilement vertical indépendant du corps. (transféré du [DSF — Circuits, volumes et contrôles de séries du 12/10/2026](../DSF-CIRCUITS-CONTROLES-2026-10-12.md), § « Modalités d’exécution et tableau variable », G4.)
  
  #### 11. États de l’écran
-@@ -991,6 +1010,8 @@ Cible chiffrée / À l’échec / mélange ; ouverture sur la cible courante. Op
+@@ -990,6 +1009,8 @@ Cible chiffrée / À l’échec / mélange ; ouverture sur la cible courante. Op
  
  Bip 0/positif dans chacun des deux modes ; cible valide/incomplète ; uniforme/variable ;N1 ; deux ordres/directions ; tableau ouvert/replié ; steppers au minimum/maximum et maintenus ; validation/annulation. Plus aucun état roulette de cadence.
  
@@ -421,7 +421,7 @@ diff --git a/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md b/
  #### 12. Contrôles et interactions
  
  Deux modes seulement. Cible chiffrée et À l’échec mutuellement exclusives ; libellé « Aucune durée, à l’échec » ou « Aucune répétition, à l’échec ». Aucune coche dans la liste ; ✓ de la feuille applique. Conserver le type À l’échec lors d’une bascule de mode. À tout instant, exactement une cible est sélectionnée. À l’ouverture : cible numérique → roulette active sur la valeur courante et libellé échec à 45% ; cible échec → libellé actif et bloc numérique grisé à 45%, affiché à 00:00. Faire tourner la roulette sélectionne la valeur numérique et grise le libellé. Toucher le libellé sélectionne l’échec et ramène la roulette grisée à 00:00. Le grisé exprime la non-sélection, pas une interdiction de manipuler la roulette. Aucun geste supplémentaire de déverrouillage, aucune coche. Validation par le bouton de la feuille ; annulation selon le brouillon existant.00:00 n’est jamais une cible valide ; pause 0 reste valide.
-@@ -1009,20 +1030,28 @@ Deux modes seulement. Cible chiffrée et À l’échec mutuellement exclusives ;
+@@ -1008,20 +1029,28 @@ Deux modes seulement. Cible chiffrée et À l’échec mutuellement exclusives ;
  
  Tap et maintien sur steppers, arrêt au relâchement/sortie de cible, pas supplémentaire de relâchement interdit après répétition. Glisser la poignée réordonne cible/Pause/bip ensemble et recalcule la dernière ligne. Alternatives accessibles sans geste fin.
  
@@ -450,7 +450,7 @@ diff --git a/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md b/
  #### 17. Erreurs et cas limites
  
  Cible manquante, valeur hors borne, double validation, interruption ou erreur de persistance : aucun état partiel. Mode sans durée propre : ligne absente même si pauses positives. Historique non modifié ; données héritées hors plage conservées tant qu’elles ne sont pas modifiées, toute nouvelle saisie ou modification respectant les bornes (D-383) ; jamais tronquées silencieusement.
-@@ -1033,10 +1062,14 @@ Cible manquante, valeur hors borne, double validation, interruption ou erreur de
+@@ -1032,10 +1061,14 @@ Cible manquante, valeur hors borne, double validation, interruption ou erreur de
  
  Nom accessible Bip de cadence ; valeur Aucun ou intervalle en secondes ; boutons augmenter/diminuer et limites annoncées. Total ≈ annoncé estimation ; ≥ annoncé total prévisionnel partiel. Option À l’échec annoncée sélectionnée/non sélectionnée ; le grisé n’est pas le seul indicateur accessible. Focus modal contenu, retour à la zone Paramètres. Texte agrandi, cibles 44 minimum, alternatives au maintien/glisser.
  
@@ -465,7 +465,7 @@ diff --git a/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md b/
  #### 20. Recette déterministe
  
  Recette complémentaire : deux options, ouverture valeur/échec courant, exclusion mutuelle,00:00 cible refusée (pause 0 valide), tout échec sans total, mixte 30/45/échec avec pauses 10/20/30 →≥2 min 15 en lecture seule, Répétitions sans bip sans total ; annuler/appliquer sans persistance anticipée. Tester 30 s → toucher échec →00:00 grisé → tourner vers 30 s → cible numérique ; réouverture fidèle et annulation/restauration. Le bloc grisé reste manipulable. Qualification native et accessible sur appareils à réaliser ; §4.5 reçu, réserve de source close.
-@@ -2116,6 +2149,8 @@ Imposé effectif ; éditable ; erreur de saisie. Ne pas confondre avec indisponi
+@@ -2115,6 +2148,8 @@ Imposé effectif ; éditable ; erreur de saisie. Ne pas confondre avec indisponi
  
  Tap sur constante n’ouvre pas un éditeur. Changement autorisé actualise la phrase et les calculs sans écraser la définition catalogue.
  
@@ -474,7 +474,7 @@ diff --git a/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md b/
  #### 13. Gestes
  
  Fermeture et interactions existantes de modale ; pas d’appui long requis pour comprendre la raison.
-@@ -2148,6 +2183,9 @@ FMT-17, 19, 30–32, 42 ; les constantes restent effectives dans le moteur futur
+@@ -2147,6 +2182,9 @@ FMT-17, 19, 30–32, 42 ; les constantes restent effectives dans le moteur futur
  
  REC-08, 18 ; vérifier absence d’éditeur sur les quatre constantes et absence de tiret ; contrôle des segments et de l’unité tour.
  
@@ -484,7 +484,7 @@ diff --git a/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md b/
  ### CE-FMT-05 — Exécution des fenêtres et formats à borne ouverte
  <a id="ce-fmt-05"></a>
  
-@@ -4759,6 +4797,12 @@ Le moteur possède la source de vérité temporelle. En exécution autonome uniq
+@@ -4758,6 +4796,12 @@ Le moteur possède la source de vérité temporelle. En exécution autonome uniq
  
  Instantané immuable au départ, résultats moteur clôturés une fois, puis finalisation Ressenti/Commentaire distincte et atomique. Le bouton courant de Synthèse est Enregistrer ; Terminer reste le bouton de l’éditeur Exercice. SESSION finalisé ouvre Suivi ; ACTIVITY restaure son appelant Catalogue/Calendrier. Une interruption technique sans Synthèse peut ne pas avoir de Ressenti ; une Synthèse présentée l’exige. Ni consultation média, ni paramètres de lecteur vidéo ne modifient le plan.
  

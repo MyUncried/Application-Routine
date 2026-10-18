@@ -9,7 +9,8 @@
 - Lot 6 :
   - 6A (conception) réalisé et révisé le 17/10 ;
   - exécution autorisée par Hermann (QR-1 à QR-9, D-402) et réalisée le 17/10, étapes 6B à 6K ([rapport de conservation](lot6/rapport-conservation-lot6.md)) ;
-  - soumise à revue indépendante, non déclarée close ;
+  - revue indépendante : PARTIELLEMENT CONFORME ; finalisation réalisée les 17 et 18/10 (lots F1 à F8, [rapport final](lot6/finalisation/rapport-final-conformite.md), [arbitrages](lot6/arbitrages-lot6.md)) ;
+  - soumise à la revue indépendante finale, non déclarée close ;
   - aucun merge dans `main`.
 
 **Fonctionnement autorisé par Hermann (16/10) :**
@@ -416,6 +417,31 @@ Voir le [rapport de conservation](lot6/rapport-conservation-lot6.md), la [matric
 - [x] 6K En partie : 157 lignes d'espaces manquantes, C10 sans écart — `aa9cd0bd`
 - [ ] 6K, reste : pronoms, termes proscrits, découpage des règles longues, au cas par cas
 - [ ] 6J Décisions produit, en une liste groupée : [arbitrages-lot6.md](lot6/arbitrages-lot6.md) (204 divergences, copies à rapprocher, décisions de qualité)
+### Finalisation (17–18/10/2026, départ `e8afc61b`)
+
+Corrections appliquées sur l'état actuel, sans reconstruction depuis une ancienne base. Chaque lot est contrôlé par `outils/controler-finalisation.sh` (journaux : `lot6/finalisation/controles/`).
+
+- [x] F1 Outillage, introductions des ch. 08 et 10 (D-402), correctifs de report des PR — `753f4dd2`
+- [x] F2 / F2b — `aa8aaa15`, `424e93ae` :
+  - R-06 : 214 lignes examinées, 10 restaurations ;
+  - copies : 170 éléments, 61 renvois ;
+  - rédaction : 216 corrections ;
+  - DSF : 213 éléments, 3 transferts ;
+  - contrôle hors chapitres ajouté.
+- [x] F3 Divergences : 204 paires qualifiées, 88 alignements sur une décision explicite — `3bfc5d14`
+- [x] F4 Alias et renvois obsolètes : 95 corrections — `16fc6efe`
+- [x] F5 Traçabilité : « Règles applicables » dans 38 contrats et Matrice de traçabilité — `372aa7f1`
+- [x] F6 à F8 Seconde passe indépendante :
+  - fonctionnel : 127 corrections vérifiées, 0 non-conforme, 13 réserves corrigées ;
+  - structure : 0 non-conforme ;
+  - contradictions actives : 20 corrigées.
+
+  Commits `82841dfd`, `4592ae85`, `114c3b5b`.
+- [x] Contrôle de bout en bout depuis `cefc9b99` : conservation vérifiée (`lot6/finalisation/controles/BOUT-EN-BOUT.txt`)
+- [ ] Revue indépendante finale (ChatGPT)
+- [ ] Décisions de Hermann : AR-01 à AR-26 ; points documentaires AD-01 à AD-10 ([arbitrages-lot6.md](lot6/arbitrages-lot6.md))
+- [ ] Report des PR #363, #370, #371 sur la documentation restructurée : correctifs prêts, 11 blocs à reporter à la main ([dependances-git.md](lot6/finalisation/pr/dependances-git.md))
+
 - [ ] 6L Revue indépendante de la restructuration, puis résolution des dépendances Git avec les PR #363, #370 et #371 avant toute fusion dans `main`
 
 ## Ce qui n'est pas proposé

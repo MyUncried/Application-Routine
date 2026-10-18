@@ -95,7 +95,7 @@ diff --git a/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md b/
  
  #### 6. Classification des valeurs Figma
  
-@@ -706,7 +706,7 @@ Créer depuis Catalogue ou modifier une définition existante ; nouveau brouillo
+@@ -705,7 +705,7 @@ Créer depuis Catalogue ou modifier une définition existante ; nouveau brouillo
  
  #### 4. Contexte de sortie / destinations
  
@@ -104,7 +104,7 @@ diff --git a/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md b/
  
  #### 5. Données affichées et source de vérité
  
-@@ -973,6 +973,8 @@ Bip 0..10, boutons ± révélés par appui sur sa valeur,0 libellé Aucun ; cont
+@@ -972,6 +972,8 @@ Bip 0..10, boutons ± révélés par appui sur sa valeur,0 libellé Aucun ; cont
  
  **Révision 13/10 :** popover Mode 184×99, hauteur automatique, deux options. Roulette cible : popover 354×249 avec maître 8452:13297 (330×181), option en tête 330×30, séparateur 1px, roulette numérique 150px. Le total conserve le maître 5544:5118 (330×150) et son popover 354×216. Ligne de série à deux colonnes maintenue, même tout échec ; aucune variante à une colonne. Voir DSF Deux modes pour tailles et opacités.
  
@@ -113,7 +113,7 @@ diff --git a/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md b/
  **Alignement DSF du 12/10 :** ligne variable `8129:31593`, 334 × 36 ; cellules cible/Pause 76 × 24 ; pied commun `8129:31601`, 354 × 48, ± à droite. Une cellule active ; plus de steppers permanents dans chaque cellule. Les 19 états de la feuille sont illustrés au chapitre 06. Seul le placement de la mention/astérisque du nombre hérité reste sans référence visuelle identifiée.
  
  À402 : groupe à x24, largeur 354 ; Bip au premier niveau x36. Les anciennes indentations systématiques x52 des contrôles variables sont remplacées par la grille à cellules décrite dans le DSF du 12/10. Bip juste au-dessus du total ou avant Compte à rebours si total absent. Retrait du total raccourcit la feuille de 42px par le haut, bas ancré. Valeurs/steppers à droite ; marges adaptées, pas de coordonnées absolues sur toutes largeurs. Voile modal `overlayScrim` (`color/overlay/scrim`) #1F2129 à 34 %, distinct de `compositionDraggedCardShadow`, qui ne sert jamais de voile.
-@@ -987,13 +989,13 @@ Le tableau n’a pas de défilement vertical indépendant du corps. (transféré
+@@ -986,13 +988,13 @@ Le tableau n’a pas de défilement vertical indépendant du corps. (transféré
  
  #### 11. États de l’écran
  
@@ -129,7 +129,7 @@ diff --git a/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md b/
  
  **Complément cible 12/10 :** Un seul champ actif. Changer de champ ferme/ouvre en un geste. Pi et cible copiées depuis dernière ligne. Suppression immédiate + Annuler avec position et paramètres ; sous N hérité, suppression locale indisponible.
  
-@@ -1087,9 +1089,9 @@ Steppers : tap 1 ; maintien≈500 ms, puis paliers 5 après≈2 s et 10 après
+@@ -1086,9 +1088,9 @@ Steppers : tap 1 ; maintien≈500 ms, puis paliers 5 après≈2 s et 10 après
  
  #### Sélecteur de cible — complément §4.5 du13/10
  

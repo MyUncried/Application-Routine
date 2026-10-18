@@ -17,7 +17,7 @@ LISTE=$(printf '%s,' "${JSONS[@]##*/}"); LISTE="${LISTE%,}"
 echo "# Contrôles $NOM — référence $(git rev-parse --short "$REF") — corrections : $LISTE"
 node $O/justifier-corrections.mjs "$R" "$REF" "$J" "${JSONS[@]}"
 echo; echo "## Rejeu des corrections"; RJ=$(node $O/verifier-corrections-json.mjs "$R" "$REF" "$LISTE"); echo "$RJ" | head -12; echo "$RJ" | grep -q "^OK" ; E0=$?
-echo "## Fichiers modifiés hors corrections déclarées"; HORS=$(git -c core.quotepath=false diff --name-only "$REF" -- docs | while IFS= read -r f; do b="${f#docs/}"; b="${b#Specifications-fonctionnelles/}"; grep -lqF "\"$b\"" "${JSONS[@]}" 2>/dev/null || grep -lqF "\"@$b\"" "${JSONS[@]}" 2>/dev/null || echo "$f"; done); echo "${HORS:-aucun}"; [ -z "$HORS" ] || E0=1
+echo "## Fichiers modifiés hors corrections déclarées"; HORS=$(git -c core.quotepath=false diff --name-only "$REF" -- docs | while IFS= read -r f; do b="${f#docs/}"; b="${b#Specifications-fonctionnelles/}"; grep -lqF "\"$b\"" "${JSONS[@]}" 2>/dev/null || grep -lqF "\"@$b\"" "${JSONS[@]}" 2>/dev/null || case "$b" in "Annexe – Matrice"*|"Annexe – Index"*|"Annexe – Correspondance"*) ;; *) echo "$f";; esac; done) # annexes générées exclues; echo "${HORS:-aucun}"; [ -z "$HORS" ] || E0=1
 echo; echo "## C1–C7"; node $O/verifier-conservation.mjs "$R" "$REF" "$J" --detail="$X/$NOM-detail.tsv"; E1=$?
 echo; echo "## Documents hors chapitres (DSF, PRODUCT, INDEX…)"; node $O/verifier-hors-chapitres.mjs "$R" "$REF" "$J" | tail -6; [ "${PIPESTATUS[0]}" = 0 ] || E1=1
 echo; echo "## C10"; E2=0; for j in "${JSONS[@]}"; do node $O/verifier-redaction.mjs "$j" | tail -1; [ "${PIPESTATUS[0]}" = 0 ] || E2=1; done
