@@ -266,7 +266,7 @@ L’inventaire ci-dessous suit les frames `P-` de la page Figma `Prototype MVP` 
 | `8928:15098` | Résultats de répétitions partielles | Trois libellés d’exercices, sélections numériques, bouton « Terminer l’exercice » | D-428 : déclenchement, bornes, validation et fermeture arbitrés |
 | `8937:35362` | Résultat d’une série | Feuille « Vos résultats », cible de série, sélection numérique et action Valider | D-429 : valeur initiale, bornes, validation et annulation arbitrées ; affichage dans les rapports non détaillé |
 
-**Distinction des sources.** Les valeurs et libellés ci-dessus sont des observations d’interface, non des règles métier arbitrées. Les contrats `CE-UI-08`, `CE-T03-11` et `CE-EXEC-SESSION-01` ne définissent pas encore complètement ces cinq axes. Les définitions de Résultat, de Ressenti et de Statut déjà validées dans les chapitres 09–11 restent en vigueur jusqu’à arbitrage, sans extrapolation à la Douleur ou à l’Effort perçu.
+**Distinction des sources et arbitrages.** Les libellés et agencements ci-dessus restent des observations Figma. Les décisions D-427 à D-429 définissent maintenant les règles fonctionnelles de saisie, de bornes, de validation et d'annulation décrites ci-dessus. Le déclenchement exact de la modale « Résultat de série », les détails de rapports de suivi et la configuration de l'option du Programme demeurent À CLARIFIER. Les règles existantes de Résultat et Statut demeurent applicables hors des exceptions expressément arbitrées.
 
 ### Inventaire des contrats actifs
 
