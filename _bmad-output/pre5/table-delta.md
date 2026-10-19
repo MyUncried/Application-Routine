@@ -177,27 +177,52 @@ Une story par changement testable ; aucune story pour les lignes NR. Les lots 2 
 
 Ordre conseillé : 1.1 et 1.3 → 2.1 → 2.2, 2.3, 2.4 → 2.5 → 2.6 (après 1.2). 3.1 avance en parallèle dès QP5-01 et QP5-02 tranchées. Δ04 (retrait de Compte à rebours et Fin de la Carte) n’a aucune dépendance : il peut ouvrir 4.1. Recette iPhone groupée par lot : Feuille (2.x) et Éditeur (3.1, 4.1). Les trois contrôles locaux (`npm test`, `npx tsc --noEmit`, `npm run lint`) s’appliquent à chaque story.
 
-## 6. Réponses du 2026-10-19 aux questions QP5
+## 6. Réponses et décisions du 2026-10-19 (état consolidé)
 
-Source : `KODJO_PRE5_Reponses_QP5-01_a_QP5-09_et_consigne_BMAD_2026-10-19.md`, transmis par Hermann le 2026-10-19. Ce document se présente comme des propositions soumises à sa validation, sauf QP5-01, décision du propriétaire. Tant que Hermann n'a pas validé, ces réponses ne fondent ni PRD définitif ni story.
+Sources : `sources-2026-10-19/PRE5_BMAD_Decisions_v2.md`, qui remplace la version précédente du même jour (`KODJO_PRE5_Reponses_QP5-01_a_QP5-09_et_consigne_BMAD_2026-10-19.md`, conservée). Les sources complémentaires reçues le même jour sont dans `sources-2026-10-19/` : spécification consolidée des phases (S-1), matrice de compatibilité du 19/10, registre de modifications v25 et audit PRE-4 du 18/10.
 
-| N° | Statut | Réponse retenue | Effet sur la table |
+**Décidé par Hermann :** QP5-01, la présentation de QP5-07, la Charge en mode Répétitions, et la navigation au clavier numérique. **Les réponses à QP5-02 à QP5-06, QP5-08 et QP5-09 sont recommandées et attendent son accord global.** Tant que cet accord manque, elles ne fondent ni PRD définitif ni story.
+
+| N° | Statut | Réponse | Effet sur la table |
 |---|---|---|---|
-| QP5-01 | **Décidé** (propriétaire) | Les étapes numérotées remplacent la description libre. Le texte existant est réutilisé seulement si c'est simple. Aucune migration, aucune conversion réversible, aucun retour à l'ancien format, aucune story dédiée ; recréer à la main les trois ou quatre descriptions est acceptable. La tolérance ne s'étend pas aux autres données de l'Exercice. | Δ02 : la reprise des anciens textes et son test sortent du périmètre. La recommandation A de §3 est abandonnée. |
-| QP5-02 | Proposé | Étapes vides retirées à Terminer, renumérotation ; retour arrière sur une étape vide la supprime ; 1 000 caractères pour l'ensemble des textes des étapes, numérotation exclue ; ordre et étapes non vides préservés. | Δ01, Δ03 |
-| QP5-03 | Proposé | Une phase est seulement chronométrée : roue numérique, sans « À l'échec » (D-370, D-412). | Δ12, Δ13 |
-| QP5-04 | Proposé, **corrige la recommandation** | Phase : minimum 1 s, pas 1 s, sans borne propre. La somme respecte les contraintes de durée de série existantes, sans borne nouvelle. Avec reprend la durée de série existante, sinon « Phase 1 » reste à renseigner. Sans préserve une durée valide. Les phases à zéro sont retirées à la validation sans blocage propre ; la validation n'est indisponible que si aucune cible valide ne subsiste. Sous durée imposée, la dernière phase est calculée sur le restant. | Δ09, Δ10, Δ14, Δ40. Lecture retenue, à faire vérifier : la somme suit les bornes de saisie de la durée de série (5 à 3 535 s, `EP:88`). La recommandation (e) « toutes à 0 → ✓ indisponible » tombe au profit de la normalisation. La durée imposée relève de D-372, sans parcours de format dans `src/` (Δ15) : rien à développer en PRE-5. |
-| QP5-05 | Proposé, sous réserve tactile | 36 pour les lignes des deux tableaux, 44 pour les autres lignes de la Feuille ; vérification sur appareil avant toute autre géométrie. | Δ34 ; R-06 accepté |
-| QP5-06 | Proposé | Essayer d'abord le `Picker` segmenté natif d'`@expo/ui` 57 ; repli sur `SegmentedControl` existant si chevrons intérieurs, états désactivés, couleurs ou dimensions ne sont pas reproductibles ; aucune abstraction nouvelle. | Δ21, Δ32, Δ33 : recommandation A de §3 remplacée par « natif d'abord, repli sur l'existant ». |
-| QP5-07 | Principe proposé ; **notation à clarifier** | Segmenté en ligne dans le cadre Côtés, deux enchaînements existants, visible seulement avec Avec et N > 1. La frame `8328:38193` porte encore D1, D2, G1, G2, contraires à D-407 ; aucune notation inventée (pas de C1S1). | Δ23 ; R-04 accepté. Notation : point ouvert. |
-| QP5-08 | Proposé | Ligne Répétitions masquée en séries identiques à la Condition À l'échec (RM-248) ; restauration des valeurs conservée. | Δ27 |
-| QP5-09 | Proposé, **corrige la recommandation** | Les 276 formulations restent ; la durée de série est suivie d'une parenthèse détaillant les phases, selon le §4.1 de la spécification consolidée des phases ; générateur et segments existants, sans refonte. | Δ44 : une clause est ajoutée. Sa forme exacte dépend de S-1. |
+| QP5-01 | **Décidé** | Les étapes numérotées remplacent la description libre. Le texte existant n'est réutilisé que si c'est simple. Ni migration, ni conversion réversible, ni retour à l'ancien format, ni story dédiée. Recréer à la main les trois ou quatre descriptions est acceptable. Cette tolérance ne s'étend pas aux autres données de l'Exercice. | Δ02 : la reprise des anciens textes et son test sortent du périmètre. La recommandation A de §3 est abandonnée. |
+| QP5-02 | Recommandé | Les étapes vides sont retirées à Terminer et la liste est renumérotée. Le retour arrière sur une étape vide la supprime. La limite de 1 000 caractères porte sur l'ensemble des textes des étapes, numérotation exclue. L'ordre est préservé. | Δ01, Δ03 |
+| QP5-03 | Recommandé | Une phase est seulement chronométrée : roue numérique, sans « À l'échec » (D-370, D-412 ; spécification des phases §2.1). | Δ12, Δ13 |
+| QP5-04 | Recommandé, **corrige la recommandation de §3** | Phase : au moins 1 s, au pas de 1 s, sans borne propre (spécification §2.1). La somme forme la durée de série et suit les bornes existantes de celle-ci. Avec reprend la durée de série existante ; à défaut, « Phase 1 » reste à renseigner (§2.2). Une phase ajoutée reprend la durée de la dernière ; l'ajout est impossible au-delà de six. Les phases à 0 s sont retirées sans message à la validation. Une liste vide ou nulle revient à « Aucune ». Si la cible reste absente ou invalide, la validation existante s'applique. Supprimer la dernière phase restante conserve sa durée comme durée de série (§2.3, D-371). **Reste à confirmer :** passer Sans avec plusieurs phases reprend leur somme comme durée de série. | Δ09, Δ10, Δ14, Δ40. La recommandation (e), qui bloquait la validation quand toutes les phases étaient à 0, est abandonnée. **Lecture retenue, à faire vérifier :** la somme suit les bornes de saisie de la durée de série (5 à 3 535 s, `EP:88`). Une somme hors bornes rend donc la validation indisponible, comme une durée de série invalide. Sans parcours de format dans `src/` (Δ15), la durée imposée (§3) n'est pas développée. |
+| QP5-05 | Recommandé, sous réserve tactile | Lignes de 36 dans les deux tableaux, de 44 pour les autres lignes de la Feuille. Vérification sur appareil avant toute autre géométrie. | Δ34 ; R-06 accepté |
+| QP5-06 | Recommandé, **actualisé** | **Le `SegmentedControl` existant est réutilisé par défaut.** Le segmenté natif d'`@expo/ui` 57 ne le remplace qu'après une vérification courte, si elle prouve un gain réel de simplicité sans perte visuelle, fonctionnelle ou d'accessibilité. Aucune story de refonte, aucune abstraction nouvelle. | Δ21, Δ32, Δ33 : variante de style du composant existant, conforme à la recommandation A de §3. |
+| QP5-07 | **Décidé** | Segmenté en ligne dans le cadre Côtés, à la largeur Figma. Libellés définitifs : « Un côté après l'autre » et « Les deux côtés à chaque série ». La police est réduite pour qu'ils tiennent, centrés, sans troncature ni sous-titre D/G ni notation C1S1. Visible avec Avec et N > 1 (D-415). La taille exacte de police se règle sur appareil, sans changer automatiquement la géométrie. La frame `8328:38193`, qui porte encore D1, D2, G1 et G2, sera alignée plus tard, sans bloquer PRE-5. | Δ23 ; R-04, R-07 acceptés ; question close |
+| QP5-08 | Recommandé | La ligne Répétitions est masquée en séries identiques à la Condition À l'échec (RM-248). La restauration des valeurs est conservée. | Δ27 |
+| QP5-09 | Recommandé, **corrige la recommandation de §3** | Les 276 formulations restent. Après la durée de série, une parenthèse détaille les phases dans l'ordre d'exécution (§4.1) : « **3 séries de 9 s** (Descente : **6 s** - Maintien : **3 s**), avec une pause après chaque série de **15 s**. » La liste est exhaustive, même pour une seule phase, et reprend les libellés et durées effectifs. Sans phases, la phrase ne change pas. Générateur et segments existants ; le corpus est étendu avec les déclinaisons des phases (§5). | Δ44 : une clause est ajoutée, et le corpus est complété par des cas de phases. |
 
-Précisions de cohérence du même document, sans story nouvelle :
+### Décisions complémentaires
 
-- Description avant Paramètres d'exécution (déjà conforme, C-2).
-- La Pause après chaque série reste applicable, y compris à N = 1, selon les règles existantes ; la matrice du 19/10 ne prime pas sur les décisions validées.
-- L'Enchainement appartient aux paramètres de l'Exercice, distinct des formats de Séance ; PRE-5 ne s'étend pas aux formats.
-- Vérifier les identifiants Figma actuels avant de fonder une story sur une ancienne référence.
+| # | Besoin PRE-5 | Source | Code existant | Modification nécessaire | Conservé | Validation | Bloqué par |
+|---|---|---|---|---|---|---|---|
+| Δ48 | Charge en mode Répétitions, à l'identique du mode Durée : commune en séries identiques, par ligne en séries variables, y compris avec une cible À l'échec. Mêmes règles Avec/Sans, décimales, zéro, réactivation et conservation (D-403 à D-405, RM-235 à RM-241). Aucun effet sur les calculs. | Décision de Hermann du 19/10 | Δ16 à Δ20 ne dépendent pas du Mode | Aucune différence par Mode dans le modèle, le Brouillon ou la Feuille | Calculs inchangés | Cas explicites dans les tests et la recette : Répétitions × Identiques, Répétitions × Variables, cible À l'échec avec charge | — |
+| Δ49 | Barre du clavier numérique : Précédent et Suivant déplacent la saisie entre les cellules du tableau saisies au clavier (les cellules de charge). La cellule active se distingue par sa couleur de fond, qui suit le focus. Le clavier reste ouvert pendant la navigation et la valeur reste éditable. L'état actif reste indiqué de façon accessible. | Décision de Hermann du 19/10 | Aucun `TextInput` numérique (Δ29) | Champs du tableau enchaînés pour le focus ; fond de la cellule active. Le comportement aux extrémités et aux cellules indisponibles suit les conventions existantes de focus, sans boucle inventée. | Roulettes et steppers des autres champs (Δ30) ; gestes du tableau | Test Feuille (focus suivant / précédent) ; **recette iPhone tôt** (audit, action 4) | — |
 
-Sources citées par ce document et absentes du dépôt : la spécification consolidée des phases (S-1, nécessaire au §4.1 pour QP5-09), la matrice des règles de compatibilité du 19/10, le registre de modifications v25 (demande 10, modèle A), l'audit PRE-4 du 18/10. La spécification de la charge v3.0 est présente : `openspec/changes/archive/2026-10-18-integration-parametres-execution-v3/source/KODJO_Charge_Specification_2026-10-18.md`.
+### Précisions de cohérence, sans story nouvelle
+
+- Description avant Paramètres d'exécution : déjà conforme (C-2).
+- La Pause après chaque série reste applicable, y compris à N = 1, selon les règles existantes. La matrice du 19/10, qui suggère l'inverse, est une analyse et ne prime pas sur les décisions validées.
+- L'Enchainement appartient aux paramètres de l'Exercice. Il est distinct des variantes d'exécution des formats de Séance, et PRE-5 ne s'étend pas aux formats.
+- Les identifiants Figma actuels sont vérifiés avant de fonder une story sur une ancienne référence.
+- Description en étapes (registre v25, demande 10, modèle A) : cadre blanc, rayon 8, padding 14, espacement 8.
+  - Numéro en Inter Medium 15, #595E66, largeur 16, aligné à droite ; texte en Inter Regular 15.
+  - Ligne d'invitation « Étape suivante » en #AEB3BA. Aucun bouton d'ajout : Entrée crée l'étape.
+  - État vide : une seule ligne grise, « 1. » suivi de « Décrivez la première étape ».
+  - Ces éléments complètent Δ01. Les chiffres sont des propriétés de présentation, non des règles.
+- Spécification des phases §5 : elle propose une évolution versionnée du JSON canonique, avec lecture de l'ancienne version. Ce choix, entre v2 étendue et v3, reste à l'architecture (Δ39), qui doit en traiter explicitement.
+- Méthode (audit PRE-4, actions 1 à 5) :
+  - les lignes NR et les parties déjà conformes ne reçoivent ni story ni revue complète ;
+  - la revue approfondie est réservée à la persistance et aux mécanismes nouveaux (phases, charge, champ numérique) ;
+  - le champ numérique avec Précédent / Suivant est essayé tôt sur iPhone, avant d'être généralisé ;
+  - aucun comportement validé ne change sur la seule autorité d'un document généré.
+
+### Sources : état
+
+- S-1 : **reçue**, `sources-2026-10-19/KODJO-Phases-specification-consolidee-2026-10-15.md`, lue aux §1 à 5.
+- S-2 (relevé Figma) : la notation de l'Enchainement est tranchée par QP5-07. Les autres propriétés seront relevées dans Figma en lecture seule, frame par frame, au moment des stories concernées.
+- S-3 (corpus « côté 1 / côté 2 ») : toujours sans réponse. BMad étendra le corpus pour les phases (§5 de la spécification) et pour les côtés d'après ch. 10, sauf avis contraire.
+- La matrice du 19/10, le registre v25 et l'audit PRE-4 sont **reçus**. La spécification de la charge v3.0 est déjà dans le dépôt (`openspec/changes/archive/2026-10-18-integration-parametres-execution-v3/source/`).
