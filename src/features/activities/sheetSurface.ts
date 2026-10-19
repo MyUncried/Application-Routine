@@ -46,6 +46,12 @@
  * disparue » la ferme ; toucher le même champ ne la ferme pas (le champ garde le focus).
  * La perte du focus natif (`blur`) ne ferme que si ce champ est la surface ouverte. ✓ et ✕
  * sont absorbés pendant une saisie (Q47 : premier appui = sortie du champ).
+ *
+ * PRE-5, D-434 (décision de Hermann du 19/10, QD-434-1) : les cellules Cible et Pause du
+ * tableau des séries variables se saisissent au clavier numérique, dans la cellule ; elles
+ * deviennent des champs de la famille `keyboard` (`rowTarget`, `rowPause`). Les surfaces
+ * `selector(rowTarget)` (roue de cellule, story 3.6) et `stepper(rowPause)` (± de la Pause
+ * d'une cellule, story 2.6) décrites ci-dessus sont retirées.
  */
 
 export type SheetSelector = "commonTarget" | "total";
@@ -55,25 +61,30 @@ export type SheetStepperField = "count" | "pause" | "sideRecovery" | "beep" | "c
 /**
  * PRE-5 story 2.2 : champ clavier de la Feuille — charge commune (`"uniform"`) ou d'une ligne
  * d'identité `row` (`rowIds`, jamais un rang) ; libellé de la phase d'identité `phase` (2.8).
+ * D-434 : Cible et Pause de la ligne d'identité `row`.
  */
 export type KeyboardFieldId =
   | { readonly kind: "load"; readonly row: number | "uniform" }
+  | { readonly kind: "rowTarget"; readonly row: number }
+  | { readonly kind: "rowPause"; readonly row: number }
   | { readonly kind: "phaseLabel"; readonly phase: number };
 
 /** Même champ clavier. */
 export function sameKeyboardField(a: KeyboardFieldId, b: KeyboardFieldId): boolean {
-  if (a.kind === "load") return b.kind === "load" && a.row === b.row;
-  return b.kind === "phaseLabel" && a.phase === b.phase;
+  if (a.kind === "phaseLabel") return b.kind === "phaseLabel" && a.phase === b.phase;
+  return b.kind === a.kind && b.row === a.row;
+}
+
+/** D-434 : ligne d'identité d'un champ clavier du tableau des séries, ou `null` (charge commune, phase). */
+export function keyboardFieldRow(field: KeyboardFieldId): number | null {
+  if (field.kind === "phaseLabel" || field.row === "uniform") return null;
+  return field.row;
 }
 
 export type SheetSurface =
   | { readonly kind: "selector"; readonly selector: SheetSelector }
-  /** Story 3.6 : Sélecteur de la Cible de la ligne d'identité `row`. */
-  | { readonly kind: "selector"; readonly selector: "rowTarget"; readonly row: number }
   | { readonly kind: "stepper"; readonly field: SheetStepperField }
-  /** PRE-5 story 2.6 : champ ± de la Pause de la ligne d'identité `row`. */
-  | { readonly kind: "stepper"; readonly field: "rowPause"; readonly row: number }
-  /** PRE-5 story 2.2 : champ clavier focalisé. */
+  /** PRE-5 story 2.2 : champ clavier focalisé (D-434 : Cible et Pause d'une ligne comprises). */
   | { readonly kind: "keyboard"; readonly field: KeyboardFieldId };
 
 export type OpenSurface = { readonly kind: "none" } | (SheetSurface & { readonly key: number });
@@ -107,13 +118,9 @@ export function sameSurface(a: OpenSurface | SheetSurface, b: SheetSurface): boo
   if (a.kind !== b.kind) return false;
   switch (a.kind) {
     case "selector":
-      if (b.kind !== "selector" || a.selector !== b.selector) return false;
-      // Story 3.6 : deux Sélecteurs de ligne ne sont la même surface que pour la même ligne.
-      return a.selector !== "rowTarget" || (b.selector === "rowTarget" && a.row === b.row);
+      return b.kind === "selector" && a.selector === b.selector;
     case "stepper":
-      if (b.kind !== "stepper" || a.field !== b.field) return false;
-      // PRE-5 story 2.6 : deux champs de Pause de ligne ne sont la même surface que pour la même ligne.
-      return a.field !== "rowPause" || (b.field === "rowPause" && a.row === b.row);
+      return b.kind === "stepper" && a.field === b.field;
     case "keyboard":
       return b.kind === "keyboard" && sameKeyboardField(a.field, b.field);
     default:
@@ -156,18 +163,12 @@ export function sheetSurfaceReducer(state: SheetSurfaceState, event: SheetSurfac
       return open.kind === "stepper" || open.kind === "keyboard" ? closeAll(state) : state;
     case "closeAll":
       return closeAll(state);
-    case "rows":
+    case "rows": {
       // « Ligne disparue » (AD-15) : règle défensive après toute transition du Brouillon ;
-      // PRE-5 story 2.6 : vaut aussi pour le champ ± de la Pause d'une ligne.
-      return (open.kind === "selector" && open.selector === "rowTarget" && !event.rowIds.includes(open.row)) ||
-        (open.kind === "stepper" && open.field === "rowPause" && !event.rowIds.includes(open.row)) ||
-        // PRE-5 story 2.2 : vaut aussi pour le champ clavier de la charge d'une ligne.
-        (open.kind === "keyboard" &&
-          open.field.kind === "load" &&
-          open.field.row !== "uniform" &&
-          !event.rowIds.includes(open.field.row))
-        ? closeAll(state)
-        : state;
+      // PRE-5 story 2.2, D-434 : vaut pour les champs clavier d'une ligne (Cible, Pause, charge).
+      const row = open.kind === "keyboard" ? keyboardFieldRow(open.field) : null;
+      return row !== null && !event.rowIds.includes(row) ? closeAll(state) : state;
+    }
     case "blur":
       return open.kind === "keyboard" && sameKeyboardField(open.field, event.field) ? closeAll(state) : state;
   }

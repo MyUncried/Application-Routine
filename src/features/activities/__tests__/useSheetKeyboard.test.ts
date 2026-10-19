@@ -1,14 +1,19 @@
 import { describe, expect, it } from "@jest/globals";
 
-import { numberTarget, type ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
+import { failureTarget, numberTarget, unsetTarget, type ExecutionParametersInput, type SeriesTarget } from "@/domain/activities/ExecutionParameters";
 import { openSheetDraft, removeRow, setLoadEnabled, setSeriesCount } from "@/domain/activities/ExecutionParametersDraft";
 import {
   applyLoadEdit,
+  applyRowPauseEdit,
+  applyRowTargetEdit,
   KEYBOARD_REVEAL_MARGIN,
+  keyboardFieldOrder,
   loadEditText,
   loadFieldOrder,
   loadOfField,
   revealDelta,
+  rowPauseEditText,
+  rowTargetEditText,
 } from "@/features/activities/useSheetKeyboard";
 
 /**
@@ -109,6 +114,78 @@ describe("PRE5-2.2 — sortie d'un champ de charge (AD-19, §9-10)", () => {
   it("PRE5-2.2/AC5 — première activation : 0,25 kg sur la charge commune (transition 2.1 réutilisée)", () => {
     const draft = setLoadEnabled(openSheetDraft(params({ loadEnabled: false, series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 15, loadKg: 0, workPhases: [] } })), true);
     expect(loadOfField(draft, "uniform")).toBe(0.25);
+  });
+});
+
+/**
+ * D-434 (décision de Hermann du 19/10 ; QD-434-1 à 4) — cellules Cible et Pause au clavier :
+ * ordre de Précédent / Suivant, texte d'édition « MMSS », sortie par les transitions existantes.
+ */
+describe("D-434 — champs clavier des cellules du tableau des séries", () => {
+  const rows = (targets: SeriesTarget[], mode: "DURATION" | "REPETITIONS" | null = "DURATION", loadEnabled = false) =>
+    openSheetDraft(
+      params({
+        mode,
+        loadEnabled,
+        series: { kind: "VARIABLE", rows: targets.map((target, index) => ({ target, pauseSeconds: 10 * index, loadKg: 0 })) },
+      }),
+    );
+
+  it("QD-434-2 — ordre : ligne par ligne, de gauche à droite (Cible, Pause, Charge si présente), sans champ hors tableau ; tableau replié : aucun", () => {
+    const draft = rows([numberTarget(30), numberTarget(45)], "DURATION", true);
+    const [a, b] = draft.rowIds;
+    expect(keyboardFieldOrder(draft, true)).toEqual([
+      { kind: "rowTarget", row: a },
+      { kind: "rowPause", row: a },
+      { kind: "load", row: a },
+      { kind: "rowTarget", row: b },
+      { kind: "rowPause", row: b },
+      { kind: "load", row: b },
+    ]);
+    expect(keyboardFieldOrder(rows([numberTarget(30), numberTarget(45)]), true).map((field) => field.kind)).toEqual([
+      "rowTarget",
+      "rowPause",
+      "rowTarget",
+      "rowPause",
+    ]);
+    expect(keyboardFieldOrder(draft, false)).toEqual([]);
+    // Mode non choisi : pas de cellule Cible.
+    expect(keyboardFieldOrder(rows([unsetTarget(), unsetTarget()], null), true).map((field) => field.kind)).toEqual(["rowPause", "rowPause"]);
+    // Identiques : la charge commune seule (inchangé).
+    expect(keyboardFieldOrder(openSheetDraft(params()), true)).toEqual([{ kind: "load", row: "uniform" }]);
+  });
+
+  it("texte d'édition : « MMSS » (Durée), le nombre (Répétitions), vide pour À l'échec ou à renseigner ; Pause « MMSS »", () => {
+    const draft = rows([numberTarget(65), failureTarget(), unsetTarget()]);
+    const [a, b, c] = draft.rowIds;
+    expect([a, b, c].map((row) => rowTargetEditText(draft, row!))).toEqual(["0105", "", ""]);
+    expect([a, b, c].map((row) => rowPauseEditText(draft, row!))).toEqual(["0000", "0010", "0020"]);
+    const repetitions = rows([numberTarget(12), failureTarget()], "REPETITIONS");
+    expect(rowTargetEditText(repetitions, repetitions.rowIds[0]!)).toBe("12");
+    expect(rowTargetEditText(draft, 999)).toBe("");
+  });
+
+  it("sortie de la Cible : secondes reportées, bornes, vidée → à renseigner ; valeur inchangée → Brouillon tel quel", () => {
+    const draft = rows([numberTarget(65), numberTarget(45)]);
+    const row = draft.rowIds[0]!;
+    expect(applyRowTargetEdit(draft, row, "175").rows[0]!.target).toEqual(numberTarget(135));
+    expect(applyRowTargetEdit(draft, row, "9999").rows[0]!.target).toEqual(numberTarget(3535));
+    expect(applyRowTargetEdit(draft, row, "0").rows[0]!.target).toEqual(numberTarget(1));
+    expect(applyRowTargetEdit(draft, row, "").rows[0]!.target).toEqual(unsetTarget());
+    expect(applyRowTargetEdit(draft, row, "105")).toBe(draft);
+    expect(applyRowTargetEdit(draft, 999, "30")).toBe(draft);
+    const repetitions = rows([numberTarget(12), numberTarget(10)], "REPETITIONS");
+    expect(applyRowTargetEdit(repetitions, repetitions.rowIds[0]!, "150").rows[0]!.target).toEqual(numberTarget(100));
+    expect(applyRowTargetEdit(repetitions, repetitions.rowIds[0]!, "").rows[0]!.target).toEqual(unsetTarget());
+  });
+
+  it("sortie de la Pause : bornes 0..300, vidée → 0 s ; valeur inchangée → Brouillon tel quel", () => {
+    const draft = rows([numberTarget(30), numberTarget(45)]);
+    const row = draft.rowIds[1]!;
+    expect(applyRowPauseEdit(draft, row, "999").rows[1]!.pauseSeconds).toBe(300);
+    expect(applyRowPauseEdit(draft, row, "").rows[1]!.pauseSeconds).toBe(0);
+    expect(applyRowPauseEdit(draft, row, "130").rows[1]!.pauseSeconds).toBe(90);
+    expect(applyRowPauseEdit(draft, row, "10")).toBe(draft);
   });
 });
 

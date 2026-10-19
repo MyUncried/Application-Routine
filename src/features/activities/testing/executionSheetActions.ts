@@ -1,4 +1,5 @@
-import { fireEvent, screen } from "@testing-library/react-native";
+import { act, fireEvent, screen } from "@testing-library/react-native";
+import { DeviceEventEmitter } from "react-native";
 
 import type { ExecutionMode } from "@/domain/activities/ExecutionParameters";
 import { strings } from "@/shared/i18n";
@@ -122,4 +123,69 @@ type TestInstance = ReturnType<typeof screen.getByTestId>;
  */
 export function pressInExecutionSheet(element: TestInstance): void {
   fireEvent.press(element);
+}
+
+const hiddenNodes = { includeHiddenElements: true } as const;
+/** Clavier simulé (haut à 500, sans animation), émis par les événements `Keyboard` standards. */
+const SIMULATED_KEYBOARD = { endCoordinates: { screenX: 0, screenY: 500, width: 390, height: 344 }, duration: 0, easing: "keyboard" };
+
+/** D-434 : clavier natif affiché (`keyboardWillShow` puis `keyboardDidShow`) ; la barre de la Feuille apparaît (iOS). */
+export function showExecutionSheetKeyboard(): void {
+  act(() => {
+    DeviceEventEmitter.emit("keyboardWillShow", SIMULATED_KEYBOARD);
+    DeviceEventEmitter.emit("keyboardDidShow", SIMULATED_KEYBOARD);
+  });
+}
+
+/** D-434 : clavier natif rangé. */
+export function hideExecutionSheetKeyboard(): void {
+  act(() => {
+    DeviceEventEmitter.emit("keyboardWillHide", SIMULATED_KEYBOARD);
+    DeviceEventEmitter.emit("keyboardDidHide", SIMULATED_KEYBOARD);
+  });
+}
+
+/** Touche de Retour arrière pour `typeInExecutionSheetCell`. */
+export const CELL_BACKSPACE = "⌫";
+
+/**
+ * D-434 : frappes au clavier natif dans la cellule `testID` (entrée `${testID}-input`, déjà
+ * focalisée) : chaque chiffre est ajouté au texte natif courant, `CELL_BACKSPACE` en retire le
+ * dernier caractère — comme le `TextInput` natif, curseur en fin de texte.
+ */
+export function typeInExecutionSheetCell(testID: string, keys: string): void {
+  for (const key of [...keys]) {
+    const input = screen.getByTestId(`${testID}-input`, hiddenNodes);
+    const current = String(input.props.value ?? "");
+    fireEvent.changeText(input, key === CELL_BACKSPACE ? current.slice(0, -1) : current + key);
+  }
+}
+
+/**
+ * D-434 (QD-434-1) : saisit une cellule du tableau des séries au clavier (Cible, Pause,
+ * Charge) — focus, frappes (la première remplace la valeur), puis sortie du champ ; ou, avec
+ * `"FAILURE"`, met la Cible à l'échec par « À l'échec » de la barre du clavier (sans effet si
+ * elle l'est déjà). Le focus natif est simulé (`focus`, `changeText`, `blur`).
+ */
+export function enterExecutionSheetCell(testID: string, entry: string | "FAILURE"): void {
+  fireEvent(screen.getByTestId(`${testID}-input`, hiddenNodes), "focus");
+  let shown = false;
+  if (entry === "FAILURE") {
+    if (!screen.queryByTestId("execution-sheet-keyboard-failure", hiddenNodes)) {
+      showExecutionSheetKeyboard();
+      shown = true;
+    }
+    const failure = screen.getByTestId("execution-sheet-keyboard-failure", hiddenNodes);
+    if (failure.props.accessibilityState?.selected !== true) fireEvent.press(failure);
+  } else {
+    typeInExecutionSheetCell(testID, entry);
+  }
+  fireEvent(screen.getByTestId(`${testID}-input`, hiddenNodes), "blur");
+  if (shown) hideExecutionSheetKeyboard();
+}
+
+/** D-434 : chiffres « MMSS » minimaux d'une durée en secondes, tels que frappés (90 → « 130 », 5 → « 5 »). */
+export function durationKeys(seconds: number): string {
+  const digits = `${Math.floor(seconds / 60)}${String(seconds % 60).padStart(2, "0")}`;
+  return digits.replace(/^0+(?=d)/u, "");
 }

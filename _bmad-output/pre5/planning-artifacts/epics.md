@@ -571,6 +571,7 @@ afin de vérifier ces interactions sur appareil avant la story Charge, sans rien
 **And** `sheetSurface.ts` reste le seul réducteur et reçoit la surface `keyboard` ; une seule surface est ouverte à la fois ; la valeur saisie est appliquée avant toute autre transition (autre surface, ✓, ✕, glisser, retrait, segmenté)
 **And** ✓ et ✕ de la Feuille sont absorbés pendant une saisie (Q47 : premier appui = sortie du champ, valeur appliquée ; second appui = validation ou abandon)
 **And** aucune autre valeur ne passe au clavier (NR Δ30).
+**And** (D-434, décision de Hermann du 19/10) dans le tableau des séries variables, Cible (MMSS en Durée, entier en Répétitions) et Pause (MMSS) passent aussi au clavier numérique, dans la cellule (`KeyboardField` modes `cellDuration`, `cellInteger`, `cellDecimal`) ; hors tableau, rien ne change.
 
 **AC2 — Navigation Précédent / Suivant / Fermer (FR-25, §9-8).**
 **Given** plusieurs champs de charge (ligne commune en identiques, cellules du tableau en variables)
@@ -579,12 +580,13 @@ afin de vérifier ces interactions sur appareil avant la story Charge, sans rien
 **And** « Fermer » applique la valeur et ferme le clavier
 **And** sur iOS la barre est rendue par la Feuille elle-même, juste au-dessus du clavier (hauteur par les événements `Keyboard` standards) : `InputAccessoryView` ne s'affiche pas dans la `Modal` de la Feuille (recette du 19/10, RC-1)
 **And** Android et web : champs fonctionnels ; la barre y est livrée si le même mécanisme standard le permet, sinon le clavier natif suffit ; rendu non recetté.
+**And** (D-434) la barre porte « À l'échec » | « ← Précédent » | « Suivant → » | « Fermer », sur une ligne (flèches seules, libellés d'accessibilité gardés, si la largeur manque) ; « À l'échec » seulement pour une cellule Cible ; Précédent / Suivant parcourent le tableau ligne par ligne, de gauche à droite (Cible, Pause, Charge), sans le quitter (QD-434-2).
 
 **AC3 — Cellule active (FR-25, UX-DR5).**
 **Given** un champ de charge actif
 **When** le focus change (toucher, Précédent, Suivant)
 **Then** la cellule en cours de saisie est identifiée par sa couleur de fond, conformément à Figma (`9292:18077`), et l'état actif est annoncé de façon accessible
-**And** toute la valeur du champ est sélectionnée quand il prend le focus, y compris par Précédent / Suivant (recette du 19/10, RC-3).
+**And** toute la valeur du champ est sélectionnée quand il prend le focus, y compris par Précédent / Suivant (recette du 19/10, RC-3) [remplacé par D-434 pour les cellules du tableau, Charge comprise : aucune sélection native, la première frappe remplace la valeur, les suivantes composent, Retour arrière supprime le dernier chiffre ; la charge commune, hors tableau, garde RC-3].
 
 **AC4 — Ligne active toujours visible au-dessus du clavier (FR-24).**
 **Given** la Feuille ouverte
@@ -845,7 +847,8 @@ afin de régler une série sans les ± permanents et de préparer le tableau des
 **Given** une ligne du tableau
 **When** Hermann touche une cellule
 **Then** aucun stepper permanent n'est rendu dans les cellules ; la cellule Cible ouvre `selector(rowTarget)` dans un `AnchoredPanel` sous la ligne (Q45), avec « À l'échec » en tête (Q8) ; la cellule Pause ouvre `stepper(rowPause)` (`InlineStepper`, mécanisme ± unique) pour cette cellule seule
-**And** les surfaces désignent l'identité de la ligne (`rowIds`), jamais son rang ; au plus une surface est ouverte ; toucher une autre surface ferme la première et ouvre l'autre dans le même geste ; « ligne disparue » couvre aussi `stepper(rowPause)`.
+**And** les surfaces désignent l'identité de la ligne (`rowIds`), jamais son rang ; au plus une surface est ouverte ; toucher une autre surface ferme la première et ouvre l'autre dans le même geste ; « ligne disparue » couvre aussi `stepper(rowPause)`
+**And** (D-434, décision de Hermann du 19/10 ; QD-434-1 à 4) remplace la roue de cellule et le ± de Pause de cellule : Cible et Pause se saisissent au clavier numérique dans la cellule (surface `keyboard(rowTarget | rowPause)`, `selector(rowTarget)` et `stepper(rowPause)` retirées) ; au repos unités explicites, au focus « MM:SS » ; à la sortie secondes reportées, bornes existantes, cellule vidée → 0 s ou « à renseigner » ; « À l'échec » dans la barre du clavier.
 
 **AC4 — Briques partagées (AD-27, FR-4).**
 **Given** `DraggableRow`, `RemoveRowButton` et le message d'annulation, aujourd'hui dans `Sheet`
@@ -857,7 +860,7 @@ afin de régler une série sans les ± permanents et de préparer le tableau des
 **AC5 — Non-régression et contrôles (NR Δ30, Δ38, NFR-2).**
 **Given** les roues et steppers
 **When** la story est livrée
-**Then** aucune valeur ne passe au clavier ; Nombre de séries et Pause commune gardent leurs steppers révélés (C-5) ; `DurationWheelPicker.test.tsx:371-379` et `NumberWheelPicker.test.tsx:260` sont intacts et verts
+**Then** aucune valeur ne passe au clavier [D-434 : sauf les cellules Cible et Pause du tableau] ; Nombre de séries et Pause commune gardent leurs steppers révélés (C-5) ; `DurationWheelPicker.test.tsx:371-379` et `NumberWheelPicker.test.tsx:260` sont intacts et verts
 **And** (NR Δ38, impératif) le stepper « Nombre de séries » de PRE-4 est conservé à l'identique (présentation, interactions, révélation et fermeture, pas, accessibilité), sauf que toucher sa valeur ouverte le referme, comme pour tous les steppers révélés de la Feuille (recette du 19/10, RC-4), et le tableau des séries, désormais sans ± de cellule, suit N : une série ajoutée ou retirée par ce stepper apparaît ou disparaît dans le tableau, avec ses réserves (Q29)
 **And** Contrôles : `npm test`, `npx tsc --noEmit`, `npm run lint` verts.
 
@@ -986,7 +989,8 @@ afin que la durée de série soit la somme de ces actions, sans conversion destr
 **Given** une cellule Durée
 **When** Hermann la touche
 **Then** elle ouvre `selector(phaseDuration)` : la roue native `DurationWheelPicker` dans `AnchoredPanel`, sous la ligne, bornes 1..3535, pas 1 s, sans option « À l'échec » ; « — » ouvre sur 00:01
-**And** aucune borne propre à la phase autre que celle de la somme ; `DurationWheelPicker.test.tsx:371` reste intact.
+**And** aucune borne propre à la phase autre que celle de la somme ; `DurationWheelPicker.test.tsx:371` reste intact
+**And** (D-434, décision de Hermann du 19/10) remplace la roue : la durée de phase se saisit au clavier numérique MMSS dans la cellule (`KeyboardField` mode `cellDuration`, mêmes règles que les cellules du tableau des séries), sans « À l'échec » ; Précédent / Suivant ne parcourent que les durées ; une dernière phase calculée reste non éditable.
 
 **AC6 — Durée de série dérivée (FR-3).**
 **Given** des phases 6 s et 3 s, 3 séries, Pause 15 s

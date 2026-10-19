@@ -625,6 +625,34 @@ export function setRowPause(draft: ExecutionSheetDraft, index: number, pauseSeco
 }
 
 /**
+ * PRE-5, D-434 (QD-434-1, AD-23, RM-250) — commande « À l'échec » de la barre du clavier,
+ * pour la Cible de la seule ligne `index` : une Cible numérique (ou à renseigner) passe à
+ * l'échec, la valeur numérique étant d'abord mémorisée pour cette identité et ce Mode
+ * (`lastNumberById`, comme la Condition d'arrêt des séries identiques) ; une Cible à l'échec
+ * reprend la dernière valeur numérique mémorisée, sinon redevient à renseigner. Mode non
+ * choisi ou index hors bornes : Brouillon inchangé.
+ */
+export function toggleRowFailure(draft: ExecutionSheetDraft, index: number): ExecutionSheetDraft {
+  if (!isRowIndex(draft, index) || draft.mode === null) {
+    return draft;
+  }
+  const mode = draft.mode;
+  const id = draft.rowIds[index];
+  const target = draft.rows[index]!.target;
+  if (target.kind === "FAILURE") {
+    const remembered = id === undefined ? undefined : draft.lastNumberById[id]?.[mode];
+    return setRowTarget(draft, index, remembered === undefined ? unsetTarget() : numberTarget(remembered));
+  }
+  // Une Cible à renseigner passée à l'échec n'a pas de valeur à restituer : la mémoire de ce
+  // Mode est effacée (le retour la rend à renseigner, jamais une valeur plus ancienne).
+  const kept: Partial<Record<ExecutionMode, number>> = { ...(id === undefined ? {} : draft.lastNumberById[id]) };
+  if (target.kind === "NUMBER") kept[mode] = target.value;
+  else delete kept[mode];
+  const lastNumberById = id === undefined ? draft.lastNumberById : { ...draft.lastNumberById, [id]: kept };
+  return { ...setRowTarget(draft, index, failureTarget()), lastNumberById };
+}
+
+/**
  * Déplace une Série (P3-07) : cible, Pause et identité voyagent ensemble,
  * les lignes sont renumérotées par leur position ; la nouvelle dernière
  * ligne porte PN. Indices hors bornes : aucun changement.

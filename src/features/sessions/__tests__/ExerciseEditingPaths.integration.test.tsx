@@ -40,6 +40,8 @@ import {
   chooseExecutionMode,
   chooseExecutionRegime,
   chooseExecutionSide,
+  durationKeys,
+  enterExecutionSheetCell,
   openExecutionSheetField,
   showExerciseDurationSignals,
   tapExecutionSheetStep,
@@ -1005,37 +1007,22 @@ describe("PRE4-4.1/AC10 — relecture à l'identique après bascules, dans les q
 
 /**
  * Report de 4.1 (AC10), rejoué dans la story 4.2 : les Cibles à l'échec sont
- * SAISIES dans la Feuille (roue de cellule de la story 3.4, option « à
- * l'échec »), dans les quatre parcours, puis relues à l'identique après les
- * bascules (Mode aller-retour, déplacement, N 3 → 1 → 3).
+ * SAISIES dans la Feuille (D-434 : au clavier numérique de la cellule, « À l'échec »
+ * de la barre du clavier), dans les quatre parcours, puis relues à l'identique après
+ * les bascules (Mode aller-retour, déplacement, N 3 → 1 → 3).
  */
 const hidden = { includeHiddenElements: true } as const;
 
-/**
- * Mise en page simulée d'une ligne du tableau et de sa cellule de Cible (le panneau de la roue
- * attend ces mesures). PRE-5 story 2.6 : lignes de 36, cellules 71 × 24 (Figma `9290:17953`).
- */
-function measureTableRow(row: number) {
-  fireEvent(screen.getByTestId(`execution-sheet-table-row-${row}-motion`, hidden), "layout", {
-    nativeEvent: { layout: { x: -4, y: 32 + 36 * (row - 1), width: 336, height: 36 } },
-  });
-  fireEvent(screen.getByTestId(`execution-sheet-table-row-${row}-target-cell`, hidden), "layout", {
-    nativeEvent: { layout: { x: 58, y: 6, width: 71, height: 24 } },
-  });
+/** D-434 : saisit la Cible d'une ligne au clavier de sa cellule (durée en secondes), ou « À l'échec » par la barre. */
+function enterRowTarget(row: number, target: number | "FAILURE") {
+  enterExecutionSheetCell(`execution-sheet-table-row-${row}-target`, target === "FAILURE" ? "FAILURE" : durationKeys(target));
+  expect(screen.queryByTestId("number-wheel-column")).toBeNull();
 }
 
-/** Saisit la Cible d'une ligne par la roue que sa cellule ouvre : une durée en secondes, ou l'option « à l'échec ». */
-function enterRowTarget(row: number, target: number | "FAILURE") {
-  measureTableRow(row);
-  fireEvent.press(screen.getByTestId(`execution-sheet-table-row-${row}-target`, hidden));
-  if (target === "FAILURE") {
-    fireEvent.press(screen.getByTestId("duration-wheel-failure-option"));
-  } else {
-    fireEvent(screen.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: Math.floor(target / 60) } });
-    fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: target % 60 } });
-  }
-  fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-  expect(screen.queryByTestId("execution-sheet-cell-panel")).toBeNull();
+/** D-434 : saisit la Pause d'une ligne au clavier de sa cellule (« MMSS »). */
+function enterRowPause(row: number, seconds: number) {
+  enterExecutionSheetCell(`execution-sheet-table-row-${row}-pause`, durationKeys(seconds));
+  expect(String(screen.getByTestId(`execution-sheet-table-row-${row}-pause-value`, hidden).props.children)).toBe(`${seconds} s`);
 }
 
 /** Bascules de AC10 dans la Feuille déjà ouverte, puis ✓. */
@@ -1123,9 +1110,9 @@ function enterMixedTargetsOnNewExercise(context: "catalogue" | "session" = "cata
   enterRowTarget(1, 30);
   enterRowTarget(2, 45);
   enterRowTarget(3, "FAILURE");
-  stepTo("execution-sheet-table-row-1-pause", "10 s");
-  stepTo("execution-sheet-table-row-2-pause", "20 s");
-  stepTo("execution-sheet-table-row-3-pause", "30 s");
+  enterRowPause(1, 10);
+  enterRowPause(2, 20);
+  enterRowPause(3, 30);
   chooseExecutionSide("Avec");
   stepTo("execution-sheet-side-recovery", "5 s");
   // PRE-5 story 2.5 (AC3) : le ± de la Cadence est révélé par l'option Autre.

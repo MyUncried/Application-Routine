@@ -51,8 +51,6 @@ import {
   setCountdown,
   setEnd,
   setMode,
-  setRowPause,
-  setRowTarget,
   setLoadEnabled,
   setSeriesCount,
   setSideMode,
@@ -92,6 +90,7 @@ import {
 } from "@/features/activities/SheetMotion";
 import {
   INITIAL_SHEET_SURFACE_STATE,
+  keyboardFieldRow,
   removalEnabled,
   sameSurface,
   sheetCommandsAbsorbed,
@@ -105,15 +104,10 @@ import {
   InsertionGuide,
   RemoveRowButton,
   TABLE_BLOCK_SIDE_INSET,
-  TABLE_BLOCK_VERTICAL_INSET,
-  TABLE_CELL_GAP,
   TABLE_CELL_HEIGHT,
   TABLE_CELL_WIDTH,
-  TABLE_LEAD_GAP,
-  TABLE_LEAD_WIDTH,
   TABLE_ROW_HEIGHT,
   TABLE_ROW_INSET,
-  TableCell,
   tableCellStyle,
   tableCellValueStyle,
   tableRowIdentity,
@@ -121,7 +115,7 @@ import {
   UndoMessage,
   type DraggableRowLabels,
 } from "@/features/activities/sheetTable";
-import { loadFieldOrder, useSheetKeyboard, type LoadFieldRow } from "@/features/activities/useSheetKeyboard";
+import { keyboardFieldOrder, useSheetKeyboard } from "@/features/activities/useSheetKeyboard";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
 import { WHEEL_TOTAL_DURATION_SECONDS_MAX } from "@/features/sessions/wheelPickerMath";
@@ -215,11 +209,17 @@ import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@
  * - stepper « Nombre de séries » de PRE-4 inchangé (NR Δ38), seule sa ligne change.
  *
  * PRE-5 story 2.6 (AD-27, AD-28, FR-29 ; UX-DR3) — tableau des séries variables : bloc
- * blanc, lignes de 36, cellules à valeur seule (plus de ± permanents : Q44 remplacé). La
- * cellule Cible ouvre la roue de sa ligne (`selector(rowTarget)`, panneau sous la ligne sur
- * iOS) ; la cellule Pause ouvre le ± de cette seule cellule (`stepper(rowPause)`), révélé
- * sous la ligne. Poignée, croix, repère d'insertion et message d'annulation viennent des
- * briques partagées (`sheetTable.tsx`), réutilisables par le tableau des phases (2.8).
+ * blanc, lignes de 36, cellules à valeur seule (plus de ± permanents : Q44 remplacé).
+ * Poignée, croix, repère d'insertion et message d'annulation viennent des briques partagées
+ * (`sheetTable.tsx`), réutilisables par le tableau des phases (2.8).
+ *
+ * PRE-5, D-434 (décision de Hermann du 19/10 ; QD-434-1 à 4) — les cellules Cible (Durée en
+ * « MM:SS », Répétitions en entier) et Pause (« MM:SS ») se saisissent au clavier numérique
+ * natif, dans la cellule (`KeyboardField` en mode cellule, surface `keyboard`) ; la Charge
+ * d'une ligne aussi, au clavier décimal. Plus de roue de cellule (`selector(rowTarget)`) ni
+ * de ± de Pause de cellule (`stepper(rowPause)`). La barre du clavier porte « À l'échec »
+ * pour une cellule Cible (`toggleRowFailure`) ; Précédent / Suivant parcourent le tableau
+ * ligne par ligne, de gauche à droite.
  *
  * PRE-5 story 2.2 (AD-26, AD-27, FR-23 à FR-25, NFR-6) — essai du champ clavier de la
  * charge, posé à sa place définitive : ligne « Charge » (Avec / Sans) en dernier dans le
@@ -313,7 +313,7 @@ export { dragDestination, TABLE_ROW_HEIGHT, tableRowIdentity } from "@/features/
  * champ. PRE-5 story 2.4 : le Régime (Type de série) n'a plus de panneau (segmenté en ligne) ;
  * PRE-5 story 2.5 : le Changement de côté et l'Enchainement non plus.
  */
-type PanelControl = "uniformDuration" | "uniformRepetitions" | "total" | "rowTarget";
+type PanelControl = "uniformDuration" | "uniformRepetitions" | "total";
 type Box = { readonly y: number; readonly height: number };
 const NO_BOX: Box = { y: 0, height: 0 };
 const sameBox = (box: Box | undefined, y: number, height: number) => box !== undefined && box.y === y && box.height === height;
@@ -330,13 +330,7 @@ const PANEL_FRAME: Readonly<Record<PanelControl, SheetFrame>> = {
   uniformDuration: "series",
   uniformRepetitions: "series",
   total: "cadence",
-  rowTarget: "series",
 };
-/** Story 3.6 : boîte du tableau (position dans le groupe « Type de série », largeur des lignes). */
-type TableBox = { readonly y: number; readonly width: number };
-const NO_TABLE_BOX: TableBox = { y: 0, width: 0 };
-/** Story 3.6 : boîte de la cellule de Cible dans sa ligne (même géométrie pour toutes les lignes). */
-type CellBox = { readonly x: number; readonly y: number; readonly width: number; readonly height: number };
 /**
  * Message d'ajustement (D-5) : l'Inversion du total garde l'état d'avant pour `Annuler` ;
  * le retrait d'une ligne (story 3.6) n'en garde aucun, `undoRemoval` du Brouillon suffit.
@@ -345,7 +339,6 @@ type Adjustment =
   | { readonly kind: "total"; readonly message: string; readonly previous: ExecutionSheetDraft }
   | { readonly kind: "removal"; readonly message: string };
 
-const sameCellBox = (a: CellBox, b: CellBox) => a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
 /** Q41 : écart entre le bas de la ligne du champ et le haut du panneau (valeur d'intégration, non tirée de Figma). */
 const PANEL_GAP = spacing[4];
 /** Q41 : identifiants des panneaux. */
@@ -354,8 +347,6 @@ const PANEL_TEST_IDS: Readonly<Record<PanelControl, string>> = {
   // Story 3.5 : même panneau de la Cible commune, en Répétitions (un seul Mode affiché).
   uniformRepetitions: "execution-sheet-target-panel",
   total: "execution-sheet-total-panel",
-  // Story 3.6 (Q41, cohérence) : Sélecteur de la Cible d'une ligne, sous sa cellule.
-  rowTarget: "execution-sheet-cell-panel",
 };
 /** Q41 : la zone de toucher extérieur couvre aussi les marges du corps défilant (`bodyContent`). */
 const PANEL_OUTSIDE_INSETS = { top: spacing[12], right: spacing[24], bottom: spacing[24], left: spacing[24] };
@@ -372,26 +363,21 @@ const SHEET_ENTRY_DURATION_MS = 250;
 export const SHEET_ROW_MIN_HEIGHT = 44;
 
 /**
- * Largeurs DSF des steppers à 402 : premier niveau 137, tableau 128 (PRE-5 story 2.6 :
- * champ ± de la Pause d'une ligne, révélé sous sa cellule).
+ * Largeur DSF des steppers à 402 : premier niveau 137 (D-434 : plus de ± de Pause de
+ * cellule ni de sa largeur de tableau, 128).
  */
 const STEPPER_WIDTH = 137;
-const TABLE_STEPPER_WIDTH = 128;
 
 /** PRE-5 story 2.6 : libellés de la ligne déplaçable du tableau des séries (gabarits à `{n}`). */
 const SERIES_ROW_LABELS: DraggableRowLabels = { handle: t.moveHandle, row: t.row, moveUp: t.moveUp, moveDown: t.moveDown };
 const SERIES_ROW_TEST_ID = "execution-sheet-table-row";
-/**
- * PRE-5 story 2.6 (AD-27) : le champ ± de la Pause d'une ligne est révélé sous la ligne.
- * PRE-5 story 2.2 : il est centré sur la cellule Pause MESURÉE (la colonne Charge peut
- * faire rétrécir les cellules) ; cette position nominale ne sert qu'avant la mesure.
- */
-const PAUSE_CELL_NOMINAL_X = TABLE_LEAD_WIDTH + TABLE_LEAD_GAP + TABLE_CELL_WIDTH + TABLE_CELL_GAP;
-/** PRE-5 story 2.2 (AD-28) : cellule Charge de 24, cible tactile de 36. */
-const LOAD_CELL_HIT_SLOP = { top: (TABLE_ROW_HEIGHT - TABLE_CELL_HEIGHT) / 2, bottom: (TABLE_ROW_HEIGHT - TABLE_CELL_HEIGHT) / 2 };
+/** PRE-5 story 2.2 (AD-28), D-434 : cellule clavier de 24 (Cible, Pause, Charge), cible tactile de 36. */
+const KEYBOARD_CELL_HIT_SLOP = { top: (TABLE_ROW_HEIGHT - TABLE_CELL_HEIGHT) / 2, bottom: (TABLE_ROW_HEIGHT - TABLE_CELL_HEIGHT) / 2 };
 /** PRE-5 story 2.2 : champ de la charge commune. */
 const UNIFORM_LOAD_FIELD: KeyboardFieldId = { kind: "load", row: "uniform" };
-const loadField = (row: LoadFieldRow): KeyboardFieldId => ({ kind: "load", row });
+/** D-434 : champs clavier d'une cellule du tableau des séries (ligne d'identité `row`). */
+type RowCellKind = "rowTarget" | "rowPause" | "load";
+const rowCellField = (kind: RowCellKind, row: number): KeyboardFieldId => ({ kind, row });
 /** Option du segmenté de la ligne Charge (FR-23). */
 type LoadChoice = "WITH" | "WITHOUT";
 
@@ -471,20 +457,9 @@ export function ExecutionParametersSheet({
   // Q41 : géométrie des panneaux sans flèche (relevée à la mise en page, jamais estimée).
   // PRE-5 story 2.4 (AD-28) : boîte de chaque cadre dans le contenu défilant.
   const [frameBoxes, setFrameBoxes] = useState<Partial<Record<SheetFrame, FrameBox>>>({});
-  // Position du groupe « Type de série » + tableau dans le cadre Séries.
-  const [variableGroupY, setVariableGroupY] = useState(0);
   // Boîte de la ligne d'un champ à panneau, relative à SON cadre (`PANEL_FRAME`).
   const [rowBoxes, setRowBoxes] = useState<Partial<Record<PanelControl, Box>>>({});
   const [panelHeight, setPanelHeight] = useState<{ readonly control: PanelControl; readonly height: number } | null>(null);
-  // Story 3.6 (Q41) : géométrie du tableau pour placer le Sélecteur d'une ligne sous sa cellule —
-  // boîte du tableau dans le groupe « Type de série », boîte de chaque ligne (par identité)
-  // dans le tableau, boîte de la cellule de Cible dans sa ligne, largeur mesurée du panneau.
-  const [tableBox, setTableBox] = useState<TableBox>(NO_TABLE_BOX);
-  const [tableRowBoxes, setTableRowBoxes] = useState<Readonly<Record<number, Box>>>({});
-  const [targetCellBoxes, setTargetCellBoxes] = useState<Readonly<Record<number, CellBox>>>({});
-  // Largeur mesurée du panneau, liée à la clé de son ouverture : une autre ouverture (autre
-  // ligne, autre Mode) repart de la largeur par défaut de la roue montée.
-  const [panelWidth, setPanelWidth] = useState<{ readonly key: number; readonly width: number } | null>(null);
   const scrollRef = useRef<ScrollView>(null);
   const viewportHeightRef = useRef(0);
   // Recette du 19/10 (RC-1) : bas mesuré de la zone de la `Modal` (fenêtre), sinon la hauteur de la fenêtre.
@@ -505,7 +480,7 @@ export function ExecutionParametersSheet({
     surface,
     dispatchSurface,
     commit: commitKeyboard,
-    order: loadFieldOrder(draft, !isTableFolded).map(loadField),
+    order: keyboardFieldOrder(draft, !isTableFolded),
     scrollRef,
     reduceMotion,
   });
@@ -554,18 +529,10 @@ export function ExecutionParametersSheet({
   const uniformTargetShown = !showVariableTable && stopCondition !== "FAILURE";
   // Q40 : jamais deux surlignages — le tableau n'est pas surligné tant qu'une surface hors
   // tableau est ouverte.
-  // Story 3.6 : le Sélecteur d'une ligne est une surface DU tableau, qui reste sélectionné.
-  const rowSelectorOpen = openSurface.kind === "selector" && openSurface.selector === "rowTarget";
-  // PRE-5 story 2.6 (AD-27) : le champ ± de la Pause d'une ligne est aussi une surface DU tableau.
-  const rowPauseOpen = openSurface.kind === "stepper" && openSurface.field === "rowPause";
-  // PRE-5 story 2.2 : le clavier de la charge d'une ligne est aussi une surface DU tableau.
-  const rowKeyboardOpen =
-    openSurface.kind === "keyboard" && openSurface.field.kind === "load" && openSurface.field.row !== "uniform";
-  const tableSelected =
-    isTableSelected &&
-    showVariableTable &&
-    !isTableFolded &&
-    (openSurface.kind === "none" || rowSelectorOpen || rowPauseOpen || rowKeyboardOpen);
+  // PRE-5 story 2.2, D-434 : le clavier d'une cellule (Cible, Pause, Charge) est une surface
+  // DU tableau, qui reste sélectionné.
+  const rowKeyboardOpen = openSurface.kind === "keyboard" && keyboardFieldRow(openSurface.field) !== null;
+  const tableSelected = isTableSelected && showVariableTable && !isTableFolded && (openSurface.kind === "none" || rowKeyboardOpen);
   // PRE-5 story 2.2 (FR-23) : champ de la charge commune, en identiques effectives avec la charge Avec.
   const uniformLoadShown = draft.loadEnabled && !showVariableTable;
   const uniformLoadActive = isOpen({ kind: "keyboard", field: UNIFORM_LOAD_FIELD });
@@ -674,36 +641,6 @@ export function ExecutionParametersSheet({
   }
 
   /**
-   * PRE-5 story 2.6 (AD-27, T22) : pas ± du champ de la Pause d'une ligne — le tableau reste
-   * sélectionné et le champ reste ouvert (ses ± ne le ferment jamais).
-   */
-  function updateKeepingTableSurface(next: ExecutionSheetDraft) {
-    update(next);
-    setIsTableSelected(true);
-  }
-
-  /**
-   * Story 3.6 (AD-15, FR-10-03, Q13, Q41) : toucher une cellule de Cible ouvre le
-   * Sélecteur de SA ligne (T2, T3 ; T21 si un champ ± est ouvert, fermé dans le même
-   * geste ; T10 si un popover ou un Sélecteur est ouvert). L'ouverture ne modifie pas le
-   * Brouillon : `Annuler` d'un retrait reste valable (Q29).
-   */
-  function openRowSelector(row: number) {
-    setIsTableSelected(true);
-    dispatchSurface({ type: "touch", surface: { kind: "selector", selector: "rowTarget", row } });
-  }
-
-  /**
-   * PRE-5 story 2.6 (AD-27, FR-29) : toucher la cellule Pause d'une ligne ouvre (ou referme)
-   * le champ ± de cette seule cellule, `stepper(rowPause)` — famille ± : un autre champ ±
-   * ouvert se ferme dans le même geste ; un Sélecteur ouvert se ferme sans l'ouvrir (T10).
-   */
-  function toggleRowPause(row: number) {
-    setIsTableSelected(true);
-    dispatchSurface({ type: "touch", surface: { kind: "stepper", field: "rowPause", row } });
-  }
-
-  /**
    * Story 3.6 (AD-15, T18, T23, FR-12-05, Q29) : croix de la ligne d'identité `row`.
    * Sans surface ni champ ± ouvert : la ligne est retirée sans confirmation et « Série
    * supprimée — Annuler » s'affiche par le message existant. Sinon, l'appui est un appui
@@ -721,15 +658,6 @@ export function ExecutionParametersSheet({
     const next = removeRow(draft, draft.rowIds.indexOf(row));
     if (next === draft) return;
     setDraft(next);
-    // Les mesures de la ligne retirée sont élaguées : restaurée par `Annuler`, elle est
-    // remesurée à son nouveau montage avant que son panneau puisse s'ouvrir.
-    const omit = <T,>(boxes: Readonly<Record<number, T>>): Readonly<Record<number, T>> => {
-      if (!(row in boxes)) return boxes;
-      const { [row]: _removed, ...kept } = boxes;
-      return kept;
-    };
-    setTableRowBoxes(omit);
-    setTargetCellBoxes(omit);
     setAdjustment({ message: t.seriesRemoved, kind: "removal" });
   }
 
@@ -752,10 +680,13 @@ export function ExecutionParametersSheet({
     setDraft(adjustment.kind === "removal" ? undoRemoval(draft) : adjustment.previous);
   }
 
-  /** PRE-5 story 2.2 : focus d'un champ de charge — une cellule sélectionne le tableau, le champ commun le désélectionne (Q40). */
-  function focusLoad(row: LoadFieldRow) {
-    setIsTableSelected(row !== "uniform");
-    keyboard.onFocus(loadField(row));
+  /**
+   * PRE-5 story 2.2, D-434 : focus d'un champ clavier — une cellule du tableau (Cible, Pause,
+   * Charge) sélectionne le tableau, le champ de la charge commune le désélectionne (Q40).
+   */
+  function focusKeyboardField(field: KeyboardFieldId) {
+    setIsTableSelected(keyboardFieldRow(field) !== null);
+    keyboard.onFocus(field);
   }
 
   /**
@@ -1003,14 +934,7 @@ export function ExecutionParametersSheet({
         ? "uniformRepetitions"
         : isOpen(TOTAL_SELECTOR) && totalWheelSeconds !== undefined
           ? "total"
-          : rowSelectorOpen &&
-              showVariableTable &&
-              !isTableFolded &&
-              draft.rowIds.includes(openSurface.row) &&
-              tableRowBoxes[openSurface.row] !== undefined &&
-              targetCellBoxes[openSurface.row] !== undefined
-            ? "rowTarget"
-            : null;
+          : null;
   /**
    * PRE-5 story 2.4 (AD-28) — repère UNIQUE des panneaux, dans les coordonnées du contenu
    * défilant (l'hôte des panneaux, dont les cadres sont les enfants directs) : y du cadre
@@ -1020,40 +944,10 @@ export function ExecutionParametersSheet({
   // Q41 : le panneau s'ouvre sous la ligne du champ, aligné à droite sur le champ (bord
   // droit de la ligne, `FRAME_INSET` avant le bord du cadre). Les segmentés gardent la
   // largeur de la ligne (D-341) ; la roue garde sa propre largeur (330), alignée à droite.
-  const anchorBox = panelControl === null || panelControl === "rowTarget" ? NO_BOX : (rowBoxes[panelControl] ?? NO_BOX);
-  // Story 3.6 (Q41, cohérence) : le Sélecteur d'une ligne s'ouvre sous SA cellule de Cible
-  // (bas de la cellule : cadre Séries → groupe « Type de série » → tableau → ligne →
-  // cellule), aligné à droite sur elle. Une roue de 330 plus large que l'espace à gauche
-  // de la cellule est ramenée dans le cadre, son bord gauche au bord des lignes
-  // (`FRAME_INSET`) : choix d'intégration, à juger sur iPhone (R-3.6-01).
-  // La ligne et sa cellule sont mesurées une à une (par identité) ; tant qu'une mesure manque,
-  // le panneau n'est pas rendu (aucun saut en tête de tableau, voir `panelControl`).
-  // PRE-5 story 2.6 (AD-27, Q45) : la roue s'ouvre sous la LIGNE (bas de la ligne de 36 :
-  // cadre Séries → groupe « Type de série » → bloc blanc du tableau, décalé de sa marge
-  // haute → ligne ; hauteur fixe de la ligne, jamais la hauteur mesurée, qui comprend un
-  // champ ± ou une roue en ligne encore en train de se fermer). Bord droit : la cellule est mesurée dans sa ligne, elle-même en retrait
-  // de `TABLE_ROW_INSET` dans le bloc, à `TABLE_BLOCK_SIDE_INSET` du contour du cadre.
-  const cellRowBox = rowSelectorOpen ? tableRowBoxes[openSurface.row] : undefined;
-  const cellBox = rowSelectorOpen ? targetCellBoxes[openSurface.row] : undefined;
-  const cellBottomInFrame =
-    variableGroupY + tableBox.y + TABLE_BLOCK_VERTICAL_INSET + (cellRowBox?.y ?? 0) + TABLE_ROW_HEIGHT;
-  const cellRight =
-    FRAME_BORDER_WIDTH +
-    TABLE_BLOCK_SIDE_INSET +
-    Math.max(0, tableBox.width - (TABLE_ROW_INSET + (cellBox?.x ?? 0) + (cellBox?.width ?? 0)));
-  // Largeur par défaut de la roue montée : Durée (`durationWidth`, 330) ; la roue Répétitions
-  // à ligne de tête prend la même largeur (story 3.5, `NumberWheelPicker` avec `failureOption`).
-  const rowPanelDefaultWidth = dimensions.wheelPicker.durationWidth;
-  const rowPanelWidth = panelWidth !== null && panelWidth.key === openKey ? panelWidth.width : rowPanelDefaultWidth;
-  const seriesFrameWidth = frameBoxes.series?.width ?? 0;
-  const rowPanelRight =
-    seriesFrameWidth > 0 ? Math.max(0, Math.min(cellRight, seriesFrameWidth - FRAME_INSET - rowPanelWidth)) : cellRight;
+  const anchorBox = panelControl === null ? NO_BOX : (rowBoxes[panelControl] ?? NO_BOX);
+  // D-434 : plus de Sélecteur de cellule ; seuls les champs hors tableau ouvrent un panneau.
   const panelTop =
-    panelControl === null
-      ? 0
-      : panelControl === "rowTarget"
-        ? anchorTop("series", cellBottomInFrame) + PANEL_GAP
-        : anchorTop(PANEL_FRAME[panelControl], anchorBox.y + anchorBox.height) + PANEL_GAP;
+    panelControl === null ? 0 : anchorTop(PANEL_FRAME[panelControl], anchorBox.y + anchorBox.height) + PANEL_GAP;
   const measuredPanelHeight = panelHeight !== null && panelHeight.control === panelControl ? panelHeight.height : 0;
   // Place sous le dernier cadre : si le panneau dépasse le bas du contenu (Durée totale,
   // près du bas), une réserve vide est ajoutée après les cadres, sans déplacer aucune ligne.
@@ -1196,40 +1090,23 @@ export function ExecutionParametersSheet({
   // reste une position, jamais une Cible (✓ indisponible). L'échec sort en
   // `SeriesTarget` `FAILURE`, jamais en nombre.
   //
-  // Story 3.6 (Q13, AD-7) : la même roue sert au Sélecteur d'une ligne du tableau ; seul
-  // le dispatch au ✓ diffère (`apply`). ✓ et ✕ ferment par `close` (T5, T6, T25, T26).
-  //
-  // PRE-5 story 2.4 (AC6, FR-22, R-09, R-10) : `cellContext` présent = roue d'une cellule
-  // variable, seule à garder l'option « À l'échec » en tête (Q8) ; la roue de la Cible
-  // commune n'en a plus (en identiques, `FAILURE` n'est écrit que par la Condition d'arrêt).
-  const durationTargetWheel = (target: SeriesTarget, apply: (chosen: SeriesTarget) => void, cellContext?: string) => {
+  // PRE-5 story 2.4 (AC6, FR-22, R-09, R-10) : la roue de la Cible commune n'a pas d'option
+  // « À l'échec » (en identiques, `FAILURE` n'est écrit que par la Condition d'arrêt). D-434 :
+  // la roue n'est plus ouverte depuis une cellule du tableau (saisie au clavier).
+  const durationTargetWheel = (target: SeriesTarget, apply: (chosen: SeriesTarget) => void) => {
     const wheelLabels = strings.screens.exercise.wheelPicker;
-    // Story 3.6 (AC13) : la roue d'une ligne porte son contexte (« Série n, Durée, … »), comme la roue Répétitions.
-    const withContext = (label: string) => (cellContext === undefined ? label : `${cellContext}, ${label}`);
     const opening = selectorOpeningPosition("DURATION", target);
     return (
       <DurationWheelPicker
         totalSeconds={opening.kind === "NUMBER" ? opening.value : 0}
         targetBounds={EXECUTION_BOUNDS.durationTarget}
-        failureOption={
-          cellContext === undefined
-            ? undefined
-            : {
-                label: t.durationFailureOption,
-                initiallySelected: opening.kind === "FAILURE",
-                onValidateFailure: (chosen) => {
-                  closeSurface(openKey);
-                  apply(chosen);
-                },
-              }
-        }
         onValidate={(seconds) => {
           closeSurface(openKey);
           apply(numberTarget(seconds));
         }}
         onCancel={() => closeSurface(openKey)}
-        minutesAccessibilityLabel={withContext(wheelLabels.minutesAccessibilityLabel)}
-        secondsAccessibilityLabel={withContext(wheelLabels.secondsAccessibilityLabel)}
+        minutesAccessibilityLabel={wheelLabels.minutesAccessibilityLabel}
+        secondsAccessibilityLabel={wheelLabels.secondsAccessibilityLabel}
         cancelAccessibilityLabel={wheelLabels.cancelAccessibilityLabel}
         validateAccessibilityLabel={wheelLabels.validateAccessibilityLabel}
       />
@@ -1256,74 +1133,32 @@ export function ExecutionParametersSheet({
       testID="execution-sheet-target-value"
     />
   );
-  // Story 3.6 (Q13) : même roue pour le Sélecteur d'une ligne du tableau (`apply` seul diffère).
-  // PRE-5 story 2.4 (AC6, FR-22) : ligne de tête « Aucune répétition, à l’échec » pour la
-  // seule roue d'une cellule variable (`withFailureOption`), jamais pour la Cible commune.
-  const repetitionsTargetWheel = (
-    target: SeriesTarget,
-    apply: (chosen: SeriesTarget) => void,
-    accessibilityLabel: string,
-    withFailureOption: boolean,
-  ) => {
+  // PRE-5 story 2.4 (AC6, FR-22) : la roue de la Cible commune en Répétitions n'a pas de
+  // ligne de tête « Aucune répétition, à l’échec ». D-434 (QD-434-1) : la cellule Répétitions
+  // du tableau se saisit au clavier numérique ; la roue n'est plus ouverte depuis une cellule.
+  const repetitionsTargetWheel = (target: SeriesTarget, apply: (chosen: SeriesTarget) => void, accessibilityLabel: string) => {
     const opening = selectorOpeningPosition("REPETITIONS", target);
-    const wheel = {
-      value: opening.kind === "NUMBER" ? opening.value : EXECUTION_BOUNDS.repetitionTarget.min,
-      targetBounds: EXECUTION_BOUNDS.repetitionTarget,
-      onValidate: (value: number) => {
-        closeSurface(openKey);
-        apply(numberTarget(value));
-      },
-      onCancel: () => closeSurface(openKey),
-      valueAccessibilityLabel: repetitionsSpoken,
-      accessibilityLabel,
-      cancelAccessibilityLabel: strings.screens.exercise.wheelPicker.cancelAccessibilityLabel,
-      validateAccessibilityLabel: strings.screens.exercise.wheelPicker.validateAccessibilityLabel,
-      testID: "execution-sheet-repetitions-wheel",
-    };
-    return withFailureOption ? (
+    return (
       <NumberWheelPicker
-        {...wheel}
-        failureOption={{
-          label: t.repetitionsFailureOption,
-          initiallySelected: opening.kind === "FAILURE",
-          onValidateFailure: (chosen) => {
-            closeSurface(openKey);
-            apply(chosen);
-          },
+        value={opening.kind === "NUMBER" ? opening.value : EXECUTION_BOUNDS.repetitionTarget.min}
+        targetBounds={EXECUTION_BOUNDS.repetitionTarget}
+        onValidate={(value: number) => {
+          closeSurface(openKey);
+          apply(numberTarget(value));
         }}
+        onCancel={() => closeSurface(openKey)}
+        valueAccessibilityLabel={repetitionsSpoken}
+        accessibilityLabel={accessibilityLabel}
+        cancelAccessibilityLabel={strings.screens.exercise.wheelPicker.cancelAccessibilityLabel}
+        validateAccessibilityLabel={strings.screens.exercise.wheelPicker.validateAccessibilityLabel}
+        testID="execution-sheet-repetitions-wheel"
       />
-    ) : (
-      <NumberWheelPicker {...wheel} />
     );
   };
   // Calculés seulement quand la ligne Répétitions est affichée (comme `totalWheel`).
   const uniformRepetitionsWheel = uniformRepetitionsAvailable
-    ? repetitionsTargetWheel(effectiveFirst.target, (chosen) => update(setUniformTarget(draft, chosen)), t.repetitionsTarget, false)
+    ? repetitionsTargetWheel(effectiveFirst.target, (chosen) => update(setUniformTarget(draft, chosen)), t.repetitionsTarget)
     : null;
-
-  // Story 3.6 (FR-10-03, Q13, Q21, Q25, Q41) : Sélecteur d'une ligne du tableau — la roue de
-  // la story 3.4 (Durée) ou 3.5 (Répétitions), ouverte sur `selectorOpeningPosition` de la
-  // Cible de SA ligne ; ✓ remplace la seule Cible de cette ligne (T5), ✕ ne change rien (T6).
-  // PRE-5 story 2.4 (AC6) : l'option « À l'échec » en tête est conservée (Q8) ; le choix ne
-  // s'applique qu'à la série éditée et le résultat dérivé de la Condition d'arrêt suit.
-  const rowSelectorIndex = rowSelectorOpen ? draft.rowIds.indexOf(openSurface.row) : -1;
-  const rowSelectorRow = rowSelectorIndex >= 0 && showVariableTable && !isTableFolded ? draft.rows[rowSelectorIndex] : undefined;
-  const applyRowTarget = (chosen: SeriesTarget) => updateInTable(setRowTarget(draft, rowSelectorIndex, chosen));
-  const rowTargetWheel =
-    rowSelectorRow === undefined || effective.mode === null
-      ? null
-      : effective.mode === "DURATION"
-        ? durationTargetWheel(
-            rowSelectorRow.target,
-            applyRowTarget,
-            t.rowTarget.replace("{n}", String(rowSelectorIndex + 1)).replace("{field}", t.columns.DURATION),
-          )
-        : repetitionsTargetWheel(
-            rowSelectorRow.target,
-            applyRowTarget,
-            t.rowTarget.replace("{n}", String(rowSelectorIndex + 1)).replace("{field}", t.columns.REPETITIONS),
-            true,
-          );
   // Story 3.7 (AC4, FR-14-03, H8) : bornes `totalBounds` (voir leur calcul), par la prop
   // `targetBounds` existante de la roulette (story 3.4) : minutes de T(1) à T(99), aucune
   // seconde hors bornes ; sous 60 s de T(1), position `00:00` avec ✓ indisponible. Aucune
@@ -1450,30 +1285,95 @@ export function ExecutionParametersSheet({
       />
     );
 
+  /**
+   * D-434 (décision de Hermann du 19/10 ; QD-434-1, QD-434-4) — cellule clavier `kind` de la
+   * ligne d'identité `row` (numéro affiché `number`) : Cible (« MM:SS » en Durée, entier en
+   * Répétitions ; au repos « 1 min 5 s », « 12 rép. », « à l’échec » ou « — » sur #FFF1F0),
+   * Pause (« MM:SS » ; au repos « 0 s », « 1 min 30 s ») et Charge (clavier décimal). Le
+   * focus sélectionne le tableau ; la saisie est appliquée à la sortie (`useSheetKeyboard`).
+   */
+  const keyboardCell = (kind: RowCellKind, row: number, number: number): ReactNode => {
+    const index = draft.rowIds.indexOf(row);
+    const seriesRow = draft.rows[index];
+    if (seriesRow === undefined || (kind === "rowTarget" && effective.mode === null)) {
+      return <View style={tableStyles.emptyCell} />;
+    }
+    const field = rowCellField(kind, row);
+    const common = {
+      editText: keyboard.editText(field),
+      active: isOpen({ kind: "keyboard", field }),
+      onFocus: () => focusKeyboardField(field),
+      onBlur: () => keyboard.onBlur(field),
+      onChangeText: (text: string) => keyboard.onChangeText(field, text),
+      inputRef: keyboard.register(field, TABLE_ROW_HEIGHT),
+      // AD-28 : cible tactile de 36 (24 + 6 en haut et en bas).
+      hitSlop: KEYBOARD_CELL_HIT_SLOP,
+      style: [tableCellStyle, styles.keyboardCell],
+      valueStyle: tableCellValueStyle,
+      entryGeneration: keyboard.entryGeneration,
+    };
+    const prefix = `${SERIES_ROW_TEST_ID}-${number}`;
+    if (kind === "rowTarget") {
+      const mode = effective.mode === "REPETITIONS" ? "REPETITIONS" : "DURATION";
+      // Story 3.6 (FR-06-05) : « à l’échec » pour une Cible à l'échec, sinon la valeur ou « — ».
+      const text = seriesRow.target.kind === "FAILURE" ? t.failureTarget : targetLabel(targetNumber(seriesRow.target));
+      const hint = invalidRows.get(index);
+      return (
+        <KeyboardField
+          {...common}
+          mode={mode === "DURATION" ? "cellDuration" : "cellInteger"}
+          displayValue={text}
+          // Story 3.8 (AC2) : une Cible « — » est annoncée « aucune valeur », jamais « tiret ».
+          spokenDisplayValue={spokenValue(text)}
+          invalid={hint !== undefined}
+          accessibilityHint={hint}
+          accessibilityLabel={t.rowTarget.replace("{n}", String(number)).replace("{field}", t.columns[mode])}
+          testID={`${prefix}-target`}
+        />
+      );
+    }
+    if (kind === "rowPause") {
+      return (
+        <KeyboardField
+          {...common}
+          mode="cellDuration"
+          displayValue={pauseLabel(seriesRow.pauseSeconds)}
+          accessibilityLabel={t.rowPause.replace("{n}", String(number))}
+          testID={`${prefix}-pause`}
+        />
+      );
+    }
+    return (
+      <KeyboardField
+        {...common}
+        mode="cellDecimal"
+        displayValue={formatLoadKg(seriesRow.loadKg)}
+        accessibilityLabel={t.rowLoad.replace("{n}", String(number))}
+        testID={`${prefix}-load`}
+      />
+    );
+  };
+
   // Q41 : un seul panneau ouvert à la fois ; la roue garde sa propre surface
   // (`DurationWheelPicker`). PRE-5 story 2.5 : plus aucun segmenté en panneau.
   const panel =
     panelControl === null ? null : (
       <AnchoredPanel
         key={panelControl}
-        placement={{ top: panelTop, right: panelControl === "rowTarget" ? rowPanelRight : FRAME_INSET }}
+        placement={{ top: panelTop, right: FRAME_INSET }}
         onDismiss={() => closeSurface(openKey)}
         outsideInsets={PANEL_OUTSIDE_INSETS}
         onLayout={(event) => {
-          const { height, width } = event.nativeEvent.layout;
+          const { height } = event.nativeEvent.layout;
           setPanelHeight((current) =>
             current !== null && current.control === panelControl && current.height === height ? current : { control: panelControl, height },
           );
-          if (panelControl === "rowTarget" && openKey !== null) {
-            setPanelWidth((current) => (current !== null && current.key === openKey && current.width === width ? current : { key: openKey, width }));
-          }
         }}
         testID={PANEL_TEST_IDS[panelControl]}
       >
         {panelControl === "uniformDuration" ? <View testID="execution-sheet-target-wheel">{uniformDurationWheel}</View> : null}
         {panelControl === "uniformRepetitions" ? <View testID="execution-sheet-target-wheel">{uniformRepetitionsWheel}</View> : null}
         {panelControl === "total" ? <View testID="execution-sheet-total-wheel">{totalWheel}</View> : null}
-        {panelControl === "rowTarget" ? <View testID="execution-sheet-cell-wheel">{rowTargetWheel}</View> : null}
       </AnchoredPanel>
     );
 
@@ -1641,11 +1541,6 @@ export function ExecutionParametersSheet({
                       tableSelected ? styles.variableGroupSelected : null,
                       isDraggingRow ? null : styles.variableGroupClip,
                     ]}
-                    onLayout={(event) => {
-                      // Le groupe est dans le cadre Séries ; ses boîtes internes lui sont relatives.
-                      const { y } = event.nativeEvent.layout;
-                      setVariableGroupY((current) => (current === y ? current : y));
-                    }}
                     testID="execution-sheet-variable-group"
                   >
                     <Row label={t.seriesType} testID="execution-sheet-row-series-type">
@@ -1666,31 +1561,8 @@ export function ExecutionParametersSheet({
                       <VariableTable
                         draft={draft}
                         mode={effective.mode}
-                        formatTarget={targetLabel}
-                        invalidRows={invalidRows}
-                        selectorRow={rowSelectorOpen ? openSurface.row : null}
-                        onOpenSelector={openRowSelector}
-                        pauseRow={rowPauseOpen ? openSurface.row : null}
-                        onTogglePause={toggleRowPause}
-                        onPauseDraft={updateKeepingTableSurface}
                         onRemove={handleRemove}
                         removalActive={removalEnabled(surface)}
-                        inlineSelector={
-                          // Q41 : Android et web — Sélecteur de la cellule en ligne, sous sa ligne.
-                          !anchoredPanels && rowSelectorOpen && rowTargetWheel !== null
-                            ? { row: openSurface.row, wheel: rowTargetWheel }
-                            : null
-                        }
-                        onTableLayout={(box) => setTableBox((current) => (current.y === box.y && current.width === box.width ? current : box))}
-                        onRowLayout={(row, box) =>
-                          setTableRowBoxes((current) => (sameBox(current[row], box.y, box.height) ? current : { ...current, [row]: box }))
-                        }
-                        onTargetCellLayout={(row, box) =>
-                          setTargetCellBoxes((current) => {
-                            const known = current[row];
-                            return known !== undefined && sameCellBox(known, box) ? current : { ...current, [row]: box };
-                          })
-                        }
                         onMove={(from, to) => updateInTable(moveRow(keyboard.flush(draft), from, to))}
                         onDraggingChange={(dragging) => {
                           setIsDraggingRow(dragging);
@@ -1701,27 +1573,8 @@ export function ExecutionParametersSheet({
                             selectTable();
                           }
                         }}
-                        loadCell={
-                          draft.loadEnabled
-                            ? (row, number) => (
-                                <KeyboardField
-                                  mode="decimal"
-                                  displayValue={formatLoadKg(draft.rows[draft.rowIds.indexOf(row)]?.loadKg ?? 0)}
-                                  editText={keyboard.editText(loadField(row))}
-                                  active={isOpen({ kind: "keyboard", field: loadField(row) })}
-                                  onFocus={() => focusLoad(row)}
-                                  onBlur={() => keyboard.onBlur(loadField(row))}
-                                  onChangeText={(text) => keyboard.onChangeText(loadField(row), text)}
-                                  inputRef={keyboard.register(loadField(row), TABLE_ROW_HEIGHT)}
-                                  accessibilityLabel={t.rowLoad.replace("{n}", String(number))}
-                                  // AD-28 : cible tactile de 36, comme `TableCell` (24 + 6 en haut et en bas).
-                                  hitSlop={LOAD_CELL_HIT_SLOP}
-                                  style={[tableCellStyle, tableCellValueStyle, styles.loadCellInput]}
-                                  testID={`${SERIES_ROW_TEST_ID}-${number}-load`}
-                                />
-                              )
-                            : null
-                        }
+                        cell={keyboardCell}
+                        loadColumn={draft.loadEnabled}
                       />
                     ) : null}
                     {adjustment?.kind === "removal" ? adjustmentMessage : null}
@@ -1814,7 +1667,7 @@ export function ExecutionParametersSheet({
                               displayValue={formatLoadKg(effectiveFirst.loadKg)}
                               editText={keyboard.editText(UNIFORM_LOAD_FIELD)}
                               active={uniformLoadActive}
-                              onFocus={() => focusLoad("uniform")}
+                              onFocus={() => focusKeyboardField(UNIFORM_LOAD_FIELD)}
                               onBlur={() => keyboard.onBlur(UNIFORM_LOAD_FIELD)}
                               onChangeText={(text) => keyboard.onChangeText(UNIFORM_LOAD_FIELD, text)}
                               inputRef={keyboard.register(UNIFORM_LOAD_FIELD, SHEET_ROW_MIN_HEIGHT)}
@@ -2015,6 +1868,9 @@ export function ExecutionParametersSheet({
               onPrevious={keyboard.previous}
               onNext={keyboard.next}
               onClose={keyboard.close}
+              failure={
+                keyboard.failureAvailable ? { selected: keyboard.failureSelected, onPress: keyboard.toggleFailure } : null
+              }
             />
           ) : null}
         </Animated.View>
@@ -2025,60 +1881,35 @@ export function ExecutionParametersSheet({
 
 /**
  * PRE-5 story 2.6 (AD-27, AD-28, FR-29, UX-DR3) — tableau des séries variables : bloc
- * blanc, lignes de 36, cellules à valeur seule, sans stepper permanent. La cellule Cible
- * ouvre la roue de SA ligne (`selector(rowTarget)`, panneau sous la ligne sur iOS, en ligne
- * sur Android et le web), « À l'échec » en tête (Q8) ; la cellule Pause ouvre le champ ±
- * de cette seule cellule (`stepper(rowPause)`, `InlineStepper` existant), révélé sous la
- * ligne. Glisser PRE-3, actions accessibles, croix et « Série supprimée — Annuler » viennent
- * des briques partagées (`sheetTable.tsx`).
+ * blanc, lignes de 36, cellules à valeur seule, sans stepper permanent. Glisser PRE-3,
+ * actions accessibles, croix et « Série supprimée — Annuler » viennent des briques partagées
+ * (`sheetTable.tsx`).
+ *
+ * D-434 (décision de Hermann du 19/10) : les cellules Cible, Pause et Charge sont des champs
+ * clavier, rendus par la Feuille (`cell`) ; plus de roue de cellule ni de ± de Pause révélé
+ * sous la ligne.
  */
 function VariableTable({
   draft,
   mode,
-  formatTarget,
-  invalidRows,
-  selectorRow,
-  onOpenSelector,
-  pauseRow,
-  onTogglePause,
-  onPauseDraft,
   onRemove,
   removalActive,
-  inlineSelector,
-  onTableLayout,
-  onRowLayout,
-  onTargetCellLayout,
   onMove,
   onDraggingChange,
-  loadCell,
+  cell,
+  loadColumn,
 }: {
   draft: ExecutionSheetDraft;
   mode: ExecutionMode | null;
-  formatTarget: (value: number | null) => string;
-  invalidRows: ReadonlyMap<number, string>;
-  /** Story 3.6 : identité de la ligne dont le Sélecteur est ouvert, sinon `null`. */
-  selectorRow: number | null;
-  onOpenSelector: (row: number) => void;
-  /** PRE-5 story 2.6 : identité de la ligne dont le champ ± de la Pause est ouvert, sinon `null`. */
-  pauseRow: number | null;
-  onTogglePause: (row: number) => void;
-  /** Pas ± de la Pause d'une ligne : le champ reste ouvert (T22). */
-  onPauseDraft: (next: ExecutionSheetDraft) => void;
   onRemove: (row: number) => void;
   /** Story 3.6 (T18, T23) : la croix retire ; sinon son appui range d'abord l'outil ouvert. */
   removalActive: boolean;
-  /** Q41 : Android et web — Sélecteur de la cellule rendu en ligne, sous sa ligne. */
-  inlineSelector: { readonly row: number; readonly wheel: ReactNode } | null;
-  onTableLayout: (box: TableBox) => void;
-  onRowLayout: (row: number, box: Box) => void;
-  onTargetCellLayout: (row: number, box: CellBox) => void;
   onMove: (from: number, to: number) => void;
   onDraggingChange: (dragging: boolean) => void;
-  /**
-   * PRE-5 story 2.2 (FR-23, AC5) : charge Avec — cellule Charge de la ligne d'identité `row`
-   * (numéro affiché `number`), après la Pause ; `null` sous Sans (colonne absente).
-   */
-  loadCell: ((row: number, number: number) => ReactNode) | null;
+  /** D-434 : cellule clavier `kind` de la ligne d'identité `row` (numéro affiché `number`). */
+  cell: (kind: RowCellKind, row: number, number: number) => ReactNode;
+  /** PRE-5 story 2.2 (FR-23, AC5) : charge Avec — colonne Charge après la Pause. */
+  loadColumn: boolean;
 }) {
   const rows = draft.rows;
   // Recette 2 (T-15, demande de Hermann) : repère d’insertion pendant le glisser.
@@ -2106,10 +1937,6 @@ function VariableTable({
       clip={!unclipped}
       bleed={TABLE_BLOCK_BLEED}
       style={[tableStyles.block, styles.tableBlock]}
-      onLayout={(event) => {
-        const { y, width } = event.nativeEvent.layout;
-        onTableLayout({ y, width });
-      }}
       testID="execution-sheet-table"
     >
       {/* E-20 : à l'apparition du tableau, ses lignes ne se révèlent pas séparément. */}
@@ -2126,7 +1953,7 @@ function VariableTable({
         <View style={tableStyles.cellGap} />
         <Text style={tableStyles.columnHeader}>{t.columns.pause}</Text>
         {/* PRE-5 story 2.2 : colonne Charge (titre non interactif), après la Pause. */}
-        {loadCell !== null ? (
+        {loadColumn ? (
           <>
             <View style={tableStyles.cellGap} />
             <Text style={tableStyles.columnHeader}>{t.columns.load}</Text>
@@ -2138,30 +1965,18 @@ function VariableTable({
       </View>
       {rows.map((row, index) => {
         // Identité de la ligne (AD-2), jamais son rang : sans identité (Brouillon incohérent),
-        // la ligne reste affichée, mais sans Sélecteur, champ ni croix, qui la désignent.
+        // la ligne reste affichée, mais sans champ ni croix, qui la désignent.
         const rowId = tableRowIdentity(draft.rowIds, index);
         return (
           <Fragment key={rowId === null ? `rank-${index}` : `row-${rowId}`}>
             {guideBefore === index ? insertionGuide(index + 1) : null}
             <SeriesTableRow
-              row={row}
               index={index}
               rowId={rowId}
               count={rows.length}
-              draft={draft}
               mode={mode}
-              formatTarget={formatTarget}
-              invalidHint={invalidRows.get(index)}
-              selectorOpen={rowId !== null && selectorRow === rowId}
-              onOpenSelector={onOpenSelector}
-              pauseOpen={rowId !== null && pauseRow === rowId}
-              onTogglePause={onTogglePause}
-              onPauseDraft={onPauseDraft}
               onRemove={onRemove}
               removalActive={removalActive}
-              inlineWheel={inlineSelector !== null && rowId !== null && inlineSelector.row === rowId ? inlineSelector.wheel : null}
-              onRowLayout={onRowLayout}
-              onTargetCellLayout={onTargetCellLayout}
               onMove={onMove}
               onDrag={handleDrag}
               lifted={rowId !== null && liftedRow === rowId}
@@ -2170,7 +1985,8 @@ function VariableTable({
                 setLiftedRow((current) => (lifted ? rowId : current === rowId ? null : current));
               }}
               clip={!unclipped}
-              loadCell={loadCell === null ? null : rowId === null ? <View style={tableStyles.emptyCell} /> : loadCell(rowId, index + 1)}
+              cell={(kind) => (rowId === null ? <View style={tableStyles.emptyCell} /> : cell(kind, rowId, index + 1))}
+              loadColumn={loadColumn}
             />
           </Fragment>
         );
@@ -2183,85 +1999,43 @@ function VariableTable({
 
 /**
  * PRE-5 story 2.6 — ligne du tableau des séries : poignée et numéro (`DraggableRow`),
- * cellule Cible, cellule Pause, croix ; sous la ligne, la roue en ligne (Android, web) ou
- * le champ ± de la Pause. Le focus VoiceOver suit le champ ± comme pour les champs hors
- * tableau (`useOpenFieldFocus`) : à l'ouverture il passe au champ, à sa fermeture par
- * l'action accessible il revient à la cellule.
+ * cellule Cible, cellule Pause, cellule Charge (charge Avec), croix. D-434 : les cellules
+ * sont des champs clavier (`cell`), sans contrôle révélé sous la ligne.
  */
 function SeriesTableRow({
-  row,
   index,
   rowId,
   count,
-  draft,
   mode,
-  formatTarget,
-  invalidHint,
-  selectorOpen,
-  onOpenSelector,
-  pauseOpen,
-  onTogglePause,
-  onPauseDraft,
   onRemove,
   removalActive,
-  inlineWheel,
-  onRowLayout,
-  onTargetCellLayout,
   onMove,
   onDrag,
   lifted,
   onLiftedChange,
   clip,
-  loadCell,
+  cell,
+  loadColumn,
 }: {
-  row: ExecutionSheetDraft["rows"][number];
   index: number;
   rowId: number | null;
   count: number;
-  draft: ExecutionSheetDraft;
   mode: ExecutionMode | null;
-  formatTarget: (value: number | null) => string;
-  /** Présent : Cible de la ligne signalée (valeur à renseigner ou invalide). */
-  invalidHint: string | undefined;
-  selectorOpen: boolean;
-  onOpenSelector: (row: number) => void;
-  pauseOpen: boolean;
-  onTogglePause: (row: number) => void;
-  onPauseDraft: (next: ExecutionSheetDraft) => void;
   onRemove: (row: number) => void;
   removalActive: boolean;
-  inlineWheel: ReactNode;
-  onRowLayout: (row: number, box: Box) => void;
-  onTargetCellLayout: (row: number, box: CellBox) => void;
   onMove: (from: number, to: number) => void;
   onDrag: (state: { readonly from: number; readonly to: number } | null) => void;
   /** Recette du 19/10 (RC-5) : ligne saisie (cadre au-dessus des autres, sans transition de place). */
   lifted: boolean;
   onLiftedChange: (lifted: boolean) => void;
   clip: boolean;
-  /** PRE-5 story 2.2 : cellule Charge (après la Pause, écart de 7), ou `null` sous Sans. */
-  loadCell: ReactNode;
+  /** D-434 : cellule clavier de cette ligne. */
+  cell: (kind: RowCellKind) => ReactNode;
+  /** PRE-5 story 2.2 : colonne Charge (après la Pause, écart de 7). */
+  loadColumn: boolean;
 }) {
   const number = index + 1;
   const testID = `${SERIES_ROW_TEST_ID}-${number}`;
-  const togglePause = () => {
-    if (rowId !== null) onTogglePause(rowId);
-  };
-  const pauseFocus = useOpenFieldFocus(pauseOpen, togglePause);
-  // PRE-5 story 2.2 (revue E2 de 2.6) : le ± de la Pause est centré sur la cellule Pause
-  // MESURÉE (les cellules peuvent rétrécir avec la colonne Charge), borné à la ligne.
-  const [pauseCell, setPauseCell] = useState<{ readonly x: number; readonly width: number } | null>(null);
-  const [stepperLineWidth, setStepperLineWidth] = useState(0);
-  const pauseCenter = pauseCell === null ? PAUSE_CELL_NOMINAL_X + TABLE_CELL_WIDTH / 2 : pauseCell.x + pauseCell.width / 2;
-  const pauseStepperLeft = Math.max(
-    0,
-    stepperLineWidth > 0
-      ? Math.min(pauseCenter - TABLE_STEPPER_WIDTH / 2, stepperLineWidth - TABLE_STEPPER_WIDTH)
-      : pauseCenter - TABLE_STEPPER_WIDTH / 2,
-  );
-  // Story 3.6 (FR-06-05) : « à l’échec » pour une Cible à l'échec, sinon la valeur ou « — ».
-  const targetText = row.target.kind === "FAILURE" ? t.failureTarget : formatTarget(targetNumber(row.target));
-  const pauseText = pauseLabel(row.pauseSeconds);
   return (
     <SheetMotionView
       // RC-5 : les autres lignes se décalent visiblement ; la ligne saisie est portée par `DraggableRow`.
@@ -2270,10 +2044,6 @@ function SeriesTableRow({
       clip={clip}
       // La marge des lignes porte la zone tactile de la poignée (AD-28).
       bleed={TABLE_ROW_INSET}
-      onLayout={(event) => {
-        const { y, height } = event.nativeEvent.layout;
-        if (rowId !== null) onRowLayout(rowId, { y, height });
-      }}
       testID={`${testID}-motion`}
     >
       <DraggableRow
@@ -2286,58 +2056,22 @@ function SeriesTableRow({
         testIDPrefix={SERIES_ROW_TEST_ID}
       >
         {mode !== null ? (
-          // AD-27 : la cellule ouvre la roue de la ligne (FR-22), sans ± permanent.
-          <View
-            style={styles.tableCellSlot}
-            onLayout={(event) => {
-              if (rowId !== null) onTargetCellLayout(rowId, event.nativeEvent.layout);
-            }}
-            testID={`${testID}-target-cell`}
-          >
-            <TableCell
-              value={targetText}
-              // Story 3.8 (AC2) : une Cible « — » est annoncée « aucune valeur », jamais « tiret ».
-              accessibilityLabel={t.rowTarget.replace("{n}", String(number)).replace("{field}", t.columns[mode])}
-              spokenValue={spokenValue(targetText)}
-              accessibilityHint={invalidHint}
-              active={selectorOpen}
-              invalid={invalidHint !== undefined}
-              onPress={rowId === null ? undefined : () => onOpenSelector(rowId)}
-              testID={`${testID}-target`}
-            />
+          <View style={styles.tableCellSlot} testID={`${testID}-target-cell`}>
+            {cell("rowTarget")}
           </View>
         ) : (
           <View style={tableStyles.emptyCell} />
         )}
         <View style={tableStyles.cellGap} />
-        {/* AD-27 : la cellule Pause ouvre le champ ± de cette seule cellule. PRE-5 story
-            2.2 : cellule mesurée (repère du ± de la Pause). */}
-        <View
-          style={styles.tableCellSlot}
-          onLayout={(event) => {
-            const { x, width } = event.nativeEvent.layout;
-            setPauseCell((current) => (current !== null && current.x === x && current.width === width ? current : { x, width }));
-          }}
-          testID={`${testID}-pause-cell`}
-        >
-          <TableCell
-            value={pauseText}
-            accessibilityLabel={t.rowPause.replace("{n}", String(number))}
-            spokenValue={spokenValue(pauseText)}
-            active={pauseOpen}
-            onPress={rowId === null ? undefined : togglePause}
-            toggleRef={pauseFocus.toggleRef}
-            testID={`${testID}-pause-toggle`}
-            // Fermée, la valeur porte `…-pause-value` ; ouverte, ce nom revient au champ ±.
-            valueTestID={pauseOpen ? `${testID}-pause-toggle-value` : `${testID}-pause-value`}
-          />
+        <View style={styles.tableCellSlot} testID={`${testID}-pause-cell`}>
+          {cell("rowPause")}
         </View>
         {/* PRE-5 story 2.2 (FR-23) : cellule Charge au clavier décimal, après un écart de 7. */}
-        {loadCell !== null ? (
+        {loadColumn ? (
           <>
             <View style={tableStyles.cellGap} />
             <View style={styles.tableCellSlot} testID={`${testID}-load-cell`}>
-              {loadCell}
+              {cell("load")}
             </View>
           </>
         ) : null}
@@ -2353,40 +2087,6 @@ function SeriesTableRow({
           testID={`${testID}-remove`}
         />
       </DraggableRow>
-      {inlineWheel !== null ? (
-        <SheetMotionView style={styles.inlineControl} testID="execution-sheet-cell-wheel">
-          {inlineWheel}
-        </SheetMotionView>
-      ) : null}
-      {pauseOpen ? (
-        // AD-27 : champ ± révélé sous la ligne, centré sous la cellule Pause (même suite de
-        // colonnes) ; pas d'`AnchoredPanel`, dont la zone extérieure contredirait la famille ±.
-        <SheetMotionView
-          style={styles.cellStepperLine}
-          onLayout={(event) => {
-            const { width } = event.nativeEvent.layout;
-            setStepperLineWidth((current) => (current === width ? current : width));
-          }}
-          testID={`${testID}-pause-motion`}
-        >
-          <View style={[styles.cellStepperColumn, { marginLeft: pauseStepperLeft }]} testID={`${testID}-pause-column`}>
-            <OpenStepperField
-              fieldRef={pauseFocus.fieldRef}
-              onClose={pauseFocus.closeFromAccessibility}
-              fieldTestID={`${testID}-pause-field`}
-              value={row.pauseSeconds}
-              min={EXECUTION_BOUNDS.pauseSeconds.min}
-              max={EXECUTION_BOUNDS.pauseSeconds.max}
-              policy={EXECUTION_ACCELERATED_HOLD_POLICY}
-              formatValue={pauseLabel}
-              onChange={(value) => onPauseDraft(setRowPause(draft, index, value))}
-              accessibilityLabel={t.rowPause.replace("{n}", String(number))}
-              width={TABLE_STEPPER_WIDTH}
-              testID={`${testID}-pause`}
-            />
-          </View>
-        </SheetMotionView>
-      ) : null}
     </SheetMotionView>
   );
 }
@@ -3001,22 +2701,14 @@ const styles = StyleSheet.create({
   tableBlock: {
     marginHorizontal: -TABLE_BLOCK_BLEED,
   },
-  // Cellule Cible mesurée (repère du panneau iOS) : même largeur que la cellule.
+  // Colonne d'une cellule du tableau (71, rétrécissable sur un écran étroit).
   tableCellSlot: {
     width: TABLE_CELL_WIDTH,
     flexShrink: 1,
   },
-  // PRE-5 story 2.6 (AD-27) : champ ± de la Pause d'une ligne, sous la ligne ; PRE-5 story
-  // 2.2 : centré sur la cellule Pause mesurée (marge gauche de la colonne, bornée à la ligne).
-  cellStepperLine: {
-    flexDirection: "row",
-    paddingVertical: spacing[4],
-  },
-  // Colonne à la largeur du ± (128), centrée sous la cellule Pause (71) : − et + restent dans
-  // les limites de leur parent (atteignables au toucher sur Android).
-  cellStepperColumn: {
-    width: TABLE_STEPPER_WIDTH,
-    alignItems: "center",
+  // D-434 : cellule clavier (gabarit `TableCell` 71 × 24, rayon 8) à la largeur de sa colonne.
+  keyboardCell: {
+    width: "100%",
   },
   // PRE-5 story 2.7 (AC1, AD-28, Figma `9289:17849`) : champ de la charge commune dans
   // l'option Avec sélectionnée — plein cadre de l'option (62 × 26, rayon 5), texte centré ;
@@ -3036,13 +2728,5 @@ const styles = StyleSheet.create({
   // blanc serait illisible sur ce fond clair).
   loadSegmentInputActive: {
     color: colors.primary,
-  },
-  // Cellule Charge du tableau : gabarit `TableCell` (71 × 24, rayon 8), texte centré ; la
-  // largeur suit sa colonne (qui peut rétrécir sur un écran étroit).
-  loadCellInput: {
-    width: "100%",
-    height: TABLE_CELL_HEIGHT,
-    paddingVertical: 0,
-    textAlign: "center",
   },
 });

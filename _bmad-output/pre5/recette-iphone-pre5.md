@@ -112,6 +112,39 @@ Décision de Hermann du 19/10 (option 3) : options Avec et Sans de même largeur
 - Documentation : annotation de D-431 (ch. 07), passages cités des ch. 08, 10, 13 et du PRD, ligne RC-11 dans l’AC2 de la story 2.5 (`epics.md`).
 - À vérifier sur iPhone : à 375 et à 402, libellé sur deux lignes sans mot coupé, notation entière sur une ligne dans Avec avec son chevron, Avec et Sans de même largeur, menu des notations raccourcies.
 
+## D-434 — saisie au clavier numérique des cellules du tableau des séries variables (branche `bmad/pre5-depuis-pre4`)
+
+Décision de Hermann du 19/10 (D-434, ch. 07) et réponses validées le 19/10 à QD-434-1 à 4. Aucun constat iPhone n'est encore consigné pour elle ; les tests Jest ne prouvent ni le clavier, ni l'absence des poignées, ni la barre, ni la révélation réels.
+
+Implémenté :
+
+- Cellules Cible (mode Durée : « MM:SS » ; mode Répétitions : entier, QD-434-1), Pause (« MM:SS ») et Charge (décimal) au clavier numérique natif iOS (`number-pad` / `decimal-pad`), dans la cellule ; plus de roue de cellule (Durée ni Répétitions) ni de ± de Pause de cellule. Surfaces `selector(rowTarget)` et `stepper(rowPause)` retirées ; champs `keyboard(rowTarget | rowPause)`.
+- Au repos : unités explicites sans zéros inutiles (« 5 s », « 1 min 5 s », « 1 min 30 s », « 12 min », « 0 s ») ; au focus : « MM:SS » sur quatre chiffres dans la même cellule, fond `#EAEAFF`. Chiffres décalés vers la gauche, quatre au plus, « : » inséré ; première frappe qui remplace, suivantes qui composent, Retour arrière qui supprime le dernier chiffre (vaut aussi pour la Charge d'une cellule : remplace RC-3 dans le tableau).
+- Sans sélection native : la valeur est dessinée par la cellule ; le `TextInput` natif posé dessus est transparent et ne reçoit aucun toucher (le toucher de la cellule lui donne le focus), curseur masqué, menu d'édition masqué, aucune sélection posée par le code.
+- Sortie de la cellule (QD-434-3, QD-434-4) : secondes > 59 reportées (`01:75` → 2 min 15 s) ; valeur hors bornes ramenée à la borne existante (Cible 1 s..58 min 55 s, Répétitions 1..100, Pause 0..5 min) ; cellule vidée → Pause 0 s, Cible « — » à renseigner (`#FFF1F0`) ; Cible à l'échec ou à renseigner : « 00:00 » (« 0 » en Répétitions) atténué au focus, la première frappe remplace ; focus puis sortie sans frappe : aucune modification.
+- Barre (RC-1, rendue par la Feuille) : « À l'échec » | « ← Précédent » | « Suivant → » | « Fermer », sur une ligne. « À l'échec » seulement pour une cellule Cible : bascule cible numérique ↔ À l'échec pour cette seule série, valeur numérique mémorisée et restituée (`toggleRowFailure`, mémoire `lastNumberById`) ; annoncé sélectionné quand la cellule est à l'échec (et visuellement en Semi Bold, choix d'intégration). Précédent / Suivant : ligne par ligne, de gauche à droite (Cible, Pause, Charge), sans quitter le tableau (QD-434-2). Si les libellés complets ne tiennent pas (mesure hors écran), flèches seules « ← » / « → », libellés d'accessibilité « Précédent » / « Suivant » ; boutons de 44 × 44 au moins.
+- Inchangés : roue Durée d'une série et roue Répétitions des séries identiques, Pause des séries identiques (stepper), charge commune (sélection au focus RC-3, hors tableau selon D-434), modèle, persistance, bornes, `tokens.ts`, aucune migration ; tableau entièrement à l'échec : Durée de l'exercice « — ».
+- Hors périmètre de ce lot : durées de phase (story 2.8, `KeyboardField` mode `cellDuration` prêt).
+
+À jouer sur iPhone :
+
+1. Séries variables, Durée : toucher une cellule Durée à 1 min 5 s → fond `#EAEAFF`, « 01:05 », clavier numérique, **aucune poignée de sélection ni loupe, aucun curseur**, même après un appui long sur la cellule. Taper 3 → « 00:03 », puis 0 → « 00:30 » ; Retour arrière → « 00:03 ». Fermer → « 30 s ».
+2. Taper 1, 7, 5 → « 01:75 » ; Suivant → la cellule affiche « 2 min 15 s » et la Pause de la même ligne est active (« MM:SS »).
+3. Taper 9999 → la cellule n'accepte que quatre chiffres ; sortie → « 58 min 55 s ». Taper 0 dans une Cible → « 1 s ».
+4. Pause : vider par Retour arrière → « 0 s » ; taper 999 → « 5 min ».
+5. Cible : vider par Retour arrière → « — » sur fond rouge pâle, ✓ indisponible.
+6. Barre sur une cellule Durée : « À l'échec » à gauche de « ← Précédent | Suivant → | Fermer », sur une seule ligne, à 375 et à 402 ; libellés Précédent / Suivant ou flèches seules selon la largeur (texte agrandi compris) ; zones tactiles confortables.
+7. « À l'échec » sur 45 s → la cellule affiche « 00:00 » atténué, « À l'échec » en Semi Bold, Condition d'arrêt « À la cible et à l'échec » ; de nouveau « À l'échec » → « 00:45 » ; Fermer → « 45 s ». Cellule à l'échec : taper 50 → sortie « 50 s ».
+8. Sur une Pause et une Charge : « À l'échec » absent de la barre.
+9. Suivant / Précédent : parcours Cible → Pause → Charge → ligne suivante, sans fermer ni rouvrir le clavier (le type de clavier change entre numérique et décimal) ; Précédent indisponible sur la première Cible, Suivant sur la dernière cellule.
+10. Répétitions : cellule à 12 → « 12 », clavier numérique ; taper 150 → « 100 rép. » ; « À l'échec » → « 0 » atténué puis « à l'échec ».
+11. Cellule active visible au-dessus de la barre et du clavier pour la dernière ligne d'un tableau de six séries (révélation existante).
+12. Charge d'une cellule : première frappe qui remplace « 20 », sans sélection ni poignées ; charge commune (identiques) : sélection au focus inchangée (RC-3).
+13. VoiceOver : cellule annoncée « Série n, Durée », valeur au repos puis « 01:05 » ; « À l'échec » annoncé avec son état ; flèches annoncées « Précédent » / « Suivant ».
+14. Tableau entièrement à l'échec : Durée de l'exercice « — ».
+
+Risques : la composition se fonde sur le texte natif reçu (insertion en fin de texte) ; une frappe très rapide pendant la mise à jour du texte contrôlé est à éprouver (scénario 1 joué vite). Sur Android (non recetté), la barre n'est pas rendue (RC-1) : « À l'échec » de cellule n'y est pas accessible.
+
 ## Issue de l'essai du clavier (story 2.2, AC7) — 19/10
 
 Hermann, sur iPhone, après les corrections RC-1 à RC-9 : « Le clavier fonctionne comme attendu, des changements ergonomiques pourront être demandés plus tard. » Issue **succès** : les composants sont conservés pour la story 2.7, qui est débloquée.

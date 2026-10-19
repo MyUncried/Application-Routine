@@ -72,10 +72,15 @@ const executionParameters = {
     loadWith: "Avec",
     loadWithout: "Sans",
     rowLoad: "Série {n}, charge",
+    // D-434 (décision de Hermann du 19/10) : « À l’échec » à gauche de la barre (cellule Cible
+    // d’une série) ; flèches seules quand la largeur manque, annoncées par `…Spoken`.
     keyboardBar: {
+      failure: "À l’échec",
       previous: "← Précédent",
+      previousArrow: "←",
       previousSpoken: "Précédent",
       next: "Suivant →",
+      nextArrow: "→",
       nextSpoken: "Suivant",
       close: "Fermer",
     },

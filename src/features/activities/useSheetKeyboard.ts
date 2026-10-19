@@ -9,15 +9,19 @@ import {
   type TextInput,
 } from "react-native";
 
-import { seriesRowsOf } from "@/domain/activities/ExecutionParameters";
+import { EXECUTION_BOUNDS, numberTarget, seriesRowsOf, unsetTarget } from "@/domain/activities/ExecutionParameters";
 import {
   effectiveParameters,
   isSingleSeries,
   normalizeDraftLoad,
   setLoadValue,
+  setRowPause,
+  setRowTarget,
+  toggleRowFailure,
   type ExecutionSheetDraft,
 } from "@/domain/activities/ExecutionParametersDraft";
 import { parseLoadText } from "@/domain/activities/exerciseLoad";
+import { cellDurationSeconds, cellIntegerValue, mmssDigitsOf } from "@/features/activities/cellEntry";
 import {
   sameKeyboardField,
   type KeyboardFieldId,
@@ -50,6 +54,14 @@ import {
  *   haut du clavier : la ligne active reste entière au-dessus de la barre (marge 12).
  * - Recette du 19/10 (RC-2) : aucune ouverture automatique ; le clavier ne s'ouvre qu'au
  *   toucher d'un champ.
+ * - D-434 (décision de Hermann du 19/10, QD-434-1 à 4) : les cellules Cible et Pause du
+ *   tableau des séries variables sont aussi des champs clavier (texte d'édition « MMSS »
+ *   pour une durée, chiffres pour des Répétitions), appliqués à la sortie par les
+ *   transitions existantes `setRowTarget` et `setRowPause` (bornes existantes, secondes
+ *   reportées, cellule vidée → 0 s ou à renseigner, `cellEntry.ts`). Précédent / Suivant
+ *   parcourent le tableau ligne par ligne, de gauche à droite (Cible, Pause, Charge), sans
+ *   en sortir (QD-434-2). La barre porte « À l'échec » pour une cellule Cible
+ *   (`toggleRowFailure`, valeur numérique mémorisée et restituée).
  */
 
 /** Champ de charge : charge commune, ou ligne d'identité (`rowIds`). */
@@ -73,6 +85,25 @@ export const SHEET_KEYBOARD_BAR_ENABLED = Platform.OS === "ios";
 
 /** Clavier affiché : haut de son cadre (coordonnées de l'écran) et durée de son animation. */
 export type KeyboardFrame = { readonly screenY: number; readonly duration: number };
+
+/**
+ * D-434 (QD-434-2) — ordre de Précédent / Suivant : en séries variables effectives, tableau
+ * déplié, chaque ligne de gauche à droite (Cible si un Mode est choisi, Pause, Charge si la
+ * charge est Avec), puis la ligne suivante ; aucun champ hors du tableau. Sinon, les champs
+ * de charge (`loadFieldOrder` : la charge commune en identiques effectives).
+ */
+export function keyboardFieldOrder(draft: ExecutionSheetDraft, tableVisible: boolean): readonly KeyboardFieldId[] {
+  if (!draft.variable || isSingleSeries(draft)) {
+    return loadFieldOrder(draft, tableVisible).map((row): KeyboardFieldId => ({ kind: "load", row }));
+  }
+  if (!tableVisible) return [];
+  const withTarget = effectiveParameters(draft).mode !== null;
+  return draft.rowIds.slice(0, draft.rows.length).flatMap((row): KeyboardFieldId[] => [
+    ...(withTarget ? [{ kind: "rowTarget", row } as const] : []),
+    { kind: "rowPause", row },
+    ...(draft.loadEnabled ? [{ kind: "load", row } as const] : []),
+  ]);
+}
 
 /**
  * Ordre de navigation entre les champs de charge (FR-25) : aucun sous Sans ; la charge
@@ -124,15 +155,68 @@ export function applyLoadEdit(draft: ExecutionSheetDraft, row: LoadFieldRow, tex
   return loadOfField(next, row) === loadOfField(draft, row) ? draft : next;
 }
 
+/**
+ * D-434 — texte d'édition de la Cible d'une ligne : « MMSS » en mode Durée (65 → « 0105 »),
+ * le nombre en mode Répétitions ; vide pour une Cible à l'échec ou à renseigner (la cellule
+ * affiche alors « 00:00 » ou « 0 », QD-434-4) ou une ligne disparue.
+ */
+export function rowTargetEditText(draft: ExecutionSheetDraft, row: number): string {
+  const target = draft.rows[draft.rowIds.indexOf(row)]?.target;
+  const mode = effectiveParameters(draft).mode;
+  if (target === undefined || target.kind !== "NUMBER" || mode === null) return "";
+  return mode === "DURATION" ? mmssDigitsOf(target.value) : String(target.value);
+}
+
+/** D-434 — texte d'édition « MMSS » de la Pause d'une ligne (0 → « 0000 ») ; vide si la ligne n'existe plus. */
+export function rowPauseEditText(draft: ExecutionSheetDraft, row: number): string {
+  const pause = draft.rows[draft.rowIds.indexOf(row)]?.pauseSeconds;
+  return pause === undefined ? "" : mmssDigitsOf(pause);
+}
+
+/**
+ * D-434 (QD-434-3, QD-434-4) — sortie de la cellule Cible d'une ligne : durée « MMSS »
+ * (secondes > 59 reportées) ou Répétitions, ramenée dans les bornes existantes ; vidée → à
+ * renseigner (0 n'est pas permis). Valeur inchangée : Brouillon rendu tel quel.
+ */
+export function applyRowTargetEdit(draft: ExecutionSheetDraft, row: number, text: string): ExecutionSheetDraft {
+  const index = draft.rowIds.indexOf(row);
+  const current = draft.rows[index]?.target;
+  const mode = effectiveParameters(draft).mode;
+  if (current === undefined || mode === null) return draft;
+  const value =
+    mode === "DURATION"
+      ? cellDurationSeconds(text, EXECUTION_BOUNDS.durationTarget)
+      : cellIntegerValue(text, EXECUTION_BOUNDS.repetitionTarget);
+  if (value === null) return current.kind === "UNSET" ? draft : setRowTarget(draft, index, unsetTarget());
+  return current.kind === "NUMBER" && current.value === value ? draft : setRowTarget(draft, index, numberTarget(value));
+}
+
+/** D-434 (QD-434-3, QD-434-4) — sortie de la cellule Pause d'une ligne : bornes existantes, vidée → 0 s. */
+export function applyRowPauseEdit(draft: ExecutionSheetDraft, row: number, text: string): ExecutionSheetDraft {
+  const index = draft.rowIds.indexOf(row);
+  const current = draft.rows[index]?.pauseSeconds;
+  const value = cellDurationSeconds(text, EXECUTION_BOUNDS.pauseSeconds) ?? 0;
+  return current === undefined || current === value ? draft : setRowPause(draft, index, value);
+}
+
 type Edit = { readonly field: KeyboardFieldId; text: string; initial: string };
 type Registered = { readonly input: TextInput; readonly rowHeight: number };
 
-const fieldKey = (field: KeyboardFieldId) => (field.kind === "load" ? `load:${field.row}` : `phase:${field.phase}`);
+const fieldKey = (field: KeyboardFieldId) => (field.kind === "phaseLabel" ? `phase:${field.phase}` : `${field.kind}:${field.row}`);
 
 /** Application d'une édition prise (fonction pure du Brouillon). */
 function applyEdit(draft: ExecutionSheetDraft, edit: Pick<Edit, "field" | "text" | "initial">): ExecutionSheetDraft {
-  if (edit.text === edit.initial || edit.field.kind !== "load") return draft;
-  return applyLoadEdit(draft, edit.field.row, edit.text);
+  if (edit.text === edit.initial) return draft;
+  switch (edit.field.kind) {
+    case "load":
+      return applyLoadEdit(draft, edit.field.row, edit.text);
+    case "rowTarget":
+      return applyRowTargetEdit(draft, edit.field.row, edit.text);
+    case "rowPause":
+      return applyRowPauseEdit(draft, edit.field.row, edit.text);
+    default:
+      return draft;
+  }
 }
 
 export type SheetKeyboard = {
@@ -140,8 +224,20 @@ export type SheetKeyboard = {
   readonly activeField: KeyboardFieldId | null;
   /** Clavier affiché (cadre suivi par les événements `Keyboard`), ou `null`. */
   readonly keyboardFrame: KeyboardFrame | null;
-  /** RC-1 : barre Précédent / Suivant / « Fermer » à rendre (clavier affiché pour un champ de charge, iOS). */
+  /** RC-1 : barre Précédent / Suivant / « Fermer » à rendre (clavier affiché pour un champ numérique, iOS). */
   readonly accessoryVisible: boolean;
+  /** D-434 : « À l'échec » rendu dans la barre (cellule Cible d'une ligne). */
+  readonly failureAvailable: boolean;
+  /** D-434 : la cellule Cible active est à l'échec, sans frappe depuis (état annoncé de « À l'échec »). */
+  readonly failureSelected: boolean;
+  /** D-434 : bascule cible numérique ↔ À l'échec de la cellule Cible active. */
+  toggleFailure: () => void;
+  /**
+   * D-434 : génération de la saisie en cours ; change quand la valeur du champ actif est
+   * remplacée sans sortie du champ (« À l'échec ») : le champ reprend alors son texte
+   * d'édition et la frappe suivante remplace de nouveau.
+   */
+  readonly entryGeneration: number;
   /** RC-1 : hauteur mesurée de la barre rendue par la Feuille. */
   setAccessoryHeight: (height: number) => void;
   readonly canPrevious: boolean;
@@ -194,6 +290,9 @@ export function useSheetKeyboard({
   // (sortie puis prise de focus) ne fait ni disparaître ni réapparaître la barre.
   const [keyboardFrame, setKeyboardFrame] = useState<KeyboardFrame | null>(null);
   const [focusedKind, setFocusedKind] = useState<KeyboardFieldId["kind"] | null>(null);
+  // D-434 : frappe reçue depuis la prise du champ (état de « À l'échec ») ; génération de la saisie.
+  const [typed, setTyped] = useState(false);
+  const [entryGeneration, setEntryGeneration] = useState(0);
   const offsetRef = useRef(0);
   const reduceMotionRef = useRef(reduceMotion);
   useEffect(() => {
@@ -212,7 +311,7 @@ export function useSheetKeyboard({
     const keyboardTop =
       shownTop === null || wanted === null
         ? null
-        : shownTop - (SHEET_KEYBOARD_BAR_ENABLED && wanted.kind === "load" ? accessoryHeightRef.current : 0);
+        : shownTop - (SHEET_KEYBOARD_BAR_ENABLED && wanted.kind !== "phaseLabel" ? accessoryHeightRef.current : 0);
     const scroll = scrollRef.current;
     const entry = wanted === null ? undefined : inputsRef.current.get(fieldKey(wanted));
     if (entry === undefined || keyboardTop === null || scroll === null) return;
@@ -255,13 +354,23 @@ export function useSheetKeyboard({
   }, []);
 
   function editTextOf(field: KeyboardFieldId): string {
-    return field.kind === "load" ? loadEditText(loadOfField(draft, field.row)) : "";
+    switch (field.kind) {
+      case "load":
+        return loadEditText(loadOfField(draft, field.row));
+      case "rowTarget":
+        return rowTargetEditText(draft, field.row);
+      case "rowPause":
+        return rowPauseEditText(draft, field.row);
+      default:
+        return "";
+    }
   }
 
   function onFocus(field: KeyboardFieldId) {
     focusedRef.current = field;
     wantedRef.current = field;
     setFocusedKind(field.kind);
+    setTyped(false);
     const text = editTextOf(field);
     editRef.current = { field, text, initial: text };
     dispatchSurface({ type: "touch", surface: { kind: "keyboard", field } });
@@ -288,7 +397,36 @@ export function useSheetKeyboard({
 
   function onChangeText(field: KeyboardFieldId, text: string) {
     const edit = editRef.current;
-    if (edit !== null && sameKeyboardField(edit.field, field)) edit.text = text;
+    if (edit !== null && sameKeyboardField(edit.field, field)) {
+      edit.text = text;
+      // Revue D-434 : saisie revenue à sa valeur de départ (frappe puis Retour arrière) = sans frappe.
+      setTyped(text !== edit.initial);
+    }
+  }
+
+  /**
+   * D-434 : « À l'échec » de la barre, cellule Cible active. La frappe en cours est d'abord
+   * appliquée (la cellule affichait une valeur numérique), puis la Cible de la ligne bascule
+   * (`toggleRowFailure`). Le champ garde le focus ; sa saisie repart du nouveau texte
+   * d'édition (« 00:00 » à l'échec), la frappe suivante remplace.
+   */
+  function toggleFailure() {
+    const field = wantedRef.current;
+    if (field === null || field.kind !== "rowTarget") return;
+    const edit = editRef.current !== null && sameKeyboardField(editRef.current.field, field) ? editRef.current : null;
+    const taken = edit === null ? null : { field: edit.field, text: edit.text, initial: edit.initial };
+    const apply = (base: ExecutionSheetDraft) => {
+      const applied = taken === null ? base : applyEdit(base, taken);
+      return toggleRowFailure(applied, applied.rowIds.indexOf(field.row));
+    };
+    const text = rowTargetEditText(apply(draft), field.row);
+    if (edit !== null) {
+      edit.text = text;
+      edit.initial = text;
+    }
+    commit(apply);
+    setTyped(false);
+    setEntryGeneration((generation) => generation + 1);
   }
 
   function flush(base: ExecutionSheetDraft): ExecutionSheetDraft {
@@ -328,6 +466,7 @@ export function useSheetKeyboard({
       commit((base) => applyEdit(base, taken));
     }
     wantedRef.current = neighbour;
+    setTyped(false);
     dispatchSurface({ type: "touch", surface: { kind: "keyboard", field: neighbour } });
     inputsRef.current.get(fieldKey(neighbour))?.input.focus();
     reveal();
@@ -350,10 +489,17 @@ export function useSheetKeyboard({
     };
   }
 
+  const activeTarget =
+    activeField !== null && activeField.kind === "rowTarget" ? draft.rows[draft.rowIds.indexOf(activeField.row)]?.target : undefined;
+
   return {
     activeField,
     keyboardFrame,
-    accessoryVisible: SHEET_KEYBOARD_BAR_ENABLED && keyboardFrame !== null && focusedKind === "load",
+    accessoryVisible: SHEET_KEYBOARD_BAR_ENABLED && keyboardFrame !== null && focusedKind !== null && focusedKind !== "phaseLabel",
+    failureAvailable: activeTarget !== undefined,
+    failureSelected: activeTarget?.kind === "FAILURE" && !typed,
+    toggleFailure,
+    entryGeneration,
     setAccessoryHeight: (height) => {
       if (height <= 0 || height === accessoryHeightRef.current) return;
       accessoryHeightRef.current = height;
