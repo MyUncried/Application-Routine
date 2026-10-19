@@ -36,7 +36,7 @@ Les questions techniques laissées à l'architecture sont dans `addendum.md`.
 
 **Règle de préséance**, de la plus forte à la plus faible :
 
-0. Les décisions de Hermann qui suivent la revue indépendante du 19/10 (`table-delta.md` §6, « Décisions de la revue indépendante du 19/10 ») : notation de l'Enchainement (D-431, FR-17) et contrôle des phases (D-432, FR-4, FR-5, FR-8, FR-9) ; puis l'affichage permanent de la Durée de l'exercice (D-433, FR-31). Elles priment sur tout texte antérieur, y compris `table-delta.md` §6.
+0. Les décisions de Hermann qui suivent la revue indépendante du 19/10 (`table-delta.md` §6, « Décisions de la revue indépendante du 19/10 ») : notation de l'Enchainement (D-431, FR-17) et contrôle des phases (D-432, FR-4, FR-5, FR-8, FR-9) ; puis l'affichage permanent de la Durée de l'exercice (D-433, FR-31) ; puis la saisie au clavier numérique des séries variables et des phases (D-434, FR-7, FR-22 à FR-25, FR-29). Elles priment sur tout texte antérieur, y compris `table-delta.md` §6.
 1. Les deux décisions complémentaires de Hermann du 19/10, qui priment sur `table-delta.md` §6 pour QP5-04 :
    - les bornes minimales des durées (Δ50, FR-45) ;
    - le passage des phases de Avec à Sans (FR-8).
@@ -58,7 +58,7 @@ Côté Feuille des paramètres d'exécution :
 
 - les paramètres gagnent les phases, la charge informative, des côtés neutres (Avec / Sans) et une Condition d'arrêt explicite ;
 - la Feuille est réorganisée en quatre cadres, avec des segmentés en ligne ;
-- un premier champ de saisie au clavier apparaît dans la Feuille.
+- un premier champ de saisie au clavier apparaît dans la Feuille ; depuis D-434, il porte toutes les valeurs éditables des tableaux des séries variables et des phases.
 
 Le principe directeur est la **réutilisation** : cibles typées, séries variables, calculs, brouillon, roues natives, `SegmentedControl` et gestes du tableau de PRE-4 sont étendus, pas reconstruits. Un comportement validé en PRE-3 ou PRE-4 ne change que par un remplacement listé au §7. Tout autre écart est signalé, pas décidé.
 
@@ -93,7 +93,7 @@ Les termes visibles sont ceux de PR-01 (spécification de la charge v3, §11.1).
 - **Cadence** : intervalle du bip. Options Autre / 5 s / 2 s / 1 s / Sans.
 - **Durée de l'exercice** : libellé visible du concept de durée totale de la Feuille.
 - **Étape** : élément numéroté de la Description.
-- **Champ de saisie clavier** : cellule ou ligne de la Feuille saisie au clavier du système. Seuls deux contenus en relèvent : la charge (clavier décimal) et le libellé de phase (clavier texte).
+- **Champ de saisie clavier** : cellule ou ligne de la Feuille saisie au clavier du système. En relèvent la charge (clavier décimal), le libellé de phase (clavier texte) et, depuis D-434, les cellules Durée et Pause du tableau des séries variables et les durées de phase (clavier numérique, saisie MMSS). D-434 remplace « seuls deux contenus en relèvent » ; hors tableaux, seule la charge commune en relève.
 - **Ligne NR** : ligne Δ déjà conforme. C'est une exigence de non-régression, pas une fonction à construire.
 
 ## 4. Exigences fonctionnelles
@@ -195,13 +195,14 @@ Le clavier texte se ferme par sa touche Retour, sans barre d'accessoire. Sa sais
 
 #### FR-7 : Durée de phase
 
-La durée d'une phase se règle avec la roue de durée native existante (`DurationWheelPicker` dans `AnchoredPanel`) :
+La durée d'une phase se saisit au clavier numérique, en MMSS, directement dans sa cellule, selon FR-23 à FR-25 (D-434, décision de Hermann du 19/10, qui remplace la roue de durée native `DurationWheelPicker` dans `AnchoredPanel`) :
 
 - minimum 1 s, pas de 1 s ;
-- aucune option « À l'échec » ;
-- aucune borne propre à la phase en dehors de celle de la somme (FR-3).
+- aucune option « À l'échec » : la commande « À l'échec » de la barre du clavier n'apparaît pas pour une durée de phase ;
+- aucune borne propre à la phase en dehors de celle de la somme (FR-3) ;
+- une dernière phase calculée automatiquement (formats, D-372) reste non éditable.
 
-*Sources :* Δ12 ; QP5-03 et QP5-04 (décidés) ; spécification des phases §2.1 ; D-370. La décision QP5-03 clôt la contradiction C-1. Elle s'appuie sur D-370 et D-412, et remplace la dernière phrase de RO-01 (« ne pas retirer son option À l'échec »).
+*Sources :* Δ12 ; QP5-03 et QP5-04 (décidés) ; spécification des phases §2.1 ; D-370 ; D-434. La décision QP5-03 clôt la contradiction C-1. Elle s'appuie sur D-370 et D-412, et remplace la dernière phrase de RO-01 (« ne pas retirer son option À l'échec »).
 
 #### FR-8 : Suppression et retour à Sans
 
@@ -413,49 +414,68 @@ Les valeurs sont restaurées au retour à À la cible.
 
 En séries identiques, les roues « Durée d'une série » et « Répétitions » ne proposent plus « À l'échec ».
 
-La roue ouverte depuis une cellule variable garde cette option, en tête (Q8). La roue native et sa PickerToolbar sont conservées. Pour cette option :
+Dans une cellule variable en mode Durée, « À l'échec » reste disponible pour la seule série, par la commande « À l'échec » à gauche de la barre du clavier (D-434, qui remplace la roue de cellule à option en tête, sa PickerToolbar et son ouverture sous la ligne). La cellule Répétitions n'est pas visée par D-434 : sa roue à option en tête (Q8, D-418) n'est ni confirmée ni remplacée (§9, QD-434-1). Pour cette option :
 
 - le choix ne s'applique qu'à la série éditée et met à jour FR-20 ;
 - « À l'échec » n'est pas une durée nulle, et zéro ne code jamais l'échec ;
 - la Pause et les autres paramètres de la série ne changent pas ;
 - le retour à une durée suit les conventions existantes, sans nouvelle borne ni valeur par défaut.
 
-*Sources :* Δ28 ; D-412, D-418 ; RM-250 ; RO-01.
+*Sources :* Δ28 ; D-412, D-418, D-434 ; RM-250 ; RO-01.
 
 ### 4.5 Champ de saisie clavier et navigation
 
-Le clavier reste propre à deux contenus : la charge et le libellé de phase. Toutes les autres valeurs gardent leurs roues et steppers (ligne NR Δ30).
+Depuis D-434 (décision de Hermann du 19/10), le clavier porte la charge, le libellé de phase et toutes les valeurs éditables des tableaux : cellules Durée et Pause des séries variables et durées de phase, en MMSS. Hors tableaux, les autres valeurs gardent leurs roues et steppers (ligne NR Δ30, remplacée en partie). D-434 remplace « le clavier reste propre à deux contenus ».
 
-#### FR-23 : Saisie de la charge dans la cellule
+#### FR-23 : Saisie dans la cellule
 
 La charge se saisit directement dans sa ligne (identiques) ou dans sa cellule (variables). La fenêtre intermédiaire « Charge — Série 1 » est supprimée.
 
-*Sources :* Δ29 ; D-405 ; PR-04.
+**Durées et pauses des tableaux (D-434).** Les cellules Durée et Pause du tableau des séries variables et les durées éditables des phases se saisissent au clavier numérique, en MMSS, directement dans la cellule. Plus de roue pour la durée ni de stepper pour la pause dans le tableau des séries variables.
+
+- Sans focus, la durée est affichée en unités explicites, sans zéros inutiles : 5 s ; 1 min 5 s (65 s) ; 1 min 30 s (90 s) ; 12 min ; durée nulle autorisée : 0 s.
+- Avec focus, la valeur est affichée dans la même cellule au format MM:SS, sur quatre chiffres : 00:05, 01:05, 01:30, 12:00.
+- Les chiffres frappés se décalent vers la gauche, quatre au plus ; le séparateur `:` est inséré automatiquement.
+- Le changement de format a lieu dans la cellule ; aucun champ de saisie supplémentaire.
+
+**Focus (D-434), pour les cellules Durée, Pause, Charge et les durées de phase.**
+
+- À l'activation, la cellule et sa valeur sont mises en évidence et le clavier natif s'ouvre.
+- La sélection native de texte, qui fait apparaître les deux poignées verticales iOS, n'est pas utilisée.
+- La première frappe remplace la valeur existante ; les suivantes composent la nouvelle valeur ; Retour arrière supprime le dernier chiffre.
+- Ces règles remplacent la sélection de toute la valeur au focus (recette du 19/10, RC-3).
+
+Les bornes et validations existantes des durées, pauses et charges sont conservées, ainsi que les séries à cible numérique, à l'échec et mixtes, les phases à durée libre et imposée, le modèle de données et la persistance.
+
+*Sources :* Δ29 ; D-405, D-434 ; PR-04.
 
 #### FR-24 : Visibilité et clavier dans la Feuille
 
 Quand un champ de saisie clavier est actif :
 
-- le clavier est le clavier numérique décimal standard d'iOS et d'Android ; aucun clavier personnalisé ;
+- le clavier est le clavier numérique standard d'iOS et d'Android, décimal pour la charge, numérique pour les durées et pauses en MMSS (D-434) ; aucun clavier personnalisé ;
 - à l'apparition du clavier et à chaque Précédent / Suivant, la ligne contenant le champ actif reste entièrement visible au-dessus du clavier ; si elle est trop bas, le contenu de la Feuille défile automatiquement pour la remonter ; il n'est pas nécessaire d'afficher toutes les lignes du tableau en même temps (correction de Hermann du 19/10) ;
-- le clavier décimal se ferme par le bouton « Fermer », à droite de la barre ;
+- le clavier numérique se ferme par le bouton « Fermer », à droite de la barre ;
+- la barre porte, de gauche à droite, sur une seule ligne : « À l'échec » | « ← Précédent » | « Suivant → » | « Fermer » (D-434). Les flèches sont accompagnées des libellés Précédent et Suivant si la largeur le permet ; sinon, flèches seules avec leurs libellés d'accessibilité. Les zones tactiles sont préservées ;
+- « À l'échec » est visible pour les cellules de durée cible des séries lorsque le mode À l'échec est autorisé ; il bascule entre cible numérique et À l'échec pour la seule série, en préservant les valeurs selon les règles existantes (FR-22, RM-250). Il n'apparaît ni pour les pauses, ni pour les charges, ni pour les durées de phase ;
 - une seule surface est ouverte à la fois ;
 - l'absorption de ✓ et ✕ suit Q47.
 
-*Sources :* Δ29 ; CE-UI-10 §10 l. 1085-1087 ; D-413 ; GR-01 ; PR-04.
+*Sources :* Δ29 ; CE-UI-10 §10 l. 1085-1087 ; D-413, D-434 ; GR-01 ; PR-04.
 
 #### FR-25 : Précédent / Suivant et cellule active
 
-Dans la barre du clavier numérique, Précédent et Suivant déplacent la saisie entre les cellules du tableau saisies à ce clavier, c'est-à-dire les cellules de charge.
+Dans la barre du clavier numérique, Précédent et Suivant déplacent la saisie entre les cellules saisies à ce clavier : depuis D-434, les cellules Durée, Pause et Charge du tableau des séries variables et les durées de phase (D-434 remplace « c'est-à-dire les cellules de charge »). Précédent, Suivant et Fermer restent disponibles dans tous les cas applicables. L'ordre de parcours n'est pas fixé par la décision (§9, QD-434-2).
 
 - Le clavier reste ouvert pendant la navigation.
 - La valeur de la cellule atteinte reste éditable.
 - La cellule active se distingue par sa couleur de fond, qui suit le focus. Cette couleur est un indicateur d'état, pas une règle de valeur.
 - L'état actif reste annoncé de façon accessible.
 - Aux extrémités et sur les cellules indisponibles, le comportement suit les conventions de focus existantes, sans boucle inventée.
-- Les roues et steppers des autres cellules ne deviennent pas des champs clavier.
+- La cellule atteinte suit les règles de focus de FR-23 : pas de sélection native, première frappe qui remplace la valeur.
+- Hors tableaux, les roues et steppers ne deviennent pas des champs clavier (D-434 ne vise que les cellules des tableaux).
 
-*Sources :* Δ49 ; décision de Hermann du 19/10.
+*Sources :* Δ49 ; décision de Hermann du 19/10 ; D-434.
 
 ### 4.6 Présentation de la Feuille
 
@@ -510,8 +530,8 @@ Le chevron est graphique : c'est l'icône existante `control-chevron-up` / `cont
 Les tableaux des séries et des phases ont un fond blanc sans contour et des lignes de 36. Les autres lignes de la Feuille restent à 44.
 
 - Aucun stepper permanent dans les cellules.
-- Chaque cellule ouvre, pour elle seule, le sélecteur de son champ : roue de cible, stepper de Pause, clavier de charge.
-- Sont conservés : glisser, croix, « Série supprimée — Annuler » sur fond `#FFF1F0` (Q35), roue sous la ligne (Q45).
+- Chaque cellule ouvre, pour elle seule, la saisie de son champ : clavier numérique MMSS pour Durée et Pause, clavier décimal pour la charge (D-434, qui remplace la roue de cible et le stepper de Pause de cellule) ; la cellule Répétitions n'est pas visée par D-434 (§9, QD-434-1).
+- Sont conservés : glisser, croix, « Série supprimée — Annuler » sur fond `#FFF1F0` (Q35). La roue sous la ligne (Q45) est sans objet pour les cellules Durée et Pause depuis D-434 ; pour la cellule Répétitions, voir QD-434-1.
 - La cible tactile des lignes de 36 est vérifiée sur appareil avant toute autre géométrie.
 
 Principes de PR-02, qui priment sur une ancienne capture :
@@ -522,7 +542,7 @@ Principes de PR-02, qui priment sur une ancienne capture :
 - les valeurs sont alignées avec leurs en-têtes ;
 - les numéros sont rapprochés des poignées.
 
-*Sources :* Δ34 ; D-413, D-417 ; RC ligne 5 ; CE-UI-10 §9 ; PR-02 ; QP5-05 ; R-05, R-06.
+*Sources :* Δ34 ; D-413, D-417, D-434 ; RC ligne 5 ; CE-UI-10 §9 ; PR-02 ; QP5-05 ; R-05, R-06, R-18.
 
 #### FR-30 : Cadence
 
@@ -740,7 +760,7 @@ Le minimum de 5 s est abaissé à 1 s. Le pas de 1 s existe déjà pour la duré
 - Zéro reste autorisé là où il l'était déjà : Pause, Compte à rebours, Fin, etc.
 - Pour ces durées qui admettent zéro, seul un éventuel minimum positif ou palier de 5 s est retiré. L'architecture relève leur pas actuel. Elle signale toute extension qui irait au-delà du texte de la décision (voir §9).
 - Les maxima existants sont conservés. La durée de série et la somme des phases sont donc comprises entre 1 et 3 535 s.
-- Les roues, validations et tests existants sont adaptés, sans nouveau composant ni nouveau mécanisme de saisie.
+- Les roues, validations et tests existants sont adaptés, sans nouveau composant ni nouveau mécanisme de saisie. Depuis D-434, les cellules de durée et de pause des séries variables et les durées de phase se saisissent au clavier MMSS (FR-23) ; ces bornes s'y appliquent inchangées.
 - Les règles de calcul et les autres comportements validés ne changent pas.
 - Les durées imposées par un format suivent leurs propres contraintes, hors périmètre (§8).
 
@@ -781,7 +801,7 @@ Ces lignes sont déjà conformes. Elles n'ont ni story, ni revue complète. Leur
 |---|---|---|
 | Δ07 | Ordre Description → Paramètres d'exécution → Média ; titre « Paramètres d'exécution » (Q11) ; Carte vide sans invite (Q55) | Tests existants de l'éditeur |
 | Δ24 | Enchainement non affiché à N = 1, Avec / Sans disponible, Enchainement conservé (Q38 = D-415) | Tests Q38 |
-| Δ30 | Aucune autre valeur ne passe au clavier : roues natives et steppers conservés | `DurationWheelPicker.test.tsx:371-379`, `NumberWheelPicker.test.tsx:260` |
+| Δ30 | Aucune autre valeur ne passe au clavier : roues natives et steppers conservés. **Remplacée en partie par D-434 (19/10)** : les cellules Durée et Pause du tableau des séries variables et les durées de phase passent au clavier numérique MMSS ; hors tableaux, la ligne reste valable | `DurationWheelPicker.test.tsx:371-379`, `NumberWheelPicker.test.tsx:260` |
 | Δ38 | Nombre de séries, Pause, Pause entre les côtés, Compte à rebours et Fin : valeur au repos, ± à l'appui ; roues en panneau sans flèche ; ✓/✕ en deux temps ; fond rouge pâle si manquante (Q35, Q37, Q41, Q46, Q47). **Impératif (revue du 19/10) :** le stepper « Nombre de séries » de PRE-4 est conservé à l'identique (présentation, interactions, révélation et fermeture, pas, accessibilité) ; le tableau des séries variables suit N ; aucun remplacement par une roulette ni par le clavier ; seule son intégration visuelle dans la nouvelle Feuille peut s'adapter | Tests existants de la Feuille ; critère explicite de la recette Feuille (stories 2.4 à 2.6) |
 | Δ47 | Durées de Séance, synthèses de ligne du Catalogue et de la Composition, carte du Catalogue : inchangées tant que `workSeconds` reste juste avec les phases | `calculations.test.ts`, `compositionPresentation.test.ts`, `ActivityCard.test.tsx` |
 
@@ -789,7 +809,7 @@ Sont aussi conservés, malgré les captures : la Pause après chaque série à N
 
 ## 7. Remplacements de comportements acceptés
 
-Seuls ces remplacements sont admis : R-01 à R-16 de `table-delta.md` §2, plus R-17, issu de la décision du 19/10 sur les bornes minimales des durées. Tous sont décidés.
+Seuls ces remplacements sont admis : R-01 à R-16 de `table-delta.md` §2, plus R-17, issu de la décision du 19/10 sur les bornes minimales des durées, et R-18, issu de D-434. Tous sont décidés.
 
 | R | Comportement PRE-3 / PRE-4 | Remplacé par | FR |
 |---|---|---|---|
@@ -810,8 +830,9 @@ Seuls ces remplacements sont admis : R-01 à R-16 de `table-delta.md` §2, plus 
 | R-15 | Indicateur « D→G » de la Composition | Indicateur sans direction | FR-18 |
 | R-16 | Phrase « côté droit puis le gauche » | « côté 1 / côté 2 » | FR-18 |
 | R-17 | Durées positives au minimum de 5 s (D-232 et RM-234, pour leur part relative aux durées ; le pas de 5 s est déjà levé par Q36 ; les bornes de répétitions et de séries sont inchangées) | Minimum de 1 s, maxima inchangés (décision du 19/10) | FR-45 |
+| R-18 | Cellules du tableau des séries variables : roue de cible sous la ligne (Q45) à option « À l'échec » en tête, stepper de Pause de cellule ; roue de durée de phase ; barre « Précédent / Suivant / Fermer » limitée à la charge ; toute la valeur sélectionnée au focus (RC-3) | Clavier numérique MMSS dans la cellule (« 1 min 5 s » au repos, « 01:05 » au focus) ; barre « À l'échec | ← Précédent | Suivant → | Fermer » ; pas de sélection native, première frappe qui remplace (D-434). Cellule Répétitions non visée (QD-434-1) | FR-7, FR-22 à FR-25, FR-29 |
 
-**Changements de présentation demandés explicitement.** Ils ne remplacent aucun comportement validé autre que leur présentation. NFR-1 et NFR-8 les admettent au même titre que R-01 à R-17.
+**Changements de présentation demandés explicitement.** Ils ne remplacent aucun comportement validé autre que leur présentation. NFR-1 et NFR-8 les admettent au même titre que R-01 à R-18.
 
 | Changement | Source | FR |
 |---|---|---|
@@ -832,13 +853,13 @@ Seuls ces remplacements sont admis : R-01 à R-16 de `table-delta.md` §2, plus 
 - **`SegmentedControl` :** pas de refonte ; seule une variante de style est admise (FR-27).
 - **Écrans voisins :** pas de refonte de la Composition, du Catalogue, des médias ni des référentiels. Seuls les points de passage nécessaires changent (FR-18, FR-41, Δ47).
 - **Modèle :** aucun troisième Mode ; aucune condition Mixte persistée ; aucun nouveau réglage booléen des signaux.
-- **Clavier :** il n'est étendu à aucune autre valeur que la charge et le libellé de phase.
+- **Clavier :** il n'est étendu à aucune autre valeur que la charge, le libellé de phase et, depuis D-434, les cellules Durée et Pause du tableau des séries variables et les durées de phase. Hors tableaux (Durée d'une série et Pause des séries identiques, Nombre de séries, Pause entre les côtés, Cadence, Durée de l'exercice, Compte à rebours, Fin), rien ne change. Aucun clavier numérique personnalisé.
 - **Figma :** aucune règle métier n'est déduite de valeurs illustratives ; aucune modification de Figma.
 - **Hors périmètre :** mécanismes VNext, push, fusion et EAS.
 
 ## 9. Questions ouvertes
 
-Toutes les QP5 sont décidées : `table-delta.md` §6, ainsi que les décisions complémentaires du 19/10 sur les bornes minimales et sur le passage des phases de Avec à Sans, et les décisions qui suivent la revue indépendante du 19/10 (D-431, D-432). Les incompatibilités QR-1 et QR-2 ci-dessous ont été validées par Hermann le 19/10 avec les défauts proposés : aucune question produit ne reste ouverte.
+Toutes les QP5 sont décidées : `table-delta.md` §6, ainsi que les décisions complémentaires du 19/10 sur les bornes minimales et sur le passage des phases de Avec à Sans, et les décisions qui suivent la revue indépendante du 19/10 (D-431, D-432). Les incompatibilités QR-1 et QR-2 ci-dessous ont été validées par Hermann le 19/10 avec les défauts proposés. Restent ouverts les seuls points non tranchés par D-434 (QD-434-1 à QD-434-4, ci-dessous).
 
 Restent quatre types de points : les points d'architecture, les propriétés Figma, les incompatibilités du contrôle 2–6 et les points signalés, que les sources laissent ouverts.
 
@@ -862,6 +883,13 @@ Restent quatre types de points : les points d'architecture, les propriétés Fig
 - **QR-2.** La normalisation au ✓ retire sans message les phases à 0 s ou à renseigner, et peut laisser moins de 2 phases.
   - Règle validée : s'il reste une seule phase, l'Exercice passe à Sans avec sa durée comme durée de série, sur le principe de D-371.
   - S'il n'en reste aucune, l'Exercice passe à Sans sans durée inventée : la validation existante s'applique.
+
+**Points non tranchés par D-434 (décision de Hermann du 19/10, saisie au clavier numérique des tableaux).** Signalés, non décidés ; aucune règle n'est inventée.
+
+- **QD-434-1 — Cellule cible en mode Répétitions.** D-434 cite les cellules Durée, Pause et Charge et les durées de phase, pas la cellule du nombre de répétitions d'une série variable. Sa roue à « Aucune répétition, à l'échec » en tête (Q8, D-418) n'est ni confirmée ni remplacée.
+- **QD-434-2 — Ordre de Précédent / Suivant.** D-434 étend la barre à toutes les cellules saisies au clavier sans fixer l'ordre de parcours : ligne par ligne (Durée → Pause → Charge, puis ligne suivante) ou colonne par colonne ; ni si le parcours inclut la ligne Charge commune ou les libellés de phase (clavier texte, hors D-434), présents avec le tableau des phases.
+- **QD-434-3 — Frappe MMSS hors bornes ou non normalisée.** Les bornes existantes sont conservées (durée 1..3535 s, soit 58:55 ; pause 0..300 s), mais D-434 ne dit pas comment traiter une frappe comme `01:75` (secondes ≥ 60) ou `99:99`, ni à quel moment (refus de la frappe, normalisation, validation à la sortie de la cellule).
+- **QD-434-4 — Cellule vidée et cellule à l'échec.** D-434 ne dit pas ce que vaut une cellule de durée ou de pause entièrement effacée par Retour arrière à la sortie du champ (`—` à renseigner, 0 s, valeur précédente), ni ce qu'affiche au focus une cellule cible À l'échec, avant la première frappe.
 
 **Points signalés, décidés par Hermann le 19/10.** Les points 2 à 10 ci-dessous sont tranchés dans `table-delta.md` §6, sous « Points signalés par le PRD ». Leur décision prime sur le texte qui suit. Il s’agit notamment :
 
@@ -945,7 +973,7 @@ Le point 1 (Q48) se traite story par story.
 | Δ27 | FR-21 |
 | Δ28 | FR-22 |
 | Δ29 | FR-23, FR-24 |
-| Δ30 | NR (§6) |
+| Δ30 | NR (§6), remplacée en partie par D-434 (FR-7, FR-23 à FR-25, FR-29) |
 | Δ31 | FR-26 |
 | Δ32 | FR-27 |
 | Δ33 | FR-28 |

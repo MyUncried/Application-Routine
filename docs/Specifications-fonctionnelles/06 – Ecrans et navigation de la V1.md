@@ -784,7 +784,7 @@ Résultat unique de la Condition d’arrêt pour un mélange de cibles (RM-249) 
 
 ![Création activité — Paramètres (modale) — Durée d’une phase (roulette)](images/parametres-2026-10-18/9232-44646.png)
 
-Roulette ouverte depuis une cellule de séries variables en mode Durée, avec l’option « Aucune durée, à l’échec » (RM-250). Malgré son nom, cette frame n’illustre pas une roulette de phase : les phases y sont à Sans ; le contrat de phase n’en est pas déduit.
+Roulette ouverte depuis une cellule de séries variables en mode Durée, avec l’option « Aucune durée, à l’échec » (RM-250). Malgré son nom, cette frame n’illustre pas une roulette de phase : les phases y sont à Sans ; le contrat de phase n’en est pas déduit. Écart Figma depuis D-434 (19/10/2026) : la cellule Durée d’une série variable ne s’ouvre plus sur une roulette ; elle se saisit au clavier numérique MMSS dans la cellule, « À l’échec » étant la commande de gauche de la barre du clavier. Cette frame n’est plus une référence conforme.
 
 ##### Création activité — Paramètres (modale) — Une seule série
 
@@ -824,7 +824,7 @@ Colonnes Durée, Pause, Charge (20, 25, 30 kg illustratifs) ; ligne Charge Avec 
 
 ![Création activité — Paramètres (modale) — Séries variables avec charge — Clavier numérique](images/parametres-2026-10-18/9292-18077.png)
 
-Saisie directe au clavier, tableau visible au-dessus (RM-239, D-413). Écarts Figma : le clavier illustré n’a pas de séparateur décimal ; la cellule mise en évidence est la Durée de la série 1, pas une cellule Charge. La ligne Charge Avec / Sans est volontairement absente de cet état ; le réglage reste disponible hors saisie.
+Saisie directe au clavier, tableau visible au-dessus (RM-239, D-413). Écarts Figma : le clavier illustré n’a pas de séparateur décimal ; la cellule mise en évidence est la Durée de la série 1, pas une cellule Charge. La ligne Charge Avec / Sans est volontairement absente de cet état ; le réglage reste disponible hors saisie. Écarts Figma depuis D-434 (19/10/2026) : la cellule Durée active doit afficher sa valeur au format MM:SS (« 00:30 » et non « 30 s ») ; la barre doit porter, de gauche à droite, « À l’échec » | « ← Précédent » | « Suivant → » | « Fermer », « À l’échec » étant absent de la frame ; la mise en évidence d’une cellule Durée sous le clavier n’est plus un écart. Aucune frame n’illustre la cellule Pause ou une durée de phase en saisie.
 
 ##### Création activité — Paramètres (modale) — Série en durée — Durée de l’exercice déployée
 
