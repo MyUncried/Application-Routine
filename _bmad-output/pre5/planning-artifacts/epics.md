@@ -19,7 +19,7 @@ Il n'existe pas de document UX séparé : le PRD et Figma font foi. Les proprié
 
 **Mode d'exécution du skill.** Le skill `bmad-create-epics-and-stories` a été exécuté en mode autonome : personne ne répondait aux menus, l'option « Continue » a été retenue à chaque étape et les décisions documentées ont été appliquées. Ce n'est pas une validation de Hermann. Quatre questions restent soumises à Hermann (QN-1 à QN-4) ; les critères qui en dépendent portent le défaut recommandé, marqué `[EN ATTENTE QN-x]`.
 
-**Abréviations.** `EP` = `src/domain/activities/ExecutionParameters.ts` ; `Draft` = `src/domain/activities/ExecutionParametersDraft.ts` ; `Sheet` = `src/features/activities/ExecutionParametersSheet.tsx` ; `Form` = `src/features/activities/ActivityEditorForm.tsx`. Δnn = ligne de `table-delta.md` ; R-nn = remplacement accepté (PRD §7) ; « §9-n » = point signalé du PRD tranché le 19/10 (`table-delta.md` §6).
+**Abréviations.** `EP` = `src/domain/activities/ExecutionParameters.ts` ; `Draft` = `src/domain/activities/ExecutionParametersDraft.ts` ; `Sheet` = `src/features/activities/ExecutionParametersSheet.tsx` ; `Form` = `src/features/activities/ActivityEditorForm.tsx`. Δnn = ligne de `table-delta.md` ; R-nn = remplacement accepté (PRD §7) ; « §9-n » ou « PRD §9-n » = point n du §9 du PRD, dans sa numérotation, tranché le 19/10 (décisions dans `table-delta.md` §6, dont la numérotation diffère).
 
 ## Inventaire des exigences
 
@@ -332,7 +332,7 @@ afin que les stories d'interface s'appuient sur un modèle complet et qu'aucune 
 **When** ses fonctions sont testées
 **Then** `decodeInstructionSteps(text | null)` découpe sur `/\r?\n/` : un texte PRE-4 multiligne donne une étape par ligne, et une fixture à fins de ligne `\r\n` ne crée aucune étape fantôme
 **And** `encodeInstructionSteps(steps)` retire les étapes vides après suppression des espaces extérieurs, joint par `\n`, sans numéro, et retourne `null` si la liste est vide ; une étape ne contient jamais de saut de ligne
-**And** `splitStepAt` coupe une étape au curseur (§9-5) ; `insertPastedText` donne une étape par ligne d'un collage multiligne (§9-6)
+**And** `splitStepAt` coupe une étape au curseur (PRD §9-6) ; `insertPastedText` donne une étape par ligne d'un collage multiligne (PRD §9-6)
 **And** `instructionStepsLength` est la seule mesure de la limite, en points de code ; `[EN ATTENTE QN-1]` la limite de 1 000 (`INSTRUCTION_MAX_LENGTH`) s'applique à la chaîne encodée, séparateurs `\n` compris, ce qui garantit le CHECK `length(instruction) <= 1000` sans migration ; `normalizeInstruction` reste la validation de la chaîne encodée, sans seconde règle
 **And** le stockage est inchangé (`activity_definitions.description`, `activities.instruction`) : aucune migration, aucune conversion, aucun retour à l'ancien format (FR-35) ; l'Instantané ne porte pas de Description.
 
@@ -996,7 +996,7 @@ En tant que Hermann,
 je veux écrire la Description de mes Exercices comme une liste d'étapes numérotées, Entrée créant l'étape suivante,
 afin de décrire un Exercice pas à pas, lisiblement, sans gérer moi-même la numérotation.
 
-**Exigences :** FR-33, FR-34, FR-35, FR-44 (invites des étapes) ; NFR-1, NFR-5, NFR-7, NFR-9 (CRLF), NFR-10 ; Δ01, Δ02, Δ03 ; NR Δ07 ; R-13 ; QP5-01, QP5-02 ; §9-2, §9-5, §9-6, §9-7.
+**Exigences :** FR-33, FR-34, FR-35, FR-44 (invites des étapes) ; NFR-1, NFR-5, NFR-7, NFR-9 (CRLF), NFR-10 ; Δ01, Δ02, Δ03 ; NR Δ07 ; R-13 ; QP5-01, QP5-02 ; PRD §9-2, §9-6.
 **Architecture :** AD-22 ; hérités AD-11.
 **Dépend de :** 1.1.
 **Taille :** M.
@@ -1012,7 +1012,7 @@ afin de décrire un Exercice pas à pas, lisiblement, sans gérer moi-même la n
 **And** dès qu'une étape existe, une ligne d'invitation grise « n. Étape suivante » suit la dernière étape ; il n'y a pas de bouton Ajouter
 **And** la présentation suit le Figma courant relevé (UX-DR8, §9-2 : demandes 17 et 21 du registre v25, texte à 14 numéros compris, sans contenant) ; les chiffres sont des propriétés de présentation, en constantes locales nommées, jamais des règles.
 
-**AC2 — Saisie (FR-33, AD-22, §9-5, §9-6).**
+**AC2 — Saisie (FR-33, AD-22, PRD §9-6).**
 **Given** une étape en cours de saisie
 **When** Hermann tape Entrée en fin d'étape
 **Then** l'étape suivante est créée et reçoit le curseur
@@ -1021,7 +1021,7 @@ afin de décrire un Exercice pas à pas, lisiblement, sans gérer moi-même la n
 **And** retour arrière sur une étape vide la supprime et place le curseur en fin de l'étape précédente
 **And** ↑ ferme le clavier (D-351) ; le contenu défile au-dessus du clavier et `Terminer` reste immobile (D-349).
 
-**AC3 — Limite de 1 000 caractères (FR-34, AD-22, §9-7).**
+**AC3 — Limite de 1 000 caractères (FR-34, AD-22, PRD §9-6).**
 **Given** une Description proche de la limite
 **When** Hermann tape ou colle un texte qui la ferait dépasser
 **Then** la saisie est refusée en entier, sans troncature, et aucune étape existante n'est modifiée
