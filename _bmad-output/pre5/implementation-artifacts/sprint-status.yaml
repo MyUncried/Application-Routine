@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 10-19-2026 10:54
-last_updated: 10-19-2026 21:30
+last_updated: 10-19-2026 22:00
 project: kodjo-pre5
 project_key: NOKEY
 tracking_system: file-system
@@ -38,7 +38,7 @@ story_location:
 development_status:
   epic-1: in-progress
   1-1-socle-de-données-v3-phases-charge-étapes-et-minimum-de-1-s: done
-  1-2-phrase-avec-phases-et-charge-côtés-neutres-et-indicateur-de: backlog
+  1-2-phrase-avec-phases-et-charge-côtés-neutres-et-indicateur-de: review # Phrase livrée ; AC6 (indicateur de la Composition) différé : aucune variante neutre dans Figma, décision de Hermann attendue
   epic-1-retrospective: optional
 
   epic-2: in-progress

@@ -49,4 +49,4 @@ Donner au domaine un modèle complet pour PRE-5 avant toute interface : un Exerc
 - 1.1 est atomique et ne dépend de rien : l'écriture v3 ne peut être livrée sans son lecteur ni sans le transport par le Brouillon.
 - 1.2 dépend de 1.1 (modèle, `formatLoadKg`).
 - L'Epic 2 (transitions du Brouillon, Feuille) et l'Epic 3 (Description en étapes, qui utilise le codec) dépendent de 1.1 ; l'Epic 3 peut avancer en parallèle de l'Epic 2 dès 1.1 livrée.
-- Hors epic : transitions nouvelles du Brouillon, toute interface de phases, charge, côtés ou Condition d'arrêt, Description à l'écran ; moteur d'exécution des phases, formats et refonte de la Composition hors PRE-5.
+- Hors epic : transitions nouvelles du Brouillon, toute interface de phases, charge, côtés ou Condition d'arrêt, Description à l'écran ; moteur d'exécution des phases, formats (la règle validée de la durée imposée, dernière phase calculée sur le restant, est conservée mais non développée) et refonte de la Composition hors PRE-5.

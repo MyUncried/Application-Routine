@@ -315,10 +315,11 @@ describe("ActivityEditorForm — PRE-3", () => {
     expect(node.props.numberOfLines).toBeUndefined();
     expect(node.props.ellipsizeMode).toBeUndefined();
     expect(phrase()).toBe(
-      "1 série de 1 min 30 s, avec 15 s de pause après chaque série, en faisant le côté droit puis le gauche, avec 10 s de pause au changement de côté. Durée totale : 3 min 40 s.",
+      "1 série de 1 min 30 s, avec 15 s de pause après chaque série, en faisant le côté 1 puis le côté 2, avec 10 s de pause au changement de côté. Durée totale : 3 min 40 s.",
     );
-    expect(boldSegments()).toEqual(expect.arrayContaining(["1 série", "1 min 30 s", "gauche", "3 min 40 s"]));
-    expect(boldSegments()).not.toContain("droit");
+    // PRE-5 (story 1.2, AC4) : clause des côtés neutre ; « côté 2 » remplace l'ancien mot gras.
+    expect(boldSegments()).toEqual(expect.arrayContaining(["1 série", "1 min 30 s", "côté 2", "3 min 40 s"]));
+    expect(boldSegments()).not.toContain("côté 1");
   });
 
   it("P3-20/all-surfaces — titres et valeurs des écrans de référence ; carte bordée rayon 12 ; phrase Inter 13 / 20", () => {
@@ -714,7 +715,7 @@ describe("ActivityEditorForm — PRE-4 story 2.3", () => {
     // 2 × 6 × (12 × 4 + 15) + 5 = 761 s.
     expect(2 * 6 * (12 * 4 + 15) + 5).toBe(761);
     expect(phrase()).toBe(
-      "6 séries de 12 répétitions cadencées toutes les 4 s, avec 15 s de pause après chaque série, en faisant d’abord toutes les séries à droite, puis à gauche, avec 5 s de pause au changement de côté. Durée totale : ≈ 12 min 41 s.",
+      "6 séries de 12 répétitions cadencées toutes les 4 s, avec 15 s de pause après chaque série, en faisant d’abord toutes les séries du côté 1, puis du côté 2, avec 5 s de pause au changement de côté. Durée totale : ≈ 12 min 41 s.",
     );
     // Aucune espace avant la ponctuation ; le seul retour de ligne est celui de présentation avant « Durée totale ».
     expect(renderedPhrase()).not.toMatch(/ [.,)]/u);
@@ -741,7 +742,7 @@ describe("ActivityEditorForm — PRE-4 story 2.3", () => {
         fontWeight: "600",
       });
     }
-    expect(boldSegments()).toEqual(["6 séries", "12 répétitions", "4 s", "15 s", "droite", "gauche", "5 s", "≈ 12 min 41 s"]);
+    expect(boldSegments()).toEqual(["6 séries", "12 répétitions", "4 s", "15 s", "côté 1", "côté 2", "5 s", "≈ 12 min 41 s"]);
     expect(screen.getByTestId("exercise-parameters-countdown").props.children).toBe("10 s");
     expect(screen.getByTestId("exercise-parameters-end").props.children).toBe("5 s");
     expectUncapped(screen.getByTestId("exercise-parameters-countdown"));
@@ -1185,7 +1186,9 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
         expect(section.queryAllByTestId(/^media-item-\d+$/u)).toHaveLength(state.initial.media.length);
       }
       if (executionParameters.mode !== null && executionParameters.sideMode !== "UNILATERAL") {
-        expect(phrase()).toMatch(/droit|gauche/u);
+        // PRE-5 (story 1.2, AC4) : clause des côtés neutre, sans direction.
+        expect(phrase()).toMatch(/côté 1.*côté 2/u);
+        expect(phrase()).not.toMatch(/droit|gauche/u);
       }
       view.unmount();
     }

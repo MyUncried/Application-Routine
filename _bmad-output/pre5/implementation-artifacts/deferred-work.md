@@ -9,3 +9,6 @@
 - source_spec: `_bmad-output/pre5/implementation-artifacts/spec-2-6-tableau-des-series-sans-steppers-de-cellule-lignes-de-36.md`
   summary: Avec la colonne Charge (2.7), les cellules rétrécissables (`flexShrink`) décalent le ± de la Pause d'une ligne, placé par un décalage fixe (`PAUSE_CELL_X`), et le tableau ne tient pas à 375 de large (321 nécessaires, environ 301 disponibles).
   evidence: Revue de 2.6 (E2) ; aucun rétrécissement en 2.6 (243 nécessaires) ; à régler avec la géométrie de la Charge en 2.7 (placer le ± depuis la cellule mesurée, ou réduire l'écart de 20 et les cellules) et à juger sur iPhone.
+- source_spec: `_bmad-output/pre5/implementation-artifacts/spec-1-2-phrase-phases-charge-cotes-neutres.md`
+  summary: Story 1.2, AC6 — indicateur de côté de la Composition sans direction (`CompositionScreen.tsx`, nom accessible, retrait des clés `D→G` / `G→D` de `fr.ts`), avec `CompositionScreen.test.tsx` adapté.
+  evidence: Aucun rendu neutre n'existe dans Figma (relevé en lecture seule le 19/10 : composant DSF `5544:6944` limité à `État=D→G` / `État=G→D`, frame `Composition séance — Standard` `8328:28605` affichant « D→G »), alors que l'AC6 exige un rendu « selon la frame Figma relevée » ; le contenu visible et le nom accessible de l'indicateur neutre sont une décision de Hermann (ou une variante Figma à ajouter).
