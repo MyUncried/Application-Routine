@@ -1,6 +1,6 @@
 # Interface : navigation, écrans et conventions communes
 
-Ce chapitre décrit l’interface dans son ensemble : navigation, inventaire des écrans et de leurs contrats, captures, et conventions d’interface communes à plusieurs écrans. Le comportement propre à chaque écran est défini par son contrat au chapitre 13 ; le rendu visuel par Figma.
+Ce chapitre décrit l’interface dans son ensemble : navigation, inventaire des écrans et de leurs contrats, captures, et conventions d’interface communes à plusieurs écrans. La sélection actuelle conserve 62 captures de référence parmi les 197 frames de premier niveau du Prototype MVP ; les 135 autres frames restent dans Figma et sont couvertes comme variantes, sans copie supplémentaire dans ce chapitre. Le comportement propre à chaque écran est défini par son contrat au chapitre 13 ; le rendu visuel par Figma.
 
 **Évolutions v15 du 07/10 :**36captations vérifiées, dont 15PNG changés depuis main 72d1bf4. [Inventaire et preuves](../MATRICE-EVOLUTIONS-V15-2026-10-07.md), [DSF phrases](../DSF-PHRASES-V15-2026-10-07.md). Vue longue renommée 224caractères ; les calculs déjà décidés sont conservés.
 
@@ -80,7 +80,7 @@ Les calques internes, zones tactiles transparentes, cibles de défilement et dup
 
 #### Règle de maintenance
 
-Lorsqu’une nouvelle frame de premier niveau est ajoutée au `Prototype MVP`, elle doit être soit intégrée dans ce chapitre avec sa règle fonctionnelle, soit explicitement classée hors périmètre avec justification. Une variante ne peut plus être omise silencieusement.
+Toute frame de premier niveau de `Prototype MVP` appartient au MVP. Le chapitre 06 conserve une capture pour chaque référence visuelle principale retenue ; les variantes peuvent être couvertes par le même contrat et la même capture principale, sans image supplémentaire. Les variantes ne sont pas exclues du périmètre fonctionnel : leurs spécificités sont définies dans les contrats du chapitre 13 et les règles applicables. Aucun état particulier n'est supprimé de Figma du seul fait de cette sélection documentaire.
 
 #### Mise à jour Bilatéralité — rectifiée
 
@@ -186,7 +186,7 @@ Il s’agit d’un onglet principal : aucun bouton `Retour` spécifique n’est 
 
 [Source Figma — `1992:474`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-474)
 
-![Profil — Stepper Pause changement de côté](images/ecran-1c-profil-compte-rebours-ouvert.png)
+
 
 État courant du stepper Pause changement de côté
 
@@ -194,7 +194,7 @@ Il s’agit d’un onglet principal : aucun bouton `Retour` spécifique n’est 
 
 [Source Figma — `1992:579`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-579)
 
-![Profil — Stepper Récupération après exercice](images/ecran-1d-profil-fin-seance-ouverte.png)
+
 
 État courant du stepper Récupération après exercice
 
@@ -202,7 +202,7 @@ Il s’agit d’un onglet principal : aucun bouton `Retour` spécifique n’est 
 
 [Source Figma — `1992:684`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-684)
 
-![Profil — Vue d'ensemble - Vibration activée](images/ecran-1b-profil-vibration-activee.png)
+
 
 Valeur initiale fonctionnelle de la préférence `Vibration`
 
@@ -216,7 +216,7 @@ Valeur initiale fonctionnelle de la préférence `Vibration`
 
 [Source Figma — `2139:86`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2139-86)
 
-![Profil — Vue d'ensemble — Parcours vide](images/ecran-1e-profil-parcours-vide.png)
+
 
 Présentation du Profil avant que l’utilisateur ait créé du contenu
 
@@ -250,7 +250,7 @@ Consultation de la Composition sans quitter le Catalogue
 
 [Source Figma — `1992:10518`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-10518)
 
-![Catalogue des séances — Liste condensée — actions glissées](images/ecran-2d-catalogue-condense-actions.png)
+
 
 La carte se déplace avec le glissement et révèle `Planifier`, `Dupliquer` et `Archiver` derrière
 
@@ -258,7 +258,7 @@ La carte se déplace avec le glissement et révèle `Planifier`, `Dupliquer` et 
 
 [Source Figma — `1992:10628`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-10628)
 
-![Catalogue des séances — Séance déployée — actions glissées](images/ecran-2e-catalogue-deployee-actions.png)
+
 
 Même convention de glissement avec déplacement réel de la carte
 
@@ -266,7 +266,7 @@ Même convention de glissement avec déplacement réel de la carte
 
 [Source Figma — `1992:10848`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-10848)
 
-![Catalogue des séances — Archivées — Séance restaurée](images/ecran-2g-catalogue-seance-restauree.png)
+
 
 Snackbar de restauration et action `Annuler`
 
@@ -274,7 +274,7 @@ Snackbar de restauration et action `Annuler`
 
 [Source Figma — `1992:10937`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-10937)
 
-![Catalogue des séances — Liste sans Renforcement du genou](images/ecran-2h-catalogue-apres-archivage.png)
+
 
 Résultat attendu après retrait de `Renforcement du genou` de la liste active
 
@@ -282,19 +282,19 @@ Résultat attendu après retrait de `Renforcement du genou` de la liste active
 
 [Source Figma — `2117:86`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2117-86)
 
-![Catalogue des séances — État vide](images/ecran-2i-catalogue-vide.png)
+
 
 ##### Catalogue des séances — Archivées — actions glissées
 
 [Source Figma — `2234:88`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2234-88)
 
-![Catalogue des séances — Archivées — actions glissées](images/modale-3-seance-archivee-action-supprimer.png)
+
 
 ##### Catalogue des séances — Liste — Filtre inactif étendu
 
 [Source Figma — `4549:6382`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4549-6382)
 
-![Catalogue des séances — Liste — Filtre inactif étendu](images/figma-4549-6382.png)
+
 
 État `Filtres / Aucun`, liste inchangée
 
@@ -302,7 +302,7 @@ Résultat attendu après retrait de `Renforcement du genou` de la liste active
 
 [Source Figma — `4549:6742`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4549-6742)
 
-![Catalogue des séances — Filtre actif Archivé](images/ecran-2f-catalogue-archivees.png)
+
 
 État actif du contrôle et liste filtrée
 
@@ -310,7 +310,7 @@ Résultat attendu après retrait de `Renforcement du genou` de la liste active
 
 [Source Figma — `4592:6217`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4592-6217)
 
-![Catalogue des séances — Liste condensée — actions glissées — Dos et mobilité](images/figma-4592-6217.png)
+
 
 #### Modales, panneaux et confirmations
 
@@ -318,7 +318,7 @@ Résultat attendu après retrait de `Renforcement du genou` de la liste active
 
 [Source Figma — `2234:189`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2234-189)
 
-![Modal — Confirmer la suppression d’une séance archivée](images/modale-3a-confirmer-suppression-seance-archivee.png)
+
 
 Fenêtre restaurée et réexportée le 01/10/2026. Titre « Supprimer cette séance ? » ; message « Cette séance archivée sera définitivement supprimée. Cette action est irréversible. » ; Annuler gris#F3F4F6 / Confirmer#B1503C. Les deux actions ne sont pas recâblées dans le prototype ; leur comportement produit reste annuler sans mutation / supprimer définitivement après confirmation.
 
@@ -348,19 +348,19 @@ Modale de filtres contextuels Séances : statut et Étiquettes
 
 [Source Figma — `4521:6220`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4521-6220)
 
-![Catalogue des exercices — État vide](images/figma-4521-6220.png)
+
 
 #### Catalogue des Exercices — Liste — Filtre inactif étendu
 
 [Source Figma — `4544:6344`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4544-6344)
 
-![Catalogue des Exercices — Liste — Filtre inactif étendu](images/figma-4544-6344.png)
+
 
 #### Catalogue des Exercices — Liste — Filtre actif étendu
 
 [Source Figma — `4544:6651`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4544-6651)
 
-![Catalogue des Exercices — Liste — Filtre actif étendu](images/figma-4544-6651.png)
+
 
 #### Catalogue des Exercices — Liste — actions glissées
 
@@ -372,7 +372,7 @@ Modale de filtres contextuels Séances : statut et Étiquettes
 
 [Source Figma — `4738:6355`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4738-6355)
 
-![Catalogue des Exercices — Liste — Première carte déployée — Média](images/figma-4738-6355.png)
+
 
 ### Modales, panneaux et confirmations
 
@@ -404,19 +404,19 @@ La diminution est sans message ; une conversion de nature entraînant une perte 
 
 [Source Figma — `8328:28172`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28172)
 
-![Composition séance — Initial](images/circuits-2026-10-12/8328-28172.png)
+
 
 ##### Composition séance — Nom saisi
 
 [Source Figma — `8328:28238`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28238)
 
-![Composition séance — Nom saisi](images/circuits-2026-10-12/8328-28238.png)
+
 
 ##### Composition séance — Standard
 
 [Source Figma — `8328:28605`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28605)
 
-![Composition séance — Standard](images/circuits-2026-10-12/8328-28605.png)
+
 
 ##### Composition séance — Actions glissées
 
@@ -440,19 +440,19 @@ La diminution est sans message ; une conversion de nature entraînant une perte 
 
 [Source Figma — `8328:34377`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-34377)
 
-![Composition séance — Étiquette sélectionnée](images/circuits-2026-10-12/8328-34377.png)
+
 
 ##### Composition séance — Standard — Séries variables
 
 [Source Figma — `8328:34520`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-34520)
 
-![Composition séance — Standard — Séries variables](images/circuits-2026-10-12/8328-34520.png)
+
 
 #### Modification d'une séance
 
 [Source Figma — `5271:5455`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=5271-5455)
 
-![Modification d'une séance](images/figma-5271-5455.png)
+
 
 #### Placement, réglage et retrait des pauses
 
@@ -466,19 +466,19 @@ La diminution est sans message ; une conversion de nature entraînant une perte 
 
 [Source Figma — `8328:28733`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28733)
 
-![Composition séance — Récupération (modale)](images/circuits-2026-10-12/8328-28733.png)
+
 
 ##### Composition séance — Retirer une récupération
 
 [Source Figma — `8328:29133`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-29133)
 
-![Composition séance — Retirer une récupération](images/circuits-2026-10-12/8328-29133.png)
+
 
 ##### Composition séance — Retirer un point d’arrêt
 
 [Source Figma — `8328:33689`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-33689)
 
-![Composition séance — Retirer un point d’arrêt](images/circuits-2026-10-12/8328-33689.png)
+
 
 #### Sélections, paramètres et confirmations de Composition
 
@@ -486,25 +486,25 @@ La diminution est sans message ; une conversion de nature entraînant une perte 
 
 [Source Figma — `8328:28304`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28304)
 
-![Composition séance — Compte à rebours](images/circuits-2026-10-12/8328-28304.png)
+
 
 ##### Composition séance — Abandon (confirmation)
 
 [Source Figma — `8328:28377`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28377)
 
-![Composition séance — Abandon (confirmation)](images/circuits-2026-10-12/8328-28377.png)
+
 
 ##### Composition séance — Sélection exercices
 
 [Source Figma — `8328:28445`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28445)
 
-![Composition séance — Sélection exercices](images/circuits-2026-10-12/8328-28445.png)
+
 
 ##### Composition séance — Fin de séance
 
 [Source Figma — `8328:28998`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28998)
 
-![Composition séance — Fin de séance](images/circuits-2026-10-12/8328-28998.png)
+
 
 ##### Composition séance — Étiquettes
 
@@ -516,7 +516,7 @@ La diminution est sans message ; une conversion de nature entraînant une perte 
 
 [Source Figma — `8328:34006`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-34006)
 
-![Composition séance — Étiquettes — Appui long — Confirmation suppression](images/circuits-2026-10-12/8328-34006.png)
+
 
 ##### Composition séance — Nouvelle étiquette
 
@@ -532,13 +532,13 @@ CE-CIR-01/02/03. La confirmation est conditionnée à la perte de valeurs, pas �
 
 [Source Figma — `8328:34662`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-34662)
 
-![Composition séance — Circuit — Nature (popover)](images/circuits-2026-10-12/8328-34662.png)
+
 
 ##### Composition séance — Circuit — Nature (confirmation générique)
 
 [Source Figma — `8328:34813`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-34813)
 
-![Composition séance — Circuit — Nature (confirmation générique)](images/circuits-2026-10-12/8328-34813.png)
+
 
 ##### Composition séance — Circuit — Volumes (de séries)
 
@@ -550,7 +550,7 @@ CE-CIR-01/02/03. La confirmation est conditionnée à la perte de valeurs, pas �
 
 [Source Figma — `8328:35135`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-35135)
 
-![Composition séance — Circuit — Volumes (de tours)](images/circuits-2026-10-12/8328-35135.png)
+
 
 ### Créer ou modifier un exercice
 
@@ -576,7 +576,7 @@ Le tableau variable comporte poignée, numéro, cellules cible/Pause, colonne Ch
 
 [Source Figma — `8328:37022`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-37022)
 
-![Création exercice — Paramètres — Résumé affiché](images/circuits-2026-10-12/8328-37022.png)
+
 
 ##### Ajouter un exercice — Initial
 
@@ -588,13 +588,13 @@ Le tableau variable comporte poignée, numéro, cellules cible/Pause, colonne Ch
 
 [Source Figma — `8328:35740`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-35740)
 
-![Ajouter un exercice — Nom Description Media](images/circuits-2026-10-12/8328-35740.png)
+
 
 ##### Ajouter un exercice — Catégorie renseignée
 
 [Source Figma — `8328:36278`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36278)
 
-![Ajouter un exercice — Catégorie renseignée](images/circuits-2026-10-12/8328-36278.png)
+
 
 #### États complémentaires — Catégories, zones corporelles et abandon
 
@@ -608,7 +608,7 @@ Le tableau variable comporte poignée, numéro, cellules cible/Pause, colonne Ch
 
 [Source Figma — `8328:35932`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-35932)
 
-![Ajouter un exercice — Catégorie — Appui long — Confirmation suppression](images/figma-8328-35932.png)
+
 
 ##### Ajouter un exercice — Nouvelle catégorie
 
@@ -626,7 +626,7 @@ Le tableau variable comporte poignée, numéro, cellules cible/Pause, colonne Ch
 
 [Source Figma — `8328:36441`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36441)
 
-![Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression](images/figma-8328-36441.png)
+
 
 ##### Ajouter un exercice — Nouvelle zone corporelle
 
@@ -638,13 +638,13 @@ Le tableau variable comporte poignée, numéro, cellules cible/Pause, colonne Ch
 
 [Source Figma — `8328:36781`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36781)
 
-![Création activité — Abandon (confirmation)](images/figma-8328-36781.png)
+
 
 #### Modifier un exercice
 
 [Source Figma — `4734:6342`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4734-6342)
 
-![Modifier un exercice](images/figma-4734-6342.png)
+
 
 ### Présentation des phases d’exercice
 
@@ -658,7 +658,7 @@ Les frames relevées le 18/10/2026 ci-dessous montrent la ligne Phases de l’ex
 
 [Source Figma — `8982:15172`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-15172)
 
-![Création activité — Paramètres (modale) — Phases verrouillées (séries variables)](images/parametres-2026-10-18/8982-15172.png)
+
 
 Séries variables, trois séries à l’échec : Phases de l’exercice non modifiable ; Condition d’arrêt À l’échec déterminée automatiquement (RM-249) ; aucune ligne Durée de l’exercice (D-397).
 
@@ -678,7 +678,7 @@ Ces 20 frames sont des états de CE-UI-10, pas 20 pages applicatives. Relevé et
 
 [Source Figma — `8328:36923`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36923)
 
-![Création activité — Paramètres (modale) — Champs vides](images/parametres-2026-10-18/8328-36923.png)
+
 
 Valider désactivé ; Durée de l’exercice affichée avec « — » (D-384, D-396). Écart Figma : aucune Condition d’arrêt n’y est sélectionnée, alors qu’elle vaut À la cible par défaut (D-416).
 
@@ -686,7 +686,7 @@ Valider désactivé ; Durée de l’exercice affichée avec « — » (D-384, D-
 
 [Source Figma — `8328:37092`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-37092)
 
-![Création activité — Paramètres (modale) — Mode d’exécution (sélection segmentée)](images/parametres-2026-10-18/8328-37092.png)
+
 
 Mode en contrôle segmenté ; Durée d’une série et Durée de l’exercice à « — ». Écart Figma : Valider y apparaît actif alors qu’une cible manque (D-337).
 
@@ -694,7 +694,7 @@ Mode en contrôle segmenté ; Durée d’une série et Durée de l’exercice à
 
 [Source Figma — `8328:37760`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-37760)
 
-![Création activité — Paramètres (modale) — Série en durée](images/parametres-2026-10-18/8328-37760.png)
+
 
 Séries identiques en mode Durée ; signaux repliés sous Durée de l’exercice.
 
@@ -710,7 +710,7 @@ Roulette de durée commune, durée numérique seule, sans option À l’échec (
 
 [Source Figma — `8328:38084`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38084)
 
-![Création activité — Paramètres (modale) — Durée totale (roulette)](images/parametres-2026-10-18/8328-38084.png)
+
 
 Roulette de la ligne Durée de l’exercice ; 5 min 30 s est une valeur illustrative, pas une règle (le nom de frame garde l’ancien libellé).
 
@@ -718,7 +718,7 @@ Roulette de la ligne Durée de l’exercice ; 5 min 30 s est une valeur illustra
 
 [Source Figma — `8328:37972`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-37972)
 
-![Création activité — Paramètres (modale) — Changement de côté Replié](images/parametres-2026-10-18/8328-37972.png)
+
 
 Avec sélectionné, chevron intérieur vers le bas, Enchainement et Pause entre les côtés repliés (RM-242, RM-247).
 
@@ -734,7 +734,7 @@ Avec déployé : Enchainement (deux stratégies, notation Figma à flèches cons
 
 [Source Figma — `8328:38409`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38409)
 
-![Création activité — Paramètres (modale) — Durée totale ajustée (message)](images/parametres-2026-10-18/8328-38409.png)
+
 
 Message d’ajustement de la durée (D-340) ; le nom de frame garde l’ancien libellé de la ligne.
 
@@ -742,7 +742,7 @@ Message d’ajustement de la durée (D-340) ; le nom de frame garde l’ancien l
 
 [Source Figma — `8328:38513`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38513)
 
-![Création activité — Paramètres (modale) — Mode d’exécution (sélection segmentée) — séries variables](images/parametres-2026-10-18/8328-38513.png)
+
 
 Mode segmenté au-dessus d’un tableau de séries variables.
 
@@ -750,7 +750,7 @@ Mode segmenté au-dessus d’un tableau de séries variables.
 
 [Source Figma — `8328:38632`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38632)
 
-![Création activité — Paramètres (modale) — Séries variables en Répétition Avec Cadence](images/parametres-2026-10-18/8328-38632.png)
+
 
 Répétitions, cadence 1 s ; Condition d’arrêt déterminée automatiquement (RM-249).
 
@@ -758,7 +758,7 @@ Répétitions, cadence 1 s ; Condition d’arrêt déterminée automatiquement (
 
 [Source Figma — `8328:38741`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38741)
 
-![Création activité — Paramètres (modale) — Séries variables en répétitions Sans Cadence](images/parametres-2026-10-18/8328-38741.png)
+
 
 Répétitions sans cadence : aucune ligne Durée de l’exercice (D-397) ; Compte à rebours et Fin d’exercice directement visibles (RM-246).
 
@@ -766,7 +766,7 @@ Répétitions sans cadence : aucune ligne Durée de l’exercice (D-397) ; Compt
 
 [Source Figma — `8328:38848`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38848)
 
-![Création activité — Paramètres (modale) — Séries variables (tableau replié)](images/parametres-2026-10-18/8328-38848.png)
+
 
 Chevron intérieur à Variables vers le bas, tableau replié sans perte (RM-247) ; Condition d’arrêt À la cible déterminée automatiquement.
 
@@ -790,7 +790,7 @@ Roulette ouverte depuis une cellule de séries variables en mode Durée, avec l�
 
 [Source Figma — `8328:39072`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-39072)
 
-![Création activité — Paramètres (modale) — Une seule série](images/parametres-2026-10-18/8328-39072.png)
+
 
 Une seule série, Sans sélectionné. Écart Figma : Avec y est désactivé ; selon D-415, à N = 1 seule la ligne Enchainement n’apparaît pas et le changement de côté Avec / Sans reste disponible (RM-242).
 
@@ -806,7 +806,7 @@ Déplacement d’une ligne : cible, Pause et charge éventuelle suivent la séri
 
 [Source Figma — `9289:17849`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9289-17849)
 
-![Création activité — Paramètres (modale) — Charge](images/parametres-2026-10-18/9289-17849.png)
+
 
 Charge commune de séries identiques : « 20 kg » à la place d’Avec, Sans à droite (RM-237). L’état de saisie lui-même n’est pas dessiné.
 
@@ -814,7 +814,7 @@ Charge commune de séries identiques : « 20 kg » à la place d’Avec, Sans à
 
 [Source Figma — `9290:17953`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9290-17953)
 
-![Création activité — Paramètres (modale) — Séries variables avec charge](images/parametres-2026-10-18/9290-17953.png)
+
 
 Colonnes Durée, Pause, Charge (20, 25, 30 kg illustratifs) ; ligne Charge Avec / Sans sous le tableau (RM-238).
 
@@ -880,7 +880,7 @@ Le segmenté Jour/Semaine/Mois mesure 354 sur référence 402 : padding 4, gaps 
 
 [Source Figma — `1992:5510`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5510)
 
-![Calendrier — Jour — MVP](images/ecran-7-calendrier-jour.png)
+
 
 ##### Calendrier — Jour — Appui long — MVP
 
@@ -894,7 +894,7 @@ Sélection d’une plage horaire avant planification
 
 [Source Figma — `1992:5697`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5697)
 
-![Calendrier — Jour — MAJ — MVP](images/ecran-7f-calendrier-jour-apres-planification.png)
+
 
 Résultat attendu après enregistrement
 
@@ -902,7 +902,7 @@ Résultat attendu après enregistrement
 
 [Source Figma — `1992:5794`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5794)
 
-![Calendrier — Jour — Créneau à planifier — MVP](images/ecran-7e-calendrier-creneau-a-planifier.png)
+
 
 Étape intermédiaire issue de la plage sélectionnée
 
@@ -926,7 +926,7 @@ Détail d’une occurrence et zone `Démarrer`
 
 [Source Figma — `2059:267`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2059-267)
 
-![Calendrier — Jour suivant — Glissement gauche — MVP](images/ecran-7g-calendrier-jour-suivant.png)
+
 
 Résultat d’un glissement gauche ou du chevron suivant
 
@@ -934,7 +934,7 @@ Résultat d’un glissement gauche ou du chevron suivant
 
 [Source Figma — `2074:86`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2074-86)
 
-![Calendrier — Semaine — Après suppression d’une planification](images/ecran-7l-calendrier-apres-suppression.png)
+
 
 Liste hebdomadaire actualisée après suppression
 
@@ -942,7 +942,7 @@ Liste hebdomadaire actualisée après suppression
 
 [Source Figma — `2094:86`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2094-86)
 
-![Calendrier — Semaine — Étirements — Actions glissées](images/ecran-7k-calendrier-etirements-actions.png)
+
 
 Même interaction appliquée à une autre occurrence représentée
 
@@ -950,7 +950,7 @@ Même interaction appliquée à une autre occurrence représentée
 
 [Source Figma — `2128:86`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2128-86)
 
-![Calendrier — Jour — État vide](images/ecran-7m-calendrier-vide.png)
+
 
 État sans occurrence planifiée
 
@@ -958,7 +958,7 @@ Même interaction appliquée à une autre occurrence représentée
 
 [Source Figma — `2252:86`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2252-86)
 
-![Calendrier — Semaine — Mardi sélectionné](images/ecran-7h-calendrier-semaine-mardi.png)
+
 
 Mardi placé en tête ; lundi se trouve au-dessus et n’est plus visible
 
@@ -990,7 +990,7 @@ Frame `1992:6838` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?
 
 Frame `7599:14197` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7599-14197).
 
-![Modal — Planifier une séance — Sélectionner une séance](images/figma-7599-14197.png)
+
 
 Les deux captures « Liste longue » ci-dessous ont été exportées le 15/10/2026. Elles illustrent la présentation des listes, mais montrent encore une sélection unique sans CTA « Ajouter ». Elles ne remplacent pas le contrat CE-UI-04 : sélection à cases et CTA « Ajouter 1 élément » / « Ajouter n éléments ».
 
@@ -1010,37 +1010,37 @@ Les deux captures « Liste longue » ci-dessous ont été exportées le 15/10/20
 
 Frame `1992:6622` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6622).
 
-![Planifier une séance — Sélecteur de date ouvert](images/figma-1992-6622.png)
+
 
 #### Planifier une séance — Rappel personnalisé ouvert
 
 Frame `1992:7187` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-7187).
 
-![Planifier une séance — Rappel personnalisé ouvert](images/figma-1992-7187.png)
+
 
 #### Planifier une séance — Stepper du nombre de semaines
 
 Frame `1992:7537` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-7537).
 
-![Planifier une séance — Stepper du nombre de semaines](images/figma-1992-7537.png)
+
 
 #### Planifier une séance — Rappel personnalisé sélectionné
 
 Frame `1992:7369` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-7369).
 
-![Planifier une séance — Rappel personnalisé sélectionné](images/figma-1992-7369.png)
+
 
 #### Planifier une séance — Sans répétition
 
 Frame `1992:7716` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-7716).
 
-![Planifier une séance — Sans répétition](images/figma-1992-7716.png)
+
 
 #### Modal — Planifier un parcours — Sélectionner plusieurs séances
 
 Frame `7594:34809` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7594-34809).
 
-![Modal — Planifier un parcours — Sélectionner plusieurs séances](images/figma-7594-34809.png)
+
 
 #### Planifier un parcours
 
@@ -1080,7 +1080,7 @@ Le vocabulaire d’interface attendu est **Exercice** (glossaire : anciennement 
 
 [Source Figma — `1992:8530`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-8530)
 
-![Exécution d'une séance — Démarrée — Bips et vocal désactivés](images/ecran-9b-execution-sons-annonces-desactives.png)
+
 
 État alternatif des deux commandes de guidage sonore
 
@@ -1088,7 +1088,7 @@ Le vocabulaire d’interface attendu est **Exercice** (glossaire : anciennement 
 
 [Source Figma — `1992:8626`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-8626)
 
-![Exécution d'une séance — Initial](images/ecran-9a-execution-etat-initial.png)
+
 
 La Séance ne démarre pas automatiquement ; Retour mène au Catalogue renseigné dans le prototype
 
@@ -1098,19 +1098,19 @@ La Séance ne démarre pas automatiquement ; Retour mène au Catalogue renseign�
 
 [Source Figma — `1992:8224`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-8224)
 
-![Modal — Réinitialiser l’exercice](images/modale-5-reinitialiser-activite.png)
+
 
 ##### Modal — Passer à l’activité suivante
 
 [Source Figma — `1992:8326`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-8326)
 
-![Modal — Passer à l’exercice suivant](images/modale-6-activite-suivante.png)
+
 
 ##### Modal — Séance en pause
 
 [Source Figma — `1992:8428`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-8428)
 
-![Modal — Séance en pause](images/modale-7-seance-en-pause.png)
+
 
 #### Variantes Information et Média
 
@@ -1136,7 +1136,7 @@ La Séance ne démarre pas automatiquement ; Retour mène au Catalogue renseign�
 
 [Source Figma — `5021:5994`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=5021-5994)
 
-![Exécution d'un exercice — Initial - Cercle avec Texte](images/figma-5021-5994.png)
+
 
 ##### Exécution d'un exercice — Démarré —  Bascule haute avec texte
 
@@ -1169,7 +1169,7 @@ Aucune action `Relancer la séance` n’est prévue dans le MVP.
 
 [Source Figma — `1992:8780`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-8780)
 
-![Synthèse de séance — Terminée — Ressenti sélectionné](images/ecran-10-synthese-seance.png)
+
 
 ##### Synthèse d'exécution — Exercice Terminé —  Évaluation initiale
 
@@ -1181,19 +1181,19 @@ Aucune action `Relancer la séance` n’est prévue dans le MVP.
 
 [Source Figma — `4968:8105`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4968-8105)
 
-![Synthèse d'exécution — Exercice Terminé —  Ressenti sélectionné](images/figma-4968-8105.png)
+
 
 ##### Synthèse de séance — Partielle — Évaluation initiale
 
 [Source Figma — `4760:6448`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4760-6448)
 
-![Synthèse de séance — Partielle — Évaluation initiale](images/figma-4760-6448.png)
+
 
 ##### Synthèse de séance — Partielle — Ressenti sélectionné
 
 [Source Figma — `4760:6500`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4760-6500)
 
-![Synthèse de séance — Partielle — Ressenti sélectionné](images/figma-4760-6500.png)
+
 
 ### Suivi — Séances
 
@@ -1224,7 +1224,7 @@ Présentation commune aux cartes Séance/Exercice : largeur 354, hauteur 67 à t
 
 [Source Figma — `1992:8996`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-8996)
 
-![Référence historique hors MVP — Suivi — Séances — Vue déployée](images/ecran-11a-suivi-deploye.png)
+
 
 État conservé pour traçabilité ; aucun chemin d’accès dans le MVP depuis D-262.
 
@@ -1234,12 +1234,12 @@ Présentation commune aux cartes Séance/Exercice : largeur 354, hauteur 67 à t
 
 [Source Figma — `2117:190`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2117-190)
 
-![Suivi — Séances — État vide](images/ecran-11b-suivi-vide.png)
+
 
 <a id="formats-galerie"></a>
 ### Formats de séances — inventaire et captures
 
-46 états présents sur Prototype MVP, exportés dans ce lot. Les captures décrivent le layout observé ; les règles de [Formats de séances](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#formats-conception) priment pour les comportements et les calculs. Les écarts F-01…04 sont suivis dans la revue transverse. Une capture sans écart signalé ne vaut pas recette fonctionnelle. Les écrans d’exécution et de confirmation Death by ne sont pas illustrés par cet inventaire ; leurs contrats restent partiels sur le layout.
+46 états de formats représentés dans Figma ; seules les captures classées comme références principales sont conservées ci-dessous. Les captures décrivent le layout observé ; les règles de [Formats de séances](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#formats-conception) priment pour les comportements et les calculs. Les écarts F-01…04 sont suivis dans la revue transverse. Une capture sans écart signalé ne vaut pas recette fonctionnelle. Les écrans d’exécution et de confirmation Death by ne sont pas illustrés par cet inventaire ; leurs contrats restent partiels sur le layout.
 
 Le relevé du 12/10 sur Conception reste historique ; les références ci-dessous décrivent désormais le parcours observé sur Prototype MVP. Leur présence ne change pas le périmètre de livraison PRE-3/PRE-4.
 
@@ -1283,7 +1283,7 @@ Nœud [8624:30306](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8624:30749](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30749) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). F-01 : ancienne représentation par tours/récupérations ; ne pas en dériver la prescription.
 
-![Composition séance — Tabata (préremplie)](images/formats-2026-10-14/figma-8624-30749.png)
+
 
 <a id="format-8624-30040"></a>
 
@@ -1291,7 +1291,7 @@ Nœud [8624:30749](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8624:30040](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30040) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
 
-![Composition séance — Modèles — EMOM (paramètres)](images/formats-2026-10-14/figma-8624-30040.png)
+
 
 <a id="format-8624-30392"></a>
 
@@ -1299,7 +1299,7 @@ Nœud [8624:30040](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8624:30392](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30392) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
 
-![Composition séance — Modèles — EMOM (récapitulatif)](images/formats-2026-10-14/figma-8624-30392.png)
+
 
 <a id="format-8624-30880"></a>
 
@@ -1307,7 +1307,7 @@ Nœud [8624:30392](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8624:30880](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30880) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
 
-![Composition séance — EMOM (préremplie)](images/formats-2026-10-14/figma-8624-30880.png)
+
 
 <a id="format-8624-30143"></a>
 
@@ -1315,7 +1315,7 @@ Nœud [8624:30880](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8624:30143](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30143) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
 
-![Composition séance — Modèles — AMRAP (paramètres)](images/formats-2026-10-14/figma-8624-30143.png)
+
 
 <a id="format-8624-30521"></a>
 
@@ -1323,7 +1323,7 @@ Nœud [8624:30143](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8624:30521](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30521) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
 
-![Composition séance — Modèles — AMRAP (récapitulatif)](images/formats-2026-10-14/figma-8624-30521.png)
+
 
 <a id="format-8624-31043"></a>
 
@@ -1331,7 +1331,7 @@ Nœud [8624:30521](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8624:31043](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-31043) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
 
-![Composition séance — AMRAP (préremplie)](images/formats-2026-10-14/figma-8624-31043.png)
+
 
 <a id="format-8624-30198"></a>
 
@@ -1339,7 +1339,7 @@ Nœud [8624:31043](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8624:30198](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30198) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). F-04 : description du résultat à compléter avec les répétitions partielles.
 
-![Composition séance — Modèles — Death by (paramètres)](images/formats-2026-10-14/figma-8624-30198.png)
+
 
 <a id="format-8624-30602"></a>
 
@@ -1347,7 +1347,7 @@ Nœud [8624:30198](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8624:30602](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30602) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
 
-![Composition séance — Modèles — Death by (récapitulatif)](images/formats-2026-10-14/figma-8624-30602.png)
+
 
 <a id="format-8624-31157"></a>
 
@@ -1355,7 +1355,7 @@ Nœud [8624:30602](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8624:31157](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-31157) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
 
-![Composition séance — Death by (préremplie)](images/formats-2026-10-14/figma-8624-31157.png)
+
 
 <a id="format-8624-30255"></a>
 
@@ -1363,7 +1363,7 @@ Nœud [8624:31157](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8624:30255](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30255) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
 
-![Composition séance — Modèles — For time (paramètres)](images/formats-2026-10-14/figma-8624-30255.png)
+
 
 <a id="format-8624-30672"></a>
 
@@ -1371,7 +1371,7 @@ Nœud [8624:30255](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8624:30672](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30672) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
 
-![Composition séance — Modèles — For time (récapitulatif)](images/formats-2026-10-14/figma-8624-30672.png)
+
 
 <a id="format-8624-31263"></a>
 
@@ -1379,7 +1379,7 @@ Nœud [8624:30672](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8624:31263](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-31263) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
 
-![Composition séance — For time (préremplie)](images/formats-2026-10-14/figma-8624-31263.png)
+
 
 <a id="format-8656-33799"></a>
 
@@ -1387,7 +1387,7 @@ Nœud [8624:31263](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8656:33799](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-33799) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
 
-![Composition séance — Modèles — Intervalles 30/30 (paramètres)](images/formats-2026-10-14/figma-8656-33799.png)
+
 
 <a id="format-8656-33857"></a>
 
@@ -1395,7 +1395,7 @@ Nœud [8656:33799](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8656:33857](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-33857) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
 
-![Composition séance — Modèles — Intervalles 30/30 (récapitulatif)](images/formats-2026-10-14/figma-8656-33857.png)
+
 
 <a id="format-8656-33941"></a>
 
@@ -1403,7 +1403,7 @@ Nœud [8656:33857](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8656:33941](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-33941) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
 
-![Composition séance — Intervalles 30/30 (préremplie)](images/formats-2026-10-14/figma-8656-33941.png)
+
 
 <a id="format-8656-34196"></a>
 
@@ -1411,7 +1411,7 @@ Nœud [8656:33941](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8656:34196](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34196) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
 
-![Composition séance — Modèles — Renforcement (paramètres)](images/formats-2026-10-14/figma-8656-34196.png)
+
 
 <a id="format-8656-34263"></a>
 
@@ -1419,7 +1419,7 @@ Nœud [8656:34196](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8656:34263](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34263) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
 
-![Composition séance — Modèles — Renforcement (récapitulatif)](images/formats-2026-10-14/figma-8656-34263.png)
+
 
 <a id="format-8656-34356"></a>
 
@@ -1427,7 +1427,7 @@ Nœud [8656:34263](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8656:34356](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34356) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
 
-![Composition séance — Renforcement (préremplie)](images/formats-2026-10-14/figma-8656-34356.png)
+
 
 <a id="format-8656-34494"></a>
 
@@ -1435,7 +1435,7 @@ Nœud [8656:34356](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8656:34494](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34494) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
 
-![Composition séance — Modèles — Gainage · Mobilité (paramètres)](images/formats-2026-10-14/figma-8656-34494.png)
+
 
 <a id="format-8656-34548"></a>
 
@@ -1443,7 +1443,7 @@ Nœud [8656:34494](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8656:34548](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34548) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
 
-![Composition séance — Modèles — Gainage · Mobilité (récapitulatif)](images/formats-2026-10-14/figma-8656-34548.png)
+
 
 <a id="format-8656-34628"></a>
 
@@ -1451,7 +1451,7 @@ Nœud [8656:34548](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8656:34628](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34628) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
 
-![Composition séance — Gainage · Mobilité (préremplie)](images/formats-2026-10-14/figma-8656-34628.png)
+
 
 <a id="format-8656-34753"></a>
 
@@ -1459,7 +1459,7 @@ Nœud [8656:34628](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8656:34753](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34753) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
 
-![Composition séance — Modèles — Superset (paramètres)](images/formats-2026-10-14/figma-8656-34753.png)
+
 
 <a id="format-8656-34807"></a>
 
@@ -1467,7 +1467,7 @@ Nœud [8656:34753](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8656:34807](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34807) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
 
-![Composition séance — Modèles — Superset (récapitulatif)](images/formats-2026-10-14/figma-8656-34807.png)
+
 
 <a id="format-8656-34887"></a>
 
@@ -1475,7 +1475,7 @@ Nœud [8656:34807](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8656:34887](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34887) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
 
-![Composition séance — Superset (préremplie)](images/formats-2026-10-14/figma-8656-34887.png)
+
 
 <a id="format-8656-35005"></a>
 
@@ -1483,7 +1483,7 @@ Nœud [8656:34887](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8656:35005](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35005) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
 
-![Composition séance — Modèles — Progression (paramètres)](images/formats-2026-10-14/figma-8656-35005.png)
+
 
 <a id="format-8656-35062"></a>
 
@@ -1491,7 +1491,7 @@ Nœud [8656:35005](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8656:35062](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35062) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
 
-![Composition séance — Modèles — Progression (récapitulatif)](images/formats-2026-10-14/figma-8656-35062.png)
+
 
 <a id="format-8656-35145"></a>
 
@@ -1499,7 +1499,7 @@ Nœud [8656:35062](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8656:35145](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35145) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
 
-![Composition séance — Progression (préremplie)](images/formats-2026-10-14/figma-8656-35145.png)
+
 
 <a id="format-8656-35273"></a>
 
@@ -1507,7 +1507,7 @@ Nœud [8656:35145](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8656:35273](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35273) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
 
-![Composition séance — Modèles — À l’échec (paramètres)](images/formats-2026-10-14/figma-8656-35273.png)
+
 
 <a id="format-8656-35331"></a>
 
@@ -1515,7 +1515,7 @@ Nœud [8656:35273](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8656:35331](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35331) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
 
-![Composition séance — Modèles — À l’échec (récapitulatif)](images/formats-2026-10-14/figma-8656-35331.png)
+
 
 <a id="format-8656-35415"></a>
 
@@ -1523,7 +1523,7 @@ Nœud [8656:35331](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8656:35415](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35415) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
 
-![Composition séance — À l’échec (préremplie)](images/formats-2026-10-14/figma-8656-35415.png)
+
 
 <a id="format-8747-14320"></a>
 
@@ -1531,7 +1531,7 @@ Nœud [8656:35415](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8747:14320](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8747-14320) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
 
-![Composition séance — Tabata (préremplie) — Par exercice](images/formats-2026-10-14/figma-8747-14320.png)
+
 
 <a id="format-8795-14449"></a>
 
@@ -1539,7 +1539,7 @@ Nœud [8747:14320](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8795:14449](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8795-14449) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
 
-![Composition séance — EMOM (préremplie) — Par exercice](images/formats-2026-10-14/figma-8795-14449.png)
+
 
 <a id="format-8795-14681"></a>
 
@@ -1547,7 +1547,7 @@ Nœud [8795:14449](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8795:14681](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8795-14681) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
 
-![Composition séance — Progression (préremplie) — Par alternance](images/formats-2026-10-14/figma-8795-14681.png)
+
 
 #### Modales de paramètres d’exercice
 
@@ -1557,7 +1557,7 @@ Nœud [8795:14681](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8598:30059](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-30059) · Contrat [CE-FMT-04](13%20–%20Contrats%20d’écran.md#ce-fmt-04). F-01 : ancienne représentation effort par tour/récupération.
 
-![Modification activité — Paramètres (modale) — Exercice Tabata](images/formats-2026-10-14/figma-8598-30059.png)
+
 
 <a id="format-8598-30515"></a>
 
@@ -1565,7 +1565,7 @@ Nœud [8598:30059](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8598:30515](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-30515) · Contrat [CE-FMT-04](13%20–%20Contrats%20d’écran.md#ce-fmt-04). Capture du layout courant ; données illustratives.
 
-![Modification activité — Paramètres (modale) — Exercice EMOM](images/formats-2026-10-14/figma-8598-30515.png)
+
 
 <a id="format-8598-30873"></a>
 
@@ -1573,7 +1573,7 @@ Nœud [8598:30515](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8598:30873](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-30873) · Contrat [CE-FMT-04](13%20–%20Contrats%20d’écran.md#ce-fmt-04). Capture du layout courant ; données illustratives.
 
-![Modification activité — Paramètres (modale) — Exercice AMRAP](images/formats-2026-10-14/figma-8598-30873.png)
+
 
 <a id="format-8598-31210"></a>
 
@@ -1581,7 +1581,7 @@ Nœud [8598:30873](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8598:31210](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-31210) · Contrat [CE-FMT-04](13%20–%20Contrats%20d’écran.md#ce-fmt-04). Capture du layout courant ; données illustratives.
 
-![Modification activité — Paramètres (modale) — Exercice Death by](images/formats-2026-10-14/figma-8598-31210.png)
+
 
 <a id="format-8598-31560"></a>
 
@@ -1589,7 +1589,7 @@ Nœud [8598:31210](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8598:31560](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-31560) · Contrat [CE-FMT-04](13%20–%20Contrats%20d’écran.md#ce-fmt-04). F-02 : phrase « à chaque tour » incompatible avec l’échelle par tour validée.
 
-![Modification activité — Paramètres (modale) — Exercice For time](images/formats-2026-10-14/figma-8598-31560.png)
+
 
 <a id="format-8656-34070"></a>
 
@@ -1597,7 +1597,7 @@ Nœud [8598:31560](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8656:34070](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34070) · Contrat [CE-FMT-04](13%20–%20Contrats%20d’écran.md#ce-fmt-04). F-03 : valeur de travail 20 s incompatible avec la constante de format 30 s.
 
-![Modification activité — Paramètres (modale) — Exercice Intervalles 30/30](images/formats-2026-10-14/figma-8656-34070.png)
+
 
 <a id="format-8747-14451"></a>
 
@@ -1605,7 +1605,7 @@ Nœud [8656:34070](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8747:14451](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8747-14451) · Contrat [CE-FMT-04](13%20–%20Contrats%20d’écran.md#ce-fmt-04). Capture du layout courant ; données illustratives.
 
-![Modification activité — Paramètres (modale) — Exercice Tabata — Par exercice](images/formats-2026-10-14/figma-8747-14451.png)
+
 
 <a id="format-8795-14588"></a>
 
@@ -1613,7 +1613,7 @@ Nœud [8747:14451](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8795:14588](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8795-14588) · Contrat [CE-FMT-04](13%20–%20Contrats%20d’écran.md#ce-fmt-04). Capture du layout courant ; données illustratives.
 
-![Modification activité — Paramètres (modale) — Exercice EMOM — Par exercice](images/formats-2026-10-14/figma-8795-14588.png)
+
 
 
 ### États complémentaires observés — Douleur, résultats et exécution des formats
@@ -1636,7 +1636,7 @@ Ces captures documentent les frames présentes dans `Prototype MVP` ; elles ne c
 
 [Source Figma — `8925:15593`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8925-15593)
 
-![Synthèse de séance — Effort et douleur — Douleur repliée](images/figma-8925-15593.png)
+
 
 #### Modale — Répétitions partielles
 
@@ -1660,25 +1660,25 @@ Ces captures documentent les frames présentes dans `Prototype MVP` ; elles ne c
 
 [Source Figma — `8982:15448`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-15448)
 
-![Exécution d'une séance — Tabata — Par exercice](images/figma-8982-15448.png)
+
 
 #### Exécution d'une séance — Intervalles 30/30 — Par alternance
 
 [Source Figma — `8982:15513`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-15513)
 
-![Exécution d'une séance — Intervalles 30/30 — Par alternance](images/figma-8982-15513.png)
+
 
 #### Exécution d'une séance — Intervalles 30/30 — Par exercice
 
 [Source Figma — `8982:15578`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-15578)
 
-![Exécution d'une séance — Intervalles 30/30 — Par exercice](images/figma-8982-15578.png)
+
 
 #### Exécution d'une séance — EMOM
 
 [Source Figma — `8982:15643`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-15643)
 
-![Exécution d'une séance — EMOM](images/figma-8982-15643.png)
+
 
 #### Exécution d'une séance — EMOM — repos déclaré
 
@@ -1690,31 +1690,31 @@ Ces captures documentent les frames présentes dans `Prototype MVP` ; elles ne c
 
 [Source Figma — `8982:15775`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-15775)
 
-![Exécution d'une séance — AMRAP](images/figma-8982-15775.png)
+
 
 #### Exécution d'une séance — For time
 
 [Source Figma — `8982:15849`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-15849)
 
-![Exécution d'une séance — For time](images/figma-8982-15849.png)
+
 
 #### Exécution d'une séance — Death by
 
 [Source Figma — `8982:15917`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-15917)
 
-![Exécution d'une séance — Death by](images/figma-8982-15917.png)
+
 
 #### Exécution d'une séance — Progression — Série en cours
 
 [Source Figma — `8982:15983`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-15983)
 
-![Exécution d'une séance — Progression — Série en cours](images/figma-8982-15983.png)
+
 
 #### Exécution d'une séance — Progression — Récupération
 
 [Source Figma — `8982:16049`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-16049)
 
-![Exécution d'une séance — Progression — Récupération](images/figma-8982-16049.png)
+
 
 ## Conventions d’interface communes
 
