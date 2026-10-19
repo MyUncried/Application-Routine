@@ -45,6 +45,13 @@ export const TABLE_ROW_INSET = 4;
 /** Amorce de ligne : poignée 12 × 18 à x 0, numéro aligné à droite sur x 14-38, puis 20 avant la 1re cellule. */
 export const TABLE_LEAD_WIDTH = 38;
 export const TABLE_LEAD_GAP = 20;
+/**
+ * PRE-5 story 2.7 (tenue à 375, `deferred-work.md`) : l'écart de 20 après l'amorce absorbe
+ * presque tout le manque (pondération flexShrink × largeur, face au facteur 1 des cellules) ;
+ * les cellules ne rétrécissent que de façon négligeable tant que l'écart n'est pas épuisé.
+ * Même écart dans l'en-tête et les lignes, qui restent alignés.
+ */
+export const TABLE_LEAD_GAP_SHRINK = 1000;
 const HANDLE_WIDTH = 12;
 const HANDLE_HEIGHT = 18;
 const NUMBER_LEFT = 14;
@@ -292,6 +299,8 @@ export function DraggableRow({
           {number}
         </Text>
       </View>
+      {/* PRE-5 story 2.7 : écart d'amorce rétrécissable, identique à celui de l'en-tête. */}
+      <View style={tableStyles.leadGap} testID={`${testIDPrefix}-${number}-lead-gap`} />
       {children}
     </View>
   );
@@ -457,9 +466,15 @@ export const tableStyles = StyleSheet.create({
     // Hauteur minimale : un texte agrandi n'est jamais rogné (story 3.8, AC7).
     minHeight: TABLE_HEADER_HEIGHT,
   },
-  // Amorce de l'en-tête : place de la poignée et du numéro, puis l'écart avant la 1re cellule.
+  // Amorce de l'en-tête : place de la poignée et du numéro ; l'écart avant la 1re cellule
+  // suit (`leadGap`), comme dans les lignes (PRE-5 story 2.7).
   headerLead: {
-    width: TABLE_LEAD_WIDTH + TABLE_LEAD_GAP,
+    width: TABLE_LEAD_WIDTH,
+  },
+  // PRE-5 story 2.7 : écart de 20 après l'amorce (en-tête et lignes), rétrécissable en premier.
+  leadGap: {
+    width: TABLE_LEAD_GAP,
+    flexShrink: TABLE_LEAD_GAP_SHRINK,
   },
   columnHeader: {
     ...type.supporting,
@@ -522,7 +537,6 @@ const styles = StyleSheet.create({
   },
   leadColumn: {
     width: TABLE_LEAD_WIDTH,
-    marginRight: TABLE_LEAD_GAP,
     flexDirection: "row",
     alignItems: "center",
   },

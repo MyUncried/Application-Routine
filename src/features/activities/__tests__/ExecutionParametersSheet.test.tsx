@@ -45,6 +45,9 @@ import {
 } from "@/features/activities/testing/executionSheetActions";
 import {
   dragDestination as sharedDragDestination,
+  TABLE_LEAD_GAP,
+  TABLE_LEAD_GAP_SHRINK,
+  TABLE_LEAD_WIDTH,
   TABLE_ROW_DROP_MS,
   TABLE_ROW_HEIGHT as SHARED_TABLE_ROW_HEIGHT,
   tableRowIdentity as sharedTableRowIdentity,
@@ -53,6 +56,7 @@ import { keyboardBarLift } from "@/features/activities/KeyboardAccessoryBar";
 import { strings } from "@/shared/i18n";
 import { InlineStepper } from "@/shared/ui/ProfileStepper";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
+import { colors } from "@/shared/ui/tokens";
 
 /**
  * PRE-3 (CE-UI-10) — rendu et actions de la feuille Paramètres. Les montants
@@ -6447,5 +6451,257 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     expect(get("execution-sheet-row-total-line").props.accessible).toBeUndefined();
     expect(screen.getByText("Durée de l’exercice", hidden).props.accessibilityElementsHidden).toBe(true);
     expect(screen.getByLabelText(strings.executionParameters.sheet.showExerciseSignals).props.accessibilityRole).toBe("button");
+  });
+});
+
+/**
+ * PRE-5 story 2.7 (AC1 à AC5 ; FR-10 à FR-14, FR-23, Δ48 ; AD-28) — charge dans la Feuille :
+ * en identiques, le champ commun (`KeyboardField` de 2.2, inchangé) est le contenu de l'option
+ * Avec sélectionnée (« 20 kg » dans le segment, Figma `9289:17849`) ; en variables, l'option
+ * garde « Avec » et la colonne Charge porte les champs. Écart d'amorce du tableau rétrécissable
+ * (tenue à 375). Focus natif simulé : clavier, barre, rendu et tenue à 375 se jugent sur iPhone
+ * (R-2.7-01 à 07), sans constat inventé.
+ */
+describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
+  const hidden = { includeHiddenElements: true } as const;
+  const get = (testID: string) => screen.getByTestId(testID, hidden);
+  const query = (testID: string) => screen.queryByTestId(testID, hidden);
+  const styleOf = (testID: string) => StyleSheet.flatten(get(testID).props.style) ?? {};
+  const LOAD_CONTROL = "execution-sheet-load-control";
+  const UNIFORM = "execution-sheet-load-input";
+  const cell = (row: number) => `execution-sheet-table-row-${row}-load`;
+  const focus = (testID: string) => fireEvent(get(testID), "focus");
+  const blur = (testID: string) => fireEvent(get(testID), "blur");
+  const type = (testID: string, text: string) => fireEvent.changeText(get(testID), text);
+  const shown = (testID: string) => String(get(testID).props.value);
+  const loadChoice = () => selectedValue(LOAD_CONTROL, ["WITH", "WITHOUT"]);
+  /** Libellés texte rendus dans le segmenté de la Charge. */
+  const controlLabels = () => within(get(LOAD_CONTROL)).queryAllByText(/^(Avec|Sans)$/, hidden).map((node) => node.props.children);
+  const inputs = () => screen.UNSAFE_root.findAll((node) => node.props.keyboardType !== undefined && typeof node.type === "string");
+  const uniformLoad = (loadKg: number, enabled = true, overrides: Partial<ExecutionParametersInput> = {}) =>
+    params({
+      series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 15, loadKg, workPhases: [] },
+      loadEnabled: enabled,
+      ...overrides,
+    });
+  const variableLoads = (loads: number[], enabled = true, overrides: Partial<ExecutionParametersInput> = {}) =>
+    params({
+      series: { kind: "VARIABLE", rows: loads.map((loadKg, index) => ({ target: numberTarget(10 + index), pauseSeconds: 10, loadKg })) },
+      loadEnabled: enabled,
+      ...overrides,
+    });
+  const spies: { mockRestore: () => void }[] = [];
+  let keyboard: ReturnType<typeof captureKeyboard>;
+  beforeEach(() => {
+    keyboard = captureKeyboard();
+  });
+  afterEach(() => {
+    spies.splice(0).forEach((spy) => spy.mockRestore());
+    keyboard.restore();
+  });
+
+  it("PRE5-2.7/AC1 — identiques, Sans → Avec : le segment Avec affiche « 0,25 kg » (champ commun dans l'option, aucune pastille séparée), sans focus ni champ actif (RC-2)", () => {
+    const focusSpy = jest.spyOn(TextInput.prototype as unknown as Record<"focus", () => void>, "focus");
+    spies.push(focusSpy);
+    renderSheet(params());
+    expect(controlLabels()).toEqual(["Avec", "Sans"]);
+    fireEvent.press(get(`${LOAD_CONTROL}-WITH`));
+    expect(loadChoice()).toBe("WITH");
+    // Le champ est rendu DANS le segmenté, à la place du libellé « Avec » ; « Sans » reste.
+    expect(within(get(LOAD_CONTROL)).getByTestId(UNIFORM, hidden)).toBeTruthy();
+    expect(controlLabels()).toEqual(["Sans"]);
+    expect(shown(UNIFORM)).toBe("0,25 kg");
+    expect(inputs().map((node) => String(node.props.testID))).toEqual([UNIFORM]);
+    expect(focusSpy).not.toHaveBeenCalled();
+    expect(get(UNIFORM).props.accessibilityState).toMatchObject({ selected: false });
+    expect(query("execution-sheet-keyboard-bar")).toBeNull();
+    // Plein cadre de l'option (62 × 26, rayon 5), texte centré blanc Semi Bold 12, sans fond propre.
+    expect(styleOf(UNIFORM)).toMatchObject({
+      width: 62,
+      height: 26,
+      borderRadius: 5,
+      textAlign: "center",
+      fontSize: 12,
+      fontFamily: "Inter_600SemiBold",
+      color: colors.background,
+    });
+    expect(styleOf(UNIFORM).backgroundColor).toBeUndefined();
+    expect(styleOf(UNIFORM).minWidth).toBeUndefined();
+    // iOS : aucune hauteur de ligne sur le champ d'une ligne (texte et curseur centrés).
+    expect(styleOf(UNIFORM).lineHeight).toBeUndefined();
+    // Le segment Avec annonce aussi la valeur affichée.
+    expect(get(`${LOAD_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, 0,25 kg");
+  });
+
+  it("PRE5-2.7/AC1 — toucher le segment à 20 kg : focus du champ, texte « 20 » sélectionné au focus, fond #EAEAFF et texte primaire, barre ; « 1,3 » puis « Fermer » → « 1,5 kg » dans le segment", () => {
+    const { onApply } = renderSheet(uniformLoad(20));
+    expect(shown(UNIFORM)).toBe("20 kg");
+    expect(controlLabels()).toEqual(["Sans"]);
+    focus(UNIFORM);
+    keyboard.show();
+    expect(shown(UNIFORM)).toBe("20");
+    expect(get(UNIFORM).props.selectTextOnFocus).toBe(true);
+    expect(get(UNIFORM).props.keyboardType).toBe("decimal-pad");
+    expect(styleOf(UNIFORM)).toMatchObject({ backgroundColor: "#EAEAFF", color: colors.primary });
+    expect(get(UNIFORM).props.accessibilityState).toMatchObject({ selected: true });
+    expect(query("execution-sheet-keyboard-bar")).not.toBeNull();
+    type(UNIFORM, "1,3");
+    fireEvent.press(get("execution-sheet-keyboard-close"));
+    blur(UNIFORM);
+    expect(shown(UNIFORM)).toBe("1,5 kg");
+    expect(styleOf(UNIFORM).backgroundColor).toBeUndefined();
+    expect(styleOf(UNIFORM).color).toBe(colors.background);
+    expect(loadChoice()).toBe("WITH");
+    validate();
+    expect(applied(onApply)).toMatchObject({ loadEnabled: true, series: { kind: "UNIFORM", loadKg: 1.5 } });
+  });
+
+  it("PRE5-2.7/AC3 — identiques : texte illisible → valeur précédente dans le segment ; « 0 » puis fermeture → Sans, le segment affiche de nouveau « Avec »", () => {
+    const { onApply } = renderSheet(uniformLoad(20));
+    focus(UNIFORM);
+    type(UNIFORM, "1,2,3");
+    blur(UNIFORM);
+    expect(shown(UNIFORM)).toBe("20 kg");
+    focus(UNIFORM);
+    type(UNIFORM, "0");
+    blur(UNIFORM);
+    expect(loadChoice()).toBe("WITHOUT");
+    expect(query(UNIFORM)).toBeNull();
+    expect(controlLabels()).toEqual(["Avec", "Sans"]);
+    validate();
+    expect(applied(onApply)).toMatchObject({ loadEnabled: false, series: { kind: "UNIFORM", loadKg: 0 } });
+  });
+
+  it("PRE5-2.7/AC2 — variables : l'option garde « Avec » (aucun champ dans le segment), colonne Charge au titre non interactif, une cellule clavier par série", () => {
+    renderSheet(variableLoads([20, 0, 5]));
+    expect(loadChoice()).toBe("WITH");
+    expect(controlLabels()).toEqual(["Avec", "Sans"]);
+    expect(within(get(LOAD_CONTROL)).queryByTestId(UNIFORM, hidden)).toBeNull();
+    expect(get(`${LOAD_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec");
+    const header = within(get("execution-sheet-table-header")).getByText("Charge", hidden);
+    expect(header.props.onPress).toBeUndefined();
+    expect(inputs().map((node) => String(node.props.testID)).sort()).toEqual([cell(1), cell(2), cell(3)]);
+    expect([1, 2, 3].map((row) => shown(cell(row)))).toEqual(["20 kg", "0 kg", "5 kg"]);
+  });
+
+  it("PRE5-2.7/AC5 (Δ48) — Répétitions × Identiques : « 20 kg » dans le segment, saisie appliquée, Répétitions et Pause inchangées", () => {
+    const { onApply } = renderSheet(
+      uniformLoad(20, true, { mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(12), pauseSeconds: 15, loadKg: 20, workPhases: [] } }),
+    );
+    expect(selectedValue(MODE_CONTROL, ["REPETITIONS", "DURATION"])).toBe("REPETITIONS");
+    expect(get("execution-sheet-row-target")).toBeTruthy();
+    expect(shown(UNIFORM)).toBe("20 kg");
+    focus(UNIFORM);
+    type(UNIFORM, "22,5");
+    blur(UNIFORM);
+    expect(shown(UNIFORM)).toBe("22,5 kg");
+    validate();
+    expect(applied(onApply)).toMatchObject({
+      mode: "REPETITIONS",
+      loadEnabled: true,
+      series: { kind: "UNIFORM", count: 3, target: numberTarget(12), pauseSeconds: 15, loadKg: 22.5 },
+    });
+  });
+
+  it("PRE5-2.7/AC5 (Δ48) — Répétitions × Variables : colonne Charge, saisie par cellule, cibles et pauses inchangées", () => {
+    const { onApply } = renderSheet(variableLoads([10, 20], true, { mode: "REPETITIONS" }));
+    expect(selectedValue(MODE_CONTROL, ["REPETITIONS", "DURATION"])).toBe("REPETITIONS");
+    expect(controlLabels()).toEqual(["Avec", "Sans"]);
+    focus(cell(2));
+    type(cell(2), "1,3");
+    blur(cell(2));
+    expect(shown(cell(2))).toBe("1,5 kg");
+    validate();
+    expect(applied(onApply)).toMatchObject({
+      mode: "REPETITIONS",
+      series: {
+        kind: "VARIABLE",
+        rows: [
+          { target: numberTarget(10), pauseSeconds: 10, loadKg: 10 },
+          { target: numberTarget(11), pauseSeconds: 10, loadKg: 1.5 },
+        ],
+      },
+    });
+  });
+
+  it.each(["DURATION", "REPETITIONS"] as const)(
+    "PRE5-2.7/AC1, AC5 (Δ48) — %s, cible À l'échec avec charge : ligne de cible masquée, ligne Charge présente, segment éditable",
+    (mode) => {
+      const { onApply } = renderSheet(
+        uniformLoad(20, true, { mode, series: { kind: "UNIFORM", count: 3, target: failureTarget(), pauseSeconds: 15, loadKg: 20, workPhases: [] } }),
+      );
+      expect(query("execution-sheet-row-target")).toBeNull();
+      expect(get("execution-sheet-row-load")).toBeTruthy();
+      expect(shown(UNIFORM)).toBe("20 kg");
+      focus(UNIFORM);
+      type(UNIFORM, "0,01");
+      blur(UNIFORM);
+      expect(shown(UNIFORM)).toBe("0,25 kg");
+      validate();
+      expect(applied(onApply)).toMatchObject({ mode, series: { kind: "UNIFORM", target: failureTarget(), loadKg: 0.25 } });
+    },
+  );
+
+  it("PRE5-2.7/AC5 (Δ48) — Condition d'arrêt À l'échec puis À la cible avec la charge active : le segment garde « 20 kg »", () => {
+    renderSheet(uniformLoad(20));
+    fireEvent.press(get(`${STOP_CONTROL}-FAILURE`));
+    expect(query("execution-sheet-row-target")).toBeNull();
+    expect(shown(UNIFORM)).toBe("20 kg");
+    fireEvent.press(get(`${STOP_CONTROL}-TARGET`));
+    expect(get("execution-sheet-row-target")).toBeTruthy();
+    expect(shown(UNIFORM)).toBe("20 kg");
+  });
+
+  it("PRE5-2.7/AC5 — Sans conserve la valeur après ✓ et réouverture ; Avec la restaure dans le segment", () => {
+    const first = renderSheetView(uniformLoad(20));
+    fireEvent.press(get(`${LOAD_CONTROL}-WITHOUT`));
+    expect(query(UNIFORM)).toBeNull();
+    validate();
+    const saved = applied(first.onApply);
+    expect(saved).toMatchObject({ loadEnabled: false, series: { kind: "UNIFORM", loadKg: 20 } });
+    first.unmount();
+    renderSheet(saved);
+    expect(loadChoice()).toBe("WITHOUT");
+    expect(controlLabels()).toEqual(["Avec", "Sans"]);
+    fireEvent.press(get(`${LOAD_CONTROL}-WITH`));
+    expect(shown(UNIFORM)).toBe("20 kg");
+  });
+
+  it("PRE5-2.7/AC2 — déplacement d'une série : sa charge la suit dans la colonne", () => {
+    const { onApply } = renderSheet(variableLoads([10, 20, 30]));
+    moveAction(1, "moveDown");
+    expect([1, 2, 3].map((row) => shown(cell(row)))).toEqual(["20 kg", "10 kg", "30 kg"]);
+    validate();
+    expect(applied(onApply).series).toMatchObject({ kind: "VARIABLE", rows: [{ loadKg: 20 }, { loadKg: 10 }, { loadKg: 30 }] });
+  });
+
+  it("PRE5-2.7 (tenue à 375) — écart d'amorce de 20 absorbant presque tout le manque (pondération flexShrink × largeur), identique dans l'en-tête et les lignes ; amorce de 38 et cellules inchangées", () => {
+    renderSheet(variableLoads([10, 20]));
+    const gap = { width: TABLE_LEAD_GAP, flexShrink: TABLE_LEAD_GAP_SHRINK };
+    expect(TABLE_LEAD_GAP).toBe(20);
+    expect(TABLE_LEAD_GAP_SHRINK).toBeGreaterThan(1);
+    expect(styleOf("execution-sheet-table-header-lead-gap")).toEqual(gap);
+    expect(styleOf("execution-sheet-table-row-1-lead-gap")).toEqual(gap);
+    expect(styleOf("execution-sheet-table-row-2-lead-gap")).toEqual(gap);
+    // Amorce de l'en-tête : 38 seulement (l'écart est la vue qui suit) ; amorce des lignes sans marge.
+    const headerLead = get("execution-sheet-table-header").children[0];
+    if (typeof headerLead === "string") throw new Error("amorce de l’en-tête absente");
+    expect(StyleSheet.flatten(headerLead.props.style)).toEqual({ width: TABLE_LEAD_WIDTH });
+    // Amorce d'une ligne : premier conteneur natif au-dessus de la poignée.
+    const handle = get("execution-sheet-table-row-1-handle");
+    let lead = handle.parent!;
+    while (typeof lead.type !== "string" || lead.props.testID === handle.props.testID) lead = lead.parent!;
+    expect(StyleSheet.flatten(lead.props.style)).toMatchObject({ width: TABLE_LEAD_WIDTH });
+    expect(StyleSheet.flatten(lead.props.style).marginRight).toBeUndefined();
+    // Cellules : 71, facteur de rétrécissement 1 (rétrécissement négligeable tant que l’écart n’est pas épuisé).
+    expect(styleOf("execution-sheet-table-row-1-load-cell")).toMatchObject({ width: 71, flexShrink: 1 });
+  });
+
+  it("PRE5-2.7 — Sans : ligne Charge réduite au segmenté « Avec | Sans », aucun champ ni pastille", () => {
+    renderSheet(uniformLoad(20, false));
+    expect(loadChoice()).toBe("WITHOUT");
+    expect(controlLabels()).toEqual(["Avec", "Sans"]);
+    expect(inputs()).toHaveLength(0);
+    expect(query(UNIFORM)).toBeNull();
   });
 });

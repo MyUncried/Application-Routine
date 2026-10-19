@@ -137,10 +137,12 @@ import {
 import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
 import {
   INLINE_OPTION_CONTENT_HEIGHT,
+  INLINE_OPTION_CONTENT_RADIUS,
   INLINE_OPTION_WIDTHS,
   SegmentedControl,
   inlineChevronFrameStyle,
   inlineSelectedCompactLabelStyle,
+  inlineSelectedLabelStyle,
 } from "@/shared/ui/SegmentedControl";
 import { TRANSIENT_NOTIFICATION_DURATION_MS } from "@/shared/ui/TransientNotification";
 import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
@@ -566,6 +568,7 @@ export function ExecutionParametersSheet({
     (openSurface.kind === "none" || rowSelectorOpen || rowPauseOpen || rowKeyboardOpen);
   // PRE-5 story 2.2 (FR-23) : champ de la charge commune, en identiques effectives avec la charge Avec.
   const uniformLoadShown = draft.loadEnabled && !showVariableTable;
+  const uniformLoadActive = isOpen({ kind: "keyboard", field: UNIFORM_LOAD_FIELD });
   const totalEditable = isRequestedTotalEditable(draft);
 
   const validation = commitSheetDraft(draft, baseline);
@@ -1769,38 +1772,50 @@ export function ExecutionParametersSheet({
                   ) : null}
                   {/* PRE-5 story 2.2 (FR-23, AC5) : ligne « Charge » en dernier dans le cadre
                       Séries — après la Pause en identiques, sous le groupe du tableau en
-                      variables. Champ commun (identiques, Avec) puis segmenté « Avec | Sans ». */}
+                      variables. PRE-5 story 2.7 (AC1, AD-28, Figma `9289:17849`) : en
+                      identiques, le champ commun est le contenu de l'option Avec sélectionnée
+                      (« 20 kg » dans le segment) ; son toucher lui donne le focus. En variables,
+                      l'option garde « Avec » (`9290:17953`). */}
                   <Separator />
                   <Row label={t.load} testID="execution-sheet-row-load">
-                    <View style={styles.loadControls}>
-                      {uniformLoadShown ? (
-                        <KeyboardField
-                          mode="decimal"
-                          displayValue={formatLoadKg(effectiveFirst.loadKg)}
-                          editText={keyboard.editText(UNIFORM_LOAD_FIELD)}
-                          active={isOpen({ kind: "keyboard", field: UNIFORM_LOAD_FIELD })}
-                          onFocus={() => focusLoad("uniform")}
-                          onBlur={() => keyboard.onBlur(UNIFORM_LOAD_FIELD)}
-                          onChangeText={(text) => keyboard.onChangeText(UNIFORM_LOAD_FIELD, text)}
-                          inputRef={keyboard.register(UNIFORM_LOAD_FIELD, SHEET_ROW_MIN_HEIGHT)}
-                          accessibilityLabel={t.loadValue}
-                          style={[styles.valuePill, styles.valuePillText, styles.loadInput]}
-                          testID="execution-sheet-load-input"
-                        />
-                      ) : null}
-                      <SegmentedControl<LoadChoice>
-                        variant="inline"
-                        optionWidth={INLINE_OPTION_WIDTHS.narrow}
-                        options={[
-                          { value: "WITH", label: t.loadWith },
-                          { value: "WITHOUT", label: t.loadWithout },
-                        ]}
-                        value={draft.loadEnabled ? "WITH" : "WITHOUT"}
-                        onChange={chooseLoad}
-                        accessibilityLabel={t.load}
-                        testID="execution-sheet-load-control"
-                      />
-                    </View>
+                    <SegmentedControl<LoadChoice>
+                      variant="inline"
+                      optionWidth={INLINE_OPTION_WIDTHS.narrow}
+                      options={[
+                        {
+                          value: "WITH",
+                          label: t.loadWith,
+                          // Le segment sous le champ annonce aussi la valeur affichée.
+                          accessibilityLabel: uniformLoadShown
+                            ? `${t.loadWith}, ${formatLoadKg(effectiveFirst.loadKg)}`
+                            : undefined,
+                          selectedContent: uniformLoadShown ? (
+                            <KeyboardField
+                              mode="decimal"
+                              displayValue={formatLoadKg(effectiveFirst.loadKg)}
+                              editText={keyboard.editText(UNIFORM_LOAD_FIELD)}
+                              active={uniformLoadActive}
+                              onFocus={() => focusLoad("uniform")}
+                              onBlur={() => keyboard.onBlur(UNIFORM_LOAD_FIELD)}
+                              onChangeText={(text) => keyboard.onChangeText(UNIFORM_LOAD_FIELD, text)}
+                              inputRef={keyboard.register(UNIFORM_LOAD_FIELD, SHEET_ROW_MIN_HEIGHT)}
+                              accessibilityLabel={t.loadValue}
+                              style={[
+                                inlineSelectedLabelStyle,
+                                styles.loadSegmentInput,
+                                uniformLoadActive ? styles.loadSegmentInputActive : null,
+                              ]}
+                              testID="execution-sheet-load-input"
+                            />
+                          ) : undefined,
+                        },
+                        { value: "WITHOUT", label: t.loadWithout },
+                      ]}
+                      value={draft.loadEnabled ? "WITH" : "WITHOUT"}
+                      onChange={chooseLoad}
+                      accessibilityLabel={t.load}
+                      testID="execution-sheet-load-control"
+                    />
                   </Row>
                 </SheetMotionView>
 
@@ -2083,6 +2098,8 @@ function VariableTable({
       <SheetMotionGroupMount>
       <View style={tableStyles.header} testID="execution-sheet-table-header">
         <View style={tableStyles.headerLead} />
+        {/* PRE-5 story 2.7 : même écart d'amorce rétrécissable que les lignes. */}
+        <View style={tableStyles.leadGap} testID="execution-sheet-table-header-lead-gap" />
         {mode !== null ? (
           <Text style={tableStyles.columnHeader}>{t.columns[mode]}</Text>
         ) : (
@@ -2983,16 +3000,24 @@ const styles = StyleSheet.create({
     width: TABLE_STEPPER_WIDTH,
     alignItems: "center",
   },
-  // PRE-5 story 2.2 (FR-23) : ligne Charge — champ commun puis segmenté, alignés à droite.
-  loadControls: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing[8],
-  },
-  // Champ commun : pastille de valeur modifiable (gabarit des valeurs de la Feuille).
-  loadInput: {
-    minWidth: INLINE_OPTION_WIDTHS.narrow,
+  // PRE-5 story 2.7 (AC1, AD-28, Figma `9289:17849`) : champ de la charge commune dans
+  // l'option Avec sélectionnée — plein cadre de l'option (62 × 26, rayon 5), texte centré ;
+  // au repos, libellé blanc Semi Bold 12 de l'option sélectionnée sur le cadre violet.
+  loadSegmentInput: {
+    width: INLINE_OPTION_WIDTHS.narrow,
+    height: INLINE_OPTION_CONTENT_HEIGHT,
+    borderRadius: INLINE_OPTION_CONTENT_RADIUS,
+    // iOS : un `TextInput` d'une ligne avec `lineHeight` décentre texte et curseur ; la
+    // hauteur de ligne du libellé (16) est retirée, police, taille, graisse et couleur gardées.
+    lineHeight: undefined,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
     textAlign: "center",
+  },
+  // Actif : fond `#EAEAFF` du champ actif (posé par `KeyboardField`) et texte primaire (le
+  // blanc serait illisible sur ce fond clair).
+  loadSegmentInputActive: {
+    color: colors.primary,
   },
   // Cellule Charge du tableau : gabarit `TableCell` (71 × 24, rayon 8), texte centré ; la
   // largeur suit sa colonne (qui peut rétrécir sur un écran étroit).

@@ -639,6 +639,13 @@ const styles = StyleSheet.create({
  * dupliquer les valeurs.
  */
 export const inlineSelectedCompactLabelStyle = [styles.inlineLabel, styles.inlineLabelCompact, styles.inlineLabelSelected];
+/**
+ * PRE-5 story 2.7 (AD-28) : libellé d'une option `inline` sélectionnée, police non réduite
+ * (Semi Bold 12, blanc), repris par le champ de la charge commune rendu dans l'option Avec.
+ */
+export const inlineSelectedLabelStyle = [styles.inlineLabel, styles.inlineLabelSelected];
 export const inlineChevronFrameStyle = styles.inlineChevron;
 /** Hauteur d'une option `inline` (RC-6, même usage). */
 export const INLINE_OPTION_CONTENT_HEIGHT = INLINE_OPTION_HEIGHT;
+/** Rayon d’une option `inline` (PRE-5 story 2.7 : champ de la charge commune dans l’option Avec). */
+export const INLINE_OPTION_CONTENT_RADIUS = INLINE_OPTION_RADIUS;
