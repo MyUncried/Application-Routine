@@ -947,7 +947,7 @@ afin que la durée de série soit la somme de ces actions, sans conversion destr
 **Then** il porte, par `selectedContent` (2.3), la valeur « n phases » (par exemple « 3 phases ») et, à droite du nombre, le chevron graphique existant (`control-chevron-up` / `control-chevron-down`), jamais une flèche ni un caractère
 **And** toucher la valeur révèle le stepper existant (`RevealStepper` / `InlineStepper`, surface `stepper(phaseCount)`), de 2 à 6, pas 1 : actif, − et + sont visibles ; inactif, − et + disparaissent et seuls la valeur et le chevron restent visibles ; la fermeture suit le mécanisme existant (une seule surface ouverte)
 **And** le chevron pointe vers le haut quand le tableau est déployé, vers le bas quand il est replié ; il reste visible quand − et + sont masqués ; son appui replie ou déploie le tableau sans changer le nombre ni les phases
-**And** aucun nouveau composant n'est créé ; le rendu suit la frame `9207:18817` vérifiée (segment « Avec ^ »), la forme « n phases » venant de D-432.
+**And** aucun nouveau composant n'est créé ; le rendu suit la frame `9207:18817` vérifiée (segment « Avec ^ »), la forme « n phases » venant de D-432 ; la géométrie n.est adaptée que dans la mesure nécessaire pour rendre les interactions utilisables et accessibles (arbitrage de Hermann du 19/10).
 
 **AC3 — Création, ajout et retrait par le stepper (FR-5, FR-8, D-432).**
 **Given** une Durée d'une série de 9 s et aucune phase
@@ -1010,7 +1010,8 @@ afin que la durée de série soit la somme de ces actions, sans conversion destr
 **And** Contrôles : `npm test`, `npx tsc --noEmit`, `npm run lint` verts.
 
 **Recette iPhone (lot Feuille) :** `R-2.8-01` Avec depuis 9 s → « 2 phases », 9 s et une durée à renseigner ; depuis « — » → deux durées à renseigner ; `R-2.8-02` stepper révélé au toucher, + jusqu'à six (+ indisponible), − jusqu'à deux (− et croix indisponibles, QR-1), − et + masqués à la fermeture, valeur et chevron visibles ; chevron graphique : repli et déploiement sans changer le nombre ; `R-2.8-11` ✓ avec `[9, à renseigner]` → Sans à 9 s (QR-2) ; `R-2.8-03` libellé au clavier texte, 20 caractères, champ visible ; `R-2.8-04` roue de durée de phase à 00:01 ; `R-2.8-05` déplacement avec libellé attaché, suppression et annulation ; `R-2.8-06` Avec → Sans (14 s), retour à Avec ; `R-2.8-07` ✓ avec une phase à 0 et un libellé vide ; ✕ ; `R-2.8-08` options Répétitions, À l'échec, Variables indisponibles avec phases ; `R-2.8-09` six phases, défilement ; `R-2.8-10` Phrase de la Carte avec phases.
-**Hors story :** phases dans les formats, moteur d'exécution, annonces (PRD §8).
+**Hors story :** phases dans les formats, moteur d'exécution, annonces (PRD §8) ; la règle validée de la durée imposée (dernière phase calculée sur le restant, sans répartition automatique) est conservée telle quelle mais non développée, aucun parcours de format n.existant dans `src/`.
+**Ajustement Figma (non bloquant, aucune modification par l.agent) :** voir `_bmad-output/pre5/ajustement-figma-phases.md`.
 
 ---
 
