@@ -4768,12 +4768,14 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
       // iPhone, report consigné par la revue de 2.3) — Mode, Condition d'arrêt, Type de série.
       // PRE-5 story 2.2 : segmenté `inline` de la ligne Charge (« Avec | Sans »), même exception.
       // PRE-5 story 2.5 : Changement de côté et Cadence, même exception ; RC-6 : déclencheur du
-      // menu de l'Enchainement, à la hauteur d'une option (26).
+      // menu de l'Enchainement, à la hauteur d'une option (26). PRE-5 story 2.8 : segmenté
+      // `inline` de la ligne « Phases de l'exercice », même exception.
       const inlineSegmented = [
         ":26",
         "execution-sheet-cadence-control:32",
         "execution-sheet-load-control:32",
         "execution-sheet-mode-control:32",
+        "execution-sheet-phases-control:32",
         "execution-sheet-series-type-control:32",
         "execution-sheet-side-control:32",
         "execution-sheet-stop-condition-control:32",

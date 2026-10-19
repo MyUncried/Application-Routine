@@ -25,6 +25,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   EXECUTION_BOUNDS,
+  WORK_PHASE_LIMITS,
   isBilateral,
   numberTarget,
   selectorOpeningPosition,
@@ -40,13 +41,16 @@ import {
 } from "@/domain/activities/ExecutionParameters";
 import {
   applyRequestedTotal,
+  canEnableWorkPhases,
   commitSheetDraft,
   effectiveParameters,
   isRequestedTotalEditable,
   isSingleSeries,
   moveRow,
+  moveWorkPhase,
   openSheetDraft,
   removeRow,
+  removeWorkPhase,
   setCadenceBeep,
   setCountdown,
   setEnd,
@@ -60,7 +64,10 @@ import {
   setUniformPause,
   setUniformTarget,
   setVariable,
+  setWorkPhaseCount,
+  setWorkPhasesEnabled,
   undoRemoval,
+  type DefaultWorkPhaseLabel,
   type ExecutionSheetDraft,
   type StopConditionChoice,
 } from "@/domain/activities/ExecutionParametersDraft";
@@ -90,6 +97,7 @@ import {
 } from "@/features/activities/SheetMotion";
 import {
   INITIAL_SHEET_SURFACE_STATE,
+  keyboardFieldPhase,
   keyboardFieldRow,
   removalEnabled,
   sameSurface,
@@ -116,6 +124,7 @@ import {
   type DraggableRowLabels,
 } from "@/features/activities/sheetTable";
 import { keyboardFieldOrder, useSheetKeyboard } from "@/features/activities/useSheetKeyboard";
+import { PHASE_ROW_TEST_ID, WorkPhasesTable, type WorkPhaseCellKind } from "@/features/activities/WorkPhasesTable";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
 import { WHEEL_TOTAL_DURATION_SECONDS_MAX } from "@/features/sessions/wheelPickerMath";
@@ -243,6 +252,22 @@ import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@
  *   masque Compte à rebours et Fin sans changer leurs valeurs ; ligne absente → signaux
  *   visibles sans chevron ; Exercice ouvert depuis une Séance (`exerciseSignals="absent"`) :
  *   ni signaux, ni chevron.
+ *
+ * PRE-5 story 2.8 (FR-2 à FR-9, FR-27 à FR-29, FR-32 ; AD-20, AD-24 à AD-27 ; D-432, D-434) —
+ * phases de l'exercice, sans nouvelle règle métier (toutes viennent des transitions du
+ * Brouillon de la story 2.1) :
+ * - ligne « Phases de l'exercice » en tête du cadre Séries, segmenté `inline` Avec / Sans (Sans
+ *   par défaut ; Avec disponible si `canEnableWorkPhases` ou si des phases existent). Avec
+ *   sélectionné affiche « n phases » (`selectedContent`) et le chevron existant du tableau
+ *   (haut déployé, bas replié ; son appui ne fait que replier ou déployer). Toucher « n phases »
+ *   révèle le stepper existant (`InlineStepper` sans pilule, 2..6, surface `stepper(phaseCount)`),
+ *   toucher sa valeur le referme (RC-4) ; + et − passent par `setWorkPhaseCount`, − retire la
+ *   dernière phase avec « Phase supprimée — Annuler » ;
+ * - tableau des phases (`WorkPhasesTable`) : libellé au clavier texte et durée au clavier
+ *   numérique MMSS (`keyboard(phaseLabel | phaseDuration)`), glisser, actions accessibles,
+ *   croix (indisponible à deux phases, QR-1) ;
+ * - avec des phases, « Durée d'une série » est la somme, en lecture seule ;
+ * - ✓ : `commitSheetDraft` reçoit le libellé par défaut « Phase n » (normalisation FR-9).
  */
 export type ExecutionParametersSheetProps = {
   readonly parent: ExecutionParametersInput;
@@ -267,6 +292,31 @@ const t = strings.executionParameters.sheet;
 type SeriesType = "VARIABLE" | "UNIFORM";
 /** PRE-5 story 2.5 (FR-15) : option du segmenté « Changement de côté » ; le Brouillon garde `sideMode`. */
 type SideChoice = "WITH" | "WITHOUT";
+/** PRE-5 story 2.8 (FR-4) : option du segmenté « Phases de l'exercice » ; le Brouillon garde `workPhases`. */
+type PhaseChoice = "WITH" | "WITHOUT";
+
+/**
+ * PRE-5 story 2.8 (FR-9, AD-20, QN-3) : libellé par défaut d'une phase selon sa position
+ * (« Phase n »), tiré du lexique et fourni au domaine, qui n'importe pas l'i18n.
+ */
+const defaultPhaseLabel: DefaultWorkPhaseLabel = (position) => t.phaseDefault.replace("{n}", String(position));
+/** PRE-5 story 2.8 (D-432) : valeur affichée du nombre de phases (« 3 phases », n ≥ 2). */
+const phaseCountLabel = (count: number | null) =>
+  count === null ? t.unset : (count === 1 ? t.workPhaseCountSingular : t.workPhaseCount).replace("{n}", String(count));
+
+/**
+ * PRE-5 story 2.8 (D-432, arbitrage de Hermann du 19/10 : géométrie adaptée au strict
+ * nécessaire) — largeur de l'option Avec de la ligne « Phases de l'exercice », métriques Inter
+ * de l'application, constantes locales (aucun jeton modifié, NFR-3) :
+ * - Sans sélectionné : 62 (largeur commune `narrow`, Sans garde toujours 62) ;
+ * - Avec, réglage fermé : contenu « 6 phases » Semi Bold 12 (52,7) + écart 4 + chevron 10,
+ *   arrondi à 76 (valeur retenue par la story) ;
+ * - Avec, réglage ouvert : − 28 + écart 2 + valeur (52,7 + 2 × 4) + écart 2 + + 28 + écart 4 +
+ *   chevron 10 = 134,7 → arrondi à 136.
+ * Relevé à reporter dans Figma (`_bmad-output/pre5/ajustement-figma-phases.md`, § Géométrie).
+ */
+const PHASE_OPTION_CLOSED_WIDTH = 76;
+const PHASE_OPTION_OPEN_WIDTH = 136;
 
 /** Surfaces de la Feuille (AD-15). */
 const TARGET_SELECTOR: SheetSurface = { kind: "selector", selector: "commonTarget" };
@@ -337,7 +387,9 @@ const PANEL_FRAME: Readonly<Record<PanelControl, SheetFrame>> = {
  */
 type Adjustment =
   | { readonly kind: "total"; readonly message: string; readonly previous: ExecutionSheetDraft }
-  | { readonly kind: "removal"; readonly message: string };
+  | { readonly kind: "removal"; readonly message: string }
+  /** PRE-5 story 2.8 (FR-8) : « Phase supprimée — Annuler », rendu sous le tableau des phases (`undoRemoval`). */
+  | { readonly kind: "phaseRemoval"; readonly message: string };
 
 /** Q41 : écart entre le bas de la ligne du champ et le haut du panneau (valeur d'intégration, non tirée de Figma). */
 const PANEL_GAP = spacing[4];
@@ -426,6 +478,11 @@ export function ExecutionParametersSheet({
   const isOpen = (target: SheetSurface) => sameSurface(openSurface, target);
   const [isTableFolded, setIsTableFolded] = useState(false);
   /**
+   * PRE-5 story 2.8 (FR-4, FR-28) : tableau des phases replié par le chevron de l'option Avec ;
+   * déployé à l'ouverture et à chaque activation. Le nombre et les phases n'en dépendent pas.
+   */
+  const [isPhasesFolded, setIsPhasesFolded] = useState(false);
+  /**
    * PRE-5 story 2.5 (AC4, AD-28) : section « Durée de l'exercice » déployée (Compte à rebours
    * et Fin rendus) ; repliée à l'ouverture de la Feuille. Indépendante de la valeur de durée.
    */
@@ -480,7 +537,13 @@ export function ExecutionParametersSheet({
     surface,
     dispatchSurface,
     commit: commitKeyboard,
-    order: keyboardFieldOrder(draft, !isTableFolded),
+    // PRE-5 story 2.8 (D-434) : une durée de phase active ne navigue qu'entre les durées des phases.
+    order: keyboardFieldOrder(
+      draft,
+      !isTableFolded,
+      draft.workPhases.length > 0 && !isPhasesFolded,
+      openSurface.kind === "keyboard" ? openSurface.field : null,
+    ),
     scrollRef,
     reduceMotion,
   });
@@ -506,6 +569,11 @@ export function ExecutionParametersSheet({
   useEffect(() => {
     dispatchSurface({ type: "rows", rowIds: draft.rowIds });
   }, [draft.rowIds]);
+  // PRE-5 story 2.8 (« Phase disparue ») : même règle pour un champ clavier de phase (et le
+  // stepper du nombre de phases quand il n'en reste aucune).
+  useEffect(() => {
+    dispatchSurface({ type: "phases", phaseIds: draft.workPhases.map((phase) => phase.id) });
+  }, [draft.workPhases]);
 
   useEffect(() => {
     if (!adjustment) return;
@@ -538,7 +606,9 @@ export function ExecutionParametersSheet({
   const uniformLoadActive = isOpen({ kind: "keyboard", field: UNIFORM_LOAD_FIELD });
   const totalEditable = isRequestedTotalEditable(draft);
 
-  const validation = commitSheetDraft(draft, baseline);
+  // PRE-5 story 2.8 (FR-9, AD-25) : disponibilité du ✓ et résultat avec le libellé par défaut
+  // « Phase n » (phases à 0 ou à renseigner retirées, une seule restante → Sans).
+  const validation = commitSheetDraft(draft, baseline, defaultPhaseLabel);
   // Indice par ligne signalée (rang 0-indexé) ; sa présence vaut signalement.
   const invalidRows = new Map(
     validation.ok
@@ -549,7 +619,9 @@ export function ExecutionParametersSheet({
   );
   const uniformTargetViolation =
     !validation.ok && !showVariableTable
-      ? validation.violations.find((violation) => violation.field === "target")
+      ? // PRE-5 story 2.8 (FR-3, revue) : une somme des phases hors de 1..3535 (violation
+        // `workPhases`) marque aussi « Durée d'une série », qui l'affiche.
+        validation.violations.find((violation) => violation.field === "target" || violation.field === "workPhases")
       : undefined;
   const uniformTargetInvalid = uniformTargetViolation !== undefined;
   const uniformTargetHint = uniformTargetViolation ? invalidHintFor(uniformTargetViolation.code) : undefined;
@@ -677,7 +749,78 @@ export function ExecutionParametersSheet({
       return;
     }
     setAdjustment(null);
-    setDraft(adjustment.kind === "removal" ? undoRemoval(draft) : adjustment.previous);
+    // PRE-5 story 2.8 (FR-8) : le retrait d'une phase s'annule de même (`undoRemoval`, Q29).
+    setDraft(adjustment.kind === "total" ? adjustment.previous : undoRemoval(draft));
+  }
+
+  /**
+   * PRE-5 story 2.8 (FR-8, QR-1, AD-27) : croix de la phase d'identité `phaseId`, sur le modèle
+   * de `handleRemove`. Sans surface ouverte : `removeWorkPhase` (refusé à deux phases) et
+   * « Phase supprimée — Annuler ». Sinon l'appui range la surface ouverte sans retirer.
+   */
+  function handleRemovePhase(phaseId: number) {
+    setIsTableSelected(false);
+    if (!removalEnabled(surface)) {
+      dispatchSurface(surface.open.kind === "stepper" ? { type: "outside" } : { type: "closeAll" });
+      return;
+    }
+    const next = removeWorkPhase(draft, phaseId);
+    if (next === draft) return;
+    setDraft(next);
+    setAdjustment({ message: t.phaseRemoved, kind: "phaseRemoval" });
+  }
+
+  /**
+   * PRE-5 story 2.8 (FR-4, FR-5, FR-8, D-432) : segmenté « Phases de l'exercice ».
+   * - Sans → Avec : `setWorkPhasesEnabled(true)` (deux phases), tableau déployé ;
+   * - Avec → Sans : `setWorkPhasesEnabled(false)` (la somme devient la durée unique de série) ;
+   * - Avec re-choisi (des phases existent) : ouvre ou ferme le réglage du nombre, comme le
+   *   toucher de « n phases ».
+   */
+  function choosePhases(choice: PhaseChoice) {
+    // T10 : panneau ou sélecteur ouvert — fermeture sans appliquer.
+    if (openSurface.kind === "selector") {
+      dispatchSurface({ type: "closeAll" });
+      return;
+    }
+    if (choice === "WITH" && draft.workPhases.length > 0) {
+      togglePhaseCount();
+      return;
+    }
+    const enabled = choice === "WITH";
+    if (enabled) setIsPhasesFolded(false);
+    chooseInline((base) => setWorkPhasesEnabled(base, enabled));
+  }
+
+  /** PRE-5 story 2.8 (D-432, RC-4) : ouvre ou referme le stepper du nombre de phases (saisie en cours appliquée d'abord). */
+  function togglePhaseCount() {
+    const base = keyboard.flush(draft);
+    if (base !== draft) commitKeyboard(() => base);
+    toggle(stepperSurface("phaseCount"));
+  }
+
+  /**
+   * PRE-5 story 2.8 (FR-5, FR-8, D-432, QR-1) : pas du stepper du nombre de phases, par la seule
+   * transition `setWorkPhaseCount` (+ : ajout en fin à la durée de la dernière ; − : retrait
+   * annulable de la dernière, « Phase supprimée — Annuler »). Bornes 2..6 portées par le stepper
+   * et par la transition ; le réglage reste ouvert (T22).
+   */
+  function changePhaseCount(count: number) {
+    const next = setWorkPhaseCount(draft, count);
+    if (next === draft) return;
+    setIsTableSelected(false);
+    setDraft(next);
+    setAdjustment(next.pendingRemoval?.kind === "phase" ? { message: t.phaseRemoved, kind: "phaseRemoval" } : null);
+  }
+
+  /**
+   * PRE-5 story 2.8 (FR-4, FR-28) : chevron de l'option Avec — replie ou déploie le tableau des
+   * phases sans changer le nombre ni les phases ; la surface ouverte est rangée (T14).
+   */
+  function togglePhasesTable() {
+    setIsTableSelected(false);
+    dispatchSurface({ type: "closeAll" });
+    setIsPhasesFolded((folded) => !folded);
   }
 
   /**
@@ -871,7 +1014,9 @@ export function ExecutionParametersSheet({
 
   // Story 3.4 (FR-08-02) ; PRE-5 story 2.4 (FR-21) : la roue de la Cible commune ne
   // s'ouvre que si sa ligne est affichée (masquée à l'échec).
-  const uniformDurationAvailable = uniformTargetShown && effective.mode === "DURATION";
+  // PRE-5 story 2.8 (FR-3) : avec des phases, D est la somme, en lecture seule — la roue ne
+  // s'ouvre pas.
+  const uniformDurationAvailable = uniformTargetShown && effective.mode === "DURATION" && !hasWorkPhases;
   // Story 3.5 (AC1) : même Sélecteur de la Cible commune en Répétitions.
   const uniformRepetitionsAvailable = uniformTargetShown && effective.mode === "REPETITIONS";
   // Story 3.7 (AC3, FR-14-02) : roulette seulement si l'Inversion est disponible (Durée,
@@ -1354,6 +1499,102 @@ export function ExecutionParametersSheet({
     );
   };
 
+  /**
+   * PRE-5 story 2.8 (FR-6, D-434, AD-26) — cellule clavier `kind` de la phase d'identité
+   * `phaseId` (numéro affiché `number`) :
+   * - Libellé : `KeyboardField` en mode `text` (clavier texte, 20 points de code, Retour ferme,
+   *   sans barre) ; au repos, le libellé ou « Phase n » s'il est vide (position courante) ;
+   * - Durée : `KeyboardField` en mode `cellDuration` (« MM:SS » au focus) ; au repos « 9 s »,
+   *   « 1 min 5 s » ou « — » sur #FFF1F0 (à renseigner).
+   * La saisie est appliquée à la sortie (`useSheetKeyboard` : `setWorkPhaseLabel`,
+   * `setWorkPhaseDuration`).
+   */
+  const phaseCell = (kind: WorkPhaseCellKind, phaseId: number, number: number): ReactNode => {
+    const phase = draft.workPhases.find((current) => current.id === phaseId);
+    if (phase === undefined) return null;
+    const field: KeyboardFieldId = { kind, phase: phaseId };
+    const common = {
+      editText: keyboard.editText(field),
+      active: isOpen({ kind: "keyboard", field }),
+      onFocus: () => focusKeyboardField(field),
+      onBlur: () => keyboard.onBlur(field),
+      onChangeText: (text: string) => keyboard.onChangeText(field, text),
+      inputRef: keyboard.register(field, TABLE_ROW_HEIGHT),
+      // AD-28 : cible tactile de 36 (24 + 6 en haut et en bas).
+      hitSlop: KEYBOARD_CELL_HIT_SLOP,
+    };
+    const prefix = `${PHASE_ROW_TEST_ID}-${number}`;
+    if (kind === "phaseLabel") {
+      return (
+        <KeyboardField
+          {...common}
+          mode="text"
+          displayValue={phase.label.trim() === "" ? defaultPhaseLabel(number) : phase.label}
+          accessibilityLabel={t.phaseLabel.replace("{n}", String(number))}
+          style={[tableCellValueStyle, styles.phaseLabelInput]}
+          testID={`${prefix}-label`}
+        />
+      );
+    }
+    const text = secondsLabel(phase.durationSeconds);
+    const missing = phase.durationSeconds === null;
+    return (
+      <KeyboardField
+        {...common}
+        mode="cellDuration"
+        displayValue={text}
+        // Story 3.8 (AC2) : « — » annoncé « aucune valeur », jamais « tiret ».
+        spokenDisplayValue={spokenValue(text)}
+        invalid={missing}
+        accessibilityHint={missing ? t.invalidHint : undefined}
+        accessibilityLabel={t.phaseDuration.replace("{n}", String(number))}
+        style={[tableCellStyle, styles.keyboardCell]}
+        valueStyle={tableCellValueStyle}
+        entryGeneration={keyboard.entryGeneration}
+        testID={`${prefix}-duration`}
+      />
+    );
+  };
+
+  // PRE-5 story 2.8 (FR-2, FR-4, FR-27, FR-28, D-432) : segmenté « Phases de l'exercice ».
+  // Avec n'est disponible que si `canEnableWorkPhases` (Mode Durée, À la cible, séries
+  // identiques effectives) ou si des phases existent ; sinon indisponible, Sans affiché.
+  // Sélectionné, Avec affiche « n phases » (réglage du nombre révélé au toucher) et le chevron
+  // du tableau ; sa largeur suit l'état (constantes `PHASE_OPTION_*`).
+  const phaseCountOpen = isOpen(stepperSurface("phaseCount"));
+  const phasesControl = (
+    <SegmentedControl<PhaseChoice>
+      variant="inline"
+      optionWidth={INLINE_OPTION_WIDTHS.narrow}
+      options={[
+        hasWorkPhases
+          ? {
+              value: "WITH",
+              label: t.workPhaseChoices.WITH,
+              width: phaseCountOpen ? PHASE_OPTION_OPEN_WIDTH : PHASE_OPTION_CLOSED_WIDTH,
+              chevron: isPhasesFolded ? "down" : "up",
+              chevronAccessibilityLabel: isPhasesFolded ? t.showPhases : t.hidePhases,
+              selectedContent: (
+                <PhaseCountField
+                  isOpen={phaseCountOpen}
+                  onToggle={togglePhaseCount}
+                  count={draft.workPhases.length}
+                  onChange={changePhaseCount}
+                />
+              ),
+            }
+          : { value: "WITH", label: t.workPhaseChoices.WITH, disabled: !canEnableWorkPhases(draft) },
+        { value: "WITHOUT", label: t.workPhaseChoices.WITHOUT },
+      ]}
+      value={hasWorkPhases ? "WITH" : "WITHOUT"}
+      onChange={choosePhases}
+      onChevronPress={togglePhasesTable}
+      accessibilityLabel={t.workPhases}
+      testID="execution-sheet-phases-control"
+    />
+  );
+  const activePhase = openSurface.kind === "keyboard" ? keyboardFieldPhase(openSurface.field) : null;
+
   // Q41 : un seul panneau ouvert à la fois ; la roue garde sa propre surface
   // (`DurationWheelPicker`). PRE-5 story 2.5 : plus aucun segmenté en panneau.
   const panel =
@@ -1509,6 +1750,47 @@ export function ExecutionParametersSheet({
                   style={[styles.frame, styles.frameSpaced]}
                   testID="execution-sheet-frame-series"
                 >
+                  {/* PRE-5 story 2.8 (FR-4, FR-26, D-432) : ligne « Phases de l'exercice » en tête
+                      du cadre Séries, puis le tableau des phases (déployé) et le message de
+                      retrait d'une phase. Même groupe à découpe que le tableau des séries (E-20 :
+                      une seule animation à l'apparition du tableau), découpe levée pendant un
+                      glisser. */}
+                  <SheetMotionView
+                    appear={false}
+                    style={[styles.variableGroup, isDraggingRow ? null : styles.variableGroupClip]}
+                    testID="execution-sheet-phases-group"
+                  >
+                    <Row label={t.workPhases} selected={phaseCountOpen} testID="execution-sheet-row-phases">
+                      {phasesControl}
+                    </Row>
+                    {hasWorkPhases && !isPhasesFolded ? <Separator /> : null}
+                    {hasWorkPhases && !isPhasesFolded ? (
+                      <WorkPhasesTable
+                        phases={draft.workPhases}
+                        activePhase={activePhase}
+                        onRemove={handleRemovePhase}
+                        removalActive={removalEnabled(surface)}
+                        onMove={(from, to) => update(moveWorkPhase(keyboard.flush(draft), from, to))}
+                        onDraggingChange={(dragging) => {
+                          setIsDraggingRow(dragging);
+                          if (dragging) {
+                            // AD-27 : saisie appliquée avant le glisser ; la surface ouverte est rangée.
+                            const base = keyboard.flush(draft);
+                            if (base !== draft) commitKeyboard(() => base);
+                            setIsTableSelected(false);
+                            dispatchSurface({ type: "closeAll" });
+                          }
+                        }}
+                        cell={phaseCell}
+                        bleed={TABLE_BLOCK_BLEED}
+                        style={styles.tableBlock}
+                      />
+                    ) : null}
+                    {adjustment?.kind === "phaseRemoval" ? adjustmentMessage : null}
+                  </SheetMotionView>
+                  {/* Story 2.8 (AC3b, PR-02, Figma `9207:18817`) : aucun séparateur après le tableau
+                      des phases déployé ; sinon, séparateur entre les deux lignes. */}
+                  {hasWorkPhases && !isPhasesFolded ? null : <Separator />}
                   {/* NR Δ38 (impératif) : stepper « Nombre de séries » de PRE-4 inchangé (mêmes
                       props, valeur au repos, ± à l'appui, nom accessible `series`) ; seule sa
                       ligne devient « Nombre de séries » dans le cadre Séries. */}
@@ -1588,6 +1870,14 @@ export function ExecutionParametersSheet({
                       <Row
                         label={t.durationTarget}
                         selected={isOpen(TARGET_SELECTOR)}
+                        // PRE-5 story 2.8 (FR-3) : avec des phases, valeur annoncée non modifiable.
+                        accessibilityLabel={
+                          hasWorkPhases
+                            ? [t.durationTarget, spokenValue(uniformDurationText), t.totalReadOnlySpoken, uniformTargetInvalid ? uniformTargetHint : null]
+                                .filter((part) => part !== null && part !== undefined)
+                                .join(", ")
+                            : undefined
+                        }
                         onLayout={trackRow("uniformDuration")}
                         below={
                           // Q41 : Android et web — roulette en ligne, dans le cadre de sélection.
@@ -1599,7 +1889,20 @@ export function ExecutionParametersSheet({
                         }
                         testID="execution-sheet-row-target"
                       >
-                        {uniformDurationPill}
+                        {/* PRE-5 story 2.8 (FR-3, AC6) : D = Σ des phases, sans roue ni pastille modifiable. */}
+                        {hasWorkPhases ? (
+                          // Valeur en violation (✓ indisponible) : marquée comme une valeur à renseigner (Q35).
+                          <View
+                            style={uniformTargetInvalid ? [styles.valuePill, styles.valuePillInvalid] : null}
+                            testID="execution-sheet-target-static"
+                          >
+                            <Text style={styles.staticValue} testID="execution-sheet-target-text">
+                              {uniformDurationText}
+                            </Text>
+                          </View>
+                        ) : (
+                          uniformDurationPill
+                        )}
                       </Row>
                     </>
                   ) : null}
@@ -2364,6 +2667,65 @@ function RevealedStepperField({ onClose, ...stepper }: InlineStepperProps & { on
   );
 }
 
+/**
+ * PRE-5 story 2.8 (FR-4, FR-5, D-432, RC-4, AD-16) — contenu de l'option Avec sélectionnée de la
+ * ligne « Phases de l'exercice » (le chevron est rendu après lui par `SegmentedControl`) :
+ * - fermé : « n phases » (libellé sélectionné, Semi Bold 12 blanc) ; son toucher révèle le
+ *   réglage (`stepper(phaseCount)`) ;
+ * - ouvert : `InlineStepper` existant sans pilule (`appearance="bare"`), 2..6, pas 1, valeur
+ *   « n phases » ; − et + indisponibles aux bornes ; toucher la valeur (ou l'action « activer »)
+ *   le referme ; mêmes actions d'échappement et même focus VoiceOver que les autres champs ±
+ *   (`OpenStepperField`, `useOpenFieldFocus`).
+ */
+function PhaseCountField({
+  isOpen,
+  onToggle,
+  count,
+  onChange,
+}: {
+  isOpen: boolean;
+  onToggle: () => void;
+  count: number;
+  onChange: (count: number) => void;
+}) {
+  const { fieldRef, toggleRef, closeFromAccessibility } = useOpenFieldFocus(isOpen, onToggle);
+  const display = phaseCountLabel(count);
+  if (!isOpen) {
+    return (
+      <Pressable
+        ref={toggleRef}
+        onPress={onToggle}
+        accessibilityRole="button"
+        accessibilityLabel={`${t.workPhaseCountLabel}, ${display}`}
+        accessibilityState={{ expanded: false }}
+        hitSlop={PHASE_COUNT_HIT_SLOP}
+        testID="execution-sheet-phase-count-toggle"
+      >
+        <Text style={inlineSelectedLabelStyle} testID="execution-sheet-phase-count-text">
+          {display}
+        </Text>
+      </Pressable>
+    );
+  }
+  return (
+    <OpenStepperField
+      value={count}
+      min={WORK_PHASE_LIMITS.controlMinCount}
+      max={WORK_PHASE_LIMITS.maxCount}
+      policy={EXECUTION_UNIT_HOLD_POLICY}
+      formatValue={phaseCountLabel}
+      onChange={onChange}
+      accessibilityLabel={t.workPhaseCountLabel}
+      appearance="bare"
+      valueStyle={inlineSelectedLabelStyle}
+      testID="execution-sheet-phase-count"
+      fieldRef={fieldRef}
+      onClose={closeFromAccessibility}
+      fieldTestID="execution-sheet-phase-count-field"
+    />
+  );
+}
+
 const SIDE_ORDERS: readonly SideOrder[] = ["BY_SIDE", "BY_SERIES"];
 
 /**
@@ -2483,6 +2845,13 @@ const TABLE_BLOCK_BLEED = GROUP_PADDING - TABLE_BLOCK_SIDE_INSET;
 const MIXED_STOP_CONDITION_WIDTH = INLINE_OPTION_WIDTHS.wide * 2 + 2;
 /** RC-6 (Figma `9462:18988`) : écart entre la notation de l'Enchainement et son chevron. */
 const SIDE_ORDER_CHEVRON_GAP = 6;
+/**
+ * PRE-5 story 2.8 (NFR-7) : « n phases » (texte de 16) porté à une cible de 44 de haut, dans la
+ * ligne de 44, sans agrandir le dessin ; le reste de l'option Avec (re-choisie) a le même effet.
+ */
+const PHASE_COUNT_HIT_SLOP = { top: 14, bottom: 14 };
+/** PRE-5 story 2.8 (Figma `9207:18817`) : cellule Libellé de 24 de haut, rayon 8 (gabarit des cellules). */
+const PHASE_LABEL_CELL_RADIUS = 8;
 
 const styles = StyleSheet.create({
   // RC-6 : déclencheur du menu de l'Enchainement, sur toute l'option Avec (104 × 26, RC-11).
@@ -2709,6 +3078,19 @@ const styles = StyleSheet.create({
   // D-434 : cellule clavier (gabarit `TableCell` 71 × 24, rayon 8) à la largeur de sa colonne.
   keyboardCell: {
     width: "100%",
+  },
+  // PRE-5 story 2.8 (FR-6, Figma `9207:18817`) : cellule Libellé au clavier texte — `TextInput`
+  // visible de 76 × 24 (largeur de sa colonne), rayon 8, valeur Semi Bold 13 primaire centrée ;
+  // fond `#EAEAFF` en saisie (posé par `KeyboardField`). iOS : la hauteur de ligne du texte est
+  // retirée (texte et curseur décentrés sinon), comme le champ de la charge commune.
+  phaseLabelInput: {
+    width: "100%",
+    height: TABLE_CELL_HEIGHT,
+    borderRadius: PHASE_LABEL_CELL_RADIUS,
+    lineHeight: undefined,
+    paddingVertical: 0,
+    paddingHorizontal: spacing[4],
+    textAlign: "center",
   },
   // PRE-5 story 2.7 (AC1, AD-28, Figma `9289:17849`) : champ de la charge commune dans
   // l'option Avec sélectionnée — plein cadre de l'option (62 × 26, rayon 5), texte centré ;

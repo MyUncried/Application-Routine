@@ -4,6 +4,8 @@ import { failureTarget, numberTarget, unsetTarget, type ExecutionParametersInput
 import { openSheetDraft, removeRow, setLoadEnabled, setSeriesCount } from "@/domain/activities/ExecutionParametersDraft";
 import {
   applyLoadEdit,
+  applyPhaseDurationEdit,
+  applyPhaseLabelEdit,
   applyRowPauseEdit,
   applyRowTargetEdit,
   KEYBOARD_REVEAL_MARGIN,
@@ -11,6 +13,8 @@ import {
   loadEditText,
   loadFieldOrder,
   loadOfField,
+  phaseDurationEditText,
+  phaseLabelEditText,
   revealDelta,
   rowPauseEditText,
   rowTargetEditText,
@@ -210,5 +214,76 @@ describe("PRE5-2.2 — révélation de la ligne active au-dessus du clavier (FR-
     expect(revealDelta(200, 236, BODY_TOP, KEYBOARD_TOP)).toBe(0);
     expect(revealDelta(452, 488, BODY_TOP, KEYBOARD_TOP)).toBe(0);
     expect(revealDelta(100, 136, BODY_TOP, KEYBOARD_TOP)).toBe(0);
+  });
+});
+
+/**
+ * PRE-5 story 2.8 (D-434, FR-6, AD-26) — champs clavier des phases : texte d'édition, sortie par
+ * les transitions existantes (`setWorkPhaseLabel`, `setWorkPhaseDuration`) et ordre de
+ * Précédent / Suivant (durées des phases seulement).
+ */
+describe("PRE5-2.8 — champs clavier des phases (D-434)", () => {
+  const phased = () =>
+    openSheetDraft(
+      params({
+        series: {
+          kind: "UNIFORM",
+          count: 3,
+          target: numberTarget(74),
+          pauseSeconds: 15,
+          loadKg: 20,
+          workPhases: [
+            { id: 4, label: "Descente", durationSeconds: 65 },
+            { id: 7, label: "Maintien", durationSeconds: 9 },
+          ],
+        },
+      }),
+    );
+
+  it("ordre : une durée de phase active ne parcourt que les durées, dans l'ordre du tableau ; tableau replié : aucune ; sinon ordre inchangé", () => {
+    const draft = phased();
+    const active = { kind: "phaseDuration", phase: 7 } as const;
+    expect(keyboardFieldOrder(draft, true, true, active)).toEqual([
+      { kind: "phaseDuration", phase: 4 },
+      { kind: "phaseDuration", phase: 7 },
+    ]);
+    expect(keyboardFieldOrder(draft, true, false, active)).toEqual([]);
+    // Libellé actif ou aucun champ : ordre des champs de charge, inchangé.
+    expect(keyboardFieldOrder(draft, true, true, { kind: "phaseLabel", phase: 4 })).toEqual([{ kind: "load", row: "uniform" }]);
+    expect(keyboardFieldOrder(draft, true, true)).toEqual([{ kind: "load", row: "uniform" }]);
+  });
+
+  it("texte d'édition de la durée : « MMSS » ; vide si à renseigner ou si la phase n'existe plus", () => {
+    const draft = phased();
+    expect(phaseDurationEditText(draft, 4)).toBe("0105");
+    expect(phaseDurationEditText(draft, 7)).toBe("0009");
+    expect(phaseDurationEditText(applyPhaseDurationEdit(draft, 7, ""), 7)).toBe("");
+    expect(phaseDurationEditText(draft, 99)).toBe("");
+  });
+
+  it("sortie de la durée : 1,7,5 → 135 s ; 9999 → 3535 s ; 0 → 1 s ; vidée → à renseigner ; D redérivée ; inchangée → Brouillon tel quel", () => {
+    const draft = phased();
+    const durationOf = (next: typeof draft, id: number) => next.workPhases.find((phase) => phase.id === id)!.durationSeconds;
+    const edited = applyPhaseDurationEdit(draft, 4, "175");
+    expect(durationOf(edited, 4)).toBe(135);
+    expect(edited.uniform.target).toEqual(numberTarget(144));
+    expect(durationOf(applyPhaseDurationEdit(draft, 4, "9999"), 4)).toBe(3535);
+    expect(durationOf(applyPhaseDurationEdit(draft, 4, "0"), 4)).toBe(1);
+    const emptied = applyPhaseDurationEdit(draft, 4, "");
+    expect(durationOf(emptied, 4)).toBeNull();
+    expect(emptied.uniform.target).toEqual(numberTarget(9));
+    expect(applyPhaseDurationEdit(draft, 4, "105")).toBe(draft);
+    expect(applyPhaseDurationEdit(draft, 99, "30")).toBe(draft);
+  });
+
+  it("libellé : texte d'édition = libellé courant ; sortie par `setWorkPhaseLabel` ; inchangé, disparu ou > 20 points de code → Brouillon tel quel ; vide admis", () => {
+    const draft = phased();
+    expect(phaseLabelEditText(draft, 7)).toBe("Maintien");
+    expect(phaseLabelEditText(draft, 99)).toBe("");
+    expect(applyPhaseLabelEdit(draft, 7, "Tenue").workPhases[1]!.label).toBe("Tenue");
+    expect(applyPhaseLabelEdit(draft, 7, "").workPhases[1]!.label).toBe("");
+    expect(applyPhaseLabelEdit(draft, 7, "Maintien")).toBe(draft);
+    expect(applyPhaseLabelEdit(draft, 99, "Tenue")).toBe(draft);
+    expect(applyPhaseLabelEdit(draft, 7, "x".repeat(21))).toBe(draft);
   });
 });

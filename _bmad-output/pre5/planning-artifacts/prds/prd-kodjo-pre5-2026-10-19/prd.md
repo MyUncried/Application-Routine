@@ -415,7 +415,7 @@ Les valeurs sont restaurées au retour à À la cible.
 
 En séries identiques, les roues « Durée d'une série » et « Répétitions » ne proposent plus « À l'échec ».
 
-Dans une cellule variable en mode Durée, « À l'échec » reste disponible pour la seule série, par la commande « À l'échec » à gauche de la barre du clavier (D-434, qui remplace la roue de cellule à option en tête, sa PickerToolbar et son ouverture sous la ligne). La cellule Répétitions n'est pas visée par D-434 : sa roue à option en tête (Q8, D-418) n'est ni confirmée ni remplacée (§9, QD-434-1). Pour cette option :
+Dans une cellule variable en mode Durée, « À l'échec » reste disponible pour la seule série, par la commande « À l'échec » à gauche de la barre du clavier (D-434, qui remplace la roue de cellule à option en tête, sa PickerToolbar et son ouverture sous la ligne). La cellule Répétitions n'est pas visée par D-434 : sa roue à option en tête (Q8, D-418) n'est ni confirmée ni remplacée (§9, QD-434-1) ; QD-434-1 tranchée par Hermann le 19/10 : clavier numérique entier, « À l'échec » dans la barre. Pour cette option :
 
 - le choix ne s'applique qu'à la série éditée et met à jour FR-20 ;
 - « À l'échec » n'est pas une durée nulle, et zéro ne code jamais l'échec ;
@@ -466,7 +466,7 @@ Quand un champ de saisie clavier est actif :
 
 #### FR-25 : Précédent / Suivant et cellule active
 
-Dans la barre du clavier numérique, Précédent et Suivant déplacent la saisie entre les cellules saisies à ce clavier : depuis D-434, les cellules Durée, Pause et Charge du tableau des séries variables et les durées de phase (D-434 remplace « c'est-à-dire les cellules de charge »). Précédent, Suivant et Fermer restent disponibles dans tous les cas applicables. L'ordre de parcours n'est pas fixé par la décision (§9, QD-434-2).
+Dans la barre du clavier numérique, Précédent et Suivant déplacent la saisie entre les cellules saisies à ce clavier : depuis D-434, les cellules Durée, Pause et Charge du tableau des séries variables et les durées de phase (D-434 remplace « c'est-à-dire les cellules de charge »). Précédent, Suivant et Fermer restent disponibles dans tous les cas applicables. L'ordre de parcours n'est pas fixé par la décision (§9, QD-434-2) ; tranché par Hermann le 19/10 : ligne par ligne sans quitter le tableau, et, dans le tableau des phases, les durées seules.
 
 - Le clavier reste ouvert pendant la navigation.
 - La valeur de la cellule atteinte reste éditable.
@@ -531,8 +531,8 @@ Le chevron est graphique : c'est l'icône existante `control-chevron-up` / `cont
 Les tableaux des séries et des phases ont un fond blanc sans contour et des lignes de 36. Les autres lignes de la Feuille restent à 44.
 
 - Aucun stepper permanent dans les cellules.
-- Chaque cellule ouvre, pour elle seule, la saisie de son champ : clavier numérique MMSS pour Durée et Pause, clavier décimal pour la charge (D-434, qui remplace la roue de cible et le stepper de Pause de cellule) ; la cellule Répétitions n'est pas visée par D-434 (§9, QD-434-1).
-- Sont conservés : glisser, croix, « Série supprimée — Annuler » sur fond `#FFF1F0` (Q35). La roue sous la ligne (Q45) est sans objet pour les cellules Durée et Pause depuis D-434 ; pour la cellule Répétitions, voir QD-434-1.
+- Chaque cellule ouvre, pour elle seule, la saisie de son champ : clavier numérique MMSS pour Durée et Pause, clavier décimal pour la charge (D-434, qui remplace la roue de cible et le stepper de Pause de cellule) ; la cellule Répétitions n'est pas visée par D-434 (§9, QD-434-1), puis tranchée par Hermann le 19/10 : clavier numérique entier.
+- Sont conservés : glisser, croix, « Série supprimée — Annuler » sur fond `#FFF1F0` (Q35). La roue sous la ligne (Q45) est sans objet pour les cellules Durée et Pause depuis D-434 ; pour la cellule Répétitions, voir QD-434-1 (tranchée par Hermann le 19/10 : clavier numérique entier).
 - La cible tactile des lignes de 36 est vérifiée sur appareil avant toute autre géométrie.
 
 Principes de PR-02, qui priment sur une ancienne capture :
@@ -831,7 +831,7 @@ Seuls ces remplacements sont admis : R-01 à R-16 de `table-delta.md` §2, plus 
 | R-15 | Indicateur « D→G » de la Composition | Indicateur sans direction | FR-18 |
 | R-16 | Phrase « côté droit puis le gauche » | « côté 1 / côté 2 » | FR-18 |
 | R-17 | Durées positives au minimum de 5 s (D-232 et RM-234, pour leur part relative aux durées ; le pas de 5 s est déjà levé par Q36 ; les bornes de répétitions et de séries sont inchangées) | Minimum de 1 s, maxima inchangés (décision du 19/10) | FR-45 |
-| R-18 | Cellules du tableau des séries variables : roue de cible sous la ligne (Q45) à option « À l'échec » en tête, stepper de Pause de cellule ; roue de durée de phase ; barre « Précédent / Suivant / Fermer » limitée à la charge ; toute la valeur sélectionnée au focus (RC-3) | Clavier numérique MMSS dans la cellule (« 1 min 5 s » au repos, « 01:05 » au focus) ; barre « À l'échec | ← Précédent | Suivant → | Fermer » ; pas de sélection native, première frappe qui remplace (D-434). Cellule Répétitions non visée (QD-434-1) | FR-7, FR-22 à FR-25, FR-29 |
+| R-18 | Cellules du tableau des séries variables : roue de cible sous la ligne (Q45) à option « À l'échec » en tête, stepper de Pause de cellule ; roue de durée de phase ; barre « Précédent / Suivant / Fermer » limitée à la charge ; toute la valeur sélectionnée au focus (RC-3) | Clavier numérique MMSS dans la cellule (« 1 min 5 s » au repos, « 01:05 » au focus) ; barre « À l'échec | ← Précédent | Suivant → | Fermer » ; pas de sélection native, première frappe qui remplace (D-434). Cellule Répétitions non visée (QD-434-1, tranchée par Hermann le 19/10 : clavier numérique entier) | FR-7, FR-22 à FR-25, FR-29 |
 
 **Changements de présentation demandés explicitement.** Ils ne remplacent aucun comportement validé autre que leur présentation. NFR-1 et NFR-8 les admettent au même titre que R-01 à R-18.
 
@@ -860,7 +860,7 @@ Seuls ces remplacements sont admis : R-01 à R-16 de `table-delta.md` §2, plus 
 
 ## 9. Questions ouvertes
 
-Toutes les QP5 sont décidées : `table-delta.md` §6, ainsi que les décisions complémentaires du 19/10 sur les bornes minimales et sur le passage des phases de Avec à Sans, et les décisions qui suivent la revue indépendante du 19/10 (D-431, D-432). Les incompatibilités QR-1 et QR-2 ci-dessous ont été validées par Hermann le 19/10 avec les défauts proposés. Restent ouverts les seuls points non tranchés par D-434 (QD-434-1 à QD-434-4, ci-dessous).
+Toutes les QP5 sont décidées : `table-delta.md` §6, ainsi que les décisions complémentaires du 19/10 sur les bornes minimales et sur le passage des phases de Avec à Sans, et les décisions qui suivent la revue indépendante du 19/10 (D-431, D-432). Les incompatibilités QR-1 et QR-2 ci-dessous ont été validées par Hermann le 19/10 avec les défauts proposés. Les points non tranchés par D-434 (QD-434-1 à QD-434-4, ci-dessous) ont été tranchés par Hermann le 19/10.
 
 Restent quatre types de points : les points d'architecture, les propriétés Figma, les incompatibilités du contrôle 2–6 et les points signalés, que les sources laissent ouverts.
 
@@ -885,12 +885,12 @@ Restent quatre types de points : les points d'architecture, les propriétés Fig
   - Règle validée : s'il reste une seule phase, l'Exercice passe à Sans avec sa durée comme durée de série, sur le principe de D-371.
   - S'il n'en reste aucune, l'Exercice passe à Sans sans durée inventée : la validation existante s'applique.
 
-**Points non tranchés par D-434 (décision de Hermann du 19/10, saisie au clavier numérique des tableaux).** Signalés, non décidés ; aucune règle n'est inventée.
+**Points QD-434 (décision de Hermann du 19/10, saisie au clavier numérique des tableaux).** Signalés comme non tranchés par D-434, puis tranchés par Hermann le 19/10 ; la réponse figure à la fin de chaque point.
 
-- **QD-434-1 — Cellule cible en mode Répétitions.** D-434 cite les cellules Durée, Pause et Charge et les durées de phase, pas la cellule du nombre de répétitions d'une série variable. Sa roue à « Aucune répétition, à l'échec » en tête (Q8, D-418) n'est ni confirmée ni remplacée.
-- **QD-434-2 — Ordre de Précédent / Suivant.** D-434 étend la barre à toutes les cellules saisies au clavier sans fixer l'ordre de parcours : ligne par ligne (Durée → Pause → Charge, puis ligne suivante) ou colonne par colonne ; ni si le parcours inclut la ligne Charge commune ou les libellés de phase (clavier texte, hors D-434), présents avec le tableau des phases.
-- **QD-434-3 — Frappe MMSS hors bornes ou non normalisée.** Les bornes existantes sont conservées (durée 1..3535 s, soit 58:55 ; pause 0..300 s), mais D-434 ne dit pas comment traiter une frappe comme `01:75` (secondes ≥ 60) ou `99:99`, ni à quel moment (refus de la frappe, normalisation, validation à la sortie de la cellule).
-- **QD-434-4 — Cellule vidée et cellule à l'échec.** D-434 ne dit pas ce que vaut une cellule de durée ou de pause entièrement effacée par Retour arrière à la sortie du champ (`—` à renseigner, 0 s, valeur précédente), ni ce qu'affiche au focus une cellule cible À l'échec, avant la première frappe.
+- **QD-434-1 — Cellule cible en mode Répétitions.** D-434 cite les cellules Durée, Pause et Charge et les durées de phase, pas la cellule du nombre de répétitions d'une série variable. Sa roue à « Aucune répétition, à l'échec » en tête (Q8, D-418) n'est ni confirmée ni remplacée. **Tranchée par Hermann le 19/10 :** la cible en mode Répétitions se saisit au clavier numérique entier, « À l’échec » étant dans la barre du clavier.
+- **QD-434-2 — Ordre de Précédent / Suivant.** D-434 étend la barre à toutes les cellules saisies au clavier sans fixer l'ordre de parcours : ligne par ligne (Durée → Pause → Charge, puis ligne suivante) ou colonne par colonne ; ni si le parcours inclut la ligne Charge commune ou les libellés de phase (clavier texte, hors D-434), présents avec le tableau des phases. **Tranchée par Hermann le 19/10 :** parcours ligne par ligne, sans quitter le tableau ; dans le tableau des phases, les durées seules.
+- **QD-434-3 — Frappe MMSS hors bornes ou non normalisée.** Les bornes existantes sont conservées (durée 1..3535 s, soit 58:55 ; pause 0..300 s), mais D-434 ne dit pas comment traiter une frappe comme `01:75` (secondes ≥ 60) ou `99:99`, ni à quel moment (refus de la frappe, normalisation, validation à la sortie de la cellule). **Tranchée par Hermann le 19/10 :** à la sortie de la cellule, secondes supérieures à 59 reportées en minutes, valeur hors bornes ramenée à la borne.
+- **QD-434-4 — Cellule vidée et cellule à l'échec.** D-434 ne dit pas ce que vaut une cellule de durée ou de pause entièrement effacée par Retour arrière à la sortie du champ (`—` à renseigner, 0 s, valeur précédente), ni ce qu'affiche au focus une cellule cible À l'échec, avant la première frappe. **Tranchée par Hermann le 19/10 :** cellule vidée → 0 s, ou à renseigner si 0 est interdit ; cellule À l’échec affichée « 00:00 » au focus, la première frappe remplace.
 
 **Points signalés, décidés par Hermann le 19/10.** Les points 2 à 10 ci-dessous sont tranchés dans `table-delta.md` §6, sous « Points signalés par le PRD ». Leur décision prime sur le texte qui suit. Il s’agit notamment :
 

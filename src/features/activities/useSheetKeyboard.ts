@@ -17,12 +17,15 @@ import {
   setLoadValue,
   setRowPause,
   setRowTarget,
+  setWorkPhaseDuration,
+  setWorkPhaseLabel,
   toggleRowFailure,
   type ExecutionSheetDraft,
 } from "@/domain/activities/ExecutionParametersDraft";
 import { parseLoadText } from "@/domain/activities/exerciseLoad";
 import { cellDurationSeconds, cellIntegerValue, mmssDigitsOf } from "@/features/activities/cellEntry";
 import {
+  isPhaseKeyboardField,
   sameKeyboardField,
   type KeyboardFieldId,
   type SheetSurfaceEvent,
@@ -62,6 +65,12 @@ import {
  *   parcourent le tableau ligne par ligne, de gauche à droite (Cible, Pause, Charge), sans
  *   en sortir (QD-434-2). La barre porte « À l'échec » pour une cellule Cible
  *   (`toggleRowFailure`, valeur numérique mémorisée et restituée).
+ * - PRE-5 story 2.8 (D-434, FR-6, AD-26) : libellé de phase (clavier texte, sans barre) et
+ *   durée de phase (« MMSS », mêmes règles que les cellules du tableau des séries : bornes
+ *   `EXECUTION_BOUNDS.durationTarget`, secondes reportées, vidée → à renseigner), appliqués à
+ *   la sortie par les transitions existantes `setWorkPhaseLabel` et `setWorkPhaseDuration`.
+ *   Précédent / Suivant ne parcourent que les durées du tableau des phases ; la barre n'a pas
+ *   « À l'échec ».
  */
 
 /** Champ de charge : charge commune, ou ligne d'identité (`rowIds`). */
@@ -92,7 +101,17 @@ export type KeyboardFrame = { readonly screenY: number; readonly duration: numbe
  * charge est Avec), puis la ligne suivante ; aucun champ hors du tableau. Sinon, les champs
  * de charge (`loadFieldOrder` : la charge commune en identiques effectives).
  */
-export function keyboardFieldOrder(draft: ExecutionSheetDraft, tableVisible: boolean): readonly KeyboardFieldId[] {
+export function keyboardFieldOrder(
+  draft: ExecutionSheetDraft,
+  tableVisible: boolean,
+  phasesVisible = false,
+  active: KeyboardFieldId | null = null,
+): readonly KeyboardFieldId[] {
+  // PRE-5 story 2.8 (D-434) : durée de phase active — seules les durées des phases, dans
+  // l'ordre du tableau déployé (jamais un libellé ni une charge).
+  if (active !== null && active.kind === "phaseDuration") {
+    return phasesVisible ? draft.workPhases.map((phase): KeyboardFieldId => ({ kind: "phaseDuration", phase: phase.id })) : [];
+  }
   if (!draft.variable || isSingleSeries(draft)) {
     return loadFieldOrder(draft, tableVisible).map((row): KeyboardFieldId => ({ kind: "load", row }));
   }
@@ -199,10 +218,50 @@ export function applyRowPauseEdit(draft: ExecutionSheetDraft, row: number, text:
   return current === undefined || current === value ? draft : setRowPause(draft, index, value);
 }
 
+/** PRE-5 story 2.8 : phase d'identité `phase`, ou `undefined` si elle n'existe plus. */
+const phaseOf = (draft: ExecutionSheetDraft, phase: number) => draft.workPhases.find((current) => current.id === phase);
+
+/** PRE-5 story 2.8 (FR-6) : texte d'édition du libellé d'une phase (vide si elle n'existe plus). */
+export function phaseLabelEditText(draft: ExecutionSheetDraft, phase: number): string {
+  return phaseOf(draft, phase)?.label ?? "";
+}
+
+/**
+ * PRE-5 story 2.8 (FR-6) : sortie du libellé d'une phase par `setWorkPhaseLabel` (refus
+ * au-delà de 20 points de code dans la transition) ; inchangé ou phase disparue : Brouillon
+ * rendu tel quel.
+ */
+export function applyPhaseLabelEdit(draft: ExecutionSheetDraft, phase: number, text: string): ExecutionSheetDraft {
+  const current = phaseOf(draft, phase);
+  return current === undefined || current.label === text ? draft : setWorkPhaseLabel(draft, phase, text);
+}
+
+/** PRE-5 story 2.8 (D-434) : texte d'édition « MMSS » de la durée d'une phase ; vide si à renseigner ou disparue. */
+export function phaseDurationEditText(draft: ExecutionSheetDraft, phase: number): string {
+  const duration = phaseOf(draft, phase)?.durationSeconds;
+  return duration === undefined || duration === null ? "" : mmssDigitsOf(duration);
+}
+
+/**
+ * PRE-5 story 2.8 (D-434, QD-434-3, QD-434-4) : sortie de la durée d'une phase — mêmes règles
+ * que la cellule Cible du tableau des séries (bornes `EXECUTION_BOUNDS.durationTarget`,
+ * secondes > 59 reportées, hors bornes ramenée à la borne, vidée → à renseigner `null`), puis
+ * `setWorkPhaseDuration` (D redérivée). Valeur inchangée : Brouillon rendu tel quel.
+ */
+export function applyPhaseDurationEdit(draft: ExecutionSheetDraft, phase: number, text: string): ExecutionSheetDraft {
+  const current = phaseOf(draft, phase);
+  if (current === undefined) return draft;
+  const value = cellDurationSeconds(text, EXECUTION_BOUNDS.durationTarget);
+  return current.durationSeconds === value ? draft : setWorkPhaseDuration(draft, phase, value);
+}
+
 type Edit = { readonly field: KeyboardFieldId; text: string; initial: string };
 type Registered = { readonly input: TextInput; readonly rowHeight: number };
 
-const fieldKey = (field: KeyboardFieldId) => (field.kind === "phaseLabel" ? `phase:${field.phase}` : `${field.kind}:${field.row}`);
+const fieldKey = (field: KeyboardFieldId) =>
+  isPhaseKeyboardField(field)
+    ? `${field.kind === "phaseLabel" ? "phase" : "phaseDuration"}:${field.phase}`
+    : `${field.kind}:${field.row}`;
 
 /** Application d'une édition prise (fonction pure du Brouillon). */
 function applyEdit(draft: ExecutionSheetDraft, edit: Pick<Edit, "field" | "text" | "initial">): ExecutionSheetDraft {
@@ -214,8 +273,10 @@ function applyEdit(draft: ExecutionSheetDraft, edit: Pick<Edit, "field" | "text"
       return applyRowTargetEdit(draft, edit.field.row, edit.text);
     case "rowPause":
       return applyRowPauseEdit(draft, edit.field.row, edit.text);
-    default:
-      return draft;
+    case "phaseLabel":
+      return applyPhaseLabelEdit(draft, edit.field.phase, edit.text);
+    case "phaseDuration":
+      return applyPhaseDurationEdit(draft, edit.field.phase, edit.text);
   }
 }
 
@@ -361,8 +422,10 @@ export function useSheetKeyboard({
         return rowTargetEditText(draft, field.row);
       case "rowPause":
         return rowPauseEditText(draft, field.row);
-      default:
-        return "";
+      case "phaseLabel":
+        return phaseLabelEditText(draft, field.phase);
+      case "phaseDuration":
+        return phaseDurationEditText(draft, field.phase);
     }
   }
 

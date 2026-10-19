@@ -92,6 +92,30 @@ const executionParameters = {
     seriesRemoved: "Série supprimée",
     // Croix non active (un champ ou un sélecteur est ouvert) : l'appui le ferme sans retirer.
     removeRowClosesFieldHint: "Ferme d’abord le champ ouvert, sans supprimer la série",
+    // PRE-5 story 2.8 (FR-4 à FR-9, FR-44, D-432, D-434) : ligne « Phases de l’exercice » en tête
+    // du cadre Séries (Avec / Sans ; Avec sélectionné affiche « n phases », n ≥ 2, avec le stepper
+    // existant et le chevron du tableau), tableau des phases (Libellé, Durée), libellé par défaut
+    // « Phase n » (affiché pour un libellé vide, stocké au ✓) et message de retrait d’une phase.
+    workPhases: "Phases de l’exercice",
+    workPhaseChoices: { WITH: "Avec", WITHOUT: "Sans" },
+    workPhaseCount: "{n} phases",
+    // Une seule phase relue des données (le modèle l’admet) : accord au singulier.
+    workPhaseCountSingular: "{n} phase",
+    // Nom accessible du stepper du nombre de phases (2..6).
+    workPhaseCountLabel: "Nombre de phases",
+    showPhases: "Afficher le tableau des phases",
+    hidePhases: "Masquer le tableau des phases",
+    phaseColumns: { label: "Libellé", duration: "Durée" },
+    phaseDefault: "Phase {n}",
+    phaseRow: "Phase {n}",
+    phaseLabel: "Phase {n}, libellé",
+    phaseDuration: "Phase {n}, durée",
+    phaseMoveUp: "Monter la phase {n}",
+    phaseMoveDown: "Descendre la phase {n}",
+    phaseMoveHandle: "Déplacer la phase {n}",
+    removePhase: "Supprimer la phase {n}",
+    phaseRemoved: "Phase supprimée",
+    removePhaseClosesFieldHint: "Ferme d’abord le champ ouvert, sans supprimer la phase",
     // PRE-5 story 2.5 (FR-15, FR-16, FR-44) : ligne « Changement de côté », segmenté « Avec | Sans »,
     // sans désignation anatomique. Les libellés anatomiques (`sideModes`, `sideModeOptions`) sont
     // retirés ; recette du 19/10 (RC-6) : le chevron de repli d’Avec aussi (`showSideSettings`,

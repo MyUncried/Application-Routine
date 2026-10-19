@@ -52,33 +52,54 @@
  * deviennent des champs de la famille `keyboard` (`rowTarget`, `rowPause`). Les surfaces
  * `selector(rowTarget)` (roue de cellule, story 3.6) et `stepper(rowPause)` (± de la Pause
  * d'une cellule, story 2.6) décrites ci-dessus sont retirées.
+ *
+ * PRE-5 story 2.8 (AD-27, D-432, D-434) : phases de l'exercice. `stepper(phaseCount)` : le
+ * stepper du nombre de phases, révélé dans l'option Avec de la ligne « Phases de l'exercice »
+ * (famille ±). `keyboard(phaseLabel)` et `keyboard(phaseDuration)` : libellé (clavier texte) et
+ * durée (clavier numérique MMSS, D-434 : remplace `selector(phaseDuration)`) de la phase
+ * d'identité `phase` (`id` du Brouillon, jamais un rang). « Phase disparue » (`phases`) : un
+ * champ clavier de phase dont la phase n'existe plus se ferme, comme « Ligne disparue ».
  */
 
 export type SheetSelector = "commonTarget" | "total";
-/** Valeurs numériques hors tableau réglées par ± (FR-10-05). */
-export type SheetStepperField = "count" | "pause" | "sideRecovery" | "beep" | "countdown" | "end";
+/** Valeurs numériques hors tableau réglées par ± (FR-10-05) ; PRE-5 story 2.8 : nombre de phases. */
+export type SheetStepperField = "count" | "pause" | "sideRecovery" | "beep" | "countdown" | "end" | "phaseCount";
 
 /**
  * PRE-5 story 2.2 : champ clavier de la Feuille — charge commune (`"uniform"`) ou d'une ligne
  * d'identité `row` (`rowIds`, jamais un rang) ; libellé de la phase d'identité `phase` (2.8).
- * D-434 : Cible et Pause de la ligne d'identité `row`.
+ * D-434 : Cible et Pause de la ligne d'identité `row` ; durée de la phase d'identité `phase` (2.8).
  */
 export type KeyboardFieldId =
   | { readonly kind: "load"; readonly row: number | "uniform" }
   | { readonly kind: "rowTarget"; readonly row: number }
   | { readonly kind: "rowPause"; readonly row: number }
-  | { readonly kind: "phaseLabel"; readonly phase: number };
+  | { readonly kind: "phaseLabel"; readonly phase: number }
+  | { readonly kind: "phaseDuration"; readonly phase: number };
+
+/** PRE-5 story 2.8 : champ clavier d'une phase (libellé ou durée). */
+export type PhaseKeyboardFieldId = Extract<KeyboardFieldId, { readonly phase: number }>;
+
+/** PRE-5 story 2.8 : le champ est un champ d'une phase (libellé ou durée). */
+export function isPhaseKeyboardField(field: KeyboardFieldId): field is PhaseKeyboardFieldId {
+  return field.kind === "phaseLabel" || field.kind === "phaseDuration";
+}
 
 /** Même champ clavier. */
 export function sameKeyboardField(a: KeyboardFieldId, b: KeyboardFieldId): boolean {
-  if (a.kind === "phaseLabel") return b.kind === "phaseLabel" && a.phase === b.phase;
-  return b.kind === a.kind && b.row === a.row;
+  if (isPhaseKeyboardField(a)) return isPhaseKeyboardField(b) && b.kind === a.kind && a.phase === b.phase;
+  return !isPhaseKeyboardField(b) && b.kind === a.kind && b.row === a.row;
 }
 
 /** D-434 : ligne d'identité d'un champ clavier du tableau des séries, ou `null` (charge commune, phase). */
 export function keyboardFieldRow(field: KeyboardFieldId): number | null {
-  if (field.kind === "phaseLabel" || field.row === "uniform") return null;
+  if (isPhaseKeyboardField(field) || field.row === "uniform") return null;
   return field.row;
+}
+
+/** PRE-5 story 2.8 : phase d'identité d'un champ clavier de phase, ou `null`. */
+export function keyboardFieldPhase(field: KeyboardFieldId): number | null {
+  return isPhaseKeyboardField(field) ? field.phase : null;
 }
 
 export type SheetSurface =
@@ -106,6 +127,8 @@ export type SheetSurfaceEvent =
   | { readonly type: "closeAll" }
   /** Story 3.6 (« Ligne disparue ») : identités des lignes du Brouillon après une transition. */
   | { readonly type: "rows"; readonly rowIds: readonly number[] }
+  /** PRE-5 story 2.8 (« Phase disparue ») : identités des phases du Brouillon après une transition. */
+  | { readonly type: "phases"; readonly phaseIds: readonly number[] }
   /** PRE-5 story 2.2 : perte du focus natif d'un champ clavier ; ne ferme que si ce champ est ouvert. */
   | { readonly type: "blur"; readonly field: KeyboardFieldId };
 
@@ -168,6 +191,15 @@ export function sheetSurfaceReducer(state: SheetSurfaceState, event: SheetSurfac
       // PRE-5 story 2.2, D-434 : vaut pour les champs clavier d'une ligne (Cible, Pause, charge).
       const row = open.kind === "keyboard" ? keyboardFieldRow(open.field) : null;
       return row !== null && !event.rowIds.includes(row) ? closeAll(state) : state;
+    }
+    case "phases": {
+      // PRE-5 story 2.8 (« Phase disparue ») : un champ clavier de phase dont la phase n'existe
+      // plus se ferme ; le stepper du nombre de phases aussi quand il n'y a plus de phase (Sans).
+      if (open.kind === "stepper") {
+        return open.field === "phaseCount" && event.phaseIds.length === 0 ? closeAll(state) : state;
+      }
+      const phase = open.kind === "keyboard" ? keyboardFieldPhase(open.field) : null;
+      return phase !== null && !event.phaseIds.includes(phase) ? closeAll(state) : state;
     }
     case "blur":
       return open.kind === "keyboard" && sameKeyboardField(open.field, event.field) ? closeAll(state) : state;

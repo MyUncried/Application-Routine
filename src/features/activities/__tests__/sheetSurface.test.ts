@@ -9,6 +9,8 @@ import {
 } from "@/domain/activities/ExecutionParameters";
 import {
   INITIAL_SHEET_SURFACE_STATE,
+  keyboardFieldPhase,
+  keyboardFieldRow,
   removalEnabled,
   sameSurface,
   sheetCommandsAbsorbed,
@@ -393,5 +395,60 @@ describe("PRE5-2.2 — surface clavier (AD-27)", () => {
     expect(sheetSurfaceReducer(reordered, { type: "rows", rowIds: [3, 1, 2] })).toBe(reordered);
     const uniform = run(touch(LOAD("uniform")));
     expect(sheetSurfaceReducer(uniform, { type: "rows", rowIds: [] })).toBe(uniform);
+  });
+});
+
+/**
+ * PRE-5 story 2.8 (AD-27, D-432, D-434) — surfaces des phases : `stepper(phaseCount)` (famille
+ * ±), `keyboard(phaseLabel | phaseDuration)` désignés par l'identité de la phase, et « Phase
+ * disparue » (`phases`).
+ */
+describe("PRE5-2.8 — surfaces des phases (AD-27)", () => {
+  const NONE_OPEN = { kind: "none" } as const;
+  const PHASE_COUNT: SheetSurface = { kind: "stepper", field: "phaseCount" };
+  const PHASE_LABEL = (phase: number): SheetSurface => ({ kind: "keyboard", field: { kind: "phaseLabel", phase } });
+  const PHASE_DURATION = (phase: number): SheetSurface => ({ kind: "keyboard", field: { kind: "phaseDuration", phase } });
+
+  it("libellé et durée d'une même phase sont deux champs distincts ; deux phases aussi ; jamais confondus avec une ligne de même numéro", () => {
+    const opened = run(touch(PHASE_DURATION(2))).open;
+    expect(sameSurface(opened, PHASE_DURATION(2))).toBe(true);
+    expect(sameSurface(opened, PHASE_LABEL(2))).toBe(false);
+    expect(sameSurface(opened, PHASE_DURATION(3))).toBe(false);
+    expect(sameSurface(opened, { kind: "keyboard", field: { kind: "rowTarget", row: 2 } })).toBe(false);
+    expect(keyboardFieldRow({ kind: "phaseDuration", phase: 2 })).toBeNull();
+    expect(keyboardFieldPhase({ kind: "phaseDuration", phase: 2 })).toBe(2);
+    expect(keyboardFieldPhase({ kind: "phaseLabel", phase: 4 })).toBe(4);
+    expect(keyboardFieldPhase({ kind: "rowPause", row: 4 })).toBeNull();
+  });
+
+  it("un champ de phase absorbe ✓ et ✕ (Q47) ; passer d'une durée à l'autre ouvre la nouvelle d'un seul geste", () => {
+    const opened = run(touch(PHASE_LABEL(1)));
+    expect(sheetCommandsAbsorbed(opened)).toBe(true);
+    expect(removalEnabled(opened)).toBe(false);
+    expect(run(touch(PHASE_DURATION(1)), touch(PHASE_DURATION(2))).open).toMatchObject(PHASE_DURATION(2));
+  });
+
+  it("stepper(phaseCount) suit la famille ± : second toucher le ferme, autre surface l'ouvre d'un geste, ✓ / ✕ non absorbés", () => {
+    const opened = run(touch(PHASE_COUNT));
+    expect(opened.open).toMatchObject(PHASE_COUNT);
+    expect(sheetCommandsAbsorbed(opened)).toBe(false);
+    expect(run(touch(PHASE_COUNT), touch(PHASE_COUNT)).open).toEqual(NONE_OPEN);
+    expect(run(touch(PHASE_COUNT), touch(COUNT)).open).toMatchObject(COUNT);
+    expect(run(touch(PHASE_COUNT), { type: "outside" }).open).toEqual(NONE_OPEN);
+  });
+
+  it("« Phase disparue » : ferme le champ d'une phase retirée, garde celui d'une phase présente (identité, jamais rang) ; ferme le stepper quand il n'y a plus de phase", () => {
+    expect(run(touch(PHASE_DURATION(3)), { type: "phases", phaseIds: [1, 2] }).open).toEqual(NONE_OPEN);
+    expect(run(touch(PHASE_LABEL(3)), { type: "phases", phaseIds: [1, 2] }).open).toEqual(NONE_OPEN);
+    const reordered = run(touch(PHASE_DURATION(3)));
+    expect(sheetSurfaceReducer(reordered, { type: "phases", phaseIds: [3, 1, 2] })).toBe(reordered);
+    const stepper = run(touch(PHASE_COUNT));
+    expect(sheetSurfaceReducer(stepper, { type: "phases", phaseIds: [1, 2] })).toBe(stepper);
+    expect(sheetSurfaceReducer(stepper, { type: "phases", phaseIds: [] }).open).toEqual(NONE_OPEN);
+    // Un champ de série n'est pas concerné par les phases, ni l'inverse.
+    const rowField = run(touch({ kind: "keyboard", field: { kind: "rowTarget", row: 3 } }));
+    expect(sheetSurfaceReducer(rowField, { type: "phases", phaseIds: [] })).toBe(rowField);
+    const phaseField = run(touch(PHASE_DURATION(3)));
+    expect(sheetSurfaceReducer(phaseField, { type: "rows", rowIds: [] })).toBe(phaseField);
   });
 });
