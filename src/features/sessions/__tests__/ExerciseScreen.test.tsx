@@ -433,7 +433,7 @@ describe("ExerciseScreen — PRE-3 (quatre parcours)", () => {
       bodyZoneIds: ["cuisses"],
       executionParameters: expect.objectContaining({
         mode: "DURATION",
-        series: { kind: "UNIFORM", count: 1, target: { kind: "NUMBER", value: 45 }, pauseSeconds: 0 },
+        series: { kind: "UNIFORM", count: 1, target: { kind: "NUMBER", value: 45 }, pauseSeconds: 0, loadKg: 0, workPhases: [] },
       }),
       media: [],
     });
@@ -759,7 +759,7 @@ describe("ExerciseScreen — PRE-4 story 1.1 (ligne de base, Cible à renseigner
       kind: "UNIFORM",
       count: 1,
       target: { kind: "NUMBER", value: 5999 },
-      pauseSeconds: 0,
+      pauseSeconds: 0, loadKg: 0, workPhases: [],
     });
   });
 
@@ -777,7 +777,7 @@ describe("ExerciseScreen — PRE-4 story 1.1 (ligne de base, Cible à renseigner
     });
     const saved = updateActivityDefinition.mock.calls[0]![1].executionParameters;
     expect(saved.cadenceBeepIntervalSeconds).toBe(11);
-    expect(saved.series).toMatchObject({ kind: "UNIFORM", pauseSeconds: 11 });
+    expect(saved.series).toMatchObject({ kind: "UNIFORM", pauseSeconds: 11, loadKg: 0, workPhases: [] });
   });
 
   describe("PRE4-3.2/AC12 — ligne historique déplacée dans la Feuille, puis Terminer (ligne de base de l'Éditeur)", () => {
@@ -792,9 +792,9 @@ describe("ExerciseScreen — PRE-4 story 1.1 (ligne de base, Cible à renseigner
     const moved = {
       kind: "VARIABLE",
       rows: [
-        { target: { kind: "NUMBER", value: 5999 }, pauseSeconds: 20 },
-        { target: { kind: "NUMBER", value: 30 }, pauseSeconds: 10 },
-        { target: { kind: "NUMBER", value: 7 }, pauseSeconds: 30 },
+        { target: { kind: "NUMBER", value: 5999 }, pauseSeconds: 20, loadKg: 0 },
+        { target: { kind: "NUMBER", value: 30 }, pauseSeconds: 10, loadKg: 0 },
+        { target: { kind: "NUMBER", value: 7 }, pauseSeconds: 30, loadKg: 0 },
       ],
     };
 
@@ -852,7 +852,7 @@ describe("ExerciseScreen — PRE-4 story 1.1 (ligne de base, Cible à renseigner
       fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
     });
     const saved = updateActivityDefinition.mock.calls[0]![1].executionParameters;
-    expect(saved.series).toEqual({ kind: "UNIFORM", count: 3, target: { kind: "NUMBER", value: 1 }, pauseSeconds: 10 });
+    expect(saved.series).toEqual({ kind: "UNIFORM", count: 3, target: { kind: "NUMBER", value: 1 }, pauseSeconds: 10, loadKg: 0, workPhases: [] });
     expect(JSON.stringify(saved)).not.toContain("FAILURE");
   });
 });
@@ -896,7 +896,7 @@ describe("ExerciseScreen — PRE-4 story 1.1, chemin Séance (occurrence hérit�
       kind: "UNIFORM",
       count: 1,
       target: { kind: "NUMBER", value: 5999 },
-      pauseSeconds: 0,
+      pauseSeconds: 0, loadKg: 0, workPhases: [],
     });
   });
 });
@@ -1137,7 +1137,7 @@ describe("ExerciseScreen — PRE-4 story 4.2", () => {
     expect(screen.getByTestId("exercise-finish-action").props.accessibilityState).toMatchObject({ disabled: false });
     screen.unmount();
     const unset = canonicalOccurrence({
-      executionParameters: { ...durationParameters(60, 2, 15), series: { kind: "UNIFORM", count: 2, target: { kind: "UNSET" }, pauseSeconds: 15 } },
+      executionParameters: { ...durationParameters(60, 2, 15), series: { kind: "UNIFORM", count: 2, target: { kind: "UNSET" }, pauseSeconds: 15, loadKg: 0, workPhases: [] } },
     });
     renderRoute({ params: { exerciseId: unset.id }, exercises: [unset] });
     expect(screen.getByTestId("exercise-finish-action").props.accessibilityState).toMatchObject({ disabled: true });

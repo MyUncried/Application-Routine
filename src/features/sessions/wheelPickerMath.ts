@@ -181,7 +181,7 @@ export function minutesMaxIndexFor(maxTotalSeconds: number): number {
 
 /**
  * PRE-4 story 3.4 (Q36, P21, H15) — bornes d'une roulette de Cible Durée, en
- * secondes (5..3535). La position `00:00` reste présente dans la roue, mais n'est
+ * secondes (1..3535 depuis D-430). La position `00:00` reste présente dans la roue, mais n'est
  * jamais une Cible (Q15, FR-08-04) : le ✓ y est indisponible.
  */
 export type WheelTargetBounds = { readonly min: number; readonly max: number };
@@ -190,7 +190,7 @@ export type WheelTargetBounds = { readonly min: number; readonly max: number };
  * Story 3.4 (AC2, Q36) — secondes proposées pour une minute donnée, sous des bornes
  * de Cible : toute seconde dont le total `minutes × 60 + secondes` est dans
  * `[bounds.min, bounds.max]`, plus la position `00` à 0 minute (`00:00`, jamais
- * une Cible). Pour 5..3535 : `00` puis 05..59 à 0 min, 00..59 de 1 à 57 min, 00..55
+ * une Cible). Pour 1..3535 (D-430) : `00` puis 01..59 à 0 min, 00..59 de 1 à 57 min, 00..55
  * à 58 min. Les bornes sont à la seconde : cette liste suppose le pas de 1 de
  * `WHEEL_SECONDS_STEP` (R4-05, Q36), vérifié par `wheelPickerMath.test.ts`.
  */
@@ -222,7 +222,8 @@ export function boundedMinutesValues(bounds: WheelTargetBounds): number[] {
 /**
  * Story 3.4 — recalage d'une seconde absente de la liste de sa minute (changement de
  * minute, ou valeur native hors liste) : la plus proche valeur proposée, en sélection
- * numérique. À 0 minute, le recalage vise une Cible valide (00:05 pour 5..3535),
+ * numérique. À 0 minute, le recalage vise une Cible valide (00:05 pour une borne
+ * de 5 s ; sous 1..3535, D-430, toute seconde de 01 à 59 est déjà proposée),
  * jamais `00:00` : cette position n'est atteinte que par la roue elle-même ou par
  * l'option échec. Une seconde présente dans la liste est gardée telle quelle.
  */

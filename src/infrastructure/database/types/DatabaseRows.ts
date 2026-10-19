@@ -67,7 +67,7 @@ export type SessionAggregateRow = {
   instruction: string | null;
   /** V2-BILAT-01 : direction propre de cette Activité (`Activity.sideMode`, `migration005`, défaut `'UNILATERAL'`). */
   activity_side_mode: SideMode;
-  /** JSON canonique (v2 après `migration010`, lu par `readV2`) — `NULL` seulement pour une ancienne ligne `RECOVERY`. */
+  /** JSON canonique (v2 après `migration010`, v3 dès le prochain enregistrement — PRE-5, AD-18 ; lu par `readExecutionParameters`) — `NULL` seulement pour une ancienne ligne `RECOVERY`. */
   activity_execution_parameters: string | null;
   /** PRE-3 : Catégorie de la copie — `NULL` pour une ancienne copie. */
   activity_category_id: string | null;
@@ -148,7 +148,7 @@ export type ActivityDefinitionRow = {
   side_mode: SideMode;
   /** V2-PRE-1 : pause de changement de côté propre à l'Exercice. */
   side_recovery_seconds: number;
-  /** JSON canonique v2 (`migration010`), lu par `readV2` ; jamais NULL après la migration. */
+  /** JSON canonique v2 (`migration010`) ou v3 (PRE-5, AD-18), lu par `readExecutionParameters` ; jamais NULL après la migration. */
   execution_parameters: string | null;
   created_at: string;
   updated_at: string;

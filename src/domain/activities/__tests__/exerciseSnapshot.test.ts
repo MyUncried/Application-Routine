@@ -49,9 +49,9 @@ function canonical(): ExecutionParameters {
     series: {
       kind: "VARIABLE",
       rows: [
-        { target: numberTarget(30), pauseSeconds: 10 },
-        { target: numberTarget(45), pauseSeconds: 20 },
-        { target: numberTarget(60), pauseSeconds: 30 },
+        { target: numberTarget(30), pauseSeconds: 10, loadKg: 0 },
+        { target: numberTarget(45), pauseSeconds: 20, loadKg: 0 },
+        { target: numberTarget(60), pauseSeconds: 30, loadKg: 0 },
       ],
     },
     sideMode: "RIGHT_LEFT",
@@ -60,6 +60,7 @@ function canonical(): ExecutionParameters {
     cadenceBeepIntervalSeconds: 4,
     countdownSeconds: 10,
     endSeconds: 5,
+    loadEnabled: false,
   };
 }
 
@@ -139,7 +140,7 @@ describe("P3-18/historical-immutability et P3-15/no-storage", () => {
 });
 
 describe("PRE-4 story 1.1 — Instantanés versionnés (AD-3)", () => {
-  it("PRE4-1.1/AC2 — un nouvel Instantané est en version 2, paramètres typés sérialisés en v2", () => {
+  it("PRE4-1.1/AC2, PRE5-1.1/AC11 — un nouvel Instantané est en version 3, paramètres typés sérialisés en v3 (AD-18)", () => {
     const snapshot = createExerciseSnapshot({
       name: "Gainage",
       categoryId: null,
@@ -149,11 +150,11 @@ describe("PRE-4 story 1.1 — Instantanés versionnés (AD-3)", () => {
       media: [],
     });
     expect(snapshot.snapshotVersion).toBe(EXERCISE_SNAPSHOT_VERSION);
-    expect(EXERCISE_SNAPSHOT_VERSION).toBe(2);
+    expect(EXERCISE_SNAPSHOT_VERSION).toBe(3);
     const raw = JSON.parse(serializeExerciseSnapshot(snapshot));
-    expect(raw.snapshotVersion).toBe(2);
-    expect(raw.executionParameters.version).toBe(2);
-    expect(raw.executionParameters.series.rows[0]).toEqual({ target: { kind: "NUMBER", value: 30 }, pauseSeconds: 10 });
+    expect(raw.snapshotVersion).toBe(3);
+    expect(raw.executionParameters.version).toBe(3);
+    expect(raw.executionParameters.series.rows[0]).toEqual({ target: { kind: "NUMBER", value: 30 }, pauseSeconds: 10, loadKg: 0 });
     expect(parseExerciseSnapshot(serializeExerciseSnapshot(snapshot))).toEqual(snapshot);
   });
 
@@ -180,14 +181,14 @@ describe("PRE-4 story 1.1 — Instantanés versionnés (AD-3)", () => {
     });
     const reread = parseExerciseSnapshot(v1);
     expect(reread.snapshotVersion).toBe(1);
-    expect(reread.executionParameters.series).toEqual({ kind: "UNIFORM", count: 3, target: numberTarget(12), pauseSeconds: 10 });
+    expect(reread.executionParameters.series).toEqual({ kind: "UNIFORM", count: 3, target: numberTarget(12), pauseSeconds: 10, loadKg: 0, workPhases: [] });
     expect(reread.actualDurationSeconds).toBeNull();
 
-    // Re-sérialisé, il est écrit en version 2 (paramètres v2) et se relit à l'identique hors version.
+    // Re-sérialisé, il est écrit en version courante (3, paramètres v3) et se relit à l'identique hors version.
     const rewritten = serializeExerciseSnapshot(reread);
-    expect(JSON.parse(rewritten).snapshotVersion).toBe(2);
+    expect(JSON.parse(rewritten).snapshotVersion).toBe(3);
     const roundTrip = parseExerciseSnapshot(rewritten);
-    expect(roundTrip).toEqual({ ...reread, snapshotVersion: 2 });
+    expect(roundTrip).toEqual({ ...reread, snapshotVersion: 3 });
   });
 });
 
@@ -260,11 +261,11 @@ describe("PRE-4 story 1.3 — Instantanés", () => {
 
     // Sans clé Bip : non cadencé (ch. 09, « absent dans ancien snapshot = non cadencé »).
     expect(reread[0]!.executionParameters.cadenceBeepIntervalSeconds).toBe(0);
-    expect(reread[0]!.executionParameters.series).toEqual({ kind: "UNIFORM", count: 2, target: numberTarget(40), pauseSeconds: 10 });
+    expect(reread[0]!.executionParameters.series).toEqual({ kind: "UNIFORM", count: 2, target: numberTarget(40), pauseSeconds: 10, loadKg: 0, workPhases: [] });
 
     // Ancien mode à l'échec : Répétitions, 3 Cibles FAILURE, aucun nombre de répétitions.
     expect(reread[1]!.executionParameters.mode).toBe("REPETITIONS");
-    expect(reread[1]!.executionParameters.series).toEqual({ kind: "UNIFORM", count: 3, target: failureTarget(), pauseSeconds: 15 });
+    expect(reread[1]!.executionParameters.series).toEqual({ kind: "UNIFORM", count: 3, target: failureTarget(), pauseSeconds: 15, loadKg: 0, workPhases: [] });
     expect(JSON.stringify(reread[1]!.executionParameters.series)).not.toMatch(/"value"/);
 
     // Durée réalisée : NULL reste NULL (jamais 0), 95 reste 95.
@@ -289,15 +290,15 @@ describe("PRE-4 story 1.3 — Instantanés", () => {
     expect((thrown as Error).message).toMatch(/Unreadable legacy execution parameters: target is negative or not an integer/);
   });
 
-  it("PRE4-1.3/AC10 — nouvel Instantané v2 : types, valeurs, ordre et Bip unique restitués ; Médias par référence et ordonnés ; gelé", () => {
+  it("PRE4-1.3/AC10 — nouvel Instantané (v3 depuis PRE-5) : types, valeurs, ordre et Bip unique restitués ; Médias par référence et ordonnés ; gelé", () => {
     const parameters: ExecutionParameters = {
       ...canonical(),
       series: {
         kind: "VARIABLE",
         rows: [
-          { target: numberTarget(30), pauseSeconds: 10 },
-          { target: failureTarget(), pauseSeconds: 20 },
-          { target: numberTarget(45), pauseSeconds: 30 },
+          { target: numberTarget(30), pauseSeconds: 10, loadKg: 0 },
+          { target: failureTarget(), pauseSeconds: 20, loadKg: 0 },
+          { target: numberTarget(45), pauseSeconds: 30, loadKg: 0 },
         ],
       },
       sideMode: "RIGHT_LEFT",
@@ -315,11 +316,11 @@ describe("PRE-4 story 1.3 — Instantanés", () => {
     const snapshot = createExerciseSnapshot(copy);
     const reread = parseExerciseSnapshot(serializeExerciseSnapshot(snapshot));
 
-    expect(reread.snapshotVersion).toBe(2);
+    expect(reread.snapshotVersion).toBe(3);
     expect(reread.executionParameters).toEqual(parameters);
     // Un seul Bip, au niveau de l'Exercice : aucune clé de Bip par Série ni par côté.
     const raw = JSON.parse(serializeExerciseSnapshot(snapshot)) as { executionParameters: { series: { rows: object[] } } };
-    expect(raw.executionParameters.series.rows.every((row) => Object.keys(row).sort().join() === "pauseSeconds,target")).toBe(true);
+    expect(raw.executionParameters.series.rows.every((row) => Object.keys(row).sort().join() === "loadKg,pauseSeconds,target")).toBe(true); // PRE-5 (AD-18) : la charge suit la ligne.
     expect(JSON.stringify(raw).match(/cadenceBeepIntervalSeconds/g)).toHaveLength(1);
     // Médias : même ordre, mêmes fichiers (référence par URI), aucune copie de contenu.
     expect(reread.media.map((item) => [item.position, item.asset.id, item.asset.uri])).toEqual([
@@ -337,5 +338,76 @@ describe("PRE-4 story 1.3 — Instantanés", () => {
     expect(snapshot.bodyZoneIds).toEqual(["cuisses", "fessiers"]);
     expect(Object.isFrozen(snapshot.executionParameters.series)).toBe(true);
     expect(Object.isFrozen(snapshot.media)).toBe(true);
+  });
+});
+
+describe("PRE-5 story 1.1 — Instantanés v3 (AD-18, FR-41)", () => {
+  const loaded = (): ExecutionParameters => ({
+    ...canonical(),
+    series: {
+      kind: "UNIFORM",
+      count: 3,
+      target: numberTarget(9),
+      pauseSeconds: 15,
+      loadKg: 2.5,
+      workPhases: [
+        { id: 3, label: "Descente", durationSeconds: 6 },
+        { id: 1, label: "Maintien", durationSeconds: 3 },
+      ],
+    },
+    sideMode: "LEFT_RIGHT",
+    loadEnabled: false,
+  });
+
+  it("PRE5-1.1/AC11 — phases (identités comprises) et charge sous Sans traversent l'Instantané v3 ; une copie isolée de la source", () => {
+    const source = loaded();
+    const snapshot = createExerciseSnapshot({ name: "Squat", categoryId: null, bodyZoneIds: [], executionParameters: source, recoverySeconds: 0, media: [] });
+    const reread = parseExerciseSnapshot(serializeExerciseSnapshot(snapshot));
+    expect(reread.executionParameters).toEqual(loaded());
+    (source.series as unknown as { workPhases: { label: string }[] }).workPhases[0]!.label = "Modifiée";
+    expect(snapshot.executionParameters).toEqual(loaded());
+  });
+
+  it("PRE5-1.1/AC11 — une enveloppe v2 (paramètres v2) reste lisible : sans phases, charge Sans", () => {
+    const v2 = JSON.stringify({
+      snapshotVersion: 2,
+      name: "Gainage",
+      categoryId: null,
+      bodyZoneIds: [],
+      executionParameters: {
+        version: 2,
+        mode: "DURATION",
+        series: { kind: "UNIFORM", count: 3, target: { kind: "NUMBER", value: 30 }, pauseSeconds: 10 },
+        sideMode: "UNILATERAL",
+        sideOrder: "BY_SIDE",
+        sideRecoverySeconds: 0,
+        cadenceBeepIntervalSeconds: 0,
+        countdownSeconds: 0,
+        endSeconds: 0,
+      },
+      recoverySeconds: 0,
+      media: [],
+      actualDurationSeconds: 95,
+    });
+    const reread = parseExerciseSnapshot(v2);
+    expect(reread.snapshotVersion).toBe(2);
+    expect(reread.executionParameters.loadEnabled).toBe(false);
+    expect(reread.executionParameters.series).toEqual({
+      kind: "UNIFORM",
+      count: 3,
+      target: numberTarget(30),
+      pauseSeconds: 10,
+      loadKg: 0,
+      workPhases: [],
+    });
+    expect(reread.actualDurationSeconds).toBe(95);
+  });
+
+  it("PRE5-1.1/AC11 — paramètres v3 incomplets dans une enveloppe : erreur explicite de l'Instantané", () => {
+    const raw = JSON.parse(
+      serializeExerciseSnapshot(createExerciseSnapshot({ name: "x", categoryId: null, bodyZoneIds: [], executionParameters: loaded(), recoverySeconds: 0, media: [] })),
+    ) as { executionParameters: Record<string, unknown> };
+    delete raw.executionParameters.loadEnabled;
+    expect(() => parseExerciseSnapshot(JSON.stringify(raw))).toThrow(ExerciseSnapshotDataError);
   });
 });

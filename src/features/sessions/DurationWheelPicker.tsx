@@ -147,7 +147,7 @@ export type DurationWheelPickerProps = DurationWheelPickerBaseProps &
 /** Documentation des deux props de la story 3.4 (voir `DurationWheelPickerProps`). */
 export type DurationWheelTargetProps = {
   /**
-   * PRE-4 story 3.4 (AD-7, Q36) — bornes de Cible (5..3535). Elles remplacent
+   * PRE-4 story 3.4 (AD-7, Q36) — bornes de Cible (1..3535 depuis D-430). Elles remplacent
    * `maxTotalSeconds` : minutes 00..58 sans rebouclage, secondes au pas de 1,
    * 00..55 à 58 min, position `00:00` conservée ; le ✓ est indisponible sous la
    * borne basse en sélection numérique (`00:00`, Q15). Sans elles, comportement
@@ -327,7 +327,7 @@ function NativeAppleDurationWheelPicker({
     draftRef.current.minutes = value;
     setDraftMinutes(value);
     // Story 3.4 (AC2) : à la minute maximale (ou à 0), les secondes hors bornes
-    // rejoignent la plus proche valeur proposée (58:57 → 58:55 ; 01:02 → 00:05, jamais 00:00).
+    // rejoignent la plus proche valeur proposée (58:57 → 58:55 ; sous une borne basse de 5 s, 01:02 → 00:05 ; jamais 00:00).
     const seconds = snapSeconds(draftRef.current.seconds, value, targetBounds);
     if (seconds !== draftRef.current.seconds) {
       draftRef.current.seconds = seconds;

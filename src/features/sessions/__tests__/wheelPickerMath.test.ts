@@ -219,14 +219,15 @@ describe("WHEEL_NUMBER_MIN/WHEEL_NUMBER_MAX (Répétitions/Séries, D-092)", () 
 /** PRE-4 story 3.4 (AC2, Q36) — secondes proposées sous bornes de Cible et recalage. */
 describe("PRE4-3.4 — boundedSecondsValues, nearestWheelValue, snapBoundedSeconds", () => {
   const range = (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, index) => from + index);
-  const TARGET = { min: 5, max: 3535 } as const;
+  // PRE-5 (D-430, AD-31) : bornes de la Cible Durée 1..3535.
+  const TARGET = { min: 1, max: 3535 } as const;
 
   it("PRE4-3.4/AC2 — les bornes sont à la seconde : la liste suppose le pas de 1 de WHEEL_SECONDS_STEP (Q36)", () => {
     expect(WHEEL_SECONDS_STEP).toBe(1);
   });
 
-  it("PRE4-3.4/AC2 — 5..3535 : 00 puis 05..59 à 0 min ; 00..59 de 1 à 57 min ; 00..55 à 58 min", () => {
-    expect(boundedSecondsValues(0, TARGET)).toEqual([0, ...range(5, 59)]);
+  it("PRE4-3.4/AC2, D-430 — 1..3535 : 00 puis 01..59 à 0 min ; 00..59 de 1 à 57 min ; 00..55 à 58 min", () => {
+    expect(boundedSecondsValues(0, TARGET)).toEqual([0, ...range(1, 59)]);
     expect(boundedSecondsValues(1, TARGET)).toEqual(range(0, 59));
     expect(boundedSecondsValues(57, TARGET)).toEqual(range(0, 59));
     expect(boundedSecondsValues(58, TARGET)).toEqual(range(0, 55));
@@ -239,7 +240,7 @@ describe("PRE4-3.4 — boundedSecondsValues, nearestWheelValue, snapBoundedSecon
     expect(boundedSecondsValues(2, { min: 90, max: 3535 })).toEqual(range(0, 59));
   });
 
-  it("PRE4-3.7/AC4 — boundedMinutesValues : 0..58 sous 5..3535 (3.4 inchangée) ; dès min ≥ 60, à partir de floor(min / 60) ; aucune minute proposée sans seconde", () => {
+  it("PRE4-3.7/AC4 — boundedMinutesValues : 0..58 sous 1..3535 (3.4 inchangée) ; dès min ≥ 60, à partir de floor(min / 60) ; aucune minute proposée sans seconde", () => {
     expect(boundedMinutesValues(TARGET)).toEqual(range(0, 58));
     // Durée totale, d = 60 s, p = 10 s : T(1) = 70 s, T(99) plafonné à 5999 s.
     const t1 = 1 * (60 + 10);
@@ -270,10 +271,13 @@ describe("PRE4-3.4 — boundedSecondsValues, nearestWheelValue, snapBoundedSecon
     expect(nearestWheelValue(-3, [0, 5])).toBe(0);
   });
 
-  it("PRE4-3.4/AC2 — snapBoundedSeconds : 58:57 → 58:55 ; 01:02 descendu à 0 min → 00:05, jamais 00:00 ; 00:00 et valeurs présentes gardées", () => {
+  it("PRE4-3.4/AC2 — snapBoundedSeconds : 58:57 → 58:55 ; à 0 min sous 1..3535, 00:01 et 00:02 gardées (D-430) ; sous une borne de 5 s, 00:02 → 00:05, jamais 00:00 ; 00:00 et valeurs présentes gardées", () => {
     expect(snapBoundedSeconds(57, 58, TARGET)).toBe(55);
-    expect(snapBoundedSeconds(2, 0, TARGET)).toBe(5);
-    expect(snapBoundedSeconds(1, 0, TARGET)).toBe(5);
+    expect(snapBoundedSeconds(2, 0, TARGET)).toBe(2);
+    expect(snapBoundedSeconds(1, 0, TARGET)).toBe(1);
+    // Recalage générique (borne basse de 5 s) : jamais 00:00.
+    expect(snapBoundedSeconds(2, 0, { min: 5, max: 40 })).toBe(5);
+    expect(snapBoundedSeconds(1, 0, { min: 5, max: 40 })).toBe(5);
     expect(snapBoundedSeconds(0, 0, TARGET)).toBe(0);
     expect(snapBoundedSeconds(30, 0, TARGET)).toBe(30);
     expect(snapBoundedSeconds(30, 1, TARGET)).toBe(30);

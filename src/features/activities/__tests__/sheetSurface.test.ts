@@ -146,9 +146,9 @@ describe("PRE4-3.6 — table de transitions d'AD-15 avec le Sélecteur de ligne 
     expect(run(touch(ROW(2))).open).toEqual(rowSelector(2, 1));
   });
 
-  it("PRE4-3.6/T3 — cellule de Cible `UNSET` : même transition ; la roue s'ouvre sur la valeur minimale (00:05 ou 1)", () => {
+  it("PRE4-3.6/T3 — cellule de Cible `UNSET` : même transition ; la roue s'ouvre sur la valeur minimale (00:01 depuis D-430, ou 1)", () => {
     expect(run(touch(ROW(3))).open).toEqual(rowSelector(3, 1));
-    expect(selectorOpeningPosition("DURATION", unsetTarget())).toEqual(numberTarget(5));
+    expect(selectorOpeningPosition("DURATION", unsetTarget())).toEqual(numberTarget(1));
     expect(selectorOpeningPosition("REPETITIONS", unsetTarget())).toEqual(numberTarget(1));
   });
 
@@ -280,7 +280,7 @@ describe("PRE4-3.6 — table de transitions d'AD-15 avec le Sélecteur de ligne 
   it("PRE4-3.6/AC5 — règle du pas de la Cible (`stepTarget`), utilisée par les ± permanents des cellules", () => {
     expect(stepTarget("DURATION", failureTarget(), 1)).toBe("unavailable");
     expect(stepTarget("DURATION", unsetTarget(), -1)).toBe("unavailable");
-    expect(stepTarget("DURATION", unsetTarget(), 1)).toEqual(numberTarget(5));
+    expect(stepTarget("DURATION", unsetTarget(), 1)).toEqual(numberTarget(1)); // D-430
   });
 });
 

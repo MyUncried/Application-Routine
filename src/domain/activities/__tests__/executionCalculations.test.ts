@@ -85,18 +85,19 @@ function toParameters(given: Required<Pick<OracleGiven, "mode" | "pauses">> & Or
   const rows = given.pauses.map((pauseSeconds, index) => {
     const value = given.targets?.[index];
     const target = legacyFailure ? failureTarget() : value === undefined ? unsetTarget() : numberTarget(value);
-    return { target, pauseSeconds };
+    return { target, pauseSeconds, loadKg: 0 };
   });
   return {
     version: EXECUTION_PARAMETERS_VERSION,
     mode: legacyFailure ? "REPETITIONS" : (given.mode as "DURATION" | "REPETITIONS"),
-    series: count === 1 ? { kind: "UNIFORM", count: 1, ...rows[0]! } : { kind: "VARIABLE", rows },
+    series: count === 1 ? { kind: "UNIFORM", count: 1, ...rows[0]!, workPhases: [] } : { kind: "VARIABLE", rows },
     sideMode: given.side ?? "UNILATERAL",
     sideOrder: given.orderRequested ?? given.order ?? "BY_SIDE",
     sideRecoverySeconds: given.sidePause ?? 0,
     cadenceBeepIntervalSeconds: given.cadence ?? 0,
     countdownSeconds: 10,
     endSeconds: 5,
+    loadEnabled: false,
   };
 }
 
@@ -144,13 +145,13 @@ describe("P3-12/numeric — 13 cas indépendants (attendus-numeriques.json)", ()
 });
 
 describe("P3-12/normative-totals et P3-12/omission", () => {
-  const base = { countdownSeconds: 10, endSeconds: 5, version: EXECUTION_PARAMETERS_VERSION } as const;
+  const base = { countdownSeconds: 10, endSeconds: 5, version: EXECUTION_PARAMETERS_VERSION, loadEnabled: false } as const;
 
   it("aucune convention historique de 2 s par répétition", () => {
     const repetitions: ExecutionParametersInput = {
       ...base,
       mode: "REPETITIONS",
-      series: { kind: "UNIFORM", count: 3, target: numberTarget(12), pauseSeconds: 0 },
+      series: { kind: "UNIFORM", count: 3, target: numberTarget(12), pauseSeconds: 0, loadKg: 0, workPhases: [] },
       sideMode: "UNILATERAL",
       sideOrder: "BY_SIDE",
       sideRecoverySeconds: 0,
@@ -166,8 +167,9 @@ describe("P3-12/normative-totals et P3-12/omission", () => {
       ...base,
       countdownSeconds: 60,
       endSeconds: 60,
+      loadEnabled: false,
       mode: "DURATION",
-      series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 15 },
+      series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 15, loadKg: 0, workPhases: [] },
       sideMode: "UNILATERAL",
       sideOrder: "BY_SIDE",
       sideRecoverySeconds: 0,
@@ -184,9 +186,9 @@ function variableE(side: SideMode, order: SideOrder, sidePause = 15): ExecutionP
     series: {
       kind: "VARIABLE",
       rows: [
-        { target: numberTarget(12), pauseSeconds: 30 },
-        { target: numberTarget(10), pauseSeconds: 45 },
-        { target: numberTarget(8), pauseSeconds: 60 },
+        { target: numberTarget(12), pauseSeconds: 30, loadKg: 0 },
+        { target: numberTarget(10), pauseSeconds: 45, loadKg: 0 },
+        { target: numberTarget(8), pauseSeconds: 60, loadKg: 0 },
       ],
     },
     sideMode: side,
@@ -195,6 +197,7 @@ function variableE(side: SideMode, order: SideOrder, sidePause = 15): ExecutionP
     cadenceBeepIntervalSeconds: 0,
     countdownSeconds: 10,
     endSeconds: 5,
+    loadEnabled: false,
   };
 }
 
@@ -205,9 +208,9 @@ function caseA(overrides: Partial<ExecutionParametersInput> = {}): ExecutionPara
     series: {
       kind: "VARIABLE",
       rows: [
-        { target: numberTarget(30), pauseSeconds: 10 },
-        { target: numberTarget(45), pauseSeconds: 20 },
-        { target: numberTarget(60), pauseSeconds: 30 },
+        { target: numberTarget(30), pauseSeconds: 10, loadKg: 0 },
+        { target: numberTarget(45), pauseSeconds: 20, loadKg: 0 },
+        { target: numberTarget(60), pauseSeconds: 30, loadKg: 0 },
       ],
     },
     sideMode: "UNILATERAL",
@@ -216,6 +219,7 @@ function caseA(overrides: Partial<ExecutionParametersInput> = {}): ExecutionPara
     cadenceBeepIntervalSeconds: 0,
     countdownSeconds: 10,
     endSeconds: 5,
+    loadEnabled: false,
     ...overrides,
   };
 }
@@ -225,7 +229,7 @@ describe("P3-13/R-terminal — R remplace la seule Pause terminale", () => {
     expect(computeOccurrenceDuration(caseA(), 120).seconds).toBe(285);
     expect(computeOccurrenceDuration(caseA(), 0).seconds).toBe(195);
     const n1 = caseA({
-      series: { kind: "UNIFORM", count: 1, target: numberTarget(90), pauseSeconds: 15 },
+      series: { kind: "UNIFORM", count: 1, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] },
       sideMode: "RIGHT_LEFT",
       sideOrder: "BY_SERIES",
       sideRecoverySeconds: 10,
@@ -328,13 +332,14 @@ describe("P3-14/inverse-enumeration et P3-14/inverse-explicit — inversion Dur�
   const uniform30 = (overrides: Partial<ExecutionParametersInput> = {}): ExecutionParametersInput => ({
     version: EXECUTION_PARAMETERS_VERSION,
     mode: "DURATION",
-    series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 10 },
+    series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] },
     sideMode: "UNILATERAL",
     sideOrder: "BY_SIDE",
     sideRecoverySeconds: 0,
     cadenceBeepIntervalSeconds: 0,
     countdownSeconds: 0,
     endSeconds: 0,
+    loadEnabled: false,
     ...overrides,
   });
 
@@ -344,7 +349,7 @@ describe("P3-14/inverse-enumeration et P3-14/inverse-explicit — inversion Dur�
   });
 
   it("cas 6423:9953 : 3 × 90 s, Pause 15 s → 5 min 15 s sans ajustement", () => {
-    const parameters = uniform30({ series: { kind: "UNIFORM", count: 1, target: numberTarget(90), pauseSeconds: 15 } });
+    const parameters = uniform30({ series: { kind: "UNIFORM", count: 1, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] } });
     expect(invertTotalDuration(parameters, 315)).toEqual({ seriesCount: 3, totalSeconds: 315, adjusted: false });
   });
 });
@@ -353,13 +358,14 @@ describe("P3-14/inverse-boundaries", () => {
   const bilateral: ExecutionParametersInput = {
     version: EXECUTION_PARAMETERS_VERSION,
     mode: "DURATION",
-    series: { kind: "UNIFORM", count: 5, target: numberTarget(30), pauseSeconds: 10 },
+    series: { kind: "UNIFORM", count: 5, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] },
     sideMode: "RIGHT_LEFT",
     sideOrder: "BY_SERIES",
     sideRecoverySeconds: 5,
     cadenceBeepIntervalSeconds: 0,
     countdownSeconds: 0,
     endSeconds: 0,
+    loadEnabled: false,
   };
 
   it("N=1 normalisé par côté ; en deçà du minimum → N=1 ; au-delà du maximum → N=99 ; jamais 0/100", () => {
@@ -378,13 +384,13 @@ describe("P3-14/inverse-boundaries", () => {
     expect(
       isTotalDurationInvertible({
         ...bilateral,
-        series: { kind: "UNIFORM", count: 5, target: failureTarget(), pauseSeconds: 10 },
+        series: { kind: "UNIFORM", count: 5, target: failureTarget(), pauseSeconds: 10, loadKg: 0, workPhases: [] },
       }),
     ).toBe(false);
     expect(
       isTotalDurationInvertible({
         ...bilateral,
-        series: { kind: "UNIFORM", count: 5, target: unsetTarget(), pauseSeconds: 10 },
+        series: { kind: "UNIFORM", count: 5, target: unsetTarget(), pauseSeconds: 10, loadKg: 0, workPhases: [] },
       }),
     ).toBe(false);
     expect(
@@ -393,8 +399,8 @@ describe("P3-14/inverse-boundaries", () => {
         series: {
           kind: "VARIABLE",
           rows: [
-            { target: numberTarget(30), pauseSeconds: 10 },
-            { target: numberTarget(30), pauseSeconds: 10 },
+            { target: numberTarget(30), pauseSeconds: 10, loadKg: 0 },
+            { target: numberTarget(30), pauseSeconds: 10, loadKg: 0 },
           ],
         },
       }),
@@ -411,9 +417,9 @@ describe("P3-08/immediate-N1 — calcul du brouillon à N=1", () => {
       series: {
         kind: "VARIABLE",
         rows: [
-          { target: numberTarget(90), pauseSeconds: 15 },
-          { target: numberTarget(45), pauseSeconds: 20 },
-          { target: numberTarget(60), pauseSeconds: 30 },
+          { target: numberTarget(90), pauseSeconds: 15, loadKg: 0 },
+          { target: numberTarget(45), pauseSeconds: 20, loadKg: 0 },
+          { target: numberTarget(60), pauseSeconds: 30, loadKg: 0 },
         ],
       },
       sideMode: "RIGHT_LEFT",
@@ -422,6 +428,7 @@ describe("P3-08/immediate-N1 — calcul du brouillon à N=1", () => {
       cadenceBeepIntervalSeconds: 0,
       countdownSeconds: 10,
       endSeconds: 5,
+      loadEnabled: false,
     });
     const reduced = { ...draft, count: 1, rows: draft.rows.slice(0, 1), hiddenRows: draft.rows.slice(1) };
     expect(computeIntrinsicDuration(effectiveParameters(reduced)).seconds).toBe(220);
@@ -433,13 +440,14 @@ describe("PRE-4 story 1.1 — Cibles typées dans le calcul (AC20, AC21)", () =>
     const failure: ExecutionParametersInput = {
       version: EXECUTION_PARAMETERS_VERSION,
       mode: "REPETITIONS",
-      series: { kind: "UNIFORM", count: 3, target: failureTarget(), pauseSeconds: 10 },
+      series: { kind: "UNIFORM", count: 3, target: failureTarget(), pauseSeconds: 10, loadKg: 0, workPhases: [] },
       sideMode: "UNILATERAL",
       sideOrder: "BY_SIDE",
       sideRecoverySeconds: 0,
       cadenceBeepIntervalSeconds: 2,
       countdownSeconds: 0,
       endSeconds: 0,
+      loadEnabled: false,
     };
     const result = computeIntrinsicDuration(failure);
     expect(result).toEqual(expect.objectContaining({ kind: "omitted", knownSeconds: 30 }));
@@ -1069,5 +1077,53 @@ describe("PRE-4 story 2.2 — AC4 nature du total de Séance et de Circuit (FR-1
 
   it("PRE4-2.2/AC4 — Circuit répété k fois : k fois, sans multiplicateur double", () => {
     expect(aggregateSessionDuration([{ result: lowerBound105, multiplicity: 2 }])).toEqual({ kind: "lowerBound", seconds: 210 });
+  });
+});
+
+/**
+ * PRE-5 story 1.1 (AC14, NR Δ47, AD-5, AD-20) — un Exercice à phases est lu par les
+ * calculs existants sans modification : la durée de série est la Cible dérivée (Σ).
+ */
+describe("PRE5-1.1/AC14 — phases lues par les calculs existants (NR Δ47)", () => {
+  const phased = uniformParameters({
+    mode: "DURATION",
+    count: 3,
+    target: 9,
+    pauseSeconds: 15,
+    workPhases: [
+      { id: 1, label: "Descente", durationSeconds: 6 },
+      { id: 2, label: "Maintien", durationSeconds: 3 },
+    ],
+  });
+
+  it("6 s + 3 s, 3 séries, Pause 15 s : D = 9 s par série, Durée de l'exercice 72 s, identique à une Cible de 9 s sans phases", () => {
+    const work = buildExecutionLedger(phased).filter((event) => event.kind === "WORK");
+    expect(work.map((event) => event.seconds)).toEqual([9, 9, 9]);
+    expect(computeIntrinsicDuration(phased)).toEqual(expect.objectContaining({ kind: "exact", seconds: 72 }));
+    expect(computeIntrinsicDuration(phased)).toEqual(computeIntrinsicDuration(uniformParameters({ mode: "DURATION", count: 3, target: 9, pauseSeconds: 15 })));
+    // Inversion du total : seul N change, les phases restent.
+    expect(invertTotalDuration(phased, 96)).toEqual({ seriesCount: 4, totalSeconds: 96, adjusted: false });
+  });
+
+  it("Δ48 — la charge ne change aucun calcul : Durée, Répétitions × identiques, Répétitions × variables, à l'échec", () => {
+    const pairs: readonly [ExecutionParametersInput, ExecutionParametersInput][] = [
+      [phased, { ...phased, loadEnabled: true, series: { ...(phased.series as Extract<ExecutionParameters["series"], { kind: "UNIFORM" }>), loadKg: 20 } }],
+      [
+        uniformParameters({ mode: "REPETITIONS", count: 3, target: 12, pauseSeconds: 10, cadenceBeepIntervalSeconds: 2 }),
+        uniformParameters({ mode: "REPETITIONS", count: 3, target: 12, pauseSeconds: 10, cadenceBeepIntervalSeconds: 2, loadKg: 20, loadEnabled: true }),
+      ],
+      [
+        variableParameters({ mode: "REPETITIONS", rows: [[12, 10], [10, 10]], cadenceBeepIntervalSeconds: 2 }),
+        variableParameters({ mode: "REPETITIONS", rows: [[12, 10, 20], [10, 10, 12.5]], cadenceBeepIntervalSeconds: 2, loadEnabled: true }),
+      ],
+      [
+        variableParameters({ mode: "REPETITIONS", rows: [[12, 10], ["FAILURE", 10]] }),
+        variableParameters({ mode: "REPETITIONS", rows: [[12, 10, 20], ["FAILURE", 10, 20]], loadEnabled: true }),
+      ],
+    ];
+    for (const [without, withLoad] of pairs) {
+      expect(computeIntrinsicDuration(withLoad)).toEqual(computeIntrinsicDuration(without));
+      expect(computeExercisePlanDuration(withLoad, 30)).toEqual(computeExercisePlanDuration(without, 30));
+    }
   });
 });

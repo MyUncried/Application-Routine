@@ -29,15 +29,15 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 10-19-2026 10:54
-last_updated: 10-19-2026 10:54
+last_updated: 10-19-2026 15:00
 project: kodjo-pre5
 project_key: NOKEY
 tracking_system: file-system
 story_location: 
   C:/Dev/KODJO-BMAD-PRE5/_bmad-output/pre5/implementation-artifacts
 development_status:
-  epic-1: backlog
-  1-1-socle-de-données-v3-phases-charge-étapes-et-minimum-de-1-s: backlog
+  epic-1: in-progress
+  1-1-socle-de-données-v3-phases-charge-étapes-et-minimum-de-1-s: review
   1-2-phrase-avec-phases-et-charge-côtés-neutres-et-indicateur-de: backlog
   epic-1-retrospective: optional
 

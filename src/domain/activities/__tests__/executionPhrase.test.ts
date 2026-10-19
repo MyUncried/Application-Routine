@@ -96,20 +96,21 @@ function buildInput(
   mode: "REPETITIONS" | "DURATION",
   targetAt: (index: number) => SeriesTarget,
 ): ExecutionParametersInput {
-  const rows = parameters.pauses.map((pauseSeconds, index) => ({ target: targetAt(index), pauseSeconds }));
+  const rows = parameters.pauses.map((pauseSeconds, index) => ({ target: targetAt(index), pauseSeconds, loadKg: 0 }));
   return {
     version: EXECUTION_PARAMETERS_VERSION,
     mode,
     series:
       parameters.seriesKind === "VARIABLE"
         ? { kind: "VARIABLE", rows }
-        : { kind: "UNIFORM", count: rows.length, target: rows[0]!.target, pauseSeconds: rows[0]!.pauseSeconds },
+        : { kind: "UNIFORM", count: rows.length, target: rows[0]!.target, pauseSeconds: rows[0]!.pauseSeconds, loadKg: 0, workPhases: [] },
     sideMode: parameters.side,
     sideOrder: parameters.order,
     sideRecoverySeconds: parameters.sidePause,
     cadenceBeepIntervalSeconds: parameters.cadence,
     countdownSeconds: 10,
     endSeconds: 5,
+    loadEnabled: false,
   };
 }
 
@@ -233,14 +234,15 @@ describe("PRE4-2.3/AC13 — les 92 anciennes entrées « À l’échec », adapt
           mode,
           series:
             p.seriesKind === "VARIABLE"
-              ? { kind: "VARIABLE", rows: p.pauses.map((pauseSeconds) => ({ target: failureTarget(), pauseSeconds })) }
-              : { kind: "UNIFORM", count: p.pauses.length, target: failureTarget(), pauseSeconds: p.pauses[0] },
+              ? { kind: "VARIABLE", rows: p.pauses.map((pauseSeconds) => ({ target: failureTarget(), pauseSeconds, loadKg: 0 })) }
+              : { kind: "UNIFORM", count: p.pauses.length, target: failureTarget(), pauseSeconds: p.pauses[0], loadKg: 0, workPhases: [] },
           sideMode: p.side,
           sideOrder: p.order,
           sideRecoverySeconds: p.sidePause,
           cadenceBeepIntervalSeconds: p.cadence,
           countdownSeconds: 10,
           endSeconds: 5,
+          loadEnabled: false,
         });
         if (p.seriesKind === "UNIFORM") {
           expect(new Set(p.pauses).size).toBe(1);
@@ -275,13 +277,14 @@ function duration(overrides: Partial<ExecutionParametersInput>): ExecutionParame
   return {
     version: EXECUTION_PARAMETERS_VERSION,
     mode: "DURATION",
-    series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 0 },
+    series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 0, loadKg: 0, workPhases: [] },
     sideMode: "UNILATERAL",
     sideOrder: "BY_SIDE",
     sideRecoverySeconds: 0,
     cadenceBeepIntervalSeconds: 0,
     countdownSeconds: 10,
     endSeconds: 5,
+    loadEnabled: false,
     ...overrides,
   };
 }
@@ -291,7 +294,7 @@ const text = (input: ExecutionParametersInput) => phraseText(generateExecutionPh
 describe("P3-15/grammar-edges", () => {
   it("N1 unilatéral D30 : P0 omet seulement le total redondant, P15 affiche 45 s", () => {
     expect(text(duration({}))).toBe("1 série de 30 s.");
-    expect(text(duration({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 15 } }))).toBe(
+    expect(text(duration({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 15, loadKg: 0, workPhases: [] } }))).toBe(
       "1 série de 30 s, avec 15 s de pause après chaque série. Durée totale : 45 s.",
     );
   });
@@ -299,7 +302,7 @@ describe("P3-15/grammar-edges", () => {
   it("variable : 2 et 3 cibles énumérées avec « puis » ; plus de 3 → vrai min/max des cibles actives", () => {
     const rows = (targets: readonly number[]) => ({
       kind: "VARIABLE" as const,
-      rows: targets.map((target) => ({ target: numberTarget(target), pauseSeconds: 20 })),
+      rows: targets.map((target) => ({ target: numberTarget(target), pauseSeconds: 20, loadKg: 0 })),
     });
     expect(text(duration({ series: rows([45, 30]) }))).toBe(
       "2 séries de durée variable (45 s puis 30 s). Durée totale : 1 min 55 s.",
@@ -322,8 +325,8 @@ describe("P3-15/grammar-edges", () => {
       series: {
         kind: "VARIABLE",
         rows: [
-          { target: numberTarget(30), pauseSeconds: 10 },
-          { target: numberTarget(45), pauseSeconds: 20 },
+          { target: numberTarget(30), pauseSeconds: 10, loadKg: 0 },
+          { target: numberTarget(45), pauseSeconds: 20, loadKg: 0 },
         ],
       },
     });
@@ -332,7 +335,7 @@ describe("P3-15/grammar-edges", () => {
   });
 
   it("P3-09/directions — départ gauche : directions inversées pour les trois formes", () => {
-    const uniform = { kind: "UNIFORM" as const, count: 3, target: numberTarget(30), pauseSeconds: 0 };
+    const uniform = { kind: "UNIFORM" as const, count: 3, target: numberTarget(30), pauseSeconds: 0, loadKg: 0, workPhases: [] };
     expect(text(duration({ series: uniform, sideMode: "LEFT_RIGHT", sideOrder: "BY_SIDE" }))).toContain(
       "en faisant d’abord toutes les séries à gauche, puis à droite",
     );
@@ -343,7 +346,7 @@ describe("P3-15/grammar-edges", () => {
   });
 
   it("Répétitions : « cadencées » seulement si bip > 0 ; Durée et À l'échec n'ont jamais de clause de bip", () => {
-    const reps = duration({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 2, target: numberTarget(1), pauseSeconds: 0 } });
+    const reps = duration({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 2, target: numberTarget(1), pauseSeconds: 0, loadKg: 0, workPhases: [] } });
     expect(text(reps)).toBe("2 séries de 1 répétition, enchaînées sans pause.");
     expect(text({ ...reps, cadenceBeepIntervalSeconds: 3 })).toBe(
       "2 séries de 1 répétition cadencées toutes les 3 s, enchaînées sans pause. Durée totale : ≈ 6 s.",
@@ -353,14 +356,14 @@ describe("P3-15/grammar-edges", () => {
 
   it("deux valeurs identiques à des positions différentes restent deux segments distincts", () => {
     const segments = generateExecutionPhrase(
-      duration({ series: { kind: "UNIFORM", count: 2, target: numberTarget(15), pauseSeconds: 15 } }),
+      duration({ series: { kind: "UNIFORM", count: 2, target: numberTarget(15), pauseSeconds: 15, loadKg: 0, workPhases: [] } }),
     )!;
     expect(segments.filter((segment) => segment.gras && segment.texte === "15 s")).toHaveLength(2);
   });
 
   it("brouillon incomplet : aucune phrase inventée", () => {
     expect(generateExecutionPhrase(duration({ mode: null }))).toBeNull();
-    expect(generateExecutionPhrase(duration({ series: { kind: "UNIFORM", count: 2, target: unsetTarget(), pauseSeconds: 0 } }))).toBeNull();
+    expect(generateExecutionPhrase(duration({ series: { kind: "UNIFORM", count: 2, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] } }))).toBeNull();
   });
 });
 
@@ -377,13 +380,14 @@ describe("executionPhrase — PRE-4 story 2.1", () => {
   const rows = (targets: readonly SeriesTarget[]): ExecutionParametersInput => ({
     version: EXECUTION_PARAMETERS_VERSION,
     mode: "DURATION",
-    series: { kind: "VARIABLE", rows: targets.map((target) => ({ target, pauseSeconds: 10 })) },
+    series: { kind: "VARIABLE", rows: targets.map((target) => ({ target, pauseSeconds: 10, loadKg: 0 })) },
     sideMode: "UNILATERAL",
     sideOrder: "BY_SIDE",
     sideRecoverySeconds: 0,
     cadenceBeepIntervalSeconds: 0,
     countdownSeconds: 0,
     endSeconds: 0,
+    loadEnabled: false,
   });
 
   it("PRE4-2.1/AC9 — clause Durée totale : « ≥ » pour un montant partiel, aucune clause pour omis ou à renseigner", () => {
@@ -408,7 +412,7 @@ describe("executionPhrase — PRE-4 story 2.1", () => {
   it("PRE4-2.1/AC9 — Cible à renseigner en Régime identiques : phrase `null`, aucune clause (`incomplete`)", () => {
     const uniformUnset: ExecutionParametersInput = {
       ...rows([]),
-      series: { kind: "UNIFORM", count: 3, target: unsetTarget(), pauseSeconds: 10 },
+      series: { kind: "UNIFORM", count: 3, target: unsetTarget(), pauseSeconds: 10, loadKg: 0, workPhases: [] },
     };
     expect(generateExecutionPhrase(uniformUnset)).toBeNull();
     const result = computeIntrinsicDuration(uniformUnset);
@@ -461,6 +465,7 @@ function fromCompact(input: CompactInput): ExecutionParametersInput {
   const rows = input.pauses.map((pauseSeconds, index) => ({
     target: compactTarget(input.targets[index] ?? input.targets[0]!),
     pauseSeconds,
+    loadKg: 0,
   }));
   return {
     version: EXECUTION_PARAMETERS_VERSION,
@@ -468,13 +473,14 @@ function fromCompact(input: CompactInput): ExecutionParametersInput {
     series:
       input.series === "VARIABLE"
         ? { kind: "VARIABLE", rows }
-        : { kind: "UNIFORM", count: rows.length, target: rows[0]!.target, pauseSeconds: rows[0]!.pauseSeconds },
+        : { kind: "UNIFORM", count: rows.length, target: rows[0]!.target, pauseSeconds: rows[0]!.pauseSeconds, loadKg: 0, workPhases: [] },
     sideMode: input.side ?? "UNILATERAL",
     sideOrder: input.order ?? "BY_SIDE",
     sideRecoverySeconds: input.pc ?? 0,
     cadenceBeepIntervalSeconds: input.bip ?? 0,
     countdownSeconds: 10,
     endSeconds: 5,
+    loadEnabled: false,
   };
 }
 

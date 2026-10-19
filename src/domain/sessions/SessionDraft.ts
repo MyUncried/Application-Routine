@@ -79,6 +79,9 @@ export function defaultExerciseExecutionParameters(): ExecutionParameters {
       count: DEFAULT_SERIES_COUNT,
       target: numberTarget(DEFAULT_EXERCISE_DURATION_SECONDS),
       pauseSeconds: DEFAULT_PAUSE_SECONDS,
+      // PRE-5 (AD-19, AD-20) : sans charge (0 kg), aucune phase.
+      loadKg: 0,
+      workPhases: [],
     },
     sideMode: DEFAULT_SIDE_MODE,
     sideOrder: "BY_SIDE",
@@ -86,6 +89,7 @@ export function defaultExerciseExecutionParameters(): ExecutionParameters {
     cadenceBeepIntervalSeconds: 0,
     countdownSeconds: 0,
     endSeconds: 0,
+    loadEnabled: false,
   };
 }
 

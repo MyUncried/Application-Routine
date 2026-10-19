@@ -82,7 +82,7 @@ describe("validateActivityDefinitionInput", () => {
   });
 
   it("refuse une Cible à renseigner (UNSET) en mode Durée", () => {
-    const parameters: ExecutionParameters = { ...durationParameters(30, 3, 10), series: { kind: "UNIFORM", count: 3, target: unsetTarget(), pauseSeconds: 10 } };
+    const parameters: ExecutionParameters = { ...durationParameters(30, 3, 10), series: { kind: "UNIFORM", count: 3, target: unsetTarget(), pauseSeconds: 10, loadKg: 0, workPhases: [] } };
     const result = validateActivityDefinitionInput({ ...baseInput(), executionParameters: parameters });
     expect(result.ok).toBe(false);
     if (!result.ok) {

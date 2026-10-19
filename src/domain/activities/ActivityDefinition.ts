@@ -51,7 +51,7 @@ export type ActivityDefinition = {
   readonly description: string | null;
   /**
    * PRE-4 (story 1.1, AD-3) : paramètres d'exécution TYPÉS, OBLIGATOIRES,
-   * relus par `readV2` — seule source du Mode, des Cibles, de N et des
+   * relus par `readExecutionParameters` (v2 et v3, PRE-5 AD-18) — seule source du Mode, des Cibles, de N et des
    * Pauses. Aucun champ scalaire n'est exposé (inventaire des lecteurs de
    * scalaires de la spine).
    */

@@ -8,8 +8,8 @@ import {
   executionParametersEqual,
   failureTarget,
   numberTarget,
-  readV2,
-  serializeV2,
+  readExecutionParameters,
+  serializeExecutionParameters,
   unsetTarget,
   validateForSave,
 } from "@/domain/activities/ExecutionParameters";
@@ -25,6 +25,7 @@ import {
   moveRow,
   openSheetDraft,
   removeRow,
+  requestedParameters,
   setCadenceBeep,
   setCountdown,
   setEnd,
@@ -53,19 +54,22 @@ function parameters(series: ExecutionParametersInput["series"], overrides: Parti
     cadenceBeepIntervalSeconds: 4,
     countdownSeconds: 10,
     endSeconds: 5,
+    loadEnabled: false,
     ...overrides,
   };
 }
 
 /** Cible de fixture : nombre → `NUMBER`, `null` → « — » (`UNSET`), `"FAILURE"` → à l'échec. */
 const target = (value: FixtureTarget | null): SeriesTarget => (value === null ? unsetTarget() : toTarget(value));
-const row = (value: FixtureTarget | null, pauseSeconds: number): SeriesRow => ({ target: target(value), pauseSeconds });
+const row = (value: FixtureTarget | null, pauseSeconds: number): SeriesRow => ({ target: target(value), pauseSeconds, loadKg: 0 });
 const variable = (...rows: SeriesRow[]) => ({ kind: "VARIABLE" as const, rows });
 const uniform = (count: number, value: FixtureTarget | null, pauseSeconds: number) => ({
   kind: "UNIFORM" as const,
   count,
   target: target(value),
   pauseSeconds,
+  loadKg: 0,
+  workPhases: [],
 });
 /** Lecture d'une Cible pour les attendus : nombre, `null` (« — ») ou `"FAILURE"`. */
 const plain = (value: SeriesTarget): number | null | "FAILURE" =>
@@ -346,7 +350,7 @@ describe("REV-01 — réserves par mode et par identité de ligne", () => {
     draft = setRowTarget(setRowTarget(draft, 0, 10), 1, 12);
     const value = committed(draft);
     expect(value.series).toEqual(variable(row(10, 10), row(12, 20)));
-    expect(Object.keys(value.series.kind === "VARIABLE" ? value.series.rows[0]! : {})).toEqual(["target", "pauseSeconds"]);
+    expect(Object.keys(value.series.kind === "VARIABLE" ? value.series.rows[0]! : {})).toEqual(["target", "pauseSeconds", "loadKg"]);
     const reopened = setMode(openSheetDraft(value), "DURATION");
     expect(targets(reopened.rows)).toEqual([null, null]);
   });
@@ -420,7 +424,7 @@ describe("PRE-4 story 1.1 — brouillon à Cibles typées", () => {
     // Une Cible réglée par la commande existante devient NUMBER, jamais FAILURE.
     const fixed = commitSheetDraft(setMode(setMode(openSheetDraft(baseline), "DURATION"), "REPETITIONS"), baseline);
     expect(fixed.ok).toBe(false);
-    const set = { ...openSheetDraft(baseline), uniform: { target: numberTarget(12), pauseSeconds: 10 } };
+    const set = { ...openSheetDraft(baseline), uniform: { target: numberTarget(12), pauseSeconds: 10, loadKg: 0 } };
     const saved = commitSheetDraft(set, baseline);
     expect(saved.ok && saved.value.series).toEqual(uniform(3, 12, 10));
   });
@@ -431,7 +435,7 @@ describe("PRE-4 story 1.1 — brouillon à Cibles typées", () => {
     const repetitions = parameters(uniform(2, 150, 10), { mode: "REPETITIONS", cadenceBeepIntervalSeconds: 11 });
     expect(commitSheetDraft(openSheetDraft(repetitions), repetitions).ok).toBe(true);
     // Une Pause modifiée dans ses bornes ne transforme pas les valeurs héritées en saisie nouvelle.
-    const pauseChanged = { ...openSheetDraft(repetitions), uniform: { target: numberTarget(150), pauseSeconds: 20 } };
+    const pauseChanged = { ...openSheetDraft(repetitions), uniform: { target: numberTarget(150), pauseSeconds: 20, loadKg: 0 } };
     expect(commitSheetDraft(pauseChanged, repetitions).ok).toBe(true);
     // Sans ligne de base (création), les bornes s'appliquent.
     expect(commitSheetDraft(openSheetDraft(duration)).ok).toBe(false);
@@ -441,7 +445,7 @@ describe("PRE-4 story 1.1 — brouillon à Cibles typées", () => {
     const repetitions = parameters(uniform(2, 150, 10), { mode: "REPETITIONS", cadenceBeepIntervalSeconds: 11 });
     const withTarget = (value: number) => ({
       ...openSheetDraft(repetitions),
-      uniform: { target: numberTarget(value), pauseSeconds: 10 },
+      uniform: { target: numberTarget(value), pauseSeconds: 10, loadKg: 0 },
     });
     expect(commitSheetDraft(withTarget(100), repetitions).ok).toBe(true);
     expect(commitSheetDraft(withTarget(101), repetitions).ok).toBe(false);
@@ -451,7 +455,7 @@ describe("PRE-4 story 1.1 — brouillon à Cibles typées", () => {
     const duration = parameters(uniform(2, 5999, 10));
     const withDuration = (value: number) => ({
       ...openSheetDraft(duration),
-      uniform: { target: numberTarget(value), pauseSeconds: 10 },
+      uniform: { target: numberTarget(value), pauseSeconds: 10, loadKg: 0 },
     });
     expect(commitSheetDraft(withDuration(5995), duration).ok).toBe(false);
     expect(commitSheetDraft(withDuration(3535), duration).ok).toBe(true);
@@ -469,8 +473,8 @@ describe("PRE-4 story 1.3 — augmentation de N depuis une ligne à l'échec", (
 
     const saved = committed(grown);
     expect(saved.series).toEqual(variable(row(10, 10), row("FAILURE", 20), row("FAILURE", 20)));
-    // « Terminer » puis réouverture : forme v2 persistée, relue à l'identique.
-    const reopened = readV2(serializeV2(saved as ExecutionParameters));
+    // « Terminer » puis réouverture : forme persistée (v3 depuis PRE-5, AD-18), relue à l'identique.
+    const reopened = readExecutionParameters(serializeExecutionParameters(saved as ExecutionParameters));
     expect(reopened.series).toEqual(saved.series);
     expect(openSheetDraft(reopened).rows.map((entry) => [plain(entry.target), entry.pauseSeconds])).toEqual([
       [10, 10],
@@ -509,7 +513,7 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
   it("PRE4-3.2/AC1 — Cibles typées : NUMBER ≥ 1, FAILURE ou UNSET ; mélange en variables ; FAILURE dans les quatre combinaisons", () => {
     let draft = openSheetDraft(parameters(variable(row(30, 10), row(45, 20), row(60, 30))));
     draft = setRowTargetTyped(draft, 2, failureTarget());
-    expect(draft.rows[2]).toEqual({ target: { kind: "FAILURE" }, pauseSeconds: 30 });
+    expect(draft.rows[2]).toEqual({ target: { kind: "FAILURE" }, pauseSeconds: 30, loadKg: 0 });
     expect(draft.rows[2]!.target).not.toHaveProperty("value");
     draft = setSeriesCount(setMode(setVariable(setSeriesCount(draft, 1), false), "REPETITIONS"), 4);
     draft = setVariable(setMode(draft, "DURATION"), true);
@@ -525,21 +529,21 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
     expect(committed(mixed).series).toEqual({
       kind: "VARIABLE",
       rows: [
-        { target: { kind: "NUMBER", value: 10 }, pauseSeconds: 10 },
-        { target: { kind: "NUMBER", value: 12 }, pauseSeconds: 20 },
-        { target: { kind: "FAILURE" }, pauseSeconds: 30 },
+        { target: { kind: "NUMBER", value: 10 }, pauseSeconds: 10, loadKg: 0 },
+        { target: { kind: "NUMBER", value: 12 }, pauseSeconds: 20, loadKg: 0 },
+        { target: { kind: "FAILURE" }, pauseSeconds: 30, loadKg: 0 },
       ],
     });
 
     for (const mode of ["DURATION", "REPETITIONS"] as const) {
       const identical = setUniformTarget(openSheetDraft(parameters(uniform(3, 30, 10), { mode })), failureTarget());
-      expect(committed(identical).series).toEqual({ kind: "UNIFORM", count: 3, target: { kind: "FAILURE" }, pauseSeconds: 10 });
+      expect(committed(identical).series).toEqual({ kind: "UNIFORM", count: 3, target: { kind: "FAILURE" }, pauseSeconds: 10, loadKg: 0, workPhases: [] });
       const variables = setRowTargetTyped(openSheetDraft(parameters(variable(row(30, 10), row(30, 20)), { mode })), 1, failureTarget());
       expect(committed(variables).series).toEqual({
         kind: "VARIABLE",
         rows: [
-          { target: { kind: "NUMBER", value: 30 }, pauseSeconds: 10 },
-          { target: { kind: "FAILURE" }, pauseSeconds: 20 },
+          { target: { kind: "NUMBER", value: 30 }, pauseSeconds: 10, loadKg: 0 },
+          { target: { kind: "FAILURE" }, pauseSeconds: 20, loadKg: 0 },
         ],
       });
     }
@@ -549,15 +553,16 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
     const created = openSheetDraft(createEmptyExecutionParameters({ countdownSeconds: 10, endSeconds: 5 }));
     expect(created.variable).toBe(false);
     expect(effectiveParameters(created)).toEqual({
-      version: 2,
+      version: 3,
       mode: null,
-      series: { kind: "UNIFORM", count: 1, target: { kind: "UNSET" }, pauseSeconds: 0 },
+      series: { kind: "UNIFORM", count: 1, target: { kind: "UNSET" }, pauseSeconds: 0, loadKg: 0, workPhases: [] },
       sideMode: null,
       sideOrder: "BY_SIDE",
       sideRecoverySeconds: 0,
       cadenceBeepIntervalSeconds: 0,
       countdownSeconds: 10,
       endSeconds: 5,
+      loadEnabled: false,
     });
     expect(setMode(created, "REPETITIONS").uniform.target).toEqual({ kind: "NUMBER", value: 1 });
     expect(setMode(setMode(created, "DURATION"), "REPETITIONS").uniform.target).toEqual({ kind: "UNSET" });
@@ -600,18 +605,19 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
       sideRecoverySeconds: 5,
       countdownSeconds: 10,
       endSeconds: 5,
+      loadEnabled: false,
     });
     const repetitions = setMode(openSheetDraft(parent), "REPETITIONS");
     expect(repetitions.variable).toBe(true);
     expect(effectiveParameters(repetitions)).toEqual({
-      version: 2,
+      version: 3,
       mode: "REPETITIONS",
       series: {
         kind: "VARIABLE",
         rows: [
-          { target: { kind: "UNSET" }, pauseSeconds: 10 },
-          { target: { kind: "UNSET" }, pauseSeconds: 20 },
-          { target: { kind: "FAILURE" }, pauseSeconds: 30 },
+          { target: { kind: "UNSET" }, pauseSeconds: 10, loadKg: 0 },
+          { target: { kind: "UNSET" }, pauseSeconds: 20, loadKg: 0 },
+          { target: { kind: "FAILURE" }, pauseSeconds: 30, loadKg: 0 },
         ],
       },
       sideMode: "RIGHT_LEFT",
@@ -620,6 +626,7 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
       cadenceBeepIntervalSeconds: 2,
       countdownSeconds: 10,
       endSeconds: 5,
+      loadEnabled: false,
     });
   });
 
@@ -879,13 +886,13 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
     expect(result).toEqual({
       ok: true,
       value: {
-        version: 2,
+        version: 3,
         mode: "DURATION",
         series: {
           kind: "VARIABLE",
           rows: [
-            { target: { kind: "NUMBER", value: 60 }, pauseSeconds: 30 },
-            { target: { kind: "NUMBER", value: 45 }, pauseSeconds: 20 },
+            { target: { kind: "NUMBER", value: 60 }, pauseSeconds: 30, loadKg: 0 },
+            { target: { kind: "NUMBER", value: 45 }, pauseSeconds: 20, loadKg: 0 },
           ],
         },
         sideMode: "UNILATERAL",
@@ -894,6 +901,7 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
         cadenceBeepIntervalSeconds: 4,
         countdownSeconds: 10,
         endSeconds: 5,
+        loadEnabled: false,
       },
     });
     // Clés exactes : aucune identité, Réserve, mémoire, `pendingRemoval` ni indicateur d'héritage.
@@ -907,10 +915,11 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
       "cadenceBeepIntervalSeconds",
       "countdownSeconds",
       "endSeconds",
+      "loadEnabled",
     ]);
     expect(result.ok && result.value.series.kind === "VARIABLE" && result.value.series.rows.map((entry) => Object.keys(entry))).toEqual([
-      ["target", "pauseSeconds"],
-      ["target", "pauseSeconds"],
+      ["target", "pauseSeconds", "loadKg"],
+      ["target", "pauseSeconds", "loadKg"],
     ]);
     expect(JSON.stringify(parent)).toBe(snapshot);
 
@@ -947,13 +956,13 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
   });
 
   describe("PRE4-3.2/AC12 — ligne de base alignée par identité de ligne (AD-13, H25)", () => {
-    // Q36 (Hermann, 2026-10-17) : 7 s étant désormais admise, la valeur historique basse est 3 s (sous le minimum de 5 s).
-    const legacy = parameters(variable(row(30, 10), row(5999, 20), row(3, 30)), { cadenceBeepIntervalSeconds: 11 });
+    // D-430 : aucune valeur positive n'est plus sous le minimum (1 s) ; la valeur historique hors bornes est 3600 s (au-dessus de 3535 s).
+    const legacy = parameters(variable(row(30, 10), row(5999, 20), row(3600, 30)), { cadenceBeepIntervalSeconds: 11 });
 
     it("PRE4-3.2/AC12 — la ligne 2 (5999 s) déplacée en tête sans modification : Bip 11 et 5999 s tolérés, ✓ réussi, valeurs inchangées", () => {
       const moved = moveRow(openSheetDraft(legacy), 1, 0);
       const value = committedWith(moved, legacy);
-      expect(value.series).toEqual(variable(row(5999, 20), row(30, 10), row(3, 30)));
+      expect(value.series).toEqual(variable(row(5999, 20), row(30, 10), row(3600, 30)));
       expect(value.cadenceBeepIntervalSeconds).toBe(11);
       // Un alignement par rang l'aurait refusé : la preuve que la base suit l'identité.
       expect(validateForSave(effectiveParameters(moved), legacy, { baselineRowIndexes: [0, 1, 2] }).ok).toBe(false);
@@ -962,25 +971,25 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
     it("PRE4-3.2/AC12 — Feuille rouverte après un ✓ qui a réordonné : la base reste celle de l'Éditeur, rapprochée par valeur", () => {
       const firstSheet = committedWith(moveRow(openSheetDraft(legacy), 1, 0), legacy);
       const reopened = openSheetDraft(firstSheet);
-      expect(committedWith(reopened, legacy).series).toEqual(variable(row(5999, 20), row(30, 10), row(3, 30)));
-      // Second déplacement (3 s en tête) : toujours toléré.
-      expect(committedWith(moveRow(reopened, 2, 0), legacy).series).toEqual(variable(row(3, 30), row(5999, 20), row(30, 10)));
+      expect(committedWith(reopened, legacy).series).toEqual(variable(row(5999, 20), row(30, 10), row(3600, 30)));
+      // Second déplacement (3600 s en tête) : toujours toléré.
+      expect(committedWith(moveRow(reopened, 2, 0), legacy).series).toEqual(variable(row(3600, 30), row(5999, 20), row(30, 10)));
       // La ligne 5999 s modifiée devient une saisie nouvelle : les bornes s'appliquent à elle seule (Q36 : sans pas).
       expect(commitSheetDraft(setRowTargetTyped(reopened, 0, numberTarget(5995)), legacy)).toEqual({
         ok: false,
         violations: [
-          { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 5, max: 3535 }, seriesNumber: 1 },
+          { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 1, max: 3535 }, seriesNumber: 1 },
         ],
       });
     });
 
     it("PRE4-3.2/AC12 — une ligne nouvelle (ajoutée par N) n'a pas de base : les bornes s'y appliquent", () => {
       const grown = setSeriesCount(openSheetDraft(legacy), 4);
-      expect(grown.rows[3]).toEqual(row(3, 30));
+      expect(grown.rows[3]).toEqual(row(3600, 30));
       expect(commitSheetDraft(grown, legacy)).toEqual({
         ok: false,
         violations: [
-          { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 5, max: 3535 }, seriesNumber: 4 },
+          { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 1, max: 3535 }, seriesNumber: 4 },
         ],
       });
     });
@@ -1015,8 +1024,8 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
         ok: false,
         violations: [
           { code: "OUT_OF_RANGE", field: "cadenceBeepIntervalSeconds", level: "INPUT", details: { min: 0, max: 10 } },
-          { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 5, max: 3535 }, seriesNumber: 2 },
-          { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 5, max: 3535 }, seriesNumber: 3 },
+          { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 1, max: 3535 }, seriesNumber: 2 },
+          { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 1, max: 3535 }, seriesNumber: 3 },
         ],
       });
     });
@@ -1055,7 +1064,7 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
     expect(applyRequestedTotal(inherited, 200)).toBeNull();
     const value = committedWith(inherited, inheritedParent);
     expect(value).toEqual(inheritedParent);
-    expect(readV2(serializeV2(value))).toEqual(inheritedParent);
+    expect(readExecutionParameters(serializeExecutionParameters(value))).toEqual(inheritedParent);
     expect(Object.keys(value)).not.toContain("inheritedSeriesCount");
     // Sans l'indicateur, la même Feuille permet l'Inversion.
     expect(isRequestedTotalEditable(openSheetDraft(inheritedParent))).toBe(true);
@@ -1074,14 +1083,14 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
 
     // FR-11-06 : Bip commun et Cible typée de chaque Série, sans état intermédiaire.
     expect(committedWith(openSheetDraft(variableParent), variableParent)).toEqual({
-      version: 2,
+      version: 3,
       mode: "DURATION",
       series: {
         kind: "VARIABLE",
         rows: [
-          { target: { kind: "NUMBER", value: 30 }, pauseSeconds: 10 },
-          { target: { kind: "NUMBER", value: 45 }, pauseSeconds: 20 },
-          { target: { kind: "FAILURE" }, pauseSeconds: 30 },
+          { target: { kind: "NUMBER", value: 30 }, pauseSeconds: 10, loadKg: 0 },
+          { target: { kind: "NUMBER", value: 45 }, pauseSeconds: 20, loadKg: 0 },
+          { target: { kind: "FAILURE" }, pauseSeconds: 30, loadKg: 0 },
         ],
       },
       sideMode: "UNILATERAL",
@@ -1090,6 +1099,7 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
       cadenceBeepIntervalSeconds: 4,
       countdownSeconds: 10,
       endSeconds: 5,
+      loadEnabled: false,
     });
   });
 
@@ -1111,13 +1121,88 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
     expect(edited).toEqual(parent);
     expect(Object.keys(edited)).not.toContain("inheritedSeriesCount");
     expect(Object.keys(created)).not.toContain("inheritedSeriesCount");
-    expect(serializeV2(created)).not.toContain("inherited");
-    expect(serializeV2(edited)).not.toContain("inherited");
+    expect(serializeExecutionParameters(created)).not.toContain("inherited");
+    expect(serializeExecutionParameters(edited)).not.toContain("inherited");
 
     const stored = validateForSave(edited, "STORAGE");
     expect(stored.ok).toBe(true);
-    const reread = readV2(serializeV2(edited));
+    const reread = readExecutionParameters(serializeExecutionParameters(edited));
     expect(reread).toEqual(parent);
     expect(reread.series.kind === "VARIABLE" && reread.series.rows).toHaveLength(3);
+  });
+});
+
+describe("PRE-5 story 1.1 — transport par le Brouillon, sans transition nouvelle (AD-25, AD-33)", () => {
+  const withPhases = parameters(
+    {
+      kind: "UNIFORM",
+      count: 3,
+      target: numberTarget(9),
+      pauseSeconds: 15,
+      loadKg: 0,
+      workPhases: [
+        { id: 4, label: "Descente", durationSeconds: 6 },
+        { id: 2, label: "Maintien", durationSeconds: 3 },
+      ],
+    },
+    { sideMode: "LEFT_RIGHT", sideOrder: "BY_SERIES", sideRecoverySeconds: 5 },
+  );
+  const loadUnderSans = parameters(
+    { kind: "UNIFORM", count: 2, target: numberTarget(12), pauseSeconds: 10, loadKg: 2.5, workPhases: [] },
+    { mode: "REPETITIONS", loadEnabled: false },
+  );
+  const variableLoads = parameters(
+    {
+      kind: "VARIABLE",
+      rows: [
+        { target: numberTarget(12), pauseSeconds: 10, loadKg: 20 },
+        { target: numberTarget(10), pauseSeconds: 10, loadKg: 0 },
+        { target: failureTarget(), pauseSeconds: 0, loadKg: 12.75 },
+      ],
+    },
+    { mode: "REPETITIONS", loadEnabled: true },
+  );
+
+  it("PRE5-1.1/AC13 — requestedParameters(openSheetDraft(p)) = p : charge sous Sans, charges variables, phases et identités, LEFT_RIGHT", () => {
+    for (const parent of [withPhases, loadUnderSans, variableLoads, parameters(uniform(3, 30, 10), { sideMode: "LEFT_RIGHT" })]) {
+      expect(requestedParameters(openSheetDraft(parent))).toEqual(parent);
+    }
+  });
+
+  it("PRE5-1.1/AC13 — le Brouillon porte workPhases, nextPhaseId, loadEnabled et loadKg dans l'uniforme et chaque ligne", () => {
+    const phased = openSheetDraft(withPhases);
+    expect(phased.workPhases).toEqual([
+      { id: 4, label: "Descente", durationSeconds: 6 },
+      { id: 2, label: "Maintien", durationSeconds: 3 },
+    ]);
+    expect(phased.nextPhaseId).toBe(5);
+    expect(phased.loadEnabled).toBe(false);
+    expect(openSheetDraft(loadUnderSans).uniform.loadKg).toBe(2.5);
+    expect(openSheetDraft(loadUnderSans).nextPhaseId).toBe(1);
+    const loads = openSheetDraft(variableLoads);
+    expect(loads.loadEnabled).toBe(true);
+    expect(loads.rows.map((entry) => entry.loadKg)).toEqual([20, 0, 12.75]);
+    // Les lignes retirées par N et le tableau réservé gardent leur charge (la charge suit la ligne).
+    const shrunk = setSeriesCount(loads, 1);
+    expect(shrunk.hiddenRows.map((entry) => entry.loadKg)).toEqual([0, 12.75]);
+    expect(setSeriesCount(shrunk, 3).rows.map((entry) => entry.loadKg)).toEqual([20, 0, 12.75]);
+    const toUniform = setVariable(loads, false);
+    expect(toUniform.uniform.loadKg).toBe(20);
+    expect(toUniform.savedVariableRows?.map((entry) => entry.loadKg)).toEqual([20, 0, 12.75]);
+    expect(setVariable(toUniform, true).rows.map((entry) => entry.loadKg)).toEqual([20, 0, 12.75]);
+  });
+
+  it("PRE5-1.1/AC13 — ✓ sans modification ne perd aucune donnée lue (phases, charge sous Sans, charges variables, côtés)", () => {
+    for (const parent of [withPhases, loadUnderSans, variableLoads]) {
+      expect(commitSheetDraft(openSheetDraft(parent), parent)).toEqual({ ok: true, value: parent });
+      expect(commitSheetDraft(openSheetDraft(parent), null)).toEqual({ ok: true, value: parent });
+    }
+  });
+
+  it("PRE5-1.1/AC13 — le Brouillon n'est pas lié au parent : phases et charges copiées", () => {
+    const draft = openSheetDraft(withPhases);
+    const parentPhases = withPhases.series.kind === "UNIFORM" ? withPhases.series.workPhases : [];
+    expect(draft.workPhases).not.toBe(parentPhases);
+    expect(draft.workPhases[0]).not.toBe(parentPhases[0]);
   });
 });

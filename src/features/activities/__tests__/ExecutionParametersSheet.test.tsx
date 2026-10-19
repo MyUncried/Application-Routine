@@ -53,15 +53,16 @@ jest.mock("expo-haptics", () => ({ selectionAsync: jest.fn(async () => undefined
 
 function params(overrides: Partial<ExecutionParametersInput> = {}): ExecutionParametersInput {
   return {
-    version: 2,
+    version: 3,
     mode: "DURATION",
-    series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 15 },
+    series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] },
     sideMode: "UNILATERAL",
     sideOrder: "BY_SIDE",
     sideRecoverySeconds: 0,
     cadenceBeepIntervalSeconds: 0,
     countdownSeconds: 10,
     endSeconds: 5,
+    loadEnabled: false,
     ...overrides,
   };
 }
@@ -71,6 +72,7 @@ const variableRows = (rows: [number | null, number][]) => ({
   rows: rows.map(([target, pauseSeconds]) => ({
     target: target === null ? unsetTarget() : numberTarget(target),
     pauseSeconds,
+    loadKg: 0,
   })),
 });
 
@@ -191,7 +193,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     expect(text("execution-sheet-total")).toBe("3 min 40 s");
     validate();
     expect(applied(onApply)).toMatchObject({
-      series: { kind: "UNIFORM", count: 1, target: numberTarget(90), pauseSeconds: 15 },
+      series: { kind: "UNIFORM", count: 1, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] },
       sideOrder: "BY_SIDE",
     });
   });
@@ -205,7 +207,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     };
 
     it("PRE4-Q38 (a) — N = 1 bilatéral : aucune ligne Ordre des côtés ; la Pause au changement de côté reste", () => {
-      renderSheet(bilateral({ series: { kind: "UNIFORM", count: 1, target: numberTarget(90), pauseSeconds: 15 } }));
+      renderSheet(bilateral({ series: { kind: "UNIFORM", count: 1, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
       expect(screen.getByTestId("execution-sheet-row-side")).toBeTruthy();
       expect(screen.queryByTestId("execution-sheet-row-order")).toBeNull();
       expect(screen.queryByTestId("execution-sheet-order-value")).toBeNull();
@@ -214,7 +216,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     });
 
     it("PRE4-Q38 (b) — N = 2 : la ligne est présente et active", () => {
-      renderSheet(bilateral({ series: { kind: "UNIFORM", count: 2, target: numberTarget(90), pauseSeconds: 15 } }));
+      renderSheet(bilateral({ series: { kind: "UNIFORM", count: 2, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
       expect(screen.getByTestId("execution-sheet-row-order")).toBeTruthy();
       const pill = screen.getByTestId("execution-sheet-order-value");
       expect(pill.props.accessibilityState?.disabled ?? false).toBe(false);
@@ -257,7 +259,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     // sélecteur d'Ordre à N = 1 (« prune ») est prouvée par le réducteur (PRE4-3.3/AC5).
     it("PRE4-Q38 (c ter) — sélecteur d'Ordre ouvert : toucher N le ferme sans ouvrir le champ (T10) ; N → 1 masque la ligne, N → 2 la réaffiche sans rouvrir le sélecteur", () =>
       withPlatform("android", () => {
-      renderSheet(bilateral({ series: { kind: "UNIFORM", count: 2, target: numberTarget(90), pauseSeconds: 15 } }));
+      renderSheet(bilateral({ series: { kind: "UNIFORM", count: 2, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
       fireEvent.press(screen.getByTestId("execution-sheet-order-value"));
       expect(screen.getByTestId("execution-sheet-order-control")).toBeTruthy();
       fireEvent.press(screen.getByTestId("execution-sheet-series-toggle"));
@@ -287,7 +289,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
   });
 
   it("P3-09/directions — droite→gauche ou gauche→droite : totaux identiques ; PC une fois par côté, N fois par série", () => {
-    renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 10 }, sideMode: "RIGHT_LEFT", sideRecoverySeconds: 15 }));
+    renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] }, sideMode: "RIGHT_LEFT", sideRecoverySeconds: 15 }));
     // Un côté après l'autre : 2 × 3 × (30 + 10) + 15 = 255 s.
     expect(text("execution-sheet-total")).toBe("4 min 15 s");
     fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
@@ -329,7 +331,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
   });
 
   it("P3-14/inverse-enumeration — total demandé 100 s : N=3 retenu (égalité vers le plus grand), message d'ajustement 2 min ; 80 s exact sans message", () => {
-    renderSheet(params({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 10 } }));
+    renderSheet(params({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
     fireEvent.press(screen.getByTestId("execution-sheet-total"));
     fireEvent(totalWheel().getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 1 } });
     fireEvent(totalWheel().getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 40 } });
@@ -392,7 +394,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
 
   it("P3-19/hold — Séries : tap 1, rien avant 500 ms, répétition 150 ms, pas 5 après 2 s, arrêt immédiat au relâchement", () => {
     jest.useFakeTimers();
-    renderSheet(params({ series: { kind: "UNIFORM", count: 37, target: numberTarget(30), pauseSeconds: 0 } }));
+    renderSheet(params({ series: { kind: "UNIFORM", count: 37, target: numberTarget(30), pauseSeconds: 0, loadKg: 0, workPhases: [] } }));
     // Story 3.3 : ± à l'appui — le champ est d'abord ouvert par sa valeur.
     openExecutionSheetField("execution-sheet-series");
     act(() => {
@@ -452,7 +454,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
   }));
 
   it("P3-20/all-surfaces — titre, ✕ / ✓, lignes et libellés des écrans de référence ; valeurs « — » / « Aucun » à l'état vide", () => {
-    renderSheet(params({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0 }, sideMode: null }));
+    renderSheet(params({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] }, sideMode: null }));
     expect(screen.getByText("Paramètres d’exécution")).toBeTruthy();
     // Story 3.3 (FR-04-01) : plus de ligne « Séries variables » ; le Régime est un champ de « Séries ».
     expect(screen.queryByText("Séries variables")).toBeNull();
@@ -483,14 +485,14 @@ describe("ExecutionParametersSheet — PRE-3", () => {
   });
 
   it("P3-20/sheet-specific — tout échec : aucun total, Bip immédiatement avant Compte à rebours", () => {
-    renderSheet(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: { kind: "FAILURE" }, pauseSeconds: 15 } }));
+    renderSheet(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: { kind: "FAILURE" }, pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
     expect(screen.queryByTestId("execution-sheet-row-total")).toBeNull();
     const json = JSON.stringify(screen.toJSON());
     expect(json.indexOf('"execution-sheet-row-beep"')).toBeLessThan(json.indexOf('"execution-sheet-row-countdown"'));
   });
 
   it("P3-21/accessible-controls — libellés complets, états désactivés, valeurs courantes, actions ✓/✕ nommées", () => {
-    renderSheet(params({ series: { kind: "UNIFORM", count: 1, target: numberTarget(90), pauseSeconds: 0 } }));
+    renderSheet(params({ series: { kind: "UNIFORM", count: 1, target: numberTarget(90), pauseSeconds: 0, loadKg: 0, workPhases: [] } }));
     expect(screen.getByTestId("execution-sheet-validate").props.accessibilityLabel).toBe("Valider les paramètres");
     expect(screen.getByTestId("execution-sheet-cancel").props.accessibilityLabel).toBe("Annuler les paramètres");
     openExecutionSheetField("execution-sheet-series");
@@ -512,7 +514,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     pressInExecutionSheet(screen.getByTestId("duration-wheel-validate"));
     expect(text("execution-sheet-target-value")).toBe("2 min");
     validate();
-    expect(applied(onApply).series).toEqual({ kind: "UNIFORM", count: 3, target: numberTarget(120), pauseSeconds: 15 });
+    expect(applied(onApply).series).toEqual({ kind: "UNIFORM", count: 3, target: numberTarget(120), pauseSeconds: 15, loadKg: 0, workPhases: [] });
   });
 
   it("ACCESSIBILITY/wheel — réglage nommé avec sa valeur ; Valider/Annuler de la roulette nommés ; pastille annoncée déployée", () => {
@@ -531,7 +533,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
   });
 
   it("INTERACTION/stepper — tap unique ; borne respectée ; aucun pas au relâchement", () => {
-    renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 300 } }));
+    renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 300, loadKg: 0, workPhases: [] } }));
     openExecutionSheetField("execution-sheet-pause");
     expect(screen.getByTestId("execution-sheet-pause-increment").props.accessibilityState).toMatchObject({ disabled: true });
     tap("execution-sheet-pause-decrement");
@@ -554,7 +556,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
   });
 
   it("INTERACTION/regime (ex-interrupteur) — identiques → variables : lignes copiées ; retour uniforme = première ligne ; réactivation restaure ; égalité garde VARIABLE", () => {
-    const { onApply } = renderSheet(params({ series: { kind: "UNIFORM", count: 2, target: numberTarget(30), pauseSeconds: 10 } }));
+    const { onApply } = renderSheet(params({ series: { kind: "UNIFORM", count: 2, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
     chooseRegime("variables");
     expect(valueOf("execution-sheet-table-row-2-target")).toBe("30 s");
     tap("execution-sheet-table-row-2-target-increment");
@@ -615,7 +617,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
   });
 
   it("ACCESSIBILITY/sheet-check-cross — mode absent ou cible incomplète : Valider annoncé indisponible ; valeur à renseigner annoncée sur le réglage (aucun message, D-2) ; Annuler reste actif", () => {
-    const { onApply, onCancel } = renderSheet(params({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0 } }));
+    const { onApply, onCancel } = renderSheet(params({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] } }));
     const validateButton = screen.getByTestId("execution-sheet-validate");
     expect(validateButton.props.accessibilityState).toMatchObject({ disabled: true });
     expect(validateButton.props.accessibilityLabel).toBe("Valider les paramètres, indisponible tant qu’une valeur est invalide");
@@ -678,7 +680,7 @@ describe("ExecutionParametersSheet — correction revue 1", () => {
     expect(valueOf("execution-sheet-series")).toBe("2 séries");
     expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
     validate();
-    expect(applied(onApply).series).toEqual({ kind: "UNIFORM", count: 2, target: numberTarget(30), pauseSeconds: 10 });
+    expect(applied(onApply).series).toEqual({ kind: "UNIFORM", count: 2, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] });
   });
 
   it("REV-02 — à N=1 depuis un tableau, les réglages affichés modifient la première ligne effective (aucun contrôle sans effet) ; remontée de N restaure la réserve", () => {
@@ -780,7 +782,7 @@ describe("ExecutionParametersSheet — recette 1", () => {
     const rows = () => [1, 2, 3].map((n) => valueOf(`execution-sheet-table-row-${n}-target`));
     const choose = chooseMode;
     // PRE-4 (story 1.1, AC6) : cinq pas de 1 s par ligne ; depuis Q36 (Hermann, 2026-10-17),
-    // la Cible Durée est admise à la seconde (5..3535 s). Le test porte sur la mémoire par Mode.
+    // la Cible Durée est admise à la seconde (1..3535 s, D-430). Le test porte sur la mémoire par Mode.
     for (let step = 0; step < 5; step += 1) {
       tap("execution-sheet-table-row-1-target-increment");
       tap("execution-sheet-table-row-3-target-decrement");
@@ -922,7 +924,7 @@ describe("ExecutionParametersSheet — décisions du propriétaire (12/10)", () 
     }));
 
   it("D-5 — message d’ajustement : Annuler encadré (cadre clair) restaure ; toucher le reste du message le ferme sans annuler", () => {
-    const { onApply } = renderSheet(params({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 10 } }));
+    const { onApply } = renderSheet(params({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
     // Total demandé 1 min 40 s : N=3 retenu, message d’ajustement (même geste que P3-14/inverse-enumeration).
     const adjust = () => {
       fireEvent.press(screen.getByTestId("execution-sheet-total"));
@@ -1048,7 +1050,7 @@ describe("ExecutionParametersSheet — recette 3 (T-53), remplacée par la story
   // Switch iOS) est retiré ; le Régime est un champ de la ligne « Séries ». La ligne garde
   // son centrage vertical et sa hauteur minimale (Q42) dans les trois états du chevron.
   it("T-53 / PRE4-3.3 — ligne « Séries » centrée, 44 pt : identiques, variables déployé, variables replié", () => {
-    renderSheet(params({ series: { kind: "UNIFORM", count: 2, target: numberTarget(30), pauseSeconds: 10 } }));
+    renderSheet(params({ series: { kind: "UNIFORM", count: 2, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
     const check = () => {
       const row = StyleSheet.flatten(screen.getByTestId("execution-sheet-row-series-line").props.style);
       expect(row).toMatchObject({ flexDirection: "row", alignItems: "center", minHeight: 44 });
@@ -1124,9 +1126,9 @@ describe("ExecutionParametersSheet — PRE-4 story 1.1", () => {
       series: {
         kind: "VARIABLE",
         rows: [
-          { target: { kind: "FAILURE" }, pauseSeconds: 10 },
-          { target: { kind: "FAILURE" }, pauseSeconds: 20 },
-          { target: { kind: "FAILURE" }, pauseSeconds: 20 },
+          { target: { kind: "FAILURE" }, pauseSeconds: 10, loadKg: 0 },
+          { target: { kind: "FAILURE" }, pauseSeconds: 20, loadKg: 0 },
+          { target: { kind: "FAILURE" }, pauseSeconds: 20, loadKg: 0 },
         ],
       },
     });
@@ -1148,16 +1150,16 @@ describe("ExecutionParametersSheet — PRE-4 story 1.1", () => {
     const view = renderSheetView(historic, 10, historic);
     expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: false });
     validate();
-    expect(view.onApply.mock.calls[0]![0].series).toEqual({ kind: "UNIFORM", count: 3, target: numberTarget(5999), pauseSeconds: 10 });
+    expect(view.onApply.mock.calls[0]![0].series).toEqual({ kind: "UNIFORM", count: 3, target: numberTarget(5999), pauseSeconds: 10, loadKg: 0, workPhases: [] });
     view.unmount();
 
     renderSheet(historic);
     expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
   });
 
-  // Q36 (Hermann, 2026-10-17) : 7 s est désormais admise (Durée à la seconde) ; 4 s reste sous la borne de 5 s.
-  it("PRE4-1.1/AC24 — valeur hors bornes (4 s) signalée « Valeur non admise » (jamais « à renseigner »), ✓ indisponible au suffixe neutre", () => {
-    renderSheet(withPhases(durationParameters(4, 3, 10)));
+  // Q36 (Hermann, 2026-10-17) et D-430 : 4 s est désormais admise (minimum 1 s) ; 3536 s reste au-dessus de la borne.
+  it("PRE4-1.1/AC24 — valeur hors bornes (3536 s) signalée « Valeur non admise » (jamais « à renseigner »), ✓ indisponible au suffixe neutre", () => {
+    renderSheet(withPhases(durationParameters(3536, 3, 10)));
     expect(screen.getByTestId("execution-sheet-target-value").props.accessibilityHint).toBe("Valeur non admise");
     expect(screen.getByTestId("execution-sheet-validate").props.accessibilityLabel).toBe(
       "Valider les paramètres, indisponible tant qu’une valeur est invalide",
@@ -1185,7 +1187,7 @@ describe("ExecutionParametersSheet — PRE-4 story 1.1", () => {
     validate();
     expect(applied(onApply)).toMatchObject({
       cadenceBeepIntervalSeconds: 11,
-      series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 16 },
+      series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 16, loadKg: 0, workPhases: [] },
     });
   });
 });
@@ -1210,9 +1212,9 @@ describe("ExecutionParametersSheet — PRE-4 story 2.1", () => {
     expect(screen.getByTestId("execution-sheet-row-total")).toBeTruthy();
   });
 
-  // Q36 (Hermann, 2026-10-17) : 7 s est désormais admise ; la saisie invalide est 4 s, sous la borne de 5 s.
-  it("PRE4-2.1/AC9 — autre saisie invalide (Cible Durée hors bornes, 4 s) : comportement existant conservé, ligne présente avec « — »", () => {
-    renderSheet(durationParameters(4, 3, 10));
+  // Q36 (Hermann, 2026-10-17) et D-430 : la saisie invalide est 3536 s, au-dessus de la borne (4 s est admise).
+  it("PRE4-2.1/AC9 — autre saisie invalide (Cible Durée hors bornes, 3536 s) : comportement existant conservé, ligne présente avec « — »", () => {
+    renderSheet(durationParameters(3536, 3, 10));
     expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
     expect(screen.getByTestId("execution-sheet-row-total")).toBeTruthy();
     expect(screen.getByTestId("execution-sheet-total-text").props.children).toBe("—");
@@ -1302,7 +1304,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.1", () => {
 
   it("PRE4-3.1/AC2 — iOS : Mode non renseigné : aucune option marquée", () =>
     withPlatform("ios", () => {
-      renderSheet(params({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0 } }));
+      renderSheet(params({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] } }));
       fireEvent.press(screen.getByTestId("execution-sheet-mode-value"));
       expect(modeOptions().map(isSelectedOption)).toEqual([false, false]);
     }));
@@ -1436,7 +1438,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.1", () => {
 
   it("PRE4-3.1/AC4 — iOS : aucun popover de Cible commune en Répétitions ni en séries variables (hors prototype)", () =>
     withPlatform("ios", () => {
-      const view = renderSheetView(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15 } }));
+      const view = renderSheetView(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
       expect(screen.queryByTestId("execution-sheet-target-host")).toBeNull();
       // Story 3.5 : la pastille remplace le stepper ; elle ouvre un panneau, jamais un popover.
       expect(screen.queryByTestId("execution-sheet-target-stepper")).toBeNull();
@@ -1449,7 +1451,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.1", () => {
 
   it("PRE4-3.1/AC4 — iOS : la pastille, hors de tout Popover (Q37), garde l’indicateur d’invalidité", () =>
     withPlatform("ios", () => {
-      renderSheet(params({ series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0 } }));
+      renderSheet(params({ series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] } }));
       const pill = screen.getByTestId("execution-sheet-target-value");
       // Q37 : plus de Popover de Cible ; la pastille est dans la ligne de la Feuille.
       expect(screen.queryByTestId("execution-sheet-target-host-popover")).toBeNull();
@@ -1892,7 +1894,7 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
   };
 
   const bilateral = (count = 3) =>
-    params({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE", sideRecoverySeconds: 10, series: { kind: "UNIFORM", count, target: numberTarget(30), pauseSeconds: 10 } });
+    params({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE", sideRecoverySeconds: 10, series: { kind: "UNIFORM", count, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } });
 
   it("PRE4-Q41 — aucune opacité animée : toutes les vues animées de la Feuille ne portent que la révélation par le bas et la transition de place", () => {
     renderSheet(params({ sideMode: "RIGHT_LEFT", series: variableRows([[30, 5], [45, 10]]) }));
@@ -2069,7 +2071,7 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
 
   it("PRE4-Q41 — iOS : roue de la Durée totale dans un panneau sans flèche sous le champ, aligné à droite ; réserve sous le groupe si elle dépasse ; ✓ applique (inversion), ✕ et toucher extérieur ferment sans appliquer ; aucune Modal ni animation de hauteur", () =>
     withPlatform("ios", () => {
-      renderSheet(params({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 10 } }));
+      renderSheet(params({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
       layoutOf("execution-sheet-group", 0, 400);
       layoutOf("execution-sheet-row-total", 300, 42);
       expect(text("execution-sheet-total")).toBe("40 s");
@@ -2138,7 +2140,7 @@ describe("PRE4-Q42 — lignes de la Feuille à 44 pt (Hermann, 2026-10-17)", () 
   it("PRE4-Q42 — lignes de la Feuille et du tableau des séries variables : hauteur minimale 44 pt", () => {
     expect(SHEET_ROW_MIN_HEIGHT).toBe(44);
     expect(TABLE_ROW_HEIGHT).toBe(44);
-    renderSheet(params({ series: { kind: "UNIFORM", count: 2, target: numberTarget(30), pauseSeconds: 10 } }));
+    renderSheet(params({ series: { kind: "UNIFORM", count: 2, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
     // Story 3.3 : la ligne de l'interrupteur « Séries variables » est retirée ; la ligne
     // « Séries » porte le champ de Régime.
     expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-row-series-line").props.style).minHeight).toBe(44);
@@ -2164,7 +2166,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
   const bilateral = (overrides: Partial<ExecutionParametersInput> = {}) =>
     params({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE", sideRecoverySeconds: 10, ...overrides });
   const creation = () =>
-    params({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0 }, sideMode: null });
+    params({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] }, sideMode: null });
   const popovers = () => screen.UNSAFE_root.findAllByType(Popover).map((node) => node.props.testID as string);
   const modals = () => screen.UNSAFE_root.findAllByType(Modal);
   const press = (testID: string) => {
@@ -2218,7 +2220,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
   });
 
   it("PRE4-3.3/AC2 — sans ligne Durée totale, le Bip est juste avant le Compte à rebours", () => {
-    renderSheet(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15 } }));
+    renderSheet(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
     expect(screen.queryByTestId("execution-sheet-row-total")).toBeNull();
     const json = JSON.stringify(screen.toJSON());
     const beep = json.indexOf('"execution-sheet-row-beep"');
@@ -2297,7 +2299,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
 
   it("PRE4-3.3/AC6 — iOS : champ de Régime à N ≥ 2, panneau sans flèche sous la ligne Séries (Q43), exactement identiques et variables avec leurs sous-titres ; choix appliqué par le Brouillon", () =>
     withPlatform("ios", () => {
-      const { onApply } = renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 10 } }));
+      const { onApply } = renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
       layoutOf("execution-sheet-group", 0, 520);
       // Q40 : la ligne « Séries » est dans le groupe du tableau ; sa boîte est relative à lui.
       layoutOf("execution-sheet-variable-group", 46, 44);
@@ -2436,7 +2438,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
   });
 
   it("PRE4-3.3/AC8 — T20 : un seul champ actif — toucher une autre valeur ferme le premier et ouvre le second d'un seul geste ; T22 : ± du champ ouvert sans fermeture, Bip au pas de 1", () => {
-    const { onApply } = renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 10 } }));
+    const { onApply } = renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
     fireEvent.press(screen.getByTestId("execution-sheet-pause-toggle"));
     press("execution-sheet-pause-increment");
     expect(shownValue("execution-sheet-pause")).toBe("11 s");
@@ -2448,7 +2450,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     expect(screen.getByTestId("execution-sheet-beep-increment")).toBeTruthy();
     expect(shownValue("execution-sheet-beep")).toBe("2 s");
     validate();
-    expect(applied(onApply)).toMatchObject({ cadenceBeepIntervalSeconds: 2, series: { kind: "UNIFORM", pauseSeconds: 11 } });
+    expect(applied(onApply)).toMatchObject({ cadenceBeepIntervalSeconds: 2, series: { kind: "UNIFORM", pauseSeconds: 11, loadKg: 0, workPhases: [] } });
   });
 
   it("PRE4-3.3/AC8 — T22 : le − de N retire des lignes du tableau sans fermer le champ de N ; T23 : un appui extérieur le range, valeurs conservées, sans Annuler", () => {
@@ -2522,7 +2524,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     expect(screen.queryByTestId("execution-sheet-message")).toBeNull();
     expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
     view.unmount();
-    renderSheet(params({ series: { kind: "UNIFORM", count: 2, target: numberTarget(30), pauseSeconds: 0 } }));
+    renderSheet(params({ series: { kind: "UNIFORM", count: 2, target: numberTarget(30), pauseSeconds: 0, loadKg: 0, workPhases: [] } }));
     expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: false });
   });
 
@@ -2537,7 +2539,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       // La roue native et la roue Legacy ne se pilotent pas de la même façon sous Jest : la
       // Cible part de 40 s, et le Mode est basculé aller-retour (mémoire par Mode, story 3.2).
       const { onApply, unmount } = renderSheetView(
-        params({ series: { kind: "UNIFORM", count: 1, target: numberTarget(40), pauseSeconds: 0 }, sideMode: null }),
+        params({ series: { kind: "UNIFORM", count: 1, target: numberTarget(40), pauseSeconds: 0, loadKg: 0, workPhases: [] }, sideMode: null }),
       );
       chooseMode("Répétitions");
       chooseMode("Durée");
@@ -2703,7 +2705,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
   // Répétitions ouvre son Sélecteur, qui reste la seule surface ouverte (AD-15).
   it("PRE4-3.3/AC7 — Cible commune Répétitions (pastille depuis 3.5) : l'ouvrir ferme la surface ouverte (champ ±, popover)", () =>
     withPlatform("ios", () => {
-      renderSheet(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15 } }));
+      renderSheet(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
       fireEvent.press(screen.getByTestId("execution-sheet-beep-toggle"));
       fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
       expect(screen.queryByTestId("execution-sheet-beep-increment")).toBeNull();
@@ -2730,7 +2732,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     it(`PRE4-3.3/AC6 — D-4 du Régime (${platform}) : « variables » appliqué tout de suite ; sélecteur visible et ligne Séries surlignée 350 ms, sans fond de groupe ; puis sélecteur fermé et fond du groupe`, () =>
       withPlatform(platform, async () => {
         jest.useFakeTimers();
-        renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 10 } }));
+        renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
         fireEvent.press(screen.getByTestId("execution-sheet-regime-value"));
         fireEvent(get("execution-sheet-regime-selector"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 330, height: 60 } } });
         fireEvent.press(get("execution-sheet-regime-control-VARIABLE"));
@@ -2760,7 +2762,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
  */
 describe("ExecutionParametersSheet — PRE-4 story 3.4", () => {
   const durationTarget = (target: SeriesTarget, count = 3) =>
-    params({ series: { kind: "UNIFORM", count, target, pauseSeconds: 15 } });
+    params({ series: { kind: "UNIFORM", count, target, pauseSeconds: 15, loadKg: 0, workPhases: [] } });
   const openTarget = () => fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
   const wheelChange = (column: "minutes" | "seconds", selection: number) =>
     fireEvent(screen.getByTestId(`duration-wheel-${column}`), "selectionChange", { nativeEvent: { selection } });
@@ -2789,7 +2791,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.4", () => {
       expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
       fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
       validate();
-      expect(applied(onApply).series).toMatchObject({ kind: "UNIFORM", count: 3, target: { kind: "NUMBER", value: 30 }, pauseSeconds: 15 });
+      expect(applied(onApply).series).toMatchObject({ kind: "UNIFORM", count: 3, target: { kind: "NUMBER", value: 30 }, pauseSeconds: 15, loadKg: 0, workPhases: [] });
     }));
 
   it("PRE4-3.4/AC5, AC6, AC8 — échec choisi à l'ouverture : toucher l'option est sans effet ; ✕ et toucher extérieur gardent « à l’échec » ; la colonne des minutes revient au numérique", () =>
@@ -2836,11 +2838,11 @@ describe("ExecutionParametersSheet — PRE-4 story 3.4", () => {
       expect(screen.getByTestId("duration-wheel-failure-option").props.accessibilityState).toMatchObject({ selected: true });
     }));
 
-  it("PRE4-3.4/AC3 — Cible à renseigner : ouverture sur 00:05 (Q25), active, option à 45 %, ✓ du Sélecteur disponible ; la ligne garde « — » ; ✕ la laisse à renseigner ; ✓ sans tourner applique 5 s", () =>
+  it("PRE4-3.4/AC3 — Cible à renseigner : ouverture sur 00:01 (Q25, D-430), active, option à 45 %, ✓ du Sélecteur disponible ; la ligne garde « — » ; ✕ la laisse à renseigner ; ✓ sans tourner applique 1 s", () =>
     withPlatform("ios", () => {
       renderSheet(durationTarget(unsetTarget()));
       openTarget();
-      expect([selection("minutes"), selection("seconds")]).toEqual([0, 5]);
+      expect([selection("minutes"), selection("seconds")]).toEqual([0, 1]);
       expect(opacity("duration-wheel-failure-option")).toBe(0.45);
       expect(screen.getByTestId("duration-wheel-validate").props.accessibilityState?.disabled).not.toBe(true);
       expect(rowText()).toBe("—");
@@ -2850,7 +2852,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.4", () => {
       expect(sheetValidateDisabled()).toBe(true);
       openTarget();
       wheelValidate();
-      expect(text("execution-sheet-target-value")).toBe("5 s");
+      expect(text("execution-sheet-target-value")).toBe("1 s");
       expect(sheetValidateDisabled()).toBe(false);
     }));
 
@@ -2950,7 +2952,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.4", () => {
 
   it("PRE4-3.4/AC7 — sélection numérique amenée sur 00:00 : ✓ du Sélecteur indisponible, pas d'échec ; la Cible reste inchangée ; Pause 0 s reste valide", () =>
     withPlatform("ios", () => {
-      renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 0 } }));
+      renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 0, loadKg: 0, workPhases: [] } }));
       openTarget();
       wheelChange("seconds", 0);
       const check = screen.getByTestId("duration-wheel-validate");
@@ -3007,7 +3009,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.4", () => {
  */
 describe("ExecutionParametersSheet — PRE-4 story 3.5", () => {
   const repetitionsTarget = (target: SeriesTarget, count = 3) =>
-    params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count, target, pauseSeconds: 15 } });
+    params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count, target, pauseSeconds: 15, loadKg: 0, workPhases: [] } });
   const openTarget = () => fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
   const wheelChange = (selection: number | string) =>
     fireEvent(screen.getByTestId("number-wheel-column"), "selectionChange", { nativeEvent: { selection } });
@@ -3067,7 +3069,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.5", () => {
       expect(screen.queryByTestId("execution-sheet-target-panel")).toBeNull();
       expect(text("execution-sheet-target-value")).toBe("10 rép.");
       validate();
-      expect(applied(onApply).series).toMatchObject({ kind: "UNIFORM", count: 3, target: { kind: "NUMBER", value: 10 }, pauseSeconds: 15 });
+      expect(applied(onApply).series).toMatchObject({ kind: "UNIFORM", count: 3, target: { kind: "NUMBER", value: 10 }, pauseSeconds: 15, loadKg: 0, workPhases: [] });
     }));
 
   it("PRE4-3.5/AC2 — une colonne : ligne de tête puis 1..100 ; ni filet, ni option séparée, ni grisé ; plus de stepper en ligne", () =>
@@ -3098,7 +3100,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.5", () => {
       expect(text("execution-sheet-target-value")).toBe("à l’échec");
       validate();
       const series = applied(onApply).series;
-      expect(series).toEqual({ kind: "UNIFORM", count: 3, target: { kind: "FAILURE" }, pauseSeconds: 15 });
+      expect(series).toEqual({ kind: "UNIFORM", count: 3, target: { kind: "FAILURE" }, pauseSeconds: 15, loadKg: 0, workPhases: [] });
     }));
 
   it("PRE4-3.5/AC4 — ouverture : NUMBER 12 → 12 ; FAILURE → ligne de tête ; ancienne 150 → 100, ligne inchangée pendant l'ouverture, ✕ garde 150, ✓ sans tourner applique 100", () =>
@@ -3147,7 +3149,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.5", () => {
 
   it("PRE4-3.5/AC4 — Durée à « — » passée en Répétitions : le Sélecteur ouvre sur 1 (selectorOpeningPosition, Q25)", () =>
     withPlatform("ios", () => {
-      renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: unsetTarget(), pauseSeconds: 15 } }));
+      renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: unsetTarget(), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
       chooseExecutionMode("Répétitions");
       expect(text("execution-sheet-target-value")).toBe("—");
       openTarget();
@@ -3202,7 +3204,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.5", () => {
       expect(text("execution-sheet-target-value")).toBe("à l’échec");
       expect(view.onApply).not.toHaveBeenCalled();
       validate();
-      expect(applied(view.onApply).series).toMatchObject({ kind: "UNIFORM", count: 3, target: { kind: "FAILURE" }, pauseSeconds: 15 });
+      expect(applied(view.onApply).series).toMatchObject({ kind: "UNIFORM", count: 3, target: { kind: "FAILURE" }, pauseSeconds: 15, loadKg: 0, workPhases: [] });
       view.unmount();
 
       const second = renderSheetView(repetitionsTarget(numberTarget(10)));
@@ -3270,7 +3272,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
   const variableSheet = (rows: [Cell, number][], mode: "DURATION" | "REPETITIONS" = "DURATION", overrides: Partial<ExecutionParametersInput> = {}) =>
     params({
       mode,
-      series: { kind: "VARIABLE", rows: rows.map(([target, pauseSeconds]) => ({ target: toTarget(target), pauseSeconds })) },
+      series: { kind: "VARIABLE", rows: rows.map(([target, pauseSeconds]) => ({ target: toTarget(target), pauseSeconds, loadKg: 0 })) },
       ...overrides,
     });
   const hidden = { includeHiddenElements: true } as const;
@@ -3398,21 +3400,21 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     expect(applied(onApply).series).toEqual({
       kind: "VARIABLE",
       rows: [
-        { target: numberTarget(30), pauseSeconds: 10 },
-        { target: numberTarget(60), pauseSeconds: 20 },
-        { target: numberTarget(75), pauseSeconds: 30 },
+        { target: numberTarget(30), pauseSeconds: 10, loadKg: 0 },
+        { target: numberTarget(60), pauseSeconds: 20, loadKg: 0 },
+        { target: numberTarget(75), pauseSeconds: 30, loadKg: 0 },
       ],
     });
   });
 
-  it("PRE4-3.6/AC3 — ouverture normalisée : 5999 s → 58:55, `UNSET` → 00:05 ; Répétitions (roue de la story 3.5) : 12 → 12, 150 → 100, `UNSET` → 1", () => {
+  it("PRE4-3.6/AC3 — ouverture normalisée : 5999 s → 58:55, `UNSET` → 00:01 (D-430) ; Répétitions (roue de la story 3.5) : 12 → 12, 150 → 100, `UNSET` → 1", () => {
     const view = renderSheetView(variableSheet([[5999, 10], [null, 20]]));
     openCell(1);
     expect(durationSelection()).toEqual([58, 55]);
     fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
     expect(cellValue(1)).toBe(formatPhraseDuration(5999));
     openCell(2);
-    expect(durationSelection()).toEqual([0, 5]);
+    expect(durationSelection()).toEqual([0, 1]);
     fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
     expect(cellValue(2)).toBe("—");
     view.unmount();
@@ -3512,7 +3514,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
       expect([cellValue(1), cellValue(2)]).toEqual(["12 rép.", "à l’échec"]);
     }));
 
-  it("PRE4-3.6/AC4 (partie maintenue par Q44) — ± permanents de la cellule : Cible `FAILURE` indisponibles ; Cible `UNSET` : − indisponible, + donne 5 s (1 en Répétitions) et retire le fond #FFF1F0", () => {
+  it("PRE4-3.6/AC4 (partie maintenue par Q44) — ± permanents de la cellule : Cible `FAILURE` indisponibles ; Cible `UNSET` : − indisponible, + donne 1 s depuis D-430 (1 en Répétitions) et retire le fond #FFF1F0", () => {
     const view = renderSheetView(variableSheet([["FAILURE", 10], [null, 20]]));
     expect([stepDisabled(1, "decrement"), stepDisabled(1, "increment")]).toEqual([true, true]);
     press(`${targetID(1)}-increment`);
@@ -3523,7 +3525,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     press(`${targetID(2)}-decrement`);
     expect(cellValue(2)).toBe("—");
     press(`${targetID(2)}-increment`);
-    expect(cellValue(2)).toBe("5 s");
+    expect(cellValue(2)).toBe("1 s");
     expect(StyleSheet.flatten(screen.getByTestId(targetID(2)).props.style).backgroundColor).not.toBe("#FFF1F0");
     view.unmount();
 
@@ -3625,9 +3627,9 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     expect(applied(onApply).series).toEqual({
       kind: "VARIABLE",
       rows: [
-        { target: failureTarget(), pauseSeconds: 30 },
-        { target: numberTarget(45), pauseSeconds: 20 },
-        { target: numberTarget(30), pauseSeconds: 10 },
+        { target: failureTarget(), pauseSeconds: 30, loadKg: 0 },
+        { target: numberTarget(45), pauseSeconds: 20, loadKg: 0 },
+        { target: numberTarget(30), pauseSeconds: 10, loadKg: 0 },
       ],
     });
   });
@@ -3792,7 +3794,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
   });
 
   it("PRE4-3.6/AC10 — la ligne `Séries` affiche `1 série` puis `3 séries` (lexique)", () => {
-    renderSheet(params({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 10 } }));
+    renderSheet(params({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
     expect(valueOf("execution-sheet-series")).toBe("1 série");
     tap("execution-sheet-series-increment");
     tap("execution-sheet-series-increment");
@@ -3821,8 +3823,8 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     expect(view.onApply.mock.calls[0]![0].series).toEqual({
       kind: "VARIABLE",
       rows: [
-        { target: numberTarget(5999), pauseSeconds: 300 },
-        { target: numberTarget(45), pauseSeconds: 20 },
+        { target: numberTarget(5999), pauseSeconds: 300, loadKg: 0 },
+        { target: numberTarget(45), pauseSeconds: 20, loadKg: 0 },
       ],
     });
     view.unmount();
@@ -3915,11 +3917,11 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
       .map(({ row }) => row);
   };
   /** Exercice d'AC4 : Durée, `identiques`, d = 30 s, p = 10 s, unilatéral, N = 3. */
-  const ac4Exercise = () => params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 10 } });
+  const ac4Exercise = () => params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } });
   const repetitionsWithBeep = () =>
     params({
       mode: "REPETITIONS",
-      series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15 },
+      series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15, loadKg: 0, workPhases: [] },
       cadenceBeepIntervalSeconds: 2,
     });
   const mixedDuration = () => variableParameters({ rows: [[30, 10], [45, 20], ["FAILURE", 30]] });
@@ -3968,7 +3970,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
 
     // Aucune ligne : Répétitions sans Bip, tout à l'échec (Durée ou Répétitions avec Bip), `identiques` à l'échec.
     for (const parent of [
-      params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15 } }),
+      params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15, loadKg: 0, workPhases: [] } }),
       variableParameters({ rows: [["FAILURE", 10], ["FAILURE", 20]] }),
       { ...allFailureParameters(3, 15, { cadenceBeepIntervalSeconds: 2 }), countdownSeconds: 10, endSeconds: 5 },
       durationParameters("FAILURE", 3, 10),
@@ -4007,7 +4009,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     view.unmount();
 
     // Bip : Répétitions sans Bip → aucune ligne ; Bip 2 s → ≈ N × (R × b + p).
-    const reps = renderSheetView(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15 } }));
+    const reps = renderSheetView(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
     expect(screen.queryByTestId("execution-sheet-row-total")).toBeNull();
     tap("execution-sheet-beep-increment");
     tap("execution-sheet-beep-increment");
@@ -4113,7 +4115,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
 
   it("PRE4-3.7/AC4 — iOS : T(1) = 70 s (d = 60 s, p = 10 s) : minutes 01..99 sans 00, secondes 10..59 à 1 min ; T(99) = 6 930 s > 5 999 : borne 99:59 ; ouverture exacte sur 03:30", () =>
     withPlatform("ios", () => {
-      renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(60), pauseSeconds: 10 } }));
+      renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(60), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
       expect(99 * (60 + 10)).toBeGreaterThan(5999);
       fireEvent.press(screen.getByTestId("execution-sheet-total"));
       expect(screen.getByTestId("duration-wheel-minutes").props.selection).toBe(Math.floor((3 * 70) / 60));
@@ -4134,7 +4136,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
 
   it("PRE4-3.7/AC4 — iOS : T(99) > 5 999 s (d = 95 s, p = 10 s) : minutes jusqu'à 99, secondes 00..59 à 99 min, ouverture exacte sur 05:15 ; total courant > 5 999 s ou T(1) > 5 999 s : aucune roue, lecture seule « non modifiable »", () =>
     withPlatform("ios", () => {
-      let view = renderSheetView(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(95), pauseSeconds: 10 } }));
+      let view = renderSheetView(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(95), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
       fireEvent.press(screen.getByTestId("execution-sheet-total"));
       // Ouverture sur 3 × (95 + 10) = 315 s = 05:15.
       expect(screen.getByTestId("duration-wheel-minutes").props.selection).toBe(5);
@@ -4145,7 +4147,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
       view.unmount();
 
       // Total courant 90 × (60 + 10) = 6 300 s > 5 999 : pas de roue ; T(1) = 70 s n'y change rien.
-      view = renderSheetView(params({ series: { kind: "UNIFORM", count: 90, target: numberTarget(60), pauseSeconds: 10 } }));
+      view = renderSheetView(params({ series: { kind: "UNIFORM", count: 90, target: numberTarget(60), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
       expect(screen.queryByTestId("execution-sheet-total")).toBeNull();
       expect(readOnlyText()).toBe(formatPhraseDuration(90 * 70));
       expect(totalLine().props.accessibilityLabel).toBe(`Durée totale, ${formatPhraseDuration(90 * 70)}, non modifiable`);
@@ -4156,7 +4158,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
       // T(1) = 2 × (3 535 + 300) + 300 = 7 970 s > 5 999 (bilatéral, un côté après l'autre, N = 1) : pas de roue.
       renderSheet(
         params({
-          series: { kind: "UNIFORM", count: 1, target: numberTarget(3535), pauseSeconds: 300 },
+          series: { kind: "UNIFORM", count: 1, target: numberTarget(3535), pauseSeconds: 300, loadKg: 0, workPhases: [] },
           sideMode: "RIGHT_LEFT",
           sideRecoverySeconds: 300,
         }),
@@ -4182,7 +4184,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
       // Double validation (Q12) : rien n'est appliqué à l'Éditeur avant le ✓ de la Feuille.
       expect(onApply).not.toHaveBeenCalled();
       validate();
-      expect(applied(onApply).series).toEqual({ kind: "UNIFORM", count: 4, target: numberTarget(30), pauseSeconds: 10 });
+      expect(applied(onApply).series).toEqual({ kind: "UNIFORM", count: 4, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] });
     }));
 
   it("PRE4-3.7/AC6 — Tv = 180 s puis ✓ : N = 5 (égalité 160 / 200 vers le plus grand N), « 3 min 20 s », message littéral et `Annuler` (restaure N et total) ; toucher le message le ferme sans annuler", () =>
@@ -4250,20 +4252,20 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     expect(spoken()).toBe(`Durée totale, ${formatPhraseDuration(30 + 10 + 45 + 20)}, non modifiable`);
     view.unmount();
 
-    // Saisie invalide (Cible 4 s) : « — » affiché (PRE4-2.1/AC9), annoncé par la clé dédiée, jamais par le tiret.
+    // Saisie invalide (Cible 3536 s, D-430) : « — » affiché (PRE4-2.1/AC9), annoncé par la clé dédiée, jamais par le tiret.
     expect(sheetText.totalInvalidSpoken).toBe("montant indisponible tant qu’une valeur est invalide");
-    view = renderSheetView(durationParameters(4, 3, 10));
+    view = renderSheetView(durationParameters(3536, 3, 10));
     expect(readOnlyText()).toBe("—");
     expect(spoken()).toBe(`Durée totale, ${sheetText.totalInvalidSpoken}`);
     expect(spoken()).not.toMatch(/—/u);
     view.unmount();
     // Saisie invalide avec une nature connue : elle est gardée (≈ : Bip historique 11, hors bornes ;
-    // ≥ : mélange avec une Cible hors bornes).
+    // ≥ : mélange avec une Cible hors bornes, 3536 s depuis D-430).
     view = renderSheetView({ ...repetitionsWithBeep(), cadenceBeepIntervalSeconds: 11 });
     expect(readOnlyText()).toBe("—");
     expect(spoken()).toBe(`Durée totale, estimation, ${sheetText.totalInvalidSpoken}`);
     view.unmount();
-    view = renderSheetView(variableParameters({ rows: [[4, 10], [45, 20], ["FAILURE", 30]] }));
+    view = renderSheetView(variableParameters({ rows: [[3536, 10], [45, 20], ["FAILURE", 30]] }));
     expect(readOnlyText()).toBe("—");
     expect(spoken()).toBe(`Durée totale, total prévisionnel partiel, ${sheetText.totalInvalidSpoken}`);
     view.unmount();
@@ -4280,7 +4282,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     // Chaque cas : paramètres, montant attendu par formule, rendu attendu (pastille ou lecture seule).
     const cases: { parent: ExecutionParametersInput; seconds: number; prefix: string; editable: boolean }[] = [
       // 99 × (30 + 10) = 3 960 s → « 66 min ».
-      { parent: params({ series: { kind: "UNIFORM", count: 99, target: numberTarget(30), pauseSeconds: 10 } }), seconds: 99 * 40, prefix: "", editable: true },
+      { parent: params({ series: { kind: "UNIFORM", count: 99, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }), seconds: 99 * 40, prefix: "", editable: true },
       // 3 × (30 + 10) = 120 s → « 2 min ».
       { parent: ac4Exercise(), seconds: 3 * 40, prefix: "", editable: true },
       // 30 + 45 + 10 + 20 + 30 = 135 s → « ≥ 2 min 15 s ».
@@ -4290,7 +4292,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
       // Répétitions avec Bip : 3 × (10 × 2 + 15) = 105 s → « 1 min 45 s » (≈ dans le libellé).
       { parent: repetitionsWithBeep(), seconds: 105, prefix: "", editable: false },
       // 90 × 70 = 6 300 s → « 105 min » (au-delà du plafond de la roue : lecture seule).
-      { parent: params({ series: { kind: "UNIFORM", count: 90, target: numberTarget(60), pauseSeconds: 10 } }), seconds: 6300, prefix: "", editable: false },
+      { parent: params({ series: { kind: "UNIFORM", count: 90, target: numberTarget(60), pauseSeconds: 10, loadKg: 0, workPhases: [] } }), seconds: 6300, prefix: "", editable: false },
     ];
     for (const { parent, seconds, prefix, editable } of cases) {
       const view = renderSheetView(parent);
@@ -4320,7 +4322,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
   /** Composant hôte de nom donné (`Text`, `View`, `RCTSwitch`). */
   const hostNamed = (node: { readonly type: unknown }, name: string) => node.type === name;
   const creation = () =>
-    params({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0 }, sideMode: null });
+    params({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] }, sideMode: null });
   /** Tous les textes annoncés de la Feuille rendue : libellés, indices, valeurs, actions nommées. */
   const spokenTexts = () =>
     screen.UNSAFE_root
@@ -4378,7 +4380,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
     expect(screen.getByTestId("execution-sheet-target-value").props.accessibilityLabel).toBe("Durée d’une série, aucune valeur");
     expect(screen.getByTestId("execution-sheet-target-value").props.accessibilityHint).toBe("Valeur à renseigner");
     view.unmount();
-    const repetitions = renderSheetView(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: unsetTarget(), pauseSeconds: 15 } }));
+    const repetitions = renderSheetView(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: unsetTarget(), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
     expect(text("execution-sheet-target-value")).toBe("—");
     expect(screen.getByTestId("execution-sheet-target-value").props.accessibilityLabel).toBe("Nombre de répétitions, aucune valeur");
     repetitions.unmount();
@@ -4412,28 +4414,28 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
     expect(beep().props.accessibilityValue).toMatchObject({ now: 9, text: "9 s" });
   });
 
-  it("PRE4-3.8/AC2 — limites des cellules, annoncées seulement DANS les bornes : Cible 5 s « minimum atteint », 3535 s « maximum atteint », Pause 0 s et 300 s ; anciennes 4 s et 5999 s sans suffixe ; Cible à l’échec sans limite", () => {
+  it("PRE4-3.8/AC2 — limites des cellules, annoncées seulement DANS les bornes : Cible 1 s « minimum atteint » (D-430), 3535 s « maximum atteint », Pause 0 s et 300 s ; anciennes 4000 s et 5999 s sans suffixe ; Cible à l’échec sans limite", () => {
     renderSheet(
       params({
         series: {
           kind: "VARIABLE",
           rows: [
-            { target: numberTarget(5), pauseSeconds: 10 },
-            { target: numberTarget(5999), pauseSeconds: 300 },
-            { target: failureTarget(), pauseSeconds: 0 },
-            { target: numberTarget(3535), pauseSeconds: 10 },
-            { target: numberTarget(4), pauseSeconds: 10 },
+            { target: numberTarget(1), pauseSeconds: 10, loadKg: 0 },
+            { target: numberTarget(5999), pauseSeconds: 300, loadKg: 0 },
+            { target: failureTarget(), pauseSeconds: 0, loadKg: 0 },
+            { target: numberTarget(3535), pauseSeconds: 10, loadKg: 0 },
+            { target: numberTarget(4000), pauseSeconds: 10, loadKg: 0 },
           ],
         },
       }),
     );
     const spoken = (row: number, column: "target" | "pause") =>
       screen.getByTestId(`execution-sheet-table-row-${row}-${column}`).props.accessibilityValue.text as string;
-    expect(spoken(1, "target")).toBe("5 s, minimum atteint");
+    expect(spoken(1, "target")).toBe("1 s, minimum atteint");
     expect(spoken(4, "target")).toBe(`${formatPhraseDuration(3535)}, maximum atteint`);
     // Valeurs anciennes hors bornes (Q21, P38) : aucune limite annoncée, la valeur seule.
     expect(spoken(2, "target")).toBe(formatPhraseDuration(5999));
-    expect(spoken(5, "target")).toBe("4 s");
+    expect(spoken(5, "target")).toBe(formatPhraseDuration(4000));
     expect(screen.getByTestId("execution-sheet-table-row-3-target").props.accessibilityValue).toEqual({ text: "à l’échec" });
     expect(spoken(1, "pause")).toBe("10 s");
     expect(spoken(2, "pause")).toBe(`${formatPhraseDuration(300)}, maximum atteint`);
@@ -4442,7 +4444,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
 
   it("PRE4-3.8/AC3 — option échec annoncée sélectionnée ou non (état natif, pas le seul grisé) ; Cible à l’échec annoncée sur la ligne", () =>
     withPlatform("ios", () => {
-      renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 15 } }));
+      renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
       fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
       const option = () => screen.getByTestId("duration-wheel-failure-option");
       expect(option().props.accessibilityLabel).toBe("Aucune durée, à l’échec");
@@ -4470,16 +4472,16 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
       const states: ExecutionParametersInput[] = [
         creation(),
         params({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 10, cadenceBeepIntervalSeconds: 2 }),
-        params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15 }, cadenceBeepIntervalSeconds: 2 }),
+        params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15, loadKg: 0, workPhases: [] }, cadenceBeepIntervalSeconds: 2 }),
         // Répétitions, Cible commune vide : « Nombre de répétitions, aucune valeur ».
-        params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: unsetTarget(), pauseSeconds: 15 } }),
+        params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: unsetTarget(), pauseSeconds: 15, loadKg: 0, workPhases: [] } }),
         params({
           series: {
             kind: "VARIABLE",
             rows: [
-              { target: numberTarget(30), pauseSeconds: 10 },
-              { target: unsetTarget(), pauseSeconds: 20 },
-              { target: failureTarget(), pauseSeconds: 30 },
+              { target: numberTarget(30), pauseSeconds: 10, loadKg: 0 },
+              { target: unsetTarget(), pauseSeconds: 20, loadKg: 0 },
+              { target: failureTarget(), pauseSeconds: 30, loadKg: 0 },
             ],
           },
         }),
@@ -4593,7 +4595,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
 
   it("PRE4-3.8/AC5 — ✓ grisé (Brouillon invalide) avec une surface ouverte : l'appui ferme la surface ; état d'accessibilité cohérent ; surface fermée, ✓ de nouveau indisponible", () =>
     withPlatform("ios", () => {
-      const { onApply } = renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: unsetTarget(), pauseSeconds: 15 } }));
+      const { onApply } = renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: unsetTarget(), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
       const validateButton = () => get("execution-sheet-validate");
       expect(validateButton().props.accessibilityState).toMatchObject({ disabled: true });
       fireEvent.press(get("execution-sheet-side-value"));
@@ -4611,7 +4613,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
 
   it("PRE4-3.8/AC5 — iOS : popover du Mode, panneau du Côté, roue de la Durée totale ou d'une cellule ouverts : ✓ de la Feuille absorbé ; champ ± ouvert : ✓ applique dans le même geste (T19)", () =>
     withPlatform("ios", () => {
-      const view = renderSheetView(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 10 } }));
+      const view = renderSheetView(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
       for (const field of ["execution-sheet-mode-value", "execution-sheet-side-value", "execution-sheet-total"]) {
         fireEvent.press(get(field));
         pressHeader("execution-sheet-validate");
@@ -4741,7 +4743,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
       seen.push(...texts());
       view.unmount();
       // Répétitions : roue à ligne de tête.
-      view = renderSheetView(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15 } }));
+      view = renderSheetView(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
       withOpen("execution-sheet-target-value", "execution-sheet-target-panel");
       view.unmount();
       // Tableau : roue d'une cellule.

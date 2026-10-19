@@ -45,15 +45,16 @@ const PHOTO: DraftMediaItem = {
 
 function parameters(overrides: Partial<ExecutionParametersInput> = {}): ExecutionParametersInput {
   return {
-    version: 2,
+    version: 3,
     mode: "DURATION",
-    series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 15 },
+    series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] },
     sideMode: "UNILATERAL",
     sideOrder: "BY_SIDE",
     sideRecoverySeconds: 0,
     cadenceBeepIntervalSeconds: 0,
     countdownSeconds: 10,
     endSeconds: 5,
+    loadEnabled: false,
     ...overrides,
   };
 }

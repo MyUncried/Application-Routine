@@ -35,6 +35,7 @@ import {
   EXECUTION_PARAMETERS_VERSION,
   ExecutionParametersDataError,
   numberTarget,
+  serializeExecutionParameters,
   serializeV2,
   type ExecutionParameters,
 } from "@/domain/activities/ExecutionParameters";
@@ -2111,9 +2112,9 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
       series: {
         kind: "VARIABLE",
         rows: [
-          { target: numberTarget(30), pauseSeconds: 10 },
-          { target: numberTarget(45), pauseSeconds: 20 },
-          { target: numberTarget(60), pauseSeconds: 30 },
+          { target: numberTarget(30), pauseSeconds: 10, loadKg: 0 },
+          { target: numberTarget(45), pauseSeconds: 20, loadKg: 0 },
+          { target: numberTarget(60), pauseSeconds: 30, loadKg: 0 },
         ],
       },
       sideMode: "RIGHT_LEFT",
@@ -2122,6 +2123,7 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
       cadenceBeepIntervalSeconds: 0,
       countdownSeconds: 10,
       endSeconds: 5,
+      loadEnabled: false,
       ...overrides,
     };
   }
@@ -2296,7 +2298,7 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
     const repository = new SqliteSessionRepository(database, ids("ses"));
     const estimated = parameters({
       mode: "REPETITIONS",
-      series: { kind: "UNIFORM", count: 4, target: numberTarget(15), pauseSeconds: 15 },
+      series: { kind: "UNIFORM", count: 4, target: numberTarget(15), pauseSeconds: 15, loadKg: 0, workPhases: [] },
       sideMode: "UNILATERAL",
       cadenceBeepIntervalSeconds: 4,
     });
@@ -2305,9 +2307,9 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
       series: {
         kind: "VARIABLE",
         rows: [
-          { target: toTarget("FAILURE"), pauseSeconds: 30 },
-          { target: toTarget("FAILURE"), pauseSeconds: 45 },
-          { target: toTarget("FAILURE"), pauseSeconds: 60 },
+          { target: toTarget("FAILURE"), pauseSeconds: 30, loadKg: 0 },
+          { target: toTarget("FAILURE"), pauseSeconds: 45, loadKg: 0 },
+          { target: toTarget("FAILURE"), pauseSeconds: 60, loadKg: 0 },
         ],
       },
       sideMode: "UNILATERAL",
@@ -2397,7 +2399,7 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
       await migrateDatabase(fileDatabase);
       const extremes = parameters({
         mode: "REPETITIONS",
-        series: { kind: "VARIABLE", rows: [{ target: numberTarget(100), pauseSeconds: 300 }, { target: numberTarget(1), pauseSeconds: 0 }] },
+        series: { kind: "VARIABLE", rows: [{ target: numberTarget(100), pauseSeconds: 300, loadKg: 0 }, { target: numberTarget(1), pauseSeconds: 0, loadKg: 0 }] },
         sideOrder: "BY_SERIES",
         cadenceBeepIntervalSeconds: 10,
       });
@@ -2588,7 +2590,8 @@ describe("SqliteSessionRepository — PRE-4 story 1.1 (NodeSqliteDatabase REAL)"
     const stored = await database.getFirstAsync<{ execution_parameters: string }>(
       "SELECT execution_parameters FROM activities WHERE id = 'mixed'",
     );
-    expect(stored?.execution_parameters).toBe(serializeV2(mixed));
+    // PRE-5 (AD-18) : écrit en v3 par l'écrivain unique.
+    expect(stored?.execution_parameters).toBe(serializeExecutionParameters(mixed));
     const reread = (await repository.findById(created.id))!.cycle.tour.exercises;
     expect(reread.map((activity) => activity.executionParameters)).toEqual([mixed, reps]);
     for (const scalar of ["executionMode", "durationSeconds", "repetitionCount", "seriesCount", "pauseSeconds"]) {
@@ -2605,6 +2608,7 @@ describe("SqliteSessionRepository — PRE-4 story 1.1 (NodeSqliteDatabase REAL)"
       cadenceBeepIntervalSeconds: 3,
       countdownSeconds: 5,
       endSeconds: 6,
+      loadEnabled: false,
     };
     const cases: readonly ExecutionParameters[] = [
       uniformParameters({ ...common, mode: "DURATION", count: 3, target: 30, pauseSeconds: 10 }),

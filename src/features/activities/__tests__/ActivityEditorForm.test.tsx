@@ -63,22 +63,23 @@ function fakeReferentialService(bodyZones: readonly BodyZone[] = BODY_ZONE_FIXTU
 
 function parameters(overrides: Partial<ExecutionParametersInput> = {}): ExecutionParametersInput {
   return {
-    version: 2,
+    version: 3,
     mode: "DURATION",
-    series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 15 },
+    series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] },
     sideMode: "UNILATERAL",
     sideOrder: "BY_SIDE",
     sideRecoverySeconds: 0,
     cadenceBeepIntervalSeconds: 0,
     countdownSeconds: 10,
     endSeconds: 5,
+    loadEnabled: false,
     ...overrides,
   };
 }
 
 const variable = (rows: [number | null, number][]) => ({
   kind: "VARIABLE" as const,
-  rows: rows.map(([target, pauseSeconds]) => ({ target: target === null ? unsetTarget() : toTarget(target), pauseSeconds })),
+  rows: rows.map(([target, pauseSeconds]) => ({ target: target === null ? unsetTarget() : toTarget(target), pauseSeconds, loadKg: 0 })),
 });
 
 function baseValue(overrides: Partial<ActivityEditorFormValue> = {}): ActivityEditorFormValue {
@@ -255,11 +256,11 @@ describe("ActivityEditorForm — PRE-3", () => {
         "Durée totale : 6 min 15 s.",
       ],
       [
-        parameters({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 4, target: numberTarget(15), pauseSeconds: 15 }, cadenceBeepIntervalSeconds: 4 }),
+        parameters({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 4, target: numberTarget(15), pauseSeconds: 15, loadKg: 0, workPhases: [] }, cadenceBeepIntervalSeconds: 4 }),
         "Durée totale : ≈ 5 min.",
       ],
       [
-        parameters({ series: { kind: "UNIFORM", count: 4, target: numberTarget(60), pauseSeconds: 15 }, cadenceBeepIntervalSeconds: 4 }),
+        parameters({ series: { kind: "UNIFORM", count: 4, target: numberTarget(60), pauseSeconds: 15, loadKg: 0, workPhases: [] }, cadenceBeepIntervalSeconds: 4 }),
         "Durée totale : 5 min.",
       ],
     ];
@@ -288,8 +289,8 @@ describe("ActivityEditorForm — PRE-3", () => {
       view.unmount();
       return result;
     };
-    expect(render1(parameters({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 0 } }))).not.toContain("Durée totale");
-    expect(render1(parameters({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 15 } }))).toContain("Durée totale : 45 s.");
+    expect(render1(parameters({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 0, loadKg: 0, workPhases: [] } }))).not.toContain("Durée totale");
+    expect(render1(parameters({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 15, loadKg: 0, workPhases: [] } }))).toContain("Durée totale : 45 s.");
     expect(render1(parameters({ series: variable([[30, 10], [45, 20], [60, 30]]) }))).toContain("(30 s, 45 s puis 1 min)");
     expect(render1(parameters({ series: variable([[20, 0], [25, 0], [30, 0], [45, 0]]) }))).toContain("de 20 s à 45 s");
   });
@@ -299,7 +300,7 @@ describe("ActivityEditorForm — PRE-3", () => {
       <Harness
         initial={{
           executionParameters: parameters({
-            series: { kind: "UNIFORM", count: 1, target: numberTarget(90), pauseSeconds: 15 },
+            series: { kind: "UNIFORM", count: 1, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] },
             sideMode: "RIGHT_LEFT",
             sideRecoverySeconds: 10,
           }),
@@ -317,7 +318,7 @@ describe("ActivityEditorForm — PRE-3", () => {
   });
 
   it("P3-20/all-surfaces — titres et valeurs des écrans de référence ; carte bordée rayon 12 ; phrase Inter 13 / 20", () => {
-    render(<Harness initial={{ executionParameters: parameters({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0 } }) }} />);
+    render(<Harness initial={{ executionParameters: parameters({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] } }) }} />);
     expect(screen.getByText("Paramètres d’exécution")).toBeTruthy();
     // Story 4.2 (Q23) : « Choisir un mode » retiré ; E-21 : la Carte vide ne porte aucune invite.
     expect(screen.queryByText("Choisir un mode")).toBeNull();
@@ -360,7 +361,7 @@ describe("ActivityEditorForm — PRE-3", () => {
     tapExecutionSheetStep("execution-sheet-series-increment");
     fireEvent.press(screen.getByTestId("execution-sheet-validate"));
     expect(onChangeSpy).toHaveBeenCalledWith({
-      executionParameters: expect.objectContaining({ series: { kind: "UNIFORM", count: 4, target: numberTarget(90), pauseSeconds: 15 } }),
+      executionParameters: expect.objectContaining({ series: { kind: "UNIFORM", count: 4, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] } }),
     });
     expect(phrase()).toContain("4 séries");
     expect(screen.queryByTestId("execution-sheet")).toBeNull();
@@ -633,7 +634,7 @@ describe("ActivityEditorForm — PRE-4 story 1.1", () => {
     fireEvent.press(screen.getByTestId("number-wheel-validate"));
     fireEvent.press(screen.getByTestId("execution-sheet-validate"));
     const applied = onChangeSpy.mock.calls.at(-1)?.[0].executionParameters;
-    expect(applied?.series).toEqual({ kind: "UNIFORM", count: 3, target: numberTarget(1), pauseSeconds: 10 });
+    expect(applied?.series).toEqual({ kind: "UNIFORM", count: 3, target: numberTarget(1), pauseSeconds: 10, loadKg: 0, workPhases: [] });
     expect(JSON.stringify(applied)).not.toContain("FAILURE");
     expect(phrase()).not.toBe("Paramètres à compléter.");
   });
@@ -699,6 +700,7 @@ describe("ActivityEditorForm — PRE-4 story 2.3", () => {
             sideRecoverySeconds: 5,
             countdownSeconds: 10,
             endSeconds: 5,
+            loadEnabled: false,
           }),
         }}
       />,
@@ -753,6 +755,7 @@ describe("ActivityEditorForm — PRE-4 story 2.3", () => {
             ],
             countdownSeconds: 10,
             endSeconds: 5,
+            loadEnabled: false,
           }),
         }}
       />,
@@ -860,7 +863,7 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
     assetId: "p1",
     asset: { id: "p1", uri: "kodjo-media/p1.jpg", createdAt: "2026-10-18T10:00:00.000Z", kind: "PHOTO" },
   };
-  const EMPTY = parameters({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0 } });
+  const EMPTY = parameters({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] } });
 
   /** Identifiants de test dans l'ordre du document (parcours en profondeur de l'arbre rendu). */
   function documentOrder(): string[] {
@@ -998,7 +1001,7 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
       durationParameters(90, 3, 15, { countdownSeconds: 10, endSeconds: 5 }),
       repetitionParameters(12, 3, 30, { countdownSeconds: 10, endSeconds: 5 }),
       repetitionParameters("FAILURE", 3, 30, { countdownSeconds: 10, endSeconds: 5 }),
-      parameters({ series: { kind: "UNIFORM", count: 2, target: unsetTarget(), pauseSeconds: 0 } }),
+      parameters({ series: { kind: "UNIFORM", count: 2, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] } }),
     ]) {
       const view = render(<Harness initial={{ executionParameters }} />);
       expect(screen.queryByTestId("exercise-parameters-empty-prompt")).toBeNull();
@@ -1031,6 +1034,7 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
       cadenceBeepIntervalSeconds: 2,
       countdownSeconds: 10,
       endSeconds: 5,
+      loadEnabled: false,
     });
     render(<Harness initial={{ executionParameters }} />);
     const generated = phraseText(generateExecutionPhrase(executionParameters)!);

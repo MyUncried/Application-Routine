@@ -44,6 +44,13 @@
  * - Indicateur « N hérité » (`inheritedSeriesCount`, P42) : entrée
  *   d'ouverture, jamais persistée ni transmise ; il ne rend indisponible
  *   que l'Inversion du total.
+ *
+ * PRE-5 (story 1.1, AD-25, AD-33) : transport seulement, sans transition
+ * nouvelle. Le Brouillon porte les phases (`workPhases`, forme brouillon
+ * d'AD-20, et `nextPhaseId`), l'activation de la charge (`loadEnabled`) et
+ * `loadKg` dans l'uniforme et dans chaque ligne (actives, retirées, réservées) :
+ * `openSheetDraft`, `plain` et `requestedParameters` les recopient, pour
+ * qu'aucun ✓ ne perde une donnée lue (`requestedParameters(openSheetDraft(p))` = `p`).
  */
 
 import {
@@ -64,6 +71,7 @@ import {
   type SeriesRow,
   type SeriesTarget,
   type SideOrder,
+  type WorkPhase,
 } from "./ExecutionParameters";
 import { invertTotalDuration, isTotalDurationInvertible, type TotalDurationInversion } from "./executionCalculations";
 import type { SideMode } from "@/domain/sessions/sideMode";
@@ -84,6 +92,17 @@ export type PendingRemoval = {
 export type OpenSheetDraftOptions = {
   /** N marqué hérité d'un circuit de séries (P42) : entrée seulement, jamais persistée. */
   readonly inheritedSeriesCount?: boolean;
+};
+
+/**
+ * Phase dans le Brouillon (AD-20, AD-25) : une durée `null` est à renseigner ;
+ * aucune transition de la story 1.1 n'en crée (`normalizeWorkPhases` et
+ * `sheetDraftResult` arrivent avec la story 2.1).
+ */
+export type DraftWorkPhase = {
+  readonly id: number;
+  readonly label: string;
+  readonly durationSeconds: number | null;
 };
 
 export type ExecutionSheetDraft = {
@@ -126,6 +145,12 @@ export type ExecutionSheetDraft = {
   readonly cadenceBeepIntervalSeconds: number;
   readonly countdownSeconds: number;
   readonly endSeconds: number;
+  /** Phases de l'exercice (AD-20, AD-25), dans l'ordre d'exécution ; `[]` = « Aucune ». */
+  readonly workPhases: readonly DraftWorkPhase[];
+  /** Prochaine identité de phase : max(`id`) + 1 à l'ouverture, 1 si aucune phase (AD-27). */
+  readonly nextPhaseId: number;
+  /** Charge Avec / Sans (AD-19) ; les `loadKg` restent portés sous Sans. */
+  readonly loadEnabled: boolean;
 };
 
 /** Copie des paramètres du parent à l'ouverture — aucune réserve héritée. */
@@ -142,7 +167,8 @@ export function openSheetDraft(parent: ExecutionParametersInput, options: OpenSh
   rowIds.forEach((id, index) => (originById[id] = index));
   const targetsById: Record<number, TargetsByMode> = {};
   const first = rows[0];
-  const uniform = first ? { target: first.target, pauseSeconds: first.pauseSeconds } : { target: unsetTarget(), pauseSeconds: 0 };
+  const uniform = first ? plain(first) : { target: unsetTarget(), pauseSeconds: 0, loadKg: 0 };
+  const workPhases: readonly WorkPhase[] = parameters.series.kind === "UNIFORM" ? parameters.series.workPhases : [];
   if (parameters.mode !== null) {
     activeRows.forEach((row, index) => (targetsById[rowIds[index]!] = { [parameters.mode!]: row.target }));
     targetsById[uniformId] = { [parameters.mode]: uniform.target };
@@ -161,7 +187,7 @@ export function openSheetDraft(parent: ExecutionParametersInput, options: OpenSh
     uniformId,
     targetsById,
     originById,
-    openedRows: rows.map((row) => ({ target: row.target, pauseSeconds: row.pauseSeconds })),
+    openedRows: rows.map(plain),
     nextId: uniformId + 1,
     pendingRemoval: null,
     inheritedSeriesCount: options.inheritedSeriesCount ?? false,
@@ -171,26 +197,51 @@ export function openSheetDraft(parent: ExecutionParametersInput, options: OpenSh
     cadenceBeepIntervalSeconds: parameters.cadenceBeepIntervalSeconds,
     countdownSeconds: parameters.countdownSeconds,
     endSeconds: parameters.endSeconds,
+    workPhases: workPhases.map((phase) => ({ id: phase.id, label: phase.label, durationSeconds: phase.durationSeconds })),
+    nextPhaseId: workPhases.reduce((max, phase) => Math.max(max, phase.id), 0) + 1,
+    loadEnabled: parameters.loadEnabled,
   };
 }
 
-/** Lignes sans propriété volatile (jamais d'identité transmise au parent). */
-const plain = (row: SeriesRow): SeriesRow => ({ target: row.target, pauseSeconds: row.pauseSeconds });
+/**
+ * Lignes sans propriété volatile (jamais d'identité transmise au parent).
+ * PRE-5 (AD-19, AD-25) : la charge suit la ligne.
+ */
+function plain(row: SeriesRow): SeriesRow {
+  return { target: row.target, pauseSeconds: row.pauseSeconds, loadKg: row.loadKg };
+}
 
-/** Paramètres DEMANDÉS (avant normalisation N=1), état variable/ordre compris. */
-function requestedParameters(draft: ExecutionSheetDraft): ExecutionParametersInput {
+/**
+ * Paramètres DEMANDÉS (avant normalisation N=1), état variable/ordre compris.
+ * PRE-5 (AD-25) : phases, charge commune et activation de la charge comprises ;
+ * une durée de phase `null` (à renseigner) est transmise comme 0, que la
+ * validation refuse. Exportée pour le test d'aller-retour.
+ */
+export function requestedParameters(draft: ExecutionSheetDraft): ExecutionParametersInput {
   return {
     version: EXECUTION_PARAMETERS_VERSION,
     mode: draft.mode,
     series: draft.variable
       ? { kind: "VARIABLE", rows: draft.rows.map(plain) }
-      : { kind: "UNIFORM", count: draft.count, target: draft.uniform.target, pauseSeconds: draft.uniform.pauseSeconds },
+      : {
+          kind: "UNIFORM",
+          count: draft.count,
+          target: draft.uniform.target,
+          pauseSeconds: draft.uniform.pauseSeconds,
+          loadKg: draft.uniform.loadKg,
+          workPhases: draft.workPhases.map((phase) => ({
+            id: phase.id,
+            label: phase.label,
+            durationSeconds: phase.durationSeconds ?? 0,
+          })),
+        },
     sideMode: draft.sideMode,
     sideOrder: draft.sideOrder,
     sideRecoverySeconds: draft.sideRecoverySeconds,
     cadenceBeepIntervalSeconds: draft.cadenceBeepIntervalSeconds,
     countdownSeconds: draft.countdownSeconds,
     endSeconds: draft.endSeconds,
+    loadEnabled: draft.loadEnabled,
   };
 }
 

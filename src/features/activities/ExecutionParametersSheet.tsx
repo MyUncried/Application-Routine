@@ -638,7 +638,7 @@ export function ExecutionParametersSheet({
   }, [adjustment]);
 
   const effective = effectiveParameters(draft);
-  const effectiveFirst = seriesRowsOf(effective)[0] ?? { target: unsetTarget(), pauseSeconds: 0 };
+  const effectiveFirst = seriesRowsOf(effective)[0] ?? { target: unsetTarget(), pauseSeconds: 0, loadKg: 0 };
   const single = isSingleSeries(draft);
   const bilateral = isBilateral(draft.sideMode);
   const showVariableTable = draft.variable && !single;
@@ -1039,8 +1039,8 @@ export function ExecutionParametersSheet({
   );
   // ✓ applique au Brouillon de la Feuille seulement ; ✕ ferme sans rien changer (Q12).
   // Story 3.4 (AD-7, AD-16, Q21, Q25, Q36) : ouverture normalisée par le domaine
-  // (`selectorOpeningPosition` : 5999 → 58:55, « — » → 00:05, échec → option) ; la
-  // ligne garde sa valeur d'origine jusqu'au ✓. Bornes de Cible 5..3535 : `00:00`
+  // (`selectorOpeningPosition` : 5999 → 58:55, « — » → 00:01 depuis D-430, échec → option) ; la
+  // ligne garde sa valeur d'origine jusqu'au ✓. Bornes de Cible 1..3535 (D-430) : `00:00`
   // reste une position, jamais une Cible (✓ indisponible). L'échec sort en
   // `SeriesTarget` `FAILURE`, jamais en nombre.
   //

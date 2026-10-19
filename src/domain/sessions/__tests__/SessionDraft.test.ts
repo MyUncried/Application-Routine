@@ -1019,8 +1019,8 @@ describe("PRE-4 story 1.3 — copies et duplications à Cibles typées (domaine)
     expect(copy.executionParameters.series).toEqual({
       kind: "VARIABLE",
       rows: [
-        { target: { kind: "UNSET" }, pauseSeconds: 10 },
-        { target: { kind: "NUMBER", value: 12 }, pauseSeconds: 10 },
+        { target: { kind: "UNSET" }, pauseSeconds: 10, loadKg: 0 },
+        { target: { kind: "NUMBER", value: 12 }, pauseSeconds: 10, loadKg: 0 },
       ],
     });
     expect(JSON.stringify(copy.executionParameters)).not.toContain("FAILURE");

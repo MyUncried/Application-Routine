@@ -88,7 +88,7 @@ function convertRow(value: unknown, mode: LegacyExecutionMode): SeriesRow {
     return unreadable("series pause is missing");
   }
   const target = convertTarget(row.target, mode);
-  return { target, pauseSeconds: readNonNegativeInteger(row.pauseSeconds, "pauseSeconds") };
+  return { target, pauseSeconds: readNonNegativeInteger(row.pauseSeconds, "pauseSeconds"), loadKg: 0 };
 }
 
 function convertedMode(mode: LegacyExecutionMode): ExecutionMode {
@@ -174,7 +174,7 @@ function readV1Json(json: string, options: ReadV1Options): ExecutionParameters {
       return unreadable("series count is lower than 1");
     }
     const row = convertRow({ target: seriesRecord.target, pauseSeconds: seriesRecord.pauseSeconds }, mode);
-    series = { kind: "UNIFORM", count, target: row.target, pauseSeconds: row.pauseSeconds };
+    series = { kind: "UNIFORM", count, target: row.target, pauseSeconds: row.pauseSeconds, loadKg: 0, workPhases: [] };
   } else if (seriesRecord.kind === "VARIABLE") {
     if (!Array.isArray(seriesRecord.rows) || seriesRecord.rows.length === 0) {
       return unreadable("variable rows are missing or empty");
@@ -193,6 +193,7 @@ function readV1Json(json: string, options: ReadV1Options): ExecutionParameters {
     cadenceBeepIntervalSeconds,
     countdownSeconds,
     endSeconds,
+    loadEnabled: false,
   };
 }
 
@@ -234,13 +235,14 @@ function readV1Scalars(scalars: LegacyExecutionScalars): ExecutionParameters {
   return {
     version: EXECUTION_PARAMETERS_VERSION,
     mode: convertedMode(mode),
-    series: { kind: "UNIFORM", count, target, pauseSeconds },
+    series: { kind: "UNIFORM", count, target, pauseSeconds, loadKg: 0, workPhases: [] },
     sideMode,
     sideOrder: "BY_SIDE",
     sideRecoverySeconds,
     cadenceBeepIntervalSeconds: 0,
     countdownSeconds: 0,
     endSeconds: 0,
+    loadEnabled: false,
   };
 }
 

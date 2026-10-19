@@ -5,8 +5,8 @@ import {
   EXECUTION_PARAMETERS_VERSION,
   numberTarget,
   projectScalars,
-  readV2,
-  serializeV2,
+  readExecutionParameters,
+  serializeExecutionParameters,
   unsetTarget,
   type ExecutionParameters,
 } from "@/domain/activities/ExecutionParameters";
@@ -758,6 +758,9 @@ function recoveryExecutionParameters(durationSeconds: number | null): ExecutionP
       count: 1,
       target: durationSeconds !== null && durationSeconds >= 1 ? numberTarget(durationSeconds) : unsetTarget(),
       pauseSeconds: 0,
+      // PRE-5 (AD-19, AD-20) : sans charge, aucune phase.
+      loadKg: 0,
+      workPhases: [],
     },
     sideMode: "UNILATERAL",
     sideOrder: "BY_SIDE",
@@ -765,6 +768,7 @@ function recoveryExecutionParameters(durationSeconds: number | null): ExecutionP
     cadenceBeepIntervalSeconds: 0,
     countdownSeconds: 0,
     endSeconds: 0,
+    loadEnabled: false,
   };
 }
 
@@ -775,7 +779,7 @@ function recoveryExecutionParameters(durationSeconds: number | null): ExecutionP
  * PRE-4 (story 1.1, AD-3) : les paramètres ont déjà été validés au niveau
  * structurel par `validateCreateSessionInput`/`validateUpdateSessionInput` ;
  * les colonnes historiques reçoivent la projection scalaire UNIQUE
- * (`projectScalars`) et `execution_parameters` le JSON v2. Les colonnes du
+ * (`projectScalars`) et `execution_parameters` le JSON v3 (PRE-5, AD-18). Les colonnes du
  * CHECK composite sont contrôlées AVANT l'écriture (`assertActivityColumns`,
  * miroir du CHECK de `migration010`) : une Copie dont la projection violerait
  * le CHECK est refusée sans écriture (AC5).
@@ -816,7 +820,7 @@ function toActivitySqlValues(activity: {
       postActivityRecoverySeconds: activity.postActivityRecoverySeconds,
       bodyZoneIds: activity.bodyZoneIds,
       sideMode: projection.sideMode,
-      executionParameters: serializeV2(parameters),
+      executionParameters: serializeExecutionParameters(parameters),
     };
   }
   assertActivityColumns({
@@ -917,7 +921,7 @@ async function mergeActivities(
     );
 
     if (existing.has(activity.id)) {
-      // PRE-4 : une occurrence existante reçoit son JSON v2 et la projection
+      // PRE-4 : une occurrence existante reçoit son JSON v3 (PRE-5, AD-18) et la projection
       // scalaire unique (AD-3). Catégorie `undefined` = conservée.
       await transaction.runAsync(
         `UPDATE activities SET
@@ -1122,7 +1126,7 @@ async function getBodyZoneNamesBySession(
 }
 
 /**
- * PRE-4 (story 1.1, AD-3) : paramètres d'une ligne d'occurrence. `readV2` est
+ * PRE-4 (story 1.1, AD-3) : paramètres d'une ligne d'occurrence. PRE-5 (AD-18) : `readExecutionParameters` (v2 et v3) est
  * le seul lecteur d'un Exercice (NULL, JSON corrompu, v1 ou version inconnue
  * → `ExecutionParametersDataError`, jamais un repli sur les scalaires) ; une
  * ancienne Récupération autonome est lue défensivement depuis sa durée.
@@ -1132,7 +1136,7 @@ function rowExecutionParameters(
   json: string | null,
   durationSeconds: number | null,
 ): ExecutionParameters {
-  return type === "RECOVERY" ? recoveryExecutionParameters(durationSeconds) : readV2(json);
+  return type === "RECOVERY" ? recoveryExecutionParameters(durationSeconds) : readExecutionParameters(json);
 }
 
 function toActivity(
@@ -1277,7 +1281,7 @@ const EMPTY_ZONES: SessionZones = { beforeTour: [], inTour: [], afterTour: [] };
  * PRE-3 : paramètres de durée de TOUTES les occurrences des Séances listées,
  * en UNE requête groupée — total ensuite calculé par l'autorité unique du
  * Domaine, identique à la lecture complète (P3-13/tours-cycles-list).
- * PRE-4 (story 1.1, AD-3) : `readV2` seul, aucun fait scalaire.
+ * PRE-4 (story 1.1, AD-3), PRE-5 (AD-18) : `readExecutionParameters` seul, aucun fait scalaire.
  */
 async function getDurationFactsBySession(
   database: Database,

@@ -73,7 +73,11 @@ const STRUCTURAL_POSITIONS: readonly StructuralPosition[] = [
   "AFTER_TOUR",
 ];
 
-function codePointLength(value: string): number {
+/**
+ * Longueur en points de code, comme `length()` de SQLite. PRE-5 (AD-22) :
+ * exportée pour que `instructionStepsLength` mesure la limite comme la validation.
+ */
+export function codePointLength(value: string): number {
   return Array.from(value).length;
 }
 
