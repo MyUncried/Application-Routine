@@ -80,6 +80,9 @@ Relevé Figma (lecture seule, 19/10) `9071:53260` / composant `Description / Ét
 ## Implementation Notes
 
 - Environnement (consigne de l'orchestrateur) : aucun serveur lancé ; ne rien modifier dans les worktrees `C:\Dev\KODJO-BMAD-PRE5-fix` et `-recette` ; aucun commit, push ni `git worktree` (l'orchestrateur commite) ; pas de python système ; fichiers temporaires dans le clone ; docs Expo SDK 57 ; respecter les fins de ligne (CRLF des fichiers touchés).
+- Livré : `DescriptionSteps.tsx` (fonctions pures `applyStepTextChange`, `applyStepBackspace`, `displayedStepRows` ; focus et curseur après rendu ; blur différé d'un tick pour que ↑ ne clignote pas entre deux étapes, constat BH-3) ; `ActivityEditorForm.tsx` (valeur `instructionSteps`, cadre et hauteur bornée retirés, recadrage sur l'étape active, ↑ conservé) ; `ExerciseScreen.tsx` (décodage, `formValueEquals` et `occurrenceEquals` sur les encodages, encodage à `Terminer`) ; i18n (invites, « Étape {n} », `descriptionPlaceholder` retiré).
+- Comportements non décrits par les sources, à soumettre en recette : Entrée sur une étape vide crée une autre étape vide (retirées à `Terminer`) ; une coupure qui porterait la chaîne encodée au-delà de 1 000 (séparateur) est refusée ; retour arrière au début d'une étape non vide : natif (pas de fusion) ; `Terminer` réenregistre une ancienne Description sous sa forme encodée (lignes vides et `\r\n` retirés, AC4 / FR-35).
+- Contrôles : `npm test` (120 suites, 3128 tests), `npx tsc --noEmit`, `npm run lint` verts. Aucun constat iPhone.
 
 ## Spec Change Log
 
