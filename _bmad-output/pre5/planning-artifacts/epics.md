@@ -120,7 +120,7 @@ Pas de modèle de départ (projet existant, `bmad/pre5-depuis-pre4`) ; aucune mo
 - AR-19 (AD-19) — Charge : `loadEnabled` racine, `loadKg` sur `UniformSeries` et `SeriesRow`, fini ≥ 0 multiple de 0,25 ; module unique `exerciseLoad.ts` (`roundLoadUp`, `normalizeLoad`, `reactivateLoad`, `formatLoadKg`, `parseLoadText` acceptant « , » et « . », vide = 0, illisible ou négatif = valeur précédente) ; transitions `setLoadEnabled`, `setLoadValue` ; `normalizeLoad` à la fermeture du clavier, à Variables → Identiques et au ✓, jamais pendant Précédent / Suivant ; contrôle structurel propre à la charge, `checkStructuralNumber` inchangé ; `sameRowValue`/`alignRowsToBaseline` ignorent la charge ; champs obligatoires dans les types, constructeurs adaptés en story 1 ; `normalizeEffective` (N = 1) reprend le `loadKg` de la 1re ligne, `workPhases: []` ; égalité et clone étendus ; toute construction de `SeriesRow` recopie `loadKg`.
 - AR-20 (AD-20) — Phases : `workPhases: WorkPhase[]` (`{id, label, durationSeconds}`) sur `UniformSeries` seulement ; invariant structurel (Mode Durée, Cible `NUMBER`, durées ≥ 1, libellé 1..20, `target.value` = Σ, Σ dans 1..3535, sans tolérance de ligne de base) validé par `validateForSave` et `readV3` ; écrivain unique `deriveSeriesDuration` (liste non vide seulement ; table d'appels de l'AD) ; durée `number | null` au brouillon ; `normalizeWorkPhases(phases, defaultLabel)` au ✓ ; prédicat unique `canEnableWorkPhases` ; à N = 1 en état variable demandé, `setVariable(false)` dans la même transition ; transitions vers Répétitions, À l'échec, Variables refusées avec des phases ; `WORK_PHASE_LIMITS = { maxCount: 6, labelMaxLength: 20, durationMin: 1 }`.
 - AR-21 (AD-21) — Côtés : `SideMode` à trois valeurs, aucun CHECK modifié ; Avec ⇔ `isBilateral` ; Sans → Avec écrit `RIGHT_LEFT` et copie la Pause du Profil (P3-10) ; `LedgerSide` ordinal (`NONE | SIDE_1 | SIDE_2`) ; aucun module ne distingue `RIGHT_LEFT` de `LEFT_RIGHT` ; `SideModeControl.tsx` non étendu ; `normalizeEffective` écrit `BY_SIDE` à N = 1 (NR Δ24) ; QN-4.
-- AR-22 (AD-22) — Étapes dans la colonne existante : codec unique `instructionSteps.ts` (`decodeInstructionSteps` sur `/\r?\n/`, `encodeInstructionSteps` sans vides ni numéros, `null` si vide, `splitStepAt`, `insertPastedText`, `instructionStepsLength`) ; `instructionSteps: readonly string[]` dans la valeur du formulaire ; `formValueEquals` compare les encodages ; encodage à `Terminer` seulement ; `normalizeInstruction` inchangée ; saisie dépassant la limite refusée en entier ; limite en points de code sur la chaîne encodée `[EN ATTENTE QN-1]`.
+- AR-22 (AD-22) — Étapes dans la colonne existante : codec unique `instructionSteps.ts` (`decodeInstructionSteps` sur `/\r?\n/`, `encodeInstructionSteps` sans vides ni numéros, `null` si vide, `splitStepAt`, `insertPastedText`, `instructionStepsLength`) ; `instructionSteps: readonly string[]` dans la valeur du formulaire ; `formValueEquals` compare les encodages ; encodage à `Terminer` seulement ; `normalizeInstruction` inchangée ; saisie dépassant la limite refusée en entier ; limite en points de code sur la chaîne encodée (QN-1 validée par Hermann le 19/10).
 - AR-23 (AD-23) — Condition d'arrêt : `stopConditionOf(parameters)` seule autorité (`TARGET`, `FAILURE`, `MIXED`, `INCOMPLETE`), sur l'état effectif ; mémoire `lastNumberById` au Brouillon, distincte de `targetsById`, jamais écrasée par `FAILURE`/`UNSET` ; `failureOption` absente en identiques, conservée en variables ; Variables → Identiques puis `normalizeLoad` (charge reprise à 0 → Sans, §9-9).
 - AR-24 (AD-24) — `SegmentedControl` reçoit `variant: "inline"` et les props optionnelles `chevron`, `compact`, `readOnly` ; `standard` et `parameters` inchangés ; `cadenceOptionOf(value)` ; vérification QP5-06 faite, segmenté natif non retenu ; valeurs Figma en constantes locales.
 - AR-25 (AD-25) — Brouillon : `workPhases`, `nextPhaseId`, `loadEnabled`, `loadKg` (uniforme, lignes actives, cachées, sauvegardées), `lastNumberById` ; `openSheetDraft`, `plain`, `requestedParameters` portent tout (test d'aller-retour) ; `pendingRemoval` étendu à `{ kind: "series" | "phase" }`, remis à `null` par toute transition ; `sheetDraftResult(draft, defaultLabel)` = `normalizeWorkPhases` → `normalizeLoad` → `validateForSave`, sert la disponibilité du ✓ et `commitSheetDraft` (cas obligatoires `[0, null]` et 3 536 s).
@@ -333,7 +333,7 @@ afin que les stories d'interface s'appuient sur un modèle complet et qu'aucune 
 **Then** `decodeInstructionSteps(text | null)` découpe sur `/\r?\n/` : un texte PRE-4 multiligne donne une étape par ligne, et une fixture à fins de ligne `\r\n` ne crée aucune étape fantôme
 **And** `encodeInstructionSteps(steps)` retire les étapes vides après suppression des espaces extérieurs, joint par `\n`, sans numéro, et retourne `null` si la liste est vide ; une étape ne contient jamais de saut de ligne
 **And** `splitStepAt` coupe une étape au curseur (PRD §9-6) ; `insertPastedText` donne une étape par ligne d'un collage multiligne (PRD §9-6)
-**And** `instructionStepsLength` est la seule mesure de la limite, en points de code ; `[EN ATTENTE QN-1]` la limite de 1 000 (`INSTRUCTION_MAX_LENGTH`) s'applique à la chaîne encodée, séparateurs `\n` compris, ce qui garantit le CHECK `length(instruction) <= 1000` sans migration ; `normalizeInstruction` reste la validation de la chaîne encodée, sans seconde règle
+**And** `instructionStepsLength` est la seule mesure de la limite, en points de code ; (QN-1 validée par Hermann le 19/10) la limite de 1 000 (`INSTRUCTION_MAX_LENGTH`) s'applique à la chaîne encodée, séparateurs `\n` compris, ce qui garantit le CHECK `length(instruction) <= 1000` sans migration ; `normalizeInstruction` reste la validation de la chaîne encodée, sans seconde règle
 **And** le stockage est inchangé (`activity_definitions.description`, `activities.instruction`) : aucune migration, aucune conversion, aucun retour à l'ancien format (FR-35) ; l'Instantané ne porte pas de Description.
 
 **AC10 — Minimum de 1 s (AD-31, FR-45, D-430, R-17).**
@@ -504,7 +504,7 @@ afin que chaque ligne de la Feuille ne fasse que dispatcher une transition déj�
 **Then** les phases à 0 s ou `null` sont retirées sans message ni blocage ; un libellé vide (après suppression des espaces extérieurs) devient `defaultLabel(n)` (« Phase n », fourni depuis `strings` par l'appelant ; le domaine n'importe pas l'i18n) selon la position finale ; une liste vide ou entièrement nulle revient à « Aucune » ; une liste restée non vide rappelle `deriveSeriesDuration`
 **And** cas obligatoire : phases `[0, null]` → la liste revient à « Aucune » et la validation existante de la durée de série décide seule de la disponibilité du ✓ (les phases ne bloquent jamais ✓ par elles-mêmes)
 **And** cas obligatoire : somme normalisée de 3 536 s → ✓ indisponible, comme une durée de série invalide
-**And** `[EN ATTENTE QN-3]` le libellé par défaut est stocké après ✓ comme un libellé ordinaire : il ne se renumérote plus ensuite, même après un déplacement
+**And** (QN-3 validée par Hermann le 19/10) le libellé par défaut est stocké après ✓ comme un libellé ordinaire : il ne se renumérote plus ensuite, même après un déplacement
 **And** ✕ abandonne le Brouillon : phases, charge, côtés et Condition d'arrêt reviennent à l'état d'ouverture.
 
 **AC6 — Charge dans le Brouillon (FR-10, FR-11, FR-14, AD-19).**
@@ -530,7 +530,7 @@ afin que chaque ligne de la Feuille ne fasse que dispatcher une transition déj�
 **Given** un Brouillon `UNILATERAL`
 **When** Hermann passe à Avec, puis à Sans, puis de nouveau à Avec
 **Then** le passage à Avec écrit `RIGHT_LEFT` (valeur canonique) ; une valeur bilatérale existante (`LEFT_RIGHT` compris) n'est jamais réécrite tant que l'utilisateur ne repasse pas par Sans
-**And** `[EN ATTENTE QN-4]` le comportement existant est conservé tel quel : la Pause entre les côtés est copiée depuis le Profil à chaque passage à Avec (P3-10, `setSideMode`), et l'Enchainement est enregistré `BY_SIDE` à N = 1 par `normalizeEffective` (NR Δ24, tests Q38 inchangés)
+**And** (QN-4 validée par Hermann le 19/10) le comportement existant est conservé tel quel : la Pause entre les côtés est copiée depuis le Profil à chaque passage à Avec (P3-10, `setSideMode`), et l'Enchainement est enregistré `BY_SIDE` à N = 1 par `normalizeEffective` (NR Δ24, tests Q38 inchangés)
 **And** sous Sans, l'Enchainement et la Pause entre les côtés restent dans le Brouillon, masqués ; un côté non renseigné est normalisé à Sans au ✓ (D-406, existant).
 
 **AC9 — Tests et contrôles.**
@@ -750,13 +750,13 @@ afin de régler les cadres Côtés et Cadence et durée sans désignation anatom
 **Then** « Changement de côté » est un segmenté `inline`, Avec à gauche, Sans à droite, sans choix de direction ; le segmenté à trois valeurs dans un `AnchoredPanel` et la surface `popover(side)` sont retirés
 **And** Avec porte le chevron intérieur et rend disponibles Enchainement et Pause entre les côtés ; Sans masque ces lignes et conserve leurs valeurs
 **And** un Exercice historique `RIGHT_LEFT` ou `LEFT_RIGHT` s'affiche Avec ; son Enchainement enregistré est conservé ; un ✓ sans passage par Sans ne réécrit pas sa valeur
-**And** `[EN ATTENTE QN-4]` la copie de la Pause entre les côtés depuis le Profil à chaque passage à Avec (P3-10) est conservée telle quelle ; les deux stratégies (RM-037) sont inchangées.
+**And** (QN-4 validée par Hermann le 19/10) la copie de la Pause entre les côtés depuis le Profil à chaque passage à Avec (P3-10) est conservée telle quelle ; les deux stratégies (RM-037) sont inchangées.
 
 **AC2 — Enchainement (FR-17, QP5-07, R-04, R-07).**
 **Given** le Changement de côté à Avec
 **When** N > 1
 **Then** la ligne « Enchainement » s'affiche dans le cadre Côtés : segmenté `inline` `compact`, à la largeur Figma, options « Un côté après l'autre » et « Les deux côtés à chaque série », centrées, sans troncature, sans sous-titre D/G ni notation C1S1 ; le panneau de l'Ordre et la surface `popover(order)` sont retirés
-**And** à N = 1, la ligne est masquée et l'Enchainement demandé est conservé dans le Brouillon ; `[EN ATTENTE QN-4]` à l'enregistrement, `BY_SIDE` est écrit à N = 1 (comportement existant, NR Δ24, tests Q38 inchangés)
+**And** à N = 1, la ligne est masquée et l'Enchainement demandé est conservé dans le Brouillon ; (QN-4 validée par Hermann le 19/10) à l'enregistrement, `BY_SIDE` est écrit à N = 1 (comportement existant, NR Δ24, tests Q38 inchangés)
 **And** la taille exacte de la police est réglée sur l'appareil, sans changement automatique de géométrie ; la frame `8328:38193` (encore en D1/G1) ne bloque pas (UX-DR6).
 
 **AC3 — Cadence (FR-30, AD-24, R-11, §9-7).**
@@ -960,7 +960,7 @@ afin que la durée de série soit la somme de ces actions, sans conversion destr
 **When** Hermann supprime une phase, supprime la dernière, passe à Sans, valide ou annule
 **Then** supprimer une phase retire sa contribution à D ; supprimer la dernière ramène « Aucune » et sa durée devient la durée de série modifiable ; l'annulation restitue ordre, libellés, durées et D
 **And** Avec → Sans avec 6 s + 3 s + 5 s donne une durée de série de 14 s, modifiable, autres paramètres conservés ; repasser à Avec crée une seule phase à la durée courante
-**And** au ✓ : phases à 0 s ou à renseigner retirées sans message ; libellés vides → « Phase n » selon la position finale ; liste vide → « Aucune » ; somme normalisée > 3 535 s → ✓ indisponible ; `[EN ATTENTE QN-3]` le libellé par défaut est ensuite stocké comme un libellé ordinaire et ne se renumérote plus
+**And** au ✓ : phases à 0 s ou à renseigner retirées sans message ; libellés vides → « Phase n » selon la position finale ; liste vide → « Aucune » ; somme normalisée > 3 535 s → ✓ indisponible ; (QN-3 validée par Hermann le 19/10) le libellé par défaut est ensuite stocké comme un libellé ordinaire et ne se renumérote plus
 **And** ✕ restaure la configuration d'ouverture, phases comprises.
 
 **AC8 — Six phases et défilement (FR-32).**
@@ -1026,7 +1026,7 @@ afin de décrire un Exercice pas à pas, lisiblement, sans gérer moi-même la n
 **When** Hermann tape ou colle un texte qui la ferait dépasser
 **Then** la saisie est refusée en entier, sans troncature, et aucune étape existante n'est modifiée
 **And** la mesure est la seule fonction `instructionStepsLength` du codec, en points de code, partagée par l'Éditeur et la validation ; le `maxLength` du `TextInput` n'est pas utilisé pour compter
-**And** `[EN ATTENTE QN-1]` la limite porte sur la chaîne encodée, séparateurs compris (au plus n − 1 caractères de moins que la lecture « textes seuls » du PRD), sans migration ; si Hermann retient la lecture du PRD, seule la fonction de comptage change et une `migration011` relâchant le CHECK devient nécessaire (hors de cette story tant que QN-1 n'est pas tranchée).
+**And** (QN-1 validée par Hermann le 19/10) la limite porte sur la chaîne encodée, séparateurs compris (au plus n − 1 caractères de moins que la lecture « textes seuls » du PRD), sans migration ; si Hermann retient la lecture du PRD, seule la fonction de comptage change et une `migration011` relâchant le CHECK devient nécessaire (hors de cette story tant que QN-1 n'est pas tranchée).
 
 **AC4 — Terminer, enregistrement et détection de modification (FR-34, AD-22).**
 **Given** une liste avec des étapes vides intercalées
@@ -1104,10 +1104,10 @@ afin que l'Éditeur soit fini, lisible et conforme aux références.
 
 | ID | Question | Défaut écrit dans les critères | Critères marqués |
 |---|---|---|---|
-| QN-1 | Limite de 1 000 caractères des étapes : chaîne encodée (CHECK actuel) ou textes seuls (FR-34) ? | Comptée sur la chaîne encodée, séparateurs compris, sans migration. | 1.1 AC9 ; 3.1 AC3 |
+| QN-1 (validée le 19/10) | Limite de 1 000 caractères des étapes : chaîne encodée (CHECK actuel) ou textes seuls (FR-34) ? | Comptée sur la chaîne encodée, séparateurs compris, sans migration. | 1.1 AC9 ; 3.1 AC3 |
 | QN-2 | Résultat dérivé AR-01 avec cellules vides en séries variables. | Cellules vides non comptées ; sans aucune cellule renseignée, aucun résultat et « — ». | 1.1 AC8 ; 2.4 AC5 |
-| QN-3 | Libellé par défaut « Phase n » après ✓. | Stocké comme un libellé ordinaire, ne se renumérote plus. | 2.1 AC5 ; 2.8 AC7 |
-| QN-4 | Pause entre les côtés et Enchainement « conservés » (FR-15, FR-17) face à l'existant. | Existant conservé : copie de la Pause du Profil à chaque passage à Avec (P3-10), `BY_SIDE` enregistré à N = 1 (NR Δ24). | 2.1 AC8 ; 2.5 AC1, AC2 |
+| QN-3 (validée le 19/10) | Libellé par défaut « Phase n » après ✓. | Stocké comme un libellé ordinaire, ne se renumérote plus. | 2.1 AC5 ; 2.8 AC7 |
+| QN-4 (validée le 19/10) | Pause entre les côtés et Enchainement « conservés » (FR-15, FR-17) face à l'existant. | Existant conservé : copie de la Pause du Profil à chaque passage à Avec (P3-10), `BY_SIDE` enregistré à N = 1 (NR Δ24). | 2.1 AC8 ; 2.5 AC1, AC2 |
 | QN-5 (close : D-414, ch. 10 l. 369 « Aucune autre règle de compaction ») | Phrase, séries variables à charges toutes égales : liste (`(charges : 20, 20, 20 kg)`) ou forme commune (`(charge : 20 kg)`) ? AD-29 rend le cas obligatoire au corpus sans fixer son texte. | Liste des valeurs des séries, dans leur ordre (FR-42 : « les valeurs sont celles des séries »). | 1.2 AC1, AC5 |
 
 **Point signalé — QN-2 et AD-23.** Le défaut de QN-2 retenu ici (cellules vides non comptées ; « — » sans cellule renseignée) diffère de l'`[ASSUMPTION]` d'AD-23 (`INCOMPLETE` dès qu'une `UNSET` existe sans mélange établi, rendu par les deux options non modifiables, aucune sélectionnée). Les critères suivent le défaut de QN-2 ; AD-23 sera aligné sur la réponse de Hermann.
