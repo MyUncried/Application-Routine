@@ -39,6 +39,9 @@ import { ExecutionParametersSheet } from "@/features/activities/ExecutionParamet
 import {
   chooseExecutionMode,
   chooseExecutionRegime,
+  chooseExecutionSide,
+  openExecutionSheetField,
+  showExerciseDurationSignals,
   tapExecutionSheetStep,
 } from "@/features/activities/testing/executionSheetActions";
 import { openMediaMenu } from "@/features/activities/testing/mediaMenu";
@@ -1098,9 +1101,18 @@ function stepTo(id: string, expected: string) {
  * CC, CS : nouvel Exercice — `variables`, N = 3, Cibles 30 s, 45 s, à l'échec,
  * Pauses 10, 20, 30 s, bilatéral (Pause au changement de côté 5 s), Bip 2 s,
  * Compte à rebours 10 s, Fin 5 s — tout saisi dans la Feuille.
+ *
+ * PRE-5 story 2.5 (AC4, D-409, RM-218) : dans un Exercice ouvert depuis une Séance (CS),
+ * la Feuille ne présente ni Compte à rebours ni Fin ; leurs valeurs (celles du Profil à la
+ * création) sont conservées telles quelles. En Catalogue (CC), ils sont dépliés sous la Durée
+ * de l'exercice avant d'être réglés.
  */
-function enterMixedTargetsOnNewExercise() {
+function enterMixedTargetsOnNewExercise(context: "catalogue" | "session" = "catalogue") {
+  const initial = editorContent().executionParameters as ExecutionParameters;
   fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+  expect((sheetSpy.mock.calls.at(-1)![0] as { exerciseSignals?: string }).exerciseSignals ?? "present").toBe(
+    context === "session" ? "absent" : "present",
+  );
   for (let guard = 0; guard < 5 && screen.getByTestId("execution-sheet-series-value").props.children !== "3 séries"; guard += 1) {
     tap("execution-sheet-series-increment");
   }
@@ -1112,17 +1124,29 @@ function enterMixedTargetsOnNewExercise() {
   stepTo("execution-sheet-table-row-1-pause", "10 s");
   stepTo("execution-sheet-table-row-2-pause", "20 s");
   stepTo("execution-sheet-table-row-3-pause", "30 s");
-  fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-  fireEvent.press(within(screen.getByTestId("execution-sheet-side-control")).getByText("Droite puis gauche"));
+  chooseExecutionSide("Avec");
   stepTo("execution-sheet-side-recovery", "5 s");
+  // PRE-5 story 2.5 (AC3) : le ± de la Cadence est révélé par l'option Autre.
+  openExecutionSheetField("execution-sheet-beep");
   stepTo("execution-sheet-beep", "2 s");
-  stepTo("execution-sheet-countdown", "10 s");
-  stepTo("execution-sheet-end", "5 s");
+  showExerciseDurationSignals();
+  if (context === "catalogue") {
+    stepTo("execution-sheet-countdown", "10 s");
+    stepTo("execution-sheet-end", "5 s");
+  } else {
+    expect(screen.queryByTestId("execution-sheet-row-countdown", hidden)).toBeNull();
+    expect(screen.queryByTestId("execution-sheet-row-end", hidden)).toBeNull();
+  }
   fireEvent.press(screen.getByTestId("execution-sheet-body-outside"));
   toggleOpenSheetAndValidate();
   const entered = editorContent();
-  // Exactement les Paramètres d'exécution de AC10, comme en MC et MS.
-  expect(entered.executionParameters).toEqual(MIXED_PARAMETERS);
+  // Exactement les Paramètres d'exécution de AC10, comme en MC et MS (CS : Compte à rebours et
+  // Fin de la création conservés).
+  expect(entered.executionParameters).toEqual(
+    context === "catalogue"
+      ? MIXED_PARAMETERS
+      : { ...MIXED_PARAMETERS, countdownSeconds: initial.countdownSeconds, endSeconds: initial.endSeconds },
+  );
   expect((entered.executionParameters as ExecutionParameters).series).toMatchObject({
     rows: [{ target: toTarget(30) }, { target: toTarget(45) }, { target: toTarget("FAILURE") }],
   });
@@ -1211,7 +1235,7 @@ describe("PRE4-4.1/AC10 — report : Cibles à l'échec saisies dans la Feuille,
     await settle();
     await fillNewExercise("Gainage");
     await completeNewExercise("Dos droit.");
-    const entered = enterMixedTargetsOnNewExercise();
+    const entered = enterMixedTargetsOnNewExercise("session");
     fireEvent.press(screen.getByTestId("exercise-finish-action"));
     await settle();
     await continueAndSave();

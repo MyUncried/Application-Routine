@@ -1,6 +1,7 @@
 import { fireEvent, screen } from "@testing-library/react-native";
 
 import type { ExecutionMode } from "@/domain/activities/ExecutionParameters";
+import { strings } from "@/shared/i18n";
 
 /** Libellés d'interface des deux Modes (lexique `executionParameters.sheet.modes`). */
 const MODE_BY_LABEL: Readonly<Record<string, ExecutionMode>> = {
@@ -22,6 +23,10 @@ export function chooseExecutionMode(label: string): void {
   fireEvent.press(screen.getByTestId(`execution-sheet-mode-control-${mode}`));
 }
 
+/** PRE-5 story 2.5 : ± de la Cadence (révélé par Autre) et segmenté « Cadence ». */
+const BEEP_FIELD = "execution-sheet-beep";
+const CADENCE_CONTROL = "execution-sheet-cadence-control";
+
 /**
  * PRE-4 story 3.3 (AC8, FR-03-05) : ouvre le champ ± `testID` de la Feuille (N,
  * Pauses, Bip, Compte à rebours, Fin) s'il est fermé, en touchant sa valeur
@@ -32,7 +37,38 @@ export function chooseExecutionMode(label: string): void {
  */
 export function openExecutionSheetField(testID: string): void {
   if (screen.queryByTestId(`${testID}-increment`)) return;
+  // PRE-5 story 2.5 (AC3) : le ± de la Cadence n'a plus de valeur à toucher ; il est révélé
+  // par l'option Autre du segmenté « Cadence ».
+  if (testID === BEEP_FIELD) {
+    fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
+    return;
+  }
   fireEvent.press(screen.getByTestId(`${testID}-toggle`));
+}
+
+/**
+ * PRE-5 story 2.5 (AC4, AD-28) : déplie « Durée de l'exercice » pour rendre Compte à rebours
+ * et Fin d'exercice, s'ils sont repliés sous son chevron. Sans effet si la section est déjà
+ * déployée ou si la ligne est absente (signaux alors directement visibles).
+ */
+export function showExerciseDurationSignals(): void {
+  const disclosure = screen.queryByLabelText(strings.executionParameters.sheet.showExerciseSignals);
+  if (disclosure) fireEvent.press(disclosure);
+}
+
+/** Libellés d'interface du Changement de côté (lexique `executionParameters.sheet.sideModeChoices`). */
+const SIDE_BY_LABEL: Readonly<Record<string, "WITH" | "WITHOUT">> = { Avec: "WITH", Sans: "WITHOUT" };
+
+/**
+ * PRE-5 story 2.5 (AC1) : choisit Avec ou Sans dans le segmenté « Changement de côté » (le
+ * panneau à trois valeurs anatomiques est retiré). Lève une erreur sur un libellé inconnu.
+ */
+export function chooseExecutionSide(label: string): void {
+  const side = SIDE_BY_LABEL[label];
+  if (side === undefined) {
+    throw new Error(`chooseExecutionSide : libellé de Changement de côté inconnu « ${label} »`);
+  }
+  fireEvent.press(screen.getByTestId(`execution-sheet-side-control-${side}`));
 }
 
 /**

@@ -35,8 +35,10 @@ import {
 import {
   chooseExecutionMode,
   chooseExecutionRegime,
+  chooseExecutionSide,
   openExecutionSheetField,
   pressInExecutionSheet,
+  showExerciseDurationSignals,
   tapExecutionSheetStep,
 } from "@/features/activities/testing/executionSheetActions";
 import {
@@ -133,6 +135,37 @@ const selectedValue = (control: string, values: readonly string[]) =>
 function modeText(): string {
   const mode = selectedValue(MODE_CONTROL, ["REPETITIONS", "DURATION"]) as "REPETITIONS" | "DURATION" | null;
   return mode === null ? "—" : strings.executionParameters.sheet.modes[mode];
+}
+/**
+ * PRE-5 story 2.5 (AD-24, AD-27) — Changement de côté, Enchainement et Cadence sont des
+ * segmentés en ligne ; Compte à rebours et Fin sont repliés sous « Durée de l'exercice ».
+ */
+const SIDE_CONTROL = "execution-sheet-side-control";
+const ORDER_CONTROL = "execution-sheet-order-control";
+const CADENCE_CONTROL = "execution-sheet-cadence-control";
+const DURATION_DISCLOSURE = "execution-sheet-duration-disclosure";
+const chooseSide = chooseExecutionSide;
+const showSignals = showExerciseDurationSignals;
+/** Changement de côté affiché : « Avec », « Sans », ou « — » si aucune option n'est sélectionnée. */
+function sideText(): string {
+  const side = selectedValue(SIDE_CONTROL, ["WITH", "WITHOUT"]) as "WITH" | "WITHOUT" | null;
+  return side === null ? "—" : strings.executionParameters.sheet.sideModeChoices[side];
+}
+/** Enchainement affiché, par son nom accessible (« Un côté après l’autre », …). */
+function orderText(): string {
+  const order = selectedValue(ORDER_CONTROL, ["BY_SIDE", "BY_SERIES"]) as "BY_SIDE" | "BY_SERIES" | null;
+  return order === null ? "—" : strings.executionParameters.sheet.sideOrders[order];
+}
+/** Choisit l'Enchainement par son nom accessible. */
+function chooseOrder(label: string) {
+  const order = (["BY_SIDE", "BY_SERIES"] as const).find((value) => strings.executionParameters.sheet.sideOrders[value] === label);
+  if (order === undefined) throw new Error(`Enchainement inconnu « ${label} »`);
+  fireEvent.press(screen.getByTestId(`${ORDER_CONTROL}-${order}`));
+}
+/** Option affichée de la Cadence (« Autre », « 5 s », …, « Sans »), ou « — ». */
+function cadenceText(): string {
+  const option = selectedValue(CADENCE_CONTROL, ["OTHER", "5", "2", "1", "NONE"]) as "OTHER" | "5" | "2" | "1" | "NONE" | null;
+  return option === null ? "—" : strings.executionParameters.sheet.cadenceOptions[option];
 }
 /** Type de série affiché (« Variables » / « Identiques »), lecture seule (N = 1) comprise. */
 function seriesTypeText(): string {
@@ -266,28 +299,25 @@ describe("ExecutionParametersSheet — PRE-3", () => {
   describe("PRE4-Q38 — Ordre des côtés masqué à N = 1, conservé et réaffiché dès N ≥ 2", () => {
     const bilateral = (overrides: Partial<ExecutionParametersInput> = {}) =>
       params({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 10, ...overrides });
-    const chooseOrder = (label: string) => {
-      fireEvent.press(screen.getByTestId("execution-sheet-order-value"));
-      fireEvent.press(within(screen.getByTestId("execution-sheet-order-control")).getByText(label));
-    };
 
-    it("PRE4-Q38 (a) — N = 1 bilatéral : aucune ligne Ordre des côtés ; la Pause au changement de côté reste", () => {
+    it("PRE4-Q38 (a) — N = 1 bilatéral : aucune ligne Enchainement ; la Pause au changement de côté reste", () => {
       renderSheet(bilateral({ series: { kind: "UNIFORM", count: 1, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
       expect(screen.getByTestId("execution-sheet-row-side")).toBeTruthy();
       expect(screen.queryByTestId("execution-sheet-row-order")).toBeNull();
-      expect(screen.queryByTestId("execution-sheet-order-value")).toBeNull();
-      expect(screen.queryByText("Ordre des côtés")).toBeNull();
+      expect(screen.queryByTestId(ORDER_CONTROL)).toBeNull();
+      expect(screen.queryByText("Enchainement")).toBeNull();
       expect(screen.getByTestId("execution-sheet-row-side-recovery")).toBeTruthy();
     });
 
     it("PRE4-Q38 (b) — N = 2 : la ligne est présente et active", () => {
       renderSheet(bilateral({ series: { kind: "UNIFORM", count: 2, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
       expect(screen.getByTestId("execution-sheet-row-order")).toBeTruthy();
-      const pill = screen.getByTestId("execution-sheet-order-value");
-      expect(pill.props.accessibilityState?.disabled ?? false).toBe(false);
-      expect(pill.props.accessibilityLabel).toBe("Ordre des côtés, Un côté après l’autre");
+      expect(screen.getByTestId(ORDER_CONTROL).props.accessibilityLabel).toBe("Enchainement");
+      const option = screen.getByTestId(`${ORDER_CONTROL}-BY_SERIES`);
+      expect(option.props.accessibilityState).toMatchObject({ selected: false, disabled: false });
+      expect(orderText()).toBe("Un côté après l’autre");
       chooseOrder("Les deux côtés à chaque série");
-      expect(text("execution-sheet-order-value")).toBe("Les deux côtés à chaque série");
+      expect(orderText()).toBe("Les deux côtés à chaque série");
     });
 
     it("PRE4-Q38 (c) — Ordre choisi à N = 3, N → 1 (masqué, effectif normalisé), N → 2 : réaffiché, ✓ BY_SERIES", () => {
@@ -301,8 +331,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
       tap("execution-sheet-series-increment");
       expect(valueOf("execution-sheet-series")).toBe("2 séries");
       expect(screen.getByTestId("execution-sheet-row-order")).toBeTruthy();
-      expect(text("execution-sheet-order-value")).toBe("Les deux côtés à chaque série");
-      expect(screen.queryByTestId("execution-sheet-order-control")).toBeNull();
+      expect(orderText()).toBe("Les deux côtés à chaque série");
       validate();
       expect(applied(onApply)).toMatchObject({ series: { kind: "UNIFORM", count: 2 }, sideOrder: "BY_SERIES" });
     });
@@ -316,52 +345,58 @@ describe("ExecutionParametersSheet — PRE-3", () => {
       expect(applied(onApply)).toMatchObject({ series: { kind: "UNIFORM", count: 1 }, sideOrder: "BY_SIDE" });
     });
 
-    // Q41 (2026-10-17) : sur iOS, l'Ordre s'ouvre dans un panneau modal ; un toucher hors
-    // du panneau le ferme sans rien appliquer, N ne peut donc pas changer panneau ouvert.
-    // L'enchaînement (sélecteur ouvert, puis N → 1) est vérifié en ligne, sur Android.
-    // Story 3.3 (AD-15, T10) : sélecteur ouvert, toucher la valeur de N le ferme sans
-    // ouvrir le champ ; N passe ensuite à 1 par son champ ±. La fermeture défensive d'un
-    // sélecteur d'Ordre à N = 1 (« prune ») est prouvée par le réducteur (PRE4-3.3/AC5).
-    it("PRE4-Q38 (c ter) — sélecteur d'Ordre ouvert : toucher N le ferme sans ouvrir le champ (T10) ; N → 1 masque la ligne, N → 2 la réaffiche sans rouvrir le sélecteur", () =>
-      withPlatform("android", () => {
+    // PRE-5 story 2.5 (AC2, AC6, NR Δ38) : l'Enchainement est un segmenté en ligne, sans
+    // surface ; le stepper « Nombre de séries » de PRE-4, ouvert, réglé de 2 à 1 puis fermé,
+    // masque la ligne sans être lui-même modifié (champ resté ouvert, T22), et la réaffiche à 2.
+    it("PRE4-Q38 (c ter), PRE5-2.5/AC2 — Enchainement en ligne : le stepper de N, ouvert, de 2 à 1 masque la ligne sans se fermer (T22) ; N → 2 la réaffiche ; fermeture du stepper inchangée", () => {
       renderSheet(bilateral({ series: { kind: "UNIFORM", count: 2, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
-      fireEvent.press(screen.getByTestId("execution-sheet-order-value"));
-      expect(screen.getByTestId("execution-sheet-order-control")).toBeTruthy();
-      fireEvent.press(screen.getByTestId("execution-sheet-series-toggle"));
-      expect(screen.queryByTestId("execution-sheet-order-control")).toBeNull();
-      expect(screen.queryByTestId("execution-sheet-series-decrement")).toBeNull();
-      tap("execution-sheet-series-decrement");
-      expect(screen.queryByTestId("execution-sheet-order-control")).toBeNull();
+      expect(screen.getByTestId(ORDER_CONTROL)).toBeTruthy();
+      openExecutionSheetField("execution-sheet-series");
+      fireEvent(screen.getByTestId("execution-sheet-series-decrement"), "pressIn");
+      fireEvent(screen.getByTestId("execution-sheet-series-decrement"), "pressOut");
+      expect(valueOf("execution-sheet-series")).toBe("1 série");
       expect(screen.queryByTestId("execution-sheet-row-order")).toBeNull();
-      tap("execution-sheet-series-increment");
+      expect(screen.queryByTestId(ORDER_CONTROL)).toBeNull();
+      // Le champ de N reste ouvert, sa ligne désignée.
+      expect(screen.getByTestId("execution-sheet-series-increment")).toBeTruthy();
+      fireEvent(screen.getByTestId("execution-sheet-series-increment"), "pressIn");
+      fireEvent(screen.getByTestId("execution-sheet-series-increment"), "pressOut");
       expect(screen.getByTestId("execution-sheet-row-order")).toBeTruthy();
-      expect(screen.queryByTestId("execution-sheet-order-control")).toBeNull();
-    }));
+      expect(orderText()).toBe("Un côté après l’autre");
+      // Fermeture du stepper par un appui extérieur (T23), comme en PRE-4.
+      fireEvent.press(screen.getByTestId("execution-sheet-body-outside"));
+      expect(screen.queryByTestId("execution-sheet-series-increment")).toBeNull();
+      expect(valueOf("execution-sheet-series")).toBe("2 séries");
+    });
 
     it("PRE4-Q38 (d) — Séries variables : N 3 → 1 → 2, l'Ordre choisi revient avec les lignes", () => {
       const { onApply } = renderSheet(
         bilateral({ series: variableRows([[90, 15], [45, 20], [60, 30]]), sideOrder: "BY_SERIES" }),
       );
-      expect(text("execution-sheet-order-value")).toBe("Les deux côtés à chaque série");
+      expect(orderText()).toBe("Les deux côtés à chaque série");
       tap("execution-sheet-series-decrement");
       tap("execution-sheet-series-decrement");
       expect(screen.queryByTestId("execution-sheet-row-order")).toBeNull();
       tap("execution-sheet-series-increment");
-      expect(text("execution-sheet-order-value")).toBe("Les deux côtés à chaque série");
+      expect(orderText()).toBe("Les deux côtés à chaque série");
       validate();
       expect(applied(onApply)).toMatchObject({ series: variableRows([[90, 15], [45, 20]]), sideOrder: "BY_SERIES" });
     });
   });
 
-  it("P3-09/directions — droite→gauche ou gauche→droite : totaux identiques ; PC une fois par côté, N fois par série", () => {
-    renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] }, sideMode: "RIGHT_LEFT", sideRecoverySeconds: 15 }));
+  // PRE-5 story 2.5 (AC1) : la direction n'est plus choisie dans la Feuille (Avec / Sans) ;
+  // un historique `LEFT_RIGHT` s'affiche Avec et donne le même total que `RIGHT_LEFT`.
+  it("P3-09/directions — droite→gauche ou gauche→droite (historique) : Avec, totaux identiques ; PC une fois par côté, N fois par série", () => {
+    const uniform = { kind: "UNIFORM" as const, count: 3, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] };
+    const view = renderSheetView(params({ series: uniform, sideMode: "LEFT_RIGHT", sideRecoverySeconds: 15 }));
+    expect(sideText()).toBe("Avec");
     // Un côté après l'autre : 2 × 3 × (30 + 10) + 15 = 255 s.
     expect(text("execution-sheet-total")).toBe("4 min 15 s");
-    fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-    fireEvent.press(within(screen.getByTestId("execution-sheet-side-control")).getByText("Gauche puis droite"));
+    view.unmount();
+    renderSheet(params({ series: uniform, sideMode: "RIGHT_LEFT", sideRecoverySeconds: 15 }));
+    expect(sideText()).toBe("Avec");
     expect(text("execution-sheet-total")).toBe("4 min 15 s");
-    fireEvent.press(screen.getByTestId("execution-sheet-order-value"));
-    fireEvent.press(within(screen.getByTestId("execution-sheet-order-control")).getByText("Les deux côtés à chaque série"));
+    chooseOrder("Les deux côtés à chaque série");
     // Les deux côtés à chaque série : 2 × 90 + 30 + 3 × 15 = 255 s — PC compté N fois.
     expect(text("execution-sheet-total")).toBe("4 min 15 s");
     tap("execution-sheet-side-recovery-increment");
@@ -371,9 +406,8 @@ describe("ExecutionParametersSheet — PRE-3", () => {
 
   it("P3-09/unilateral-controls — sans changement de côté : ordre et PC masqués, aucune contribution de PC", () => {
     const { onApply } = renderSheet(params({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 15 }));
-    fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-    fireEvent.press(within(screen.getByTestId("execution-sheet-side-control")).getByText("Sans changement"));
-    expect(screen.queryByTestId("execution-sheet-order-value")).toBeNull();
+    chooseSide("Sans");
+    expect(screen.queryByTestId(ORDER_CONTROL)).toBeNull();
     expect(screen.queryByTestId("execution-sheet-side-recovery")).toBeNull();
     // 3 × (90 + 15) = 315 s, sans PC.
     expect(text("execution-sheet-total")).toBe("5 min 15 s");
@@ -387,9 +421,9 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     tap("execution-sheet-beep-increment");
     expect(valueOf("execution-sheet-beep")).toBe("2 s");
     for (const mode of ["Répétitions", "Durée"]) {
-      // D-4 : le sélecteur se referme après chaque choix ; il est rouvert pour le suivant.
+      // PRE-5 story 2.5 (AC3) : le choix du Mode range le ± ; la Cadence affiche alors 2 s.
       chooseMode(mode);
-      expect(valueOf("execution-sheet-beep")).toBe("2 s");
+      expect(cadenceText()).toBe("2 s");
     }
     validate();
     expect(applied(onApply).cadenceBeepIntervalSeconds).toBe(2);
@@ -482,6 +516,8 @@ describe("ExecutionParametersSheet — PRE-3", () => {
   it("P3-19/non-accelerated — Bip, Compte à rebours et Fin restent au pas 1 au-delà de 4 s de maintien", () => {
     jest.useFakeTimers();
     renderSheet(params({ countdownSeconds: 0 }));
+    // PRE-5 story 2.5 (AC4) : Compte à rebours replié sous « Durée de l'exercice ».
+    showSignals();
     openExecutionSheetField("execution-sheet-countdown");
     act(() => {
       fireEvent(screen.getByTestId("execution-sheet-countdown-increment"), "pressIn");
@@ -504,21 +540,25 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     const targetSelectorOpen = () => screen.queryByTestId("execution-sheet-target-wheel") !== null;
     fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
     expect(targetSelectorOpen()).toBe(true);
-    // Story 3.3 (AD-15, T10) : un Sélecteur ou un popover ouvert, le toucher d'un autre
-    // champ le ferme sans appliquer et n'ouvre pas le champ touché ; un second toucher l'ouvre.
-    fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
+    // Story 3.3 (AD-15, T10) : un Sélecteur ouvert, le toucher d'un autre champ le ferme
+    // sans appliquer et n'ouvre pas le champ touché ; un second toucher l'ouvre. PRE-5 story
+    // 2.5 : le Changement de côté n'a plus de surface ; le second Sélecteur est la Durée de
+    // l'exercice.
+    const totalSelectorOpen = () => screen.queryByTestId("execution-sheet-total-wheel") !== null;
+    fireEvent.press(screen.getByTestId("execution-sheet-total"));
     expect(targetSelectorOpen()).toBe(false);
-    expect(screen.queryByTestId("execution-sheet-side-control")).toBeNull();
-    fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-    expect(screen.getByTestId("execution-sheet-side-control")).toBeTruthy();
-    fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-    expect(screen.queryByTestId("execution-sheet-side-control")).toBeNull();
+    expect(totalSelectorOpen()).toBe(false);
+    fireEvent.press(screen.getByTestId("execution-sheet-total"));
+    expect(totalSelectorOpen()).toBe(true);
+    fireEvent.press(screen.getByTestId("execution-sheet-total"));
+    expect(totalSelectorOpen()).toBe(false);
     const body = screen.getByTestId("execution-sheet-body");
     expect(within(body).queryByTestId("execution-sheet-validate")).toBeNull();
+    showSignals();
     expect(within(body).getByTestId("execution-sheet-end-toggle")).toBeTruthy();
   }));
 
-  it("P3-20/all-surfaces — titre, ✕ / ✓, lignes et libellés des écrans de référence ; valeurs « — » / « Aucun » à l'état vide", () => {
+  it("P3-20/all-surfaces — titre, ✕ / ✓, lignes et libellés des écrans de référence ; valeurs « — » / Cadence « Sans » à l'état vide", () => {
     renderSheet(params({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] }, sideMode: null }));
     expect(screen.getByText("Paramètres d’exécution")).toBeTruthy();
     // Story 3.3 (FR-04-01) : plus de ligne « Séries variables ». PRE-5 story 2.4 (PR-01) :
@@ -531,34 +571,40 @@ describe("ExecutionParametersSheet — PRE-3", () => {
       "Type de série",
       "Pause après chaque série",
       "Changement de côté",
-      "Bip de cadence",
+      "Cadence",
+      // Cible à renseigner : pas de ligne « Durée de l'exercice », signaux directement visibles.
       "Compte à rebours",
       "Fin d’exercice",
     ]) {
       expect(screen.getByText(label)).toBeTruthy();
     }
     expect(screen.queryByText("Mode d’exécution")).toBeNull();
+    expect(screen.queryByText("Bip de cadence")).toBeNull();
     expect(modeText()).toBe("—");
     expect(valueOf("execution-sheet-series")).toBe("1 série");
-    expect(valueOf("execution-sheet-beep")).toBe("Aucun");
-    // Story 3.3 (AC9, FR-11-05) : Changement de côté non renseigné affiché « — ».
-    expect(text("execution-sheet-side-value")).toBe("—");
+    expect(cadenceText()).toBe("Sans");
+    // Story 3.3 (AC9, FR-11-05) ; PRE-5 story 2.5 : Changement de côté non renseigné — aucune
+    // option sélectionnée.
+    expect(sideText()).toBe("—");
     expect(screen.queryByTestId("execution-sheet-total")).toBeNull();
   });
 
-  it("P3-20/sheet-specific — voile #1F2129 à 34 % ; Bip avant le total applicable, sinon avant Compte à rebours ; lignes indentées vs premier niveau", () => {
+  it("P3-20/sheet-specific — voile #1F2129 à 34 % ; Cadence avant la Durée de l'exercice applicable, sinon avant Compte à rebours ; PRE-5 story 2.5 : lignes du cadre Côtés non indentées", () => {
     renderSheet(params({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 10 }));
     expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-scrim").props.style)).toMatchObject({
       backgroundColor: "rgba(31, 33, 41, 0.34)",
     });
+    showSignals();
     const order = ["execution-sheet-row-beep", "execution-sheet-row-total", "execution-sheet-row-countdown"];
     const json = JSON.stringify(screen.toJSON());
     const positions = order.map((id) => json.indexOf(`"${id}"`));
+    expect(positions.every((position) => position >= 0)).toBe(true);
     expect(positions).toEqual([...positions].sort((a, b) => a - b));
-    // Q41 : la ligne est rendue dans un cadre de révélation ; l'indentation est portée par
-    // son contenu (`-content`).
-    expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-row-side-recovery-content").props.style).marginLeft).toBe(16);
-    expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-row-beep-content").props.style)?.marginLeft).toBeUndefined();
+    // Q41 : la ligne est rendue dans un cadre de révélation (`-content`). PRE-5 story 2.5
+    // (Figma `9230:19534`) : plus d'indentation dans le cadre Côtés (marge 12 du cadre).
+    for (const row of ["execution-sheet-row-side-recovery", "execution-sheet-row-order", "execution-sheet-row-beep"]) {
+      expect({ row, marginLeft: StyleSheet.flatten(screen.getByTestId(`${row}-content`).props.style)?.marginLeft }).toEqual({ row, marginLeft: undefined });
+    }
   });
 
   it("P3-20/sheet-specific — tout échec : aucun total, Bip immédiatement avant Compte à rebours", () => {
@@ -624,7 +670,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     openExecutionSheetField("execution-sheet-beep");
     const beep = screen.getByTestId("execution-sheet-beep");
     expect(beep.props.accessibilityRole).toBe("adjustable");
-    expect(beep.props.accessibilityLabel).toBe("Bip de cadence, secondes");
+    expect(beep.props.accessibilityLabel).toBe("Cadence, secondes");
     expect(beep.props.accessibilityValue).toMatchObject({ min: 0, max: 10, now: 4 });
     fireEvent(beep, "accessibilityAction", { nativeEvent: { actionName: "increment" } });
     expect(valueOf("execution-sheet-beep")).toBe("5 s");
@@ -747,6 +793,8 @@ describe("ExecutionParametersSheet — correction revue 1", () => {
     // 100 s demandés sur 30 s + 10 s : N=2 → 80 s, N=3 → 120 s, égalité → N le plus grand.
     expect(valueOf("execution-sheet-series")).toBe("3 séries");
     expect(text("execution-sheet-total")).toBe("2 min");
+    // PRE-5 story 2.5 (AC4) : déplier la Durée de l'exercice ne retire pas le message.
+    showSignals();
     const json = JSON.stringify(screen.toJSON());
     expect(json.indexOf('"execution-sheet-row-total"')).toBeLessThan(json.indexOf('"execution-sheet-adjusted"'));
     expect(json.indexOf('"execution-sheet-adjusted"')).toBeLessThan(json.indexOf('"execution-sheet-row-countdown"'));
@@ -808,7 +856,8 @@ describe("ExecutionParametersSheet — correction revue 1", () => {
     openExecutionSheetField("execution-sheet-table-row-1-pause");
     expect(screen.queryByTestId("execution-sheet-series-field")).toBeNull();
     expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-table-row-1-pause").props.style).width).toBe(128);
-    expect(screen.getByText("Durée totale ≈")).toBeTruthy();
+    // PRE-5 story 2.5 (AC4) : le libellé est affiché ; l'annonce regroupée est portée par la valeur.
+    expect(screen.getByText("Durée de l’exercice ≈", anyNode)).toBeTruthy();
     // (12 + 10) × 2 s + 30 s + 45 s = 119 s.
     expect(text("execution-sheet-total")).toBe("1 min 59 s");
     expect(screen.queryByTestId("execution-sheet-total")).toBeNull();
@@ -948,7 +997,7 @@ describe("ExecutionParametersSheet — décisions du propriétaire (12/10)", () 
   // le cadre (350 ms depuis Q40, 220 ms auparavant), le sélecteur est démonté et sa sortie
   // est jouée par Reanimated (fil UI, voir « PRE4-Q39 », « PRE4-Q40 »). Les échéances
   // vérifiées ici (200 ms : encore affiché ; 600 ms : replié) restent valables.
-  it("D-4 / Q39 / Q40 — Mode, Côté, Ordre : la valeur choisie est appliquée tout de suite, reste visible, puis le sélecteur se replie (cadre 350 ms puis sortie animée)", () =>
+  it("D-4 / Q39 / Q40, PRE5-2.5/AC1, AC2 — Mode, Changement de côté, Enchainement : segmentés en ligne, la valeur choisie est appliquée tout de suite et reste affichée, sans sélecteur à replier", () =>
     withPlatform("android", async () => {
       jest.useFakeTimers();
       try {
@@ -963,20 +1012,21 @@ describe("ExecutionParametersSheet — décisions du propriétaire (12/10)", () 
         });
         expect(screen.getByTestId("execution-sheet-mode-control-REPETITIONS").props.accessibilityState).toMatchObject({ selected: true });
 
-        // Côté puis Ordre : D-4 inchangé.
-        fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-        fireEvent.press(within(screen.getByTestId("execution-sheet-side-control")).getByText("Droite puis gauche"));
+        // PRE-5 story 2.5 (AC1, AC2) : Changement de côté puis Enchainement, segmentés en
+        // ligne : plus de sélecteur ni de cadre D-4, la valeur est appliquée et reste affichée.
+        chooseSide("Avec");
+        expect(sideText()).toBe("Avec");
+        expect(screen.queryByTestId("execution-sheet-side-selector")).toBeNull();
         await act(async () => {
           jest.advanceTimersByTime(600);
         });
-        expect(screen.queryByTestId("execution-sheet-side-control")).toBeNull();
-        fireEvent.press(screen.getByTestId("execution-sheet-order-value"));
-        fireEvent.press(within(screen.getByTestId("execution-sheet-order-control")).getByText("Les deux côtés à chaque série"));
+        expect(screen.getByTestId(SIDE_CONTROL)).toBeTruthy();
+        chooseOrder("Les deux côtés à chaque série");
+        expect(screen.queryByTestId("execution-sheet-order-selector")).toBeNull();
         await act(async () => {
           jest.advanceTimersByTime(600);
         });
-        expect(screen.queryByTestId("execution-sheet-order-control")).toBeNull();
-        expect(text("execution-sheet-order-value")).toBe("Les deux côtés à chaque série");
+        expect(orderText()).toBe("Les deux côtés à chaque série");
       } finally {
         jest.useRealTimers();
       }
@@ -993,12 +1043,11 @@ describe("ExecutionParametersSheet — décisions du propriétaire (12/10)", () 
       tap("execution-sheet-beep-increment");
       const transform = StyleSheet.flatten(screen.getByTestId("execution-sheet").props.style).transform as { translateY: number }[];
       expect(transform[0]!.translateY).toBe(0);
-      // PRE-5 story 2.4 : le Mode n'a plus de sélecteur ; le Côté garde le sien (D-4).
-      fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-      fireEvent(screen.getByTestId("execution-sheet-side-selector"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 330, height: 58 } } });
-      fireEvent.press(within(screen.getByTestId("execution-sheet-side-control")).getByText("Droite puis\ngauche"));
-      expect(screen.queryByTestId("execution-sheet-side-control")).toBeNull();
-      expect(text("execution-sheet-side-value")).toBe("Droite puis gauche");
+      // PRE-5 story 2.4, 2.5 : ni le Mode ni le Changement de côté n'ont plus de sélecteur ;
+      // le choix est appliqué immédiatement, sans cadre D-4 à attendre.
+      chooseSide("Avec");
+      expect(screen.queryByTestId("execution-sheet-side-selector")).toBeNull();
+      expect(sideText()).toBe("Avec");
     }));
 
   it("D-5 — message d’ajustement : Annuler encadré (cadre clair) restaure ; toucher le reste du message le ferme sans annuler", () => {
@@ -1036,7 +1085,7 @@ describe("ExecutionParametersSheet — décisions du propriétaire (12/10)", () 
 });
 
 describe("ExecutionParametersSheet — D-341 / X-1 (12/10)", () => {
-  it("D-341 — Mode Regular 14/17 sans choix affiché tant que le mode est vide ; Côté Regular 13/16 sur deux lignes ; Ordre 14/17 + sous-titre 11/13 ; hauteurs minimales 42/42/60", () =>
+  it("D-341, PRE5-2.5/AC1, AC2 — Mode sans choix affiché tant que le mode est vide ; Changement de côté et Enchainement en segmentés `inline` (32 de haut ; options de 62 et de 113) ; notations en police réduite (10) ; libellés de ligne Regular 12", () =>
     withPlatform("android", () => {
       renderSheet(params({ mode: null, sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE" }));
       // PRE-5 story 2.4 (AC3, UX-DR1) : le Mode est un segmenté en ligne (32 de haut, deux
@@ -1046,22 +1095,23 @@ describe("ExecutionParametersSheet — D-341 / X-1 (12/10)", () => {
       expect(StyleSheet.flatten(mode.props.style)).toMatchObject({ height: 32, width: 220 });
       expect(StyleSheet.flatten(within(mode).getByText("Durée", anyNode).props.style)).toMatchObject({ fontSize: 12, lineHeight: 16, fontWeight: "400" });
 
-      // Rien n'est ouvert (le Mode n'a plus de sélecteur) : le toucher ouvre le Changement de côté.
-      fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-      const side = screen.getByTestId("execution-sheet-side-control");
-      expect(within(side).getByText("Droite puis\ngauche")).toBeTruthy();
-      expect(StyleSheet.flatten(within(side).getByText("Sans\nchangement").props.style)).toMatchObject({ fontSize: 13, lineHeight: 16, fontWeight: "400", textAlign: "center" });
-      expect(screen.getByTestId("execution-sheet-side-control-RIGHT_LEFT").props.accessibilityLabel).toBe("Droite puis gauche");
+      // PRE-5 story 2.5 (AC1) : Changement de côté Avec / Sans, options de 62 (2 × 62 + 2 + 2 × 3).
+      const side = screen.getByTestId(SIDE_CONTROL);
+      expect(StyleSheet.flatten(side.props.style)).toMatchObject({ height: 32, width: 132 });
+      expect(within(side).getByText("Avec", anyNode)).toBeTruthy();
+      expect(StyleSheet.flatten(within(side).getByText("Sans", anyNode).props.style)).toMatchObject({ fontSize: 12, lineHeight: 16, fontWeight: "400" });
+      expect(within(side).queryByText(/Droite|Gauche|changement/u, anyNode)).toBeNull();
 
-      fireEvent.press(screen.getByTestId("execution-sheet-order-value"));
-      fireEvent.press(screen.getByTestId("execution-sheet-order-value"));
-      const order = screen.getByTestId("execution-sheet-order-control");
-      expect(StyleSheet.flatten(order.props.style).minHeight).toBe(60);
-      expect(StyleSheet.flatten(order.props.style).height).toBeUndefined();
-      expect(within(order).getByText("(D1 → D2) → (G1 → G2)")).toBeTruthy();
-      expect(StyleSheet.flatten(within(order).getByText("Un côté après l’autre").props.style)).toMatchObject({ fontSize: 14, lineHeight: 17, fontWeight: "400" });
+      // PRE-5 story 2.5 (AC2) : Enchainement, options de 113 (2 × 113 + 2 + 2 × 3), notations
+      // graphiques en police réduite ; nom accessible neutre de chaque option.
+      const order = screen.getByTestId(ORDER_CONTROL);
+      expect(StyleSheet.flatten(order.props.style)).toMatchObject({ height: 32, width: 234 });
+      expect(StyleSheet.flatten(within(order).getByText("(D1 → D2) ➜ (G1 → G2)", anyNode).props.style)).toMatchObject({ fontSize: 10 });
+      expect(within(order).getByText("(D1 → G1) ➜ (D2 → G2)", anyNode)).toBeTruthy();
+      expect(screen.getByTestId(`${ORDER_CONTROL}-BY_SIDE`).props.accessibilityLabel).toBe("Un côté après l’autre");
+      expect(screen.getByTestId(`${ORDER_CONTROL}-BY_SERIES`).props.accessibilityLabel).toBe("Les deux côtés à chaque série");
       // PRE-5 story 2.4 (PR-03) : les titres des lignes passent en Inter Regular 12.
-      expect(StyleSheet.flatten(screen.getByText("Ordre des côtés").props.style)).toMatchObject({ fontSize: 12, fontWeight: "400" });
+      expect(StyleSheet.flatten(screen.getByText("Enchainement").props.style)).toMatchObject({ fontSize: 12, fontWeight: "400" });
     }));
 });
 
@@ -1614,13 +1664,13 @@ describe("ExecutionParametersSheet — PRE-4 Q39 (animations de mise en page)", 
   const bilateralVariable = () =>
     params({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE", series: variableRows([[30, 5], [45, 10]]) });
 
-  // Q41 : sur iOS, le Changement de côté s'ouvre dans un panneau sans flèche ; le sélecteur
-  // en ligne (révélé par le bas) se vérifie sur Android.
-  it("PRE4-Q39 — lignes, sélecteurs, tableau et lignes du tableau : entrée, sortie et transition de place", () =>
+  // PRE-5 story 2.5 : le Changement de côté n'a plus de sélecteur ; le ± de la Cadence,
+  // révélé sous sa ligne par Autre, porte les mêmes animations.
+  it("PRE4-Q39 — lignes, ± révélé, tableau et lignes du tableau : entrée, sortie et transition de place", () =>
     withPlatform("android", () => {
     renderSheet(bilateralVariable());
-    fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-    animated("execution-sheet-side-selector");
+    fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
+    animated("execution-sheet-beep-motion");
     animated("execution-sheet-row-order");
     animated("execution-sheet-row-side-recovery");
     animated("execution-sheet-row-side");
@@ -1636,9 +1686,9 @@ describe("ExecutionParametersSheet — PRE-4 Q39 (animations de mise en page)", 
     expect(row.exiting).toBeDefined();
     expect(row.layout).toBeUndefined();
     // N 2 → 3 : la nouvelle ligne du tableau entre (Q41 : révélée par le bas, sans fondu).
-    // Story 3.3 (T10) : le sélecteur de côté est d'abord refermé par un second toucher.
-    fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
+    // Le ± de la Cadence se range quand celui de N s'ouvre (T20).
     tap("execution-sheet-series-increment");
+    expect(screen.queryByTestId("execution-sheet-beep-motion")).toBeNull();
     expect(motionOf("execution-sheet-table-row-3-motion").entering).toBeDefined();
     // Surface, corps, cadres (PRE-5 story 2.4 : quatre cadres au lieu du groupe unique) et
     // groupe du tableau : transition de place seule (aucune entrée à l'ouverture).
@@ -1685,10 +1735,10 @@ describe("ExecutionParametersSheet — PRE-4 Q39 (animations de mise en page)", 
     await act(async () => {
       await Promise.resolve();
     });
-    fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
+    fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
     for (const testID of [
-      "execution-sheet-side-selector",
-      "execution-sheet-side-selector-content",
+      "execution-sheet-beep-motion",
+      "execution-sheet-beep-motion-content",
       "execution-sheet-row-order",
       "execution-sheet-row-order-content",
       "execution-sheet-table",
@@ -1702,31 +1752,30 @@ describe("ExecutionParametersSheet — PRE-4 Q39 (animations de mise en page)", 
     ]) {
       expect(motionOf(testID)).toEqual({ entering: undefined, exiting: undefined, layout: undefined });
     }
-    fireEvent(screen.getByTestId("execution-sheet-side-selector"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 330, height: 58 } } });
-    fireEvent.press(within(screen.getByTestId("execution-sheet-side-control")).getByText("Gauche puis droite"));
-    expect(screen.queryByTestId("execution-sheet-side-selector")).toBeNull();
+    // Sans : Enchainement et Pause entre les côtés retirés immédiatement.
+    chooseSide("Sans");
+    expect(screen.queryByTestId("execution-sheet-row-order")).toBeNull();
+    expect(screen.queryByTestId("execution-sheet-row-side-recovery")).toBeNull();
   }));
 
-  // Q40 : cadre porté de 220 à 350 ms. Q41 : la sortie ne comporte plus de fondu (elle
-  // redescend sous la barre) ; sélecteur en ligne vérifié sur Android, le panneau iOS
-  // suit le même cadre (voir « PRE4-Q41 »).
-  it("PRE4-Q39 / Q40 / Q41 — ClosingSelector appelle toujours onClosed : le sélecteur se démonte après le cadre (350 ms) et sort par le bas, sans fondu", () =>
+  // PRE-5 story 2.5 (AC1 à AC4) : `ClosingSelector` est retiré avec les derniers sélecteurs
+  // à cadre D-4 (Changement de côté, Ordre). Les lignes et le ± révélés par les segmentés et
+  // les chevrons entrent et sortent par le bas, sans fondu.
+  it("PRE4-Q39 / Q41, PRE5-2.5 — Cadence (± révélé), Enchainement et Pause entre les côtés (chevron d'Avec), Compte à rebours et Fin (chevron de Durée de l'exercice) : entrée et sortie par le bas, sans fondu", () =>
     withPlatform("android", () => {
-    jest.useFakeTimers();
-    renderSheet(params({ sideMode: "UNILATERAL" }));
-    fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-    fireEvent(screen.getByTestId("execution-sheet-side-selector"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 330, height: 58 } } });
-    fireEvent.press(within(screen.getByTestId("execution-sheet-side-control")).getByText("Droite puis gauche"));
-    expect(text("execution-sheet-side-value")).toBe("Droite puis gauche");
-    expect(motionOf("execution-sheet-side-selector").exiting).toBe(revealClipExiting);
-    expect(motionOf("execution-sheet-side-selector-content").exiting).toBe(revealContentExiting);
-    act(() => jest.advanceTimersByTime(349));
-    expect(screen.getByTestId("execution-sheet-side-selector")).toBeTruthy();
-    act(() => jest.advanceTimersByTime(1));
-    expect(screen.queryByTestId("execution-sheet-side-selector")).toBeNull();
-    // La ligne de valeur reste refermée : un nouvel appui rouvre le sélecteur.
-    fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-    expect(screen.getByTestId("execution-sheet-side-selector")).toBeTruthy();
+    renderSheet(params({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 10 }));
+    fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
+    expect(motionOf("execution-sheet-beep-motion")).toMatchObject({ entering: revealClipEntering, exiting: revealClipExiting });
+    expect(motionOf("execution-sheet-beep-motion-content")).toMatchObject({ entering: revealContentEntering, exiting: revealContentExiting });
+    fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
+    expect(screen.queryByTestId("execution-sheet-beep-motion")).toBeNull();
+    for (const testID of ["execution-sheet-row-order", "execution-sheet-row-side-recovery"]) {
+      expect(motionOf(testID)).toMatchObject({ entering: revealClipEntering, exiting: revealClipExiting });
+    }
+    showSignals();
+    for (const testID of ["execution-sheet-row-countdown", "execution-sheet-row-end"]) {
+      expect(motionOf(testID)).toMatchObject({ entering: revealClipEntering, exiting: revealClipExiting });
+    }
   }));
 });
 
@@ -1778,7 +1827,7 @@ describe("ExecutionParametersSheet — PRE-4 Q40 (vitesse, sens, sélection)", (
   // Q41 (E-15) : le fond de sélection est un calque absolu (`-selection`) ; la ligne
   // (`-line`) garde son style, sans marge ni padding de sélection. Sélecteurs en ligne :
   // Android (panneaux sur iOS, voir « PRE4-Q41 »).
-  it("PRE4-Q40 / Q41 — lignes sélectionnées (Changement de côté, Ordre, Durée totale) : fond de sélection, rayon 12, sans liseré ; aucun texte ne bouge ; Mode en ligne jamais surligné", () =>
+  it("PRE4-Q40 / Q41, PRE5-2.5 — lignes sélectionnées (Cadence au ± ouvert, Durée de l'exercice) : fond de sélection, rayon 12, sans liseré ; aucun texte ne bouge ; Mode, Changement de côté et Enchainement en ligne jamais surlignés", () =>
     withPlatform("android", () => {
     renderSheet(params({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE" }));
     const checkSelected = (testID: string) => {
@@ -1794,16 +1843,17 @@ describe("ExecutionParametersSheet — PRE-4 Q40 (vitesse, sens, sélection)", (
       expect(line.marginHorizontal).toBeUndefined();
       expect(line.paddingHorizontal).toBeUndefined();
     };
-    fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-    checkSelected("execution-sheet-row-side");
-    // Story 3.3 (AD-15, T10) : surface ouverte, le premier toucher la ferme, le second ouvre la suivante.
-    fireEvent.press(screen.getByTestId("execution-sheet-order-value"));
+    // PRE-5 story 2.5 (AC1, AC2) : les segmentés du Changement de côté et de l'Enchainement
+    // n'ouvrent aucune surface ; leur ligne n'est jamais surlignée.
+    chooseOrder("Les deux côtés à chaque série");
     expect(styleOf("execution-sheet-row-side-selection").backgroundColor).toBeUndefined();
-    fireEvent.press(screen.getByTestId("execution-sheet-order-value"));
-    checkSelected("execution-sheet-row-order");
-    expect(styleOf("execution-sheet-row-side-selection").backgroundColor).toBeUndefined();
+    expect(styleOf("execution-sheet-row-order-selection").backgroundColor).toBeUndefined();
+    // AC3 : Autre révèle le ± sous la ligne Cadence, désignée par le fond de sélection.
+    fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
+    checkSelected("execution-sheet-row-beep");
+    // Famille ± : toucher la Durée de l'exercice range le ± et ouvre la roue d'un seul geste.
     fireEvent.press(screen.getByTestId("execution-sheet-total"));
-    fireEvent.press(screen.getByTestId("execution-sheet-total"));
+    expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBeUndefined();
     checkSelected("execution-sheet-row-total");
     // PRE-5 story 2.4 (AC3) : le Mode n'ouvre aucune surface ; le choisir ferme la roue
     // ouverte et sa ligne n'est jamais surlignée (re-choisir le Mode affiché : Brouillon inchangé).
@@ -1819,6 +1869,9 @@ describe("ExecutionParametersSheet — PRE-4 Q40 (vitesse, sens, sélection)", (
   it("PRE4-Q40 — tableau : sélectionné à l'ouverture (passage du Type de série à Variables, chevron) et après une action dedans ; état normal après sélection d'un champ hors tableau (segmenté du Mode, ± de N, ± du Bip) ou au repli", () =>
     withPlatform("android", () => {
     renderSheet(params({ series: variableRows([[30, 5], [45, 10], [60, 15]]) }));
+    // PRE-5 story 2.5 (AC4) : Compte à rebours, utilisé plus bas, est replié sous la Durée de
+    // l'exercice ; il est déplié avant toute vérification de la sélection.
+    showSignals();
     const group = () => styleOf("execution-sheet-variable-group");
     const expectSelected = () => {
       expect(group().backgroundColor).toBe(SELECTED_SURFACE);
@@ -1860,15 +1913,13 @@ describe("ExecutionParametersSheet — PRE-4 Q40 (vitesse, sens, sélection)", (
     // ± du Bip (hors tableau) : état normal.
     tap("execution-sheet-beep-increment");
     expectNormal();
-    // Pause d'une ligne du tableau puis Changement de côté (contrôle en place hors tableau).
+    // Pause d'une ligne du tableau puis Changement de côté (segmenté en ligne hors tableau,
+    // PRE-5 story 2.5).
     tap("execution-sheet-table-row-2-pause-increment");
     expectSelected();
-    fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
+    chooseSide("Avec");
     expectNormal();
-    // Chevron : déplier sélectionne, replier rend l'état normal. PRE-5 story 2.6 : le premier
-    // toucher de la cellule ferme le sélecteur ouvert sans ouvrir son champ (T10).
-    fireEvent.press(screen.getByTestId("execution-sheet-table-row-2-pause-toggle"));
-    expect(screen.queryByTestId("execution-sheet-side-selector")).toBeNull();
+    // Chevron : déplier sélectionne, replier rend l'état normal.
     tap("execution-sheet-table-row-2-pause-increment");
     expectSelected();
     fireEvent.press(screen.getByTestId(TABLE_TOGGLE));
@@ -1883,26 +1934,27 @@ describe("ExecutionParametersSheet — PRE-4 Q40 (vitesse, sens, sélection)", (
     expectSelected();
   }));
 
-  // Q41 : enchaînement vérifié avec les sélecteurs en ligne, sur Android ; fond de sélection
-  // lu sur le calque `-selection`.
-  it("PRE4-Q40 — sélection unique : sélecteur de Changement de côté ouvert, puis cellule du tableau → le sélecteur se ferme, la ligne Côté n'est plus surlignée, le tableau l'est ; et inversement", () =>
+  // Q41 : enchaînement vérifié avec les contrôles en ligne, sur Android ; fond de sélection
+  // lu sur le calque `-selection`. PRE-5 story 2.5 : le Changement de côté n'a plus de
+  // surface ; la surface hors tableau est le ± de la Cadence (révélé par Autre).
+  it("PRE4-Q40 — sélection unique : ± de la Cadence ouvert, puis cellule du tableau → le ± se range, la ligne Cadence n'est plus surlignée, le tableau l'est ; et inversement", () =>
     withPlatform("android", () => {
     renderSheet(params({ series: variableRows([[30, 5], [45, 10]]) }));
     const group = () => styleOf("execution-sheet-variable-group");
-    fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-    expect(screen.getByTestId("execution-sheet-side-selector")).toBeTruthy();
-    expect(styleOf("execution-sheet-row-side-selection").backgroundColor).toBe(SELECTED_SURFACE);
+    fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
+    expect(screen.getByTestId("execution-sheet-beep-increment")).toBeTruthy();
+    expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBe(SELECTED_SURFACE);
     expect(group().backgroundColor).toBeUndefined();
-    // PRE-5 story 2.6 (AD-27) : la cellule Pause remplace le ± permanent ; avec un sélecteur
-    // ouvert, son toucher le ferme sans ouvrir le champ (T10).
+    // PRE-5 story 2.6 (AD-27) : la cellule Pause ouvre son champ ; famille ± : le ± de la
+    // Cadence se range dans le même geste (T20).
     fireEvent.press(screen.getByTestId("execution-sheet-table-row-1-pause-toggle"));
-    expect(screen.queryByTestId("execution-sheet-table-row-1-pause-field")).toBeNull();
-    expect(screen.queryByTestId("execution-sheet-side-selector")).toBeNull();
-    expect(styleOf("execution-sheet-row-side-selection").backgroundColor).toBeUndefined();
-    expect(screen.getByTestId("execution-sheet-side-value").props.accessibilityState).toMatchObject({ expanded: false });
+    expect(screen.getByTestId("execution-sheet-table-row-1-pause-field")).toBeTruthy();
+    expect(screen.queryByTestId("execution-sheet-beep-increment")).toBeNull();
+    expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBeUndefined();
+    expect(cadenceText()).toBe("Sans");
     expect(group().backgroundColor).toBe(SELECTED_SURFACE);
-    // PRE-5 story 2.4 : le Mode n'a plus de sélecteur ; champ ± du Bip ouvert, puis prise
-    // d'un glisser dans le tableau : champ rangé, tableau sélectionné.
+    // Champ ± de la Cadence rouvert, puis prise d'un glisser dans le tableau : champ rangé,
+    // tableau sélectionné.
     openExecutionSheetField("execution-sheet-beep");
     expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBe(SELECTED_SURFACE);
     expect(group().backgroundColor).toBeUndefined();
@@ -1911,10 +1963,10 @@ describe("ExecutionParametersSheet — PRE-4 Q40 (vitesse, sens, sélection)", (
     expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBeUndefined();
     expect(group().backgroundColor).toBe(SELECTED_SURFACE);
     fireEvent(screen.getByTestId("execution-sheet-table-row-1-handle"), "responderRelease", { nativeEvent: { pageY: 100 } });
-    // Inversement : rouvrir le Changement de côté rend le tableau à l'état normal.
-    fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
+    // Inversement : rouvrir le ± de la Cadence rend le tableau à l'état normal.
+    fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
     expect(group().backgroundColor).toBeUndefined();
-    expect(styleOf("execution-sheet-row-side-selection").backgroundColor).toBe(SELECTED_SURFACE);
+    expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBe(SELECTED_SURFACE);
   }));
 });
 
@@ -1936,12 +1988,9 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
   const hidden = { includeHiddenElements: true } as const;
   const get = (testID: string) => screen.getByTestId(testID, hidden);
   const styleOf = (testID: string) => StyleSheet.flatten(get(testID).props.style) ?? {};
-  const textOf = (testID: string) => String(get(`${testID}-text`).props.children);
   const propsOf = (testID: string) => get(testID).props as { entering?: unknown; exiting?: unknown; layout?: unknown };
   const popovers = (root: Instance) => root.findAllByType(Popover).map((node) => node.props.testID as string);
   const PANEL_OF: Readonly<Record<string, string>> = {
-    "execution-sheet-side-value": "execution-sheet-side-panel",
-    "execution-sheet-order-value": "execution-sheet-order-panel",
     "execution-sheet-target-value": "execution-sheet-target-panel",
     "execution-sheet-total": "execution-sheet-total-panel",
   };
@@ -2028,15 +2077,17 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
       // dans la ligne elle-même.
       expect(within(get("execution-sheet-row-mode-line")).getByTestId(MODE_CONTROL)).toBeTruthy();
       expect(screen.queryByTestId("execution-sheet-mode-selector")).toBeNull();
-      fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-      checkEnclosed("execution-sheet-row-side", "execution-sheet-side-selector");
-      // Story 3.3 (AD-15, T10) : surface ouverte, le premier toucher la ferme, le second ouvre la suivante.
-      fireEvent.press(screen.getByTestId("execution-sheet-order-value"));
-      fireEvent.press(screen.getByTestId("execution-sheet-order-value"));
-      checkEnclosed("execution-sheet-row-order", "execution-sheet-order-selector");
-      fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
+      // PRE-5 story 2.5 (AC1, AC2) : Changement de côté et Enchainement sont dans leur ligne.
+      expect(within(get("execution-sheet-row-side-line")).getByTestId(SIDE_CONTROL)).toBeTruthy();
+      expect(within(get("execution-sheet-row-order-line")).getByTestId(ORDER_CONTROL)).toBeTruthy();
+      expect(screen.queryByTestId("execution-sheet-side-selector")).toBeNull();
+      // AC3 : le ± de la Cadence, révélé par Autre, est dans le cadre de sa ligne.
+      fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
+      checkEnclosed("execution-sheet-row-beep", "execution-sheet-beep-motion");
+      // Famille ± : toucher la Cible commune range le ± et ouvre la roue d'un seul geste.
       fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
       checkEnclosed("execution-sheet-row-target", "execution-sheet-target-wheel");
+      // Story 3.3 (AD-15, T10) : Sélecteur ouvert, le premier toucher le ferme, le second ouvre le suivant.
       fireEvent.press(screen.getByTestId("execution-sheet-total"));
       fireEvent.press(screen.getByTestId("execution-sheet-total"));
       checkEnclosed("execution-sheet-row-total", "execution-sheet-total-wheel");
@@ -2047,9 +2098,14 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
     const snapshot = (rowID: string) =>
       JSON.stringify([styleOf(rowID), styleOf(`${rowID}-content`), styleOf(`${rowID}-line`)]);
     renderSheet(bilateral());
+    // PRE-5 story 2.5 : la Cadence, au ± révélé par Autre, ne bouge pas non plus.
+    const cadenceBefore = snapshot("execution-sheet-row-beep");
+    fireEvent.press(get(`${CADENCE_CONTROL}-OTHER`));
+    expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBe(SELECTED_SURFACE);
+    expect(snapshot("execution-sheet-row-beep")).toBe(cadenceBefore);
+    fireEvent.press(get(`${CADENCE_CONTROL}-OTHER`));
+    expect(snapshot("execution-sheet-row-beep")).toBe(cadenceBefore);
     for (const [rowID, pillID] of [
-      ["execution-sheet-row-side", "execution-sheet-side-value"],
-      ["execution-sheet-row-order", "execution-sheet-order-value"],
       ["execution-sheet-row-target", "execution-sheet-target-value"],
       ["execution-sheet-row-total", "execution-sheet-total"],
     ] as const) {
@@ -2079,59 +2135,29 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
     expect(geometry("execution-sheet-variable-group")).toBe(before);
   });
 
-  it.each([
-    ["Changement de côté", "execution-sheet-row-side", "execution-sheet-side-value", "execution-sheet-side-panel", "execution-sheet-side-control", "Gauche puis droite"],
-    ["Ordre des côtés", "execution-sheet-row-order", "execution-sheet-order-value", "execution-sheet-order-panel", "execution-sheet-order-control", "Les deux côtés à chaque série"],
-  ])(
-    "PRE4-Q41 — iOS (%s) : panneau sans flèche sous le champ, largeur de la ligne, au-dessus du contenu ; segmenté inchangé ; aucun Popover ni Modal ; choix appliqué puis fermeture (D-4) ; toucher extérieur ferme sans appliquer",
-    (_name, rowID, pillID, panelID, controlID, choice) =>
-      withPlatform("ios", () => {
-        jest.useFakeTimers();
-        renderSheetView(bilateral());
-        // PRE-5 story 2.4 (AD-28) : ligne à y = 130 dans le cadre Côtés, lui-même à y = 296.
-        layoutFrames({ execution: [0, 90], series: [98, 190], sides: [296, 180], cadence: [484, 200] });
-        layoutOf(rowID, 130, 42);
-        const pillBefore = textOf(pillID);
-
-        // Toucher extérieur : fermeture sans application.
-        fireEvent.press(screen.getByTestId(pillID));
-        expect(screen.getByTestId(panelID)).toBeTruthy();
-        fireEvent.press(get(`${panelID}-outside`));
-        expect(screen.queryByTestId(panelID)).toBeNull();
-        expect(textOf(pillID)).toBe(pillBefore);
-        expect(screen.getByTestId(pillID).props.accessibilityState).toMatchObject({ expanded: false });
-
-        fireEvent.press(screen.getByTestId(pillID));
-        const panel = screen.getByTestId(panelID);
-        // Sous la ligne du champ, à 4 points, sur la largeur de la ligne (bords du champ à 13 du
-        // bord du cadre : contour 1 et marge 12).
-        expect(StyleSheet.flatten(panel.props.style)).toMatchObject({ position: "absolute", top: 296 + 130 + 42 + 4, right: 13, left: 13 });
-        // Hors de la ligne : aucun contrôle en ligne, aucune ligne décalée.
-        expect(within(get(rowID)).queryByTestId(controlID, hidden)).toBeNull();
-        expect(within(get("execution-sheet-panel-host")).getByTestId(panelID)).toBe(panel);
-        // Contenu : le segmenté accepté, tel quel (mêmes options), dans le panneau.
-        const control = within(panel).getByTestId(controlID);
+  // PRE-5 story 2.5 (AC1, AC2, AD-27) : remplace les panneaux iOS du Changement de côté et de
+  // l'Ordre des côtés (`popover(side | order)` retirées) — segmentés en ligne dans leur ligne,
+  // sans panneau, sans Popover ni Modal ; choix appliqué tout de suite, sans cadre D-4.
+  it("PRE4-Q41, PRE5-2.5/AC1, AC2 — iOS : Changement de côté et Enchainement sans panneau ni Popover : segmentés en ligne dans leur ligne ; choix appliqué immédiatement", () =>
+    withPlatform("ios", () => {
+      renderSheetView(bilateral());
+      layoutFrames({ execution: [0, 90], series: [98, 190], sides: [296, 180], cadence: [484, 200] });
+      for (const [rowID, controlID] of [
+        ["execution-sheet-row-side", SIDE_CONTROL],
+        ["execution-sheet-row-order", ORDER_CONTROL],
+      ] as const) {
+        const control = within(get(`${rowID}-line`)).getByTestId(controlID);
         expect(control.props.accessibilityRole).toBe("tablist");
-        // Ni Popover (donc ni flèche), ni Modal supplémentaire, ni ScrollView.
-        expect(popovers(screen.UNSAFE_root)).toEqual([]);
-        expect(panel.findAllByType(Popover)).toHaveLength(0);
-        expect(screen.UNSAFE_root.findAllByType(Modal)).toHaveLength(1);
-        expect(panel.findAll((node) => typeof node.type === "string" && /ScrollView/.test(node.type))).toHaveLength(0);
-        expect(panel.props.accessibilityViewIsModal).toBe(true);
-
-        // Choix : appliqué tout de suite, valeur visible 350 ms (D-4, Q40), puis fermeture.
-        fireEvent(within(panel).getByTestId(rowID === "execution-sheet-row-side" ? "execution-sheet-side-selector" : "execution-sheet-order-selector"), "layout", {
-          nativeEvent: { layout: { x: 0, y: 0, width: 330, height: 58 } },
-        });
-        fireEvent.press(within(control).getByText(choice.includes("puis") ? "Gauche puis\ndroite" : choice));
-        expect(textOf(pillID)).toBe(choice);
-        act(() => jest.advanceTimersByTime(349));
-        expect(screen.getByTestId(panelID)).toBeTruthy();
-        act(() => jest.advanceTimersByTime(1));
-        expect(screen.queryByTestId(panelID)).toBeNull();
-        expect(textOf(pillID)).toBe(choice);
-      }),
-  );
+      }
+      chooseOrder("Les deux côtés à chaque série");
+      expect(orderText()).toBe("Les deux côtés à chaque série");
+      chooseSide("Sans");
+      expect(sideText()).toBe("Sans");
+      expect(screen.queryByTestId("execution-sheet-row-order")).toBeNull();
+      expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/)).toHaveLength(0);
+      expect(popovers(screen.UNSAFE_root)).toEqual([]);
+      expect(screen.UNSAFE_root.findAllByType(Modal)).toHaveLength(1);
+    }));
 
   it("PRE4-Q41 — iOS : roue de la Durée totale dans un panneau sans flèche sous le champ, aligné à droite ; réserve sous le dernier cadre si elle dépasse ; ✓ applique (inversion), ✕ et toucher extérieur ferment sans appliquer ; aucune Modal ni animation de hauteur", () =>
     withPlatform("ios", () => {
@@ -2181,25 +2207,33 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
       expect(screen.getByTestId("execution-sheet-adjusted")).toBeTruthy();
     }));
 
-  it("PRE4-Q41 — iOS : un seul panneau à la fois ; la sélection suit le panneau ouvert ; le tableau n'est plus sélectionné ; le Mode n'ouvre ni panneau ni popover", () =>
+  it("PRE4-Q41 — iOS : un seul panneau à la fois ; la sélection suit le panneau ouvert ; le tableau n'est plus sélectionné par un choix hors tableau ; Mode, Changement de côté et Enchainement n'ouvrent ni panneau ni popover", () =>
     withPlatform("ios", () => {
-      renderSheet(params({ sideMode: "RIGHT_LEFT", series: variableRows([[30, 5], [45, 10]]) }));
+      const view = renderSheetView(params({ sideMode: "RIGHT_LEFT", series: variableRows([[30, 5], [45, 10]]) }));
       tap("execution-sheet-table-row-1-pause-increment");
       expect(styleOf("execution-sheet-variable-group").backgroundColor).toBe(SELECTED_SURFACE);
-      fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-      expect(screen.getByTestId("execution-sheet-side-panel")).toBeTruthy();
+      // PRE-5 story 2.5 : choix en ligne hors tableau — le tableau n'est plus sélectionné, aucun panneau.
+      chooseOrder("Les deux côtés à chaque série");
       expect(styleOf("execution-sheet-variable-group").backgroundColor).toBeUndefined();
-      expect(styleOf("execution-sheet-row-side-selection").backgroundColor).toBe(SELECTED_SURFACE);
-      fireEvent.press(get("execution-sheet-side-panel-outside"));
-      expect(styleOf("execution-sheet-row-side-selection").backgroundColor).toBeUndefined();
-      fireEvent.press(screen.getByTestId("execution-sheet-order-value"));
-      expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/).map((node) => node.props.testID)).toEqual(["execution-sheet-order-panel"]);
-      fireEvent.press(get("execution-sheet-order-panel-outside"));
+      expect(styleOf("execution-sheet-row-order-selection").backgroundColor).toBeUndefined();
+      expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/)).toHaveLength(0);
       // PRE-5 story 2.4 (AC3) : Mode en segmenté en ligne, sans panneau ni popover.
       chooseMode("Répétitions");
       expect(modeText()).toBe("Répétitions");
       expect(screen.UNSAFE_root.findAllByType(Popover)).toHaveLength(0);
       expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/)).toHaveLength(0);
+      view.unmount();
+      // Un seul panneau : roue de la Cible commune ouverte, toucher la Durée de l'exercice la
+      // ferme sans ouvrir la sienne (T10) ; un second toucher l'ouvre, seule.
+      renderSheet(params());
+      fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
+      expect(styleOf("execution-sheet-row-target-selection").backgroundColor).toBe(SELECTED_SURFACE);
+      expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/).map((node) => node.props.testID)).toEqual(["execution-sheet-target-panel"]);
+      fireEvent.press(get("execution-sheet-target-panel-outside"));
+      expect(styleOf("execution-sheet-row-target-selection").backgroundColor).toBeUndefined();
+      fireEvent.press(screen.getByTestId("execution-sheet-total"));
+      expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/).map((node) => node.props.testID)).toEqual(["execution-sheet-total-panel"]);
+      expect(styleOf("execution-sheet-row-total-selection").backgroundColor).toBe(SELECTED_SURFACE);
     }));
 });
 
@@ -2226,7 +2260,6 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
   /** Un panneau ouvert est modal pour VoiceOver : les éléments hors du panneau sont lus parmi les masqués. */
   const get = (testID: string) => screen.getByTestId(testID, hidden);
   const query = (testID: string) => screen.queryByTestId(testID, hidden);
-  const textOf = (testID: string) => String(get(`${testID}-text`).props.children);
   const shownValue = (testID: string) => String(get(`${testID}-value`).props.children);
   const styleOf = (testID: string) => StyleSheet.flatten(get(testID).props.style) ?? {};
   const SELECTED_SURFACE = "#F2F2FF";
@@ -2254,8 +2287,9 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     expect(screen.getByTestId("execution-sheet-modal").props.animationType).toBe("fade");
   });
 
-  it("PRE4-3.3/AC2, PRE5-2.4/AC1 — ordre du corps : Mode → Condition d’arrêt → Nombre de séries → Type de série → Cible et Pause → Côté → Ordre et Pause entre les côtés → Bip → Durée totale → Compte à rebours → Fin ; aucun interrupteur", () => {
+  it("PRE4-3.3/AC2, PRE5-2.4/AC1, PRE5-2.5 — ordre du corps : Mode → Condition d’arrêt → Nombre de séries → Type de série → Cible et Pause → Changement de côté → Enchainement et Pause entre les côtés → Cadence → Durée de l’exercice → Compte à rebours → Fin (dépliés) ; aucun interrupteur", () => {
     renderSheet(bilateral());
+    showSignals();
     const order = [
       "execution-sheet-row-mode",
       "execution-sheet-row-stop-condition",
@@ -2290,7 +2324,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     expect(failureTexts.map((node) => String(node.props.children))).toEqual(["À l’échec"]);
     expect(within(screen.getByTestId(STOP_CONTROL)).getByText("À l’échec", anyNode)).toBe(failureTexts[0]);
   });
-  it("PRE4-3.3/AC2 — sans ligne Durée totale, le Bip est juste avant le Compte à rebours", () => {
+  it("PRE4-3.3/AC2, PRE5-2.5/AC4 — sans ligne Durée de l’exercice, la Cadence est juste avant le Compte à rebours, visible sans chevron", () => {
     renderSheet(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
     expect(screen.queryByTestId("execution-sheet-row-total")).toBeNull();
     const json = JSON.stringify(screen.toJSON());
@@ -2318,51 +2352,46 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       expect(labels()).toEqual(["Répétitions", "Durée"]);
       expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/)).toHaveLength(0);
     }));
-  it("PRE4-3.3/AC4 — iOS : Changement de côté dans un panneau sans flèche sous le champ, segmenté accepté ; trois options en toutes lettres ; choix appliqué puis fermeture ; toucher extérieur sans application", () =>
+  it("PRE4-3.3/AC4, PRE5-2.5/AC1 — iOS : Changement de côté en segmenté en ligne Avec / Sans, sans panneau ni direction ; non renseigné : aucune option ; Avec appliqué tout de suite (RIGHT_LEFT, Pause du Profil)", () =>
     withPlatform("ios", () => {
       const { onApply } = renderSheet(params({ sideMode: null }));
-      // PRE-5 story 2.4 (AD-28) : cadre Côtés à y = 330, ligne en tête du cadre (y = 4).
-      layoutFrames({ execution: [0, 98], series: [106, 216], sides: [330, 54], cadence: [392, 190] });
-      layoutOf("execution-sheet-row-side", 4, 44);
-      expect(textOf("execution-sheet-side-value")).toBe("—");
-      fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-      const panel = get("execution-sheet-side-panel");
-      expect(StyleSheet.flatten(panel.props.style)).toMatchObject({ position: "absolute", top: 330 + 4 + 44 + 4, right: 13, left: 13 });
-      expect(within(panel).getByTestId("execution-sheet-side-control")).toBeTruthy();
-      expect(["UNILATERAL", "RIGHT_LEFT", "LEFT_RIGHT"].map((side) => get(`execution-sheet-side-control-${side}`).props.accessibilityLabel)).toEqual([
-        "Sans changement",
-        "Droite puis gauche",
-        "Gauche puis droite",
-      ]);
+      expect(sideText()).toBe("—");
+      const control = within(get("execution-sheet-row-side-line")).getByTestId(SIDE_CONTROL);
+      expect(control.props.accessibilityRole).toBe("tablist");
+      expect(control.props.accessibilityLabel).toBe("Changement de côté");
+      expect(["WITH", "WITHOUT"].map((side) => get(`${SIDE_CONTROL}-${side}`).props.accessibilityLabel)).toEqual(["Avec", "Sans"]);
+      expect(query(`${SIDE_CONTROL}-RIGHT_LEFT`)).toBeNull();
+      // Non renseigné : ni Enchainement ni Pause entre les côtés.
+      expect(query("execution-sheet-row-side-recovery")).toBeNull();
+      chooseSide("Avec");
+      expect(sideText()).toBe("Avec");
+      expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/)).toHaveLength(0);
       expect(popovers()).toEqual([]);
       expect(modals()).toHaveLength(1);
-      expect(styleOf("execution-sheet-row-side-selection").backgroundColor).toBe(SELECTED_SURFACE);
-      // Toucher extérieur : fermeture sans application.
-      fireEvent.press(get("execution-sheet-side-panel-outside"));
-      expect(query("execution-sheet-side-panel")).toBeNull();
-      expect(textOf("execution-sheet-side-value")).toBe("—");
-      // Choix : appliqué au Brouillon, puis fermeture (D-4).
-      fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-      fireEvent.press(get("execution-sheet-side-control-RIGHT_LEFT"));
-      expect(query("execution-sheet-side-panel")).toBeNull();
-      expect(textOf("execution-sheet-side-value")).toBe("Droite puis gauche");
+      // La ligne n'est jamais surlignée (aucune surface).
+      expect(styleOf("execution-sheet-row-side-selection").backgroundColor).toBeUndefined();
+      expect(shownValue("execution-sheet-side-recovery")).toBe("10 s");
       validate();
-      expect(applied(onApply).sideMode).toBe("RIGHT_LEFT");
+      expect(applied(onApply)).toMatchObject({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 10 });
     }));
 
-  it("PRE4-3.3/AC5 — iOS : Ordre des côtés dans le même panneau, deux options et leurs sous-titres ; ligne absente en Sans changement", () =>
+  it("PRE4-3.3/AC5, PRE5-2.5/AC2 — iOS : Enchainement en segmenté en ligne, deux notations graphiques exactes dans l'ordre, nom accessible neutre ; sans panneau ; ligne absente en Sans", () =>
     withPlatform("ios", () => {
       const view = renderSheetView(bilateral());
-      fireEvent.press(screen.getByTestId("execution-sheet-order-value"));
-      const panel = get("execution-sheet-order-panel");
-      expect(within(panel).getByTestId("execution-sheet-order-control")).toBeTruthy();
-      expect(String(get("execution-sheet-order-control-BY_SIDE-subtitle").props.children)).toBe("(D1 → D2) → (G1 → G2)");
-      expect(String(get("execution-sheet-order-control-BY_SERIES-subtitle").props.children)).toBe("(D1 → G1) → (D2 → G2)");
-      expect(within(panel).getByText("Un côté après l’autre")).toBeTruthy();
-      expect(within(panel).getByText("Les deux côtés à chaque série")).toBeTruthy();
-      fireEvent.press(get("execution-sheet-order-control-BY_SERIES"));
-      expect(query("execution-sheet-order-panel")).toBeNull();
-      expect(textOf("execution-sheet-order-value")).toBe("Les deux côtés à chaque série");
+      const control = within(get("execution-sheet-row-order-line")).getByTestId(ORDER_CONTROL);
+      expect(control.props.accessibilityLabel).toBe("Enchainement");
+      expect(within(control).getByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeTruthy();
+      expect(within(control).getByText("(D1 → G1) ➜ (D2 → G2)", hidden)).toBeTruthy();
+      expect(["BY_SIDE", "BY_SERIES"].map((order) => get(`${ORDER_CONTROL}-${order}`).props.accessibilityLabel)).toEqual([
+        "Un côté après l’autre",
+        "Les deux côtés à chaque série",
+      ]);
+      // Libellés longs : nom accessible seulement, jamais affichés ; aucune notation C1S1.
+      expect(screen.queryByText("Un côté après l’autre", hidden)).toBeNull();
+      expect(screen.queryByText(/C1S1|C1 S1/u, hidden)).toBeNull();
+      fireEvent.press(get(`${ORDER_CONTROL}-BY_SERIES`));
+      expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/)).toHaveLength(0);
+      expect(orderText()).toBe("Les deux côtés à chaque série");
       view.unmount();
       renderSheet(params({ sideMode: "UNILATERAL" }));
       expect(screen.queryByTestId("execution-sheet-row-order")).toBeNull();
@@ -2448,40 +2477,52 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       expect(onApply).not.toHaveBeenCalled();
       expect(JSON.stringify(parent)).toBe(snapshot);
     }));
+  // PRE-5 story 2.5 : le Changement de côté n'a plus de panneau ; le panneau est celui de la
+  // Cible commune, le champ ± celui de la Cadence (révélé par Autre).
   it("PRE4-3.3/AC7 — une seule surface : un champ ± ouvert puis un panneau — le champ se range, le panneau s'ouvre (T15) ; panneau ouvert, un toucher extérieur ferme sans ouvrir de champ (T10)", () =>
     withPlatform("ios", () => {
       renderSheet(bilateral());
-      fireEvent.press(screen.getByTestId("execution-sheet-beep-toggle"));
+      fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
       expect(screen.getByTestId("execution-sheet-beep-increment")).toBeTruthy();
-      fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-      expect(get("execution-sheet-side-panel")).toBeTruthy();
+      fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
+      expect(get("execution-sheet-target-panel")).toBeTruthy();
       expect(query("execution-sheet-beep-increment")).toBeNull();
       expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBeUndefined();
       // Sur iOS, le panneau couvre le corps : un toucher hors du panneau atteint sa zone
       // extérieure (fermeture sans application) et n'ouvre pas le champ touché.
-      fireEvent.press(get("execution-sheet-side-panel-outside"));
-      expect(query("execution-sheet-side-panel")).toBeNull();
+      fireEvent.press(get("execution-sheet-target-panel-outside"));
+      expect(query("execution-sheet-target-panel")).toBeNull();
       expect(query("execution-sheet-beep-increment")).toBeNull();
     }));
 
   it("PRE4-3.3/AC8 — ± à l'appui : au repos seule la valeur ; l'appui fait apparaître − et + ; largeur fixe 137 ; ligne désignée ; mécanisme accepté inchangé", () => {
     renderSheet(bilateral({ cadenceBeepIntervalSeconds: 2 }));
-    for (const field of ["series", "pause", "side-recovery", "beep", "countdown", "end"]) {
+    showSignals();
+    for (const field of ["series", "pause", "side-recovery", "countdown", "end"]) {
       expect(screen.queryByTestId(`execution-sheet-${field}-increment`)).toBeNull();
       expect(screen.queryByTestId(`execution-sheet-${field}-decrement`)).toBeNull();
       expect(screen.getByTestId(`execution-sheet-${field}-toggle`).props.accessibilityState).toMatchObject({ expanded: false });
     }
-    expect(shownValue("execution-sheet-beep")).toBe("2 s");
-    expect(styleOf("execution-sheet-beep-pill")).toMatchObject({ backgroundColor: "#F5F7FA", borderRadius: 10 });
-    expect(screen.getByTestId("execution-sheet-beep-toggle").props.accessibilityLabel).toBe("Bip de cadence, 2 s");
+    // PRE-5 story 2.5 (AC3) : au repos, la Cadence n'est que son segmenté (2 s) ; aucun ±.
+    expect(screen.queryByTestId("execution-sheet-beep-increment")).toBeNull();
+    expect(screen.queryByTestId("execution-sheet-beep-toggle")).toBeNull();
+    expect(cadenceText()).toBe("2 s");
+    expect(shownValue("execution-sheet-countdown")).toBe("10 s");
+    expect(styleOf("execution-sheet-countdown-pill")).toMatchObject({ backgroundColor: "#F5F7FA", borderRadius: 10 });
+    expect(screen.getByTestId("execution-sheet-countdown-toggle").props.accessibilityLabel).toBe("Compte à rebours, 10 s");
     // NFR-09, Q42 : zone de toucher fermée d'au moins 44 × 44 (toute la largeur du champ).
-    expect(styleOf("execution-sheet-beep-toggle")).toMatchObject({ width: 137, minHeight: 44 });
+    expect(styleOf("execution-sheet-countdown-toggle")).toMatchObject({ width: 137, minHeight: 44 });
     // Q41 : même cadre fermé et ouvert (largeur, centrage, hauteur) — la valeur ne bouge pas.
-    const closedFrame = styleOf("execution-sheet-beep-toggle");
-    fireEvent.press(screen.getByTestId("execution-sheet-beep-toggle"));
+    const closedFrame = styleOf("execution-sheet-countdown-toggle");
+    fireEvent.press(screen.getByTestId("execution-sheet-countdown-toggle"));
+    expect(styleOf("execution-sheet-countdown-field")).toEqual(closedFrame);
+    // PRE-5 story 2.5 (AC3) : Autre révèle sous la ligne le même champ ± (137 × 44), Autre affiché.
+    fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
+    expect(cadenceText()).toBe("Autre");
     const openFrame = styleOf("execution-sheet-beep-field");
     expect(openFrame).toEqual(closedFrame);
     expect(openFrame).toMatchObject({ width: 137, minHeight: 44, alignItems: "center", justifyContent: "center" });
+    expect(styleOf("execution-sheet-beep-motion-content")).toMatchObject({ flexDirection: "row", justifyContent: "flex-end" });
     expect(styleOf("execution-sheet-row-beep-line").minHeight).toBe(44);
     expect(screen.getByTestId("execution-sheet-beep-decrement")).toBeTruthy();
     expect(screen.getByTestId("execution-sheet-beep-increment")).toBeTruthy();
@@ -2497,7 +2538,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     fireEvent.press(screen.getByTestId("execution-sheet-pause-toggle"));
     press("execution-sheet-pause-increment");
     expect(shownValue("execution-sheet-pause")).toBe("11 s");
-    fireEvent.press(screen.getByTestId("execution-sheet-beep-toggle"));
+    fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
     expect(screen.queryByTestId("execution-sheet-pause-increment")).toBeNull();
     expect(shownValue("execution-sheet-pause")).toBe("11 s");
     press("execution-sheet-beep-increment");
@@ -2521,7 +2562,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     expect(screen.getByTestId("execution-sheet-series-decrement").props.accessibilityState).toMatchObject({ disabled: true });
     expect(screen.getByTestId("execution-sheet-series-field").props.onStartShouldSetResponder()).toBe(true);
     // Appui extérieur (libellé, fond du corps) : rangement, aucun bouton Annuler.
-    fireEvent.press(screen.getByText("Compte à rebours"));
+    fireEvent.press(screen.getByText("Cadence"));
     expect(screen.queryByTestId("execution-sheet-series-decrement")).toBeNull();
     expect(shownValue("execution-sheet-series")).toBe("1 série");
     expect(screen.queryByText("Annuler")).toBeNull();
@@ -2531,12 +2572,14 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
 
   it("PRE4-3.3/AC8 — T24 et T14 : champ ± ouvert, toucher la Cible commune ou le chevron le range et agit dans le même geste", () => {
     const view = renderSheetView(params());
+    showSignals();
     fireEvent.press(screen.getByTestId("execution-sheet-countdown-toggle"));
     fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
     expect(query("execution-sheet-countdown-increment")).toBeNull();
     expect(get("execution-sheet-target-wheel")).toBeTruthy();
     view.unmount();
     renderSheet(params({ series: variableRows([[30, 10], [45, 20]]) }));
+    showSignals();
     fireEvent.press(screen.getByTestId("execution-sheet-end-toggle"));
     fireEvent.press(screen.getByTestId(TABLE_TOGGLE));
     expect(screen.queryByTestId("execution-sheet-end-increment")).toBeNull();
@@ -2545,6 +2588,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
 
   it("PRE4-3.3/AC8 — T19 : champ ± ouvert, ✓ de la Feuille applique dans le même geste ; bornes de saisie inchangées", () => {
     const { onApply } = renderSheet(params({ countdownSeconds: 60, endSeconds: 0 }));
+    showSignals();
     fireEvent.press(screen.getByTestId("execution-sheet-countdown-toggle"));
     expect(screen.getByTestId("execution-sheet-countdown-increment").props.accessibilityState).toMatchObject({ disabled: true });
     fireEvent.press(screen.getByTestId("execution-sheet-end-toggle"));
@@ -2554,16 +2598,16 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     expect(applied(onApply)).toMatchObject({ countdownSeconds: 60, endSeconds: 1 });
   });
 
-  it("PRE4-3.3/AC9 — création : Mode et Changement de côté « — », N = 1, Pause 0 s, Bip « Aucun » ; ✓ produit Sans changement", () => {
+  it("PRE4-3.3/AC9, PRE5-2.5/AC1 — création : Mode et Changement de côté sans option sélectionnée, N = 1, Pause 0 s, Cadence « Sans » ; ✓ produit Sans changement", () => {
     const { onApply } = renderSheet(creation());
     expect(modeText()).toBe("—");
-    expect(text("execution-sheet-side-value")).toBe("—");
-    // Story 3.8 (AC2, AC4) : « — » affiché, annoncé « aucune valeur » (jamais « tiret »).
-    expect(screen.getByTestId("execution-sheet-side-value").props.accessibilityLabel).toBe("Changement de côté, aucune valeur");
+    expect(sideText()).toBe("—");
+    expect(screen.getByTestId(SIDE_CONTROL).props.accessibilityLabel).toBe("Changement de côté");
+    expect(screen.queryByTestId(`${SIDE_CONTROL}-indicator`)).toBeNull();
     expect(valueOf("execution-sheet-series")).toBe("1 série");
     expect(seriesTypeText()).toBe("Identiques");
     expect(valueOf("execution-sheet-pause")).toBe("0 s");
-    expect(valueOf("execution-sheet-beep")).toBe("Aucun");
+    expect(cadenceText()).toBe("Sans");
     chooseMode("Répétitions");
     validate();
     expect(applied(onApply)).toMatchObject({ sideMode: "UNILATERAL", series: { pauseSeconds: 0 } });
@@ -2601,10 +2645,9 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       tap("execution-sheet-series-increment");
       tap("execution-sheet-series-increment");
       chooseRegime("variables");
-      fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-      fireEvent.press(get("execution-sheet-side-control-LEFT_RIGHT"));
-      fireEvent.press(screen.getByTestId("execution-sheet-order-value"));
-      fireEvent.press(get("execution-sheet-order-control-BY_SERIES"));
+      // PRE-5 story 2.5 : Avec / Sans (Sans → Avec écrit RIGHT_LEFT), puis Enchainement.
+      chooseSide("Avec");
+      chooseOrder("Les deux côtés à chaque série");
       validate();
       result = applied(onApply);
       unmount();
@@ -2618,7 +2661,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     const web = await chooseAll("web");
     expect(ios).toMatchObject({
       mode: "DURATION",
-      sideMode: "LEFT_RIGHT",
+      sideMode: "RIGHT_LEFT",
       sideOrder: "BY_SERIES",
       series: { kind: "VARIABLE", rows: [{ target: numberTarget(40) }, { target: numberTarget(40) }, { target: numberTarget(40) }] },
     });
@@ -2626,58 +2669,43 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     expect(web).toEqual(ios);
   });
 
-  it("PRE4-3.3/AC11 — Android : chaque segmenté est en ligne, dans le cadre de sélection de sa ligne (Côté, Ordre) ou dans la ligne elle-même (Mode, Type de série, PRE-5 story 2.4), avec les mêmes options ; ni panneau ni Popover", () =>
+  it("PRE4-3.3/AC11, PRE5-2.5 — Android : chaque segmenté est dans la ligne elle-même (Mode, Type de série, Changement de côté, Enchainement, Cadence), avec ses options ; ni panneau ni Popover", () =>
     withPlatform("android", () => {
       renderSheet(bilateral());
-      const inline = (rowID: string, valueID: string, controlID: string, options: string[]) => {
-        fireEvent.press(screen.getByTestId(valueID));
-        const content = screen.getByTestId(`${rowID}-content`);
-        const control = within(content).getByTestId(controlID);
-        expect(options.map((option) => within(control).getByTestId(`${controlID}-${option}`))).toHaveLength(options.length);
-        expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/)).toHaveLength(0);
-        fireEvent.press(screen.getByTestId(valueID));
-        expect(screen.queryByTestId(controlID)).toBeNull();
-      };
       for (const [rowID, controlID, options] of [
         ["execution-sheet-row-mode", MODE_CONTROL, ["REPETITIONS", "DURATION"]],
         ["execution-sheet-row-series-type", SERIES_TYPE, ["VARIABLE", "UNIFORM"]],
+        ["execution-sheet-row-side", SIDE_CONTROL, ["WITH", "WITHOUT"]],
+        ["execution-sheet-row-order", ORDER_CONTROL, ["BY_SIDE", "BY_SERIES"]],
+        ["execution-sheet-row-beep", CADENCE_CONTROL, ["OTHER", "5", "2", "1", "NONE"]],
       ] as const) {
         const control = within(screen.getByTestId(`${rowID}-line`)).getByTestId(controlID);
         expect(options.map((option) => within(control).getByTestId(`${controlID}-${option}`))).toHaveLength(options.length);
       }
-      inline("execution-sheet-row-side", "execution-sheet-side-value", "execution-sheet-side-control", ["UNILATERAL", "RIGHT_LEFT", "LEFT_RIGHT"]);
-      inline("execution-sheet-row-order", "execution-sheet-order-value", "execution-sheet-order-control", ["BY_SIDE", "BY_SERIES"]);
+      chooseOrder("Les deux côtés à chaque série");
+      expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/)).toHaveLength(0);
       expect(screen.UNSAFE_root.findAllByType(Popover)).toHaveLength(0);
     }));
-  it("PRE4-3.3/AC11 — iOS : aucune Modal ni aucun Pressable de substitution à la place d'un popover — Côté et Ordre (segmenté accepté seul dans le panneau) ; Mode et Type de série en ligne, sans Popover (PRE-5 story 2.4)", () =>
+  it("PRE4-3.3/AC11, PRE5-2.5 — iOS : aucune Modal, aucun Popover ni panneau pour Mode, Type de série, Changement de côté et Enchainement (segmentés en ligne)", () =>
     withPlatform("ios", () => {
       renderSheet(bilateral());
       expect(popovers()).toEqual([]);
       expect(modals()).toHaveLength(1);
       expect(query("execution-sheet-mode-value")).toBeNull();
       expect(query("execution-sheet-regime-value")).toBeNull();
-      for (const [valueID, panelID, controlID, count] of [
-        ["execution-sheet-side-value", "execution-sheet-side-panel", "execution-sheet-side-control", 3],
-        ["execution-sheet-order-value", "execution-sheet-order-panel", "execution-sheet-order-control", 2],
-      ] as const) {
-        fireEvent.press(screen.getByTestId(valueID));
-        const panel = get(panelID);
-        // Le panneau ne contient que le segmenté accepté : ses options sont les seuls éléments tactiles.
-        const touchables = panel
-          .findAll((node) => typeof node.type === "string" && typeof node.props.onResponderGrant === "function")
-          .map((node) => node.props.testID as string);
-        expect(touchables).toHaveLength(count);
-        expect(touchables.every((id) => id.startsWith(`${controlID}-`))).toBe(true);
-        expect(panel.findAllByType(Modal)).toHaveLength(0);
-        expect(panel.findAllByType(Popover)).toHaveLength(0);
-        expect(modals()).toHaveLength(1);
-        fireEvent.press(get(`${panelID}-outside`));
-        expect(query(panelID)).toBeNull();
-      }
+      expect(query("execution-sheet-side-value")).toBeNull();
+      expect(query("execution-sheet-order-value")).toBeNull();
+      chooseSide("Avec");
+      chooseOrder("Les deux côtés à chaque série");
+      expect(query("execution-sheet-side-panel")).toBeNull();
+      expect(query("execution-sheet-order-panel")).toBeNull();
+      expect(popovers()).toEqual([]);
+      expect(modals()).toHaveLength(1);
     }));
 
-  it("PRE4-3.3/AC8 — chaque champ ± ouvert désigne sa ligne (fond de sélection) : Séries, Pause, Pause entre les côtés, Bip, Compte à rebours, Fin", () => {
+  it("PRE4-3.3/AC8 — chaque champ ± ouvert désigne sa ligne (fond de sélection) : Séries, Pause, Pause entre les côtés, Cadence (Autre), Compte à rebours, Fin", () => {
     renderSheet(bilateral());
+    showSignals();
     const rows: [string, string][] = [
       ["series", "execution-sheet-row-series"],
       ["pause", "execution-sheet-row-pause"],
@@ -2688,7 +2716,8 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     ];
     for (const [field, rowID] of rows) {
       expect(styleOf(`${rowID}-selection`).backgroundColor).toBeUndefined();
-      fireEvent.press(screen.getByTestId(`execution-sheet-${field}-toggle`));
+      // PRE-5 story 2.5 (AC3) : le ± de la Cadence est révélé par Autre.
+      fireEvent.press(screen.getByTestId(field === "beep" ? `${CADENCE_CONTROL}-OTHER` : `execution-sheet-${field}-toggle`));
       expect(styleOf(`${rowID}-selection`).backgroundColor).toBe(SELECTED_SURFACE);
       expect(styleOf(`${rowID}-selection`).borderRadius).toBe(12);
       for (const [, other] of rows) {
@@ -2697,31 +2726,46 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     }
   });
 
-  it("PRE4-3.3/AC8 — VoiceOver : à l'ouverture, le focus passe au champ ouvert ; l'échappement, Magic Tap ou l'action « Fermer » le rangent et rendent le focus à la valeur", () => {
+  it("PRE4-3.3/AC8 — VoiceOver : à l'ouverture, le focus passe au champ ouvert ; l'échappement, Magic Tap ou l'action « Fermer » le rangent et rendent le focus à la valeur ; PRE-5 story 2.5 : ± de la Cadence focalisé à l'ouverture, rangé par les mêmes actions", () => {
     const spy = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
     /** Demandes de focus seules (d'autres composants envoient d'autres événements). */
     const focus = { get calls() { return spy.mock.calls.filter((call) => call[1] === "focus"); } };
     try {
       renderSheet(params());
+      showSignals();
       spy.mockClear();
-      fireEvent.press(screen.getByTestId("execution-sheet-beep-toggle"));
-      const field = screen.getByTestId("execution-sheet-beep-field");
+      fireEvent.press(screen.getByTestId("execution-sheet-end-toggle"));
+      const field = screen.getByTestId("execution-sheet-end-field");
       expect(focus.calls).toHaveLength(1);
       expect(field.props.accessibilityActions).toEqual([{ name: "escape" }, { name: "magicTap" }, { name: "close", label: "Fermer" }]);
       fireEvent(field, "accessibilityAction", { nativeEvent: { actionName: "close" } });
-      expect(screen.queryByTestId("execution-sheet-beep-increment")).toBeNull();
+      expect(screen.queryByTestId("execution-sheet-end-increment")).toBeNull();
       expect(focus.calls).toHaveLength(2);
-      fireEvent.press(screen.getByTestId("execution-sheet-beep-toggle"));
-      fireEvent(screen.getByTestId("execution-sheet-beep-field"), "accessibilityEscape");
-      expect(screen.queryByTestId("execution-sheet-beep-increment")).toBeNull();
-      fireEvent.press(screen.getByTestId("execution-sheet-beep-toggle"));
-      fireEvent(screen.getByTestId("execution-sheet-beep-field"), "magicTap");
-      expect(screen.queryByTestId("execution-sheet-beep-increment")).toBeNull();
+      fireEvent.press(screen.getByTestId("execution-sheet-end-toggle"));
+      fireEvent(screen.getByTestId("execution-sheet-end-field"), "accessibilityEscape");
+      expect(screen.queryByTestId("execution-sheet-end-increment")).toBeNull();
+      fireEvent.press(screen.getByTestId("execution-sheet-end-toggle"));
+      fireEvent(screen.getByTestId("execution-sheet-end-field"), "magicTap");
+      expect(screen.queryByTestId("execution-sheet-end-increment")).toBeNull();
       // Un champ rangé par un autre champ (T20) ne reprend pas le focus : seul le nouveau le reçoit.
       spy.mockClear();
-      fireEvent.press(screen.getByTestId("execution-sheet-beep-toggle"));
+      fireEvent.press(screen.getByTestId("execution-sheet-countdown-toggle"));
       fireEvent.press(screen.getByTestId("execution-sheet-end-toggle"));
       expect(focus.calls).toHaveLength(2);
+      // Cadence : le ± révélé par Autre reçoit le focus et se range par les mêmes actions.
+      spy.mockClear();
+      fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
+      expect(focus.calls).toHaveLength(1);
+      const beep = screen.getByTestId("execution-sheet-beep-field");
+      expect(beep.props.accessibilityActions).toEqual([{ name: "escape" }, { name: "magicTap" }, { name: "close", label: "Fermer" }]);
+      fireEvent(beep, "accessibilityAction", { nativeEvent: { actionName: "close" } });
+      expect(screen.queryByTestId("execution-sheet-beep-increment")).toBeNull();
+      fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
+      fireEvent(screen.getByTestId("execution-sheet-beep-field"), "accessibilityEscape");
+      expect(screen.queryByTestId("execution-sheet-beep-increment")).toBeNull();
+      fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
+      fireEvent(screen.getByTestId("execution-sheet-beep-field"), "magicTap");
+      expect(screen.queryByTestId("execution-sheet-beep-increment")).toBeNull();
     } finally {
       spy.mockRestore();
     }
@@ -2729,6 +2773,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
 
   it("PRE4-3.3/AC8 — T23 : la zone d'appui extérieur couvre aussi les marges du corps (dessus, côtés, sous la dernière ligne)", () => {
     renderSheet(params());
+    showSignals();
     const outside = screen.getByTestId("execution-sheet-body-outside");
     expect(outside.props.accessible).toBe(false);
     expect(StyleSheet.flatten(outside.props.style)).toMatchObject({ position: "absolute", top: -12, right: -24, bottom: -24, left: -24 });
@@ -2762,19 +2807,20 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
   it("PRE4-3.3/AC7 — Cible commune Répétitions (pastille depuis 3.5) : l'ouvrir ferme la surface ouverte (champ ±, panneau)", () =>
     withPlatform("ios", () => {
       renderSheet(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
-      fireEvent.press(screen.getByTestId("execution-sheet-beep-toggle"));
+      fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
       fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
       expect(screen.queryByTestId("execution-sheet-beep-increment")).toBeNull();
       expect(screen.getByTestId("execution-sheet-target-panel")).toBeTruthy();
       fireEvent.press(screen.getByTestId("number-wheel-cancel"));
       expect(text("execution-sheet-target-value")).toBe("10 rép.");
-      // PRE-5 story 2.4 : le popover du Mode est retiré ; même règle (T10) avec le panneau du
-      // Changement de côté : toucher la Cible le ferme sans ouvrir la roue.
-      fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-      expect(get("execution-sheet-side-panel")).toBeTruthy();
-      fireEvent.press(get("execution-sheet-target-value"));
-      expect(query("execution-sheet-side-panel")).toBeNull();
+      // PRE-5 story 2.5 : plus de panneau du Changement de côté ; même règle (T10) dans l'autre
+      // sens — roue de la Cible ouverte, toucher Autre de la Cadence la ferme sans ouvrir le ±.
+      fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
+      expect(get("execution-sheet-target-panel")).toBeTruthy();
+      fireEvent.press(get(`${CADENCE_CONTROL}-OTHER`));
       expect(query("execution-sheet-target-panel")).toBeNull();
+      expect(query("execution-sheet-beep-increment")).toBeNull();
+      expect(cadenceText()).toBe("Sans");
     }));
 
   it("PRE4-3.3/AC6 — re-choisir « variables », tableau replié : le tableau reste replié, rien n'est modifié", () => {
@@ -3495,7 +3541,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     expect(groupBackground()).toBe("#F2F2FF");
     fireEvent.press(screen.getByTestId("number-wheel-cancel"));
     expect(groupBackground()).toBe("#F2F2FF");
-    fireEvent.press(screen.getByTestId("execution-sheet-beep-toggle"));
+    fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
     expect(groupBackground()).toBeUndefined();
     tap("execution-sheet-table-row-1-pause-increment");
     expect(groupBackground()).toBe("#F2F2FF");
@@ -3505,7 +3551,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
 
   it("PRE4-3.6/AC2 (partie maintenue par Q44) — une seule surface ouverte : un champ ± ouvert se ferme quand la valeur d'une Cible est touchée, et son Sélecteur s'ouvre dans le même geste (T21)", () => {
     renderSheet(variableSheet([[30, 10], [45, 20], [60, 30]]));
-    fireEvent.press(screen.getByTestId("execution-sheet-beep-toggle"));
+    fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
     expect(screen.getByTestId("execution-sheet-beep-field")).toBeTruthy();
     openCell(2);
     expect(screen.queryByTestId("execution-sheet-beep-field")).toBeNull();
@@ -3848,41 +3894,43 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     expect(groupBackground()).toBeUndefined();
     fireEvent.press(screen.getByTestId(`${SERIES_TYPE}-VARIABLE`));
     expect(undoAvailable()).toBe(true);
-    // Panneau de 3.3 : ouvert puis refermé sans choix, par sa valeur et par un toucher extérieur (`AnchoredPanel`).
-    for (const control of ["side"] as const) {
-      for (const close of ["value", "outside"] as const) {
-        fireEvent.press(screen.getByTestId(`execution-sheet-${control}-value`, hidden));
-        expect(screen.getByTestId(`execution-sheet-${control}-control`, hidden)).toBeTruthy();
-        fireEvent.press(
-          screen.getByTestId(close === "value" ? `execution-sheet-${control}-value` : `execution-sheet-${control}-panel-outside`, hidden),
-        );
-        expect(screen.queryByTestId(`execution-sheet-${control}-control`, hidden)).toBeNull();
-        expect(undoAvailable()).toBe(true);
-      }
-    }
+    // PRE-5 story 2.5 : le panneau du Changement de côté est retiré ; re-choisir Sans (affiché)
+    // et la Cadence affichée ne modifie pas le Brouillon ; ouvrir puis refermer le ± de la
+    // Cadence (Autre) ou déplier la Durée de l'exercice non plus.
+    chooseSide("Sans");
+    expect(undoAvailable()).toBe(true);
+    fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-NONE`, hidden));
+    expect(undoAvailable()).toBe(true);
+    fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`, hidden));
+    fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`, hidden));
+    expect(undoAvailable()).toBe(true);
+    showSignals();
+    expect(undoAvailable()).toBe(true);
     fireEvent.press(screen.getByTestId("execution-sheet-adjusted-undo"));
     expect([1, 2, 3].map((row) => cellValue(row))).toEqual(["30 s", "45 s", "1 min"]);
   });
 
-  it("PRE4-3.6/AC9 — Q29 (report de 3.2 clos en 4.2) : bilatéral, N ≥ 2 — panneau Ordre des côtés ouvert puis fermé sans choix (valeur, toucher extérieur) n'invalide pas `Annuler`", () => {
+  it("PRE4-3.6/AC9 — Q29 (report de 3.2 clos en 4.2), PRE5-2.5 : bilatéral, N ≥ 2 — Enchainement et Avec re-choisis sans changement, chevron d'Avec replié puis déplié : `Annuler` reste valable", () => {
     renderSheet(variableSheet([[30, 10], [45, 20], [60, 30]], "DURATION", { sideMode: "RIGHT_LEFT", sideRecoverySeconds: 5 }));
     fireEvent.press(screen.getByTestId("execution-sheet-table-row-2-remove"));
     const undoAvailable = () => screen.queryByTestId("execution-sheet-adjusted-undo", hidden) !== null;
     expect(undoAvailable()).toBe(true);
-    for (const close of ["value", "outside"] as const) {
-      fireEvent.press(screen.getByTestId("execution-sheet-order-value", hidden));
-      expect(screen.getByTestId("execution-sheet-order-control", hidden)).toBeTruthy();
-      fireEvent.press(screen.getByTestId(close === "value" ? "execution-sheet-order-value" : "execution-sheet-order-panel-outside", hidden));
-      expect(screen.queryByTestId("execution-sheet-order-control", hidden)).toBeNull();
-      expect(undoAvailable()).toBe(true);
-    }
+    chooseOrder("Un côté après l’autre");
+    expect(undoAvailable()).toBe(true);
+    chooseSide("Avec");
+    expect(undoAvailable()).toBe(true);
+    fireEvent.press(screen.getByTestId(`${SIDE_CONTROL}-WITH-chevron`, hidden));
+    expect(screen.queryByTestId("execution-sheet-row-order")).toBeNull();
+    fireEvent.press(screen.getByTestId(`${SIDE_CONTROL}-WITH-chevron`, hidden));
+    expect(screen.getByTestId("execution-sheet-row-order")).toBeTruthy();
+    expect(undoAvailable()).toBe(true);
     fireEvent.press(screen.getByTestId("execution-sheet-adjusted-undo"));
     expect([1, 2, 3].map((row) => cellValue(row))).toEqual(["30 s", "45 s", "1 min"]);
   });
 
   it("PRE4-3.6/AC9 — croix inactive tant qu'un champ ± ou une surface est ouvert : l'appui range le champ sans retirer (T23) ; avec un panneau, la zone extérieure ferme sans appliquer (T7)", () => {
     renderSheet(variableSheet([[30, 10], [45, 20], [60, 30]]));
-    fireEvent.press(screen.getByTestId("execution-sheet-beep-toggle"));
+    fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
     fireEvent.press(screen.getByTestId("execution-sheet-table-row-2-remove"));
     expect(rowCount()).toBe(3);
     expect(screen.queryByTestId("execution-sheet-beep-field")).toBeNull();
@@ -3916,7 +3964,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
   it("PRE4-3.6/AC9 — croix non active : un indice annonce qu'un appui ferme d'abord le champ ouvert ; aucun indice outil rangé", () => {
     renderSheet(variableSheet([[30, 10], [45, 20], [60, 30]]));
     expect(screen.getByTestId("execution-sheet-table-row-2-remove").props.accessibilityHint).toBeUndefined();
-    fireEvent.press(screen.getByTestId("execution-sheet-beep-toggle"));
+    fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
     expect(screen.getByTestId("execution-sheet-table-row-2-remove").props.accessibilityHint).toBe(
       "Ferme d’abord le champ ouvert, sans supprimer la série",
     );
@@ -3925,7 +3973,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
   it("PRE4-3.6/AC9 — T27 : `Annuler` ne range pas l'outil ouvert — champ ± (Bip) toujours ouvert après la restauration", () => {
     renderSheet(variableSheet([[30, 10], [45, 20], [60, 30]]));
     fireEvent.press(screen.getByTestId("execution-sheet-table-row-2-remove"));
-    fireEvent.press(screen.getByTestId("execution-sheet-beep-toggle"));
+    fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
     expect(screen.getByTestId("execution-sheet-beep-field")).toBeTruthy();
     fireEvent.press(screen.getByTestId("execution-sheet-adjusted-undo"));
     expect(rowCount()).toBe(3);
@@ -4075,8 +4123,14 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
 describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
   const sheetText = strings.executionParameters.sheet;
   const lowerBound = (seconds: number) => `${strings.shared.durationNature.lowerBoundPrefix}${formatPhraseDuration(seconds)}`;
-  const totalLine = () => screen.getByTestId("execution-sheet-row-total-line");
-  const totalLabelText = () => within(totalLine()).getAllByText(/^Durée totale/u)[0]!.props.children as string;
+  /**
+   * PRE-5 story 2.5 (AC4) : avec le chevron de « Durée de l'exercice », l'annonce regroupée de
+   * la ligne en lecture seule est portée par sa valeur (`-value-group`), le chevron restant un
+   * élément distinct ; sans chevron, par le trait entier (`-line`), comme en PRE-4.
+   */
+  const totalLine = () => screen.queryByTestId("execution-sheet-row-total-value-group") ?? screen.getByTestId("execution-sheet-row-total-line");
+  const totalRow = () => screen.getByTestId("execution-sheet-row-total-line");
+  const totalLabelText = () => within(totalRow()).getAllByText(/^Durée de l’exercice/u, anyNode)[0]!.props.children as string;
   const readOnlyText = () => String(screen.getByTestId("execution-sheet-total-text").props.children);
   const sheetValidateDisabled = () => screen.getByTestId("execution-sheet-validate").props.accessibilityState?.disabled === true;
   const nativeChange = (column: "minutes" | "seconds", selection: number) =>
@@ -4089,7 +4143,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
       .flatMap((node) => (node.props.modifiers as { $type: string; tag?: number }[]).filter((modifier) => modifier.$type === "tag"))
       .map((modifier) => modifier.tag);
   const range = (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, index) => from + index);
-  /** Ordre des lignes Bip, Durée totale et Compte à rebours dans le corps (absentes omises). */
+  /** Ordre des lignes Cadence, Durée de l'exercice et Compte à rebours dans le corps (absentes omises). */
   const bodyRowOrder = () => {
     const json = JSON.stringify(screen.toJSON());
     return ["beep", "total", "countdown"]
@@ -4113,24 +4167,24 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     let view = renderSheetView(ac4Exercise());
     expect(text("execution-sheet-total")).toBe(formatPhraseDuration(3 * (30 + 10)));
     expect(screen.getByTestId("execution-sheet-total").props.accessibilityRole).toBe("button");
-    expect(totalLabelText()).toBe("Durée totale");
+    expect(totalLabelText()).toBe("Durée de l’exercice");
     view.unmount();
 
     // Durée en `variables`, Cibles toutes numériques : lecture seule, sans symbole. T = Σ(Ti + Pi).
     view = renderSheetView(params({ series: variableRows([[30, 10], [45, 20], [60, 30]]) }));
     expect(screen.queryByTestId("execution-sheet-total")).toBeNull();
     expect(readOnlyText()).toBe(formatPhraseDuration(30 + 10 + 45 + 20 + 60 + 30));
-    expect(totalLabelText()).toBe("Durée totale");
+    expect(totalLabelText()).toBe("Durée de l’exercice");
     view.unmount();
 
     // Répétitions avec Bip, Cibles toutes numériques : lecture seule, ≈. T = Σ(Ri × b + Pi).
     view = renderSheetView(repetitionsWithBeep());
     expect(screen.queryByTestId("execution-sheet-total")).toBeNull();
-    expect(totalLabelText()).toBe("Durée totale ≈");
+    expect(totalLabelText()).toBe("Durée de l’exercice ≈");
     expect(readOnlyText()).toBe(formatPhraseDuration(3 * (10 * 2 + 15)));
     view.unmount();
     view = renderSheetView(params({ mode: "REPETITIONS", series: variableRows([[12, 30], [10, 45]]), cadenceBeepIntervalSeconds: 2 }));
-    expect(totalLabelText()).toBe("Durée totale ≈");
+    expect(totalLabelText()).toBe("Durée de l’exercice ≈");
     expect(readOnlyText()).toBe(formatPhraseDuration(12 * 2 + 30 + 10 * 2 + 45));
     view.unmount();
 
@@ -4138,16 +4192,21 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     view = renderSheetView(mixedDuration());
     expect(readOnlyText()).toBe(lowerBound(30 + 45 + 10 + 20 + 30));
     expect(readOnlyText()).toBe("≥ 2 min 15 s");
-    expect(totalLabelText()).toBe("Durée totale");
-    // Aucune nouvelle composante : la ligne ne porte que son libellé et sa valeur, rien de touchable.
+    expect(totalLabelText()).toBe("Durée de l’exercice");
+    // Aucune nouvelle composante : la ligne ne porte que son libellé et sa valeur ; PRE-5 story
+    // 2.5 (AC4) : seul élément touchable, le chevron qui déplie Compte à rebours et Fin.
     expect(screen.queryByTestId("execution-sheet-total")).toBeNull();
-    expect(within(screen.getByTestId("execution-sheet-row-total")).queryAllByRole("button")).toHaveLength(0);
-    expect(within(totalLine()).getAllByText(/./u)).toHaveLength(2);
+    expect(
+      within(screen.getByTestId("execution-sheet-row-total"))
+        .queryAllByRole("button")
+        .map((node) => node.props.accessibilityLabel),
+    ).toEqual([sheetText.showExerciseSignals]);
+    expect(within(totalRow()).getAllByText(/./u, anyNode)).toHaveLength(2);
     view.unmount();
     // Répétitions avec Bip et mélange : ≥ prime sur ≈ (P25).
     view = renderSheetView(variableParameters({ mode: "REPETITIONS", rows: [[12, 30], ["FAILURE", 45]], cadenceBeepIntervalSeconds: 2 }));
     expect(readOnlyText()).toBe(lowerBound(12 * 2 + 30 + 45));
-    expect(totalLabelText()).toBe("Durée totale");
+    expect(totalLabelText()).toBe("Durée de l’exercice");
     view.unmount();
 
     // Aucune ligne : Répétitions sans Bip, tout à l'échec (Durée ou Répétitions avec Bip), `identiques` à l'échec.
@@ -4159,8 +4218,10 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     ]) {
       view = renderSheetView(parent);
       expect(screen.queryByTestId("execution-sheet-row-total")).toBeNull();
-      expect(screen.queryAllByText(/^Durée totale/u)).toHaveLength(0);
+      expect(screen.queryAllByText(/^Durée de l’exercice/u, anyNode)).toHaveLength(0);
+      // PRE-5 story 2.5 (AC4) : ligne absente — Compte à rebours visible, sans chevron.
       expect(bodyRowOrder()).toEqual(["beep", "countdown"]);
+      expect(screen.queryByTestId("execution-sheet-duration-disclosure-frame")).toBeNull();
       view.unmount();
     }
   });
@@ -4172,21 +4233,23 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     expect(text("execution-sheet-total")).toBe(formatPhraseDuration(3 * (30 + 11)));
     tap("execution-sheet-series-increment");
     expect(text("execution-sheet-total")).toBe(formatPhraseDuration(4 * (30 + 11)));
-    fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-    fireEvent.press(within(screen.getByTestId("execution-sheet-side-control")).getByText("Droite puis gauche"));
+    chooseSide("Avec");
     expect(valueOf("execution-sheet-side-recovery")).toBe("10 s");
     // Un côté après l'autre : 2 N (d + p) + PC.
     expect(text("execution-sheet-total")).toBe(formatPhraseDuration(2 * 4 * (30 + 11) + 10));
     // Mode Répétitions : la Cible numérique de Durée devient `—` (UNSET) — ni ligne ni montant.
     chooseMode("Répétitions");
     expect(screen.queryByTestId("execution-sheet-row-total")).toBeNull();
-    expect(screen.queryAllByText(/^Durée totale/u)).toHaveLength(0);
+    expect(screen.queryAllByText(/^Durée de l’exercice/u, anyNode)).toHaveLength(0);
     expect(screen.queryAllByText("0 s")).toHaveLength(0);
     expect(sheetValidateDisabled()).toBe(true);
     expect(bodyRowOrder()).toEqual(["beep", "countdown"]);
-    // Retour en Durée : Cible restaurée, total recalculé, ligne de retour entre Bip et Compte à rebours.
+    // Retour en Durée : Cible restaurée, total recalculé, ligne de retour après la Cadence ;
+    // PRE-5 story 2.5 (AC4) : Compte à rebours replié sous elle, puis déplié par le chevron.
     chooseMode("Durée");
     expect(text("execution-sheet-total")).toBe(formatPhraseDuration(2 * 4 * (30 + 11) + 10));
+    expect(bodyRowOrder()).toEqual(["beep", "total"]);
+    showSignals();
     expect(bodyRowOrder()).toEqual(["beep", "total", "countdown"]);
     view.unmount();
 
@@ -4195,7 +4258,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     expect(screen.queryByTestId("execution-sheet-row-total")).toBeNull();
     tap("execution-sheet-beep-increment");
     tap("execution-sheet-beep-increment");
-    expect(totalLabelText()).toBe("Durée totale ≈");
+    expect(totalLabelText()).toBe("Durée de l’exercice ≈");
     expect(readOnlyText()).toBe(formatPhraseDuration(3 * (10 * 2 + 15)));
     reps.unmount();
 
@@ -4208,7 +4271,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     // Cible `UNSET` dans un tableau : aucune ligne, aucun montant, ✓ indisponible (H10, NFR-06).
     renderSheet(variableParameters({ rows: [[30, 10], ["UNSET", 20], [45, 30]] }));
     expect(screen.queryByTestId("execution-sheet-row-total")).toBeNull();
-    expect(screen.queryAllByText(/^≥|^Durée totale/u)).toHaveLength(0);
+    expect(screen.queryAllByText(/^≥|^Durée de l’exercice/u)).toHaveLength(0);
     expect(sheetValidateDisabled()).toBe(true);
     expect(bodyRowOrder()).toEqual(["beep", "countdown"]);
   });
@@ -4333,7 +4396,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
       view = renderSheetView(params({ series: { kind: "UNIFORM", count: 90, target: numberTarget(60), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
       expect(screen.queryByTestId("execution-sheet-total")).toBeNull();
       expect(readOnlyText()).toBe(formatPhraseDuration(90 * 70));
-      expect(totalLine().props.accessibilityLabel).toBe(`Durée totale, ${formatPhraseDuration(90 * 70)}, non modifiable`);
+      expect(totalLine().props.accessibilityLabel).toBe(`Durée de l’exercice, ${formatPhraseDuration(90 * 70)}, non modifiable`);
       fireEvent.press(screen.getByTestId("execution-sheet-total-text"));
       expect(screen.queryByTestId("execution-sheet-total-panel")).toBeNull();
       view.unmount();
@@ -4415,49 +4478,49 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     let view = renderSheetView(repetitionsWithBeep());
     expect(totalLine().props.accessible).toBe(true);
     expect(totalLine().props.accessibilityRole).toBe("text");
-    expect(spoken()).toBe(`Durée totale, estimation, ${formatPhraseDuration(3 * (10 * 2 + 15))}, non modifiable`);
+    expect(spoken()).toBe(`Durée de l’exercice, estimation, ${formatPhraseDuration(3 * (10 * 2 + 15))}, non modifiable`);
     expect(spoken()).not.toMatch(/[≈≥—]/u);
     // La valeur n'est pas atténuée : même couleur que le libellé, aucune opacité.
     const value = StyleSheet.flatten(screen.getByTestId("execution-sheet-total-text").props.style);
-    const label = StyleSheet.flatten(within(totalLine()).getByText("Durée totale ≈").props.style);
+    const label = StyleSheet.flatten(within(totalRow()).getByText("Durée de l’exercice ≈", anyNode).props.style);
     expect(value.color).toBe(label.color);
     expect(value.opacity).toBeUndefined();
     view.unmount();
 
     // ≥ : mélange calculable.
     view = renderSheetView(mixedDuration());
-    expect(spoken()).toBe(`Durée totale, total prévisionnel partiel, ${formatPhraseDuration(30 + 45 + 10 + 20 + 30)}, non modifiable`);
+    expect(spoken()).toBe(`Durée de l’exercice, total prévisionnel partiel, ${formatPhraseDuration(30 + 45 + 10 + 20 + 30)}, non modifiable`);
     expect(spoken()).not.toMatch(/[≈≥—]/u);
     view.unmount();
 
     // Lecture seule exacte (`variables` chiffrées) : sans nature, « non modifiable ».
     view = renderSheetView(params({ series: variableRows([[30, 10], [45, 20]]) }));
-    expect(spoken()).toBe(`Durée totale, ${formatPhraseDuration(30 + 10 + 45 + 20)}, non modifiable`);
+    expect(spoken()).toBe(`Durée de l’exercice, ${formatPhraseDuration(30 + 10 + 45 + 20)}, non modifiable`);
     view.unmount();
 
     // Saisie invalide (Cible 3536 s, D-430) : « — » affiché (PRE4-2.1/AC9), annoncé par la clé dédiée, jamais par le tiret.
     expect(sheetText.totalInvalidSpoken).toBe("montant indisponible tant qu’une valeur est invalide");
     view = renderSheetView(durationParameters(3536, 3, 10));
     expect(readOnlyText()).toBe("—");
-    expect(spoken()).toBe(`Durée totale, ${sheetText.totalInvalidSpoken}`);
+    expect(spoken()).toBe(`Durée de l’exercice, ${sheetText.totalInvalidSpoken}`);
     expect(spoken()).not.toMatch(/—/u);
     view.unmount();
     // Saisie invalide avec une nature connue : elle est gardée (≈ : Bip historique 11, hors bornes ;
     // ≥ : mélange avec une Cible hors bornes, 3536 s depuis D-430).
     view = renderSheetView({ ...repetitionsWithBeep(), cadenceBeepIntervalSeconds: 11 });
     expect(readOnlyText()).toBe("—");
-    expect(spoken()).toBe(`Durée totale, estimation, ${sheetText.totalInvalidSpoken}`);
+    expect(spoken()).toBe(`Durée de l’exercice, estimation, ${sheetText.totalInvalidSpoken}`);
     view.unmount();
     view = renderSheetView(variableParameters({ rows: [[3536, 10], [45, 20], ["FAILURE", 30]] }));
     expect(readOnlyText()).toBe("—");
-    expect(spoken()).toBe(`Durée totale, total prévisionnel partiel, ${sheetText.totalInvalidSpoken}`);
+    expect(spoken()).toBe(`Durée de l’exercice, total prévisionnel partiel, ${sheetText.totalInvalidSpoken}`);
     view.unmount();
 
     // Ligne modifiable : annonce de la pastille, inchangée ; la ligne n'est pas regroupée.
     renderSheet(ac4Exercise());
     expect(totalLine().props.accessible).toBeUndefined();
     expect(screen.getByTestId("execution-sheet-total").props.accessibilityLabel).toBe(
-      `${sheetText.totalEditAccessibilityLabel}, ${formatPhraseDuration(3 * 40)}`,
+      `${sheetText.exerciseDurationEditAccessibilityLabel}, ${formatPhraseDuration(3 * 40)}`,
     );
   });
 
@@ -4566,7 +4629,10 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
     // du segmenté n'est sélectionnée, chaque option est annoncée par son nom.
     expect(screen.getByTestId(MODE_CONTROL).props.accessibilityLabel).toBe("Mode");
     expect(["REPETITIONS", "DURATION"].map((mode) => screen.getByTestId(`${MODE_CONTROL}-${mode}`).props.accessibilityState.selected)).toEqual([false, false]);
-    expect(screen.getByTestId("execution-sheet-side-value").props.accessibilityLabel).toBe("Changement de côté, aucune valeur");
+    // PRE-5 story 2.5 (AC1) : Changement de côté non renseigné — aucune option sélectionnée,
+    // chaque option annoncée par son nom, jamais un tiret.
+    expect(screen.getByTestId(SIDE_CONTROL).props.accessibilityLabel).toBe("Changement de côté");
+    expect(["WITH", "WITHOUT"].map((side) => screen.getByTestId(`${SIDE_CONTROL}-${side}`).props.accessibilityState.selected)).toEqual([false, false]);
     chooseMode("Durée");
     expect(text("execution-sheet-target-value")).toBe("—");
     expect(screen.getByTestId("execution-sheet-target-value").props.accessibilityLabel).toBe("Durée d’une série, aucune valeur");
@@ -4585,16 +4651,18 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
     expect(spokenTexts().filter(dashAsValue)).toEqual([]);
   });
 
-  it("PRE4-3.8/AC2 — `Bip de cadence` : nom, valeur `Aucun` ou intervalle en secondes, actions augmenter et diminuer, limites annoncées", () => {
+  it("PRE4-3.8/AC2, PRE5-2.5/AC3 — Cadence : segmenté nommé, option « Sans » annoncée sélectionnée ; ± (Autre) nommé, valeur « Sans » ou intervalle en secondes, actions augmenter et diminuer, limites annoncées", () => {
     renderSheet(params({ cadenceBeepIntervalSeconds: 0 }));
-    expect(screen.getByTestId("execution-sheet-beep-toggle").props.accessibilityLabel).toBe("Bip de cadence, Aucun");
+    expect(screen.getByTestId(CADENCE_CONTROL).props.accessibilityLabel).toBe("Cadence");
+    expect(screen.getByTestId(`${CADENCE_CONTROL}-NONE`).props.accessibilityLabel).toBe("Sans");
+    expect(screen.getByTestId(`${CADENCE_CONTROL}-NONE`).props.accessibilityState).toMatchObject({ selected: true });
     openExecutionSheetField("execution-sheet-beep");
     const beep = () => screen.getByTestId("execution-sheet-beep");
     const act11y = (actionName: "increment" | "decrement") => fireEvent(beep(), "accessibilityAction", { nativeEvent: { actionName } });
     expect(beep().props.accessibilityRole).toBe("adjustable");
-    expect(beep().props.accessibilityLabel).toBe("Bip de cadence, secondes");
+    expect(beep().props.accessibilityLabel).toBe("Cadence, secondes");
     expect(beep().props.accessibilityActions).toEqual([{ name: "increment" }, { name: "decrement" }]);
-    expect(beep().props.accessibilityValue).toEqual({ min: 0, max: 10, now: 0, text: "Aucun, minimum atteint" });
+    expect(beep().props.accessibilityValue).toEqual({ min: 0, max: 10, now: 0, text: "Sans, minimum atteint" });
     act11y("increment");
     expect(beep().props.accessibilityValue).toEqual({ min: 0, max: 10, now: 1, text: "1 s" });
     for (let step = 0; step < 9; step += 1) act11y("increment");
@@ -4689,15 +4757,15 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
       for (const state of states) {
         const view = renderSheetView(state);
         collected.push(...spokenTexts());
-        // Chaque surface ouverte une fois : panneau de la Cible commune, panneau du Côté, champ ± du Bip.
+        // Chaque surface ouverte une fois : panneau de la Cible commune, Durée de l'exercice
+        // dépliée (PRE-5 story 2.5), champ ± de la Cadence.
         if (query("execution-sheet-target-value")) {
           fireEvent.press(get("execution-sheet-target-value"));
           collected.push(...spokenTexts());
           fireEvent.press(get("execution-sheet-target-panel-outside"));
         }
-        fireEvent.press(get("execution-sheet-side-value"));
+        showSignals();
         collected.push(...spokenTexts());
-        fireEvent.press(get("execution-sheet-side-panel-outside"));
         openExecutionSheetField("execution-sheet-beep");
         collected.push(...spokenTexts());
         view.unmount();
@@ -4797,28 +4865,29 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
       const { onApply } = renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: unsetTarget(), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
       const validateButton = () => get("execution-sheet-validate");
       expect(validateButton().props.accessibilityState).toMatchObject({ disabled: true });
-      fireEvent.press(get("execution-sheet-side-value"));
-      expect(query("execution-sheet-side-panel")).not.toBeNull();
+      // PRE-5 story 2.5 : le panneau du Côté est retiré ; celui de la Cible commune le remplace.
+      fireEvent.press(get("execution-sheet-target-value"));
+      expect(query("execution-sheet-target-panel")).not.toBeNull();
       // Activable pour fermer la surface ; le libellé garde l'indisponibilité de la validation.
       expect(validateButton().props.accessibilityState).toMatchObject({ disabled: false });
       expect(validateButton().props.accessibilityLabel).toBe("Valider les paramètres, indisponible tant qu’une valeur est invalide");
       pressHeader("execution-sheet-validate");
-      expect(query("execution-sheet-side-panel")).toBeNull();
+      expect(query("execution-sheet-target-panel")).toBeNull();
       expect(onApply).not.toHaveBeenCalled();
       expect(validateButton().props.accessibilityState).toMatchObject({ disabled: true });
       pressHeader("execution-sheet-validate");
       expect(onApply).not.toHaveBeenCalled();
     }));
 
-  it("PRE4-3.8/AC5 — iOS : panneau du Côté, roue de la Durée totale ou d'une cellule ouverts : ✓ de la Feuille absorbé ; champ ± ouvert : ✓ applique dans le même geste (T19) ; le Mode n'ouvre plus de popover (PRE-5 story 2.4)", () =>
+  it("PRE4-3.8/AC5 — iOS : roue de la Cible commune, de la Durée de l'exercice ou d'une cellule ouverte : ✓ de la Feuille absorbé ; champ ± ouvert : ✓ applique dans le même geste (T19) ; Mode, Changement de côté et Enchainement n'ouvrent plus de surface (PRE-5 stories 2.4, 2.5)", () =>
     withPlatform("ios", () => {
       const view = renderSheetView(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
-      for (const field of ["execution-sheet-side-value", "execution-sheet-total"]) {
+      for (const field of ["execution-sheet-target-value", "execution-sheet-total"]) {
         fireEvent.press(get(field));
         pressHeader("execution-sheet-validate");
         expect({ field, applied: view.onApply.mock.calls.length }).toEqual({ field, applied: 0 });
       }
-      expect(query("execution-sheet-side-panel")).toBeNull();
+      expect(query("execution-sheet-target-panel")).toBeNull();
       expect(query("execution-sheet-total-panel")).toBeNull();
       openExecutionSheetField("execution-sheet-pause");
       pressHeader("execution-sheet-validate");
@@ -4833,7 +4902,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
       expect(query("execution-sheet-cell-panel")).toBeNull();
     }));
 
-  it("PRE4-3.8/AC5 — Android : roue en ligne ou segmenté ouvert, ✓ et ✕ de la Feuille ne font que le fermer ; pendant le cadre D-4 d'un choix déjà appliqué, ✓ applique", () =>
+  it("PRE4-3.8/AC5 — Android : roue en ligne ouverte, ✓ et ✕ de la Feuille ne font que la fermer ; PRE-5 story 2.5 : choix du Changement de côté appliqué tout de suite, ✓ applique", () =>
     withPlatform("android", () => {
       jest.useFakeTimers();
       try {
@@ -4847,14 +4916,8 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
         pressHeader("execution-sheet-cancel");
         expect(onCancel).not.toHaveBeenCalled();
         expect(screen.queryByTestId("execution-sheet-target-wheel")).toBeNull();
-        fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-        pressHeader("execution-sheet-cancel");
-        expect(onCancel).not.toHaveBeenCalled();
-        act(() => {
-          jest.advanceTimersByTime(SELECTOR_SETTLE_MS + 1000);
-        });
-        fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-        fireEvent.press(screen.getByTestId("execution-sheet-side-control-RIGHT_LEFT"));
+        // Segmenté en ligne : aucune surface à fermer, le choix est déjà dans le Brouillon.
+        chooseSide("Avec");
         pressHeader("execution-sheet-validate");
         expect(applied(onApply).sideMode).toBe("RIGHT_LEFT");
       } finally {
@@ -4872,8 +4935,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
     // Contrôle positif des segmentés intégrés : en ligne sur Android (repli AD-7).
     await withPlatform("android", () => {
       const view = renderSheetView(params({ series: variableRows([[30, 10], [45, 20]]), sideMode: "RIGHT_LEFT", sideRecoverySeconds: 10 }));
-      fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-      expect(within(screen.getByTestId("execution-sheet-row-side")).getByTestId("execution-sheet-side-control")).toBeTruthy();
+      expect(within(screen.getByTestId("execution-sheet-row-side")).getByTestId(SIDE_CONTROL)).toBeTruthy();
       view.unmount();
     });
     await withPlatform("ios", () => {
@@ -4892,13 +4954,12 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
         undefined,
         undefined,
       ]);
-      // Segmentés intégrés : aucun dans les lignes ; à l'ouverture, le même contrôle est dans le panneau.
-      for (const [control, row] of [["side", "side"], ["order", "order"]] as const) {
-        expect(within(get(`execution-sheet-row-${row}`)).queryByTestId(`execution-sheet-${control}-control`, hidden)).toBeNull();
-        fireEvent.press(get(`execution-sheet-${control}-value`));
-        expect(within(get(`execution-sheet-${control}-panel`)).getByTestId(`execution-sheet-${control}-control`, hidden)).toBeTruthy();
-        fireEvent.press(get(`execution-sheet-${control}-panel-outside`));
-      }
+      // PRE-5 story 2.5 (AC1, AC2) : Changement de côté et Enchainement sont des segmentés
+      // `inline` dans leur ligne (remplacement accepté des panneaux de PRE-4), sans panneau.
+      expect(within(get("execution-sheet-row-side-line")).getByTestId(SIDE_CONTROL, hidden)).toBeTruthy();
+      expect(within(get("execution-sheet-row-order-line")).getByTestId(ORDER_CONTROL, hidden)).toBeTruthy();
+      expect(query("execution-sheet-side-value")).toBeNull();
+      expect(query("execution-sheet-order-value")).toBeNull();
       // PRE-5 story 2.4 (AC3, AC7) : Mode et Type de série sont des segmentés `inline` dans
       // leur ligne (remplacement accepté du popover et du panneau du Régime).
       expect(within(get("execution-sheet-row-mode-line")).getByTestId(MODE_CONTROL, hidden)).toBeTruthy();
@@ -4921,7 +4982,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
     });
   });
 
-  it("PRE4-3.8/AC7 — texte agrandi : aucun texte de la Feuille ne plafonne ni ne réduit sa taille (maxFontSizeMultiplier, allowFontScaling faux, numberOfLines, adjustsFontSizeToFit), au repos et avec chaque panneau ou roue ouvert (Côté, Ordre, Durée, Répétitions, Durée totale, cellule) et un champ ±", () =>
+  it("PRE4-3.8/AC7 — texte agrandi : aucun texte de la Feuille ne plafonne ni ne réduit sa taille (maxFontSizeMultiplier, allowFontScaling faux, numberOfLines, adjustsFontSizeToFit), au repos et avec chaque panneau ou roue ouvert (Durée, Répétitions, Durée de l'exercice, cellule), signaux dépliés et un champ ±", () =>
     withPlatform("ios", () => {
       const texts = () => screen.UNSAFE_root.findAll((node) => hostNamed(node, "Text")).map((node) => node.props as Record<string, unknown>);
       const capped = (props: Record<string, unknown>) =>
@@ -4938,14 +4999,15 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
         seen.push(...texts());
         fireEvent.press(get(`${panel}-outside`));
       };
-      // Durée, identiques, bilatéral, N = 3 : Durée, Durée totale, Côté, Ordre, champ ± (PRE-5
-      // story 2.4 : plus de panneau du Régime ; Mode et Type de série toujours affichés).
+      // Durée, identiques, bilatéral, N = 3 : Durée, Durée de l'exercice, champ ± (PRE-5
+      // stories 2.4, 2.5 : plus de panneau du Régime, du Côté ni de l'Ordre ; segmentés toujours
+      // affichés, notations de l'Enchainement comprises).
       let view = renderSheetView(params({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 10, cadenceBeepIntervalSeconds: 2 }));
       seen.push(...texts());
       withOpen("execution-sheet-target-value", "execution-sheet-target-panel");
       withOpen("execution-sheet-total", "execution-sheet-total-panel");
-      withOpen("execution-sheet-side-value", "execution-sheet-side-panel");
-      withOpen("execution-sheet-order-value", "execution-sheet-order-panel");
+      showSignals();
+      seen.push(...texts());
       openExecutionSheetField("execution-sheet-beep");
       seen.push(...texts());
       view.unmount();
@@ -4958,12 +5020,12 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
       seen.push(...texts());
       measureTableRow(1);
       withOpen("execution-sheet-table-row-1-target", "execution-sheet-cell-panel");
-      expect(opened).toHaveLength(6);
+      expect(opened).toHaveLength(4);
       expect(seen.length).toBeGreaterThan(80);
       expect(seen.filter(capped)).toEqual([]);
     }));
 
-  it("PRE4-3.8/AC7 — hauteurs : aucun texte de la Feuille sous une hauteur fixe, panneau du Côté et roue ouverts compris, hors les exceptions consignées (ligne du tableau, TABLE_ROW_HEIGHT, géométrie du glisser PRE-3 ; R-3.8-03)", () =>
+  it("PRE4-3.8/AC7 — hauteurs : aucun texte de la Feuille sous une hauteur fixe, roue ouverte comprise, hors les exceptions consignées (ligne du tableau, TABLE_ROW_HEIGHT, géométrie du glisser PRE-3 ; R-3.8-03 ; segmentés `inline`)", () =>
     withPlatform("ios", () => {
       const fixedHeights = () => {
         const fixed = new Set<string>();
@@ -4984,19 +5046,23 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
       // (cadre 32, option 26, relevé UX-DR1 de la story 2.3 ; texte agrandi à juger sur
       // iPhone, report consigné par la revue de 2.3) — Mode, Condition d'arrêt, Type de série.
       // PRE-5 story 2.2 : segmenté `inline` de la ligne Charge (« Avec | Sans »), même exception.
+      // PRE-5 story 2.5 : Changement de côté, Enchainement et Cadence, même exception.
       const inlineSegmented = [
         ":26",
+        "execution-sheet-cadence-control:32",
         "execution-sheet-load-control:32",
         "execution-sheet-mode-control:32",
+        "execution-sheet-order-control:32",
         "execution-sheet-series-type-control:32",
+        "execution-sheet-side-control:32",
         "execution-sheet-stop-condition-control:32",
       ];
       const tableRows = [`execution-sheet-table-row-1:${TABLE_ROW_HEIGHT}`, `execution-sheet-table-row-2:${TABLE_ROW_HEIGHT}`];
       const atRest = [...inlineSegmented, ...tableRows];
       expect(fixedHeights()).toEqual(atRest);
-      fireEvent.press(get("execution-sheet-side-value"));
+      // Signaux dépliés : aucune hauteur fixe ajoutée.
+      showSignals();
       expect(fixedHeights()).toEqual(atRest);
-      fireEvent.press(get("execution-sheet-side-panel-outside"));
       measureTableRow(1);
       fireEvent.press(get("execution-sheet-table-row-1-target"));
       expect(query("execution-sheet-cell-panel")).not.toBeNull();
@@ -5047,6 +5113,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
 
   it("PRE5-2.4/AC1 — quatre cadres dans l'ordre Exécution ; Séries ; Côtés ; Cadence et durée, enfants directs de l'hôte des panneaux ; fond #EFF0F2, contour blanc de 1, rayon 12, espacés de 8 ; chaque ligne dans son cadre", () => {
     renderSheet(params({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 10, cadenceBeepIntervalSeconds: 2 }));
+    // PRE-5 story 2.5 (AC4) : Compte à rebours et Fin, repliés, sont d'abord dépliés.
+    showSignals();
     const host = get("execution-sheet-panel-host");
     const frames = host.children.filter(
       (child): child is ReturnType<typeof screen.getByTestId> =>
@@ -5091,7 +5159,6 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
       renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] }, sideMode: "RIGHT_LEFT", sideRecoverySeconds: 10 }));
       layoutFrames({ execution: [0, 98], series: [106, 230], sides: [344, 190], cadence: [542, 236] });
       layoutOf("execution-sheet-row-target", 100, 44);
-      layoutOf("execution-sheet-row-order", 52, 44);
       layoutOf("execution-sheet-row-total", 52, 44);
       const topOf = (panelID: string) => StyleSheet.flatten(get(panelID).props.style).top as number;
       const notInFrame = (panelID: string) =>
@@ -5104,11 +5171,9 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
       fireEvent(get("execution-sheet-frame-series"), "layout", { nativeEvent: { layout: { x: 0, y: 150, width: 330, height: 230 } } });
       expect(topOf("execution-sheet-target-panel")).toBe(150 + 100 + 44 + 4);
       fireEvent.press(get("execution-sheet-target-panel-outside"));
-      // Cadre Côtés.
-      fireEvent.press(screen.getByTestId("execution-sheet-order-value"));
-      expect(topOf("execution-sheet-order-panel")).toBe(344 + 52 + 44 + 4);
-      expect(notInFrame("execution-sheet-order-panel")).toBe(true);
-      fireEvent.press(get("execution-sheet-order-panel-outside"));
+      // Cadre Côtés : PRE-5 story 2.5, plus aucun panneau (segmentés en ligne).
+      chooseOrder("Les deux côtés à chaque série");
+      expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/)).toHaveLength(0);
       // Cadre Cadence et durée.
       fireEvent.press(screen.getByTestId("execution-sheet-total"));
       expect(topOf("execution-sheet-total-panel")).toBe(542 + 52 + 44 + 4);
@@ -5801,5 +5866,286 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2 (focus natif et applicati
     expect(screen.queryByTestId(cell(1), hidden)).toBeNull();
     validate();
     expect(applied(onApply).series).toMatchObject({ kind: "VARIABLE", rows: [{ loadKg: 15 }, { loadKg: 20 }] });
+  });
+});
+
+/**
+ * PRE-5 story 2.5 (AC1 à AC6 ; FR-15 à FR-17, FR-30, FR-31, FR-44 ; AD-21, AD-24, AD-27,
+ * AD-28 ; D-431) — Côtés Avec / Sans, Enchainement, Cadence et Durée de l'exercice.
+ * Matrice de la spécification. Jest ne prouve que l'arbre JS : rendu, police réduite des
+ * notations, gestes et VoiceOver réels relèvent de la recette du lot Feuille (R-2.5-01 à
+ * R-2.5-05), sans constat inventé.
+ */
+describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
+  const hidden = { includeHiddenElements: true } as const;
+  const get = (testID: string) => screen.getByTestId(testID, hidden);
+  const query = (testID: string) => screen.queryByTestId(testID, hidden);
+  const sideChevron = `${SIDE_CONTROL}-WITH-chevron`;
+  const sideRows = () => ({
+    order: query("execution-sheet-row-order") !== null,
+    recovery: query("execution-sheet-row-side-recovery") !== null,
+  });
+  const signals = () => ({
+    countdown: query("execution-sheet-row-countdown") !== null,
+    end: query("execution-sheet-row-end") !== null,
+    disclosure: query(`${DURATION_DISCLOSURE}-frame`) !== null,
+  });
+  /** Feuille avec la prop des signaux (Exercice ouvert depuis une Séance : `"absent"`). */
+  function renderWithSignals(parent: ExecutionParametersInput, exerciseSignals: "present" | "absent") {
+    const onApply = jest.fn<(value: ExecutionParameters) => void>();
+    const view = render(
+      <TestSafeAreaProvider>
+        <ExecutionParametersSheet
+          parent={parent}
+          profileSideRecoverySecondsDefault={10}
+          exerciseSignals={exerciseSignals}
+          onApply={onApply}
+          onCancel={jest.fn()}
+        />
+      </TestSafeAreaProvider>,
+    );
+    return { onApply, unmount: view.unmount };
+  }
+
+  it("PRE5-2.5/AC1 — Activation : Sans (UNILATERAL), Profil 20 s → Avec : RIGHT_LEFT, Pause entre les côtés 20 s, Enchainement et Pause visibles, chevron haut", () => {
+    const { onApply } = renderSheet(params({ sideMode: "UNILATERAL", sideRecoverySeconds: 0 }), 20);
+    expect(sideText()).toBe("Sans");
+    expect(sideRows()).toEqual({ order: false, recovery: false });
+    expect(query(sideChevron)).toBeNull();
+    chooseSide("Avec");
+    expect(sideText()).toBe("Avec");
+    expect(sideRows()).toEqual({ order: true, recovery: true });
+    expect(valueOf("execution-sheet-side-recovery")).toBe("20 s");
+    expect(get(sideChevron).props.accessibilityState).toMatchObject({ expanded: true });
+    expect(get(sideChevron).props.accessibilityLabel).toBe(strings.executionParameters.sheet.hideSideSettings);
+    validate();
+    expect(applied(onApply)).toMatchObject({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 20 });
+  });
+
+  it("PRE5-2.5/AC1 — Historique : LEFT_RIGHT et BY_SERIES affichés Avec et « (D1 → G1) ➜ (D2 → G2) » ; Avec et l'Enchainement re-choisis sans changement ; ✓ enregistre LEFT_RIGHT et BY_SERIES", () => {
+    const { onApply } = renderSheet(params({ sideMode: "LEFT_RIGHT", sideOrder: "BY_SERIES", sideRecoverySeconds: 12 }), 20);
+    expect(sideText()).toBe("Avec");
+    expect(orderText()).toBe("Les deux côtés à chaque série");
+    chooseSide("Avec");
+    chooseOrder("Les deux côtés à chaque série");
+    // Avec re-choisi : ni réécriture de LEFT_RIGHT, ni copie du Profil.
+    expect(valueOf("execution-sheet-side-recovery")).toBe("12 s");
+    validate();
+    expect(applied(onApply)).toMatchObject({ sideMode: "LEFT_RIGHT", sideOrder: "BY_SERIES", sideRecoverySeconds: 12 });
+  });
+
+  it("PRE5-2.5/AC1 — Sans puis Avec : lignes masquées puis réaffichées ; Pause entre les côtés recopiée du Profil (P3-10) ; Enchainement conservé", () => {
+    const { onApply } = renderSheet(params({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SERIES", sideRecoverySeconds: 12 }), 20);
+    expect(valueOf("execution-sheet-side-recovery")).toBe("12 s");
+    chooseSide("Sans");
+    expect(sideRows()).toEqual({ order: false, recovery: false });
+    // Sans re-choisi sur UNILATERAL : Brouillon inchangé.
+    chooseSide("Sans");
+    chooseSide("Avec");
+    expect(sideRows()).toEqual({ order: true, recovery: true });
+    expect(valueOf("execution-sheet-side-recovery")).toBe("20 s");
+    expect(orderText()).toBe("Les deux côtés à chaque série");
+    validate();
+    expect(applied(onApply)).toMatchObject({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SERIES", sideRecoverySeconds: 20 });
+  });
+
+  it("PRE5-2.5/AC1 — Repli : le chevron d'Avec masque Enchainement et Pause entre les côtés sans changer valeur ni sélection ; déplié à nouveau, puis déployé à chaque passage à Avec", () => {
+    const { onApply } = renderSheet(params({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SERIES", sideRecoverySeconds: 12 }), 20);
+    openExecutionSheetField("execution-sheet-side-recovery");
+    fireEvent.press(get(sideChevron));
+    // Repli : lignes masquées, champ ± rangé (T14), Avec toujours sélectionné, chevron bas.
+    expect(sideRows()).toEqual({ order: false, recovery: false });
+    expect(query("execution-sheet-side-recovery-increment")).toBeNull();
+    expect(sideText()).toBe("Avec");
+    expect(get(sideChevron).props.accessibilityState).toMatchObject({ expanded: false });
+    expect(get(sideChevron).props.accessibilityLabel).toBe(strings.executionParameters.sheet.showSideSettings);
+    fireEvent.press(get(sideChevron));
+    expect(sideRows()).toEqual({ order: true, recovery: true });
+    expect(valueOf("execution-sheet-side-recovery")).toBe("12 s");
+    expect(orderText()).toBe("Les deux côtés à chaque série");
+    // Replié puis Sans → Avec : déployé.
+    fireEvent.press(get(sideChevron));
+    chooseSide("Sans");
+    chooseSide("Avec");
+    expect(sideRows()).toEqual({ order: true, recovery: true });
+    // Replié, ✓ : valeurs conservées.
+    fireEvent.press(get(sideChevron));
+    validate();
+    expect(applied(onApply)).toMatchObject({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SERIES", sideRecoverySeconds: 20 });
+  });
+
+  it("PRE5-2.5/AC1 — choix dans les segmentés des côtés avec une roue ouverte (T10) : la roue se ferme sans appliquer, le choix n'est pas appliqué", () =>
+    withPlatform("ios", () => {
+      renderSheet(params({ sideMode: "UNILATERAL" }));
+      fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
+      expect(query("execution-sheet-target-panel")).not.toBeNull();
+      fireEvent.press(get(`${SIDE_CONTROL}-WITH`));
+      expect(query("execution-sheet-target-panel")).toBeNull();
+      expect(sideText()).toBe("Sans");
+      fireEvent.press(get(`${SIDE_CONTROL}-WITH`));
+      expect(sideText()).toBe("Avec");
+    }));
+
+  it("PRE5-2.5/AC2 — Enchainement : options BY_SIDE puis BY_SERIES, notations exactes à flèche centrale ➜, police réduite, nom accessible neutre ; effectif affiché ; masqué à N = 1 (BY_SIDE écrit), conservé au retour à N ≥ 2", () => {
+    const { onApply } = renderSheet(params({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE", sideRecoverySeconds: 10 }));
+    const control = get(ORDER_CONTROL);
+    const labels = within(control)
+      .getAllByText(/D1/u, hidden)
+      .map((node) => String(node.props.children));
+    expect(labels).toEqual(["(D1 → D2) ➜ (G1 → G2)", "(D1 → G1) ➜ (D2 → G2)"]);
+    for (const label of labels) {
+      expect(StyleSheet.flatten(within(control).getByText(label, hidden).props.style)).toMatchObject({ fontSize: 10 });
+    }
+    chooseOrder("Les deux côtés à chaque série");
+    expect(orderText()).toBe("Les deux côtés à chaque série");
+    tap("execution-sheet-series-decrement");
+    tap("execution-sheet-series-decrement");
+    expect(query("execution-sheet-row-order")).toBeNull();
+    tap("execution-sheet-series-increment");
+    expect(orderText()).toBe("Les deux côtés à chaque série");
+    tap("execution-sheet-series-decrement");
+    validate();
+    // NR Δ24 : BY_SIDE écrit à N = 1 (tests Q38 inchangés).
+    expect(applied(onApply)).toMatchObject({ series: { count: 1 }, sideOrder: "BY_SIDE" });
+  });
+
+  it("PRE5-2.5/AC3 — Cadence : 0, 1, 2, 5, 7 → Sans, 1 s, 2 s, 5 s, Autre ; options Autre / 5 s / 2 s / 1 s / Sans de 46,4", () => {
+    const expected: readonly [number, string][] = [
+      [0, "Sans"],
+      [1, "1 s"],
+      [2, "2 s"],
+      [5, "5 s"],
+      [7, "Autre"],
+    ];
+    for (const [value, option] of expected) {
+      const view = renderSheetView(params({ cadenceBeepIntervalSeconds: value }));
+      expect({ value, option: cadenceText() }).toEqual({ value, option });
+      view.unmount();
+    }
+    renderSheet(params());
+    const control = get(CADENCE_CONTROL);
+    expect(["OTHER", "5", "2", "1", "NONE"].map((option) => get(`${CADENCE_CONTROL}-${option}`).props.accessibilityLabel)).toEqual([
+      "Autre",
+      "5 s",
+      "2 s",
+      "1 s",
+      "Sans",
+    ]);
+    expect(StyleSheet.flatten(control.props.style)).toMatchObject({ height: 32, width: 5 * 46.4 + 4 * 2 + 2 * 3 });
+  });
+
+  it("PRE5-2.5/AC3 — Autre : valeur inchangée, ± ouvert sous la ligne, Autre affiché ; fermeture → option de la valeur ; 5 s / 2 s / 1 s / Sans écrivent leur valeur et ferment le ± ; aucune valeur personnalisée mémorisée", () => {
+    const { onApply } = renderSheet(params({ cadenceBeepIntervalSeconds: 0 }));
+    fireEvent.press(get(`${CADENCE_CONTROL}-OTHER`));
+    expect(cadenceText()).toBe("Autre");
+    expect(valueOf("execution-sheet-beep")).toBe("Sans");
+    expect(within(get("execution-sheet-row-beep")).getByTestId("execution-sheet-beep-field", hidden)).toBeTruthy();
+    // Fermeture (second toucher sur Autre) : Sans, valeur 0.
+    fireEvent.press(get(`${CADENCE_CONTROL}-OTHER`));
+    expect(query("execution-sheet-beep-field")).toBeNull();
+    expect(cadenceText()).toBe("Sans");
+    // ± : 7 s (Autre), puis 5 s par le segmenté, qui ferme le ±.
+    openExecutionSheetField("execution-sheet-beep");
+    for (let step = 0; step < 7; step += 1) tap("execution-sheet-beep-increment");
+    expect(valueOf("execution-sheet-beep")).toBe("7 s");
+    fireEvent.press(get(`${CADENCE_CONTROL}-5`));
+    expect(query("execution-sheet-beep-field")).toBeNull();
+    expect(cadenceText()).toBe("5 s");
+    // Sans puis Autre : rien n'est restauré (7 s oublié).
+    fireEvent.press(get(`${CADENCE_CONTROL}-NONE`));
+    fireEvent.press(get(`${CADENCE_CONTROL}-OTHER`));
+    expect(valueOf("execution-sheet-beep")).toBe("Sans");
+    // 2 s avec le ± ouvert : écrit, ± fermé.
+    fireEvent.press(get(`${CADENCE_CONTROL}-2`));
+    expect(query("execution-sheet-beep-field")).toBeNull();
+    validate();
+    expect(applied(onApply).cadenceBeepIntervalSeconds).toBe(2);
+  });
+
+  it("PRE5-2.5/AC3 — re-choisir l'option affichée laisse le Brouillon inchangé (`Annuler` d'un retrait reste valable) ; roue ouverte (T10) : choix non appliqué", () =>
+    withPlatform("ios", () => {
+      renderSheet(params({ series: variableRows([[30, 10], [45, 20], [60, 30]]), cadenceBeepIntervalSeconds: 2 }));
+      fireEvent.press(get("execution-sheet-table-row-2-remove"));
+      expect(query("execution-sheet-adjusted-undo")).not.toBeNull();
+      fireEvent.press(get(`${CADENCE_CONTROL}-2`));
+      expect(query("execution-sheet-adjusted-undo")).not.toBeNull();
+      fireEvent.press(get("execution-sheet-adjusted-undo"));
+      // T10 : roue d'une cellule ouverte, 5 s n'est pas appliqué.
+      fireEvent(get("execution-sheet-table-row-1-motion"), "layout", { nativeEvent: { layout: { x: -4, y: 32, width: 336, height: 36 } } });
+      fireEvent(get("execution-sheet-table-row-1-target-cell"), "layout", { nativeEvent: { layout: { x: 58, y: 6, width: 71, height: 24 } } });
+      fireEvent.press(get("execution-sheet-table-row-1-target"));
+      expect(query("execution-sheet-cell-panel")).not.toBeNull();
+      fireEvent.press(get(`${CADENCE_CONTROL}-5`));
+      expect(query("execution-sheet-cell-panel")).toBeNull();
+      expect(cadenceText()).toBe("2 s");
+    }));
+
+  it("PRE5-2.5/AC4 — Durée de l'exercice : repliée à l'ouverture, Compte à rebours et Fin absents ; chevron à 12 du libellé → visibles ; valeur, nature et roue inchangées ; chevron et pastille distincts", () => {
+    const { onApply } = renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] }, countdownSeconds: 10, endSeconds: 5 }));
+    expect(screen.getByText("Durée de l’exercice", hidden)).toBeTruthy();
+    expect(text("execution-sheet-total")).toBe(formatPhraseDuration(3 * 40));
+    expect(signals()).toEqual({ countdown: false, end: false, disclosure: true });
+    // Chevron à 12 du libellé, bas replié.
+    let labelGroup = get(`${DURATION_DISCLOSURE}-frame`).parent;
+    while (labelGroup && StyleSheet.flatten(labelGroup.props.style)?.flexDirection !== "row") labelGroup = labelGroup.parent;
+    expect(StyleSheet.flatten(labelGroup?.props.style)).toMatchObject({ flexDirection: "row", gap: 12 });
+    expect(within(labelGroup!).getByText("Durée de l’exercice", hidden)).toBeTruthy();
+    const disclosure = screen.getByLabelText(strings.executionParameters.sheet.showExerciseSignals);
+    expect(disclosure.props.accessibilityState).toMatchObject({ expanded: false });
+    fireEvent.press(disclosure);
+    expect(signals()).toEqual({ countdown: true, end: true, disclosure: true });
+    expect(text("execution-sheet-total")).toBe(formatPhraseDuration(3 * 40));
+    expect(screen.getByLabelText(strings.executionParameters.sheet.hideExerciseSignals).props.accessibilityState).toMatchObject({ expanded: true });
+    // Pastille : ouvre la roue, sans replier.
+    fireEvent.press(screen.getByTestId("execution-sheet-total"));
+    expect(query("execution-sheet-total-wheel")).not.toBeNull();
+    expect(signals()).toEqual({ countdown: true, end: true, disclosure: true });
+    fireEvent.press(get("duration-wheel-cancel"));
+    // Compte à rebours réglé, puis replié avec son ± ouvert : rangé, valeur conservée.
+    tap("execution-sheet-countdown-increment");
+    fireEvent.press(screen.getByLabelText(strings.executionParameters.sheet.hideExerciseSignals));
+    expect(signals()).toEqual({ countdown: false, end: false, disclosure: true });
+    expect(query("execution-sheet-countdown-increment")).toBeNull();
+    validate();
+    expect(applied(onApply)).toMatchObject({ countdownSeconds: 11, endSeconds: 5 });
+  });
+
+  it("PRE5-2.5/AC4 — Sans total (Répétitions à l'échec) : pas de ligne, Compte à rebours et Fin visibles, sans chevron ; la ligne qui apparaît se présente repliée", () => {
+    const view = renderSheetView(durationParameters("FAILURE", 3, 10));
+    expect(query("execution-sheet-row-total")).toBeNull();
+    expect(signals()).toEqual({ countdown: true, end: true, disclosure: false });
+    view.unmount();
+    renderSheet(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
+    expect(signals()).toEqual({ countdown: true, end: true, disclosure: false });
+    // Cadence 2 s : la ligne ≈ apparaît, repliée.
+    fireEvent.press(get(`${CADENCE_CONTROL}-2`));
+    expect(screen.getByText("Durée de l’exercice ≈", hidden)).toBeTruthy();
+    expect(signals()).toEqual({ countdown: false, end: false, disclosure: true });
+  });
+
+  it("PRE5-2.5/AC4 — Exercice ouvert depuis une Séance : ni Compte à rebours, ni Fin, ni chevron, avec ou sans ligne ; valeurs conservées au ✓", () => {
+    let view = renderWithSignals(params({ countdownSeconds: 12, endSeconds: 7 }), "absent");
+    expect(query("execution-sheet-row-total")).not.toBeNull();
+    expect(signals()).toEqual({ countdown: false, end: false, disclosure: false });
+    fireEvent.press(get("execution-sheet-validate"));
+    expect(applied(view.onApply)).toMatchObject({ countdownSeconds: 12, endSeconds: 7 });
+    view.unmount();
+    view = renderWithSignals({ ...durationParameters("FAILURE", 3, 10), countdownSeconds: 12, endSeconds: 7 }, "absent");
+    expect(query("execution-sheet-row-total")).toBeNull();
+    expect(signals()).toEqual({ countdown: false, end: false, disclosure: false });
+    view.unmount();
+    // Défaut : signaux présents (Catalogue).
+    renderWithSignals(params(), "present");
+    expect(signals()).toEqual({ countdown: false, end: false, disclosure: true });
+  });
+
+  it("PRE5-2.5/AC4 — annonce de la ligne en lecture seule portée par la valeur, chevron élément distinct ; libellé non annoncé deux fois", () => {
+    renderSheet(params({ series: variableRows([[30, 10], [45, 20]]) }));
+    const valueGroup = get("execution-sheet-row-total-value-group");
+    expect(valueGroup.props).toMatchObject({ accessible: true, accessibilityRole: "text" });
+    expect(valueGroup.props.accessibilityLabel).toBe(`Durée de l’exercice, ${formatPhraseDuration(30 + 10 + 45 + 20)}, non modifiable`);
+    expect(get("execution-sheet-row-total-line").props.accessible).toBeUndefined();
+    expect(screen.getByText("Durée de l’exercice", hidden).props.accessibilityElementsHidden).toBe(true);
+    expect(screen.getByLabelText(strings.executionParameters.sheet.showExerciseSignals).props.accessibilityRole).toBe("button");
   });
 });

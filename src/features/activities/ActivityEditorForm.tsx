@@ -99,6 +99,12 @@ export type ActivityEditorFormProps = {
   /** Pause entre les côtés du Profil, copiée à l'activation du changement de côté. */
   profileSideRecoverySecondsDefault: number;
   /**
+   * PRE-5 story 2.5 (AC4, D-409, RM-218) : Compte à rebours et Fin dans la Feuille —
+   * `"absent"` pour un Exercice ouvert depuis une Séance (ni lignes ni chevron) ; défaut
+   * `"present"`. La Carte de l'Éditeur est inchangée.
+   */
+  exerciseSignals?: "present" | "absent";
+  /**
    * PRE-4 (story 1.1, AD-13) : ligne de base des paramètres, relue à
    * l'ouverture de l'Éditeur (`null` en création) — transmise au ✓ de la
    * Feuille pour la validation unique `validateForSave` (H25).
@@ -200,6 +206,7 @@ export function ActivityEditorForm({
   isCategoryPickerOpen = false,
   categoryAccessRef,
   profileSideRecoverySecondsDefault,
+  exerciseSignals = "present",
   baselineParameters = null,
   mediaService,
   mediaDraftId,
@@ -547,6 +554,7 @@ export function ActivityEditorForm({
           parent={parameters}
           baseline={baselineParameters}
           profileSideRecoverySecondsDefault={profileSideRecoverySecondsDefault}
+          exerciseSignals={exerciseSignals}
           onApply={applyParameters}
           onCancel={closeSheet}
         />

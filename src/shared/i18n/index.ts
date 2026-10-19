@@ -86,28 +86,31 @@ const executionParameters = {
     seriesRemoved: "Série supprimée",
     // Croix non active (un champ ou un sélecteur est ouvert) : l'appui le ferme sans retirer.
     removeRowClosesFieldHint: "Ferme d’abord le champ ouvert, sans supprimer la série",
+    // PRE-5 story 2.5 (FR-15, FR-16, FR-44) : ligne « Changement de côté », segmenté « Avec | Sans »,
+    // sans désignation anatomique ; le chevron d’Avec replie ou déplie Enchainement et Pause
+    // entre les côtés. Les libellés anatomiques (`sideModes`, `sideModeOptions`) sont retirés.
     sideMode: "Changement de côté",
-    sideModes: {
-      UNILATERAL: "Sans changement",
-      RIGHT_LEFT: "Droite puis gauche",
-      LEFT_RIGHT: "Gauche puis droite",
-    },
-    sideOrder: "Ordre des côtés",
+    sideModeChoices: { WITH: "Avec", WITHOUT: "Sans" },
+    showSideSettings: "Afficher l’enchainement et la pause entre les côtés",
+    hideSideSettings: "Masquer l’enchainement et la pause entre les côtés",
+    // PRE-5 story 2.5 (FR-17, D-431) : ligne « Enchainement » (remplace « Ordre des côtés ») ;
+    // texte des options = notations graphiques (flèche centrale ➜), nom accessible = `sideOrders`.
+    sideSequence: "Enchainement",
     sideOrders: { BY_SIDE: "Un côté après l’autre", BY_SERIES: "Les deux côtés à chaque série" },
-    // D-341 (12/10) : options sur deux lignes (figé 6407-10481) et sous-titres d’ordre (figé 6665-26185).
-    sideModeOptions: {
-      UNILATERAL: "Sans\nchangement",
-      RIGHT_LEFT: "Droite puis\ngauche",
-      LEFT_RIGHT: "Gauche puis\ndroite",
-    },
-    sideOrderSubtitles: { BY_SIDE: "(D1 → D2) → (G1 → G2)", BY_SERIES: "(D1 → G1) → (D2 → G2)" },
+    sideOrderSubtitles: { BY_SIDE: "(D1 → D2) ➜ (G1 → G2)", BY_SERIES: "(D1 → G1) ➜ (D2 → G2)" },
     sideRecovery: "Pause entre les côtés",
-    beep: "Bip de cadence",
-    beepNone: "Aucun",
-    total: "Durée totale",
-    totalEstimated: "Durée totale ≈",
-    totalEditAccessibilityLabel: "Durée totale, ajuster le nombre de séries",
-    // PRE-4 story 3.7 (AC7, FR-14-05, AD-11) : annonces VoiceOver de la ligne Durée totale
+    // PRE-5 story 2.5 (FR-30, AD-24) : ligne « Cadence » (remplace « Bip de cadence »), segmenté
+    // Autre / 5 s / 2 s / 1 s / Sans ; Autre révèle le ± existant.
+    cadence: "Cadence",
+    cadenceOptions: { OTHER: "Autre", "5": "5 s", "2": "2 s", "1": "1 s", NONE: "Sans" },
+    // PRE-5 story 2.5 (FR-31, AD-28) : ligne « Durée de l’exercice » (remplace « Durée totale »
+    // dans la Feuille ; celle de la Phrase reste), chevron qui replie Compte à rebours et Fin.
+    exerciseDuration: "Durée de l’exercice",
+    exerciseDurationEstimated: "Durée de l’exercice ≈",
+    exerciseDurationEditAccessibilityLabel: "Durée de l’exercice, ajuster le nombre de séries",
+    showExerciseSignals: "Afficher le compte à rebours et la fin d’exercice",
+    hideExerciseSignals: "Masquer le compte à rebours et la fin d’exercice",
+    // PRE-4 story 3.7 (AC7, FR-14-05, AD-11) : annonces VoiceOver de la ligne Durée de l’exercice
     // en lecture seule — nature du total (≈ « estimation », ≥ « total prévisionnel
     // partiel ») et caractère non modifiable ; le symbole n'est jamais lu, ni un tiret.
     totalEstimatedSpoken: "estimation",
