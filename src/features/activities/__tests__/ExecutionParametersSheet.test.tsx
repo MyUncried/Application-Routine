@@ -6229,6 +6229,47 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     expect(applied(onApply)).toMatchObject({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SERIES", sideRecoverySeconds: 12 });
   });
 
+  // Recette du 19/10 (RC-8) : segmentés `inline` centrés verticalement avec le libellé de leur
+  // ligne (le cadre de 32 était posé au bas de la ligne de 44 par `alignSelf: flex-end`).
+  it("RC-8 — chaque segmenté `inline` (Mode, Condition d'arrêt, Type de série, Charge, Changement de côté, Cadence) est centré verticalement avec le libellé dans sa ligne de 44 ; Cadence : ± révélé hors de la ligne, centrage inchangé", () => {
+    renderSheet(params({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE", sideRecoverySeconds: 10 }));
+    const flat = (node: ReturnType<typeof get>) => StyleSheet.flatten(node.props.style) ?? {};
+    const check = () => {
+      for (const [rowID, controlID] of [
+        ["execution-sheet-row-mode", MODE_CONTROL],
+        ["execution-sheet-row-stop-condition", STOP_CONTROL],
+        ["execution-sheet-row-series-type", SERIES_TYPE],
+        ["execution-sheet-row-load", "execution-sheet-load-control"],
+        ["execution-sheet-row-side", SIDE_CONTROL],
+        ["execution-sheet-row-beep", CADENCE_CONTROL],
+      ] as const) {
+        const line = get(`${rowID}-line`);
+        expect({ rowID, line: flat(line) }).toMatchObject({
+          rowID,
+          line: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 44 },
+        });
+        const control = within(line).getByTestId(controlID, hidden);
+        expect({ rowID, alignSelf: flat(control).alignSelf, height: flat(control).height }).toEqual({ rowID, alignSelf: "center", height: 32 });
+        // Entre la ligne et le contrôle, aucun conteneur ne le décale verticalement.
+        for (let node = control.parent; node !== null && node !== line; node = node.parent) {
+          if (typeof node.type !== "string") continue;
+          const style = flat(node);
+          expect(["auto", "center"]).toContain(style.alignSelf ?? "auto");
+          if (style.flexDirection === "row") expect(style.alignItems).toBe("center");
+        }
+        // Le libellé n'a pas d'alignement propre : centré par la ligne.
+        const label = within(line).getAllByText(/./u, hidden)[0]!;
+        expect(flat(label).alignSelf).toBeUndefined();
+      }
+    };
+    check();
+    // Cadence, ± révélé par Autre : rendu sous la ligne, hors de `-line` ; centrage inchangé.
+    fireEvent.press(get(`${CADENCE_CONTROL}-OTHER`));
+    expect(within(get("execution-sheet-row-beep-line")).queryByTestId("execution-sheet-beep-motion", hidden)).toBeNull();
+    expect(within(get("execution-sheet-row-beep")).getByTestId("execution-sheet-beep-motion", hidden)).toBeTruthy();
+    check();
+  });
+
   it("PRE5-2.5/AC1 — choix dans les segmentés des côtés avec une roue ouverte (T10) : la roue se ferme sans appliquer, le choix n'est pas appliqué", () =>
     withPlatform("ios", () => {
       renderSheet(params({ sideMode: "UNILATERAL" }));

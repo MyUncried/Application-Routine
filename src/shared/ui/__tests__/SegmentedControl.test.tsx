@@ -241,10 +241,10 @@ describe("SegmentedControl — variante « inline » (PRE-5 story 2.3)", () => {
     { value: "WITHOUT" as const, label: "Sans" },
   ];
 
-  it("cadre aligné à droite, sans enveloppe blanche, 32 de haut, marge 3, écart 2, rayon 8 ; options de même largeur", () => {
+  it("cadre centré verticalement dans sa ligne (recette du 19/10, RC-8 ; aligné à droite par la ligne), sans enveloppe blanche, 32 de haut, marge 3, écart 2, rayon 8 ; options de même largeur", () => {
     render(<SegmentedControl options={binary} value="WITH" onChange={jest.fn()} variant="inline" testID="seg" />);
     const frame = StyleSheet.flatten(screen.getByTestId("seg").props.style);
-    expect(frame).toMatchObject({ alignSelf: "flex-end", height: 32, padding: 3, gap: 2, borderRadius: 8, width: 132 });
+    expect(frame).toMatchObject({ alignSelf: "center", height: 32, padding: 3, gap: 2, borderRadius: 8, width: 132 });
     expect(frame.backgroundColor).toBeUndefined();
     expect(frame.borderWidth).toBeUndefined();
     for (const option of binary) {

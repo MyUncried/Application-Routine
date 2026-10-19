@@ -322,7 +322,8 @@ export function SegmentedControl<T extends string>({
 
   if (inline) {
     // PRE-5 story 2.3 (AD-24, FR-27, FR-28, FR-17, FR-20) : segmenté en ligne,
-    // aligné à droite, sans enveloppe blanche ; mêmes fonds fixes et même
+    // aligné à droite par sa ligne et centré verticalement (RC-8), sans
+    // enveloppe blanche ; mêmes fonds fixes et même
     // cadre violet animé que les autres variantes. Chaque option superpose sa
     // zone de sélection (pleine largeur) et son contenu centré (libellé ou
     // `selectedContent`, puis chevron) : le chevron et le contenu fourni
@@ -565,7 +566,10 @@ const styles = StyleSheet.create({
   inlineContainer: {
     flexDirection: "row",
     alignItems: "center",
-    alignSelf: "flex-end",
+    // Recette du 19/10 (RC-8) : `flex-end` plaçait le contrôle au bas de sa ligne (rangée
+    // horizontale de 44) ; centré verticalement avec le libellé, la ligne le pousse à
+    // droite (`space-between`).
+    alignSelf: "center",
     height: INLINE_HEIGHT,
     padding: INLINE_PADDING,
     gap: INLINE_GAP,

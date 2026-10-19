@@ -51,6 +51,7 @@ Appliquent RC-1 à RC-5 ; aucun constat iPhone n'est encore consigné pour elles
 
 - **RC-6 — Enchainement dans « Changement de côté ».** La ligne « Enchainement » n'est plus nécessaire. Seule la ligne « Changement de côté » reste ; elle porte la valeur de l'enchainement, comme dans la frame Figma `9462:18987` (notations dans l'option Avec). Remplace la ligne Enchainement de D-413 / story 2.5 AC2 ; les notations de D-431 sont inchangées.
 - **RC-7 — Compte à rebours et Fin d'un Exercice ouvert depuis une Séance.** Absents de la Feuille ; les valeurs sont conservées sans être utilisées dans l'exécution. Comportement livré en 2.5 confirmé.
+- **RC-8 — Segmentés centrés verticalement avec le libellé de leur ligne.** Constat de Hermann : les segmentés `inline` de « Mode », « Condition d'arrêt » et « Cadence » ne sont pas centrés verticalement avec leur libellé. Règle pour toutes les lignes à segmenté `inline` (Type de série, Charge, Changement de côté, Cadence, Phases à venir) : contrôle (32) centré sur le libellé dans la ligne (44), hauteurs inchangées ; pour la Cadence, centré sur la ligne du libellé, pas sur la ligne étendue par le ± révélé.
 
 ## Correction RC-6 (branche `bmad/pre5-recette1`)
 
@@ -61,3 +62,11 @@ Aucun constat iPhone n'est encore consigné pour elle.
 - À N = 1 : Avec reprend son libellé, sans menu ; Enchainement conservé (Q38).
 - Écart à Figma : le déroulant dessiné (notation choisie en violet, chevron vers le haut, autre notation dessous) est rendu par le menu natif iOS, avec son propre aspect ; le chevron reste vers le bas.
 - À vérifier sur iPhone : ouverture du menu au toucher de l'option Avec sélectionnée (déclencheur hébergé par `RNHostView` dans la `Modal` de la Feuille), choix appliqué, toucher extérieur sans effet, VoiceOver (« Enchainement », valeur neutre, items neutres), aspect d'Avec quand Sans est sélectionné (notation grise).
+
+## Correction RC-8 (branche `bmad/pre5-recette1`)
+
+Aucun constat iPhone n'est encore consigné pour elle.
+
+- Cause : la variante `inline` du `SegmentedControl` portait `alignSelf: "flex-end"` (alignement à droite voulu) ; dans la ligne horizontale de la Feuille, cela le posait au bas de la ligne de 44, sous le centre du libellé. Remplacé par `alignSelf: "center"` ; l'alignement à droite vient de la ligne (`space-between`). Hauteurs inchangées (ligne 44, contrôle 32). Composant partagé : la règle vaut pour toutes les lignes à segmenté `inline`, Phases comprises (2.8).
+- Cadence : le ± révélé par Autre est rendu sous la ligne, hors de la rangée du libellé ; le segmenté reste centré sur le libellé.
+- À vérifier sur iPhone : Mode, Condition d'arrêt, Type de série, Charge, Changement de côté, Cadence (± ouvert et fermé).
