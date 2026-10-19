@@ -236,6 +236,7 @@ Hermann a validé les recommandations de BMad, en corrigeant le point 9 : « Pou
 | 11 | Cellule de charge vidée à la sortie du champ | Vaut 0 : pas de charge pour cette série. |
 
 Q48 (écarts visuels hérités de PRE-4, point 1 du §9 du PRD) : chaque écart sera soumis à Hermann au moment de sa story, s'il touche un jeton, un composant ou la grille D-327.
+**Questions d'architecture QN-1 à QN-4 (décisions de Hermann du 19/10) :** QN-1, la limite de 1 000 caractères porte sur la chaîne encodée, séparateurs compris, sans migration ; QN-2, en séries variables, les cellules vides ne sont pas comptées dans la Condition d'arrêt dérivée (« — » sans ligne renseignée) ; QN-3, le libellé « Phase n » est stocké comme un libellé ordinaire ; QN-4, la copie de la Pause du Profil au passage à Avec et `BY_SIDE` à N = 1 sont conservés. QN-5 (charges variables égales) : liste des valeurs, D-414.
 
 ### Précisions de cohérence, sans story nouvelle
 
