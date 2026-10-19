@@ -463,7 +463,16 @@ Elle :
 - reste compatible avec la base locale existante ;
 - préserve les Séances, Exécutions, Instantanés et résultats antérieurs.
 
-#### Exécution directe
+##### Évaluations conditionnelles et résultats réels — D-427 à D-429
+Standard : aucune évaluation avant et Ressenti triétat obligatoire après. Enrichi uniquement pour une exécution lancée dans le contexte d'un Programme avec option active (tout lancement indépendant reste standard) : douleur initiale 0–10 obligatoire et sans localisation avant démarrage ; douleur finale 0–10 obligatoire, jamais présélectionnée, et effort perçu 1–10 obligatoire après, à la place du Ressenti. Si douleur finale > 0, au moins une localisation parmi les zones corporelles KODJO (plusieurs possibles, latéralité si applicable) ; zéro doit être choisi explicitement. Commencer ou Enregistrer est bloqué tant que des champs obligatoires manquent. Paramétrage de l'option : À CLARIFIER.
+
+Les douleurs initiale et finale sont indépendantes et distinguent la valeur explicite zéro de l'absence de valeur ; les localisations finales sont une collection de zones corporelles. Les résultats réels de répétitions sont distincts des objectifs prescrits. Structure physique et migration des valeurs historiques : À CLARIFIER.
+
+Formats imposés : modale Répétitions partielles (8928:15098), interruption ou série sous cible ; saisie proposée zéro, minimum zéro, résultat supérieur à cible autorisé ; validation enregistre et poursuit automatiquement le plan ; fermeture sans validation annule, n'enregistre rien, revient à l'étape sans progresser.
+
+Modale Résultat de série (8937:35362) : saisie proposée zéro, minimum zéro, résultat supérieur à cible autorisé ; validation enregistre le réel et poursuit automatiquement le plan ; fermeture sans validation annule, n'enregistre rien, revient à l'étape sans progresser. Conditions exactes d'ouverture non arbitrées : À CLARIFIER.
+
+## Exécution directe
 
 Une Exécution directe d’Exercice :
 
