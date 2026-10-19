@@ -274,7 +274,7 @@ describe("PRE4-3.6 — table de transitions d'AD-15 avec le Sélecteur de ligne 
     expect(run(touch(ROW(2)), touch(ROW(2))).open).toEqual(NONE);
   });
 
-  it("PRE4-3.6/AC5 — règle du pas de la Cible (`stepTarget`), utilisée par les ± permanents des cellules", () => {
+  it("PRE4-3.6/AC5 — règle du pas de la Cible (`stepTarget`) du domaine (PRE-5 story 2.6 : les cellules n’ont plus de ± permanents)", () => {
     expect(stepTarget("DURATION", failureTarget(), 1)).toBe("unavailable");
     expect(stepTarget("DURATION", unsetTarget(), -1)).toBe("unavailable");
     expect(stepTarget("DURATION", unsetTarget(), 1)).toEqual(numberTarget(1)); // D-430
@@ -304,5 +304,49 @@ describe("PRE5-2.4 — surfaces du Mode et du Régime retirées (AD-27)", () => 
     expect([mode, regime]).toHaveLength(2);
     expect(run(touch(SIDE), touch(ORDER)).open).toEqual({ kind: "none" });
     expect(run(touch(ORDER)).open).toEqual({ kind: "popover", popover: "order", key: 1 });
+  });
+});
+
+/**
+ * PRE-5 story 2.6 (AD-27, FR-29) — champ ± de la Pause d'une ligne, `stepper(rowPause(l))` :
+ * famille ±, ligne désignée par son identité (`rowIds`), « Ligne disparue » comprise.
+ */
+describe("PRE5-2.6 — champ ± de la Pause d'une ligne (AD-27)", () => {
+  const NONE = { kind: "none" } as const;
+  const ROW_PAUSE = (row: number): SheetSurface => ({ kind: "stepper", field: "rowPause", row });
+  const ROW_TARGET = (row: number): SheetSurface => ({ kind: "selector", selector: "rowTarget", row });
+
+  it("PRE5-2.6/AC3 — toucher la cellule Pause ouvre le champ de SA ligne ; second toucher : fermeture", () => {
+    expect(run(touch(ROW_PAUSE(1))).open).toEqual({ kind: "stepper", field: "rowPause", row: 1, key: 1 });
+    expect(run(touch(ROW_PAUSE(1)), touch(ROW_PAUSE(1))).open).toEqual(NONE);
+  });
+
+  it("PRE5-2.6/AC3 — `sameSurface` distingue les champs de Pause par leur ligne et des autres champs ±", () => {
+    const opened = run(touch(ROW_PAUSE(2))).open;
+    expect(sameSurface(opened, ROW_PAUSE(2))).toBe(true);
+    expect(sameSurface(opened, ROW_PAUSE(3))).toBe(false);
+    expect(sameSurface(opened, PAUSE)).toBe(false);
+    expect(sameSurface(run(touch(PAUSE)).open, ROW_PAUSE(2))).toBe(false);
+  });
+
+  it("PRE5-2.6/AC3 — famille ± : toucher une autre surface (Cible d'une ligne, autre Pause, champ hors tableau) la ferme et ouvre l'autre dans le même geste", () => {
+    expect(run(touch(ROW_PAUSE(1)), touch(ROW_TARGET(2))).open).toEqual({ kind: "selector", selector: "rowTarget", row: 2, key: 2 });
+    expect(run(touch(ROW_PAUSE(1)), touch(ROW_PAUSE(2))).open).toEqual({ kind: "stepper", field: "rowPause", row: 2, key: 2 });
+    expect(run(touch(ROW_PAUSE(1)), touch(COUNT)).open).toEqual({ kind: "stepper", field: "count", key: 2 });
+    // Sélecteur de ligne ouvert : T10 — fermeture sans ouvrir la Pause touchée.
+    expect(run(touch(ROW_TARGET(1)), touch(ROW_PAUSE(1))).open).toEqual(NONE);
+  });
+
+  it("PRE5-2.6/AC3 — appui extérieur (croix comprise) : rangé ; croix inactive tant qu'il est ouvert ; ✓ / ✕ non absorbés", () => {
+    const opened = run(touch(ROW_PAUSE(1)));
+    expect(sheetSurfaceReducer(opened, { type: "outside" }).open).toEqual(NONE);
+    expect(removalEnabled(opened)).toBe(false);
+    expect(sheetCommandsAbsorbed(opened)).toBe(false);
+  });
+
+  it("PRE5-2.6/AC3 — « Ligne disparue » : le champ de la Pause d'une ligne retirée se ferme ; un réordonnancement ne change rien", () => {
+    expect(run(touch(ROW_PAUSE(3)), { type: "rows", rowIds: [1, 2] })).toEqual({ open: NONE, closingKey: null, generation: 1 });
+    const opened = run(touch(ROW_PAUSE(3)));
+    expect(sheetSurfaceReducer(opened, { type: "rows", rowIds: [3, 1, 2] })).toBe(opened);
   });
 });

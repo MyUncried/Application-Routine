@@ -33,6 +33,12 @@
  * ligne du Brouillon (`rowIds`, AD-2), jamais son rang. « Ligne disparue »
  * (`rows`) : un Sélecteur de ligne dont la ligne n'existe plus se ferme. La croix
  * de retrait lit l'état sans le modifier (`removalEnabled`, T18).
+ *
+ * PRE-5 story 2.6 (AD-27, FR-29) : les cellules du tableau n'ont plus de ± permanents.
+ * La cellule Pause d'une ligne ouvre `stepper(rowPause(l))`, le champ ± de cette seule
+ * cellule ; il suit la famille ± (même geste pour ouvrir une autre surface, ses ± ne le
+ * ferment jamais, appui extérieur qui le range, ✓ / ✕ non absorbés). `l` est l'identité
+ * de ligne (`rowIds`) ; « Ligne disparue » le ferme aussi.
  */
 
 export type SheetPopover = "side" | "order";
@@ -45,7 +51,9 @@ export type SheetSurface =
   | { readonly kind: "selector"; readonly selector: SheetSelector }
   /** Story 3.6 : Sélecteur de la Cible de la ligne d'identité `row`. */
   | { readonly kind: "selector"; readonly selector: "rowTarget"; readonly row: number }
-  | { readonly kind: "stepper"; readonly field: SheetStepperField };
+  | { readonly kind: "stepper"; readonly field: SheetStepperField }
+  /** PRE-5 story 2.6 : champ ± de la Pause de la ligne d'identité `row`. */
+  | { readonly kind: "stepper"; readonly field: "rowPause"; readonly row: number };
 
 export type OpenSurface = { readonly kind: "none" } | (SheetSurface & { readonly key: number });
 
@@ -90,7 +98,9 @@ export function sameSurface(a: OpenSurface | SheetSurface, b: SheetSurface): boo
       // Story 3.6 : deux Sélecteurs de ligne ne sont la même surface que pour la même ligne.
       return a.selector !== "rowTarget" || (b.selector === "rowTarget" && a.row === b.row);
     case "stepper":
-      return b.kind === "stepper" && a.field === b.field;
+      if (b.kind !== "stepper" || a.field !== b.field) return false;
+      // PRE-5 story 2.6 : deux champs de Pause de ligne ne sont la même surface que pour la même ligne.
+      return a.field !== "rowPause" || (b.field === "rowPause" && a.row === b.row);
     default:
       return false;
   }
@@ -135,8 +145,12 @@ export function sheetSurfaceReducer(state: SheetSurfaceState, event: SheetSurfac
     case "prune":
       return open.kind !== "none" && event.removed.some((surface) => sameSurface(open, surface)) ? closeAll(state) : state;
     case "rows":
-      // « Ligne disparue » (AD-15) : règle défensive après toute transition du Brouillon.
-      return open.kind === "selector" && open.selector === "rowTarget" && !event.rowIds.includes(open.row) ? closeAll(state) : state;
+      // « Ligne disparue » (AD-15) : règle défensive après toute transition du Brouillon ;
+      // PRE-5 story 2.6 : vaut aussi pour le champ ± de la Pause d'une ligne.
+      return (open.kind === "selector" && open.selector === "rowTarget" && !event.rowIds.includes(open.row)) ||
+        (open.kind === "stepper" && open.field === "rowPause" && !event.rowIds.includes(open.row))
+        ? closeAll(state)
+        : state;
   }
 }
 

@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useReducer, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useReducer, useRef, useState, type ReactNode, type RefObject } from "react";
 import {
   AccessibilityInfo,
   Animated,
@@ -12,6 +12,8 @@ import {
   useWindowDimensions,
   type LayoutChangeEvent,
   type ScrollView,
+  type StyleProp,
+  type ViewStyle,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -21,7 +23,6 @@ import {
   numberTarget,
   selectorOpeningPosition,
   seriesRowsOf,
-  stepTarget,
   stopConditionOf,
   unsetTarget,
   type ExecutionMode,
@@ -83,6 +84,24 @@ import {
   type SheetStepperField,
   type SheetSurface,
 } from "@/features/activities/sheetSurface";
+import {
+  DraggableRow,
+  InsertionGuide,
+  RemoveRowButton,
+  TABLE_BLOCK_SIDE_INSET,
+  TABLE_BLOCK_VERTICAL_INSET,
+  TABLE_CELL_GAP,
+  TABLE_CELL_WIDTH,
+  TABLE_LEAD_GAP,
+  TABLE_LEAD_WIDTH,
+  TABLE_ROW_HEIGHT,
+  TABLE_ROW_INSET,
+  TableCell,
+  tableRowIdentity,
+  tableStyles,
+  UndoMessage,
+  type DraggableRowLabels,
+} from "@/features/activities/sheetTable";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
 import { WHEEL_TOTAL_DURATION_SECONDS_MAX } from "@/features/sessions/wheelPickerMath";
@@ -141,7 +160,8 @@ import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@
  * PRE-4 story 3.6, réduite par Q44 (Hermann, 2026-10-17 : ni Cellule active ni Pied
  * commun) — Tableau des séries variables (AD-8, AD-15, AD-16, FR-10-03, FR-12-05, Q13,
  * Q26, Q29, Q35, Q41) :
- * - les cellules gardent leurs `InlineStepper` permanents ; la règle du pas de la Cible
+ * - [remplacé par PRE-5 story 2.6 : cellules à valeur seule, sans ± permanents] les
+ *   cellules gardent leurs `InlineStepper` permanents ; la règle du pas de la Cible
  *   est celle du domaine (`stepTarget` : `FAILURE` → ± indisponibles, `UNSET` → + donne
  *   la valeur minimale, − indisponible ; hors bornes → valeur voisine dans le sens du geste) ;
  * - toucher la VALEUR d'une cellule de Cible (`30 s`, `à l’échec`, `—`) ouvre le
@@ -164,6 +184,13 @@ import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@
  *   ligne de cible est masquée ; les roues de la Cible commune n'offrent plus
  *   « À l'échec », celle d'une cellule variable la garde en tête (Q8) ;
  * - stepper « Nombre de séries » de PRE-4 inchangé (NR Δ38), seule sa ligne change.
+ *
+ * PRE-5 story 2.6 (AD-27, AD-28, FR-29 ; UX-DR3) — tableau des séries variables : bloc
+ * blanc, lignes de 36, cellules à valeur seule (plus de ± permanents : Q44 remplacé). La
+ * cellule Cible ouvre la roue de sa ligne (`selector(rowTarget)`, panneau sous la ligne sur
+ * iOS) ; la cellule Pause ouvre le ± de cette seule cellule (`stepper(rowPause)`), révélé
+ * sous la ligne. Poignée, croix, repère d'insertion et message d'annulation viennent des
+ * briques partagées (`sheetTable.tsx`), réutilisables par le tableau des phases (2.8).
  */
 export type ExecutionParametersSheetProps = {
   readonly parent: ExecutionParametersInput;
@@ -282,26 +309,10 @@ function ClosingSelector({
 }
 
 /**
- * Recette 2 (T-15) — repère d’insertion : trait bleu Kodjo de 2 entre deux lignes,
- * à l’endroit où la Série sera déposée. Hauteur nulle dans le flux : les lignes
- * ne bougent pas.
+ * PRE-5 story 2.6 (AD-27, FR-4) : briques du tableau extraites dans `sheetTable.tsx`,
+ * ré-exportées ici pour les tests existants.
  */
-function InsertionGuide({ before }: { before: number }) {
-  return (
-    <View
-      style={styles.insertionGuideSlot}
-      pointerEvents="none"
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
-      testID={`execution-sheet-table-insertion-guide-before-${before}`}
-    >
-      <View style={styles.insertionGuideLine} />
-    </View>
-  );
-}
-
-/** T-58 : marge égale entre la capsule Annuler et les bords droit, haut et bas du message. */
-const ADJUSTMENT_ACTION_INSET = 8;
+export { dragDestination, TABLE_ROW_HEIGHT, tableRowIdentity } from "@/features/activities/sheetTable";
 
 /** D-341 : hauteur MINIMALE du segmenté Ordre des côtés (figé 330×60) ; grandit avec le texte. */
 const SIDE_ORDER_MIN_HEIGHT = 60;
@@ -344,15 +355,6 @@ type Adjustment =
   | { readonly kind: "total"; readonly message: string; readonly previous: ExecutionSheetDraft }
   | { readonly kind: "removal"; readonly message: string };
 
-/**
- * Story 3.6 — identité de la ligne de rang `index` (AD-2). Les identités et les lignes du
- * Brouillon sont alignées ; si elles ne l'étaient pas (`rowIds` plus court), la ligne n'a
- * pas d'identité : `null`, jamais son rang (un rang ne se mélange pas à une identité).
- */
-export function tableRowIdentity(rowIds: readonly number[], index: number): number | null {
-  return Number.isInteger(index) && index >= 0 && index < rowIds.length ? rowIds[index]! : null;
-}
-
 const sameCellBox = (a: CellBox, b: CellBox) => a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
 /** Q41 : écart entre le bas de la ligne du champ et le haut du panneau (valeur d'intégration, non tirée de Figma). */
 const PANEL_GAP = spacing[4];
@@ -375,42 +377,29 @@ const PANEL_OUTSIDE_INSETS = { top: spacing[12], right: spacing[24], bottom: spa
 /** Durée de montée de la feuille (prototype figé : ouverture 0,25 s, ease-out). */
 const SHEET_ENTRY_DURATION_MS = 250;
 /**
- * Story 3.6, réduite par Q44 — croix de retrait (maître `8129:31604`, relevé sur
- * `8328:38632`) : disque de 28 (`#FCFCFE`, liseré blanc), croix bleu Kodjo, au bord droit
- * de la ligne. Figma ne fixe que le rendu (D-255). Pour loger la croix sans réduire les
- * steppers acceptés (128), le tableau n'a plus de retrait x52 (AC1) et l'écart entre
- * colonnes passe de 4 à 2 : 40 + 2 + 128 + 2 + 128 + 2 + 28 = 330 à 402 (choix
- * d'intégration, à juger sur iPhone).
- */
-const TABLE_REMOVE_DISC = 28;
-const TABLE_COLUMN_GAP = 2;
-/**
- * NFR-09, AC13 : cibles tactiles d'au moins 44 × 44 sans agrandir le dessin. Poignée
- * 12 × 18 : +13 en haut et en bas, 12 à gauche (dans la marge du groupe, `bleed`) et 20
- * à droite (sur le numéro, non tactile). Croix 28 × 28 : +8 de chaque côté.
- */
-const HANDLE_HIT_SLOP = { top: 13, bottom: 13, left: 12, right: 20 };
-const REMOVE_HIT_SLOP = 8;
-
-/**
- * Hauteur minimale des lignes de la Feuille et des lignes du tableau des séries
- * variables : 44 pt, pour que les ± et les pastilles aient une cible tactile
- * verticale de 44 pt (NFR-09). Décision Q42 de Hermann du 2026-10-17 (recette
- * iPhone) ; remplace les 42 pt du DSF et du code PRE-3. Aucun jeton modifié
- * (`minTouchTarget` vaut 48 et sert à d’autres surfaces).
+ * Hauteur minimale des lignes de la Feuille : 44 pt, pour que les ± et les pastilles
+ * aient une cible tactile verticale de 44 pt (NFR-09). Décision Q42 de Hermann du
+ * 2026-10-17 (recette iPhone) ; remplace les 42 pt du DSF et du code PRE-3. Aucun jeton
+ * modifié (`minTouchTarget` vaut 48 et sert à d’autres surfaces). PRE-5 story 2.6
+ * (AD-28) : les lignes des tableaux passent à 36 (`TABLE_ROW_HEIGHT`, `sheetTable.tsx`).
  */
 export const SHEET_ROW_MIN_HEIGHT = 44;
 
-/** Hauteur de ligne du tableau variable (Q42 : 44 ; DSF d’origine : 42 à 402). */
-export const TABLE_ROW_HEIGHT = SHEET_ROW_MIN_HEIGHT;
-/** Largeurs DSF des steppers à 402 : premier niveau 137, tableau 128. */
+/**
+ * Largeurs DSF des steppers à 402 : premier niveau 137, tableau 128 (PRE-5 story 2.6 :
+ * champ ± de la Pause d'une ligne, révélé sous sa cellule).
+ */
 const STEPPER_WIDTH = 137;
 const TABLE_STEPPER_WIDTH = 128;
 
-/** Destination d'un glisser vertical de `dy` points depuis la ligne `from`, bornée au tableau. */
-export function dragDestination(from: number, dy: number, rowHeight: number, count: number): number {
-  return Math.min(count - 1, Math.max(0, from + Math.round(dy / rowHeight)));
-}
+/** PRE-5 story 2.6 : libellés de la ligne déplaçable du tableau des séries (gabarits à `{n}`). */
+const SERIES_ROW_LABELS: DraggableRowLabels = { handle: t.moveHandle, row: t.row, moveUp: t.moveUp, moveDown: t.moveDown };
+const SERIES_ROW_TEST_ID = "execution-sheet-table-row";
+/**
+ * PRE-5 story 2.6 (AD-27) : le champ ± de la Pause d'une ligne est révélé sous la ligne,
+ * centré sous la cellule Pause par la même suite de colonnes (amorce, cellule Cible, écart).
+ */
+const PAUSE_CELL_X = TABLE_LEAD_WIDTH + TABLE_LEAD_GAP + TABLE_CELL_WIDTH + TABLE_CELL_GAP;
 
 function seriesLabel(count: number | null): string {
   if (count === null) return t.unset;
@@ -545,8 +534,10 @@ export function ExecutionParametersSheet({
   // tableau est ouverte.
   // Story 3.6 : le Sélecteur d'une ligne est une surface DU tableau, qui reste sélectionné.
   const rowSelectorOpen = openSurface.kind === "selector" && openSurface.selector === "rowTarget";
+  // PRE-5 story 2.6 (AD-27) : le champ ± de la Pause d'une ligne est aussi une surface DU tableau.
+  const rowPauseOpen = openSurface.kind === "stepper" && openSurface.field === "rowPause";
   const tableSelected =
-    isTableSelected && showVariableTable && !isTableFolded && (openSurface.kind === "none" || rowSelectorOpen);
+    isTableSelected && showVariableTable && !isTableFolded && (openSurface.kind === "none" || rowSelectorOpen || rowPauseOpen);
   const totalEditable = isRequestedTotalEditable(draft);
 
   const validation = commitSheetDraft(draft, baseline);
@@ -635,15 +626,24 @@ export function ExecutionParametersSheet({
     dispatchSurface({ type: "closeAll" });
   }
 
-  /** Q40 : action dans le tableau (cellule, ±, glisser, déplacement) — le tableau est sélectionné. */
+  /** Q40 : action dans le tableau (cellule, glisser, déplacement) — le tableau est sélectionné. */
   function updateInTable(next: ExecutionSheetDraft) {
     update(next);
     selectTable();
   }
 
   /**
-   * Story 3.6 (AD-15, FR-10-03, Q13, Q41) : toucher la valeur d'une cellule de Cible ouvre
-   * le Sélecteur de SA ligne (T2, T3 ; T21 si un champ ± est ouvert, fermé dans le même
+   * PRE-5 story 2.6 (AD-27, T22) : pas ± du champ de la Pause d'une ligne — le tableau reste
+   * sélectionné et le champ reste ouvert (ses ± ne le ferment jamais).
+   */
+  function updateKeepingTableSurface(next: ExecutionSheetDraft) {
+    update(next);
+    setIsTableSelected(true);
+  }
+
+  /**
+   * Story 3.6 (AD-15, FR-10-03, Q13, Q41) : toucher une cellule de Cible ouvre le
+   * Sélecteur de SA ligne (T2, T3 ; T21 si un champ ± est ouvert, fermé dans le même
    * geste ; T10 si un popover ou un Sélecteur est ouvert). L'ouverture ne modifie pas le
    * Brouillon : `Annuler` d'un retrait reste valable (Q29).
    */
@@ -653,21 +653,14 @@ export function ExecutionParametersSheet({
   }
 
   /**
-   * Story 3.6 (AD-16, FR-09-05, Q13, Q26, Q36, P38) : règle de pas des ± d'une cellule de
-   * Cible, celle du domaine (`stepTarget`) ; `stepSize` porte les paliers du maintien
-   * (`EXECUTION_ACCELERATED_HOLD_POLICY`). `FAILURE` : ± indisponibles ; `UNSET` : +
-   * donne la valeur minimale, − indisponible.
+   * PRE-5 story 2.6 (AD-27, FR-29) : toucher la cellule Pause d'une ligne ouvre (ou referme)
+   * le champ ± de cette seule cellule, `stepper(rowPause)` — famille ± : un autre champ ±
+   * ouvert se ferme dans le même geste ; un Sélecteur ouvert se ferme sans l'ouvrir (T10).
    */
-  const targetStepRule = (mode: ExecutionMode, target: SeriesTarget) => (
-    value: number | null,
-    direction: 1 | -1,
-    stepSize: number,
-  ): number | "unavailable" => {
-    // La valeur courante du stepper (relue à chaque pas d'un maintien) prime : `null` est
-    // la Cible rendue (`UNSET` ou `FAILURE`), un nombre une Cible numérique.
-    const next = stepTarget(mode, value === null ? target : numberTarget(value), direction, stepSize);
-    return next === "unavailable" ? next : next.value;
-  };
+  function toggleRowPause(row: number) {
+    setIsTableSelected(true);
+    dispatchSurface({ type: "touch", surface: { kind: "stepper", field: "rowPause", row } });
+  }
 
   /**
    * Story 3.6 (AD-15, T18, T23, FR-12-05, Q29) : croix de la ligne d'identité `row`.
@@ -894,10 +887,19 @@ export function ExecutionParametersSheet({
   // (`FRAME_INSET`) : choix d'intégration, à juger sur iPhone (R-3.6-01).
   // La ligne et sa cellule sont mesurées une à une (par identité) ; tant qu'une mesure manque,
   // le panneau n'est pas rendu (aucun saut en tête de tableau, voir `panelControl`).
+  // PRE-5 story 2.6 (AD-27, Q45) : la roue s'ouvre sous la LIGNE (bas de la ligne de 36 :
+  // cadre Séries → groupe « Type de série » → bloc blanc du tableau, décalé de sa marge
+  // haute → ligne ; hauteur fixe de la ligne, jamais la hauteur mesurée, qui comprend un
+  // champ ± ou une roue en ligne encore en train de se fermer). Bord droit : la cellule est mesurée dans sa ligne, elle-même en retrait
+  // de `TABLE_ROW_INSET` dans le bloc, à `TABLE_BLOCK_SIDE_INSET` du contour du cadre.
   const cellRowBox = rowSelectorOpen ? tableRowBoxes[openSurface.row] : undefined;
   const cellBox = rowSelectorOpen ? targetCellBoxes[openSurface.row] : undefined;
-  const cellBottomInFrame = variableGroupY + tableBox.y + (cellRowBox?.y ?? 0) + (cellBox?.y ?? 0) + (cellBox?.height ?? 0);
-  const cellRight = FRAME_INSET + Math.max(0, tableBox.width - ((cellBox?.x ?? 0) + (cellBox?.width ?? 0)));
+  const cellBottomInFrame =
+    variableGroupY + tableBox.y + TABLE_BLOCK_VERTICAL_INSET + (cellRowBox?.y ?? 0) + TABLE_ROW_HEIGHT;
+  const cellRight =
+    FRAME_BORDER_WIDTH +
+    TABLE_BLOCK_SIDE_INSET +
+    Math.max(0, tableBox.width - (TABLE_ROW_INSET + (cellBox?.x ?? 0) + (cellBox?.width ?? 0)));
   // Largeur par défaut de la roue montée : Durée (`durationWidth`, 330) ; la roue Répétitions
   // à ligne de tête prend la même largeur (story 3.5, `NumberWheelPicker` avec `failureOption`).
   const rowPanelDefaultWidth = dimensions.wheelPicker.durationWidth;
@@ -1298,29 +1300,16 @@ export function ExecutionParametersSheet({
   // Story 3.6 (AD-8) : même message, même durée, pour « Série supprimée — Annuler », rendu
   // sous le tableau (sous la ligne `Séries` si le retrait ramène N à 1) au lieu de sous la
   // Durée totale.
+  // PRE-5 story 2.6 (AD-27, FR-4) : message partagé avec le tableau des phases (`UndoMessage`).
   const adjustmentMessage =
     adjustment === null ? null : (
-      <SheetMotionView testID="execution-sheet-adjusted-motion">
-        <Pressable
-          onPress={() => setAdjustment(null)}
-          accessible={false}
-          style={styles.adjustment}
-          accessibilityLiveRegion="polite"
-          testID="execution-sheet-adjusted"
-        >
-          <Text style={styles.adjustmentText}>{adjustment.message}</Text>
-          <Pressable
-            onPress={handleAdjustmentUndo}
-            accessibilityRole="button"
-            accessibilityLabel={strings.screens.exercise.adjustedTotalDurationUndoAction}
-            hitSlop={8}
-            style={styles.adjustmentActionFrame}
-            testID="execution-sheet-adjusted-undo"
-          >
-            <Text style={styles.adjustmentAction}>{strings.screens.exercise.adjustedTotalDurationUndoAction}</Text>
-          </Pressable>
-        </Pressable>
-      </SheetMotionView>
+      <UndoMessage
+        message={adjustment.message}
+        undoLabel={strings.screens.exercise.adjustedTotalDurationUndoAction}
+        onDismiss={() => setAdjustment(null)}
+        onUndo={handleAdjustmentUndo}
+        testID="execution-sheet-adjusted"
+      />
     );
 
   // Q41 : un seul panneau ouvert à la fois ; les segmentés ont un fond et une ombre de
@@ -1533,12 +1522,13 @@ export function ExecutionParametersSheet({
                         mode={effective.mode}
                         formatTarget={targetLabel}
                         invalidRows={invalidRows}
-                        stepRuleFor={(target) => (effective.mode === null ? undefined : targetStepRule(effective.mode, target))}
                         selectorRow={rowSelectorOpen ? openSurface.row : null}
                         onOpenSelector={openRowSelector}
+                        pauseRow={rowPauseOpen ? openSurface.row : null}
+                        onTogglePause={toggleRowPause}
+                        onPauseDraft={updateKeepingTableSurface}
                         onRemove={handleRemove}
                         removalActive={removalEnabled(surface)}
-                        onDraft={updateInTable}
                         inlineSelector={
                           // Q41 : Android et web — Sélecteur de la cellule en ligne, sous sa ligne.
                           !anchoredPanels && rowSelectorOpen && rowTargetWheel !== null
@@ -1803,17 +1793,27 @@ export function ExecutionParametersSheet({
   );
 }
 
+/**
+ * PRE-5 story 2.6 (AD-27, AD-28, FR-29, UX-DR3) — tableau des séries variables : bloc
+ * blanc, lignes de 36, cellules à valeur seule, sans stepper permanent. La cellule Cible
+ * ouvre la roue de SA ligne (`selector(rowTarget)`, panneau sous la ligne sur iOS, en ligne
+ * sur Android et le web), « À l'échec » en tête (Q8) ; la cellule Pause ouvre le champ ±
+ * de cette seule cellule (`stepper(rowPause)`, `InlineStepper` existant), révélé sous la
+ * ligne. Glisser PRE-3, actions accessibles, croix et « Série supprimée — Annuler » viennent
+ * des briques partagées (`sheetTable.tsx`).
+ */
 function VariableTable({
   draft,
   mode,
   formatTarget,
   invalidRows,
-  stepRuleFor,
   selectorRow,
   onOpenSelector,
+  pauseRow,
+  onTogglePause,
+  onPauseDraft,
   onRemove,
   removalActive,
-  onDraft,
   inlineSelector,
   onTableLayout,
   onRowLayout,
@@ -1825,15 +1825,17 @@ function VariableTable({
   mode: ExecutionMode | null;
   formatTarget: (value: number | null) => string;
   invalidRows: ReadonlyMap<number, string>;
-  /** Story 3.6 (AD-16) : règle de pas des ± d'une cellule de Cible (`stepTarget` du domaine). */
-  stepRuleFor: (target: SeriesTarget) => InlineStepperProps["stepRule"];
   /** Story 3.6 : identité de la ligne dont le Sélecteur est ouvert, sinon `null`. */
   selectorRow: number | null;
   onOpenSelector: (row: number) => void;
+  /** PRE-5 story 2.6 : identité de la ligne dont le champ ± de la Pause est ouvert, sinon `null`. */
+  pauseRow: number | null;
+  onTogglePause: (row: number) => void;
+  /** Pas ± de la Pause d'une ligne : le champ reste ouvert (T22). */
+  onPauseDraft: (next: ExecutionSheetDraft) => void;
   onRemove: (row: number) => void;
   /** Story 3.6 (T18, T23) : la croix retire ; sinon son appui range d'abord l'outil ouvert. */
   removalActive: boolean;
-  onDraft: (next: ExecutionSheetDraft) => void;
   /** Q41 : Android et web — Sélecteur de la cellule rendu en ligne, sous sa ligne. */
   inlineSelector: { readonly row: number; readonly wheel: ReactNode } | null;
   onTableLayout: (box: TableBox) => void;
@@ -1850,17 +1852,20 @@ function VariableTable({
     setDrag(next);
     onDraggingChange(next !== null);
   }
-  const hasTarget = mode === "DURATION" || mode === "REPETITIONS";
+  const insertionGuide = (before: number) => <InsertionGuide testID={`execution-sheet-table-insertion-guide-before-${before}`} />;
   return (
     // Q39 : la hauteur du tableau suit les lignes en glissant. Q41 : le tableau et
     // chaque ligne ajoutée ou retirée (N change) sont révélés par le bas, sans fondu.
     // Les lignes ne portent PAS de transition de place : le déplacement par glisser
     // reste celui de `DraggableRow`, sans seconde animation après la dépose ; pendant
     // un glisser, la découpe est levée pour que la ligne portée suive le doigt.
+    // PRE-5 story 2.6 (UX-DR3) : le cadre de découpe déborde de la marge du groupe jusqu'à
+    // `TABLE_BLOCK_SIDE_INSET` du contour (`bleed`) ; le bloc blanc le remplit.
     <SheetMotionView
       enter={false}
       clip={drag === null}
-      style={styles.table}
+      bleed={TABLE_BLOCK_BLEED}
+      style={[tableStyles.block, styles.tableBlock]}
       onLayout={(event) => {
         const { y, width } = event.nativeEvent.layout;
         onTableLayout({ y, width });
@@ -1869,234 +1874,219 @@ function VariableTable({
     >
       {/* E-20 : à l'apparition du tableau, ses lignes ne se révèlent pas séparément. */}
       <SheetMotionGroupMount>
-      <View style={styles.tableHeader}>
-        <View style={styles.rowNumberColumn} />
-        {hasTarget ? <Text style={styles.columnHeader}>{t.columns[mode]}</Text> : <View style={styles.flex} />}
-        <Text style={styles.columnHeader}>{t.columns.pause}</Text>
+      <View style={tableStyles.header} testID="execution-sheet-table-header">
+        <View style={tableStyles.headerLead} />
+        {mode !== null ? (
+          <Text style={tableStyles.columnHeader}>{t.columns[mode]}</Text>
+        ) : (
+          <View style={tableStyles.emptyCell} />
+        )}
+        <View style={tableStyles.cellGap} />
+        <Text style={tableStyles.columnHeader}>{t.columns.pause}</Text>
+        <View style={tableStyles.spacer} />
         {/* Story 3.6 : place de la colonne des croix de retrait. */}
-        <View style={styles.removeColumn} />
+        <View style={tableStyles.removeColumn} />
       </View>
       {rows.map((row, index) => {
         // Identité de la ligne (AD-2), jamais son rang : sans identité (Brouillon incohérent),
-        // la ligne reste affichée et réglable, mais sans Sélecteur ni croix, qui la désignent.
+        // la ligne reste affichée, mais sans Sélecteur, champ ni croix, qui la désignent.
         const rowId = tableRowIdentity(draft.rowIds, index);
-        const number = index + 1;
-        // Story 3.6 (FR-06-05, AC1) : « à l’échec » pour une Cible à l'échec, sinon la valeur ou « — ».
-        const targetText = (value: number | null) => (row.target.kind === "FAILURE" ? t.failureTarget : formatTarget(value));
         return (
           <Fragment key={rowId === null ? `rank-${index}` : `row-${rowId}`}>
-            {guideBefore === index ? <InsertionGuide before={number} /> : null}
-            <SheetMotionView
-              transition={false}
+            {guideBefore === index ? insertionGuide(index + 1) : null}
+            <SeriesTableRow
+              row={row}
+              index={index}
+              rowId={rowId}
+              count={rows.length}
+              draft={draft}
+              mode={mode}
+              formatTarget={formatTarget}
+              invalidHint={invalidRows.get(index)}
+              selectorOpen={rowId !== null && selectorRow === rowId}
+              onOpenSelector={onOpenSelector}
+              pauseOpen={rowId !== null && pauseRow === rowId}
+              onTogglePause={onTogglePause}
+              onPauseDraft={onPauseDraft}
+              onRemove={onRemove}
+              removalActive={removalActive}
+              inlineWheel={inlineSelector !== null && rowId !== null && inlineSelector.row === rowId ? inlineSelector.wheel : null}
+              onRowLayout={onRowLayout}
+              onTargetCellLayout={onTargetCellLayout}
+              onMove={onMove}
+              onDrag={handleDrag}
               clip={drag === null}
-              // AC13 : la marge du groupe porte la zone tactile de la poignée et de la croix.
-              bleed={GROUP_PADDING}
-              onLayout={(event) => {
-                const { y, height } = event.nativeEvent.layout;
-                if (rowId !== null) onRowLayout(rowId, { y, height });
-              }}
-              testID={`execution-sheet-table-row-${number}-motion`}
-            >
-              <DraggableRow index={index} count={rows.length} onMove={(to) => onMove(index, to)} onDrag={handleDrag}>
-                {hasTarget ? (
-                  // Story 3.6 (Q44) : ± permanents conservés ; la valeur ouvre le Sélecteur de la
-                  // ligne (FR-10-03) ; règle du pas du domaine (`stepTarget`, Q13, Q26).
-                  <View
-                    onLayout={(event) => {
-                      if (rowId !== null) onTargetCellLayout(rowId, event.nativeEvent.layout);
-                    }}
-                    testID={`execution-sheet-table-row-${number}-target-cell`}
-                  >
-                    <InlineStepper
-                      value={targetNumber(row.target)}
-                      min={mode === "DURATION" ? EXECUTION_BOUNDS.durationTarget.min : EXECUTION_BOUNDS.repetitionTarget.min}
-                      max={mode === "DURATION" ? EXECUTION_BOUNDS.durationTarget.max : EXECUTION_BOUNDS.repetitionTarget.max}
-                      policy={EXECUTION_ACCELERATED_HOLD_POLICY}
-                      formatValue={targetText}
-                      // Story 3.8 (AC2) : une Cible « — » est annoncée « aucune valeur », jamais « tiret ».
-                      spokenValue={(value) => spokenValue(targetText(value))}
-                      announceLimits
-                      onChange={(value) => onDraft(setRowTarget(draft, index, numberTarget(value)))}
-                      accessibilityLabel={t.rowTarget.replace("{n}", String(number)).replace("{field}", t.columns[mode])}
-                      width={TABLE_STEPPER_WIDTH}
-                      invalid={invalidRows.has(index)}
-                      invalidHint={invalidRows.get(index)}
-                      stepRule={stepRuleFor(row.target)}
-                      onValuePress={rowId === null ? undefined : () => onOpenSelector(rowId)}
-                      testID={`execution-sheet-table-row-${number}-target`}
-                    />
-                  </View>
-                ) : (
-                  <View style={styles.flex} />
-                )}
-                <InlineStepper
-                  value={row.pauseSeconds}
-                  min={EXECUTION_BOUNDS.pauseSeconds.min}
-                  max={EXECUTION_BOUNDS.pauseSeconds.max}
-                  policy={EXECUTION_ACCELERATED_HOLD_POLICY}
-                  formatValue={pauseLabel}
-                  // Story 3.8 (AC2) : « — » (`pauseLabel(null)`) jamais annoncé ; limites annoncées.
-                  spokenValue={(value) => spokenValue(pauseLabel(value))}
-                  announceLimits
-                  onChange={(value) => onDraft(setRowPause(draft, index, value))}
-                  accessibilityLabel={t.rowPause.replace("{n}", String(number))}
-                  width={TABLE_STEPPER_WIDTH}
-                  testID={`execution-sheet-table-row-${number}-pause`}
-                />
-                <RemoveRowButton
-                  number={number}
-                  disabled={rows.length <= 1 || rowId === null}
-                  active={removalActive}
-                  onPress={() => {
-                    if (rowId !== null) onRemove(rowId);
-                  }}
-                  testID={`execution-sheet-table-row-${number}-remove`}
-                />
-              </DraggableRow>
-              {inlineSelector !== null && rowId !== null && inlineSelector.row === rowId ? (
-                <SheetMotionView style={styles.inlineControl} testID="execution-sheet-cell-wheel">
-                  {inlineSelector.wheel}
-                </SheetMotionView>
-              ) : null}
-            </SheetMotionView>
+            />
           </Fragment>
         );
       })}
-      {guideBefore === rows.length ? <InsertionGuide before={rows.length + 1} /> : null}
+      {guideBefore === rows.length ? insertionGuide(rows.length + 1) : null}
       </SheetMotionGroupMount>
     </SheetMotionView>
   );
 }
 
 /**
- * Story 3.6 (FR-12-05, AC9, AC13 ; maître `8129:31604`) — croix de retrait d'une ligne :
- * disque 28 (`#FCFCFE`, liseré blanc), croix bleu Kodjo, portée à 44 par `hitSlop`.
- * Indisponible à N = 1. Son effet (retrait, ou rangement de l'outil ouvert) est décidé
- * par la Feuille (T18, T23) ; non active (`active` faux), elle annonce qu'un appui ferme
- * d'abord le champ ouvert, au lieu d'un retrait.
+ * PRE-5 story 2.6 — ligne du tableau des séries : poignée et numéro (`DraggableRow`),
+ * cellule Cible, cellule Pause, croix ; sous la ligne, la roue en ligne (Android, web) ou
+ * le champ ± de la Pause. Le focus VoiceOver suit le champ ± comme pour les champs hors
+ * tableau (`useOpenFieldFocus`) : à l'ouverture il passe au champ, à sa fermeture par
+ * l'action accessible il revient à la cellule.
  */
-function RemoveRowButton({
-  number,
-  disabled,
-  active,
-  onPress,
-  testID,
-}: {
-  number: number;
-  disabled: boolean;
-  active: boolean;
-  onPress: () => void;
-  testID: string;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      accessibilityRole="button"
-      accessibilityLabel={t.removeRow.replace("{n}", String(number))}
-      accessibilityHint={active || disabled ? undefined : t.removeRowClosesFieldHint}
-      accessibilityState={{ disabled }}
-      hitSlop={REMOVE_HIT_SLOP}
-      style={[styles.removeDisc, disabled ? styles.unselected : null]}
-      testID={testID}
-    >
-      <KodjoIcon name="wheel-action-cancel" tintColor={colors.primary} />
-    </Pressable>
-  );
-}
-/**
- * Ligne du tableau : poignée de glisser (geste vertical, destination bornée)
- * + numéro aligné à droite. La poignée expose aussi les actions accessibles
- * Monter / Descendre, qui produisent exactement le même déplacement métier.
- */
-function DraggableRow({
+function SeriesTableRow({
+  row,
   index,
+  rowId,
   count,
+  draft,
+  mode,
+  formatTarget,
+  invalidHint,
+  selectorOpen,
+  onOpenSelector,
+  pauseOpen,
+  onTogglePause,
+  onPauseDraft,
+  onRemove,
+  removalActive,
+  inlineWheel,
+  onRowLayout,
+  onTargetCellLayout,
   onMove,
   onDrag,
-  children,
+  clip,
 }: {
+  row: ExecutionSheetDraft["rows"][number];
   index: number;
+  rowId: number | null;
   count: number;
-  onMove: (to: number) => void;
+  draft: ExecutionSheetDraft;
+  mode: ExecutionMode | null;
+  formatTarget: (value: number | null) => string;
+  /** Présent : Cible de la ligne signalée (valeur à renseigner ou invalide). */
+  invalidHint: string | undefined;
+  selectorOpen: boolean;
+  onOpenSelector: (row: number) => void;
+  pauseOpen: boolean;
+  onTogglePause: (row: number) => void;
+  onPauseDraft: (next: ExecutionSheetDraft) => void;
+  onRemove: (row: number) => void;
+  removalActive: boolean;
+  inlineWheel: ReactNode;
+  onRowLayout: (row: number, box: Box) => void;
+  onTargetCellLayout: (row: number, box: CellBox) => void;
+  onMove: (from: number, to: number) => void;
   onDrag: (state: { readonly from: number; readonly to: number } | null) => void;
-  children: ReactNode;
+  clip: boolean;
 }) {
   const number = index + 1;
-  // Même mécanique que la Composition : responder natif + état de translation, sans bibliothèque.
-  // Le renderer recycle l'événement du responder (`nativeEvent` remis à null
-  // après le gestionnaire) : la position est lue de façon synchrone, jamais
-  // dans une mise à jour d'état différée (recette 1, F-01).
-  const [dragDy, setDragDy] = useState<number | null>(null);
-  const startYRef = useRef<number | null>(null);
-  const actions = [
-    ...(index > 0 ? [{ name: "moveUp", label: t.moveUp.replace("{n}", String(number)) }] : []),
-    ...(index < count - 1 ? [{ name: "moveDown", label: t.moveDown.replace("{n}", String(number)) }] : []),
-  ];
+  const testID = `${SERIES_ROW_TEST_ID}-${number}`;
+  const togglePause = () => {
+    if (rowId !== null) onTogglePause(rowId);
+  };
+  const pauseFocus = useOpenFieldFocus(pauseOpen, togglePause);
+  // Story 3.6 (FR-06-05) : « à l’échec » pour une Cible à l'échec, sinon la valeur ou « — ».
+  const targetText = row.target.kind === "FAILURE" ? t.failureTarget : formatTarget(targetNumber(row.target));
+  const pauseText = pauseLabel(row.pauseSeconds);
   return (
-    <View
-      style={[styles.tableRow, dragDy !== null ? { transform: [{ translateY: dragDy }] } : null]}
-      testID={`execution-sheet-table-row-${number}`}
+    <SheetMotionView
+      transition={false}
+      clip={clip}
+      // La marge des lignes porte la zone tactile de la poignée (AD-28).
+      bleed={TABLE_ROW_INSET}
+      onLayout={(event) => {
+        const { y, height } = event.nativeEvent.layout;
+        if (rowId !== null) onRowLayout(rowId, { y, height });
+      }}
+      testID={`${testID}-motion`}
     >
-      <View style={styles.rowNumberColumn}>
-        <View
-          onStartShouldSetResponder={() => true}
-          onMoveShouldSetResponder={() => true}
-          onResponderTerminationRequest={() => false}
-          onResponderGrant={(event) => {
-            startYRef.current = event.nativeEvent.pageY;
-            setDragDy(0);
-            onDrag({ from: index, to: index });
+      <DraggableRow
+        index={index}
+        count={count}
+        onMove={(to) => onMove(index, to)}
+        onDrag={onDrag}
+        labels={SERIES_ROW_LABELS}
+        testIDPrefix={SERIES_ROW_TEST_ID}
+      >
+        {mode !== null ? (
+          // AD-27 : la cellule ouvre la roue de la ligne (FR-22), sans ± permanent.
+          <View
+            style={styles.tableCellSlot}
+            onLayout={(event) => {
+              if (rowId !== null) onTargetCellLayout(rowId, event.nativeEvent.layout);
+            }}
+            testID={`${testID}-target-cell`}
+          >
+            <TableCell
+              value={targetText}
+              // Story 3.8 (AC2) : une Cible « — » est annoncée « aucune valeur », jamais « tiret ».
+              accessibilityLabel={t.rowTarget.replace("{n}", String(number)).replace("{field}", t.columns[mode])}
+              spokenValue={spokenValue(targetText)}
+              accessibilityHint={invalidHint}
+              active={selectorOpen}
+              invalid={invalidHint !== undefined}
+              onPress={rowId === null ? undefined : () => onOpenSelector(rowId)}
+              testID={`${testID}-target`}
+            />
+          </View>
+        ) : (
+          <View style={tableStyles.emptyCell} />
+        )}
+        <View style={tableStyles.cellGap} />
+        {/* AD-27 : la cellule Pause ouvre le champ ± de cette seule cellule. */}
+        <TableCell
+          value={pauseText}
+          accessibilityLabel={t.rowPause.replace("{n}", String(number))}
+          spokenValue={spokenValue(pauseText)}
+          active={pauseOpen}
+          onPress={rowId === null ? undefined : togglePause}
+          toggleRef={pauseFocus.toggleRef}
+          testID={`${testID}-pause-toggle`}
+          // Fermée, la valeur porte `…-pause-value` ; ouverte, ce nom revient au champ ±.
+          valueTestID={pauseOpen ? `${testID}-pause-toggle-value` : `${testID}-pause-value`}
+        />
+        <View style={tableStyles.spacer} />
+        <RemoveRowButton
+          accessibilityLabel={t.removeRow.replace("{n}", String(number))}
+          closesFieldHint={t.removeRowClosesFieldHint}
+          disabled={count <= 1 || rowId === null}
+          active={removalActive}
+          onPress={() => {
+            if (rowId !== null) onRemove(rowId);
           }}
-          onResponderMove={(event) => {
-            const startY = startYRef.current;
-            if (startY === null) return;
-            const dy = event.nativeEvent.pageY - startY;
-            setDragDy(dy);
-            onDrag({ from: index, to: dragDestination(index, dy, TABLE_ROW_HEIGHT, count) });
-          }}
-          onResponderRelease={(event) => {
-            const startY = startYRef.current;
-            const dy = startY === null ? 0 : event.nativeEvent.pageY - startY;
-            startYRef.current = null;
-            setDragDy(null);
-            onDrag(null);
-            const to = dragDestination(index, dy, TABLE_ROW_HEIGHT, count);
-            if (to !== index) onMove(to);
-          }}
-          onResponderTerminate={() => {
-            startYRef.current = null;
-            setDragDy(null);
-            onDrag(null);
-          }}
-          accessible
-          accessibilityLabel={t.moveHandle.replace("{n}", String(number))}
-          accessibilityActions={actions}
-          onAccessibilityAction={(event) => {
-            if (event.nativeEvent.actionName === "moveUp") onMove(index - 1);
-            if (event.nativeEvent.actionName === "moveDown") onMove(index + 1);
-          }}
-          // AC13 : poignée dessinée 12 × 18, cible tactile 44 × 44.
-          hitSlop={HANDLE_HIT_SLOP}
-          style={styles.dragHandle}
-          testID={`execution-sheet-table-row-${number}-handle`}
-        >
-          {[0, 1, 2].map((line) => (
-            <View key={line} style={styles.dragDotsLine}>
-              <View style={styles.dragDot} />
-              <View style={styles.dragDot} />
-            </View>
-          ))}
-        </View>
-        <Text style={styles.rowNumber} accessibilityLabel={t.row.replace("{n}", String(number))}>
-          {number}
-        </Text>
-      </View>
-      {children}
-    </View>
+          testID={`${testID}-remove`}
+        />
+      </DraggableRow>
+      {inlineWheel !== null ? (
+        <SheetMotionView style={styles.inlineControl} testID="execution-sheet-cell-wheel">
+          {inlineWheel}
+        </SheetMotionView>
+      ) : null}
+      {pauseOpen ? (
+        // AD-27 : champ ± révélé sous la ligne, centré sous la cellule Pause (même suite de
+        // colonnes) ; pas d'`AnchoredPanel`, dont la zone extérieure contredirait la famille ±.
+        <SheetMotionView style={styles.cellStepperLine} testID={`${testID}-pause-motion`}>
+          <View style={styles.cellStepperColumn}>
+            <OpenStepperField
+              fieldRef={pauseFocus.fieldRef}
+              onClose={pauseFocus.closeFromAccessibility}
+              fieldTestID={`${testID}-pause-field`}
+              value={row.pauseSeconds}
+              min={EXECUTION_BOUNDS.pauseSeconds.min}
+              max={EXECUTION_BOUNDS.pauseSeconds.max}
+              policy={EXECUTION_ACCELERATED_HOLD_POLICY}
+              formatValue={pauseLabel}
+              onChange={(value) => onPauseDraft(setRowPause(draft, index, value))}
+              accessibilityLabel={t.rowPause.replace("{n}", String(number))}
+              width={TABLE_STEPPER_WIDTH}
+              testID={`${testID}-pause`}
+            />
+          </View>
+        </SheetMotionView>
+      ) : null}
+    </SheetMotionView>
   );
 }
-
 
 /**
  * Ligne de la Feuille. Q39, Q41 : elle est révélée par le bas sans fondu et glisse
@@ -2199,6 +2189,71 @@ function ValuePill({
 }
 
 /**
+ * Focus VoiceOver d'un champ ± révélé (H13). À l'ouverture, le focus passe au champ
+ * ouvert ; à une fermeture demandée par l'action accessible du champ, il revient au
+ * bouton qui l'ouvre. PRE-5 story 2.6 : extrait de `RevealStepper`, sans changement, pour
+ * servir aussi au champ ± de la Pause d'une ligne du tableau.
+ */
+function useOpenFieldFocus(isOpen: boolean, onToggle: () => void) {
+  const fieldRef = useRef<View>(null);
+  const toggleRef = useRef<View>(null);
+  // Fermeture demandée par l'action accessible du champ : le focus revient à la valeur (H13).
+  const closedByAccessibilityRef = useRef(false);
+  useEffect(() => {
+    // VoiceOver : le focus passe au champ ouvert (le bouton touché peut être démonté).
+    const target = isOpen ? fieldRef.current : closedByAccessibilityRef.current ? toggleRef.current : null;
+    closedByAccessibilityRef.current = false;
+    // `sendAccessibilityEvent(…, "focus")` : équivalent, sur une vue hôte, de
+    // `setAccessibilityFocus` (iOS et Android).
+    if (target) AccessibilityInfo.sendAccessibilityEvent(target, "focus");
+  }, [isOpen]);
+  const closeFromAccessibility = () => {
+    closedByAccessibilityRef.current = true;
+    onToggle();
+  };
+  return { fieldRef, toggleRef, closeFromAccessibility };
+}
+
+/**
+ * Champ ± ouvert (AD-15, AD-16) : `InlineStepper`, rendu et mécanisme inchangés. Le
+ * conteneur retient tout toucher qui n'atteint pas un ± actif (valeur, ± à la borne) : ce
+ * toucher ne remonte pas à l'appui extérieur de la Feuille, et les ± d'un champ ouvert ne
+ * le ferment jamais (T22). Il se range sans toucher l'extérieur par le geste
+ * d'échappement, Magic Tap ou l'action nommée « Fermer » (lexique). PRE-5 story 2.6 :
+ * extrait de `RevealStepper`, partagé avec la Pause d'une ligne du tableau.
+ */
+function OpenStepperField({
+  fieldRef,
+  onClose,
+  fieldTestID,
+  style,
+  ...stepper
+}: InlineStepperProps & {
+  fieldRef: RefObject<View | null>;
+  onClose: () => void;
+  fieldTestID: string;
+  style?: StyleProp<ViewStyle>;
+}) {
+  return (
+    <View
+      ref={fieldRef}
+      onStartShouldSetResponder={() => true}
+      accessibilityActions={[{ name: "escape" }, { name: "magicTap" }, { name: "close", label: t.closeField }]}
+      onAccessibilityAction={(event) => {
+        if (["escape", "magicTap", "close"].includes(event.nativeEvent.actionName)) onClose();
+      }}
+      onAccessibilityEscape={onClose}
+      onMagicTap={onClose}
+      style={style}
+      testID={fieldTestID}
+    >
+      {/* Story 3.8 (AC2) : limites annoncées ; un « — » éventuel annoncé « aucune valeur ». */}
+      <InlineStepper {...stepper} announceLimits spokenValue={(value) => spokenValue(stepper.formatValue(value))} />
+    </View>
+  );
+}
+
+/**
  * Story 3.3 (AC8, FR-03-05, AD-16) — valeur numérique hors tableau réglée par ±.
  *
  * Fermé : seule la valeur est visible, dans la pastille de valeur modifiable
@@ -2217,22 +2272,7 @@ function RevealStepper({
   fieldLabel,
   ...stepper
 }: InlineStepperProps & { isOpen: boolean; onToggle: () => void; fieldLabel: string }) {
-  const fieldRef = useRef<View>(null);
-  const toggleRef = useRef<View>(null);
-  // Fermeture demandée par l'action accessible du champ : le focus revient à la valeur (H13).
-  const closedByAccessibilityRef = useRef(false);
-  useEffect(() => {
-    // VoiceOver : le bouton touché est démonté à l'ouverture ; le focus passe au champ ouvert.
-    const target = isOpen ? fieldRef.current : closedByAccessibilityRef.current ? toggleRef.current : null;
-    closedByAccessibilityRef.current = false;
-    // `sendAccessibilityEvent(…, "focus")` : équivalent, sur une vue hôte, de
-    // `setAccessibilityFocus` (iOS et Android).
-    if (target) AccessibilityInfo.sendAccessibilityEvent(target, "focus");
-  }, [isOpen]);
-  const closeFromAccessibility = () => {
-    closedByAccessibilityRef.current = true;
-    onToggle();
-  };
+  const { fieldRef, toggleRef, closeFromAccessibility } = useOpenFieldFocus(isOpen, onToggle);
   // Même largeur et même centrage fermé et ouvert : la valeur garde exactement sa position
   // horizontale (Q41, aucun mouvement du texte) ; la zone de toucher fermée couvre toute
   // cette largeur sur au moins 44 de haut (NFR-09, Q42), la pastille seule étant plus petite.
@@ -2258,23 +2298,13 @@ function RevealStepper({
     );
   }
   return (
-    <View
-      ref={fieldRef}
-      onStartShouldSetResponder={() => true}
-      // Ranger le champ sans toucher l'extérieur : geste d'échappement, Magic Tap ou action
-      // nommée « Fermer » (lexique).
-      accessibilityActions={[{ name: "escape" }, { name: "magicTap" }, { name: "close", label: t.closeField }]}
-      onAccessibilityAction={(event) => {
-        if (["escape", "magicTap", "close"].includes(event.nativeEvent.actionName)) closeFromAccessibility();
-      }}
-      onAccessibilityEscape={closeFromAccessibility}
-      onMagicTap={closeFromAccessibility}
+    <OpenStepperField
+      {...stepper}
+      fieldRef={fieldRef}
+      onClose={closeFromAccessibility}
+      fieldTestID={`${stepper.testID}-field`}
       style={[styles.stepperFrame, frame]}
-      testID={`${stepper.testID}-field`}
-    >
-      {/* Story 3.8 (AC2) : limites annoncées ; un « — » éventuel annoncé « aucune valeur ». */}
-      <InlineStepper {...stepper} announceLimits spokenValue={(value) => spokenValue(stepper.formatValue(value))} />
-    </View>
+    />
   );
 }
 
@@ -2310,6 +2340,11 @@ const FRAME_GAP = 8;
 const ROW_LABEL_FONT_SIZE = 12;
 /** Bord des lignes depuis le bord extérieur d'un cadre (contour + marge) : alignement des panneaux. */
 const FRAME_INSET = FRAME_BORDER_WIDTH + GROUP_PADDING;
+/**
+ * PRE-5 story 2.6 (UX-DR3) : débord du tableau dans la marge du groupe, pour que le bloc
+ * blanc soit à `TABLE_BLOCK_SIDE_INSET` du contour du cadre.
+ */
+const TABLE_BLOCK_BLEED = GROUP_PADDING - TABLE_BLOCK_SIDE_INSET;
 /**
  * FR-20 : option unique « À la cible et à l'échec » du résultat dérivé mixte — même
  * largeur totale que les deux options (2 × 106 + l'écart de 2 du segmenté), choix
@@ -2525,121 +2560,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  // DSF : message temporaire sous la ligne concernée, à 4 pt ; fond snackbar, rayon 16.
-  // Recette 2 (T-58) : la capsule Annuler s’étire sur la hauteur intérieure, avec
-  // des marges droite, haute et basse égales (ADJUSTMENT_ACTION_INSET).
-  adjustment: {
-    marginTop: spacing[4],
-    marginBottom: spacing[4],
-    backgroundColor: colors.snackbar,
-    borderRadius: fixedRadii[16],
-    paddingVertical: ADJUSTMENT_ACTION_INSET,
-    paddingRight: ADJUSTMENT_ACTION_INSET,
-    paddingLeft: spacing[16],
+  // PRE-5 story 2.6 (UX-DR3) : le bloc blanc remplit le cadre de découpe élargi par `bleed`.
+  tableBlock: {
+    marginHorizontal: -TABLE_BLOCK_BLEED,
+  },
+  // Cellule Cible mesurée (repère du panneau iOS) : même largeur que la cellule.
+  tableCellSlot: {
+    width: TABLE_CELL_WIDTH,
+    flexShrink: 1,
+  },
+  // PRE-5 story 2.6 (AD-27) : champ ± de la Pause d'une ligne, sous la ligne, centré sous la
+  // cellule Pause (même suite de colonnes que la ligne).
+  cellStepperLine: {
     flexDirection: "row",
-    alignItems: "stretch",
-    gap: spacing[12],
-  },
-  adjustmentText: {
-    ...type.body,
-    color: colors.background,
-    flex: 1,
-    alignSelf: "center",
-    paddingVertical: spacing[2],
-  },
-  adjustmentAction: {
-    ...type.button,
-    color: colors.background,
-  },
-  // D-5 précisé par la recette 2 (T-58) : capsule sans contour, blanc transparent
-  // à 90 %, extrémités en demi-cercle, plus grande.
-  adjustmentActionFrame: {
-    minHeight: 36,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: spacing[16],
-    borderRadius: 999,
-    backgroundColor: colors.snackbarActionSurface,
-  },
-  // Story 3.6 (AC1) : sans retrait x52 (Q44 : la place libérée loge la croix de retrait).
-  table: {
-    paddingBottom: spacing[8],
-  },
-  tableHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: TABLE_COLUMN_GAP,
+    paddingLeft: PAUSE_CELL_X,
     paddingVertical: spacing[4],
   },
-  columnHeader: {
-    ...type.supporting,
-    fontFamily: "Inter_500Medium",
-    fontWeight: "500",
-    color: colors.textSecondary,
-    flex: 1,
-    textAlign: "center",
-  },
-  // Story 3.6 : colonne des croix (en-tête vide de même largeur que la croix).
-  removeColumn: {
-    width: TABLE_REMOVE_DISC,
-  },
-  // Story 3.6 (`8129:31604`) : disque 28 `#FCFCFE` à liseré blanc, croix centrée.
-  removeDisc: {
-    width: TABLE_REMOVE_DISC,
-    height: TABLE_REMOVE_DISC,
-    borderRadius: TABLE_REMOVE_DISC / 2,
+  // Colonne à la largeur du ± (128), centrée sous la cellule Pause (71) : − et + restent dans
+  // les limites de leur parent (atteignables au toucher sur Android).
+  cellStepperColumn: {
+    width: TABLE_STEPPER_WIDTH,
+    marginLeft: (TABLE_CELL_WIDTH - TABLE_STEPPER_WIDTH) / 2,
     alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.parametersSegmentedOption,
-    borderWidth: 1,
-    borderColor: colors.background,
-  },
-  insertionGuideSlot: {
-    height: 0,
-    zIndex: 2,
-  },
-  insertionGuideLine: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: -1,
-    height: 2,
-    borderRadius: 1,
-    backgroundColor: colors.primary,
-  },
-  tableRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    height: TABLE_ROW_HEIGHT,
-    gap: TABLE_COLUMN_GAP,
-  },
-  rowNumberColumn: {
-    width: 40,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  dragHandle: {
-    width: 12,
-    height: 18,
-    justifyContent: "space-between",
-    paddingVertical: 2,
-  },
-  dragDotsLine: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 2,
-  },
-  dragDot: {
-    width: 3,
-    height: 3,
-    borderRadius: 1.5,
-    backgroundColor: colors.textSecondary,
-  },
-  rowNumber: {
-    ...type.label,
-    color: colors.textPrimary,
-    flex: 1,
-    textAlign: "right",
   },
 });

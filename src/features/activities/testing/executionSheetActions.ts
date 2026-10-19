@@ -23,11 +23,12 @@ export function chooseExecutionMode(label: string): void {
 }
 
 /**
- * PRE-4 story 3.3 (AC8, FR-03-05) : ouvre le champ ± hors tableau `testID` de la
- * Feuille (N, Pauses, Bip, Compte à rebours, Fin) s'il est fermé, en touchant sa
- * valeur (`${testID}-toggle`). Au repos, seule la valeur est visible ; ses − et +
- * n'apparaissent qu'à l'appui. Sans effet si le champ est déjà ouvert, ou si ses ±
- * sont permanents (cellules du tableau des séries variables, conservés par Q44).
+ * PRE-4 story 3.3 (AC8, FR-03-05) : ouvre le champ ± `testID` de la Feuille (N,
+ * Pauses, Bip, Compte à rebours, Fin) s'il est fermé, en touchant sa valeur
+ * (`${testID}-toggle`). Au repos, seule la valeur est visible ; ses − et +
+ * n'apparaissent qu'à l'appui. Sans effet si le champ est déjà ouvert. PRE-5 story
+ * 2.6 (AD-27) : les cellules du tableau n'ont plus de ± permanents (Q44 remplacé) ;
+ * la cellule Pause d'une ligne s'ouvre de même par `…-pause-toggle`.
  */
 export function openExecutionSheetField(testID: string): void {
   if (screen.queryByTestId(`${testID}-increment`)) return;

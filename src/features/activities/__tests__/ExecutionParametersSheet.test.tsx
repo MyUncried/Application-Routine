@@ -39,7 +39,13 @@ import {
   pressInExecutionSheet,
   tapExecutionSheetStep,
 } from "@/features/activities/testing/executionSheetActions";
+import {
+  dragDestination as sharedDragDestination,
+  TABLE_ROW_HEIGHT as SHARED_TABLE_ROW_HEIGHT,
+  tableRowIdentity as sharedTableRowIdentity,
+} from "@/features/activities/sheetTable";
 import { strings } from "@/shared/i18n";
+import { InlineStepper } from "@/shared/ui/ProfileStepper";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
 /**
@@ -159,6 +165,34 @@ function dragHandle(row: number, dy: number) {
   fireEvent(screen.getByTestId(`execution-sheet-table-row-${row}-handle`), "responderRelease", {
     nativeEvent: { pageY: 100 + dy },
   });
+}
+
+/**
+ * PRE-5 story 2.6 (AD-27, FR-29) — les cellules n'ont plus de ± permanents : la Cible d'une
+ * ligne se règle par la roue que sa cellule ouvre (Durée : minutes et secondes ; Répétitions :
+ * colonne unique ; « FAILURE » : option en tête). La ligne et sa cellule sont d'abord
+ * mesurées (le panneau iOS attend ces mesures).
+ */
+function chooseCellTarget(row: number, value: number | "FAILURE") {
+  const anyNode = { includeHiddenElements: true } as const;
+  fireEvent(screen.getByTestId(`execution-sheet-table-row-${row}-motion`, anyNode), "layout", {
+    nativeEvent: { layout: { x: -4, y: 32 + 36 * (row - 1), width: 336, height: 36 } },
+  });
+  fireEvent(screen.getByTestId(`execution-sheet-table-row-${row}-target-cell`, anyNode), "layout", {
+    nativeEvent: { layout: { x: 58, y: 6, width: 71, height: 24 } },
+  });
+  fireEvent.press(screen.getByTestId(`execution-sheet-table-row-${row}-target`, anyNode));
+  if (screen.queryByTestId("duration-wheel-validate")) {
+    if (value === "FAILURE") fireEvent.press(screen.getByTestId("duration-wheel-failure-option"));
+    else {
+      fireEvent(screen.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: Math.floor(value / 60) } });
+      fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: value % 60 } });
+    }
+    fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+  } else {
+    fireEvent(screen.getByTestId("number-wheel-column"), "selectionChange", { nativeEvent: { selection: value === "FAILURE" ? "failure" : value } });
+    fireEvent.press(screen.getByTestId("number-wheel-validate"));
+  }
 }
 
 afterEach(() => {
@@ -417,8 +451,8 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     fireEvent.press(screen.getByLabelText("Afficher le tableau des séries"));
     expect(valueOf("execution-sheet-table-row-2-target")).toBe("—");
     expect(valueOf("execution-sheet-table-row-3-target")).toBe("1 min");
-    // Correction de la cellule : ✓ redevient actif et le message disparaît.
-    tap("execution-sheet-table-row-2-target-increment");
+    // Correction de la cellule (PRE-5 story 2.6 : par sa roue) : ✓ redevient actif et le message disparaît.
+    chooseCellTarget(2, 45);
     expect(screen.queryByTestId("execution-sheet-message")).toBeNull();
     expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: false });
   });
@@ -602,12 +636,12 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     const { onApply } = renderSheet(params({ series: { kind: "UNIFORM", count: 2, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
     chooseRegime("variables");
     expect(valueOf("execution-sheet-table-row-2-target")).toBe("30 s");
-    tap("execution-sheet-table-row-2-target-increment");
+    chooseCellTarget(2, 31);
     chooseRegime("identiques");
     expect(text("execution-sheet-target-value")).toBe("30 s");
     chooseRegime("variables");
     expect(valueOf("execution-sheet-table-row-2-target")).toBe("31 s");
-    tap("execution-sheet-table-row-2-target-decrement");
+    chooseCellTarget(2, 30);
     validate();
     expect(applied(onApply).series).toEqual(variableRows([[30, 10], [30, 10]]));
   });
@@ -645,7 +679,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     expect(screen.getByTestId("execution-sheet-table-row-2-target").props.accessibilityLabel).toBe("Série 2, Durée");
     moveAction(2, "moveUp");
     expect(valueOf("execution-sheet-table-row-1-target")).toBe("45 s");
-    expect(screen.getByTestId("execution-sheet-table-row-1-pause").props.accessibilityLabel).toBe("Série 1, pause");
+    expect(screen.getByTestId("execution-sheet-table-row-1-pause-toggle").props.accessibilityLabel).toBe("Série 1, pause");
   });
 
   it("INTERACTION/sheet-check-cross — ✓ atomique sans service ; ✕ / retour système restaurent le parent", () => {
@@ -768,6 +802,11 @@ describe("ExecutionParametersSheet — correction revue 1", () => {
     // Story 3.3 : ± à l'appui ; ouvert, le champ de N garde la largeur DSF 137.
     openExecutionSheetField("execution-sheet-series");
     expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-series").props.style).width).toBe(137);
+    // PRE-5 story 2.6 (AD-27) : le ± de la Pause d'une ligne n'apparaît qu'à l'appui de sa
+    // cellule, à la largeur DSF du tableau (128) ; le champ de N se ferme dans le même geste.
+    expect(screen.queryByTestId("execution-sheet-table-row-1-pause")).toBeNull();
+    openExecutionSheetField("execution-sheet-table-row-1-pause");
+    expect(screen.queryByTestId("execution-sheet-series-field")).toBeNull();
     expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-table-row-1-pause").props.style).width).toBe(128);
     expect(screen.getByText("Durée totale ≈")).toBeTruthy();
     // (12 + 10) × 2 s + 30 s + 45 s = 119 s.
@@ -826,17 +865,16 @@ describe("ExecutionParametersSheet — recette 1", () => {
     const { onApply } = renderSheet(params({ series: variableRows([[30, 5], [45, 10], [60, 15]]) }));
     const rows = () => [1, 2, 3].map((n) => valueOf(`execution-sheet-table-row-${n}-target`));
     const choose = chooseMode;
-    // PRE-4 (story 1.1, AC6) : cinq pas de 1 s par ligne ; depuis Q36 (Hermann, 2026-10-17),
-    // la Cible Durée est admise à la seconde (1..3535 s, D-430). Le test porte sur la mémoire par Mode.
-    for (let step = 0; step < 5; step += 1) {
-      tap("execution-sheet-table-row-1-target-increment");
-      tap("execution-sheet-table-row-3-target-decrement");
-    }
+    // PRE-4 (story 1.1, AC6) ; depuis Q36 (Hermann, 2026-10-17), la Cible Durée est admise à
+    // la seconde (1..3535 s, D-430). PRE-5 story 2.6 : réglée par la roue de la cellule. Le
+    // test porte sur la mémoire par Mode.
+    chooseCellTarget(1, 35);
+    chooseCellTarget(3, 55);
     const durations = rows();
     expect(durations).toEqual(["35 s", "45 s", "55 s"]);
     choose("Répétitions");
     expect(rows()).toEqual(["—", "—", "—"]);
-    tap("execution-sheet-table-row-2-target-increment");
+    chooseCellTarget(2, 1);
     const repetitions = rows();
     choose("Durée");
     expect(rows()).toEqual(durations);
@@ -1038,12 +1076,15 @@ describe("ExecutionParametersSheet — recette 2 (T-10 / F-02)", () => {
   it("F-02 — appui en Durée, puis en Répétitions sur la même ligne : départ à 1 rép. (jamais 30), bornes Répétitions ; retour Durée = dernières durées", () => {
     renderSheet(params({ series: variableRows([[30, 5], [45, 5], [60, 5]]) }));
     const choose = chooseMode;
-    tap("execution-sheet-table-row-1-target-increment");
+    chooseCellTarget(1, 31);
     expect(valueOf("execution-sheet-table-row-1-target")).toBe("31 s");
     choose("Répétitions");
-    tap("execution-sheet-table-row-1-target-increment");
+    // PRE-5 story 2.6 : plus de ± dans la cellule — sa roue Répétitions s'ouvre sur 1 (jamais 30).
+    fireEvent.press(screen.getByTestId("execution-sheet-table-row-1-target"));
+    expect(screen.getByTestId("number-wheel-column").props.selection).toBe(1);
+    fireEvent.press(screen.getByTestId("number-wheel-validate"));
     expect(valueOf("execution-sheet-table-row-1-target")).toBe("1 rép.");
-    tap("execution-sheet-table-row-1-target-increment");
+    chooseCellTarget(1, 2);
     expect(valueOf("execution-sheet-table-row-1-target")).toBe("2 rép.");
     choose("Durée");
     expect([1, 2, 3].map((n) => valueOf(`execution-sheet-table-row-${n}-target`))).toEqual(["31 s", "45 s", "1 min"]);
@@ -1149,12 +1190,13 @@ describe("ExecutionParametersSheet — PRE-4 story 1.1", () => {
     const table = screen.getByTestId("execution-sheet-table");
     expect(within(table).getByText("Répétitions")).toBeTruthy();
     expect(within(table).getByText("Pause")).toBeTruthy();
-    // Story 3.6 (Q44, Q13) : la cellule affiche « à l’échec » ; ses ± permanents sont indisponibles.
+    // Story 3.6 (Q13) : la cellule affiche « à l’échec » ; PRE-5 story 2.6 (AD-27) : sans ±,
+    // elle n'ouvre que sa roue.
     for (const row of [1, 2]) {
       expect(valueOf(`execution-sheet-table-row-${row}-target`)).toBe("à l’échec");
-      expect(screen.getByTestId(`execution-sheet-table-row-${row}-target-increment`).props.accessibilityState).toMatchObject({ disabled: true });
-      expect(screen.getByTestId(`execution-sheet-table-row-${row}-target-decrement`).props.accessibilityState).toMatchObject({ disabled: true });
-      expect(screen.getByTestId(`execution-sheet-table-row-${row}-pause`)).toBeTruthy();
+      expect(screen.queryByTestId(`execution-sheet-table-row-${row}-target-increment`)).toBeNull();
+      expect(screen.queryByTestId(`execution-sheet-table-row-${row}-target-decrement`)).toBeNull();
+      expect(screen.getByTestId(`execution-sheet-table-row-${row}-pause-toggle`)).toBeTruthy();
     }
     tap("execution-sheet-series-increment");
     expect(valueOf("execution-sheet-table-row-3-target")).toBe("à l’échec");
@@ -1805,8 +1847,8 @@ describe("ExecutionParametersSheet — PRE-4 Q40 (vitesse, sens, sélection)", (
     chooseMode("Répétitions");
     expectNormal();
     chooseMode("Durée");
-    // ± d'une cellule du tableau : de nouveau sélectionné.
-    tap("execution-sheet-table-row-1-target-increment");
+    // ± d'une cellule du tableau (PRE-5 story 2.6 : la Pause, ouverte par sa cellule) : de nouveau sélectionné.
+    tap("execution-sheet-table-row-1-pause-increment");
     expectSelected();
     // ± de N (hors tableau) : état normal.
     tap("execution-sheet-series-increment");
@@ -1823,7 +1865,10 @@ describe("ExecutionParametersSheet — PRE-4 Q40 (vitesse, sens, sélection)", (
     expectSelected();
     fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
     expectNormal();
-    // Chevron : déplier sélectionne, replier rend l'état normal.
+    // Chevron : déplier sélectionne, replier rend l'état normal. PRE-5 story 2.6 : le premier
+    // toucher de la cellule ferme le sélecteur ouvert sans ouvrir son champ (T10).
+    fireEvent.press(screen.getByTestId("execution-sheet-table-row-2-pause-toggle"));
+    expect(screen.queryByTestId("execution-sheet-side-selector")).toBeNull();
     tap("execution-sheet-table-row-2-pause-increment");
     expectSelected();
     fireEvent.press(screen.getByTestId(TABLE_TOGGLE));
@@ -1840,7 +1885,7 @@ describe("ExecutionParametersSheet — PRE-4 Q40 (vitesse, sens, sélection)", (
 
   // Q41 : enchaînement vérifié avec les sélecteurs en ligne, sur Android ; fond de sélection
   // lu sur le calque `-selection`.
-  it("PRE4-Q40 — sélection unique : sélecteur de Changement de côté ouvert, puis ± d'une cellule du tableau → le sélecteur se ferme, la ligne Côté n'est plus surlignée, le tableau l'est ; et inversement", () =>
+  it("PRE4-Q40 — sélection unique : sélecteur de Changement de côté ouvert, puis cellule du tableau → le sélecteur se ferme, la ligne Côté n'est plus surlignée, le tableau l'est ; et inversement", () =>
     withPlatform("android", () => {
     renderSheet(params({ series: variableRows([[30, 5], [45, 10]]) }));
     const group = () => styleOf("execution-sheet-variable-group");
@@ -1848,7 +1893,10 @@ describe("ExecutionParametersSheet — PRE-4 Q40 (vitesse, sens, sélection)", (
     expect(screen.getByTestId("execution-sheet-side-selector")).toBeTruthy();
     expect(styleOf("execution-sheet-row-side-selection").backgroundColor).toBe(SELECTED_SURFACE);
     expect(group().backgroundColor).toBeUndefined();
-    tap("execution-sheet-table-row-1-pause-increment");
+    // PRE-5 story 2.6 (AD-27) : la cellule Pause remplace le ± permanent ; avec un sélecteur
+    // ouvert, son toucher le ferme sans ouvrir le champ (T10).
+    fireEvent.press(screen.getByTestId("execution-sheet-table-row-1-pause-toggle"));
+    expect(screen.queryByTestId("execution-sheet-table-row-1-pause-field")).toBeNull();
     expect(screen.queryByTestId("execution-sheet-side-selector")).toBeNull();
     expect(styleOf("execution-sheet-row-side-selection").backgroundColor).toBeUndefined();
     expect(screen.getByTestId("execution-sheet-side-value").props.accessibilityState).toMatchObject({ expanded: false });
@@ -2156,9 +2204,9 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
 });
 
 describe("PRE4-Q42 — lignes de la Feuille à 44 pt (Hermann, 2026-10-17)", () => {
-  it("PRE4-Q42 — lignes de la Feuille et du tableau des séries variables : hauteur minimale 44 pt", () => {
+  it("PRE4-Q42, PRE5-2.6/AC2 — lignes de la Feuille : hauteur minimale 44 pt ; lignes du tableau des séries variables : 36 (AD-28)", () => {
     expect(SHEET_ROW_MIN_HEIGHT).toBe(44);
-    expect(TABLE_ROW_HEIGHT).toBe(44);
+    expect(TABLE_ROW_HEIGHT).toBe(36);
     renderSheet(params({ series: { kind: "UNIFORM", count: 2, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
     // Story 3.3 : la ligne de l'interrupteur « Séries variables » est retirée ; la ligne
     // « Séries » porte le champ de Régime.
@@ -2785,12 +2833,12 @@ describe("ExecutionParametersSheet — PRE-4 story 3.4", () => {
   /** Toucher la valeur de la Cible de la Série 1, ligne et cellule mesurées (le panneau iOS les attend). */
   const openCell = () => {
     fireEvent(screen.getByTestId("execution-sheet-table-row-1-motion", hiddenNode), "layout", {
-      nativeEvent: { layout: { x: -12, y: 30, width: 354, height: 44 } },
+      nativeEvent: { layout: { x: -4, y: 32, width: 336, height: 36 } },
     });
     fireEvent(screen.getByTestId("execution-sheet-table-row-1-target-cell", hiddenNode), "layout", {
-      nativeEvent: { layout: { x: 42, y: 4, width: 128, height: 36 } },
+      nativeEvent: { layout: { x: 58, y: 6, width: 71, height: 24 } },
     });
-    fireEvent.press(screen.getByTestId("execution-sheet-table-row-1-target-value-press", hiddenNode));
+    fireEvent.press(screen.getByTestId("execution-sheet-table-row-1-target", hiddenNode));
   };
   const cellText = (row = 1) => String(screen.getByTestId(`execution-sheet-table-row-${row}-target-value`, hiddenNode).props.children);
   const wheelChange = (column: "minutes" | "seconds", selection: number) =>
@@ -3092,12 +3140,12 @@ describe("ExecutionParametersSheet — PRE-4 story 3.5", () => {
   /** Toucher la valeur de la Cible de la Série 1, ligne et cellule mesurées (le panneau iOS les attend). */
   const openCell = () => {
     fireEvent(screen.getByTestId("execution-sheet-table-row-1-motion", hiddenNode), "layout", {
-      nativeEvent: { layout: { x: -12, y: 30, width: 354, height: 44 } },
+      nativeEvent: { layout: { x: -4, y: 32, width: 336, height: 36 } },
     });
     fireEvent(screen.getByTestId("execution-sheet-table-row-1-target-cell", hiddenNode), "layout", {
-      nativeEvent: { layout: { x: 42, y: 4, width: 128, height: 36 } },
+      nativeEvent: { layout: { x: 58, y: 6, width: 71, height: 24 } },
     });
-    fireEvent.press(screen.getByTestId("execution-sheet-table-row-1-target-value-press", hiddenNode));
+    fireEvent.press(screen.getByTestId("execution-sheet-table-row-1-target", hiddenNode));
   };
   const cellText = (row = 1) => String(screen.getByTestId(`execution-sheet-table-row-${row}-target-value`, hiddenNode).props.children);
   const wheelChange = (selection: number | string) =>
@@ -3386,13 +3434,13 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
   /** Mise en page simulée de la ligne `row` et de sa cellule de Cible (le panneau attend ces mesures). */
   const measureRow = (row: number) => {
     fireEvent(screen.getByTestId(`execution-sheet-table-row-${row}-motion`, hidden), "layout", {
-      nativeEvent: { layout: { x: -12, y: 30 + 44 * (row - 1), width: 354, height: 44 } },
+      nativeEvent: { layout: { x: -4, y: 32 + 36 * (row - 1), width: 336, height: 36 } },
     });
     fireEvent(screen.getByTestId(`${targetID(row)}-cell`, hidden), "layout", {
-      nativeEvent: { layout: { x: 42, y: 4, width: 128, height: 36 } },
+      nativeEvent: { layout: { x: 58, y: 6, width: 71, height: 24 } },
     });
   };
-  const pressValue = (row: number) => fireEvent.press(screen.getByTestId(`${targetID(row)}-value-press`, hidden));
+  const pressValue = (row: number) => fireEvent.press(screen.getByTestId(targetID(row), hidden));
   /** Toucher la valeur de la Cible, ligne mesurée (iOS : panneau ; Android, web : en ligne). */
   const openCell = (row: number) => {
     measureRow(row);
@@ -3400,8 +3448,6 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
   };
   const cellValue = (row: number, column: "target" | "pause" = "target") =>
     String(screen.getByTestId(`execution-sheet-table-row-${row}-${column}-value`, hidden).props.children);
-  const stepDisabled = (row: number, direction: "increment" | "decrement") =>
-    screen.getByTestId(`${targetID(row)}-${direction}`, hidden).props.accessibilityState?.disabled === true;
   const press = (testID: string) => {
     fireEvent(screen.getByTestId(testID, hidden), "pressIn");
     fireEvent(screen.getByTestId(testID, hidden), "pressOut");
@@ -3427,7 +3473,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
       expect(within(line).getByTestId(`execution-sheet-table-row-${row}-handle`)).toBeTruthy();
       expect(within(line).getByText(String(row))).toBeTruthy();
       expect(within(line).getByTestId(targetID(row))).toBeTruthy();
-      expect(within(line).getByTestId(`execution-sheet-table-row-${row}-pause`)).toBeTruthy();
+      expect(within(line).getByTestId(`execution-sheet-table-row-${row}-pause-toggle`)).toBeTruthy();
       expect(within(line).getByTestId(`execution-sheet-table-row-${row}-remove`)).toBeTruthy();
     }
     expect([1, 2, 3].map((row) => cellValue(row))).toEqual(["30 s", "1 min", "à l’échec"]);
@@ -3451,7 +3497,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     expect(groupBackground()).toBe("#F2F2FF");
     fireEvent.press(screen.getByTestId("execution-sheet-beep-toggle"));
     expect(groupBackground()).toBeUndefined();
-    press("execution-sheet-table-row-1-pause-increment");
+    tap("execution-sheet-table-row-1-pause-increment");
     expect(groupBackground()).toBe("#F2F2FF");
     fireEvent.press(screen.getByTestId(TABLE_TOGGLE));
     expect(groupBackground()).toBeUndefined();
@@ -3552,27 +3598,29 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
   });
 
-  it("PRE4-3.6/AC3 — Q41 : panneau sous la cellule ; aligné à droite sur elle quand la roue tient, sinon ramené au bord gauche des lignes", () => {
+  it("PRE4-3.6/AC3, PRE5-2.6/AC3 — Q41, Q45 : panneau sous la ligne ; aligné à droite sur la cellule quand la roue tient, sinon ramené au bord gauche des lignes", () => {
     renderSheet(variableSheet([[30, 10], [45, 20], [60, 30]]));
     // PRE-5 story 2.4 (AD-28) : cadre Séries à y = 106 ; le groupe « Type de série » est dans le cadre.
+    // PRE-5 story 2.6 (UX-DR3) : bloc blanc de 336 (à 8 du contour), marge haute 12, lignes de 36 ;
+    // la cellule est mesurée dans sa ligne, elle-même en retrait de 4 dans le bloc.
     layoutBox("execution-sheet-frame-series", { y: 106, width: 354, height: 600 });
     layoutBox("execution-sheet-variable-group", { y: 48, width: 354, height: 300 });
-    layoutBox("execution-sheet-table", { y: 50, width: 330, height: 200 });
-    layoutBox("execution-sheet-table-row-2-motion", { y: 72, width: 354, height: 44 });
-    layoutBox("execution-sheet-table-row-2-target-cell", { x: 42, y: 4, width: 128, height: 36 });
+    layoutBox("execution-sheet-table", { y: 50, width: 336, height: 200 });
+    layoutBox("execution-sheet-table-row-2-motion", { y: 68, width: 336, height: 36 });
+    layoutBox("execution-sheet-table-row-2-target-cell", { x: 58, y: 6, width: 71, height: 24 });
     // Géométrie mesurée par ligne : une autre cellule (ligne 1) n'influe pas sur la ligne 2.
-    layoutBox("execution-sheet-table-row-1-motion", { y: 28, width: 354, height: 44 });
+    layoutBox("execution-sheet-table-row-1-motion", { y: 32, width: 336, height: 36 });
     layoutBox("execution-sheet-table-row-1-target-cell", { x: 0, y: 0, width: 10, height: 10 });
     pressValue(2);
     const placement = () => StyleSheet.flatten(screen.getByTestId("execution-sheet-cell-panel").props.style);
-    // Bas de la cellule : 106 + 48 + 50 + 72 + 4 + 36 = 316, puis 4 d'écart.
-    expect(placement()).toMatchObject({ position: "absolute", top: 320 });
-    // Roue de 330 : alignée sur la cellule (13 + 330 − 170 = 173), elle sortirait à gauche ;
-    // elle est ramenée au bord des lignes (354 − 13 − 330 = 11 ; 13 = contour et marge du cadre).
+    // Bas de la ligne : 106 + 48 + 50 + 12 + 68 + 36 = 320, puis 4 d'écart.
+    expect(placement()).toMatchObject({ position: "absolute", top: 324 });
+    // Roue de 330 : alignée sur la cellule (1 + 8 + 336 − (4 + 58 + 71) = 212), elle sortirait à
+    // gauche ; elle est ramenée au bord des lignes (354 − 13 − 330 = 11 ; 13 = contour et marge du cadre).
     expect(placement().right).toBe(11);
     expect(placement().left).toBeUndefined();
     fireEvent(screen.getByTestId("execution-sheet-cell-panel"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 100, height: 200 } } });
-    expect(placement().right).toBe(173);
+    expect(placement().right).toBe(212);
     // La largeur mesurée vaut pour cette ouverture seulement : rouvert, le panneau repart de
     // la largeur par défaut de la roue montée (330).
     fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
@@ -3621,73 +3669,79 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
       expect([cellValue(1), cellValue(2)]).toEqual(["12 rép.", "à l’échec"]);
     }));
 
-  it("PRE4-3.6/AC4 (partie maintenue par Q44) — ± permanents de la cellule : Cible `FAILURE` indisponibles ; Cible `UNSET` : − indisponible, + donne 1 s depuis D-430 (1 en Répétitions) et retire le fond #FFF1F0", () => {
+  it("PRE4-3.6/AC4, PRE5-2.6/AC3 — cellules sans ± : Cible `FAILURE` ou `UNSET` réglée par la seule roue de sa cellule ; `UNSET` sur #FFF1F0, annoncée « aucune valeur », ouverte sur 00:01 (D-430, 1 en Répétitions) ; le fond disparaît après ✓", () => {
     const view = renderSheetView(variableSheet([["FAILURE", 10], [null, 20]]));
-    expect([stepDisabled(1, "decrement"), stepDisabled(1, "increment")]).toEqual([true, true]);
-    press(`${targetID(1)}-increment`);
+    for (const row of [1, 2]) {
+      expect(screen.queryByTestId(`${targetID(row)}-increment`, hidden)).toBeNull();
+      expect(screen.queryByTestId(`${targetID(row)}-decrement`, hidden)).toBeNull();
+    }
     expect(cellValue(1)).toBe("à l’échec");
     expect(StyleSheet.flatten(screen.getByTestId(targetID(2)).props.style).backgroundColor).toBe("#FFF1F0");
-    expect(stepDisabled(2, "decrement")).toBe(true);
-    expect(stepDisabled(2, "increment")).toBe(false);
-    press(`${targetID(2)}-decrement`);
-    expect(cellValue(2)).toBe("—");
-    press(`${targetID(2)}-increment`);
+    expect(screen.getByTestId(targetID(2)).props.accessibilityValue).toEqual({ text: "aucune valeur" });
+    openCell(2);
+    expect(durationSelection()).toEqual([0, 1]);
+    fireEvent.press(screen.getByTestId("duration-wheel-validate"));
     expect(cellValue(2)).toBe("1 s");
     expect(StyleSheet.flatten(screen.getByTestId(targetID(2)).props.style).backgroundColor).not.toBe("#FFF1F0");
     view.unmount();
 
     renderSheet(variableSheet([[null, 10], [4, 20]], "REPETITIONS"));
-    press(`${targetID(1)}-increment`);
+    openCell(1);
+    expect(screen.getByTestId("number-wheel-column").props.selection).toBe(1);
+    fireEvent.press(screen.getByTestId("number-wheel-validate"));
     expect(cellValue(1)).toBe("1 rép.");
   });
 
-  it("PRE4-3.6/AC5 — ± de la cellule : depuis 7 s, + → 8 s, − → 6 s ; depuis 5999 s, + indisponible, − → 3535 s ; depuis 150 rép., + indisponible, − → 100", () => {
-    const step = (parent: ExecutionParametersInput, row: number, direction: "increment" | "decrement") => {
-      const view = renderSheetView(parent);
-      const disabled = stepDisabled(row, direction);
-      press(`${targetID(row)}-${direction}`);
-      const value = cellValue(row);
-      view.unmount();
-      return { disabled, value };
-    };
-    const legacy = variableSheet([[7, 10], [5999, 20]]);
-    expect(step(legacy, 1, "increment")).toEqual({ disabled: false, value: "8 s" });
-    expect(step(legacy, 1, "decrement")).toEqual({ disabled: false, value: "6 s" });
-    expect(step(legacy, 2, "increment")).toEqual({ disabled: true, value: formatPhraseDuration(5999) });
-    expect(step(legacy, 2, "decrement")).toEqual({ disabled: false, value: formatPhraseDuration(3535) });
-    const repetitions = variableSheet([[150, 10], [12, 20]], "REPETITIONS");
-    expect(step(repetitions, 1, "increment")).toEqual({ disabled: true, value: "150 rép." });
-    expect(step(repetitions, 1, "decrement")).toEqual({ disabled: false, value: "100 rép." });
+  it("PRE5-2.6/AC3 — cellule Pause : son toucher ouvre le ± de cette seule cellule, sous la ligne ; + → 11 s, − → 9 s, champ toujours ouvert (T22) ; bornes 0 et 300 indisponibles ; second toucher : fermé", () => {
+    const view = renderSheetView(variableSheet([[30, 10], [45, 300], [60, 0]]));
+    // Au repos, aucun stepper dans le tableau (AC2 de la story).
+    expect(screen.UNSAFE_root.findAll((node) => /^execution-sheet-table-row-\d+-(target|pause)-(increment|decrement)$/.test(String(node.props.testID ?? "")))).toHaveLength(0);
+    fireEvent.press(screen.getByTestId("execution-sheet-table-row-1-pause-toggle"));
+    const field = screen.getByTestId("execution-sheet-table-row-1-pause-field");
+    expect(within(screen.getByTestId("execution-sheet-table-row-1-motion")).getByTestId("execution-sheet-table-row-1-pause-motion")).toBeTruthy();
+    expect(within(field).getByTestId("execution-sheet-table-row-1-pause-increment")).toBeTruthy();
+    // Une seule cellule ouverte : les autres lignes restent à valeur seule.
+    expect(screen.queryByTestId("execution-sheet-table-row-2-pause-field")).toBeNull();
+    expect(screen.getByTestId("execution-sheet-table-row-1-pause-toggle").props.accessibilityState).toMatchObject({ expanded: true });
+    expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-table-row-1-pause-toggle").props.style).backgroundColor).toBe("#EAEAFF");
+    press("execution-sheet-table-row-1-pause-increment");
+    expect(valueOf("execution-sheet-table-row-1-pause")).toBe("11 s");
+    press("execution-sheet-table-row-1-pause-decrement");
+    press("execution-sheet-table-row-1-pause-decrement");
+    expect(valueOf("execution-sheet-table-row-1-pause")).toBe("9 s");
+    expect(screen.getByTestId("execution-sheet-table-row-1-pause-field")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("execution-sheet-table-row-1-pause-toggle"));
+    expect(screen.queryByTestId("execution-sheet-table-row-1-pause-field")).toBeNull();
+    expect(cellValue(1, "pause")).toBe("9 s");
+    fireEvent.press(screen.getByTestId("execution-sheet-table-row-2-pause-toggle"));
+    expect(screen.getByTestId("execution-sheet-table-row-2-pause-increment").props.accessibilityState).toMatchObject({ disabled: true });
+    fireEvent.press(screen.getByTestId("execution-sheet-table-row-3-pause-toggle"));
+    expect(screen.queryByTestId("execution-sheet-table-row-2-pause-field")).toBeNull();
+    expect(screen.getByTestId("execution-sheet-table-row-3-pause-decrement").props.accessibilityState).toMatchObject({ disabled: true });
+    view.unmount();
   });
 
-  it("PRE4-3.6/AC6 — maintien sur + d'une Cible Durée à 30 s : pas 1 puis paliers, saturation à 3535 sans rebouclage ; relâchement sans pas ; Répétitions saturées à 100", () => {
+  it("PRE4-3.6/AC6, PRE5-2.6/AC3 — maintien sur + de la Pause d'une ligne : pas 1 puis paliers, saturation à 300 sans rebouclage ; relâchement sans pas", () => {
     jest.useFakeTimers();
-    const view = renderSheetView(variableSheet([[30, 10], [45, 20]]));
-    const plus = () => screen.getByTestId(`${targetID(1)}-increment`);
+    renderSheet(variableSheet([[30, 10], [45, 20]]));
+    fireEvent.press(screen.getByTestId("execution-sheet-table-row-1-pause-toggle"));
+    const plus = () => screen.getByTestId("execution-sheet-table-row-1-pause-increment");
     fireEvent(plus(), "pressIn");
-    expect(cellValue(1)).toBe("31 s");
+    expect(valueOf("execution-sheet-table-row-1-pause")).toBe("11 s");
     act(() => {
       jest.advanceTimersByTime(500);
     });
-    expect(cellValue(1)).toBe("32 s");
+    expect(valueOf("execution-sheet-table-row-1-pause")).toBe("12 s");
     act(() => {
       jest.advanceTimersByTime(120_000);
     });
-    expect(cellValue(1)).toBe(formatPhraseDuration(3535));
+    expect(valueOf("execution-sheet-table-row-1-pause")).toBe(formatPhraseDuration(300));
     fireEvent(plus(), "pressOut");
     act(() => {
       jest.advanceTimersByTime(2000);
     });
-    expect(cellValue(1)).toBe(formatPhraseDuration(3535));
-    view.unmount();
-
-    renderSheet(variableSheet([[10, 10], [12, 20]], "REPETITIONS"));
-    fireEvent(screen.getByTestId(`${targetID(1)}-increment`), "pressIn");
-    act(() => {
-      jest.advanceTimersByTime(60_000);
-    });
-    fireEvent(screen.getByTestId(`${targetID(1)}-increment`), "pressOut");
-    expect(cellValue(1)).toBe("100 rép.");
+    expect(valueOf("execution-sheet-table-row-1-pause")).toBe(formatPhraseDuration(300));
+    expect(cellValue(2, "pause")).toBe("20 s");
   });
 
   it("PRE4-3.6/AC7 — Cible `UNSET` après un changement de Mode : fond #FFF1F0 sans contour, ✓ indisponible, aucun message, déplié ou replié ; jamais convertie en échec", () => {
@@ -3773,7 +3827,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
 
     fireEvent.press(screen.getByTestId("execution-sheet-table-row-2-remove"));
     expect(screen.getByTestId("execution-sheet-adjusted")).toBeTruthy();
-    press("execution-sheet-table-row-1-pause-increment");
+    tap("execution-sheet-table-row-1-pause-increment");
     expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
     expect(rowCount()).toBe(2);
   });
@@ -3922,9 +3976,13 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
   it("PRE4-3.6/AC12 — saisie refusée, retrait annulé : ✓ reçoit d'un bloc un état valide ; ✕ laisse l'Éditeur intact ; Pauses bornées à 300 indépendamment des Cibles", () => {
     const parent = variableSheet([[5999, 300], [45, 20]]);
     const view = renderSheetView(parent, 10, parent);
-    press(`${targetID(1)}-increment`);
+    // PRE-5 story 2.6 : plus de ± de Cible ; la roue ouverte puis ✕ laisse l'ancienne valeur.
+    openCell(1);
+    fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
     expect(cellValue(1)).toBe(formatPhraseDuration(5999));
+    fireEvent.press(screen.getByTestId("execution-sheet-table-row-1-pause-toggle"));
     expect(screen.getByTestId("execution-sheet-table-row-1-pause-increment").props.accessibilityState).toMatchObject({ disabled: true });
+    fireEvent.press(screen.getByTestId("execution-sheet-table-row-1-pause-toggle"));
     fireEvent.press(screen.getByTestId("execution-sheet-table-row-2-remove"));
     fireEvent.press(screen.getByTestId("execution-sheet-adjusted-undo"));
     validate();
@@ -3939,46 +3997,61 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     view.unmount();
 
     const cancelled = renderSheetView(variableSheet([[null, 10], [45, 20]]));
-    press(`${targetID(2)}-increment`);
+    chooseCellTarget(2, 50);
     fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
     expect(cancelled.onCancel).toHaveBeenCalledTimes(1);
     expect(cancelled.onApply).not.toHaveBeenCalled();
   });
 
-  it("PRE4-3.6/AC13 — contrôle structurel (style + hitSlop) des cibles tactiles : ± et valeur de la cellule, poignée, croix ; cellule annoncée par sa ligne et sa colonne ; « activer » ouvre la roue. Preuve sur appareil : R-3.6-10 (hitSlop hors du parent, découpe `clip`)", () => {
+  it("PRE4-3.6/AC13, PRE5-2.6/AC1 — contrôle structurel (style + hitSlop) des cibles tactiles de 36 : cellules, poignée, croix ; cellule annoncée par sa ligne et sa colonne, valeur à part ; son appui ouvre la roue. Preuve sur appareil : R-2.6-01 (hitSlop hors du parent, découpe `clip`)", () => {
     renderSheet(variableSheet([[30, 10], [45, 20]]));
     const extent = (testID: string, drawn?: { width: number; height: number }) => {
       const node = screen.getByTestId(testID, hidden);
       const style = { ...drawn, ...StyleSheet.flatten(node.props.style) };
       const slop = node.props.hitSlop;
       const insets = typeof slop === "number" ? { top: slop, bottom: slop, left: slop, right: slop } : { top: 0, bottom: 0, left: 0, right: 0, ...slop };
-      return { drawn: [style.width, style.height], touch: [style.width + insets.left + insets.right, style.height + insets.top + insets.bottom] };
+      const height = style.height ?? style.minHeight;
+      return { drawn: [style.width, height], touch: [style.width + insets.left + insets.right, height + insets.top + insets.bottom] };
     };
-    expect(extent("execution-sheet-table-row-1-handle")).toEqual({ drawn: [12, 18], touch: [44, 44] });
-    expect(extent("execution-sheet-table-row-1-remove")).toEqual({ drawn: [28, 28], touch: [44, 44] });
-    expect(extent(`${targetID(1)}-increment`)).toEqual({ drawn: [28, 28], touch: [48, 48] });
-    expect(extent(`${targetID(1)}-decrement`)).toEqual({ drawn: [28, 28], touch: [48, 48] });
-    // Valeur Semi Bold 13 (environ 16 de haut) : 16 + 14 + 14 = 44 de haut.
-    const valueSlop = screen.getByTestId(`${targetID(1)}-value-press`).props.hitSlop as { top: number; bottom: number };
-    expect(16 + valueSlop.top + valueSlop.bottom).toBeGreaterThanOrEqual(44);
+    expect(extent("execution-sheet-table-row-1-handle")).toEqual({ drawn: [12, 18], touch: [36, 36] });
+    expect(extent("execution-sheet-table-row-1-remove")).toEqual({ drawn: [28, 28], touch: [36, 36] });
+    // Cellules 71 × 24 (Figma `9290:17953`) : 24 + 6 + 6 = 36 de haut.
+    expect(extent(targetID(1))).toEqual({ drawn: [71, 24], touch: [71, 36] });
+    expect(extent("execution-sheet-table-row-1-pause-toggle")).toEqual({ drawn: [71, 24], touch: [71, 36] });
     const cell = screen.getByTestId(targetID(2));
     expect(cell.props.accessibilityLabel).toBe("Série 2, Durée");
-    expect(cell.props.accessibilityRole).toBe("adjustable");
-    expect(cell.props.accessibilityActions).toEqual([{ name: "increment" }, { name: "decrement" }, { name: "activate" }]);
+    expect(cell.props.accessibilityValue).toEqual({ text: "45 s" });
+    expect(cell.props.accessibilityRole).toBe("button");
+    const pause = screen.getByTestId("execution-sheet-table-row-2-pause-toggle");
+    expect(pause.props.accessibilityLabel).toBe("Série 2, pause");
+    expect(pause.props.accessibilityValue).toEqual({ text: "20 s" });
+    expect(pause.props.accessibilityRole).toBe("button");
     measureRow(2);
-    fireEvent(cell, "accessibilityAction", { nativeEvent: { actionName: "activate" } });
+    fireEvent.press(cell);
     expect(cellPanel()).not.toBeNull();
+    expect(screen.getByTestId(targetID(2), hidden).props.accessibilityState).toMatchObject({ expanded: true });
     expect(screen.getByTestId("execution-sheet-table-row-1-remove", hidden).props.accessibilityLabel).toBe("Supprimer la série 1");
   });
 
-  it("PRE4-3.6/AC13 — cellule à l'échec ou en borne : VoiceOver ne propose que les pas disponibles ; valeur « à l’échec » annoncée ; « activer » ouvre la roue", () => {
+  it("PRE4-3.6/AC13, PRE5-2.6/AC3 — cellule à l'échec ou hors bornes : aucun pas proposé (bouton) ; valeur « à l’échec » annoncée ; l'appui ouvre la roue ; champ ± de la Pause : actions « Fermer », focus VoiceOver au champ puis rendu à la cellule", () => {
+    const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
     renderSheet(variableSheet([["FAILURE", 10], [5999, 20]]));
     const failure = screen.getByTestId(targetID(1));
-    expect(failure.props.accessibilityActions).toEqual([{ name: "activate" }]);
+    expect(failure.props.accessibilityActions).toBeUndefined();
+    expect(failure.props.accessibilityRole).toBe("button");
     expect(failure.props.accessibilityValue).toEqual({ text: "à l’échec" });
-    expect(screen.getByTestId(targetID(2)).props.accessibilityActions).toEqual([{ name: "decrement" }, { name: "activate" }]);
+    expect(screen.getByTestId(targetID(2)).props.accessibilityActions).toBeUndefined();
+    fireEvent.press(screen.getByTestId("execution-sheet-table-row-1-pause-toggle"));
+    const field = screen.getByTestId("execution-sheet-table-row-1-pause-field");
+    expect(focus).toHaveBeenLastCalledWith(expect.anything(), "focus");
+    expect(field.props.accessibilityActions).toEqual([{ name: "escape" }, { name: "magicTap" }, { name: "close", label: "Fermer" }]);
+    focus.mockClear();
+    fireEvent(field, "accessibilityAction", { nativeEvent: { actionName: "close" } });
+    expect(screen.queryByTestId("execution-sheet-table-row-1-pause-field")).toBeNull();
+    expect(focus).toHaveBeenCalledTimes(1);
+    focus.mockRestore();
     measureRow(1);
-    fireEvent(failure, "accessibilityAction", { nativeEvent: { actionName: "activate" } });
+    fireEvent.press(failure);
     expect(cellPanel()).not.toBeNull();
     expect(screen.getByTestId("duration-wheel-failure-option").props.accessibilityState).toMatchObject({ selected: true });
   });
@@ -4128,7 +4201,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
 
     // Cible : un mélange se recalcule quand une Cible numérique change (30 → 31 s).
     const mixed = renderSheetView(mixedDuration());
-    tap("execution-sheet-table-row-1-target-increment");
+    chooseCellTarget(1, 31);
     expect(readOnlyText()).toBe(lowerBound(31 + 45 + 10 + 20 + 30));
     mixed.unmount();
 
@@ -4462,10 +4535,10 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
   /** Mise en page simulée d'une ligne du tableau et de sa cellule de Cible (le panneau attend ces mesures). */
   const measureTableRow = (row: number) => {
     fireEvent(get(`execution-sheet-table-row-${row}-motion`), "layout", {
-      nativeEvent: { layout: { x: -12, y: 30 + 44 * (row - 1), width: 354, height: 44 } },
+      nativeEvent: { layout: { x: -4, y: 32 + 36 * (row - 1), width: 336, height: 36 } },
     });
     fireEvent(get(`execution-sheet-table-row-${row}-target-cell`), "layout", {
-      nativeEvent: { layout: { x: 42, y: 4, width: 128, height: 36 } },
+      nativeEvent: { layout: { x: 58, y: 6, width: 71, height: 24 } },
     });
   };
 
@@ -4533,7 +4606,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
     expect(beep().props.accessibilityValue).toMatchObject({ now: 9, text: "9 s" });
   });
 
-  it("PRE4-3.8/AC2 — limites des cellules, annoncées seulement DANS les bornes : Cible 1 s « minimum atteint » (D-430), 3535 s « maximum atteint », Pause 0 s et 300 s ; anciennes 4000 s et 5999 s sans suffixe ; Cible à l’échec sans limite", () => {
+  it("PRE4-3.8/AC2, PRE5-2.6/AC3 — cellules sans ± : valeur seule annoncée (1 s, 3535 s, anciennes 4000 s et 5999 s, à l’échec) ; limites de la Pause annoncées dans son champ ± ouvert, seulement DANS les bornes (0 s, 300 s)", () => {
     renderSheet(
       params({
         series: {
@@ -4548,24 +4621,30 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
         },
       }),
     );
-    const spoken = (row: number, column: "target" | "pause") =>
-      screen.getByTestId(`execution-sheet-table-row-${row}-${column}`).props.accessibilityValue.text as string;
-    expect(spoken(1, "target")).toBe("1 s, minimum atteint");
-    expect(spoken(4, "target")).toBe(`${formatPhraseDuration(3535)}, maximum atteint`);
-    // Valeurs anciennes hors bornes (Q21, P38) : aucune limite annoncée, la valeur seule.
-    expect(spoken(2, "target")).toBe(formatPhraseDuration(5999));
-    expect(spoken(5, "target")).toBe(formatPhraseDuration(4000));
-    expect(screen.getByTestId("execution-sheet-table-row-3-target").props.accessibilityValue).toEqual({ text: "à l’échec" });
-    expect(spoken(1, "pause")).toBe("10 s");
-    expect(spoken(2, "pause")).toBe(`${formatPhraseDuration(300)}, maximum atteint`);
-    expect(spoken(3, "pause")).toBe("0 s, minimum atteint");
+    const spoken = (testID: string) => screen.getByTestId(testID).props.accessibilityValue.text as string;
+    const target = (row: number) => spoken(`execution-sheet-table-row-${row}-target`);
+    // PRE-5 story 2.6 : la roue borne la Cible ; la cellule n'annonce que sa valeur.
+    expect(target(1)).toBe("1 s");
+    expect(target(4)).toBe(formatPhraseDuration(3535));
+    // Valeurs anciennes hors bornes (Q21, P38) : la valeur seule.
+    expect(target(2)).toBe(formatPhraseDuration(5999));
+    expect(target(5)).toBe(formatPhraseDuration(4000));
+    expect(target(3)).toBe("à l’échec");
+    expect(spoken("execution-sheet-table-row-2-pause-toggle")).toBe(formatPhraseDuration(300));
+    const openPause = (row: number) => {
+      fireEvent.press(screen.getByTestId(`execution-sheet-table-row-${row}-pause-toggle`));
+      return spoken(`execution-sheet-table-row-${row}-pause`);
+    };
+    expect(openPause(1)).toBe("10 s");
+    expect(openPause(2)).toBe(`${formatPhraseDuration(300)}, maximum atteint`);
+    expect(openPause(3)).toBe("0 s, minimum atteint");
   });
 
   it("PRE4-3.8/AC3 — option échec (cellule variable, PRE-5 story 2.4) annoncée sélectionnée ou non (état natif, pas le seul grisé) ; Cible à l’échec annoncée sur la cellule", () =>
     withPlatform("ios", () => {
       renderSheet(params({ series: variableRows([[30, 10], [45, 20]]) }));
       measureTableRow(1);
-      fireEvent.press(get("execution-sheet-table-row-1-target-value-press"));
+      fireEvent.press(get("execution-sheet-table-row-1-target"));
       const option = () => screen.getByTestId("duration-wheel-failure-option");
       expect(option().props.accessibilityLabel).toBe("Aucune durée, à l’échec");
       expect(option().props.accessibilityState).toMatchObject({ selected: false });
@@ -4747,7 +4826,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
       view.unmount();
       const table = renderSheetView(params({ series: variableRows([[30, 10], [45, 20]]) }));
       measureTableRow(1);
-      fireEvent.press(get("execution-sheet-table-row-1-target-value-press"));
+      fireEvent.press(get("execution-sheet-table-row-1-target"));
       expect(query("execution-sheet-cell-panel")).not.toBeNull();
       pressHeader("execution-sheet-validate");
       expect(table.onApply).not.toHaveBeenCalled();
@@ -4783,7 +4862,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
       }
     }));
 
-  it("PRE4-3.8/AC6 — règles PRE-3 supersédées absentes (iOS), chaque contrôle d'absence ayant son contrôle positif : ni interrupteur, ni stepper permanent hors tableau, ni segmenté intégré, ni message nommant la Série, ni retrait x52 ; ± permanents des cellules rétablis par Q44", async () => {
+  it("PRE4-3.8/AC6 — règles PRE-3 supersédées absentes (iOS), chaque contrôle d'absence ayant son contrôle positif : ni interrupteur, ni stepper permanent hors tableau, ni segmenté intégré, ni message nommant la Série, ni retrait x52 ; PRE-5 story 2.6 : ni ± permanents des cellules (Q44 remplacé), ± de la Pause à l'appui de sa cellule", async () => {
     // Contrôle positif du nom d'hôte de l'interrupteur natif.
     const switchView = render(<Switch value={false} />);
     expect(screen.UNSAFE_root.findAll((node) => hostNamed(node, "RCTSwitch")).length).toBeGreaterThan(0);
@@ -4832,9 +4911,13 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
         expect(get(`execution-sheet-${field}-increment`)).toBeTruthy();
         fireEvent.press(get("execution-sheet-body-outside"));
       }
-      // Q44 : ± permanents des cellules.
-      expect(get("execution-sheet-table-row-1-target-increment")).toBeTruthy();
+      // PRE-5 story 2.6 (AD-27, FR-29) : plus de ± permanents dans les cellules ; la cellule
+      // Pause ouvre le ± de cette seule cellule (contrôle positif).
+      expect(query("execution-sheet-table-row-1-target-increment")).toBeNull();
+      expect(query("execution-sheet-table-row-1-pause-decrement")).toBeNull();
+      fireEvent.press(get("execution-sheet-table-row-1-pause-toggle"));
       expect(get("execution-sheet-table-row-1-pause-decrement")).toBeTruthy();
+      expect(query("execution-sheet-table-row-1-target-increment")).toBeNull();
     });
   });
 
@@ -4874,7 +4957,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
       renderSheet(params({ series: variableRows([[30, 10], [null, 20], [60, 30]]) }));
       seen.push(...texts());
       measureTableRow(1);
-      withOpen("execution-sheet-table-row-1-target-value-press", "execution-sheet-cell-panel");
+      withOpen("execution-sheet-table-row-1-target", "execution-sheet-cell-panel");
       expect(opened).toHaveLength(6);
       expect(seen.length).toBeGreaterThan(80);
       expect(seen.filter(capped)).toEqual([]);
@@ -4896,7 +4979,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
       };
       renderSheet(params({ series: variableRows([[30, 10], [45, 20]]), cadenceBeepIntervalSeconds: 2, sideMode: "RIGHT_LEFT", sideRecoverySeconds: 10 }));
       // Seule exception au repos : la ligne du tableau (`tableRow`, hauteur dont dépend
-      // `dragDestination`). Non modifiée : glisser PRE-3 accepté et 44 pt (Q42) réservés à Hermann.
+      // `dragDestination`), à 36 depuis PRE-5 story 2.6 (AD-28 ; 44 pt de Q42 ailleurs).
       // PRE-5 story 2.4 : seconde exception au repos, la géométrie fixe des segmentés `inline`
       // (cadre 32, option 26, relevé UX-DR1 de la story 2.3 ; texte agrandi à juger sur
       // iPhone, report consigné par la revue de 2.3) — Mode, Condition d'arrêt, Type de série.
@@ -4913,7 +4996,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
       expect(fixedHeights()).toEqual(atRest);
       fireEvent.press(get("execution-sheet-side-panel-outside"));
       measureTableRow(1);
-      fireEvent.press(get("execution-sheet-table-row-1-target-value-press"));
+      fireEvent.press(get("execution-sheet-table-row-1-target"));
       expect(query("execution-sheet-cell-panel")).not.toBeNull();
       // Roue ouverte : seconde exception, l'option « Aucune durée, à l’échec » (story 3.4,
       // hauteur 30 du relevé `8452:13319`). Non modifiée : constat soumis à Hermann (R-3.8-03).
@@ -5098,9 +5181,9 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
     expect(get(STOP_CONTROL).props.accessibilityLabel).toBe("Condition d’arrêt, À la cible");
     // Roue de la cellule 1 (ligne et cellule mesurées) : choix « à l’échec », puis ✓.
     const cellWheel = () => {
-      fireEvent(get("execution-sheet-table-row-1-motion"), "layout", { nativeEvent: { layout: { x: -12, y: 30, width: 354, height: 44 } } });
-      fireEvent(get("execution-sheet-table-row-1-target-cell"), "layout", { nativeEvent: { layout: { x: 42, y: 4, width: 128, height: 36 } } });
-      fireEvent.press(get("execution-sheet-table-row-1-target-value-press"));
+      fireEvent(get("execution-sheet-table-row-1-motion"), "layout", { nativeEvent: { layout: { x: -4, y: 32, width: 336, height: 36 } } });
+      fireEvent(get("execution-sheet-table-row-1-target-cell"), "layout", { nativeEvent: { layout: { x: 58, y: 6, width: 71, height: 24 } } });
+      fireEvent.press(get("execution-sheet-table-row-1-target"));
     };
     cellWheel();
     fireEvent.press(screen.getByTestId("duration-wheel-failure-option"));
@@ -5201,5 +5284,153 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
     tap("execution-sheet-series-increment");
     expect(valueOf("execution-sheet-series")).toBe("3 séries");
     expect(get("execution-sheet-table-row-3")).toBeTruthy();
+  });
+});
+
+/**
+ * PRE-5 story 2.6 (AC2 à AC5 ; FR-29, FR-22, FR-4 ; AD-27, AD-28 ; UX-DR3) — tableau des
+ * séries sans steppers de cellule, lignes de 36 : cellules à valeur seule ; la cellule Cible
+ * ouvre la roue de sa ligne, la cellule Pause le ± de cette seule cellule (famille ±) ;
+ * briques partagées (`sheetTable.tsx`). Jest ne prouve que l'arbre JS : la cible tactile de
+ * 36 (AC1, R-2.6-01) et le rendu (R-2.6-02, R-2.6-03) relèvent de Hermann sur iPhone.
+ */
+describe("ExecutionParametersSheet — PRE-5 story 2.6", () => {
+  const hidden = { includeHiddenElements: true } as const;
+  const get = (testID: string) => screen.getByTestId(testID, hidden);
+  const query = (testID: string) => screen.queryByTestId(testID, hidden);
+  const styleOf = (testID: string) => StyleSheet.flatten(get(testID).props.style) ?? {};
+  const rows = () => screen.queryAllByTestId(/^execution-sheet-table-row-\d+$/, hidden).length;
+  const pauseField = (row: number) => query(`execution-sheet-table-row-${row}-pause-field`);
+  const measureRow = (row: number) => {
+    fireEvent(get(`execution-sheet-table-row-${row}-motion`), "layout", {
+      nativeEvent: { layout: { x: -4, y: 32 + 36 * (row - 1), width: 336, height: 36 } },
+    });
+    fireEvent(get(`execution-sheet-table-row-${row}-target-cell`), "layout", { nativeEvent: { layout: { x: 58, y: 6, width: 71, height: 24 } } });
+  };
+
+  it("PRE5-2.6/AC2 — bloc blanc sans contour, rayon 8, à 8 du cadre ; en-têtes et cellules sur la même suite de colonnes (71, écart 7) ; lignes de 36 ; une hauteur de ligne sous la dernière ; aucun InlineStepper au repos", () => {
+    renderSheet(params({ series: variableRows([[30, 10], [45, 20], [60, 30]]) }));
+    const block = styleOf("execution-sheet-table-content");
+    expect(block).toMatchObject({ backgroundColor: "#FFFFFF", borderRadius: 8, marginVertical: 12, paddingHorizontal: 4, paddingBottom: TABLE_ROW_HEIGHT });
+    expect(block.borderWidth).toBeUndefined();
+    // Le cadre de découpe déborde de 4 dans la marge de 12 du groupe : bloc à 8 du contour.
+    expect(styleOf("execution-sheet-table")).toMatchObject({ marginHorizontal: -4, paddingHorizontal: 4 });
+    expect(block.marginHorizontal).toBe(-4);
+    for (const row of [1, 2, 3]) {
+      expect(styleOf(`execution-sheet-table-row-${row}`)).toMatchObject({ height: 36, borderTopWidth: 1 });
+      expect(styleOf(`execution-sheet-table-row-${row}-target`)).toMatchObject({ width: 71, minHeight: 24, borderRadius: 8 });
+      expect(styleOf(`execution-sheet-table-row-${row}-pause-toggle`)).toMatchObject({ width: 71, minHeight: 24, borderRadius: 8 });
+    }
+    const header = get("execution-sheet-table-header");
+    expect(StyleSheet.flatten(header.props.style)).toMatchObject({ minHeight: 32 });
+    const headers = within(header).getAllByText(/^(Durée|Pause)$/);
+    expect(headers.map((node) => StyleSheet.flatten(node.props.style)).map((style) => [style.width, style.textAlign, style.fontSize, style.color])).toEqual([
+      [71, "center", 12, "#595E66"],
+      [71, "center", 12, "#595E66"],
+    ]);
+    // La ligne « Nombre de séries » et les autres lignes de la Feuille restent à 44.
+    expect(styleOf("execution-sheet-row-series-line")).toMatchObject({ minHeight: 44 });
+    expect(screen.UNSAFE_root.findAllByType(InlineStepper)).toHaveLength(0);
+    fireEvent.press(get("execution-sheet-table-row-2-pause-toggle"));
+    expect(screen.UNSAFE_root.findAllByType(InlineStepper)).toHaveLength(1);
+  });
+
+  it("PRE5-2.6/AC3 — cellule Cible : roue de SA ligne sous la ligne, « À l'échec » en tête ; ✓ ne change que cette ligne ; la cellule active passe à #EAEAFF ; le tableau reste sélectionné", () => {
+    const { onApply } = renderSheet(params({ series: variableRows([[30, 10], [45, 20], [60, 30]]) }));
+    measureRow(2);
+    fireEvent.press(get("execution-sheet-table-row-2-target"));
+    expect(within(get("execution-sheet-cell-panel")).getByTestId("duration-wheel-failure-option")).toBeTruthy();
+    expect(styleOf("execution-sheet-table-row-2-target").backgroundColor).toBe("#EAEAFF");
+    expect(styleOf("execution-sheet-table-row-1-target").backgroundColor).not.toBe("#EAEAFF");
+    expect(styleOf("execution-sheet-variable-group").backgroundColor).toBe("#F2F2FF");
+    fireEvent.press(get("duration-wheel-failure-option"));
+    fireEvent.press(get("duration-wheel-validate"));
+    expect(query("execution-sheet-cell-panel")).toBeNull();
+    validate();
+    expect(applied(onApply).series).toEqual({
+      kind: "VARIABLE",
+      rows: [
+        { target: numberTarget(30), pauseSeconds: 10, loadKg: 0 },
+        { target: failureTarget(), pauseSeconds: 20, loadKg: 0 },
+        { target: numberTarget(60), pauseSeconds: 30, loadKg: 0 },
+      ],
+    });
+  });
+
+  it("PRE5-2.6/AC3 — autre surface : ± de la Pause de la ligne 1 ouvert, toucher la Cible de la ligne 2 le ferme et ouvre la roue dans le même geste ; ses ± ne le ferment jamais ; le tableau reste sélectionné", () => {
+    renderSheet(params({ series: variableRows([[30, 10], [45, 20]]) }));
+    measureRow(2);
+    tap("execution-sheet-table-row-1-pause-increment");
+    expect(pauseField(1)).not.toBeNull();
+    expect(styleOf("execution-sheet-variable-group").backgroundColor).toBe("#F2F2FF");
+    fireEvent.press(get("execution-sheet-table-row-2-target"));
+    expect(pauseField(1)).toBeNull();
+    expect(query("execution-sheet-cell-panel")).not.toBeNull();
+    expect(String(get("execution-sheet-table-row-1-pause-value").props.children)).toBe("11 s");
+    // Inversement : un Sélecteur ouvert se ferme sans ouvrir la Pause touchée (T10).
+    fireEvent.press(get("execution-sheet-table-row-1-pause-toggle"));
+    expect(query("execution-sheet-cell-panel")).toBeNull();
+    expect(pauseField(1)).toBeNull();
+    // Un champ hors tableau (N) ferme la Pause dans le même geste et désélectionne le tableau.
+    fireEvent.press(get("execution-sheet-table-row-1-pause-toggle"));
+    fireEvent.press(get("execution-sheet-series-toggle"));
+    expect(pauseField(1)).toBeNull();
+    expect(get("execution-sheet-series-field")).toBeTruthy();
+    expect(styleOf("execution-sheet-variable-group").backgroundColor).toBeUndefined();
+  });
+
+  it("PRE5-2.6/AC3 — croix avec le ± de la Pause ouvert : l'appui le range, aucune ligne retirée ; appui extérieur : rangé ; ✓ de la Feuille non absorbé", () => {
+    const { onApply } = renderSheet(params({ series: variableRows([[30, 10], [45, 20], [60, 30]]) }));
+    tap("execution-sheet-table-row-1-pause-increment");
+    fireEvent.press(get("execution-sheet-table-row-2-remove"));
+    expect(pauseField(1)).toBeNull();
+    expect(rows()).toBe(3);
+    expect(query("execution-sheet-adjusted")).toBeNull();
+    fireEvent.press(get("execution-sheet-table-row-1-pause-toggle"));
+    fireEvent.press(get("execution-sheet-body-outside"));
+    expect(pauseField(1)).toBeNull();
+    fireEvent.press(get("execution-sheet-table-row-1-pause-toggle"));
+    validate();
+    expect(applied(onApply).series).toEqual(variableRows([[30, 11], [45, 20], [60, 30]]));
+  });
+
+  it("PRE5-2.6/AC3 — retrait d'une autre ligne puis Annuler : le ± ouvert reste sur SA ligne (identité, jamais rang)", () => {
+    renderSheet(params({ series: variableRows([[30, 10], [45, 20], [60, 30]]) }));
+    fireEvent.press(get("execution-sheet-table-row-1-remove"));
+    expect(rows()).toBe(2);
+    // L'ancienne ligne 3 est maintenant la ligne 2 : son champ s'ouvre sur 30 s.
+    fireEvent.press(get("execution-sheet-table-row-2-pause-toggle"));
+    expect(valueOf("execution-sheet-table-row-2-pause")).toBe("30 s");
+    fireEvent.press(get("execution-sheet-adjusted-undo"));
+    expect(rows()).toBe(3);
+    expect(pauseField(3)).not.toBeNull();
+    expect(pauseField(2)).toBeNull();
+    expect(valueOf("execution-sheet-table-row-3-pause")).toBe("30 s");
+  });
+
+  it("PRE5-2.6/AC5 (NR Δ38) — le tableau suit N par le stepper PRE-4 inchangé : ligne ajoutée puis retirée, réserves restaurées (Q29) ; aucune valeur au clavier", () => {
+    const { onApply } = renderSheet(params({ series: variableRows([[30, 10], [45, 20], [60, 30]]) }));
+    tap("execution-sheet-series-decrement");
+    expect(rows()).toBe(2);
+    expect(query("execution-sheet-table-row-3")).toBeNull();
+    tap("execution-sheet-series-increment");
+    expect(rows()).toBe(3);
+    expect([valueOf("execution-sheet-table-row-3-target"), valueOf("execution-sheet-table-row-3-pause")]).toEqual(["1 min", "30 s"]);
+    tap("execution-sheet-series-increment");
+    expect(rows()).toBe(4);
+    tap("execution-sheet-series-decrement");
+    expect(rows()).toBe(3);
+    expect(screen.UNSAFE_root.findAll((node) => node.props.keyboardType !== undefined)).toHaveLength(0);
+    validate();
+    expect(applied(onApply).series).toEqual(variableRows([[30, 10], [45, 20], [60, 30]]));
+  });
+
+  it("PRE5-2.6/AC4 — briques partagées : la Feuille ré-exporte `dragDestination`, `tableRowIdentity` et `TABLE_ROW_HEIGHT` du module `sheetTable` ; glisser d'une hauteur de ligne de 36", () => {
+    expect(TABLE_ROW_HEIGHT).toBe(SHARED_TABLE_ROW_HEIGHT);
+    expect(dragDestination).toBe(sharedDragDestination);
+    expect(tableRowIdentity).toBe(sharedTableRowIdentity);
+    renderSheet(params({ series: variableRows([[30, 10], [45, 20], [60, 30]]) }));
+    dragHandle(1, TABLE_ROW_HEIGHT);
+    expect([1, 2].map((row) => valueOf(`execution-sheet-table-row-${row}-target`))).toEqual(["45 s", "30 s"]);
   });
 });

@@ -1006,20 +1006,23 @@ describe("PRE4-4.1/AC10 — relecture à l'identique après bascules, dans les q
  */
 const hidden = { includeHiddenElements: true } as const;
 
-/** Mise en page simulée d'une ligne du tableau et de sa cellule de Cible (le panneau de la roue attend ces mesures). */
+/**
+ * Mise en page simulée d'une ligne du tableau et de sa cellule de Cible (le panneau de la roue
+ * attend ces mesures). PRE-5 story 2.6 : lignes de 36, cellules 71 × 24 (Figma `9290:17953`).
+ */
 function measureTableRow(row: number) {
   fireEvent(screen.getByTestId(`execution-sheet-table-row-${row}-motion`, hidden), "layout", {
-    nativeEvent: { layout: { x: -12, y: 30 + 44 * (row - 1), width: 354, height: 44 } },
+    nativeEvent: { layout: { x: -4, y: 32 + 36 * (row - 1), width: 336, height: 36 } },
   });
   fireEvent(screen.getByTestId(`execution-sheet-table-row-${row}-target-cell`, hidden), "layout", {
-    nativeEvent: { layout: { x: 42, y: 4, width: 128, height: 36 } },
+    nativeEvent: { layout: { x: 58, y: 6, width: 71, height: 24 } },
   });
 }
 
-/** Saisit la Cible d'une ligne par sa roue : une durée en secondes, ou l'option « à l'échec ». */
+/** Saisit la Cible d'une ligne par la roue que sa cellule ouvre : une durée en secondes, ou l'option « à l'échec ». */
 function enterRowTarget(row: number, target: number | "FAILURE") {
   measureTableRow(row);
-  fireEvent.press(screen.getByTestId(`execution-sheet-table-row-${row}-target-value-press`, hidden));
+  fireEvent.press(screen.getByTestId(`execution-sheet-table-row-${row}-target`, hidden));
   if (target === "FAILURE") {
     fireEvent.press(screen.getByTestId("duration-wheel-failure-option"));
   } else {
