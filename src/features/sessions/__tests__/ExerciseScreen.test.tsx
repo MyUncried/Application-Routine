@@ -466,7 +466,12 @@ describe("ExerciseScreen — PRE-3 (quatre parcours)", () => {
     });
     expect(await screen.findByDisplayValue("Fentes")).toBeTruthy();
     expect(screen.getByDisplayValue("Dos droit")).toBeTruthy();
-    expect(screen.getByTestId("exercise-parameters-countdown").props.children).toBe("3 s");
+    // PRE-5 story 3.2 (R-14) : CR/Fin ne sont plus sur la Carte ; la Feuille les rouvre.
+    fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+    fireEvent.press(screen.getByLabelText("Afficher le compte à rebours et la fin d’exercice"));
+    expect(screen.getByTestId("execution-sheet-countdown-value").props.children).toBe("3 s");
+    expect(screen.getByTestId("execution-sheet-end-value").props.children).toBe("2 s");
+    fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
     expect(screen.getByTestId("media-item-1")).toBeTruthy();
     await act(async () => {
       fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
@@ -499,7 +504,8 @@ describe("ExerciseScreen — PRE-3 (quatre parcours)", () => {
     const existing = canonicalOccurrence();
     const { updateDraft } = renderRoute({ params: { exerciseId: "occ-1" }, exercises: [existing] });
     expect(screen.getByTestId("media-item-1")).toBeTruthy();
-    expect(screen.getByTestId("exercise-parameters-end").props.children).toBe("2 s");
+    // PRE-5 story 3.2 (R-14) : la Fin (2 s) n'est plus sur la Carte ; Terminer la conserve (CANONICAL).
+    expect(screen.queryByTestId("exercise-parameters-end")).toBeNull();
     fireEvent.changeText(screen.getByTestId("exercise-instruction-input"), "Genou aligné");
     fireEvent.press(screen.getByTestId("exercise-finish-action"));
     expect(updateDraft.mock.calls[0]![0].exercises![0]).toMatchObject({
@@ -548,23 +554,38 @@ describe("ExerciseScreen — PRE-3 (quatre parcours)", () => {
   });
 
   it("P3-10/profile-new-only — un nouvel Exercice copie CR/Fin du Profil ; la PC est copiée à l'activation ; un objet existant garde 7/3/2", async () => {
-    renderRoute({ profile: { exerciseCountdownSecondsDefault: 12, exerciseEndSecondsDefault: 6, sideChangeRecoverySecondsDefault: 9 } });
-    await waitFor(() => expect(screen.getByTestId("exercise-parameters-countdown").props.children).toBe("12 s"));
-    expect(screen.getByTestId("exercise-parameters-end").props.children).toBe("6 s");
-    fireEvent.press(screen.getByTestId("exercise-parameters-card"));
-    // PRE-5 story 2.5 (AC4, D-409, RM-218) : Exercice ouvert depuis une Séance — la Feuille ne
-    // présente ni Compte à rebours ni Fin, ni le chevron de la Durée de l'exercice.
-    expect(screen.queryByTestId("execution-sheet-row-countdown")).toBeNull();
-    expect(screen.queryByTestId("execution-sheet-row-end")).toBeNull();
-    expect(screen.queryByTestId("execution-sheet-duration-disclosure-frame")).toBeNull();
-    // PRE-5 story 2.5 (AC1) : Avec (Sans → Avec) copie la Pause entre les côtés du Profil.
-    chooseExecutionSide("Avec");
-    expect(screen.getByTestId("execution-sheet-side-recovery-value").props.children).toBe("9 s");
-    fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
+    const created = renderRoute({ profile: { exerciseCountdownSecondsDefault: 12, exerciseEndSecondsDefault: 6, sideChangeRecoverySecondsDefault: 9 } });
+    // PRE-5 story 3.2 (R-14) : CR/Fin ne sont plus sur la Carte ; leur copie est vérifiée à Terminer.
+    expect(screen.queryByTestId("exercise-parameters-countdown")).toBeNull();
+    // Le Profil se charge de façon asynchrone : on attend son effet observable, la Pause entre
+    // les côtés copiée du Profil (9 s) à l'activation de Avec — chaque essai annule la Feuille.
+    await waitFor(() => {
+      fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+      // PRE-5 story 2.5 (AC4, D-409, RM-218) : Exercice ouvert depuis une Séance — la Feuille ne
+      // présente ni Compte à rebours ni Fin, ni le chevron de la Durée de l'exercice.
+      expect(screen.queryByTestId("execution-sheet-row-countdown")).toBeNull();
+      expect(screen.queryByTestId("execution-sheet-row-end")).toBeNull();
+      expect(screen.queryByTestId("execution-sheet-duration-disclosure-frame")).toBeNull();
+      // PRE-5 story 2.5 (AC1) : Avec (Sans → Avec) copie la Pause entre les côtés du Profil.
+      chooseExecutionSide("Avec");
+      const sideRecovery = screen.getByTestId("execution-sheet-side-recovery-value").props.children as string;
+      fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
+      expect(sideRecovery).toBe("9 s");
+    });
+    await fillNewExercise();
+    fireEvent.press(screen.getByTestId("exercise-finish-action"));
+    expect(created.updateDraft.mock.calls[0]![0].exercises![0]!.executionParameters).toMatchObject({
+      countdownSeconds: 12,
+      endSeconds: 6,
+    });
 
     const existing = canonicalOccurrence({ id: "occ-9" });
-    renderRoute({ params: { exerciseId: "occ-9" }, exercises: [existing], profile: { exerciseCountdownSecondsDefault: 20 } });
-    expect(screen.getAllByTestId("exercise-parameters-countdown").at(-1)!.props.children).toBe("3 s");
+    const second = renderRoute({ params: { exerciseId: "occ-9" }, exercises: [existing], profile: { exerciseCountdownSecondsDefault: 20 } });
+    fireEvent.press(screen.getAllByTestId("exercise-finish-action").at(-1)!);
+    expect(second.updateDraft.mock.calls[0]![0].exercises![0]!.executionParameters).toMatchObject({
+      countdownSeconds: 3,
+      endSeconds: 2,
+    });
   });
 
   it("P3-13/no-auto-R — nouvelle occurrence : R = 0 s quel que soit le Profil ; occurrence existante : R = 30 s inchangée", async () => {
@@ -924,11 +945,12 @@ describe("ExerciseScreen — adaptateur Catalogue (contrats conservés)", () => 
     expect(screen.getByTestId("activity-editor-load-error")).toBeTruthy();
   });
 
-  it("shows the Category's colored swatch before its name in the pill", async () => {
+  // PRE-5 story 3.2 (FR-38) : la pastille devient le glyphe Catégorie plein teinté de sa couleur.
+  it("shows the Category's glyph tinted with its color before its name", async () => {
     renderRoute({ params: { catalogueDefinitionId: "new" } });
     await chooseCategory();
     await waitFor(() =>
-      expect(StyleSheet.flatten(screen.getByTestId("activity-editor-category-swatch").props.style).backgroundColor).toBe("#3B82F6"),
+      expect(StyleSheet.flatten(screen.getByTestId("activity-editor-category-glyph").props.style).tintColor).toBe("#3B82F6"),
     );
     expect(screen.getByText("Cardio")).toBeTruthy();
   });
@@ -1281,7 +1303,7 @@ describe("ExerciseScreen — PRE-4 story 4.2", () => {
  * dans les deux adaptateurs. Rappel NFR-04 : pas de recette visuelle ici.
  */
 describe("ExerciseScreen — PRE-4 story 4.3", () => {
-  it("PRE4-4.3/AC2 — CC : icône Catégorie pleine pendant l'ouverture de sa feuille, au contour après ✕ ; après ✓, la pilule pastille + nom remplace l'icône", async () => {
+  it("PRE4-4.3/AC2 — CC : icône Catégorie pleine pendant l'ouverture de sa feuille, au contour après ✕ ; après ✓, le glyphe teinté + nom remplace l'icône (PRE-5 3.2)", async () => {
     renderRoute({ params: { catalogueDefinitionId: "new" } });
     expect(await screen.findByTestId("activity-editor-category-icon")).toBeTruthy();
     fireEvent.press(screen.getByTestId("activity-editor-category-button"));
@@ -1294,7 +1316,7 @@ describe("ExerciseScreen — PRE-4 story 4.3", () => {
     expect(screen.queryByTestId("activity-editor-category-icon-filled")).toBeNull();
     await chooseCategory();
     expect(screen.queryByTestId("activity-editor-category-icon-filled")).toBeNull();
-    expect(screen.getByTestId("activity-editor-category-swatch")).toBeTruthy();
+    expect(screen.getByTestId("activity-editor-category-glyph")).toBeTruthy();
   });
 
   it("PRE4-4.3/AC2 — MS : même icône pleine pendant l'ouverture, au contour après ✕ ; après ✓, ni icône pleine ni état « développé » (adaptateur Séance)", async () => {
@@ -1306,11 +1328,11 @@ describe("ExerciseScreen — PRE-4 story 4.3", () => {
     fireEvent.press(screen.getByTestId("category-picker-close"));
     expect(screen.getByTestId("activity-editor-category-icon")).toBeTruthy();
     // Chemin ✓ : la feuille fermée, l'accès n'est plus « développé » ni plein ; la
-    // Catégorie choisie s'affiche en pastille + nom (aucune icône dans cet état).
+    // Catégorie choisie s'affiche en glyphe teinté + nom (PRE-5 3.2 ; ni contour ni plein d'ouverture).
     await chooseCategory();
     expect(screen.queryByTestId("activity-editor-category-icon-filled")).toBeNull();
     expect(screen.getByTestId("activity-editor-category-button").props.accessibilityState).toEqual({ expanded: false });
-    expect(screen.getByTestId("activity-editor-category-swatch")).toBeTruthy();
+    expect(screen.getByTestId("activity-editor-category-glyph")).toBeTruthy();
   });
 
   it("PRE4-4.3/AC2 — CS : accès Zones plein et « développé » pendant l'ouverture de sa feuille, au contour après ✕ puis après ✓", async () => {

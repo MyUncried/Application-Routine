@@ -340,8 +340,9 @@ describe("Éditeur — PRE-4 story 4.6", () => {
     expect(screen.getByTestId("exercise-body-zones-open").props.accessibilityLabel).toBe(
       `${strings.screens.exercise.bodyZones.accessibilityLabel} Cou, Cuisses`,
     );
-    // Phrase et lignes de la Carte : aucune hauteur, hauteur intrinsèque.
-    for (const testID of ["exercise-parameters-card", "exercise-parameters-phrase", "exercise-parameters-countdown", "exercise-parameters-end"]) {
+    // Carte et Phrase : aucune hauteur, hauteur intrinsèque (PRE-5 3.2 : plus de lignes
+    // Compte à rebours / Fin sur la Carte).
+    for (const testID of ["exercise-parameters-card", "exercise-parameters-phrase"]) {
       expect({ testID, height: StyleSheet.flatten(screen.getByTestId(testID).props.style).height }).toEqual({ testID, height: undefined });
     }
     // Hauteurs fixes sur un texte : ↑ de la Description (cercle de 32, symbole) et tuiles Médias
@@ -396,7 +397,7 @@ describe("Éditeur — PRE-4 story 4.6", () => {
     }
   });
 
-  it("PRE4-4.6/AC10 — lexique, par lecture des sources de l'Éditeur et des référentiels : aucun texte en dur dans les attributs porteurs de texte (littéraux, ternaires, gabarits), les valeurs et actions d'accessibilité, ni en texte JSX (`>Texte<`, `{\"…\"}`) ; limite : une chaîne rangée dans une variable locale ou une prop calculée hors de ces attributs n'est pas captée ; exception consignée : unité « s » du libellé de la Carte (composition PRE-3, 4.2 AC6)", () => {
+  it("PRE4-4.6/AC10 — lexique, par lecture des sources de l'Éditeur et des référentiels : aucun texte en dur dans les attributs porteurs de texte (littéraux, ternaires, gabarits), les valeurs et actions d'accessibilité, ni en texte JSX (`>Texte<`, `{\"…\"}`) ; limite : une chaîne rangée dans une variable locale ou une prop calculée hors de ces attributs n'est pas captée ; aucune exception (PRE-5 3.2 : l'unité « s » du libellé de la Carte a disparu)", () => {
     const sources = [
       "src/features/activities/ActivityEditorForm.tsx",
       "src/features/activities/ActivityMediaList.tsx",
@@ -452,11 +453,9 @@ describe("Éditeur — PRE-4 story 4.6", () => {
       ];
       found.push(...hits.map((text) => ({ source, text })));
     }
-    // Seule exception : « {n} s » dans le libellé de la Carte, composition du code de départ que
-    // 4.2 AC6 impose de garder (« Compte à rebours {n} s, Fin d’exercice {n} s. ») — question à Hermann.
-    expect(found.map(({ source, text }) => ({ source, text: text.replace(/\s+/g, " ") }))).toEqual([
-      { source: "src/features/activities/ActivityEditorForm.tsx", text: ". s, s." },
-    ]);
+    // PRE-5 story 3.2 (R-14, FR-36) : l'exception « {n} s » du libellé de la Carte disparaît avec
+    // Compte à rebours et Fin ; plus aucun texte en dur n'est relevé.
+    expect(found.map(({ source, text }) => ({ source, text: text.replace(/\s+/g, " ") }))).toEqual([]);
     // Le contrôle détecte bien chaque forme interdite.
     expect(LETTER.test(literalPart("Série ${n}"))).toBe(true);
     expect(literalPart("${a} ${b}")).toBe(" ");
