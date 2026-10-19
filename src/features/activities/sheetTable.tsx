@@ -49,11 +49,14 @@ const HANDLE_HEIGHT = 18;
 const NUMBER_LEFT = 14;
 /** Cellule à valeur seule : 71 × 24, rayon 8, cellules séparées de 7. */
 export const TABLE_CELL_WIDTH = 71;
-const TABLE_CELL_HEIGHT = 24;
+export const TABLE_CELL_HEIGHT = 24;
 const TABLE_CELL_RADIUS = 8;
 export const TABLE_CELL_GAP = 7;
-/** Cellule active (relevé Figma, comme la cellule de charge en saisie de la story 2.2). */
-const TABLE_CELL_ACTIVE_BACKGROUND = "#EAEAFF";
+/**
+ * Cellule active (relevé Figma `9292:18077` : cellule de charge en saisie, story 2.2) ;
+ * partagée avec `KeyboardField`.
+ */
+export const TABLE_CELL_ACTIVE_BACKGROUND = "#EAEAFF";
 /** Zone de la croix au bord droit ; disque accepté de 28 (story 3.6) conservé. */
 const TABLE_REMOVE_ZONE = 36;
 const TABLE_REMOVE_DISC = 28;
@@ -540,3 +543,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.snackbarActionSurface,
   },
 });
+
+/**
+ * PRE-5 story 2.2 : gabarit de la cellule (71 × 24, rayon 8, valeur Semi Bold 13 primaire),
+ * réutilisé par la cellule Charge (`KeyboardField`) sans copie des mesures.
+ */
+export const tableCellStyle = styles.cell;
+export const tableCellValueStyle = styles.cellValue;

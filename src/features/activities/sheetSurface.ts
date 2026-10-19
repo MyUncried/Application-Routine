@@ -39,12 +39,33 @@
  * cellule ; il suit la famille ± (même geste pour ouvrir une autre surface, ses ± ne le
  * ferment jamais, appui extérieur qui le range, ✓ / ✕ non absorbés). `l` est l'identité
  * de ligne (`rowIds`) ; « Ligne disparue » le ferme aussi.
+ *
+ * PRE-5 story 2.2 (AD-26, AD-27) : surface `keyboard(champ)`, un champ clavier focalisé
+ * (charge commune ou d'une ligne ; libellé de phase en 2.8). Elle suit la famille ± : une
+ * autre surface touchée s'ouvre dans le même geste, un appui extérieur la range, « Ligne
+ * disparue » la ferme ; toucher le même champ ne la ferme pas (le champ garde le focus).
+ * La perte du focus natif (`blur`) ne ferme que si ce champ est la surface ouverte. ✓ et ✕
+ * sont absorbés pendant une saisie (Q47 : premier appui = sortie du champ).
  */
 
 export type SheetPopover = "side" | "order";
 export type SheetSelector = "commonTarget" | "total";
 /** Valeurs numériques hors tableau réglées par ± (FR-10-05). */
 export type SheetStepperField = "count" | "pause" | "sideRecovery" | "beep" | "countdown" | "end";
+
+/**
+ * PRE-5 story 2.2 : champ clavier de la Feuille — charge commune (`"uniform"`) ou d'une ligne
+ * d'identité `row` (`rowIds`, jamais un rang) ; libellé de la phase d'identité `phase` (2.8).
+ */
+export type KeyboardFieldId =
+  | { readonly kind: "load"; readonly row: number | "uniform" }
+  | { readonly kind: "phaseLabel"; readonly phase: number };
+
+/** Même champ clavier. */
+export function sameKeyboardField(a: KeyboardFieldId, b: KeyboardFieldId): boolean {
+  if (a.kind === "load") return b.kind === "load" && a.row === b.row;
+  return b.kind === "phaseLabel" && a.phase === b.phase;
+}
 
 export type SheetSurface =
   | { readonly kind: "popover"; readonly popover: SheetPopover }
@@ -53,7 +74,9 @@ export type SheetSurface =
   | { readonly kind: "selector"; readonly selector: "rowTarget"; readonly row: number }
   | { readonly kind: "stepper"; readonly field: SheetStepperField }
   /** PRE-5 story 2.6 : champ ± de la Pause de la ligne d'identité `row`. */
-  | { readonly kind: "stepper"; readonly field: "rowPause"; readonly row: number };
+  | { readonly kind: "stepper"; readonly field: "rowPause"; readonly row: number }
+  /** PRE-5 story 2.2 : champ clavier focalisé. */
+  | { readonly kind: "keyboard"; readonly field: KeyboardFieldId };
 
 export type OpenSurface = { readonly kind: "none" } | (SheetSurface & { readonly key: number });
 
@@ -81,7 +104,9 @@ export type SheetSurfaceEvent =
   /** Ferme la surface ouverte si elle n'existe plus (Q38 : Ordre masqué à N = 1). */
   | { readonly type: "prune"; readonly removed: readonly SheetSurface[] }
   /** Story 3.6 (« Ligne disparue ») : identités des lignes du Brouillon après une transition. */
-  | { readonly type: "rows"; readonly rowIds: readonly number[] };
+  | { readonly type: "rows"; readonly rowIds: readonly number[] }
+  /** PRE-5 story 2.2 : perte du focus natif d'un champ clavier ; ne ferme que si ce champ est ouvert. */
+  | { readonly type: "blur"; readonly field: KeyboardFieldId };
 
 export const INITIAL_SHEET_SURFACE_STATE: SheetSurfaceState = { open: { kind: "none" }, closingKey: null, generation: 0 };
 
@@ -101,6 +126,8 @@ export function sameSurface(a: OpenSurface | SheetSurface, b: SheetSurface): boo
       if (b.kind !== "stepper" || a.field !== b.field) return false;
       // PRE-5 story 2.6 : deux champs de Pause de ligne ne sont la même surface que pour la même ligne.
       return a.field !== "rowPause" || (b.field === "rowPause" && a.row === b.row);
+    case "keyboard":
+      return b.kind === "keyboard" && sameKeyboardField(a.field, b.field);
     default:
       return false;
   }
@@ -120,11 +147,14 @@ export function sheetSurfaceReducer(state: SheetSurfaceState, event: SheetSurfac
     case "touch": {
       // T15, T16, T24 ; story 3.6 T2, T3 : rien d'ouvert — la surface touchée s'ouvre.
       if (open.kind === "none") return openNew(state, event.surface);
+      // PRE-5 story 2.2 : même champ clavier (focus redonné, ou Précédent / Suivant déjà
+      // annoncé) — état inchangé, le champ reste ouvert.
+      if (open.kind === "keyboard" && sameSurface(open, event.surface)) return state;
       // Second toucher sur le champ de la surface ouverte : fermeture sans application.
       if (sameSurface(open, event.surface)) return closeAll(state);
       // T20, T15, T24 ; story 3.6 T21 : champ ± ouvert — il se ferme et l'autre surface
-      // s'ouvre d'un seul geste.
-      if (open.kind === "stepper") return openNew(state, event.surface);
+      // s'ouvre d'un seul geste. PRE-5 story 2.2 : un champ clavier suit la même famille.
+      if (open.kind === "stepper" || open.kind === "keyboard") return openNew(state, event.surface);
       // T10 : popover ou Sélecteur ouvert — fermeture sans application ; le champ touché ne s'ouvre pas.
       return closeAll(state);
     }
@@ -139,7 +169,8 @@ export function sheetSurfaceReducer(state: SheetSurfaceState, event: SheetSurfac
     case "outside":
       // T23 : seul un champ ± est rangé par un appui extérieur dans le corps ; les
       // popovers et panneaux ont leur propre fermeture extérieure (T7).
-      return open.kind === "stepper" ? closeAll(state) : state;
+      // PRE-5 story 2.2 : un champ clavier aussi.
+      return open.kind === "stepper" || open.kind === "keyboard" ? closeAll(state) : state;
     case "closeAll":
       return closeAll(state);
     case "prune":
@@ -148,9 +179,16 @@ export function sheetSurfaceReducer(state: SheetSurfaceState, event: SheetSurfac
       // « Ligne disparue » (AD-15) : règle défensive après toute transition du Brouillon ;
       // PRE-5 story 2.6 : vaut aussi pour le champ ± de la Pause d'une ligne.
       return (open.kind === "selector" && open.selector === "rowTarget" && !event.rowIds.includes(open.row)) ||
-        (open.kind === "stepper" && open.field === "rowPause" && !event.rowIds.includes(open.row))
+        (open.kind === "stepper" && open.field === "rowPause" && !event.rowIds.includes(open.row)) ||
+        // PRE-5 story 2.2 : vaut aussi pour le champ clavier de la charge d'une ligne.
+        (open.kind === "keyboard" &&
+          open.field.kind === "load" &&
+          open.field.row !== "uniform" &&
+          !event.rowIds.includes(open.field.row))
         ? closeAll(state)
         : state;
+    case "blur":
+      return open.kind === "keyboard" && sameKeyboardField(open.field, event.field) ? closeAll(state) : state;
   }
 }
 
@@ -173,5 +211,8 @@ export function removalEnabled(state: SheetSurfaceState): boolean {
  */
 export function sheetCommandsAbsorbed(state: SheetSurfaceState): boolean {
   const open = state.open;
+  // PRE-5 story 2.2 (AD-27, Q47) : une saisie au clavier absorbe aussi ✓ et ✕ (premier
+  // appui = sortie du champ, valeur appliquée).
+  if (open.kind === "keyboard") return true;
   return (open.kind === "popover" || open.kind === "selector") && state.closingKey !== open.key;
 }

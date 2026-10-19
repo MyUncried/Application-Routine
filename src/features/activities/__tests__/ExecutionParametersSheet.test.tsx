@@ -1,7 +1,7 @@
 import { Popover, RNHostView } from "@expo/ui/swift-ui";
 import { afterEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
-import { AccessibilityInfo, Modal, Platform, StyleSheet, Switch } from "react-native";
+import { AccessibilityInfo, Modal, Platform, StyleSheet, Switch, TextInput } from "react-native";
 
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import {
@@ -4983,8 +4983,10 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
       // PRE-5 story 2.4 : seconde exception au repos, la géométrie fixe des segmentés `inline`
       // (cadre 32, option 26, relevé UX-DR1 de la story 2.3 ; texte agrandi à juger sur
       // iPhone, report consigné par la revue de 2.3) — Mode, Condition d'arrêt, Type de série.
+      // PRE-5 story 2.2 : segmenté `inline` de la ligne Charge (« Avec | Sans »), même exception.
       const inlineSegmented = [
         ":26",
+        "execution-sheet-load-control:32",
         "execution-sheet-mode-control:32",
         "execution-sheet-series-type-control:32",
         "execution-sheet-stop-condition-control:32",
@@ -5432,5 +5434,372 @@ describe("ExecutionParametersSheet — PRE-5 story 2.6", () => {
     renderSheet(params({ series: variableRows([[30, 10], [45, 20], [60, 30]]) }));
     dragHandle(1, TABLE_ROW_HEIGHT);
     expect([1, 2].map((row) => valueOf(`execution-sheet-table-row-${row}-target`))).toEqual(["45 s", "30 s"]);
+  });
+});
+
+/**
+ * PRE-5 story 2.2 (AC1 à AC5, AC8 ; FR-23 à FR-25, AD-26, AD-27) — essai du champ clavier
+ * de la charge : ligne « Charge » (Avec / Sans), champ commun en identiques, colonne Charge
+ * en variables, barre Précédent / Suivant / « Fermer », surface `keyboard`. Le focus natif
+ * est simulé (`focus`, `changeText`, `blur`) : Jest ne prouve ni le clavier, ni la barre, ni
+ * le défilement réels, qui relèvent de la recette iPhone R-2.2-01 à 07 (aucun constat inventé).
+ */
+describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
+  const hidden = { includeHiddenElements: true } as const;
+  const get = (testID: string) => screen.getByTestId(testID, hidden);
+  const query = (testID: string) => screen.queryByTestId(testID, hidden);
+  const styleOf = (testID: string) => StyleSheet.flatten(get(testID).props.style) ?? {};
+  const UNIFORM = "execution-sheet-load-input";
+  const cell = (row: number) => `execution-sheet-table-row-${row}-load`;
+  const focus = (testID: string) => fireEvent(get(testID), "focus");
+  const blur = (testID: string) => fireEvent(get(testID), "blur");
+  const type = (testID: string, text: string) => fireEvent.changeText(get(testID), text);
+  const shown = (testID: string) => String(get(testID).props.value);
+  const loadChoice = () => selectedValue("execution-sheet-load-control", ["WITH", "WITHOUT"]);
+  const uniformLoad = (loadKg: number, enabled = true) =>
+    params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 15, loadKg, workPhases: [] }, loadEnabled: enabled });
+  const variableLoads = (loads: number[], enabled = true) =>
+    params({
+      series: { kind: "VARIABLE", rows: loads.map((loadKg, index) => ({ target: numberTarget(30 + index), pauseSeconds: 10, loadKg })) },
+      loadEnabled: enabled,
+    });
+  const inputs = () => screen.UNSAFE_root.findAll((node) => node.props.keyboardType !== undefined && typeof node.type === "string");
+
+  it("PRE5-2.2/AC5 — Sans : ligne « Charge » en dernier dans le cadre Séries, segmenté « Avec | Sans » sur Sans, aucun champ ni colonne", () => {
+    renderSheet(params());
+    const frame = get("execution-sheet-frame-series");
+    expect(within(frame).getByTestId("execution-sheet-row-load", hidden)).toBeTruthy();
+    expect(loadChoice()).toBe("WITHOUT");
+    expect(within(get("execution-sheet-row-load")).getByText("Charge", hidden)).toBeTruthy();
+    expect(within(get("execution-sheet-load-control")).getAllByText(/^(Avec|Sans)$/, hidden).map((node) => node.props.children)).toEqual(["Avec", "Sans"]);
+    expect(inputs()).toHaveLength(0);
+    // La ligne Charge suit la Pause (dernière ligne du cadre).
+    const rowIds = within(frame)
+      .queryAllByTestId(/^execution-sheet-row-[a-z-]+$/, hidden)
+      .map((node) => String(node.props.testID))
+      .filter((id) => !/-(selection|line|content)$/.test(id));
+    expect(rowIds.slice(-2)).toEqual(["execution-sheet-row-pause", "execution-sheet-row-load"]);
+  });
+
+  it("PRE5-2.2/AC5, AC3 — identiques : Avec pose 0,25 kg ; focus : surface clavier, fond #EAEAFF annoncé « sélectionné » ; « 1,3 » puis sortie → 1,5 kg ; ✓ applique", () => {
+    const { onApply } = renderSheet(params());
+    fireEvent.press(get("execution-sheet-load-control-WITH"));
+    expect(loadChoice()).toBe("WITH");
+    expect(shown(UNIFORM)).toBe("0,25 kg");
+    expect(get(UNIFORM).props.keyboardType).toBe("decimal-pad");
+    expect(get(UNIFORM).props.inputAccessoryViewID).toBe("execution-sheet-keyboard-bar");
+    focus(UNIFORM);
+    expect(shown(UNIFORM)).toBe("0,25");
+    expect(styleOf(UNIFORM).backgroundColor).toBe("#EAEAFF");
+    expect(get(UNIFORM).props.accessibilityState).toMatchObject({ selected: true });
+    type(UNIFORM, "1,3");
+    expect(shown(UNIFORM)).toBe("1,3");
+    blur(UNIFORM);
+    expect(shown(UNIFORM)).toBe("1,5 kg");
+    expect(styleOf(UNIFORM).backgroundColor).not.toBe("#EAEAFF");
+    validate();
+    expect(applied(onApply)).toMatchObject({ loadEnabled: true, series: { kind: "UNIFORM", loadKg: 1.5 } });
+  });
+
+  it("PRE5-2.2/AC1 — illisible ou négatif : valeur précédente ; champ vidé : 0 kg, et à la fermeture en identiques → Sans", () => {
+    const { onApply } = renderSheet(uniformLoad(20));
+    focus(UNIFORM);
+    type(UNIFORM, "1,2,3");
+    blur(UNIFORM);
+    expect(shown(UNIFORM)).toBe("20 kg");
+    focus(UNIFORM);
+    type(UNIFORM, "-2");
+    blur(UNIFORM);
+    expect(shown(UNIFORM)).toBe("20 kg");
+    focus(UNIFORM);
+    type(UNIFORM, "");
+    blur(UNIFORM);
+    expect(loadChoice()).toBe("WITHOUT");
+    expect(query(UNIFORM)).toBeNull();
+    validate();
+    expect(applied(onApply)).toMatchObject({ loadEnabled: false, series: { kind: "UNIFORM", loadKg: 0 } });
+  });
+
+  it("PRE5-2.2/AC1 (Q47) — ✓ pendant la saisie : 1er appui = sortie du champ, valeur appliquée, Feuille non validée ; 2e appui = validation ; ✕ de même", () => {
+    const { onApply, onCancel } = renderSheet(uniformLoad(20));
+    focus(UNIFORM);
+    type(UNIFORM, "2");
+    validate();
+    expect(onApply).not.toHaveBeenCalled();
+    // Le premier appui retire le focus natif : la sortie du champ applique la valeur.
+    blur(UNIFORM);
+    expect(shown(UNIFORM)).toBe("2 kg");
+    validate();
+    expect(applied(onApply)).toMatchObject({ series: { kind: "UNIFORM", loadKg: 2 } });
+    focus(UNIFORM);
+    fireEvent.press(get("execution-sheet-cancel"));
+    expect(onCancel).not.toHaveBeenCalled();
+    blur(UNIFORM);
+    fireEvent.press(get("execution-sheet-cancel"));
+    expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it("PRE5-2.2/AC1 — valeur appliquée avant toute autre transition : « 1,3 » puis Condition d'arrêt À l'échec, sans sortie du champ ; ✓ (surface fermée, non absorbé) applique 1,5 kg", () => {
+    const { onApply } = renderSheet(uniformLoad(20));
+    focus(UNIFORM);
+    type(UNIFORM, "1,3");
+    fireEvent.press(get(`${STOP_CONTROL}-FAILURE`));
+    validate();
+    expect(applied(onApply)).toMatchObject({ series: { kind: "UNIFORM", target: failureTarget(), loadKg: 1.5 } });
+  });
+
+  it("PRE5-2.2/AC1 — une seule surface : toucher le champ de N pendant la saisie ouvre son ± dans le même geste (clavier rangé) ; la sortie applique la valeur", () => {
+    renderSheet(uniformLoad(20));
+    focus(UNIFORM);
+    type(UNIFORM, "4");
+    fireEvent.press(get("execution-sheet-series-toggle"));
+    expect(get("execution-sheet-series-field")).toBeTruthy();
+    expect(styleOf(UNIFORM).backgroundColor).not.toBe("#EAEAFF");
+    blur(UNIFORM);
+    expect(shown(UNIFORM)).toBe("4 kg");
+    expect(get("execution-sheet-series-field")).toBeTruthy();
+  });
+
+  it("PRE5-2.2/AC1 — sortie sans changement (« 20 » sur 20 kg) : aucune transition, « Série supprimée — Annuler » reste valable (Q29)", () => {
+    renderSheet(variableLoads([20, 30, 40]));
+    fireEvent.press(get("execution-sheet-table-row-3-remove"));
+    expect(get("execution-sheet-adjusted")).toBeTruthy();
+    focus(cell(1));
+    expect(shown(cell(1))).toBe("20");
+    type(cell(1), "20");
+    blur(cell(1));
+    expect(get("execution-sheet-adjusted")).toBeTruthy();
+    fireEvent.press(get("execution-sheet-adjusted-undo"));
+    expect(screen.queryAllByTestId(/^execution-sheet-table-row-\d+$/, hidden)).toHaveLength(3);
+  });
+
+  it("PRE5-2.2/AC2, AC3 — variables : colonne Charge après la Pause ; Suivant / Précédent passent au champ voisin sans normalisation ; extrémités indisponibles ; le fond actif suit ; « Fermer » applique", () => {
+    const { onApply } = renderSheet(variableLoads([0, 20, 5, 6, 7, 8]));
+    expect(within(get("execution-sheet-table-header")).getByText("Charge", hidden)).toBeTruthy();
+    // Largeur de la colonne de 71 (qui peut rétrécir), cellule 24 de haut, cible tactile de 36.
+    expect(styleOf(cell(1))).toMatchObject({ width: "100%", minHeight: 24, borderRadius: 8, height: 24 });
+    expect(styleOf("execution-sheet-table-row-1-load-cell")).toMatchObject({ width: 71, flexShrink: 1 });
+    expect(get(cell(1)).props.hitSlop).toEqual({ top: 6, bottom: 6 });
+    expect([1, 2, 6].map((row) => shown(cell(row)))).toEqual(["0 kg", "20 kg", "8 kg"]);
+    expect(get(cell(2)).props.accessibilityLabel).toBe("Série 2, charge");
+    focus(cell(1));
+    expect(get("execution-sheet-keyboard-previous").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(get("execution-sheet-keyboard-next").props.accessibilityState).toMatchObject({ disabled: false });
+    // Le focus d'une cellule sélectionne le tableau (Q40).
+    expect(styleOf("execution-sheet-variable-group").backgroundColor).toBe("#F2F2FF");
+    fireEvent.press(get("execution-sheet-keyboard-next"));
+    expect(styleOf(cell(2)).backgroundColor).toBe("#EAEAFF");
+    expect(styleOf(cell(1)).backgroundColor).not.toBe("#EAEAFF");
+    // Système : le focus passe de la ligne 1 à la ligne 2 (perte puis prise), clavier ouvert.
+    blur(cell(1));
+    focus(cell(2));
+    type(cell(2), "");
+    fireEvent.press(get("execution-sheet-keyboard-previous"));
+    blur(cell(2));
+    focus(cell(1));
+    // Toutes les charges à 0, mais aucune normalisation pendant Précédent : colonne présente.
+    expect(shown(cell(2))).toBe("0 kg");
+    expect(loadChoice()).toBe("WITH");
+    expect(styleOf(cell(1)).backgroundColor).toBe("#EAEAFF");
+    // Dernière ligne : Suivant indisponible, sans boucle.
+    blur(cell(1));
+    expect(loadChoice()).toBe("WITH");
+    focus(cell(6));
+    expect(get("execution-sheet-keyboard-next").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(get("execution-sheet-keyboard-previous").props.accessibilityState).toMatchObject({ disabled: false });
+    fireEvent.press(get("execution-sheet-keyboard-next"));
+    expect(styleOf(cell(6)).backgroundColor).toBe("#EAEAFF");
+    type(cell(6), "1,3");
+    fireEvent.press(get("execution-sheet-keyboard-close"));
+    blur(cell(6));
+    expect(shown(cell(6))).toBe("1,5 kg");
+    validate();
+    expect(applied(onApply).series).toMatchObject({
+      kind: "VARIABLE",
+      rows: [{ loadKg: 0 }, { loadKg: 0 }, { loadKg: 5 }, { loadKg: 6 }, { loadKg: 7 }, { loadKg: 1.5 }],
+    });
+  });
+
+  it("PRE5-2.2/AC2 — variables, toutes les charges à 0 à la fermeture : Sans, colonne retirée, valeurs conservées", () => {
+    const { onApply } = renderSheet(variableLoads([0, 20]));
+    focus(cell(2));
+    type(cell(2), "0");
+    fireEvent.press(get("execution-sheet-keyboard-close"));
+    blur(cell(2));
+    expect(loadChoice()).toBe("WITHOUT");
+    expect(query(cell(1))).toBeNull();
+    expect(within(get("execution-sheet-table-header")).queryByText("Charge", hidden)).toBeNull();
+    validate();
+    expect(applied(onApply)).toMatchObject({ loadEnabled: false });
+  });
+
+  it("PRE5-2.2/AC5, AC8 — variables : Avec déplie le tableau replié, pose 0,25 kg sur chaque ligne et rend la colonne ; textes de la barre par le lexique", () => {
+    renderSheet(variableLoads([0, 0, 0], false));
+    fireEvent.press(get(TABLE_TOGGLE));
+    expect(query("execution-sheet-table")).toBeNull();
+    fireEvent.press(get("execution-sheet-load-control-WITH"));
+    expect(query("execution-sheet-table")).not.toBeNull();
+    expect([1, 2, 3].map((row) => shown(cell(row)))).toEqual(["0,25 kg", "0,25 kg", "0,25 kg"]);
+    const bar = strings.executionParameters.sheet.keyboardBar;
+    expect([bar.previous, bar.next, bar.close]).toEqual(["← Précédent", "Suivant →", "Fermer"]);
+    expect(within(get("execution-sheet-keyboard-previous")).getByText(bar.previous, hidden)).toBeTruthy();
+    expect(get("execution-sheet-keyboard-previous").props.accessibilityLabel).toBe("Précédent");
+    expect(get("execution-sheet-keyboard-next").props.accessibilityLabel).toBe("Suivant");
+    expect(within(get("execution-sheet-keyboard-close")).getByText("Fermer", hidden)).toBeTruthy();
+  });
+
+  it("PRE5-2.2/AC5 (revue E2 de 2.6) — ± de la Pause d'une ligne centré sur la cellule Pause mesurée, borné à la ligne", () => {
+    renderSheet(variableLoads([10, 20]));
+    fireEvent(get("execution-sheet-table-row-1-pause-cell"), "layout", { nativeEvent: { layout: { x: 120, y: 6, width: 60, height: 24 } } });
+    fireEvent.press(get("execution-sheet-table-row-1-pause-toggle"));
+    fireEvent(get("execution-sheet-table-row-1-pause-motion"), "layout", { nativeEvent: { layout: { x: 0, y: 36, width: 300, height: 40 } } });
+    // Centre 150, ± de 128 : 150 − 64 = 86.
+    expect(styleOf("execution-sheet-table-row-1-pause-column").marginLeft).toBe(86);
+    fireEvent(get("execution-sheet-table-row-1-pause-cell"), "layout", { nativeEvent: { layout: { x: 250, y: 6, width: 71, height: 24 } } });
+    // Centre 285,5 : borné à 300 − 128 = 172.
+    expect(styleOf("execution-sheet-table-row-1-pause-column").marginLeft).toBe(172);
+  });
+
+  it("PRE5-2.2/AC1 (NR Δ30) — aucune autre valeur au clavier : seuls les champs de charge en ont un, au clavier décimal", () => {
+    renderSheet(variableLoads([10, 20]));
+    expect(inputs().map((node) => String(node.props.testID)).sort()).toEqual([cell(1), cell(2)]);
+    expect(inputs().every((node) => node.props.keyboardType === "decimal-pad")).toBe(true);
+  });
+});
+
+/**
+ * PRE-5 story 2.2 (revue) — raccordement au focus natif (`TextInput.prototype.focus` /
+ * `blur` espionnés) et application de la saisie avant chaque autre transition du même geste.
+ */
+describe("ExecutionParametersSheet — PRE-5 story 2.2 (focus natif et application préalable)", () => {
+  const hidden = { includeHiddenElements: true } as const;
+  const get = (testID: string) => screen.getByTestId(testID, hidden);
+  const UNIFORM = "execution-sheet-load-input";
+  const cell = (row: number) => `execution-sheet-table-row-${row}-load`;
+  const focus = (testID: string) => fireEvent(get(testID), "focus");
+  const blur = (testID: string) => fireEvent(get(testID), "blur");
+  const type = (testID: string, text: string) => fireEvent.changeText(get(testID), text);
+  const shown = (testID: string) => String(get(testID).props.value);
+  const uniformLoad = (loadKg: number) =>
+    params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 15, loadKg, workPhases: [] }, loadEnabled: true });
+  const variableLoads = (loads: number[], enabled = true) =>
+    params({
+      series: { kind: "VARIABLE", rows: loads.map((loadKg, index) => ({ target: numberTarget(30 + index), pauseSeconds: 10, loadKg })) },
+      loadEnabled: enabled,
+    });
+  /** Identifiants des entrées sur lesquelles la méthode espionnée a été appelée. */
+  const targets = (spy: { mock: { contexts: unknown[] } }) =>
+    spy.mock.contexts.map((instance) => String((instance as { props: { testID?: string } }).props.testID));
+  const spies: { mockRestore: () => void }[] = [];
+  const spyOn = (method: "focus" | "blur") => {
+    const spy = jest.spyOn(TextInput.prototype as unknown as Record<"focus" | "blur", () => void>, method);
+    spies.push(spy);
+    return spy;
+  };
+
+  afterEach(() => {
+    spies.splice(0).forEach((spy) => spy.mockRestore());
+  });
+
+  it("PRE5-2.2/AC1 — ✓ absorbé, autre surface touchée, « Fermer » : le focus natif du champ est retiré", () => {
+    const blurSpy = spyOn("blur");
+    renderSheet(uniformLoad(20));
+    focus(UNIFORM);
+    blurSpy.mockClear();
+    validate();
+    expect(targets(blurSpy)).toEqual([UNIFORM]);
+    blur(UNIFORM);
+    focus(UNIFORM);
+    blurSpy.mockClear();
+    fireEvent.press(get("execution-sheet-series-toggle"));
+    expect(targets(blurSpy)).toEqual([UNIFORM]);
+    blur(UNIFORM);
+    focus(UNIFORM);
+    blurSpy.mockClear();
+    fireEvent.press(get("execution-sheet-keyboard-close"));
+    expect(targets(blurSpy)).toEqual([UNIFORM]);
+  });
+
+  it("PRE5-2.2/AC2 — Suivant et Précédent donnent le focus natif au champ voisin, sans retirer celui du champ courant", () => {
+    const focusSpy = spyOn("focus");
+    const blurSpy = spyOn("blur");
+    renderSheet(variableLoads([10, 20, 30]));
+    focus(cell(2));
+    focusSpy.mockClear();
+    blurSpy.mockClear();
+    fireEvent.press(get("execution-sheet-keyboard-next"));
+    expect(targets(focusSpy)).toEqual([cell(3)]);
+    blur(cell(2));
+    focus(cell(3));
+    focusSpy.mockClear();
+    fireEvent.press(get("execution-sheet-keyboard-previous"));
+    expect(targets(focusSpy)).toEqual([cell(2)]);
+    expect(blurSpy).not.toHaveBeenCalled();
+  });
+
+  it("PRE5-2.2/AC5 — Avec : focus natif du premier champ après le rendu (charge commune ; première cellule en variables)", () => {
+    const focusSpy = spyOn("focus");
+    const view = renderSheetView(params());
+    fireEvent.press(get("execution-sheet-load-control-WITH"));
+    expect(targets(focusSpy)).toEqual([UNIFORM]);
+    view.unmount();
+    focusSpy.mockClear();
+    renderSheet(variableLoads([0, 0], false));
+    fireEvent.press(get("execution-sheet-load-control-WITH"));
+    expect(targets(focusSpy)).toEqual([cell(1)]);
+  });
+
+  it("PRE5-2.2/AC1 — saisie qui change la charge puis « Annuler » d'un retrait : la charge est appliquée, rien n'est annulé (Q29)", () => {
+    renderSheet(variableLoads([20, 30, 40]));
+    fireEvent.press(get("execution-sheet-table-row-3-remove"));
+    focus(cell(1));
+    type(cell(1), "25");
+    fireEvent.press(get("execution-sheet-adjusted-undo"));
+    expect(screen.queryByTestId("execution-sheet-adjusted", hidden)).toBeNull();
+    expect(screen.queryAllByTestId(/^execution-sheet-table-row-\d+$/, hidden)).toHaveLength(2);
+    blur(cell(1));
+    expect(shown(cell(1))).toBe("25 kg");
+  });
+
+  it("PRE5-2.2/AC1 — Type de série pendant la saisie : re-choisir Identiques applique la valeur ; passer à Variables la reporte sur chaque série", () => {
+    const { onApply } = renderSheet(uniformLoad(20));
+    focus(UNIFORM);
+    type(UNIFORM, "3");
+    fireEvent.press(get(`${SERIES_TYPE}-UNIFORM`));
+    validate();
+    expect(applied(onApply)).toMatchObject({ series: { kind: "UNIFORM", loadKg: 3 } });
+    onApply.mockClear();
+    focus(UNIFORM);
+    type(UNIFORM, "4");
+    fireEvent.press(get(`${SERIES_TYPE}-VARIABLE`));
+    expect([1, 2, 3].map((row) => shown(cell(row)))).toEqual(["4 kg", "4 kg", "4 kg"]);
+  });
+
+  it("PRE5-2.2/AC1 — Sans pendant la saisie : la valeur est appliquée avant la désactivation, et conservée sous Sans", () => {
+    const { onApply } = renderSheet(uniformLoad(20));
+    focus(UNIFORM);
+    type(UNIFORM, "3");
+    fireEvent.press(get("execution-sheet-load-control-WITHOUT"));
+    validate();
+    expect(applied(onApply)).toMatchObject({ loadEnabled: false, series: { kind: "UNIFORM", loadKg: 3 } });
+  });
+
+  it("PRE5-2.2/AC1 — déplacement par action accessible pendant une saisie de cellule : la valeur est appliquée avant le déplacement et suit sa série", () => {
+    const { onApply } = renderSheet(variableLoads([10, 20, 30]));
+    focus(cell(1));
+    type(cell(1), "15");
+    moveAction(1, "moveDown");
+    validate();
+    expect(applied(onApply).series).toMatchObject({ kind: "VARIABLE", rows: [{ loadKg: 20 }, { loadKg: 15 }, { loadKg: 30 }] });
+  });
+
+  it("PRE5-2.2/AC1 — tableau replié pendant la saisie d'une cellule : champ démonté, la valeur est appliquée", () => {
+    const { onApply } = renderSheet(variableLoads([10, 20]));
+    focus(cell(1));
+    type(cell(1), "15");
+    fireEvent.press(get(TABLE_TOGGLE));
+    expect(screen.queryByTestId(cell(1), hidden)).toBeNull();
+    validate();
+    expect(applied(onApply).series).toMatchObject({ kind: "VARIABLE", rows: [{ loadKg: 15 }, { loadKg: 20 }] });
   });
 });

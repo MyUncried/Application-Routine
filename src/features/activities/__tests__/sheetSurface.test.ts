@@ -350,3 +350,64 @@ describe("PRE5-2.6 — champ ± de la Pause d'une ligne (AD-27)", () => {
     expect(sheetSurfaceReducer(opened, { type: "rows", rowIds: [3, 1, 2] })).toBe(opened);
   });
 });
+
+/**
+ * PRE-5 story 2.2 (AD-26, AD-27, Q47) — surface `keyboard(champ)` : ouverte par le focus
+ * d'un champ clavier, famille ± (même geste pour ouvrir une autre surface), une seule
+ * surface, ✓ / ✕ absorbés, « Ligne disparue » et perte de focus.
+ */
+describe("PRE5-2.2 — surface clavier (AD-27)", () => {
+  const NONE = { kind: "none" } as const;
+  const LOAD = (row: number | "uniform"): SheetSurface => ({ kind: "keyboard", field: { kind: "load", row } });
+  const ROW_TARGET = (row: number): SheetSurface => ({ kind: "selector", selector: "rowTarget", row });
+  const blur = (row: number | "uniform"): SheetSurfaceEvent => ({ type: "blur", field: { kind: "load", row } });
+
+  it("PRE5-2.2/AC8 — ouverture par le focus ; même champ touché à nouveau : état inchangé (pas de fermeture)", () => {
+    const opened = run(touch(LOAD(2)));
+    expect(opened.open).toEqual({ kind: "keyboard", field: { kind: "load", row: 2 }, key: 1 });
+    expect(sheetSurfaceReducer(opened, touch(LOAD(2)))).toBe(opened);
+  });
+
+  it("PRE5-2.2/AC8 — une seule surface : Suivant ou une autre surface ouvre l'autre dans le même geste ; un champ ± ouvert cède au clavier", () => {
+    expect(run(touch(LOAD(1)), touch(LOAD(2))).open).toEqual({ kind: "keyboard", field: { kind: "load", row: 2 }, key: 2 });
+    expect(run(touch(LOAD(1)), touch(ROW_TARGET(2))).open).toEqual({ kind: "selector", selector: "rowTarget", row: 2, key: 2 });
+    expect(run(touch(LOAD("uniform")), touch(COUNT)).open).toEqual({ kind: "stepper", field: "count", key: 2 });
+    expect(run(touch(COUNT), touch(LOAD("uniform"))).open).toEqual({ kind: "keyboard", field: { kind: "load", row: "uniform" }, key: 2 });
+    // Sélecteur ouvert : T10, le champ touché ne s'ouvre pas.
+    expect(run(touch(TARGET), touch(LOAD("uniform"))).open).toEqual(NONE);
+  });
+
+  it("PRE5-2.2/AC8 — `sameSurface` distingue les champs clavier ; charge commune ≠ ligne ; phase ≠ charge", () => {
+    const opened = run(touch(LOAD(2))).open;
+    expect(sameSurface(opened, LOAD(2))).toBe(true);
+    expect(sameSurface(opened, LOAD(3))).toBe(false);
+    expect(sameSurface(opened, LOAD("uniform"))).toBe(false);
+    expect(sameSurface(opened, { kind: "keyboard", field: { kind: "phaseLabel", phase: 2 } })).toBe(false);
+    expect(sameSurface(opened, ROW_TARGET(2))).toBe(false);
+  });
+
+  it("PRE5-2.2/AC1 — ✓ et ✕ absorbés pendant une saisie ; la croix est inactive ; après fermeture, plus rien d'absorbé", () => {
+    const opened = run(touch(LOAD("uniform")));
+    expect(sheetCommandsAbsorbed(opened)).toBe(true);
+    expect(removalEnabled(opened)).toBe(false);
+    const closed = sheetSurfaceReducer(opened, { type: "closeAll" });
+    expect(closed.open).toEqual(NONE);
+    expect(sheetCommandsAbsorbed(closed)).toBe(false);
+  });
+
+  it("PRE5-2.2/AC1 — perte du focus : ne ferme que le champ ouvert ; un `blur` tardif d'un autre champ est ignoré", () => {
+    expect(run(touch(LOAD(1)), blur(1)).open).toEqual(NONE);
+    const next = run(touch(LOAD(1)), touch(LOAD(2)));
+    expect(sheetSurfaceReducer(next, blur(1))).toBe(next);
+    expect(sheetSurfaceReducer(INITIAL_SHEET_SURFACE_STATE, blur(1))).toBe(INITIAL_SHEET_SURFACE_STATE);
+  });
+
+  it("PRE5-2.2/AC1 — appui extérieur : le clavier est rangé ; « Ligne disparue » ferme le champ d'une ligne retirée, jamais la charge commune", () => {
+    expect(run(touch(LOAD(2)), { type: "outside" }).open).toEqual(NONE);
+    expect(run(touch(LOAD(3)), { type: "rows", rowIds: [1, 2] }).open).toEqual(NONE);
+    const reordered = run(touch(LOAD(3)));
+    expect(sheetSurfaceReducer(reordered, { type: "rows", rowIds: [3, 1, 2] })).toBe(reordered);
+    const uniform = run(touch(LOAD("uniform")));
+    expect(sheetSurfaceReducer(uniform, { type: "rows", rowIds: [] })).toBe(uniform);
+  });
+});
