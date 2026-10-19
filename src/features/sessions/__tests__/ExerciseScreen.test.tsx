@@ -691,7 +691,9 @@ describe("ExerciseScreen — PRE-3 (quatre parcours)", () => {
     });
     renderRoute({ params: { catalogueDefinitionId: "new" }, service: { createActivityDefinition } });
     expect(screen.getByLabelText("Nom de l’exercice")).toBeTruthy();
-    expect(screen.getByLabelText("Description de l’exercice")).toBeTruthy();
+    // PRE-5 story 3.1 (AC6) : titre « Description de l’exercice », première étape nommée « Étape 1 ».
+    expect(screen.getByText("Description de l’exercice")).toBeTruthy();
+    expect(screen.getByLabelText("Étape 1")).toBeTruthy();
     expect(screen.getByLabelText(t.finishAction).props.accessibilityState).toMatchObject({ disabled: true });
     await fillNewExercise();
     await act(async () => {
@@ -1102,7 +1104,7 @@ describe("ExerciseScreen — PRE-4 story 4.2", () => {
 
   it("PRE4-4.2/AC9 — Terminer inactif, y compris pour l'accessibilité, tant que manque : nom de 1 à 80, une Catégorie, une Zone (nouvel Exercice), des Paramètres exécutables ; héritage toléré en modification", async () => {
     // Bornes du nom (règle du domaine, saisie bornée par `maxLength`).
-    const valid = { name: "Squat", instruction: null, executionParameters: CANONICAL, bodyZoneIds: ["cuisses"], media: [] };
+    const valid = { name: "Squat", instructionSteps: [], executionParameters: CANONICAL, bodyZoneIds: ["cuisses"], media: [] };
     const options = { requireReferences: true, hasCategory: true };
     expect(isActivityEditorFormValid({ ...valid, name: "a".repeat(80) }, options)).toBe(true);
     expect(isActivityEditorFormValid({ ...valid, name: "a".repeat(81) }, options)).toBe(false);
@@ -1229,6 +1231,16 @@ describe("ExerciseScreen — PRE-4 story 4.2", () => {
       // Intact : la garde ne bloque pas (sortie immédiate, sans dialogue).
       expect(lastGuardBlock()).toBe(false);
       fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Modifié");
+      expect(lastGuardBlock()).toBe(true);
+      screen.unmount();
+
+      // PRE-5 story 3.1 (AC4) : une modification de la seule Description (étapes comparées par
+      // leurs encodages, hors de l'occurrence en Séance) arme aussi la garde.
+      mockExitGuard.mockReset();
+      mockExitGuard.mockReturnValue(defaultExitGuardResult());
+      await renderPath(pathName);
+      expect(lastGuardBlock()).toBe(false);
+      fireEvent.changeText(screen.getByTestId("exercise-instruction-input"), "Description modifiée");
       expect(lastGuardBlock()).toBe(true);
       screen.unmount();
 

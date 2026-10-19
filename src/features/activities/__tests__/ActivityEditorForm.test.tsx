@@ -28,6 +28,7 @@ import {
   type ActivityEditorFormValue,
   type EditorCategory,
 } from "@/features/activities/ActivityEditorForm";
+import { applyStepBackspace, applyStepTextChange, displayedStepRows } from "@/features/activities/DescriptionSteps";
 import { chooseExecutionMode, tapExecutionSheetStep } from "@/features/activities/testing/executionSheetActions";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
@@ -83,7 +84,7 @@ const variable = (rows: [number | null, number][]) => ({
 });
 
 function baseValue(overrides: Partial<ActivityEditorFormValue> = {}): ActivityEditorFormValue {
-  return { name: "", instruction: null, executionParameters: parameters(), bodyZoneIds: [], media: [], ...overrides };
+  return { name: "", instructionSteps: [], executionParameters: parameters(), bodyZoneIds: [], media: [], ...overrides };
 }
 
 function Harness({
@@ -232,7 +233,9 @@ describe("ActivityEditorForm — PRE-3", () => {
     expect(onOpenCategory).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId("exercise-body-zones-open")).toBeTruthy();
     expect(screen.getByTestId("exercise-parameters-card")).toBeTruthy();
-    expect(screen.getByLabelText("Description de l’exercice")).toBeTruthy();
+    // PRE-5 story 3.1 (AC6) : sous le titre « Description de l’exercice », chaque étape est nommée « Étape n ».
+    expect(screen.getByText("Description de l’exercice")).toBeTruthy();
+    expect(screen.getByLabelText("Étape 1")).toBeTruthy();
     expect(screen.getByText("Médias")).toBeTruthy();
     expect(screen.getByTestId("test-finish-action").props.accessibilityState).toMatchObject({ disabled: true });
     fireEvent.press(screen.getByTestId("test-finish-action"));
@@ -242,9 +245,11 @@ describe("ActivityEditorForm — PRE-3", () => {
   it("P3-02/keyboard-scroll — corps défilant avec clavier ; Terminer hors du défilement, marge Safe Area ; description sans hauteur figée", () => {
     render(<Harness />);
     expect(screen.getByTestId("exercise-body").props.keyboardShouldPersistTaps).toBe("handled");
+    // PRE-5 story 3.1 : étapes sans contenant ni hauteur figée (la cible tactile d'une ligne
+    // se contrôle sur appareil, recette du lot Éditeur).
     const instruction = StyleSheet.flatten(screen.getByTestId("exercise-instruction-input").props.style);
     expect(instruction.height).toBeUndefined();
-    expect(instruction.minHeight).toBeGreaterThanOrEqual(44);
+    expect(instruction.maxHeight).toBeUndefined();
     const slot = StyleSheet.flatten(screen.getByTestId("test-finish-slot").props.style);
     expect(slot.marginBottom).toBeGreaterThanOrEqual(16);
     expect(within(screen.getByTestId("exercise-body")).queryByTestId("test-finish-action")).toBeNull();
@@ -315,10 +320,11 @@ describe("ActivityEditorForm — PRE-3", () => {
     expect(node.props.numberOfLines).toBeUndefined();
     expect(node.props.ellipsizeMode).toBeUndefined();
     expect(phrase()).toBe(
-      "1 série de 1 min 30 s, avec 15 s de pause après chaque série, en faisant le côté droit puis le gauche, avec 10 s de pause au changement de côté. Durée totale : 3 min 40 s.",
+      "1 série de 1 min 30 s, avec 15 s de pause après chaque série, en faisant le côté 1 puis le côté 2, avec 10 s de pause au changement de côté. Durée totale : 3 min 40 s.",
     );
-    expect(boldSegments()).toEqual(expect.arrayContaining(["1 série", "1 min 30 s", "gauche", "3 min 40 s"]));
-    expect(boldSegments()).not.toContain("droit");
+    // PRE-5 (story 1.2, AC4) : clause des côtés neutre ; « côté 2 » remplace l'ancien mot gras.
+    expect(boldSegments()).toEqual(expect.arrayContaining(["1 série", "1 min 30 s", "côté 2", "3 min 40 s"]));
+    expect(boldSegments()).not.toContain("côté 1");
   });
 
   it("P3-20/all-surfaces — titres et valeurs des écrans de référence ; carte bordée rayon 12 ; phrase Inter 13 / 20", () => {
@@ -527,7 +533,7 @@ describe("ActivityEditorForm — recette 1 (T-49)", () => {
 });
 
 describe("ActivityEditorForm — recette 2 (N-05 : Description et clavier)", () => {
-  it("N-05 — Terminer hors de la zone qui évite le clavier ; Description recadrée juste au-dessus du clavier, hauteur bornée pendant la saisie puis rétablie", () => {
+  it("N-05 / PRE5-3.1/AC2 — Terminer hors de la zone qui évite le clavier ; l'étape active recadrée juste au-dessus du clavier, à chaque étape et quand elle grandit ; aucune hauteur bornée", async () => {
     const { Keyboard, KeyboardAvoidingView, ScrollView } = jest.requireActual<typeof import("react-native")>("react-native");
     const scrollTo = jest.spyOn(ScrollView.prototype, "scrollTo");
     const listeners: Record<string, () => void> = {};
@@ -546,38 +552,56 @@ describe("ActivityEditorForm — recette 2 (N-05 : Description et clavier)", () 
     layout("exercise-body", 0, 300);
     layout("exercise-section-description", 0, 0);
     fireEvent(screen.getByTestId("exercise-section-description"), "layout", { nativeEvent: { layout: { x: 24, y: 400, width: 354, height: 160 } } });
-    layout("exercise-instruction-input", 25, 120);
+    layout("exercise-description-steps-area", 25, 17);
+    layout("exercise-instruction-row-1", 0, 17);
 
     scrollTo.mockClear();
     fireEvent(screen.getByTestId("exercise-instruction-input"), "focus");
-    expect(StyleSheet.flatten(screen.getByTestId("exercise-instruction-input").props.style).maxHeight).toBe(276);
+    expect(StyleSheet.flatten(screen.getByTestId("exercise-instruction-input").props.style).maxHeight).toBeUndefined();
     act(() => listeners.keyboardDidShow!());
-    // Bas du champ (400 + 25 + 120) + marge 12 − zone visible 300 = 257.
-    expect(scrollTo).toHaveBeenLastCalledWith({ y: 257, animated: true });
+    // Bas de l'étape active (400 + 25 + 17) + marge 12 − zone visible 300 = 154.
+    expect(scrollTo).toHaveBeenLastCalledWith({ y: 154, animated: true });
 
-    // Le champ grandit avec les retours à la ligne : nouveau recadrage.
-    layout("exercise-instruction-input", 25, 180);
-    expect(scrollTo).toHaveBeenLastCalledWith({ y: 317, animated: true });
+    // Entrée crée l'étape 2, qui reçoit le focus : recadrage sur elle.
+    fireEvent.changeText(screen.getByTestId("exercise-instruction-input"), "Dos droit");
+    fireEvent.changeText(screen.getByTestId("exercise-instruction-input"), "Dos droit\n");
+    layout("exercise-instruction-row-2", 25, 17);
+    fireEvent(screen.getByTestId("exercise-instruction-step-2"), "focus");
+    expect(scrollTo).toHaveBeenLastCalledWith({ y: 179, animated: true });
+
+    // L'étape active grandit (texte sur deux lignes) : nouveau recadrage.
+    layout("exercise-instruction-row-2", 25, 34);
+    expect(scrollTo).toHaveBeenLastCalledWith({ y: 196, animated: true });
 
     fireEvent(screen.getByTestId("exercise-instruction-input"), "blur");
-    expect(StyleSheet.flatten(screen.getByTestId("exercise-instruction-input").props.style).maxHeight).toBeUndefined();
+    fireEvent(screen.getByTestId("exercise-instruction-step-2"), "blur");
+    await flushDeferredBlur();
+    expect(screen.queryByTestId("exercise-instruction-submit")).toBeNull();
     scrollTo.mockRestore();
     addListener.mockRestore();
   });
 });
 
+/** PRE-5 story 3.1 : la perte de focus d'une étape est différée d'un tour (passage d'une étape à l'autre). */
+async function flushDeferredBlur() {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+}
+
 describe("ActivityEditorForm — recette 3 (N-05 : ↑ dans la Description)", () => {
-  it("N-05 — ↑ visible dans le champ pendant la saisie, nommé ; il ferme le clavier sans enregistrer ; texte multiligne conservé ; retour à la ligne inchangé", () => {
+  it("N-05 / PRE5-3.1/AC2 — ↑ visible dans la Description pendant la saisie, nommé ; il ferme le clavier sans enregistrer ; étapes conservées ; Retour crée une étape, jamais une validation", async () => {
     const { Keyboard } = jest.requireActual<typeof import("react-native")>("react-native");
     const dismiss = jest.spyOn(Keyboard, "dismiss").mockImplementation(() => {});
     const onFinish = jest.fn();
     render(<Harness onFinish={onFinish} />);
     const input = () => screen.getByTestId("exercise-instruction-input");
+    const area = () => screen.getByTestId("exercise-description-steps-area");
 
     // Hors saisie : pas de ↑ ; la place du bouton est réservée (le texte ne change pas de largeur au focus).
     expect(screen.queryByTestId("exercise-instruction-submit")).toBeNull();
-    const reserved = StyleSheet.flatten(input().props.style).paddingRight as number;
-    expect(reserved).toBeGreaterThanOrEqual(32 + 16);
+    const reserved = StyleSheet.flatten(area().props.style).paddingRight as number;
+    expect(reserved).toBeGreaterThanOrEqual(32 + 8);
 
     fireEvent(input(), "focus");
     fireEvent.changeText(input(), "Ligne 1\nLigne 2");
@@ -585,19 +609,35 @@ describe("ActivityEditorForm — recette 3 (N-05 : ↑ dans la Description)", ()
     expect(send.props.accessibilityLabel).toBe("Valider la description");
     expect(within(screen.getByTestId("exercise-section-description")).getByTestId("exercise-instruction-submit")).toBe(send);
     expect(StyleSheet.flatten(send.props.style)).toMatchObject({ position: "absolute", width: 32, height: 32, borderRadius: 16 });
-    expect(StyleSheet.flatten(input().props.style).paddingRight).toBe(reserved);
-    // Description reste multiligne : la touche Retour n’est jamais une validation.
-    expect(input().props.multiline).toBe(true);
+    expect(StyleSheet.flatten(area().props.style).paddingRight).toBe(reserved);
+    // La touche Retour n’est jamais une validation : elle passe par le texte (étape suivante).
     expect(input().props.onSubmitEditing).toBeUndefined();
 
     fireEvent.press(send);
     expect(dismiss).toHaveBeenCalledTimes(1);
     expect(onFinish).not.toHaveBeenCalled();
     fireEvent(input(), "blur");
+    await flushDeferredBlur();
     expect(screen.queryByTestId("exercise-instruction-submit")).toBeNull();
-    expect(input().props.value).toBe("Ligne 1\nLigne 2");
+    expect(input().props.value).toBe("Ligne 1");
+    expect(screen.getByTestId("exercise-instruction-step-2").props.value).toBe("Ligne 2");
     expect(screen.getByTestId("test-finish-slot")).toBeTruthy();
     dismiss.mockRestore();
+  });
+
+  it("PRE5-3.1/AC2 — passage d'une étape à l'autre (perte de focus de l'étape 1 AVANT le focus de l'étape 2, ordre iOS) : ↑ reste monté, sans clignotement", async () => {
+    render(<Harness initial={{ instructionSteps: ["Ligne 1"] }} />);
+    fireEvent(screen.getByTestId("exercise-instruction-input"), "focus");
+    const send = screen.getByTestId("exercise-instruction-submit");
+    fireEvent(screen.getByTestId("exercise-instruction-input"), "blur");
+    expect(screen.getByTestId("exercise-instruction-submit")).toBe(send);
+    fireEvent(screen.getByTestId("exercise-instruction-step-2"), "focus");
+    await flushDeferredBlur();
+    // Même instance : ↑ n'a été ni démonté ni remonté.
+    expect(screen.getByTestId("exercise-instruction-submit")).toBe(send);
+    fireEvent(screen.getByTestId("exercise-instruction-step-2"), "blur");
+    await flushDeferredBlur();
+    expect(screen.queryByTestId("exercise-instruction-submit")).toBeNull();
   });
 });
 
@@ -714,7 +754,7 @@ describe("ActivityEditorForm — PRE-4 story 2.3", () => {
     // 2 × 6 × (12 × 4 + 15) + 5 = 761 s.
     expect(2 * 6 * (12 * 4 + 15) + 5).toBe(761);
     expect(phrase()).toBe(
-      "6 séries de 12 répétitions cadencées toutes les 4 s, avec 15 s de pause après chaque série, en faisant d’abord toutes les séries à droite, puis à gauche, avec 5 s de pause au changement de côté. Durée totale : ≈ 12 min 41 s.",
+      "6 séries de 12 répétitions cadencées toutes les 4 s, avec 15 s de pause après chaque série, en faisant d’abord toutes les séries du côté 1, puis du côté 2, avec 5 s de pause au changement de côté. Durée totale : ≈ 12 min 41 s.",
     );
     // Aucune espace avant la ponctuation ; le seul retour de ligne est celui de présentation avant « Durée totale ».
     expect(renderedPhrase()).not.toMatch(/ [.,)]/u);
@@ -741,7 +781,7 @@ describe("ActivityEditorForm — PRE-4 story 2.3", () => {
         fontWeight: "600",
       });
     }
-    expect(boldSegments()).toEqual(["6 séries", "12 répétitions", "4 s", "15 s", "droite", "gauche", "5 s", "≈ 12 min 41 s"]);
+    expect(boldSegments()).toEqual(["6 séries", "12 répétitions", "4 s", "15 s", "côté 1", "côté 2", "5 s", "≈ 12 min 41 s"]);
     expect(screen.getByTestId("exercise-parameters-countdown").props.children).toBe("10 s");
     expect(screen.getByTestId("exercise-parameters-end").props.children).toBe("5 s");
     expectUncapped(screen.getByTestId("exercise-parameters-countdown"));
@@ -1071,7 +1111,7 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
     }
   });
 
-  it("PRE4-4.2/AC7 — Description facultative, multiligne, 1000 caractères ; Retour reste un retour à la ligne ; ↑ ferme le clavier sans enregistrer ; placeholder du code de départ", () => {
+  it("PRE4-4.2/AC7 + PRE5-3.1 — Description facultative en étapes ; Retour crée une étape ; ↑ ferme le clavier sans enregistrer ; invite de la première étape ; `maxLength` ne compte pas", () => {
     const { Keyboard } = jest.requireActual<typeof import("react-native")>("react-native");
     const dismiss = jest.spyOn(Keyboard, "dismiss").mockImplementation(() => {});
     const onFinish = jest.fn();
@@ -1080,23 +1120,22 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
       render(<Harness onFinish={onFinish} onChangeSpy={onChangeSpy} />);
       const input = () => screen.getByTestId("exercise-instruction-input");
       expect(input().props).toMatchObject({
-        multiline: true,
-        maxLength: 1000,
-        accessibilityLabel: "Description de l’exercice",
-        placeholder: "Décrivez ce qu’il faut faire, comment, et avec quoi",
+        accessibilityLabel: "Étape 1",
+        placeholder: "Décrivez la première étape",
       });
+      expect(input().props.maxLength).toBeUndefined();
       expect(input().props.onSubmitEditing).toBeUndefined();
-      expect(isActivityEditorFormValid(baseValue({ name: "Squat", instruction: null }))).toBe(true);
+      expect(isActivityEditorFormValid(baseValue({ name: "Squat", instructionSteps: [] }))).toBe(true);
       fireEvent(input(), "focus");
       fireEvent.changeText(input(), "Dos droit.\nGenoux fléchis.");
-      expect(onChangeSpy).toHaveBeenLastCalledWith({ instruction: "Dos droit.\nGenoux fléchis." });
+      expect(onChangeSpy).toHaveBeenLastCalledWith({ instructionSteps: ["Dos droit.", "Genoux fléchis."] });
       fireEvent.press(screen.getByTestId("exercise-instruction-submit"));
       expect(dismiss).toHaveBeenCalledTimes(1);
       expect(onFinish).not.toHaveBeenCalled();
-      // Effacée, la Description redevient absente (facultative).
+      // Effacées, les étapes ne portent plus de texte (l'encodage à `Terminer` donne `null`).
+      fireEvent.changeText(screen.getByTestId("exercise-instruction-step-2"), "");
       fireEvent.changeText(input(), "");
-      expect(onChangeSpy).toHaveBeenLastCalledWith({ instruction: null });
-      expect(screen.queryByText(/Décrivez la première étape|Étape suivante/u)).toBeNull();
+      expect(onChangeSpy).toHaveBeenLastCalledWith({ instructionSteps: ["", ""] });
     } finally {
       dismiss.mockRestore();
     }
@@ -1133,7 +1172,7 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
       { name: "Catégorie renseignée", initial: { executionParameters: EMPTY }, category: { name: "Renforcement", color: "#8FB8FF" } },
       {
         name: "nom, description et Média",
-        initial: { name: "Squat", instruction: "Dos droit.", media: [PHOTO_ITEM], executionParameters: EMPTY },
+        initial: { name: "Squat", instructionSteps: ["Dos droit."], media: [PHOTO_ITEM], executionParameters: EMPTY },
       },
       { name: "résumé identiques", initial: { executionParameters: durationParameters(90, 3, 15) }, expectText: /^3 séries de 1 min 30 s/u },
       {
@@ -1177,7 +1216,7 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
       if (state.expectText instanceof RegExp) expect(phrase()).toMatch(state.expectText);
       if (state.category) expect(screen.getByLabelText("Catégorie Renforcement")).toBeTruthy();
       if (state.initial.name) expect(screen.getByDisplayValue(state.initial.name)).toBeTruthy();
-      if (state.initial.instruction) expect(screen.getByDisplayValue(state.initial.instruction)).toBeTruthy();
+      for (const step of state.initial.instructionSteps ?? []) expect(screen.getByDisplayValue(step)).toBeTruthy();
       if (state.initial.media?.length) {
         // Une tuile par Média, par son identifiant (jamais un motif qui attraperait le conteneur).
         const section = within(screen.getByTestId("activity-editor-section-media"));
@@ -1185,7 +1224,9 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
         expect(section.queryAllByTestId(/^media-item-\d+$/u)).toHaveLength(state.initial.media.length);
       }
       if (executionParameters.mode !== null && executionParameters.sideMode !== "UNILATERAL") {
-        expect(phrase()).toMatch(/droit|gauche/u);
+        // PRE-5 (story 1.2, AC4) : clause des côtés neutre, sans direction.
+        expect(phrase()).toMatch(/côté 1.*côté 2/u);
+        expect(phrase()).not.toMatch(/droit|gauche/u);
       }
       view.unmount();
     }
@@ -1423,7 +1464,7 @@ describe("ActivityEditorForm — PRE-4 story 4.3", () => {
     render(
       <Harness
         onChangeSpy={onChangeSpy}
-        initial={{ name: "Fentes", instruction: "Dos droit", executionParameters, bodyZoneIds: ["cou"] }}
+        initial={{ name: "Fentes", instructionSteps: ["Dos droit"], executionParameters, bodyZoneIds: ["cou"] }}
       />,
     );
     const phraseBefore = phrase();
@@ -1629,5 +1670,249 @@ describe("ActivityEditorForm — PRE-5 story 2.5", () => {
     expect(onChangeSpy).toHaveBeenCalledWith({
       executionParameters: expect.objectContaining({ countdownSeconds: 12, endSeconds: 7 }),
     });
+  });
+});
+
+/**
+ * PRE-5 story 3.1 (FR-33, FR-34, FR-44, AD-22, D-425) — Description en étapes numérotées :
+ * état vide et liste remplie (AC1), saisie (Entrée, coupure, collage, retour arrière, AC2),
+ * limite de 1 000 refusée en entier (AC3), VoiceOver et lexique (AC6). Le codec est prouvé
+ * dans `instructionSteps.test.ts` ; ici, son emploi par l'Éditeur.
+ */
+describe("ActivityEditorForm — PRE-5 story 3.1 (Description en étapes)", () => {
+  const PROMPT_GREY = "#AEB3BA";
+  const stepInput = (n: number) =>
+    screen.getByTestId(n === 1 ? "exercise-instruction-input" : `exercise-instruction-step-${n}`);
+  const stepNumber = (n: number) =>
+    screen.getByTestId(`exercise-instruction-step-number-${n}`, { includeHiddenElements: true });
+  const rowCount = () => screen.queryAllByTestId(/^exercise-instruction-row-\d+$/u).length;
+
+  /** Focus et curseur donnés par l'Éditeur : contextes des appels `focus` / `setSelection` du `TextInput`. */
+  function spyInputFocus() {
+    const { TextInput } = jest.requireActual<typeof import("react-native")>("react-native");
+    const prototype = TextInput.prototype as unknown as {
+      focus: () => void;
+      setSelection?: (start: number, end: number) => void;
+    };
+    const focus = jest.spyOn(prototype, "focus");
+    const setSelection = jest.fn<(start: number, end: number) => void>();
+    prototype.setSelection = setSelection;
+    const testIDOf = (context: unknown) => (context as { props: { testID?: string } }).props.testID;
+    return {
+      lastFocused: () => testIDOf(focus.mock.contexts[focus.mock.contexts.length - 1]),
+      lastSelection: () => setSelection.mock.calls[setSelection.mock.calls.length - 1],
+      lastSelected: () => testIDOf(setSelection.mock.contexts[setSelection.mock.contexts.length - 1]),
+      restore: () => {
+        focus.mockRestore();
+        delete prototype.setSelection;
+      },
+    };
+  }
+
+  describe("fonctions pures de saisie", () => {
+    it("lignes affichées : une invite après la dernière étape remplie, jamais de seconde invite", () => {
+      expect(displayedStepRows([])).toEqual([""]);
+      expect(displayedStepRows(["A", "B"])).toEqual(["A", "B", ""]);
+      expect(displayedStepRows(["A", "B", ""])).toEqual(["A", "B", ""]);
+      expect(displayedStepRows(["A", "", "B"])).toEqual(["A", "", "B", ""]);
+    });
+
+    it("frappe en place, dans l'invite, Entrée en fin et au milieu, collage `\\n` et `\\r\\n`, sélection remplacée", () => {
+      expect(applyStepTextChange(["A"], 0, "Ab")).toEqual({ steps: ["Ab"], focus: null });
+      expect(applyStepTextChange(["A"], 1, "B")).toEqual({ steps: ["A", "B"], focus: null });
+      expect(applyStepTextChange([], 0, "A")).toEqual({ steps: ["A"], focus: null });
+      expect(applyStepTextChange(["A", "B"], 1, "B\n")).toEqual({ steps: ["A", "B", ""], focus: { index: 2, cursor: 0 } });
+      expect(applyStepTextChange(["Dosdroit"], 0, "Dos\ndroit")).toEqual({
+        steps: ["Dos", "droit"],
+        focus: { index: 1, cursor: 0 },
+      });
+      expect(applyStepTextChange(["AvantAprès"], 0, "AvantX\r\nY\r\nZAprès")).toEqual({
+        steps: ["AvantX", "Y", "ZAprès"],
+        focus: { index: 2, cursor: 1 },
+      });
+      expect(applyStepTextChange(["A"], 1, "L1\nL2\nL3")).toEqual({ steps: ["A", "L1", "L2", "L3"], focus: { index: 3, cursor: 2 } });
+      expect(applyStepTextChange(["abc"], 0, "aL1\nL2c")).toEqual({ steps: ["aL1", "L2c"], focus: { index: 1, cursor: 2 } });
+      // Aucune autre étape n'est modifiée ; aucun changement : rien à appliquer.
+      expect(applyStepTextChange(["A", "B", "C"], 1, "B1\nB2")?.steps).toEqual(["A", "B1", "B2", "C"]);
+      expect(applyStepTextChange(["A"], 0, "A")).toBeNull();
+      expect(applyStepTextChange(["A"], 3, "x")).toBeNull();
+    });
+
+    it("limite de 1 000 points de code sur la chaîne encodée : refus entier, sans troncature ; raccourcissement admis", () => {
+      const full = "x".repeat(1000);
+      expect(applyStepTextChange(["x".repeat(999)], 0, full)?.steps).toEqual([full]);
+      expect(applyStepTextChange([full], 0, `${full}y`)).toBeNull();
+      expect(applyStepTextChange([full], 1, "y")).toBeNull();
+      expect(applyStepTextChange(["x".repeat(991)], 1, "a\nb\nc\nd\ne")).toBeNull();
+      // Séparateurs compris : couper une étape pleine au milieu dépasserait la limite.
+      expect(applyStepTextChange([full], 0, `${"x".repeat(500)}\n${"x".repeat(500)}`)).toBeNull();
+      // Une étape vide créée par Entrée en fin ne compte pas.
+      expect(applyStepTextChange([full], 0, `${full}\n`)?.steps).toEqual([full, ""]);
+      expect(applyStepTextChange([full], 0, "x".repeat(999))?.steps).toEqual(["x".repeat(999)]);
+      // Points de code, pas unités UTF-16.
+      expect(applyStepTextChange(["😀".repeat(999)], 0, "😀".repeat(1000))?.steps).toEqual(["😀".repeat(1000)]);
+    });
+
+    it("retour arrière sur une étape vide n > 1 : supprimée, curseur en fin de n − 1 ; ailleurs, comportement natif", () => {
+      expect(applyStepBackspace(["A", "B", ""], 2)).toEqual({ steps: ["A", "B"], focus: { index: 1, cursor: 1 } });
+      expect(applyStepBackspace(["A", "", "B"], 1)).toEqual({ steps: ["A", "B"], focus: { index: 0, cursor: 1 } });
+      // Ligne d'invite : seul le curseur remonte.
+      expect(applyStepBackspace(["Dos"], 1)).toEqual({ steps: ["Dos"], focus: { index: 0, cursor: 3 } });
+      expect(applyStepBackspace(["", "B"], 0)).toBeNull();
+      expect(applyStepBackspace(["A", "B"], 1)).toBeNull();
+    });
+  });
+
+  it("AC1 — état vide : une seule ligne grise « 1. » + « Décrivez la première étape », sans ligne d'invitation", () => {
+    render(<Harness />);
+    expect(rowCount()).toBe(1);
+    expect(stepNumber(1)).toHaveTextContent("1.");
+    expect(StyleSheet.flatten(stepNumber(1).props.style).color).toBe(PROMPT_GREY);
+    expect(stepInput(1).props).toMatchObject({ value: "", placeholder: "Décrivez la première étape", placeholderTextColor: PROMPT_GREY });
+    expect(screen.queryByText("Étape suivante")).toBeNull();
+    expect(screen.queryByTestId("exercise-instruction-step-2")).toBeNull();
+    // Pas de bouton Ajouter.
+    expect(within(screen.getByTestId("exercise-section-description")).queryAllByRole("button")).toEqual([]);
+  });
+
+  it("AC1 — liste remplie : « 1. A », « 2. B », puis l'invite grise « 3. Étape suivante » ; une étape vide intercalée garde son numéro gris sans invite", () => {
+    const view = render(<Harness initial={{ instructionSteps: ["A", "B"] }} />);
+    expect(rowCount()).toBe(3);
+    expect(stepInput(1).props.value).toBe("A");
+    expect(stepInput(2).props.value).toBe("B");
+    expect(stepInput(1).props.placeholder).toBeUndefined();
+    expect(StyleSheet.flatten(stepNumber(1).props.style).color).toBe("#595E66");
+    expect(stepNumber(3)).toHaveTextContent("3.");
+    expect(StyleSheet.flatten(stepNumber(3).props.style).color).toBe(PROMPT_GREY);
+    expect(stepInput(3).props).toMatchObject({ value: "", placeholder: "Étape suivante" });
+    view.unmount();
+
+    render(<Harness initial={{ instructionSteps: ["A", "", "B"] }} />);
+    expect(rowCount()).toBe(4);
+    expect(stepInput(2).props.placeholder).toBeUndefined();
+    expect(StyleSheet.flatten(stepNumber(2).props.style).color).toBe(PROMPT_GREY);
+    expect(stepInput(4).props.placeholder).toBe("Étape suivante");
+  });
+
+  it("AC1 — présentation relevée (9071:53260) : texte et numéros à 14, numéro Medium de largeur 16 aligné à droite, sans contenant", () => {
+    render(<Harness initial={{ instructionSteps: ["A"] }} />);
+    expect(StyleSheet.flatten(stepNumber(1).props.style)).toMatchObject({
+      fontFamily: "Inter_500Medium",
+      fontSize: 14,
+      minWidth: 16,
+      textAlign: "right",
+    });
+    const text = StyleSheet.flatten(stepInput(1).props.style);
+    expect(text).toMatchObject({ fontFamily: "Inter_400Regular", fontSize: 14, color: "#141414" });
+    for (const style of [text, StyleSheet.flatten(screen.getByTestId("exercise-instruction-steps").props.style)]) {
+      expect(style.borderWidth).toBeUndefined();
+      expect(style.backgroundColor).toBeUndefined();
+    }
+    expect(StyleSheet.flatten(screen.getByTestId("exercise-instruction-steps").props.style).gap).toBe(8);
+    expect(StyleSheet.flatten(screen.getByTestId("exercise-instruction-row-1").props.style)).toMatchObject({
+      flexDirection: "row",
+      gap: 8,
+    });
+  });
+
+  it("AC2 — Entrée en fin crée l'étape suivante et lui donne le curseur ; pas de seconde invite", () => {
+    const onChangeSpy = jest.fn();
+    const focus = spyInputFocus();
+    try {
+      render(<Harness initial={{ instructionSteps: ["A", "B"] }} onChangeSpy={onChangeSpy} />);
+      fireEvent.changeText(stepInput(2), "B\n");
+      expect(onChangeSpy).toHaveBeenLastCalledWith({ instructionSteps: ["A", "B", ""] });
+      expect(stepInput(2).props.value).toBe("B");
+      expect(rowCount()).toBe(3);
+      expect(stepInput(3).props.placeholder).toBe("Étape suivante");
+      expect(focus.lastFocused()).toBe("exercise-instruction-step-3");
+      expect(focus.lastSelected()).toBe("exercise-instruction-step-3");
+      expect(focus.lastSelection()).toEqual([0, 0]);
+      // Trois étapes par Entrée depuis l'état vide (R-3.1-01).
+      fireEvent.changeText(stepInput(3), "C");
+      fireEvent.changeText(stepInput(3), "C\n");
+      expect(onChangeSpy).toHaveBeenLastCalledWith({ instructionSteps: ["A", "B", "C", ""] });
+      expect(focus.lastFocused()).toBe("exercise-instruction-step-4");
+    } finally {
+      focus.restore();
+    }
+  });
+
+  it("AC2 — Entrée au milieu coupe l'étape au curseur ; collage de trois lignes (`\\r\\n`) : une étape par ligne, curseur à la fin du texte collé ; modification en place", () => {
+    const onChangeSpy = jest.fn();
+    const focus = spyInputFocus();
+    try {
+      render(<Harness initial={{ instructionSteps: ["Dosdroit", "Fin"] }} onChangeSpy={onChangeSpy} />);
+      fireEvent.changeText(stepInput(1), "Dos\ndroit");
+      expect(onChangeSpy).toHaveBeenLastCalledWith({ instructionSteps: ["Dos", "droit", "Fin"] });
+      expect(focus.lastFocused()).toBe("exercise-instruction-step-2");
+      expect(focus.lastSelection()).toEqual([0, 0]);
+
+      fireEvent.changeText(stepInput(4), "Un\r\nDeux\r\nTrois");
+      expect(onChangeSpy).toHaveBeenLastCalledWith({ instructionSteps: ["Dos", "droit", "Fin", "Un", "Deux", "Trois"] });
+      expect(focus.lastFocused()).toBe("exercise-instruction-step-6");
+      expect(focus.lastSelection()).toEqual([5, 5]);
+
+      fireEvent.changeText(stepInput(2), "droite");
+      expect(onChangeSpy).toHaveBeenLastCalledWith({ instructionSteps: ["Dos", "droite", "Fin", "Un", "Deux", "Trois"] });
+    } finally {
+      focus.restore();
+    }
+  });
+
+  it("AC2 — retour arrière sur l'étape vide n > 1 : supprimée, curseur en fin de l'étape n − 1", () => {
+    const onChangeSpy = jest.fn();
+    const focus = spyInputFocus();
+    try {
+      render(<Harness initial={{ instructionSteps: ["A", "Bras", ""] }} onChangeSpy={onChangeSpy} />);
+      fireEvent(stepInput(3), "keyPress", { nativeEvent: { key: "Backspace" } });
+      expect(onChangeSpy).toHaveBeenLastCalledWith({ instructionSteps: ["A", "Bras"] });
+      expect(focus.lastFocused()).toBe("exercise-instruction-step-2");
+      expect(focus.lastSelection()).toEqual([4, 4]);
+      // Étape non vide : comportement natif, aucune fusion.
+      onChangeSpy.mockClear();
+      fireEvent(stepInput(2), "keyPress", { nativeEvent: { key: "Backspace" } });
+      expect(onChangeSpy).not.toHaveBeenCalled();
+    } finally {
+      focus.restore();
+    }
+  });
+
+  it("AC3 — une saisie qui dépasserait 1 000 est refusée en entier : aucune étape modifiée", () => {
+    const onChangeSpy = jest.fn();
+    const full = "x".repeat(1000);
+    render(<Harness initial={{ instructionSteps: [full] }} onChangeSpy={onChangeSpy} />);
+    fireEvent.changeText(stepInput(1), `${full}y`);
+    fireEvent.changeText(stepInput(2), "y\nz");
+    expect(onChangeSpy).not.toHaveBeenCalled();
+    expect(stepInput(1).props.value).toBe(full);
+    expect(stepInput(2).props.value).toBe("");
+    fireEvent.changeText(stepInput(1), "x".repeat(999));
+    expect(onChangeSpy).toHaveBeenLastCalledWith({ instructionSteps: ["x".repeat(999)] });
+  });
+
+  it("AC6 — VoiceOver : chaque étape est un champ « Étape n » ; le numéro visible n'est pas lu en double ; textes du lexique", () => {
+    render(<Harness initial={{ instructionSteps: ["A", "B"] }} />);
+    expect([1, 2, 3].map((n) => stepInput(n).props.accessibilityLabel)).toEqual(["Étape 1", "Étape 2", "Étape 3"]);
+    for (const n of [1, 2, 3]) {
+      expect(stepNumber(n).props).toMatchObject({
+        accessible: false,
+        accessibilityElementsHidden: true,
+        importantForAccessibility: "no-hide-descendants",
+      });
+    }
+    const lexicon = strings.screens.exercise.instruction;
+    expect(lexicon.firstStepPlaceholder).toBe("Décrivez la première étape");
+    expect(lexicon.nextStepPlaceholder).toBe("Étape suivante");
+    expect(strings.executionParameters.card).not.toHaveProperty("descriptionPlaceholder");
+  });
+
+  it("AC6 — ordre Description → Paramètres d'exécution → Média et titre « Paramètres d'exécution » inchangés", () => {
+    render(<Harness initial={{ instructionSteps: ["A"] }} />);
+    const sections = within(screen.getByTestId("exercise-body"))
+      .getAllByTestId(/^(exercise-section-description|exercise-section-parameters|activity-editor-section-media)$/u)
+      .map((node) => node.props.testID as string);
+    expect(sections).toEqual(["exercise-section-description", "exercise-section-parameters", "activity-editor-section-media"]);
+    expect(within(screen.getByTestId("exercise-section-parameters")).getByText("Paramètres d’exécution")).toBeTruthy();
   });
 });

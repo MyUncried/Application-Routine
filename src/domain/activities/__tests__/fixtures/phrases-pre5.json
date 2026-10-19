@@ -1,0 +1,126 @@
+{
+  "schema": "kodjo.pre5.phrases-pre5.v1",
+  "purpose": "PRE-5 story 1.2, AC5 (AD-29, FR-42, FR-43, D-414, Δ48) — corpus étendu de la Phrase : phases, charge et combinaisons. Attendus littéraux écrits à la main, jamais produits par le générateur ni par executionCalculations. Grammaire existante conservée (QP5-09) ; mentions insérées après la valeur par série, ordre phases puis charge (VALUE_SUFFIX_ORDER) ; charge en texte normal, durées des phases en gras.",
+  "inputPolicy": "Champs de phrase-variants.json (mode, series, targets, pauses, bip, side, order, pc), plus : loadEnabled (charge Avec / Sans), loads (une charge en kg par Série, la première pour une série uniforme), workPhases (libellé et durée en secondes, série uniforme seulement).",
+  "cases": [
+    {
+      "id": "phase-unique",
+      "covers": "AC2 — une seule phase : liste exhaustive",
+      "input": { "mode": "DURATION", "series": "UNIFORM", "targets": [30], "pauses": [10, 10, 10], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0, "loadEnabled": false, "loads": [0], "workPhases": [{ "label": "Gainage", "durationSeconds": 30 }] },
+      "expectedText": "3 séries de 30 s (Gainage : 30 s), avec 10 s de pause après chaque série. Durée totale : 2 min.",
+      "expectedBold": ["3 séries", "30 s", "30 s", "10 s", "2 min"]
+    },
+    {
+      "id": "phases-plusieurs",
+      "covers": "AC2 — plusieurs phases, dans l'ordre d'exécution (QP5-09, grammaire conservée)",
+      "input": { "mode": "DURATION", "series": "UNIFORM", "targets": [9], "pauses": [15, 15, 15], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0, "loadEnabled": false, "loads": [0], "workPhases": [{ "label": "Descente", "durationSeconds": 6 }, { "label": "Maintien", "durationSeconds": 3 }] },
+      "expectedText": "3 séries de 9 s (Descente : 6 s - Maintien : 3 s), avec 15 s de pause après chaque série. Durée totale : 1 min 12 s.",
+      "expectedBold": ["3 séries", "9 s", "6 s", "3 s", "15 s", "1 min 12 s"]
+    },
+    {
+      "id": "phases-trois-ordre",
+      "covers": "AC2 — trois phases réordonnées : l'ordre de la liste fait foi",
+      "input": { "mode": "DURATION", "series": "UNIFORM", "targets": [10], "pauses": [0, 0], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0, "loadEnabled": false, "loads": [0], "workPhases": [{ "label": "Montée", "durationSeconds": 2 }, { "label": "Maintien", "durationSeconds": 5 }, { "label": "Descente", "durationSeconds": 3 }] },
+      "expectedText": "2 séries de 10 s (Montée : 2 s - Maintien : 5 s - Descente : 3 s), enchaînées sans pause. Durée totale : 20 s.",
+      "expectedBold": ["2 séries", "10 s", "2 s", "5 s", "3 s", "20 s"]
+    },
+    {
+      "id": "charge-commune-repetitions",
+      "covers": "AC1, Δ48 — Répétitions × Identiques : charge commune, avant la cadence",
+      "input": { "mode": "REPETITIONS", "series": "UNIFORM", "targets": [12], "pauses": [30, 30, 30], "bip": 3, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0, "loadEnabled": true, "loads": [20], "workPhases": [] },
+      "expectedText": "3 séries de 12 répétitions (charge : 20 kg) cadencées toutes les 3 s, avec 30 s de pause après chaque série. Durée totale : ≈ 3 min 18 s.",
+      "expectedBold": ["3 séries", "12 répétitions", "3 s", "30 s", "≈ 3 min 18 s"]
+    },
+    {
+      "id": "charges-variables-3",
+      "covers": "AC1 — charges variables, trois séries : toutes listées",
+      "input": { "mode": "DURATION", "series": "VARIABLE", "targets": [30, 30, 30], "pauses": [10, 10, 10], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0, "loadEnabled": true, "loads": [20, 12, 13], "workPhases": [] },
+      "expectedText": "3 séries de durée variable (30 s, 30 s puis 30 s) (charges : 20, 12, 13 kg). Durée totale : 2 min.",
+      "expectedBold": ["3 séries", "30 s", "30 s", "30 s", "2 min"]
+    },
+    {
+      "id": "charges-variables-4-repetitions",
+      "covers": "AC1, Δ48 — Répétitions × Variables, plus de trois séries : deux premières valeurs puis « ... »",
+      "input": { "mode": "REPETITIONS", "series": "VARIABLE", "targets": [10, 12, 8, 10], "pauses": [20, 20, 20, 20], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0, "loadEnabled": true, "loads": [20, 12, 13, 8], "workPhases": [] },
+      "expectedText": "4 séries variables, de 8 à 12 répétitions (charges : 20, 12 kg, ...).",
+      "expectedBold": ["4 séries", "12 répétitions"]
+    },
+    {
+      "id": "charges-variables-2-repetitions-bip",
+      "covers": "AC1, Δ48 — Répétitions × Variables avec Bip : la liste précède la cadence",
+      "input": { "mode": "REPETITIONS", "series": "VARIABLE", "targets": [12, 10], "pauses": [30, 30], "bip": 2, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0, "loadEnabled": true, "loads": [20, 22.5], "workPhases": [] },
+      "expectedText": "2 séries de 12 puis 10 répétitions (charges : 20, 22,5 kg) cadencées toutes les 2 s. Durée totale : ≈ 1 min 44 s.",
+      "expectedBold": ["2 séries", "10 répétitions", "2 s", "≈ 1 min 44 s"]
+    },
+    {
+      "id": "charge-serie-zero",
+      "covers": "AC1 — une série à 0 est listée avec 0",
+      "input": { "mode": "DURATION", "series": "VARIABLE", "targets": [30, 45, 60], "pauses": [0, 0, 0], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0, "loadEnabled": true, "loads": [0, 10, 15], "workPhases": [] },
+      "expectedText": "3 séries de durée variable (30 s, 45 s puis 1 min) (charges : 0, 10, 15 kg). Durée totale : 2 min 15 s.",
+      "expectedBold": ["3 séries", "30 s", "45 s", "1 min", "2 min 15 s"]
+    },
+    {
+      "id": "charges-variables-egales",
+      "covers": "AC1 — charges variables toutes égales : liste présentée, jamais compactée (D-414, RM-240)",
+      "input": { "mode": "DURATION", "series": "VARIABLE", "targets": [30, 30, 30], "pauses": [0, 0, 0], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0, "loadEnabled": true, "loads": [20, 20, 20], "workPhases": [] },
+      "expectedText": "3 séries de durée variable (30 s, 30 s puis 30 s) (charges : 20, 20, 20 kg). Durée totale : 1 min 30 s.",
+      "expectedBold": ["3 séries", "30 s", "30 s", "30 s", "1 min 30 s"]
+    },
+    {
+      "id": "charge-decimale",
+      "covers": "AC1 — charge décimale au séparateur français",
+      "input": { "mode": "DURATION", "series": "UNIFORM", "targets": [45], "pauses": [15, 15], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0, "loadEnabled": true, "loads": [2.5], "workPhases": [] },
+      "expectedText": "2 séries de 45 s (charge : 2,5 kg), avec 15 s de pause après chaque série. Durée totale : 2 min.",
+      "expectedBold": ["2 séries", "45 s", "15 s", "2 min"]
+    },
+    {
+      "id": "charge-sans-valeurs-conservees",
+      "covers": "AC1 — Sans : aucune mention, valeurs conservées",
+      "input": { "mode": "DURATION", "series": "UNIFORM", "targets": [30], "pauses": [10, 10], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0, "loadEnabled": false, "loads": [20], "workPhases": [] },
+      "expectedText": "2 séries de 30 s, avec 10 s de pause après chaque série. Durée totale : 1 min 20 s.",
+      "expectedBold": ["2 séries", "30 s", "10 s", "1 min 20 s"]
+    },
+    {
+      "id": "charge-toutes-nulles",
+      "covers": "AC1 — toutes les valeurs à 0 : règles du zéro (normalizeLoad), aucune mention",
+      "input": { "mode": "DURATION", "series": "VARIABLE", "targets": [30, 45], "pauses": [0, 0], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0, "loadEnabled": true, "loads": [0, 0], "workPhases": [] },
+      "expectedText": "2 séries de durée variable (30 s puis 45 s). Durée totale : 1 min 15 s.",
+      "expectedBold": ["2 séries", "30 s", "45 s", "1 min 15 s"]
+    },
+    {
+      "id": "charge-n1-normalisee",
+      "covers": "AC1 — N = 1 issu d'un Régime variables : charge commune ; total redondant omis",
+      "input": { "mode": "DURATION", "series": "VARIABLE", "targets": [30], "pauses": [0], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0, "loadEnabled": true, "loads": [12.5], "workPhases": [] },
+      "expectedText": "1 série de 30 s (charge : 12,5 kg).",
+      "expectedBold": ["1 série", "30 s"]
+    },
+    {
+      "id": "echec-charge",
+      "covers": "AC1, AC3, Δ48 — À l'échec avec charge : après « menées jusqu’à l’échec »",
+      "input": { "mode": "REPETITIONS", "series": "UNIFORM", "targets": ["FAILURE"], "pauses": [60, 60, 60], "bip": 4, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0, "loadEnabled": true, "loads": [20], "workPhases": [] },
+      "expectedText": "3 séries menées jusqu’à l’échec (charge : 20 kg), avec 1 min de pause après chaque série.",
+      "expectedBold": ["3 séries", "1 min"]
+    },
+    {
+      "id": "melange-charges-bip",
+      "covers": "AC1, AC3 — mélange en Répétitions avec Bip : la liste des charges précède « , cadencées »",
+      "input": { "mode": "REPETITIONS", "series": "VARIABLE", "targets": [10, "FAILURE", 12], "pauses": [20, 20, 20], "bip": 2, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0, "loadEnabled": true, "loads": [20, 0, 15], "workPhases": [] },
+      "expectedText": "3 séries de répétitions variables (10, jusqu’à l’échec puis 12) (charges : 20, 0, 15 kg), cadencées toutes les 2 s. Durée totale : ≥ 1 min 44 s.",
+      "expectedBold": ["3 séries", "10", "12", "2 s", "≥ 1 min 44 s"]
+    },
+    {
+      "id": "phases-et-charge",
+      "covers": "AC3 — combinaison phases + charge : phases puis charge (VALUE_SUFFIX_ORDER)",
+      "input": { "mode": "DURATION", "series": "UNIFORM", "targets": [9], "pauses": [15, 15, 15], "bip": 0, "side": "UNILATERAL", "order": "BY_SIDE", "pc": 0, "loadEnabled": true, "loads": [20], "workPhases": [{ "label": "Descente", "durationSeconds": 6 }, { "label": "Maintien", "durationSeconds": 3 }] },
+      "expectedText": "3 séries de 9 s (Descente : 6 s - Maintien : 3 s) (charge : 20 kg), avec 15 s de pause après chaque série. Durée totale : 1 min 12 s.",
+      "expectedBold": ["3 séries", "9 s", "6 s", "3 s", "15 s", "1 min 12 s"]
+    },
+    {
+      "id": "phases-charge-bilateral",
+      "covers": "AC3, AC4 — phases + charge, bilatéral un côté après l'autre, départ gauche : côtés neutres",
+      "input": { "mode": "DURATION", "series": "UNIFORM", "targets": [9], "pauses": [15, 15], "bip": 0, "side": "LEFT_RIGHT", "order": "BY_SIDE", "pc": 5, "loadEnabled": true, "loads": [20], "workPhases": [{ "label": "Descente", "durationSeconds": 6 }, { "label": "Maintien", "durationSeconds": 3 }] },
+      "expectedText": "2 séries de 9 s (Descente : 6 s - Maintien : 3 s) (charge : 20 kg), avec 15 s de pause après chaque série, en faisant d’abord toutes les séries du côté 1, puis du côté 2, avec 5 s de pause au changement de côté. Durée totale : 1 min 41 s.",
+      "expectedBold": ["2 séries", "9 s", "6 s", "3 s", "15 s", "côté 1", "côté 2", "5 s", "1 min 41 s"]
+    }
+  ]
+}

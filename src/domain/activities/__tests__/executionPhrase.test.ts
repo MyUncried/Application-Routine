@@ -11,14 +11,18 @@ import {
   type ExecutionParametersInput,
   type SeriesTarget,
   type SideOrder,
+  type WorkPhase,
 } from "@/domain/activities/ExecutionParameters";
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import { computeIntrinsicDuration } from "@/domain/activities/executionCalculations";
 import { parseExerciseSnapshot, serializeExerciseSnapshot } from "@/domain/activities/exerciseSnapshot";
 import {
   generateExecutionPhrase,
+  loadClause,
   phraseText,
   totalClauseAmount,
+  VALUE_SUFFIX_ORDER,
+  workPhasesClause,
   type PhraseSegment,
 } from "@/domain/activities/executionPhrase";
 import type { SideMode } from "@/domain/sessions/sideMode";
@@ -81,6 +85,53 @@ type OracleCase = { readonly id: number; readonly phraseSource: string; readonly
 const oracle: readonly OracleCase[] = JSON.parse(
   readFileSync(path.resolve(__dirname, "../../../../docs/archives/evolutions-v15-2026-10-07/phrases-276.json"), "utf8"),
 );
+
+/**
+ * PRE-5 (story 1.2, AC5, AD-29) — attendus neutres littéraux des 216 cas
+ * bilatéraux (`fixtures/phrases-276-cotes-neutres.json`). Les deux fichiers du
+ * corpus restent inchangés sur disque ; les cas unilatéraux sont vérifiés
+ * contre l'oracle, les cas bilatéraux contre cette fixture.
+ */
+type NeutralCase = {
+  readonly corpusId: number;
+  readonly expectedText: string;
+  readonly expectedSegments: readonly PhraseSegment[];
+};
+
+const neutralCases: readonly NeutralCase[] = JSON.parse(
+  readFileSync(path.resolve(__dirname, "fixtures/phrases-276-cotes-neutres.json"), "utf8"),
+).cases;
+
+const neutralById = new Map(neutralCases.map((item) => [item.corpusId, item] as const));
+
+/** Vrai pour un cas bilatéral du corpus (`RIGHT_LEFT` ; la clause des côtés y est neutralisée). */
+function isBilateralCase(c: CorpusCase): boolean {
+  return c.parameters.side !== "UNILATERAL";
+}
+
+/** Attendu courant d'un cas du corpus : la fixture neutre pour un cas bilatéral, l'oracle sinon. */
+function expectedOf(c: CorpusCase): { readonly expectedText: string; readonly expectedSegments: readonly PhraseSegment[] } {
+  if (!isBilateralCase(c)) {
+    return c;
+  }
+  const neutral = neutralById.get(c.corpusId);
+  if (neutral === undefined) {
+    throw new Error(`Cas bilatéral ${c.corpusId} absent de la fixture neutre.`);
+  }
+  return neutral;
+}
+
+/**
+ * Seule différence admise entre l'oracle et l'attendu neutre (ch. 10 l. 515,
+ * D-407) : la clause des côtés, réécrite sans direction. Toute autre partie
+ * de la phrase doit rester identique au caractère près.
+ */
+function neutralizeSideClause(text: string): string {
+  return text
+    .replace(", en faisant le côté droit puis le gauche", ", en faisant le côté 1 puis le côté 2")
+    .replace(", en alternant le côté droit puis le gauche à chaque série", ", en alternant le côté 1 puis le côté 2 à chaque série")
+    .replace(", en faisant d’abord toutes les séries à droite, puis à gauche", ", en faisant d’abord toutes les séries du côté 1, puis du côté 2");
+}
 
 /** Clause « Durée totale » d'une phrase : symbole éventuel et montant. */
 const TOTAL_CLAUSE = /Durée totale : (≈ |≥ )?([^.]*)\./u;
@@ -184,20 +235,55 @@ describe("P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n)", () => {
     expect(mismatches.map((c) => c.corpusId)).toEqual([]);
   });
 
+  it("PRE5-1.2/AC5 — fixture neutre : 216 cas bilatéraux, 60 unilatéraux ; chaque attendu neutre ne diffère de l'oracle que dans la clause des côtés", () => {
+    const bilateral = corpus.filter(isBilateralCase);
+    expect(bilateral).toHaveLength(216);
+    // Les aides de neutralisation supposent l'oracle en départ droit : vérifié ici.
+    expect(bilateral.filter((c) => c.parameters.side !== "RIGHT_LEFT").map((c) => c.corpusId)).toEqual([]);
+    expect(corpus.length - bilateral.length).toBe(60);
+    expect(neutralCases.map((item) => item.corpusId)).toEqual(bilateral.map((c) => c.corpusId));
+    // Correspondance segment à segment : même découpage, même graisse ; seules changent les désignations des côtés.
+    const neutralSegmentText = (segment: PhraseSegment, previous: PhraseSegment | undefined): string => {
+      if (segment.gras) {
+        return segment.texte === "droite" ? "côté 1" : segment.texte === "gauche" ? "côté 2" : segment.texte;
+      }
+      if (segment.texte === ", puis à " && previous?.texte === "droite") {
+        return ", puis du ";
+      }
+      return segment.texte.replace("le côté droit puis le ", "le côté 1 puis le ").replace(/toutes les séries à $/u, "toutes les séries du ");
+    };
+    for (const c of bilateral) {
+      const neutral = neutralById.get(c.corpusId)!;
+      expect(neutral.expectedText).not.toBe(c.expectedText);
+      expect(neutral.expectedText).toBe(neutralizeSideClause(c.expectedText));
+      expect(neutral.expectedSegments.map((segment) => segment.texte).join("")).toBe(neutral.expectedText);
+      expect(neutral.expectedSegments).toEqual(
+        c.expectedSegments.map((segment, index) => ({
+          texte: neutralSegmentText(segment, c.expectedSegments[index - 1]),
+          gras: segment.gras,
+        })),
+      );
+      expect(neutral.expectedText).not.toMatch(/droit|gauche/u);
+    }
+  });
+
   it.each(corpus.map((c) => [c.corpusId, c] as const))("cas %i : texte, segments gras et montant", (_id, c) => {
     const input = toInput(c);
     const intrinsic = computeIntrinsicDuration(input);
     expect(intrinsic.kind).toBe(c.expectedIntrinsic.kind);
     expect(intrinsic.knownSeconds).toBe(c.expectedIntrinsic.knownSeconds);
     const segments = generateExecutionPhrase(input);
-    expect(segments).toEqual(c.expectedSegments);
-    expect(phraseText(segments!)).toBe(c.expectedText);
-    // AC12 : le gabarit de l'oracle, dont le montant est remplacé par le total calculé par formule.
+    // PRE-5 (story 1.2, AC5) : unilatéral → oracle ; bilatéral → fixture neutre.
+    const expected = expectedOf(c);
+    expect(segments).toEqual(expected.expectedSegments);
+    expect(phraseText(segments!)).toBe(expected.expectedText);
+    // AC12 : le gabarit de l'oracle, dont le montant est remplacé par le total calculé par formule
+    // (clause des côtés neutralisée pour un cas bilatéral, PRE-5 story 1.2).
     const gabarit = oracle.find((item) => item.id === c.corpusId)!.phraseGabarit;
     const formulaText = gabarit.includes("{total}")
       ? gabarit.replace("{total}", formatPhraseDuration(corpusFormulaSeconds(c)))
       : gabarit;
-    expect(phraseText(segments!)).toBe(formulaText);
+    expect(phraseText(segments!)).toBe(isBilateralCase(c) ? neutralizeSideClause(formulaText) : formulaText);
     // AC11 : jamais « 0 s ».
     expect(phraseText(segments!)).not.toMatch(/(^|[^0-9])0 s/u);
   });
@@ -207,7 +293,7 @@ describe("P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n)", () => {
     expect(variable).toHaveLength(120);
     for (const c of variable) {
       const generated = phraseText(generateExecutionPhrase(toInput(c))!);
-      expect({ id: c.corpusId, generated }).toEqual({ id: c.corpusId, generated: c.expectedText });
+      expect({ id: c.corpusId, generated }).toEqual({ id: c.corpusId, generated: expectedOf(c).expectedText });
       expect(generated).not.toMatch(/après chaque série|enchaînées sans pause|≥/u);
     }
   });
@@ -248,8 +334,8 @@ describe("PRE4-2.3/AC13 — les 92 anciennes entrées « À l’échec », adapt
           expect(new Set(p.pauses).size).toBe(1);
         }
         const segments = generateExecutionPhrase(input);
-        expect(segments).toEqual(c.expectedSegments);
-        expect(phraseText(segments!)).toBe(c.expectedText);
+        expect(segments).toEqual(expectedOf(c).expectedSegments);
+        expect(phraseText(segments!)).toBe(expectedOf(c).expectedText);
         const intrinsic = computeIntrinsicDuration(input);
         expect(intrinsic.kind).toBe("omitted");
         expect(intrinsic.knownSeconds).toBe(c.expectedIntrinsic.knownSeconds);
@@ -264,10 +350,10 @@ describe("PRE4-2.3/AC13 — les 92 anciennes entrées « À l’échec », adapt
     expect(byId(251).parameters.cadence).toBe(4);
     for (const mode of ["REPETITIONS", "DURATION"] as const) {
       expect(phraseText(generateExecutionPhrase(adaptLegacyFailureCase(byId(251), mode))!)).toBe(
-        "3 séries menées jusqu’à l’échec, en faisant d’abord toutes les séries à droite, puis à gauche, avec 5 s de pause au changement de côté.",
+        "3 séries menées jusqu’à l’échec, en faisant d’abord toutes les séries du côté 1, puis du côté 2, avec 5 s de pause au changement de côté.",
       );
       expect(phraseText(generateExecutionPhrase(adaptLegacyFailureCase(byId(276), mode))!)).toBe(
-        "6 séries menées jusqu’à l’échec, en faisant d’abord toutes les séries à droite, puis à gauche, avec 5 s de pause au changement de côté.",
+        "6 séries menées jusqu’à l’échec, en faisant d’abord toutes les séries du côté 1, puis du côté 2, avec 5 s de pause au changement de côté.",
       );
     }
   });
@@ -334,15 +420,20 @@ describe("P3-15/grammar-edges", () => {
     expect(computeIntrinsicDuration(input).seconds).toBe(105);
   });
 
-  it("P3-09/directions — départ gauche : directions inversées pour les trois formes", () => {
+  it("PRE5-1.2/AC4 — côtés neutres : `LEFT_RIGHT` et `RIGHT_LEFT` donnent la même phrase et les mêmes segments, pour les trois formes", () => {
     const uniform = { kind: "UNIFORM" as const, count: 3, target: numberTarget(30), pauseSeconds: 0, loadKg: 0, workPhases: [] };
-    expect(text(duration({ series: uniform, sideMode: "LEFT_RIGHT", sideOrder: "BY_SIDE" }))).toContain(
-      "en faisant d’abord toutes les séries à gauche, puis à droite",
-    );
-    expect(text(duration({ series: uniform, sideMode: "LEFT_RIGHT", sideOrder: "BY_SERIES" }))).toContain(
-      "en alternant le côté gauche puis le droit à chaque série",
-    );
-    expect(text(duration({ sideMode: "LEFT_RIGHT" }))).toContain("en faisant le côté gauche puis le droit");
+    const forms = [
+      [{ series: uniform, sideOrder: "BY_SIDE" as const }, "en faisant d’abord toutes les séries du côté 1, puis du côté 2"],
+      [{ series: uniform, sideOrder: "BY_SERIES" as const }, "en alternant le côté 1 puis le côté 2 à chaque série"],
+      [{}, "en faisant le côté 1 puis le côté 2"],
+    ] as const;
+    for (const [overrides, clause] of forms) {
+      const leftFirst = generateExecutionPhrase(duration({ ...overrides, sideMode: "LEFT_RIGHT" }))!;
+      const rightFirst = generateExecutionPhrase(duration({ ...overrides, sideMode: "RIGHT_LEFT" }))!;
+      expect(leftFirst).toEqual(rightFirst);
+      expect(phraseText(leftFirst)).toContain(clause);
+      expect(phraseText(leftFirst)).not.toMatch(/droit|gauche/u);
+    }
   });
 
   it("Répétitions : « cadencées » seulement si bip > 0 ; Durée et À l'échec n'ont jamais de clause de bip", () => {
@@ -367,11 +458,14 @@ describe("P3-15/grammar-edges", () => {
   });
 });
 
-describe("P3-15/long-phrase — cas 144, 224 caractères", () => {
+describe("P3-15/long-phrase — cas 144, 224 caractères (226 avec la clause des côtés neutre, PRE-5 story 1.2)", () => {
   it("phrase intégrale générée sans troncature", () => {
     const c = corpus.find((item) => item.corpusId === 144)!;
+    expect(c.expectedText).toHaveLength(224);
     const generated = text(toInput(c));
-    expect(generated).toHaveLength(224);
+    // « à droite, puis à gauche » (24) → « du côté 1, puis du côté 2 » (26).
+    expect(generated).toHaveLength(226);
+    expect(generated).toBe(expectedOf(c).expectedText);
     expect(generated.endsWith("Durée totale : ≈ 12 min 41 s.")).toBe(true);
   });
 });
@@ -659,21 +753,26 @@ describe("PRE-4 story 2.3 — gabarits de la Phrase", () => {
     );
   });
 
-  it("PRE4-2.3/AC6 — clause des côtés, départ droit et gauche, PC", () => {
+  it("PRE4-2.3/AC6, PRE5-1.2/AC4 — clause des côtés neutre (ch. 10 l. 515), identique pour les deux valeurs bilatérales, PC", () => {
     expect(phraseOf({ mode: "DURATION", series: "UNIFORM", targets: [90], pauses: [0], side: "RIGHT_LEFT" })).toBe(
-      "1 série de 1 min 30 s, en faisant le côté droit puis le gauche. Durée totale : 3 min.",
+      "1 série de 1 min 30 s, en faisant le côté 1 puis le côté 2. Durée totale : 3 min.",
     );
     const three: CompactInput = { mode: "DURATION", series: "UNIFORM", targets: [90], pauses: [15, 15, 15], side: "RIGHT_LEFT", order: "BY_SERIES", pc: 5 };
     // 3 × (2 × 90 + 15 + 5) = 600 s.
     expect(phraseOf(three)).toBe(
-      "3 séries de 1 min 30 s, avec 15 s de pause après chaque série, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 10 min.",
+      "3 séries de 1 min 30 s, avec 15 s de pause après chaque série, en alternant le côté 1 puis le côté 2 à chaque série, avec 5 s de pause au changement de côté. Durée totale : 10 min.",
     );
-    expect(phraseOf({ ...three, order: "BY_SIDE", pc: 0 })).toMatch(/, en faisant d’abord toutes les séries à droite, puis à gauche\. /u);
-    expect(phraseOf({ ...three, side: "LEFT_RIGHT" })).toMatch(/, en alternant le côté gauche puis le droit à chaque série, avec 5 s/u);
-    expect(phraseOf({ ...three, side: "LEFT_RIGHT", order: "BY_SIDE" })).toMatch(/, en faisant d’abord toutes les séries à gauche, puis à droite, avec 5 s/u);
+    expect(phraseOf({ ...three, order: "BY_SIDE", pc: 0 })).toMatch(/, en faisant d’abord toutes les séries du côté 1, puis du côté 2\. /u);
+    expect(phraseOf({ ...three, side: "LEFT_RIGHT" })).toMatch(/, en alternant le côté 1 puis le côté 2 à chaque série, avec 5 s/u);
+    expect(phraseOf({ ...three, side: "LEFT_RIGHT", order: "BY_SIDE" })).toMatch(/, en faisant d’abord toutes les séries du côté 1, puis du côté 2, avec 5 s/u);
     expect(phraseOf({ mode: "DURATION", series: "UNIFORM", targets: [90], pauses: [0], side: "LEFT_RIGHT" })).toMatch(
-      /, en faisant le côté gauche puis le droit\. /u,
+      /, en faisant le côté 1 puis le côté 2\. /u,
     );
+    // Gras : la désignation qui remplace un ancien mot gras est en gras (« côté 2 » ; « côté 1 » et « côté 2 » par côté).
+    const bold = (input: CompactInput) =>
+      generateExecutionPhrase(fromCompact(input))!.filter((segment) => segment.gras).map((segment) => segment.texte);
+    expect(bold(three)).toEqual(["3 séries", "1 min 30 s", "15 s", "côté 2", "5 s", "10 min"]);
+    expect(bold({ ...three, side: "LEFT_RIGHT", order: "BY_SIDE" })).toEqual(["3 séries", "1 min 30 s", "15 s", "côté 1", "côté 2", "5 s", "10 min 35 s"]);
     expect(phraseOf({ mode: "DURATION", series: "UNIFORM", targets: [90], pauses: [0, 0], side: "UNILATERAL", pc: 5 })).not.toMatch(/côté/u);
   });
 
@@ -681,7 +780,7 @@ describe("PRE-4 story 2.3 — gabarits de la Phrase", () => {
     const cases: readonly [CompactInput, string][] = [
       [
         { mode: "DURATION", series: "UNIFORM", targets: ["FAILURE"], pauses: [0, 0, 0], side: "RIGHT_LEFT", order: "BY_SIDE", pc: 5 },
-        "3 séries menées jusqu’à l’échec, enchaînées sans pause, en faisant d’abord toutes les séries à droite, puis à gauche, avec 5 s de pause au changement de côté.",
+        "3 séries menées jusqu’à l’échec, enchaînées sans pause, en faisant d’abord toutes les séries du côté 1, puis du côté 2, avec 5 s de pause au changement de côté.",
       ],
       [{ mode: "DURATION", series: "UNIFORM", targets: ["FAILURE"], pauses: [10, 10, 10] }, "3 séries menées jusqu’à l’échec, avec 10 s de pause après chaque série."],
       [{ mode: "DURATION", series: "VARIABLE", targets: ["FAILURE", "FAILURE", "FAILURE"], pauses: [10, 20, 30] }, "3 séries menées jusqu’à l’échec."],
@@ -920,9 +1019,9 @@ describe("PRE4-2.3/AC14 — variantes des cas nouveaux (fixtures/phrase-variants
     }
     // AC11 : jamais « 0 s ».
     expect(variant.expectedText).not.toMatch(NO_ZERO_SECONDS);
-    // Tout à l'échec : texte identique au corpus.
+    // Tout à l'échec : texte identique au corpus (attendu neutre pour un cas bilatéral, PRE-5 story 1.2).
     if (compact.targets.every((target) => target === "FAILURE")) {
-      expect(corpus.some((c) => c.expectedText === variant.expectedText)).toBe(true);
+      expect(corpus.some((c) => expectedOf(c).expectedText === variant.expectedText)).toBe(true);
     }
   });
 
@@ -939,5 +1038,133 @@ describe("PRE4-2.3/AC14 — variantes des cas nouveaux (fixtures/phrase-variants
       expect(serialized).not.toMatch(/phrase|segment|texte|gras|Durée totale|séries/iu);
       expect(serialized).not.toContain(variant.expectedText);
     }
+  });
+});
+
+/**
+ * PRE-5 (story 1.2, AC1 à AC3, AC5) — corpus étendu de la Phrase : phases,
+ * charge et combinaisons (`fixtures/phrases-pre5.json`), attendus littéraux.
+ */
+type Pre5Input = CompactInput & {
+  readonly loadEnabled: boolean;
+  readonly loads: readonly number[];
+  readonly workPhases: readonly { readonly label: string; readonly durationSeconds: number }[];
+};
+
+type Pre5Case = {
+  readonly id: string;
+  readonly covers: string;
+  readonly input: Pre5Input;
+  readonly expectedText: string;
+  readonly expectedBold: readonly string[];
+};
+
+const pre5Cases: readonly Pre5Case[] = JSON.parse(
+  readFileSync(path.resolve(__dirname, "fixtures/phrases-pre5.json"), "utf8"),
+).cases;
+
+function fromPre5(input: Pre5Input): ExecutionParametersInput {
+  const base = fromCompact(input);
+  if (base.series.kind !== "UNIFORM" && input.workPhases.length > 0) {
+    throw new Error("Cas de fixture invalide : des phases sur des séries variables seraient ignorées.");
+  }
+  const workPhases: readonly WorkPhase[] = input.workPhases.map((phase, index) => ({ id: index + 1, ...phase }));
+  const series =
+    base.series.kind === "UNIFORM"
+      ? { ...base.series, loadKg: input.loads[0] ?? 0, workPhases }
+      : { kind: "VARIABLE" as const, rows: base.series.rows.map((row, index) => ({ ...row, loadKg: input.loads[index] ?? 0 })) };
+  return { ...base, series, loadEnabled: input.loadEnabled };
+}
+
+/** Mentions accolées à la valeur par série (phases ou charge) : parenthèses contenant « libellé : valeur ». */
+const VALUE_SUFFIX_PATTERN = / \([^()]* : [^()]*\)/gu;
+
+describe("PRE5-1.2 — Phrase avec phases et charge (fixtures/phrases-pre5.json)", () => {
+  it("PRE5-1.2/AC5 — le corpus étendu couvre les cas obligatoires (phases, charge, combinaisons, trois cas Δ48)", () => {
+    const ids = pre5Cases.map((item) => item.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    const has = (predicate: (input: Pre5Input) => boolean) => pre5Cases.some((item) => predicate(item.input));
+    expect(has((i) => i.workPhases.length === 1)).toBe(true);
+    expect(has((i) => i.workPhases.length > 1 && !i.loadEnabled)).toBe(true);
+    expect(has((i) => i.loadEnabled && i.series === "UNIFORM" && i.loads[0]! > 0)).toBe(true);
+    expect(has((i) => i.loadEnabled && i.series === "VARIABLE" && i.loads.length <= 3 && i.loads.length > 1)).toBe(true);
+    expect(has((i) => i.loadEnabled && i.series === "VARIABLE" && i.loads.length > 3)).toBe(true);
+    expect(has((i) => i.loadEnabled && i.loads.includes(0) && i.loads.some((kg) => kg > 0))).toBe(true);
+    expect(has((i) => i.loadEnabled && i.series === "VARIABLE" && i.loads.length > 1 && new Set(i.loads).size === 1 && i.loads[0]! > 0)).toBe(true);
+    expect(has((i) => i.loadEnabled && i.workPhases.length > 0)).toBe(true);
+    // Δ48 : Répétitions × Identiques, Répétitions × Variables, À l'échec avec charge.
+    expect(has((i) => i.loadEnabled && i.mode === "REPETITIONS" && i.series === "UNIFORM" && i.targets.every((t) => typeof t === "number"))).toBe(true);
+    expect(has((i) => i.loadEnabled && i.mode === "REPETITIONS" && i.series === "VARIABLE" && i.targets.every((t) => typeof t === "number"))).toBe(true);
+    expect(has((i) => i.loadEnabled && i.targets.every((t) => t === "FAILURE"))).toBe(true);
+    // Sans, et toutes les valeurs à 0 : aucune mention.
+    expect(has((i) => !i.loadEnabled && i.loads.some((kg) => kg > 0))).toBe(true);
+    expect(has((i) => i.loadEnabled && i.loads.every((kg) => kg === 0))).toBe(true);
+  });
+
+  it.each(pre5Cases.map((item) => [item.id, item] as const))("PRE5-1.2/AC5 — %s", (_id, item) => {
+    const input = fromPre5(item.input);
+    const segments = generateExecutionPhrase(input)!;
+    expect(phraseText(segments)).toBe(item.expectedText);
+    expect(segments.filter((segment) => segment.gras).map((segment) => segment.texte)).toEqual(item.expectedBold);
+    // Charge en texte normal (D-414) ; jamais « 0 s ».
+    expect(segments.filter((segment) => segment.gras && /kg|charge/u.test(segment.texte))).toEqual([]);
+    expect(item.expectedText).not.toMatch(NO_ZERO_SECONDS);
+    // Total : formule du test (phases et charge sans effet sur la durée, Δ48, Q-V3-13).
+    const clause = TOTAL_CLAUSE.exec(item.expectedText);
+    const formula = variantFormulaTotal(item.input);
+    const redundant =
+      item.input.mode === "DURATION" && item.input.pauses.length === 1 && (item.input.side ?? "UNILATERAL") === "UNILATERAL" && item.input.pauses[0] === 0;
+    if (formula === null || redundant) {
+      expect(clause).toBeNull();
+    } else {
+      expect(clause?.[0]).toBe(`Durée totale : ${formula.symbol}${formatPhraseDuration(formula.seconds)}.`);
+    }
+    // Sans phases ni charge, la phrase est celle d'avant, mentions retirées : rien d'autre ne change.
+    const bare = fromPre5({ ...item.input, loadEnabled: false, workPhases: [] });
+    expect(phraseText(generateExecutionPhrase(bare)!)).toBe(item.expectedText.replace(VALUE_SUFFIX_PATTERN, ""));
+    expect(computeIntrinsicDuration(input)).toEqual(computeIntrinsicDuration(bare));
+  });
+
+  it("PRE5-1.2/AC3 — ordre unique : phases, puis charge", () => {
+    expect(VALUE_SUFFIX_ORDER).toEqual(["workPhases", "load"]);
+  });
+
+  it("PRE5-1.2/AC2 — `workPhasesClause` : segments exacts, durées en gras, aucun segment sans phases", () => {
+    const input = fromPre5(pre5Cases.find((item) => item.id === "phases-plusieurs")!.input);
+    expect(workPhasesClause(input)).toEqual([
+      { texte: " (Descente : ", gras: false },
+      { texte: "6 s", gras: true },
+      { texte: " - Maintien : ", gras: false },
+      { texte: "3 s", gras: true },
+      { texte: ")", gras: false },
+    ]);
+    expect(workPhasesClause(duration({}))).toEqual([]);
+    // Régénération : un libellé renommé, un ordre ou une durée modifiés se lisent aussitôt.
+    const uniform = input.series.kind === "UNIFORM" ? input.series : null;
+    const renamed = { ...input, series: { ...uniform!, workPhases: [...uniform!.workPhases].reverse().map((phase) => (phase.label === "Maintien" ? { ...phase, label: "Tenue" } : phase)) } };
+    expect(phraseText(workPhasesClause(renamed))).toBe(" (Tenue : 3 s - Descente : 6 s)");
+    // Espaces extérieurs d'un libellé enregistré : retirés à l'affichage seulement, donnée intacte.
+    const spaced = { ...input, series: { ...uniform!, workPhases: uniform!.workPhases.map((phase) => ({ ...phase, label: ` ${phase.label}  ` })) } };
+    expect(phraseText(workPhasesClause(spaced))).toBe(" (Descente : 6 s - Maintien : 3 s)");
+    expect(spaced.series.workPhases[0]!.label).toBe(" Descente  ");
+  });
+
+  it("PRE5-1.2/AC1 — `loadClause` : formes D-414, en texte normal ; Sans et toutes nulles → aucun segment", () => {
+    const uniform = (loadKg: number, loadEnabled = true) =>
+      duration({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 0, loadKg, workPhases: [] }, loadEnabled });
+    const variable = (loads: readonly number[], loadEnabled = true) =>
+      duration({ series: { kind: "VARIABLE", rows: loads.map((loadKg) => ({ target: numberTarget(30), pauseSeconds: 0, loadKg })) }, loadEnabled });
+    expect(loadClause(uniform(20))).toEqual([{ texte: " (charge : 20 kg)", gras: false }]);
+    expect(phraseText(loadClause(uniform(2.5)))).toBe(" (charge : 2,5 kg)");
+    expect(phraseText(loadClause(variable([20, 12, 13])))).toBe(" (charges : 20, 12, 13 kg)");
+    expect(phraseText(loadClause(variable([20, 12, 13, 8])))).toBe(" (charges : 20, 12 kg, ...)");
+    expect(phraseText(loadClause(variable([0, 10, 15])))).toBe(" (charges : 0, 10, 15 kg)");
+    expect(phraseText(loadClause(variable([20, 20, 20])))).toBe(" (charges : 20, 20, 20 kg)");
+    expect(loadClause(uniform(20, false))).toEqual([]);
+    expect(loadClause(variable([20, 12], false))).toEqual([]);
+    expect(loadClause(uniform(0))).toEqual([]);
+    expect(loadClause(variable([0, 0, 0]))).toEqual([]);
+    // N = 1 issu d'un Régime variables : charge commune de l'uniforme effectif.
+    expect(phraseText(loadClause(variable([12.5])))).toBe(" (charge : 12,5 kg)");
   });
 });

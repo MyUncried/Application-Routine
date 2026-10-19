@@ -167,8 +167,8 @@
       "id": "failure-duration-uniform-no-pause-bilateral",
       "covers": "AC7 — tout à l'échec, sans Pause, un côté après l'autre, PC 5 s",
       "input": { "mode": "DURATION", "series": "UNIFORM", "targets": ["FAILURE"], "pauses": [0, 0, 0], "bip": 4, "side": "RIGHT_LEFT", "order": "BY_SIDE", "pc": 5 },
-      "expectedText": "3 séries menées jusqu’à l’échec, enchaînées sans pause, en faisant d’abord toutes les séries à droite, puis à gauche, avec 5 s de pause au changement de côté.",
-      "expectedBold": ["3 séries", "droite", "gauche", "5 s"],
+      "expectedText": "3 séries menées jusqu’à l’échec, enchaînées sans pause, en faisant d’abord toutes les séries du côté 1, puis du côté 2, avec 5 s de pause au changement de côté.",
+      "expectedBold": ["3 séries", "côté 1", "côté 2", "5 s"],
       "expectedTotalSeconds": null
     },
     {
@@ -215,16 +215,16 @@
       "id": "n1-bilateral",
       "covers": "AC6, AC10 — Durée, N = 1, bilatéral : total affiché",
       "input": { "mode": "DURATION", "series": "UNIFORM", "targets": [90], "pauses": [0], "bip": 0, "side": "RIGHT_LEFT", "order": "BY_SIDE", "pc": 0 },
-      "expectedText": "1 série de 1 min 30 s, en faisant le côté droit puis le gauche. Durée totale : 3 min.",
-      "expectedBold": ["1 série", "1 min 30 s", "gauche", "3 min"],
+      "expectedText": "1 série de 1 min 30 s, en faisant le côté 1 puis le côté 2. Durée totale : 3 min.",
+      "expectedBold": ["1 série", "1 min 30 s", "côté 2", "3 min"],
       "expectedTotalSeconds": 180
     },
     {
       "id": "n1-left-normalized-order",
-      "covers": "AC6 — départ gauche à N = 1 (Ordre normalisé), PC 5 s",
+      "covers": "AC6 — départ gauche à N = 1 (Ordre normalisé), PC 5 s ; PRE-5 story 1.2 : clause des côtés neutre",
       "input": { "mode": "DURATION", "series": "UNIFORM", "targets": [90], "pauses": [0], "bip": 0, "side": "LEFT_RIGHT", "order": "BY_SERIES", "pc": 5 },
-      "expectedText": "1 série de 1 min 30 s, en faisant le côté gauche puis le droit, avec 5 s de pause au changement de côté. Durée totale : 3 min 5 s.",
-      "expectedBold": ["1 série", "1 min 30 s", "droit", "5 s", "3 min 5 s"],
+      "expectedText": "1 série de 1 min 30 s, en faisant le côté 1 puis le côté 2, avec 5 s de pause au changement de côté. Durée totale : 3 min 5 s.",
+      "expectedBold": ["1 série", "1 min 30 s", "côté 2", "5 s", "3 min 5 s"],
       "expectedTotalSeconds": 185
     },
     {
@@ -253,18 +253,18 @@
     },
     {
       "id": "mix-left-by-side",
-      "covers": "AC6 — départ gauche, un côté après l'autre, PC 5 s, mélange en Durée",
+      "covers": "AC6 — départ gauche, un côté après l'autre, PC 5 s, mélange en Durée ; PRE-5 story 1.2 : clause des côtés neutre",
       "input": { "mode": "DURATION", "series": "VARIABLE", "targets": [30, "FAILURE", 45], "pauses": [10, 10, 10], "bip": 0, "side": "LEFT_RIGHT", "order": "BY_SIDE", "pc": 5 },
-      "expectedText": "3 séries de durée variable (30 s, jusqu’à l’échec puis 45 s), en faisant d’abord toutes les séries à gauche, puis à droite, avec 5 s de pause au changement de côté. Durée totale : ≥ 3 min 35 s.",
-      "expectedBold": ["3 séries", "30 s", "45 s", "gauche", "droite", "5 s", "≥ 3 min 35 s"],
+      "expectedText": "3 séries de durée variable (30 s, jusqu’à l’échec puis 45 s), en faisant d’abord toutes les séries du côté 1, puis du côté 2, avec 5 s de pause au changement de côté. Durée totale : ≥ 3 min 35 s.",
+      "expectedBold": ["3 séries", "30 s", "45 s", "côté 1", "côté 2", "5 s", "≥ 3 min 35 s"],
       "expectedTotalSeconds": 215
     },
     {
       "id": "mix-left-by-series",
-      "covers": "AC6 — départ gauche, les deux côtés à chaque série, PC 0, mélange en Répétitions avec Bip",
+      "covers": "AC6 — départ gauche, les deux côtés à chaque série, PC 0, mélange en Répétitions avec Bip ; PRE-5 story 1.2 : clause des côtés neutre",
       "input": { "mode": "REPETITIONS", "series": "VARIABLE", "targets": [10, "FAILURE", 12], "pauses": [10, 10, 10], "bip": 2, "side": "LEFT_RIGHT", "order": "BY_SERIES", "pc": 0 },
-      "expectedText": "3 séries de répétitions variables (10, jusqu’à l’échec puis 12), cadencées toutes les 2 s, en alternant le côté gauche puis le droit à chaque série. Durée totale : ≥ 1 min 58 s.",
-      "expectedBold": ["3 séries", "10", "12", "2 s", "droit", "≥ 1 min 58 s"],
+      "expectedText": "3 séries de répétitions variables (10, jusqu’à l’échec puis 12), cadencées toutes les 2 s, en alternant le côté 1 puis le côté 2 à chaque série. Durée totale : ≥ 1 min 58 s.",
+      "expectedBold": ["3 séries", "10", "12", "2 s", "côté 2", "≥ 1 min 58 s"],
       "expectedTotalSeconds": 118
     },
     {

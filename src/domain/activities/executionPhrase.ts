@@ -24,6 +24,7 @@ import {
   type ExecutionParametersInput,
 } from "./ExecutionParameters";
 import { formatPhraseDuration } from "./durationFormat";
+import { formatLoadKg, formatLoadValue, normalizeLoad } from "./exerciseLoad";
 import { computeIntrinsicDuration, isCalculable, type ExerciseDurationResult } from "./executionCalculations";
 
 export type PhraseSegment = {
@@ -40,6 +41,12 @@ class SegmentBuilder {
 
   bold(value: string): this {
     return this.push(value, true);
+  }
+
+  /** Ajoute des segments déjà formés (clauses pures), avec la même fusion des voisins de même graisse. */
+  append(segments: readonly PhraseSegment[]): this {
+    segments.forEach((segment) => this.push(segment.texte, segment.gras));
+    return this;
   }
 
   private push(value: string, gras: boolean): this {
@@ -82,6 +89,74 @@ function enumerate(builder: SegmentBuilder, items: readonly string[], boldItem: 
   });
 }
 
+/** Au-delà de ce nombre de séries, la liste des charges est tronquée aux deux premières (D-414). */
+const LOAD_LIST_MAX_COUNT = 3;
+
+/**
+ * PRE-5 (story 1.2, FR-43, AD-29, QP5-09) — mention des phases de l'exercice :
+ * « (Descente : **6 s** - Maintien : **3 s**) », exhaustive même pour une seule
+ * phase, libellés et durées effectifs dans l'ordre d'exécution ; durées en
+ * gras, libellés en texte normal. Les phases ne vivent que sur une série
+ * uniforme (état effectif) ; sans phases, aucun segment.
+ */
+export function workPhasesClause(parameters: ExecutionParametersInput): readonly PhraseSegment[] {
+  const { series } = normalizeEffective(parameters);
+  if (series.kind !== "UNIFORM" || series.workPhases.length === 0) {
+    return [];
+  }
+  const builder = new SegmentBuilder().text(" (");
+  series.workPhases.forEach((phase, index) => {
+    builder
+      // Espaces extérieurs du libellé retirés à l'affichage seulement (aucune donnée modifiée).
+      .text(`${index > 0 ? " - " : ""}${phase.label.trim()} : `)
+      .bold(formatPhraseDuration(phase.durationSeconds));
+  });
+  return builder.text(")").build();
+}
+
+/**
+ * PRE-5 (story 1.2, FR-42, D-414, AD-29) — mention de la charge, en texte
+ * normal : identiques « (charge : 20 kg) » ; variables « (charges : 20, 12,
+ * 13 kg) » jusqu'à trois séries, « (charges : 20, 12 kg, ...) » au-delà. Les
+ * valeurs sont celles des séries effectives, dans leur ordre, zéros compris,
+ * jamais compactées en charge commune (RM-240). Sous Sans, ou toutes les
+ * valeurs à 0 (règles du zéro de `normalizeLoad`), aucun segment.
+ */
+export function loadClause(parameters: ExecutionParametersInput): readonly PhraseSegment[] {
+  if (!normalizeLoad(parameters).loadEnabled) {
+    return [];
+  }
+  const effective = normalizeEffective(parameters);
+  const builder = new SegmentBuilder();
+  if (effective.series.kind === "UNIFORM") {
+    return builder.text(` (charge : ${formatLoadKg(effective.series.loadKg)})`).build();
+  }
+  const loads = seriesRowsOf(effective).map((row) => row.loadKg);
+  const truncated = loads.length > LOAD_LIST_MAX_COUNT;
+  const shown = truncated ? loads.slice(0, 2) : loads;
+  // Unité écrite une fois, par le formateur unique, sur la dernière valeur affichée.
+  const listed = shown
+    .map((kg, index) => (index === shown.length - 1 ? formatLoadKg(kg) : formatLoadValue(kg)))
+    .join(", ");
+  return builder.text(` (charges : ${listed}${truncated ? ", ..." : ""})`).build();
+}
+
+/** Mentions accolées à la valeur par série et leur ordre unique (AD-29, décision §9-3) : phases, puis charge. */
+export const VALUE_SUFFIX_ORDER = ["workPhases", "load"] as const;
+
+const VALUE_SUFFIX_CLAUSES: Record<
+  (typeof VALUE_SUFFIX_ORDER)[number],
+  (parameters: ExecutionParametersInput) => readonly PhraseSegment[]
+> = {
+  workPhases: workPhasesClause,
+  load: loadClause,
+};
+
+/** Point d'insertion unique des mentions, à la fin de la valeur par série (AD-29). */
+function appendValueSuffix(builder: SegmentBuilder, parameters: ExecutionParametersInput): void {
+  VALUE_SUFFIX_ORDER.forEach((key) => builder.append(VALUE_SUFFIX_CLAUSES[key](parameters)));
+}
+
 /**
  * Segments de la phrase descriptive d'un Exercice. `null` lorsque le mode
  * n'est pas renseigné ou qu'une Cible est à renseigner (`UNSET` : aucune
@@ -101,6 +176,11 @@ function enumerate(builder: SegmentBuilder, items: readonly string[], boldItem: 
  * suit, précédée d'une virgule. « jusqu’à l’échec » et « à l’échec » sont
  * du texte grammatical (normal) ; les valeurs sont en gras (FR-16-02, H9).
  * Une Cible `UNSET` donne toujours une phrase `null`.
+ *
+ * PRE-5 (story 1.2, AD-29) : les mentions des phases et de la charge
+ * (`workPhasesClause`, `loadClause`, ordre `VALUE_SUFFIX_ORDER`) suivent la
+ * valeur par série, avant la cadence et la Pause ; la clause des côtés est
+ * neutre (« côté 1 », « côté 2 »). La « Durée totale » est inchangée.
  */
 export function generateExecutionPhrase(input: ExecutionParametersInput): readonly PhraseSegment[] | null {
   if (!isCalculable(input)) {
@@ -141,9 +221,6 @@ export function generateExecutionPhrase(input: ExecutionParametersInput): readon
         .bold(mode === "DURATION" ? formatPhraseDuration(minimum) : `${minimum} rép.`)
         .text(" à l’échec");
     }
-    if (cadenced) {
-      builder.text(", cadencées toutes les ").bold(formatPhraseDuration(parameters.cadenceBeepIntervalSeconds));
-    }
   } else if (mode === "DURATION") {
     if (!variable) {
       builder.text(" de ").bold(formatPhraseDuration(targets[0]!));
@@ -172,9 +249,17 @@ export function generateExecutionPhrase(input: ExecutionParametersInput): readon
         .text(` variables, de ${Math.min(...targets)} à `)
         .bold(repetitionsLabel(Math.max(...targets)));
     }
-    if (cadenced) {
-      builder.text(" cadencées toutes les ").bold(formatPhraseDuration(parameters.cadenceBeepIntervalSeconds));
-    }
+  }
+
+  // --- Phases et charge : point d'insertion unique, après la valeur par série
+  // et avant la cadence et la Pause (PRE-5 story 1.2, AD-29).
+  appendValueSuffix(builder, parameters);
+
+  // --- Cadence (Répétitions avec Bip ; jamais en tout échec, P26) -----------
+  if (cadenced && !failure) {
+    builder
+      .text(mixed ? ", cadencées toutes les " : " cadencées toutes les ")
+      .bold(formatPhraseDuration(parameters.cadenceBeepIntervalSeconds));
   }
 
   // --- Pause (uniforme seulement ; omise en variable, conformément aux 276 cas)
@@ -187,21 +272,20 @@ export function generateExecutionPhrase(input: ExecutionParametersInput): readon
     }
   }
 
-  // --- Côtés --------------------------------------------------------------
+  // --- Côtés (PRE-5 story 1.2, FR-18, AD-21, ch. 10 l. 515) : forme neutre,
+  // identique pour `RIGHT_LEFT` et `LEFT_RIGHT` ; la direction n'est pas lue.
+  // La désignation qui remplace un ancien mot gras (« gauche », « droite ») est en gras.
   if (isBilateral(parameters.sideMode)) {
-    const rightFirst = parameters.sideMode === "RIGHT_LEFT";
-    const first = rightFirst ? "droit" : "gauche";
-    const second = rightFirst ? "gauche" : "droit";
     if (count === 1) {
-      builder.text(`, en faisant le côté ${first} puis le `).bold(second);
+      builder.text(", en faisant le côté 1 puis le ").bold("côté 2");
     } else if (parameters.sideOrder === "BY_SERIES") {
-      builder.text(`, en alternant le côté ${first} puis le `).bold(second).text(" à chaque série");
+      builder.text(", en alternant le côté 1 puis le ").bold("côté 2").text(" à chaque série");
     } else {
       builder
-        .text(", en faisant d’abord toutes les séries à ")
-        .bold(rightFirst ? "droite" : "gauche")
-        .text(", puis à ")
-        .bold(rightFirst ? "gauche" : "droite");
+        .text(", en faisant d’abord toutes les séries du ")
+        .bold("côté 1")
+        .text(", puis du ")
+        .bold("côté 2");
     }
     if (parameters.sideRecoverySeconds > 0) {
       builder

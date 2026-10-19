@@ -69,11 +69,20 @@ export function reactivateLoad<T extends ExecutionParametersInput>(parameters: T
 }
 
 /**
+ * Nombre seul d'une charge (AD-19, AD-32 ; story 1.2) : séparateur décimal du
+ * français, sans zéro inutile (« 1,5 », « 1,25 », « 20 »). Sert aux listes de
+ * la Phrase (« (charges : 20, 12,5 kg) »), où l'unité n'est écrite qu'une fois.
+ */
+export function formatLoadValue(kg: number): string {
+  return String(kg).replace(".", ",");
+}
+
+/**
  * SEUL formateur de kg (AD-19, AD-32) : séparateur décimal du français, sans
- * zéro inutile (« 1,5 kg », « 1,25 kg », « 20 kg »).
+ * zéro inutile (« 1,5 kg », « 1,25 kg », « 20 kg »). Dérive de `formatLoadValue`.
  */
 export function formatLoadKg(kg: number): string {
-  return `${String(kg).replace(".", ",")} kg`;
+  return `${formatLoadValue(kg)} kg`;
 }
 
 /** Résultat de l'analyse d'un texte de charge saisi (AD-19, AD-26). */
