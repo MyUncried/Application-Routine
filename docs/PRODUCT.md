@@ -294,6 +294,8 @@ Le composant DSF canonique de navigation est `Navigation / Bottom` (`6298:12462`
 - Parcours fonctionnels ;
 - options avancées de filtre/tri Catalogue non encore arbitrées.
 
+**Couverture de Prototype MVP (D-426).** Tous les écrans et états de la page Figma `Prototype MVP` relèvent du MVP. Les écrans de déclaration de douleur avant une séance (`8921:35275`) et d’effort perçu et douleur en synthèse (`8921:35340`) y figurent. Les échelles visibles sont de 0 à 10 pour la douleur et de 1 à 10 pour l’effort perçu ; leur logique de stockage, leur articulation avec le Ressenti existant et leurs conditions d’usage restent **À CLARIFIER** dans les contrats. Ce point ne valide pas le signalement détaillé de gêne, reporté hors MVP.
+
 ## 7. Principes métier structurants
 
 1. Une Séance est un contenu exécutable ; dans le MVP T03, un Exercice persistant l’est également ; une Routine planifie une Séance.
@@ -389,7 +391,7 @@ Le Catalogue conserve un seul espace mais distingue `Exercices` et `Séances`. `
 
 Un Exercice de Catalogue est une référence persistante `ActivityDefinition`. L’utilisateur peut la créer, la consulter, la modifier, l’archiver, accéder aux archives par `Filtrer > Archivées`, la restaurer, la supprimer définitivement depuis les archives, l’exécuter directement ou la sélectionner depuis une Composition.
 
-Son insertion dans une Séance copie toutes les propriétés métier applicables au moment de l’insertion — nom, Description, mode/cible, Séries, Pause, Récupération, Zones corporelles, changement de côté propre, charge (activation et valeurs, RM-236) et autres champs persistants applicables. La `SessionActivity` appartient ensuite à la Séance et évolue indépendamment. Un Exercice créé dans une Séance ne rejoint pas automatiquement le Catalogue. La migration T03 ne transforme pas les `SessionActivity` historiques en `ActivityDefinition`.
+Son insertion dans une Séance copie toutes les propriétés métier applicables au moment de l’insertion — nom, Description facultative structurée en étapes ordonnées (D-425), mode/cible, Séries, Pause, Récupération, Zones corporelles, changement de côté propre, charge (activation et valeurs, RM-236) et autres champs persistants applicables. La `SessionActivity` appartient ensuite à la Séance et évolue indépendamment. Un Exercice créé dans une Séance ne rejoint pas automatiquement le Catalogue. La migration T03 ne transforme pas les `SessionActivity` historiques en `ActivityDefinition`.
 
 Dans les Catalogues, `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant : Exercice persistant depuis `Exercices`, Séance depuis `Séances` ; aucun Catalogue Parcours. Aucun écran ni arbre intermédiaire n’est affiché. Cette règle n’active pas les Parcours dans T03/MVP. Depuis `Ajouter un exercice` dans une Composition, le parcours actuellement exposé ouvre la sélection d’Exercices du Catalogue. La capacité existante de création directe d’un Exercice local à la Séance reste conservée fonctionnellement et techniquement mais n’est pas exposée dans cet enchaînement. La sélection multiple insère les Exercices selon leur ordre visible dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers.
 

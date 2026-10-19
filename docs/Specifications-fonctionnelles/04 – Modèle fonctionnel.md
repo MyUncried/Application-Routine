@@ -179,7 +179,7 @@ La Pause et la Pause entre les côtés sont indépendantes. Lorsque le Changemen
 
 Dans le MVP T03, une **Exercice de référence** (`ActivityDefinition`) est une définition persistante autonome du Catalogue des exercices. Son cycle de vie comprend création, consultation/modification, archivage, restauration et suppression définitive depuis les archives. Elle peut être exécutée directement lorsqu’elle est valide.
 
-Une **Exercice de Séance** (`SessionActivity`) est une copie indépendante placée avant, dans ou après le Circuit d’une Séance. L’insertion depuis le Catalogue copie les propriétés intrinsèques applicables de la référence au moment de l’insertion, notamment nom, Description, mode/cible, Séries, Pause, `sideRecoverySeconds`, charge avec son activation et ses valeurs conservées (RM-236), Zones corporelles et Changement de côté (direction propre historique, RM-244). Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). La copie devient ensuite indépendante : modifier, archiver ou supprimer la source ne modifie jamais la copie, et inversement.
+Une **Exercice de Séance** (`SessionActivity`) est une copie indépendante placée avant, dans ou après le Circuit d’une Séance. L’insertion depuis le Catalogue copie les propriétés intrinsèques applicables de la référence au moment de l’insertion, notamment nom, Description facultative structurée en étapes ordonnées (D-425), mode/cible, Séries, Pause, `sideRecoverySeconds`, charge avec son activation et ses valeurs conservées (RM-236), Zones corporelles et Changement de côté (direction propre historique, RM-244). Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). La copie devient ensuite indépendante : modifier, archiver ou supprimer la source ne modifie jamais la copie, et inversement.
 
 Un Exercice créé directement dans une Séance ne devient pas automatiquement une référence de Catalogue. La migration T03 ne promeut pas les `SessionActivity` historiques en `ActivityDefinition`.
 
@@ -250,7 +250,7 @@ Dans le MVP :
 Un **Exercice** est une unité exécutable autonome dans son modèle fonctionnel, qu’elle soit définie comme `ActivityDefinition` dans le Catalogue ou copiée comme `SessionActivity` dans une Séance.
 
 Les propriétés intrinsèques communes portent notamment :
-- une identité, un nom et une Description facultative ;
+- une identité, un nom et une Description facultative structurée en étapes ordonnées (D-425) ;
 - une **Catégorie** d’Exercice et zéro à plusieurs **Zones corporelles** ;
 - un mode d’exécution parmi Durée et Répétitions ;
 - la cible du mode lorsqu’elle existe ;
