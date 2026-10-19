@@ -503,7 +503,7 @@ Les fondations visuelles et composants communs suivent DSF V2 : fonds et zones d
 
 ### Générateur de phrase — référence active v1 (06/10/2026)
 
-Le générateur suit v13 §7. Le résumé omet le total uniquement lorsqu’il égale réellement la cible ; une Pause positive à N=1 rend ces valeurs différentes. En variable : énumération jusqu’à3 puis plage min/max, total en lecture seule. Compte à rebours et Fin d'exercice restent hors phrase et hors calcul de Durée totale. Les pauses d’Exercice utilisent les steppers de la feuille sur0..300s ; les réglages de durée du Profil utilisent des steppers. Les steppers de pauses utilisent tap1s puis maintien accéléré1/5/10 selon DSF Bip ; ancienne grille dépendante de la valeur abandonnée. Séries = `1..99`, Répétitions = `1..100`, Durée par Série = `5 s..58 min 55 s`.
+Le générateur suit v13 §7. Le résumé omet le total uniquement lorsqu’il égale réellement la cible ; une Pause positive à N=1 rend ces valeurs différentes. En variable : énumération jusqu’à3 puis plage min/max, total en lecture seule. Compte à rebours et Fin d'exercice restent hors phrase et hors calcul de Durée totale. Les pauses d’Exercice utilisent les steppers de la feuille sur0..300s ; les réglages de durée du Profil utilisent des steppers. Les steppers de pauses utilisent tap1s puis maintien accéléré1/5/10 selon DSF Bip ; ancienne grille dépendante de la valeur abandonnée. Séries = `1..99`, Répétitions = `1..100`, Durée par Série = `1 s..58 min 55 s` (minimum porté de 5 à 1 s par D-430, 19/10/2026).
 
 ## Mise à jour visuelle du 30 septembre 2026
 
