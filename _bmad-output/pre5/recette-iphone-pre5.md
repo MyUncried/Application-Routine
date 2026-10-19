@@ -78,3 +78,7 @@ Aucun constat iPhone n'est encore consigné pour elle.
 
 - L'espace venait de la brique partagée `tableStyles.block` de `sheetTable.tsx` (`paddingBottom` d'une hauteur de ligne, 36) : retiré là, donc aussi pour le futur tableau des phases (2.8). Marges du bloc inchangées (12 en haut et en bas dans le cadre).
 - À vérifier sur iPhone : bas du fond blanc juste sous la dernière ligne ; glisser jusqu'à la dernière place et repère d'insertion en bas du tableau.
+
+## Issue de l'essai du clavier (story 2.2, AC7) — 19/10
+
+Hermann, sur iPhone, après les corrections RC-1 à RC-9 : « Le clavier fonctionne comme attendu, des changements ergonomiques pourront être demandés plus tard. » Issue **succès** : les composants sont conservés pour la story 2.7, qui est débloquée.
