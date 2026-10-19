@@ -1,0 +1,58 @@
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created, ready for development
+#   - in-progress: Developer actively working on implementation
+#   - review: Implementation complete, ready for review
+#   - done: Story completed
+
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+
+# Action Item Status:
+#   - open: Committed during a retrospective, not yet addressed
+#   - in-progress: Actively being worked on
+#   - done: Completed
+
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when its first story starts (via build's sprint sync)
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates the next story after the previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+# - Retrospective appends its action items to action_items; the status view surfaces open ones
+generated: 10-19-2026 10:54
+last_updated: 10-19-2026 10:54
+project: kodjo-pre5
+project_key: NOKEY
+tracking_system: file-system
+story_location: 
+  C:/Dev/KODJO-BMAD-PRE5/_bmad-output/pre5/implementation-artifacts
+development_status:
+  epic-1: backlog
+  1-1-socle-de-données-v3-phases-charge-étapes-et-minimum-de-1-s: backlog
+  1-2-phrase-avec-phases-et-charge-côtés-neutres-et-indicateur-de: backlog
+  epic-1-retrospective: optional
+
+  epic-2: backlog
+  2-1-transitions-du-brouillon-phases-charge-condition-d-arrêt-et: backlog
+  2-2-essai-sur-iphone-du-champ-clavier-de-la-charge-nfr-6: backlog
+  2-3-variante-inline-du-segmentedcontrol: backlog
+  2-4-feuille-en-quatre-cadres-exécution-et-type-de-série: backlog
+  2-5-côtés-avec-sans-enchainement-cadence-et-durée-de-l-exercice: backlog
+  2-6-tableau-des-séries-sans-steppers-de-cellule-lignes-de-36: backlog
+  2-7-charge-dans-la-feuille-en-séries-identiques-et-variables: backlog
+  2-8-phases-de-l-exercice-dans-la-feuille: backlog
+  epic-2-retrospective: optional
+
+  epic-3: backlog
+  3-1-description-en-étapes-numérotées: backlog
+  3-2-carte-allégée-terminer-abaissé-et-conformité-figma-de-l-écra: backlog
+  epic-3-retrospective: optional

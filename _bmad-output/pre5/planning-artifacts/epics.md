@@ -395,7 +395,7 @@ afin de lire d'un coup d'œil ce que l'Exercice prescrit, sans désignation anat
 **Dépend de :** 1.1.
 **Taille :** M.
 **UX :** UX-DR7.
-**Questions :** QN-5 (nouvelle : charges variables toutes égales).
+**Questions :** QN-5, close par la source : D-414 et RM-240 (« aucune autre règle de compaction »).
 
 **Critères d'acceptation :**
 
@@ -405,7 +405,7 @@ afin de lire d'un coup d'œil ce que l'Exercice prescrit, sans désignation anat
 **Then** la fonction pure `loadClause(parameters)` ajoute, après la valeur par série : en identiques `(charge : 20 kg)` ; en variables jusqu'à trois séries `(charges : 20, 12, 13 kg)` ; au-delà de trois `(charges : 20, 12 kg, ...)`
 **And** les valeurs sont celles des séries, dans leur ordre ; une charge commune n'est pas présentée quand les séries diffèrent ; une série à zéro est listée avec 0 (`(charges : 0, 10, 15 kg)`)
 **And** sous Sans, aucune mention ; la charge ne change ni le statut des durées, ni leurs symboles ; les nombres passent par `formatLoadKg`
-**And** `[EN ATTENTE QN-5]` en séries variables à charges toutes égales, la liste des valeurs est présentée (`(charges : 20, 20, 20 kg)`), selon « les valeurs sont celles des séries, dans leur ordre ».
+**And** en séries variables à charges toutes égales, la liste des valeurs est présentée (`(charges : 20, 20, 20 kg)`), selon D-414 et RM-240 : « les valeurs sont celles des séries, dans leur ordre », sans autre règle de compaction.
 
 **AC2 — Clause des phases (FR-43, QP5-09).**
 **Given** un Exercice à phases Descente 6 s et Maintien 3 s, 3 séries, Pause 15 s
@@ -431,7 +431,7 @@ afin de lire d'un coup d'œil ce que l'Exercice prescrit, sans désignation anat
 **Given** `phrases-276.json` et `attendus-phrases-276.json`
 **When** le test du corpus s'exécute
 **Then** ces deux fichiers ne sont pas modifiés sur disque ; les cas non bilatéraux sont vérifiés contre l'oracle ; les cas bilatéraux contre des attendus neutres en chaînes littérales dans `src/domain/activities/__tests__/fixtures/`
-**And** le corpus étendu contient en fixtures littérales : une phase, plusieurs phases, charge commune, charges variables ≤ 3 et > 3, série à zéro, charges variables toutes égales (`[EN ATTENTE QN-5]`), combinaison phases + charge, et les trois cas Δ48 (Répétitions × Identiques, Répétitions × Variables, À l'échec avec charge) ; les `\r` sont retirés de toute fixture découpée par lignes
+**And** le corpus étendu contient en fixtures littérales : une phase, plusieurs phases, charge commune, charges variables ≤ 3 et > 3, série à zéro, charges variables toutes égales, combinaison phases + charge, et les trois cas Δ48 (Répétitions × Identiques, Répétitions × Variables, À l'échec avec charge) ; les `\r` sont retirés de toute fixture découpée par lignes
 **And** les 276 phrases sans charge ni phases restent intactes, à la seule exception de la clause des côtés.
 
 **AC6 — Indicateur de côté de la Composition (FR-18, R-15, Δ45).**
@@ -1108,7 +1108,7 @@ afin que l'Éditeur soit fini, lisible et conforme aux références.
 | QN-2 | Résultat dérivé AR-01 avec cellules vides en séries variables. | Cellules vides non comptées ; sans aucune cellule renseignée, aucun résultat et « — ». | 1.1 AC8 ; 2.4 AC5 |
 | QN-3 | Libellé par défaut « Phase n » après ✓. | Stocké comme un libellé ordinaire, ne se renumérote plus. | 2.1 AC5 ; 2.8 AC7 |
 | QN-4 | Pause entre les côtés et Enchainement « conservés » (FR-15, FR-17) face à l'existant. | Existant conservé : copie de la Pause du Profil à chaque passage à Avec (P3-10), `BY_SIDE` enregistré à N = 1 (NR Δ24). | 2.1 AC8 ; 2.5 AC1, AC2 |
-| QN-5 (nouvelle) | Phrase, séries variables à charges toutes égales : liste (`(charges : 20, 20, 20 kg)`) ou forme commune (`(charge : 20 kg)`) ? AD-29 rend le cas obligatoire au corpus sans fixer son texte. | Liste des valeurs des séries, dans leur ordre (FR-42 : « les valeurs sont celles des séries »). | 1.2 AC1, AC5 |
+| QN-5 (close : D-414, ch. 10 l. 369 « Aucune autre règle de compaction ») | Phrase, séries variables à charges toutes égales : liste (`(charges : 20, 20, 20 kg)`) ou forme commune (`(charge : 20 kg)`) ? AD-29 rend le cas obligatoire au corpus sans fixer son texte. | Liste des valeurs des séries, dans leur ordre (FR-42 : « les valeurs sont celles des séries »). | 1.2 AC1, AC5 |
 
 **Point signalé — QN-2 et AD-23.** Le défaut de QN-2 retenu ici (cellules vides non comptées ; « — » sans cellule renseignée) diffère de l'`[ASSUMPTION]` d'AD-23 (`INCOMPLETE` dès qu'une `UNSET` existe sans mélange établi, rendu par les deux options non modifiables, aucune sélectionnée). Les critères suivent le défaut de QN-2 ; AD-23 sera aligné sur la réponse de Hermann.
 
