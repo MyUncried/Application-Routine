@@ -49,6 +49,8 @@ export type FixedHeaderProps = {
   layoutStyle?: StyleProp<ViewStyle>;
   backCircleStyle?: StyleProp<ViewStyle>;
   titleStyle?: StyleProp<TextStyle>;
+  /** PRE-5 story 3.2 (G-1) : teinte locale du trait de l'icône du cercle (absente : export inchangé). */
+  backIconTintColor?: string;
 };
 
 /**
@@ -81,6 +83,7 @@ export function FixedHeader({
   layoutStyle,
   backCircleStyle,
   titleStyle,
+  backIconTintColor,
 }: FixedHeaderProps) {
   const insets = useSafeAreaInsets();
   const backHitSlop = (minTouchTarget - dimensions.backAction.visualCircle) / 2;
@@ -109,6 +112,7 @@ export function FixedHeader({
           <KodjoIcon
             name={closeIcon ? "control-close" : "control-back"}
             size={dimensions.backAction.icon}
+            tintColor={backIconTintColor}
             testID="screen-header-back-icon"
           />
         </Pressable>
