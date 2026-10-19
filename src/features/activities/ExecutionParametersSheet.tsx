@@ -1,6 +1,12 @@
+import { Button as SwiftUIButton, Host, Menu, RNHostView } from "@expo/ui/swift-ui";
+import {
+  accessibilityLabel as swiftUIAccessibilityLabel,
+  accessibilityValue as swiftUIAccessibilityValue,
+} from "@expo/ui/swift-ui/modifiers";
 import { Fragment, useEffect, useReducer, useRef, useState, type ReactNode, type RefObject } from "react";
 import {
   AccessibilityInfo,
+  Alert,
   Animated,
   Easing,
   Modal,
@@ -129,7 +135,13 @@ import {
   type InlineStepperProps,
 } from "@/shared/ui/ProfileStepper";
 import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
-import { INLINE_OPTION_WIDTHS, SegmentedControl } from "@/shared/ui/SegmentedControl";
+import {
+  INLINE_OPTION_CONTENT_HEIGHT,
+  INLINE_OPTION_WIDTHS,
+  SegmentedControl,
+  inlineChevronFrameStyle,
+  inlineSelectedCompactLabelStyle,
+} from "@/shared/ui/SegmentedControl";
 import { TRANSIENT_NOTIFICATION_DURATION_MS } from "@/shared/ui/TransientNotification";
 import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
@@ -218,10 +230,11 @@ import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@
  *
  * PRE-5 story 2.5 (AD-21, AD-24, AD-27, AD-28, D-431 ; FR-15 à FR-17, FR-30, FR-31) :
  * - cadre Côtés : « Changement de côté » en segmenté `inline` Avec / Sans (Avec ⇔
- *   `isBilateral`, Sans → Avec : `setSideMode(…, "RIGHT_LEFT", Profil)`, copie P3-10) ; le
- *   chevron intérieur d'Avec replie ou déplie Enchainement et Pause entre les côtés (état
- *   d'interface). « Enchainement » (Avec, N > 1) en segmenté `inline` à notations graphiques
- *   (`sideOrderSubtitles`, nom accessible `sideOrders`). `popover(side | order)` retirées ;
+ *   `isBilateral`, Sans → Avec : `setSideMode(…, "RIGHT_LEFT", Profil)`, copie P3-10).
+ *   Recette du 19/10 (RC-6, Figma `9462:18987`) : plus de ligne « Enchainement » ni de chevron
+ *   de repli ; l'option Avec (N > 1) porte la notation de l'Enchainement (`sideOrderSubtitles`,
+ *   nom accessible `sideOrders`) et, sélectionnée, ouvre le menu natif des deux notations
+ *   (`SideOrderMenu`). Pause entre les côtés visible sous Avec. `popover(side | order)` retirées ;
  * - cadre Cadence et durée : « Cadence » en segmenté Autre / 5 s / 2 s / 1 s / Sans
  *   (`cadenceOptionOf`) ; Autre révèle le ± existant (`stepper(beep)`) sous la ligne.
  *   « Durée de l'exercice » porte le `DisclosureControl` existant, replié par défaut, qui
@@ -425,12 +438,6 @@ export function ExecutionParametersSheet({
   const isOpen = (target: SheetSurface) => sameSurface(openSurface, target);
   const [isTableFolded, setIsTableFolded] = useState(false);
   /**
-   * PRE-5 story 2.5 (AC1, FR-28) : chevron d'Avec du Changement de côté — Enchainement et
-   * Pause entre les côtés repliés (état d'interface, jamais dans le Brouillon) ; déployé par
-   * défaut et à chaque passage à Avec.
-   */
-  const [isSidesFolded, setIsSidesFolded] = useState(false);
-  /**
    * PRE-5 story 2.5 (AC4, AD-28) : section « Durée de l'exercice » déployée (Compte à rebours
    * et Fin rendus) ; repliée à l'ouverture de la Feuille. Indépendante de la valeur de durée.
    */
@@ -607,8 +614,8 @@ export function ExecutionParametersSheet({
     setIsTableSelected(false);
     setAdjustment(null);
     setDraft(next);
-    // PRE-5 story 2.5 : l'Enchainement n'a plus de surface ; à N = 1 sa ligne est seulement
-    // masquée (Q38), le champ ± ouvert (N compris) reste ouvert (T22).
+    // PRE-5 story 2.5 : l'Enchainement n'a plus de surface ; à N = 1 son menu est seulement
+    // masqué (Q38, RC-6), le champ ± ouvert (N compris) reste ouvert (T22).
   }
 
   /**
@@ -774,29 +781,21 @@ export function ExecutionParametersSheet({
    * PRE-5 story 2.5 (AC1, FR-15, FR-16) : segmenté « Changement de côté » Avec / Sans.
    * Sans → Avec écrit `RIGHT_LEFT` et recopie la Pause entre les côtés du Profil (P3-10,
    * `setSideMode`) ; Avec re-choisi sur une valeur bilatérale (`RIGHT_LEFT` ou `LEFT_RIGHT`
-   * historique) et Sans re-choisi sur `UNILATERAL` laissent le Brouillon inchangé. Chaque
-   * passage à Avec présente Enchainement et Pause entre les côtés déployés.
+   * historique) et Sans re-choisi sur `UNILATERAL` laissent le Brouillon inchangé.
    */
   function chooseSide(choice: SideChoice) {
-    const activating = choice === "WITH" && !bilateral && openSurface.kind !== "selector";
     chooseInline((base) => {
       if (choice === "WITH") {
         return isBilateral(base.sideMode) ? base : setSideMode(base, "RIGHT_LEFT", profileSideRecoverySecondsDefault);
       }
       return base.sideMode === "UNILATERAL" ? base : setSideMode(base, "UNILATERAL", profileSideRecoverySecondsDefault);
     });
-    if (activating) setIsSidesFolded(false);
   }
 
-  /** PRE-5 story 2.5 (AC1, FR-28) : chevron d'Avec — replie ou déplie sans changer valeur ni sélection. */
-  function toggleSides() {
-    setIsTableSelected(false);
-    // T14 : toute surface ouverte (champ ± compris) est rangée.
-    dispatchSurface({ type: "closeAll" });
-    setIsSidesFolded((folded) => !folded);
-  }
-
-  /** PRE-5 story 2.5 (AC2, FR-17) : segmenté « Enchainement » ; `setSideOrder` seulement si différent. */
+  /**
+   * PRE-5 story 2.5 (AC2, FR-17) ; recette du 19/10 (RC-6) : choix dans le menu de l'option
+   * Avec ; `setSideOrder` seulement si différent.
+   */
   function chooseSideOrder(order: SideOrder) {
     chooseInline((base) => (base.sideOrder === order ? base : setSideOrder(base, order)));
   }
@@ -965,9 +964,11 @@ export function ExecutionParametersSheet({
   const signalsPresent = exerciseSignals === "present";
   const durationDisclosure = signalsPresent && totalNature !== null;
   const signalsShown = signalsPresent && (totalNature === null || isDurationExpanded);
-  // PRE-5 story 2.5 (AC1, AC2) : Enchainement et Pause entre les côtés suivent Avec et son
-  // chevron ; l'Enchainement est en outre masqué à N = 1 (Q38, valeur conservée).
-  const sideSettingsShown = bilateral && !isSidesFolded;
+  // PRE-5 story 2.5 (AC1) ; recette du 19/10 (RC-6) : Pause entre les côtés visible sous Avec,
+  // sans chevron de repli. L'Enchainement, porté par l'option Avec, est masqué à N = 1 (Q38,
+  // valeur conservée) : Avec y reprend son libellé.
+  const sideSettingsShown = bilateral;
+  const sideOrderShown = !single;
   // AC3 : tant que le ± de la Cadence est ouvert, l'option affichée est Autre.
   const beepOpen = isOpen(stepperSurface("beep"));
   const cadenceOption: CadenceOption | null = beepOpen ? "OTHER" : cadenceOptionOf(draft.cadenceBeepIntervalSeconds);
@@ -1320,46 +1321,37 @@ export function ExecutionParametersSheet({
   // PRE-5 story 2.5 (AC1, FR-15, FR-16, R-02, R-08) : « Changement de côté » en segmenté
   // `inline`, Avec à gauche, Sans à droite, sans direction ; Avec ⇔ `isBilateral` (un
   // historique `RIGHT_LEFT` ou `LEFT_RIGHT` s'affiche Avec). Non renseigné (`null`) : aucune
-  // option sélectionnée ; le ✓ produit Sans (domaine). Avec porte le chevron intérieur
-  // (haut déployé, bas replié) qui replie ou déplie Enchainement et Pause entre les côtés.
+  // option sélectionnée ; le ✓ produit Sans (domaine).
+  // Recette du 19/10 (RC-6, Figma `9462:18986` / `9462:18987`) : la ligne « Enchainement » est
+  // retirée ; l'option Avec (largeur 144) porte la notation de l'Enchainement effectif (D-431,
+  // police réduite), nom accessible « Avec, <libellé neutre> » (D-407). Sélectionnée, son contenu
+  // est le déclencheur du menu natif des deux notations (`SideOrderMenu`). À N = 1, Avec reprend
+  // son libellé, sans menu (Q38, valeur conservée).
   const sideChoice: SideChoice | null = draft.sideMode === null ? null : bilateral ? "WITH" : "WITHOUT";
+  const sideOrder = effective.sideOrder;
   const sideControl = (
     <SegmentedControl<SideChoice>
       variant="inline"
       optionWidth={INLINE_OPTION_WIDTHS.narrow}
       options={[
-        {
-          value: "WITH",
-          label: t.sideModeChoices.WITH,
-          chevron: bilateral ? (isSidesFolded ? "down" : "up") : undefined,
-          chevronAccessibilityLabel: isSidesFolded ? t.showSideSettings : t.hideSideSettings,
-        },
+        sideOrderShown
+          ? {
+              value: "WITH",
+              label: t.sideOrderSubtitles[sideOrder],
+              accessibilityLabel: `${t.sideModeChoices.WITH}, ${t.sideOrders[sideOrder]}`,
+              width: INLINE_OPTION_WIDTHS.notation,
+              compact: true,
+              selectedContent: (
+                <SideOrderMenu value={sideOrder} onChange={chooseSideOrder} testID="execution-sheet-side-order-menu" />
+              ),
+            }
+          : { value: "WITH", label: t.sideModeChoices.WITH, width: INLINE_OPTION_WIDTHS.notation },
         { value: "WITHOUT", label: t.sideModeChoices.WITHOUT },
       ]}
       value={sideChoice}
       onChange={chooseSide}
-      onChevronPress={toggleSides}
       accessibilityLabel={t.sideMode}
       testID="execution-sheet-side-control"
-    />
-  );
-  // PRE-5 story 2.5 (AC2, FR-17, D-431, QP5-07) : « Enchainement » en segmenté `inline` ; texte
-  // des options = notations graphiques (`sideOrderSubtitles`, police réduite), nom accessible =
-  // libellés neutres (`sideOrders`, D-407). Valeur affichée : l'Enchainement effectif.
-  const orderControl = (
-    <SegmentedControl<SideOrder>
-      variant="inline"
-      optionWidth={INLINE_OPTION_WIDTHS.notation}
-      compact
-      options={(["BY_SIDE", "BY_SERIES"] as const).map((order) => ({
-        value: order,
-        label: t.sideOrderSubtitles[order],
-        accessibilityLabel: t.sideOrders[order],
-      }))}
-      value={effective.sideOrder}
-      onChange={chooseSideOrder}
-      accessibilityLabel={t.sideSequence}
-      testID="execution-sheet-order-control"
     />
   );
   // PRE-5 story 2.5 (AC3, AD-24, R-11) : « Cadence » en segmenté `inline` Autre / 5 s / 2 s /
@@ -1810,9 +1802,9 @@ export function ExecutionParametersSheet({
                   </Row>
                 </SheetMotionView>
 
-                {/* Cadre Côtés : Changement de côté, Enchainement, Pause entre les côtés.
-                    PRE-5 story 2.5 (AC1, AC2 ; Figma `9230:19534`) : lignes non indentées
-                    (marge 12, comme le cadre Séries), libellés Regular 12, lignes de 44. */}
+                {/* Cadre Côtés : Changement de côté (portant l'Enchainement, RC-6), Pause entre
+                    les côtés. PRE-5 story 2.5 (AC1, AC2 ; Figma `9230:19534`) : lignes non
+                    indentées (marge 12, comme le cadre Séries), libellés Regular 12, lignes de 44. */}
                 <SheetMotionView
                   appear={false}
                   onLayout={trackFrame("sides")}
@@ -1824,19 +1816,11 @@ export function ExecutionParametersSheet({
                   </Row>
                   {sideSettingsShown ? (
                     <>
-                      {/* Q38 (Hermann, 2026-10-17, E-12) : à N = 1, la ligne « Enchainement » et
-                          son séparateur ne sont pas rendus ; l'Enchainement choisi reste dans le
-                          Brouillon (`draft.sideOrder`) et réapparaît dès N ≥ 2 ; la normalisation
+                      {/* Q38 (Hermann, 2026-10-17, E-12) ; RC-6 : à N = 1, l'option Avec n'a ni
+                          notation ni menu ; l'Enchainement choisi reste dans le Brouillon
+                          (`draft.sideOrder`) et réapparaît dès N ≥ 2 ; la normalisation
                           effective « Un côté après l’autre » à N = 1 est inchangée (FR-12-04).
                           Le stepper « Nombre de séries » n'en est pas modifié (NR Δ38). */}
-                      {!single ? (
-                        <>
-                          <Separator />
-                          <Row label={t.sideSequence} testID="execution-sheet-row-order">
-                            {orderControl}
-                          </Row>
-                        </>
-                      ) : null}
                       <Separator />
                       <Row
                         label={t.sideRecovery}
@@ -2643,6 +2627,84 @@ function RevealedStepperField({ onClose, ...stepper }: InlineStepperProps & { on
   );
 }
 
+const SIDE_ORDERS: readonly SideOrder[] = ["BY_SIDE", "BY_SERIES"];
+
+/**
+ * Recette du 19/10 (RC-6, Figma `9462:18987`) — contenu de l'option Avec sélectionnée du
+ * Changement de côté (N > 1) : notation de l'Enchainement (D-431, Semi Bold 10, blanc) et
+ * chevron existant de `KodjoIcon`, à 6 l'un de l'autre, sur toute l'option (144 × 26).
+ *
+ * Choix (priorité aux primitives natives, AGENTS.md) : sur iOS, ce contenu est le déclencheur
+ * du menu natif SwiftUI `Menu` d'`@expo/ui` (déjà installé, aucun nouveau module natif),
+ * hébergé par `RNHostView` comme le menu contextuel de la galerie (`ActivityMediaList`). Le
+ * toucher ouvre le menu des deux notations, la notation choisie cochée ; le choix appelle
+ * `setSideOrder` ; un toucher extérieur ferme sans rien changer. Figma dessine un déroulant
+ * sous l'option (notation choisie en violet, chevron vers le haut, autre notation dessous) :
+ * le menu natif en tient lieu, avec son propre rendu ; le chevron reste vers le bas, l'état
+ * ouvert étant porté par le menu. Ailleurs (Android, web) : `Alert` native aux deux notations.
+ *
+ * VoiceOver : nom « Enchainement », valeur et options annoncées par leurs libellés neutres
+ * (`sideOrders`, D-407), la notation n'étant pas lue.
+ */
+function SideOrderMenu({ value, onChange, testID }: { value: SideOrder; onChange: (order: SideOrder) => void; testID: string }) {
+  const trigger = (
+    <View
+      pointerEvents="none"
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={styles.sideOrderTrigger}
+    >
+      <Text style={inlineSelectedCompactLabelStyle} testID={`${testID}-notation`}>
+        {t.sideOrderSubtitles[value]}
+      </Text>
+      <View style={inlineChevronFrameStyle}>
+        <KodjoIcon
+          name="control-chevron-down"
+          size={dimensions.catalogueDisclosure.chevronDisplaySize}
+          tintColor={colors.background}
+        />
+      </View>
+    </View>
+  );
+  if (Platform.OS !== "ios") {
+    const openAlert = () =>
+      Alert.alert(t.sideSequence, undefined, [
+        ...SIDE_ORDERS.map((order) => ({ text: t.sideOrderSubtitles[order], onPress: () => onChange(order) })),
+        { text: t.sideSequenceCancel, style: "cancel" as const },
+      ]);
+    return (
+      <Pressable
+        onPress={openAlert}
+        accessibilityRole="button"
+        accessibilityLabel={t.sideSequence}
+        accessibilityValue={{ text: t.sideOrders[value] }}
+        testID={testID}
+      >
+        {trigger}
+      </Pressable>
+    );
+  }
+  return (
+    <Host style={styles.sideOrderTrigger} testID={testID}>
+      <Menu
+        label={<RNHostView matchContents>{trigger}</RNHostView>}
+        modifiers={[swiftUIAccessibilityLabel(t.sideSequence), swiftUIAccessibilityValue(t.sideOrders[value])]}
+      >
+        {SIDE_ORDERS.map((order) => (
+          <SwiftUIButton
+            key={order}
+            label={t.sideOrderSubtitles[order]}
+            systemImage={order === value ? "checkmark" : undefined}
+            modifiers={[swiftUIAccessibilityLabel(t.sideOrders[order])]}
+            onPress={() => onChange(order)}
+            testID={`${testID}-${order}`}
+          />
+        ))}
+      </Menu>
+    </Host>
+  );
+}
+
 /** Q40 : `hidden` garde la place du séparateur, rendu transparent (groupe sélectionné). */
 function Separator({ hidden = false }: { hidden?: boolean }) {
   return <SheetMotionView style={[styles.separator, hidden ? styles.separatorHidden : null]} />;
@@ -2682,8 +2744,19 @@ const TABLE_BLOCK_BLEED = GROUP_PADDING - TABLE_BLOCK_SIDE_INSET;
  * d'intégration (le libellé ne tient pas dans 106).
  */
 const MIXED_STOP_CONDITION_WIDTH = INLINE_OPTION_WIDTHS.wide * 2 + 2;
+/** RC-6 (Figma `9462:18988`) : écart entre la notation de l'Enchainement et son chevron. */
+const SIDE_ORDER_CHEVRON_GAP = 6;
 
 const styles = StyleSheet.create({
+  // RC-6 : déclencheur du menu de l'Enchainement, sur toute l'option Avec (144 × 26).
+  sideOrderTrigger: {
+    width: INLINE_OPTION_WIDTHS.notation,
+    height: INLINE_OPTION_CONTENT_HEIGHT,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: SIDE_ORDER_CHEVRON_GAP,
+  },
   scrim: {
     flex: 1,
     justifyContent: "flex-end",

@@ -774,6 +774,7 @@ afin de régler les cadres Côtés et Cadence et durée sans désignation anatom
 **And** la Phrase, la Composition et l'exécution restent neutres (« côté 1 / côté 2 ») : les notations sont graphiques et propres au contrôle
 **And** à N = 1, la ligne est masquée et l'Enchainement demandé est conservé dans le Brouillon ; (QN-4 validée par Hermann le 19/10) à l'enregistrement, `BY_SIDE` est écrit à N = 1 (comportement existant, NR Δ24, tests Q38 inchangés)
 **And** la police n'est réduite (`compact`) que si les notations ne tiennent pas ; sa taille exacte est réglée sur l'appareil, sans changement automatique de géométrie (UX-DR6).
+**And** (recette du 19/10, RC-6, remplace la ligne « Enchainement » ci-dessus et le chevron de repli d'AC1) plus de ligne « Enchainement » : l'option Avec de « Changement de côté » porte la notation de l'Enchainement et, sélectionnée (N > 1), ouvre le menu natif des deux notations (Figma `9462:18987`) ; Pause entre les côtés visible sous Avec ; à N = 1, Avec reprend son libellé, valeur conservée.
 
 **AC3 — Cadence (FR-30, AD-24, R-11, §9-7).**
 **Given** le cadre Cadence et durée

@@ -388,7 +388,7 @@ describe("SegmentedControl — variante « inline » (PRE-5 story 2.3)", () => {
         value="BY_SIDE"
         onChange={jest.fn()}
         variant="inline"
-        optionWidth={INLINE_OPTION_WIDTHS.notation}
+        optionWidth={113}
         compact
         testID="seg"
       />,
@@ -396,6 +396,45 @@ describe("SegmentedControl — variante « inline » (PRE-5 story 2.3)", () => {
     expect(StyleSheet.flatten(screen.getByText("(D1 → D2) ➜ (G1 → G2)", { includeHiddenElements: true }).props.style).fontSize).toBe(10);
     expect(StyleSheet.flatten(screen.getByTestId("seg").props.style)).toMatchObject({ height: 32, width: 234 });
     expect(screen.getByTestId("seg-BY_SERIES").props.accessibilityLabel).toBe("Les deux côtés à chaque série");
+  });
+
+  it("recette du 19/10 (RC-6) — largeur et police réduite propres à une option : cadre 3 + 144 + 2 + 62 + 3, tuiles et cadre de sélection à la position et à la largeur de l'option", () => {
+    const { unmount } = render(
+      <SegmentedControl
+        options={[
+          { value: "WITH" as const, label: "(D1 → D2) ➜ (G1 → G2)", width: INLINE_OPTION_WIDTHS.notation, compact: true },
+          { value: "WITHOUT" as const, label: "Sans" },
+        ]}
+        value="WITH"
+        onChange={jest.fn()}
+        variant="inline"
+        testID="seg"
+      />,
+    );
+    expect(INLINE_OPTION_WIDTHS.notation).toBe(144);
+    expect(StyleSheet.flatten(screen.getByTestId("seg").props.style)).toMatchObject({ height: 32, width: 214 });
+    expect(StyleSheet.flatten(screen.getByText("(D1 → D2) ➜ (G1 → G2)", { includeHiddenElements: true }).props.style).fontSize).toBe(10);
+    expect(StyleSheet.flatten(screen.getByText("Sans", { includeHiddenElements: true }).props.style).fontSize).toBe(12);
+    expect(StyleSheet.flatten(screen.getByTestId("seg-tile-WITH", { includeHiddenElements: true }).props.style)).toMatchObject({ left: 3, width: 144 });
+    expect(StyleSheet.flatten(screen.getByTestId("seg-tile-WITHOUT", { includeHiddenElements: true }).props.style)).toMatchObject({ left: 149, width: 62 });
+    expect(StyleSheet.flatten(screen.getByTestId("seg-indicator", { includeHiddenElements: true }).props.style)).toMatchObject({ left: 3, width: 144 });
+    unmount();
+    // Sans sélectionné dès le rendu : cadre placé sans animation, à la position et à la largeur de Sans.
+    render(
+      <SegmentedControl
+        options={[
+          { value: "WITH" as const, label: "(D1 → D2) ➜ (G1 → G2)", width: INLINE_OPTION_WIDTHS.notation, compact: true },
+          { value: "WITHOUT" as const, label: "Sans" },
+        ]}
+        value="WITHOUT"
+        onChange={jest.fn()}
+        variant="inline"
+        testID="seg"
+      />,
+    );
+    const indicator = StyleSheet.flatten(screen.getByTestId("seg-indicator", { includeHiddenElements: true }).props.style);
+    expect(indicator.width).toBe(62);
+    expect(indicator.transform).toEqual([{ translateX: 146 }]);
   });
 
   it("readOnly : aucune zone de sélection, un seul élément texte qui annonce le libellé et la valeur", () => {

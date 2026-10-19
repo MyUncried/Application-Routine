@@ -38,6 +38,15 @@ export type SegmentedControlOption<T extends string> = {
    * existant, story 2.8). Le chevron éventuel reste rendu par le composant.
    */
   readonly selectedContent?: ReactNode;
+  /**
+   * Variante `inline` seulement (recette du 19/10, RC-6, Figma `9462:18986`) :
+   * largeur propre de l'option, à la place de `optionWidth` (Avec du
+   * Changement de côté, qui porte la notation de l'Enchainement). Le cadre
+   * de sélection glisse et prend la largeur de l'option choisie.
+   */
+  readonly width?: number;
+  /** Variante `inline` seulement (RC-6) : police réduite pour cette seule option (notation de l'Enchainement). */
+  readonly compact?: boolean;
 };
 
 /**
@@ -81,10 +90,12 @@ const INLINE_CHEVRON_HIT_SLOP = {
 /**
  * Largeurs d'option relevées (même largeur pour toutes les options d'un même
  * contrôle, FR-27) : `wide` 106 (Mode, Condition d'arrêt, Type de série),
- * `narrow` 62 (Phases, Charge, Changement de côté), `notation` 113
- * (Enchainement), `cadence` 46,4 (Cadence, cinq options).
+ * `narrow` 62 (Phases, Charge, Changement de côté), `notation` 144
+ * (option Avec du Changement de côté portant la notation de l'Enchainement,
+ * `9462:18987`, recette du 19/10, RC-6 ; 113 pour l'ancienne ligne
+ * Enchainement), `cadence` 46,4 (Cadence, cinq options).
  */
-export const INLINE_OPTION_WIDTHS = { wide: 106, narrow: 62, notation: 113, cadence: 46.4 } as const;
+export const INLINE_OPTION_WIDTHS = { wide: 106, narrow: 62, notation: 144, cadence: 46.4 } as const;
 
 /** Contour du cadre de la variante « Paramètres » (figés `6407-9805`, `6665-26185`). */
 const PARAMETERS_BORDER_WIDTH = 1;
@@ -172,10 +183,16 @@ export function SegmentedControl<T extends string>({
   const parameters = variant === "parameters";
   const inline = variant === "inline";
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
-  // `inline` : largeur connue d'avance (options de largeur fixe), sans mesure.
+  // `inline` : largeur connue d'avance (options de largeur fixe, propre à
+  // l'option si elle en donne une, RC-6), sans mesure.
+  const inlineWidths = options.map((option) => option.width ?? optionWidth);
+  const inlineOffsets = inlineWidths.map((_, index) =>
+    inlineWidths.slice(0, index).reduce((sum, width) => sum + width + INLINE_GAP, 0),
+  );
+  const inlineUniform = inlineWidths.every((width) => width === optionWidth);
   const inlineWidth =
     options.length > 0
-      ? options.length * optionWidth + INLINE_GAP * (options.length - 1) + INLINE_PADDING * 2
+      ? inlineWidths.reduce((sum, width) => sum + width, 0) + INLINE_GAP * (options.length - 1) + INLINE_PADDING * 2
       : INLINE_PADDING * 2;
   const containerWidth = inline ? inlineWidth : containerSize.width;
   const foundIndex = value === null ? -1 : options.findIndex((option) => option.value === value);
@@ -249,10 +266,18 @@ export function SegmentedControl<T extends string>({
   // `interpolate` exige au moins deux points : une option unique (résultat
   // dérivé « À la cible et à l'échec », FR-20) garde une plage [0, 1].
   const indexRange = options.length > 1 ? options.map((_, index) => index) : [0, 1];
+  // `inline` à largeurs propres (RC-6) : position et largeur du cadre suivent
+  // l'option ; largeurs communes : calcul historique inchangé.
+  const offsetAt = (index: number) => (inline && !inlineUniform ? (inlineOffsets[index] ?? index * step) : index * step);
+  const widthAt = (index: number) => (inline ? (inlineWidths[index] ?? optionWidth) : segmentWidth);
   const translateX = indicatorPosition.interpolate({
     inputRange: indexRange,
-    outputRange: indexRange.map((index) => index * step),
+    outputRange: indexRange.map(offsetAt),
   });
+  const indicatorWidth =
+    inline && !inlineUniform
+      ? indicatorPosition.interpolate({ inputRange: indexRange, outputRange: indexRange.map(widthAt) })
+      : segmentWidth;
 
   // Ajout C : chaque option inactive porte un fond `#EAEAFF` de rayon 10.
   // Ces fonds sont une couche FIXE sous l'indicateur animé (l'option
@@ -270,7 +295,7 @@ export function SegmentedControl<T extends string>({
               styles.tile,
               parameters ? styles.tileParameters : null,
               inline ? styles.tileInline : null,
-              { left: padding + index * step, top: indicatorTop, width: segmentWidth, height: segmentHeight },
+              { left: padding + offsetAt(index), top: indicatorTop, width: widthAt(index), height: segmentHeight },
             ]}
           />
         ))
@@ -287,7 +312,7 @@ export function SegmentedControl<T extends string>({
           {
             left: padding,
             top: indicatorTop,
-            width: segmentWidth,
+            width: indicatorWidth,
             height: segmentHeight,
             transform: [{ translateX }],
           },
@@ -337,7 +362,7 @@ export function SegmentedControl<T extends string>({
           ) : null;
           const chevronInteractive = Boolean(option.chevron && onChevronPress && !readOnly && !option.disabled);
           return (
-            <View key={option.value} style={[styles.inlineOption, { width: optionWidth }]}>
+            <View key={option.value} style={[styles.inlineOption, { width: option.width ?? optionWidth }]}>
               {readOnly ? null : (
                 <Pressable
                   disabled={option.disabled}
@@ -360,7 +385,7 @@ export function SegmentedControl<T extends string>({
                     <Text
                       style={[
                         styles.inlineLabel,
-                        compact ? styles.inlineLabelCompact : null,
+                        compact || option.compact ? styles.inlineLabelCompact : null,
                         selected ? styles.inlineLabelSelected : null,
                         option.disabled ? styles.labelDisabled : null,
                       ]}
@@ -601,3 +626,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 });
+
+/**
+ * Recette du 19/10 (RC-6) : habillage d'une option `inline` sélectionnée en police réduite
+ * et cadre de son chevron, repris par un `selectedContent` qui reproduit le contenu de
+ * l'option (notation de l'Enchainement dans le déclencheur du menu natif), sans en
+ * dupliquer les valeurs.
+ */
+export const inlineSelectedCompactLabelStyle = [styles.inlineLabel, styles.inlineLabelCompact, styles.inlineLabelSelected];
+export const inlineChevronFrameStyle = styles.inlineChevron;
+/** Hauteur d'une option `inline` (RC-6, même usage). */
+export const INLINE_OPTION_CONTENT_HEIGHT = INLINE_OPTION_HEIGHT;

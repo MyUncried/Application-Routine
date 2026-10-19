@@ -87,15 +87,16 @@ const executionParameters = {
     // Croix non active (un champ ou un sélecteur est ouvert) : l'appui le ferme sans retirer.
     removeRowClosesFieldHint: "Ferme d’abord le champ ouvert, sans supprimer la série",
     // PRE-5 story 2.5 (FR-15, FR-16, FR-44) : ligne « Changement de côté », segmenté « Avec | Sans »,
-    // sans désignation anatomique ; le chevron d’Avec replie ou déplie Enchainement et Pause
-    // entre les côtés. Les libellés anatomiques (`sideModes`, `sideModeOptions`) sont retirés.
+    // sans désignation anatomique. Les libellés anatomiques (`sideModes`, `sideModeOptions`) sont
+    // retirés ; recette du 19/10 (RC-6) : le chevron de repli d’Avec aussi (`showSideSettings`,
+    // `hideSideSettings`).
     sideMode: "Changement de côté",
     sideModeChoices: { WITH: "Avec", WITHOUT: "Sans" },
-    showSideSettings: "Afficher l’enchainement et la pause entre les côtés",
-    hideSideSettings: "Masquer l’enchainement et la pause entre les côtés",
-    // PRE-5 story 2.5 (FR-17, D-431) : ligne « Enchainement » (remplace « Ordre des côtés ») ;
-    // texte des options = notations graphiques (flèche centrale ➜), nom accessible = `sideOrders`.
+    // PRE-5 story 2.5 (FR-17, D-431) ; recette du 19/10 (RC-6) : plus de ligne « Enchainement » ;
+    // l’option Avec porte la notation (flèche centrale ➜) et ouvre le menu des deux notations,
+    // nommé « Enchainement » ; nom accessible des notations = `sideOrders`.
     sideSequence: "Enchainement",
+    sideSequenceCancel: "Annuler",
     sideOrders: { BY_SIDE: "Un côté après l’autre", BY_SERIES: "Les deux côtés à chaque série" },
     sideOrderSubtitles: { BY_SIDE: "(D1 → D2) ➜ (G1 → G2)", BY_SERIES: "(D1 → G1) ➜ (D2 → G2)" },
     sideRecovery: "Pause entre les côtés",

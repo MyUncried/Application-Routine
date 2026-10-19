@@ -583,10 +583,12 @@ describe("strings — PRE-5 story 2.5", () => {
     expect(sheet.exerciseDuration).toBe("Durée de l’exercice");
     expect(sheet.exerciseDurationEstimated).toBe("Durée de l’exercice ≈");
     expect(sheet.exerciseDurationEditAccessibilityLabel).toBe("Durée de l’exercice, ajuster le nombre de séries");
-    for (const label of [sheet.showSideSettings, sheet.hideSideSettings, sheet.showExerciseSignals, sheet.hideExerciseSignals]) {
+    for (const label of [sheet.showExerciseSignals, sheet.hideExerciseSignals]) {
       expect(label.length).toBeGreaterThan(0);
     }
-    for (const removed of ["sideModes", "sideModeOptions", "sideOrder", "beep", "beepNone", "total", "totalEstimated", "totalEditAccessibilityLabel"]) {
+    // Recette du 19/10 (RC-6) : menu de l'Enchainement dans l'option Avec, chevron de repli retiré.
+    expect(sheet.sideSequenceCancel).toBe("Annuler");
+    for (const removed of ["showSideSettings", "hideSideSettings", "sideModes", "sideModeOptions", "sideOrder", "beep", "beepNone", "total", "totalEstimated", "totalEditAccessibilityLabel"]) {
       expect({ removed, present: removed in sheet }).toEqual({ removed, present: false });
     }
     // Aucune désignation anatomique ni « Durée totale » dans les libellés de la Feuille.

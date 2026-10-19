@@ -1,7 +1,7 @@
-import { Popover, RNHostView } from "@expo/ui/swift-ui";
+import { Button as SwiftUIButton, Host, Menu, Popover, RNHostView } from "@expo/ui/swift-ui";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
-import { AccessibilityInfo, Keyboard, Modal, Platform, StyleSheet, Switch, TextInput } from "react-native";
+import { AccessibilityInfo, Alert, Keyboard, Modal, Platform, StyleSheet, Switch, TextInput } from "react-native";
 
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import {
@@ -172,7 +172,11 @@ function modeText(): string {
  * segmentés en ligne ; Compte à rebours et Fin sont repliés sous « Durée de l'exercice ».
  */
 const SIDE_CONTROL = "execution-sheet-side-control";
-const ORDER_CONTROL = "execution-sheet-order-control";
+/**
+ * Recette du 19/10 (RC-6) : plus de ligne « Enchainement » ; l'option Avec sélectionnée (N > 1)
+ * porte la notation et ouvre le menu natif (`Menu` d'`@expo/ui` sur iOS, `Alert` ailleurs).
+ */
+const ORDER_MENU = "execution-sheet-side-order-menu";
 const CADENCE_CONTROL = "execution-sheet-cadence-control";
 const DURATION_DISCLOSURE = "execution-sheet-duration-disclosure";
 const chooseSide = chooseExecutionSide;
@@ -182,16 +186,41 @@ function sideText(): string {
   const side = selectedValue(SIDE_CONTROL, ["WITH", "WITHOUT"]) as "WITH" | "WITHOUT" | null;
   return side === null ? "—" : strings.executionParameters.sheet.sideModeChoices[side];
 }
-/** Enchainement affiché, par son nom accessible (« Un côté après l’autre », …). */
+const SIDE_ORDER_VALUES = ["BY_SIDE", "BY_SERIES"] as const;
+/**
+ * Enchainement affiché dans l'option Avec, par son nom accessible (« Un côté après l’autre »,
+ * …), lu sur la notation du déclencheur du menu ; « — » si le menu n'est pas rendu.
+ */
 function orderText(): string {
-  const order = selectedValue(ORDER_CONTROL, ["BY_SIDE", "BY_SERIES"]) as "BY_SIDE" | "BY_SERIES" | null;
-  return order === null ? "—" : strings.executionParameters.sheet.sideOrders[order];
+  const notation = screen.queryByTestId(`${ORDER_MENU}-notation`, anyNode);
+  if (!notation) return "—";
+  const order = SIDE_ORDER_VALUES.find((value) => strings.executionParameters.sheet.sideOrderSubtitles[value] === notation.props.children);
+  return order === undefined ? "—" : strings.executionParameters.sheet.sideOrders[order];
 }
-/** Choisit l'Enchainement par son nom accessible. */
+/**
+ * Choisit l'Enchainement par son nom accessible, dans le menu de l'option Avec : bouton SwiftUI
+ * du `Menu` natif sur iOS (événement natif `buttonPress`, le menu lui-même n'étant pas
+ * simulable sous Jest), option de l'`Alert` ailleurs.
+ */
 function chooseOrder(label: string) {
-  const order = (["BY_SIDE", "BY_SERIES"] as const).find((value) => strings.executionParameters.sheet.sideOrders[value] === label);
+  const order = SIDE_ORDER_VALUES.find((value) => strings.executionParameters.sheet.sideOrders[value] === label);
   if (order === undefined) throw new Error(`Enchainement inconnu « ${label} »`);
-  fireEvent.press(screen.getByTestId(`${ORDER_CONTROL}-${order}`));
+  if (Platform.OS === "ios") {
+    act(() => {
+      fireEvent(screen.getByTestId(`${ORDER_MENU}-${order}`, anyNode), "buttonPress");
+    });
+    return;
+  }
+  const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+  try {
+    fireEvent.press(screen.getByTestId(ORDER_MENU));
+    const buttons = alert.mock.calls[0]?.[2] ?? [];
+    const button = buttons.find((candidate) => candidate.text === strings.executionParameters.sheet.sideOrderSubtitles[order]);
+    if (!button) throw new Error(`Enchainement « ${label} » absent de l'alerte`);
+    act(() => button.onPress?.());
+  } finally {
+    alert.mockRestore();
+  }
 }
 /** Option affichée de la Cadence (« Autre », « 5 s », …, « Sans »), ou « — ». */
 function cadenceText(): string {
@@ -316,7 +345,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     expect(screen.queryByTestId("execution-sheet-table")).toBeNull();
     // Q38 (Hermann, 2026-10-17) : la ligne « Ordre des côtés » n'est plus atténuée ni
     // désactivée à N = 1 ; elle est masquée. La Pause au changement de côté reste.
-    expect(screen.queryByTestId("execution-sheet-row-order")).toBeNull();
+    expect(screen.queryByTestId(ORDER_MENU)).toBeNull();
     expect(screen.queryByTestId("execution-sheet-order-value")).toBeNull();
     expect(screen.getByTestId("execution-sheet-row-side-recovery")).toBeTruthy();
     expect(text("execution-sheet-total")).toBe("3 min 40 s");
@@ -331,21 +360,19 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     const bilateral = (overrides: Partial<ExecutionParametersInput> = {}) =>
       params({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 10, ...overrides });
 
-    it("PRE4-Q38 (a) — N = 1 bilatéral : aucune ligne Enchainement ; la Pause au changement de côté reste", () => {
+    it("PRE4-Q38 (a), RC-6 — N = 1 bilatéral : Avec sans notation ni menu d'Enchainement ; la Pause au changement de côté reste", () => {
       renderSheet(bilateral({ series: { kind: "UNIFORM", count: 1, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
       expect(screen.getByTestId("execution-sheet-row-side")).toBeTruthy();
-      expect(screen.queryByTestId("execution-sheet-row-order")).toBeNull();
-      expect(screen.queryByTestId(ORDER_CONTROL)).toBeNull();
+      expect(screen.queryByTestId(ORDER_MENU)).toBeNull();
+      expect(screen.getByTestId(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec");
       expect(screen.queryByText("Enchainement")).toBeNull();
       expect(screen.getByTestId("execution-sheet-row-side-recovery")).toBeTruthy();
     });
 
-    it("PRE4-Q38 (b) — N = 2 : la ligne est présente et active", () => {
+    it("PRE4-Q38 (b), RC-6 — N = 2 : menu de l'Enchainement présent dans Avec, choix appliqué", () => {
       renderSheet(bilateral({ series: { kind: "UNIFORM", count: 2, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
-      expect(screen.getByTestId("execution-sheet-row-order")).toBeTruthy();
-      expect(screen.getByTestId(ORDER_CONTROL).props.accessibilityLabel).toBe("Enchainement");
-      const option = screen.getByTestId(`${ORDER_CONTROL}-BY_SERIES`);
-      expect(option.props.accessibilityState).toMatchObject({ selected: false, disabled: false });
+      expect(within(screen.getByTestId(`${SIDE_CONTROL}`)).getByTestId(ORDER_MENU)).toBeTruthy();
+      expect(screen.getByTestId(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, Un côté après l’autre");
       expect(orderText()).toBe("Un côté après l’autre");
       chooseOrder("Les deux côtés à chaque série");
       expect(orderText()).toBe("Les deux côtés à chaque série");
@@ -357,11 +384,11 @@ describe("ExecutionParametersSheet — PRE-3", () => {
       tap("execution-sheet-series-decrement");
       tap("execution-sheet-series-decrement");
       expect(valueOf("execution-sheet-series")).toBe("1 série");
-      expect(screen.queryByTestId("execution-sheet-row-order")).toBeNull();
+      expect(screen.queryByTestId(ORDER_MENU)).toBeNull();
       // Effectif normalisé « Un côté après l’autre » à N = 1 : prouvé par ✓ en (c bis).
       tap("execution-sheet-series-increment");
       expect(valueOf("execution-sheet-series")).toBe("2 séries");
-      expect(screen.getByTestId("execution-sheet-row-order")).toBeTruthy();
+      expect(screen.getByTestId(ORDER_MENU)).toBeTruthy();
       expect(orderText()).toBe("Les deux côtés à chaque série");
       validate();
       expect(applied(onApply)).toMatchObject({ series: { kind: "UNIFORM", count: 2 }, sideOrder: "BY_SERIES" });
@@ -381,18 +408,18 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     // masque la ligne sans être lui-même modifié (champ resté ouvert, T22), et la réaffiche à 2.
     it("PRE4-Q38 (c ter), PRE5-2.5/AC2 — Enchainement en ligne : le stepper de N, ouvert, de 2 à 1 masque la ligne sans se fermer (T22) ; N → 2 la réaffiche ; fermeture du stepper inchangée", () => {
       renderSheet(bilateral({ series: { kind: "UNIFORM", count: 2, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
-      expect(screen.getByTestId(ORDER_CONTROL)).toBeTruthy();
+      expect(screen.getByTestId(ORDER_MENU)).toBeTruthy();
       openExecutionSheetField("execution-sheet-series");
       fireEvent(screen.getByTestId("execution-sheet-series-decrement"), "pressIn");
       fireEvent(screen.getByTestId("execution-sheet-series-decrement"), "pressOut");
       expect(valueOf("execution-sheet-series")).toBe("1 série");
-      expect(screen.queryByTestId("execution-sheet-row-order")).toBeNull();
-      expect(screen.queryByTestId(ORDER_CONTROL)).toBeNull();
+      expect(screen.queryByTestId(ORDER_MENU)).toBeNull();
+      expect(screen.queryByTestId(ORDER_MENU)).toBeNull();
       // Le champ de N reste ouvert, sa ligne désignée.
       expect(screen.getByTestId("execution-sheet-series-increment")).toBeTruthy();
       fireEvent(screen.getByTestId("execution-sheet-series-increment"), "pressIn");
       fireEvent(screen.getByTestId("execution-sheet-series-increment"), "pressOut");
-      expect(screen.getByTestId("execution-sheet-row-order")).toBeTruthy();
+      expect(screen.getByTestId(ORDER_MENU)).toBeTruthy();
       expect(orderText()).toBe("Un côté après l’autre");
       // Fermeture du stepper par un appui extérieur (T23), comme en PRE-4.
       fireEvent.press(screen.getByTestId("execution-sheet-body-outside"));
@@ -407,7 +434,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
       expect(orderText()).toBe("Les deux côtés à chaque série");
       tap("execution-sheet-series-decrement");
       tap("execution-sheet-series-decrement");
-      expect(screen.queryByTestId("execution-sheet-row-order")).toBeNull();
+      expect(screen.queryByTestId(ORDER_MENU)).toBeNull();
       tap("execution-sheet-series-increment");
       expect(orderText()).toBe("Les deux côtés à chaque série");
       validate();
@@ -438,7 +465,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
   it("P3-09/unilateral-controls — sans changement de côté : ordre et PC masqués, aucune contribution de PC", () => {
     const { onApply } = renderSheet(params({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 15 }));
     chooseSide("Sans");
-    expect(screen.queryByTestId(ORDER_CONTROL)).toBeNull();
+    expect(screen.queryByTestId(ORDER_MENU)).toBeNull();
     expect(screen.queryByTestId("execution-sheet-side-recovery")).toBeNull();
     // 3 × (90 + 15) = 315 s, sans PC.
     expect(text("execution-sheet-total")).toBe("5 min 15 s");
@@ -633,7 +660,8 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     expect(positions).toEqual([...positions].sort((a, b) => a - b));
     // Q41 : la ligne est rendue dans un cadre de révélation (`-content`). PRE-5 story 2.5
     // (Figma `9230:19534`) : plus d'indentation dans le cadre Côtés (marge 12 du cadre).
-    for (const row of ["execution-sheet-row-side-recovery", "execution-sheet-row-order", "execution-sheet-row-beep"]) {
+    // RC-6 : plus de ligne Enchainement ; Changement de côté vérifié à sa place.
+    for (const row of ["execution-sheet-row-side", "execution-sheet-row-side-recovery", "execution-sheet-row-beep"]) {
       expect({ row, marginLeft: StyleSheet.flatten(screen.getByTestId(`${row}-content`).props.style)?.marginLeft }).toEqual({ row, marginLeft: undefined });
     }
   });
@@ -1124,7 +1152,7 @@ describe("ExecutionParametersSheet — décisions du propriétaire (12/10)", () 
 });
 
 describe("ExecutionParametersSheet — D-341 / X-1 (12/10)", () => {
-  it("D-341, PRE5-2.5/AC1, AC2 — Mode sans choix affiché tant que le mode est vide ; Changement de côté et Enchainement en segmentés `inline` (32 de haut ; options de 62 et de 113) ; notations en police réduite (10) ; libellés de ligne Regular 12", () =>
+  it("D-341, PRE5-2.5/AC1, AC2, RC-6 — Mode sans choix affiché tant que le mode est vide ; Changement de côté en segmenté `inline` (32 de haut ; Avec de 144 portant la notation de l'Enchainement, Sans de 62) ; notation en police réduite (10) ; libellés de ligne Regular 12", () =>
     withPlatform("android", () => {
       renderSheet(params({ mode: null, sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE" }));
       // PRE-5 story 2.4 (AC3, UX-DR1) : le Mode est un segmenté en ligne (32 de haut, deux
@@ -1134,23 +1162,41 @@ describe("ExecutionParametersSheet — D-341 / X-1 (12/10)", () => {
       expect(StyleSheet.flatten(mode.props.style)).toMatchObject({ height: 32, width: 220 });
       expect(StyleSheet.flatten(within(mode).getByText("Durée", anyNode).props.style)).toMatchObject({ fontSize: 12, lineHeight: 16, fontWeight: "400" });
 
-      // PRE-5 story 2.5 (AC1) : Changement de côté Avec / Sans, options de 62 (2 × 62 + 2 + 2 × 3).
+      // PRE-5 story 2.5 (AC1) ; RC-6 (Figma `9462:18986`) : Changement de côté Avec / Sans,
+      // Avec de 144 et Sans de 62 (144 + 2 + 62 + 2 × 3).
       const side = screen.getByTestId(SIDE_CONTROL);
-      expect(StyleSheet.flatten(side.props.style)).toMatchObject({ height: 32, width: 132 });
-      expect(within(side).getByText("Avec", anyNode)).toBeTruthy();
+      expect(StyleSheet.flatten(side.props.style)).toMatchObject({ height: 32, width: 214 });
       expect(StyleSheet.flatten(within(side).getByText("Sans", anyNode).props.style)).toMatchObject({ fontSize: 12, lineHeight: 16, fontWeight: "400" });
       expect(within(side).queryByText(/Droite|Gauche|changement/u, anyNode)).toBeNull();
 
-      // PRE-5 story 2.5 (AC2) : Enchainement, options de 113 (2 × 113 + 2 + 2 × 3), notations
-      // graphiques en police réduite ; nom accessible neutre de chaque option.
-      const order = screen.getByTestId(ORDER_CONTROL);
-      expect(StyleSheet.flatten(order.props.style)).toMatchObject({ height: 32, width: 234 });
-      expect(StyleSheet.flatten(within(order).getByText("(D1 → D2) ➜ (G1 → G2)", anyNode).props.style)).toMatchObject({ fontSize: 10 });
-      expect(within(order).getByText("(D1 → G1) ➜ (D2 → G2)", anyNode)).toBeTruthy();
-      expect(screen.getByTestId(`${ORDER_CONTROL}-BY_SIDE`).props.accessibilityLabel).toBe("Un côté après l’autre");
-      expect(screen.getByTestId(`${ORDER_CONTROL}-BY_SERIES`).props.accessibilityLabel).toBe("Les deux côtés à chaque série");
+      // RC-6 : plus de ligne « Enchainement » ; Avec sélectionné porte la notation graphique
+      // (police réduite 10, Semi Bold blanc) et le menu, nommé « Enchainement », de valeur neutre.
+      expect(screen.queryByText("Enchainement")).toBeNull();
+      expect(within(side).queryByText("Avec", anyNode)).toBeNull();
+      const order = within(side).getByTestId(ORDER_MENU);
+      expect(StyleSheet.flatten(within(order).getByText("(D1 → D2) ➜ (G1 → G2)", anyNode).props.style)).toMatchObject({
+        fontSize: 10,
+        fontWeight: "600",
+        color: "#FFFFFF",
+      });
+      expect(order.props.accessibilityLabel).toBe("Enchainement");
+      expect(order.props.accessibilityValue).toEqual({ text: "Un côté après l’autre" });
+      expect(screen.getByTestId(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, Un côté après l’autre");
+      // Ailleurs qu'iOS, le menu est une `Alert` native : deux notations exactes, puis Annuler.
+      const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+      try {
+        fireEvent.press(order);
+        expect(alert.mock.calls[0]?.[0]).toBe("Enchainement");
+        expect((alert.mock.calls[0]?.[2] ?? []).map((button) => [button.text, button.style ?? "default"])).toEqual([
+          ["(D1 → D2) ➜ (G1 → G2)", "default"],
+          ["(D1 → G1) ➜ (D2 → G2)", "default"],
+          ["Annuler", "cancel"],
+        ]);
+      } finally {
+        alert.mockRestore();
+      }
       // PRE-5 story 2.4 (PR-03) : les titres des lignes passent en Inter Regular 12.
-      expect(StyleSheet.flatten(screen.getByText("Enchainement").props.style)).toMatchObject({ fontSize: 12, fontWeight: "400" });
+      expect(StyleSheet.flatten(screen.getByText("Changement de côté").props.style)).toMatchObject({ fontSize: 12, fontWeight: "400" });
     }));
 });
 
@@ -1710,7 +1756,6 @@ describe("ExecutionParametersSheet — PRE-4 Q39 (animations de mise en page)", 
     renderSheet(bilateralVariable());
     fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
     animated("execution-sheet-beep-motion");
-    animated("execution-sheet-row-order");
     animated("execution-sheet-row-side-recovery");
     animated("execution-sheet-row-side");
     // E-20 (2026-10-18) : le tableau n'a plus de révélation propre à l'apparition — le groupe
@@ -1779,8 +1824,8 @@ describe("ExecutionParametersSheet — PRE-4 Q39 (animations de mise en page)", 
     for (const testID of [
       "execution-sheet-beep-motion",
       "execution-sheet-beep-motion-content",
-      "execution-sheet-row-order",
-      "execution-sheet-row-order-content",
+      "execution-sheet-row-side-recovery",
+      "execution-sheet-row-side-recovery-content",
       "execution-sheet-table",
       "execution-sheet-table-row-1-motion",
       "execution-sheet-surface",
@@ -1794,14 +1839,14 @@ describe("ExecutionParametersSheet — PRE-4 Q39 (animations de mise en page)", 
     }
     // Sans : Enchainement et Pause entre les côtés retirés immédiatement.
     chooseSide("Sans");
-    expect(screen.queryByTestId("execution-sheet-row-order")).toBeNull();
+    expect(screen.queryByTestId(ORDER_MENU)).toBeNull();
     expect(screen.queryByTestId("execution-sheet-row-side-recovery")).toBeNull();
   }));
 
   // PRE-5 story 2.5 (AC1 à AC4) : `ClosingSelector` est retiré avec les derniers sélecteurs
   // à cadre D-4 (Changement de côté, Ordre). Les lignes et le ± révélés par les segmentés et
   // les chevrons entrent et sortent par le bas, sans fondu.
-  it("PRE4-Q39 / Q41, PRE5-2.5 — Cadence (± révélé), Enchainement et Pause entre les côtés (chevron d'Avec), Compte à rebours et Fin (chevron de Durée de l'exercice) : entrée et sortie par le bas, sans fondu", () =>
+  it("PRE4-Q39 / Q41, PRE5-2.5, RC-6 — Cadence (± révélé), Pause entre les côtés (sous Avec), Compte à rebours et Fin (chevron de Durée de l'exercice) : entrée et sortie par le bas, sans fondu", () =>
     withPlatform("android", () => {
     renderSheet(params({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 10 }));
     fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
@@ -1809,7 +1854,7 @@ describe("ExecutionParametersSheet — PRE-4 Q39 (animations de mise en page)", 
     expect(motionOf("execution-sheet-beep-motion-content")).toMatchObject({ entering: revealContentEntering, exiting: revealContentExiting });
     fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
     expect(screen.queryByTestId("execution-sheet-beep-motion")).toBeNull();
-    for (const testID of ["execution-sheet-row-order", "execution-sheet-row-side-recovery"]) {
+    for (const testID of ["execution-sheet-row-side-recovery"]) {
       expect(motionOf(testID)).toMatchObject({ entering: revealClipEntering, exiting: revealClipExiting });
     }
     showSignals();
@@ -1857,7 +1902,7 @@ describe("ExecutionParametersSheet — PRE-4 Q40 (vitesse, sens, sélection)", (
     }
     // Les animations restent portées par les lignes qui entrent et sortent.
     renderSheet(params({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE" }));
-    for (const testID of ["execution-sheet-row-order", "execution-sheet-row-side-recovery"]) {
+    for (const testID of ["execution-sheet-row-side-recovery"]) {
       expect(motionOf(testID).entering).toBe(revealClipEntering);
       expect(motionOf(testID).exiting).toBe(revealClipExiting);
       expect(motionOf(testID).layout).toBeDefined();
@@ -1883,11 +1928,10 @@ describe("ExecutionParametersSheet — PRE-4 Q40 (vitesse, sens, sélection)", (
       expect(line.marginHorizontal).toBeUndefined();
       expect(line.paddingHorizontal).toBeUndefined();
     };
-    // PRE-5 story 2.5 (AC1, AC2) : les segmentés du Changement de côté et de l'Enchainement
-    // n'ouvrent aucune surface ; leur ligne n'est jamais surlignée.
+    // PRE-5 story 2.5 (AC1, AC2) ; RC-6 : le segmenté du Changement de côté et le menu de
+    // l'Enchainement n'ouvrent aucune surface de la Feuille ; la ligne n'est jamais surlignée.
     chooseOrder("Les deux côtés à chaque série");
     expect(styleOf("execution-sheet-row-side-selection").backgroundColor).toBeUndefined();
-    expect(styleOf("execution-sheet-row-order-selection").backgroundColor).toBeUndefined();
     // AC3 : Autre révèle le ± sous la ligne Cadence, désignée par le fond de sélection.
     fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
     checkSelected("execution-sheet-row-beep");
@@ -2067,7 +2111,7 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
     expect(revealContentExiting(exiting)).toEqual({ initialValues: { transform: [{ translateY: 0 }] }, animations: { transform: [{ translateY: 42 }] } });
 
     renderSheet(bilateral());
-    for (const testID of ["execution-sheet-row-order", "execution-sheet-row-side-recovery", "execution-sheet-row-total"]) {
+    for (const testID of ["execution-sheet-row-side-recovery", "execution-sheet-row-total"]) {
       // Cadre de découpe : son bas est le haut de la barre (séparateur) qui le suit.
       expect(styleOf(testID).overflow).toBe("hidden");
       expect(propsOf(testID)).toMatchObject({ entering: revealClipEntering, exiting: revealClipExiting });
@@ -2085,8 +2129,8 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
       await Promise.resolve();
     });
     for (const testID of [
-      "execution-sheet-row-order",
-      "execution-sheet-row-order-content",
+      "execution-sheet-row-side-recovery",
+      "execution-sheet-row-side-recovery-content",
       "execution-sheet-row-total",
       "execution-sheet-frame-execution",
       "execution-sheet-frame-series",
@@ -2117,9 +2161,11 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
       // dans la ligne elle-même.
       expect(within(get("execution-sheet-row-mode-line")).getByTestId(MODE_CONTROL)).toBeTruthy();
       expect(screen.queryByTestId("execution-sheet-mode-selector")).toBeNull();
-      // PRE-5 story 2.5 (AC1, AC2) : Changement de côté et Enchainement sont dans leur ligne.
+      // PRE-5 story 2.5 (AC1, AC2) ; RC-6 : Changement de côté dans sa ligne, menu de
+      // l'Enchainement dans l'option Avec.
       expect(within(get("execution-sheet-row-side-line")).getByTestId(SIDE_CONTROL)).toBeTruthy();
-      expect(within(get("execution-sheet-row-order-line")).getByTestId(ORDER_CONTROL)).toBeTruthy();
+      expect(within(get(SIDE_CONTROL)).getByTestId(ORDER_MENU)).toBeTruthy();
+      expect(screen.queryByTestId("execution-sheet-row-order", hidden)).toBeNull();
       expect(screen.queryByTestId("execution-sheet-side-selector")).toBeNull();
       // AC3 : le ± de la Cadence, révélé par Autre, est dans le cadre de sa ligne.
       fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
@@ -2178,22 +2224,18 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
   // PRE-5 story 2.5 (AC1, AC2, AD-27) : remplace les panneaux iOS du Changement de côté et de
   // l'Ordre des côtés (`popover(side | order)` retirées) — segmentés en ligne dans leur ligne,
   // sans panneau, sans Popover ni Modal ; choix appliqué tout de suite, sans cadre D-4.
-  it("PRE4-Q41, PRE5-2.5/AC1, AC2 — iOS : Changement de côté et Enchainement sans panneau ni Popover : segmentés en ligne dans leur ligne ; choix appliqué immédiatement", () =>
+  it("PRE4-Q41, PRE5-2.5/AC1, AC2, RC-6 — iOS : Changement de côté sans panneau ni Popover, segmenté en ligne dans sa ligne ; Enchainement par le menu natif de l'option Avec ; choix appliqué immédiatement", () =>
     withPlatform("ios", () => {
       renderSheetView(bilateral());
       layoutFrames({ execution: [0, 90], series: [98, 190], sides: [296, 180], cadence: [484, 200] });
-      for (const [rowID, controlID] of [
-        ["execution-sheet-row-side", SIDE_CONTROL],
-        ["execution-sheet-row-order", ORDER_CONTROL],
-      ] as const) {
-        const control = within(get(`${rowID}-line`)).getByTestId(controlID);
-        expect(control.props.accessibilityRole).toBe("tablist");
-      }
+      const control = within(get("execution-sheet-row-side-line")).getByTestId(SIDE_CONTROL);
+      expect(control.props.accessibilityRole).toBe("tablist");
+      expect(within(control).getByTestId(ORDER_MENU)).toBeTruthy();
       chooseOrder("Les deux côtés à chaque série");
       expect(orderText()).toBe("Les deux côtés à chaque série");
       chooseSide("Sans");
       expect(sideText()).toBe("Sans");
-      expect(screen.queryByTestId("execution-sheet-row-order")).toBeNull();
+      expect(screen.queryByTestId(ORDER_MENU)).toBeNull();
       expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/)).toHaveLength(0);
       expect(popovers(screen.UNSAFE_root)).toEqual([]);
       expect(screen.UNSAFE_root.findAllByType(Modal)).toHaveLength(1);
@@ -2255,7 +2297,7 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
       // PRE-5 story 2.5 : choix en ligne hors tableau — le tableau n'est plus sélectionné, aucun panneau.
       chooseOrder("Les deux côtés à chaque série");
       expect(styleOf("execution-sheet-variable-group").backgroundColor).toBeUndefined();
-      expect(styleOf("execution-sheet-row-order-selection").backgroundColor).toBeUndefined();
+      expect(styleOf("execution-sheet-row-side-selection").backgroundColor).toBeUndefined();
       expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/)).toHaveLength(0);
       // PRE-5 story 2.4 (AC3) : Mode en segmenté en ligne, sans panneau ni popover.
       chooseMode("Répétitions");
@@ -2327,7 +2369,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     expect(screen.getByTestId("execution-sheet-modal").props.animationType).toBe("fade");
   });
 
-  it("PRE4-3.3/AC2, PRE5-2.4/AC1, PRE5-2.5 — ordre du corps : Mode → Condition d’arrêt → Nombre de séries → Type de série → Cible et Pause → Changement de côté → Enchainement et Pause entre les côtés → Cadence → Durée de l’exercice → Compte à rebours → Fin (dépliés) ; aucun interrupteur", () => {
+  it("PRE4-3.3/AC2, PRE5-2.4/AC1, PRE5-2.5, RC-6 — ordre du corps : Mode → Condition d’arrêt → Nombre de séries → Type de série → Cible et Pause → Changement de côté (portant l’Enchainement) → Pause entre les côtés → Cadence → Durée de l’exercice → Compte à rebours → Fin (dépliés) ; aucun interrupteur", () => {
     renderSheet(bilateral());
     showSignals();
     const order = [
@@ -2339,7 +2381,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       "execution-sheet-row-target",
       "execution-sheet-row-pause",
       "execution-sheet-row-side",
-      "execution-sheet-row-order",
+      ORDER_MENU,
       "execution-sheet-row-side-recovery",
       "execution-sheet-row-beep",
       "execution-sheet-row-total",
@@ -2399,9 +2441,14 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       const control = within(get("execution-sheet-row-side-line")).getByTestId(SIDE_CONTROL);
       expect(control.props.accessibilityRole).toBe("tablist");
       expect(control.props.accessibilityLabel).toBe("Changement de côté");
-      expect(["WITH", "WITHOUT"].map((side) => get(`${SIDE_CONTROL}-${side}`).props.accessibilityLabel)).toEqual(["Avec", "Sans"]);
+      // RC-6 : Avec porte la notation de l'Enchainement (N > 1), annoncée par son libellé neutre.
+      expect(["WITH", "WITHOUT"].map((side) => get(`${SIDE_CONTROL}-${side}`).props.accessibilityLabel)).toEqual([
+        "Avec, Un côté après l’autre",
+        "Sans",
+      ]);
       expect(query(`${SIDE_CONTROL}-RIGHT_LEFT`)).toBeNull();
-      // Non renseigné : ni Enchainement ni Pause entre les côtés.
+      // Non renseigné : ni menu d'Enchainement ni Pause entre les côtés.
+      expect(query(ORDER_MENU)).toBeNull();
       expect(query("execution-sheet-row-side-recovery")).toBeNull();
       chooseSide("Avec");
       expect(sideText()).toBe("Avec");
@@ -2415,26 +2462,43 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       expect(applied(onApply)).toMatchObject({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 10 });
     }));
 
-  it("PRE4-3.3/AC5, PRE5-2.5/AC2 — iOS : Enchainement en segmenté en ligne, deux notations graphiques exactes dans l'ordre, nom accessible neutre ; sans panneau ; ligne absente en Sans", () =>
+  it("PRE4-3.3/AC5, PRE5-2.5/AC2, RC-6 — iOS : Enchainement dans le menu natif (`Menu` d'`@expo/ui`) de l'option Avec : notation affichée et chevron ; deux notations graphiques exactes dans l'ordre, la choisie cochée, nom accessible neutre ; sans panneau ni Popover ; absent en Sans", () =>
     withPlatform("ios", () => {
       const view = renderSheetView(bilateral());
-      const control = within(get("execution-sheet-row-order-line")).getByTestId(ORDER_CONTROL);
-      expect(control.props.accessibilityLabel).toBe("Enchainement");
-      expect(within(control).getByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeTruthy();
-      expect(within(control).getByText("(D1 → G1) ➜ (D2 → G2)", hidden)).toBeTruthy();
-      expect(["BY_SIDE", "BY_SERIES"].map((order) => get(`${ORDER_CONTROL}-${order}`).props.accessibilityLabel)).toEqual([
-        "Un côté après l’autre",
-        "Les deux côtés à chaque série",
+      const side = within(get("execution-sheet-row-side-line")).getByTestId(SIDE_CONTROL);
+      const host = within(side).getByTestId(ORDER_MENU);
+      expect(within(side).UNSAFE_getAllByType(Host)).toHaveLength(1);
+      expect(within(side).UNSAFE_getByType(Host).props.testID).toBe(ORDER_MENU);
+      const menu = within(host).UNSAFE_getByType(Menu);
+      // Déclencheur : notation choisie et chevron existant, hébergés par `RNHostView`.
+      expect(within(host).UNSAFE_getAllByType(RNHostView)).toHaveLength(1);
+      expect(within(host).getByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeTruthy();
+      expect(JSON.stringify(menu.props.modifiers)).toContain("Enchainement");
+      expect(JSON.stringify(menu.props.modifiers)).toContain("Un côté après l’autre");
+      const items = within(menu).UNSAFE_getAllByType(SwiftUIButton);
+      expect(items.map((item) => [item.props.label, item.props.systemImage ?? null])).toEqual([
+        ["(D1 → D2) ➜ (G1 → G2)", "checkmark"],
+        ["(D1 → G1) ➜ (D2 → G2)", null],
+      ]);
+      expect(items.map((item) => JSON.stringify(item.props.modifiers))).toEqual([
+        expect.stringContaining("Un côté après l’autre"),
+        expect.stringContaining("Les deux côtés à chaque série"),
       ]);
       // Libellés longs : nom accessible seulement, jamais affichés ; aucune notation C1S1.
       expect(screen.queryByText("Un côté après l’autre", hidden)).toBeNull();
       expect(screen.queryByText(/C1S1|C1 S1/u, hidden)).toBeNull();
-      fireEvent.press(get(`${ORDER_CONTROL}-BY_SERIES`));
+      chooseOrder("Les deux côtés à chaque série");
       expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/)).toHaveLength(0);
+      expect(popovers()).toEqual([]);
       expect(orderText()).toBe("Les deux côtés à chaque série");
+      expect(
+        within(get(ORDER_MENU))
+          .UNSAFE_getAllByType(SwiftUIButton)
+          .map((item) => item.props.systemImage ?? null),
+      ).toEqual([null, "checkmark"]);
       view.unmount();
       renderSheet(params({ sideMode: "UNILATERAL" }));
-      expect(screen.queryByTestId("execution-sheet-row-order")).toBeNull();
+      expect(screen.queryByTestId(ORDER_MENU)).toBeNull();
     }));
 
   it("PRE4-3.3/AC6, PRE5-2.4/AC7 — iOS : Type de série à N ≥ 2 en segmenté en ligne dans sa ligne, sans panneau ni popover ; exactement Variables puis Identiques ; choix appliqué par le Brouillon", () =>
@@ -2709,20 +2773,22 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     expect(web).toEqual(ios);
   });
 
-  it("PRE4-3.3/AC11, PRE5-2.5 — Android : chaque segmenté est dans la ligne elle-même (Mode, Type de série, Changement de côté, Enchainement, Cadence), avec ses options ; ni panneau ni Popover", () =>
+  it("PRE4-3.3/AC11, PRE5-2.5, RC-6 — Android : chaque segmenté est dans la ligne elle-même (Mode, Type de série, Changement de côté, Cadence), avec ses options ; Enchainement par l'`Alert` de l'option Avec ; ni panneau ni Popover", () =>
     withPlatform("android", () => {
       renderSheet(bilateral());
       for (const [rowID, controlID, options] of [
         ["execution-sheet-row-mode", MODE_CONTROL, ["REPETITIONS", "DURATION"]],
         ["execution-sheet-row-series-type", SERIES_TYPE, ["VARIABLE", "UNIFORM"]],
         ["execution-sheet-row-side", SIDE_CONTROL, ["WITH", "WITHOUT"]],
-        ["execution-sheet-row-order", ORDER_CONTROL, ["BY_SIDE", "BY_SERIES"]],
         ["execution-sheet-row-beep", CADENCE_CONTROL, ["OTHER", "5", "2", "1", "NONE"]],
       ] as const) {
         const control = within(screen.getByTestId(`${rowID}-line`)).getByTestId(controlID);
         expect(options.map((option) => within(control).getByTestId(`${controlID}-${option}`))).toHaveLength(options.length);
       }
+      expect(within(screen.getByTestId(SIDE_CONTROL)).getByTestId(ORDER_MENU)).toBeTruthy();
+      expect(screen.UNSAFE_root.findAllByType(Menu)).toHaveLength(0);
       chooseOrder("Les deux côtés à chaque série");
+      expect(orderText()).toBe("Les deux côtés à chaque série");
       expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/)).toHaveLength(0);
       expect(screen.UNSAFE_root.findAllByType(Popover)).toHaveLength(0);
     }));
@@ -3950,7 +4016,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     expect([1, 2, 3].map((row) => cellValue(row))).toEqual(["30 s", "45 s", "1 min"]);
   });
 
-  it("PRE4-3.6/AC9 — Q29 (report de 3.2 clos en 4.2), PRE5-2.5 : bilatéral, N ≥ 2 — Enchainement et Avec re-choisis sans changement, chevron d'Avec replié puis déplié : `Annuler` reste valable", () => {
+  it("PRE4-3.6/AC9 — Q29 (report de 3.2 clos en 4.2), PRE5-2.5, RC-6 : bilatéral, N ≥ 2 — Enchainement (menu d'Avec) et Avec re-choisis sans changement : `Annuler` reste valable", () => {
     renderSheet(variableSheet([[30, 10], [45, 20], [60, 30]], "DURATION", { sideMode: "RIGHT_LEFT", sideRecoverySeconds: 5 }));
     fireEvent.press(screen.getByTestId("execution-sheet-table-row-2-remove"));
     const undoAvailable = () => screen.queryByTestId("execution-sheet-adjusted-undo", hidden) !== null;
@@ -3959,10 +4025,9 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     expect(undoAvailable()).toBe(true);
     chooseSide("Avec");
     expect(undoAvailable()).toBe(true);
-    fireEvent.press(screen.getByTestId(`${SIDE_CONTROL}-WITH-chevron`, hidden));
-    expect(screen.queryByTestId("execution-sheet-row-order")).toBeNull();
-    fireEvent.press(screen.getByTestId(`${SIDE_CONTROL}-WITH-chevron`, hidden));
-    expect(screen.getByTestId("execution-sheet-row-order")).toBeTruthy();
+    // RC-6 : plus de chevron de repli sur Avec.
+    expect(screen.queryByTestId(`${SIDE_CONTROL}-WITH-chevron`, hidden)).toBeNull();
+    expect(screen.getByTestId(ORDER_MENU)).toBeTruthy();
     expect(undoAvailable()).toBe(true);
     fireEvent.press(screen.getByTestId("execution-sheet-adjusted-undo"));
     expect([1, 2, 3].map((row) => cellValue(row))).toEqual(["30 s", "45 s", "1 min"]);
@@ -4995,10 +5060,11 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
         undefined,
         undefined,
       ]);
-      // PRE-5 story 2.5 (AC1, AC2) : Changement de côté et Enchainement sont des segmentés
-      // `inline` dans leur ligne (remplacement accepté des panneaux de PRE-4), sans panneau.
+      // PRE-5 story 2.5 (AC1, AC2) : Changement de côté en segmenté `inline` dans sa ligne
+      // (remplacement accepté des panneaux de PRE-4), sans panneau ; RC-6 : l'Enchainement est
+      // le menu natif de son option Avec.
       expect(within(get("execution-sheet-row-side-line")).getByTestId(SIDE_CONTROL, hidden)).toBeTruthy();
-      expect(within(get("execution-sheet-row-order-line")).getByTestId(ORDER_CONTROL, hidden)).toBeTruthy();
+      expect(within(get(SIDE_CONTROL)).getByTestId(ORDER_MENU, hidden)).toBeTruthy();
       expect(query("execution-sheet-side-value")).toBeNull();
       expect(query("execution-sheet-order-value")).toBeNull();
       // PRE-5 story 2.4 (AC3, AC7) : Mode et Type de série sont des segmentés `inline` dans
@@ -5087,13 +5153,13 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
       // (cadre 32, option 26, relevé UX-DR1 de la story 2.3 ; texte agrandi à juger sur
       // iPhone, report consigné par la revue de 2.3) — Mode, Condition d'arrêt, Type de série.
       // PRE-5 story 2.2 : segmenté `inline` de la ligne Charge (« Avec | Sans »), même exception.
-      // PRE-5 story 2.5 : Changement de côté, Enchainement et Cadence, même exception.
+      // PRE-5 story 2.5 : Changement de côté et Cadence, même exception ; RC-6 : déclencheur du
+      // menu de l'Enchainement, à la hauteur d'une option (26).
       const inlineSegmented = [
         ":26",
         "execution-sheet-cadence-control:32",
         "execution-sheet-load-control:32",
         "execution-sheet-mode-control:32",
-        "execution-sheet-order-control:32",
         "execution-sheet-series-type-control:32",
         "execution-sheet-side-control:32",
         "execution-sheet-stop-condition-control:32",
@@ -5178,7 +5244,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
     const rowsOf: Record<(typeof FRAMES)[number], readonly string[]> = {
       execution: ["row-mode", "row-stop-condition"],
       series: ["row-series", "row-series-type", "variable-group", "row-target", "row-pause"],
-      sides: ["row-side", "row-order", "row-side-recovery"],
+      sides: ["row-side", "side-order-menu", "row-side-recovery"],
       cadence: ["row-beep", "row-total", "row-countdown", "row-end"],
     };
     for (const frame of FRAMES) {
@@ -6069,8 +6135,9 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
   const get = (testID: string) => screen.getByTestId(testID, hidden);
   const query = (testID: string) => screen.queryByTestId(testID, hidden);
   const sideChevron = `${SIDE_CONTROL}-WITH-chevron`;
+  // RC-6 : l'Enchainement est le menu de l'option Avec (plus de ligne propre).
   const sideRows = () => ({
-    order: query("execution-sheet-row-order") !== null,
+    order: query(ORDER_MENU) !== null,
     recovery: query("execution-sheet-row-side-recovery") !== null,
   });
   const signals = () => ({
@@ -6095,17 +6162,17 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     return { onApply, unmount: view.unmount };
   }
 
-  it("PRE5-2.5/AC1 — Activation : Sans (UNILATERAL), Profil 20 s → Avec : RIGHT_LEFT, Pause entre les côtés 20 s, Enchainement et Pause visibles, chevron haut", () => {
+  it("PRE5-2.5/AC1, RC-6 — Activation : Sans (UNILATERAL), Profil 20 s → Avec : RIGHT_LEFT, Pause entre les côtés 20 s, menu d'Enchainement et Pause visibles, sans chevron de repli", () => {
     const { onApply } = renderSheet(params({ sideMode: "UNILATERAL", sideRecoverySeconds: 0 }), 20);
     expect(sideText()).toBe("Sans");
     expect(sideRows()).toEqual({ order: false, recovery: false });
-    expect(query(sideChevron)).toBeNull();
+    // Sans sélectionné : Avec affiche la notation de l'Enchainement conservé, sans menu.
+    expect(within(get(SIDE_CONTROL)).getByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeTruthy();
     chooseSide("Avec");
     expect(sideText()).toBe("Avec");
     expect(sideRows()).toEqual({ order: true, recovery: true });
     expect(valueOf("execution-sheet-side-recovery")).toBe("20 s");
-    expect(get(sideChevron).props.accessibilityState).toMatchObject({ expanded: true });
-    expect(get(sideChevron).props.accessibilityLabel).toBe(strings.executionParameters.sheet.hideSideSettings);
+    expect(query(sideChevron)).toBeNull();
     validate();
     expect(applied(onApply)).toMatchObject({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 20 });
   });
@@ -6137,29 +6204,29 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     expect(applied(onApply)).toMatchObject({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SERIES", sideRecoverySeconds: 20 });
   });
 
-  it("PRE5-2.5/AC1 — Repli : le chevron d'Avec masque Enchainement et Pause entre les côtés sans changer valeur ni sélection ; déplié à nouveau, puis déployé à chaque passage à Avec", () => {
-    const { onApply } = renderSheet(params({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SERIES", sideRecoverySeconds: 12 }), 20);
-    openExecutionSheetField("execution-sheet-side-recovery");
-    fireEvent.press(get(sideChevron));
-    // Repli : lignes masquées, champ ± rangé (T14), Avec toujours sélectionné, chevron bas.
-    expect(sideRows()).toEqual({ order: false, recovery: false });
-    expect(query("execution-sheet-side-recovery-increment")).toBeNull();
-    expect(sideText()).toBe("Avec");
-    expect(get(sideChevron).props.accessibilityState).toMatchObject({ expanded: false });
-    expect(get(sideChevron).props.accessibilityLabel).toBe(strings.executionParameters.sheet.showSideSettings);
-    fireEvent.press(get(sideChevron));
+  // Recette du 19/10 (RC-6) : remplace le test « Repli » de la story 2.5 (chevron d'Avec
+  // repliant Enchainement et Pause entre les côtés) — la frame `9462:18987` n'a plus ce repli.
+  it("RC-6 — Changement de côté porte l'Enchainement : aucune ligne Enchainement ni chevron de repli ; Pause entre les côtés visible sous Avec ; Avec (144) porte la notation, Sans (62) ; choix par le menu, `setSideOrder` seulement si différent", () => {
+    const { onApply } = renderSheet(params({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE", sideRecoverySeconds: 12 }), 20);
+    expect(query("execution-sheet-row-order")).toBeNull();
+    expect(screen.queryByText("Enchainement", hidden)).toBeNull();
+    expect(query(sideChevron)).toBeNull();
     expect(sideRows()).toEqual({ order: true, recovery: true });
-    expect(valueOf("execution-sheet-side-recovery")).toBe("12 s");
+    const side = get(SIDE_CONTROL);
+    expect(StyleSheet.flatten(side.props.style)).toMatchObject({ width: 214 });
+    expect(within(side).getByTestId(ORDER_MENU)).toBeTruthy();
+    expect(within(get(ORDER_MENU)).getByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeTruthy();
+    expect(get(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, Un côté après l’autre");
+    // Re-choisir l'Enchainement affiché ne change rien ; l'autre s'applique et reste affiché.
+    chooseOrder("Un côté après l’autre");
+    expect(orderText()).toBe("Un côté après l’autre");
+    chooseOrder("Les deux côtés à chaque série");
     expect(orderText()).toBe("Les deux côtés à chaque série");
-    // Replié puis Sans → Avec : déployé.
-    fireEvent.press(get(sideChevron));
-    chooseSide("Sans");
-    chooseSide("Avec");
-    expect(sideRows()).toEqual({ order: true, recovery: true });
-    // Replié, ✓ : valeurs conservées.
-    fireEvent.press(get(sideChevron));
+    expect(get(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, Les deux côtés à chaque série");
+    expect(sideText()).toBe("Avec");
+    expect(valueOf("execution-sheet-side-recovery")).toBe("12 s");
     validate();
-    expect(applied(onApply)).toMatchObject({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SERIES", sideRecoverySeconds: 20 });
+    expect(applied(onApply)).toMatchObject({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SERIES", sideRecoverySeconds: 12 });
   });
 
   it("PRE5-2.5/AC1 — choix dans les segmentés des côtés avec une roue ouverte (T10) : la roue se ferme sans appliquer, le choix n'est pas appliqué", () =>
@@ -6174,21 +6241,21 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
       expect(sideText()).toBe("Avec");
     }));
 
-  it("PRE5-2.5/AC2 — Enchainement : options BY_SIDE puis BY_SERIES, notations exactes à flèche centrale ➜, police réduite, nom accessible neutre ; effectif affiché ; masqué à N = 1 (BY_SIDE écrit), conservé au retour à N ≥ 2", () => {
+  it("PRE5-2.5/AC2, RC-6 — Enchainement : menu de l'option Avec, items BY_SIDE puis BY_SERIES, notations exactes à flèche centrale ➜, notation affichée en police réduite, nom accessible neutre ; effectif affiché ; masqué à N = 1 (Avec reprend son libellé, BY_SIDE écrit), conservé au retour à N ≥ 2", () => {
     const { onApply } = renderSheet(params({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE", sideRecoverySeconds: 10 }));
-    const control = get(ORDER_CONTROL);
-    const labels = within(control)
-      .getAllByText(/D1/u, hidden)
-      .map((node) => String(node.props.children));
+    const menu = get(ORDER_MENU);
+    const labels = within(menu)
+      .UNSAFE_getAllByType(SwiftUIButton)
+      .map((node) => String(node.props.label));
     expect(labels).toEqual(["(D1 → D2) ➜ (G1 → G2)", "(D1 → G1) ➜ (D2 → G2)"]);
-    for (const label of labels) {
-      expect(StyleSheet.flatten(within(control).getByText(label, hidden).props.style)).toMatchObject({ fontSize: 10 });
-    }
+    expect(StyleSheet.flatten(get(`${ORDER_MENU}-notation`).props.style)).toMatchObject({ fontSize: 10 });
     chooseOrder("Les deux côtés à chaque série");
     expect(orderText()).toBe("Les deux côtés à chaque série");
     tap("execution-sheet-series-decrement");
     tap("execution-sheet-series-decrement");
-    expect(query("execution-sheet-row-order")).toBeNull();
+    expect(query(ORDER_MENU)).toBeNull();
+    expect(get(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec");
+    expect(within(get(SIDE_CONTROL)).getByText("Avec", hidden)).toBeTruthy();
     tap("execution-sheet-series-increment");
     expect(orderText()).toBe("Les deux côtés à chaque série");
     tap("execution-sheet-series-decrement");
