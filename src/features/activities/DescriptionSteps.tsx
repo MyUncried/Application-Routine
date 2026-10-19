@@ -131,6 +131,11 @@ const STEP_ROW_GAP = spacing[8];
 const STEP_NUMBER_GAP = spacing[8];
 /** Largeur du numéro, aligné à droite (s'élargit au-delà de 9 étapes, jamais tronqué). */
 const STEP_NUMBER_WIDTH = 16;
+/**
+ * PRE-5 story 3.2 (FR-38) : gouttière du texte des étapes (numéro + écart, 16 + 8 = 24),
+ * reprise par le padding horizontal de la Carte des paramètres pour l'aligner au fer du texte.
+ */
+export const DESCRIPTION_STEP_GUTTER = STEP_NUMBER_WIDTH + STEP_NUMBER_GAP;
 /** Numéro et texte de l'invite : `#AEB3BA`, sans jeton (AD-11 : `tokens.ts` inchangé). */
 const STEP_PROMPT_COLOR = "#AEB3BA";
 

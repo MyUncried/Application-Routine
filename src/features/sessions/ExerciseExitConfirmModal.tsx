@@ -67,7 +67,10 @@ export function ExerciseExitConfirmModal({ onCancel, onConfirm, isCreation = fal
       title={isCreation ? modalStrings.createTitle : modalStrings.title}
       titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText }}
       message={isCreation ? modalStrings.createMessage : modalStrings.message}
-      messageStyle={{ ...type.body, color: colors.textSecondary }}
+      // PRE-5 story 3.2, arbitrage G-9 de Hermann du 19/10 (Figma `8328:36781`) : titre Inter
+      // Semi Bold 18 (`type.modalTitle`, inchangé), message Inter Regular 14 interligne 21
+      // (`type.dialogMessage`) ; structure, couleurs et interactions PRE-3 conservées.
+      messageStyle={{ ...type.dialogMessage, color: colors.textSecondary }}
       cancelLabel={modalStrings.continueEditing}
       cancelLabelStyle={{ ...type.button, color: colors.dialogTitleText }}
       confirmLabel={modalStrings.abandon}

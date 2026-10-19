@@ -3,8 +3,9 @@ import path from "node:path";
 
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import { describe, expect, it, jest } from "@jest/globals";
-import { useState } from "react";
-import { AccessibilityInfo, Dimensions, StyleSheet } from "react-native";
+import { useState, type ReactNode } from "react";
+import { AccessibilityInfo, Dimensions, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { numberTarget, unsetTarget, type ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
 import { generateExecutionPhrase, phraseText } from "@/domain/activities/executionPhrase";
@@ -22,6 +23,7 @@ import type { ImportItem, ImportResult, PickedMedia } from "@/domain/media/Activ
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import {
   ActivityEditorForm,
+  EDITOR_HEADER,
   EDITOR_VERTICAL_GRID,
   editorSideMargin,
   isActivityEditorFormValid,
@@ -36,6 +38,7 @@ import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
+import { colors, dimensions } from "@/shared/ui/tokens";
 
 /**
  * Éditeur commun d'un Exercice (CE-T03-04, PRE-3). Rendu et actions de cette
@@ -87,6 +90,18 @@ function baseValue(overrides: Partial<ActivityEditorFormValue> = {}): ActivityEd
   return { name: "", instructionSteps: [], executionParameters: parameters(), bodyZoneIds: [], media: [], ...overrides };
 }
 
+/** Métriques de test, ou encart bas imposé (PRE-5 story 3.2, AC2). */
+function SafeArea({ bottom, children }: { bottom?: number; children: ReactNode }) {
+  if (bottom === undefined) return <TestSafeAreaProvider>{children}</TestSafeAreaProvider>;
+  return (
+    <SafeAreaProvider
+      initialMetrics={{ frame: { x: 0, y: 0, width: 402, height: 874 }, insets: { top: 47, left: 0, right: 0, bottom } }}
+    >
+      {children}
+    </SafeAreaProvider>
+  );
+}
+
 function Harness({
   initial,
   onChangeSpy,
@@ -101,7 +116,10 @@ function Harness({
   isCategoryPickerOpen,
   bodyZones = BODY_ZONE_FIXTURES,
   exerciseSignals,
+  safeAreaBottom,
 }: {
+  /** PRE-5 story 3.2 (AC2) : encart bas de sécurité ; absent = métriques de test (34). */
+  safeAreaBottom?: number;
   bodyZones?: readonly BodyZone[];
   /** PRE-5 story 2.5 (AC4) : signaux de la Feuille ; absent = défaut du composant. */
   exerciseSignals?: "present" | "absent";
@@ -119,7 +137,7 @@ function Harness({
 }) {
   const [value, setValue] = useState<ActivityEditorFormValue>(baseValue(initial));
   return (
-    <TestSafeAreaProvider>
+    <SafeArea bottom={safeAreaBottom}>
       <ReferentialServiceContext.Provider value={fakeReferentialService(bodyZones)}>
         <ActivityEditorForm
           value={value}
@@ -146,7 +164,7 @@ function Harness({
           errorTestID="test-save-error"
         />
       </ReferentialServiceContext.Provider>
-    </TestSafeAreaProvider>
+    </SafeArea>
   );
 }
 
@@ -242,7 +260,7 @@ describe("ActivityEditorForm — PRE-3", () => {
     expect(onFinish).not.toHaveBeenCalled();
   });
 
-  it("P3-02/keyboard-scroll — corps défilant avec clavier ; Terminer hors du défilement, marge Safe Area ; description sans hauteur figée", () => {
+  it("P3-02/keyboard-scroll — corps défilant avec clavier ; Terminer hors du défilement, à 24 du bas (PRE-5 3.2) ; description sans hauteur figée", () => {
     render(<Harness />);
     expect(screen.getByTestId("exercise-body").props.keyboardShouldPersistTaps).toBe("handled");
     // PRE-5 story 3.1 : étapes sans contenant ni hauteur figée (la cible tactile d'une ligne
@@ -251,7 +269,7 @@ describe("ActivityEditorForm — PRE-3", () => {
     expect(instruction.height).toBeUndefined();
     expect(instruction.maxHeight).toBeUndefined();
     const slot = StyleSheet.flatten(screen.getByTestId("test-finish-slot").props.style);
-    expect(slot.marginBottom).toBeGreaterThanOrEqual(16);
+    expect(slot.marginBottom).toBe(24);
     expect(within(screen.getByTestId("exercise-body")).queryByTestId("test-finish-action")).toBeNull();
   });
 
@@ -327,25 +345,24 @@ describe("ActivityEditorForm — PRE-3", () => {
     expect(boldSegments()).not.toContain("côté 1");
   });
 
-  it("P3-20/all-surfaces — titres et valeurs des écrans de référence ; carte bordée rayon 12 ; phrase Inter 13 / 20", () => {
+  it("P3-20/all-surfaces — titres et valeurs des écrans de référence ; Carte `surfaceSubtle` rayon 12 sans liseré (PRE-5 3.2) ; phrase Inter 14 / 20 (PRE-5 3.2, arbitrage G-6)", () => {
     render(<Harness initial={{ executionParameters: parameters({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] } }) }} />);
     expect(screen.getByText("Paramètres d’exécution")).toBeTruthy();
     // Story 4.2 (Q23) : « Choisir un mode » retiré ; E-21 : la Carte vide ne porte aucune invite.
     expect(screen.queryByText("Choisir un mode")).toBeNull();
     expect(screen.queryByText("Appuyez pour définir les séries et les durées")).toBeNull();
-    expect(screen.getByText("Compte à rebours")).toBeTruthy();
-    expect(screen.getByText("Fin d’exercice")).toBeTruthy();
-    expect(screen.getByTestId("exercise-parameters-countdown").props.children).toBe("10 s");
-    expect(screen.getByTestId("exercise-parameters-end").props.children).toBe("5 s");
-    expect(StyleSheet.flatten(screen.getByTestId("exercise-parameters-card").props.style)).toMatchObject({
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: "#E0E3E8",
-    });
-    // E-21 (2026-10-18) : sans Mode, aucune invite ; la Phrase (vide, PRE-3) garde son style.
+    // PRE-5 story 3.2 (R-14, FR-36) : ni Compte à rebours ni Fin sur la Carte.
+    expect(screen.queryByText("Compte à rebours")).toBeNull();
+    expect(screen.queryByText("Fin d’exercice")).toBeNull();
+    const cardStyle = StyleSheet.flatten(screen.getByTestId("exercise-parameters-card").props.style);
+    expect(cardStyle).toMatchObject({ borderRadius: 12, backgroundColor: "#F9FAFC" });
+    expect(cardStyle.borderWidth ?? 0).toBe(0);
+    // E-21 (2026-10-18) : sans Mode, aucune invite ; la Phrase (vide) garde son style.
+    // PRE-5 3.2, arbitrage G-6 : Inter Regular 14 (`type.body`), interligne 20.
     expect(screen.queryByTestId("exercise-parameters-empty-prompt")).toBeNull();
     expect(StyleSheet.flatten(screen.getByTestId("exercise-parameters-phrase").props.style)).toMatchObject({
-      fontSize: 13,
+      fontFamily: "Inter_400Regular",
+      fontSize: 14,
       lineHeight: 20,
     });
   });
@@ -381,9 +398,8 @@ describe("ActivityEditorForm — PRE-3", () => {
     render(<Harness />);
     const card = screen.getByTestId("exercise-parameters-card");
     expect(card.props.accessibilityRole).toBe("button");
-    expect(card.props.accessibilityLabel).toBe(
-      `Modifier les paramètres d’exécution. ${phrase()} Compte à rebours 10 s, Fin d’exercice 5 s.`,
-    );
+    // PRE-5 story 3.2 (R-14, FR-36) : la Phrase seule, sans Compte à rebours ni Fin.
+    expect(card.props.accessibilityLabel).toBe(`Modifier les paramètres d’exécution. ${phrase()}`);
     const nested = screen.getByTestId("exercise-parameters-phrase").props.children as { props?: { accessible?: boolean; accessibilityRole?: string } }[];
     expect(nested.filter((child) => typeof child === "object" && child?.props?.accessibilityRole).length).toBe(0);
   });
@@ -504,8 +520,10 @@ describe("ActivityEditorForm — recette 1 (T-49)", () => {
 
     const halo = StyleSheet.flatten(screen.getByTestId("exercise-context-band-halo").props.style);
     expect(halo).toMatchObject({ position: "absolute", width: 59.28, height: 59.28, borderRadius: 29.64, backgroundColor: "#FFFFFF" });
-    // Centre : marge 24 + rayon du bouton 19 en x ; 24 au-dessus de la zone (moitié de l’en-tête 48) en y.
-    expect(halo.left! + 29.64).toBeCloseTo(43, 5);
+    // PRE-5 3.2, arbitrage G-1 : centre = centre du ✕ de l’en-tête de l’Éditeur (cible 48 à 12 du
+    // bord, soit x 36, indépendant de la largeur) ; 24 au-dessus de la zone (moitié de l’en-tête 48) en y.
+    expect(EDITOR_HEADER.backCenterX).toBe(36);
+    expect(halo.left! + 29.64).toBeCloseTo(EDITOR_HEADER.backCenterX, 5);
     expect(halo.top! + 29.64).toBeCloseTo(-24, 5);
 
     const fade = screen.getByTestId("exercise-context-band-fade");
@@ -710,10 +728,17 @@ describe("ActivityEditorForm — PRE-4 story 1.1", () => {
 });
 
 describe("ActivityEditorForm — PRE-4 story 2.2", () => {
-  it("PRE4-2.2/AC1 — Compte à rebours et Fin d'exercice passent par le formateur unique : 60 → « 1 min », 0 → « 0 s »", () => {
+  // PRE-5 story 3.2 (R-14, FR-36) : la Carte ne montre plus Compte à rebours ni Fin ; leur
+  // formatage reste prouvé dans la Feuille (`ExecutionParametersSheet.test.tsx`).
+  it("PRE4-2.2/AC1 + PRE5-3.2/AC1 — Compte à rebours 60 s et Fin 0 s : aucune valeur ni ligne sur la Carte ; la Feuille les montre", () => {
     render(<Harness initial={{ executionParameters: parameters({ countdownSeconds: 60, endSeconds: 0 }) }} />);
-    expect(screen.getByTestId("exercise-parameters-countdown").props.children).toBe("1 min");
-    expect(screen.getByTestId("exercise-parameters-end").props.children).toBe("0 s");
+    expect(screen.queryByTestId("exercise-parameters-countdown")).toBeNull();
+    expect(screen.queryByTestId("exercise-parameters-end")).toBeNull();
+    expect(screen.queryByText("1 min")).toBeNull();
+    fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+    fireEvent.press(screen.getByLabelText("Afficher le compte à rebours et la fin d’exercice"));
+    expect(screen.getByTestId("execution-sheet-countdown-value").props.children).toBe("1 min");
+    expect(screen.getByTestId("execution-sheet-end-value").props.children).toBe("0 s");
   });
 });
 
@@ -735,7 +760,7 @@ describe("ActivityEditorForm — PRE-4 story 2.3", () => {
     expect(style).not.toHaveProperty("maxHeight");
   }
 
-  it("PRE4-2.3/AC15 — cas 144 affiché en entier dans la Carte, un seul flux de texte, aucun plafond ; Compte à rebours et Fin sur leurs lignes", () => {
+  it("PRE4-2.3/AC15 — cas 144 affiché en entier dans la Carte, un seul flux de texte, aucun plafond ; ni Compte à rebours ni Fin (PRE-5 3.2)", () => {
     render(
       <Harness
         initial={{
@@ -768,11 +793,11 @@ describe("ActivityEditorForm — PRE-4 story 2.3", () => {
     nested.forEach(expectUncapped);
     // Les segments ne sont pas interactifs.
     expect(nested.filter((child) => child.props.onPress !== undefined || child.props.accessibilityRole !== undefined)).toEqual([]);
-    // Inter 13 Regular, interligne 20 ; segments gras en Inter Semi Bold (600).
+    // PRE-5 3.2, arbitrage G-6 : Inter 14 Regular, interligne 20 ; segments gras en Inter Semi Bold (600).
     expect(StyleSheet.flatten(node.props.style)).toMatchObject({
       fontFamily: "Inter_400Regular",
       fontWeight: "400",
-      fontSize: 13,
+      fontSize: 14,
       lineHeight: 20,
     });
     for (const child of nested) {
@@ -782,10 +807,8 @@ describe("ActivityEditorForm — PRE-4 story 2.3", () => {
       });
     }
     expect(boldSegments()).toEqual(["6 séries", "12 répétitions", "4 s", "15 s", "côté 1", "côté 2", "5 s", "≈ 12 min 41 s"]);
-    expect(screen.getByTestId("exercise-parameters-countdown").props.children).toBe("10 s");
-    expect(screen.getByTestId("exercise-parameters-end").props.children).toBe("5 s");
-    expectUncapped(screen.getByTestId("exercise-parameters-countdown"));
-    expectUncapped(screen.getByTestId("exercise-parameters-end"));
+    expect(screen.queryByTestId("exercise-parameters-countdown")).toBeNull();
+    expect(screen.queryByTestId("exercise-parameters-end")).toBeNull();
   });
 
   it("PRE4-2.3/AC15 — mélange rendu dans la Carte : « jusqu’à l’échec » normal, valeurs et « ≥ » en gras ; bouton de Mode et libellé accessible inchangés", () => {
@@ -808,10 +831,11 @@ describe("ActivityEditorForm — PRE-4 story 2.3", () => {
     );
     expect(phrase()).toBe("3 séries de durée variable (30 s, 45 s puis jusqu’à l’échec). Durée totale : ≥ 1 min 45 s.");
     expect(boldSegments()).toEqual(["3 séries", "30 s", "45 s", "≥ 1 min 45 s"]);
-    // Story 4.2 (Q23, AC14) : bouton de Mode retiré ; libellé accessible de la Carte inchangé.
+    // Story 4.2 (Q23, AC14) : bouton de Mode retiré. PRE-5 story 3.2 : libellé de la Carte
+    // réduit à la Phrase (ni Compte à rebours ni Fin).
     expect(screen.queryByTestId("exercise-parameters-mode")).toBeNull();
     expect(screen.getByTestId("exercise-parameters-card").props.accessibilityLabel).toBe(
-      `Modifier les paramètres d’exécution. ${phrase()} Compte à rebours 10 s, Fin d’exercice 5 s.`,
+      `Modifier les paramètres d’exécution. ${phrase()}`,
     );
   });
 
@@ -988,9 +1012,9 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
     expect(screen.queryByText(/Récupération|Type d’exercice/u)).toBeNull();
   });
 
-  it("PRE4-4.2/AC5 — marge latérale 16 à 360, 24 à 390, 402 et 440 ; Terminer 354 de large à 402 ; grille 18 / 13 / 20 / 12 par styles, sans position absolue", () => {
+  it("PRE4-4.2/AC5 — marge latérale 16 à 360, 24 à 390, 402 et 440 ; Terminer 354 de large à 402 ; grille 14 / 10 / 16 / 12 par styles (PRE-5 3.2, arbitrage G-2), sans position absolue", () => {
     expect([360, 389, 390, 402, 440].map(editorSideMargin)).toEqual([16, 16, 24, 24, 24]);
-    expect(EDITOR_VERTICAL_GRID).toEqual({ contextToFirstText: 18, blockToNextTitle: 20, titleToBlock: 13, blockToBlock: 12 });
+    expect(EDITOR_VERTICAL_GRID).toEqual({ contextToFirstText: 14, blockToNextTitle: 16, titleToBlock: 10, blockToBlock: 12 });
     for (const [width, margin] of [
       [360, 16],
       [390, 24],
@@ -1004,14 +1028,14 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
         expect(content.paddingHorizontal).toBe(margin);
         expect(style("test-finish-slot").marginHorizontal).toBe(margin);
         // Centre du halo comparé au padding réellement reçu par `FixedHeader` : `ExerciseScreen.test.tsx`, `PRE4-4.2/AC4 AC5`.
-        // Grille de D-327 : 18 du bas du dégradé au premier titre ; 13 titre → bloc ;
-        // 20 dernier élément → titre suivant ; 12 dernier bloc → Terminer.
-        expect(content).toMatchObject({ paddingTop: 18, paddingBottom: 12 });
+        // PRE-5 3.2, arbitrage G-2 (à la place de D-327 pour cet écran) : 14 du bas du dégradé à
+        // la première section ; 10 titre → contenu ; 16 entre sections ; 12 dernier bloc → Terminer.
+        expect(content).toMatchObject({ paddingTop: 14, paddingBottom: 12 });
         expect(content.gap).toBeUndefined();
-        expect(style("exercise-section-description")).toMatchObject({ gap: 13 });
+        expect(style("exercise-section-description")).toMatchObject({ gap: 10 });
         expect(style("exercise-section-description").marginTop).toBeUndefined();
         for (const section of ["exercise-section-parameters", "activity-editor-section-media"]) {
-          expect(style(section)).toMatchObject({ gap: 13, marginTop: 20 });
+          expect(style(section)).toMatchObject({ gap: 10, marginTop: 16 });
         }
         expect(style("test-finish-slot").marginTop).toBeUndefined();
         for (const testID of ["exercise-section-description", "exercise-section-parameters", "activity-editor-section-media", "test-finish-slot", "test-finish-action"]) {
@@ -1031,13 +1055,10 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
     expect(within(card).queryByTestId("exercise-parameters-empty-prompt")).toBeNull();
     expect(screen.queryByText("Appuyez pour définir les séries et les durées")).toBeNull();
     expect(within(card).getByTestId("exercise-parameters-phrase").props.children).toBe("");
-    // Composition PRE-3 du libellé accessible (Phrase vide).
-    expect(card.props.accessibilityLabel).toBe(
-      "Modifier les paramètres d’exécution.  Compte à rebours 10 s, Fin d’exercice 5 s.",
-    );
-    // Lignes Compte à rebours et Fin, dans la Carte (P17).
-    expect(within(card).getByTestId("exercise-parameters-countdown")).toBeTruthy();
-    expect(within(card).getByTestId("exercise-parameters-end")).toBeTruthy();
+    // PRE-5 story 3.2 (R-14, FR-36) : Phrase vide, libellé sans Phrase ni Compte à rebours / Fin.
+    expect(card.props.accessibilityLabel).toBe("Modifier les paramètres d’exécution.");
+    expect(within(card).queryByTestId("exercise-parameters-countdown")).toBeNull();
+    expect(within(card).queryByTestId("exercise-parameters-end")).toBeNull();
     fireEvent.press(card);
     expect(screen.getByTestId("execution-sheet")).toBeTruthy();
   });
@@ -1101,9 +1122,7 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
         (node.props.accessible === true || node.props.onPress !== undefined || node.props.accessibilityRole !== undefined),
     );
     expect(interactive).toEqual([]);
-    expect(card.props.accessibilityLabel).toBe(
-      `Modifier les paramètres d’exécution. ${generated} Compte à rebours 10 s, Fin d’exercice 5 s.`,
-    );
+    expect(card.props.accessibilityLabel).toBe(`Modifier les paramètres d’exécution. ${generated}`);
     // Aucune hauteur fixée sur la Carte ni sur la Phrase (la phrase longue est couverte par PRE4-2.3/AC15).
     for (const testID of ["exercise-parameters-card", "exercise-parameters-phrase"]) {
       expect(style(testID)).not.toHaveProperty("height");
@@ -1232,11 +1251,21 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
     }
   });
 
-  it("PRE4-4.2/AC13 — rendu par les jetons existants : couleurs et typographies retenues au relevé ; aucune opacité locale codée en dur", () => {
+  it("PRE4-4.2/AC13 — rendu par les jetons existants : couleurs et typographies retenues au relevé ; aucune opacité locale codée en dur ; Nom 20 / 22, placeholder `textPrimary`, Phrase 14 / 20 (PRE-5 3.2, arbitrages G-3, G-4, G-6)", () => {
     render(<Harness initial={{ executionParameters: EMPTY }} isFinishDisabled />);
     expect(style("exercise-context-band").backgroundColor).toBe("#EAEAFF");
-    expect(style("exercise-name-input")).toMatchObject({ fontSize: 20, lineHeight: 24, color: "#141414" });
-    expect(style("exercise-parameters-phrase")).toMatchObject({ fontSize: 13, lineHeight: 20 });
+    // PRE-5 3.2, arbitrage G-4 : `type.screenTitle` (Inter Semi Bold 20) avec interligne local 22.
+    expect(style("exercise-name-input")).toMatchObject({
+      fontFamily: "Inter_600SemiBold",
+      fontWeight: "600",
+      fontSize: 20,
+      lineHeight: 22,
+      color: "#141414",
+    });
+    // PRE-5 3.2, arbitrage G-3 : placeholder en `textPrimary`.
+    expect(screen.getByTestId("exercise-name-input").props.placeholderTextColor).toBe(colors.textPrimary);
+    // PRE-5 3.2, arbitrage G-6 : Phrase en `type.body` (Inter Regular 14), interligne 20.
+    expect(style("exercise-parameters-phrase")).toMatchObject({ fontFamily: "Inter_400Regular", fontSize: 14, lineHeight: 20 });
     expect(style("exercise-parameters-card")).toMatchObject({ borderRadius: 12 });
     expect(style("test-finish-action").backgroundColor).toBe("#BEC2CC");
     // AD-11 : toute opacité rendue vaut `UNSELECTED_OPACITY` ou 1 — hors des couches du
@@ -1304,7 +1333,7 @@ describe("ActivityEditorForm — PRE-4 story 4.3", () => {
       .filter((name) => name.startsWith("body-zone-"));
   }
 
-  it("PRE4-4.3/AC2 — non renseignés : chaque accès est un bouton icône + libellé « Catégorie » / « Zone corporelle » (lexique), icônes au contour", () => {
+  it("PRE4-4.3/AC2 — non renseignés : chaque accès est un bouton icône + libellé « Catégorie » / « Zone corporelle » (lexique), glyphes pleins au repos (PRE-5 3.2, arbitrage G-5)", () => {
     render(<Harness />);
     const categoryButton = screen.getByTestId("activity-editor-category-button");
     const zonesButton = screen.getByTestId("exercise-body-zones-open");
@@ -1316,8 +1345,11 @@ describe("ActivityEditorForm — PRE-4 story 4.3", () => {
       strings.screens.activities.editor.category.label,
     );
     expect(screen.getByTestId("exercise-body-zones-label").props.children).toBe(strings.screens.exercise.bodyZones.unsetLabel);
-    expect(iconSource("activity-editor-category-icon")).toEqual(CONTOUR_CATEGORIE);
-    expect(iconSource("exercise-body-zones-icon")).toEqual(CONTOUR_HOMME);
+    // PRE-5 3.2, arbitrage G-5 : glyphes pleins au repos, jamais au contour ; un seul testID par accès.
+    expect(iconSource("activity-editor-category-icon")).toEqual(PLEIN_CATEGORIE);
+    expect(iconSource("activity-editor-category-icon")).not.toEqual(CONTOUR_CATEGORIE);
+    expect(iconSource("exercise-body-zones-icon")).toEqual(PLEIN_HOMME);
+    expect(iconSource("exercise-body-zones-icon")).not.toEqual(CONTOUR_HOMME);
     expect(screen.queryByTestId("activity-editor-category-icon-filled")).toBeNull();
     expect(screen.queryByTestId("exercise-body-zones-icon-filled")).toBeNull();
     // Noms accessibles : ils contiennent le texte visible (WCAG 2.5.3) et l'état « non renseignée ».
@@ -1336,18 +1368,20 @@ describe("ActivityEditorForm — PRE-4 story 4.3", () => {
     expect(within(zonesButton).queryByText("+")).toBeNull();
   });
 
-  it("PRE4-4.3/AC2 — renseignés : pilule pastille + nom (Catégorie) ; silhouette + noms des Zones avec le séparateur de la capture `8328:37022`", () => {
+  it("PRE4-4.3/AC2 + PRE5-3.2 — renseignés : glyphe Catégorie plein teinté de sa couleur + nom ; silhouette + noms des Zones avec le séparateur de la capture `8328:37022`", () => {
     render(<Harness category={{ name: "Cardio", color: "#3B82F6" }} initial={{ bodyZoneIds: ["cou", "fessier"] }} />);
     const categoryButton = screen.getByTestId("activity-editor-category-button");
-    expect(
-      StyleSheet.flatten(within(categoryButton).getByTestId("activity-editor-category-swatch").props.style).backgroundColor,
-    ).toBe("#3B82F6");
+    const glyph = within(categoryButton).getByTestId("activity-editor-category-glyph");
+    expect(iconSource("activity-editor-category-glyph")).toEqual(PLEIN_CATEGORIE);
+    expect(StyleSheet.flatten(glyph.props.style).tintColor).toBe("#3B82F6");
+    expect(screen.queryByTestId("activity-editor-category-swatch")).toBeNull();
     expect(within(categoryButton).getByText("Cardio")).toBeTruthy();
     expect(within(categoryButton).queryByTestId("activity-editor-category-label")).toBeNull();
     expect(within(categoryButton).queryByTestId("activity-editor-category-icon")).toBeNull();
     expect(categoryButton.props.accessibilityLabel).toBe("Catégorie Cardio");
     const zonesButton = screen.getByTestId("exercise-body-zones-open");
-    expect(iconSource("exercise-body-zones-icon")).toEqual(CONTOUR_HOMME);
+    // PRE-5 3.2, arbitrage G-5 : silhouette pleine, renseignée ou non.
+    expect(iconSource("exercise-body-zones-icon")).toEqual(PLEIN_HOMME);
     // Q49 (a) : la valeur du séparateur attend Hermann ; seul l'usage de la clé est vérifié.
     expect(within(zonesButton).getByTestId("exercise-body-zones-label").props.children).toBe(
       ["Cou", "Fessier"].join(strings.screens.exercise.bodyZones.bandSeparator),
@@ -1378,55 +1412,65 @@ describe("ActivityEditorForm — PRE-4 story 4.3", () => {
     expect(zonesButton().props.accessibilityState).toEqual({ expanded: false });
   });
 
-  it("PRE4-4.3/AC2 — icône pleine pendant l'ouverture de la feuille des Zones, retour au contour après ✕ puis après ✓ ; la pilule ne change pas", async () => {
+  it("PRE4-4.3/AC2 — Zones : glyphe plein au repos, feuille ouverte, après ✕ puis après ✓ (PRE-5 3.2, arbitrage G-5) ; l'ouverture n'est annoncée que par « développé » ; la pilule ne change pas", async () => {
     render(<Harness initial={{ bodyZoneIds: ["cou"] }} />);
-    const pillStyle = () => StyleSheet.flatten(screen.getByTestId("exercise-body-zones-open").props.style);
+    const zonesButton = () => screen.getByTestId("exercise-body-zones-open");
+    const pillStyle = () => StyleSheet.flatten(zonesButton().props.style);
     const restingPill = pillStyle();
-    fireEvent.press(screen.getByTestId("exercise-body-zones-open"));
+    expect(iconSource("exercise-body-zones-icon")).toEqual(PLEIN_HOMME);
+    fireEvent.press(zonesButton());
     await screen.findByTestId("body-zone-selector-tag-cou");
-    expect(iconSource("exercise-body-zones-icon-filled")).toEqual(PLEIN_HOMME);
-    expect(screen.queryByTestId("exercise-body-zones-icon")).toBeNull();
+    expect(iconSource("exercise-body-zones-icon")).toEqual(PLEIN_HOMME);
+    expect(screen.queryByTestId("exercise-body-zones-icon-filled")).toBeNull();
+    expect(zonesButton().props.accessibilityState).toEqual({ expanded: true });
     expect(pillStyle()).toEqual(restingPill);
     fireEvent.press(screen.getByTestId("body-zone-picker-close"));
-    expect(iconSource("exercise-body-zones-icon")).toEqual(CONTOUR_HOMME);
-    fireEvent.press(screen.getByTestId("exercise-body-zones-open"));
+    expect(iconSource("exercise-body-zones-icon")).toEqual(PLEIN_HOMME);
+    expect(zonesButton().props.accessibilityState).toEqual({ expanded: false });
+    fireEvent.press(zonesButton());
     await screen.findByTestId("body-zone-selector-tag-cou");
-    expect(screen.getByTestId("exercise-body-zones-icon-filled")).toBeTruthy();
+    expect(iconSource("exercise-body-zones-icon")).toEqual(PLEIN_HOMME);
     await act(async () => {
       fireEvent.press(screen.getByTestId("body-zone-picker-confirm"));
     });
-    expect(iconSource("exercise-body-zones-icon")).toEqual(CONTOUR_HOMME);
+    expect(iconSource("exercise-body-zones-icon")).toEqual(PLEIN_HOMME);
     expect(screen.queryByTestId("exercise-body-zones-icon-filled")).toBeNull();
+    expect(zonesButton().props.accessibilityState).toEqual({ expanded: false });
   });
 
-  it("PRE4-4.3/AC2 — icône Catégorie pleine tant que l'adaptateur signale sa feuille ouverte, au contour sinon ; même pilule", () => {
+  it("PRE4-4.3/AC2 — icône Catégorie pleine, que l'adaptateur signale sa feuille ouverte ou non (PRE-5 3.2, arbitrage G-5) ; seul « développé » change ; même pilule", () => {
     const view = render(<Harness isCategoryPickerOpen />);
-    const openPill = StyleSheet.flatten(screen.getByTestId("activity-editor-category-button").props.style);
-    expect(iconSource("activity-editor-category-icon-filled")).toEqual(PLEIN_CATEGORIE);
-    expect(screen.queryByTestId("activity-editor-category-icon")).toBeNull();
-    expect(screen.getByTestId("activity-editor-category-label")).toBeTruthy();
-    view.rerender(<Harness isCategoryPickerOpen={false} />);
-    expect(iconSource("activity-editor-category-icon")).toEqual(CONTOUR_CATEGORIE);
+    const button = () => screen.getByTestId("activity-editor-category-button");
+    const openPill = StyleSheet.flatten(button().props.style);
+    expect(iconSource("activity-editor-category-icon")).toEqual(PLEIN_CATEGORIE);
     expect(screen.queryByTestId("activity-editor-category-icon-filled")).toBeNull();
-    expect(StyleSheet.flatten(screen.getByTestId("activity-editor-category-button").props.style)).toEqual(openPill);
+    expect(screen.getByTestId("activity-editor-category-label")).toBeTruthy();
+    expect(button().props.accessibilityState).toEqual({ expanded: true });
+    view.rerender(<Harness isCategoryPickerOpen={false} />);
+    expect(iconSource("activity-editor-category-icon")).toEqual(PLEIN_CATEGORIE);
+    expect(screen.queryByTestId("activity-editor-category-icon-filled")).toBeNull();
+    expect(button().props.accessibilityState).toEqual({ expanded: false });
+    expect(StyleSheet.flatten(button().props.style)).toEqual(openPill);
   });
 
-  it("PRE4-4.3/AC2 — une seule silhouette, celle du Profil (homme par défaut, femme si choisie), dans ses deux états ; jamais deux boutons homme / femme", async () => {
+  it("PRE4-4.3/AC2 — une seule silhouette, celle du Profil (homme par défaut, femme si choisie), pleine feuille fermée comme ouverte (PRE-5 3.2, arbitrage G-5) ; jamais deux boutons homme / femme", async () => {
     for (const [silhouette, contour, plein, contourSource, pleinSource] of [
       [null, "body-zone-homme", "body-zone-homme-plein", CONTOUR_HOMME, PLEIN_HOMME],
       ["homme", "body-zone-homme", "body-zone-homme-plein", CONTOUR_HOMME, PLEIN_HOMME],
       ["femme", "body-zone-femme", "body-zone-femme-plein", CONTOUR_FEMME, PLEIN_FEMME],
     ] as const) {
       const view = render(<Harness silhouette={silhouette} />);
-      expect(renderedSilhouettes()).toEqual([contour]);
-      expect(iconSource("exercise-body-zones-icon")).toEqual(contourSource);
+      expect(renderedSilhouettes()).toEqual([plein]);
+      expect(renderedSilhouettes()).not.toContain(contour);
+      expect(iconSource("exercise-body-zones-icon")).toEqual(pleinSource);
+      expect(iconSource("exercise-body-zones-icon")).not.toEqual(contourSource);
       expect(screen.queryByLabelText(/homme|femme/i)).toBeNull();
       fireEvent.press(screen.getByTestId("exercise-body-zones-open"));
       await screen.findByTestId("body-zone-selector-tag-cou");
       // Feuille ouverte : la seule silhouette est celle, pleine, du bandeau ; aucune
       // n'est répétée dans les options (AC5).
       expect(renderedSilhouettes()).toEqual([plein]);
-      expect(iconSource("exercise-body-zones-icon-filled")).toEqual(pleinSource);
+      expect(iconSource("exercise-body-zones-icon")).toEqual(pleinSource);
       fireEvent.press(screen.getByTestId("body-zone-picker-close"));
       view.unmount();
     }
@@ -1443,12 +1487,15 @@ describe("ActivityEditorForm — PRE-4 story 4.3", () => {
       const style = StyleSheet.flatten(button.props.style);
       const slop = button.props.hitSlop as { top: number; bottom: number; left: number; right: number };
       expect((style.minHeight as number) + slop.top + slop.bottom).toBeGreaterThanOrEqual(44);
-      // Largeur : marges + icône (20 au moins) + écart + libellé non vide, plus les débords latéraux.
+      // Largeur : marges + glyphe (18, PRE-5 3.2) + écart + libellé non vide, plus les débords latéraux.
       const minimalWidth =
-        (style.paddingLeft as number) + (style.paddingRight as number) + 20 + (style.gap as number) + 1 + slop.left + slop.right;
+        (style.paddingLeft as number) + (style.paddingRight as number) + 18 + (style.gap as number) + 1 + slop.left + slop.right;
       expect(minimalWidth).toBeGreaterThanOrEqual(44);
       expect(slop.left + slop.right).toBeLessThanOrEqual(columnGap);
-      expect(slop.top + slop.bottom).toBeLessThanOrEqual(rowGap);
+      // PRE-5 3.2 : l'accès est centré dans une rangée de 32 ; seuls ses débords hors de la
+      // rangée (haut et bas) doivent tenir dans l'écart entre deux lignes.
+      const inset = ((rowStyle.minHeight as number) - (style.minHeight as number)) / 2;
+      expect(Math.max(0, slop.top - inset) + Math.max(0, slop.bottom - inset)).toBeLessThanOrEqual(rowGap);
     }
   });
 
@@ -1659,9 +1706,9 @@ describe("ActivityEditorForm — PRE-5 story 2.5", () => {
 
     const onChangeSpy = jest.fn();
     render(<Harness onChangeSpy={onChangeSpy} exerciseSignals="absent" initial={{ executionParameters: parameters({ countdownSeconds: 12, endSeconds: 7 }) }} />);
-    // Carte : Compte à rebours et Fin toujours affichés (1.2, 3.2 inchangées).
-    expect(screen.getByTestId("exercise-parameters-countdown").props.children).toBe("12 s");
-    expect(screen.getByTestId("exercise-parameters-end").props.children).toBe("7 s");
+    // PRE-5 story 3.2 (R-14) : la Carte ne montre plus Compte à rebours ni Fin, en aucun parcours.
+    expect(screen.queryByTestId("exercise-parameters-countdown")).toBeNull();
+    expect(screen.queryByTestId("exercise-parameters-end")).toBeNull();
     fireEvent.press(screen.getByTestId("exercise-parameters-card"));
     expect(screen.queryByTestId("execution-sheet-row-countdown")).toBeNull();
     expect(screen.queryByTestId("execution-sheet-row-end")).toBeNull();
@@ -1914,5 +1961,178 @@ describe("ActivityEditorForm — PRE-5 story 3.1 (Description en étapes)", () =
       .map((node) => node.props.testID as string);
     expect(sections).toEqual(["exercise-section-description", "exercise-section-parameters", "activity-editor-section-media"]);
     expect(within(screen.getByTestId("exercise-section-parameters")).getByText("Paramètres d’exécution")).toBeTruthy();
+  });
+});
+
+/**
+ * PRE-5 story 3.2 (R-14, FR-36 à FR-38, AD-30) — Carte allégée, `Terminer` abaissé, titres
+ * de section et Classification Catégorie / Zones (frames `8328:35698`, `8328:36853`,
+ * `8328:37022`). Styles appliqués seulement : le rendu, la position de `Terminer` face à
+ * l'indicateur d'accueil et les cibles se jugent sur iPhone (R-3.2-01 à R-3.2-05).
+ */
+describe("ActivityEditorForm — PRE-5 story 3.2", () => {
+  const EMPTY = parameters({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] } });
+  const style = (testID: string) => StyleSheet.flatten(screen.getByTestId(testID).props.style);
+
+  it("AC1 — Compte à rebours 10 s et Fin 5 s : ni ligne, ni valeur, ni filet sur la Carte ; libellé sans ces valeurs (Phrase remplie puis vide) ; la Feuille les montre toujours", () => {
+    const view = render(<Harness initial={{ executionParameters: parameters({ countdownSeconds: 10, endSeconds: 5 }) }} />);
+    const card = screen.getByTestId("exercise-parameters-card");
+    // La Carte ne contient que la Phrase : aucun filet ni rangée de phases.
+    const children = ((card.props.children as unknown[]).flat().filter(Boolean) as { type: { name?: string }; props: { testID?: string } }[])
+      // Vue de débogage de `Pressable` (développement seulement), sans rendu.
+      .filter((child) => child.type.name !== "PressabilityDebugView");
+    expect(children).toHaveLength(1);
+    expect(children[0]!.props.testID).toBe("exercise-parameters-phrase");
+    expect(within(card).queryByText(/Compte à rebours|Fin d’exercice/u)).toBeNull();
+    expect(screen.queryByTestId("exercise-parameters-countdown")).toBeNull();
+    expect(screen.queryByTestId("exercise-parameters-end")).toBeNull();
+    expect(card.props.accessibilityLabel).toBe(`Modifier les paramètres d’exécution. ${phrase()}`);
+    expect(card.props.accessibilityLabel).not.toMatch(/Compte à rebours|Fin d’exercice|10 s,/u);
+    // Clés orphelines retirées (AD-32) ; la Feuille garde les siennes.
+    expect(strings.executionParameters.card).not.toHaveProperty("countdown");
+    expect(strings.executionParameters.card).not.toHaveProperty("end");
+    expect(strings.executionParameters.sheet.countdown).toBe("Compte à rebours");
+    fireEvent.press(card);
+    fireEvent.press(screen.getByLabelText("Afficher le compte à rebours et la fin d’exercice"));
+    expect(screen.getByTestId("execution-sheet-countdown-value").props.children).toBe("10 s");
+    expect(screen.getByTestId("execution-sheet-end-value").props.children).toBe("5 s");
+    view.unmount();
+
+    render(<Harness initial={{ executionParameters: EMPTY }} />);
+    expect(screen.getByTestId("exercise-parameters-card").props.accessibilityLabel).toBe("Modifier les paramètres d’exécution.");
+  });
+
+  it("AC1 — Carte : fond `surfaceSubtle`, rayon 12, sans liseré, padding 12 / 24 (gouttière des étapes)", () => {
+    render(<Harness />);
+    const card = style("exercise-parameters-card");
+    expect(card).toMatchObject({ backgroundColor: "#F9FAFC", borderRadius: 12, paddingVertical: 12, paddingHorizontal: 24 });
+    expect(card.borderWidth ?? 0).toBe(0);
+    expect(card.borderColor).toBeUndefined();
+  });
+
+  it("AC2 — `Terminer` : marginBottom 24 avec `insets.bottom` 34 puis 0, hors du `KeyboardAvoidingView` ; réserve de défilement 12", () => {
+    for (const bottom of [34, 0]) {
+      const view = render(<Harness safeAreaBottom={bottom} />);
+      expect(style("test-finish-slot").marginBottom).toBe(24);
+      expect(within(screen.UNSAFE_getByType(KeyboardAvoidingView)).queryByTestId("test-finish-slot")).toBeNull();
+      expect(StyleSheet.flatten(screen.getByTestId("exercise-body").props.contentContainerStyle).paddingBottom).toBe(12);
+      // Couleurs actif / inactif inchangées.
+      expect(style("test-finish-action").backgroundColor).toBe("#0508E5");
+      view.unmount();
+    }
+    render(<Harness isFinishDisabled />);
+    expect(style("test-finish-action").backgroundColor).toBe("#BEC2CC");
+  });
+
+  it("AC2 — `Terminer` : hauteur `dimensions.finalAction.buttonHeight` (48) et ombre locale #1A1A26 18 %, (0, 2), rayon 10, actif comme inactif (PRE-5 3.2, arbitrage G-8)", () => {
+    for (const isFinishDisabled of [false, true]) {
+      const view = render(<Harness isFinishDisabled={isFinishDisabled} />);
+      expect(style("test-finish-action")).toMatchObject({
+        minHeight: dimensions.finalAction.buttonHeight,
+        shadowColor: "#1A1A26",
+        shadowOpacity: 0.18,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 10,
+        elevation: 3,
+      });
+      expect(dimensions.finalAction.buttonHeight).toBe(48);
+      view.unmount();
+    }
+  });
+
+  it("AC2 (revue) — Android, bord à bord, encart bas 48 (barre de navigation à 3 boutons) : `Terminer` reste au-dessus (marginBottom 48) ; encart 0 : 24", () => {
+    const os = jest.replaceProperty(Platform, "OS", "android");
+    try {
+      const view = render(<Harness safeAreaBottom={48} />);
+      expect(style("test-finish-slot").marginBottom).toBe(48);
+      view.unmount();
+      render(<Harness safeAreaBottom={0} />);
+      expect(style("test-finish-slot").marginBottom).toBe(24);
+    } finally {
+      os.restore();
+    }
+  });
+
+  it("AC2 — titres de section (Description, Paramètres d’exécution) en Regular 11 `textSecondary`, rôle `header` ; « Médias » en-tête VoiceOver sans titre visible (PRE-5 3.2, arbitrage G-7)", () => {
+    render(<Harness />);
+    for (const title of ["Description de l’exercice", "Paramètres d’exécution"]) {
+      const node = screen.getByText(title);
+      expect(node.props.accessibilityRole).toBe("header");
+      expect(StyleSheet.flatten(node.props.style)).toMatchObject({
+        fontFamily: "Inter_400Regular",
+        fontSize: 11,
+        color: "#595E66",
+      });
+    }
+    // G-7 : le titre « Médias » reste un en-tête lu par VoiceOver (ni masqué, ni retiré de
+    // l'arbre d'accessibilité), mais hors flux, 1 × 1, rogné et transparent.
+    const media = screen.getByTestId("activity-editor-media-title");
+    expect(media.props.children).toBe("Médias");
+    expect(media.props.accessibilityRole).toBe("header");
+    expect(media.props.accessibilityElementsHidden).not.toBe(true);
+    expect(media.props.importantForAccessibility).not.toBe("no-hide-descendants");
+    expect(within(screen.getByTestId("activity-editor-section-media")).getByTestId("activity-editor-media-title")).toBe(media);
+    const mediaStyle = StyleSheet.flatten(media.props.style);
+    expect(mediaStyle).toMatchObject({ position: "absolute", width: 1, height: 1, overflow: "hidden", color: "transparent" });
+    expect(mediaStyle.opacity ?? 1).toBe(1);
+    expect(mediaStyle.display).toBeUndefined();
+  });
+
+  it("AC3 — Classification : même géométrie « à renseigner » et « renseigné » ; seuls fond et couleurs changent ; glyphe Catégorie teinté", () => {
+    const GEOMETRY = ["minHeight", "height", "borderRadius", "paddingLeft", "paddingRight", "gap", "borderWidth"] as const;
+    const geometry = (testID: string) => {
+      const value = style(testID) as Record<string, unknown>;
+      return Object.fromEntries(GEOMETRY.map((key) => [key, value[key]]));
+    };
+    const view = render(<Harness />);
+    const unsetCategory = geometry("activity-editor-category-button");
+    const unsetZones = geometry("exercise-body-zones-open");
+    expect(unsetCategory).toMatchObject({ minHeight: 26, borderRadius: 13, paddingLeft: 8, paddingRight: 10, gap: 6 });
+    expect(unsetZones).toEqual(unsetCategory);
+    for (const testID of ["activity-editor-category-button", "exercise-body-zones-open"]) {
+      expect(style(testID).backgroundColor).toBe("rgba(255, 255, 255, 0.35)");
+    }
+    for (const label of ["activity-editor-category-label", "exercise-body-zones-label"]) {
+      expect(style(label)).toMatchObject({ fontFamily: "Inter_400Regular", fontSize: 13, color: "#0508E5" });
+    }
+    expect(style("activity-editor-category-icon")).toMatchObject({ width: 18, height: 18 });
+    expect(style("exercise-body-zones-icon")).toMatchObject({ width: 18, height: 18 });
+    expect(style("exercise-reference-row")).toMatchObject({ paddingLeft: 6, columnGap: 20 });
+    // E-V4 : écart Nom → rangée nul.
+    expect(style("exercise-context-band").gap ?? 0).toBe(0);
+    view.unmount();
+
+    render(<Harness category={{ name: "Cardio", color: "#3B82F6" }} initial={{ bodyZoneIds: ["cou"] }} />);
+    expect(geometry("activity-editor-category-button")).toEqual(unsetCategory);
+    expect(geometry("exercise-body-zones-open")).toEqual(unsetZones);
+    for (const testID of ["activity-editor-category-button", "exercise-body-zones-open"]) {
+      expect(style(testID).backgroundColor).toBeUndefined();
+    }
+    expect(StyleSheet.flatten(screen.getByText("Cardio").props.style)).toMatchObject({ fontSize: 13, color: "#141414" });
+    expect(style("exercise-body-zones-label")).toMatchObject({ fontSize: 13, color: "#141414" });
+    expect(style("activity-editor-category-glyph")).toMatchObject({ width: 18, height: 18, tintColor: "#3B82F6" });
+  });
+
+  it("AC3 — Catégorie sans couleur : glyphe plein non teinté", () => {
+    render(<Harness category={{ name: "Mobilité", color: null }} />);
+    expect(style("activity-editor-category-glyph").tintColor).toBeUndefined();
+  });
+
+  it("AC3 — rangée de 32 ; cibles ≥ 44 de haut étendues vers le bas, sans recouvrir le Nom (`hitSlop` 1 / 17) ; débord sous la rangée dans la marge basse de la zone ; frontière au milieu de l'écart de 20", () => {
+    render(<Harness />);
+    const rowHeight = style("exercise-reference-row").minHeight as number;
+    expect(rowHeight).toBe(32);
+    for (const testID of ["activity-editor-category-button", "exercise-body-zones-open"]) {
+      const slop = screen.getByTestId(testID).props.hitSlop as { top: number; bottom: number; left: number; right: number };
+      const accessHeight = style(testID).minHeight as number;
+      expect(slop).toEqual({ top: 1, bottom: 17, left: 10, right: 10 });
+      expect(accessHeight + slop.top + slop.bottom).toBeGreaterThanOrEqual(44);
+      // L'accès est centré dans la rangée : son débord haut reste sous le cadre du Nom.
+      expect(slop.top).toBeLessThanOrEqual((rowHeight - accessHeight) / 2);
+      const overflowBelowRow = slop.bottom - (rowHeight - accessHeight) / 2;
+      expect(overflowBelowRow).toBe(14);
+      expect(overflowBelowRow).toBeLessThanOrEqual(dimensions.contextBand.paddingBottom);
+      expect(style("exercise-reference-row").rowGap).toBe(overflowBelowRow);
+    }
   });
 });

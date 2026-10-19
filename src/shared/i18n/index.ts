@@ -19,8 +19,8 @@ const executionParameters = {
     descriptionSubmitAccessibilityLabel: "Valider la description",
     openAccessibilityLabel: "Modifier les paramètres d’exécution",
     incomplete: "Paramètres à compléter.",
-    countdown: "Compte à rebours",
-    end: "Fin d’exercice",
+    // PRE-5 story 3.2 (R-14, FR-36) : `countdown` et `end` retirés avec les lignes
+    // Compte à rebours / Fin de la Carte (la Feuille garde les siennes : `sheet`).
   },
   sheet: {
     title: "Paramètres d’exécution",
