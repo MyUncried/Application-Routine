@@ -224,6 +224,8 @@ export const EDITOR_HEADER = {
     fontSize: 17,
     color: "#3A3A3F",
   },
+  /** Trait du ✕ de l'instance Figma (`#14141A`, l'export du maître étant `#141414`). */
+  closeIconTint: "#14141A",
   backCircle: {
     backgroundColor: "#FCFCFE",
     borderWidth: 1,

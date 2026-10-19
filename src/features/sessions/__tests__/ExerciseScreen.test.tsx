@@ -1064,6 +1064,8 @@ describe("ExerciseScreen — PRE-4 story 4.2", () => {
     expect(circle.width + 2 * close.props.hitSlop).toBe(48);
     const icon = within(header).UNSAFE_getByType(KodjoIcon);
     expect(icon.props.name).toBe("control-close");
+    // PRE-5 3.2, compléments G-1 : trait du ✕ de l'instance Figma (`#14141A`).
+    expect(icon.props.tintColor).toBe("#14141A");
     expect(StyleSheet.flatten(within(header).getByTestId("screen-header-back-icon").props.style)).toMatchObject({ width: 24, height: 24 });
     // Le ✕ est le premier élément de l'en-tête (en haut à gauche), avant le titre.
     const headerChildren = (header.props.children as unknown[]).flat().filter(Boolean) as { props: { testID?: string } }[];
@@ -1107,6 +1109,7 @@ describe("ExerciseScreen — PRE-4 story 4.2", () => {
       </TestSafeAreaProvider>,
     );
     expect(screen.UNSAFE_getByType(KodjoIcon).props.name).toBe("control-back");
+    expect(screen.UNSAFE_getByType(KodjoIcon).props.tintColor).toBeUndefined();
     const defaultHeader = StyleSheet.flatten(screen.getByTestId("screen-header").props.style);
     expect(defaultHeader.paddingHorizontal).toBe(24);
     expect(defaultHeader.paddingLeft).toBeUndefined();

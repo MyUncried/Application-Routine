@@ -192,6 +192,7 @@ function EditorHeader({ title, onClose, accessibilityLabel }: { title: string; o
       layoutStyle={{ paddingLeft: EDITOR_HEADER.paddingLeft, gap: EDITOR_HEADER.gap }}
       backCircleStyle={EDITOR_HEADER.backCircle}
       titleStyle={EDITOR_HEADER.title}
+      backIconTintColor={EDITOR_HEADER.closeIconTint}
     />
   );
 }

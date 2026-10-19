@@ -106,7 +106,7 @@ Principe : conformité au Figma actuel (référence `8328:35698`), jetons exista
 - **G-8** ombre locale de `Terminer` (`#1A1A26` 18 %, (0, 2), rayon 10, élévation 3). **G-10** `dimensions.finalAction.buttonHeight`, marges `spacing[24]`, bas à 24 (inchangé).
 - **G-9** message du dialogue `type.dialogMessage` (14/21), titre `type.modalTitle` (18) ; couleurs, actions et interactions PRE-3 conservées.
 - Documents : ch. 07 (section « Arbitrages G-1 à G-10 », statut de D-327), ch. 13 CE-T03-04 §9, `epics.md` story 3.2 AC3 (une ligne).
-- Écarts restants (non arbitrés, non implémentés) : couleur du message du dialogue (`#474D57` Figma, `textSecondary` code), libellés d'actions 16 et liseré de `Confirmer` dans `8328:36781` ; trait de l'icône ✕ `#14141A` (export `#141414`).
+- Compléments (consigne du 19/10, même principe G-1 / G-9) : message du dialogue `#474D57` (constante locale), libellés d'action en 16 (`type.dialogNeutralActionLabel` + `colors.dialogNeutralActionText`, `type.dialogDestructiveActionLabel`) et liseré de « Confirmer » (`confirmBordered`, props existantes de `DecisionDialog`) ; trait du ✕ `#14141A` par la prop locale `backIconTintColor` de `FixedHeader` (`KodjoIcon.tintColor`). Aucun écart restant connu.
 - Contrôles : `npm test`, `npx tsc --noEmit`, `npm run lint` verts.
 
 ## Spec Change Log

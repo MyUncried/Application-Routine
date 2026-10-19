@@ -49,7 +49,7 @@ describe("ExerciseExitConfirmModal (D-094, CE-T01-16)", () => {
     expect(flattened.fontWeight).toBe("600");
   });
 
-  it("PRE-5 3.2, arbitrage G-9 — message en `type.dialogMessage` (Inter Regular 14 / 21), couleur `textSecondary` inchangée ; titre `type.modalTitle` inchangé, création comme modification", () => {
+  it("PRE-5 3.2, arbitrage G-9 — message en `type.dialogMessage` (Inter Regular 14 / 21) et `#474D57` (`8328:36781`) ; titre `type.modalTitle` inchangé, création comme modification", () => {
     for (const isCreation of [false, true]) {
       const view = render(<ExerciseExitConfirmModal onCancel={jest.fn()} onConfirm={jest.fn()} isCreation={isCreation} />);
       const message = screen.getByText(isCreation ? modalStrings.createMessage : modalStrings.message);
@@ -57,7 +57,7 @@ describe("ExerciseExitConfirmModal (D-094, CE-T01-16)", () => {
         fontFamily: "Inter_400Regular",
         fontSize: 14,
         lineHeight: 21,
-        color: colors.textSecondary,
+        color: "#474D57",
       });
       const title = screen.getByText(isCreation ? modalStrings.createTitle : modalStrings.title);
       expect(StyleSheet.flatten(title.props.style)).toMatchObject({ fontSize: 18, lineHeight: 22, fontWeight: "600" });
@@ -119,11 +119,23 @@ describe("ExerciseExitConfirmModal (D-094, CE-T01-16)", () => {
       expect(label.color).toBe(colors.background);
     });
 
-    it("REWORK11 — never gives Confirmer a border on this instance (verified absent on the Activity Figma node 3224:4140, unlike the Session dialog which keeps its own)", () => {
+    // PRE-5 3.2, compléments G-9 (conformité au Figma actuel `8328:36781`) : remplace REWORK11
+    // (`3224:4140`, sans liseré, libellés en 14).
+    it("PRE-5 3.2, G-9 — Confirmer porte le liseré `dialogDestructiveActionBorder` ; libellés en 16 : Annuler Semi Bold `#292E38`, Confirmer Medium blanc", () => {
       render(<ExerciseExitConfirmModal onCancel={jest.fn()} onConfirm={jest.fn()} />);
 
       const action = StyleSheet.flatten(screen.getByLabelText("Confirmer").props.style);
-      expect(action.borderWidth).toBeUndefined();
+      expect(action).toMatchObject({ borderWidth: 1, borderColor: colors.dialogDestructiveActionBorder });
+      expect(StyleSheet.flatten(screen.getByText("Annuler").props.style)).toMatchObject({
+        fontFamily: "Inter_600SemiBold",
+        fontSize: 16,
+        color: colors.dialogNeutralActionText,
+      });
+      expect(StyleSheet.flatten(screen.getByText("Confirmer").props.style)).toMatchObject({
+        fontFamily: "Inter_500Medium",
+        fontSize: 16,
+        color: colors.background,
+      });
     });
   });
 
