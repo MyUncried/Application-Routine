@@ -1,6 +1,6 @@
 # Interface : navigation, écrans et conventions communes
 
-Ce chapitre décrit l’interface dans son ensemble : navigation, inventaire des écrans et de leurs contrats, captures, et conventions d’interface communes à plusieurs écrans. Le comportement propre à chaque écran est défini par son contrat au chapitre 13 ; le rendu visuel par Figma.
+Ce chapitre décrit l’interface dans son ensemble : navigation, inventaire des écrans et de leurs contrats, captures, et conventions d’interface communes à plusieurs écrans. La sélection actuelle conserve 62 captures de référence parmi les 197 frames de premier niveau du Prototype MVP ; les 135 autres frames restent dans Figma et sont couvertes comme variantes, sans copie supplémentaire dans ce chapitre. Le comportement propre à chaque écran est défini par son contrat au chapitre 13 ; le rendu visuel par Figma.
 
 **Évolutions v15 du 07/10 :**36captations vérifiées, dont 15PNG changés depuis main 72d1bf4. [Inventaire et preuves](../MATRICE-EVOLUTIONS-V15-2026-10-07.md), [DSF phrases](../DSF-PHRASES-V15-2026-10-07.md). Vue longue renommée 224caractères ; les calculs déjà décidés sont conservés.
 
@@ -80,7 +80,7 @@ Les calques internes, zones tactiles transparentes, cibles de défilement et dup
 
 #### Règle de maintenance
 
-Lorsqu’une nouvelle frame de premier niveau est ajoutée au `Prototype MVP`, elle doit être soit intégrée dans ce chapitre avec sa règle fonctionnelle, soit explicitement classée hors périmètre avec justification. Une variante ne peut plus être omise silencieusement.
+Toute frame de premier niveau de `Prototype MVP` appartient au MVP. Le chapitre 06 conserve une capture pour chaque référence visuelle principale retenue ; les variantes peuvent être couvertes par le même contrat et la même capture principale, sans image supplémentaire. Les variantes ne sont pas exclues du périmètre fonctionnel : leurs spécificités sont définies dans les contrats du chapitre 13 et les règles applicables. Aucun état particulier n'est supprimé de Figma du seul fait de cette sélection documentaire.
 
 #### Mise à jour Bilatéralité — rectifiée
 
@@ -1239,7 +1239,7 @@ Présentation commune aux cartes Séance/Exercice : largeur 354, hauteur 67 à t
 <a id="formats-galerie"></a>
 ### Formats de séances — inventaire et captures
 
-46 états présents sur Prototype MVP, exportés dans ce lot. Les captures décrivent le layout observé ; les règles de [Formats de séances](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#formats-conception) priment pour les comportements et les calculs. Les écarts F-01…04 sont suivis dans la revue transverse. Une capture sans écart signalé ne vaut pas recette fonctionnelle. Les écrans d’exécution et de confirmation Death by ne sont pas illustrés par cet inventaire ; leurs contrats restent partiels sur le layout.
+46 états de formats représentés dans Figma ; seules les captures classées comme références principales sont conservées ci-dessous. Les captures décrivent le layout observé ; les règles de [Formats de séances](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#formats-conception) priment pour les comportements et les calculs. Les écarts F-01…04 sont suivis dans la revue transverse. Une capture sans écart signalé ne vaut pas recette fonctionnelle. Les écrans d’exécution et de confirmation Death by ne sont pas illustrés par cet inventaire ; leurs contrats restent partiels sur le layout.
 
 Le relevé du 12/10 sur Conception reste historique ; les références ci-dessous décrivent désormais le parcours observé sur Prototype MVP. Leur présence ne change pas le périmètre de livraison PRE-3/PRE-4.
 
