@@ -213,7 +213,7 @@ flowchart LR
 
 ### AD-28 — Quatre cadres : repère unique des panneaux
 
-- **Binds:** FR-26, FR-29, FR-31, FR-32 ; R-12.
+- **Binds:** FR-26, FR-29, FR-31, FR-32 ; R-12 ; D-433.
 - **Prevents:** des panneaux ancrés par deux calculs différents ; un cadre recréé hors des briques existantes.
 - **Rule:**
   - La Feuille compose quatre `SheetMotionView` (Exécution, Séries, Côtés, Cadence et durée) avec `Row`, `ValuePill`, `Separator` et les animations Q39 à Q41 existantes.
@@ -224,6 +224,7 @@ flowchart LR
   - Nombre de séries : le `RevealStepper` existant (`Sheet:993`, `:2233-2299`) est conservé à l'identique (présentation, interactions, révélation et fermeture, pas, accessibilité) ; seule sa place dans le cadre Séries change ; le tableau des séries variables suit N (NR Δ38).
   - Le gris des cadres est une constante locale nommée (aucun jeton) ; tableaux à fond blanc, lignes de 36 dans les deux tableaux, 44 ailleurs (R-06). La cible tactile des lignes de 36 est vérifiée sur iPhone dans la première story de tableau, avant toute autre géométrie (FR-29, QP5-05).
   - Durée de l'exercice : repli par un chevron propre à la ligne (`DisclosureControl` existant), sans modifier la valeur ; Compte à rebours et Fin restent absents dans un Exercice ouvert depuis une Séance (existant).
+  - Durée de l'exercice toujours rendue (D-433, décision de Hermann du 19/10) : la ligne est présente dans tous les modes et tous les états de saisie, à la même place, sans montage ni démontage lors des transitions. Trois états de sa valeur : `—` si des données nécessaires manquent (nature `incomplete`, ou Mode non choisi) ; « Non calculable » si la configuration exclut le calcul (nature `omitted`), cet état primant sur `—` lorsque la configuration exclut déjà le calcul ; sinon le montant, précédé de « ≥ » (`lowerBound`) ou « ≈ » (`estimated`) dans le même élément de texte que la valeur, jamais dans le libellé (« ≥ 5 min 30 s »). « Non calculable » est un texte visible nouveau, donc i18n (AD-32). Formules, natures, attribution des symboles, conditions de modification et validation inchangées ; la préséance de « Non calculable » sur `—` vaut pour l'affichage de la Feuille et ne modifie ni la Phrase ni la Carte.
 
 ### AD-29 — Phrase : points d'extension après la valeur par série, côtés neutres, corpus étendu
 

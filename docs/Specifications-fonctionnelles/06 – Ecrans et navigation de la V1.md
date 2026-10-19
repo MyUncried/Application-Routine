@@ -560,7 +560,7 @@ Références courantes du 12/10, complétées le 13/10 :32 captures du parcours 
 
 #### Placement et contrôles
 
-Formulaire : conserver les shells et l’ordre visible dans les captures. Toute la zone de phrase ouvre la feuille. Feuille : en-tête fixe ✕ / Paramètres d’exécution / ✓ ; corps défilant en quatre cadres (D-413) : Exécution (Mode, Condition d’arrêt) → Séries (Phases de l’exercice avec chevron intérieur à Avec et tableau éventuel, Nombre de séries, Type de série avec chevron intérieur à Variables, Durée ou Répétitions et Pause ou tableau de séries variables, Charge) → Côtés (Changement de côté, puis Enchainement et Pause entre les côtés lorsque déployés) → Cadence et durée (Cadence, Durée de l’exercice avec son chevron, puis Compte à rebours et Fin d’exercice lorsque déployés et applicables). Sans ligne Durée de l’exercice, Compte à rebours et Fin d’exercice sont directement visibles (RM-246).
+Formulaire : conserver les shells et l’ordre visible dans les captures. Toute la zone de phrase ouvre la feuille. Feuille : en-tête fixe ✕ / Paramètres d’exécution / ✓ ; corps défilant en quatre cadres (D-413) : Exécution (Mode, Condition d’arrêt) → Séries (Phases de l’exercice avec chevron intérieur à Avec et tableau éventuel, Nombre de séries, Type de série avec chevron intérieur à Variables, Durée ou Répétitions et Pause ou tableau de séries variables, Charge) → Côtés (Changement de côté, puis Enchainement et Pause entre les côtés lorsque déployés) → Cadence et durée (Cadence, Durée de l’exercice avec son chevron, puis Compte à rebours et Fin d’exercice lorsque déployés et applicables). La ligne Durée de l’exercice est toujours affichée, avec « — », « Non calculable » ou la valeur (D-433, qui remplace le cas « sans ligne Durée de l’exercice, Compte à rebours et Fin d’exercice directement visibles » de RM-246).
 
 Le tableau variable comporte poignée, numéro, cellules cible/Pause, colonne Charge lorsque la charge est active (RM-238) et retrait ; une seule cellule active ; fond blanc sans contour, lignes de 36 px, sans lignes de boutons +/− (D-413). Mode, Condition d’arrêt, Type de série, Charge, Changement de côté et Cadence sont des contrôles segmentés ; les popovers du 12/10 ne sont plus la présentation de ces lignes (D-413). Les roulettes Durée et Durée de l’exercice restent des états intégrés, avec voile et fenêtre de saisie ; la charge se saisit directement au clavier, le tableau restant visible au-dessus (RM-239). [DSF courant et mesures](../DSF-CIRCUITS-CONTROLES-2026-10-12.md), à lire avec sa mise à jour du 18/10/2026. Les règles et bornes restent celles de v13 et de [Composition d'une séance — Circuits de tours et de séries](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#composition-dune-séance--circuits-de-tours-et-de-séries). Sous nombre hérité, nombre et total affichable sont en lecture seule ; aucun écran dédié identifié ne fixe encore l’emplacement de la mention discrète.
 
@@ -660,7 +660,7 @@ Les frames relevées le 18/10/2026 ci-dessous montrent la ligne Phases de l’ex
 
 
 
-Séries variables, trois séries à l’échec : Phases de l’exercice non modifiable ; Condition d’arrêt À l’échec déterminée automatiquement (RM-249) ; aucune ligne Durée de l’exercice (D-397).
+Séries variables, trois séries à l’échec : Phases de l’exercice non modifiable ; Condition d’arrêt À l’échec déterminée automatiquement (RM-249) ; aucune ligne Durée de l’exercice (D-397). Écart Figma depuis D-433 (19/10/2026) : la ligne Durée de l’exercice est affichée avec « Non calculable ».
 
 #### Création exercice — Paramètres — Proposition 3 — Tableau de 3 phases
 
@@ -760,7 +760,7 @@ Répétitions, cadence 1 s ; Condition d’arrêt déterminée automatiquement (
 
 
 
-Répétitions sans cadence : aucune ligne Durée de l’exercice (D-397) ; Compte à rebours et Fin d’exercice directement visibles (RM-246).
+Répétitions sans cadence : aucune ligne Durée de l’exercice (D-397) ; Compte à rebours et Fin d’exercice directement visibles (RM-246). Écart Figma depuis D-433 (19/10/2026) : la ligne Durée de l’exercice est affichée avec « Non calculable », à sa place habituelle, avec son chevron de repli des signaux.
 
 ##### Création activité — Paramètres (modale) — Séries variables (tableau replié)
 
@@ -2166,7 +2166,7 @@ Le cas d'application est l'en-tête de circuit : « 3 **tours** », où seul le 
 
 #### Interface et steppers
 
-Placement remplacé le 18/10/2026 par D-413 : la ligne Cadence (Autre | 5 s | 2 s | 1 s | Sans, RM-245) ouvre le cadre Cadence et durée, avant Durée de l’exercice ; sans ligne de durée, Compte à rebours et Fin d’exercice suivent directement (RM-246) ; la feuille s’adapte au contenu visible, sans hauteur vide. Texte d’origine : « Bip au premier niveau x36 sur référence 402, séparateur 330px ; juste avant Durée totale, ou à sa position lorsque le total est omis, avant Compte à rebours/Fin. Les sous-lignes Séries variables/cible/Pause et Ordre/PC restent indentées x52, séparateurs 314px. La feuille se raccourcit de 42px par le haut lorsque le total disparaît, en restant ancrée en bas ; texte agrandi et petits écrans : contenu défilant, aucun rognage. » Le comportement des steppers ci-dessous reste applicable, notamment au stepper de la cadence personnalisée (Autre).
+Placement remplacé le 18/10/2026 par D-413 : la ligne Cadence (Autre | 5 s | 2 s | 1 s | Sans, RM-245) ouvre le cadre Cadence et durée, avant Durée de l’exercice ; la ligne Durée de l’exercice est toujours affichée depuis D-433 (19/10/2026), qui remplace « sans ligne de durée, Compte à rebours et Fin d’exercice suivent directement (RM-246) » ; la feuille s’adapte au contenu visible, sans hauteur vide. Texte d’origine : « Bip au premier niveau x36 sur référence 402, séparateur 330px ; juste avant Durée totale, ou à sa position lorsque le total est omis, avant Compte à rebours/Fin. Les sous-lignes Séries variables/cible/Pause et Ordre/PC restent indentées x52, séparateurs 314px. La feuille se raccourcit de 42px par le haut lorsque le total disparaît, en restant ancrée en bas ; texte agrandi et petits écrans : contenu défilant, aucun rognage. » Le comportement des steppers ci-dessous reste applicable, notamment au stepper de la cadence personnalisée (Autre).
 
 Step simple=1 unité. Maintien après environ 500 ms : répétition au pas1 ; après 2 s : pas5 vers le prochain multiple dans le sens du geste ; après 4 s : pas10 de même. Relâchement arrête immédiatement et rétablit le pas1, sans pas supplémentaire de fin de maintien. Cadence de répétition technique existante 150 ms conservée tant que le produit ne la révise pas. Exemple+ depuis 13→15→20 ; − depuis 13→10→5. Bornes saturées, pas de dépassement ni rebouclage.
 

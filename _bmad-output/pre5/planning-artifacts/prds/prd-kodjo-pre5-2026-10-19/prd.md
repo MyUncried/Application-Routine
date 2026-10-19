@@ -36,7 +36,7 @@ Les questions techniques laissées à l'architecture sont dans `addendum.md`.
 
 **Règle de préséance**, de la plus forte à la plus faible :
 
-0. Les décisions de Hermann qui suivent la revue indépendante du 19/10 (`table-delta.md` §6, « Décisions de la revue indépendante du 19/10 ») : notation de l'Enchainement (D-431, FR-17) et contrôle des phases (D-432, FR-4, FR-5, FR-8, FR-9). Elles priment sur tout texte antérieur, y compris `table-delta.md` §6.
+0. Les décisions de Hermann qui suivent la revue indépendante du 19/10 (`table-delta.md` §6, « Décisions de la revue indépendante du 19/10 ») : notation de l'Enchainement (D-431, FR-17) et contrôle des phases (D-432, FR-4, FR-5, FR-8, FR-9) ; puis l'affichage permanent de la Durée de l'exercice (D-433, FR-31). Elles priment sur tout texte antérieur, y compris `table-delta.md` §6.
 1. Les deux décisions complémentaires de Hermann du 19/10, qui priment sur `table-delta.md` §6 pour QP5-04 :
    - les bornes minimales des durées (Δ50, FR-45) ;
    - le passage des phases de Avec à Sans (FR-8).
@@ -541,11 +541,16 @@ La ligne « Durée de l'exercice » remplace « Durée totale » à l'écran. So
 
 - Le chevron pointe vers le bas une fois replié, vers le haut une fois déployé.
 - Ouvrir ou fermer la section ne modifie pas la valeur de durée ; c'est indépendant de son édition.
-- Si la ligne est absente (cas de RC ligne 11), ces deux signaux sont directement visibles lorsqu'ils s'appliquent. On ne crée ni faux total, ni autre moyen de repli.
-- Dans un Exercice ouvert depuis une Séance, Compte à rebours et Fin restent absents ; le chevron ne les réintroduit pas.
-- Restent inchangés : le calcul, les natures, `—`, l'affichage à N = 1 (D-384, D-396, D-397), les bornes T(1) à T(99) (Q46) et RM-218.
+- **Ligne toujours affichée (D-433, décision de Hermann du 19/10).** La ligne est présente dans tous les modes et tous les états de saisie, à la même place, y compris lors des transitions entre ses trois états :
+  1. données nécessaires manquantes : `—` (D-384) ;
+  2. durée non calculable pour la configuration choisie : « Non calculable », notamment en Répétitions sans cadence, à l'échec, ou lorsqu'une combinaison comporte une partie empêchant le calcul. Cet état prime sur `—` lorsque la configuration exclut déjà le calcul ;
+  3. durée calculable et données complètes : la valeur, avec « ≥ » pour une borne inférieure, « ≈ » pour une estimation, sans symbole si la durée est déterminée. Le symbole est placé immédiatement avant la valeur, dans la même zone d'affichage, jamais à côté du titre ni dans un élément éloigné : « ≥ 5 min 30 s », « ≈ 5 min 30 s ».
 
-*Sources :* Δ36 ; D-409 ; RM-246 ; DU-01.
+  `—` et « Non calculable » ne représentent jamais une durée nulle. D-433 remplace le masquage de D-397 et l'ancien cas « ligne absente (RC ligne 11) : signaux directement visibles » ; il remplace aussi le symbole porté par le libellé (« Durée totale ≈ », rendu PRE-3, Figma `7059:13302`).
+- Dans un Exercice ouvert depuis une Séance, Compte à rebours et Fin restent absents ; le chevron ne les réintroduit pas.
+- Restent inchangés : le calcul, les natures et l'attribution des symboles, `—`, l'affichage à N = 1 (D-384, D-396), les conditions de modification de la durée, la validation, les bornes T(1) à T(99) (Q46) et RM-218.
+
+*Sources :* Δ36 ; D-409, D-433 ; RM-246 ; DU-01.
 
 #### FR-32 : Hauteur adaptée au contenu
 
@@ -799,7 +804,7 @@ Seuls ces remplacements sont admis : R-01 à R-16 de `table-delta.md` §2, plus 
 | R-09 | « Aucune durée, à l'échec » dans la roue de Durée commune | Condition d'arrêt | FR-19, FR-22 |
 | R-10 | « Aucune répétition, à l'échec » en identiques | Condition d'arrêt | FR-19, FR-22 |
 | R-11 | « Bip de cadence » en stepper | Cadence segmentée, Autre avec ± | FR-30 |
-| R-12 | « Durée totale » ; Compte à rebours et Fin toujours visibles | « Durée de l'exercice » avec chevron | FR-31 |
+| R-12 | « Durée totale », absente sans durée calculée, `≈` dans le libellé ; Compte à rebours et Fin toujours visibles | « Durée de l'exercice » avec chevron, toujours affichée (`—`, « Non calculable » ou valeur), `≈`/`≥` juste avant la valeur (D-433) | FR-31 |
 | R-13 | Description multiligne, Retour = saut de ligne | Étapes numérotées | FR-33 à FR-35 |
 | R-14 | Compte à rebours et Fin sur la Carte | Retirés de la présentation | FR-36 |
 | R-15 | Indicateur « D→G » de la Composition | Indicateur sans direction | FR-18 |
