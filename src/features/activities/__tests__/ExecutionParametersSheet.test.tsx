@@ -2511,11 +2511,9 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       const control = within(get("execution-sheet-row-side-line")).getByTestId(SIDE_CONTROL);
       expect(control.props.accessibilityRole).toBe("tablist");
       expect(control.props.accessibilityLabel).toBe("Changement de côté");
-      // RC-6 : Avec porte la notation de l'Enchainement (N > 1), annoncée par son libellé neutre.
-      expect(["WITH", "WITHOUT"].map((side) => get(`${SIDE_CONTROL}-${side}`).props.accessibilityLabel)).toEqual([
-        "Avec, Un côté après l’autre",
-        "Sans",
-      ]);
+      // RC-13 (recette du 20/10) : Avec non sélectionné affiche et annonce « Avec » ; la notation
+      // de l'Enchainement n'apparaît qu'une fois Avec sélectionné (N > 1).
+      expect(["WITH", "WITHOUT"].map((side) => get(`${SIDE_CONTROL}-${side}`).props.accessibilityLabel)).toEqual(["Avec", "Sans"]);
       expect(query(`${SIDE_CONTROL}-RIGHT_LEFT`)).toBeNull();
       // Non renseigné : ni menu d'Enchainement ni Pause entre les côtés.
       expect(query(ORDER_MENU)).toBeNull();
@@ -5811,9 +5809,11 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     const { onApply } = renderSheet(params({ sideMode: "UNILATERAL", sideRecoverySeconds: 0 }), 20);
     expect(sideText()).toBe("Sans");
     expect(sideRows()).toEqual({ order: false, recovery: false });
-    // Sans sélectionné : Avec affiche la notation de l'Enchainement conservé, sans menu.
-    expect(within(get(SIDE_CONTROL)).getByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeTruthy();
+    // Sans sélectionné : Avec affiche « Avec », sans notation ni menu (RC-13, recette du 20/10).
+    expect(within(get(SIDE_CONTROL)).queryByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeNull();
+    expect(within(get(SIDE_CONTROL)).getByText("Avec", hidden)).toBeTruthy();
     chooseSide("Avec");
+    expect(within(get(SIDE_CONTROL)).getByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeTruthy();
     expect(sideText()).toBe("Avec");
     expect(sideRows()).toEqual({ order: true, recovery: true });
     expect(valueOf("execution-sheet-side-recovery")).toBe("20 s");
@@ -5872,6 +5872,41 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     expect(valueOf("execution-sheet-side-recovery")).toBe("12 s");
     validate();
     expect(applied(onApply)).toMatchObject({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SERIES", sideRecoverySeconds: 12 });
+  });
+
+  // Recette du 20/10 (RC-13, remplace RC-11 et RC-12 pour les largeurs) : Avec et Sans de 62 tant
+  // qu'Avec n'est pas sélectionné ; Avec sélectionné (N > 1) porte la notation et le chevron dans 146.
+  it("RC-13 — Changement de côté : Avec non sélectionné « Avec » de 62, sans chevron (segmenté de 132) ; Avec sélectionné à N > 1 : notation D-431 et chevron dans 146 (216) ; retour à Sans : « Avec » de 62 ; N = 1 : « Avec » de 62, sans menu ; place de 216 réservée dans la ligne (libellé sur deux lignes)", () => {
+    const flat = (testID: string) => StyleSheet.flatten(get(testID).props.style) ?? {};
+    const widths = () => ({
+      control: flat(SIDE_CONTROL).width,
+      with: flat(`${SIDE_CONTROL}-tile-WITH`).width,
+      without: flat(`${SIDE_CONTROL}-tile-WITHOUT`).width,
+    });
+    const narrow = { control: 132, with: 62, without: 62 };
+    renderSheet(params({ sideMode: "UNILATERAL" }), 20);
+    expect(widths()).toEqual(narrow);
+    expect(within(get(SIDE_CONTROL)).getByText("Avec", hidden)).toBeTruthy();
+    expect(query(ORDER_MENU)).toBeNull();
+    expect(query(sideChevron)).toBeNull();
+    expect(get(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec");
+    // La ligne réserve la place du segmenté le plus large, segmenté aligné à droite.
+    expect(flat("execution-sheet-side-control-slot")).toMatchObject({ minWidth: 216, flexDirection: "row", justifyContent: "flex-end", alignItems: "center" });
+    chooseSide("Avec");
+    expect(widths()).toEqual({ control: 216, with: 146, without: 62 });
+    expect(within(get(ORDER_MENU)).getByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeTruthy();
+    expect(within(get(SIDE_CONTROL)).queryByText("Avec", hidden)).toBeNull();
+    chooseSide("Sans");
+    expect(widths()).toEqual(narrow);
+    expect(query(ORDER_MENU)).toBeNull();
+    expect(within(get(SIDE_CONTROL)).getByText("Avec", hidden)).toBeTruthy();
+    screen.unmount();
+    // N = 1 (Q38) : Avec sélectionné affiche « Avec », sans menu, de 62.
+    renderSheet(params({ sideMode: "RIGHT_LEFT", series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
+    expect(sideText()).toBe("Avec");
+    expect(widths()).toEqual(narrow);
+    expect(query(ORDER_MENU)).toBeNull();
+    expect(within(get(SIDE_CONTROL)).getByText("Avec", hidden)).toBeTruthy();
   });
 
   // Recette du 19/10 (RC-8) : segmentés `inline` centrés verticalement avec le libellé de leur

@@ -97,7 +97,8 @@ const INLINE_CHEVRON_HIT_SLOP = {
  * les autres Sans de la page, Avec élargi de la largeur gagnée (104 + 42 = 146),
  * segmenté de 216 inchangé, libellé sur deux lignes ; notation D-431 complète
  * Semi Bold 10 (99,5 hors « ➜ » de repli, environ 10) + écart 6 + chevron 10,
- * environ 126. La Cadence a trois
+ * environ 126. Recette du 20/10 (RC-13) : Avec ne prend 146 que sélectionné à N > 1
+ * (notation et chevron) ; sinon « Avec » de 62, comme Sans. La Cadence a trois
  * options de 62 depuis la recette du 19/10 (RC-10) ; l'ancienne largeur `cadence` (46,4, cinq options) est retirée.
  */
 export const INLINE_OPTION_WIDTHS = { wide: 106, narrow: 62, notation: 146 } as const;

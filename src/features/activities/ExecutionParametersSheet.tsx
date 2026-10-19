@@ -246,6 +246,8 @@ import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@
  *   de repli ; l'option Avec (N > 1) porte la notation de l'Enchainement (`sideOrderSubtitles`,
  *   nom accessible `sideOrders`) et, sélectionnée, ouvre le menu natif des deux notations
  *   (`SideOrderMenu`). Pause entre les côtés visible sous Avec. `popover(side | order)` retirées ;
+ *   recette du 20/10 (RC-13) : la notation n'est affichée que si Avec est sélectionné (N > 1),
+ *   dans une option élargie (146) ; sinon Avec affiche « Avec », de 62 comme Sans ;
  * - cadre Cadence et durée : « Cadence » en segmenté Autre / 1 s / Sans (RC-10)
  *   (`cadenceOptionOf`) ; Autre révèle le ± existant (`stepper(beep)`) sous la ligne.
  *   « Durée de l'exercice » porte le `DisclosureControl` existant, replié par défaut, qui
@@ -1331,7 +1333,11 @@ export function ExecutionParametersSheet({
   // est le déclencheur du menu natif des deux notations (`SideOrderMenu`). À N = 1, Avec reprend
   // son libellé, sans menu (Q38, valeur conservée). Recette du 19/10 (RC-11 puis RC-12) : Sans de 62
   // (`narrow`, comme les autres Sans de la page), Avec de 146 (`notation`) portant la notation D-431
-  // complète ; segmenté de 216, le libellé passe sur deux lignes.
+  // complète. Recette du 20/10 (RC-13, remplace RC-11 et RC-12 pour les largeurs) : Avec non
+  // sélectionné (Sans, ou non renseigné) affiche « Avec », sans chevron, de 62 comme Sans ;
+  // sélectionné à N > 1, il porte la notation et le chevron du menu dans 146 ; à N = 1, « Avec »
+  // de 62. La largeur du segmenté varie (132 ou 216, comme le segment Phases) ; la ligne réserve
+  // la plus grande (216, `SIDE_CONTROL_RESERVED_WIDTH`) : le libellé reste sur deux lignes.
   const sideChoice: SideChoice | null = draft.sideMode === null ? null : bilateral ? "WITH" : "WITHOUT";
   const sideOrder = effective.sideOrder;
   const sideControl = (
@@ -1339,7 +1345,7 @@ export function ExecutionParametersSheet({
       variant="inline"
       optionWidth={INLINE_OPTION_WIDTHS.narrow}
       options={[
-        sideOrderShown
+        sideOrderShown && sideChoice === "WITH"
           ? {
               value: "WITH",
               label: t.sideOrderSubtitles[sideOrder],
@@ -1350,7 +1356,7 @@ export function ExecutionParametersSheet({
                 <SideOrderMenu value={sideOrder} onChange={chooseSideOrder} testID="execution-sheet-side-order-menu" />
               ),
             }
-          : { value: "WITH", label: t.sideModeChoices.WITH, width: INLINE_OPTION_WIDTHS.notation },
+          : { value: "WITH", label: t.sideModeChoices.WITH },
         { value: "WITHOUT", label: t.sideModeChoices.WITHOUT },
       ]}
       value={sideChoice}
@@ -2006,7 +2012,10 @@ export function ExecutionParametersSheet({
                   testID="execution-sheet-frame-sides"
                 >
                   <Row label={t.sideMode} testID="execution-sheet-row-side">
-                    {sideControl}
+                    {/* RC-13 : place du segmenté le plus large réservée, segmenté aligné à droite. */}
+                    <View style={styles.sideControlSlot} testID="execution-sheet-side-control-slot">
+                      {sideControl}
+                    </View>
                   </Row>
                   {sideSettingsShown ? (
                     <>
@@ -2848,6 +2857,12 @@ const MIXED_STOP_CONDITION_WIDTH = INLINE_OPTION_WIDTHS.wide * 2 + 2;
 /** RC-6 (Figma `9462:18988`) : écart entre la notation de l'Enchainement et son chevron. */
 const SIDE_ORDER_CHEVRON_GAP = 6;
 /**
+ * Recette du 20/10 (RC-13) : place réservée au segmenté « Changement de côté » dans sa ligne, celle
+ * du plus large (Avec 146 + Sans 62 + écart 2 + marges 2 × 3 = 216, RC-12), pour que le libellé
+ * reste sur deux lignes quand le segmenté se réduit à 132 (Avec et Sans de 62).
+ */
+const SIDE_CONTROL_RESERVED_WIDTH = INLINE_OPTION_WIDTHS.notation + INLINE_OPTION_WIDTHS.narrow + 2 + 3 * 2;
+/**
  * PRE-5 story 2.8 (NFR-7) : « n phases » (texte de 16) porté à une cible de 44 de haut, dans la
  * ligne de 44, sans agrandir le dessin ; le reste de l'option Avec (re-choisie) a le même effet.
  */
@@ -2856,6 +2871,13 @@ const PHASE_COUNT_HIT_SLOP = { top: 14, bottom: 14 };
 const PHASE_LABEL_CELL_RADIUS = 8;
 
 const styles = StyleSheet.create({
+  // RC-13 : place du segmenté le plus large, segmenté aligné à droite et centré verticalement.
+  sideControlSlot: {
+    minWidth: SIDE_CONTROL_RESERVED_WIDTH,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+  },
   // RC-6 : déclencheur du menu de l'Enchainement, sur toute l'option Avec (146 × 26, RC-12).
   sideOrderTrigger: {
     width: INLINE_OPTION_WIDTHS.notation,
