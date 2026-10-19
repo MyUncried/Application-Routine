@@ -18,7 +18,8 @@ import { colors, fixedRadii, spacing, type } from "@/shared/ui/tokens";
  * Géométrie (relevé Figma `9290:17953`, tableau `9290:18003`, lecture seule, 19/10) en
  * constantes locales nommées, `tokens.ts` inchangé (NFR-3) :
  * - bloc à fond blanc, rayon 8, sans contour, à 8 des côtés du cadre et 12 en haut et
- *   en bas ; le fond blanc garde une hauteur de ligne sous la dernière ligne (PR-02) ;
+ *   en bas ; aucun espace sous la dernière ligne (recette du 19/10, RC-9, remplace la
+ *   hauteur de ligne de PR-02) ;
  * - en-têtes de 32, Inter Medium 12 `#595E66`, centrés sur leur cellule ;
  * - lignes de 36 (`TABLE_ROW_HEIGHT`), séparateur de 1 en tête de chaque ligne, retrait 4 ;
  * - dans la ligne : poignée 12 × 18 à x 0, numéro Inter Medium 14 aligné à droite sur
@@ -447,8 +448,8 @@ export const tableStyles = StyleSheet.create({
     borderRadius: TABLE_BLOCK_RADIUS,
     marginVertical: TABLE_BLOCK_VERTICAL_INSET,
     paddingHorizontal: TABLE_ROW_INSET,
-    // PR-02 : une hauteur de ligne entre la dernière ligne et le bord du fond blanc.
-    paddingBottom: TABLE_ROW_HEIGHT,
+    // Recette du 19/10 (RC-9) : plus d'espace d'une hauteur de ligne sous la dernière ligne
+    // (remplace cette partie de PR-02) ; vaut pour les tableaux des séries et des phases.
   },
   header: {
     flexDirection: "row",

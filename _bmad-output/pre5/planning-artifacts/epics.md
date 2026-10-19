@@ -73,6 +73,7 @@ Extraites du PRD §4 (numérotation stable du PRD). Le détail fait foi dans le 
 - FR-27 : Mode, Condition d'arrêt, Phases, Type de série, Charge, Changement de côté, Enchainement et Cadence en segmentés en ligne (alignés à droite, sans enveloppe blanche, sans popover ni panneau) ; `SegmentedControl` existant avec une variante de style ; option indisponible garde sa valeur réelle ; principes PR-03 (libellés regular plus petits que les valeurs, non sélectionnées en gris regular sur fond clair, sélectionnée en violet existant, options de même largeur) ; segmenté natif `@expo/ui` seulement après vérification (faite par AD-24 : non retenu). (Δ32)
 - FR-28 : Chevron intérieur graphique (icône existante `control-chevron-up/down`, jamais un caractère), centré avec le texte, sur Variables, Avec (Phases, à droite du nombre), Avec (Changement de côté) : haut si déployé, bas sinon ; replier conserve valeurs et mode. (Δ33)
 - FR-29 : Tableaux des séries et des phases : fond blanc sans contour, lignes de 36 (44 ailleurs) ; aucun stepper permanent ; chaque cellule ouvre son seul sélecteur (roue de cible, stepper de Pause, clavier de charge) ; glisser, croix, « Série supprimée — Annuler » sur `#FFF1F0` (Q35), roue sous la ligne (Q45) conservés ; cible tactile de 36 vérifiée sur appareil avant toute autre géométrie ; PR-02 (fond blanc dans son cadre, pas de séparateur après le tableau des phases, espace d'une hauteur de ligne sous la dernière, valeurs alignées sur les en-têtes, numéros rapprochés des poignées). (Δ34)
+  - (recette du 19/10, RC-9) plus d'espace d'une hauteur de ligne sous la dernière ligne, pour les séries comme pour les phases ; remplace cette partie de PR-02.
 - FR-30 : Cadence Autre / 5 s / 2 s / 1 s / Sans, option reflétant la valeur (0 → Sans, 1, 2, 5 → option, autre → Autre, §9-7 tranché) ; Autre révèle le ± existant 0..10, pas 1, sans accélération ; aucune valeur personnalisée mémorisée ; bornes, pas et donnée inchangés. (Δ35)
 - FR-31 : « Durée de l'exercice » remplace « Durée totale » ; chevron à 12 du libellé, replié par défaut, masque Compte à rebours et Fin sans les désactiver ; bas replié, haut déployé ; ouvrir ou fermer ne modifie pas la valeur ; ligne absente → signaux directement visibles ; Exercice ouvert depuis une Séance : Compte à rebours et Fin restent absents ; calcul, natures, `—`, N = 1, T(1)..T(99) et RM-218 inchangés. (Δ36)
 - FR-32 : Hauteur de la Feuille adaptée au contenu visible ; un repli ne laisse aucun espace vide ; avec six phases le contenu défile ; marge basse réduite (PR-04) ; animations Q39 à Q41 conservées. (Δ37)
@@ -141,6 +142,7 @@ Aucun document UX séparé. Les propriétés Figma (S-2, PRD §9) sont relevées
 - UX-DR1 : Gris des cadres, violet de sélection, dimensions des segmentés en ligne (hauteur, largeur égale des options, police), chevron intérieur — Feuille.
 - UX-DR2 : Rendu du résultat dérivé de la Condition d'arrêt (violet atténué, texte blanc) — Feuille.
 - UX-DR3 : Tableaux : fond blanc, lignes de 36, alignement valeurs / en-têtes, numéros rapprochés des poignées, espace sous la dernière ligne (PR-02) — Feuille.
+  - (recette du 19/10, RC-9) l'espace sous la dernière ligne est supprimé (séries et phases).
 - UX-DR4 : Segment Avec des phases (« n phases », stepper révélé, chevron graphique à droite du nombre) et tableau des phases (poignée, numéro, libellé, durée, croix ✕) — frame `9207:18817`, vérifiée par Hermann le 19/10 ; la forme « 3 phases » vient de D-432, pas de la frame — Feuille.
 - UX-DR5 : Cellule de charge en saisie, clavier `9292:18077` (marge 12) — Feuille.
 - UX-DR6 : Notations graphiques de l'Enchainement, conservées exactement depuis la frame `8328:38193` (`(D1 → D2) ➜ (G1 → G2)`, `(D1 → G1) ➜ (D2 → G2)`, D-431), police réduite seulement si nécessaire — Feuille.
@@ -834,6 +836,7 @@ afin de régler une série sans les ± permanents et de préparer le tableau des
 **When** le tableau s'affiche
 **Then** il a un fond blanc sans contour, contenu dans son cadre sans déborder ni chevaucher les lignes voisines, des lignes de 36 (`TABLE_ROW_HEIGHT`) ; les autres lignes de la Feuille restent à 44
 **And** les valeurs sont alignées avec leurs en-têtes, les numéros sont rapprochés des poignées, un espace d'une hauteur de ligne suit la dernière ligne ; les mesures viennent du relevé Figma (UX-DR3) en constantes locales nommées.
+**And** (recette du 19/10, RC-9, remplace l'espace ci-dessus) aucun espace d'une hauteur de ligne ne suit la dernière ligne.
 
 **AC3 — Cellules ouvrantes, sans ± permanent (FR-29, AD-27, R-05).**
 **Given** une ligne du tableau
@@ -964,6 +967,7 @@ afin que la durée de série soit la somme de ces actions, sans conversion destr
 **Given** des phases
 **When** le tableau s'affiche
 **Then** `WorkPhasesTable` (composant distinct, construit sur les briques partagées de 2.6, sans copie) présente autant de lignes que le nombre configuré ; chaque ligne porte une poignée de déplacement, un numéro, un libellé, une durée et une croix ✕ avec annulation ; la ligne active est signalée ; ni pied, ni ± ; fond blanc, lignes de 36, aucun séparateur après le tableau, un espace d'une hauteur de ligne sous la dernière ligne (PR-02, UX-DR3)
+**And** (recette du 19/10, RC-9, remplace l'espace ci-dessus) aucun espace d'une hauteur de ligne sous la dernière ligne (brique partagée `tableStyles.block`).
 **And** (QR-1 validée par Hermann le 19/10) la croix ✕ est disponible au-dessus de deux phases et indisponible à deux (état indisponible exposé, RM-247) ; le retrait se fait alors par Sans
 **And** les gestes et les alternatives accessibles du tableau des séries sont réutilisés (CE-UI-10 §13) ; lors d'un déplacement, chaque libellé reste attaché à sa phase
 **And** le message d'annulation existant (« … supprimée — Annuler ») sert aux deux tableaux ; une seule annulation est en attente (série ou phase).

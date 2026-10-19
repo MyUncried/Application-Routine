@@ -5482,10 +5482,12 @@ describe("ExecutionParametersSheet — PRE-5 story 2.6", () => {
     fireEvent(get(`execution-sheet-table-row-${row}-target-cell`), "layout", { nativeEvent: { layout: { x: 58, y: 6, width: 71, height: 24 } } });
   };
 
-  it("PRE5-2.6/AC2 — bloc blanc sans contour, rayon 8, à 8 du cadre ; en-têtes et cellules sur la même suite de colonnes (71, écart 7) ; lignes de 36 ; une hauteur de ligne sous la dernière ; aucun InlineStepper au repos", () => {
+  it("PRE5-2.6/AC2 — bloc blanc sans contour, rayon 8, à 8 du cadre ; en-têtes et cellules sur la même suite de colonnes (71, écart 7) ; lignes de 36 ; aucun espace sous la dernière (recette du 19/10, RC-9) ; aucun InlineStepper au repos", () => {
     renderSheet(params({ series: variableRows([[30, 10], [45, 20], [60, 30]]) }));
     const block = styleOf("execution-sheet-table-content");
-    expect(block).toMatchObject({ backgroundColor: "#FFFFFF", borderRadius: 8, marginVertical: 12, paddingHorizontal: 4, paddingBottom: TABLE_ROW_HEIGHT });
+    expect(block).toMatchObject({ backgroundColor: "#FFFFFF", borderRadius: 8, marginVertical: 12, paddingHorizontal: 4 });
+    // RC-9 : la hauteur de ligne de PR-02 sous la dernière ligne est retirée.
+    expect([block.paddingBottom, block.paddingVertical, block.padding]).toEqual([undefined, undefined, undefined]);
     expect(block.borderWidth).toBeUndefined();
     // Le cadre de découpe déborde de 4 dans la marge de 12 du groupe : bloc à 8 du contour.
     expect(styleOf("execution-sheet-table")).toMatchObject({ marginHorizontal: -4, paddingHorizontal: 4 });
