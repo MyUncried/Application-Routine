@@ -729,11 +729,11 @@ Le champ du mode à droite du titre de la carte, visible sur 7059:13302 et 7119:
 
 #### 7. Structure de l’écran
 
-En-tête fixe → nom et accès Catégorie/Zones → carte Paramètres avec phrase unique et Compte à rebours/Fin → Description → Média → Terminer. Réutiliser le shell existant.
+En-tête fixe → bandeau de contexte (nom, Catégorie, Zones corporelles) → carte Paramètres (état non renseigné ou synthèse calculée) → Description → Média → Terminer. Compte à rebours et Fin relèvent de la feuille Paramètres d’exécution CE-UI-10 et ne sont pas des lignes autonomes du formulaire principal (D-413). Réutiliser le shell existant.
 
 #### 8. Éléments obligatoires
 
-Carte vide initiale ; après✓, une phrase unique avec valeurs en gras, énumération jusqu’à 3 puis min/max selon [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres). La zone entière ouvre CE-UI-10 ; aucun segment/raccourci autonome dans la phrase. Compte à rebours et Fin restent des lignes séparées.
+Nom de l’exercice ; accès aux catégories et zones corporelles ; zone Description ; zone Média ; carte Paramètres vide ou résumée ; action Terminer dont la disponibilité suit la validité du brouillon. Après ✓ de la feuille, la carte affiche une phrase unique avec valeurs en gras, énumération jusqu’à 3 puis min/max selon [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres). La zone Paramètres entière ouvre CE-UI-10 ; aucun segment/raccourci autonome dans la phrase. Les réglages Compte à rebours et Fin se trouvent dans CE-UI-10 (D-413).
 
 #### 9. Layout déterministe
 
