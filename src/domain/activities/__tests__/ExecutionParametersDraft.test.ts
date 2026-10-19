@@ -17,18 +17,26 @@ import { buildExecutionLedger } from "@/domain/activities/executionCalculations"
 import { toTarget, type FixtureTarget } from "@/domain/activities/testing/executionParametersFixtures";
 import {
   applyRequestedTotal,
+  canEnableWorkPhases,
   commitSheetDraft,
+  deriveSeriesDuration,
   effectiveParameters,
   firstIncompleteSeries,
   isRequestedTotalEditable,
   isSingleSeries,
   moveRow,
+  moveWorkPhase,
+  normalizeDraftLoad,
+  normalizeWorkPhases,
   openSheetDraft,
   removeRow,
+  removeWorkPhase,
   requestedParameters,
   setCadenceBeep,
   setCountdown,
   setEnd,
+  setLoadEnabled,
+  setLoadValue,
   setMode,
   setRowPause,
   setRowTarget as setRowTargetTyped,
@@ -36,9 +44,15 @@ import {
   setSideMode,
   setSideOrder,
   setSideRecovery,
+  setStopCondition,
   setUniformPause,
   setUniformTarget,
   setVariable,
+  setWorkPhaseCount,
+  setWorkPhaseDuration,
+  setWorkPhaseLabel,
+  setWorkPhasesEnabled,
+  sheetDraftResult,
   undoRemoval,
   type ExecutionSheetDraft,
 } from "@/domain/activities/ExecutionParametersDraft";
@@ -745,7 +759,7 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
       const removed = removeRow(opened(), 1);
       expect(removed.count).toBe(3);
       expect(effectiveParameters(removed).series).toEqual(variable(A, C, D));
-      expect(removed.pendingRemoval).toEqual({ index: 1, row: B, rowId: 2 });
+      expect(removed.pendingRemoval).toEqual({ kind: "series", index: 1, row: B, rowId: 2 });
       const restored = undoRemoval(removed);
       expect(restored.count).toBe(4);
       expect(effectiveParameters(restored).series).toEqual(variable(A, B, C, D));
@@ -779,7 +793,7 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
       expect(next).not.toBe(removed);
       if (next.pendingRemoval !== null) {
         // « autre retrait » : seul le nouveau retrait est annulable, jamais la ligne 2.
-        expect(next.pendingRemoval).toEqual({ index: 0, row: A, rowId: 1 });
+        expect(next.pendingRemoval).toEqual({ kind: "series", index: 0, row: A, rowId: 1 });
         expect(effectiveParameters(undoRemoval(next)).series).toEqual(variable(A, C, D));
       } else {
         expect(undoRemoval(next)).toBe(next);
@@ -1205,4 +1219,617 @@ describe("PRE-5 story 1.1 — transport par le Brouillon, sans transition nouvel
     expect(draft.workPhases).not.toBe(parentPhases);
     expect(draft.workPhases[0]).not.toBe(parentPhases[0]);
   });
+});
+
+describe("PRE-5 story 2.1 — transitions du Brouillon : phases, charge, Condition d'arrêt et côtés (AD-19 à AD-25)", () => {
+  /** Libellé par défaut fourni par l'appelant (le domaine n'importe pas l'i18n, AD-20). */
+  const phaseLabel = (position: number) => `Phase ${position}`;
+  const durations = (draft: ExecutionSheetDraft) => draft.workPhases.map((phase) => phase.durationSeconds);
+  const labels = (draft: ExecutionSheetDraft) => draft.workPhases.map((phase) => phase.label);
+  const ids = (draft: ExecutionSheetDraft) => draft.workPhases.map((phase) => phase.id);
+  /** Durée, identiques, 3 séries, Cible 30 s, Pause 15 s. */
+  const durationParent = () => parameters(uniform(3, 30, 15), { sideMode: "RIGHT_LEFT", sideRecoverySeconds: 8 });
+
+  /** Brouillon à phases construit par les seules transitions (activation, stepper, durées). */
+  function withPhases(values: readonly (number | null)[], parent: ExecutionParametersInput = durationParent()): ExecutionSheetDraft {
+    let draft = setWorkPhasesEnabled(openSheetDraft(parent), true);
+    while (draft.workPhases.length < values.length) {
+      draft = setWorkPhaseCount(draft, draft.workPhases.length + 1);
+    }
+    for (const [index, id] of ids(draft).entries()) {
+      draft = setWorkPhaseDuration(draft, id, values[index]!);
+    }
+    expect(durations(draft)).toEqual(values);
+    return draft;
+  }
+
+  describe("PRE5-2.1/AC1 — éligibilité et compatibilité (FR-2, AD-20)", () => {
+    it("canEnableWorkPhases : Durée, identiques effectives (N = 1 compris), Cible non FAILURE", () => {
+      expect(canEnableWorkPhases(openSheetDraft(durationParent()))).toBe(true);
+      expect(canEnableWorkPhases(openSheetDraft(parameters(uniform(3, null, 15))))).toBe(true);
+      const variableAtOne = setSeriesCount(openSheetDraft(parameters(variable(row(30, 10), row(20, 5)))), 1);
+      expect(canEnableWorkPhases(variableAtOne)).toBe(true);
+      expect(canEnableWorkPhases(openSheetDraft(parameters(uniform(3, 12, 15), { mode: "REPETITIONS" })))).toBe(false);
+      expect(canEnableWorkPhases(openSheetDraft(parameters(variable(row(30, 10), row(20, 5)))))).toBe(false);
+      expect(canEnableWorkPhases(openSheetDraft(parameters(uniform(3, "FAILURE", 15))))).toBe(false);
+      expect(canEnableWorkPhases(openSheetDraft(parameters(uniform(3, null, 15), { mode: null })))).toBe(false);
+    });
+
+    it("activation refusée hors éligibilité : Répétitions, variables N ≥ 2, Cible FAILURE → Brouillon inchangé", () => {
+      for (const parent of [
+        parameters(uniform(3, 12, 15), { mode: "REPETITIONS" }),
+        parameters(variable(row(30, 10), row(20, 5))),
+        parameters(uniform(3, "FAILURE", 15)),
+      ]) {
+        const draft = openSheetDraft(parent);
+        expect(setWorkPhasesEnabled(draft, true)).toBe(draft);
+      }
+    });
+
+    it("N = 1 avec un état variable demandé : phases et charge commune passent d'abord par l'uniforme (setVariable(false))", () => {
+      const variableAtOne = setSeriesCount(openSheetDraft(parameters(variable(row(30, 10), row(20, 5)))), 1);
+      const phased = setWorkPhasesEnabled(variableAtOne, true);
+      expect(phased.variable).toBe(false);
+      expect(phased.uniform.pauseSeconds).toBe(10);
+      expect(durations(phased)).toEqual([30, null]);
+      expect(phased.savedVariableRows).toHaveLength(2);
+      expect(effectiveParameters(phased)).toEqual(requestedParameters(phased));
+      const loaded = setLoadValue(variableAtOne, "uniform", 5);
+      expect(loaded.variable).toBe(false);
+      expect(loaded.uniform.loadKg).toBe(5);
+      expect(loaded.savedVariableRows?.map((entry) => entry.loadKg)).toEqual([0, 0]);
+    });
+
+    it("avec des phases : Répétitions, Variables, À l'échec et Cible commune refusés (aucune conversion destructive)", () => {
+      const draft = withPhases([6, 3]);
+      expect(setMode(draft, "REPETITIONS")).toBe(draft);
+      expect(setVariable(draft, true)).toBe(draft);
+      expect(setStopCondition(draft, "FAILURE")).toBe(draft);
+      expect(setUniformTarget(draft, numberTarget(50))).toBe(draft);
+      expect(setUniformTarget(draft, failureTarget())).toBe(draft);
+    });
+
+    it("la mémoire des Cibles par Mode est conservée à travers les phases", () => {
+      let draft = openSheetDraft(durationParent());
+      draft = setUniformTarget(setMode(draft, "REPETITIONS"), numberTarget(12));
+      draft = setWorkPhasesEnabled(setMode(draft, "DURATION"), true);
+      expect(durations(draft)).toEqual([30, null]);
+      draft = setWorkPhasesEnabled(draft, false);
+      expect(plain(setMode(draft, "REPETITIONS").uniform.target)).toBe(12);
+    });
+  });
+
+  describe("PRE5-2.1/AC2 — création et nombre de phases (FR-5, AD-20, D-432)", () => {
+    it("Avec crée deux phases : identités tirées de nextPhaseId, libellés vides, la première à la durée courante, D = 30 s", () => {
+      const draft = setWorkPhasesEnabled(openSheetDraft(durationParent()), true);
+      expect(draft.workPhases).toEqual([
+        { id: 1, label: "", durationSeconds: 30 },
+        { id: 2, label: "", durationSeconds: null },
+      ]);
+      expect(draft.nextPhaseId).toBe(3);
+      expect(draft.uniform.target).toEqual(numberTarget(30));
+    });
+
+    it("sans durée (« — ») ou Cible héritée hors de 1..3535 : [null, null], D à renseigner ; rien n'est inventé", () => {
+      for (const value of [null, 5999] as const) {
+        const draft = setWorkPhasesEnabled(openSheetDraft(parameters(uniform(3, value, 15))), true);
+        expect(durations(draft)).toEqual([null, null]);
+        expect(draft.uniform.target).toEqual(unsetTarget());
+      }
+    });
+
+    it("stepper : + ajoute en fin à la durée de la dernière ; refus à 6 → 7, à 2 → 1 et hors pas", () => {
+      const two = withPhases([6, 3]);
+      const three = setWorkPhaseCount(two, 3);
+      expect(durations(three)).toEqual([6, 3, 3]);
+      expect(three.uniform.target).toEqual(numberTarget(12));
+      expect(ids(three)).toEqual([1, 2, 3]);
+      expect(durations(setWorkPhaseCount(withPhases([6, null]), 3))).toEqual([6, null, null]);
+      const six = withPhases([1, 2, 3, 4, 5, 6]);
+      expect(setWorkPhaseCount(six, 7)).toBe(six);
+      expect(six.workPhases).toHaveLength(6);
+      expect(setWorkPhaseCount(two, 1)).toBe(two);
+      expect(setWorkPhaseCount(two, 4)).toBe(two);
+      expect(setWorkPhaseCount(two, 2)).toBe(two);
+      expect(setWorkPhaseCount(two, 2.5)).toBe(two);
+    });
+
+    it("stepper − : retire la dernière par le même retrait annulable que la croix", () => {
+      const three = withPhases([6, 3, 5]);
+      const two = setWorkPhaseCount(three, 2);
+      expect(durations(two)).toEqual([6, 3]);
+      expect(two.uniform.target).toEqual(numberTarget(9));
+      expect(two.pendingRemoval).toEqual({ kind: "phase", index: 2, phase: three.workPhases[2] });
+      const restored = undoRemoval(two);
+      expect(restored.workPhases).toEqual(three.workPhases);
+      expect(restored.uniform.target).toEqual(numberTarget(14));
+    });
+
+    it("deriveSeriesDuration, seul écrivain de D : NUMBER(Σ) si Σ ≥ 1, sinon UNSET ; null compte pour 0 ; aucune borne propre", () => {
+      const draft = withPhases([6, null]);
+      expect(draft.uniform.target).toEqual(numberTarget(6));
+      expect(setWorkPhaseDuration(draft, 1, null).uniform.target).toEqual(unsetTarget());
+      expect(setWorkPhaseDuration(draft, 1, 0).uniform.target).toEqual(unsetTarget());
+      expect(setWorkPhaseDuration(draft, 2, 3530).uniform.target).toEqual(numberTarget(3536));
+      expect(deriveSeriesDuration({ ...draft, uniform: { ...draft.uniform, target: unsetTarget() } }).uniform.target).toEqual(numberTarget(6));
+    });
+
+    it("phase seule relue des données : D redérivée dès que la liste est non vide ; Sans garde D ; null puis ✓ n'invente rien", () => {
+      const parent = parameters({
+        kind: "UNIFORM",
+        count: 3,
+        target: numberTarget(9),
+        pauseSeconds: 15,
+        loadKg: 0,
+        workPhases: [{ id: 1, label: "Seule", durationSeconds: 9 }],
+      });
+      const changed = setWorkPhaseDuration(openSheetDraft(parent), 1, 12);
+      expect(changed.uniform.target).toEqual(numberTarget(12));
+      expect(setWorkPhasesEnabled(changed, false).uniform.target).toEqual(numberTarget(12));
+      const emptied = setWorkPhaseDuration(changed, 1, null);
+      expect(emptied.uniform.target).toEqual(unsetTarget());
+      const result = sheetDraftResult(emptied, phaseLabel);
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.violations.map((violation) => violation.field)).toEqual(["target"]);
+      }
+      expect(normalizeWorkPhases(emptied, phaseLabel).uniform.target).toEqual(unsetTarget());
+    });
+
+    it("aucun calcul de la dernière phase sur le restant : modifier une phase ne change pas les autres", () => {
+      const draft = setWorkPhaseDuration(withPhases([6, 3, 5]), 1, 10);
+      expect(durations(draft)).toEqual([10, 3, 5]);
+      expect(draft.uniform.target).toEqual(numberTarget(18));
+    });
+
+    it("setWorkPhaseDuration : entier ≥ 0 ou null ; sinon, ou identité inconnue, Brouillon inchangé", () => {
+      const draft = withPhases([6, 3]);
+      for (const value of [-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY]) {
+        expect(setWorkPhaseDuration(draft, 1, value)).toBe(draft);
+      }
+      expect(setWorkPhaseDuration(draft, 99, 4)).toBe(draft);
+    });
+  });
+
+  describe("PRE5-2.1/AC3 — déplacement, libellé, retrait et annulation (FR-4, FR-8, AD-25, AD-27)", () => {
+    const labelled = () => {
+      let draft = withPhases([6, 3, 5]);
+      draft = setWorkPhaseLabel(draft, 1, "Descente");
+      draft = setWorkPhaseLabel(draft, 2, "Maintien");
+      return setWorkPhaseLabel(draft, 3, "Montée");
+    };
+
+    it("le libellé suit l'identité de sa phase au déplacement ; D inchangée", () => {
+      const moved = moveWorkPhase(labelled(), 0, 2);
+      expect(labels(moved)).toEqual(["Maintien", "Montée", "Descente"]);
+      expect(ids(moved)).toEqual([2, 3, 1]);
+      expect(durations(moved)).toEqual([3, 5, 6]);
+      expect(moved.uniform.target).toEqual(numberTarget(14));
+      const draft = labelled();
+      expect(moveWorkPhase(draft, 1, 1)).toBe(draft);
+      expect(moveWorkPhase(draft, 0, 3)).toBe(draft);
+    });
+
+    it("libellé : 20 points de code au plus (pas UTF-16) ; au-delà ou identité inconnue, Brouillon inchangé", () => {
+      const draft = labelled();
+      expect(labels(setWorkPhaseLabel(draft, 1, "😀".repeat(20)))[0]).toBe("😀".repeat(20));
+      expect(setWorkPhaseLabel(draft, 1, "😀".repeat(21))).toBe(draft);
+      expect(setWorkPhaseLabel(draft, 1, "a".repeat(21))).toBe(draft);
+      expect(setWorkPhaseLabel(draft, 42, "Autre")).toBe(draft);
+    });
+
+    it("retrait par la croix puis annulation : ordre, libellés, durées, D et nombre restitués", () => {
+      const draft = labelled();
+      const removed = removeWorkPhase(draft, 2);
+      expect(labels(removed)).toEqual(["Descente", "Montée"]);
+      expect(removed.uniform.target).toEqual(numberTarget(11));
+      expect(removed.pendingRemoval).toEqual({ kind: "phase", index: 1, phase: { id: 2, label: "Maintien", durationSeconds: 3 } });
+      const restored = undoRemoval(removed);
+      expect(restored.workPhases).toEqual(draft.workPhases);
+      expect(restored.uniform.target).toEqual(numberTarget(14));
+      expect(restored.pendingRemoval).toBeNull();
+    });
+
+    it("(QR-1) la croix est refusée à deux phases ; identité inconnue refusée", () => {
+      const two = withPhases([6, 3]);
+      expect(removeWorkPhase(two, 1)).toBe(two);
+      const three = labelled();
+      expect(removeWorkPhase(three, 99)).toBe(three);
+    });
+
+    it("une seule annulation en attente : un nouveau retrait remplace la précédente", () => {
+      const first = removeWorkPhase(setWorkPhaseCount(labelled(), 4), 1);
+      const second = removeWorkPhase(first, 3);
+      expect(second.pendingRemoval).toEqual({ kind: "phase", index: 1, phase: { id: 3, label: "Montée", durationSeconds: 5 } });
+      expect(labels(undoRemoval(second))).toEqual(["Maintien", "Montée", ""]);
+    });
+
+    const invalidating: readonly [string, (draft: ExecutionSheetDraft) => ExecutionSheetDraft][] = [
+      ["libellé", (draft) => setWorkPhaseLabel(draft, 1, "Autre")],
+      ["durée", (draft) => setWorkPhaseDuration(draft, 1, 7)],
+      ["déplacement", (draft) => moveWorkPhase(draft, 0, 1)],
+      ["stepper +", (draft) => setWorkPhaseCount(draft, 3)],
+      ["Sans", (draft) => setWorkPhasesEnabled(draft, false)],
+      ["charge Avec", (draft) => setLoadEnabled(draft, true)],
+      ["charge commune", (draft) => setLoadValue(draft, "uniform", 2)],
+      ["N", (draft) => setSeriesCount(draft, 4)],
+      ["Pause commune", (draft) => setUniformPause(draft, 20)],
+      ["Bip", (draft) => setCadenceBeep(draft, 2)],
+      ["Changement de côté", (draft) => setSideMode(draft, "UNILATERAL", 10)],
+    ];
+
+    it.each(invalidating)("Q29 : une modification « %s » invalide l'annulation d'une phase", (_, transition) => {
+      const removed = removeWorkPhase(labelled(), 2);
+      const next = transition(removed);
+      expect(next.pendingRemoval).toBeNull();
+      expect(undoRemoval(next)).toBe(next);
+    });
+
+    it("Q29 : une transition de phases invalide aussi l'annulation d'une série", () => {
+      const removed = removeRow(openSheetDraft(parameters(variable(row(30, 10), row(20, 5)))), 1);
+      expect(removed.pendingRemoval?.kind).toBe("series");
+      const phased = setWorkPhasesEnabled(removed, true);
+      expect(phased.pendingRemoval).toBeNull();
+      expect(undoRemoval(phased)).toBe(phased);
+    });
+
+    it("une transition refusée laisse le Brouillon inchangé, annulation comprise", () => {
+      const removed = removeWorkPhase(labelled(), 2);
+      expect(setStopCondition(removed, "FAILURE")).toBe(removed);
+      expect(setMode(removed, "REPETITIONS")).toBe(removed);
+      expect(removeWorkPhase(removed, 1)).toBe(removed);
+    });
+  });
+
+  describe("PRE5-2.1/AC4 — Avec → Sans et retour à Avec (FR-8, décision du 19/10)", () => {
+    it("6, 3, 5 → Sans : aucune phase, durée de série 14 s, autres paramètres conservés ; modifiable", () => {
+      const draft = withPhases([6, 3, 5]);
+      const sans = setWorkPhasesEnabled(draft, false);
+      expect(sans.workPhases).toEqual([]);
+      expect(sans.uniform.target).toEqual(numberTarget(14));
+      expect({ ...requestedParameters(sans), series: null }).toEqual({ ...requestedParameters(draft), series: null });
+      expect(sans.count).toBe(3);
+      expect(sans.uniform.pauseSeconds).toBe(15);
+      expect(setUniformTarget(sans, numberTarget(20)).uniform.target).toEqual(numberTarget(20));
+      expect(committed(sans).series).toEqual(uniform(3, 14, 15));
+      expect(setWorkPhasesEnabled(openSheetDraft(durationParent()), false)).toEqual(openSheetDraft(durationParent()));
+    });
+
+    it("phases toutes nulles → Sans : durée de série à renseigner (UNSET), rien n'est inventé", () => {
+      const sans = setWorkPhasesEnabled(withPhases([null, null]), false);
+      expect(sans.workPhases).toEqual([]);
+      expect(sans.uniform.target).toEqual(unsetTarget());
+    });
+
+    it("retour à Avec : deux nouvelles phases, la première à la durée courante (14 s), sans mémoire des anciennes", () => {
+      const again = setWorkPhasesEnabled(setWorkPhasesEnabled(setWorkPhaseLabel(withPhases([6, 3, 5]), 1, "Descente"), false), true);
+      expect(durations(again)).toEqual([14, null]);
+      expect(labels(again)).toEqual(["", ""]);
+      expect(ids(again)).toEqual([4, 5]);
+      expect(again.uniform.target).toEqual(numberTarget(14));
+    });
+  });
+
+  describe("PRE5-2.1/AC5 — normalisation et disponibilité du ✓ (FR-3, FR-9, AD-25)", () => {
+    it("[0, null] : liste revenue à « Aucune », la validation de la durée seule décide ; aucune durée inventée (QR-2)", () => {
+      const draft = withPhases([0, null]);
+      const normalized = normalizeWorkPhases(draft, phaseLabel);
+      expect(normalized.workPhases).toEqual([]);
+      expect(normalized.uniform.target).toEqual(unsetTarget());
+      const result = sheetDraftResult(draft, phaseLabel);
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.violations.map((violation) => violation.field)).toEqual(["target"]);
+      }
+    });
+
+    it("[9, null] : une seule phase reste, l'Exercice passe à Sans avec une durée de série de 9 s (QR-2, D-371)", () => {
+      const result = sheetDraftResult(withPhases([9, null]), phaseLabel);
+      expect(result).toEqual({ ok: true, value: expect.objectContaining({ series: uniform(3, 9, 15) }) });
+    });
+
+    it("somme normalisée de 3 536 s : ✓ indisponible, violation workPhases portant les bornes de la somme", () => {
+      const result = sheetDraftResult(withPhases([3000, 536, 0]), phaseLabel);
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.violations).toContainEqual({
+          code: "OUT_OF_RANGE",
+          field: "workPhases",
+          level: "STRUCTURE",
+          details: { min: 1, max: 3535 },
+        });
+      }
+      expect(sheetDraftResult(withPhases([3000, 535]), phaseLabel).ok).toBe(true);
+    });
+
+    it("phases à 0 ou à renseigner retirées sans message ; libellé vide → « Phase n » selon la position finale ; D redérivée", () => {
+      let draft = withPhases([6, 0, 3, null]);
+      draft = setWorkPhaseLabel(draft, 2, "Retirée");
+      draft = setWorkPhaseLabel(draft, 3, "   ");
+      const result = sheetDraftResult(draft, phaseLabel);
+      expect(result.ok).toBe(true);
+      if (result.ok && result.value.series.kind === "UNIFORM") {
+        expect(result.value.series.workPhases).toEqual([
+          { id: 1, label: "Phase 1", durationSeconds: 6 },
+          { id: 3, label: "Phase 2", durationSeconds: 3 },
+        ]);
+        expect(result.value.series.target).toEqual(numberTarget(9));
+      }
+    });
+
+    it("(QN-3) le libellé par défaut est stocké : il ne se renumérote plus après un déplacement", () => {
+      const value = committedWith(withPhases([6, 3]));
+      const moved = moveWorkPhase(openSheetDraft(value), 0, 1);
+      expect(labels(moved)).toEqual(["Phase 2", "Phase 1"]);
+      const reread = committedWith(moved);
+      expect(reread.series.kind === "UNIFORM" && reread.series.workPhases.map((phase) => phase.label)).toEqual(["Phase 2", "Phase 1"]);
+    });
+
+    it("commitSheetDraft et sheetDraftResult rendent le même résultat ; sans defaultLabel, un libellé vide est refusé", () => {
+      const parent = durationParent();
+      const draft = withPhases([6, 3]);
+      expect(commitSheetDraft(draft, null, phaseLabel)).toEqual(sheetDraftResult(draft, phaseLabel));
+      expect(commitSheetDraft(draft, parent, phaseLabel)).toEqual(sheetDraftResult(draft, phaseLabel, parent));
+      expect(commitSheetDraft(draft)).toEqual(sheetDraftResult(draft, undefined));
+      const unlabelled = commitSheetDraft(draft);
+      expect(unlabelled.ok).toBe(false);
+      if (!unlabelled.ok) {
+        expect(unlabelled.violations.map((violation) => violation.field)).toEqual(["workPhases"]);
+      }
+    });
+
+    it("✓ réussi : ni identité volatile, ni lastNumberById, ni pendingRemoval ; normalizeLoad appliqué", () => {
+      let draft = removeWorkPhase(setWorkPhaseCount(withPhases([6, 3]), 3), 3);
+      draft = setLoadValue(setLoadEnabled(draft, true), "uniform", null);
+      expect(draft.loadEnabled).toBe(true);
+      const result = sheetDraftResult(draft, phaseLabel);
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(Object.keys(result.value).sort()).toEqual(Object.keys(durationParent()).sort());
+        expect(result.value).not.toHaveProperty("lastNumberById");
+        expect(result.value).not.toHaveProperty("pendingRemoval");
+        expect(result.value.loadEnabled).toBe(false);
+      }
+    });
+
+    it("✕ : le parent reste intact ; rouvrir rend l'état d'ouverture (phases, charge, côtés, Condition d'arrêt)", () => {
+      const parent = parameters(
+        { kind: "UNIFORM", count: 3, target: numberTarget(9), pauseSeconds: 15, loadKg: 2.5, workPhases: [{ id: 1, label: "A", durationSeconds: 6 }, { id: 2, label: "B", durationSeconds: 3 }] },
+        { sideMode: "LEFT_RIGHT", loadEnabled: true },
+      );
+      const snapshot = cloneExecutionParameters(parent);
+      let draft = openSheetDraft(parent);
+      draft = setWorkPhaseDuration(setWorkPhaseLabel(setWorkPhaseCount(draft, 3), 1, "Z"), 2, 40);
+      draft = setLoadValue(setLoadEnabled(setWorkPhasesEnabled(draft, false), false), "uniform", 7);
+      draft = setStopCondition(setSideMode(draft, "UNILATERAL", 10), "FAILURE");
+      expect(requestedParameters(draft)).not.toEqual(parent);
+      expect(parent).toEqual(snapshot);
+      expect(requestedParameters(openSheetDraft(parent))).toEqual(snapshot);
+    });
+  });
+
+  describe("PRE5-2.1/AC6 — charge dans le Brouillon (FR-10, FR-11, FR-14, AD-19)", () => {
+    const variableLoads = (...loads: number[]) =>
+      parameters(variable(...loads.map((loadKg) => ({ ...row(30, 10), loadKg }))), { loadEnabled: false });
+
+    it("1re activation sans valeur : 0,25 kg (commune, ou chaque ligne, retirées et réservées comprises)", () => {
+      expect(setLoadEnabled(openSheetDraft(durationParent()), true).uniform.loadKg).toBe(0.25);
+      const shrunk = setSeriesCount(openSheetDraft(variableLoads(0, 0, 0)), 2);
+      const activated = setLoadEnabled(shrunk, true);
+      expect(activated.loadEnabled).toBe(true);
+      expect(activated.rows.map((entry) => entry.loadKg)).toEqual([0.25, 0.25]);
+      expect(activated.hiddenRows.map((entry) => entry.loadKg)).toEqual([0.25]);
+      expect(activated.uniform.loadKg).toBe(0.25);
+    });
+
+    it("lignes actives à 0 : 0,25 sur les zéros seulement ; la charge positive d'une ligne retirée par N est conservée", () => {
+      const shrunk = setSeriesCount(openSheetDraft(variableLoads(0, 0, 5)), 2);
+      expect(shrunk.hiddenRows.map((entry) => entry.loadKg)).toEqual([5]);
+      const activated = setLoadEnabled(shrunk, true);
+      expect(activated.rows.map((entry) => entry.loadKg)).toEqual([0.25, 0.25]);
+      expect(activated.hiddenRows.map((entry) => entry.loadKg)).toEqual([5]);
+      expect(setSeriesCount(activated, 3).rows.map((entry) => entry.loadKg)).toEqual([0.25, 0.25, 5]);
+    });
+
+    it("N = 1 en état variable demandé : l'Inversion du total et la Condition d'arrêt ne passent pas la charge à Sans", () => {
+      const parent = parameters(variable({ ...row(30, 10), loadKg: 0 }, { ...row(60, 20), loadKg: 5 }), { loadEnabled: true });
+      const atOne = setSeriesCount(openSheetDraft(parent), 1);
+      expect(applyRequestedTotal(atOne, 160)!.draft.loadEnabled).toBe(true);
+      expect(setStopCondition(atOne, "FAILURE").loadEnabled).toBe(true);
+    });
+
+    it("réactivation : valeurs restaurées telles quelles, zéros compris ; sous Sans, valeurs conservées", () => {
+      const draft = openSheetDraft(variableLoads(0, 5, 12.5));
+      const activated = setLoadEnabled(draft, true);
+      expect(activated.rows.map((entry) => entry.loadKg)).toEqual([0, 5, 12.5]);
+      const sans = setLoadEnabled(activated, false);
+      expect(sans.loadEnabled).toBe(false);
+      expect(sans.rows.map((entry) => entry.loadKg)).toEqual([0, 5, 12.5]);
+      expect(committed(sans).series).toEqual(variableLoads(0, 5, 12.5).series);
+      const uniformSans = openSheetDraft(parameters({ ...uniform(2, 30, 10), loadKg: 2.5 }));
+      expect(setLoadEnabled(uniformSans, true).uniform.loadKg).toBe(2.5);
+      expect(setLoadEnabled(uniformSans, false)).toBe(uniformSans);
+    });
+
+    it("saisie arrondie au 0,25 supérieur ; vide = 0 ; illisible ou négatif = inchangé ; sans propagation", () => {
+      const draft = setLoadEnabled(openSheetDraft(durationParent()), true);
+      expect(setLoadValue(draft, "uniform", 1.3).uniform.loadKg).toBe(1.5);
+      expect(setLoadValue(draft, "uniform", 0.01).uniform.loadKg).toBe(0.25);
+      expect(setLoadValue(draft, "uniform", 1).uniform.loadKg).toBe(1);
+      expect(setLoadValue(draft, "uniform", null).uniform.loadKg).toBe(0);
+      expect(setLoadValue(draft, "uniform", -1)).toBe(draft);
+      expect(setLoadValue(draft, "uniform", Number.NaN)).toBe(draft);
+      const rows = setLoadEnabled(openSheetDraft(variableLoads(4, 5, 6)), true);
+      const typed = setLoadValue(rows, { rowId: rows.rowIds[1]! }, 1.3);
+      expect(typed.rows.map((entry) => entry.loadKg)).toEqual([4, 1.5, 6]);
+      expect(setLoadValue(rows, { rowId: 99 }, 3)).toBe(rows);
+      expect(setLoadValue(rows, "uniform", 3)).toBe(rows);
+    });
+
+    it("normalizeLoad jamais pendant la saisie ; à la fermeture du clavier (normalizeDraftLoad) et au ✓", () => {
+      const common = setLoadValue(setLoadEnabled(openSheetDraft(durationParent()), true), "uniform", null);
+      expect(common.loadEnabled).toBe(true);
+      expect(normalizeDraftLoad(common).loadEnabled).toBe(false);
+      expect(committed(common).loadEnabled).toBe(false);
+      const rows = setLoadEnabled(openSheetDraft(variableLoads(4, 5)), true);
+      const oneZero = setLoadValue(rows, { rowId: rows.rowIds[0]! }, 0);
+      expect(normalizeDraftLoad(oneZero)).toBe(oneZero);
+      const allZero = setLoadValue(oneZero, { rowId: rows.rowIds[1]! }, null);
+      expect(allZero.loadEnabled).toBe(true);
+      const closed = normalizeDraftLoad(allZero);
+      expect(closed.loadEnabled).toBe(false);
+      expect(closed.rows.map((entry) => entry.loadKg)).toEqual([0, 0]);
+    });
+
+    it("Variables → Identiques : l'uniforme reprend la première ligne, puis normalizeLoad (§9-9)", () => {
+      const zeroFirst = setVariable(setLoadEnabled(openSheetDraft(variableLoads(0, 5)), true), false);
+      expect(zeroFirst.uniform.loadKg).toBe(0);
+      expect(zeroFirst.loadEnabled).toBe(false);
+      const positiveFirst = setVariable(setLoadEnabled(openSheetDraft(variableLoads(5, 0)), true), false);
+      expect(positiveFirst.uniform.loadKg).toBe(5);
+      expect(positiveFirst.loadEnabled).toBe(true);
+    });
+
+    it("la charge suit sa série : copie uniforme → variable, ajout, retrait et annulation, déplacement, réserves de N", () => {
+      const common = setLoadValue(setLoadEnabled(openSheetDraft(durationParent()), true), "uniform", 8);
+      const rows = setVariable(common, true);
+      expect(rows.rows.map((entry) => entry.loadKg)).toEqual([8, 8, 8]);
+      const typed = setLoadValue(rows, { rowId: rows.rowIds[2]! }, 12);
+      expect(setSeriesCount(typed, 4).rows.map((entry) => entry.loadKg)).toEqual([8, 8, 12, 12]);
+      expect(moveRow(typed, 2, 0).rows.map((entry) => entry.loadKg)).toEqual([12, 8, 8]);
+      const removed = removeRow(typed, 2);
+      expect(removed.rows.map((entry) => entry.loadKg)).toEqual([8, 8]);
+      expect(undoRemoval(removed).rows.map((entry) => entry.loadKg)).toEqual([8, 8, 12]);
+      expect(setSeriesCount(setSeriesCount(typed, 1), 3).rows.map((entry) => entry.loadKg)).toEqual([8, 8, 12]);
+    });
+
+    it("Δ48 : Répétitions × Identiques, Répétitions × Variables, À l'échec avec charge — mêmes résultats qu'en Durée", () => {
+      const cases = [
+        parameters(uniform(3, 30, 10)),
+        parameters(uniform(3, 12, 10), { mode: "REPETITIONS" }),
+        parameters(variable(row(12, 10), row(10, 10)), { mode: "REPETITIONS" }),
+        parameters(uniform(3, "FAILURE", 10), { mode: "REPETITIONS" }),
+      ];
+      for (const parent of cases) {
+        const draft = setLoadEnabled(openSheetDraft(parent), true);
+        const typed = draft.variable ? setLoadValue(draft, { rowId: draft.rowIds[0]! }, 1.3) : setLoadValue(draft, "uniform", 1.3);
+        const value = committed(typed);
+        expect(value.loadEnabled).toBe(true);
+        expect(value.series.kind === "UNIFORM" ? value.series.loadKg : value.series.rows.map((entry) => entry.loadKg)).toEqual(
+          draft.variable ? [1.5, 0.25] : 1.5,
+        );
+        // La charge ne change aucune Cible.
+        expect(value.series.kind === "UNIFORM" ? value.series.target : value.series.rows.map((entry) => entry.target)).toEqual(
+          parent.series.kind === "UNIFORM" ? parent.series.target : parent.series.rows.map((entry) => entry.target),
+        );
+      }
+    });
+  });
+
+  describe("PRE5-2.1/AC7 — Condition d'arrêt et mémoire « À la cible » (FR-19, FR-21, AD-23)", () => {
+    it("Cible 30 s : À l'échec écrit FAILURE, le retour restaure 30 s", () => {
+      const failure = setStopCondition(openSheetDraft(durationParent()), "FAILURE");
+      expect(failure.uniform.target).toEqual(failureTarget());
+      expect(committed(failure).series).toEqual(uniform(3, "FAILURE", 15));
+      expect(setStopCondition(failure, "TARGET").uniform.target).toEqual(numberTarget(30));
+      expect(setStopCondition(failure, "FAILURE")).toBe(failure);
+    });
+
+    it("sans valeur connue : retour à À la cible → UNSET ; la dernière valeur saisie est restituée", () => {
+      const openedFailure = openSheetDraft(parameters(uniform(3, "FAILURE", 15)));
+      expect(setStopCondition(openedFailure, "TARGET").uniform.target).toEqual(unsetTarget());
+      const typed = setUniformTarget(openSheetDraft(durationParent()), numberTarget(45));
+      expect(setStopCondition(setStopCondition(typed, "FAILURE"), "TARGET").uniform.target).toEqual(numberTarget(45));
+    });
+
+    it("la mémoire « À la cible » suit l'identité copiée (cloneIdentity) : Variables puis Identiques restituent 30 s", () => {
+      let draft = setStopCondition(openSheetDraft(durationParent()), "FAILURE");
+      draft = setVariable(setVariable(draft, true), false);
+      expect(draft.uniform.target).toEqual(failureTarget());
+      expect(setStopCondition(draft, "TARGET").uniform.target).toEqual(numberTarget(30));
+    });
+
+    it("mémoire par Mode, jamais écrasée par FAILURE ni UNSET", () => {
+      let draft = setStopCondition(openSheetDraft(durationParent()), "FAILURE");
+      draft = setMode(draft, "REPETITIONS");
+      expect(draft.uniform.target).toEqual(failureTarget());
+      expect(setStopCondition(draft, "TARGET").uniform.target).toEqual(unsetTarget());
+      draft = setStopCondition(setMode(draft, "DURATION"), "TARGET");
+      expect(draft.uniform.target).toEqual(numberTarget(30));
+    });
+
+    it("variables effectives (N ≥ 2) : refusée ; N = 1 en état variable demandé : l'uniforme est pris d'abord", () => {
+      const rows = openSheetDraft(parameters(variable(row(30, 10), row(20, 5))));
+      expect(setStopCondition(rows, "FAILURE")).toBe(rows);
+      const atOne = setStopCondition(setSeriesCount(rows, 1), "FAILURE");
+      expect(atOne.variable).toBe(false);
+      expect(atOne.uniform.target).toEqual(failureTarget());
+      expect(setStopCondition(atOne, "TARGET").uniform.target).toEqual(numberTarget(30));
+    });
+
+    it("rien de la mémoire n'est persisté : paramètres demandés et ✓ sans lastNumberById", () => {
+      const draft = setStopCondition(setStopCondition(openSheetDraft(durationParent()), "FAILURE"), "TARGET");
+      expect(draft.lastNumberById).not.toEqual({});
+      expect(requestedParameters(draft)).not.toHaveProperty("lastNumberById");
+      expect(committed(draft)).toEqual(durationParent());
+    });
+  });
+
+  describe("PRE5-2.1/AC8 — côtés Avec / Sans (FR-15, AD-21, QN-4)", () => {
+    it("Avec écrit RIGHT_LEFT et copie la Pause du Profil à chaque passage ; Sans conserve Enchainement et Pause dans le Brouillon", () => {
+      let draft = openSheetDraft(parameters(uniform(3, 30, 10), { sideOrder: "BY_SERIES", sideRecoverySeconds: 4 }));
+      draft = setSideMode(draft, "RIGHT_LEFT", 12);
+      expect(draft.sideMode).toBe("RIGHT_LEFT");
+      expect(draft.sideRecoverySeconds).toBe(12);
+      draft = setSideRecovery(draft, 20);
+      draft = setSideMode(draft, "UNILATERAL", 12);
+      expect(draft.sideOrder).toBe("BY_SERIES");
+      expect(draft.sideRecoverySeconds).toBe(20);
+      expect(setSideMode(draft, "RIGHT_LEFT", 12).sideRecoverySeconds).toBe(12);
+    });
+
+    it("une valeur LEFT_RIGHT existante n'est jamais réécrite par les autres transitions ; côté non renseigné → Sans au ✓", () => {
+      let draft = openSheetDraft(parameters(uniform(3, 30, 10), { sideMode: "LEFT_RIGHT" }));
+      draft = setLoadEnabled(setWorkPhaseCount(setWorkPhasesEnabled(draft, true), 3), true);
+      draft = setStopCondition(setWorkPhasesEnabled(draft, false), "FAILURE");
+      expect(draft.sideMode).toBe("LEFT_RIGHT");
+      expect(committed(draft).sideMode).toBe("LEFT_RIGHT");
+      expect(committed(openSheetDraft(parameters(uniform(3, 30, 10), { sideMode: null }))).sideMode).toBe("UNILATERAL");
+    });
+
+    it("NR Δ24 : à N = 1, l'Enchainement demandé reste dans le Brouillon et BY_SIDE est enregistré", () => {
+      const draft = setSeriesCount(openSheetDraft(parameters(uniform(3, 30, 10), { sideMode: "RIGHT_LEFT", sideOrder: "BY_SERIES" })), 1);
+      expect(draft.sideOrder).toBe("BY_SERIES");
+      expect(committed(draft).sideOrder).toBe("BY_SIDE");
+    });
+  });
+
+  describe("PRE5-2.1/AC9 — aller-retour étendu aux nouveaux champs", () => {
+    it("requestedParameters(openSheetDraft(p)) = p ; lastNumberById présent dans le Brouillon, absent des paramètres", () => {
+      const parents = [
+        durationParent(),
+        parameters(
+          { kind: "UNIFORM", count: 2, target: numberTarget(9), pauseSeconds: 5, loadKg: 1.25, workPhases: [{ id: 7, label: "Descente", durationSeconds: 6 }, { id: 3, label: "Maintien", durationSeconds: 3 }] },
+          { loadEnabled: true, sideMode: "LEFT_RIGHT" },
+        ),
+        parameters(variable({ ...row(30, 10), loadKg: 2 }, { ...row("FAILURE", 0), loadKg: 0 }), { loadEnabled: false }),
+      ];
+      for (const parent of parents) {
+        const draft = openSheetDraft(parent);
+        expect(draft).toHaveProperty("lastNumberById");
+        const requested = requestedParameters(draft);
+        expect(requested).toEqual(parent);
+        expect(requested).not.toHaveProperty("lastNumberById");
+        expect(sheetDraftResult(draft, phaseLabel, parent)).toEqual({ ok: true, value: parent });
+      }
+    });
+  });
+
+  function committedWith(draft: ExecutionSheetDraft): ExecutionParameters {
+    const result = sheetDraftResult(draft, phaseLabel);
+    if (!result.ok) {
+      throw new Error(JSON.stringify(result.violations));
+    }
+    return result.value;
+  }
 });

@@ -624,6 +624,9 @@ function codePointLength(text: string): number {
   return Array.from(text).length;
 }
 
+/** Raison « somme hors bornes » (PRE-5 story 2.1) : la violation `workPhases` porte alors les bornes de la somme. */
+const WORK_PHASES_SUM_OUT_OF_RANGE = "work phases sum out of range";
+
 /**
  * PRE-5 (AD-20, FR-1, FR-3, FR-40) — invariant structurel des phases, partagé
  * par `validateForSave` et `readV3`. Une liste vide (« Aucune ») est toujours
@@ -674,7 +677,7 @@ function workPhasesProblem(mode: unknown, target: unknown, workPhases: unknown):
   }
   const bounds = EXECUTION_BOUNDS.durationTarget;
   if (sum < bounds.min || sum > bounds.max) {
-    return "work phases sum out of range";
+    return WORK_PHASES_SUM_OUT_OF_RANGE;
   }
   if (target.value !== sum) {
     return "series target differs from the work phases sum";
@@ -860,8 +863,19 @@ export function validateForSave(
       violations.push({ code: "REQUIRED", field: "workPhases", level: "STRUCTURE" });
     } else if (!Array.isArray(series.workPhases)) {
       violations.push({ code: "UNRECOGNIZED", field: "workPhases", level: "STRUCTURE" });
-    } else if (workPhasesProblem(mode, series.target, series.workPhases) !== null) {
-      violations.push({ code: "OUT_OF_RANGE", field: "workPhases", level: "STRUCTURE" });
+    } else {
+      const problem = workPhasesProblem(mode, series.target, series.workPhases);
+      if (problem !== null) {
+        // PRE-5 (story 2.1, FR-3) : une somme hors de 1..3535 rend ✓ indisponible ; la
+        // violation porte alors les bornes de la somme, comme une durée de série invalide.
+        const { min, max } = EXECUTION_BOUNDS.durationTarget;
+        violations.push({
+          code: "OUT_OF_RANGE",
+          field: "workPhases",
+          level: "STRUCTURE",
+          ...(problem === WORK_PHASES_SUM_OUT_OF_RANGE ? { details: { min, max } } : {}),
+        });
+      }
     }
   } else if (series.kind === "VARIABLE") {
     if (!Array.isArray(series.rows) || series.rows.length === 0) {
