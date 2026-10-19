@@ -49,7 +49,7 @@ export function openExecutionSheetField(testID: string): void {
 /**
  * PRE-5 story 2.5 (AC4, AD-28) : déplie « Durée de l'exercice » pour rendre Compte à rebours
  * et Fin d'exercice, s'ils sont repliés sous son chevron. Sans effet si la section est déjà
- * déployée ou si la ligne est absente (signaux alors directement visibles).
+ * déployée ou sans chevron (Exercice ouvert depuis une Séance ; D-433 : ligne toujours présente).
  */
 export function showExerciseDurationSignals(): void {
   const disclosure = screen.queryByLabelText(strings.executionParameters.sheet.showExerciseSignals);

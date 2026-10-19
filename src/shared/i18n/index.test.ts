@@ -581,7 +581,11 @@ describe("strings — PRE-5 story 2.5", () => {
     expect(sheet.cadence).toBe("Cadence");
     expect(sheet.cadenceOptions).toEqual({ OTHER: "Autre", "1": "1 s", NONE: "Sans" }); // RC-10
     expect(sheet.exerciseDuration).toBe("Durée de l’exercice");
-    expect(sheet.exerciseDurationEstimated).toBe("Durée de l’exercice ≈");
+    // D-433 : le symbole ≈ quitte le titre (collé à la valeur) ; la clé `exerciseDurationEstimated`
+    // est supprimée. Ligne toujours affichée : « Non calculable » et annonce de « — ».
+    expect("exerciseDurationEstimated" in sheet).toBe(false);
+    expect(sheet.totalNotCalculable).toBe("Non calculable");
+    expect(sheet.totalMissingSpoken).toBe("données manquantes");
     expect(sheet.exerciseDurationEditAccessibilityLabel).toBe("Durée de l’exercice, ajuster le nombre de séries");
     for (const label of [sheet.showExerciseSignals, sheet.hideExerciseSignals]) {
       expect(label.length).toBeGreaterThan(0);

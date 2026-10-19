@@ -166,6 +166,19 @@ const anyNode = { includeHiddenElements: true } as const;
 /** Option sélectionnée d'un segmenté interactif, ou `null`. */
 const selectedValue = (control: string, values: readonly string[]) =>
   values.find((value) => screen.queryByTestId(`${control}-${value}`, anyNode)?.props.accessibilityState?.selected === true) ?? null;
+/**
+ * D-433 (décision de Hermann du 19/10) : la ligne « Durée de l’exercice » est toujours
+ * affichée. Valeur affichée (pastille ou texte en lecture seule, même `testID` de texte) et
+ * annonce de la ligne (portée par le groupe de valeur quand le chevron est présent, sinon par
+ * la ligne entière).
+ */
+const totalShown = () => String(screen.getByTestId("execution-sheet-total-text", anyNode).props.children);
+const totalSpoken = () =>
+  (screen.queryByTestId("execution-sheet-row-total-value-group", anyNode) ?? screen.getByTestId("execution-sheet-row-total-line", anyNode)).props
+    .accessibilityLabel as string | undefined;
+const TOTAL_NOT_CALCULABLE = "Non calculable";
+const TOTAL_MISSING_SPOKEN = "Durée de l’exercice, données manquantes";
+const TOTAL_NOT_CALCULABLE_SPOKEN = "Durée de l’exercice, Non calculable";
 /** Mode affiché : « Durée », « Répétitions », ou « — » si aucun segment n'est sélectionné. */
 function modeText(): string {
   const mode = selectedValue(MODE_CONTROL, ["REPETITIONS", "DURATION"]) as "REPETITIONS" | "DURATION" | null;
@@ -535,9 +548,12 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     expect(invalidCell.borderWidth).toBeUndefined();
     expect(invalidCell.borderColor).toBeUndefined();
     expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-table-row-1-target").props.style).backgroundColor).not.toBe("#FFF1F0");
-    // PRE-4 story 2.1 (AC9, H10, H28) : une Cible à renseigner masque la ligne Durée
-    // totale — ni « — » ni « 0 s » (remplace l'ancien attendu PRE-3 « total — »).
-    expect(screen.queryByTestId("execution-sheet-row-total")).toBeNull();
+    // PRE-4 story 2.1 (AC9, H10, H28) : jamais « 0 s ». D-433 : une Cible à renseigner ne
+    // masque plus la ligne Durée de l'exercice — elle affiche « — », annoncée « données
+    // manquantes » (rétablit l'attendu PRE-3 « total — »).
+    expect(screen.getByTestId("execution-sheet-row-total")).toBeTruthy();
+    expect(totalShown()).toBe("—");
+    expect(totalSpoken()).toBe(TOTAL_MISSING_SPOKEN);
     expect(screen.queryAllByText("0 s")).toHaveLength(0);
     // Replier ne modifie ni les données ni la validation.
     fireEvent.press(screen.getByLabelText("Masquer le tableau des séries"));
@@ -635,10 +651,18 @@ describe("ExecutionParametersSheet — PRE-3", () => {
       "Pause après chaque série",
       "Changement de côté",
       "Cadence",
-      // Cible à renseigner : pas de ligne « Durée de l'exercice », signaux directement visibles.
-      "Compte à rebours",
-      "Fin d’exercice",
     ]) {
+      expect(screen.getByText(label)).toBeTruthy();
+    }
+    // D-433 : Mode non choisi et Cible à renseigner — la ligne « Durée de l'exercice » est
+    // présente (« — ») ; Compte à rebours et Fin sont repliés derrière son chevron. Libellé
+    // masqué à l'accessibilité (l'annonce regroupée est portée par la valeur).
+    expect(screen.getByText("Durée de l’exercice", anyNode)).toBeTruthy();
+    expect(totalShown()).toBe("—");
+    expect(screen.queryByText("Compte à rebours")).toBeNull();
+    expect(screen.queryByText("Fin d’exercice")).toBeNull();
+    showSignals();
+    for (const label of ["Compte à rebours", "Fin d’exercice"]) {
       expect(screen.getByText(label)).toBeTruthy();
     }
     expect(screen.queryByText("Mode d’exécution")).toBeNull();
@@ -671,11 +695,17 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     }
   });
 
-  it("P3-20/sheet-specific — tout échec : aucun total, Bip immédiatement avant Compte à rebours", () => {
+  it("P3-20/sheet-specific — tout échec (D-433) : ligne Durée de l’exercice « Non calculable », entre le Bip et Compte à rebours", () => {
     renderSheet(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: { kind: "FAILURE" }, pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
-    expect(screen.queryByTestId("execution-sheet-row-total")).toBeNull();
+    // D-433 : À l'échec en séries identiques — la ligne reste, « Non calculable », jamais un total.
+    expect(screen.getByTestId("execution-sheet-row-total")).toBeTruthy();
+    expect(totalShown()).toBe(TOTAL_NOT_CALCULABLE);
+    expect(screen.queryByTestId("execution-sheet-total")).toBeNull();
+    showSignals();
     const json = JSON.stringify(screen.toJSON());
-    expect(json.indexOf('"execution-sheet-row-beep"')).toBeLessThan(json.indexOf('"execution-sheet-row-countdown"'));
+    const positions = ["execution-sheet-row-beep", "execution-sheet-row-total", "execution-sheet-row-countdown"].map((id) => json.indexOf(`"${id}"`));
+    expect(positions.every((position) => position >= 0)).toBe(true);
+    expect(positions).toEqual([...positions].sort((a, b) => a - b));
   });
 
   it("P3-21/accessible-controls — libellés complets, états désactivés, valeurs courantes, actions ✓/✕ nommées", () => {
@@ -921,9 +951,11 @@ describe("ExecutionParametersSheet — correction revue 1", () => {
     expect(screen.queryByTestId("execution-sheet-series-field")).toBeNull();
     expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-table-row-1-pause").props.style).width).toBe(128);
     // PRE-5 story 2.5 (AC4) : le libellé est affiché ; l'annonce regroupée est portée par la valeur.
-    expect(screen.getByText("Durée de l’exercice ≈", anyNode)).toBeTruthy();
+    // D-433 : le titre ne porte plus ≈ ; le symbole est collé avant la valeur.
+    expect(screen.getByText("Durée de l’exercice", anyNode)).toBeTruthy();
+    expect(screen.queryByText("Durée de l’exercice ≈", anyNode)).toBeNull();
     // (12 + 10) × 2 s + 30 s + 45 s = 119 s.
-    expect(text("execution-sheet-total")).toBe("1 min 59 s");
+    expect(text("execution-sheet-total")).toBe("≈ 1 min 59 s");
     expect(screen.queryByTestId("execution-sheet-total")).toBeNull();
   });
 });
@@ -1320,7 +1352,10 @@ describe("ExecutionParametersSheet — PRE-4 story 1.1", () => {
     expect(screen.getByTestId("execution-sheet-row-pause")).toBeTruthy();
     expect(screen.queryByTestId("execution-sheet-target-stepper")).toBeNull();
     expect(screen.queryByTestId("execution-sheet-target-wheel")).toBeNull();
-    expect(screen.queryByTestId("execution-sheet-row-total")).toBeNull();
+    // D-433 : À l'échec en séries identiques — ligne présente, « Non calculable », sans pastille.
+    expect(screen.getByTestId("execution-sheet-row-total")).toBeTruthy();
+    expect(totalShown()).toBe(TOTAL_NOT_CALCULABLE);
+    expect(screen.queryByTestId("execution-sheet-total")).toBeNull();
   });
 
   it("PRE4-1.1/AC22 — cellules à l’échec en lecture ; en-têtes Mode et Pause conservés ; N augmenté depuis une dernière ligne à l’échec ajoute une ligne à l’échec de même Pause ; changer de Mode conserve les Cibles à l’échec", () => {
@@ -1426,15 +1461,20 @@ describe("ExecutionParametersSheet — PRE-4 story 1.1", () => {
 describe("ExecutionParametersSheet — PRE-4 story 2.1", () => {
   // Story 3.7 (AC1, FR-14-01) : le mélange calculable n'est plus masqué mais affiché en
   // `≥` (voir `PRE4-3.7/AC1`) ; ce test garde le tout échec et la Cible à renseigner.
-  it("PRE4-2.1/AC9 — ligne Durée totale masquée pour un tout échec et une Cible à renseigner : ni « — » ni « 0 s » (mélange : story 3.7)", () => {
+  // D-433 : la ligne n'est plus masquée ; tableau variable entièrement à l'échec (en attente
+  // d'arbitrage) et Cible à renseigner affichent « — » (données manquantes), jamais « 0 s ».
+  it("PRE4-2.1/AC9, D-433 — ligne Durée de l’exercice « — » (données manquantes) pour un tableau variable tout échec et une Cible à renseigner : ni « 0 s » ni ≥ (mélange : story 3.7)", () => {
     for (const parent of [
       variableParameters({ rows: [["FAILURE", 10], ["FAILURE", 10]] }),
       durationParameters("UNSET", 3, 10),
       variableParameters({ rows: [[30, 10], ["UNSET", 10], [45, 10]] }),
     ]) {
       const view = renderSheetView(parent);
-      expect(screen.queryByTestId("execution-sheet-row-total")).toBeNull();
-      expect(screen.queryByTestId("execution-sheet-total-text")).toBeNull();
+      expect(screen.getByTestId("execution-sheet-row-total")).toBeTruthy();
+      expect(totalShown()).toBe("—");
+      expect(totalSpoken()).toBe(TOTAL_MISSING_SPOKEN);
+      expect(screen.queryByTestId("execution-sheet-total")).toBeNull();
+      expect(screen.queryAllByText("0 s")).toHaveLength(0);
       expect(screen.queryAllByText(/≥/u)).toHaveLength(0);
       view.unmount();
     }
@@ -2411,14 +2451,23 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     expect(failureTexts.map((node) => String(node.props.children))).toEqual(["À l’échec"]);
     expect(within(screen.getByTestId(STOP_CONTROL)).getByText("À l’échec", anyNode)).toBe(failureTexts[0]);
   });
-  it("PRE4-3.3/AC2, PRE5-2.5/AC4 — sans ligne Durée de l’exercice, la Cadence est juste avant le Compte à rebours, visible sans chevron", () => {
+  // D-433 : Répétitions sans Cadence — la ligne Durée de l'exercice reste (« Non calculable »),
+  // juste après la Cadence ; Compte à rebours est replié derrière son chevron, puis la suit.
+  it("PRE4-3.3/AC2, PRE5-2.5/AC4, D-433 — Répétitions sans Cadence : ligne Durée de l’exercice « Non calculable » juste après la Cadence, Compte à rebours replié derrière son chevron puis juste après elle", () => {
     renderSheet(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
-    expect(screen.queryByTestId("execution-sheet-row-total")).toBeNull();
+    expect(screen.getByTestId("execution-sheet-row-total")).toBeTruthy();
+    expect(totalShown()).toBe(TOTAL_NOT_CALCULABLE);
+    expect(screen.queryByTestId("execution-sheet-row-countdown")).toBeNull();
+    expect(screen.getByTestId(`${DURATION_DISCLOSURE}-frame`)).toBeTruthy();
+    showSignals();
     const json = JSON.stringify(screen.toJSON());
     const beep = json.indexOf('"execution-sheet-row-beep"');
+    const total = json.indexOf('"execution-sheet-row-total"');
     const countdown = json.indexOf('"execution-sheet-row-countdown"');
-    expect(beep).toBeLessThan(countdown);
-    expect(json.slice(beep, countdown)).not.toMatch(/"execution-sheet-row-(?!beep)/);
+    expect(beep).toBeLessThan(total);
+    expect(total).toBeLessThan(countdown);
+    expect(json.slice(beep, total)).not.toMatch(/"execution-sheet-row-(?!beep)/);
+    expect(json.slice(total, countdown)).not.toMatch(/"execution-sheet-row-(?!total)/);
   });
 
   it("PRE4-3.3/AC3, PRE5-2.4/AC3 — iOS : Mode en segmenté en ligne, exactement Répétitions puis Durée, en identiques comme en variables ; ni popover ni panneau ; aucun retour à « — »", () =>
@@ -4272,7 +4321,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     });
   const mixedDuration = () => variableParameters({ rows: [[30, 10], [45, 20], ["FAILURE", 30]] });
 
-  it("PRE4-3.7/AC1 — forme de la ligne : modifiable (Durée identiques chiffrée), lecture seule (variables chiffrées, Répétitions avec Bip ≈), ≥ pour un mélange, aucune ligne sinon ; aucune composante ajoutée", () => {
+  it("PRE4-3.7/AC1, D-433 — forme de la ligne : modifiable (Durée identiques chiffrée), lecture seule (variables chiffrées, Répétitions avec Bip ≈ devant la valeur), ≥ pour un mélange, « Non calculable » ou « — » sinon ; aucune composante ajoutée", () => {
     // Durée, `identiques`, Cible numérique, N libre : pastille modifiable. T = N × (d + p).
     let view = renderSheetView(ac4Exercise());
     expect(text("execution-sheet-total")).toBe(formatPhraseDuration(3 * (30 + 10)));
@@ -4290,12 +4339,13 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     // Répétitions avec Bip, Cibles toutes numériques : lecture seule, ≈. T = Σ(Ri × b + Pi).
     view = renderSheetView(repetitionsWithBeep());
     expect(screen.queryByTestId("execution-sheet-total")).toBeNull();
-    expect(totalLabelText()).toBe("Durée de l’exercice ≈");
-    expect(readOnlyText()).toBe(formatPhraseDuration(3 * (10 * 2 + 15)));
+    // D-433 : ≈ quitte le titre ; il est collé avant la valeur, dans la même zone d'affichage.
+    expect(totalLabelText()).toBe("Durée de l’exercice");
+    expect(readOnlyText()).toBe(`≈ ${formatPhraseDuration(3 * (10 * 2 + 15))}`);
     view.unmount();
     view = renderSheetView(params({ mode: "REPETITIONS", series: variableRows([[12, 30], [10, 45]]), cadenceBeepIntervalSeconds: 2 }));
-    expect(totalLabelText()).toBe("Durée de l’exercice ≈");
-    expect(readOnlyText()).toBe(formatPhraseDuration(12 * 2 + 30 + 10 * 2 + 45));
+    expect(totalLabelText()).toBe("Durée de l’exercice");
+    expect(readOnlyText()).toBe(`≈ ${formatPhraseDuration(12 * 2 + 30 + 10 * 2 + 45)}`);
     view.unmount();
 
     // Mélange calculable : lecture seule, montant précédé de ≥ (FR-13-03 : travail connu + toutes les Pauses).
@@ -4319,24 +4369,27 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     expect(totalLabelText()).toBe("Durée de l’exercice");
     view.unmount();
 
-    // Aucune ligne : Répétitions sans Bip, tout à l'échec (Durée ou Répétitions avec Bip), `identiques` à l'échec.
-    for (const parent of [
-      params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15, loadKg: 0, workPhases: [] } }),
-      variableParameters({ rows: [["FAILURE", 10], ["FAILURE", 20]] }),
-      { ...allFailureParameters(3, 15, { cadenceBeepIntervalSeconds: 2 }), countdownSeconds: 10, endSeconds: 5 },
-      durationParameters("FAILURE", 3, 10),
-    ]) {
+    // D-433 : plus de cas « aucune ligne ». Répétitions sans Bip et `identiques` à l'échec
+    // (Durée ou Répétitions avec Bip) : « Non calculable » ; tableau variable tout à l'échec :
+    // « — » (en attente d'arbitrage). Ligne après la Cadence, Compte à rebours replié (chevron).
+    for (const [parent, shown] of [
+      [params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15, loadKg: 0, workPhases: [] } }), TOTAL_NOT_CALCULABLE],
+      [variableParameters({ rows: [["FAILURE", 10], ["FAILURE", 20]] }), "—"],
+      [{ ...allFailureParameters(3, 15, { cadenceBeepIntervalSeconds: 2 }), countdownSeconds: 10, endSeconds: 5 }, TOTAL_NOT_CALCULABLE],
+      [durationParameters("FAILURE", 3, 10), TOTAL_NOT_CALCULABLE],
+    ] as const) {
       view = renderSheetView(parent);
-      expect(screen.queryByTestId("execution-sheet-row-total")).toBeNull();
-      expect(screen.queryAllByText(/^Durée de l’exercice/u, anyNode)).toHaveLength(0);
-      // PRE-5 story 2.5 (AC4) : ligne absente — Compte à rebours visible, sans chevron.
-      expect(bodyRowOrder()).toEqual(["beep", "countdown"]);
-      expect(screen.queryByTestId("execution-sheet-duration-disclosure-frame")).toBeNull();
+      expect(screen.getByTestId("execution-sheet-row-total")).toBeTruthy();
+      expect(totalLabelText()).toBe("Durée de l’exercice");
+      expect(readOnlyText()).toBe(shown);
+      expect(screen.queryByTestId("execution-sheet-total")).toBeNull();
+      expect(bodyRowOrder()).toEqual(["beep", "total"]);
+      expect(screen.getByTestId("execution-sheet-duration-disclosure-frame")).toBeTruthy();
       view.unmount();
     }
   });
 
-  it("PRE4-3.7/AC2 — recalcul aussitôt (Pause, N, côtés, Mode, Bip, Cible) ; Cible `UNSET` : ni ligne ni montant, ✓ indisponible ; ligne retirée, Bip juste avant Compte à rebours", () => {
+  it("PRE4-3.7/AC2, D-433 — recalcul aussitôt (Pause, N, côtés, Mode, Bip, Cible) ; Cible `UNSET` : aucun montant (« — » ou « Non calculable »), ✓ indisponible ; ligne toujours à sa place après la Cadence", () => {
     const view = renderSheetView(ac4Exercise());
     expect(text("execution-sheet-total")).toBe(formatPhraseDuration(3 * (30 + 10)));
     tap("execution-sheet-pause-increment");
@@ -4347,14 +4400,15 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     expect(valueOf("execution-sheet-side-recovery")).toBe("10 s");
     // Un côté après l'autre : 2 N (d + p) + PC.
     expect(text("execution-sheet-total")).toBe(formatPhraseDuration(2 * 4 * (30 + 11) + 10));
-    // Mode Répétitions : la Cible numérique de Durée devient `—` (UNSET) — ni ligne ni montant.
+    // Mode Répétitions : la Cible numérique de Durée devient `—` (UNSET) — aucun montant.
+    // D-433 : la ligne reste ; Répétitions sans Cadence → « Non calculable » (prime sur « — »).
     chooseMode("Répétitions");
-    expect(screen.queryByTestId("execution-sheet-row-total")).toBeNull();
-    expect(screen.queryAllByText(/^Durée de l’exercice/u, anyNode)).toHaveLength(0);
+    expect(screen.getByTestId("execution-sheet-row-total")).toBeTruthy();
+    expect(readOnlyText()).toBe(TOTAL_NOT_CALCULABLE);
     expect(screen.queryAllByText("0 s")).toHaveLength(0);
     expect(sheetValidateDisabled()).toBe(true);
-    expect(bodyRowOrder()).toEqual(["beep", "countdown"]);
-    // Retour en Durée : Cible restaurée, total recalculé, ligne de retour après la Cadence ;
+    expect(bodyRowOrder()).toEqual(["beep", "total"]);
+    // Retour en Durée : Cible restaurée, total recalculé, ligne à la même place après la Cadence ;
     // PRE-5 story 2.5 (AC4) : Compte à rebours replié sous elle, puis déplié par le chevron.
     chooseMode("Durée");
     expect(text("execution-sheet-total")).toBe(formatPhraseDuration(2 * 4 * (30 + 11) + 10));
@@ -4363,13 +4417,14 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     expect(bodyRowOrder()).toEqual(["beep", "total", "countdown"]);
     view.unmount();
 
-    // Bip : Répétitions sans Bip → aucune ligne ; Bip 2 s → ≈ N × (R × b + p).
+    // Bip : Répétitions sans Bip → « Non calculable » (D-433) ; Bip 2 s → ≈ N × (R × b + p),
+    // symbole devant la valeur, titre inchangé.
     const reps = renderSheetView(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
-    expect(screen.queryByTestId("execution-sheet-row-total")).toBeNull();
+    expect(readOnlyText()).toBe(TOTAL_NOT_CALCULABLE);
     tap("execution-sheet-beep-increment");
     tap("execution-sheet-beep-increment");
-    expect(totalLabelText()).toBe("Durée de l’exercice ≈");
-    expect(readOnlyText()).toBe(formatPhraseDuration(3 * (10 * 2 + 15)));
+    expect(totalLabelText()).toBe("Durée de l’exercice");
+    expect(readOnlyText()).toBe(`≈ ${formatPhraseDuration(3 * (10 * 2 + 15))}`);
     reps.unmount();
 
     // Cible : un mélange se recalcule quand une Cible numérique change (30 → 31 s).
@@ -4378,15 +4433,16 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     expect(readOnlyText()).toBe(lowerBound(31 + 45 + 10 + 20 + 30));
     mixed.unmount();
 
-    // Cible `UNSET` dans un tableau : aucune ligne, aucun montant, ✓ indisponible (H10, NFR-06).
+    // Cible `UNSET` dans un tableau : aucun montant, ✓ indisponible (H10, NFR-06). D-433 : la
+    // ligne reste, « — » (données manquantes), à sa place après la Cadence.
     renderSheet(variableParameters({ rows: [[30, 10], ["UNSET", 20], [45, 30]] }));
-    expect(screen.queryByTestId("execution-sheet-row-total")).toBeNull();
-    expect(screen.queryAllByText(/^≥|^Durée de l’exercice/u)).toHaveLength(0);
+    expect(readOnlyText()).toBe("—");
+    expect(screen.queryAllByText(/^≥/u)).toHaveLength(0);
     expect(sheetValidateDisabled()).toBe(true);
-    expect(bodyRowOrder()).toEqual(["beep", "countdown"]);
+    expect(bodyRowOrder()).toEqual(["beep", "total"]);
   });
 
-  it("PRE4-3.7/AC3 — échec en `variables`, Régime `variables` ou Mode Répétitions : toucher la ligne n'ouvre aucune roulette ; échec en `identiques` : aucune ligne", () => {
+  it("PRE4-3.7/AC3, D-433 — échec en `variables`, Régime `variables` ou Mode Répétitions : toucher la ligne n'ouvre aucune roulette ; échec en `identiques` : ligne « Non calculable », sans roulette", () => {
     for (const parent of [mixedDuration(), params({ series: variableRows([[30, 10], [45, 20]]) }), repetitionsWithBeep()]) {
       const view = renderSheetView(parent);
       expect(screen.queryByTestId("execution-sheet-total")).toBeNull();
@@ -4398,8 +4454,15 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
       expect(totalLine().props.accessibilityLabel).toMatch(/non modifiable$/u);
       view.unmount();
     }
+    // D-433 : la ligne reste, « Non calculable », et ne s'ouvre pas davantage.
     renderSheet(durationParameters("FAILURE", 3, 10));
-    expect(screen.queryByTestId("execution-sheet-row-total")).toBeNull();
+    expect(readOnlyText()).toBe(TOTAL_NOT_CALCULABLE);
+    expect(screen.queryByTestId("execution-sheet-total")).toBeNull();
+    fireEvent.press(screen.getByTestId("execution-sheet-total-text"));
+    fireEvent.press(totalLine());
+    expect(screen.queryByTestId("execution-sheet-total-panel")).toBeNull();
+    expect(screen.queryByTestId("execution-sheet-total-wheel")).toBeNull();
+    expect(totalLine().props.accessibilityLabel).toBe(TOTAL_NOT_CALCULABLE_SPOKEN);
   });
 
   // Présentation du panneau (Q41) prouvée ici et, plus largement (réserve sous le groupe,
@@ -4592,7 +4655,9 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     expect(spoken()).not.toMatch(/[≈≥—]/u);
     // La valeur n'est pas atténuée : même couleur que le libellé, aucune opacité.
     const value = StyleSheet.flatten(screen.getByTestId("execution-sheet-total-text").props.style);
-    const label = StyleSheet.flatten(within(totalRow()).getByText("Durée de l’exercice ≈", anyNode).props.style);
+    // D-433 : titre sans ≈ (le symbole est collé avant la valeur, non annoncé).
+    expect(readOnlyText()).toBe(`≈ ${formatPhraseDuration(3 * (10 * 2 + 15))}`);
+    const label = StyleSheet.flatten(within(totalRow()).getByText("Durée de l’exercice", anyNode).props.style);
     expect(value.color).toBe(label.color);
     expect(value.opacity).toBeUndefined();
     view.unmount();
@@ -4645,8 +4710,9 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
       { parent: mixedDuration(), seconds: 135, prefix: strings.shared.durationNature.lowerBoundPrefix, editable: false },
       // 3 535 + 30 + 90 + 0 = 3 655 s → « 60 min 55 s » (H8 : pas d'heures).
       { parent: params({ series: variableRows([[3535, 30], [90, 0]]) }), seconds: 3535 + 30 + 90, prefix: "", editable: false },
-      // Répétitions avec Bip : 3 × (10 × 2 + 15) = 105 s → « 1 min 45 s » (≈ dans le libellé).
-      { parent: repetitionsWithBeep(), seconds: 105, prefix: "", editable: false },
+      // Répétitions avec Bip : 3 × (10 × 2 + 15) = 105 s → « ≈ 1 min 45 s » (D-433 : ≈ collé
+      // avant la valeur, préfixe du lexique, et non plus dans le libellé).
+      { parent: repetitionsWithBeep(), seconds: 105, prefix: strings.shared.durationNature.estimatedPrefix, editable: false },
       // 90 × 70 = 6 300 s → « 105 min » (au-delà du plafond de la roue : lecture seule).
       { parent: params({ series: { kind: "UNIFORM", count: 90, target: numberTarget(60), pauseSeconds: 10, loadKg: 0, workPhases: [] } }), seconds: 6300, prefix: "", editable: false },
     ];
@@ -4658,6 +4724,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     }
     expect(formatPhraseDuration(99 * 40)).toBe("66 min");
     expect(`${strings.shared.durationNature.lowerBoundPrefix}${formatPhraseDuration(135)}`).toBe("≥ 2 min 15 s");
+    expect(`${strings.shared.durationNature.estimatedPrefix}${formatPhraseDuration(105)}`).toBe("≈ 1 min 45 s");
     expect(formatPhraseDuration(3655)).toBe("60 min 55 s");
   });
 });
@@ -5077,7 +5144,10 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
       expect(within(get("execution-sheet-row-mode-line")).getByTestId(MODE_CONTROL, hidden)).toBeTruthy();
       expect(within(get("execution-sheet-row-series-type-line")).getByTestId(SERIES_TYPE, hidden)).toBeTruthy();
       expect(query("execution-sheet-regime-panel")).toBeNull();
-      // Hors tableau : au repos, valeur seule ; les ± n'apparaissent qu'à l'appui.
+      // Hors tableau : au repos, valeur seule ; les ± n'apparaissent qu'à l'appui. D-433 : la
+      // ligne Durée de l'exercice est présente (Cible à renseigner) ; Compte à rebours et Fin
+      // sont d'abord dépliés par son chevron.
+      showSignals();
       for (const field of ["series", "beep", "countdown", "end", "side-recovery"]) {
         expect(query(`execution-sheet-${field}-increment`)).toBeNull();
         openExecutionSheetField(`execution-sheet-${field}`);
@@ -6414,28 +6484,37 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     expect(applied(onApply)).toMatchObject({ countdownSeconds: 11, endSeconds: 5 });
   });
 
-  it("PRE5-2.5/AC4 — Sans total (Répétitions à l'échec) : pas de ligne, Compte à rebours et Fin visibles, sans chevron ; la ligne qui apparaît se présente repliée", () => {
+  // D-433 : la ligne n'est plus jamais absente ; Compte à rebours et Fin sont toujours repliés
+  // par défaut derrière son chevron, y compris en « Non calculable ».
+  it("PRE5-2.5/AC4, D-433 — Sans total (Durée à l'échec, Répétitions sans Cadence) : ligne « Non calculable », Compte à rebours et Fin repliés derrière le chevron ; Cadence 1 s : valeur ≈, toujours repliée", () => {
     const view = renderSheetView(durationParameters("FAILURE", 3, 10));
-    expect(query("execution-sheet-row-total")).toBeNull();
-    expect(signals()).toEqual({ countdown: true, end: true, disclosure: false });
+    expect(query("execution-sheet-row-total")).not.toBeNull();
+    expect(totalShown()).toBe(TOTAL_NOT_CALCULABLE);
+    expect(signals()).toEqual({ countdown: false, end: false, disclosure: true });
+    showSignals();
+    expect(signals()).toEqual({ countdown: true, end: true, disclosure: true });
     view.unmount();
     renderSheet(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
-    expect(signals()).toEqual({ countdown: true, end: true, disclosure: false });
-    // Cadence 1 s (RC-10) : la ligne ≈ apparaît, repliée.
+    expect(totalShown()).toBe(TOTAL_NOT_CALCULABLE);
+    expect(signals()).toEqual({ countdown: false, end: false, disclosure: true });
+    // Cadence 1 s (RC-10) : la valeur ≈ remplace « Non calculable », titre inchangé, repliée.
     fireEvent.press(get(`${CADENCE_CONTROL}-1`));
-    expect(screen.getByText("Durée de l’exercice ≈", hidden)).toBeTruthy();
+    expect(screen.getByText("Durée de l’exercice", hidden)).toBeTruthy();
+    expect(totalShown()).toBe(`≈ ${formatPhraseDuration(3 * (10 * 1 + 15))}`);
     expect(signals()).toEqual({ countdown: false, end: false, disclosure: true });
   });
 
-  it("PRE5-2.5/AC4 — Exercice ouvert depuis une Séance : ni Compte à rebours, ni Fin, ni chevron, avec ou sans ligne ; valeurs conservées au ✓", () => {
+  it("PRE5-2.5/AC4, D-433 — Exercice ouvert depuis une Séance : ni Compte à rebours, ni Fin, ni chevron, ligne chiffrée ou « Non calculable » ; valeurs conservées au ✓", () => {
     let view = renderWithSignals(params({ countdownSeconds: 12, endSeconds: 7 }), "absent");
     expect(query("execution-sheet-row-total")).not.toBeNull();
     expect(signals()).toEqual({ countdown: false, end: false, disclosure: false });
     fireEvent.press(get("execution-sheet-validate"));
     expect(applied(view.onApply)).toMatchObject({ countdownSeconds: 12, endSeconds: 7 });
     view.unmount();
+    // D-433 : à l'échec en identiques, la ligne reste (« Non calculable »), toujours sans chevron.
     view = renderWithSignals({ ...durationParameters("FAILURE", 3, 10), countdownSeconds: 12, endSeconds: 7 }, "absent");
-    expect(query("execution-sheet-row-total")).toBeNull();
+    expect(query("execution-sheet-row-total")).not.toBeNull();
+    expect(totalShown()).toBe(TOTAL_NOT_CALCULABLE);
     expect(signals()).toEqual({ countdown: false, end: false, disclosure: false });
     view.unmount();
     // Défaut : signaux présents (Catalogue).
@@ -6703,5 +6782,245 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
     expect(controlLabels()).toEqual(["Avec", "Sans"]);
     expect(inputs()).toHaveLength(0);
     expect(query(UNIFORM)).toBeNull();
+  });
+});
+
+/**
+ * D-433 (décision de Hermann du 19/10, fait foi) — la ligne « Durée de l’exercice » est
+ * toujours affichée dans la Feuille, à la même place (après la Cadence), en trois états :
+ * « Non calculable » quand la configuration seule exclut le calcul (Répétitions sans Cadence,
+ * À l'échec en séries identiques ; prime sur « — ») ; « — » quand des données manquent (Mode non
+ * choisi, Cible à renseigner, saisie invalide, tableau variable entièrement à l'échec — ce
+ * dernier en attente d'arbitrage) ; sinon la valeur, précédée de son symbole (≈, ≥) dans la même
+ * zone d'affichage. Compte à rebours et Fin sont toujours repliés par défaut derrière le chevron
+ * de la ligne, sauf depuis une Séance (ni lignes ni chevron). Jest n'exerce ni VoiceOver ni le
+ * rendu natif : le constat sur iPhone appartient à Hermann.
+ */
+describe("ExecutionParametersSheet — D-433 (ligne Durée de l’exercice toujours affichée)", () => {
+  const hidden = { includeHiddenElements: true } as const;
+  const get = (testID: string) => screen.getByTestId(testID, hidden);
+  const query = (testID: string) => screen.queryByTestId(testID, hidden);
+  const sheetText = strings.executionParameters.sheet;
+  /** Lignes du cadre « Cadence et durée », dans l'ordre d'affichage (testID de la ligne). */
+  const cadenceFrameRows = () =>
+    within(get("execution-sheet-frame-cadence"))
+      .queryAllByTestId(/^execution-sheet-row-.+-line$/, hidden)
+      .map((node) => String(node.props.testID).replace(/-line$/u, ""));
+  const totalIndex = () => cadenceFrameRows().indexOf("execution-sheet-row-total");
+  const titleText = () => String(within(get("execution-sheet-row-total-line")).getAllByText(/^Durée de l’exercice/u, hidden)[0]!.props.children);
+  const signals = () => ({
+    countdown: query("execution-sheet-row-countdown") !== null,
+    end: query("execution-sheet-row-end") !== null,
+    disclosure: query(`${DURATION_DISCLOSURE}-frame`) !== null,
+  });
+  /** Feuille avec la prop des signaux (Exercice ouvert depuis une Séance : `"absent"`), comme en story 2.5. */
+  function renderWithSignals(parent: ExecutionParametersInput, exerciseSignals: "present" | "absent") {
+    const view = render(
+      <TestSafeAreaProvider>
+        <ExecutionParametersSheet
+          parent={parent}
+          profileSideRecoverySecondsDefault={10}
+          exerciseSignals={exerciseSignals}
+          onApply={jest.fn<(value: ExecutionParameters) => void>()}
+          onCancel={jest.fn()}
+        />
+      </TestSafeAreaProvider>,
+    );
+    return { unmount: view.unmount };
+  }
+  /**
+   * Invariants de la ligne dans tout état : présente, à l'index attendu du cadre, titre exact
+   * sans symbole, valeur affichée attendue (jamais « 0 s »), chevron présent, Compte à rebours
+   * et Fin repliés.
+   */
+  function expectLine(shown: string, index: number) {
+    expect(query("execution-sheet-row-total")).not.toBeNull();
+    expect(totalIndex()).toBe(index);
+    expect(titleText()).toBe("Durée de l’exercice");
+    expect(titleText()).not.toMatch(/[≈≥]/u);
+    expect(totalShown()).toBe(shown);
+    expect(totalShown()).not.toBe("0 s");
+    expect(screen.queryAllByText("0 s", hidden)).toHaveLength(0);
+    expect(signals()).toEqual({ countdown: false, end: false, disclosure: true });
+  }
+
+  it("D-433 — transitions dans une même Feuille : valeur sans symbole → À l'échec « Non calculable » → retour → Répétitions sans Cadence, Cible manquante « Non calculable » (préséance) → Cadence 1 s « — » → Cible 10 « ≈ » → Cadence Sans « Non calculable » ; même place, chevron, signaux repliés, annonces", () => {
+    // Durée, identiques, 3 × (90 s + 15 s) = 315 s : pastille modifiable, sans symbole.
+    renderSheet(params());
+    const index = totalIndex();
+    expect(index).toBeGreaterThan(0);
+    expect(cadenceFrameRows()[index - 1]).toBe("execution-sheet-row-beep");
+    expectLine(formatPhraseDuration(3 * (90 + 15)), index);
+    expect(totalShown()).toBe("5 min 15 s");
+    expect(get("execution-sheet-total").props.accessibilityLabel).toBe(`${sheetText.exerciseDurationEditAccessibilityLabel}, 5 min 15 s`);
+
+    // Condition d'arrêt À l'échec en identiques : la configuration exclut le calcul.
+    fireEvent.press(get(`${STOP_CONTROL}-FAILURE`));
+    expectLine(TOTAL_NOT_CALCULABLE, index);
+    expect(query("execution-sheet-total")).toBeNull();
+    expect(totalSpoken()).toBe(TOTAL_NOT_CALCULABLE_SPOKEN);
+
+    // Retour à une Cible : la valeur revient, à la même place.
+    fireEvent.press(get(`${STOP_CONTROL}-TARGET`));
+    expectLine("5 min 15 s", index);
+
+    // Répétitions, Cadence 0 (Sans), Cible devenue à renseigner : « Non calculable » prime sur « — ».
+    chooseMode("Répétitions");
+    expect(cadenceText()).toBe("Sans");
+    expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
+    expectLine(TOTAL_NOT_CALCULABLE, index);
+    expect(totalSpoken()).toBe(TOTAL_NOT_CALCULABLE_SPOKEN);
+
+    // Cadence 1 s, Cible toujours à renseigner : données manquantes, « — ».
+    fireEvent.press(get(`${CADENCE_CONTROL}-1`));
+    expectLine("—", index);
+    expect(totalSpoken()).toBe(TOTAL_MISSING_SPOKEN);
+    expect(totalSpoken()).not.toMatch(/—/u);
+
+    // Cible 10 répétitions : estimation 3 × (10 × 1 s + 15 s) = 75 s, ≈ devant la valeur.
+    fireEvent.press(get("execution-sheet-target-value"));
+    fireEvent(get("number-wheel-column"), "selectionChange", { nativeEvent: { selection: 10 } });
+    fireEvent.press(get("number-wheel-validate"));
+    expectLine(`≈ ${formatPhraseDuration(3 * (10 * 1 + 15))}`, index);
+    expect(totalShown()).toBe("≈ 1 min 15 s");
+    expect(totalSpoken()).toBe(`Durée de l’exercice, ${sheetText.totalEstimatedSpoken}, 1 min 15 s, ${sheetText.totalReadOnlySpoken}`);
+
+    // Cadence Sans : de nouveau « Non calculable », jamais zéro.
+    fireEvent.press(get(`${CADENCE_CONTROL}-NONE`));
+    expectLine(TOTAL_NOT_CALCULABLE, index);
+
+    // Le chevron déplie Compte à rebours et Fin juste sous la ligne, sans la déplacer.
+    showSignals();
+    expect(signals()).toEqual({ countdown: true, end: true, disclosure: true });
+    expect(totalIndex()).toBe(index);
+    expect(cadenceFrameRows().slice(index, index + 3)).toEqual([
+      "execution-sheet-row-total",
+      "execution-sheet-row-countdown",
+      "execution-sheet-row-end",
+    ]);
+  });
+
+  it("D-433 — chaque état à l'ouverture : même index dans le cadre Cadence et durée, chevron présent, Compte à rebours et Fin repliés, annonce attendue", () => {
+    const repetitions = (cadenceBeepIntervalSeconds: number, target: SeriesTarget = numberTarget(10)) =>
+      params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target, pauseSeconds: 15, loadKg: 0, workPhases: [] }, cadenceBeepIntervalSeconds });
+    const cases: { name: string; parent: ExecutionParametersInput; shown: string; spoken: string | undefined }[] = [
+      { name: "Mode non choisi", parent: params({ mode: null }), shown: "—", spoken: TOTAL_MISSING_SPOKEN },
+      {
+        name: "Mode non choisi, À l'échec en identiques (« — » prime : Mode non choisi)",
+        parent: params({ mode: null, series: { kind: "UNIFORM", count: 3, target: { kind: "FAILURE" }, pauseSeconds: 15, loadKg: 0, workPhases: [] } }),
+        shown: "—",
+        spoken: TOTAL_MISSING_SPOKEN,
+      },
+      { name: "Cible à renseigner (identiques)", parent: durationParameters("UNSET", 3, 10), shown: "—", spoken: TOTAL_MISSING_SPOKEN },
+      { name: "Cible à renseigner (variables)", parent: params({ series: variableRows([[30, 10], [null, 20]]) }), shown: "—", spoken: TOTAL_MISSING_SPOKEN },
+      {
+        name: "saisie invalide (3536 s, D-430)",
+        parent: durationParameters(3536, 3, 10),
+        shown: "—",
+        spoken: `Durée de l’exercice, ${sheetText.totalInvalidSpoken}`,
+      },
+      { name: "tableau variable tout à l'échec (Durée)", parent: variableParameters({ rows: [["FAILURE", 10], ["FAILURE", 20]] }), shown: "—", spoken: TOTAL_MISSING_SPOKEN },
+      {
+        name: "tableau variable tout à l'échec (Répétitions, Cadence 2 s)",
+        parent: variableParameters({ mode: "REPETITIONS", rows: [["FAILURE", 10], ["FAILURE", 20]], cadenceBeepIntervalSeconds: 2 }),
+        shown: "—",
+        spoken: TOTAL_MISSING_SPOKEN,
+      },
+      { name: "À l'échec en identiques (Durée)", parent: durationParameters("FAILURE", 3, 10), shown: TOTAL_NOT_CALCULABLE, spoken: TOTAL_NOT_CALCULABLE_SPOKEN },
+      {
+        name: "À l'échec en identiques (Répétitions, Cadence 2 s)",
+        parent: allFailureParameters(3, 15, { cadenceBeepIntervalSeconds: 2 }),
+        shown: TOTAL_NOT_CALCULABLE,
+        spoken: TOTAL_NOT_CALCULABLE_SPOKEN,
+      },
+      { name: "Répétitions sans Cadence", parent: repetitions(0), shown: TOTAL_NOT_CALCULABLE, spoken: TOTAL_NOT_CALCULABLE_SPOKEN },
+      { name: "Répétitions sans Cadence, Cible à renseigner", parent: repetitions(0, unsetTarget()), shown: TOTAL_NOT_CALCULABLE, spoken: TOTAL_NOT_CALCULABLE_SPOKEN },
+      {
+        name: "Répétitions avec Cadence 2 s",
+        parent: repetitions(2),
+        shown: `≈ ${formatPhraseDuration(3 * (10 * 2 + 15))}`,
+        spoken: `Durée de l’exercice, ${sheetText.totalEstimatedSpoken}, ${formatPhraseDuration(3 * (10 * 2 + 15))}, ${sheetText.totalReadOnlySpoken}`,
+      },
+      {
+        name: "variables mixtes",
+        parent: variableParameters({ rows: [[30, 10], [45, 20], ["FAILURE", 30]] }),
+        shown: "≥ 2 min 15 s",
+        spoken: `Durée de l’exercice, ${sheetText.totalLowerBoundSpoken}, 2 min 15 s, ${sheetText.totalReadOnlySpoken}`,
+      },
+      {
+        name: "variables chiffrées",
+        parent: params({ series: variableRows([[30, 10], [45, 20]]) }),
+        shown: formatPhraseDuration(30 + 10 + 45 + 20),
+        spoken: `Durée de l’exercice, ${formatPhraseDuration(30 + 10 + 45 + 20)}, ${sheetText.totalReadOnlySpoken}`,
+      },
+      // Ligne modifiable : l'annonce reste celle de la pastille (ligne non regroupée).
+      { name: "Durée identiques chiffrée", parent: params(), shown: "5 min 15 s", spoken: undefined },
+    ];
+    const indexes = new Set<number>();
+    for (const { name, parent, shown, spoken } of cases) {
+      const view = renderSheetView(parent);
+      expect({ name, present: query("execution-sheet-row-total") !== null }).toEqual({ name, present: true });
+      indexes.add(totalIndex());
+      expect({ name, previous: cadenceFrameRows()[totalIndex() - 1] }).toEqual({ name, previous: "execution-sheet-row-beep" });
+      expect({ name, title: titleText() }).toEqual({ name, title: "Durée de l’exercice" });
+      expect({ name, shown: totalShown() }).toEqual({ name, shown });
+      expect({ name, spoken: totalSpoken() }).toEqual({ name, spoken });
+      if (spoken !== undefined) expect({ name, symbol: /[≈≥—]/u.test(spoken) }).toEqual({ name, symbol: false });
+      expect({ name, zero: screen.queryAllByText("0 s", hidden).length }).toEqual({ name, zero: 0 });
+      expect({ name, signals: signals() }).toEqual({ name, signals: { countdown: false, end: false, disclosure: true } });
+      view.unmount();
+    }
+    expect(indexes.size).toBe(1);
+  });
+
+  it("D-433 — ≥ et ≈ collés avant la valeur dans le même élément texte, jamais dans le titre ni dans un élément distinct", () => {
+    let view = renderSheetView(variableParameters({ rows: [[30, 10], [45, 20], ["FAILURE", 30]] }));
+    const lowerBoundText = get("execution-sheet-total-text");
+    expect(lowerBoundText.props.children).toBe(`${strings.shared.durationNature.lowerBoundPrefix}${formatPhraseDuration(135)}`);
+    expect(lowerBoundText.props.children).toBe("≥ 2 min 15 s");
+    const row = get("execution-sheet-row-total-line");
+    expect(within(row).getAllByText(/≥/u, hidden)).toEqual([lowerBoundText]);
+    expect(within(row).queryAllByText(/^Durée de l’exercice.*[≈≥]/u, hidden)).toHaveLength(0);
+    view.unmount();
+    view = renderSheetView(params({ mode: "REPETITIONS", series: variableRows([[12, 30], [10, 45]]), cadenceBeepIntervalSeconds: 2 }));
+    const estimatedText = get("execution-sheet-total-text");
+    expect(estimatedText.props.children).toBe(`${strings.shared.durationNature.estimatedPrefix}${formatPhraseDuration(12 * 2 + 30 + 10 * 2 + 45)}`);
+    expect(within(get("execution-sheet-row-total-line")).getAllByText(/≈/u, hidden)).toEqual([estimatedText]);
+    view.unmount();
+    // Clé du titre ≈ supprimée du lexique.
+    expect("exerciseDurationEstimated" in sheetText).toBe(false);
+  });
+
+  it("D-433 — tableau variable entièrement à l'échec : « — » (données manquantes), jamais « Non calculable » ni zéro ; Répétitions sans Cadence : « Non calculable » (configuration)", () => {
+    let view = renderSheetView(variableParameters({ rows: [["FAILURE", 10], ["FAILURE", 20], ["FAILURE", 30]] }));
+    expect(totalShown()).toBe("—");
+    expect(totalShown()).not.toBe(TOTAL_NOT_CALCULABLE);
+    expect(screen.queryAllByText(TOTAL_NOT_CALCULABLE, hidden)).toHaveLength(0);
+    expect(totalSpoken()).toBe(TOTAL_MISSING_SPOKEN);
+    expect(screen.queryAllByText("0 s", hidden)).toHaveLength(0);
+    view.unmount();
+    // Contrôle : le même tableau en Répétitions sans Cadence est exclu par la configuration.
+    view = renderSheetView(variableParameters({ mode: "REPETITIONS", rows: [["FAILURE", 10], ["FAILURE", 20]] }));
+    expect(totalShown()).toBe(TOTAL_NOT_CALCULABLE);
+    expect(totalSpoken()).toBe(TOTAL_NOT_CALCULABLE_SPOKEN);
+    view.unmount();
+  });
+
+  it("D-433 — depuis une Séance (RC-7) : ligne présente dans chaque état, ni chevron, ni Compte à rebours, ni Fin", () => {
+    for (const [parent, shown] of [
+      [durationParameters(30, 3, 10), formatPhraseDuration(3 * 40)],
+      [durationParameters("FAILURE", 3, 10), TOTAL_NOT_CALCULABLE],
+      [durationParameters("UNSET", 3, 10), "—"],
+      [params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15, loadKg: 0, workPhases: [] }, cadenceBeepIntervalSeconds: 2 }), `≈ ${formatPhraseDuration(3 * (10 * 2 + 15))}`],
+      [variableParameters({ rows: [[30, 10], [45, 20], ["FAILURE", 30]] }), "≥ 2 min 15 s"],
+    ] as const) {
+      const view = renderWithSignals({ ...parent, countdownSeconds: 12, endSeconds: 7 }, "absent");
+      expect(query("execution-sheet-row-total")).not.toBeNull();
+      expect(titleText()).toBe("Durée de l’exercice");
+      expect(totalShown()).toBe(shown);
+      expect(signals()).toEqual({ countdown: false, end: false, disclosure: false });
+      expect(screen.queryByLabelText(sheetText.showExerciseSignals)).toBeNull();
+      view.unmount();
+    }
   });
 });

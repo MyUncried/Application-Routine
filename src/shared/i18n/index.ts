@@ -109,7 +109,6 @@ const executionParameters = {
     // PRE-5 story 2.5 (FR-31, AD-28) : ligne « Durée de l’exercice » (remplace « Durée totale »
     // dans la Feuille ; celle de la Phrase reste), chevron qui replie Compte à rebours et Fin.
     exerciseDuration: "Durée de l’exercice",
-    exerciseDurationEstimated: "Durée de l’exercice ≈",
     exerciseDurationEditAccessibilityLabel: "Durée de l’exercice, ajuster le nombre de séries",
     showExerciseSignals: "Afficher le compte à rebours et la fin d’exercice",
     hideExerciseSignals: "Masquer le compte à rebours et la fin d’exercice",
@@ -122,6 +121,10 @@ const executionParameters = {
     // Revue de la story 3.7 : ligne affichée « — » (saisie invalide hors Cible à
     // renseigner) ; annoncée après la nature quand elle est connue, jamais par le tiret.
     totalInvalidSpoken: "montant indisponible tant qu’une valeur est invalide",
+    // D-433 (décision de Hermann du 19/10) : ligne « Durée de l’exercice » toujours affichée ;
+    // durée exclue par la configuration seule, et annonce de « — » (données manquantes).
+    totalNotCalculable: "Non calculable",
+    totalMissingSpoken: "données manquantes",
     countdown: "Compte à rebours",
     end: "Fin d’exercice",
     secondsUnit: "secondes",

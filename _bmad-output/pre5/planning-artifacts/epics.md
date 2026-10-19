@@ -793,6 +793,7 @@ afin de régler les cadres Côtés et Cadence et durée sans désignation anatom
 **And** ouvrir ou fermer la section ne modifie pas la valeur de durée et reste indépendant de son édition
 **And** si la ligne est absente (RC ligne 11), Compte à rebours et Fin sont directement visibles lorsqu'ils s'appliquent, sans faux total ni autre repli ; dans un Exercice ouvert depuis une Séance, ils restent absents et le chevron ne les réintroduit pas
 **And** sont inchangés : le calcul, les natures, `—`, l'affichage à N = 1 (D-384, D-396, D-397), les bornes T(1)..T(99) (Q46), l'ajustement par N avec des phases (§9-4) et RM-218.
+**And** D-433, décision de Hermann du 19/10 (remplace « si la ligne est absente » ci-dessus) : la ligne « Durée de l'exercice » est toujours affichée, à la même place, dans tous les modes et états : « Non calculable » quand la configuration seule exclut le calcul (Répétitions sans cadence ; À l'échec en séries identiques), prioritaire sur « — » ; « — » si des données manquent ; sinon la valeur, le symbole « ≥ » ou « ≈ » collé avant elle (jamais dans le titre) ; Compte à rebours et Fin restent repliés sous son chevron (absents depuis une Séance) ; formules, natures, inversion et validation inchangées ; « — » et « Non calculable » ne valent jamais zéro.
 
 **AC5 — Lexique (FR-44, AD-32).**
 **Given** `src/shared/i18n/`

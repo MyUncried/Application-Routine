@@ -80,12 +80,34 @@ Aucun constat iPhone n'est encore consigné pour elle.
 - L'espace venait de la brique partagée `tableStyles.block` de `sheetTable.tsx` (`paddingBottom` d'une hauteur de ligne, 36) : retiré là, donc aussi pour le futur tableau des phases (2.8). Marges du bloc inchangées (12 en haut et en bas dans le cadre).
 - À vérifier sur iPhone : bas du fond blanc juste sous la dernière ligne ; glisser jusqu'à la dernière place et repère d'insertion en bas du tableau.
 
+- **RC-11 — Changement de côté, options de même largeur.** Les options « Avec » et « Sans » du segmenté « Changement de côté » ont la même largeur : la plus petite suffisante pour que la notation choisie et son chevron tiennent dans Avec (police réduite conservée), au lieu de 144 / 62 (RC-6). **Non appliquée : ne tient pas dans la ligne (voir « Point en attente : RC-11 »).**
+- **D-433 — Ligne « Durée de l'exercice » toujours affichée.** Dans tous les modes et états, à la même place : « Non calculable » quand la configuration seule exclut le calcul quelles que soient les valeurs (Répétitions sans cadence ; À l'échec en séries identiques), prioritaire sur « — » ; « — » quand des données manquent (Mode non choisi, Cible à renseigner, saisie invalide) ; sinon la valeur avec son symbole collé avant elle (« ≥ 5 min 30 s », « ≈ 5 min 30 s »), jamais dans le titre. Compte à rebours et Fin repliés sous le chevron de la ligne (absents depuis une Séance, RC-7). Formules, natures, inversion et validation inchangées ; « — » et « Non calculable » ne valent jamais zéro.
+
 ## Correction RC-10 (branche `bmad/pre5-depuis-pre4`)
 
 Aucun constat iPhone n'est encore consigné pour elle.
 
 - `cadenceOptionOf` : 0 → Sans, 1 → 1 s, toute autre valeur → Autre ; options Autre / 1 s / Sans de 62 (contrôle de 196) ; la largeur `cadence` (46,4) est retirée de `INLINE_OPTION_WIDTHS`. Libellés « 5 s » et « 2 s » retirés du lexique de la Cadence.
 - À vérifier sur iPhone : trois options de même largeur que celles de la Charge, centrées sur le libellé (RC-8) ; un Exercice réglé à 2 s ou 5 s affiche Autre, et Autre ouvre le ± à cette valeur.
+
+## Correction D-433 (branche `bmad/pre5-depuis-pre4`)
+
+Aucun constat iPhone n'est encore consigné pour elle.
+
+- Feuille : ligne « Durée de l'exercice » toujours rendue après la Cadence ; titre sans symbole ; valeur « ≈ … » / « ≥ … » / sans symbole, « Non calculable » (Mode choisi et Répétitions avec cadence Sans, ou série identique à cible À l'échec ; prime sur « — »), « — » sinon faute de données (Mode non choisi, Cible à renseigner, saisie invalide). Annonces : « Durée de l'exercice, Non calculable » ; « Durée de l'exercice, données manquantes » ; annonces existantes pour les valeurs. Compte à rebours et Fin repliés sous le chevron, absents depuis une Séance. Domaine (`executionCalculations.ts`) inchangé.
+- **À arbitrer :** tableau variable entièrement à l'échec (aujourd'hui sans total, nature `omitted` dépendant des valeurs) : affiché « — », pas « Non calculable ».
+- **Signalé, non modifié :** la Carte d'Exercice (`ActivityCard.tsx`, `catalogueDuration`) et la Phrase (`executionPhrase.ts`, clause « Durée totale ») omettent toujours la durée pour `omitted` et `incomplete` ; la Composition de Séance ne la masque pas.
+- À vérifier sur iPhone : ligne à la même place dans chaque état (Durée, Répétitions avec et sans cadence, À l'échec, tableau variable), symbole collé à la valeur, chevron et repli.
+
+## Point en attente : RC-11 (arbitrage de Hermann)
+
+Mesures (métriques Inter de l'application ; « ➜ » absent d'Inter, rendu par une police de repli, environ 10 pt) :
+
+- notation « (D1 → D2) ➜ (G1 → G2) » en Semi Bold 10 : environ 100 pt hors « ➜ », environ 110 pt avec ; plus l'écart de 6 et le chevron de 10 : environ 126 pt ; option commune minimale environ 128 pt (Figma : texte 112, option 144) ;
+- segmenté à deux options égales : 2 × 128 + 2 + 6 = environ 264 pt (aujourd'hui 144 + 62 + 8 = 214) ;
+- place de la ligne : 375 − 2 × 24 − 2 × 1 − 2 × 12 = 301 pt à 375 de large (328 à 402), moins l'écart de 8 avec le libellé ; « Changement de côté » mesure environ 119 pt sur une ligne, « Changement » seul environ 73 pt.
+
+Résultat : avec deux options de 128, il reste environ 29 pt au libellé à 375 (environ 56 à 402), moins que le seul mot « Changement » : le libellé serait coupé en plein mot. RC-11 n'est donc pas appliquée ; options possibles pour Hermann : notation sur deux lignes dans l'option (environ 80 pt par option, segmenté d'environ 168, libellé sur une ligne à 375), police plus petite, notation hors du segmenté, ou maintien des largeurs 144 / 62.
 
 ## Issue de l'essai du clavier (story 2.2, AC7) — 19/10
 

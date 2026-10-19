@@ -592,25 +592,39 @@ export function ExecutionParametersSheet({
   // Story 3.7 (AC1, AC2, AD-5, FR-14-01, P24) : la forme de la ligne Durée totale se lit
   // dans le domaine — nature du total intrinsèque (`computeIntrinsicDuration`, story 2.1)
   // et disponibilité de l'Inversion (`isRequestedTotalEditable`) ; la Feuille ne calcule
-  // ni ne qualifie aucune durée. Ligne présente si et seulement si la nature porte un
-  // montant (`hasDurationAmount`) : `exact` (roulette si l'Inversion est disponible, sinon
+  // ni ne qualifie aucune durée. Montant si la nature en porte un
+  // (`hasDurationAmount`) : `exact` (roulette si l'Inversion est disponible, sinon
   // lecture seule), `estimated` (≈, lecture seule), `lowerBound` (≥, mélange calculable,
-  // lecture seule). Absente pour `omitted` (Répétitions sans Bip, tout à l'échec,
-  // `identiques` à l'échec) et `incomplete` (une Cible `UNSET` : ni ligne ni montant,
-  // H10, NFR-06) ; le Bip passe alors juste avant Compte à rebours (FR-03-02). Recalcul à
+  // lecture seule) ; aucun montant pour `omitted` et `incomplete` (H10, NFR-06). Recalcul à
   // chaque rendu du Brouillon (AC2). Autre saisie invalide (valeur hors bornes) : ligne
   // conservée avec « — », comportement existant (PRE4-2.1/AC9), aucun montant inventé.
+  // D-433 (décision de Hermann du 19/10, AD-28) : la ligne est TOUJOURS affichée, à la même
+  // place, en trois états : « Non calculable » quand la configuration seule exclut le calcul,
+  // quelles que soient les valeurs (Répétitions sans cadence ; À l'échec en séries identiques ;
+  // Mode choisi) — prime sur « — » ; « — » quand des données manquent (Mode non choisi, Cible à renseigner,
+  // saisie invalide, ou tableau variable entièrement à l'échec, en attente d'arbitrage) ;
+  // sinon la valeur, précédée de son symbole (« ≈ », « ≥ »). Ni formule, ni nature, ni
+  // condition de modification changées ; « — » et « Non calculable » ne valent jamais zéro.
+  const totalNotCalculable =
+    effective.mode !== null &&
+    ((effective.mode === "REPETITIONS" && effective.cadenceBeepIntervalSeconds === 0) ||
+    (effective.series.kind === "UNIFORM" && effective.series.target.kind === "FAILURE"));
   const totalResult = isCalculable(effective) ? computeIntrinsicDuration(effective) : null;
-  const totalNature = totalResult !== null && hasDurationAmount(totalResult.kind) ? totalResult.kind : null;
+  const totalNature =
+    !totalNotCalculable && totalResult !== null && hasDurationAmount(totalResult.kind) ? totalResult.kind : null;
   const totalSeconds = totalNature !== null && validation.ok ? totalResult?.seconds : undefined;
   // AC8 (AD-5, H8) : montant par le formateur unique ; préfixe `≥ ` du lexique (story 2.2).
   const totalAmount = totalSeconds === undefined ? null : formatPhraseDuration(totalSeconds);
-  const totalText =
-    totalAmount === null
+  // D-433 : symbole collé à la valeur, avant elle, dans la même zone (jamais dans le titre).
+  const totalText = totalNotCalculable
+    ? t.totalNotCalculable
+    : totalAmount === null
       ? t.unset
       : totalNature === "lowerBound"
         ? `${strings.shared.durationNature.lowerBoundPrefix}${totalAmount}`
-        : totalAmount;
+        : totalNature === "estimated"
+          ? `${strings.shared.durationNature.estimatedPrefix}${totalAmount}`
+          : totalAmount;
 
   /** Changement venu d'un champ HORS du tableau : le tableau n'est plus sélectionné (Q40). */
   function update(next: ExecutionSheetDraft) {
@@ -956,18 +970,23 @@ export function ExecutionParametersSheet({
   // l'annonce dédiée `totalInvalidSpoken`. La ligne modifiable garde l'annonce de sa pastille.
   const totalNatureSpoken =
     totalNature === "estimated" ? t.totalEstimatedSpoken : totalNature === "lowerBound" ? t.totalLowerBoundSpoken : null;
-  const totalSpokenLabel =
-    totalNature === null || totalWheelSeconds !== undefined
-      ? undefined
-      : [t.exerciseDuration, totalNatureSpoken, totalAmount ?? t.totalInvalidSpoken, totalAmount === null ? null : t.totalReadOnlySpoken]
-          .filter((part) => part !== null)
-          .join(", ");
+  // D-433 : la ligne toujours présente annonce aussi « Non calculable » et « — » (données
+  // manquantes), jamais un tiret ni zéro.
+  const totalSpokenLabel = totalNotCalculable
+    ? `${t.exerciseDuration}, ${t.totalNotCalculable}`
+    : totalNature === null
+      ? `${t.exerciseDuration}, ${t.totalMissingSpoken}`
+      : totalWheelSeconds !== undefined
+        ? undefined
+        : [t.exerciseDuration, totalNatureSpoken, totalAmount ?? t.totalInvalidSpoken, totalAmount === null ? null : t.totalReadOnlySpoken]
+            .filter((part) => part !== null)
+            .join(", ");
   // PRE-5 story 2.5 (AC4, D-409, RM-218, AD-28) : Compte à rebours et Fin — absents pour un
-  // Exercice ouvert depuis une Séance (ni lignes ni chevron) ; sinon directement visibles si
-  // la ligne « Durée de l'exercice » est absente, ou repliés sous elle (chevron).
+  // Exercice ouvert depuis une Séance (ni lignes ni chevron) ; sinon repliés sous la ligne
+  // « Durée de l'exercice », toujours présente (D-433), derrière son chevron.
   const signalsPresent = exerciseSignals === "present";
-  const durationDisclosure = signalsPresent && totalNature !== null;
-  const signalsShown = signalsPresent && (totalNature === null || isDurationExpanded);
+  const durationDisclosure = signalsPresent;
+  const signalsShown = signalsPresent && isDurationExpanded;
   // PRE-5 story 2.5 (AC1) ; recette du 19/10 (RC-6) : Pause entre les côtés visible sous Avec,
   // sans chevron de repli. L'Enchainement, porté par l'option Avec, est masqué à N = 1 (Q38,
   // valeur conservée) : Avec y reprend son libellé.
@@ -1895,53 +1914,52 @@ export function ExecutionParametersSheet({
                     {cadenceControl}
                   </Row>
 
-                  {totalNature !== null ? (
-                    <>
-                      <Separator />
-                      <Row
-                        label={totalNature === "estimated" ? t.exerciseDurationEstimated : t.exerciseDuration}
-                        // PRE-5 story 2.5 (AC4, AD-28) : chevron à 12 du libellé, cible distincte
-                        // de la pastille ; absent pour un Exercice ouvert depuis une Séance.
-                        labelAccessory={
-                          durationDisclosure ? (
-                            <DisclosureControl
-                              expanded={isDurationExpanded}
-                              onPress={toggleDuration}
-                              accessibilityLabel={isDurationExpanded ? t.hideExerciseSignals : t.showExerciseSignals}
-                              testID="execution-sheet-duration-disclosure"
-                            />
-                          ) : null
-                        }
-                        accessibilityLabel={totalSpokenLabel}
-                        selected={isOpen(TOTAL_SELECTOR)}
-                        onLayout={trackRow("total")}
-                        below={
-                          // Q41 : Android et web — roulette en ligne, dans le cadre de sélection.
-                          !anchoredPanels && isOpen(TOTAL_SELECTOR) && totalWheel !== null ? (
-                            <SheetMotionView style={styles.inlineControl} testID="execution-sheet-total-wheel">
-                              {totalWheel}
-                            </SheetMotionView>
-                          ) : null
-                        }
-                        testID="execution-sheet-row-total"
-                      >
-                        {totalWheelSeconds !== undefined ? (
-                          <ValuePill
-                            value={totalText}
-                            accessibilityLabel={`${t.exerciseDurationEditAccessibilityLabel}, ${totalText}`}
-                            expanded={isOpen(TOTAL_SELECTOR)}
-                            onPress={() => toggle(TOTAL_SELECTOR)}
-                            testID="execution-sheet-total"
+                  {/* D-433 : ligne « Durée de l'exercice » toujours présente, même place. */}
+                  <>
+                    <Separator />
+                    <Row
+                      label={t.exerciseDuration}
+                      // PRE-5 story 2.5 (AC4, AD-28) : chevron à 12 du libellé, cible distincte
+                      // de la pastille ; absent pour un Exercice ouvert depuis une Séance.
+                      labelAccessory={
+                        durationDisclosure ? (
+                          <DisclosureControl
+                            expanded={isDurationExpanded}
+                            onPress={toggleDuration}
+                            accessibilityLabel={isDurationExpanded ? t.hideExerciseSignals : t.showExerciseSignals}
+                            testID="execution-sheet-duration-disclosure"
                           />
-                        ) : (
-                          <Text style={styles.staticValue} testID="execution-sheet-total-text">
-                            {totalText}
-                          </Text>
-                        )}
-                      </Row>
-                      {adjustment?.kind === "total" ? adjustmentMessage : null}
-                    </>
-                  ) : null}
+                        ) : null
+                      }
+                      accessibilityLabel={totalSpokenLabel}
+                      selected={isOpen(TOTAL_SELECTOR)}
+                      onLayout={trackRow("total")}
+                      below={
+                        // Q41 : Android et web — roulette en ligne, dans le cadre de sélection.
+                        !anchoredPanels && isOpen(TOTAL_SELECTOR) && totalWheel !== null ? (
+                          <SheetMotionView style={styles.inlineControl} testID="execution-sheet-total-wheel">
+                            {totalWheel}
+                          </SheetMotionView>
+                        ) : null
+                      }
+                      testID="execution-sheet-row-total"
+                    >
+                      {totalWheelSeconds !== undefined ? (
+                        <ValuePill
+                          value={totalText}
+                          accessibilityLabel={`${t.exerciseDurationEditAccessibilityLabel}, ${totalText}`}
+                          expanded={isOpen(TOTAL_SELECTOR)}
+                          onPress={() => toggle(TOTAL_SELECTOR)}
+                          testID="execution-sheet-total"
+                        />
+                      ) : (
+                        <Text style={styles.staticValue} testID="execution-sheet-total-text">
+                          {totalText}
+                        </Text>
+                      )}
+                    </Row>
+                    {adjustment?.kind === "total" ? adjustmentMessage : null}
+                  </>
 
                   {/* PRE-5 story 2.5 (AC4) : repliés, Compte à rebours et Fin ne sont pas rendus ;
                       leurs valeurs restent dans le Brouillon. */}
