@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 10-19-2026 10:54
-last_updated: 10-19-2026 16:30
+last_updated: 10-19-2026 17:00
 project: kodjo-pre5
 project_key: NOKEY
 tracking_system: file-system
@@ -44,7 +44,7 @@ development_status:
   epic-2: in-progress
   2-1-transitions-du-brouillon-phases-charge-condition-d-arrêt-et: done
   2-2-essai-sur-iphone-du-champ-clavier-de-la-charge-nfr-6: backlog
-  2-3-variante-inline-du-segmentedcontrol: backlog
+  2-3-variante-inline-du-segmentedcontrol: done
   2-4-feuille-en-quatre-cadres-exécution-et-type-de-série: backlog
   2-5-côtés-avec-sans-enchainement-cadence-et-durée-de-l-exercice: backlog
   2-6-tableau-des-séries-sans-steppers-de-cellule-lignes-de-36: backlog
