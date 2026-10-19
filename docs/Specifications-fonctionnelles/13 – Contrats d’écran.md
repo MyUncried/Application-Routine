@@ -820,9 +820,11 @@ Nom de l’exercice ; accès aux catégories et zones corporelles ; zone Descrip
 
 Shell conservé : en-tête fixe, bandeau nom/référentiels, carte Paramètres, Description, Média, action Terminer. Références 3943:6064/4734:6342/6407:9702 et 6665:27862/28050. Les deux nouveaux résumés gardent cette implantation ; le texte peut grandir, sans déplacement arbitraire des contrôles. Feuille selon DSF-SERIES-VARIABLES-2026-10-02, actualisé le 03/10.
 
-Phrase : Inter 13, interligne 20, texte sombre et valeurs en gras ; largeur 324/x39 dans la référence 402. Hauteur auto et retour naturel ; le contenu inférieur suit la croissance. Aucune limite de 198/211 caractères. Le layout du shell reste celui des frames du formulaire.
+Phrase : Inter 13, interligne 20, texte sombre et valeurs en gras ; largeur 324/x39 dans la référence 402. *Remplacé par les arbitrages G-1 à G-10 de Hermann du 19/10 (G-6) : Inter Regular 14, interligne 20, dans un bloc `#F9FAFC` de rayon 12 sans liseré, sans Compte à rebours ni Fin (R-14).* Hauteur auto et retour naturel ; le contenu inférieur suit la croissance. Aucune limite de 198/211 caractères. Le layout du shell reste celui des frames du formulaire.
 
-Icônes Catégorie et Zones : états contour/plein de la planche 7245:13718 ; une seule silhouette, issue du Profil, jamais deux boutons homme/femme dans l’éditeur.
+Icônes Catégorie et Zones : états contour/plein de la planche 7245:13718 ; une seule silhouette, issue du Profil, jamais deux boutons homme/femme dans l’éditeur. *Remplacé par les arbitrages G-1 à G-10 de Hermann du 19/10 (G-5) : glyphes pleins au repos (`8328:35698`), une seule forme de classification pour « à renseigner » et « renseigné ».*
+
+Arbitrages G-1 à G-10 de Hermann du 19/10 (registre, chapitre 07), pour cet écran seulement : en-tête titre Inter Medium 17 `#3A3A3F`, ✕ à 12 du bord dans un cercle 38 `#FCFCFE` à liseré blanc et ombre (G-1) ; bandeau → première section 14, titre de section → contenu 10, entre sections 16, à la place de D-327 (G-2) ; placeholder du Nom en texte principal (G-3) ; Nom Semi Bold 20, interligne 22 (G-4) ; aucun titre « Médias » visible, identification VoiceOver conservée (G-7) ; Terminer de 48 avec ombre `#1A1A26` 18 %, bas à 24 du bas de l’écran (G-8, G-10) ; dialogue d’abandon : titre Semi Bold 18, message Regular 14 interligne 21 (G-9).
 
 Référence longue 7119:27855 :224caractères, cinq lignes/100px à largeur 324, carte 193px en AUTO. Contenu et contrôles suivants suivent la hauteur intrinsèque, sans plafond.
 

@@ -23,6 +23,7 @@ import type { ImportItem, ImportResult, PickedMedia } from "@/domain/media/Activ
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import {
   ActivityEditorForm,
+  EDITOR_HEADER,
   EDITOR_VERTICAL_GRID,
   editorSideMargin,
   isActivityEditorFormValid,
@@ -37,7 +38,7 @@ import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
-import { dimensions } from "@/shared/ui/tokens";
+import { colors, dimensions } from "@/shared/ui/tokens";
 
 /**
  * Éditeur commun d'un Exercice (CE-T03-04, PRE-3). Rendu et actions de cette
@@ -344,7 +345,7 @@ describe("ActivityEditorForm — PRE-3", () => {
     expect(boldSegments()).not.toContain("côté 1");
   });
 
-  it("P3-20/all-surfaces — titres et valeurs des écrans de référence ; Carte `surfaceSubtle` rayon 12 sans liseré (PRE-5 3.2) ; phrase Inter 13 / 20", () => {
+  it("P3-20/all-surfaces — titres et valeurs des écrans de référence ; Carte `surfaceSubtle` rayon 12 sans liseré (PRE-5 3.2) ; phrase Inter 14 / 20 (PRE-5 3.2, arbitrage G-6)", () => {
     render(<Harness initial={{ executionParameters: parameters({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] } }) }} />);
     expect(screen.getByText("Paramètres d’exécution")).toBeTruthy();
     // Story 4.2 (Q23) : « Choisir un mode » retiré ; E-21 : la Carte vide ne porte aucune invite.
@@ -356,10 +357,12 @@ describe("ActivityEditorForm — PRE-3", () => {
     const cardStyle = StyleSheet.flatten(screen.getByTestId("exercise-parameters-card").props.style);
     expect(cardStyle).toMatchObject({ borderRadius: 12, backgroundColor: "#F9FAFC" });
     expect(cardStyle.borderWidth ?? 0).toBe(0);
-    // E-21 (2026-10-18) : sans Mode, aucune invite ; la Phrase (vide, PRE-3) garde son style.
+    // E-21 (2026-10-18) : sans Mode, aucune invite ; la Phrase (vide) garde son style.
+    // PRE-5 3.2, arbitrage G-6 : Inter Regular 14 (`type.body`), interligne 20.
     expect(screen.queryByTestId("exercise-parameters-empty-prompt")).toBeNull();
     expect(StyleSheet.flatten(screen.getByTestId("exercise-parameters-phrase").props.style)).toMatchObject({
-      fontSize: 13,
+      fontFamily: "Inter_400Regular",
+      fontSize: 14,
       lineHeight: 20,
     });
   });
@@ -517,8 +520,10 @@ describe("ActivityEditorForm — recette 1 (T-49)", () => {
 
     const halo = StyleSheet.flatten(screen.getByTestId("exercise-context-band-halo").props.style);
     expect(halo).toMatchObject({ position: "absolute", width: 59.28, height: 59.28, borderRadius: 29.64, backgroundColor: "#FFFFFF" });
-    // Centre : marge 24 + rayon du bouton 19 en x ; 24 au-dessus de la zone (moitié de l’en-tête 48) en y.
-    expect(halo.left! + 29.64).toBeCloseTo(43, 5);
+    // PRE-5 3.2, arbitrage G-1 : centre = centre du ✕ de l’en-tête de l’Éditeur (cible 48 à 12 du
+    // bord, soit x 36, indépendant de la largeur) ; 24 au-dessus de la zone (moitié de l’en-tête 48) en y.
+    expect(EDITOR_HEADER.backCenterX).toBe(36);
+    expect(halo.left! + 29.64).toBeCloseTo(EDITOR_HEADER.backCenterX, 5);
     expect(halo.top! + 29.64).toBeCloseTo(-24, 5);
 
     const fade = screen.getByTestId("exercise-context-band-fade");
@@ -788,11 +793,11 @@ describe("ActivityEditorForm — PRE-4 story 2.3", () => {
     nested.forEach(expectUncapped);
     // Les segments ne sont pas interactifs.
     expect(nested.filter((child) => child.props.onPress !== undefined || child.props.accessibilityRole !== undefined)).toEqual([]);
-    // Inter 13 Regular, interligne 20 ; segments gras en Inter Semi Bold (600).
+    // PRE-5 3.2, arbitrage G-6 : Inter 14 Regular, interligne 20 ; segments gras en Inter Semi Bold (600).
     expect(StyleSheet.flatten(node.props.style)).toMatchObject({
       fontFamily: "Inter_400Regular",
       fontWeight: "400",
-      fontSize: 13,
+      fontSize: 14,
       lineHeight: 20,
     });
     for (const child of nested) {
@@ -1007,9 +1012,9 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
     expect(screen.queryByText(/Récupération|Type d’exercice/u)).toBeNull();
   });
 
-  it("PRE4-4.2/AC5 — marge latérale 16 à 360, 24 à 390, 402 et 440 ; Terminer 354 de large à 402 ; grille 18 / 13 / 20 / 12 par styles, sans position absolue", () => {
+  it("PRE4-4.2/AC5 — marge latérale 16 à 360, 24 à 390, 402 et 440 ; Terminer 354 de large à 402 ; grille 14 / 10 / 16 / 12 par styles (PRE-5 3.2, arbitrage G-2), sans position absolue", () => {
     expect([360, 389, 390, 402, 440].map(editorSideMargin)).toEqual([16, 16, 24, 24, 24]);
-    expect(EDITOR_VERTICAL_GRID).toEqual({ contextToFirstText: 18, blockToNextTitle: 20, titleToBlock: 13, blockToBlock: 12 });
+    expect(EDITOR_VERTICAL_GRID).toEqual({ contextToFirstText: 14, blockToNextTitle: 16, titleToBlock: 10, blockToBlock: 12 });
     for (const [width, margin] of [
       [360, 16],
       [390, 24],
@@ -1023,14 +1028,14 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
         expect(content.paddingHorizontal).toBe(margin);
         expect(style("test-finish-slot").marginHorizontal).toBe(margin);
         // Centre du halo comparé au padding réellement reçu par `FixedHeader` : `ExerciseScreen.test.tsx`, `PRE4-4.2/AC4 AC5`.
-        // Grille de D-327 : 18 du bas du dégradé au premier titre ; 13 titre → bloc ;
-        // 20 dernier élément → titre suivant ; 12 dernier bloc → Terminer.
-        expect(content).toMatchObject({ paddingTop: 18, paddingBottom: 12 });
+        // PRE-5 3.2, arbitrage G-2 (à la place de D-327 pour cet écran) : 14 du bas du dégradé à
+        // la première section ; 10 titre → contenu ; 16 entre sections ; 12 dernier bloc → Terminer.
+        expect(content).toMatchObject({ paddingTop: 14, paddingBottom: 12 });
         expect(content.gap).toBeUndefined();
-        expect(style("exercise-section-description")).toMatchObject({ gap: 13 });
+        expect(style("exercise-section-description")).toMatchObject({ gap: 10 });
         expect(style("exercise-section-description").marginTop).toBeUndefined();
         for (const section of ["exercise-section-parameters", "activity-editor-section-media"]) {
-          expect(style(section)).toMatchObject({ gap: 13, marginTop: 20 });
+          expect(style(section)).toMatchObject({ gap: 10, marginTop: 16 });
         }
         expect(style("test-finish-slot").marginTop).toBeUndefined();
         for (const testID of ["exercise-section-description", "exercise-section-parameters", "activity-editor-section-media", "test-finish-slot", "test-finish-action"]) {
@@ -1246,11 +1251,21 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
     }
   });
 
-  it("PRE4-4.2/AC13 — rendu par les jetons existants : couleurs et typographies retenues au relevé ; aucune opacité locale codée en dur", () => {
+  it("PRE4-4.2/AC13 — rendu par les jetons existants : couleurs et typographies retenues au relevé ; aucune opacité locale codée en dur ; Nom 20 / 22, placeholder `textPrimary`, Phrase 14 / 20 (PRE-5 3.2, arbitrages G-3, G-4, G-6)", () => {
     render(<Harness initial={{ executionParameters: EMPTY }} isFinishDisabled />);
     expect(style("exercise-context-band").backgroundColor).toBe("#EAEAFF");
-    expect(style("exercise-name-input")).toMatchObject({ fontSize: 20, lineHeight: 24, color: "#141414" });
-    expect(style("exercise-parameters-phrase")).toMatchObject({ fontSize: 13, lineHeight: 20 });
+    // PRE-5 3.2, arbitrage G-4 : `type.screenTitle` (Inter Semi Bold 20) avec interligne local 22.
+    expect(style("exercise-name-input")).toMatchObject({
+      fontFamily: "Inter_600SemiBold",
+      fontWeight: "600",
+      fontSize: 20,
+      lineHeight: 22,
+      color: "#141414",
+    });
+    // PRE-5 3.2, arbitrage G-3 : placeholder en `textPrimary`.
+    expect(screen.getByTestId("exercise-name-input").props.placeholderTextColor).toBe(colors.textPrimary);
+    // PRE-5 3.2, arbitrage G-6 : Phrase en `type.body` (Inter Regular 14), interligne 20.
+    expect(style("exercise-parameters-phrase")).toMatchObject({ fontFamily: "Inter_400Regular", fontSize: 14, lineHeight: 20 });
     expect(style("exercise-parameters-card")).toMatchObject({ borderRadius: 12 });
     expect(style("test-finish-action").backgroundColor).toBe("#BEC2CC");
     // AD-11 : toute opacité rendue vaut `UNSELECTED_OPACITY` ou 1 — hors des couches du
@@ -1318,7 +1333,7 @@ describe("ActivityEditorForm — PRE-4 story 4.3", () => {
       .filter((name) => name.startsWith("body-zone-"));
   }
 
-  it("PRE4-4.3/AC2 — non renseignés : chaque accès est un bouton icône + libellé « Catégorie » / « Zone corporelle » (lexique), icônes au contour", () => {
+  it("PRE4-4.3/AC2 — non renseignés : chaque accès est un bouton icône + libellé « Catégorie » / « Zone corporelle » (lexique), glyphes pleins au repos (PRE-5 3.2, arbitrage G-5)", () => {
     render(<Harness />);
     const categoryButton = screen.getByTestId("activity-editor-category-button");
     const zonesButton = screen.getByTestId("exercise-body-zones-open");
@@ -1330,8 +1345,11 @@ describe("ActivityEditorForm — PRE-4 story 4.3", () => {
       strings.screens.activities.editor.category.label,
     );
     expect(screen.getByTestId("exercise-body-zones-label").props.children).toBe(strings.screens.exercise.bodyZones.unsetLabel);
-    expect(iconSource("activity-editor-category-icon")).toEqual(CONTOUR_CATEGORIE);
-    expect(iconSource("exercise-body-zones-icon")).toEqual(CONTOUR_HOMME);
+    // PRE-5 3.2, arbitrage G-5 : glyphes pleins au repos, jamais au contour ; un seul testID par accès.
+    expect(iconSource("activity-editor-category-icon")).toEqual(PLEIN_CATEGORIE);
+    expect(iconSource("activity-editor-category-icon")).not.toEqual(CONTOUR_CATEGORIE);
+    expect(iconSource("exercise-body-zones-icon")).toEqual(PLEIN_HOMME);
+    expect(iconSource("exercise-body-zones-icon")).not.toEqual(CONTOUR_HOMME);
     expect(screen.queryByTestId("activity-editor-category-icon-filled")).toBeNull();
     expect(screen.queryByTestId("exercise-body-zones-icon-filled")).toBeNull();
     // Noms accessibles : ils contiennent le texte visible (WCAG 2.5.3) et l'état « non renseignée ».
@@ -1362,7 +1380,8 @@ describe("ActivityEditorForm — PRE-4 story 4.3", () => {
     expect(within(categoryButton).queryByTestId("activity-editor-category-icon")).toBeNull();
     expect(categoryButton.props.accessibilityLabel).toBe("Catégorie Cardio");
     const zonesButton = screen.getByTestId("exercise-body-zones-open");
-    expect(iconSource("exercise-body-zones-icon")).toEqual(CONTOUR_HOMME);
+    // PRE-5 3.2, arbitrage G-5 : silhouette pleine, renseignée ou non.
+    expect(iconSource("exercise-body-zones-icon")).toEqual(PLEIN_HOMME);
     // Q49 (a) : la valeur du séparateur attend Hermann ; seul l'usage de la clé est vérifié.
     expect(within(zonesButton).getByTestId("exercise-body-zones-label").props.children).toBe(
       ["Cou", "Fessier"].join(strings.screens.exercise.bodyZones.bandSeparator),
@@ -1393,55 +1412,65 @@ describe("ActivityEditorForm — PRE-4 story 4.3", () => {
     expect(zonesButton().props.accessibilityState).toEqual({ expanded: false });
   });
 
-  it("PRE4-4.3/AC2 — icône pleine pendant l'ouverture de la feuille des Zones, retour au contour après ✕ puis après ✓ ; la pilule ne change pas", async () => {
+  it("PRE4-4.3/AC2 — Zones : glyphe plein au repos, feuille ouverte, après ✕ puis après ✓ (PRE-5 3.2, arbitrage G-5) ; l'ouverture n'est annoncée que par « développé » ; la pilule ne change pas", async () => {
     render(<Harness initial={{ bodyZoneIds: ["cou"] }} />);
-    const pillStyle = () => StyleSheet.flatten(screen.getByTestId("exercise-body-zones-open").props.style);
+    const zonesButton = () => screen.getByTestId("exercise-body-zones-open");
+    const pillStyle = () => StyleSheet.flatten(zonesButton().props.style);
     const restingPill = pillStyle();
-    fireEvent.press(screen.getByTestId("exercise-body-zones-open"));
+    expect(iconSource("exercise-body-zones-icon")).toEqual(PLEIN_HOMME);
+    fireEvent.press(zonesButton());
     await screen.findByTestId("body-zone-selector-tag-cou");
-    expect(iconSource("exercise-body-zones-icon-filled")).toEqual(PLEIN_HOMME);
-    expect(screen.queryByTestId("exercise-body-zones-icon")).toBeNull();
+    expect(iconSource("exercise-body-zones-icon")).toEqual(PLEIN_HOMME);
+    expect(screen.queryByTestId("exercise-body-zones-icon-filled")).toBeNull();
+    expect(zonesButton().props.accessibilityState).toEqual({ expanded: true });
     expect(pillStyle()).toEqual(restingPill);
     fireEvent.press(screen.getByTestId("body-zone-picker-close"));
-    expect(iconSource("exercise-body-zones-icon")).toEqual(CONTOUR_HOMME);
-    fireEvent.press(screen.getByTestId("exercise-body-zones-open"));
+    expect(iconSource("exercise-body-zones-icon")).toEqual(PLEIN_HOMME);
+    expect(zonesButton().props.accessibilityState).toEqual({ expanded: false });
+    fireEvent.press(zonesButton());
     await screen.findByTestId("body-zone-selector-tag-cou");
-    expect(screen.getByTestId("exercise-body-zones-icon-filled")).toBeTruthy();
+    expect(iconSource("exercise-body-zones-icon")).toEqual(PLEIN_HOMME);
     await act(async () => {
       fireEvent.press(screen.getByTestId("body-zone-picker-confirm"));
     });
-    expect(iconSource("exercise-body-zones-icon")).toEqual(CONTOUR_HOMME);
+    expect(iconSource("exercise-body-zones-icon")).toEqual(PLEIN_HOMME);
     expect(screen.queryByTestId("exercise-body-zones-icon-filled")).toBeNull();
+    expect(zonesButton().props.accessibilityState).toEqual({ expanded: false });
   });
 
-  it("PRE4-4.3/AC2 — icône Catégorie pleine tant que l'adaptateur signale sa feuille ouverte, au contour sinon ; même pilule", () => {
+  it("PRE4-4.3/AC2 — icône Catégorie pleine, que l'adaptateur signale sa feuille ouverte ou non (PRE-5 3.2, arbitrage G-5) ; seul « développé » change ; même pilule", () => {
     const view = render(<Harness isCategoryPickerOpen />);
-    const openPill = StyleSheet.flatten(screen.getByTestId("activity-editor-category-button").props.style);
-    expect(iconSource("activity-editor-category-icon-filled")).toEqual(PLEIN_CATEGORIE);
-    expect(screen.queryByTestId("activity-editor-category-icon")).toBeNull();
-    expect(screen.getByTestId("activity-editor-category-label")).toBeTruthy();
-    view.rerender(<Harness isCategoryPickerOpen={false} />);
-    expect(iconSource("activity-editor-category-icon")).toEqual(CONTOUR_CATEGORIE);
+    const button = () => screen.getByTestId("activity-editor-category-button");
+    const openPill = StyleSheet.flatten(button().props.style);
+    expect(iconSource("activity-editor-category-icon")).toEqual(PLEIN_CATEGORIE);
     expect(screen.queryByTestId("activity-editor-category-icon-filled")).toBeNull();
-    expect(StyleSheet.flatten(screen.getByTestId("activity-editor-category-button").props.style)).toEqual(openPill);
+    expect(screen.getByTestId("activity-editor-category-label")).toBeTruthy();
+    expect(button().props.accessibilityState).toEqual({ expanded: true });
+    view.rerender(<Harness isCategoryPickerOpen={false} />);
+    expect(iconSource("activity-editor-category-icon")).toEqual(PLEIN_CATEGORIE);
+    expect(screen.queryByTestId("activity-editor-category-icon-filled")).toBeNull();
+    expect(button().props.accessibilityState).toEqual({ expanded: false });
+    expect(StyleSheet.flatten(button().props.style)).toEqual(openPill);
   });
 
-  it("PRE4-4.3/AC2 — une seule silhouette, celle du Profil (homme par défaut, femme si choisie), dans ses deux états ; jamais deux boutons homme / femme", async () => {
+  it("PRE4-4.3/AC2 — une seule silhouette, celle du Profil (homme par défaut, femme si choisie), pleine feuille fermée comme ouverte (PRE-5 3.2, arbitrage G-5) ; jamais deux boutons homme / femme", async () => {
     for (const [silhouette, contour, plein, contourSource, pleinSource] of [
       [null, "body-zone-homme", "body-zone-homme-plein", CONTOUR_HOMME, PLEIN_HOMME],
       ["homme", "body-zone-homme", "body-zone-homme-plein", CONTOUR_HOMME, PLEIN_HOMME],
       ["femme", "body-zone-femme", "body-zone-femme-plein", CONTOUR_FEMME, PLEIN_FEMME],
     ] as const) {
       const view = render(<Harness silhouette={silhouette} />);
-      expect(renderedSilhouettes()).toEqual([contour]);
-      expect(iconSource("exercise-body-zones-icon")).toEqual(contourSource);
+      expect(renderedSilhouettes()).toEqual([plein]);
+      expect(renderedSilhouettes()).not.toContain(contour);
+      expect(iconSource("exercise-body-zones-icon")).toEqual(pleinSource);
+      expect(iconSource("exercise-body-zones-icon")).not.toEqual(contourSource);
       expect(screen.queryByLabelText(/homme|femme/i)).toBeNull();
       fireEvent.press(screen.getByTestId("exercise-body-zones-open"));
       await screen.findByTestId("body-zone-selector-tag-cou");
       // Feuille ouverte : la seule silhouette est celle, pleine, du bandeau ; aucune
       // n'est répétée dans les options (AC5).
       expect(renderedSilhouettes()).toEqual([plein]);
-      expect(iconSource("exercise-body-zones-icon-filled")).toEqual(pleinSource);
+      expect(iconSource("exercise-body-zones-icon")).toEqual(pleinSource);
       fireEvent.press(screen.getByTestId("body-zone-picker-close"));
       view.unmount();
     }
@@ -1995,6 +2024,22 @@ describe("ActivityEditorForm — PRE-5 story 3.2", () => {
     expect(style("test-finish-action").backgroundColor).toBe("#BEC2CC");
   });
 
+  it("AC2 — `Terminer` : hauteur `dimensions.finalAction.buttonHeight` (48) et ombre locale #1A1A26 18 %, (0, 2), rayon 10, actif comme inactif (PRE-5 3.2, arbitrage G-8)", () => {
+    for (const isFinishDisabled of [false, true]) {
+      const view = render(<Harness isFinishDisabled={isFinishDisabled} />);
+      expect(style("test-finish-action")).toMatchObject({
+        minHeight: dimensions.finalAction.buttonHeight,
+        shadowColor: "#1A1A26",
+        shadowOpacity: 0.18,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 10,
+        elevation: 3,
+      });
+      expect(dimensions.finalAction.buttonHeight).toBe(48);
+      view.unmount();
+    }
+  });
+
   it("AC2 (revue) — Android, bord à bord, encart bas 48 (barre de navigation à 3 boutons) : `Terminer` reste au-dessus (marginBottom 48) ; encart 0 : 24", () => {
     const os = jest.replaceProperty(Platform, "OS", "android");
     try {
@@ -2008,9 +2053,9 @@ describe("ActivityEditorForm — PRE-5 story 3.2", () => {
     }
   });
 
-  it("AC2 — titres de section (Description, Paramètres d’exécution, Médias) en Regular 11 `textSecondary`, rôle `header`", () => {
+  it("AC2 — titres de section (Description, Paramètres d’exécution) en Regular 11 `textSecondary`, rôle `header` ; « Médias » en-tête VoiceOver sans titre visible (PRE-5 3.2, arbitrage G-7)", () => {
     render(<Harness />);
-    for (const title of ["Description de l’exercice", "Paramètres d’exécution", "Médias"]) {
+    for (const title of ["Description de l’exercice", "Paramètres d’exécution"]) {
       const node = screen.getByText(title);
       expect(node.props.accessibilityRole).toBe("header");
       expect(StyleSheet.flatten(node.props.style)).toMatchObject({
@@ -2019,6 +2064,18 @@ describe("ActivityEditorForm — PRE-5 story 3.2", () => {
         color: "#595E66",
       });
     }
+    // G-7 : le titre « Médias » reste un en-tête lu par VoiceOver (ni masqué, ni retiré de
+    // l'arbre d'accessibilité), mais hors flux, 1 × 1, rogné et transparent.
+    const media = screen.getByTestId("activity-editor-media-title");
+    expect(media.props.children).toBe("Médias");
+    expect(media.props.accessibilityRole).toBe("header");
+    expect(media.props.accessibilityElementsHidden).not.toBe(true);
+    expect(media.props.importantForAccessibility).not.toBe("no-hide-descendants");
+    expect(within(screen.getByTestId("activity-editor-section-media")).getByTestId("activity-editor-media-title")).toBe(media);
+    const mediaStyle = StyleSheet.flatten(media.props.style);
+    expect(mediaStyle).toMatchObject({ position: "absolute", width: 1, height: 1, overflow: "hidden", color: "transparent" });
+    expect(mediaStyle.opacity ?? 1).toBe(1);
+    expect(mediaStyle.display).toBeUndefined();
   });
 
   it("AC3 — Classification : même géométrie « à renseigner » et « renseigné » ; seuls fond et couleurs changent ; glyphe Catégorie teinté", () => {

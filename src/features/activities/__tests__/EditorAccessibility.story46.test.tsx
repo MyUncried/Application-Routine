@@ -322,7 +322,7 @@ describe("Éditeur — PRE-4 story 4.6", () => {
     expect(effectiveHeight(screen.getByTestId("media-pending-1-retry"))).toBeGreaterThanOrEqual(48);
   });
 
-  it("PRE4-4.6/AC5 — texte agrandi : aucun plafond ni réduction de taille dans l'Éditeur (feuille des Zones ouverte comprise) ; seul texte borné, les noms des Zones du bandeau, lus en entier par le libellé de l'accès ; textes sous hauteur fixe limités aux exceptions consignées", async () => {
+  it("PRE4-4.6/AC5 — texte agrandi : aucun plafond ni réduction de taille dans l'Éditeur (feuille des Zones ouverte comprise) ; seul texte borné, les noms des Zones du bandeau, lus en entier par le libellé de l'accès ; textes sous hauteur fixe limités aux exceptions consignées (dont le titre « Médias » non visible, PRE-5 3.2, arbitrage G-7)", async () => {
     render(<Harness initial={{ bodyZoneIds: ["cou", "cuisses"] }} />);
     fireEvent(screen.getByTestId("exercise-instruction-input"), "focus");
     const capped = () =>
@@ -347,6 +347,10 @@ describe("Éditeur — PRE-4 story 4.6", () => {
     }
     // Hauteurs fixes sur un texte : ↑ de la Description (cercle de 32, symbole) et tuiles Médias
     // (260 × 213, PRE-3 ; badge « Vidéo » et textes d'état dans la tuile) — consignées (R-44).
+    // PRE-5 3.2, arbitrage G-7 : exception consignée, le titre « Médias » 1 × 1 réservé à VoiceOver
+    // (hors flux, transparent) — aucun texte visible n'y est borné ; son style est vérifié ici.
+    const mediaTitle = StyleSheet.flatten(screen.getByTestId("activity-editor-media-title").props.style);
+    expect(mediaTitle).toMatchObject({ position: "absolute", width: 1, height: 1, overflow: "hidden", color: "transparent" });
     const fixedWithText = [
       ...new Set(
         screen.UNSAFE_root.findAll(
@@ -358,7 +362,7 @@ describe("Éditeur — PRE-4 story 4.6", () => {
         ).map((node) => node.props.testID as string),
       ),
     ].sort();
-    expect(fixedWithText).toEqual(["exercise-instruction-submit"]);
+    expect(fixedWithText).toEqual(["activity-editor-media-title", "exercise-instruction-submit"]);
 
     await act(async () => {
       fireEvent.press(screen.getByTestId("exercise-body-zones-open"));

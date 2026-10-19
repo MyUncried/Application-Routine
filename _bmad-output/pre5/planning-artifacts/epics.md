@@ -1126,6 +1126,7 @@ afin que l'Éditeur soit fini, lisible et conforme aux références.
 **And** la Carte des modalités est un bloc `#F9FAFC` (jeton `surfaceSubtle`), de rayon 12, sans liseré
 **And** sont conservés : la grille verticale D-327, le libellé accessible « Retour » du ✕ (Q48), le séparateur des Zones (Q49), les comportements de Catégorie et Zones (Q49, Q53), les jetons verrouillés (`tokensSpecification.test.ts` vert)
 **And** tout écart dont la correction exigerait un nouveau jeton, le remplacement d'un composant accepté ou une marge contraire à D-327 (par exemple les marges de 4 et 10 du registre face aux 13 de la grille) est soumis à Hermann écart par écart et n'est pas implémenté d'office ; la liste des écarts soumis est consignée dans le fichier de la story.
+**And** (arbitrages G-1 à G-10 de Hermann du 19/10, qui priment) : en-tête, espacements 14 / 10 / 16, placeholder et interligne du Nom, glyphes pleins au repos, Phrase en 14, titre « Médias » non visible, ombre et position de `Terminer`, typographie du dialogue d'abandon suivent le Figma actuel (`8328:35698`), en adaptation locale ; détail dans la spec de la story.
 
 **AC4 — Non-régression et contrôles (NR Δ07).**
 **Given** l'écran principal

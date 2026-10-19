@@ -93,6 +93,22 @@ Sans objet : E-V9 (livré par 3.1), E-V11 (invite retirée, Q55), E-V15 (Figma a
 - **G-9 (E-V16) — dialogue d'abandon** (`8328:36781`) : message 14/21 `#474D57`, actions 16. Code : instance d'édition acceptée en PRE-3 (`3224:4140`). Options : garder ; jetons de l'instance Séance (existants). Recommandation : garder (composant partagé accepté).
 - **G-10 — position de `Terminer` sur iPhone.** Figma : bas du bouton à 24 du bord, soit 10 pt dans l'encart bas de 34 (au-dessus de l'indicateur d'accueil). Implémenté ainsi. Repli si la recette le juge trop bas : `max(24, insets.bottom)` (bas à 34). Recommandation : garder 24 et juger en R-3.2-02.
 
+### Arbitrages définitifs de Hermann du 19/10 (G-1 à G-10, appliqués)
+
+Principe : conformité au Figma actuel (référence `8328:35698`), jetons existants réutilisés quand ils correspondent exactement, sinon constantes locales ; aucun jeton ni composant global modifié pour cet écran. Les recommandations ci-dessus sont remplacées par ces décisions.
+
+- **G-1** en-tête : `FixedHeader` reçoit trois props locales (`layoutStyle`, `backCircleStyle`, `titleStyle`), passées par l'Éditeur seul (`EDITOR_HEADER`) : cible du ✕ à 12 du bord (retrait 17), titre à 4 après la cible, `dimensions.backAction` (38 / 24 / 48), cercle `#FCFCFE` liseré blanc 1, ombre `#1A1A26` 8 % (0, 2) rayon 10, titre Inter Medium 17 `#3A3A3F` (constantes locales) ; halo centré sur le ✕ (x36). Autres écrans inchangés.
+- **G-2** `EDITOR_VERTICAL_GRID` : 14 (`spacing[14]`), 10 (`spacing[10]`), 16 (`spacing[16]`), 12 conservé ; D-327 remplacée pour cet écran seulement.
+- **G-3** placeholder du Nom `colors.textPrimary`. **G-4** `type.screenTitle` + interligne local 22.
+- **G-5** glyphes pleins au repos (`icon-categorie-plein`, `BodyZoneIcon filled`) ; `expanded` inchangé.
+- **G-6** Phrase `type.body` + interligne local 20.
+- **G-7** titre « Médias » hors flux (1 × 1, transparent), en-tête VoiceOver conservé.
+- **G-8** ombre locale de `Terminer` (`#1A1A26` 18 %, (0, 2), rayon 10, élévation 3). **G-10** `dimensions.finalAction.buttonHeight`, marges `spacing[24]`, bas à 24 (inchangé).
+- **G-9** message du dialogue `type.dialogMessage` (14/21), titre `type.modalTitle` (18) ; couleurs, actions et interactions PRE-3 conservées.
+- Documents : ch. 07 (section « Arbitrages G-1 à G-10 », statut de D-327), ch. 13 CE-T03-04 §9, `epics.md` story 3.2 AC3 (une ligne).
+- Écarts restants (non arbitrés, non implémentés) : couleur du message du dialogue (`#474D57` Figma, `textSecondary` code), libellés d'actions 16 et liseré de `Confirmer` dans `8328:36781` ; trait de l'icône ✕ `#14141A` (export `#141414`).
+- Contrôles : `npm test`, `npx tsc --noEmit`, `npm run lint` verts.
+
 ## Spec Change Log
 
 ## Review Triage Log

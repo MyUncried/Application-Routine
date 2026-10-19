@@ -180,19 +180,60 @@ export function editorSideMargin(windowWidth: number): number {
 
 /**
  * PRE-4 story 4.2 (FR-02-03, FR-02-04 ; D-327, DSF-INTERFACE §0.1) : grille
- * verticale commune, appliquée exactement à ses quatre relations, jamais aux
- * espaces internes des composants. 18 et 13 n'ont pas de jeton d'espacement :
- * constantes nommées de la règle écrite, `tokens.ts` restant intouché (AD-11).
+ * verticale de l'Éditeur, appliquée à ses quatre relations, jamais aux espaces
+ * internes des composants.
+ *
+ * PRE-5 story 3.2, arbitrage G-2 de Hermann du 19/10 : pour cet écran seulement,
+ * les espacements du Figma actuel (`8328:35698`, « Contenu du formulaire » :
+ * `pt` 14, écart 16 ; titre → contenu 10) remplacent 18 / 20 / 13 de D-327 ; la
+ * grille globale n'est pas modifiée. 12 (dernier bloc → `Terminer`) est conservé.
  */
 export const EDITOR_VERTICAL_GRID = {
-  /** Bas géométrique du dégradé de la zone de contexte → première ligne de texte. */
-  contextToFirstText: 18,
-  /** Dernier élément d'un bloc → titre de la section suivante. */
-  blockToNextTitle: spacing[20],
-  /** Titre de section → son bloc. */
-  titleToBlock: 13,
+  /** Bas géométrique du dégradé de la zone de contexte → première section. */
+  contextToFirstText: spacing[14],
+  /** Dernier élément d'une section → section suivante. */
+  blockToNextTitle: spacing[16],
+  /** Titre de section → son contenu. */
+  titleToBlock: spacing[10],
   /** Bloc → bloc sans titre entre eux (dernier bloc → `Terminer`). */
   blockToBlock: spacing[12],
+} as const;
+
+/**
+ * PRE-5 story 3.2, arbitrage G-1 de Hermann du 19/10 (Figma `5544:4503`, état
+ * Fermer) : en-tête propre à l'Éditeur d'Exercice, passé à `FixedHeader` par ses
+ * props locales (les autres écrans sont inchangés). Cible 48 du ✕ à 12 du bord,
+ * titre à 4 après la cible (x64) ; cercle visible 38 et icône 24
+ * (`dimensions.backAction`) ; fond `#FCFCFE`, liseré blanc 1 et ombre « KODJO / DSF /
+ * Effet observé / 01 » (`#1A1A26` 8 %, (0, 2), flou 10) ; titre Inter Medium 17
+ * `#3A3A3F`. Valeurs sans jeton exact : constantes locales.
+ */
+const EDITOR_HEADER_TARGET_INSET = spacing[12];
+const EDITOR_HEADER_TITLE_GAP = spacing[4];
+const EDITOR_HEADER_BACK_HIT_SLOP = (dimensions.backAction.touchTarget - dimensions.backAction.visualCircle) / 2;
+export const EDITOR_HEADER = {
+  /** Retrait gauche du cercle visible : cible à 12 du bord, cercle centré dans la cible. */
+  paddingLeft: EDITOR_HEADER_TARGET_INSET + EDITOR_HEADER_BACK_HIT_SLOP,
+  /** Écart cercle → titre : titre à 4 après la cible de 48. */
+  gap: EDITOR_HEADER_BACK_HIT_SLOP + EDITOR_HEADER_TITLE_GAP,
+  /** Abscisse du centre du ✕ (centre du halo de la zone de contexte). */
+  backCenterX: EDITOR_HEADER_TARGET_INSET + dimensions.backAction.touchTarget / 2,
+  title: {
+    fontFamily: "Inter_500Medium",
+    fontWeight: "500",
+    fontSize: 17,
+    color: "#3A3A3F",
+  },
+  backCircle: {
+    backgroundColor: "#FCFCFE",
+    borderWidth: 1,
+    borderColor: colors.background,
+    shadowColor: "#1A1A26",
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 10,
+    elevation: 2,
+  },
 } as const;
 
 /**
@@ -316,17 +357,19 @@ export function ActivityEditorForm({
             <View key={layer.top} style={[styles.contextBandFadeLayer, { top: layer.top, opacity: layer.opacity }]} />
           ))}
         </View>
-        {/* Story 4.2 (AC5) : le halo suit la marge de l'en-tête pour rester concentrique au ✕. */}
+        {/* Story 4.2 (AC5) : halo concentrique au ✕ ; PRE-5 3.2 (G-1) : centre du ✕ de l'en-tête
+            de l'Éditeur (`EDITOR_HEADER.backCenterX`, cible à 12 du bord). */}
         <View
           pointerEvents="none"
-          style={[styles.backHalo, { left: sideMargin + dimensions.backAction.visualCircle / 2 - BACK_HALO_DIAMETER / 2 }]}
+          style={[styles.backHalo, { left: EDITOR_HEADER.backCenterX - BACK_HALO_DIAMETER / 2 }]}
           testID="exercise-context-band-halo"
         />
         <TextInput
           value={value.name}
           onChangeText={(text) => onChange({ name: text })}
           placeholder={editor.name}
-          placeholderTextColor={colors.textSecondary}
+          // PRE-5 story 3.2, arbitrage G-3 de Hermann du 19/10 : placeholder `textPrimary` (Figma `8328:35698`).
+          placeholderTextColor={colors.textPrimary}
           accessibilityLabel={editor.name}
           maxLength={NAME_MAX_LENGTH}
           style={styles.nameInput}
@@ -335,8 +378,10 @@ export function ActivityEditorForm({
         {/* PRE-4 story 4.3 (FR-02-05, P35 ; AC2) : chaque accès est un bouton icône +
             libellé (`Catégorie`, `Zone corporelle`) quand il n'est pas renseigné ; renseigné,
             glyphe + nom (Catégorie) ou silhouette + noms des Zones avec le séparateur de la
-            capture `8328:37022`. Icône au contour au repos, pleine pendant l'ouverture de sa
-            feuille (planche `7245:13718`, même tracé). Une seule silhouette, celle du Profil.
+            capture `8328:37022`. Une seule silhouette, celle du Profil. PRE-5 story 3.2, arbitrage
+            G-5 de Hermann du 19/10 : glyphes pleins au repos (instances « Icône — Catégorie » et
+            « Zone corporelle — glyphe » de `8328:35698`), à la place du contour au repos de
+            PRE-4 4.3 ; l'ouverture reste annoncée par `expanded`.
             PRE-5 story 3.2 (FR-38, E-V7, E-V8, E-V10) : une seule forme pour les deux registres
             (`styles.referenceAccess`) — « à renseigner » : voile blanc, glyphe et libellé
             `primary` ; « renseigné » : sans fond, libellé `textPrimary`, glyphe Catégorie plein
@@ -370,11 +415,7 @@ export function ActivityEditorForm({
               </>
             ) : (
               <>
-                {isCategoryPickerOpen ? (
-                  <KodjoIcon name="icon-categorie-plein" size={ACCESS_GLYPH_SIZE} testID="activity-editor-category-icon-filled" />
-                ) : (
-                  <KodjoIcon name="icon-categorie" size={ACCESS_GLYPH_SIZE} testID="activity-editor-category-icon" />
-                )}
+                <KodjoIcon name="icon-categorie-plein" size={ACCESS_GLYPH_SIZE} testID="activity-editor-category-icon" />
                 <Text style={styles.referenceLabel} testID="activity-editor-category-label">
                   {editor.category.label}
                 </Text>
@@ -404,8 +445,8 @@ export function ActivityEditorForm({
             <BodyZoneIcon
               silhouette={silhouette}
               size={ACCESS_GLYPH_SIZE}
-              filled={isBodyZonePickerOpen}
-              testID={isBodyZonePickerOpen ? "exercise-body-zones-icon-filled" : "exercise-body-zones-icon"}
+              filled
+              testID="exercise-body-zones-icon"
             />
             <Text
               style={[styles.referenceLabel, zoneNames.length > 0 ? styles.referenceLabelSet : null]}
@@ -511,8 +552,10 @@ export function ActivityEditorForm({
             </Pressable>
           </View>
 
+          {/* PRE-5 story 3.2, arbitrage G-7 de Hermann du 19/10 : aucun titre « Médias » visible
+              (Figma `8328:35698`) ; le titre reste un en-tête VoiceOver, sans place à l'écran. */}
           <View style={[styles.section, styles.followingSection]} testID="activity-editor-section-media">
-            <Text style={styles.sectionTitle} accessibilityRole="header">
+            <Text style={styles.accessibilityOnlyTitle} accessibilityRole="header" testID="activity-editor-media-title">
               {strings.executionParameters.media.section}
             </Text>
             <ActivityMediaList
@@ -767,6 +810,12 @@ const FINISH_BOTTOM_OFFSET = spacing[24];
  * bloc, au-dessus de `Terminer` — le dernier contenu n’est jamais masqué, clavier ouvert ou fermé.
  */
 const FINISH_SCROLL_RESERVE = EDITOR_VERTICAL_GRID.blockToBlock;
+/** G-8 : ombre de `Terminer` (Figma `8328:35738`), sans jeton d'ombre (constantes locales). */
+const FINISH_SHADOW = { color: "#1A1A26", opacity: 0.18, offsetY: 2, radius: 10, elevation: 3 } as const;
+/** G-4 : interligne du Nom (Figma `6981:14889`). */
+const NAME_LINE_HEIGHT = 22;
+/** G-6 : interligne de la Phrase (Figma « Phrase — texte »). */
+const PHRASE_LINE_HEIGHT = 20;
 
 /** Halo figé sous le bouton Retour (« Halo blanc — bouton Annuler », 5752:4044). */
 const BACK_HALO_DIAMETER = 59.28;
@@ -822,14 +871,16 @@ const styles = StyleSheet.create({
     height: BACK_HALO_DIAMETER,
     borderRadius: BACK_HALO_DIAMETER / 2,
     backgroundColor: colors.background,
-    // Centre = centre du ✕ de l’en-tête partagé (cercle 38 après la marge latérale,
-    // centré dans la hauteur de contenu 48 juste au-dessus de la zone) ; `left` est
-    // calculé au rendu depuis la marge (story 4.2, AC5).
+    // Centre = centre du ✕ de l’en-tête (centré dans la hauteur de contenu 48 juste
+    // au-dessus de la zone) ; `left` est calculé au rendu (`EDITOR_HEADER.backCenterX`).
     top: -dimensions.header.contentHeight / 2 - BACK_HALO_DIAMETER / 2,
   },
   // Recette 2 (T-49, décision du 12/10) : aucun liseré autour du champ Nom.
+  // PRE-5 story 3.2, arbitrage G-4 de Hermann du 19/10 : Inter Semi Bold 20 (`type.screenTitle`),
+  // interligne local 22 (Figma `8328:35698`).
   nameInput: {
     ...type.screenTitle,
+    lineHeight: NAME_LINE_HEIGHT,
     color: colors.textPrimary,
     backgroundColor: "transparent",
     borderRadius: fixedRadii[10],
@@ -871,8 +922,8 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
   },
-  // Story 4.2 (AC4, AC5) : grille de D-327 — 18 du bas du dégradé au premier titre,
-  // 12 du dernier bloc (Médias) à `Terminer` (réserve de défilement nommée, PRE-5 3.2) ;
+  // Story 4.2 (AC4, AC5) ; PRE-5 3.2 (G-2) : 14 du bas du dégradé à la première section,
+  // 12 du dernier bloc (Médias) à `Terminer` (réserve de défilement nommée) ;
   // marge latérale appliquée au rendu.
   bodyContent: {
     flexGrow: 1,
@@ -893,23 +944,35 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[12],
     backgroundColor: colors.surfaceSubtle,
   },
-  // Phrase : Inter 13, interligne 20, valeurs Semi Bold ; hauteur intrinsèque, jamais tronquée.
+  // Phrase : valeurs Semi Bold ; hauteur intrinsèque, jamais tronquée. PRE-5 story 3.2,
+  // arbitrage G-6 de Hermann du 19/10 : Inter Regular 14 (`type.body`), interligne local 20,
+  // à la place de la taille 13 de FR-02-06.
   phrase: {
-    ...type.exerciseFieldValue,
-    lineHeight: 20,
+    ...type.body,
+    lineHeight: PHRASE_LINE_HEIGHT,
     color: colors.textPrimary,
   },
   phraseBold: {
     fontFamily: "Inter_600SemiBold",
     fontWeight: "600",
   },
-  // D-327 : 13 entre un titre de section et son bloc ; 20 entre le dernier élément
-  // d'un bloc et le titre de la section suivante.
+  // PRE-5 3.2 (G-2, à la place de D-327 pour cet écran) : 10 entre un titre de section et
+  // son contenu ; 16 entre deux sections.
   section: {
     gap: EDITOR_VERTICAL_GRID.titleToBlock,
   },
   followingSection: {
     marginTop: EDITOR_VERTICAL_GRID.blockToNextTitle,
+  },
+  // G-7 : titre lu par VoiceOver, sans place à l'écran (hors flux, 1 × 1, texte transparent,
+  // opacité conservée pour rester un élément d'accessibilité).
+  accessibilityOnlyTitle: {
+    ...type.caption,
+    position: "absolute",
+    width: 1,
+    height: 1,
+    overflow: "hidden",
+    color: "transparent",
   },
   // Recette 3 (N-05) : place réservée à ↑ (le texte ne passe jamais dessous).
   // PRE-5 story 3.1 : sans contenant, la réserve porte sur la liste des étapes.
@@ -937,12 +1000,20 @@ const styles = StyleSheet.create({
   finishActionSlot: {
     position: "relative",
   },
+  // PRE-5 story 3.2, arbitrages G-8 et G-10 de Hermann du 19/10 (Figma `8328:35738`) :
+  // hauteur `dimensions.finalAction.buttonHeight`, ombre locale `#1A1A26` 18 %, (0, 2), flou 10,
+  // dans les deux états.
   primaryAction: {
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 48,
+    minHeight: dimensions.finalAction.buttonHeight,
     borderRadius: 24,
     backgroundColor: colors.primary,
+    shadowColor: FINISH_SHADOW.color,
+    shadowOpacity: FINISH_SHADOW.opacity,
+    shadowOffset: { width: 0, height: FINISH_SHADOW.offsetY },
+    shadowRadius: FINISH_SHADOW.radius,
+    elevation: FINISH_SHADOW.elevation,
   },
   primaryActionDisabled: {
     backgroundColor: colors.disabled,

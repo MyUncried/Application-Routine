@@ -49,6 +49,22 @@ describe("ExerciseExitConfirmModal (D-094, CE-T01-16)", () => {
     expect(flattened.fontWeight).toBe("600");
   });
 
+  it("PRE-5 3.2, arbitrage G-9 — message en `type.dialogMessage` (Inter Regular 14 / 21), couleur `textSecondary` inchangée ; titre `type.modalTitle` inchangé, création comme modification", () => {
+    for (const isCreation of [false, true]) {
+      const view = render(<ExerciseExitConfirmModal onCancel={jest.fn()} onConfirm={jest.fn()} isCreation={isCreation} />);
+      const message = screen.getByText(isCreation ? modalStrings.createMessage : modalStrings.message);
+      expect(StyleSheet.flatten(message.props.style)).toMatchObject({
+        fontFamily: "Inter_400Regular",
+        fontSize: 14,
+        lineHeight: 21,
+        color: colors.textSecondary,
+      });
+      const title = screen.getByText(isCreation ? modalStrings.createTitle : modalStrings.title);
+      expect(StyleSheet.flatten(title.props.style)).toMatchObject({ fontSize: 18, lineHeight: 22, fontWeight: "600" });
+      view.unmount();
+    }
+  });
+
   describe("REWORK11 — actions", () => {
     it("keeps the two actions on a single row, with strictly identical 147×48 dimensions and a 12pt horizontal gap — same shared geometry as the Session dialog", () => {
       render(<ExerciseExitConfirmModal onCancel={jest.fn()} onConfirm={jest.fn()} />);

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
@@ -40,6 +40,15 @@ export type FixedHeaderProps = {
    * défaut (inchangé) ; l'Éditeur d'Exercice passe 16 sous la largeur 390.
    */
   horizontalPadding?: number;
+  /**
+   * PRE-5 story 3.2 (arbitrage G-1 de Hermann du 19/10) : surcharges LOCALES de l'en-tête
+   * de l'Éditeur d'Exercice — retrait gauche et écart cercle → titre (`layoutStyle`), style
+   * du cercle (`backCircleStyle`) et du titre (`titleStyle`). Absentes : rendu inchangé
+   * pour tous les autres écrans.
+   */
+  layoutStyle?: StyleProp<ViewStyle>;
+  backCircleStyle?: StyleProp<ViewStyle>;
+  titleStyle?: StyleProp<TextStyle>;
 };
 
 /**
@@ -69,6 +78,9 @@ export function FixedHeader({
   backAccessibilityLabel,
   closeIcon = false,
   horizontalPadding,
+  layoutStyle,
+  backCircleStyle,
+  titleStyle,
 }: FixedHeaderProps) {
   const insets = useSafeAreaInsets();
   const backHitSlop = (minTouchTarget - dimensions.backAction.visualCircle) / 2;
@@ -82,6 +94,7 @@ export function FixedHeader({
         // elle grandit avec le texte agrandi au lieu de rogner le titre.
         { paddingTop: insets.top, minHeight: insets.top + dimensions.header.contentHeight },
         horizontalPadding === undefined ? null : { paddingHorizontal: horizontalPadding },
+        layoutStyle,
       ]}
     >
       {onBack ? (
@@ -90,7 +103,7 @@ export function FixedHeader({
           accessibilityRole="button"
           accessibilityLabel={backAccessibilityLabel}
           hitSlop={backHitSlop}
-          style={styles.backCircle}
+          style={[styles.backCircle, backCircleStyle]}
           testID="screen-header-back"
         >
           <KodjoIcon
@@ -100,7 +113,7 @@ export function FixedHeader({
           />
         </Pressable>
       ) : null}
-      <Text style={styles.title} accessibilityRole="header">
+      <Text style={[styles.title, titleStyle]} accessibilityRole="header">
         {title}
       </Text>
     </View>
