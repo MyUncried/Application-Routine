@@ -88,6 +88,7 @@ import {
 } from "@/features/activities/cadenceOption";
 import { KeyboardAccessoryBar } from "@/features/activities/KeyboardAccessoryBar";
 import { KeyboardField } from "@/features/activities/KeyboardField";
+import { loadOptionWidth } from "@/features/activities/loadOptionWidth";
 import {
   SHEET_MOTION_MS,
   SheetMotionGroupMount,
@@ -498,6 +499,8 @@ export function ExecutionParametersSheet({
    * replie ou se ferme. Faux à l'ouverture de la Feuille : aucun geste encore.
    */
   const [isTableSelected, setIsTableSelected] = useState(false);
+  // Recette du 20/10 (RC-14) : texte saisi dans la charge commune pendant son focus (largeur de l'option).
+  const [uniformLoadEntry, setUniformLoadEntry] = useState<string | null>(null);
   /**
    * Message d'ajustement existant (D-5, T-58) : Inversion du total (`previous` restauré
    * par Annuler) ou, story 3.6 (AD-8, FR-12-05), « Série supprimée — Annuler »
@@ -606,6 +609,10 @@ export function ExecutionParametersSheet({
   // PRE-5 story 2.2 (FR-23) : champ de la charge commune, en identiques effectives avec la charge Avec.
   const uniformLoadShown = draft.loadEnabled && !showVariableTable;
   const uniformLoadActive = isOpen({ kind: "keyboard", field: UNIFORM_LOAD_FIELD });
+  // Recette du 20/10 (RC-14) : option Avec de la Charge, de 62 si la charge commune (au repos, et
+  // le texte saisi pendant le focus) y tient, sinon élargie au strict nécessaire.
+  const uniformLoadText = formatLoadKg(effectiveFirst.loadKg);
+  const uniformLoadWidth = loadOptionWidth(uniformLoadText, ...(uniformLoadEntry === null ? [] : [uniformLoadEntry]));
   const totalEditable = isRequestedTotalEditable(draft);
 
   // PRE-5 story 2.8 (FR-9, AD-25) : disponibilité du ✓ et résultat avec le libellé par défaut
@@ -838,7 +845,9 @@ export function ExecutionParametersSheet({
    * PRE-5 story 2.2 (FR-23, AC5) : segmenté « Avec | Sans » de la ligne Charge. Avec (passage
    * Sans → Avec) : `setLoadEnabled(true)` (0,25 kg à la première activation, restauration
    * ensuite), tableau déplié s'il était replié. Recette du 19/10 (RC-2) : aucun focus, aucune
-   * cellule active ; le clavier ne s'ouvre qu'au toucher d'un champ Charge.
+   * cellule active ; le clavier ne s'ouvre qu'au toucher d'un champ Charge. Recette du 20/10
+   * (RC-14) : en séries identiques effectives, Avec ouvre le clavier dans l'option (focus de la
+   * charge commune) ; en variables, RC-2 reste.
    */
   function chooseLoad(choice: LoadChoice) {
     // T10 : panneau ou sélecteur ouvert — fermeture sans appliquer.
@@ -853,6 +862,7 @@ export function ExecutionParametersSheet({
     if (next === draft) setIsTableSelected(false);
     else update(next);
     dispatchSurface({ type: "closeAll" });
+    if (enabled && !showVariableTable) keyboard.focusField(UNIFORM_LOAD_FIELD);
   }
 
   /**
@@ -1958,7 +1968,9 @@ export function ExecutionParametersSheet({
                       variables. PRE-5 story 2.7 (AC1, AD-28, Figma `9289:17849`) : en
                       identiques, le champ commun est le contenu de l'option Avec sélectionnée
                       (« 20 kg » dans le segment) ; son toucher lui donne le focus. En variables,
-                      l'option garde « Avec » (`9290:17953`). */}
+                      l'option garde « Avec » (`9290:17953`). Recette du 20/10 (RC-14) : même
+                      saisie que les cellules (D-434, `cellDecimal`) ; Avec ouvre le clavier dans
+                      l'option, élargie au strict nécessaire si la valeur ne tient pas dans 62. */}
                   <Separator />
                   <Row label={t.load} testID="execution-sheet-row-load">
                     <SegmentedControl<LoadChoice>
@@ -1968,26 +1980,35 @@ export function ExecutionParametersSheet({
                         {
                           value: "WITH",
                           label: t.loadWith,
+                          width: uniformLoadShown ? uniformLoadWidth : undefined,
                           // Le segment sous le champ annonce aussi la valeur affichée.
                           accessibilityLabel: uniformLoadShown
                             ? `${t.loadWith}, ${formatLoadKg(effectiveFirst.loadKg)}`
                             : undefined,
                           selectedContent: uniformLoadShown ? (
                             <KeyboardField
-                              mode="decimal"
-                              displayValue={formatLoadKg(effectiveFirst.loadKg)}
+                              mode="cellDecimal"
+                              displayValue={uniformLoadText}
                               editText={keyboard.editText(UNIFORM_LOAD_FIELD)}
                               active={uniformLoadActive}
-                              onFocus={() => focusKeyboardField(UNIFORM_LOAD_FIELD)}
-                              onBlur={() => keyboard.onBlur(UNIFORM_LOAD_FIELD)}
-                              onChangeText={(text) => keyboard.onChangeText(UNIFORM_LOAD_FIELD, text)}
+                              onFocus={() => {
+                                setUniformLoadEntry(keyboard.editText(UNIFORM_LOAD_FIELD));
+                                focusKeyboardField(UNIFORM_LOAD_FIELD);
+                              }}
+                              onBlur={() => {
+                                setUniformLoadEntry(null);
+                                keyboard.onBlur(UNIFORM_LOAD_FIELD);
+                              }}
+                              onChangeText={(text) => {
+                                setUniformLoadEntry(text);
+                                keyboard.onChangeText(UNIFORM_LOAD_FIELD, text);
+                              }}
                               inputRef={keyboard.register(UNIFORM_LOAD_FIELD, SHEET_ROW_MIN_HEIGHT)}
                               accessibilityLabel={t.loadValue}
-                              style={[
-                                inlineSelectedLabelStyle,
-                                styles.loadSegmentInput,
-                                uniformLoadActive ? styles.loadSegmentInputActive : null,
-                              ]}
+                              hitSlop={LOAD_SEGMENT_HIT_SLOP}
+                              style={[styles.loadSegmentInput, { width: uniformLoadWidth }]}
+                              valueStyle={[inlineSelectedLabelStyle, uniformLoadActive ? styles.loadSegmentInputActive : null]}
+                              entryGeneration={keyboard.entryGeneration}
                               testID="execution-sheet-load-input"
                             />
                           ) : undefined,
@@ -2862,6 +2883,8 @@ const SIDE_ORDER_CHEVRON_GAP = 6;
  * reste sur deux lignes quand le segmenté se réduit à 132 (Avec et Sans de 62).
  */
 const SIDE_CONTROL_RESERVED_WIDTH = INLINE_OPTION_WIDTHS.notation + INLINE_OPTION_WIDTHS.narrow + 2 + 3 * 2;
+/** Recette du 20/10 (RC-14) : charge commune (option de 26) portée à une cible de 44 de haut, dans la ligne de 44. */
+const LOAD_SEGMENT_HIT_SLOP = { top: 9, bottom: 9 };
 /**
  * PRE-5 story 2.8 (NFR-7) : « n phases » (texte de 16) porté à une cible de 44 de haut, dans la
  * ligne de 44, sans agrandir le dessin ; le reste de l'option Avec (re-choisie) a le même effet.
@@ -3118,17 +3141,14 @@ const styles = StyleSheet.create({
   },
   // PRE-5 story 2.7 (AC1, AD-28, Figma `9289:17849`) : champ de la charge commune dans
   // l'option Avec sélectionnée — plein cadre de l'option (62 × 26, rayon 5), texte centré ;
-  // au repos, libellé blanc Semi Bold 12 de l'option sélectionnée sur le cadre violet.
+  // au repos, libellé blanc Semi Bold 12 de l'option sélectionnée sur le cadre violet. Recette
+  // du 20/10 (RC-14) : cellule `cellDecimal` (D-434 : valeur dessinée par un `Text`, entrée
+  // native transparente), de la largeur de l'option (élargie si la valeur ne tient pas).
   loadSegmentInput: {
-    width: INLINE_OPTION_WIDTHS.narrow,
     height: INLINE_OPTION_CONTENT_HEIGHT,
     borderRadius: INLINE_OPTION_CONTENT_RADIUS,
-    // iOS : un `TextInput` d'une ligne avec `lineHeight` décentre texte et curseur ; la
-    // hauteur de ligne du libellé (16) est retirée, police, taille, graisse et couleur gardées.
-    lineHeight: undefined,
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-    textAlign: "center",
+    alignItems: "center",
+    justifyContent: "center",
   },
   // Actif : fond `#EAEAFF` du champ actif (posé par `KeyboardField`) et texte primaire (le
   // blanc serait illisible sur ce fond clair).

@@ -586,7 +586,7 @@ afin de vérifier ces interactions sur appareil avant la story Charge, sans rien
 **Given** un champ de charge actif
 **When** le focus change (toucher, Précédent, Suivant)
 **Then** la cellule en cours de saisie est identifiée par sa couleur de fond, conformément à Figma (`9292:18077`), et l'état actif est annoncé de façon accessible
-**And** toute la valeur du champ est sélectionnée quand il prend le focus, y compris par Précédent / Suivant (recette du 19/10, RC-3) [remplacé par D-434 pour les cellules du tableau, Charge comprise : aucune sélection native, la première frappe remplace la valeur, les suivantes composent, Retour arrière supprime le dernier chiffre ; la charge commune, hors tableau, garde RC-3].
+**And** toute la valeur du champ est sélectionnée quand il prend le focus, y compris par Précédent / Suivant (recette du 19/10, RC-3) [remplacé par D-434 pour les cellules du tableau, Charge comprise : aucune sélection native, la première frappe remplace la valeur, les suivantes composent, Retour arrière supprime le dernier chiffre ; la charge commune, hors tableau, garde RC-3 ; recette du 20/10, RC-14 : la charge commune suit aussi D-434].
 
 **AC4 — Ligne active toujours visible au-dessus du clavier (FR-24).**
 **Given** la Feuille ouverte
@@ -890,6 +890,7 @@ afin de garder la trace des kilos sans fenêtre intermédiaire et sans effet sur
 **When** la Feuille s'affiche
 **Then** la ligne « Charge » (segmenté `inline` Avec / Sans, Sans par défaut) suit la Pause dans le cadre Séries ; les composants posés par 2.2 (`KeyboardField`, barre, surface, hook, défilement) sont conservés tels quels, seul le segmenté passe en variante `inline`
 **And** Avec rend directement le champ de saisie, sans écran intermédiaire : à la première activation la valeur commune vaut 0,25 kg, sans focus ni clavier ouvert (recette du 19/10, RC-2) ; une fois saisie, la valeur remplace Avec dans le segment (`formatLoadKg`, « 20 kg ») et reste éditable : toucher ce segment donne le focus au `KeyboardField` rendu dans la même ligne
+**And** (recette du 20/10, RC-14, décision de Hermann, remplace RC-2 et RC-3 pour la charge commune) la charge commune se saisit comme les cellules (D-434, mode `cellDecimal` : pas de poignées iOS, la première frappe remplace la valeur, Retour arrière supprime le dernier caractère) ; appuyer sur Avec sélectionne l'option et ouvre le clavier, focus dans l'option ; à la sortie du champ (Fermer, toucher ailleurs, ✓ absorbé), la valeur remplace « Avec » (« 20 kg »), sans chevron ; Sans remet « Avec », non sélectionné ; toucher l'option sélectionnée rouvre la saisie ; règles de valeur inchangées (0,25 supérieur, zéro → Sans, 0,25 kg à la première activation, réactivation restaurée) ; barre RC-1 : Précédent et Suivant indisponibles, Fermer, sans « À l'échec » ; option de 62 si la valeur tient, sinon élargie au strict nécessaire ; en séries variables, Avec n'ouvre toujours pas le clavier (RC-2).
 **And** la ligne reste disponible quand À l'échec masque la ligne Durée ou Répétitions (FR-21, Δ48).
 
 **AC2 — Ligne et colonne Charge en séries variables (FR-13).**

@@ -56,7 +56,9 @@ import {
  *   `keyboardWill…` sur iOS) et la hauteur mesurée de la barre, que la révélation retire du
  *   haut du clavier : la ligne active reste entière au-dessus de la barre (marge 12).
  * - Recette du 19/10 (RC-2) : aucune ouverture automatique ; le clavier ne s'ouvre qu'au
- *   toucher d'un champ.
+ *   toucher d'un champ. Recette du 20/10 (RC-14) : exception de la charge commune — passer
+ *   à Avec en séries identiques ouvre le clavier dans l'option (`focusField`) ; en séries
+ *   variables, RC-2 reste.
  * - D-434 (décision de Hermann du 19/10, QD-434-1 à 4) : les cellules Cible et Pause du
  *   tableau des séries variables sont aussi des champs clavier (texte d'édition « MMSS »
  *   pour une durée, chiffres pour des Répétitions), appliqués à la sortie par les
@@ -316,6 +318,11 @@ export type SheetKeyboard = {
   next: () => void;
   /** « Fermer » : applique et ferme le clavier. */
   close: () => void;
+  /**
+   * Recette du 20/10 (RC-14) : donne le focus natif au champ `field` après le rendu en cours
+   * (le champ de la charge commune n'existe qu'une fois Avec appliqué au Brouillon).
+   */
+  focusField: (field: KeyboardFieldId) => void;
   /** Défilement du corps (offset courant, pour la révélation). */
   onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 };
@@ -354,6 +361,9 @@ export function useSheetKeyboard({
   // D-434 : frappe reçue depuis la prise du champ (état de « À l'échec ») ; génération de la saisie.
   const [typed, setTyped] = useState(false);
   const [entryGeneration, setEntryGeneration] = useState(0);
+  // RC-14 : focus demandé (`focusField`), donné après le rendu qui monte le champ.
+  const pendingFocusRef = useRef<KeyboardFieldId | null>(null);
+  const [focusRequest, setFocusRequest] = useState(0);
   const offsetRef = useRef(0);
   const reduceMotionRef = useRef(reduceMotion);
   useEffect(() => {
@@ -515,6 +525,14 @@ export function useSheetKeyboard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [surface.open]);
 
+  // RC-14 : après l'effet précédent (même rendu), qui a pu retirer le focus d'un autre champ.
+  useEffect(() => {
+    const pending = pendingFocusRef.current;
+    if (pending === null) return;
+    pendingFocusRef.current = null;
+    inputsRef.current.get(fieldKey(pending))?.input.focus();
+  }, [focusRequest]);
+
   function step(delta: -1 | 1) {
     const current = wantedRef.current;
     if (current === null) return;
@@ -580,6 +598,10 @@ export function useSheetKeyboard({
     previous: () => step(-1),
     next: () => step(1),
     close,
+    focusField: (field) => {
+      pendingFocusRef.current = field;
+      setFocusRequest((request) => request + 1);
+    },
     onScroll: (event) => {
       offsetRef.current = event.nativeEvent.contentOffset.y;
     },

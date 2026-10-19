@@ -5238,19 +5238,17 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
   const UNIFORM = "execution-sheet-load-input";
   const cell = (row: number) => `execution-sheet-table-row-${row}-load`;
   // D-434 : une cellule du tableau (`…-load`) porte son entrée native transparente (`…-input`)
-  // et sa valeur affichée (`…-value`) ; le champ de la charge commune reste un `TextInput` visible.
-  const input = (testID: string) => (testID === UNIFORM ? testID : `${testID}-input`);
+  // et sa valeur affichée (`…-value`) ; recette du 20/10 (RC-14) : la charge commune aussi (`cellDecimal`).
+  const input = (testID: string) => `${testID}-input`;
   const focus = (testID: string) => fireEvent(get(input(testID)), "focus");
   const blur = (testID: string) => fireEvent(get(input(testID)), "blur");
   // Cellule : frappes au clavier natif (la première remplace) ; texte vide = Retour arrière
   // jusqu'à vider la cellule.
   const type = (testID: string, text: string) => {
-    if (testID === UNIFORM) fireEvent.changeText(get(testID), text);
-    else if (text === "") typeInExecutionSheetCell(testID, CELL_BACKSPACE.repeat(String(get(input(testID)).props.value).length));
+    if (text === "") typeInExecutionSheetCell(testID, CELL_BACKSPACE.repeat(String(get(input(testID)).props.value).length));
     else typeInExecutionSheetCell(testID, text);
   };
-  const shown = (testID: string) =>
-    testID === UNIFORM ? String(get(testID).props.value) : String(get(`${testID}-value`).props.children);
+  const shown = (testID: string) => String(get(`${testID}-value`).props.children);
   const loadChoice = () => selectedValue("execution-sheet-load-control", ["WITH", "WITHOUT"]);
   const uniformLoad = (loadKg: number, enabled = true) =>
     params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 15, loadKg, workPhases: [] }, loadEnabled: enabled });
@@ -5287,9 +5285,10 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
     fireEvent.press(get("execution-sheet-load-control-WITH"));
     expect(loadChoice()).toBe("WITH");
     expect(shown(UNIFORM)).toBe("0,25 kg");
-    expect(get(UNIFORM).props.keyboardType).toBe("decimal-pad");
-    // Recette du 19/10 : barre rendue par la Feuille (RC-1), aucun champ actif à l'activation (RC-2).
-    expect(get(UNIFORM).props.inputAccessoryViewID).toBeUndefined();
+    expect(get(input(UNIFORM)).props.keyboardType).toBe("decimal-pad");
+    // Recette du 19/10 : barre rendue par la Feuille (RC-1). Recette du 20/10 (RC-14) : Avec
+    // demande le focus de la charge commune ; le champ est actif quand le focus natif arrive.
+    expect(get(input(UNIFORM)).props.inputAccessoryViewID).toBeUndefined();
     expect(get(UNIFORM).props.accessibilityState).toMatchObject({ selected: false });
     focus(UNIFORM);
     expect(shown(UNIFORM)).toBe("0,25");
@@ -5304,14 +5303,21 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
     expect(applied(onApply)).toMatchObject({ loadEnabled: true, series: { kind: "UNIFORM", loadKg: 1.5 } });
   });
 
-  it("PRE5-2.2/AC1 — illisible ou négatif : valeur précédente ; champ vidé : 0 kg, et à la fermeture en identiques → Sans", () => {
+  it("PRE5-2.2/AC1, RC-14 — illisible : valeur précédente ; second séparateur et signe refusés à la frappe (D-434) ; champ vidé : 0 kg, et à la fermeture en identiques → Sans", () => {
     const { onApply } = renderSheet(uniformLoad(20));
     focus(UNIFORM);
-    type(UNIFORM, "1,2,3");
+    type(UNIFORM, ",");
     blur(UNIFORM);
     expect(shown(UNIFORM)).toBe("20 kg");
+    // RC-14 : même composition que les cellules (`cellDecimal`) — un seul séparateur, aucun signe.
     focus(UNIFORM);
+    type(UNIFORM, "1,2,3");
+    expect(shown(UNIFORM)).toBe("1,23");
+    type(UNIFORM, "⌫⌫⌫⌫");
     type(UNIFORM, "-2");
+    expect(shown(UNIFORM)).toBe("2");
+    fireEvent.changeText(get(input(UNIFORM)), "");
+    type(UNIFORM, ",");
     blur(UNIFORM);
     expect(shown(UNIFORM)).toBe("20 kg");
     focus(UNIFORM);
@@ -5522,19 +5528,17 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2 (focus natif et applicati
   const UNIFORM = "execution-sheet-load-input";
   const cell = (row: number) => `execution-sheet-table-row-${row}-load`;
   // D-434 : une cellule du tableau (`…-load`) porte son entrée native transparente (`…-input`)
-  // et sa valeur affichée (`…-value`) ; le champ de la charge commune reste un `TextInput` visible.
-  const input = (testID: string) => (testID === UNIFORM ? testID : `${testID}-input`);
+  // et sa valeur affichée (`…-value`) ; recette du 20/10 (RC-14) : la charge commune aussi (`cellDecimal`).
+  const input = (testID: string) => `${testID}-input`;
   const focus = (testID: string) => fireEvent(get(input(testID)), "focus");
   const blur = (testID: string) => fireEvent(get(input(testID)), "blur");
   // Cellule : frappes au clavier natif (la première remplace) ; texte vide = Retour arrière
   // jusqu'à vider la cellule.
   const type = (testID: string, text: string) => {
-    if (testID === UNIFORM) fireEvent.changeText(get(testID), text);
-    else if (text === "") typeInExecutionSheetCell(testID, CELL_BACKSPACE.repeat(String(get(input(testID)).props.value).length));
+    if (text === "") typeInExecutionSheetCell(testID, CELL_BACKSPACE.repeat(String(get(input(testID)).props.value).length));
     else typeInExecutionSheetCell(testID, text);
   };
-  const shown = (testID: string) =>
-    testID === UNIFORM ? String(get(testID).props.value) : String(get(`${testID}-value`).props.children);
+  const shown = (testID: string) => String(get(`${testID}-value`).props.children);
   const uniformLoad = (loadKg: number) =>
     params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 15, loadKg, workPhases: [] }, loadEnabled: true });
   const variableLoads = (loads: number[], enabled = true) =>
@@ -5567,18 +5571,18 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2 (focus natif et applicati
     focus(UNIFORM);
     blurSpy.mockClear();
     validate();
-    expect(targets(blurSpy)).toEqual([UNIFORM]);
+    expect(targets(blurSpy)).toEqual([input(UNIFORM)]);
     blur(UNIFORM);
     focus(UNIFORM);
     blurSpy.mockClear();
     fireEvent.press(get("execution-sheet-series-toggle"));
-    expect(targets(blurSpy)).toEqual([UNIFORM]);
+    expect(targets(blurSpy)).toEqual([input(UNIFORM)]);
     blur(UNIFORM);
     focus(UNIFORM);
     keyboard.show();
     blurSpy.mockClear();
     fireEvent.press(get("execution-sheet-keyboard-close"));
-    expect(targets(blurSpy)).toEqual([UNIFORM]);
+    expect(targets(blurSpy)).toEqual([input(UNIFORM)]);
   });
 
   it("PRE5-2.2/AC2, D-434 — Suivant et Précédent donnent le focus natif au champ voisin (Charge 2 → Cible 3), sans retirer celui du champ courant", () => {
@@ -5599,13 +5603,12 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2 (focus natif et applicati
     expect(blurSpy).not.toHaveBeenCalled();
   });
 
-  it("PRE5-2.2/AC5, recette du 19/10 (RC-2) — Avec : aucun focus natif, aucun champ actif, aucune barre (charge commune ; cellules en variables)", () => {
+  it("PRE5-2.2/AC5, recette du 19/10 (RC-2) et du 20/10 (RC-14) — Avec : en identiques, focus natif de la charge commune dans l'option (RC-14) ; en variables, aucun focus natif, aucun champ actif, aucune barre (RC-2)", () => {
     const focusSpy = spyOn("focus");
     const view = renderSheetView(params());
     fireEvent.press(get("execution-sheet-load-control-WITH"));
-    expect(targets(focusSpy)).toEqual([]);
-    expect(get(UNIFORM).props.accessibilityState).toMatchObject({ selected: false });
-    expect(screen.queryByTestId("execution-sheet-keyboard-bar", hidden)).toBeNull();
+    expect(targets(focusSpy)).toEqual([input(UNIFORM)]);
+    focusSpy.mockClear();
     view.unmount();
     renderSheet(variableLoads([0, 0], false));
     fireEvent.press(get("execution-sheet-load-control-WITH"));
@@ -6153,19 +6156,17 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
   const UNIFORM = "execution-sheet-load-input";
   const cell = (row: number) => `execution-sheet-table-row-${row}-load`;
   // D-434 : une cellule du tableau (`…-load`) porte son entrée native transparente (`…-input`)
-  // et sa valeur affichée (`…-value`) ; le champ de la charge commune reste un `TextInput` visible.
-  const input = (testID: string) => (testID === UNIFORM ? testID : `${testID}-input`);
+  // et sa valeur affichée (`…-value`) ; recette du 20/10 (RC-14) : la charge commune aussi (`cellDecimal`).
+  const input = (testID: string) => `${testID}-input`;
   const focus = (testID: string) => fireEvent(get(input(testID)), "focus");
   const blur = (testID: string) => fireEvent(get(input(testID)), "blur");
   // Cellule : frappes au clavier natif (la première remplace) ; texte vide = Retour arrière
   // jusqu'à vider la cellule.
   const type = (testID: string, text: string) => {
-    if (testID === UNIFORM) fireEvent.changeText(get(testID), text);
-    else if (text === "") typeInExecutionSheetCell(testID, CELL_BACKSPACE.repeat(String(get(input(testID)).props.value).length));
+    if (text === "") typeInExecutionSheetCell(testID, CELL_BACKSPACE.repeat(String(get(input(testID)).props.value).length));
     else typeInExecutionSheetCell(testID, text);
   };
-  const shown = (testID: string) =>
-    testID === UNIFORM ? String(get(testID).props.value) : String(get(`${testID}-value`).props.children);
+  const shown = (testID: string) => String(get(`${testID}-value`).props.children);
   const loadChoice = () => selectedValue(LOAD_CONTROL, ["WITH", "WITHOUT"]);
   /** Libellés texte rendus dans le segmenté de la Charge. */
   const controlLabels = () => within(get(LOAD_CONTROL)).queryAllByText(/^(Avec|Sans)$/, hidden).map((node) => node.props.children);
@@ -6192,7 +6193,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
     keyboard.restore();
   });
 
-  it("PRE5-2.7/AC1 — identiques, Sans → Avec : le segment Avec affiche « 0,25 kg » (champ commun dans l'option, aucune pastille séparée), sans focus ni champ actif (RC-2)", () => {
+  it("PRE5-2.7/AC1, RC-14 — identiques, Sans → Avec : le segment Avec affiche « 0,25 kg » (champ commun dans l'option, aucune pastille séparée) et le focus natif lui est donné (clavier ouvert, RC-14)", () => {
     const focusSpy = jest.spyOn(TextInput.prototype as unknown as Record<"focus", () => void>, "focus");
     spies.push(focusSpy);
     renderSheet(params());
@@ -6203,15 +6204,14 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
     expect(within(get(LOAD_CONTROL)).getByTestId(UNIFORM, hidden)).toBeTruthy();
     expect(controlLabels()).toEqual(["Sans"]);
     expect(shown(UNIFORM)).toBe("0,25 kg");
-    expect(inputs().map((node) => String(node.props.testID))).toEqual([UNIFORM]);
-    expect(focusSpy).not.toHaveBeenCalled();
-    expect(get(UNIFORM).props.accessibilityState).toMatchObject({ selected: false });
-    expect(query("execution-sheet-keyboard-bar")).toBeNull();
+    expect(inputs().map((node) => String(node.props.testID))).toEqual([`${UNIFORM}-input`]);
+    // RC-14 : Avec ouvre le clavier dans l'option (focus natif de l'entrée de la charge commune).
+    expect(focusSpy.mock.contexts.map((instance) => String((instance as { props: { testID?: string } }).props.testID))).toEqual([
+      `${UNIFORM}-input`,
+    ]);
     // Plein cadre de l'option (62 × 26, rayon 5), texte centré blanc Semi Bold 12, sans fond propre.
-    expect(styleOf(UNIFORM)).toMatchObject({
-      width: 62,
-      height: 26,
-      borderRadius: 5,
+    expect(styleOf(UNIFORM)).toMatchObject({ width: 62, height: 26, borderRadius: 5, alignItems: "center", justifyContent: "center" });
+    expect(styleOf(`${UNIFORM}-value`)).toMatchObject({
       textAlign: "center",
       fontSize: 12,
       fontFamily: "Inter_600SemiBold",
@@ -6219,22 +6219,21 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
     });
     expect(styleOf(UNIFORM).backgroundColor).toBeUndefined();
     expect(styleOf(UNIFORM).minWidth).toBeUndefined();
-    // iOS : aucune hauteur de ligne sur le champ d'une ligne (texte et curseur centrés).
-    expect(styleOf(UNIFORM).lineHeight).toBeUndefined();
     // Le segment Avec annonce aussi la valeur affichée.
     expect(get(`${LOAD_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, 0,25 kg");
   });
 
-  it("PRE5-2.7/AC1 — toucher le segment à 20 kg : focus du champ, texte « 20 » sélectionné au focus, fond #EAEAFF et texte primaire, barre ; « 1,3 » puis « Fermer » → « 1,5 kg » dans le segment", () => {
+  it("PRE5-2.7/AC1, RC-14 — toucher le segment à 20 kg : focus du champ, « 20 » sans sélection native (la première frappe remplace), fond #EAEAFF et texte primaire, barre ; « 1,3 » puis « Fermer » → « 1,5 kg » dans le segment", () => {
     const { onApply } = renderSheet(uniformLoad(20));
     expect(shown(UNIFORM)).toBe("20 kg");
     expect(controlLabels()).toEqual(["Sans"]);
     focus(UNIFORM);
     keyboard.show();
     expect(shown(UNIFORM)).toBe("20");
-    expect(get(UNIFORM).props.selectTextOnFocus).toBe(true);
-    expect(get(UNIFORM).props.keyboardType).toBe("decimal-pad");
-    expect(styleOf(UNIFORM)).toMatchObject({ backgroundColor: "#EAEAFF", color: colors.primary });
+    expect(get(input(UNIFORM)).props.selectTextOnFocus).toBe(false);
+    expect(get(input(UNIFORM)).props.keyboardType).toBe("decimal-pad");
+    expect(styleOf(UNIFORM)).toMatchObject({ backgroundColor: "#EAEAFF" });
+    expect(styleOf(`${UNIFORM}-value`)).toMatchObject({ color: colors.primary });
     expect(get(UNIFORM).props.accessibilityState).toMatchObject({ selected: true });
     expect(query("execution-sheet-keyboard-bar")).not.toBeNull();
     type(UNIFORM, "1,3");
@@ -6242,7 +6241,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
     blur(UNIFORM);
     expect(shown(UNIFORM)).toBe("1,5 kg");
     expect(styleOf(UNIFORM).backgroundColor).toBeUndefined();
-    expect(styleOf(UNIFORM).color).toBe(colors.background);
+    expect(styleOf(`${UNIFORM}-value`).color).toBe(colors.background);
     expect(loadChoice()).toBe("WITH");
     validate();
     expect(applied(onApply)).toMatchObject({ loadEnabled: true, series: { kind: "UNIFORM", loadKg: 1.5 } });
@@ -6251,7 +6250,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
   it("PRE5-2.7/AC3 — identiques : texte illisible → valeur précédente dans le segment ; « 0 » puis fermeture → Sans, le segment affiche de nouveau « Avec »", () => {
     const { onApply } = renderSheet(uniformLoad(20));
     focus(UNIFORM);
-    type(UNIFORM, "1,2,3");
+    type(UNIFORM, ",");
     blur(UNIFORM);
     expect(shown(UNIFORM)).toBe("20 kg");
     focus(UNIFORM);
@@ -6398,6 +6397,99 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
     expect(controlLabels()).toEqual(["Avec", "Sans"]);
     expect(inputs()).toHaveLength(0);
     expect(query(UNIFORM)).toBeNull();
+  });
+
+  // Recette du 20/10 (RC-14) : charge commune saisie comme les cellules (D-434, `cellDecimal`).
+  it("RC-14 — identiques : Avec sélectionne l'option et ouvre la saisie dans l'option (valeur restaurée) ; première frappe qui remplace, Retour arrière ; barre : Précédent et Suivant indisponibles, Fermer, pas d'« À l'échec » ; validation : « 34,1 » → « 34,25 kg » sans chevron ; toucher l'option sélectionnée rouvre la saisie ; Sans : « Avec », non sélectionné", () => {
+    const focusSpy = jest.spyOn(TextInput.prototype as unknown as Record<"focus", () => void>, "focus");
+    spies.push(focusSpy);
+    // Entrées ayant reçu le focus (sans doublon : le `focus` simulé de React Native peut se rappeler lui-même).
+    const focused = () => [...new Set(focusSpy.mock.contexts.map((instance) => String((instance as { props: { testID?: string } }).props.testID)))];
+    const { onApply } = renderSheet(uniformLoad(20, false));
+    fireEvent.press(get(`${LOAD_CONTROL}-WITH`));
+    expect(loadChoice()).toBe("WITH");
+    expect(focused()).toEqual([input(UNIFORM)]);
+    // Le focus natif arrive : saisie dans l'option, réactivation restaurée (20).
+    focus(UNIFORM);
+    keyboard.show();
+    expect(shown(UNIFORM)).toBe("20");
+    expect(get(UNIFORM).props.accessibilityState).toMatchObject({ selected: true });
+    expect(styleOf(UNIFORM)).toMatchObject({ backgroundColor: "#EAEAFF" });
+    expect(get("execution-sheet-keyboard-previous").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(get("execution-sheet-keyboard-next").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(query("execution-sheet-keyboard-close")).not.toBeNull();
+    expect(query("execution-sheet-keyboard-failure")).toBeNull();
+    type(UNIFORM, "3");
+    expect(shown(UNIFORM)).toBe("3");
+    type(UNIFORM, "5");
+    type(UNIFORM, "⌫");
+    expect(shown(UNIFORM)).toBe("3");
+    type(UNIFORM, "4,1");
+    fireEvent.press(get("execution-sheet-keyboard-close"));
+    blur(UNIFORM);
+    // Arrondi au 0,25 supérieur ; la valeur remplace « Avec » dans l'option, sans chevron.
+    expect(shown(UNIFORM)).toBe("34,25 kg");
+    expect(query(`${LOAD_CONTROL}-WITH-chevron`)).toBeNull();
+    expect(get(UNIFORM).props.accessibilityState).toMatchObject({ selected: false });
+    // Toucher l'option sélectionnée (valeur affichée) rouvre la saisie.
+    focusSpy.mockClear();
+    fireEvent.press(get(UNIFORM));
+    expect(focused()).toEqual([input(UNIFORM)]);
+    // Sans : l'option reprend « Avec », non sélectionnée.
+    fireEvent.press(get(`${LOAD_CONTROL}-WITHOUT`));
+    expect(loadChoice()).toBe("WITHOUT");
+    expect(controlLabels()).toEqual(["Avec", "Sans"]);
+    expect(query(UNIFORM)).toBeNull();
+    // Réactivation : valeur restaurée, saisie rouverte.
+    focusSpy.mockClear();
+    fireEvent.press(get(`${LOAD_CONTROL}-WITH`));
+    expect(shown(UNIFORM)).toBe("34,25 kg");
+    expect(focused()).toEqual([input(UNIFORM)]);
+    validate();
+    expect(applied(onApply)).toMatchObject({ loadEnabled: true, series: { kind: "UNIFORM", loadKg: 34.25 } });
+  });
+
+  it("RC-14 — première activation : 0,25 kg et saisie ouverte ; zéro à la validation → Sans ; variables : Avec n'ouvre pas le clavier (RC-2)", () => {
+    const focusSpy = jest.spyOn(TextInput.prototype as unknown as Record<"focus", () => void>, "focus");
+    spies.push(focusSpy);
+    // Entrées ayant reçu le focus (sans doublon : le `focus` simulé de React Native peut se rappeler lui-même).
+    const focused = () => [...new Set(focusSpy.mock.contexts.map((instance) => String((instance as { props: { testID?: string } }).props.testID)))];
+    renderSheet(uniformLoad(0, false));
+    fireEvent.press(get(`${LOAD_CONTROL}-WITH`));
+    expect(focused()).toEqual([input(UNIFORM)]);
+    focus(UNIFORM);
+    expect(shown(UNIFORM)).toBe("0,25");
+    type(UNIFORM, "0");
+    blur(UNIFORM);
+    expect(loadChoice()).toBe("WITHOUT");
+    expect(controlLabels()).toEqual(["Avec", "Sans"]);
+    screen.unmount();
+    focusSpy.mockClear();
+    renderSheet(variableLoads([0, 0], false));
+    fireEvent.press(get(`${LOAD_CONTROL}-WITH`));
+    expect(focused()).toEqual([]);
+    expect(controlLabels()).toEqual(["Avec", "Sans"]);
+  });
+
+  it("RC-14 — largeur de l'option Avec : 62 si la valeur tient (« 99,75 kg ») ; sinon le strict nécessaire (« 487,75 kg » → 67), pendant la saisie comprise ; en variables, 62", () => {
+    const flat = (testID: string) => StyleSheet.flatten(get(testID).props.style) ?? {};
+    const widths = () => ({ option: flat(`${LOAD_CONTROL}-tile-WITH`).width, field: flat(UNIFORM).width, control: flat(LOAD_CONTROL).width });
+    renderSheet(uniformLoad(99.75));
+    expect(widths()).toEqual({ option: 62, field: 62, control: 132 });
+    screen.unmount();
+    renderSheet(uniformLoad(487.75));
+    expect(widths()).toEqual({ option: 67, field: 67, control: 137 });
+    screen.unmount();
+    renderSheet(uniformLoad(20));
+    focus(UNIFORM);
+    type(UNIFORM, "1234567,25");
+    expect(widths()).toEqual({ option: 77, field: 77, control: 147 });
+    blur(UNIFORM);
+    expect(shown(UNIFORM)).toBe("1234567,25 kg");
+    expect(widths()).toEqual({ option: 95, field: 95, control: 165 });
+    screen.unmount();
+    renderSheet(variableLoads([20, 30]));
+    expect(flat(`${LOAD_CONTROL}-tile-WITH`).width).toBe(62);
   });
 });
 
@@ -6840,7 +6932,7 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
     hideExecutionSheetKeyboard();
   });
 
-  it("Charge d'une cellule : plus de sélection au focus (RC-3 remplacée), la première frappe remplace ; la charge commune garde RC-3 (hors tableau, D-434)", () => {
+  it("Charge d'une cellule et charge commune (recette du 20/10, RC-14) : plus de sélection au focus (RC-3 remplacée), la première frappe remplace", () => {
     const prototype = TextInput.prototype as unknown as { setSelection?: (start: number, end: number) => void };
     const original = prototype.setSelection;
     const setSelection = jest.fn<(start: number, end: number) => void>();
@@ -6855,7 +6947,13 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
       expect(setSelection).not.toHaveBeenCalled();
       view.unmount();
       renderSheet(params({ loadEnabled: true, series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 10, loadKg: 20, workPhases: [] } }));
-      expect(get("execution-sheet-load-input").props.selectTextOnFocus).toBe(true);
+      focus("execution-sheet-load-input");
+      expect(get("execution-sheet-load-input-input").props.selectTextOnFocus).toBe(false);
+      typeInExecutionSheetCell("execution-sheet-load-input", "7");
+      expect(shown("execution-sheet-load-input")).toBe("7");
+      blur("execution-sheet-load-input");
+      expect(shown("execution-sheet-load-input")).toBe("7 kg");
+      expect(setSelection).not.toHaveBeenCalled();
     } finally {
       prototype.setSelection = original;
     }

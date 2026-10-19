@@ -15,15 +15,15 @@ import { colors } from "@/shared/ui/tokens";
  * PRE-5 story 2.2 (AD-26, FR-23 à FR-25, FR-6 composant) — champ clavier UNIQUE de la
  * Feuille « Paramètres d'exécution », sur le `TextInput` de React Native (clavier natif,
  * aucun clavier personnalisé) :
- * - `decimal` : charge commune (hors tableau ; D-434 : mécanisme inchangé), clavier
- *   numérique décimal standard (`decimal-pad`) ; toute la valeur est sélectionnée quand le
- *   champ prend le focus (recette du 19/10, RC-3) ;
  * - `text` : libellé de phase (story 2.8), clavier texte, au plus 20 points de code (une
  *   saisie plus longue est refusée), fermé par Retour, sans barre ;
  * - D-434 (décision de Hermann du 19/10, QD-434-1 à 4) — cellules des tableaux :
  *   `cellDuration` (Cible en mode Durée, Pause ; durée de phase en 2.8), « MM:SS » au clavier
  *   numérique (`number-pad`) ; `cellInteger` (Cible en mode Répétitions), entier au clavier
  *   numérique ; `cellDecimal` (Charge d'une ligne), clavier décimal.
+ * - Recette du 20/10 (RC-14) : la charge commune (séries identiques, dans l'option Avec) suit
+ *   le même mécanisme, `cellDecimal` ; l'ancien mode `decimal` (édition native, sélection de
+ *   toute la valeur au focus, RC-3) est retiré.
  *
  * Cellule (D-434, §3) : la valeur est rendue par un `Text` de la cellule ; le `TextInput`
  * natif, posé sur la cellule, est transparent et ne reçoit aucun toucher (`pointerEvents`
@@ -45,8 +45,8 @@ import { colors } from "@/shared/ui/tokens";
 /** Longueur maximale d'un libellé de phase, en points de code (FR-6). */
 export const KEYBOARD_TEXT_MAX_CODE_POINTS = 20;
 
-/** Modes natifs (édition par le `TextInput` visible) et modes de cellule (D-434). */
-type NativeMode = "decimal" | "text";
+/** Mode natif (édition par le `TextInput` visible) et modes de cellule (D-434, RC-14). */
+type NativeMode = "text";
 type CellMode = "cellDuration" | "cellInteger" | "cellDecimal";
 export type KeyboardFieldMode = NativeMode | CellMode;
 
@@ -91,13 +91,12 @@ type CellProps = CommonProps & {
 };
 
 export function KeyboardField(props: NativeProps | CellProps) {
-  if (props.mode === "decimal" || props.mode === "text") return <NativeEntryField {...props} mode={props.mode} />;
+  if (props.mode === "text") return <NativeEntryField {...props} mode={props.mode} />;
   return <CellEntryField {...props} mode={props.mode} />;
 }
 
-/** Charge commune (`decimal`, RC-3) et libellé de phase (`text`) : `TextInput` visible, édition native. */
+/** Libellé de phase (`text`) : `TextInput` visible, édition native. */
 function NativeEntryField({
-  mode,
   displayValue,
   editText,
   active,
@@ -112,28 +111,13 @@ function NativeEntryField({
 }: NativeProps) {
   const [focused, setFocused] = useState(false);
   const [text, setText] = useState("");
-  const decimal = mode === "decimal";
-  const ownRef = useRef<TextInput | null>(null);
-  // RC-3 : sélection de toute la valeur demandée au focus, posée après le rendu qui remplace
-  // la valeur affichée (« 20 kg ») par le texte d'édition (« 20 »).
-  const selectAllRef = useRef(false);
-  useEffect(() => {
-    if (!selectAllRef.current) return;
-    selectAllRef.current = false;
-    const input = ownRef.current;
-    if (text.length > 0 && input !== null && typeof input.setSelection === "function") input.setSelection(0, text.length);
-  });
   return (
     <TextInput
-      ref={(input) => {
-        ownRef.current = input;
-        inputRef?.(input);
-      }}
+      ref={(input) => inputRef?.(input)}
       value={focused ? text : displayValue}
       onFocus={() => {
         setText(editText);
         setFocused(true);
-        selectAllRef.current = decimal;
         onFocus();
       }}
       onBlur={() => {
@@ -141,15 +125,15 @@ function NativeEntryField({
         onBlur();
       }}
       onChangeText={(next) => {
-        // Mode texte : au plus 20 points de code ; une saisie plus longue est refusée.
-        if (!decimal && [...next].length > KEYBOARD_TEXT_MAX_CODE_POINTS) return;
+        // Au plus 20 points de code ; une saisie plus longue est refusée.
+        if ([...next].length > KEYBOARD_TEXT_MAX_CODE_POINTS) return;
         setText(next);
         onChangeText(next);
       }}
-      keyboardType={decimal ? "decimal-pad" : "default"}
-      selectTextOnFocus={decimal}
-      returnKeyType={decimal ? undefined : "done"}
-      submitBehavior={decimal ? undefined : "blurAndSubmit"}
+      keyboardType="default"
+      selectTextOnFocus={false}
+      returnKeyType="done"
+      submitBehavior="blurAndSubmit"
       autoCorrect={false}
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ selected: active }}
