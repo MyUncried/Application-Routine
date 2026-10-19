@@ -381,6 +381,9 @@ Aucune bibliothèque globale de gestion d’état telle que Zustand ou Redux n�
 
 Les données métier persistantes ne doivent pas avoir pour source de vérité l’état de l’interface.
 
+### Contraintes issues des décisions D-427 à D-429
+Le moteur d'exécution distingue l'activation d'un parcours enrichi par le contexte du Programme et la validation de ses champs obligatoires. La confirmation d'un résultat de répétitions l'enregistre puis déclenche la transition planifiée ; une fermeture non validée ne change ni résultat ni progression. Aucun choix de bibliothèque, protocole ou schéma physique nouveau n'est déduit de ces règles.
+
 ## 12.9 Architecture du moteur d’exécution
 
 Le moteur d’exécution constitue un composant critique du MVP.

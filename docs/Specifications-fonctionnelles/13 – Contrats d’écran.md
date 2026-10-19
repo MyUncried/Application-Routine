@@ -247,9 +247,9 @@ L’inventaire ci-dessous suit les frames `P-` de la page Figma `Prototype MVP` 
 | [`8598:29503`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-29503) | Composition séance — Modèles — Tabata (sélection des exercices) | `CE-FMT-02` | — |
 | [`8624:30306`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30306) | Composition séance — Modèles — Tabata (récapitulatif) | `CE-FMT-02` | — |
 | [`8921:35275`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8921-35275) | Avant la séance — Douleur | `CE-EXEC-SESSION-01` | À CLARIFIER — douleur initiale |
-| [`8921:35340`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8921-35340) | Synthèse de séance — Effort et douleur — Douleur renseignée | `CE-UI-08` | À CLARIFIER — effort et douleur en synthèse |
-| [`8928:15098`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8928-15098) | Modale — Répétitions partielles | `CE-T03-11` | À CLARIFIER — résultats de répétitions |
-| [`8937:35362`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8937-35362) | Modale — Résultat de série | `CE-EXEC-SESSION-01` | À CLARIFIER — résultat de série |
+| [`8921:35340`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8921-35340) | Synthèse de séance — Effort et douleur — Douleur renseignée | `CE-UI-08` | D-427 — parcours enrichi validé |
+| [`8928:15098`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8928-15098) | Modale — Répétitions partielles | `CE-T03-11` | D-428 — règles de saisie validées |
+| [`8937:35362`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8937-35362) | Modale — Résultat de série | `CE-EXEC-SESSION-01` | D-429 — règles de saisie validées |
 | [`8982:15383`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-15383) | Exécution d'une séance — Tabata — Par alternance | `CE-FMT-05` | — |
 | [`8982:15709`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-15709) | Exécution d'une séance — EMOM — repos déclaré | `CE-FMT-05` | — |
 | [`9207:18817`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9207-18817) | Création exercice — Paramètres — Tableau de 3 phases | `CE-UI-10` | — |
@@ -263,10 +263,10 @@ L’inventaire ci-dessous suit les frames `P-` de la page Figma `Prototype MVP` 
 | `8921:35275` | Douleur avant séance | Choix 0 à 10, texte « Facultatif. Sans réponse, la douleur est notée 0 », action Commencer | Valeur métier effective en l’absence de réponse ; instantané, conservation, affichage ultérieur, possibilité de modifier |
 | `8921:35340` | Effort perçu en Synthèse | Valeurs 1 à 10, une valeur visuellement sélectionnée | Relation, cumul ou remplacement du Ressenti triétat obligatoire (RM-078/RM-080), validation, persistance et exploitation |
 | `8921:35340` | Douleur et localisation en Synthèse | Douleur 0 à 10 et choix « Genou droit / Genou gauche / Autre » | Caractère facultatif ou obligatoire, cardinalité des localisations, effet sur Enregistrer, stockage et utilisation |
-| `8928:15098` | Résultats de répétitions partielles | Trois libellés d’exercices, sélections numériques, bouton « Terminer l’exercice » | Moment exact de déclenchement, bornes numériques, effet de la validation et traitement de fermeture |
-| `8937:35362` | Résultat d’une série | Feuille « Vos résultats », cible de série, sélection numérique et action Valider | Valeur initiale métier, borne effective, effet sur progression/rapport et annulation |
+| `8928:15098` | Résultats de répétitions partielles | Trois libellés d’exercices, sélections numériques, bouton « Terminer l’exercice » | D-428 : déclenchement, bornes, validation et fermeture arbitrés |
+| `8937:35362` | Résultat d’une série | Feuille « Vos résultats », cible de série, sélection numérique et action Valider | D-429 : valeur initiale, bornes, validation et annulation arbitrées ; affichage dans les rapports non détaillé |
 
-**Distinction des sources.** Les valeurs et libellés ci-dessus sont des observations d’interface, non des règles métier arbitrées. Les contrats `CE-UI-08`, `CE-T03-11` et `CE-EXEC-SESSION-01` ne définissent pas encore complètement ces cinq axes. Les définitions de Résultat, de Ressenti et de Statut déjà validées dans les chapitres 09–11 restent en vigueur jusqu’à arbitrage, sans extrapolation à la Douleur ou à l’Effort perçu.
+**Distinction des sources et arbitrages.** Les libellés et agencements ci-dessus restent des observations Figma. Les décisions D-427 à D-429 définissent maintenant les règles fonctionnelles de saisie, de bornes, de validation et d'annulation décrites ci-dessus. Le déclenchement exact de la modale « Résultat de série », les détails de rapports de suivi et la configuration de l'option du Programme demeurent À CLARIFIER. Les règles existantes de Résultat et Statut demeurent applicables hors des exceptions expressément arbitrées.
 
 ### Inventaire des contrats actifs
 
@@ -2564,6 +2564,15 @@ Changement de côté Avec dans chacun des deux enchaînements, donnée historiqu
 *Texte identique à celui de la section [« CE-T03-09 — Lancement direct et préparation fixe 5 s »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-09--lancement-direct-et-préparation-fixe-5-s) ; il n’est pas recopié ici.*
 
 *Texte identique à celui de la section [« CE-T03-09 — Lancement direct et préparation fixe 5 s »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-09--lancement-direct-et-préparation-fixe-5-s) ; il n’est pas recopié ici.*
+
+### Contrats PRE-5 — D-427 à D-429
+**P-Avant la séance — Douleur** (8921:35275) et **P-Synthèse de séance — Effort et douleur — Douleur renseignée** (8921:35340) : Par défaut, aucune évaluation avant exécution ; après, Ressenti obligatoire à trois choix. Parcours enrichi uniquement lorsque le lancement intervient dans le contexte d'un Programme dont l'option est active ; un lancement indépendant reste standard, même pour un contenu appartenant au Programme. Enrichi avant : douleur 0–10 obligatoire, choix explicite, aucune localisation, Commencer bloqué sans réponse. Enrichi après : douleur 0–10 obligatoire et sans présélection (indépendante de la valeur avant) et effort perçu 1–10 obligatoire, en remplacement du Ressenti ; Enregistrer bloqué tant que les valeurs requises manquent. Si douleur finale supérieure à zéro : au moins une localisation choisie parmi les zones corporelles KODJO avec latéralité si pertinente, sélection multiple admise ; aucune localisation imposée à zéro. Zéro n'est jamais déduit d'une absence de réponse. Configuration précise de l'option Programme : À CLARIFIER.
+
+Modale « P-Modale — Répétitions partielles » (Figma 8928:15098). Formats imposés : interruption ou série achevée sous la cible. Valeur initiale proposée 0, minimum 0, dépassement de la cible autorisé. Zéro proposé n'est pas une mesure avant validation. Valider enregistre le résultat réel et poursuit automatiquement le plan (récupération, série suivante ou fin) ; fermer sans valider n'enregistre aucun résultat et revient à l'étape courante sans progression.
+
+Modale « P-Modale — Résultat de série » (Figma 8937:35362). Valeur initiale proposée 0, minimum 0, dépassement de cible autorisé. Valider enregistre le résultat réel indépendamment de la cible et poursuit automatiquement le plan ; fermer sans validation n'enregistre rien, conserve l'état et revient à l'étape courante sans progression. Le déclencheur exact non encore arbitré reste À CLARIFIER.
+
+**Contradiction Figma identifiée :** la mention « Facultatif. Sans réponse, la douleur est notée 0 » sur l'écran avant l'exécution contredit D-427.
 
 ## Exécution
 
