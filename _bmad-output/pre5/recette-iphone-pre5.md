@@ -80,7 +80,8 @@ Aucun constat iPhone n'est encore consigné pour elle.
 - L'espace venait de la brique partagée `tableStyles.block` de `sheetTable.tsx` (`paddingBottom` d'une hauteur de ligne, 36) : retiré là, donc aussi pour le futur tableau des phases (2.8). Marges du bloc inchangées (12 en haut et en bas dans le cadre).
 - À vérifier sur iPhone : bas du fond blanc juste sous la dernière ligne ; glisser jusqu'à la dernière place et repère d'insertion en bas du tableau.
 
-- **RC-11 — Changement de côté, options de même largeur.** Les options « Avec » et « Sans » du segmenté « Changement de côté » ont la même largeur : la plus petite suffisante pour que la notation choisie et son chevron tiennent dans Avec (police réduite conservée), au lieu de 144 / 62 (RC-6). **Appliquée (option 3 de Hermann, voir « Correction RC-11 ») : options de 104, libellé sur deux lignes, notation raccourcie `(D1→D2) (G1→G2)` / `(D1→G1) (D2→G2)`.**
+- **RC-11 — Changement de côté, options de même largeur.** Les options « Avec » et « Sans » du segmenté « Changement de côté » ont la même largeur : la plus petite suffisante pour que la notation choisie et son chevron tiennent dans Avec (police réduite conservée), au lieu de 144 / 62 (RC-6). **Appliquée (option 3 de Hermann, voir « Correction RC-11 ») : options de 104, libellé sur deux lignes, notation raccourcie `(D1→D2) (G1→G2)` / `(D1→G1) (D2→G2)`.** Remplacée par RC-12 (notation complète rétablie).
+- **RC-12 — Changement de côté, Sans de la largeur des autres Sans.** L'option « Sans » du Changement de côté a la même largeur que les deux autres options « Sans » de la page (Charge et Phases de l'exercice : 62) ; l'option Avec s'étend de la largeur gagnée (104 + 42 = 146), largeur totale du segmenté inchangée. Le raccourcissement de RC-11 n'étant dû qu'à l'égalité des largeurs, la notation complète D-431 est rétablie. **Appliquée (voir « Correction RC-12 »).**
 - **D-433 — Ligne « Durée de l'exercice » toujours affichée.** Dans tous les modes et états, à la même place : « Non calculable » quand la configuration seule exclut le calcul quelles que soient les valeurs (Répétitions sans cadence ; À l'échec en séries identiques), prioritaire sur « — » ; « — » quand des données manquent (Mode non choisi, Cible à renseigner, saisie invalide) ; sinon la valeur avec son symbole collé avant elle (« ≥ 5 min 30 s », « ≈ 5 min 30 s »), jamais dans le titre. Compte à rebours et Fin repliés sous le chevron de la ligne (absents depuis une Séance, RC-7). Formules, natures, inversion et validation inchangées ; « — » et « Non calculable » ne valent jamais zéro.
 
 ## Correction RC-10 (branche `bmad/pre5-depuis-pre4`)
@@ -101,7 +102,7 @@ Aucun constat iPhone n'est encore consigné pour elle.
 
 ## Correction RC-11 (branche `bmad/pre5-depuis-pre4`)
 
-Décision de Hermann du 19/10 (option 3) : options Avec et Sans de même largeur, libellé sur deux lignes, notation raccourcie pour tenir. Aucun constat iPhone n’est encore consigné pour elle.
+Décision de Hermann du 19/10 (option 3) : options Avec et Sans de même largeur, libellé sur deux lignes, notation raccourcie pour tenir. Aucun constat iPhone n’est encore consigné pour elle. **Remplacée par RC-12 : largeurs 146 / 62 et notation complète rétablie (voir « Correction RC-12 »).**
 
 - Mesures (métriques d’Inter de l’application, Semi Bold 10 ; « → » est dans Inter, « ➜ » ne l’est pas) ; contenu de l’option = notation + écart 6 + chevron 10 ; segmenté = 2W + 8 ; place de la ligne 301 à 375 de large (328 à 402), moins l’écart de 8 avec le libellé ; « Changement » 72,6, « Changement de » 90,3 (Regular 12) ; il faut W ≤ 106 à 375 :
   - `(D1 → D2) ➜ (G1 → G2)` (D-431) : 96,9 hors « ➜ » + « ➜ » de repli (environ 10) ; W ≈ 124–128, écarté ;
@@ -111,6 +112,16 @@ Décision de Hermann du 19/10 (option 3) : options Avec et Sans de même largeur
 - Notation raccourcie partout où elle s’affiche : option Avec, menu natif SwiftUI de RC-6 (et `Alert` Android / web), `sideOrderSubtitles` (`src/shared/i18n/index.ts`), tests. Noms accessibles inchangés (« Avec, <libellé neutre> », items neutres). `SegmentedControl` réutilisé (prop `optionWidth`), `tokens.ts` inchangé.
 - Documentation : annotation de D-431 (ch. 07), passages cités des ch. 08, 10, 13 et du PRD, ligne RC-11 dans l’AC2 de la story 2.5 (`epics.md`).
 - À vérifier sur iPhone : à 375 et à 402, libellé sur deux lignes sans mot coupé, notation entière sur une ligne dans Avec avec son chevron, Avec et Sans de même largeur, menu des notations raccourcies.
+
+## Correction RC-12 (branche `bmad/pre5-depuis-pre4`)
+
+Décision de Hermann du 19/10 : Sans de la largeur des autres Sans de la page, Avec élargi de la largeur gagnée ; notation complète rétablie. Aucun constat iPhone n’est encore consigné pour elle.
+
+- Largeurs : Sans = `INLINE_OPTION_WIDTHS.narrow` (62, comme Sans de la Charge et des Phases de l’exercice) ; Avec = `INLINE_OPTION_WIDTHS.notation`, portée de 104 à 146 (104 + (104 − 62)) ; segmenté 3 + 146 + 2 + 62 + 3 = 216, inchangé. Avec garde 146 à N = 1 (libellé « Avec ») comme quand il porte la notation.
+- Mesure (métriques d’Inter de l’application, Semi Bold 10) : `(D1 → D2) ➜ (G1 → G2)` et `(D1 → G1) ➜ (D2 → G2)` font 99,5 hors « ➜ » (absent d’Inter, rendu par une police de repli, environ 10 ; 10,0 en Segoe UI Symbol) ; avec l’écart 6 et le chevron 10, contenu d’environ 126 dans 146 (environ 20 de marge). **Notation complète D-431 rétablie** : option Avec, menu natif SwiftUI de RC-6 (et `Alert` Android / web), `sideOrderSubtitles` (`src/shared/i18n/index.ts`), tests. Noms accessibles inchangés.
+- Tenue : largeur totale inchangée, donc place du libellé identique à RC-11 : 77 à 375 (≥ 72,6 de « Changement ») → « Changement » / « de côté » ; 104 à 402 → « Changement de » / « côté ». Libellé sur deux lignes, segmenté centré sur le libellé (RC-8). `tokens.ts` inchangé.
+- Documentation : annotation RC-12 de D-431 (ch. 07), passages des ch. 08, 10, 13 et du PRD ramenés à la notation D-431, ligne RC-12 dans l’AC2 de la story 2.5 (`epics.md`).
+- À vérifier sur iPhone : à 375 et à 402, Sans de même largeur que les Sans de la Charge et des Phases, notation complète entière sur une ligne dans Avec avec son chevron, menu des notations complètes, libellé sur deux lignes sans mot coupé.
 
 ## D-434 — saisie au clavier numérique des cellules du tableau des séries variables (branche `bmad/pre5-depuis-pre4`)
 

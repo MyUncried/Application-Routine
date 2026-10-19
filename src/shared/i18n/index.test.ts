@@ -569,14 +569,14 @@ describe("strings — PRE-5 story 2.4", () => {
 });
 
 describe("strings — PRE-5 story 2.5", () => {
-  it("PRE5-2.5/AC5 — clés des cadres Côtés et Cadence et durée : Changement de côté Avec / Sans, Enchainement à notations raccourcies (RC-11), Cadence et options, Durée de l’exercice ; clés orphelines retirées ; « Durée totale » de la Phrase intacte", () => {
+  it("PRE5-2.5/AC5 — clés des cadres Côtés et Cadence et durée : Changement de côté Avec / Sans, Enchainement à notations ➜ (D-431, rétablies par RC-12), Cadence et options, Durée de l’exercice ; clés orphelines retirées ; « Durée totale » de la Phrase intacte", () => {
     const sheet = strings.executionParameters.sheet;
     expect(sheet.sideMode).toBe("Changement de côté");
     expect(sheet.sideModeChoices).toEqual({ WITH: "Avec", WITHOUT: "Sans" });
     expect(sheet.sideSequence).toBe("Enchainement");
-    // Notations graphiques de la frame `8328:38193` (D-431), raccourcies par la recette du 19/10
-    // (RC-11) : sans « ➜ » ni espaces autour de « → », parenthèses, ordre et sens conservés.
-    expect(sheet.sideOrderSubtitles).toEqual({ BY_SIDE: "(D1→D2) (G1→G2)", BY_SERIES: "(D1→G1) (D2→G2)" });
+    // Notations graphiques exactes de la frame `8328:38193` (D-431), flèche centrale ➜ ; rétablies
+    // par la recette du 19/10 (RC-12) après le raccourcissement de RC-11.
+    expect(sheet.sideOrderSubtitles).toEqual({ BY_SIDE: "(D1 → D2) ➜ (G1 → G2)", BY_SERIES: "(D1 → G1) ➜ (D2 → G2)" });
     // Nom accessible neutre des options (D-407).
     expect(sheet.sideOrders).toEqual({ BY_SIDE: "Un côté après l’autre", BY_SERIES: "Les deux côtés à chaque série" });
     expect(sheet.cadence).toBe("Cadence");

@@ -89,7 +89,7 @@ Les termes visibles sont ceux de PR-01 (spécification de la charge v3, §11.1).
 - **Durée de série (D)** : avec des phases, c'est la somme de leurs durées, calculée et non modifiable.
 - **Charge** : valeur informative en kg. Elle est commune en séries identiques et propre à chaque ligne en séries variables. Son activation (Avec / Sans) est distincte de ses valeurs conservées.
 - **Changement de côté** : Avec ou Sans. Avec signifie un Exercice bilatéral, sans désignation du côté de départ.
-- **Enchainement** : stratégie d'ordre des côtés. Deux stratégies, un côté après l'autre et les deux côtés à chaque série, présentées dans le contrôle par leur notation graphique Figma : `(D1 → D2) ➜ (G1 → G2)` et `(D1 → G1) ➜ (D2 → G2)` (D-431), affichée raccourcie en `(D1→D2) (G1→G2)` et `(D1→G1) (D2→G2)` (recette du 19/10, RC-11).
+- **Enchainement** : stratégie d'ordre des côtés. Deux stratégies, un côté après l'autre et les deux côtés à chaque série, présentées dans le contrôle par leur notation graphique Figma : `(D1 → D2) ➜ (G1 → G2)` et `(D1 → G1) ➜ (D2 → G2)` (D-431). La notation raccourcie de la recette du 19/10 (RC-11) est levée par RC-12 : la notation complète est affichée.
 - **Cadence** : intervalle du bip. Options Autre / 5 s / 2 s / 1 s / Sans.
 - **Durée de l'exercice** : libellé visible du concept de durée totale de la Feuille.
 - **Étape** : élément numéroté de la Description.
@@ -350,7 +350,7 @@ Les valeurs historiques `RIGHT_LEFT` et `LEFT_RIGHT` se lisent Avec. L'Enchainem
 - **Options (D-431)** : les deux notations de la frame `8328:38193` sont conservées exactement, dans cet ordre :
   - `(D1 → D2) ➜ (G1 → G2)` (un côté après l'autre) ;
   - `(D1 → G1) ➜ (D2 → G2)` (les deux côtés à chaque série).
-- **Notation raccourcie (recette du 19/10, décision RC-11 de Hermann)** : pour que les options Avec et Sans de « Changement de côté » aient la même largeur avec un libellé sur deux lignes, la notation affichée devient `(D1→D2) (G1→G2)` et `(D1→G1) (D2→G2)` (sans « ➜ », sans espaces autour de « → » ; parenthèses, ordre et sens conservés), dans l’option Avec et dans le menu des deux notations.
+- **Largeurs du Changement de côté (recette du 19/10, décision RC-12 de Hermann, remplace RC-11)** : l’option Sans a la largeur des autres options Sans de la page (62) et l’option Avec, qui porte la notation, s’étend de la largeur gagnée (146) ; le segmenté garde sa largeur (216) et le libellé reste sur deux lignes. La notation complète ci-dessus y tient et est affichée telle quelle, dans l’option Avec et dans le menu des deux notations ; la notation raccourcie de RC-11 (`(D1→D2) (G1→G2)`, `(D1→G1) (D2→G2)`) est abandonnée.
 - Les libellés longs « Un côté après l'autre » et « Les deux côtés à chaque série » sont abandonnés **dans le contrôle**. Ils restent le nom accessible des options, pour des annonces neutres (D-407).
 - La police n'est réduite que si nécessaire ; sa taille exacte se règle sur l'appareil, sans changement automatique de géométrie.
 - Aucune notation C1S1.

@@ -90,14 +90,17 @@ const INLINE_CHEVRON_HIT_SLOP = {
 /**
  * Largeurs d'option relevées (même largeur pour toutes les options d'un même
  * contrôle, FR-27) : `wide` 106 (Mode, Condition d'arrêt, Type de série),
- * `narrow` 62 (Phases, Charge, Cadence), `notation` 104 (options Avec et Sans
- * du Changement de côté, Avec portant la notation de l'Enchainement :
- * recette du 19/10, RC-6 puis RC-11 ; 144 / 62 sous RC-6, Figma `9462:18987`).
- * RC-11 : notation raccourcie Semi Bold 10 (86,9) + écart 6 + chevron 10 = 102,9,
- * arrondie à 104 ; segmenté de 216, libellé sur deux lignes. La Cadence a trois
+ * `narrow` 62 (Phases, Charge, Cadence, et Sans du Changement de côté),
+ * `notation` 146 (option Avec du Changement de côté, portant la notation de
+ * l'Enchainement : recette du 19/10, RC-6 puis RC-11 et RC-12 ; 144 / 62 sous
+ * RC-6, Figma `9462:18987` ; 104 / 104 sous RC-11). RC-12 : Sans de 62 comme
+ * les autres Sans de la page, Avec élargi de la largeur gagnée (104 + 42 = 146),
+ * segmenté de 216 inchangé, libellé sur deux lignes ; notation D-431 complète
+ * Semi Bold 10 (99,5 hors « ➜ » de repli, environ 10) + écart 6 + chevron 10,
+ * environ 126. La Cadence a trois
  * options de 62 depuis la recette du 19/10 (RC-10) ; l'ancienne largeur `cadence` (46,4, cinq options) est retirée.
  */
-export const INLINE_OPTION_WIDTHS = { wide: 106, narrow: 62, notation: 104 } as const;
+export const INLINE_OPTION_WIDTHS = { wide: 106, narrow: 62, notation: 146 } as const;
 
 /** Contour du cadre de la variante « Paramètres » (figés `6407-9805`, `6665-26185`). */
 const PARAMETERS_BORDER_WIDTH = 1;

@@ -1199,7 +1199,7 @@ describe("ExecutionParametersSheet — décisions du propriétaire (12/10)", () 
 });
 
 describe("ExecutionParametersSheet — D-341 / X-1 (12/10)", () => {
-  it("D-341, PRE5-2.5/AC1, AC2, RC-6 — Mode sans choix affiché tant que le mode est vide ; Changement de côté en segmenté `inline` (32 de haut ; RC-11 : Avec, portant la notation de l'Enchainement, et Sans de 104) ; notation en police réduite (10) ; libellés de ligne Regular 12", () =>
+  it("D-341, PRE5-2.5/AC1, AC2, RC-6 — Mode sans choix affiché tant que le mode est vide ; Changement de côté en segmenté `inline` (32 de haut ; RC-12 : Avec de 146 portant la notation de l'Enchainement, Sans de 62) ; notation en police réduite (10) ; libellés de ligne Regular 12", () =>
     withPlatform("android", () => {
       renderSheet(params({ mode: null, sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE" }));
       // PRE-5 story 2.4 (AC3, UX-DR1) : le Mode est un segmenté en ligne (32 de haut, deux
@@ -1209,11 +1209,12 @@ describe("ExecutionParametersSheet — D-341 / X-1 (12/10)", () => {
       expect(StyleSheet.flatten(mode.props.style)).toMatchObject({ height: 32, width: 220 });
       expect(StyleSheet.flatten(within(mode).getByText("Durée", anyNode).props.style)).toMatchObject({ fontSize: 12, lineHeight: 16, fontWeight: "400" });
 
-      // PRE-5 story 2.5 (AC1) ; RC-6 (Figma `9462:18986`) puis RC-11 : Changement de côté Avec / Sans,
-      // de même largeur 104 (104 + 2 + 104 + 2 × 3).
+      // PRE-5 story 2.5 (AC1) ; RC-6 (Figma `9462:18986`), RC-11 puis RC-12 : Changement de côté
+      // Avec / Sans, Avec de 146 et Sans de 62 (146 + 2 + 62 + 2 × 3).
+      expect(StyleSheet.flatten(screen.getByTestId(`${SIDE_CONTROL}-tile-WITH`, anyNode).props.style)).toMatchObject({ width: 146 });
       const side = screen.getByTestId(SIDE_CONTROL);
       expect(StyleSheet.flatten(side.props.style)).toMatchObject({ height: 32, width: 216 });
-      expect(StyleSheet.flatten(screen.getByTestId(`${SIDE_CONTROL}-tile-WITHOUT`, anyNode).props.style)).toMatchObject({ width: 104 });
+      expect(StyleSheet.flatten(screen.getByTestId(`${SIDE_CONTROL}-tile-WITHOUT`, anyNode).props.style)).toMatchObject({ width: 62 });
       expect(StyleSheet.flatten(within(side).getByText("Sans", anyNode).props.style)).toMatchObject({ fontSize: 12, lineHeight: 16, fontWeight: "400" });
       expect(within(side).queryByText(/Droite|Gauche|changement/u, anyNode)).toBeNull();
 
@@ -1222,7 +1223,7 @@ describe("ExecutionParametersSheet — D-341 / X-1 (12/10)", () => {
       expect(screen.queryByText("Enchainement")).toBeNull();
       expect(within(side).queryByText("Avec", anyNode)).toBeNull();
       const order = within(side).getByTestId(ORDER_MENU);
-      expect(StyleSheet.flatten(within(order).getByText("(D1→D2) (G1→G2)", anyNode).props.style)).toMatchObject({
+      expect(StyleSheet.flatten(within(order).getByText("(D1 → D2) ➜ (G1 → G2)", anyNode).props.style)).toMatchObject({
         fontSize: 10,
         fontWeight: "600",
         color: "#FFFFFF",
@@ -1236,8 +1237,8 @@ describe("ExecutionParametersSheet — D-341 / X-1 (12/10)", () => {
         fireEvent.press(order);
         expect(alert.mock.calls[0]?.[0]).toBe("Enchainement");
         expect((alert.mock.calls[0]?.[2] ?? []).map((button) => [button.text, button.style ?? "default"])).toEqual([
-          ["(D1→D2) (G1→G2)", "default"],
-          ["(D1→G1) (D2→G2)", "default"],
+          ["(D1 → D2) ➜ (G1 → G2)", "default"],
+          ["(D1 → G1) ➜ (D2 → G2)", "default"],
           ["Annuler", "cancel"],
         ]);
       } finally {
@@ -2541,13 +2542,13 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       const menu = within(host).UNSAFE_getByType(Menu);
       // Déclencheur : notation choisie et chevron existant, hébergés par `RNHostView`.
       expect(within(host).UNSAFE_getAllByType(RNHostView)).toHaveLength(1);
-      expect(within(host).getByText("(D1→D2) (G1→G2)", hidden)).toBeTruthy();
+      expect(within(host).getByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeTruthy();
       expect(JSON.stringify(menu.props.modifiers)).toContain("Enchainement");
       expect(JSON.stringify(menu.props.modifiers)).toContain("Un côté après l’autre");
       const items = within(menu).UNSAFE_getAllByType(SwiftUIButton);
       expect(items.map((item) => [item.props.label, item.props.systemImage ?? null])).toEqual([
-        ["(D1→D2) (G1→G2)", "checkmark"],
-        ["(D1→G1) (D2→G2)", null],
+        ["(D1 → D2) ➜ (G1 → G2)", "checkmark"],
+        ["(D1 → G1) ➜ (D2 → G2)", null],
       ]);
       expect(items.map((item) => JSON.stringify(item.props.modifiers))).toEqual([
         expect.stringContaining("Un côté après l’autre"),
@@ -5811,7 +5812,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     expect(sideText()).toBe("Sans");
     expect(sideRows()).toEqual({ order: false, recovery: false });
     // Sans sélectionné : Avec affiche la notation de l'Enchainement conservé, sans menu.
-    expect(within(get(SIDE_CONTROL)).getByText("(D1→D2) (G1→G2)", hidden)).toBeTruthy();
+    expect(within(get(SIDE_CONTROL)).getByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeTruthy();
     chooseSide("Avec");
     expect(sideText()).toBe("Avec");
     expect(sideRows()).toEqual({ order: true, recovery: true });
@@ -5821,7 +5822,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     expect(applied(onApply)).toMatchObject({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 20 });
   });
 
-  it("PRE5-2.5/AC1 — Historique : LEFT_RIGHT et BY_SERIES affichés Avec et « (D1→G1) (D2→G2) » ; Avec et l'Enchainement re-choisis sans changement ; ✓ enregistre LEFT_RIGHT et BY_SERIES", () => {
+  it("PRE5-2.5/AC1 — Historique : LEFT_RIGHT et BY_SERIES affichés Avec et « (D1 → G1) ➜ (D2 → G2) » ; Avec et l'Enchainement re-choisis sans changement ; ✓ enregistre LEFT_RIGHT et BY_SERIES", () => {
     const { onApply } = renderSheet(params({ sideMode: "LEFT_RIGHT", sideOrder: "BY_SERIES", sideRecoverySeconds: 12 }), 20);
     expect(sideText()).toBe("Avec");
     expect(orderText()).toBe("Les deux côtés à chaque série");
@@ -5850,7 +5851,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
 
   // Recette du 19/10 (RC-6) : remplace le test « Repli » de la story 2.5 (chevron d'Avec
   // repliant Enchainement et Pause entre les côtés) — la frame `9462:18987` n'a plus ce repli.
-  it("RC-6 — Changement de côté porte l'Enchainement : aucune ligne Enchainement ni chevron de repli ; Pause entre les côtés visible sous Avec ; Avec porte la notation, Avec et Sans de 104 (RC-11) ; choix par le menu, `setSideOrder` seulement si différent", () => {
+  it("RC-6 — Changement de côté porte l'Enchainement : aucune ligne Enchainement ni chevron de repli ; Pause entre les côtés visible sous Avec ; Avec (146) porte la notation, Sans (62) (RC-12) ; choix par le menu, `setSideOrder` seulement si différent", () => {
     const { onApply } = renderSheet(params({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE", sideRecoverySeconds: 12 }), 20);
     expect(query("execution-sheet-row-order")).toBeNull();
     expect(screen.queryByText("Enchainement", hidden)).toBeNull();
@@ -5859,7 +5860,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     const side = get(SIDE_CONTROL);
     expect(StyleSheet.flatten(side.props.style)).toMatchObject({ width: 216 });
     expect(within(side).getByTestId(ORDER_MENU)).toBeTruthy();
-    expect(within(get(ORDER_MENU)).getByText("(D1→D2) (G1→G2)", hidden)).toBeTruthy();
+    expect(within(get(ORDER_MENU)).getByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeTruthy();
     expect(get(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, Un côté après l’autre");
     // Re-choisir l'Enchainement affiché ne change rien ; l'autre s'applique et reste affiché.
     chooseOrder("Un côté après l’autre");
@@ -5926,13 +5927,13 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
       expect(sideText()).toBe("Avec");
     }));
 
-  it("PRE5-2.5/AC2, RC-6 — Enchainement : menu de l'option Avec, items BY_SIDE puis BY_SERIES, notations raccourcies (RC-11), notation affichée en police réduite, nom accessible neutre ; effectif affiché ; masqué à N = 1 (Avec reprend son libellé, BY_SIDE écrit), conservé au retour à N ≥ 2", () => {
+  it("PRE5-2.5/AC2, RC-6 — Enchainement : menu de l'option Avec, items BY_SIDE puis BY_SERIES, notations exactes à flèche centrale ➜ (D-431, rétablies par RC-12), notation affichée en police réduite, nom accessible neutre ; effectif affiché ; masqué à N = 1 (Avec reprend son libellé, BY_SIDE écrit), conservé au retour à N ≥ 2", () => {
     const { onApply } = renderSheet(params({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE", sideRecoverySeconds: 10 }));
     const menu = get(ORDER_MENU);
     const labels = within(menu)
       .UNSAFE_getAllByType(SwiftUIButton)
       .map((node) => String(node.props.label));
-    expect(labels).toEqual(["(D1→D2) (G1→G2)", "(D1→G1) (D2→G2)"]);
+    expect(labels).toEqual(["(D1 → D2) ➜ (G1 → G2)", "(D1 → G1) ➜ (D2 → G2)"]);
     expect(StyleSheet.flatten(get(`${ORDER_MENU}-notation`).props.style)).toMatchObject({ fontSize: 10 });
     chooseOrder("Les deux côtés à chaque série");
     expect(orderText()).toBe("Les deux côtés à chaque série");
