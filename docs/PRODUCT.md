@@ -296,6 +296,13 @@ Le composant DSF canonique de navigation est `Navigation / Bottom` (`6298:12462`
 
 **Couverture de Prototype MVP (D-426).** Tous les écrans et états de la page Figma `Prototype MVP` relèvent du MVP. Les écrans de déclaration de douleur avant une séance (`8921:35275`) et d’effort perçu et douleur en synthèse (`8921:35340`) y figurent. Les échelles visibles sont de 0 à 10 pour la douleur et de 1 à 10 pour l’effort perçu ; leur logique de stockage, leur articulation avec le Ressenti existant et leurs conditions d’usage restent **À CLARIFIER** dans les contrats. Ce point ne valide pas le signalement détaillé de gêne, reporté hors MVP.
 
+### Arbitrages PRE-5 — évaluations et résultats (D-427 à D-429)
+Standard : sans évaluation avant, Ressenti triétat obligatoire après. Enrichi exclusivement pour le lancement dans un Programme avec option active : douleur initiale 0–10 obligatoire avant (sans localisation) ; douleur finale 0–10 non présélectionnée et effort perçu 1–10 obligatoires après, en remplacement du Ressenti. Si douleur finale positive, localisation d'au moins une zone corporelle KODJO, sélection multiple autorisée avec latéralité applicable ; zéro explicite. Saisie manquante bloque l'action. Un lancement indépendant conserve le standard. Configuration Programme non précisée.
+
+Répétitions partielles (8928:15098), formats imposés, à l'interruption ou série sous cible : proposition zéro, minimum zéro, dépassement cible autorisé. Validation enregistre résultat réel et poursuit automatiquement le plan ; annulation sans effet ni progression.
+
+Résultat de série (8937:35362) : proposition zéro, minimum zéro, dépassement cible autorisé ; validation enregistre résultat réel et poursuit automatiquement le plan ; annulation sans effet ni progression. Déclencheur exact de la modale non arbitré.
+
 ## 7. Principes métier structurants
 
 1. Une Séance est un contenu exécutable ; dans le MVP T03, un Exercice persistant l’est également ; une Routine planifie une Séance.
