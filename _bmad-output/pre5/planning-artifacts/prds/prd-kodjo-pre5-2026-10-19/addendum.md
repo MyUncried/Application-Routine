@@ -57,7 +57,7 @@ Deux questions :
 
 Consommateurs gauche / droite à neutraliser :
 
-- le registre de durée ;
+- le registre de durée (réponse de l'architecture, AD-21, revue du 19/10 : `LedgerSide` est interne à `executionCalculations.ts`, ni affiché ni persisté ; il reste inchangé, la neutralité ne touchant que l'affichage) ;
 - la Phrase (FR-18) ;
 - les sous-titres D/G du lexique ;
 - l'indicateur de la Composition (`fr.ts:47-50`).
@@ -96,7 +96,7 @@ Le résultat AR-01 (FR-20) est calculé par une fonction pure, lue par la Feuill
 - l'enchaînement du focus pour Précédent / Suivant, avec les primitives natives ;
 - le fond de la cellule active.
 
-Le prototype est recetté tôt sur iPhone (NFR-6).
+Les composants définitifs ou directement réutilisables (`KeyboardField` final, barre Précédent / Suivant / Fermer, fond actif) sont recettés tôt sur iPhone (NFR-6), sans interface provisoire à reconstruire. Le libellé de phase au clavier texte ne dépend pas de l'issue de cet essai.
 
 ## Vérifications techniques demandées à l'architecture
 

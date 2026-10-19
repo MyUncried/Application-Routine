@@ -17,7 +17,7 @@ Ce document découpe en epics et stories le delta PRE-5 (« Éditeur d'Exercice 
 
 Il n'existe pas de document UX séparé : le PRD et Figma font foi. Les propriétés Figma (S-2) sont relevées en lecture seule dans la story qui les utilise ; elles figurent ci-dessous comme exigences de conception UX (UX-DR) pour être rattachées à une story.
 
-**Mode d'exécution du skill.** Le skill `bmad-create-epics-and-stories` a été exécuté en mode autonome : personne ne répondait aux menus, l'option « Continue » a été retenue à chaque étape et les décisions documentées ont été appliquées. Ce n'est pas une validation de Hermann. Quatre questions restent soumises à Hermann (QN-1 à QN-4) ; les critères qui en dépendent portent le défaut recommandé, marqué `[EN ATTENTE QN-x]`.
+**Mode d'exécution du skill.** Le skill `bmad-create-epics-and-stories` a été exécuté en mode autonome : personne ne répondait aux menus, l'option « Continue » a été retenue à chaque étape et les décisions documentées ont été appliquées. Ce n'est pas une validation de Hermann. QN-1 à QN-4 ont depuis été validées par Hermann. **Corrections de la revue indépendante du 19/10** (verdict REVISE, décisions D-431 et D-432 de Hermann) : appliquées de façon ciblée, sans changer le découpage ; voir `revue-chatgpt/corrections-revue-2026-10-19.md`. Les deux incompatibilités du contrôle des phases (QR-1, QR-2) ont été validées par Hermann le 19/10 avec les défauts proposés.
 
 **Abréviations.** `EP` = `src/domain/activities/ExecutionParameters.ts` ; `Draft` = `src/domain/activities/ExecutionParametersDraft.ts` ; `Sheet` = `src/features/activities/ExecutionParametersSheet.tsx` ; `Form` = `src/features/activities/ActivityEditorForm.tsx`. Δnn = ligne de `table-delta.md` ; R-nn = remplacement accepté (PRD §7) ; « §9-n » ou « PRD §9-n » = point n du §9 du PRD, dans sa numérotation, tranché le 19/10 (décisions dans `table-delta.md` §6, dont la numérotation diffère).
 
@@ -29,15 +29,15 @@ Extraites du PRD §4 (numérotation stable du PRD). Le détail fait foi dans le 
 
 **Phases de l'exercice (§4.1)**
 
-- FR-1 : Un Exercice porte de 0 à 6 phases ordonnées, communes à toutes les séries ; chaque phase a une identité stable, un libellé de 1 à 20 caractères après normalisation, une durée entière ≥ 1 s. « Aucune » = 0 phase ; une seule phase est admise ; une phase validée ne vaut jamais 0 s (le zéro n'existe que dans le brouillon) ; les données sans phases restent lisibles et se lisent sans phases. (Δ08)
+- FR-1 : Un Exercice porte de 0 à 6 phases ordonnées, communes à toutes les séries ; chaque phase a une identité stable, un libellé de 1 à 20 caractères après normalisation, une durée entière ≥ 1 s. « Aucune » = 0 phase ; une seule phase est admise par le modèle, le contrôle de la Feuille règle de 2 à 6 (D-432, QR-1, QR-2) ; une phase validée ne vaut jamais 0 s (le zéro n'existe que dans le brouillon) ; les données sans phases restent lisibles et se lisent sans phases. (Δ08)
 - FR-2 : Phases disponibles seulement en Mode Durée, Condition À la cible, séries identiques. Avec des phases, Répétitions, À l'échec et Variables sont indisponibles (valeur réelle, état indisponible, RM-247) ; en Variables, à l'échec ou en Répétitions, la création de phases est indisponible ; aucune conversion destructive automatique ; mémoire des cibles par Mode conservée. (Δ13)
 - FR-3 : Avec des phases, D = Σ durées, en lecture seule, sans arrondi ; T = N × (D + P) (6 + 3 s, 3 séries, pause 15 s → 72 s) ; l'inversion n'ajuste que N ; somme comprise entre 1 et 3 535 s **après** la normalisation de FR-9 (des phases à 0 s ne bloquent jamais ✓ ; une somme normalisée > 3 535 s rend ✓ indisponible) ; natures, symbole et `—` inchangés. (Δ09, Δ40, Δ50)
-- FR-4 : Ligne « Phases de l'exercice » (Avec / Sans) en tête du cadre Séries, chevron intérieur à Avec ; sous Avec, tableau Libellé / Durée au patron du tableau des séries (déplacement, numéro, suppression avec annulation, ligne active), sans pied ni ± ; gestes et alternatives accessibles réutilisés (CE-UI-10 §13) ; le libellé suit sa phase lors d'un déplacement. (Δ10)
-- FR-5 : Passer à Avec sans phase crée « Phase 1 » avec la durée de série courante ; si la durée vaut « — », « Phase 1 » est créée à renseigner (fond rouge pâle), aucune durée inventée, puis FR-9 s'applique ; une phase ajoutée reprend la durée de la dernière ; au-delà de six, ajout indisponible ; contrôle d'ajout : `9207:18817` une fois relevé (S-2), à défaut ligne d'ajout en fin de tableau, indisponible à six. (Δ10, QP5-04 (b))
-- FR-6 : Libellé saisi au clavier texte, directement dans la cellule, 20 caractères au plus ; le clavier ne masque ni le champ ni les actions de la Feuille. (Δ11)
+- FR-4 : Ligne « Phases de l'exercice » (Avec / Sans, Sans par défaut) en tête du cadre Séries ; le segment Avec affiche « n phases » ; nombre réglé de 2 à 6 par le stepper existant `InlineStepper`, révélé au toucher (actif : − et + visibles ; inactif : valeur et chevron seuls) ; chevron graphique existant (`control-chevron-up/down` de `DisclosureControl`, jamais un caractère) intégré au segment Avec à droite du nombre, haut déployé, bas replié, toujours visible, son appui replie ou déploie sans changer le nombre ; tableau de n lignes (poignée, numéro, libellé, durée, croix ✕ avec annulation, ligne active), sans ligne « Ajouter une phase » ni ± propres, sans nouveau composant ; gestes et alternatives accessibles réutilisés (CE-UI-10 §13) ; le libellé suit sa phase lors d'un déplacement. (Δ10, D-432, Figma `9207:18817` vérifiée)
+- FR-5 : Première activation de Avec en durée libre : deux phases, la première à la durée de série si elle existe, la seconde à renseigner (fond rouge pâle), aucune durée inventée, puis FR-9 au ✓ ; toutes les durées modifiables, D recalculée ; stepper + : phase ajoutée à la durée de la dernière, indisponible à six ; stepper − : retire la dernière avec la même annulation que la croix, indisponible à deux (QR-1 validée par Hermann le 19/10) ; le stepper est le seul contrôle d'ajout ; durée imposée par un format conservée comme spécifiée mais non développée (Δ15), calcul de la dernière phase non généralisé à la durée libre. (Δ10, D-432)
+- FR-6 : Libellé saisi au clavier texte, directement dans la cellule, 20 caractères au plus ; le clavier ne masque ni le champ ni les actions de la Feuille ; fermé par Retour, sans barre ; indépendant de l'issue de l'essai du clavier décimal (2.2). (Δ11)
 - FR-7 : Durée de phase réglée par la roue native existante (`DurationWheelPicker` dans `AnchoredPanel`) : minimum 1 s, pas 1 s, sans option « À l'échec », sans borne propre hors celle de la somme. (Δ12, QP5-03)
-- FR-8 : Supprimer une phase retire sa contribution à D ; supprimer la dernière ramène « Aucune », sa durée devient la durée de série modifiable (D-371) ; l'annulation restitue ordre, libellés, durées et D ; Avec → Sans avec plusieurs phases : phases retirées, somme = durée unique de la série (6 + 3 + 5 → 14 s), modifiable, autres paramètres conservés ; aucune durée valide déductible → rien d'inventé ; repasser à Avec crée une seule phase à la durée courante, sans mémoire des anciennes ; ✕ restaure la configuration précédente, phases comprises. (Δ14)
-- FR-9 : Au ✓ : phases à 0 s retirées sans message ni blocage ; libellé vide → « Phase n » selon la position finale ; liste vide ou entièrement nulle → « Aucune » ; cible absente ou invalide → validation existante ; ✕ restaure l'état antérieur. (Δ14, D-373)
+- FR-8 : Supprimer une phase (croix ✕, ou − pour la dernière) retire sa contribution à D ; croix indisponible à deux phases, retrait alors par Sans (QR-1 validée par Hermann le 19/10) ; l'annulation restitue ordre, libellés, durées, D et nombre ; Avec → Sans avec plusieurs phases : phases retirées, somme = durée unique de la série (6 + 3 + 5 → 14 s), modifiable, autres paramètres conservés ; aucune durée valide déductible → rien d'inventé ; repasser à Avec crée deux phases (la première à la durée courante, la seconde à renseigner), sans mémoire des anciennes (D-432) ; ✕ restaure la configuration précédente, phases comprises. (Δ14)
+- FR-9 : Au ✓ : phases à 0 s ou à renseigner retirées sans message ni blocage ; libellé vide → « Phase n » selon la position finale ; liste vide ou entièrement nulle → « Aucune » ; une seule phase restante → Sans, sa durée devient la durée de série ; aucune → Sans sans durée inventée (QR-2 validée par Hermann le 19/10) ; cible absente ou invalide → validation existante ; ✕ restaure l'état antérieur. (Δ14, D-373)
 
 **Charge (§4.2)** — règles identiques en Mode Durée et en Mode Répétitions, y compris À l'échec (Δ48).
 
@@ -51,7 +51,7 @@ Extraites du PRD §4 (numérotation stable du PRD). Le détail fait foi dans le 
 
 - FR-15 : « Changement de côté » en segmenté en ligne, Avec à gauche, Sans à droite, sans direction ; Avec rend disponibles Enchainement et Pause entre les côtés, chevron intérieur à Avec ; Sans masque ces lignes et conserve leurs valeurs ; côté non renseigné → Sans au ✓ (D-406) ; copie de la Pause entre les côtés depuis le Profil (P3-10) et deux stratégies (RM-037) inchangées. (Δ21)
 - FR-16 : `RIGHT_LEFT` et `LEFT_RIGHT` historiques se lisent Avec ; Enchainement enregistré conservé ; aucune réécriture des données ni des résultats historiques. (Δ22)
-- FR-17 : Libellé « Enchainement » ; segmenté en ligne dans le cadre Côtés, largeur Figma ; libellés « Un côté après l'autre » et « Les deux côtés à chaque série », police réduite, centrés, sans troncature ; aucun sous-titre D/G ni notation C1S1 ; visible seulement si Avec et N > 1 (à N = 1 masquée, valeur conservée, NR Δ24) ; taille de police réglée sur appareil sans changement automatique de géométrie ; paramètre de l'Exercice, distinct des formats. (Δ23)
+- FR-17 : Libellé « Enchainement » ; segmenté en ligne dans le cadre Côtés, disposition Figma conservée ; options = notations graphiques exactes de `8328:38193`, dans cet ordre : `(D1 → D2) ➜ (G1 → G2)` puis `(D1 → G1) ➜ (D2 → G2)` (D-431) ; libellés longs abandonnés dans le contrôle (nom accessible seulement) ; police réduite seulement si nécessaire, réglée sur appareil sans changement automatique de géométrie ; pas de notation C1S1 ; D-407 reste applicable à la désignation fonctionnelle (Phrase, Composition, exécution neutres) ; visible seulement si Avec et N > 1 (à N = 1 masquée, valeur conservée, NR Δ24) ; paramètre de l'Exercice, distinct des formats. (Δ23)
 - FR-18 : Phrase en forme neutre « côté 1 puis le côté 2 » (ch. 10 l. 515) ; indicateur de côté de la Composition sans direction (seul son point de passage change, rendu Figma S-2) ; corpus étendu aux cas bilatéraux (S-3), grammaire et ponctuation conservées. (Δ43, Δ45)
 
 **Condition d'arrêt (§4.4)** — ni troisième Mode, ni condition Mixte persistée.
@@ -71,7 +71,7 @@ Extraites du PRD §4 (numérotation stable du PRD). Le détail fait foi dans le 
 
 - FR-26 : Quatre cadres gris arrondis espacés de 8 : Exécution (Mode, Condition d'arrêt) ; Séries (Phases et tableau, Nombre de séries, Type de série, Durée ou Répétitions et Pause ou tableau variable, Charge) ; Côtés (Changement de côté, Enchainement, Pause entre les côtés) ; Cadence et durée (Cadence, Durée de l'exercice, Compte à rebours, Fin d'exercice) ; libellés PR-01 ; contenu conditionnel dans son cadre ; panneaux ancrés à leur ligne d'origine ; couleur sans jeton = constante locale nommée ; briques `Row`, `ValuePill`, `Separator`, `SheetMotion`, animations Q39 à Q41 réutilisées. (Δ31)
 - FR-27 : Mode, Condition d'arrêt, Phases, Type de série, Charge, Changement de côté, Enchainement et Cadence en segmentés en ligne (alignés à droite, sans enveloppe blanche, sans popover ni panneau) ; `SegmentedControl` existant avec une variante de style ; option indisponible garde sa valeur réelle ; principes PR-03 (libellés regular plus petits que les valeurs, non sélectionnées en gris regular sur fond clair, sélectionnée en violet existant, options de même largeur) ; segmenté natif `@expo/ui` seulement après vérification (faite par AD-24 : non retenu). (Δ32)
-- FR-28 : Chevron intérieur centré avec le texte sur Variables, Avec (Phases), Avec (Changement de côté) : haut si déployé, bas sinon ; replier conserve valeurs et mode. (Δ33)
+- FR-28 : Chevron intérieur graphique (icône existante `control-chevron-up/down`, jamais un caractère), centré avec le texte, sur Variables, Avec (Phases, à droite du nombre), Avec (Changement de côté) : haut si déployé, bas sinon ; replier conserve valeurs et mode. (Δ33)
 - FR-29 : Tableaux des séries et des phases : fond blanc sans contour, lignes de 36 (44 ailleurs) ; aucun stepper permanent ; chaque cellule ouvre son seul sélecteur (roue de cible, stepper de Pause, clavier de charge) ; glisser, croix, « Série supprimée — Annuler » sur `#FFF1F0` (Q35), roue sous la ligne (Q45) conservés ; cible tactile de 36 vérifiée sur appareil avant toute autre géométrie ; PR-02 (fond blanc dans son cadre, pas de séparateur après le tableau des phases, espace d'une hauteur de ligne sous la dernière, valeurs alignées sur les en-têtes, numéros rapprochés des poignées). (Δ34)
 - FR-30 : Cadence Autre / 5 s / 2 s / 1 s / Sans, option reflétant la valeur (0 → Sans, 1, 2, 5 → option, autre → Autre, §9-7 tranché) ; Autre révèle le ± existant 0..10, pas 1, sans accélération ; aucune valeur personnalisée mémorisée ; bornes, pas et donnée inchangés. (Δ35)
 - FR-31 : « Durée de l'exercice » remplace « Durée totale » ; chevron à 12 du libellé, replié par défaut, masque Compte à rebours et Fin sans les désactiver ; bas replié, haut déployé ; ouvrir ou fermer ne modifie pas la valeur ; ligne absente → signaux directement visibles ; Exercice ouvert depuis une Séance : Compte à rebours et Fin restent absents ; calcul, natures, `—`, N = 1, T(1)..T(99) et RM-218 inchangés. (Δ36)
@@ -80,7 +80,7 @@ Extraites du PRD §4 (numérotation stable du PRD). Le détail fait foi dans le 
 **Écran principal de l'Éditeur (§4.7)**
 
 - FR-33 : Description en étapes numérotées : état vide « 1. Décrivez la première étape » sans ligne d'invitation ; liste remplie suivie d'une invite « n. Étape suivante » ; Entrée crée l'étape suivante, sans bouton Ajouter ; chaque étape modifiable en place ; pas de réordonnancement (modèle A) ; retour arrière sur une étape vide la supprime, curseur en fin de la précédente ; ↑ ferme le clavier (D-351) ; défilement au-dessus du clavier, `Terminer` immobile (D-349) ; présentation selon Figma courant (§9-2 tranché : demandes 17 et 21, texte à 14, sans cadre). (Δ01)
-- FR-34 : À `Terminer`, étapes vides retirées et renumérotées, ordre préservé ; limite de 1 000 caractères (portée : QN-1) ; étapes enregistrées, relues, transportées par la copie Définition → Séance et la duplication ; détection de modification sur les étapes. (Δ02, Δ03)
+- FR-34 : À `Terminer`, étapes vides retirées et renumérotées, ordre préservé ; limite de 1 000 caractères sur la chaîne encodée, séparateurs compris, sans migration (QN-1 validée ; les séparateurs ne sont pas de la numérotation générée) ; étapes enregistrées, relues, transportées par la copie Définition → Séance et la duplication ; détection de modification sur les étapes. (Δ02, Δ03)
 - FR-35 : Anciennes descriptions : aucune migration, conversion réversible ni retour à l'ancien format ; ancien texte réutilisé seulement si c'est simple ; tolérance limitée aux descriptions. (QP5-01)
 - FR-36 : Compte à rebours et Fin retirés du résumé de la Carte et de son nom accessible, avec `cardSeparator` ; données, Feuille, `computeExercisePlanDuration`, Phrase et sa « Durée totale » inchangés. (Δ04, R-14)
 - FR-37 : `Terminer` abaissé selon Figma, zone réservée au-dessus garantissant que le dernier contenu n'est jamais masqué, clavier ouvert ou fermé ; `Terminer` ne remonte pas avec le clavier (D-349) ; couleurs actif / inactif conservées. (Δ05)
@@ -93,7 +93,7 @@ Extraites du PRD §4 (numérotation stable du PRD). Le détail fait foi dans le 
 - FR-41 : Copies Définition → Séance, duplications et instantanés transportent phases, charge (valeurs sous Sans comprises) et étapes ; chaque copie reste isolée. (Δ41)
 - FR-42 : Phrase avec charge active, après la valeur par série (D-414) : `(charge : 20 kg)` ; `(charges : 20, 12, 13 kg)` jusqu'à trois ; `(charges : 20, 12 kg, ...)` au-delà ; valeurs dans l'ordre des séries, pas de charge commune si les séries diffèrent ; série à zéro listée (D-423) ; rien sous Sans ; statut et symboles des durées inchangés ; 276 phrases intactes sauf clause des côtés. (Δ42)
 - FR-43 : Phrase avec phases : parenthèse après la durée de série, dans l'ordre d'exécution, exhaustive même pour une phase : « **3 séries de 9 s** (Descente : **6 s** - Maintien : **3 s**), avec une pause après chaque série de **15 s**. » ; régénérée après toute modification ; sans phases inchangée ; générateur et segments réutilisés ; corpus étendu ; ordre phases puis charge (§9-3 tranché). (Δ44)
-- FR-44 : Lexique : Condition d'arrêt et trois résultats, Phases, Charge, kg, Avec / Sans, Enchainement et deux options, Cadence et options, Durée de l'exercice, invites des étapes ; clés orphelines retirées (Carte, sous-titres D/G) ; identifiants techniques inchangés (D-201). (Δ46)
+- FR-44 : Lexique : Condition d'arrêt et trois résultats, Phases, Charge, kg, Avec / Sans, Enchainement et deux options, Cadence et options, Durée de l'exercice, invites des étapes ; clés orphelines retirées (Carte, libellés anatomiques des côtés) ; `sideOrderSubtitles` conservée comme texte des options d'Enchainement (D-431) ; identifiants techniques inchangés (D-201). (Δ46)
 
 **Bornes des durées (§4.9)**
 
@@ -118,20 +118,20 @@ Pas de modèle de départ (projet existant, `bmad/pre5-depuis-pre4`) ; aucune mo
 
 - AR-18 (AD-18) — Format canonique v3 : `EXECUTION_PARAMETERS_VERSION` = 3 ; `serializeExecutionParameters` seul écrivain (repositories, Instantané), forme v2 + `loadEnabled`, `loadKg` (uniforme et lignes), `workPhases` (uniforme), toujours écrits ; `readExecutionParameters` seul lecteur (v2 → `readV2` avec `workPhases: []`, `loadEnabled: false`, `loadKg: 0` ; v3 → `readV3` strict ; autre → `ExecutionParametersDataError`) ; `readV2`/`serializeV2` comparent ou écrivent le littéral 2 (`EXECUTION_PARAMETERS_V2`) ; aucune migration SQL, `DATABASE_VERSION` = 10 ; `serializeV2` sans appelant de production, lève une erreur sur phases ou charge, test de garde de confinement ; `EXERCISE_SNAPSHOT_VERSION` = 3, `parseExerciseSnapshot` lit 1, 2, 3 ; retour arrière applicatif non pris en charge (erreur explicite).
 - AR-19 (AD-19) — Charge : `loadEnabled` racine, `loadKg` sur `UniformSeries` et `SeriesRow`, fini ≥ 0 multiple de 0,25 ; module unique `exerciseLoad.ts` (`roundLoadUp`, `normalizeLoad`, `reactivateLoad`, `formatLoadKg`, `parseLoadText` acceptant « , » et « . », vide = 0, illisible ou négatif = valeur précédente) ; transitions `setLoadEnabled`, `setLoadValue` ; `normalizeLoad` à la fermeture du clavier, à Variables → Identiques et au ✓, jamais pendant Précédent / Suivant ; contrôle structurel propre à la charge, `checkStructuralNumber` inchangé ; `sameRowValue`/`alignRowsToBaseline` ignorent la charge ; champs obligatoires dans les types, constructeurs adaptés en story 1 ; `normalizeEffective` (N = 1) reprend le `loadKg` de la 1re ligne, `workPhases: []` ; égalité et clone étendus ; toute construction de `SeriesRow` recopie `loadKg`.
-- AR-20 (AD-20) — Phases : `workPhases: WorkPhase[]` (`{id, label, durationSeconds}`) sur `UniformSeries` seulement ; invariant structurel (Mode Durée, Cible `NUMBER`, durées ≥ 1, libellé 1..20, `target.value` = Σ, Σ dans 1..3535, sans tolérance de ligne de base) validé par `validateForSave` et `readV3` ; écrivain unique `deriveSeriesDuration` (liste non vide seulement ; table d'appels de l'AD) ; durée `number | null` au brouillon ; `normalizeWorkPhases(phases, defaultLabel)` au ✓ ; prédicat unique `canEnableWorkPhases` ; à N = 1 en état variable demandé, `setVariable(false)` dans la même transition ; transitions vers Répétitions, À l'échec, Variables refusées avec des phases ; `WORK_PHASE_LIMITS = { maxCount: 6, labelMaxLength: 20, durationMin: 1 }`.
-- AR-21 (AD-21) — Côtés : `SideMode` à trois valeurs, aucun CHECK modifié ; Avec ⇔ `isBilateral` ; Sans → Avec écrit `RIGHT_LEFT` et copie la Pause du Profil (P3-10) ; `LedgerSide` ordinal (`NONE | SIDE_1 | SIDE_2`) ; aucun module ne distingue `RIGHT_LEFT` de `LEFT_RIGHT` ; `SideModeControl.tsx` non étendu ; `normalizeEffective` écrit `BY_SIDE` à N = 1 (NR Δ24) ; QN-4.
+- AR-20 (AD-20) — Phases : `workPhases: WorkPhase[]` (`{id, label, durationSeconds}`) sur `UniformSeries` seulement ; invariant structurel (Mode Durée, Cible `NUMBER`, durées ≥ 1, libellé 1..20, `target.value` = Σ, Σ dans 1..3535, sans tolérance de ligne de base) validé par `validateForSave` et `readV3` ; écrivain unique `deriveSeriesDuration` (liste non vide seulement ; table d'appels de l'AD) ; durée `number | null` au brouillon ; Avec → deux phases (durée courante ou `null`, puis `null`) ; `setWorkPhaseCount(n)` seule transition du stepper, 2..6 (+ copie la durée de la dernière, − retire la dernière, annulable) ; croix refusée à 2 (QR-1 validée par Hermann le 19/10) ; `normalizeWorkPhases(phases, defaultLabel)` au ✓, une phase restante → Sans à sa durée, aucune → Sans sans durée inventée (QR-2 validée par Hermann le 19/10) ; prédicat unique `canEnableWorkPhases` ; à N = 1 en état variable demandé, `setVariable(false)` dans la même transition ; transitions vers Répétitions, À l'échec, Variables refusées avec des phases ; `WORK_PHASE_LIMITS = { maxCount: 6, controlMinCount: 2, labelMaxLength: 20, durationMin: 1 }` (`controlMinCount` ne borne que le contrôle).
+- AR-21 (AD-21) — Côtés : `SideMode` à trois valeurs, aucun CHECK modifié ; Avec ⇔ `isBilateral` ; Sans → Avec écrit `RIGHT_LEFT` et copie la Pause du Profil (P3-10) ; neutralité d'affichage seulement : aucun texte affiché ni annoncé ne distingue `RIGHT_LEFT` de `LEFT_RIGHT` ; `executionCalculations.ts` non modifié, `LedgerSide` (`NONE | RIGHT | LEFT`) inchangé (interne, ni affiché ni persisté) ; options d'Enchainement = notation `sideOrderSubtitles` à flèche centrale `➜`, nom accessible = `sideOrders` (D-431) ; `SideModeControl.tsx` non étendu ; `normalizeEffective` écrit `BY_SIDE` à N = 1 (NR Δ24) ; QN-4 décidée.
 - AR-22 (AD-22) — Étapes dans la colonne existante : codec unique `instructionSteps.ts` (`decodeInstructionSteps` sur `/\r?\n/`, `encodeInstructionSteps` sans vides ni numéros, `null` si vide, `splitStepAt`, `insertPastedText`, `instructionStepsLength`) ; `instructionSteps: readonly string[]` dans la valeur du formulaire ; `formValueEquals` compare les encodages ; encodage à `Terminer` seulement ; `normalizeInstruction` inchangée ; saisie dépassant la limite refusée en entier ; limite en points de code sur la chaîne encodée (QN-1 validée par Hermann le 19/10).
 - AR-23 (AD-23) — Condition d'arrêt : `stopConditionOf(parameters)` seule autorité (`TARGET`, `FAILURE`, `MIXED`, `NONE` ; cellules vides non comptées, QN-2), sur l'état effectif ; mémoire `lastNumberById` au Brouillon, distincte de `targetsById`, jamais écrasée par `FAILURE`/`UNSET` ; `failureOption` absente en identiques, conservée en variables ; Variables → Identiques puis `normalizeLoad` (charge reprise à 0 → Sans, §9-9).
-- AR-24 (AD-24) — `SegmentedControl` reçoit `variant: "inline"` et les props optionnelles `chevron`, `compact`, `readOnly` ; `standard` et `parameters` inchangés ; `cadenceOptionOf(value)` ; vérification QP5-06 faite, segmenté natif non retenu ; valeurs Figma en constantes locales.
+- AR-24 (AD-24) — `SegmentedControl` reçoit `variant: "inline"` et les props optionnelles `chevron` (graphique, `KodjoIcon` `control-chevron-up/down`, appui distinct `onChevronPress`), `compact`, `readOnly`, `selectedContent` (option Avec des phases : « n phases », stepper révélé 2..6, chevron) ; `standard` et `parameters` inchangés ; `cadenceOptionOf(value)` ; vérification QP5-06 faite, segmenté natif non retenu ; valeurs Figma en constantes locales.
 - AR-25 (AD-25) — Brouillon : `workPhases`, `nextPhaseId`, `loadEnabled`, `loadKg` (uniforme, lignes actives, cachées, sauvegardées), `lastNumberById` ; `openSheetDraft`, `plain`, `requestedParameters` portent tout (test d'aller-retour) ; `pendingRemoval` étendu à `{ kind: "series" | "phase" }`, remis à `null` par toute transition ; `sheetDraftResult(draft, defaultLabel)` = `normalizeWorkPhases` → `normalizeLoad` → `validateForSave`, sert la disponibilité du ✓ et `commitSheetDraft` (cas obligatoires `[0, null]` et 3 536 s).
-- AR-26 (AD-26) — `KeyboardField` unique (`TextInput` RN) : charge `decimal-pad`, libellé clavier texte 20 au plus, longueur en points de code ; texte local, une transition à la sortie ; un `InputAccessoryView` par champ de charge (`nativeID` propre), barre Précédent / Suivant / « Fermer » à droite ; ordre `loadFieldOrder(draft)` ; extrémités indisponibles ; fond actif dérivé de la surface `keyboard` ; défilement par `SheetMotionScrollView` seul, piloté en JavaScript (pas d'`automaticallyAdjustKeyboardInsets`, pas de `KeyboardAvoidingView`), marge 12 ; libellé fermé par Retour ; essai précoce sur iPhone avant généralisation, repli signalé sans réimplémentation.
-- AR-27 (AD-27) — `sheetSurface.ts` seul réducteur : surfaces `keyboard(load|phaseLabel)`, `selector(phaseDuration)`, `stepper(rowPause)` ajoutées ; `popover(mode|side|order|regime)` retirées ; synchronisation focus / surface dans un hook unique, `flushKeyboardField()` synchrone avant toute autre transition ; surfaces par identité ; une seule annulation en attente ; `DraggableRow`, `RemoveRowButton` et message d'annulation extraits dans un module partagé, `WorkPhasesTable` distinct ; ✓/✕ absorbés pendant `keyboard` (Q47) ; cellules sans ± ouvrant leur outil.
+- AR-26 (AD-26) — `KeyboardField` unique (`TextInput` RN) : charge `decimal-pad`, libellé clavier texte 20 au plus, longueur en points de code ; texte local, une transition à la sortie ; un `InputAccessoryView` par champ de charge (`nativeID` propre), barre Précédent / Suivant / « Fermer » à droite ; ordre `loadFieldOrder(draft)` ; extrémités indisponibles ; fond actif dérivé de la surface `keyboard` ; défilement par `SheetMotionScrollView` seul, piloté en JavaScript (pas d'`automaticallyAdjustKeyboardInsets`, pas de `KeyboardAvoidingView`), marge 12 ; libellé fermé par Retour, sans barre, indépendant de l'issue de l'essai ; essai précoce sur iPhone des composants définitifs (pas d'interface provisoire) avant la story Charge, repli signalé sans réimplémentation et ne bloquant que la saisie de la charge.
+- AR-27 (AD-27) — `sheetSurface.ts` seul réducteur : surfaces `keyboard(load|phaseLabel)`, `selector(phaseDuration)`, `stepper(rowPause)`, `stepper(phaseCount)` ajoutées ; `popover(mode|side|order|regime)` retirées ; synchronisation focus / surface dans un hook unique, `flushKeyboardField()` synchrone avant toute autre transition ; surfaces par identité ; une seule annulation en attente ; `DraggableRow`, `RemoveRowButton` et message d'annulation extraits dans un module partagé, `WorkPhasesTable` distinct ; ✓/✕ absorbés pendant `keyboard` (Q47) ; cellules sans ± ouvrant leur outil.
 - AR-28 (AD-28) — Quatre `SheetMotionView` ; repère unique des panneaux (y du cadre + y de la ligne) dans une seule fonction ; panneaux rendus hors des cadres ; Charge identiques : segment Avec affichant `formatLoadKg`, champ dans la ligne ; gris des cadres en constante locale ; lignes 36 / 44 ; cible tactile 36 vérifiée dans la 1re story de tableau ; Durée de l'exercice repliée par `DisclosureControl`.
 - AR-29 (AD-29) — Phrase : `workPhasesClause`, `loadClause`, point d'insertion unique après la valeur par série, `VALUE_SUFFIX_ORDER` = phases puis charge ; côtés neutres ; corpus 276 inchangé sur disque, attendus neutres et nouveaux cas en fixtures littérales ; cas Δ48 et charges variables égales obligatoires.
 - AR-30 (AD-30) — Carte sans `phasesRow` ni `cardSeparator`, nom accessible réduit ; `Terminer` hors du `KeyboardAvoidingView`, zone protégée = espace de défilement réservé ; écart Figma exigeant un jeton ou un composant signalé.
 - AR-31 (AD-31) — `EXECUTION_BOUNDS.durationTarget.min` 5 → 1 (`EP:88`), seul changement de valeur ; roues, `selectorOpeningPosition` (00:01), `stepTarget`, validation et somme des phases en dérivent ; maxima, CHECK, maintien 1/5/10, bornes et grilles des pauses inchangés ; tests listés par `propagation-borne-1s.md` §4.3 adaptés et tests §4.3 « à ajouter » écrits.
 - AR-32 (AD-32) — Lexique : clés nouvelles via `src/shared/i18n/`, clés orphelines retirées dans la story qui retire leur dernier usage, identifiants techniques inchangés.
-- AR-33 (AD-33) — Ordre : story 1 socle de données atomique (sans interface) ; transitions du Brouillon avant toute story de Feuille ; essai NFR-6 avant généralisation de `KeyboardField` ; `SegmentedControl` `inline` avant les lignes qui l'utilisent ; aucune story ne dépend d'une story placée après elle ; recette lot Feuille puis lot Éditeur.
+- AR-33 (AD-33) — Ordre : story 1 socle de données atomique (sans interface) ; transitions du Brouillon avant toute story de Feuille ; essai NFR-6 avant la story Charge, seule à dépendre de son issue ; `SegmentedControl` `inline` avant les lignes qui l'utilisent ; aucune story ne dépend d'une story placée après elle ; recette lot Feuille puis lot Éditeur.
 - Hérités ratifiés (AD-1 à AD-17) : en particulier AD-2 (une machine de Brouillon), AD-5 (un calcul de durée), AD-6 (un générateur de Phrase), AD-7 (roues natives, garde zéro `ScrollView`), AD-8 (glisser PRE-3, actions accessibles), AD-9 (clonage profond), AD-10 (preuves SQLite réelles), AD-11 (lexique et jetons verrouillés), AD-13 (`validateForSave` unique), AD-15 (une seule surface), AD-16 (mécanisme ± unique).
 
 ### Exigences de conception UX
@@ -141,9 +141,9 @@ Aucun document UX séparé. Les propriétés Figma (S-2, PRD §9) sont relevées
 - UX-DR1 : Gris des cadres, violet de sélection, dimensions des segmentés en ligne (hauteur, largeur égale des options, police), chevron intérieur — Feuille.
 - UX-DR2 : Rendu du résultat dérivé de la Condition d'arrêt (violet atténué, texte blanc) — Feuille.
 - UX-DR3 : Tableaux : fond blanc, lignes de 36, alignement valeurs / en-têtes, numéros rapprochés des poignées, espace sous la dernière ligne (PR-02) — Feuille.
-- UX-DR4 : Contrôle d'ajout d'une phase (`9207:18817`, `NON VÉRIFIABLE` à ce jour) et trois écrans de phases — Feuille.
+- UX-DR4 : Segment Avec des phases (« n phases », stepper révélé, chevron graphique à droite du nombre) et tableau des phases (poignée, numéro, libellé, durée, croix ✕) — frame `9207:18817`, vérifiée par Hermann le 19/10 ; la forme « 3 phases » vient de D-432, pas de la frame — Feuille.
 - UX-DR5 : Cellule de charge en saisie, clavier `9292:18077` (marge 12) — Feuille.
-- UX-DR6 : Libellés et police réduite de l'Enchainement (frame `8328:38193` encore en D1/G1, non bloquante) — Feuille.
+- UX-DR6 : Notations graphiques de l'Enchainement, conservées exactement depuis la frame `8328:38193` (`(D1 → D2) ➜ (G1 → G2)`, `(D1 → G1) ➜ (D2 → G2)`, D-431), police réduite seulement si nécessaire — Feuille.
 - UX-DR7 : Indicateur de côté de la Composition sans direction — Composition.
 - UX-DR8 : Description en étapes (texte à 14, sans cadre, numéros, invite grise ; demandes 17 et 21 du registre v25) — Éditeur.
 - UX-DR9 : Mesures de `Terminer` et de sa zone protégée, clavier ouvert compris — Éditeur.
@@ -160,7 +160,7 @@ Carte FR → epic → story(s). La story principale est en gras ; les autres com
 | FR-3 | E1, E2 | 1.1, **2.1**, 2.8 | Invariant Σ ; dérivation de D ; lecture seule |
 | FR-4 | E2 | **2.8** (2.6 pour le module partagé) | Ligne et tableau des phases |
 | FR-5 | E2 | 2.1, **2.8** | Création et ajout de phases |
-| FR-6 | E2 | 2.2, **2.8** | Libellé au clavier texte |
+| FR-6 | E2 | **2.8** (composant `KeyboardField` de 2.2, indépendant de l'issue de l'essai) | Libellé au clavier texte |
 | FR-7 | E2 | **2.8** | Durée de phase à la roue |
 | FR-8 | E2 | **2.1**, 2.8 | Suppression, Avec → Sans, ✕ |
 | FR-9 | E2 | **2.1**, 2.8 | Normalisation au ✓ |
@@ -208,13 +208,13 @@ Carte FR → epic → story(s). La story principale est en gras ; les autres com
 | NFR-3 | 1.1, 2.4, 3.2 |
 | NFR-4 | toutes |
 | NFR-5 | 1.2, 2.2, 2.4 à 2.8, 3.1, 3.2 |
-| NFR-6 | **2.2** (bloquante pour 2.7 et 2.8) |
+| NFR-6 | **2.2** (son issue ne bloque que la saisie de la charge, 2.7) |
 | NFR-7 | 2.3, 2.4, 2.6, 2.7, 2.8, 3.1, 3.2 |
 | NFR-8 | toutes |
 | NFR-9 | toutes ; CRLF : 1.1, 3.1 |
 | NFR-10 | **1.1**, 3.1 |
 
-Lignes NR, rattachées comme critères de non-régression : Δ07 → 3.1, 3.2 ; Δ24 → 2.1, 2.5 ; Δ30 → 2.2, 2.6, 2.7, 2.8 ; Δ38 → 2.4, 2.5, 2.6 ; Δ47 → 1.1, 2.8. Δ15 : sans objet (§8 du PRD).
+Lignes NR, rattachées comme critères de non-régression : Δ07 → 3.1, 3.2 ; Δ24 → 2.1, 2.5 ; Δ30 → 2.2, 2.6, 2.7, 2.8 ; Δ38 → 2.4, 2.5, 2.6 (stepper « Nombre de séries » de PRE-4 conservé à l'identique, critère explicite de chaque story et de la recette Feuille) ; Δ47 → 1.1, 2.8. Δ15 : sans objet (§8 du PRD).
 
 ## Liste des epics
 
@@ -247,7 +247,8 @@ Hermann écrit la Description pas à pas, voit une Carte allégée, un `Terminer
 - **Préservation (NFR-8).** Un comportement validé en PRE-3 ou PRE-4 ne change que par un remplacement R-01 à R-17 ou un changement de présentation du PRD §7, ou par une décision listée. Toute divergence avec un document généré est signalée, pas appliquée. Aucune refactorisation justifiée seulement par le PRD.
 - **Textes et conventions (NFR-9).** Tout texte visible passe par `src/shared/i18n/` ; « Set » est proscrit ; le code est en anglais ; la persistance passe par les repositories ; les commentaires sont en français et citent FR, Δ, D et AD.
 - **Figma (S-2).** Les propriétés sont relevées en lecture seule dans la story qui les utilise, après vérification de l'identifiant actuel de la frame ; elles deviennent des constantes locales nommées (aucun jeton modifié, NFR-3). Aucune modification de Figma.
-- **Questions QN.** QN-1 à QN-4 ont été validées par Hermann le 19/10 (défauts recommandés retenus) ; QN-5 est close par D-414. Les critères concernés portent la mention de leur validation.
+- **Questions QN et QR.** QN-1 à QN-4 ont été validées par Hermann le 19/10 (défauts recommandés retenus) ; QN-5 est close par D-414. Les critères concernés portent la mention de leur validation. QR-1 et QR-2 (incompatibilités du contrôle des phases 2–6, D-432) ont été validées par Hermann le 19/10 avec les défauts proposés ; les critères concernés portent « (QR-n validée par Hermann le 19/10) ».
+- **Nombre de séries (NR Δ38, impératif).** Le stepper « Nombre de séries » de PRE-4 est conservé à l'identique : présentation, interactions, révélation et fermeture, pas, accessibilité ; le tableau des séries variables suit N ; aucun remplacement par une roulette ni par le clavier. Seule son intégration visuelle dans la nouvelle Feuille peut s'adapter.
 - **Tailles.** S : un module, tests ciblés ; M : quelques modules ou une zone de la Feuille ; L : plusieurs couches, ou une zone large de la Feuille avec ses tests.
 
 ## Epic 1 : Mes Exercices portent phases, charge et étapes, sans perte
@@ -264,7 +265,7 @@ afin que les stories d'interface s'appuient sur un modèle complet et qu'aucune 
 **Architecture :** AD-18, AD-19, AD-20 (modèle, invariant, bornes), AD-21 (lecture Avec), AD-22 (codec), AD-23 (`stopConditionOf`), AD-25 (transport seulement), AD-31, AD-33 (story 1 atomique) ; hérités AD-3, AD-4, AD-9, AD-10, AD-13.
 **Dépend de :** rien.
 **Taille :** L (atomique par AD-33 : une écriture v3 ne peut pas être livrée sans son lecteur ni sans le transport par le Brouillon).
-**Questions :** QN-1 (mesure de la limite des étapes), QN-2 (dérivation avec cellules vides).
+**Questions :** aucune en attente ; QN-1 (mesure de la limite des étapes) et QN-2 (dérivation avec cellules vides) sont décidées.
 
 **Critères d'acceptation :**
 
@@ -272,7 +273,7 @@ afin que les stories d'interface s'appuient sur un modèle complet et qu'aucune 
 **Given** les types de `EP`
 **When** la story est livrée
 **Then** `ExecutionParameters` porte `loadEnabled: boolean` à la racine, `UniformSeries` porte `loadKg: number` et `workPhases: WorkPhase[]` (`WorkPhase = { id: number; label: string; durationSeconds: number }`), chaque `SeriesRow` porte `loadKg: number`, tous **obligatoires** (jamais optionnels), et une série `VARIABLE` ne porte aucune phase par construction
-**And** `WORK_PHASE_LIMITS = { maxCount: 6, labelMaxLength: 20, durationMin: 1 }` est défini dans `EP`
+**And** `WORK_PHASE_LIMITS = { maxCount: 6, controlMinCount: 2, labelMaxLength: 20, durationMin: 1 }` est défini dans `EP` ; `controlMinCount` ne borne que le contrôle et les transitions du Brouillon, jamais la lecture ni `validateForSave` (le modèle admet une phase)
 **And** tous les constructeurs sont adaptés mécaniquement : `createEmptyExecutionParameters` (Sans, 0, `[]`), `seriesRowsOf`, `normalizeEffective` (à N = 1 depuis une série variable : `loadKg` de la première ligne, `workPhases: []`, `loadEnabled` inchangé ; une série déjà uniforme garde ses phases), `readV1`, `recoveryExecutionParameters`, `defaultExerciseExecutionParameters` (`SessionDraft.ts`), `composition.ts`, `executionParametersFixtures.ts`
 **And** le nom de code des phases est `workPhases`, jamais `phases` seul, distinct de `phasesRow` et de `withProfilePhases`.
 
@@ -391,7 +392,7 @@ je veux que la Phrase de synthèse détaille les phases et la charge, et que la 
 afin de lire d'un coup d'œil ce que l'Exercice prescrit, sans désignation anatomique.
 
 **Exigences :** FR-16 (registre par côté), FR-18, FR-42, FR-43, FR-44 (Composition) ; NFR-5, NFR-9 ; Δ42, Δ43, Δ44, Δ45, Δ46 (partie Composition), Δ48 ; R-15, R-16 ; S-3 ; §9-3.
-**Architecture :** AD-29, AD-21 (`LedgerSide` ordinal, Composition), AD-32 ; hérités AD-6, AD-10.
+**Architecture :** AD-29, AD-21 (neutralité d'affichage seulement, Composition ; `executionCalculations.ts` non modifié), AD-32 ; hérités AD-6, AD-10.
 **Dépend de :** 1.1.
 **Taille :** M.
 **UX :** UX-DR7.
@@ -424,7 +425,7 @@ afin de lire d'un coup d'œil ce que l'Exercice prescrit, sans désignation anat
 **Given** un Exercice bilatéral, `RIGHT_LEFT` ou `LEFT_RIGHT`
 **When** la Phrase est produite
 **Then** la clause des côtés emploie la forme neutre « côté 1 puis le côté 2 » et les textes de ch. 10 l. 515, identiques pour les deux valeurs ; aucun module ne lit la direction
-**And** `LedgerSide` devient ordinal (`NONE | SIDE_1 | SIDE_2`) dans `executionCalculations.ts`, et les résultats historiques restent lisibles par côté (FR-16)
+**And** la neutralité ne touche que l'affichage : `executionCalculations.ts` n'est pas modifié, `LedgerSide` garde `NONE | RIGHT | LEFT` (interne au registre de durée, ni affiché ni persisté), l'ordre des côtés et les durées sont inchangés, et les résultats historiques restent lisibles par côté (FR-16, AD-21, AD-32) ; `executionCalculations.test.ts` et `ExecutionParametersDraft.test.ts` passent sans modification liée aux côtés
 **And** grammaire et ponctuation du corpus sont conservées.
 
 **AC5 — Corpus (AD-29, AD-10, S-3).**
@@ -437,7 +438,7 @@ afin de lire d'un coup d'œil ce que l'Exercice prescrit, sans désignation anat
 **AC6 — Indicateur de côté de la Composition (FR-18, R-15, Δ45).**
 **Given** une Séance contenant un Exercice bilatéral
 **When** la Composition l'affiche
-**Then** l'indicateur ne porte plus de direction (« D→G » / « G→D » supprimés) ; seul le point de passage de `CompositionScreen.tsx` change, le reste de la Composition est intact (pas de refonte)
+**Then** l'indicateur ne porte plus de direction (« D→G » / « G→D » supprimés) ; seul le point de passage de `CompositionScreen.tsx` change, le reste de la Composition est intact (pas de refonte), et les instantanés ne sont touchés que pour le transport (1.1)
 **And** son rendu suit la frame Figma relevée (UX-DR7, S-2), en constantes locales nommées
 **And** les clés anatomiques de `fr.ts:47-50` devenues orphelines sont retirées ; `compositionPresentation.test.ts` passe, adapté seulement pour l'indicateur.
 
@@ -450,9 +451,9 @@ afin de lire d'un coup d'œil ce que l'Exercice prescrit, sans désignation anat
 
 ## Epic 2 : Régler phases, charge, côtés et Condition d'arrêt dans une Feuille réorganisée
 
-Hermann règle dans la Feuille « Paramètres d'exécution » (✓ / ✕), réorganisée en quatre cadres à segmentés en ligne : la Condition d'arrêt, les phases, la charge saisie au clavier, les côtés Avec / Sans et l'Enchainement, la Cadence et la Durée de l'exercice. Ordre imposé par AD-33 : transitions du Brouillon (2.1) avant toute story de Feuille ; essai iPhone du champ clavier (2.2) avant sa généralisation (2.7, 2.8) ; variante `inline` (2.3) avant les lignes qui l'utilisent (2.4 et suivantes). Les paramètres et la présentation d'une même zone de la Feuille sont livrés ensemble, pour ne réécrire chaque zone de `ExecutionParametersSheet.tsx` qu'une fois.
+Hermann règle dans la Feuille « Paramètres d'exécution » (✓ / ✕), réorganisée en quatre cadres à segmentés en ligne : la Condition d'arrêt, les phases, la charge saisie au clavier, les côtés Avec / Sans et l'Enchainement, la Cadence et la Durée de l'exercice. Ordre imposé par AD-33 : transitions du Brouillon (2.1) avant toute story de Feuille ; essai iPhone du champ clavier décimal (2.2) avant la saisie de la charge (2.7), seule story qui dépend de son issue ; variante `inline` (2.3) avant les lignes qui l'utilisent (2.4 et suivantes). Les paramètres et la présentation d'une même zone de la Feuille sont livrés ensemble, pour ne réécrire chaque zone de `ExecutionParametersSheet.tsx` qu'une fois.
 
-**Recette du lot Feuille.** Après la story 2.8, Hermann joue sur iPhone les scénarios de recette des stories 1.1 (roue au minimum) et 2.1 à 2.8, en une session. Les essais 2.2 (champ clavier) et 2.6 AC1 (cible tactile de 36) sont joués plus tôt, car ils bloquent la suite.
+**Recette du lot Feuille.** Après la story 2.8, Hermann joue sur iPhone les scénarios de recette des stories 1.1 (roue au minimum) et 2.1 à 2.8, en une session. Les essais 2.2 (champ clavier décimal, qui conditionne 2.7) et 2.6 AC1 (cible tactile de 36, qui conditionne la géométrie suivante) sont joués plus tôt. Le lot comprend le critère `R-2.4-08` : stepper « Nombre de séries » identique à PRE-4 (NR Δ38).
 
 ### Story 2.1 : Transitions du Brouillon : phases, charge, Condition d'arrêt et côtés
 
@@ -464,7 +465,7 @@ afin que chaque ligne de la Feuille ne fasse que dispatcher une transition déj�
 **Architecture :** AD-25, AD-20 (transitions, table d'appels de `deriveSeriesDuration`, `canEnableWorkPhases`), AD-19 (transitions de charge), AD-23 (mémoire `lastNumberById`), AD-21 (Avec / Sans) ; hérités AD-2, AD-13.
 **Dépend de :** 1.1.
 **Taille :** L (domaine seul, sans interface).
-**Questions :** QN-3, QN-4.
+**Questions :** QN-3, QN-4 (décidées) ; QR-1, QR-2 (validées par Hermann le 19/10, défauts proposés retenus).
 
 **Critères d'acceptation :**
 
@@ -475,12 +476,13 @@ afin que chaque ligne de la Feuille ne fasse que dispatcher une transition déj�
 **And** à N = 1 avec un état variable demandé, toute transition de phases ou de charge commune passe d'abord, dans la même transition, par `setVariable(false)` : la Feuille et le Brouillon voient le même uniforme
 **And** avec des phases, les transitions vers Répétitions, À l'échec et Variables sont refusées (aucune conversion destructive automatique) ; la mémoire des cibles par Mode (`TargetsByMode`) est conservée.
 
-**AC2 — Création et ajout de phases (FR-5, AD-20).**
+**AC2 — Création et nombre de phases (FR-5, AD-20, D-432).**
 **Given** un Brouillon éligible sans phase
 **When** Hermann passe à Avec
-**Then** une phase est créée avec l'identité `nextPhaseId`, un libellé vide (le libellé par défaut est affiché selon la position) et la durée de la Cible `NUMBER` courante ; si la durée vaut « — » ou si la Cible héritée est hors de 1..3535, la durée est `null` (à renseigner), sans valeur inventée
-**And** une phase ajoutée reprend la durée de la dernière phase ; à six phases l'ajout est refusé, aucune 7e phase n'est créée
-**And** toute transition qui laisse la liste non vide (ajout, retrait d'une phase non dernière, annulation d'un retrait, réglage d'une durée) appelle `deriveSeriesDuration`, seul écrivain de D : `target` = `NUMBER(Σ)` si Σ ≥ 1, sinon `UNSET` ; une durée `null` compte pour 0
+**Then** **deux** phases sont créées, avec des identités tirées de `nextPhaseId` et des libellés vides (le libellé par défaut est affiché selon la position) : la première à la durée de la Cible `NUMBER` courante, la seconde à `null` (à renseigner) ; si la durée vaut « — » ou si la Cible héritée est hors de 1..3535, la première est aussi `null` : aucune valeur inventée
+**And** `setWorkPhaseCount(n)` est la seule transition du stepper, bornée à 2..6 : n + 1 ajoute en fin une phase à la durée de la dernière (`null` si la dernière est `null`) ; à six phases l'ajout est refusé, aucune 7e phase n'est créée ; n − 1 retire la dernière phase par le même retrait annulable que la croix (AC3) ; à deux phases, le retrait est refusé (QR-1 validée par Hermann le 19/10)
+**And** toute transition qui laisse au moins deux phases (activation, ajout, retrait, annulation d'un retrait, réglage d'une durée) appelle `deriveSeriesDuration`, seul écrivain de D : `target` = `NUMBER(Σ)` si Σ ≥ 1, sinon `UNSET` ; une durée `null` compte pour 0
+**And** aucun calcul de la dernière phase sur le restant n'est appliqué en durée libre (réservé aux formats, non développés)
 **And** tant que des phases existent, la transition qui règle la Cible commune est sans effet.
 
 **AC3 — Déplacement, libellé, retrait et annulation (FR-4, FR-8, AD-25, AD-27).**
@@ -488,21 +490,22 @@ afin que chaque ligne de la Feuille ne fasse que dispatcher une transition déj�
 **When** Hermann déplace une phase, modifie un libellé, retire une phase puis annule
 **Then** le libellé suit l'`id` de sa phase lors du déplacement
 **And** le retrait passe par `pendingRemoval` étendu à `{ kind: "series" | "phase", … }` : une seule annulation en attente (série ou phase), un nouveau retrait remplace la précédente, toute autre transition du Brouillon la remet à `null` (Q29)
-**And** l'annulation restitue l'ordre, les libellés, les durées et D
-**And** le retrait de la **dernière** phase ramène la liste à « Aucune » sans appeler `deriveSeriesDuration` : `target` garde la dernière somme, qui devient la durée de série modifiable (D-371) ; une somme nulle laisse `UNSET` ; ce retrait reste annulable.
+**And** l'annulation restitue l'ordre, les libellés, les durées, D et le nombre de phases
+**And** (QR-1 validée par Hermann le 19/10) la croix d'une ligne est refusée à deux phases : le Brouillon ne descend pas sous deux phases par un retrait ; le retour à « Aucune » passe par Sans (AC4).
 
 **AC4 — Avec → Sans et retour à Avec (FR-8, décision du 19/10).**
 **Given** des phases 6 s, 3 s et 5 s
 **When** Hermann passe de Avec à Sans
 **Then** `workPhases = []`, la durée de série vaut 14 s, modifiable selon les règles existantes (FR-45), et tous les autres paramètres sont conservés
 **And** si aucune durée valide ne peut être déduite (phases toutes à 0 ou `null`), la durée de série reste à renseigner (`UNSET`) : aucune valeur n'est inventée
-**And** repasser à Avec crée une seule nouvelle phase initialisée avec la durée de série courante (AC2) ; les anciennes phases ne sont pas mémorisées.
+**And** repasser à Avec crée deux nouvelles phases, la première à la durée de série courante (14 s), la seconde à renseigner (AC2, D-432) ; les anciennes phases ne sont pas mémorisées.
 
 **AC5 — Normalisation et disponibilité du ✓ (FR-3, FR-9, AD-25).**
 **Given** la fonction pure unique `sheetDraftResult(draft, defaultLabel)`, qui applique dans cet ordre `normalizeWorkPhases`, `normalizeLoad`, puis `validateForSave`, et sert **à la fois** la disponibilité du ✓ et `commitSheetDraft`
 **When** la Feuille est validée
 **Then** les phases à 0 s ou `null` sont retirées sans message ni blocage ; un libellé vide (après suppression des espaces extérieurs) devient `defaultLabel(n)` (« Phase n », fourni depuis `strings` par l'appelant ; le domaine n'importe pas l'i18n) selon la position finale ; une liste vide ou entièrement nulle revient à « Aucune » ; une liste restée non vide rappelle `deriveSeriesDuration`
-**And** cas obligatoire : phases `[0, null]` → la liste revient à « Aucune » et la validation existante de la durée de série décide seule de la disponibilité du ✓ (les phases ne bloquent jamais ✓ par elles-mêmes)
+**And** cas obligatoire : phases `[0, null]` → la liste revient à « Aucune » et la validation existante de la durée de série décide seule de la disponibilité du ✓ (les phases ne bloquent jamais ✓ par elles-mêmes) ; aucune durée n'est inventée (QR-2 validée par Hermann le 19/10)
+**And** cas obligatoire (QR-2 validée par Hermann le 19/10) : phases `[9, null]` → une seule phase reste, l'Exercice passe à Sans avec une durée de série de 9 s (principe de D-371)
 **And** cas obligatoire : somme normalisée de 3 536 s → ✓ indisponible, comme une durée de série invalide
 **And** (QN-3 validée par Hermann le 19/10) le libellé par défaut est stocké après ✓ comme un libellé ordinaire : il ne se renumérote plus ensuite, même après un déplacement
 **And** ✕ abandonne le Brouillon : phases, charge, côtés et Condition d'arrêt reviennent à l'état d'ouverture.
@@ -546,8 +549,8 @@ afin que chaque ligne de la Feuille ne fasse que dispatcher une transition déj�
 ### Story 2.2 : Essai sur iPhone du champ clavier de la charge (NFR-6)
 
 En tant que Hermann,
-je veux essayer tôt sur mon iPhone la saisie de la charge au clavier décimal dans la Feuille, avec Précédent / Suivant, « Fermer » et le fond de la cellule active,
-afin que la saisie au clavier repose sur la primitive iOS qui fonctionne réellement dans la `Modal` de la Feuille avant d'être généralisée.
+je veux essayer tôt sur mon iPhone la saisie de la charge au clavier décimal dans la Feuille, avec les composants définitifs (`KeyboardField` final, barre Précédent / Suivant / « Fermer », fond de la cellule active),
+afin de vérifier que la primitive iOS fonctionne réellement dans la `Modal` de la Feuille avant la story Charge, sans rien construire qu'il faudrait refaire.
 
 **Exigences :** FR-23, FR-24, FR-25 (essai), FR-6 (composant seulement) ; NFR-1, NFR-2, NFR-5, NFR-6, NFR-7 ; Δ29, Δ49 ; NR Δ30 ; §9-8 ; audit PRE-4, action 4.
 **Architecture :** AD-26 (dont « Essai précoce »), AD-27 (surface `keyboard`, synchronisation focus / surface, absorption) ; hérités AD-7, AD-15.
@@ -561,7 +564,7 @@ afin que la saisie au clavier repose sur la primitive iOS qui fonctionne réelle
 **Given** le composant unique `KeyboardField` (`src/features/activities/`), sur `TextInput` de React Native
 **When** il est livré
 **Then** il gère un texte local pendant la frappe et appelle **une** transition du Brouillon à la sortie du champ (perte de focus, Précédent / Suivant, « Fermer ») — `setLoadValue` avec `parseLoadText` — sans arrondi pendant la frappe ; une sortie sans changement de valeur ne déclenche aucune transition (`pendingRemoval` préservé)
-**And** il accepte aussi le mode texte du libellé de phase (clavier texte, 20 au plus mesurés en points de code par `codePointLength`, jamais par le seul `maxLength`), utilisé en 2.8
+**And** il accepte aussi le mode texte du libellé de phase (clavier texte, 20 au plus mesurés en points de code par `codePointLength`, jamais par le seul `maxLength`, fermé par Retour, sans barre ni `InputAccessoryView`), utilisé en 2.8 ; ce mode ne dépend pas de l'issue de l'essai (AC6)
 **And** `sheetSurface.ts` reste le seul réducteur et reçoit la surface `{ kind: "keyboard", field: { kind: "load"; row: number | "uniform" } | { kind: "phaseLabel"; phase: number } }`, désignée par identité ; `onFocus` est la seule source d'ouverture ; `flushKeyboardField()`, synchrone, est appelée avant toute autre transition du Brouillon ou du réducteur (toucher d'une autre surface, ✓, ✕, glisser, retrait, segmenté) et par `onBlur` (sans effet si déjà fait) ; un flush sur une identité disparue est ignoré ; toute sortie de la surface `keyboard` appelle `blur()`
 **And** ✓ et ✕ de la Feuille sont absorbés pendant une surface `keyboard` (Q47 : premier appui = sortie du champ, valeur appliquée ; second appui = validation ou abandon) ; `sheetCommandsAbsorbed` l'inclut
 **And** aucune autre valeur ne passe au clavier (NR Δ30).
@@ -580,11 +583,12 @@ afin que la saisie au clavier repose sur la primitive iOS qui fonctionne réelle
 **Then** le corps défilant existant (`SheetMotionScrollView`) est le seul défilement, piloté en JavaScript : un espace bas égal à la hauteur du clavier (événements `Keyboard`) est ajouté au contenu ; après `keyboardDidShow` et à chaque Précédent / Suivant, un défilement calculé garde la ligne active, et autant que possible le tableau, au-dessus du clavier avec une marge de 12 ; la ligne active reste toujours visible
 **And** `automaticallyAdjustKeyboardInsets` n'est pas utilisé ; aucun nouveau `ScrollView`, aucun `KeyboardAvoidingView` dans la Feuille ; `DurationWheelPicker.test.tsx:371` et `NumberWheelPicker.test.tsx:260` restent intacts et verts (NFR-2).
 
-**AC4 — Raccordement provisoire pour l'essai.**
+**AC4 — Composants définitifs, sans interface provisoire (revue du 19/10).**
 **Given** la Feuille actuelle (avant les quatre cadres)
 **When** l'essai est monté
-**Then** `KeyboardField` est raccordé à la charge réelle du Brouillon (2.1) : une ligne Charge en séries identiques et une colonne Charge dans le tableau variable existant, activées par le `SegmentedControl` existant (variante actuelle), à la première activation 0,25 kg et focus sur le premier champ
-**And** cette présentation est provisoire : la ligne, la colonne et leur segmenté définitifs sont livrés par 2.7 ; seuls `KeyboardField`, la barre, la surface `keyboard`, le hook de synchronisation et le défilement sont conservés comme base.
+**Then** il porte sur les composants définitifs ou directement réutilisables : `KeyboardField` final, barre Précédent / Suivant / « Fermer », `InputAccessoryView` par champ, fond de la cellule active, surface `keyboard`, hook de synchronisation et défilement ; ils sont raccordés à la charge réelle du Brouillon (2.1)
+**And** les champs sont posés à leur place définitive : la ligne Charge après la Pause en séries identiques, la colonne Charge du tableau variable existant, activées par le `SegmentedControl` existant ; à la première activation 0,25 kg et focus sur le premier champ
+**And** rien de ce qui est livré n'est à reconstruire : 2.7 conserve ces composants tels quels et se limite à passer le segmenté en variante `inline`, à afficher `formatLoadKg` dans le segment et à placer la ligne dans les cadres (2.4) ; aucune ligne, colonne ni segmenté jetable n'est créé.
 
 **AC5 — Constats sur iPhone (NFR-6, NFR-5).**
 **Given** le dev client existant sur l'iPhone de Hermann, chargé par `npx expo start` depuis ce clone (jamais Expo Go), commit et état de l'arbre consignés
@@ -595,7 +599,8 @@ afin que la saisie au clavier repose sur la primitive iOS qui fonctionne réelle
 **AC6 — Décision consignée, sans réimplémentation (AD-26).**
 **Given** les constats d'AC5
 **When** l'agent clôt la story
-**Then** il consigne l'une des issues : **succès** — la base est conservée pour 2.7 et 2.8 ; **repli** — l'accessoire ne s'affiche pas dans la `Modal` (ou un autre constat bloque) : l'écart est signalé à Hermann, aucune barre n'est réimplémentée sans sa décision, et 2.7 et 2.8 restent bloquées jusqu'à son arbitrage
+**Then** il consigne l'une des issues : **succès** — les composants sont conservés pour 2.7 ; **repli** — l'accessoire ne s'affiche pas dans la `Modal` (ou un autre constat propre au clavier décimal bloque) : l'écart est signalé à Hermann, aucune barre n'est réimplémentée sans sa décision, et seule la saisie de la charge (2.7) attend son arbitrage
+**And** un problème du seul clavier décimal ne bloque aucune fonction indépendante : la saisie textuelle des libellés de phases et le reste de 2.8 avancent quelle que soit l'issue
 **And** l'application reste verte et utilisable quel que soit le résultat.
 
 **AC7 — Tests et contrôles.**
@@ -633,7 +638,8 @@ afin que les lignes de la Feuille réutilisent le composant déjà accepté au l
 **AC2 — Chevron intérieur, police réduite, lecture seule (AD-24, FR-28, FR-17, FR-20).**
 **Given** les props optionnelles `chevron?: "up" | "down"` (par option), `compact?: boolean`, `readOnly?: boolean`
 **When** elles sont passées
-**Then** le chevron est rendu à l'intérieur de l'option, centré avec le libellé, vers le haut ou vers le bas ; `compact` réduit la police sans changer automatiquement la géométrie ; `readOnly` rend un contrôle non interactif, annoncé comme une information non modifiable
+**Then** le chevron est rendu à l'intérieur de l'option, centré avec le libellé, vers le haut ou vers le bas ; c'est un chevron graphique, l'icône existante `control-chevron-up` / `control-chevron-down` de `KodjoIcon` (celle de `DisclosureControl`), jamais une flèche ni un caractère Unicode ; son appui (`onChevronPress`) est distinct de la sélection de l'option ; `compact` réduit la police, seulement si nécessaire, sans changer automatiquement la géométrie ; `readOnly` rend un contrôle non interactif, annoncé comme une information non modifiable
+**And** la prop optionnelle `selectedContent` d'une option remplace son libellé quand elle est sélectionnée (utilisée en 2.8 pour « n phases », le stepper révélé et le chevron) ; aucun composant de stepper nouveau
 **And** `disabled` par option (existant) garde la valeur affichée et expose l'état indisponible (RM-247)
 **And** sans ces props, le rendu des autres variantes est identique.
 
@@ -641,7 +647,8 @@ afin que les lignes de la Feuille réutilisent le composant déjà accepté au l
 **Given** la vérification QP5-06 déjà faite par AD-24 (`@expo/ui` 57.0.13 : aucune API documentée pour une option désactivée, un chevron intérieur ou une police par option)
 **When** la story est livrée
 **Then** aucun second composant segmenté n'est créé, aucun segmenté natif n'est adopté, aucune abstraction nouvelle n'est ajoutée ; `tokens.ts` est inchangé (`tokensSpecification.test.ts` vert)
-**And** les tests de `SegmentedControl` couvrent `inline`, `chevron`, `compact`, `readOnly` et une option indisponible (rôle et état accessibles)
+**And** les tests de `SegmentedControl` couvrent `inline`, `chevron` (icône graphique, appui distinct), `compact`, `readOnly`, `selectedContent` et une option indisponible (rôle et état accessibles)
+**And** rien ne remplace le `SegmentedControl` existant par un segmenté natif (QP5-06) : seule la variante `inline` est ajoutée
 **And** Contrôles : `npm test`, `npx tsc --noEmit`, `npm run lint` verts.
 
 **Recette iPhone (lot Feuille) :** vue au travers des lignes de 2.4, 2.5, 2.7, 2.8.
@@ -722,9 +729,10 @@ afin de voir d'un coup d'œil si l'Exercice s'arrête à la cible ou à l'échec
 **When** la story est livrée
 **Then** les clés nouvelles sont ajoutées (Condition d'arrêt, À l'échec, À la cible, « À la cible et à l'échec », Type de série, Identiques, Variables) et les clés devenues orphelines par cette story (popover du Mode, Régime) sont retirées ; les identifiants techniques sont inchangés (D-201) ; aucun libellé « Cible », « Définie » ou « Ordre » n'est réintroduit
 **And** Nombre de séries et Pause gardent valeur au repos et ± à l'appui, ✓ / ✕ en deux temps et fond rouge pâle si manquante (Q35, Q37, Q41, Q46, Q47) : leurs tests passent
+**And** (NR Δ38, impératif) le stepper « Nombre de séries » de PRE-4 est conservé à l'identique dans le cadre Séries : présentation, interactions, révélation et fermeture, pas, accessibilité ; le tableau des séries variables suit N ; il n'est remplacé ni par une roulette ni par le clavier ; seule son intégration visuelle dans le cadre s'adapte ; ses tests existants passent sans être affaiblis
 **And** Contrôles : `npm test`, `npx tsc --noEmit`, `npm run lint` verts.
 
-**Recette iPhone (lot Feuille) :** `R-2.4-01` quatre cadres et espacements ; `R-2.4-02` Condition d'arrêt identiques, aller-retour avec restauration de la valeur, en Durée puis en Répétitions ; `R-2.4-03` résultat dérivé en variables : homogène cible, homogène échec, mixte, retour à homogène, cellules vides ; `R-2.4-04` roues en identiques sans « À l'échec », cellule variable avec l'option en tête ; `R-2.4-05` Type de série avec chevron, repli sans perte ; `R-2.4-06` panneaux ancrés à leur ligne dans chaque cadre, après défilement ; `R-2.4-07` VoiceOver sur le résultat dérivé.
+**Recette iPhone (lot Feuille) :** `R-2.4-08` Nombre de séries : stepper identique à PRE-4 (valeur au repos, ± révélés au toucher, fermeture, pas, VoiceOver), tableau variable qui suit N ; `R-2.4-01` quatre cadres et espacements ; `R-2.4-02` Condition d'arrêt identiques, aller-retour avec restauration de la valeur, en Durée puis en Répétitions ; `R-2.4-03` résultat dérivé en variables : homogène cible, homogène échec, mixte, retour à homogène, cellules vides ; `R-2.4-04` roues en identiques sans « À l'échec », cellule variable avec l'option en tête ; `R-2.4-05` Type de série avec chevron, repli sans perte ; `R-2.4-06` panneaux ancrés à leur ligne dans chaque cadre, après défilement ; `R-2.4-07` VoiceOver sur le résultat dérivé.
 **Hors story :** Côtés, Cadence, Durée de l'exercice (2.5) ; cellules du tableau (2.6) ; Charge (2.7) ; Phases (2.8).
 
 ---
@@ -755,9 +763,11 @@ afin de régler les cadres Côtés et Cadence et durée sans désignation anatom
 **AC2 — Enchainement (FR-17, QP5-07, R-04, R-07).**
 **Given** le Changement de côté à Avec
 **When** N > 1
-**Then** la ligne « Enchainement » s'affiche dans le cadre Côtés : segmenté `inline` `compact`, à la largeur Figma, options « Un côté après l'autre » et « Les deux côtés à chaque série », centrées, sans troncature, sans sous-titre D/G ni notation C1S1 ; le panneau de l'Ordre et la surface `popover(order)` sont retirés
+**Then** la ligne « Enchainement » s'affiche dans le cadre Côtés : segmenté `inline`, disposition Figma conservée ; options = notations graphiques exactes de la frame `8328:38193`, dans cet ordre : `(D1 → D2) ➜ (G1 → G2)` (`BY_SIDE`) puis `(D1 → G1) ➜ (D2 → G2)` (`BY_SERIES`) (D-431, QP5-07 révisée) ; pas de notation C1S1 ; le panneau de l'Ordre et la surface `popover(order)` sont retirés
+**And** ces notations réutilisent `sideOrderSubtitles` (`src/shared/i18n/index.ts:84`), flèche centrale `→` alignée sur `➜` ; les libellés longs « Un côté après l'autre » / « Les deux côtés à chaque série » ne sont plus affichés dans le contrôle, ils restent le nom accessible de chaque option (annonces neutres, D-407)
+**And** la Phrase, la Composition et l'exécution restent neutres (« côté 1 / côté 2 ») : les notations sont graphiques et propres au contrôle
 **And** à N = 1, la ligne est masquée et l'Enchainement demandé est conservé dans le Brouillon ; (QN-4 validée par Hermann le 19/10) à l'enregistrement, `BY_SIDE` est écrit à N = 1 (comportement existant, NR Δ24, tests Q38 inchangés)
-**And** la taille exacte de la police est réglée sur l'appareil, sans changement automatique de géométrie ; la frame `8328:38193` (encore en D1/G1) ne bloque pas (UX-DR6).
+**And** la police n'est réduite (`compact`) que si les notations ne tiennent pas ; sa taille exacte est réglée sur l'appareil, sans changement automatique de géométrie (UX-DR6).
 
 **AC3 — Cadence (FR-30, AD-24, R-11, §9-7).**
 **Given** le cadre Cadence et durée
@@ -777,16 +787,17 @@ afin de régler les cadres Côtés et Cadence et durée sans désignation anatom
 **AC5 — Lexique (FR-44, AD-32).**
 **Given** `src/shared/i18n/`
 **When** la story est livrée
-**Then** les clés Changement de côté, Avec, Sans, Enchainement et ses deux options, Cadence et ses options, Durée de l'exercice sont ajoutées
-**And** les clés orphelines sont retirées : « Ordre des côtés », sous-titres « (D1 → D2) → (G1 → G2) », libellés anatomiques de `sideModes`, « Bip de cadence », « Durée totale » de la Feuille (la « Durée totale » de la Phrase reste, Q-V3-13) ; `index.test.ts` est adapté ; `SideOrder`, `sideMode` et `target` ne sont pas renommés.
+**Then** les clés Changement de côté, Avec, Sans, Enchainement, Cadence et ses options, Durée de l'exercice sont ajoutées ; `sideOrderSubtitles` devient le texte des options d'Enchainement (flèche centrale `➜`) et `sideOrders` leur nom accessible
+**And** les clés orphelines sont retirées : le libellé « Ordre des côtés » (remplacé par « Enchainement »), les libellés anatomiques de `sideModes` et `sideModeOptions`, « Bip de cadence », « Durée totale » de la Feuille (la « Durée totale » de la Phrase reste, Q-V3-13) ; `index.test.ts` est adapté ; `SideOrder`, `sideMode` et `target` ne sont pas renommés.
 
 **AC6 — Non-régression et contrôles (NR Δ38).**
-**Given** Pause entre les côtés, Compte à rebours et Fin
+**Given** Pause entre les côtés, Compte à rebours, Fin et Nombre de séries
 **When** Hermann les règle
 **Then** ils gardent valeur au repos et ± à l'appui, ✓ / ✕ en deux temps, fond rouge pâle si manquante (Q35, Q37, Q41, Q46, Q47)
+**And** (NR Δ38, impératif) le stepper « Nombre de séries » de PRE-4 reste identique (présentation, interactions, révélation et fermeture, pas, accessibilité) ; l'Enchainement, masqué ou affiché selon N, ne modifie pas ce stepper ; aucune roulette ni clavier ne le remplace
 **And** Contrôles : `npm test`, `npx tsc --noEmit`, `npm run lint` verts.
 
-**Recette iPhone (lot Feuille) :** `R-2.5-01` Avec / Sans, lignes masquées puis réaffichées avec leurs valeurs ; `R-2.5-02` Exercice historique `LEFT_RIGHT` affiché Avec, enregistré sans changement ; `R-2.5-03` Enchainement : libellés entiers et centrés, police à régler sur l'appareil, masqué à N = 1 ; `R-2.5-04` Cadence 0, 1, 2, 5 et 7 (Autre), Sans puis Autre ; `R-2.5-05` Durée de l'exercice repliée puis déployée, valeur inchangée, Exercice ouvert depuis une Séance.
+**Recette iPhone (lot Feuille) :** `R-2.5-01` Avec / Sans, lignes masquées puis réaffichées avec leurs valeurs ; `R-2.5-02` Exercice historique `LEFT_RIGHT` affiché Avec, enregistré sans changement ; `R-2.5-03` Enchainement : les deux notations Figma exactes, dans l'ordre, entières, police réduite seulement si nécessaire, VoiceOver annonçant les libellés neutres, masqué à N = 1 (Nombre de séries passé de 2 à 1 par son stepper inchangé) ; `R-2.5-04` Cadence 0, 1, 2, 5 et 7 (Autre), Sans puis Autre ; `R-2.5-05` Durée de l'exercice repliée puis déployée, valeur inchangée, Exercice ouvert depuis une Séance.
 **Hors story :** indicateur de côté de la Composition et Phrase (1.2).
 
 ---
@@ -833,9 +844,10 @@ afin de régler une série sans les ± permanents et de préparer le tableau des
 **Given** les roues et steppers
 **When** la story est livrée
 **Then** aucune valeur ne passe au clavier ; Nombre de séries et Pause commune gardent leurs steppers révélés (C-5) ; `DurationWheelPicker.test.tsx:371-379` et `NumberWheelPicker.test.tsx:260` sont intacts et verts
+**And** (NR Δ38, impératif) le stepper « Nombre de séries » de PRE-4 est conservé à l'identique (présentation, interactions, révélation et fermeture, pas, accessibilité) et le tableau des séries, désormais sans ± de cellule, suit N : une série ajoutée ou retirée par ce stepper apparaît ou disparaît dans le tableau, avec ses réserves (Q29)
 **And** Contrôles : `npm test`, `npx tsc --noEmit`, `npm run lint` verts.
 
-**Recette iPhone :** `R-2.6-01` (précoce, AC1) cible tactile de 36 ; `R-2.6-02` (lot Feuille) cellule Cible → roue sous la ligne, cellule Pause → ± de la seule cellule, glisser, croix et annulation.
+**Recette iPhone :** `R-2.6-01` (précoce, AC1) cible tactile de 36 ; `R-2.6-02` (lot Feuille) cellule Cible → roue sous la ligne, cellule Pause → ± de la seule cellule, glisser, croix et annulation ; `R-2.6-03` (lot Feuille) Nombre de séries réglé par son stepper PRE-4 inchangé, le tableau suit N (ajout, retrait, retour).
 **Hors story :** colonne Charge (2.7) ; tableau des phases (2.8).
 
 ---
@@ -857,7 +869,7 @@ afin de garder la trace des kilos sans fenêtre intermédiaire et sans effet sur
 **AC1 — Ligne Charge en séries identiques (FR-12, AD-28).**
 **Given** des séries identiques
 **When** la Feuille s'affiche
-**Then** la ligne « Charge » (segmenté `inline` Avec / Sans, Sans par défaut) suit la Pause dans le cadre Séries ; la présentation provisoire de 2.2 est retirée
+**Then** la ligne « Charge » (segmenté `inline` Avec / Sans, Sans par défaut) suit la Pause dans le cadre Séries ; les composants posés par 2.2 (`KeyboardField`, barre, surface, hook, défilement) sont conservés tels quels, seul le segmenté passe en variante `inline`
 **And** Avec ouvre directement la saisie, sans écran intermédiaire : à la première activation la valeur commune vaut 0,25 kg et le focus va au champ commun ; une fois saisie, la valeur remplace Avec dans le segment (`formatLoadKg`, « 20 kg ») et reste éditable : toucher ce segment donne le focus au `KeyboardField` rendu dans la même ligne
 **And** la ligne reste disponible quand À l'échec masque la ligne Durée ou Répétitions (FR-21, Δ48).
 
@@ -894,7 +906,7 @@ afin de garder la trace des kilos sans fenêtre intermédiaire et sans effet sur
 **AC6 — Lexique et contrôles (FR-44).**
 **Given** `src/shared/i18n/`
 **When** la story est livrée
-**Then** les clés Charge, kg, Avec / Sans de la charge et le titre de colonne sont ajoutées (Précédent, Suivant et « Fermer » le sont depuis 2.2) ; les clés provisoires de 2.2 devenues orphelines sont retirées
+**Then** les clés Charge, kg, Avec / Sans de la charge et le titre de colonne sont ajoutées (Précédent, Suivant et « Fermer » le sont depuis 2.2) ; aucune clé de 2.2 n'est à retirer, puisque 2.2 ne livre que des composants définitifs
 **And** Contrôles : `npm test`, `npx tsc --noEmit`, `npm run lint` verts.
 
 **Recette iPhone (lot Feuille) :** `R-2.7-01` identiques : Avec → 0,25 kg et clavier, saisie 1,3 → « 1,5 kg », 0 → Sans ; `R-2.7-02` variables : colonne, Précédent / Suivant, fond actif, « Fermer », ligne active visible ; `R-2.7-03` [0 ; 0 ; 0] → Sans puis réactivation à 0,25 partout ; `R-2.7-04` déplacement d'une série avec sa charge ; `R-2.7-05` Répétitions × Identiques, Répétitions × Variables, À l'échec avec charge ; `R-2.7-06` Sans conserve les valeurs après enregistrement et réouverture ; `R-2.7-07` Phrase de la Carte avec charge (1.2).
@@ -908,39 +920,51 @@ En tant que Hermann,
 je veux décomposer une série en actions chronométrées (par exemple 6 s de descente puis 3 s de maintien), dans un tableau de phases au patron du tableau des séries,
 afin que la durée de série soit la somme de ces actions, sans conversion destructive des autres paramètres.
 
-**Exigences :** FR-1 à FR-9, FR-27 (Phases), FR-28 (Avec des phases), FR-29 (tableau des phases), FR-32 (six phases), FR-44 (Phases), FR-45 (roue de phase) ; NFR-1, NFR-2, NFR-5, NFR-7 ; Δ08 à Δ14, Δ40, Δ50 ; NR Δ30, Δ47 ; QP5-03, QP5-04.
-**Architecture :** AD-20, AD-25, AD-26 (libellé), AD-27 (`keyboard(phaseLabel)`, `selector(phaseDuration)`, `WorkPhasesTable`), AD-28, AD-31.
-**Dépend de :** 2.1, 2.2 (issue « succès »), 2.3, 2.4, 2.6.
+**Exigences :** FR-1 à FR-9, FR-27 (Phases), FR-28 (Avec des phases), FR-29 (tableau des phases), FR-32 (six phases), FR-44 (Phases), FR-45 (roue de phase) ; NFR-1, NFR-2, NFR-5, NFR-7 ; Δ08 à Δ14, Δ40, Δ50 ; NR Δ30, Δ47 ; QP5-03, QP5-04 ; D-432.
+**Architecture :** AD-20, AD-24 (`selectedContent`, chevron graphique), AD-25, AD-26 (libellé, mode texte), AD-27 (`keyboard(phaseLabel)`, `selector(phaseDuration)`, `stepper(phaseCount)`, `WorkPhasesTable`), AD-28, AD-31 ; hérité AD-16 (`InlineStepper`).
+**Dépend de :** 2.1, 2.2 (composant `KeyboardField` livré ; l'issue de l'essai du clavier décimal ne bloque pas cette story), 2.3, 2.4, 2.6.
 **Taille :** L.
 **UX :** UX-DR3, UX-DR4.
-**Questions :** QN-3.
+**Questions :** QN-3 (décidée) ; QR-1, QR-2 (validées par Hermann le 19/10, défauts proposés retenus).
 
 **Critères d'acceptation :**
 
 **AC1 — Ligne « Phases de l'exercice » (FR-2, FR-4, FR-28).**
 **Given** le cadre Séries
 **When** la Feuille s'affiche
-**Then** la ligne « Phases de l'exercice » (segmenté `inline` Avec / Sans) est en tête du cadre Séries ; l'option Avec porte le chevron intérieur (haut déployé, bas replié ; replier conserve les phases)
+**Then** la ligne « Phases de l'exercice » (segmenté `inline` Avec / Sans, Sans par défaut et sans phase) est en tête du cadre Séries
 **And** Avec n'est disponible que si `canEnableWorkPhases` est vrai (Mode Durée, À la cible, séries identiques effectives) ; sinon il est indisponible et la valeur réelle est affichée
-**And** avec des phases, Répétitions, À l'échec et Variables sont indisponibles et gardent leur valeur réelle (RM-247) ; pour changer d'option, Hermann supprime d'abord les phases.
+**And** avec des phases, Répétitions, À l'échec et Variables sont indisponibles et gardent leur valeur réelle (RM-247) ; pour changer d'option, Hermann repasse d'abord à Sans.
 
-**AC2 — Création et ajout (FR-5, UX-DR4).**
+**AC2 — Segment Avec : nombre de phases, stepper et chevron (FR-4, FR-28, D-432, UX-DR4).**
+**Given** des phases
+**When** le segment Avec s'affiche
+**Then** il porte, par `selectedContent` (2.3), la valeur « n phases » (par exemple « 3 phases ») et, à droite du nombre, le chevron graphique existant (`control-chevron-up` / `control-chevron-down`), jamais une flèche ni un caractère
+**And** toucher la valeur révèle le stepper existant (`RevealStepper` / `InlineStepper`, surface `stepper(phaseCount)`), de 2 à 6, pas 1 : actif, − et + sont visibles ; inactif, − et + disparaissent et seuls la valeur et le chevron restent visibles ; la fermeture suit le mécanisme existant (une seule surface ouverte)
+**And** le chevron pointe vers le haut quand le tableau est déployé, vers le bas quand il est replié ; il reste visible quand − et + sont masqués ; son appui replie ou déploie le tableau sans changer le nombre ni les phases
+**And** aucun nouveau composant n'est créé ; le rendu suit la frame `9207:18817` vérifiée (segment « Avec ^ »), la forme « n phases » venant de D-432.
+
+**AC3 — Création, ajout et retrait par le stepper (FR-5, FR-8, D-432).**
 **Given** une Durée d'une série de 9 s et aucune phase
 **When** Hermann passe à Avec
-**Then** « Phase 1 » est créée avec 9 s ; si la durée vaut « — », « Phase 1 » est créée avec une durée à renseigner sur fond rouge pâle `#FFF1F0`, sans durée inventée
-**And** le contrôle d'ajout suit la frame `9207:18817` si son relevé (S-2) l'établit ; à défaut, c'est une ligne d'ajout en fin de tableau ; une phase ajoutée reprend la durée de la dernière ; à six phases l'ajout est indisponible et aucune 7e ligne n'est créée.
+**Then** **deux** phases sont créées : la première à 9 s, la seconde à renseigner sur fond rouge pâle `#FFF1F0` ; le segment affiche « 2 phases » ; si la durée vaut « — », les deux phases sont à renseigner, sans durée inventée ; toutes les durées restent modifiables et D est la somme
+**And** + ajoute une phase en fin de tableau, à la durée de la dernière ; à six phases, + est indisponible et aucune 7e ligne n'est créée
+**And** − retire la dernière phase avec le message d'annulation existant (« … supprimée — Annuler ») ; à deux phases, − est indisponible (QR-1 validée par Hermann le 19/10)
+**And** il n'existe ni ligne « Ajouter une phase », ni ± propres au tableau.
 
-**AC3 — Tableau des phases (FR-4, FR-29, AD-27).**
+**AC3b — Tableau des phases (FR-4, FR-29, AD-27).**
 **Given** des phases
 **When** le tableau s'affiche
-**Then** `WorkPhasesTable` (composant distinct, construit sur les briques partagées de 2.6, sans copie) présente les colonnes Libellé / Durée, avec déplacement, numéro, suppression avec annulation, ligne active ; ni pied, ni ± ; fond blanc, lignes de 36, aucun séparateur après le tableau, un espace d'une hauteur de ligne sous la dernière ligne (PR-02, UX-DR3)
+**Then** `WorkPhasesTable` (composant distinct, construit sur les briques partagées de 2.6, sans copie) présente autant de lignes que le nombre configuré ; chaque ligne porte une poignée de déplacement, un numéro, un libellé, une durée et une croix ✕ avec annulation ; la ligne active est signalée ; ni pied, ni ± ; fond blanc, lignes de 36, aucun séparateur après le tableau, un espace d'une hauteur de ligne sous la dernière ligne (PR-02, UX-DR3)
+**And** (QR-1 validée par Hermann le 19/10) la croix ✕ est disponible au-dessus de deux phases et indisponible à deux (état indisponible exposé, RM-247) ; le retrait se fait alors par Sans
 **And** les gestes et les alternatives accessibles du tableau des séries sont réutilisés (CE-UI-10 §13) ; lors d'un déplacement, chaque libellé reste attaché à sa phase
 **And** le message d'annulation existant (« … supprimée — Annuler ») sert aux deux tableaux ; une seule annulation est en attente (série ou phase).
 
 **AC4 — Libellé au clavier texte (FR-6, AD-26).**
 **Given** une cellule Libellé
 **When** Hermann la touche
-**Then** le libellé se saisit directement dans la cellule, au clavier texte, par `KeyboardField` (surface `keyboard(phaseLabel)`), limité à 20 caractères comptés en points de code ; le champ se ferme par la touche Retour, sans barre
+**Then** le libellé se saisit directement dans la cellule, au clavier texte, par `KeyboardField` en mode texte (surface `keyboard(phaseLabel)`), limité à 20 caractères comptés en points de code ; le champ se ferme par la touche Retour, sans barre ni `InputAccessoryView`
+**And** cette saisie ne dépend pas de l'issue de l'essai du clavier décimal (2.2 AC6) : elle est livrée même en cas de repli de cet essai
 **And** une cellule vide affiche le libellé par défaut « Phase n » selon la position ; le clavier ne masque ni le champ édité, ni les actions de la Feuille (✓ absorbé au premier appui, Q47).
 
 **AC5 — Durée de phase à la roue (FR-7, FR-45, AD-31).**
@@ -958,9 +982,10 @@ afin que la durée de série soit la somme de ces actions, sans conversion destr
 **AC7 — Suppression, Avec → Sans, ✓ et ✕ (FR-8, FR-9).**
 **Given** des phases
 **When** Hermann supprime une phase, supprime la dernière, passe à Sans, valide ou annule
-**Then** supprimer une phase retire sa contribution à D ; supprimer la dernière ramène « Aucune » et sa durée devient la durée de série modifiable ; l'annulation restitue ordre, libellés, durées et D
-**And** Avec → Sans avec 6 s + 3 s + 5 s donne une durée de série de 14 s, modifiable, autres paramètres conservés ; repasser à Avec crée une seule phase à la durée courante
+**Then** supprimer une phase (croix, ou − pour la dernière) retire sa contribution à D et décrémente le nombre affiché ; l'annulation restitue ordre, libellés, durées, D et nombre
+**And** Avec → Sans avec 6 s + 3 s + 5 s donne une durée de série de 14 s, modifiable, autres paramètres conservés ; repasser à Avec crée deux phases, la première à 14 s, la seconde à renseigner (D-432)
 **And** au ✓ : phases à 0 s ou à renseigner retirées sans message ; libellés vides → « Phase n » selon la position finale ; liste vide → « Aucune » ; somme normalisée > 3 535 s → ✓ indisponible ; (QN-3 validée par Hermann le 19/10) le libellé par défaut est ensuite stocké comme un libellé ordinaire et ne se renumérote plus
+**And** (QR-2 validée par Hermann le 19/10) une seule phase restante après normalisation → Sans, sa durée devient la durée de série (9 s pour `[9, à renseigner]`) ; aucune → Sans sans durée inventée, la validation existante s'applique
 **And** ✕ restaure la configuration d'ouverture, phases comprises.
 
 **AC8 — Six phases et défilement (FR-32).**
@@ -976,10 +1001,10 @@ afin que la durée de série soit la somme de ces actions, sans conversion destr
 **AC10 — Lexique et contrôles (FR-44).**
 **Given** `src/shared/i18n/`
 **When** la story est livrée
-**Then** les clés Phases de l'exercice, Libellé, Durée, « Phase n », le contrôle d'ajout et le message de retrait d'une phase sont ajoutés
+**Then** les clés Phases de l'exercice, « n phases » (accord au pluriel), Libellé, Durée, « Phase n », les noms accessibles du stepper et du chevron, et le message de retrait d'une phase sont ajoutés
 **And** Contrôles : `npm test`, `npx tsc --noEmit`, `npm run lint` verts.
 
-**Recette iPhone (lot Feuille) :** `R-2.8-01` Avec depuis 9 s → « Phase 1 » 9 s ; depuis « — » → durée à renseigner ; `R-2.8-02` ajout jusqu'à six, ajout indisponible ; `R-2.8-03` libellé au clavier texte, 20 caractères, champ visible ; `R-2.8-04` roue de durée de phase à 00:01 ; `R-2.8-05` déplacement avec libellé attaché, suppression et annulation ; `R-2.8-06` Avec → Sans (14 s), retour à Avec ; `R-2.8-07` ✓ avec une phase à 0 et un libellé vide ; ✕ ; `R-2.8-08` options Répétitions, À l'échec, Variables indisponibles avec phases ; `R-2.8-09` six phases, défilement ; `R-2.8-10` Phrase de la Carte avec phases.
+**Recette iPhone (lot Feuille) :** `R-2.8-01` Avec depuis 9 s → « 2 phases », 9 s et une durée à renseigner ; depuis « — » → deux durées à renseigner ; `R-2.8-02` stepper révélé au toucher, + jusqu'à six (+ indisponible), − jusqu'à deux (− et croix indisponibles, QR-1), − et + masqués à la fermeture, valeur et chevron visibles ; chevron graphique : repli et déploiement sans changer le nombre ; `R-2.8-11` ✓ avec `[9, à renseigner]` → Sans à 9 s (QR-2) ; `R-2.8-03` libellé au clavier texte, 20 caractères, champ visible ; `R-2.8-04` roue de durée de phase à 00:01 ; `R-2.8-05` déplacement avec libellé attaché, suppression et annulation ; `R-2.8-06` Avec → Sans (14 s), retour à Avec ; `R-2.8-07` ✓ avec une phase à 0 et un libellé vide ; ✕ ; `R-2.8-08` options Répétitions, À l'échec, Variables indisponibles avec phases ; `R-2.8-09` six phases, défilement ; `R-2.8-10` Phrase de la Carte avec phases.
 **Hors story :** phases dans les formats, moteur d'exécution, annonces (PRD §8).
 
 ---
@@ -1001,7 +1026,7 @@ afin de décrire un Exercice pas à pas, lisiblement, sans gérer moi-même la n
 **Dépend de :** 1.1.
 **Taille :** M.
 **UX :** UX-DR8.
-**Questions :** QN-1.
+**Questions :** aucune en attente (QN-1 décidée).
 
 **Critères d'acceptation :**
 
@@ -1026,7 +1051,7 @@ afin de décrire un Exercice pas à pas, lisiblement, sans gérer moi-même la n
 **When** Hermann tape ou colle un texte qui la ferait dépasser
 **Then** la saisie est refusée en entier, sans troncature, et aucune étape existante n'est modifiée
 **And** la mesure est la seule fonction `instructionStepsLength` du codec, en points de code, partagée par l'Éditeur et la validation ; le `maxLength` du `TextInput` n'est pas utilisé pour compter
-**And** (QN-1 validée par Hermann le 19/10) la limite porte sur la chaîne encodée, séparateurs compris (au plus n − 1 caractères de moins que la lecture « textes seuls » du PRD), sans migration ; si Hermann retient la lecture du PRD, seule la fonction de comptage change et une `migration011` relâchant le CHECK devient nécessaire (hors de cette story tant que QN-1 n'est pas tranchée).
+**And** (QN-1 validée par Hermann le 19/10) la limite porte sur la chaîne encodée, séparateurs compris, sans migration ; les sauts de ligne de séparation ne sont pas de la numérotation générée, la règle « ensemble des textes, hors numérotation générée » est donc respectée.
 
 **AC4 — Terminer, enregistrement et détection de modification (FR-34, AD-22).**
 **Given** une liste avec des étapes vides intercalées
@@ -1100,29 +1125,31 @@ afin que l'Éditeur soit fini, lisible et conforme aux références.
 
 ---
 
-## Questions en attente et points signalés
+## Questions et points signalés
 
 | ID | Question | Défaut écrit dans les critères | Critères marqués |
 |---|---|---|---|
-| QN-1 (validée le 19/10) | Limite de 1 000 caractères des étapes : chaîne encodée (CHECK actuel) ou textes seuls (FR-34) ? | Comptée sur la chaîne encodée, séparateurs compris, sans migration. | 1.1 AC9 ; 3.1 AC3 |
+| QN-1 (validée le 19/10, non bloquante) | Limite de 1 000 caractères des étapes. | Comptée sur la chaîne encodée, séparateurs compris, sans migration ; les séparateurs ne sont pas de la numérotation générée. | 1.1 AC9 ; 3.1 AC3 |
 | QN-2 (validée le 19/10) | Résultat dérivé AR-01 avec cellules vides en séries variables. | Cellules vides non comptées ; sans aucune cellule renseignée, aucun résultat et « — ». | 1.1 AC8 ; 2.4 AC5 |
 | QN-3 (validée le 19/10) | Libellé par défaut « Phase n » après ✓. | Stocké comme un libellé ordinaire, ne se renumérote plus. | 2.1 AC5 ; 2.8 AC7 |
 | QN-4 (validée le 19/10) | Pause entre les côtés et Enchainement « conservés » (FR-15, FR-17) face à l'existant. | Existant conservé : copie de la Pause du Profil à chaque passage à Avec (P3-10), `BY_SIDE` enregistré à N = 1 (NR Δ24). | 2.1 AC8 ; 2.5 AC1, AC2 |
+| QR-1 (validée par Hermann le 19/10) | Contrôle des phases à partir de 2 (D-432) face à la phase unique admise par la spécification et à la suppression de la dernière (§2.1, §2.3, D-371). | Croix ✕ disponible au-dessus de 2 phases, indisponible à 2 (retrait par Sans) ; − retire la dernière avec la même annulation ; + ajoute à la durée de la dernière. | 2.1 AC2, AC3 ; 2.8 AC3, AC3b |
+| QR-2 (validée par Hermann le 19/10) | Normalisation au ✓ laissant moins de 2 phases. | Une phase restante → Sans, sa durée devient la durée de série (D-371) ; aucune → Sans, sans durée inventée, validation existante. | 2.1 AC5 ; 2.8 AC7 |
 | QN-5 (close : D-414, ch. 10 l. 369 « Aucune autre règle de compaction ») | Phrase, séries variables à charges toutes égales : liste (`(charges : 20, 20, 20 kg)`) ou forme commune (`(charge : 20 kg)`) ? AD-29 rend le cas obligatoire au corpus sans fixer son texte. | Liste des valeurs des séries, dans leur ordre (FR-42 : « les valeurs sont celles des séries »). | 1.2 AC1, AC5 |
 
 **QN-2 et AD-23 alignés le 19/10** : AD-23 suit la décision de Hermann (cellules vides non comptées ; `NONE` et « — » sans ligne renseignée).
 
-**Points à traiter dans les stories, sans question nouvelle.** §9-1 (écarts Figma exigeant un jeton, un composant ou une marge contraire à D-327) : soumis à Hermann écart par écart en 3.2. Contrôle d'ajout d'une phase (`9207:18817`, `NON VÉRIFIABLE`) : relevé en 2.8, défaut décidé (QP5-04 (b)). Taille de police de l'Enchainement : réglée sur appareil en 2.5. Cible tactile de 36 : constat sur iPhone en 2.6 AC1, arbitrage de Hermann en cas d'insuffisance. Issue de l'essai clavier (2.2) : repli soumis à Hermann.
+**Points à traiter dans les stories, sans question nouvelle.** §9-1 (écarts Figma exigeant un jeton, un composant ou une marge contraire à D-327) : soumis à Hermann écart par écart en 3.2. Contrôle d'ajout d'une phase : tranché par D-432 (stepper du segment Avec, `9207:18817` vérifiée par Hermann). Taille de police de l'Enchainement : réduite seulement si nécessaire, réglée sur appareil en 2.5. Cible tactile de 36 : constat sur iPhone en 2.6 AC1, arbitrage de Hermann en cas d'insuffisance. Issue de l'essai clavier décimal (2.2) : repli soumis à Hermann, ne bloquant que 2.7.
 
 ## Validation finale (étape 4 du skill)
 
 - **Couverture des FR :** les 45 FR sont rattachées à au moins une story, et leurs détails repris dans les critères (carte ci-dessus). Aucune FR non couverte.
-- **Couverture des NFR :** les 10 NFR sont rattachées (tableau NFR). NFR-6 a sa story dédiée (2.2), bloquante pour 2.7 et 2.8.
+- **Couverture des NFR :** les 10 NFR sont rattachées (tableau NFR). NFR-6 a sa story dédiée (2.2), dont l'issue ne conditionne que 2.7 (revue du 19/10).
 - **UX-DR :** UX-DR1 à UX-DR10 rattachées (1.2, 2.2 à 2.8, 3.1, 3.2).
 - **Lignes NR :** Δ07, Δ24, Δ30, Δ38, Δ47 sans story, en critères de non-régression. Δ15 sans objet.
 - **Modèle de départ :** aucun (projet existant). **Base de données :** aucune table ni migration créée (AD-18) ; seules les colonnes JSON et texte existantes évoluent, dans la story 1.1 qui en a besoin.
-- **Dépendances :** 1.1 → 1.2 ; 1.1 → 2.1 → 2.2 ; 2.3 (sans dépendance) ; 2.1 + 2.3 → 2.4 → 2.5, 2.6 ; 2.1 + 2.2 + 2.3 + 2.4 + 2.6 → 2.7, 2.8 ; 1.1 → 3.1 → 3.2. Aucune dépendance vers une story placée après. L'Epic 3 ne dépend pas de l'Epic 2.
-- **Ordre AD-33 :** socle atomique d'abord (1.1) ; transitions du Brouillon (2.1) avant toute story de Feuille ; essai iPhone (2.2) avant la généralisation (2.7, 2.8) ; variante `inline` (2.3) avant ses lignes (2.4 et suivantes).
+- **Dépendances :** 1.1 → 1.2 ; 1.1 → 2.1 → 2.2 ; 2.3 (sans dépendance) ; 2.1 + 2.3 → 2.4 → 2.5, 2.6 ; 2.1 + 2.2 + 2.3 + 2.4 + 2.6 → 2.7, 2.8 (2.7 attend l'issue « succès » de 2.2 ; 2.8 ne dépend que du composant `KeyboardField` livré par 2.2) ; 1.1 → 3.1 → 3.2. Aucune dépendance vers une story placée après. L'Epic 3 ne dépend pas de l'Epic 2.
+- **Ordre AD-33 :** socle atomique d'abord (1.1) ; transitions du Brouillon (2.1) avant toute story de Feuille ; essai iPhone (2.2) avant la saisie de la charge (2.7) ; variante `inline` (2.3) avant ses lignes (2.4 et suivantes).
 - **Répétition de fichiers :** `ExecutionParametersSheet.tsx` est modifié par 2.2 et 2.4 à 2.8, dans un seul epic, zone par zone (paramètres et présentation d'une zone dans la même story) ; aucun autre epic ne le réécrit (1.1 n'adapte que des tests de bornes). `ActivityEditorForm.tsx` n'est modifié que par l'Epic 3.
 - **Taille :** 1.1, 2.1, 2.4, 2.7 et 2.8 sont L ; 1.1 est atomique par AD-33 et reste réalisable par un seul agent car sans interface.
 - **Vérification de préparation (implementation readiness) :** dans BMad 6.12.4 installé, elle n'est pas un skill séparé ; elle est la première partie de `bmad-sprint-planning` (« PASS / CONCERNS / FAIL »). Elle n'a donc pas été lancée (sprint planning hors consigne).

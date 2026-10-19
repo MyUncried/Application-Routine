@@ -378,7 +378,7 @@ Le contrôle Changement de côté présente Avec à gauche et Sans à droite. L�
 
 #### RM-243 — Côtés : désignation neutre
 
-Les descriptions, phrases de synthèse, instructions, affichages d’exécution et annonces vocales désignent les côtés par « côté 1 », le côté par lequel l’utilisateur commence, et « côté 2 », ou par « changement de côté » selon le contexte. Aucun texte n’impose un côté anatomique de départ. Aucune nouvelle notation de l’enchaînement n’est créée : les options d’Enchainement conservent leur notation Figma à flèches. L’indicateur de carte d’un Exercice bilatéral signale le changement de côté sans direction (D-407).
+Les descriptions, phrases de synthèse, instructions, affichages d’exécution et annonces vocales désignent les côtés par « côté 1 », le côté par lequel l’utilisateur commence, et « côté 2 », ou par « changement de côté » selon le contexte. Aucun texte n’impose un côté anatomique de départ. Aucune nouvelle notation de l’enchaînement n’est créée : les options d’Enchainement conservent leur notation Figma à flèches, exactement `(D1 → D2) ➜ (G1 → G2)` et `(D1 → G1) ➜ (D2 → G2)`, sans libellé long dans le contrôle ; cette notation est graphique et propre au contrôle, la désignation fonctionnelle des côtés restant neutre (D-431). L’indicateur de carte d’un Exercice bilatéral signale le changement de côté sans direction (D-407).
 
 #### RM-244 — Côtés : compatibilité des données
 
@@ -394,7 +394,7 @@ La ligne Cadence propose, dans cet ordre, Autre, 5 s, 2 s, 1 s et Sans. 5 s, 2 s
 
 #### RM-247 — Chevrons intégrés aux options
 
-Le chevron du tableau de séries variables est à l’intérieur de l’option Variables du contrôle Type de série ; celui du changement de côté, à l’intérieur de l’option Avec ; pour les phases d’exercice, à l’intérieur de l’option Avec du contrôle Phases de l’exercice. Le chevron est vers le haut si le contenu est déployé, vers le bas s’il est replié. Replier un tableau conserve ses valeurs et son mode actif ; le chevron ne crée aucune étape de configuration. Les conditions d’activation et les incompatibilités existantes ne changent pas. Une option non modifiable conserve sa valeur réelle avec l’état visuel correspondant (D-410).
+Le chevron du tableau de séries variables est à l’intérieur de l’option Variables du contrôle Type de série ; celui du changement de côté, à l’intérieur de l’option Avec ; pour les phases d’exercice, à l’intérieur de l’option Avec du contrôle Phases de l’exercice, à droite du nombre de phases, visible même quand le stepper du nombre est replié (D-432). Le chevron est graphique, jamais une flèche ni un caractère (D-432). Le chevron est vers le haut si le contenu est déployé, vers le bas s’il est replié. Replier un tableau conserve ses valeurs et son mode actif ; le chevron ne crée aucune étape de configuration. Les conditions d’activation et les incompatibilités existantes ne changent pas. Une option non modifiable conserve sa valeur réelle avec l’état visuel correspondant (D-410).
 
 #### RM-248 — Condition d’arrêt : séries identiques
 

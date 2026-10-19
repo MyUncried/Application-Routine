@@ -10,6 +10,7 @@ inputs:
   - _bmad-output/pre5/inventaire-code.md
   - _bmad-output/pre5/sources-2026-10-19/ (Décisions v2, spécification des phases §1 à 5, registre v25 demandes 10, 13, 14, 17, 18, 20 et 21, audit PRE-4 §5)
   - Décisions de Hermann du 19/10 transmises en cours de rédaction (bornes minimales des durées, Δ50 ; phases Avec → Sans)
+  - Revue indépendante du 19/10 (verdict REVISE) et décisions de Hermann qui la suivent (D-431 Enchainement, D-432 contrôle des phases ; corrections C1 à C9, `revue-chatgpt/corrections-revue-2026-10-19.md`)
   - KODJO_PRE5_Cadrage_et_lancement_2026-10-18.md
   - openspec/changes/archive/2026-10-18-integration-parametres-execution-v3/source/KODJO_Charge_Specification_2026-10-18.md
 ---
@@ -35,6 +36,7 @@ Les questions techniques laissées à l'architecture sont dans `addendum.md`.
 
 **Règle de préséance**, de la plus forte à la plus faible :
 
+0. Les décisions de Hermann qui suivent la revue indépendante du 19/10 (`table-delta.md` §6, « Décisions de la revue indépendante du 19/10 ») : notation de l'Enchainement (D-431, FR-17) et contrôle des phases (D-432, FR-4, FR-5, FR-8, FR-9). Elles priment sur tout texte antérieur, y compris `table-delta.md` §6.
 1. Les deux décisions complémentaires de Hermann du 19/10, qui priment sur `table-delta.md` §6 pour QP5-04 :
    - les bornes minimales des durées (Δ50, FR-45) ;
    - le passage des phases de Avec à Sans (FR-8).
@@ -83,11 +85,11 @@ Les termes visibles sont ceux de PR-01 (spécification de la charge v3, §11.1).
 - **Mode** : Durée ou Répétitions. Il n'existe que ces deux Modes techniques.
 - **Condition d'arrêt** : À l'échec ou À la cible. C'est une entrée en séries identiques et un **résultat dérivé** en séries variables. Le résultat « À la cible et à l'échec » est calculé, jamais persisté.
 - **Type de série** : Identiques ou Variables.
-- **Phase** : subdivision chronométrée et ordonnée d'une série, commune à toutes les séries. Un Exercice porte de 0 à 6 phases. « Aucune » correspond à 0 phase.
+- **Phase** : subdivision chronométrée et ordonnée d'une série, commune à toutes les séries. Un Exercice porte de 0 à 6 phases. « Aucune » correspond à 0 phase. Le contrôle de la Feuille règle de 2 à 6 phases (D-432, FR-4).
 - **Durée de série (D)** : avec des phases, c'est la somme de leurs durées, calculée et non modifiable.
 - **Charge** : valeur informative en kg. Elle est commune en séries identiques et propre à chaque ligne en séries variables. Son activation (Avec / Sans) est distincte de ses valeurs conservées.
 - **Changement de côté** : Avec ou Sans. Avec signifie un Exercice bilatéral, sans désignation du côté de départ.
-- **Enchainement** : stratégie d'ordre des côtés. Deux options : « Un côté après l'autre » et « Les deux côtés à chaque série ».
+- **Enchainement** : stratégie d'ordre des côtés. Deux stratégies, un côté après l'autre et les deux côtés à chaque série, présentées dans le contrôle par leur notation graphique Figma : `(D1 → D2) ➜ (G1 → G2)` et `(D1 → G1) ➜ (D2 → G2)` (D-431).
 - **Cadence** : intervalle du bip. Options Autre / 5 s / 2 s / 1 s / Sans.
 - **Durée de l'exercice** : libellé visible du concept de durée totale de la Feuille.
 - **Étape** : élément numéroté de la Description.
@@ -112,7 +114,7 @@ Un Exercice porte de 0 à 6 phases ordonnées. Chaque phase a :
 
 La séquence est commune à toutes les séries.
 
-- L'absence de phases se lit « Aucune ». Un Exercice peut ne porter qu'une seule phase.
+- L'absence de phases se lit « Aucune ». Le modèle admet une seule phase (spécification des phases §2.1), mais le contrôle de PRE-5 règle de 2 à 6 phases (FR-4) : voir QR-1 et QR-2 (§9).
 - Une phase validée ne vaut jamais 0 s ; le zéro n'existe que dans le brouillon.
 - Les données sans phases (versions antérieures) restent lisibles et se lisent sans phases.
 
@@ -142,32 +144,52 @@ Avec des phases, la durée de série D est la somme de leurs durées. Elle est a
 
 #### FR-4 : Ligne et tableau des phases
 
-La ligne « Phases de l'exercice » (Avec / Sans) est en tête du cadre Séries. Le chevron est intérieur à l'option Avec.
+La ligne « Phases de l'exercice » est en tête du cadre Séries. C'est un contrôle à deux options, Avec / Sans. Sans est l'état par défaut, sans phase.
 
-Sous Avec, un tableau Libellé / Durée reprend le patron du tableau des séries :
+**Segment Avec (D-432).** Avec active la décomposition et affiche le nombre de phases dans le segment, sous la forme « 3 phases ».
 
-- déplacement ;
-- numéro ;
-- suppression avec annulation ;
-- ligne active.
+- Le nombre de phases se règle avec le stepper existant `InlineStepper`, de **2 à 6**, révélé au toucher selon le mécanisme existant (celui du Nombre de séries).
+- Stepper actif : − et + sont visibles. Stepper inactif : − et + disparaissent ; la valeur et le chevron restent visibles.
+- Le tableau contient le nombre de phases configuré.
 
-Le tableau n'a ni pied, ni boutons ±. Les gestes et les alternatives accessibles du tableau des séries sont réutilisés (CE-UI-10 §13). Lors d'un déplacement, chaque libellé personnalisé reste attaché à sa phase (spécification des phases §2.2).
+**Chevron.**
 
-*Sources :* Δ10 ; D-410, D-413 ; ch. 08 l. 249-255 ; RC ligne 2b ; CV-01.
+- C'est un chevron graphique existant (icône `control-chevron-up` / `control-chevron-down` de `DisclosureControl`), jamais une flèche ni un caractère Unicode.
+- Il est intégré au segment Avec, à droite du nombre (D-410).
+- Il pointe vers le haut quand le tableau est déployé, vers le bas quand il est replié.
+- Il reste visible quand − et + sont masqués.
+- Son appui replie ou déploie le tableau sans changer le nombre.
+
+**Tableau.** Sous Avec, un tableau reprend le patron du tableau des séries. Chaque ligne porte une poignée de déplacement, un numéro, un libellé, une durée et une croix ✕ de suppression avec annulation ; la ligne active est signalée.
+
+- Il n'y a ni ligne « Ajouter une phase », ni boutons +/− propres au tableau, ni nouveau composant : `InlineStepper`, la révélation au toucher et les briques existantes du tableau sont réutilisés.
+- Les gestes et les alternatives accessibles du tableau des séries sont réutilisés (CE-UI-10 §13).
+- Lors d'un déplacement, chaque libellé personnalisé reste attaché à sa phase (spécification des phases §2.2).
+
+*Sources :* Δ10 ; D-410, D-413, D-432 ; ch. 08 l. 249-255 ; RC ligne 2b ; CV-01 ; Figma `9207:18817`, vérifiée par Hermann le 19/10 : le segment « Avec ^ » porte un chevron, chaque ligne a une poignée, un numéro, un libellé, une durée et une croix ✕. La forme « 3 phases » vient de la décision, pas de la frame.
 
 #### FR-5 : Création et ajout de phases
 
-- **Passer à Avec** sans phase existante crée « Phase 1 » avec la durée de série courante.
-- **Sans durée de série**, la valeur valant « — », « Phase 1 » est créée avec une durée à renseigner, selon la convention existante des valeurs manquantes (fond rouge pâle). Aucune durée arbitraire n'est inventée. Si elle reste non renseignée, FR-9 s'applique : la phase est retirée, puis la validation existante de la durée de série décide si ✓ est disponible.
-- **Une phase ajoutée** reprend la durée de la dernière phase.
-- **Au-delà de six phases**, l'ajout est indisponible ; aucune 7e ligne n'est créée.
-- **Contrôle d'ajout :** aucune frame relevée ne le montre. Le contrôle est donc `NON VÉRIFIABLE` à ce jour. La recommandation validée (`table-delta.md` §3, QP5-04 (b)) s'applique : suivre `9207:18817` une fois relevée (S-2), et à défaut, une ligne d'ajout en fin de tableau, indisponible à six phases.
+- **Première activation de Avec, en durée libre (D-432)** : **deux phases** sont créées.
+  - La première reprend la durée de série si elle existe.
+  - La seconde reste à renseigner, selon la convention existante des valeurs manquantes (fond rouge pâle).
+  - Sans durée de série (« — »), aucune durée n'est inventée : les deux phases sont à renseigner.
+  - Toutes les durées sont modifiables ; la durée de série est recalculée comme leur somme.
+  - Une phase restée à renseigner est traitée au ✓ par FR-9.
+- **Stepper +** : ajoute une phase en fin de liste, qui reprend la durée de la dernière (§2.2). À six phases, + est indisponible ; aucune 7e ligne n'est créée.
+- **Stepper −** : retire la dernière phase, avec la même annulation que la croix ✕ (FR-8). À deux phases, − est indisponible (QR-1 validée par Hermann le 19/10).
+- **Contrôle d'ajout :** le stepper du segment Avec est le seul contrôle d'ajout. Il n'y a pas de ligne « Ajouter une phase ».
+- **Durée imposée par un format :** le comportement spécifié est conservé (dernière phase calculée sur le restant ; exemple 20 s + 0 s, puis 12 s + 8 s). Aucun parcours de format n'existe dans `src/` : il reste non développé en PRE-5 (Δ15, §8). Le calcul de la dernière phase n'est **pas** généralisé à la durée libre.
 
-*Sources :* Δ10 ; QP5-04 ; spécification des phases §2.2.
+Cette règle remplace « Avec crée une seule Phase 1 », y compris pour le retour de Sans à Avec (FR-8).
+
+*Sources :* Δ10 ; D-432 ; QP5-04 ; spécification des phases §2.2, §3.
 
 #### FR-6 : Libellé de phase
 
 Le libellé se saisit au clavier texte, directement dans la cellule. Il est limité à 20 caractères. Le clavier ne masque ni le champ, ni les actions de la Feuille (FR-24).
+
+Le clavier texte se ferme par sa touche Retour, sans barre d'accessoire. Sa saisie ne dépend pas de l'issue de l'essai précoce du clavier décimal (NFR-6) : un problème du seul clavier décimal ne bloque que la saisie de la charge.
 
 *Sources :* Δ11 ; ch. 08 l. 253 ; CE-UI-10 §10 l. 1087.
 
@@ -183,19 +205,19 @@ La durée d'une phase se règle avec la roue de durée native existante (`Durati
 
 #### FR-8 : Suppression et retour à Sans
 
-- **Supprimer une phase** retire sa contribution à D.
-- **Supprimer la dernière phase restante** ramène la ligne à « Aucune ». Sa durée devient la durée de série, modifiable (D-371).
-- **L'annulation d'une suppression** restitue l'ordre, les libellés et les durées, y compris D.
+- **Supprimer une phase** (croix ✕ de sa ligne, ou stepper − pour la dernière) retire sa contribution à D et décrémente le nombre affiché.
+- **Croix ✕ à deux phases** (QR-1 validée par Hermann le 19/10) : la croix reste disponible au-dessus de 2 phases et devient indisponible à 2 ; le retrait passe alors par Sans. La règle de la spécification (supprimer la dernière phase restante ramène à « Aucune » et conserve sa durée comme durée de série, D-371) reste celle du modèle, mais le contrôle de PRE-5 ne descend pas sous 2 phases.
+- **L'annulation d'une suppression** restitue l'ordre, les libellés et les durées, y compris D et le nombre de phases.
 - **Passer de Avec à Sans avec plusieurs phases :**
   - les phases sont retirées de la configuration ;
   - la somme de leurs durées devient la durée unique de la série : 6 s + 3 s + 5 s donnent 14 s ;
   - cette durée reste modifiable selon les règles existantes (FR-45) ;
   - tous les autres paramètres sont conservés.
 - **Si aucune durée valide ne peut être déduite**, par exemple avec des phases toutes à 0 s, aucune valeur n'est inventée. La durée de série reste à renseigner, selon la validation existante.
-- **Repasser à Avec** crée une seule nouvelle phase, initialisée avec la durée de série courante (FR-5). Les anciennes phases ne sont pas mémorisées.
+- **Repasser à Avec** crée deux nouvelles phases, la première à la durée de série courante, la seconde à renseigner (FR-5, D-432). Les anciennes phases ne sont pas mémorisées.
 - **Annuler la Feuille (✕)** restaure la configuration précédente, phases comprises.
 
-*Sources :* Δ14 ; spécification des phases §2.3 ; D-371 ; décision de Hermann du 19/10 — Phases Avec → Sans. Cette décision clôt QP5-04. Elle prime sur la restauration des phases tant que la Feuille est ouverte, que proposait QP5-04 (d) de `table-delta.md` §3.
+*Sources :* Δ14 ; spécification des phases §2.3 ; D-371 ; décision de Hermann du 19/10 — Phases Avec → Sans, révisée par D-432 pour le retour à Avec (deux phases). Cette décision clôt QP5-04. Elle prime sur la restauration des phases tant que la Feuille est ouverte, que proposait QP5-04 (d) de `table-delta.md` §3.
 
 #### FR-9 : Normalisation à la validation
 
@@ -206,7 +228,12 @@ Au ✓ de la Feuille :
 - une liste vide ou entièrement nulle revient à « Aucune » ;
 - si la cible reste absente ou invalide, la validation existante s'applique.
 
-Annuler la Feuille (✕) restaure son état antérieur.
+(QR-2 validée par Hermann le 19/10) La normalisation peut laisser moins de 2 phases :
+
+- s'il reste une seule phase, l'Exercice passe à Sans avec sa durée comme durée de série, sur le principe de D-371 ;
+- s'il n'en reste aucune, l'Exercice passe à Sans sans durée inventée : la validation existante de la durée de série s'applique.
+
+Les règles existantes de normalisation et de validation sont préservées. Annuler la Feuille (✕) restaure son état antérieur.
 
 *Sources :* Δ14 ; D-373 ; ch. 08 l. 257-259, l. 342-343 ; spécification des phases §2.2 ; QP5-04. La recommandation (e) de §3, qui bloquait les phases toutes à 0, est abandonnée.
 
@@ -318,15 +345,18 @@ Les valeurs historiques `RIGHT_LEFT` et `LEFT_RIGHT` se lisent Avec. L'Enchainem
 #### FR-17 : Enchainement
 
 - Le libellé est « Enchainement ».
-- Le contrôle est un segmenté en ligne dans le cadre Côtés, à la largeur Figma.
-- Les libellés sont définitifs : « Un côté après l'autre » et « Les deux côtés à chaque série ».
-- La police est réduite pour qu'ils tiennent, centrés, sans troncature.
-- Aucun sous-titre D/G, aucune notation C1S1.
+- Le contrôle est un segmenté en ligne dans le cadre Côtés ; le segmenté et sa disposition Figma sont conservés.
+- **Options (D-431)** : les deux notations de la frame `8328:38193` sont conservées exactement, dans cet ordre :
+  - `(D1 → D2) ➜ (G1 → G2)` (un côté après l'autre) ;
+  - `(D1 → G1) ➜ (D2 → G2)` (les deux côtés à chaque série).
+- Les libellés longs « Un côté après l'autre » et « Les deux côtés à chaque série » sont abandonnés **dans le contrôle**. Ils restent le nom accessible des options, pour des annonces neutres (D-407).
+- La police n'est réduite que si nécessaire ; sa taille exacte se règle sur l'appareil, sans changement automatique de géométrie.
+- Aucune notation C1S1.
+- Ces notations sont graphiques. D-407 reste applicable à la désignation fonctionnelle des côtés : la Phrase, la Composition et l'exécution restent neutres (« côté 1 / côté 2 », FR-18).
 - La ligne n'est visible que si le Changement de côté vaut Avec et N > 1. À N = 1, elle est masquée et l'Enchainement enregistré est conservé (D-415, ligne NR Δ24).
-- La taille exacte de la police se règle sur l'appareil, sans changement automatique de géométrie.
 - L'Enchainement est un paramètre de l'Exercice, distinct des variantes d'exécution des formats de Séance (§8).
 
-*Sources :* Δ23 ; D-407, D-413 ; RM-243 ; QP5-07 (décidé). La frame `8328:38193`, qui porte encore D1/G1, sera alignée plus tard et ne bloque pas PRE-5.
+*Sources :* Δ23 ; D-407, D-413, D-431 ; RM-243 ; QP5-07 (révisée par Hermann, revue du 19/10). Le code porte déjà ces notations en sous-titres (`sideOrderSubtitles`), à la flèche centrale près : c'est une réutilisation.
 
 #### FR-18 : Désignations neutres hors de la Feuille
 
@@ -471,6 +501,8 @@ Le segmenté natif d'`@expo/ui` 57 ne le remplace qu'après une vérification co
 
 Les options Variables (Type de série), Avec (Phases) et Avec (Changement de côté) portent un chevron intérieur, centré avec le texte : vers le haut si le contenu est déployé, vers le bas sinon. Replier conserve les valeurs et le mode actif.
 
+Le chevron est graphique : c'est l'icône existante `control-chevron-up` / `control-chevron-down` (celle de `DisclosureControl`), jamais une flèche ni un caractère. Dans l'option Avec des phases, il se place à droite du nombre « n phases » et reste visible quand le stepper est inactif (FR-4).
+
 *Sources :* Δ33 ; D-410 ; RM-247 ; CV-01.
 
 #### FR-29 : Tableaux sans steppers de cellule
@@ -549,7 +581,7 @@ Ces chiffres sont des propriétés de présentation, pas des règles (voir §9, 
 #### FR-34 : Validation et conservation des étapes
 
 - À `Terminer`, les étapes vides sont retirées et la liste est renumérotée. L'ordre est préservé.
-- La limite de 1 000 caractères porte sur l'ensemble des textes des étapes, numérotation exclue.
+- La limite de 1 000 caractères porte sur l'ensemble des textes des étapes, numérotation exclue. Elle s'applique à la chaîne encodée, séparateurs de ligne compris, sans migration (QN-1, validée par Hermann) : ces séparateurs ne sont pas de la numérotation générée.
 - Les étapes sont enregistrées et relues à la réouverture. Elles sont transportées par la copie Définition → Séance et par la duplication.
 - La détection de modification de l'éditeur porte sur les étapes.
 
@@ -687,7 +719,7 @@ Le lexique ajoute les nouveaux libellés :
 - Durée de l'exercice ;
 - invites des étapes.
 
-Les clés devenues orphelines sont retirées, par exemple celles de la Carte et les sous-titres D/G. Les identifiants techniques restent inchangés (D-201).
+Les clés devenues orphelines sont retirées, par exemple celles de la Carte et les libellés anatomiques des côtés. Les sous-titres `sideOrderSubtitles` ne sont pas orphelins : ils deviennent le texte des options d'Enchainement (D-431, FR-17). Les identifiants techniques restent inchangés (D-201).
 
 *Sources :* Δ46 ; RM-092 ; D-413.
 
@@ -716,7 +748,7 @@ Le minimum de 5 s est abaissé à 1 s. Le pas de 1 s existe déjà pour la duré
 - **NFR-3 — Schéma et jetons verrouillés.** `migration001.ts` n'est jamais modifiée ; un changement de schéma passe par une nouvelle migration numérotée, seulement si l'architecture le rend nécessaire. Les valeurs de `tokens.ts` restent inchangées et `tokensSpecification.test.ts` passe.
 - **NFR-4 — Contrôles locaux.** Chaque story se termine avec `npm test`, `npx tsc --noEmit` et `npm run lint` verts.
 - **NFR-5 — Recette sur appareil.** Une suite verte ne prouve jamais un rendu, un geste ou un comportement du clavier. La présentation, les gestes et le clavier sont recettés sur iPhone par Hermann, groupés par lot : Feuille, puis Éditeur. Les décisions de recette de Hermann priment et sont reportées dans les documents.
-- **NFR-6 — Recette précoce du champ numérique.** Avant toute généralisation, le champ de saisie clavier de la charge est essayé tôt sur iPhone, avec Précédent / Suivant et le fond de la cellule active (FR-23 à FR-25 ; audit PRE-4, action 4).
+- **NFR-6 — Recette précoce du champ numérique.** Avant toute généralisation, le champ de saisie clavier de la charge est essayé tôt sur iPhone, avec Précédent / Suivant, « Fermer » et le fond de la cellule active (FR-23 à FR-25 ; audit PRE-4, action 4). L'essai porte sur les composants définitifs ou directement réutilisables (`KeyboardField` final, barre Précédent / Suivant / Fermer, fond actif), pas sur une interface provisoire à reconstruire. Un problème du seul clavier décimal ne bloque que la saisie de la charge : les fonctions indépendantes, dont le libellé de phase au clavier texte (FR-6), n'en dépendent pas.
 - **NFR-7 — Accessibilité.**
   - Les nouveaux tableaux gardent les alternatives accessibles des gestes (CE-UI-10 §13).
   - Le résultat dérivé et les options indisponibles exposent une sémantique non modifiable.
@@ -745,7 +777,7 @@ Ces lignes sont déjà conformes. Elles n'ont ni story, ni revue complète. Leur
 | Δ07 | Ordre Description → Paramètres d'exécution → Média ; titre « Paramètres d'exécution » (Q11) ; Carte vide sans invite (Q55) | Tests existants de l'éditeur |
 | Δ24 | Enchainement non affiché à N = 1, Avec / Sans disponible, Enchainement conservé (Q38 = D-415) | Tests Q38 |
 | Δ30 | Aucune autre valeur ne passe au clavier : roues natives et steppers conservés | `DurationWheelPicker.test.tsx:371-379`, `NumberWheelPicker.test.tsx:260` |
-| Δ38 | Nombre de séries, Pause, Pause entre les côtés, Compte à rebours et Fin : valeur au repos, ± à l'appui ; roues en panneau sans flèche ; ✓/✕ en deux temps ; fond rouge pâle si manquante (Q35, Q37, Q41, Q46, Q47) | Tests existants de la Feuille |
+| Δ38 | Nombre de séries, Pause, Pause entre les côtés, Compte à rebours et Fin : valeur au repos, ± à l'appui ; roues en panneau sans flèche ; ✓/✕ en deux temps ; fond rouge pâle si manquante (Q35, Q37, Q41, Q46, Q47). **Impératif (revue du 19/10) :** le stepper « Nombre de séries » de PRE-4 est conservé à l'identique (présentation, interactions, révélation et fermeture, pas, accessibilité) ; le tableau des séries variables suit N ; aucun remplacement par une roulette ni par le clavier ; seule son intégration visuelle dans la nouvelle Feuille peut s'adapter | Tests existants de la Feuille ; critère explicite de la recette Feuille (stories 2.4 à 2.6) |
 | Δ47 | Durées de Séance, synthèses de ligne du Catalogue et de la Composition, carte du Catalogue : inchangées tant que `workSeconds` reste juste avec les phases | `calculations.test.ts`, `compositionPresentation.test.ts`, `ActivityCard.test.tsx` |
 
 Sont aussi conservés, malgré les captures : la Pause après chaque série à N = 1 (la matrice du 19/10 ne prime pas) et les steppers révélés de N et de la Pause (C-5).
@@ -762,7 +794,7 @@ Seuls ces remplacements sont admis : R-01 à R-16 de `table-delta.md` §2, plus 
 | R-04 | Ordre des côtés dans un panneau | Segmenté en ligne dans le cadre Côtés (QP5-07) | FR-17 |
 | R-05 | ± permanents des cellules Cible et Pause | Sélecteur ouvert par la cellule | FR-29 |
 | R-06 | Lignes de tableau à 44 | Lignes de 36 dans les deux tableaux (QP5-05) | FR-29 |
-| R-07 | « Ordre des côtés », sous-titres D1/G1 | « Enchainement », libellés de QP5-07 | FR-17 |
+| R-07 | « Ordre des côtés » ; options à libellés longs et sous-titres D1/G1 | « Enchainement » ; options réduites à la notation graphique Figma (D-431, QP5-07 révisée) | FR-17 |
 | R-08 | Droite puis gauche / Gauche puis droite | Avec / Sans | FR-15, FR-16 |
 | R-09 | « Aucune durée, à l'échec » dans la roue de Durée commune | Condition d'arrêt | FR-19, FR-22 |
 | R-10 | « Aucune répétition, à l'échec » en identiques | Condition d'arrêt | FR-19, FR-22 |
@@ -787,8 +819,10 @@ Seuls ces remplacements sont admis : R-01 à R-16 de `table-delta.md` §2, plus 
 
 ## 8. Exclusions explicites
 
-- **Exécution :** moteur d'exécution, cadran, audio, annonces de phases, progression et affichage de la charge pendant l'exécution (spécification des phases §4 ; CH-09). Les nouvelles données sont seulement transportées.
-- **Formats :** formats de Séance, durée imposée, dernière phase calculée et adaptation proportionnelle des phases (D-372, D-374 ; spécification des phases §3). Δ15 est sans objet : aucun parcours de format n'existe dans `src/`.
+- **Exécution :** moteur d'exécution, cadran, audio, annonces de phases, progression et affichage de la charge pendant l'exécution (spécification des phases §4 ; CH-09). Les nouvelles données sont seulement transportées. La persistance des phases ne vaut pas livraison de leur exécution.
+- **Formats :** formats de Séance, durée imposée, dernière phase calculée et adaptation proportionnelle des phases (D-372, D-374 ; spécification des phases §3). Δ15 est sans objet : aucun parcours de format n'existe dans `src/`. Le comportement spécifié reste valable, mais il n'est pas développé en PRE-5, et le calcul de la dernière phase n'est pas généralisé à la durée libre (FR-5).
+- **Planification :** non touchée.
+- **Calculs, Composition et instantanés :** modifications limitées au strict nécessaire (transport des nouvelles données, affichage neutre des côtés). L'ordre des côtés, les identifiants techniques (`LedgerSide` de `executionCalculations.ts` compris) et les résultats historiques ne changent pas.
 - **Anciennes descriptions :** pas de migration ni de conversion (FR-35).
 - **`SegmentedControl` :** pas de refonte ; seule une variante de style est admise (FR-27).
 - **Écrans voisins :** pas de refonte de la Composition, du Catalogue, des médias ni des référentiels. Seuls les points de passage nécessaires changent (FR-18, FR-41, Δ47).
@@ -799,9 +833,9 @@ Seuls ces remplacements sont admis : R-01 à R-16 de `table-delta.md` §2, plus 
 
 ## 9. Questions ouvertes
 
-Toutes les QP5 sont décidées : `table-delta.md` §6, ainsi que les décisions complémentaires du 19/10 sur les bornes minimales et sur le passage des phases de Avec à Sans. Le PRD ne crée aucune question produit.
+Toutes les QP5 sont décidées : `table-delta.md` §6, ainsi que les décisions complémentaires du 19/10 sur les bornes minimales et sur le passage des phases de Avec à Sans, et les décisions qui suivent la revue indépendante du 19/10 (D-431, D-432). Les incompatibilités QR-1 et QR-2 ci-dessous ont été validées par Hermann le 19/10 avec les défauts proposés : aucune question produit ne reste ouverte.
 
-Restent trois types de points : les points d'architecture, les propriétés Figma et les points signalés, que les sources laissent ouverts.
+Restent quatre types de points : les points d'architecture, les propriétés Figma, les incompatibilités du contrôle 2–6 et les points signalés, que les sources laissent ouverts.
 
 - **Points d'architecture :** Q-A1 à Q-A7, détaillés dans `addendum.md`. Exemples : version 2 étendue ou version 3 du JSON ; représentation de la charge ; emplacement des phases.
 - **Propriétés Figma (S-2) :** à relever en lecture seule, frame par frame, au moment des stories concernées. Les identifiants Figma actuels sont vérifiés avant de fonder une story sur une ancienne référence. Il s'agit notamment :
@@ -811,8 +845,18 @@ Restent trois types de points : les points d'architecture, les propriétés Figm
   - des dimensions des segmentés et du chevron ;
   - du rendu du résultat dérivé ;
   - de la cellule de charge en saisie ;
-  - du contrôle d'ajout d'une phase (`9207:18817`, `NON VÉRIFIABLE` à ce jour : aucune frame relevée ne le montre) ;
+  - des mesures du segment Avec des phases et de son chevron (`9207:18817`, vérifiée par Hermann le 19/10 : segment « Avec ^ » à chevron ; lignes à poignée, numéro, libellé, durée et croix ✕). Le contrôle d'ajout est tranché par D-432 : le stepper du segment Avec ;
   - de l'indicateur de côté de la Composition.
+
+**Incompatibilités du contrôle 2–6 (D-432).** Le contrôle des phases règle de 2 à 6 phases, alors que deux règles existantes admettent moins de 2 phases. Hermann a validé QR-1 et QR-2 le 19/10 avec les défauts proposés ; les FR concernées portent « (QR-n validée par Hermann le 19/10) ».
+
+- **QR-1.** La spécification des phases (§2.1) admet une seule phase, et la suppression de la dernière ramène à « Aucune » (§2.3, D-371) ; le stepper commence à 2.
+  - Règle validée : la croix ✕ d'une ligne reste disponible au-dessus de 2 phases et devient indisponible à 2 ; le retrait passe alors par Sans.
+  - Le stepper − retire la dernière phase, avec la même annulation que la croix.
+  - Le stepper + ajoute une phase qui reprend la durée de la dernière (§2.2).
+- **QR-2.** La normalisation au ✓ retire sans message les phases à 0 s ou à renseigner, et peut laisser moins de 2 phases.
+  - Règle validée : s'il reste une seule phase, l'Exercice passe à Sans avec sa durée comme durée de série, sur le principe de D-371.
+  - S'il n'en reste aucune, l'Exercice passe à Sans sans durée inventée : la validation existante s'applique.
 
 **Points signalés, décidés par Hermann le 19/10.** Les points 2 à 10 ci-dessous sont tranchés dans `table-delta.md` §6, sous « Points signalés par le PRD ». Leur décision prime sur le texte qui suit. Il s’agit notamment :
 
