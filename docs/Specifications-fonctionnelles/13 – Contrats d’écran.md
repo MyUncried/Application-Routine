@@ -187,6 +187,87 @@ Chaque contrat comporte **exactement les 20 rubriques suivantes**, même lorsqu�
 19. Invariants ;
 20. Recette déterministe ;
 
+### Rattachement des 62 captures principales aux contrats
+
+L’inventaire ci-dessous suit les frames `P-` de la page Figma `Prototype MVP` (D-426). Un même contrat peut couvrir plusieurs interfaces et états : l’absence de capture propre à une variante ne constitue pas une exclusion MVP. Le rattachement indique le contrat fonctionnel de référence, **pas** une déclaration automatique de complétude de tous les champs. Les zones sans règle explicite sont signalées après ce tableau.
+
+| Frame Figma | Capture principale | Contrat de référence | Réserve |
+|---|---|---|---|
+| [`1992:375`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-375) | Profil — Vue d'ensemble - Vibration désactivée | `CE-UI-07` | — |
+| [`1992:469`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-469) | Splash — Kodjo | `CE-UI-06` | — |
+| [`1992:778`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-778) | Profil — Modifier le profil — MVP | `CE-UI-01` | — |
+| [`1992:5101`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5101) | Calendrier — Semaine | `CE-UI-03` | — |
+| [`1992:5237`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5237) | Calendrier — Mois | `CE-UI-03` | — |
+| [`1992:5365`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5365) | Modal — Supprimer une planification unique — Calendrier | `CE-UI-02` | — |
+| [`1992:5602`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5602) | Calendrier — Jour — Appui long — MVP | `CE-UI-02` | — |
+| [`1992:5962`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5962) | Calendrier — Semaine — Actions glissées | `CE-UI-03` | — |
+| [`1992:6102`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6102) | Modal — Supprimer des occurrences — Calendrier | `CE-UI-02` | — |
+| [`1992:6249`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6249) | Modal — Choisir une séance — Planification — Liste longue | `CE-UI-04` | — |
+| [`1992:6389`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6389) | Calendrier — Semaine — Séance déployée | `CE-UI-03` | — |
+| [`1992:6838`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6838) | Planifier une séance — Création | `CE-UI-05` | — |
+| [`1992:8132`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-8132) | Exécution d'une séance — Démarrée | `CE-EXEC-SESSION-01` | — |
+| [`4968:8188`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4968-8188) | Exécution d'un exercice — Démarrée | `CE-T03-10` | — |
+| [`1992:8718`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-8718) | Synthèse de séance — Terminée —  Évaluation initiale | `CE-UI-08` | — |
+| [`4968:8055`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4968-8055) | Synthèse d'exécution — Exercice Terminé —  Évaluation initiale | `CE-T03-14` | — |
+| [`1992:8843`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-8843) | Suivi — Séances — Liste condensée | `CE-T03-15` | — |
+| [`1992:9910`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-9910) | Catalogue des séances — Liste par défaut | `CE-T03-01` | — |
+| [`1992:10014`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-10014) | Catalogue des séances — Séance déployée | `CE-T03-01` | — |
+| [`3786:5093`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=3786-5093) | Catalogue des Exercices — Liste | `CE-T03-02` | — |
+| [`4168:11149`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4168-11149) | Catalogue des séances — Filtrer — Panneau ouvert | `CE-T03-01` | — |
+| [`4168:11262`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4168-11262) | Catalogue des Exercices — Filtrer — Panneau ouvert | `CE-T03-02` | — |
+| [`4593:6285`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4593-6285) | Modal — Confirmer l’archivage d’une séance planifiée | `CE-T03-01` | — |
+| [`4738:6209`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4738-6209) | Catalogue des Exercices — Liste — actions glissées | `CE-T03-02` | — |
+| [`4997:6113`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4997-6113) | Exécution d'un exercice — Initial — Bascule basse (média) avec Cercle | `CE-MEDIA-EXEC-01` | — |
+| [`5588:4363`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=5588-4363) | Exécution d'un exercice — Initial — Bascule haute avec média | `CE-MEDIA-EXEC-01` | — |
+| [`5009:6069`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=5009-6069) | Exécution d'un exercice — Média plein écran | `CE-MEDIA-EXEC-02` | — |
+| [`5581:4257`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=5581-4257) | Exécution d'un exercice — Démarré —  Bascule haute avec texte | `CE-MEDIA-EXEC-01` | — |
+| [`5451:4272`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=5451-4272) | Modal — Choisir un exercice — Planification — Liste longue | `CE-UI-04` | — |
+| [`7594:34531`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7594-34531) | Planifier un parcours | `CE-UI-05` | — |
+| [`7594:34653`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7594-34653) | Modal — Planifier un parcours — Fréquence | `CE-UI-11` | — |
+| [`8328:28863`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28863) | Composition séance — Actions glissées | `CE-T03-08` | — |
+| [`8328:29270`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-29270) | Composition séance — Placement d’une pause | `CE-T03-08` | — |
+| [`8328:29428`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-29428) | Composition séance — Point d’arrêt | `CE-T03-08` | — |
+| [`8328:33546`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-33546) | Composition séance — Déplacement | `CE-T03-08` | — |
+| [`8328:33836`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-33836) | Composition séance — Étiquettes | `CE-T03-16` | — |
+| [`8328:34107`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-34107) | Composition séance — Nouvelle étiquette | `CE-T03-16` | — |
+| [`8328:34965`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-34965) | Composition séance — Circuit — Volumes (de séries) | `CE-CIR-03` | — |
+| [`8328:35698`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-35698) | Ajouter un exercice — Initial | `CE-T03-04` | — |
+| [`8328:35810`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-35810) | Ajouter un exercice — Catégories | `CE-UI-09` | — |
+| [`8328:36056`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36056) | Ajouter un exercice — Nouvelle catégorie | `CE-UI-09` | — |
+| [`8328:36348`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36348) | Ajouter un exercice — Zones corporelles | `CE-UI-09` | — |
+| [`8328:36536`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36536) | Ajouter un exercice — Nouvelle zone corporelle | `CE-UI-09` | — |
+| [`8328:36853`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36853) | Création activité — Paramètres — Champ vide | `CE-T03-04` | — |
+| [`8328:37862`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-37862) | Création activité — Paramètres (modale) — Durée d’une série (roulette) | `CE-UI-10` | — |
+| [`9232:44646`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9232-44646) | Création activité — Paramètres (modale) — Durée d’une phase (roulette) | `CE-UI-10` | — |
+| [`8328:38193`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38193) | Création activité — Paramètres (modale) — Changement de côté déployé | `CE-UI-10` | — |
+| [`8328:39279`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-39279) | Création activité — Paramètres (modale) — Séries variables (déplacement) | `CE-UI-10` | — |
+| [`8470:13303`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8470-13303) | Création activité — Paramètres (modale) — Séries variables, cas mixte | `CE-UI-10` | — |
+| [`8598:29271`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-29271) | Composition séance — Modèles | `CE-FMT-01` | — |
+| [`8624:29980`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-29980) | Composition séance — Modèles — Tabata (quels exercices) | `CE-FMT-02` | — |
+| [`8598:29503`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-29503) | Composition séance — Modèles — Tabata (sélection des exercices) | `CE-FMT-02` | — |
+| [`8624:30306`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30306) | Composition séance — Modèles — Tabata (récapitulatif) | `CE-FMT-02` | — |
+| [`8921:35275`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8921-35275) | Avant la séance — Douleur | `CE-EXEC-SESSION-01` | À CLARIFIER — douleur initiale |
+| [`8921:35340`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8921-35340) | Synthèse de séance — Effort et douleur — Douleur renseignée | `CE-UI-08` | À CLARIFIER — effort et douleur en synthèse |
+| [`8928:15098`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8928-15098) | Modale — Répétitions partielles | `CE-T03-11` | À CLARIFIER — résultats de répétitions |
+| [`8937:35362`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8937-35362) | Modale — Résultat de série | `CE-EXEC-SESSION-01` | À CLARIFIER — résultat de série |
+| [`8982:15383`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-15383) | Exécution d'une séance — Tabata — Par alternance | `CE-FMT-05` | — |
+| [`8982:15709`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8982-15709) | Exécution d'une séance — EMOM — repos déclaré | `CE-FMT-05` | — |
+| [`9207:18817`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9207-18817) | Création exercice — Paramètres — Tableau de 3 phases | `CE-UI-10` | — |
+| [`9292:18077`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9292-18077) | Création activité — Paramètres (modale) — Séries variables avec charge — Clavier numérique | `CE-UI-10` | — |
+| [`9307:18208`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9307-18208) | Création activité — Paramètres (modale) — Série en durée — Durée de l’exercice déployée | `CE-UI-10` | — |
+
+#### Réserves de définition des champs et zones observés
+
+| Écran Figma | Zone ou champ représenté | Ce que Figma montre | Ce qui reste À CLARIFIER |
+|---|---|---|---|
+| `8921:35275` | Douleur avant séance | Choix 0 à 10, texte « Facultatif. Sans réponse, la douleur est notée 0 », action Commencer | Valeur métier effective en l’absence de réponse ; instantané, conservation, affichage ultérieur, possibilité de modifier |
+| `8921:35340` | Effort perçu en Synthèse | Valeurs 1 à 10, une valeur visuellement sélectionnée | Relation, cumul ou remplacement du Ressenti triétat obligatoire (RM-078/RM-080), validation, persistance et exploitation |
+| `8921:35340` | Douleur et localisation en Synthèse | Douleur 0 à 10 et choix « Genou droit / Genou gauche / Autre » | Caractère facultatif ou obligatoire, cardinalité des localisations, effet sur Enregistrer, stockage et utilisation |
+| `8928:15098` | Résultats de répétitions partielles | Trois libellés d’exercices, sélections numériques, bouton « Terminer l’exercice » | Moment exact de déclenchement, bornes numériques, effet de la validation et traitement de fermeture |
+| `8937:35362` | Résultat d’une série | Feuille « Vos résultats », cible de série, sélection numérique et action Valider | Valeur initiale métier, borne effective, effet sur progression/rapport et annulation |
+
+**Distinction des sources.** Les valeurs et libellés ci-dessus sont des observations d’interface, non des règles métier arbitrées. Les contrats `CE-UI-08`, `CE-T03-11` et `CE-EXEC-SESSION-01` ne définissent pas encore complètement ces cinq axes. Les définitions de Résultat, de Ressenti et de Statut déjà validées dans les chapitres 09–11 restent en vigueur jusqu’à arbitrage, sans extrapolation à la Douleur ou à l’Effort perçu.
+
 ### Inventaire des contrats actifs
 
 | Contrat | Famille |
@@ -713,7 +794,7 @@ Deux modes communs, cible typée par Série et régime conservé. Phrase régén
 
 Phrase selon les 276 cas v15, total fourni par le calcul métier. Générateur → segments ordonnés `{texte, gras}`, valeurs et unités en gras, aucun redécoupage de chaîne. Terme « pause après chaque série », y compris N=1 ; clause de pauses variables omise conformément au corpus. Lorsque la charge est active, la phrase inclut sa mention selon RM-240 ; avec Sans, aucune mention de charge.
 
-Brouillon parent : nom, référentiels, description, paramètres validés par la feuille et associations médias ordonnées, existantes ou ajoutées dans PRE-3 (D-333). Aucun texte de démonstration codé en dur.
+Brouillon parent : nom, référentiels, description sous forme de séquence ordonnée d’étapes (D-425), paramètres validés par la feuille et associations médias ordonnées, existantes ou ajoutées dans PRE-3 (D-333). Aucun texte de démonstration codé en dur.
 
 Paramètres étendus : uniforme/variable, liste ordonnée de cibles/Pauses, changement de côté (Avec / Sans, D-406) et Ordre des côtés, activation et valeurs de la charge (RM-236) ; copie complète vers CE-UI-10.
 
@@ -729,11 +810,11 @@ Le champ du mode à droite du titre de la carte, visible sur 7059:13302 et 7119:
 
 #### 7. Structure de l’écran
 
-En-tête fixe → bandeau de contexte (nom, Catégorie, Zones corporelles) → carte Paramètres (état non renseigné ou synthèse calculée) → Description → Média → Terminer. Compte à rebours et Fin relèvent de la feuille Paramètres d’exécution CE-UI-10 et ne sont pas des lignes autonomes du formulaire principal (D-413). Réutiliser le shell existant.
+En-tête fixe → bandeau de contexte (nom, Catégorie, Zones corporelles) → carte Paramètres (état non renseigné ou synthèse calculée) → Description en étapes numérotées → Média → Terminer. Compte à rebours et Fin relèvent de la feuille Paramètres d’exécution CE-UI-10 et ne sont pas des lignes autonomes du formulaire principal (D-413). Réutiliser le shell existant.
 
 #### 8. Éléments obligatoires
 
-Nom de l’exercice ; accès aux catégories et zones corporelles ; zone Description ; zone Média ; carte Paramètres vide ou résumée ; action Terminer dont la disponibilité suit la validité du brouillon. Après ✓ de la feuille, la carte affiche une phrase unique avec valeurs en gras, énumération jusqu’à 3 puis min/max selon [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres). La zone Paramètres entière ouvre CE-UI-10 ; aucun segment/raccourci autonome dans la phrase. Les réglages Compte à rebours et Fin se trouvent dans CE-UI-10 (D-413).
+Nom de l’exercice ; accès aux catégories et zones corporelles ; zone Description à étapes numérotées avec première invite « 1. Décrivez la première étape », puis invite « Étape suivante » ; zone Média ; carte Paramètres vide ou résumée ; action Terminer dont la disponibilité suit la validité du brouillon. Après ✓ de la feuille, la carte affiche une phrase unique avec valeurs en gras, énumération jusqu’à 3 puis min/max selon [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres). La zone Paramètres entière ouvre CE-UI-10 ; aucun segment/raccourci autonome dans la phrase. Les réglages Compte à rebours et Fin se trouvent dans CE-UI-10 (D-413).
 
 #### 9. Layout déterministe
 
@@ -751,13 +832,13 @@ Référence longue 7119:27855 :224caractères, cinq lignes/100px à largeur 324,
 
 #### 11. États de l’écran
 
-Vide, nom seul, catégorie renseignée, nom/description/média renseignés, modification existante, résumé uniforme, résumé variable Durée/Répétitions/À l’échec, bilatéral et chacun des ordres, avec et sans charge (charge commune, charges par série, RM-240), abandon confirmé/annulé, erreur de sauvegarde. Le résumé Répétitions est visible derrière 6665:24844 ; pas de vue parent dédiée actuellement. L’absence de capture ne retire pas cet état du contrat.
+Vide, nom seul, catégorie renseignée, nom/description en étapes/média renseignés, modification existante, résumé uniforme, résumé variable Durée/Répétitions/À l’échec, bilatéral et chacun des ordres, avec et sans charge (charge commune, charges par série, RM-240), abandon confirmé/annulé, erreur de sauvegarde. Le résumé Répétitions est visible derrière 6665:24844 ; pas de vue parent dédiée actuellement. L’absence de capture ne retire pas cet état du contrat.
 
 Avec/sans cadence ; phrase courte/longue, total déterminable/approximatif, suppression de cadence et retour de mode en brouillon. Les textes de démonstration de 7059/7061/7119 sont antérieurs à la grammaire finale et ne la remplacent pas.
 
 #### 12. Contrôles et interactions
 
-Toucher la zone Paramètres ouvre CE-UI-10. Aucun mot ou nombre de la phrase ne sélectionne une ligne indépendamment. ✓ applique au brouillon et régénère ; ✕ conserve le brouillon ; Terminer persiste atomiquement.
+Dans Description, Entrée ajoute l’étape numérotée suivante (D-425) ; aucun bouton « Ajouter une étape ». Le bouton ↑ ferme le clavier sans enregistrer l’Exercice (D-351 partiellement maintenue). Le traitement des étapes vides et l’application du plafond historique de 1 000 caractères à une séquence restent À CLARIFIER ; aucune valeur par étape n’est inventée. Toucher la zone Paramètres ouvre CE-UI-10. Aucun mot ou nombre de la phrase ne sélectionne une ligne indépendamment. ✓ applique au brouillon et régénère ; ✕ conserve le brouillon ; Terminer persiste atomiquement.
 
 #### 13. Gestes
 

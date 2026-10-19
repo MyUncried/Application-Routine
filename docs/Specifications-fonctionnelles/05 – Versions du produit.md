@@ -332,7 +332,7 @@ Contenu identique à la section [« Conception de planification »](03%20%E2%80%
 <a id="formats-perimetre"></a>
 ## Formats — conception cible et livraison
 
-Cette évolution documente les six formats et les départs rapides selon [Formats de séances — comportements consolidés](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#formats-de-séances--comportements-consolidés). Les six formats d’entraînement et les départs rapides appartiennent au MVP (D-378). La présence d’un écran sur Prototype MVP ne constitue ni son admission dans une tranche ni sa livraison applicative. Le moteur n’est pas encore développé ; le lot courant est exclusivement documentaire. Les preuves et périmètres PRE-3/PRE-4 restent figés. Rapports, classement, charge additionnelle, tempo et entrée Pyramide ne sont pas ajoutés au périmètre.
+Cette évolution documente les six formats et les départs rapides selon [Formats de séances — comportements consolidés](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#formats-de-séances--comportements-consolidés). Les six formats d’entraînement et les départs rapides appartiennent au MVP (D-378). Toute frame d’écran ou d’état sur la page Figma `Prototype MVP` appartient au périmètre fonctionnel MVP (D-426). Sa présence ne constitue en revanche pas une preuve de développement ou de livraison dans une tranche PRE-3/PRE-4. Le moteur n’est pas encore développé ; le lot courant est exclusivement documentaire. Les preuves et périmètres PRE-3/PRE-4 restent figés. Rapports, classement, charge additionnelle, tempo et entrée Pyramide ne sont pas ajoutés au périmètre.
 
 ## Utilisateur prioritaire du MVP
 
