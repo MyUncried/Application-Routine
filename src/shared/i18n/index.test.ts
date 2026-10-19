@@ -551,3 +551,23 @@ describe("strings — PRE-4 story 2.2", () => {
     expect(totalClauseAmount(result("lowerBound"))).toBe(`${lowerBoundPrefix}1 min 30 s`);
   });
 });
+
+describe("strings — PRE-5 story 2.4", () => {
+  it("PRE5-2.4/AC9 — clés de la Feuille : Mode, Condition d’arrêt et ses trois résultats, Nombre de séries, Type de série ; Régime retiré ; aucun « Cible », « Définie » ni « Ordre » réintroduit", () => {
+    const sheet = strings.executionParameters.sheet;
+    expect(sheet.mode).toBe("Mode");
+    expect(sheet.stopCondition).toBe("Condition d’arrêt");
+    expect(sheet.stopConditions).toEqual({ FAILURE: "À l’échec", TARGET: "À la cible", MIXED: "À la cible et à l’échec" });
+    expect(sheet.seriesCount).toBe("Nombre de séries");
+    expect(sheet.seriesType).toBe("Type de série");
+    expect(sheet.seriesTypes).toEqual({ VARIABLE: "Variables", UNIFORM: "Identiques" });
+    // NR Δ38 : le nom accessible du stepper de N reste « Séries » ; chevron du tableau inchangé.
+    expect(sheet.series).toBe("Séries");
+    expect([sheet.showTable, sheet.hideTable]).toEqual(["Afficher le tableau des séries", "Masquer le tableau des séries"]);
+    for (const removed of ["regime", "regimes", "regimeSubtitles"]) {
+      expect({ removed, present: removed in sheet }).toEqual({ removed, present: false });
+    }
+    const added = [sheet.mode, sheet.stopCondition, sheet.seriesCount, sheet.seriesType, ...Object.values(sheet.stopConditions), ...Object.values(sheet.seriesTypes)];
+    expect(added.filter((label) => /(^|\s)(Cible|Définie|Ordre)(\s|$)/u.test(label))).toEqual([]);
+  });
+});

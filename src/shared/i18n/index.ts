@@ -25,7 +25,8 @@ const executionParameters = {
     title: "Paramètres d’exécution",
     cancelAccessibilityLabel: "Annuler les paramètres",
     validateAccessibilityLabel: "Valider les paramètres",
-    mode: "Mode d’exécution",
+    // PRE-5 story 2.4 (PR-01, FR-44) : ligne « Mode » du cadre Exécution, segmenté en ligne.
+    mode: "Mode",
     // PRE-4 (story 1.1, AC22, FR-05-01) : deux Modes seulement ; « à l’échec »
     // désigne une Cible, jamais un Mode (FR-05-04) : voir `failureTarget`.
     modes: { DURATION: "Durée", REPETITIONS: "Répétitions" },
@@ -36,14 +37,16 @@ const executionParameters = {
     series: "Séries",
     seriesSingular: "série",
     seriesPlural: "séries",
-    // PRE-4 story 3.3 (FR-04-01, FR-03-09) : champ de Régime de la ligne « Séries »,
-    // qui remplace l’interrupteur « Séries variables » ; sous-titres de référence (P33).
-    regime: "Régime des séries",
-    regimes: { UNIFORM: "identiques", VARIABLE: "variables" },
-    regimeSubtitles: {
-      UNIFORM: "toutes les séries ont la même valeur",
-      VARIABLE: "chaque série a sa propre valeur",
-    },
+    // PRE-5 story 2.4 (PR-01, FR-26, FR-27, FR-44, NR Δ38) : ligne du stepper « Nombre de
+    // séries » (son nom accessible reste `series`), ligne « Type de série » (Variables à
+    // gauche avec son chevron, Identiques à droite) et ligne « Condition d’arrêt » (À l’échec
+    // à gauche, À la cible à droite ; résultat dérivé mixte en variables, FR-20). Le Régime
+    // de PRE-4 (champ, panneau et sous-titres) est retiré.
+    seriesCount: "Nombre de séries",
+    seriesType: "Type de série",
+    seriesTypes: { VARIABLE: "Variables", UNIFORM: "Identiques" },
+    stopCondition: "Condition d’arrêt",
+    stopConditions: { FAILURE: "À l’échec", TARGET: "À la cible", MIXED: "À la cible et à l’échec" },
     showTable: "Afficher le tableau des séries",
     hideTable: "Masquer le tableau des séries",
     // PRE-4 story 3.3 (AC8) : action accessible qui range un champ ± ouvert.

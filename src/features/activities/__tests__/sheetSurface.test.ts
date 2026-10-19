@@ -24,10 +24,8 @@ import {
  * T23 et T24 (une ligne de la table par test, attendus littéraux).
  */
 
-const MODE: SheetSurface = { kind: "popover", popover: "mode" };
 const SIDE: SheetSurface = { kind: "popover", popover: "side" };
 const ORDER: SheetSurface = { kind: "popover", popover: "order" };
-const REGIME: SheetSurface = { kind: "popover", popover: "regime" };
 const TARGET: SheetSurface = { kind: "selector", selector: "commonTarget" };
 const TOTAL: SheetSurface = { kind: "selector", selector: "total" };
 const COUNT: SheetSurface = { kind: "stepper", field: "count" };
@@ -44,20 +42,20 @@ describe("PRE4-3.3 — réducteur de surface (AD-15)", () => {
   });
 
   it("PRE4-3.3/AC7 — T15, T24, T16 : rien d'ouvert, toucher un champ ouvre sa surface avec une nouvelle clé", () => {
-    expect(run(touch(REGIME)).open).toEqual({ kind: "popover", popover: "regime", key: 1 });
+    expect(run(touch(ORDER)).open).toEqual({ kind: "popover", popover: "order", key: 1 });
     expect(run(touch(TOTAL)).open).toEqual({ kind: "selector", selector: "total", key: 1 });
     expect(run(touch(BEEP)).open).toEqual({ kind: "stepper", field: "beep", key: 1 });
   });
 
   it("PRE4-3.3/AC7 — second toucher sur le champ de la surface ouverte : fermeture, sans réouverture", () => {
-    expect(run(touch(MODE), touch(MODE)).open).toEqual({ kind: "none" });
+    expect(run(touch(SIDE), touch(SIDE)).open).toEqual({ kind: "none" });
     expect(run(touch(PAUSE), touch(PAUSE)).open).toEqual({ kind: "none" });
   });
 
   it("PRE4-3.3/AC8 — T10 : popover ou Sélecteur ouvert, toucher une autre valeur ferme sans ouvrir le champ touché", () => {
     expect(run(touch(SIDE), touch(BEEP)).open).toEqual({ kind: "none" });
     expect(run(touch(TARGET), touch(COUNT)).open).toEqual({ kind: "none" });
-    expect(run(touch(MODE), touch(REGIME)).open).toEqual({ kind: "none" });
+    expect(run(touch(SIDE), touch(ORDER)).open).toEqual({ kind: "none" });
     // Le geste suivant ouvre normalement.
     expect(run(touch(SIDE), touch(BEEP), touch(BEEP)).open).toEqual({ kind: "stepper", field: "beep", key: 2 });
   });
@@ -76,7 +74,7 @@ describe("PRE4-3.3 — réducteur de surface (AD-15)", () => {
   it("PRE4-3.3/AC8 — T22 : les ± ne déclenchent aucun événement de surface ; le champ reste ouvert, même clé, y compris après le − de N", () => {
     // Un pas ± ne modifie que le Brouillon ; seule la règle de N = 1 émet `prune`, qui ne vise
     // jamais un champ ± : le champ de N reste ouvert avec sa clé.
-    const state = run(touch(COUNT), { type: "prune", removed: [ORDER, REGIME] });
+    const state = run(touch(COUNT), { type: "prune", removed: [ORDER] });
     expect(state.open).toEqual({ kind: "stepper", field: "count", key: 1 });
   });
 
@@ -87,14 +85,14 @@ describe("PRE4-3.3 — réducteur de surface (AD-15)", () => {
   });
 
   it("PRE4-3.3/AC7 — T7, T17, T25, T26 : fermeture par la clé de la surface ouverte", () => {
-    const opened = run(touch(MODE));
+    const opened = run(touch(TARGET));
     expect(sheetSurfaceReducer(opened, { type: "close", key: 1 }).open).toEqual({ kind: "none" });
   });
 
   it("PRE4-3.3/AC7 — T8 : rappel tardif d'une autre clé, ou alors que rien n'est ouvert, ignoré", () => {
-    const newer = run(touch(MODE), { type: "close", key: 1 }, touch(SIDE));
+    const newer = run(touch(TARGET), { type: "close", key: 1 }, touch(SIDE));
     expect(sheetSurfaceReducer(newer, { type: "close", key: 1 })).toBe(newer);
-    const none = run(touch(MODE), { type: "close", key: 1 });
+    const none = run(touch(TARGET), { type: "close", key: 1 });
     expect(sheetSurfaceReducer(none, { type: "close", key: 1 })).toBe(none);
   });
 
@@ -105,10 +103,9 @@ describe("PRE4-3.3 — réducteur de surface (AD-15)", () => {
     expect(sheetSurfaceReducer(choosing, { type: "closed", key: 7 })).toBe(choosing);
   });
 
-  it("PRE4-3.3/AC5 — Q38 : un popover d'Ordre (ou de Régime) ouvert se ferme quand N passe à 1 ; une autre surface reste", () => {
-    expect(run(touch(ORDER), { type: "prune", removed: [ORDER, REGIME] }).open).toEqual({ kind: "none" });
-    expect(run(touch(REGIME), { type: "prune", removed: [ORDER, REGIME] }).open).toEqual({ kind: "none" });
-    expect(run(touch(SIDE), { type: "prune", removed: [ORDER, REGIME] }).open).toEqual({ kind: "popover", popover: "side", key: 1 });
+  it("PRE4-3.3/AC5 — Q38 : un popover d’Ordre ouvert se ferme quand N passe à 1 ; une autre surface reste", () => {
+    expect(run(touch(ORDER), { type: "prune", removed: [ORDER] }).open).toEqual({ kind: "none" });
+    expect(run(touch(SIDE), { type: "prune", removed: [ORDER] }).open).toEqual({ kind: "popover", popover: "side", key: 1 });
   });
 
   it("PRE4-3.3/AC7 — T14, T19 et sélection du tableau (Q40) : tout fermer sans appliquer", () => {
@@ -117,7 +114,7 @@ describe("PRE4-3.3 — réducteur de surface (AD-15)", () => {
   });
 
   it("PRE4-3.3/AC7 — clés strictement croissantes ; `sameSurface` ignore la clé", () => {
-    const state = run(touch(MODE), touch(MODE), touch(SIDE), touch(SIDE), touch(BEEP));
+    const state = run(touch(TARGET), touch(TARGET), touch(SIDE), touch(SIDE), touch(BEEP));
     expect(state.open).toEqual({ kind: "stepper", field: "beep", key: 3 });
     expect(sameSurface(state.open, BEEP)).toBe(true);
     expect(sameSurface(state.open, PAUSE)).toBe(false);
@@ -176,7 +173,7 @@ describe("PRE4-3.6 — table de transitions d'AD-15 avec le Sélecteur de ligne 
   it("PRE4-3.6/T10 — Sélecteur de ligne ouvert : toucher une autre valeur ou un autre champ ferme sans appliquer, sans rien ouvrir", () => {
     expect(run(touch(ROW(2)), touch(ROW(3)))).toEqual({ open: NONE, closingKey: null, generation: 1 });
     expect(run(touch(ROW(2)), touch(COUNT))).toEqual({ open: NONE, closingKey: null, generation: 1 });
-    expect(run(touch(MODE), touch(ROW(2))).open).toEqual(NONE);
+    expect(run(touch(SIDE), touch(ROW(2))).open).toEqual(NONE);
     expect(run(touch(TARGET), touch(ROW(2))).open).toEqual(NONE);
   });
 
@@ -192,7 +189,7 @@ describe("PRE4-3.6 — table de transitions d'AD-15 avec le Sélecteur de ligne 
 
   it("PRE4-3.6/T15 — ouverture d'un popover : rien d'ouvert ou champ ± ouvert", () => {
     expect(run(touch(SIDE)).open).toEqual({ kind: "popover", popover: "side", key: 1 });
-    expect(run(touch(COUNT), touch(REGIME)).open).toEqual({ kind: "popover", popover: "regime", key: 2 });
+    expect(run(touch(COUNT), touch(ORDER)).open).toEqual({ kind: "popover", popover: "order", key: 2 });
   });
 
   it("PRE4-3.6/T16 — ouverture d'un champ ± hors tableau", () => {
@@ -200,14 +197,14 @@ describe("PRE4-3.6 — table de transitions d'AD-15 avec le Sélecteur de ligne 
   });
 
   it("PRE4-3.6/T17 — choix dans un popover : appliqué puis fermé (cadre D-4)", () => {
-    expect(run(touch(REGIME), { type: "choose", key: 1 }, { type: "closed", key: 1 })).toEqual({ open: NONE, closingKey: null, generation: 1 });
+    expect(run(touch(ORDER), { type: "choose", key: 1 }, { type: "closed", key: 1 })).toEqual({ open: NONE, closingKey: null, generation: 1 });
   });
 
   it("PRE4-3.6/T18 — croix active seulement sans surface ni champ ± ouvert ; le réordonnancement (glisser, action accessible) range l'outil ouvert dans le même geste (`closeAll` par `selectTable`), puis déplace la ligne", () => {
     expect(removalEnabled(INITIAL_SHEET_SURFACE_STATE)).toBe(true);
     expect(removalEnabled(run(touch(BEEP)))).toBe(false);
     expect(removalEnabled(run(touch(ROW(2))))).toBe(false);
-    expect(removalEnabled(run(touch(MODE)))).toBe(false);
+    expect(removalEnabled(run(touch(TARGET)))).toBe(false);
     // Saisir la poignée, champ ± ouvert : l'outil est rangé, la ligne se déplace ensuite.
     expect(run(touch(BEEP), { type: "closeAll" })).toEqual({ open: NONE, closingKey: null, generation: 1 });
   });
@@ -286,7 +283,7 @@ describe("PRE4-3.6 — table de transitions d'AD-15 avec le Sélecteur de ligne 
 
 describe("PRE4-3.8 — ✓ et ✕ de la Feuille avec une surface ouverte (AD-15 T10, T19 ; FR-22-11)", () => {
   it("PRE4-3.8/AC5 — popover, panneau ou roue ouvert : ✓ et ✕ de la Feuille absorbés ; rien d'ouvert, champ ± ouvert ou cadre D-4 d'un choix appliqué : non absorbés", () => {
-    for (const surface of [MODE, SIDE, ORDER, REGIME, TARGET, TOTAL, { kind: "selector", selector: "rowTarget", row: 2 } as const]) {
+    for (const surface of [SIDE, ORDER, TARGET, TOTAL, { kind: "selector", selector: "rowTarget", row: 2 } as const]) {
       expect({ surface, absorbed: sheetCommandsAbsorbed(run(touch(surface))) }).toEqual({ surface, absorbed: true });
     }
     expect(sheetCommandsAbsorbed(INITIAL_SHEET_SURFACE_STATE)).toBe(false);
@@ -295,5 +292,17 @@ describe("PRE4-3.8 — ✓ et ✕ de la Feuille avec une surface ouverte (AD-15 
     expect(sheetCommandsAbsorbed(run(touch(SIDE), { type: "choose", key: 1 }))).toBe(false);
     // Fermeture explicite : plus rien n'est absorbé.
     expect(sheetCommandsAbsorbed(run(touch(TARGET), { type: "closeAll" }))).toBe(false);
+  });
+});
+
+describe("PRE5-2.4 — surfaces du Mode et du Régime retirées (AD-27)", () => {
+  it("PRE5-2.4/AC3, AC7 — `popover` ne désigne plus que le Changement de côté et l'Ordre ; le Mode et le Type de série sont des segmentés en ligne, sans surface", () => {
+    // @ts-expect-error — `popover(mode)` est retirée (AC3).
+    const mode: SheetSurface = { kind: "popover", popover: "mode" };
+    // @ts-expect-error — `popover(regime)` est retirée (AC7).
+    const regime: SheetSurface = { kind: "popover", popover: "regime" };
+    expect([mode, regime]).toHaveLength(2);
+    expect(run(touch(SIDE), touch(ORDER)).open).toEqual({ kind: "none" });
+    expect(run(touch(ORDER)).open).toEqual({ kind: "popover", popover: "order", key: 1 });
   });
 });

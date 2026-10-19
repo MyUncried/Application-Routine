@@ -611,9 +611,11 @@ describe("ActivityEditorForm — PRE-4 story 1.1", () => {
     // Story 4.2 (Q23, AC14) : plus de bouton de Mode à côté du titre ; le Mode se lit dans la Feuille.
     expect(screen.queryByTestId("exercise-parameters-mode")).toBeNull();
     fireEvent.press(screen.getByTestId("exercise-parameters-card"));
-    expect(screen.getByTestId("execution-sheet-mode-value-text").props.children).toBe("Répétitions");
-    // Story 3.5 : « à l’échec » dans la pastille de la Cible commune.
-    expect(screen.getByTestId("execution-sheet-target-value-text").props.children).toBe("à l’échec");
+    // PRE-5 story 2.4 : le Mode est un segmenté en ligne ; l'option affichée est sélectionnée.
+    expect(screen.getByTestId("execution-sheet-mode-control-REPETITIONS").props.accessibilityState).toMatchObject({ selected: true });
+    // PRE-5 story 2.4 (FR-21) : à l'échec, la Condition d'arrêt l'indique et la ligne de cible est masquée.
+    expect(screen.getByTestId("execution-sheet-stop-condition-control-FAILURE").props.accessibilityState).toMatchObject({ selected: true });
+    expect(screen.queryByTestId("execution-sheet-row-target")).toBeNull();
   });
 
   it("PRE4-1.1/AC23 — Cible à renseigner héritée : carte « Paramètres à compléter. », Terminer invalide ; une Cible réglée par la commande existante est enregistrée en NUMBER, jamais FAILURE", () => {
@@ -1222,9 +1224,10 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
       expect(within(section).queryByText(/^(Durée|Répétitions)$/u)).toBeNull();
       if (executionParameters.mode !== null) {
         fireEvent.press(screen.getByTestId("exercise-parameters-card"));
-        expect(screen.getByTestId("execution-sheet-mode-value-text").props.children).toBe(
-          executionParameters.mode === "DURATION" ? "Durée" : "Répétitions",
-        );
+        // PRE-5 story 2.4 : segmenté du Mode en ligne, option du Mode courant sélectionnée.
+        expect(screen.getByTestId(`execution-sheet-mode-control-${executionParameters.mode}`).props.accessibilityState).toMatchObject({
+          selected: true,
+        });
       }
       view.unmount();
     }

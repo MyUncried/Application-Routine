@@ -1,12 +1,3 @@
-import {
-  Button as SwiftUIButton,
-  Divider as SwiftUIDivider,
-  Host,
-  Popover,
-  Spacer,
-  VStack,
-} from "@expo/ui/swift-ui";
-import { accessibilityAddTraits, frame, padding } from "@expo/ui/swift-ui/modifiers";
 import { Fragment, useEffect, useReducer, useRef, useState, type ReactNode } from "react";
 import {
   AccessibilityInfo,
@@ -31,6 +22,7 @@ import {
   selectorOpeningPosition,
   seriesRowsOf,
   stepTarget,
+  stopConditionOf,
   unsetTarget,
   type ExecutionMode,
   type ExecutionParameters,
@@ -58,11 +50,13 @@ import {
   setSideMode,
   setSideOrder,
   setSideRecovery,
+  setStopCondition,
   setUniformPause,
   setUniformTarget,
   setVariable,
   undoRemoval,
   type ExecutionSheetDraft,
+  type StopConditionChoice,
 } from "@/domain/activities/ExecutionParametersDraft";
 import {
   computeIntrinsicDuration,
@@ -93,7 +87,6 @@ import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
 import { WHEEL_TOTAL_DURATION_SECONDS_MAX } from "@/features/sessions/wheelPickerMath";
 import { strings } from "@/shared/i18n";
-import { DisclosureControl } from "@/shared/ui/DisclosureControl";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import {
   EXECUTION_ACCELERATED_HOLD_POLICY,
@@ -102,7 +95,7 @@ import {
   type InlineStepperProps,
 } from "@/shared/ui/ProfileStepper";
 import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
-import { SegmentedControl } from "@/shared/ui/SegmentedControl";
+import { INLINE_OPTION_WIDTHS, SegmentedControl } from "@/shared/ui/SegmentedControl";
 import { TRANSIENT_NOTIFICATION_DURATION_MS } from "@/shared/ui/TransientNotification";
 import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
@@ -158,6 +151,19 @@ import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@
  * - croix de retrait (`removeRow`) active seulement sans surface ni champ ± ouvert, puis
  *   « Série supprimée — Annuler » par le message d'ajustement existant (`undoRemoval`, Q29) ;
  * - glisser PRE-3 (`DraggableRow`) et actions accessibles monter / descendre inchangés.
+ *
+ * PRE-5 story 2.4 (AD-23, AD-24, AD-27, AD-28 ; FR-19 à FR-22, FR-26 à FR-28, FR-32) :
+ * - quatre cadres gris (`SheetMotionView`) : Exécution (Mode, Condition d'arrêt) ;
+ *   Séries (Nombre de séries, Type de série et tableau, Durée ou Répétitions, Pause) ;
+ *   Côtés ; Cadence et durée. Les panneaux sont placés par une seule fonction
+ *   (`anchorTop` : y du cadre + y dans le cadre) et rendus hors des cadres ;
+ * - Mode, Condition d'arrêt et Type de série sont des segmentés `inline` : plus de
+ *   popover natif du Mode ni de panneau du Régime (`popover(mode | regime)` retirées) ;
+ * - Condition d'arrêt : segmenté en identiques (`setStopCondition`), résultat dérivé
+ *   en lecture seule en variables (`stopConditionOf`, seule autorité) ; à l'échec, la
+ *   ligne de cible est masquée ; les roues de la Cible commune n'offrent plus
+ *   « À l'échec », celle d'une cellule variable la garde en tête (Q8) ;
+ * - stepper « Nombre de séries » de PRE-4 inchangé (NR Δ38), seule sa ligne change.
  */
 export type ExecutionParametersSheetProps = {
   readonly parent: ExecutionParametersInput;
@@ -171,14 +177,12 @@ export type ExecutionParametersSheetProps = {
 
 const t = strings.executionParameters.sheet;
 
-/** Régime des séries affiché par le champ de la ligne `Séries` (FR-04-01) ; le Brouillon garde son booléen `variable`. */
-type Regime = "UNIFORM" | "VARIABLE";
+/** Type de série affiché par la ligne « Type de série » (FR-27) ; le Brouillon garde son booléen `variable`. */
+type SeriesType = "VARIABLE" | "UNIFORM";
 
 /** Surfaces de la Feuille (AD-15). */
-const MODE_POPOVER: SheetSurface = { kind: "popover", popover: "mode" };
 const SIDE_POPOVER: SheetSurface = { kind: "popover", popover: "side" };
 const ORDER_POPOVER: SheetSurface = { kind: "popover", popover: "order" };
-const REGIME_POPOVER: SheetSurface = { kind: "popover", popover: "regime" };
 const TARGET_SELECTOR: SheetSurface = { kind: "selector", selector: "commonTarget" };
 const TOTAL_SELECTOR: SheetSurface = { kind: "selector", selector: "total" };
 const stepperSurface = (field: SheetStepperField): SheetSurface => ({ kind: "stepper", field });
@@ -278,136 +282,6 @@ function ClosingSelector({
 }
 
 /**
- * PRE-4 story 3.1 (S0, AD-7, FR-03-10, FR-03-11) — prototype de faisabilité,
- * iOS seulement : `Popover` SwiftUI de `@expo/ui` 57.0.13 rendu dans un
- * `Host` placé dans le `ScrollView` de la Feuille (la `Modal` en fondu est
- * conservée).
- *
- * Pastille hors SwiftUI : la pastille de valeur existante (`ValuePill`) est
- * rendue comme un élément React Native ordinaire de la `Row`, avec le même
- * centrage vertical que sur Android ; son `onPress` bascule l'ouverture. Le
- * `Popover` n'est piloté que par `isPresented` : son déclencheur n'est qu'une
- * ancre. Cette ancre est un `Host` superposé à la pastille, de même taille
- * (conteneur `StyleSheet.absoluteFill`, `pointerEvents="none"` : aucun toucher
- * ne lui parvient, tous atteignent la pastille), dont `Popover.Trigger` est un
- * `Spacer` SwiftUI transparent étendu à tout le `Host` (`frame` maximal). Une
- * première version hébergeait la pastille par `RNHostView` dans
- * `Popover.Trigger` : sur iPhone, son toucher ne passait pas et le double
- * hébergement à taille calculée la décentrait dans la ligne.
- *
- * La bulle est ancrée aux bornes de la pastille et suit le défilement de la
- * ligne. Le système choisit la flèche (`arrowEdge` par défaut)
- * ; `@expo/ui` force `presentationCompactAdaptation(.popover)`, sans quoi
- * l'iPhone la présenterait en feuille.
- *
- * Fermeture par appui extérieur (FR-03-10, P9) : SwiftUI émet
- * `onIsPresentedChange(false)` ; `onDismiss` ferme sans rien appliquer.
- *
- * Contenu : toujours monté, y compris pendant l'animation de fermeture, et
- * remonté à chaque ouverture par une clé de génération incrémentée : la
- * roulette repart ainsi de la valeur courante (Q12). À vérifier sur iPhone
- * (R-3.1-01, R-3.1-02), sans conclusion tirée de Jest : que la bulle ne se
- * vide ni ne se replie à l'ouverture ou à la fermeture, et que le remontage
- * à l'ouverture n'affecte pas son dimensionnement. Également à vérifier sur
- * iPhone : que la bulle s'ancre bien à l'ancre transparente (position, flèche),
- * que l'appui extérieur la ferme sans appliquer, que le contenu (options du
- * Mode, roulette) reste touchable malgré le `pointerEvents="none"` de l'ancre,
- * et que la pastille est de nouveau centrée sur le libellé. Aucune `Modal`, aucun
- * `Pressable` de voile ni assemblage de `ScrollView` ne s'y substitue
- * (NFR-02, NFR-03 ; test PRE4-3.1/AC6).
- *
- * Depuis Q37 (Hermann, 2026-10-17), seule la ligne « Mode d’exécution »
- * l'utilise. Depuis Q41 (E-15), la roue de « Durée d’une série », celle de la
- * Durée totale, le Changement de côté et l'Ordre des côtés s'ouvrent dans un
- * `AnchoredPanel` sans flèche, sous le champ ; le popover natif du Mode, validé,
- * est inchangé.
- */
-function NativeRowPopover({
-  isPresented,
-  onDismiss,
-  trigger,
-  children,
-  testID,
-}: {
-  isPresented: boolean;
-  onDismiss: () => void;
-  trigger: ReactNode;
-  children: ReactNode;
-  testID: string;
-}) {
-  // Génération du contenu, incrémentée à chaque ouverture (état dérivé des props).
-  const [generation, setGeneration] = useState(0);
-  const [wasPresented, setWasPresented] = useState(isPresented);
-  if (isPresented !== wasPresented) {
-    setWasPresented(isPresented);
-    if (isPresented) setGeneration((current) => current + 1);
-  }
-  return (
-    <View testID={`${testID}-frame`}>
-      {trigger}
-      <View style={StyleSheet.absoluteFill} pointerEvents="none" testID={`${testID}-anchor`}>
-        <Host style={StyleSheet.absoluteFill} testID={testID}>
-          <Popover
-            isPresented={isPresented}
-            onIsPresentedChange={(presented) => {
-              if (!presented) onDismiss();
-            }}
-            testID={`${testID}-popover`}
-          >
-            <Popover.Trigger>
-              <Spacer modifiers={[frame({ maxWidth: Infinity, maxHeight: Infinity })]} testID={`${testID}-trigger`} />
-            </Popover.Trigger>
-            <Popover.Content>
-              <Fragment key={generation}>{children}</Fragment>
-            </Popover.Content>
-          </Popover>
-        </Host>
-      </View>
-    </View>
-  );
-}
-
-/**
- * Marges internes des options du popover de Mode : valeurs PROVISOIRES du
- * prototype S0, non tirées de Figma, NON VÉRIFIABLE à ce stade ; relevées par
- * la story 3.3 sur `8328:37092` (P33).
- */
-const POPOVER_OPTION_PADDING = { top: spacing[8], bottom: spacing[8], leading: spacing[16], trailing: spacing[16] };
-
-/**
- * Story 3.1 (AC2) — contenu du popover de Mode : `Durée` puis `Répétitions`,
- * boutons SwiftUI natifs. L'option courante porte le trait `isSelected`.
- */
-function ModePopoverOptions({
-  value,
-  onChoose,
-}: {
-  value: ExecutionMode | null;
-  onChoose: (mode: ExecutionMode) => void;
-}) {
-  const options: readonly ExecutionMode[] = ["DURATION", "REPETITIONS"];
-  return (
-    <VStack spacing={0} modifiers={[padding({ top: spacing[4], bottom: spacing[4] })]}>
-      {options.map((mode, index) => (
-        <Fragment key={mode}>
-          {index > 0 ? <SwiftUIDivider /> : null}
-          <SwiftUIButton
-            label={t.modes[mode]}
-            onPress={() => onChoose(mode)}
-            modifiers={[
-              frame({ minHeight: minTouchTarget, alignment: "leading" }),
-              padding(POPOVER_OPTION_PADDING),
-              ...(value === mode ? [accessibilityAddTraits(["isSelected"])] : []),
-            ]}
-            testID={`execution-sheet-mode-option-${mode}`}
-          />
-        </Fragment>
-      ))}
-    </VStack>
-  );
-}
-
-/**
  * Recette 2 (T-15) — repère d’insertion : trait bleu Kodjo de 2 entre deux lignes,
  * à l’endroit où la Série sera déposée. Hauteur nulle dans le flux : les lignes
  * ne bougent pas.
@@ -434,13 +308,30 @@ const SIDE_ORDER_MIN_HEIGHT = 60;
 
 /**
  * Q41 : champs dont le contrôle s'ouvre, sur iOS, dans un panneau sans flèche sous le
- * champ. Q43 (story 3.3) : le Régime, par cohérence avec le Changement de côté et l'Ordre.
+ * champ. PRE-5 story 2.4 : le Régime (Type de série) n'a plus de panneau (segmenté en ligne).
  */
-type PanelControl = "uniformDuration" | "uniformRepetitions" | "sideMode" | "sideOrder" | "regime" | "total" | "rowTarget";
+type PanelControl = "uniformDuration" | "uniformRepetitions" | "sideMode" | "sideOrder" | "total" | "rowTarget";
 type Box = { readonly y: number; readonly height: number };
 const NO_BOX: Box = { y: 0, height: 0 };
 const sameBox = (box: Box | undefined, y: number, height: number) => box !== undefined && box.y === y && box.height === height;
-/** Story 3.6 : boîte du tableau (position dans le groupe « Séries », largeur des lignes). */
+/**
+ * PRE-5 story 2.4 (FR-26, AD-28) — les quatre cadres de la Feuille, dans l'ordre :
+ * Exécution ; Séries ; Côtés ; Cadence et durée.
+ */
+type SheetFrame = "execution" | "series" | "sides" | "cadence";
+const SHEET_FRAMES: readonly SheetFrame[] = ["execution", "series", "sides", "cadence"];
+/** Boîte d'un cadre dans le contenu défilant (hôte des panneaux), mesurée par `onLayout`. */
+type FrameBox = { readonly y: number; readonly height: number; readonly width: number };
+/** AD-28 : cadre de la ligne qui ouvre chaque panneau (repère unique, `anchorTop`). */
+const PANEL_FRAME: Readonly<Record<PanelControl, SheetFrame>> = {
+  uniformDuration: "series",
+  uniformRepetitions: "series",
+  sideMode: "sides",
+  sideOrder: "sides",
+  total: "cadence",
+  rowTarget: "series",
+};
+/** Story 3.6 : boîte du tableau (position dans le groupe « Type de série », largeur des lignes). */
 type TableBox = { readonly y: number; readonly width: number };
 const NO_TABLE_BOX: TableBox = { y: 0, width: 0 };
 /** Story 3.6 : boîte de la cellule de Cible dans sa ligne (même géométrie pour toutes les lignes). */
@@ -472,13 +363,12 @@ const PANEL_TEST_IDS: Readonly<Record<PanelControl, string>> = {
   uniformRepetitions: "execution-sheet-target-panel",
   sideMode: "execution-sheet-side-panel",
   sideOrder: "execution-sheet-order-panel",
-  regime: "execution-sheet-regime-panel",
   total: "execution-sheet-total-panel",
   // Story 3.6 (Q41, cohérence) : Sélecteur de la Cible d'une ligne, sous sa cellule.
   rowTarget: "execution-sheet-cell-panel",
 };
 /** Panneaux qui portent un segmenté : largeur de la ligne, fond et ombre de panneau flottant. */
-const isSegmentedPanel = (control: PanelControl) => control === "sideMode" || control === "sideOrder" || control === "regime";
+const isSegmentedPanel = (control: PanelControl) => control === "sideMode" || control === "sideOrder";
 /** Q41 : la zone de toucher extérieur couvre aussi les marges du corps défilant (`bodyContent`). */
 const PANEL_OUTSIDE_INSETS = { top: spacing[12], right: spacing[24], bottom: spacing[24], left: spacing[24] };
 
@@ -567,9 +457,9 @@ export function ExecutionParametersSheet({
   const [isTableFolded, setIsTableFolded] = useState(false);
   /**
    * Q40 (Hermann, 2026-10-17, E-14) : tableau des séries variables « sélectionné ».
-   * Vrai quand Hermann l'ouvre (passage du Régime à `variables`, dépliage par le
+   * Vrai quand Hermann l'ouvre (passage du Type de série à Variables, dépliage par le
    * chevron) ou agit dedans (cellule, ±, glisser, déplacement) ; faux dès qu'il
-   * sélectionne un autre champ hors du tableau (contrôle en place, popover du Mode,
+   * sélectionne un autre champ hors du tableau (contrôle en place, segmenté du Mode,
    * roue de la Cible commune, ± d'une ligne hors tableau) ou quand le tableau se
    * replie ou se ferme. Faux à l'ouverture de la Feuille : aucun geste encore.
    */
@@ -590,16 +480,16 @@ export function ExecutionParametersSheet({
   // interrompt le responder : la ligne n’est jamais déposée.
   const [isDraggingRow, setIsDraggingRow] = useState(false);
   // Q41 : géométrie des panneaux sans flèche (relevée à la mise en page, jamais estimée).
-  const [groupBox, setGroupBox] = useState<Box>(NO_BOX);
-  // Position du groupe « Séries » + tableau dans le groupe Paramètres (repère de la ligne Séries).
+  // PRE-5 story 2.4 (AD-28) : boîte de chaque cadre dans le contenu défilant.
+  const [frameBoxes, setFrameBoxes] = useState<Partial<Record<SheetFrame, FrameBox>>>({});
+  // Position du groupe « Type de série » + tableau dans le cadre Séries.
   const [variableGroupY, setVariableGroupY] = useState(0);
+  // Boîte de la ligne d'un champ à panneau, relative à SON cadre (`PANEL_FRAME`).
   const [rowBoxes, setRowBoxes] = useState<Partial<Record<PanelControl, Box>>>({});
   const [panelHeight, setPanelHeight] = useState<{ readonly control: PanelControl; readonly height: number } | null>(null);
   // Story 3.6 (Q41) : géométrie du tableau pour placer le Sélecteur d'une ligne sous sa cellule —
-  // largeur du groupe, boîte du tableau dans le groupe « Séries », boîte de chaque ligne
-  // (par identité) dans le tableau, boîte de la cellule de Cible dans sa ligne, largeur
-  // mesurée du panneau.
-  const [groupWidth, setGroupWidth] = useState(0);
+  // boîte du tableau dans le groupe « Type de série », boîte de chaque ligne (par identité)
+  // dans le tableau, boîte de la cellule de Cible dans sa ligne, largeur mesurée du panneau.
   const [tableBox, setTableBox] = useState<TableBox>(NO_TABLE_BOX);
   const [tableRowBoxes, setTableRowBoxes] = useState<Readonly<Record<number, Box>>>({});
   const [targetCellBoxes, setTargetCellBoxes] = useState<Readonly<Record<number, CellBox>>>({});
@@ -642,10 +532,17 @@ export function ExecutionParametersSheet({
   const single = isSingleSeries(draft);
   const bilateral = isBilateral(draft.sideMode);
   const showVariableTable = draft.variable && !single;
-  // Régime affiché : `variables` seulement à N ≥ 2 ; à N = 1, l'état effectif est uniforme (P16).
-  const regimeValue: Regime = showVariableTable ? "VARIABLE" : "UNIFORM";
+  // Type de série affiché : Variables seulement à N ≥ 2 ; à N = 1, l'état effectif est uniforme (P16).
+  const seriesTypeValue: SeriesType = showVariableTable ? "VARIABLE" : "UNIFORM";
+  // PRE-5 story 2.4 (FR-2) : avec des phases, Répétitions, À l'échec et Variables sont
+  // indisponibles (valeur réelle affichée) ; le domaine refuse d'ailleurs ces transitions.
+  const hasWorkPhases = draft.workPhases.length > 0;
+  // AD-23 : seule autorité de la Condition d'arrêt, sur l'état effectif.
+  const stopCondition = stopConditionOf(effective);
+  // FR-21 : en identiques à l'échec, la ligne de cible (Durée ou Répétitions) est masquée.
+  const uniformTargetShown = !showVariableTable && stopCondition !== "FAILURE";
   // Q40 : jamais deux surlignages — le tableau n'est pas surligné tant qu'une surface hors
-  // tableau est ouverte (par exemple le panneau du Régime pendant son cadre D-4).
+  // tableau est ouverte.
   // Story 3.6 : le Sélecteur d'une ligne est une surface DU tableau, qui reste sélectionné.
   const rowSelectorOpen = openSurface.kind === "selector" && openSurface.selector === "rowTarget";
   const tableSelected =
@@ -699,21 +596,39 @@ export function ExecutionParametersSheet({
     setAdjustment(null);
     setDraft(next);
     // Q38 : un sélecteur d'Ordre ouvert se ferme quand N passe à 1 (ligne masquée) ;
-    // il ne se rouvre pas de lui-même quand N remonte. P16 : de même pour le Régime,
-    // figé à N = 1. Un champ ± ouvert (N compris) reste ouvert (T22).
+    // il ne se rouvre pas de lui-même quand N remonte. Un champ ± ouvert (N compris)
+    // reste ouvert (T22).
     // Défense seulement : N ne change que par son champ ± ou par l'Inversion du total, et
-    // toucher l'un ou l'autre ferme d'abord tout popover ou panneau (T10) ; aucun geste
-    // nominal n'atteint donc ce cas aujourd'hui.
+    // toucher l'un ou l'autre ferme d'abord tout panneau (T10) ; aucun geste nominal
+    // n'atteint donc ce cas aujourd'hui.
     if (isSingleSeries(next)) {
-      dispatchSurface({ type: "prune", removed: [ORDER_POPOVER, REGIME_POPOVER] });
+      dispatchSurface({ type: "prune", removed: [ORDER_POPOVER] });
     }
+  }
+
+  /**
+   * PRE-5 story 2.4 : choix dans un segmenté en ligne hors du tableau (Mode, Condition
+   * d'arrêt) — appliqué tout de suite ; le tableau est désélectionné (Q40) et la surface
+   * ouverte se ferme, comme l'ancien choix en panneau. Re-choisir l'option affichée ne
+   * modifie pas le Brouillon : le message « Annuler » d'un retrait reste valable (Q29).
+   */
+  function chooseInline(next: ExecutionSheetDraft) {
+    // T10 : un panneau ou un sélecteur ouvert (Android, web : en ligne) se ferme sans
+    // appliquer ; le choix touché n'est pas appliqué.
+    if (openSurface.kind === "popover" || openSurface.kind === "selector") {
+      dispatchSurface({ type: "closeAll" });
+      return;
+    }
+    if (next === draft) setIsTableSelected(false);
+    else update(next);
+    dispatchSurface({ type: "closeAll" });
   }
 
   /**
    * Q40 — sélection unique : le tableau devient la seule sélection visible. Toute
    * surface hors tableau ouverte se referme par son mécanisme habituel (sélecteur en
-   * ligne démonté avec sa sortie animée, popover du Mode fermé, roulette fermée, champ
-   * ± rangé) ; sa ligne n'est plus surlignée. Jamais deux surlignages.
+   * ligne démonté avec sa sortie animée, roulette fermée, champ ± rangé) ; sa ligne
+   * n'est plus surlignée. Jamais deux surlignages.
    */
   function selectTable() {
     setIsTableSelected(true);
@@ -866,9 +781,6 @@ export function ExecutionParametersSheet({
     ? t.validateAccessibilityLabel
     : `${t.validateAccessibilityLabel}, ${t.validateUnavailableSuffix}`;
 
-  // Story 3.1 (S0, AD-7) : popover natif du Mode, iOS seulement. Android et web
-  // gardent le segmenté et la roulette en ligne.
-  //
   // Q41 (Hermann, 2026-10-17, recette iPhone, E-15 ; remplace la couche
   // `WheelPickerOverlay` de Q37 pour la Feuille) : sur iOS, le Changement de côté,
   // l'Ordre des côtés, la roue de « Durée d’une série » et celle de la Durée totale
@@ -878,14 +790,15 @@ export function ExecutionParametersSheet({
   // sous-titres) et `DurationWheelPicker` (roulette native SwiftUI et sa barre ✕ / ✓).
   // Un choix ou le ✓ applique au Brouillon de la Feuille ; le ✕ de la roue et un
   // toucher hors du panneau ferment sans rien appliquer. La roue, démontée à la
-  // fermeture, repart de la valeur courante à chaque ouverture (Q12). Le popover
-  // natif du Mode, validé, est inchangé. Aucune `Modal` supplémentaire, aucun
-  // `Popover` : la roue de la Durée totale n'a plus d'animation de hauteur.
-  const nativePopovers = Platform.OS === "ios";
-  const anchoredPanels = nativePopovers;
+  // fermeture, repart de la valeur courante à chaque ouverture (Q12). Aucune `Modal`
+  // supplémentaire, aucun `Popover`. Android et web gardent les contrôles en ligne.
+  // PRE-5 story 2.4 (AD-27) : le popover natif du Mode est retiré (segmenté en ligne).
+  const anchoredPanels = Platform.OS === "ios";
 
-
-  /** Q41 : boîte (position, hauteur) de la ligne d'un champ à panneau, relevée à la mise en page. */
+  /**
+   * Q41 : boîte (position, hauteur) de la ligne d'un champ à panneau, relevée à la mise
+   * en page, relative à son cadre (`PANEL_FRAME`).
+   */
   function trackRow(control: PanelControl) {
     return (event: LayoutChangeEvent) => {
       const { y, height } = event.nativeEvent.layout;
@@ -893,10 +806,24 @@ export function ExecutionParametersSheet({
     };
   }
 
-  // Story 3.4 (FR-08-02) : la roue de la Cible commune s'ouvre aussi sur une Cible à l'échec.
-  const uniformDurationAvailable = !showVariableTable && effective.mode === "DURATION";
-  // Story 3.5 (AC1) : même Sélecteur de la Cible commune en Répétitions, échec compris.
-  const uniformRepetitionsAvailable = !showVariableTable && effective.mode === "REPETITIONS";
+  /** PRE-5 story 2.4 (AD-28) : boîte d'un cadre dans le contenu défilant. */
+  function trackFrame(frame: SheetFrame) {
+    return (event: LayoutChangeEvent) => {
+      const { y, height, width } = event.nativeEvent.layout;
+      setFrameBoxes((current) => {
+        const known = current[frame];
+        return known !== undefined && known.y === y && known.height === height && known.width === width
+          ? current
+          : { ...current, [frame]: { y, height, width } };
+      });
+    };
+  }
+
+  // Story 3.4 (FR-08-02) ; PRE-5 story 2.4 (FR-21) : la roue de la Cible commune ne
+  // s'ouvre que si sa ligne est affichée (masquée à l'échec).
+  const uniformDurationAvailable = uniformTargetShown && effective.mode === "DURATION";
+  // Story 3.5 (AC1) : même Sélecteur de la Cible commune en Répétitions.
+  const uniformRepetitionsAvailable = uniformTargetShown && effective.mode === "REPETITIONS";
   // Story 3.7 (AC3, FR-14-02) : roulette seulement si l'Inversion est disponible (Durée,
   // `identiques`, Cible numérique, N libre) et le montant connu ; sinon lecture seule.
   //
@@ -936,53 +863,62 @@ export function ExecutionParametersSheet({
       ? "sideMode"
       : isOpen(ORDER_POPOVER) && bilateral && !single
         ? "sideOrder"
-        : isOpen(REGIME_POPOVER) && !single
-          ? "regime"
-          : isOpen(TARGET_SELECTOR) && uniformDurationAvailable
-            ? "uniformDuration"
-            : isOpen(TARGET_SELECTOR) && uniformRepetitionsAvailable
-              ? "uniformRepetitions"
-              : isOpen(TOTAL_SELECTOR) && totalWheelSeconds !== undefined
-                ? "total"
-                : rowSelectorOpen &&
-                    showVariableTable &&
-                    !isTableFolded &&
-                    draft.rowIds.includes(openSurface.row) &&
-                    tableRowBoxes[openSurface.row] !== undefined &&
-                    targetCellBoxes[openSurface.row] !== undefined
-                  ? "rowTarget"
-                  : null;
-  // Q41 : le panneau s'ouvre sous la ligne du champ (repère : l'hôte des panneaux, dont
-  // le groupe est le premier enfant), aligné à droite sur le champ (bord droit de la
-  // ligne, `GROUP_PADDING` avant le bord du groupe). Les segmentés gardent la largeur
-  // de la ligne (D-341) ; la roue garde sa propre largeur (330), alignée à droite.
+        : isOpen(TARGET_SELECTOR) && uniformDurationAvailable
+          ? "uniformDuration"
+          : isOpen(TARGET_SELECTOR) && uniformRepetitionsAvailable
+            ? "uniformRepetitions"
+            : isOpen(TOTAL_SELECTOR) && totalWheelSeconds !== undefined
+              ? "total"
+              : rowSelectorOpen &&
+                  showVariableTable &&
+                  !isTableFolded &&
+                  draft.rowIds.includes(openSurface.row) &&
+                  tableRowBoxes[openSurface.row] !== undefined &&
+                  targetCellBoxes[openSurface.row] !== undefined
+                ? "rowTarget"
+                : null;
+  /**
+   * PRE-5 story 2.4 (AD-28) — repère UNIQUE des panneaux, dans les coordonnées du contenu
+   * défilant (l'hôte des panneaux, dont les cadres sont les enfants directs) : y du cadre
+   * mesuré par `onLayout` + y dans ce cadre. Toute position de panneau passe par elle.
+   */
+  const anchorTop = (frame: SheetFrame, yInFrame: number) => (frameBoxes[frame]?.y ?? 0) + yInFrame;
+  // Q41 : le panneau s'ouvre sous la ligne du champ, aligné à droite sur le champ (bord
+  // droit de la ligne, `FRAME_INSET` avant le bord du cadre). Les segmentés gardent la
+  // largeur de la ligne (D-341) ; la roue garde sa propre largeur (330), alignée à droite.
   const anchorBox = panelControl === null || panelControl === "rowTarget" ? NO_BOX : (rowBoxes[panelControl] ?? NO_BOX);
-  const anchorY = panelControl === "regime" ? variableGroupY + anchorBox.y : anchorBox.y;
   // Story 3.6 (Q41, cohérence) : le Sélecteur d'une ligne s'ouvre sous SA cellule de Cible
-  // (bas de la cellule : groupe « Séries » → tableau → ligne → cellule), aligné à droite
-  // sur elle. Une roue de 330 plus large que l'espace à gauche de la cellule est ramenée
-  // dans le groupe, son bord gauche au bord des lignes (`GROUP_PADDING`) : choix
-  // d'intégration, à juger sur iPhone (R-3.6-01).
+  // (bas de la cellule : cadre Séries → groupe « Type de série » → tableau → ligne →
+  // cellule), aligné à droite sur elle. Une roue de 330 plus large que l'espace à gauche
+  // de la cellule est ramenée dans le cadre, son bord gauche au bord des lignes
+  // (`FRAME_INSET`) : choix d'intégration, à juger sur iPhone (R-3.6-01).
   // La ligne et sa cellule sont mesurées une à une (par identité) ; tant qu'une mesure manque,
   // le panneau n'est pas rendu (aucun saut en tête de tableau, voir `panelControl`).
   const cellRowBox = rowSelectorOpen ? tableRowBoxes[openSurface.row] : undefined;
   const cellBox = rowSelectorOpen ? targetCellBoxes[openSurface.row] : undefined;
-  const cellBottom = variableGroupY + tableBox.y + (cellRowBox?.y ?? 0) + (cellBox?.y ?? 0) + (cellBox?.height ?? 0);
-  const cellRight = GROUP_PADDING + Math.max(0, tableBox.width - ((cellBox?.x ?? 0) + (cellBox?.width ?? 0)));
+  const cellBottomInFrame = variableGroupY + tableBox.y + (cellRowBox?.y ?? 0) + (cellBox?.y ?? 0) + (cellBox?.height ?? 0);
+  const cellRight = FRAME_INSET + Math.max(0, tableBox.width - ((cellBox?.x ?? 0) + (cellBox?.width ?? 0)));
   // Largeur par défaut de la roue montée : Durée (`durationWidth`, 330) ; la roue Répétitions
   // à ligne de tête prend la même largeur (story 3.5, `NumberWheelPicker` avec `failureOption`).
   const rowPanelDefaultWidth = dimensions.wheelPicker.durationWidth;
   const rowPanelWidth = panelWidth !== null && panelWidth.key === openKey ? panelWidth.width : rowPanelDefaultWidth;
+  const seriesFrameWidth = frameBoxes.series?.width ?? 0;
   const rowPanelRight =
-    groupWidth > 0 ? Math.max(0, Math.min(cellRight, groupWidth - GROUP_PADDING - rowPanelWidth)) : cellRight;
-  const panelTop = panelControl === "rowTarget" ? groupBox.y + cellBottom + PANEL_GAP : groupBox.y + anchorY + anchorBox.height + PANEL_GAP;
+    seriesFrameWidth > 0 ? Math.max(0, Math.min(cellRight, seriesFrameWidth - FRAME_INSET - rowPanelWidth)) : cellRight;
+  const panelTop =
+    panelControl === null
+      ? 0
+      : panelControl === "rowTarget"
+        ? anchorTop("series", cellBottomInFrame) + PANEL_GAP
+        : anchorTop(PANEL_FRAME[panelControl], anchorBox.y + anchorBox.height) + PANEL_GAP;
   const measuredPanelHeight = panelHeight !== null && panelHeight.control === panelControl ? panelHeight.height : 0;
-  // Place sous le groupe : si le panneau dépasse le bas du contenu (Durée totale, près du
-  // bas), une réserve vide est ajoutée après le groupe, sans déplacer aucune ligne.
-  const panelRoom =
-    panelControl === null ? 0 : Math.max(0, Math.ceil(panelTop + measuredPanelHeight - (groupBox.y + groupBox.height)));
-
-  const modePopoverKey = isOpen(MODE_POPOVER) ? openKey : null;
+  // Place sous le dernier cadre : si le panneau dépasse le bas du contenu (Durée totale,
+  // près du bas), une réserve vide est ajoutée après les cadres, sans déplacer aucune ligne.
+  const framesBottom = SHEET_FRAMES.reduce((bottom, frame) => {
+    const box = frameBoxes[frame];
+    return box === undefined ? bottom : Math.max(bottom, box.y + box.height);
+  }, 0);
+  const panelRoom = panelControl === null ? 0 : Math.max(0, Math.ceil(panelTop + measuredPanelHeight - framesBottom));
 
   /**
    * AC8 (FR-03-05, FR-10-05) : valeur numérique hors tableau. Au repos, seule la valeur
@@ -999,31 +935,104 @@ export function ExecutionParametersSheet({
     />
   );
 
-  // Story 3.3 (AC6, FR-04-01, P16) : champ de Régime de la ligne `Séries` ; à N = 1, non
-  // modifiable, état uniforme, atténué (`UNSELECTED_OPACITY`, AD-11).
-  const regimeText = t.regimes[regimeValue];
-  const regimeField = (
-    <ValuePill
-      value={regimeText}
-      accessibilityLabel={single ? `${t.regime}, ${regimeText}, ${t.disabledSuffix}` : `${t.regime}, ${regimeText}`}
-      expanded={isOpen(REGIME_POPOVER)}
-      disabled={single}
-      onPress={() => toggle(REGIME_POPOVER)}
-      testID="execution-sheet-regime-value"
+  // PRE-5 story 2.4 (AC3, FR-27, R-01) : Mode en segmenté `inline`, « Répétitions | Durée »
+  // (PR-01, Figma `8328:38193`) ; `null` : aucun segment sélectionné. Avec des phases,
+  // Répétitions est indisponible et la valeur réelle reste affichée (FR-2).
+  const modeControl = (
+    <SegmentedControl<ExecutionMode>
+      variant="inline"
+      optionWidth={INLINE_OPTION_WIDTHS.wide}
+      options={[
+        { value: "REPETITIONS", label: t.modes.REPETITIONS, disabled: hasWorkPhases },
+        { value: "DURATION", label: t.modes.DURATION },
+      ]}
+      value={draft.mode}
+      onChange={(mode) => chooseInline(setMode(draft, mode))}
+      accessibilityLabel={t.mode}
+      testID="execution-sheet-mode-control"
     />
   );
 
-  const modeValueText = effective.mode === null ? t.unset : t.modes[effective.mode];
-  const modeValuePill = (
-    <ValuePill
-      value={modeValueText}
-      accessibilityLabel={`${t.mode}, ${spokenValue(modeValueText)}`}
-      expanded={isOpen(MODE_POPOVER)}
-      onPress={() => toggle(MODE_POPOVER)}
-      testID="execution-sheet-mode-value"
+  // PRE-5 story 2.4 (AC4, AC5 ; FR-19, FR-20 ; AD-23) : Condition d'arrêt. Identiques
+  // effectives → segmenté « À l'échec | À la cible » sur `stopConditionOf` (À la cible
+  // par défaut, Mode non renseigné compris), qui appelle `setStopCondition` ; avec des
+  // phases, À l'échec est indisponible. Variables → résultat dérivé, recalculé à chaque
+  // rendu, en lecture seule (violet atténué, UX-DR2) : deux options si homogène, une seule
+  // « À la cible et à l'échec » si mixte ; aucune cellule renseignée → « — », annoncé
+  // « Condition d'arrêt, aucune valeur ». Aucune validation ajoutée.
+  const stopConditionOptions = [
+    { value: "FAILURE" as const, label: t.stopConditions.FAILURE },
+    { value: "TARGET" as const, label: t.stopConditions.TARGET },
+  ];
+  const stopConditionControl = !showVariableTable ? (
+    <SegmentedControl<StopConditionChoice>
+      variant="inline"
+      optionWidth={INLINE_OPTION_WIDTHS.wide}
+      options={stopConditionOptions.map((option) => (option.value === "FAILURE" ? { ...option, disabled: hasWorkPhases } : option))}
+      value={stopCondition === "FAILURE" ? "FAILURE" : "TARGET"}
+      onChange={(condition) => chooseInline(setStopCondition(draft, condition))}
+      accessibilityLabel={t.stopCondition}
+      testID="execution-sheet-stop-condition-control"
+    />
+  ) : stopCondition === "NONE" ? (
+    <Text
+      accessible
+      accessibilityRole="text"
+      accessibilityLabel={`${t.stopCondition}, ${t.unsetSpoken}`}
+      style={styles.staticValue}
+      testID="execution-sheet-stop-condition-none"
+    >
+      {t.unset}
+    </Text>
+  ) : (
+    <SegmentedControl<StopConditionChoice | "MIXED">
+      // Instance distincte selon le nombre d'options : le cadre de sélection n'est jamais
+      // animé depuis une position hors du contrôle (deux options → une seule).
+      key={stopCondition === "MIXED" ? "mixed" : "pair"}
+      variant="inline"
+      readOnly
+      optionWidth={stopCondition === "MIXED" ? MIXED_STOP_CONDITION_WIDTH : INLINE_OPTION_WIDTHS.wide}
+      options={stopCondition === "MIXED" ? [{ value: "MIXED", label: t.stopConditions.MIXED }] : stopConditionOptions}
+      value={stopCondition}
+      onChange={ignorePress}
+      accessibilityLabel={t.stopCondition}
+      testID="execution-sheet-stop-condition-control"
     />
   );
-  // Story 3.4 (AC10, FR-06-05) : « à l’échec », « — » (fond #FFF1F0) ou la durée formatée.
+
+  // PRE-5 story 2.4 (AC7, FR-27, FR-28, R-03) : Type de série en segmenté `inline`,
+  // « Variables | Identiques ». Variables porte le chevron intérieur quand le tableau
+  // existe : haut si déployé, bas si replié ; son appui replie ou déplie sans perte (ancien
+  // `DisclosureControl`). À N = 1, non modifiable (P16) : lecture seule atténuée. Avec des
+  // phases, Variables est indisponible (FR-2).
+  const seriesTypeControl = (
+    <SegmentedControl<SeriesType>
+      variant="inline"
+      optionWidth={INLINE_OPTION_WIDTHS.wide}
+      readOnly={single}
+      options={[
+        {
+          value: "VARIABLE",
+          label: t.seriesTypes.VARIABLE,
+          disabled: hasWorkPhases,
+          chevron: showVariableTable ? (isTableFolded ? "down" : "up") : undefined,
+          chevronAccessibilityLabel: isTableFolded ? t.showTable : t.hideTable,
+        },
+        {
+          value: "UNIFORM",
+          label: t.seriesTypes.UNIFORM,
+          accessibilityLabel: single ? `${t.seriesTypes.UNIFORM}, ${t.disabledSuffix}` : undefined,
+        },
+      ]}
+      value={seriesTypeValue}
+      onChange={chooseSeriesType}
+      onChevronPress={toggleTable}
+      accessibilityLabel={t.seriesType}
+      testID="execution-sheet-series-type-control"
+    />
+  );
+  // Story 3.4 (AC10, FR-06-05) : « — » (fond #FFF1F0) ou la durée formatée ; PRE-5 story
+  // 2.4 (FR-21) : à l'échec, la ligne est masquée (le texte « à l’échec » reste une défense).
   const uniformDurationText =
     effectiveFirst.target.kind === "FAILURE" ? t.failureTarget : secondsLabel(targetNumber(effectiveFirst.target));
   const uniformDurationPill = (
@@ -1046,23 +1055,31 @@ export function ExecutionParametersSheet({
   //
   // Story 3.6 (Q13, AD-7) : la même roue sert au Sélecteur d'une ligne du tableau ; seul
   // le dispatch au ✓ diffère (`apply`). ✓ et ✕ ferment par `close` (T5, T6, T25, T26).
-  const durationTargetWheel = (target: SeriesTarget, apply: (chosen: SeriesTarget) => void, context?: string) => {
+  //
+  // PRE-5 story 2.4 (AC6, FR-22, R-09, R-10) : `cellContext` présent = roue d'une cellule
+  // variable, seule à garder l'option « À l'échec » en tête (Q8) ; la roue de la Cible
+  // commune n'en a plus (en identiques, `FAILURE` n'est écrit que par la Condition d'arrêt).
+  const durationTargetWheel = (target: SeriesTarget, apply: (chosen: SeriesTarget) => void, cellContext?: string) => {
     const wheelLabels = strings.screens.exercise.wheelPicker;
     // Story 3.6 (AC13) : la roue d'une ligne porte son contexte (« Série n, Durée, … »), comme la roue Répétitions.
-    const withContext = (label: string) => (context === undefined ? label : `${context}, ${label}`);
+    const withContext = (label: string) => (cellContext === undefined ? label : `${cellContext}, ${label}`);
     const opening = selectorOpeningPosition("DURATION", target);
     return (
       <DurationWheelPicker
         totalSeconds={opening.kind === "NUMBER" ? opening.value : 0}
         targetBounds={EXECUTION_BOUNDS.durationTarget}
-        failureOption={{
-          label: t.durationFailureOption,
-          initiallySelected: opening.kind === "FAILURE",
-          onValidateFailure: (chosen) => {
-            closeSurface(openKey);
-            apply(chosen);
-          },
-        }}
+        failureOption={
+          cellContext === undefined
+            ? undefined
+            : {
+                label: t.durationFailureOption,
+                initiallySelected: opening.kind === "FAILURE",
+                onValidateFailure: (chosen) => {
+                  closeSurface(openKey);
+                  apply(chosen);
+                },
+              }
+        }
         onValidate={(seconds) => {
           closeSurface(openKey);
           apply(numberTarget(seconds));
@@ -1097,12 +1114,32 @@ export function ExecutionParametersSheet({
     />
   );
   // Story 3.6 (Q13) : même roue pour le Sélecteur d'une ligne du tableau (`apply` seul diffère).
-  const repetitionsTargetWheel = (target: SeriesTarget, apply: (chosen: SeriesTarget) => void, accessibilityLabel: string) => {
+  // PRE-5 story 2.4 (AC6, FR-22) : ligne de tête « Aucune répétition, à l’échec » pour la
+  // seule roue d'une cellule variable (`withFailureOption`), jamais pour la Cible commune.
+  const repetitionsTargetWheel = (
+    target: SeriesTarget,
+    apply: (chosen: SeriesTarget) => void,
+    accessibilityLabel: string,
+    withFailureOption: boolean,
+  ) => {
     const opening = selectorOpeningPosition("REPETITIONS", target);
-    return (
+    const wheel = {
+      value: opening.kind === "NUMBER" ? opening.value : EXECUTION_BOUNDS.repetitionTarget.min,
+      targetBounds: EXECUTION_BOUNDS.repetitionTarget,
+      onValidate: (value: number) => {
+        closeSurface(openKey);
+        apply(numberTarget(value));
+      },
+      onCancel: () => closeSurface(openKey),
+      valueAccessibilityLabel: repetitionsSpoken,
+      accessibilityLabel,
+      cancelAccessibilityLabel: strings.screens.exercise.wheelPicker.cancelAccessibilityLabel,
+      validateAccessibilityLabel: strings.screens.exercise.wheelPicker.validateAccessibilityLabel,
+      testID: "execution-sheet-repetitions-wheel",
+    };
+    return withFailureOption ? (
       <NumberWheelPicker
-        value={opening.kind === "NUMBER" ? opening.value : EXECUTION_BOUNDS.repetitionTarget.min}
-        targetBounds={EXECUTION_BOUNDS.repetitionTarget}
+        {...wheel}
         failureOption={{
           label: t.repetitionsFailureOption,
           initiallySelected: opening.kind === "FAILURE",
@@ -1111,27 +1148,21 @@ export function ExecutionParametersSheet({
             apply(chosen);
           },
         }}
-        onValidate={(value) => {
-          closeSurface(openKey);
-          apply(numberTarget(value));
-        }}
-        onCancel={() => closeSurface(openKey)}
-        valueAccessibilityLabel={repetitionsSpoken}
-        accessibilityLabel={accessibilityLabel}
-        cancelAccessibilityLabel={strings.screens.exercise.wheelPicker.cancelAccessibilityLabel}
-        validateAccessibilityLabel={strings.screens.exercise.wheelPicker.validateAccessibilityLabel}
-        testID="execution-sheet-repetitions-wheel"
       />
+    ) : (
+      <NumberWheelPicker {...wheel} />
     );
   };
   // Calculés seulement quand la ligne Répétitions est affichée (comme `totalWheel`).
   const uniformRepetitionsWheel = uniformRepetitionsAvailable
-    ? repetitionsTargetWheel(effectiveFirst.target, (chosen) => update(setUniformTarget(draft, chosen)), t.repetitionsTarget)
+    ? repetitionsTargetWheel(effectiveFirst.target, (chosen) => update(setUniformTarget(draft, chosen)), t.repetitionsTarget, false)
     : null;
 
   // Story 3.6 (FR-10-03, Q13, Q21, Q25, Q41) : Sélecteur d'une ligne du tableau — la roue de
   // la story 3.4 (Durée) ou 3.5 (Répétitions), ouverte sur `selectorOpeningPosition` de la
   // Cible de SA ligne ; ✓ remplace la seule Cible de cette ligne (T5), ✕ ne change rien (T6).
+  // PRE-5 story 2.4 (AC6) : l'option « À l'échec » en tête est conservée (Q8) ; le choix ne
+  // s'applique qu'à la série éditée et le résultat dérivé de la Condition d'arrêt suit.
   const rowSelectorIndex = rowSelectorOpen ? draft.rowIds.indexOf(openSurface.row) : -1;
   const rowSelectorRow = rowSelectorIndex >= 0 && showVariableTable && !isTableFolded ? draft.rows[rowSelectorIndex] : undefined;
   const applyRowTarget = (chosen: SeriesTarget) => updateInTable(setRowTarget(draft, rowSelectorIndex, chosen));
@@ -1148,6 +1179,7 @@ export function ExecutionParametersSheet({
             rowSelectorRow.target,
             applyRowTarget,
             t.rowTarget.replace("{n}", String(rowSelectorIndex + 1)).replace("{field}", t.columns.REPETITIONS),
+            true,
           );
   // Story 3.7 (AC4, FR-14-03, H8) : bornes `totalBounds` (voir leur calcul), par la prop
   // `targetBounds` existante de la roulette (story 3.4) : minutes de T(1) à T(99), aucune
@@ -1223,48 +1255,41 @@ export function ExecutionParametersSheet({
       />
     </ClosingSelector>
   );
-  // Story 3.3 (FR-04-01, Q43) : Régime des séries — `identiques` / `variables` avec leurs
-  // sous-titres de référence ; même segmenté accepté et même contrat D-4 que l'Ordre.
-  // Le choix passe par `setVariable` (Brouillon, story 3.2), inchangé.
-  const regimeSelector = (presentation: "inline" | "panel") => (
-    <ClosingSelector
-      closing={isClosing(REGIME_POPOVER)}
-      reduceMotion={reduceMotion}
-      onClosed={() => handleSelectorClosed(openKey)}
-      presentation={presentation}
-      testID="execution-sheet-regime-selector"
-    >
-      <SegmentedControl<Regime>
-        variant="parameters"
-        labelStyle={type.body}
-        minHeight={SIDE_ORDER_MIN_HEIGHT}
-        options={(["UNIFORM", "VARIABLE"] as const).map((regime) => ({
-          value: regime,
-          label: t.regimes[regime],
-          subtitle: t.regimeSubtitles[regime],
-          accessibilityLabel: `${t.regimes[regime]}, ${t.regimeSubtitles[regime]}`,
-        }))}
-        value={regimeValue}
-        onChange={(regime) => {
-          const variable = regime === "VARIABLE";
-          // Seul un passage effectif change le Brouillon et l'affichage : re-choisir
-          // `variables`, tableau replié, le laisse replié.
-          if (variable !== (regimeValue === "VARIABLE")) {
-            // Recette 1 (A-01) : passer en `variables` présente le tableau déployé ; les
-            // données restent celles du Brouillon.
-            if (variable) setIsTableFolded(false);
-            update(setVariable(draft, variable));
-            // Q40 : passer en `variables` ouvre le tableau sélectionné ; son fond n'apparaît
-            // qu'une fois le panneau du Régime refermé (`tableSelected`, sélection unique).
-            if (variable) setIsTableSelected(true);
-          }
-          closeAfterChoice(openKey);
-        }}
-        accessibilityLabel={t.regime}
-        testID="execution-sheet-regime-control"
-      />
-    </ClosingSelector>
-  );
+  // PRE-5 story 2.4 (AC7, FR-04-01 de PRE-4) : choix du Type de série — même logique que
+  // l'ancien panneau du Régime, sans cadre D-4 : le choix passe par `setVariable` (Brouillon,
+  // inchangé) et ferme la surface ouverte.
+  function chooseSeriesType(seriesType: SeriesType) {
+    // T10 : panneau ou sélecteur ouvert — fermeture sans appliquer.
+    if (openSurface.kind === "popover" || openSurface.kind === "selector") {
+      dispatchSurface({ type: "closeAll" });
+      return;
+    }
+    const variable = seriesType === "VARIABLE";
+    // Seul un passage effectif change le Brouillon et l'affichage : re-choisir Variables,
+    // tableau replié, le laisse replié.
+    if (variable !== (seriesTypeValue === "VARIABLE")) {
+      // Recette 1 (A-01) : passer en Variables présente le tableau déployé ; les données
+      // restent celles du Brouillon.
+      if (variable) setIsTableFolded(false);
+      update(setVariable(draft, variable));
+      // Q40 : passer en Variables ouvre le tableau sélectionné.
+      if (variable) setIsTableSelected(true);
+    }
+    dispatchSurface({ type: "closeAll" });
+  }
+
+  // PRE-5 story 2.4 (AC7, FR-28) : chevron de Variables — reprend l'ancien
+  // `DisclosureControl` : replier ou déplier sans perte de valeurs ni de mode.
+  function toggleTable() {
+    // Q40 : déplier sélectionne le tableau ; replier le désélectionne.
+    // T14 : toute surface ouverte (champ ± compris) est rangée.
+    if (isTableFolded) selectTable();
+    else {
+      setIsTableSelected(false);
+      dispatchSurface({ type: "closeAll" });
+    }
+    setIsTableFolded(!isTableFolded);
+  }
 
   // D-5 : toucher le message le ferme SANS annuler l’ajustement ; seul « Annuler » (cadre
   // clair sur le fond sombre) restaure les valeurs précédant l’ajustement. Le conteneur
@@ -1306,8 +1331,8 @@ export function ExecutionParametersSheet({
         key={panelControl}
         placement={
           isSegmentedPanel(panelControl)
-            ? { top: panelTop, right: GROUP_PADDING, left: GROUP_PADDING }
-            : { top: panelTop, right: panelControl === "rowTarget" ? rowPanelRight : GROUP_PADDING }
+            ? { top: panelTop, right: FRAME_INSET, left: FRAME_INSET }
+            : { top: panelTop, right: panelControl === "rowTarget" ? rowPanelRight : FRAME_INSET }
         }
         onDismiss={() => closeSurface(openKey)}
         outsideInsets={PANEL_OUTSIDE_INSETS}
@@ -1325,7 +1350,6 @@ export function ExecutionParametersSheet({
       >
         {panelControl === "sideMode" ? sideSelector("panel") : null}
         {panelControl === "sideOrder" ? orderSelector("panel") : null}
-        {panelControl === "regime" ? regimeSelector("panel") : null}
         {panelControl === "uniformDuration" ? <View testID="execution-sheet-target-wheel">{uniformDurationWheel}</View> : null}
         {panelControl === "uniformRepetitions" ? <View testID="execution-sheet-target-wheel">{uniformRepetitionsWheel}</View> : null}
         {panelControl === "total" ? <View testID="execution-sheet-total-wheel">{totalWheel}</View> : null}
@@ -1422,80 +1446,55 @@ export function ExecutionParametersSheet({
                   style={styles.bodyOutside}
                   testID="execution-sheet-body-outside"
                 />
+                {/* PRE-5 story 2.4 (FR-26, AD-28) : quatre cadres gris arrondis, espacés de 8,
+                    enfants directs de l'hôte des panneaux (repère `anchorTop`). Chaque cadre
+                    glisse quand son contenu change (Q39) ; séparateurs seulement entre les
+                    lignes d'un même cadre. */}
+                {/* Cadre Exécution : Mode, Condition d'arrêt. */}
                 <SheetMotionView
                   appear={false}
-                  onLayout={(event) => {
-                    const { y, height, width } = event.nativeEvent.layout;
-                    setGroupBox((current) => (sameBox(current, y, height) ? current : { y, height }));
-                    setGroupWidth((current) => (current === width ? current : width));
-                  }}
-                  style={styles.group}
-                  testID="execution-sheet-group"
+                  onLayout={trackFrame("execution")}
+                  style={styles.frame}
+                  testID="execution-sheet-frame-execution"
                 >
-                  {/* Mode d'exécution */}
-                  <Row
-                    label={t.mode}
-                    selected={isOpen(MODE_POPOVER)}
-                    below={
-                      !nativePopovers && isOpen(MODE_POPOVER) ? (
-                        <ClosingSelector
-                          closing={isClosing(MODE_POPOVER)}
-                          reduceMotion={reduceMotion}
-                          onClosed={() => handleSelectorClosed(openKey)}
-                          testID="execution-sheet-mode-selector"
-                        >
-                          <SegmentedControl<ExecutionMode>
-                            variant="parameters"
-                            labelStyle={type.body}
-                            options={[
-                              { value: "DURATION", label: t.modes.DURATION },
-                              { value: "REPETITIONS", label: t.modes.REPETITIONS },
-                            ]}
-                            value={draft.mode}
-                            onChange={(mode) => {
-                              update(setMode(draft, mode));
-                              closeAfterChoice(openKey);
-                            }}
-                            accessibilityLabel={t.mode}
-                            testID="execution-sheet-mode-control"
-                          />
-                        </ClosingSelector>
-                      ) : null
-                    }
-                    testID="execution-sheet-row-mode"
-                  >
-                    {nativePopovers ? (
-                      <NativeRowPopover
-                        isPresented={isOpen(MODE_POPOVER)}
-                        // FR-03-10, T7 : fermeture extérieure sans application. T8 : la clé est
-                        // celle de la présentation du Mode ; un rappel tardif reçu alors qu'une
-                        // autre surface est ouverte (ou aucune) est ignoré.
-                        onDismiss={() => closeSurface(modePopoverKey)}
-                        trigger={modeValuePill}
-                        testID="execution-sheet-mode-host"
-                      >
-                        <ModePopoverOptions
-                          value={effective.mode}
-                          onChoose={(mode) => {
-                            closeSurface(modePopoverKey);
-                            update(setMode(draft, mode));
-                          }}
-                        />
-                      </NativeRowPopover>
-                    ) : (
-                      modeValuePill
-                    )}
+                  <Row label={t.mode} testID="execution-sheet-row-mode">
+                    {modeControl}
                   </Row>
                   <Separator />
+                  <Row label={t.stopCondition} testID="execution-sheet-row-stop-condition">
+                    {stopConditionControl}
+                  </Row>
+                </SheetMotionView>
 
-                  {/* Ligne « Séries » et tableau des séries variables (DSF).
-                      Q40 (Hermann, 2026-10-17, E-14) remplace le cadre fixe X-3 / A-05 :
-                      tableau sélectionné (ouvert, ou action dedans) = fond d'une ligne
-                      sélectionnée, sans contour ; sinon état normal, sans fond ni contour.
-                      Le séparateur reste à sa place (transparent si sélectionné) : rien
-                      ne bouge quand la sélection change (Q41 : seule la couleur change,
-                      ni marge, ni padding, donc aucune transition de place). */}
-                  {/* Q39 : le groupe glisse quand le tableau apparaît ou disparaît (fil UI). */}
+                {/* Cadre Séries : Nombre de séries, Type de série et tableau, puis Durée ou
+                    Répétitions et Pause en identiques. */}
+                <SheetMotionView
+                  appear={false}
+                  onLayout={trackFrame("series")}
+                  style={[styles.frame, styles.frameSpaced]}
+                  testID="execution-sheet-frame-series"
+                >
+                  {/* NR Δ38 (impératif) : stepper « Nombre de séries » de PRE-4 inchangé (mêmes
+                      props, valeur au repos, ± à l'appui, nom accessible `series`) ; seule sa
+                      ligne devient « Nombre de séries » dans le cadre Séries. */}
+                  <Row label={t.seriesCount} selected={isOpen(stepperSurface("count"))} testID="execution-sheet-row-series">
+                    {stepperField("count", t.series, {
+                      value: draft.count,
+                      min: EXECUTION_BOUNDS.seriesCount.min,
+                      max: EXECUTION_BOUNDS.seriesCount.max,
+                      policy: EXECUTION_ACCELERATED_HOLD_POLICY,
+                      formatValue: seriesLabel,
+                      onChange: (count) => update(setSeriesCount(draft, count)),
+                      accessibilityLabel: t.series,
+                      testID: "execution-sheet-series",
+                    })}
+                  </Row>
+                  <Separator />
+                  {/* Q40 (Hermann, 2026-10-17, E-14) : tableau sélectionné (ouvert, ou action
+                      dedans) = fond d'une ligne sélectionnée, sans contour, qui couvre la ligne
+                      « Type de série » et le tableau ; sinon état normal. Le séparateur reste à
+                      sa place (transparent si sélectionné) : rien ne bouge quand la sélection
+                      change. Q39 : le groupe glisse quand le tableau apparaît ou disparaît. */}
                   <SheetMotionView
                     appear={false}
                     // E-20 (recette du 2026-10-18) : une seule animation à l'apparition du tableau —
@@ -1508,56 +1507,22 @@ export function ExecutionParametersSheet({
                       isDraggingRow ? null : styles.variableGroupClip,
                     ]}
                     onLayout={(event) => {
-                      // Q43 : la ligne « Séries » est dans le groupe ; sa boîte est relative à lui.
+                      // Le groupe est dans le cadre Séries ; ses boîtes internes lui sont relatives.
                       const { y } = event.nativeEvent.layout;
                       setVariableGroupY((current) => (current === y ? current : y));
                     }}
                     testID="execution-sheet-variable-group"
                   >
-                    {/* Q40 : la ligne « Séries » (champ de Régime et chevron, qui ouvrent le
-                        tableau) fait partie du groupe : sélectionné, son fond la couvre aussi. */}
-                    {/* Séries */}
-                    {/* Story 3.3 (AC2, AC6, FR-03-02, FR-04-01) : ligne `Séries` — champ de
-                        Régime (`identiques` / `variables`), chevron en `variables`, puis le
-                        nombre. L'interrupteur « Séries variables » est retiré (FR-04-01). */}
-                    <Row
-                      label={t.series}
-                      selected={isOpen(REGIME_POPOVER) || isOpen(stepperSurface("count"))}
-                      onLayout={trackRow("regime")}
-                      below={!anchoredPanels && isOpen(REGIME_POPOVER) && !single ? regimeSelector("inline") : null}
-                      testID="execution-sheet-row-series"
-                    >
-                      <View style={styles.regimeGroup} testID="execution-sheet-regime">
-                        {regimeField}
-                        {showVariableTable ? (
-                          <DisclosureControl
-                            expanded={!isTableFolded}
-                            onPress={() => {
-                              // Q40 : déplier sélectionne le tableau ; replier le désélectionne.
-                              // T14 : toute surface ouverte (champ ± compris) est rangée.
-                              if (isTableFolded) selectTable();
-                              else {
-                                setIsTableSelected(false);
-                                dispatchSurface({ type: "closeAll" });
-                              }
-                              setIsTableFolded(!isTableFolded);
-                            }}
-                            accessibilityLabel={isTableFolded ? t.showTable : t.hideTable}
-                            testID="execution-sheet-table-toggle"
-                          />
-                        ) : null}
-                      </View>
-                      <View style={styles.spacer} />
-                      {stepperField("count", t.series, {
-                        value: draft.count,
-                        min: EXECUTION_BOUNDS.seriesCount.min,
-                        max: EXECUTION_BOUNDS.seriesCount.max,
-                        policy: EXECUTION_ACCELERATED_HOLD_POLICY,
-                        formatValue: seriesLabel,
-                        onChange: (count) => update(setSeriesCount(draft, count)),
-                        accessibilityLabel: t.series,
-                        testID: "execution-sheet-series",
-                      })}
+                    <Row label={t.seriesType} testID="execution-sheet-row-series-type">
+                      {single ? (
+                        // P16, T23 : l'information non modifiable absorbe l'appui (comme
+                        // l'ancienne pastille du Régime) ; un champ ± ouvert reste ouvert.
+                        <Pressable onPress={ignorePress} accessible={false} testID="execution-sheet-series-type-absorb">
+                          {seriesTypeControl}
+                        </Pressable>
+                      ) : (
+                        seriesTypeControl
+                      )}
                     </Row>
                     {/* Story 3.6 (AC1) : le tableau suit la grille à cellules du DSF du 12/10,
                         sans retrait x52 : il commence au bord des lignes de premier niveau. */}
@@ -1600,56 +1565,55 @@ export function ExecutionParametersSheet({
                     {adjustment?.kind === "removal" ? adjustmentMessage : null}
                   </SheetMotionView>
 
+                  {/* PRE-5 story 2.4 (FR-21) : à l'échec, la ligne de cible est masquée ; la
+                      Pause reste visible. */}
+                  {uniformTargetShown && effective.mode === "DURATION" ? (
+                    <>
+                      <Separator />
+                      <Row
+                        label={t.durationTarget}
+                        selected={isOpen(TARGET_SELECTOR)}
+                        onLayout={trackRow("uniformDuration")}
+                        below={
+                          // Q41 : Android et web — roulette en ligne, dans le cadre de sélection.
+                          !anchoredPanels && isOpen(TARGET_SELECTOR) && uniformDurationAvailable ? (
+                            <SheetMotionView style={styles.inlineControl} testID="execution-sheet-target-wheel">
+                              {uniformDurationWheel}
+                            </SheetMotionView>
+                          ) : null
+                        }
+                        testID="execution-sheet-row-target"
+                      >
+                        {uniformDurationPill}
+                      </Row>
+                    </>
+                  ) : null}
+                  {uniformTargetShown && effective.mode === "REPETITIONS" ? (
+                    <>
+                      <Separator />
+                      <Row
+                        label={t.repetitionsTarget}
+                        selected={isOpen(TARGET_SELECTOR)}
+                        onLayout={trackRow("uniformRepetitions")}
+                        below={
+                          // Q41 : Android et web — roulette en ligne, dans le cadre de sélection.
+                          !anchoredPanels && isOpen(TARGET_SELECTOR) && uniformRepetitionsAvailable ? (
+                            <SheetMotionView style={styles.inlineControl} testID="execution-sheet-target-wheel">
+                              {uniformRepetitionsWheel}
+                            </SheetMotionView>
+                          ) : null
+                        }
+                        testID="execution-sheet-row-target"
+                      >
+                        {/* Story 3.5 (AC2) : plus de stepper en ligne ; la pastille ouvre le Sélecteur. */}
+                        {uniformRepetitionsPill}
+                      </Row>
+                    </>
+                  ) : null}
                   {!showVariableTable ? (
                     <>
-                      {effective.mode === "DURATION" ? (
-                        <>
-                          <Separator indented />
-                          <Row
-                            label={t.durationTarget}
-                            indented
-                            selected={isOpen(TARGET_SELECTOR)}
-                            onLayout={trackRow("uniformDuration")}
-                            below={
-                              // Q41 : Android et web — roulette en ligne, dans le cadre de sélection.
-                              !anchoredPanels && isOpen(TARGET_SELECTOR) && uniformDurationAvailable ? (
-                                <SheetMotionView style={styles.inlineControl} testID="execution-sheet-target-wheel">
-                                  {uniformDurationWheel}
-                                </SheetMotionView>
-                              ) : null
-                            }
-                            testID="execution-sheet-row-target"
-                          >
-                            {/* Story 3.4 : à l'échec, la pastille affiche « à l’échec » et rouvre le Sélecteur. */}
-                            {uniformDurationPill}
-                          </Row>
-                        </>
-                      ) : null}
-                      {effective.mode === "REPETITIONS" ? (
-                        <>
-                          <Separator indented />
-                          <Row
-                            label={t.repetitionsTarget}
-                            indented
-                            selected={isOpen(TARGET_SELECTOR)}
-                            onLayout={trackRow("uniformRepetitions")}
-                            below={
-                              // Q41 : Android et web — roulette en ligne, dans le cadre de sélection.
-                              !anchoredPanels && isOpen(TARGET_SELECTOR) && uniformRepetitionsAvailable ? (
-                                <SheetMotionView style={styles.inlineControl} testID="execution-sheet-target-wheel">
-                                  {uniformRepetitionsWheel}
-                                </SheetMotionView>
-                              ) : null
-                            }
-                            testID="execution-sheet-row-target"
-                          >
-                            {/* Story 3.5 (AC2) : plus de stepper en ligne ; la pastille ouvre le Sélecteur. */}
-                            {uniformRepetitionsPill}
-                          </Row>
-                        </>
-                      ) : null}
-                      <Separator indented />
-                      <Row label={t.pause} indented selected={isOpen(stepperSurface("pause"))} testID="execution-sheet-row-pause">
+                      <Separator />
+                      <Row label={t.pause} selected={isOpen(stepperSurface("pause"))} testID="execution-sheet-row-pause">
                         {stepperField("pause", t.pause, {
                           value: effectiveFirst.pauseSeconds,
                           min: EXECUTION_BOUNDS.pauseSeconds.min,
@@ -1663,9 +1627,17 @@ export function ExecutionParametersSheet({
                       </Row>
                     </>
                   ) : null}
-                  <Separator />
+                </SheetMotionView>
 
-                  {/* Changement de côté */}
+                {/* Cadre Côtés : Changement de côté, Ordre, Pause entre les côtés. Libellés
+                    de ligne selon FR-27 / PR-03 partout ; seuls les contrôles attendent la
+                    story 2.5. */}
+                <SheetMotionView
+                  appear={false}
+                  onLayout={trackFrame("sides")}
+                  style={[styles.frame, styles.frameSpaced]}
+                  testID="execution-sheet-frame-sides"
+                >
                   <Row
                     label={t.sideMode}
                     selected={isOpen(SIDE_POPOVER)}
@@ -1731,8 +1703,17 @@ export function ExecutionParametersSheet({
                       </Row>
                     </>
                   ) : null}
-                  <Separator />
+                </SheetMotionView>
 
+                {/* Cadre Cadence et durée : Bip, Durée totale, Compte à rebours, Fin. Libellés
+                    de ligne selon FR-27 / PR-03 partout ; seuls les contrôles attendent la
+                    story 2.5. */}
+                <SheetMotionView
+                  appear={false}
+                  onLayout={trackFrame("cadence")}
+                  style={[styles.frame, styles.frameSpaced]}
+                  testID="execution-sheet-frame-cadence"
+                >
                   {/* Bip : premier niveau, immédiatement avant le total applicable, sinon avant Compte à rebours. */}
                   <Row label={t.beep} selected={isOpen(stepperSurface("beep"))} testID="execution-sheet-row-beep">
                     {stepperField("beep", t.beep, {
@@ -2174,7 +2155,7 @@ function Row({
   );
 }
 
-/** Appui absorbé sans effet (pastille non modifiable). */
+/** Appui absorbé sans effet (pastille non modifiable ; segmenté en lecture seule). */
 const ignorePress = () => undefined;
 
 function ValuePill({
@@ -2197,7 +2178,7 @@ function ValuePill({
   testID: string;
 }) {
   return (
-    // Story 3.3 : une pastille non modifiable (Régime à N = 1) reste un élément tactile qui
+    // Story 3.3 : une pastille non modifiable reste un élément tactile qui
     // absorbe l'appui sans effet (il ne remonte pas à l'appui extérieur de la Feuille, T23),
     // annoncée indisponible et atténuée (`UNSELECTED_OPACITY`, AD-11).
     <Pressable
@@ -2315,6 +2296,27 @@ function Separator({ indented = false, hidden = false }: { indented?: boolean; h
 const GROUP_PADDING = 12;
 const INDENT = 16;
 
+/**
+ * PRE-5 story 2.4 (UX-DR1, PR-03 ; relevé Figma en lecture seule du 19/10, cadres
+ * `9230:19461`, `9230:44699`) — constantes locales, aucun jeton modifié (NFR-3) :
+ * fond des cadres `#EFF0F2`, contour blanc de 1, rayon 12, cadres espacés de 8 ;
+ * libellés de ligne Inter Regular 12 (plus petits que les valeurs). Les lignes gardent
+ * 44 de haut (Q42 ; 41 dans Figma).
+ */
+const FRAME_BACKGROUND = "#EFF0F2";
+const FRAME_BORDER_WIDTH = 1;
+const FRAME_RADIUS = 12;
+const FRAME_GAP = 8;
+const ROW_LABEL_FONT_SIZE = 12;
+/** Bord des lignes depuis le bord extérieur d'un cadre (contour + marge) : alignement des panneaux. */
+const FRAME_INSET = FRAME_BORDER_WIDTH + GROUP_PADDING;
+/**
+ * FR-20 : option unique « À la cible et à l'échec » du résultat dérivé mixte — même
+ * largeur totale que les deux options (2 × 106 + l'écart de 2 du segmenté), choix
+ * d'intégration (le libellé ne tient pas dans 106).
+ */
+const MIXED_STOP_CONDITION_WIDTH = INLINE_OPTION_WIDTHS.wide * 2 + 2;
+
 const styles = StyleSheet.create({
   scrim: {
     flex: 1,
@@ -2389,13 +2391,20 @@ const styles = StyleSheet.create({
     paddingBottom: spacing[24],
     gap: spacing[8],
   },
-  group: {
-    backgroundColor: colors.surfaceSubtle,
-    borderRadius: fixedRadii[12],
+  // PRE-5 story 2.4 (FR-26, UX-DR1) : cadre gris arrondi, contour blanc.
+  frame: {
+    backgroundColor: FRAME_BACKGROUND,
+    borderWidth: FRAME_BORDER_WIDTH,
+    borderColor: colors.background,
+    borderRadius: FRAME_RADIUS,
     paddingHorizontal: GROUP_PADDING,
     paddingVertical: spacing[4],
   },
-  // DSF Séries variables : ligne « Séries » (story 3.3) + tableau. Q40 (Hermann, 2026-10-17, E-14)
+  // Cadres espacés de 8 (FR-26).
+  frameSpaced: {
+    marginTop: FRAME_GAP,
+  },
+  // DSF Séries variables : ligne « Type de série » (ex-« Séries », story 3.3) + tableau. Q40 (Hermann, 2026-10-17, E-14)
   // remplace le cadre fixe X-3 (contour 1,5 + fond 6665:24616) : état normal sans
   // fond ni contour ; marges négatives compensées, aucun texte ne bouge.
   variableGroup: {
@@ -2462,27 +2471,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  // Story 3.3 : champ de Régime et chevron, juste après le libellé `Séries`.
-  regimeGroup: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing[4],
-  },
-  // AD-11 : élément sans effet (Régime à N = 1, P16).
+  // AD-11 : élément sans effet (croix de retrait indisponible).
   unselected: {
     opacity: UNSELECTED_OPACITY,
   },
+  // PRE-5 story 2.4 (PR-03) : libellé de ligne Inter Regular 12.
   label: {
-    ...type.label,
+    fontFamily: type.supporting.fontFamily,
+    fontWeight: type.supporting.fontWeight,
+    fontSize: ROW_LABEL_FONT_SIZE,
+    lineHeight: type.supporting.lineHeight,
     color: colors.textPrimary,
     flexShrink: 1,
   },
   // DSF : « Pause entre les côtés » sur deux lignes, largeur 180 à 402.
   longLabel: {
     maxWidth: 180,
-  },
-  spacer: {
-    flex: 1,
   },
   flex: {
     flex: 1,

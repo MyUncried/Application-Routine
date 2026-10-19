@@ -2,9 +2,11 @@
  * PRE-4 story 3.3 (AD-15, FR-03-05, FR-03-10, FR-10-05) — surface ouverte de la
  * Feuille Paramètres d'exécution : réducteur d'interface pur, testable sans rendu.
  *
- * `open` porte AU PLUS une surface : un popover de choix (Mode, Changement de
- * côté, Ordre des côtés, Régime), un Sélecteur (roue de la Cible commune ou de
- * la Durée totale) ou un champ ± hors tableau (`stepper`). C'est un état
+ * `open` porte AU PLUS une surface : un panneau de choix (Changement de côté,
+ * Ordre des côtés), un Sélecteur (roue de la Cible commune ou de la Durée
+ * totale) ou un champ ± hors tableau (`stepper`). PRE-5 story 2.4 (AD-27) : le
+ * Mode et le Type de série (ex-Régime) sont des segmentés en ligne, sans
+ * surface ; `popover(mode)` et `popover(regime)` sont retirées. C'est un état
  * d'interface de la Feuille, jamais une donnée du Brouillon du domaine (AD-2) :
  * aucune transition de ce réducteur ne modifie le Brouillon, donc aucune
  * n'invalide l'annulation d'un retrait (Q29).
@@ -14,8 +16,8 @@
  * ou qui arrive alors que rien n'est ouvert, est ignorée (rappel tardif, T8).
  *
  * Familles (AD-15, Q41) :
- * - surfaces de choix et Sélecteurs (`popover`, `selector`) : popover natif du
- *   Mode, panneau sans flèche (iOS) ou contrôle en ligne (Android, web). Un
+ * - surfaces de choix et Sélecteurs (`popover`, `selector`) : panneau sans
+ *   flèche (iOS) ou contrôle en ligne (Android, web). Un
  *   toucher sur un autre champ pendant qu'elles sont ouvertes les ferme sans
  *   appliquer et n'ouvre pas le champ touché (T10) ;
  * - champ ± (`stepper`) : état React Native. Toucher une autre valeur, une ligne
@@ -33,7 +35,7 @@
  * de retrait lit l'état sans le modifier (`removalEnabled`, T18).
  */
 
-export type SheetPopover = "mode" | "side" | "order" | "regime";
+export type SheetPopover = "side" | "order";
 export type SheetSelector = "commonTarget" | "total";
 /** Valeurs numériques hors tableau réglées par ± (FR-10-05). */
 export type SheetStepperField = "count" | "pause" | "sideRecovery" | "beep" | "countdown" | "end";
@@ -68,7 +70,7 @@ export type SheetSurfaceEvent =
   | { readonly type: "outside" }
   /** Tout fermer sans appliquer (action dans le tableau, repli par le chevron). */
   | { readonly type: "closeAll" }
-  /** Ferme la surface ouverte si elle n'existe plus (Q38 : Ordre masqué à N = 1 ; Régime figé à N = 1). */
+  /** Ferme la surface ouverte si elle n'existe plus (Q38 : Ordre masqué à N = 1). */
   | { readonly type: "prune"; readonly removed: readonly SheetSurface[] }
   /** Story 3.6 (« Ligne disparue ») : identités des lignes du Brouillon après une transition. */
   | { readonly type: "rows"; readonly rowIds: readonly number[] };

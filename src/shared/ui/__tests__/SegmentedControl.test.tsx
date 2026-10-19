@@ -511,6 +511,40 @@ describe("SegmentedControl — variante « inline » (PRE-5 story 2.3)", () => {
     expect(chevron.props.onPress).toBeUndefined();
   });
 
+  it("PRE-5 story 2.4 (UX-DR2, 9230:44720) — readOnly : contrôle entier atténué à 45 %, sélection violette, texte blanc ; interactif non atténué", () => {
+    const { rerender } = render(
+      <SegmentedControl
+        options={[
+          { value: "FAILURE" as const, label: "À l’échec" },
+          { value: "TARGET" as const, label: "À la cible" },
+        ]}
+        value="TARGET"
+        onChange={jest.fn()}
+        variant="inline"
+        optionWidth={INLINE_OPTION_WIDTHS.wide}
+        readOnly
+        testID="seg"
+      />,
+    );
+    expect(StyleSheet.flatten(screen.getByTestId("seg").props.style).opacity).toBe(0.45);
+    expect(StyleSheet.flatten(screen.getByTestId("seg-indicator").props.style).backgroundColor).toBe(colors.selection);
+    expect(StyleSheet.flatten(screen.getByText("À la cible", { includeHiddenElements: true }).props.style).color).toBe(colors.background);
+    rerender(
+      <SegmentedControl
+        options={[
+          { value: "FAILURE" as const, label: "À l’échec" },
+          { value: "TARGET" as const, label: "À la cible" },
+        ]}
+        value="TARGET"
+        onChange={jest.fn()}
+        variant="inline"
+        optionWidth={INLINE_OPTION_WIDTHS.wide}
+        testID="seg"
+      />,
+    );
+    expect(StyleSheet.flatten(screen.getByTestId("seg").props.style).opacity).toBeUndefined();
+  });
+
   it("variante standard : les props d'option propres à inline n'ont aucun effet", () => {
     render(
       <SegmentedControl

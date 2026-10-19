@@ -11,6 +11,7 @@ import {
 } from "react-native";
 
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
 import { colors, dimensions, fixedRadii, type } from "@/shared/ui/tokens";
 
 export type SegmentedControlOption<T extends string> = {
@@ -129,7 +130,9 @@ export type SegmentedControlProps<T extends string> = {
   readonly compact?: boolean;
   /**
    * `inline` : contrôle non interactif, annoncé comme une information non
-   * modifiable (résultat dérivé de la Condition d'arrêt, FR-20).
+   * modifiable (résultat dérivé de la Condition d'arrêt, FR-20). Rendu
+   * atténué (PRE-5 story 2.4, UX-DR2, relevé `9230:44720`) : le contrôle
+   * entier à `UNSELECTED_OPACITY` (45 %), sélection violette, texte blanc.
    */
   readonly readOnly?: boolean;
 };
@@ -308,7 +311,7 @@ export function SegmentedControl<T extends string>({
       .join(", ");
     return (
       <View
-        style={[styles.inlineContainer, { width: inlineWidth }]}
+        style={[styles.inlineContainer, { width: inlineWidth }, readOnly ? styles.inlineReadOnly : null]}
         // Lecture seule (FR-20) : un seul élément accessible, de rôle texte,
         // qui annonce le libellé et la valeur, sans action.
         accessible={readOnly ? true : undefined}
@@ -542,6 +545,10 @@ const styles = StyleSheet.create({
     padding: INLINE_PADDING,
     gap: INLINE_GAP,
     borderRadius: INLINE_RADIUS,
+  },
+  // Story 2.4 (UX-DR2, `9230:44720`) : résultat dérivé, violet atténué et texte blanc.
+  inlineReadOnly: {
+    opacity: UNSELECTED_OPACITY,
   },
   // Fond clair des champs variables (`color/surface`, `#F5F7FA`).
   tileInline: {
