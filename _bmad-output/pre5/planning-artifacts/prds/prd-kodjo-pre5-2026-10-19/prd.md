@@ -814,7 +814,14 @@ Restent trois types de points : les points d'architecture, les propriétés Figm
   - du contrôle d'ajout d'une phase (`9207:18817`, `NON VÉRIFIABLE` à ce jour : aucune frame relevée ne le montre) ;
   - de l'indicateur de côté de la Composition.
 
-**Points signalés, non décidés.** Ils viennent des sources existantes ; aucun n'est inventé. Le PRD ne les tranche pas.
+**Points signalés, décidés par Hermann le 19/10.** Les points 2 à 10 ci-dessous sont tranchés dans `table-delta.md` §6, sous « Points signalés par le PRD ». Leur décision prime sur le texte qui suit. Il s’agit notamment :
+
+- du bouton « Fermer » à droite de la barre du clavier ;
+- de l’ordre des mentions dans la Phrase : phases, puis charge ;
+- de l’ajustement par le nombre de séries, conservé ;
+- de la Description au texte de 14, sans cadre.
+
+Le point 1 (Q48) se traite story par story.
 
 1. **Δ06 et Q48.** La table de delta indique que Δ06 dépend aussi de « l'arbitrage écart par écart de Q48 » (PRE-4, seize écarts E-V1 à E-V16). Aucune QP5 ne le tranche.
    - Le cadrage (l. 24) demande la conformité Figma. FR-38 l'applique dans les contraintes de NFR-1 et NFR-3.

@@ -217,6 +217,26 @@ La restauration tant que la Feuille reste ouverte, prévue en (d) de la §3, est
 | Δ49 | Barre du clavier numérique : Précédent et Suivant déplacent la saisie entre les cellules du tableau saisies au clavier (les cellules de charge). La cellule active se distingue par sa couleur de fond, qui suit le focus. Le clavier reste ouvert pendant la navigation et la valeur reste éditable. L'état actif reste indiqué de façon accessible. | Décision de Hermann du 19/10 | Aucun `TextInput` numérique (Δ29) | Champs du tableau enchaînés pour le focus ; fond de la cellule active. Le comportement aux extrémités et aux cellules indisponibles suit les conventions existantes de focus, sans boucle inventée. | Roulettes et steppers des autres champs (Δ30) ; gestes du tableau | Test Feuille (focus suivant / précédent) ; **recette iPhone tôt** (audit, action 4) | — |
 | Δ50 | **Bornes minimales des durées.** Toute durée strictement positive a un minimum de 1 s : série, phase, exercice, etc. Le pas est de 1 s, sans palier de 5 s. Zéro reste permis là où il l'était déjà : pause, compte à rebours, fin. Les maxima sont conservés. La somme des phases est comprise entre 1 et 3 535 s. | Décision de Hermann du 19/10, qui remplace le minimum de 5 s de D-232 et RM-234. Propagation documentaire : `propagation-borne-1s.md`. | Borne de saisie 5..3535 (`EP:88`). Pour les roues, `validation.ts` et les tests, voir le rapport de propagation. | Abaisser le minimum à 1 s dans les roues, les validations et les tests existants, sans nouveau composant ni mécanisme de saisie. | Maxima, règles de calcul, autres comportements validés | Tests des bornes (1 s accepté, 0 refusé pour une durée positive) ; roue au minimum sur iPhone | — |
 
+### Points signalés par le PRD (§9) : décisions de Hermann du 19/10
+
+Hermann a validé les recommandations de BMad, en corrigeant le point 9 : « Pour fermer le clavier, il y a un bouton "Fermer" sur la barre, à droite. »
+
+| N° | Point | Décision |
+|---|---|---|
+| 1 | Pas de 1 s et grilles de Pause et de Récupération du Profil (pas de 5 s) | Inchangées : D-430 vise les minima. |
+| 2 | Présentation de la Description | Demandes 17 et 21 du registre et Figma actuel : texte à 14, sans cadre. Elles priment sur la demande 10. |
+| 3 | Ordre dans la Phrase | Parenthèse des phases juste après la durée de série, puis mention de charge. |
+| 4 | Durée de l'exercice avec phases | L'ajustement par le nombre de séries est conservé ; l'illustration de la spécification v3 ne vaut pas règle. |
+| 5 | Entrée au milieu d'une étape | Coupe l'étape au curseur. |
+| 6 | Collage sur plusieurs lignes | Une étape par ligne. |
+| 7 | 1 000 caractères atteints | Toute saisie supplémentaire est refusée. |
+| 8 | Cadence réglée à 0, 1, 2 ou 5 | Le choix affiché correspond à la valeur (Sans, 1 s, 2 s, 5 s). « Autre » ne s'affiche que pour les autres valeurs. |
+| 9 | Fermeture du clavier décimal | **Bouton « Fermer » à droite de la barre**, à côté de Précédent / Suivant. La ligne active reste visible au-dessus du clavier. |
+| 10 | Passage de Variables à Identiques avec une charge reprise à 0 | L'Exercice passe à Sans (zéro = sans charge). |
+| 11 | Cellule de charge vidée à la sortie du champ | Vaut 0 : pas de charge pour cette série. |
+
+Q48 (écarts visuels hérités de PRE-4, point 1 du §9 du PRD) : chaque écart sera soumis à Hermann au moment de sa story, s'il touche un jeton, un composant ou la grille D-327.
+
 ### Précisions de cohérence, sans story nouvelle
 
 - Description avant Paramètres d'exécution : déjà conforme (C-2).
