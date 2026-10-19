@@ -124,7 +124,7 @@ Pas de modèle de départ (projet existant, `bmad/pre5-depuis-pre4`) ; aucune mo
 - AR-23 (AD-23) — Condition d'arrêt : `stopConditionOf(parameters)` seule autorité (`TARGET`, `FAILURE`, `MIXED`, `NONE` ; cellules vides non comptées, QN-2), sur l'état effectif ; mémoire `lastNumberById` au Brouillon, distincte de `targetsById`, jamais écrasée par `FAILURE`/`UNSET` ; `failureOption` absente en identiques, conservée en variables ; Variables → Identiques puis `normalizeLoad` (charge reprise à 0 → Sans, §9-9).
 - AR-24 (AD-24) — `SegmentedControl` reçoit `variant: "inline"` et les props optionnelles `chevron` (graphique, `KodjoIcon` `control-chevron-up/down`, appui distinct `onChevronPress`), `compact`, `readOnly`, `selectedContent` (option Avec des phases : « n phases », stepper révélé 2..6, chevron) ; `standard` et `parameters` inchangés ; `cadenceOptionOf(value)` ; vérification QP5-06 faite, segmenté natif non retenu ; valeurs Figma en constantes locales.
 - AR-25 (AD-25) — Brouillon : `workPhases`, `nextPhaseId`, `loadEnabled`, `loadKg` (uniforme, lignes actives, cachées, sauvegardées), `lastNumberById` ; `openSheetDraft`, `plain`, `requestedParameters` portent tout (test d'aller-retour) ; `pendingRemoval` étendu à `{ kind: "series" | "phase" }`, remis à `null` par toute transition ; `sheetDraftResult(draft, defaultLabel)` = `normalizeWorkPhases` → `normalizeLoad` → `validateForSave`, sert la disponibilité du ✓ et `commitSheetDraft` (cas obligatoires `[0, null]` et 3 536 s).
-- AR-26 (AD-26) — `KeyboardField` unique (`TextInput` RN) : charge `decimal-pad`, libellé clavier texte 20 au plus, longueur en points de code ; texte local, une transition à la sortie ; un `InputAccessoryView` par champ de charge (`nativeID` propre), barre Précédent / Suivant / « Fermer » à droite ; ordre `loadFieldOrder(draft)` ; extrémités indisponibles ; fond actif dérivé de la surface `keyboard` ; défilement par `SheetMotionScrollView` seul, piloté en JavaScript (pas d'`automaticallyAdjustKeyboardInsets`, pas de `KeyboardAvoidingView`), marge 12 ; libellé fermé par Retour, sans barre, indépendant de l'issue de l'essai ; essai précoce sur iPhone des composants définitifs (pas d'interface provisoire) avant la story Charge, repli signalé sans réimplémentation et ne bloquant que la saisie de la charge.
+- AR-26 (AD-26) — `KeyboardField` unique (`TextInput` RN) : charge au clavier numérique décimal natif (`decimal-pad`, aucun clavier personnalisé), libellé clavier texte 20 au plus, longueur en points de code ; texte local, une transition à la sortie ; barre Précédent / Suivant / « Fermer » à droite, navigation entre champs de charge sans fermer le clavier, extrémités indisponibles (sur iOS, `InputAccessoryView` possible, forme technique choisie au développement) ; fond de la cellule active conforme à Figma ; la ligne du champ actif reste entièrement visible au-dessus du clavier, par défilement automatique du corps existant si nécessaire, mécanismes standards en priorité ; libellé fermé par Retour, sans barre, indépendant de l'issue de l'essai ; essai précoce sur iPhone des composants définitifs avant la story Charge, écart signalé ne bloquant que la saisie de la charge (correction de Hermann du 19/10).
 - AR-27 (AD-27) — `sheetSurface.ts` seul réducteur : surfaces `keyboard(load|phaseLabel)`, `selector(phaseDuration)`, `stepper(rowPause)`, `stepper(phaseCount)` ajoutées ; `popover(mode|side|order|regime)` retirées ; synchronisation focus / surface dans un hook unique, `flushKeyboardField()` synchrone avant toute autre transition ; surfaces par identité ; une seule annulation en attente ; `DraggableRow`, `RemoveRowButton` et message d'annulation extraits dans un module partagé, `WorkPhasesTable` distinct ; ✓/✕ absorbés pendant `keyboard` (Q47) ; cellules sans ± ouvrant leur outil.
 - AR-28 (AD-28) — Quatre `SheetMotionView` ; repère unique des panneaux (y du cadre + y de la ligne) dans une seule fonction ; panneaux rendus hors des cadres ; Charge identiques : segment Avec affichant `formatLoadKg`, champ dans la ligne ; gris des cadres en constante locale ; lignes 36 / 44 ; cible tactile 36 vérifiée dans la 1re story de tableau ; Durée de l'exercice repliée par `DisclosureControl`.
 - AR-29 (AD-29) — Phrase : `workPhasesClause`, `loadClause`, point d'insertion unique après la valeur par série, `VALUE_SUFFIX_ORDER` = phases puis charge ; côtés neutres ; corpus 276 inchangé sur disque, attendus neutres et nouveaux cas en fixtures littérales ; cas Δ48 et charges variables égales obligatoires.
@@ -549,68 +549,73 @@ afin que chaque ligne de la Feuille ne fasse que dispatcher une transition déj�
 ### Story 2.2 : Essai sur iPhone du champ clavier de la charge (NFR-6)
 
 En tant que Hermann,
-je veux essayer tôt sur mon iPhone la saisie de la charge au clavier décimal dans la Feuille, avec les composants définitifs (`KeyboardField` final, barre Précédent / Suivant / « Fermer », fond de la cellule active),
-afin de vérifier que la primitive iOS fonctionne réellement dans la `Modal` de la Feuille avant la story Charge, sans rien construire qu'il faudrait refaire.
+je veux essayer tôt sur mon iPhone la saisie de la charge au clavier numérique décimal natif dans la Feuille, avec les composants définitifs (champ de saisie, barre Précédent / Suivant / Fermer, fond de la cellule active),
+afin de vérifier ces interactions sur appareil avant la story Charge, sans rien construire qu'il faudrait refaire.
 
-**Exigences :** FR-23, FR-24, FR-25 (essai), FR-6 (composant seulement) ; NFR-1, NFR-2, NFR-5, NFR-6, NFR-7 ; Δ29, Δ49 ; NR Δ30 ; §9-8 ; audit PRE-4, action 4.
-**Architecture :** AD-26 (dont « Essai précoce »), AD-27 (surface `keyboard`, synchronisation focus / surface, absorption) ; hérités AD-7, AD-15.
+**Exigences :** FR-23, FR-24, FR-25 (essai), FR-6 (composant seulement) ; NFR-1, NFR-2, NFR-5, NFR-6, NFR-7 ; Δ29, Δ49 ; NR Δ30 ; §9-8 ; audit PRE-4, action 4 ; correction de Hermann du 19/10 (clavier numérique).
+**Architecture :** AD-26 (dont « Essai précoce »), AD-27 (surface `keyboard`, absorption) ; hérités AD-7, AD-15.
 **Dépend de :** 2.1.
 **Taille :** M.
 **UX :** UX-DR5.
 
 **Critères d'acceptation :**
 
-**AC1 — Composant unique et surface `keyboard` (AD-26, AD-27).**
-**Given** le composant unique `KeyboardField` (`src/features/activities/`), sur `TextInput` de React Native
+**AC1 — Clavier natif et champ unique (AD-26, AD-27).**
+**Given** le composant `KeyboardField` (`src/features/activities/`), sur `TextInput` de React Native
 **When** il est livré
-**Then** il gère un texte local pendant la frappe et appelle **une** transition du Brouillon à la sortie du champ (perte de focus, Précédent / Suivant, « Fermer ») — `setLoadValue` avec `parseLoadText` — sans arrondi pendant la frappe ; une sortie sans changement de valeur ne déclenche aucune transition (`pendingRemoval` préservé)
-**And** il accepte aussi le mode texte du libellé de phase (clavier texte, 20 au plus mesurés en points de code par `codePointLength`, jamais par le seul `maxLength`, fermé par Retour, sans barre ni `InputAccessoryView`), utilisé en 2.8 ; ce mode ne dépend pas de l'issue de l'essai (AC6)
-**And** `sheetSurface.ts` reste le seul réducteur et reçoit la surface `{ kind: "keyboard", field: { kind: "load"; row: number | "uniform" } | { kind: "phaseLabel"; phase: number } }`, désignée par identité ; `onFocus` est la seule source d'ouverture ; `flushKeyboardField()`, synchrone, est appelée avant toute autre transition du Brouillon ou du réducteur (toucher d'une autre surface, ✓, ✕, glisser, retrait, segmenté) et par `onBlur` (sans effet si déjà fait) ; un flush sur une identité disparue est ignoré ; toute sortie de la surface `keyboard` appelle `blur()`
-**And** ✓ et ✕ de la Feuille sont absorbés pendant une surface `keyboard` (Q47 : premier appui = sortie du champ, valeur appliquée ; second appui = validation ou abandon) ; `sheetCommandsAbsorbed` l'inclut
+**Then** la charge se saisit au clavier numérique décimal standard d'iOS et d'Android (`keyboardType="decimal-pad"`) ; aucun clavier personnalisé n'est développé
+**And** le champ garde un texte local pendant la frappe et appelle **une** transition du Brouillon à la sortie du champ (`setLoadValue` avec `parseLoadText`), sans arrondi pendant la frappe ; une sortie sans changement de valeur ne déclenche aucune transition (`pendingRemoval` préservé)
+**And** il accepte aussi le mode texte du libellé de phase (clavier texte, 20 au plus comptés en points de code, fermé par Retour, sans barre), utilisé en 2.8 ; ce mode ne dépend pas de l'issue de l'essai
+**And** `sheetSurface.ts` reste le seul réducteur et reçoit la surface `keyboard` ; une seule surface est ouverte à la fois ; la valeur saisie est appliquée avant toute autre transition (autre surface, ✓, ✕, glisser, retrait, segmenté)
+**And** ✓ et ✕ de la Feuille sont absorbés pendant une saisie (Q47 : premier appui = sortie du champ, valeur appliquée ; second appui = validation ou abandon)
 **And** aucune autre valeur ne passe au clavier (NR Δ30).
 
-**AC2 — Barre du clavier décimal (AD-26, FR-24, FR-25, §9-8).**
-**Given** des champs de charge `keyboardType="decimal-pad"` sur iOS
-**When** un champ prend le focus
-**Then** il est relié par `inputAccessoryViewID` à **son propre** `InputAccessoryView` (`nativeID` dérivé de la clé du champ, monté avec lui ; un `nativeID` partagé est interdit) dont le contenu est un seul composant de barre : Précédent, Suivant, et « Fermer » à droite
-**And** l'ordre est donné par la fonction pure `loadFieldOrder(draft)` : `[uniform]` en identiques, identités des lignes dans l'ordre courant en variables, `[]` sous Sans ; Précédent / Suivant font flush puis `focus()` du champ voisin sans fermer le clavier ; aux extrémités le bouton est indisponible, sans boucle
-**And** « Fermer » fait sortir du champ (valeur appliquée) et ferme le clavier
-**And** le fond de la cellule active est dérivé de la surface `keyboard` ouverte, jamais d'un état local du champ, et l'état actif est annoncé (`accessibilityState`) ; Android et web : pas de barre, champs fonctionnels, rendu non recetté.
+**AC2 — Navigation Précédent / Suivant / Fermer (FR-25, §9-8).**
+**Given** plusieurs champs de charge (ligne commune en identiques, cellules du tableau en variables)
+**When** un champ est actif
+**Then** une barre propose Précédent, Suivant et « Fermer » à droite ; Précédent et Suivant passent au champ de charge voisin, dans l'ordre des lignes, **sans fermer ni rouvrir le clavier** ; aux extrémités le bouton est indisponible, sans boucle
+**And** « Fermer » applique la valeur et ferme le clavier
+**And** sur iOS la barre peut s'appuyer sur `InputAccessoryView` si c'est le moyen standard le plus simple ; sa forme technique se choisit au développement, sans être imposée d'avance
+**And** Android et web : champs fonctionnels ; la barre y est livrée si le même mécanisme standard le permet, sinon le clavier natif suffit ; rendu non recetté.
 
-**AC3 — Visibilité au-dessus du clavier (AD-26, FR-24).**
-**Given** la Feuille ouverte et un champ de charge actif
-**When** le clavier s'affiche, puis à chaque Précédent / Suivant
-**Then** le corps défilant existant (`SheetMotionScrollView`) est le seul défilement, piloté en JavaScript : un espace bas égal à la hauteur du clavier (événements `Keyboard`) est ajouté au contenu ; après `keyboardDidShow` et à chaque Précédent / Suivant, un défilement calculé garde la ligne active, et autant que possible le tableau, au-dessus du clavier avec une marge de 12 ; la ligne active reste toujours visible
-**And** `automaticallyAdjustKeyboardInsets` n'est pas utilisé ; aucun nouveau `ScrollView`, aucun `KeyboardAvoidingView` dans la Feuille ; `DurationWheelPicker.test.tsx:371` et `NumberWheelPicker.test.tsx:260` restent intacts et verts (NFR-2).
+**AC3 — Cellule active (FR-25, UX-DR5).**
+**Given** un champ de charge actif
+**When** le focus change (toucher, Précédent, Suivant)
+**Then** la cellule en cours de saisie est identifiée par sa couleur de fond, conformément à Figma (`9292:18077`), et l'état actif est annoncé de façon accessible.
 
-**AC4 — Composants définitifs, sans interface provisoire (revue du 19/10).**
+**AC4 — Ligne active toujours visible au-dessus du clavier (FR-24).**
+**Given** la Feuille ouverte
+**When** le clavier apparaît, puis à chaque Précédent / Suivant
+**Then** la ligne contenant le champ actif reste **entièrement visible au-dessus du clavier** ; si elle se trouve trop bas, le contenu de la Feuille défile automatiquement pour la remonter à une position visible
+**And** il n'est pas nécessaire d'afficher simultanément toutes les lignes du tableau
+**And** les mécanismes standards de React Native et de la plateforme sont utilisés en priorité, dans le corps défilant existant de la Feuille ; aucun mécanisme supplémentaire de gestion du clavier ou du défilement n'est ajouté sans bénéfice concret ; les gardes zéro-`ScrollView` (`DurationWheelPicker.test.tsx:371`, `NumberWheelPicker.test.tsx:260`) restent intactes et vertes (NFR-2).
+
+**AC5 — Composants définitifs, sans interface provisoire (revue du 19/10).**
 **Given** la Feuille actuelle (avant les quatre cadres)
 **When** l'essai est monté
-**Then** il porte sur les composants définitifs ou directement réutilisables : `KeyboardField` final, barre Précédent / Suivant / « Fermer », `InputAccessoryView` par champ, fond de la cellule active, surface `keyboard`, hook de synchronisation et défilement ; ils sont raccordés à la charge réelle du Brouillon (2.1)
-**And** les champs sont posés à leur place définitive : la ligne Charge après la Pause en séries identiques, la colonne Charge du tableau variable existant, activées par le `SegmentedControl` existant ; à la première activation 0,25 kg et focus sur le premier champ
-**And** rien de ce qui est livré n'est à reconstruire : 2.7 conserve ces composants tels quels et se limite à passer le segmenté en variante `inline`, à afficher `formatLoadKg` dans le segment et à placer la ligne dans les cadres (2.4) ; aucune ligne, colonne ni segmenté jetable n'est créé.
+**Then** les champs sont posés à leur place définitive, raccordés à la charge réelle du Brouillon (2.1) : ligne Charge après la Pause en séries identiques, colonne Charge du tableau variable existant, activées par le `SegmentedControl` existant ; à la première activation 0,25 kg et focus sur le premier champ
+**And** 2.7 conserve ces composants et se limite à la présentation (segmenté `inline`, `formatLoadKg` dans le segment, place dans les cadres de 2.4) ; rien de jetable n'est créé.
 
-**AC5 — Constats sur iPhone (NFR-6, NFR-5).**
-**Given** le dev client existant sur l'iPhone de Hermann, chargé par `npx expo start` depuis ce clone (jamais Expo Go), commit et état de l'arbre consignés
-**When** Hermann joue les gestes, ou l'agent en sa présence
-**Then** sont constatés et consignés tels quels (réussi, partiel, impossible) : (a) l'accessoire s'affiche dans la `Modal` de la Feuille ; (b) une barre par champ, avec plusieurs champs, un champ ajouté après l'ouverture et un passage Sans → Avec ; (c) Précédent / Suivant clavier ouvert, valeur arrondie appliquée à la sortie (1,3 → 1,5), extrémités indisponibles ; (d) « Fermer » applique et ferme ; (e) fond de la cellule active qui suit le focus, annoncé par VoiceOver ; (f) ligne active visible au-dessus du clavier, marge 12 ; (g) ✓ et ✕ absorbés au premier appui ; (h) toucher une roue pendant la saisie ferme le champ (valeur appliquée) et ouvre la roue dans le même geste
+**AC6 — Recette sur iPhone (NFR-6, NFR-5).**
+**Given** le dev client existant sur l'iPhone de Hermann, chargé par `npx expo start` depuis ce clone (jamais Expo Go), commit consigné
+**When** Hermann joue les gestes
+**Then** sont constatés et consignés tels quels (réussi, partiel, impossible) : (a) la barre s'affiche dans la Feuille ; (b) Précédent / Suivant passent d'un champ à l'autre sans fermer le clavier, extrémités indisponibles ; (c) « Fermer » applique et ferme (1,3 → 1,5) ; (d) fond de la cellule active qui suit le focus ; (e) **une ligne située en bas du tableau** reste entièrement visible au-dessus du clavier à l'ouverture ; (f) idem en naviguant par Précédent / Suivant ; (g) ✓ et ✕ absorbés au premier appui
 **And** si un nouveau build natif est nécessaire, la story s'arrête et le constat est signalé à Hermann, sans build ni EAS par l'agent.
 
-**AC6 — Décision consignée, sans réimplémentation (AD-26).**
-**Given** les constats d'AC5
+**AC7 — Issue consignée (AD-26).**
+**Given** les constats d'AC6
 **When** l'agent clôt la story
-**Then** il consigne l'une des issues : **succès** — les composants sont conservés pour 2.7 ; **repli** — l'accessoire ne s'affiche pas dans la `Modal` (ou un autre constat propre au clavier décimal bloque) : l'écart est signalé à Hermann, aucune barre n'est réimplémentée sans sa décision, et seule la saisie de la charge (2.7) attend son arbitrage
-**And** un problème du seul clavier décimal ne bloque aucune fonction indépendante : la saisie textuelle des libellés de phases et le reste de 2.8 avancent quelle que soit l'issue
+**Then** il consigne **succès** (composants conservés pour 2.7) ou l'écart constaté, signalé à Hermann ; seule la saisie de la charge (2.7) attend alors son arbitrage, et le libellé de phase (2.8) avance quelle que soit l'issue
 **And** l'application reste verte et utilisable quel que soit le résultat.
 
-**AC7 — Tests et contrôles.**
+**AC8 — Tests et contrôles.**
 **Given** les tests Jest
 **When** ils s'exécutent
-**Then** `sheetSurface.test.ts` couvre la surface `keyboard` (ouverture par focus, une seule surface, flush avant transition, absorption de ✓ / ✕, identité disparue) ; `loadFieldOrder` et la sortie de champ (`parseLoadText`, vide → 0, illisible → valeur précédente) sont testés ; un test vérifie l'absence de `KeyboardAvoidingView` et de nouveau `ScrollView` dans la Feuille
+**Then** `sheetSurface.test.ts` couvre la surface `keyboard` (ouverture par focus, une seule surface, valeur appliquée avant transition, absorption de ✓ / ✕) ; l'ordre de navigation entre champs de charge et la sortie de champ (`parseLoadText`, vide → 0, illisible → valeur précédente) sont testés
 **And** les textes de la barre (Précédent, Suivant, « Fermer ») passent par `src/shared/i18n/`
 **And** Contrôles : `npm test`, `npx tsc --noEmit`, `npm run lint` verts.
 
-**Recette iPhone (précoce, hors lot) :** `R-2.2-01` à `R-2.2-08` = constats (a) à (h) d'AC5, Feuille ouverte sur un Exercice en séries variables de 4 séries puis en identiques.
+**Recette iPhone (précoce, hors lot) :** `R-2.2-01` à `R-2.2-07` = constats (a) à (g) d'AC6, Feuille ouverte sur un Exercice en séries variables d'au moins 6 séries (ligne basse) puis en identiques.
 **Hors story :** présentation définitive de la charge (2.7) ; libellé de phase (2.8).
 
 ---

@@ -436,9 +436,9 @@ La charge se saisit directement dans sa ligne (identiques) ou dans sa cellule (v
 
 Quand un champ de saisie clavier est actif :
 
-- le champ édité reste visible ;
-- le tableau reste entièrement visible au-dessus du clavier, avec la marge de la frame `9292:18077` (12 dans le scénario validé) ;
-- le clavier décimal se ferme sans touche Retour ;
+- le clavier est le clavier numérique décimal standard d'iOS et d'Android ; aucun clavier personnalisé ;
+- à l'apparition du clavier et à chaque Précédent / Suivant, la ligne contenant le champ actif reste entièrement visible au-dessus du clavier ; si elle est trop bas, le contenu de la Feuille défile automatiquement pour la remonter ; il n'est pas nécessaire d'afficher toutes les lignes du tableau en même temps (correction de Hermann du 19/10) ;
+- le clavier décimal se ferme par le bouton « Fermer », à droite de la barre ;
 - une seule surface est ouverte à la fois ;
 - l'absorption de ✓ et ✕ suit Q47.
 
@@ -889,11 +889,7 @@ Le point 1 (Q48) se traite story par story.
 
    À constater sur le comportement natif du champ pendant la story, puis à soumettre à Hermann à la recette, sans règle inventée.
 7. **Cadence « Autre ».** Quand la valeur réglée par ± vaut 0, 1, 2 ou 5, CA-01 (« le choix visuel reflète la valeur ») ne dit pas si l'option Autre reste sélectionnée.
-8. **Clavier décimal (FR-24).** Deux points restent ouverts :
-   - le geste qui ferme le clavier, qui n'a pas de touche Retour ;
-   - la portée de « tableau entièrement visible » avec un grand nombre de séries. La lecture minimale est que la ligne active reste visible.
-
-   À vérifier lors de la recette précoce (NFR-6).
+8. **Clavier décimal (FR-24).** Tranché par Hermann le 19/10 : bouton « Fermer » à droite de la barre ; la ligne du champ actif reste entièrement visible au-dessus du clavier, par défilement automatique si nécessaire, sans exiger l'affichage simultané de toutes les lignes. À vérifier lors de la recette précoce (NFR-6), notamment avec une ligne en bas du tableau.
 9. **Charge et passage Variables → Identiques.** La charge commune reprend la règle existante des champs de série (FR-11). Si la valeur reprise est 0, FR-14 fait passer l'Exercice à Sans. Cette conséquence est à confirmer.
 10. **Cellule de charge vidée** à la sortie du champ : aucune source ne dit si elle vaut 0 ou garde sa valeur précédente. La règle commune des champs de série (CH-04) s'applique, à constater.
 ## 10. Critères de réussite
