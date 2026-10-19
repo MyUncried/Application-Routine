@@ -222,9 +222,9 @@ function chooseOrder(label: string) {
     alert.mockRestore();
   }
 }
-/** Option affichée de la Cadence (« Autre », « 5 s », …, « Sans »), ou « — ». */
+/** Option affichée de la Cadence (« Autre », « 1 s », « Sans » ; RC-10), ou « — ». */
 function cadenceText(): string {
-  const option = selectedValue(CADENCE_CONTROL, ["OTHER", "5", "2", "1", "NONE"]) as "OTHER" | "5" | "2" | "1" | "NONE" | null;
+  const option = selectedValue(CADENCE_CONTROL, ["OTHER", "1", "NONE"]) as "OTHER" | "1" | "NONE" | null;
   return option === null ? "—" : strings.executionParameters.sheet.cadenceOptions[option];
 }
 /** Type de série affiché (« Variables » / « Identiques »), lecture seule (N = 1) comprise. */
@@ -479,9 +479,10 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     tap("execution-sheet-beep-increment");
     expect(valueOf("execution-sheet-beep")).toBe("2 s");
     for (const mode of ["Répétitions", "Durée"]) {
-      // PRE-5 story 2.5 (AC3) : le choix du Mode range le ± ; la Cadence affiche alors 2 s.
+      // PRE-5 story 2.5 (AC3) : le choix du Mode range le ± ; la Cadence affiche alors Autre
+      // (recette du 19/10, RC-10 : 2 s n'est plus une option).
       chooseMode(mode);
-      expect(cadenceText()).toBe("2 s");
+      expect(cadenceText()).toBe("Autre");
     }
     validate();
     expect(applied(onApply).cadenceBeepIntervalSeconds).toBe(2);
@@ -2607,10 +2608,10 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       expect(screen.queryByTestId(`execution-sheet-${field}-decrement`)).toBeNull();
       expect(screen.getByTestId(`execution-sheet-${field}-toggle`).props.accessibilityState).toMatchObject({ expanded: false });
     }
-    // PRE-5 story 2.5 (AC3) : au repos, la Cadence n'est que son segmenté (2 s) ; aucun ±.
+    // PRE-5 story 2.5 (AC3) : au repos, la Cadence n'est que son segmenté (2 s → Autre, RC-10) ; aucun ±.
     expect(screen.queryByTestId("execution-sheet-beep-increment")).toBeNull();
     expect(screen.queryByTestId("execution-sheet-beep-toggle")).toBeNull();
-    expect(cadenceText()).toBe("2 s");
+    expect(cadenceText()).toBe("Autre");
     expect(shownValue("execution-sheet-countdown")).toBe("10 s");
     expect(styleOf("execution-sheet-countdown-pill")).toMatchObject({ backgroundColor: "#F5F7FA", borderRadius: 10 });
     expect(screen.getByTestId("execution-sheet-countdown-toggle").props.accessibilityLabel).toBe("Compte à rebours, 10 s");
@@ -2780,7 +2781,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
         ["execution-sheet-row-mode", MODE_CONTROL, ["REPETITIONS", "DURATION"]],
         ["execution-sheet-row-series-type", SERIES_TYPE, ["VARIABLE", "UNIFORM"]],
         ["execution-sheet-row-side", SIDE_CONTROL, ["WITH", "WITHOUT"]],
-        ["execution-sheet-row-beep", CADENCE_CONTROL, ["OTHER", "5", "2", "1", "NONE"]],
+        ["execution-sheet-row-beep", CADENCE_CONTROL, ["OTHER", "1", "NONE"]],
       ] as const) {
         const control = within(screen.getByTestId(`${rowID}-line`)).getByTestId(controlID);
         expect(options.map((option) => within(control).getByTestId(`${controlID}-${option}`))).toHaveLength(options.length);
@@ -6307,12 +6308,12 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     expect(applied(onApply)).toMatchObject({ series: { count: 1 }, sideOrder: "BY_SIDE" });
   });
 
-  it("PRE5-2.5/AC3 — Cadence : 0, 1, 2, 5, 7 → Sans, 1 s, 2 s, 5 s, Autre ; options Autre / 5 s / 2 s / 1 s / Sans de 46,4", () => {
+  it("PRE5-2.5/AC3, RC-10 — Cadence : 0, 1, 2, 5, 7 → Sans, 1 s, Autre, Autre, Autre ; options Autre / 1 s / Sans de 62", () => {
     const expected: readonly [number, string][] = [
       [0, "Sans"],
       [1, "1 s"],
-      [2, "2 s"],
-      [5, "5 s"],
+      [2, "Autre"],
+      [5, "Autre"],
       [7, "Autre"],
     ];
     for (const [value, option] of expected) {
@@ -6322,17 +6323,18 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     }
     renderSheet(params());
     const control = get(CADENCE_CONTROL);
-    expect(["OTHER", "5", "2", "1", "NONE"].map((option) => get(`${CADENCE_CONTROL}-${option}`).props.accessibilityLabel)).toEqual([
+    expect(["OTHER", "1", "NONE"].map((option) => get(`${CADENCE_CONTROL}-${option}`).props.accessibilityLabel)).toEqual([
       "Autre",
-      "5 s",
-      "2 s",
       "1 s",
       "Sans",
     ]);
-    expect(StyleSheet.flatten(control.props.style)).toMatchObject({ height: 32, width: 5 * 46.4 + 4 * 2 + 2 * 3 });
+    expect(query(`${CADENCE_CONTROL}-5`)).toBeNull();
+    expect(query(`${CADENCE_CONTROL}-2`)).toBeNull();
+    // Chaque option a la largeur de l'option Sans de la Charge (62).
+    expect(StyleSheet.flatten(control.props.style)).toMatchObject({ height: 32, width: 3 * 62 + 2 * 2 + 2 * 3 });
   });
 
-  it("PRE5-2.5/AC3 — Autre : valeur inchangée, ± ouvert sous la ligne, Autre affiché ; fermeture → option de la valeur ; 5 s / 2 s / 1 s / Sans écrivent leur valeur et ferment le ± ; aucune valeur personnalisée mémorisée", () => {
+  it("PRE5-2.5/AC3 — Autre : valeur inchangée, ± ouvert sous la ligne, Autre affiché ; fermeture → option de la valeur ; 1 s / Sans écrivent leur valeur et ferment le ± (RC-10) ; aucune valeur personnalisée mémorisée", () => {
     const { onApply } = renderSheet(params({ cadenceBeepIntervalSeconds: 0 }));
     fireEvent.press(get(`${CADENCE_CONTROL}-OTHER`));
     expect(cadenceText()).toBe("Autre");
@@ -6342,40 +6344,40 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     fireEvent.press(get(`${CADENCE_CONTROL}-OTHER`));
     expect(query("execution-sheet-beep-field")).toBeNull();
     expect(cadenceText()).toBe("Sans");
-    // ± : 7 s (Autre), puis 5 s par le segmenté, qui ferme le ±.
+    // ± : 7 s (Autre), puis 1 s par le segmenté, qui ferme le ±.
     openExecutionSheetField("execution-sheet-beep");
     for (let step = 0; step < 7; step += 1) tap("execution-sheet-beep-increment");
     expect(valueOf("execution-sheet-beep")).toBe("7 s");
-    fireEvent.press(get(`${CADENCE_CONTROL}-5`));
+    fireEvent.press(get(`${CADENCE_CONTROL}-1`));
     expect(query("execution-sheet-beep-field")).toBeNull();
-    expect(cadenceText()).toBe("5 s");
+    expect(cadenceText()).toBe("1 s");
     // Sans puis Autre : rien n'est restauré (7 s oublié).
     fireEvent.press(get(`${CADENCE_CONTROL}-NONE`));
     fireEvent.press(get(`${CADENCE_CONTROL}-OTHER`));
     expect(valueOf("execution-sheet-beep")).toBe("Sans");
-    // 2 s avec le ± ouvert : écrit, ± fermé.
-    fireEvent.press(get(`${CADENCE_CONTROL}-2`));
+    // 1 s avec le ± ouvert : écrit, ± fermé.
+    fireEvent.press(get(`${CADENCE_CONTROL}-1`));
     expect(query("execution-sheet-beep-field")).toBeNull();
     validate();
-    expect(applied(onApply).cadenceBeepIntervalSeconds).toBe(2);
+    expect(applied(onApply).cadenceBeepIntervalSeconds).toBe(1);
   });
 
   it("PRE5-2.5/AC3 — re-choisir l'option affichée laisse le Brouillon inchangé (`Annuler` d'un retrait reste valable) ; roue ouverte (T10) : choix non appliqué", () =>
     withPlatform("ios", () => {
-      renderSheet(params({ series: variableRows([[30, 10], [45, 20], [60, 30]]), cadenceBeepIntervalSeconds: 2 }));
+      renderSheet(params({ series: variableRows([[30, 10], [45, 20], [60, 30]]), cadenceBeepIntervalSeconds: 1 }));
       fireEvent.press(get("execution-sheet-table-row-2-remove"));
       expect(query("execution-sheet-adjusted-undo")).not.toBeNull();
-      fireEvent.press(get(`${CADENCE_CONTROL}-2`));
+      fireEvent.press(get(`${CADENCE_CONTROL}-1`));
       expect(query("execution-sheet-adjusted-undo")).not.toBeNull();
       fireEvent.press(get("execution-sheet-adjusted-undo"));
-      // T10 : roue d'une cellule ouverte, 5 s n'est pas appliqué.
+      // T10 : roue d'une cellule ouverte, Sans n'est pas appliqué.
       fireEvent(get("execution-sheet-table-row-1-motion"), "layout", { nativeEvent: { layout: { x: -4, y: 32, width: 336, height: 36 } } });
       fireEvent(get("execution-sheet-table-row-1-target-cell"), "layout", { nativeEvent: { layout: { x: 58, y: 6, width: 71, height: 24 } } });
       fireEvent.press(get("execution-sheet-table-row-1-target"));
       expect(query("execution-sheet-cell-panel")).not.toBeNull();
-      fireEvent.press(get(`${CADENCE_CONTROL}-5`));
+      fireEvent.press(get(`${CADENCE_CONTROL}-NONE`));
       expect(query("execution-sheet-cell-panel")).toBeNull();
-      expect(cadenceText()).toBe("2 s");
+      expect(cadenceText()).toBe("1 s");
     }));
 
   it("PRE5-2.5/AC4 — Durée de l'exercice : repliée à l'ouverture, Compte à rebours et Fin absents ; chevron à 12 du libellé → visibles ; valeur, nature et roue inchangées ; chevron et pastille distincts", () => {
@@ -6415,8 +6417,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     view.unmount();
     renderSheet(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
     expect(signals()).toEqual({ countdown: true, end: true, disclosure: false });
-    // Cadence 2 s : la ligne ≈ apparaît, repliée.
-    fireEvent.press(get(`${CADENCE_CONTROL}-2`));
+    // Cadence 1 s (RC-10) : la ligne ≈ apparaît, repliée.
+    fireEvent.press(get(`${CADENCE_CONTROL}-1`));
     expect(screen.getByText("Durée de l’exercice ≈", hidden)).toBeTruthy();
     expect(signals()).toEqual({ countdown: false, end: false, disclosure: true });
   });

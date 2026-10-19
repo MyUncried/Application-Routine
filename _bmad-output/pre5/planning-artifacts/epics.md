@@ -782,6 +782,7 @@ afin de régler les cadres Côtés et Cadence et durée sans désignation anatom
 **Given** le cadre Cadence et durée
 **When** la ligne « Cadence » s'affiche
 **Then** c'est un segmenté `inline` Autre / 5 s / 2 s / 1 s / Sans, dont l'option affichée est donnée par la fonction pure `cadenceOptionOf(value)` : 0 → Sans, 1 → 1 s, 2 → 2 s, 5 → 5 s, toute autre valeur → Autre
+**And** recette du 19/10, RC-10 (remplace la phrase précédente) : trois options seulement, Autre / 1 s / Sans, chacune de la largeur de l'option Sans de la Charge (`INLINE_OPTION_WIDTHS.narrow`, 62) ; `cadenceOptionOf` : 0 → Sans, 1 → 1 s, toute autre valeur (2 et 5 compris) → Autre ; aucune donnée migrée
 **And** toucher Autre ne change pas la valeur et ouvre la surface `stepper(beep)` existante (± 0..10, pas 1, sans accélération) ; tant qu'elle est ouverte, l'option affichée est Autre ; à sa fermeture, l'affichage revient à `cadenceOptionOf(value)`
 **And** aucune valeur personnalisée n'est mémorisée : Sans puis Autre ne restaure rien ; bornes, pas et donnée inchangés (D-312, D-313).
 

@@ -235,7 +235,7 @@ import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@
  *   de repli ; l'option Avec (N > 1) porte la notation de l'Enchainement (`sideOrderSubtitles`,
  *   nom accessible `sideOrders`) et, sélectionnée, ouvre le menu natif des deux notations
  *   (`SideOrderMenu`). Pause entre les côtés visible sous Avec. `popover(side | order)` retirées ;
- * - cadre Cadence et durée : « Cadence » en segmenté Autre / 5 s / 2 s / 1 s / Sans
+ * - cadre Cadence et durée : « Cadence » en segmenté Autre / 1 s / Sans (RC-10)
  *   (`cadenceOptionOf`) ; Autre révèle le ± existant (`stepper(beep)`) sous la ligne.
  *   « Durée de l'exercice » porte le `DisclosureControl` existant, replié par défaut, qui
  *   masque Compte à rebours et Fin sans changer leurs valeurs ; ligne absente → signaux
@@ -802,8 +802,9 @@ export function ExecutionParametersSheet({
 
   /**
    * PRE-5 story 2.5 (AC3, AD-24, FR-30) : segmenté « Cadence ». Autre ne change pas la valeur :
-   * il ouvre (ou referme) le ± existant, `stepper(beep)`, sous la ligne. 5 s, 2 s, 1 s et
-   * Sans écrivent leur valeur par `setCadenceBeep` (si elle diffère) et ferment la surface.
+   * il ouvre (ou referme) le ± existant, `stepper(beep)`, sous la ligne. 1 s et Sans
+   * (recette du 19/10, RC-10 : 2 s et 5 s ne sont plus des options) écrivent leur valeur par
+   * `setCadenceBeep` (si elle diffère) et ferment la surface.
    */
   function chooseCadence(option: CadenceOption) {
     if (option !== "OTHER") {
@@ -1354,12 +1355,13 @@ export function ExecutionParametersSheet({
       testID="execution-sheet-side-control"
     />
   );
-  // PRE-5 story 2.5 (AC3, AD-24, R-11) : « Cadence » en segmenté `inline` Autre / 5 s / 2 s /
-  // 1 s / Sans, option affichée par `cadenceOptionOf` (Autre tant que le ± est ouvert).
+  // PRE-5 story 2.5 (AC3, AD-24, R-11) : « Cadence » en segmenté `inline` ; recette du 19/10
+  // (RC-10) : Autre / 1 s / Sans, options de 62 comme celles de la Charge ; option affichée par
+  // `cadenceOptionOf` (Autre tant que le ± est ouvert ; 2 s, 5 s et toute autre valeur → Autre).
   const cadenceControl = (
     <SegmentedControl<CadenceOption>
       variant="inline"
-      optionWidth={INLINE_OPTION_WIDTHS.cadence}
+      optionWidth={INLINE_OPTION_WIDTHS.narrow}
       options={CADENCE_OPTIONS.map((option) => ({ value: option, label: t.cadenceOptions[option] }))}
       value={cadenceOption}
       onChange={chooseCadence}

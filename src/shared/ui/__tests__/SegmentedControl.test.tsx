@@ -258,7 +258,7 @@ describe("SegmentedControl — variante « inline » (PRE-5 story 2.3)", () => {
     }
   });
 
-  it("largeur d'option fournie : 2 × 106 + 2 + 6 = 220 (Mode) ; 5 × 46,4 + 8 + 6 = 246 (Cadence)", () => {
+  it("largeur d'option fournie : 2 × 106 + 2 + 6 = 220 (Mode) ; 3 × 62 + 4 + 6 = 196 (Cadence, RC-10)", () => {
     const { rerender } = render(
       <SegmentedControl
         options={binary}
@@ -270,18 +270,19 @@ describe("SegmentedControl — variante « inline » (PRE-5 story 2.3)", () => {
       />,
     );
     expect(StyleSheet.flatten(screen.getByTestId("seg").props.style).width).toBe(220);
-    const cadence = ["OTHER", "5", "2", "1", "NONE"].map((value) => ({ value, label: value }));
+    // Recette du 19/10 (RC-10) : Cadence à trois options de 62.
+    const cadence = ["OTHER", "1", "NONE"].map((value) => ({ value, label: value }));
     rerender(
       <SegmentedControl
         options={cadence}
-        value="2"
+        value="1"
         onChange={jest.fn()}
         variant="inline"
-        optionWidth={INLINE_OPTION_WIDTHS.cadence}
+        optionWidth={INLINE_OPTION_WIDTHS.narrow}
         testID="seg"
       />,
     );
-    expect(StyleSheet.flatten(screen.getByTestId("seg").props.style).width).toBeCloseTo(246);
+    expect(StyleSheet.flatten(screen.getByTestId("seg").props.style).width).toBe(196);
   });
 
   it("option choisie : cadre violet existant (rayon 5) et libellé blanc Semi Bold 12/16 ; autres en gris regular 12/16", () => {

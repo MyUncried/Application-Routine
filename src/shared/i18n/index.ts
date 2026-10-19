@@ -104,7 +104,8 @@ const executionParameters = {
     // PRE-5 story 2.5 (FR-30, AD-24) : ligne « Cadence » (remplace « Bip de cadence »), segmenté
     // Autre / 5 s / 2 s / 1 s / Sans ; Autre révèle le ± existant.
     cadence: "Cadence",
-    cadenceOptions: { OTHER: "Autre", "5": "5 s", "2": "2 s", "1": "1 s", NONE: "Sans" },
+    // Recette du 19/10 (RC-10) : Autre / 1 s / Sans.
+    cadenceOptions: { OTHER: "Autre", "1": "1 s", NONE: "Sans" },
     // PRE-5 story 2.5 (FR-31, AD-28) : ligne « Durée de l’exercice » (remplace « Durée totale »
     // dans la Feuille ; celle de la Phrase reste), chevron qui replie Compte à rebours et Fin.
     exerciseDuration: "Durée de l’exercice",

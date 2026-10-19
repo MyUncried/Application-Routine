@@ -53,6 +53,7 @@ Appliquent RC-1 à RC-5 ; aucun constat iPhone n'est encore consigné pour elles
 - **RC-7 — Compte à rebours et Fin d'un Exercice ouvert depuis une Séance.** Absents de la Feuille ; les valeurs sont conservées sans être utilisées dans l'exécution. Comportement livré en 2.5 confirmé.
 - **RC-8 — Segmentés centrés verticalement avec le libellé de leur ligne.** Constat de Hermann : les segmentés `inline` de « Mode », « Condition d'arrêt » et « Cadence » ne sont pas centrés verticalement avec leur libellé. Règle pour toutes les lignes à segmenté `inline` (Type de série, Charge, Changement de côté, Cadence, Phases à venir) : contrôle (32) centré sur le libellé dans la ligne (44), hauteurs inchangées ; pour la Cadence, centré sur la ligne du libellé, pas sur la ligne étendue par le ± révélé.
 - **RC-9 — Aucun espace sous la dernière ligne des tableaux.** L'espace d'une hauteur de ligne sous la dernière ligne du tableau des séries variables est supprimé ; remplace cette partie de PR-02 / UX-DR3 / story 2.6 AC2. Vaut aussi pour le tableau des phases (story 2.8 AC3b).
+- **RC-10 — Cadence à trois options.** Le segmenté « Cadence » n'a plus que trois options, Autre | 1 s | Sans (ordre de l'existant conservé, Sans à droite comme dans les autres segmentés), chacune de la largeur de l'option « Sans » du segmenté de la Charge (`INLINE_OPTION_WIDTHS.narrow`, 62). 2 s et 5 s ne sont plus des options : une valeur de 2 ou 5 s, comme toute valeur autre que 0 et 1, s'affiche « Autre ». Autre ouvre le ± existant 0..10, inchangé. Aucune donnée migrée. Remplace l'AC3 de la story 2.5 et le point 8 du §9 (« Sans, 1 s, 2 s, 5 s »).
 
 ## Correction RC-6 (branche `bmad/pre5-recette1`)
 
@@ -78,6 +79,13 @@ Aucun constat iPhone n'est encore consigné pour elle.
 
 - L'espace venait de la brique partagée `tableStyles.block` de `sheetTable.tsx` (`paddingBottom` d'une hauteur de ligne, 36) : retiré là, donc aussi pour le futur tableau des phases (2.8). Marges du bloc inchangées (12 en haut et en bas dans le cadre).
 - À vérifier sur iPhone : bas du fond blanc juste sous la dernière ligne ; glisser jusqu'à la dernière place et repère d'insertion en bas du tableau.
+
+## Correction RC-10 (branche `bmad/pre5-depuis-pre4`)
+
+Aucun constat iPhone n'est encore consigné pour elle.
+
+- `cadenceOptionOf` : 0 → Sans, 1 → 1 s, toute autre valeur → Autre ; options Autre / 1 s / Sans de 62 (contrôle de 196) ; la largeur `cadence` (46,4) est retirée de `INLINE_OPTION_WIDTHS`. Libellés « 5 s » et « 2 s » retirés du lexique de la Cadence.
+- À vérifier sur iPhone : trois options de même largeur que celles de la Charge, centrées sur le libellé (RC-8) ; un Exercice réglé à 2 s ou 5 s affiche Autre, et Autre ouvre le ± à cette valeur.
 
 ## Issue de l'essai du clavier (story 2.2, AC7) — 19/10
 
