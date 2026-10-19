@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 10-19-2026 10:54
-last_updated: 10-19-2026 21:00
+last_updated: 10-19-2026 21:30
 project: kodjo-pre5
 project_key: NOKEY
 tracking_system: file-system
@@ -46,7 +46,7 @@ development_status:
   2-2-essai-sur-iphone-du-champ-clavier-de-la-charge-nfr-6: review # recette iPhone R-2.2-01 à 07 en attente
   2-3-variante-inline-du-segmentedcontrol: done
   2-4-feuille-en-quatre-cadres-exécution-et-type-de-série: done
-  2-5-côtés-avec-sans-enchainement-cadence-et-durée-de-l-exercice: backlog
+  2-5-côtés-avec-sans-enchainement-cadence-et-durée-de-l-exercice: done # recette iPhone R-2.5-01 à 05 (lot Feuille) en attente
   2-6-tableau-des-séries-sans-steppers-de-cellule-lignes-de-36: done # constat iPhone AC1 (R-2.6-01) en attente
   2-7-charge-dans-la-feuille-en-séries-identiques-et-variables: backlog
   2-8-phases-de-l-exercice-dans-la-feuille: backlog

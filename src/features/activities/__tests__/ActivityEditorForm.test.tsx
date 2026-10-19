@@ -99,8 +99,11 @@ function Harness({
   silhouette,
   isCategoryPickerOpen,
   bodyZones = BODY_ZONE_FIXTURES,
+  exerciseSignals,
 }: {
   bodyZones?: readonly BodyZone[];
+  /** PRE-5 story 2.5 (AC4) : signaux de la Feuille ; absent = défaut du composant. */
+  exerciseSignals?: "present" | "absent";
   initial?: Partial<ActivityEditorFormValue>;
   onChangeSpy?: (patch: Partial<ActivityEditorFormValue>) => void;
   onFinish?: () => void;
@@ -130,6 +133,7 @@ function Harness({
           isCategoryPickerOpen={isCategoryPickerOpen}
           silhouette={silhouette}
           profileSideRecoverySecondsDefault={10}
+          exerciseSignals={exerciseSignals}
           mediaService={mediaService}
           mediaDraftId="draft-test"
           finishLabel="Terminer"
@@ -1598,5 +1602,32 @@ describe("ActivityEditorForm — PRE-4 Q53 (8) (Catégorie retirée encore affec
     expect(screen.getByTestId("activity-editor-category-button").props.accessibilityLabel).toBe("Catégorie Cardio");
     expect(screen.getByTestId("test-finish-action").props.accessibilityState?.disabled ?? false).toBe(false);
     announce.mockRestore();
+  });
+});
+
+describe("ActivityEditorForm — PRE-5 story 2.5", () => {
+  it("PRE5-2.5/AC4 — signaux de la Feuille transmis : défaut présents (repliés sous la Durée de l’exercice) ; « absent » (Séance) : ni Compte à rebours, ni Fin, ni chevron ; Carte de l’Éditeur inchangée", () => {
+    const view = render(<Harness initial={{ executionParameters: parameters({ countdownSeconds: 12, endSeconds: 7 }) }} />);
+    fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+    expect(screen.getByTestId("execution-sheet-duration-disclosure-frame")).toBeTruthy();
+    expect(screen.queryByTestId("execution-sheet-row-countdown")).toBeNull();
+    fireEvent.press(screen.getByLabelText("Afficher le compte à rebours et la fin d’exercice"));
+    expect(screen.getByTestId("execution-sheet-row-countdown")).toBeTruthy();
+    expect(screen.getByTestId("execution-sheet-row-end")).toBeTruthy();
+    view.unmount();
+
+    const onChangeSpy = jest.fn();
+    render(<Harness onChangeSpy={onChangeSpy} exerciseSignals="absent" initial={{ executionParameters: parameters({ countdownSeconds: 12, endSeconds: 7 }) }} />);
+    // Carte : Compte à rebours et Fin toujours affichés (1.2, 3.2 inchangées).
+    expect(screen.getByTestId("exercise-parameters-countdown").props.children).toBe("12 s");
+    expect(screen.getByTestId("exercise-parameters-end").props.children).toBe("7 s");
+    fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+    expect(screen.queryByTestId("execution-sheet-row-countdown")).toBeNull();
+    expect(screen.queryByTestId("execution-sheet-row-end")).toBeNull();
+    expect(screen.queryByTestId("execution-sheet-duration-disclosure-frame")).toBeNull();
+    fireEvent.press(screen.getByTestId("execution-sheet-validate"));
+    expect(onChangeSpy).toHaveBeenCalledWith({
+      executionParameters: expect.objectContaining({ countdownSeconds: 12, endSeconds: 7 }),
+    });
   });
 });

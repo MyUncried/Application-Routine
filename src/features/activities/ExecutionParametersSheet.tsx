@@ -68,8 +68,13 @@ import {
 } from "@/domain/activities/executionCalculations";
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import { formatLoadKg } from "@/domain/activities/exerciseLoad";
-import type { SideMode } from "@/domain/sessions/sideMode";
 import { AnchoredPanel } from "@/features/activities/AnchoredPanel";
+import {
+  CADENCE_OPTION_SECONDS,
+  CADENCE_OPTIONS,
+  cadenceOptionOf,
+  type CadenceOption,
+} from "@/features/activities/cadenceOption";
 import { KeyboardAccessoryBar } from "@/features/activities/KeyboardAccessoryBar";
 import { KeyboardField } from "@/features/activities/KeyboardField";
 import {
@@ -115,6 +120,7 @@ import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
 import { WHEEL_TOTAL_DURATION_SECONDS_MAX } from "@/features/sessions/wheelPickerMath";
 import { strings } from "@/shared/i18n";
+import { DisclosureControl } from "@/shared/ui/DisclosureControl";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import {
   EXECUTION_ACCELERATED_HOLD_POLICY,
@@ -209,6 +215,19 @@ import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@
  * la recette du 19/10, RC-1), surface `keyboard` et synchronisation focus /
  * surface / application dans un seul hook (`useSheetKeyboard`) ; la saisie en cours est
  * appliquée (`keyboard.flush`) avant toute autre transition du même geste.
+ *
+ * PRE-5 story 2.5 (AD-21, AD-24, AD-27, AD-28, D-431 ; FR-15 à FR-17, FR-30, FR-31) :
+ * - cadre Côtés : « Changement de côté » en segmenté `inline` Avec / Sans (Avec ⇔
+ *   `isBilateral`, Sans → Avec : `setSideMode(…, "RIGHT_LEFT", Profil)`, copie P3-10) ; le
+ *   chevron intérieur d'Avec replie ou déplie Enchainement et Pause entre les côtés (état
+ *   d'interface). « Enchainement » (Avec, N > 1) en segmenté `inline` à notations graphiques
+ *   (`sideOrderSubtitles`, nom accessible `sideOrders`). `popover(side | order)` retirées ;
+ * - cadre Cadence et durée : « Cadence » en segmenté Autre / 5 s / 2 s / 1 s / Sans
+ *   (`cadenceOptionOf`) ; Autre révèle le ± existant (`stepper(beep)`) sous la ligne.
+ *   « Durée de l'exercice » porte le `DisclosureControl` existant, replié par défaut, qui
+ *   masque Compte à rebours et Fin sans changer leurs valeurs ; ligne absente → signaux
+ *   visibles sans chevron ; Exercice ouvert depuis une Séance (`exerciseSignals="absent"`) :
+ *   ni signaux, ni chevron.
  */
 export type ExecutionParametersSheetProps = {
   readonly parent: ExecutionParametersInput;
@@ -216,6 +235,13 @@ export type ExecutionParametersSheetProps = {
   readonly baseline?: ExecutionParametersInput | null;
   /** Pause entre les côtés du Profil, copiée à l'ACTIVATION du changement de côté (P3-10). */
   readonly profileSideRecoverySecondsDefault: number;
+  /**
+   * PRE-5 story 2.5 (AC4, D-409, RM-218) : Compte à rebours et Fin d'exercice. `"present"`
+   * (défaut) : rendus, repliés sous « Durée de l'exercice » quand cette ligne existe.
+   * `"absent"` (Exercice ouvert depuis une Séance) : ni lignes ni chevron ; les valeurs du
+   * Brouillon sont conservées telles quelles.
+   */
+  readonly exerciseSignals?: "present" | "absent";
   readonly onApply: (parameters: ExecutionParameters) => void;
   readonly onCancel: () => void;
 };
@@ -224,10 +250,10 @@ const t = strings.executionParameters.sheet;
 
 /** Type de série affiché par la ligne « Type de série » (FR-27) ; le Brouillon garde son booléen `variable`. */
 type SeriesType = "VARIABLE" | "UNIFORM";
+/** PRE-5 story 2.5 (FR-15) : option du segmenté « Changement de côté » ; le Brouillon garde `sideMode`. */
+type SideChoice = "WITH" | "WITHOUT";
 
 /** Surfaces de la Feuille (AD-15). */
-const SIDE_POPOVER: SheetSurface = { kind: "popover", popover: "side" };
-const ORDER_POPOVER: SheetSurface = { kind: "popover", popover: "order" };
 const TARGET_SELECTOR: SheetSurface = { kind: "selector", selector: "commonTarget" };
 const TOTAL_SELECTOR: SheetSurface = { kind: "selector", selector: "total" };
 const stepperSurface = (field: SheetStepperField): SheetSurface => ({ kind: "stepper", field });
@@ -262,84 +288,17 @@ export function useReduceMotion(): boolean {
 }
 
 /**
- * D-4 — sélecteur en place qui, après un choix, laisse la valeur choisie visible
- * (le cadre glisse vers elle), puis se replie en fondu. « Réduire les animations » :
- * fermeture immédiate.
- *
- * Q39 (Hermann, 2026-10-17, E-13) : le repli n'anime plus `height` sur le fil JS
- * (`Animated.timing`, `useNativeDriver: false`, saccadé). Après `SELECTOR_SETTLE_MS`,
- * `onClosed` est appelé et le sélecteur est démonté : sa sortie (fondu + repli) et
- * le glissement des lignes voisines sont joués sur le fil UI par Reanimated
- * (`SheetMotionView`). Contrat inchangé : `onClosed` après la fermeture, tout de
- * suite si « Réduire les animations » ou si le sélecteur n'a jamais été mis en page.
- *
- * Q41 (Hermann, 2026-10-17, E-15) : `presentation="inline"` (Android, web) garde le
- * sélecteur en ligne, révélé par le bas sans fondu (`SheetMotionView`), DANS le cadre
- * de sélection de sa ligne ; `presentation="panel"` (iOS, Changement de côté et Ordre
- * des côtés) le rend tel quel dans un `AnchoredPanel` sous le champ : même contrat
- * D-4 (valeur choisie visible `SELECTOR_SETTLE_MS`, puis fermeture du panneau).
- */
-function ClosingSelector({
-  closing,
-  reduceMotion,
-  onClosed,
-  children,
-  testID,
-  presentation = "inline",
-}: {
-  closing: boolean;
-  reduceMotion: boolean;
-  onClosed: () => void;
-  children: ReactNode;
-  testID: string;
-  presentation?: "inline" | "panel";
-}) {
-  const [laidOut, setLaidOut] = useState(false);
-  const onClosedRef = useRef(onClosed);
-  useEffect(() => {
-    onClosedRef.current = onClosed;
-  });
-  useEffect(() => {
-    if (!closing) return;
-    if (reduceMotion || !laidOut) {
-      onClosedRef.current();
-      return;
-    }
-    const timer = setTimeout(() => onClosedRef.current(), SELECTOR_SETTLE_MS);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [closing, reduceMotion]);
-  const handleLayout = () => {
-    if (!laidOut) setLaidOut(true);
-  };
-  if (presentation === "panel") {
-    return (
-      <View onLayout={handleLayout} testID={testID}>
-        {children}
-      </View>
-    );
-  }
-  return (
-    <SheetMotionView onLayout={handleLayout} style={styles.inlineControl} testID={testID}>
-      {children}
-    </SheetMotionView>
-  );
-}
-
-/**
  * PRE-5 story 2.6 (AD-27, FR-4) : briques du tableau extraites dans `sheetTable.tsx`,
  * ré-exportées ici pour les tests existants.
  */
 export { dragDestination, TABLE_ROW_HEIGHT, tableRowIdentity } from "@/features/activities/sheetTable";
 
-/** D-341 : hauteur MINIMALE du segmenté Ordre des côtés (figé 330×60) ; grandit avec le texte. */
-const SIDE_ORDER_MIN_HEIGHT = 60;
-
 /**
  * Q41 : champs dont le contrôle s'ouvre, sur iOS, dans un panneau sans flèche sous le
- * champ. PRE-5 story 2.4 : le Régime (Type de série) n'a plus de panneau (segmenté en ligne).
+ * champ. PRE-5 story 2.4 : le Régime (Type de série) n'a plus de panneau (segmenté en ligne) ;
+ * PRE-5 story 2.5 : le Changement de côté et l'Enchainement non plus.
  */
-type PanelControl = "uniformDuration" | "uniformRepetitions" | "sideMode" | "sideOrder" | "total" | "rowTarget";
+type PanelControl = "uniformDuration" | "uniformRepetitions" | "total" | "rowTarget";
 type Box = { readonly y: number; readonly height: number };
 const NO_BOX: Box = { y: 0, height: 0 };
 const sameBox = (box: Box | undefined, y: number, height: number) => box !== undefined && box.y === y && box.height === height;
@@ -355,8 +314,6 @@ type FrameBox = { readonly y: number; readonly height: number; readonly width: n
 const PANEL_FRAME: Readonly<Record<PanelControl, SheetFrame>> = {
   uniformDuration: "series",
   uniformRepetitions: "series",
-  sideMode: "sides",
-  sideOrder: "sides",
   total: "cadence",
   rowTarget: "series",
 };
@@ -381,14 +338,10 @@ const PANEL_TEST_IDS: Readonly<Record<PanelControl, string>> = {
   uniformDuration: "execution-sheet-target-panel",
   // Story 3.5 : même panneau de la Cible commune, en Répétitions (un seul Mode affiché).
   uniformRepetitions: "execution-sheet-target-panel",
-  sideMode: "execution-sheet-side-panel",
-  sideOrder: "execution-sheet-order-panel",
   total: "execution-sheet-total-panel",
   // Story 3.6 (Q41, cohérence) : Sélecteur de la Cible d'une ligne, sous sa cellule.
   rowTarget: "execution-sheet-cell-panel",
 };
-/** Panneaux qui portent un segmenté : largeur de la ligne, fond et ombre de panneau flottant. */
-const isSegmentedPanel = (control: PanelControl) => control === "sideMode" || control === "sideOrder";
 /** Q41 : la zone de toucher extérieur couvre aussi les marges du corps défilant (`bodyContent`). */
 const PANEL_OUTSIDE_INSETS = { top: spacing[12], right: spacing[24], bottom: spacing[24], left: spacing[24] };
 
@@ -447,7 +400,8 @@ const secondsLabel = (value: number | null) => (value === null ? t.unset : forma
 const spokenValue = (display: string) => (display === t.unset ? t.unsetSpoken : display);
 /** Pause (« 0 s » compris) : formateur unique du domaine (AD-5). */
 const pauseLabel = (value: number | null) => (value === null ? t.unset : formatPhraseDuration(value));
-const beepLabel = (value: number | null) => (value === null || value === 0 ? t.beepNone : `${value} s`);
+/** PRE-5 story 2.5 : valeur du ± de la Cadence (0 → « Sans », comme l'option du segmenté). */
+const beepLabel = (value: number | null) => (value === null ? t.unset : value === 0 ? t.cadenceOptions.NONE : `${value} s`);
 const repetitionsLabel = (value: number | null) => (value === null ? t.unset : `${value} ${t.repetitionsUnit}`);
 /** Story 3.5 (AC7, H13) : nombre de la roue annoncé avec son unité (« 1 répétition », « 12 répétitions »). */
 const repetitionsSpoken = (value: number) =>
@@ -457,19 +411,30 @@ export function ExecutionParametersSheet({
   parent,
   baseline = null,
   profileSideRecoverySecondsDefault,
+  exerciseSignals = "present",
   onApply,
   onCancel,
 }: ExecutionParametersSheetProps) {
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
   const [draft, setDraft] = useState<ExecutionSheetDraft>(() => openSheetDraft(parent));
-  // Story 3.3 (AD-15) : surface ouverte unique — popover, panneau, roue ou champ ±.
+  // Story 3.3 (AD-15) : surface ouverte unique — roue (panneau sur iOS), champ ± ou clavier.
   const [surface, dispatchSurface] = useReducer(sheetSurfaceReducer, INITIAL_SHEET_SURFACE_STATE);
   const openSurface = surface.open;
   const openKey = openSurface.kind === "none" ? null : openSurface.key;
   const isOpen = (target: SheetSurface) => sameSurface(openSurface, target);
-  const isClosing = (target: SheetSurface) => isOpen(target) && surface.closingKey === openKey;
   const [isTableFolded, setIsTableFolded] = useState(false);
+  /**
+   * PRE-5 story 2.5 (AC1, FR-28) : chevron d'Avec du Changement de côté — Enchainement et
+   * Pause entre les côtés repliés (état d'interface, jamais dans le Brouillon) ; déployé par
+   * défaut et à chaque passage à Avec.
+   */
+  const [isSidesFolded, setIsSidesFolded] = useState(false);
+  /**
+   * PRE-5 story 2.5 (AC4, AD-28) : section « Durée de l'exercice » déployée (Compte à rebours
+   * et Fin rendus) ; repliée à l'ouverture de la Feuille. Indépendante de la valeur de durée.
+   */
+  const [isDurationExpanded, setIsDurationExpanded] = useState(false);
   /**
    * Q40 (Hermann, 2026-10-17, E-14) : tableau des séries variables « sélectionné ».
    * Vrai quand Hermann l'ouvre (passage du Type de série à Variables, dépliage par le
@@ -642,27 +607,21 @@ export function ExecutionParametersSheet({
     setIsTableSelected(false);
     setAdjustment(null);
     setDraft(next);
-    // Q38 : un sélecteur d'Ordre ouvert se ferme quand N passe à 1 (ligne masquée) ;
-    // il ne se rouvre pas de lui-même quand N remonte. Un champ ± ouvert (N compris)
-    // reste ouvert (T22).
-    // Défense seulement : N ne change que par son champ ± ou par l'Inversion du total, et
-    // toucher l'un ou l'autre ferme d'abord tout panneau (T10) ; aucun geste nominal
-    // n'atteint donc ce cas aujourd'hui.
-    if (isSingleSeries(next)) {
-      dispatchSurface({ type: "prune", removed: [ORDER_POPOVER] });
-    }
+    // PRE-5 story 2.5 : l'Enchainement n'a plus de surface ; à N = 1 sa ligne est seulement
+    // masquée (Q38), le champ ± ouvert (N compris) reste ouvert (T22).
   }
 
   /**
    * PRE-5 story 2.4 : choix dans un segmenté en ligne hors du tableau (Mode, Condition
-   * d'arrêt) — appliqué tout de suite ; le tableau est désélectionné (Q40) et la surface
-   * ouverte se ferme, comme l'ancien choix en panneau. Re-choisir l'option affichée ne
-   * modifie pas le Brouillon : le message « Annuler » d'un retrait reste valable (Q29).
+   * d'arrêt ; PRE-5 story 2.5 : Changement de côté, Enchainement, Cadence) — appliqué tout
+   * de suite ; le tableau est désélectionné (Q40) et la surface ouverte se ferme, comme
+   * l'ancien choix en panneau. Re-choisir l'option affichée ne modifie pas le Brouillon : le
+   * message « Annuler » d'un retrait reste valable (Q29).
    */
   function chooseInline(transition: (base: ExecutionSheetDraft) => ExecutionSheetDraft) {
     // T10 : un panneau ou un sélecteur ouvert (Android, web : en ligne) se ferme sans
     // appliquer ; le choix touché n'est pas appliqué.
-    if (openSurface.kind === "popover" || openSurface.kind === "selector") {
+    if (openSurface.kind === "selector") {
       dispatchSurface({ type: "closeAll" });
       return;
     }
@@ -783,7 +742,7 @@ export function ExecutionParametersSheet({
    */
   function chooseLoad(choice: LoadChoice) {
     // T10 : panneau ou sélecteur ouvert — fermeture sans appliquer.
-    if (openSurface.kind === "popover" || openSurface.kind === "selector") {
+    if (openSurface.kind === "selector") {
       dispatchSurface({ type: "closeAll" });
       return;
     }
@@ -811,13 +770,68 @@ export function ExecutionParametersSheet({
     if (key !== null) dispatchSurface({ type: "close", key });
   }
 
-  /** D-4 : la valeur choisie est appliquée tout de suite, puis le sélecteur se referme. */
-  function closeAfterChoice(key: number | null) {
-    if (key !== null) dispatchSurface({ type: "choose", key });
+  /**
+   * PRE-5 story 2.5 (AC1, FR-15, FR-16) : segmenté « Changement de côté » Avec / Sans.
+   * Sans → Avec écrit `RIGHT_LEFT` et recopie la Pause entre les côtés du Profil (P3-10,
+   * `setSideMode`) ; Avec re-choisi sur une valeur bilatérale (`RIGHT_LEFT` ou `LEFT_RIGHT`
+   * historique) et Sans re-choisi sur `UNILATERAL` laissent le Brouillon inchangé. Chaque
+   * passage à Avec présente Enchainement et Pause entre les côtés déployés.
+   */
+  function chooseSide(choice: SideChoice) {
+    const activating = choice === "WITH" && !bilateral && openSurface.kind !== "selector";
+    chooseInline((base) => {
+      if (choice === "WITH") {
+        return isBilateral(base.sideMode) ? base : setSideMode(base, "RIGHT_LEFT", profileSideRecoverySecondsDefault);
+      }
+      return base.sideMode === "UNILATERAL" ? base : setSideMode(base, "UNILATERAL", profileSideRecoverySecondsDefault);
+    });
+    if (activating) setIsSidesFolded(false);
   }
 
-  function handleSelectorClosed(key: number | null) {
-    if (key !== null) dispatchSurface({ type: "closed", key });
+  /** PRE-5 story 2.5 (AC1, FR-28) : chevron d'Avec — replie ou déplie sans changer valeur ni sélection. */
+  function toggleSides() {
+    setIsTableSelected(false);
+    // T14 : toute surface ouverte (champ ± compris) est rangée.
+    dispatchSurface({ type: "closeAll" });
+    setIsSidesFolded((folded) => !folded);
+  }
+
+  /** PRE-5 story 2.5 (AC2, FR-17) : segmenté « Enchainement » ; `setSideOrder` seulement si différent. */
+  function chooseSideOrder(order: SideOrder) {
+    chooseInline((base) => (base.sideOrder === order ? base : setSideOrder(base, order)));
+  }
+
+  /**
+   * PRE-5 story 2.5 (AC3, AD-24, FR-30) : segmenté « Cadence ». Autre ne change pas la valeur :
+   * il ouvre (ou referme) le ± existant, `stepper(beep)`, sous la ligne. 5 s, 2 s, 1 s et
+   * Sans écrivent leur valeur par `setCadenceBeep` (si elle diffère) et ferment la surface.
+   */
+  function chooseCadence(option: CadenceOption) {
+    if (option !== "OTHER") {
+      const seconds = CADENCE_OPTION_SECONDS[option];
+      chooseInline((base) => (base.cadenceBeepIntervalSeconds === seconds ? base : setCadenceBeep(base, seconds)));
+      return;
+    }
+    // T10 : un panneau ou un sélecteur ouvert se ferme sans ouvrir le ±.
+    if (openSurface.kind === "selector") {
+      dispatchSurface({ type: "closeAll" });
+      return;
+    }
+    // PRE-5 story 2.2 (AD-27) : la saisie en cours est appliquée d'abord.
+    const base = keyboard.flush(draft);
+    if (base !== draft) commitKeyboard(() => base);
+    toggle(stepperSurface("beep"));
+  }
+
+  /**
+   * PRE-5 story 2.5 (AC4, AD-28) : chevron de « Durée de l'exercice » — replie ou déplie
+   * Compte à rebours et Fin, sans toucher la durée ni son édition (cible distincte de la
+   * pastille). Toute surface ouverte est rangée, comme pour le chevron du tableau (T14).
+   */
+  function toggleDuration() {
+    setIsTableSelected(false);
+    dispatchSurface({ type: "closeAll" });
+    setIsDurationExpanded((expanded) => !expanded);
   }
 
   /**
@@ -879,6 +893,8 @@ export function ExecutionParametersSheet({
   // fermeture, repart de la valeur courante à chaque ouverture (Q12). Aucune `Modal`
   // supplémentaire, aucun `Popover`. Android et web gardent les contrôles en ligne.
   // PRE-5 story 2.4 (AD-27) : le popover natif du Mode est retiré (segmenté en ligne).
+  // PRE-5 story 2.5 (AD-27) : les panneaux du Changement de côté et de l'Ordre des côtés
+  // aussi (segmentés en ligne) ; seules les roues s'ouvrent encore en panneau.
   const anchoredPanels = Platform.OS === "ios";
 
   /**
@@ -940,29 +956,37 @@ export function ExecutionParametersSheet({
   const totalSpokenLabel =
     totalNature === null || totalWheelSeconds !== undefined
       ? undefined
-      : [t.total, totalNatureSpoken, totalAmount ?? t.totalInvalidSpoken, totalAmount === null ? null : t.totalReadOnlySpoken]
+      : [t.exerciseDuration, totalNatureSpoken, totalAmount ?? t.totalInvalidSpoken, totalAmount === null ? null : t.totalReadOnlySpoken]
           .filter((part) => part !== null)
           .join(", ");
+  // PRE-5 story 2.5 (AC4, D-409, RM-218, AD-28) : Compte à rebours et Fin — absents pour un
+  // Exercice ouvert depuis une Séance (ni lignes ni chevron) ; sinon directement visibles si
+  // la ligne « Durée de l'exercice » est absente, ou repliés sous elle (chevron).
+  const signalsPresent = exerciseSignals === "present";
+  const durationDisclosure = signalsPresent && totalNature !== null;
+  const signalsShown = signalsPresent && (totalNature === null || isDurationExpanded);
+  // PRE-5 story 2.5 (AC1, AC2) : Enchainement et Pause entre les côtés suivent Avec et son
+  // chevron ; l'Enchainement est en outre masqué à N = 1 (Q38, valeur conservée).
+  const sideSettingsShown = bilateral && !isSidesFolded;
+  // AC3 : tant que le ± de la Cadence est ouvert, l'option affichée est Autre.
+  const beepOpen = isOpen(stepperSurface("beep"));
+  const cadenceOption: CadenceOption | null = beepOpen ? "OTHER" : cadenceOptionOf(draft.cadenceBeepIntervalSeconds);
   const panelControl: PanelControl | null = !anchoredPanels
     ? null
-    : isOpen(SIDE_POPOVER)
-      ? "sideMode"
-      : isOpen(ORDER_POPOVER) && bilateral && !single
-        ? "sideOrder"
-        : isOpen(TARGET_SELECTOR) && uniformDurationAvailable
-          ? "uniformDuration"
-          : isOpen(TARGET_SELECTOR) && uniformRepetitionsAvailable
-            ? "uniformRepetitions"
-            : isOpen(TOTAL_SELECTOR) && totalWheelSeconds !== undefined
-              ? "total"
-              : rowSelectorOpen &&
-                  showVariableTable &&
-                  !isTableFolded &&
-                  draft.rowIds.includes(openSurface.row) &&
-                  tableRowBoxes[openSurface.row] !== undefined &&
-                  targetCellBoxes[openSurface.row] !== undefined
-                ? "rowTarget"
-                : null;
+    : isOpen(TARGET_SELECTOR) && uniformDurationAvailable
+      ? "uniformDuration"
+      : isOpen(TARGET_SELECTOR) && uniformRepetitionsAvailable
+        ? "uniformRepetitions"
+        : isOpen(TOTAL_SELECTOR) && totalWheelSeconds !== undefined
+          ? "total"
+          : rowSelectorOpen &&
+              showVariableTable &&
+              !isTableFolded &&
+              draft.rowIds.includes(openSurface.row) &&
+              tableRowBoxes[openSurface.row] !== undefined &&
+              targetCellBoxes[openSurface.row] !== undefined
+            ? "rowTarget"
+            : null;
   /**
    * PRE-5 story 2.4 (AD-28) — repère UNIQUE des panneaux, dans les coordonnées du contenu
    * défilant (l'hôte des panneaux, dont les cadres sont les enfants directs) : y du cadre
@@ -1293,69 +1317,70 @@ export function ExecutionParametersSheet({
         validateAccessibilityLabel={strings.screens.exercise.wheelPicker.validateAccessibilityLabel}
       />
     );
-  // AC9 (FR-03-04, FR-11-05) : un Changement de côté non renseigné s'affiche « — » ;
-  // le ✓ le produit `Sans changement` (domaine, story 3.2).
-  const sideText = draft.sideMode === null ? t.unset : t.sideModes[draft.sideMode];
-  const sideSelector = (presentation: "inline" | "panel") => (
-    <ClosingSelector
-      closing={isClosing(SIDE_POPOVER)}
-      reduceMotion={reduceMotion}
-      onClosed={() => handleSelectorClosed(openKey)}
-      presentation={presentation}
-      testID="execution-sheet-side-selector"
-    >
-      <SegmentedControl<SideMode>
-        variant="parameters"
-        labelStyle={type.segmentedCompactLabel}
-        options={(["UNILATERAL", "RIGHT_LEFT", "LEFT_RIGHT"] as const).map((side) => ({
-          value: side,
-          label: t.sideModeOptions[side],
-          accessibilityLabel: t.sideModes[side],
-        }))}
-        value={draft.sideMode}
-        onChange={(side) => {
-          update(setSideMode(draft, side, profileSideRecoverySecondsDefault));
-          closeAfterChoice(openKey);
-        }}
-        accessibilityLabel={t.sideMode}
-        testID="execution-sheet-side-control"
-      />
-    </ClosingSelector>
+  // PRE-5 story 2.5 (AC1, FR-15, FR-16, R-02, R-08) : « Changement de côté » en segmenté
+  // `inline`, Avec à gauche, Sans à droite, sans direction ; Avec ⇔ `isBilateral` (un
+  // historique `RIGHT_LEFT` ou `LEFT_RIGHT` s'affiche Avec). Non renseigné (`null`) : aucune
+  // option sélectionnée ; le ✓ produit Sans (domaine). Avec porte le chevron intérieur
+  // (haut déployé, bas replié) qui replie ou déplie Enchainement et Pause entre les côtés.
+  const sideChoice: SideChoice | null = draft.sideMode === null ? null : bilateral ? "WITH" : "WITHOUT";
+  const sideControl = (
+    <SegmentedControl<SideChoice>
+      variant="inline"
+      optionWidth={INLINE_OPTION_WIDTHS.narrow}
+      options={[
+        {
+          value: "WITH",
+          label: t.sideModeChoices.WITH,
+          chevron: bilateral ? (isSidesFolded ? "down" : "up") : undefined,
+          chevronAccessibilityLabel: isSidesFolded ? t.showSideSettings : t.hideSideSettings,
+        },
+        { value: "WITHOUT", label: t.sideModeChoices.WITHOUT },
+      ]}
+      value={sideChoice}
+      onChange={chooseSide}
+      onChevronPress={toggleSides}
+      accessibilityLabel={t.sideMode}
+      testID="execution-sheet-side-control"
+    />
   );
-  const orderSelector = (presentation: "inline" | "panel") => (
-    <ClosingSelector
-      closing={isClosing(ORDER_POPOVER)}
-      reduceMotion={reduceMotion}
-      onClosed={() => handleSelectorClosed(openKey)}
-      presentation={presentation}
-      testID="execution-sheet-order-selector"
-    >
-      <SegmentedControl<SideOrder>
-        variant="parameters"
-        labelStyle={type.body}
-        minHeight={SIDE_ORDER_MIN_HEIGHT}
-        options={(["BY_SIDE", "BY_SERIES"] as const).map((order) => ({
-          value: order,
-          label: t.sideOrders[order],
-          subtitle: t.sideOrderSubtitles[order],
-          accessibilityLabel: `${t.sideOrders[order]} ${t.sideOrderSubtitles[order]}`,
-        }))}
-        value={draft.sideOrder}
-        onChange={(order) => {
-          update(setSideOrder(draft, order));
-          closeAfterChoice(openKey);
-        }}
-        accessibilityLabel={t.sideOrder}
-        testID="execution-sheet-order-control"
-      />
-    </ClosingSelector>
+  // PRE-5 story 2.5 (AC2, FR-17, D-431, QP5-07) : « Enchainement » en segmenté `inline` ; texte
+  // des options = notations graphiques (`sideOrderSubtitles`, police réduite), nom accessible =
+  // libellés neutres (`sideOrders`, D-407). Valeur affichée : l'Enchainement effectif.
+  const orderControl = (
+    <SegmentedControl<SideOrder>
+      variant="inline"
+      optionWidth={INLINE_OPTION_WIDTHS.notation}
+      compact
+      options={(["BY_SIDE", "BY_SERIES"] as const).map((order) => ({
+        value: order,
+        label: t.sideOrderSubtitles[order],
+        accessibilityLabel: t.sideOrders[order],
+      }))}
+      value={effective.sideOrder}
+      onChange={chooseSideOrder}
+      accessibilityLabel={t.sideSequence}
+      testID="execution-sheet-order-control"
+    />
+  );
+  // PRE-5 story 2.5 (AC3, AD-24, R-11) : « Cadence » en segmenté `inline` Autre / 5 s / 2 s /
+  // 1 s / Sans, option affichée par `cadenceOptionOf` (Autre tant que le ± est ouvert).
+  const cadenceControl = (
+    <SegmentedControl<CadenceOption>
+      variant="inline"
+      optionWidth={INLINE_OPTION_WIDTHS.cadence}
+      options={CADENCE_OPTIONS.map((option) => ({ value: option, label: t.cadenceOptions[option] }))}
+      value={cadenceOption}
+      onChange={chooseCadence}
+      accessibilityLabel={t.cadence}
+      testID="execution-sheet-cadence-control"
+    />
   );
   // PRE-5 story 2.4 (AC7, FR-04-01 de PRE-4) : choix du Type de série — même logique que
   // l'ancien panneau du Régime, sans cadre D-4 : le choix passe par `setVariable` (Brouillon,
   // inchangé) et ferme la surface ouverte.
   function chooseSeriesType(seriesType: SeriesType) {
     // T10 : panneau ou sélecteur ouvert — fermeture sans appliquer.
-    if (openSurface.kind === "popover" || openSurface.kind === "selector") {
+    if (openSurface.kind === "selector") {
       dispatchSurface({ type: "closeAll" });
       return;
     }
@@ -1409,17 +1434,13 @@ export function ExecutionParametersSheet({
       />
     );
 
-  // Q41 : un seul panneau ouvert à la fois ; les segmentés ont un fond et une ombre de
-  // panneau flottant, la roue garde sa propre surface (`DurationWheelPicker`).
+  // Q41 : un seul panneau ouvert à la fois ; la roue garde sa propre surface
+  // (`DurationWheelPicker`). PRE-5 story 2.5 : plus aucun segmenté en panneau.
   const panel =
     panelControl === null ? null : (
       <AnchoredPanel
         key={panelControl}
-        placement={
-          isSegmentedPanel(panelControl)
-            ? { top: panelTop, right: FRAME_INSET, left: FRAME_INSET }
-            : { top: panelTop, right: panelControl === "rowTarget" ? rowPanelRight : FRAME_INSET }
-        }
+        placement={{ top: panelTop, right: panelControl === "rowTarget" ? rowPanelRight : FRAME_INSET }}
         onDismiss={() => closeSurface(openKey)}
         outsideInsets={PANEL_OUTSIDE_INSETS}
         onLayout={(event) => {
@@ -1431,11 +1452,8 @@ export function ExecutionParametersSheet({
             setPanelWidth((current) => (current !== null && current.key === openKey && current.width === width ? current : { key: openKey, width }));
           }
         }}
-        style={isSegmentedPanel(panelControl) ? styles.selectorPanel : null}
         testID={PANEL_TEST_IDS[panelControl]}
       >
-        {panelControl === "sideMode" ? sideSelector("panel") : null}
-        {panelControl === "sideOrder" ? orderSelector("panel") : null}
         {panelControl === "uniformDuration" ? <View testID="execution-sheet-target-wheel">{uniformDurationWheel}</View> : null}
         {panelControl === "uniformRepetitions" ? <View testID="execution-sheet-target-wheel">{uniformRepetitionsWheel}</View> : null}
         {panelControl === "total" ? <View testID="execution-sheet-total-wheel">{totalWheel}</View> : null}
@@ -1792,63 +1810,36 @@ export function ExecutionParametersSheet({
                   </Row>
                 </SheetMotionView>
 
-                {/* Cadre Côtés : Changement de côté, Ordre, Pause entre les côtés. Libellés
-                    de ligne selon FR-27 / PR-03 partout ; seuls les contrôles attendent la
-                    story 2.5. */}
+                {/* Cadre Côtés : Changement de côté, Enchainement, Pause entre les côtés.
+                    PRE-5 story 2.5 (AC1, AC2 ; Figma `9230:19534`) : lignes non indentées
+                    (marge 12, comme le cadre Séries), libellés Regular 12, lignes de 44. */}
                 <SheetMotionView
                   appear={false}
                   onLayout={trackFrame("sides")}
                   style={[styles.frame, styles.frameSpaced]}
                   testID="execution-sheet-frame-sides"
                 >
-                  <Row
-                    label={t.sideMode}
-                    selected={isOpen(SIDE_POPOVER)}
-                    onLayout={trackRow("sideMode")}
-                    below={!anchoredPanels && isOpen(SIDE_POPOVER) ? sideSelector("inline") : null}
-                    testID="execution-sheet-row-side"
-                  >
-                    <ValuePill
-                      value={sideText}
-                      accessibilityLabel={`${t.sideMode}, ${spokenValue(sideText)}`}
-                      expanded={isOpen(SIDE_POPOVER)}
-                      onPress={() => toggle(SIDE_POPOVER)}
-                      testID="execution-sheet-side-value"
-                    />
+                  <Row label={t.sideMode} testID="execution-sheet-row-side">
+                    {sideControl}
                   </Row>
-                  {bilateral ? (
+                  {sideSettingsShown ? (
                     <>
-                      {/* Q38 (Hermann, 2026-10-17, recette iPhone, E-12) : à N = 1, la ligne
-                          « Ordre des côtés », son séparateur et son sélecteur ne sont pas
-                          rendus (plus de rendu atténué) ; un seul séparateur reste avant la
-                          Pause au changement de côté. L'Ordre choisi reste dans le Brouillon
-                          (`draft.sideOrder`) et réapparaît dès N ≥ 2 ; la normalisation
-                          effective « Un côté après l’autre » à N = 1 est inchangée (FR-12-04). */}
+                      {/* Q38 (Hermann, 2026-10-17, E-12) : à N = 1, la ligne « Enchainement » et
+                          son séparateur ne sont pas rendus ; l'Enchainement choisi reste dans le
+                          Brouillon (`draft.sideOrder`) et réapparaît dès N ≥ 2 ; la normalisation
+                          effective « Un côté après l’autre » à N = 1 est inchangée (FR-12-04).
+                          Le stepper « Nombre de séries » n'en est pas modifié (NR Δ38). */}
                       {!single ? (
                         <>
-                          <Separator indented />
-                          <Row
-                            label={t.sideOrder}
-                            indented
-                            selected={isOpen(ORDER_POPOVER)}
-                            onLayout={trackRow("sideOrder")}
-                            below={!anchoredPanels && isOpen(ORDER_POPOVER) ? orderSelector("inline") : null}
-                            testID="execution-sheet-row-order"
-                          >
-                            <ValuePill
-                              value={t.sideOrders[effective.sideOrder]}
-                              accessibilityLabel={`${t.sideOrder}, ${t.sideOrders[effective.sideOrder]}`}
-                              expanded={isOpen(ORDER_POPOVER)}
-                              onPress={() => toggle(ORDER_POPOVER)}
-                              testID="execution-sheet-order-value"
-                            />
+                          <Separator />
+                          <Row label={t.sideSequence} testID="execution-sheet-row-order">
+                            {orderControl}
                           </Row>
                         </>
                       ) : null}
-                      <Separator indented />
+                      <Separator />
                       <Row
                         label={t.sideRecovery}
-                        indented
                         longLabel
                         selected={isOpen(stepperSurface("sideRecovery"))}
                         testID="execution-sheet-row-side-recovery"
@@ -1868,34 +1859,58 @@ export function ExecutionParametersSheet({
                   ) : null}
                 </SheetMotionView>
 
-                {/* Cadre Cadence et durée : Bip, Durée totale, Compte à rebours, Fin. Libellés
-                    de ligne selon FR-27 / PR-03 partout ; seuls les contrôles attendent la
-                    story 2.5. */}
+                {/* Cadre Cadence et durée : Cadence, Durée de l'exercice, Compte à rebours, Fin. */}
                 <SheetMotionView
                   appear={false}
                   onLayout={trackFrame("cadence")}
                   style={[styles.frame, styles.frameSpaced]}
                   testID="execution-sheet-frame-cadence"
                 >
-                  {/* Bip : premier niveau, immédiatement avant le total applicable, sinon avant Compte à rebours. */}
-                  <Row label={t.beep} selected={isOpen(stepperSurface("beep"))} testID="execution-sheet-row-beep">
-                    {stepperField("beep", t.beep, {
-                      value: draft.cadenceBeepIntervalSeconds,
-                      min: EXECUTION_BOUNDS.cadenceBeepIntervalSeconds.min,
-                      max: EXECUTION_BOUNDS.cadenceBeepIntervalSeconds.max,
-                      policy: EXECUTION_UNIT_HOLD_POLICY,
-                      formatValue: beepLabel,
-                      onChange: (value) => update(setCadenceBeep(draft, value)),
-                      accessibilityLabel: `${t.beep}, ${t.secondsUnit}`,
-                      testID: "execution-sheet-beep",
-                    })}
+                  {/* PRE-5 story 2.5 (AC3) : Cadence ; Autre révèle sous la ligne, aligné à
+                      droite, le ± existant (0..10, pas 1, sans accélération). */}
+                  <Row
+                    label={t.cadence}
+                    selected={beepOpen}
+                    below={
+                      beepOpen ? (
+                        <SheetMotionView style={styles.revealedStepperLine} testID="execution-sheet-beep-motion">
+                          <RevealedStepperField
+                            onClose={() => toggle(stepperSurface("beep"))}
+                            value={draft.cadenceBeepIntervalSeconds}
+                            min={EXECUTION_BOUNDS.cadenceBeepIntervalSeconds.min}
+                            max={EXECUTION_BOUNDS.cadenceBeepIntervalSeconds.max}
+                            policy={EXECUTION_UNIT_HOLD_POLICY}
+                            formatValue={beepLabel}
+                            onChange={(value) => update(setCadenceBeep(draft, value))}
+                            accessibilityLabel={`${t.cadence}, ${t.secondsUnit}`}
+                            width={STEPPER_WIDTH}
+                            testID="execution-sheet-beep"
+                          />
+                        </SheetMotionView>
+                      ) : null
+                    }
+                    testID="execution-sheet-row-beep"
+                  >
+                    {cadenceControl}
                   </Row>
 
                   {totalNature !== null ? (
                     <>
                       <Separator />
                       <Row
-                        label={totalNature === "estimated" ? t.totalEstimated : t.total}
+                        label={totalNature === "estimated" ? t.exerciseDurationEstimated : t.exerciseDuration}
+                        // PRE-5 story 2.5 (AC4, AD-28) : chevron à 12 du libellé, cible distincte
+                        // de la pastille ; absent pour un Exercice ouvert depuis une Séance.
+                        labelAccessory={
+                          durationDisclosure ? (
+                            <DisclosureControl
+                              expanded={isDurationExpanded}
+                              onPress={toggleDuration}
+                              accessibilityLabel={isDurationExpanded ? t.hideExerciseSignals : t.showExerciseSignals}
+                              testID="execution-sheet-duration-disclosure"
+                            />
+                          ) : null
+                        }
                         accessibilityLabel={totalSpokenLabel}
                         selected={isOpen(TOTAL_SELECTOR)}
                         onLayout={trackRow("total")}
@@ -1912,7 +1927,7 @@ export function ExecutionParametersSheet({
                         {totalWheelSeconds !== undefined ? (
                           <ValuePill
                             value={totalText}
-                            accessibilityLabel={`${t.totalEditAccessibilityLabel}, ${totalText}`}
+                            accessibilityLabel={`${t.exerciseDurationEditAccessibilityLabel}, ${totalText}`}
                             expanded={isOpen(TOTAL_SELECTOR)}
                             onPress={() => toggle(TOTAL_SELECTOR)}
                             testID="execution-sheet-total"
@@ -1926,33 +1941,39 @@ export function ExecutionParametersSheet({
                       {adjustment?.kind === "total" ? adjustmentMessage : null}
                     </>
                   ) : null}
-                  <Separator />
 
-                  <Row label={t.countdown} selected={isOpen(stepperSurface("countdown"))} testID="execution-sheet-row-countdown">
-                    {stepperField("countdown", t.countdown, {
-                      value: draft.countdownSeconds,
-                      min: EXECUTION_BOUNDS.countdownSeconds.min,
-                      max: EXECUTION_BOUNDS.countdownSeconds.max,
-                      policy: EXECUTION_UNIT_HOLD_POLICY,
-                      formatValue: pauseLabel,
-                      onChange: (value) => update(setCountdown(draft, value)),
-                      accessibilityLabel: `${t.countdown}, ${t.secondsUnit}`,
-                      testID: "execution-sheet-countdown",
-                    })}
-                  </Row>
-                  <Separator />
-                  <Row label={t.end} selected={isOpen(stepperSurface("end"))} testID="execution-sheet-row-end">
-                    {stepperField("end", t.end, {
-                      value: draft.endSeconds,
-                      min: EXECUTION_BOUNDS.endSeconds.min,
-                      max: EXECUTION_BOUNDS.endSeconds.max,
-                      policy: EXECUTION_UNIT_HOLD_POLICY,
-                      formatValue: pauseLabel,
-                      onChange: (value) => update(setEnd(draft, value)),
-                      accessibilityLabel: `${t.end}, ${t.secondsUnit}`,
-                      testID: "execution-sheet-end",
-                    })}
-                  </Row>
+                  {/* PRE-5 story 2.5 (AC4) : repliés, Compte à rebours et Fin ne sont pas rendus ;
+                      leurs valeurs restent dans le Brouillon. */}
+                  {signalsShown ? (
+                    <>
+                      <Separator />
+                      <Row label={t.countdown} selected={isOpen(stepperSurface("countdown"))} testID="execution-sheet-row-countdown">
+                        {stepperField("countdown", t.countdown, {
+                          value: draft.countdownSeconds,
+                          min: EXECUTION_BOUNDS.countdownSeconds.min,
+                          max: EXECUTION_BOUNDS.countdownSeconds.max,
+                          policy: EXECUTION_UNIT_HOLD_POLICY,
+                          formatValue: pauseLabel,
+                          onChange: (value) => update(setCountdown(draft, value)),
+                          accessibilityLabel: `${t.countdown}, ${t.secondsUnit}`,
+                          testID: "execution-sheet-countdown",
+                        })}
+                      </Row>
+                      <Separator />
+                      <Row label={t.end} selected={isOpen(stepperSurface("end"))} testID="execution-sheet-row-end">
+                        {stepperField("end", t.end, {
+                          value: draft.endSeconds,
+                          min: EXECUTION_BOUNDS.endSeconds.min,
+                          max: EXECUTION_BOUNDS.endSeconds.max,
+                          policy: EXECUTION_UNIT_HOLD_POLICY,
+                          formatValue: pauseLabel,
+                          onChange: (value) => update(setEnd(draft, value)),
+                          accessibilityLabel: `${t.end}, ${t.secondsUnit}`,
+                          testID: "execution-sheet-end",
+                        })}
+                      </Row>
+                    </>
+                  ) : null}
                 </SheetMotionView>
                 {panelRoom > 0 ? <View style={{ height: panelRoom }} testID="execution-sheet-panel-room" /> : null}
                 {panel}
@@ -2363,10 +2384,15 @@ function SeriesTableRow({
  * - `below` : contrôle affiché sur une ligne en dessous (sélecteur ou roulette en
  *   ligne, Android et web), rendu DANS le même cadre : un seul fond couvre la ligne
  *   et son contrôle.
+ *
+ * PRE-5 story 2.5 (AC4, AD-28) — `labelAccessory` : contrôle placé à 12 du libellé (chevron
+ * de « Durée de l'exercice »), cible distincte de la valeur. Avec une annonce regroupée
+ * (`accessibilityLabel`), le regroupement passe du trait entier à la valeur seule (libellé
+ * masqué pour l'accessibilité, annonce inchangée) : le chevron reste un élément à part.
  */
 function Row({
   label,
-  indented = false,
+  labelAccessory = null,
   selected = false,
   longLabel = false,
   below = null,
@@ -2376,7 +2402,7 @@ function Row({
   testID,
 }: {
   label: string;
-  indented?: boolean;
+  labelAccessory?: ReactNode;
   selected?: boolean;
   longLabel?: boolean;
   below?: ReactNode;
@@ -2390,17 +2416,39 @@ function Row({
   testID: string;
 }) {
   const grouped = accessibilityLabel === undefined ? null : { accessible: true, accessibilityRole: "text" as const, accessibilityLabel };
+  const labelText = (
+    <Text
+      style={[styles.label, longLabel ? styles.longLabel : null]}
+      // Regroupement porté par la valeur : le libellé n'est pas annoncé une seconde fois.
+      accessibilityElementsHidden={labelAccessory !== null && grouped !== null ? true : undefined}
+      importantForAccessibility={labelAccessory !== null && grouped !== null ? "no" : undefined}
+    >
+      {label}
+    </Text>
+  );
   return (
-    <SheetMotionView bleed={GROUP_PADDING} onLayout={onLayout} style={indented ? styles.indented : null} testID={testID}>
+    <SheetMotionView bleed={GROUP_PADDING} onLayout={onLayout} testID={testID}>
       <View
         pointerEvents="none"
         style={[styles.selectionBackground, selected ? styles.selectionBackgroundSelected : null]}
         testID={`${testID}-selection`}
       />
-      <View style={styles.row} {...grouped} testID={`${testID}-line`}>
-        <Text style={[styles.label, longLabel ? styles.longLabel : null]}>{label}</Text>
-        {children}
-      </View>
+      {labelAccessory === null ? (
+        <View style={styles.row} {...grouped} testID={`${testID}-line`}>
+          {labelText}
+          {children}
+        </View>
+      ) : (
+        <View style={styles.row} testID={`${testID}-line`}>
+          <View style={styles.labelGroup}>
+            {labelText}
+            {labelAccessory}
+          </View>
+          <View {...grouped} testID={`${testID}-value-group`}>
+            {children}
+          </View>
+        </View>
+      )}
       {below}
     </SheetMotionView>
   );
@@ -2576,23 +2624,38 @@ function RevealStepper({
   );
 }
 
-
-/** Q40 : `hidden` garde la place du séparateur, rendu transparent (groupe sélectionné). */
-function Separator({ indented = false, hidden = false }: { indented?: boolean; hidden?: boolean }) {
+/**
+ * PRE-5 story 2.5 (AC3, AD-24) — ± existant de la Cadence, révélé sous la ligne quand Autre
+ * est touché (`stepper(beep)` ouvert) : `OpenStepperField`, rendu et mécanisme inchangés
+ * (0..10, pas 1, `EXECUTION_UNIT_HOLD_POLICY`). Monté seulement ouvert : le focus VoiceOver
+ * passe au champ à son apparition ; l'action accessible « Fermer » le range (`onClose`).
+ */
+function RevealedStepperField({ onClose, ...stepper }: InlineStepperProps & { onClose: () => void }) {
+  const { fieldRef, closeFromAccessibility } = useOpenFieldFocus(true, onClose);
   return (
-    <SheetMotionView
-      style={[styles.separator, indented ? styles.separatorIndented : null, hidden ? styles.separatorHidden : null]}
+    <OpenStepperField
+      {...stepper}
+      fieldRef={fieldRef}
+      onClose={closeFromAccessibility}
+      fieldTestID={`${stepper.testID}-field`}
+      style={[styles.stepperFrame, { width: stepper.width ?? STEPPER_WIDTH }]}
     />
   );
 }
 
+/** Q40 : `hidden` garde la place du séparateur, rendu transparent (groupe sélectionné). */
+function Separator({ hidden = false }: { hidden?: boolean }) {
+  return <SheetMotionView style={[styles.separator, hidden ? styles.separatorHidden : null]} />;
+}
+
 /**
- * Géométrie de référence (402) : groupe à x24 (354), lignes de premier niveau
- * à x36 (séparateur 330), lignes indentées à x52 (séparateur 314) — traduites
- * en marges relatives pour 360/440.
+ * Géométrie de référence (402) : groupe à x24 (354), lignes à x36 (séparateur 330) —
+ * traduites en marges relatives pour 360/440. PRE-5 story 2.5 : plus aucune ligne
+ * indentée (cadre Côtés à la marge 12, Figma `9230:19534`).
  */
 const GROUP_PADDING = 12;
-const INDENT = 16;
+/** PRE-5 story 2.5 (AC4, FR-31) : écart entre le libellé « Durée de l'exercice » et son chevron. */
+const LABEL_ACCESSORY_GAP = 12;
 
 /**
  * PRE-5 story 2.4 (UX-DR1, PR-03 ; relevé Figma en lecture seule du 19/10, cadres
@@ -2745,20 +2808,6 @@ const styles = StyleSheet.create({
   selectionBackgroundSelected: {
     backgroundColor: colors.stepperSurface,
   },
-  // Q41 : habillage du panneau sans flèche des segmentés (iOS) — fond, rayon et
-  // ombre de la surface de la roue (`DurationWheelPicker`), pour un panneau flottant.
-  selectorPanel: {
-    backgroundColor: colors.background,
-    borderRadius: fixedRadii[12],
-    elevation: 8,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.16,
-    shadowRadius: 12,
-  },
-  indented: {
-    marginLeft: INDENT,
-  },
   // Story 3.3 (T23) : zone d'appui extérieur étendue aux marges de `bodyContent`.
   bodyOutside: {
     position: "absolute",
@@ -2786,6 +2835,19 @@ const styles = StyleSheet.create({
     lineHeight: type.supporting.lineHeight,
     color: colors.textPrimary,
     flexShrink: 1,
+  },
+  // PRE-5 story 2.5 (AC4) : libellé suivi de son chevron, à 12 (« Durée de l'exercice »).
+  labelGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexShrink: 1,
+    gap: LABEL_ACCESSORY_GAP,
+  },
+  // PRE-5 story 2.5 (AC3) : ± de la Cadence révélé sous la ligne, aligné à droite.
+  revealedStepperLine: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    paddingBottom: spacing[4],
   },
   // DSF : « Pause entre les côtés » sur deux lignes, largeur 180 à 402.
   longLabel: {
@@ -2816,9 +2878,6 @@ const styles = StyleSheet.create({
   separator: {
     height: 1,
     backgroundColor: colors.divider,
-  },
-  separatorIndented: {
-    marginLeft: INDENT,
   },
   separatorHidden: {
     backgroundColor: "transparent",

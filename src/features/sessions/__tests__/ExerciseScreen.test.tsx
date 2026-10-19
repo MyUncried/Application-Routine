@@ -35,6 +35,7 @@ import { FixedHeader } from "@/shared/ui/ScreenShell";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 import {
   chooseExecutionMode,
+  chooseExecutionSide,
   pressInExecutionSheet,
   tapExecutionSheetStep,
 } from "@/features/activities/testing/executionSheetActions";
@@ -551,8 +552,13 @@ describe("ExerciseScreen — PRE-3 (quatre parcours)", () => {
     await waitFor(() => expect(screen.getByTestId("exercise-parameters-countdown").props.children).toBe("12 s"));
     expect(screen.getByTestId("exercise-parameters-end").props.children).toBe("6 s");
     fireEvent.press(screen.getByTestId("exercise-parameters-card"));
-    fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-    fireEvent.press(within(screen.getByTestId("execution-sheet-side-control")).getByText("Droite puis gauche"));
+    // PRE-5 story 2.5 (AC4, D-409, RM-218) : Exercice ouvert depuis une Séance — la Feuille ne
+    // présente ni Compte à rebours ni Fin, ni le chevron de la Durée de l'exercice.
+    expect(screen.queryByTestId("execution-sheet-row-countdown")).toBeNull();
+    expect(screen.queryByTestId("execution-sheet-row-end")).toBeNull();
+    expect(screen.queryByTestId("execution-sheet-duration-disclosure-frame")).toBeNull();
+    // PRE-5 story 2.5 (AC1) : Avec (Sans → Avec) copie la Pause entre les côtés du Profil.
+    chooseExecutionSide("Avec");
     expect(screen.getByTestId("execution-sheet-side-recovery-value").props.children).toBe("9 s");
     fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
 

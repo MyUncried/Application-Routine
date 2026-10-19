@@ -633,6 +633,9 @@ function CompositionExerciseEditor() {
           isCategoryPickerOpen={categorySheet.isOpen}
           categoryAccessRef={categoryAccessRef}
           profileSideRecoverySecondsDefault={profile.sideRecovery}
+          // PRE-5 story 2.5 (AC4, D-409, RM-218) : Exercice ouvert depuis une Séance — la
+          // Feuille ne présente ni Compte à rebours ni Fin d'exercice (valeurs conservées).
+          exerciseSignals="absent"
           baselineParameters={baselineParameters}
           mediaService={activityDefinitionService}
           mediaDraftId={mediaDraftId}

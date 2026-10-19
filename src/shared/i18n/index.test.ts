@@ -498,16 +498,12 @@ describe("strings — PRE-3", () => {
     // PRE-4 (story 1.1, AC22) : deux Modes seulement ; « à l’échec » reste le texte d’une Cible.
     expect(pre3.sheet.modes).toEqual({ DURATION: "Durée", REPETITIONS: "Répétitions" });
     expect(pre3.sheet.failureTarget).toBe("à l’échec");
-    expect(pre3.sheet.sideModes).toEqual({
-      UNILATERAL: "Sans changement",
-      RIGHT_LEFT: "Droite puis gauche",
-      LEFT_RIGHT: "Gauche puis droite",
-    });
+    // PRE-5 story 2.5 (AC5) : libellés anatomiques `sideModes` retirés (voir « strings — PRE-5 story 2.5 »).
     expect(pre3.sheet.sideOrders).toEqual({
       BY_SIDE: "Un côté après l’autre",
       BY_SERIES: "Les deux côtés à chaque série",
     });
-    for (const label of [pre3.sheet.pause, pre3.sheet.beep, pre3.sheet.sideRecovery, pre3.sheet.countdown, pre3.sheet.end]) {
+    for (const label of [pre3.sheet.pause, pre3.sheet.cadence, pre3.sheet.sideRecovery, pre3.sheet.countdown, pre3.sheet.end]) {
       expect(label.length).toBeGreaterThan(0);
     }
     expect(pre3.sheet.incompleteSeries.DURATION.replace("{n}", "2")).toBe("Série 2 : renseignez la durée.");
@@ -569,5 +565,34 @@ describe("strings — PRE-5 story 2.4", () => {
     }
     const added = [sheet.mode, sheet.stopCondition, sheet.seriesCount, sheet.seriesType, ...Object.values(sheet.stopConditions), ...Object.values(sheet.seriesTypes)];
     expect(added.filter((label) => /(^|\s)(Cible|Définie|Ordre)(\s|$)/u.test(label))).toEqual([]);
+  });
+});
+
+describe("strings — PRE-5 story 2.5", () => {
+  it("PRE5-2.5/AC5 — clés des cadres Côtés et Cadence et durée : Changement de côté Avec / Sans, Enchainement à notations ➜, Cadence et options, Durée de l’exercice ; clés orphelines retirées ; « Durée totale » de la Phrase intacte", () => {
+    const sheet = strings.executionParameters.sheet;
+    expect(sheet.sideMode).toBe("Changement de côté");
+    expect(sheet.sideModeChoices).toEqual({ WITH: "Avec", WITHOUT: "Sans" });
+    expect(sheet.sideSequence).toBe("Enchainement");
+    // Notations graphiques exactes de la frame `8328:38193` (D-431), flèche centrale ➜.
+    expect(sheet.sideOrderSubtitles).toEqual({ BY_SIDE: "(D1 → D2) ➜ (G1 → G2)", BY_SERIES: "(D1 → G1) ➜ (D2 → G2)" });
+    // Nom accessible neutre des options (D-407).
+    expect(sheet.sideOrders).toEqual({ BY_SIDE: "Un côté après l’autre", BY_SERIES: "Les deux côtés à chaque série" });
+    expect(sheet.cadence).toBe("Cadence");
+    expect(sheet.cadenceOptions).toEqual({ OTHER: "Autre", "5": "5 s", "2": "2 s", "1": "1 s", NONE: "Sans" });
+    expect(sheet.exerciseDuration).toBe("Durée de l’exercice");
+    expect(sheet.exerciseDurationEstimated).toBe("Durée de l’exercice ≈");
+    expect(sheet.exerciseDurationEditAccessibilityLabel).toBe("Durée de l’exercice, ajuster le nombre de séries");
+    for (const label of [sheet.showSideSettings, sheet.hideSideSettings, sheet.showExerciseSignals, sheet.hideExerciseSignals]) {
+      expect(label.length).toBeGreaterThan(0);
+    }
+    for (const removed of ["sideModes", "sideModeOptions", "sideOrder", "beep", "beepNone", "total", "totalEstimated", "totalEditAccessibilityLabel"]) {
+      expect({ removed, present: removed in sheet }).toEqual({ removed, present: false });
+    }
+    // Aucune désignation anatomique ni « Durée totale » dans les libellés de la Feuille.
+    const labels = JSON.stringify(sheet);
+    expect(labels).not.toMatch(/Droite puis|Gauche puis|Sans changement|Bip de cadence|Durée totale|Ordre des côtés/u);
+    // Identifiants techniques non renommés : `sideOrders` garde ses clés `SideOrder`.
+    expect(Object.keys(sheet.sideOrders)).toEqual(["BY_SIDE", "BY_SERIES"]);
   });
 });
