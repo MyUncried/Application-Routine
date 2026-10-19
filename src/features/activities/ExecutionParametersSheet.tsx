@@ -70,7 +70,7 @@ import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import { formatLoadKg } from "@/domain/activities/exerciseLoad";
 import type { SideMode } from "@/domain/sessions/sideMode";
 import { AnchoredPanel } from "@/features/activities/AnchoredPanel";
-import { KEYBOARD_ACCESSORY_ID, KeyboardAccessoryBar } from "@/features/activities/KeyboardAccessoryBar";
+import { KeyboardAccessoryBar } from "@/features/activities/KeyboardAccessoryBar";
 import { KeyboardField } from "@/features/activities/KeyboardField";
 import {
   SHEET_MOTION_MS,
@@ -205,7 +205,8 @@ import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@
  * charge, posé à sa place définitive : ligne « Charge » (Avec / Sans) en dernier dans le
  * cadre Séries, avec le champ commun en identiques ; colonne Charge du tableau en
  * variables. Saisie au clavier décimal natif (`KeyboardField`), barre Précédent / Suivant /
- * « Fermer » (`KeyboardAccessoryBar`, iOS), surface `keyboard` et synchronisation focus /
+ * « Fermer » (`KeyboardAccessoryBar`, iOS, rendue par la Feuille au-dessus du clavier depuis
+ * la recette du 19/10, RC-1), surface `keyboard` et synchronisation focus /
  * surface / application dans un seul hook (`useSheetKeyboard`) ; la saisie en cours est
  * appliquée (`keyboard.flush`) avant toute autre transition du même geste.
  */
@@ -512,6 +513,9 @@ export function ExecutionParametersSheet({
   const [panelWidth, setPanelWidth] = useState<{ readonly key: number; readonly width: number } | null>(null);
   const scrollRef = useRef<ScrollView>(null);
   const viewportHeightRef = useRef(0);
+  // Recette du 19/10 (RC-1) : bas mesuré de la zone de la `Modal` (fenêtre), sinon la hauteur de la fenêtre.
+  const scrimRef = useRef<View>(null);
+  const [scrimBottom, setScrimBottom] = useState<number | null>(null);
 
   /**
    * PRE-5 story 2.2 : application d'une saisie au clavier (mise à jour fonctionnelle du
@@ -774,7 +778,8 @@ export function ExecutionParametersSheet({
   /**
    * PRE-5 story 2.2 (FR-23, AC5) : segmenté « Avec | Sans » de la ligne Charge. Avec (passage
    * Sans → Avec) : `setLoadEnabled(true)` (0,25 kg à la première activation, restauration
-   * ensuite), tableau déplié s'il était replié, puis focus du premier champ après le rendu.
+   * ensuite), tableau déplié s'il était replié. Recette du 19/10 (RC-2) : aucun focus, aucune
+   * cellule active ; le clavier ne s'ouvre qu'au toucher d'un champ Charge.
    */
   function chooseLoad(choice: LoadChoice) {
     // T10 : panneau ou sélecteur ouvert — fermeture sans appliquer.
@@ -789,7 +794,6 @@ export function ExecutionParametersSheet({
     if (next === draft) setIsTableSelected(false);
     else update(next);
     dispatchSurface({ type: "closeAll" });
-    if (activating) keyboard.focusFirst();
   }
 
   /**
@@ -1441,7 +1445,17 @@ export function ExecutionParametersSheet({
 
   return (
     <Modal transparent visible animationType="fade" onRequestClose={handleCancel} testID="execution-sheet-modal">
-      <View style={styles.scrim} testID="execution-sheet-scrim">
+      <View
+        ref={scrimRef}
+        style={styles.scrim}
+        // RC-1 : bas réel de la zone de la `Modal` (coordonnées de la fenêtre), repère de la barre du clavier.
+        onLayout={() => {
+          scrimRef.current?.measureInWindow((_x, y, _width, height) => {
+            if (height > 0) setScrimBottom((current) => (current === y + height ? current : y + height));
+          });
+        }}
+        testID="execution-sheet-scrim"
+      >
         {/* Q39 (Hermann, 2026-10-17, E-13) : la montée (`sheetEntry`, fil natif, inchangée)
             porte sur un cadre transparent plein écran ; la surface blanche, ancrée en bas
             à l'intérieur, glisse vers sa nouvelle hauteur (Reanimated, fil UI) quand une
@@ -1665,7 +1679,6 @@ export function ExecutionParametersSheet({
                                   onBlur={() => keyboard.onBlur(loadField(row))}
                                   onChangeText={(text) => keyboard.onChangeText(loadField(row), text)}
                                   inputRef={keyboard.register(loadField(row), TABLE_ROW_HEIGHT)}
-                                  accessoryID={KEYBOARD_ACCESSORY_ID}
                                   accessibilityLabel={t.rowLoad.replace("{n}", String(number))}
                                   // AD-28 : cible tactile de 36, comme `TableCell` (24 + 6 en haut et en bas).
                                   hitSlop={LOAD_CELL_HIT_SLOP}
@@ -1758,7 +1771,6 @@ export function ExecutionParametersSheet({
                           onBlur={() => keyboard.onBlur(UNIFORM_LOAD_FIELD)}
                           onChangeText={(text) => keyboard.onChangeText(UNIFORM_LOAD_FIELD, text)}
                           inputRef={keyboard.register(UNIFORM_LOAD_FIELD, SHEET_ROW_MIN_HEIGHT)}
-                          accessoryID={KEYBOARD_ACCESSORY_ID}
                           accessibilityLabel={t.loadValue}
                           style={[styles.valuePill, styles.valuePillText, styles.loadInput]}
                           testID="execution-sheet-load-input"
@@ -1948,15 +1960,24 @@ export function ExecutionParametersSheet({
               </SheetMotionScrollView>
             </SheetMotionView>
           </SheetMotionProvider>
+          {/* PRE-5 story 2.2 (FR-25), recette du 19/10 (RC-1) : barre du clavier décimal rendue
+              par la Feuille, juste au-dessus du clavier, pendant la saisie d'un champ Charge
+              (iOS). Dans le cadre de la Feuille (`accessibilityViewIsModal`) : atteinte par
+              VoiceOver ; le cadre couvre la zone de la `Modal`, dont le bas est mesuré. */}
+          {keyboard.accessoryVisible && keyboard.keyboardFrame !== null ? (
+            <KeyboardAccessoryBar
+              keyboardFrame={keyboard.keyboardFrame}
+              containerBottom={scrimBottom ?? windowHeight}
+              reduceMotion={reduceMotion}
+              onHeight={keyboard.setAccessoryHeight}
+              canPrevious={keyboard.canPrevious}
+              canNext={keyboard.canNext}
+              onPrevious={keyboard.previous}
+              onNext={keyboard.next}
+              onClose={keyboard.close}
+            />
+          ) : null}
         </Animated.View>
-        {/* PRE-5 story 2.2 (FR-25) : barre du clavier décimal, rendue une fois (iOS). */}
-        <KeyboardAccessoryBar
-          canPrevious={keyboard.canPrevious}
-          canNext={keyboard.canNext}
-          onPrevious={keyboard.previous}
-          onNext={keyboard.next}
-          onClose={keyboard.close}
-        />
       </View>
     </Modal>
   );
@@ -2027,18 +2048,22 @@ function VariableTable({
     setDrag(next);
     onDraggingChange(next !== null);
   }
+  // Recette du 19/10 (RC-5) : ligne saisie (identité), de l'appui sur la poignée à la fin de son insertion.
+  const [liftedRow, setLiftedRow] = useState<number | null>(null);
+  const unclipped = drag !== null || liftedRow !== null;
   const insertionGuide = (before: number) => <InsertionGuide testID={`execution-sheet-table-insertion-guide-before-${before}`} />;
   return (
     // Q39 : la hauteur du tableau suit les lignes en glissant. Q41 : le tableau et
     // chaque ligne ajoutée ou retirée (N change) sont révélés par le bas, sans fondu.
-    // Les lignes ne portent PAS de transition de place : le déplacement par glisser
-    // reste celui de `DraggableRow`, sans seconde animation après la dépose ; pendant
-    // un glisser, la découpe est levée pour que la ligne portée suive le doigt.
+    // Recette du 19/10 (RC-5) : les lignes portent une transition de place (les autres
+    // lignes se décalent visiblement à la dépose), sauf la ligne saisie, portée par
+    // `DraggableRow` jusqu'à la fin de son insertion ; pendant le glisser et l'insertion,
+    // la découpe est levée pour que la ligne portée suive le doigt.
     // PRE-5 story 2.6 (UX-DR3) : le cadre de découpe déborde de la marge du groupe jusqu'à
     // `TABLE_BLOCK_SIDE_INSET` du contour (`bleed`) ; le bloc blanc le remplit.
     <SheetMotionView
       enter={false}
-      clip={drag === null}
+      clip={!unclipped}
       bleed={TABLE_BLOCK_BLEED}
       style={[tableStyles.block, styles.tableBlock]}
       onLayout={(event) => {
@@ -2097,7 +2122,12 @@ function VariableTable({
               onTargetCellLayout={onTargetCellLayout}
               onMove={onMove}
               onDrag={handleDrag}
-              clip={drag === null}
+              lifted={rowId !== null && liftedRow === rowId}
+              onLiftedChange={(lifted) => {
+                if (rowId === null) return;
+                setLiftedRow((current) => (lifted ? rowId : current === rowId ? null : current));
+              }}
+              clip={!unclipped}
               loadCell={loadCell === null ? null : rowId === null ? <View style={tableStyles.emptyCell} /> : loadCell(rowId, index + 1)}
             />
           </Fragment>
@@ -2137,6 +2167,8 @@ function SeriesTableRow({
   onTargetCellLayout,
   onMove,
   onDrag,
+  lifted,
+  onLiftedChange,
   clip,
   loadCell,
 }: {
@@ -2161,6 +2193,9 @@ function SeriesTableRow({
   onTargetCellLayout: (row: number, box: CellBox) => void;
   onMove: (from: number, to: number) => void;
   onDrag: (state: { readonly from: number; readonly to: number } | null) => void;
+  /** Recette du 19/10 (RC-5) : ligne saisie (cadre au-dessus des autres, sans transition de place). */
+  lifted: boolean;
+  onLiftedChange: (lifted: boolean) => void;
   clip: boolean;
   /** PRE-5 story 2.2 : cellule Charge (après la Pause, écart de 7), ou `null` sous Sans. */
   loadCell: ReactNode;
@@ -2187,7 +2222,9 @@ function SeriesTableRow({
   const pauseText = pauseLabel(row.pauseSeconds);
   return (
     <SheetMotionView
-      transition={false}
+      // RC-5 : les autres lignes se décalent visiblement ; la ligne saisie est portée par `DraggableRow`.
+      transition={lifted ? false : "row"}
+      raised={lifted}
       clip={clip}
       // La marge des lignes porte la zone tactile de la poignée (AD-28).
       bleed={TABLE_ROW_INSET}
@@ -2202,6 +2239,7 @@ function SeriesTableRow({
         count={count}
         onMove={(to) => onMove(index, to)}
         onDrag={onDrag}
+        onLiftedChange={onLiftedChange}
         labels={SERIES_ROW_LABELS}
         testIDPrefix={SERIES_ROW_TEST_ID}
       >
@@ -2439,9 +2477,9 @@ function useOpenFieldFocus(isOpen: boolean, onToggle: () => void) {
 
 /**
  * Champ ± ouvert (AD-15, AD-16) : `InlineStepper`, rendu et mécanisme inchangés. Le
- * conteneur retient tout toucher qui n'atteint pas un ± actif (valeur, ± à la borne) : ce
- * toucher ne remonte pas à l'appui extérieur de la Feuille, et les ± d'un champ ouvert ne
- * le ferment jamais (T22). Il se range sans toucher l'extérieur par le geste
+ * conteneur retient tout toucher qui n'atteint pas un ± actif (± à la borne) : ce toucher
+ * ne remonte pas à l'appui extérieur de la Feuille, et les ± d'un champ ouvert ne le
+ * ferment jamais (T22). Recette du 19/10 (RC-4) : toucher la valeur le referme. Il se range sans toucher l'extérieur par le geste
  * d'échappement, Magic Tap ou l'action nommée « Fermer » (lexique). PRE-5 story 2.6 :
  * extrait de `RevealStepper`, partagé avec la Pause d'une ligne du tableau.
  */
@@ -2470,8 +2508,15 @@ function OpenStepperField({
       style={style}
       testID={fieldTestID}
     >
-      {/* Story 3.8 (AC2) : limites annoncées ; un « — » éventuel annoncé « aucune valeur ». */}
-      <InlineStepper {...stepper} announceLimits spokenValue={(value) => spokenValue(stepper.formatValue(value))} />
+      {/* Story 3.8 (AC2) : limites annoncées ; un « — » éventuel annoncé « aucune valeur ».
+          Recette du 19/10 (RC-4) : toucher la valeur du champ ouvert le referme (action
+          « activer » pour VoiceOver, le focus revient alors à la valeur fermée). */}
+      <InlineStepper
+        {...stepper}
+        onValuePress={onClose}
+        announceLimits
+        spokenValue={(value) => spokenValue(stepper.formatValue(value))}
+      />
     </View>
   );
 }

@@ -1,7 +1,7 @@
 import { Popover, RNHostView } from "@expo/ui/swift-ui";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
-import { AccessibilityInfo, Modal, Platform, StyleSheet, Switch, TextInput } from "react-native";
+import { AccessibilityInfo, Keyboard, Modal, Platform, StyleSheet, Switch, TextInput } from "react-native";
 
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import {
@@ -30,7 +30,9 @@ import {
   revealClipExiting,
   revealContentEntering,
   revealContentExiting,
+  rowShiftLayout,
   SHEET_MOTION_MS,
+  SHEET_ROW_SHIFT_MS,
 } from "@/features/activities/SheetMotion";
 import {
   chooseExecutionMode,
@@ -41,9 +43,11 @@ import {
 } from "@/features/activities/testing/executionSheetActions";
 import {
   dragDestination as sharedDragDestination,
+  TABLE_ROW_DROP_MS,
   TABLE_ROW_HEIGHT as SHARED_TABLE_ROW_HEIGHT,
   tableRowIdentity as sharedTableRowIdentity,
 } from "@/features/activities/sheetTable";
+import { keyboardBarLift } from "@/features/activities/KeyboardAccessoryBar";
 import { strings } from "@/shared/i18n";
 import { InlineStepper } from "@/shared/ui/ProfileStepper";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
@@ -101,6 +105,33 @@ function renderSheetView(
     </TestSafeAreaProvider>,
   );
   return { onApply, onCancel, unmount: view.unmount };
+}
+
+/**
+ * Recette du 19/10 (RC-1) : événements `Keyboard` simulés. Les écouteurs posés par la Feuille
+ * sont capturés ; `show` / `hide` émettent `Will` puis `Did` (clavier de 344, haut à 500).
+ */
+const KEYBOARD_EVENT = { endCoordinates: { screenX: 0, screenY: 500, width: 390, height: 344 }, duration: 250, easing: "keyboard" };
+function captureKeyboard() {
+  const listeners = new Map<string, Set<(event: unknown) => void>>();
+  const spy = jest.spyOn(Keyboard, "addListener").mockImplementation(((name: string, listener: (event: unknown) => void) => {
+    const set = listeners.get(name) ?? new Set<(event: unknown) => void>();
+    set.add(listener);
+    listeners.set(name, set);
+    return { remove: () => set.delete(listener) };
+  }) as unknown as typeof Keyboard.addListener);
+  const emit = (name: string) => act(() => listeners.get(name)?.forEach((listener) => listener(KEYBOARD_EVENT)));
+  return {
+    show: () => {
+      emit("keyboardWillShow");
+      emit("keyboardDidShow");
+    },
+    hide: () => {
+      emit("keyboardWillHide");
+      emit("keyboardDidHide");
+    },
+    restore: () => spy.mockRestore(),
+  };
 }
 
 function renderSheet(parent: ExecutionParametersInput, profileSideRecovery = 10, baseline: ExecutionParametersInput | null = null) {
@@ -851,12 +882,20 @@ describe("ExecutionParametersSheet — recette 1", () => {
     expect(applied(onApply).series).toEqual(variableRows([[45, 10], [60, 15], [30, 5]]));
   });
 
-  it("F-01 — glisser interrompu par le système : ligne remise en place, aucun déplacement", () => {
+  it("F-01 — glisser interrompu par le système : ligne remise en place (glissade RC-5), aucun déplacement", () => {
     renderSheet(params({ series: variableRows([[30, 5], [45, 10], [60, 15]]) }));
     const handle = screen.getByTestId("execution-sheet-table-row-1-handle");
-    act(() => handle.props.onResponderGrant({ nativeEvent: { pageY: 100 } }));
-    act(() => handle.props.onResponderMove({ nativeEvent: { pageY: 190 } }));
-    act(() => handle.props.onResponderTerminate({ nativeEvent: null }));
+    jest.useFakeTimers();
+    try {
+      act(() => handle.props.onResponderGrant({ nativeEvent: { pageY: 100 } }));
+      act(() => handle.props.onResponderMove({ nativeEvent: { pageY: 190 } }));
+      act(() => handle.props.onResponderTerminate({ nativeEvent: null }));
+      act(() => {
+        jest.advanceTimersByTime(TABLE_ROW_DROP_MS + 100);
+      });
+    } finally {
+      jest.useRealTimers();
+    }
     expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-table-row-1").props.style).transform).toBeUndefined();
     expect(valueOf("execution-sheet-table-row-1-target")).toBe("30 s");
   });
@@ -1630,11 +1669,12 @@ describe("ExecutionParametersSheet — PRE-4 Q39 (animations de mise en page)", 
     expect(motionOf("execution-sheet-table").exiting).toBeDefined();
     expect(motionOf("execution-sheet-table").layout).toBeDefined();
     expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-variable-group").props.style).overflow).toBe("hidden");
-    // Lignes du tableau : entrée / sortie seulement, le glisser garde sa propre mécanique.
+    // Lignes du tableau : entrée / sortie, et (recette du 19/10, RC-5) transition de place
+    // propre aux lignes, position seule, pour que les autres lignes se décalent à la dépose.
     const row = motionOf("execution-sheet-table-row-2-motion");
     expect(row.entering).toBeDefined();
     expect(row.exiting).toBeDefined();
-    expect(row.layout).toBeUndefined();
+    expect(row.layout).toBe(rowShiftLayout);
     // N 2 → 3 : la nouvelle ligne du tableau entre (Q41 : révélée par le bas, sans fondu).
     // Story 3.3 (T10) : le sélecteur de côté est d'abord refermé par un second toucher.
     fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
@@ -4593,7 +4633,8 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
     const act11y = (actionName: "increment" | "decrement") => fireEvent(beep(), "accessibilityAction", { nativeEvent: { actionName } });
     expect(beep().props.accessibilityRole).toBe("adjustable");
     expect(beep().props.accessibilityLabel).toBe("Bip de cadence, secondes");
-    expect(beep().props.accessibilityActions).toEqual([{ name: "increment" }, { name: "decrement" }]);
+    // Recette du 19/10 (RC-4) : « activer » (équivalent VoiceOver du toucher de la valeur) referme le champ.
+    expect(beep().props.accessibilityActions).toEqual([{ name: "increment" }, { name: "decrement" }, { name: "activate" }]);
     expect(beep().props.accessibilityValue).toEqual({ min: 0, max: 10, now: 0, text: "Aucun, minimum atteint" });
     act11y("increment");
     expect(beep().props.accessibilityValue).toEqual({ min: 0, max: 10, now: 1, text: "1 s" });
@@ -5464,6 +5505,11 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
       loadEnabled: enabled,
     });
   const inputs = () => screen.UNSAFE_root.findAll((node) => node.props.keyboardType !== undefined && typeof node.type === "string");
+  let keyboard: ReturnType<typeof captureKeyboard>;
+  beforeEach(() => {
+    keyboard = captureKeyboard();
+  });
+  afterEach(() => keyboard.restore());
 
   it("PRE5-2.2/AC5 — Sans : ligne « Charge » en dernier dans le cadre Séries, segmenté « Avec | Sans » sur Sans, aucun champ ni colonne", () => {
     renderSheet(params());
@@ -5487,7 +5533,9 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
     expect(loadChoice()).toBe("WITH");
     expect(shown(UNIFORM)).toBe("0,25 kg");
     expect(get(UNIFORM).props.keyboardType).toBe("decimal-pad");
-    expect(get(UNIFORM).props.inputAccessoryViewID).toBe("execution-sheet-keyboard-bar");
+    // Recette du 19/10 : barre rendue par la Feuille (RC-1), aucun champ actif à l'activation (RC-2).
+    expect(get(UNIFORM).props.inputAccessoryViewID).toBeUndefined();
+    expect(get(UNIFORM).props.accessibilityState).toMatchObject({ selected: false });
     focus(UNIFORM);
     expect(shown(UNIFORM)).toBe("0,25");
     expect(styleOf(UNIFORM).backgroundColor).toBe("#EAEAFF");
@@ -5583,6 +5631,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
     expect([1, 2, 6].map((row) => shown(cell(row)))).toEqual(["0 kg", "20 kg", "8 kg"]);
     expect(get(cell(2)).props.accessibilityLabel).toBe("Série 2, charge");
     focus(cell(1));
+    keyboard.show();
     expect(get("execution-sheet-keyboard-previous").props.accessibilityState).toMatchObject({ disabled: true });
     expect(get("execution-sheet-keyboard-next").props.accessibilityState).toMatchObject({ disabled: false });
     // Le focus d'une cellule sélectionne le tableau (Q40).
@@ -5623,6 +5672,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
   it("PRE5-2.2/AC2 — variables, toutes les charges à 0 à la fermeture : Sans, colonne retirée, valeurs conservées", () => {
     const { onApply } = renderSheet(variableLoads([0, 20]));
     focus(cell(2));
+    keyboard.show();
     type(cell(2), "0");
     fireEvent.press(get("execution-sheet-keyboard-close"));
     blur(cell(2));
@@ -5640,6 +5690,11 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
     fireEvent.press(get("execution-sheet-load-control-WITH"));
     expect(query("execution-sheet-table")).not.toBeNull();
     expect([1, 2, 3].map((row) => shown(cell(row)))).toEqual(["0,25 kg", "0,25 kg", "0,25 kg"]);
+    // RC-2 : aucune cellule active, aucune barre ; la barre vient avec le clavier d'un champ touché.
+    expect([1, 2, 3].map((row) => get(cell(row)).props.accessibilityState.selected)).toEqual([false, false, false]);
+    expect(query("execution-sheet-keyboard-bar")).toBeNull();
+    focus(cell(1));
+    keyboard.show();
     const bar = strings.executionParameters.sheet.keyboardBar;
     expect([bar.previous, bar.next, bar.close]).toEqual(["← Précédent", "Suivant →", "Fermer"]);
     expect(within(get("execution-sheet-keyboard-previous")).getByText(bar.previous, hidden)).toBeTruthy();
@@ -5664,6 +5719,31 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
     renderSheet(variableLoads([10, 20]));
     expect(inputs().map((node) => String(node.props.testID)).sort()).toEqual([cell(1), cell(2)]);
     expect(inputs().every((node) => node.props.keyboardType === "decimal-pad")).toBe(true);
+  });
+
+  it("Recette du 19/10, RC-1 — barre rendue par la Feuille (dans son cadre modal, au bas de la Modal) seulement clavier affiché pour un champ Charge ; maintenue d'une cellule à l'autre ; masquée clavier rangé", () => {
+    renderSheet(variableLoads([10, 20]));
+    expect(query("execution-sheet-keyboard-bar")).toBeNull();
+    focus(cell(1));
+    // Clavier pas encore affiché : pas de barre posée sur la Feuille.
+    expect(query("execution-sheet-keyboard-bar")).toBeNull();
+    keyboard.show();
+    expect(within(get("execution-sheet")).getByTestId("execution-sheet-keyboard-bar", hidden)).toBeTruthy();
+    expect(styleOf("execution-sheet-keyboard-bar-host")).toMatchObject({ position: "absolute", left: 0, right: 0, bottom: 0 });
+    expect(styleOf("execution-sheet-keyboard-bar")).toMatchObject({ minHeight: 44, backgroundColor: "#E6E9ED" });
+    // Toucher direct d'une autre cellule (sortie puis prise de focus) : la barre reste.
+    blur(cell(1));
+    expect(query("execution-sheet-keyboard-bar")).not.toBeNull();
+    focus(cell(2));
+    expect(get("execution-sheet-keyboard-previous").props.accessibilityState).toMatchObject({ disabled: false });
+    keyboard.hide();
+    expect(query("execution-sheet-keyboard-bar")).toBeNull();
+  });
+
+  it("Recette du 19/10, RC-1 — décalage de la barre : hauteur du clavier qui recouvre la zone de la Modal (jamais négatif)", () => {
+    expect(keyboardBarLift({ screenY: 500, duration: 250 }, 844)).toBe(344);
+    expect(keyboardBarLift({ screenY: 500, duration: 250 }, 820)).toBe(320);
+    expect(keyboardBarLift({ screenY: 900, duration: 0 }, 844)).toBe(0);
   });
 });
 
@@ -5697,8 +5777,13 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2 (focus natif et applicati
     return spy;
   };
 
+  let keyboard: ReturnType<typeof captureKeyboard>;
+  beforeEach(() => {
+    keyboard = captureKeyboard();
+  });
   afterEach(() => {
     spies.splice(0).forEach((spy) => spy.mockRestore());
+    keyboard.restore();
   });
 
   it("PRE5-2.2/AC1 — ✓ absorbé, autre surface touchée, « Fermer » : le focus natif du champ est retiré", () => {
@@ -5715,6 +5800,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2 (focus natif et applicati
     expect(targets(blurSpy)).toEqual([UNIFORM]);
     blur(UNIFORM);
     focus(UNIFORM);
+    keyboard.show();
     blurSpy.mockClear();
     fireEvent.press(get("execution-sheet-keyboard-close"));
     expect(targets(blurSpy)).toEqual([UNIFORM]);
@@ -5725,6 +5811,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2 (focus natif et applicati
     const blurSpy = spyOn("blur");
     renderSheet(variableLoads([10, 20, 30]));
     focus(cell(2));
+    keyboard.show();
     focusSpy.mockClear();
     blurSpy.mockClear();
     fireEvent.press(get("execution-sheet-keyboard-next"));
@@ -5737,16 +5824,19 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2 (focus natif et applicati
     expect(blurSpy).not.toHaveBeenCalled();
   });
 
-  it("PRE5-2.2/AC5 — Avec : focus natif du premier champ après le rendu (charge commune ; première cellule en variables)", () => {
+  it("PRE5-2.2/AC5, recette du 19/10 (RC-2) — Avec : aucun focus natif, aucun champ actif, aucune barre (charge commune ; cellules en variables)", () => {
     const focusSpy = spyOn("focus");
     const view = renderSheetView(params());
     fireEvent.press(get("execution-sheet-load-control-WITH"));
-    expect(targets(focusSpy)).toEqual([UNIFORM]);
+    expect(targets(focusSpy)).toEqual([]);
+    expect(get(UNIFORM).props.accessibilityState).toMatchObject({ selected: false });
+    expect(screen.queryByTestId("execution-sheet-keyboard-bar", hidden)).toBeNull();
     view.unmount();
-    focusSpy.mockClear();
     renderSheet(variableLoads([0, 0], false));
     fireEvent.press(get("execution-sheet-load-control-WITH"));
-    expect(targets(focusSpy)).toEqual([cell(1)]);
+    expect(targets(focusSpy)).toEqual([]);
+    expect([1, 2].map((row) => get(cell(row)).props.accessibilityState.selected)).toEqual([false, false]);
+    expect(screen.queryByTestId("execution-sheet-keyboard-bar", hidden)).toBeNull();
   });
 
   it("PRE5-2.2/AC1 — saisie qui change la charge puis « Annuler » d'un retrait : la charge est appliquée, rien n'est annulé (Q29)", () => {
@@ -5801,5 +5891,103 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2 (focus natif et applicati
     expect(screen.queryByTestId(cell(1), hidden)).toBeNull();
     validate();
     expect(applied(onApply).series).toMatchObject({ kind: "VARIABLE", rows: [{ loadKg: 15 }, { loadKg: 20 }] });
+  });
+});
+
+/**
+ * Recette iPhone du 19/10 (RC-4, RC-5) — stepper révélé refermé par le toucher de sa valeur ;
+ * ligne glissée opaque et soulevée, insertion et décalage animés. Jest ne joue pas les
+ * animations de Reanimated : la vitesse et la lisibilité réelles se jugent sur iPhone.
+ */
+describe("ExecutionParametersSheet — recette iPhone du 19/10 (RC-4, RC-5)", () => {
+  const hidden = { includeHiddenElements: true } as const;
+  const get = (testID: string) => screen.getByTestId(testID, hidden);
+  const query = (testID: string) => screen.queryByTestId(testID, hidden);
+  const styleOf = (testID: string) => StyleSheet.flatten(get(testID).props.style) ?? {};
+  const motionLayout = (testID: string) => (get(testID).props as { layout?: unknown }).layout;
+
+  it("RC-4 — Nombre de séries : toucher la valeur du champ ouvert le referme ; la valeur fermée est de nouveau affichée", () => {
+    renderSheet(params());
+    fireEvent.press(get("execution-sheet-series-toggle"));
+    expect(query("execution-sheet-series-field")).not.toBeNull();
+    fireEvent.press(get("execution-sheet-series-value-press"));
+    expect(query("execution-sheet-series-field")).toBeNull();
+    expect(get("execution-sheet-series-toggle")).toBeTruthy();
+  });
+
+  it("RC-4 — même mécanisme partagé : Bip de cadence (champ hors tableau) et Pause d'une cellule du tableau ; « activer » de VoiceOver referme aussi", () => {
+    renderSheet(params({ series: variableRows([[30, 5], [45, 10]]) }));
+    openExecutionSheetField("execution-sheet-beep");
+    expect(query("execution-sheet-beep-field")).not.toBeNull();
+    fireEvent(get("execution-sheet-beep"), "accessibilityAction", { nativeEvent: { actionName: "activate" } });
+    expect(query("execution-sheet-beep-field")).toBeNull();
+    fireEvent.press(get("execution-sheet-table-row-1-pause-toggle"));
+    expect(query("execution-sheet-table-row-1-pause-field")).not.toBeNull();
+    fireEvent.press(get("execution-sheet-table-row-1-pause-value-press"));
+    expect(query("execution-sheet-table-row-1-pause-field")).toBeNull();
+  });
+
+  it("RC-5 — dès la saisie : ligne opaque (fond #EAEAFF), soulevée (ombre), cadre au-dessus des autres et sans transition de place ; les autres lignes gardent la leur", () => {
+    renderSheet(params({ series: variableRows([[30, 5], [45, 10], [60, 15]]) }));
+    expect(styleOf("execution-sheet-table-row-1").backgroundColor).toBeUndefined();
+    act(() => get("execution-sheet-table-row-1-handle").props.onResponderGrant({ nativeEvent: { pageY: 100 } }));
+    expect(styleOf("execution-sheet-table-row-1")).toMatchObject({ backgroundColor: "#EAEAFF", shadowOpacity: 0.18, elevation: 4 });
+    expect(styleOf("execution-sheet-table-row-1-motion").zIndex).toBe(1);
+    expect(motionLayout("execution-sheet-table-row-1-motion")).toBeUndefined();
+    expect(motionLayout("execution-sheet-table-row-2-motion")).toBe(rowShiftLayout);
+    expect(styleOf("execution-sheet-table-row-2").backgroundColor).toBeUndefined();
+    act(() => get("execution-sheet-table-row-1-handle").props.onResponderRelease({ nativeEvent: { pageY: 100 } }));
+    // Aucun déplacement : ligne reposée sans glissade (écart nul).
+    expect(styleOf("execution-sheet-table-row-1").backgroundColor).toBeUndefined();
+    expect(motionLayout("execution-sheet-table-row-1-motion")).toBe(rowShiftLayout);
+  });
+
+  it("RC-5 — à la dépose : la ligne prend sa place sous le doigt (écart restant) puis y glisse en TABLE_ROW_DROP_MS (≈ 280 ms, comme le décalage des autres lignes) ; reposée ensuite", () => {
+    expect(TABLE_ROW_DROP_MS).toBe(SHEET_ROW_SHIFT_MS);
+    expect(SHEET_ROW_SHIFT_MS).toBeGreaterThanOrEqual(250);
+    expect(SHEET_ROW_SHIFT_MS).toBeLessThanOrEqual(300);
+    renderSheet(params({ series: variableRows([[30, 5], [45, 10], [60, 15]]) }));
+    jest.useFakeTimers();
+    try {
+      const handle = () => get("execution-sheet-table-row-1-handle");
+      act(() => handle().props.onResponderGrant({ nativeEvent: { pageY: 100 } }));
+      act(() => handle().props.onResponderMove({ nativeEvent: { pageY: 184 } }));
+      act(() => handle().props.onResponderRelease({ nativeEvent: { pageY: 184 } }));
+      // 84 points vers le bas : destination 3 (2 lignes de 36), écart restant 84 − 72 = 12.
+      expect(valueOf("execution-sheet-table-row-3-target")).toBe("30 s");
+      expect(styleOf("execution-sheet-table-row-3")).toMatchObject({ transform: [{ translateY: 12 }], backgroundColor: "#EAEAFF" });
+      expect(styleOf("execution-sheet-table-row-3-motion").zIndex).toBe(1);
+      act(() => {
+        jest.advanceTimersByTime(TABLE_ROW_DROP_MS / 2);
+      });
+      const halfway = (styleOf("execution-sheet-table-row-3").transform as { translateY: number }[])[0]!.translateY;
+      expect(halfway).toBeGreaterThan(0);
+      expect(halfway).toBeLessThan(12);
+      act(() => {
+        jest.advanceTimersByTime(TABLE_ROW_DROP_MS);
+      });
+    } finally {
+      jest.useRealTimers();
+    }
+    expect(styleOf("execution-sheet-table-row-3").transform).toBeUndefined();
+    expect(styleOf("execution-sheet-table-row-3").backgroundColor).toBeUndefined();
+    expect(styleOf("execution-sheet-table-row-3-motion").zIndex).toBeUndefined();
+    expect(motionLayout("execution-sheet-table-row-3-motion")).toBe(rowShiftLayout);
+  });
+
+  it("RC-5 — transition de place des lignes : position seule (taille posée directement), durée SHEET_ROW_SHIFT_MS", () => {
+    const values = {
+      currentOriginX: 0,
+      currentOriginY: 36,
+      currentWidth: 300,
+      currentHeight: 36,
+      targetOriginX: 0,
+      targetOriginY: 108,
+      targetWidth: 300,
+      targetHeight: 36,
+    } as unknown as Parameters<typeof rowShiftLayout>[0];
+    const animation = rowShiftLayout(values);
+    expect(animation.initialValues).toEqual({ originX: 0, originY: 36, width: 300, height: 36 });
+    expect(Object.keys(animation.animations).sort()).toEqual(["originX", "originY"]);
   });
 });

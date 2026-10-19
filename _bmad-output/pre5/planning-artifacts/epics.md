@@ -575,13 +575,14 @@ afin de vérifier ces interactions sur appareil avant la story Charge, sans rien
 **When** un champ est actif
 **Then** une barre propose Précédent, Suivant et « Fermer » à droite ; Précédent et Suivant passent au champ de charge voisin, dans l'ordre des lignes, **sans fermer ni rouvrir le clavier** ; aux extrémités le bouton est indisponible, sans boucle
 **And** « Fermer » applique la valeur et ferme le clavier
-**And** sur iOS la barre peut s'appuyer sur `InputAccessoryView` si c'est le moyen standard le plus simple ; sa forme technique se choisit au développement, sans être imposée d'avance
+**And** sur iOS la barre est rendue par la Feuille elle-même, juste au-dessus du clavier (hauteur par les événements `Keyboard` standards) : `InputAccessoryView` ne s'affiche pas dans la `Modal` de la Feuille (recette du 19/10, RC-1)
 **And** Android et web : champs fonctionnels ; la barre y est livrée si le même mécanisme standard le permet, sinon le clavier natif suffit ; rendu non recetté.
 
 **AC3 — Cellule active (FR-25, UX-DR5).**
 **Given** un champ de charge actif
 **When** le focus change (toucher, Précédent, Suivant)
-**Then** la cellule en cours de saisie est identifiée par sa couleur de fond, conformément à Figma (`9292:18077`), et l'état actif est annoncé de façon accessible.
+**Then** la cellule en cours de saisie est identifiée par sa couleur de fond, conformément à Figma (`9292:18077`), et l'état actif est annoncé de façon accessible
+**And** toute la valeur du champ est sélectionnée quand il prend le focus, y compris par Précédent / Suivant (recette du 19/10, RC-3).
 
 **AC4 — Ligne active toujours visible au-dessus du clavier (FR-24).**
 **Given** la Feuille ouverte
@@ -593,7 +594,7 @@ afin de vérifier ces interactions sur appareil avant la story Charge, sans rien
 **AC5 — Composants définitifs, sans interface provisoire (revue du 19/10).**
 **Given** la Feuille actuelle (avant les quatre cadres)
 **When** l'essai est monté
-**Then** les champs sont posés à leur place définitive, raccordés à la charge réelle du Brouillon (2.1) : ligne Charge après la Pause en séries identiques, colonne Charge du tableau variable existant, activées par le `SegmentedControl` existant ; à la première activation 0,25 kg et focus sur le premier champ
+**Then** les champs sont posés à leur place définitive, raccordés à la charge réelle du Brouillon (2.1) : ligne Charge après la Pause en séries identiques, colonne Charge du tableau variable existant, activées par le `SegmentedControl` existant ; à la première activation 0,25 kg, sans focus ni cellule active : le clavier ne s'ouvre qu'au toucher d'un champ Charge (recette du 19/10, RC-2)
 **And** 2.7 conserve ces composants et se limite à la présentation (segmenté `inline`, `formatLoadKg` dans le segment, place dans les cadres de 2.4) ; rien de jetable n'est créé.
 
 **AC6 — Recette sur iPhone (NFR-6, NFR-5).**
@@ -843,13 +844,14 @@ afin de régler une série sans les ± permanents et de préparer le tableau des
 **Given** `DraggableRow`, `RemoveRowButton` et le message d'annulation, aujourd'hui dans `Sheet`
 **When** la story est livrée
 **Then** ils sont extraits dans un module partagé de `src/features/activities/`, utilisé par le tableau des séries, prêt pour `WorkPhasesTable` (2.8), sans copie
-**And** sont conservés : glisser PRE-3, actions accessibles de déplacement et de retrait, croix, « Série supprimée — Annuler » sur fond `#FFF1F0` (Q35), tests 3.6 existants verts (adaptés seulement pour la hauteur et les ± retirés).
+**And** sont conservés : glisser PRE-3, actions accessibles de déplacement et de retrait, croix, « Série supprimée — Annuler » sur fond `#FFF1F0` (Q35), tests 3.6 existants verts (adaptés seulement pour la hauteur et les ± retirés)
+**And** la ligne glissée est opaque, avec un effet visible dès sa saisie (fond teinté, ombre) ; à la dépose, elle s'insère et les autres lignes se décalent par une animation plus lente et visible, sans animation sous « Réduire les animations » (recette du 19/10, RC-5).
 
 **AC5 — Non-régression et contrôles (NR Δ30, Δ38, NFR-2).**
 **Given** les roues et steppers
 **When** la story est livrée
 **Then** aucune valeur ne passe au clavier ; Nombre de séries et Pause commune gardent leurs steppers révélés (C-5) ; `DurationWheelPicker.test.tsx:371-379` et `NumberWheelPicker.test.tsx:260` sont intacts et verts
-**And** (NR Δ38, impératif) le stepper « Nombre de séries » de PRE-4 est conservé à l'identique (présentation, interactions, révélation et fermeture, pas, accessibilité) et le tableau des séries, désormais sans ± de cellule, suit N : une série ajoutée ou retirée par ce stepper apparaît ou disparaît dans le tableau, avec ses réserves (Q29)
+**And** (NR Δ38, impératif) le stepper « Nombre de séries » de PRE-4 est conservé à l'identique (présentation, interactions, révélation et fermeture, pas, accessibilité), sauf que toucher sa valeur ouverte le referme, comme pour tous les steppers révélés de la Feuille (recette du 19/10, RC-4), et le tableau des séries, désormais sans ± de cellule, suit N : une série ajoutée ou retirée par ce stepper apparaît ou disparaît dans le tableau, avec ses réserves (Q29)
 **And** Contrôles : `npm test`, `npx tsc --noEmit`, `npm run lint` verts.
 
 **Recette iPhone :** `R-2.6-01` (précoce, AC1) cible tactile de 36 ; `R-2.6-02` (lot Feuille) cellule Cible → roue sous la ligne, cellule Pause → ± de la seule cellule, glisser, croix et annulation ; `R-2.6-03` (lot Feuille) Nombre de séries réglé par son stepper PRE-4 inchangé, le tableau suit N (ajout, retrait, retour).
@@ -875,14 +877,14 @@ afin de garder la trace des kilos sans fenêtre intermédiaire et sans effet sur
 **Given** des séries identiques
 **When** la Feuille s'affiche
 **Then** la ligne « Charge » (segmenté `inline` Avec / Sans, Sans par défaut) suit la Pause dans le cadre Séries ; les composants posés par 2.2 (`KeyboardField`, barre, surface, hook, défilement) sont conservés tels quels, seul le segmenté passe en variante `inline`
-**And** Avec ouvre directement la saisie, sans écran intermédiaire : à la première activation la valeur commune vaut 0,25 kg et le focus va au champ commun ; une fois saisie, la valeur remplace Avec dans le segment (`formatLoadKg`, « 20 kg ») et reste éditable : toucher ce segment donne le focus au `KeyboardField` rendu dans la même ligne
+**And** Avec rend directement le champ de saisie, sans écran intermédiaire : à la première activation la valeur commune vaut 0,25 kg, sans focus ni clavier ouvert (recette du 19/10, RC-2) ; une fois saisie, la valeur remplace Avec dans le segment (`formatLoadKg`, « 20 kg ») et reste éditable : toucher ce segment donne le focus au `KeyboardField` rendu dans la même ligne
 **And** la ligne reste disponible quand À l'échec masque la ligne Durée ou Répétitions (FR-21, Δ48).
 
 **AC2 — Ligne et colonne Charge en séries variables (FR-13).**
 **Given** des séries variables
 **When** la Feuille s'affiche
 **Then** la ligne Charge (Avec / Sans) se place sous le tableau ; Avec affiche une colonne Charge au titre non interactif, chaque cellule étant un `KeyboardField` ; Sans masque la colonne et conserve les valeurs
-**And** à la première activation chaque ligne vaut 0,25 kg et le focus va au premier champ de ligne
+**And** à la première activation chaque ligne vaut 0,25 kg, sans focus ni cellule active ; le clavier ne s'ouvre qu'au toucher d'une cellule Charge (recette du 19/10, RC-2)
 **And** la charge reste attachée à sa série lors d'un déplacement, d'un retrait et de son annulation, d'un ajout de série et d'un passage identiques / variables (2.1).
 
 **AC3 — Saisie dans la cellule (FR-14, FR-23).**

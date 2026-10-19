@@ -9,6 +9,7 @@ import Reanimated, {
   type EntryAnimationsValues,
   type ExitAnimationsValues,
   type LayoutAnimation,
+  type LayoutAnimationsValues,
 } from "react-native-reanimated";
 
 /**
@@ -96,12 +97,43 @@ const sheetLayout = LinearTransition.duration(SHEET_MOTION_MS)
   .easing(SHEET_MOTION_EASING)
   .reduceMotion(ReduceMotion.System);
 
+/**
+ * Recette du 19/10 (RC-5) — lignes d'un tableau de la Feuille : à la dépose d'un glisser (ou
+ * à un déplacement par action accessible), les autres lignes glissent vers leur nouvelle
+ * place, plus lentement et visiblement, au lieu de sauter. La ligne déposée s'insère avec
+ * la même durée et la même courbe (`DraggableRow`, `sheetTable.tsx`).
+ */
+export const SHEET_ROW_SHIFT_MS = 280;
+const ROW_SHIFT_TIMING = { duration: SHEET_ROW_SHIFT_MS, easing: SHEET_MOTION_EASING, reduceMotion: ReduceMotion.System };
+
+/**
+ * RC-5 : transition de place d'une ligne de tableau — seule la POSITION glisse ; la taille
+ * est posée directement (une ligne qui s'agrandit sous elle, ± de Pause ou roue, garde sa
+ * propre révélation, comme avant).
+ */
+export function rowShiftLayout(values: LayoutAnimationsValues): LayoutAnimation {
+  "worklet";
+  return {
+    initialValues: {
+      originX: values.currentOriginX,
+      originY: values.currentOriginY,
+      width: values.targetWidth,
+      height: values.targetHeight,
+    },
+    animations: {
+      originX: withTiming(values.targetOriginX, ROW_SHIFT_TIMING),
+      originY: withTiming(values.targetOriginY, ROW_SHIFT_TIMING),
+    },
+  };
+}
+
 type SheetMotion = {
   readonly clipEntering?: typeof revealClipEntering;
   readonly clipExiting?: typeof revealClipExiting;
   readonly contentEntering?: typeof revealContentEntering;
   readonly contentExiting?: typeof revealContentExiting;
   readonly layout?: typeof sheetLayout;
+  readonly rowLayout?: typeof rowShiftLayout;
 };
 
 const NO_MOTION: SheetMotion = {};
@@ -111,6 +143,7 @@ const SHEET_MOTION: SheetMotion = {
   contentEntering: revealContentEntering,
   contentExiting: revealContentExiting,
   layout: sheetLayout,
+  rowLayout: rowShiftLayout,
 };
 
 const SheetMotionContext = createContext<SheetMotion>(NO_MOTION);
@@ -126,6 +159,11 @@ export function SheetMotionProvider({ reduceMotion, children }: { reduceMotion: 
   );
 }
 
+/** RC-5 : vrai sous « Réduire les animations » (aucune animation transmise par le fournisseur). */
+export function useSheetMotionReduced(): boolean {
+  return useContext(SheetMotionContext) === NO_MOTION;
+}
+
 /**
  * Q39, Q41 : conteneur animé de la Feuille.
  *
@@ -134,9 +172,11 @@ export function SheetMotionProvider({ reduceMotion, children }: { reduceMotion: 
  *   de hauteur, transition de place) et le contenu (`${testID}-content`, porte
  *   `style`, entrée et sortie par translation verticale).
  * - `appear={false}` : une seule vue (`testID`, `style`), transition de place seule.
- * - `transition={false}` sert aux lignes du tableau des séries variables : leur
- *   déplacement par glisser reste celui de `DraggableRow`, sans seconde animation
- *   après la dépose.
+ * - `transition="row"` (recette du 19/10, RC-5) sert aux lignes des tableaux : transition
+ *   de place plus courte (`SHEET_ROW_SHIFT_MS`), pour que les lignes se décalent
+ *   visiblement à la dépose ; `transition={false}` la retire (ligne portée par
+ *   `DraggableRow` pendant son glisser et son insertion, sans seconde animation).
+ * - `raised` place le cadre au-dessus de ses voisins (ligne saisie, RC-5).
  * - `clip={false}` lève la découpe (par ex. pendant un glisser du tableau, pour que
  *   la ligne portée suive le doigt hors de sa place).
  * - `enter={false}` : pas de révélation propre à l'apparition (le parent la porte, par
@@ -152,6 +192,7 @@ export function SheetMotionView({
   transition = true,
   clip = true,
   bleed = 0,
+  raised = false,
   onLayout,
   style,
   testID,
@@ -159,19 +200,20 @@ export function SheetMotionView({
 }: {
   appear?: boolean;
   enter?: boolean;
-  transition?: boolean;
+  transition?: boolean | "row";
   clip?: boolean;
   bleed?: number;
+  raised?: boolean;
   onLayout?: ViewProps["onLayout"];
   style?: StyleProp<ViewStyle>;
   testID?: string;
   children?: ReactNode;
 }) {
   const motion = useContext(SheetMotionContext);
-  const layout = transition ? motion.layout : undefined;
+  const layout = transition === "row" ? motion.rowLayout : transition ? motion.layout : undefined;
   if (!appear) {
     return (
-      <Reanimated.View layout={layout} onLayout={onLayout} style={style} testID={testID}>
+      <Reanimated.View layout={layout} onLayout={onLayout} style={[style, raised ? styles.raised : null]} testID={testID}>
         {children}
       </Reanimated.View>
     );
@@ -182,7 +224,11 @@ export function SheetMotionView({
       exiting={motion.clipExiting}
       layout={layout}
       onLayout={onLayout}
-      style={[clip ? styles.clip : null, bleed > 0 ? { marginHorizontal: -bleed, paddingHorizontal: bleed } : null]}
+      style={[
+        clip ? styles.clip : null,
+        bleed > 0 ? { marginHorizontal: -bleed, paddingHorizontal: bleed } : null,
+        raised ? styles.raised : null,
+      ]}
       testID={testID}
     >
       <Reanimated.View
@@ -217,5 +263,8 @@ export function SheetMotionScrollView({ ref, ...props }: ScrollViewProps & { ref
 const styles = StyleSheet.create({
   clip: {
     overflow: "hidden",
+  },
+  raised: {
+    zIndex: 1,
   },
 });

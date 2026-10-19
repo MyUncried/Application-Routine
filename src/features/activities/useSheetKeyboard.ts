@@ -1,5 +1,13 @@
-import { useEffect, useRef, type Dispatch, type RefObject } from "react";
-import { Keyboard, type NativeScrollEvent, type NativeSyntheticEvent, type ScrollView, type TextInput } from "react-native";
+import { useEffect, useRef, useState, type Dispatch, type RefObject } from "react";
+import {
+  Keyboard,
+  Platform,
+  type KeyboardEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  type ScrollView,
+  type TextInput,
+} from "react-native";
 
 import { seriesRowsOf } from "@/domain/activities/ExecutionParameters";
 import {
@@ -35,6 +43,13 @@ import {
  * - Révélation (FR-24) : à l'apparition du clavier et à chaque changement de champ, la
  *   ligne du champ actif est ramenée au-dessus du clavier (marge de 12, Figma `9292:18077`)
  *   par le défilement du corps existant de la Feuille.
+ * - Recette du 19/10 (RC-1) : `InputAccessoryView` ne s'affiche pas dans la `Modal` de la
+ *   Feuille ; la barre Précédent / Suivant / « Fermer » est rendue par la Feuille au-dessus
+ *   du clavier. Le hook suit le cadre du clavier (événements `Keyboard` standards,
+ *   `keyboardWill…` sur iOS) et la hauteur mesurée de la barre, que la révélation retire du
+ *   haut du clavier : la ligne active reste entière au-dessus de la barre (marge 12).
+ * - Recette du 19/10 (RC-2) : aucune ouverture automatique ; le clavier ne s'ouvre qu'au
+ *   toucher d'un champ.
  */
 
 /** Champ de charge : charge commune, ou ligne d'identité (`rowIds`). */
@@ -45,6 +60,19 @@ export type KeyboardCommit = (apply: (draft: ExecutionSheetDraft) => ExecutionSh
 
 /** Marge entre le bas de la ligne active et le haut du clavier (Figma `9292:18077`). */
 export const KEYBOARD_REVEAL_MARGIN = 12;
+
+/** Hauteur nominale de la barre du clavier, avant sa mesure (Figma `9292:18077`). */
+export const KEYBOARD_ACCESSORY_NOMINAL_HEIGHT = 44;
+
+/**
+ * RC-1 : barre rendue par la Feuille sur iOS seulement. Sur Android, la fenêtre de la
+ * `Modal` peut être redimensionnée par le clavier (position non recettée) : le clavier
+ * natif seul y suffit, comme avant (AC2).
+ */
+export const SHEET_KEYBOARD_BAR_ENABLED = Platform.OS === "ios";
+
+/** Clavier affiché : haut de son cadre (coordonnées de l'écran) et durée de son animation. */
+export type KeyboardFrame = { readonly screenY: number; readonly duration: number };
 
 /**
  * Ordre de navigation entre les champs de charge (FR-25) : aucun sous Sans ; la charge
@@ -110,6 +138,12 @@ function applyEdit(draft: ExecutionSheetDraft, edit: Pick<Edit, "field" | "text"
 export type SheetKeyboard = {
   /** Champ clavier ouvert (surface `keyboard`), ou `null`. */
   readonly activeField: KeyboardFieldId | null;
+  /** Clavier affiché (cadre suivi par les événements `Keyboard`), ou `null`. */
+  readonly keyboardFrame: KeyboardFrame | null;
+  /** RC-1 : barre Précédent / Suivant / « Fermer » à rendre (clavier affiché pour un champ de charge, iOS). */
+  readonly accessoryVisible: boolean;
+  /** RC-1 : hauteur mesurée de la barre rendue par la Feuille. */
+  setAccessoryHeight: (height: number) => void;
   readonly canPrevious: boolean;
   readonly canNext: boolean;
   /** Référence de l'entrée d'un champ ; `rowHeight` : hauteur de sa ligne (36 en tableau, 44 sinon). */
@@ -125,8 +159,6 @@ export type SheetKeyboard = {
   next: () => void;
   /** « Fermer » : applique et ferme le clavier. */
   close: () => void;
-  /** Focus du premier champ de l'ordre, au rendu suivant (le champ n'existe qu'après l'activation). */
-  focusFirst: () => void;
   /** Défilement du corps (offset courant, pour la révélation). */
   onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 };
@@ -155,14 +187,17 @@ export function useSheetKeyboard({
   // Champ voulu : le focalisé, ou le voisin choisi par Précédent / Suivant ; `null` à la fermeture.
   const wantedRef = useRef<KeyboardFieldId | null>(null);
   const editRef = useRef<Edit | null>(null);
-  const pendingFocusRef = useRef(false);
   const keyboardTopRef = useRef<number | null>(null);
+  const accessoryHeightRef = useRef(KEYBOARD_ACCESSORY_NOMINAL_HEIGHT);
+  // RC-1 : cadre du clavier (position de la barre) et genre du dernier champ focalisé. Le
+  // genre n'est pas effacé à la sortie : un passage direct d'un champ de charge à l'autre
+  // (sortie puis prise de focus) ne fait ni disparaître ni réapparaître la barre.
+  const [keyboardFrame, setKeyboardFrame] = useState<KeyboardFrame | null>(null);
+  const [focusedKind, setFocusedKind] = useState<KeyboardFieldId["kind"] | null>(null);
   const offsetRef = useRef(0);
   const reduceMotionRef = useRef(reduceMotion);
-  const orderRef = useRef(order);
   useEffect(() => {
     reduceMotionRef.current = reduceMotion;
-    orderRef.current = order;
   });
 
   const activeField = surface.open.kind === "keyboard" ? surface.open.field : null;
@@ -170,10 +205,14 @@ export function useSheetKeyboard({
   const canPrevious = activeIndex > 0;
   const canNext = activeIndex >= 0 && activeIndex < order.length - 1;
 
-  /** Révélation (FR-24, AC4) : ligne du champ voulu entièrement au-dessus du clavier. */
+  /** Révélation (FR-24, AC4) : ligne du champ voulu entièrement au-dessus du clavier et de sa barre (RC-1). */
   function reveal() {
     const wanted = wantedRef.current;
-    const keyboardTop = keyboardTopRef.current;
+    const shownTop = keyboardTopRef.current;
+    const keyboardTop =
+      shownTop === null || wanted === null
+        ? null
+        : shownTop - (SHEET_KEYBOARD_BAR_ENABLED && wanted.kind === "load" ? accessoryHeightRef.current : 0);
     const scroll = scrollRef.current;
     const entry = wanted === null ? undefined : inputsRef.current.get(fieldKey(wanted));
     if (entry === undefined || keyboardTop === null || scroll === null) return;
@@ -192,17 +231,25 @@ export function useSheetKeyboard({
   }
 
   useEffect(() => {
-    const shown = Keyboard.addListener("keyboardDidShow", (event) => {
-      keyboardTopRef.current = event.endCoordinates.screenY;
-      reveal();
-    });
-    const hidden = Keyboard.addListener("keyboardDidHide", () => {
-      keyboardTopRef.current = null;
-    });
-    return () => {
-      shown.remove();
-      hidden.remove();
-    };
+    // RC-1 : cadre du clavier pour la barre — `Will` sur iOS (la barre monte avec le
+    // clavier), `Did` ailleurs (Android n'émet pas les `Will`).
+    const ios = Platform.OS === "ios";
+    const follow = (event: KeyboardEvent) =>
+      setKeyboardFrame({ screenY: event.endCoordinates.screenY, duration: event.duration ?? 0 });
+    const subscriptions = [
+      Keyboard.addListener(ios ? "keyboardWillShow" : "keyboardDidShow", follow),
+      ...(ios ? [Keyboard.addListener("keyboardWillChangeFrame", follow)] : []),
+      Keyboard.addListener(ios ? "keyboardWillHide" : "keyboardDidHide", () => setKeyboardFrame(null)),
+      // Révélation : après l'animation du clavier (course de défilement déjà ajustée).
+      Keyboard.addListener("keyboardDidShow", (event) => {
+        keyboardTopRef.current = event.endCoordinates.screenY;
+        reveal();
+      }),
+      Keyboard.addListener("keyboardDidHide", () => {
+        keyboardTopRef.current = null;
+      }),
+    ];
+    return () => subscriptions.forEach((subscription) => subscription.remove());
     // `reveal` ne lit que des références.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -214,6 +261,7 @@ export function useSheetKeyboard({
   function onFocus(field: KeyboardFieldId) {
     focusedRef.current = field;
     wantedRef.current = field;
+    setFocusedKind(field.kind);
     const text = editTextOf(field);
     editRef.current = { field, text, initial: text };
     dispatchSurface({ type: "touch", surface: { kind: "keyboard", field } });
@@ -266,16 +314,6 @@ export function useSheetKeyboard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [surface.open]);
 
-  // `focusFirst` : demande consommée après le rendu qui a monté le premier champ.
-  useEffect(() => {
-    if (!pendingFocusRef.current) return;
-    const first = orderRef.current[0];
-    const entry = first === undefined ? undefined : inputsRef.current.get(fieldKey(first));
-    if (entry === undefined) return;
-    pendingFocusRef.current = false;
-    entry.input.focus();
-  });
-
   function step(delta: -1 | 1) {
     const current = wantedRef.current;
     if (current === null) return;
@@ -314,6 +352,14 @@ export function useSheetKeyboard({
 
   return {
     activeField,
+    keyboardFrame,
+    accessoryVisible: SHEET_KEYBOARD_BAR_ENABLED && keyboardFrame !== null && focusedKind === "load",
+    setAccessoryHeight: (height) => {
+      if (height <= 0 || height === accessoryHeightRef.current) return;
+      accessoryHeightRef.current = height;
+      // Barre agrandie (texte agrandi), clavier affiché : la ligne active reste au-dessus.
+      if (keyboardTopRef.current !== null) reveal();
+    },
     canPrevious,
     canNext,
     register,
@@ -325,9 +371,6 @@ export function useSheetKeyboard({
     previous: () => step(-1),
     next: () => step(1),
     close,
-    focusFirst: () => {
-      pendingFocusRef.current = true;
-    },
     onScroll: (event) => {
       offsetRef.current = event.nativeEvent.contentOffset.y;
     },

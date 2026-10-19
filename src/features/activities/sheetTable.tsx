@@ -1,7 +1,7 @@
-import { useRef, useState, type ReactNode, type Ref } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useRef, useState, type ReactNode, type Ref } from "react";
+import { Easing, Pressable, StyleSheet, Text, View } from "react-native";
 
-import { SheetMotionView } from "@/features/activities/SheetMotion";
+import { SHEET_ROW_SHIFT_MS, SheetMotionView, useSheetMotionReduced } from "@/features/activities/SheetMotion";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
 import { colors, fixedRadii, spacing, type } from "@/shared/ui/tokens";
@@ -57,6 +57,23 @@ export const TABLE_CELL_GAP = 7;
  * partagée avec `KeyboardField`.
  */
 export const TABLE_CELL_ACTIVE_BACKGROUND = "#EAEAFF";
+/**
+ * Recette du 19/10 (RC-5) — ligne saisie par la poignée : opaque, fond teinté (couleur
+ * existante de la Feuille, cellule active `#EAEAFF`) et légère élévation avec ombre, dès la
+ * saisie et jusqu'à la fin de son insertion.
+ */
+const TABLE_ROW_LIFTED_BACKGROUND = "#EAEAFF";
+const TABLE_ROW_LIFTED_SHADOW_COLOR = "#000000";
+const TABLE_ROW_LIFTED_SHADOW_OPACITY = 0.18;
+const TABLE_ROW_LIFTED_SHADOW_RADIUS = 6;
+const TABLE_ROW_LIFTED_SHADOW_OFFSET_Y = 2;
+const TABLE_ROW_LIFTED_ELEVATION = 4;
+/**
+ * RC-5 — insertion de la ligne déposée à sa place : même durée que le décalage des autres
+ * lignes (`SHEET_ROW_SHIFT_MS`, transition de place de leur cadre) et même courbe.
+ */
+export const TABLE_ROW_DROP_MS = SHEET_ROW_SHIFT_MS;
+const TABLE_ROW_DROP_EASING = Easing.out(Easing.cubic);
 /** Zone de la croix au bord droit ; disque accepté de 28 (story 3.6) conservé. */
 const TABLE_REMOVE_ZONE = 36;
 const TABLE_REMOVE_DISC = 28;
@@ -125,12 +142,22 @@ export type DraggableRowLabels = {
  * poignée expose aussi les actions accessibles Monter / Descendre, qui produisent
  * exactement le même déplacement métier. Identifiants : `${testIDPrefix}-${n}` (ligne) et
  * `${testIDPrefix}-${n}-handle` (poignée).
+ *
+ * Recette du 19/10 (RC-5) : dès la saisie, la ligne est opaque et soulevée (fond teinté,
+ * ombre) ; `onLiftedChange` le signale à l'appelant, qui place le cadre de la ligne
+ * au-dessus des autres et lui retire sa transition de place. À la dépose, la ligne prend sa
+ * nouvelle place dans le même rendu que le déplacement métier, décalée de l'écart qui
+ * reste entre le doigt et cette place, puis glisse jusqu'à elle (`TABLE_ROW_DROP_MS`) ;
+ * les autres lignes se décalent par la transition de place de leur cadre. Translation
+ * portée par l'état du composant (rendu atomique avec la nouvelle place, aucun saut) ;
+ * « Réduire les animations » : aucune glissade, ligne posée.
  */
 export function DraggableRow({
   index,
   count,
   onMove,
   onDrag,
+  onLiftedChange,
   labels,
   testIDPrefix,
   children,
@@ -139,24 +166,70 @@ export function DraggableRow({
   count: number;
   onMove: (to: number) => void;
   onDrag: (state: { readonly from: number; readonly to: number } | null) => void;
+  /** RC-5 : la ligne est saisie (de l'appui sur la poignée à la fin de son insertion). */
+  onLiftedChange?: (lifted: boolean) => void;
   labels: DraggableRowLabels;
   testIDPrefix: string;
   children: ReactNode;
 }) {
   const number = index + 1;
+  const reduceMotion = useSheetMotionReduced();
   // Même mécanique que la Composition : responder natif + état de translation, sans bibliothèque.
   // Le renderer recycle l'événement du responder (`nativeEvent` remis à null
   // après le gestionnaire) : la position est lue de façon synchrone, jamais
   // dans une mise à jour d'état différée (recette 1, F-01).
   const [dragDy, setDragDy] = useState<number | null>(null);
+  const [lifted, setLifted] = useState(false);
   const startYRef = useRef<number | null>(null);
+  const lastDyRef = useRef(0);
+  const settleFrameRef = useRef<number | null>(null);
+  const onLiftedChangeRef = useRef(onLiftedChange);
+  useEffect(() => {
+    onLiftedChangeRef.current = onLiftedChange;
+  });
+  function stopSettle() {
+    if (settleFrameRef.current !== null) cancelAnimationFrame(settleFrameRef.current);
+    settleFrameRef.current = null;
+  }
+  useEffect(() => stopSettle, []);
+  function lift(next: boolean) {
+    setLifted(next);
+    onLiftedChangeRef.current?.(next);
+  }
+  /** RC-5 : la ligne glisse de `offset` (écart à sa place) jusqu'à sa place, puis est reposée. */
+  function settle(offset: number) {
+    stopSettle();
+    if (reduceMotion || offset === 0) {
+      setDragDy(null);
+      lift(false);
+      return;
+    }
+    setDragDy(offset);
+    const start = Date.now();
+    const step = () => {
+      const progress = Math.min(1, (Date.now() - start) / TABLE_ROW_DROP_MS);
+      if (progress >= 1) {
+        settleFrameRef.current = null;
+        setDragDy(null);
+        lift(false);
+        return;
+      }
+      setDragDy(offset * (1 - TABLE_ROW_DROP_EASING(progress)));
+      settleFrameRef.current = requestAnimationFrame(step);
+    };
+    settleFrameRef.current = requestAnimationFrame(step);
+  }
   const actions = [
     ...(index > 0 ? [{ name: "moveUp", label: fill(labels.moveUp, number) }] : []),
     ...(index < count - 1 ? [{ name: "moveDown", label: fill(labels.moveDown, number) }] : []),
   ];
   return (
     <View
-      style={[styles.tableRow, dragDy !== null ? { transform: [{ translateY: dragDy }] } : null]}
+      style={[
+        styles.tableRow,
+        lifted ? styles.tableRowLifted : null,
+        dragDy !== null ? { transform: [{ translateY: dragDy }] } : null,
+      ]}
       testID={`${testIDPrefix}-${number}`}
     >
       <View style={styles.leadColumn}>
@@ -165,14 +238,18 @@ export function DraggableRow({
           onMoveShouldSetResponder={() => true}
           onResponderTerminationRequest={() => false}
           onResponderGrant={(event) => {
+            stopSettle();
             startYRef.current = event.nativeEvent.pageY;
+            lastDyRef.current = 0;
             setDragDy(0);
+            lift(true);
             onDrag({ from: index, to: index });
           }}
           onResponderMove={(event) => {
             const startY = startYRef.current;
             if (startY === null) return;
             const dy = event.nativeEvent.pageY - startY;
+            lastDyRef.current = dy;
             setDragDy(dy);
             onDrag({ from: index, to: dragDestination(index, dy, TABLE_ROW_HEIGHT, count) });
           }}
@@ -180,15 +257,16 @@ export function DraggableRow({
             const startY = startYRef.current;
             const dy = startY === null ? 0 : event.nativeEvent.pageY - startY;
             startYRef.current = null;
-            setDragDy(null);
             onDrag(null);
             const to = dragDestination(index, dy, TABLE_ROW_HEIGHT, count);
             if (to !== index) onMove(to);
+            // RC-5 : dans le même rendu, la ligne est à sa nouvelle place, encore sous le doigt.
+            settle(dy - (to - index) * TABLE_ROW_HEIGHT);
           }}
           onResponderTerminate={() => {
             startYRef.current = null;
-            setDragDy(null);
             onDrag(null);
+            settle(lastDyRef.current);
           }}
           accessible
           accessibilityLabel={fill(labels.handle, number)}
@@ -431,6 +509,15 @@ const styles = StyleSheet.create({
     height: TABLE_ROW_HEIGHT,
     borderTopWidth: 1,
     borderTopColor: colors.divider,
+  },
+  // RC-5 : ligne saisie, opaque et soulevée.
+  tableRowLifted: {
+    backgroundColor: TABLE_ROW_LIFTED_BACKGROUND,
+    shadowColor: TABLE_ROW_LIFTED_SHADOW_COLOR,
+    shadowOpacity: TABLE_ROW_LIFTED_SHADOW_OPACITY,
+    shadowRadius: TABLE_ROW_LIFTED_SHADOW_RADIUS,
+    shadowOffset: { width: 0, height: TABLE_ROW_LIFTED_SHADOW_OFFSET_Y },
+    elevation: TABLE_ROW_LIFTED_ELEVATION,
   },
   leadColumn: {
     width: TABLE_LEAD_WIDTH,
