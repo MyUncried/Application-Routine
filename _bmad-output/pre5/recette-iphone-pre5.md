@@ -80,7 +80,7 @@ Aucun constat iPhone n'est encore consigné pour elle.
 - L'espace venait de la brique partagée `tableStyles.block` de `sheetTable.tsx` (`paddingBottom` d'une hauteur de ligne, 36) : retiré là, donc aussi pour le futur tableau des phases (2.8). Marges du bloc inchangées (12 en haut et en bas dans le cadre).
 - À vérifier sur iPhone : bas du fond blanc juste sous la dernière ligne ; glisser jusqu'à la dernière place et repère d'insertion en bas du tableau.
 
-- **RC-11 — Changement de côté, options de même largeur.** Les options « Avec » et « Sans » du segmenté « Changement de côté » ont la même largeur : la plus petite suffisante pour que la notation choisie et son chevron tiennent dans Avec (police réduite conservée), au lieu de 144 / 62 (RC-6). **Non appliquée : ne tient pas dans la ligne (voir « Point en attente : RC-11 »).**
+- **RC-11 — Changement de côté, options de même largeur.** Les options « Avec » et « Sans » du segmenté « Changement de côté » ont la même largeur : la plus petite suffisante pour que la notation choisie et son chevron tiennent dans Avec (police réduite conservée), au lieu de 144 / 62 (RC-6). **Appliquée (option 3 de Hermann, voir « Correction RC-11 ») : options de 104, libellé sur deux lignes, notation raccourcie `(D1→D2) (G1→G2)` / `(D1→G1) (D2→G2)`.**
 - **D-433 — Ligne « Durée de l'exercice » toujours affichée.** Dans tous les modes et états, à la même place : « Non calculable » quand la configuration seule exclut le calcul quelles que soient les valeurs (Répétitions sans cadence ; À l'échec en séries identiques), prioritaire sur « — » ; « — » quand des données manquent (Mode non choisi, Cible à renseigner, saisie invalide) ; sinon la valeur avec son symbole collé avant elle (« ≥ 5 min 30 s », « ≈ 5 min 30 s »), jamais dans le titre. Compte à rebours et Fin repliés sous le chevron de la ligne (absents depuis une Séance, RC-7). Formules, natures, inversion et validation inchangées ; « — » et « Non calculable » ne valent jamais zéro.
 
 ## Correction RC-10 (branche `bmad/pre5-depuis-pre4`)
@@ -99,15 +99,18 @@ Aucun constat iPhone n'est encore consigné pour elle.
 - **Signalé, non modifié :** la Carte d'Exercice (`ActivityCard.tsx`, `catalogueDuration`) et la Phrase (`executionPhrase.ts`, clause « Durée totale ») omettent toujours la durée pour `omitted` et `incomplete` ; la Composition de Séance ne la masque pas.
 - À vérifier sur iPhone : ligne à la même place dans chaque état (Durée, Répétitions avec et sans cadence, À l'échec, tableau variable), symbole collé à la valeur, chevron et repli.
 
-## Point en attente : RC-11 (arbitrage de Hermann)
+## Correction RC-11 (branche `bmad/pre5-depuis-pre4`)
 
-Mesures (métriques Inter de l'application ; « ➜ » absent d'Inter, rendu par une police de repli, environ 10 pt) :
+Décision de Hermann du 19/10 (option 3) : options Avec et Sans de même largeur, libellé sur deux lignes, notation raccourcie pour tenir. Aucun constat iPhone n’est encore consigné pour elle.
 
-- notation « (D1 → D2) ➜ (G1 → G2) » en Semi Bold 10 : environ 100 pt hors « ➜ », environ 110 pt avec ; plus l'écart de 6 et le chevron de 10 : environ 126 pt ; option commune minimale environ 128 pt (Figma : texte 112, option 144) ;
-- segmenté à deux options égales : 2 × 128 + 2 + 6 = environ 264 pt (aujourd'hui 144 + 62 + 8 = 214) ;
-- place de la ligne : 375 − 2 × 24 − 2 × 1 − 2 × 12 = 301 pt à 375 de large (328 à 402), moins l'écart de 8 avec le libellé ; « Changement de côté » mesure environ 119 pt sur une ligne, « Changement » seul environ 73 pt.
-
-Résultat : avec deux options de 128, il reste environ 29 pt au libellé à 375 (environ 56 à 402), moins que le seul mot « Changement » : le libellé serait coupé en plein mot. RC-11 n'est donc pas appliquée ; options possibles pour Hermann : notation sur deux lignes dans l'option (environ 80 pt par option, segmenté d'environ 168, libellé sur une ligne à 375), police plus petite, notation hors du segmenté, ou maintien des largeurs 144 / 62.
+- Mesures (métriques d’Inter de l’application, Semi Bold 10 ; « → » est dans Inter, « ➜ » ne l’est pas) ; contenu de l’option = notation + écart 6 + chevron 10 ; segmenté = 2W + 8 ; place de la ligne 301 à 375 de large (328 à 402), moins l’écart de 8 avec le libellé ; « Changement » 72,6, « Changement de » 90,3 (Regular 12) ; il faut W ≤ 106 à 375 :
+  - `(D1 → D2) ➜ (G1 → G2)` (D-431) : 96,9 hors « ➜ » + « ➜ » de repli (environ 10) ; W ≈ 124–128, écarté ;
+  - `(D1 → D2) (G1 → G2)` (« ➜ » remplacé par une espace) : 96,9, W ≥ 113 ; tient à 402 (86 restants pour le libellé), pas à 375 (59 restants), écarté ;
+  - `(D1→D2) (G1→G2)` / `(D1→G1) (D2→G2)` (espaces autour de « → » retirées) : 86,9 (86,2 en Regular quand Sans est choisi), contenu 102,9 ; **retenue**, parenthèses, ordre et sens conservés.
+- Appliqué : `INLINE_OPTION_WIDTHS.notation` = 104 (102,9 arrondi, environ 1 pt de marge de rendu) pour Avec **et** Sans ; segmenté de 216 (au lieu de 214). Reste au libellé : 77 à 375 → « Changement » / « de côté » ; 104 à 402 → « Changement de » / « côté » (coupure naturelle de Figma). Libellé à retour automatique (Regular 12/15, deux lignes = 30), ligne de 44 inchangée, segmenté centré sur le libellé (RC-8).
+- Notation raccourcie partout où elle s’affiche : option Avec, menu natif SwiftUI de RC-6 (et `Alert` Android / web), `sideOrderSubtitles` (`src/shared/i18n/index.ts`), tests. Noms accessibles inchangés (« Avec, <libellé neutre> », items neutres). `SegmentedControl` réutilisé (prop `optionWidth`), `tokens.ts` inchangé.
+- Documentation : annotation de D-431 (ch. 07), passages cités des ch. 08, 10, 13 et du PRD, ligne RC-11 dans l’AC2 de la story 2.5 (`epics.md`).
+- À vérifier sur iPhone : à 375 et à 402, libellé sur deux lignes sans mot coupé, notation entière sur une ligne dans Avec avec son chevron, Avec et Sans de même largeur, menu des notations raccourcies.
 
 ## Issue de l'essai du clavier (story 2.2, AC7) — 19/10
 

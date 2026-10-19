@@ -1346,29 +1346,29 @@ export function ExecutionParametersSheet({
   // historique `RIGHT_LEFT` ou `LEFT_RIGHT` s'affiche Avec). Non renseigné (`null`) : aucune
   // option sélectionnée ; le ✓ produit Sans (domaine).
   // Recette du 19/10 (RC-6, Figma `9462:18986` / `9462:18987`) : la ligne « Enchainement » est
-  // retirée ; l'option Avec (largeur 144) porte la notation de l'Enchainement effectif (D-431,
+  // retirée ; l'option Avec porte la notation de l'Enchainement effectif (D-431,
   // police réduite), nom accessible « Avec, <libellé neutre> » (D-407). Sélectionnée, son contenu
   // est le déclencheur du menu natif des deux notations (`SideOrderMenu`). À N = 1, Avec reprend
-  // son libellé, sans menu (Q38, valeur conservée).
+  // son libellé, sans menu (Q38, valeur conservée). Recette du 19/10 (RC-11) : Avec et Sans de même
+  // largeur (`notation`, 104), notation raccourcie ; le libellé passe sur deux lignes.
   const sideChoice: SideChoice | null = draft.sideMode === null ? null : bilateral ? "WITH" : "WITHOUT";
   const sideOrder = effective.sideOrder;
   const sideControl = (
     <SegmentedControl<SideChoice>
       variant="inline"
-      optionWidth={INLINE_OPTION_WIDTHS.narrow}
+      optionWidth={INLINE_OPTION_WIDTHS.notation}
       options={[
         sideOrderShown
           ? {
               value: "WITH",
               label: t.sideOrderSubtitles[sideOrder],
               accessibilityLabel: `${t.sideModeChoices.WITH}, ${t.sideOrders[sideOrder]}`,
-              width: INLINE_OPTION_WIDTHS.notation,
               compact: true,
               selectedContent: (
                 <SideOrderMenu value={sideOrder} onChange={chooseSideOrder} testID="execution-sheet-side-order-menu" />
               ),
             }
-          : { value: "WITH", label: t.sideModeChoices.WITH, width: INLINE_OPTION_WIDTHS.notation },
+          : { value: "WITH", label: t.sideModeChoices.WITH },
         { value: "WITHOUT", label: t.sideModeChoices.WITHOUT },
       ]}
       value={sideChoice}
@@ -2669,7 +2669,7 @@ const SIDE_ORDERS: readonly SideOrder[] = ["BY_SIDE", "BY_SERIES"];
 /**
  * Recette du 19/10 (RC-6, Figma `9462:18987`) — contenu de l'option Avec sélectionnée du
  * Changement de côté (N > 1) : notation de l'Enchainement (D-431, Semi Bold 10, blanc) et
- * chevron existant de `KodjoIcon`, à 6 l'un de l'autre, sur toute l'option (144 × 26).
+ * chevron existant de `KodjoIcon`, à 6 l'un de l'autre, sur toute l'option (104 × 26, RC-11).
  *
  * Choix (priorité aux primitives natives, AGENTS.md) : sur iOS, ce contenu est le déclencheur
  * du menu natif SwiftUI `Menu` d'`@expo/ui` (déjà installé, aucun nouveau module natif),
@@ -2785,7 +2785,7 @@ const MIXED_STOP_CONDITION_WIDTH = INLINE_OPTION_WIDTHS.wide * 2 + 2;
 const SIDE_ORDER_CHEVRON_GAP = 6;
 
 const styles = StyleSheet.create({
-  // RC-6 : déclencheur du menu de l'Enchainement, sur toute l'option Avec (144 × 26).
+  // RC-6 : déclencheur du menu de l'Enchainement, sur toute l'option Avec (104 × 26, RC-11).
   sideOrderTrigger: {
     width: INLINE_OPTION_WIDTHS.notation,
     height: INLINE_OPTION_CONTENT_HEIGHT,

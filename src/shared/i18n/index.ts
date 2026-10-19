@@ -94,12 +94,13 @@ const executionParameters = {
     sideMode: "Changement de côté",
     sideModeChoices: { WITH: "Avec", WITHOUT: "Sans" },
     // PRE-5 story 2.5 (FR-17, D-431) ; recette du 19/10 (RC-6) : plus de ligne « Enchainement » ;
-    // l’option Avec porte la notation (flèche centrale ➜) et ouvre le menu des deux notations,
-    // nommé « Enchainement » ; nom accessible des notations = `sideOrders`.
+    // l’option Avec porte la notation et ouvre le menu des deux notations, nommé « Enchainement » ;
+    // nom accessible des notations = `sideOrders`. Recette du 19/10 (RC-11) : notation raccourcie
+    // (D-431 sans « ➜ » ni espaces autour de « → ») pour tenir dans une option de 104.
     sideSequence: "Enchainement",
     sideSequenceCancel: "Annuler",
     sideOrders: { BY_SIDE: "Un côté après l’autre", BY_SERIES: "Les deux côtés à chaque série" },
-    sideOrderSubtitles: { BY_SIDE: "(D1 → D2) ➜ (G1 → G2)", BY_SERIES: "(D1 → G1) ➜ (D2 → G2)" },
+    sideOrderSubtitles: { BY_SIDE: "(D1→D2) (G1→G2)", BY_SERIES: "(D1→G1) (D2→G2)" },
     sideRecovery: "Pause entre les côtés",
     // PRE-5 story 2.5 (FR-30, AD-24) : ligne « Cadence » (remplace « Bip de cadence »), segmenté
     // Autre / 5 s / 2 s / 1 s / Sans ; Autre révèle le ± existant.
