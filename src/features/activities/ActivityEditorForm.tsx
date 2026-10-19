@@ -32,9 +32,10 @@ import {
 } from "@/domain/media/ActivityMedia";
 import type { ImportItem, ImportResult } from "@/domain/media/ActivityMediaImportService";
 import type { Silhouette } from "@/domain/preferences/Profile";
-import { INSTRUCTION_MAX_LENGTH, NAME_MAX_LENGTH, validateExerciseName } from "@/domain/sessions/validation";
+import { NAME_MAX_LENGTH, validateExerciseName } from "@/domain/sessions/validation";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityMediaList, type MediaNotice } from "@/features/activities/ActivityMediaList";
+import { DescriptionSteps } from "@/features/activities/DescriptionSteps";
 import { ExecutionParametersSheet } from "@/features/activities/ExecutionParametersSheet";
 import { BodyZonePickerModal } from "@/features/reference-data/BodyZonePickerModal";
 import { useReferenceSheet } from "@/features/reference-data/useReferenceSheet";
@@ -63,10 +64,15 @@ import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@
  * Description, Carte, Médias, puis `Terminer` ; Carte seule zone touchable,
  * sans bouton de Mode (Q23), invite sur la Carte vide (H22) ; grille
  * verticale de D-327 et marge latérale 24 / 16 selon la largeur (FR-02-04).
+ *
+ * PRE-5 story 3.1 (FR-33, AD-22, D-425) : la Description est une liste
+ * d'étapes (`instructionSteps`, sans numéro) ; les adaptateurs la décodent à
+ * l'ouverture (`decodeInstructionSteps`) et l'encodent à `Terminer` seulement
+ * (`encodeInstructionSteps`). Stockage inchangé.
  */
 export type ActivityEditorFormValue = {
   readonly name: string;
-  readonly instruction: string | null;
+  readonly instructionSteps: readonly string[];
   readonly executionParameters: ExecutionParametersInput;
   readonly bodyZoneIds: readonly string[];
   readonly media: readonly DraftMediaItem[];
@@ -236,20 +242,20 @@ export function ActivityEditorForm({
   const t = strings.screens.exercise;
   const editor = strings.screens.activities.editor;
   const parameters = value.executionParameters;
-  // Recette 2 (N-05) : pendant la saisie de la Description, le champ reste juste
-  // au-dessus du clavier ; sa hauteur est bornée à la zone visible pour que la
-  // vue de texte iOS garde elle-même le curseur visible (retours à la ligne,
-  // édition au milieu). Terminer reste en bas, sous le clavier.
+  // Recette 2 (N-05) : pendant la saisie de la Description, la ligne active reste juste
+  // au-dessus du clavier. PRE-5 story 3.1 (AC2, D-349) : l'étape active (et non plus le
+  // champ entier, dont la hauteur bornée est retirée) est recadrée à l'ouverture du
+  // clavier, à chaque changement d'étape et à chaque changement de sa hauteur.
+  // Terminer reste en bas, sous le clavier.
   const bodyScrollRef = useRef<ScrollView>(null);
-  const [bodyHeight, setBodyHeight] = useState(0);
   const [isDescriptionFocused, setIsDescriptionFocused] = useState(false);
-  const descriptionLayoutRef = useRef({ sectionY: 0, inputY: 0, inputHeight: 0 });
+  const descriptionLayoutRef = useRef({ sectionY: 0, stepsY: 0, activeRowBottom: 0 });
   const bodyHeightRef = useRef(0);
   function revealDescription() {
-    const { sectionY, inputY, inputHeight } = descriptionLayoutRef.current;
+    const { sectionY, stepsY, activeRowBottom } = descriptionLayoutRef.current;
     const viewport = bodyHeightRef.current;
     if (viewport <= 0) return;
-    const bottom = sectionY + inputY + inputHeight + DESCRIPTION_KEYBOARD_GAP;
+    const bottom = sectionY + stepsY + activeRowBottom + DESCRIPTION_KEYBOARD_GAP;
     bodyScrollRef.current?.scrollTo({ y: Math.max(0, bottom - viewport), animated: true });
   }
   useEffect(() => {
@@ -401,7 +407,6 @@ export function ActivityEditorForm({
           keyboardShouldPersistTaps="handled"
           onLayout={(event) => {
             bodyHeightRef.current = event.nativeEvent.layout.height;
-            setBodyHeight(event.nativeEvent.layout.height);
             if (isDescriptionFocused) revealDescription();
           }}
           testID="exercise-body"
@@ -417,36 +422,29 @@ export function ActivityEditorForm({
             <Text style={styles.sectionTitle} accessibilityRole="header">
               {t.instruction.label}
             </Text>
-            <TextInput
-              value={value.instruction ?? ""}
-              onChangeText={(text) => onChange({ instruction: text.length > 0 ? text : null })}
-              placeholder={card.descriptionPlaceholder}
-              placeholderTextColor={colors.textSecondary}
-              accessibilityLabel={t.instruction.label}
-              maxLength={INSTRUCTION_MAX_LENGTH}
-              multiline
-              onFocus={() => setIsDescriptionFocused(true)}
-              onBlur={() => setIsDescriptionFocused(false)}
+            {/* PRE-5 story 3.1 (FR-33, D-425) : étapes numérotées, sans contenant (§9-2) ;
+                Entrée crée l'étape suivante. La place de ↑ reste réservée à droite. */}
+            <View
+              style={styles.descriptionStepsWithSend}
               onLayout={(event) => {
-                descriptionLayoutRef.current.inputY = event.nativeEvent.layout.y;
-                descriptionLayoutRef.current.inputHeight = event.nativeEvent.layout.height;
+                descriptionLayoutRef.current.stepsY = event.nativeEvent.layout.y;
                 if (isDescriptionFocused) revealDescription();
               }}
-              onContentSizeChange={() => {
-                if (isDescriptionFocused) revealDescription();
-              }}
-              style={[
-                styles.instructionInput,
-                styles.instructionInputWithSend,
-                isDescriptionFocused && bodyHeight > 0
-                  ? { maxHeight: Math.max(DESCRIPTION_MIN_FOCUSED_HEIGHT, bodyHeight - DESCRIPTION_KEYBOARD_GAP * 2) }
-                  : null,
-              ]}
-              testID="exercise-instruction-input"
-            />
-            {/* Recette 3 (N-05) : ↑ dans le champ pendant la saisie — le texte est déjà
+              testID="exercise-description-steps-area"
+            >
+              <DescriptionSteps
+                steps={value.instructionSteps}
+                onChange={(steps) => onChange({ instructionSteps: steps })}
+                onFocusChange={setIsDescriptionFocused}
+                onActiveRowBottomChange={(bottom) => {
+                  descriptionLayoutRef.current.activeRowBottom = bottom;
+                  revealDescription();
+                }}
+              />
+            </View>
+            {/* Recette 3 (N-05) : ↑ dans la Description pendant la saisie — le texte est déjà
                 dans le brouillon ; ↑ ferme seulement le clavier (aucun enregistrement,
-                Terminer inchangé). Retour à la ligne : reste un retour à la ligne. */}
+                Terminer inchangé), D-351. */}
             {isDescriptionFocused ? (
               <Pressable
                 onPress={() => Keyboard.dismiss()}
@@ -704,8 +702,6 @@ function useMediaImport(
 const DESCRIPTION_KEYBOARD_GAP = 12;
 /** Recette 3 (N-05) : bouton d’envoi standard des champs (32, comme « Saisie inline »). */
 const DESCRIPTION_SEND_SIZE = 32;
-/** N-05 : hauteur minimale conservée au champ borné pendant la saisie. */
-const DESCRIPTION_MIN_FOCUSED_HEIGHT = 88;
 
 /**
  * Taille d’affichage de l’icône de l’accès Catégorie, commune à ses deux états (story 4.3) :
@@ -908,14 +904,15 @@ const styles = StyleSheet.create({
     marginTop: EDITOR_VERTICAL_GRID.blockToNextTitle,
   },
   // Recette 3 (N-05) : place réservée à ↑ (le texte ne passe jamais dessous).
-  instructionInputWithSend: {
-    paddingRight: DESCRIPTION_SEND_SIZE + spacing[8] * 2,
+  // PRE-5 story 3.1 : sans contenant, la réserve porte sur la liste des étapes.
+  descriptionStepsWithSend: {
+    paddingRight: DESCRIPTION_SEND_SIZE + spacing[8],
   },
-  // Le champ est le dernier enfant de sa section : ↑ s’ancre dans son coin bas droit.
+  // La liste est le dernier bloc de sa section : ↑ s’ancre dans son coin bas droit.
   descriptionSend: {
     position: "absolute",
-    right: spacing[8],
-    bottom: spacing[8],
+    right: 0,
+    bottom: 0,
     width: DESCRIPTION_SEND_SIZE,
     height: DESCRIPTION_SEND_SIZE,
     borderRadius: DESCRIPTION_SEND_SIZE / 2,
@@ -926,17 +923,6 @@ const styles = StyleSheet.create({
   descriptionSendSymbol: {
     ...type.button,
     color: colors.background,
-  },
-  instructionInput: {
-    ...type.exerciseFieldValue,
-    color: colors.textPrimary,
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.disabled,
-    borderRadius: fixedRadii[8],
-    padding: spacing[14],
-    minHeight: 44,
-    textAlignVertical: "top",
   },
   // Story 4.2 : 12 (bloc → bloc, D-327) portés par le bas du corps ; marge latérale au rendu.
   finishActionSlot: {

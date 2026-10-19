@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 10-19-2026 10:54
-last_updated: 10-19-2026 22:00
+last_updated: 10-19-2026 23:00
 project: kodjo-pre5
 project_key: NOKEY
 tracking_system: file-system
@@ -52,7 +52,7 @@ development_status:
   2-8-phases-de-l-exercice-dans-la-feuille: backlog
   epic-2-retrospective: optional
 
-  epic-3: backlog
-  3-1-description-en-étapes-numérotées: backlog
+  epic-3: in-progress
+  3-1-description-en-étapes-numérotées: done # recette iPhone R-3.1-01 à 08 (lot Éditeur) en attente
   3-2-carte-allégée-terminer-abaissé-et-conformité-figma-de-l-écra: backlog
   epic-3-retrospective: optional

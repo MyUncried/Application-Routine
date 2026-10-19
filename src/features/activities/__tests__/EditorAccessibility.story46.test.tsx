@@ -93,7 +93,7 @@ function Harness({
 }) {
   const [value, setValue] = useState<ActivityEditorFormValue>({
     name: "Fentes",
-    instruction: null,
+    instructionSteps: [],
     executionParameters: parameters(),
     bodyZoneIds: ["cou"],
     media: [PHOTO],
@@ -219,7 +219,8 @@ describe("Éditeur — PRE-4 story 4.6", () => {
     render(<Harness category={{ name: "Cardio", color: "#3B82F6" }} initial={{ bodyZoneIds: ["cou", "cuisses"] }} />);
     const label = (testID: string) => screen.getByTestId(testID).props.accessibilityLabel as string;
     expect(label("exercise-name-input")).toBe(strings.screens.activities.editor.name);
-    expect(label("exercise-instruction-input")).toBe(strings.screens.exercise.instruction.label);
+    // PRE-5 story 3.1 (AC6) : chaque étape est un champ nommé « Étape n » sous le titre de section.
+    expect(label("exercise-instruction-input")).toBe(strings.screens.exercise.instruction.stepAccessibilityLabel.replace("{n}", "1"));
     expect(label("activity-editor-category-button")).toBe(`${strings.screens.activities.editor.category.label} Cardio`);
     expect(label("exercise-body-zones-open")).toBe(`${strings.screens.exercise.bodyZones.accessibilityLabel} Cou, Cuisses`);
     const card = label("exercise-parameters-card");

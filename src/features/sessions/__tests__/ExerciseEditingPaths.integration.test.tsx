@@ -170,10 +170,11 @@ async function savedDefinition(
     sideMode: "RIGHT_LEFT",
     sideRecoverySeconds: 5,
   }),
+  description: string = "Genou au-dessus de la cheville.",
 ): Promise<ActivityDefinition> {
   const validated = validateActivityDefinitionInput({
     name: "Fentes",
-    description: "Genou au-dessus de la cheville.",
+    description,
     category: { kind: "EXISTING", categoryId: "cardio" },
     bodyZoneIds: ["cuisses", "dos"],
     executionParameters,
@@ -799,7 +800,7 @@ function editorContent() {
   const props = editorSpy.mock.calls.at(-1)![0] as {
     value: {
       name: string;
-      instruction: string | null;
+      instructionSteps: readonly string[];
       bodyZoneIds: readonly string[];
       media: readonly { assetId: string }[];
       executionParameters: unknown;
@@ -808,7 +809,8 @@ function editorContent() {
   };
   return {
     name: props.value.name,
-    instruction: props.value.instruction,
+    // PRE-5 story 3.1 : la Description relue en étapes (décodage à l'ouverture).
+    instructionSteps: [...props.value.instructionSteps],
     category: props.category?.name ?? null,
     // Ensemble de Zones : l’Éditeur les relit dans l’ordre du référentiel, quel que soit l’ordre de sélection.
     bodyZoneIds: [...props.value.bodyZoneIds].sort(),
@@ -891,7 +893,7 @@ describe("PRE4-4.1/AC10 — relecture à l'identique après bascules, dans les q
     const opened = editorContent();
     expect(opened).toEqual({
       name: "Fentes",
-      instruction: "Genou au-dessus de la cheville.",
+      instructionSteps: ["Genou au-dessus de la cheville."],
       category: await savedCategoryName(),
       bodyZoneIds: ["cuisses", "dos"],
       media: ["p1", "p2"],
@@ -926,7 +928,7 @@ describe("PRE4-4.1/AC10 — relecture à l'identique après bascules, dans les q
     const opened = editorContent();
     expect(opened).toEqual({
       name: "Fentes",
-      instruction: "Genou au-dessus de la cheville.",
+      instructionSteps: ["Genou au-dessus de la cheville."],
       category: await savedCategoryName(),
       bodyZoneIds: ["cuisses", "dos"],
       media: ["p1", "p2"],
@@ -958,7 +960,7 @@ describe("PRE4-4.1/AC10 — relecture à l'identique après bascules, dans les q
     await completeNewExercise("Dos droit.");
     toggleModeAndValidate();
     const entered = editorContent();
-    expect(entered).toMatchObject({ name: "Gainage", instruction: "Dos droit.", bodyZoneIds: expect.arrayContaining(["dos", "cuisses"]) });
+    expect(entered).toMatchObject({ name: "Gainage", instructionSteps: ["Dos droit."], bodyZoneIds: expect.arrayContaining(["dos", "cuisses"]) });
     await act(async () => {
       fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
     });
@@ -1915,7 +1917,7 @@ describe("PRE4-4.5/AC4 — consulter un Média sans perdre le Brouillon", () => 
     toggleModeAndValidate();
     openMediaMenu(2).choose(mediaText.menuMoveUp);
     const before = editorContent();
-    expect(before).toMatchObject({ name: "Fentes consultées", instruction: "Dos droit.", media: ["p2", "p1"] });
+    expect(before).toMatchObject({ name: "Fentes consultées", instructionSteps: ["Dos droit."], media: ["p2", "p1"] });
     const finishState = screen.getByTestId("activity-editor-finish-action").props.accessibilityState;
     const databaseBefore = await dump();
 
@@ -1932,5 +1934,122 @@ describe("PRE4-4.5/AC4 — consulter un Média sans perdre le Brouillon", () => 
     expect(screen.getByTestId("activity-editor-finish-action").props.accessibilityState).toEqual(finishState);
     expect(await dump()).toEqual(databaseBefore);
     expect(await definitionMedia(definition.id)).toEqual(["p1", "p2"]);
+  }, 30000);
+});
+
+/**
+ * PRE-5 story 3.1 : saisit des étapes dans la Description, chacune suivie d'Entrée
+ * (texte vide : Entrée seule, qui crée une étape vide intercalée).
+ */
+function typeSteps(texts: readonly string[]) {
+  texts.forEach((text, index) => {
+    const testID = index === 0 ? "exercise-instruction-input" : `exercise-instruction-step-${index + 1}`;
+    if (text !== "") fireEvent.changeText(screen.getByTestId(testID), text);
+    fireEvent.changeText(screen.getByTestId(testID), `${text}\n`);
+  });
+}
+
+describe("PRE5-3.1/AC4, AC5 — étapes : encodage à Terminer, relecture, transport, garde d'abandon", () => {
+  it("PRE5-3.1/AC4 — CC : étapes vides intercalées retirées à Terminer (`A\\nB`), relues renumérotées ; copie Définition → Séance transportée", async () => {
+    const router = renderApp();
+    await openExercisesSegment();
+    fireEvent.press(screen.getByLabelText(sessions.createAction));
+    await settle();
+    await fillNewExercise("Gainage");
+    typeSteps(["Dos droit", "", "Genoux fléchis"]);
+    expect(editorContent().instructionSteps).toEqual(["Dos droit", "", "Genoux fléchis", ""]);
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
+    });
+    await settle(300);
+    expect(router.getPathname()).toBe("/");
+    const [created] = await database.getAllAsync<{ id: string; description: string | null }>(
+      "SELECT id, description FROM activity_definitions",
+    );
+    expect(created!.description).toBe("Dos droit\nGenoux fléchis");
+
+    editorSpy.mockClear();
+    fireEvent.press(within(await screen.findByTestId(`activity-card-${created!.id}`)).getByTestId("activity-card-open"));
+    await screen.findByDisplayValue("Gainage");
+    await settle();
+    expect(editorContent().instructionSteps).toEqual(["Dos droit", "Genoux fléchis"]);
+    expect(screen.getByTestId("exercise-instruction-input").props.value).toBe("Dos droit");
+    expect(screen.getByTestId("exercise-instruction-step-2").props.value).toBe("Genoux fléchis");
+    expect(screen.getByTestId("exercise-instruction-step-3").props.placeholder).toBe(exercise.instruction.nextStepPlaceholder);
+
+    // Copie Définition → Séance : la chaîne encodée est transportée telle quelle.
+    const definition = await new SqliteActivityDefinitionRepository(database).findById(created!.id);
+    expect(activityDefinitionToDraftExercise(definition!, "occ-steps", 0).instruction).toBe("Dos droit\nGenoux fléchis");
+  }, 30000);
+
+  it("PRE5-3.1/AC4 — MS : Copie à étapes ; une étape vide ajoutée par Entrée n'est pas une modification ; une étape saisie est enregistrée à Terminer ; la Définition reste inchangée", async () => {
+    const definition = await savedDefinition(undefined, "Genou aligné\nDos droit");
+    const { copy } = await savedSessionWithCopy(definition);
+    const definitionBefore = await database.getAllAsync("SELECT * FROM activity_definitions");
+    const router = renderApp();
+    await openSessionFromCatalogue();
+
+    fireEvent.press(screen.getByTestId(`composition-exercise-row-${copy.id}`));
+    await settle();
+    expect(editorContent().instructionSteps).toEqual(["Genou aligné", "Dos droit"]);
+    fireEvent.changeText(screen.getByTestId("exercise-instruction-step-2"), "Dos droit\n");
+    expect(editorContent().instructionSteps).toEqual(["Genou aligné", "Dos droit", ""]);
+    fireEvent.press(screen.getByLabelText(exercise.backAccessibilityLabel));
+    await settle(300);
+    expect(screen.queryByText(exercise.exitConfirmModal.title)).toBeNull();
+    expect(router.getPathname()).toBe("/composition");
+
+    fireEvent.press(screen.getByTestId(`composition-exercise-row-${copy.id}`));
+    await settle();
+    fireEvent.changeText(screen.getByTestId("exercise-instruction-step-3"), "Souffler");
+    fireEvent.press(screen.getByTestId("exercise-finish-action"));
+    await settle();
+    await continueAndSave();
+    await waitFor(() => expect(router.getPathname()).toBe("/"));
+    const rows = await database.getAllAsync<{ instruction: string | null }>("SELECT instruction FROM activities");
+    expect(rows).toEqual([{ instruction: "Genou aligné\nDos droit\nSouffler" }]);
+    expect(await database.getAllAsync("SELECT * FROM activity_definitions")).toEqual(definitionBefore);
+  }, 30000);
+
+  it("PRE5-3.1/AC5 — MC : ancienne Description `\\r\\n` à ligne vide relue une ligne = une étape, sans étape fantôme ; non modifiée (ou une étape vide ajoutée) : aucune garde, rien d'écrit", async () => {
+    const definition = await savedDefinition(undefined, "Genou aligné\r\n\r\nDos droit");
+    const before = await dump();
+    const router = renderApp();
+    await openExercisesSegment();
+    fireEvent.press(within(await screen.findByTestId(`activity-card-${definition.id}`)).getByTestId("activity-card-open"));
+    await screen.findByDisplayValue("Fentes");
+    await settle();
+    expect(editorContent().instructionSteps).toEqual(["Genou aligné", "", "Dos droit"]);
+    expect(editorContent().instructionSteps.some((step) => step.includes("\r"))).toBe(false);
+    expect(screen.getByTestId("exercise-instruction-step-2").props.value).toBe("");
+    expect(screen.getByTestId("exercise-instruction-step-2").props.placeholder).toBeUndefined();
+
+    fireEvent.changeText(screen.getByTestId("exercise-instruction-step-3"), "Dos droit\n");
+    fireEvent.press(screen.getByLabelText(activities.editor.backAccessibilityLabel));
+    await settle(300);
+    expect(screen.queryByText(exercise.exitConfirmModal.title)).toBeNull();
+    expect(router.getPathname()).toBe("/");
+    expect(await dump()).toEqual(before);
+  }, 30000);
+
+  it("PRE5-3.1/AC4 — MC : Description entièrement effacée, Terminer : enregistrée NULL", async () => {
+    const definition = await savedDefinition();
+    const router = renderApp();
+    await openExercisesSegment();
+    fireEvent.press(within(await screen.findByTestId(`activity-card-${definition.id}`)).getByTestId("activity-card-open"));
+    await screen.findByDisplayValue("Fentes");
+    await settle();
+    expect(editorContent().instructionSteps).toEqual(["Genou au-dessus de la cheville."]);
+    fireEvent.changeText(screen.getByTestId("exercise-instruction-input"), "");
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
+    });
+    await settle(300);
+    expect(router.getPathname()).toBe("/");
+    const row = await database.getFirstAsync<{ description: string | null }>(
+      "SELECT description FROM activity_definitions WHERE id = ?",
+      [definition.id],
+    );
+    expect(row).toEqual({ description: null });
   }, 30000);
 });

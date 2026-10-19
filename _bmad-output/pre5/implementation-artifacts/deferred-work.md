@@ -12,3 +12,7 @@
 - source_spec: `_bmad-output/pre5/implementation-artifacts/spec-1-2-phrase-phases-charge-cotes-neutres.md`
   summary: Story 1.2, AC6 — indicateur de côté de la Composition sans direction (`CompositionScreen.tsx`, nom accessible, retrait des clés `D→G` / `G→D` de `fr.ts`), avec `CompositionScreen.test.tsx` adapté.
   evidence: Aucun rendu neutre n'existe dans Figma (relevé en lecture seule le 19/10 : composant DSF `5544:6944` limité à `État=D→G` / `État=G→D`, frame `Composition séance — Standard` `8328:28605` affichant « D→G »), alors que l'AC6 exige un rendu « selon la frame Figma relevée » ; le contenu visible et le nom accessible de l'indicateur neutre sont une décision de Hermann (ou une variante Figma à ajouter).
+
+- source_spec: `_bmad-output/pre5/implementation-artifacts/spec-3-1-description-en-etapes-numerotees.md`
+  summary: Après Entrée au milieu d'une étape, `focus()` puis `setSelection(0, 0)` enchaînés pourraient laisser le curseur en fin d'étape sur iOS (medium, non vérifié).
+  evidence: Ordre des commandes natives non observable en Jest ; à établir sur iPhone (R-3.1-02) ; repli possible : `setSelection` après l'événement `onFocus` ou `requestAnimationFrame`.

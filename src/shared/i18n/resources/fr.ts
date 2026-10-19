@@ -616,6 +616,12 @@ export const fr = {
       // `collapseAction`, ce qui laisse ce libellé UNIQUE pour le champ.
       instruction: {
         label: "Description de l’exercice",
+        // PRE-5 story 3.1 (FR-33, FR-44, AC1, AC6) : invites grises de la Description en
+        // étapes (première ligne de l’état vide, ligne suivant la dernière étape) et nom
+        // VoiceOver de chaque étape, numéro compris (`{n}` : numéro de l’étape).
+        firstStepPlaceholder: "Décrivez la première étape",
+        nextStepPlaceholder: "Étape suivante",
+        stepAccessibilityLabel: "Étape {n}",
       },
       // T02-S02 (continuation) : même chaîne que `sections.bodyZones`, qui
       // est le titre de la section contenant ce sélecteur — l'unicité du nom

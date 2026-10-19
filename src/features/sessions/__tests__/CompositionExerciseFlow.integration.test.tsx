@@ -293,9 +293,11 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
       disabled: false,
     });
 
-    // La Description est sur le même écran, sans étape intermédiaire, avec un
-    // seul nœud accessible portant son libellé.
-    expect(screen.getAllByLabelText(exercise.instruction.label)).toHaveLength(1);
+    // La Description est sur le même écran, sans étape intermédiaire : un seul
+    // titre, puis (PRE-5 story 3.1) une seule ligne « Étape 1 » tant qu'elle est vide.
+    expect(screen.getAllByText(exercise.instruction.label)).toHaveLength(1);
+    expect(screen.getAllByLabelText(exercise.instruction.stepAccessibilityLabel.replace("{n}", "1"))).toHaveLength(1);
+    expect(screen.queryByLabelText(exercise.instruction.stepAccessibilityLabel.replace("{n}", "2"))).toBeNull();
 
     // Les paramètres dérivés restent visibles immédiatement (phrase de la carte
     // Paramètres, générée à l'affichage ; total redondant omis pour une Série

@@ -13,7 +13,8 @@ const executionParameters = {
     // PRE-4 story 4.2 (Q23, AC14) : `chooseMode` (« Choisir un mode ») est retiré
     // avec le bouton de Mode à droite du titre de la Carte.
     // E-21 (décision de Hermann du 2026-10-18) : l'invite H22 de la Carte vide est retirée.
-    descriptionPlaceholder: "Décrivez ce qu’il faut faire, comment, et avec quoi",
+    // PRE-5 story 3.1 : `descriptionPlaceholder` retiré avec le champ libre de la Description
+    // (invites des étapes : `screens.exercise.instruction`).
     // Recette 3 (N-05) : action ↑ du champ Description.
     descriptionSubmitAccessibilityLabel: "Valider la description",
     openAccessibilityLabel: "Modifier les paramètres d’exécution",
