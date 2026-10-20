@@ -324,6 +324,14 @@ export const fr = {
           TOURS: "Nombre de tours",
           SERIES: "Nombre de séries",
         },
+        // PRE-6 (story 3.2, CE-CIR-01, Figma `8328:34805`) : choix de nature par la pastille d’unité.
+        nature: {
+          accessibilityLabel: "Nature du circuit",
+          options: {
+            TOURS: { title: "Circuit de tours", subtitle: "les séries d’un exercice s’enchaînent" },
+            SERIES: { title: "Circuit de séries", subtitle: "une série de chaque exercice par passage" },
+          },
+        },
       },
       wheelPicker: {
         minutesAccessibilityLabel: "Minutes",
@@ -410,6 +418,10 @@ export const fr = {
       circuitEntryConfirmModal: {
         addTitle: "Ajouter au circuit de séries ?",
         moveTitle: "Déplacer dans le circuit de séries ?",
+        // PRE-6 (story 3.2, CE-CIR-02, Figma `8328:34964`) : conversion Tours → Séries avec perte.
+        natureTitle: "Passer en circuit de séries ?",
+        natureMessage:
+          "Tous les exercices auront {series}. Les séries au-delà de la {ordinal} seront supprimées, avec les valeurs qu’elles portent.",
         addMessagePlural:
           "Les exercices ajoutés auront {series}. Les séries au-delà de la {ordinal} seront supprimées, avec les valeurs qu’elles portent.",
         addMessageSingular:

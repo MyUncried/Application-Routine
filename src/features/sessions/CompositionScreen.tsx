@@ -4,6 +4,7 @@ import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Keyboard,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -20,7 +21,14 @@ import type { Label } from "@/domain/labels/Label";
 import { isBilateral } from "@/domain/activities/ExecutionParameters";
 import { DEFAULT_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
 import { DEFAULT_SESSION_COLOR, type StructuralPosition } from "@/domain/sessions/Session";
-import { DEFAULT_CIRCUIT_NATURE, setCircuitCount, type CircuitLoss } from "@/domain/sessions/circuit";
+import {
+  DEFAULT_CIRCUIT_NATURE,
+  applyNatureChange,
+  prepareNatureChange,
+  setCircuitCount,
+  type CircuitLoss,
+  type CircuitNature,
+} from "@/domain/sessions/circuit";
 import { copyCircuitReserveEntry, settleCircuitMembership } from "@/domain/sessions/circuitMembership";
 import {
   duplicateOccurrence,
@@ -44,6 +52,7 @@ import { useBodyZonesReferentialVersion } from "@/features/reference-data/Refere
 import { AbandonCreationModal } from "@/features/sessions/AbandonCreationModal";
 import { CircuitEntryConfirmModal } from "@/features/sessions/CircuitEntryConfirmModal";
 import { CircuitHeader } from "@/features/sessions/CircuitHeader";
+import { CIRCUIT_NATURE_PANEL_GAP, CircuitNaturePanel } from "@/features/sessions/CircuitNatureMenu";
 import {
   clampSwipeTranslateX,
   isTap,
@@ -94,9 +103,15 @@ import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
 
 /**
  * Champ numérique actif — un seul à la fois (CIR-10) : roulettes des bornes, ou stepper révélé
- * du compte du Circuit (PRE-6 story 3.1).
+ * du compte du Circuit (PRE-6 story 3.1), ou panneau du choix de nature du Circuit (story 3.2,
+ * Android / web ; sur iOS le menu natif porte seul son ouverture).
  */
-type OverlayKind = "countdown" | "finalPhase" | "circuitCount";
+type OverlayKind = "countdown" | "finalPhase" | "circuitCount" | "circuitNature";
+
+/** Contrôles de l'en-tête du Circuit refermés par un toucher ailleurs (RC-4). */
+function isCircuitControl(kind: OverlayKind | null): boolean {
+  return kind === "circuitCount" || kind === "circuitNature";
+}
 
 /**
  * Référentiel persistant des Zones corporelles (V2-PRE-1, plan §3.1,
@@ -420,6 +435,18 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // PRE-6 (story 2.3) : déplacement vers un Circuit de Séries en attente de confirmation de perte
   // — correctif du brouillon déjà calculé (adapté à N), appliqué seulement par « Confirmer ».
   const [pendingCircuitEntry, setPendingCircuitEntry] = useState<PendingOccurrenceMove | null>(null);
+  // PRE-6 (story 3.2, CE-CIR-02) : conversion Tours → Séries avec perte en attente de confirmation.
+  // Le garde-fou `ref` n'applique qu'une conversion, même sur un double appui de « Confirmer ».
+  const [pendingNatureChange, setPendingNatureChange] = useState<CircuitNature | null>(null);
+  const natureChangeConfirmedRef = useRef(false);
+  // Demande de focus sur la pastille, seulement quand l'utilisateur ferme le choix ou le dialogue
+  // de perte (jamais à l'ouverture d'un dialogue, au début d'une sortie ni à la perte du focus).
+  const [natureFocusRequest, setNatureFocusRequest] = useState(0);
+  const requestNatureFocus = useCallback(() => setNatureFocusRequest((current) => current + 1), []);
+  // Android / web : position de l'en-tête dans le conteneur Circuit, pour ancrer le panneau du
+  // choix dans le corps défilant (un parent qui le contient entièrement).
+  const [circuitHeaderLayout, setCircuitHeaderLayout] = useState<{ y: number; height: number } | null>(null);
+  const [circuitSectionTop, setCircuitSectionTop] = useState(0);
 
   // Géométrie mesurée du contenu défilant, nécessaire à la résolution d'une
   // dépose (`compositionGesture.ts`). Conservée en `ref` : elle ne doit
@@ -456,8 +483,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const [observedPendingExit, setObservedPendingExit] = useState(isPendingExit);
   if (isPendingExit !== observedPendingExit) {
     setObservedPendingExit(isPendingExit);
-    if (isPendingExit && openOverlay === "circuitCount") {
+    if (isPendingExit && isCircuitControl(openOverlay)) {
       setOpenOverlay(null);
+    }
+    // Story 3.2 : la sortie annule une conversion en attente — jamais deux dialogues empilés.
+    if (isPendingExit && pendingNatureChange !== null) {
+      setPendingNatureChange(null);
     }
   }
 
@@ -515,12 +546,22 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   }, []);
 
   // PRE-6 (story 3.1, RC-4) : un toucher ailleurs referme le compteur révélé du Circuit ; une
-  // roulette de borne éventuellement ouverte n'est pas concernée.
+  // roulette de borne éventuellement ouverte n'est pas concernée. Story 3.2 : referme aussi le
+  // panneau du choix de nature (Android / web), sans rien appliquer.
   const closeCircuitCounter = useCallback(() => {
-    setOpenOverlay((current) => (current === "circuitCount" ? null : current));
+    setOpenOverlay((current) => (isCircuitControl(current) ? null : current));
   }, []);
   // Écran quitté (perte du premier plan) : le compteur révélé se referme.
-  useFocusEffect(useCallback(() => closeCircuitCounter, [closeCircuitCounter]));
+  // Story 3.2 : une conversion en attente de confirmation est aussi abandonnée (aucune mutation).
+  useFocusEffect(
+    useCallback(
+      () => () => {
+        closeCircuitCounter();
+        setPendingNatureChange(null);
+      },
+      [closeCircuitCounter],
+    ),
+  );
   // Glisser (appui long) ou révéler les actions d'une carte referme aussi le compteur.
   const handleRevealActions = useCallback(
     (activityId: string | null) => {
@@ -565,6 +606,75 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     [updateDraft],
   );
 
+  /**
+   * PRE-6 (story 3.2, CE-CIR-01, CE-CIR-02, AD-37) : nature choisie depuis la pastille. Même
+   * nature : rien. Sans perte (`prepareNatureChange(...).losses` vide, dont Séries → Tours) :
+   * `applyNatureChange` immédiat, sans message. Avec perte (Tours → Séries, un exercice au-delà
+   * de N) : dialogue de confirmation, rien n'est appliqué avant « Confirmer ».
+   */
+  const openNatureConfirmation = useCallback((nature: CircuitNature) => {
+    natureChangeConfirmedRef.current = false;
+    setPendingNatureChange(nature);
+  }, []);
+  const handleSelectNature = useCallback(
+    (nature: CircuitNature) => {
+      closeCircuitCounter();
+      // Sur iOS, le menu natif rend lui-même le focus à son déclencheur.
+      const focusPillAfterChoice = Platform.OS !== "ios";
+      if (nature === (draft.circuitNature ?? DEFAULT_CIRCUIT_NATURE)) {
+        if (focusPillAfterChoice) requestNatureFocus();
+        return;
+      }
+      if (prepareNatureChange(draft, nature).losses.length > 0) {
+        openNatureConfirmation(nature);
+        return;
+      }
+      if (focusPillAfterChoice) requestNatureFocus();
+      // Forme fonctionnelle : appliquée au brouillon COURANT. Si celui-ci porte une perte (mise
+      // à jour concurrente), rien n'est appliqué et la confirmation s'ouvre — hors du calcul
+      // d'état, qui doit rester pur.
+      updateDraft((current) => {
+        if (prepareNatureChange(current, nature).losses.length > 0) {
+          queueMicrotask(() => openNatureConfirmation(nature));
+          return current;
+        }
+        return applyNatureChange(current, nature);
+      });
+    },
+    [closeCircuitCounter, draft, openNatureConfirmation, requestNatureFocus, updateDraft],
+  );
+
+  /** Fermeture du choix par l'utilisateur (Android / web) : rien n'est appliqué, focus à la pastille. */
+  const dismissNatureMenu = useCallback(() => {
+    closeCircuitCounter();
+    requestNatureFocus();
+  }, [closeCircuitCounter, requestNatureFocus]);
+
+  /** Toucher ailleurs (zones d'appui extérieur) : referme le contrôle de l'en-tête ouvert. */
+  const handleCircuitOutsidePress = openOverlay === "circuitNature" ? dismissNatureMenu : closeCircuitCounter;
+
+  /** « Annuler » (ou retour système) du dialogue de perte : rien n'est appliqué. */
+  const cancelNatureChange = useCallback(() => {
+    setPendingNatureChange(null);
+    requestNatureFocus();
+  }, [requestNatureFocus]);
+
+  /**
+   * « Confirmer » de la conversion avec perte : une seule fois (double appui ignoré), sur le
+   * brouillon COURANT — la perte est recalculée par `applyNatureChange` à partir de l'état
+   * réel, jamais de celui de l'ouverture du dialogue.
+   */
+  const confirmNatureChange = useCallback(() => {
+    if (pendingNatureChange === null || natureChangeConfirmedRef.current) {
+      return;
+    }
+    natureChangeConfirmedRef.current = true;
+    const nature = pendingNatureChange;
+    setPendingNatureChange(null);
+    updateDraft((current) => applyNatureChange(current, nature));
+    requestNatureFocus();
+  }, [pendingNatureChange, requestNatureFocus, updateDraft]);
+
   const handleZoneLayout = useCallback((zone: StructuralPosition, event: LayoutChangeEvent) => {
     zoneTopsRef.current[zone] = event.nativeEvent.layout.y;
   }, []);
@@ -577,6 +687,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const handleTourLayout = useCallback((event: LayoutChangeEvent) => {
     const { y, height } = event.nativeEvent.layout;
     tourLayoutRef.current = { top: y, height };
+    setCircuitSectionTop(y);
   }, []);
 
   /**
@@ -925,8 +1036,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         testID="composition-body"
       >
         {/* PRE-6 (story 3.1, RC-4) : zone d'appui extérieur du corps — voir `CounterOutsideZone`. */}
-        {openOverlay === "circuitCount" ? (
-          <CounterOutsideZone onPress={closeCircuitCounter} testID="composition-circuit-counter-outside" />
+        {isCircuitControl(openOverlay) ? (
+          <CounterOutsideZone onPress={handleCircuitOutsidePress} testID="composition-circuit-counter-outside" />
         ) : null}
         {/* PRE-6 (story 2.1, Figma `8328:28634`) : rail de la Séquence, du centre de la
             première borne à celui de la dernière ; repères posés par chaque étape. */}
@@ -991,8 +1102,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
          */}
         <View style={styles.tourSectionContainer} onLayout={handleTourLayout} testID="composition-tour-section">
           {/* Zone propre au conteneur Circuit — voir `CounterOutsideZone`. */}
-          {openOverlay === "circuitCount" ? (
-            <CounterOutsideZone onPress={closeCircuitCounter} testID="composition-circuit-counter-outside-section" />
+          {isCircuitControl(openOverlay) ? (
+            <CounterOutsideZone onPress={handleCircuitOutsidePress} testID="composition-circuit-counter-outside-section" />
           ) : null}
           {/* PRE-6 (story 2.1, Figma `8328:28665`) : anneau du Circuit sur le rail — la structure
               déborde de `inset` à gauche du contenu, d'où le décalage réduit d'autant. */}
@@ -1009,6 +1120,19 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             isCounterOpen={openOverlay === "circuitCount"}
             onToggleCounter={() => toggleOverlay("circuitCount")}
             onChangeCount={handleCircuitCountChange}
+            // PRE-6 (story 3.2) : ouvrir le choix de nature remplace le compteur révélé (un seul
+            // contrôle actif, CIR-10).
+            isNatureMenuOpen={openOverlay === "circuitNature"}
+            onOpenNatureMenu={() => toggleOverlay("circuitNature")}
+            onCloseNatureMenu={dismissNatureMenu}
+            onSelectNature={handleSelectNature}
+            natureFocusRequest={natureFocusRequest}
+            onLayout={(event) => {
+              const { y, height } = event.nativeEvent.layout;
+              setCircuitHeaderLayout((current) =>
+                current !== null && current.y === y && current.height === height ? current : { y, height },
+              );
+            }}
             testID="composition-circuit-header"
           />
           <ActivityZoneList
@@ -1061,6 +1185,27 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           onPress={() => toggleOverlay("finalPhase")}
           testID="composition-boundary-final-phase"
         />
+
+        {/*
+         * PRE-6 (story 3.2) — Android / web : panneau du choix de nature, hébergé par le contenu
+         * défilant (qui le contient entièrement : sur Android, un toucher hors des limites d'un
+         * parent n'atteint pas ses enfants), rendu en dernier pour passer au-dessus des étapes.
+         * Aligné à droite sur la pastille (bord droit du contenu), sous l'en-tête du Circuit ;
+         * jamais rendu avant la mesure de l'en-tête.
+         */}
+        {openOverlay === "circuitNature" && circuitHeaderLayout !== null && circuitHeaderLayout.height > 0 ? (
+          <CircuitNaturePanel
+            nature={circuitNature}
+            placement={{
+              top:
+                circuitSectionTop + circuitHeaderLayout.y + circuitHeaderLayout.height + CIRCUIT_NATURE_PANEL_GAP,
+              right: styles.bodyContent.paddingRight,
+            }}
+            onDismiss={dismissNatureMenu}
+            onSelect={handleSelectNature}
+            testID="composition-circuit-header-counter-nature-panel"
+          />
+        ) : null}
       </ScrollView>
 
       {/*
@@ -1143,6 +1288,17 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       </WheelPickerOverlay>
 
       {isPendingExit ? <AbandonCreationModal onCancel={cancelExit} onConfirm={confirmExit} /> : null}
+
+      {/* PRE-6 (story 3.2, Figma `8328:34964`) : conversion Tours → Séries avec perte. Annuler (ou
+          le retour système) : nature, compte et valeurs inchangés ; le voile ne confirme pas. */}
+      {pendingNatureChange !== null ? (
+        <CircuitEntryConfirmModal
+          kind="NATURE"
+          seriesCount={tourRepeatCount}
+          onCancel={cancelNatureChange}
+          onConfirm={confirmNatureChange}
+        />
+      ) : null}
 
       {/* PRE-6 (story 2.3) : perte de séries d'un déplacement dans le Circuit de Séries. */}
       {pendingCircuitEntry !== null ? (

@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { AccessibilityInfo, Keyboard, Platform, ScrollView, StyleSheet, Text } from "react-native";
@@ -13,6 +13,7 @@ import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Category } from "@/domain/categories/Category";
 import type { Label } from "@/domain/labels/Label";
 import { createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
+import * as circuitModule from "@/domain/sessions/circuit";
 import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
@@ -308,7 +309,7 @@ describe("CompositionScreen — état initial", () => {
     expect(counter.props.accessibilityRole).toBe("adjustable");
     expect(counter.props.accessibilityValue).toMatchObject({ now: 1, text: "1 tour" });
     expect(screen.getByTestId("composition-circuit-header-counter-value").props.children).toBe(1);
-    expect(screen.getByTestId("composition-circuit-header-counter-unit-text").props.children).toBe("tour");
+    expect(screen.getByTestId("composition-circuit-header-counter-unit-text", { includeHiddenElements: true }).props.children).toBe("tour");
     expect(screen.queryByText("×1")).toBeNull();
 
     const continueAction = screen.getByLabelText(composition.saveAction);
@@ -1068,7 +1069,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
       flex: 1,
       minWidth: 0,
     });
-    const counter = within(header).getByTestId("composition-circuit-header-counter");
+    const counter = within(header).getByTestId("composition-circuit-header-counter-rest");
     expect(StyleSheet.flatten(counter.props.style).flexShrink).toBe(0);
 
     // Plus de roulette du compte ni de « Nombre de tours » affiché, ni d'icône Tour.
@@ -1087,16 +1088,17 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(digitTouchStyle.minHeight).toBe(44);
     expect((digitTouchStyle.minWidth as number) + (digitTouch.props.hitSlop?.left ?? 0)).toBeGreaterThanOrEqual(44);
 
-    const pill = screen.getByTestId("composition-circuit-header-counter-unit");
+    const pill = screen.getByTestId("composition-circuit-header-counter-unit", { includeHiddenElements: true });
     expect(StyleSheet.flatten(pill.props.style)).toMatchObject({
       backgroundColor: colors.surface,
       borderRadius: 10,
       paddingHorizontal: 10,
       paddingVertical: 4,
     });
-    const pillText = screen.getByTestId("composition-circuit-header-counter-unit-text");
+    const pillText = screen.getByTestId("composition-circuit-header-counter-unit-text", { includeHiddenElements: true });
     expect(StyleSheet.flatten(pillText.props.style)).toMatchObject({ fontSize: 13, fontWeight: "600", color: colors.primary });
-    // La pastille est sans action dans cette story (choix de nature : story 3.2).
+    // Story 3.2 : la pastille n'est que le dessin du déclencheur du choix de nature (menu natif
+    // sur iOS), qui porte seul le rôle et l'action.
     expect(pill.props.onPress).toBeUndefined();
     expect(pill.props.accessibilityRole).toBeUndefined();
   });
@@ -3108,7 +3110,7 @@ function setCircuitCountWithStepper(target: number) {
 
 describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1, CIR-10)", () => {
   const oneActivity = [anActivity("ex-1", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60) })];
-  const unitText = () => screen.getByTestId("composition-circuit-header-counter-unit-text").props.children;
+  const unitText = () => screen.getByTestId("composition-circuit-header-counter-unit-text", { includeHiddenElements: true }).props.children;
   const counterValue = () => screen.getByTestId("composition-circuit-header-counter-value").props.children;
   const circuitDuration = () => screen.getByTestId("composition-circuit-header-duration").props.children;
   const sessionDuration = () => screen.getByTestId("composition-session-duration").props.children;
@@ -3163,7 +3165,7 @@ describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1
     const digit = screen.getByTestId("composition-circuit-header-counter-stepper-value");
     expect(digit.props.children).toBe("4");
     expect(StyleSheet.flatten(digit.props.style)).toMatchObject({ fontSize: 13, fontWeight: "600", color: colors.textPrimary });
-    expect(screen.getByTestId("composition-circuit-header-counter-unit-text").props.children).toBe("tours");
+    expect(screen.getByTestId("composition-circuit-header-counter-unit-text", { includeHiddenElements: true }).props.children).toBe("tours");
   });
 
   it("bounds: − unavailable at 1, + unavailable at 99", () => {
@@ -4190,19 +4192,303 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
       expect(rowsOfDraft("ex-1")).toEqual([row(25), row(25)]);
       expect(probe.draft!.circuitSeriesReserve).toBeUndefined();
     });
+  });
 
-    it("la pastille d'unité n'ouvre aucune surface et laisse le brouillon inchangé", () => {
-      renderWithProbe([anActivity("ex-1", "IN_TOUR")], seriesDraft(3));
+  /**
+   * PRE-6 (story 3.2, CE-CIR-01, CE-CIR-02) : choix de nature depuis la pastille d'unité (menu
+   * natif sur iOS, événement `buttonPress` de ses `Button` SwiftUI ; panneau ancré ailleurs),
+   * conversion par `prepareNatureChange` / `applyNatureChange` et dialogue de perte.
+   */
+  describe("choix de nature et confirmation de perte (PRE-6, story 3.2)", () => {
+    const NATURE = "composition-circuit-header-counter-nature";
+    const anyNode = { includeHiddenElements: true } as const;
+    const toursDraft = (count: number): Partial<Draft> => ({ circuitNature: "TOURS", tourRepeatCount: count });
+    const chooseNature = (nature: "TOURS" | "SERIES") =>
+      act(() => {
+        fireEvent(screen.getByTestId(`${NATURE}-${nature}`, anyNode), "buttonPress");
+      });
+    const rowsOf = (values: readonly number[]) => values.map((value) => [value, 0] as const);
+    const row = (value: number) => ({ target: { kind: "NUMBER" as const, value }, pauseSeconds: 0, loadKg: 0 });
+    const rowsOfDraft = (id: string) => {
+      const series = exerciseOf(id).executionParameters.series;
+      return series.kind === "VARIABLE" ? series.rows : [];
+    };
+    const unitText = () => screen.getByTestId("composition-circuit-header-counter-unit-text", { includeHiddenElements: true }).props.children;
+
+    it("Tours → Séries sous N : l'exercice suit N, sans dialogue ; le nombre affiché ne change pas", () => {
+      renderWithProbe([anActivity("ex-1", "IN_TOUR", { executionParameters: durationParameters(30, 3) })], toursDraft(4));
+      expect(unitText()).toBe("tours");
+
+      chooseNature("SERIES");
+
+      expect(screen.queryByTestId("circuit-nature-confirm-card")).toBeNull();
+      expect(probe.draft!.circuitNature).toBe("SERIES");
+      expect(probe.draft!.tourRepeatCount).toBe(4);
+      expect(seriesCountOfDraft("ex-1")).toBe(4);
+      expect(screen.getByTestId("composition-circuit-header-counter-value").props.children).toBe(4);
+      expect(unitText()).toBe("séries");
+    });
+
+    it("Tours → Séries à N : séries inchangées, nature Séries, sans dialogue", () => {
+      renderWithProbe([anActivity("ex-1", "IN_TOUR", { executionParameters: durationParameters(30, 3) })], toursDraft(3));
+      chooseNature("SERIES");
+
+      expect(screen.queryByTestId("circuit-nature-confirm-card")).toBeNull();
+      expect(probe.draft!.circuitNature).toBe("SERIES");
+      expect(seriesCountOfDraft("ex-1")).toBe(3);
+    });
+
+    it("Tours → Séries au-delà de N : dialogue ; Annuler ne change rien ; Confirmer tronque à N", () => {
+      renderWithProbe(
+        [anActivity("ex-1", "IN_TOUR", { executionParameters: variableParameters({ rows: rowsOf([10, 20, 30]) }) })],
+        toursDraft(2),
+      );
       const before = probe.draft;
+      const duration = () => screen.getByTestId("composition-circuit-header-duration").props.children;
+      const sessionDuration = () => screen.getByTestId("composition-session-duration").props.children;
+      const toursDuration = duration();
+      const toursSessionDuration = sessionDuration();
+      chooseNature("SERIES");
 
-      fireEvent.press(screen.getByTestId("composition-circuit-header-counter-unit"));
-
+      expect(screen.getByText(t.natureTitle)).toBeTruthy();
+      expect(
+        screen.getByText(
+          "Tous les exercices auront 2 séries. Les séries au-delà de la 2e seront supprimées, avec les valeurs qu’elles portent.",
+        ),
+      ).toBeTruthy();
       expect(probe.draft).toBe(before);
-      expect(screen.queryByTestId("composition-circuit-header-counter-stepper")).toBeNull();
-      expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
-      expect(screen.queryByTestId("circuit-entry-confirm-card")).toBeNull();
-      expect(screen.queryByRole("menu")).toBeNull();
-      expect(mockPush).not.toHaveBeenCalled();
+
+      fireEvent.press(screen.getByLabelText(t.cancel));
+      expect(screen.queryByTestId("circuit-nature-confirm-card")).toBeNull();
+      expect(probe.draft).toBe(before);
+      expect(probe.draft!.circuitNature).toBe("TOURS");
+
+      chooseNature("SERIES");
+      fireEvent.press(screen.getByLabelText(t.confirm));
+      expect(screen.queryByTestId("circuit-nature-confirm-card")).toBeNull();
+      expect(probe.draft!.circuitNature).toBe("SERIES");
+      expect(probe.draft!.tourRepeatCount).toBe(2);
+      expect(rowsOfDraft("ex-1")).toEqual([row(10), row(20)]);
+      // Conversion confirmée : aucune réserve (troncature définitive).
+      expect(probe.draft!.circuitSeriesReserve).toBeUndefined();
+      // Durée du Circuit, durée de séance et unité suivent la nature.
+      expect(unitText()).toBe("séries");
+      expect(duration()).not.toBe(toursDuration);
+      expect(sessionDuration()).not.toBe(toursSessionDuration);
+    });
+
+    it("N = 1 : message accordé au singulier (« 1 série », « 1re »)", () => {
+      renderWithProbe([anActivity("ex-1", "IN_TOUR", { executionParameters: durationParameters(30, 2) })], toursDraft(1));
+      chooseNature("SERIES");
+      expect(
+        screen.getByText(
+          "Tous les exercices auront 1 série. Les séries au-delà de la 1re seront supprimées, avec les valeurs qu’elles portent.",
+        ),
+      ).toBeTruthy();
+    });
+
+    it("Séries → Tours : sans message, comptes et valeurs conservés", () => {
+      renderWithProbe(
+        [anActivity("ex-1", "IN_TOUR", { executionParameters: variableParameters({ rows: rowsOf([10, 20, 30]) }) })],
+        seriesDraft(3),
+      );
+      const exercises = probe.draft!.exercises;
+      chooseNature("TOURS");
+
+      expect(screen.queryByTestId("circuit-nature-confirm-card")).toBeNull();
+      expect(probe.draft!.circuitNature).toBe("TOURS");
+      expect(probe.draft!.tourRepeatCount).toBe(3);
+      expect(probe.draft!.exercises).toBe(exercises);
+      expect(unitText()).toBe("tours");
+    });
+
+    it("même nature : rien", () => {
+      renderWithProbe([anActivity("ex-1", "IN_TOUR")], toursDraft(2));
+      const before = probe.draft;
+      chooseNature("TOURS");
+      expect(probe.draft).toBe(before);
+      expect(screen.queryByTestId("circuit-nature-confirm-card")).toBeNull();
+    });
+
+    it("double appui sur Confirmer : une seule conversion", () => {
+      renderWithProbe(
+        [anActivity("ex-1", "IN_TOUR", { executionParameters: variableParameters({ rows: rowsOf([10, 20, 30]) }) })],
+        toursDraft(2),
+      );
+      chooseNature("SERIES");
+      const spy = jest.spyOn(circuitModule, "applyNatureChange");
+      try {
+        const confirm = screen.getByLabelText(t.confirm);
+        act(() => {
+          fireEvent.press(confirm);
+          fireEvent.press(confirm);
+        });
+        expect(spy).toHaveBeenCalledTimes(1);
+      } finally {
+        spy.mockRestore();
+      }
+      expect(rowsOfDraft("ex-1")).toEqual([row(10), row(20)]);
+      expect(probe.draft!.circuitNature).toBe("SERIES");
+    });
+
+    it("brouillon modifié pendant le dialogue : la perte est recalculée sur l'état courant", () => {
+      renderWithProbe(
+        [anActivity("ex-1", "IN_TOUR", { executionParameters: variableParameters({ rows: rowsOf([10, 20, 30]) }) })],
+        toursDraft(2),
+      );
+      chooseNature("SERIES");
+      // N passe à 3 pendant le dialogue : plus aucune série au-delà de N.
+      act(() => probe.updateDraft!({ tourRepeatCount: 3 }));
+      fireEvent.press(screen.getByLabelText(t.confirm));
+
+      expect(probe.draft!.circuitNature).toBe("SERIES");
+      expect(probe.draft!.tourRepeatCount).toBe(3);
+      expect(rowsOfDraft("ex-1")).toEqual([row(10), row(20), row(30)]);
+    });
+
+    describe("iOS : menu natif", () => {
+      let platformBefore: typeof Platform.OS;
+      beforeEach(() => {
+        platformBefore = Platform.OS;
+        Platform.OS = "ios";
+      });
+      afterEach(() => {
+        Platform.OS = platformBefore;
+      });
+
+      it("deux options, la nature courante cochée ; chiffre et pastille distincts", () => {
+        renderWithProbe([anActivity("ex-1", "IN_TOUR")], seriesDraft(3));
+        expect(screen.getByTestId("composition-circuit-header-counter").props.accessibilityLabel).toBe("Nombre de séries");
+        const items = [screen.getByTestId(`${NATURE}-TOURS`, anyNode), screen.getByTestId(`${NATURE}-SERIES`, anyNode)];
+        expect(items.map((item) => [item.props.label, item.props.systemImage ?? null])).toEqual([
+          ["Circuit de tours", null],
+          ["Circuit de séries", "checkmark"],
+        ]);
+      });
+
+      it("le dialogue de perte refermé (Annuler ou Confirmer) rend le focus à la pastille ; son ouverture, non", () => {
+        const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
+        const focusTargets = () =>
+          focus.mock.calls.map(([target, event]) => [(target as unknown as { props: { testID?: string } }).props.testID, event]);
+        try {
+          renderWithProbe(
+            [anActivity("ex-1", "IN_TOUR", { executionParameters: variableParameters({ rows: rowsOf([10, 20, 30]) }) })],
+            toursDraft(2),
+          );
+          focus.mockClear();
+          chooseNature("SERIES");
+          expect(focusTargets()).toEqual([]);
+          fireEvent.press(screen.getByLabelText(t.cancel));
+          expect(focusTargets()).toEqual([[`${NATURE}-focus`, "focus"]]);
+
+          focus.mockClear();
+          chooseNature("SERIES");
+          fireEvent.press(screen.getByLabelText(t.confirm));
+          expect(focusTargets()).toEqual([[`${NATURE}-focus`, "focus"]]);
+        } finally {
+          focus.mockRestore();
+        }
+      });
+
+      it("une sortie (abandon) pendant le dialogue de perte le referme sans rien appliquer", () => {
+        renderWithProbe(
+          [anActivity("ex-1", "IN_TOUR", { executionParameters: variableParameters({ rows: rowsOf([10, 20, 30]) }) })],
+          toursDraft(2),
+        );
+        chooseNature("SERIES");
+        expect(screen.getByTestId("circuit-nature-confirm-card")).toBeTruthy();
+        mockExitGuard.mockReturnValue({ ...defaultExitGuardResult(), isPendingExit: true });
+        act(() => probe.updateDraft!({ name: "Séance modifiée" }));
+        expect(screen.queryByTestId("circuit-nature-confirm-card")).toBeNull();
+        expect(probe.draft!.circuitNature).toBe("TOURS");
+        expect(rowsOfDraft("ex-1")).toEqual([row(10), row(20), row(30)]);
+      });
+    });
+
+    describe("Android : panneau ancré", () => {
+      let platformBefore: typeof Platform.OS;
+      beforeEach(() => {
+        platformBefore = Platform.OS;
+        Platform.OS = "android";
+      });
+      afterEach(() => {
+        Platform.OS = platformBefore;
+      });
+      const PANEL = `${NATURE}-panel`;
+      /** Mesures injectées : le panneau n'est jamais rendu avant celle de l'en-tête. */
+      const measureHeader = () => {
+        fireLayout(screen.getByTestId("composition-tour-section"), 230, 170);
+        fireLayout(screen.getByTestId("composition-circuit-header"), 12, 44);
+      };
+
+      it("révéler le compteur referme le choix et inversement ; toucher ailleurs ferme sans rien changer ; une option s'applique", () => {
+        renderWithProbe([anActivity("ex-1", "IN_TOUR", { executionParameters: durationParameters(30, 2) })], toursDraft(3));
+        const before = probe.draft;
+
+        // Avant la mesure de l'en-tête : aucun panneau.
+        fireEvent.press(screen.getByTestId(NATURE));
+        expect(screen.queryByTestId(PANEL, anyNode)).toBeNull();
+        fireEvent.press(screen.getByTestId("composition-circuit-counter-outside"));
+
+        measureHeader();
+        fireEvent.press(screen.getByTestId(NATURE));
+        const panel = screen.getByTestId(PANEL);
+        // Hébergé par le contenu défilant, sous l'en-tête, aligné sur le bord droit du contenu.
+        expect(StyleSheet.flatten(panel.props.style)).toMatchObject({ top: 230 + 12 + 44 + spacing[4], right: spacing[24] });
+
+        // Révéler le compteur referme le choix (un seul contrôle actif).
+        fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press", anyNode));
+        expect(screen.queryByTestId(PANEL)).toBeNull();
+        expect(screen.getByTestId("composition-circuit-header-counter-stepper")).toBeTruthy();
+        fireEvent.press(screen.getByTestId("composition-circuit-header-counter-stepper-value-press"));
+        expect(screen.queryByTestId("composition-circuit-header-counter-stepper")).toBeNull();
+
+        // Toucher ailleurs (corps, puis conteneur Circuit, puis hors du panneau) : sans mutation.
+        fireEvent.press(screen.getByTestId(NATURE));
+        fireEvent.press(screen.getByTestId("composition-circuit-counter-outside", anyNode));
+        expect(screen.queryByTestId(PANEL)).toBeNull();
+        fireEvent.press(screen.getByTestId(NATURE));
+        fireEvent.press(screen.getByTestId("composition-circuit-counter-outside-section", anyNode));
+        expect(screen.queryByTestId(PANEL)).toBeNull();
+        fireEvent.press(screen.getByTestId(NATURE));
+        fireEvent.press(screen.getByTestId(`${PANEL}-outside`, anyNode));
+        expect(screen.queryByTestId(PANEL)).toBeNull();
+        expect(probe.draft).toBe(before);
+
+        fireEvent.press(screen.getByTestId(NATURE));
+        fireEvent.press(screen.getByTestId(`${PANEL}-SERIES`));
+        expect(screen.queryByTestId(PANEL)).toBeNull();
+        expect(probe.draft!.circuitNature).toBe("SERIES");
+        expect(seriesCountOfDraft("ex-1")).toBe(3);
+      });
+
+      it("focus rendu à la pastille sur une fermeture par l'utilisateur, jamais quand une sortie referme le choix", () => {
+        const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
+        const focusTargets = () =>
+          focus.mock.calls.map(([target, event]) => [(target as unknown as { props: { testID?: string } }).props.testID, event]);
+        try {
+          renderWithProbe([anActivity("ex-1", "IN_TOUR")], toursDraft(3));
+          measureHeader();
+          focus.mockClear();
+
+          fireEvent.press(screen.getByTestId(NATURE));
+          fireEvent.press(screen.getByTestId("composition-circuit-counter-outside-section", anyNode));
+          expect(focusTargets()).toEqual([[NATURE, "focus"]]);
+
+          // Sortie (abandon) pendant l'ouverture : panneau refermé, brouillon intact, aucun focus.
+          focus.mockClear();
+          fireEvent.press(screen.getByTestId(NATURE));
+          const before = probe.draft;
+          mockExitGuard.mockReturnValue({ ...defaultExitGuardResult(), isPendingExit: true });
+          act(() => probe.updateDraft!({}));
+          expect(screen.queryByTestId(PANEL, anyNode)).toBeNull();
+          expect(probe.draft!.circuitNature).toBe(before!.circuitNature);
+          expect(probe.draft!.exercises).toBe(before!.exercises);
+          expect(focusTargets()).toEqual([]);
+        } finally {
+          focus.mockRestore();
+        }
+      });
     });
   });
 });

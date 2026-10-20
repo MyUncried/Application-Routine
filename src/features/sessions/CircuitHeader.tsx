@@ -1,8 +1,9 @@
 import { useEffect, useRef } from "react";
-import { AccessibilityInfo, Pressable, StyleSheet, Text, View } from "react-native";
+import { AccessibilityInfo, Pressable, StyleSheet, Text, View, type ViewProps } from "react-native";
 
 import { EXECUTION_BOUNDS } from "@/domain/activities/ExecutionParameters";
 import type { CircuitNature } from "@/domain/sessions/circuit";
+import { CircuitNatureMenu } from "@/features/sessions/CircuitNatureMenu";
 import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
 import { strings } from "@/shared/i18n";
 import { EXECUTION_UNIT_HOLD_POLICY, InlineStepper } from "@/shared/ui/ProfileStepper";
@@ -53,6 +54,18 @@ export type CircuitHeaderProps = {
   readonly onToggleCounter: () => void;
   /** Chaque pas (ou chaque action VoiceOver) : N demandé, appliqué par l'écran via `setCircuitCount`. */
   readonly onChangeCount: (count: number) => void;
+  /** PRE-6 story 3.2 — Android / web : panneau du choix de nature ouvert (un seul contrôle actif). */
+  readonly isNatureMenuOpen: boolean;
+  /** Toucher de la pastille (Android / web) : l'écran ouvre le choix et referme le compteur. */
+  readonly onOpenNatureMenu: () => void;
+  /** Second toucher de la pastille (Android / web) : fermeture sans choix, aucune mutation. */
+  readonly onCloseNatureMenu: () => void;
+  /** iOS : nature choisie dans le menu natif, confiée à l'écran (`prepareNatureChange` / `applyNatureChange`). */
+  readonly onSelectNature: (nature: CircuitNature) => void;
+  /** Demande de focus sur la pastille (voir `CircuitNatureMenu`). */
+  readonly natureFocusRequest: number;
+  /** Mesure de l'en-tête dans le conteneur Circuit : ancrage du panneau Android / web par l'écran. */
+  readonly onLayout?: ViewProps["onLayout"];
   readonly testID: string;
 };
 
@@ -63,7 +76,9 @@ export type CircuitHeaderProps = {
  * - À gauche : « Circuit » et, dessous, la seule durée du Circuit (D-382, D-390, D-399). La
  *   durée se tronque en premier ; le compteur garde sa taille.
  * - À droite, au repos : le chiffre (cible 44) puis la pastille d'unité (`Valeur modifiable`),
- *   accordée selon la nature. La pastille est sans action dans cette story (nature : 3.2).
+ *   accordée selon la nature. PRE-6 story 3.2 : la pastille seule ouvre le choix de nature
+ *   (`CircuitNatureMenu`, menu natif sur iOS) ; chiffre et pastille sont deux éléments
+ *   accessibles distincts (« Nombre de tours » ajustable, « Nature du circuit » bouton).
  * - Toucher le chiffre révèle `InlineStepper` (sans pilule, sur le fond blanc arrondi 18 de
  *   `8328:28671`, cercles 28 `color/surface`) : − et + autour de « chiffre + pastille », bornes
  *   1..99. Toucher la valeur le referme (RC-4) ; l'écran le referme aussi sur un toucher
@@ -80,11 +95,17 @@ export function CircuitHeader({
   isCounterOpen,
   onToggleCounter,
   onChangeCount,
+  isNatureMenuOpen,
+  onOpenNatureMenu,
+  onCloseNatureMenu,
+  onSelectNature,
+  natureFocusRequest,
+  onLayout,
   testID,
 }: CircuitHeaderProps) {
   const t = strings.screens.composition.circuit;
   return (
-    <View style={styles.row} testID={testID}>
+    <View style={styles.row} onLayout={onLayout} testID={testID}>
       <View style={styles.textBlock} testID={`${testID}-text-block`}>
         <Text style={styles.title} numberOfLines={1} testID={`${testID}-title`}>
           {t.title}
@@ -99,6 +120,11 @@ export function CircuitHeader({
         isOpen={isCounterOpen}
         onToggle={onToggleCounter}
         onChange={onChangeCount}
+        isNatureMenuOpen={isNatureMenuOpen}
+        onOpenNatureMenu={onOpenNatureMenu}
+        onCloseNatureMenu={onCloseNatureMenu}
+        onSelectNature={onSelectNature}
+        natureFocusRequest={natureFocusRequest}
         testID={`${testID}-counter`}
       />
     </View>
@@ -142,6 +168,11 @@ function CircuitCounter({
   isOpen,
   onToggle,
   onChange,
+  isNatureMenuOpen,
+  onOpenNatureMenu,
+  onCloseNatureMenu,
+  onSelectNature,
+  natureFocusRequest,
   testID,
 }: {
   nature: CircuitNature;
@@ -149,6 +180,11 @@ function CircuitCounter({
   isOpen: boolean;
   onToggle: () => void;
   onChange: (count: number) => void;
+  isNatureMenuOpen: boolean;
+  onOpenNatureMenu: () => void;
+  onCloseNatureMenu: () => void;
+  onSelectNature: (nature: CircuitNature) => void;
+  natureFocusRequest: number;
   testID: string;
 }) {
   const t = strings.screens.composition.circuit;
@@ -159,39 +195,51 @@ function CircuitCounter({
   const atMax = count >= CIRCUIT_COUNT_MAX;
 
   if (!isOpen) {
+    // Story 3.2 : le chiffre (réglage du compte) et la pastille (choix de nature) sont deux
+    // éléments accessibles distincts ; le conteneur ne fait que les aligner.
     return (
-      <View
-        ref={restRef}
-        accessible
-        accessibilityRole="adjustable"
-        accessibilityLabel={accessibilityLabel}
-        accessibilityValue={{ min: CIRCUIT_COUNT_MIN, max: CIRCUIT_COUNT_MAX, now: count, text: spoken }}
-        accessibilityState={{ expanded: false }}
-        accessibilityActions={[
-          ...(atMax ? [] : [{ name: "increment" }]),
-          ...(atMin ? [] : [{ name: "decrement" }]),
-          { name: "activate" },
-        ]}
-        onAccessibilityAction={(event) => {
-          const action = event.nativeEvent.actionName;
-          if (action === "increment" && !atMax) onChange(count + 1);
-          if (action === "decrement" && !atMin) onChange(count - 1);
-          if (action === "activate") onToggle();
-        }}
-        style={styles.counter}
-        testID={testID}
-      >
-        <Pressable
-          onPress={onToggle}
-          hitSlop={COUNTER_DIGIT_HIT_SLOP}
-          style={styles.digitTouch}
-          testID={`${testID}-value-press`}
+      <View style={styles.counter} testID={`${testID}-rest`}>
+        <View
+          ref={restRef}
+          accessible
+          accessibilityRole="adjustable"
+          accessibilityLabel={accessibilityLabel}
+          accessibilityValue={{ min: CIRCUIT_COUNT_MIN, max: CIRCUIT_COUNT_MAX, now: count, text: spoken }}
+          accessibilityState={{ expanded: false }}
+          accessibilityActions={[
+            ...(atMax ? [] : [{ name: "increment" }]),
+            ...(atMin ? [] : [{ name: "decrement" }]),
+            { name: "activate" },
+          ]}
+          onAccessibilityAction={(event) => {
+            const action = event.nativeEvent.actionName;
+            if (action === "increment" && !atMax) onChange(count + 1);
+            if (action === "decrement" && !atMin) onChange(count - 1);
+            if (action === "activate") onToggle();
+          }}
+          testID={testID}
         >
-          <Text style={styles.digit} testID={`${testID}-value`}>
-            {count}
-          </Text>
-        </Pressable>
-        <UnitPill nature={nature} count={count} testID={`${testID}-unit`} />
+          <Pressable
+            onPress={onToggle}
+            hitSlop={COUNTER_DIGIT_HIT_SLOP}
+            style={styles.digitTouch}
+            testID={`${testID}-value-press`}
+          >
+            <Text style={styles.digit} testID={`${testID}-value`}>
+              {count}
+            </Text>
+          </Pressable>
+        </View>
+        <CircuitNatureMenu
+          nature={nature}
+          trigger={<UnitPill nature={nature} count={count} testID={`${testID}-unit`} />}
+          isOpen={isNatureMenuOpen}
+          onOpen={onOpenNatureMenu}
+          onClose={onCloseNatureMenu}
+          onSelect={onSelectNature}
+          focusRequest={natureFocusRequest}
+          testID={`${testID}-nature`}
+        />
       </View>
     );
   }

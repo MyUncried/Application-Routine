@@ -188,7 +188,23 @@ describe("strings", () => {
         SERIES: { singular: "série", plural: "séries" },
       },
       countAccessibilityLabel: { TOURS: "Nombre de tours", SERIES: "Nombre de séries" },
+      // PRE-6 story 3.2 (CE-CIR-01, `8328:34805`) : choix de nature du Circuit.
+      nature: {
+        accessibilityLabel: "Nature du circuit",
+        options: {
+          TOURS: { title: "Circuit de tours", subtitle: "les séries d’un exercice s’enchaînent" },
+          SERIES: { title: "Circuit de séries", subtitle: "une série de chaque exercice par passage" },
+        },
+      },
     });
+  });
+
+  it("exposes the Circuit conversion loss dialog texts (PRE-6 story 3.2, CE-CIR-02, `8328:34964`)", () => {
+    const t = strings.screens.composition.circuitEntryConfirmModal;
+    expect(t.natureTitle).toBe("Passer en circuit de séries ?");
+    expect(t.natureMessage).toBe(
+      "Tous les exercices auront {series}. Les séries au-delà de la {ordinal} seront supprimées, avec les valeurs qu’elles portent.",
+    );
   });
 
   it("exposes the Composition edit-mode rehydration state texts (T01-S10, CE-T01-S10-09)", () => {
