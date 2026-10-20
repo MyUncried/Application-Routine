@@ -50,7 +50,8 @@
     {"key":"label.outline","file":"label-outline","figmaNodeId":"4916:6386","figmaName":"Icône — Étiquette — cil:tag","figmaStatus":"SOURCE_EXISTS","width":20,"height":20,"usage":["Composition — Étiquette"]},
     {"key":"selection.check","file":"selection-check","figmaNodeId":"6214:4424","figmaName":"✓ — glyph outlined from selected exercise card","figmaStatus":"EXACT_EXPORT","width":10,"height":8,"usage":[],"runtime":"Deposited 2026-10-06; not wired"},
     {"key":"stepper.minus","file":"stepper-minus","figmaNodeId":"5826:4101","figmaName":"− (DSF / Controls / Stepper / Profil)","figmaStatus":"EXACT_EXPORT","method":"exportAsync SVG_STRING, svgOutlineText=true","width":8,"height":2,"usage":["Profil — steppers"]},
-    {"key":"stepper.plus","file":"stepper-plus","figmaNodeId":"5826:4105","figmaName":"+ (DSF / Controls / Stepper / Profil)","figmaStatus":"EXACT_EXPORT","method":"exportAsync SVG_STRING, svgOutlineText=true","width":8,"height":8,"usage":["Profil — steppers"]}
+    {"key":"stepper.plus","file":"stepper-plus","figmaNodeId":"5826:4105","figmaName":"+ (DSF / Controls / Stepper / Profil)","figmaStatus":"EXACT_EXPORT","method":"exportAsync SVG_STRING, svgOutlineText=true","width":8,"height":8,"usage":["Profil — steppers"]},
+    {"key":"recovery.hourglass","file":"icon-sablier-recuperation","figmaNodeId":"8328:41087","figmaName":"Sablier — Récupération","figmaStatus":"MCP_VECTOR_EXPORT","width":13,"height":13,"usage":["Composition — ligne structurelle de récupération (PRE-6 story 2.1, D-303)"],"runtime":"Read-only Figma MCP download_assets (svgAssets) on 2026-10-20; see MCP_VECTOR_EXPORT"}
   ],
   "branding": {
     "splashLogo": {

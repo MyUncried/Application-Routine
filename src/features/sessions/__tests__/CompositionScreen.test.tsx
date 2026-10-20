@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen, waitFor, within } from "@testing-librar
 import { useCallback, useContext, useMemo, useState } from "react";
 import { AccessibilityInfo, Keyboard, Platform, ScrollView, StyleSheet, Text } from "react-native";
 
-import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
+import { allFailureParameters, durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Label } from "@/domain/labels/Label";
 import { createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
@@ -16,12 +16,14 @@ import {
   ReferentialServiceContext,
 } from "@/features/reference-data/ReferentialServiceContext";
 import { CompositionScreen } from "@/features/sessions/CompositionScreen";
+import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
 import type { SessionDraftContextValue } from "@/features/sessions/SessionDraftContext";
 import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import { SessionDraftProvider } from "@/features/sessions/SessionDraftProvider";
 import type { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { strings } from "@/shared/i18n";
+import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
@@ -67,7 +69,7 @@ jest.mock("expo-crypto", () => ({ randomUUID: jest.fn(() => "generated-copy-id")
  */
 const mockPush = jest.fn();
 const mockBack = jest.fn();
-// PRE-4 Q54 : `Enregistrer la séance` ferme le parcours depuis la Composition.
+// PRE-4 Q54 : l’action finale (« Continuer » depuis PRE-6 story 2.1) ferme le parcours depuis la Composition.
 const mockDismissTo = jest.fn();
 jest.mock("expo-router", () => {
   const actual = jest.requireActual("expo-router") as object;
@@ -277,21 +279,33 @@ describe("CompositionScreen — état initial", () => {
     expect(continueAction.props.accessibilityState).toMatchObject({ disabled: true });
   });
 
-  it("exposes a visible, accessible Retour action calling router.back() (CE-T01-04, AUD-03 correction)", () => {
+  // PRE-6 story 2.1 : le X de l’en-tête est annoncé « Fermer » ; même action `router.back()`.
+  it("exposes a visible, accessible Fermer (X) action calling router.back() (CE-T01-04, AUD-03 correction ; PRE-6 story 2.1)", () => {
     renderScreen();
 
-    const back = screen.getByLabelText(composition.backAccessibilityLabel);
+    const back = screen.getByLabelText(composition.closeAccessibilityLabel);
     expect(back).toBeTruthy();
 
     fireEvent.press(back);
     expect(mockBack).toHaveBeenCalledTimes(1);
   });
 
-  it("shows the composition icons for Compte à rebours initial and Fin de séance rows (CE-T01-09 icons, previously unused)", () => {
+  // PRE-6 story 2.1 (Figma `8328:28634`) : les bornes deviennent des étapes de la Séquence —
+  // un anneau sur le rail remplace les anciennes icônes de rôle des cartes limites.
+  it("PRE6-2.1 — Séquence : rail, anneau pour Compte à rebours, Circuit et Fin ; aucune icône de rôle de carte limite", () => {
     renderScreen();
 
-    expect(screen.getByTestId("composition-row-icon-composition-initial-countdown")).toBeTruthy();
-    expect(screen.getByTestId("composition-row-icon-composition-end-session")).toBeTruthy();
+    // Rail et repères sont décoratifs, masqués à l'accessibilité.
+    const hidden = { includeHiddenElements: true };
+    expect(screen.getByTestId("composition-sequence-rail", hidden)).toBeTruthy();
+    for (const boundary of ["composition-boundary-countdown", "composition-boundary-final-phase"]) {
+      expect(within(screen.getByTestId(boundary)).getByTestId("composition-sequence-marker-ring", hidden)).toBeTruthy();
+    }
+    expect(
+      StyleSheet.flatten(screen.getByTestId("composition-sequence-marker-circuit", hidden).props.style),
+    ).toMatchObject({ borderWidth: 2, borderColor: colors.disabled, backgroundColor: colors.background });
+    expect(screen.queryByTestId("composition-row-icon-composition-initial-countdown")).toBeNull();
+    expect(screen.queryByTestId("composition-row-icon-composition-end-session")).toBeNull();
   });
 
   it("REWORK06 — never renders a chevron on rows, closed or open (permanently removed — the previous conditional chevron changed the row's flex-child count, shifting the role icon between states)", () => {
@@ -311,31 +325,20 @@ describe("CompositionScreen — état initial", () => {
     expect(screen.queryByTestId("composition-row-chevron-up")).toBeNull();
   });
 
-  it("REWORK06 — the role icon's slot keeps exactly the same style (and the row exposes the same number of top-level slots) whether the row is closed or open (proves the chevron removal fixes the previous icon position drift)", () => {
+  // PRE-6 story 2.1 : la pastille de valeur (déclencheur de la roulette) garde le même style
+  // et la borne le même nombre d'enfants, fermée comme ouverte (acquis REWORK06 transposé).
+  it("PRE6-2.1 — la borne et sa pastille de valeur gardent la même structure et le même style, fermées ou ouvertes", () => {
     renderScreen();
 
-    const rowBefore = screen.getByLabelText(composition.countdown.label);
-    const iconSlotBefore = within(rowBefore).getByTestId(
-      "composition-row-icon-composition-initial-countdown",
-    ).parent;
+    const rowBefore = screen.getByTestId("composition-boundary-countdown");
     const childCountBefore = (rowBefore.children as unknown[]).length;
-    const iconSlotStyleBefore = StyleSheet.flatten(iconSlotBefore?.props.style);
+    const pillStyleBefore = StyleSheet.flatten(screen.getByTestId("composition-boundary-countdown-value").props.style);
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
 
-    const rowAfter = screen.getByLabelText(composition.countdown.label);
-    const iconSlotAfter = within(rowAfter).getByTestId(
-      "composition-row-icon-composition-initial-countdown",
-    ).parent;
-    const childCountAfter = (rowAfter.children as unknown[]).length;
-    const iconSlotStyleAfter = StyleSheet.flatten(iconSlotAfter?.props.style);
-
-    // Même nombre d'enfants directs de la rangée (aucun chevron
-    // conditionnel n'apparaît/disparaît) et même style pour le slot qui
-    // porte l'icône de rôle — la position ne peut donc plus dériver entre
-    // les deux états.
-    expect(childCountAfter).toBe(childCountBefore);
-    expect(iconSlotStyleAfter).toEqual(iconSlotStyleBefore);
+    const rowAfter = screen.getByTestId("composition-boundary-countdown");
+    expect((rowAfter.children as unknown[]).length).toBe(childCountBefore);
+    expect(StyleSheet.flatten(screen.getByTestId("composition-boundary-countdown-value").props.style)).toEqual(pillStyleBefore);
   });
 
   it("T01-S09 correction VISUAL (point D) — opens the countdown picker inside the shared full-screen WheelPickerOverlay, centered with a dimmed background — supersedes the former position:absolute popover anchor (CE-T01-06/07, AUD-05)", () => {
@@ -370,7 +373,8 @@ describe("CompositionScreen — état initial", () => {
     renderScreen();
 
     const addActivity = screen.getByLabelText(composition.addActivity);
-    expect(addActivity.props.accessibilityState).toMatchObject({ disabled: false });
+    // PRE-6 story 2.1 : aucun état `disabled` constant sur le « + » ; il reste utilisable.
+    expect(addActivity.props.accessibilityState?.disabled).not.toBe(true);
 
     fireEvent.press(addActivity);
     expect(screen.getByTestId("composition-add-activity-tree")).toBeTruthy();
@@ -700,9 +704,8 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
     renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
     expect(screen.getByLabelText(composition.addActivity)).toBeTruthy();
-    expect(screen.getByLabelText(composition.addActivity).props.accessibilityState).toMatchObject({
-      disabled: false,
-    });
+    // PRE-6 story 2.1 : le « + » ne porte plus d'état `disabled` constant ; il reste utilisable.
+    expect(screen.getByLabelText(composition.addActivity).props.accessibilityState?.disabled).not.toBe(true);
     expect(screen.getByLabelText(composition.exerciseRow.editAccessibilityLabel)).toBeTruthy();
     expect(screen.getByText("Gainage")).toBeTruthy();
   });
@@ -736,17 +739,15 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
     expect(flattened.opacity).toBe(0.5);
   });
 
-  it("REWORK12 (COMP-01) — the Exercise row reuses the exact same card anatomy (fond, liseré, rayon) as the Compte à rebours initial card, by construction (same limitCardBase/boundaryRow styles)", () => {
+  // PRE-6 story 2.1 : les bornes ne sont plus des cartes (étapes de la Séquence) ; la carte
+  // d'Exercice garde sa surface (fond blanc, liseré, rayon 12) — refonte en story 2.2.
+  it("REWORK12 (COMP-01), révisé PRE6-2.1 — the Exercise row keeps its card surface (fond blanc, liseré, rayon 12)", () => {
     renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
-    const exerciseRow = screen.getByTestId("composition-exercise-row-ex-1");
-    const exerciseCardStyle = StyleSheet.flatten(exerciseRow.props.style);
-    const countdownCardStyle = StyleSheet.flatten(
-      screen.getByLabelText(composition.countdown.label).props.style,
-    );
-    expect(exerciseCardStyle.borderColor).toBe(countdownCardStyle.borderColor);
-    expect(exerciseCardStyle.borderRadius).toBe(countdownCardStyle.borderRadius);
-    expect(exerciseCardStyle.backgroundColor).toBe(countdownCardStyle.backgroundColor);
+    const exerciseCardStyle = StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style);
+    expect(exerciseCardStyle.borderColor).toBe(colors.border);
+    expect(exerciseCardStyle.borderRadius).toBe(12);
+    expect(exerciseCardStyle.backgroundColor).toBe(colors.background);
   });
 
   it("shows the detailed configuration summary (name + summary, never the Consigne or the Zones corporelles) — CHANGES_REQUESTED", () => {
@@ -809,9 +810,8 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
       params: { exerciseId: "ex-2" },
     });
 
-    expect(screen.getByLabelText(composition.addActivity).props.accessibilityState).toMatchObject({
-      disabled: false,
-    });
+    // PRE-6 story 2.1 : le « + » ne porte plus d'état `disabled` constant ; il reste utilisable.
+    expect(screen.getByLabelText(composition.addActivity).props.accessibilityState?.disabled).not.toBe(true);
   });
 });
 
@@ -821,14 +821,14 @@ describe("CompositionScreen — ordre structurel (UI-COMP-001/002/003, cycle de 
 
     const order = testIdOrder(screen.toJSON(), [
       "composition-add-activity-icon",
-      "composition-row-icon-composition-initial-countdown",
-      "composition-row-icon-composition-end-session",
+      "composition-boundary-countdown",
+      "composition-boundary-final-phase",
     ]);
 
     expect(order).toEqual([
       "composition-add-activity-icon",
-      "composition-row-icon-composition-initial-countdown",
-      "composition-row-icon-composition-end-session",
+      "composition-boundary-countdown",
+      "composition-boundary-final-phase",
     ]);
     // Tour n'a pas de testID propre : sa position entre les deux est prouvée
     // par labels de texte, dans le même ordre visuel.
@@ -844,14 +844,14 @@ describe("CompositionScreen — ordre structurel (UI-COMP-001/002/003, cycle de 
     renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
     const order = testIdOrder(screen.toJSON(), [
-      "composition-row-icon-composition-initial-countdown",
+      "composition-boundary-countdown",
       "composition-exercise-row-ex-1",
-      "composition-row-icon-composition-end-session",
+      "composition-boundary-final-phase",
     ]);
     expect(order).toEqual([
-      "composition-row-icon-composition-initial-countdown",
+      "composition-boundary-countdown",
       "composition-exercise-row-ex-1",
-      "composition-row-icon-composition-end-session",
+      "composition-boundary-final-phase",
     ]);
 
     const labelOrder = textOrder(screen.toJSON(), [
@@ -939,19 +939,50 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(within(field).getByLabelText(composition.name)).toBeTruthy();
   });
 
-  it("CMP-02 — Ajouter une activité is centered (compact DS button geometry, height 32/radius 16, white background distinct from the Context band, real ≥48 touch target via hitSlop)", () => {
+  // PRE-6 story 2.1 (Figma `8328:28630`) : le bouton texte « + Ajouter un exercice » est
+  // remplacé par un bouton rond « + » de 34 (fond blanc, bordure et croix primaires, cible 44),
+  // nom accessible « Ajouter un exercice », qui ouvre l'arbre d'ajout existant.
+  it("PRE6-2.1 — bouton rond « + » 34 (fond blanc, bordure primaire, cible 44), sans libellé visible, ouvrant l'arbre d'ajout", () => {
     renderScreen();
 
     const addActivity = screen.getByLabelText(composition.addActivity);
     const flattened = StyleSheet.flatten(addActivity.props.style);
-    expect(flattened.alignSelf).toBe("center");
-    expect(flattened.height).toBe(dimensions.compactSecondaryButton.visualHeight);
-    expect(flattened.borderRadius).toBe(dimensions.compactSecondaryButton.radius);
+    expect(flattened.width).toBe(34);
+    expect(flattened.height).toBe(34);
+    expect(flattened.borderRadius).toBe(17);
     expect(flattened.borderColor).toBe(colors.primary);
     expect(flattened.backgroundColor).toBe(colors.background);
+    expect(flattened.height + 2 * (addActivity.props.hitSlop as number)).toBe(44);
+    expect(within(addActivity).queryByText(composition.addActivity)).toBeNull();
+    const bars = within(addActivity).getAllByTestId("composition-add-activity-icon-bar");
+    expect(bars).toHaveLength(2);
+    for (const bar of bars) {
+      expect(StyleSheet.flatten(bar.props.style).backgroundColor).toBe(colors.primary);
+    }
 
-    const hitSlop = addActivity.props.hitSlop;
-    expect(flattened.height + hitSlop.top + hitSlop.bottom).toBeGreaterThanOrEqual(48);
+    fireEvent.press(addActivity);
+    expect(screen.getByTestId("composition-add-activity-tree")).toBeTruthy();
+  });
+
+  // PRE-6 story 2.1 (Figma `8328:28611`) : puce Étiquette puis durée de séance sur une ligne de 32.
+  it("PRE6-2.1 — puce Étiquette (26, rayon 13, fond blanc 35 %, icône 18, « Étiquette » 13 primaire, cible 44) et durée de séance « 0 min » (Inter 14 tertiaire)", () => {
+    renderScreen();
+
+    const chip = screen.getByLabelText(composition.label.accessibilityLabel);
+    const chipStyle = StyleSheet.flatten(chip.props.style);
+    expect(chipStyle).toMatchObject({ height: 26, borderRadius: 13, backgroundColor: "rgba(255, 255, 255, 0.35)" });
+    expect(chipStyle.height + chip.props.hitSlop.top + chip.props.hitSlop.bottom).toBe(44);
+    expect(StyleSheet.flatten(within(chip).getByTestId("composition-session-label-outline-icon").props.style)).toMatchObject({
+      width: 18,
+      height: 18,
+    });
+    const chipLabel = within(chip).getByText(composition.label.placeholder);
+    expect(StyleSheet.flatten(chipLabel.props.style)).toMatchObject({ fontSize: 13, color: colors.primary });
+
+    const duration = screen.getByTestId("composition-session-duration");
+    expect(duration.props.children).toBe("0 min");
+    expect(StyleSheet.flatten(duration.props.style)).toMatchObject({ fontSize: 14, fontWeight: "400", color: TEXT_TERTIARY });
+    expect(StyleSheet.flatten(screen.getByTestId("composition-info-row").props.style).height).toBe(32);
   });
 
   it("CMP-04/T-03/REWORK07B/D-130 — the Tour card is a distinct DS component (background carried by the outer structure, never the inner header), showing the 'Nombre de tours' label and a 66×34 control carrying the value alone, never the Activity icon", () => {
@@ -1052,14 +1083,10 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(within(textBlock).getByText(composition.tour.label)).toBeTruthy();
     expect(within(textBlock).getByTestId("composition-tour-summary")).toBeTruthy();
 
-    // Typographie exactement identique à la ligne secondaire des cartes
-    // limites (réutilisation du même style, jamais une simple ressemblance).
-    const countdownSecondaryLine = within(
-      screen.getByLabelText(composition.countdown.label),
-    ).getByText("00 min 10 s");
-    expect(StyleSheet.flatten(summary.props.style)).toEqual(
-      StyleSheet.flatten(countdownSecondaryLine.props.style),
-    );
+    // Typographie de la ligne secondaire des cartes (`type.caption`, `text-secondary`). PRE-6
+    // story 2.1 : les bornes n'ont plus de ligne secondaire (pastille de valeur), la
+    // comparaison se fait donc avec le style canonique lui-même.
+    expect(StyleSheet.flatten(summary.props.style)).toEqual({ ...type.caption, color: colors.textSecondary });
 
     // Acquis gelés REWORK07B non modifiés par cet ajout : structure
     // extérieure bleue (fond/rayon) et contrôle blanc/violet inchangés.
@@ -1145,19 +1172,25 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(tourSummary.props.children).toBe("2 min");
   });
 
-  it("CMP-03/CMP-05 — Boundary Activity rows (Compte à rebours, Fin de séance) place a structural handle on the left, title+secondary duration line in the center, and the role icon on the right", () => {
+  // PRE-6 story 2.1 (Figma `8328:28636`) : borne = repère, libellé, pastille de valeur à droite
+  // (remplace l'anatomie CMP-03/CMP-05 poignée / libellé + valeur / icône de rôle).
+  it("PRE6-2.1 — Boundary steps (Compte à rebours, Fin de séance): ring marker, label, then the value pill on the right; no handle, no role icon, no chevron", () => {
     renderScreen();
 
-    const countdownRow = screen.getByLabelText(composition.countdown.label);
-    expect(within(countdownRow).getByTestId("composition-boundary-handle-slot")).toBeTruthy();
-    expect(within(countdownRow).getByText(composition.countdown.label)).toBeTruthy();
-    // Ligne secondaire : la valeur de durée déjà formatée, sous le libellé.
-    expect(within(countdownRow).getByText("00 min 10 s")).toBeTruthy();
-    expect(
-      within(countdownRow).getByTestId("composition-row-icon-composition-initial-countdown"),
-    ).toBeTruthy();
-    // Aucun chevron à l'état fermé (absent de la référence, CMP-03/05).
-    expect(within(countdownRow).queryByTestId("composition-row-chevron-down")).toBeNull();
+    for (const [testID, label, value] of [
+      ["composition-boundary-countdown", composition.countdown.label, "00 min 10 s"],
+      ["composition-boundary-final-phase", composition.finalPhase.label, "00 min 05 s"],
+    ] as const) {
+      const row = screen.getByTestId(testID);
+      expect(StyleSheet.flatten(row.props.style)).toMatchObject({ height: 24, flexDirection: "row" });
+      expect(within(row).getByText(label)).toBeTruthy();
+      // Toute la rangée (libellé + pastille) est le déclencheur de la roulette (acquis conservé).
+      expect(screen.getByLabelText(label)).toBe(row);
+      expect(row.props.accessibilityValue).toMatchObject({ text: value });
+      expect(within(screen.getByTestId(`${testID}-value`)).getByText(value)).toBeTruthy();
+      expect(within(row).queryByTestId("composition-boundary-handle-slot")).toBeNull();
+      expect(within(row).queryByTestId("composition-row-chevron-down")).toBeNull();
+    }
   });
 
   it("REWORK09 — supersedes CMP-06: the redundant summary line is removed from the Bottom Action zone (moved to the Tour block by REWORK08-C) — only Continuer remains there", () => {
@@ -1171,22 +1204,26 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(screen.getByTestId("composition-tour-summary")).toBeTruthy();
   });
 
-  it("C-01 — Boundary Activity rows have a white background with a visible grey border (auparavant colors.surface, jugé non conforme au rendu réel)", () => {
+  // PRE-6 story 2.1 (`DSF / Forms / Valeur modifiable`, Texte=13) : pastille de valeur des bornes.
+  it("PRE6-2.1 — the boundary value pill: surface background, radius 10, padding 10/4, Inter Semi Bold 13 primary; whole row pressable with a 44 target", () => {
     renderScreen();
 
-    const countdownRow = screen.getByLabelText(composition.countdown.label);
-    const flattened = StyleSheet.flatten(countdownRow.props.style);
-    expect(flattened.backgroundColor).toBe(colors.background);
-    expect(flattened.borderWidth).toBeGreaterThan(0);
-    expect(flattened.borderColor).toBe(colors.border);
-  });
-
-  it("C-02 — the left handle slot carries a structure/move pictogram, swappable via a dedicated prop without touching the layout", () => {
-    renderScreen();
-
-    const countdownRow = screen.getByLabelText(composition.countdown.label);
-    const handleSlot = within(countdownRow).getByTestId("composition-boundary-handle-slot");
-    expect(within(handleSlot).getByTestId("composition-boundary-handle-icon")).toBeTruthy();
+    const pill = screen.getByTestId("composition-boundary-countdown-value");
+    expect(StyleSheet.flatten(pill.props.style)).toMatchObject({
+      backgroundColor: colors.surface,
+      borderRadius: 10,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+    });
+    // Cible tactile : la rangée entière, 24 de haut portée à 44 par `hitSlop`.
+    const row = screen.getByLabelText(composition.countdown.label);
+    expect(24 + row.props.hitSlop.top + row.props.hitSlop.bottom).toBe(44);
+    expect(StyleSheet.flatten(within(pill).getByText("00 min 10 s").props.style)).toMatchObject({
+      ...type.editableValue,
+      color: colors.primary,
+    });
+    const label = within(screen.getByTestId("composition-boundary-countdown")).getByText(composition.countdown.label);
+    expect(StyleSheet.flatten(label.props.style)).toMatchObject({ ...type.label, color: colors.textLabel });
   });
 
   it("REWORK07B — supersedes T-01: the Tour section's own box geometry (border/radius/background) is now independent from the Boundary Activity rows' shared limitCardBase — the outer structure carries its own canonical radius/background, the inner header carries none of it", () => {
@@ -1201,10 +1238,8 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     // silencieusement contredire.
     renderScreen();
 
-    const countdownRow = screen.getByLabelText(composition.countdown.label);
     const tourSection = screen.getByTestId("composition-tour-section");
     const tourCard = screen.getByTestId("composition-tour-card");
-    const countdownStyle = StyleSheet.flatten(countdownRow.props.style);
     const tourSectionStyle = StyleSheet.flatten(tourSection.props.style);
     const tourCardStyle = StyleSheet.flatten(tourCard.props.style);
 
@@ -1217,8 +1252,10 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     // La structure extérieure (`composition-tour-section`) porte sa propre
     // géométrie canonique, explicitement distincte de celle des cartes
     // limites (`limitCardBase`, rayon `12`, bordure grise `colors.border`).
+    // PRE-6 story 2.1 : les bornes ne sont plus des cartes ; le rayon 12 des cartes reste
+    // celui de la carte d'Exercice.
     expect(tourSectionStyle.borderRadius).toBe(10);
-    expect(tourSectionStyle.borderRadius).not.toBe(countdownStyle.borderRadius);
+    expect(tourSectionStyle.borderRadius).not.toBe(12);
     expect(tourSectionStyle.borderWidth).toBeUndefined();
   });
 
@@ -1251,12 +1288,12 @@ describe("CompositionScreen — REWORK04 (`[ChatGPT] REWORK04 IMPLEMENTATION AUT
 
   // Alignement DSF 07/10 (D2) : `type.cardTitle` passe de 16/20 à 16/19
   // (rendu Inter Auto de Figma).
-  it("R4-03/REWORK06 — Boundary Activity and Tour card titles use the card title style, 16/19 Semi Bold (up from 14/18 — addendum 'titres des cartes encore trop petits')", () => {
-    renderScreen();
+  // PRE-6 story 2.1 : les bornes portent désormais un libellé Inter Medium 14 (test dédié) ;
+  // le titre de carte 16/19 reste celui de la carte d'Exercice et du Circuit.
+  it("R4-03/REWORK06, révisé PRE6-2.1 — Exercise and Tour card titles use the card title style, 16/19 Semi Bold", () => {
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
-    const countdownLabel = within(screen.getByLabelText(composition.countdown.label)).getByText(
-      composition.countdown.label,
-    );
+    const countdownLabel = within(screen.getByTestId("composition-exercise-row-ex-1")).getByText("Gainage");
     const flattened = StyleSheet.flatten(countdownLabel.props.style);
     expect(flattened.fontSize).toBe(16);
     expect(flattened.lineHeight).toBe(19);
@@ -1270,21 +1307,20 @@ describe("CompositionScreen — REWORK04 (`[ChatGPT] REWORK04 IMPLEMENTATION AUT
   });
 
   // Alignement DSF 07/10 (D2/D9) : `type.caption` passe de 11/14 à 11/13.
-  it("R4-03 — the Boundary Activity secondary duration line uses the caption style (11/13)", () => {
-    renderScreen();
+  it("R4-03, révisé PRE6-2.1 — the Exercise card secondary summary line uses the caption style (11/13)", () => {
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
-    const secondaryLine = within(screen.getByLabelText(composition.countdown.label)).getByText(
-      "00 min 10 s",
-    );
+    const secondaryLine = within(screen.getByTestId("composition-exercise-row-ex-1")).getByText("1 série de 45 s");
     const flattened = StyleSheet.flatten(secondaryLine.props.style);
     expect(flattened.fontSize).toBe(11);
     expect(flattened.lineHeight).toBe(13);
   });
 
   it("REWORK07-A — the structure/move slot is back to the canonical 28×28 (down from 32×32/REWORK06 — the oversized container compensated for an undersized glyph, no longer needed once the asset itself was replaced) — the icon inside renders the canonical 20×20 glyph at opacity 0.5, with no local opacity prop needed", () => {
-    renderScreen();
+    // PRE-6 story 2.1 : la poignée n'existe plus que sur la carte d'Exercice (bornes immobiles).
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
-    const handleSlot = within(screen.getByLabelText(composition.countdown.label)).getByTestId(
+    const handleSlot = within(screen.getByTestId("composition-exercise-row-ex-1")).getByTestId(
       "composition-boundary-handle-slot",
     );
     const flattened = StyleSheet.flatten(handleSlot.props.style);
@@ -1523,7 +1559,8 @@ describe("CompositionScreen — Continuer (T01-S09, CE-T01-04/CE-T01-11)", () =>
 
     const saveAction = screen.getByLabelText(composition.saveAction);
     expect(saveAction.props.accessibilityState).toMatchObject({ disabled: false });
-    expect(screen.getByText("Enregistrer la séance")).toBeTruthy();
+    // PRE-6 story 2.1 (CE-T03-08, D-388) : libellé « Continuer », même enregistrement (Q54).
+    expect(screen.getByText("Continuer")).toBeTruthy();
 
     fireEvent.press(saveAction);
     fireEvent.press(saveAction);
@@ -1810,16 +1847,16 @@ describe("CompositionScreen — espacement Activité/Activité (LOT_3_OF_3, rév
     renderScreenWithDraft(twoActivities);
 
     const order = testIdOrder(screen.toJSON(), [
-      "composition-row-icon-composition-initial-countdown",
+      "composition-boundary-countdown",
       "composition-exercise-row-ex-1",
       "composition-exercise-row-ex-2",
-      "composition-row-icon-composition-end-session",
+      "composition-boundary-final-phase",
     ]);
     expect(order).toEqual([
-      "composition-row-icon-composition-initial-countdown",
+      "composition-boundary-countdown",
       "composition-exercise-row-ex-1",
       "composition-exercise-row-ex-2",
-      "composition-row-icon-composition-end-session",
+      "composition-boundary-final-phase",
     ]);
   });
 });
@@ -1887,29 +1924,25 @@ describe("CompositionScreen — Zones corporelles de la ligne Activité (correct
 
     const row = screen.getByTestId("composition-exercise-row-ex-1");
     expect(within(row).queryByTestId("composition-exercise-body-zones")).toBeNull();
-    // V2-PRE-1 : la sous-carte Récupération est toujours rendue (`24`),
-    // même à `0 s` — la hauteur sans Zones est donc `compactRestHeight + 24`.
-    expect(StyleSheet.flatten(row.props.style).height).toBe(
-      dimensions.compositionActivityRow.compactRestHeight +
-        dimensions.compositionActivityRow.recoveryCardHeight,
-    );
+    // PRE-6 story 2.1 : la Récupération n'est plus une sous-carte du bloc (ligne structurelle
+    // sous la carte) — la hauteur sans Zones est donc `compactRestHeight`.
+    expect(StyleSheet.flatten(row.props.style).height).toBe(dimensions.compositionActivityRow.compactRestHeight);
   });
 
   it("never adds that line to the Compte à rebours initial / Fin de séance cards (they have no body zones — those cards stay rigorously unchanged)", async () => {
     renderScreenWithDraft([activityWithZones]);
     await screen.findByTestId("composition-exercise-body-zones");
 
-    const countdown = screen.getByLabelText(composition.countdown.label);
-    const finalPhase = screen.getByLabelText(composition.finalPhase.label);
+    const countdown = screen.getByTestId("composition-boundary-countdown");
+    const finalPhase = screen.getByTestId("composition-boundary-final-phase");
     expect(within(countdown).queryByTestId("composition-exercise-body-zones")).toBeNull();
     expect(within(finalPhase).queryByTestId("composition-exercise-body-zones")).toBeNull();
     // Une seule occurrence dans tout l'écran : celle de l'Activité.
     expect(screen.getAllByTestId("composition-exercise-body-zones")).toHaveLength(1);
 
+    // PRE-6 story 2.1 : les bornes sont des étapes de 24 (Figma `8328:28636`), inchangées.
     for (const row of [countdown, finalPhase]) {
-      const style = StyleSheet.flatten(row.props.style);
-      expect(style.height).toBe(dimensions.compositionActivityRow.compactRestHeight);
-      expect(style.paddingVertical).toBe(3);
+      expect(StyleSheet.flatten(row.props.style).height).toBe(24);
     }
   });
 });
@@ -2000,20 +2033,20 @@ describe("CompositionScreen — trois zones structurelles (T02-S01, AC-01)", () 
     ).toBeTruthy();
 
     const order = testIdOrder(screen.toJSON(), [
-      "composition-row-icon-composition-initial-countdown",
+      "composition-boundary-countdown",
       "composition-exercise-row-warmup",
       "composition-tour-section",
       "composition-exercise-row-core",
       "composition-exercise-row-stretch",
-      "composition-row-icon-composition-end-session",
+      "composition-boundary-final-phase",
     ]);
     expect(order).toEqual([
-      "composition-row-icon-composition-initial-countdown",
+      "composition-boundary-countdown",
       "composition-exercise-row-warmup",
       "composition-tour-section",
       "composition-exercise-row-core",
       "composition-exercise-row-stretch",
-      "composition-row-icon-composition-end-session",
+      "composition-boundary-final-phase",
     ]);
   });
 
@@ -2570,12 +2603,13 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
       anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 90 }),
     ]);
 
-    expect(screen.getAllByTestId(/^composition-activity-recovery-/u)).toHaveLength(1);
+    // PRE-6 story 2.1 : une ligne de récupération (et son emplacement) par occurrence.
+    expect(screen.getAllByTestId(/^composition-activity-recovery-(?!slot-)/u)).toHaveLength(1);
 
     fireSwipeLeft("ex-1");
     fireEvent.press(screen.getByTestId("composition-activity-duplicate-ex-1"));
 
-    // La copie porte SA PROPRE sous-carte, au même libellé.
+    // La copie porte SA PROPRE ligne de récupération, au même libellé.
     expect(screen.getByTestId("composition-activity-recovery-generated-copy-id")).toBeTruthy();
     expect(screen.getAllByText("Récupération 1 min 30 s")).toHaveLength(2);
   });
@@ -2664,7 +2698,12 @@ describe("CompositionScreen — rythme vertical du corps (T02-S02)", () => {
  * **T02-S02 — bloc Activité + Récupération** (D-095/D-128/D-129/D-138 ;
  * CE-T01-09, CE-T02-01/CE-T02-02).
  */
-describe("CompositionScreen — sous-carte Récupération et géométries conditionnelles (T02-S02)", () => {
+/**
+ * PRE-6 story 2.1 (D-303, D-217, écart E5, Figma `8328:28657`) : la sous-carte Récupération
+ * du bloc (T02-S02) est remplacée par une ligne structurelle SOUS la carte — trait toujours
+ * présent, information seulement si R > 0 ; la carte reprend ses hauteurs sans sous-carte.
+ */
+describe("CompositionScreen — ligne structurelle de récupération et géométries conditionnelles (T02-S02, révisé PRE-6 story 2.1)", () => {
   // V2-PRE-1 (plan §3.2, UI-CDBCCFD16078) : la sous-carte Récupération est
   // désormais TOUJOURS rendue (y compris `Récupération 0 s`) — sa PRÉSENCE
   // ne dépend plus de la valeur ; seule la ligne Zones corporelles reste
@@ -2680,77 +2719,39 @@ describe("CompositionScreen — sous-carte Récupération et géométries condit
     );
   }
 
-  // V2-PRE-1 (plan §3.2, UI-CDBCCFD16078) : `postActivityRecoverySeconds`
-  // est désormais un champ OBLIGATOIRE de l'occurrence — la sous-carte est
-  // donc TOUJOURS rendue, y compris `Récupération 0 s`, jamais omise.
-  it("renders the recovery sub-card with the exact zero label when the Activity carries no Récupération", () => {
-    renderScreenWithDraft(withZeroRecovery);
+  it("PRE6-2.1 — R = 0 ou R absente : trait seul, aucune information (jamais « Récupération 0 s »)", () => {
+    for (const recovery of [0, null] as const) {
+      renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: recovery })]);
 
-    expect(screen.getByTestId("composition-activity-recovery-ex-1")).toBeTruthy();
-    expect(screen.getByText("Récupération 0 s")).toBeTruthy();
+      const line = screen.getByTestId("composition-activity-recovery-ex-1");
+      expect(within(line).getByTestId("composition-recovery-line-rule")).toBeTruthy();
+      expect(within(line).queryByTestId("composition-recovery-line-icon")).toBeNull();
+      expect(within(line).queryByTestId("composition-recovery-line-label")).toBeNull();
+      expect(screen.queryByText(/Récupération/u)).toBeNull();
+    }
   });
 
-  it("renders a `Récupération X min Y s` sub-card as soon as the Récupération is non-zero", () => {
-    renderScreenWithDraft(withRecovery);
+  it("PRE6-2.1 — R = 20 : sablier 13 + « Récupération 20 s » avant le trait, ligne de 21", () => {
+    renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 20 })]);
 
-    const subCard = screen.getByTestId("composition-activity-recovery-ex-1");
-    expect(within(subCard).getByText("Récupération 1 min 30 s")).toBeTruthy();
-    expect(StyleSheet.flatten(subCard.props.style).height).toBe(24);
-  });
-
-  /**
-   * **T02-S02 (continuation après recette visuelle)** : le libellé
-   * `Récupération` s'alignait sur le bord gauche du bloc, alors que le nom de
-   * l'Activité, ses Zones corporelles et sa synthèse commencent APRÈS le slot
-   * de la poignée. Il est désormais aligné avec eux, et affiché en gras.
-   */
-  it("left-aligns the Récupération label with the rest of the Activity text, and renders it bold", () => {
-    renderScreenWithDraft([
-      anActivity("ex-1", "BEFORE_TOUR", {
-        name: "Gainage",
-        postActivityRecoverySeconds: 90,
-        bodyZoneIds: ["dos"],
-      }),
-    ]);
-
-    const block = screen.getByTestId("composition-exercise-row-ex-1");
-
-    // Retrait gauche = padding de la carte + slot de la poignée + écart :
-    // exactement l'origine du bloc de texte de la carte principale.
-    const subCardStyle = StyleSheet.flatten(
-      within(block).getByTestId("composition-activity-recovery-ex-1").props.style,
-    );
-    const mainCardStyle = StyleSheet.flatten(
-      within(block).getByTestId("composition-activity-main-card").props.style,
-    );
-    const handleStyle = StyleSheet.flatten(
-      within(block).getByTestId("composition-boundary-handle-slot").props.style,
-    );
-    expect(subCardStyle.paddingLeft).toBe(
-      mainCardStyle.paddingHorizontal + handleStyle.width + mainCardStyle.gap,
-    );
-    expect(subCardStyle.paddingLeft).toBe(52);
-
-    // **T02-S02 (seconde recette visuelle, point 8)** : taille AUGMENTÉE —
-    // `compactCardTitle` (`14/18`) au lieu de `11/14` — à graisse et
-    // alignement STRICTEMENT conservés.
-    const labelStyle = StyleSheet.flatten(
-      within(screen.getByTestId("composition-activity-recovery-ex-1")).getByText(
-        "Récupération 1 min 30 s",
-      ).props.style,
-    );
-    expect(labelStyle.fontSize).toBe(type.compactCardTitle.fontSize);
-    expect(labelStyle.lineHeight).toBe(type.compactCardTitle.lineHeight);
-    expect(labelStyle.fontSize).toBeGreaterThan(type.caption.fontSize);
-    // Graisse inchangée (semi-bold), et toujours distincte des lignes
-    // secondaires régulières.
-    expect(labelStyle.fontWeight).toBe(type.compactCardTitle.fontWeight);
-    expect(labelStyle.fontWeight).not.toBe(type.caption.fontWeight);
-    // La ligne tient toujours dans la sous-carte de `24` points, dont la
-    // géométrie reste inchangée.
-    expect(labelStyle.lineHeight).toBeLessThanOrEqual(
-      dimensions.compositionActivityRow.recoveryCardHeight,
-    );
+    const line = screen.getByTestId("composition-activity-recovery-ex-1");
+    expect(StyleSheet.flatten(line.props.style)).toMatchObject({
+      height: 21,
+      flexDirection: "row",
+      paddingHorizontal: 14,
+      paddingVertical: 4,
+    });
+    expect(StyleSheet.flatten(within(line).getByTestId("composition-recovery-line-icon").props.style)).toMatchObject({
+      width: 13,
+      height: 13,
+    });
+    const label = within(line).getByText("Récupération 20 s");
+    expect(StyleSheet.flatten(label.props.style)).toMatchObject({ fontSize: 11, fontWeight: "500", color: TEXT_TERTIARY });
+    expect(
+      testIdOrder(screen.toJSON(), ["composition-recovery-line-icon", "composition-recovery-line-label", "composition-recovery-line-rule"]),
+    ).toEqual(["composition-recovery-line-icon", "composition-recovery-line-label", "composition-recovery-line-rule"]);
+    const rule = StyleSheet.flatten(within(line).getByTestId("composition-recovery-line-rule").props.style);
+    expect(rule).toMatchObject({ flex: 1, height: 1, backgroundColor: colors.divider });
   });
 
   /**
@@ -2787,11 +2788,10 @@ describe("CompositionScreen — sous-carte Récupération et géométries condit
     expect(mainCardStyle.paddingHorizontal).toBe(spacing[16]);
     expect(mainCardStyle.gap).toBe(spacing[8]);
 
-    // Géométrie du bloc inchangée : `354 × 68` sans Zones (`44` + la
-    // sous-carte Récupération `24`, toujours rendue).
+    // Géométrie de la carte : `44` sans Zones (PRE-6 story 2.1 : plus de sous-carte).
     expect(
       StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style).height,
-    ).toBe(68);
+    ).toBe(44);
     expect(dimensions.compositionActivityRow.compactRestHeight).toBe(44);
     expect(dimensions.compositionActivityRow.restHeight).toBe(60);
     expect(dimensions.compositionActivityRow.recoveryCardHeight).toBe(24);
@@ -2817,30 +2817,40 @@ describe("CompositionScreen — sous-carte Récupération et géométries condit
     expect(contentHeight + spacing[8] * 2).toBeGreaterThan(usableHeight);
   });
 
-  it("keeps the sub-card INSIDE the single pressable block — one Activity is never two rows", () => {
+  it("PRE6-2.1 — la ligne fait bloc avec l'occurrence : même conteneur gestuel, sous la carte, même translation", () => {
     renderScreenWithDraft(withRecovery);
 
-    const block = screen.getByTestId("composition-exercise-row-ex-1");
-    expect(within(block).getByTestId("composition-activity-recovery-ex-1")).toBeTruthy();
-    // Un seul conteneur gestuel, un seul `Pressable` : le bloc est
-    // indivisible pour l'appui, l'appui long et le balayage (D-138).
+    const container = screen.getByTestId("composition-activity-ex-1");
+    const card = screen.getByTestId("composition-exercise-row-ex-1");
+    const line = within(container).getByTestId("composition-activity-recovery-ex-1");
+    // Hors de la surface de la carte, après elle, dans le même conteneur gestuel (D-138).
+    expect(within(card).queryByTestId("composition-activity-recovery-ex-1")).toBeNull();
+    expect(
+      testIdOrder(screen.toJSON(), ["composition-exercise-row-ex-1", "composition-activity-recovery-ex-1"]),
+    ).toEqual(["composition-exercise-row-ex-1", "composition-activity-recovery-ex-1"]);
     expect(screen.getAllByTestId(/^composition-activity-ex-1$/u)).toHaveLength(1);
-    expect(screen.getAllByTestId(/^composition-exercise-row-ex-1$/u)).toHaveLength(1);
-    expect(block.props.accessibilityRole).toBe("button");
+    expect(card.props.accessibilityRole).toBe("button");
+    // Écart 6 entre la carte et la ligne (Figma `8328:28645`), même transformation que la carte.
+    expect(line).toBeTruthy();
+    const lineWrapper = StyleSheet.flatten(
+      within(container).getByTestId("composition-activity-recovery-slot-ex-1").props.style,
+    );
+    expect(lineWrapper.marginTop).toBe(6);
+    expect(lineWrapper.transform).toEqual(StyleSheet.flatten(card.props.style).transform);
   });
 
-  it("applies 354 × 68 without Zones and 354 × 84 with Zones — Récupération is always rendered, so it never changes the height by itself", async () => {
+  it("applies 354 × 44 without Zones and 354 × 60 with Zones — the recovery line never changes the card height", async () => {
     renderScreenWithDraft(withZeroRecovery);
-    expect(blockStyle().height).toBe(68);
+    expect(blockStyle().height).toBe(44);
 
     renderScreenWithDraft(withRecovery);
-    expect(blockStyle().height).toBe(68);
+    expect(blockStyle().height).toBe(44);
 
     renderScreenWithDraft([
       anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", bodyZoneIds: ["dos"] }),
     ]);
     await screen.findByTestId("composition-exercise-body-zones");
-    expect(blockStyle().height).toBe(84);
+    expect(blockStyle().height).toBe(60);
   });
 
   /**
@@ -2893,12 +2903,12 @@ describe("CompositionScreen — sous-carte Récupération et géométries condit
     );
   });
 
-  it("uses the optional Zones line to select 68/84 — the Récupération sub-card (24) is always included", async () => {
+  it("uses the optional Zones line to select 44/60 — the recovery line is outside the card", async () => {
     const cases = [
-      { bodyZoneIds: [], postActivityRecoverySeconds: 0, expected: 68 },
-      { bodyZoneIds: [], postActivityRecoverySeconds: 90, expected: 68 },
-      { bodyZoneIds: ["dos"], postActivityRecoverySeconds: 0, expected: 84 },
-      { bodyZoneIds: ["dos"], postActivityRecoverySeconds: 90, expected: 84 },
+      { bodyZoneIds: [], postActivityRecoverySeconds: 0, expected: 44 },
+      { bodyZoneIds: [], postActivityRecoverySeconds: 90, expected: 44 },
+      { bodyZoneIds: ["dos"], postActivityRecoverySeconds: 0, expected: 60 },
+      { bodyZoneIds: ["dos"], postActivityRecoverySeconds: 90, expected: 60 },
     ];
 
     for (const { bodyZoneIds, postActivityRecoverySeconds, expected } of cases) {
@@ -2914,7 +2924,7 @@ describe("CompositionScreen — sous-carte Récupération et géométries condit
     expect(dimensions.compositionActivityRow.recoveryCardHeight).toBe(24);
   });
 
-  it("sizes each revealed action to the FULL height of the block (72 × 68 / 72 × 84)", async () => {
+  it("sizes each revealed action to the FULL height of the card (72 × 44 / 72 × 60)", async () => {
     renderScreenWithDraft(withZeroRecovery);
     fireSwipeLeft("ex-1");
     for (const testID of [
@@ -2923,11 +2933,11 @@ describe("CompositionScreen — sous-carte Récupération et géométries condit
     ]) {
       const style = StyleSheet.flatten(screen.getByTestId(testID).props.style);
       expect(style.width).toBe(72);
-      expect(style.height).toBe(68);
+      expect(style.height).toBe(44);
     }
     expect(
       StyleSheet.flatten(screen.getByTestId("composition-activity-actions-ex-1").props.style).height,
-    ).toBe(68);
+    ).toBe(44);
 
     renderScreenWithDraft([
       anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", bodyZoneIds: ["dos"] }),
@@ -2940,25 +2950,25 @@ describe("CompositionScreen — sous-carte Récupération et géométries condit
     ]) {
       const style = StyleSheet.flatten(screen.getByTestId(testID).props.style);
       expect(style.width).toBe(72);
-      expect(style.height).toBe(84);
+      expect(style.height).toBe(60);
     }
     expect(
       StyleSheet.flatten(screen.getByTestId("composition-activity-actions-ex-1").props.style).height,
-    ).toBe(84);
+    ).toBe(60);
   });
 
-  it("CE-T02-02 — the lifted block without Zones is exactly 362 × 72 (width expressed as a ±4 margin)", () => {
+  it("CE-T02-02 — the lifted card without Zones is exactly 362 × 48 (width expressed as a ±4 margin)", () => {
     renderScreenWithDraft(withZeroRecovery);
     fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
 
     const lifted = blockStyle();
-    expect(lifted.height).toBe(72);
+    expect(lifted.height).toBe(48);
     // `354 + 8 = 362`, l'écart étant appliqué symétriquement (`x = 6` sur
     // une section de `354`) plutôt qu'en largeur absolue.
     expect(lifted.marginHorizontal).toBe(-4);
   });
 
-  it("with Zones, the lifted block is 362 × 88", async () => {
+  it("with Zones, the lifted card is 362 × 64", async () => {
     renderScreenWithDraft([
       anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", bodyZoneIds: ["dos"] }),
     ]);
@@ -2966,26 +2976,23 @@ describe("CompositionScreen — sous-carte Récupération et géométries condit
     fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
 
     const lifted = blockStyle();
-    expect(lifted.height).toBe(88);
-    expect(lifted.height).not.toBe(72);
+    expect(lifted.height).toBe(64);
     expect(lifted.marginHorizontal).toBe(-4);
   });
 
-  it("CE-T02-02 — the internal surfaces become transparent while lifted, letting the blue show through", () => {
+  it("CE-T02-02 — the lifted card takes the blue surface; the recovery line has no surface of its own", () => {
     renderScreenWithDraft(withRecovery);
 
-    const restingSubCard = StyleSheet.flatten(
-      screen.getByTestId("composition-activity-recovery-ex-1").props.style,
-    );
-    expect(restingSubCard.backgroundColor).toBe(colors.surface);
+    expect(
+      StyleSheet.flatten(screen.getByTestId("composition-activity-recovery-ex-1").props.style).backgroundColor,
+    ).toBeUndefined();
 
     fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
 
-    expect(
-      StyleSheet.flatten(screen.getByTestId("composition-activity-recovery-ex-1").props.style)
-        .backgroundColor,
-    ).toBe("transparent");
     expect(blockStyle().backgroundColor).toBe(colors.exerciseContextBandBackground);
+    expect(
+      StyleSheet.flatten(screen.getByTestId("composition-activity-recovery-ex-1").props.style).backgroundColor,
+    ).toBeUndefined();
   });
 
   it("moves the Récupération WITH its Activity — the sub-card follows the block across zones", () => {
@@ -3348,7 +3355,8 @@ describe("CompositionScreen — recette 3 (T-49, EXT-R3-2 : zone de contexte)", 
       .map((child) => child?.props?.testID)
       .filter(Boolean);
     expect(order[0]).toBe("composition-context-band-effects");
-    expect(order.indexOf("composition-name-color-field")).toBeGreaterThan(0);
+    // PRE-6 story 2.1 : nom, Étiquette, durée et « + » forment le bloc `CompositionContextHeader`.
+    expect(order.indexOf("composition-context-header")).toBeGreaterThan(0);
     expect(within(band).getByLabelText(composition.name)).toBeTruthy();
     expect(within(band).getByLabelText(composition.addActivity)).toBeTruthy();
     expect(screen.getByTestId("composition-session-color-trigger")).toBeTruthy();
@@ -3483,5 +3491,198 @@ describe("CompositionScreen — Points d'arrêt du brouillon (PRE-6 story 1.2)",
       testIdOrder(screen.toJSON(), ["composition-exercise-row-ex-1", "composition-exercise-row-ex-2"]),
     ).toEqual(["composition-exercise-row-ex-2", "composition-exercise-row-ex-1"]);
     expect(readStopPoints()).toEqual([{ id: "s-1", scope: "BEFORE_TOUR", position: 2 }]);
+  });
+});
+
+/**
+ * PRE-6 story 2.1 — En-tête, bornes de séance et Continuer (matrice de la spec) : durée de
+ * séance de l'en-tête (toutes les occurrences, nature du Circuit, sans Compte à rebours ni
+ * Fin, RM-159), bouton fermer, « + », bornes et action « Continuer ».
+ */
+describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", () => {
+  function headerDuration() {
+    return screen.getByTestId("composition-session-duration").props.children as string;
+  }
+
+  it("PRE6-2.1 — séance vide : « 0 min » dans l'en-tête et Continuer désactivé", () => {
+    renderScreen();
+    expect(headerDuration()).toBe("0 min");
+    expect(screen.getByLabelText(composition.saveAction).props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.getByText("Continuer")).toBeTruthy();
+  });
+
+  it("PRE6-2.1 — la durée de séance totalise toutes les occurrences (Circuit × Tours), jamais le Compte à rebours ni la Fin", () => {
+    renderScreenWithDraft(
+      [
+        { ...createExerciseDraft("before"), name: "Échauffement", structuralPosition: "BEFORE_TOUR", executionParameters: durationParameters(60) },
+        { ...createExerciseDraft("in"), name: "Gainage", structuralPosition: "IN_TOUR", executionParameters: durationParameters(60) },
+        { ...createExerciseDraft("after"), name: "Étirements", structuralPosition: "AFTER_TOUR", executionParameters: durationParameters(60) },
+      ],
+      { tourRepeatCount: 3, initialCountdownSeconds: 600, finalPhaseSeconds: 600 },
+    );
+    // 60 + 60 × 3 + 60 = 300 s → « 5 min » ; Compte à rebours et Fin (10 min chacun) exclus.
+    expect(headerDuration()).toBe("5 min");
+    // Le résumé du Circuit reste limité à la zone IN_TOUR.
+    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("3 min");
+  });
+
+  it("PRE6-2.1 — une cible À l'échec : « ≥ … » dans l'en-tête", () => {
+    renderScreenWithDraft([
+      { ...createExerciseDraft("ex-1"), name: "Pompes", executionParameters: allFailureParameters(3, 20) },
+    ]);
+    expect(headerDuration()).toMatch(/^≥ /u);
+  });
+
+  it("PRE6-2.1 — bouton fermer (X) : icône `control-close`, même action que le retour (garde d'abandon existante)", () => {
+    renderScreen();
+    const close = screen.getByTestId("screen-header-back");
+    expect(close.props.accessibilityLabel).toBe("Fermer");
+    expect(close.props.accessibilityLabel).toBe(composition.closeAccessibilityLabel);
+    const headerIconSource: unknown = screen.getByTestId("screen-header-back-icon").props.source;
+    const closeSource: unknown = render(<KodjoIcon name="control-close" testID="reference-close-icon" />).getByTestId(
+      "reference-close-icon",
+    ).props.source;
+    const backSource: unknown = render(<KodjoIcon name="control-back" testID="reference-back-icon" />).getByTestId(
+      "reference-back-icon",
+    ).props.source;
+    expect(headerIconSource).toEqual(closeSource);
+    expect(headerIconSource).not.toEqual(backSource);
+  });
+
+  it("PRE6-2.1 — Fermer avec un brouillon modifié : la garde de sortie demande la confirmation d'abandon existante", () => {
+    renderScreen();
+    fireEvent.changeText(screen.getByLabelText(composition.name), "Séance du soir");
+    // Le mécanisme réel est couvert par `CompositionNavigationGuard.integration.test.tsx` ;
+    // ici, l'écran signale bien un brouillon à protéger et route le X sur `router.back()`.
+    expect(mockExitGuard).toHaveBeenLastCalledWith(true, expect.any(Function));
+    fireEvent.press(screen.getByTestId("screen-header-back"));
+    expect(mockBack).toHaveBeenCalledTimes(1);
+  });
+
+  it("PRE6-2.1 — Continuer reste désactivé pour un nom vide ou une cible manquante, actif pour une Composition valide", () => {
+    const valid = { ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) };
+    renderScreenWithDraft([valid], { name: "" });
+    expect(screen.getByLabelText(composition.saveAction).props.accessibilityState).toMatchObject({ disabled: true });
+
+    renderScreenWithDraft([{ ...valid, executionParameters: durationParameters("UNSET") }]);
+    expect(screen.getByLabelText(composition.saveAction).props.accessibilityState).toMatchObject({ disabled: true });
+
+    renderScreenWithDraft([valid]);
+    expect(screen.getByLabelText(composition.saveAction).props.accessibilityState).toMatchObject({ disabled: false });
+  });
+
+  it("PRE6-2.1 — bornes toujours présentes, défauts 10 s et 5 s, 0 s admis via la roulette existante", () => {
+    renderScreenWithDraft([], { initialCountdownSeconds: 0 });
+    expect(within(screen.getByLabelText(composition.countdown.label)).getByText("00 min 00 s")).toBeTruthy();
+    expect(within(screen.getByLabelText(composition.finalPhase.label)).getByText("00 min 05 s")).toBeTruthy();
+
+    fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
+    expect(screen.getByLabelText(composition.finalPhase.label).props.accessibilityState).toMatchObject({ expanded: true });
+    expect(screen.getByTestId("duration-wheel-minutes")).toBeTruthy();
+  });
+
+  it("PRE6-2.1 — la durée de séance suit la nature du Circuit (Séries : passages, pas Tours × contenu)", () => {
+    // Même fixture que le résumé du Circuit (story 1.3) : 3 séries de 60 s, pause 30 s, N = 2.
+    // Séries : (60 + 30) × 2 = 180 s → « 3 min » ; en Tours, 540 s → « 9 min ».
+    const exercises = [anActivity("ex-1", "IN_TOUR", { name: "Squats", executionParameters: durationParameters(60, 3, 30) })];
+    renderScreenWithDraft(exercises, { tourRepeatCount: 2, circuitNature: "SERIES" });
+    expect(headerDuration()).toBe("3 min");
+
+    renderScreenWithDraft(exercises, { tourRepeatCount: 2, circuitNature: "TOURS" });
+    expect(headerDuration()).toBe("9 min");
+  });
+
+  it("PRE6-2.1 — une Récupération positive d'une occurrence du Circuit compte à chaque Tour", () => {
+    // 60 s + Récupération 30 s par Tour, 2 Tours : 180 s → « 3 min » (sans Récupération : « 2 min »).
+    renderScreenWithDraft(
+      [anActivity("ex-1", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60), postActivityRecoverySeconds: 30 })],
+      { tourRepeatCount: 2 },
+    );
+    expect(headerDuration()).toBe("3 min");
+
+    renderScreenWithDraft(
+      [anActivity("ex-1", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60), postActivityRecoverySeconds: 0 })],
+      { tourRepeatCount: 2 },
+    );
+    expect(headerDuration()).toBe("2 min");
+  });
+
+  it("PRE6-2.1 — la ligne de récupération suit la carte : même translateX au balayage, même translateY au déplacement ; le repère ne suit que le déplacement", () => {
+    renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 20 })]);
+    const hidden = { includeHiddenElements: true };
+    const transformOf = (testID: string) =>
+      StyleSheet.flatten(screen.getByTestId(testID, hidden).props.style).transform as Record<string, number>[];
+    const cardTransform = () => transformOf("composition-exercise-row-ex-1");
+    const lineTransform = () => transformOf("composition-activity-recovery-slot-ex-1");
+
+    fireSwipeLeft("ex-1");
+    expect(cardTransform()[0]!.translateX).toBeLessThan(0);
+    expect(lineTransform()).toEqual(cardTransform());
+    expect(transformOf("composition-sequence-marker-ex-1")).toEqual([{ translateY: 0 }]);
+    fireSwipeRight("ex-1");
+
+    const container = () => screen.getByTestId("composition-activity-ex-1");
+    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
+    fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
+    fireEvent(container(), "responderMove", { nativeEvent: { pageX: 200, pageY: 150 } });
+
+    expect(cardTransform()[1]!.translateY).toBe(50);
+    expect(lineTransform()).toEqual(cardTransform());
+    expect(transformOf("composition-sequence-marker-ex-1")).toEqual([{ translateY: 50 }]);
+  });
+
+  it("PRE6-2.1 — le repère d'une occurrence est rendu avant les actions glissées et la carte", () => {
+    renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage" })]);
+    fireSwipeLeft("ex-1");
+    const children = (screen.getByTestId("composition-activity-ex-1").children as { props: { testID?: string } }[]).map(
+      (child) => child.props.testID,
+    );
+    expect(children.indexOf("composition-sequence-marker-ex-1")).toBe(0);
+    expect(children.indexOf("composition-activity-actions-ex-1")).toBeGreaterThan(0);
+    expect(children.indexOf("composition-exercise-row-ex-1")).toBeGreaterThan(
+      children.indexOf("composition-activity-actions-ex-1"),
+    );
+  });
+
+  it("PRE6-2.1 — toute la rangée d'une borne ouvre la roulette, y compris un toucher sur le libellé", () => {
+    renderScreen();
+    fireEvent.press(within(screen.getByTestId("composition-boundary-countdown")).getByText(composition.countdown.label));
+    expect(screen.getByLabelText(composition.countdown.label).props.accessibilityState).toMatchObject({ expanded: true });
+    expect(screen.getByTestId("duration-wheel-minutes")).toBeTruthy();
+  });
+
+  it("PRE6-2.1 — la puce Étiquette ouvre LabelPickerModal ; avec une Étiquette, elle montre la pastille et le nom", async () => {
+    renderScreenWithDraft([], { labelId: null });
+    fireEvent.press(screen.getByLabelText(composition.label.accessibilityLabel));
+    expect(await screen.findByTestId("label-picker-tag-label-sport")).toBeTruthy();
+
+    renderScreenWithDraft([], { labelId: "label-sport" });
+    await waitFor(() => {
+      const chip = screen.getByLabelText(composition.label.accessibilityLabel);
+      expect(within(chip).getByTestId("composition-session-color-swatch")).toBeTruthy();
+      expect(within(chip).getByTestId("composition-session-label-name").props.children).toBe("Sport");
+      expect(within(chip).queryByTestId("composition-session-label-outline-icon")).toBeNull();
+    });
+  });
+
+  it("PRE6-2.1 — la ligne de récupération a pour nom accessible son seul libellé visible", () => {
+    renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 20 })]);
+    expect(screen.getByTestId("composition-activity-recovery-ex-1").props.accessibilityLabel).toBe("Récupération 20 s");
+  });
+
+  it("PRE6-2.1 — repère point pour une occurrence hors Circuit, aucun pour une occurrence du Circuit", () => {
+    renderScreenWithDraft([
+      { ...createExerciseDraft("out"), name: "Échauffement", structuralPosition: "BEFORE_TOUR", executionParameters: durationParameters(60) },
+      { ...createExerciseDraft("in"), name: "Gainage", structuralPosition: "IN_TOUR", executionParameters: durationParameters(60) },
+    ]);
+    const hidden = { includeHiddenElements: true };
+    expect(StyleSheet.flatten(screen.getByTestId("composition-sequence-marker-out", hidden).props.style)).toMatchObject({
+      width: 14,
+      height: 14,
+      borderWidth: 3,
+      borderColor: colors.background,
+      backgroundColor: colors.disabled,
+    });
+    expect(screen.queryByTestId("composition-sequence-marker-in", hidden)).toBeNull();
   });
 });

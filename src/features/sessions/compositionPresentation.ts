@@ -6,8 +6,10 @@ import {
   type ExecutionParametersInput,
 } from "@/domain/activities/ExecutionParameters";
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
+import type { SessionDurationResult } from "@/domain/activities/executionCalculations";
 import { computeStructuredSessionDuration } from "@/domain/sessions/calculations";
 import { DEFAULT_CIRCUIT_NATURE, type CircuitNature } from "@/domain/sessions/circuit";
+import { groupActivitiesByZone } from "@/domain/sessions/composition";
 import { DEFAULT_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
 import type { SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import type { SideMode } from "@/domain/sessions/sideMode";
@@ -82,22 +84,47 @@ export function formatCompositionSummary(facts: CompositionSummaryFacts): string
     tourRepeatCount: facts.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
     circuitNature: facts.circuitNature ?? DEFAULT_CIRCUIT_NATURE,
   });
-  const totalSeconds = duration.seconds;
-  const isLowerBound = duration.kind === "lowerBound";
-
-  // PRE-3 : symbole issu de l'autorité Domaine — « ≥ » si un travail est
-  // inconnu, « ≈ » si une contribution est estimée (Répétitions avec bip),
-  // aucun symbole sinon. PRE-4 (story 2.4, AC5) : la borne minimale garde
-  // ses secondes (105 s → « ≥ 1 min 45 s ») ; `exact` et `estimated` gardent
-  // `formatEstimatedDuration` et son arrondi à la minute supérieure (P41).
-  // Une borne de 0 s garde le rendu PRE-3 « ≥ 0 min », jamais « 0 s »
-  // (règle P47, `docs/preparation/PRE-4/bmad/questions-ouvertes.md`).
-  //
   // PRE-6 (story 1.3, D-382, D-390) : la durée de ce seul Circuit, sans
   // nombre d'exercices.
-  return isLowerBound && totalSeconds > 0
-    ? `${strings.shared.durationNature.lowerBoundPrefix}${formatPhraseDuration(totalSeconds)}`
-    : formatEstimatedDuration(totalSeconds, duration.kind);
+  return formatSessionDurationResult(duration);
+}
+
+/**
+ * Format partagé d'une durée typée du Domaine. PRE-3 : « ≥ » si un travail
+ * est inconnu, « ≈ » si une contribution est estimée (Répétitions avec bip),
+ * aucun symbole sinon. PRE-4 (story 2.4, AC5) : la borne minimale garde ses
+ * secondes (105 s → « ≥ 1 min 45 s ») ; `exact` et `estimated` gardent
+ * `formatEstimatedDuration` et son arrondi à la minute supérieure (P41). Une
+ * borne de 0 s garde « ≥ 0 min », jamais « 0 s » (règle P47).
+ *
+ * PRE-6 (story 2.1) : partagé par le résumé du Circuit et la durée de séance
+ * de l'en-tête — même formatage et mêmes préfixes par construction.
+ */
+function formatSessionDurationResult(duration: SessionDurationResult): string {
+  return duration.kind === "lowerBound" && duration.seconds > 0
+    ? `${strings.shared.durationNature.lowerBoundPrefix}${formatPhraseDuration(duration.seconds)}`
+    : formatEstimatedDuration(duration.seconds, duration.kind);
+}
+
+/**
+ * Durée de séance de l'en-tête de la Composition (PRE-6 story 2.1,
+ * CE-T03-08, RM-159) : TOUTES les occurrences, développées selon la nature
+ * du Circuit (`computeStructuredSessionDuration`, autorité unique du
+ * Domaine), sans Compte à rebours initial ni Fin de séance. Séance vide :
+ * « 0 min » (total exact nul).
+ */
+export function formatCompositionSessionDuration(facts: CompositionSummaryFacts): string {
+  // Même répartition en zones que l'affichage de la Composition.
+  const zones = groupActivitiesByZone(facts.exercises);
+  return formatSessionDurationResult(
+    computeStructuredSessionDuration({
+      beforeTour: zones.beforeTour,
+      inTour: zones.inTour,
+      afterTour: zones.afterTour,
+      tourRepeatCount: facts.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
+      circuitNature: facts.circuitNature ?? DEFAULT_CIRCUIT_NATURE,
+    }),
+  );
 }
 
 /**
@@ -285,18 +312,15 @@ export function formatExerciseBodyZones(
 }
 
 /**
- * Libellé de la SOUS-CARTE `Récupération X min Y s` attachée à une carte
- * d'Activité dans la Composition (T02-S02, D-095/D-128/D-138 ; CE-T01-09
- * « carte au repos `354 × 69` sans Récupération ou bloc `354 × 93` avec
- * Récupération »).
+ * Libellé de la Récupération d'une occurrence dans la Composition (historique :
+ * sous-carte attachée de T02-S02, D-095/D-128/D-138, retirée en PRE-6 story 2.1).
  *
- * **V2-PRE-1 (plan §3.2, UI-CDBCCFD16078)** : `postActivityRecoverySeconds`
- * est désormais un champ OBLIGATOIRE de l'occurrence (`Activity`), jamais
- * absent — y compris lorsqu'il vaut `0`. Cette fonction retourne donc
- * toujours une chaîne non vide (`"Récupération 0 s"` incluse), jamais `null`
- * : son seul usage métier restant est la Récupération de l'OCCURRENCE
- * (Composition) — plus aucun appel depuis une carte de Définition Catalogue
- * (`ActivityCard.tsx`), qui ne porte plus cette notion.
+ * **PRE-6 (story 2.1, D-303, D-217, écart E5, Figma `8328:28657`)** : la
+ * sous-carte devient l'information de la ligne structurelle de récupération
+ * sous l'occurrence. `null` lorsque la Récupération est absente (`null`,
+ * story 1.1) ou nulle : la ligne ne montre alors que son trait, jamais
+ * « Récupération 0 s » (remplace la règle V2-PRE-1 d'une chaîne toujours
+ * rendue).
  *
  * La durée réutilise `formatCompactDuration` — exactement le format déjà
  * employé par la Pause dans la synthèse de la même carte (`30 s`, `1 min`,
@@ -304,6 +328,11 @@ export function formatExerciseBodyZones(
  * `formatDurationRowValue`) juxtaposerait deux écritures différentes de la
  * même grandeur dans une même carte.
  */
-export function formatActivityRecoveryLabel(postActivityRecoverySeconds: number): string {
+export function formatActivityRecoveryLabel(
+  postActivityRecoverySeconds: number | null | undefined,
+): string | null {
+  if (postActivityRecoverySeconds === null || postActivityRecoverySeconds === undefined || postActivityRecoverySeconds <= 0) {
+    return null;
+  }
   return `${strings.screens.composition.activityRecovery.label} ${formatCompactDuration(postActivityRecoverySeconds)}`;
 }

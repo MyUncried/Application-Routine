@@ -8,7 +8,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
   type GestureResponderEvent,
   type LayoutChangeEvent,
@@ -17,7 +16,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Label } from "@/domain/labels/Label";
-import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
 import { DEFAULT_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
 import { DEFAULT_SESSION_COLOR, type StructuralPosition } from "@/domain/sessions/Session";
 import {
@@ -48,13 +46,24 @@ import {
   type ActivityRowLayout,
   type CompositionDragLayout,
 } from "@/features/sessions/compositionGesture";
+import { ActivityRecoveryLine } from "@/features/sessions/ActivityRecoveryLine";
+import { CompositionContextHeader } from "@/features/sessions/CompositionContextHeader";
 import {
-  formatActivityRecoveryLabel,
+  formatCompositionSessionDuration,
   formatCompositionSummary,
   formatDurationRowValue,
   formatExerciseBodyZones,
   formatExerciseRowSummary,
 } from "@/features/sessions/compositionPresentation";
+import {
+  BOUNDARY_MARKER_CENTER_Y,
+  BoundaryStep,
+  CIRCUIT_MARKER_CENTER_Y,
+  OCCURRENCE_MARKER_CENTER_Y,
+  SEQUENCE_CONTENT_OFFSET,
+  SequenceMarker,
+  SequenceRail,
+} from "@/features/sessions/CompositionSequence";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
@@ -63,7 +72,7 @@ import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitG
 import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
 import { strings } from "@/shared/i18n";
 import { ContextBand, FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
-import { KodjoIcon, type KodjoIconName } from "@/shared/ui/KodjoIcon";
+import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 type OverlayKind = "countdown" | "finalPhase" | "tour";
@@ -348,8 +357,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // quelque chose a changé) ; en création, V2-PRE-2 (T18) la compare au
   // brouillon RÉELLEMENT créé (valeurs du Profil au moment de la création),
   // jamais aux seules constantes du Domaine si le Profil en diffère.
-  // PRE-4, décision Q54 de Hermann (2026-10-18) : « Enregistrer la séance » enregistre depuis
-  // la Composition (l'écran « Catégories de la séance », vestige, est supprimé). Le service est
+  // PRE-4, décision Q54 de Hermann (2026-10-18) : l'action finale (« Continuer » depuis PRE-6
+  // story 2.1, ex-« Enregistrer la séance ») enregistre depuis la Composition (l'écran « Catégories de la séance », vestige, est supprimé). Le service est
   // lu sans exigence de fournisseur : sans lui, l'enregistrement échoue avec le message D-107.
   const sessionService = useContext(SessionServiceContext);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "error">("idle");
@@ -564,6 +573,13 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     // PRE-6 (story 1.3) : la durée du Circuit suit sa nature (Tours / Séries).
     circuitNature: draft.circuitNature,
   });
+  // PRE-6 (story 2.1, RM-159) : durée de séance de l'en-tête — toutes les occurrences, sans
+  // Compte à rebours ni Fin ; même formatage que le résumé du Circuit.
+  const sessionDuration = formatCompositionSessionDuration({
+    exercises: draft.exercises,
+    tourRepeatCount,
+    circuitNature: draft.circuitNature,
+  });
 
   // T01-S09 (AC-01/AC-02, CE-T01-11) : `Continuer` s'active uniquement pour
   // une Composition valide — `toCreateSessionInput` est la même validation
@@ -618,7 +634,10 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       <FixedHeader
         title={composition.title}
         onBack={() => router.back()}
-        backAccessibilityLabel={composition.backAccessibilityLabel}
+        backAccessibilityLabel={composition.closeAccessibilityLabel}
+        // PRE-6 (story 2.1, Figma `8328:28730`) : bouton fermer (X) — même action et même
+        // garde d’abandon (`useCompositionExitGuard`) que le retour précédent.
+        closeIcon
       />
       {/* Recette 3 (T-49, EXT-R3-2, D-353) : plus de trait gris entre l’en-tête et la
           zone de contexte — la courbe blanche sous Retour s’y raccorde directement. */}
@@ -646,106 +665,21 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           <View style={styles.backHalo} testID="composition-context-band-halo" />
         </View>
         {/*
-         * CMP-02 : le champ Nom occupe seul le champ blanc arrondi
-         * (`nameColorField`) posé sur la bande Context. V2-PRE-1 (plan
-         * §3.3, UI-74BBA70BF09F) : le sélecteur de couleur autonome
-         * (`ColorPalette`/`draft.color`) est retiré — la couleur de la
-         * Séance est désormais exclusivement DÉRIVÉE de son Étiquette
-         * (aucune interaction de couleur sur cet écran).
+         * PRE-6 (story 2.1, AD-41, Figma `8328:28608`) : nom, puce Étiquette, durée de séance
+         * et bouton « + » (arbre d’ajout existant) — voir `CompositionContextHeader`. La couleur
+         * de la Séance reste DÉRIVÉE de son Étiquette (V2-PRE-1), jamais écrite ici.
          */}
-        <View style={styles.nameColorField} testID="composition-name-color-field">
-          <TextInput
-            value={draft.name}
-            onChangeText={(text) => updateDraft({ name: text })}
-            onFocus={closeOverlay}
-            placeholder={composition.name}
-            // R4-01 (`[ChatGPT] CHANGES_REQUESTED — Composition d'une
-            // séance — audit indépendant REWORK04`, 2026-09-03) : le
-            // placeholder lui-même utilise désormais `text-primary`
-            // (`#141414`), pas seulement le texte réellement saisi —
-            // corrige `placeholderTextColor`, précédemment
-            // `colors.textSecondary`.
-            placeholderTextColor={colors.textPrimary}
-            accessibilityLabel={composition.name}
-            maxLength={NAME_MAX_LENGTH}
-            style={styles.nameInput}
-          />
-          {/*
-           * V2-PRE-2 (plan §6.5, CE-T03-16) : pastille devenue interactive —
-           * ouvre `LabelPickerModal` (zéro ou une Étiquette, administration
-           * du référentiel avec couleur). Libellé d'accessibilité DISTINCT
-           * de l'ancien `colorPicker.label` (retiré, jamais réintroduit : le
-           * test « never renders an autonomous color picker » reste vert).
-           * Toujours la couleur DÉRIVÉE de l'Étiquette associée — aucune
-           * écriture directe de `draft.color`, retiré du contrat cible.
-           *
-           * R7a (CE-T03-16 L1609, §18 L1677) : une Étiquette affectée
-           * affiche son NOM à côté de la pastille (pilule). Sans Étiquette,
-           * l'icône d'étiquette au trait (`label-outline`, révision r4,
-           * Figma 4916:6386/2028:11204) remplace la pastille — jamais de
-           * remplissage de couleur. `sessionColor` (R7b, inchangé) ne reste
-           * utile qu'à la pastille elle-même, affichée seulement quand une
-           * Étiquette est choisie.
-           */}
-          <Pressable
-            onPress={() => setIsLabelPickerOpen(true)}
-            accessibilityRole="button"
-            accessibilityLabel={composition.label.accessibilityLabel}
-            style={sessionLabel ? styles.sessionLabelPill : undefined}
-            testID="composition-session-color-trigger"
-          >
-            {sessionLabel ? (
-              <>
-                <View
-                  style={[styles.sessionColorSwatch, { backgroundColor: sessionColor }]}
-                  testID="composition-session-color-swatch"
-                />
-                <Text style={styles.sessionLabelPillText} testID="composition-session-label-name">
-                  {sessionLabel.name}
-                </Text>
-              </>
-            ) : (
-              <KodjoIcon name="label-outline" testID="composition-session-label-outline-icon" />
-            )}
-          </Pressable>
-        </View>
-
-        {/*
-         * CMP-02 : `+ Ajouter une activité` centré (auparavant
-         * `alignSelf: "flex-start"`). Boîte visuelle compacte issue du
-         * composant DS (`dimensions.compactSecondaryButton`, même token que
-         * le bouton Créer du Catalogue) — fond blanc, bordure/icône/texte
-         * primaires, cible tactile `≥48` via `hitSlop` indépendante de la
-         * boîte visuelle.
-         *
-         * **Complétion REWORK12 (COMP-03)** (`[ChatGPT] Applique
-         * impérativement le protocole KODJO actif...`, 2026-09-04) : reste
-         * désormais TOUJOURS visible et utilisable, y compris après l'ajout
-         * d'une ou plusieurs Activités — abroge la restriction précédente
-         * (« Masqué dès qu'un Exercice existe », modèle T01 à Exercice
-         * unique) : `draft.exercises` est désormais une collection ordonnée
-         * (`SessionDraft.ts`), et ce bouton navigue systématiquement vers
-         * `/exercise` SANS paramètre `exerciseId` — un identifiant frais y
-         * est généré, ajoutant toujours une NOUVELLE Activité en fin de
-         * collection, jamais en remplacement d'une existante.
-         */}
-        <Pressable
-          onPress={() => setIsAddActivityTreeOpen(true)}
-          accessibilityRole="button"
-          accessibilityState={{ disabled: false }}
-          accessibilityLabel={composition.addActivity}
-          hitSlop={{
-            top: (minTouchTarget - dimensions.compactSecondaryButton.visualHeight) / 2,
-            bottom: (minTouchTarget - dimensions.compactSecondaryButton.visualHeight) / 2,
-            left: spacing[8],
-            right: spacing[8],
-          }}
-          style={styles.addActivityAction}
-          testID="composition-add-activity-action"
-        >
-          <KodjoIcon name="action-add" testID="composition-add-activity-icon" />
-          <Text style={styles.addActivityLabel}>{composition.addActivity}</Text>
-        </Pressable>
+        <CompositionContextHeader
+          name={draft.name}
+          onChangeName={(text) => updateDraft({ name: text })}
+          onNameFocus={closeOverlay}
+          sessionLabel={sessionLabel}
+          sessionColor={sessionColor}
+          onOpenLabelPicker={() => setIsLabelPickerOpen(true)}
+          sessionDuration={sessionDuration}
+          onAdd={() => setIsAddActivityTreeOpen(true)}
+          testID="composition-context-header"
+        />
       </ContextBand>
 
       {/*
@@ -794,12 +728,19 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         scrollEnabled={draggedActivityId === null}
         testID="composition-body"
       >
-        <BoundaryActivityRow
-          icon="composition-initial-countdown"
+        {/* PRE-6 (story 2.1, Figma `8328:28634`) : rail de la Séquence, du centre de la
+            première borne à celui de la dernière ; repères posés par chaque étape. */}
+        <SequenceRail
+          left={spacing[24]}
+          top={spacing[16] + BOUNDARY_MARKER_CENTER_Y}
+          bottom={spacing[16] + BOUNDARY_MARKER_CENTER_Y}
+        />
+        <BoundaryStep
           label={composition.countdown.label}
           value={formatDurationRowValue(draft.initialCountdownSeconds)}
           isOpen={openOverlay === "countdown"}
           onPress={() => toggleOverlay("countdown")}
+          testID="composition-boundary-countdown"
         />
 
         {/*
@@ -881,12 +822,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           onDelete={handleDeleteActivity}
         />
 
-        <BoundaryActivityRow
-          icon="composition-end-session"
+        <BoundaryStep
           label={composition.finalPhase.label}
           value={formatDurationRowValue(draft.finalPhaseSeconds)}
           isOpen={openOverlay === "finalPhase"}
           onPress={() => toggleOverlay("finalPhase")}
+          testID="composition-boundary-final-phase"
         />
       </ScrollView>
 
@@ -909,8 +850,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         style={[styles.bottomAction, { marginBottom: insets.bottom + spacing[16] }]}
       >
         {/*
-         * PRE-4, décision Q54 de Hermann (2026-10-18) : `Enregistrer la séance` remplace
-         * `Continuer`, qui ouvrait l'écran vestige `Catégories de la séance` (supprimé).
+         * PRE-4, décision Q54 de Hermann (2026-10-18) : l'action enregistre depuis la Composition
+         * (l'écran vestige `Catégories de la séance` est supprimé). PRE-6 (story 2.1, D-388,
+         * Figma `8328:28732`) : libellé « Continuer », même flux `handleSave`.
          * Activation conditionnelle inchangée (Composition valide, `isCompositionValid`),
          * inactif pendant l'enregistrement ; échec : message D-107 au-dessus de l'action.
          */}
@@ -1093,172 +1035,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   );
 }
 
-/**
- * `Boundary Activity` (Compte à rebours initial / Fin de séance) —
- * correction CMP-03/CMP-05 (contre-recette iPhone, correction consolidée,
- * `[ChatGPT] DIAGNOSTIC APPROVED — PHASE02 CONSOLIDATED REWORK02`,
- * 2026-09-03) : nouvel ordre de slots, explicitement demandé par cette
- * revue et qui **remplace** la disposition `LAY-05` précédente (gauche
- * icône / centre libellé / droite valeur+chevron) — pas une ambiguïté
- * résolue localement, une instruction directe et autorisée.
- *
- * Slots : gauche = poignée/structure (`handleSlot`) ; centre = libellé puis,
- * sur une seconde ligne, la valeur de durée déjà formatée
- * (`formatDurationRowValue`, format `MM min SS s` — inchangé, c'est la
- * valeur réellement engagée par la roulette, voir D-06) ; droite = icône de
- * rôle (déplacée depuis le slot gauche).
- *
- * **C-01/C-02** (contre-recette iPhone, `[ChatGPT] DEVICE NO-GO — PHASE02
- * REWORK03 CUMULATIVE CORRECTION`, 2026-09-03) : fond désormais blanc avec
- * un liseré gris visible (`limitCardBase`, partagé avec `TourCard` — voir
- * T-01) — auparavant `colors.surface` (gris), jugé non conforme au rendu
- * réel. Le slot gauche porte désormais un pictogramme
- * (`structureIcon`, prop dédiée, défaut `composition-reorder` — même
- * pictogramme « déplacement/structure » que `Composition / Activity Row`,
- * réutilisation désormais explicitement demandée par cette revue, qui
- * abroge la restriction posée au cycle précédent) ; la prop permet son
- * remplacement ultérieur par un pictogramme « carte fixe/non déplaçable »
- * sans toucher au layout (CMP-03/05 initial, cycle précédent, avait laissé
- * ce slot vide faute d'instruction explicite de réutilisation).
- *
- * **Chevron définitivement retiré** (`[ChatGPT] PLAN_APPROVED — REWORK06 —
- * RESTAURATION CIBLÉE DE LA ROULETTE + VERROU DE CAPITALISATION`,
- * 2026-09-04, addendum « écarts visuels encore ouverts ») : le cycle
- * précédent conservait un chevron (`control-chevron-up`) uniquement à
- * l'état ouvert — cet élément supplémentaire, ajouté à droite de l'icône de
- * rôle, faisait varier le nombre d'enfants de la rangée entre les états
- * fermé/ouvert, donc la position de l'icône de rôle elle-même (« l'icône
- * fonctionnelle de la carte... doit garder exactement la même position
- * ouverte et fermée »). Le chevron est désormais entièrement supprimé, à
- * l'état ouvert comme fermé — `accessibilityState.expanded` porte déjà
- * cette information pour l'accessibilité, sans dépendre d'un indice visuel
- * qui décale la mise en page.
- *
- * **REWORK07-A** (`[ChatGPT] CHANGES_REQUESTED — REWORK07-A — ICON /
- * STRUCTURE / MOVABLE UNIQUEMENT`, 2026-09-04) : le slot gauche
- * (`boundaryRowHandleSlot`) revient de `32×32` (REWORK06) à `28×28`
- * (`dimensions.structureMovableIcon.slot`) — la valeur canonique du
- * composant Figma/DSF `Icon / Structure / Movable` (`3066:4676`), pas un
- * abandon de la correction REWORK06 : l'asset affiché a lui-même été
- * remplacé par son export canonique (voir `KodjoIcon.tsx`), qui occupe
- * réellement son canevas — l'agrandissement précédent du conteneur
- * compensait un glyphe sous-dimensionné, plus nécessaire une fois l'asset
- * corrigé. L'opacité `0.5` du pictogramme n'est plus passée localement
- * (`opacity={0.5}` supprimé) — portée par défaut dans `KodjoIcon.tsx`
- * (`defaultOpacities`), automatiquement appliquée sans paramètre d'écran.
- *
- * **REWORK12 (COMP-01)** (`[ChatGPT] CHANGES_REQUESTED — REWORK12 —
- * Activité + intégration dans Composition`, 2026-09-04) : `icon` devient
- * nullable — vérifié directement sur les nœuds Figma actuels (`2028:11723`
- * pour `Composition / Boundary Activity — Source exact`, `2028:11733` pour
- * `Composition / Activity Row`, `2588:2679`) que ces deux composants
- * partagent EXACTEMENT la même anatomie de carte (fond, liseré, rayon,
- * hauteur, slot structure `28×28` à gauche) à une seule différence près :
- * `Boundary Activity` porte une icône de rôle supplémentaire dans un
- * troisième slot à droite (`icon`), que `Activity Row` n'a jamais —
- * `icon={null}` omet entièrement ce troisième slot plutôt que de le rendre
- * vide, pour rester fidèle à la structure Figma réelle de `Activity Row`
- * (aucun troisième slot du tout, pas un slot présent mais inoccupé).
- * `accessibilityLabel`/`testID` deviennent des props optionnelles
- * (`accessibilityLabel` par défaut = `label`, comportement inchangé pour
- * les deux appelants `Boundary Activity` existants) — nécessaires à la
- * ligne Exercice, dont le nom accessible (`Modifier l'exercice`) diffère du
- * titre affiché (nom réel de l'Activité) et dont les tests doivent pouvoir
- * cibler cette rangée précisément (les trois appels de ce composant
- * partagent sinon les mêmes `testID` internes, jamais uniques par défaut).
- *
- * **T02-S01** : ce composant ne sert plus qu'aux DEUX cartes structurelles
- * fixes (`Compte à rebours initial`/`Fin de séance`) — non déplaçables, non
- * duplicables, non supprimables et sans actions glissées (AC-05). Les cartes
- * d'Activité sont désormais rendues par `CompositionActivityRow` ci-dessus,
- * qui RÉUTILISE exactement la même anatomie (`limitCardBase`/`boundaryRow`,
- * slot structure `28 × 28`, titre, ligne de Zones corporelles, synthèse) et
- * y ajoute la seule chose qui les distingue : la gestuelle. `icon`,
- * `bodyZones`, `accessibilityLabel` et `testID` restent des props du contrat
- * public de ce composant, désormais non employées par ses deux seuls
- * appelants.
- */
-function BoundaryActivityRow({
-  icon,
-  label,
-  bodyZones = null,
-  value,
-  isOpen,
-  onPress,
-  structureIcon = "composition-reorder",
-  accessibilityLabel = label,
-  testID,
-}: {
-  /** `null` omet entièrement le troisième slot (droite) — anatomie exacte de `Composition / Activity Row`, qui n'en a jamais. */
-  icon: KodjoIconName | null;
-  label: string;
-  /**
-   * Correction compacte LOT_3_OF_3 : Zones corporelles de l'Activité déjà
-   * formatées (`formatExerciseBodyZones`), insérées ENTRE le titre et la
-   * synthèse. `null` (défaut) omet entièrement la ligne — les deux cartes
-   * limites (`Compte à rebours initial`/`Fin de séance`) n'ont pas de Zones
-   * et restent donc rigoureusement inchangées.
-   */
-  bodyZones?: string | null;
-  value: string;
-  isOpen: boolean;
-  onPress: () => void;
-  /** C-02 : pictogramme du slot gauche — remplaçable sans changer le layout (ex. futur pictogramme « carte fixe »). */
-  structureIcon?: KodjoIconName;
-  /** REWORK12 : nom accessible distinct du titre affiché — par défaut `label` (comportement inchangé des deux appelants `Boundary Activity`). */
-  accessibilityLabel?: string;
-  /** REWORK12 : identifiant de la rangée elle-même, pour un ciblage de test sans ambiguïté entre les appels de ce composant. */
-  testID?: string;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel}
-      accessibilityState={{ expanded: isOpen }}
-      style={[styles.limitCardBase, styles.boundaryRow]}
-      testID={testID}
-    >
-      <View style={styles.boundaryRowHandleSlot} testID="composition-boundary-handle-slot">
-        <KodjoIcon name={structureIcon} testID="composition-boundary-handle-icon" />
-      </View>
-      <View style={styles.boundaryRowTitleSlot}>
-        <Text style={styles.rowLabel} numberOfLines={1}>
-          {label}
-        </Text>
-        {/*
-         * Correction compacte LOT_3_OF_3 — Zones corporelles de l'ACTIVITÉ
-         * uniquement (jamais une Catégorie de Séance, qui n'appartient pas
-         * à l'Activité), placées entre le titre et la synthèse. Style
-         * `boundaryRowSecondaryLine` RÉUTILISÉ TEL QUEL — donc exactement la
-         * même taille et la même couleur neutre (`type.caption` 11/14,
-         * `colors.textSecondary`) que la synthèse juste en dessous, par
-         * construction plutôt que par ressemblance. `numberOfLines={1}` :
-         * une seule ligne, tronquée si nécessaire. Séparateur ` · `
-         * (`COMPACT_LIST_SEPARATOR`, partagé avec la synthèse).
-         */}
-        {bodyZones !== null ? (
-          <Text
-            style={styles.boundaryRowSecondaryLine}
-            numberOfLines={1}
-            testID="composition-exercise-body-zones"
-          >
-            {bodyZones}
-          </Text>
-        ) : null}
-        <Text style={styles.boundaryRowSecondaryLine} numberOfLines={1}>
-          {value}
-        </Text>
-      </View>
-      {icon !== null ? (
-        <View style={styles.boundaryRowIconSlot}>
-          <KodjoIcon name={icon} testID={`composition-row-icon-${icon}`} />
-        </View>
-      ) : null}
-    </Pressable>
-  );
-}
-
 type ActivityZoneListProps = {
   readonly zone: StructuralPosition;
   readonly testID: string;
@@ -1438,20 +1214,17 @@ const SWIPE_REVEAL_OFFSET =
  * **T02-S02, révisé par V2-CAT-01 (D-095/D-128/D-138, CE-T01-09,
  * CE-T02-01/CE-T02-02, CE-T03-08).**
  *
- * 1. **Sous-carte attachée.** Lorsque `recoverySeconds > 0`, une sous-carte
- *    `Récupération X min Y s` de `24` points est attachée sous la carte
- *    principale. Les deux ne forment qu'UN SEUL `Pressable` : le bloc est
- *    donc pressable et déplaçable comme un tout — « la Récupération
+ * 1. **Ligne structurelle de récupération (PRE-6 story 2.1, D-303, D-217 ;
+ *    remplace la sous-carte attachée de T02-S02).** Sous la carte, dans le
+ *    même conteneur gestuel et avec la même translation : « la Récupération
  *    appartient à l'Activité et forme avec elle un bloc indivisible pour la
  *    Composition, la copie, la duplication, le déplacement et la
- *    suppression » (D-138). Elle n'est jamais une Activité de plus.
- * 2. **Géométries conditionnelles.** Bloc `354 × 60` sans Récupération,
- *    `354 × 84` avec ; actions glissées `72 × 60` / `72 × 84`, couvrant
- *    toute la hauteur du bloc. L'état soulevé applique un écart CONSTANT
- *    (`widthDelta 8`, `heightDelta 4`) : `362 × 88` avec Récupération —
- *    et `362 × 64` sans elle. `362 × 88`
- *    sans Récupération est donc structurellement impossible, jamais interdit
- *    par une simple convention de relecture.
+ *    suppression » (D-138). Trait toujours présent, information seulement si
+ *    R > 0. Elle n'est jamais une Activité de plus.
+ * 2. **Géométries conditionnelles.** Carte `354 × 44` sans Zones
+ *    corporelles, `354 × 60` avec ; actions glissées `72 × 44` / `72 × 60`,
+ *    couvrant toute la hauteur de la carte. L'état soulevé applique un écart
+ *    CONSTANT (`widthDelta 8`, `heightDelta 4`) : `362 × 48` / `362 × 64`.
  * 3. **Balayage PROGRESSIF (V2-CAT-01, CE-T03-08 §§7-20, D-175/D-176).** La
  *    carte SUIT le doigt en temps réel (`swipeTranslateX`, même technique
  *    déjà éprouvée que `dragTranslationY` pour le déplacement vertical —
@@ -1737,14 +1510,13 @@ function CompositionActivityRow({
 
   const bodyZones = formatExerciseBodyZones(activity.bodyZoneIds, bodyZonesReferential);
   /**
-   * La hauteur est dérivée des deux éléments réellement optionnels : la ligne
-   * de Zones corporelles (`44` sans / `60` avec) et la Récupération attachée
-   * (`+24`, strictement inchangée).
+   * Hauteur de la CARTE seule, dérivée de la ligne de Zones corporelles (`44` sans / `60`
+   * avec). PRE-6 (story 2.1) : la Récupération n'est plus une sous-carte du bloc mais une
+   * ligne structurelle sous la carte (`ActivityRecoveryLine`), qui n'en change pas la hauteur.
    */
-  // PRE-6 (story 1.1) : rendu inchangé — une récupération absente (`null`)
-  // s'affiche comme aujourd'hui (`0`) ; la correction relève de la story 2.1.
-  const recoveryLabel = formatActivityRecoveryLabel(activity.postActivityRecoverySeconds ?? 0);
-  const blockHeight = blockHeightFor(bodyZones !== null, recoveryLabel !== null, isDragged);
+  const blockHeight = blockHeightFor(bodyZones !== null, isDragged);
+  // Même translation pour la carte et sa ligne de récupération : elles font bloc.
+  const blockTransform = [{ translateX: swipeTranslateX }, { translateY: isDragged ? dragTranslationY : 0 }];
   /**
    * V2-PRE-1 (plan §3.3) : direction PROPRE et bilatérale — portée
    * exclusivement par l'Exercice, le Circuit n'ayant plus aucune direction
@@ -1785,6 +1557,20 @@ function CompositionActivityRow({
       onResponderTerminationRequest={handleResponderTerminationRequest}
       testID={`composition-activity-${activity.id}`}
     >
+      {/*
+       * PRE-6 (story 2.1, Figma `8328:28644`) : repère d'une occurrence hors Circuit. Rendu EN
+       * PREMIER (sous les actions glissées et la carte, qui ne le recouvrent jamais : il est
+       * dans la colonne du rail) ; il suit la carte soulevée verticalement, jamais le balayage
+       * horizontal — le rail ne glisse pas.
+       */}
+      {activity.structuralPosition !== "IN_TOUR" ? (
+        <SequenceMarker
+          kind="dot"
+          centerY={OCCURRENCE_MARKER_CENTER_Y}
+          translateY={isDragged ? dragTranslationY : 0}
+          testID={`composition-sequence-marker-${activity.id}`}
+        />
+      ) : null}
       {/*
        * V2-CAT-01 (CE-T03-08, UI-CAT-R-007/010) : le groupe d'actions est
        * désormais un frère PRÉCÉDENT la carte (donc DERRIÈRE elle, un
@@ -1850,7 +1636,7 @@ function CompositionActivityRow({
           // verticalement (déplacement soulevé) — les deux restent
           // mutuellement exclusifs en pratique (`isDraggingRef`), mais la
           // transformation est toujours appliquée pour rester continue.
-          { transform: [{ translateX: swipeTranslateX }, { translateY: isDragged ? dragTranslationY : 0 }] },
+          { transform: blockTransform },
         ]}
         testID={`composition-exercise-row-${activity.id}`}
       >
@@ -1914,50 +1700,38 @@ function CompositionActivityRow({
           ) : null}
         </View>
 
-        {recoveryLabel !== null ? (
-          <View
-            style={[
-              styles.activityRecoveryCard,
-              isDragged ? styles.activityRecoveryCardDragged : null,
-            ]}
-            accessibilityLabel={composition.activityRecovery.accessibilityLabel}
-            testID={`composition-activity-recovery-${activity.id}`}
-          >
-            <Text style={styles.activityRecoveryLabel} numberOfLines={1}>
-              {recoveryLabel}
-            </Text>
-          </View>
-        ) : null}
       </Pressable>
+
+      {/*
+       * PRE-6 (story 2.1, D-303, D-217, Figma `8328:28657`) : ligne structurelle sous
+       * l'occurrence — trait toujours présent, information seulement si R > 0 (remplace la
+       * sous-carte « Récupération X », écart E5). Elle suit la carte (même translation) et
+       * reste dans le conteneur de l'occurrence : elle fait bloc pour le déplacement.
+       */}
+      <View
+        style={[styles.activityRecoveryLine, { transform: blockTransform }]}
+        testID={`composition-activity-recovery-slot-${activity.id}`}
+      >
+        <ActivityRecoveryLine
+          recoverySeconds={activity.postActivityRecoverySeconds}
+          testID={`composition-activity-recovery-${activity.id}`}
+        />
+      </View>
+
     </View>
   );
 }
 
 /**
- * Hauteur du bloc Activité selon les deux lignes toujours présentes
- * (titre + synthèse), la ligne optionnelle de Zones corporelles, la
- * Récupération attachée et l'état soulevé :
- *
- * | Zones | Récupération | repos | soulevé |
- * | --- | --- | --- | --- |
- * | absentes | absente | `44` | `48` |
- * | absentes | présente | `68` | `72` |
- * | présentes | absente | `60` | `64` |
- * | présentes | présente | `84` | `88` |
- *
- * La sous-carte Récupération reste toujours à `24` points.
+ * Hauteur de la carte d'Activité selon la ligne optionnelle de Zones corporelles et
+ * l'état soulevé : `44` / `48` sans Zones, `60` / `64` avec. PRE-6 (story 2.1) : la
+ * sous-carte Récupération (`+24`) est retirée — la ligne structurelle de récupération est
+ * rendue SOUS la carte (`ActivityRecoveryLine`).
  */
-function blockHeightFor(
-  hasBodyZones: boolean,
-  hasRecovery: boolean,
-  isDragged: boolean,
-): number {
-  const mainCardHeight = hasBodyZones
+function blockHeightFor(hasBodyZones: boolean, isDragged: boolean): number {
+  const rest = hasBodyZones
     ? dimensions.compositionActivityRow.restHeight
     : dimensions.compositionActivityRow.compactRestHeight;
-  const rest =
-    mainCardHeight +
-    (hasRecovery ? dimensions.compositionActivityRow.recoveryCardHeight : 0);
   return isDragged ? rest + dimensions.compositionActivityRow.heightDelta : rest;
 }
 
@@ -2093,6 +1867,14 @@ function TourCard({
 }) {
   return (
     <View style={styles.tourSectionContainer} onLayout={onLayout} testID="composition-tour-section">
+      {/* PRE-6 (story 2.1, Figma `8328:28665`) : anneau du Circuit sur le rail — la structure
+          déborde de `inset` à gauche du contenu, d'où le décalage réduit d'autant. */}
+      <SequenceMarker
+        kind="ring"
+        centerY={CIRCUIT_MARKER_CENTER_Y}
+        contentLeft={SEQUENCE_CONTENT_OFFSET - dimensions.compositionTourSection.inset}
+        testID="composition-sequence-marker-circuit"
+      />
       <View style={styles.tourHeader} testID="composition-tour-card">
         <View style={styles.tourCardIconSlot} testID="composition-tour-icon-slot">
           <KodjoIcon name="icon-tour" testID="composition-tour-icon" />
@@ -2362,35 +2144,13 @@ const styles = StyleSheet.create({
   // régularité est vraie PAR CONSTRUCTION, pas par coïncidence de deux
   // littéraux.
   bodyContent: {
-    paddingHorizontal: spacing[24],
+    // PRE-6 (story 2.1, Figma `8328:28634`) : les étapes commencent après la colonne des
+    // repères (16) et son écart (10) ; le rail et les repères occupent cette marge.
+    paddingLeft: spacing[24] + SEQUENCE_CONTENT_OFFSET,
+    paddingRight: spacing[24],
     paddingTop: spacing[16],
     paddingBottom: spacing[16],
     gap: COMPOSITION_ROW_GAP,
-  },
-  // CMP-02 : champ unique regroupant Nom et Sélecteur de couleur — acquis
-  // préservé (fusion, géométrie, gap, padding, rayon inchangés).
-  //
-  // REWORK09 (mission directe utilisateur, 2026-09-04, point 1 « Champ Nom
-  // de la séance ») : `Session / Name Field — Source exact` (`2537:1480`)
-  // documente un fond TRANSPARENT (laissant apparaître la bande Context
-  // colorée sous-jacente, jamais un fond blanc opaque) et un liseré blanc
-  // intérieur de `1pt` via le token canonique `color.sessionNameBorder`
-  // (`#FFFFFF`, variable Figma `color/session-name-border`,
-  // `VariableID:3163:4015`) — remplace `colors.background` (fond opaque),
-  // seule propriété modifiée par cette correction ; ce champ reste le seul
-  // représentant visuel concret du « Nom de la séance » dans cet écran
-  // (fusionné avec le sélecteur de couleur depuis CMP-02, acquis
-  // explicitement préservé), la transparence s'applique donc à l'ensemble
-  // du champ fusionné plutôt qu'à un sous-élément désormais inexistant.
-  // Recette 3 (T-49, EXT-R3-2, D-352) : contour blanc du champ Nom de séance retiré.
-  nameColorField: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing[12],
-    backgroundColor: "transparent",
-    borderRadius: 12,
-    paddingHorizontal: spacing[16],
-    paddingVertical: spacing[4],
   },
   // Recette 3 (T-49, EXT-R3-2) : effets de la zone de contexte, découpés à la bande.
   contextBandEffects: {
@@ -2426,36 +2186,6 @@ const styles = StyleSheet.create({
     left: spacing[24] + dimensions.backAction.visualCircle / 2 - BACK_HALO_DIAMETER / 2,
     top: -dimensions.header.contentHeight / 2 - BACK_HALO_DIAMETER / 2,
   },
-  nameInput: {
-    ...type.screenTitle,
-    flex: 1,
-    color: colors.textPrimary,
-    paddingVertical: spacing[8],
-  },
-  // V2-PRE-1 (UI-74BBA70BF09F-AC8AD824374E8) : pastille de couleur DÉRIVÉE,
-  // même géométrie que l'ancien déclencheur `ColorPalette.swatch` (32×32,
-  // cercle) — jamais interactive, `backgroundColor` fourni inline.
-  sessionColorSwatch: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: colors.border,
-  },
-  // R7a (CE-T03-16 L1609) : pilule pastille + nom quand une Étiquette est affectée.
-  sessionLabelPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing[8],
-    paddingHorizontal: spacing[8],
-    paddingVertical: spacing[4],
-    borderRadius: 20,
-    backgroundColor: colors.surface,
-  },
-  sessionLabelPillText: {
-    ...type.label,
-    color: colors.textPrimary,
-  },
   // T01-S09, correction VISUAL (point D) : `elevated` (sélecteurs de
   // roulette ancrés en popover, `AnchoredRow`/`PopoverAnchor`,
   // `bodyElevated`) est retiré — ces mécanismes n'ont plus de consommateur,
@@ -2469,28 +2199,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-  },
-  // T-01 : géométrie commune aux cartes `Boundary Activity` et `Tour` —
-  // seul le fond diverge (voir `boundaryRow`/`tourCard` ci-dessous),
-  // garantissant des bords gauche/droit strictement alignés par
-  // construction (même padding/bordure/rayon), plutôt que deux définitions
-  // séparées pouvant diverger.
-  limitCardBase: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: spacing[12],
-    paddingHorizontal: spacing[16],
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: spacing[8],
-  },
-  // C-01 — `Boundary Activity` : fond blanc avec liseré gris visible
-  // (`limitCardBase.borderColor`), auparavant `colors.surface` (gris).
-  boundaryRow: {
-    height: dimensions.compositionActivityRow.compactRestHeight,
-    paddingVertical: ACTIVITY_CARD_PADDING_VERTICAL,
-    backgroundColor: colors.background,
   },
   // R4-04 (slot `28×28`, icône `20×20`, cycle REWORK04). REWORK06 (addendum
   // « poignées encore trop petites », 2026-09-04) : porté à `32×32` pour
@@ -2537,22 +2245,22 @@ const styles = StyleSheet.create({
   // déplacement — porté par le CONTENEUR (les cartes sont dans des
   // conteneurs frères : un `zIndex` sur la carte seule n'ordonnerait rien
   // au-delà du sien).
+  // PRE-6 (story 2.1, Figma `8328:28645`) : écart 6 entre la carte et sa ligne de récupération.
+  activityRecoveryLine: {
+    marginTop: spacing[6],
+  },
   activityRowContainerDragged: {
     zIndex: 1,
   },
-  // T02-S02 — BLOC Activité (+ Récupération), D-095/D-128/D-138.
+  // T02-S02 — carte d'Activité, D-095/D-128/D-138.
   //
-  // Le `Pressable` porte désormais la surface du BLOC ENTIER (fond, liseré,
-  // rayon), la carte principale et la sous-carte n'étant que ses deux
-  // enfants : c'est ce qui rend le bloc indivisible pour l'appui, l'appui
-  // long et le balayage. Les valeurs visuelles sont EXACTEMENT celles de
-  // `limitCardBase`/`boundaryRow` (fond blanc, liseré `colors.border`, rayon
-  // `12`) — l'anatomie des cartes limites reste donc la référence, seule sa
-  // localisation dans l'arbre change. `overflow: "hidden"` fait suivre au
-  // coin bas de la sous-carte le rayon du bloc.
+  // Le `Pressable` porte la surface de la carte (fond blanc, liseré
+  // `colors.border`, rayon `12`) ; `overflow: "hidden"` découpe son contenu
+  // au rayon. PRE-6 (story 2.1) : la Récupération n'y est plus une sous-carte
+  // (ligne structurelle sous la carte, `ActivityRecoveryLine`).
   //
   // La HAUTEUR est appliquée par l'écran (`blockHeightFor`) selon la présence
-  // des Zones, de la Récupération et de l'état soulevé.
+  // des Zones corporelles et l'état soulevé.
   activityBlock: {
     borderRadius: 12,
     borderWidth: 1,
@@ -2560,10 +2268,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     overflow: "hidden",
   },
-  // Carte principale du bloc — `flex: 1` : elle occupe tout ce que la
-  // sous-carte (`24`, hauteur fixe) laisse, ce qui reproduit exactement la
-  // décomposition `60 + 24 = 84` de D-128 sans jamais coder `69` une
-  // seconde fois. `paddingVertical` réduit de `12` à `8` par rapport à
+  // Carte principale — `flex: 1` : elle occupe toute la hauteur de la carte
+  // (PRE-6 story 2.1 : plus de sous-carte `24` sous elle). `paddingVertical` réduit de `12` à `8` par rapport à
   // `limitCardBase` : les trois lignes (`16/20` + `11/13` + `11/13`, écarts
   // `2`) ne tiennent pas dans une carte de `69` avec `12` de padding — la
   // hauteur canonique prime, elle est publiée par CE-T01-09.
@@ -2571,7 +2277,7 @@ const styles = StyleSheet.create({
   // **T02-S02 (seconde puis troisième recette visuelle)** : marges
   // intérieures HAUTE et BASSE réduites d'un tiers, deux fois
   // (`ACTIVITY_CARD_PADDING_VERTICAL`, `8 → 5 → 3`). Le bloc ayant une
-  // hauteur FIXE (`60`/`84`), ces marges ne changent pas sa taille — elles
+  // hauteur FIXE (`44`/`60`), ces marges ne changent pas sa taille — elles
   // rendent au contenu la place qui lui manquait : nom (`16/20`) + Zones
   // corporelles (`11/14`) + synthèse (`11/14`) et leurs deux écarts de `2`
   // totalisent `52`, contre `58` de hauteur utile ; avec `8` de marge haute
@@ -2580,8 +2286,8 @@ const styles = StyleSheet.create({
   // CORRECTION DIRECTE POST-RECETTE : avec `alignItems: "center"` dans un
   // bloc fixe, réduire seulement le padding ne modifiait pas le blanc perçu.
   // La première réduction de `69` à `65` étant restée imperceptible en recette,
-  // la hauteur principale passe à `60`. La sous-carte Récupération reste à
-  // `24` points ; le bloc complet passe mécaniquement de `89` à `84`.
+  // la hauteur principale passe à `60` (la sous-carte Récupération de `24`,
+  // alors attachée, est retirée en PRE-6 story 2.1).
   //
   // Les marges HORIZONTALES et toutes les autres géométries validées restent
   // strictement inchangées.
@@ -2617,52 +2323,8 @@ const styles = StyleSheet.create({
     ...type.caption,
     color: colors.textPrimary,
   },
-  // Sous-carte `Récupération X min Y s` — `24` points attachés sous la carte
-  // principale (D-095/D-128). Séparée par un simple liseré supérieur, jamais
-  // par un second bloc détaché : le bord bas et les coins arrondis restent
-  // ceux du bloc.
-  //
-  // NON VÉRIFIÉ sur Figma (`3572:64`) : l'accès MCP Figma n'était pas
-  // disponible dans cette session — même limite que celle déjà disclosée
-  // pour `2028:11808` (actions glissées). Seules des valeurs DÉJÀ CANONIQUES
-  // du DSF sont employées (`colors.surface` pour la surface secondaire,
-  // `colors.border` pour le liseré, `colors.textSecondary` pour le libellé) :
-  // aucune couleur locale n'est introduite.
-  //
-  // **T02-S02 (continuation après recette visuelle)** : le libellé
-  // s'alignait sur le bord gauche du bloc (`paddingHorizontal: 16`), alors
-  // que le nom de l'Activité, ses Zones corporelles et sa synthèse
-  // commencent APRÈS le slot de la poignée. `paddingLeft` est donc dérivé de
-  // la géométrie réelle de la carte principale — padding + slot `28` + écart
-  // `8` — plutôt que recopié en littéral : déplacer la poignée réalignerait
-  // automatiquement la sous-carte.
-  activityRecoveryCard: {
-    height: dimensions.compositionActivityRow.recoveryCardHeight,
-    justifyContent: "center",
-    paddingLeft:
-      spacing[16] + dimensions.structureMovableIcon.slot + spacing[8],
-    paddingRight: spacing[16],
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  // Graisse SEMI BOLD, pour distinguer le libellé `Récupération` des deux
-  // lignes secondaires régulières de la carte principale.
-  //
-  // **T02-S02 (seconde recette visuelle, point 8)** : taille AUGMENTÉE de
-  // `11/14` à `14/18` — `type.compactCardTitle`, token DSF déjà canonique
-  // (`KODJO / Card / Title`, `14/18` Semi Bold), plutôt qu'un nouveau token
-  // local. La graisse (`600`) et l'alignement à gauche sont strictement
-  // conservés ; seule la taille change. `18` de hauteur de ligne tient dans
-  // la sous-carte de `24` points, dont la géométrie est inchangée.
-  // `type.captionStrong`, introduit à la continuation précédente pour ce
-  // seul usage, est supprimé avec lui plutôt que laissé mort.
-  activityRecoveryLabel: {
-    ...type.compactCardTitle,
-    color: colors.textSecondary,
-  },
-  // D-129/CE-T02-02 : état soulevé — `362 × 88` avec Récupération (contre
-  // `354 × 84` au repos), centré à `x = 6`, fond `#F7F7FF` repris du bandeau
+  // D-129/CE-T02-02 : état soulevé — `362 × 64` avec Zones (contre
+  // `354 × 60` au repos ; `362 × 48` / `354 × 44` sans Zones), centré à `x = 6`, fond `#F7F7FF` repris du bandeau
   // supérieur, contour `1` point `#D1D1D6`, rayon `12`, ombre périphérique
   // `#14171F` à `22 %` (`0 / 0`, flou `10`, étalement `2`).
   //
@@ -2681,19 +2343,10 @@ const styles = StyleSheet.create({
     shadowRadius: dimensions.compositionActivityRow.draggedShadowRadius,
     elevation: dimensions.compositionActivityRow.draggedElevation,
   },
-  // CE-T02-02 : « Le fond interne `Informations` est transparent : le bleu
-  // reste donc visible derrière le nom, les Zones corporelles et la
-  // synthèse ». La sous-carte perd donc sa surface grise et son liseré au
-  // profit du bleu du bloc soulevé — jamais une opacité appliquée aux
-  // textes.
-  activityRecoveryCardDragged: {
-    backgroundColor: "transparent",
-    borderTopColor: colors.compositionDraggedCardBorder,
-  },
   // D-128, révisé V2-CAT-01 (UI-CAT-R-007/010) : groupe superposé à droite
   // (DERRIÈRE la carte, découvert par sa translation), deux actions `72 × H`
   // aux libellés centrés horizontalement et verticalement, `H` valant la
-  // hauteur du BLOC (`60` sans Récupération, `84` avec) — « `Dupliquer` et
+  // hauteur de la CARTE (`44` sans Zones, `60` avec) — « `Dupliquer` et
   // `Supprimer` couvrent toute la hauteur du bloc ». La hauteur est
   // appliquée par l'écran (`blockHeightFor`), pas ici.
   //
@@ -2748,12 +2401,6 @@ const styles = StyleSheet.create({
   boundaryRowSecondaryLine: {
     ...type.caption,
     color: colors.textSecondary,
-  },
-  boundaryRowIconSlot: {
-    width: 24,
-    height: 24,
-    alignItems: "center",
-    justifyContent: "center",
   },
   // R4-12 : conteneur Tour, plus large que la carte interne qu'il héberge
   // — voir `TourCard` ci-dessus pour la justification complète du calcul.
@@ -2875,28 +2522,6 @@ const styles = StyleSheet.create({
   rowLabel: {
     ...type.cardTitle,
     color: colors.textPrimary,
-  },
-  // LAY-03 : hauteur/rayon issus du composant DS
-  // (`dimensions.compactSecondaryButton`, même token que le bouton Créer
-  // du Catalogue) ; fond blanc explicite (la bande Context est teintée) ;
-  // bordure/icône/texte primaires ; largeur libre. CMP-02 : centré
-  // (`alignSelf: "center"`, auparavant `flex-start`).
-  addActivityAction: {
-    alignSelf: "center",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: spacing[6],
-    height: dimensions.compactSecondaryButton.visualHeight,
-    paddingHorizontal: spacing[16],
-    borderRadius: dimensions.compactSecondaryButton.radius,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    backgroundColor: colors.background,
-  },
-  addActivityLabel: {
-    ...type.button,
-    color: colors.primary,
   },
   // V2-CAT-01, VISUAL_CORRECTION (revue indépendante 5753653735, point 7) :
   // arbre `Ajouter une activité` — même géométrie de carte que

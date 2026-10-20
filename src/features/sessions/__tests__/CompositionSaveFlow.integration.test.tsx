@@ -84,7 +84,7 @@ const exercise = strings.screens.exercise;
 /**
  * PRE-4, décision Q54 de Hermann (2026-10-18) : suite migrée depuis
  * `CategoriesSaveFlow.integration.test.tsx` — l'écran « Catégories de la séance » est
- * supprimé, `Enregistrer la séance` enregistre depuis la Composition ; attendus
+ * supprimé, l'action finale (`Continuer` depuis PRE-6 story 2.1) enregistre depuis la Composition ; attendus
  * d'enregistrement conservés (persistance complète, atomicité de l'échec, brouillon
  * intact, action réarmée). La migration SQLite est asynchrone (`migrateDatabase`) et doit
  * être terminée AVANT le premier accès au référentiel : migrer explicitement ici, hors composant, avant `render`, est
@@ -179,7 +179,7 @@ async function renderCreationRouter() {
   return { router, database };
 }
 
-describe("Parcours Composition → Enregistrer la séance → Catalogue (T01-S09 ; PRE-4 Q54)", () => {
+describe("Parcours Composition → Continuer → Catalogue (T01-S09 ; PRE-4 Q54 ; PRE-6 story 2.1)", () => {
   it("persists a full multi-Activity, multi-Category session without any data loss, resets the draft and returns to the Catalogue only on success", async () => {
     const { router, database } = await renderCreationRouter();
 
@@ -198,7 +198,7 @@ describe("Parcours Composition → Enregistrer la séance → Catalogue (T01-S09
     await fillNewExercise("Squats", "Répétitions", "cuisses");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
-    // Q54 : Enregistrer la séance depuis la Composition (double appui : un seul enregistrement).
+    // Q54 : Continuer (PRE-6 story 2.1) depuis la Composition (double appui : un seul enregistrement).
     const saveAction = screen.getByLabelText(composition.saveAction);
     expect(saveAction.props.accessibilityState).toMatchObject({ disabled: false });
     await act(async () => {

@@ -6,3 +6,6 @@
 - source_spec: `_bmad-output/pre6/implementation-artifacts/spec-1-4-operations-de-circuit.md`
   summary: Le changement de N dans la Composition doit passer par `setCircuitCount` (aujourd'hui `updateDraft({ tourRepeatCount })`, `CompositionScreen.tsx:988`).
   evidence: Revue 1.4 (verification-gap) ; raccordement de l'en-tête du Circuit en story 3.1.
+- source_spec: `_bmad-output/pre6/implementation-artifacts/spec-2-1-en-tete-bornes-de-seance-et-continuer.md`
+  summary: Retirer le jeton orphelin `dimensions.compositionActivityRow.recoveryCardHeight` (sous-carte supprimée) et ses assertions de test.
+  evidence: `tokens.ts` verrouillé par `tokensSpecification.test.ts` ; changement à planifier avec Hermann.

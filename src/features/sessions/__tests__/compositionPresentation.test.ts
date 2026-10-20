@@ -14,6 +14,7 @@ import {
   COMPACT_LIST_SEPARATOR,
   formatActivityRecoveryLabel,
   formatCompactDuration,
+  formatCompositionSessionDuration,
   formatCompositionSummary,
   formatDurationRowValue,
   formatExerciseBodyZones,
@@ -665,18 +666,60 @@ describe("formatExerciseBodyZones", () => {
 });
 
 /**
- * V2-PRE-1 (plan §3.2, UI-CDBCCFD16078) : `postActivityRecoverySeconds` est
- * désormais un champ OBLIGATOIRE de l'occurrence — `formatActivityRecoveryLabel`
- * retourne donc toujours une chaîne non vide, y compris `"Récupération 0 s"`
- * pour une valeur nulle, jamais `null` (comportement historique retiré).
+ * PRE-6 story 2.1 (D-303, D-217, écart E5) : l'information de la ligne structurelle de
+ * récupération n'existe que si R > 0 — R absente (`null`) ou nulle : `null`, trait seul
+ * (remplace la règle V2-PRE-1 « Récupération 0 s » toujours rendue).
  */
-describe("formatActivityRecoveryLabel (V2-PRE-1)", () => {
-  it("renders a non-null label even for a zero recovery", () => {
-    expect(formatActivityRecoveryLabel(0)).toBe("Récupération 0 s");
+describe("formatActivityRecoveryLabel (PRE-6 story 2.1)", () => {
+  it("PRE6-2.1 — R absente ou R = 0 : aucune information (null), jamais « Récupération 0 s »", () => {
+    expect(formatActivityRecoveryLabel(null)).toBeNull();
+    expect(formatActivityRecoveryLabel(undefined)).toBeNull();
+    expect(formatActivityRecoveryLabel(0)).toBeNull();
   });
 
-  it("renders the formatted positive duration unchanged", () => {
+  it("PRE6-2.1 — R = 20 : « Récupération 20 s » ; R = 90 : « Récupération 1 min 30 s »", () => {
+    expect(formatActivityRecoveryLabel(20)).toBe("Récupération 20 s");
     expect(formatActivityRecoveryLabel(90)).toBe("Récupération 1 min 30 s");
+  });
+});
+
+/**
+ * PRE-6 story 2.1 (RM-159, CE-T03-08) : durée de séance de l'en-tête — toutes les
+ * occurrences, développées selon la nature du Circuit, sans Compte à rebours ni Fin ; même
+ * format et mêmes préfixes que le résumé du Circuit.
+ */
+describe("formatCompositionSessionDuration (PRE-6 story 2.1)", () => {
+  it("PRE6-2.1 — séance vide : « 0 min »", () => {
+    expect(formatCompositionSessionDuration({ exercises: [] })).toBe("0 min");
+  });
+
+  it("PRE6-2.1 — additionne les trois zones, Circuit développé (× Tours)", () => {
+    const exercises: SessionDraftExercise[] = [
+      { ...createExerciseDraft("before"), structuralPosition: "BEFORE_TOUR", executionParameters: durationParameters(60) },
+      { ...inTourExercise("in"), executionParameters: durationParameters(60) },
+      { ...createExerciseDraft("after"), structuralPosition: "AFTER_TOUR", executionParameters: durationParameters(60) },
+    ];
+    // 60 + 60 × 3 + 60 = 300 s → « 5 min ».
+    expect(formatCompositionSessionDuration({ exercises, tourRepeatCount: 3 })).toBe("5 min");
+    // Le résumé du Circuit ne compte que la zone IN_TOUR.
+    expect(formatCompositionSummary({ exercises, tourRepeatCount: 3 })).toBe("3 min");
+  });
+
+  it("PRE6-2.1 — une cible À l'échec donne une borne minimale « ≥ … »", () => {
+    const exercises: SessionDraftExercise[] = [
+      { ...createExerciseDraft("known"), structuralPosition: "BEFORE_TOUR", executionParameters: durationParameters(90) },
+      { ...createExerciseDraft("failure"), structuralPosition: "AFTER_TOUR", executionParameters: allFailureParameters(3, 20) },
+    ];
+    expect(formatCompositionSessionDuration({ exercises })).toMatch(/^≥ /u);
+  });
+
+  it("PRE6-2.1 — suit la nature du Circuit, comme le résumé du Circuit", () => {
+    const exercises: SessionDraftExercise[] = [{ ...inTourExercise("in"), executionParameters: durationParameters(45, 3, 15) }];
+    for (const circuitNature of ["TOURS", "SERIES"] as const) {
+      expect(formatCompositionSessionDuration({ exercises, tourRepeatCount: 2, circuitNature })).toBe(
+        formatCompositionSummary({ exercises, tourRepeatCount: 2, circuitNature }),
+      );
+    }
   });
 });
 

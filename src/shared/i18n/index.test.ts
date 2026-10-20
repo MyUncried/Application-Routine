@@ -177,6 +177,7 @@ describe("strings", () => {
     });
     expect(strings.screens.composition.label).toEqual({
       accessibilityLabel: "Étiquette de la séance",
+      placeholder: "Étiquette",
     });
     expect(strings.screens.composition.countdown.label).toBe("Compte à rebours initial");
     expect(strings.screens.composition.finalPhase.label).toBe("Fin de séance");
@@ -199,8 +200,9 @@ describe("strings", () => {
       validateAccessibilityLabel: "Valider",
     });
     expect(strings.screens.composition.addActivity).toBe("Ajouter un exercice");
-    // PRE-4 Q54 : l’action finale de la Composition enregistre la Séance.
-    expect(strings.screens.composition.saveAction).toBe("Enregistrer la séance");
+    // PRE-4 Q54 : l’action finale de la Composition enregistre la Séance ; PRE-6 story 2.1
+    // (CE-T03-08, D-388) : son libellé est « Continuer ».
+    expect(strings.screens.composition.saveAction).toBe("Continuer");
     expect(strings.screens.composition.saveError).toBe("La séance n’a pas pu être enregistrée. Réessayez.");
   });
 
@@ -243,10 +245,9 @@ describe("strings", () => {
     });
   });
 
-  it("T02-S02 — exposes the attached-Récupération sub-card label of a Composition card (D-095/D-128/D-138)", () => {
+  it("T02-S02, révisé PRE-6 story 2.1 — exposes the Récupération label of a Composition occurrence (D-095/D-128/D-138)", () => {
     expect(strings.screens.composition.activityRecovery).toEqual({
       label: "Récupération",
-      accessibilityLabel: "Récupération attachée",
     });
   });
 
@@ -406,6 +407,7 @@ describe("strings", () => {
 
   it("exposes the Composition Retour accessibility label (AUD-03)", () => {
     expect(strings.screens.composition.backAccessibilityLabel).toBe("Retour");
+    expect(strings.screens.composition.closeAccessibilityLabel).toBe("Fermer");
   });
 
   it("exposes a Durée row accessibility label distinct from the Durée/Répétition mode tab (T01-S08)", () => {

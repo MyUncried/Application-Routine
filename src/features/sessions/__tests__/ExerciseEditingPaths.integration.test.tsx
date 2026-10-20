@@ -391,7 +391,7 @@ async function openSessionFromCatalogue() {
   await settle();
 }
 
-/** Q54 : `Enregistrer la séance` depuis la Composition (écran « Catégories de la séance » supprimé). */
+/** Q54 : `Continuer` (PRE-6 story 2.1) depuis la Composition (écran « Catégories de la séance » supprimé). */
 async function continueAndSave() {
   await act(async () => {
     fireEvent.press(screen.getByLabelText(composition.saveAction));
@@ -1297,7 +1297,7 @@ describe("PRE4-4.2/AC10 — Séance : appuis répétés", () => {
     await settle();
     expect(router.getPathname()).toBe("/composition");
     expect(screen.getAllByText("Gainage")).toHaveLength(1);
-    // Q54 : double appui sur `Enregistrer la séance` (Composition) — un seul enregistrement.
+    // Q54 : double appui sur `Continuer` (Composition, PRE-6 story 2.1) — un seul enregistrement.
     await act(async () => {
       fireEvent.press(screen.getByLabelText(composition.saveAction));
       fireEvent.press(screen.getByLabelText(composition.saveAction));

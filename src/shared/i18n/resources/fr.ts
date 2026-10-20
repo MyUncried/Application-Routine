@@ -276,6 +276,8 @@ export const fr = {
       // Complément d'alignement du 07/10 (ajout D) : titre d'écran.
       title: "Composer une séance",
       backAccessibilityLabel: "Retour",
+      // PRE-6 (story 2.1, Figma `8328:28730`) : bouton fermer (X) de l’en-tête de la Composition.
+      closeAccessibilityLabel: "Fermer",
       name: "Nom de la séance",
       colorPicker: {
         label: "Couleur",
@@ -289,6 +291,8 @@ export const fr = {
       // picker » reste probant.
       label: {
         accessibilityLabel: "Étiquette de la séance",
+        // PRE-6 (story 2.1, Figma `8328:28617`) : libellé de la puce sans Étiquette affectée.
+        placeholder: "Étiquette",
       },
       countdown: {
         label: "Compte à rebours initial",
@@ -328,7 +332,11 @@ export const fr = {
       addActivity: "Ajouter un exercice",
       // PRE-4, décision Q54 : l'action finale de la Composition enregistre la Séance (repris de
       // l'écran « Catégories de la séance », supprimé). D-107 : message d'échec mot pour mot.
-      saveAction: "Enregistrer la séance",
+      // PRE-6 (story 2.1, CE-T03-08, D-388, Figma `8328:28732`) : libellé « Continuer » ; même
+      // composant, mêmes règles d'activation et même enregistrement (Q54).
+      saveAction: "Continuer",
+      // PRE-6 (story 2.1) : durée de séance de l'en-tête (toutes les occurrences, RM-159).
+      sessionDurationAccessibilityLabel: "Durée de la séance",
       saveError: "La séance n’a pas pu être enregistrée. Réessayez.",
       summary: {
         // PRE-6 (story 1.3, D-399) : Circuit vide → « — min » (D-390 : aucun nombre d’exercices).
@@ -372,12 +380,12 @@ export const fr = {
       // glissées d'une carte Activité. Les deux libellés `Dupliquer` et
       // `Supprimer` sont ceux, exacts, du groupe `144 × 69` de la frame
       // `2028:11808`.
-      // T02-S02 (D-095/D-128/D-138) : sous-carte `Récupération X min Y s`
-      // attachée à la carte d'Activité — jamais une Activité, jamais une
-      // ligne de plus dans le compte (`computeActivityCount` inchangé).
+      // T02-S02 (D-095/D-128/D-138) : Récupération de l'occurrence — jamais une Activité, jamais
+      // une ligne de plus dans le compte (`computeActivityCount` inchangé). PRE-6 (story 2.1) :
+      // affichée par la ligne structurelle sous l'occurrence, dont le nom accessible est le
+      // libellé visible (« Récupération 20 s ») ; l'ancienne clé « Récupération attachée » est retirée.
       activityRecovery: {
         label: "Récupération",
-        accessibilityLabel: "Récupération attachée",
       },
       activityActions: {
         duplicate: "Dupliquer",

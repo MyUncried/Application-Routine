@@ -61,6 +61,10 @@ const sources = {
   // glyphes (`SVG_STRING`, `svgOutlineText`), jamais redessinés.
   "stepper-minus": require("../../../assets/icons/stepper-minus.svg"),
   "stepper-plus": require("../../../assets/icons/stepper-plus.svg"),
+  // PRE-6 story 2.1 (D-303, Figma `8328:41087` « Sablier — Récupération ») : couche
+  // vectorielle servie par l’outil MCP Figma en lecture seule (`download_assets`, svgAssets),
+  // attributs racine preserveAspectRatio/overflow/style retirés, identifiant de groupe réparé.
+  "recovery-hourglass": require("../../../assets/icons/icon-sablier-recuperation.svg"),
 } as const;
 
 const sizes = {
@@ -174,6 +178,8 @@ const sizes = {
   // le cercle `28 × 28` du stepper).
   "stepper-minus": [8, 2],
   "stepper-plus": [8, 8],
+  // Cadre 13 × 13 du `viewBox` exact (ligne structurelle de récupération).
+  "recovery-hourglass": [13, 13],
 } as const;
 
 /**
