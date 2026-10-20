@@ -29,3 +29,14 @@ Métriques Inter de l'application (Semi Bold 12 : « 6 phases » = 52,7) ; const
 - Réglage ouvert : le libellé « Phases de l'exercice » passe sur deux lignes à 375 et 402 (ligne de 44 inchangée).
 - Tableau : cellules Libellé et Durée de 76 × 24, écart de 20 (relevé `9207:18817`) ; repère de ligne active 3 × 24 bleu Kodjo ; aucun séparateur après le tableau.
 - Écart : les cellules Libellé n'ont pas de fond au repos (Figma les montre sur fond lavande) ; fond `#EAEAFF` en saisie seulement, comme les autres cellules.
+
+### Dimensions retenues après la recette du 20/10 (RC-16)
+
+Remplacent, pour l'option Avec, les dimensions de la story 2.8 ci-dessus. Métriques Inter de l'application : « 4 phases » Semi Bold 12 = 53,0 (le plus large de 2 à 6) ; « Sans » Regular 12 = 27,9 dans 62, soit des marges d'environ 17.
+
+- Option Avec, réglage fermé : marge 17 + « n phases » 53,0 + écart 6 + chevron 10 + marge 17 → **104** ; libellé blanc Semi Bold 12 sur le violet ; le chevron (10 × 10, tracé 8 × 4) est rendu par le contenu de l'option, sa place toujours réservée.
+- Option Avec, réglage ouvert : fond `#EAEAFF` (celui de la charge active), 150 × 28, rayon 5 ; ordre **− | n phases | chevron | +** : marge 4, cercle − 28, écart 8, valeur 53,0 (Semi Bold 12, primaire), écart 6, chevron 10 (gris `color/disabled`, indisponible), écart 8, cercle + 28, marge 4 → **150** ; segmenté de **34** (au lieu de 32) pour loger le fond de 28 sans débord, comme le contrôle Séries (RC-15).
+- Sans : 62, inchangé. Segmenté : 174 fermé (3 + 104 + 2 + 62 + 3), 220 ouvert.
+- Zones tactiles (sans chevauchement) : fermé, libellé 44 de haut jusqu'au bord gauche de l'option, chevron 44 de haut jusqu'au bord droit (≈ 30 × 44) ; ouvert, − et + 44 × 44 (marge 8 de chaque côté), valeur 53 × 44, chevron indisponible 16 × 44.
+- Libellé « Phases de l'exercice » (Regular 12, 117,0) : une ligne réglage fermé à 375 (119 disponibles, juste) et 402 ; deux lignes réglage ouvert (73 à 375, 100 à 402), ligne de 44 inchangée.
+- Variantes Figma à ajouter : réglage fermé (« n phases » + chevron, 104) et réglage ouvert (« − n phases ⌄ + » sur `#EAEAFF`, 150 × 28, chevron grisé), tableau déployé (chevron haut) et replié (chevron bas).

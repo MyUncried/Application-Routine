@@ -189,8 +189,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect(query("execution-sheet-target-value")).toBeNull();
     expect(seriesDurationText()).toBe("9 s");
     expect(get("execution-sheet-row-target-line").props.accessibilityLabel).toBe(`${t.durationTarget}, 9 s, ${t.totalReadOnlySpoken}`);
-    // Largeur de l'option Avec, réglage fermé : 76 ; Sans garde 62.
-    expect(styleOf(`${CONTROL}-tile-WITH`).width).toBe(76);
+    // Largeur de l'option Avec, réglage fermé : 104 (recette du 20/10, RC-16 : marges de « Sans ») ; Sans garde 62.
+    expect(styleOf(`${CONTROL}-tile-WITH`).width).toBe(104);
     expect(styleOf(`${CONTROL}-tile-WITHOUT`).width).toBe(62);
     // FR-2 : avec des phases, Répétitions, À l'échec et Variables indisponibles (déjà livré).
     expect(optionState("execution-sheet-mode-control-REPETITIONS")).toMatchObject({ disabled: true });
@@ -214,11 +214,12 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect(String(get(`${STEPPER}-value`).props.children)).toBe("2 phases");
     expect(get(`${STEPPER}-decrement`).props.accessibilityState).toMatchObject({ disabled: true });
     expect(get(STEPPER).props.accessibilityLabel).toBe(t.workPhaseCountLabel);
-    // Largeur de l'option Avec, réglage ouvert : 136 ; stepper sans pilule.
-    expect(styleOf(`${CONTROL}-tile-WITH`).width).toBe(136);
+    // Largeur de l'option Avec, réglage ouvert : 150 (RC-16), fond clair #EAEAFF de l'option ; stepper sans pilule.
+    expect(styleOf(`${STEPPER}-field`)).toMatchObject({ width: 150, backgroundColor: "#EAEAFF" });
+    expect(query(`${CONTROL}-tile-WITH`)).toBeNull();
     expect(styleOf(STEPPER)).toMatchObject({ padding: 0, minHeight: 0, backgroundColor: "transparent" });
-    // Chevron toujours présent, réglage ouvert.
-    expect(get(CHEVRON)).toBeTruthy();
+    // Chevron toujours présent, réglage ouvert (RC-16 : indisponible).
+    expect(get(CHEVRON).props.accessibilityState).toMatchObject({ disabled: true });
     for (let step = 0; step < 4; step += 1) stepperTap("increment");
     expect(String(get(`${STEPPER}-value`).props.children)).toBe("6 phases");
     expect(phaseRows()).toHaveLength(6);
@@ -239,11 +240,65 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect(query(`${STEPPER}-increment`)).toBeNull();
     expect(query(`${STEPPER}-decrement`)).toBeNull();
     expect(countText()).toBe("6 phases");
-    expect(get(CHEVRON)).toBeTruthy();
-    expect(styleOf(`${CONTROL}-tile-WITH`).width).toBe(76);
+    expect(get(CHEVRON).props.accessibilityState).toMatchObject({ disabled: false });
+    expect(styleOf(`${CONTROL}-tile-WITH`).width).toBe(104);
     // Re-choisir Avec (zone de l'option hors valeur) ouvre aussi le réglage.
     fireEvent.press(get(WITH));
     expect(get(`${STEPPER}-increment`)).toBeTruthy();
+  });
+
+  it("RC-16 — fermé : « n phases » ouvre le réglage, le chevron replie / déploie sans l'ouvrir ; actions indépendantes, place du chevron réservée", () => {
+    renderSheet(withPhases([["A", 6], ["B", 3], ["C", 5]]));
+    const closed = get(COUNT_TOGGLE).parent!;
+    // Libellé puis chevron, à 6 l'un de l'autre, dans l'option de 104.
+    expect(styleOf(CHEVRON)).toMatchObject({ width: 10, height: 10, marginLeft: 6 });
+    expect(get(COUNT_TOGGLE).props.hitSlop).toEqual({ top: 14, bottom: 14, left: 17, right: 3 });
+    expect(get(CHEVRON).props.hitSlop).toEqual({ top: 17, bottom: 17, left: 3, right: 17 });
+    expect(closed).toBeTruthy();
+    fireEvent.press(get(CHEVRON));
+    expect(query(TABLE)).toBeNull();
+    expect(query(`${STEPPER}-increment`)).toBeNull();
+    fireEvent.press(get(COUNT_TOGGLE));
+    expect(get(`${STEPPER}-increment`)).toBeTruthy();
+    expect(query(TABLE)).toBeNull();
+  });
+
+  it("RC-16 — ouvert : « − | n phases | chevron | + » sur #EAEAFF, texte primaire, segmenté de 34 ; − et + règlent 2..6 ; chevron visible mais indisponible (annoncé) ; valeur, chevron ou toucher ailleurs ferment sans changer le nombre ni le repli", () => {
+    renderSheet(withPhases([["A", 6], ["B", 3], ["C", 5]]));
+    fireEvent.press(get(COUNT_TOGGLE));
+    // Ordre dans le réglage : −, valeur, chevron, +.
+    const ids: string[] = [];
+    const walk = (node: ReturnType<typeof get>) => {
+      if (typeof node.props.testID === "string") ids.push(node.props.testID);
+      for (const child of node.children) if (typeof child !== "string") walk(child);
+    };
+    walk(get(STEPPER));
+    const order = [`${STEPPER}-decrement`, `${STEPPER}-value`, CHEVRON, `${STEPPER}-increment`].map((id) => ids.indexOf(id));
+    expect(order.every((index) => index >= 0)).toBe(true);
+    expect(order).toEqual([...order].sort((a, b) => a - b));
+    expect(styleOf("execution-sheet-phases-control").height).toBe(34);
+    expect(StyleSheet.flatten(get(`${STEPPER}-value`).props.style).color).toBe(colors.primary);
+    expect(get(CHEVRON).props.accessibilityState).toMatchObject({ disabled: true, expanded: true });
+    expect(get(STEPPER).props.accessibilityHint).toBe(t.phasesTableToggleUnavailableHint);
+    expect(styleOf(`${CHEVRON}-icon`).tintColor).toBe(colors.disabled);
+    stepperTap("increment");
+    expect(String(get(`${STEPPER}-value`).props.children)).toBe("4 phases");
+    // Chevron touché pendant le réglage : fermeture, tableau inchangé (déployé).
+    fireEvent.press(get(CHEVRON));
+    expect(query(`${STEPPER}-increment`)).toBeNull();
+    expect(phaseRows()).toHaveLength(4);
+    expect(countText()).toBe("4 phases");
+    expect(styleOf("execution-sheet-phases-control").height).toBe(32);
+    // Toucher ailleurs : fermeture.
+    fireEvent.press(get(COUNT_TOGGLE));
+    fireEvent.press(get("execution-sheet-body-outside"));
+    expect(query(`${STEPPER}-increment`)).toBeNull();
+    expect(phaseRows()).toHaveLength(4);
+    // Toucher la valeur : fermeture (RC-4).
+    fireEvent.press(get(COUNT_TOGGLE));
+    fireEvent.press(get(`${STEPPER}-value-press`));
+    expect(query(`${STEPPER}-increment`)).toBeNull();
+    expect(countText()).toBe("4 phases");
   });
 
   it("PRE5-2.8/AC2 (FR-28) — chevron : replie le tableau (chevron bas), nombre et phases inchangés ; redéploie", () => {

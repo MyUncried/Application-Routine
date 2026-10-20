@@ -251,12 +251,4 @@ describe("RC-15 — contrôle segmenté Séries (recette du 20/10)", () => {
       }
     }
   });
-
-  it("le stepper des Phases (story 2.8) garde son rendu : sans surface propre, valeur blanche, segmenté de 32", () => {
-    renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(9), pauseSeconds: 15, loadKg: 0, workPhases: [{ id: 1, label: "", durationSeconds: 5 }, { id: 2, label: "", durationSeconds: 4 }] } }));
-    fireEvent.press(get("execution-sheet-phase-count-toggle"));
-    expect(styleOf("execution-sheet-phase-count-field").backgroundColor).toBeUndefined();
-    expect(styleOf("execution-sheet-phases-control").height).toBe(32);
-    expect(get("execution-sheet-phases-control-indicator")).toBeTruthy();
-  });
 });

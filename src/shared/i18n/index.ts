@@ -110,6 +110,9 @@ const executionParameters = {
     workPhaseCountLabel: "Nombre de phases",
     showPhases: "Afficher le tableau des phases",
     hidePhases: "Masquer le tableau des phases",
+    // Recette du 20/10 (RC-16) : pendant le réglage du nombre de phases, le chevron du tableau est
+    // visible mais indisponible ; l’indice est annoncé par le réglage ajustable.
+    phasesTableToggleUnavailableHint: "Tableau des phases : chevron indisponible pendant le réglage",
     phaseColumns: { label: "Libellé", duration: "Durée" },
     phaseDefault: "Phase {n}",
     phaseRow: "Phase {n}",

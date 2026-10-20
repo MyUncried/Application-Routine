@@ -18,6 +18,7 @@ import {
   useWindowDimensions,
   type LayoutChangeEvent,
   type ScrollView,
+  type Insets,
   type StyleProp,
   type TextStyle,
   type ViewStyle,
@@ -122,6 +123,7 @@ import {
   InsertionGuide,
   RemoveRowButton,
   TABLE_BLOCK_SIDE_INSET,
+  TABLE_CELL_ACTIVE_BACKGROUND,
   TABLE_CELL_HEIGHT,
   TABLE_CELL_WIDTH,
   TABLE_ROW_HEIGHT,
@@ -280,6 +282,8 @@ import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@
  *   révèle le stepper existant (`InlineStepper` sans pilule, 2..6, surface `stepper(phaseCount)`),
  *   toucher sa valeur le referme (RC-4) ; + et − passent par `setWorkPhaseCount`, − retire la
  *   dernière phase avec « Phase supprimée — Annuler » ;
+ *   Recette du 20/10 (RC-16) : chevron rendu par le contenu (place réservée), option de 104 /
+ *   150 ; réglage ouvert « − | n phases | chevron | + » sur `#EAEAFF`, chevron indisponible ;
  * - tableau des phases (`WorkPhasesTable`) : libellé au clavier texte et durée au clavier
  *   numérique MMSS (`keyboard(phaseLabel | phaseDuration)`), glisser, actions accessibles,
  *   croix (indisponible à deux phases, QR-1) ;
@@ -322,18 +326,18 @@ const phaseCountLabel = (count: number | null) =>
   count === null ? t.unset : (count === 1 ? t.workPhaseCountSingular : t.workPhaseCount).replace("{n}", String(count));
 
 /**
- * PRE-5 story 2.8 (D-432, arbitrage de Hermann du 19/10 : géométrie adaptée au strict
- * nécessaire) — largeur de l'option Avec de la ligne « Phases de l'exercice », métriques Inter
- * de l'application, constantes locales (aucun jeton modifié, NFR-3) :
+ * PRE-5 story 2.8 (D-432) ; recette du 20/10 (RC-16) — largeur de l'option Avec de la ligne
+ * « Phases de l'exercice », métriques Inter de l'application, constantes locales (aucun jeton
+ * modifié, NFR-3). Le plus large libellé, « 4 phases » Semi Bold 12, mesure 53,0 :
  * - Sans sélectionné : 62 (largeur commune `narrow`, Sans garde toujours 62) ;
- * - Avec, réglage fermé : contenu « 6 phases » Semi Bold 12 (52,7) + écart 4 + chevron 10,
- *   arrondi à 76 (valeur retenue par la story) ;
- * - Avec, réglage ouvert : − 28 + écart 2 + valeur (52,7 + 2 × 4) + écart 2 + + 28 + écart 4 +
- *   chevron 10 = 134,7 → arrondi à 136.
+ * - Avec, réglage fermé : marge 17 (celle de « Sans », Regular 12 27,9 dans 62) + libellé 53,0 +
+ *   écart 6 + chevron 10 + marge 17 = 103,0 → 104 ; la place du chevron est toujours réservée ;
+ * - Avec, réglage ouvert (− | n phases | chevron | +) : marge 4 + − 28 + écart 8 + valeur 53,0 +
+ *   écart 6 + chevron 10 + écart 8 + + 28 + marge 4 = 149,0 → 150.
  * Relevé à reporter dans Figma (`_bmad-output/pre5/ajustement-figma-phases.md`, § Géométrie).
  */
-const PHASE_OPTION_CLOSED_WIDTH = 76;
-const PHASE_OPTION_OPEN_WIDTH = 136;
+const PHASE_OPTION_CLOSED_WIDTH = 104;
+const PHASE_OPTION_OPEN_WIDTH = 150;
 
 /** Surfaces de la Feuille (AD-15). */
 const TARGET_SELECTOR: SheetSurface = { kind: "selector", selector: "commonTarget" };
@@ -1673,20 +1677,24 @@ export function ExecutionParametersSheet({
     <SegmentedControl<PhaseChoice>
       variant="inline"
       optionWidth={INLINE_OPTION_WIDTHS.narrow}
+      // Recette du 20/10 (RC-16) : réglage ouvert, segmenté de 34 (fond clair de 28, comme RC-15).
+      height={hasWorkPhases && phaseCountOpen ? PHASE_CONTROL_OPEN_HEIGHT : undefined}
       options={[
         hasWorkPhases
           ? {
               value: "WITH",
               label: t.workPhaseChoices.WITH,
               width: phaseCountOpen ? PHASE_OPTION_OPEN_WIDTH : PHASE_OPTION_CLOSED_WIDTH,
-              chevron: isPhasesFolded ? "down" : "up",
-              chevronAccessibilityLabel: isPhasesFolded ? t.showPhases : t.hidePhases,
+              // RC-16 : réglage ouvert, l'option dessine son fond clair (`#EAEAFF`, comme la charge active).
+              ownSurface: phaseCountOpen,
               selectedContent: (
                 <PhaseCountField
                   isOpen={phaseCountOpen}
                   onToggle={togglePhaseCount}
                   count={draft.workPhases.length}
                   onChange={changePhaseCount}
+                  folded={isPhasesFolded}
+                  onChevronPress={togglePhasesTable}
                 />
               ),
             }
@@ -1695,7 +1703,6 @@ export function ExecutionParametersSheet({
       ]}
       value={hasWorkPhases ? "WITH" : "WITHOUT"}
       onChange={choosePhases}
-      onChevronPress={togglePhasesTable}
       accessibilityLabel={t.workPhases}
       testID="execution-sheet-phases-control"
     />
@@ -2804,6 +2811,10 @@ function SegmentCountField({
   style,
   testID,
   textTestID,
+  closedAccessory,
+  openAccessory,
+  openHint,
+  closedHitSlop,
 }: {
   isOpen: boolean;
   onToggle: () => void;
@@ -2820,17 +2831,24 @@ function SegmentCountField({
   style?: StyleProp<ViewStyle>;
   testID: string;
   textTestID: string;
+  /** RC-16 : contenu après le libellé fermé (chevron du tableau des phases). */
+  closedAccessory?: ReactNode;
+  /** RC-16 : élément du réglage ouvert entre la valeur et le + (chevron indisponible), et son indice. */
+  openAccessory?: ReactNode;
+  openHint?: string;
+  /** RC-16 : marge de toucher du libellé fermé (par défaut 44 de haut). */
+  closedHitSlop?: Insets;
 }) {
   const { fieldRef, toggleRef, closeFromAccessibility } = useOpenFieldFocus(isOpen, onToggle);
   if (!isOpen) {
-    return (
+    const toggleButton = (
       <Pressable
         ref={toggleRef}
         onPress={onToggle}
         accessibilityRole="button"
         accessibilityLabel={`${accessibilityLabel}, ${closedLabel}`}
         accessibilityState={{ expanded: false }}
-        hitSlop={SEGMENT_COUNT_HIT_SLOP}
+        hitSlop={closedHitSlop ?? SEGMENT_COUNT_HIT_SLOP}
         style={style}
         testID={`${testID}-toggle`}
       >
@@ -2838,6 +2856,14 @@ function SegmentCountField({
           {closedLabel}
         </Text>
       </Pressable>
+    );
+    return closedAccessory === undefined ? (
+      toggleButton
+    ) : (
+      <View style={styles.phaseCountClosed}>
+        {toggleButton}
+        {closedAccessory}
+      </View>
     );
   }
   return (
@@ -2851,6 +2877,8 @@ function SegmentCountField({
       accessibilityLabel={accessibilityLabel}
       appearance="bare"
       valueStyle={valueStyle}
+      accessory={openAccessory}
+      hint={openHint}
       testID={testID}
       fieldRef={fieldRef}
       onClose={closeFromAccessibility}
@@ -2860,18 +2888,54 @@ function SegmentCountField({
   );
 }
 
-/** PRE-5 story 2.8 : nombre de phases (2..6) dans l'option Avec sélectionnée, rendu inchangé. */
+/**
+ * PRE-5 story 2.8 ; recette du 20/10 (RC-16) — nombre de phases (2..6) dans l'option Avec
+ * sélectionnée, chevron du tableau rendu par le contenu (place toujours réservée) :
+ * - fermé : « n phases » (son toucher ouvre le réglage) puis le chevron, actif (replie / déploie le
+ *   tableau sans ouvrir le réglage) ;
+ * - ouvert : « − | n phases | chevron | + » sur le fond clair de la charge active (`#EAEAFF`,
+ *   texte primaire) ; − et + règlent le nombre ; le chevron reste visible mais indisponible (son
+ *   toucher, comme celui de la valeur ou d'ailleurs, ferme le réglage sans toucher au tableau).
+ */
 function PhaseCountField({
   isOpen,
   onToggle,
   count,
   onChange,
+  folded,
+  onChevronPress,
 }: {
   isOpen: boolean;
   onToggle: () => void;
   count: number;
   onChange: (count: number) => void;
+  folded: boolean;
+  onChevronPress: () => void;
 }) {
+  const chevronTestID = "execution-sheet-phases-control-WITH-chevron";
+  const chevronLabel = folded ? t.showPhases : t.hidePhases;
+  const icon = (
+    <KodjoIcon
+      name={folded ? "control-chevron-down" : "control-chevron-up"}
+      size={dimensions.catalogueDisclosure.chevronDisplaySize}
+      tintColor={isOpen ? colors.disabled : colors.background}
+      testID={`${chevronTestID}-icon`}
+    />
+  );
+  const chevron = (
+    <Pressable
+      // Ouvert : indisponible pour le tableau ; son toucher ferme le réglage (RC-16, « appui ailleurs »).
+      onPress={isOpen ? onToggle : onChevronPress}
+      accessibilityRole="button"
+      accessibilityLabel={chevronLabel}
+      accessibilityState={{ expanded: !folded, disabled: isOpen }}
+      hitSlop={isOpen ? PHASE_CHEVRON_OPEN_HIT_SLOP : PHASE_CHEVRON_CLOSED_HIT_SLOP}
+      style={[inlineChevronFrameStyle, isOpen ? styles.phaseChevronOpen : styles.phaseChevronClosed]}
+      testID={chevronTestID}
+    >
+      {icon}
+    </Pressable>
+  );
   return (
     <SegmentCountField
       isOpen={isOpen}
@@ -2884,7 +2948,12 @@ function PhaseCountField({
       formatValue={phaseCountLabel}
       onChange={onChange}
       accessibilityLabel={t.workPhaseCountLabel}
-      valueStyle={inlineSelectedLabelStyle}
+      valueStyle={isOpen ? [inlineSelectedLabelStyle, styles.phaseStepperValue] : inlineSelectedLabelStyle}
+      fieldStyle={styles.phaseStepperField}
+      closedHitSlop={PHASE_COUNT_CLOSED_HIT_SLOP}
+      closedAccessory={chevron}
+      openAccessory={chevron}
+      openHint={t.phasesTableToggleUnavailableHint}
       testID="execution-sheet-phase-count"
       textTestID="execution-sheet-phase-count-text"
     />
@@ -3024,6 +3093,20 @@ const LOAD_SEGMENT_HIT_SLOP = { top: 9, bottom: 9 };
  */
 const SEGMENT_COUNT_HIT_SLOP = { top: 14, bottom: 14 };
 /**
+ * Recette du 20/10 (RC-16) : géométrie du contenu de l'option Avec des phases (voir
+ * `PHASE_OPTION_*_WIDTH`). Fermé : marges 17, écart 6 libellé–chevron ; le libellé (16 de haut)
+ * touche jusqu'au bord gauche de l'option et sur 44 de haut ; le chevron (10) jusqu'au bord droit,
+ * 44 de haut, sans recouvrir le libellé (écart partagé 3 / 3). Ouvert : marges 4 ; − [8] valeur [6]
+ * chevron [8] + ; les cercles gardent leur marge de 8 (44 de large) ; le chevron indisponible ne
+ * prend que l'écart de 6 à sa gauche. Segmenté de 34 et fond de 28 (rayon 5 des options).
+ */
+const PHASE_OPTION_INSET = 17;
+const PHASE_CHEVRON_GAP = 6;
+const PHASE_CONTROL_OPEN_HEIGHT = 34;
+const PHASE_COUNT_CLOSED_HIT_SLOP = { top: 14, bottom: 14, left: PHASE_OPTION_INSET, right: PHASE_CHEVRON_GAP / 2 };
+const PHASE_CHEVRON_CLOSED_HIT_SLOP = { top: 17, bottom: 17, left: PHASE_CHEVRON_GAP / 2, right: PHASE_OPTION_INSET };
+const PHASE_CHEVRON_OPEN_HIT_SLOP = { top: 17, bottom: 17, left: PHASE_CHEVRON_GAP, right: 0 };
+/**
  * Recette du 20/10 (RC-15, Figma `9436:18348`) : segmenté du Type de série de 34 quand le stepper du
  * nombre de séries (28) est ouvert, 32 au repos ; stepper sur fond `#F2F2FF` (`colors.stepperSurface`),
  * rayon 14 (moitié de sa hauteur).
@@ -3039,6 +3122,36 @@ const SHEET_ROW_SIDE_WIDTH = spacing[24] * 2 + FRAME_BORDER_WIDTH * 2 + GROUP_PA
 const PHASE_LABEL_CELL_RADIUS = 8;
 
 const styles = StyleSheet.create({
+  // RC-16 : contenu fermé de l'option Avec des phases — libellé, écart 6, chevron.
+  phaseCountClosed: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  phaseChevronClosed: {
+    marginLeft: PHASE_CHEVRON_GAP,
+  },
+  // Ouvert : chevron entre la valeur (écart 6, porté par la valeur) et le + (écart 8 = 6 + 2 d'`InlineStepper`).
+  phaseChevronOpen: {
+    marginRight: spacing[6],
+  },
+  // RC-16 : réglage ouvert — fond clair de la charge active (`#EAEAFF`, rayon 5 des options), 28 de haut.
+  phaseStepperField: {
+    backgroundColor: TABLE_CELL_ACTIVE_BACKGROUND,
+    borderRadius: INLINE_OPTION_CONTENT_RADIUS,
+    height: SERIES_STEPPER_CIRCLE,
+    width: PHASE_OPTION_OPEN_WIDTH,
+    paddingHorizontal: spacing[4],
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  // RC-16 : valeur primaire (comme la charge en saisie), à 8 du − (2 + 6) et à 6 du chevron (2 + 4).
+  phaseStepperValue: {
+    color: colors.primary,
+    minWidth: 0,
+    paddingHorizontal: 0,
+    marginLeft: spacing[6],
+    marginRight: spacing[4],
+  },
   // RC-15 (Figma `9436:18506`) : stepper du nombre de séries ouvert, pilule `#F2F2FF` de 28.
   seriesStepperField: {
     backgroundColor: colors.stepperSurface,
