@@ -332,6 +332,35 @@ export const fr = {
             SERIES: { title: "Circuit de séries", subtitle: "une série de chaque exercice par passage" },
           },
         },
+        // PRE-6 (story 3.4, CE-CIR-03, Figma `8328:34965` / `8328:35135`) : œil de l’en-tête et
+        // feuille « Volumes du circuit », en lecture seule. « ✓ » = cible à l’échec ; « — » = série
+        // inexistante ou cible à renseigner (jamais 0), distingués à l’annonce VoiceOver.
+        volumes: {
+          openAccessibilityLabel: "Voir les volumes du circuit",
+          title: "Volumes du circuit",
+          closeAccessibilityLabel: "Fermer les volumes du circuit",
+          empty: "Aucun exercice dans le circuit",
+          columns: {
+            exercise: "Exercice",
+            series: "S{n}",
+            unit: "Unité",
+          },
+          units: {
+            REPETITIONS: "rép.",
+            DURATION: "durée",
+            FAILURE: "À l’échec",
+          },
+          failureValue: "✓",
+          missingValue: "—",
+          spoken: {
+            series: "série {n} : {value}",
+            repetitionsSingular: "{n} répétition",
+            repetitionsPlural: "{n} répétitions",
+            failure: "à l’échec",
+            noSeries: "pas de série",
+            unset: "à renseigner",
+          },
+        },
       },
       wheelPicker: {
         minutesAccessibilityLabel: "Minutes",

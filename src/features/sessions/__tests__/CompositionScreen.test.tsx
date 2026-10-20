@@ -12,7 +12,7 @@ import {
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Category } from "@/domain/categories/Category";
 import type { Label } from "@/domain/labels/Label";
-import { createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
+import { createExerciseDraft, sessionDraftsEqual, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import * as circuitModule from "@/domain/sessions/circuit";
 import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
@@ -4490,5 +4490,211 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
         }
       });
     });
+  });
+});
+
+describe("CompositionScreen — modales « Volumes du circuit » (PRE-6 story 3.4, CE-CIR-03)", () => {
+  type Draft = SessionDraftContextValue["draft"];
+  const anyNode = { includeHiddenElements: true } as const;
+  const probe: { draft: Draft | null } = { draft: null };
+  function DraftProbe() {
+    const value = useContext(SessionDraftContext);
+    useEffect(() => {
+      probe.draft = value?.draft ?? null;
+    }, [value]);
+    return null;
+  }
+  function renderWithProbe(exercises: readonly SessionDraftExercise[], overrides?: Partial<Draft>) {
+    return render(
+      <TestSafeAreaProvider>
+        <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
+          <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+            <StatefulDraftWrapper initialExercises={exercises} draftOverrides={overrides}>
+              <CompositionScreen />
+              <DraftProbe />
+            </StatefulDraftWrapper>
+          </ReferentialServiceContext.Provider>
+        </ActivityDefinitionServiceContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+  }
+  const EYE = "composition-circuit-header-volumes";
+  const SHEET = "composition-circuit-volumes-sheet";
+  const circuitExercises = () => [
+    anActivity("before", "BEFORE_TOUR", { name: "Échauffement", executionParameters: repetitionParameters(20, 6) }),
+    anActivity("a", "IN_TOUR", { name: "Squat assisté", executionParameters: repetitionParameters(10, 2) }),
+    anActivity("b", "IN_TOUR", { name: "Extension du genou", executionParameters: durationParameters(45, 4) }),
+  ];
+
+  it("the eye sits in the Circuit header, in both natures and with an empty Circuit", () => {
+    renderWithProbe([]);
+    const header = screen.getByTestId("composition-circuit-header");
+    expect(within(header).getByLabelText("Voir les volumes du circuit")).toBeTruthy();
+    screen.unmount();
+    renderWithProbe(circuitExercises(), { circuitNature: "SERIES", tourRepeatCount: 4 });
+    expect(screen.getByTestId(EYE)).toBeTruthy();
+  });
+
+  it("opening the sheet closes the revealed counter (one active control) and shows the Domain grid, occurrences outside the Circuit excluded", () => {
+    renderWithProbe(circuitExercises());
+    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
+    expect(screen.getByTestId("composition-circuit-header-counter-field")).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId(EYE));
+    expect(screen.getByTestId(SHEET)).toBeTruthy();
+    expect(screen.queryByTestId("composition-circuit-header-counter-field")).toBeNull();
+    expect(screen.queryByTestId("composition-circuit-counter-outside", anyNode)).toBeNull();
+
+    const sheet = screen.getByTestId(SHEET);
+    expect(within(sheet).getByLabelText(
+      "Squat assisté, série 1 : 10 répétitions, série 2 : 10 répétitions, série 3 : pas de série, série 4 : pas de série",
+    )).toBeTruthy();
+    expect(within(sheet).getByLabelText(
+      "Extension du genou, série 1 : 45 s, série 2 : 45 s, série 3 : 45 s, série 4 : 45 s",
+    )).toBeTruthy();
+    expect(within(sheet).queryByText("Échauffement", anyNode)).toBeNull();
+    expect(screen.getByTestId("composition-circuit-volumes-cell-b-1", anyNode).props.children).toBe("0:45");
+  });
+
+  it("Series nature (N = 3): same grid, from each exercise's own series", () => {
+    renderWithProbe(
+      [
+        anActivity("a", "IN_TOUR", { name: "Squat assisté", executionParameters: repetitionParameters(12, 3) }),
+        anActivity("b", "IN_TOUR", { name: "Pompes", executionParameters: allFailureParameters(3) }),
+      ],
+      { circuitNature: "SERIES", tourRepeatCount: 3 },
+    );
+    fireEvent.press(screen.getByTestId(EYE));
+    expect(screen.getByTestId("composition-circuit-volumes-unit-b", anyNode).props.children).toBe("À l’échec");
+    expect(screen.getByTestId("composition-circuit-volumes-cell-b-3", anyNode).props.children).toBe("✓");
+    expect(screen.getByTestId("composition-circuit-volumes-cell-a-3", anyNode).props.children).toBe("12");
+  });
+
+  it.each([
+    ["X", () => fireEvent.press(screen.getByTestId("composition-circuit-volumes-close"))],
+    ["scrim", () => fireEvent.press(screen.getByTestId("composition-circuit-volumes-scrim", anyNode))],
+    ["system back", () => fireEvent(screen.getByTestId("composition-circuit-volumes-modal", anyNode), "requestClose")],
+  ])("closing by %s leaves the draft strictly identical; the focus goes back to the eye once the Modal is dismissed (iOS)", (_label, close) => {
+    const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
+    const focusTargets = () =>
+      focus.mock.calls.map(([target, event]) => [(target as unknown as { props: { testID?: string } }).props.testID, event]);
+    try {
+      renderWithProbe(circuitExercises(), { circuitNature: "SERIES", tourRepeatCount: 2 });
+      const before = probe.draft!;
+      focus.mockClear();
+      fireEvent.press(screen.getByTestId(EYE));
+      expect(probe.draft).toBe(before);
+      const onDismiss = screen.getByTestId("composition-circuit-volumes-modal", anyNode).props.onDismiss as () => void;
+      act(() => close());
+      expect(screen.queryByTestId(SHEET)).toBeNull();
+      expect(probe.draft).toBe(before);
+      expect(sessionDraftsEqual(probe.draft!, before)).toBe(true);
+      // Pas de focus tant que la `Modal` native n'a pas fini de disparaître.
+      expect(focusTargets()).toEqual([]);
+      act(() => onDismiss());
+      expect(focusTargets()).toEqual([[EYE, "focus"]]);
+    } finally {
+      focus.mockRestore();
+    }
+  });
+
+  it("a stale or repeated close does nothing more (one focus request, sheet stays closed)", () => {
+    const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
+    try {
+      renderWithProbe(circuitExercises());
+      fireEvent.press(screen.getByTestId(EYE));
+      const modal = screen.getByTestId("composition-circuit-volumes-modal", anyNode);
+      const onDismiss = modal.props.onDismiss as () => void;
+      const staleClose = modal.props.onRequestClose as () => void;
+      focus.mockClear();
+      act(() => {
+        staleClose();
+        staleClose();
+      });
+      act(() => onDismiss());
+      act(() => staleClose());
+      expect(screen.queryByTestId(SHEET)).toBeNull();
+      expect(focus).toHaveBeenCalledTimes(1);
+    } finally {
+      focus.mockRestore();
+    }
+  });
+
+  it("focus loss (useFocusEffect cleanup) closes the sheet with the draft unchanged, without moving the focus", () => {
+    const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
+    try {
+      mockFocusHarness.callbacks = [];
+      renderWithProbe(circuitExercises());
+      fireEvent.press(screen.getByTestId(EYE));
+      expect(screen.getByTestId(SHEET)).toBeTruthy();
+      const before = probe.draft;
+      const onDismiss = screen.getByTestId("composition-circuit-volumes-modal", anyNode).props.onDismiss as () => void;
+      focus.mockClear();
+      act(() => {
+        mockFocusHarness.callbacks.forEach((callback) => (callback() as unknown as (() => void) | undefined)?.());
+      });
+      expect(screen.queryByTestId(SHEET)).toBeNull();
+      act(() => onDismiss());
+      expect(probe.draft).toBe(before);
+      expect(focus).not.toHaveBeenCalled();
+    } finally {
+      focus.mockRestore();
+    }
+  });
+
+  it("Android: the eye closes the open nature panel (one active control); closing the sheet gives the focus back without onDismiss", () => {
+    const platformBefore = Platform.OS;
+    Platform.OS = "android";
+    const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
+    try {
+      renderWithProbe(circuitExercises());
+      fireLayout(screen.getByTestId("composition-tour-section"), 230, 170);
+      fireLayout(screen.getByTestId("composition-circuit-header"), 12, 44);
+      const PANEL = "composition-circuit-header-counter-nature-panel";
+      fireEvent.press(screen.getByTestId("composition-circuit-header-counter-nature"));
+      expect(screen.getByTestId(PANEL)).toBeTruthy();
+      const before = probe.draft;
+      // Panneau ouvert : le reste de l'écran est masqué pour l'accessibilité, l'œil reste touchable.
+      fireEvent.press(screen.getByTestId(EYE, anyNode));
+      expect(screen.queryByTestId(PANEL, anyNode)).toBeNull();
+      expect(screen.getByTestId(SHEET)).toBeTruthy();
+      focus.mockClear();
+      fireEvent.press(screen.getByTestId("composition-circuit-volumes-close"));
+      expect(screen.queryByTestId(SHEET)).toBeNull();
+      expect(probe.draft).toBe(before);
+      const targets = focus.mock.calls.map(([target]) => (target as unknown as { props: { testID?: string } }).props.testID);
+      expect(targets).toEqual([EYE]);
+    } finally {
+      focus.mockRestore();
+      Platform.OS = platformBefore;
+    }
+  });
+
+  it("empty Circuit: the sheet opens on the empty state, without fictitious value", () => {
+    renderWithProbe([anActivity("before", "BEFORE_TOUR")]);
+    fireEvent.press(screen.getByTestId(EYE));
+    expect(screen.getByTestId("composition-circuit-volumes-empty").props.children).toBe("Aucun exercice dans le circuit");
+    expect(screen.queryByTestId("composition-circuit-volumes-grid", anyNode)).toBeNull();
+  });
+
+  it("a pending exit (abandon dialog) closes the sheet: never two stacked modals", () => {
+    renderWithProbe(circuitExercises());
+    fireEvent.press(screen.getByTestId(EYE));
+    const before = probe.draft;
+    mockExitGuard.mockReturnValue({ ...defaultExitGuardResult(), isPendingExit: true });
+    screen.rerender(
+      <TestSafeAreaProvider>
+        <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
+          <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+            <StatefulDraftWrapper initialExercises={circuitExercises()}>
+              <CompositionScreen />
+              <DraftProbe />
+            </StatefulDraftWrapper>
+          </ReferentialServiceContext.Provider>
+        </ActivityDefinitionServiceContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+    expect(screen.queryByTestId(SHEET)).toBeNull();
+    expect(probe.draft).toBe(before);
   });
 });

@@ -6,6 +6,7 @@ import type { CircuitNature } from "@/domain/sessions/circuit";
 import { CircuitNatureMenu } from "@/features/sessions/CircuitNatureMenu";
 import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
 import { strings } from "@/shared/i18n";
+import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { EXECUTION_UNIT_HOLD_POLICY, InlineStepper } from "@/shared/ui/ProfileStepper";
 import { colors, fixedRadii, spacing, type } from "@/shared/ui/tokens";
 
@@ -64,10 +65,30 @@ export type CircuitHeaderProps = {
   readonly onSelectNature: (nature: CircuitNature) => void;
   /** Demande de focus sur la pastille (voir `CircuitNatureMenu`). */
   readonly natureFocusRequest: number;
+  /**
+   * PRE-6 story 3.4 (CE-CIR-03) : toucher de l'œil — l'écran ouvre « Volumes du circuit » et
+   * referme le compteur et le choix de nature (un seul contrôle actif).
+   */
+  readonly onOpenVolumes: () => void;
+  /** Story 3.4 : demande de focus sur l'œil (fermeture de la feuille des volumes). */
+  readonly volumesFocusRequest?: number;
   /** Mesure de l'en-tête dans le conteneur Circuit : ancrage du panneau Android / web par l'écran. */
   readonly onLayout?: ViewProps["onLayout"];
   readonly testID: string;
 };
+
+/**
+ * Bouton d'action circulaire DSF 32 de l'œil (Figma `8328:35040`, `8328:28667`) : fond clair
+ * `#FCFCFE`, liseré blanc 1, ombre légère « KODJO / DSF / Effet observé / 01 » (`#1A1A26` 8 %,
+ * (0, 2), flou 10) — mêmes valeurs que les actions circulaires de l'Éditeur ; cible 44.
+ * Valeurs sans jeton exact : constantes locales (`tokens.ts` inchangé).
+ */
+const VOLUMES_ACTION_SIZE = 32;
+const VOLUMES_ACTION_TOUCH_TARGET = 44;
+const VOLUMES_ACTION_BACKGROUND = "#FCFCFE";
+const VOLUMES_ACTION_SHADOW = { color: "#1A1A26", opacity: 0.08, offsetY: 2, radius: 10 } as const;
+/** Débord vertical de l'œil (32) sur la ligne du titre (interligne 19), réparti en haut et en bas. */
+const VOLUMES_ACTION_ROW_OVERFLOW = (VOLUMES_ACTION_SIZE - TITLE_TEXT.lineHeight) / 2;
 
 /**
  * En-tête du Circuit (PRE-6 story 3.1, CIR-10, AD-41, AD-42, Figma `8328:28667`), rendu dans
@@ -75,6 +96,8 @@ export type CircuitHeaderProps = {
  *
  * - À gauche : « Circuit » et, dessous, la seule durée du Circuit (D-382, D-390, D-399). La
  *   durée se tronque en premier ; le compteur garde sa taille.
+ * - PRE-6 story 3.4 : l'œil permanent suit le titre (bouton circulaire 32, cible 44) et ouvre
+ *   la feuille « Volumes du circuit » (`CircuitVolumesSheet`), dans les deux natures.
  * - À droite, au repos : le chiffre (cible 44) puis la pastille d'unité (`Valeur modifiable`),
  *   accordée selon la nature. PRE-6 story 3.2 : la pastille seule ouvre le choix de nature
  *   (`CircuitNatureMenu`, menu natif sur iOS) ; chiffre et pastille sont deux éléments
@@ -100,6 +123,8 @@ export function CircuitHeader({
   onCloseNatureMenu,
   onSelectNature,
   natureFocusRequest,
+  onOpenVolumes,
+  volumesFocusRequest = 0,
   onLayout,
   testID,
 }: CircuitHeaderProps) {
@@ -107,9 +132,13 @@ export function CircuitHeader({
   return (
     <View style={styles.row} onLayout={onLayout} testID={testID}>
       <View style={styles.textBlock} testID={`${testID}-text-block`}>
-        <Text style={styles.title} numberOfLines={1} testID={`${testID}-title`}>
-          {t.title}
-        </Text>
+        {/* Story 3.4 : l'œil est sur la ligne du titre, juste après lui ; la durée reste dessous. */}
+        <View style={styles.titleRow} testID={`${testID}-title-row`}>
+          <Text style={styles.title} numberOfLines={1} testID={`${testID}-title`}>
+            {t.title}
+          </Text>
+          <VolumesAction onPress={onOpenVolumes} focusRequest={volumesFocusRequest} testID={`${testID}-volumes`} />
+        </View>
         <Text style={styles.duration} numberOfLines={1} testID={`${testID}-duration`}>
           {duration}
         </Text>
@@ -128,6 +157,34 @@ export function CircuitHeader({
         testID={`${testID}-counter`}
       />
     </View>
+  );
+}
+
+/**
+ * Œil permanent de la ligne du titre (PRE-6 story 3.4, CIR-10, CE-CIR-03) : présent dans les deux
+ * natures, Circuit vide compris. Le focus VoiceOver y revient à la fermeture de la feuille
+ * (`focusRequest` incrémenté par l'écran, jamais au montage).
+ */
+function VolumesAction({ onPress, focusRequest, testID }: { onPress: () => void; focusRequest: number; testID: string }) {
+  const ref = useRef<View>(null);
+  const lastRequestRef = useRef(focusRequest);
+  useEffect(() => {
+    if (focusRequest === lastRequestRef.current) return;
+    lastRequestRef.current = focusRequest;
+    if (ref.current) AccessibilityInfo.sendAccessibilityEvent(ref.current, "focus");
+  }, [focusRequest]);
+  return (
+    <Pressable
+      ref={ref}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={strings.screens.composition.circuit.volumes.openAccessibilityLabel}
+      hitSlop={(VOLUMES_ACTION_TOUCH_TARGET - VOLUMES_ACTION_SIZE) / 2}
+      style={styles.volumesAction}
+      testID={testID}
+    >
+      <KodjoIcon name="view-volumes" testID={`${testID}-icon`} />
+    </Pressable>
   );
 }
 
@@ -294,6 +351,30 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     minWidth: 0,
     gap: spacing[2],
+  },
+  // Story 3.4 : ligne du titre — « Circuit » puis l'œil. L'œil (32) déborde de la ligne (19)
+  // par des marges négatives : la durée reste à sa place sous le titre.
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing[8],
+  },
+  volumesAction: {
+    flexShrink: 0,
+    marginVertical: -VOLUMES_ACTION_ROW_OVERFLOW,
+    width: VOLUMES_ACTION_SIZE,
+    height: VOLUMES_ACTION_SIZE,
+    borderRadius: VOLUMES_ACTION_SIZE / 2,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: VOLUMES_ACTION_BACKGROUND,
+    borderWidth: 1,
+    borderColor: colors.background,
+    shadowColor: VOLUMES_ACTION_SHADOW.color,
+    shadowOpacity: VOLUMES_ACTION_SHADOW.opacity,
+    shadowOffset: { width: 0, height: VOLUMES_ACTION_SHADOW.offsetY },
+    shadowRadius: VOLUMES_ACTION_SHADOW.radius,
+    elevation: 2,
   },
   // Le titre ne se tronque jamais avant la durée (`flexShrink: 0`).
   title: {

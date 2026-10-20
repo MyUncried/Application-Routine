@@ -72,6 +72,10 @@ const sources = {
   // PRE-6 story 2.2 : sablier de la durée totale, carte de sélection « Choix composition »
   // (`DSF / Cards / Exercice`, `6214:4410`). Distinct du sablier de récupération (autre tracé).
   "duration-hourglass": require("../../../assets/icons/icon-duree-sablier.svg"),
+  // PRE-6 story 3.4 (CE-CIR-03) : `icon/oeil` (`8165:13756`), œil de l’en-tête du Circuit qui
+  // ouvre « Volumes du circuit ». Export SVG de l’outil MCP Figma en lecture seule ; le fond de
+  // canevas ajouté par l’export est retiré, l’identifiant doublement encodé réparé.
+  "view-volumes": require("../../../assets/icons/icon-oeil.svg"),
 } as const;
 
 const sizes = {
@@ -190,6 +194,8 @@ const sizes = {
   // Cadres 16 × 16 des `viewBox` exacts.
   "side-change": [16, 16],
   "duration-hourglass": [16, 16],
+  // Cadre 24 × 24 du `viewBox` exact ; cercle 32 et cible 44 portés par `CircuitHeader`.
+  "view-volumes": [24, 24],
 } as const;
 
 /**

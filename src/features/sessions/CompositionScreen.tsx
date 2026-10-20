@@ -1,6 +1,6 @@
 import * as Crypto from "expo-crypto";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Keyboard,
@@ -24,6 +24,7 @@ import { DEFAULT_SESSION_COLOR, type StructuralPosition } from "@/domain/session
 import {
   DEFAULT_CIRCUIT_NATURE,
   applyNatureChange,
+  circuitVolumes,
   prepareNatureChange,
   setCircuitCount,
   type CircuitLoss,
@@ -53,6 +54,7 @@ import { AbandonCreationModal } from "@/features/sessions/AbandonCreationModal";
 import { CircuitEntryConfirmModal } from "@/features/sessions/CircuitEntryConfirmModal";
 import { CircuitHeader } from "@/features/sessions/CircuitHeader";
 import { CIRCUIT_NATURE_PANEL_GAP, CircuitNaturePanel } from "@/features/sessions/CircuitNatureMenu";
+import { CircuitVolumesSheet } from "@/features/sessions/CircuitVolumesSheet";
 import {
   clampSwipeTranslateX,
   isTap,
@@ -104,9 +106,10 @@ import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
 /**
  * Champ numérique actif — un seul à la fois (CIR-10) : roulettes des bornes, ou stepper révélé
  * du compte du Circuit (PRE-6 story 3.1), ou panneau du choix de nature du Circuit (story 3.2,
- * Android / web ; sur iOS le menu natif porte seul son ouverture).
+ * Android / web ; sur iOS le menu natif porte seul son ouverture). PRE-6 story 3.4 : feuille
+ * « Volumes du circuit » (`circuitVolumes`), ouverte par l'œil — l'ouvrir referme les autres.
  */
-type OverlayKind = "countdown" | "finalPhase" | "circuitCount" | "circuitNature";
+type OverlayKind = "countdown" | "finalPhase" | "circuitCount" | "circuitNature" | "circuitVolumes";
 
 /** Contrôles de l'en-tête du Circuit refermés par un toucher ailleurs (RC-4). */
 function isCircuitControl(kind: OverlayKind | null): boolean {
@@ -443,6 +446,16 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // de perte (jamais à l'ouverture d'un dialogue, au début d'une sortie ni à la perte du focus).
   const [natureFocusRequest, setNatureFocusRequest] = useState(0);
   const requestNatureFocus = useCallback(() => setNatureFocusRequest((current) => current + 1), []);
+  // PRE-6 (story 3.4) : demande de focus sur l'œil, à la fermeture de la feuille des volumes.
+  const [volumesFocusRequest, setVolumesFocusRequest] = useState(0);
+  // Feuille montée jusqu'à la fin de sa disparition native (`onDismissed`), pour que le focus ne
+  // soit rendu à l'œil qu'une fois la `Modal` réellement fermée.
+  const [isVolumesSheetMounted, setIsVolumesSheetMounted] = useState(false);
+  // Vrai seulement pour une fermeture par l'utilisateur (X, voile, glisser, retour) : une sortie
+  // ou la perte du premier plan referme la feuille sans déplacer le focus.
+  const volumesClosedByUserRef = useRef(false);
+  // Grille du Domaine recalculée seulement quand le brouillon change (la feuille la mémorise).
+  const volumes = useMemo(() => circuitVolumes(draft), [draft]);
   // Android / web : position de l'en-tête dans le conteneur Circuit, pour ancrer le panneau du
   // choix dans le corps défilant (un parent qui le contient entièrement).
   const [circuitHeaderLayout, setCircuitHeaderLayout] = useState<{ y: number; height: number } | null>(null);
@@ -483,7 +496,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const [observedPendingExit, setObservedPendingExit] = useState(isPendingExit);
   if (isPendingExit !== observedPendingExit) {
     setObservedPendingExit(isPendingExit);
-    if (isPendingExit && isCircuitControl(openOverlay)) {
+    // Story 3.4 : la feuille des volumes aussi — jamais deux modales empilées.
+    if (isPendingExit && (isCircuitControl(openOverlay) || openOverlay === "circuitVolumes")) {
       setOpenOverlay(null);
     }
     // Story 3.2 : la sortie annule une conversion en attente — jamais deux dialogues empilés.
@@ -558,10 +572,40 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       () => () => {
         closeCircuitCounter();
         setPendingNatureChange(null);
+        // Story 3.4 : la feuille des volumes se referme aussi (aucune mutation).
+        setOpenOverlay((current) => (current === "circuitVolumes" ? null : current));
       },
       [closeCircuitCounter],
     ),
   );
+
+  /**
+   * PRE-6 (story 3.4, CE-CIR-03) : l'œil ouvre « Volumes du circuit » et referme, dans le même
+   * geste, le compteur révélé et le choix de nature (un seul contrôle actif, CIR-10).
+   */
+  const openCircuitVolumes = useCallback(() => {
+    Keyboard.dismiss();
+    volumesClosedByUserRef.current = false;
+    setIsVolumesSheetMounted(true);
+    setOpenOverlay("circuitVolumes");
+  }, []);
+  /**
+   * Fermeture (X, voile, glisser, retour) : lecture seule, aucune écriture. Sans effet si la
+   * feuille n'est plus ouverte (rappel tardif ou répété).
+   */
+  const closeCircuitVolumes = useCallback(() => {
+    if (openOverlay !== "circuitVolumes") return;
+    volumesClosedByUserRef.current = true;
+    setOpenOverlay(null);
+  }, [openOverlay]);
+  /** Disparition native terminée : la feuille est démontée ; focus rendu à l'œil après une fermeture par l'utilisateur. */
+  const handleCircuitVolumesDismissed = useCallback(() => {
+    setIsVolumesSheetMounted(false);
+    if (volumesClosedByUserRef.current) {
+      volumesClosedByUserRef.current = false;
+      setVolumesFocusRequest((current) => current + 1);
+    }
+  }, []);
   // Glisser (appui long) ou révéler les actions d'une carte referme aussi le compteur.
   const handleRevealActions = useCallback(
     (activityId: string | null) => {
@@ -1127,6 +1171,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             onCloseNatureMenu={dismissNatureMenu}
             onSelectNature={handleSelectNature}
             natureFocusRequest={natureFocusRequest}
+            onOpenVolumes={openCircuitVolumes}
+            volumesFocusRequest={volumesFocusRequest}
             onLayout={(event) => {
               const { y, height } = event.nativeEvent.layout;
               setCircuitHeaderLayout((current) =>
@@ -1286,6 +1332,18 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           validateAccessibilityLabel={composition.wheelPicker.validateAccessibilityLabel}
         />
       </WheelPickerOverlay>
+
+      {/* PRE-6 (story 3.4, CE-CIR-03, Figma `8328:34965` / `8328:35135`) : feuille en lecture
+          seule, alimentée par la seule grille du Domaine ; sa fermeture n'écrit rien. */}
+      {isVolumesSheetMounted ? (
+        <CircuitVolumesSheet
+          visible={openOverlay === "circuitVolumes"}
+          volumes={volumes}
+          onClose={closeCircuitVolumes}
+          onDismissed={handleCircuitVolumesDismissed}
+          testID="composition-circuit-volumes"
+        />
+      ) : null}
 
       {isPendingExit ? <AbandonCreationModal onCancel={cancelExit} onConfirm={confirmExit} /> : null}
 

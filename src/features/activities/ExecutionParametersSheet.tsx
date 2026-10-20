@@ -161,6 +161,7 @@ import {
 } from "@/shared/ui/SegmentedControl";
 import { TRANSIENT_NOTIFICATION_DURATION_MS } from "@/shared/ui/TransientNotification";
 import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
 /**
  * PRE-3 (CE-UI-10, SPECIFICATION-PARAMETRES-MODALE-v13, DSF Séries
@@ -365,27 +366,8 @@ const stepperSurface = (field: SheetStepperField): SheetSurface => ({ kind: "ste
  */
 export const SELECTOR_SETTLE_MS = SHEET_MOTION_MS;
 
-/**
- * Réglage iOS « Réduire les animations » (D-4, D-7, D-8). Lu au montage puis
- * suivi en direct ; `false` tant que la lecture n'a pas répondu.
- */
-export function useReduceMotion(): boolean {
-  const [reduceMotion, setReduceMotion] = useState(false);
-  useEffect(() => {
-    let active = true;
-    Promise.resolve(AccessibilityInfo.isReduceMotionEnabled())
-      .then((enabled) => {
-        if (active) setReduceMotion(enabled);
-      })
-      .catch(() => undefined);
-    const subscription = AccessibilityInfo.addEventListener("reduceMotionChanged", setReduceMotion);
-    return () => {
-      active = false;
-      subscription.remove();
-    };
-  }, []);
-  return reduceMotion;
-}
+/** Réglage « Réduire les animations » : hook partagé (`@/shared/ui/useReduceMotion`), réexporté ici pour les consommateurs existants. */
+export { useReduceMotion };
 
 /**
  * PRE-5 story 2.6 (AD-27, FR-4) : briques du tableau extraites dans `sheetTable.tsx`,

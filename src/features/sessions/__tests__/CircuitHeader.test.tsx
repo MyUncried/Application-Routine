@@ -20,6 +20,7 @@ type HeaderOverrides = Partial<{
   duration: string;
   isNatureMenuOpen: boolean;
   natureFocusRequest: number;
+  volumesFocusRequest: number;
 }>;
 
 function renderHeader(overrides: HeaderOverrides = {}) {
@@ -28,6 +29,7 @@ function renderHeader(overrides: HeaderOverrides = {}) {
   const onOpenNatureMenu = jest.fn();
   const onCloseNatureMenu = jest.fn();
   const onSelectNature = jest.fn<(nature: CircuitNature) => void>();
+  const onOpenVolumes = jest.fn();
   const element = (next: HeaderOverrides) => (
     <CircuitHeader
       nature={next.nature ?? "TOURS"}
@@ -41,6 +43,8 @@ function renderHeader(overrides: HeaderOverrides = {}) {
       onOpenNatureMenu={onOpenNatureMenu}
       onCloseNatureMenu={onCloseNatureMenu}
       onSelectNature={onSelectNature}
+      onOpenVolumes={onOpenVolumes}
+      volumesFocusRequest={next.volumesFocusRequest ?? 0}
       testID="header"
     />
   );
@@ -51,6 +55,7 @@ function renderHeader(overrides: HeaderOverrides = {}) {
     onOpenNatureMenu,
     onCloseNatureMenu,
     onSelectNature,
+    onOpenVolumes,
     rerender: (next: HeaderOverrides) => view.rerender(element({ ...overrides, ...next })),
   };
 }
@@ -264,5 +269,68 @@ describe("CircuitHeader (PRE-6 story 3.1)", () => {
     );
     // Stepper ajustable annonçant l'unité.
     expect(screen.getByTestId("header-counter-stepper").props.accessibilityValue).toMatchObject({ text: "1 tour" });
+  });
+});
+
+describe("CircuitHeader — œil des volumes (PRE-6 story 3.4, CE-CIR-03)", () => {
+  it("renders the eye between the title and the counter: DSF circle 32 (light fill, white rim, light shadow), icon 24, target 44", () => {
+    renderHeader();
+    const eye = screen.getByTestId("header-volumes");
+    expect(eye.props.accessibilityRole).toBe("button");
+    expect(eye.props.accessibilityLabel).toBe("Voir les volumes du circuit");
+    expect(StyleSheet.flatten(eye.props.style)).toMatchObject({
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: "#FCFCFE",
+      borderWidth: 1,
+      borderColor: colors.background,
+      shadowOpacity: 0.08,
+      flexShrink: 0,
+    });
+    expect(eye.props.hitSlop).toBe(6);
+    const icon = screen.getByTestId("header-volumes-icon", anyNode);
+    expect(StyleSheet.flatten(icon.props.style)).toMatchObject({ width: 24, height: 24 });
+  });
+
+  it("sits on the title line, right after « Circuit »; the duration stays below; the eye never moves the duration", () => {
+    renderHeader({ duration: "≈ 1 h 12 min, durée très longue" });
+    const titleRow = screen.getByTestId("header-title-row");
+    expect(StyleSheet.flatten(titleRow.props.style)).toMatchObject({ flexDirection: "row", alignItems: "center" });
+    // Ligne du titre : « Circuit » puis l'œil, rien d'autre (ni durée, ni compteur).
+    const children = (titleRow.props.children as { props: { testID: string } }[]).flat();
+    expect(children.map((child) => child.props.testID)).toEqual(["header-title", "header-volumes"]);
+    expect(within(titleRow).queryByTestId("header-duration")).toBeNull();
+    expect(within(titleRow).queryByTestId("header-counter-rest")).toBeNull();
+    // La durée est sous la ligne du titre, dans le bloc texte.
+    const textBlock = screen.getByTestId("header-text-block");
+    const blockChildren = (textBlock.props.children as { props: { testID: string } }[]).flat();
+    expect(blockChildren.map((child) => child.props.testID)).toEqual(["header-title-row", "header-duration"]);
+    // L'œil (32) déborde de la ligne (19) sans en changer la hauteur : marges -6,5.
+    expect(StyleSheet.flatten(screen.getByTestId("header-volumes").props.style).marginVertical).toBe(-6.5);
+  });
+
+  it.each(["TOURS", "SERIES"] as const)("is present in %s, counter at rest or revealed, and asks to open the volumes", (nature) => {
+    const { onOpenVolumes, onToggleCounter, onOpenNatureMenu, rerender } = renderHeader({ nature });
+    fireEvent.press(screen.getByTestId("header-volumes"));
+    expect(onOpenVolumes).toHaveBeenCalledTimes(1);
+    expect(onToggleCounter).not.toHaveBeenCalled();
+    expect(onOpenNatureMenu).not.toHaveBeenCalled();
+    rerender({ isCounterOpen: true });
+    expect(screen.getByTestId("header-volumes")).toBeTruthy();
+  });
+
+  it("gives the focus back to the eye on a focus request, never on mount", () => {
+    const spy = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
+    spy.mockClear();
+    try {
+      const { rerender } = renderHeader();
+      expect(spy).not.toHaveBeenCalled();
+      act(() => rerender({ volumesFocusRequest: 1 }));
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith(expect.anything(), "focus");
+    } finally {
+      spy.mockRestore();
+    }
   });
 });
