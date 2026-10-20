@@ -140,15 +140,16 @@ describe("ActivityCard", () => {
  */
 describe("ActivityCard — PRE-3", () => {
   const canonical = (overrides: Partial<ExecutionParameters>): ExecutionParameters => ({
-    version: 2 as const,
+    version: 3 as const,
     mode: "DURATION" as const,
-    series: { kind: "UNIFORM" as const, count: 3, target: numberTarget(90), pauseSeconds: 15 },
+    series: { kind: "UNIFORM" as const, count: 3, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] },
     sideMode: "UNILATERAL" as const,
     sideOrder: "BY_SIDE" as const,
     sideRecoverySeconds: 0,
     cadenceBeepIntervalSeconds: 0,
     countdownSeconds: 10,
     endSeconds: 5,
+    loadEnabled: false,
     ...overrides,
   });
 
@@ -163,7 +164,7 @@ describe("ActivityCard — PRE-3", () => {
           ...DEFINITION,
           executionParameters: canonical({
             mode: "REPETITIONS",
-            series: { kind: "UNIFORM", count: 4, target: numberTarget(15), pauseSeconds: 15 },
+            series: { kind: "UNIFORM", count: 4, target: numberTarget(15), pauseSeconds: 15, loadKg: 0, workPhases: [] },
             cadenceBeepIntervalSeconds: 4,
           }),
         }}

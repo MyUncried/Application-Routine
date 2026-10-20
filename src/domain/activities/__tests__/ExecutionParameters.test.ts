@@ -6,27 +6,35 @@ import {
   createEmptyExecutionParameters,
   seriesRowsOf as seriesRowsOfInput,
   EXECUTION_MODES,
+  EXECUTION_PARAMETERS_V2,
   EXECUTION_PARAMETERS_VERSION,
   ExecutionParametersDataError,
   executionParametersEqual,
   failureTarget,
+  isValidLoadKg,
   nearestGridValue,
   normalizeEffective,
   numberTarget,
   projectScalars,
+  readExecutionParameters,
   readV2,
+  readV3,
   selectorOpeningPosition,
+  serializeExecutionParameters,
   serializeV2,
   stepTarget,
   stepWithinBounds,
+  stopConditionOf,
   targetsEqual,
   unsetTarget,
   validateForSave,
+  WORK_PHASE_LIMITS,
   type ExecutionParameters,
   type ExecutionParametersInput,
   type ExecutionParametersViolation,
   type ExecutionValidationBaseline,
   type ExecutionValidationOptions,
+  type WorkPhase,
 } from "@/domain/activities/ExecutionParameters";
 import {
   durationParameters,
@@ -64,7 +72,9 @@ describe("PRE4-1.1/AC1 — deux Modes, une Cible typée unique", () => {
     expect(numberTarget(30)).toEqual({ kind: "NUMBER", value: 30 });
     expect(failureTarget()).toEqual({ kind: "FAILURE" });
     expect(unsetTarget()).toEqual({ kind: "UNSET" });
-    expect(EXECUTION_PARAMETERS_VERSION).toBe(2);
+    // PRE-5 (AD-18) : la version courante est 3 ; la v2 figée garde son littéral.
+    expect(EXECUTION_PARAMETERS_VERSION).toBe(3);
+    expect(EXECUTION_PARAMETERS_V2).toBe(2);
   });
 
   it("égalité et clone par kind/value (jamais par référence)", () => {
@@ -247,12 +257,12 @@ describe("PRE4-1.1/AC5 — niveau structurel (STORAGE) : forme, types, entiers n
 });
 
 describe("PRE4-1.1/AC6 — niveau saisie en création (aucune ligne de base)", () => {
-  // Q36 (Hermann, 2026-10-17) : Cible Durée à la seconde, bornes 5..3535 inchangées (plus de pas de 5).
-  it("Cible Durée : entiers de 5 à 3535, à la seconde (Q36)", () => {
-    for (const seconds of [5, 7, 30, 31, 3533, 3535]) {
+  // Q36 (Hermann, 2026-10-17) : Cible Durée à la seconde (plus de pas de 5) ; PRE-5 (D-430, AD-31) : minimum 1 s.
+  it("Cible Durée : entiers de 1 à 3535, à la seconde (Q36, D-430)", () => {
+    for (const seconds of [1, 2, 4, 5, 7, 30, 31, 3533, 3535]) {
       expect({ seconds, ok: accepted(durationParameters(seconds), null) }).toEqual({ seconds, ok: true });
     }
-    for (const seconds of [0, 1, 4, 3536, 3540, 5999]) {
+    for (const seconds of [0, 3536, 3540, 5999]) {
       expect({ seconds, ok: accepted(durationParameters(seconds), null) }).toEqual({ seconds, ok: false });
     }
   });
@@ -289,8 +299,8 @@ describe("PRE4-1.1/AC6 — niveau saisie en création (aucune ligne de base)", (
   });
 
   it("une violation de saisie identifie le champ, le niveau et la Série", () => {
-    // Q36 : 7 s est désormais admise ; 4 s reste sous la borne.
-    expect(violations(variableParameters({ rows: [[30, 10], [4, 10]] }), null)).toEqual([
+    // Q36, D-430 : 4 s est désormais admise ; 3536 s reste au-dessus de la borne.
+    expect(violations(variableParameters({ rows: [[30, 10], [3536, 10]] }), null)).toEqual([
       expect.objectContaining({ code: "OUT_OF_RANGE", field: "target", level: "INPUT", seriesNumber: 2 }),
     ]);
   });
@@ -330,11 +340,12 @@ describe("PRE4-1.1/AC7 — tolérance historique (H25), champ par champ avec la 
   });
 
   it("la modification d'une Pause ne rend pas la Cible héritée modifiée, et inversement", () => {
-    // Q36 : valeur historique sous la borne (3 s) ; la modifier en 4 s reste refusé, 8 s serait admise.
-    const baseline = variableParameters({ rows: [[5999, 30], [3, 30]] });
-    expect(accepted(variableParameters({ rows: [[5999, 45], [3, 30]] }), baseline)).toBe(true);
+    // D-430 : depuis le minimum de 1 s, une valeur historique hors bornes est au-dessus du maximum (3600 s) ;
+    // la modifier en 3536 s reste refusé, 8 s serait admise.
+    const baseline = variableParameters({ rows: [[5999, 30], [3600, 30]] });
+    expect(accepted(variableParameters({ rows: [[5999, 45], [3600, 30]] }), baseline)).toBe(true);
     expect(accepted(variableParameters({ rows: [[5999, 30], [8, 30]] }), baseline)).toBe(true);
-    expect(violations(variableParameters({ rows: [[5999, 30], [4, 30]] }), baseline)).toEqual([
+    expect(violations(variableParameters({ rows: [[5999, 30], [3536, 30]] }), baseline)).toEqual([
       expect.objectContaining({ field: "target", seriesNumber: 2, level: "INPUT" }),
     ]);
   });
@@ -353,15 +364,15 @@ describe("PRE4-1.1/AC7 — tolérance historique (H25), champ par champ avec la 
 });
 
 describe("PRE4-3.2/AC12 — alignement des Séries sur la ligne de base (AD-13)", () => {
-  // Q36 : 7 s n'étant plus hors bornes, la valeur historique basse est 3 s (sous le minimum de 5 s).
-  const legacy = variableParameters({ rows: [[30, 10], [5999, 20], [3, 30]], cadenceBeepIntervalSeconds: 11 });
-  const moved = variableParameters({ rows: [[5999, 20], [30, 10], [3, 30]], cadenceBeepIntervalSeconds: 11 });
-  // Q36 : plus de pas dans le détail de la violation, seulement les bornes.
+  // D-430 : aucune valeur positive n'est plus sous le minimum (1 s) ; la seconde valeur historique hors bornes est 3600 s.
+  const legacy = variableParameters({ rows: [[30, 10], [5999, 20], [3600, 30]], cadenceBeepIntervalSeconds: 11 });
+  const moved = variableParameters({ rows: [[5999, 20], [30, 10], [3600, 30]], cadenceBeepIntervalSeconds: 11 });
+  // Q36 : plus de pas dans le détail de la violation, seulement les bornes (minimum 1 s, D-430).
   const outOfGrid = (seriesNumber: number) => ({
     code: "OUT_OF_RANGE",
     field: "target",
     level: "INPUT",
-    details: { min: 5, max: 3535 },
+    details: { min: 1, max: 3535 },
     seriesNumber,
   });
 
@@ -404,7 +415,7 @@ describe("PRE4-3.2/AC12 — alignement des Séries sur la ligne de base (AD-13)"
     const uniformLegacy = durationParameters(5999, 3, 10);
     expect(validateForSave(cloneExecutionParameters(uniformLegacy), uniformLegacy).ok).toBe(true);
     expect(validateForSave(cloneExecutionParameters(uniformLegacy), uniformLegacy, { baselineRowIndexes: [0] }).ok).toBe(true);
-    const required = [{ code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 5, max: 3535 } }];
+    const required = [{ code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 1, max: 3535 } }];
     expect(violations(cloneExecutionParameters(uniformLegacy), uniformLegacy, { baselineRowIndexes: [null] })).toEqual(required);
     expect(violations(cloneExecutionParameters(uniformLegacy), uniformLegacy, { baselineRowIndexes: [0, 1] })).toEqual(required);
     // Base variable, entrée identiques : la Cible commune est appariée à une ligne de même valeur.
@@ -415,16 +426,15 @@ describe("PRE4-3.2/AC12 — alignement des Séries sur la ligne de base (AD-13)"
 });
 
 describe("PRE4-Q36 — Cible Durée à la seconde (décision de Hermann du 2026-10-17)", () => {
-  it("PRE4-Q36 — 31, 7 et 3533 s admises ; 4 et 3536 s refusées ; 5999 s héritée non modifiée tolérée (H25)", () => {
-    for (const seconds of [31, 7, 3533]) {
+  it("PRE4-Q36, D-430 — 31, 7, 4, 1 et 3533 s admises ; 3536 s refusée ; 0 refusé ; 5999 s héritée non modifiée tolérée (H25)", () => {
+    for (const seconds of [31, 7, 4, 1, 3533]) {
       expect({ seconds, ok: accepted(durationParameters(seconds), null) }).toEqual({ seconds, ok: true });
     }
-    for (const seconds of [4, 3536]) {
-      expect({ seconds, violations: violations(durationParameters(seconds), null) }).toEqual({
-        seconds,
-        violations: [{ code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 5, max: 3535 } }],
-      });
-    }
+    expect(violations(durationParameters(3536), null)).toEqual([
+      { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 1, max: 3535 } },
+    ]);
+    // Une Durée par Série de 0 s est refusée (Δ50) : une Cible `NUMBER` est un entier ≥ 1.
+    expect(violations(durationParameters(0), null)).toEqual([{ code: "OUT_OF_RANGE", field: "target", level: "STRUCTURE" }]);
     const legacy5999 = durationParameters(5999, 2, 30);
     expect(accepted(cloneExecutionParameters(legacy5999), legacy5999)).toBe(true);
     expect(accepted(durationParameters(3533, 2, 30), legacy5999)).toBe(true);
@@ -459,22 +469,25 @@ describe("PRE4-1.1/AC16 — projection scalaire unique", () => {
 describe("Création", () => {
   it("brouillon de création : Mode et côté non renseignés, Série 1 à Cible à renseigner, Pause 0, Bip 0, CR/Fin du Profil", () => {
     expect(createEmptyExecutionParameters({ countdownSeconds: 10, endSeconds: 5 })).toEqual({
-      version: 2,
+      version: 3,
       mode: null,
-      series: { kind: "UNIFORM", count: 1, target: { kind: "UNSET" }, pauseSeconds: 0 },
+      series: { kind: "UNIFORM", count: 1, target: { kind: "UNSET" }, pauseSeconds: 0, loadKg: 0, workPhases: [] },
       sideMode: null,
       sideOrder: "BY_SIDE",
       sideRecoverySeconds: 0,
       cadenceBeepIntervalSeconds: 0,
       countdownSeconds: 10,
       endSeconds: 5,
+      loadEnabled: false,
     });
   });
 });
 
 describe("PRE4-3.4 — position d’ouverture du Sélecteur de cible (AD-16, Q21, Q25, Q36)", () => {
-  it("PRE4-3.4/AC4 — nearestGridValue borne seulement depuis Q36 : 4 → 5, 5999 → 3535, valeurs dans les bornes inchangées (7, 31, 5, 3535)", () => {
-    expect(nearestGridValue("DURATION", 4)).toBe(5);
+  it("PRE4-3.4/AC4 — nearestGridValue borne seulement depuis Q36 : 0 → 1 (D-430), 5999 → 3535, valeurs dans les bornes inchangées (1, 4, 7, 31, 5, 3535)", () => {
+    expect(nearestGridValue("DURATION", 0)).toBe(1);
+    expect(nearestGridValue("DURATION", 1)).toBe(1);
+    expect(nearestGridValue("DURATION", 4)).toBe(4);
     expect(nearestGridValue("DURATION", 5999)).toBe(3535);
     expect(nearestGridValue("DURATION", 7)).toBe(7);
     expect(nearestGridValue("DURATION", 31)).toBe(31);
@@ -487,9 +500,9 @@ describe("PRE4-3.4 — position d’ouverture du Sélecteur de cible (AD-16, Q21
     expect(nearestGridValue("DURATION", 7.4)).toBe(7);
     expect(nearestGridValue("DURATION", 7.5)).toBe(8);
     expect(nearestGridValue("DURATION", Number.POSITIVE_INFINITY)).toBe(3535);
-    expect(nearestGridValue("DURATION", Number.NEGATIVE_INFINITY)).toBe(5);
-    expect(nearestGridValue("DURATION", Number.NaN)).toBe(5);
-    expect(nearestGridValue("DURATION", -30)).toBe(5);
+    expect(nearestGridValue("DURATION", Number.NEGATIVE_INFINITY)).toBe(1);
+    expect(nearestGridValue("DURATION", Number.NaN)).toBe(1);
+    expect(nearestGridValue("DURATION", -30)).toBe(1);
     expect(nearestGridValue("REPETITIONS", Number.POSITIVE_INFINITY)).toBe(100);
     expect(nearestGridValue("REPETITIONS", Number.NaN)).toBe(1);
   });
@@ -501,8 +514,8 @@ describe("PRE4-3.4 — position d’ouverture du Sélecteur de cible (AD-16, Q21
     expect(nearestGridValue("REPETITIONS", 100)).toBe(100);
   });
 
-  it("PRE4-3.4/AC3 — selectorOpeningPosition : UNSET → 00:05 en Durée et 1 en Répétitions (Q25) ; FAILURE → option échec ; NUMBER → nearestGridValue", () => {
-    expect(selectorOpeningPosition("DURATION", unsetTarget())).toEqual({ kind: "NUMBER", value: 5 });
+  it("PRE4-3.4/AC3 — selectorOpeningPosition : UNSET → 00:01 en Durée (D-430) et 1 en Répétitions (Q25) ; FAILURE → option échec ; NUMBER → nearestGridValue", () => {
+    expect(selectorOpeningPosition("DURATION", unsetTarget())).toEqual({ kind: "NUMBER", value: 1 });
     expect(selectorOpeningPosition("REPETITIONS", unsetTarget())).toEqual({ kind: "NUMBER", value: 1 });
     expect(selectorOpeningPosition("DURATION", failureTarget())).toEqual({ kind: "FAILURE" });
     expect(selectorOpeningPosition("REPETITIONS", failureTarget())).toEqual({ kind: "FAILURE" });
@@ -523,15 +536,17 @@ describe("PRE4-3.6 — `stepTarget` et `stepWithinBounds` (AD-16, Q13, Q26, Q36,
     expect(stepTarget("REPETITIONS", numberTarget(150), -1)).toEqual(numberTarget(100));
     // Bornes atteintes : saturation, sans rebouclage.
     expect(stepTarget("DURATION", numberTarget(3535), 1)).toBe("unavailable");
-    expect(stepTarget("DURATION", numberTarget(5), -1)).toBe("unavailable");
+    // D-430 : 5 s n'est plus la borne ; − depuis 5 s donne 4 s, et la borne basse est 1 s.
+    expect(stepTarget("DURATION", numberTarget(5), -1)).toEqual(numberTarget(4));
+    expect(stepTarget("DURATION", numberTarget(1), -1)).toBe("unavailable");
     expect(stepTarget("REPETITIONS", numberTarget(1), -1)).toBe("unavailable");
     expect(stepTarget("REPETITIONS", numberTarget(100), 1)).toBe("unavailable");
   });
 
-  it("PRE4-3.6/AC4 — Cible `UNSET` : + donne la valeur minimale (5 s, 1), − indisponible ; `FAILURE` : indisponible dans les deux sens (Q13, Q26)", () => {
-    expect(stepTarget("DURATION", unsetTarget(), 1)).toEqual(numberTarget(5));
+  it("PRE4-3.6/AC4 — Cible `UNSET` : + donne la valeur minimale (1 s depuis D-430, 1), − indisponible ; `FAILURE` : indisponible dans les deux sens (Q13, Q26)", () => {
+    expect(stepTarget("DURATION", unsetTarget(), 1)).toEqual(numberTarget(1));
     expect(stepTarget("REPETITIONS", unsetTarget(), 1)).toEqual(numberTarget(1));
-    expect(stepTarget("DURATION", unsetTarget(), 1, 10)).toEqual(numberTarget(5));
+    expect(stepTarget("DURATION", unsetTarget(), 1, 10)).toEqual(numberTarget(1));
     expect(stepTarget("DURATION", unsetTarget(), -1)).toBe("unavailable");
     expect(stepTarget("REPETITIONS", unsetTarget(), -1)).toBe("unavailable");
     for (const mode of EXECUTION_MODES) {
@@ -551,11 +566,349 @@ describe("PRE4-3.6 — `stepTarget` et `stepWithinBounds` (AD-16, Q13, Q26, Q36,
   it("PRE4-3.6/AC5 — `stepWithinBounds` ne renvoie jamais une valeur inférieure à la courante pour + ni supérieure pour −", () => {
     for (const current of [1, 2, 4, 5, 7, 300, 3535, 3536, 5999]) {
       for (const stepSize of [1, 5, 10]) {
-        expect(stepWithinBounds(current, 1, stepSize, 5, 3535)).toBeGreaterThanOrEqual(current);
-        expect(stepWithinBounds(current, -1, stepSize, 5, 3535)).toBeLessThanOrEqual(current);
+        // Bornes de la Cible Durée (1..3535 depuis D-430).
+        expect(stepWithinBounds(current, 1, stepSize, 1, 3535)).toBeGreaterThanOrEqual(current);
+        expect(stepWithinBounds(current, -1, stepSize, 1, 3535)).toBeLessThanOrEqual(current);
       }
     }
-    expect(stepWithinBounds(5999, 1, 5, 5, 3535)).toBe(5999);
-    expect(stepWithinBounds(5999, -1, 5, 5, 3535)).toBe(3535);
+    expect(stepWithinBounds(5999, 1, 5, 1, 3535)).toBe(5999);
+    expect(stepWithinBounds(5999, -1, 5, 1, 3535)).toBe(3535);
+  });
+});
+
+// --- PRE-5 (story 1.1) : format v3, charge, phases, Condition d'arrêt ---------
+
+/** Phases de fixture : `[libellé, durée]`, identités 1..n (AD-20). */
+const phases = (...entries: readonly (readonly [string, number])[]): WorkPhase[] =>
+  entries.map(([label, durationSeconds], index) => ({ id: index + 1, label, durationSeconds }));
+
+/** Exercice à phases (Mode Durée, Cible = Σ des phases). */
+const withPhases = (workPhases: readonly WorkPhase[], count = 3, pauseSeconds = 15) =>
+  uniformParameters({
+    mode: "DURATION",
+    count,
+    target: workPhases.reduce((sum, phase) => sum + phase.durationSeconds, 0),
+    pauseSeconds,
+    workPhases,
+  });
+
+type UniformOf = Extract<ExecutionParameters["series"], { kind: "UNIFORM" }>;
+
+describe("PRE5-1.1/AC2 — écrivain v3 unique (AD-18)", () => {
+  it("forme exacte d'AD-18 : clés et ordre de la v2, loadEnabled après endSeconds, loadKg et workPhases toujours écrits", () => {
+    expect(serializeExecutionParameters(durationParameters(30, 3, 10))).toBe(
+      '{"version":3,"mode":"DURATION","series":{"kind":"UNIFORM","count":3,"target":{"kind":"NUMBER","value":30},"pauseSeconds":10,"loadKg":0,"workPhases":[]},"sideMode":"UNILATERAL","sideOrder":"BY_SIDE","sideRecoverySeconds":0,"cadenceBeepIntervalSeconds":0,"countdownSeconds":0,"endSeconds":0,"loadEnabled":false}',
+    );
+    expect(
+      serializeExecutionParameters(variableParameters({ mode: "REPETITIONS", rows: [[12, 10, 20], ["FAILURE", 0, 0]], loadEnabled: true })),
+    ).toBe(
+      '{"version":3,"mode":"REPETITIONS","series":{"kind":"VARIABLE","rows":[{"target":{"kind":"NUMBER","value":12},"pauseSeconds":10,"loadKg":20},{"target":{"kind":"FAILURE"},"pauseSeconds":0,"loadKg":0}]},"sideMode":"UNILATERAL","sideOrder":"BY_SIDE","sideRecoverySeconds":0,"cadenceBeepIntervalSeconds":0,"countdownSeconds":0,"endSeconds":0,"loadEnabled":true}',
+    );
+    expect(serializeExecutionParameters(withPhases(phases(["Descente", 6], ["Maintien", 3])))).toContain(
+      '"series":{"kind":"UNIFORM","count":3,"target":{"kind":"NUMBER","value":9},"pauseSeconds":15,"loadKg":0,"workPhases":[{"id":1,"label":"Descente","durationSeconds":6},{"id":2,"label":"Maintien","durationSeconds":3}]}',
+    );
+  });
+
+  it("ni identité de ligne, ni Réserve, ni phrase, ni total, ni Condition d'arrêt sérialisés", () => {
+    const decorated = { ...durationParameters(30), rowIds: [1], phrase: "x", stopCondition: "TARGET" } as ExecutionParameters;
+    expect(Object.keys(JSON.parse(serializeExecutionParameters(decorated)) as object)).toEqual([
+      "version",
+      "mode",
+      "series",
+      "sideMode",
+      "sideOrder",
+      "sideRecoverySeconds",
+      "cadenceBeepIntervalSeconds",
+      "countdownSeconds",
+      "endSeconds",
+      "loadEnabled",
+    ]);
+  });
+});
+
+describe("PRE5-1.1/AC3 — lecteur unique v2 + v3 (AD-18, NFR-10)", () => {
+  it("une ligne v2 est relue sans phases, charge Sans, 0 kg partout, aucun autre paramètre changé (SM-3)", () => {
+    const v2 = [
+      '{"version":2,"mode":"DURATION","series":{"kind":"UNIFORM","count":3,"target":{"kind":"NUMBER","value":30},"pauseSeconds":10},"sideMode":"LEFT_RIGHT","sideOrder":"BY_SERIES","sideRecoverySeconds":5,"cadenceBeepIntervalSeconds":2,"countdownSeconds":3,"endSeconds":4}',
+      '{"version":2,"mode":"REPETITIONS","series":{"kind":"VARIABLE","rows":[{"target":{"kind":"NUMBER","value":12},"pauseSeconds":10},{"target":{"kind":"FAILURE"},"pauseSeconds":0}]},"sideMode":"UNILATERAL","sideOrder":"BY_SIDE","sideRecoverySeconds":0,"cadenceBeepIntervalSeconds":0,"countdownSeconds":0,"endSeconds":0}',
+    ];
+    expect(readExecutionParameters(v2[0])).toEqual(
+      durationParameters(30, 3, 10, {
+        sideMode: "LEFT_RIGHT",
+        sideOrder: "BY_SERIES",
+        sideRecoverySeconds: 5,
+        cadenceBeepIntervalSeconds: 2,
+        countdownSeconds: 3,
+        endSeconds: 4,
+      }),
+    );
+    expect(readExecutionParameters(v2[1])).toEqual(variableParameters({ mode: "REPETITIONS", rows: [[12, 10], ["FAILURE", 0]] }));
+    for (const json of v2) {
+      // Même lecture que `readV2` (grammaire inchangée) ; un réenregistrement écrit du v3, relu à l'identique.
+      expect(readExecutionParameters(json)).toEqual(readV2(json));
+      const rewritten = serializeExecutionParameters(readExecutionParameters(json));
+      expect(rewritten.startsWith('{"version":3,')).toBe(true);
+      expect(readExecutionParameters(rewritten)).toEqual(readV2(json));
+    }
+  });
+
+  it("v3 : aller-retour exact, charge sous Sans, phases et identités conservées", () => {
+    const samples: ExecutionParameters[] = [
+      durationParameters(30, 3, 10, { sideMode: "RIGHT_LEFT" }),
+      { ...withPhases(phases(["Descente", 6], ["Maintien", 3])), sideMode: "LEFT_RIGHT" },
+      uniformParameters({ mode: "REPETITIONS", count: 2, target: 12, loadKg: 2.5, loadEnabled: false }),
+      variableParameters({ mode: "REPETITIONS", rows: [[12, 10, 20], [10, 10, 0], ["FAILURE", 0, 1.25]], loadEnabled: true }),
+      uniformParameters({ count: 2, target: 7, workPhases: [{ id: 4, label: "Seule", durationSeconds: 7 }] }),
+    ];
+    for (const sample of samples) {
+      const json = serializeExecutionParameters(sample);
+      expect(readV3(json)).toEqual(sample);
+      expect(readExecutionParameters(json)).toEqual(sample);
+      expect(serializeExecutionParameters(readExecutionParameters(json))).toBe(json);
+    }
+  });
+
+  it("v3 incomplet ou mal typé → ExecutionParametersDataError (strict) ; les clés inconnues sont ignorées", () => {
+    const json = serializeExecutionParameters(withPhases(phases(["Descente", 6], ["Maintien", 3])));
+    const variableJson = serializeExecutionParameters(variableParameters({ rows: [[30, 10, 2.5], [30, 10, 0]] }));
+    const broken = [
+      json.replace(',"loadEnabled":false', ""),
+      json.replace('"loadEnabled":false', '"loadEnabled":0'),
+      json.replace('"loadKg":0,', ""),
+      json.replace('"loadKg":0', '"loadKg":"0"'),
+      json.replace('"loadKg":0', '"loadKg":-1'),
+      json.replace('"loadKg":0', '"loadKg":1.3'),
+      json.replace(/,"workPhases":\[.*?\]\}/, "}"),
+      json.replace(/"workPhases":\[.*?\]\}/, '"workPhases":{}}'),
+      variableJson.replace(',"loadKg":2.5', ""),
+      variableJson.replace('"loadKg":2.5', '"loadKg":null'),
+    ];
+    for (const value of broken) {
+      expect(value).not.toBe(json);
+      expect(() => readV3(value)).toThrow(ExecutionParametersDataError);
+      expect(() => readExecutionParameters(value)).toThrow(ExecutionParametersDataError);
+    }
+    // Une seule ligne VARIABLE sans loadKg (la seconde) suffit à rendre la donnée illisible.
+    const secondRowWithoutLoad = variableJson.replace(/(\{"target":\{"kind":"NUMBER","value":30\},"pauseSeconds":10),"loadKg":0\}/, "$1}");
+    expect(secondRowWithoutLoad).not.toBe(variableJson);
+    expect(secondRowWithoutLoad).toContain('"loadKg":2.5');
+    expect(() => readV3(secondRowWithoutLoad)).toThrow(ExecutionParametersDataError);
+    expect(readExecutionParameters(json.replace('"loadEnabled":false', '"loadEnabled":false,"futureKey":1'))).toEqual(
+      readExecutionParameters(json),
+    );
+  });
+
+  it("version inconnue (7), v1, NULL ou JSON corrompu → ExecutionParametersDataError ; readV2 refuse la v3 et readV3 la v2", () => {
+    const v3 = serializeExecutionParameters(durationParameters(30));
+    for (const json of [null, undefined, "{not json", "[]", v3.replace('"version":3', '"version":7'), v3.replace('"version":3', '"version":1')]) {
+      expect(() => readExecutionParameters(json)).toThrow(ExecutionParametersDataError);
+    }
+    // Un build PRE-4 (lecteur v2 seul) ne lit pas une ligne v3 : erreur explicite, jamais une perte silencieuse.
+    expect(() => readV2(v3)).toThrow(ExecutionParametersDataError);
+    expect(() => readV3(serializeV2(durationParameters(30)))).toThrow(ExecutionParametersDataError);
+  });
+});
+
+describe("PRE5-1.1/AC4 — serializeV2 réservé à la parité de migration010 (AD-18)", () => {
+  it("écrit le littéral 2 ; lève une erreur pour des phases, une charge active ou une valeur de charge non nulle", () => {
+    expect(serializeV2(durationParameters(30)).startsWith('{"version":2,')).toBe(true);
+    expect(() => serializeV2(withPhases(phases(["Descente", 6], ["Maintien", 3])))).toThrow(Error);
+    expect(() => serializeV2(uniformParameters({ target: 30, loadEnabled: true }))).toThrow(Error);
+    expect(() => serializeV2(uniformParameters({ target: 30, loadKg: 2.5 }))).toThrow(Error);
+    expect(() => serializeV2(variableParameters({ rows: [[30, 0, 0], [30, 0, 0.25]] }))).toThrow(Error);
+  });
+});
+
+describe("PRE5-1.1/AC5 — invariant des phases (AD-20, FR-1, FR-3, FR-40)", () => {
+  const valid = withPhases(phases(["Descente", 6], ["Maintien", 3]));
+
+  it("phases cohérentes acceptées à tous les niveaux ; une seule phase et une phase de 1 s admises par le modèle", () => {
+    for (const baseline of ["STORAGE", null] as const) {
+      expect(accepted(valid, baseline)).toBe(true);
+      expect(accepted(withPhases(phases(["Unique", 1])), baseline)).toBe(true);
+      expect(accepted(withPhases(phases(["Maintien", 1], ["Relâche", 1])), baseline)).toBe(true);
+      expect(accepted(withPhases(phases(["a", 1], ["b", 1], ["c", 1], ["d", 1], ["e", 1], ["f", 1])), baseline)).toBe(true);
+      // 20 points de code (un émoji compte pour un, comme `length()` de SQLite).
+      expect(accepted(withPhases(phases(["x".repeat(20), 5], ["💪".repeat(20), 5])), baseline)).toBe(true);
+      expect(accepted(withPhases(phases(["a", 3000], ["b", 535])), baseline)).toBe(true);
+    }
+    expect(WORK_PHASE_LIMITS).toEqual({ maxCount: 6, controlMinCount: 2, labelMaxLength: 20, durationMin: 1 });
+  });
+
+  it("chaque écart est une violation structurelle (STORAGE compris), sans tolérance de ligne de base ; readV3 le refuse aussi", () => {
+    const series = valid.series as UniformOf;
+    const refused: readonly [string, ExecutionParameters][] = [
+      ["somme ≠ Cible", { ...valid, series: { ...series, target: numberTarget(10) } }],
+      ["Mode Répétitions", { ...valid, mode: "REPETITIONS" }],
+      ["Cible à l'échec", { ...valid, series: { ...series, target: failureTarget() } }],
+      ["phase de 0 s", withPhases([{ id: 1, label: "a", durationSeconds: 0 }, { id: 2, label: "b", durationSeconds: 9 }])],
+      ["durée non entière", withPhases([{ id: 1, label: "a", durationSeconds: 1.5 }, { id: 2, label: "b", durationSeconds: 7.5 }])],
+      ["libellé vide", withPhases(phases(["", 6], ["Maintien", 3]))],
+      ["libellé blanc", withPhases(phases(["   ", 6], ["Maintien", 3]))],
+      ["libellé de 21 points de code", withPhases(phases(["x".repeat(21), 6], ["Maintien", 3]))],
+      ["id dupliqué", withPhases([{ id: 1, label: "a", durationSeconds: 6 }, { id: 1, label: "b", durationSeconds: 3 }])],
+      ["id 0", withPhases([{ id: 0, label: "a", durationSeconds: 6 }, { id: 1, label: "b", durationSeconds: 3 }])],
+      ["sept phases", withPhases(phases(["a", 1], ["b", 1], ["c", 1], ["d", 1], ["e", 1], ["f", 1], ["g", 1]))],
+      ["somme de 3 536 s", withPhases(phases(["a", 3000], ["b", 536]))],
+    ];
+    for (const [label, input] of refused) {
+      for (const baseline of ["STORAGE", null, input] as const) {
+        const result = validateForSave(input, baseline);
+        const flagged = !result.ok && result.violations.some((violation) => violation.field === "workPhases" && violation.level === "STRUCTURE");
+        expect({ label, flagged }).toEqual({ label, flagged: true });
+      }
+      // La même donnée persistée est illisible : `readV3` applique le même invariant.
+      const json = serializeExecutionParameters(input);
+      expect({ label, readable: readable(json) }).toEqual({ label, readable: false });
+    }
+    // Mode non renseigné ou Cible à renseigner avec des phases : violation structurelle des phases.
+    const phaseViolation = (input: ExecutionParametersInput) =>
+      violations(input, "STORAGE").some((violation) => violation.field === "workPhases" && violation.level === "STRUCTURE");
+    expect(phaseViolation({ ...valid, mode: null })).toBe(true);
+    expect(phaseViolation({ ...valid, series: { ...series, target: unsetTarget() } })).toBe(true);
+  });
+
+  it("workPhases absent ou mal typé → violation structurelle", () => {
+    const series = valid.series as unknown as Record<string, unknown>;
+    expect(violations(withRaw(valid, { series: { ...series, workPhases: undefined } }), "STORAGE")).toEqual([
+      { code: "REQUIRED", field: "workPhases", level: "STRUCTURE" },
+    ]);
+    expect(violations(withRaw(valid, { series: { ...series, workPhases: "none" } }), "STORAGE")).toEqual([
+      { code: "UNRECOGNIZED", field: "workPhases", level: "STRUCTURE" },
+    ]);
+  });
+
+  it("projection : duration_seconds = Σ, dans le CHECK 1..5999 (FR-40) ; normalisation N = 1 sans perte de phases", () => {
+    expect(projectScalars(valid)).toEqual(expect.objectContaining({ executionMode: "DURATION", durationSeconds: 9, seriesCount: 3 }));
+    const single = withPhases(phases(["Descente", 6], ["Maintien", 3]), 1);
+    expect(normalizeEffective(single)).toEqual(single);
+  });
+});
+
+function readable(json: string): boolean {
+  try {
+    readV3(json);
+    return true;
+  } catch (error) {
+    if (error instanceof ExecutionParametersDataError) {
+      return false;
+    }
+    throw error;
+  }
+}
+
+describe("PRE5-1.1/AC6 — charge : contrôle structurel et neutralité (AD-19, Δ48)", () => {
+  it("finie, ≥ 0, multiple de 0,25, sans plafond : acceptée en identiques et en variables", () => {
+    for (const loadKg of [0, 0.25, 1.5, 20, 1000.75]) {
+      expect(isValidLoadKg(loadKg)).toBe(true);
+      expect(accepted(uniformParameters({ target: 30, loadKg, loadEnabled: true }), null)).toBe(true);
+      expect(accepted(variableParameters({ rows: [[30, 10, loadKg], [30, 10, 0]], loadEnabled: true }), "STORAGE")).toBe(true);
+    }
+  });
+
+  it("−1, NaN, Infinity et 1,3 refusés : violation STRUCTURE du champ loadKg, avec la Série en variables", () => {
+    for (const loadKg of [-1, Number.NaN, Number.POSITIVE_INFINITY, 1.3]) {
+      expect(isValidLoadKg(loadKg)).toBe(false);
+      for (const baseline of ["STORAGE", null] as const) {
+        expect(violations(uniformParameters({ target: 30, loadKg }), baseline)).toEqual([
+          expect.objectContaining({ field: "loadKg", level: "STRUCTURE" }),
+        ]);
+        expect(violations(variableParameters({ rows: [[30, 10, 0], [30, 10, loadKg]] }), baseline)).toEqual([
+          expect.objectContaining({ field: "loadKg", level: "STRUCTURE", seriesNumber: 2 }),
+        ]);
+      }
+    }
+    expect(violations(withRaw(durationParameters(30), { loadEnabled: undefined }), "STORAGE")).toEqual([
+      { code: "REQUIRED", field: "loadEnabled", level: "STRUCTURE" },
+    ]);
+    expect(violations(withRaw(durationParameters(30), { loadEnabled: "yes" }), "STORAGE")).toEqual([
+      { code: "UNRECOGNIZED", field: "loadEnabled", level: "STRUCTURE" },
+    ]);
+  });
+
+  it("sameRowValue et alignRowsToBaseline ignorent la charge", () => {
+    const base = seriesRowsOfInput(variableParameters({ rows: [[30, 10, 0], [45, 20, 0]] }));
+    const loaded = seriesRowsOfInput(variableParameters({ rows: [[45, 20, 12.5], [30, 10, 2]] }));
+    expect(alignRowsToBaseline(loaded, base)).toEqual([1, 0]);
+  });
+
+  it("Δ48 — la charge n'a aucun effet sur la projection ni la Condition d'arrêt, en Durée comme en Répétitions, à l'échec compris", () => {
+    const pairs: readonly [ExecutionParameters, ExecutionParameters][] = [
+      [durationParameters(30, 3, 10), uniformParameters({ mode: "DURATION", count: 3, target: 30, pauseSeconds: 10, loadKg: 20, loadEnabled: true })],
+      [repetitionParameters(12, 3, 10), uniformParameters({ mode: "REPETITIONS", count: 3, target: 12, pauseSeconds: 10, loadKg: 20, loadEnabled: true })],
+      [
+        variableParameters({ mode: "REPETITIONS", rows: [[12, 10], ["FAILURE", 10]] }),
+        variableParameters({ mode: "REPETITIONS", rows: [[12, 10, 20], ["FAILURE", 10, 12]], loadEnabled: true }),
+      ],
+    ];
+    for (const [without, withLoad] of pairs) {
+      expect(projectScalars(withLoad)).toEqual(projectScalars(without));
+      expect(stopConditionOf(withLoad)).toBe(stopConditionOf(without));
+    }
+  });
+
+  it("normalisation N = 1 depuis une série variable : charge de la première ligne, aucune phase, loadEnabled inchangé", () => {
+    const single = variableParameters({ rows: [[30, 10, 7.5]], sideOrder: "BY_SERIES", loadEnabled: true });
+    expect(normalizeEffective(single)).toEqual(
+      uniformParameters({ count: 1, target: 30, pauseSeconds: 10, loadKg: 7.5, loadEnabled: true, sideOrder: "BY_SIDE" }),
+    );
+  });
+});
+
+describe("PRE5-1.1/AC8 — stopConditionOf (AD-23, FR-20, QN-2)", () => {
+  const rows = (...targets: (number | "FAILURE" | "UNSET")[]) =>
+    variableParameters({ mode: "REPETITIONS", rows: targets.map((target) => [target, 10] as const) });
+
+  it("identiques : FAILURE si et seulement si la Cible commune est FAILURE ; UNSET et Mode non renseigné → TARGET", () => {
+    expect(stopConditionOf(durationParameters(30, 3))).toBe("TARGET");
+    expect(stopConditionOf(durationParameters("UNSET", 3))).toBe("TARGET");
+    expect(stopConditionOf(uniformParameters({ mode: "REPETITIONS", count: 3, target: "FAILURE" }))).toBe("FAILURE");
+    expect(stopConditionOf({ ...durationParameters("UNSET"), mode: null })).toBe("TARGET");
+  });
+
+  it("variables : TARGET, FAILURE, MIXED ; cellules vides non comptées ; aucune ligne renseignée → NONE", () => {
+    expect(stopConditionOf(rows(12, 10))).toBe("TARGET");
+    expect(stopConditionOf(rows("FAILURE", "FAILURE"))).toBe("FAILURE");
+    expect(stopConditionOf(rows(12, "FAILURE"))).toBe("MIXED");
+    expect(stopConditionOf(rows(12, "UNSET"))).toBe("TARGET");
+    expect(stopConditionOf(rows("FAILURE", "UNSET"))).toBe("FAILURE");
+    expect(stopConditionOf(rows("UNSET", 12, "FAILURE"))).toBe("MIXED");
+    expect(stopConditionOf(rows("UNSET", "UNSET"))).toBe("NONE");
+  });
+
+  it("lue sur l'état effectif : N = 1 en variables vaut identiques", () => {
+    expect(stopConditionOf(rows("UNSET"))).toBe("TARGET");
+    expect(stopConditionOf(rows("FAILURE"))).toBe("FAILURE");
+  });
+});
+
+describe("PRE5-1.1/AC12 — égalité et clone (AD-9, AD-19, FR-41)", () => {
+  it("loadEnabled, loadKg (uniforme et lignes) et workPhases (identités comprises) participent à l'égalité", () => {
+    const base = withPhases(phases(["Descente", 6], ["Maintien", 3]));
+    const series = base.series as UniformOf;
+    const [first, second] = series.workPhases;
+    expect(executionParametersEqual(base, cloneExecutionParameters(base))).toBe(true);
+    expect(executionParametersEqual(base, { ...base, loadEnabled: true })).toBe(false);
+    expect(executionParametersEqual(base, { ...base, series: { ...series, loadKg: 0.25 } })).toBe(false);
+    expect(executionParametersEqual(base, { ...base, series: { ...series, workPhases: [first!, { ...second!, id: 7 }] } })).toBe(false);
+    expect(executionParametersEqual(base, { ...base, series: { ...series, workPhases: [first!, { ...second!, label: "Pause" }] } })).toBe(false);
+    expect(executionParametersEqual(base, { ...base, series: { ...series, workPhases: [second!, first!] } })).toBe(false);
+    expect(executionParametersEqual(variableParameters({ rows: [[30, 10, 1]] }), variableParameters({ rows: [[30, 10, 2]] }))).toBe(false);
+  });
+
+  it("clone profond : phases et lignes jamais partagées ; modifier la copie ne modifie pas la source", () => {
+    const source = withPhases(phases(["Descente", 6], ["Maintien", 3]));
+    const copy = cloneExecutionParameters(source);
+    expect(copy).toEqual(source);
+    const sourcePhases = (source.series as UniformOf).workPhases;
+    const copyPhases = (copy.series as UniformOf).workPhases;
+    expect(copyPhases).not.toBe(sourcePhases);
+    expect(copyPhases[0]).not.toBe(sourcePhases[0]);
+    (copyPhases[0] as { label: string }).label = "Modifiée";
+    expect(sourcePhases[0]!.label).toBe("Descente");
+    const variable = variableParameters({ rows: [[30, 10, 2.5]] });
+    const variableCopy = cloneExecutionParameters(variable);
+    (variableCopy.series as unknown as { rows: { loadKg: number }[] }).rows[0]!.loadKg = 5;
+    expect((variable.series as unknown as { rows: { loadKg: number }[] }).rows[0]!.loadKg).toBe(2.5);
   });
 });

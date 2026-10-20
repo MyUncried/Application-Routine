@@ -10,6 +10,7 @@ import {
   validateForSave,
   type ExecutionParametersInput,
 } from "@/domain/activities/ExecutionParameters";
+import { decodeInstructionSteps, encodeInstructionSteps } from "@/domain/activities/instructionSteps";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Category } from "@/domain/categories/Category";
 import { draftMediaEqual, toDraftMediaItems } from "@/domain/media/ActivityMedia";
@@ -23,6 +24,7 @@ import { appendActivityAfterLastDisplayed } from "@/domain/sessions/composition"
 import { createExerciseDraft, exerciseEquals, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import {
   ActivityEditorForm,
+  EDITOR_HEADER,
   editorSideMargin,
   isActivityEditorFormValid,
   type ActivityEditorFormValue,
@@ -151,7 +153,7 @@ function toEditorCategory(categoryId: string | null, categories: readonly Catego
 function createEmptyFormValue(): ActivityEditorFormValue {
   return {
     name: "",
-    instruction: null,
+    instructionSteps: [],
     executionParameters: createEmptyExecutionParameters({
       countdownSeconds: DEFAULT_EXERCISE_COUNTDOWN_SECONDS,
       endSeconds: DEFAULT_EXERCISE_END_SECONDS,
@@ -185,14 +187,25 @@ function EditorHeader({ title, onClose, accessibilityLabel }: { title: string; o
       backAccessibilityLabel={accessibilityLabel}
       closeIcon
       horizontalPadding={editorSideMargin(width)}
+      // PRE-5 story 3.2, arbitrage G-1 de Hermann du 19/10 : en-tête de l'Éditeur selon Figma
+      // `5544:4503` (✕ à 12 du bord, titre Inter Medium 17), sans changer les autres écrans.
+      layoutStyle={{ paddingLeft: EDITOR_HEADER.paddingLeft, gap: EDITOR_HEADER.gap }}
+      backCircleStyle={EDITOR_HEADER.backCircle}
+      titleStyle={EDITOR_HEADER.title}
+      backIconTintColor={EDITOR_HEADER.closeIconTint}
     />
   );
 }
 
+/**
+ * PRE-5 story 3.1 (AC4, AC5, AD-22) : la Description se compare par ses
+ * encodages — une étape vide créée par Entrée n'est pas une modification, ni
+ * une ancienne Description à lignes vides ou à fins de ligne CRLF non modifiée.
+ */
 function formValueEquals(left: ActivityEditorFormValue, right: ActivityEditorFormValue): boolean {
   return (
     left.name === right.name &&
-    left.instruction === right.instruction &&
+    encodeInstructionSteps(left.instructionSteps) === encodeInstructionSteps(right.instructionSteps) &&
     executionParametersEqual(left.executionParameters, right.executionParameters) &&
     left.bodyZoneIds.length === right.bodyZoneIds.length &&
     left.bodyZoneIds.every((id, index) => right.bodyZoneIds[index] === id) &&
@@ -283,7 +296,8 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
           }
           const loaded: ActivityEditorFormValue = {
             name: definition.name,
-            instruction: definition.description,
+            // PRE-5 story 3.1 (FR-35) : relue par le même décodage, sans migration ni conversion.
+            instructionSteps: decodeInstructionSteps(definition.description),
             executionParameters: cloneExecutionParameters(definition.executionParameters),
             bodyZoneIds: [...definition.bodyZoneIds],
             media: toDraftMediaItems(definition.media ?? []),
@@ -357,7 +371,8 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
     setSaveError(false);
     const definitionInput = {
       name: value.name,
-      description: value.instruction,
+      // PRE-5 story 3.1 (AC4) : encodage à `Terminer` seulement (étapes vides retirées).
+      description: encodeInstructionSteps(value.instructionSteps),
       category: { kind: "EXISTING" as const, categoryId: categoryId ?? "" },
       bodyZoneIds: value.bodyZoneIds,
       executionParameters: validated.value,
@@ -471,6 +486,22 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
 }
 
 /**
+ * PRE-5 story 3.1 (AC4, AC5) : comparaison d'une occurrence en cours d'édition à son
+ * état initial, la Description comparée par ses encodages (une étape vide n'est pas une
+ * modification ; une ancienne Description non modifiée non plus).
+ */
+function occurrenceEquals(
+  local: SessionDraftExercise,
+  instructionSteps: readonly string[],
+  initial: SessionDraftExercise,
+): boolean {
+  return exerciseEquals(
+    { ...local, instruction: encodeInstructionSteps(instructionSteps) },
+    { ...initial, instruction: encodeInstructionSteps(decodeInstructionSteps(initial.instruction)) },
+  );
+}
+
+/**
  * Copie de Séance (D-137) — écrit exclusivement dans le brouillon de
  * Composition (`SessionDraftContext`), jamais dans une définition Catalogue.
  * Une nouvelle occurrence ne reçoit AUCUNE Récupération automatique
@@ -514,6 +545,11 @@ function CompositionExerciseEditor() {
         },
   );
   const [local, setLocal] = useState<SessionDraftExercise | null>(initialSnapshot);
+  // PRE-5 story 3.1 (AD-22, FR-35) : étapes décodées de l'occurrence à l'ouverture ;
+  // l'occurrence ne reçoit leur encodage qu'à `Terminer`.
+  const [instructionSteps, setInstructionSteps] = useState<readonly string[]>(() =>
+    decodeInstructionSteps(initialSnapshot.instruction),
+  );
   // Q53 (8) : la Catégorie de cette Copie a été supprimée depuis sa feuille.
   const [categoryClearedByDeletion, setCategoryClearedByDeletion] = useState(false);
   const [profileApplied, setProfileApplied] = useState(isEditingExisting);
@@ -528,7 +564,7 @@ function CompositionExerciseEditor() {
   // si le brouillon est intact — ajustement d'état pendant le rendu, une fois.
   if (!profileApplied && profile.loaded && local !== null) {
     setProfileApplied(true);
-    if (exerciseEquals(local, initialSnapshot)) {
+    if (occurrenceEquals(local, instructionSteps, initialSnapshot)) {
       const created = {
         ...initialSnapshot,
         executionParameters: withProfilePhases(initialSnapshot.executionParameters, profile.countdown, profile.end),
@@ -538,7 +574,7 @@ function CompositionExerciseEditor() {
     }
   }
 
-  const shouldBlockExit = !isFinishing && local !== null && !exerciseEquals(local, initialSnapshot);
+  const shouldBlockExit = !isFinishing && local !== null && !occurrenceEquals(local, instructionSteps, initialSnapshot);
   const { isPendingExit, cancelExit, confirmExit } = useCompositionExitGuard(shouldBlockExit, () => {
     activityDefinitionService.abandonMediaDraft(mediaDraftId).catch(() => undefined);
   });
@@ -550,12 +586,14 @@ function CompositionExerciseEditor() {
   }, [isFinishing, shouldBlockExit, router]);
 
   function patchLocal(next: Partial<ActivityEditorFormValue>) {
+    if (next.instructionSteps !== undefined) {
+      setInstructionSteps(next.instructionSteps);
+    }
     setLocal((current) => {
       if (!current) return current;
       const merged: SessionDraftExercise = {
         ...current,
         ...(next.name !== undefined ? { name: next.name } : {}),
-        ...(next.instruction !== undefined ? { instruction: next.instruction } : {}),
         ...(next.bodyZoneIds !== undefined ? { bodyZoneIds: next.bodyZoneIds } : {}),
         ...(next.media !== undefined ? { media: next.media } : {}),
       };
@@ -581,10 +619,12 @@ function CompositionExerciseEditor() {
       return;
     }
     finishingRef.current = true;
-    const alreadyPresent = draft.exercises.some((exercise) => exercise.id === local.id);
+    // PRE-5 story 3.1 (AC4) : l'occurrence reçoit l'encodage des étapes à `Terminer` seulement.
+    const finished: SessionDraftExercise = { ...local, instruction: encodeInstructionSteps(instructionSteps) };
+    const alreadyPresent = draft.exercises.some((exercise) => exercise.id === finished.id);
     const nextExercises = alreadyPresent
-      ? draft.exercises.map((exercise) => (exercise.id === local.id ? local : exercise))
-      : appendActivityAfterLastDisplayed(draft.exercises, local);
+      ? draft.exercises.map((exercise) => (exercise.id === finished.id ? finished : exercise))
+      : appendActivityAfterLastDisplayed(draft.exercises, finished);
     updateDraft({ exercises: nextExercises });
     // Les copies préparées deviennent des références du brouillon de Séance ;
     // « Continuer » (Composition) les persiste dans sa transaction.
@@ -596,7 +636,7 @@ function CompositionExerciseEditor() {
   const value: ActivityEditorFormValue | null = local
     ? {
         name: local.name,
-        instruction: local.instruction,
+        instructionSteps,
         executionParameters: local.executionParameters,
         bodyZoneIds: local.bodyZoneIds,
         media: local.media ?? [],
@@ -633,6 +673,9 @@ function CompositionExerciseEditor() {
           isCategoryPickerOpen={categorySheet.isOpen}
           categoryAccessRef={categoryAccessRef}
           profileSideRecoverySecondsDefault={profile.sideRecovery}
+          // PRE-5 story 2.5 (AC4, D-409, RM-218) : Exercice ouvert depuis une Séance — la
+          // Feuille ne présente ni Compte à rebours ni Fin d'exercice (valeurs conservées).
+          exerciseSignals="absent"
           baselineParameters={baselineParameters}
           mediaService={activityDefinitionService}
           mediaDraftId={mediaDraftId}

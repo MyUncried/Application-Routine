@@ -12,6 +12,7 @@ import {
 } from "@/domain/activities/ActivityDefinition";
 import { serializeV2, type ExecutionParameters } from "@/domain/activities/ExecutionParameters";
 import { commitSheetDraft, openSheetDraft, setSeriesCount } from "@/domain/activities/ExecutionParametersDraft";
+import { decodeInstructionSteps, encodeInstructionSteps } from "@/domain/activities/instructionSteps";
 import { computeIntrinsicDuration } from "@/domain/activities/executionCalculations";
 import { generateExecutionPhrase, phraseText } from "@/domain/activities/executionPhrase";
 import { createExerciseSnapshot, parseExerciseSnapshot, serializeExerciseSnapshot } from "@/domain/activities/exerciseSnapshot";
@@ -324,9 +325,9 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
           return exercise;
         }
         const rows = [
-          { target: { kind: "NUMBER" as const, value: 40 }, pauseSeconds: 10 },
-          { target: { kind: "FAILURE" as const }, pauseSeconds: 10 },
-          { target: { kind: "NUMBER" as const, value: 45 }, pauseSeconds: 10 },
+          { target: { kind: "NUMBER" as const, value: 40 }, pauseSeconds: 10, loadKg: 0 },
+          { target: { kind: "FAILURE" as const }, pauseSeconds: 10, loadKg: 0 },
+          { target: { kind: "NUMBER" as const, value: 45 }, pauseSeconds: 10, loadKg: 0 },
         ];
         return {
           ...exercise,
@@ -339,9 +340,9 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     expect(first!.executionParameters.series).toEqual({
       kind: "VARIABLE",
       rows: [
-        { target: { kind: "NUMBER", value: 40 }, pauseSeconds: 10 },
-        { target: { kind: "FAILURE" }, pauseSeconds: 10 },
-        { target: { kind: "NUMBER", value: 45 }, pauseSeconds: 10 },
+        { target: { kind: "NUMBER", value: 40 }, pauseSeconds: 10, loadKg: 0 },
+        { target: { kind: "FAILURE" }, pauseSeconds: 10, loadKg: 0 },
+        { target: { kind: "NUMBER", value: 45 }, pauseSeconds: 10, loadKg: 0 },
       ],
     });
     expect(first!.media?.map((item) => item.assetId)).toEqual(["v1", "p2"]);
@@ -447,9 +448,9 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     expect((await readDefinition(created.id)).executionParameters.series).toEqual({
       kind: "VARIABLE",
       rows: [
-        { target: { kind: "NUMBER", value: 10 }, pauseSeconds: 10 },
-        { target: { kind: "FAILURE" }, pauseSeconds: 20 },
-        { target: { kind: "FAILURE" }, pauseSeconds: 20 },
+        { target: { kind: "NUMBER", value: 10 }, pauseSeconds: 10, loadKg: 0 },
+        { target: { kind: "FAILURE" }, pauseSeconds: 20, loadKg: 0 },
+        { target: { kind: "FAILURE" }, pauseSeconds: 20, loadKg: 0 },
       ],
     });
   });
@@ -522,7 +523,7 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     }
   });
 
-  it("PRE4-1.3/AC10 — Instantané d'une Copie relue : v2, Cibles typées et Médias ordonnés par référence ; une modification ultérieure de la Copie ne l'atteint pas", async () => {
+  it("PRE4-1.3/AC10 — Instantané d'une Copie relue : version courante (v3 depuis PRE-5), Cibles typées et Médias ordonnés par référence ; une modification ultérieure de la Copie ne l'atteint pas", async () => {
     const parameters = variableParameters({
       mode: "DURATION",
       rows: [
@@ -550,7 +551,7 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     });
     const json = serializeExerciseSnapshot(snapshot);
     const reread = parseExerciseSnapshot(json);
-    expect(reread.snapshotVersion).toBe(2);
+    expect(reread.snapshotVersion).toBe(3); // PRE-5 (AD-18) : enveloppe v3.
     expect(reread.executionParameters).toEqual(parameters);
     expect(reread.media.map((item) => [item.position, item.asset.id, item.asset.uri])).toEqual([
       [0, "v1", "kodjo-media/v1"],
@@ -901,5 +902,73 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
         expect(phraseText(generateExecutionPhrase(reopened.executionParameters)!)).toBe(phraseText(phrase));
       }
     }
+  });
+
+  /**
+   * PRE-5 story 1.1 (AC12, AD-9, AD-19, AD-22, FR-41) : la copie Définition → Séance, la
+   * duplication et l'Instantané transportent les phases, la charge (valeurs sous Sans
+   * comprises) et la Description encodée ; chaque copie reste isolée.
+   */
+  it("PRE5-1.1/AC12 — phases, charge sous Sans et Description en étapes transportées par copie, duplication et Instantané ; copies isolées", async () => {
+    const phased = (): ExecutionParameters => ({
+      ...variableParameters({ mode: "DURATION", rows: [[9, 15]], sideMode: "LEFT_RIGHT", sideRecoverySeconds: 5 }),
+      series: {
+        kind: "UNIFORM",
+        count: 3,
+        target: { kind: "NUMBER", value: 9 },
+        pauseSeconds: 15,
+        loadKg: 2.5,
+        workPhases: [
+          { id: 2, label: "Descente", durationSeconds: 6 },
+          { id: 5, label: "Maintien", durationSeconds: 3 },
+        ],
+      },
+      loadEnabled: false,
+    });
+    const steps = encodeInstructionSteps(["Buste droit", "Genoux souples", "Expirer en montant"]);
+    const definition = await readDefinition(
+      (await saveDefinition({ ...definitionInput(phased(), [importedAsset("p1")]), description: steps })).id,
+    );
+    expect(definition.executionParameters).toEqual(phased());
+    expect(definition.description).toBe("Buste droit\nGenoux souples\nExpirer en montant");
+
+    const session = await continueNew([activityDefinitionToDraftExercise(definition, "occ-1", 0)]);
+    const duplicated = await continueEdit(session, (draft) => ({ ...draft, exercises: duplicateActivity(draft.exercises, "occ-1", "occ-2") }));
+    const [source, copy] = exercisesOf(duplicated);
+    for (const exercise of [source!, copy!]) {
+      expect(exercise.executionParameters).toEqual(phased());
+      expect(decodeInstructionSteps(exercise.instruction)).toEqual(["Buste droit", "Genoux souples", "Expirer en montant"]);
+    }
+    const stored = await database.getAllAsync<{ execution_parameters: string }>("SELECT execution_parameters FROM activities ORDER BY rowid");
+    expect(stored.every((row) => row.execution_parameters.startsWith('{"version":3,'))).toBe(true);
+
+    // Instantané : phases et charge sous Sans conservées.
+    const snapshot = parseExerciseSnapshot(
+      serializeExerciseSnapshot(
+        createExerciseSnapshot({
+          name: copy!.name,
+          categoryId: copy!.categoryId ?? null,
+          bodyZoneIds: copy!.bodyZoneIds,
+          executionParameters: copy!.executionParameters,
+          recoverySeconds: 0,
+          media: copy!.media ?? [],
+        }),
+      ),
+    );
+    expect(snapshot.executionParameters).toEqual(phased());
+
+    // Modifier les phases et la charge de la copie ne touche ni la source, ni la Définition.
+    const editedParameters: ExecutionParameters = {
+      ...phased(),
+      series: { ...(phased().series as Extract<ExecutionParameters["series"], { kind: "UNIFORM" }>), target: { kind: "NUMBER", value: 10 }, loadKg: 5, workPhases: [{ id: 2, label: "Descente", durationSeconds: 10 }] },
+      loadEnabled: true,
+    };
+    const edited = await continueEdit(duplicated, (draft) => ({
+      ...draft,
+      exercises: draft.exercises.map((exercise) => (exercise.id === "occ-2" ? { ...exercise, executionParameters: editedParameters } : exercise)),
+    }));
+    expect(exercisesOf(edited).map((exercise) => exercise.executionParameters)).toEqual([phased(), editedParameters]);
+    expect((await readDefinition(definition.id)).executionParameters).toEqual(phased());
+    expect(snapshot.executionParameters).toEqual(phased());
   });
 });

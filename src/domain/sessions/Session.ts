@@ -97,7 +97,7 @@ export type Activity = {
   name: string;
   /**
    * PRE-4 (story 1.1, AD-3) : paramètres d'exécution TYPÉS de l'occurrence,
-   * lus par `readV2` — seule source de son Mode, de ses Cibles, de N et de
+   * lus par `readExecutionParameters` (v2 et v3, PRE-5 AD-18) — seule source de son Mode, de ses Cibles, de N et de
    * ses Pauses. Les colonnes scalaires n'en sont que des projections
    * d'écriture, jamais exposées ni relues.
    */

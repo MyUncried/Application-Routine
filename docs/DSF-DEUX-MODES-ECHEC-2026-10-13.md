@@ -14,7 +14,7 @@ Référence courante pour les composants ci-dessous, en complément du [DSF Circ
 
 ## Roulette de cible
 
-[portée restreinte par D-412 le 18/10/2026 : en mode Durée, variante réservée à une cellule de série variable, RM-250] Le set `DSF / Forms / Roulette` contient désormais cinq variantes. Les quatre numériques restent présentes : Secondes `5544:5101`, Minutes secondes `5544:5118`, Fin de séance `5826:4290`, Secondes avec unité `7130:13496`. La cinquième, `État=Minutes secondes avec échec`, est `8452:13297`.
+[portée restreinte par D-412 le 18/10/2026 : en mode Durée, variante réservée à une cellule de série variable, RM-250] [remplacée pour la cellule par D-434 le 19/10/2026 : saisie au clavier numérique MMSS, « À l’échec » dans la barre du clavier ; la variante `8452:13297` n’a plus d’usage en mode Durée] Le set `DSF / Forms / Roulette` contient désormais cinq variantes. Les quatre numériques restent présentes : Secondes `5544:5101`, Minutes secondes `5544:5118`, Fin de séance `5826:4290`, Secondes avec unité `7130:13496`. La cinquième, `État=Minutes secondes avec échec`, est `8452:13297`.
 
 | Élément de la nouvelle variante | Géométrie locale | Rendu |
 |---|---|---|

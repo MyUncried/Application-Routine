@@ -5,7 +5,8 @@
  *
  * Ce module est le seul à définir le Mode, la Cible, leurs bornes, leur
  * validation d'enregistrement (`validateForSave`), leur sérialisation
- * (`serializeV2`), leur lecture (`readV2`) et la projection scalaire unique
+ * (`serializeExecutionParameters`), leur lecture (`readExecutionParameters`,
+ * qui délègue à `readV2` ou `readV3`) et la projection scalaire unique
  * (`projectScalars`). L'ancien troisième mode et la lecture des formes v1
  * (JSON PRE-3 ou scalaires seuls) sont cantonnés à `readV1.ts` (AD-3) et à
  * `migration010` ; aucun autre module ne les connaît.
@@ -16,13 +17,27 @@
  * ancienne sans valeur, H7). La Récupération (R) n'en fait jamais partie :
  * elle reste portée par l'occurrence.
  *
+ * PRE-5 (story 1.1, AD-18 à AD-20, AD-23, AD-31) : format v3. Charge
+ * (`loadEnabled`, `loadKg`, FR-10) et phases (`workPhases`, FR-1) sont
+ * obligatoires dans les types. `serializeExecutionParameters` est le seul
+ * écrivain et `readExecutionParameters` le seul lecteur (v2 par `readV2`,
+ * grammaire inchangée ; v3 par `readV3`, strict) des repositories et de
+ * l'Instantané. `serializeV2` n'a plus d'appelant de production : il reste
+ * réservé aux tests de parité de `migration010` (AD-10).
+ *
  * Fonctions pures — sans React, SQLite, Expo, Profil implicite ni horloge.
  */
 
 import { isSideMode, type SideMode } from "@/domain/sessions/sideMode";
 
-/** Version du JSON canonique (AD-3). La forme v2 est figée par `migration010`. */
-export const EXECUTION_PARAMETERS_VERSION = 2 as const;
+/** Version du JSON canonique (AD-18, FR-39) : v3, écrite par `serializeExecutionParameters`. */
+export const EXECUTION_PARAMETERS_VERSION = 3 as const;
+
+/**
+ * Version figée par `migration010` (AD-4, AD-18) : `readV2` et `serializeV2`
+ * comparent ou écrivent ce littéral, jamais `EXECUTION_PARAMETERS_VERSION`.
+ */
+export const EXECUTION_PARAMETERS_V2 = 2 as const;
 
 /** Mode d'un Exercice : deux valeurs seulement (FR-05-01, AD-1). */
 export type ExecutionMode = "DURATION" | "REPETITIONS";
@@ -80,12 +95,12 @@ function cloneTarget(target: SeriesTarget): SeriesTarget {
 export const EXECUTION_BOUNDS = {
   seriesCount: { min: 1, max: 99 },
   /**
-   * Cible Durée : 5 s à 58 min 55 s, à la seconde. Décision Q36 de Hermann du
+   * Cible Durée : 1 s à 58 min 55 s, à la seconde. Décision Q36 de Hermann du
    * 2026-10-17 (recette iPhone) : une durée n'est pas obligatoirement un
-   * multiple de 5 s ; le pas de 5 s de Q15 et P21 est levé, les bornes sont
-   * inchangées.
+   * multiple de 5 s. PRE-5 (D-430, AD-31, FR-45) : le minimum passe de 5 s à
+   * 1 s ; c'est le seul changement de valeur, le maximum est inchangé.
    */
-  durationTarget: { min: 5, max: 3535 },
+  durationTarget: { min: 1, max: 3535 },
   repetitionTarget: { min: 1, max: 100 },
   pauseSeconds: { min: 0, max: 300 },
   sideRecoverySeconds: { min: 0, max: 300 },
@@ -107,17 +122,47 @@ export const ACTIVITY_STORAGE_BOUNDS = {
   seriesCountMin: 1,
 } as const;
 
-/** Une Série : sa Cible typée et sa Pause après Série. */
+/**
+ * PRE-5 (AD-20, FR-1, FR-3) — bornes des phases de l'exercice. `controlMinCount`
+ * ne borne que le contrôle de la Feuille et les transitions du Brouillon
+ * (D-432, QR-1), jamais la lecture ni `validateForSave` : le modèle admet une
+ * seule phase (spécification des phases §2.1).
+ */
+export const WORK_PHASE_LIMITS = { maxCount: 6, controlMinCount: 2, labelMaxLength: 20, durationMin: 1 } as const;
+
+/**
+ * Phase de l'exercice (AD-20, FR-1) : identité entière ≥ 1, unique dans la
+ * liste, persistée et conservée par le clonage ; libellé de 1 à 20 points de
+ * code, non blanc ; durée entière ≥ 1 s (D-430).
+ */
+export type WorkPhase = {
+  readonly id: number;
+  readonly label: string;
+  readonly durationSeconds: number;
+};
+
+/**
+ * Une Série : sa Cible typée, sa Pause après Série et sa charge en kg (AD-19,
+ * FR-10 ; conservée sous Sans ; 0 = aucune charge pour cette Série).
+ */
 export type SeriesRow = {
   readonly target: SeriesTarget;
   readonly pauseSeconds: number;
+  readonly loadKg: number;
 };
 
+/**
+ * Séries identiques. PRE-5 : `loadKg` est la charge commune (AD-19) et
+ * `workPhases` les phases de l'exercice (AD-20 ; `[]` = « Aucune »). Une
+ * série `VARIABLE` ne porte aucune phase, par construction.
+ */
 export type UniformSeries = {
   readonly kind: "UNIFORM";
   readonly count: number;
   readonly target: SeriesTarget;
   readonly pauseSeconds: number;
+  readonly loadKg: number;
+  readonly workPhases: readonly WorkPhase[];
 };
 
 /** Régime variables explicite : la longueur de `rows` est N. Aucune valeur commune concurrente. */
@@ -140,6 +185,8 @@ export type ExecutionParameters = {
   readonly cadenceBeepIntervalSeconds: number;
   readonly countdownSeconds: number;
   readonly endSeconds: number;
+  /** Charge Avec / Sans (AD-19, FR-10) : distincte des valeurs, qui restent conservées sous Sans. */
+  readonly loadEnabled: boolean;
 };
 
 /**
@@ -164,7 +211,10 @@ export type ExecutionParametersField =
   | "sideRecoverySeconds"
   | "cadenceBeepIntervalSeconds"
   | "countdownSeconds"
-  | "endSeconds";
+  | "endSeconds"
+  | "loadEnabled"
+  | "loadKg"
+  | "workPhases";
 
 /** Niveau de la règle violée (AD-13) : forme et types, ou bornes de saisie. */
 export type ExecutionValidationLevel = "STRUCTURE" | "INPUT";
@@ -219,6 +269,7 @@ export function seriesRowsOf(parameters: { readonly series: ExecutionSeries }): 
   return Array.from({ length: series.count }, () => ({
     target: series.target,
     pauseSeconds: series.pauseSeconds,
+    loadKg: series.loadKg,
   }));
 }
 
@@ -237,6 +288,37 @@ export function hasUnsetTarget(parameters: { readonly series: ExecutionSeries })
   return seriesRowsOf(parameters).some((row) => row.target.kind === "UNSET");
 }
 
+/** Condition d'arrêt dérivée (AD-23, FR-20) : jamais persistée. */
+export type StopCondition = "TARGET" | "FAILURE" | "MIXED" | "NONE";
+
+/**
+ * PRE-5 (AD-23, FR-19, FR-20, QN-2) — Condition d'arrêt, seule autorité, lue
+ * sur l'état EFFECTIF (N = 1 = identiques) :
+ * - identiques (et Mode non renseigné) : `FAILURE` si et seulement si la Cible
+ *   commune est `FAILURE`, sinon `TARGET` (une Cible `UNSET` est « À la cible,
+ *   valeur à renseigner ») ;
+ * - variables : les lignes `UNSET` ne sont pas comptées ; `TARGET` si les
+ *   lignes renseignées sont toutes `NUMBER`, `FAILURE` si elles sont toutes à
+ *   l'échec, `MIXED` sinon, `NONE` si aucune ligne n'est renseignée (« — »).
+ * Aucune valeur « Mixte » ni aucun champ de condition n'est persisté.
+ */
+export function stopConditionOf(parameters: ExecutionParametersInput): StopCondition {
+  const effective = normalizeEffective(parameters);
+  if (effective.series.kind === "UNIFORM") {
+    return effective.series.target.kind === "FAILURE" ? "FAILURE" : "TARGET";
+  }
+  // Seules les lignes renseignées comptent (QN-2) : les prédicats existants s'appliquent à elles.
+  const rows = hasUnsetTarget(effective) ? effective.series.rows.filter((row) => row.target.kind !== "UNSET") : effective.series.rows;
+  const filled = { series: { kind: "VARIABLE", rows } } as const;
+  if (rows.length === 0) {
+    return "NONE";
+  }
+  if (allTargetsFailure(filled)) {
+    return "FAILURE";
+  }
+  return hasFailureTarget(filled) ? "MIXED" : "TARGET";
+}
+
 export function isBilateral(sideMode: SideMode | null): boolean {
   return sideMode === "RIGHT_LEFT" || sideMode === "LEFT_RIGHT";
 }
@@ -251,8 +333,8 @@ export type SelectorOpeningPosition = Exclude<SeriesTarget, { readonly kind: "UN
  * Story 3.4 (AD-16, FR-07-04, FR-09-05) — valeur valide la plus proche d'une Cible
  * numérique, pour la position d'ouverture d'un Sélecteur. Nom gardé d'AD-16, mais il
  * n'y a plus de grille : depuis Q36 (Hermann, 2026-10-17), c'est un simple BORNAGE,
- * 5..3535 s en Durée, 1..100 en Répétitions, sans multiple de 5 (Q21 adaptée :
- * 5999 → 3535, 4 → 5, 7 → 7, 150 → 100). Une valeur non entière est arrondie à
+ * 1..3535 s en Durée (minimum de 1 s, D-430), 1..100 en Répétitions, sans multiple
+ * de 5 (Q21 adaptée : 5999 → 3535, 0 → 1, 7 → 7, 150 → 100). Une valeur non entière est arrondie à
  * l'entier le plus proche (7,4 → 7 ; 7,5 → 8) ; +∞ → borne haute ; −∞ et NaN → borne basse.
  */
 export function nearestGridValue(mode: ExecutionMode, value: number): number {
@@ -267,7 +349,7 @@ export function nearestGridValue(mode: ExecutionMode, value: number): number {
 /**
  * Story 3.4 (AD-16, FR-07-04, Q25) — position d'ouverture d'un Sélecteur de cible :
  * `NUMBER` → `nearestGridValue` ; `FAILURE` → l'option échec ; `UNSET` (« — ») → la
- * plus petite valeur valide, 5 s en Durée, 1 en Répétitions. Rien n'est appliqué
+ * plus petite valeur valide, 1 s en Durée (00:01, D-430), 1 en Répétitions. Rien n'est appliqué
  * au Brouillon par cette position : seul le ✓ du Sélecteur applique (Q12).
  */
 export function selectorOpeningPosition(mode: ExecutionMode, target: SeriesTarget): SelectorOpeningPosition {
@@ -314,9 +396,9 @@ export type StepTargetResult = Extract<SeriesTarget, { readonly kind: "NUMBER" }
  * Story 3.6 (AD-16, FR-09-05, Q13, Q21, Q26, Q36, P38 ; Q44) — pas ± sur une Cible, pour
  * les ± des cellules du tableau et de la Cible commune :
  * - `NUMBER` → valeur voisine dans le sens du geste, dans les bornes de saisie
- *   (5..3535 s, à la seconde, ou 1..100), ou `unavailable` si aucune n'existe
+ *   (1..3535 s, à la seconde, D-430, ou 1..100), ou `unavailable` si aucune n'existe
  *   (7 s → 8 / 6 ; 5999 s → + `unavailable`, − 3535 ; 150 → + `unavailable`, − 100) ;
- * - `UNSET` → + donne la valeur minimale (5 s, 1), − `unavailable` (Q26) ;
+ * - `UNSET` → + donne la valeur minimale (1 s, 1), − `unavailable` (Q26) ;
  * - `FAILURE` → `unavailable` dans les deux sens (Q13).
  * `stepSize` (défaut 1) porte les paliers du maintien (`EXECUTION_ACCELERATED_HOLD_POLICY`,
  * Q36, H19) ; il ne change jamais la valeur d'une Cible `UNSET`.
@@ -343,8 +425,10 @@ export function normalizeEffective<T extends ExecutionParametersInput>(parameter
   const count = seriesCountOf(parameters);
   let series = parameters.series;
   if (count === 1 && series.kind === "VARIABLE") {
+    // PRE-5 (AD-19, AD-20) : l'uniforme reprend la charge de la première ligne, sans phase ;
+    // `loadEnabled` est inchangé. Une série déjà uniforme garde ses phases.
     const first = series.rows[0]!;
-    series = { kind: "UNIFORM", count: 1, target: first.target, pauseSeconds: first.pauseSeconds };
+    series = { kind: "UNIFORM", count: 1, target: first.target, pauseSeconds: first.pauseSeconds, loadKg: first.loadKg, workPhases: [] };
   }
   return {
     ...parameters,
@@ -383,7 +467,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-/** Égalité de valeur d'une ligne quelconque (éventuellement malformée) avec une ligne de base. */
+/**
+ * Égalité de valeur d'une ligne quelconque (éventuellement malformée) avec une ligne de base.
+ * PRE-5 (AD-19) : la charge est ignorée, elle n'a aucune ligne de base.
+ */
 function sameRowValue(row: unknown, base: SeriesRow): boolean {
   if (typeof row !== "object" || row === null) {
     return false;
@@ -508,6 +595,96 @@ function checkInputBounds(
   }
 }
 
+/**
+ * PRE-5 (AD-19, FR-10) — valeur de charge valide : en kg, finie, ≥ 0, multiple
+ * de 0,25 (`Number.isInteger(loadKg * 4)`), sans plafond. Les multiples de
+ * 0,25 sont exacts en binaire : aucune unité technique.
+ */
+export function isValidLoadKg(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 && Number.isInteger(value * 4);
+}
+
+/**
+ * Contrôle structurel propre à la charge (AD-19) : `checkStructuralNumber`
+ * (entier) reste inchangé ; aucune borne de niveau saisie n'existe pour la charge.
+ */
+function checkStructuralLoad(value: unknown, violations: ExecutionParametersViolation[], seriesNumber?: number): void {
+  const withSeries = seriesNumber !== undefined ? { seriesNumber } : {};
+  if (value === null || value === undefined) {
+    violations.push({ code: "REQUIRED", field: "loadKg", level: "STRUCTURE", ...withSeries });
+  } else if (typeof value !== "number" || !Number.isFinite(value)) {
+    violations.push({ code: "UNRECOGNIZED", field: "loadKg", level: "STRUCTURE", ...withSeries });
+  } else if (!isValidLoadKg(value)) {
+    violations.push({ code: "OUT_OF_RANGE", field: "loadKg", level: "STRUCTURE", ...withSeries });
+  }
+}
+
+/** Longueur en points de code, comme `length()` de SQLite (AD-20, AD-26). */
+function codePointLength(text: string): number {
+  return Array.from(text).length;
+}
+
+/** Raison « somme hors bornes » (PRE-5 story 2.1) : la violation `workPhases` porte alors les bornes de la somme. */
+const WORK_PHASES_SUM_OUT_OF_RANGE = "work phases sum out of range";
+
+/**
+ * PRE-5 (AD-20, FR-1, FR-3, FR-40) — invariant structurel des phases, partagé
+ * par `validateForSave` et `readV3`. Une liste vide (« Aucune ») est toujours
+ * valide. Sinon : Mode `DURATION`, Cible `NUMBER`, 1 à 6 phases, `id` entier
+ * ≥ 1 unique, durée entière ≥ 1 s (D-430), libellé de 1 à 20 points de code non
+ * blanc, `target.value` = Σ des durées, Σ dans 1..3535. Aucune tolérance de
+ * ligne de base (H25 ne s'applique pas à la somme). Retourne la raison d'un
+ * écart, `null` si l'invariant tient.
+ */
+function workPhasesProblem(mode: unknown, target: unknown, workPhases: unknown): string | null {
+  if (!Array.isArray(workPhases)) {
+    return "work phases are not a list";
+  }
+  if (workPhases.length === 0) {
+    return null;
+  }
+  if (workPhases.length > WORK_PHASE_LIMITS.maxCount) {
+    return "too many work phases";
+  }
+  if (mode !== "DURATION") {
+    return "work phases require the DURATION mode";
+  }
+  if (!isRecord(target) || target.kind !== "NUMBER") {
+    return "work phases require a NUMBER target";
+  }
+  const ids = new Set<number>();
+  let sum = 0;
+  for (const phase of workPhases as unknown[]) {
+    if (!isRecord(phase) || Array.isArray(phase)) {
+      return "malformed work phase";
+    }
+    const { id, label, durationSeconds } = phase as { id?: unknown; label?: unknown; durationSeconds?: unknown };
+    if (typeof id !== "number" || !Number.isInteger(id) || id < 1 || ids.has(id)) {
+      return "malformed or duplicated work phase id";
+    }
+    ids.add(id);
+    if (
+      typeof label !== "string" ||
+      label.trim().length === 0 ||
+      codePointLength(label) > WORK_PHASE_LIMITS.labelMaxLength
+    ) {
+      return "malformed work phase label";
+    }
+    if (typeof durationSeconds !== "number" || !Number.isInteger(durationSeconds) || durationSeconds < WORK_PHASE_LIMITS.durationMin) {
+      return "malformed work phase duration";
+    }
+    sum += durationSeconds;
+  }
+  const bounds = EXECUTION_BOUNDS.durationTarget;
+  if (sum < bounds.min || sum > bounds.max) {
+    return WORK_PHASES_SUM_OUT_OF_RANGE;
+  }
+  if (target.value !== sum) {
+    return "series target differs from the work phases sum";
+  }
+  return null;
+}
+
 function targetBounds(mode: ExecutionMode): Bounds {
   return mode === "DURATION" ? EXECUTION_BOUNDS.durationTarget : EXECUTION_BOUNDS.repetitionTarget;
 }
@@ -565,6 +742,10 @@ function baselineOf(baseline: ExecutionValidationBaseline): ExecutionParametersI
  *   effective, le rang de sa ligne de base selon l'IDENTITÉ de la ligne
  *   (`null` : ligne nouvelle, sans base, les bornes s'y appliquent).
  *
+ * PRE-5 (AD-19, AD-20) : `loadEnabled` booléen et chaque `loadKg` valide
+ * (`isValidLoadKg`) au niveau structurel seulement ; invariant des phases
+ * (`workPhasesProblem`) au niveau structurel, sans tolérance de ligne de base.
+ *
  * Succès : paramètres EFFECTIFS normalisés (N=1, côté non renseigné →
  * `UNILATERAL`).
  */
@@ -598,6 +779,12 @@ export function validateForSave(
   }
   if (!SIDE_ORDERS.includes(raw.sideOrder as SideOrder)) {
     violations.push({ code: "UNRECOGNIZED", field: "sideOrder", level: "STRUCTURE" });
+  }
+  // PRE-5 (AD-19) : l'activation de la charge est un booléen obligatoire.
+  if (raw.loadEnabled === null || raw.loadEnabled === undefined) {
+    violations.push({ code: "REQUIRED", field: "loadEnabled", level: "STRUCTURE" });
+  } else if (typeof raw.loadEnabled !== "boolean") {
+    violations.push({ code: "UNRECOGNIZED", field: "loadEnabled", level: "STRUCTURE" });
   }
 
   // Champs communs : structure, puis bornes de saisie si la valeur diffère de la base.
@@ -638,7 +825,7 @@ export function validateForSave(
       });
       return;
     }
-    const row = rowValue as { target?: unknown; pauseSeconds?: unknown };
+    const row = rowValue as { target?: unknown; pauseSeconds?: unknown; loadKg?: unknown };
     const baseRow = baseIndex === null ? undefined : baseRows[baseIndex];
     if (checkStructuralTarget(row.target, violations, seriesNumber) && checkInput && modeValid) {
       const target = row.target as SeriesTarget;
@@ -657,6 +844,8 @@ export function validateForSave(
         checkInputBounds(row.pauseSeconds as number, "pauseSeconds", EXECUTION_BOUNDS.pauseSeconds, violations, seriesNumber);
       }
     }
+    // PRE-5 (AD-19) : charge contrôlée au seul niveau structurel, sans ligne de base ni borne de saisie.
+    checkStructuralLoad(row.loadKg, violations, seriesNumber);
   };
 
   let count: number | null = null;
@@ -667,8 +856,27 @@ export function validateForSave(
       count = series.count as number;
     }
     // En uniforme, une seule Cible et une seule Pause communes : signalées une fois.
-    const common = { target: series.target, pauseSeconds: series.pauseSeconds };
+    const common = { target: series.target, pauseSeconds: series.pauseSeconds, loadKg: series.loadKg };
     checkRow(common, alignmentFor([common])[0] ?? null, undefined);
+    // PRE-5 (AD-20, FR-3) : invariant des phases, structurel, sans tolérance de ligne de base.
+    if (series.workPhases === null || series.workPhases === undefined) {
+      violations.push({ code: "REQUIRED", field: "workPhases", level: "STRUCTURE" });
+    } else if (!Array.isArray(series.workPhases)) {
+      violations.push({ code: "UNRECOGNIZED", field: "workPhases", level: "STRUCTURE" });
+    } else {
+      const problem = workPhasesProblem(mode, series.target, series.workPhases);
+      if (problem !== null) {
+        // PRE-5 (story 2.1, FR-3) : une somme hors de 1..3535 rend ✓ indisponible ; la
+        // violation porte alors les bornes de la somme, comme une durée de série invalide.
+        const { min, max } = EXECUTION_BOUNDS.durationTarget;
+        violations.push({
+          code: "OUT_OF_RANGE",
+          field: "workPhases",
+          level: "STRUCTURE",
+          ...(problem === WORK_PHASES_SUM_OUT_OF_RANGE ? { details: { min, max } } : {}),
+        });
+      }
+    }
   } else if (series.kind === "VARIABLE") {
     if (!Array.isArray(series.rows) || series.rows.length === 0) {
       violations.push({ code: "REQUIRED", field: "series", level: "STRUCTURE" });
@@ -702,7 +910,7 @@ function isWellFormedSeries(series: unknown): series is ExecutionSeries {
   );
 }
 
-// --- Format canonique v2 (AD-3) ----------------------------------------------
+// --- Formats canoniques v2 (figé) et v3 (AD-3, AD-18) --------------------------
 
 function encodeTarget(target: SeriesTarget): Record<string, unknown> {
   return target.kind === "NUMBER" ? { kind: "NUMBER", value: target.value } : { kind: target.kind };
@@ -713,30 +921,89 @@ function encodeTarget(target: SeriesTarget): Record<string, unknown> {
  * le sérialiseur v1 de PRE-3, `JSON.stringify` sans espace ; seuls `version`
  * et l'encodage de la Cible changent. Aucune identité de ligne, Réserve,
  * mémoire de Mode, phrase ni total ; aucun Bip par Série (P22).
+ *
+ * PRE-5 (AD-18) : SANS appelant de production, réservé aux tests de parité de
+ * `migration010` (AD-10) ; écrit le littéral 2 (`EXECUTION_PARAMETERS_V2`).
+ * Lève une erreur sur des paramètres que la v2 ne sait pas porter (phases,
+ * charge active ou valeur de charge non nulle) : aucune perte silencieuse.
  */
 export function serializeV2(parameters: ExecutionParameters): string {
-  const series =
-    parameters.series.kind === "UNIFORM"
+  const { series } = parameters;
+  const loads = series.kind === "UNIFORM" ? [series.loadKg] : series.rows.map((row) => row.loadKg);
+  if (
+    parameters.loadEnabled ||
+    loads.some((loadKg) => loadKg !== 0) ||
+    (series.kind === "UNIFORM" && series.workPhases.length > 0)
+  ) {
+    throw new Error("serializeV2 cannot carry work phases or a load (AD-18).");
+  }
+  const encoded =
+    series.kind === "UNIFORM"
       ? {
           kind: "UNIFORM",
-          count: parameters.series.count,
-          target: encodeTarget(parameters.series.target),
-          pauseSeconds: parameters.series.pauseSeconds,
+          count: series.count,
+          target: encodeTarget(series.target),
+          pauseSeconds: series.pauseSeconds,
         }
       : {
           kind: "VARIABLE",
-          rows: parameters.series.rows.map((row) => ({ target: encodeTarget(row.target), pauseSeconds: row.pauseSeconds })),
+          rows: series.rows.map((row) => ({ target: encodeTarget(row.target), pauseSeconds: row.pauseSeconds })),
         };
   return JSON.stringify({
-    version: EXECUTION_PARAMETERS_VERSION,
+    version: EXECUTION_PARAMETERS_V2,
     mode: parameters.mode,
-    series,
+    series: encoded,
     sideMode: parameters.sideMode,
     sideOrder: parameters.sideOrder,
     sideRecoverySeconds: parameters.sideRecoverySeconds,
     cadenceBeepIntervalSeconds: parameters.cadenceBeepIntervalSeconds,
     countdownSeconds: parameters.countdownSeconds,
     endSeconds: parameters.endSeconds,
+  });
+}
+
+/**
+ * PRE-5 (AD-18, FR-39) — SEUL écrivain des repositories et de l'Instantané.
+ * Forme v3 : clés et ordre de la v2, `JSON.stringify` sans espace, plus
+ * `"loadEnabled"` à la racine après `"endSeconds"`, `"loadKg"` et
+ * `"workPhases"` dans l'uniforme, `"loadKg"` dans chaque ligne, TOUJOURS
+ * écrits (`false`, `0` et `[]` compris). La charge est écrite sous Sans.
+ */
+export function serializeExecutionParameters(parameters: ExecutionParameters): string {
+  const { series } = parameters;
+  const encoded =
+    series.kind === "UNIFORM"
+      ? {
+          kind: "UNIFORM",
+          count: series.count,
+          target: encodeTarget(series.target),
+          pauseSeconds: series.pauseSeconds,
+          loadKg: series.loadKg,
+          workPhases: series.workPhases.map((phase) => ({
+            id: phase.id,
+            label: phase.label,
+            durationSeconds: phase.durationSeconds,
+          })),
+        }
+      : {
+          kind: "VARIABLE",
+          rows: series.rows.map((row) => ({
+            target: encodeTarget(row.target),
+            pauseSeconds: row.pauseSeconds,
+            loadKg: row.loadKg,
+          })),
+        };
+  return JSON.stringify({
+    version: EXECUTION_PARAMETERS_VERSION,
+    mode: parameters.mode,
+    series: encoded,
+    sideMode: parameters.sideMode,
+    sideOrder: parameters.sideOrder,
+    sideRecoverySeconds: parameters.sideRecoverySeconds,
+    cadenceBeepIntervalSeconds: parameters.cadenceBeepIntervalSeconds,
+    countdownSeconds: parameters.countdownSeconds,
+    endSeconds: parameters.endSeconds,
+    loadEnabled: parameters.loadEnabled,
   });
 }
 
@@ -758,7 +1025,8 @@ function readTarget(value: unknown): SeriesTarget {
   throw new ExecutionParametersDataError("Malformed series target.");
 }
 
-function readRow(value: unknown): SeriesRow {
+/** Cible et Pause d'une ligne (grammaire v2, reprise telle quelle par la v3). */
+function readTargetAndPause(value: unknown): { readonly target: SeriesTarget; readonly pauseSeconds: number } {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new ExecutionParametersDataError("Malformed series row.");
   }
@@ -769,13 +1037,16 @@ function readRow(value: unknown): SeriesRow {
   return { target: readTarget(row.target), pauseSeconds: row.pauseSeconds };
 }
 
-/**
- * Seul lecteur des repositories (AD-3) : NULL, JSON corrompu, v1 ou version
- * inconnue → `ExecutionParametersDataError`, jamais un repli sur les
- * scalaires. Les bornes de saisie ne sont pas réappliquées : une valeur
- * héritée positive hors bornes reste lue telle quelle (H25).
- */
-export function readV2(json: string | null | undefined): ExecutionParameters {
+/** Charge v3, stricte (AD-18, AD-19) : absente ou invalide → `ExecutionParametersDataError`. */
+function readLoadKg(value: unknown): number {
+  if (!isValidLoadKg(value)) {
+    throw new ExecutionParametersDataError("Malformed load.");
+  }
+  return value;
+}
+
+/** NULL ou JSON corrompu → `ExecutionParametersDataError`. */
+function parseParametersJson(json: string | null | undefined): Record<string, unknown> {
   if (json === null || json === undefined) {
     throw new ExecutionParametersDataError("Execution parameters are missing.");
   }
@@ -788,10 +1059,15 @@ export function readV2(json: string | null | undefined): ExecutionParameters {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
     throw new ExecutionParametersDataError("Execution parameters JSON is malformed.");
   }
-  const value = raw as Record<string, unknown>;
-  if (value.version !== EXECUTION_PARAMETERS_VERSION) {
-    throw new ExecutionParametersDataError(`Unknown execution parameters version: ${String(value.version)}.`);
-  }
+  return raw as Record<string, unknown>;
+}
+
+function unknownVersion(version: unknown): never {
+  throw new ExecutionParametersDataError(`Unknown execution parameters version: ${String(version)}.`);
+}
+
+/** Champs racine communs à la v2 et à la v3 (grammaire v2 inchangée). */
+function readRootFields(value: Record<string, unknown>) {
   const mode = value.mode as ExecutionMode;
   if (!EXECUTION_MODES.includes(mode)) {
     throw new ExecutionParametersDataError("Unknown execution mode.");
@@ -808,29 +1084,123 @@ export function readV2(json: string | null | undefined): ExecutionParameters {
   if (typeof seriesValue !== "object" || seriesValue === null || Array.isArray(seriesValue)) {
     throw new ExecutionParametersDataError("Malformed series.");
   }
+  return {
+    mode,
+    seriesValue,
+    root: {
+      sideMode: value.sideMode,
+      sideOrder: value.sideOrder as SideOrder,
+      sideRecoverySeconds: value.sideRecoverySeconds as number,
+      cadenceBeepIntervalSeconds: value.cadenceBeepIntervalSeconds as number,
+      countdownSeconds: value.countdownSeconds as number,
+      endSeconds: value.endSeconds as number,
+    },
+  };
+}
+
+function readUniformCount(seriesValue: Record<string, unknown>): number {
+  if (!isNonNegativeInteger(seriesValue.count) || seriesValue.count < 1) {
+    throw new ExecutionParametersDataError("Malformed series count.");
+  }
+  return seriesValue.count;
+}
+
+/** Grammaire v2 inchangée ; le modèle courant porte « sans phases, charge Sans » (AD-18, SM-3). */
+function readV2Object(value: Record<string, unknown>): ExecutionParameters {
+  const { mode, seriesValue, root } = readRootFields(value);
   let series: ExecutionSeries;
   if (seriesValue.kind === "UNIFORM") {
-    if (!isNonNegativeInteger(seriesValue.count) || seriesValue.count < 1) {
-      throw new ExecutionParametersDataError("Malformed series count.");
-    }
-    const row = readRow({ target: seriesValue.target, pauseSeconds: seriesValue.pauseSeconds });
-    series = { kind: "UNIFORM", count: seriesValue.count, target: row.target, pauseSeconds: row.pauseSeconds };
+    const count = readUniformCount(seriesValue);
+    const row = readTargetAndPause({ target: seriesValue.target, pauseSeconds: seriesValue.pauseSeconds });
+    series = { kind: "UNIFORM", count, target: row.target, pauseSeconds: row.pauseSeconds, loadKg: 0, workPhases: [] };
   } else if (seriesValue.kind === "VARIABLE" && Array.isArray(seriesValue.rows) && seriesValue.rows.length >= 1) {
-    series = { kind: "VARIABLE", rows: seriesValue.rows.map(readRow) };
+    series = { kind: "VARIABLE", rows: seriesValue.rows.map((row) => ({ ...readTargetAndPause(row), loadKg: 0 })) };
   } else {
     throw new ExecutionParametersDataError("Unknown series kind.");
   }
-  return {
-    version: EXECUTION_PARAMETERS_VERSION,
-    mode,
-    series,
-    sideMode: value.sideMode,
-    sideOrder: value.sideOrder as SideOrder,
-    sideRecoverySeconds: value.sideRecoverySeconds as number,
-    cadenceBeepIntervalSeconds: value.cadenceBeepIntervalSeconds as number,
-    countdownSeconds: value.countdownSeconds as number,
-    endSeconds: value.endSeconds as number,
-  };
+  return { version: EXECUTION_PARAMETERS_VERSION, mode, series, ...root, loadEnabled: false };
+}
+
+/** Lecture v3 stricte (AD-18) : clé absente ou mal typée, ou invariant des phases rompu → erreur. */
+function readV3Object(value: Record<string, unknown>): ExecutionParameters {
+  const { mode, seriesValue, root } = readRootFields(value);
+  if (typeof value.loadEnabled !== "boolean") {
+    throw new ExecutionParametersDataError("Malformed loadEnabled.");
+  }
+  let series: ExecutionSeries;
+  if (seriesValue.kind === "UNIFORM") {
+    const count = readUniformCount(seriesValue);
+    const row = readTargetAndPause({ target: seriesValue.target, pauseSeconds: seriesValue.pauseSeconds });
+    const loadKg = readLoadKg(seriesValue.loadKg);
+    const problem = workPhasesProblem(mode, row.target, seriesValue.workPhases);
+    if (problem !== null) {
+      throw new ExecutionParametersDataError(`Malformed work phases: ${problem}.`);
+    }
+    const workPhases = (seriesValue.workPhases as WorkPhase[]).map((phase) => ({
+      id: phase.id,
+      label: phase.label,
+      durationSeconds: phase.durationSeconds,
+    }));
+    series = { kind: "UNIFORM", count, target: row.target, pauseSeconds: row.pauseSeconds, loadKg, workPhases };
+  } else if (seriesValue.kind === "VARIABLE" && Array.isArray(seriesValue.rows) && seriesValue.rows.length >= 1) {
+    series = {
+      kind: "VARIABLE",
+      rows: seriesValue.rows.map((row: unknown) => ({
+        ...readTargetAndPause(row),
+        loadKg: readLoadKg((row as { loadKg?: unknown }).loadKg),
+      })),
+    };
+  } else {
+    throw new ExecutionParametersDataError("Unknown series kind.");
+  }
+  return { version: EXECUTION_PARAMETERS_VERSION, mode, series, ...root, loadEnabled: value.loadEnabled };
+}
+
+/**
+ * Lecteur de la v2 (AD-3, AD-18) : NULL, JSON corrompu, v1 ou toute version
+ * autre que 2 → `ExecutionParametersDataError`, jamais un repli sur les
+ * scalaires. Les bornes de saisie ne sont pas réappliquées : une valeur
+ * héritée positive hors bornes reste lue telle quelle (H25). PRE-5 : retourne
+ * le modèle courant avec `workPhases: []`, `loadEnabled: false` et `loadKg: 0`
+ * partout. Seul `readExecutionParameters` l'emploie en production.
+ */
+export function readV2(json: string | null | undefined): ExecutionParameters {
+  const value = parseParametersJson(json);
+  if (value.version !== EXECUTION_PARAMETERS_V2) {
+    unknownVersion(value.version);
+  }
+  return readV2Object(value);
+}
+
+/**
+ * Lecteur de la v3 (AD-18), strict : une clé `loadEnabled`, `loadKg` ou
+ * `workPhases` absente ou mal typée, ou un invariant des phases rompu (AD-20)
+ * → `ExecutionParametersDataError`. Les clés inconnues sont ignorées, comme en v2.
+ */
+export function readV3(json: string | null | undefined): ExecutionParameters {
+  const value = parseParametersJson(json);
+  if (value.version !== EXECUTION_PARAMETERS_VERSION) {
+    unknownVersion(value.version);
+  }
+  return readV3Object(value);
+}
+
+/**
+ * PRE-5 (AD-18, FR-39, NFR-10) — SEUL lecteur des repositories et de
+ * l'Instantané : version 2 → `readV2` (donnée PRE-4 ou issue de
+ * `migration010`, lue « sans phases, charge Sans ») ; version 3 → `readV3` ;
+ * toute autre version (une v3 lue par un build PRE-4 comprise, de l'autre
+ * côté) → `ExecutionParametersDataError`, sans perte silencieuse.
+ */
+export function readExecutionParameters(json: string | null | undefined): ExecutionParameters {
+  const value = parseParametersJson(json);
+  if (value.version === EXECUTION_PARAMETERS_V2) {
+    return readV2Object(value);
+  }
+  if (value.version === EXECUTION_PARAMETERS_VERSION) {
+    return readV3Object(value);
+  }
+  return unknownVersion(value.version);
 }
 
 // --- Projection scalaire unique (AD-3) ---------------------------------------
@@ -879,23 +1249,38 @@ export type ExecutionProfileDefaults = {
 /**
  * Brouillon de création (v13 §6) : Mode et côté non renseignés, Série 1 à
  * Cible à renseigner, Pause 0 s, Bip 0 ; Compte à rebours et Fin copiés du
- * Profil. Aucune Cible inventée.
+ * Profil. Aucune Cible inventée. PRE-5 (AD-19, AD-20) : charge Sans, 0 kg,
+ * aucune phase.
  */
 export function createEmptyExecutionParameters(defaults: ExecutionProfileDefaults): ExecutionParametersInput {
   return {
     version: EXECUTION_PARAMETERS_VERSION,
     mode: null,
-    series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0 },
+    series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] },
     sideMode: null,
     sideOrder: "BY_SIDE",
     sideRecoverySeconds: 0,
     cadenceBeepIntervalSeconds: 0,
     countdownSeconds: defaults.countdownSeconds,
     endSeconds: defaults.endSeconds,
+    loadEnabled: false,
   };
 }
 
-/** Comparaison structurelle exacte (garde d'abandon, copie, égalité de brouillon), Cibles comparées par `kind`/`value`. */
+function workPhasesEqual(a: readonly WorkPhase[], b: readonly WorkPhase[]): boolean {
+  return (
+    a.length === b.length &&
+    a.every(
+      (phase, index) =>
+        phase.id === b[index]!.id && phase.label === b[index]!.label && phase.durationSeconds === b[index]!.durationSeconds,
+    )
+  );
+}
+
+/**
+ * Comparaison structurelle exacte (garde d'abandon, copie, égalité de brouillon), Cibles comparées par `kind`/`value`.
+ * PRE-5 (AD-19, AD-20, FR-41) : `loadEnabled`, `loadKg` (uniforme et lignes) et `workPhases` (avec `id`) compris.
+ */
 export function executionParametersEqual(
   a: ExecutionParametersInput | null | undefined,
   b: ExecutionParametersInput | null | undefined,
@@ -912,6 +1297,7 @@ export function executionParametersEqual(
     a.cadenceBeepIntervalSeconds !== b.cadenceBeepIntervalSeconds ||
     a.countdownSeconds !== b.countdownSeconds ||
     a.endSeconds !== b.endSeconds ||
+    a.loadEnabled !== b.loadEnabled ||
     a.series.kind !== b.series.kind
   ) {
     return false;
@@ -920,7 +1306,9 @@ export function executionParametersEqual(
     return (
       a.series.count === b.series.count &&
       targetsEqual(a.series.target, b.series.target) &&
-      a.series.pauseSeconds === b.series.pauseSeconds
+      a.series.pauseSeconds === b.series.pauseSeconds &&
+      a.series.loadKg === b.series.loadKg &&
+      workPhasesEqual(a.series.workPhases, b.series.workPhases)
     );
   }
   const rowsA = seriesRowsOf(a);
@@ -928,21 +1316,39 @@ export function executionParametersEqual(
   return (
     rowsA.length === rowsB.length &&
     rowsA.every(
-      (row, index) => targetsEqual(row.target, rowsB[index]!.target) && row.pauseSeconds === rowsB[index]!.pauseSeconds,
+      (row, index) =>
+        targetsEqual(row.target, rowsB[index]!.target) &&
+        row.pauseSeconds === rowsB[index]!.pauseSeconds &&
+        row.loadKg === rowsB[index]!.loadKg,
     )
   );
 }
 
-/** Copie profonde : aucune référence partagée (Cibles comprises) entre une source et sa copie (AD-9). */
+/**
+ * Copie profonde : aucune référence partagée (Cibles comprises) entre une source et sa copie (AD-9).
+ * PRE-5 (AD-9, AD-19, FR-41) : charge et phases (identités comprises) copiées, sans référence partagée.
+ */
 export function cloneExecutionParameters<T extends ExecutionParametersInput>(parameters: T): T {
   return {
     ...parameters,
     series:
       parameters.series.kind === "UNIFORM"
-        ? { ...parameters.series, target: cloneTarget(parameters.series.target) }
+        ? {
+            ...parameters.series,
+            target: cloneTarget(parameters.series.target),
+            workPhases: parameters.series.workPhases.map((phase) => ({
+              id: phase.id,
+              label: phase.label,
+              durationSeconds: phase.durationSeconds,
+            })),
+          }
         : {
             kind: "VARIABLE",
-            rows: parameters.series.rows.map((row) => ({ target: cloneTarget(row.target), pauseSeconds: row.pauseSeconds })),
+            rows: parameters.series.rows.map((row) => ({
+              target: cloneTarget(row.target),
+              pauseSeconds: row.pauseSeconds,
+              loadKg: row.loadKg,
+            })),
           },
   };
 }

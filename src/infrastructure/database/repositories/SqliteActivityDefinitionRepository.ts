@@ -11,8 +11,8 @@ import type {
 import {
   ExecutionParametersValidationError,
   projectScalars,
-  readV2,
-  serializeV2,
+  readExecutionParameters,
+  serializeExecutionParameters,
   validateForSave,
   type ExecutionParameters,
 } from "@/domain/activities/ExecutionParameters";
@@ -166,7 +166,7 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
           categoryId,
           values.sideMode,
           values.sideRecoverySeconds,
-          serializeV2(canonical),
+          serializeExecutionParameters(canonical),
           timestamp,
           timestamp,
         ],
@@ -226,7 +226,7 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
           categoryId,
           values.sideMode,
           values.sideRecoverySeconds,
-          serializeV2(canonical),
+          serializeExecutionParameters(canonical),
           timestamp,
           id,
         ],
@@ -316,7 +316,7 @@ async function getBodyZoneIds(
 }
 
 /**
- * Projection d'une ligne. PRE-4 (story 1.1, AD-3) : `readV2` est le seul
+ * Projection d'une ligne. PRE-4 (story 1.1, AD-3), PRE-5 (AD-18) : `readExecutionParameters` (v2 et v3) est le seul
  * lecteur ; NULL, JSON corrompu, v1 ou version inconnue lèvent une
  * `ExecutionParametersDataError` — jamais un repli sur les scalaires, qui ne
  * sont ni relus ni exposés. Le côté et la Pause entre les côtés exposés sont
@@ -327,7 +327,7 @@ function mapActivityDefinitionRow(
   bodyZoneIds: readonly string[],
   media: ActivityDefinition["media"] = [],
 ): ActivityDefinition {
-  const executionParameters = readV2(row.execution_parameters);
+  const executionParameters = readExecutionParameters(row.execution_parameters);
   return {
     executionParameters,
     media,

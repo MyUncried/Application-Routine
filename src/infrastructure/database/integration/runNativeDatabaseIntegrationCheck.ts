@@ -28,13 +28,25 @@ export async function runNativeDatabaseIntegrationCheck(): Promise<void> {
           executionParameters: {
             version: EXECUTION_PARAMETERS_VERSION,
             mode: "DURATION",
-            series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 15 },
+            // PRE-5 (AD-18, AD-19, AD-20) : JSON v3 ; une charge et des phases traversent le contrôle natif.
+            series: {
+              kind: "UNIFORM",
+              count: 3,
+              target: numberTarget(30),
+              pauseSeconds: 15,
+              loadKg: 2.5,
+              workPhases: [
+                { id: 1, label: "Descente", durationSeconds: 20 },
+                { id: 2, label: "Maintien", durationSeconds: 10 },
+              ],
+            },
             sideMode: "UNILATERAL",
             sideOrder: "BY_SIDE",
             sideRecoverySeconds: 0,
             cadenceBeepIntervalSeconds: 0,
             countdownSeconds: 0,
             endSeconds: 0,
+            loadEnabled: true,
           },
           // T02-S02 / V2-PRE-1 : la récupération post-exercice traverse le
           // contrôle natif — colonne `post_activity_recovery_seconds`
@@ -66,6 +78,15 @@ export async function runNativeDatabaseIntegrationCheck(): Promise<void> {
       roundTrippedSeries.pauseSeconds !== 15
     ) {
       throw new Error("Attached recovery was not persisted natively.");
+    }
+    // PRE-5 (AD-18, AC11) : la charge et les phases (identités comprises) traversent le v3 natif.
+    if (
+      roundTripped.executionParameters.loadEnabled !== true ||
+      roundTrippedSeries.loadKg !== 2.5 ||
+      roundTrippedSeries.workPhases.map((phase) => `${phase.id}:${phase.label}:${phase.durationSeconds}`).join("|") !==
+        "1:Descente:20|2:Maintien:10"
+    ) {
+      throw new Error("Execution parameters v3 were not persisted natively.");
     }
     if (listed[0].estimatedDurationSeconds !== 140) {
       throw new Error("Native SQL duration does not match the domain formula.");

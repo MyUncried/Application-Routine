@@ -45,15 +45,16 @@ const PHOTO: DraftMediaItem = {
 
 function parameters(overrides: Partial<ExecutionParametersInput> = {}): ExecutionParametersInput {
   return {
-    version: 2,
+    version: 3,
     mode: "DURATION",
-    series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 15 },
+    series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] },
     sideMode: "UNILATERAL",
     sideOrder: "BY_SIDE",
     sideRecoverySeconds: 0,
     cadenceBeepIntervalSeconds: 0,
     countdownSeconds: 10,
     endSeconds: 5,
+    loadEnabled: false,
     ...overrides,
   };
 }
@@ -92,7 +93,7 @@ function Harness({
 }) {
   const [value, setValue] = useState<ActivityEditorFormValue>({
     name: "Fentes",
-    instruction: null,
+    instructionSteps: [],
     executionParameters: parameters(),
     bodyZoneIds: ["cou"],
     media: [PHOTO],
@@ -218,7 +219,8 @@ describe("Éditeur — PRE-4 story 4.6", () => {
     render(<Harness category={{ name: "Cardio", color: "#3B82F6" }} initial={{ bodyZoneIds: ["cou", "cuisses"] }} />);
     const label = (testID: string) => screen.getByTestId(testID).props.accessibilityLabel as string;
     expect(label("exercise-name-input")).toBe(strings.screens.activities.editor.name);
-    expect(label("exercise-instruction-input")).toBe(strings.screens.exercise.instruction.label);
+    // PRE-5 story 3.1 (AC6) : chaque étape est un champ nommé « Étape n » sous le titre de section.
+    expect(label("exercise-instruction-input")).toBe(strings.screens.exercise.instruction.stepAccessibilityLabel.replace("{n}", "1"));
     expect(label("activity-editor-category-button")).toBe(`${strings.screens.activities.editor.category.label} Cardio`);
     expect(label("exercise-body-zones-open")).toBe(`${strings.screens.exercise.bodyZones.accessibilityLabel} Cou, Cuisses`);
     const card = label("exercise-parameters-card");
@@ -320,7 +322,7 @@ describe("Éditeur — PRE-4 story 4.6", () => {
     expect(effectiveHeight(screen.getByTestId("media-pending-1-retry"))).toBeGreaterThanOrEqual(48);
   });
 
-  it("PRE4-4.6/AC5 — texte agrandi : aucun plafond ni réduction de taille dans l'Éditeur (feuille des Zones ouverte comprise) ; seul texte borné, les noms des Zones du bandeau, lus en entier par le libellé de l'accès ; textes sous hauteur fixe limités aux exceptions consignées", async () => {
+  it("PRE4-4.6/AC5 — texte agrandi : aucun plafond ni réduction de taille dans l'Éditeur (feuille des Zones ouverte comprise) ; seul texte borné, les noms des Zones du bandeau, lus en entier par le libellé de l'accès ; textes sous hauteur fixe limités aux exceptions consignées (dont le titre « Médias » non visible, PRE-5 3.2, arbitrage G-7)", async () => {
     render(<Harness initial={{ bodyZoneIds: ["cou", "cuisses"] }} />);
     fireEvent(screen.getByTestId("exercise-instruction-input"), "focus");
     const capped = () =>
@@ -338,12 +340,17 @@ describe("Éditeur — PRE-4 story 4.6", () => {
     expect(screen.getByTestId("exercise-body-zones-open").props.accessibilityLabel).toBe(
       `${strings.screens.exercise.bodyZones.accessibilityLabel} Cou, Cuisses`,
     );
-    // Phrase et lignes de la Carte : aucune hauteur, hauteur intrinsèque.
-    for (const testID of ["exercise-parameters-card", "exercise-parameters-phrase", "exercise-parameters-countdown", "exercise-parameters-end"]) {
+    // Carte et Phrase : aucune hauteur, hauteur intrinsèque (PRE-5 3.2 : plus de lignes
+    // Compte à rebours / Fin sur la Carte).
+    for (const testID of ["exercise-parameters-card", "exercise-parameters-phrase"]) {
       expect({ testID, height: StyleSheet.flatten(screen.getByTestId(testID).props.style).height }).toEqual({ testID, height: undefined });
     }
     // Hauteurs fixes sur un texte : ↑ de la Description (cercle de 32, symbole) et tuiles Médias
     // (260 × 213, PRE-3 ; badge « Vidéo » et textes d'état dans la tuile) — consignées (R-44).
+    // PRE-5 3.2, arbitrage G-7 : exception consignée, le titre « Médias » 1 × 1 réservé à VoiceOver
+    // (hors flux, transparent) — aucun texte visible n'y est borné ; son style est vérifié ici.
+    const mediaTitle = StyleSheet.flatten(screen.getByTestId("activity-editor-media-title").props.style);
+    expect(mediaTitle).toMatchObject({ position: "absolute", width: 1, height: 1, overflow: "hidden", color: "transparent" });
     const fixedWithText = [
       ...new Set(
         screen.UNSAFE_root.findAll(
@@ -355,7 +362,7 @@ describe("Éditeur — PRE-4 story 4.6", () => {
         ).map((node) => node.props.testID as string),
       ),
     ].sort();
-    expect(fixedWithText).toEqual(["exercise-instruction-submit"]);
+    expect(fixedWithText).toEqual(["activity-editor-media-title", "exercise-instruction-submit"]);
 
     await act(async () => {
       fireEvent.press(screen.getByTestId("exercise-body-zones-open"));
@@ -394,7 +401,7 @@ describe("Éditeur — PRE-4 story 4.6", () => {
     }
   });
 
-  it("PRE4-4.6/AC10 — lexique, par lecture des sources de l'Éditeur et des référentiels : aucun texte en dur dans les attributs porteurs de texte (littéraux, ternaires, gabarits), les valeurs et actions d'accessibilité, ni en texte JSX (`>Texte<`, `{\"…\"}`) ; limite : une chaîne rangée dans une variable locale ou une prop calculée hors de ces attributs n'est pas captée ; exception consignée : unité « s » du libellé de la Carte (composition PRE-3, 4.2 AC6)", () => {
+  it("PRE4-4.6/AC10 — lexique, par lecture des sources de l'Éditeur et des référentiels : aucun texte en dur dans les attributs porteurs de texte (littéraux, ternaires, gabarits), les valeurs et actions d'accessibilité, ni en texte JSX (`>Texte<`, `{\"…\"}`) ; limite : une chaîne rangée dans une variable locale ou une prop calculée hors de ces attributs n'est pas captée ; aucune exception (PRE-5 3.2 : l'unité « s » du libellé de la Carte a disparu)", () => {
     const sources = [
       "src/features/activities/ActivityEditorForm.tsx",
       "src/features/activities/ActivityMediaList.tsx",
@@ -450,11 +457,9 @@ describe("Éditeur — PRE-4 story 4.6", () => {
       ];
       found.push(...hits.map((text) => ({ source, text })));
     }
-    // Seule exception : « {n} s » dans le libellé de la Carte, composition du code de départ que
-    // 4.2 AC6 impose de garder (« Compte à rebours {n} s, Fin d’exercice {n} s. ») — question à Hermann.
-    expect(found.map(({ source, text }) => ({ source, text: text.replace(/\s+/g, " ") }))).toEqual([
-      { source: "src/features/activities/ActivityEditorForm.tsx", text: ". s, s." },
-    ]);
+    // PRE-5 story 3.2 (R-14, FR-36) : l'exception « {n} s » du libellé de la Carte disparaît avec
+    // Compte à rebours et Fin ; plus aucun texte en dur n'est relevé.
+    expect(found.map(({ source, text }) => ({ source, text: text.replace(/\s+/g, " ") }))).toEqual([]);
     // Le contrôle détecte bien chaque forme interdite.
     expect(LETTER.test(literalPart("Série ${n}"))).toBe(true);
     expect(literalPart("${a} ${b}")).toBe(" ");

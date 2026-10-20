@@ -373,9 +373,9 @@ describe("PRE4-1.3/AC12 — échec d'écriture sans perte du Brouillon", () => {
     expect(saved?.executionParameters.series).toEqual({
       kind: "VARIABLE",
       rows: [
-        { target: { kind: "NUMBER", value: 30 }, pauseSeconds: 10 },
-        { target: { kind: "NUMBER", value: 45 }, pauseSeconds: 20 },
-        { target: { kind: "NUMBER", value: 45 }, pauseSeconds: 20 },
+        { target: { kind: "NUMBER", value: 30 }, pauseSeconds: 10, loadKg: 0 },
+        { target: { kind: "NUMBER", value: 45 }, pauseSeconds: 20, loadKg: 0 },
+        { target: { kind: "NUMBER", value: 45 }, pauseSeconds: 20, loadKg: 0 },
       ],
     });
     consoleError.mockRestore();

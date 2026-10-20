@@ -3,8 +3,9 @@ import path from "node:path";
 
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import { describe, expect, it, jest } from "@jest/globals";
-import { useState } from "react";
-import { AccessibilityInfo, Dimensions, StyleSheet } from "react-native";
+import { useState, type ReactNode } from "react";
+import { AccessibilityInfo, Dimensions, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { numberTarget, unsetTarget, type ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
 import { generateExecutionPhrase, phraseText } from "@/domain/activities/executionPhrase";
@@ -22,12 +23,14 @@ import type { ImportItem, ImportResult, PickedMedia } from "@/domain/media/Activ
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import {
   ActivityEditorForm,
+  EDITOR_HEADER,
   EDITOR_VERTICAL_GRID,
   editorSideMargin,
   isActivityEditorFormValid,
   type ActivityEditorFormValue,
   type EditorCategory,
 } from "@/features/activities/ActivityEditorForm";
+import { applyStepBackspace, applyStepTextChange, displayedStepRows } from "@/features/activities/DescriptionSteps";
 import { chooseExecutionMode, tapExecutionSheetStep } from "@/features/activities/testing/executionSheetActions";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
@@ -35,6 +38,7 @@ import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
+import { colors, dimensions } from "@/shared/ui/tokens";
 
 /**
  * Éditeur commun d'un Exercice (CE-T03-04, PRE-3). Rendu et actions de cette
@@ -63,26 +67,39 @@ function fakeReferentialService(bodyZones: readonly BodyZone[] = BODY_ZONE_FIXTU
 
 function parameters(overrides: Partial<ExecutionParametersInput> = {}): ExecutionParametersInput {
   return {
-    version: 2,
+    version: 3,
     mode: "DURATION",
-    series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 15 },
+    series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] },
     sideMode: "UNILATERAL",
     sideOrder: "BY_SIDE",
     sideRecoverySeconds: 0,
     cadenceBeepIntervalSeconds: 0,
     countdownSeconds: 10,
     endSeconds: 5,
+    loadEnabled: false,
     ...overrides,
   };
 }
 
 const variable = (rows: [number | null, number][]) => ({
   kind: "VARIABLE" as const,
-  rows: rows.map(([target, pauseSeconds]) => ({ target: target === null ? unsetTarget() : toTarget(target), pauseSeconds })),
+  rows: rows.map(([target, pauseSeconds]) => ({ target: target === null ? unsetTarget() : toTarget(target), pauseSeconds, loadKg: 0 })),
 });
 
 function baseValue(overrides: Partial<ActivityEditorFormValue> = {}): ActivityEditorFormValue {
-  return { name: "", instruction: null, executionParameters: parameters(), bodyZoneIds: [], media: [], ...overrides };
+  return { name: "", instructionSteps: [], executionParameters: parameters(), bodyZoneIds: [], media: [], ...overrides };
+}
+
+/** Métriques de test, ou encart bas imposé (PRE-5 story 3.2, AC2). */
+function SafeArea({ bottom, children }: { bottom?: number; children: ReactNode }) {
+  if (bottom === undefined) return <TestSafeAreaProvider>{children}</TestSafeAreaProvider>;
+  return (
+    <SafeAreaProvider
+      initialMetrics={{ frame: { x: 0, y: 0, width: 402, height: 874 }, insets: { top: 47, left: 0, right: 0, bottom } }}
+    >
+      {children}
+    </SafeAreaProvider>
+  );
 }
 
 function Harness({
@@ -98,8 +115,14 @@ function Harness({
   silhouette,
   isCategoryPickerOpen,
   bodyZones = BODY_ZONE_FIXTURES,
+  exerciseSignals,
+  safeAreaBottom,
 }: {
+  /** PRE-5 story 3.2 (AC2) : encart bas de sécurité ; absent = métriques de test (34). */
+  safeAreaBottom?: number;
   bodyZones?: readonly BodyZone[];
+  /** PRE-5 story 2.5 (AC4) : signaux de la Feuille ; absent = défaut du composant. */
+  exerciseSignals?: "present" | "absent";
   initial?: Partial<ActivityEditorFormValue>;
   onChangeSpy?: (patch: Partial<ActivityEditorFormValue>) => void;
   onFinish?: () => void;
@@ -114,7 +137,7 @@ function Harness({
 }) {
   const [value, setValue] = useState<ActivityEditorFormValue>(baseValue(initial));
   return (
-    <TestSafeAreaProvider>
+    <SafeArea bottom={safeAreaBottom}>
       <ReferentialServiceContext.Provider value={fakeReferentialService(bodyZones)}>
         <ActivityEditorForm
           value={value}
@@ -129,6 +152,7 @@ function Harness({
           isCategoryPickerOpen={isCategoryPickerOpen}
           silhouette={silhouette}
           profileSideRecoverySecondsDefault={10}
+          exerciseSignals={exerciseSignals}
           mediaService={mediaService}
           mediaDraftId="draft-test"
           finishLabel="Terminer"
@@ -140,7 +164,7 @@ function Harness({
           errorTestID="test-save-error"
         />
       </ReferentialServiceContext.Provider>
-    </TestSafeAreaProvider>
+    </SafeArea>
   );
 }
 
@@ -227,21 +251,25 @@ describe("ActivityEditorForm — PRE-3", () => {
     expect(onOpenCategory).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId("exercise-body-zones-open")).toBeTruthy();
     expect(screen.getByTestId("exercise-parameters-card")).toBeTruthy();
-    expect(screen.getByLabelText("Description de l’exercice")).toBeTruthy();
+    // PRE-5 story 3.1 (AC6) : sous le titre « Description de l’exercice », chaque étape est nommée « Étape n ».
+    expect(screen.getByText("Description de l’exercice")).toBeTruthy();
+    expect(screen.getByLabelText("Étape 1")).toBeTruthy();
     expect(screen.getByText("Médias")).toBeTruthy();
     expect(screen.getByTestId("test-finish-action").props.accessibilityState).toMatchObject({ disabled: true });
     fireEvent.press(screen.getByTestId("test-finish-action"));
     expect(onFinish).not.toHaveBeenCalled();
   });
 
-  it("P3-02/keyboard-scroll — corps défilant avec clavier ; Terminer hors du défilement, marge Safe Area ; description sans hauteur figée", () => {
+  it("P3-02/keyboard-scroll — corps défilant avec clavier ; Terminer hors du défilement, à 24 du bas (PRE-5 3.2) ; description sans hauteur figée", () => {
     render(<Harness />);
     expect(screen.getByTestId("exercise-body").props.keyboardShouldPersistTaps).toBe("handled");
+    // PRE-5 story 3.1 : étapes sans contenant ni hauteur figée (la cible tactile d'une ligne
+    // se contrôle sur appareil, recette du lot Éditeur).
     const instruction = StyleSheet.flatten(screen.getByTestId("exercise-instruction-input").props.style);
     expect(instruction.height).toBeUndefined();
-    expect(instruction.minHeight).toBeGreaterThanOrEqual(44);
+    expect(instruction.maxHeight).toBeUndefined();
     const slot = StyleSheet.flatten(screen.getByTestId("test-finish-slot").props.style);
-    expect(slot.marginBottom).toBeGreaterThanOrEqual(16);
+    expect(slot.marginBottom).toBe(24);
     expect(within(screen.getByTestId("exercise-body")).queryByTestId("test-finish-action")).toBeNull();
   });
 
@@ -255,11 +283,11 @@ describe("ActivityEditorForm — PRE-3", () => {
         "Durée totale : 6 min 15 s.",
       ],
       [
-        parameters({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 4, target: numberTarget(15), pauseSeconds: 15 }, cadenceBeepIntervalSeconds: 4 }),
+        parameters({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 4, target: numberTarget(15), pauseSeconds: 15, loadKg: 0, workPhases: [] }, cadenceBeepIntervalSeconds: 4 }),
         "Durée totale : ≈ 5 min.",
       ],
       [
-        parameters({ series: { kind: "UNIFORM", count: 4, target: numberTarget(60), pauseSeconds: 15 }, cadenceBeepIntervalSeconds: 4 }),
+        parameters({ series: { kind: "UNIFORM", count: 4, target: numberTarget(60), pauseSeconds: 15, loadKg: 0, workPhases: [] }, cadenceBeepIntervalSeconds: 4 }),
         "Durée totale : 5 min.",
       ],
     ];
@@ -288,8 +316,8 @@ describe("ActivityEditorForm — PRE-3", () => {
       view.unmount();
       return result;
     };
-    expect(render1(parameters({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 0 } }))).not.toContain("Durée totale");
-    expect(render1(parameters({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 15 } }))).toContain("Durée totale : 45 s.");
+    expect(render1(parameters({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 0, loadKg: 0, workPhases: [] } }))).not.toContain("Durée totale");
+    expect(render1(parameters({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 15, loadKg: 0, workPhases: [] } }))).toContain("Durée totale : 45 s.");
     expect(render1(parameters({ series: variable([[30, 10], [45, 20], [60, 30]]) }))).toContain("(30 s, 45 s puis 1 min)");
     expect(render1(parameters({ series: variable([[20, 0], [25, 0], [30, 0], [45, 0]]) }))).toContain("de 20 s à 45 s");
   });
@@ -299,7 +327,7 @@ describe("ActivityEditorForm — PRE-3", () => {
       <Harness
         initial={{
           executionParameters: parameters({
-            series: { kind: "UNIFORM", count: 1, target: numberTarget(90), pauseSeconds: 15 },
+            series: { kind: "UNIFORM", count: 1, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] },
             sideMode: "RIGHT_LEFT",
             sideRecoverySeconds: 10,
           }),
@@ -310,31 +338,31 @@ describe("ActivityEditorForm — PRE-3", () => {
     expect(node.props.numberOfLines).toBeUndefined();
     expect(node.props.ellipsizeMode).toBeUndefined();
     expect(phrase()).toBe(
-      "1 série de 1 min 30 s, avec 15 s de pause après chaque série, en faisant le côté droit puis le gauche, avec 10 s de pause au changement de côté. Durée totale : 3 min 40 s.",
+      "1 série de 1 min 30 s, avec 15 s de pause après chaque série, en faisant le côté 1 puis le côté 2, avec 10 s de pause au changement de côté. Durée totale : 3 min 40 s.",
     );
-    expect(boldSegments()).toEqual(expect.arrayContaining(["1 série", "1 min 30 s", "gauche", "3 min 40 s"]));
-    expect(boldSegments()).not.toContain("droit");
+    // PRE-5 (story 1.2, AC4) : clause des côtés neutre ; « côté 2 » remplace l'ancien mot gras.
+    expect(boldSegments()).toEqual(expect.arrayContaining(["1 série", "1 min 30 s", "côté 2", "3 min 40 s"]));
+    expect(boldSegments()).not.toContain("côté 1");
   });
 
-  it("P3-20/all-surfaces — titres et valeurs des écrans de référence ; carte bordée rayon 12 ; phrase Inter 13 / 20", () => {
-    render(<Harness initial={{ executionParameters: parameters({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0 } }) }} />);
+  it("P3-20/all-surfaces — titres et valeurs des écrans de référence ; Carte `surfaceSubtle` rayon 12 sans liseré (PRE-5 3.2) ; phrase Inter 14 / 20 (PRE-5 3.2, arbitrage G-6)", () => {
+    render(<Harness initial={{ executionParameters: parameters({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] } }) }} />);
     expect(screen.getByText("Paramètres d’exécution")).toBeTruthy();
     // Story 4.2 (Q23) : « Choisir un mode » retiré ; E-21 : la Carte vide ne porte aucune invite.
     expect(screen.queryByText("Choisir un mode")).toBeNull();
     expect(screen.queryByText("Appuyez pour définir les séries et les durées")).toBeNull();
-    expect(screen.getByText("Compte à rebours")).toBeTruthy();
-    expect(screen.getByText("Fin d’exercice")).toBeTruthy();
-    expect(screen.getByTestId("exercise-parameters-countdown").props.children).toBe("10 s");
-    expect(screen.getByTestId("exercise-parameters-end").props.children).toBe("5 s");
-    expect(StyleSheet.flatten(screen.getByTestId("exercise-parameters-card").props.style)).toMatchObject({
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: "#E0E3E8",
-    });
-    // E-21 (2026-10-18) : sans Mode, aucune invite ; la Phrase (vide, PRE-3) garde son style.
+    // PRE-5 story 3.2 (R-14, FR-36) : ni Compte à rebours ni Fin sur la Carte.
+    expect(screen.queryByText("Compte à rebours")).toBeNull();
+    expect(screen.queryByText("Fin d’exercice")).toBeNull();
+    const cardStyle = StyleSheet.flatten(screen.getByTestId("exercise-parameters-card").props.style);
+    expect(cardStyle).toMatchObject({ borderRadius: 12, backgroundColor: "#F9FAFC" });
+    expect(cardStyle.borderWidth ?? 0).toBe(0);
+    // E-21 (2026-10-18) : sans Mode, aucune invite ; la Phrase (vide) garde son style.
+    // PRE-5 3.2, arbitrage G-6 : Inter Regular 14 (`type.body`), interligne 20.
     expect(screen.queryByTestId("exercise-parameters-empty-prompt")).toBeNull();
     expect(StyleSheet.flatten(screen.getByTestId("exercise-parameters-phrase").props.style)).toMatchObject({
-      fontSize: 13,
+      fontFamily: "Inter_400Regular",
+      fontSize: 14,
       lineHeight: 20,
     });
   });
@@ -360,7 +388,7 @@ describe("ActivityEditorForm — PRE-3", () => {
     tapExecutionSheetStep("execution-sheet-series-increment");
     fireEvent.press(screen.getByTestId("execution-sheet-validate"));
     expect(onChangeSpy).toHaveBeenCalledWith({
-      executionParameters: expect.objectContaining({ series: { kind: "UNIFORM", count: 4, target: numberTarget(90), pauseSeconds: 15 } }),
+      executionParameters: expect.objectContaining({ series: { kind: "UNIFORM", count: 4, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] } }),
     });
     expect(phrase()).toContain("4 séries");
     expect(screen.queryByTestId("execution-sheet")).toBeNull();
@@ -370,9 +398,8 @@ describe("ActivityEditorForm — PRE-3", () => {
     render(<Harness />);
     const card = screen.getByTestId("exercise-parameters-card");
     expect(card.props.accessibilityRole).toBe("button");
-    expect(card.props.accessibilityLabel).toBe(
-      `Modifier les paramètres d’exécution. ${phrase()} Compte à rebours 10 s, Fin d’exercice 5 s.`,
-    );
+    // PRE-5 story 3.2 (R-14, FR-36) : la Phrase seule, sans Compte à rebours ni Fin.
+    expect(card.props.accessibilityLabel).toBe(`Modifier les paramètres d’exécution. ${phrase()}`);
     const nested = screen.getByTestId("exercise-parameters-phrase").props.children as { props?: { accessible?: boolean; accessibilityRole?: string } }[];
     expect(nested.filter((child) => typeof child === "object" && child?.props?.accessibilityRole).length).toBe(0);
   });
@@ -493,8 +520,10 @@ describe("ActivityEditorForm — recette 1 (T-49)", () => {
 
     const halo = StyleSheet.flatten(screen.getByTestId("exercise-context-band-halo").props.style);
     expect(halo).toMatchObject({ position: "absolute", width: 59.28, height: 59.28, borderRadius: 29.64, backgroundColor: "#FFFFFF" });
-    // Centre : marge 24 + rayon du bouton 19 en x ; 24 au-dessus de la zone (moitié de l’en-tête 48) en y.
-    expect(halo.left! + 29.64).toBeCloseTo(43, 5);
+    // PRE-5 3.2, arbitrage G-1 : centre = centre du ✕ de l’en-tête de l’Éditeur (cible 48 à 12 du
+    // bord, soit x 36, indépendant de la largeur) ; 24 au-dessus de la zone (moitié de l’en-tête 48) en y.
+    expect(EDITOR_HEADER.backCenterX).toBe(36);
+    expect(halo.left! + 29.64).toBeCloseTo(EDITOR_HEADER.backCenterX, 5);
     expect(halo.top! + 29.64).toBeCloseTo(-24, 5);
 
     const fade = screen.getByTestId("exercise-context-band-fade");
@@ -522,7 +551,7 @@ describe("ActivityEditorForm — recette 1 (T-49)", () => {
 });
 
 describe("ActivityEditorForm — recette 2 (N-05 : Description et clavier)", () => {
-  it("N-05 — Terminer hors de la zone qui évite le clavier ; Description recadrée juste au-dessus du clavier, hauteur bornée pendant la saisie puis rétablie", () => {
+  it("N-05 / PRE5-3.1/AC2 — Terminer hors de la zone qui évite le clavier ; l'étape active recadrée juste au-dessus du clavier, à chaque étape et quand elle grandit ; aucune hauteur bornée", async () => {
     const { Keyboard, KeyboardAvoidingView, ScrollView } = jest.requireActual<typeof import("react-native")>("react-native");
     const scrollTo = jest.spyOn(ScrollView.prototype, "scrollTo");
     const listeners: Record<string, () => void> = {};
@@ -541,38 +570,56 @@ describe("ActivityEditorForm — recette 2 (N-05 : Description et clavier)", () 
     layout("exercise-body", 0, 300);
     layout("exercise-section-description", 0, 0);
     fireEvent(screen.getByTestId("exercise-section-description"), "layout", { nativeEvent: { layout: { x: 24, y: 400, width: 354, height: 160 } } });
-    layout("exercise-instruction-input", 25, 120);
+    layout("exercise-description-steps-area", 25, 17);
+    layout("exercise-instruction-row-1", 0, 17);
 
     scrollTo.mockClear();
     fireEvent(screen.getByTestId("exercise-instruction-input"), "focus");
-    expect(StyleSheet.flatten(screen.getByTestId("exercise-instruction-input").props.style).maxHeight).toBe(276);
+    expect(StyleSheet.flatten(screen.getByTestId("exercise-instruction-input").props.style).maxHeight).toBeUndefined();
     act(() => listeners.keyboardDidShow!());
-    // Bas du champ (400 + 25 + 120) + marge 12 − zone visible 300 = 257.
-    expect(scrollTo).toHaveBeenLastCalledWith({ y: 257, animated: true });
+    // Bas de l'étape active (400 + 25 + 17) + marge 12 − zone visible 300 = 154.
+    expect(scrollTo).toHaveBeenLastCalledWith({ y: 154, animated: true });
 
-    // Le champ grandit avec les retours à la ligne : nouveau recadrage.
-    layout("exercise-instruction-input", 25, 180);
-    expect(scrollTo).toHaveBeenLastCalledWith({ y: 317, animated: true });
+    // Entrée crée l'étape 2, qui reçoit le focus : recadrage sur elle.
+    fireEvent.changeText(screen.getByTestId("exercise-instruction-input"), "Dos droit");
+    fireEvent.changeText(screen.getByTestId("exercise-instruction-input"), "Dos droit\n");
+    layout("exercise-instruction-row-2", 25, 17);
+    fireEvent(screen.getByTestId("exercise-instruction-step-2"), "focus");
+    expect(scrollTo).toHaveBeenLastCalledWith({ y: 179, animated: true });
+
+    // L'étape active grandit (texte sur deux lignes) : nouveau recadrage.
+    layout("exercise-instruction-row-2", 25, 34);
+    expect(scrollTo).toHaveBeenLastCalledWith({ y: 196, animated: true });
 
     fireEvent(screen.getByTestId("exercise-instruction-input"), "blur");
-    expect(StyleSheet.flatten(screen.getByTestId("exercise-instruction-input").props.style).maxHeight).toBeUndefined();
+    fireEvent(screen.getByTestId("exercise-instruction-step-2"), "blur");
+    await flushDeferredBlur();
+    expect(screen.queryByTestId("exercise-instruction-submit")).toBeNull();
     scrollTo.mockRestore();
     addListener.mockRestore();
   });
 });
 
+/** PRE-5 story 3.1 : la perte de focus d'une étape est différée d'un tour (passage d'une étape à l'autre). */
+async function flushDeferredBlur() {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+}
+
 describe("ActivityEditorForm — recette 3 (N-05 : ↑ dans la Description)", () => {
-  it("N-05 — ↑ visible dans le champ pendant la saisie, nommé ; il ferme le clavier sans enregistrer ; texte multiligne conservé ; retour à la ligne inchangé", () => {
+  it("N-05 / PRE5-3.1/AC2 — ↑ visible dans la Description pendant la saisie, nommé ; il ferme le clavier sans enregistrer ; étapes conservées ; Retour crée une étape, jamais une validation", async () => {
     const { Keyboard } = jest.requireActual<typeof import("react-native")>("react-native");
     const dismiss = jest.spyOn(Keyboard, "dismiss").mockImplementation(() => {});
     const onFinish = jest.fn();
     render(<Harness onFinish={onFinish} />);
     const input = () => screen.getByTestId("exercise-instruction-input");
+    const area = () => screen.getByTestId("exercise-description-steps-area");
 
     // Hors saisie : pas de ↑ ; la place du bouton est réservée (le texte ne change pas de largeur au focus).
     expect(screen.queryByTestId("exercise-instruction-submit")).toBeNull();
-    const reserved = StyleSheet.flatten(input().props.style).paddingRight as number;
-    expect(reserved).toBeGreaterThanOrEqual(32 + 16);
+    const reserved = StyleSheet.flatten(area().props.style).paddingRight as number;
+    expect(reserved).toBeGreaterThanOrEqual(32 + 8);
 
     fireEvent(input(), "focus");
     fireEvent.changeText(input(), "Ligne 1\nLigne 2");
@@ -580,19 +627,35 @@ describe("ActivityEditorForm — recette 3 (N-05 : ↑ dans la Description)", ()
     expect(send.props.accessibilityLabel).toBe("Valider la description");
     expect(within(screen.getByTestId("exercise-section-description")).getByTestId("exercise-instruction-submit")).toBe(send);
     expect(StyleSheet.flatten(send.props.style)).toMatchObject({ position: "absolute", width: 32, height: 32, borderRadius: 16 });
-    expect(StyleSheet.flatten(input().props.style).paddingRight).toBe(reserved);
-    // Description reste multiligne : la touche Retour n’est jamais une validation.
-    expect(input().props.multiline).toBe(true);
+    expect(StyleSheet.flatten(area().props.style).paddingRight).toBe(reserved);
+    // La touche Retour n’est jamais une validation : elle passe par le texte (étape suivante).
     expect(input().props.onSubmitEditing).toBeUndefined();
 
     fireEvent.press(send);
     expect(dismiss).toHaveBeenCalledTimes(1);
     expect(onFinish).not.toHaveBeenCalled();
     fireEvent(input(), "blur");
+    await flushDeferredBlur();
     expect(screen.queryByTestId("exercise-instruction-submit")).toBeNull();
-    expect(input().props.value).toBe("Ligne 1\nLigne 2");
+    expect(input().props.value).toBe("Ligne 1");
+    expect(screen.getByTestId("exercise-instruction-step-2").props.value).toBe("Ligne 2");
     expect(screen.getByTestId("test-finish-slot")).toBeTruthy();
     dismiss.mockRestore();
+  });
+
+  it("PRE5-3.1/AC2 — passage d'une étape à l'autre (perte de focus de l'étape 1 AVANT le focus de l'étape 2, ordre iOS) : ↑ reste monté, sans clignotement", async () => {
+    render(<Harness initial={{ instructionSteps: ["Ligne 1"] }} />);
+    fireEvent(screen.getByTestId("exercise-instruction-input"), "focus");
+    const send = screen.getByTestId("exercise-instruction-submit");
+    fireEvent(screen.getByTestId("exercise-instruction-input"), "blur");
+    expect(screen.getByTestId("exercise-instruction-submit")).toBe(send);
+    fireEvent(screen.getByTestId("exercise-instruction-step-2"), "focus");
+    await flushDeferredBlur();
+    // Même instance : ↑ n'a été ni démonté ni remonté.
+    expect(screen.getByTestId("exercise-instruction-submit")).toBe(send);
+    fireEvent(screen.getByTestId("exercise-instruction-step-2"), "blur");
+    await flushDeferredBlur();
+    expect(screen.queryByTestId("exercise-instruction-submit")).toBeNull();
   });
 });
 
@@ -610,9 +673,11 @@ describe("ActivityEditorForm — PRE-4 story 1.1", () => {
     // Story 4.2 (Q23, AC14) : plus de bouton de Mode à côté du titre ; le Mode se lit dans la Feuille.
     expect(screen.queryByTestId("exercise-parameters-mode")).toBeNull();
     fireEvent.press(screen.getByTestId("exercise-parameters-card"));
-    expect(screen.getByTestId("execution-sheet-mode-value-text").props.children).toBe("Répétitions");
-    // Story 3.5 : « à l’échec » dans la pastille de la Cible commune.
-    expect(screen.getByTestId("execution-sheet-target-value-text").props.children).toBe("à l’échec");
+    // PRE-5 story 2.4 : le Mode est un segmenté en ligne ; l'option affichée est sélectionnée.
+    expect(screen.getByTestId("execution-sheet-mode-control-REPETITIONS").props.accessibilityState).toMatchObject({ selected: true });
+    // PRE-5 story 2.4 (FR-21) : à l'échec, la Condition d'arrêt l'indique et la ligne de cible est masquée.
+    expect(screen.getByTestId("execution-sheet-stop-condition-control-FAILURE").props.accessibilityState).toMatchObject({ selected: true });
+    expect(screen.queryByTestId("execution-sheet-row-target")).toBeNull();
   });
 
   it("PRE4-1.1/AC23 — Cible à renseigner héritée : carte « Paramètres à compléter. », Terminer invalide ; une Cible réglée par la commande existante est enregistrée en NUMBER, jamais FAILURE", () => {
@@ -633,7 +698,7 @@ describe("ActivityEditorForm — PRE-4 story 1.1", () => {
     fireEvent.press(screen.getByTestId("number-wheel-validate"));
     fireEvent.press(screen.getByTestId("execution-sheet-validate"));
     const applied = onChangeSpy.mock.calls.at(-1)?.[0].executionParameters;
-    expect(applied?.series).toEqual({ kind: "UNIFORM", count: 3, target: numberTarget(1), pauseSeconds: 10 });
+    expect(applied?.series).toEqual({ kind: "UNIFORM", count: 3, target: numberTarget(1), pauseSeconds: 10, loadKg: 0, workPhases: [] });
     expect(JSON.stringify(applied)).not.toContain("FAILURE");
     expect(phrase()).not.toBe("Paramètres à compléter.");
   });
@@ -663,10 +728,17 @@ describe("ActivityEditorForm — PRE-4 story 1.1", () => {
 });
 
 describe("ActivityEditorForm — PRE-4 story 2.2", () => {
-  it("PRE4-2.2/AC1 — Compte à rebours et Fin d'exercice passent par le formateur unique : 60 → « 1 min », 0 → « 0 s »", () => {
+  // PRE-5 story 3.2 (R-14, FR-36) : la Carte ne montre plus Compte à rebours ni Fin ; leur
+  // formatage reste prouvé dans la Feuille (`ExecutionParametersSheet.test.tsx`).
+  it("PRE4-2.2/AC1 + PRE5-3.2/AC1 — Compte à rebours 60 s et Fin 0 s : aucune valeur ni ligne sur la Carte ; la Feuille les montre", () => {
     render(<Harness initial={{ executionParameters: parameters({ countdownSeconds: 60, endSeconds: 0 }) }} />);
-    expect(screen.getByTestId("exercise-parameters-countdown").props.children).toBe("1 min");
-    expect(screen.getByTestId("exercise-parameters-end").props.children).toBe("0 s");
+    expect(screen.queryByTestId("exercise-parameters-countdown")).toBeNull();
+    expect(screen.queryByTestId("exercise-parameters-end")).toBeNull();
+    expect(screen.queryByText("1 min")).toBeNull();
+    fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+    fireEvent.press(screen.getByLabelText("Afficher le compte à rebours et la fin d’exercice"));
+    expect(screen.getByTestId("execution-sheet-countdown-value").props.children).toBe("1 min");
+    expect(screen.getByTestId("execution-sheet-end-value").props.children).toBe("0 s");
   });
 });
 
@@ -688,7 +760,7 @@ describe("ActivityEditorForm — PRE-4 story 2.3", () => {
     expect(style).not.toHaveProperty("maxHeight");
   }
 
-  it("PRE4-2.3/AC15 — cas 144 affiché en entier dans la Carte, un seul flux de texte, aucun plafond ; Compte à rebours et Fin sur leurs lignes", () => {
+  it("PRE4-2.3/AC15 — cas 144 affiché en entier dans la Carte, un seul flux de texte, aucun plafond ; ni Compte à rebours ni Fin (PRE-5 3.2)", () => {
     render(
       <Harness
         initial={{
@@ -699,6 +771,7 @@ describe("ActivityEditorForm — PRE-4 story 2.3", () => {
             sideRecoverySeconds: 5,
             countdownSeconds: 10,
             endSeconds: 5,
+            loadEnabled: false,
           }),
         }}
       />,
@@ -706,7 +779,7 @@ describe("ActivityEditorForm — PRE-4 story 2.3", () => {
     // 2 × 6 × (12 × 4 + 15) + 5 = 761 s.
     expect(2 * 6 * (12 * 4 + 15) + 5).toBe(761);
     expect(phrase()).toBe(
-      "6 séries de 12 répétitions cadencées toutes les 4 s, avec 15 s de pause après chaque série, en faisant d’abord toutes les séries à droite, puis à gauche, avec 5 s de pause au changement de côté. Durée totale : ≈ 12 min 41 s.",
+      "6 séries de 12 répétitions cadencées toutes les 4 s, avec 15 s de pause après chaque série, en faisant d’abord toutes les séries du côté 1, puis du côté 2, avec 5 s de pause au changement de côté. Durée totale : ≈ 12 min 41 s.",
     );
     // Aucune espace avant la ponctuation ; le seul retour de ligne est celui de présentation avant « Durée totale ».
     expect(renderedPhrase()).not.toMatch(/ [.,)]/u);
@@ -720,11 +793,11 @@ describe("ActivityEditorForm — PRE-4 story 2.3", () => {
     nested.forEach(expectUncapped);
     // Les segments ne sont pas interactifs.
     expect(nested.filter((child) => child.props.onPress !== undefined || child.props.accessibilityRole !== undefined)).toEqual([]);
-    // Inter 13 Regular, interligne 20 ; segments gras en Inter Semi Bold (600).
+    // PRE-5 3.2, arbitrage G-6 : Inter 14 Regular, interligne 20 ; segments gras en Inter Semi Bold (600).
     expect(StyleSheet.flatten(node.props.style)).toMatchObject({
       fontFamily: "Inter_400Regular",
       fontWeight: "400",
-      fontSize: 13,
+      fontSize: 14,
       lineHeight: 20,
     });
     for (const child of nested) {
@@ -733,11 +806,9 @@ describe("ActivityEditorForm — PRE-4 story 2.3", () => {
         fontWeight: "600",
       });
     }
-    expect(boldSegments()).toEqual(["6 séries", "12 répétitions", "4 s", "15 s", "droite", "gauche", "5 s", "≈ 12 min 41 s"]);
-    expect(screen.getByTestId("exercise-parameters-countdown").props.children).toBe("10 s");
-    expect(screen.getByTestId("exercise-parameters-end").props.children).toBe("5 s");
-    expectUncapped(screen.getByTestId("exercise-parameters-countdown"));
-    expectUncapped(screen.getByTestId("exercise-parameters-end"));
+    expect(boldSegments()).toEqual(["6 séries", "12 répétitions", "4 s", "15 s", "côté 1", "côté 2", "5 s", "≈ 12 min 41 s"]);
+    expect(screen.queryByTestId("exercise-parameters-countdown")).toBeNull();
+    expect(screen.queryByTestId("exercise-parameters-end")).toBeNull();
   });
 
   it("PRE4-2.3/AC15 — mélange rendu dans la Carte : « jusqu’à l’échec » normal, valeurs et « ≥ » en gras ; bouton de Mode et libellé accessible inchangés", () => {
@@ -753,16 +824,18 @@ describe("ActivityEditorForm — PRE-4 story 2.3", () => {
             ],
             countdownSeconds: 10,
             endSeconds: 5,
+            loadEnabled: false,
           }),
         }}
       />,
     );
     expect(phrase()).toBe("3 séries de durée variable (30 s, 45 s puis jusqu’à l’échec). Durée totale : ≥ 1 min 45 s.");
     expect(boldSegments()).toEqual(["3 séries", "30 s", "45 s", "≥ 1 min 45 s"]);
-    // Story 4.2 (Q23, AC14) : bouton de Mode retiré ; libellé accessible de la Carte inchangé.
+    // Story 4.2 (Q23, AC14) : bouton de Mode retiré. PRE-5 story 3.2 : libellé de la Carte
+    // réduit à la Phrase (ni Compte à rebours ni Fin).
     expect(screen.queryByTestId("exercise-parameters-mode")).toBeNull();
     expect(screen.getByTestId("exercise-parameters-card").props.accessibilityLabel).toBe(
-      `Modifier les paramètres d’exécution. ${phrase()} Compte à rebours 10 s, Fin d’exercice 5 s.`,
+      `Modifier les paramètres d’exécution. ${phrase()}`,
     );
   });
 
@@ -860,7 +933,7 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
     assetId: "p1",
     asset: { id: "p1", uri: "kodjo-media/p1.jpg", createdAt: "2026-10-18T10:00:00.000Z", kind: "PHOTO" },
   };
-  const EMPTY = parameters({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0 } });
+  const EMPTY = parameters({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] } });
 
   /** Identifiants de test dans l'ordre du document (parcours en profondeur de l'arbre rendu). */
   function documentOrder(): string[] {
@@ -939,9 +1012,9 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
     expect(screen.queryByText(/Récupération|Type d’exercice/u)).toBeNull();
   });
 
-  it("PRE4-4.2/AC5 — marge latérale 16 à 360, 24 à 390, 402 et 440 ; Terminer 354 de large à 402 ; grille 18 / 13 / 20 / 12 par styles, sans position absolue", () => {
+  it("PRE4-4.2/AC5 — marge latérale 16 à 360, 24 à 390, 402 et 440 ; Terminer 354 de large à 402 ; grille 14 / 10 / 16 / 12 par styles (PRE-5 3.2, arbitrage G-2), sans position absolue", () => {
     expect([360, 389, 390, 402, 440].map(editorSideMargin)).toEqual([16, 16, 24, 24, 24]);
-    expect(EDITOR_VERTICAL_GRID).toEqual({ contextToFirstText: 18, blockToNextTitle: 20, titleToBlock: 13, blockToBlock: 12 });
+    expect(EDITOR_VERTICAL_GRID).toEqual({ contextToFirstText: 14, blockToNextTitle: 16, titleToBlock: 10, blockToBlock: 12 });
     for (const [width, margin] of [
       [360, 16],
       [390, 24],
@@ -955,14 +1028,14 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
         expect(content.paddingHorizontal).toBe(margin);
         expect(style("test-finish-slot").marginHorizontal).toBe(margin);
         // Centre du halo comparé au padding réellement reçu par `FixedHeader` : `ExerciseScreen.test.tsx`, `PRE4-4.2/AC4 AC5`.
-        // Grille de D-327 : 18 du bas du dégradé au premier titre ; 13 titre → bloc ;
-        // 20 dernier élément → titre suivant ; 12 dernier bloc → Terminer.
-        expect(content).toMatchObject({ paddingTop: 18, paddingBottom: 12 });
+        // PRE-5 3.2, arbitrage G-2 (à la place de D-327 pour cet écran) : 14 du bas du dégradé à
+        // la première section ; 10 titre → contenu ; 16 entre sections ; 12 dernier bloc → Terminer.
+        expect(content).toMatchObject({ paddingTop: 14, paddingBottom: 12 });
         expect(content.gap).toBeUndefined();
-        expect(style("exercise-section-description")).toMatchObject({ gap: 13 });
+        expect(style("exercise-section-description")).toMatchObject({ gap: 10 });
         expect(style("exercise-section-description").marginTop).toBeUndefined();
         for (const section of ["exercise-section-parameters", "activity-editor-section-media"]) {
-          expect(style(section)).toMatchObject({ gap: 13, marginTop: 20 });
+          expect(style(section)).toMatchObject({ gap: 10, marginTop: 16 });
         }
         expect(style("test-finish-slot").marginTop).toBeUndefined();
         for (const testID of ["exercise-section-description", "exercise-section-parameters", "activity-editor-section-media", "test-finish-slot", "test-finish-action"]) {
@@ -982,13 +1055,10 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
     expect(within(card).queryByTestId("exercise-parameters-empty-prompt")).toBeNull();
     expect(screen.queryByText("Appuyez pour définir les séries et les durées")).toBeNull();
     expect(within(card).getByTestId("exercise-parameters-phrase").props.children).toBe("");
-    // Composition PRE-3 du libellé accessible (Phrase vide).
-    expect(card.props.accessibilityLabel).toBe(
-      "Modifier les paramètres d’exécution.  Compte à rebours 10 s, Fin d’exercice 5 s.",
-    );
-    // Lignes Compte à rebours et Fin, dans la Carte (P17).
-    expect(within(card).getByTestId("exercise-parameters-countdown")).toBeTruthy();
-    expect(within(card).getByTestId("exercise-parameters-end")).toBeTruthy();
+    // PRE-5 story 3.2 (R-14, FR-36) : Phrase vide, libellé sans Phrase ni Compte à rebours / Fin.
+    expect(card.props.accessibilityLabel).toBe("Modifier les paramètres d’exécution.");
+    expect(within(card).queryByTestId("exercise-parameters-countdown")).toBeNull();
+    expect(within(card).queryByTestId("exercise-parameters-end")).toBeNull();
     fireEvent.press(card);
     expect(screen.getByTestId("execution-sheet")).toBeTruthy();
   });
@@ -998,7 +1068,7 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
       durationParameters(90, 3, 15, { countdownSeconds: 10, endSeconds: 5 }),
       repetitionParameters(12, 3, 30, { countdownSeconds: 10, endSeconds: 5 }),
       repetitionParameters("FAILURE", 3, 30, { countdownSeconds: 10, endSeconds: 5 }),
-      parameters({ series: { kind: "UNIFORM", count: 2, target: unsetTarget(), pauseSeconds: 0 } }),
+      parameters({ series: { kind: "UNIFORM", count: 2, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] } }),
     ]) {
       const view = render(<Harness initial={{ executionParameters }} />);
       expect(screen.queryByTestId("exercise-parameters-empty-prompt")).toBeNull();
@@ -1031,6 +1101,7 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
       cadenceBeepIntervalSeconds: 2,
       countdownSeconds: 10,
       endSeconds: 5,
+      loadEnabled: false,
     });
     render(<Harness initial={{ executionParameters }} />);
     const generated = phraseText(generateExecutionPhrase(executionParameters)!);
@@ -1051,9 +1122,7 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
         (node.props.accessible === true || node.props.onPress !== undefined || node.props.accessibilityRole !== undefined),
     );
     expect(interactive).toEqual([]);
-    expect(card.props.accessibilityLabel).toBe(
-      `Modifier les paramètres d’exécution. ${generated} Compte à rebours 10 s, Fin d’exercice 5 s.`,
-    );
+    expect(card.props.accessibilityLabel).toBe(`Modifier les paramètres d’exécution. ${generated}`);
     // Aucune hauteur fixée sur la Carte ni sur la Phrase (la phrase longue est couverte par PRE4-2.3/AC15).
     for (const testID of ["exercise-parameters-card", "exercise-parameters-phrase"]) {
       expect(style(testID)).not.toHaveProperty("height");
@@ -1061,7 +1130,7 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
     }
   });
 
-  it("PRE4-4.2/AC7 — Description facultative, multiligne, 1000 caractères ; Retour reste un retour à la ligne ; ↑ ferme le clavier sans enregistrer ; placeholder du code de départ", () => {
+  it("PRE4-4.2/AC7 + PRE5-3.1 — Description facultative en étapes ; Retour crée une étape ; ↑ ferme le clavier sans enregistrer ; invite de la première étape ; `maxLength` ne compte pas", () => {
     const { Keyboard } = jest.requireActual<typeof import("react-native")>("react-native");
     const dismiss = jest.spyOn(Keyboard, "dismiss").mockImplementation(() => {});
     const onFinish = jest.fn();
@@ -1070,23 +1139,22 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
       render(<Harness onFinish={onFinish} onChangeSpy={onChangeSpy} />);
       const input = () => screen.getByTestId("exercise-instruction-input");
       expect(input().props).toMatchObject({
-        multiline: true,
-        maxLength: 1000,
-        accessibilityLabel: "Description de l’exercice",
-        placeholder: "Décrivez ce qu’il faut faire, comment, et avec quoi",
+        accessibilityLabel: "Étape 1",
+        placeholder: "Décrivez la première étape",
       });
+      expect(input().props.maxLength).toBeUndefined();
       expect(input().props.onSubmitEditing).toBeUndefined();
-      expect(isActivityEditorFormValid(baseValue({ name: "Squat", instruction: null }))).toBe(true);
+      expect(isActivityEditorFormValid(baseValue({ name: "Squat", instructionSteps: [] }))).toBe(true);
       fireEvent(input(), "focus");
       fireEvent.changeText(input(), "Dos droit.\nGenoux fléchis.");
-      expect(onChangeSpy).toHaveBeenLastCalledWith({ instruction: "Dos droit.\nGenoux fléchis." });
+      expect(onChangeSpy).toHaveBeenLastCalledWith({ instructionSteps: ["Dos droit.", "Genoux fléchis."] });
       fireEvent.press(screen.getByTestId("exercise-instruction-submit"));
       expect(dismiss).toHaveBeenCalledTimes(1);
       expect(onFinish).not.toHaveBeenCalled();
-      // Effacée, la Description redevient absente (facultative).
+      // Effacées, les étapes ne portent plus de texte (l'encodage à `Terminer` donne `null`).
+      fireEvent.changeText(screen.getByTestId("exercise-instruction-step-2"), "");
       fireEvent.changeText(input(), "");
-      expect(onChangeSpy).toHaveBeenLastCalledWith({ instruction: null });
-      expect(screen.queryByText(/Décrivez la première étape|Étape suivante/u)).toBeNull();
+      expect(onChangeSpy).toHaveBeenLastCalledWith({ instructionSteps: ["", ""] });
     } finally {
       dismiss.mockRestore();
     }
@@ -1123,7 +1191,7 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
       { name: "Catégorie renseignée", initial: { executionParameters: EMPTY }, category: { name: "Renforcement", color: "#8FB8FF" } },
       {
         name: "nom, description et Média",
-        initial: { name: "Squat", instruction: "Dos droit.", media: [PHOTO_ITEM], executionParameters: EMPTY },
+        initial: { name: "Squat", instructionSteps: ["Dos droit."], media: [PHOTO_ITEM], executionParameters: EMPTY },
       },
       { name: "résumé identiques", initial: { executionParameters: durationParameters(90, 3, 15) }, expectText: /^3 séries de 1 min 30 s/u },
       {
@@ -1167,7 +1235,7 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
       if (state.expectText instanceof RegExp) expect(phrase()).toMatch(state.expectText);
       if (state.category) expect(screen.getByLabelText("Catégorie Renforcement")).toBeTruthy();
       if (state.initial.name) expect(screen.getByDisplayValue(state.initial.name)).toBeTruthy();
-      if (state.initial.instruction) expect(screen.getByDisplayValue(state.initial.instruction)).toBeTruthy();
+      for (const step of state.initial.instructionSteps ?? []) expect(screen.getByDisplayValue(step)).toBeTruthy();
       if (state.initial.media?.length) {
         // Une tuile par Média, par son identifiant (jamais un motif qui attraperait le conteneur).
         const section = within(screen.getByTestId("activity-editor-section-media"));
@@ -1175,17 +1243,29 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
         expect(section.queryAllByTestId(/^media-item-\d+$/u)).toHaveLength(state.initial.media.length);
       }
       if (executionParameters.mode !== null && executionParameters.sideMode !== "UNILATERAL") {
-        expect(phrase()).toMatch(/droit|gauche/u);
+        // PRE-5 (story 1.2, AC4) : clause des côtés neutre, sans direction.
+        expect(phrase()).toMatch(/côté 1.*côté 2/u);
+        expect(phrase()).not.toMatch(/droit|gauche/u);
       }
       view.unmount();
     }
   });
 
-  it("PRE4-4.2/AC13 — rendu par les jetons existants : couleurs et typographies retenues au relevé ; aucune opacité locale codée en dur", () => {
+  it("PRE4-4.2/AC13 — rendu par les jetons existants : couleurs et typographies retenues au relevé ; aucune opacité locale codée en dur ; Nom 20 / 22, placeholder `textPrimary`, Phrase 14 / 20 (PRE-5 3.2, arbitrages G-3, G-4, G-6)", () => {
     render(<Harness initial={{ executionParameters: EMPTY }} isFinishDisabled />);
     expect(style("exercise-context-band").backgroundColor).toBe("#EAEAFF");
-    expect(style("exercise-name-input")).toMatchObject({ fontSize: 20, lineHeight: 24, color: "#141414" });
-    expect(style("exercise-parameters-phrase")).toMatchObject({ fontSize: 13, lineHeight: 20 });
+    // PRE-5 3.2, arbitrage G-4 : `type.screenTitle` (Inter Semi Bold 20) avec interligne local 22.
+    expect(style("exercise-name-input")).toMatchObject({
+      fontFamily: "Inter_600SemiBold",
+      fontWeight: "600",
+      fontSize: 20,
+      lineHeight: 22,
+      color: "#141414",
+    });
+    // PRE-5 3.2, arbitrage G-3 : placeholder en `textPrimary`.
+    expect(screen.getByTestId("exercise-name-input").props.placeholderTextColor).toBe(colors.textPrimary);
+    // PRE-5 3.2, arbitrage G-6 : Phrase en `type.body` (Inter Regular 14), interligne 20.
+    expect(style("exercise-parameters-phrase")).toMatchObject({ fontFamily: "Inter_400Regular", fontSize: 14, lineHeight: 20 });
     expect(style("exercise-parameters-card")).toMatchObject({ borderRadius: 12 });
     expect(style("test-finish-action").backgroundColor).toBe("#BEC2CC");
     // AD-11 : toute opacité rendue vaut `UNSELECTED_OPACITY` ou 1 — hors des couches du
@@ -1218,9 +1298,10 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
       expect(within(section).queryByText(/^(Durée|Répétitions)$/u)).toBeNull();
       if (executionParameters.mode !== null) {
         fireEvent.press(screen.getByTestId("exercise-parameters-card"));
-        expect(screen.getByTestId("execution-sheet-mode-value-text").props.children).toBe(
-          executionParameters.mode === "DURATION" ? "Durée" : "Répétitions",
-        );
+        // PRE-5 story 2.4 : segmenté du Mode en ligne, option du Mode courant sélectionnée.
+        expect(screen.getByTestId(`execution-sheet-mode-control-${executionParameters.mode}`).props.accessibilityState).toMatchObject({
+          selected: true,
+        });
       }
       view.unmount();
     }
@@ -1252,7 +1333,7 @@ describe("ActivityEditorForm — PRE-4 story 4.3", () => {
       .filter((name) => name.startsWith("body-zone-"));
   }
 
-  it("PRE4-4.3/AC2 — non renseignés : chaque accès est un bouton icône + libellé « Catégorie » / « Zone corporelle » (lexique), icônes au contour", () => {
+  it("PRE4-4.3/AC2 — non renseignés : chaque accès est un bouton icône + libellé « Catégorie » / « Zone corporelle » (lexique), glyphes pleins au repos (PRE-5 3.2, arbitrage G-5)", () => {
     render(<Harness />);
     const categoryButton = screen.getByTestId("activity-editor-category-button");
     const zonesButton = screen.getByTestId("exercise-body-zones-open");
@@ -1264,8 +1345,11 @@ describe("ActivityEditorForm — PRE-4 story 4.3", () => {
       strings.screens.activities.editor.category.label,
     );
     expect(screen.getByTestId("exercise-body-zones-label").props.children).toBe(strings.screens.exercise.bodyZones.unsetLabel);
-    expect(iconSource("activity-editor-category-icon")).toEqual(CONTOUR_CATEGORIE);
-    expect(iconSource("exercise-body-zones-icon")).toEqual(CONTOUR_HOMME);
+    // PRE-5 3.2, arbitrage G-5 : glyphes pleins au repos, jamais au contour ; un seul testID par accès.
+    expect(iconSource("activity-editor-category-icon")).toEqual(PLEIN_CATEGORIE);
+    expect(iconSource("activity-editor-category-icon")).not.toEqual(CONTOUR_CATEGORIE);
+    expect(iconSource("exercise-body-zones-icon")).toEqual(PLEIN_HOMME);
+    expect(iconSource("exercise-body-zones-icon")).not.toEqual(CONTOUR_HOMME);
     expect(screen.queryByTestId("activity-editor-category-icon-filled")).toBeNull();
     expect(screen.queryByTestId("exercise-body-zones-icon-filled")).toBeNull();
     // Noms accessibles : ils contiennent le texte visible (WCAG 2.5.3) et l'état « non renseignée ».
@@ -1284,18 +1368,20 @@ describe("ActivityEditorForm — PRE-4 story 4.3", () => {
     expect(within(zonesButton).queryByText("+")).toBeNull();
   });
 
-  it("PRE4-4.3/AC2 — renseignés : pilule pastille + nom (Catégorie) ; silhouette + noms des Zones avec le séparateur de la capture `8328:37022`", () => {
+  it("PRE4-4.3/AC2 + PRE5-3.2 — renseignés : glyphe Catégorie plein teinté de sa couleur + nom ; silhouette + noms des Zones avec le séparateur de la capture `8328:37022`", () => {
     render(<Harness category={{ name: "Cardio", color: "#3B82F6" }} initial={{ bodyZoneIds: ["cou", "fessier"] }} />);
     const categoryButton = screen.getByTestId("activity-editor-category-button");
-    expect(
-      StyleSheet.flatten(within(categoryButton).getByTestId("activity-editor-category-swatch").props.style).backgroundColor,
-    ).toBe("#3B82F6");
+    const glyph = within(categoryButton).getByTestId("activity-editor-category-glyph");
+    expect(iconSource("activity-editor-category-glyph")).toEqual(PLEIN_CATEGORIE);
+    expect(StyleSheet.flatten(glyph.props.style).tintColor).toBe("#3B82F6");
+    expect(screen.queryByTestId("activity-editor-category-swatch")).toBeNull();
     expect(within(categoryButton).getByText("Cardio")).toBeTruthy();
     expect(within(categoryButton).queryByTestId("activity-editor-category-label")).toBeNull();
     expect(within(categoryButton).queryByTestId("activity-editor-category-icon")).toBeNull();
     expect(categoryButton.props.accessibilityLabel).toBe("Catégorie Cardio");
     const zonesButton = screen.getByTestId("exercise-body-zones-open");
-    expect(iconSource("exercise-body-zones-icon")).toEqual(CONTOUR_HOMME);
+    // PRE-5 3.2, arbitrage G-5 : silhouette pleine, renseignée ou non.
+    expect(iconSource("exercise-body-zones-icon")).toEqual(PLEIN_HOMME);
     // Q49 (a) : la valeur du séparateur attend Hermann ; seul l'usage de la clé est vérifié.
     expect(within(zonesButton).getByTestId("exercise-body-zones-label").props.children).toBe(
       ["Cou", "Fessier"].join(strings.screens.exercise.bodyZones.bandSeparator),
@@ -1326,55 +1412,65 @@ describe("ActivityEditorForm — PRE-4 story 4.3", () => {
     expect(zonesButton().props.accessibilityState).toEqual({ expanded: false });
   });
 
-  it("PRE4-4.3/AC2 — icône pleine pendant l'ouverture de la feuille des Zones, retour au contour après ✕ puis après ✓ ; la pilule ne change pas", async () => {
+  it("PRE4-4.3/AC2 — Zones : glyphe plein au repos, feuille ouverte, après ✕ puis après ✓ (PRE-5 3.2, arbitrage G-5) ; l'ouverture n'est annoncée que par « développé » ; la pilule ne change pas", async () => {
     render(<Harness initial={{ bodyZoneIds: ["cou"] }} />);
-    const pillStyle = () => StyleSheet.flatten(screen.getByTestId("exercise-body-zones-open").props.style);
+    const zonesButton = () => screen.getByTestId("exercise-body-zones-open");
+    const pillStyle = () => StyleSheet.flatten(zonesButton().props.style);
     const restingPill = pillStyle();
-    fireEvent.press(screen.getByTestId("exercise-body-zones-open"));
+    expect(iconSource("exercise-body-zones-icon")).toEqual(PLEIN_HOMME);
+    fireEvent.press(zonesButton());
     await screen.findByTestId("body-zone-selector-tag-cou");
-    expect(iconSource("exercise-body-zones-icon-filled")).toEqual(PLEIN_HOMME);
-    expect(screen.queryByTestId("exercise-body-zones-icon")).toBeNull();
+    expect(iconSource("exercise-body-zones-icon")).toEqual(PLEIN_HOMME);
+    expect(screen.queryByTestId("exercise-body-zones-icon-filled")).toBeNull();
+    expect(zonesButton().props.accessibilityState).toEqual({ expanded: true });
     expect(pillStyle()).toEqual(restingPill);
     fireEvent.press(screen.getByTestId("body-zone-picker-close"));
-    expect(iconSource("exercise-body-zones-icon")).toEqual(CONTOUR_HOMME);
-    fireEvent.press(screen.getByTestId("exercise-body-zones-open"));
+    expect(iconSource("exercise-body-zones-icon")).toEqual(PLEIN_HOMME);
+    expect(zonesButton().props.accessibilityState).toEqual({ expanded: false });
+    fireEvent.press(zonesButton());
     await screen.findByTestId("body-zone-selector-tag-cou");
-    expect(screen.getByTestId("exercise-body-zones-icon-filled")).toBeTruthy();
+    expect(iconSource("exercise-body-zones-icon")).toEqual(PLEIN_HOMME);
     await act(async () => {
       fireEvent.press(screen.getByTestId("body-zone-picker-confirm"));
     });
-    expect(iconSource("exercise-body-zones-icon")).toEqual(CONTOUR_HOMME);
+    expect(iconSource("exercise-body-zones-icon")).toEqual(PLEIN_HOMME);
     expect(screen.queryByTestId("exercise-body-zones-icon-filled")).toBeNull();
+    expect(zonesButton().props.accessibilityState).toEqual({ expanded: false });
   });
 
-  it("PRE4-4.3/AC2 — icône Catégorie pleine tant que l'adaptateur signale sa feuille ouverte, au contour sinon ; même pilule", () => {
+  it("PRE4-4.3/AC2 — icône Catégorie pleine, que l'adaptateur signale sa feuille ouverte ou non (PRE-5 3.2, arbitrage G-5) ; seul « développé » change ; même pilule", () => {
     const view = render(<Harness isCategoryPickerOpen />);
-    const openPill = StyleSheet.flatten(screen.getByTestId("activity-editor-category-button").props.style);
-    expect(iconSource("activity-editor-category-icon-filled")).toEqual(PLEIN_CATEGORIE);
-    expect(screen.queryByTestId("activity-editor-category-icon")).toBeNull();
-    expect(screen.getByTestId("activity-editor-category-label")).toBeTruthy();
-    view.rerender(<Harness isCategoryPickerOpen={false} />);
-    expect(iconSource("activity-editor-category-icon")).toEqual(CONTOUR_CATEGORIE);
+    const button = () => screen.getByTestId("activity-editor-category-button");
+    const openPill = StyleSheet.flatten(button().props.style);
+    expect(iconSource("activity-editor-category-icon")).toEqual(PLEIN_CATEGORIE);
     expect(screen.queryByTestId("activity-editor-category-icon-filled")).toBeNull();
-    expect(StyleSheet.flatten(screen.getByTestId("activity-editor-category-button").props.style)).toEqual(openPill);
+    expect(screen.getByTestId("activity-editor-category-label")).toBeTruthy();
+    expect(button().props.accessibilityState).toEqual({ expanded: true });
+    view.rerender(<Harness isCategoryPickerOpen={false} />);
+    expect(iconSource("activity-editor-category-icon")).toEqual(PLEIN_CATEGORIE);
+    expect(screen.queryByTestId("activity-editor-category-icon-filled")).toBeNull();
+    expect(button().props.accessibilityState).toEqual({ expanded: false });
+    expect(StyleSheet.flatten(button().props.style)).toEqual(openPill);
   });
 
-  it("PRE4-4.3/AC2 — une seule silhouette, celle du Profil (homme par défaut, femme si choisie), dans ses deux états ; jamais deux boutons homme / femme", async () => {
+  it("PRE4-4.3/AC2 — une seule silhouette, celle du Profil (homme par défaut, femme si choisie), pleine feuille fermée comme ouverte (PRE-5 3.2, arbitrage G-5) ; jamais deux boutons homme / femme", async () => {
     for (const [silhouette, contour, plein, contourSource, pleinSource] of [
       [null, "body-zone-homme", "body-zone-homme-plein", CONTOUR_HOMME, PLEIN_HOMME],
       ["homme", "body-zone-homme", "body-zone-homme-plein", CONTOUR_HOMME, PLEIN_HOMME],
       ["femme", "body-zone-femme", "body-zone-femme-plein", CONTOUR_FEMME, PLEIN_FEMME],
     ] as const) {
       const view = render(<Harness silhouette={silhouette} />);
-      expect(renderedSilhouettes()).toEqual([contour]);
-      expect(iconSource("exercise-body-zones-icon")).toEqual(contourSource);
+      expect(renderedSilhouettes()).toEqual([plein]);
+      expect(renderedSilhouettes()).not.toContain(contour);
+      expect(iconSource("exercise-body-zones-icon")).toEqual(pleinSource);
+      expect(iconSource("exercise-body-zones-icon")).not.toEqual(contourSource);
       expect(screen.queryByLabelText(/homme|femme/i)).toBeNull();
       fireEvent.press(screen.getByTestId("exercise-body-zones-open"));
       await screen.findByTestId("body-zone-selector-tag-cou");
       // Feuille ouverte : la seule silhouette est celle, pleine, du bandeau ; aucune
       // n'est répétée dans les options (AC5).
       expect(renderedSilhouettes()).toEqual([plein]);
-      expect(iconSource("exercise-body-zones-icon-filled")).toEqual(pleinSource);
+      expect(iconSource("exercise-body-zones-icon")).toEqual(pleinSource);
       fireEvent.press(screen.getByTestId("body-zone-picker-close"));
       view.unmount();
     }
@@ -1391,12 +1487,15 @@ describe("ActivityEditorForm — PRE-4 story 4.3", () => {
       const style = StyleSheet.flatten(button.props.style);
       const slop = button.props.hitSlop as { top: number; bottom: number; left: number; right: number };
       expect((style.minHeight as number) + slop.top + slop.bottom).toBeGreaterThanOrEqual(44);
-      // Largeur : marges + icône (20 au moins) + écart + libellé non vide, plus les débords latéraux.
+      // Largeur : marges + glyphe (18, PRE-5 3.2) + écart + libellé non vide, plus les débords latéraux.
       const minimalWidth =
-        (style.paddingLeft as number) + (style.paddingRight as number) + 20 + (style.gap as number) + 1 + slop.left + slop.right;
+        (style.paddingLeft as number) + (style.paddingRight as number) + 18 + (style.gap as number) + 1 + slop.left + slop.right;
       expect(minimalWidth).toBeGreaterThanOrEqual(44);
       expect(slop.left + slop.right).toBeLessThanOrEqual(columnGap);
-      expect(slop.top + slop.bottom).toBeLessThanOrEqual(rowGap);
+      // PRE-5 3.2 : l'accès est centré dans une rangée de 32 ; seuls ses débords hors de la
+      // rangée (haut et bas) doivent tenir dans l'écart entre deux lignes.
+      const inset = ((rowStyle.minHeight as number) - (style.minHeight as number)) / 2;
+      expect(Math.max(0, slop.top - inset) + Math.max(0, slop.bottom - inset)).toBeLessThanOrEqual(rowGap);
     }
   });
 
@@ -1412,7 +1511,7 @@ describe("ActivityEditorForm — PRE-4 story 4.3", () => {
     render(
       <Harness
         onChangeSpy={onChangeSpy}
-        initial={{ name: "Fentes", instruction: "Dos droit", executionParameters, bodyZoneIds: ["cou"] }}
+        initial={{ name: "Fentes", instructionSteps: ["Dos droit"], executionParameters, bodyZoneIds: ["cou"] }}
       />,
     );
     const phraseBefore = phrase();
@@ -1591,5 +1690,449 @@ describe("ActivityEditorForm — PRE-4 Q53 (8) (Catégorie retirée encore affec
     expect(screen.getByTestId("activity-editor-category-button").props.accessibilityLabel).toBe("Catégorie Cardio");
     expect(screen.getByTestId("test-finish-action").props.accessibilityState?.disabled ?? false).toBe(false);
     announce.mockRestore();
+  });
+});
+
+describe("ActivityEditorForm — PRE-5 story 2.5", () => {
+  it("PRE5-2.5/AC4 — signaux de la Feuille transmis : défaut présents (repliés sous la Durée de l’exercice) ; « absent » (Séance) : ni Compte à rebours, ni Fin, ni chevron ; Carte de l’Éditeur inchangée", () => {
+    const view = render(<Harness initial={{ executionParameters: parameters({ countdownSeconds: 12, endSeconds: 7 }) }} />);
+    fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+    expect(screen.getByTestId("execution-sheet-duration-disclosure-frame")).toBeTruthy();
+    expect(screen.queryByTestId("execution-sheet-row-countdown")).toBeNull();
+    fireEvent.press(screen.getByLabelText("Afficher le compte à rebours et la fin d’exercice"));
+    expect(screen.getByTestId("execution-sheet-row-countdown")).toBeTruthy();
+    expect(screen.getByTestId("execution-sheet-row-end")).toBeTruthy();
+    view.unmount();
+
+    const onChangeSpy = jest.fn();
+    render(<Harness onChangeSpy={onChangeSpy} exerciseSignals="absent" initial={{ executionParameters: parameters({ countdownSeconds: 12, endSeconds: 7 }) }} />);
+    // PRE-5 story 3.2 (R-14) : la Carte ne montre plus Compte à rebours ni Fin, en aucun parcours.
+    expect(screen.queryByTestId("exercise-parameters-countdown")).toBeNull();
+    expect(screen.queryByTestId("exercise-parameters-end")).toBeNull();
+    fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+    expect(screen.queryByTestId("execution-sheet-row-countdown")).toBeNull();
+    expect(screen.queryByTestId("execution-sheet-row-end")).toBeNull();
+    expect(screen.queryByTestId("execution-sheet-duration-disclosure-frame")).toBeNull();
+    fireEvent.press(screen.getByTestId("execution-sheet-validate"));
+    expect(onChangeSpy).toHaveBeenCalledWith({
+      executionParameters: expect.objectContaining({ countdownSeconds: 12, endSeconds: 7 }),
+    });
+  });
+});
+
+/**
+ * PRE-5 story 3.1 (FR-33, FR-34, FR-44, AD-22, D-425) — Description en étapes numérotées :
+ * état vide et liste remplie (AC1), saisie (Entrée, coupure, collage, retour arrière, AC2),
+ * limite de 1 000 refusée en entier (AC3), VoiceOver et lexique (AC6). Le codec est prouvé
+ * dans `instructionSteps.test.ts` ; ici, son emploi par l'Éditeur.
+ */
+describe("ActivityEditorForm — PRE-5 story 3.1 (Description en étapes)", () => {
+  const PROMPT_GREY = "#AEB3BA";
+  const stepInput = (n: number) =>
+    screen.getByTestId(n === 1 ? "exercise-instruction-input" : `exercise-instruction-step-${n}`);
+  const stepNumber = (n: number) =>
+    screen.getByTestId(`exercise-instruction-step-number-${n}`, { includeHiddenElements: true });
+  const rowCount = () => screen.queryAllByTestId(/^exercise-instruction-row-\d+$/u).length;
+
+  /** Focus et curseur donnés par l'Éditeur : contextes des appels `focus` / `setSelection` du `TextInput`. */
+  function spyInputFocus() {
+    const { TextInput } = jest.requireActual<typeof import("react-native")>("react-native");
+    const prototype = TextInput.prototype as unknown as {
+      focus: () => void;
+      setSelection?: (start: number, end: number) => void;
+    };
+    const focus = jest.spyOn(prototype, "focus");
+    const setSelection = jest.fn<(start: number, end: number) => void>();
+    prototype.setSelection = setSelection;
+    const testIDOf = (context: unknown) => (context as { props: { testID?: string } }).props.testID;
+    return {
+      lastFocused: () => testIDOf(focus.mock.contexts[focus.mock.contexts.length - 1]),
+      lastSelection: () => setSelection.mock.calls[setSelection.mock.calls.length - 1],
+      lastSelected: () => testIDOf(setSelection.mock.contexts[setSelection.mock.contexts.length - 1]),
+      restore: () => {
+        focus.mockRestore();
+        delete prototype.setSelection;
+      },
+    };
+  }
+
+  describe("fonctions pures de saisie", () => {
+    it("lignes affichées : une invite après la dernière étape remplie, jamais de seconde invite", () => {
+      expect(displayedStepRows([])).toEqual([""]);
+      expect(displayedStepRows(["A", "B"])).toEqual(["A", "B", ""]);
+      expect(displayedStepRows(["A", "B", ""])).toEqual(["A", "B", ""]);
+      expect(displayedStepRows(["A", "", "B"])).toEqual(["A", "", "B", ""]);
+    });
+
+    it("frappe en place, dans l'invite, Entrée en fin et au milieu, collage `\\n` et `\\r\\n`, sélection remplacée", () => {
+      expect(applyStepTextChange(["A"], 0, "Ab")).toEqual({ steps: ["Ab"], focus: null });
+      expect(applyStepTextChange(["A"], 1, "B")).toEqual({ steps: ["A", "B"], focus: null });
+      expect(applyStepTextChange([], 0, "A")).toEqual({ steps: ["A"], focus: null });
+      expect(applyStepTextChange(["A", "B"], 1, "B\n")).toEqual({ steps: ["A", "B", ""], focus: { index: 2, cursor: 0 } });
+      expect(applyStepTextChange(["Dosdroit"], 0, "Dos\ndroit")).toEqual({
+        steps: ["Dos", "droit"],
+        focus: { index: 1, cursor: 0 },
+      });
+      expect(applyStepTextChange(["AvantAprès"], 0, "AvantX\r\nY\r\nZAprès")).toEqual({
+        steps: ["AvantX", "Y", "ZAprès"],
+        focus: { index: 2, cursor: 1 },
+      });
+      expect(applyStepTextChange(["A"], 1, "L1\nL2\nL3")).toEqual({ steps: ["A", "L1", "L2", "L3"], focus: { index: 3, cursor: 2 } });
+      expect(applyStepTextChange(["abc"], 0, "aL1\nL2c")).toEqual({ steps: ["aL1", "L2c"], focus: { index: 1, cursor: 2 } });
+      // Aucune autre étape n'est modifiée ; aucun changement : rien à appliquer.
+      expect(applyStepTextChange(["A", "B", "C"], 1, "B1\nB2")?.steps).toEqual(["A", "B1", "B2", "C"]);
+      expect(applyStepTextChange(["A"], 0, "A")).toBeNull();
+      expect(applyStepTextChange(["A"], 3, "x")).toBeNull();
+    });
+
+    it("limite de 1 000 points de code sur la chaîne encodée : refus entier, sans troncature ; raccourcissement admis", () => {
+      const full = "x".repeat(1000);
+      expect(applyStepTextChange(["x".repeat(999)], 0, full)?.steps).toEqual([full]);
+      expect(applyStepTextChange([full], 0, `${full}y`)).toBeNull();
+      expect(applyStepTextChange([full], 1, "y")).toBeNull();
+      expect(applyStepTextChange(["x".repeat(991)], 1, "a\nb\nc\nd\ne")).toBeNull();
+      // Séparateurs compris : couper une étape pleine au milieu dépasserait la limite.
+      expect(applyStepTextChange([full], 0, `${"x".repeat(500)}\n${"x".repeat(500)}`)).toBeNull();
+      // Une étape vide créée par Entrée en fin ne compte pas.
+      expect(applyStepTextChange([full], 0, `${full}\n`)?.steps).toEqual([full, ""]);
+      expect(applyStepTextChange([full], 0, "x".repeat(999))?.steps).toEqual(["x".repeat(999)]);
+      // Points de code, pas unités UTF-16.
+      expect(applyStepTextChange(["😀".repeat(999)], 0, "😀".repeat(1000))?.steps).toEqual(["😀".repeat(1000)]);
+    });
+
+    it("retour arrière sur une étape vide n > 1 : supprimée, curseur en fin de n − 1 ; ailleurs, comportement natif", () => {
+      expect(applyStepBackspace(["A", "B", ""], 2)).toEqual({ steps: ["A", "B"], focus: { index: 1, cursor: 1 } });
+      expect(applyStepBackspace(["A", "", "B"], 1)).toEqual({ steps: ["A", "B"], focus: { index: 0, cursor: 1 } });
+      // Ligne d'invite : seul le curseur remonte.
+      expect(applyStepBackspace(["Dos"], 1)).toEqual({ steps: ["Dos"], focus: { index: 0, cursor: 3 } });
+      expect(applyStepBackspace(["", "B"], 0)).toBeNull();
+      expect(applyStepBackspace(["A", "B"], 1)).toBeNull();
+    });
+  });
+
+  it("AC1 — état vide : une seule ligne grise « 1. » + « Décrivez la première étape », sans ligne d'invitation", () => {
+    render(<Harness />);
+    expect(rowCount()).toBe(1);
+    expect(stepNumber(1)).toHaveTextContent("1.");
+    expect(StyleSheet.flatten(stepNumber(1).props.style).color).toBe(PROMPT_GREY);
+    expect(stepInput(1).props).toMatchObject({ value: "", placeholder: "Décrivez la première étape", placeholderTextColor: PROMPT_GREY });
+    expect(screen.queryByText("Étape suivante")).toBeNull();
+    expect(screen.queryByTestId("exercise-instruction-step-2")).toBeNull();
+    // Pas de bouton Ajouter.
+    expect(within(screen.getByTestId("exercise-section-description")).queryAllByRole("button")).toEqual([]);
+  });
+
+  it("AC1 — liste remplie : « 1. A », « 2. B », puis l'invite grise « 3. Étape suivante » ; une étape vide intercalée garde son numéro gris sans invite", () => {
+    const view = render(<Harness initial={{ instructionSteps: ["A", "B"] }} />);
+    expect(rowCount()).toBe(3);
+    expect(stepInput(1).props.value).toBe("A");
+    expect(stepInput(2).props.value).toBe("B");
+    expect(stepInput(1).props.placeholder).toBeUndefined();
+    expect(StyleSheet.flatten(stepNumber(1).props.style).color).toBe("#595E66");
+    expect(stepNumber(3)).toHaveTextContent("3.");
+    expect(StyleSheet.flatten(stepNumber(3).props.style).color).toBe(PROMPT_GREY);
+    expect(stepInput(3).props).toMatchObject({ value: "", placeholder: "Étape suivante" });
+    view.unmount();
+
+    render(<Harness initial={{ instructionSteps: ["A", "", "B"] }} />);
+    expect(rowCount()).toBe(4);
+    expect(stepInput(2).props.placeholder).toBeUndefined();
+    expect(StyleSheet.flatten(stepNumber(2).props.style).color).toBe(PROMPT_GREY);
+    expect(stepInput(4).props.placeholder).toBe("Étape suivante");
+  });
+
+  it("AC1 — présentation relevée (9071:53260) : texte et numéros à 14, numéro Medium de largeur 16 aligné à droite, sans contenant", () => {
+    render(<Harness initial={{ instructionSteps: ["A"] }} />);
+    expect(StyleSheet.flatten(stepNumber(1).props.style)).toMatchObject({
+      fontFamily: "Inter_500Medium",
+      fontSize: 14,
+      minWidth: 16,
+      textAlign: "right",
+    });
+    const text = StyleSheet.flatten(stepInput(1).props.style);
+    expect(text).toMatchObject({ fontFamily: "Inter_400Regular", fontSize: 14, color: "#141414" });
+    for (const style of [text, StyleSheet.flatten(screen.getByTestId("exercise-instruction-steps").props.style)]) {
+      expect(style.borderWidth).toBeUndefined();
+      expect(style.backgroundColor).toBeUndefined();
+    }
+    expect(StyleSheet.flatten(screen.getByTestId("exercise-instruction-steps").props.style).gap).toBe(8);
+    expect(StyleSheet.flatten(screen.getByTestId("exercise-instruction-row-1").props.style)).toMatchObject({
+      flexDirection: "row",
+      gap: 8,
+    });
+  });
+
+  it("AC2 — Entrée en fin crée l'étape suivante et lui donne le curseur ; pas de seconde invite", () => {
+    const onChangeSpy = jest.fn();
+    const focus = spyInputFocus();
+    try {
+      render(<Harness initial={{ instructionSteps: ["A", "B"] }} onChangeSpy={onChangeSpy} />);
+      fireEvent.changeText(stepInput(2), "B\n");
+      expect(onChangeSpy).toHaveBeenLastCalledWith({ instructionSteps: ["A", "B", ""] });
+      expect(stepInput(2).props.value).toBe("B");
+      expect(rowCount()).toBe(3);
+      expect(stepInput(3).props.placeholder).toBe("Étape suivante");
+      expect(focus.lastFocused()).toBe("exercise-instruction-step-3");
+      expect(focus.lastSelected()).toBe("exercise-instruction-step-3");
+      expect(focus.lastSelection()).toEqual([0, 0]);
+      // Trois étapes par Entrée depuis l'état vide (R-3.1-01).
+      fireEvent.changeText(stepInput(3), "C");
+      fireEvent.changeText(stepInput(3), "C\n");
+      expect(onChangeSpy).toHaveBeenLastCalledWith({ instructionSteps: ["A", "B", "C", ""] });
+      expect(focus.lastFocused()).toBe("exercise-instruction-step-4");
+    } finally {
+      focus.restore();
+    }
+  });
+
+  it("AC2 — Entrée au milieu coupe l'étape au curseur ; collage de trois lignes (`\\r\\n`) : une étape par ligne, curseur à la fin du texte collé ; modification en place", () => {
+    const onChangeSpy = jest.fn();
+    const focus = spyInputFocus();
+    try {
+      render(<Harness initial={{ instructionSteps: ["Dosdroit", "Fin"] }} onChangeSpy={onChangeSpy} />);
+      fireEvent.changeText(stepInput(1), "Dos\ndroit");
+      expect(onChangeSpy).toHaveBeenLastCalledWith({ instructionSteps: ["Dos", "droit", "Fin"] });
+      expect(focus.lastFocused()).toBe("exercise-instruction-step-2");
+      expect(focus.lastSelection()).toEqual([0, 0]);
+
+      fireEvent.changeText(stepInput(4), "Un\r\nDeux\r\nTrois");
+      expect(onChangeSpy).toHaveBeenLastCalledWith({ instructionSteps: ["Dos", "droit", "Fin", "Un", "Deux", "Trois"] });
+      expect(focus.lastFocused()).toBe("exercise-instruction-step-6");
+      expect(focus.lastSelection()).toEqual([5, 5]);
+
+      fireEvent.changeText(stepInput(2), "droite");
+      expect(onChangeSpy).toHaveBeenLastCalledWith({ instructionSteps: ["Dos", "droite", "Fin", "Un", "Deux", "Trois"] });
+    } finally {
+      focus.restore();
+    }
+  });
+
+  it("AC2 — retour arrière sur l'étape vide n > 1 : supprimée, curseur en fin de l'étape n − 1", () => {
+    const onChangeSpy = jest.fn();
+    const focus = spyInputFocus();
+    try {
+      render(<Harness initial={{ instructionSteps: ["A", "Bras", ""] }} onChangeSpy={onChangeSpy} />);
+      fireEvent(stepInput(3), "keyPress", { nativeEvent: { key: "Backspace" } });
+      expect(onChangeSpy).toHaveBeenLastCalledWith({ instructionSteps: ["A", "Bras"] });
+      expect(focus.lastFocused()).toBe("exercise-instruction-step-2");
+      expect(focus.lastSelection()).toEqual([4, 4]);
+      // Étape non vide : comportement natif, aucune fusion.
+      onChangeSpy.mockClear();
+      fireEvent(stepInput(2), "keyPress", { nativeEvent: { key: "Backspace" } });
+      expect(onChangeSpy).not.toHaveBeenCalled();
+    } finally {
+      focus.restore();
+    }
+  });
+
+  it("AC3 — une saisie qui dépasserait 1 000 est refusée en entier : aucune étape modifiée", () => {
+    const onChangeSpy = jest.fn();
+    const full = "x".repeat(1000);
+    render(<Harness initial={{ instructionSteps: [full] }} onChangeSpy={onChangeSpy} />);
+    fireEvent.changeText(stepInput(1), `${full}y`);
+    fireEvent.changeText(stepInput(2), "y\nz");
+    expect(onChangeSpy).not.toHaveBeenCalled();
+    expect(stepInput(1).props.value).toBe(full);
+    expect(stepInput(2).props.value).toBe("");
+    fireEvent.changeText(stepInput(1), "x".repeat(999));
+    expect(onChangeSpy).toHaveBeenLastCalledWith({ instructionSteps: ["x".repeat(999)] });
+  });
+
+  it("AC6 — VoiceOver : chaque étape est un champ « Étape n » ; le numéro visible n'est pas lu en double ; textes du lexique", () => {
+    render(<Harness initial={{ instructionSteps: ["A", "B"] }} />);
+    expect([1, 2, 3].map((n) => stepInput(n).props.accessibilityLabel)).toEqual(["Étape 1", "Étape 2", "Étape 3"]);
+    for (const n of [1, 2, 3]) {
+      expect(stepNumber(n).props).toMatchObject({
+        accessible: false,
+        accessibilityElementsHidden: true,
+        importantForAccessibility: "no-hide-descendants",
+      });
+    }
+    const lexicon = strings.screens.exercise.instruction;
+    expect(lexicon.firstStepPlaceholder).toBe("Décrivez la première étape");
+    expect(lexicon.nextStepPlaceholder).toBe("Étape suivante");
+    expect(strings.executionParameters.card).not.toHaveProperty("descriptionPlaceholder");
+  });
+
+  it("AC6 — ordre Description → Paramètres d'exécution → Média et titre « Paramètres d'exécution » inchangés", () => {
+    render(<Harness initial={{ instructionSteps: ["A"] }} />);
+    const sections = within(screen.getByTestId("exercise-body"))
+      .getAllByTestId(/^(exercise-section-description|exercise-section-parameters|activity-editor-section-media)$/u)
+      .map((node) => node.props.testID as string);
+    expect(sections).toEqual(["exercise-section-description", "exercise-section-parameters", "activity-editor-section-media"]);
+    expect(within(screen.getByTestId("exercise-section-parameters")).getByText("Paramètres d’exécution")).toBeTruthy();
+  });
+});
+
+/**
+ * PRE-5 story 3.2 (R-14, FR-36 à FR-38, AD-30) — Carte allégée, `Terminer` abaissé, titres
+ * de section et Classification Catégorie / Zones (frames `8328:35698`, `8328:36853`,
+ * `8328:37022`). Styles appliqués seulement : le rendu, la position de `Terminer` face à
+ * l'indicateur d'accueil et les cibles se jugent sur iPhone (R-3.2-01 à R-3.2-05).
+ */
+describe("ActivityEditorForm — PRE-5 story 3.2", () => {
+  const EMPTY = parameters({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] } });
+  const style = (testID: string) => StyleSheet.flatten(screen.getByTestId(testID).props.style);
+
+  it("AC1 — Compte à rebours 10 s et Fin 5 s : ni ligne, ni valeur, ni filet sur la Carte ; libellé sans ces valeurs (Phrase remplie puis vide) ; la Feuille les montre toujours", () => {
+    const view = render(<Harness initial={{ executionParameters: parameters({ countdownSeconds: 10, endSeconds: 5 }) }} />);
+    const card = screen.getByTestId("exercise-parameters-card");
+    // La Carte ne contient que la Phrase : aucun filet ni rangée de phases.
+    const children = ((card.props.children as unknown[]).flat().filter(Boolean) as { type: { name?: string }; props: { testID?: string } }[])
+      // Vue de débogage de `Pressable` (développement seulement), sans rendu.
+      .filter((child) => child.type.name !== "PressabilityDebugView");
+    expect(children).toHaveLength(1);
+    expect(children[0]!.props.testID).toBe("exercise-parameters-phrase");
+    expect(within(card).queryByText(/Compte à rebours|Fin d’exercice/u)).toBeNull();
+    expect(screen.queryByTestId("exercise-parameters-countdown")).toBeNull();
+    expect(screen.queryByTestId("exercise-parameters-end")).toBeNull();
+    expect(card.props.accessibilityLabel).toBe(`Modifier les paramètres d’exécution. ${phrase()}`);
+    expect(card.props.accessibilityLabel).not.toMatch(/Compte à rebours|Fin d’exercice|10 s,/u);
+    // Clés orphelines retirées (AD-32) ; la Feuille garde les siennes.
+    expect(strings.executionParameters.card).not.toHaveProperty("countdown");
+    expect(strings.executionParameters.card).not.toHaveProperty("end");
+    expect(strings.executionParameters.sheet.countdown).toBe("Compte à rebours");
+    fireEvent.press(card);
+    fireEvent.press(screen.getByLabelText("Afficher le compte à rebours et la fin d’exercice"));
+    expect(screen.getByTestId("execution-sheet-countdown-value").props.children).toBe("10 s");
+    expect(screen.getByTestId("execution-sheet-end-value").props.children).toBe("5 s");
+    view.unmount();
+
+    render(<Harness initial={{ executionParameters: EMPTY }} />);
+    expect(screen.getByTestId("exercise-parameters-card").props.accessibilityLabel).toBe("Modifier les paramètres d’exécution.");
+  });
+
+  it("AC1 — Carte : fond `surfaceSubtle`, rayon 12, sans liseré, padding 12 / 24 (gouttière des étapes)", () => {
+    render(<Harness />);
+    const card = style("exercise-parameters-card");
+    expect(card).toMatchObject({ backgroundColor: "#F9FAFC", borderRadius: 12, paddingVertical: 12, paddingHorizontal: 24 });
+    expect(card.borderWidth ?? 0).toBe(0);
+    expect(card.borderColor).toBeUndefined();
+  });
+
+  it("AC2 — `Terminer` : marginBottom 24 avec `insets.bottom` 34 puis 0, hors du `KeyboardAvoidingView` ; réserve de défilement 12", () => {
+    for (const bottom of [34, 0]) {
+      const view = render(<Harness safeAreaBottom={bottom} />);
+      expect(style("test-finish-slot").marginBottom).toBe(24);
+      expect(within(screen.UNSAFE_getByType(KeyboardAvoidingView)).queryByTestId("test-finish-slot")).toBeNull();
+      expect(StyleSheet.flatten(screen.getByTestId("exercise-body").props.contentContainerStyle).paddingBottom).toBe(12);
+      // Couleurs actif / inactif inchangées.
+      expect(style("test-finish-action").backgroundColor).toBe("#0508E5");
+      view.unmount();
+    }
+    render(<Harness isFinishDisabled />);
+    expect(style("test-finish-action").backgroundColor).toBe("#BEC2CC");
+  });
+
+  it("AC2 — `Terminer` : hauteur `dimensions.finalAction.buttonHeight` (48) et ombre locale #1A1A26 18 %, (0, 2), rayon 10, actif comme inactif (PRE-5 3.2, arbitrage G-8)", () => {
+    for (const isFinishDisabled of [false, true]) {
+      const view = render(<Harness isFinishDisabled={isFinishDisabled} />);
+      expect(style("test-finish-action")).toMatchObject({
+        minHeight: dimensions.finalAction.buttonHeight,
+        shadowColor: "#1A1A26",
+        shadowOpacity: 0.18,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 10,
+        elevation: 3,
+      });
+      expect(dimensions.finalAction.buttonHeight).toBe(48);
+      view.unmount();
+    }
+  });
+
+  it("AC2 (revue) — Android, bord à bord, encart bas 48 (barre de navigation à 3 boutons) : `Terminer` reste au-dessus (marginBottom 48) ; encart 0 : 24", () => {
+    const os = jest.replaceProperty(Platform, "OS", "android");
+    try {
+      const view = render(<Harness safeAreaBottom={48} />);
+      expect(style("test-finish-slot").marginBottom).toBe(48);
+      view.unmount();
+      render(<Harness safeAreaBottom={0} />);
+      expect(style("test-finish-slot").marginBottom).toBe(24);
+    } finally {
+      os.restore();
+    }
+  });
+
+  it("AC2 — titres de section (Description, Paramètres d’exécution) en Regular 11 `textSecondary`, rôle `header` ; « Médias » en-tête VoiceOver sans titre visible (PRE-5 3.2, arbitrage G-7)", () => {
+    render(<Harness />);
+    for (const title of ["Description de l’exercice", "Paramètres d’exécution"]) {
+      const node = screen.getByText(title);
+      expect(node.props.accessibilityRole).toBe("header");
+      expect(StyleSheet.flatten(node.props.style)).toMatchObject({
+        fontFamily: "Inter_400Regular",
+        fontSize: 11,
+        color: "#595E66",
+      });
+    }
+    // G-7 : le titre « Médias » reste un en-tête lu par VoiceOver (ni masqué, ni retiré de
+    // l'arbre d'accessibilité), mais hors flux, 1 × 1, rogné et transparent.
+    const media = screen.getByTestId("activity-editor-media-title");
+    expect(media.props.children).toBe("Médias");
+    expect(media.props.accessibilityRole).toBe("header");
+    expect(media.props.accessibilityElementsHidden).not.toBe(true);
+    expect(media.props.importantForAccessibility).not.toBe("no-hide-descendants");
+    expect(within(screen.getByTestId("activity-editor-section-media")).getByTestId("activity-editor-media-title")).toBe(media);
+    const mediaStyle = StyleSheet.flatten(media.props.style);
+    expect(mediaStyle).toMatchObject({ position: "absolute", width: 1, height: 1, overflow: "hidden", color: "transparent" });
+    expect(mediaStyle.opacity ?? 1).toBe(1);
+    expect(mediaStyle.display).toBeUndefined();
+  });
+
+  it("AC3 — Classification : même géométrie « à renseigner » et « renseigné » ; seuls fond et couleurs changent ; glyphe Catégorie teinté", () => {
+    const GEOMETRY = ["minHeight", "height", "borderRadius", "paddingLeft", "paddingRight", "gap", "borderWidth"] as const;
+    const geometry = (testID: string) => {
+      const value = style(testID) as Record<string, unknown>;
+      return Object.fromEntries(GEOMETRY.map((key) => [key, value[key]]));
+    };
+    const view = render(<Harness />);
+    const unsetCategory = geometry("activity-editor-category-button");
+    const unsetZones = geometry("exercise-body-zones-open");
+    expect(unsetCategory).toMatchObject({ minHeight: 26, borderRadius: 13, paddingLeft: 8, paddingRight: 10, gap: 6 });
+    expect(unsetZones).toEqual(unsetCategory);
+    for (const testID of ["activity-editor-category-button", "exercise-body-zones-open"]) {
+      expect(style(testID).backgroundColor).toBe("rgba(255, 255, 255, 0.35)");
+    }
+    for (const label of ["activity-editor-category-label", "exercise-body-zones-label"]) {
+      expect(style(label)).toMatchObject({ fontFamily: "Inter_400Regular", fontSize: 13, color: "#0508E5" });
+    }
+    expect(style("activity-editor-category-icon")).toMatchObject({ width: 18, height: 18 });
+    expect(style("exercise-body-zones-icon")).toMatchObject({ width: 18, height: 18 });
+    expect(style("exercise-reference-row")).toMatchObject({ paddingLeft: 6, columnGap: 20 });
+    // E-V4 : écart Nom → rangée nul.
+    expect(style("exercise-context-band").gap ?? 0).toBe(0);
+    view.unmount();
+
+    render(<Harness category={{ name: "Cardio", color: "#3B82F6" }} initial={{ bodyZoneIds: ["cou"] }} />);
+    expect(geometry("activity-editor-category-button")).toEqual(unsetCategory);
+    expect(geometry("exercise-body-zones-open")).toEqual(unsetZones);
+    for (const testID of ["activity-editor-category-button", "exercise-body-zones-open"]) {
+      expect(style(testID).backgroundColor).toBeUndefined();
+    }
+    expect(StyleSheet.flatten(screen.getByText("Cardio").props.style)).toMatchObject({ fontSize: 13, color: "#141414" });
+    expect(style("exercise-body-zones-label")).toMatchObject({ fontSize: 13, color: "#141414" });
+    expect(style("activity-editor-category-glyph")).toMatchObject({ width: 18, height: 18, tintColor: "#3B82F6" });
+  });
+
+  it("AC3 — Catégorie sans couleur : glyphe plein non teinté", () => {
+    render(<Harness category={{ name: "Mobilité", color: null }} />);
+    expect(style("activity-editor-category-glyph").tintColor).toBeUndefined();
+  });
+
+  it("AC3 — rangée de 32 ; cibles ≥ 44 de haut étendues vers le bas, sans recouvrir le Nom (`hitSlop` 1 / 17) ; débord sous la rangée dans la marge basse de la zone ; frontière au milieu de l'écart de 20", () => {
+    render(<Harness />);
+    const rowHeight = style("exercise-reference-row").minHeight as number;
+    expect(rowHeight).toBe(32);
+    for (const testID of ["activity-editor-category-button", "exercise-body-zones-open"]) {
+      const slop = screen.getByTestId(testID).props.hitSlop as { top: number; bottom: number; left: number; right: number };
+      const accessHeight = style(testID).minHeight as number;
+      expect(slop).toEqual({ top: 1, bottom: 17, left: 10, right: 10 });
+      expect(accessHeight + slop.top + slop.bottom).toBeGreaterThanOrEqual(44);
+      // L'accès est centré dans la rangée : son débord haut reste sous le cadre du Nom.
+      expect(slop.top).toBeLessThanOrEqual((rowHeight - accessHeight) / 2);
+      const overflowBelowRow = slop.bottom - (rowHeight - accessHeight) / 2;
+      expect(overflowBelowRow).toBe(14);
+      expect(overflowBelowRow).toBeLessThanOrEqual(dimensions.contextBand.paddingBottom);
+      expect(style("exercise-reference-row").rowGap).toBe(overflowBelowRow);
+    }
   });
 });

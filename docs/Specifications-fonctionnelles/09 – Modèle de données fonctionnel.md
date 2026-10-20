@@ -371,7 +371,7 @@ Elle ne contient pas directement :
 
 <a id="donnees-phases"></a>
 
-La définition Catalogue et sa copie de Séance transportent une liste ordonnée facultative de phases, commune à toutes les séries identiques. Chaque phase porte une identité stable, un libellé de 1 à 20 caractères après normalisation et une durée positive. La liste validée contient 0 à 6 éléments ; absence ou liste vide signifie sans phases. Les zéros temporaires restent dans le brouillon, jamais dans les données validées. Les bornes et pas spécifiques restent à préciser au chapitre 08.
+La définition Catalogue et sa copie de Séance transportent une liste ordonnée facultative de phases, commune à toutes les séries identiques. Chaque phase porte une identité stable, un libellé de 1 à 20 caractères après normalisation et une durée positive. La liste validée contient 0 à 6 éléments ; absence ou liste vide signifie sans phases. Les zéros temporaires restent dans le brouillon, jamais dans les données validées. Chaque phase validée dure au moins 1 s, au pas de 1 s, et la somme des phases est comprise entre 1 et 3 535 s (D-430, 19/10/2026) ; les autres cas limites restent à préciser au chapitre 08.
 
 La durée de série est dérivée de la somme ; une éventuelle projection historique est recalculée et ne constitue pas une autre source de vérité. Le total et les phrases ne sont pas persistés. La séquence n’est pas dupliquée N fois dans la définition : le moteur développe séries, côtés et passages.
 
@@ -533,7 +533,7 @@ Le plan distingue au minimum la phase de Pause entre les côtés de la phase de 
 
 La phrase de synthèse des paramètres d’exécution est une **valeur dérivée non persistée**. Elle est régénérée depuis `executionMode`, nombre de Séries, état uniforme/variable, cible/Pause communes ou collection ordonnée, `sideMode`, Ordre des côtés, `sideRecoverySeconds` et la charge active (RM-240). Aucun champ de stockage autonome de la phrase n’est requis (RM-232).
 
-Bornes de validation D-232 : `seriesCount ∈ [1,99]`, répétitions par Série `∈ [1,100]`, durée par Série `∈ [5,3535] s`, pauses inter-Séries et inter-côtés `∈ [0,300] s`. Une valeur héritée hors bornes, non modifiée, peut être conservée ; toute nouvelle saisie ou modification doit respecter ces bornes (D-383). Le pas UI n’est pas une contrainte de stockage : tap 1 s, maintien accéléré 1/5/10 selon DSF Bip ; aucun arrondi à la lecture. La charge suit ses propres règles de pas, de zéro et d’arrondi (RM-239, D-405) ; ces bornes D-232 ne s’y appliquent pas.
+Bornes de validation D-232 : `seriesCount ∈ [1,99]`, répétitions par Série `∈ [1,100]`, durée par Série `∈ [1,3535] s` (minimum porté de 5 à 1 s par D-430, 19/10/2026), somme des phases d’exercice `∈ [1,3535] s` (D-430), pauses inter-Séries et inter-côtés `∈ [0,300] s`. Une valeur héritée hors bornes, non modifiée, peut être conservée ; toute nouvelle saisie ou modification doit respecter ces bornes (D-383). Le pas UI n’est pas une contrainte de stockage : tap 1 s, maintien accéléré 1/5/10 selon DSF Bip ; aucun arrondi à la lecture. La charge suit ses propres règles de pas, de zéro et d’arrondi (RM-239, D-405) ; ces bornes D-232 ne s’y appliquent pas.
 
 #### Paramètres de Série et Ordre des côtés — D-247 à D-254
 

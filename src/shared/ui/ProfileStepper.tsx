@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle } from "react-native";
 
 import { stepWithinBounds } from "@/domain/activities/ExecutionParameters";
 import { nextGridValue, previousGridValue } from "@/domain/preferences/Profile";
@@ -194,6 +194,23 @@ export type InlineStepperProps = {
    * atteint » et/ou « maximum atteint ». Absente : valeur annoncée sans suffixe.
    */
   readonly announceLimits?: boolean;
+  /**
+   * PRE-5 story 2.8 (D-432, AD-24) — ajout additif, défaut inchangé. `pill` (défaut) : pilule
+   * lavande de 36 (marge 4). `bare` : ni fond, ni marge, ni hauteur minimale, pour loger le
+   * stepper dans l'option Avec sélectionnée de la ligne « Phases de l'exercice » (option de
+   * 26) ; mêmes cercles de 28, même mécanisme et même accessibilité ajustable.
+   */
+  readonly appearance?: "pill" | "bare";
+  /** PRE-5 story 2.8 : style de la valeur, appliqué après le style par défaut (texte blanc sur le violet de l'option). */
+  readonly valueStyle?: StyleProp<TextStyle>;
+  /**
+   * Recette du 20/10 (RC-16) — ajout additif, absent par défaut : élément rendu entre la valeur et
+   * le + (chevron du tableau des phases, désactivé pendant le réglage). Le réglage restant un seul
+   * élément ajustable pour VoiceOver, l'état de cet élément est annoncé par `hint`.
+   */
+  readonly accessory?: ReactNode;
+  /** RC-16 : indice annoncé hors valeur signalée (`invalid` garde `invalidHint`). */
+  readonly hint?: string;
   readonly testID: string;
 };
 
@@ -221,6 +238,10 @@ export function InlineStepper({
   onValuePress,
   spokenValue,
   announceLimits = false,
+  appearance = "pill",
+  valueStyle,
+  accessory,
+  hint,
   testID,
 }: InlineStepperProps) {
   const t = strings.screens.profile.stepper;
@@ -301,6 +322,7 @@ export function InlineStepper({
     <View
       style={[
         styles.controls,
+        appearance === "bare" ? styles.controlsBare : null,
         width !== undefined ? { width, justifyContent: "space-between" } : null,
         invalid ? styles.controlsInvalid : null,
         disabled ? styles.controlsDisabled : null,
@@ -310,7 +332,7 @@ export function InlineStepper({
       accessibilityLabel={accessibilityLabel}
       accessibilityValue={value === null ? { text: valueText } : { min, max, now: value, text: valueText }}
       accessibilityState={{ disabled }}
-      accessibilityHint={invalid ? invalidHint : undefined}
+      accessibilityHint={invalid ? invalidHint : hint}
       accessibilityActions={[...stepActions, ...(valuePressable ? [{ name: "activate" }] : [])]}
       onAccessibilityAction={(event) => {
         if (disabled) return;
@@ -345,15 +367,16 @@ export function InlineStepper({
           hitSlop={VALUE_HIT_SLOP}
           testID={`${testID}-value-press`}
         >
-          <Text style={styles.openValue} testID={`${testID}-value`}>
+          <Text style={[styles.openValue, valueStyle]} testID={`${testID}-value`}>
             {display}
           </Text>
         </Pressable>
       ) : (
-        <Text style={styles.openValue} testID={`${testID}-value`}>
+        <Text style={[styles.openValue, valueStyle]} testID={`${testID}-value`}>
           {display}
         </Text>
       )}
+      {accessory}
       <Pressable
         disabled={atMax}
         onPressIn={() => repeater().start(1)}
@@ -592,6 +615,12 @@ const styles = StyleSheet.create({
   },
   controlsDisabled: {
     opacity: 0.45,
+  },
+  // PRE-5 story 2.8 (`appearance="bare"`) : ni fond, ni marge, ni hauteur minimale.
+  controlsBare: {
+    minHeight: 0,
+    padding: 0,
+    backgroundColor: "transparent",
   },
   // Cellule à renseigner : fond rouge léger, sans liseré (décision Q35 de Hermann du
   // 2026-10-17, recette iPhone PRE-4 ; remplace le contour figé #FF8D28 de la recette 1,

@@ -1,8 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { describe, expect, it, jest } from "@jest/globals";
-import { StyleSheet } from "react-native";
+import { StyleSheet, Text } from "react-native";
 
-import { SegmentedControl } from "@/shared/ui/SegmentedControl";
+import { INLINE_OPTION_WIDTHS, SegmentedControl } from "@/shared/ui/SegmentedControl";
 import { colors, dimensions, type } from "@/shared/ui/tokens";
 
 describe("SegmentedControl", () => {
@@ -227,5 +227,397 @@ describe("SegmentedControl — variante « Paramètres » (X-1, D-341, 12/10)", 
       borderWidth: 0,
       borderRadius: dimensions.segmentedControl.containerRadius,
     });
+  });
+});
+
+/**
+ * PRE-5 story 2.3 (AD-24, FR-27, FR-28, FR-17, FR-20, QP5-06) : variante
+ * `inline`, relevé Figma UX-DR1 (`8328:38193`). Les tests ci-dessus des
+ * variantes `standard` et `parameters` sont inchangés.
+ */
+describe("SegmentedControl — variante « inline » (PRE-5 story 2.3)", () => {
+  const binary = [
+    { value: "WITH" as const, label: "Avec" },
+    { value: "WITHOUT" as const, label: "Sans" },
+  ];
+
+  it("cadre centré verticalement dans sa ligne (recette du 19/10, RC-8 ; aligné à droite par la ligne), sans enveloppe blanche, 32 de haut, marge 3, écart 2, rayon 8 ; options de même largeur", () => {
+    render(<SegmentedControl options={binary} value="WITH" onChange={jest.fn()} variant="inline" testID="seg" />);
+    const frame = StyleSheet.flatten(screen.getByTestId("seg").props.style);
+    expect(frame).toMatchObject({ alignSelf: "center", height: 32, padding: 3, gap: 2, borderRadius: 8, width: 132 });
+    expect(frame.backgroundColor).toBeUndefined();
+    expect(frame.borderWidth).toBeUndefined();
+    for (const option of binary) {
+      expect(StyleSheet.flatten(screen.getByTestId(`seg-tile-${option.value}`).props.style)).toMatchObject({
+        width: INLINE_OPTION_WIDTHS.narrow,
+        height: 26,
+        top: 3,
+        borderRadius: 5,
+        backgroundColor: colors.surface,
+      });
+    }
+  });
+
+  it("largeur d'option fournie : 2 × 106 + 2 + 6 = 220 (Mode) ; 3 × 62 + 4 + 6 = 196 (Cadence, RC-10)", () => {
+    const { rerender } = render(
+      <SegmentedControl
+        options={binary}
+        value="WITH"
+        onChange={jest.fn()}
+        variant="inline"
+        optionWidth={INLINE_OPTION_WIDTHS.wide}
+        testID="seg"
+      />,
+    );
+    expect(StyleSheet.flatten(screen.getByTestId("seg").props.style).width).toBe(220);
+    // Recette du 19/10 (RC-10) : Cadence à trois options de 62.
+    const cadence = ["OTHER", "1", "NONE"].map((value) => ({ value, label: value }));
+    rerender(
+      <SegmentedControl
+        options={cadence}
+        value="1"
+        onChange={jest.fn()}
+        variant="inline"
+        optionWidth={INLINE_OPTION_WIDTHS.narrow}
+        testID="seg"
+      />,
+    );
+    expect(StyleSheet.flatten(screen.getByTestId("seg").props.style).width).toBe(196);
+  });
+
+  it("option choisie : cadre violet existant (rayon 5) et libellé blanc Semi Bold 12/16 ; autres en gris regular 12/16", () => {
+    render(<SegmentedControl options={binary} value="WITH" onChange={jest.fn()} variant="inline" testID="seg" />);
+    expect(StyleSheet.flatten(screen.getByTestId("seg-indicator").props.style)).toMatchObject({
+      backgroundColor: colors.selection,
+      borderRadius: 5,
+      height: 26,
+      width: INLINE_OPTION_WIDTHS.narrow,
+    });
+    expect(StyleSheet.flatten(screen.getByText("Avec", { includeHiddenElements: true }).props.style)).toMatchObject({
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "600",
+      color: colors.background,
+    });
+    expect(StyleSheet.flatten(screen.getByText("Sans", { includeHiddenElements: true }).props.style)).toMatchObject({
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "400",
+      color: "#4A4A52",
+    });
+  });
+
+  it("sélection : rôle onglet, état sélectionné, onChange avec la valeur ; valeur nulle sans cadre", () => {
+    const onChange = jest.fn();
+    const { rerender } = render(
+      <SegmentedControl options={binary} value="WITH" onChange={onChange} variant="inline" testID="seg" />,
+    );
+    expect(screen.getByTestId("seg").props.accessibilityRole).toBe("tablist");
+    expect(screen.getByTestId("seg-WITH").props.accessibilityState).toMatchObject({ selected: true });
+    fireEvent.press(screen.getByTestId("seg-WITHOUT"));
+    expect(onChange).toHaveBeenCalledWith("WITHOUT");
+    rerender(<SegmentedControl options={binary} value={null} onChange={onChange} variant="inline" testID="seg" />);
+    expect(screen.queryByTestId("seg-indicator")).toBeNull();
+  });
+
+  it("chevron : icône graphique control-chevron-up/down de KodjoIcon, centrée avec le libellé, appui distinct de la sélection", () => {
+    const onChange = jest.fn();
+    const onChevronPress = jest.fn();
+    const { rerender } = render(
+      <SegmentedControl
+        options={[{ ...binary[0], chevron: "up" as const, chevronAccessibilityLabel: "Replier les côtés" }, binary[1]]}
+        value="WITH"
+        onChange={onChange}
+        onChevronPress={onChevronPress}
+        variant="inline"
+        testID="seg"
+      />,
+    );
+    const chevron = screen.getByTestId("seg-WITH-chevron");
+    expect(chevron.props.accessibilityRole).toBe("button");
+    expect(chevron.props.accessibilityLabel).toBe("Replier les côtés");
+    expect(chevron.props.accessibilityState).toMatchObject({ expanded: true });
+    const icon = screen.getByTestId("seg-WITH-chevron-icon", { includeHiddenElements: true });
+    expect(icon.props.source).toEqual([require("../../../../assets/icons/control-chevron-up.svg")]);
+    expect(StyleSheet.flatten(icon.props.style)).toMatchObject({ width: 16, height: 16, tintColor: colors.background });
+    expect(StyleSheet.flatten(chevron.props.style)).toMatchObject({ width: 10, height: 10 });
+    expect(screen.queryByText(/[↑↓⌃⌄▲▼^]/, { includeHiddenElements: true })).toBeNull();
+
+    fireEvent.press(chevron);
+    expect(onChevronPress).toHaveBeenCalledWith("WITH");
+    expect(onChange).not.toHaveBeenCalled();
+
+    rerender(
+      <SegmentedControl
+        options={[{ ...binary[0], chevron: "down" as const }, binary[1]]}
+        value="WITH"
+        onChange={onChange}
+        onChevronPress={onChevronPress}
+        variant="inline"
+        testID="seg"
+      />,
+    );
+    expect(screen.getByTestId("seg-WITH-chevron-icon", { includeHiddenElements: true }).props.source).toEqual([
+      require("../../../../assets/icons/control-chevron-down.svg"),
+    ]);
+    expect(screen.getByTestId("seg-WITH-chevron").props.accessibilityState).toMatchObject({ expanded: false });
+  });
+
+  it("chevron sans onChevronPress : décoratif, sans rôle ni action", () => {
+    render(
+      <SegmentedControl
+        options={[{ ...binary[0], chevron: "down" as const }, binary[1]]}
+        value="WITHOUT"
+        onChange={jest.fn()}
+        variant="inline"
+        testID="seg"
+      />,
+    );
+    const chevron = screen.getByTestId("seg-WITH-chevron", { includeHiddenElements: true });
+    expect(chevron.props.accessibilityRole).toBeUndefined();
+    expect(chevron.props.onPress).toBeUndefined();
+    expect(StyleSheet.flatten(screen.getByTestId("seg-WITH-chevron-icon", { includeHiddenElements: true }).props.style).tintColor).toBe("#4A4A52");
+  });
+
+  it("compact : police réduite à 10, géométrie inchangée", () => {
+    render(
+      <SegmentedControl
+        options={[
+          { value: "BY_SIDE" as const, label: "(D1 → D2) ➜ (G1 → G2)", accessibilityLabel: "Un côté après l’autre" },
+          { value: "BY_SERIES" as const, label: "(D1 → G1) ➜ (D2 → G2)", accessibilityLabel: "Les deux côtés à chaque série" },
+        ]}
+        value="BY_SIDE"
+        onChange={jest.fn()}
+        variant="inline"
+        optionWidth={113}
+        compact
+        testID="seg"
+      />,
+    );
+    expect(StyleSheet.flatten(screen.getByText("(D1 → D2) ➜ (G1 → G2)", { includeHiddenElements: true }).props.style).fontSize).toBe(10);
+    expect(StyleSheet.flatten(screen.getByTestId("seg").props.style)).toMatchObject({ height: 32, width: 234 });
+    expect(screen.getByTestId("seg-BY_SERIES").props.accessibilityLabel).toBe("Les deux côtés à chaque série");
+  });
+
+  it("recette du 19/10 (RC-6) — largeur et police réduite propres à une option : cadre 3 + 144 + 2 + 62 + 3, tuiles et cadre de sélection à la position et à la largeur de l'option", () => {
+    const { unmount } = render(
+      <SegmentedControl
+        options={[
+          { value: "WITH" as const, label: "(D1 → D2) ➜ (G1 → G2)", width: 144, compact: true },
+          { value: "WITHOUT" as const, label: "Sans" },
+        ]}
+        value="WITH"
+        onChange={jest.fn()}
+        variant="inline"
+        testID="seg"
+      />,
+    );
+    expect(StyleSheet.flatten(screen.getByTestId("seg").props.style)).toMatchObject({ height: 32, width: 214 });
+    expect(StyleSheet.flatten(screen.getByText("(D1 → D2) ➜ (G1 → G2)", { includeHiddenElements: true }).props.style).fontSize).toBe(10);
+    expect(StyleSheet.flatten(screen.getByText("Sans", { includeHiddenElements: true }).props.style).fontSize).toBe(12);
+    expect(StyleSheet.flatten(screen.getByTestId("seg-tile-WITH", { includeHiddenElements: true }).props.style)).toMatchObject({ left: 3, width: 144 });
+    expect(StyleSheet.flatten(screen.getByTestId("seg-tile-WITHOUT", { includeHiddenElements: true }).props.style)).toMatchObject({ left: 149, width: 62 });
+    expect(StyleSheet.flatten(screen.getByTestId("seg-indicator", { includeHiddenElements: true }).props.style)).toMatchObject({ left: 3, width: 144 });
+    unmount();
+    // Sans sélectionné dès le rendu : cadre placé sans animation, à la position et à la largeur de Sans.
+    render(
+      <SegmentedControl
+        options={[
+          { value: "WITH" as const, label: "(D1 → D2) ➜ (G1 → G2)", width: 144, compact: true },
+          { value: "WITHOUT" as const, label: "Sans" },
+        ]}
+        value="WITHOUT"
+        onChange={jest.fn()}
+        variant="inline"
+        testID="seg"
+      />,
+    );
+    const indicator = StyleSheet.flatten(screen.getByTestId("seg-indicator", { includeHiddenElements: true }).props.style);
+    expect(indicator.width).toBe(62);
+    expect(indicator.transform).toEqual([{ translateX: 146 }]);
+  });
+
+  it("recette du 19/10 (RC-12) — Changement de côté : Sans de 62 (`narrow`, comme les autres Sans), Avec de 146 (`notation`), cadre 3 + 146 + 2 + 62 + 3 = 216", () => {
+    render(
+      <SegmentedControl
+        options={[
+          { value: "WITH" as const, label: "(D1 → D2) ➜ (G1 → G2)", width: INLINE_OPTION_WIDTHS.notation, compact: true },
+          { value: "WITHOUT" as const, label: "Sans" },
+        ]}
+        value="WITHOUT"
+        onChange={jest.fn()}
+        variant="inline"
+        optionWidth={INLINE_OPTION_WIDTHS.narrow}
+        testID="seg"
+      />,
+    );
+    expect(INLINE_OPTION_WIDTHS.notation).toBe(146);
+    expect(INLINE_OPTION_WIDTHS.narrow).toBe(62);
+    expect(StyleSheet.flatten(screen.getByTestId("seg").props.style)).toMatchObject({ height: 32, width: 216 });
+    expect(StyleSheet.flatten(screen.getByTestId("seg-tile-WITH", { includeHiddenElements: true }).props.style)).toMatchObject({ left: 3, width: 146 });
+    expect(StyleSheet.flatten(screen.getByTestId("seg-tile-WITHOUT", { includeHiddenElements: true }).props.style)).toMatchObject({ left: 151, width: 62 });
+    const indicator = StyleSheet.flatten(screen.getByTestId("seg-indicator", { includeHiddenElements: true }).props.style);
+    expect(indicator.width).toBe(62);
+    expect(indicator.transform).toEqual([{ translateX: 148 }]);
+  });
+
+  it("readOnly : aucune zone de sélection, un seul élément texte qui annonce le libellé et la valeur", () => {
+    render(
+      <SegmentedControl
+        options={[{ value: "MIXED" as const, label: "À la cible et à l’échec" }]}
+        value="MIXED"
+        onChange={jest.fn()}
+        variant="inline"
+        readOnly
+        accessibilityLabel="Condition d’arrêt"
+        testID="seg"
+      />,
+    );
+    const frame = screen.getByTestId("seg");
+    expect(frame.props.accessible).toBe(true);
+    expect(frame.props.accessibilityRole).toBe("text");
+    expect(frame.props.accessibilityLabel).toBe("Condition d’arrêt, À la cible et à l’échec");
+    expect(screen.queryByTestId("seg-MIXED")).toBeNull();
+    expect(screen.UNSAFE_queryAllByProps({ accessibilityRole: "tab" })).toHaveLength(0);
+    expect(screen.getByText("À la cible et à l’échec", { includeHiddenElements: true })).toBeTruthy();
+    expect(screen.getByTestId("seg-indicator")).toBeTruthy();
+  });
+
+  it("selectedContent : remplace le libellé de l'option sélectionnée seulement ; le chevron reste rendu", () => {
+    const options = [
+      { ...binary[0], chevron: "down" as const, selectedContent: <Text testID="phases-content">3 phases</Text> },
+      binary[1],
+    ];
+    const { rerender } = render(
+      <SegmentedControl
+        options={options}
+        value="WITH"
+        onChange={jest.fn()}
+        onChevronPress={jest.fn()}
+        variant="inline"
+        testID="seg"
+      />,
+    );
+    expect(screen.getByTestId("phases-content")).toBeTruthy();
+    expect(screen.queryByText("Avec", { includeHiddenElements: true })).toBeNull();
+    expect(screen.getByTestId("seg-WITH-chevron")).toBeTruthy();
+    expect(screen.getByTestId("seg-WITH").props.accessibilityLabel).toBe("Avec");
+
+    rerender(<SegmentedControl options={options} value="WITHOUT" onChange={jest.fn()} variant="inline" testID="seg" />);
+    expect(screen.queryByTestId("phases-content")).toBeNull();
+    expect(screen.getByText("Avec", { includeHiddenElements: true })).toBeTruthy();
+  });
+
+  it("option indisponible : valeur affichée, état indisponible exposé, aucune sélection ni chevron actif (RM-247)", () => {
+    const onChange = jest.fn();
+    render(
+      <SegmentedControl
+        options={[
+          {
+            value: "VARIABLE" as const,
+            label: "Variables",
+            disabled: true,
+            chevron: "down" as const,
+            accessibilityLabel: "Variables — indisponible",
+          },
+          { value: "UNIFORM" as const, label: "Identiques" },
+        ]}
+        value="UNIFORM"
+        onChange={onChange}
+        onChevronPress={jest.fn()}
+        variant="inline"
+        testID="seg"
+      />,
+    );
+    const variable = screen.getByTestId("seg-VARIABLE");
+    expect(variable.props.accessibilityRole).toBe("tab");
+    expect(variable.props.accessibilityState).toMatchObject({ disabled: true, selected: false });
+    expect(variable.props.accessibilityLabel).toBe("Variables — indisponible");
+    expect(StyleSheet.flatten(screen.getByText("Variables", { includeHiddenElements: true }).props.style).color).toBe(colors.disabled);
+    fireEvent.press(variable);
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.getByTestId("seg-VARIABLE-chevron", { includeHiddenElements: true }).props.accessibilityRole).toBeUndefined();
+    expect(
+      StyleSheet.flatten(screen.getByTestId("seg-VARIABLE-chevron-icon", { includeHiddenElements: true }).props.style)
+        .tintColor,
+    ).toBe(colors.disabled);
+  });
+
+  it("valeur inconnue : aucun cadre de sélection (comme parameters)", () => {
+    render(
+      <SegmentedControl
+        options={binary}
+        value={"OTHER" as "WITH"}
+        onChange={jest.fn()}
+        variant="inline"
+        testID="seg"
+      />,
+    );
+    expect(screen.queryByTestId("seg-indicator")).toBeNull();
+  });
+
+  it("readOnly : le chevron reste décoratif même avec onChevronPress", () => {
+    const onChevronPress = jest.fn();
+    render(
+      <SegmentedControl
+        options={[{ ...binary[0], chevron: "down" as const }, binary[1]]}
+        value="WITH"
+        onChange={jest.fn()}
+        onChevronPress={onChevronPress}
+        variant="inline"
+        readOnly
+        testID="seg"
+      />,
+    );
+    const chevron = screen.getByTestId("seg-WITH-chevron", { includeHiddenElements: true });
+    expect(chevron.props.accessibilityRole).toBeUndefined();
+    expect(chevron.props.onPress).toBeUndefined();
+  });
+
+  it("PRE-5 story 2.4 (UX-DR2, 9230:44720) — readOnly : contrôle entier atténué à 45 %, sélection violette, texte blanc ; interactif non atténué", () => {
+    const { rerender } = render(
+      <SegmentedControl
+        options={[
+          { value: "FAILURE" as const, label: "À l’échec" },
+          { value: "TARGET" as const, label: "À la cible" },
+        ]}
+        value="TARGET"
+        onChange={jest.fn()}
+        variant="inline"
+        optionWidth={INLINE_OPTION_WIDTHS.wide}
+        readOnly
+        testID="seg"
+      />,
+    );
+    expect(StyleSheet.flatten(screen.getByTestId("seg").props.style).opacity).toBe(0.45);
+    expect(StyleSheet.flatten(screen.getByTestId("seg-indicator").props.style).backgroundColor).toBe(colors.selection);
+    expect(StyleSheet.flatten(screen.getByText("À la cible", { includeHiddenElements: true }).props.style).color).toBe(colors.background);
+    rerender(
+      <SegmentedControl
+        options={[
+          { value: "FAILURE" as const, label: "À l’échec" },
+          { value: "TARGET" as const, label: "À la cible" },
+        ]}
+        value="TARGET"
+        onChange={jest.fn()}
+        variant="inline"
+        optionWidth={INLINE_OPTION_WIDTHS.wide}
+        testID="seg"
+      />,
+    );
+    expect(StyleSheet.flatten(screen.getByTestId("seg").props.style).opacity).toBeUndefined();
+  });
+
+  it("variante standard : les props d'option propres à inline n'ont aucun effet", () => {
+    render(
+      <SegmentedControl
+        options={[{ ...binary[0], chevron: "up" as const }, binary[1]]}
+        value="WITH"
+        onChange={jest.fn()}
+        testID="seg"
+      />,
+    );
+    expect(screen.queryByTestId("seg-WITH-chevron")).toBeNull();
+    expect(StyleSheet.flatten(screen.getByTestId("seg").props.style).height).toBe(42);
   });
 });

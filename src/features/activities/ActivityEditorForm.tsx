@@ -20,7 +20,6 @@ import {
   type ExecutionParameters,
   type ExecutionParametersInput,
 } from "@/domain/activities/ExecutionParameters";
-import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import { generateExecutionPhrase, phraseText } from "@/domain/activities/executionPhrase";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import {
@@ -32,9 +31,10 @@ import {
 } from "@/domain/media/ActivityMedia";
 import type { ImportItem, ImportResult } from "@/domain/media/ActivityMediaImportService";
 import type { Silhouette } from "@/domain/preferences/Profile";
-import { INSTRUCTION_MAX_LENGTH, NAME_MAX_LENGTH, validateExerciseName } from "@/domain/sessions/validation";
+import { NAME_MAX_LENGTH, validateExerciseName } from "@/domain/sessions/validation";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityMediaList, type MediaNotice } from "@/features/activities/ActivityMediaList";
+import { DESCRIPTION_STEP_GUTTER, DescriptionSteps } from "@/features/activities/DescriptionSteps";
 import { ExecutionParametersSheet } from "@/features/activities/ExecutionParametersSheet";
 import { BodyZonePickerModal } from "@/features/reference-data/BodyZonePickerModal";
 import { useReferenceSheet } from "@/features/reference-data/useReferenceSheet";
@@ -63,10 +63,20 @@ import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@
  * Description, Carte, Médias, puis `Terminer` ; Carte seule zone touchable,
  * sans bouton de Mode (Q23), invite sur la Carte vide (H22) ; grille
  * verticale de D-327 et marge latérale 24 / 16 selon la largeur (FR-02-04).
+ *
+ * PRE-5 story 3.1 (FR-33, AD-22, D-425) : la Description est une liste
+ * d'étapes (`instructionSteps`, sans numéro) ; les adaptateurs la décodent à
+ * l'ouverture (`decodeInstructionSteps`) et l'encodent à `Terminer` seulement
+ * (`encodeInstructionSteps`). Stockage inchangé.
+ *
+ * PRE-5 story 3.2 (R-14, FR-36 à FR-38, AD-30) : présentation seulement — Carte allégée
+ * (Phrase seule, sans Compte à rebours, Fin ni filet), `Terminer` à 24 du bas de l'écran,
+ * titres de section et Classification Catégorie / Zones selon les frames Figma
+ * `8328:35698`, `8328:36853` et `8328:37022` (relevé du 19/10, lecture seule).
  */
 export type ActivityEditorFormValue = {
   readonly name: string;
-  readonly instruction: string | null;
+  readonly instructionSteps: readonly string[];
   readonly executionParameters: ExecutionParametersInput;
   readonly bodyZoneIds: readonly string[];
   readonly media: readonly DraftMediaItem[];
@@ -98,6 +108,12 @@ export type ActivityEditorFormProps = {
   categoryAccessRef?: RefObject<View | null>;
   /** Pause entre les côtés du Profil, copiée à l'activation du changement de côté. */
   profileSideRecoverySecondsDefault: number;
+  /**
+   * PRE-5 story 2.5 (AC4, D-409, RM-218) : Compte à rebours et Fin dans la Feuille —
+   * `"absent"` pour un Exercice ouvert depuis une Séance (ni lignes ni chevron) ; défaut
+   * `"present"`. La Carte de l'Éditeur est inchangée.
+   */
+  exerciseSignals?: "present" | "absent";
   /**
    * PRE-4 (story 1.1, AD-13) : ligne de base des paramètres, relue à
    * l'ouverture de l'Éditeur (`null` en création) — transmise au ✓ de la
@@ -164,19 +180,62 @@ export function editorSideMargin(windowWidth: number): number {
 
 /**
  * PRE-4 story 4.2 (FR-02-03, FR-02-04 ; D-327, DSF-INTERFACE §0.1) : grille
- * verticale commune, appliquée exactement à ses quatre relations, jamais aux
- * espaces internes des composants. 18 et 13 n'ont pas de jeton d'espacement :
- * constantes nommées de la règle écrite, `tokens.ts` restant intouché (AD-11).
+ * verticale de l'Éditeur, appliquée à ses quatre relations, jamais aux espaces
+ * internes des composants.
+ *
+ * PRE-5 story 3.2, arbitrage G-2 de Hermann du 19/10 : pour cet écran seulement,
+ * les espacements du Figma actuel (`8328:35698`, « Contenu du formulaire » :
+ * `pt` 14, écart 16 ; titre → contenu 10) remplacent 18 / 20 / 13 de D-327 ; la
+ * grille globale n'est pas modifiée. 12 (dernier bloc → `Terminer`) est conservé.
  */
 export const EDITOR_VERTICAL_GRID = {
-  /** Bas géométrique du dégradé de la zone de contexte → première ligne de texte. */
-  contextToFirstText: 18,
-  /** Dernier élément d'un bloc → titre de la section suivante. */
-  blockToNextTitle: spacing[20],
-  /** Titre de section → son bloc. */
-  titleToBlock: 13,
+  /** Bas géométrique du dégradé de la zone de contexte → première section. */
+  contextToFirstText: spacing[14],
+  /** Dernier élément d'une section → section suivante. */
+  blockToNextTitle: spacing[16],
+  /** Titre de section → son contenu. */
+  titleToBlock: spacing[10],
   /** Bloc → bloc sans titre entre eux (dernier bloc → `Terminer`). */
   blockToBlock: spacing[12],
+} as const;
+
+/**
+ * PRE-5 story 3.2, arbitrage G-1 de Hermann du 19/10 (Figma `5544:4503`, état
+ * Fermer) : en-tête propre à l'Éditeur d'Exercice, passé à `FixedHeader` par ses
+ * props locales (les autres écrans sont inchangés). Cible 48 du ✕ à 12 du bord,
+ * titre à 4 après la cible (x64) ; cercle visible 38 et icône 24
+ * (`dimensions.backAction`) ; fond `#FCFCFE`, liseré blanc 1 et ombre « KODJO / DSF /
+ * Effet observé / 01 » (`#1A1A26` 8 %, (0, 2), flou 10) ; titre Inter Medium 17
+ * `#3A3A3F`. Valeurs sans jeton exact : constantes locales.
+ */
+const EDITOR_HEADER_TARGET_INSET = spacing[12];
+const EDITOR_HEADER_TITLE_GAP = spacing[4];
+const EDITOR_HEADER_BACK_HIT_SLOP = (dimensions.backAction.touchTarget - dimensions.backAction.visualCircle) / 2;
+export const EDITOR_HEADER = {
+  /** Retrait gauche du cercle visible : cible à 12 du bord, cercle centré dans la cible. */
+  paddingLeft: EDITOR_HEADER_TARGET_INSET + EDITOR_HEADER_BACK_HIT_SLOP,
+  /** Écart cercle → titre : titre à 4 après la cible de 48. */
+  gap: EDITOR_HEADER_BACK_HIT_SLOP + EDITOR_HEADER_TITLE_GAP,
+  /** Abscisse du centre du ✕ (centre du halo de la zone de contexte). */
+  backCenterX: EDITOR_HEADER_TARGET_INSET + dimensions.backAction.touchTarget / 2,
+  title: {
+    fontFamily: "Inter_500Medium",
+    fontWeight: "500",
+    fontSize: 17,
+    color: "#3A3A3F",
+  },
+  /** Trait du ✕ de l'instance Figma (`#14141A`, l'export du maître étant `#141414`). */
+  closeIconTint: "#14141A",
+  backCircle: {
+    backgroundColor: "#FCFCFE",
+    borderWidth: 1,
+    borderColor: colors.background,
+    shadowColor: "#1A1A26",
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 10,
+    elevation: 2,
+  },
 } as const;
 
 /**
@@ -200,6 +259,7 @@ export function ActivityEditorForm({
   isCategoryPickerOpen = false,
   categoryAccessRef,
   profileSideRecoverySecondsDefault,
+  exerciseSignals = "present",
   baselineParameters = null,
   mediaService,
   mediaDraftId,
@@ -211,8 +271,11 @@ export function ActivityEditorForm({
   finishActionTestID,
   errorTestID,
 }: ActivityEditorFormProps) {
-  const insets = useSafeAreaInsets();
   const sideMargin = editorSideMargin(useWindowDimensions().width);
+  // Revue PRE-5 3.2 : Android (bord à bord sous Expo 57) n'est pas couvert par les frames
+  // iPhone de Figma — `Terminer` y reste au-dessus de la barre de navigation système.
+  const insets = useSafeAreaInsets();
+  const finishBottom = Platform.OS === "android" ? Math.max(FINISH_BOTTOM_OFFSET, insets.bottom) : FINISH_BOTTOM_OFFSET;
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const parametersCardRef = useRef<View>(null);
   // PRE-4 story 4.6 (FR-22-10, AC9) : à la fermeture d'une feuille de référentiel, le focus
@@ -229,20 +292,20 @@ export function ActivityEditorForm({
   const t = strings.screens.exercise;
   const editor = strings.screens.activities.editor;
   const parameters = value.executionParameters;
-  // Recette 2 (N-05) : pendant la saisie de la Description, le champ reste juste
-  // au-dessus du clavier ; sa hauteur est bornée à la zone visible pour que la
-  // vue de texte iOS garde elle-même le curseur visible (retours à la ligne,
-  // édition au milieu). Terminer reste en bas, sous le clavier.
+  // Recette 2 (N-05) : pendant la saisie de la Description, la ligne active reste juste
+  // au-dessus du clavier. PRE-5 story 3.1 (AC2, D-349) : l'étape active (et non plus le
+  // champ entier, dont la hauteur bornée est retirée) est recadrée à l'ouverture du
+  // clavier, à chaque changement d'étape et à chaque changement de sa hauteur.
+  // Terminer reste en bas, sous le clavier.
   const bodyScrollRef = useRef<ScrollView>(null);
-  const [bodyHeight, setBodyHeight] = useState(0);
   const [isDescriptionFocused, setIsDescriptionFocused] = useState(false);
-  const descriptionLayoutRef = useRef({ sectionY: 0, inputY: 0, inputHeight: 0 });
+  const descriptionLayoutRef = useRef({ sectionY: 0, stepsY: 0, activeRowBottom: 0 });
   const bodyHeightRef = useRef(0);
   function revealDescription() {
-    const { sectionY, inputY, inputHeight } = descriptionLayoutRef.current;
+    const { sectionY, stepsY, activeRowBottom } = descriptionLayoutRef.current;
     const viewport = bodyHeightRef.current;
     if (viewport <= 0) return;
-    const bottom = sectionY + inputY + inputHeight + DESCRIPTION_KEYBOARD_GAP;
+    const bottom = sectionY + stepsY + activeRowBottom + DESCRIPTION_KEYBOARD_GAP;
     bodyScrollRef.current?.scrollTo({ y: Math.max(0, bottom - viewport), animated: true });
   }
   useEffect(() => {
@@ -296,17 +359,19 @@ export function ActivityEditorForm({
             <View key={layer.top} style={[styles.contextBandFadeLayer, { top: layer.top, opacity: layer.opacity }]} />
           ))}
         </View>
-        {/* Story 4.2 (AC5) : le halo suit la marge de l'en-tête pour rester concentrique au ✕. */}
+        {/* Story 4.2 (AC5) : halo concentrique au ✕ ; PRE-5 3.2 (G-1) : centre du ✕ de l'en-tête
+            de l'Éditeur (`EDITOR_HEADER.backCenterX`, cible à 12 du bord). */}
         <View
           pointerEvents="none"
-          style={[styles.backHalo, { left: sideMargin + dimensions.backAction.visualCircle / 2 - BACK_HALO_DIAMETER / 2 }]}
+          style={[styles.backHalo, { left: EDITOR_HEADER.backCenterX - BACK_HALO_DIAMETER / 2 }]}
           testID="exercise-context-band-halo"
         />
         <TextInput
           value={value.name}
           onChangeText={(text) => onChange({ name: text })}
           placeholder={editor.name}
-          placeholderTextColor={colors.textSecondary}
+          // PRE-5 story 3.2, arbitrage G-3 de Hermann du 19/10 : placeholder `textPrimary` (Figma `8328:35698`).
+          placeholderTextColor={colors.textPrimary}
           accessibilityLabel={editor.name}
           maxLength={NAME_MAX_LENGTH}
           style={styles.nameInput}
@@ -314,10 +379,16 @@ export function ActivityEditorForm({
         />
         {/* PRE-4 story 4.3 (FR-02-05, P35 ; AC2) : chaque accès est un bouton icône +
             libellé (`Catégorie`, `Zone corporelle`) quand il n'est pas renseigné ; renseigné,
-            pastille + nom (Catégorie) ou silhouette + noms des Zones avec le séparateur de la
-            capture `8328:37022`. Icône au contour au repos, pleine pendant l'ouverture de sa
-            feuille (planche `7245:13718`, même tracé ; la pilule ne change pas). Une seule
-            silhouette, celle du Profil. Cible ≥ 44 × 44 par `ACCESS_HIT_SLOP` (FR-22-04). */}
+            glyphe + nom (Catégorie) ou silhouette + noms des Zones avec le séparateur de la
+            capture `8328:37022`. Une seule silhouette, celle du Profil. PRE-5 story 3.2, arbitrage
+            G-5 de Hermann du 19/10 : glyphes pleins au repos (instances « Icône — Catégorie » et
+            « Zone corporelle — glyphe » de `8328:35698`), à la place du contour au repos de
+            PRE-4 4.3 ; l'ouverture reste annoncée par `expanded`.
+            PRE-5 story 3.2 (FR-38, E-V7, E-V8, E-V10) : une seule forme pour les deux registres
+            (`styles.referenceAccess`) — « à renseigner » : voile blanc, glyphe et libellé
+            `primary` ; « renseigné » : sans fond, libellé `textPrimary`, glyphe Catégorie plein
+            teinté de sa couleur. Rien ne bouge entre les deux. Cible ≥ 44 de haut étendue vers
+            le bas, sans recouvrir le Nom (`ACCESS_HIT_SLOP`, FR-22-04). */}
         <View style={styles.referenceRow} testID="exercise-reference-row">
           <Pressable
             ref={categoryAccess}
@@ -327,26 +398,26 @@ export function ActivityEditorForm({
               category ? `${editor.category.label} ${category.name}` : editor.category.unsetAccessibilityLabel
             }
             // Revue 4.3 : feuille ouverte annoncée « développé », Catégorie renseignée comprise
-            // (la pilule pastille + nom n'a pas d'état ouvert visuel : écart E-V12).
+            // (le glyphe d'une Catégorie renseignée n'a pas d'état ouvert visuel : écart E-V12).
             accessibilityState={{ expanded: isCategoryPickerOpen }}
             hitSlop={ACCESS_HIT_SLOP}
-            style={styles.referencePill}
+            style={[styles.referenceAccess, category ? null : styles.referenceAccessUnset]}
             testID="activity-editor-category-button"
           >
             {category ? (
               <>
-                {category.color ? (
-                  <View style={[styles.categorySwatch, { backgroundColor: category.color }]} testID="activity-editor-category-swatch" />
-                ) : null}
-                <Text style={styles.referenceLabel}>{category.name}</Text>
+                {/* Sans couleur de Catégorie : glyphe non teinté (couleur du tracé source). */}
+                <KodjoIcon
+                  name="icon-categorie-plein"
+                  size={ACCESS_GLYPH_SIZE}
+                  tintColor={category.color ? category.color : undefined}
+                  testID="activity-editor-category-glyph"
+                />
+                <Text style={[styles.referenceLabel, styles.referenceLabelSet]}>{category.name}</Text>
               </>
             ) : (
               <>
-                {isCategoryPickerOpen ? (
-                  <KodjoIcon name="icon-categorie-plein" size={CATEGORY_ICON_SIZE} testID="activity-editor-category-icon-filled" />
-                ) : (
-                  <KodjoIcon name="icon-categorie" size={CATEGORY_ICON_SIZE} testID="activity-editor-category-icon" />
-                )}
+                <KodjoIcon name="icon-categorie-plein" size={ACCESS_GLYPH_SIZE} testID="activity-editor-category-icon" />
                 <Text style={styles.referenceLabel} testID="activity-editor-category-label">
                   {editor.category.label}
                 </Text>
@@ -370,16 +441,20 @@ export function ActivityEditorForm({
             }
             accessibilityState={{ expanded: isBodyZonePickerOpen }}
             hitSlop={ACCESS_HIT_SLOP}
-            style={styles.referencePill}
+            style={[styles.referenceAccess, zoneNames.length > 0 ? null : styles.referenceAccessUnset]}
             testID="exercise-body-zones-open"
           >
             <BodyZoneIcon
               silhouette={silhouette}
-              size={BODY_ZONE_ACCESS_ICON_SIZE}
-              filled={isBodyZonePickerOpen}
-              testID={isBodyZonePickerOpen ? "exercise-body-zones-icon-filled" : "exercise-body-zones-icon"}
+              size={ACCESS_GLYPH_SIZE}
+              filled
+              testID="exercise-body-zones-icon"
             />
-            <Text style={styles.referenceLabel} numberOfLines={1} testID="exercise-body-zones-label">
+            <Text
+              style={[styles.referenceLabel, zoneNames.length > 0 ? styles.referenceLabelSet : null]}
+              numberOfLines={1}
+              testID="exercise-body-zones-label"
+            >
               {zoneNames.length > 0 ? zoneNames.join(t.bodyZones.bandSeparator) : t.bodyZones.unsetLabel}
             </Text>
           </Pressable>
@@ -394,7 +469,6 @@ export function ActivityEditorForm({
           keyboardShouldPersistTaps="handled"
           onLayout={(event) => {
             bodyHeightRef.current = event.nativeEvent.layout.height;
-            setBodyHeight(event.nativeEvent.layout.height);
             if (isDescriptionFocused) revealDescription();
           }}
           testID="exercise-body"
@@ -410,36 +484,29 @@ export function ActivityEditorForm({
             <Text style={styles.sectionTitle} accessibilityRole="header">
               {t.instruction.label}
             </Text>
-            <TextInput
-              value={value.instruction ?? ""}
-              onChangeText={(text) => onChange({ instruction: text.length > 0 ? text : null })}
-              placeholder={card.descriptionPlaceholder}
-              placeholderTextColor={colors.textSecondary}
-              accessibilityLabel={t.instruction.label}
-              maxLength={INSTRUCTION_MAX_LENGTH}
-              multiline
-              onFocus={() => setIsDescriptionFocused(true)}
-              onBlur={() => setIsDescriptionFocused(false)}
+            {/* PRE-5 story 3.1 (FR-33, D-425) : étapes numérotées, sans contenant (§9-2) ;
+                Entrée crée l'étape suivante. La place de ↑ reste réservée à droite. */}
+            <View
+              style={styles.descriptionStepsWithSend}
               onLayout={(event) => {
-                descriptionLayoutRef.current.inputY = event.nativeEvent.layout.y;
-                descriptionLayoutRef.current.inputHeight = event.nativeEvent.layout.height;
+                descriptionLayoutRef.current.stepsY = event.nativeEvent.layout.y;
                 if (isDescriptionFocused) revealDescription();
               }}
-              onContentSizeChange={() => {
-                if (isDescriptionFocused) revealDescription();
-              }}
-              style={[
-                styles.instructionInput,
-                styles.instructionInputWithSend,
-                isDescriptionFocused && bodyHeight > 0
-                  ? { maxHeight: Math.max(DESCRIPTION_MIN_FOCUSED_HEIGHT, bodyHeight - DESCRIPTION_KEYBOARD_GAP * 2) }
-                  : null,
-              ]}
-              testID="exercise-instruction-input"
-            />
-            {/* Recette 3 (N-05) : ↑ dans le champ pendant la saisie — le texte est déjà
+              testID="exercise-description-steps-area"
+            >
+              <DescriptionSteps
+                steps={value.instructionSteps}
+                onChange={(steps) => onChange({ instructionSteps: steps })}
+                onFocusChange={setIsDescriptionFocused}
+                onActiveRowBottomChange={(bottom) => {
+                  descriptionLayoutRef.current.activeRowBottom = bottom;
+                  revealDescription();
+                }}
+              />
+            </View>
+            {/* Recette 3 (N-05) : ↑ dans la Description pendant la saisie — le texte est déjà
                 dans le brouillon ; ↑ ferme seulement le clavier (aucun enregistrement,
-                Terminer inchangé). Retour à la ligne : reste un retour à la ligne. */}
+                Terminer inchangé), D-351. */}
             {isDescriptionFocused ? (
               <Pressable
                 onPress={() => Keyboard.dismiss()}
@@ -460,11 +527,14 @@ export function ActivityEditorForm({
             <Text style={styles.sectionTitle} accessibilityRole="header">
               {card.title}
             </Text>
+            {/* PRE-5 story 3.2 (R-14, FR-36) : la Carte ne porte plus que la Phrase — ni Compte à
+                rebours, ni Fin, ni filet, à l'écran comme dans le nom accessible (la Feuille et
+                les données les gardent). */}
             <Pressable
               ref={parametersCardRef}
               onPress={openSheet}
               accessibilityRole="button"
-              accessibilityLabel={`${card.openAccessibilityLabel}. ${phrase} ${card.countdown} ${parameters.countdownSeconds} s, ${card.end} ${parameters.endSeconds} s.`}
+              accessibilityLabel={phrase ? `${card.openAccessibilityLabel}. ${phrase}` : `${card.openAccessibilityLabel}.`}
               style={styles.parametersCard}
               testID="exercise-parameters-card"
             >
@@ -481,26 +551,13 @@ export function ActivityEditorForm({
                     )
                   : phrase}
               </Text>
-              <View style={styles.cardSeparator} />
-              <View style={styles.phasesRow}>
-                <View style={styles.phase}>
-                  <Text style={styles.phaseLabel}>{card.countdown}</Text>
-                  <Text style={styles.phaseValue} testID="exercise-parameters-countdown">
-                    {formatPhraseDuration(parameters.countdownSeconds)}
-                  </Text>
-                </View>
-                <View style={styles.phase}>
-                  <Text style={styles.phaseLabel}>{card.end}</Text>
-                  <Text style={styles.phaseValue} testID="exercise-parameters-end">
-                    {formatPhraseDuration(parameters.endSeconds)}
-                  </Text>
-                </View>
-              </View>
             </Pressable>
           </View>
 
+          {/* PRE-5 story 3.2, arbitrage G-7 de Hermann du 19/10 : aucun titre « Médias » visible
+              (Figma `8328:35698`) ; le titre reste un en-tête VoiceOver, sans place à l'écran. */}
           <View style={[styles.section, styles.followingSection]} testID="activity-editor-section-media">
-            <Text style={styles.sectionTitle} accessibilityRole="header">
+            <Text style={styles.accessibilityOnlyTitle} accessibilityRole="header" testID="activity-editor-media-title">
               {strings.executionParameters.media.section}
             </Text>
             <ActivityMediaList
@@ -519,9 +576,12 @@ export function ActivityEditorForm({
       </KeyboardAvoidingView>
 
       {/* Recette 2 (N-05) : hors de la zone qui évite le clavier — Terminer ne remonte
-          jamais avec le clavier ; il redevient accessible dès sa fermeture. */}
+          jamais avec le clavier ; il redevient accessible dès sa fermeture (D-349).
+          PRE-5 story 3.2 (FR-37) : bas du bouton à 24 du bord bas de l'écran, indépendamment
+          de `insets.bottom` sur iOS (`FINISH_BOTTOM_OFFSET`) ; sur Android, jamais sous l'encart
+          bas (barre de navigation). */}
       <View
-        style={[styles.finishActionSlot, { marginHorizontal: sideMargin, marginBottom: insets.bottom + spacing[16] }]}
+        style={[styles.finishActionSlot, { marginHorizontal: sideMargin, marginBottom: finishBottom }]}
         testID={finishSlotTestID}
       >
           {errorMessage ? (
@@ -547,6 +607,7 @@ export function ActivityEditorForm({
           parent={parameters}
           baseline={baselineParameters}
           profileSideRecoverySecondsDefault={profileSideRecoverySecondsDefault}
+          exerciseSignals={exerciseSignals}
           onApply={applyParameters}
           onCancel={closeSheet}
         />
@@ -696,38 +757,67 @@ function useMediaImport(
 const DESCRIPTION_KEYBOARD_GAP = 12;
 /** Recette 3 (N-05) : bouton d’envoi standard des champs (32, comme « Saisie inline »). */
 const DESCRIPTION_SEND_SIZE = 32;
-/** N-05 : hauteur minimale conservée au champ borné pendant la saisie. */
-const DESCRIPTION_MIN_FOCUSED_HEIGHT = 88;
 
 /**
- * Taille d’affichage de l’icône de l’accès Catégorie, commune à ses deux états (story 4.3) :
- * contour = maître `icon/categorie` (`6296:10530`, `icon-categorie`) ; plein = « Catégorie —
- * pleine » de la planche `7245:13718` (`7286:13728`, `icon-categorie-plein`). La valeur 20
- * vient de la recette PRE-3 (X-2) ; le nœud figé d’où elle avait été relevée a disparu de
- * Figma et n’est associé à aucun état.
+ * PRE-5 story 3.2 (FR-38, E-V7, E-V8, E-V10) : Classification Catégorie / Zones, relevé Figma
+ * `8328:35698` (à renseigner), `8328:36853` et `8328:37022` (renseigné), lecture seule du 19/10.
+ * Propriétés de présentation sans jeton, constantes locales (AD-11 : `tokens.ts` inchangé).
+ * Mêmes valeurs dans les deux registres : rien ne bouge entre « à renseigner » et « renseigné ».
  */
-const CATEGORY_ICON_SIZE = 20;
-/** Silhouette de l’accès Zones : taille PRE-3 conservée (26), contour et plein superposables. */
-const BODY_ZONE_ACCESS_ICON_SIZE = 26;
-/** Hauteur minimale des pilules d’accès (`styles.referencePill`). */
-const ACCESS_PILL_MIN_HEIGHT = 32;
-/** FR-22-04 : cible minimale des accès (44 × 44 pt). */
+/** Glyphes des accès (Catégorie contour / plein, silhouette des Zones). */
+const ACCESS_GLYPH_SIZE = 18;
+/** Hauteur et rayon d’un accès. */
+const ACCESS_HEIGHT = 26;
+const ACCESS_RADIUS = 13;
+/** Paddings d’un accès et écart glyphe → libellé. */
+const ACCESS_PADDING_LEFT = 8;
+const ACCESS_PADDING_RIGHT = 10;
+const ACCESS_GLYPH_GAP = 6;
+/** Retrait de la rangée et écart entre les deux accès. */
+const ACCESS_ROW_PADDING_LEFT = 6;
+const ACCESS_COLUMN_GAP = 20;
+/** Registre « à renseigner » : voile blanc à 35 % (sans jeton). */
+const ACCESS_UNSET_VEIL = "rgba(255, 255, 255, 0.35)";
+/** Hauteur de la rangée (Figma « Sélecteurs — Catégorie / Zones corporelles ») : 32. */
+const ACCESS_ROW_HEIGHT = 32;
+/** FR-22-04 : cible minimale des accès (44 pt de haut). */
 const ACCESS_MIN_TARGET = 44;
-/** Écarts de la rangée des accès : 8 entre deux accès (PRE-3), 12 entre deux lignes. */
-const ACCESS_COLUMN_GAP = spacing[8];
-const ACCESS_ROW_GAP = spacing[12];
 /**
- * PRE-4 story 4.3 (FR-22-04, AC2) : cible d’au moins 44 × 44 sans recouvrement —
- * verticalement 6 + 32 + 6 = 44, et l’écart entre deux lignes (12, quand les pilules
- * passent à la ligne) couvre les débords bas et haut ; horizontalement la moitié de
- * l’écart entre deux accès (la largeur d’une pilule icône + libellé dépasse déjà 44).
+ * FR-22-04 (cible ≥ 44 sans recouvrement) : l’accès (26) est centré dans la rangée (32), 3 sous
+ * son haut. L’écart Nom → rangée étant nul (E-V4), la cible déborde de 1 vers le haut, soit
+ * 2 sous le cadre du Nom (jamais sur lui), et s’étend vers le bas : 1 + 26 + 17 = 44 ; son
+ * débord sous la rangée (17 − 3 = 14) reste dans la marge basse de la zone de contexte (16,
+ * `overflow: hidden`). Horizontalement, la frontière entre les deux accès est au milieu de
+ * leur écart de 20.
  */
 const ACCESS_HIT_SLOP = {
-  top: (ACCESS_MIN_TARGET - ACCESS_PILL_MIN_HEIGHT) / 2,
-  bottom: (ACCESS_MIN_TARGET - ACCESS_PILL_MIN_HEIGHT) / 2,
+  top: 1,
+  bottom: ACCESS_MIN_TARGET - ACCESS_HEIGHT - 1,
   left: ACCESS_COLUMN_GAP / 2,
   right: ACCESS_COLUMN_GAP / 2,
 } as const;
+/** Débord de la cible sous la rangée : 17 − (32 − 26) / 2 = 14. */
+const ACCESS_TARGET_OVERFLOW_BELOW_ROW = ACCESS_HIT_SLOP.bottom - (ACCESS_ROW_HEIGHT - ACCESS_HEIGHT) / 2;
+/** Rangée repliée sur deux lignes : l’écart couvre le débord bas de la ligne du dessus. */
+const ACCESS_ROW_GAP = ACCESS_TARGET_OVERFLOW_BELOW_ROW;
+
+/**
+ * PRE-5 story 3.2 (FR-37 ; frame `Action finale` : `pb` 24, bouton à y802 sur 874) : bas de
+ * `Terminer` à 24 du bord bas de l’écran, indépendamment de `insets.bottom` sur iOS ; sur
+ * Android, au moins l’encart bas (revue 3.2).
+ */
+const FINISH_BOTTOM_OFFSET = spacing[24];
+/**
+ * PRE-5 story 3.2 (FR-37, D-327 bloc → `Terminer`) : réserve de défilement sous le dernier
+ * bloc, au-dessus de `Terminer` — le dernier contenu n’est jamais masqué, clavier ouvert ou fermé.
+ */
+const FINISH_SCROLL_RESERVE = EDITOR_VERTICAL_GRID.blockToBlock;
+/** G-8 : ombre de `Terminer` (Figma `8328:35738`), sans jeton d'ombre (constantes locales). */
+const FINISH_SHADOW = { color: "#1A1A26", opacity: 0.18, offsetY: 2, radius: 10, elevation: 3 } as const;
+/** G-4 : interligne du Nom (Figma `6981:14889`). */
+const NAME_LINE_HEIGHT = 22;
+/** G-6 : interligne de la Phrase (Figma « Phrase — texte »). */
+const PHRASE_LINE_HEIGHT = 20;
 
 /** Halo figé sous le bouton Retour (« Halo blanc — bouton Annuler », 5752:4044). */
 const BACK_HALO_DIAMETER = 59.28;
@@ -761,7 +851,7 @@ const styles = StyleSheet.create({
     minHeight: dimensions.contextBand.height,
     paddingTop: dimensions.contextBand.paddingTop,
     paddingBottom: dimensions.contextBand.paddingBottom,
-    gap: spacing[12],
+    // PRE-5 story 3.2 (E-V4) : écart Nom → rangée des accès nul (12 en PRE-4).
   },
   contextBandFade: {
     position: "absolute",
@@ -783,14 +873,16 @@ const styles = StyleSheet.create({
     height: BACK_HALO_DIAMETER,
     borderRadius: BACK_HALO_DIAMETER / 2,
     backgroundColor: colors.background,
-    // Centre = centre du ✕ de l’en-tête partagé (cercle 38 après la marge latérale,
-    // centré dans la hauteur de contenu 48 juste au-dessus de la zone) ; `left` est
-    // calculé au rendu depuis la marge (story 4.2, AC5).
+    // Centre = centre du ✕ de l’en-tête (centré dans la hauteur de contenu 48 juste
+    // au-dessus de la zone) ; `left` est calculé au rendu (`EDITOR_HEADER.backCenterX`).
     top: -dimensions.header.contentHeight / 2 - BACK_HALO_DIAMETER / 2,
   },
   // Recette 2 (T-49, décision du 12/10) : aucun liseré autour du champ Nom.
+  // PRE-5 story 3.2, arbitrage G-4 de Hermann du 19/10 : Inter Semi Bold 20 (`type.screenTitle`),
+  // interligne local 22 (Figma `8328:35698`).
   nameInput: {
     ...type.screenTitle,
+    lineHeight: NAME_LINE_HEIGHT,
     color: colors.textPrimary,
     backgroundColor: "transparent",
     borderRadius: fixedRadii[10],
@@ -801,113 +893,99 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     flexWrap: "wrap",
+    minHeight: ACCESS_ROW_HEIGHT,
+    paddingLeft: ACCESS_ROW_PADDING_LEFT,
     columnGap: ACCESS_COLUMN_GAP,
     rowGap: ACCESS_ROW_GAP,
   },
-  referencePill: {
+  // PRE-5 story 3.2 : géométrie commune aux deux registres (seuls fond et couleurs changent).
+  referenceAccess: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing[6],
-    minHeight: ACCESS_PILL_MIN_HEIGHT,
+    gap: ACCESS_GLYPH_GAP,
+    // Hauteur minimale (PRE-4 4.6 AC5 : texte agrandi jamais plafonné ni rogné).
+    minHeight: ACCESS_HEIGHT,
     maxWidth: "100%",
-    paddingLeft: spacing[4],
-    paddingRight: spacing[12],
-    borderRadius: fixedRadii[16],
-    borderWidth: 1,
-    borderColor: colors.primary,
-    backgroundColor: colors.background,
+    paddingLeft: ACCESS_PADDING_LEFT,
+    paddingRight: ACCESS_PADDING_RIGHT,
+    borderRadius: ACCESS_RADIUS,
   },
-  categorySwatch: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+  referenceAccessUnset: {
+    backgroundColor: ACCESS_UNSET_VEIL,
   },
   referenceLabel: {
-    ...type.button,
+    ...type.exerciseFieldValue,
     color: colors.primary,
     flexShrink: 1,
+  },
+  referenceLabelSet: {
+    color: colors.textPrimary,
   },
   body: {
     flex: 1,
   },
-  // Story 4.2 (AC4, AC5) : grille de D-327 — 18 du bas du dégradé au premier titre,
-  // 12 du dernier bloc (Médias) à `Terminer` ; marge latérale appliquée au rendu.
+  // Story 4.2 (AC4, AC5) ; PRE-5 3.2 (G-2) : 14 du bas du dégradé à la première section,
+  // 12 du dernier bloc (Médias) à `Terminer` (réserve de défilement nommée) ;
+  // marge latérale appliquée au rendu.
   bodyContent: {
     flexGrow: 1,
     paddingTop: EDITOR_VERTICAL_GRID.contextToFirstText,
-    paddingBottom: EDITOR_VERTICAL_GRID.blockToBlock,
+    paddingBottom: FINISH_SCROLL_RESERVE,
   },
+  // PRE-5 story 3.2 (FR-38) : titres de section en Regular 11 secondaire.
   sectionTitle: {
-    ...type.sectionTitle,
-    color: colors.textPrimary,
+    ...type.caption,
+    color: colors.textSecondary,
     flexShrink: 1,
   },
+  // PRE-5 story 3.2 (FR-38, E-V10) : bloc `surfaceSubtle`, rayon 12, sans liseré ; texte au
+  // fer de celui des étapes de la Description (`DESCRIPTION_STEP_GUTTER`).
   parametersCard: {
-    borderWidth: 1,
-    borderColor: colors.border,
     borderRadius: fixedRadii[12],
-    paddingHorizontal: spacing[14],
+    paddingHorizontal: DESCRIPTION_STEP_GUTTER,
     paddingVertical: spacing[12],
-    gap: spacing[4],
-    backgroundColor: colors.background,
+    backgroundColor: colors.surfaceSubtle,
   },
-  // Phrase : Inter 13, interligne 20, valeurs Semi Bold ; hauteur intrinsèque, jamais tronquée.
+  // Phrase : valeurs Semi Bold ; hauteur intrinsèque, jamais tronquée. PRE-5 story 3.2,
+  // arbitrage G-6 de Hermann du 19/10 : Inter Regular 14 (`type.body`), interligne local 20,
+  // à la place de la taille 13 de FR-02-06.
   phrase: {
-    ...type.exerciseFieldValue,
-    lineHeight: 20,
+    ...type.body,
+    lineHeight: PHRASE_LINE_HEIGHT,
     color: colors.textPrimary,
   },
   phraseBold: {
     fontFamily: "Inter_600SemiBold",
     fontWeight: "600",
   },
-  cardSeparator: {
-    height: 1,
-    backgroundColor: colors.border,
-    marginTop: spacing[4],
-  },
-  phasesRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    columnGap: spacing[24],
-    rowGap: spacing[4],
-    paddingTop: spacing[4],
-  },
-  phase: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing[6],
-  },
-  phaseLabel: {
-    ...type.exerciseFieldValue,
-    color: colors.textPrimary,
-  },
-  phaseValue: {
-    ...type.editableValue,
-    color: colors.primary,
-    backgroundColor: colors.surface,
-    borderRadius: fixedRadii[6],
-    overflow: "hidden",
-    paddingHorizontal: spacing[8],
-    paddingVertical: 2,
-  },
-  // D-327 : 13 entre un titre de section et son bloc ; 20 entre le dernier élément
-  // d'un bloc et le titre de la section suivante.
+  // PRE-5 3.2 (G-2, à la place de D-327 pour cet écran) : 10 entre un titre de section et
+  // son contenu ; 16 entre deux sections.
   section: {
     gap: EDITOR_VERTICAL_GRID.titleToBlock,
   },
   followingSection: {
     marginTop: EDITOR_VERTICAL_GRID.blockToNextTitle,
   },
-  // Recette 3 (N-05) : place réservée à ↑ (le texte ne passe jamais dessous).
-  instructionInputWithSend: {
-    paddingRight: DESCRIPTION_SEND_SIZE + spacing[8] * 2,
+  // G-7 : titre lu par VoiceOver, sans place à l'écran (hors flux, 1 × 1, texte transparent,
+  // opacité conservée pour rester un élément d'accessibilité).
+  accessibilityOnlyTitle: {
+    ...type.caption,
+    position: "absolute",
+    width: 1,
+    height: 1,
+    overflow: "hidden",
+    color: "transparent",
   },
-  // Le champ est le dernier enfant de sa section : ↑ s’ancre dans son coin bas droit.
+  // Recette 3 (N-05) : place réservée à ↑ (le texte ne passe jamais dessous).
+  // PRE-5 story 3.1 : sans contenant, la réserve porte sur la liste des étapes.
+  descriptionStepsWithSend: {
+    paddingRight: DESCRIPTION_SEND_SIZE + spacing[8],
+  },
+  // La liste est le dernier bloc de sa section : ↑ s’ancre dans son coin bas droit.
   descriptionSend: {
     position: "absolute",
-    right: spacing[8],
-    bottom: spacing[8],
+    right: 0,
+    bottom: 0,
     width: DESCRIPTION_SEND_SIZE,
     height: DESCRIPTION_SEND_SIZE,
     borderRadius: DESCRIPTION_SEND_SIZE / 2,
@@ -919,27 +997,25 @@ const styles = StyleSheet.create({
     ...type.button,
     color: colors.background,
   },
-  instructionInput: {
-    ...type.exerciseFieldValue,
-    color: colors.textPrimary,
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.disabled,
-    borderRadius: fixedRadii[8],
-    padding: spacing[14],
-    minHeight: 44,
-    textAlignVertical: "top",
-  },
   // Story 4.2 : 12 (bloc → bloc, D-327) portés par le bas du corps ; marge latérale au rendu.
+  // PRE-5 story 3.2 (FR-37) : marge basse appliquée au rendu (`finishBottom`).
   finishActionSlot: {
     position: "relative",
   },
+  // PRE-5 story 3.2, arbitrages G-8 et G-10 de Hermann du 19/10 (Figma `8328:35738`) :
+  // hauteur `dimensions.finalAction.buttonHeight`, ombre locale `#1A1A26` 18 %, (0, 2), flou 10,
+  // dans les deux états.
   primaryAction: {
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 48,
+    minHeight: dimensions.finalAction.buttonHeight,
     borderRadius: 24,
     backgroundColor: colors.primary,
+    shadowColor: FINISH_SHADOW.color,
+    shadowOpacity: FINISH_SHADOW.opacity,
+    shadowOffset: { width: 0, height: FINISH_SHADOW.offsetY },
+    shadowRadius: FINISH_SHADOW.radius,
+    elevation: FINISH_SHADOW.elevation,
   },
   primaryActionDisabled: {
     backgroundColor: colors.disabled,

@@ -498,16 +498,12 @@ describe("strings — PRE-3", () => {
     // PRE-4 (story 1.1, AC22) : deux Modes seulement ; « à l’échec » reste le texte d’une Cible.
     expect(pre3.sheet.modes).toEqual({ DURATION: "Durée", REPETITIONS: "Répétitions" });
     expect(pre3.sheet.failureTarget).toBe("à l’échec");
-    expect(pre3.sheet.sideModes).toEqual({
-      UNILATERAL: "Sans changement",
-      RIGHT_LEFT: "Droite puis gauche",
-      LEFT_RIGHT: "Gauche puis droite",
-    });
+    // PRE-5 story 2.5 (AC5) : libellés anatomiques `sideModes` retirés (voir « strings — PRE-5 story 2.5 »).
     expect(pre3.sheet.sideOrders).toEqual({
       BY_SIDE: "Un côté après l’autre",
       BY_SERIES: "Les deux côtés à chaque série",
     });
-    for (const label of [pre3.sheet.pause, pre3.sheet.beep, pre3.sheet.sideRecovery, pre3.sheet.countdown, pre3.sheet.end]) {
+    for (const label of [pre3.sheet.pause, pre3.sheet.cadence, pre3.sheet.sideRecovery, pre3.sheet.countdown, pre3.sheet.end]) {
       expect(label.length).toBeGreaterThan(0);
     }
     expect(pre3.sheet.incompleteSeries.DURATION.replace("{n}", "2")).toBe("Série 2 : renseignez la durée.");
@@ -549,5 +545,65 @@ describe("strings — PRE-4 story 2.2", () => {
     const result = (kind: "estimated" | "lowerBound") => ({ kind, seconds: 90, knownSeconds: 90, events: [] });
     expect(totalClauseAmount(result("estimated"))).toBe(`${estimatedPrefix}1 min 30 s`);
     expect(totalClauseAmount(result("lowerBound"))).toBe(`${lowerBoundPrefix}1 min 30 s`);
+  });
+});
+
+describe("strings — PRE-5 story 2.4", () => {
+  it("PRE5-2.4/AC9 — clés de la Feuille : Mode, Condition d’arrêt et ses trois résultats, Type de série (RC-15 : nombre porté par l’option sélectionnée, plus de « Nombre de séries ») ; Régime retiré ; aucun « Cible », « Définie » ni « Ordre » réintroduit", () => {
+    const sheet = strings.executionParameters.sheet;
+    expect(sheet.mode).toBe("Mode");
+    expect(sheet.stopCondition).toBe("Condition d’arrêt");
+    expect(sheet.stopConditions).toEqual({ FAILURE: "À l’échec", TARGET: "À la cible", MIXED: "À la cible et à l’échec" });
+    // Recette du 20/10 (RC-15) : la ligne « Nombre de séries » est retirée.
+    expect("seriesCount" in sheet).toBe(false);
+    // Recette du 20/10 (RC-17) : la ligne du segmenté « Variables | Identiques » s'intitule « Séries ».
+    expect(sheet.seriesType).toBe("Séries");
+    expect([sheet.seriesCountUniform, sheet.seriesCountUniformSingular]).toEqual(["{n} séries identiques", "{n} série identique"]);
+    expect([sheet.seriesCountVariable, sheet.seriesCountVariableSingular]).toEqual(["{n} séries variables", "{n} série variable"]);
+    expect(sheet.seriesTypes).toEqual({ VARIABLE: "Variables", UNIFORM: "Identiques" });
+    // NR Δ38 (RC-15 : présentation seule remplacée) : le nom accessible du stepper de N reste « Séries » ; chevron du tableau inchangé.
+    expect(sheet.series).toBe("Séries");
+    expect([sheet.showTable, sheet.hideTable]).toEqual(["Afficher le tableau des séries", "Masquer le tableau des séries"]);
+    for (const removed of ["regime", "regimes", "regimeSubtitles"]) {
+      expect({ removed, present: removed in sheet }).toEqual({ removed, present: false });
+    }
+    const added = [sheet.mode, sheet.stopCondition, sheet.seriesType, ...Object.values(sheet.stopConditions), ...Object.values(sheet.seriesTypes)];
+    expect(added.filter((label) => /(^|\s)(Cible|Définie|Ordre)(\s|$)/u.test(label))).toEqual([]);
+  });
+});
+
+describe("strings — PRE-5 story 2.5", () => {
+  it("PRE5-2.5/AC5 — clés des cadres Côtés et Cadence et durée : Changement de côté Avec / Sans, Enchainement à notations ➜ (D-431, rétablies par RC-12), Cadence et options, Durée de l’exercice ; clés orphelines retirées ; « Durée totale » de la Phrase intacte", () => {
+    const sheet = strings.executionParameters.sheet;
+    expect(sheet.sideMode).toBe("Changement de côté");
+    expect(sheet.sideModeChoices).toEqual({ WITH: "Avec", WITHOUT: "Sans" });
+    expect(sheet.sideSequence).toBe("Enchainement");
+    // Notations graphiques exactes de la frame `8328:38193` (D-431), flèche centrale ➜ ; rétablies
+    // par la recette du 19/10 (RC-12) après le raccourcissement de RC-11.
+    expect(sheet.sideOrderSubtitles).toEqual({ BY_SIDE: "(D1 → D2) ➜ (G1 → G2)", BY_SERIES: "(D1 → G1) ➜ (D2 → G2)" });
+    // Nom accessible neutre des options (D-407).
+    expect(sheet.sideOrders).toEqual({ BY_SIDE: "Un côté après l’autre", BY_SERIES: "Les deux côtés à chaque série" });
+    expect(sheet.cadence).toBe("Cadence");
+    expect(sheet.cadenceOptions).toEqual({ OTHER: "Autre", "1": "1 s", NONE: "Sans" }); // RC-10
+    expect(sheet.exerciseDuration).toBe("Durée de l’exercice");
+    // D-433 : le symbole ≈ quitte le titre (collé à la valeur) ; la clé `exerciseDurationEstimated`
+    // est supprimée. Ligne toujours affichée : « Non calculable » et annonce de « — ».
+    expect("exerciseDurationEstimated" in sheet).toBe(false);
+    expect(sheet.totalNotCalculable).toBe("Non calculable");
+    expect(sheet.totalMissingSpoken).toBe("données manquantes");
+    expect(sheet.exerciseDurationEditAccessibilityLabel).toBe("Durée de l’exercice, ajuster le nombre de séries");
+    for (const label of [sheet.showExerciseSignals, sheet.hideExerciseSignals]) {
+      expect(label.length).toBeGreaterThan(0);
+    }
+    // Recette du 19/10 (RC-6) : menu de l'Enchainement dans l'option Avec, chevron de repli retiré.
+    expect(sheet.sideSequenceCancel).toBe("Annuler");
+    for (const removed of ["showSideSettings", "hideSideSettings", "sideModes", "sideModeOptions", "sideOrder", "beep", "beepNone", "total", "totalEstimated", "totalEditAccessibilityLabel"]) {
+      expect({ removed, present: removed in sheet }).toEqual({ removed, present: false });
+    }
+    // Aucune désignation anatomique ni « Durée totale » dans les libellés de la Feuille.
+    const labels = JSON.stringify(sheet);
+    expect(labels).not.toMatch(/Droite puis|Gauche puis|Sans changement|Bip de cadence|Durée totale|Ordre des côtés/u);
+    // Identifiants techniques non renommés : `sideOrders` garde ses clés `SideOrder`.
+    expect(Object.keys(sheet.sideOrders)).toEqual(["BY_SIDE", "BY_SERIES"]);
   });
 });

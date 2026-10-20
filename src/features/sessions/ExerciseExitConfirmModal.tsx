@@ -59,6 +59,9 @@ export type ExerciseExitConfirmModalProps = {
  * `onRequestClose` (bouton matériel Android) traité comme Annuler par
  * `DecisionDialog` — comportement inchangé.
  */
+/** G-9 : couleur du message du dialogue d'abandon (`8328:36781`), sans jeton exact. */
+const EXIT_DIALOG_MESSAGE_COLOR = "#474D57";
+
 export function ExerciseExitConfirmModal({ onCancel, onConfirm, isCreation = false }: ExerciseExitConfirmModalProps) {
   const modalStrings = strings.screens.exercise.exitConfirmModal;
 
@@ -67,12 +70,18 @@ export function ExerciseExitConfirmModal({ onCancel, onConfirm, isCreation = fal
       title={isCreation ? modalStrings.createTitle : modalStrings.title}
       titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText }}
       message={isCreation ? modalStrings.createMessage : modalStrings.message}
-      messageStyle={{ ...type.body, color: colors.textSecondary }}
+      // PRE-5 story 3.2, arbitrage G-9 de Hermann du 19/10 (Figma `8328:36781`) : titre Inter
+      // Semi Bold 18 (`type.modalTitle`, inchangé), message Inter Regular 14 interligne 21
+      // (`type.dialogMessage`) ; structure, couleurs et interactions PRE-3 conservées.
+      // Compléments G-9 (conformité au Figma actuel, `8328:36781`) : message `#474D57` (constante
+      // locale), libellés d'action en 16 — « Annuler » Semi Bold `#292E38`, « Confirmer » Medium —
+      // et liseré de « Confirmer » (jetons Séance existants) ; structure et interactions inchangées.
+      messageStyle={{ ...type.dialogMessage, color: EXIT_DIALOG_MESSAGE_COLOR }}
       cancelLabel={modalStrings.continueEditing}
-      cancelLabelStyle={{ ...type.button, color: colors.dialogTitleText }}
+      cancelLabelStyle={{ ...type.dialogNeutralActionLabel, color: colors.dialogNeutralActionText }}
       confirmLabel={modalStrings.abandon}
-      confirmLabelStyle={type.button}
-      confirmBordered={false}
+      confirmLabelStyle={type.dialogDestructiveActionLabel}
+      confirmBordered
       onCancel={onCancel}
       onConfirm={onConfirm}
       testIDPrefix="exercise-exit-confirm"

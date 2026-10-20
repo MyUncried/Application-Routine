@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { describe, expect, it, jest } from "@jest/globals";
+import { StyleSheet } from "react-native";
 
 import { EXECUTION_ACCELERATED_HOLD_POLICY, InlineStepper, ProfileStepper } from "@/shared/ui/ProfileStepper";
 
@@ -404,5 +405,47 @@ describe("PRE4-3.8 — InlineStepper : limites annoncées sur opt-in", () => {
     expect(spoken({ value: 4, announceLimits: true })).toBe("4 s");
     expect(spoken({ value: 5999, announceLimits: true })).toBe("5999 s");
     expect(spoken({ value: null, announceLimits: true })).toBe("—");
+  });
+});
+
+/**
+ * PRE-5 story 2.8 (D-432, AD-24) — ajout additif d'`InlineStepper` : `appearance="bare"` (ni
+ * fond, ni marge, ni hauteur minimale ; mêmes cercles, même mécanisme, même accessibilité
+ * ajustable) et `valueStyle` (style de la valeur). Défaut inchangé : pilule lavande.
+ */
+describe("PRE5-2.8 — InlineStepper : apparence sans pilule et style de la valeur", () => {
+  const flat = (testID: string) => StyleSheet.flatten(screen.getByTestId(testID).props.style) ?? {};
+
+  it("par défaut : pilule de 36 (marge 4, fond lavande), valeur sans style ajouté", () => {
+    render(
+      <InlineStepper value={3} min={2} max={6} policy={EXECUTION_ACCELERATED_HOLD_POLICY} formatValue={(v) => `${v} phases`} onChange={() => {}} accessibilityLabel="Nombre de phases" testID="pill" />,
+    );
+    expect(flat("pill")).toMatchObject({ minHeight: 36, padding: 4, backgroundColor: "#F2F2FF" });
+  });
+
+  it("`bare` : ni fond, ni marge, ni hauteur minimale ; − et + identiques, bornes 2..6, réglage ajustable ; `valueStyle` appliqué à la valeur", () => {
+    const onChange = jest.fn();
+    render(
+      <InlineStepper
+        value={2}
+        min={2}
+        max={6}
+        policy={EXECUTION_ACCELERATED_HOLD_POLICY}
+        formatValue={(v) => `${v} phases`}
+        onChange={onChange}
+        accessibilityLabel="Nombre de phases"
+        appearance="bare"
+        valueStyle={{ color: "#FFFFFF", fontSize: 12 }}
+        testID="bare"
+      />,
+    );
+    expect(flat("bare")).toMatchObject({ minHeight: 0, padding: 0, backgroundColor: "transparent" });
+    expect(flat("bare-value")).toMatchObject({ color: "#FFFFFF", fontSize: 12 });
+    expect(screen.getByTestId("bare").props.accessibilityRole).toBe("adjustable");
+    expect(screen.getByTestId("bare-decrement").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(flat("bare-increment")).toMatchObject({ width: 28, height: 28 });
+    fireEvent(screen.getByTestId("bare-increment"), "pressIn");
+    fireEvent(screen.getByTestId("bare-increment"), "pressOut");
+    expect(onChange).toHaveBeenCalledWith(3);
   });
 });

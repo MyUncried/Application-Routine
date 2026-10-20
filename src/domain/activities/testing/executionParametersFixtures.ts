@@ -14,6 +14,7 @@ import {
   type ExecutionParameters,
   type SeriesTarget,
   type SideOrder,
+  type WorkPhase,
 } from "@/domain/activities/ExecutionParameters";
 import type { SideMode } from "@/domain/sessions/sideMode";
 
@@ -40,6 +41,8 @@ export type CommonFixtureOptions = {
   readonly cadenceBeepIntervalSeconds?: number;
   readonly countdownSeconds?: number;
   readonly endSeconds?: number;
+  /** PRE-5 (AD-19) : charge Avec / Sans, Sans par défaut. */
+  readonly loadEnabled?: boolean;
 };
 
 function common(options: CommonFixtureOptions) {
@@ -50,6 +53,7 @@ function common(options: CommonFixtureOptions) {
     cadenceBeepIntervalSeconds: options.cadenceBeepIntervalSeconds ?? 0,
     countdownSeconds: options.countdownSeconds ?? 0,
     endSeconds: options.endSeconds ?? 0,
+    loadEnabled: options.loadEnabled ?? false,
   } as const;
 }
 
@@ -60,6 +64,9 @@ export function uniformParameters(
     readonly count?: number;
     readonly target: FixtureTarget;
     readonly pauseSeconds?: number;
+    /** PRE-5 (AD-19, AD-20) : charge commune (0 par défaut) et phases (aucune par défaut). */
+    readonly loadKg?: number;
+    readonly workPhases?: readonly WorkPhase[];
   },
 ): ExecutionParameters {
   return {
@@ -70,6 +77,8 @@ export function uniformParameters(
       count: options.count ?? 1,
       target: toTarget(options.target),
       pauseSeconds: options.pauseSeconds ?? 0,
+      loadKg: options.loadKg ?? 0,
+      workPhases: options.workPhases ?? [],
     },
     ...common(options),
   };
@@ -79,7 +88,8 @@ export function uniformParameters(
 export function variableParameters(
   options: CommonFixtureOptions & {
     readonly mode?: ExecutionMode;
-    readonly rows: readonly (readonly [FixtureTarget, number])[];
+    /** `[cible, pause]` ou `[cible, pause, charge]` (PRE-5, AD-19 ; charge 0 par défaut). */
+    readonly rows: readonly (readonly [FixtureTarget, number, number?])[];
   },
 ): ExecutionParameters {
   return {
@@ -87,7 +97,7 @@ export function variableParameters(
     mode: options.mode ?? "DURATION",
     series: {
       kind: "VARIABLE",
-      rows: options.rows.map(([target, pauseSeconds]) => ({ target: toTarget(target), pauseSeconds })),
+      rows: options.rows.map(([target, pauseSeconds, loadKg]) => ({ target: toTarget(target), pauseSeconds, loadKg: loadKg ?? 0 })),
     },
     ...common(options),
   };

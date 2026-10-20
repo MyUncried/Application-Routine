@@ -39,6 +39,11 @@ import { ExecutionParametersSheet } from "@/features/activities/ExecutionParamet
 import {
   chooseExecutionMode,
   chooseExecutionRegime,
+  chooseExecutionSide,
+  durationKeys,
+  enterExecutionSheetCell,
+  openExecutionSheetField,
+  showExerciseDurationSignals,
   tapExecutionSheetStep,
 } from "@/features/activities/testing/executionSheetActions";
 import { openMediaMenu } from "@/features/activities/testing/mediaMenu";
@@ -167,10 +172,11 @@ async function savedDefinition(
     sideMode: "RIGHT_LEFT",
     sideRecoverySeconds: 5,
   }),
+  description: string = "Genou au-dessus de la cheville.",
 ): Promise<ActivityDefinition> {
   const validated = validateActivityDefinitionInput({
     name: "Fentes",
-    description: "Genou au-dessus de la cheville.",
+    description,
     category: { kind: "EXISTING", categoryId: "cardio" },
     bodyZoneIds: ["cuisses", "dos"],
     executionParameters,
@@ -796,7 +802,7 @@ function editorContent() {
   const props = editorSpy.mock.calls.at(-1)![0] as {
     value: {
       name: string;
-      instruction: string | null;
+      instructionSteps: readonly string[];
       bodyZoneIds: readonly string[];
       media: readonly { assetId: string }[];
       executionParameters: unknown;
@@ -805,7 +811,8 @@ function editorContent() {
   };
   return {
     name: props.value.name,
-    instruction: props.value.instruction,
+    // PRE-5 story 3.1 : la Description relue en étapes (décodage à l'ouverture).
+    instructionSteps: [...props.value.instructionSteps],
     category: props.category?.name ?? null,
     // Ensemble de Zones : l’Éditeur les relit dans l’ordre du référentiel, quel que soit l’ordre de sélection.
     bodyZoneIds: [...props.value.bodyZoneIds].sort(),
@@ -888,7 +895,7 @@ describe("PRE4-4.1/AC10 — relecture à l'identique après bascules, dans les q
     const opened = editorContent();
     expect(opened).toEqual({
       name: "Fentes",
-      instruction: "Genou au-dessus de la cheville.",
+      instructionSteps: ["Genou au-dessus de la cheville."],
       category: await savedCategoryName(),
       bodyZoneIds: ["cuisses", "dos"],
       media: ["p1", "p2"],
@@ -923,7 +930,7 @@ describe("PRE4-4.1/AC10 — relecture à l'identique après bascules, dans les q
     const opened = editorContent();
     expect(opened).toEqual({
       name: "Fentes",
-      instruction: "Genou au-dessus de la cheville.",
+      instructionSteps: ["Genou au-dessus de la cheville."],
       category: await savedCategoryName(),
       bodyZoneIds: ["cuisses", "dos"],
       media: ["p1", "p2"],
@@ -955,7 +962,7 @@ describe("PRE4-4.1/AC10 — relecture à l'identique après bascules, dans les q
     await completeNewExercise("Dos droit.");
     toggleModeAndValidate();
     const entered = editorContent();
-    expect(entered).toMatchObject({ name: "Gainage", instruction: "Dos droit.", bodyZoneIds: expect.arrayContaining(["dos", "cuisses"]) });
+    expect(entered).toMatchObject({ name: "Gainage", instructionSteps: ["Dos droit."], bodyZoneIds: expect.arrayContaining(["dos", "cuisses"]) });
     await act(async () => {
       fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
     });
@@ -1000,34 +1007,22 @@ describe("PRE4-4.1/AC10 — relecture à l'identique après bascules, dans les q
 
 /**
  * Report de 4.1 (AC10), rejoué dans la story 4.2 : les Cibles à l'échec sont
- * SAISIES dans la Feuille (roue de cellule de la story 3.4, option « à
- * l'échec »), dans les quatre parcours, puis relues à l'identique après les
- * bascules (Mode aller-retour, déplacement, N 3 → 1 → 3).
+ * SAISIES dans la Feuille (D-434 : au clavier numérique de la cellule, « À l'échec »
+ * de la barre du clavier), dans les quatre parcours, puis relues à l'identique après
+ * les bascules (Mode aller-retour, déplacement, N 3 → 1 → 3).
  */
 const hidden = { includeHiddenElements: true } as const;
 
-/** Mise en page simulée d'une ligne du tableau et de sa cellule de Cible (le panneau de la roue attend ces mesures). */
-function measureTableRow(row: number) {
-  fireEvent(screen.getByTestId(`execution-sheet-table-row-${row}-motion`, hidden), "layout", {
-    nativeEvent: { layout: { x: -12, y: 30 + 44 * (row - 1), width: 354, height: 44 } },
-  });
-  fireEvent(screen.getByTestId(`execution-sheet-table-row-${row}-target-cell`, hidden), "layout", {
-    nativeEvent: { layout: { x: 42, y: 4, width: 128, height: 36 } },
-  });
+/** D-434 : saisit la Cible d'une ligne au clavier de sa cellule (durée en secondes), ou « À l'échec » par la barre. */
+function enterRowTarget(row: number, target: number | "FAILURE") {
+  enterExecutionSheetCell(`execution-sheet-table-row-${row}-target`, target === "FAILURE" ? "FAILURE" : durationKeys(target));
+  expect(screen.queryByTestId("number-wheel-column")).toBeNull();
 }
 
-/** Saisit la Cible d'une ligne par sa roue : une durée en secondes, ou l'option « à l'échec ». */
-function enterRowTarget(row: number, target: number | "FAILURE") {
-  measureTableRow(row);
-  fireEvent.press(screen.getByTestId(`execution-sheet-table-row-${row}-target-value-press`, hidden));
-  if (target === "FAILURE") {
-    fireEvent.press(screen.getByTestId("duration-wheel-failure-option"));
-  } else {
-    fireEvent(screen.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: Math.floor(target / 60) } });
-    fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: target % 60 } });
-  }
-  fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-  expect(screen.queryByTestId("execution-sheet-cell-panel")).toBeNull();
+/** D-434 : saisit la Pause d'une ligne au clavier de sa cellule (« MMSS »). */
+function enterRowPause(row: number, seconds: number) {
+  enterExecutionSheetCell(`execution-sheet-table-row-${row}-pause`, durationKeys(seconds));
+  expect(String(screen.getByTestId(`execution-sheet-table-row-${row}-pause-value`, hidden).props.children)).toBe(`${seconds} s`);
 }
 
 /** Bascules de AC10 dans la Feuille déjà ouverte, puis ✓. */
@@ -1095,9 +1090,18 @@ function stepTo(id: string, expected: string) {
  * CC, CS : nouvel Exercice — `variables`, N = 3, Cibles 30 s, 45 s, à l'échec,
  * Pauses 10, 20, 30 s, bilatéral (Pause au changement de côté 5 s), Bip 2 s,
  * Compte à rebours 10 s, Fin 5 s — tout saisi dans la Feuille.
+ *
+ * PRE-5 story 2.5 (AC4, D-409, RM-218) : dans un Exercice ouvert depuis une Séance (CS),
+ * la Feuille ne présente ni Compte à rebours ni Fin ; leurs valeurs (celles du Profil à la
+ * création) sont conservées telles quelles. En Catalogue (CC), ils sont dépliés sous la Durée
+ * de l'exercice avant d'être réglés.
  */
-function enterMixedTargetsOnNewExercise() {
+function enterMixedTargetsOnNewExercise(context: "catalogue" | "session" = "catalogue") {
+  const initial = editorContent().executionParameters as ExecutionParameters;
   fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+  expect((sheetSpy.mock.calls.at(-1)![0] as { exerciseSignals?: string }).exerciseSignals ?? "present").toBe(
+    context === "session" ? "absent" : "present",
+  );
   for (let guard = 0; guard < 5 && screen.getByTestId("execution-sheet-series-value").props.children !== "3 séries"; guard += 1) {
     tap("execution-sheet-series-increment");
   }
@@ -1106,20 +1110,32 @@ function enterMixedTargetsOnNewExercise() {
   enterRowTarget(1, 30);
   enterRowTarget(2, 45);
   enterRowTarget(3, "FAILURE");
-  stepTo("execution-sheet-table-row-1-pause", "10 s");
-  stepTo("execution-sheet-table-row-2-pause", "20 s");
-  stepTo("execution-sheet-table-row-3-pause", "30 s");
-  fireEvent.press(screen.getByTestId("execution-sheet-side-value"));
-  fireEvent.press(within(screen.getByTestId("execution-sheet-side-control")).getByText("Droite puis gauche"));
+  enterRowPause(1, 10);
+  enterRowPause(2, 20);
+  enterRowPause(3, 30);
+  chooseExecutionSide("Avec");
   stepTo("execution-sheet-side-recovery", "5 s");
+  // PRE-5 story 2.5 (AC3) : le ± de la Cadence est révélé par l'option Autre.
+  openExecutionSheetField("execution-sheet-beep");
   stepTo("execution-sheet-beep", "2 s");
-  stepTo("execution-sheet-countdown", "10 s");
-  stepTo("execution-sheet-end", "5 s");
+  showExerciseDurationSignals();
+  if (context === "catalogue") {
+    stepTo("execution-sheet-countdown", "10 s");
+    stepTo("execution-sheet-end", "5 s");
+  } else {
+    expect(screen.queryByTestId("execution-sheet-row-countdown", hidden)).toBeNull();
+    expect(screen.queryByTestId("execution-sheet-row-end", hidden)).toBeNull();
+  }
   fireEvent.press(screen.getByTestId("execution-sheet-body-outside"));
   toggleOpenSheetAndValidate();
   const entered = editorContent();
-  // Exactement les Paramètres d'exécution de AC10, comme en MC et MS.
-  expect(entered.executionParameters).toEqual(MIXED_PARAMETERS);
+  // Exactement les Paramètres d'exécution de AC10, comme en MC et MS (CS : Compte à rebours et
+  // Fin de la création conservés).
+  expect(entered.executionParameters).toEqual(
+    context === "catalogue"
+      ? MIXED_PARAMETERS
+      : { ...MIXED_PARAMETERS, countdownSeconds: initial.countdownSeconds, endSeconds: initial.endSeconds },
+  );
   expect((entered.executionParameters as ExecutionParameters).series).toMatchObject({
     rows: [{ target: toTarget(30) }, { target: toTarget(45) }, { target: toTarget("FAILURE") }],
   });
@@ -1208,7 +1224,7 @@ describe("PRE4-4.1/AC10 — report : Cibles à l'échec saisies dans la Feuille,
     await settle();
     await fillNewExercise("Gainage");
     await completeNewExercise("Dos droit.");
-    const entered = enterMixedTargetsOnNewExercise();
+    const entered = enterMixedTargetsOnNewExercise("session");
     fireEvent.press(screen.getByTestId("exercise-finish-action"));
     await settle();
     await continueAndSave();
@@ -1888,7 +1904,7 @@ describe("PRE4-4.5/AC4 — consulter un Média sans perdre le Brouillon", () => 
     toggleModeAndValidate();
     openMediaMenu(2).choose(mediaText.menuMoveUp);
     const before = editorContent();
-    expect(before).toMatchObject({ name: "Fentes consultées", instruction: "Dos droit.", media: ["p2", "p1"] });
+    expect(before).toMatchObject({ name: "Fentes consultées", instructionSteps: ["Dos droit."], media: ["p2", "p1"] });
     const finishState = screen.getByTestId("activity-editor-finish-action").props.accessibilityState;
     const databaseBefore = await dump();
 
@@ -1905,5 +1921,122 @@ describe("PRE4-4.5/AC4 — consulter un Média sans perdre le Brouillon", () => 
     expect(screen.getByTestId("activity-editor-finish-action").props.accessibilityState).toEqual(finishState);
     expect(await dump()).toEqual(databaseBefore);
     expect(await definitionMedia(definition.id)).toEqual(["p1", "p2"]);
+  }, 30000);
+});
+
+/**
+ * PRE-5 story 3.1 : saisit des étapes dans la Description, chacune suivie d'Entrée
+ * (texte vide : Entrée seule, qui crée une étape vide intercalée).
+ */
+function typeSteps(texts: readonly string[]) {
+  texts.forEach((text, index) => {
+    const testID = index === 0 ? "exercise-instruction-input" : `exercise-instruction-step-${index + 1}`;
+    if (text !== "") fireEvent.changeText(screen.getByTestId(testID), text);
+    fireEvent.changeText(screen.getByTestId(testID), `${text}\n`);
+  });
+}
+
+describe("PRE5-3.1/AC4, AC5 — étapes : encodage à Terminer, relecture, transport, garde d'abandon", () => {
+  it("PRE5-3.1/AC4 — CC : étapes vides intercalées retirées à Terminer (`A\\nB`), relues renumérotées ; copie Définition → Séance transportée", async () => {
+    const router = renderApp();
+    await openExercisesSegment();
+    fireEvent.press(screen.getByLabelText(sessions.createAction));
+    await settle();
+    await fillNewExercise("Gainage");
+    typeSteps(["Dos droit", "", "Genoux fléchis"]);
+    expect(editorContent().instructionSteps).toEqual(["Dos droit", "", "Genoux fléchis", ""]);
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
+    });
+    await settle(300);
+    expect(router.getPathname()).toBe("/");
+    const [created] = await database.getAllAsync<{ id: string; description: string | null }>(
+      "SELECT id, description FROM activity_definitions",
+    );
+    expect(created!.description).toBe("Dos droit\nGenoux fléchis");
+
+    editorSpy.mockClear();
+    fireEvent.press(within(await screen.findByTestId(`activity-card-${created!.id}`)).getByTestId("activity-card-open"));
+    await screen.findByDisplayValue("Gainage");
+    await settle();
+    expect(editorContent().instructionSteps).toEqual(["Dos droit", "Genoux fléchis"]);
+    expect(screen.getByTestId("exercise-instruction-input").props.value).toBe("Dos droit");
+    expect(screen.getByTestId("exercise-instruction-step-2").props.value).toBe("Genoux fléchis");
+    expect(screen.getByTestId("exercise-instruction-step-3").props.placeholder).toBe(exercise.instruction.nextStepPlaceholder);
+
+    // Copie Définition → Séance : la chaîne encodée est transportée telle quelle.
+    const definition = await new SqliteActivityDefinitionRepository(database).findById(created!.id);
+    expect(activityDefinitionToDraftExercise(definition!, "occ-steps", 0).instruction).toBe("Dos droit\nGenoux fléchis");
+  }, 30000);
+
+  it("PRE5-3.1/AC4 — MS : Copie à étapes ; une étape vide ajoutée par Entrée n'est pas une modification ; une étape saisie est enregistrée à Terminer ; la Définition reste inchangée", async () => {
+    const definition = await savedDefinition(undefined, "Genou aligné\nDos droit");
+    const { copy } = await savedSessionWithCopy(definition);
+    const definitionBefore = await database.getAllAsync("SELECT * FROM activity_definitions");
+    const router = renderApp();
+    await openSessionFromCatalogue();
+
+    fireEvent.press(screen.getByTestId(`composition-exercise-row-${copy.id}`));
+    await settle();
+    expect(editorContent().instructionSteps).toEqual(["Genou aligné", "Dos droit"]);
+    fireEvent.changeText(screen.getByTestId("exercise-instruction-step-2"), "Dos droit\n");
+    expect(editorContent().instructionSteps).toEqual(["Genou aligné", "Dos droit", ""]);
+    fireEvent.press(screen.getByLabelText(exercise.backAccessibilityLabel));
+    await settle(300);
+    expect(screen.queryByText(exercise.exitConfirmModal.title)).toBeNull();
+    expect(router.getPathname()).toBe("/composition");
+
+    fireEvent.press(screen.getByTestId(`composition-exercise-row-${copy.id}`));
+    await settle();
+    fireEvent.changeText(screen.getByTestId("exercise-instruction-step-3"), "Souffler");
+    fireEvent.press(screen.getByTestId("exercise-finish-action"));
+    await settle();
+    await continueAndSave();
+    await waitFor(() => expect(router.getPathname()).toBe("/"));
+    const rows = await database.getAllAsync<{ instruction: string | null }>("SELECT instruction FROM activities");
+    expect(rows).toEqual([{ instruction: "Genou aligné\nDos droit\nSouffler" }]);
+    expect(await database.getAllAsync("SELECT * FROM activity_definitions")).toEqual(definitionBefore);
+  }, 30000);
+
+  it("PRE5-3.1/AC5 — MC : ancienne Description `\\r\\n` à ligne vide relue une ligne = une étape, sans étape fantôme ; non modifiée (ou une étape vide ajoutée) : aucune garde, rien d'écrit", async () => {
+    const definition = await savedDefinition(undefined, "Genou aligné\r\n\r\nDos droit");
+    const before = await dump();
+    const router = renderApp();
+    await openExercisesSegment();
+    fireEvent.press(within(await screen.findByTestId(`activity-card-${definition.id}`)).getByTestId("activity-card-open"));
+    await screen.findByDisplayValue("Fentes");
+    await settle();
+    expect(editorContent().instructionSteps).toEqual(["Genou aligné", "", "Dos droit"]);
+    expect(editorContent().instructionSteps.some((step) => step.includes("\r"))).toBe(false);
+    expect(screen.getByTestId("exercise-instruction-step-2").props.value).toBe("");
+    expect(screen.getByTestId("exercise-instruction-step-2").props.placeholder).toBeUndefined();
+
+    fireEvent.changeText(screen.getByTestId("exercise-instruction-step-3"), "Dos droit\n");
+    fireEvent.press(screen.getByLabelText(activities.editor.backAccessibilityLabel));
+    await settle(300);
+    expect(screen.queryByText(exercise.exitConfirmModal.title)).toBeNull();
+    expect(router.getPathname()).toBe("/");
+    expect(await dump()).toEqual(before);
+  }, 30000);
+
+  it("PRE5-3.1/AC4 — MC : Description entièrement effacée, Terminer : enregistrée NULL", async () => {
+    const definition = await savedDefinition();
+    const router = renderApp();
+    await openExercisesSegment();
+    fireEvent.press(within(await screen.findByTestId(`activity-card-${definition.id}`)).getByTestId("activity-card-open"));
+    await screen.findByDisplayValue("Fentes");
+    await settle();
+    expect(editorContent().instructionSteps).toEqual(["Genou au-dessus de la cheville."]);
+    fireEvent.changeText(screen.getByTestId("exercise-instruction-input"), "");
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
+    });
+    await settle(300);
+    expect(router.getPathname()).toBe("/");
+    const row = await database.getFirstAsync<{ description: string | null }>(
+      "SELECT description FROM activity_definitions WHERE id = ?",
+      [definition.id],
+    );
+    expect(row).toEqual({ description: null });
   }, 30000);
 });
