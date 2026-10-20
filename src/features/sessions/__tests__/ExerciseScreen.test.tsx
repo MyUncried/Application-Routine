@@ -257,6 +257,8 @@ function renderRoute(options: {
   readonly profile?: Partial<ReturnType<typeof createDefaultProfile>>;
   /** PRE-4 story 4.3 : opérations de référentiel doublées (création, échec injecté). */
   readonly referential?: Partial<ReferentialService>;
+  /** PRE-6 story 2.3 : surcharges du brouillon (nature et compte du Circuit). */
+  readonly draft?: Partial<SessionDraftContextValue["draft"]>;
 }) {
   mockSearchParams = options.params ?? {};
   const updateDraft = jest.fn<SessionDraftContextValue["updateDraft"]>();
@@ -283,6 +285,7 @@ function renderRoute(options: {
                   initialCountdownSeconds: 10,
                   finalPhaseSeconds: 5,
                   exercises: options.exercises ?? [],
+                  ...options.draft,
                 },
                 updateDraft,
                 resetDraft: jest.fn(),
@@ -1577,5 +1580,107 @@ describe("ExerciseScreen — PRE-4 story 4.3 (AC12)", () => {
     });
     reduceMotion.mockRestore();
     consoleError.mockRestore();
+  });
+});
+
+/**
+ * PRE-6 (story 2.3, AD-39) : une nouvelle occurrence qui arrive dans un Circuit de Séries est
+ * adaptée à N ; perte de séries → confirmation avant toute mutation.
+ */
+describe("ExerciseScreen — création dans un Circuit de Séries (PRE-6, story 2.3)", () => {
+  const modal = strings.screens.composition.circuitEntryConfirmModal;
+  /** Dernière carte affichée dans le Circuit : la nouvelle occurrence y arrive. */
+  const inCircuit = (count: number) =>
+    canonicalOccurrence({ id: "in-1", structuralPosition: "IN_TOUR", executionParameters: durationParameters(30, count) });
+
+  function seriesCountOf(exercise: SessionDraftExercise): number {
+    const series = exercise.executionParameters.series;
+    return series.kind === "UNIFORM" ? series.count : series.rows.length;
+  }
+
+  it("avec perte : dialogue ; Annuler reste sur l'écran sans ajout ; Confirmer ajoute l'occurrence adaptée", async () => {
+    const { updateDraft, service } = renderRoute({
+      exercises: [inCircuit(1)],
+      draft: { circuitNature: "SERIES", tourRepeatCount: 1 },
+    });
+    await fillNewExercise();
+    fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+    tapExecutionSheetStep("execution-sheet-series-increment");
+    fireEvent.press(screen.getByTestId("execution-sheet-validate"));
+
+    fireEvent.press(screen.getByTestId("exercise-finish-action"));
+    expect(screen.getByText(modal.addTitle)).toBeTruthy();
+    expect(
+      screen.getByText(
+        "L’exercice ajouté aura 1 série. Les séries au-delà de la 1re seront supprimées, avec les valeurs qu’elles portent.",
+      ),
+    ).toBeTruthy();
+    expect(updateDraft).not.toHaveBeenCalled();
+
+    fireEvent.press(within(screen.getByTestId("circuit-entry-confirm-card")).getByLabelText(modal.cancel));
+    expect(screen.queryByText(modal.addTitle)).toBeNull();
+    expect(updateDraft).not.toHaveBeenCalled();
+    expect(mockBack).not.toHaveBeenCalled();
+
+    // « Terminer » reste disponible après Annuler.
+    fireEvent.press(screen.getByTestId("exercise-finish-action"));
+    fireEvent.press(within(screen.getByTestId("circuit-entry-confirm-card")).getByLabelText(modal.confirm));
+    expect(updateDraft).toHaveBeenCalledTimes(1);
+    const added = updateDraft.mock.calls[0]![0].exercises!.find((exercise) => exercise.id !== "in-1")!;
+    expect(added.structuralPosition).toBe("IN_TOUR");
+    expect(seriesCountOf(added)).toBe(1);
+    // Confirmer clôt l'écran comme « Terminer » : médias préparés engagés, retour à la Composition.
+    expect(service.commitMediaDraft).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockBack).toHaveBeenCalledTimes(1));
+  });
+
+  it("la sortie l'emporte : le dialogue de Circuit est retiré et « Terminer » reste utilisable", async () => {
+    const { updateDraft } = renderRoute({
+      exercises: [inCircuit(1)],
+      draft: { circuitNature: "SERIES", tourRepeatCount: 1 },
+    });
+    await fillNewExercise();
+    fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+    tapExecutionSheetStep("execution-sheet-series-increment");
+    fireEvent.press(screen.getByTestId("execution-sheet-validate"));
+    fireEvent.press(screen.getByTestId("exercise-finish-action"));
+    expect(screen.getByTestId("circuit-entry-confirm-card")).toBeTruthy();
+
+    // La garde de sortie se déclenche (geste système) pendant le dialogue.
+    const cancelExit = jest.fn();
+    mockExitGuard.mockReturnValue({ isPendingExit: true, cancelExit, confirmExit: jest.fn() });
+    fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Squat bulgare");
+    expect(screen.queryByTestId("circuit-entry-confirm-card")).toBeNull();
+    expect(screen.getByTestId("exercise-exit-confirm-card")).toBeTruthy();
+
+    // Annuler la sortie : « Terminer » rouvre le dialogue (aucun verrou resté engagé).
+    mockExitGuard.mockReturnValue(defaultExitGuardResult());
+    fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Squat");
+    fireEvent.press(screen.getByTestId("exercise-finish-action"));
+    expect(screen.getByTestId("circuit-entry-confirm-card")).toBeTruthy();
+    expect(updateDraft).not.toHaveBeenCalled();
+  });
+
+  it("sans perte : adaptée à N, sans dialogue", async () => {
+    const { updateDraft } = renderRoute({
+      exercises: [inCircuit(3)],
+      draft: { circuitNature: "SERIES", tourRepeatCount: 3 },
+    });
+    await fillNewExercise();
+    fireEvent.press(screen.getByTestId("exercise-finish-action"));
+
+    expect(screen.queryByText(modal.addTitle)).toBeNull();
+    const added = updateDraft.mock.calls[0]![0].exercises!.find((exercise) => exercise.id !== "in-1")!;
+    expect(seriesCountOf(added)).toBe(3);
+  });
+
+  it("Circuit de Tours : création inchangée", async () => {
+    const { updateDraft } = renderRoute({ exercises: [inCircuit(3)], draft: { tourRepeatCount: 3 } });
+    await fillNewExercise();
+    fireEvent.press(screen.getByTestId("exercise-finish-action"));
+
+    expect(screen.queryByText(modal.addTitle)).toBeNull();
+    const added = updateDraft.mock.calls[0]![0].exercises!.find((exercise) => exercise.id !== "in-1")!;
+    expect(seriesCountOf(added)).toBe(1);
   });
 });

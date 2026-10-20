@@ -1,6 +1,7 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { StyleSheet } from "react-native";
+import { useEffect, useState } from "react";
 
 import type { ActivityDefinition } from "@/domain/activities";
 import * as Crypto from "expo-crypto";
@@ -12,7 +13,7 @@ import {
 } from "@/domain/activities/testing/executionParametersFixtures";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { createDefaultProfile } from "@/domain/preferences/Profile";
-import { createEmptyDraft, type SessionDraft } from "@/domain/sessions/SessionDraft";
+import { createEmptyDraft, createExerciseDraft, type SessionDraft } from "@/domain/sessions/SessionDraft";
 import { catalogueDuration } from "@/features/activities/ActivityCard";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
@@ -20,6 +21,7 @@ import { ActivitySelectionScreen } from "@/features/activities/ActivitySelection
 import type { ProfileService } from "@/features/preferences/ProfileService";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
+import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 import { colors } from "@/shared/ui/tokens";
 
@@ -105,6 +107,7 @@ function renderScreen(
   definitions: readonly ActivityDefinition[],
   updateDraft = jest.fn<(patch: Partial<SessionDraft>) => void>(),
   serviceOverrides: Partial<ActivityDefinitionService> = {},
+  draft: SessionDraft = createEmptyDraft(),
 ) {
   const service: Partial<ActivityDefinitionService> = {
     listActivityDefinitions: jest
@@ -116,7 +119,7 @@ function renderScreen(
     ...serviceOverrides,
   };
   const draftValue = {
-    draft: createEmptyDraft(),
+    draft,
     updateDraft,
     resetDraft: jest.fn(),
   };
@@ -483,5 +486,188 @@ describe("ActivitySelectionScreen — PRE-4 story 1.3", () => {
     expect(thrown).toEqual(new Error("Injected failure"));
     expect(updateDraft).not.toHaveBeenCalled();
     expect(mockBack).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * PRE-6 (story 2.3, AD-39) : copies arrivées dans un Circuit de Séries — adaptation à N,
+ * confirmation unique de perte avant toute mutation, Catalogue jamais modifié.
+ */
+describe("ActivitySelectionScreen — ajout dans un Circuit de Séries (PRE-6, story 2.3)", () => {
+  const modal = strings.screens.composition.circuitEntryConfirmModal;
+
+  beforeEach(() => {
+    mockBack.mockClear();
+  });
+
+  /** Brouillon dont la dernière carte affichée est dans le Circuit : les copies y arrivent. */
+  function circuitDraft(nature: "TOURS" | "SERIES", count: number): SessionDraft {
+    return {
+      ...createEmptyDraft(),
+      circuitNature: nature,
+      tourRepeatCount: count,
+      exercises: [
+        {
+          ...createExerciseDraft("in-1"),
+          name: "Gainage",
+          structuralPosition: "IN_TOUR",
+          executionParameters: durationParameters(30, count),
+        },
+      ],
+    };
+  }
+
+  function seriesCountIn(patch: Partial<SessionDraft>, id: string): number {
+    const series = patch.exercises!.find((exercise) => exercise.id === id)!.executionParameters.series;
+    return series.kind === "UNIFORM" ? series.count : series.rows.length;
+  }
+
+  async function selectAndAdd(ids: readonly string[]) {
+    await waitFor(() => expect(screen.getByTestId("activity-selection-list")).toBeTruthy());
+    for (const id of ids) {
+      fireEvent.press(screen.getByTestId(`activity-selection-row-${id}`));
+    }
+    fireEvent.press(screen.getByTestId("activity-selection-add"));
+  }
+
+  it("avec perte (N = 2, exercice 3 séries) : dialogue avant toute mutation ; Annuler conserve la sélection", async () => {
+    const definition = makeDefinition("a", "Squat", { executionParameters: durationParameters(30, 3) });
+    const { updateDraft } = renderScreen([definition], undefined, {}, circuitDraft("SERIES", 2));
+    await selectAndAdd(["a"]);
+
+    expect(screen.getByText(modal.addTitle)).toBeTruthy();
+    expect(
+      screen.getByText(
+        "L’exercice ajouté aura 2 séries. Les séries au-delà de la 2e seront supprimées, avec les valeurs qu’elles portent.",
+      ),
+    ).toBeTruthy();
+    expect(updateDraft).not.toHaveBeenCalled();
+
+    // L'écran porte déjà son propre « Annuler » : celui du dialogue est pris dans sa carte.
+    fireEvent.press(within(screen.getByTestId("circuit-entry-confirm-card")).getByLabelText(modal.cancel));
+    expect(screen.queryByText(modal.addTitle)).toBeNull();
+    expect(updateDraft).not.toHaveBeenCalled();
+    expect(mockBack).not.toHaveBeenCalled();
+    expect(screen.getByTestId("activity-selection-row-a").props.accessibilityState.checked).toBe(true);
+    // Le Catalogue n'est jamais modifié.
+    expect(definition.executionParameters).toEqual(durationParameters(30, 3));
+  });
+
+  it("avec perte : Confirmer ajoute les copies adaptées à N puis revient à la Composition", async () => {
+    const { updateDraft } = renderScreen(
+      [makeDefinition("a", "Squat", { executionParameters: durationParameters(30, 3) })],
+      undefined,
+      {},
+      circuitDraft("SERIES", 2),
+    );
+    await selectAndAdd(["a"]);
+    fireEvent.press(screen.getByLabelText(modal.confirm));
+
+    expect(updateDraft).toHaveBeenCalledTimes(1);
+    const patch = updateDraft.mock.calls[0]![0];
+    const copy = patch.exercises!.find((exercise) => exercise.id !== "in-1")!;
+    expect(copy.structuralPosition).toBe("IN_TOUR");
+    expect(seriesCountIn(patch, copy.id)).toBe(2);
+    expect(mockBack).toHaveBeenCalledTimes(1);
+  });
+
+  it("plusieurs copies, une seule confirmation, message au pluriel", async () => {
+    renderScreen(
+      [
+        makeDefinition("a", "Squat", { executionParameters: durationParameters(30, 3) }),
+        makeDefinition("b", "Fente", { executionParameters: durationParameters(30, 1) }),
+      ],
+      undefined,
+      {},
+      circuitDraft("SERIES", 2),
+    );
+    await selectAndAdd(["a", "b"]);
+
+    expect(screen.getAllByText(modal.addTitle)).toHaveLength(1);
+    expect(
+      screen.getByText(
+        "Les exercices ajoutés auront 2 séries. Les séries au-delà de la 2e seront supprimées, avec les valeurs qu’elles portent.",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("sans perte (N = 4, exercice 3 séries) : ajouté avec 4 séries, sans dialogue", async () => {
+    const { updateDraft } = renderScreen(
+      [makeDefinition("a", "Squat", { executionParameters: durationParameters(30, 3) })],
+      undefined,
+      {},
+      circuitDraft("SERIES", 4),
+    );
+    await selectAndAdd(["a"]);
+
+    expect(screen.queryByText(modal.addTitle)).toBeNull();
+    const patch = updateDraft.mock.calls[0]![0];
+    const copy = patch.exercises!.find((exercise) => exercise.id !== "in-1")!;
+    expect(seriesCountIn(patch, copy.id)).toBe(4);
+    expect(mockBack).toHaveBeenCalledTimes(1);
+  });
+
+  it("Confirmer rejoue l'ajout sur le brouillon courant : une modification faite pendant le dialogue est conservée", async () => {
+    const holder: { setDraft: ((update: (draft: SessionDraft) => SessionDraft) => void) | null } = { setDraft: null };
+    const updateDraft = jest.fn<(patch: Partial<SessionDraft>) => void>();
+    function StatefulDraft({ children }: { children: React.ReactNode }) {
+      const [draft, setDraft] = useState<SessionDraft>(() => circuitDraft("SERIES", 2));
+      useEffect(() => {
+        holder.setDraft = setDraft;
+      }, []);
+      return (
+        <SessionDraftContext.Provider value={{ draft, updateDraft, resetDraft: jest.fn() }}>
+          {children}
+        </SessionDraftContext.Provider>
+      );
+    }
+    const service: Partial<ActivityDefinitionService> = {
+      listActivityDefinitions: jest
+        .fn<ActivityDefinitionService["listActivityDefinitions"]>()
+        .mockResolvedValue([makeDefinition("a", "Squat", { executionParameters: durationParameters(30, 3) })]),
+      listBodyZones: jest.fn<ActivityDefinitionService["listBodyZones"]>().mockResolvedValue(BODY_ZONE_FIXTURES),
+    };
+    render(
+      <TestSafeAreaProvider>
+        <ActivityDefinitionServiceContext.Provider value={service as ActivityDefinitionService}>
+          <ProfileServiceContext.Provider value={fakeProfileService()}>
+            <StatefulDraft>
+              <ActivitySelectionScreen />
+            </StatefulDraft>
+          </ProfileServiceContext.Provider>
+        </ActivityDefinitionServiceContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+    await selectAndAdd(["a"]);
+    expect(screen.getByText(modal.addTitle)).toBeTruthy();
+
+    act(() => {
+      holder.setDraft!((draft) => ({
+        ...draft,
+        exercises: [...draft.exercises, { ...createExerciseDraft("other"), structuralPosition: "BEFORE_TOUR" }],
+      }));
+    });
+    fireEvent.press(within(screen.getByTestId("circuit-entry-confirm-card")).getByLabelText(modal.confirm));
+
+    expect(updateDraft).toHaveBeenCalledTimes(1);
+    const ids = updateDraft.mock.calls[0]![0].exercises!.map((exercise) => exercise.id);
+    expect(ids).toContain("other");
+    expect(ids).toContain("in-1");
+    expect(ids).toHaveLength(3);
+  });
+
+  it("Circuit de Tours : ajout inchangé (séries conservées, sans dialogue)", async () => {
+    const { updateDraft } = renderScreen(
+      [makeDefinition("a", "Squat", { executionParameters: durationParameters(30, 3) })],
+      undefined,
+      {},
+      circuitDraft("TOURS", 2),
+    );
+    await selectAndAdd(["a"]);
+
+    expect(screen.queryByText(modal.addTitle)).toBeNull();
+    const patch = updateDraft.mock.calls[0]![0];
+    const copy = patch.exercises!.find((exercise) => exercise.id !== "in-1")!;
+    expect(seriesCountIn(patch, copy.id)).toBe(3);
   });
 });

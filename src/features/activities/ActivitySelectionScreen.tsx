@@ -8,7 +8,9 @@ import { activityDefinitionToDraftExercise, type ActivityDefinition } from "@/do
 import { isBilateral } from "@/domain/activities/ExecutionParameters";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Category } from "@/domain/categories/Category";
+import { settleCircuitMembership } from "@/domain/sessions/circuitMembership";
 import { appendActivityAfterLastDisplayed } from "@/domain/sessions/composition";
+import type { SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { useActivityCatalogue } from "@/features/activities/useActivityCatalogue";
@@ -20,6 +22,7 @@ import {
   formatExerciseRowSummary,
   resolveOccurrenceCategory,
 } from "@/features/sessions/compositionPresentation";
+import { CircuitEntryConfirmModal } from "@/features/sessions/CircuitEntryConfirmModal";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { strings } from "@/shared/i18n";
 import { FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
@@ -80,6 +83,11 @@ export function ActivitySelectionScreen() {
   const { draft, updateDraft } = useSessionDraft();
   const { state, reload, cancelPending } = useActivityCatalogue();
   const [selectedIds, setSelectedIds] = useState<readonly string[]>([]);
+  // PRE-6 (story 2.3) : ajout adapté au Circuit de Séries, en attente de confirmation de perte.
+  const [pendingAdd, setPendingAdd] = useState<{
+    readonly enteringCount: number;
+    readonly targetCount: number;
+  } | null>(null);
   const activityDefinitionService = useActivityDefinitionService();
   const bodyZonesReferential = useBodyZonesReferential(activityDefinitionService);
   const categoriesReferential = useCategoriesReferential(activityDefinitionService);
@@ -124,9 +132,13 @@ export function ActivitySelectionScreen() {
     );
   }
 
-  function handleAdd() {
+  /**
+   * Plan de l'ajout de la sélection courante au brouillon COURANT : copies insérées puis
+   * réglées vis-à-vis du Circuit. `null` si rien n'est à ajouter.
+   */
+  function planAdd() {
     if (state.status !== "ready" || availableSelectedIds.length === 0) {
-      return;
+      return null;
     }
     // Ordre de la liste au moment de la validation — jamais l'ordre des
     // touchers (`availableSelectedIds`, déjà purgée des identifiants
@@ -147,9 +159,34 @@ export function ActivitySelectionScreen() {
       const copy = activityDefinitionToDraftExercise(definition, Crypto.randomUUID(), null);
       nextExercises = appendActivityAfterLastDisplayed(nextExercises, copy);
     }
-    // Insertion atomique : une seule mutation du brouillon pour l'ensemble
-    // des copies — toutes ou aucune.
-    updateDraft({ exercises: nextExercises });
+    // PRE-6 (story 2.3, AD-39) : copies arrivées dans un Circuit de Séries adaptées à N ; si au
+    // moins une perd des séries, confirmation unique AVANT toute mutation (Annuler : rien
+    // n'est ajouté, la sélection reste). Le Catalogue n'est jamais modifié.
+    const settled = settleCircuitMembership(draft, nextExercises);
+    const enteringCount = settled.exercises.filter(
+      (exercise) =>
+        exercise.structuralPosition === "IN_TOUR" && !draft.exercises.some((existing) => existing.id === exercise.id),
+    ).length;
+    return { ...settled, enteringCount };
+  }
+
+  function handleAdd() {
+    const plan = planAdd();
+    if (plan === null) {
+      return;
+    }
+    if (plan.losses.length > 0) {
+      // Seuls le compte et N sont retenus : « Confirmer » rejoue l'ajout sur le brouillon courant.
+      setPendingAdd({ enteringCount: plan.enteringCount, targetCount: plan.targetCount });
+      return;
+    }
+    commitAdd(plan.exercises);
+  }
+
+  // Insertion atomique : une seule mutation du brouillon pour l'ensemble des copies — toutes
+  // ou aucune — puis retour à la Composition.
+  function commitAdd(exercises: readonly SessionDraftExercise[]) {
+    updateDraft({ exercises });
     router.back();
   }
 
@@ -246,6 +283,23 @@ export function ActivitySelectionScreen() {
           </Text>
         </Pressable>
       </View>
+
+      {pendingAdd !== null ? (
+        <CircuitEntryConfirmModal
+          kind="ADD"
+          seriesCount={pendingAdd.targetCount}
+          exerciseCount={pendingAdd.enteringCount}
+          onCancel={() => setPendingAdd(null)}
+          onConfirm={() => {
+            setPendingAdd(null);
+            // Ajout rejoué sur le brouillon et la sélection courants : rien n'est écrasé.
+            const plan = planAdd();
+            if (plan !== null) {
+              commitAdd(plan.exercises);
+            }
+          }}
+        />
+      ) : null}
     </ScreenShell>
   );
 }

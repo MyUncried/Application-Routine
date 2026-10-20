@@ -8,6 +8,7 @@ import {
   groupActivitiesByZone,
   moveActivity,
   moveOccurrence,
+  nextCopyName,
   orderActivitiesByZone,
   removeActivity,
   removeOccurrence,
@@ -15,6 +16,7 @@ import {
 } from "@/domain/sessions/composition";
 import { createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import type { StructuralPosition } from "@/domain/sessions/Session";
+import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 
 /**
@@ -333,24 +335,20 @@ describe("duplicateActivity (AC-06 ; T02-S02, D-138)", () => {
   });
 
   /**
-   * T02-S02 : le titre de la copie est STRICTEMENT IDENTIQUE à celui de la
-   * source. `D-124` (suffixe `(copie)`) est marquée « Révisée par D-138 »,
-   * et `D-138` ne réintroduit aucune règle de renommage — elle pose au
-   * contraire que la copie forme un bloc indivisible identique à sa source.
-   * Seul l'identifiant distingue les deux.
+   * PRE-6 (story 2.3, D-124, RM-021, ch13) : la copie est nommée
+   * `{nom} (copie)`, puis `{nom} (copie 2)`… sans collision (remplace
+   * l'attente T02-S02 d'un titre identique).
    */
-  it("gives the copy a new identifier and the SAME title, leaving the source untouched", () => {
+  it("gives the copy a new identifier and the « (copie) » suffix, leaving the source untouched", () => {
     const next = duplicateActivity(activities, "in-1", "copy-1");
     expect(next[2]?.id).toBe("copy-1");
-    expect(next[2]?.name).toBe("Gainage");
-    expect(next[2]?.name).toBe(activities[1]!.name);
-    expect(next[2]?.name).not.toMatch(/copie/u);
+    expect(next[2]?.name).toBe("Gainage (copie)");
     expect(next[1]).toBe(activities[1]);
   });
 
   it("copies every parameter and association of the source, Récupération attachée included", () => {
     const next = duplicateActivity(activities, "in-1", "copy-1");
-    expect(next[2]).toEqual({ ...activities[1], id: "copy-1" });
+    expect(next[2]).toEqual({ ...activities[1], id: "copy-1", name: "Gainage (copie)" });
     expect(next[2]?.postActivityRecoverySeconds).toBe(90);
     expect(next[2]?.executionParameters).toEqual(durationParameters(45, 3, 20));
     // AD-9 : clonage profond — aucune référence partagée des paramètres.
@@ -363,19 +361,51 @@ describe("duplicateActivity (AC-06 ; T02-S02, D-138)", () => {
     expect(next[2]?.bodyZoneIds).toEqual(activities[1]?.bodyZoneIds);
   });
 
-  it("keeps every successive copy identical in title, distinguished only by its identifier", () => {
+  it("numbers successive copies without collision: (copie), (copie 2), (copie 3)", () => {
     const once = duplicateActivity(activities, "in-1", "copy-1");
     const twice = duplicateActivity(once, "in-1", "copy-2");
-    expect(twice.map((activity) => activity.name)).toEqual([
+    const thrice = duplicateActivity(twice, "in-1", "copy-3");
+    expect(thrice.map((activity) => activity.name)).toEqual([
       "Échauffement",
       "Gainage",
-      "Gainage",
-      "Gainage",
+      "Gainage (copie 3)",
+      "Gainage (copie 2)",
+      "Gainage (copie)",
       "Squats",
     ]);
-    expect(ids(twice)).toEqual(["before-1", "in-1", "copy-2", "copy-1", "in-2"]);
-    // Les identifiants, eux, restent uniques — c'est la seule distinction.
-    expect(new Set(ids(twice)).size).toBe(twice.length);
+    expect(ids(thrice)).toEqual(["before-1", "in-1", "copy-3", "copy-2", "copy-1", "in-2"]);
+    expect(new Set(ids(thrice)).size).toBe(thrice.length);
+  });
+
+  it("names a copy of a copy from its exact source name", () => {
+    const once = duplicateActivity(activities, "in-1", "copy-1");
+    const ofCopy = duplicateActivity(once, "copy-1", "copy-2");
+    expect(ofCopy.find((activity) => activity.id === "copy-2")?.name).toBe("Gainage (copie) (copie)");
+  });
+
+  it("nextCopyName takes the first free suffix, filling a gap", () => {
+    expect(nextCopyName("Squat", [])).toBe("Squat (copie)");
+    expect(nextCopyName("Squat", ["Squat", "Squat (copie)"])).toBe("Squat (copie 2)");
+    expect(nextCopyName("Squat", ["Squat (copie)", "Squat (copie 3)"])).toBe("Squat (copie 2)");
+    expect(nextCopyName("Squat", ["Squat (copie)", "Squat (copie 2)"])).toBe("Squat (copie 3)");
+  });
+
+  it("nextCopyName compare les noms normalisés (espaces), comme l'enregistrement", () => {
+    expect(nextCopyName("Squat", ["  Squat   (copie) "])).toBe("Squat (copie 2)");
+    expect(nextCopyName("  Squat  ", [])).toBe("Squat (copie)");
+  });
+
+  it("nextCopyName tronque la base (points de code) pour tenir dans NAME_MAX_LENGTH", () => {
+    const long = "é".repeat(NAME_MAX_LENGTH);
+    const first = nextCopyName(long, []);
+    expect(Array.from(first)).toHaveLength(NAME_MAX_LENGTH);
+    expect(first.endsWith(" (copie)")).toBe(true);
+    const second = nextCopyName(long, [first]);
+    expect(Array.from(second)).toHaveLength(NAME_MAX_LENGTH);
+    expect(second.endsWith(" (copie 2)")).toBe(true);
+    // Emoji (deux unités UTF-16) : jamais coupé en deux.
+    const emoji = nextCopyName("💪".repeat(NAME_MAX_LENGTH), []);
+    expect(Array.from(emoji)).toHaveLength(NAME_MAX_LENGTH);
   });
 
   it("returns the collection unchanged for an unknown identifier", () => {

@@ -20,6 +20,7 @@ import {
   DEFAULT_SIDE_CHANGE_RECOVERY_SECONDS,
   type Silhouette,
 } from "@/domain/preferences/Profile";
+import { settleCircuitMembership } from "@/domain/sessions/circuitMembership";
 import { appendActivityAfterLastDisplayed } from "@/domain/sessions/composition";
 import { createExerciseDraft, exerciseEquals, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import {
@@ -36,6 +37,7 @@ import { useProfileService } from "@/features/preferences/ProfileServiceContext"
 import { CategoryPickerModal } from "@/features/reference-data/CategoryPickerModal";
 import { useReferentialService } from "@/features/reference-data/ReferentialServiceContext";
 import { useReferenceSheet } from "@/features/reference-data/useReferenceSheet";
+import { CircuitEntryConfirmModal } from "@/features/sessions/CircuitEntryConfirmModal";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { ExerciseExitConfirmModal } from "@/features/sessions/ExerciseExitConfirmModal";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
@@ -560,6 +562,8 @@ function CompositionExerciseEditor() {
   const categorySheet = useReferenceSheet(categoryAccessRef);
   const [isFinishing, setIsFinishing] = useState(false);
   const finishingRef = useRef(false);
+  // PRE-6 (story 2.3) : ajout adapté au Circuit de Séries, en attente de confirmation de perte.
+  const [pendingCircuitEntry, setPendingCircuitEntry] = useState<{ readonly targetCount: number } | null>(null);
 
   // Nouvelle occurrence : défauts CR/Fin du Profil appliqués à leur lecture
   // si le brouillon est intact — ajustement d'état pendant le rendu, une fois.
@@ -579,6 +583,11 @@ function CompositionExerciseEditor() {
   const { isPendingExit, cancelExit, confirmExit } = useCompositionExitGuard(shouldBlockExit, () => {
     activityDefinitionService.abandonMediaDraft(mediaDraftId).catch(() => undefined);
   });
+  // PRE-6 (story 2.3) : la sortie l'emporte — le dialogue de Circuit en attente est retiré
+  // (ajustement d'état pendant le rendu ; `finishingRef` n'est jamais engagé tant qu'il attend).
+  if (isPendingExit && pendingCircuitEntry !== null) {
+    setPendingCircuitEntry(null);
+  }
 
   useEffect(() => {
     if (isFinishing && !shouldBlockExit) {
@@ -615,17 +624,39 @@ function CompositionExerciseEditor() {
     });
   }
 
+  /**
+   * Occurrences du brouillon COURANT après `Terminer`. PRE-6 (story 2.3, AD-39) : une nouvelle
+   * occurrence qui arrive dans un Circuit de Séries est adaptée à N ; ses pertes éventuelles
+   * sont rendues pour confirmation AVANT toute mutation.
+   */
+  function planFinish(current: SessionDraftExercise) {
+    // PRE-5 story 3.1 (AC4) : l'occurrence reçoit l'encodage des étapes à `Terminer` seulement.
+    const finished: SessionDraftExercise = { ...current, instruction: encodeInstructionSteps(instructionSteps) };
+    if (draft.exercises.some((exercise) => exercise.id === finished.id)) {
+      return {
+        exercises: draft.exercises.map((exercise) => (exercise.id === finished.id ? finished : exercise)),
+        losses: [],
+        targetCount: 0,
+      };
+    }
+    return settleCircuitMembership(draft, appendActivityAfterLastDisplayed(draft.exercises, finished));
+  }
+
   function handleTerminer() {
     if (finishingRef.current || local === null) {
       return;
     }
+    const plan = planFinish(local);
+    if (plan.losses.length > 0) {
+      // Annuler : reste sur l'écran, rien n'est ajouté ; `finishingRef` n'est pas engagé.
+      setPendingCircuitEntry({ targetCount: plan.targetCount });
+      return;
+    }
     finishingRef.current = true;
-    // PRE-5 story 3.1 (AC4) : l'occurrence reçoit l'encodage des étapes à `Terminer` seulement.
-    const finished: SessionDraftExercise = { ...local, instruction: encodeInstructionSteps(instructionSteps) };
-    const alreadyPresent = draft.exercises.some((exercise) => exercise.id === finished.id);
-    const nextExercises = alreadyPresent
-      ? draft.exercises.map((exercise) => (exercise.id === finished.id ? finished : exercise))
-      : appendActivityAfterLastDisplayed(draft.exercises, finished);
+    commitFinished(plan.exercises);
+  }
+
+  function commitFinished(nextExercises: readonly SessionDraftExercise[]) {
     updateDraft({ exercises: nextExercises });
     // Les copies préparées deviennent des références du brouillon de Séance ;
     // « Continuer » (Composition) les persiste dans sa transaction.
@@ -711,6 +742,24 @@ function CompositionExerciseEditor() {
       {/* Q18 (FR-02-12) : textes de création en CS, de modification en MS (intention de la route). */}
       {isPendingExit ? (
         <ExerciseExitConfirmModal isCreation={isCreationRoute} onCancel={cancelExit} onConfirm={confirmExit} />
+      ) : null}
+
+      {pendingCircuitEntry !== null ? (
+        <CircuitEntryConfirmModal
+          kind="ADD"
+          seriesCount={pendingCircuitEntry.targetCount}
+          exerciseCount={1}
+          onCancel={() => setPendingCircuitEntry(null)}
+          onConfirm={() => {
+            setPendingCircuitEntry(null);
+            if (finishingRef.current || local === null) {
+              return;
+            }
+            // Ajout rejoué sur le brouillon courant (aucun instantané rejoué).
+            finishingRef.current = true;
+            commitFinished(planFinish(local).exercises);
+          }}
+        />
       ) : null}
     </ScreenShell>
   );

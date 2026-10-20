@@ -197,6 +197,8 @@ Recette sur iPhone réel, build de développement, largeurs 375 et 402, VoiceOve
 | J2 | Epic 3 | Compteur révélé, nature, conversions avec et sans perte, 4 → 3 → 4, enregistrement à 3 puis augmentation, N hérité dans la Feuille, volumes Séries et Tours (« — », À l'échec, mixte, côtés, défilements), fermeture sans modification. |
 | J3 | Epic 4 | Placement multiple, roulette, Confirmer N et Annuler, retrait, conservation au déplacement et à la duplication, répétition interne, durées, D-301. Parcours complet jusqu'à Continuer et réouverture. |
 
+**Points soumis à Hermann pour J1 (choix faits sans règle explicite, réversibles) :** libellé « Continuer » (Q54 du 18/10 l'avait renommé « Enregistrer la séance ») ; format « 00 min 10 s » des bornes (Figma « 10 s ») ; notation « 3 × 1 min 30 s » (Figma « 1 min 30 »), unité répétée sur les durées variables, lignes mixtes « 10 · à l'échec rép. » ; « ≈ » sur la ligne estimée ; poignée conservée sur la carte (absente de Figma) ; textes des dialogues de perte à l'entrée dans un Circuit de Séries (story 2.3) ; « Squat (copie) (copie) » pour la copie d'une copie.
+
 ## Risques étayés
 
 | # | Risque | Preuve | Parade |
@@ -237,4 +239,5 @@ Recette sur iPhone réel, build de développement, largeurs 375 et 402, VoiceOve
   4. ch13 L1440 : identifiants Figma périmés → `8328:*` ;
   5. ch11 API-COM-06 (« enregistrées » → brouillon, D-388) et API-COM-REC-02 (plage 0..300) ;
   6. ch10 L540 et L562 (Catégories, palette de 12 couleurs, devenus caducs).
+  7. ch07 : D-124 (suffixe `(copie)`) porte encore « Révisée par D-138 » alors que D-138 ne traite que la récupération ; ch13 (Consultation et modification d'un Exercice) et la story 2.3 appliquent le suffixe.
 - **Interfaces impactées** : Composition, ExerciseScreen (contexte hérité), Feuille (option existante seulement), `KodjoIcon` (œil), `fr.ts`.

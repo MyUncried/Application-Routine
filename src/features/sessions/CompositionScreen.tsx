@@ -20,6 +20,8 @@ import type { Label } from "@/domain/labels/Label";
 import { isBilateral } from "@/domain/activities/ExecutionParameters";
 import { DEFAULT_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
 import { DEFAULT_SESSION_COLOR, type StructuralPosition } from "@/domain/sessions/Session";
+import type { CircuitLoss } from "@/domain/sessions/circuit";
+import { copyCircuitReserveEntry, settleCircuitMembership } from "@/domain/sessions/circuitMembership";
 import {
   duplicateOccurrence,
   groupActivitiesByZone,
@@ -40,14 +42,17 @@ import { useCategoriesReferential } from "@/features/activities/useCategoriesRef
 import { LabelPickerModal } from "@/features/reference-data/LabelPickerModal";
 import { useBodyZonesReferentialVersion } from "@/features/reference-data/ReferentialServiceContext";
 import { AbandonCreationModal } from "@/features/sessions/AbandonCreationModal";
+import { CircuitEntryConfirmModal } from "@/features/sessions/CircuitEntryConfirmModal";
 import {
   clampSwipeTranslateX,
   isTap,
   LONG_PRESS_DELAY_MS,
   resolveDropTarget,
+  resolveStepTarget,
   shouldRevealAfterSwipe,
   type ActivityRowLayout,
   type CompositionDragLayout,
+  type StepDirection,
 } from "@/features/sessions/compositionGesture";
 import { ActivityRecoveryLine } from "@/features/sessions/ActivityRecoveryLine";
 import { CompositionContextHeader } from "@/features/sessions/CompositionContextHeader";
@@ -224,6 +229,40 @@ function compositionPatch(previous: CompositionState, next: CompositionState): P
   };
 }
 
+/** PRE-6 (story 2.3) : intention de déplacement d'une occurrence (glisser, « Monter » / « Descendre »). */
+type OccurrenceMove = {
+  readonly activityId: string;
+  readonly zone: StructuralPosition;
+  readonly index: number;
+};
+
+/** Déplacement en attente de confirmation de perte, avec le N affiché par le dialogue. */
+type PendingOccurrenceMove = OccurrenceMove & { readonly targetCount: number };
+
+/**
+ * Plan d'un déplacement sur `draft` : correctif du brouillon (occurrences adaptées au Circuit,
+ * points, réserve), pertes et N du Circuit ; `null` si `moveOccurrence` refuse le dépôt.
+ */
+function planOccurrenceMove(
+  draft: SessionDraft,
+  move: OccurrenceMove,
+): { readonly patch: Partial<SessionDraft>; readonly losses: readonly CircuitLoss[]; readonly targetCount: number } | null {
+  const state = compositionStateOf(draft.exercises, draft.stopPoints);
+  const next = moveOccurrence(state, move.activityId, move.zone, move.index);
+  if (next === state) {
+    return null;
+  }
+  const settled = settleCircuitMembership(draft, next.exercises);
+  return {
+    patch: {
+      ...compositionPatch(state, { exercises: settled.exercises, stopPoints: next.stopPoints }),
+      ...settled.reservePatch,
+    },
+    losses: settled.losses,
+    targetCount: settled.targetCount,
+  };
+}
+
 export type CompositionScreenProps = {
   /**
    * Identifiant de la Séance ouverte en MODIFICATION, tel que porté par la
@@ -375,6 +414,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // seule carte à la fois est soulevée (CE-T02-01/CE-T02-02).
   const [revealedActionsId, setRevealedActionsId] = useState<string | null>(null);
   const [draggedActivityId, setDraggedActivityId] = useState<string | null>(null);
+  // PRE-6 (story 2.3) : déplacement vers un Circuit de Séries en attente de confirmation de perte
+  // — correctif du brouillon déjà calculé (adapté à N), appliqué seulement par « Confirmer ».
+  const [pendingCircuitEntry, setPendingCircuitEntry] = useState<PendingOccurrenceMove | null>(null);
 
   // Géométrie mesurée du contenu défilant, nécessaire à la résolution d'une
   // dépose (`compositionGesture.ts`). Conservée en `ref` : elle ne doit
@@ -533,6 +575,32 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     [zoneBaseTop],
   );
 
+  /**
+   * Déplacement d'une occurrence (glisser, « Monter » / « Descendre ») — mêmes règles pour
+   * tous les chemins. PRE-6 (story 1.2, ARB-3) : les Points d'arrêt suivent leur occurrence ;
+   * un dépôt qui en amènerait un sur un emplacement interdit est invalide (état inchangé, la
+   * carte reprend sa place). PRE-6 (story 2.3, AD-39) : entrée dans un Circuit de Séries →
+   * adaptation à N, et si des séries sont perdues, confirmation AVANT toute mutation (Annuler
+   * restitue la position) ; sortie du Circuit → réserve retirée, nombre et paramètres
+   * conservés, sans message.
+   */
+  const moveActivityTo = useCallback(
+    (activityId: string, zone: StructuralPosition, index: number) => {
+      const plan = planOccurrenceMove(draft, { activityId, zone, index });
+      if (plan === null) {
+        return;
+      }
+      if (plan.losses.length > 0) {
+        // Seule l'intention est retenue : « Confirmer » rejoue le déplacement sur le brouillon
+        // COURANT (aucun instantané rejoué).
+        setPendingCircuitEntry({ activityId, zone, index, targetCount: plan.targetCount });
+        return;
+      }
+      updateDraft(plan.patch);
+    },
+    [draft, updateDraft],
+  );
+
   const handleDropActivity = useCallback(
     (activity: SessionDraftExercise, translationY: number) => {
       const target = resolveDropTarget(
@@ -540,16 +608,36 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         activity.id,
         activityAbsoluteCenterY(activity) + translationY,
       );
-      // PRE-6 (story 1.2, ARB-3) : les Points d'arrêt suivent leur
-      // occurrence ; un dépôt qui en amènerait un sur un emplacement interdit
-      // est invalide (état inchangé, même référence).
+      moveActivityTo(activity.id, target.zone, target.index);
+    },
+    [activityAbsoluteCenterY, buildDragLayout, moveActivityTo],
+  );
+
+  // PRE-6 (story 2.3, CE-T03-08 §18) : « Monter » / « Descendre » — une position dans la
+  // séquence affichée, en franchissant les limites du Circuit, mêmes règles que le glisser.
+  // Une action n'est offerte que si le déplacement est accepté (`moveOccurrence`, point d'arrêt
+  // sur un emplacement interdit compris).
+  const stepTargetOf = useCallback(
+    (activityId: string, direction: StepDirection) => {
+      const destination = resolveStepTarget(draft.exercises, activityId, direction);
+      if (destination === null) {
+        return null;
+      }
       const state = compositionStateOf(draft.exercises, draft.stopPoints);
-      const next = moveOccurrence(state, activity.id, target.zone, target.index);
-      if (next !== state) {
-        updateDraft(compositionPatch(state, next));
+      return moveOccurrence(state, activityId, destination.zone, destination.index) !== state ? destination : null;
+    },
+    [draft.exercises, draft.stopPoints],
+  );
+  const handleStepActivity = useCallback(
+    (activityId: string, direction: StepDirection) => {
+      // Comme Dupliquer / Supprimer : les actions glissées révélées se referment.
+      setRevealedActionsId(null);
+      const destination = stepTargetOf(activityId, direction);
+      if (destination !== null) {
+        moveActivityTo(activityId, destination.zone, destination.index);
       }
     },
-    [activityAbsoluteCenterY, buildDragLayout, draft.exercises, draft.stopPoints, updateDraft],
+    [moveActivityTo, stepTargetOf],
   );
 
   // API-COM-06 : duplication et suppression restent des opérations de
@@ -562,9 +650,13 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       // PRE-6 (story 1.2) : identifiant du point copié, tiré seulement si la
       // Séance porte des Points d'arrêt.
       const newStopPointId = state.stopPoints.length > 0 ? Crypto.randomUUID() : "";
-      updateDraft(compositionPatch(state, duplicateOccurrence(state, activityId, newId, newStopPointId)));
+      updateDraft({
+        ...compositionPatch(state, duplicateOccurrence(state, activityId, newId, newStopPointId)),
+        // PRE-6 (story 2.3) : la copie reçoit la réserve de Circuit de sa source (Séries).
+        ...copyCircuitReserveEntry(draft, activityId, newId),
+      });
     },
-    [draft.exercises, draft.stopPoints, updateDraft],
+    [draft, updateDraft],
   );
 
   const handleDeleteActivity = useCallback(
@@ -572,9 +664,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       setRevealedActionsId(null);
       rowLayoutsRef.current.delete(activityId);
       const state = compositionStateOf(draft.exercises, draft.stopPoints);
-      updateDraft(compositionPatch(state, removeOccurrence(state, activityId)));
+      const next = removeOccurrence(state, activityId);
+      // PRE-6 (story 2.3) : la réserve de Circuit de l'occurrence retirée part avec elle.
+      const settled = settleCircuitMembership(draft, next.exercises);
+      updateDraft({ ...compositionPatch(state, next), ...settled.reservePatch });
     },
-    [draft.exercises, draft.stopPoints, updateDraft],
+    [draft, updateDraft],
   );
 
   const handleEditActivity = useCallback(
@@ -816,6 +911,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           onDragEnd={handleDropActivity}
           onDuplicate={handleDuplicateActivity}
           onDelete={handleDeleteActivity}
+          canStep={(activityId, direction) => stepTargetOf(activityId, direction) !== null}
+          onStep={handleStepActivity}
         />
 
         <TourCard
@@ -843,6 +940,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             onDragEnd={handleDropActivity}
             onDuplicate={handleDuplicateActivity}
             onDelete={handleDeleteActivity}
+            canStep={(activityId, direction) => stepTargetOf(activityId, direction) !== null}
+            onStep={handleStepActivity}
           />
         </TourCard>
 
@@ -863,6 +962,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           onDragEnd={handleDropActivity}
           onDuplicate={handleDuplicateActivity}
           onDelete={handleDeleteActivity}
+          canStep={(activityId, direction) => stepTargetOf(activityId, direction) !== null}
+          onStep={handleStepActivity}
         />
 
         <BoundaryStep
@@ -983,6 +1084,25 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
 
       {isPendingExit ? <AbandonCreationModal onCancel={cancelExit} onConfirm={confirmExit} /> : null}
 
+      {/* PRE-6 (story 2.3) : perte de séries d'un déplacement dans le Circuit de Séries. */}
+      {pendingCircuitEntry !== null ? (
+        <CircuitEntryConfirmModal
+          kind="MOVE"
+          seriesCount={pendingCircuitEntry.targetCount}
+          exerciseCount={1}
+          onCancel={() => setPendingCircuitEntry(null)}
+          onConfirm={() => {
+            // Déplacement rejoué sur le brouillon courant : une modification survenue pendant
+            // le dialogue n'est jamais écrasée.
+            const plan = planOccurrenceMove(draft, pendingCircuitEntry);
+            setPendingCircuitEntry(null);
+            if (plan !== null) {
+              updateDraft(plan.patch);
+            }
+          }}
+        />
+      ) : null}
+
       {/*
        * V2-CAT-01 (plan §4.4), VISUAL_CORRECTION (revue indépendante
        * 5753653735, point 7) : arbre exact `Une nouvelle activité` / `Une
@@ -1095,6 +1215,9 @@ type ActivityZoneListProps = {
   readonly onDragEnd: (activity: SessionDraftExercise, translationY: number) => void;
   readonly onDuplicate: (activityId: string) => void;
   readonly onDelete: (activityId: string) => void;
+  /** PRE-6 (story 2.3) : « Monter » / « Descendre » possible pour cette occurrence ? */
+  readonly canStep: (activityId: string, direction: StepDirection) => boolean;
+  readonly onStep: (activityId: string, direction: StepDirection) => void;
 };
 
 /**
@@ -1126,6 +1249,8 @@ function ActivityZoneList({
   onDragEnd,
   onDuplicate,
   onDelete,
+  canStep,
+  onStep,
 }: ActivityZoneListProps) {
   if (activities.length === 0) {
     return null;
@@ -1159,6 +1284,8 @@ function ActivityZoneList({
           }}
           onDuplicate={() => onDuplicate(activity.id)}
           onDelete={() => onDelete(activity.id)}
+          onMoveUp={canStep(activity.id, "UP") ? () => onStep(activity.id, "UP") : null}
+          onMoveDown={canStep(activity.id, "DOWN") ? () => onStep(activity.id, "DOWN") : null}
         />
       ))}
     </View>
@@ -1193,7 +1320,13 @@ type CompositionActivityRowProps = {
   readonly onDragEnd: (translationY: number) => void;
   readonly onDuplicate: () => void;
   readonly onDelete: () => void;
+  /** PRE-6 (story 2.3) : action accessible « Monter » / « Descendre » ; `null` = aucune (extrémité de la séquence). */
+  readonly onMoveUp: (() => void) | null;
+  readonly onMoveDown: (() => void) | null;
 };
+
+/** Noms des actions accessibles d'une carte d'occurrence (CE-T03-08 §18). */
+type OccurrenceAccessibilityActionName = "moveUp" | "moveDown" | "duplicate" | "delete";
 
 /**
  * V2-CAT-01 (CE-T03-08, UI-CAT-R-007/010) : décalage horizontal MAXIMAL de la
@@ -1321,6 +1454,8 @@ function CompositionActivityRow({
   onDragEnd,
   onDuplicate,
   onDelete,
+  onMoveUp,
+  onMoveDown,
 }: CompositionActivityRowProps) {
   const composition = strings.screens.composition;
   const originRef = useRef<{ x: number; y: number } | null>(null);
@@ -1583,6 +1718,20 @@ function CompositionActivityRow({
    * RM-243, D-407, ARB-2) : icône neutre seulement, jamais pour un exercice unilatéral.
    */
   const hasSideChange = isBilateral(activity.sideMode);
+  /**
+   * PRE-6 (story 2.3, CE-T03-08 §18) : alternatives accessibles au glisser et au balayage —
+   * « Monter » / « Descendre » (absentes aux extrémités de la séquence), « Dupliquer »,
+   * « Supprimer ». Le balayage et l'appui long restent inchangés.
+   */
+  const accessibilityActionHandlers: Partial<Record<OccurrenceAccessibilityActionName, () => void>> = {
+    ...(onMoveUp !== null ? { moveUp: onMoveUp } : {}),
+    ...(onMoveDown !== null ? { moveDown: onMoveDown } : {}),
+    duplicate: onDuplicate,
+    delete: onDelete,
+  };
+  const accessibilityActions = (Object.keys(accessibilityActionHandlers) as OccurrenceAccessibilityActionName[]).map(
+    (name) => ({ name, label: composition.activityActions[name] }),
+  );
 
   return (
     <View
@@ -1686,6 +1835,10 @@ function CompositionActivityRow({
         // Intention d'édition (appui court) puis gestes de réorganisation et d'actions.
         accessibilityHint={`${composition.exerciseRow.editAccessibilityLabel}. ${composition.activityActions.reorderAccessibilityHint}`}
         accessibilityState={{ selected: isDragged }}
+        accessibilityActions={accessibilityActions}
+        onAccessibilityAction={(event) =>
+          accessibilityActionHandlers[event.nativeEvent.actionName as OccurrenceAccessibilityActionName]?.()
+        }
         style={[
           styles.activityBlock,
           isDragged ? styles.activityBlockDragged : null,

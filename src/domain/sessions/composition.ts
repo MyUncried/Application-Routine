@@ -28,6 +28,7 @@ import {
   type AnchoredStopPoint,
   type StopPoint,
 } from "./StopPoint";
+import { NAME_MAX_LENGTH, normalizeName } from "./validation";
 
 /** Ordre canonique d'affichage et d'exécution des trois zones (D-061). */
 export const STRUCTURAL_ZONES = ["BEFORE_TOUR", "IN_TOUR", "AFTER_TOUR"] as const;
@@ -197,26 +198,49 @@ export function removeActivity(
   return activities.filter((activity) => activity.id !== activityId);
 }
 
+/** Mot du suffixe de copie (D-124) : donnée du nom de l'occurrence, persistée avec lui. */
+const COPY_SUFFIX_WORD = "copie";
+
 /**
- * Duplique une Activité (D-138, révisant D-124 ; CE-T02-01) : la copie est
+ * Premier nom de copie disponible (D-124, RM-021, ch13 « Consultation et
+ * modification d'un Exercice », PRE-6 story 2.3) : `{nom} (copie)`, puis
+ * `{nom} (copie 2)`, `{nom} (copie 3)`… sans collision avec `takenNames`
+ * (les noms de la Composition). `{nom}` est le nom de la source, sans retrait
+ * d'un suffixe existant (aucune règle ne le prévoit).
+ *
+ * Les noms sont comparés normalisés (`normalizeName`, comme à
+ * l'enregistrement) ; la base est tronquée (points de code) pour que le nom
+ * complet tienne dans `NAME_MAX_LENGTH` — sans quoi la Séance ne pourrait
+ * plus être enregistrée.
+ */
+export function nextCopyName(name: string, takenNames: Iterable<string>): string {
+  const taken = new Set(Array.from(takenNames, normalizeName));
+  const base = Array.from(normalizeName(name));
+  for (let rank = 1; ; rank += 1) {
+    const suffix = rank === 1 ? ` (${COPY_SUFFIX_WORD})` : ` (${COPY_SUFFIX_WORD} ${rank})`;
+    const head = base.slice(0, Math.max(NAME_MAX_LENGTH - Array.from(suffix).length, 0)).join("").trimEnd();
+    const candidate = `${head}${suffix}`;
+    if (!taken.has(normalizeName(candidate))) {
+      return candidate;
+    }
+  }
+}
+
+/**
+ * Duplique une Activité (D-124, D-138 ; CE-T02-01) : la copie est
  * INDÉPENDANTE, porte `newId` (fourni par l'appelant — ce module reste pur,
  * sans `expo-crypto`), reprend TOUS les paramètres et associations de la
  * source — Pause, **Récupération attachée** et **direction (`sideMode`,
  * V2-BILAT-01) comprises** — et s'insère
  * IMMÉDIATEMENT APRÈS elle dans la MÊME zone structurelle.
  *
- * **T02-S02 — titre strictement identique.** La copie conserve le nom exact
- * de la source ; aucun suffixe n'est appliqué. `D-124` prescrivait
- * `{nom} (copie)`, puis `{nom} (copie 2)`… mais elle est explicitement
- * marquée « Révisée par D-138 » dans le Registre, et `D-138` — la décision
- * qui la remplace — ne réintroduit AUCUNE règle de renommage : elle pose au
- * contraire que « la Récupération appartient à l'Activité et forme avec elle
- * un bloc indivisible pour la Composition, la copie, la duplication… ». La
- * copie est donc rigoureusement identique à sa source, à l'identifiant près.
- * L'ancienne fonction `nextCopyName` est supprimée plutôt que laissée sans
- * consommateur. Écart documentaire disclosé dans le rapport de mission :
- * `13 – Contrats d'écran.md` (CE-T02-01) porte encore la formulation
- * suffixée de D-124, non mise à jour après la publication de D-138.
+ * **PRE-6 (story 2.3) — suffixe de copie rétabli.** T02-S02 avait retiré le
+ * suffixe en lisant D-138 comme remplaçant la règle de nommage de D-124. Le
+ * contrat d'écran actif (ch13 « Consultation et modification d'un
+ * Exercice »), RM-021 et la spec de la story 2.3 posent `{nom} (copie)`, puis
+ * `{nom} (copie 2)`…, sans collision : la copie reçoit `nextCopyName` sur les
+ * noms de la Composition. D-138 (bloc indivisible avec la Récupération) reste
+ * respectée : hors nom et identifiant, la copie est identique à sa source.
  *
  * La source reste inchangée. Un identifiant inconnu retourne la collection
  * inchangée.
@@ -235,6 +259,10 @@ export function duplicateActivity(
   const copy: SessionDraftExercise = {
     ...source,
     id: newId,
+    name: nextCopyName(
+      source.name,
+      activities.map((activity) => activity.name),
+    ),
     // Les Zones corporelles sont recopiées comme une NOUVELLE collection :
     // la copie ne doit jamais partager la référence de tableau de sa source.
     bodyZoneIds: [...source.bodyZoneIds],

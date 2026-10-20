@@ -7,6 +7,7 @@ import {
   LONG_PRESS_DELAY_MS,
   resolveDropTarget,
   resolveDropZone,
+  resolveStepTarget,
   shouldRevealAfterSwipe,
   SWIPE_REVEAL_DISTANCE,
   TOUCH_SLOP,
@@ -177,5 +178,44 @@ describe("resolveDropTarget", () => {
       zone: "BEFORE_TOUR",
       index: 2,
     });
+  });
+});
+
+/** PRE-6 (story 2.3, CE-T03-08 §18) : actions accessibles « Monter » / « Descendre ». */
+describe("resolveStepTarget (Monter / Descendre dans la séquence affichée)", () => {
+  const items = [
+    { id: "b1", structuralPosition: "BEFORE_TOUR" as const },
+    { id: "i1", structuralPosition: "IN_TOUR" as const },
+    { id: "b2", structuralPosition: "BEFORE_TOUR" as const },
+    { id: "i2", structuralPosition: "IN_TOUR" as const },
+    { id: "a1", structuralPosition: "AFTER_TOUR" as const },
+  ];
+
+  it("se déplace d'une position dans sa portée", () => {
+    expect(resolveStepTarget(items, "b2", "UP")).toEqual({ zone: "BEFORE_TOUR", index: 0 });
+    expect(resolveStepTarget(items, "b1", "DOWN")).toEqual({ zone: "BEFORE_TOUR", index: 1 });
+    expect(resolveStepTarget(items, "i2", "UP")).toEqual({ zone: "IN_TOUR", index: 0 });
+  });
+
+  it("franchit les limites du Circuit, dans les deux sens", () => {
+    expect(resolveStepTarget(items, "b2", "DOWN")).toEqual({ zone: "IN_TOUR", index: 0 });
+    expect(resolveStepTarget(items, "i1", "UP")).toEqual({ zone: "BEFORE_TOUR", index: 2 });
+    expect(resolveStepTarget(items, "i2", "DOWN")).toEqual({ zone: "AFTER_TOUR", index: 0 });
+    expect(resolveStepTarget(items, "a1", "UP")).toEqual({ zone: "IN_TOUR", index: 2 });
+  });
+
+  it("traverse un Circuit vide comme une étape", () => {
+    const empty = [
+      { id: "b1", structuralPosition: "BEFORE_TOUR" as const },
+      { id: "a1", structuralPosition: "AFTER_TOUR" as const },
+    ];
+    expect(resolveStepTarget(empty, "b1", "DOWN")).toEqual({ zone: "IN_TOUR", index: 0 });
+    expect(resolveStepTarget(empty, "a1", "UP")).toEqual({ zone: "IN_TOUR", index: 0 });
+  });
+
+  it("aucune destination aux extrémités ni pour un identifiant inconnu", () => {
+    expect(resolveStepTarget(items, "b1", "UP")).toBeNull();
+    expect(resolveStepTarget(items, "a1", "DOWN")).toBeNull();
+    expect(resolveStepTarget(items, "x", "DOWN")).toBeNull();
   });
 });

@@ -394,6 +394,29 @@ export const fr = {
         revealAccessibilityLabel: "Actions de l’exercice",
         reorderAccessibilityHint:
           "Appui long pour déplacer l’exercice, glissement vers la gauche pour afficher les actions",
+        // PRE-6 (story 2.3, CE-T03-08 §18) : alternatives accessibles au glisser — une position
+        // dans la séquence affichée, mêmes règles que le glisser.
+        moveUp: "Monter",
+        moveDown: "Descendre",
+      },
+      // PRE-6 (story 2.3) : confirmation de perte de séries à l’entrée d’un exercice dans un
+      // Circuit de Séries (dialogue `8328:34964`). Formulation calquée sur la conversion
+      // (ch13), à valider par Hermann. `{series}` = « N série(s) », `{ordinal}` = N-ième.
+      circuitEntryConfirmModal: {
+        addTitle: "Ajouter au circuit de séries ?",
+        moveTitle: "Déplacer dans le circuit de séries ?",
+        addMessagePlural:
+          "Les exercices ajoutés auront {series}. Les séries au-delà de la {ordinal} seront supprimées, avec les valeurs qu’elles portent.",
+        addMessageSingular:
+          "L’exercice ajouté aura {series}. Les séries au-delà de la {ordinal} seront supprimées, avec les valeurs qu’elles portent.",
+        moveMessage:
+          "L’exercice déplacé aura {series}. Les séries au-delà de la {ordinal} seront supprimées, avec les valeurs qu’elles portent.",
+        seriesSingular: "{n} série",
+        seriesPlural: "{n} séries",
+        ordinalFirst: "1re",
+        ordinalOther: "{n}e",
+        cancel: "Annuler",
+        confirm: "Confirmer",
       },
       exerciseRow: {
         editAccessibilityLabel: "Modifier l’exercice",

@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
-import { useCallback, useContext, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { AccessibilityInfo, Keyboard, Platform, ScrollView, StyleSheet, Text } from "react-native";
 
 import {
@@ -2701,16 +2701,15 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     expect(screen.getByTestId("composition-activity-actions-ex-2")).toBeTruthy();
   });
 
-  it("AC-06 — Dupliquer inserts an independent copy right after its source, with a fresh id and the SAME title (T02-S02, D-138)", async () => {
+  it("AC-06 — Dupliquer inserts an independent copy right after its source, with a fresh id and the « (copie) » suffix (PRE-6 story 2.3, D-124)", async () => {
     renderTwo();
     await screen.findByTestId("composition-exercise-body-zones");
     fireSwipeLeft("ex-1");
     fireEvent.press(screen.getByTestId("composition-activity-duplicate-ex-1"));
 
-    // Titre strictement identique : deux cartes portent désormais `Gainage`,
-    // et aucun suffixe `(copie)` n'apparaît nulle part.
-    expect(screen.getAllByText("Gainage")).toHaveLength(2);
-    expect(screen.queryByText(/copie/u)).toBeNull();
+    // PRE-6 (story 2.3, D-124, ch13) : la copie est nommée « Gainage (copie) ».
+    expect(screen.getAllByText("Gainage")).toHaveLength(1);
+    expect(screen.getByText("Gainage (copie)")).toBeTruthy();
     expect(
       testIdOrder(screen.toJSON(), [
         "composition-exercise-row-ex-1",
@@ -3753,5 +3752,271 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
       backgroundColor: colors.disabled,
     });
     expect(screen.queryByTestId("composition-sequence-marker-in", hidden)).toBeNull();
+  });
+});
+
+/**
+ * PRE-6 (story 2.3) : organisation des occurrences et Circuit de Séries — entrée adaptée à N
+ * avec confirmation de perte, sortie sans message, actions accessibles (CE-T03-08 §18).
+ */
+describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, story 2.3)", () => {
+  type Draft = SessionDraftContextValue["draft"];
+  const probe: { draft: Draft | null; updateDraft: SessionDraftContextValue["updateDraft"] | null } = {
+    draft: null,
+    updateDraft: null,
+  };
+  const recordDraft = (value: SessionDraftContextValue | null) => {
+    probe.draft = value?.draft ?? null;
+    probe.updateDraft = value?.updateDraft ?? null;
+  };
+  /** Relève le brouillon courant (et `updateDraft`) après chaque rendu. */
+  function DraftProbe() {
+    const value = useContext(SessionDraftContext);
+    useEffect(() => recordDraft(value), [value]);
+    return null;
+  }
+  const reserveRow = { target: { kind: "NUMBER" as const, value: 30 }, pauseSeconds: 0, loadKg: 0 };
+  function renderWithProbe(exercises: readonly SessionDraftExercise[], overrides?: Partial<Draft>) {
+    return render(
+      <TestSafeAreaProvider>
+        <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
+          <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+            <StatefulDraftWrapper initialExercises={exercises} draftOverrides={overrides}>
+              <CompositionScreen />
+              <DraftProbe />
+            </StatefulDraftWrapper>
+          </ReferentialServiceContext.Provider>
+        </ActivityDefinitionServiceContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+  }
+  const exerciseOf = (id: string) => probe.draft!.exercises.find((exercise) => exercise.id === id)!;
+  const seriesCountOfDraft = (id: string) => {
+    const series = exerciseOf(id).executionParameters.series;
+    return series.kind === "UNIFORM" ? series.count : series.rows.length;
+  };
+  const a11yAction = (id: string, actionName: string) =>
+    fireEvent(screen.getByTestId(`composition-exercise-row-${id}`), "accessibilityAction", {
+      nativeEvent: { actionName },
+    });
+  const actionNames = (id: string) =>
+    (screen.getByTestId(`composition-exercise-row-${id}`).props.accessibilityActions as { name: string }[]).map(
+      (action) => action.name,
+    );
+  const t = composition.circuitEntryConfirmModal;
+
+  /** Glisser `ex-1` (avant le Circuit) dans le Circuit : même géométrie que les tests T02-S01. */
+  function dragIntoCircuit() {
+    fireLayout(screen.getByTestId("composition-zone-before-tour"), 70, 150);
+    fireLayout(screen.getByTestId("composition-activity-ex-1"), 0, 70);
+    fireLayout(screen.getByTestId("composition-tour-section"), 230, 170);
+    const container = () => screen.getByTestId("composition-activity-ex-1");
+    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
+    fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
+    fireEvent(container(), "responderMove", { nativeEvent: { pageX: 200, pageY: 300 } });
+    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 200, pageY: 300 } });
+  }
+
+  const seriesDraft = (count: number): Partial<Draft> => ({ circuitNature: "SERIES", tourRepeatCount: count });
+
+  it("glisser vers un Circuit de Séries avec perte : dialogue ; Annuler restitue la position", () => {
+    renderWithProbe([anActivity("ex-1", "BEFORE_TOUR", { executionParameters: durationParameters(30, 3) })], seriesDraft(2));
+    dragIntoCircuit();
+
+    expect(screen.getByText(t.moveTitle)).toBeTruthy();
+    expect(
+      screen.getByText(
+        "L’exercice déplacé aura 2 séries. Les séries au-delà de la 2e seront supprimées, avec les valeurs qu’elles portent.",
+      ),
+    ).toBeTruthy();
+    // Aucune mutation avant confirmation.
+    expect(exerciseOf("ex-1").structuralPosition).toBe("BEFORE_TOUR");
+
+    fireEvent.press(screen.getByLabelText(t.cancel));
+    expect(screen.queryByTestId("circuit-entry-confirm-card")).toBeNull();
+    expect(exerciseOf("ex-1").structuralPosition).toBe("BEFORE_TOUR");
+    expect(seriesCountOfDraft("ex-1")).toBe(3);
+  });
+
+  it("glisser vers un Circuit de Séries avec perte : Confirmer déplace et adapte à N", () => {
+    renderWithProbe([anActivity("ex-1", "BEFORE_TOUR", { executionParameters: durationParameters(30, 3) })], seriesDraft(2));
+    dragIntoCircuit();
+    fireEvent.press(screen.getByLabelText(t.confirm));
+
+    expect(screen.queryByTestId("circuit-entry-confirm-card")).toBeNull();
+    expect(exerciseOf("ex-1").structuralPosition).toBe("IN_TOUR");
+    expect(seriesCountOfDraft("ex-1")).toBe(2);
+  });
+
+  it("entrée en Séries sans perte : adaptée à N, sans dialogue", () => {
+    renderWithProbe([anActivity("ex-1", "BEFORE_TOUR", { executionParameters: durationParameters(30, 3) })], seriesDraft(4));
+    dragIntoCircuit();
+
+    expect(screen.queryByTestId("circuit-entry-confirm-card")).toBeNull();
+    expect(exerciseOf("ex-1").structuralPosition).toBe("IN_TOUR");
+    expect(seriesCountOfDraft("ex-1")).toBe(4);
+  });
+
+  it("Circuit de Tours : déplacement inchangé, paramètres conservés, sans dialogue", () => {
+    renderWithProbe([anActivity("ex-1", "BEFORE_TOUR", { executionParameters: durationParameters(30, 3) })], {
+      tourRepeatCount: 2,
+    });
+    dragIntoCircuit();
+
+    expect(screen.queryByTestId("circuit-entry-confirm-card")).toBeNull();
+    expect(exerciseOf("ex-1").structuralPosition).toBe("IN_TOUR");
+    expect(seriesCountOfDraft("ex-1")).toBe(3);
+  });
+
+  it("sortie du Circuit : nombre et paramètres conservés, réserve retirée, sans message", () => {
+    const inside = anActivity("ex-1", "IN_TOUR", { executionParameters: durationParameters(30, 2) });
+    renderWithProbe([inside], {
+      ...seriesDraft(2),
+      circuitSeriesReserve: { "ex-1": [{ target: { kind: "NUMBER", value: 30 }, pauseSeconds: 0, loadKg: 0 }] },
+    });
+    a11yAction("ex-1", "moveDown");
+
+    expect(screen.queryByTestId("circuit-entry-confirm-card")).toBeNull();
+    expect(exerciseOf("ex-1").structuralPosition).toBe("AFTER_TOUR");
+    expect(exerciseOf("ex-1").executionParameters).toEqual(inside.executionParameters);
+    expect(probe.draft!.circuitSeriesReserve).toBeUndefined();
+  });
+
+  it("actions accessibles : Monter / Descendre absentes aux extrémités, Dupliquer et Supprimer toujours présentes", () => {
+    renderWithProbe([anActivity("ex-1", "BEFORE_TOUR"), anActivity("ex-2", "AFTER_TOUR")]);
+
+    expect(actionNames("ex-1")).toEqual(["moveDown", "duplicate", "delete"]);
+    expect(actionNames("ex-2")).toEqual(["moveUp", "duplicate", "delete"]);
+    const labels = screen.getByTestId("composition-exercise-row-ex-1").props.accessibilityActions as {
+      label: string;
+    }[];
+    expect(labels.map((action) => action.label)).toEqual([
+      composition.activityActions.moveDown,
+      composition.activityActions.duplicate,
+      composition.activityActions.delete,
+    ]);
+    // Le balayage existant est conservé.
+    fireSwipeLeft("ex-1");
+    expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
+  });
+
+  it("« Descendre » sur la dernière carte avant le Circuit : entre dans le Circuit (règles du glisser, confirmation comprise)", () => {
+    renderWithProbe(
+      [
+        anActivity("ex-1", "BEFORE_TOUR", { executionParameters: durationParameters(30, 3) }),
+        anActivity("ex-2", "IN_TOUR", { executionParameters: durationParameters(30, 2) }),
+      ],
+      seriesDraft(2),
+    );
+    a11yAction("ex-1", "moveDown");
+    expect(screen.getByText(t.moveTitle)).toBeTruthy();
+    fireEvent.press(screen.getByLabelText(t.confirm));
+
+    expect(probe.draft!.exercises.map((exercise) => [exercise.id, exercise.structuralPosition])).toEqual([
+      ["ex-1", "IN_TOUR"],
+      ["ex-2", "IN_TOUR"],
+    ]);
+    expect(seriesCountOfDraft("ex-1")).toBe(2);
+  });
+
+  it("« Monter » en tête du Circuit : rejoint la fin de la portée précédente", () => {
+    renderWithProbe([anActivity("ex-1", "BEFORE_TOUR"), anActivity("ex-2", "IN_TOUR")]);
+    a11yAction("ex-2", "moveUp");
+
+    expect(probe.draft!.exercises.map((exercise) => [exercise.id, exercise.structuralPosition])).toEqual([
+      ["ex-1", "BEFORE_TOUR"],
+      ["ex-2", "BEFORE_TOUR"],
+    ]);
+  });
+
+  it("actions accessibles Dupliquer / Supprimer : mêmes opérations que le balayage", () => {
+    renderWithProbe([anActivity("ex-1", "BEFORE_TOUR", { name: "Squat" })]);
+    a11yAction("ex-1", "duplicate");
+    expect(screen.getByText("Squat (copie)")).toBeTruthy();
+    a11yAction("ex-1", "duplicate");
+    expect(probe.draft!.exercises.map((exercise) => exercise.name)).toEqual(["Squat", "Squat (copie 2)", "Squat (copie)"]);
+  });
+
+  it("Supprimer une occurrence portant un point d'arrêt : le point part avec elle", () => {
+    renderWithProbe([anActivity("ex-1", "BEFORE_TOUR"), anActivity("ex-2", "BEFORE_TOUR")], {
+      stopPoints: [{ id: "p1", scope: "BEFORE_TOUR", position: 1 }],
+    });
+    a11yAction("ex-1", "delete");
+
+    expect(probe.draft!.exercises.map((exercise) => exercise.id)).toEqual(["ex-2"]);
+    expect(probe.draft!.stopPoints).toEqual([]);
+  });
+
+  it("dépôt amenant un point d'arrêt sur un emplacement interdit (dernière position) : action non offerte, position restituée", () => {
+    renderWithProbe([anActivity("ex-1", "AFTER_TOUR"), anActivity("ex-2", "AFTER_TOUR")], {
+      stopPoints: [{ id: "p1", scope: "AFTER_TOUR", position: 1 }],
+    });
+    // « Descendre » amènerait le point juste avant la Fin : refusé, donc non offert.
+    expect(actionNames("ex-1")).toEqual(["moveUp", "duplicate", "delete"]);
+    a11yAction("ex-1", "moveDown");
+
+    expect(probe.draft!.exercises.map((exercise) => exercise.id)).toEqual(["ex-1", "ex-2"]);
+    expect(probe.draft!.stopPoints).toEqual([{ id: "p1", scope: "AFTER_TOUR", position: 1 }]);
+  });
+
+  it("une action accessible de déplacement referme les actions glissées révélées", () => {
+    renderWithProbe([anActivity("ex-1", "BEFORE_TOUR"), anActivity("ex-2", "BEFORE_TOUR")]);
+    fireSwipeLeft("ex-1");
+    expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
+    a11yAction("ex-1", "moveDown");
+
+    expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
+    expect(probe.draft!.exercises.map((exercise) => exercise.id)).toEqual(["ex-2", "ex-1"]);
+  });
+
+  it("Confirmer rejoue le déplacement sur le brouillon courant : une modification faite pendant le dialogue est conservée", () => {
+    renderWithProbe([anActivity("ex-1", "BEFORE_TOUR", { executionParameters: durationParameters(30, 3) })], seriesDraft(2));
+    dragIntoCircuit();
+    expect(screen.getByText(t.moveTitle)).toBeTruthy();
+
+    act(() => {
+      probe.updateDraft!({
+        name: "Renommée",
+        exercises: [...probe.draft!.exercises, anActivity("ex-new", "AFTER_TOUR")],
+      });
+    });
+    fireEvent.press(screen.getByLabelText(t.confirm));
+
+    expect(probe.draft!.name).toBe("Renommée");
+    expect(probe.draft!.exercises.map((exercise) => [exercise.id, exercise.structuralPosition])).toEqual([
+      ["ex-1", "IN_TOUR"],
+      ["ex-new", "AFTER_TOUR"],
+    ]);
+    expect(seriesCountOfDraft("ex-1")).toBe(2);
+  });
+
+  it("Supprimer une occurrence du Circuit de Séries porteuse d'une réserve : sa réserve est retirée", () => {
+    renderWithProbe(
+      [
+        anActivity("ex-1", "IN_TOUR", { executionParameters: durationParameters(30, 2) }),
+        anActivity("ex-2", "IN_TOUR", { executionParameters: durationParameters(30, 2) }),
+      ],
+      { ...seriesDraft(2), circuitSeriesReserve: { "ex-1": [reserveRow], "ex-2": [reserveRow] } },
+    );
+    fireSwipeLeft("ex-1");
+    fireEvent.press(screen.getByTestId("composition-activity-delete-ex-1"));
+
+    expect(probe.draft!.exercises.map((exercise) => exercise.id)).toEqual(["ex-2"]);
+    expect(probe.draft!.circuitSeriesReserve).toEqual({ "ex-2": [reserveRow] });
+
+    a11yAction("ex-2", "delete");
+    expect(probe.draft!.circuitSeriesReserve).toBeUndefined();
+  });
+
+  it("Dupliquer dans un Circuit de Séries : la copie reçoit une copie de la réserve de sa source", () => {
+    renderWithProbe([anActivity("ex-1", "IN_TOUR", { executionParameters: durationParameters(30, 2) })], {
+      ...seriesDraft(2),
+      circuitSeriesReserve: { "ex-1": [reserveRow] },
+    });
+    a11yAction("ex-1", "duplicate");
+
+    const reserve = probe.draft!.circuitSeriesReserve!;
+    expect(reserve).toEqual({ "ex-1": [reserveRow], "generated-copy-id": [reserveRow] });
+    expect(reserve["generated-copy-id"]![0]).not.toBe(reserve["ex-1"]![0]);
   });
 });
