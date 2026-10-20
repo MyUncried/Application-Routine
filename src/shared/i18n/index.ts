@@ -45,7 +45,9 @@ const executionParameters = {
     // ligne « Nombre de séries » ; le nombre est porté par l’option sélectionnée du Type de
     // série (« 3 séries identiques », « 3 séries variables », accord au singulier à N = 1), le
     // stepper révélé garde son nom accessible `series` et sa valeur « 3 séries ».
-    seriesType: "Type de série",
+    // Recette du 20/10 (RC-17, décision de Hermann, Figma `9436:18101`) : la ligne s’intitule
+    // « Séries » (au lieu de « Type de série ») ; même texte pour le nom accessible du segmenté.
+    seriesType: "Séries",
     seriesCountUniform: "{n} séries identiques",
     seriesCountUniformSingular: "{n} série identique",
     seriesCountVariable: "{n} séries variables",

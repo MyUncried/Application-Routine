@@ -556,7 +556,8 @@ describe("strings — PRE-5 story 2.4", () => {
     expect(sheet.stopConditions).toEqual({ FAILURE: "À l’échec", TARGET: "À la cible", MIXED: "À la cible et à l’échec" });
     // Recette du 20/10 (RC-15) : la ligne « Nombre de séries » est retirée.
     expect("seriesCount" in sheet).toBe(false);
-    expect(sheet.seriesType).toBe("Type de série");
+    // Recette du 20/10 (RC-17) : la ligne du segmenté « Variables | Identiques » s'intitule « Séries ».
+    expect(sheet.seriesType).toBe("Séries");
     expect([sheet.seriesCountUniform, sheet.seriesCountUniformSingular]).toEqual(["{n} séries identiques", "{n} série identique"]);
     expect([sheet.seriesCountVariable, sheet.seriesCountVariableSingular]).toEqual(["{n} séries variables", "{n} série variable"]);
     expect(sheet.seriesTypes).toEqual({ VARIABLE: "Variables", UNIFORM: "Identiques" });

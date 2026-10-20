@@ -657,7 +657,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     for (const label of [
       "Mode",
       "Condition d’arrêt",
-      "Type de série",
+      "Séries",
       "Pause après chaque série",
       "Changement de côté",
       "Cadence",
@@ -725,7 +725,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     openExecutionSheetField("execution-sheet-series");
     expect(screen.getByTestId("execution-sheet-series-decrement").props.accessibilityState).toMatchObject({ disabled: true });
     // RC-15 : à N = 1, Variables est indisponible et annoncé comme tel (P16).
-    expect(screen.getByTestId(SERIES_TYPE).props.accessibilityLabel).toBe("Type de série");
+    expect(screen.getByTestId(SERIES_TYPE).props.accessibilityLabel).toBe("Séries");
     expect(screen.getByTestId(`${SERIES_TYPE}-VARIABLE`).props.accessibilityLabel).toBe("Variables, sans effet pour une seule série");
     expect(screen.getByTestId("execution-sheet").props.accessibilityViewIsModal).toBe(true);
     expect(screen.getByTestId("execution-sheet-target-value").props.accessibilityLabel).toBe("Durée d’une série, 1 min 30 s");
@@ -2579,7 +2579,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       expect(seriesTypeText()).toBe("Identiques");
       const control = within(get("execution-sheet-row-series-type-line")).getByTestId(SERIES_TYPE);
       expect(control.props.accessibilityRole).toBe("tablist");
-      expect(control.props.accessibilityLabel).toBe("Type de série");
+      expect(control.props.accessibilityLabel).toBe("Séries");
       expect(["VARIABLE", "UNIFORM"].map((value) => get(`${SERIES_TYPE}-${value}`).props.accessibilityLabel)).toEqual(["Variables", "Identiques"]);
       // Identiques : aucun tableau, donc aucun chevron.
       expect(query(TABLE_TOGGLE)).toBeNull();
@@ -4343,10 +4343,10 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
       screen.getByTestId(`${SERIES_TYPE}-VARIABLE`).props.accessibilityLabel,
       screen.getByTestId(`${SERIES_TYPE}-VARIABLE`).props.accessibilityState.selected,
     ];
-    expect(announced()).toEqual(["Type de série", "Variables", true]);
+    expect(announced()).toEqual(["Séries", "Variables", true]);
     // Le chevron intérieur de Variables est nommé par son action.
     fireEvent.press(screen.getByLabelText("Masquer le tableau des séries"));
-    expect(announced()).toEqual(["Type de série", "Variables", true]);
+    expect(announced()).toEqual(["Séries", "Variables", true]);
     expect(screen.getByLabelText("Afficher le tableau des séries")).toBeTruthy();
   });
 
@@ -4881,7 +4881,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
     }
     // Libellés de ligne Inter Regular 12 (PR-03), plus petits que les valeurs.
     expect(StyleSheet.flatten(screen.getByText("Condition d’arrêt").props.style)).toMatchObject({ fontSize: 12, fontWeight: "400" });
-    expect(StyleSheet.flatten(screen.getByText("Type de série").props.style)).toMatchObject({ fontSize: 12, fontWeight: "400" });
+    expect(StyleSheet.flatten(screen.getByText("Séries").props.style)).toMatchObject({ fontSize: 12, fontWeight: "400" });
   });
 
   it("PRE5-2.4/AC2 — repère unique : le haut du panneau vaut y du cadre + y de la ligne + hauteur + 4, dans chaque cadre ; il suit un cadre qui se déplace ; panneau rendu dans l'hôte, hors des cadres", () =>

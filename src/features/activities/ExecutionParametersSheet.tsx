@@ -232,7 +232,9 @@ import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@
  *   par l'option sélectionnée du Type de série (« 3 séries identiques » / « 3 séries variables »
  *   et chevron du tableau) ; son toucher révèle le stepper « − | 3 séries | + » dans l'option
  *   (Figma `9436:18305`), toucher la valeur le referme (RC-4). Même brique que le nombre de
- *   phases (`SegmentCountField`, story 2.8).
+ *   phases (`SegmentCountField`, story 2.8). Recette du 20/10 (RC-17) : la ligne s'intitule
+ *   « Séries » ; stepper ouvert, le chevron du tableau est grisé et indisponible (son appui ferme
+ *   le stepper) ; l'activation d'une cellule du tableau ferme le stepper (une seule surface).
  *
  * PRE-5 story 2.6 (AD-27, AD-28, FR-29 ; UX-DR3) — tableau des séries variables : bloc
  * blanc, lignes de 36, cellules à valeur seule (plus de ± permanents : Q44 remplacé).
@@ -284,6 +286,8 @@ import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@
  *   dernière phase avec « Phase supprimée — Annuler » ;
  *   Recette du 20/10 (RC-16) : chevron rendu par le contenu (place réservée), option de 104 /
  *   150 ; réglage ouvert « − | n phases | chevron | + » sur `#EAEAFF`, chevron indisponible ;
+ *   RC-17 : l'activation d'un champ du tableau (libellé, durée) ferme le réglage (une seule
+ *   surface) et rend le chevron actif ;
  * - tableau des phases (`WorkPhasesTable`) : libellé au clavier texte et durée au clavier
  *   numérique MMSS (`keyboard(phaseLabel | phaseDuration)`), glisser, actions accessibles,
  *   croix (indisponible à deux phases, QR-1) ;
@@ -1236,6 +1240,10 @@ export function ExecutionParametersSheet({
   // un segmenté de 34 ; toucher la valeur le referme (RC-4). L'option non sélectionnée garde
   // « Variables » ou « Identiques ». À N = 1 (P16), le Type de série reste non modifiable :
   // Variables indisponible (au lieu du contrôle entier atténué), le nombre reste réglable.
+  // Recette du 20/10 (RC-17, décisions de Hermann) : la ligne s'intitule « Séries » ; stepper
+  // ouvert, le chevron du tableau est grisé et indisponible (jamais stepper et chevron actifs en
+  // même temps) ; activer une cellule du tableau ouvre sa surface clavier, ce qui ferme le stepper
+  // (une seule surface ouverte) et rend le chevron actif.
   const seriesCountOpen = isOpen(stepperSurface("count"));
   const seriesChevron = seriesTypeValue === "VARIABLE";
   const seriesSelectedWidth = seriesSelectedOptionWidth({
@@ -1285,6 +1293,8 @@ export function ExecutionParametersSheet({
           accessibilityLabel: single ? `${t.seriesTypes.VARIABLE}, ${t.disabledSuffix}` : undefined,
           chevron: showVariableTable ? (isTableFolded ? "down" : "up") : undefined,
           chevronAccessibilityLabel: isTableFolded ? t.showTable : t.hideTable,
+          // Recette du 20/10 (RC-17) : stepper ouvert, chevron visible mais indisponible (comme RC-16).
+          chevronDisabled: seriesCountOpen,
           ...seriesTypeOption("VARIABLE"),
         },
         {
@@ -1295,7 +1305,9 @@ export function ExecutionParametersSheet({
       ]}
       value={seriesTypeValue}
       onChange={chooseSeriesType}
-      onChevronPress={toggleTable}
+      // RC-17 : chevron indisponible touché pendant le réglage — fermeture du stepper (« toucher
+      // ailleurs »), sans changer le nombre ni l'état déployé / replié du tableau.
+      onChevronPress={seriesCountOpen ? toggleSeriesCount : toggleTable}
       accessibilityLabel={t.seriesType}
       testID="execution-sheet-series-type-control"
     />
@@ -1509,8 +1521,9 @@ export function ExecutionParametersSheet({
 
   // PRE-5 story 2.4 (AC7, FR-28) : chevron de Variables — reprend l'ancien
   // `DisclosureControl` : replier ou déplier sans perte de valeurs ni de mode.
-  // RC-15 : indépendant du stepper du nombre de séries, qu'il n'ouvre pas (une surface ouverte
-  // est rangée, T14).
+  // RC-15 : il n'ouvre pas le stepper du nombre de séries (une surface ouverte est rangée, T14).
+  // RC-17 : stepper ouvert, le chevron est indisponible et son appui ferme le stepper seulement
+  // (`toggleSeriesCount`), au lieu d'appeler cette fonction.
   function toggleTable() {
     // Q40 : déplier sélectionne le tableau ; replier le désélectionne.
     // T14 : toute surface ouverte (champ ± compris) est rangée.

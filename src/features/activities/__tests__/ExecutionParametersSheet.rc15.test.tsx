@@ -19,6 +19,10 @@ import { colors } from "@/shared/ui/tokens";
  * `9445:18410`), plus de ligne « Nombre de séries ». Règles, bornes, transitions et accessibilité
  * du stepper conservées (NR Δ38). Jest ne prouve que l'arbre JS : rendu, gestes et largeurs réelles
  * relèvent de la recette iPhone (aucun constat inventé).
+ *
+ * Recette du 20/10 (RC-17, décisions de Hermann) : la ligne s'intitule « Séries » (au lieu de « Type
+ * de série ») ; stepper ouvert, le chevron du tableau est grisé et indisponible ; l'activation d'une
+ * cellule du tableau ferme le stepper (une seule surface) et rend le chevron actif.
  */
 
 jest.mock("expo-haptics", () => ({ selectionAsync: jest.fn(async () => undefined) }));
@@ -107,7 +111,11 @@ describe("RC-15 — contrôle segmenté Séries (recette du 20/10)", () => {
     renderSheet(params());
     expect(query("execution-sheet-row-series")).toBeNull();
     expect(screen.queryByText("Nombre de séries", hidden)).toBeNull();
-    expect(within(get("execution-sheet-row-series-type")).getByText(t.seriesType, hidden)).toBeTruthy();
+    // RC-17 : titre de la ligne « Séries » (Figma `9436:18101`), nom accessible du segmenté identique.
+    expect(t.seriesType).toBe("Séries");
+    expect(within(get("execution-sheet-row-series-type")).getByText("Séries", hidden)).toBeTruthy();
+    expect(within(get("execution-sheet-row-series-type")).queryByText("Type de série", hidden)).toBeNull();
+    expect(get(CONTROL).props.accessibilityLabel).toBe("Séries");
     expect(closedText()).toBe("3 séries identiques");
     expect(within(get(CONTROL)).getByTestId(TOGGLE)).toBeTruthy();
     expect(get(UNIFORM).props.accessibilityState).toMatchObject({ selected: true });
@@ -171,7 +179,7 @@ describe("RC-15 — contrôle segmenté Séries (recette du 20/10)", () => {
     expect(get(`${STEPPER}-increment`).props.accessibilityState).toMatchObject({ disabled: true });
   });
 
-  it("variables : « 3 séries variables » et chevron graphique (haut = déployé) ; le chevron replie et déploie sans changer le nombre ni ouvrir le réglage ; le tableau suit N", () => {
+  it("variables : « 3 séries variables » et chevron graphique (haut = déployé) ; le chevron replie et déploie sans changer le nombre ni ouvrir le réglage ; le tableau suit N ; réglage ouvert, chevron indisponible (RC-17)", () => {
     renderSheet(params(variable(3)));
     expect(closedText()).toBe("3 séries variables");
     expect(within(get(CONTROL)).getByText("Identiques", hidden)).toBeTruthy();
@@ -184,10 +192,13 @@ describe("RC-15 — contrôle segmenté Séries (recette du 20/10)", () => {
     expect(closedText()).toBe("3 séries variables");
     fireEvent.press(get(CHEVRON));
     expect(tableRows()).toBe(3);
-    // Réglage ouvert : le chevron reste dans le segment, indépendant ; le tableau suit N.
+    // Réglage ouvert : le chevron reste visible dans le segment, grisé et indisponible (RC-17) ;
+    // le tableau suit N.
+    expect(get(CHEVRON).props.accessibilityState).toMatchObject({ disabled: false, expanded: true });
     fireEvent.press(get(TOGGLE));
     expect(get(CHEVRON)).toBeTruthy();
-    expect(styleOf(`${CHEVRON}-icon`).tintColor).toBe(colors.primary);
+    expect(styleOf(`${CHEVRON}-icon`).tintColor).toBe(colors.disabled);
+    expect(get(CHEVRON).props.accessibilityState).toMatchObject({ disabled: true, expanded: true });
     stepperTap("increment");
     expect(tableRows()).toBe(4);
     stepperTap("decrement");
@@ -208,23 +219,37 @@ describe("RC-15 — contrôle segmenté Séries (recette du 20/10)", () => {
     expect(query("execution-sheet-table")).toBeNull();
   });
 
-  it("largeurs : option sélectionnée adaptée au contenu (Figma 127 / 134 / 138 à un point près) ; non sélectionnée de 106, réduite seulement si le libellé n'a plus sa place", () => {
+  it("largeurs : option sélectionnée adaptée au contenu (Figma 127 / 134 / 138 à un point près) ; non sélectionnée de 106 (RC-17 : libellé « Séries » plus court), réduite seulement si le libellé n'a plus sa place", () => {
     setWidth(402);
     renderSheet(params());
     expect(optionWidth(UNIFORM)).toBe(126);
     expect(optionWidth(VARIABLE)).toBe(106);
     fireEvent.press(get(TOGGLE));
     expect(optionWidth(UNIFORM)).toBe(138);
+    expect(optionWidth(VARIABLE)).toBe(106);
     screen.unmount();
-    setWidth(375);
     renderSheet(params(variable(3)));
-    expect(optionWidth(VARIABLE)).toBe(134);
     fireEvent.press(get(TOGGLE));
     expect(optionWidth(VARIABLE)).toBe(154);
-    expect(optionWidth(UNIFORM)).toBe(84);
+    expect(optionWidth(UNIFORM)).toBe(106);
+    screen.unmount();
+    setWidth(375);
+    renderSheet(params());
+    expect(optionWidth(VARIABLE)).toBe(106);
+    fireEvent.press(get(TOGGLE));
+    expect(optionWidth(VARIABLE)).toBe(106);
+    screen.unmount();
+    renderSheet(params(variable(3)));
+    expect(optionWidth(VARIABLE)).toBe(134);
+    expect(optionWidth(UNIFORM)).toBe(106);
+    fireEvent.press(get(TOGGLE));
+    expect(optionWidth(VARIABLE)).toBe(154);
+    // Seul cas réduit à un chiffre : variables, stepper ouvert (« Séries » garde ses 36).
+    expect(optionWidth(UNIFORM)).toBe(95);
   });
 
-  it("à 375 et à 402, de 1 à 99 séries, dans les deux types, réglage ouvert ou fermé : le libellé « Type de série » garde au moins 47 (deux lignes), sans débordement", () => {
+  it("à 375 et à 402, de 1 à 99 séries, dans les deux types, réglage ouvert ou fermé : le libellé « Séries » garde au moins 36 (une ligne, RC-17), sans débordement ; à 402, l'option non sélectionnée garde toujours 106", () => {
+    expect(SERIES_TYPE_LABEL_MIN_WIDTH).toBe(36);
     for (const screenWidth of [375, 402]) {
       const rowWidth = screenWidth - 74 - 8;
       for (let count = 1; count <= 99; count += 1) {
@@ -239,6 +264,7 @@ describe("RC-15 — contrôle segmenté Séries (recette du 20/10)", () => {
             });
             const unselected = seriesUnselectedOptionWidth(type === "UNIFORM" ? "VARIABLE" : "UNIFORM", selected, rowWidth);
             const control = 3 + selected + 2 + unselected + 3;
+            if (screenWidth === 402) expect({ count, type, open, unselected }).toEqual({ count, type, open, unselected: 106 });
             expect({ screenWidth, count, type, open, fits: rowWidth - control >= SERIES_TYPE_LABEL_MIN_WIDTH }).toEqual({
               screenWidth,
               count,
@@ -251,4 +277,50 @@ describe("RC-15 — contrôle segmenté Séries (recette du 20/10)", () => {
       }
     }
   });
+});
+
+describe("RC-17 — Séries : jamais stepper et chevron actifs en même temps (recette du 20/10)", () => {
+  const loaded = (count: number): Partial<ExecutionParametersInput> => ({
+    loadEnabled: true,
+    series: {
+      kind: "VARIABLE",
+      rows: Array.from({ length: count }, (_, index) => ({ target: numberTarget(30 + index), pauseSeconds: 10, loadKg: 5 * index })),
+    },
+  });
+  const chevronState = () => get(CHEVRON).props.accessibilityState as { disabled?: boolean; expanded?: boolean };
+
+  it("stepper ouvert : chevron grisé et indisponible ; son appui ferme le stepper sans changer le nombre ni le repli ; le chevron redevient actif", () => {
+    renderSheet(params(variable(3)));
+    expect(chevronState()).toMatchObject({ disabled: false, expanded: true });
+    expect(styleOf(`${CHEVRON}-icon`).tintColor).toBe(colors.background);
+    fireEvent.press(get(TOGGLE));
+    stepperTap("increment");
+    expect(chevronState()).toMatchObject({ disabled: true, expanded: true });
+    fireEvent.press(get(CHEVRON));
+    expect(query(`${STEPPER}-increment`)).toBeNull();
+    expect(closedText()).toBe("4 séries variables");
+    expect(tableRows()).toBe(4);
+    expect(get(`${CHEVRON}-icon`).props.source).toEqual(UP);
+    expect(chevronState()).toMatchObject({ disabled: false, expanded: true });
+    expect(styleOf(`${CHEVRON}-icon`).tintColor).toBe(colors.background);
+    // Actif à nouveau : il replie le tableau sans ouvrir le stepper.
+    fireEvent.press(get(CHEVRON));
+    expect(query("execution-sheet-table")).toBeNull();
+    expect(query(FIELD)).toBeNull();
+  });
+
+  for (const column of ["target", "pause", "load"] as const) {
+    it(`activer une cellule du tableau (${column}) ferme le stepper (surface clavier, une seule surface) ; nombre et repli inchangés ; chevron actif`, () => {
+      renderSheet(params(loaded(3)));
+      fireEvent.press(get(TOGGLE));
+      expect(chevronState()).toMatchObject({ disabled: true });
+      fireEvent(get(`execution-sheet-table-row-2-${column}-input`), "focus");
+      expect(query(`${STEPPER}-increment`)).toBeNull();
+      expect(query(FIELD)).toBeNull();
+      expect(closedText()).toBe("3 séries variables");
+      expect(tableRows()).toBe(3);
+      expect(get(`${CHEVRON}-icon`).props.source).toEqual(UP);
+      expect(chevronState()).toMatchObject({ disabled: false, expanded: true });
+    });
+  }
 });

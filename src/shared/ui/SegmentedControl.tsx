@@ -33,6 +33,13 @@ export type SegmentedControlOption<T extends string> = {
   /** Nom accessible du chevron (variante `inline`) — `accessibilityLabel` ou `label` de l'option par défaut. */
   readonly chevronAccessibilityLabel?: string;
   /**
+   * Variante `inline` seulement (recette du 20/10, RC-17) : chevron visible mais indisponible
+   * (grisé, `accessibilityState.disabled` annoncé) pendant que le stepper de l'option est ouvert.
+   * Son appui reste transmis à `onChevronPress` : l'appelant y ferme le stepper (« toucher
+   * ailleurs »), sans replier ni déployer le tableau.
+   */
+  readonly chevronDisabled?: boolean;
+  /**
    * Variante `inline` seulement (AD-24, D-432) : contenu rendu à la place du
    * libellé quand l'option est sélectionnée (« n phases » et stepper révélé
    * existant, story 2.8). Le chevron éventuel reste rendu par le composant.
@@ -383,7 +390,7 @@ export function SegmentedControl<T extends string>({
               name={option.chevron === "up" ? "control-chevron-up" : "control-chevron-down"}
               size={dimensions.catalogueDisclosure.chevronDisplaySize}
               tintColor={
-                option.disabled
+                option.disabled || option.chevronDisabled
                   ? colors.disabled
                   : selected
                     ? option.ownSurface
@@ -433,7 +440,7 @@ export function SegmentedControl<T extends string>({
                     onPress={() => onChevronPress?.(option.value)}
                     accessibilityRole="button"
                     accessibilityLabel={option.chevronAccessibilityLabel ?? option.accessibilityLabel ?? option.label}
-                    accessibilityState={{ expanded: option.chevron === "up" }}
+                    accessibilityState={{ expanded: option.chevron === "up", disabled: Boolean(option.chevronDisabled) }}
                     hitSlop={INLINE_CHEVRON_HIT_SLOP}
                     style={styles.inlineChevron}
                     testID={testID ? `${testID}-${option.value}-chevron` : undefined}

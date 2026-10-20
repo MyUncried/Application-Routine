@@ -301,6 +301,21 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect(countText()).toBe("4 phases");
   });
 
+  for (const field of ["label", "duration"] as const) {
+    it(`RC-17 — activer un champ du tableau des phases (${field}) ferme le réglage (surface clavier, une seule surface) ; nombre et repli inchangés ; chevron de nouveau actif`, () => {
+      renderSheet(withPhases([["A", 6], ["B", 3], ["C", 5]]));
+      fireEvent.press(get(COUNT_TOGGLE));
+      expect(get(CHEVRON).props.accessibilityState).toMatchObject({ disabled: true });
+      fireEvent(get(field === "label" ? label(2) : `${duration(2)}-input`), "focus");
+      expect(query(`${STEPPER}-increment`)).toBeNull();
+      expect(countText()).toBe("3 phases");
+      expect(phaseRows()).toHaveLength(3);
+      expect(chevronIcon()).toEqual(UP);
+      expect(get(CHEVRON).props.accessibilityState).toMatchObject({ disabled: false, expanded: true });
+      expect(styleOf(`${CHEVRON}-icon`).tintColor).toBe(colors.background);
+    });
+  }
+
   it("PRE5-2.8/AC2 (FR-28) — chevron : replie le tableau (chevron bas), nombre et phases inchangés ; redéploie", () => {
     const { onApply } = renderSheet(withPhases([["A", 6], ["B", 3], ["C", 5]]));
     fireEvent.press(get(CHEVRON));
