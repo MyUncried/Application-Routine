@@ -1,13 +1,16 @@
 ---
-status: draft — en attente de validation de Hermann
+status: approuvé par Hermann le 20/10/2026 — ARB-1 à ARB-3 clos
 inputDocuments:
   - '_bmad-output/pre6/etat-de-depart.md'
   - '_bmad-output/pre6/planning-artifacts/architecture-pre6.md'
+  - 'PR #390 docs/pre6-figma-ui-20261020 @ 59c682f1 (ch06, ch09, ch12, ch13), ouverte, non fusionnée'
 ---
 
 # KODJO PRE-6 — Évolution de la Composition de séance : epics et stories
 
-**Planification uniquement.** Aucune story n'est lancée avant la validation explicite de Hermann et la réconciliation de l'étape 0.
+**Plan approuvé le 20/10/2026.** Étape 0 réalisée le même jour (résultat ci-dessous). Le développement suit l'ordre de ce document, story par story. La fusion finale sur `main` reste soumise à l'autorisation explicite de Hermann.
+
+**Référence documentaire.** Les spécifications de `main` (`ad189847`), complétées par les corrections de la PR #390 (`59c682f1`), lues par `git show origin/docs/pre6-figma-ui-20261020:<fichier>`. La PR n'est ni fusionnée ni recopiée dans la branche PRE-6 : ses quatre passages (ch06 L399, ch09 L682, ch12 L906, ch13 L1254-1260) font foi pour PRE-6. Figma actuel, et non d'anciennes captures, pour le rendu : `DSF / Cards / Composition — exercice` `5544:6797`, `DSF / Cards / Exercice` `6214:7278`.
 
 ## Périmètre
 
@@ -39,10 +42,19 @@ Les travaux de planification ne dépendent pas de cette étape et sont faits. El
 
    Pour chaque changement, mettre à jour `etat-de-depart.md` et les stories concernées. Vérifier en particulier `DATABASE_VERSION` (10 attendu, donc migration 011).
 4. **Établir la référence de tests.** Lancer la suite Jest complète sur la baseline et consigner le nombre de suites et de tests verts. Ce sera la référence de non-régression de PRE-6.
-5. **Reprendre les reports PRE-5.** Le report AC6 (indicateur de côté neutre) entre dans la story 2.2 si ARB-2 est tranché ; sinon il reste reporté.
+5. **Reprendre les reports PRE-5.** Le report AC6 (indicateur de côté neutre) entre dans la story 2.2 (ARB-2 clos).
 6. **Ouvrir le développement.** Créer la branche de développement depuis la baseline et initialiser `sprint-status.yaml`.
 
 **Critère de sortie** : baseline nommée, delta consigné, référence Jest consignée, plan validé par Hermann.
+
+**Résultat (20/10/2026).**
+
+- Baseline : `ad189847` (fusion #389), égal à `origin/main` au 20/10 après `git fetch`. Il contient la clôture PRE-5 `67838422`, HEAD actuel du worktree PRE-5. Aucun commit PRE-5 postérieur.
+- Raccordement : `plan/pre6-bmad` part déjà de `ad189847` ; aucune fusion ni aucun rebase nécessaire.
+- Delta `ad189847..baseline` : vide. `DATABASE_VERSION` = 10, donc migration 011 confirmée.
+- Référence de non-régression (`npm ci`, Node 24.19) : Jest 125 suites et 3242 tests verts ; `npx tsc --noEmit` sans erreur ; `npm run lint` sans erreur.
+- Branche de développement : `pre6-bmad/dev`, depuis `plan/pre6-bmad`.
+- Corrections documentaires PR #390 intégrées aux stories 1.2, 2.2, 2.3 et 4.3 et à AD-36.
 
 ## Epic 1: Socle Circuit, pauses et calculs (domaine et données, sans interface)
 
@@ -60,7 +72,7 @@ Il porte la mécanique commune réutilisable par les formats (AD-34 à AD-40). A
 - **AC1** : `SessionDraft.stopPoints` ; hydratation, création, mise à jour. La position d'emplacement est enregistrée telle quelle, sans renumérotation (AD-36).
 - **AC2** : la validation refuse un point juste après le compte à rebours initial, juste avant la Fin, ou en doublon sur un emplacement (CE-T03-08 L1502, `isStopPointPlacementValid` réutilisé).
 - **AC3** : une mise à jour ne supprime plus les points existants. Test de non-régression sur `SqliteSessionRepository.update`.
-- **AC4** : comportement après déplacement, suppression ou duplication d'une occurrence voisine, selon ARB-3.
+- **AC4** : le point d'arrêt est rattaché à l'occurrence qui le précède (ARB-3 clos, ch09 L682 PR #390). Il l'accompagne au déplacement, est copié avec elle à la duplication et retiré avec elle à la suppression. Les positions sont recalculées par ces opérations, dans les emplacements autorisés.
 
 ### Story 1.3: Développement du Circuit et durées
 
@@ -91,16 +103,16 @@ Dépendances : 1.1 → 1.2. 1.1 → 1.3 → 1.4. 1.2 et 1.3 peuvent se faire en 
 ### Story 2.2: Cartes d'occurrence
 
 - **AC1** : nom ; pastille et classification ; zones corporelles ; cible et durée à droite. Les volumes sont séparés par un point médian, trois valeurs au plus puis « … » (CE-T03-08 L1474). Format de durée existant (`formatCompactDuration`).
-- **AC2** : récupération positive affichée sur la ligne structurelle sous la carte, selon ARB-1 ; elle forme un bloc avec l'occurrence (ch13 L1680).
-- **AC3** : indicateur de côté selon ARB-2 (report AC6 de PRE-5). Sans décision, le rendu existant est conservé.
+- **AC2** : récupération positive affichée sous la carte, dans sa zone structurelle dédiée (ARB-1 clos, règle validée) ; elle forme un bloc avec l'occurrence (ch13 L1680).
+- **AC3** : changement de côté (ARB-2 clos, report AC6 de PRE-5) : icône seule, en haut à droite, sans badge ni flèche `D→G` / `G→D`, absente si l'exercice n'a pas de changement de côté. Synthèse en bas à droite sur la ligne secondaire, bord droit aligné sur l'icône ; zones corporelles tronquées avec un écart de 8 px (ch13 L1256 PR #390, `8328:28605`, `8328:34377`, composant `5544:6797`). Paramètres fonctionnels PRE-5 inchangés.
 - **AC4** : en Circuit de Séries, la carte reflète les N séries effectives (`8328:34520`).
 - **AC5** : nom accessible annonçant type, position et durée (CE-T03-08 L1522).
 
 ### Story 2.3: Organisation des occurrences
 
 - **AC1** : ajout depuis le Catalogue et création d'une copie conservés (insertion atomique, ordre de la liste filtrée, aucune récupération automatique).
-- **AC2** : Dupliquer produit `{nom} (copie)` et conserve Pause et Récupération. Supprimer emporte la récupération (RM-210). Le geste de balayage existant est conservé.
-- **AC3** : glisser-déposer avant, dans et après le Circuit. Le bloc carte + récupération se déplace d'un seul tenant (`8328:33546`). L'identifiant est conservé. Un dépôt invalide restitue la position. Une entrée dans ou une sortie du Circuit applique la story 1.4, avec confirmation en cas de perte.
+- **AC2** : Dupliquer produit `{nom} (copie)` et conserve Pause, Récupération et Point d'arrêt. Supprimer emporte la récupération et le point d'arrêt (RM-210, ARB-3). Le geste de balayage existant est conservé.
+- **AC3** : glisser-déposer avant, dans et après le Circuit. Le bloc carte + récupération + point d'arrêt se déplace d'un seul tenant (`8328:33546`, ARB-3) ; un dépôt qui placerait le point sur un emplacement interdit est invalide. L'identifiant est conservé. Un dépôt invalide restitue la position. Une entrée dans ou une sortie du Circuit applique la story 1.4, avec confirmation en cas de perte.
 - **AC4** : alternatives accessibles au glisser et au balayage, conservées ou étendues aux bornes du Circuit.
 - **AC5** : modifier une copie conserve tous ses paramètres PRE-5 (phases, charge, cadence, pause, côtés, cibles). La Feuille s'ouvre sans Compte à rebours ni Fin d'exercice (RC-7, D-214).
 
@@ -157,7 +169,7 @@ Dépendances : 1.1 → 1.2. 1.1 → 1.3 → 1.4. 1.2 et 1.3 peuvent se faire en 
 
 ### Story 4.3: Pauses dans le déroulement et la Composition
 
-- **AC1** : une récupération suit son occurrence lors d'un déplacement, d'une duplication ou d'une suppression (RM-210). Les points d'arrêt suivent ARB-3.
+- **AC1** : une récupération suit son occurrence lors d'un déplacement, d'une duplication ou d'une suppression (RM-210), de même que son point d'arrêt (ARB-3 clos, ch09 L682). Rendu du point aligné sur le bord droit des cartes ; en placement, symbole et texte alignés à droite (ch13 L1258 PR #390, `8328:29428`, `8328:29270`).
 - **AC2** : dans le Circuit, récupérations et points sont répétés à chaque Tour ou passage. L'ordre est Exercice → R positive → Point d'arrêt (RM-219). Durées recalculées en direct (story 1.3).
 - **AC3** : avertissement D-301 informatif quand deux Exercices s'enchaînent sans Pause terminale ni R positive, sans mutation ni blocage.
 
@@ -197,44 +209,15 @@ Recette sur iPhone réel, build de développement, largeurs 375 et 402, VoiceOve
 | R6 | Migration sur données réelles | Migration 011, `DATABASE_VERSION` = 10 | ADD COLUMN seulement ; jalon J0. |
 | R7 | Densité de l'en-tête du Circuit à 375 et avec Dynamic Type | Conteneur 354 × 34 ; précédents PRE-5 (deferred-work, segmentés) | Story 3.1 AC4, vérification sur appareil. |
 | R8 | Glisser-déposer maison étendu aux bornes du Circuit et au bloc avec récupération | `compositionGesture.ts` | Story 2.3 ; J1 sur appareil. |
-| R9 | `CLAUDE.md` du clone de révision OpenSpec présent à la racine de `main` (commit `f7ff4200`), alors qu'il indique « Ne pas fusionner tel quel dans `main` » | `CLAUDE.md` l. 3 | Hors PRE-6, à signaler à Hermann. Ses interdits (aucun code applicatif) bloqueraient le développement PRE-6 s'ils étaient appliqués tels quels. |
+| R9 | `CLAUDE.md` du clone de révision OpenSpec présent à la racine de `main` (commit `f7ff4200`), alors qu'il indique « Ne pas fusionner tel quel dans `main` » | `CLAUDE.md` l. 3 | Traité pour PRE-6 : `CLAUDE.md` propre à la branche PRE-6 (commit `41c4a223`), exclu à la livraison ; celui de `main` reste inchangé. |
 
-## Arbitrages indispensables (à trancher par Hermann)
+## Arbitrages (clos par Hermann le 20/10/2026)
 
-**ARB-1 — Affichage d'une récupération positive dans la Composition.**
+**ARB-1 — Récupération positive dans la Composition : CLOS.** La règle validée s'applique : la récupération positive s'affiche sous la carte d'exercice, dans sa zone structurelle dédiée (story 2.2 AC2). Ce n'est pas une décision nouvelle. La formulation contraire de ch10 L602 est à réconcilier dans le lot documentaire, sans changer ce comportement.
 
-Les deux camps :
+**ARB-2 — Indicateur de changement de côté : CLOS, inclus dans PRE-6.** Icône seule quand la fonction s'applique, sans indicateur directionnel `D→G` / `G→D`. Présentation selon les composants Figma actualisés (`5544:6797`, `6214:7278`) et ch13 L1254-1260 (PR #390). Paramètres fonctionnels PRE-5 inchangés (story 2.2 AC3). Sujet non rouvert.
 
-- ch10 L602 (« D-208 révisée sur l'affichage ») : « Les cartes ne présentent plus la ligne `Récupération {durée}`, y compris pour une valeur non nulle. »
-- En sens contraire :
-  - CE-T03-08 L1494 : « Tap sur récupération positive ouvre son réglage » ;
-  - ch13 L1680 : « l'occurrence et sa ligne `Récupération {durée}` constituent un seul bloc » ;
-  - D-303 (aucune information seulement si elle est absente ou à 0) ;
-  - Figma `8328:28605` et `8328:28863`.
-
-Aucune des sources ne remplace explicitement l'autre.
-
-Proposition : **la récupération positive s'affiche sur la ligne structurelle sous la carte, pas dans le corps de la carte** (D-238). Ch10 L602 serait reformulée dans un lot documentaire.
-
-**ARB-2 — Indicateur de côté de la Composition (report AC6 de PRE-5).**
-
-Le rendu sans direction est exigé (FR-18 PRE-5, D-407), mais aucune frame Figma n'en montre (`5544:6944`, `8328:28605` : « D→G »).
-
-À décider : le contenu visible et le nom accessible, ou une variante Figma à produire. Sans décision, la story 2.2 garde le rendu actuel et le report reste ouvert.
-
-**ARB-3 — Point d'arrêt et occurrence voisine.**
-
-Ce qui est établi :
-
-- un point d'arrêt « conserve une position structurelle » (ch09 L682) et ne suit pas la carte (`8328:33546` : seul le bloc carte + récupération est soulevé) ;
-- une suppression ou un déplacement peut toutefois le rendre interdit (juste après le compte à rebours, juste avant la Fin) ou le laisser sans occurrence dans le Circuit.
-
-Aucune source ne règle ce cas. Proposition :
-
-- le point reste à son emplacement ;
-- un dépôt qui le rendrait interdit est un dépôt invalide, la position est restituée (règle existante, CE-T03-08 L1502) ;
-- une suppression qui le rendrait interdit le retire avec l'occurrence ;
-- la copie d'une duplication s'insère après la source et avant son point d'arrêt.
+**ARB-3 — Point d'arrêt : CLOS.** Le Point d'arrêt accompagne l'occurrence d'exercice à laquelle il est rattaché, comme la Récupération, lors des déplacements, duplications et suppressions (ch09 L682, PR #390). La représentation `{ id, scope, position }` est conservée : la position organise la séquence, elle ne fige pas le point. Les opérations de Composition actualisent les positions dans les emplacements autorisés (AD-36 ; stories 1.2 AC4, 2.3 AC2-AC3, 4.3 AC1).
 
 ### Points non bloquants (défaut appliqué, vérifié en recette)
 
@@ -247,9 +230,9 @@ Aucune source ne règle ce cas. Proposition :
 
 - **Données** : migration 011 (AD-34, AD-35) ; `session_stop_points` sans changement de schéma (AD-36).
 - **API fonctionnelles (ch11)** : API-COM-02, API-COM-09, API-COM-REC-01 à 05, placement L228-251, Circuits L255-267. Elles sont réalisées par les fonctions pures d'AD-39 et AD-43, sans nouveau service.
-- **Documentation : lot proposé à Hermann après validation du plan** (aucune modification sans son accord) :
+- **Documentation : lot proposé à Hermann** (aucune modification sans son accord). La PR #390 règle déjà la clarification du Point d'arrêt (ch09 L682) et le rendu des cartes (ch06, ch12, ch13) ; restent :
   1. ch09 : nature persistée, borne typée réservée aux formats ;
-  2. ch10 L602 selon ARB-1 ;
+  2. ch10 L602, à réconcilier avec la règle validée (ARB-1) ;
   3. ch12 L955 et L1250 ; ch13 L1553 (compteur révélé, titre) ;
   4. ch13 L1440 : identifiants Figma périmés → `8328:*` ;
   5. ch11 API-COM-06 (« enregistrées » → brouillon, D-388) et API-COM-REC-02 (plage 0..300) ;

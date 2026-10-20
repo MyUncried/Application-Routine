@@ -31,7 +31,7 @@ type CircuitBound =                                  // condition de fin (ch10 L
 
 - `StopPoint = { id, scope, position }` : `position` = **emplacement** dans la portée, c'est-à-dire le nombre d'occurrences de cette portée qui le précèdent. Une seule colonne et une seule contrainte `UNIQUE(session_id, scope, position)`, qui traduit « un seul point par emplacement ».
 - `insertStopPoints` enregistre la position reçue au lieu de renuméroter. `SessionDraft` porte `stopPoints` ; `toCreate/UpdateSessionInput` les transmettent ; `validation.ts` applique `isStopPointPlacementValid` (existant) et l'unicité.
-- Comportement après déplacement ou suppression d'une occurrence voisine : **ARB-3**.
+- Rattachement (ARB-3 clos, ch09 L682 PR #390) : le point accompagne l'occurrence qui le précède dans son emplacement, comme la récupération, lors des déplacements, duplications et suppressions. Les opérations de Composition (`composition.ts`) recalculent les positions ; un dépôt qui amènerait le point sur un emplacement interdit (après le compte à rebours initial, avant la Fin) est un dépôt invalide, position restituée (règle existante, CE-T03-08 L1502). Le cas d'une suppression qui laisserait un autre point juste avant la Fin est traité en story 1.2 depuis les sources, sans blocage nouveau. La forme `{ id, scope, position }` est conservée.
 
 ### AD-37 — Circuit de Séries : N hérité, régime libre
 

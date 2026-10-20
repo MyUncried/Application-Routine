@@ -1,6 +1,6 @@
 # PRE-6 — Évolution de la Composition de séance (planification BMAD)
 
-Statut : **plan proposé, en attente de validation explicite de Hermann.** Aucun développement, aucune modification applicative, documentaire ou Figma.
+Statut : **plan approuvé par Hermann le 20/10/2026 ; ARB-1 à ARB-3 clos ; étape 0 réalisée ; développement ouvert sur `pre6-bmad/dev`.** Référence documentaire : `main` + PR #390 (`59c682f1`, non fusionnée). Fusion sur `main` soumise à l'autorisation de Hermann.
 
 | Rubrique | Contenu |
 |---|---|
@@ -18,7 +18,7 @@ Statut : **plan proposé, en attente de validation explicite de Hermann.** Aucun
 
 ## Hypothèses non démontrées
 
-- Aucune autre correction PRE-5 n'arrivera après `ad189847`. C'est à confirmer à l'étape 0.
+- Aucune autre correction PRE-5 après `ad189847` : confirmé à l'étape 0 (20/10, `origin/main` = `ad189847`).
 - `ExecutionParametersDraft` contient la logique « le tableau suit N » sous une forme extractible en fonction pure (AD-39). C'est à vérifier en story 1.4.
 - Le plan a été rédigé avant l'installation de BMAD dans ce worktree. Depuis le 20/10, BMad 6.12.4 (core, bmm) est installé ici, en copie de PRE-5. Les en-têtes de `epics.md` ont été normalisés au format attendu par `sprint_plan.py` (`## Epic N:`, `### Story N.M:`), sans autre modification. `sprint-status.yaml` a été généré par ce script et validé (aucun problème signalé).
 

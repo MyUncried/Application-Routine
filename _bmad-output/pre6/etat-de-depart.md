@@ -12,7 +12,7 @@ Relevé du 20/10/2026, en lecture seule, sur la branche de planification `plan/p
 | Clôture PRE-5 | En cours : recettes iPhone des lots Feuille (R-2.5 à R-2.8) et Éditeur (R-3.1, R-3.2) notées « en attente » dans `_bmad-output/pre5/implementation-artifacts/sprint-status.yaml` ; rétrospectives facultatives non faites. |
 | Report PRE-5 utile à PRE-6 | Story 1.2 AC6 : indicateur de côté de la Composition sans direction, reporté au « batch correctif UX » (`_bmad-output/pre5/implementation-artifacts/deferred-work.md`). Aucun rendu neutre n'existe dans Figma (`5544:6944`, `8328:28605` affichent « D→G »). |
 
-**Conséquence.** `ad189847` est la baseline **provisoire**. Le plan prévoit une étape 0 de réconciliation avec le commit PRE-5 effectivement validé (voir `planning-artifacts/epics.md` § Étape 0). D'autres corrections PRE-5 issues des recettes encore attendues peuvent arriver sur `main`.
+**Conséquence.** `ad189847` était la baseline provisoire. **Étape 0 (20/10)** : confirmée comme baseline définitive (`origin/main` inchangé, clôture PRE-5 `67838422` incluse, delta vide). Référence : Jest 125 suites / 3242 tests, `tsc` et `lint` sans erreur. Le report AC6 entre dans la story 2.2 : Figma a été actualisé (icône seule, sans `D→G`), ARB-2 clos.
 
 ## 2. Code existant (acquis à conserver)
 
@@ -63,6 +63,8 @@ Code mort repéré, sans action PRE-6 nécessaire : `SideModeControl.tsx`, `Colo
 ## 3. Sources de vérité retenues
 
 Dernière couche normative sur les Circuits : arbitrages **CIR-01 à CIR-12 du 12/10** (ch07 L622-639), D-382, D-388, D-390 et D-399 (16-17/10). Les PR documentaires #383 à #388 (18-19/10) ne modifient aucune règle de Composition, de Circuit, de Récupération ou de Point d'arrêt. Décision la plus récente : D-434 (19/10), qui concerne l'éditeur.
+
+**Complément du 20/10 (après approbation).** PR #390 (`docs/pre6-figma-ui-20261020`, `59c682f1`, ouverte) : ch09 L682 (Point d'arrêt rattaché à son occurrence, ARB-3), ch13 L1254-1260 (cartes de Composition et de sélection, Point d'arrêt), ch12 L906 (composants `5544:6797` et `6214:7278`), ch06 L399 (nœuds Figma actuels). Ces passages font foi pour PRE-6 sans que la PR soit fusionnée.
 
 | Sujet | Référence principale |
 |---|---|
