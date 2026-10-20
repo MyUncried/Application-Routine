@@ -1,27 +1,31 @@
-@AGENTS.md
+# CLAUDE.md — clone de révision documentaire OpenSpec (KODJO-OPENSPEC-DOCS)
+
+> Fichier **propre à ce clone** et à la branche `docs/openspec-revision`. Ne pas fusionner tel quel dans `main`.
+> Original conservé à l’identique : `openspec/instructions/originaux/CLAUDE.md`. Séparation documentée : `openspec/instructions/README.md`.
+
 @docs/AGENTS.md
+@openspec/instructions/EXIGENCES-PRODUIT.md
 
-## Méthode de travail dans ce clone
+## Nature du chantier
 
-Ce clone utilise BMad Method tel qu'installé, avec ses skills et son déroulement standard. `/bmad-help` indique l'étape suivante. Aucun raccordement, adaptateur ni protocole hybride n'est en place.
+Révision de la documentation fonctionnelle KODJO avec OpenSpec standard (`openspec` CLI, schéma `spec-driven`, commandes `/opsx:*`). Chantier indépendant : **aucun raccordement à BMAD ni à VNext**. Les obligations VNext sont listées, non actives, dans `openspec/instructions/ORCHESTRATION-VNEXT.md`.
 
-Les exigences produit, les conventions du code, les commandes de vérification et les pièges connus sont dans `AGENTS.md`.
+## Interdits permanents du chantier
 
-Aucune tranche n'est sélectionnée par défaut. Le choix d'un périmètre — PRE-4, PRE-5 ou autre — est une décision de mission, prise au moment de la mission.
+- Aucun code applicatif (`app/`, `src/`, `tests/`, `e2e/`, `scripts/`, configs Expo/EAS).
+- Aucun changement Figma, aucun push, aucun workflow GitHub, aucun EAS.
+- Aucune modification de `.github/`, ni des autres clones (`C:\Dev\KODJO-BMAD-PRE4`, `KODJO-BMAD-PRE5`, `Application-routine*`).
+- Les références utilisées par les préparations PRE-4 en cours restent figées : aucune mise à jour de leurs sources sans décision explicite d’Hermann.
+- Les spécifications produit (`docs/Specifications-fonctionnelles/`, `docs/*.md`) ne sont corrigées qu’après validation d’Hermann d’un lot proposé.
+- Commits locaux autorisés.
 
-## Protocole VNext : référence inactive ici
+## Règles d’analyse documentaire
 
-Ce clone ne charge plus l'orchestration VNext. Ces fichiers sont conservés comme références historiques consultables, sans force obligatoire dans ce clone :
+- Documentation = comportements et calculs ; Figma = rendu visuel. Une capture n’établit pas une règle de calcul.
+- Le document le plus récent ne remplace jamais automatiquement les autres : un remplacement doit être explicite (décision Dxxx qui nomme la règle remplacée, ou mention « remplacé par »).
+- Pour chaque constat : passages exacts, sources (fichier + ancre/ligne), qualification (contradiction réelle / complément / différence de périmètre / doublon / référence rompue / ambiguïté), proposition justifiée.
+- Vérifier les PR documentaires ouvertes ou récemment fusionnées avant de déclarer un écart ouvert.
 
-- `.github/AI_ORCHESTRATION.md` et `.github/AI_ORCHESTRATION_CONTINUITY.md`
-- `.github/orchestration/` (protocole, files, checkpoints, rapports)
-- `scripts/kodjo/` et `tests/kodjo/`
-- `.github/orchestration/archive/CLAUDE_VNEXT_INSTRUCTIONS_2026-10-16.md` — contenu VNext retiré de ce fichier, conservé verbatim
+## Livrable de chaque session
 
-Ne s'appliquent donc pas aux missions menées ici : `PLAN_APPROVED`, désignation d'écrivain et verrou d'écrivain, contrats et bootstraps de tranche, file de travail et runner, rapport de mission obligatoire à chaque mission, diagnostic historique préalable, barrières d'arrêt du protocole.
-
-Les exigences produit que ces documents portaient sont reprises dans `AGENTS.md` : priorité aux primitives natives de l'OS, non-remplacement d'un composant déjà accepté, et le fait qu'une suite de tests verte ne vaut jamais preuve visuelle ou tactile sur appareil réel. Aucun contrôle de qualité produit n'a été supprimé.
-
-Le détail du découplage, la liste des règles retirées du contexte actif et la justification de chacune sont dans `.github/orchestration/reports/2026-10-16_BMAD-DECOUPLAGE-VNEXT.md`.
-
-Ce découplage est local à ce clone. Il ne modifie ni l'environnement VNext, ni PRE-4, ni les autres clones. Ne pas modifier les fichiers du protocole depuis ce clone.
+Bilan Markdown committé dans le change OpenSpec actif (`openspec/changes/<change>/bilan-*.md`), avec : objectif, branche et commit de départ, périmètre demandé/traité, constats, preuves, hypothèses non démontrées, modifications, hors périmètre, fichiers modifiés, commit final, état Git.
