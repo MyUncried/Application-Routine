@@ -561,6 +561,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const compositionSummary = formatCompositionSummary({
     exercises: draft.exercises,
     tourRepeatCount,
+    // PRE-6 (story 1.3) : la durée du Circuit suit sa nature (Tours / Séries).
+    circuitNature: draft.circuitNature,
   });
 
   // T01-S09 (AC-01/AC-02, CE-T01-11) : `Continuer` s'active uniquement pour

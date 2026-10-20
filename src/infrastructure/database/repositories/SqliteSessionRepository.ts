@@ -556,6 +556,7 @@ export class SqliteSessionRepository implements SessionRepository {
         ${zoneActivityCountSql("IN_TOUR")} AS in_tour_activity_count,
         ${zoneActivityCountSql("AFTER_TOUR")} AS after_tour_activity_count,
         tours.repeat_count AS tour_repeat_count,
+        tours.nature AS tour_nature,
         sessions.updated_at
       FROM sessions
       LEFT JOIN labels ON labels.id = sessions.label_id
@@ -1363,7 +1364,12 @@ function mapSummaryRow(
     afterTourActivityCount: row.after_tour_activity_count,
     tourRepeatCount: row.tour_repeat_count,
   });
-  const duration = computeStructuredSessionDuration({ ...zones, tourRepeatCount: row.tour_repeat_count });
+  // PRE-6 (story 1.3, AD-40) : durée selon la nature du Circuit, lue `?? "TOURS"`.
+  const duration = computeStructuredSessionDuration({
+    ...zones,
+    tourRepeatCount: row.tour_repeat_count,
+    circuitNature: isCircuitNature(row.tour_nature) ? row.tour_nature : DEFAULT_CIRCUIT_NATURE,
+  });
 
   return {
     id: row.id,

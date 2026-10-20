@@ -6,11 +6,12 @@ import {
   type ExecutionParametersInput,
 } from "@/domain/activities/ExecutionParameters";
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
-import { computeEstimatedDurationSeconds, computeZoneDurationFacts } from "@/domain/sessions/calculations";
+import { computeStructuredSessionDuration } from "@/domain/sessions/calculations";
+import { DEFAULT_CIRCUIT_NATURE, type CircuitNature } from "@/domain/sessions/circuit";
 import { DEFAULT_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
 import type { SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import type { SideMode } from "@/domain/sessions/sideMode";
-import { formatActivityCount, formatEstimatedDuration } from "@/features/sessions/formatSessionSummary";
+import { formatEstimatedDuration } from "@/features/sessions/formatSessionSummary";
 import { formatTwoDigits, fromTotalSeconds } from "@/features/sessions/wheelPickerMath";
 import { strings } from "@/shared/i18n";
 
@@ -31,82 +32,33 @@ export type CompositionSummaryFacts = {
    * Activités du Tour ne sont alors multipliées par rien).
    */
   readonly tourRepeatCount?: number;
+  /** PRE-6 (story 1.3) : nature du Circuit du brouillon, lue `?? "TOURS"`. */
+  readonly circuitNature?: CircuitNature;
 };
 
 /**
- * Résumé `N activités · durée estimée` sous `Nombre de tours` (§9 du plan
- * T01-S07 ; mode Répétitions ajouté en T01-S08, arbitrage B ; Séries/Pause
- * après Série corrigées en T01-S08, revue PR #9 —
- * https://github.com/MyUncried/Application-Routine/pull/9#pullrequestreview-5043917736 ;
- * généralisée à plusieurs Activités — complétion REWORK12, 2026-09-04).
+ * Résumé sous le titre du Circuit (`Nombre de tours`) — historique : T01-S07,
+ * T01-S08 (revue PR #9), REWORK12, REWORK13 (R13-02), T02-S01/T02-S02, PRE-3,
+ * PRE-4 (story 2.4, P41, P47).
  *
- * **REWORK13 (R13-02, `[ChatGPT] CHANGES_REQUESTED — REWORK13 —
- * typographie Nom d'activité + périmètre synthèse Tour`, 2026-09-04 ;
- * `.github/orchestration/reports/2026-09-04_activity-name-typography-tour-
- * summary-scope.md`)** : `initialCountdownSeconds`/`finalPhaseSeconds`
- * retirés de `CompositionSummaryFacts` et de la formule — cette synthèse
- * compte et totalise EXCLUSIVEMENT les Activités du Tour ; `Compte à
- * rebours initial` et `Fin de séance` sont des éléments STRUCTURELS hors
- * Tour, toujours exclus de sa durée (confirmer l'un ou l'autre
- * sélecteur n'actualise donc plus jamais cette synthèse, seulement sa
- * propre carte — par construction, ces champs n'étant plus lus ici). Les
- * autres règles de calcul (durée estimée globale du plan, chapitres 09/10)
- * ne sont pas concernées par ce changement : elles décrivent un total
- * différent, jamais cette synthèse locale.
+ * **PRE-6 (story 1.3, D-382, D-390, D-399)** : le résumé est la SEULE durée
+ * de ce Circuit, sans nombre d'exercices ; « — min » (`summary.empty`) si
+ * aucun Exercice n'est dans le Circuit.
  *
- * État vide (aucun Exercice dans le Tour) : chaîne locale et complète
- * `"0 exercice · 0 min"` (arbitrage V2) — n'appelle jamais
- * `formatActivityCount(0)`, qui produisait alors le pluriel pour le
- * Catalogue. Depuis PRE-4 (story 1.2, décision Q32), zéro y prend aussi le
- * singulier (« 0 exercice »).
- *
- * État non vide : chaque Activité contribue sa propre durée estimée, SOMMÉE
- * — mode Durée (RM-036/RM-037/RM-071), une Série répète la durée de
- * l'Exercice puis sa Pause après Série éventuelle (RM-036) ; chaque Pause
- * après Série génère une Récupération technique comptée dans la durée
- * estimée (RM-037/RM-071) — d'où, par Activité,
- * `seriesCount × durationSeconds + seriesCount × pauseSeconds`. Mode
- * Répétitions (RM-072) : aucune durée conventionnelle n'est attribuée à
- * l'Exercice lui-même, mais ses Pauses après Série restent comptées
- * (`seriesCount × pauseSeconds`) — dès qu'AU MOINS UNE Activité de la
- * collection est en mode Répétitions, la durée totale devient une borne
- * minimale, précédée de `≥` (jamais présentée comme une valeur exacte, même
- * si d'autres Activités de la même Composition sont en mode Durée). Arrondi
- * à la minute supérieure via `formatEstimatedDuration` (`Math.ceil`,
- * RM-101, inchangé), appliqué une seule fois à la somme totale des
- * Activités. **PRE-4 (story 2.4, AC5, Q20, P41)** : cet arrondi ne vaut
- * plus que pour les natures `exact` et `estimated` ; une borne minimale
- * (`lowerBound`) s'écrit « ≥ » (lexique) suivi des minutes et secondes du
- * formateur du domaine (`formatPhraseDuration`), sans arrondi — sauf une
- * borne de 0 s, qui garde « ≥ 0 min » (P47).
- *
- * **T02-S01 (CE-T02-01 « Calculs », AC-10/AC-11)**, puis **correctif T02
- * post-test-utilisateur** (2026-09-08) — quatre évolutions, la formule par
- * Activité restant inchangée :
- *
- * 1. **Cette synthèse est celle du Tour lui-même**, pas celle de la
- *    Composition entière : seules les Activités `IN_TOUR` y contribuent,
- *    aussi bien pour le NOMBRE que pour la DURÉE. Les Activités
- *    `BEFORE_TOUR`/`AFTER_TOUR` en sont exclues à la source du calcul (elles
- *    restent comptées dans le Catalogue par `computeActivityCount`,
- *    `calculations.ts`, qui lui couvre bien les trois zones — métrique
- *    distincte, jamais réutilisée ici). Le correctif remplace la version
- *    T02-S01 de cette fonction, qui sommait par erreur `facts.exercises`
- *    (les trois zones) pour le nombre et pour la part `BEFORE_TOUR`/
- *    `AFTER_TOUR` de la durée ;
- * 2. la durée `IN_TOUR` est multipliée par `tourRepeatCount` (« développe les
- *    répétitions du Tour ») ;
- * 3. le NOMBRE affiché reste celui des Activités `IN_TOUR` réellement
- *    composées — chacune une seule fois, jamais multipliée par
- *    `tourRepeatCount` (clarification n° 2 du verdict de revue T02-S01,
- *    désormais bornée à la zone du Tour) ;
- * 4. le mode « À l'échec » déclenche désormais la borne minimale `≥` au même
- *    titre que le mode Répétitions (AC-11/D-112) — il ne la déclenchait pas,
- *    alors qu'il ne porte lui non plus aucune durée conventionnelle ; une
- *    Récupération contribue sa seule durée (D-041), sans Séries ni pause.
- *
- * `Compte à rebours initial` et `Fin de séance` restent exclus (REWORK13,
- * R13-02, inchangé).
+ * - Périmètre : les seules occurrences `IN_TOUR` ; les occurrences
+ *   `BEFORE_TOUR`/`AFTER_TOUR`, le Compte à rebours initial et la Fin de
+ *   séance en sont toujours exclus (REWORK13, R13-02).
+ * - Calcul : autorité unique du Domaine, `computeStructuredSessionDuration`
+ *   restreinte à la zone `IN_TOUR`, qui développe le Circuit selon sa nature
+ *   (Tours : contenu interne × `tourRepeatCount` ; Séries : passages) —
+ *   même total que la liste et la lecture complète. La Récupération positive
+ *   remplace la Pause terminale ; aucune formule locale.
+ * - Nature et format : « ≥ » si un travail est inconnu (à l'échec,
+ *   Répétitions sans bip, Cible à renseigner), suivi des minutes et secondes
+ *   sans arrondi (`formatPhraseDuration`), sauf une borne de 0 s qui garde
+ *   « ≥ 0 min » (P47) ; « ≈ » si une contribution est estimée (Répétitions
+ *   avec bip) ; exact sinon. `exact` et `estimated` passent par
+ *   `formatEstimatedDuration` (arrondi à la minute supérieure, RM-101, P41).
  */
 export function formatCompositionSummary(facts: CompositionSummaryFacts): string {
   const inTourExercises = facts.exercises.filter(
@@ -117,23 +69,21 @@ export function formatCompositionSummary(facts: CompositionSummaryFacts): string
     return strings.screens.composition.summary.empty;
   }
 
-  // **T02-S02** : la durée d'UNE occurrence du Tour est calculée par la
-  // fonction du Domaine (`computeZoneDurationFacts`), jamais par une boucle
-  // équivalente locale — c'est elle qui porte la formule canonique
-  // canonique CONDITIONNELLE (voir `computePauseOccurrences` : la
-  // Récupération remplace la dernière Pause) et la détection de borne
-  // minimale. La parité
-  // Domaine / présentation est ainsi vraie PAR CONSTRUCTION, plus seulement
-  // par ressemblance de deux implémentations.
-  const inTourOccurrence = computeZoneDurationFacts(inTourExercises);
-
-  const totalSeconds = computeEstimatedDurationSeconds({
-    beforeTourDurationSeconds: 0,
-    inTourDurationSeconds: inTourOccurrence.seconds,
-    afterTourDurationSeconds: 0,
+  // PRE-6 (story 1.3, AD-40) : autorité unique du Domaine,
+  // `computeStructuredSessionDuration` restreinte à la zone `IN_TOUR` — le
+  // développement suit la nature du Circuit (Tours : × N ; Séries :
+  // passages), exactement comme la liste et la lecture complète. Aucune
+  // formule locale : la parité Domaine / présentation est vraie par
+  // construction.
+  const duration = computeStructuredSessionDuration({
+    beforeTour: [],
+    inTour: inTourExercises,
+    afterTour: [],
     tourRepeatCount: facts.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
-    isLowerBoundEstimate: inTourOccurrence.isLowerBoundEstimate,
+    circuitNature: facts.circuitNature ?? DEFAULT_CIRCUIT_NATURE,
   });
+  const totalSeconds = duration.seconds;
+  const isLowerBound = duration.kind === "lowerBound";
 
   // PRE-3 : symbole issu de l'autorité Domaine — « ≥ » si un travail est
   // inconnu, « ≈ » si une contribution est estimée (Répétitions avec bip),
@@ -142,15 +92,12 @@ export function formatCompositionSummary(facts: CompositionSummaryFacts): string
   // `formatEstimatedDuration` et son arrondi à la minute supérieure (P41).
   // Une borne de 0 s garde le rendu PRE-3 « ≥ 0 min », jamais « 0 s »
   // (règle P47, `docs/preparation/PRE-4/bmad/questions-ouvertes.md`).
-  const durationLabel =
-    inTourOccurrence.isLowerBoundEstimate && totalSeconds > 0
-      ? `${strings.shared.durationNature.lowerBoundPrefix}${formatPhraseDuration(totalSeconds)}`
-      : formatEstimatedDuration(
-          totalSeconds,
-          inTourOccurrence.isLowerBoundEstimate ? "lowerBound" : inTourOccurrence.isEstimated ? "estimated" : "exact",
-        );
-
-  return `${formatActivityCount(inTourExercises.length)}${COMPACT_LIST_SEPARATOR}${durationLabel}`;
+  //
+  // PRE-6 (story 1.3, D-382, D-390) : la durée de ce seul Circuit, sans
+  // nombre d'exercices.
+  return isLowerBound && totalSeconds > 0
+    ? `${strings.shared.durationNature.lowerBoundPrefix}${formatPhraseDuration(totalSeconds)}`
+    : formatEstimatedDuration(totalSeconds, duration.kind);
 }
 
 /**
@@ -293,8 +240,8 @@ export function formatExerciseRowSummary(facts: ExerciseRowSummaryFacts): string
 
 /**
  * Séparateur canonique des listes compactes de cette famille d'écrans —
- * exactement celui déjà employé par `formatCompositionSummary` ci-dessus
- * (`N activités · durée`), extrait ici en constante partagée pour garantir
+ * historiquement celui de `formatCompositionSummary` (`N activités · durée`,
+ * avant PRE-6 story 1.3), extrait ici en constante partagée pour garantir
  * la cohérence demandée entre la synthèse d'une ligne Activité et sa ligne
  * de Zones corporelles, plutôt que deux littéraux pouvant diverger.
  */

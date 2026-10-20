@@ -17,7 +17,9 @@ import { activityDefinitionToDraftExercise, type ActivityDefinition } from "@/do
 import {
   aggregateSessionDuration,
   buildExecutionLedger,
+  buildSeriesCircuitLedger,
   computeExercisePlanDuration,
+  computeSeriesCircuitOccurrenceDuration,
   computeIntrinsicDuration,
   computeOccurrenceDuration,
   invertTotalDuration,
@@ -1125,5 +1127,80 @@ describe("PRE5-1.1/AC14 — phases lues par les calculs existants (NR Δ47)", ()
       expect(computeIntrinsicDuration(withLoad)).toEqual(computeIntrinsicDuration(without));
       expect(computeExercisePlanDuration(withLoad, 30)).toEqual(computeExercisePlanDuration(without, 30));
     }
+  });
+});
+
+/**
+ * PRE-6 (story 1.3, AD-40, ch10 L651) — passages d'un exercice dans un
+ * Circuit de Séries. Valeurs imposées : 75 / 85 / 225 / 255 s.
+ */
+describe("PRE6-1.3 — computeSeriesCircuitOccurrenceDuration (Circuit de Séries)", () => {
+  const bilateral = (count: number, sideRecoverySeconds = 5, sideOrder: SideOrder = "BY_SIDE") =>
+    uniformParameters({
+      mode: "DURATION",
+      count,
+      target: 30,
+      pauseSeconds: 10,
+      sideMode: "LEFT_RIGHT",
+      sideRecoverySeconds,
+      sideOrder,
+    });
+
+  it("passage bilatéral, N = 1 : 2Ti + PC + Pi = 75 s", () => {
+    expect(computeSeriesCircuitOccurrenceDuration(bilateral(1), 0, 1)).toMatchObject({ kind: "exact", seconds: 75 });
+  });
+
+  it("avec R 20 : 2Ti + PC + R = 85 s (R remplace Pi)", () => {
+    expect(computeSeriesCircuitOccurrenceDuration(bilateral(1), 20, 1)).toMatchObject({ kind: "exact", seconds: 85 });
+  });
+
+  it("trois passages : 225 s ; 255 s avec R 20 (R à chaque passage)", () => {
+    expect(computeSeriesCircuitOccurrenceDuration(bilateral(3), 0, 3).seconds).toBe(225);
+    expect(computeSeriesCircuitOccurrenceDuration(bilateral(3), 20, 3).seconds).toBe(255);
+  });
+
+  it("l'ordre des côtés réglé ne change rien et n'est pas réécrit", () => {
+    const bySeries = bilateral(3, 5, "BY_SERIES");
+    expect(computeSeriesCircuitOccurrenceDuration(bySeries, 0, 3).seconds).toBe(225);
+    expect(bySeries.sideOrder).toBe("BY_SERIES");
+  });
+
+  it("aucun Pi avant PC : côté de départ → PC → autre côté → Pi", () => {
+    expect(buildSeriesCircuitLedger(bilateral(1), 0, 1).map((event) => event.kind)).toEqual([
+      "WORK",
+      "SIDE_PAUSE",
+      "WORK",
+      "SERIES_PAUSE",
+    ]);
+    expect(buildSeriesCircuitLedger(bilateral(1), 20, 1).map((event) => event.kind)).toEqual([
+      "WORK",
+      "SIDE_PAUSE",
+      "WORK",
+      "RECOVERY",
+    ]);
+  });
+
+  it("PC = 0 : Pi conservée (2Ti + Pi = 70 s)", () => {
+    expect(computeSeriesCircuitOccurrenceDuration(bilateral(1, 0), 0, 1).seconds).toBe(70);
+  });
+
+  it("unilatéral, R = 0 : Ti + Pi par passage (R = 0 ne remplace rien)", () => {
+    const unilateral = uniformParameters({ mode: "DURATION", count: 2, target: 30, pauseSeconds: 10 });
+    expect(computeSeriesCircuitOccurrenceDuration(unilateral, 0, 2).seconds).toBe(80);
+    expect(computeSeriesCircuitOccurrenceDuration(unilateral, 20, 2).seconds).toBe(100);
+  });
+
+  it("série i au passage i ; un exercice qui a moins de N séries ne contribue que ses séries existantes", () => {
+    const rows = variableParameters({ mode: "DURATION", rows: [[30, 10], [40, 5]] });
+    expect(computeSeriesCircuitOccurrenceDuration(rows, 0, 3).seconds).toBe(40 + 45);
+    expect(computeSeriesCircuitOccurrenceDuration(rows, 0, 1).seconds).toBe(40);
+  });
+
+  it("nature : ≥ dès qu'une série jouée est À l'échec ; ≈ en Répétitions avec bip ; séries non jouées ignorées", () => {
+    const failure = variableParameters({ mode: "DURATION", rows: [[30, 10], ["FAILURE", 10]] });
+    expect(computeSeriesCircuitOccurrenceDuration(failure, 0, 2)).toMatchObject({ kind: "lowerBound", seconds: 50 });
+    expect(computeSeriesCircuitOccurrenceDuration(failure, 0, 1)).toMatchObject({ kind: "exact", seconds: 40 });
+    const beep = uniformParameters({ mode: "REPETITIONS", count: 2, target: 10, pauseSeconds: 10, cadenceBeepIntervalSeconds: 2 });
+    expect(computeSeriesCircuitOccurrenceDuration(beep, 0, 2)).toMatchObject({ kind: "estimated", seconds: 60 });
   });
 });

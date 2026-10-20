@@ -207,7 +207,7 @@ describe("PRE4-1.2/AC6 + AC7 — Séance sans occurrence : visible dans la liste
       expect(screen.queryByTestId("composition-edit-state")).toBeNull();
       expect(screen.getByLabelText(composition.name).props.value).toBe("Séance b");
       expect(screen.getByText(composition.summary.empty)).toBeTruthy();
-      expect(screen.getByText("0 exercice · 0 min")).toBeTruthy();
+      expect(screen.getByText("— min")).toBeTruthy();
       expect(screen.getByLabelText(composition.addActivity)).toBeTruthy();
 
       // `Enregistrer la séance` (Q54, ex-`Continuer`) : règle existante — sans Exercice, le

@@ -264,6 +264,8 @@ export type SessionSummaryRow = {
    * l'autorité unique du Domaine à partir des paramètres des occurrences.
    */
   tour_repeat_count: number;
+  /** PRE-6 (story 1.3) : nature du Circuit (`tours.nature`, `migration011`), pour la durée de liste. */
+  tour_nature: string;
   updated_at: string;
 };
 

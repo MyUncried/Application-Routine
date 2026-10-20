@@ -33,12 +33,14 @@ import {
   aggregateSessionDuration,
   computeIntrinsicDuration,
   computeOccurrenceDuration,
+  computeSeriesCircuitOccurrenceDuration,
   isPartialContribution,
   type ExerciseDurationResult,
   type SessionDurationContribution,
   type SessionDurationResult,
 } from "@/domain/activities/executionCalculations";
 
+import { DEFAULT_CIRCUIT_NATURE, type CircuitNature } from "./circuit";
 import type { Activity, ActivityType, Session } from "./Session";
 import type { SideMode } from "./sideMode";
 
@@ -179,13 +181,39 @@ export type StructuredActivities<T extends ActivityDurationFacts> = {
   readonly inTour: readonly T[];
   readonly afterTour: readonly T[];
   readonly tourRepeatCount: number;
+  /** PRE-6 (story 1.3, AD-40) : nature du Circuit, lue `?? "TOURS"` (compatibilité). */
+  readonly circuitNature?: CircuitNature;
 };
+
+/**
+ * PRE-6 (story 1.3) : contribution d'UN exercice du Circuit de Séries — le
+ * total de ses passages (série i au passage i), multiplicité 1. Un Mode
+ * inconnu reste `omitted` ; une ancienne Récupération autonome garde sa
+ * lecture défensive, répétée à chaque passage comme en Tours.
+ */
+function seriesCircuitContribution(
+  activity: ActivityDurationFacts,
+  passages: number,
+): SessionDurationContribution {
+  const parameters = activity.executionParameters;
+  if (parameters.mode === null || activity.type === "RECOVERY") {
+    return { result: computeActivityDurationResult(activity), multiplicity: passages };
+  }
+  return {
+    result: computeSeriesCircuitOccurrenceDuration(parameters, activity.postActivityRecoverySeconds ?? 0, passages),
+    multiplicity: 1,
+  };
+}
 
 /**
  * PRE-3 (P3-13/tours-cycles-list) : total typé de la Séance — exact / ≈ /
  * ≥ — en développant les répétitions du Circuit sur la seule zone
  * `IN_TOUR`. Autorité unique partagée par la lecture complète, la liste
  * (`listActive`) et la Composition.
+ *
+ * PRE-6 (story 1.3, AD-40) : le développement dépend de la nature — Tours :
+ * contenu interne × N (inchangé) ; Séries : chaque exercice `IN_TOUR`
+ * contribue le total de ses passages (`computeSeriesCircuitOccurrenceDuration`).
  */
 export function computeStructuredSessionDuration<T extends ActivityDurationFacts>(
   structure: StructuredActivities<T>,
@@ -197,7 +225,21 @@ export function computeStructuredSessionDuration<T extends ActivityDurationFacts
     }
   };
   add(structure.beforeTour, 1);
-  add(structure.inTour, structure.tourRepeatCount);
+  const nature = structure.circuitNature ?? DEFAULT_CIRCUIT_NATURE;
+  switch (nature) {
+    case "TOURS":
+      add(structure.inTour, structure.tourRepeatCount);
+      break;
+    case "SERIES":
+      for (const activity of structure.inTour) {
+        contributions.push(seriesCircuitContribution(activity, structure.tourRepeatCount));
+      }
+      break;
+    default: {
+      const unreachable: never = nature;
+      return unreachable;
+    }
+  }
   add(structure.afterTour, 1);
   return aggregateSessionDuration(contributions);
 }
@@ -213,6 +255,7 @@ function toStructuredActivities(session: Session): StructuredActivities<Activity
     inTour: session.cycle.tour.exercises,
     afterTour: session.cycle.afterTour ?? [],
     tourRepeatCount: session.cycle.tour.repeatCount,
+    circuitNature: session.cycle.tour.nature ?? DEFAULT_CIRCUIT_NATURE,
   };
 }
 

@@ -331,7 +331,8 @@ export const fr = {
       saveAction: "Enregistrer la séance",
       saveError: "La séance n’a pas pu être enregistrée. Réessayez.",
       summary: {
-        empty: "0 exercice · 0 min",
+        // PRE-6 (story 1.3, D-399) : Circuit vide → « — min » (D-390 : aucun nombre d’exercices).
+        empty: "— min",
       },
       abandonModal: {
         title: "Abandonner la création ?",

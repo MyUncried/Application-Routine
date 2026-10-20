@@ -73,6 +73,7 @@ import { SqliteMediaRepository } from "@/infrastructure/database/repositories/Sq
 // le rendu passe donc par `createElement` plutôt que la syntaxe JSX, non
 // transformée dans un fichier `.ts` — même patron déjà établi par
 // `useSessionCatalogue.test.ts`.
+import { formatCompositionSummary } from "@/features/sessions/compositionPresentation";
 import { SessionCard } from "@/features/sessions/SessionCard";
 
 jest.mock("expo-crypto", () => ({ randomUUID: jest.fn() }));
@@ -3008,5 +3009,67 @@ describe("SqliteSessionRepository — PRE6-1.1 nature du Circuit et récupérati
     await expect(repository().findById(created.id)).rejects.toThrow("does not satisfy");
     await database.runAsync("UPDATE activities SET post_activity_recovery_seconds = 0, post_activity_recovery_present = 2");
     await expect(repository().findById(created.id)).rejects.toThrow("does not satisfy");
+  });
+});
+
+/** PRE-6 (story 1.3, AD-40) : la liste, la lecture complète et la Composition suivent la nature du Circuit. */
+describe("PRE6-1.3 — durée selon la nature du Circuit", () => {
+  let database: NodeSqliteDatabase;
+
+  beforeEach(async () => {
+    database = NodeSqliteDatabase.openInMemory();
+    await migrateDatabase(database);
+  });
+
+  afterEach(() => {
+    database.close();
+  });
+
+  const seriesInput = (circuitNature: "TOURS" | "SERIES"): CreateSessionInput => ({
+    ...validInput(),
+    tourRepeatCount: 3,
+    circuitNature,
+    exercises: [
+      anExercise({ structuralPosition: "BEFORE_TOUR", name: "Échauffement", executionParameters: durationParameters(60) }),
+      anExercise({
+        name: "Fentes",
+        executionParameters: uniformParameters({
+          mode: "DURATION",
+          count: 3,
+          target: 30,
+          pauseSeconds: 10,
+          sideMode: "LEFT_RIGHT",
+          sideRecoverySeconds: 5,
+        }),
+        postActivityRecoverySeconds: 20,
+      }),
+    ],
+  });
+
+  it("Séries : liste, lecture complète et Composition donnent la même durée (passages : 255 s + 60 s hors Circuit)", async () => {
+    const repository = new SqliteSessionRepository(database, () => randomUUID());
+    const created = await repository.create(seriesInput("SERIES"));
+
+    const summary = (await repository.listActive()).find((item) => item.id === created.id);
+    const reopened = await repository.findById(created.id);
+
+    expect(summary?.estimatedDurationSeconds).toBe(60 + 255);
+    expect(summary?.durationKind).toBe("exact");
+    expect(toSessionDurationResult(reopened!)).toEqual({ kind: "exact", seconds: 60 + 255 });
+    // Composition : le résumé est celui du seul Circuit (255 s → 5 min, D-382).
+    const draft = toSessionDraft(reopened!);
+    expect(formatCompositionSummary({ exercises: draft.exercises, tourRepeatCount: draft.tourRepeatCount, circuitNature: draft.circuitNature })).toBe(
+      "5 min",
+    );
+  });
+
+  it("Tours : durée de liste inchangée (contenu interne × N)", async () => {
+    const repository = new SqliteSessionRepository(database, () => randomUUID());
+    const created = await repository.create(seriesInput("TOURS"));
+    const summary = (await repository.listActive()).find((item) => item.id === created.id);
+    const reopened = await repository.findById(created.id);
+    expect(summary?.estimatedDurationSeconds).toBe(toSessionDurationResult(reopened!).seconds);
+    // Tours, BY_SIDE : (30+10)×3 ×2 côtés + PC 5 − dernière Pause 10 + R 20 = 255 par Tour.
+    expect(summary?.estimatedDurationSeconds).toBe(60 + 3 * 255);
   });
 });

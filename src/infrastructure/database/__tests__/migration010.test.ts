@@ -1296,7 +1296,7 @@ describe("PRE4-1.2/AC7 — Séance sans occurrence ouvrable", () => {
     expect(opened.status).toBe("OK");
     const draft = toSessionDraft((opened as { session: NonNullable<typeof session> }).session);
     expect(draft.exercises).toEqual([]);
-    expect(formatCompositionSummary({ exercises: draft.exercises, tourRepeatCount: draft.tourRepeatCount })).toBe("0 exercice · 0 min");
+    expect(formatCompositionSummary({ exercises: draft.exercises, tourRepeatCount: draft.tourRepeatCount })).toBe("— min");
     // Une Séance dont il ne reste qu'une zone (C : Circuit vidé) reste lue avec ses occurrences restantes.
     const sessionC = await repository.findById("session-c");
     expect(sessionC?.cycle.beforeTour?.map((activity) => activity.id)).toEqual(["c-before"]);

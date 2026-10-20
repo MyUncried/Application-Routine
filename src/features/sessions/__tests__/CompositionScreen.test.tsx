@@ -427,14 +427,13 @@ describe("CompositionScreen — état initial", () => {
     expect(StyleSheet.flatten(scrim.props.style).backgroundColor).toBe(colors.overlayScrim);
   });
 
-  it("shows the exact local empty summary '0 exercice · 0 min' (V2), never a plural « 0 exercices »", () => {
+  it("shows the exact local empty summary '— min' (PRE-6 story 1.3, D-390, D-399 : durée seule, aucun nombre d'exercices)", () => {
     renderScreen();
 
     // REWORK09 : la ligne de synthèse basse est supprimée (redondante
     // depuis REWORK08-C) — une seule occurrence subsiste désormais, sous
     // « Nombre de tours » (voir composition-tour-summary ci-dessous).
-    expect(screen.getAllByText("0 exercice · 0 min")).toHaveLength(1);
-    expect(screen.queryByText("0 exercices · 0 min")).toBeNull();
+    expect(screen.getAllByText("— min")).toHaveLength(1);
   });
 
   it("shows the canonical default countdown (10 s) and final phase (5 s) row values", () => {
@@ -523,7 +522,7 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     // local empty label regardless of countdown/final-phase changes (§9.1).
     // REWORK09 : une seule occurrence désormais (synthèse Tour uniquement,
     // la ligne basse redondante a été supprimée).
-    expect(screen.getAllByText("0 exercice · 0 min")).toHaveLength(1);
+    expect(screen.getAllByText("— min")).toHaveLength(1);
     // REWORK08-B (« aucun chemin onChange/sélection/défilement ne
     // déclenche la fermeture ») : le sélecteur reste réellement monté —
     // preuve explicite, pas seulement déduite du libellé du test.
@@ -1044,7 +1043,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     const summary = within(tourCard).getByTestId("composition-tour-summary");
 
     // Contenu canonique (même fonction que bottomAction), état vide T01-S07.
-    expect(summary.props.children).toBe("0 exercice · 0 min");
+    expect(summary.props.children).toBe("— min");
 
     // Même bloc textuel que le titre — un unique conteneur
     // (`composition-tour-text-block`) porte les deux, pas deux éléments
@@ -1091,7 +1090,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
       "composition-tour-summary",
     );
     // Contexte : seule l'Activité contribue désormais — 45 s -> ceil(45/60) = 1 min.
-    expect(tourSummary.props.children).toBe("1 exercice · 1 min");
+    expect(tourSummary.props.children).toBe("1 min");
   });
 
   /**
@@ -1109,7 +1108,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     const tourSummaryBefore = within(screen.getByTestId("composition-tour-card")).getByTestId(
       "composition-tour-summary",
     ).props.children;
-    expect(tourSummaryBefore).toBe("1 exercice · 1 min");
+    expect(tourSummaryBefore).toBe("1 min");
 
     // Compte à rebours initial : ouvre, change, confirme.
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
@@ -1143,7 +1142,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
       "composition-tour-summary",
     );
     // 45 + 30 = 75s -> ceil(75/60) = 2 min.
-    expect(tourSummary.props.children).toBe("2 exercices · 2 min");
+    expect(tourSummary.props.children).toBe("2 min");
   });
 
   it("CMP-03/CMP-05 — Boundary Activity rows (Compte à rebours, Fin de séance) place a structural handle on the left, title+secondary duration line in the center, and the role icon on the right", () => {
@@ -1165,7 +1164,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     renderScreen();
 
     const bottomAction = screen.getByTestId("composition-bottom-action");
-    expect(within(bottomAction).queryByText("0 exercice · 0 min")).toBeNull();
+    expect(within(bottomAction).queryByText("— min")).toBeNull();
     expect(within(bottomAction).getByLabelText(composition.saveAction)).toBeTruthy();
     // La synthèse reste bien affichée ailleurs (sous « Nombre de tours »),
     // jamais silencieusement perdue.
@@ -3036,25 +3035,25 @@ describe("CompositionScreen — recalcul immédiat des métriques du Tour (T02-S
 
     // Hors Tour : `600 + 600 = 20 min` volontairement énormes — ils ne
     // doivent NI compter, NI peser dans la synthèse du Tour.
-    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 exercice · 1 min");
+    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 min");
 
     fireEvent.press(screen.getByTestId("composition-tour-control"));
     fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 3);
     fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
 
     // Seule la zone `IN_TOUR` est développée : `60 × 3 = 3 min`.
-    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 exercice · 3 min");
+    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("3 min");
   });
 
   it("recomputes immediately after a DUPLICATION", () => {
     renderScreenWithDraft([anActivity("core", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60) })]);
-    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 exercice · 1 min");
+    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 min");
 
     fireSwipeLeft("core");
     fireEvent.press(screen.getByTestId("composition-activity-duplicate-core"));
 
     expect(screen.getByTestId("composition-tour-summary").props.children).toBe(
-      "2 exercices · 2 min",
+      "2 min",
     );
   });
 
@@ -3064,18 +3063,18 @@ describe("CompositionScreen — recalcul immédiat des métriques du Tour (T02-S
       anActivity("core-2", "IN_TOUR", { name: "Squats", executionParameters: durationParameters(60) }),
     ]);
     expect(screen.getByTestId("composition-tour-summary").props.children).toBe(
-      "2 exercices · 2 min",
+      "2 min",
     );
 
     fireSwipeLeft("core-1");
     fireEvent.press(screen.getByTestId("composition-activity-delete-core-1"));
 
-    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 exercice · 1 min");
+    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 min");
   });
 
   it("recomputes immediately after a MOVE out of the Tour", () => {
     renderScreenWithDraft([anActivity("core", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60) })]);
-    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 exercice · 1 min");
+    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 min");
 
     // Structure Tour `230–400` ; liste `IN_TOUR` à `y = 20` DANS cette
     // structure (donc `250` en absolu) ; carte `250–310`, centre `280`.
@@ -3143,14 +3142,14 @@ describe("CompositionScreen — contrôle Nombre de tours (T02-S01, AC-08/AC-09)
     const summary = () =>
       within(screen.getByTestId("composition-tour-card")).getByTestId("composition-tour-summary")
         .props.children;
-    expect(summary()).toBe("1 exercice · 1 min");
+    expect(summary()).toBe("1 min");
 
     fireEvent.press(screen.getByTestId("composition-tour-control"));
     fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 3);
     fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
 
-    // 60 s × 3 = 180 s -> 3 min ; le NOMBRE d'Activités, lui, reste `1`.
-    expect(summary()).toBe("1 exercice · 3 min");
+    // 60 s × 3 = 180 s -> 3 min (durée seule, PRE-6 story 1.3, D-390).
+    expect(summary()).toBe("3 min");
   });
 
   it("AC-10 — an out-of-Tour Activity never contributes to the Tour summary, whatever the tour count (correctif T02, 2026-09-08)", () => {
@@ -3171,7 +3170,21 @@ describe("CompositionScreen — contrôle Nombre de tours (T02-S01, AC-08/AC-09)
     expect(
       within(screen.getByTestId("composition-tour-card")).getByTestId("composition-tour-summary")
         .props.children,
-    ).toBe("1 exercice · 5 min");
+    ).toBe("5 min");
+  });
+
+  it("PRE-6 (story 1.3) — a Series Circuit summary follows the passes of the draft's nature, duration only", () => {
+    // 3 séries de 60 s, pause 30 s, R 0 : Séries N = 2 → série 1 et 2 seulement, (60 + 30) × 2 = 180 s ;
+    // en Tours, N = 2 développerait les trois séries deux fois (540 s → 9 min).
+    renderScreenWithDraft(
+      [anActivity("ex-1", "IN_TOUR", { name: "Squats", executionParameters: durationParameters(60, 3, 30) })],
+      { tourRepeatCount: 2, circuitNature: "SERIES" },
+    );
+
+    expect(
+      within(screen.getByTestId("composition-tour-card")).getByTestId("composition-tour-summary")
+        .props.children,
+    ).toBe("3 min");
   });
 
   it("rehydrated drafts show their persisted tour count, never a hardcoded 1", () => {
