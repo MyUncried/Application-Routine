@@ -1,0 +1,27 @@
+# KODJO PRE-6 — état du sprint (planification ; aucune story démarrée)
+# Préalable : étape 0 de réconciliation (planning-artifacts/epics.md) et validation de Hermann.
+generated: 10-20-2026
+project: kodjo-pre6
+tracking_system: file-system
+story_location: _bmad-output/pre6/implementation-artifacts
+baseline_provisoire: ad189847 # fusion PRE-5 #389 — à confirmer à l'étape 0
+development_status:
+  etape-0-reconciliation-pre5: backlog
+  epic-1: backlog
+  1-1-nature-du-circuit-borne-typee-et-migration-011: backlog
+  1-2-points-d-arret-de-bout-en-bout-dans-le-brouillon: backlog
+  1-3-developpement-du-circuit-et-durees: backlog
+  1-4-operations-de-circuit-compte-reserve-conversion-entree-sortie: backlog
+  epic-2: backlog
+  2-1-en-tete-bornes-de-seance-et-continuer: backlog
+  2-2-cartes-d-occurrence: backlog
+  2-3-organisation-des-occurrences: backlog
+  epic-3: backlog
+  3-1-en-tete-du-circuit-et-compteur: backlog
+  3-2-choix-de-nature-et-confirmation-de-perte: backlog
+  3-3-n-herite-dans-la-feuille-des-parametres: backlog
+  3-4-modales-volumes-du-circuit: backlog
+  epic-4: backlog
+  4-1-mode-placement-et-sous-brouillon: backlog
+  4-2-duree-modification-et-retrait: backlog
+  4-3-pauses-dans-le-deroulement-et-la-composition: backlog
