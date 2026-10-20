@@ -15,15 +15,19 @@
 export type ValidationErrorCode =
   | "REQUIRED"
   | "TOO_LONG"
+  /** Valeur hors bornes ; PRE-6 (story 1.2) : aussi `position` d'un Point d'arrêt hors de `0..n` (`session.stopPoints`, détails `min`/`max`). */
   | "OUT_OF_RANGE"
+  /** Valeur non entière ; PRE-6 (story 1.2) : aussi `position` non entière d'un Point d'arrêt (`session.stopPoints`). */
   | "NOT_INTEGER"
   | "INVALID_COLOR"
-  /** T01-S10 : valeur d'énumération non reconnue (mode d'exécution, type d'Activité, position structurelle). */
+  /** T01-S10 : valeur d'énumération non reconnue (mode d'exécution, type d'Activité, position structurelle) ; PRE-6 (story 1.2) : aussi portée d'un Point d'arrêt (`session.stopPoints`). */
   | "UNRECOGNIZED"
   /** T01-S10 : champ qui doit rester absent pour le type courant (des Zones corporelles ou une Récupération attachée sur une ancienne Récupération autonome). */
   | "MUST_BE_ABSENT"
-  /** T01-S10 : identifiant d'Activité en doublon dans un même agrégat de modification. */
-  | "DUPLICATE";
+  /** T01-S10 : identifiant d'Activité en doublon dans un même agrégat de modification ; PRE-6 (story 1.2) : aussi deux Points d'arrêt sur le même emplacement `(scope, position)` (`session.stopPoints`). */
+  | "DUPLICATE"
+  /** PRE-6 (story 1.2, RM-219) : Point d'arrêt sur un emplacement interdit (juste après le compte à rebours initial ou juste avant la Fin). */
+  | "FORBIDDEN_PLACEMENT";
 
 export type ValidationField =
   | "session.name"
@@ -35,6 +39,8 @@ export type ValidationField =
   | "session.circuitNature"
   /** T01-S10 : identifiant source d'une modification bout en bout (`UpdateSessionInput.sourceSessionId`). */
   | "session.sourceSessionId"
+  /** PRE-6 (story 1.2, AD-36) : Points d'arrêt de la Séance (portée, emplacement dans les bornes, emplacement autorisé, unicité par `(scope, position)`). */
+  | "session.stopPoints"
   | "exercise.name"
   | "exercise.durationSeconds"
   | "exercise.instruction"

@@ -21,6 +21,13 @@ import { cloneExecutionParameters } from "@/domain/activities/ExecutionParameter
 
 import type { StructuralPosition } from "./Session";
 import type { SessionDraftExercise } from "./SessionDraft";
+import {
+  anchorStopPoints,
+  isStopPointAllowed,
+  reattachStopPoints,
+  type AnchoredStopPoint,
+  type StopPoint,
+} from "./StopPoint";
 
 /** Ordre canonique d'affichage et d'exécution des trois zones (D-061). */
 export const STRUCTURAL_ZONES = ["BEFORE_TOUR", "IN_TOUR", "AFTER_TOUR"] as const;
@@ -242,4 +249,116 @@ export function duplicateActivity(
   const next = [...activities];
   next.splice(index + 1, 0, copy);
   return next;
+}
+
+/**
+ * PRE-6 (story 1.2, AD-36, ARB-3) : état de Composition porté ENSEMBLE par
+ * le brouillon — occurrences et Points d'arrêt. Les opérations ci-dessous
+ * délèguent aux opérations historiques sur les occurrences
+ * (`moveActivity`, `removeActivity`, `duplicateActivity`, inchangées) puis
+ * recalculent les points d'après leur occurrence d'attache
+ * (`anchorStopPoints` / `reattachStopPoints`). Aucune opération ne modifie
+ * l'entrée ; un résultat inchangé est l'entrée elle-même (même référence).
+ */
+export type CompositionState = {
+  readonly exercises: readonly SessionDraftExercise[];
+  readonly stopPoints: readonly StopPoint[];
+};
+
+/** Identifiants des points déjà sur un emplacement interdit ou hors bornes : une opération ne les juge pas (elle ne les a pas créés). */
+function disallowedStopPointIds(state: CompositionState): ReadonlySet<string> {
+  return new Set(
+    state.stopPoints.filter((point) => !isStopPointAllowed(state.exercises, point)).map((point) => point.id),
+  );
+}
+
+/** Points devenus interdits par l'opération (ils étaient autorisés avant). */
+function isNewlyDisallowed(
+  point: StopPoint,
+  exercises: readonly SessionDraftExercise[],
+  previouslyDisallowed: ReadonlySet<string>,
+): boolean {
+  return !previouslyDisallowed.has(point.id) && !isStopPointAllowed(exercises, point);
+}
+
+/**
+ * Déplace une occurrence (voir `moveActivity`) ; ses points la suivent
+ * (nouvelle portée, nouvel emplacement), les autres suivent leur propre
+ * occurrence. Un déplacement qui amènerait un point sur un emplacement
+ * interdit (RM-219) est un dépôt invalide : l'état est retourné inchangé
+ * (même référence), comme toute dépose sans cible valide.
+ */
+export function moveOccurrence(
+  state: CompositionState,
+  activityId: string,
+  targetZone: StructuralPosition,
+  targetIndex: number,
+): CompositionState {
+  const exercises = moveActivity(state.exercises, activityId, targetZone, targetIndex);
+  if (exercises === state.exercises) {
+    return state;
+  }
+  if (state.stopPoints.length === 0) {
+    return { exercises, stopPoints: state.stopPoints };
+  }
+  const previouslyDisallowed = disallowedStopPointIds(state);
+  const stopPoints = reattachStopPoints(exercises, anchorStopPoints(state.exercises, state.stopPoints));
+  if (stopPoints.some((point) => isNewlyDisallowed(point, exercises, previouslyDisallowed))) {
+    return state;
+  }
+  return { exercises, stopPoints };
+}
+
+/**
+ * Supprime une occurrence (voir `removeActivity`) : les points qui lui sont
+ * rattachés sont retirés avec elle ; un autre point que la suppression
+ * laisserait sur un emplacement interdit est retiré aussi (ARB-3, aucun
+ * blocage nouveau).
+ */
+export function removeOccurrence(state: CompositionState, activityId: string): CompositionState {
+  const exercises = removeActivity(state.exercises, activityId);
+  if (exercises === state.exercises) {
+    return state;
+  }
+  if (state.stopPoints.length === 0) {
+    return { exercises, stopPoints: state.stopPoints };
+  }
+  const previouslyDisallowed = disallowedStopPointIds(state);
+  const stopPoints = reattachStopPoints(
+    exercises,
+    anchorStopPoints(state.exercises, state.stopPoints),
+  ).filter((point) => !isNewlyDisallowed(point, exercises, previouslyDisallowed));
+  return { exercises, stopPoints };
+}
+
+/**
+ * Duplique une occurrence (voir `duplicateActivity`) : la copie reçoit une
+ * copie du point rattaché à la source, d'identifiant `newStopPointId`
+ * (fourni par l'appelant, ce module reste pur), juste après elle. L'unicité
+ * par emplacement garantit au plus un point rattaché par occurrence ; un
+ * éventuel second point (donnée déjà invalide) n'est pas copié.
+ */
+export function duplicateOccurrence(
+  state: CompositionState,
+  activityId: string,
+  newId: string,
+  newStopPointId: string,
+): CompositionState {
+  const exercises = duplicateActivity(state.exercises, activityId, newId);
+  if (exercises === state.exercises) {
+    return state;
+  }
+  if (state.stopPoints.length === 0) {
+    return { exercises, stopPoints: state.stopPoints };
+  }
+  const anchored: AnchoredStopPoint[] = [];
+  let copied = false;
+  for (const item of anchorStopPoints(state.exercises, state.stopPoints)) {
+    anchored.push(item);
+    if (!copied && item.anchorId === activityId) {
+      anchored.push({ point: { ...item.point, id: newStopPointId }, anchorId: newId });
+      copied = true;
+    }
+  }
+  return { exercises, stopPoints: reattachStopPoints(exercises, anchored) };
 }

@@ -175,13 +175,13 @@ export type Session = {
   finalPhaseSeconds: number;
   /**
    * V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : Points d'arrêt persistés
-   * de la Séance, portée (`StopPointScope` = `StructuralPosition`) et ordre
-   * confondus — `session_stop_points`, rattachée directement à la Séance
-   * (jamais au Cycle/Circuit). Optionnel et absent tant qu'aucun Point
-   * d'arrêt n'a été persisté — un consommateur lit `session.stopPoints ?? []`
-   * (même convention que `cycle.beforeTour`/`cycle.afterTour`). Aucun écran
-   * ne les crée encore dans cette tranche (plumbing de persistance
-   * uniquement, même portée que `ActivityMedia`).
+   * de la Séance, portées confondues — `session_stop_points`, rattachée
+   * directement à la Séance (jamais au Cycle/Circuit). Optionnel et absent
+   * tant qu'aucun Point d'arrêt n'a été persisté — un consommateur lit
+   * `session.stopPoints ?? []` (même convention que `cycle.beforeTour`/
+   * `cycle.afterTour`). PRE-6 (story 1.2, AD-36) : `position` est
+   * l'emplacement dans la portée (voir `StopPoint`), relu tel qu'enregistré
+   * et hydraté dans `SessionDraft.stopPoints` (`toSessionDraft`).
    */
   stopPoints?: readonly StopPoint[];
   createdAt: string;
@@ -268,14 +268,18 @@ export type CreateSessionActivityInput = {
 export type CreateSessionExerciseInput = CreateSessionActivityInput;
 
 /**
- * Point d'arrêt à persister (V2-PRE-1, plan §3.3/§7, REQ-001108DC7F67664C) —
- * `order` n'en fait volontairement PAS partie : le rang DANS sa portée est
- * DÉRIVÉ de l'ordre de la collection fournie, même politique que
- * `CreateSessionActivityInput.position` et `CreateActivityMediaInput`
- * (position stable de média).
+ * Point d'arrêt à persister (V2-PRE-1, plan §3.3/§7, REQ-001108DC7F67664C).
+ *
+ * PRE-6 (story 1.2, AD-36) : `position` est l'EMPLACEMENT dans la portée
+ * (nombre d'occurrences de cette portée qui le précèdent, `0..n`), donnée
+ * d'entrée enregistrée telle quelle — jamais renumérotée d'après l'ordre de
+ * la collection. Validée à l'enregistrement (bornes, emplacement autorisé,
+ * unicité par `(scope, position)`, `validation.ts`). L'identifiant n'est
+ * pas transporté : la modification remplace les points.
  */
 export type CreateStopPointInput = {
   readonly scope: StructuralPosition;
+  readonly position: number;
 };
 
 export type CreateSessionInput = {
@@ -309,9 +313,8 @@ export type CreateSessionInput = {
   exercises: readonly CreateSessionActivityInput[];
   /**
    * V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : Points d'arrêt à
-   * persister, optionnel — `[]` par défaut : aucun écran n'alimente encore ce
-   * champ (plumbing de persistance uniquement, même portée que
-   * `CreateActivityDefinitionInput.media`).
+   * persister, optionnel — `[]` par défaut. PRE-6 (story 1.2) : alimenté par
+   * `SessionDraft.stopPoints` (`toCreateSessionInput`/`toUpdateSessionInput`).
    */
   stopPoints?: readonly CreateStopPointInput[];
 };

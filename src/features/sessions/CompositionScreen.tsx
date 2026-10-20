@@ -21,15 +21,17 @@ import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
 import { DEFAULT_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
 import { DEFAULT_SESSION_COLOR, type StructuralPosition } from "@/domain/sessions/Session";
 import {
-  duplicateActivity,
+  duplicateOccurrence,
   groupActivitiesByZone,
-  moveActivity,
-  removeActivity,
+  moveOccurrence,
+  removeOccurrence,
+  type CompositionState,
 } from "@/domain/sessions/composition";
 import {
   isSessionDraftDirty,
   sessionDraftsEqual,
   toCreateSessionInput,
+  type SessionDraft,
   type SessionDraftExercise,
 } from "@/domain/sessions/SessionDraft";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
@@ -181,6 +183,24 @@ const CONTEXT_BAND_FADE_LAYERS = Array.from({ length: CONTEXT_BAND_FADE_LAYER_CO
     opacity: Number((1 - (1 - after) / (1 - before)).toFixed(4)),
   };
 });
+
+const EMPTY_STOP_POINTS: CompositionState["stopPoints"] = [];
+
+/** PRE-6 (story 1.2) : occurrences et Points d'arrêt du brouillon, opérés ensemble. */
+function compositionStateOf(
+  exercises: SessionDraft["exercises"],
+  stopPoints: SessionDraft["stopPoints"],
+): CompositionState {
+  return { exercises, stopPoints: stopPoints ?? EMPTY_STOP_POINTS };
+}
+
+/** Patch du brouillon : les points ne sont écrits que s'ils ont changé (un brouillon sans point reste sans champ `stopPoints`). */
+function compositionPatch(previous: CompositionState, next: CompositionState): Partial<SessionDraft> {
+  return {
+    exercises: next.exercises,
+    ...(next.stopPoints !== previous.stopPoints ? { stopPoints: next.stopPoints } : {}),
+  };
+}
 
 export type CompositionScreenProps = {
   /**
@@ -474,12 +494,16 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         activity.id,
         activityAbsoluteCenterY(activity) + translationY,
       );
-      const next = moveActivity(draft.exercises, activity.id, target.zone, target.index);
-      if (next !== draft.exercises) {
-        updateDraft({ exercises: next });
+      // PRE-6 (story 1.2, ARB-3) : les Points d'arrêt suivent leur
+      // occurrence ; un dépôt qui en amènerait un sur un emplacement interdit
+      // est invalide (état inchangé, même référence).
+      const state = compositionStateOf(draft.exercises, draft.stopPoints);
+      const next = moveOccurrence(state, activity.id, target.zone, target.index);
+      if (next !== state) {
+        updateDraft(compositionPatch(state, next));
       }
     },
-    [activityAbsoluteCenterY, buildDragLayout, draft.exercises, updateDraft],
+    [activityAbsoluteCenterY, buildDragLayout, draft.exercises, draft.stopPoints, updateDraft],
   );
 
   // API-COM-06 : duplication et suppression restent des opérations de
@@ -487,20 +511,24 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const handleDuplicateActivity = useCallback(
     (activityId: string) => {
       setRevealedActionsId(null);
-      updateDraft({
-        exercises: duplicateActivity(draft.exercises, activityId, Crypto.randomUUID()),
-      });
+      const state = compositionStateOf(draft.exercises, draft.stopPoints);
+      const newId = Crypto.randomUUID();
+      // PRE-6 (story 1.2) : identifiant du point copié, tiré seulement si la
+      // Séance porte des Points d'arrêt.
+      const newStopPointId = state.stopPoints.length > 0 ? Crypto.randomUUID() : "";
+      updateDraft(compositionPatch(state, duplicateOccurrence(state, activityId, newId, newStopPointId)));
     },
-    [draft.exercises, updateDraft],
+    [draft.exercises, draft.stopPoints, updateDraft],
   );
 
   const handleDeleteActivity = useCallback(
     (activityId: string) => {
       setRevealedActionsId(null);
       rowLayoutsRef.current.delete(activityId);
-      updateDraft({ exercises: removeActivity(draft.exercises, activityId) });
+      const state = compositionStateOf(draft.exercises, draft.stopPoints);
+      updateDraft(compositionPatch(state, removeOccurrence(state, activityId)));
     },
-    [draft.exercises, updateDraft],
+    [draft.exercises, draft.stopPoints, updateDraft],
   );
 
   const handleEditActivity = useCallback(

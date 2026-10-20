@@ -4,10 +4,14 @@ import {
   activitiesInZone,
   appendActivityAfterLastDisplayed,
   duplicateActivity,
+  duplicateOccurrence,
   groupActivitiesByZone,
   moveActivity,
+  moveOccurrence,
   orderActivitiesByZone,
   removeActivity,
+  removeOccurrence,
+  type CompositionState,
 } from "@/domain/sessions/composition";
 import { createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import type { StructuralPosition } from "@/domain/sessions/Session";
@@ -404,5 +408,118 @@ describe("appendActivityAfterLastDisplayed — side mode (V2-PRE-1)", () => {
       anActivity("new-1", "IN_TOUR", { sideMode: "RIGHT_LEFT" }),
     );
     expect(next.find((activity) => activity.id === "new-1")?.sideMode).toBe("RIGHT_LEFT");
+  });
+});
+
+/**
+ * PRE-6 (story 1.2, AD-36, ARB-3) : opérations de Composition conscientes
+ * des Points d'arrêt — matrice I/O de la spec 1.2.
+ */
+describe("moveOccurrence / duplicateOccurrence / removeOccurrence (Points d'arrêt, ARB-3)", () => {
+  function stateOf(
+    activities: readonly SessionDraftExercise[],
+    stopPoints: CompositionState["stopPoints"],
+  ): CompositionState {
+    return { exercises: activities, stopPoints };
+  }
+
+  const abc = () => [anActivity("A", "IN_TOUR"), anActivity("B", "IN_TOUR"), anActivity("C", "IN_TOUR")];
+
+  it("Déplacement : A(point) B C, A déposée après B → B A(point) C, point en p=2", () => {
+    const state = stateOf(abc(), [{ id: "s", scope: "IN_TOUR", position: 1 }]);
+    const next = moveOccurrence(state, "A", "IN_TOUR", 1);
+    expect(ids(next.exercises)).toEqual(["B", "A", "C"]);
+    expect(next.stopPoints).toEqual([{ id: "s", scope: "IN_TOUR", position: 2 }]);
+  });
+
+  it("Déplacement inter-portées : le point suit son occurrence dans sa nouvelle portée", () => {
+    const state = stateOf([...abc(), anActivity("Z", "AFTER_TOUR")], [{ id: "s", scope: "IN_TOUR", position: 1 }]);
+    const next = moveOccurrence(state, "A", "AFTER_TOUR", 0);
+    expect(next.stopPoints).toEqual([{ id: "s", scope: "AFTER_TOUR", position: 1 }]);
+  });
+
+  it("les autres points suivent leur propre occurrence, un point en p=0 reste en tête", () => {
+    const state = stateOf(
+      [anActivity("P", "BEFORE_TOUR"), ...abc()],
+      [
+        { id: "sb", scope: "IN_TOUR", position: 2 },
+        { id: "s0", scope: "IN_TOUR", position: 0 },
+      ],
+    );
+    const next = moveOccurrence(state, "A", "IN_TOUR", 2);
+    expect(ids(next.exercises)).toEqual(["P", "B", "C", "A"]);
+    expect(next.stopPoints).toEqual([
+      { id: "sb", scope: "IN_TOUR", position: 1 },
+      { id: "s0", scope: "IN_TOUR", position: 0 },
+    ]);
+  });
+
+  it("Déplacement interdit : A(point) déposée en dernière position, rien après → état inchangé", () => {
+    const state = stateOf(abc(), [{ id: "s", scope: "IN_TOUR", position: 1 }]);
+    expect(moveOccurrence(state, "A", "IN_TOUR", 2)).toBe(state);
+  });
+
+  it("Déplacement interdit : un autre point deviendrait le premier élément de la Séance", () => {
+    const state = stateOf(
+      [anActivity("P", "BEFORE_TOUR"), anActivity("A", "IN_TOUR"), anActivity("B", "IN_TOUR")],
+      [{ id: "s0", scope: "IN_TOUR", position: 0 }],
+    );
+    expect(moveOccurrence(state, "P", "IN_TOUR", 2)).toBe(state);
+  });
+
+  it("identifiant inconnu : même référence ; sans point, les points restent la même référence", () => {
+    const state = stateOf(abc(), []);
+    expect(moveOccurrence(state, "inconnu", "IN_TOUR", 0)).toBe(state);
+    expect(moveOccurrence(state, "A", "IN_TOUR", 1).stopPoints).toBe(state.stopPoints);
+  });
+
+  it("Duplication : A(point) B → A(point) A'(point copié) B", () => {
+    const state = stateOf(
+      [anActivity("A", "IN_TOUR"), anActivity("B", "IN_TOUR")],
+      [{ id: "s", scope: "IN_TOUR", position: 1 }],
+    );
+    const next = duplicateOccurrence(state, "A", "A2", "s2");
+    expect(ids(next.exercises)).toEqual(["A", "A2", "B"]);
+    expect(next.stopPoints).toEqual([
+      { id: "s", scope: "IN_TOUR", position: 1 },
+      { id: "s2", scope: "IN_TOUR", position: 2 },
+    ]);
+  });
+
+  it("Duplication d'une occurrence sans point : les points suivants se décalent, aucune copie", () => {
+    const state = stateOf(abc(), [{ id: "sb", scope: "IN_TOUR", position: 2 }]);
+    const next = duplicateOccurrence(state, "A", "A2", "unused");
+    expect(next.stopPoints).toEqual([{ id: "sb", scope: "IN_TOUR", position: 3 }]);
+  });
+
+  it("Suppression : A(point) B ; supprimer A → B, aucun point", () => {
+    const state = stateOf(
+      [anActivity("A", "IN_TOUR"), anActivity("B", "IN_TOUR")],
+      [{ id: "s", scope: "IN_TOUR", position: 1 }],
+    );
+    const next = removeOccurrence(state, "A");
+    expect(ids(next.exercises)).toEqual(["B"]);
+    expect(next.stopPoints).toEqual([]);
+  });
+
+  it("Suppression rendant interdit : A(point) B ; supprimer B → A, point retiré", () => {
+    const state = stateOf(
+      [anActivity("A", "IN_TOUR"), anActivity("B", "IN_TOUR")],
+      [{ id: "s", scope: "IN_TOUR", position: 1 }],
+    );
+    const next = removeOccurrence(state, "B");
+    expect(ids(next.exercises)).toEqual(["A"]);
+    expect(next.stopPoints).toEqual([]);
+  });
+
+  it("Suppression : les points des autres occurrences sont recalculés", () => {
+    const state = stateOf(abc(), [{ id: "sb", scope: "IN_TOUR", position: 2 }]);
+    expect(removeOccurrence(state, "A").stopPoints).toEqual([{ id: "sb", scope: "IN_TOUR", position: 1 }]);
+  });
+
+  it("identifiant inconnu : duplication et suppression retournent la même référence", () => {
+    const state = stateOf(abc(), [{ id: "s", scope: "IN_TOUR", position: 1 }]);
+    expect(duplicateOccurrence(state, "inconnu", "x", "y")).toBe(state);
+    expect(removeOccurrence(state, "inconnu")).toBe(state);
   });
 });

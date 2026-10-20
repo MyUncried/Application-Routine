@@ -893,29 +893,43 @@ describe("SqliteSessionRepository", () => {
 
   /**
    * V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : `session_stop_points`
-   * référence la Séance directement — `position` est renumérotée SÉPARÉMENT
-   * PAR portée, même politique que les Activités.
+   * référence la Séance directement. PRE-6 (story 1.2, AD-36) : `position`
+   * est l'emplacement reçu, enregistré tel quel (plus de renumérotation), et
+   * une modification remplace les points par ceux du brouillon.
    */
   describe("Points d'arrêt (V2-PRE-1, plan §3.3/§7, REQ-001108DC7F67664C)", () => {
+    /** Avant : Échauffement ; Circuit : Gainage, Pompes ; après : Étirement. */
+    function structuredInput(): CreateSessionInput {
+      return {
+        ...validInput(),
+        exercises: [
+          anExercise({ structuralPosition: "BEFORE_TOUR", name: "Échauffement" }),
+          anExercise(),
+          anExercise({ name: "Pompes" }),
+          anExercise({ structuralPosition: "AFTER_TOUR", name: "Étirement" }),
+        ],
+      };
+    }
+
     // `randomUUID` plutôt que `uuidFactory()` (liste `IDS` finie, consommée
     // par session/cycle/tour/activités) : ces scénarios persistent aussi des
     // Points d'arrêt, chacun consommant son propre identifiant.
-    it("create(): persists stop points with a position stable per scope, and rereads them in scope then position order", async () => {
+    it("create(): persists stop points at the received position, and rereads them in displayed scope order (D-061) then position", async () => {
       const repository = new SqliteSessionRepository(database, randomUUID);
 
       const created = await repository.create({
-        ...validInput(),
+        ...structuredInput(),
         stopPoints: [
-          { scope: "IN_TOUR" },
-          { scope: "BEFORE_TOUR" },
-          { scope: "IN_TOUR" },
+          { scope: "IN_TOUR", position: 1 },
+          { scope: "BEFORE_TOUR", position: 1 },
+          { scope: "AFTER_TOUR", position: 0 },
         ],
       });
 
       expect(created.stopPoints).toEqual([
-        { id: expect.any(String), scope: "BEFORE_TOUR", order: 0 },
-        { id: expect.any(String), scope: "IN_TOUR", order: 0 },
-        { id: expect.any(String), scope: "IN_TOUR", order: 1 },
+        { id: expect.any(String), scope: "BEFORE_TOUR", position: 1 },
+        { id: expect.any(String), scope: "IN_TOUR", position: 1 },
+        { id: expect.any(String), scope: "AFTER_TOUR", position: 0 },
       ]);
 
       const reread = await repository.findById(created.id);
@@ -930,31 +944,70 @@ describe("SqliteSessionRepository", () => {
       expect(created.stopPoints).toBeUndefined();
     });
 
-    it("update(): replaces the previous stop points entirely, with the new array's own per-scope order", async () => {
+    it("create(): rejects a forbidden, out-of-range or duplicate stop point and writes nothing", async () => {
+      const repository = new SqliteSessionRepository(database, randomUUID);
+
+      for (const stopPoints of [
+        [{ scope: "BEFORE_TOUR" as const, position: 0 }],
+        [{ scope: "IN_TOUR" as const, position: 3 }],
+        [
+          { scope: "IN_TOUR" as const, position: 1 },
+          { scope: "IN_TOUR" as const, position: 1 },
+        ],
+      ]) {
+        await expect(repository.create({ ...structuredInput(), stopPoints })).rejects.toBeInstanceOf(
+          SessionValidationError,
+        );
+      }
+      expect(await repository.listActive()).toEqual([]);
+    });
+
+    it("update(): replaces the previous stop points with the draft's own", async () => {
       const repository = new SqliteSessionRepository(database, randomUUID);
       const created = await repository.create({
-        ...validInput(),
-        stopPoints: [{ scope: "IN_TOUR" }],
+        ...structuredInput(),
+        stopPoints: [{ scope: "IN_TOUR", position: 1 }],
       });
 
-      const outcome = await repository.update(created.id, {
-        sourceSessionId: created.id,
-        name: created.name,
-        labelId: null,
-        initialCountdownSeconds: created.initialCountdownSeconds,
-        finalPhaseSeconds: created.finalPhaseSeconds,
-        tourRepeatCount: created.cycle.tour.repeatCount,
-        activities: [anUpdateActivity({ id: created.cycle.tour.exercises[0]!.id })],
-        stopPoints: [{ scope: "AFTER_TOUR" }, { scope: "AFTER_TOUR" }],
+      const input = toUpdateSessionInput({
+        ...toSessionDraft(created),
+        stopPoints: [{ id: "draft-point", scope: "AFTER_TOUR", position: 0 }],
       });
+      expect(input.ok).toBe(true);
+      if (!input.ok) return;
+      const outcome = await repository.update(created.id, input.value);
 
       expect(outcome.status).toBe("UPDATED");
       if (outcome.status === "UPDATED") {
         expect(outcome.session.stopPoints).toEqual([
-          { id: expect.any(String), scope: "AFTER_TOUR", order: 0 },
-          { id: expect.any(String), scope: "AFTER_TOUR", order: 1 },
+          { id: expect.any(String), scope: "AFTER_TOUR", position: 0 },
         ]);
       }
+    });
+
+    it("update(): a reopened, renamed then saved session keeps its stop points at the same places (R2)", async () => {
+      const repository = new SqliteSessionRepository(database, randomUUID);
+      const created = await repository.create({
+        ...structuredInput(),
+        stopPoints: [
+          { scope: "IN_TOUR", position: 1 },
+          { scope: "AFTER_TOUR", position: 0 },
+        ],
+      });
+
+      const reopened = await repository.findById(created.id);
+      const draft: SessionDraft = { ...toSessionDraft(reopened!), name: "Renommée" };
+      const input = toUpdateSessionInput(draft);
+      expect(input.ok).toBe(true);
+      if (!input.ok) return;
+      await repository.update(created.id, input.value);
+
+      const reread = await repository.findById(created.id);
+      expect(reread?.name).toBe("Renommée");
+      expect(reread?.stopPoints?.map(({ scope, position }) => ({ scope, position }))).toEqual([
+        { scope: "IN_TOUR", position: 1 },
+        { scope: "AFTER_TOUR", position: 0 },
+      ]);
     });
   });
 

@@ -237,15 +237,19 @@ async function getInheritableBodyZoneIds(transaction: Database): Promise<Readonl
   return new Set(rows.map((row) => row.body_zone_id));
 }
 
-/** Ordre canonique de restitution des zones structurelles (D-061). */
-const STRUCTURAL_ORDER_SQL = `
-  CASE activities.structural_position
+/** Ordre canonique de restitution des zones structurelles (D-061), pour la colonne donnée. */
+function structuralOrderSql(column: string): string {
+  return `
+  CASE ${column}
     WHEN 'BEFORE_TOUR' THEN 0
     WHEN 'IN_TOUR' THEN 1
     WHEN 'AFTER_TOUR' THEN 2
     ELSE 3
   END
 `;
+}
+
+const STRUCTURAL_ORDER_SQL = structuralOrderSql("activities.structural_position");
 
 /**
  * Une ligne par Activité (T01-S09 ; T01-S10 : toutes zones structurelles,
@@ -507,8 +511,10 @@ export class SqliteSessionRepository implements SessionRepository {
 
       // V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : les Points d'arrêt
       // n'exposent aucune identité à l'appelant (contrairement aux
-      // Activités, fusionnées par `id`) — remplacés intégralement, même
-      // politique que les Zones corporelles d'un Exercice.
+      // Activités, fusionnées par `id`) — remplacés intégralement par ceux
+      // du brouillon (PRE-6 story 1.2 : le brouillon les porte désormais,
+      // une modification ne les efface donc plus), même politique que les
+      // Zones corporelles d'un Exercice.
       await transaction.runAsync(`DELETE FROM session_stop_points WHERE session_id = ?`, [
         sessionId,
       ]);
@@ -691,11 +697,12 @@ async function replaceOccurrenceMedia(
 
 /**
  * Insère les Points d'arrêt de la Séance (V2-PRE-1, plan §3.3/§7,
- * REQ-001108DC7F67664C) — `position` est renumérotée SÉPARÉMENT DANS CHAQUE
- * portée (0-indexée, même politique que `insertActivities`), seule façon de
- * respecter `UNIQUE(session_id, scope, position)` sans dépendre de l'ordre
- * relatif entre portées. `session_stop_points` référence `sessions(id)`
- * directement (jamais le Cycle/Circuit).
+ * REQ-001108DC7F67664C). PRE-6 (story 1.2, AD-36) : `position` est
+ * l'emplacement reçu, enregistré tel quel (plus aucune renumérotation) —
+ * déjà validé (bornes, emplacement autorisé, unicité par `(scope,
+ * position)`, ce qui respecte `UNIQUE(session_id, scope, position)`).
+ * `session_stop_points` référence `sessions(id)` directement (jamais le
+ * Cycle/Circuit).
  */
 async function insertStopPoints(
   transaction: Database,
@@ -703,16 +710,10 @@ async function insertStopPoints(
   stopPoints: readonly CreateStopPointInput[],
   uuidFactory: UuidFactory,
 ): Promise<void> {
-  const positionByScope = new Map<StructuralPosition, number>();
-
   for (const stopPoint of stopPoints) {
-    const scope = stopPoint.scope;
-    const position = positionByScope.get(scope) ?? 0;
-    positionByScope.set(scope, position + 1);
-
     await transaction.runAsync(
       `INSERT INTO session_stop_points (id, session_id, scope, position) VALUES (?, ?, ?, ?)`,
-      [uuidFactory(), sessionId, scope, position],
+      [uuidFactory(), sessionId, stopPoint.scope, stopPoint.position],
     );
   }
 }
@@ -1050,8 +1051,9 @@ async function readSession(
 
 /**
  * Points d'arrêt persistés de la Séance (V2-PRE-1, plan §3.3/§7,
- * REQ-001108DC7F67664C), ordonnés par portée PUIS par position — même
- * convention de tri que `AGGREGATE_QUERY` pour les Activités.
+ * REQ-001108DC7F67664C), ordonnés par portée dans l'ordre affiché (D-061 :
+ * avant, dans, après le Circuit) PUIS par position — même convention de tri
+ * que `AGGREGATE_QUERY` pour les Activités.
  */
 async function getStopPoints(
   database: Database,
@@ -1059,10 +1061,10 @@ async function getStopPoints(
 ): Promise<readonly StopPoint[]> {
   const rows = await database.getAllAsync<{ id: string; scope: StructuralPosition; position: number }>(
     `SELECT id, scope, position FROM session_stop_points
-     WHERE session_id = ? ORDER BY scope ASC, position ASC`,
+     WHERE session_id = ? ORDER BY ${structuralOrderSql("scope")} ASC, position ASC`,
     [sessionId],
   );
-  return rows.map((row) => ({ id: row.id, scope: row.scope, order: row.position }));
+  return rows.map((row) => ({ id: row.id, scope: row.scope, position: row.position }));
 }
 
 /** T16 (D-210) : Zones déjà affectées à chacune des Activités données, avant toute modification — même requête que `getBodyZonesForActivities`, regroupée par Activité pour `assertBodyZonesAssignable`. */

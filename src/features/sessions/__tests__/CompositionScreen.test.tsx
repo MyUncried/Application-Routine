@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
-import { useCallback, useMemo, useState } from "react";
-import { AccessibilityInfo, Keyboard, Platform, ScrollView, StyleSheet } from "react-native";
+import { useCallback, useContext, useMemo, useState } from "react";
+import { AccessibilityInfo, Keyboard, Platform, ScrollView, StyleSheet, Text } from "react-native";
 
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
@@ -3374,5 +3374,101 @@ describe("CompositionScreen — PRE-4 Q53 (8) (Étiquette retirée encore affect
     await waitFor(() => expect(screen.getByTestId("composition-session-label-name").props.children).toBe("Sport"));
     expect(screen.queryByTestId("composition-retired-label-notice")).toBeNull();
     announce.mockRestore();
+  });
+});
+
+/**
+ * PRE-6 (story 1.2, ARB-3) : Dupliquer, Supprimer et déposer mettent à jour
+ * les Points d'arrêt du brouillon. Aucun rendu de point n'existe encore
+ * (story 4.1) : une sonde lit `draft.stopPoints` dans le contexte.
+ */
+describe("CompositionScreen — Points d'arrêt du brouillon (PRE-6 story 1.2)", () => {
+  function DraftStopPointsProbe() {
+    const context = useContext(SessionDraftContext);
+    return <Text testID="draft-stop-points">{JSON.stringify(context?.draft.stopPoints ?? null)}</Text>;
+  }
+
+  function readStopPoints(): unknown {
+    return JSON.parse(String(screen.getByTestId("draft-stop-points").props.children));
+  }
+
+  function renderWithStopPoints(exercises: readonly SessionDraftExercise[]) {
+    render(
+      <TestSafeAreaProvider>
+        <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
+          <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+            <StatefulDraftWrapper
+              initialExercises={exercises}
+              draftOverrides={{ stopPoints: [{ id: "s-1", scope: "BEFORE_TOUR", position: 1 }] }}
+            >
+              <CompositionScreen />
+              <DraftStopPointsProbe />
+            </StatefulDraftWrapper>
+          </ReferentialServiceContext.Provider>
+        </ActivityDefinitionServiceContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+  }
+
+  function dragBy(activityId: string, deltaY: number) {
+    const container = () => screen.getByTestId(`composition-activity-${activityId}`);
+    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
+    fireEvent(screen.getByTestId(`composition-exercise-row-${activityId}`), "longPress");
+    fireEvent(container(), "responderMove", { nativeEvent: { pageX: 200, pageY: 100 + deltaY } });
+    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 200, pageY: 100 + deltaY } });
+  }
+
+  function layoutTwoBeforeTour() {
+    fireLayout(screen.getByTestId("composition-zone-before-tour"), 70, 150);
+    fireLayout(screen.getByTestId("composition-activity-ex-1"), 0, 70);
+    fireLayout(screen.getByTestId("composition-activity-ex-2"), 80, 70);
+    fireLayout(screen.getByTestId("composition-tour-section"), 230, 170);
+  }
+
+  const twoBefore = () => [
+    anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage" }),
+    anActivity("ex-2", "BEFORE_TOUR", { name: "Squats" }),
+  ];
+
+  it("Dupliquer copie le point de la source sur la copie, juste après elle", () => {
+    renderWithStopPoints(twoBefore());
+    fireSwipeLeft("ex-1");
+    fireEvent.press(screen.getByTestId("composition-activity-duplicate-ex-1"));
+
+    expect(readStopPoints()).toEqual([
+      { id: "s-1", scope: "BEFORE_TOUR", position: 1 },
+      { id: "generated-copy-id", scope: "BEFORE_TOUR", position: 2 },
+    ]);
+  });
+
+  it("Supprimer retire le point rattaché à l'occurrence", () => {
+    renderWithStopPoints(twoBefore());
+    fireSwipeLeft("ex-1");
+    fireEvent.press(screen.getByTestId("composition-activity-delete-ex-1"));
+
+    expect(screen.queryByTestId("composition-exercise-row-ex-1")).toBeNull();
+    expect(readStopPoints()).toEqual([]);
+  });
+
+  it("un dépôt qui amènerait le point juste avant la Fin est invalide : ordre et points inchangés", () => {
+    renderWithStopPoints(twoBefore());
+    layoutTwoBeforeTour();
+    dragBy("ex-1", 100);
+
+    expect(
+      testIdOrder(screen.toJSON(), ["composition-exercise-row-ex-1", "composition-exercise-row-ex-2"]),
+    ).toEqual(["composition-exercise-row-ex-1", "composition-exercise-row-ex-2"]);
+    expect(readStopPoints()).toEqual([{ id: "s-1", scope: "BEFORE_TOUR", position: 1 }]);
+  });
+
+  it("un dépôt valide : le point suit son occurrence", () => {
+    renderWithStopPoints([...twoBefore(), anActivity("core", "IN_TOUR", { name: "Pompes" })]);
+    layoutTwoBeforeTour();
+    dragBy("ex-1", 100);
+
+    expect(
+      testIdOrder(screen.toJSON(), ["composition-exercise-row-ex-1", "composition-exercise-row-ex-2"]),
+    ).toEqual(["composition-exercise-row-ex-2", "composition-exercise-row-ex-1"]);
+    expect(readStopPoints()).toEqual([{ id: "s-1", scope: "BEFORE_TOUR", position: 2 }]);
   });
 });

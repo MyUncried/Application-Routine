@@ -258,7 +258,7 @@ describe("PRE6-1.1 — migration 011 sur une base v10 fichier réelle (node:sqli
     const sessionA = await repository.findById("session-a");
     expect(sessionA?.cycle.tour.nature).toBe("TOURS");
     expect(sessionA?.cycle.tour.repeatCount).toBe(3);
-    expect(sessionA?.stopPoints).toEqual([{ id: "stop-a", scope: "IN_TOUR", order: 0 }]);
+    expect(sessionA?.stopPoints).toEqual([{ id: "stop-a", scope: "IN_TOUR", position: 0 }]);
     const all = [...(sessionA?.cycle.beforeTour ?? []), ...(sessionA?.cycle.tour.exercises ?? []), ...(sessionA?.cycle.afterTour ?? [])];
     expect(all.map((activity) => [activity.id, activity.postActivityRecoverySeconds])).toEqual([
       ["a-before", null],

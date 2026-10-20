@@ -1147,3 +1147,86 @@ describe("PRE6-1.1 — nature du Circuit et récupération nullable dans le brou
     expect(activityDefinitionToDraftExercise(definition, "copy-1", null).postActivityRecoverySeconds).toBeNull();
   });
 });
+
+describe("PRE6-1.2 — Points d'arrêt portés par le brouillon", () => {
+  const exercise = (id: string, structuralPosition: "BEFORE_TOUR" | "IN_TOUR" | "AFTER_TOUR"): SessionDraftExercise => ({
+    ...createExerciseDraft(id),
+    name: id,
+    structuralPosition,
+    executionParameters: durationParameters(30),
+  });
+  const draftWith = (overrides: Partial<SessionDraft> = {}): SessionDraft => ({
+    ...createEmptyDraft(),
+    name: "Séance",
+    exercises: [exercise("A", "IN_TOUR"), exercise("B", "IN_TOUR"), exercise("Z", "AFTER_TOUR")],
+    stopPoints: [
+      { id: "s1", scope: "IN_TOUR", position: 1 },
+      { id: "s2", scope: "AFTER_TOUR", position: 0 },
+    ],
+    ...overrides,
+  });
+
+  it("toCreateSessionInput et toUpdateSessionInput transmettent { scope, position }, sans identifiant", () => {
+    const expected = [
+      { scope: "IN_TOUR", position: 1 },
+      { scope: "AFTER_TOUR", position: 0 },
+    ];
+    const created = toCreateSessionInput(draftWith());
+    expect(created.ok && created.value.stopPoints).toEqual(expected);
+    const updated = toUpdateSessionInput({ ...draftWith(), sourceSessionId: "s-1" });
+    expect(updated.ok && updated.value.stopPoints).toEqual(expected);
+  });
+
+  it("un point sur un emplacement interdit fait échouer l'enregistrement (union discriminée)", () => {
+    const result = toCreateSessionInput(draftWith({ stopPoints: [{ id: "s", scope: "AFTER_TOUR", position: 1 }] }));
+    expect(result).toEqual({ ok: false, violations: [{ code: "FORBIDDEN_PLACEMENT", field: "session.stopPoints" }] });
+  });
+
+  it("toSessionDraft hydrate les points relus ; absents, le champ reste absent", () => {
+    const activity = (id: string, structuralPosition: "IN_TOUR" | "AFTER_TOUR", position: number): Activity => ({
+      ...anActivity({ id, name: id, position }),
+      structuralPosition,
+    });
+    const session = {
+      id: "session-1",
+      ownerId: "usr_test",
+      name: "Séance",
+      color: DEFAULT_SESSION_COLOR,
+      status: "ACTIVE",
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+      stopPoints: [{ id: "p1", scope: "IN_TOUR", position: 1 }],
+      cycle: {
+        id: "cycle-1",
+        position: 1,
+        repeatCount: 1,
+        afterTour: [activity("Z", "AFTER_TOUR", 0)],
+        tour: { id: "tour-1", position: 1, repeatCount: 1, exercises: [activity("A", "IN_TOUR", 0)] },
+      },
+    } as Session;
+    const draft = toSessionDraft(session);
+    expect(draft.stopPoints).toEqual([{ id: "p1", scope: "IN_TOUR", position: 1 }]);
+    expect(draft.stopPoints?.[0]).not.toBe(session.stopPoints?.[0]);
+    const { stopPoints: _omitted, ...withoutPoints } = session;
+    expect("stopPoints" in toSessionDraft(withoutPoints as Session)).toBe(false);
+  });
+
+  it("garde de sortie : un point ajouté ou déplacé seul rend le brouillon modifié ; les identifiants sont ignorés", () => {
+    const baseline = draftWith({ stopPoints: [] });
+    expect(isSessionDraftDirty(draftWith({ stopPoints: [{ id: "x", scope: "IN_TOUR", position: 1 }] }), baseline)).toBe(true);
+    const placed = draftWith();
+    expect(isSessionDraftDirty({ ...placed, stopPoints: [{ id: "s1", scope: "IN_TOUR", position: 0 }, placed.stopPoints![1]!] }, placed)).toBe(true);
+    expect(
+      sessionDraftsEqual(placed, {
+        ...placed,
+        stopPoints: [
+          { id: "autre", scope: "AFTER_TOUR", position: 0 },
+          { id: "encore", scope: "IN_TOUR", position: 1 },
+        ],
+      }),
+    ).toBe(true);
+    expect(sessionDraftsEqual({ ...placed, stopPoints: undefined }, { ...placed, stopPoints: [] })).toBe(true);
+  });
+});

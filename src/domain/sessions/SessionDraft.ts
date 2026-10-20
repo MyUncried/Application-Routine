@@ -56,6 +56,7 @@ import { DEFAULT_CIRCUIT_NATURE, type CircuitNature } from "./circuit";
 import type { ValidationResult } from "./errors";
 import { fail } from "./errors";
 import type { SideMode } from "./sideMode";
+import { stopPointKey, type StopPoint } from "./StopPoint";
 import { validateCreateSessionInput, validateUpdateSessionInput } from "./validation";
 
 /**
@@ -195,6 +196,16 @@ export type SessionDraft = {
    * insérée. Absent : aucune occurrence n'est tenue pour existante.
    */
   readonly persistedExerciseIds?: readonly string[];
+  /**
+   * PRE-6 (story 1.2, AD-36, ARB-3) : Points d'arrêt du brouillon,
+   * `{ id, scope, position }` où `position` est l'emplacement dans la portée
+   * (voir `StopPoint`). Hydratés par `toSessionDraft`, transmis par
+   * `toCreateSessionInput`/`toUpdateSessionInput`, tenus à jour par les
+   * opérations de Composition (`moveOccurrence`, `duplicateOccurrence`,
+   * `removeOccurrence`). Champ optionnel de transition — un consommateur
+   * lit `draft.stopPoints ?? []`.
+   */
+  readonly stopPoints?: readonly StopPoint[];
 };
 
 /**
@@ -301,6 +312,10 @@ export function toSessionDraft(session: Session): SessionDraft {
     ...(session.cycle.tour.nature !== undefined ? { circuitNature: session.cycle.tour.nature } : {}),
     exercises: structuralActivities.map((activity) => activityToDraftExercise(activity)),
     persistedExerciseIds: structuralActivities.map((activity) => activity.id),
+    // PRE-6 (story 1.2) : points relus tels qu'enregistrés (copies).
+    ...(session.stopPoints !== undefined
+      ? { stopPoints: session.stopPoints.map((point) => ({ ...point })) }
+      : {}),
   };
 }
 
@@ -426,8 +441,25 @@ export function sessionDraftsEqual(a: SessionDraft, b: SessionDraft): boolean {
       (b.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT) &&
     // PRE-6 (story 1.1) : un changement de nature seul rend le brouillon modifié.
     (a.circuitNature ?? DEFAULT_CIRCUIT_NATURE) === (b.circuitNature ?? DEFAULT_CIRCUIT_NATURE) &&
-    exercisesEqual(a.exercises, b.exercises)
+    exercisesEqual(a.exercises, b.exercises) &&
+    // PRE-6 (story 1.2) : un point ajouté, retiré ou déplacé seul rend le brouillon modifié.
+    stopPointsEqual(a.stopPoints ?? [], b.stopPoints ?? [])
   );
+}
+
+/** Compare deux collections de Points d'arrêt par emplacement `(scope, position)`, identifiants et ordre du tableau ignorés. */
+function stopPointsEqual(a: readonly StopPoint[], b: readonly StopPoint[]): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  const keysA = a.map(stopPointKey).sort();
+  const keysB = b.map(stopPointKey).sort();
+  return keysA.every((key, index) => key === keysB[index]);
+}
+
+/** Emplacements persistables des Points d'arrêt du brouillon (identifiants non transmis). */
+function toStopPointInputs(draft: SessionDraft) {
+  return (draft.stopPoints ?? []).map((point) => ({ scope: point.scope, position: point.position }));
 }
 
 /**
@@ -502,6 +534,7 @@ export function toCreateSessionInput(draft: SessionDraft): ValidationResult<Crea
       name: exercise.name,
       ...toDraftActivityParameters(exercise),
     })),
+    stopPoints: toStopPointInputs(draft),
   });
 }
 
@@ -553,6 +586,7 @@ export function toUpdateSessionInput(
     tourRepeatCount: draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
     ...(draft.circuitNature !== undefined ? { circuitNature: draft.circuitNature } : {}),
     activities,
+    stopPoints: toStopPointInputs(draft),
     ...(draft.persistedExerciseIds !== undefined ? { persistedActivityIds: [...draft.persistedExerciseIds] } : {}),
   });
 }

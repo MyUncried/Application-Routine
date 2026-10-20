@@ -1220,3 +1220,85 @@ describe("PRE6-1.1 — nature du Circuit et récupération nullable", () => {
     });
   });
 });
+
+describe("PRE6-1.2 — Points d'arrêt à l'enregistrement (AD-36, RM-219)", () => {
+  type CreateInput = Parameters<typeof validateCreateSessionInput>[0];
+  const exercise = (id: string, structuralPosition: "BEFORE_TOUR" | "IN_TOUR" | "AFTER_TOUR") => ({
+    id,
+    type: "EXERCISE" as const,
+    structuralPosition,
+    name: id,
+    executionParameters: durationParameters(30),
+    postActivityRecoverySeconds: null,
+    bodyZoneIds: [] as string[],
+  });
+  /** Avant : P ; Circuit : A, B. */
+  const occurrences = [exercise("P", "BEFORE_TOUR"), exercise("A", "IN_TOUR"), exercise("B", "IN_TOUR")];
+  const createInput = (stopPoints: unknown): CreateInput =>
+    ({
+      name: "Séance",
+      labelId: null,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 1,
+      exercises: occurrences,
+      stopPoints,
+    }) as CreateInput;
+  const updateInput = (stopPoints: unknown): UpdateSessionInput =>
+    ({
+      sourceSessionId: "s-1",
+      name: "Séance",
+      labelId: null,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 1,
+      activities: occurrences.map((item, index) => ({ ...item, position: index === 0 ? 0 : index - 1 })),
+      stopPoints,
+    }) as UpdateSessionInput;
+
+  it("des emplacements autorisés et uniques sont transmis tels quels (création et modification)", () => {
+    const points = [
+      { scope: "BEFORE_TOUR", position: 1 },
+      { scope: "IN_TOUR", position: 0 },
+      { scope: "IN_TOUR", position: 1 },
+    ];
+    const created = validateCreateSessionInput(createInput(points));
+    expect(created.ok && created.value.stopPoints).toEqual(points);
+    const updated = validateUpdateSessionInput(updateInput(points));
+    expect(updated.ok && updated.value.stopPoints).toEqual(points);
+  });
+
+  it.each([
+    ["BEFORE_TOUR p=0 (juste après le compte à rebours)", { scope: "BEFORE_TOUR", position: 0 }, "FORBIDDEN_PLACEMENT"],
+    ["IN_TOUR p=2 (juste avant la Fin)", { scope: "IN_TOUR", position: 2 }, "FORBIDDEN_PLACEMENT"],
+    ["AFTER_TOUR p=0 sans rien après", { scope: "AFTER_TOUR", position: 0 }, "FORBIDDEN_PLACEMENT"],
+    ["p hors bornes", { scope: "IN_TOUR", position: 3 }, "OUT_OF_RANGE"],
+    ["p négative", { scope: "IN_TOUR", position: -1 }, "OUT_OF_RANGE"],
+    ["p non entière", { scope: "IN_TOUR", position: 0.5 }, "NOT_INTEGER"],
+    ["portée inconnue", { scope: "AILLEURS", position: 0 }, "UNRECOGNIZED"],
+  ])("%s : violation %s sur session.stopPoints", (_label, point, code) => {
+    for (const result of [validateCreateSessionInput(createInput([point])), validateUpdateSessionInput(updateInput([point]))]) {
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.violations.map((violation) => [violation.code, violation.field])).toEqual([[code, "session.stopPoints"]]);
+      }
+    }
+  });
+
+  it("un doublon (scope, position) : violation DUPLICATE", () => {
+    const result = validateCreateSessionInput(
+      createInput([
+        { scope: "IN_TOUR", position: 1 },
+        { scope: "IN_TOUR", position: 1 },
+      ]),
+    );
+    expect(result).toEqual({ ok: false, violations: [{ code: "DUPLICATE", field: "session.stopPoints" }] });
+  });
+
+  it("hors bornes : détails min 0 / max = nombre d'occurrences de la portée", () => {
+    expect(validateCreateSessionInput(createInput([{ scope: "IN_TOUR", position: 3 }]))).toEqual({
+      ok: false,
+      violations: [{ code: "OUT_OF_RANGE", field: "session.stopPoints", details: { min: 0, max: 2 } }],
+    });
+  });
+});

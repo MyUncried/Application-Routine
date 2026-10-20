@@ -12,6 +12,7 @@ import {
   type ActivityType,
   type CreateSessionActivityInput,
   type CreateSessionInput,
+  type CreateStopPointInput,
   type ExerciseExecutionMode,
   type StructuralPosition,
   type UpdateSessionActivityInput,
@@ -35,6 +36,14 @@ import {
 import { DEFAULT_CIRCUIT_NATURE, isCircuitNature, type CircuitNature } from "./circuit";
 import { DEFAULT_SIDE_MODE } from "./defaults";
 import { isSideMode, type SideMode } from "./sideMode";
+import {
+  isStopPointPlacementValid,
+  isStopPointPositionInRange,
+  occurrenceCountInScope,
+  stopPointKey,
+  stopPointNeighbors,
+  type StopPointOccurrence,
+} from "./StopPoint";
 
 const NAME_MIN_LENGTH = 1;
 /** Exportée pour être réutilisée telle quelle comme `maxLength` d'un `TextInput` (Composition, T01-S07) — jamais dupliquée en dur. */
@@ -618,6 +627,52 @@ function pre3Transport(
 }
 
 /**
+ * PRE-6 (story 1.2, AD-36, RM-219, CE-T03-08 §14) : valide les Points
+ * d'arrêt d'un agrégat au regard de ses occurrences validées. Chaque point
+ * doit avoir une portée reconnue, une `position` entière dans `0..n` (n =
+ * occurrences de sa portée), un emplacement autorisé (ni juste après le
+ * compte à rebours initial, ni juste avant la Fin, lus sur la liste
+ * affichée) et un emplacement unique `(scope, position)`. Violations sur
+ * `session.stopPoints`, jamais d'exception. Retourne les points normalisés
+ * `{ scope, position }`, dans l'ordre reçu.
+ */
+function validateStopPoints(
+  stopPoints: readonly CreateStopPointInput[] | undefined,
+  occurrences: readonly StopPointOccurrence[],
+  violations: ValidationViolation[],
+): CreateStopPointInput[] {
+  const normalized: CreateStopPointInput[] = [];
+  const seen = new Set<string>();
+  for (const point of stopPoints ?? []) {
+    if (!STRUCTURAL_POSITIONS.includes(point.scope)) {
+      violations.push({ code: "UNRECOGNIZED", field: "session.stopPoints" });
+      continue;
+    }
+    if (!Number.isInteger(point.position)) {
+      violations.push({ code: "NOT_INTEGER", field: "session.stopPoints" });
+      continue;
+    }
+    if (!isStopPointPositionInRange(occurrences, point)) {
+      const max = occurrenceCountInScope(occurrences, point.scope);
+      violations.push({ code: "OUT_OF_RANGE", field: "session.stopPoints", details: { min: 0, max } });
+      continue;
+    }
+    if (!isStopPointPlacementValid(stopPointNeighbors(occurrences, point))) {
+      violations.push({ code: "FORBIDDEN_PLACEMENT", field: "session.stopPoints" });
+      continue;
+    }
+    const key = stopPointKey(point);
+    if (seen.has(key)) {
+      violations.push({ code: "DUPLICATE", field: "session.stopPoints" });
+      continue;
+    }
+    seen.add(key);
+    normalized.push({ scope: point.scope, position: point.position });
+  }
+  return normalized;
+}
+
+/**
  * Valide et normalise un `CreateSessionInput` complet (T01-S09 : collection
  * ordonnée d'Activités + Catégories). Retourne un succès portant l'entrée
  * normalisée, ou un échec listant l'intégralité des violations rencontrées
@@ -681,6 +736,13 @@ export function validateCreateSessionInput(
     }
   }
 
+  // PRE-6 (story 1.2) : les points se lisent sur les occurrences validées ;
+  // une occurrence rejetée fausserait les emplacements (échec déjà signalé).
+  const stopPoints =
+    exercises.length === input.exercises.length
+      ? validateStopPoints(input.stopPoints, exercises, violations)
+      : [];
+
   if (violations.length > 0) {
     return fail(violations);
   }
@@ -695,10 +757,8 @@ export function validateCreateSessionInput(
     // transition) ; absente, le Repository écrit `DEFAULT_CIRCUIT_NATURE`.
     ...(input.circuitNature !== undefined ? { circuitNature: circuitNature as CircuitNature } : {}),
     exercises,
-    // V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : transmis tel quel —
-    // la position DANS sa portée est dérivée de l'ordre du tableau par le
-    // Repository, jamais revalidée ici (même patron que `exercises`).
-    stopPoints: input.stopPoints ?? [],
+    // PRE-6 (story 1.2, AD-36) : emplacements validés, enregistrés tels quels.
+    stopPoints,
   });
 }
 
@@ -801,6 +861,12 @@ export function validateUpdateSessionInput(
     }
   }
 
+  // PRE-6 (story 1.2) : même règle que la création (`validateStopPoints`).
+  const stopPoints =
+    activities.length === input.activities.length
+      ? validateStopPoints(input.stopPoints, activities, violations)
+      : [];
+
   if (violations.length > 0) {
     return fail(violations);
   }
@@ -814,7 +880,7 @@ export function validateUpdateSessionInput(
     tourRepeatCount: tourRepeatCount as number,
     ...(input.circuitNature !== undefined ? { circuitNature: circuitNature as CircuitNature } : {}),
     activities,
-    stopPoints: input.stopPoints ?? [],
+    stopPoints,
     ...(input.persistedActivityIds !== undefined ? { persistedActivityIds: [...input.persistedActivityIds] } : {}),
   });
 }
