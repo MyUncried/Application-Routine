@@ -679,7 +679,7 @@ Une durée prévisionnelle déterminable ne signifie pas une fin automatique : R
 
 ### Extension validée du modèle — Pauses et symboles
 
-La Composition possède des pauses explicites recovery et breakpoint. recovery appartient à une occurrence ; breakpoint conserve une position structurelle. Une projection R=0 pour absence ne crée pas d’objet. La présence et la durée 0 sont distinctes, les phases 0 s ne sont pas générées.
+La Composition possède des pauses explicites recovery et breakpoint. La récupération et le Point d’arrêt sont associés au bloc de leur occurrence d’Exercice : ils l’accompagnent lors du déplacement, sont conservés dans sa duplication et sont retirés avec elle lors de sa suppression. Le Point d’arrêt conserve également une position structurelle dans la séquence pour représenter l’ordre et l’emplacement autorisé ; cette représentation ne signifie pas qu’il reste fixe lorsque l’occurrence associée est déplacée. Les positions sont actualisées lors de ces opérations, sans changer les règles de placement existantes. Une projection R=0 pour absence ne crée pas d’objet. La présence et la durée 0 sont distinctes, les phases 0 s ne sont pas générées.
 
 ## Exécution
 
