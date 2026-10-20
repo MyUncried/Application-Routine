@@ -50,8 +50,10 @@ export class ActivityDefinitionService {
   /**
    * `categoryRepository` (V2-PRE-1, D-211) reste optionnel pour ne pas
    * casser un appelant construit avant cette tranche (même patron que
-   * `SessionService.categoryRepository`) : `listCategories()` n'est appelée
-   * que par le sélecteur de Catégorie de l'éditeur d'Activité, jamais par
+   * `SessionService.categoryRepository`) : `listCategories()` est appelée par le
+   * sélecteur de Catégorie de l'éditeur d'Activité et, en lecture seule, par
+   * `useCategoriesReferential` (cartes de la Composition et de la sélection, PRE-6
+   * story 2.2), jamais par
    * `createActivityDefinition`/`updateActivityDefinition` (la résolution
    * réelle de la Catégorie du brouillon reste entièrement à la charge du
    * Repository, à l'intérieur de la transaction d'enregistrement — voir

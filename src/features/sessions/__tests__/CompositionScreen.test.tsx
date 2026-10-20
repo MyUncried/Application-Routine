@@ -3,8 +3,13 @@ import { act, fireEvent, render, screen, waitFor, within } from "@testing-librar
 import { useCallback, useContext, useMemo, useState } from "react";
 import { AccessibilityInfo, Keyboard, Platform, ScrollView, StyleSheet, Text } from "react-native";
 
-import { allFailureParameters, durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
+import {
+  allFailureParameters,
+  durationParameters,
+  repetitionParameters,
+} from "@/domain/activities/testing/executionParametersFixtures";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
+import type { Category } from "@/domain/categories/Category";
 import type { Label } from "@/domain/labels/Label";
 import { createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
@@ -47,6 +52,20 @@ const BODY_ZONE_FIXTURES: readonly BodyZone[] = [
  * `ActivityDefinitionService.listLabels()` (revue indépendante 5950755410),
  * doublé ci-dessous (`fakeActivityDefinitionService`).
  */
+/** PRE-6 (story 2.2) : référentiel des Catégories (ligne de classement des cartes d'occurrence). */
+const CATEGORY_FIXTURES: readonly Category[] = [
+  {
+    id: "renforcement",
+    name: "Renforcement",
+    canonicalKey: "renforcement",
+    color: "#3B82F6",
+    isPredefined: true,
+    displayOrder: 0,
+    isActive: true,
+    createdAt: "2026-01-01T00:00:00.000Z",
+  },
+];
+
 const LABEL_FIXTURES: readonly Label[] = [
   {
     id: "label-sport",
@@ -71,11 +90,23 @@ const mockPush = jest.fn();
 const mockBack = jest.fn();
 // PRE-4 Q54 : l’action finale (« Continuer » depuis PRE-6 story 2.1) ferme le parcours depuis la Composition.
 const mockDismissTo = jest.fn();
+/**
+ * PRE-6 (story 2.2) : `useFocusEffect` réel exige un `NavigationContainer`, absent de ce
+ * harnais — doublé ici : exécuté au montage, rappelable par un test (retour au premier plan).
+ */
+const mockFocusHarness: { callbacks: (() => void)[] } = { callbacks: [] };
+
 jest.mock("expo-router", () => {
   const actual = jest.requireActual("expo-router") as object;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const ReactActual = require("react") as typeof import("react");
   return {
     ...actual,
     useRouter: () => ({ push: mockPush, back: mockBack, dismissTo: mockDismissTo }),
+    useFocusEffect: (callback: () => void) => {
+      mockFocusHarness.callbacks.push(callback);
+      ReactActual.useEffect(() => callback(), []);
+    },
   };
 });
 
@@ -114,6 +145,9 @@ function fakeActivityDefinitionService(
     listLabels: jest
       .fn<ActivityDefinitionService["listLabels"]>()
       .mockResolvedValue(LABEL_FIXTURES),
+    listCategories: jest
+      .fn<ActivityDefinitionService["listCategories"]>()
+      .mockResolvedValue(CATEGORY_FIXTURES),
     ...overrides,
   } as unknown as ActivityDefinitionService;
 }
@@ -706,7 +740,8 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
     expect(screen.getByLabelText(composition.addActivity)).toBeTruthy();
     // PRE-6 story 2.1 : le « + » ne porte plus d'état `disabled` constant ; il reste utilisable.
     expect(screen.getByLabelText(composition.addActivity).props.accessibilityState?.disabled).not.toBe(true);
-    expect(screen.getByLabelText(composition.exerciseRow.editAccessibilityLabel)).toBeTruthy();
+    // PRE-6 (story 2.2, CE-T03-08 §18) : type, nom, position dans la zone et durée d'occurrence.
+    expect(screen.getByLabelText("Exercice, Gainage, 1 sur 1, 1 min")).toBeTruthy();
     expect(screen.getByText("Gainage")).toBeTruthy();
   });
 
@@ -726,6 +761,8 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
     expect(within(row).getByTestId("composition-boundary-handle-icon")).toBeTruthy();
     expect(screen.queryByTestId("composition-exercise-icon")).toBeNull();
     expect(within(row).queryByTestId("composition-row-icon-composition-main-content")).toBeNull();
+    // PRE-6 (story 2.2) : aucune icône de changement de côté pour un unilatéral.
+    expect(within(row).queryByTestId("composition-exercise-side-change-icon")).toBeNull();
   });
 
   it("REWORK12 (COMP-01) — the Exercise row's structure icon displays the canonical 20×20 glyph at opacity 0.5, same as the Compte à rebours/Fin de séance cards (same shared component, by construction)", () => {
@@ -739,15 +776,30 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
     expect(flattened.opacity).toBe(0.5);
   });
 
-  // PRE-6 story 2.1 : les bornes ne sont plus des cartes (étapes de la Séquence) ; la carte
-  // d'Exercice garde sa surface (fond blanc, liseré, rayon 12) — refonte en story 2.2.
-  it("REWORK12 (COMP-01), révisé PRE6-2.1 — the Exercise row keeps its card surface (fond blanc, liseré, rayon 12)", () => {
+  // PRE-6 (story 2.2, `5544:6797`) : fond blanc, bordure 1 #E4E4EB, rayon 14.
+  it("PRE6-2.2 — the occurrence card surface is white, 1 pt #E4E4EB border, radius 14", () => {
     renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
     const exerciseCardStyle = StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style);
-    expect(exerciseCardStyle.borderColor).toBe(colors.border);
-    expect(exerciseCardStyle.borderRadius).toBe(12);
+    expect(exerciseCardStyle.borderColor).toBe("#E4E4EB");
+    expect(exerciseCardStyle.borderWidth).toBe(1);
+    expect(exerciseCardStyle.borderRadius).toBe(14);
     expect(exerciseCardStyle.backgroundColor).toBe(colors.background);
+    const contentStyle = StyleSheet.flatten(screen.getByTestId("composition-activity-main-card").props.style);
+    expect(contentStyle.paddingHorizontal).toBe(14);
+    expect(contentStyle.paddingTop).toBe(12);
+    expect(contentStyle.paddingBottom).toBe(12);
+    // Poignée (28) puis colonne de texte, à 8 (CE-T03-08).
+    expect(contentStyle).toMatchObject({ flexDirection: "row", gap: 8 });
+  });
+
+  // Intention d'édition conservée dans l'indice (`exerciseRow.editAccessibilityLabel`), avant les gestes.
+  it("PRE6-2.2 — the card hint announces the edit intent, then the reorder / actions gestures", () => {
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
+
+    expect(screen.getByTestId("composition-exercise-row-ex-1").props.accessibilityHint).toBe(
+      `${composition.exerciseRow.editAccessibilityLabel}. ${composition.activityActions.reorderAccessibilityHint}`,
+    );
   });
 
   it("shows the detailed configuration summary (name + summary, never the Consigne or the Zones corporelles) — CHANGES_REQUESTED", () => {
@@ -761,14 +813,16 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
     ]);
 
     expect(screen.getByText("Gainage")).toBeTruthy();
-    expect(screen.getByText("3 séries de 1 min 30 s avec 15 s de pause par série")).toBeTruthy();
+    // PRE-6 (story 2.2, D-238) : « N × cible », aucun texte de pause.
+    expect(screen.getByTestId("composition-exercise-summary").props.children).toBe("3 × 1 min 30 s");
+    expect(screen.queryByText(/pause/)).toBeNull();
     expect(screen.queryByText("Ne pas creuser le dos")).toBeNull();
   });
 
   it("pressing the Exercise row navigates to /exercise with its own exerciseId (reopen for editing, complétion REWORK12 — édition ciblée par identifiant)", () => {
     renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
-    fireEvent.press(screen.getByLabelText(composition.exerciseRow.editAccessibilityLabel));
+    fireEvent.press(screen.getByLabelText(/^Exercice, Gainage, /));
     expect(mockPush).toHaveBeenCalledWith({
       pathname: "/exercise",
       params: { exerciseId: "ex-1" },
@@ -777,7 +831,7 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
 
   it("never shows the Exercise row while draft.exercises is empty", () => {
     renderScreenWithDraft([]);
-    expect(screen.queryByLabelText(composition.exerciseRow.editAccessibilityLabel)).toBeNull();
+    expect(screen.queryByLabelText(/^Exercice, /)).toBeNull();
   });
 
   /**
@@ -1286,19 +1340,14 @@ describe("CompositionScreen — REWORK04 (`[ChatGPT] REWORK04 IMPLEMENTATION AUT
     expect(nameField.props.placeholderTextColor).not.toBe(colors.textSecondary);
   });
 
-  // Alignement DSF 07/10 (D2) : `type.cardTitle` passe de 16/20 à 16/19
-  // (rendu Inter Auto de Figma).
-  // PRE-6 story 2.1 : les bornes portent désormais un libellé Inter Medium 14 (test dédié) ;
-  // le titre de carte 16/19 reste celui de la carte d'Exercice et du Circuit.
-  it("R4-03/REWORK06, révisé PRE6-2.1 — Exercise and Tour card titles use the card title style, 16/19 Semi Bold", () => {
+  // PRE-6 (story 2.2, `5544:6797`) : nom de l'occurrence en Inter Semi Bold 15, une ligne ;
+  // le titre 16/19 reste celui du Circuit.
+  it("PRE6-2.2 — the occurrence name is Inter Semi Bold 15 on one line; the Tour title keeps 16", () => {
     renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
-    const countdownLabel = within(screen.getByTestId("composition-exercise-row-ex-1")).getByText("Gainage");
-    const flattened = StyleSheet.flatten(countdownLabel.props.style);
-    expect(flattened.fontSize).toBe(16);
-    expect(flattened.lineHeight).toBe(19);
-    expect(flattened.fontWeight).toBe("600");
-    expect(flattened.color).toBe(colors.textPrimary);
+    const name = within(screen.getByTestId("composition-exercise-row-ex-1")).getByText("Gainage");
+    expect(name.props.numberOfLines).toBe(1);
+    expect(StyleSheet.flatten(name.props.style)).toMatchObject({ ...type.listCardTitle, color: colors.textPrimary });
 
     const tourLabel = within(screen.getByTestId("composition-tour-card")).getByText(
       composition.tour.label,
@@ -1306,14 +1355,17 @@ describe("CompositionScreen — REWORK04 (`[ChatGPT] REWORK04 IMPLEMENTATION AUT
     expect(StyleSheet.flatten(tourLabel.props.style).fontSize).toBe(16);
   });
 
-  // Alignement DSF 07/10 (D2/D9) : `type.caption` passe de 11/14 à 11/13.
-  it("R4-03, révisé PRE6-2.1 — the Exercise card secondary summary line uses the caption style (11/13)", () => {
+  // PRE-6 (story 2.2) : synthèse Inter Medium 12 #46464C, alignée à droite, sur la ligne 2.
+  it("PRE6-2.2 — the occurrence summary is Inter Medium 12, #46464C, right-aligned", () => {
     renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
-    const secondaryLine = within(screen.getByTestId("composition-exercise-row-ex-1")).getByText("1 série de 45 s");
-    const flattened = StyleSheet.flatten(secondaryLine.props.style);
-    expect(flattened.fontSize).toBe(11);
-    expect(flattened.lineHeight).toBe(13);
+    const summary = within(screen.getByTestId("composition-exercise-row-ex-1")).getByText("45 s");
+    expect(StyleSheet.flatten(summary.props.style)).toMatchObject({
+      fontFamily: "Inter_500Medium",
+      fontSize: 12,
+      textAlign: "right",
+      color: colors.textLabel,
+    });
   });
 
   it("REWORK07-A — the structure/move slot is back to the canonical 28×28 (down from 32×32/REWORK06 — the oversized container compensated for an undersized glyph, no longer needed once the asset itself was replaced) — the icon inside renders the canonical 20×20 glyph at opacity 0.5, with no local opacity prop needed", () => {
@@ -1878,19 +1930,19 @@ describe("CompositionScreen — Zones corporelles de la ligne Activité (correct
     // référentiel, jamais l'ordre de sélection de l'utilisateur.
     bodyZoneIds: ["dos", "epaules"],
   };
-  const summaryText = "3 séries de 1 min 30 s avec 15 s de pause par série";
+  const summaryText = "3 × 1 min 30 s";
 
-  it("shows the Activity's own body zones on a single line, in referential order, with the canonical ' · ' separator", async () => {
+  it("shows the Activity's own body zones on the single classification line, in referential order, with the canonical ' · ' separator", async () => {
     renderScreenWithDraft([activityWithZones]);
 
     const row = screen.getByTestId("composition-exercise-row-ex-1");
     const zones = await within(row).findByTestId("composition-exercise-body-zones");
     expect(zones.props.children).toBe("Épaules · Dos");
-    // Une seule ligne, tronquée si nécessaire.
-    expect(zones.props.numberOfLines).toBe(1);
+    // PRE-6 (story 2.2) : une seule ligne de classement, tronquée si nécessaire.
+    expect(within(row).getByTestId("composition-exercise-classification-line").props.numberOfLines).toBe(1);
   });
 
-  it("places that line BETWEEN the Activity title and its summary", async () => {
+  it("places that line BETWEEN the Activity name and its summary", async () => {
     renderScreenWithDraft([activityWithZones]);
 
     const row = screen.getByTestId("composition-exercise-row-ex-1");
@@ -1900,33 +1952,109 @@ describe("CompositionScreen — Zones corporelles de la ligne Activité (correct
     expect(order).toEqual(["Gainage", "Épaules · Dos", summaryText]);
   });
 
-  it("uses exactly the same style as the summary (same size, same neutral colour) — the shared style is reused as-is, never a lookalike", async () => {
+  // PRE-6 (story 2.2, `5544:6797`) : zones en Inter Regular 12 tertiaire ; la synthèse est
+  // sur la même ligne, à droite, jamais tronquée (la ligne de classement l'est en premier).
+  it("PRE6-2.2 — zones are Inter Regular 12 tertiary, the summary sits on the same row, untruncatable, 8 apart", async () => {
     renderScreenWithDraft([activityWithZones]);
 
     const row = screen.getByTestId("composition-exercise-row-ex-1");
-    const zones = await within(row).findByTestId("composition-exercise-body-zones");
-    const summary = within(row).getByText(summaryText);
-    expect(StyleSheet.flatten(zones.props.style)).toEqual(
-      StyleSheet.flatten(summary.props.style),
-    );
-    // Taille de la synthèse (`type.caption`, 11/13 depuis l'alignement DSF
-    // du 07/10 — ancien 11/14) et couleur neutre.
-    const flattened = StyleSheet.flatten(zones.props.style);
-    expect(flattened.fontSize).toBe(11);
-    expect(flattened.lineHeight).toBe(13);
-    expect(flattened.color).toBe(colors.textSecondary);
+    await within(row).findByTestId("composition-exercise-body-zones");
+    const line = within(row).getByTestId("composition-exercise-classification-line");
+    expect(StyleSheet.flatten(line.props.style)).toMatchObject({
+      fontFamily: "Inter_400Regular",
+      fontSize: 12,
+      color: TEXT_TERTIARY,
+      flexShrink: 1,
+    });
+    const summary = within(row).getByTestId("composition-exercise-summary");
+    expect(summary.props.children).toBe(summaryText);
+    expect(StyleSheet.flatten(within(row).getByTestId("composition-exercise-secondary-row").props.style)).toMatchObject({ flexDirection: "row", gap: 8 });
   });
 
-  it("omits the line entirely when the Activity has no body zone — never an empty Text still taking its line height", () => {
+  it("without a body zone nor a Category, the classification line stays (empty) and the card height does not change", () => {
     renderScreenWithDraft([
       { ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) },
     ]);
 
     const row = screen.getByTestId("composition-exercise-row-ex-1");
     expect(within(row).queryByTestId("composition-exercise-body-zones")).toBeNull();
-    // PRE-6 story 2.1 : la Récupération n'est plus une sous-carte du bloc (ligne structurelle
-    // sous la carte) — la hauteur sans Zones est donc `compactRestHeight`.
-    expect(StyleSheet.flatten(row.props.style).height).toBe(dimensions.compositionActivityRow.compactRestHeight);
+    expect(within(row).queryByTestId("composition-exercise-category-dot")).toBeNull();
+    expect(within(row).getByTestId("composition-exercise-classification")).toBeTruthy();
+    expect(StyleSheet.flatten(row.props.style).height).toBe(64);
+  });
+
+  it("PRE6-2.2 — with a Category: colored 6 dot, then the Category (Semi Bold 12, #46464C), then ' · zones'", async () => {
+    renderScreenWithDraft([{ ...activityWithZones, categoryId: "renforcement" }]);
+
+    const row = screen.getByTestId("composition-exercise-row-ex-1");
+    const category = await within(row).findByTestId("composition-exercise-category");
+    expect(category.props.children).toBe("Renforcement");
+    expect(StyleSheet.flatten(category.props.style)).toMatchObject({
+      fontFamily: "Inter_600SemiBold",
+      fontSize: 12,
+      color: colors.textLabel,
+    });
+    const dot = within(row).getByTestId("composition-exercise-category-dot");
+    expect(StyleSheet.flatten(dot.props.style)).toMatchObject({
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: "#3B82F6",
+    });
+    const line = within(row).getByTestId("composition-exercise-classification-line");
+    expect(line.props.children).toEqual([expect.anything(), " · ", expect.anything()]);
+    expect(within(row).getByTestId("composition-exercise-body-zones").props.children).toBe("Épaules · Dos");
+  });
+
+  it("PRE6-2.2 — with a Category but no zone: the Category alone, no separator", async () => {
+    renderScreenWithDraft([
+      { ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45), categoryId: "renforcement" },
+    ]);
+
+    const row = screen.getByTestId("composition-exercise-row-ex-1");
+    await within(row).findByTestId("composition-exercise-category");
+    const line = within(row).getByTestId("composition-exercise-classification-line");
+    expect(line.props.children).toEqual([expect.anything(), null, null]);
+  });
+
+  it("PRE6-2.2 — reloads the Categories when the screen regains focus (Category created in the editor)", async () => {
+    let currentCategories: readonly Category[] = [];
+    const listCategories = jest
+      .fn<ActivityDefinitionService["listCategories"]>()
+      .mockImplementation(async () => currentCategories);
+    mockFocusHarness.callbacks = [];
+    render(
+      <TestSafeAreaProvider>
+        <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService({ listCategories })}>
+          <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+            <StatefulDraftWrapper initialExercises={[{ ...activityWithZones, categoryId: "renforcement" }]}>
+              <CompositionScreen />
+            </StatefulDraftWrapper>
+          </ReferentialServiceContext.Provider>
+        </ActivityDefinitionServiceContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+
+    const row = screen.getByTestId("composition-exercise-row-ex-1");
+    await waitFor(() => expect(listCategories).toHaveBeenCalled());
+    await within(row).findByTestId("composition-exercise-body-zones");
+    expect(within(row).queryByTestId("composition-exercise-category")).toBeNull();
+
+    currentCategories = CATEGORY_FIXTURES;
+    act(() => {
+      mockFocusHarness.callbacks.forEach((callback) => callback());
+    });
+
+    expect((await within(row).findByTestId("composition-exercise-category")).props.children).toBe("Renforcement");
+  });
+
+  it("PRE6-2.2 — an unknown Category id shows no dot and no Category name", async () => {
+    renderScreenWithDraft([{ ...activityWithZones, categoryId: "inconnue" }]);
+
+    const row = screen.getByTestId("composition-exercise-row-ex-1");
+    await within(row).findByTestId("composition-exercise-body-zones");
+    expect(within(row).queryByTestId("composition-exercise-category-dot")).toBeNull();
+    expect(within(row).queryByTestId("composition-exercise-category")).toBeNull();
   });
 
   it("never adds that line to the Compte à rebours initial / Fin de séance cards (they have no body zones — those cards stay rigorously unchanged)", async () => {
@@ -2136,7 +2264,8 @@ describe("CompositionScreen — gestes d'une carte Activité (T02-S01, AC-02/AC-
     // T02-S01), ombre `#14171F` à 22 %, agrandi de `8 × 4` points.
     expect(liftedStyle.backgroundColor).toBe(colors.exerciseContextBandBackground);
     expect(liftedStyle.borderColor).toBe(colors.compositionDraggedCardBorder);
-    expect(liftedStyle.borderRadius).toBe(12);
+    // PRE-6 (story 2.2) : rayon unique de la carte d'occurrence (14), auparavant 12.
+    expect(liftedStyle.borderRadius).toBe(14);
     expect(liftedStyle.shadowColor).toBe(colors.compositionDraggedCardShadow);
     expect(liftedStyle.shadowOpacity).toBe(0.22);
     expect(liftedStyle.marginHorizontal).toBe(-4);
@@ -2319,7 +2448,8 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     // entièrement révélé DEVIENT le bord droit visuel de la rangée, jamais
     // des coins droits carrés rompant la silhouette arrondie uniforme
     // partagée par toute autre carte de cette liste.
-    expect(actionsStyle.borderRadius).toBe(12);
+    // PRE-6 (story 2.2) : même rayon que la carte (14), auparavant 12.
+    expect(actionsStyle.borderRadius).toBe(14);
     const cardStyle = StyleSheet.flatten(
       screen.getByTestId("composition-exercise-row-ex-1").props.style,
     );
@@ -2754,67 +2884,14 @@ describe("CompositionScreen — ligne structurelle de récupération et géomét
     expect(rule).toMatchObject({ flex: 1, height: 1, backgroundColor: colors.divider });
   });
 
-  /**
-   * **T02-S02 (troisième recette visuelle, point 3)** : le `paddingVertical`
-   * de la carte principale est réduit D'UN TIERS de plus, EFFECTIVEMENT — la
-   * seconde recette l'avait déjà porté de `8` à `5`, cette troisième le porte
-   * de `5` à `3`. Le tiers se retranche donc de la valeur RÉELLEMENT LIVRÉE,
-   * pas une seconde fois de la valeur d'origine, qui n'aurait rien changé.
-   *
-   * Les marges horizontales et la géométrie du bloc restent inchangées.
-   */
-  it("reduces the Activity card's top and bottom inner padding by a third again, leaving every other geometry untouched", () => {
+  // PRE-6 (story 2.2, `5544:6797`) : padding 14 / 12, nom 18 + 4 + ligne 16 → carte de 64.
+  it("PRE6-2.2 — the occurrence card content is padded 14 / 12 and fits a 64 card (name 18, gap 4, row 16, beside the handle)", () => {
     renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage" })]);
 
-    const mainCardStyle = StyleSheet.flatten(
-      screen.getByTestId("composition-activity-main-card").props.style,
-    );
-
-    // Valeur livrée par la seconde recette : `8 × 2/3 = 5,33` → `5`.
-    const previousPadding = Math.round((spacing[8] * 2) / 3);
-    expect(previousPadding).toBe(5);
-
-    // Nouveau retrait d'un tiers : `5 × 2/3 = 3,33` → `3`.
-    expect(mainCardStyle.paddingVertical).toBe(Math.round((previousPadding * 2) / 3));
-
-    // Assertion sur la VALEUR NUMÉRIQUE elle-même, exigée par la recette pour
-    // garantir un changement visible : la marge a réellement diminué depuis
-    // la valeur précédemment livrée, et depuis la valeur d'origine.
-    expect(mainCardStyle.paddingVertical).toBe(3);
-    expect(mainCardStyle.paddingVertical).toBeLessThan(previousPadding);
-    expect(mainCardStyle.paddingVertical).toBeLessThan(spacing[8]);
-
-    // Marges HORIZONTALES et écart interne strictement conservés.
-    expect(mainCardStyle.paddingHorizontal).toBe(spacing[16]);
-    expect(mainCardStyle.gap).toBe(spacing[8]);
-
-    // Géométrie de la carte : `44` sans Zones (PRE-6 story 2.1 : plus de sous-carte).
-    expect(
-      StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style).height,
-    ).toBe(44);
-    expect(dimensions.compositionActivityRow.compactRestHeight).toBe(44);
-    expect(dimensions.compositionActivityRow.restHeight).toBe(60);
-    expect(dimensions.compositionActivityRow.recoveryCardHeight).toBe(24);
-  });
-
-  it("lets the card's three lines fit within its fixed height once the padding is reduced", () => {
-    renderScreenWithDraft([
-      anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", bodyZoneIds: ["dos"] }),
-    ]);
-
-    const padding = StyleSheet.flatten(
-      screen.getByTestId("composition-activity-main-card").props.style,
-    ).paddingVertical as number;
-
-    // Nom (`16/20`) + Zones (`11/14`) + synthèse (`11/14`) et leurs deux
-    // écarts de `2` = `52` points de contenu. Avec l'ancienne marge de `8`,
-    // l'ensemble atteignait `68` pour `58` de hauteur utile (`60` moins les
-    // deux liserés du bloc) et débordait d'un point.
-    const contentHeight =
-      type.cardTitle.lineHeight + type.caption.lineHeight * 2 + spacing[2] * 2;
-    const usableHeight = dimensions.compositionActivityRow.restHeight - 2;
-    expect(contentHeight + padding * 2).toBeLessThanOrEqual(usableHeight);
-    expect(contentHeight + spacing[8] * 2).toBeGreaterThan(usableHeight);
+    const content = StyleSheet.flatten(screen.getByTestId("composition-activity-main-card").props.style);
+    expect(content).toMatchObject({ paddingHorizontal: 14, paddingTop: 12, paddingBottom: 12, gap: 8 });
+    expect(1 + 12 + type.listCardTitle.lineHeight + 4 + 16 + 12 + 1).toBe(64);
+    expect(blockStyle().height).toBe(64);
   });
 
   it("PRE6-2.1 — la ligne fait bloc avec l'occurrence : même conteneur gestuel, sous la carte, même translation", () => {
@@ -2839,18 +2916,45 @@ describe("CompositionScreen — ligne structurelle de récupération et géomét
     expect(lineWrapper.transform).toEqual(StyleSheet.flatten(card.props.style).transform);
   });
 
-  it("applies 354 × 44 without Zones and 354 × 60 with Zones — the recovery line never changes the card height", async () => {
+  it("PRE6-2.2 — the card is 64 with or without Zones; the recovery line never changes the card height", async () => {
     renderScreenWithDraft(withZeroRecovery);
-    expect(blockStyle().height).toBe(44);
+    expect(blockStyle().height).toBe(64);
 
     renderScreenWithDraft(withRecovery);
-    expect(blockStyle().height).toBe(44);
+    expect(blockStyle().height).toBe(64);
 
     renderScreenWithDraft([
       anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", bodyZoneIds: ["dos"] }),
     ]);
     await screen.findByTestId("composition-exercise-body-zones");
-    expect(blockStyle().height).toBe(60);
+    expect(blockStyle().height).toBe(64);
+  });
+
+  // PRE-6 (story 2.2, variante « Répétitions + cadence » `9522:43875`) : seconde ligne
+  // « durée estimée » (Inter 11) sous la synthèse et carte de 70.
+  it("PRE6-2.2 — Répétitions with a beep: estimated duration line under the summary, card 70", () => {
+    renderScreenWithDraft([
+      anActivity("ex-1", "BEFORE_TOUR", {
+        name: "Extension",
+        executionParameters: repetitionParameters(10, 1, 0, { cadenceBeepIntervalSeconds: 6 }),
+      }),
+    ]);
+
+    expect(screen.getByTestId("composition-exercise-summary").props.children).toBe("10 rép.");
+    const estimated = screen.getByTestId("composition-exercise-estimated-duration");
+    expect(estimated.props.children).toBe("≈ 1 min");
+    expect(StyleSheet.flatten(estimated.props.style)).toMatchObject({ fontSize: 11 });
+    expect(blockStyle().height).toBe(70);
+    expect(StyleSheet.flatten(screen.getByTestId("composition-activity-main-card").props.style).paddingBottom).toBe(0);
+  });
+
+  it("PRE6-2.2 — Répétitions without a beep: no estimated duration line", () => {
+    renderScreenWithDraft([
+      anActivity("ex-1", "BEFORE_TOUR", { name: "Extension", executionParameters: repetitionParameters(10) }),
+    ]);
+
+    expect(screen.queryByTestId("composition-exercise-estimated-duration")).toBeNull();
+    expect(blockStyle().height).toBe(64);
   });
 
   /**
@@ -2903,28 +3007,7 @@ describe("CompositionScreen — ligne structurelle de récupération et géomét
     );
   });
 
-  it("uses the optional Zones line to select 44/60 — the recovery line is outside the card", async () => {
-    const cases = [
-      { bodyZoneIds: [], postActivityRecoverySeconds: 0, expected: 44 },
-      { bodyZoneIds: [], postActivityRecoverySeconds: 90, expected: 44 },
-      { bodyZoneIds: ["dos"], postActivityRecoverySeconds: 0, expected: 60 },
-      { bodyZoneIds: ["dos"], postActivityRecoverySeconds: 90, expected: 60 },
-    ];
-
-    for (const { bodyZoneIds, postActivityRecoverySeconds, expected } of cases) {
-      renderScreenWithDraft([
-        anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", bodyZoneIds, postActivityRecoverySeconds }),
-      ]);
-      if (bodyZoneIds.length > 0) {
-        await screen.findByTestId("composition-exercise-body-zones");
-      }
-      expect(blockStyle().height).toBe(expected);
-    }
-
-    expect(dimensions.compositionActivityRow.recoveryCardHeight).toBe(24);
-  });
-
-  it("sizes each revealed action to the FULL height of the card (72 × 44 / 72 × 60)", async () => {
+  it("sizes each revealed action to the FULL height of the card (72 × 64)", async () => {
     renderScreenWithDraft(withZeroRecovery);
     fireSwipeLeft("ex-1");
     for (const testID of [
@@ -2933,51 +3016,32 @@ describe("CompositionScreen — ligne structurelle de récupération et géomét
     ]) {
       const style = StyleSheet.flatten(screen.getByTestId(testID).props.style);
       expect(style.width).toBe(72);
-      expect(style.height).toBe(44);
+      expect(style.height).toBe(64);
     }
     expect(
       StyleSheet.flatten(screen.getByTestId("composition-activity-actions-ex-1").props.style).height,
-    ).toBe(44);
-
-    renderScreenWithDraft([
-      anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", bodyZoneIds: ["dos"] }),
-    ]);
-    await screen.findByTestId("composition-exercise-body-zones");
-    fireSwipeLeft("ex-1");
-    for (const testID of [
-      "composition-activity-duplicate-ex-1",
-      "composition-activity-delete-ex-1",
-    ]) {
-      const style = StyleSheet.flatten(screen.getByTestId(testID).props.style);
-      expect(style.width).toBe(72);
-      expect(style.height).toBe(60);
-    }
-    expect(
-      StyleSheet.flatten(screen.getByTestId("composition-activity-actions-ex-1").props.style).height,
-    ).toBe(60);
+    ).toBe(64);
   });
 
-  it("CE-T02-02 — the lifted card without Zones is exactly 362 × 48 (width expressed as a ±4 margin)", () => {
+  it("CE-T02-02 — the lifted card keeps its constant delta: 64 + 4 = 68, width expressed as a ±4 margin", () => {
     renderScreenWithDraft(withZeroRecovery);
     fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
 
     const lifted = blockStyle();
-    expect(lifted.height).toBe(48);
-    // `354 + 8 = 362`, l'écart étant appliqué symétriquement (`x = 6` sur
-    // une section de `354`) plutôt qu'en largeur absolue.
+    expect(lifted.height).toBe(64 + dimensions.compositionActivityRow.heightDelta);
     expect(lifted.marginHorizontal).toBe(-4);
   });
 
-  it("with Zones, the lifted card is 362 × 64", async () => {
-    renderScreenWithDraft([
-      anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", bodyZoneIds: ["dos"] }),
-    ]);
-    await screen.findByTestId("composition-exercise-body-zones");
-    fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
+  // PRE-6 (story 2.2) : un seul rayon (14) pour la carte, les actions glissées et l'état soulevé.
+  it("PRE6-2.2 — card, swipe actions group and lifted card share the radius 14", () => {
+    renderScreenWithDraft(withZeroRecovery);
+    expect(blockStyle().borderRadius).toBe(14);
+    fireSwipeLeft("ex-1");
+    expect(StyleSheet.flatten(screen.getByTestId("composition-activity-actions-ex-1").props.style).borderRadius).toBe(14);
 
-    const lifted = blockStyle();
-    expect(lifted.height).toBe(64);
-    expect(lifted.marginHorizontal).toBe(-4);
+    renderScreenWithDraft(withZeroRecovery);
+    fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
+    expect(blockStyle().borderRadius).toBe(14);
   });
 
   it("CE-T02-02 — the lifted card takes the blue surface; the recovery line has no surface of its own", () => {
@@ -3223,65 +3287,41 @@ describe("CompositionScreen — absence du contrôle Côtés du Tour (V2-PRE-1)"
  * direction PROPRE bilatérale, jamais pour une Activité unilatérale, ni
  * pour une direction héritée d'un Tour déjà bilatéral.
  */
-describe("CompositionScreen — indicateur de direction propre et clause de synthèse (V2-BILAT-01, correction bornée)", () => {
-  const sideModeStrings = strings.shared.sideMode;
+/**
+ * PRE-6 (story 2.2, RM-243, D-407, ARB-2 ; report AC6 de PRE-5) : l'indicateur `D→G` / `G→D`
+ * (V2-BILAT-01) est remplacé par l'icône NEUTRE de changement de côté (16, en haut à droite),
+ * sans flèche, sans badge, sans direction ; la synthèse ne porte plus « par côté » (D-238).
+ */
+describe("CompositionScreen — icône neutre de changement de côté et synthèse D-238 (PRE-6 story 2.2)", () => {
+  it.each(["RIGHT_LEFT", "LEFT_RIGHT"] as const)("shows the neutral 16 side-change icon top right for a bilateral Exercise (%s), never a direction", (sideMode) => {
+    renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { sideMode })]);
 
-  it("affiche l'indicateur D→G, géométrie locale 42 × 20 pt, pour une Activité BEFORE_TOUR à direction propre RIGHT_LEFT", () => {
-    renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { sideMode: "RIGHT_LEFT" })]);
-
-    // Correction bornée (plan `## 4.4`) : l'indicateur n'est PLUS masqué de
-    // l'arbre d'accessibilité (`accessibilityElementsHidden` retiré) — les
-    // requêtes par défaut le trouvent donc directement, sans
-    // `includeHiddenElements`.
     const indicator = screen.getByTestId("composition-activity-side-mode-ex-1");
-    expect(within(indicator).getByText(sideModeStrings.valueLabels.RIGHT_LEFT)).toBeTruthy();
-    const style = StyleSheet.flatten(indicator.props.style);
-    expect(style.width).toBe(42);
-    expect(style.height).toBe(20);
+    expect(StyleSheet.flatten(indicator.props.style)).toMatchObject({
+      position: "absolute",
+      top: 9,
+      right: 14,
+      width: 16,
+      height: 16,
+    });
+    const icon = within(indicator).getByTestId("composition-exercise-side-change-icon");
+    expect(StyleSheet.flatten(icon.props.style)).toMatchObject({ width: 16, height: 16 });
+    expect(screen.queryByText(/D→G|G→D/)).toBeNull();
+    // Bord droit aligné sur celui de la synthèse : même marge droite (padding 14 du contenu).
+    expect(StyleSheet.flatten(screen.getByTestId("composition-activity-main-card").props.style).paddingHorizontal).toBe(14);
   });
 
-  it("affiche l'indicateur G→D pour une direction propre LEFT_RIGHT, et l'omet entièrement pour une Activité unilatérale", () => {
+  it("omits the icon entirely for a unilateral Exercise", () => {
     renderScreenWithDraft([
       anActivity("ex-1", "AFTER_TOUR", { sideMode: "LEFT_RIGHT" }),
       anActivity("ex-2", "AFTER_TOUR", { sideMode: "UNILATERAL" }),
     ]);
 
-    expect(
-      within(screen.getByTestId("composition-activity-side-mode-ex-1")).getByText(
-        sideModeStrings.valueLabels.LEFT_RIGHT,
-      ),
-    ).toBeTruthy();
+    expect(screen.getByTestId("composition-activity-side-mode-ex-1")).toBeTruthy();
     expect(screen.queryByTestId("composition-activity-side-mode-ex-2")).toBeNull();
   });
 
-  it("correction bornée (plan '## 4.4', BIL-065) : reste non interactif mais expose un libellé accessible DÉVELOPPÉ — jamais masqué de l'arbre", () => {
-    renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { sideMode: "RIGHT_LEFT" })]);
-
-    const indicator = screen.getByTestId("composition-activity-side-mode-ex-1");
-    // Non interactif : aucun rôle bouton, aucun gestionnaire de pression.
-    expect(indicator.props.accessibilityRole).not.toBe("button");
-    expect(indicator.props.onPress).toBeUndefined();
-    // Accessible, avec le MÊME libellé développé que le contrôle `Côté` de
-    // l'Activité — jamais un texte reformulé localement.
-    expect(indicator.props.accessible).toBe(true);
-    expect(indicator.props.accessibilityLabel).toBe(
-      sideModeStrings.activity.accessibilityLabels.RIGHT_LEFT,
-    );
-    // L'ancien masquage incorrect signalé par le plan est bien retiré.
-    expect(indicator.props.accessibilityElementsHidden).not.toBe(true);
-    expect(indicator.props.importantForAccessibility).not.toBe("no-hide-descendants");
-  });
-
-  it("correction bornée : libellé accessible développé exact pour LEFT_RIGHT aussi", () => {
-    renderScreenWithDraft([anActivity("ex-1", "AFTER_TOUR", { sideMode: "LEFT_RIGHT" })]);
-
-    const indicator = screen.getByTestId("composition-activity-side-mode-ex-1");
-    expect(indicator.props.accessibilityLabel).toBe(
-      sideModeStrings.activity.accessibilityLabels.LEFT_RIGHT,
-    );
-  });
-
-  it("insère UNIQUEMENT la clause « par côté » dans la synthèse de carte d'une Activité à direction propre bilatérale — jamais la direction développée (plan '## 4.4')", () => {
+  it("never writes « par côté » nor the developed direction in the summary of a bilateral Exercise", () => {
     renderScreenWithDraft([
       {
         ...createExerciseDraft("ex-1"),
@@ -3292,28 +3332,57 @@ describe("CompositionScreen — indicateur de direction propre et clause de synt
       },
     ]);
 
-    expect(
-      screen.getByText("3 séries par côté de 1 min 30 s avec 15 s de pause par série"),
-    ).toBeTruthy();
+    expect(screen.getByTestId("composition-exercise-summary").props.children).toBe("3 × 1 min 30 s");
+    expect(screen.queryByText(/par côté/)).toBeNull();
     expect(screen.queryByText(/à droite, puis à gauche/)).toBeNull();
     expect(screen.queryByText(/à gauche, puis à droite/)).toBeNull();
   });
 
-  it("n'insère jamais la clause « par côté » ni la direction développée dans la synthèse d'une carte IN_TOUR unilatérale", () => {
+  // PRE-6 (story 2.2, AC4, `8328:34520`) : en Circuit de Séries, la carte reflète les N
+  // séries effectives (paramètres adaptés par la story 1.4), sans règle propre.
+  it("in a Series Circuit, the card reflects the occurrence's N effective series", () => {
+    renderScreenWithDraft(
+      [anActivity("ex-1", "IN_TOUR", { name: "Squat", executionParameters: repetitionParameters(10, 4) })],
+      { circuitNature: "SERIES", tourRepeatCount: 4 },
+    );
+
+    expect(screen.getByTestId("composition-exercise-summary").props.children).toBe("4 × 10 rép.");
+    // Répétitions sans bip : aucune durée annoncée.
+    expect(screen.getByTestId("composition-exercise-row-ex-1").props.accessibilityLabel).toBe("Exercice, Squat, 1 sur 1");
+  });
+
+  it("in a Series Circuit, the accessible name gives the total of the occurrence's passes", () => {
+    renderScreenWithDraft(
+      [anActivity("ex-1", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(90, 2, 30) })],
+      { circuitNature: "SERIES", tourRepeatCount: 2 },
+    );
+
+    // Deux passages : (90 + 30) × 2 = 240 s → « 4 min ».
+    expect(screen.getByTestId("composition-exercise-row-ex-1").props.accessibilityLabel).toBe("Exercice, Gainage, 1 sur 1, 4 min");
+  });
+
+  // PRE-6 (story 2.2, AC5, CE-T03-08 §18) : type, nom, position dans la zone, durée d'occurrence.
+  it("names each card with its type, name, position in its zone and occurrence duration", () => {
     renderScreenWithDraft([
-      {
-        ...createExerciseDraft("ex-1"),
-        name: "Fentes",
-        structuralPosition: "IN_TOUR",
-        executionParameters: durationParameters(90, 3, 15),
-        sideMode: "UNILATERAL",
-      },
+      anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", executionParameters: durationParameters(45) }),
+      anActivity("ex-2", "BEFORE_TOUR", { name: "Squat", executionParameters: durationParameters(90, 2, 30) }),
+      anActivity("ex-3", "AFTER_TOUR", { name: "Étirement", executionParameters: repetitionParameters(10) }),
     ]);
 
-    expect(screen.getByText("3 séries de 1 min 30 s avec 15 s de pause par série")).toBeTruthy();
-    expect(screen.queryByText(/par côté/)).toBeNull();
-    expect(screen.queryByText(/à droite, puis à gauche/)).toBeNull();
-    expect(screen.queryByText(/à gauche, puis à droite/)).toBeNull();
+    expect(screen.getByTestId("composition-exercise-row-ex-1").props.accessibilityLabel).toBe("Exercice, Gainage, 1 sur 2, 1 min");
+    expect(screen.getByTestId("composition-exercise-row-ex-2").props.accessibilityLabel).toBe("Exercice, Squat, 2 sur 2, 4 min");
+    // Répétitions sans bip : durée sans montant, jamais « ≥ 0 min » — partie omise.
+    expect(screen.getByTestId("composition-exercise-row-ex-3").props.accessibilityLabel).toBe("Exercice, Étirement, 1 sur 1");
+  });
+
+  it("appends « changement de côté » to the accessible name of a bilateral occurrence", () => {
+    renderScreenWithDraft([
+      anActivity("ex-1", "BEFORE_TOUR", { name: "Fentes", executionParameters: durationParameters(45), sideMode: "RIGHT_LEFT" }),
+    ]);
+
+    expect(screen.getByTestId("composition-exercise-row-ex-1").props.accessibilityLabel).toBe(
+      `Exercice, Fentes, 1 sur 1, 1 min, ${composition.occurrenceCard.accessibilitySideChange}`,
+    );
   });
 });
 

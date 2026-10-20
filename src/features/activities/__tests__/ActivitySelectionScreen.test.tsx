@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { StyleSheet } from "react-native";
 
@@ -13,6 +13,7 @@ import {
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { createDefaultProfile } from "@/domain/preferences/Profile";
 import { createEmptyDraft, type SessionDraft } from "@/domain/sessions/SessionDraft";
+import { catalogueDuration } from "@/features/activities/ActivityCard";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivitySelectionScreen } from "@/features/activities/ActivitySelectionScreen";
@@ -103,6 +104,7 @@ function makeDefinition(
 function renderScreen(
   definitions: readonly ActivityDefinition[],
   updateDraft = jest.fn<(patch: Partial<SessionDraft>) => void>(),
+  serviceOverrides: Partial<ActivityDefinitionService> = {},
 ) {
   const service: Partial<ActivityDefinitionService> = {
     listActivityDefinitions: jest
@@ -111,6 +113,7 @@ function renderScreen(
     listBodyZones: jest
       .fn<ActivityDefinitionService["listBodyZones"]>()
       .mockResolvedValue(BODY_ZONE_FIXTURES),
+    ...serviceOverrides,
   };
   const draftValue = {
     draft: createEmptyDraft(),
@@ -190,6 +193,58 @@ describe("ActivitySelectionScreen", () => {
     fireEvent.press(screen.getByTestId("activity-selection-row-a"));
     expect(screen.getByTestId("activity-selection-row-checkbox-a")).toBeTruthy();
     expect(screen.getByTestId("activity-selection-row-checked-a")).toBeTruthy();
+  });
+
+  /**
+   * PRE-6 (story 2.2, contexte « Choix composition » `8328:28445`, ch13 PR #390) :
+   * Catégorie et Zones sur une seule ligne (zones tronquées), icône neutre de changement
+   * de côté 8 après le texte si l'exercice en a un, durée totale à 8 du sablier dans une
+   * réserve de 68 alignée à gauche.
+   */
+  it("PRE6-2.2 — Choix composition: Category · zones on one line, side-change icon, hourglass + duration in a 68 reserve", async () => {
+    const listCategories = jest.fn<ActivityDefinitionService["listCategories"]>().mockResolvedValue([
+      {
+        id: "cardio",
+        name: "Cardio",
+        canonicalKey: "cardio",
+        color: "#2E9B62",
+        isPredefined: true,
+        displayOrder: 1,
+        isActive: true,
+        createdAt: "2026-01-01T00:00:00.000Z",
+      },
+    ]);
+    const fentes = makeDefinition("a", "Fentes", { bodyZoneIds: ["cuisses", "dos"], sideMode: "RIGHT_LEFT" });
+    renderScreen(
+      [
+        fentes,
+        makeDefinition("b", "Squat", { categoryId: undefined, bodyZoneIds: [] }),
+      ],
+      undefined,
+      { listCategories },
+    );
+    await waitFor(() => expect(screen.getByTestId("activity-selection-list")).toBeTruthy());
+
+    const zones = await screen.findByTestId("activity-selection-row-body-zones-a");
+    expect(zones.props.children).toBe("Cuisses · Dos");
+    await waitFor(() => expect(screen.getByText("Cardio")).toBeTruthy());
+    const classification = screen.getByTestId("activity-selection-row-classification-a");
+    expect(StyleSheet.flatten(classification.props.style)).toMatchObject({ flexDirection: "row", gap: 8 });
+    expect(screen.getByTestId("activity-selection-row-category-dot-a")).toBeTruthy();
+    const sideChange = screen.getByTestId("activity-selection-row-side-change-a");
+    expect(StyleSheet.flatten(sideChange.props.style)).toMatchObject({ width: 16, height: 16 });
+    expect(screen.queryByTestId("activity-selection-row-side-change-b")).toBeNull();
+    expect(screen.queryByText(/D→G|G→D/)).toBeNull();
+    // Aucune Catégorie, aucune zone, unilatéral : aucune ligne de classement (hauteur inchangée).
+    expect(screen.queryByTestId("activity-selection-row-classification-b")).toBeNull();
+
+    const duration = screen.getByTestId("activity-selection-row-duration-a");
+    expect(StyleSheet.flatten(duration.props.style)).toMatchObject({ flexDirection: "row", gap: 8 });
+    // Même durée que le Catalogue (`catalogueDuration`).
+    const durationText = within(duration).getByText(catalogueDuration(fentes)!);
+    // Réserve d'au moins 68, jamais une largeur fixe qui tronquerait une durée plus longue.
+    expect(StyleSheet.flatten(durationText.props.style)).toMatchObject({ minWidth: 68, textAlign: "left" });
+    expect(StyleSheet.flatten(durationText.props.style).width).toBeUndefined();
   });
 
   /**

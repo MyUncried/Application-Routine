@@ -9,3 +9,6 @@
 - source_spec: `_bmad-output/pre6/implementation-artifacts/spec-2-1-en-tete-bornes-de-seance-et-continuer.md`
   summary: Retirer le jeton orphelin `dimensions.compositionActivityRow.recoveryCardHeight` (sous-carte supprimée) et ses assertions de test.
   evidence: `tokens.ts` verrouillé par `tokensSpecification.test.ts` ; changement à planifier avec Hermann.
+- source_spec: `_bmad-output/pre6/implementation-artifacts/spec-2-2-cartes-d-occurrence.md`
+  summary: Retirer les jetons devenus orphelins `dimensions.compositionActivityRow.restHeight` et `compactRestHeight` (cartes 64 / 70 depuis la story 2.2).
+  evidence: `tokens.ts` verrouillé par `tokensSpecification.test.ts` ; à regrouper avec le retrait de `recoveryCardHeight`.

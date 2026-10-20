@@ -5,14 +5,20 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { activityDefinitionToDraftExercise, type ActivityDefinition } from "@/domain/activities";
+import { isBilateral } from "@/domain/activities/ExecutionParameters";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
+import type { Category } from "@/domain/categories/Category";
 import { appendActivityAfterLastDisplayed } from "@/domain/sessions/composition";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { useActivityCatalogue } from "@/features/activities/useActivityCatalogue";
+import { useCategoriesReferential } from "@/features/activities/useCategoriesReferential";
+import { catalogueDuration } from "@/features/activities/ActivityCard";
 import {
+  COMPACT_LIST_SEPARATOR,
   formatExerciseBodyZones,
   formatExerciseRowSummary,
+  resolveOccurrenceCategory,
 } from "@/features/sessions/compositionPresentation";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { strings } from "@/shared/i18n";
@@ -76,6 +82,7 @@ export function ActivitySelectionScreen() {
   const [selectedIds, setSelectedIds] = useState<readonly string[]>([]);
   const activityDefinitionService = useActivityDefinitionService();
   const bodyZonesReferential = useBodyZonesReferential(activityDefinitionService);
+  const categoriesReferential = useCategoriesReferential(activityDefinitionService);
   const t = strings.screens.activities.selection;
 
   useFocusEffect(
@@ -203,6 +210,7 @@ export function ActivitySelectionScreen() {
                 selected={selectedIds.includes(item.id)}
                 onToggle={() => toggle(item.id)}
                 bodyZonesReferential={bodyZonesReferential}
+                categoriesReferential={categoriesReferential}
               />
             )}
             contentContainerStyle={styles.list}
@@ -262,14 +270,21 @@ function SelectionRow({
   selected,
   onToggle,
   bodyZonesReferential,
+  categoriesReferential,
 }: {
   definition: ActivityDefinition;
   selected: boolean;
   onToggle: () => void;
   bodyZonesReferential: readonly BodyZone[];
+  categoriesReferential: readonly Category[];
 }) {
   const bodyZones = formatExerciseBodyZones(definition.bodyZoneIds, bodyZonesReferential);
   const summary = formatExerciseRowSummary(definition);
+  // PRE-6 (story 2.2, contexte « Choix composition » `8328:28445`, ch13 PR #390).
+  const category = resolveOccurrenceCategory(definition.categoryId, categoriesReferential);
+  const hasSideChange = isBilateral(definition.sideMode);
+  const duration = catalogueDuration(definition);
+  const hasClassification = category !== null || bodyZones !== null || hasSideChange;
 
   return (
     <Pressable
@@ -287,16 +302,47 @@ function SelectionRow({
             <Text style={styles.rowLabel} numberOfLines={2}>
               {definition.name}
             </Text>
-            {bodyZones !== null ? (
-              <Text
-                style={styles.rowSecondaryLine}
-                testID={`activity-selection-row-body-zones-${definition.id}`}
-              >
-                {bodyZones}
-              </Text>
+            {/*
+             * PRE-6 (story 2.2, ch13 PR #390) : Catégorie et Zones corporelles sur UNE ligne,
+             * zones tronquées sans augmenter la hauteur ; icône neutre de changement de côté
+             * (16) sur cette ligne, 8 après le texte, si l'exercice en a un (RM-243).
+             */}
+            {hasClassification ? (
+              <View style={styles.rowClassification} testID={`activity-selection-row-classification-${definition.id}`}>
+                {category !== null ? (
+                  <View
+                    style={[styles.rowCategoryDot, { backgroundColor: category.color }]}
+                    testID={`activity-selection-row-category-dot-${definition.id}`}
+                  />
+                ) : null}
+                <Text style={[styles.rowSecondaryLine, styles.rowClassificationText]} numberOfLines={1}>
+                  {category !== null ? <Text style={styles.rowCategoryName}>{category.name}</Text> : null}
+                  {category !== null && bodyZones !== null ? COMPACT_LIST_SEPARATOR : null}
+                  {bodyZones !== null ? (
+                    <Text testID={`activity-selection-row-body-zones-${definition.id}`}>{bodyZones}</Text>
+                  ) : null}
+                </Text>
+                {hasSideChange ? (
+                  <KodjoIcon name="side-change" testID={`activity-selection-row-side-change-${definition.id}`} />
+                ) : null}
+              </View>
             ) : null}
-            {/* VISUAL_CORRECTION (point 2) : synthèse NON tronquée — retour à la ligne, jamais `numberOfLines`. */}
-            <Text style={styles.rowSecondaryLine}>{summary}</Text>
+            {/*
+             * VISUAL_CORRECTION (point 2) : synthèse NON tronquée — retour à la ligne, jamais `numberOfLines`.
+             * PRE-6 (story 2.2) : durée totale (même règle que le Catalogue, `catalogueDuration`)
+             * alignée à gauche dans une réserve de 68, à 8 du sablier ; absente si la durée l'est.
+             */}
+            <View style={styles.rowSummaryLine}>
+              <Text style={[styles.rowSecondaryLine, styles.rowSummaryText]}>{summary}</Text>
+              {duration !== null ? (
+                <View style={styles.rowDuration} testID={`activity-selection-row-duration-${definition.id}`}>
+                  <KodjoIcon name="duration-hourglass" />
+                  <Text style={styles.rowDurationText} numberOfLines={1}>
+                    {duration}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
           </View>
           <View
             style={[styles.checkbox, selected ? styles.checkboxSelected : null]}
@@ -315,6 +361,12 @@ function SelectionRow({
     </Pressable>
   );
 }
+
+/** PRE-6 (story 2.2, `8328:28445`) : réserve de la durée totale, illustrée par « 25 min 39 s ». */
+const SELECTION_DURATION_RESERVE_WIDTH = 68;
+/** Pastille de Catégorie (6) et icône de changement de côté (16), comme la carte d'occurrence. */
+const SELECTION_CATEGORY_DOT_SIZE = 6;
+const SELECTION_SIDE_CHANGE_ICON_SIZE = 16;
 
 const styles = StyleSheet.create({
   body: {
@@ -403,6 +455,47 @@ const styles = StyleSheet.create({
   rowSecondaryLine: {
     ...type.caption,
     color: colors.textSecondary,
+  },
+  // PRE-6 (story 2.2) : ligne de classement — pastille 6, texte tronqué, icône de côté à 8.
+  rowClassification: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing[8],
+    minHeight: SELECTION_SIDE_CHANGE_ICON_SIZE,
+  },
+  // Pastille à 6 du texte (l'écart de la ligne est de 8).
+  rowCategoryDot: {
+    width: SELECTION_CATEGORY_DOT_SIZE,
+    height: SELECTION_CATEGORY_DOT_SIZE,
+    borderRadius: SELECTION_CATEGORY_DOT_SIZE / 2,
+    marginRight: spacing[6] - spacing[8],
+  },
+  rowClassificationText: {
+    flexShrink: 1,
+  },
+  rowCategoryName: {
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+  },
+  rowSummaryLine: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing[8],
+  },
+  rowSummaryText: {
+    flex: 1,
+  },
+  // Sablier 16, puis la durée à 8, alignée à gauche dans sa réserve de 68.
+  rowDuration: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing[8],
+  },
+  rowDurationText: {
+    ...type.cardDuration,
+    minWidth: SELECTION_DURATION_RESERVE_WIDTH,
+    textAlign: "left",
+    color: colors.textPrimary,
   },
   // V2-CAT-01 (UI-CAT-R-003) : cadre vectoriel TOUJOURS visible — coché
   // (icône `state-selected`) ou décoché (cadre vide) — jamais une icône

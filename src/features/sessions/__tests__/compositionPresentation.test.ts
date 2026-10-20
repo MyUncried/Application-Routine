@@ -19,6 +19,10 @@ import {
   formatDurationRowValue,
   formatExerciseBodyZones,
   formatExerciseRowSummary,
+  formatOccurrenceAccessibilityLabel,
+  formatOccurrenceEstimatedDuration,
+  formatOccurrenceSummary,
+  resolveOccurrenceCategory,
 } from "@/features/sessions/compositionPresentation";
 import { BODY_ZONES } from "@/features/reference-data/bodyZones";
 import type { ExecutionParameters } from "@/domain/activities/ExecutionParameters";
@@ -1158,5 +1162,156 @@ describe("PRE6-1.3 — formatCompositionSummary selon la nature du Circuit", () 
     expect(formatCompositionSummary({ exercises, tourRepeatCount: 3, circuitNature: "TOURS" })).toBe(
       formatCompositionSummary({ exercises, tourRepeatCount: 3 }),
     );
+  });
+});
+
+/**
+ * PRE-6 (story 2.2, D-238, ch13 « Résumé de la ligne d'un Exercice ») : synthèse de la carte
+ * d'occurrence — matrice I/O de la spec.
+ */
+describe("formatOccurrenceSummary (PRE-6 story 2.2, D-238)", () => {
+  const summaryOf = (executionParameters: ExecutionParameters) => formatOccurrenceSummary({ executionParameters });
+
+  it("one series: the target alone (« 45 s », « 10 rép. »)", () => {
+    expect(summaryOf(durationParameters(45, 1, 0, { sideMode: "RIGHT_LEFT" }))).toBe("45 s");
+    expect(summaryOf(repetitionParameters(10))).toBe("10 rép.");
+  });
+
+  it("identical series: « N × cible » with unit, compact duration format", () => {
+    expect(summaryOf(durationParameters(90, 3, 15))).toBe(`3 × ${formatCompactDuration(90)}`);
+    expect(summaryOf(durationParameters(90, 3, 15))).toBe("3 × 1 min 30 s");
+    expect(summaryOf(repetitionParameters(10, 3, 30))).toBe("3 × 10 rép.");
+    // Circuit de Séries N = 4 : N des paramètres adaptés (story 1.4), aucune règle propre.
+    expect(summaryOf(repetitionParameters(10, 4))).toBe("4 × 10 rép.");
+  });
+
+  it("variable series: values separated by « · », unit at the end, three values at most then « … »", () => {
+    expect(
+      summaryOf(variableParameters({ mode: "REPETITIONS", rows: [[10, 0], [12, 0], [14, 0], [16, 0]] })),
+    ).toBe("10 · 12 · 14 … rép.");
+    expect(summaryOf(variableParameters({ mode: "REPETITIONS", rows: [[10, 0], [12, 0], [14, 0]] }))).toBe(
+      "10 · 12 · 14 rép.",
+    );
+    expect(summaryOf(variableParameters({ rows: [[30, 0], [45, 0]] }))).toBe("30 s · 45 s");
+    expect(summaryOf(variableParameters({ mode: "REPETITIONS", rows: [[10, 0], ["FAILURE", 0]] }))).toBe(
+      "10 · à l’échec rép.",
+    );
+  });
+
+  it("all targets at failure: existing business label (same wording as formatExerciseRowSummary, no pause)", () => {
+    expect(summaryOf(allFailureParameters(1))).toBe("1 série à l’échec");
+    expect(summaryOf(allFailureParameters(3, 30))).toBe("3 séries à l’échec");
+    expect(summaryOf(allFailureParameters(3, 30, { sideMode: "RIGHT_LEFT" }))).toBe("3 séries à l’échec");
+  });
+
+  it("no series at all: incomplete label first, never the failure label (`[].every()` is true)", () => {
+    expect(summaryOf(variableParameters({ mode: "REPETITIONS", rows: [] }))).toBe(
+      strings.executionParameters.card.incomplete,
+    );
+  });
+
+  it("incomplete parameters: existing « Paramètres à compléter. » label", () => {
+    expect(summaryOf(repetitionParameters("UNSET", 3))).toBe(strings.executionParameters.card.incomplete);
+    expect(summaryOf({ ...durationParameters(45), mode: null } as unknown as ExecutionParameters)).toBe(
+      strings.executionParameters.card.incomplete,
+    );
+  });
+
+  it("never repeats the name nor the mode, never shows a pause or a recovery", () => {
+    const summary = summaryOf(durationParameters(90, 3, 15));
+    expect(summary).not.toMatch(/pause|Récupération|Durée|série/u);
+  });
+});
+
+describe("formatOccurrenceEstimatedDuration / formatOccurrenceAccessibilityLabel (PRE-6 story 2.2)", () => {
+  const occurrence = (overrides: Partial<SessionDraftExercise>): SessionDraftExercise => ({
+    ...createExerciseDraft("ex-1"),
+    name: "Gainage",
+    structuralPosition: "BEFORE_TOUR",
+    ...overrides,
+  });
+
+  it("estimated line only for Répétitions with a beep", () => {
+    expect(
+      formatOccurrenceEstimatedDuration(
+        occurrence({ executionParameters: repetitionParameters(10, 1, 0, { cadenceBeepIntervalSeconds: 6 }) }),
+      ),
+    ).toBe("≈ 1 min");
+    expect(formatOccurrenceEstimatedDuration(occurrence({ executionParameters: repetitionParameters(10) }))).toBeNull();
+    expect(formatOccurrenceEstimatedDuration(occurrence({ executionParameters: durationParameters(45) }))).toBeNull();
+  });
+
+  it("accessibility label: type, name, « n sur m », occurrence duration (one pass in a Tours Circuit)", () => {
+    expect(
+      formatOccurrenceAccessibilityLabel(occurrence({ executionParameters: durationParameters(45) }), { index: 0, count: 3 }),
+    ).toBe("Exercice, Gainage, 1 sur 3, 1 min");
+    expect(
+      formatOccurrenceAccessibilityLabel(
+        occurrence({ structuralPosition: "IN_TOUR", executionParameters: durationParameters(150) }),
+        { index: 1, count: 2 },
+        { circuitNature: "TOURS", tourRepeatCount: 5 },
+      ),
+    ).toBe("Exercice, Gainage, 2 sur 2, 3 min");
+  });
+
+  it("accessibility label: omits a duration without amount (never « ≥ 0 min »), appends « changement de côté » when bilateral", () => {
+    expect(
+      formatOccurrenceAccessibilityLabel(occurrence({ executionParameters: repetitionParameters(10, 3, 30) }), { index: 0, count: 1 }),
+    ).toBe("Exercice, Gainage, 1 sur 1");
+    expect(
+      formatOccurrenceAccessibilityLabel(
+        occurrence({ executionParameters: durationParameters(45), sideMode: "LEFT_RIGHT" }),
+        { index: 0, count: 1 },
+      ),
+    ).toBe(`Exercice, Gainage, 1 sur 1, 1 min, ${strings.screens.composition.occurrenceCard.accessibilitySideChange}`);
+  });
+
+  it("SERIES Circuit: label gives the total of the passes, estimated line follows the passes too", () => {
+    const series = { circuitNature: "SERIES", tourRepeatCount: 2 } as const;
+    // Deux passages : (90 + 30) × 2 = 240 s.
+    expect(
+      formatOccurrenceAccessibilityLabel(
+        occurrence({ structuralPosition: "IN_TOUR", executionParameters: durationParameters(90, 2, 30) }),
+        { index: 0, count: 1 },
+        series,
+      ),
+    ).toBe("Exercice, Gainage, 1 sur 1, 4 min");
+    expect(
+      formatOccurrenceEstimatedDuration(
+        occurrence({
+          structuralPosition: "IN_TOUR",
+          executionParameters: repetitionParameters(10, 2, 30, { cadenceBeepIntervalSeconds: 6 }),
+        }),
+        series,
+      ),
+    ).toMatch(/^≈ /u);
+    expect(
+      formatOccurrenceEstimatedDuration(
+        occurrence({ structuralPosition: "IN_TOUR", executionParameters: durationParameters(90, 2, 30) }),
+        series,
+      ),
+    ).toBeNull();
+  });
+});
+
+describe("resolveOccurrenceCategory (PRE-6 story 2.2)", () => {
+  const categories = [
+    {
+      id: "mobilite",
+      name: "Mobilité",
+      canonicalKey: "mobilite",
+      color: "#2E9B62",
+      isPredefined: true,
+      displayOrder: 2,
+      isActive: true,
+      createdAt: "2026-01-01T00:00:00.000Z",
+    },
+  ] as const;
+
+  it("resolves name and color, null without id or for an unknown id", () => {
+    expect(resolveOccurrenceCategory("mobilite", categories)).toEqual({ name: "Mobilité", color: "#2E9B62" });
+    expect(resolveOccurrenceCategory(null, categories)).toBeNull();
+    expect(resolveOccurrenceCategory(undefined, categories)).toBeNull();
+    expect(resolveOccurrenceCategory("inconnue", categories)).toBeNull();
   });
 });

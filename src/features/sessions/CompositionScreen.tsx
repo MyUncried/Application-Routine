@@ -1,5 +1,5 @@
 import * as Crypto from "expo-crypto";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
@@ -15,7 +15,9 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
+import type { Category } from "@/domain/categories/Category";
 import type { Label } from "@/domain/labels/Label";
+import { isBilateral } from "@/domain/activities/ExecutionParameters";
 import { DEFAULT_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
 import { DEFAULT_SESSION_COLOR, type StructuralPosition } from "@/domain/sessions/Session";
 import {
@@ -34,6 +36,7 @@ import {
 } from "@/domain/sessions/SessionDraft";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
+import { useCategoriesReferential } from "@/features/activities/useCategoriesReferential";
 import { LabelPickerModal } from "@/features/reference-data/LabelPickerModal";
 import { useBodyZonesReferentialVersion } from "@/features/reference-data/ReferentialServiceContext";
 import { AbandonCreationModal } from "@/features/sessions/AbandonCreationModal";
@@ -53,8 +56,18 @@ import {
   formatCompositionSummary,
   formatDurationRowValue,
   formatExerciseBodyZones,
-  formatExerciseRowSummary,
+  formatOccurrenceAccessibilityLabel,
+  formatOccurrenceEstimatedDuration,
+  formatOccurrenceSummary,
+  resolveOccurrenceCategory,
+  type OccurrenceCircuitContext,
 } from "@/features/sessions/compositionPresentation";
+import {
+  OCCURRENCE_CARD_RADIUS,
+  OccurrenceCard,
+  occurrenceCardHeight,
+  occurrenceCardSurface,
+} from "@/features/sessions/OccurrenceCard";
 import {
   BOUNDARY_MARKER_CENTER_Y,
   BoundaryStep,
@@ -307,6 +320,25 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     activityDefinitionService,
     bodyZonesReferentialVersion,
   );
+  // PRE-6 (story 2.2) : Catégories des cartes d'occurrence, relues quand l'ensemble des
+  // Catégories portées par le brouillon change.
+  const draftCategoryKey = Array.from(
+    new Set(draft.exercises.map((exercise) => exercise.categoryId ?? "")),
+  )
+    .sort()
+    .join("|");
+  // Retour au premier plan (retour de l'éditeur d'Exercice) : relecture, pour refléter une
+  // Catégorie créée, renommée ou recolorée ailleurs.
+  const [categoriesFocusToken, setCategoriesFocusToken] = useState(0);
+  useFocusEffect(
+    useCallback(() => {
+      setCategoriesFocusToken((current) => current + 1);
+    }, []),
+  );
+  const categoriesReferential = useCategoriesReferential(
+    activityDefinitionService,
+    `${draftCategoryKey}#${categoriesFocusToken}`,
+  );
   // V2-PRE-2 (plan §6.5, CE-T03-16, D2/D4) : la pastille devient interactive
   // (`LabelPickerModal`, auto-alimentée via `ReferentialServiceContext`) —
   // `labelsLoadToken` relit ce référentiel d'AFFICHAGE (`sessionColor`
@@ -432,6 +464,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // ses Activités ; Activités APRÈS le Tour ; Fin de séance.
   const zones = groupActivitiesByZone(draft.exercises);
   const tourRepeatCount = draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT;
+  // PRE-6 (story 2.2) : contexte de Circuit des durées d'occurrence (nom accessible, durée estimée).
+  const occurrenceCircuitContext: OccurrenceCircuitContext = {
+    circuitNature: draft.circuitNature,
+    tourRepeatCount,
+  };
 
   const handleZoneLayout = useCallback((zone: StructuralPosition, event: LayoutChangeEvent) => {
     zoneTopsRef.current[zone] = event.nativeEvent.layout.y;
@@ -769,6 +806,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           revealedActionsId={revealedActionsId}
           draggedActivityId={draggedActivityId}
           bodyZonesReferential={bodyZonesReferential}
+          categoriesReferential={categoriesReferential}
+          circuitContext={occurrenceCircuitContext}
           onLayout={handleZoneLayout}
           onRowLayout={handleRowLayout}
           onEdit={handleEditActivity}
@@ -794,6 +833,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             revealedActionsId={revealedActionsId}
             draggedActivityId={draggedActivityId}
             bodyZonesReferential={bodyZonesReferential}
+            categoriesReferential={categoriesReferential}
+            circuitContext={occurrenceCircuitContext}
             onLayout={handleZoneLayout}
             onRowLayout={handleRowLayout}
             onEdit={handleEditActivity}
@@ -812,6 +853,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           revealedActionsId={revealedActionsId}
           draggedActivityId={draggedActivityId}
           bodyZonesReferential={bodyZonesReferential}
+          categoriesReferential={categoriesReferential}
+          circuitContext={occurrenceCircuitContext}
           onLayout={handleZoneLayout}
           onRowLayout={handleRowLayout}
           onEdit={handleEditActivity}
@@ -1042,6 +1085,8 @@ type ActivityZoneListProps = {
   readonly revealedActionsId: string | null;
   readonly draggedActivityId: string | null;
   readonly bodyZonesReferential: readonly BodyZone[];
+  readonly categoriesReferential: readonly Category[];
+  readonly circuitContext: OccurrenceCircuitContext;
   readonly onLayout: (zone: StructuralPosition, event: LayoutChangeEvent) => void;
   readonly onRowLayout: (activityId: string, event: LayoutChangeEvent) => void;
   readonly onEdit: (activityId: string) => void;
@@ -1071,6 +1116,8 @@ function ActivityZoneList({
   revealedActionsId,
   draggedActivityId,
   bodyZonesReferential,
+  categoriesReferential,
+  circuitContext,
   onLayout,
   onRowLayout,
   onEdit,
@@ -1089,14 +1136,17 @@ function ActivityZoneList({
       onLayout={(event) => onLayout(zone, event)}
       testID={testID}
     >
-      {activities.map((activity) => (
+      {activities.map((activity, index) => (
         <CompositionActivityRow
           key={activity.id}
           activity={activity}
+          position={{ index, count: activities.length }}
           areActionsRevealed={revealedActionsId === activity.id}
           isDragged={draggedActivityId === activity.id}
           isBlockedByOtherReveal={revealedActionsId !== null && revealedActionsId !== activity.id}
           bodyZonesReferential={bodyZonesReferential}
+          categoriesReferential={categoriesReferential}
+          circuitContext={circuitContext}
           onLayout={(event) => onRowLayout(activity.id, event)}
           onEdit={() => onEdit(activity.id)}
           onRevealActions={() => onRevealActions(activity.id)}
@@ -1129,6 +1179,11 @@ type CompositionActivityRowProps = {
    */
   readonly isBlockedByOtherReveal: boolean;
   readonly bodyZonesReferential: readonly BodyZone[];
+  /** PRE-6 (story 2.2) : Catégories (ligne de classement) et contexte de Circuit (durées). */
+  readonly categoriesReferential: readonly Category[];
+  readonly circuitContext: OccurrenceCircuitContext;
+  /** Position de l'occurrence dans sa zone, pour son nom accessible (« n sur m »). */
+  readonly position: { readonly index: number; readonly count: number };
   readonly onLayout: (event: LayoutChangeEvent) => void;
   readonly onEdit: () => void;
   readonly onRevealActions: () => void;
@@ -1221,10 +1276,10 @@ const SWIPE_REVEAL_OFFSET =
  *    Composition, la copie, la duplication, le déplacement et la
  *    suppression » (D-138). Trait toujours présent, information seulement si
  *    R > 0. Elle n'est jamais une Activité de plus.
- * 2. **Géométries conditionnelles.** Carte `354 × 44` sans Zones
- *    corporelles, `354 × 60` avec ; actions glissées `72 × 44` / `72 × 60`,
- *    couvrant toute la hauteur de la carte. L'état soulevé applique un écart
- *    CONSTANT (`widthDelta 8`, `heightDelta 4`) : `362 × 48` / `362 × 64`.
+ * 2. **Géométries conditionnelles.** PRE-6 (story 2.2) : carte de `64`, ou `70` avec la
+ *    ligne « durée estimée » (remplace `44` / `60` selon les Zones) ; actions glissées
+ *    `72 × 64` / `72 × 70`, couvrant toute la hauteur de la carte. L'état soulevé applique
+ *    un écart CONSTANT (`widthDelta 8`, `heightDelta 4`) : `68` / `74` de haut.
  * 3. **Balayage PROGRESSIF (V2-CAT-01, CE-T03-08 §§7-20, D-175/D-176).** La
  *    carte SUIT le doigt en temps réel (`swipeTranslateX`, même technique
  *    déjà éprouvée que `dragTranslationY` pour le déplacement vertical —
@@ -1254,6 +1309,9 @@ function CompositionActivityRow({
   isDragged,
   isBlockedByOtherReveal,
   bodyZonesReferential,
+  categoriesReferential,
+  circuitContext,
+  position,
   onLayout,
   onEdit,
   onRevealActions,
@@ -1509,21 +1567,22 @@ function CompositionActivityRow({
   }, [onDragStart]);
 
   const bodyZones = formatExerciseBodyZones(activity.bodyZoneIds, bodyZonesReferential);
+  // PRE-6 (story 2.2) : contenu de la carte d'occurrence (`5544:6797`).
+  const category = resolveOccurrenceCategory(activity.categoryId, categoriesReferential);
+  const estimatedDuration = formatOccurrenceEstimatedDuration(activity, circuitContext);
   /**
-   * Hauteur de la CARTE seule, dérivée de la ligne de Zones corporelles (`44` sans / `60`
-   * avec). PRE-6 (story 2.1) : la Récupération n'est plus une sous-carte du bloc mais une
-   * ligne structurelle sous la carte (`ActivityRecoveryLine`), qui n'en change pas la hauteur.
+   * Hauteur de la CARTE seule (PRE-6 story 2.2) : `64`, ou `70` avec la ligne « durée
+   * estimée » ; la ligne de classement est toujours présente (vide au besoin). La
+   * Récupération est une ligne structurelle SOUS la carte (`ActivityRecoveryLine`).
    */
-  const blockHeight = blockHeightFor(bodyZones !== null, isDragged);
+  const blockHeight = blockHeightFor(estimatedDuration !== null, isDragged);
   // Même translation pour la carte et sa ligne de récupération : elles font bloc.
   const blockTransform = [{ translateX: swipeTranslateX }, { translateY: isDragged ? dragTranslationY : 0 }];
   /**
-   * V2-PRE-1 (plan §3.3) : direction PROPRE et bilatérale — portée
-   * exclusivement par l'Exercice, le Circuit n'ayant plus aucune direction
-   * dont elle pourrait être héritée.
+   * V2-PRE-1 (plan §3.3) : changement de côté PROPRE à l'Exercice. PRE-6 (story 2.2,
+   * RM-243, D-407, ARB-2) : icône neutre seulement, jamais pour un exercice unilatéral.
    */
-  const isOwnBilateral = activity.sideMode !== "UNILATERAL";
-  const sideModeStrings = strings.shared.sideMode;
+  const hasSideChange = isBilateral(activity.sideMode);
 
   return (
     <View
@@ -1623,8 +1682,9 @@ function CompositionActivityRow({
         onLongPress={handleLongPress}
         delayLongPress={LONG_PRESS_DELAY_MS}
         accessibilityRole="button"
-        accessibilityLabel={composition.exerciseRow.editAccessibilityLabel}
-        accessibilityHint={composition.activityActions.reorderAccessibilityHint}
+        accessibilityLabel={formatOccurrenceAccessibilityLabel(activity, position, circuitContext)}
+        // Intention d'édition (appui court) puis gestes de réorganisation et d'actions.
+        accessibilityHint={`${composition.exerciseRow.editAccessibilityLabel}. ${composition.activityActions.reorderAccessibilityHint}`}
         accessibilityState={{ selected: isDragged }}
         style={[
           styles.activityBlock,
@@ -1641,64 +1701,20 @@ function CompositionActivityRow({
         testID={`composition-exercise-row-${activity.id}`}
       >
         {/*
-         * Carte principale — anatomie strictement conservée depuis T02-S01
-         * (slot structure `28 × 28`, titre, ligne de Zones corporelles,
-         * synthèse). CE-T02-02 : son fond devient TRANSPARENT à l'état
-         * soulevé, « le bleu reste donc visible derrière le nom, les Zones
-         * corporelles et la synthèse » — jamais une opacité appliquée
-         * séparément aux textes.
+         * PRE-6 (story 2.2, `DSF / Cards / Composition — exercice` `5544:6797`) : contenu de
+         * la carte d’occurrence (nom, classement, synthèse D-238, icône neutre de côté). La
+         * surface reste portée par ce `Pressable` : à l’état soulevé (CE-T02-02), son fond
+         * remplace le blanc derrière le contenu, sans opacité appliquée aux textes.
          */}
-        <View style={styles.activityMainCard} testID="composition-activity-main-card">
-          <View style={styles.boundaryRowHandleSlot} testID="composition-boundary-handle-slot">
-            <KodjoIcon name="composition-reorder" testID="composition-boundary-handle-icon" />
-          </View>
-          <View style={styles.boundaryRowTitleSlot}>
-            <Text style={styles.rowLabel} numberOfLines={1}>
-              {activity.name}
-            </Text>
-            {bodyZones !== null ? (
-              <Text
-                style={styles.boundaryRowSecondaryLine}
-                numberOfLines={1}
-                testID="composition-exercise-body-zones"
-              >
-                {bodyZones}
-              </Text>
-            ) : null}
-            <Text style={styles.boundaryRowSecondaryLine} numberOfLines={1}>
-              {formatExerciseRowSummary(activity)}
-            </Text>
-          </View>
-          {/*
-           * Correction bornée (plan `## 4.4`, BIL-065) : indicateur `D→G`/
-           * `G→D`, géométrie locale `42 × 20 pt`, position absolue `x=311,
-           * y=24,5` — affiché UNIQUEMENT pour une direction PROPRE
-           * bilatérale hors héritage d'un Tour bilatéral. Non interactif —
-           * jamais un `Pressable`, aucun `onPress` — mais ACCESSIBLE :
-           * `accessible` + `accessibilityLabel` développé (les mêmes
-           * libellés exacts que le contrôle `Côté` de l'Activité,
-           * `shared.sideMode.activity.accessibilityLabels`) regroupent le
-           * texte visuel court sous UN SEUL nom accessible complet, sans le
-           * masquer de l'arbre — l'ancien `accessibilityElementsHidden` /
-           * `importantForAccessibility="no-hide-descendants"` était le
-           * masquage incorrect signalé par le plan, retiré ici.
-           */}
-          {isOwnBilateral ? (
-            <View
-              style={[
-                styles.activitySideModeIndicator,
-                { width: ACTIVITY_SIDE_MODE_INDICATOR_SIZE.width, height: ACTIVITY_SIDE_MODE_INDICATOR_SIZE.height },
-              ]}
-              accessible
-              accessibilityLabel={sideModeStrings.activity.accessibilityLabels[activity.sideMode]}
-              testID={`composition-activity-side-mode-${activity.id}`}
-            >
-              <Text style={styles.activitySideModeIndicatorLabel} numberOfLines={1}>
-                {sideModeStrings.valueLabels[activity.sideMode]}
-              </Text>
-            </View>
-          ) : null}
-        </View>
+        <OccurrenceCard
+          name={activity.name}
+          category={category}
+          bodyZones={bodyZones}
+          summary={formatOccurrenceSummary(activity)}
+          estimatedDuration={estimatedDuration}
+          hasSideChange={hasSideChange}
+          sideChangeTestID={`composition-activity-side-mode-${activity.id}`}
+        />
 
       </Pressable>
 
@@ -1723,15 +1739,13 @@ function CompositionActivityRow({
 }
 
 /**
- * Hauteur de la carte d'Activité selon la ligne optionnelle de Zones corporelles et
- * l'état soulevé : `44` / `48` sans Zones, `60` / `64` avec. PRE-6 (story 2.1) : la
- * sous-carte Récupération (`+24`) est retirée — la ligne structurelle de récupération est
- * rendue SOUS la carte (`ActivityRecoveryLine`).
+ * Hauteur de la carte d'occurrence et de ses actions glissées. PRE-6 (story 2.2,
+ * `5544:6797`) : `64`, ou `70` avec la ligne « durée estimée » (`occurrenceCardHeight`) ;
+ * l'état soulevé garde son écart constant (`heightDelta`). La ligne structurelle de
+ * récupération est rendue SOUS la carte (`ActivityRecoveryLine`, story 2.1).
  */
-function blockHeightFor(hasBodyZones: boolean, isDragged: boolean): number {
-  const rest = hasBodyZones
-    ? dimensions.compositionActivityRow.restHeight
-    : dimensions.compositionActivityRow.compactRestHeight;
+function blockHeightFor(hasEstimatedDuration: boolean, isDragged: boolean): number {
+  const rest = occurrenceCardHeight(hasEstimatedDuration);
   return isDragged ? rest + dimensions.compositionActivityRow.heightDelta : rest;
 }
 
@@ -2036,33 +2050,6 @@ function CompositionEditState({
 const COMPOSITION_ROW_GAP = spacing[6];
 
 /**
- * Marge intérieure verticale LIVRÉE par la seconde recette visuelle (point 7)
- * — `spacing/8` réduit d'un tiers, arrondi au point entier (`8 × 2/3 = 5,33
- * → 5`). Conservée nommée pour que la réduction suivante s'y enchaîne
- * visiblement.
- */
-const PREVIOUS_ACTIVITY_CARD_PADDING_VERTICAL = Math.round((spacing[8] * 2) / 3);
-
-/**
- * **Marge intérieure verticale d'une carte d'Activité** (T02-S02, troisième
- * recette visuelle, point 3) — la valeur précédente RÉDUITE D'UN TIERS à son
- * tour, arrondie au point entier le plus proche (`5 × 2/3 = 3,33 → 3`).
- *
- * Le tiers se retranche de la valeur RÉELLEMENT LIVRÉE, pas une seconde fois
- * de `spacing/8` : ré-appliquer la règle à la valeur d'origine aurait redonné
- * `5`, donc AUCUN changement — contraire à l'exigence « réduire
- * EFFECTIVEMENT ».
- *
- * Valeur DÉRIVÉE, jamais un littéral : la règle demandée reste lisible dans le
- * code. Ni `5` ni `3` ne sont des échelons de `spacing` — écart disclosé dans
- * le rapport de mission, l'échelle DSF n'offrant aucun palier égal au tiers
- * demandé.
- */
-const ACTIVITY_CARD_PADDING_VERTICAL = Math.round(
-  (PREVIOUS_ACTIVITY_CARD_PADDING_VERTICAL * 2) / 3,
-);
-
-/**
  * Complément vertical portant la cible tactile du contrôle `Nombre de tours`
  * de sa hauteur visible canonique (`34`, D-130) à `minTouchTarget` (`48`).
  * Dérivé des deux constantes, jamais codé en dur.
@@ -2073,14 +2060,6 @@ const TOUR_CONTROL_HIT_SLOP = {
   left: 0,
   right: 0,
 } as const;
-
-/**
- * V2-BILAT-01 (plan `## UI`, « Composition cards and summaries ») :
- * géométrie locale `42 × 20 pt` de l'indicateur de direction PROPRE d'une
- * carte Activité — même disclosure que `TOUR_SIDE_MODE_CONTROL_SIZE`
- * ci-dessus, aucun token DSF existant ne couvrant cette taille.
- */
-const ACTIVITY_SIDE_MODE_INDICATOR_SIZE = { width: 42, height: 20 } as const;
 
 const styles = StyleSheet.create({
   // T01-S10 : corps des états de réhydratation en modification.
@@ -2200,26 +2179,6 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
   },
-  // R4-04 (slot `28×28`, icône `20×20`, cycle REWORK04). REWORK06 (addendum
-  // « poignées encore trop petites », 2026-09-04) : porté à `32×32` pour
-  // compenser un glyphe sous-dimensionné. REWORK07-A (`[ChatGPT]
-  // CHANGES_REQUESTED — REWORK07-A — ICON / STRUCTURE / MOVABLE
-  // UNIQUEMENT`, 2026-09-04) : diagnostic établi — le glyphe lui-même était
-  // en cause, pas le slot ; l'asset canonique remplacé (`KodjoIcon.tsx`),
-  // le slot revient à `28×28`
-  // (`dimensions.structureMovableIcon.slot`), valeur canonique DSF,
-  // partagée avec `KodjoIcon.tsx` (source unique, plus de littéral local
-  // dupliqué).
-  boundaryRowHandleSlot: {
-    width: dimensions.structureMovableIcon.slot,
-    height: dimensions.structureMovableIcon.slot,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  boundaryRowTitleSlot: {
-    flex: 1,
-    gap: spacing[2],
-  },
   // Correction compacte LOT_3_OF_3 : écart RÉDUIT entre deux cartes
   // Activité consécutives. T02-S02 (continuation) : porté de `8` à
   // `COMPOSITION_ROW_GAP` (`6`, token DSF `spacing/6`) — légère réduction
@@ -2254,78 +2213,21 @@ const styles = StyleSheet.create({
   },
   // T02-S02 — carte d'Activité, D-095/D-128/D-138.
   //
-  // Le `Pressable` porte la surface de la carte (fond blanc, liseré
-  // `colors.border`, rayon `12`) ; `overflow: "hidden"` découpe son contenu
-  // au rayon. PRE-6 (story 2.1) : la Récupération n'y est plus une sous-carte
-  // (ligne structurelle sous la carte, `ActivityRecoveryLine`).
+  // Le `Pressable` porte la surface de la carte ; `overflow: "hidden"` découpe son
+  // contenu au rayon. PRE-6 (story 2.1) : la Récupération n'y est plus une sous-carte
+  // (ligne structurelle sous la carte, `ActivityRecoveryLine`). PRE-6 (story 2.2,
+  // `5544:6797`) : fond blanc, bordure 1 `#E4E4EB`, rayon 14 (`occurrenceCardSurface`).
   //
-  // La HAUTEUR est appliquée par l'écran (`blockHeightFor`) selon la présence
-  // des Zones corporelles et l'état soulevé.
+  // La HAUTEUR est appliquée par l'écran (`blockHeightFor`) selon la ligne « durée
+  // estimée » et l'état soulevé.
   activityBlock: {
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.background,
+    ...occurrenceCardSurface,
     overflow: "hidden",
   },
-  // Carte principale — `flex: 1` : elle occupe toute la hauteur de la carte
-  // (PRE-6 story 2.1 : plus de sous-carte `24` sous elle). `paddingVertical` réduit de `12` à `8` par rapport à
-  // `limitCardBase` : les trois lignes (`16/20` + `11/13` + `11/13`, écarts
-  // `2`) ne tiennent pas dans une carte de `69` avec `12` de padding — la
-  // hauteur canonique prime, elle est publiée par CE-T01-09.
-  //
-  // **T02-S02 (seconde puis troisième recette visuelle)** : marges
-  // intérieures HAUTE et BASSE réduites d'un tiers, deux fois
-  // (`ACTIVITY_CARD_PADDING_VERTICAL`, `8 → 5 → 3`). Le bloc ayant une
-  // hauteur FIXE (`44`/`60`), ces marges ne changent pas sa taille — elles
-  // rendent au contenu la place qui lui manquait : nom (`16/20`) + Zones
-  // corporelles (`11/14`) + synthèse (`11/14`) et leurs deux écarts de `2`
-  // totalisent `52`, contre `58` de hauteur utile ; avec `8` de marge haute
-  // et basse, l'ensemble atteignait `68` et débordait d'un point.
-  //
-  // CORRECTION DIRECTE POST-RECETTE : avec `alignItems: "center"` dans un
-  // bloc fixe, réduire seulement le padding ne modifiait pas le blanc perçu.
-  // La première réduction de `69` à `65` étant restée imperceptible en recette,
-  // la hauteur principale passe à `60` (la sous-carte Récupération de `24`,
-  // alors attachée, est retirée en PRE-6 story 2.1).
-  //
-  // Les marges HORIZONTALES et toutes les autres géométries validées restent
-  // strictement inchangées.
-  activityMainCard: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: spacing[16],
-    paddingVertical: ACTIVITY_CARD_PADDING_VERTICAL,
-    gap: spacing[8],
-    // Correction bornée (plan `## 4.4`, position `x=311, y=24,5`) : porte
-    // désormais l'ancrage de l'indicateur de direction, positionné en
-    // superposition ABSOLUE plutôt qu'en enfant de flux — il ne dispute donc
-    // plus jamais d'espace au nom/à la synthèse (`boundaryRowTitleSlot`).
-    position: "relative",
-  },
-  // Correction bornée (plan `## 4.4`, BIL-065) : indicateur `D→G`/`G→D` non
-  // interactif d'une carte Activité dont la direction est PROPRE et
-  // bilatérale — géométrie locale `42 × 20 pt`
-  // (`ACTIVITY_SIDE_MODE_INDICATOR_SIZE`, aucun token DSF existant) en
-  // position ABSOLUE `x=311, y=24,5` (valeurs publiées par le plan,
-  // ancrées sur `activityMainCard`, désormais `position: "relative"`).
-  activitySideModeIndicator: {
-    position: "absolute",
-    right: spacing[16],
-    top: spacing[4],
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 4,
-    backgroundColor: colors.tourSurface,
-  },
-  activitySideModeIndicatorLabel: {
-    ...type.caption,
-    color: colors.textPrimary,
-  },
-  // D-129/CE-T02-02 : état soulevé — `362 × 64` avec Zones (contre
-  // `354 × 60` au repos ; `362 × 48` / `354 × 44` sans Zones), centré à `x = 6`, fond `#F7F7FF` repris du bandeau
-  // supérieur, contour `1` point `#D1D1D6`, rayon `12`, ombre périphérique
+  // D-129/CE-T02-02 : état soulevé — hauteur de repos + `4` (PRE-6 story 2.2 : `68` / `74`
+  // pour `64` / `70`), largeur + `8`, centré à `x = 6`, fond `#F7F7FF` repris du bandeau
+  // supérieur, contour `1` point `#D1D1D6`, rayon de la carte (`OCCURRENCE_CARD_RADIUS`,
+  // 14, PRE-6 story 2.2 ; auparavant `12`), ombre périphérique
   // `#14171F` à `22 %` (`0 / 0`, flou `10`, étalement `2`).
   //
   // L'agrandissement horizontal est exprimé en ÉCART (marges négatives),
@@ -2336,7 +2238,7 @@ const styles = StyleSheet.create({
     marginHorizontal: -dimensions.compositionActivityRow.widthDelta / 2,
     backgroundColor: colors.exerciseContextBandBackground,
     borderColor: colors.compositionDraggedCardBorder,
-    borderRadius: dimensions.compositionActivityRow.draggedRadius,
+    borderRadius: OCCURRENCE_CARD_RADIUS,
     shadowColor: colors.compositionDraggedCardShadow,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: dimensions.compositionActivityRow.draggedShadowOpacity,
@@ -2346,16 +2248,17 @@ const styles = StyleSheet.create({
   // D-128, révisé V2-CAT-01 (UI-CAT-R-007/010) : groupe superposé à droite
   // (DERRIÈRE la carte, découvert par sa translation), deux actions `72 × H`
   // aux libellés centrés horizontalement et verticalement, `H` valant la
-  // hauteur de la CARTE (`44` sans Zones, `60` avec) — « `Dupliquer` et
+  // hauteur de la CARTE (`64`, ou `70` avec la durée estimée — PRE-6 story 2.2) — « `Dupliquer` et
   // `Supprimer` couvrent toute la hauteur du bloc ». La hauteur est
   // appliquée par l'écran (`blockHeightFor`), pas ici.
   //
   // VISUAL_CORRECTION (revue indépendante 5753653735, point 5) : les QUATRE
-  // coins suivent le même rayon `12` que le bloc — une correction
+  // coins suivent le même rayon que le bloc (`OCCURRENCE_CARD_RADIUS`, 14 depuis PRE-6
+  // story 2.2 ; auparavant `12`) — une correction
   // antérieure ne rendait carrés QUE les coins droits de `Supprimer`
   // (rightmost, flush avec le bord droit du contenu défilant), rompant la
   // silhouette arrondie uniforme que porte, elle, TOUTE autre carte de
-  // cette même liste (`activityBlock.borderRadius: 12`, sur ses quatre
+  // cette même liste (`activityBlock`, sur ses quatre
   // coins). Le groupe entièrement révélé DEVIENT visuellement le bord droit
   // de la rangée : il doit donc reprendre exactement le même rayon partout,
   // jamais un rayon local inventé.
@@ -2365,7 +2268,7 @@ const styles = StyleSheet.create({
     right: 0,
     width: dimensions.compositionSwipeActions.groupWidth,
     flexDirection: "row",
-    borderRadius: 12,
+    borderRadius: OCCURRENCE_CARD_RADIUS,
     overflow: "hidden",
   },
   activityRowAction: {
@@ -2510,18 +2413,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.selection,
     alignItems: "center",
     justifyContent: "center",
-  },
-  // R4-03 (cycle REWORK04) : `type.compactCardTitle` (`14/18` Semi Bold),
-  // auparavant `type.body` (`14/20` Regular). REWORK06 (addendum « titres
-  // des cartes... encore trop petits », 2026-09-04) : porté à
-  // `type.cardTitle` (`16/20` Semi Bold) — token DSF déjà canonique,
-  // partagé avec `SessionCard.tsx` (Catalogue), plutôt qu'une nouvelle
-  // taille locale inventée. Effet de bord accepté : la ligne Exercice de
-  // cet écran (non explicitement citée par l'addendum) partage `rowLabel`
-  // et grandit donc identiquement.
-  rowLabel: {
-    ...type.cardTitle,
-    color: colors.textPrimary,
   },
   // V2-CAT-01, VISUAL_CORRECTION (revue indépendante 5753653735, point 7) :
   // arbre `Ajouter une activité` — même géométrie de carte que

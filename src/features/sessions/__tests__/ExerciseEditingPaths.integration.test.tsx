@@ -632,7 +632,8 @@ describe("PRE4-4.1/AC5 — Créer dans une Séance, parcours PRE-3 conservé", (
     await settle();
     expect(router.getPathname()).toBe("/composition");
     // À la suite des Exercices affichés : dernière carte de Composition.
-    const rows = screen.getAllByLabelText(composition.exerciseRow.editAccessibilityLabel);
+    // PRE-6 (story 2.2) : nom accessible « Exercice, {nom}, {n} sur {m}, {durée} ».
+    const rows = screen.getAllByLabelText(new RegExp(`^${composition.occurrenceCard.accessibilityType}, `));
     expect(rows).toHaveLength(2);
     expect(within(rows[0]!).getByText("Fentes")).toBeTruthy();
     expect(within(rows[1]!).getByText("Pompes")).toBeTruthy();

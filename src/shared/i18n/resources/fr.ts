@@ -420,6 +420,17 @@ export const fr = {
         sideDirectionSuffixRightLeft: ", à droite, puis à gauche",
         sideDirectionSuffixLeftRight: ", à gauche, puis à droite",
       },
+      // PRE-6 story 2.2 (D-238, Figma `5544:6797`) : carte d'occurrence de la Composition.
+      // Synthèse « N × cible » des séries identiques, « … » après trois cibles variables ;
+      // nom accessible « Exercice, {nom}, {n} sur {m}, {durée} » (CE-T03-08 §18).
+      occurrenceCard: {
+        seriesTimes: "{n} × {target}",
+        valuesOverflow: "…",
+        accessibilityType: "Exercice",
+        accessibilityPosition: "{position} sur {count}",
+        // Ajouté au nom accessible d'une occurrence bilatérale (RM-243 : sans direction).
+        accessibilitySideChange: "changement de côté",
+      },
     },
     exercise: {
       // REWORK09 (mission directe utilisateur, 2026-09-04, points 1/2) :

@@ -65,6 +65,13 @@ const sources = {
   // vectorielle servie par l’outil MCP Figma en lecture seule (`download_assets`, svgAssets),
   // attributs racine preserveAspectRatio/overflow/style retirés, identifiant de groupe réparé.
   "recovery-hourglass": require("../../../assets/icons/icon-sablier-recuperation.svg"),
+  // PRE-6 story 2.2 (RM-243, D-407, ARB-2) : indicateur NEUTRE de changement de côté, sans
+  // direction — Figma `9522:20651` (carte d'occurrence), tracé identique à `6238:8587`
+  // (carte de sélection) : un seul fichier. Même procédé d'export que `recovery-hourglass`.
+  "side-change": require("../../../assets/icons/icon-changement-de-cote.svg"),
+  // PRE-6 story 2.2 : sablier de la durée totale, carte de sélection « Choix composition »
+  // (`DSF / Cards / Exercice`, `6214:4410`). Distinct du sablier de récupération (autre tracé).
+  "duration-hourglass": require("../../../assets/icons/icon-duree-sablier.svg"),
 } as const;
 
 const sizes = {
@@ -180,6 +187,9 @@ const sizes = {
   "stepper-plus": [8, 8],
   // Cadre 13 × 13 du `viewBox` exact (ligne structurelle de récupération).
   "recovery-hourglass": [13, 13],
+  // Cadres 16 × 16 des `viewBox` exacts.
+  "side-change": [16, 16],
+  "duration-hourglass": [16, 16],
 } as const;
 
 /**
