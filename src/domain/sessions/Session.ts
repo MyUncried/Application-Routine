@@ -8,6 +8,7 @@ import type { MediaLinkInput, SessionActivityMediaWithAsset } from "@/domain/med
 
 import type { SideMode } from "./sideMode";
 import type { StopPoint } from "./StopPoint";
+import type { CircuitNature } from "./circuit";
 
 export const SESSION_COLORS = [
   "#E5484D",
@@ -118,8 +119,13 @@ export type Activity = {
    * .integration.test.tsx`/`SessionDraftProvider.test.tsx` (hors périmètre
    * d'écriture, `scope_allow`) qui construisent encore ce type sans lui —
    * un consommateur lit `activity.postActivityRecoverySeconds ?? 0`.
+   *
+   * PRE-6 (story 1.1, AD-35) : trois états — `null` = ABSENTE, `0` =
+   * présente à 0, positive. Seule une valeur positive remplace la Pause
+   * terminale ; `null` et `0` ne remplacent rien (calculs inchangés).
+   * Présence persistée par `post_activity_recovery_present` (`migration011`).
    */
-  postActivityRecoverySeconds?: number;
+  postActivityRecoverySeconds?: number | null;
   /** @deprecated V2-PRE-1 : remplacé par `postActivityRecoverySeconds` (plan §3.2) — conservé uniquement pour la compatibilité structurelle de fixtures hors périmètre d'écriture qui l'utilisent encore ; jamais lu par le Domaine, les calculs ou la persistance. */
   recoverySeconds?: number;
   instruction: string | null;
@@ -198,6 +204,12 @@ export type Session = {
       position: 1;
       /** T01-S10 : répétition du Circuit, entier `1..99` (D-058). Reste `1` pour toute Séance créée avant S10. */
       repeatCount: number;
+      /**
+       * PRE-6 (story 1.1, AD-34) : nature du Circuit (`tours.nature`,
+       * `migration011`). Champ optionnel de transition (même convention que
+       * `beforeTour`) — un consommateur lit `tour.nature ?? DEFAULT_CIRCUIT_NATURE`.
+       */
+      nature?: CircuitNature;
       /** Collection ORDONNÉE (T01-S09) — remplace l'ancien champ singulier `exercise`. Toujours au moins un élément (une Séance sans aucune Activité reste invalide, voir `toCreateSessionInput`). */
       exercises: readonly Activity[];
     };
@@ -240,8 +252,8 @@ export type CreateSessionActivityInput = {
   readonly name: string;
   /** Paramètres typés, validés au niveau structurel (`validateForSave(…, "STORAGE")`). */
   readonly executionParameters: ExecutionParametersInput;
-  /** V2-PRE-1 : récupération post-exercice de l'occurrence, `0..5999` s — `0` = aucune (voir `Activity.postActivityRecoverySeconds`). */
-  readonly postActivityRecoverySeconds: number;
+  /** V2-PRE-1 : récupération post-exercice de l'occurrence, `0..5999` s. PRE-6 (AD-35) : `null` = absente, `0` = présente à 0 (voir `Activity.postActivityRecoverySeconds`). */
+  readonly postActivityRecoverySeconds: number | null;
   readonly instruction?: string | null;
   readonly bodyZoneIds: readonly string[];
   /** V2-BILAT-01 : direction propre de cette Activité (`Activity.sideMode`) — optionnel, `DEFAULT_SIDE_MODE` si absent. */
@@ -278,6 +290,11 @@ export type CreateSessionInput = {
    * impossible la création d'une Séance à plusieurs Circuits (AC-08/AC-12).
    */
   tourRepeatCount: number;
+  /**
+   * PRE-6 (story 1.1, AD-34) : nature du Circuit. Optionnel (convention de
+   * transition) : absent = `DEFAULT_CIRCUIT_NATURE` (Tours).
+   */
+  circuitNature?: CircuitNature;
   /**
    * Collection ORDONNÉE (T01-S09) — remplace l'ancien champ singulier
    * `exercise`. Doit compter au moins un élément : une entrée vide est un
@@ -320,8 +337,8 @@ export type UpdateSessionActivityInput = {
   readonly name: string;
   /** PRE-4 : paramètres typés obligatoires (voir `CreateSessionActivityInput.executionParameters`). */
   readonly executionParameters: ExecutionParametersInput;
-  /** V2-PRE-1 : récupération post-exercice de l'occurrence, `0..5999` s — `0` = aucune (voir `Activity.postActivityRecoverySeconds`). */
-  readonly postActivityRecoverySeconds: number;
+  /** V2-PRE-1 : récupération post-exercice de l'occurrence, `0..5999` s. PRE-6 (AD-35) : `null` = absente, `0` = présente à 0 (voir `Activity.postActivityRecoverySeconds`). */
+  readonly postActivityRecoverySeconds: number | null;
   readonly instruction?: string | null;
   readonly bodyZoneIds: readonly string[];
   /** V2-BILAT-01 : direction propre de cette Activité (`Activity.sideMode`) — optionnel, `DEFAULT_SIDE_MODE` si absent. */
@@ -348,6 +365,8 @@ export type UpdateSessionInput = {
   readonly finalPhaseSeconds: number;
   /** Répétition du Circuit, entier `1..99` (D-058). */
   readonly tourRepeatCount: number;
+  /** PRE-6 (story 1.1, AD-34) : nature du Circuit, voir `CreateSessionInput.circuitNature`. */
+  readonly circuitNature?: CircuitNature;
   /** TOUTES les Activités de la Séance modifiée, dans l'ordre, toutes zones structurelles confondues — au moins une (une Séance sans Activité reste invalide). */
   readonly activities: readonly UpdateSessionActivityInput[];
   /** V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : voir `CreateSessionInput.stopPoints`. */

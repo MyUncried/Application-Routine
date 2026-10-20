@@ -537,8 +537,9 @@ function CompositionExerciseEditor() {
     existingExercise
       ? existingExercise
       : {
-          // Nouvelle occurrence : AUCUNE Récupération automatique (R = 0).
-          ...createExerciseDraft(Crypto.randomUUID(), 0),
+          // Nouvelle occurrence : AUCUNE Récupération automatique — PRE-6
+          // (story 1.1, AD-35) : absente (`null`), distincte de « présente à 0 ».
+          ...createExerciseDraft(Crypto.randomUUID(), null),
           executionParameters: createEmptyFormValue().executionParameters,
           categoryId: null,
           media: [],

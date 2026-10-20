@@ -61,6 +61,12 @@ export const DEFAULT_RECOVERY_DURATION_SECONDS = 30 as const;
  * substitue la valeur par défaut du Profil (`postActivityRecoverySecondsDefault`)
  * lors de la création réelle d'une occurrence — ce module reste pur, sans
  * accès Profil/SQL.
+ *
+ * **PRE-6 (story 1.1, AD-35)** : nom conservé, mais une nouvelle occurrence
+ * ne naît plus à `0` : elle naît SANS récupération (`null`, « aucune
+ * récupération automatique » — `createExerciseDraft`, ajout depuis le
+ * Catalogue). `0` désigne désormais une récupération PRÉSENTE à 0 s, distincte
+ * de l'absence ; cette constante n'est plus lue par la création d'occurrence.
  */
 export const DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS = 0 as const;
 

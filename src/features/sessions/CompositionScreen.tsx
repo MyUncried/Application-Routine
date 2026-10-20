@@ -1711,7 +1711,9 @@ function CompositionActivityRow({
    * de Zones corporelles (`44` sans / `60` avec) et la Récupération attachée
    * (`+24`, strictement inchangée).
    */
-  const recoveryLabel = formatActivityRecoveryLabel(activity.postActivityRecoverySeconds);
+  // PRE-6 (story 1.1) : rendu inchangé — une récupération absente (`null`)
+  // s'affiche comme aujourd'hui (`0`) ; la correction relève de la story 2.1.
+  const recoveryLabel = formatActivityRecoveryLabel(activity.postActivityRecoverySeconds ?? 0);
   const blockHeight = blockHeightFor(bodyZones !== null, recoveryLabel !== null, isDragged);
   /**
    * V2-PRE-1 (plan §3.3) : direction PROPRE et bilatérale — portée

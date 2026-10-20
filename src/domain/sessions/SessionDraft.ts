@@ -47,12 +47,12 @@ import {
   DEFAULT_FINAL_PHASE_SECONDS,
   DEFAULT_INITIAL_COUNTDOWN_SECONDS,
   DEFAULT_PAUSE_SECONDS,
-  DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS,
   DEFAULT_SERIES_COUNT,
   DEFAULT_SIDE_MODE,
   DEFAULT_STRUCTURAL_POSITION,
   DEFAULT_TOUR_REPEAT_COUNT,
 } from "./defaults";
+import { DEFAULT_CIRCUIT_NATURE, type CircuitNature } from "./circuit";
 import type { ValidationResult } from "./errors";
 import { fail } from "./errors";
 import type { SideMode } from "./sideMode";
@@ -125,11 +125,15 @@ export type SessionDraftExercise = {
   readonly executionParameters: ExecutionParametersInput;
   /**
    * V2-PRE-1 (plan §3.2) : récupération post-exercice de l'occurrence, en
-   * secondes — exécutée une seule fois après toutes les Séries. `0` = aucune
-   * (valeur neutre, jamais `null`). Disponible dans les trois modes
-   * d'exécution ; indépendante de la définition source.
+   * secondes — exécutée une seule fois après toutes les Séries. Disponible
+   * dans les trois modes d'exécution ; indépendante de la définition source.
+   *
+   * PRE-6 (story 1.1, AD-35) : trois états — `null` = ABSENTE (valeur d'une
+   * nouvelle occurrence : « aucune récupération automatique »), `0` =
+   * présente à 0, positive. Seule une valeur positive remplace la Pause
+   * terminale (calculs inchangés).
    */
-  readonly postActivityRecoverySeconds: number;
+  readonly postActivityRecoverySeconds: number | null;
   readonly instruction: string | null;
   /** Identifiants stables du référentiel de Zones corporelles persistant (T01-S08, D-093) — sélection multiple, ordre indifférent. */
   readonly bodyZoneIds: readonly string[];
@@ -163,6 +167,13 @@ export type SessionDraft = {
    * ; un consommateur lit `draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT`.
    */
   readonly tourRepeatCount?: number;
+  /**
+   * PRE-6 (story 1.1, AD-34) : nature du Circuit (Tours / Séries), portée
+   * comme `tourRepeatCount` ; la borne `COUNT` en est dérivée
+   * (`circuitBoundOf`), jamais stockée. Champ optionnel de transition — un
+   * consommateur lit `draft.circuitNature ?? DEFAULT_CIRCUIT_NATURE`.
+   */
+  readonly circuitNature?: CircuitNature;
   /**
    * Collection ORDONNÉE d'Activités (T01-S08, complétion REWORK12 — « La
    * transformation du brouillon actuel, limité à un champ `exercise`
@@ -230,12 +241,14 @@ export function createEmptyDraft(defaults: SessionDraftDefaults = {}): SessionDr
  * V2-PRE-2 (plan §6.1/§7, D-171/D-213) : `postActivityRecoverySeconds`
  * devient un second paramètre optionnel — la valeur COURANTE du Profil au
  * moment réel de la création de cette occurrence locale (snapshot
- * atomique, jamais relue ensuite). En son absence (T19), la constante
- * neutre du Domaine (`0`) s'applique inchangée.
+ * atomique, jamais relue ensuite).
+ *
+ * PRE-6 (story 1.1, AD-35) : en son absence, l'occurrence naît SANS
+ * récupération (`null`), conformément à « aucune récupération automatique ».
  */
 export function createExerciseDraft(
   id: string,
-  postActivityRecoverySeconds: number = DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS,
+  postActivityRecoverySeconds: number | null = null,
 ): SessionDraftExercise {
   return {
     id,
@@ -284,6 +297,8 @@ export function toSessionDraft(session: Session): SessionDraft {
     initialCountdownSeconds: session.initialCountdownSeconds,
     finalPhaseSeconds: session.finalPhaseSeconds,
     tourRepeatCount: session.cycle.tour.repeatCount,
+    // PRE-6 (story 1.1) : nature relue ; absente (fixture antérieure) = Tours.
+    ...(session.cycle.tour.nature !== undefined ? { circuitNature: session.cycle.tour.nature } : {}),
     exercises: structuralActivities.map((activity) => activityToDraftExercise(activity)),
     persistedExerciseIds: structuralActivities.map((activity) => activity.id),
   };
@@ -303,7 +318,8 @@ function activityToDraftExercise(activity: Activity): SessionDraftExercise {
     structuralPosition: activity.structuralPosition,
     name: activity.name,
     executionParameters: cloneExecutionParameters(activity.executionParameters),
-    postActivityRecoverySeconds: activity.postActivityRecoverySeconds ?? 0,
+    // PRE-6 (AD-35) : `undefined` (fixture antérieure) = absente ; `0` reste présente à 0.
+    postActivityRecoverySeconds: activity.postActivityRecoverySeconds ?? null,
     instruction: activity.instruction,
     // PRE-4 (story 1.3, AD-9) : nouvelle collection, jamais partagée avec la Séance relue.
     bodyZoneIds: [...activity.bodyZoneIds],
@@ -408,6 +424,8 @@ export function sessionDraftsEqual(a: SessionDraft, b: SessionDraft): boolean {
     a.finalPhaseSeconds === b.finalPhaseSeconds &&
     (a.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT) ===
       (b.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT) &&
+    // PRE-6 (story 1.1) : un changement de nature seul rend le brouillon modifié.
+    (a.circuitNature ?? DEFAULT_CIRCUIT_NATURE) === (b.circuitNature ?? DEFAULT_CIRCUIT_NATURE) &&
     exercisesEqual(a.exercises, b.exercises)
   );
 }
@@ -429,7 +447,7 @@ function toDraftActivityParameters(exercise: SessionDraftExercise) {
     return {
       type: "RECOVERY" as const,
       executionParameters: cloneExecutionParameters(exercise.executionParameters),
-      postActivityRecoverySeconds: 0,
+      postActivityRecoverySeconds: null,
       instruction: exercise.instruction,
       bodyZoneIds: [] as readonly string[],
       sideMode: exercise.sideMode,
@@ -477,6 +495,7 @@ export function toCreateSessionInput(draft: SessionDraft): ValidationResult<Crea
     initialCountdownSeconds: draft.initialCountdownSeconds,
     finalPhaseSeconds: draft.finalPhaseSeconds,
     tourRepeatCount: draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
+    ...(draft.circuitNature !== undefined ? { circuitNature: draft.circuitNature } : {}),
     exercises: draft.exercises.map((exercise) => ({
       id: exercise.id,
       structuralPosition: exercise.structuralPosition,
@@ -532,6 +551,7 @@ export function toUpdateSessionInput(
     initialCountdownSeconds: draft.initialCountdownSeconds,
     finalPhaseSeconds: draft.finalPhaseSeconds,
     tourRepeatCount: draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
+    ...(draft.circuitNature !== undefined ? { circuitNature: draft.circuitNature } : {}),
     activities,
     ...(draft.persistedExerciseIds !== undefined ? { persistedActivityIds: [...draft.persistedExerciseIds] } : {}),
   });

@@ -52,8 +52,8 @@ export type ActivityDurationFacts = {
   readonly type: ActivityType;
   /** PRE-4 (story 1.1, AD-3) : paramètres typés obligatoires — aucun fait scalaire. */
   readonly executionParameters: ExecutionParametersInput;
-  /** Récupération explicite de l'occurrence (`0` = aucune) — remplace la seule Pause terminale. */
-  readonly postActivityRecoverySeconds?: number;
+  /** Récupération explicite de l'occurrence — remplace la seule Pause terminale si elle est positive ; `null` (absente, PRE-6 AD-35) et `0` ne remplacent rien. */
+  readonly postActivityRecoverySeconds?: number | null;
   readonly sideMode?: SideMode;
 };
 

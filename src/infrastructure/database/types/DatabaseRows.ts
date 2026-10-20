@@ -1,3 +1,4 @@
+import type { CircuitNature } from "@/domain/sessions/circuit";
 import type { ActivityType, StructuralPosition } from "@/domain/sessions/Session";
 import type { SideMode } from "@/domain/sessions/sideMode";
 
@@ -44,6 +45,8 @@ export type SessionAggregateRow = {
   tour_repeat_count: number;
   /** V2-BILAT-01 : direction du Tour (`Session.cycle.tour.sideMode`, `migration005`, défaut `'UNILATERAL'`). */
   tour_side_mode: SideMode;
+  /** PRE-6 (story 1.1, AD-34) : nature du Circuit (`migration011`, défaut `'TOURS'`). */
+  tour_nature: CircuitNature;
   activity_id: string;
   /** T01-S10 : `'EXERCISE'` ou `'RECOVERY'` (D-061). */
   activity_type: ActivityType;
@@ -64,6 +67,11 @@ export type SessionAggregateRow = {
   pause_seconds: number;
   /** V2-PRE-1 : récupération post-exercice de l'occurrence, `0..5999` s — `0` = aucune (renommée depuis `recovery_seconds`, `migration007`). */
   post_activity_recovery_seconds: number;
+  /**
+   * PRE-6 (story 1.1, AD-35) : présence de la récupération (`migration011`) —
+   * `0` = absente (secondes alors à 0), `1` = présente (0 compris).
+   */
+  post_activity_recovery_present: number;
   instruction: string | null;
   /** V2-BILAT-01 : direction propre de cette Activité (`Activity.sideMode`, `migration005`, défaut `'UNILATERAL'`). */
   activity_side_mode: SideMode;
@@ -86,6 +94,7 @@ export type SessionAggregateOccurrenceColumn =
   | "series_count"
   | "pause_seconds"
   | "post_activity_recovery_seconds"
+  | "post_activity_recovery_present"
   | "instruction"
   | "activity_side_mode"
   | "activity_execution_parameters"

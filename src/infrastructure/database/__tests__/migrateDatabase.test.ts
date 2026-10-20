@@ -27,6 +27,9 @@ import {
 import type { Database } from "@/infrastructure/database/Database";
 import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
+import { applyMigration011 } from "@/infrastructure/database/migrations/migration011";
+import { buildVersion10 } from "@/infrastructure/database/testing/buildVersion10";
+import { failOnWrite } from "@/infrastructure/database/testing/failOnWrite";
 
 describe("migrateDatabase", () => {
   let database: NodeSqliteDatabase;
@@ -392,7 +395,7 @@ describe("migrateDatabase", () => {
       await migrateDatabase(database);
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
       expect(version?.user_version).toBe(DATABASE_VERSION);
-      expect(DATABASE_VERSION).toBe(10);
+      expect(DATABASE_VERSION).toBe(11);
 
       await seedStructure(database);
       await expect(
@@ -793,7 +796,7 @@ describe("migrateDatabase", () => {
 
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
       expect(version?.user_version).toBe(DATABASE_VERSION);
-      expect(DATABASE_VERSION).toBe(10);
+      expect(DATABASE_VERSION).toBe(11);
 
       const tables = await database.getAllAsync<{ name: string }>(
         "SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'activity_definition%'",
@@ -1193,8 +1196,8 @@ describe("migrateDatabase", () => {
       await migrateDatabase(database);
 
       const after = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
-      // PRE-3 / PRE-4 : la même exécution enchaîne `migration008`, `migration009` puis `migration010`.
-      expect(after?.user_version).toBe(10);
+      // PRE-3 / PRE-4 / PRE-6 : la même exécution enchaîne `migration008`, `migration009`, `migration010` puis `migration011`.
+      expect(after?.user_version).toBe(11);
       const zones = await database.getAllAsync<{ canonical_key: string }>(
         "SELECT canonical_key FROM body_zones",
       );
@@ -1746,5 +1749,94 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
     expect(session.cycle.tour.exercises[0]?.media?.map((item) => item.assetId)).toEqual([video.id, photo.id]);
     expect(await counts()).toEqual({ ...afterDefinition, sessions: 1, occurrences: 1, occurrenceLinks: 2 });
     expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual([]);
+  });
+});
+
+/**
+ * PRE-6 (story 1.1, AD-34, AD-35) — `migration011` : nature du Circuit et
+ * présence de la récupération, `ADD COLUMN` idempotents dans la transaction
+ * unique du runner. Base v10 construite par les migrations du code de départ.
+ */
+describe("PRE6-1.1 — migration011 (v10 → v11)", () => {
+  let database: NodeSqliteDatabase;
+
+  beforeEach(async () => {
+    database = NodeSqliteDatabase.openInMemory();
+    await buildVersion10(database);
+    const user = await database.getFirstAsync<{ id: string }>("SELECT id FROM users");
+    await database.runAsync(
+      "INSERT INTO sessions (id, owner_id, name, status, created_at, updated_at) VALUES ('s', ?, 'Séance', 'ACTIVE', 'now', 'now')",
+      [user!.id],
+    );
+    await database.runAsync("INSERT INTO cycles (id, session_id) VALUES ('c', 's')");
+    await database.runAsync("INSERT INTO tours (id, cycle_id, session_id, repeat_count) VALUES ('t', 'c', 's', 4)");
+    for (const [id, position, recovery] of [["r0", 0, 0], ["r45", 1, 45]] as const) {
+      await database.runAsync(
+        `INSERT INTO activities (id, session_id, cycle_id, tour_id, type, structural_position, position, name,
+           execution_mode, duration_seconds, series_count, pause_seconds, post_activity_recovery_seconds, created_at, updated_at)
+         VALUES (?, 's', 'c', 't', 'EXERCISE', 'IN_TOUR', ?, 'Gainage', 'DURATION', 30, 1, 0, ?, 'now', 'now')`,
+        [id, position, recovery],
+      );
+    }
+  });
+
+  afterEach(() => {
+    database.close();
+  });
+
+  const columns = async (table: string) =>
+    (await database.getAllAsync<{ name: string; dflt_value: string | null; notnull: number }>(`PRAGMA table_info(${table})`)).filter(
+      (column) => column.name === "nature" || column.name === "post_activity_recovery_present",
+    );
+
+  it("ajoute tours.nature (TOURS par défaut) et activities.post_activity_recovery_present, repris à 1 pour une valeur > 0 ; version 11", async () => {
+    await migrateDatabase(database);
+
+    expect((await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version"))?.user_version).toBe(11);
+    expect(await columns("tours")).toEqual([{ cid: expect.any(Number), name: "nature", type: "TEXT", notnull: 1, dflt_value: "'TOURS'", pk: 0 }]);
+    expect(await columns("activities")).toEqual([
+      { cid: expect.any(Number), name: "post_activity_recovery_present", type: "INTEGER", notnull: 1, dflt_value: "0", pk: 0 },
+    ]);
+    expect(await database.getAllAsync("SELECT nature, repeat_count FROM tours")).toEqual([{ nature: "TOURS", repeat_count: 4 }]);
+    expect(
+      await database.getAllAsync("SELECT id, post_activity_recovery_seconds AS seconds, post_activity_recovery_present AS present FROM activities ORDER BY id"),
+    ).toEqual([
+      { id: "r0", seconds: 0, present: 0 },
+      { id: "r45", seconds: 45, present: 1 },
+    ]);
+  });
+
+  it("pose les CHECK : nature hors TOURS/SERIES et présence hors 0/1 refusées", async () => {
+    await migrateDatabase(database);
+
+    await expect(database.runAsync("UPDATE tours SET nature = 'FOO'")).rejects.toThrow();
+    await expect(database.runAsync("UPDATE activities SET post_activity_recovery_present = 2")).rejects.toThrow();
+    await database.runAsync("UPDATE tours SET nature = 'SERIES'");
+    expect(await database.getAllAsync("SELECT nature FROM tours")).toEqual([{ nature: "SERIES" }]);
+  });
+
+  it("idempotente : rejouée sur des colonnes déjà présentes, ni erreur ni changement", async () => {
+    await migrateDatabase(database);
+    const tours = await database.getAllAsync("SELECT * FROM tours");
+    const activities = await database.getAllAsync("SELECT * FROM activities ORDER BY id");
+    const schema = await database.getAllAsync("SELECT name, sql FROM sqlite_master ORDER BY name");
+
+    await database.withExclusiveTransactionAsync((transaction) => applyMigration011(transaction));
+    await database.execAsync("PRAGMA user_version = 10");
+    await migrateDatabase(database);
+
+    expect(await database.getAllAsync("SELECT * FROM tours")).toEqual(tours);
+    expect(await database.getAllAsync("SELECT * FROM activities ORDER BY id")).toEqual(activities);
+    expect(await database.getAllAsync("SELECT name, sql FROM sqlite_master ORDER BY name")).toEqual(schema);
+  });
+
+  it("un échec pendant la reprise annule tout : colonnes absentes, user_version = 10", async () => {
+    const failing = failOnWrite(database, /post_activity_recovery_present = 1/);
+
+    await expect(migrateDatabase(failing.database)).rejects.toThrow("Injected failure");
+
+    expect((await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version"))?.user_version).toBe(10);
+    expect(await columns("tours")).toEqual([]);
+    expect(await columns("activities")).toEqual([]);
   });
 });

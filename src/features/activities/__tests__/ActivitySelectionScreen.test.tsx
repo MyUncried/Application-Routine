@@ -356,7 +356,8 @@ describe("ActivitySelectionScreen", () => {
 
     expect(updateDraft).toHaveBeenCalledTimes(1);
     const exercises = updateDraft.mock.calls[0][0].exercises ?? [];
-    expect(exercises[0]?.postActivityRecoverySeconds).toBe(0);
+    // PRE-6 (story 1.1, AD-35) : aucune récupération automatique = absente (`null`).
+    expect(exercises[0]?.postActivityRecoverySeconds).toBeNull();
     expect(exercises[0]?.executionParameters).toEqual(
       expect.objectContaining({ version: 3, mode: "DURATION" }),
     );

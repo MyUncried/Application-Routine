@@ -102,7 +102,7 @@ function normalizedExercise() {
     structuralPosition: DEFAULT_STRUCTURAL_POSITION,
     name: "Gainage",
     executionParameters: durationParameters(30, 1, 0),
-    postActivityRecoverySeconds: 0,
+    postActivityRecoverySeconds: null, // PRE-6 (story 1.1, AD-35) : née sans récupération
     instruction: null,
     bodyZoneIds: [],
   };
@@ -300,7 +300,7 @@ describe("SessionService.updateSession (T01-S10, Q3-A — toUpdateSessionInput)"
           position: 0,
           name: "Gainage",
           executionParameters: durationParameters(30, 1, 0),
-          postActivityRecoverySeconds: 0,
+          postActivityRecoverySeconds: null, // PRE-6 (story 1.1, AD-35) : née sans récupération
           instruction: null,
           bodyZoneIds: [],
         },
@@ -483,7 +483,8 @@ describe("SessionService.createSession — plus d'écrasement de la récupérati
     );
   });
 
-  it("passes the draft's neutral default (0) through unchanged when the occurrence never received one", async () => {
+  // PRE-6 (story 1.1, AD-35) : l'occurrence naît sans récupération (`null`), transmise telle quelle.
+  it("passes the draft's absent Récupération (null) through unchanged when the occurrence never received one", async () => {
     const sessionRepository = new FakeSessionRepository();
     sessionRepository.create.mockResolvedValue(aSession());
     const service = new SessionService(sessionRepository);
@@ -492,7 +493,7 @@ describe("SessionService.createSession — plus d'écrasement de la récupérati
 
     expect(sessionRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        exercises: [expect.objectContaining({ postActivityRecoverySeconds: 0 })],
+        exercises: [expect.objectContaining({ postActivityRecoverySeconds: null })],
       }),
     );
   });

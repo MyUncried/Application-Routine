@@ -31,6 +31,8 @@ export type ValidationField =
   | "session.finalPhaseSeconds"
   /** T01-S10 : répétition du Circuit (`1..99`, D-058). */
   | "session.tourRepeatCount"
+  /** PRE-6 (story 1.1, AD-34) : nature du Circuit (`TOURS` / `SERIES`). */
+  | "session.circuitNature"
   /** T01-S10 : identifiant source d'une modification bout en bout (`UpdateSessionInput.sourceSessionId`). */
   | "session.sourceSessionId"
   | "exercise.name"
@@ -39,7 +41,7 @@ export type ValidationField =
   | "exercise.repetitionCount"
   | "exercise.seriesCount"
   | "exercise.pauseSeconds"
-  /** V2-PRE-1 (plan §3.2) : récupération post-exercice de l'occurrence, obligatoire et indépendante de la définition (`0..5999` s). Remplace l'ancien champ historique `exercise.recoverySeconds`. */
+  /** V2-PRE-1 (plan §3.2) : récupération post-exercice de l'occurrence, indépendante de la définition (`0..5999` s, ou `null` = absente depuis PRE-6). Remplace l'ancien champ historique `exercise.recoverySeconds`. */
   | "exercise.postActivityRecoverySeconds"
   /** Mode d'exécution d'un Exercice (`DURATION` / `REPETITIONS`, PRE-4 AD-1) et, par défaut, tout autre paramètre d'exécution invalide. */
   | "exercise.executionMode"

@@ -21,7 +21,7 @@ Chaque ligne renvoie à sa source ; aucune n'est une déduction.
 - Les noms de code sont en anglais et rattachables au glossaire français (D-035).
 - Tout accès à la persistance passe par les repositories ; aucun ORM (chapitre 12, D-043).
 - Les textes d'interface sont centralisés dans un lexique de clés (RM-092) ; le MVP est en français sans sélecteur de langue (RM-091).
-- Ne jamais modifier `src/infrastructure/database/migrations/migration001.ts` : c'est le schéma initial, déjà appliqué sur les installations existantes. Un changement de schéma passe par une nouvelle migration numérotée, à la suite des dix présentes (001 à 010 au 20/10/2026).
+- Ne jamais modifier `src/infrastructure/database/migrations/migration001.ts` : c'est le schéma initial, déjà appliqué sur les installations existantes. Un changement de schéma passe par une nouvelle migration numérotée, à la suite des onze présentes (001 à 011 au 20/10/2026).
 - Les valeurs de `src/shared/ui/tokens.ts` sont verrouillées par `tokensSpecification.test.ts` contre le registre du chapitre 12 : en changer une casse un test par conception.
 
 ## Où sont les choses

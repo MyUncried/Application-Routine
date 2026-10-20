@@ -135,8 +135,9 @@ export function ActivitySelectionScreen() {
       // occurrence ne reçoit AUCUNE Récupération automatique — le défaut du
       // Profil n'est utilisé que par l'ajout explicite d'une Récupération
       // (placement PRE-4). Copie complète : paramètres, Catégorie et médias
-      // ordonnés (`activityDefinitionToDraftExercise`).
-      const copy = activityDefinitionToDraftExercise(definition, Crypto.randomUUID(), 0);
+      // ordonnés (`activityDefinitionToDraftExercise`). PRE-6 (story 1.1,
+      // AD-35) : l'occurrence naît sans récupération (`null`, absente).
+      const copy = activityDefinitionToDraftExercise(definition, Crypto.randomUUID(), null);
       nextExercises = appendActivityAfterLastDisplayed(nextExercises, copy);
     }
     // Insertion atomique : une seule mutation du brouillon pour l'ensemble

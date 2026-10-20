@@ -68,7 +68,8 @@ describe("createExerciseDraft", () => {
       // T02-S02 : la Récupération ATTACHÉE naît neutre (`0`) — jamais la
       // durée par défaut de l'ancienne Activité `RECOVERY` autonome, qui
       // aurait ajouté une récupération non demandée à chaque Activité.
-      postActivityRecoverySeconds: DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS,
+      // PRE-6 (story 1.1, AD-35) : elle naît ABSENTE (`null`), distincte de 0.
+      postActivityRecoverySeconds: null,
       instruction: null,
       bodyZoneIds: [],
       // V2-BILAT-01 : une nouvelle Activité naît `UNILATERAL` (comportement
@@ -83,8 +84,9 @@ describe("createExerciseDraft", () => {
     expect(createExerciseDraft("b").id).toBe("b");
   });
 
-  it("uses the Domain's neutral default (0) when no postActivityRecoverySeconds is provided (V2-PRE-2, T19)", () => {
-    expect(createExerciseDraft("ex-1").postActivityRecoverySeconds).toBe(0);
+  // PRE-6 (story 1.1, AD-35) : sans valeur fournie, l'occurrence naît sans récupération (`null`).
+  it("starts without any Récupération (null, absent) when no postActivityRecoverySeconds is provided (PRE-6, AD-35)", () => {
+    expect(createExerciseDraft("ex-1").postActivityRecoverySeconds).toBeNull();
   });
 
   it("uses the explicit postActivityRecoverySeconds provided by the caller — the Profile's current value at creation time (V2-PRE-2, D-171/D-213)", () => {
@@ -429,7 +431,8 @@ describe("toCreateSessionInput (T01-S09, multi-exercise)", () => {
             structuralPosition: DEFAULT_STRUCTURAL_POSITION,
             name: "Gainage",
             executionParameters: durationParameters(30),
-            postActivityRecoverySeconds: 0,
+            // PRE-6 (story 1.1, AD-35) : occurrence née sans récupération.
+            postActivityRecoverySeconds: null,
             instruction: null,
             bodyZoneIds: [],
           },
@@ -491,7 +494,8 @@ describe("toCreateSessionInput (T01-S09, multi-exercise)", () => {
         ["stretch", "EXERCISE", "AFTER_TOUR"],
       ]);
       expect(result.value.exercises.map((exercise) => exercise.postActivityRecoverySeconds)).toEqual([
-        0, 45, 0,
+        // PRE-6 (story 1.1, AD-35) : absentes (`null`) hors l'occurrence à 45 s.
+        null, 45, null,
       ]);
     }
   });
@@ -1054,5 +1058,92 @@ describe("PRE-4 story 1.3 — copies et duplications à Cibles typées (domaine)
     expect(source.bodyZoneIds).toEqual(["cuisses", "jambes"]);
     expect(source.media?.map((item) => item.assetId)).toEqual(["v1", "p1"]);
     expect(copy.media![1]!.asset).not.toBe(source.media![0]!.asset);
+  });
+});
+
+/**
+ * PRE-6 story 1.1 (AD-34, AD-35) : nature du Circuit portée par le brouillon
+ * comme `tourRepeatCount` ; récupération à trois états ; garde de sortie.
+ */
+describe("PRE6-1.1 — nature du Circuit et récupération nullable dans le brouillon", () => {
+  const draftWith = (overrides: Partial<SessionDraft> = {}): SessionDraft => ({
+    ...createEmptyDraft(),
+    name: "Séance",
+    tourRepeatCount: 4,
+    exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(30) }],
+    ...overrides,
+  });
+  const sessionWith = (activity: Activity, nature?: "TOURS" | "SERIES"): Session => ({
+    id: "session-1",
+    ownerId: "usr_test",
+    name: "Séance",
+    color: DEFAULT_SESSION_COLOR,
+    status: "ACTIVE",
+    initialCountdownSeconds: 10,
+    finalPhaseSeconds: 5,
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+    cycle: {
+      id: "cycle-1",
+      position: 1,
+      repeatCount: 1,
+      tour: { id: "tour-1", position: 1, repeatCount: 4, ...(nature ? { nature } : {}), exercises: [activity] },
+    },
+  });
+
+  it("aller-retour nature : brouillon SERIES, N = 4 vers une entrée SERIES, N = 4 (création et modification)", () => {
+    const draft = draftWith({ circuitNature: "SERIES" });
+    const created = toCreateSessionInput(draft);
+    expect(created.ok && [created.value.circuitNature, created.value.tourRepeatCount]).toEqual(["SERIES", 4]);
+    const updated = toUpdateSessionInput({ ...draft, sourceSessionId: "s-1" });
+    expect(updated.ok && [updated.value.circuitNature, updated.value.tourRepeatCount]).toEqual(["SERIES", 4]);
+  });
+
+  it("toSessionDraft relit la nature ; sans nature (fixture antérieure), le brouillon reste en Tours implicite", () => {
+    expect(toSessionDraft(sessionWith(anActivity(), "SERIES")).circuitNature).toBe("SERIES");
+    const legacy = toSessionDraft(sessionWith(anActivity()));
+    expect(legacy.circuitNature).toBeUndefined();
+    expect(sessionDraftsEqual(legacy, { ...legacy, circuitNature: "TOURS" })).toBe(true);
+  });
+
+  it("aller-retour récupération : null, 0 et 30 transmis tels quels", () => {
+    for (const value of [null, 0, 30]) {
+      const draft = draftWith({ exercises: [{ ...draftWith().exercises[0]!, postActivityRecoverySeconds: value }] });
+      const created = toCreateSessionInput(draft);
+      expect(created.ok && created.value.exercises[0]?.postActivityRecoverySeconds).toBe(value);
+    }
+  });
+
+  it("relue : null reste absente, 0 reste présente à 0 ; undefined (fixture antérieure) devient absente", () => {
+    expect(toSessionDraft(sessionWith(anActivity({ postActivityRecoverySeconds: null }))).exercises[0]?.postActivityRecoverySeconds).toBeNull();
+    expect(toSessionDraft(sessionWith(anActivity({ postActivityRecoverySeconds: 0 }))).exercises[0]?.postActivityRecoverySeconds).toBe(0);
+    expect(toSessionDraft(sessionWith(anActivity({ postActivityRecoverySeconds: undefined }))).exercises[0]?.postActivityRecoverySeconds).toBeNull();
+  });
+
+  it("garde de sortie : un changement de nature seul rend le brouillon modifié", () => {
+    const baseline = draftWith({ circuitNature: "TOURS" });
+    expect(isSessionDraftDirty({ ...baseline, circuitNature: "SERIES" }, baseline)).toBe(true);
+    expect(isSessionDraftDirty({ ...baseline }, baseline)).toBe(false);
+  });
+
+  it("garde de sortie : une récupération qui passe de null à 0 (ou inversement) rend le brouillon modifié", () => {
+    const baseline = draftWith();
+    const exercise = baseline.exercises[0]!;
+    expect(exercise.postActivityRecoverySeconds).toBeNull();
+    const zero = { ...baseline, exercises: [{ ...exercise, postActivityRecoverySeconds: 0 }] };
+    expect(isSessionDraftDirty(zero, baseline)).toBe(true);
+    expect(isSessionDraftDirty(baseline, zero)).toBe(true);
+    expect(exerciseEquals(exercise, { ...exercise, postActivityRecoverySeconds: 0 })).toBe(false);
+  });
+
+  it("une copie du Catalogue sans récupération naît absente (null)", () => {
+    const definition = {
+      id: "def-1",
+      name: "Squat",
+      description: null,
+      bodyZoneIds: [],
+      executionParameters: durationParameters(30),
+    } as unknown as ActivityDefinition;
+    expect(activityDefinitionToDraftExercise(definition, "copy-1", null).postActivityRecoverySeconds).toBeNull();
   });
 });

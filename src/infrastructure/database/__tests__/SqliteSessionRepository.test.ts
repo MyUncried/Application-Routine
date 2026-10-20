@@ -51,7 +51,16 @@ import type { MediaAsset } from "@/domain/media/MediaAsset";
 import { toSessionDurationResult } from "@/domain/sessions/calculations";
 import { duplicateActivity } from "@/domain/sessions/composition";
 
-import { isSessionDraftDirty, sessionDraftsEqual, toSessionDraft, toUpdateSessionInput, type SessionDraft } from "@/domain/sessions/SessionDraft";
+import {
+  createEmptyDraft,
+  createExerciseDraft,
+  isSessionDraftDirty,
+  sessionDraftsEqual,
+  toCreateSessionInput,
+  toSessionDraft,
+  toUpdateSessionInput,
+  type SessionDraft,
+} from "@/domain/sessions/SessionDraft";
 
 import { SqliteMediaRepository } from "@/infrastructure/database/repositories/SqliteMediaRepository";
 // Exceptionnellement, ce fichier d'infrastructure importe un composant de
@@ -2053,6 +2062,8 @@ function validRow(): SessionAggregateRow {
     // Colonne SQL technique, conservée mais sans influence fonctionnelle
     // (V2-PRE-1, plan §3.3) — le Tour n'expose plus de direction propre.
     tour_side_mode: "UNILATERAL",
+    // PRE-6 (story 1.1) : nature du Circuit (`migration011`).
+    tour_nature: "TOURS",
     activity_id: IDS[3]!,
     activity_type: "EXERCISE",
     activity_name: "Gainage",
@@ -2064,6 +2075,7 @@ function validRow(): SessionAggregateRow {
     series_count: 1,
     pause_seconds: 0,
     post_activity_recovery_seconds: 0,
+    post_activity_recovery_present: 0,
     instruction: null,
     // V2-BILAT-01 : direction propre de l'Activité (`migration005`, défaut `'UNILATERAL'`).
     activity_side_mode: "UNILATERAL",
@@ -2762,6 +2774,7 @@ function headerOnlyRow(): SessionAggregateQueryRow {
     series_count: null,
     pause_seconds: null,
     post_activity_recovery_seconds: null,
+    post_activity_recovery_present: null,
     instruction: null,
     activity_side_mode: null,
     activity_execution_parameters: null,
@@ -2772,7 +2785,8 @@ function headerOnlyRow(): SessionAggregateQueryRow {
 describe("PRE4-1.2/AC7 — assembleSession sur une ligne d'en-tête seule", () => {
   it("assemble une Séance vide avec ses paramètres et une composition vide", () => {
     const session = assembleSession([{ ...headerOnlyRow(), tour_repeat_count: 2 }], new Map());
-    expect(session.cycle.tour).toEqual({ id: IDS[2]!, position: 1, repeatCount: 2, exercises: [] });
+    // PRE-6 (story 1.1) : la nature persistée est relue avec le Tour.
+    expect(session.cycle.tour).toEqual({ id: IDS[2]!, position: 1, repeatCount: 2, nature: "TOURS", exercises: [] });
     expect(session.cycle.beforeTour).toBeUndefined();
     expect(session.cycle.afterTour).toBeUndefined();
     expect(session).toMatchObject({ id: IDS[0]!, name: "Séance", initialCountdownSeconds: 10, finalPhaseSeconds: 5 });
@@ -2794,5 +2808,152 @@ describe("PRE4-1.2/AC7 — assembleSession sur une ligne d'en-tête seule", () =
 
   it("lève sur un agrégat sans aucune ligne", () => {
     expect(() => assembleSession([], new Map())).toThrow();
+  });
+});
+
+/**
+ * PRE-6 story 1.1 (AC3, AD-34, AD-35) — aller-retour complet brouillon →
+ * entrée → SQLite réelle (`node:sqlite`) → lecture : nature du Circuit et
+ * récupération à trois états (absente, présente à 0, positive).
+ */
+describe("SqliteSessionRepository — PRE6-1.1 nature du Circuit et récupération nullable (NodeSqliteDatabase REAL)", () => {
+  let database: NodeSqliteDatabase;
+  let sequence = 0;
+  const ids = (prefix: string) => () => `${prefix}-${++sequence}`;
+
+  beforeEach(async () => {
+    database = NodeSqliteDatabase.openInMemory();
+    await migrateDatabase(database);
+  });
+
+  afterEach(() => {
+    database.close();
+  });
+
+  const repository = () => new SqliteSessionRepository(database, ids("ses"));
+
+  function draft(recoveries: readonly (number | null)[], overrides: Partial<SessionDraft> = {}, idPrefix = "ex"): SessionDraft {
+    return {
+      ...createEmptyDraft(),
+      name: "Circuit",
+      tourRepeatCount: 4,
+      exercises: recoveries.map((recovery, index) => ({
+        ...createExerciseDraft(`${idPrefix}-${index}`, recovery),
+        structuralPosition: "IN_TOUR" as const,
+        name: `Exercice ${index}`,
+        executionParameters: durationParameters(30, 4, 10),
+      })),
+      ...overrides,
+    };
+  }
+
+  async function create(source: SessionDraft): Promise<Session> {
+    const input = toCreateSessionInput(source);
+    if (!input.ok) throw new Error(`invalid draft: ${JSON.stringify(input.violations)}`);
+    return repository().create(input.value);
+  }
+
+  const storedRecoveries = () =>
+    database.getAllAsync("SELECT id, post_activity_recovery_seconds AS seconds, post_activity_recovery_present AS present FROM activities ORDER BY id");
+
+  it("aller-retour nature : brouillon SERIES, N = 4 → relu SERIES, N = 4 ; brouillon relu égal au brouillon d'origine", async () => {
+    const created = await create(draft([null], { circuitNature: "SERIES" }));
+    const reread = await repository().findById(created.id);
+
+    expect(reread?.cycle.tour.nature).toBe("SERIES");
+    expect(reread?.cycle.tour.repeatCount).toBe(4);
+    expect(await database.getAllAsync("SELECT nature, repeat_count FROM tours")).toEqual([{ nature: "SERIES", repeat_count: 4 }]);
+    const redrafted = toSessionDraft(reread!);
+    expect(redrafted.circuitNature).toBe("SERIES");
+    expect(sessionDraftsEqual(redrafted, draft([null], { circuitNature: "SERIES" }))).toBe(true);
+  });
+
+  it("sans nature explicite, la Séance est un Circuit de Tours", async () => {
+    const created = await create(draft([null]));
+    expect(created.cycle.tour.nature).toBe("TOURS");
+  });
+
+  it("aller-retour récupération : null, 0 et 30 relus null, 0 et 30 (présence 0, 1, 1)", async () => {
+    const created = await create(draft([null, 0, 30]));
+    const reread = await repository().findById(created.id);
+
+    expect(reread?.cycle.tour.exercises.map((activity) => activity.postActivityRecoverySeconds)).toEqual([null, 0, 30]);
+    expect(await storedRecoveries()).toEqual([
+      { id: "ex-0", seconds: 0, present: 0 },
+      { id: "ex-1", seconds: 0, present: 1 },
+      { id: "ex-2", seconds: 30, present: 1 },
+    ]);
+  });
+
+  it("modification : nature et récupérations (null ↔ 0) mises à jour en place, puis relues", async () => {
+    const created = await create(draft([null, 0, 30]));
+    const opened = toSessionDraft(created);
+    const edited: SessionDraft = {
+      ...opened,
+      circuitNature: "SERIES",
+      exercises: opened.exercises.map((exercise, index) => ({ ...exercise, postActivityRecoverySeconds: [0, null, 45][index]! })),
+    };
+    expect(isSessionDraftDirty(edited, opened)).toBe(true);
+    const input = toUpdateSessionInput(edited);
+    if (!input.ok) throw new Error("invalid draft");
+
+    const outcome = await repository().update(created.id, input.value);
+
+    expect(outcome.status).toBe("UPDATED");
+    const reread = await repository().findById(created.id);
+    expect(reread?.cycle.tour.nature).toBe("SERIES");
+    expect(reread?.cycle.tour.exercises.map((activity) => activity.postActivityRecoverySeconds)).toEqual([0, null, 45]);
+    expect(await storedRecoveries()).toEqual([
+      { id: "ex-0", seconds: 0, present: 1 },
+      { id: "ex-1", seconds: 0, present: 0 },
+      { id: "ex-2", seconds: 45, present: 1 },
+    ]);
+  });
+
+  it("modification sans nature dans l'entrée : la nature persistée est conservée, jamais ramenée à TOURS", async () => {
+    const created = await create(draft([null], { circuitNature: "SERIES" }));
+    const { circuitNature: _omitted, ...withoutNature } = toSessionDraft(created);
+    const input = toUpdateSessionInput({ ...withoutNature, name: "Renommée" });
+    if (!input.ok) throw new Error("invalid draft");
+    expect(input.value.circuitNature).toBeUndefined();
+
+    expect((await repository().update(created.id, input.value)).status).toBe("UPDATED");
+    expect((await repository().findById(created.id))?.cycle.tour.nature).toBe("SERIES");
+  });
+
+  it("calculs inchangés : une récupération absente ou à 0 ne remplace aucune Pause ; seule une valeur positive la remplace", async () => {
+    const absent = await create(draft([null], {}, "absent"));
+    const zero = await create(draft([0], {}, "zero"));
+    const positive = await create(draft([45], {}, "positive"));
+    const durations = new Map((await repository().listActive()).map((summary) => [summary.id, summary.estimatedDurationSeconds]));
+
+    expect(durations.get(absent.id)).toBe(durations.get(zero.id));
+    // 4 Séries de 30 s, 3 Pauses de 10 s, Pause terminale 10 s remplacée par 45 s ; × 4 Tours.
+    expect(durations.get(zero.id)).toBe(4 * (4 * 30 + 4 * 10));
+    expect(durations.get(positive.id)).toBe(4 * (4 * 30 + 3 * 10 + 45));
+  });
+
+  it("nature invalide : SessionValidationError (UNRECOGNIZED sur session.circuitNature), rien n'est écrit", async () => {
+    const input = toCreateSessionInput(draft([null], { circuitNature: "SERIES" }));
+    if (!input.ok) throw new Error("invalid draft");
+
+    await expect(
+      repository().create({ ...input.value, circuitNature: "FOO" as unknown as "TOURS" }),
+    ).rejects.toMatchObject({ violations: [{ code: "UNRECOGNIZED", field: "session.circuitNature" }] });
+    expect(await database.getAllAsync("SELECT id FROM sessions")).toEqual([]);
+    expect(await database.getAllAsync("SELECT id FROM tours")).toEqual([]);
+  });
+
+  it("relecture défensive : nature inconnue ou présence incohérente en base → contrat d'agrégat refusé", async () => {
+    const created = await create(draft([null]));
+    // Le CHECK interdit ces valeurs ; on simule une ligne corrompue en le contournant.
+    await database.execAsync("PRAGMA ignore_check_constraints = ON");
+    await database.runAsync("UPDATE tours SET nature = 'FOO'");
+    await expect(repository().findById(created.id)).rejects.toThrow("does not satisfy");
+    await database.runAsync("UPDATE tours SET nature = 'TOURS'");
+    await database.runAsync("UPDATE activities SET post_activity_recovery_seconds = 30, post_activity_recovery_present = 0");
+    await expect(repository().findById(created.id)).rejects.toThrow("does not satisfy");
+    await database.runAsync("UPDATE activities SET post_activity_recovery_seconds = 0, post_activity_recovery_present = 2");
+    await expect(repository().findById(created.id)).rejects.toThrow("does not satisfy");
   });
 });

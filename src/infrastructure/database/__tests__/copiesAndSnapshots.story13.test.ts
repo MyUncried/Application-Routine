@@ -500,7 +500,7 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
       const untimed = envelope(withoutBeep, null);
 
       await migrateDatabase(v9);
-      expect(await v9.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 10 });
+      expect(await v9.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 11 });
       expect(await v9.getAllAsync("SELECT name FROM sqlite_master WHERE name LIKE '%snapshot%'")).toEqual([]);
       const migrated = (await new SqliteActivityDefinitionRepository(v9, ids("def")).findById("def-v9"))!;
 
@@ -797,7 +797,7 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
       const files = [...store.files];
 
       await migrateDatabase(v9);
-      expect(await v9.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 10 });
+      expect(await v9.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 11 });
       expect(await media()).toEqual(before);
       expect((await new SqliteActivityDefinitionRepository(v9, ids("def")).findById("def-v9"))?.media?.map((item) => item.assetId)).toEqual(["a-def", "a-copy"]);
       const mediaRepository = new SqliteMediaRepository(v9);

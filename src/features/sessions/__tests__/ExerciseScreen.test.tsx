@@ -592,7 +592,7 @@ describe("ExerciseScreen — PRE-3 (quatre parcours)", () => {
     const { updateDraft } = renderRoute({ profile: { postActivityRecoverySecondsDefault: 45 } });
     await fillNewExercise();
     fireEvent.press(screen.getByTestId("exercise-finish-action"));
-    expect(updateDraft.mock.calls[0]![0].exercises![0]!.postActivityRecoverySeconds).toBe(0);
+    expect(updateDraft.mock.calls[0]![0].exercises![0]!.postActivityRecoverySeconds).toBeNull(); // PRE-6 (story 1.1, AD-35) : absente
 
     const existing = canonicalOccurrence({ id: "occ-3" });
     const second = renderRoute({ params: { exerciseId: "occ-3" }, exercises: [existing], profile: { postActivityRecoverySecondsDefault: 45 } });

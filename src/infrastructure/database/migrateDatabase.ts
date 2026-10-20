@@ -12,6 +12,7 @@ import { MIGRATION_007 } from "./migrations/migration007";
 import { MIGRATION_008_COLUMNS, MIGRATION_008_FINALIZE } from "./migrations/migration008";
 import { MIGRATION_009 } from "./migrations/migration009";
 import { applyMigration010 } from "./migrations/migration010";
+import { applyMigration011 } from "./migrations/migration011";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -146,6 +147,14 @@ export async function migrateDatabase(
     if (version === 9) {
       await applyMigration010(transaction, now);
       version = 10;
+    }
+
+    // PRE-6 (story 1.1, AD-34, AD-35) : nature du Circuit et présence de la
+    // récupération — `ADD COLUMN` idempotents et reprise, dans CETTE
+    // transaction : un échec annule tout et laisse `user_version` inchangé.
+    if (version === 10) {
+      await applyMigration011(transaction);
+      version = 11;
     }
 
     const userCount = await transaction.getFirstAsync<CountRow>(

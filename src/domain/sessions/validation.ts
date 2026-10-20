@@ -32,6 +32,7 @@ import {
   type ExecutionParametersViolation,
 } from "@/domain/activities/ExecutionParameters";
 
+import { DEFAULT_CIRCUIT_NATURE, isCircuitNature, type CircuitNature } from "./circuit";
 import { DEFAULT_SIDE_MODE } from "./defaults";
 import { isSideMode, type SideMode } from "./sideMode";
 
@@ -197,10 +198,17 @@ export function validatePauseSeconds(raw: number): ValidationResult<number> {
  * V2-PRE-1 (plan §3.2) : récupération post-exercice de l'occurrence (RM-129).
  * Entier de 0 à 5999 secondes — `0` signifie « aucune récupération » et reste
  * parfaitement valide (CE-T01-13). Remplace l'ancien `validateRecoverySeconds`.
+ *
+ * PRE-6 (story 1.1, AD-35) : `null` = récupération ABSENTE, distincte de `0`
+ * (présente à 0) — toujours valide, conservée telle quelle. La plage
+ * `0..5999` est inchangée (story 4.2).
  */
-export function validatePostActivityRecoverySeconds(raw: number): ValidationResult<number> {
+export function validatePostActivityRecoverySeconds(raw: number | null): ValidationResult<number | null> {
   const field: ValidationField = "exercise.postActivityRecoverySeconds";
 
+  if (raw === null) {
+    return ok(null);
+  }
   if (!Number.isInteger(raw)) {
     return fail([{ code: "NOT_INTEGER", field }]);
   }
@@ -250,6 +258,21 @@ export function validateRecoveryDurationSeconds(raw: number): ValidationResult<n
         details: { min: RECOVERY_DURATION_MIN_SECONDS, max: RECOVERY_DURATION_MAX_SECONDS },
       },
     ]);
+  }
+  return ok(raw);
+}
+
+/**
+ * PRE-6 (story 1.1, AD-34) : nature du Circuit reconnue (`TOURS` / `SERIES`).
+ * `undefined` (champ de transition absent) vaut `DEFAULT_CIRCUIT_NATURE` ;
+ * toute autre valeur est `UNRECOGNIZED` sur `session.circuitNature`.
+ */
+export function validateCircuitNature(raw: unknown): ValidationResult<CircuitNature> {
+  if (raw === undefined) {
+    return ok(DEFAULT_CIRCUIT_NATURE);
+  }
+  if (!isCircuitNature(raw)) {
+    return fail([{ code: "UNRECOGNIZED", field: "session.circuitNature" }]);
   }
   return ok(raw);
 }
@@ -429,15 +452,15 @@ function unwrap<T>(
  * (`UpdateSessionActivityInput`).
  */
 type ActivityParameterInput = {
-  /** V2-PRE-1 : récupération post-exercice de l'occurrence (`0..5999`). */
-  readonly postActivityRecoverySeconds: number;
+  /** V2-PRE-1 : récupération post-exercice de l'occurrence (`0..5999`) ; PRE-6 (AD-35) : `null` = absente. */
+  readonly postActivityRecoverySeconds: number | null;
   readonly bodyZoneIds: readonly string[];
   /** PRE-4 (story 1.1) : paramètres typés obligatoires — seule source du Mode, des Cibles, de N et des Pauses. */
   readonly executionParameters: ExecutionParametersInput;
 };
 
 type ActivityParameterValues = {
-  readonly postActivityRecoverySeconds: number;
+  readonly postActivityRecoverySeconds: number | null;
   readonly bodyZoneIds: readonly string[];
   /** Paramètres validés au niveau structurel et normalisés (N=1 effectif) ; absents si invalides. */
   readonly executionParameters?: ExecutionParameters;
@@ -472,7 +495,9 @@ function validateActivityParameters(
   violations: ValidationViolation[],
 ): ActivityParameterValues {
   if (type === "RECOVERY") {
-    if (activity.postActivityRecoverySeconds !== 0) {
+    // PRE-6 (story 1.1, AD-35) : `null` ou `0` admis, normalisés en `null`
+    // (aucune Récupération attachée à une ancienne Récupération autonome).
+    if (activity.postActivityRecoverySeconds !== 0 && activity.postActivityRecoverySeconds !== null) {
       violations.push({ code: "MUST_BE_ABSENT", field: "exercise.postActivityRecoverySeconds" });
     }
     if (activity.bodyZoneIds.length > 0) {
@@ -483,20 +508,24 @@ function validateActivityParameters(
       violations.push({ code: "REQUIRED", field: "recovery.durationSeconds" });
     }
     return {
-      postActivityRecoverySeconds: 0,
+      postActivityRecoverySeconds: null,
       bodyZoneIds: [],
       ...(recovery.ok ? { executionParameters: recovery.value } : {}),
     };
   }
 
   if (type !== "EXERCISE") {
-    return { postActivityRecoverySeconds: 0, bodyZoneIds: [] };
+    return { postActivityRecoverySeconds: null, bodyZoneIds: [] };
   }
 
   // V2-PRE-1 : la récupération post-exercice est portée par l'occurrence,
-  // jamais par les paramètres d'exécution — validée à part.
-  const postActivityRecoverySeconds =
-    unwrap(validatePostActivityRecoverySeconds(activity.postActivityRecoverySeconds), violations) ?? 0;
+  // jamais par les paramètres d'exécution — validée à part. PRE-6 (AD-35) :
+  // `null` (absente) est conservé, jamais ramené à `0`.
+  const recovery = validatePostActivityRecoverySeconds(activity.postActivityRecoverySeconds);
+  const postActivityRecoverySeconds = recovery.ok ? recovery.value : null;
+  if (!recovery.ok) {
+    violations.push(...recovery.violations);
+  }
 
   const parameters = validateForSave(activity.executionParameters, "STORAGE");
   if (!parameters.ok) {
@@ -624,6 +653,7 @@ export function validateCreateSessionInput(
     violations,
   );
   const tourRepeatCount = unwrap(validateTourRepeatCount(input.tourRepeatCount), violations);
+  const circuitNature = unwrap(validateCircuitNature(input.circuitNature), violations);
 
   const exercises: CreateSessionActivityInput[] = [];
   if (input.exercises.length === 0) {
@@ -661,6 +691,9 @@ export function validateCreateSessionInput(
     initialCountdownSeconds: initialCountdownSeconds as number,
     finalPhaseSeconds: finalPhaseSeconds as number,
     tourRepeatCount: tourRepeatCount as number,
+    // PRE-6 (story 1.1, AD-34) : transmise seulement si fournie (champ de
+    // transition) ; absente, le Repository écrit `DEFAULT_CIRCUIT_NATURE`.
+    ...(input.circuitNature !== undefined ? { circuitNature: circuitNature as CircuitNature } : {}),
     exercises,
     // V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : transmis tel quel —
     // la position DANS sa portée est dérivée de l'ordre du tableau par le
@@ -743,6 +776,7 @@ export function validateUpdateSessionInput(
   );
   const finalPhaseSeconds = unwrap(validateFinalPhaseSeconds(input.finalPhaseSeconds), violations);
   const tourRepeatCount = unwrap(validateTourRepeatCount(input.tourRepeatCount), violations);
+  const circuitNature = unwrap(validateCircuitNature(input.circuitNature), violations);
 
   const activities: UpdateSessionActivityInput[] = [];
   if (input.activities.length === 0) {
@@ -778,6 +812,7 @@ export function validateUpdateSessionInput(
     initialCountdownSeconds: initialCountdownSeconds as number,
     finalPhaseSeconds: finalPhaseSeconds as number,
     tourRepeatCount: tourRepeatCount as number,
+    ...(input.circuitNature !== undefined ? { circuitNature: circuitNature as CircuitNature } : {}),
     activities,
     stopPoints: input.stopPoints ?? [],
     ...(input.persistedActivityIds !== undefined ? { persistedActivityIds: [...input.persistedActivityIds] } : {}),

@@ -28,6 +28,7 @@ import {
   validateSessionName,
   validateTourRepeatCount,
   validateUpdateSessionInput,
+  validateCircuitNature,
 } from "@/domain/sessions/validation";
 
 describe("validateSessionName / validateExerciseName", () => {
@@ -1126,5 +1127,96 @@ describe("validateUpdateSessionInput (T01-S10, plan §6.2)", () => {
         activities: [],
       }),
     ).not.toThrow();
+  });
+});
+
+/**
+ * PRE-6 story 1.1 (AD-34, AD-35) : nature du Circuit validée et récupération
+ * à trois états (absente `null`, présente à 0, positive).
+ */
+describe("PRE6-1.1 — nature du Circuit et récupération nullable", () => {
+  type CreateInput = Parameters<typeof validateCreateSessionInput>[0];
+  const exercise = (postActivityRecoverySeconds: number | null) => ({
+    id: "ex-1",
+    type: "EXERCISE" as const,
+    structuralPosition: "IN_TOUR" as const,
+    name: "Gainage",
+    executionParameters: durationParameters(30),
+    postActivityRecoverySeconds,
+    bodyZoneIds: [] as string[],
+  });
+  const createInput = (overrides: Record<string, unknown> = {}): CreateInput =>
+    ({
+      name: "Séance",
+      labelId: null,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 4,
+      exercises: [exercise(null)],
+      ...overrides,
+    }) as CreateInput;
+  const updateInput = (overrides: Record<string, unknown> = {}): UpdateSessionInput =>
+    ({
+      sourceSessionId: "s-1",
+      name: "Séance",
+      labelId: null,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 4,
+      activities: [{ ...exercise(null), position: 0 }],
+      ...overrides,
+    }) as UpdateSessionInput;
+
+  it("validateCircuitNature : TOURS et SERIES reconnus ; absent = TOURS ; toute autre valeur UNRECOGNIZED", () => {
+    expect(validateCircuitNature("TOURS")).toEqual({ ok: true, value: "TOURS" });
+    expect(validateCircuitNature("SERIES")).toEqual({ ok: true, value: "SERIES" });
+    expect(validateCircuitNature(undefined)).toEqual({ ok: true, value: "TOURS" });
+    for (const raw of ["FOO", "", null, 1]) {
+      expect(validateCircuitNature(raw)).toEqual({ ok: false, violations: [{ code: "UNRECOGNIZED", field: "session.circuitNature" }] });
+    }
+  });
+
+  it("une nature invalide fait échouer la création et la modification sur session.circuitNature", () => {
+    expect(validateCreateSessionInput(createInput({ circuitNature: "FOO" }))).toEqual({
+      ok: false,
+      violations: [{ code: "UNRECOGNIZED", field: "session.circuitNature" }],
+    });
+    expect(validateUpdateSessionInput(updateInput({ circuitNature: "FOO" }))).toEqual({
+      ok: false,
+      violations: [{ code: "UNRECOGNIZED", field: "session.circuitNature" }],
+    });
+  });
+
+  it("une nature valide est transmise par les deux agrégats ; absente, elle reste absente (Tours implicite)", () => {
+    const created = validateCreateSessionInput(createInput({ circuitNature: "SERIES" }));
+    expect(created.ok && created.value.circuitNature).toBe("SERIES");
+    const updated = validateUpdateSessionInput(updateInput({ circuitNature: "SERIES" }));
+    expect(updated.ok && updated.value.circuitNature).toBe("SERIES");
+    const implicit = validateCreateSessionInput(createInput());
+    expect(implicit.ok && "circuitNature" in implicit.value).toBe(false);
+  });
+
+  it.each([null, 0, 30])("validatePostActivityRecoverySeconds(%p) est conservée telle quelle", (value) => {
+    expect(validatePostActivityRecoverySeconds(value)).toEqual({ ok: true, value });
+  });
+
+  it("récupération null, 0 et 30 : identiques après validation (création et modification)", () => {
+    for (const value of [null, 0, 30]) {
+      const created = validateCreateSessionInput(createInput({ exercises: [exercise(value)] }));
+      expect(created.ok && created.value.exercises[0]?.postActivityRecoverySeconds).toBe(value);
+      const updated = validateUpdateSessionInput(updateInput({ activities: [{ ...exercise(value), position: 0 }] }));
+      expect(updated.ok && updated.value.activities[0]?.postActivityRecoverySeconds).toBe(value);
+    }
+  });
+
+  it("récupération -1 et 1,5 : violations existantes OUT_OF_RANGE et NOT_INTEGER", () => {
+    expect(validateCreateSessionInput(createInput({ exercises: [exercise(-1)] }))).toEqual({
+      ok: false,
+      violations: [{ code: "OUT_OF_RANGE", field: "exercise.postActivityRecoverySeconds", details: { min: 0, max: 5999 } }],
+    });
+    expect(validateCreateSessionInput(createInput({ exercises: [exercise(1.5)] }))).toEqual({
+      ok: false,
+      violations: [{ code: "NOT_INTEGER", field: "exercise.postActivityRecoverySeconds" }],
+    });
   });
 });

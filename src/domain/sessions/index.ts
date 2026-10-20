@@ -14,3 +14,4 @@ export * from "./SessionDraft";
 export * from "./composition";
 export * from "./sideMode";
 export * from "./StopPoint";
+export * from "./circuit";
