@@ -263,20 +263,20 @@ function renderRoute(options: {
   mockSearchParams = options.params ?? {};
   const updateDraft = jest.fn<(patch: Partial<SessionDraftContextValue["draft"]>) => void>();
   const service = fakeActivityDefinitionService(options.service);
-  render(
+  const referential = fakeReferentialService({ listCategories: jest.fn(async () => [A_CATEGORY]), ...options.referential });
+  const profileService = fakeProfileService({
+    getProfile: jest.fn(async () => ({
+      ...createDefaultProfile("profile-1", "2026-01-01T00:00:00.000Z"),
+      ...options.profile,
+    })),
+  });
+  const resetDraft = jest.fn();
+  // PRE-6 story 3.3 : même arbre, occurrences du brouillon remplaçables (hydratation tardive).
+  const tree = (exercises: readonly SessionDraftExercise[]) => (
     <TestSafeAreaProvider>
       <ActivityDefinitionServiceContext.Provider value={service}>
-        <ReferentialServiceContext.Provider
-          value={fakeReferentialService({ listCategories: jest.fn(async () => [A_CATEGORY]), ...options.referential })}
-        >
-          <ProfileServiceContext.Provider
-            value={fakeProfileService({
-              getProfile: jest.fn(async () => ({
-                ...createDefaultProfile("profile-1", "2026-01-01T00:00:00.000Z"),
-                ...options.profile,
-              })),
-            })}
-          >
+        <ReferentialServiceContext.Provider value={referential}>
+          <ProfileServiceContext.Provider value={profileService}>
             <SessionDraftContext.Provider
               value={{
                 draft: {
@@ -284,11 +284,11 @@ function renderRoute(options: {
                   labelId: null,
                   initialCountdownSeconds: 10,
                   finalPhaseSeconds: 5,
-                  exercises: options.exercises ?? [],
+                  exercises,
                   ...options.draft,
                 },
                 updateDraft,
-                resetDraft: jest.fn(),
+                resetDraft,
               }}
             >
               <ExerciseScreen />
@@ -296,9 +296,10 @@ function renderRoute(options: {
           </ProfileServiceContext.Provider>
         </ReferentialServiceContext.Provider>
       </ActivityDefinitionServiceContext.Provider>
-    </TestSafeAreaProvider>,
+    </TestSafeAreaProvider>
   );
-  return { updateDraft, service };
+  const view = render(tree(options.exercises ?? []));
+  return { updateDraft, service, rerenderExercises: (exercises: readonly SessionDraftExercise[]) => view.rerender(tree(exercises)) };
 }
 
 async function chooseCategory() {
@@ -1682,5 +1683,141 @@ describe("ExerciseScreen — création dans un Circuit de Séries (PRE-6, story 
     expect(screen.queryByText(modal.addTitle)).toBeNull();
     const added = updateDraft.mock.calls[0]![0].exercises!.find((exercise) => exercise.id !== "in-1")!;
     expect(seriesCountOf(added)).toBe(1);
+  });
+});
+
+/**
+ * PRE-6 (story 3.3, AD-37, AD-44) : N hérité dans la Feuille des paramètres. Une occurrence
+ * existante `IN_TOUR`, de type `EXERCISE`, d'un Circuit de Séries ouvre la Feuille avec le nombre
+ * de séries indisponible ; Tours, hors Circuit, autre type et nouvelle occurrence : Feuille
+ * inchangée. Une occurrence dont les séries diffèrent de celles de l'ouverture perd son entrée de
+ * réserve de Circuit à « Terminer », dans la même mise à jour que les occurrences.
+ */
+describe("ExerciseScreen — N hérité dans la Feuille (PRE-6, story 3.3)", () => {
+  const hint = strings.executionParameters.circuit.inheritedSeriesCount;
+  type Draft = SessionDraftContextValue["draft"];
+  type Updater = (current: Draft) => Partial<Draft>;
+  const occurrence = (overrides: Partial<SessionDraftExercise> = {}) =>
+    canonicalOccurrence({ id: "in-1", structuralPosition: "IN_TOUR", ...overrides });
+  const openSheet = () => fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+  const seriesToggle = () => screen.getByTestId("execution-sheet-series-toggle");
+  const isLocked = () => seriesToggle().props.accessibilityState?.disabled === true;
+  const reserve = { "in-1": [{ target: { kind: "NUMBER" as const, value: 60 }, pauseSeconds: 10, loadKg: 0 }] };
+  const other = { "in-2": reserve["in-1"] };
+  const seriesDraft = { circuitNature: "SERIES" as const, tourRepeatCount: 2, circuitSeriesReserve: { ...reserve, ...other } };
+
+  it("Séries, occurrence du Circuit : nombre affiché, indisponible et expliqué ; croix indisponibles ; régime modifiable, N conservé", () => {
+    const { updateDraft } = renderRoute({
+      params: { exerciseId: "in-1" },
+      exercises: [occurrence()],
+      draft: { circuitNature: "SERIES", tourRepeatCount: 2 },
+    });
+    openSheet();
+    expect(isLocked()).toBe(true);
+    expect(seriesToggle().props.accessibilityHint).toBe(hint);
+    expect(String(screen.getByTestId("execution-sheet-series-value").props.children)).toBe("2 séries variables");
+    expect(screen.getByTestId("execution-sheet-table-row-1-remove").props.accessibilityState).toMatchObject({ disabled: true });
+    fireEvent.press(screen.getByTestId("execution-sheet-series-type-control-UNIFORM"));
+    expect(String(screen.getByTestId("execution-sheet-series-value").props.children)).toBe("2 séries identiques");
+    fireEvent.press(screen.getByTestId("execution-sheet-validate"));
+    fireEvent.press(screen.getByTestId("exercise-finish-action"));
+    const finished = (updateDraft.mock.calls[0]![0] as Partial<Draft>).exercises![0]!;
+    expect(finished.executionParameters.series).toMatchObject({ kind: "UNIFORM", count: 2 });
+  });
+
+  it("Tours (explicite ou par défaut), hors Circuit (avant, après), occurrence non `EXERCISE` ou nouvelle occurrence : nombre modifiable, sans indice", () => {
+    const cases: { readonly exercise: SessionDraftExercise; readonly draft: Partial<Draft>; readonly id?: string }[] = [
+      { exercise: occurrence(), draft: { circuitNature: "TOURS", tourRepeatCount: 2 }, id: "in-1" },
+      { exercise: occurrence(), draft: { tourRepeatCount: 2 }, id: "in-1" },
+      { exercise: occurrence({ structuralPosition: "BEFORE_TOUR" }), draft: { circuitNature: "SERIES", tourRepeatCount: 2 }, id: "in-1" },
+      { exercise: occurrence({ structuralPosition: "AFTER_TOUR" }), draft: { circuitNature: "SERIES", tourRepeatCount: 2 }, id: "in-1" },
+      { exercise: occurrence({ type: "RECOVERY" }), draft: { circuitNature: "SERIES", tourRepeatCount: 2 }, id: "in-1" },
+      { exercise: occurrence(), draft: { circuitNature: "SERIES", tourRepeatCount: 2 } },
+    ];
+    for (const { exercise, draft, id } of cases) {
+      renderRoute({ params: id === undefined ? {} : { exerciseId: id }, exercises: [exercise], draft });
+      openSheet();
+      expect(isLocked()).toBe(false);
+      expect(seriesToggle().props.accessibilityHint).toBeUndefined();
+      screen.unmount();
+    }
+  });
+
+  it("sortie du Circuit : la prochaine ouverture (occurrence désormais hors Circuit) rend le nombre modifiable, sans message", () => {
+    renderRoute({
+      params: { exerciseId: "in-1" },
+      exercises: [occurrence()],
+      draft: { circuitNature: "SERIES", tourRepeatCount: 2 },
+    });
+    openSheet();
+    expect(isLocked()).toBe(true);
+    screen.unmount();
+    renderRoute({
+      params: { exerciseId: "in-1" },
+      exercises: [occurrence({ structuralPosition: "AFTER_TOUR" })],
+      draft: { circuitNature: "SERIES", tourRepeatCount: 2 },
+    });
+    openSheet();
+    expect(isLocked()).toBe(false);
+    expect(screen.queryByText(hint)).toBeNull();
+  });
+
+  it("hydratation tardive : l'occurrence absente au montage est lue dès qu'elle paraît ; le contexte reste ensuite figé", () => {
+    const { rerenderExercises } = renderRoute({
+      params: { exerciseId: "in-1" },
+      exercises: [],
+      draft: { circuitNature: "SERIES", tourRepeatCount: 2 },
+    });
+    rerenderExercises([occurrence()]);
+    openSheet();
+    expect(isLocked()).toBe(true);
+    fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
+    // Figé : l'occurrence sortie du Circuit pendant l'édition garde le contexte de l'ouverture.
+    rerenderExercises([occurrence({ structuralPosition: "AFTER_TOUR" })]);
+    openSheet();
+    expect(isLocked()).toBe(true);
+  });
+
+  it("réserve : séries modifiées → UNE mise à jour fonctionnelle (occurrences et réserve sans l'entrée de l'occurrence)", () => {
+    const { updateDraft } = renderRoute({ params: { exerciseId: "in-1" }, exercises: [occurrence()], draft: seriesDraft });
+    openSheet();
+    fireEvent.press(screen.getByTestId("execution-sheet-series-type-control-UNIFORM"));
+    fireEvent.press(screen.getByTestId("execution-sheet-validate"));
+    fireEvent.press(screen.getByTestId("exercise-finish-action"));
+    expect(updateDraft).toHaveBeenCalledTimes(1);
+    const updater = updateDraft.mock.calls[0]![0] as unknown as Updater;
+    expect(typeof updater).toBe("function");
+    const current = { exercises: [occurrence()], circuitSeriesReserve: { ...reserve, ...other } } as unknown as Draft;
+    const patch = updater(current);
+    expect(patch.circuitSeriesReserve).toEqual(other);
+    expect(patch.exercises![0]!.executionParameters.series).toMatchObject({ kind: "UNIFORM", count: 2 });
+    // Calculé sur le brouillon courant : réserve devenue vide → clé présente, `undefined`.
+    expect(updater({ ...current, circuitSeriesReserve: reserve })).toHaveProperty("circuitSeriesReserve", undefined);
+  });
+
+  it("réserve conservée : nom seul, ✓ de la Feuille sans modification, ou paramètre hors séries (cadence) — mise à jour simple, sans réserve", () => {
+    const keepsReserve = (edit: () => void) => {
+      const { updateDraft } = renderRoute({ params: { exerciseId: "in-1" }, exercises: [occurrence()], draft: seriesDraft });
+      edit();
+      fireEvent.press(screen.getByTestId("exercise-finish-action"));
+      expect(updateDraft).toHaveBeenCalledTimes(1);
+      const patch = updateDraft.mock.calls[0]![0];
+      expect(typeof patch).toBe("object");
+      expect(patch).not.toHaveProperty("circuitSeriesReserve");
+      screen.unmount();
+      return patch.exercises![0]!;
+    };
+    keepsReserve(() => fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Fentes sautées"));
+    const unchanged = keepsReserve(() => {
+      openSheet();
+      fireEvent.press(screen.getByTestId("execution-sheet-validate"));
+    });
+    expect(unchanged.executionParameters).toEqual(CANONICAL);
+    const cadence = keepsReserve(() => {
+      openSheet();
+      fireEvent.press(screen.getByTestId("execution-sheet-cadence-control-NONE"));
+      fireEvent.press(screen.getByTestId("execution-sheet-validate"));
+    });
+    expect(cadence.executionParameters.cadenceBeepIntervalSeconds).toBe(0);
   });
 });

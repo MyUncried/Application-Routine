@@ -115,6 +115,12 @@ export type ActivityEditorFormProps = {
    */
   exerciseSignals?: "present" | "absent";
   /**
+   * PRE-6 story 3.3 (AD-37, AD-44) : occurrence d'un Circuit de Séries — N hérité, transmis
+   * à la Feuille (`openSheetDraft(parent, { inheritedSeriesCount })`). Défaut `false`. Lu par la
+   * Feuille à son montage (chaque ouverture) ; l'appelant le fige pour la vie de l'éditeur.
+   */
+  inheritedSeriesCount?: boolean;
+  /**
    * PRE-4 (story 1.1, AD-13) : ligne de base des paramètres, relue à
    * l'ouverture de l'Éditeur (`null` en création) — transmise au ✓ de la
    * Feuille pour la validation unique `validateForSave` (H25).
@@ -260,6 +266,7 @@ export function ActivityEditorForm({
   categoryAccessRef,
   profileSideRecoverySecondsDefault,
   exerciseSignals = "present",
+  inheritedSeriesCount = false,
   baselineParameters = null,
   mediaService,
   mediaDraftId,
@@ -608,6 +615,7 @@ export function ActivityEditorForm({
           baseline={baselineParameters}
           profileSideRecoverySecondsDefault={profileSideRecoverySecondsDefault}
           exerciseSignals={exerciseSignals}
+          inheritedSeriesCount={inheritedSeriesCount}
           onApply={applyParameters}
           onCancel={closeSheet}
         />

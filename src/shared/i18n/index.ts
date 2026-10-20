@@ -196,6 +196,13 @@ const executionParameters = {
     adjusted: "Durée ajustée à {duration} pour respecter un nombre entier de séries.",
     disabledSuffix: "sans effet pour une seule série",
   },
+  // PRE-6 story 3.3 (AD-37, AD-44) : Feuille d’un exercice d’un Circuit de Séries — nombre de
+  // séries indisponible : suffixe du nom accessible et indice (nombre et croix de retrait). Hors de
+  // `sheet`, dont le lexique proscrit « Circuit » depuis PRE-4 (`PRE4-3.8/AC4`), terme repris par PRE-6.
+  circuit: {
+    inheritedSeriesCountSuffix: "imposé par le circuit",
+    inheritedSeriesCount: "Nombre de séries imposé par le circuit",
+  },
   media: {
     section: "Médias",
     add: "Ajouter des photos ou vidéos",

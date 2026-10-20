@@ -20,6 +20,7 @@ import {
   DEFAULT_SIDE_CHANGE_RECOVERY_SECONDS,
   type Silhouette,
 } from "@/domain/preferences/Profile";
+import { DEFAULT_CIRCUIT_NATURE, exitCircuit, type CircuitNature } from "@/domain/sessions/circuit";
 import { settleCircuitMembership } from "@/domain/sessions/circuitMembership";
 import { appendActivityAfterLastDisplayed } from "@/domain/sessions/composition";
 import { createExerciseDraft, exerciseEquals, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
@@ -504,6 +505,40 @@ function occurrenceEquals(
 }
 
 /**
+ * PRE-6 (story 3.3) : mêmes séries (Régime, nombre, Cibles, Pauses, charges, phases), les
+ * autres paramètres étant ignorés.
+ */
+function seriesEqual(a: ExecutionParametersInput, b: ExecutionParametersInput): boolean {
+  return executionParametersEqual(a, { ...a, series: b.series });
+}
+
+/**
+ * PRE-6 (story 3.3) : contexte d'une occurrence existante à l'ouverture de l'éditeur — N hérité
+ * (AD-37, AD-44) et séries ouvertes, sous leur forme lue et sous celle que produit le ✓ de la
+ * Feuille (`validateForSave` avec la ligne de base), pour que ✓ sans modification ne compte pas
+ * comme un changement. `null` sans occurrence existante.
+ */
+type OpenedOccurrence = {
+  readonly inheritedSeriesCount: boolean;
+  readonly openedParameters: readonly ExecutionParametersInput[];
+};
+
+function openedOccurrenceOf(exercise: SessionDraftExercise | null, nature: CircuitNature | undefined): OpenedOccurrence | null {
+  if (exercise === null) {
+    return null;
+  }
+  const opened = cloneExecutionParameters(exercise.executionParameters);
+  const validated = validateForSave(opened, opened);
+  return {
+    inheritedSeriesCount:
+      exercise.structuralPosition === "IN_TOUR" &&
+      exercise.type === "EXERCISE" &&
+      (nature ?? DEFAULT_CIRCUIT_NATURE) === "SERIES",
+    openedParameters: validated.ok ? [opened, validated.value] : [opened],
+  };
+}
+
+/**
  * Copie de Séance (D-137) — écrit exclusivement dans le brouillon de
  * Composition (`SessionDraftContext`), jamais dans une définition Catalogue.
  * Une nouvelle occurrence ne reçoit AUCUNE Récupération automatique
@@ -535,6 +570,18 @@ function CompositionExerciseEditor() {
   const [baselineParameters] = useState<ExecutionParametersInput | null>(() =>
     existingExercise ? cloneExecutionParameters(existingExercise.executionParameters) : null,
   );
+  // PRE-6 (story 3.3, AD-37, AD-44) : contexte de l'occurrence existante, figé dès qu'elle est
+  // lue sur le brouillon (au montage, ou dès sa résolution si le brouillon n'est pas encore
+  // hydraté), puis pour toute la vie de l'éditeur :
+  // - N hérité : occurrence `IN_TOUR`, de type `EXERCISE`, d'un Circuit de Séries. Une occurrence
+  //   sortie du Circuit (ou passée en Tours) est donc libre à sa prochaine ouverture. Une nouvelle
+  //   occurrence n'est pas encore dans le Circuit : elle y est adaptée à `Terminer` (story 2.3) ;
+  // - paramètres à l'ouverture, référence de la règle de réserve (`commitFinished`).
+  const [openedOccurrence, setOpenedOccurrence] = useState(() => openedOccurrenceOf(existingExercise, draft.circuitNature));
+  if (openedOccurrence === null && existingExercise !== null) {
+    setOpenedOccurrence(openedOccurrenceOf(existingExercise, draft.circuitNature));
+  }
+  const inheritedSeriesCount = openedOccurrence?.inheritedSeriesCount ?? false;
   const [initialSnapshot, setInitialSnapshot] = useState<SessionDraftExercise>(() =>
     existingExercise
       ? existingExercise
@@ -657,7 +704,27 @@ function CompositionExerciseEditor() {
   }
 
   function commitFinished(nextExercises: readonly SessionDraftExercise[]) {
-    updateDraft({ exercises: nextExercises });
+    // PRE-6 (story 3.3, report de la story 1.4) : une occurrence existante dont les séries
+    // diffèrent de celles qu'elle avait à l'ouverture perd son entrée de réserve de Circuit (même
+    // retrait que sa sortie du Circuit, `exitCircuit`), dans la MÊME mise à jour, fonctionnelle,
+    // que les occurrences. Sans entrée de réserve, mise à jour simple inchangée.
+    const occurrence = local;
+    const seriesChanged =
+      occurrence !== null &&
+      openedOccurrence !== null &&
+      !openedOccurrence.openedParameters.some((opened) => seriesEqual(occurrence.executionParameters, opened));
+    const hasReserveEntry =
+      occurrence !== null &&
+      draft.circuitSeriesReserve !== undefined &&
+      Object.prototype.hasOwnProperty.call(draft.circuitSeriesReserve, occurrence.id);
+    if (seriesChanged && hasReserveEntry) {
+      updateDraft((current) => ({
+        exercises: nextExercises,
+        circuitSeriesReserve: exitCircuit(current, occurrence).circuitSeriesReserve,
+      }));
+    } else {
+      updateDraft({ exercises: nextExercises });
+    }
     // Les copies préparées deviennent des références du brouillon de Séance ;
     // « Continuer » (Composition) les persiste dans sa transaction.
     activityDefinitionService.commitMediaDraft(mediaDraftId);
@@ -708,6 +775,7 @@ function CompositionExerciseEditor() {
           // PRE-5 story 2.5 (AC4, D-409, RM-218) : Exercice ouvert depuis une Séance — la
           // Feuille ne présente ni Compte à rebours ni Fin d'exercice (valeurs conservées).
           exerciseSignals="absent"
+          inheritedSeriesCount={inheritedSeriesCount}
           baselineParameters={baselineParameters}
           mediaService={activityDefinitionService}
           mediaDraftId={mediaDraftId}

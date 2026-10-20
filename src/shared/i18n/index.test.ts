@@ -558,6 +558,11 @@ describe("strings — PRE-4 story 1.1", () => {
     expect(strings.executionParameters.sheet.invalidValueHint).toBe("Valeur non admise");
     expect(strings.executionParameters.sheet.validateUnavailableSuffix).toBe("indisponible tant qu’une valeur est invalide");
   });
+
+  it("PRE-6 story 3.3 — nombre de séries imposé par le Circuit de Séries (nom accessible et indice)", () => {
+    expect(strings.executionParameters.circuit.inheritedSeriesCountSuffix).toBe("imposé par le circuit");
+    expect(strings.executionParameters.circuit.inheritedSeriesCount).toBe("Nombre de séries imposé par le circuit");
+  });
 });
 
 describe("strings — PRE-4 story 2.2", () => {
