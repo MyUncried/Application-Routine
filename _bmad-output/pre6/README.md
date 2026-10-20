@@ -20,7 +20,7 @@ Statut : **plan proposé, en attente de validation explicite de Hermann.** Aucun
 
 - Aucune autre correction PRE-5 n'arrivera après `ad189847`. C'est à confirmer à l'étape 0.
 - `ExecutionParametersDraft` contient la logique « le tableau suit N » sous une forme extractible en fonction pure (AD-39). C'est à vérifier en story 1.4.
-- Les compétences BMAD (`bmad-*`) ne sont pas installées dans ce worktree ; elles le sont, non suivies, dans le worktree PRE-5. Les artefacts ont donc été rédigés au format BMAD sans exécuter ces compétences. Il faudra les installer ici avant `bmad-build`.
+- Le plan a été rédigé avant l'installation de BMAD dans ce worktree. Depuis le 20/10, BMad 6.12.4 (core, bmm) est installé ici, en copie de PRE-5. Les en-têtes de `epics.md` ont été normalisés au format attendu par `sprint_plan.py` (`## Epic N:`, `### Story N.M:`), sans autre modification. `sprint-status.yaml` a été généré par ce script et validé (aucun problème signalé).
 
 ## Note sur le livrable
 

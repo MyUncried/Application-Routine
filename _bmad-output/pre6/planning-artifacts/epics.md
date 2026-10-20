@@ -44,32 +44,32 @@ Les travaux de planification ne dépendent pas de cette étape et sont faits. El
 
 **Critère de sortie** : baseline nommée, delta consigné, référence Jest consignée, plan validé par Hermann.
 
-## Epic 1 — Socle Circuit, pauses et calculs (domaine et données, sans interface)
+## Epic 1: Socle Circuit, pauses et calculs (domaine et données, sans interface)
 
 Il porte la mécanique commune réutilisable par les formats (AD-34 à AD-40). Aucun changement visible ; la preuve passe par Jest et par la lecture d'une base réelle.
 
-### Story 1.1 — Nature du Circuit, borne typée et migration 011
+### Story 1.1: Nature du Circuit, borne typée et migration 011
 
 - **AC1** : le type `CircuitNature` (`TOURS` | `SERIES`) et le type `CircuitBound` (variante `COUNT` seule) existent. `COUNT` est le `repeatCount` existant (1..99, défaut 1), sans second compte. `switch` exhaustifs.
 - **AC2** : la migration 011 ajoute `tours.nature` (défaut `TOURS`) et `activities.post_activity_recovery_present`, avec la reprise d'AD-35. `DATABASE_VERSION` = 11. La migration est idempotente et sans reconstruction de table.
 - **AC3** : aller-retour domaine → `SessionDraft` → `Create/UpdateSessionInput` → SQLite → lecture, pour la nature et la présence de récupération (absente / 0 / positive). L'égalité de brouillon (`sessionDraftsEqual`) et la garde de sortie en tiennent compte.
 - **AC4** : une base réelle antérieure (v10) se lit sans perte. Toutes les séances sont en Circuit de Tours ; les cibles, phases, charges et côtés PRE-5 sont intacts. La preuve suit la méthode de PRE-4 story 1.4.
 
-### Story 1.2 — Points d'arrêt de bout en bout dans le brouillon
+### Story 1.2: Points d'arrêt de bout en bout dans le brouillon
 
 - **AC1** : `SessionDraft.stopPoints` ; hydratation, création, mise à jour. La position d'emplacement est enregistrée telle quelle, sans renumérotation (AD-36).
 - **AC2** : la validation refuse un point juste après le compte à rebours initial, juste avant la Fin, ou en doublon sur un emplacement (CE-T03-08 L1502, `isStopPointPlacementValid` réutilisé).
 - **AC3** : une mise à jour ne supprime plus les points existants. Test de non-régression sur `SqliteSessionRepository.update`.
 - **AC4** : comportement après déplacement, suppression ou duplication d'une occurrence voisine, selon ARB-3.
 
-### Story 1.3 — Développement du Circuit et durées
+### Story 1.3: Développement du Circuit et durées
 
 - **AC1** : développement Tours / Séries selon ch10 L651 ; éléments internes répétés, externes non répétés (RM-213, RM-220).
 - **AC2** : durée d'occurrence et de Circuit conformes à RM-129, RM-038 et ch10 L2050-2052. Tests aux valeurs 75 s, 85 s, 225 s et 255 s ; points d'arrêt à 0 s (RM-191) ; aucune récupération comptée deux fois (RM-071, RM-159) ; R = 0 ne remplace pas Pi.
 - **AC3** : agrégation : ≥ l'emporte sur ≈, qui l'emporte sur exact. Résumé du Circuit = ce Circuit seulement (D-382), sans « N exercice(s) » (D-390), « — min » s'il est vide (D-399). La durée de séance exclut le compte à rebours et la Fin (RM-159).
 - **AC4** : les durées actuelles des séances en Circuit de Tours sont inchangées. Les tests existants de `calculations.test.ts` et `compositionPresentation.test.ts` restent verts, ou leurs attentes changent seulement là où une décision citée l'impose (D-390, D-399).
 
-### Story 1.4 — Opérations de Circuit : compte, réserve, conversion, entrée et sortie
+### Story 1.4: Opérations de Circuit : compte, réserve, conversion, entrée et sortie
 
 - **AC1** : `prepareNatureChange` / `applyNatureChange` (AD-39). Tours → Séries : extension par la dernière ligne active, troncature au-delà de N, perte calculée **avant** mutation. Séries → Tours : sans message, valeurs conservées. Le régime de chaque exercice est inchangé.
 - **AC2** : `setCircuitCount` en Séries. Une diminution passe immédiatement dans la réserve, sans message. Une augmentation restaure d'abord, puis préremplit par copie de la dernière ligne active. Réserve purgée à l'enregistrement. Cas 4 → 3 → 4, et enregistrement à 3 puis augmentation (CE-T03-08 L1536).
@@ -79,16 +79,16 @@ Il porte la mécanique commune réutilisable par les formats (AD-34 à AD-40). A
 
 Dépendances : 1.1 → 1.2. 1.1 → 1.3 → 1.4. 1.2 et 1.3 peuvent se faire en parallèle.
 
-## Epic 2 — Composition générale conforme (A, E)
+## Epic 2: Composition générale conforme (A, E)
 
-### Story 2.1 — En-tête, bornes de séance et Continuer
+### Story 2.1: En-tête, bornes de séance et Continuer
 
 - **AC1** : en-tête conforme à `8328:28172` et `8328:28605` : titre « Composer une séance », nom, puce Étiquette (`LabelPickerModal` conservé), durée de séance, actions « Ajouter un arrêt » (entrée du placement, story 4.1) et « + ».
 - **AC2** : Compte à rebours initial et Fin de séance toujours présents, immobiles, 0 s admis, défauts 10 s et 5 s (RM-030, RM-031). Contrôles selon CE-T03-08 et `8328:28998`.
 - **AC3** : action finale « Continuer ». Elle est désactivée sans nom, sans Exercice valide, ou si une cible obligatoire manque (D-380, D-123). Champ manquant sur fond rouge pâle (D-389). Elle enregistre puis ouvre Catalogue / Séances. En cas d'échec, on reste sur l'écran, brouillon intact. Le flux `handleSave` existant est conservé.
 - **AC4** : trait de démarcation présent hors placement ; aucune information de récupération si elle est absente ou à 0 (D-303). Corrige E5.
 
-### Story 2.2 — Cartes d'occurrence
+### Story 2.2: Cartes d'occurrence
 
 - **AC1** : nom ; pastille et classification ; zones corporelles ; cible et durée à droite. Les volumes sont séparés par un point médian, trois valeurs au plus puis « … » (CE-T03-08 L1474). Format de durée existant (`formatCompactDuration`).
 - **AC2** : récupération positive affichée sur la ligne structurelle sous la carte, selon ARB-1 ; elle forme un bloc avec l'occurrence (ch13 L1680).
@@ -96,7 +96,7 @@ Dépendances : 1.1 → 1.2. 1.1 → 1.3 → 1.4. 1.2 et 1.3 peuvent se faire en 
 - **AC4** : en Circuit de Séries, la carte reflète les N séries effectives (`8328:34520`).
 - **AC5** : nom accessible annonçant type, position et durée (CE-T03-08 L1522).
 
-### Story 2.3 — Organisation des occurrences
+### Story 2.3: Organisation des occurrences
 
 - **AC1** : ajout depuis le Catalogue et création d'une copie conservés (insertion atomique, ordre de la liste filtrée, aucune récupération automatique).
 - **AC2** : Dupliquer produit `{nom} (copie)` et conserve Pause et Récupération. Supprimer emporte la récupération (RM-210). Le geste de balayage existant est conservé.
@@ -104,29 +104,29 @@ Dépendances : 1.1 → 1.2. 1.1 → 1.3 → 1.4. 1.2 et 1.3 peuvent se faire en 
 - **AC4** : alternatives accessibles au glisser et au balayage, conservées ou étendues aux bornes du Circuit.
 - **AC5** : modifier une copie conserve tous ses paramètres PRE-5 (phases, charge, cadence, pause, côtés, cibles). La Feuille s'ouvre sans Compte à rebours ni Fin d'exercice (RC-7, D-214).
 
-## Epic 3 — Circuit de Tours et de Séries (B, C)
+## Epic 3: Circuit de Tours et de Séries (B, C)
 
-### Story 3.1 — En-tête du Circuit et compteur
+### Story 3.1: En-tête du Circuit et compteur
 
 - **AC1** : `CircuitHeader` : titre « Circuit », durée sous le titre (story 1.3 AC3), œil permanent, chiffre distinct de la pastille d'unité (« tour(s) » / « série(s) », avec accord singulier et pluriel). Remplace `TourCard` et le `NumberWheelPicker` du compte (E2).
 - **AC2** : toucher le chiffre révèle − et + (`InlineStepper`), bornes 1..99. Toucher la valeur ou ailleurs referme (RC-4). Un ajustement accessible remplace le stepper pour VoiceOver.
 - **AC3** : en Séries, chaque changement du compte applique `setCircuitCount`, sans message.
 - **AC4** : geste vérifié à 375 et 402 de large et avec Dynamic Type, sans chevauchement du titre, de la durée, de l'œil et du compteur (conteneur 354 × 34, ch12 L1236).
 
-### Story 3.2 — Choix de nature et confirmation de perte
+### Story 3.2: Choix de nature et confirmation de perte
 
 - **AC1** : toucher la pastille d'unité ouvre le choix de nature (CE-CIR-01, `8328:34805`) : deux options avec leurs sous-textes, nature courante sélectionnée. Primitive selon AD-42 / P-4.
 - **AC2** : le choix de la même nature ne fait rien. Le changement sans perte est immédiat. Le changement avec perte ouvre la confirmation (CE-CIR-02, `8328:34813`), qui calcule la perte sur l'état courant. Annuler conserve nature, compte et valeurs ; Confirmer applique tout ensemble. Le voile ne confirme pas. Une double action ne convertit pas deux fois.
 - **AC3** : l'ajout depuis le Catalogue dans un Circuit de Séries avec perte passe par la même confirmation ; Annuler abandonne l'ajout.
 - **AC4** : recette Tours → Séries avec des exercices à moins de N, à N et à plus de N séries.
 
-### Story 3.3 — N hérité dans la Feuille des paramètres
+### Story 3.3: N hérité dans la Feuille des paramètres
 
 - **AC1** : une occurrence d'un Circuit de Séries ouvre la Feuille avec `inheritedSeriesCount = N` (AD-44). Le nombre de séries est affiché et indisponible, le régime reste modifiable, l'inversion de la durée totale suit `isTotalDurationInvertible` (existant).
 - **AC2** : hors Circuit de Séries, la Feuille est strictement inchangée (non-régression PRE-5).
 - **AC3** : à la sortie du Circuit, le nombre redevient modifiable, sans message.
 
-### Story 3.4 — Modales « Volumes du circuit »
+### Story 3.4: Modales « Volumes du circuit »
 
 - **AC1** : l'œil ouvre la feuille basse « Volumes du circuit » (`8328:34965` en Séries, `8328:35135` en Tours), avec X et poignée.
 - **AC2** : colonnes Exercice | S1…Smax | Unité. Smax = plus grand nombre de séries actives. Série inexistante = « — », jamais 0 (CE-CIR-03 L1926). Réserve non affichée.
@@ -135,9 +135,9 @@ Dépendances : 1.1 → 1.2. 1.1 → 1.3 → 1.4. 1.2 et 1.3 peuvent se faire en 
 - **AC5** : lecture seule stricte. La fermeture (X, glisser, voile) laisse le brouillon identique, vérifié par test d'égalité.
 - **AC6** : lecture accessible ligne par ligne (exercice, série, valeur, unité).
 
-## Epic 4 — Récupérations et Points d'arrêt (D)
+## Epic 4: Récupérations et Points d'arrêt (D)
 
-### Story 4.1 — Mode placement et sous-brouillon
+### Story 4.1: Mode placement et sous-brouillon
 
 - **AC1** : l'action « Ajouter un arrêt » entre en placement (`8328:29270`) : contenu atténué, trait de démarcation masqué (D-303), emplacements proposés.
 - **AC2** : les emplacements sont ceux de la règle, ni plus ni moins :
@@ -149,13 +149,13 @@ Dépendances : 1.1 → 1.2. 1.1 → 1.3 → 1.4. 1.2 et 1.3 peuvent se faire en 
 - **AC3** : sélection multiple. Toucher Point d'arrêt bascule l'ajout. Toucher Récupération ouvre la roulette au défaut du Profil (30 s), qui confirme ou annule cet emplacement seulement.
 - **AC4** : la barre affiche « Confirmer N pauses ajoutées » (récupération + point = 2 ; une désélection retranche ; à N = 0, rien à confirmer) et « Annuler ». Confirmer applique atomiquement (AD-43) ; Annuler restitue l'état d'entrée. Aucune persistance avant « Continuer ».
 
-### Story 4.2 — Durée, modification et retrait
+### Story 4.2: Durée, modification et retrait
 
 - **AC1** : roulette « Durée de récupération » (`8328:28733`), plage 0..300 s, grille 1 / 5 / 30 s (E12). 0 est conservé comme présent (D-323). Elle est construite sur `DurationWheelPicker`.
 - **AC2** : toucher une récupération positive ouvre son réglage. Un appui long sur une récupération ou un point affiche « Retirer » (`8328:29133`, `8328:33689`). Retirer rétablit la Pause terminale (RM-038).
 - **AC3** : alternatives accessibles à l'appui long.
 
-### Story 4.3 — Pauses dans le déroulement et la Composition
+### Story 4.3: Pauses dans le déroulement et la Composition
 
 - **AC1** : une récupération suit son occurrence lors d'un déplacement, d'une duplication ou d'une suppression (RM-210). Les points d'arrêt suivent ARB-3.
 - **AC2** : dans le Circuit, récupérations et points sont répétés à chaque Tour ou passage. L'ordre est Exercice → R positive → Point d'arrêt (RM-219). Durées recalculées en direct (story 1.3).
