@@ -396,6 +396,8 @@ La synthèse n’est plus affichée isolément au bas de l’écran. Elle est re
 
 La diminution est sans message ; une conversion de nature entraînant une perte exige une confirmation atomique. Les modifications appartiennent au brouillon de Composition jusqu’à son enregistrement ; bornes 1–99 et valeur initiale 1 inchangées.
 
+**Références Figma PRE-6 — présentation actualisée au 20/10/2026.** Les captures de référence pour les cartes de Composition sont [Standard](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28605), [Point d’arrêt](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-29428), [Placement d’une pause](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-29270) et [Sélection exercices](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28445). Les autres états (déplacement `8328:33546`, étiquette sélectionnée `8328:34377`, modification `5271:5455`) doivent conserver les mêmes composants et variantes. Les vues Figma décrivent le rendu, pas les valeurs métier par défaut ; les captures anciennes de ces cartes sont remplacées pour référence visuelle par les nœuds actuels.
+
 #### Composition — ligne de Série variable — références
 
 #### Vues principales et états intégrés
