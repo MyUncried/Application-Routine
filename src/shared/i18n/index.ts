@@ -38,13 +38,18 @@ const executionParameters = {
     series: "Séries",
     seriesSingular: "série",
     seriesPlural: "séries",
-    // PRE-5 story 2.4 (PR-01, FR-26, FR-27, FR-44, NR Δ38) : ligne du stepper « Nombre de
-    // séries » (son nom accessible reste `series`), ligne « Type de série » (Variables à
+    // PRE-5 story 2.4 (PR-01, FR-26, FR-27, FR-44) : ligne « Type de série » (Variables à
     // gauche avec son chevron, Identiques à droite) et ligne « Condition d’arrêt » (À l’échec
     // à gauche, À la cible à droite ; résultat dérivé mixte en variables, FR-20). Le Régime
-    // de PRE-4 (champ, panneau et sous-titres) est retiré.
-    seriesCount: "Nombre de séries",
+    // de PRE-4 (champ, panneau et sous-titres) est retiré. Recette du 20/10 (RC-15) : plus de
+    // ligne « Nombre de séries » ; le nombre est porté par l’option sélectionnée du Type de
+    // série (« 3 séries identiques », « 3 séries variables », accord au singulier à N = 1), le
+    // stepper révélé garde son nom accessible `series` et sa valeur « 3 séries ».
     seriesType: "Type de série",
+    seriesCountUniform: "{n} séries identiques",
+    seriesCountUniformSingular: "{n} série identique",
+    seriesCountVariable: "{n} séries variables",
+    seriesCountVariableSingular: "{n} série variable",
     seriesTypes: { VARIABLE: "Variables", UNIFORM: "Identiques" },
     stopCondition: "Condition d’arrêt",
     stopConditions: { FAILURE: "À l’échec", TARGET: "À la cible", MIXED: "À la cible et à l’échec" },

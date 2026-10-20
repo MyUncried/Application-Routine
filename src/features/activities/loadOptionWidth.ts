@@ -27,6 +27,21 @@ const SEMI_BOLD_12_ADVANCES: Readonly<Record<string, number>> = {
   " ": 3.02,
   k: 6.83,
   g: 7.51,
+  // Recette du 20/10 (RC-15) : lettres de « n séries identiques / variables » (même police, même table).
+  s: 6.59,
+  "é": 7.1,
+  r: 4.76,
+  i: 3.14,
+  e: 7.1,
+  d: 7.49,
+  n: 7.34,
+  t: 4.24,
+  q: 7.49,
+  u: 7.35,
+  v: 7.04,
+  a: 6.89,
+  b: 7.49,
+  l: 3.14,
 };
 const WIDEST_ADVANCE = 7.99;
 /** Marge de rendu de chaque côté du texte dans l'option. */

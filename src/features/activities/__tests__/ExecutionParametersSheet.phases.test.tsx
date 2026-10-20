@@ -133,7 +133,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
       .map((node) => String(node.props.testID))
       .filter((id) => !/-(selection|line|content|value-group)$/.test(id));
     expect(rowIds[0]).toBe("execution-sheet-row-phases");
-    expect(rowIds[1]).toBe("execution-sheet-row-series");
+    // Recette du 20/10 (RC-15) : la ligne suivante est le Type de série (portant le nombre de séries).
+    expect(rowIds[1]).toBe("execution-sheet-row-series-type");
     expect(within(get("execution-sheet-row-phases")).getByText(t.workPhases, hidden)).toBeTruthy();
     expect(optionState(WITHOUT)).toMatchObject({ selected: true });
     expect(optionState(WITH)).toMatchObject({ selected: false, disabled: false });

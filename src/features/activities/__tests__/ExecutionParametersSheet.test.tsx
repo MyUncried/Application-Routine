@@ -364,9 +364,10 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     tap("execution-sheet-series-decrement");
     tap("execution-sheet-series-decrement");
     expect(valueOf("execution-sheet-series")).toBe("1 série");
-    // PRE-5 story 2.4 (P16) : à N = 1, le Type de série est une information non modifiable.
-    expect(screen.getByTestId(SERIES_TYPE).props.accessibilityRole).toBe("text");
-    expect(screen.queryByTestId(`${SERIES_TYPE}-VARIABLE`)).toBeNull();
+    // PRE-5 story 2.4 (P16) : à N = 1, le Type de série est non modifiable. Recette du 20/10
+    // (RC-15) : Variables indisponible ; Identiques, sélectionné, porte le nombre (réglable).
+    expect(screen.getByTestId(`${SERIES_TYPE}-VARIABLE`).props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.getByTestId(`${SERIES_TYPE}-UNIFORM`).props.accessibilityState).toMatchObject({ selected: true });
     expect(screen.queryByTestId("execution-sheet-table")).toBeNull();
     // Q38 (Hermann, 2026-10-17) : la ligne « Ordre des côtés » n'est plus atténuée ni
     // désactivée à N = 1 ; elle est masquée. La Pause au changement de côté reste.
@@ -449,7 +450,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
       // Fermeture du stepper par un appui extérieur (T23), comme en PRE-4.
       fireEvent.press(screen.getByTestId("execution-sheet-body-outside"));
       expect(screen.queryByTestId("execution-sheet-series-increment")).toBeNull();
-      expect(valueOf("execution-sheet-series")).toBe("2 séries");
+      expect(valueOf("execution-sheet-series")).toBe("2 séries identiques");
     });
 
     it("PRE4-Q38 (d) — Séries variables : N 3 → 1 → 2, l'Ordre choisi revient avec les lignes", () => {
@@ -519,14 +520,14 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     fireEvent(totalWheel().getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 1 } });
     fireEvent(totalWheel().getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 40 } });
     fireEvent.press(totalWheel().getByTestId("duration-wheel-validate"));
-    expect(valueOf("execution-sheet-series")).toBe("3 séries");
+    expect(valueOf("execution-sheet-series")).toBe("3 séries identiques");
     expect(screen.getByText("Durée ajustée à 2 min pour respecter un nombre entier de séries.")).toBeTruthy();
 
     fireEvent.press(screen.getByTestId("execution-sheet-total"));
     fireEvent(totalWheel().getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 1 } });
     fireEvent(totalWheel().getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 20 } });
     fireEvent.press(totalWheel().getByTestId("duration-wheel-validate"));
-    expect(valueOf("execution-sheet-series")).toBe("2 séries");
+    expect(valueOf("execution-sheet-series")).toBe("2 séries identiques");
     expect(screen.queryByText(/Durée ajustée/)).toBeNull();
   });
 
@@ -649,12 +650,13 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     renderSheet(params({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] }, sideMode: null }));
     expect(screen.getByText("Paramètres d’exécution")).toBeTruthy();
     // Story 3.3 (FR-04-01) : plus de ligne « Séries variables ». PRE-5 story 2.4 (PR-01) :
-    // lignes « Mode », « Condition d’arrêt », « Nombre de séries » et « Type de série ».
+    // lignes « Mode », « Condition d’arrêt » et « Type de série » (recette du 20/10, RC-15 : plus
+    // de ligne « Nombre de séries », le nombre est porté par le Type de série).
     expect(screen.queryByText("Séries variables")).toBeNull();
+    expect(screen.queryByText("Nombre de séries")).toBeNull();
     for (const label of [
       "Mode",
       "Condition d’arrêt",
-      "Nombre de séries",
       "Type de série",
       "Pause après chaque série",
       "Changement de côté",
@@ -676,7 +678,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     expect(screen.queryByText("Mode d’exécution")).toBeNull();
     expect(screen.queryByText("Bip de cadence")).toBeNull();
     expect(modeText()).toBe("—");
-    expect(valueOf("execution-sheet-series")).toBe("1 série");
+    expect(valueOf("execution-sheet-series")).toBe("1 série identique");
     expect(cadenceText()).toBe("Sans");
     // Story 3.3 (AC9, FR-11-05) ; PRE-5 story 2.5 : Changement de côté non renseigné — aucune
     // option sélectionnée.
@@ -722,7 +724,9 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     expect(screen.getByTestId("execution-sheet-cancel").props.accessibilityLabel).toBe("Annuler les paramètres");
     openExecutionSheetField("execution-sheet-series");
     expect(screen.getByTestId("execution-sheet-series-decrement").props.accessibilityState).toMatchObject({ disabled: true });
-    expect(screen.getByTestId(SERIES_TYPE).props.accessibilityLabel).toBe("Type de série, Identiques, sans effet pour une seule série");
+    // RC-15 : à N = 1, Variables est indisponible et annoncé comme tel (P16).
+    expect(screen.getByTestId(SERIES_TYPE).props.accessibilityLabel).toBe("Type de série");
+    expect(screen.getByTestId(`${SERIES_TYPE}-VARIABLE`).props.accessibilityLabel).toBe("Variables, sans effet pour une seule série");
     expect(screen.getByTestId("execution-sheet").props.accessibilityViewIsModal).toBe(true);
     expect(screen.getByTestId("execution-sheet-target-value").props.accessibilityLabel).toBe("Durée d’une série, 1 min 30 s");
   });
@@ -801,9 +805,9 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     expect(json.indexOf("execution-sheet-table-row-1")).toBeLessThan(json.indexOf("execution-sheet-table-row-2"));
     tap("execution-sheet-series-decrement");
     expect(seriesTypeText()).toBe("Identiques");
-    // PRE-5 story 2.4 (P16) : information non modifiable, sans option tactile.
-    expect(screen.getByTestId(SERIES_TYPE).props.accessibilityRole).toBe("text");
-    expect(screen.UNSAFE_queryAllByProps({ accessibilityRole: "tab", testID: `${SERIES_TYPE}-UNIFORM` })).toHaveLength(0);
+    // PRE-5 story 2.4 (P16) ; RC-15 : Variables indisponible, Identiques sélectionné porte le nombre.
+    expect(screen.getByTestId(`${SERIES_TYPE}-VARIABLE`).props.accessibilityState).toMatchObject({ disabled: true });
+    expect(within(screen.getByTestId(SERIES_TYPE)).getByTestId("execution-sheet-series-field")).toBeTruthy();
   });
 
   it("INTERACTION/sortable-rows — déplacement puis ✕ : rien n'est appliqué au parent", () => {
@@ -893,7 +897,7 @@ describe("ExecutionParametersSheet — correction revue 1", () => {
     fireEvent(totalWheel().getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 40 } });
     fireEvent.press(totalWheel().getByTestId("duration-wheel-validate"));
     // 100 s demandés sur 30 s + 10 s : N=2 → 80 s, N=3 → 120 s, égalité → N le plus grand.
-    expect(valueOf("execution-sheet-series")).toBe("3 séries");
+    expect(valueOf("execution-sheet-series")).toBe("3 séries identiques");
     expect(text("execution-sheet-total")).toBe("2 min");
     // PRE-5 story 2.5 (AC4) : déplier la Durée de l'exercice ne retire pas le message.
     showSignals();
@@ -901,12 +905,12 @@ describe("ExecutionParametersSheet — correction revue 1", () => {
     expect(json.indexOf('"execution-sheet-row-total"')).toBeLessThan(json.indexOf('"execution-sheet-adjusted"'));
     expect(json.indexOf('"execution-sheet-adjusted"')).toBeLessThan(json.indexOf('"execution-sheet-row-countdown"'));
     fireEvent.press(screen.getByTestId("execution-sheet-adjusted-undo"));
-    expect(valueOf("execution-sheet-series")).toBe("1 série");
+    expect(valueOf("execution-sheet-series")).toBe("1 série identique");
     fireEvent.press(screen.getByTestId("execution-sheet-total"));
     fireEvent(totalWheel().getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 1 } });
     fireEvent(totalWheel().getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 20 } });
     fireEvent.press(totalWheel().getByTestId("duration-wheel-validate"));
-    expect(valueOf("execution-sheet-series")).toBe("2 séries");
+    expect(valueOf("execution-sheet-series")).toBe("2 séries identiques");
     expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
     validate();
     expect(applied(onApply).series).toEqual({ kind: "UNIFORM", count: 2, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] });
@@ -949,9 +953,10 @@ describe("ExecutionParametersSheet — correction revue 1", () => {
     expect(group.borderColor).toBeUndefined();
     expect(group.backgroundColor).toBeUndefined();
     expect(screen.getByTestId(TABLE_TOGGLE)).toBeTruthy();
-    // Story 3.3 : ± à l'appui ; ouvert, le champ de N garde la largeur DSF 137.
+    // Story 3.3 : ± à l'appui. Recette du 20/10 (RC-15) : le stepper de N s'ouvre dans l'option
+    // sélectionnée du Type de série, à la largeur de son contenu (plus la largeur DSF 137).
     openExecutionSheetField("execution-sheet-series");
-    expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-series").props.style).width).toBe(137);
+    expect(within(screen.getByTestId(SERIES_TYPE)).getByTestId("execution-sheet-series")).toBeTruthy();
     // D-434 : la Pause d'une ligne se saisit au clavier numérique dans sa cellule ; plus de ±
     // révélé sous la ligne (ni sa largeur DSF de tableau, 128). Le focus de la cellule ferme
     // le champ de N dans le même geste.
@@ -1175,7 +1180,7 @@ describe("ExecutionParametersSheet — décisions du propriétaire (12/10)", () 
     };
     // Annuler encadré : restaure les valeurs précédant l’ajustement (1 série).
     adjust();
-    expect(valueOf("execution-sheet-series")).toBe("3 séries");
+    expect(valueOf("execution-sheet-series")).toBe("3 séries identiques");
     // Recette 2 (T-58, 12/10) remplace le cadre blanc de D-5 : capsule sans contour,
     // blanc transparent à 90 %, demi-cercles, marges droite/haut/bas égales.
     const capsule = StyleSheet.flatten(screen.getByTestId("execution-sheet-adjusted-undo").props.style);
@@ -1187,12 +1192,12 @@ describe("ExecutionParametersSheet — décisions du propriétaire (12/10)", () 
     expect(screen.getByTestId("execution-sheet-adjusted").props.accessible).toBe(false);
     fireEvent.press(screen.getByTestId("execution-sheet-adjusted-undo"));
     expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
-    expect(valueOf("execution-sheet-series")).toBe("1 série");
+    expect(valueOf("execution-sheet-series")).toBe("1 série identique");
     // Toucher le reste du message : fermé, ajustement conservé (3 séries).
     adjust();
     fireEvent.press(screen.getByTestId("execution-sheet-adjusted"));
     expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
-    expect(valueOf("execution-sheet-series")).toBe("3 séries");
+    expect(valueOf("execution-sheet-series")).toBe("3 séries identiques");
     validate();
     expect(applied(onApply).series).toMatchObject({ count: 3 });
   });
@@ -1318,10 +1323,10 @@ describe("ExecutionParametersSheet — recette 3 (T-53), remplacée par la story
   // son centrage vertical et sa hauteur minimale (Q42) dans les trois états du chevron.
   it("T-53 / PRE4-3.3 — ligne « Séries » centrée, 44 pt : identiques, variables déployé, variables replié", () => {
     renderSheet(params({ series: { kind: "UNIFORM", count: 2, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
-    // PRE-5 story 2.4 : « Nombre de séries » et « Type de série » sont deux lignes ; toutes
-    // deux gardent le centrage vertical et la hauteur minimale de 44 (Q42).
+    // PRE-5 story 2.4 ; recette du 20/10 (RC-15) : la ligne « Type de série » porte le nombre de
+    // séries ; elle garde le centrage vertical et la hauteur minimale de 44 (Q42).
     const check = () => {
-      for (const rowID of ["execution-sheet-row-series", "execution-sheet-row-series-type"]) {
+      for (const rowID of ["execution-sheet-row-series-type"]) {
         const row = StyleSheet.flatten(screen.getByTestId(`${rowID}-line`).props.style);
         expect(row).toMatchObject({ flexDirection: "row", alignItems: "center", minHeight: 44 });
       }
@@ -2346,7 +2351,7 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
       fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 40 } });
       fireEvent.press(screen.getByTestId("duration-wheel-validate"));
       expect(screen.queryByTestId("execution-sheet-total-panel")).toBeNull();
-      expect(valueOf("execution-sheet-series")).toBe("3 séries");
+      expect(valueOf("execution-sheet-series")).toBe("3 séries identiques");
       expect(screen.getByTestId("execution-sheet-adjusted")).toBeTruthy();
     }));
 
@@ -2385,9 +2390,9 @@ describe("PRE4-Q42 — lignes de la Feuille à 44 pt (Hermann, 2026-10-17)", () 
     expect(SHEET_ROW_MIN_HEIGHT).toBe(44);
     expect(TABLE_ROW_HEIGHT).toBe(36);
     renderSheet(params({ series: { kind: "UNIFORM", count: 2, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
-    // Story 3.3 : la ligne de l'interrupteur « Séries variables » est retirée ; la ligne
-    // « Séries » porte le champ de Régime.
-    expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-row-series-line").props.style).minHeight).toBe(44);
+    // Story 3.3 : la ligne de l'interrupteur « Séries variables » est retirée. RC-15 : la ligne
+    // « Type de série » porte le Type et le nombre de séries.
+    expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-row-series-type-line").props.style).minHeight).toBe(44);
   });
 });
 
@@ -2430,15 +2435,14 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     expect(screen.getByTestId("execution-sheet-modal").props.animationType).toBe("fade");
   });
 
-  it("PRE4-3.3/AC2, PRE5-2.4/AC1, PRE5-2.5, RC-6 — ordre du corps : Mode → Condition d’arrêt → Nombre de séries → Type de série → Cible et Pause → Changement de côté (portant l’Enchainement) → Pause entre les côtés → Cadence → Durée de l’exercice → Compte à rebours → Fin (dépliés) ; aucun interrupteur", () => {
+  it("PRE4-3.3/AC2, PRE5-2.4/AC1, PRE5-2.5, RC-6 — ordre du corps : Mode → Condition d’arrêt → Type de série (nombre de séries, RC-15) → Cible et Pause → Changement de côté (portant l’Enchainement) → Pause entre les côtés → Cadence → Durée de l’exercice → Compte à rebours → Fin (dépliés) ; aucun interrupteur", () => {
     renderSheet(bilateral());
     showSignals();
     const order = [
       "execution-sheet-row-mode",
       "execution-sheet-row-stop-condition",
-      "execution-sheet-row-series",
-      "execution-sheet-series-toggle",
       "execution-sheet-row-series-type",
+      "execution-sheet-series-toggle",
       "execution-sheet-row-target",
       "execution-sheet-row-pause",
       "execution-sheet-row-side",
@@ -2453,10 +2457,10 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     const positions = order.map((id) => json.indexOf(`"${id}"`));
     expect(positions.every((position) => position >= 0)).toBe(true);
     expect(positions).toEqual([...positions].sort((a, b) => a - b));
-    // Le nombre appartient à la ligne « Nombre de séries » ; le Type de série à sa propre ligne.
-    const series = screen.getByTestId("execution-sheet-row-series");
-    expect(within(series).getByTestId("execution-sheet-series-toggle")).toBeTruthy();
-    expect(within(series).queryByTestId(SERIES_TYPE)).toBeNull();
+    // Recette du 20/10 (RC-15) : plus de ligne « Nombre de séries » ; le nombre est dans l'option
+    // sélectionnée du Type de série.
+    expect(screen.queryByTestId("execution-sheet-row-series")).toBeNull();
+    expect(within(screen.getByTestId(SERIES_TYPE)).getByTestId("execution-sheet-series-toggle")).toBeTruthy();
     expect(within(screen.getByTestId("execution-sheet-row-series-type")).getByTestId(SERIES_TYPE)).toBeTruthy();
     // FR-04-01, FR-05-04 : ni interrupteur, ni ligne « Séries variables » ; « échec » n'apparaît
     // que dans l'option « À l’échec » de la Condition d'arrêt (PRE-5 story 2.4), jamais un Mode.
@@ -2609,17 +2613,19 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     expect(screen.queryByTestId(TABLE_TOGGLE)).toBeNull();
   });
 
-  it("PRE4-3.3/AC6, PRE5-2.4/AC7 — N = 1 : Type de série non modifiable (information de rôle texte), état uniforme, atténué (UNSELECTED_OPACITY 0,45), sans option tactile ni chevron", () =>
+  it("PRE4-3.3/AC6, PRE5-2.4/AC7, RC-15 — N = 1 : Type de série non modifiable (Variables indisponible et annoncé), état uniforme, sans chevron ; le nombre reste réglable dans Identiques", () =>
     withPlatform("ios", () => {
       renderSheet(params({ series: variableRows([[30, 10], [45, 20]]) }));
       tap("execution-sheet-series-decrement");
       expect(seriesTypeText()).toBe("Identiques");
       const control = get(SERIES_TYPE);
-      expect(control.props.accessibilityRole).toBe("text");
-      expect(control.props.accessibilityLabel).toBe("Type de série, Identiques, sans effet pour une seule série");
-      expect(styleOf(SERIES_TYPE).opacity).toBe(0.45);
-      expect(query(`${SERIES_TYPE}-VARIABLE`)).toBeNull();
-      expect(query(`${SERIES_TYPE}-UNIFORM`)).toBeNull();
+      // Recette du 20/10 (RC-15) : le contrôle n'est plus une information atténuée en entier — il
+      // porte le nombre de séries, réglable ; seul Variables est indisponible (P16).
+      expect(control.props.accessibilityRole).toBe("tablist");
+      expect(get(`${SERIES_TYPE}-VARIABLE`).props.accessibilityState).toMatchObject({ selected: false, disabled: true });
+      expect(get(`${SERIES_TYPE}-VARIABLE`).props.accessibilityLabel).toBe("Variables, sans effet pour une seule série");
+      expect(get(`${SERIES_TYPE}-UNIFORM`).props.accessibilityState).toMatchObject({ selected: true, disabled: false });
+      expect(styleOf(SERIES_TYPE).opacity).toBeUndefined();
       expect(query(TABLE_TOGGLE)).toBeNull();
       // L'information non modifiable absorbe l'appui (P16, T23) : le champ de N, ouvert,
       // n'est pas rangé ; sur l'appareil, le conteneur reste responder.
@@ -2736,7 +2742,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     // Appui extérieur (libellé, fond du corps) : rangement, aucun bouton Annuler.
     fireEvent.press(screen.getByText("Cadence"));
     expect(screen.queryByTestId("execution-sheet-series-decrement")).toBeNull();
-    expect(shownValue("execution-sheet-series")).toBe("1 série");
+    expect(shownValue("execution-sheet-series")).toBe("1 série identique");
     expect(screen.queryByText("Annuler")).toBeNull();
     validate();
     expect(applied(onApply).series).toMatchObject({ kind: "UNIFORM", count: 1 });
@@ -2776,7 +2782,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     expect(sideText()).toBe("—");
     expect(screen.getByTestId(SIDE_CONTROL).props.accessibilityLabel).toBe("Changement de côté");
     expect(screen.queryByTestId(`${SIDE_CONTROL}-indicator`)).toBeNull();
-    expect(valueOf("execution-sheet-series")).toBe("1 série");
+    expect(valueOf("execution-sheet-series")).toBe("1 série identique");
     expect(seriesTypeText()).toBe("Identiques");
     expect(valueOf("execution-sheet-pause")).toBe("0 s");
     expect(cadenceText()).toBe("Sans");
@@ -2880,8 +2886,13 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
   it("PRE4-3.3/AC8 — chaque champ ± ouvert désigne sa ligne (fond de sélection) : Séries, Pause, Pause entre les côtés, Cadence (Autre), Compte à rebours, Fin", () => {
     renderSheet(bilateral());
     showSignals();
+    // Recette du 20/10 (RC-15, Figma `9436:18305`) : le stepper du nombre de séries, ouvert dans le
+    // segmenté du Type de série, porte son propre fond #F2F2FF ; la ligne n'est pas surlignée.
+    fireEvent.press(screen.getByTestId("execution-sheet-series-toggle"));
+    expect(screen.getByTestId("execution-sheet-series-field")).toBeTruthy();
+    expect(styleOf("execution-sheet-row-series-type-selection").backgroundColor).toBeUndefined();
+    fireEvent.press(screen.getByTestId("execution-sheet-series-value-press"));
     const rows: [string, string][] = [
-      ["series", "execution-sheet-row-series"],
       ["pause", "execution-sheet-row-pause"],
       ["side-recovery", "execution-sheet-row-side-recovery"],
       ["beep", "execution-sheet-row-beep"],
@@ -3587,7 +3598,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     fireEvent.press(screen.getByTestId("execution-sheet-table-row-2-remove"));
     expect(rowCount()).toBe(3);
     expect([1, 2, 3].map((row) => cellValue(row))).toEqual(["30 s", "1 min", "1 min 15 s"]);
-    expect(valueOf("execution-sheet-series")).toBe("3 séries");
+    expect(valueOf("execution-sheet-series")).toBe("3 séries variables");
     const message = screen.getByTestId("execution-sheet-adjusted");
     expect(within(message).getByText("Série supprimée")).toBeTruthy();
     expect(within(message).getByText("Annuler")).toBeTruthy();
@@ -3709,7 +3720,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     fireEvent.press(screen.getByTestId("execution-sheet-table-row-1-remove"));
     expect(screen.queryByTestId("execution-sheet-table")).toBeNull();
     expect(screen.queryAllByTestId(/-remove$/)).toHaveLength(0);
-    expect(valueOf("execution-sheet-series")).toBe("1 série");
+    expect(valueOf("execution-sheet-series")).toBe("1 série identique");
     fireEvent.press(screen.getByTestId("execution-sheet-adjusted-undo"));
     expect(rowCount()).toBe(2);
     expect([cellValue(1), cellValue(2)]).toEqual(["30 s", "45 s"]);
@@ -3717,7 +3728,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
 
   it("PRE4-3.6/AC10 — la ligne `Séries` affiche `1 série` puis `3 séries` (lexique)", () => {
     renderSheet(params({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
-    expect(valueOf("execution-sheet-series")).toBe("1 série");
+    expect(valueOf("execution-sheet-series")).toBe("1 série identique");
     tap("execution-sheet-series-increment");
     tap("execution-sheet-series-increment");
     expect(screen.getByTestId("execution-sheet-series-value").props.children).toBe("3 séries");
@@ -4056,14 +4067,14 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
       fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
       expect(screen.queryByTestId("execution-sheet-total-panel")).toBeNull();
       expect(text("execution-sheet-total")).toBe(formatPhraseDuration(3 * 40));
-      expect(valueOf("execution-sheet-series")).toBe("3 séries");
+      expect(valueOf("execution-sheet-series")).toBe("3 séries identiques");
       // Toucher hors du panneau : fermé sans appliquer la valeur tournée.
       fireEvent.press(screen.getByTestId("execution-sheet-total"));
       nativeChange("minutes", 5);
       fireEvent.press(screen.getByTestId("execution-sheet-total-panel-outside", { includeHiddenElements: true }));
       expect(screen.queryByTestId("execution-sheet-total-panel")).toBeNull();
       expect(text("execution-sheet-total")).toBe(formatPhraseDuration(3 * 40));
-      expect(valueOf("execution-sheet-series")).toBe("3 séries");
+      expect(valueOf("execution-sheet-series")).toBe("3 séries identiques");
     }));
 
   for (const os of ["android", "web"] as const) {
@@ -4096,7 +4107,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
       nativeChange("minutes", 1);
       nativeChange("seconds", 10);
       fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      expect(valueOf("execution-sheet-series")).toBe("1 série");
+      expect(valueOf("execution-sheet-series")).toBe("1 série identique");
       expect(text("execution-sheet-total")).toBe(formatPhraseDuration(70));
       expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
     }));
@@ -4143,7 +4154,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
       nativeChange("seconds", 40);
       fireEvent.press(screen.getByTestId("duration-wheel-validate"));
       // arrondi(160 / (30 + 10)) = 4 ; T(4) = 4 × 40 = 160 s.
-      expect(valueOf("execution-sheet-series")).toBe("4 séries");
+      expect(valueOf("execution-sheet-series")).toBe("4 séries identiques");
       expect(text("execution-sheet-total")).toBe(formatPhraseDuration(4 * 40));
       expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
       expect(screen.queryByText(/Durée ajustée/u)).toBeNull();
@@ -4166,7 +4177,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
       adjustTo180();
       // Candidats N = 4 (160 s) et N = 5 (200 s), à 20 s chacun de 180 s : N = 5 retenu.
       expect(Math.abs(4 * 40 - 180)).toBe(Math.abs(5 * 40 - 180));
-      expect(valueOf("execution-sheet-series")).toBe("5 séries");
+      expect(valueOf("execution-sheet-series")).toBe("5 séries identiques");
       expect(text("execution-sheet-total")).toBe(formatPhraseDuration(5 * 40));
       expect(text("execution-sheet-total")).toBe("3 min 20 s");
       expect(screen.getByText("Durée ajustée à 3 min 20 s pour respecter un nombre entier de séries.")).toBeTruthy();
@@ -4178,13 +4189,13 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
       // `Annuler` : N et total d'avant l'ajustement.
       fireEvent.press(screen.getByTestId("execution-sheet-adjusted-undo"));
       expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
-      expect(valueOf("execution-sheet-series")).toBe("3 séries");
+      expect(valueOf("execution-sheet-series")).toBe("3 séries identiques");
       expect(text("execution-sheet-total")).toBe(formatPhraseDuration(3 * 40));
       // Toucher le reste du message : fermé, ajustement conservé.
       adjustTo180();
       fireEvent.press(screen.getByTestId("execution-sheet-adjusted"));
       expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
-      expect(valueOf("execution-sheet-series")).toBe("5 séries");
+      expect(valueOf("execution-sheet-series")).toBe("5 séries identiques");
       validate();
       expect(applied(onApply).series).toMatchObject({ count: 5, target: numberTarget(30) });
     }));
@@ -4855,7 +4866,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
     });
     const rowsOf: Record<(typeof FRAMES)[number], readonly string[]> = {
       execution: ["row-mode", "row-stop-condition"],
-      series: ["row-series", "row-series-type", "variable-group", "row-target", "row-pause"],
+      series: ["row-series-type", "variable-group", "row-target", "row-pause"],
       sides: ["row-side", "side-order-menu", "row-side-recovery"],
       cadence: ["row-beep", "row-total", "row-countdown", "row-end"],
     };
@@ -4870,7 +4881,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
     }
     // Libellés de ligne Inter Regular 12 (PR-03), plus petits que les valeurs.
     expect(StyleSheet.flatten(screen.getByText("Condition d’arrêt").props.style)).toMatchObject({ fontSize: 12, fontWeight: "400" });
-    expect(StyleSheet.flatten(screen.getByText("Nombre de séries").props.style)).toMatchObject({ fontSize: 12, fontWeight: "400" });
+    expect(StyleSheet.flatten(screen.getByText("Type de série").props.style)).toMatchObject({ fontSize: 12, fontWeight: "400" });
   });
 
   it("PRE5-2.4/AC2 — repère unique : le haut du panneau vaut y du cadre + y de la ligne + hauteur + 4, dans chaque cadre ; il suit un cadre qui se déplace ; panneau rendu dans l'hôte, hors des cadres", () =>
@@ -5049,15 +5060,15 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
     expect(applied(onApply).series).toEqual(variableRows([[30, 10], [45, 10]]));
   });
 
-  it("PRE5-2.4/AC9 (NR Δ38) — stepper « Nombre de séries » conservé : ligne « Nombre de séries », valeur au repos, ± à l'appui, nom accessible « Séries », largeur 137 ; le tableau variable suit N", () => {
+  it("PRE5-2.4/AC9 (NR Δ38, présentation remplacée par RC-15) — stepper du nombre de séries : valeur au repos dans le Type de série, ± à l'appui, nom accessible « Séries », bornes et pas conservés ; le tableau variable suit N", () => {
     renderSheet(variableSheet([30, 45]));
-    const row = get("execution-sheet-row-series");
-    expect(within(row).getByText("Nombre de séries")).toBeTruthy();
+    expect(query("execution-sheet-row-series")).toBeNull();
     expect(query("execution-sheet-series-increment")).toBeNull();
-    expect(get("execution-sheet-series-toggle").props.accessibilityLabel).toBe("Séries, 2 séries");
+    expect(get("execution-sheet-series-toggle").props.accessibilityLabel).toBe("Séries, 2 séries variables");
     openExecutionSheetField("execution-sheet-series");
     expect(get("execution-sheet-series").props.accessibilityLabel).toBe("Séries");
-    expect(styleOf("execution-sheet-series").width).toBe(137);
+    expect(get("execution-sheet-series").props.accessibilityRole).toBe("adjustable");
+    expect(get("execution-sheet-series").props.accessibilityValue).toMatchObject({ min: 1, max: 99, now: 2 });
     tap("execution-sheet-series-increment");
     expect(valueOf("execution-sheet-series")).toBe("3 séries");
     expect(get("execution-sheet-table-row-3")).toBeTruthy();
@@ -5106,8 +5117,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.6", () => {
       [71, "center", 12, "#595E66"],
       [71, "center", 12, "#595E66"],
     ]);
-    // La ligne « Nombre de séries » et les autres lignes de la Feuille restent à 44.
-    expect(styleOf("execution-sheet-row-series-line")).toMatchObject({ minHeight: 44 });
+    // La ligne « Type de série » (nombre de séries compris, RC-15) et les autres lignes de la Feuille restent à 44.
+    expect(styleOf("execution-sheet-row-series-type-line")).toMatchObject({ minHeight: 44 });
     expect(screen.UNSAFE_root.findAllByType(InlineStepper)).toHaveLength(0);
     // D-434 : la cellule Pause en saisie ne révèle aucun stepper.
     focusCell(2, "pause");

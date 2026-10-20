@@ -47,6 +47,13 @@ export type SegmentedControlOption<T extends string> = {
   readonly width?: number;
   /** Variante `inline` seulement (RC-6) : police réduite pour cette seule option (notation de l'Enchainement). */
   readonly compact?: boolean;
+  /**
+   * Variante `inline` seulement (recette du 20/10, RC-15, Figma `9436:18506`) : sélectionnée, l'option
+   * ne porte ni le cadre violet ni le fond clair ; son `selectedContent` dessine sa propre surface
+   * (stepper du nombre de séries ouvert, sur fond `#F2F2FF`). Le chevron éventuel prend alors la
+   * couleur primaire, lisible sur le fond du cadre.
+   */
+  readonly ownSurface?: boolean;
 };
 
 /**
@@ -146,6 +153,11 @@ export type SegmentedControlProps<T extends string> = {
   /** `inline` : police réduite (FR-17, Enchainement), sans changement de géométrie. */
   readonly compact?: boolean;
   /**
+   * `inline` (recette du 20/10, RC-15, Figma `9436:18348`) : hauteur du cadre, 32 par défaut ; 34
+   * quand une option porte le stepper ouvert (28). Options de 26, centrées ; marge et écart inchangés.
+   */
+  readonly height?: number;
+  /**
    * `inline` : contrôle non interactif, annoncé comme une information non
    * modifiable (résultat dérivé de la Condition d'arrêt, FR-20). Rendu
    * atténué (PRE-5 story 2.4, UX-DR2, relevé `9230:44720`) : le contrôle
@@ -185,6 +197,7 @@ export function SegmentedControl<T extends string>({
   onChevronPress,
   compact = false,
   readOnly = false,
+  height,
 }: SegmentedControlProps<T>) {
   const parameters = variant === "parameters";
   const inline = variant === "inline";
@@ -205,7 +218,10 @@ export function SegmentedControl<T extends string>({
   // Standard : comportement historique conservé (valeur inconnue → premier segment).
   // `null` : aucun cadre de sélection, dans toutes les variantes ; valeur
   // inconnue : aucun cadre en `parameters` et `inline`.
-  const showIndicator = value !== null && (parameters || inline ? foundIndex >= 0 : true);
+  // RC-15 : une option sélectionnée à surface propre (`ownSurface`) n'a pas de cadre violet.
+  const selectedOwnSurface = inline && foundIndex >= 0 && Boolean(options[foundIndex]?.ownSurface);
+  const showIndicator = value !== null && (parameters || inline ? foundIndex >= 0 : true) && !selectedOwnSurface;
+  const inlineHeight = height ?? INLINE_HEIGHT;
   const selectedIndex = Math.max(0, foundIndex);
   // `useState` (jamais `useRef(...).current`) : l'instance `Animated.Value`
   // reste stable entre rendus, mais n'est jamais lue via un ref pendant le
@@ -254,8 +270,10 @@ export function SegmentedControl<T extends string>({
   // point vers le haut (marge haute 4, marge basse 2). Centré ici sur la
   // hauteur RÉELLEMENT disponible (hauteur totale moins bordure haute et
   // basse), marges haute et basse désormais rigoureusement égales.
-  const indicatorTop =
-    parameters || inline
+  // RC-15 : cadre plus haut que 32 (34) — options de 26 centrées dans la hauteur intérieure.
+  const indicatorTop = inline
+    ? padding + (inlineHeight - padding * 2 - INLINE_OPTION_HEIGHT) / 2
+    : parameters
       ? padding
       : (dimensions.segmentedControl.height -
           CONTAINER_BORDER_WIDTH * 2 -
@@ -292,19 +310,22 @@ export function SegmentedControl<T extends string>({
   // transparentes.
   const inactiveTiles =
     containerWidth > 0
-      ? options.map((option, index) => (
-          <View
-            key={`tile-${option.value}`}
-            pointerEvents="none"
-            testID={testID ? `${testID}-tile-${option.value}` : undefined}
-            style={[
-              styles.tile,
-              parameters ? styles.tileParameters : null,
-              inline ? styles.tileInline : null,
-              { left: padding + offsetAt(index), top: indicatorTop, width: widthAt(index), height: segmentHeight },
-            ]}
-          />
-        ))
+      ? options.map((option, index) =>
+          // RC-15 : l'option sélectionnée à surface propre n'a pas de fond clair sous son contenu.
+          selectedOwnSurface && index === foundIndex ? null : (
+            <View
+              key={`tile-${option.value}`}
+              pointerEvents="none"
+              testID={testID ? `${testID}-tile-${option.value}` : undefined}
+              style={[
+                styles.tile,
+                parameters ? styles.tileParameters : null,
+                inline ? styles.tileInline : null,
+                { left: padding + offsetAt(index), top: indicatorTop, width: widthAt(index), height: segmentHeight },
+              ]}
+            />
+          ),
+        )
       : null;
 
   const indicator =
@@ -343,7 +364,7 @@ export function SegmentedControl<T extends string>({
       .join(", ");
     return (
       <View
-        style={[styles.inlineContainer, { width: inlineWidth }, readOnly ? styles.inlineReadOnly : null]}
+        style={[styles.inlineContainer, { width: inlineWidth, height: inlineHeight }, readOnly ? styles.inlineReadOnly : null]}
         // Lecture seule (FR-20) : un seul élément accessible, de rôle texte,
         // qui annonce le libellé et la valeur, sans action.
         accessible={readOnly ? true : undefined}
@@ -362,7 +383,13 @@ export function SegmentedControl<T extends string>({
               name={option.chevron === "up" ? "control-chevron-up" : "control-chevron-down"}
               size={dimensions.catalogueDisclosure.chevronDisplaySize}
               tintColor={
-                option.disabled ? colors.disabled : selected ? colors.background : INLINE_UNSELECTED_LABEL_COLOR
+                option.disabled
+                  ? colors.disabled
+                  : selected
+                    ? option.ownSurface
+                      ? colors.primary
+                      : colors.background
+                    : INLINE_UNSELECTED_LABEL_COLOR
               }
               testID={testID ? `${testID}-${option.value}-chevron-icon` : undefined}
             />

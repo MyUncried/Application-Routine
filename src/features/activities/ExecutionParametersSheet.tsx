@@ -19,6 +19,7 @@ import {
   type LayoutChangeEvent,
   type ScrollView,
   type StyleProp,
+  type TextStyle,
   type ViewStyle,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -89,6 +90,14 @@ import {
 import { KeyboardAccessoryBar } from "@/features/activities/KeyboardAccessoryBar";
 import { KeyboardField } from "@/features/activities/KeyboardField";
 import { loadOptionWidth } from "@/features/activities/loadOptionWidth";
+import {
+  SERIES_CHEVRON_GAP,
+  SERIES_STEPPER_CIRCLE,
+  SERIES_STEPPER_GAP,
+  SERIES_STEPPER_VALUE_INSET,
+  seriesSelectedOptionWidth,
+  seriesUnselectedOptionWidth,
+} from "@/features/activities/seriesTypeOptionWidths";
 import {
   SHEET_MOTION_MS,
   SheetMotionGroupMount,
@@ -207,7 +216,7 @@ import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@
  *
  * PRE-5 story 2.4 (AD-23, AD-24, AD-27, AD-28 ; FR-19 à FR-22, FR-26 à FR-28, FR-32) :
  * - quatre cadres gris (`SheetMotionView`) : Exécution (Mode, Condition d'arrêt) ;
- *   Séries (Nombre de séries, Type de série et tableau, Durée ou Répétitions, Pause) ;
+ *   Séries (Type de série portant le nombre de séries, tableau, Durée ou Répétitions, Pause) ;
  *   Côtés ; Cadence et durée. Les panneaux sont placés par une seule fonction
  *   (`anchorTop` : y du cadre + y dans le cadre) et rendus hors des cadres ;
  * - Mode, Condition d'arrêt et Type de série sont des segmentés `inline` : plus de
@@ -216,7 +225,12 @@ import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@
  *   en lecture seule en variables (`stopConditionOf`, seule autorité) ; à l'échec, la
  *   ligne de cible est masquée ; les roues de la Cible commune n'offrent plus
  *   « À l'échec », celle d'une cellule variable la garde en tête (Q8) ;
- * - stepper « Nombre de séries » de PRE-4 inchangé (NR Δ38), seule sa ligne change.
+ * - stepper « Nombre de séries » de PRE-4 : règles, bornes, transitions et accessibilité
+ *   inchangées (NR Δ38) ; recette du 20/10 (RC-15) : plus de ligne propre, le nombre est porté
+ *   par l'option sélectionnée du Type de série (« 3 séries identiques » / « 3 séries variables »
+ *   et chevron du tableau) ; son toucher révèle le stepper « − | 3 séries | + » dans l'option
+ *   (Figma `9436:18305`), toucher la valeur le referme (RC-4). Même brique que le nombre de
+ *   phases (`SegmentCountField`, story 2.8).
  *
  * PRE-5 story 2.6 (AD-27, AD-28, FR-29 ; UX-DR3) — tableau des séries variables : bloc
  * blanc, lignes de 36, cellules à valeur seule (plus de ± permanents : Q44 remplacé).
@@ -441,6 +455,19 @@ function seriesLabel(count: number | null): string {
   return `${count} ${count === 1 ? t.seriesSingular : t.seriesPlural}`;
 }
 
+/** Recette du 20/10 (RC-15) : option sélectionnée du Type de série (« 3 séries identiques », « 1 série identique »). */
+function seriesTypeCountLabel(count: number, seriesType: SeriesType): string {
+  const template =
+    seriesType === "VARIABLE"
+      ? count === 1
+        ? t.seriesCountVariableSingular
+        : t.seriesCountVariable
+      : count === 1
+        ? t.seriesCountUniformSingular
+        : t.seriesCountUniform;
+  return template.replace("{n}", String(count));
+}
+
 /** Indice d'accessibilité d'une valeur signalée, selon la violation (PRE-4). */
 const invalidHintFor = (code: ExecutionParametersViolation["code"]) =>
   code === "REQUIRED" ? t.invalidHint : t.invalidValueHint;
@@ -472,7 +499,7 @@ export function ExecutionParametersSheet({
   onCancel,
 }: ExecutionParametersSheetProps) {
   const insets = useSafeAreaInsets();
-  const { height: windowHeight } = useWindowDimensions();
+  const { height: windowHeight, width: windowWidth } = useWindowDimensions();
   const [draft, setDraft] = useState<ExecutionSheetDraft>(() => openSheetDraft(parent));
   // Story 3.3 (AD-15) : surface ouverte unique — roue (panneau sur iOS), champ ± ou clavier.
   const [surface, dispatchSurface] = useReducer(sheetSurfaceReducer, INITIAL_SHEET_SURFACE_STATE);
@@ -1197,25 +1224,69 @@ export function ExecutionParametersSheet({
   // PRE-5 story 2.4 (AC7, FR-27, FR-28, R-03) : Type de série en segmenté `inline`,
   // « Variables | Identiques ». Variables porte le chevron intérieur quand le tableau
   // existe : haut si déployé, bas si replié ; son appui replie ou déplie sans perte (ancien
-  // `DisclosureControl`). À N = 1, non modifiable (P16) : lecture seule atténuée. Avec des
-  // phases, Variables est indisponible (FR-2).
+  // `DisclosureControl`). Avec des phases, Variables est indisponible (FR-2).
+  // Recette du 20/10 (RC-15, Figma `9436:18101`, `9439:18307`, `9436:18305`, `9445:18410`) : le
+  // nombre de séries est porté par l'option sélectionnée (« 3 séries identiques », « 3 séries
+  // variables » et chevron) ; son toucher révèle le stepper existant (1..99, mêmes pas, même
+  // politique de maintien, `setSeriesCount`, surface `stepper(count)`) sur fond `#F2F2FF` dans
+  // un segmenté de 34 ; toucher la valeur le referme (RC-4). L'option non sélectionnée garde
+  // « Variables » ou « Identiques ». À N = 1 (P16), le Type de série reste non modifiable :
+  // Variables indisponible (au lieu du contrôle entier atténué), le nombre reste réglable.
+  const seriesCountOpen = isOpen(stepperSurface("count"));
+  const seriesChevron = seriesTypeValue === "VARIABLE";
+  const seriesSelectedWidth = seriesSelectedOptionWidth({
+    label: seriesTypeCountLabel(draft.count, seriesTypeValue),
+    stepperValue: seriesLabel(draft.count),
+    open: seriesCountOpen,
+    chevron: seriesChevron,
+  });
+  const seriesUnselectedWidth = seriesUnselectedOptionWidth(
+    seriesTypeValue === "VARIABLE" ? "UNIFORM" : "VARIABLE",
+    seriesSelectedWidth,
+    windowWidth - SHEET_ROW_SIDE_WIDTH - spacing[8],
+  );
+  const seriesCountContent = (
+    <SegmentCountField
+      isOpen={seriesCountOpen}
+      onToggle={toggleSeriesCount}
+      count={draft.count}
+      min={EXECUTION_BOUNDS.seriesCount.min}
+      max={EXECUTION_BOUNDS.seriesCount.max}
+      policy={EXECUTION_ACCELERATED_HOLD_POLICY}
+      closedLabel={seriesTypeCountLabel(draft.count, seriesTypeValue)}
+      formatValue={seriesLabel}
+      onChange={(count) => update(setSeriesCount(draft, count))}
+      accessibilityLabel={t.series}
+      valueStyle={styles.seriesStepperValue}
+      fieldStyle={styles.seriesStepperField}
+      style={seriesChevron ? styles.seriesCountBeforeChevron : null}
+      testID="execution-sheet-series"
+      textTestID="execution-sheet-series-value"
+    />
+  );
+  const seriesTypeOption = (seriesType: SeriesType) =>
+    seriesType === seriesTypeValue
+      ? { width: seriesSelectedWidth, selectedContent: seriesCountContent, ownSurface: seriesCountOpen }
+      : { width: seriesUnselectedWidth };
   const seriesTypeControl = (
     <SegmentedControl<SeriesType>
       variant="inline"
       optionWidth={INLINE_OPTION_WIDTHS.wide}
-      readOnly={single}
+      height={seriesCountOpen ? SERIES_CONTROL_OPEN_HEIGHT : undefined}
       options={[
         {
           value: "VARIABLE",
           label: t.seriesTypes.VARIABLE,
-          disabled: hasWorkPhases,
+          disabled: hasWorkPhases || single,
+          accessibilityLabel: single ? `${t.seriesTypes.VARIABLE}, ${t.disabledSuffix}` : undefined,
           chevron: showVariableTable ? (isTableFolded ? "down" : "up") : undefined,
           chevronAccessibilityLabel: isTableFolded ? t.showTable : t.hideTable,
+          ...seriesTypeOption("VARIABLE"),
         },
         {
           value: "UNIFORM",
           label: t.seriesTypes.UNIFORM,
-          accessibilityLabel: single ? `${t.seriesTypes.UNIFORM}, ${t.disabledSuffix}` : undefined,
+          ...seriesTypeOption("UNIFORM"),
         },
       ]}
       value={seriesTypeValue}
@@ -1398,11 +1469,17 @@ export function ExecutionParametersSheet({
       dispatchSurface({ type: "closeAll" });
       return;
     }
+    // Recette du 20/10 (RC-15) : re-choisir le type affiché (zone de l'option hors valeur) ouvre ou
+    // ferme le stepper du nombre de séries, comme le toucher de la valeur (même logique que
+    // l'option Avec des phases) ; Brouillon et repli du tableau inchangés.
+    if (seriesType === seriesTypeValue) {
+      toggleSeriesCount();
+      return;
+    }
     const variable = seriesType === "VARIABLE";
     // PRE-5 story 2.2 (AD-27) : la saisie en cours est appliquée avant la transition.
     const base = keyboard.flush(draft);
-    // Seul un passage effectif change le Brouillon et l'affichage : re-choisir Variables,
-    // tableau replié, le laisse replié.
+    // Seul un passage effectif change le Brouillon et l'affichage.
     if (variable !== (seriesTypeValue === "VARIABLE")) {
       // Recette 1 (A-01) : passer en Variables présente le tableau déployé ; les données
       // restent celles du Brouillon.
@@ -1416,8 +1493,20 @@ export function ExecutionParametersSheet({
     dispatchSurface({ type: "closeAll" });
   }
 
+  /**
+   * Recette du 20/10 (RC-15, RC-4) : ouvre ou referme le stepper du nombre de séries (surface
+   * `stepper(count)` existante), saisie en cours appliquée d'abord.
+   */
+  function toggleSeriesCount() {
+    const base = keyboard.flush(draft);
+    if (base !== draft) commitKeyboard(() => base);
+    toggle(stepperSurface("count"));
+  }
+
   // PRE-5 story 2.4 (AC7, FR-28) : chevron de Variables — reprend l'ancien
   // `DisclosureControl` : replier ou déplier sans perte de valeurs ni de mode.
+  // RC-15 : indépendant du stepper du nombre de séries, qu'il n'ouvre pas (une surface ouverte
+  // est rangée, T14).
   function toggleTable() {
     // Q40 : déplier sélectionne le tableau ; replier le désélectionne.
     // T14 : toute surface ouverte (champ ± compris) est rangée.
@@ -1760,8 +1849,8 @@ export function ExecutionParametersSheet({
                   </Row>
                 </SheetMotionView>
 
-                {/* Cadre Séries : Nombre de séries, Type de série et tableau, puis Durée ou
-                    Répétitions et Pause en identiques. */}
+                {/* Cadre Séries : Phases, Type de série (portant le nombre de séries, RC-15) et
+                    tableau, puis Durée ou Répétitions et Pause en identiques. */}
                 <SheetMotionView
                   appear={false}
                   onLayout={trackFrame("series")}
@@ -1809,22 +1898,9 @@ export function ExecutionParametersSheet({
                   {/* Story 2.8 (AC3b, PR-02, Figma `9207:18817`) : aucun séparateur après le tableau
                       des phases déployé ; sinon, séparateur entre les deux lignes. */}
                   {hasWorkPhases && !isPhasesFolded ? null : <Separator />}
-                  {/* NR Δ38 (impératif) : stepper « Nombre de séries » de PRE-4 inchangé (mêmes
-                      props, valeur au repos, ± à l'appui, nom accessible `series`) ; seule sa
-                      ligne devient « Nombre de séries » dans le cadre Séries. */}
-                  <Row label={t.seriesCount} selected={isOpen(stepperSurface("count"))} testID="execution-sheet-row-series">
-                    {stepperField("count", t.series, {
-                      value: draft.count,
-                      min: EXECUTION_BOUNDS.seriesCount.min,
-                      max: EXECUTION_BOUNDS.seriesCount.max,
-                      policy: EXECUTION_ACCELERATED_HOLD_POLICY,
-                      formatValue: seriesLabel,
-                      onChange: (count) => update(setSeriesCount(draft, count)),
-                      accessibilityLabel: t.series,
-                      testID: "execution-sheet-series",
-                    })}
-                  </Row>
-                  <Separator />
+                  {/* Recette du 20/10 (RC-15) : plus de ligne « Nombre de séries » ; le nombre est
+                      porté par le segmenté du Type de série (NR Δ38 : règles et accessibilité du
+                      stepper conservées, présentation remplacée). */}
                   {/* Q40 (Hermann, 2026-10-17, E-14) : tableau sélectionné (ouvert, ou action
                       dedans) = fond d'une ligne sélectionnée, sans contour, qui couvre la ligne
                       « Type de série » et le tableau ; sinon état normal. Le séparateur reste à
@@ -1845,8 +1921,9 @@ export function ExecutionParametersSheet({
                   >
                     <Row label={t.seriesType} testID="execution-sheet-row-series-type">
                       {single ? (
-                        // P16, T23 : l'information non modifiable absorbe l'appui (comme
-                        // l'ancienne pastille du Régime) ; un champ ± ouvert reste ouvert.
+                        // P16, T23 : l'information non modifiable (Variables indisponible) absorbe
+                        // l'appui (comme l'ancienne pastille du Régime) ; un champ ± ouvert reste
+                        // ouvert. RC-15 : le nombre de séries, dans Identiques, reste réglable.
                         <Pressable onPress={ignorePress} accessible={false} testID="execution-sheet-series-type-absorb">
                           {seriesTypeControl}
                         </Pressable>
@@ -2044,7 +2121,7 @@ export function ExecutionParametersSheet({
                           notation ni menu ; l'Enchainement choisi reste dans le Brouillon
                           (`draft.sideOrder`) et réapparaît dès N ≥ 2 ; la normalisation
                           effective « Un côté après l’autre » à N = 1 est inchangée (FR-12-04).
-                          Le stepper « Nombre de séries » n'en est pas modifié (NR Δ38). */}
+                          Le stepper du nombre de séries n'en est pas modifié (NR Δ38). */}
                       <Separator />
                       <Row
                         label={t.sideRecovery}
@@ -2700,15 +2777,90 @@ function RevealedStepperField({ onClose, ...stepper }: InlineStepperProps & { on
 }
 
 /**
- * PRE-5 story 2.8 (FR-4, FR-5, D-432, RC-4, AD-16) — contenu de l'option Avec sélectionnée de la
- * ligne « Phases de l'exercice » (le chevron est rendu après lui par `SegmentedControl`) :
- * - fermé : « n phases » (libellé sélectionné, Semi Bold 12 blanc) ; son toucher révèle le
- *   réglage (`stepper(phaseCount)`) ;
- * - ouvert : `InlineStepper` existant sans pilule (`appearance="bare"`), 2..6, pas 1, valeur
- *   « n phases » ; − et + indisponibles aux bornes ; toucher la valeur (ou l'action « activer »)
+ * PRE-5 story 2.8 (FR-4, FR-5, D-432, RC-4, AD-16) ; recette du 20/10 (RC-15) — contenu de l'option
+ * sélectionnée d'un segmenté `inline` qui porte un nombre (le chevron éventuel est rendu après lui
+ * par `SegmentedControl`) : « n phases » (Avec des Phases de l'exercice) ou « n séries identiques /
+ * variables » (Type de série) :
+ * - fermé : le libellé (Semi Bold 12 blanc) ; son toucher révèle le réglage ;
+ * - ouvert : `InlineStepper` existant sans pilule (`appearance="bare"`), bornes, pas et politique
+ *   de l'appelant ; − et + indisponibles aux bornes ; toucher la valeur (ou l'action « activer »)
  *   le referme ; mêmes actions d'échappement et même focus VoiceOver que les autres champs ±
- *   (`OpenStepperField`, `useOpenFieldFocus`).
+ *   (`OpenStepperField`, `useOpenFieldFocus`). Phases : valeur blanche sur le violet de l'option ;
+ *   séries (RC-15, Figma `9436:18506`) : surface propre `#F2F2FF` (`fieldStyle`) et valeur primaire.
  */
+function SegmentCountField({
+  isOpen,
+  onToggle,
+  count,
+  min,
+  max,
+  policy,
+  closedLabel,
+  formatValue,
+  onChange,
+  accessibilityLabel,
+  valueStyle,
+  fieldStyle,
+  style,
+  testID,
+  textTestID,
+}: {
+  isOpen: boolean;
+  onToggle: () => void;
+  count: number;
+  min: number;
+  max: number;
+  policy: InlineStepperProps["policy"];
+  closedLabel: string;
+  formatValue: (count: number | null) => string;
+  onChange: (count: number) => void;
+  accessibilityLabel: string;
+  valueStyle?: StyleProp<TextStyle>;
+  fieldStyle?: StyleProp<ViewStyle>;
+  style?: StyleProp<ViewStyle>;
+  testID: string;
+  textTestID: string;
+}) {
+  const { fieldRef, toggleRef, closeFromAccessibility } = useOpenFieldFocus(isOpen, onToggle);
+  if (!isOpen) {
+    return (
+      <Pressable
+        ref={toggleRef}
+        onPress={onToggle}
+        accessibilityRole="button"
+        accessibilityLabel={`${accessibilityLabel}, ${closedLabel}`}
+        accessibilityState={{ expanded: false }}
+        hitSlop={SEGMENT_COUNT_HIT_SLOP}
+        style={style}
+        testID={`${testID}-toggle`}
+      >
+        <Text style={inlineSelectedLabelStyle} testID={textTestID}>
+          {closedLabel}
+        </Text>
+      </Pressable>
+    );
+  }
+  return (
+    <OpenStepperField
+      value={count}
+      min={min}
+      max={max}
+      policy={policy}
+      formatValue={formatValue}
+      onChange={onChange}
+      accessibilityLabel={accessibilityLabel}
+      appearance="bare"
+      valueStyle={valueStyle}
+      testID={testID}
+      fieldRef={fieldRef}
+      onClose={closeFromAccessibility}
+      fieldTestID={`${testID}-field`}
+      style={[fieldStyle, style]}
+    />
+  );
+}
+
+/** PRE-5 story 2.8 : nombre de phases (2..6) dans l'option Avec sélectionnée, rendu inchangé. */
 function PhaseCountField({
   isOpen,
   onToggle,
@@ -2720,40 +2872,21 @@ function PhaseCountField({
   count: number;
   onChange: (count: number) => void;
 }) {
-  const { fieldRef, toggleRef, closeFromAccessibility } = useOpenFieldFocus(isOpen, onToggle);
-  const display = phaseCountLabel(count);
-  if (!isOpen) {
-    return (
-      <Pressable
-        ref={toggleRef}
-        onPress={onToggle}
-        accessibilityRole="button"
-        accessibilityLabel={`${t.workPhaseCountLabel}, ${display}`}
-        accessibilityState={{ expanded: false }}
-        hitSlop={PHASE_COUNT_HIT_SLOP}
-        testID="execution-sheet-phase-count-toggle"
-      >
-        <Text style={inlineSelectedLabelStyle} testID="execution-sheet-phase-count-text">
-          {display}
-        </Text>
-      </Pressable>
-    );
-  }
   return (
-    <OpenStepperField
-      value={count}
+    <SegmentCountField
+      isOpen={isOpen}
+      onToggle={onToggle}
+      count={count}
       min={WORK_PHASE_LIMITS.controlMinCount}
       max={WORK_PHASE_LIMITS.maxCount}
       policy={EXECUTION_UNIT_HOLD_POLICY}
+      closedLabel={phaseCountLabel(count)}
       formatValue={phaseCountLabel}
       onChange={onChange}
       accessibilityLabel={t.workPhaseCountLabel}
-      appearance="bare"
       valueStyle={inlineSelectedLabelStyle}
       testID="execution-sheet-phase-count"
-      fieldRef={fieldRef}
-      onClose={closeFromAccessibility}
-      fieldTestID="execution-sheet-phase-count-field"
+      textTestID="execution-sheet-phase-count-text"
     />
   );
 }
@@ -2889,11 +3022,38 @@ const LOAD_SEGMENT_HIT_SLOP = { top: 9, bottom: 9 };
  * PRE-5 story 2.8 (NFR-7) : « n phases » (texte de 16) porté à une cible de 44 de haut, dans la
  * ligne de 44, sans agrandir le dessin ; le reste de l'option Avec (re-choisie) a le même effet.
  */
-const PHASE_COUNT_HIT_SLOP = { top: 14, bottom: 14 };
+const SEGMENT_COUNT_HIT_SLOP = { top: 14, bottom: 14 };
+/**
+ * Recette du 20/10 (RC-15, Figma `9436:18348`) : segmenté du Type de série de 34 quand le stepper du
+ * nombre de séries (28) est ouvert, 32 au repos ; stepper sur fond `#F2F2FF` (`colors.stepperSurface`),
+ * rayon 14 (moitié de sa hauteur).
+ */
+const SERIES_CONTROL_OPEN_HEIGHT = 34;
+const SERIES_STEPPER_RADIUS = SERIES_STEPPER_CIRCLE / 2;
+/**
+ * RC-15 : place d'une ligne de premier niveau hors libellé et contrôle — marges du corps (2 × 24),
+ * contour (2 × 1) et marge (2 × 12) du cadre : 74 (328 à 402, 301 à 375).
+ */
+const SHEET_ROW_SIDE_WIDTH = spacing[24] * 2 + FRAME_BORDER_WIDTH * 2 + GROUP_PADDING * 2;
 /** PRE-5 story 2.8 (Figma `9207:18817`) : cellule Libellé de 24 de haut, rayon 8 (gabarit des cellules). */
 const PHASE_LABEL_CELL_RADIUS = 8;
 
 const styles = StyleSheet.create({
+  // RC-15 (Figma `9436:18506`) : stepper du nombre de séries ouvert, pilule `#F2F2FF` de 28.
+  seriesStepperField: {
+    backgroundColor: colors.stepperSurface,
+    borderRadius: SERIES_STEPPER_RADIUS,
+  },
+  // RC-15 : valeur « 3 séries » (Semi Bold 13 primaire d'`InlineStepper`) avec sa marge de 8, à 8
+  // des cercles (écart 2 d'`InlineStepper` + 6).
+  seriesStepperValue: {
+    paddingHorizontal: SERIES_STEPPER_VALUE_INSET,
+    marginHorizontal: SERIES_STEPPER_GAP - spacing[2],
+  },
+  // RC-15 (Figma `9445:18450`) : écart de 6 entre la valeur et le chevron (4 du segmenté + 2).
+  seriesCountBeforeChevron: {
+    marginRight: SERIES_CHEVRON_GAP - spacing[4],
+  },
   // RC-13 : place du segmenté le plus large, segmenté aligné à droite et centré verticalement.
   sideControlSlot: {
     minWidth: SIDE_CONTROL_RESERVED_WIDTH,

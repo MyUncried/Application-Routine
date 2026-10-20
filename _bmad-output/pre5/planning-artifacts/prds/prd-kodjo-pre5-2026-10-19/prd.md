@@ -485,7 +485,7 @@ Dans la barre du clavier numérique, Précédent et Suivant déplacent la saisie
 La Feuille se compose de quatre cadres gris arrondis, espacés de 8, dans cet ordre :
 
 1. **Exécution** : Mode, Condition d'arrêt.
-2. **Séries** : Phases de l'exercice et leur tableau ; Nombre de séries ; Type de série ; Durée ou Répétitions et Pause, ou le tableau variable ; Charge.
+2. **Séries** : Phases de l'exercice et leur tableau ; Nombre de séries [recette du 20/10, RC-15 : porté par le segmenté Type de série, sans ligne propre] ; Type de série ; Durée ou Répétitions et Pause, ou le tableau variable ; Charge.
 3. **Côtés** : Changement de côté, puis Enchainement et Pause entre les côtés.
 4. **Cadence et durée** : Cadence, Durée de l'exercice, puis Compte à rebours et Fin d'exercice.
 
@@ -803,7 +803,7 @@ Ces lignes sont déjà conformes. Elles n'ont ni story, ni revue complète. Leur
 | Δ07 | Ordre Description → Paramètres d'exécution → Média ; titre « Paramètres d'exécution » (Q11) ; Carte vide sans invite (Q55) | Tests existants de l'éditeur |
 | Δ24 | Enchainement non affiché à N = 1, Avec / Sans disponible, Enchainement conservé (Q38 = D-415) | Tests Q38 |
 | Δ30 | Aucune autre valeur ne passe au clavier : roues natives et steppers conservés. **Remplacée en partie par D-434 (19/10)** : les cellules Durée et Pause du tableau des séries variables et les durées de phase passent au clavier numérique MMSS ; hors tableaux, la ligne reste valable | `DurationWheelPicker.test.tsx:371-379`, `NumberWheelPicker.test.tsx:260` |
-| Δ38 | Nombre de séries, Pause, Pause entre les côtés, Compte à rebours et Fin : valeur au repos, ± à l'appui ; roues en panneau sans flèche ; ✓/✕ en deux temps ; fond rouge pâle si manquante (Q35, Q37, Q41, Q46, Q47). **Impératif (revue du 19/10) :** le stepper « Nombre de séries » de PRE-4 est conservé à l'identique (présentation, interactions, révélation et fermeture, pas, accessibilité) ; le tableau des séries variables suit N ; aucun remplacement par une roulette ni par le clavier ; seule son intégration visuelle dans la nouvelle Feuille peut s'adapter | Tests existants de la Feuille ; critère explicite de la recette Feuille (stories 2.4 à 2.6) |
+| Δ38 | Nombre de séries, Pause, Pause entre les côtés, Compte à rebours et Fin : valeur au repos, ± à l'appui ; roues en panneau sans flèche ; ✓/✕ en deux temps ; fond rouge pâle si manquante (Q35, Q37, Q41, Q46, Q47). **Impératif (revue du 19/10) :** le stepper « Nombre de séries » de PRE-4 est conservé à l'identique (présentation, interactions, révélation et fermeture, pas, accessibilité) ; le tableau des séries variables suit N ; aucun remplacement par une roulette ni par le clavier ; seule son intégration visuelle dans la nouvelle Feuille peut s'adapter. **Recette du 20/10 (RC-15) :** présentation et intégration remplacées — le nombre est porté par l'option sélectionnée du segmenté Type de série ; règles, bornes, transitions et accessibilité conservées | Tests existants de la Feuille ; critère explicite de la recette Feuille (stories 2.4 à 2.6) |
 | Δ47 | Durées de Séance, synthèses de ligne du Catalogue et de la Composition, carte du Catalogue : inchangées tant que `workSeconds` reste juste avec les phases | `calculations.test.ts`, `compositionPresentation.test.ts`, `ActivityCard.test.tsx` |
 
 Sont aussi conservés, malgré les captures : la Pause après chaque série à N = 1 (la matrice du 19/10 ne prime pas) et les steppers révélés de N et de la Pause (C-5).
